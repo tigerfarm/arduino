@@ -1,0 +1,38 @@
+4017
+pin 14 clock	      Arduino 10 write
+pin 03 0		LED 1
+pin 02 1		LED 2
+pin 04 2		LED 3
+pin 07 3		LED 4
+pin 10 4		LED 5
+pin 01 5		LED 6
+pin 05 6		      Arduino 08 read
+pin 06 7		Reset
+
++++ Start v1.
+++ Set counter 1 to LEDs off.
++ counter1readValue = 0
++ counter1readValue = 0
++ counter1readValue = 0
++ counter1readValue = 0
++ counter1readValue = 1
+++ Set counter 2 to LEDs off.
++ counter2readValue = 0
++ counter2readValue = 1
+++ Setup completed.
+
++ LED = 1, currentClock = 11, counter1readValue = 0, counter2readValue = 1
++ LED = 2, currentClock = 11, counter1readValue = 0, counter2readValue = 1
++ LED = 3, currentClock = 11, counter1readValue = 0, counter2readValue = 1
++ LED = 4, currentClock = 11, counter1readValue = 0, counter2readValue = 1
++ LED = 5, currentClock = 11, counter1readValue = 0, counter2readValue = 1
++ LED = 6, currentClock = 11, counter1readValue = 0, counter2readValue = 1
++ LED = 1, currentClock = 12, counter1readValue = 1, counter2readValue = 0
++ LED = 2, currentClock = 12, counter1readValue = 1, counter2readValue = 0
++ LED = 3, currentClock = 12, counter1readValue = 1, counter2readValue = 0
++ LED = 4, currentClock = 12, counter1readValue = 1, counter2readValue = 0
++ LED = 5, currentClock = 12, counter1readValue = 1, counter2readValue = 0
++ LED = 6, currentClock = 12, counter1readValue = 1, counter2readValue = 0
++ LED = 1, currentClock = 11, counter1readValue = 0, counter2readValue = 1
++ LED = 2, currentClock = 11, counter1readValue = 0, counter2readValue = 1
++ LED = 3, currentClock = 11, counter1readValue = 0, counter2readValue = 1
