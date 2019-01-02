@@ -4,6 +4,7 @@
    Arduino Pong By Pete Lamonica,
    modified by duboisvb,
    updated by James Bruce: http://www.makeuseof.com/tag/author/jbruce
+   updated by Stacy David: https://github.com/tigerfarm/arduino/tree/master/samples/pongv3
    
    To compile, from the library manager (Sketch/Include library/Manage libraries), install: tvout.
    Move the directory, TVoutfonts, to the directory: Documents/Arduino/libraries.
@@ -43,8 +44,6 @@ int state = IN_MENU;
 boolean button1Status = false;
 boolean buttonPressed = false;
 boolean buttonPressedStill = false;
-boolean doDrawMenu = true;
-boolean doDrawWin = true;
 char volX = 3;
 char volY = 3;
 unsigned char x, y;
@@ -134,6 +133,14 @@ void drawScore() {
   TV.print_char(RIGHT_SCORE_X, SCORE_Y, '0' + rightPlayerScore);
 }
 
+void drawGameOver() {
+  drawGameBoard();
+  drawScore();
+  TV.select_font(font8x8);
+  TV.print(DISPLAY_MESSAGE_X, GAME_OVER_Y, "Game over.");
+  drawStartGame();
+}
+
 // -----------------------------------------------------------------------
 // Game action
 
@@ -177,6 +184,7 @@ void playerScored(byte player) {
   if (player == LEFT) leftPlayerScore++;
   if (leftPlayerScore == PLAY_TO || rightPlayerScore == PLAY_TO) {
     state = GAME_OVER;
+    drawGameOver();
   }
   ballVolX = -ballVolX;
 }
@@ -197,7 +205,6 @@ void buttonSetState() {
     state = PLAYING_GAME;
     rightPlayerScore = 0;
     leftPlayerScore = 0;
-    doDrawWin = true;
   }
 }
 
@@ -206,11 +213,13 @@ void setup()  {
   Serial.begin(9600);
   Serial.println("+++ Setup start.");
   TV.begin(_NTSC);       //for devices with only 1k sram(m168) use TV.begin(_NTSC,128,56)
-  state = IN_MENU;
   x = 0;
   y = 0;
   ballX = TV.hres() / 2;
   ballY = TV.vres() / 2;
+  //
+  state = IN_MENU;
+  drawMenu();
   Serial.println("+ Setup complete.");
 }
 
@@ -254,13 +263,9 @@ void loop() {
     buttonPressed = false;
   }
   // ---------------------------------------------------------------------
-  // Game states
+  // Game state actvities
   
   if (state == IN_MENU) {
-    if (doDrawMenu) {
-      drawMenu();
-      doDrawMenu = false;
-    }
     drawMenuBall();
   }
   if (state == PLAYING_GAME) {
@@ -274,16 +279,7 @@ void loop() {
     TV.delay_frame(1);  // Required, else the screen flashes.
   }
   if (state == GAME_OVER) {
-    if (doDrawWin) {
-      drawGameBoard();
-      drawScore();
-      //
-      TV.select_font(font8x8);
-      TV.print(DISPLAY_MESSAGE_X, GAME_OVER_Y, "Game over.");
-      drawStartGame();
-      //
-      doDrawWin = false;
-    }
+    drawMenuBall();
   }
 }
 
