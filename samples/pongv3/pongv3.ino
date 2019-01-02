@@ -26,7 +26,7 @@
 #define RIGHT_PADDLE_X (TV.hres()-4)
 #define LEFT_PADDLE_X 2
 
-#define MAX_Y_VELOCITY 6
+#define MAX_Y_VELOCITY 12
 #define PLAY_TO 6
 
 // Display message locations
@@ -179,6 +179,24 @@ void playerScored(byte player) {
   ballVolX = -ballVolX;
 }
 
+void buttonSetState() {
+  // Manage control for multiple button presses:
+  //  1. Start a new game in 1 second.
+  //  2. If pressed again, within 1 second, set faster ball speed.
+  //  3.1 If pressed while in a game, pause the game.
+  //  3.2 If pressed while in game pause state, continue the game.
+  if (state == PLAYING_GAME) {
+    state = PLAYING_GAME_PAUSE;
+    TV.select_font(font8x8);
+    TV.print(DISPLAY_MESSAGE_X, GAME_OVER_Y, "Game Paused.");
+  } else if (state == PLAYING_GAME_PAUSE) {
+    state = PLAYING_GAME;
+  } else if (state == IN_MENU) {
+    state = PLAYING_GAME;
+    doDrawWin = true;
+  }
+}
+
 // -----------------------------------------------------------------------
 void setup()  {
   Serial.begin(9600);
@@ -221,6 +239,31 @@ void loop() {
   Serial.println(paddleTwoPosition);
   */
   
+  // ---------------------------------------------------------------------
+  if (button1Status) {
+    // This is a button toggle to hanle a quick click and a click and hold.
+    if (!buttonPressed) {
+      buttonSetState();
+      buttonPressed = true;
+    }
+  } else {
+    buttonPressed = false;
+  }
+    /*
+  if (button1Status) {
+    // This is a button toggle to hanle a quick click and a click and hold.
+    if (buttonPressed) {
+      buttonPressedStill = true;
+    } else {
+      buttonPressed = true;
+      buttonSetState();
+    }
+  } else {
+    buttonPressed = false;
+    buttonPressedStill = false;
+  }
+    */
+  // ---------------------------------------------------------------------
   if (state == IN_MENU) {
     if (doDrawMenu) {
       drawMenu();
@@ -228,41 +271,6 @@ void loop() {
     }
     drawMenuBall();
   }
-  // ---------------------------------------------------------------------
-  /*
-  if (button1Status) {
-    state = PLAYING_GAME;
-    doDrawWin = true;
-  }
-  */
-  // Manage control for multiple presses:
-  //  1. Start a new game in 1 second.
-  //  2. If pressed again, within 1 second, set faster ball speed.
-  //  3.1 If pressed while in a game, pause the game.
-  //  3.2 If pressed while in pause state, continue the game.
-  if (button1Status) {
-    if (buttonPressed) {
-      buttonPressedStill = true;
-    }
-    buttonPressed = true;
-  } else {
-    buttonPressed = false;
-    buttonPressedStill = false;
-  }
-  if (buttonPressed && !buttonPressedStill) {
-    if (state == PLAYING_GAME) {
-      state = PLAYING_GAME_PAUSE;
-      TV.select_font(font8x8);
-      TV.print(DISPLAY_MESSAGE_X, GAME_OVER_Y, "Game Paused.");
-    } else if (state == PLAYING_GAME_PAUSE) {
-      state = PLAYING_GAME;
-    } else if (state == IN_MENU) {
-      state = PLAYING_GAME;
-      doDrawWin = true;
-    }
-  }
-
-  // ---------------------------------------------------------------------
   /*
   */
   if (state == PLAYING_GAME) {
