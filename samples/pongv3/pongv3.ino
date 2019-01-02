@@ -42,6 +42,7 @@ TVout TV;
 int state = IN_MENU;
 boolean button1Status = false;
 boolean buttonPressed = false;
+boolean buttonPressedStill = false;
 boolean doDrawMenu = true;
 boolean doDrawWin = true;
 char volX = 3;
@@ -134,7 +135,7 @@ void drawScore() {
 // -----------------------------------------------------------------------
 // Game action
 
-void gameBall() {
+void drawGameBall() {
   ballX += ballVolX;
   ballY += ballVolY;
   //
@@ -201,19 +202,23 @@ void getInputs() {
 void loop() {
   getInputs();
   delay(50);
-  if (counter == 60) counter = 0; // increment or reset frame counter
+  if (counter == 60) counter = 10; // increment or reset frame counter
   counter++;
   /*  For testing. However, when used, the TV output doesn't work.
   Serial.print("+ loop counter = ");
   Serial.print(counter);
   Serial.print(" State: ");
   Serial.print(state);
-  Serial.print(" One Two Button: ");
+  Serial.print("  Button Status Pressed PressedStill: ");
+  Serial.print(button1Status);
+  Serial.print(" ");
+  Serial.print(buttonPressed);
+  Serial.print(" ");
+  Serial.print(buttonPressedStill);
+  Serial.print(" Paddle One Two: ");
   Serial.print(paddleOnePosition);
   Serial.print(" ");
-  Serial.print(paddleTwoPosition);
-  Serial.print(" ");
-  Serial.println(button1Status);
+  Serial.println(paddleTwoPosition);
   */
   
   if (state == IN_MENU) {
@@ -223,24 +228,41 @@ void loop() {
     }
     drawMenuBall();
   }
+  // ---------------------------------------------------------------------
+  /*
   if (button1Status) {
-    buttonPressed = true;
-      state = PLAYING_GAME;
-      doDrawWin = true;
-    /*
-    if (state == IN_MENU) {
-      state = PLAYING_GAME;
-      doDrawWin = true;
-    }
-    if (state == PLAYING_GAME) {
-      // Pause
-      state == PLAYING_GAME_PAUSE;
-    }
-    if (state == PLAYING_GAME_PAUSE) {
-      state == PLAYING_GAME;
-    }
-    */
+    state = PLAYING_GAME;
+    doDrawWin = true;
   }
+  */
+  // Manage control for multiple presses:
+  //  1. Start a new game in 1 second.
+  //  2. If pressed again, within 1 second, set faster ball speed.
+  //  3.1 If pressed while in a game, pause the game.
+  //  3.2 If pressed while in pause state, continue the game.
+  if (button1Status) {
+    if (buttonPressed) {
+      buttonPressedStill = true;
+    }
+    buttonPressed = true;
+  } else {
+    buttonPressed = false;
+    buttonPressedStill = false;
+  }
+  if (buttonPressed && !buttonPressedStill) {
+    if (state == PLAYING_GAME) {
+      state = PLAYING_GAME_PAUSE;
+      TV.select_font(font8x8);
+      TV.print(DISPLAY_MESSAGE_X, GAME_OVER_Y, "Game Paused.");
+    } else if (state == PLAYING_GAME_PAUSE) {
+      state = PLAYING_GAME;
+    } else if (state == IN_MENU) {
+      state = PLAYING_GAME;
+      doDrawWin = true;
+    }
+  }
+
+  // ---------------------------------------------------------------------
   /*
   */
   if (state == PLAYING_GAME) {
@@ -249,7 +271,7 @@ void loop() {
       drawGameBoard();
       drawScore();
       drawPaddles();
-      gameBall();
+      drawGameBall();
     }
     TV.delay_frame(1);  // Required, else the screen flashes.
   }
