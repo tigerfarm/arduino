@@ -184,7 +184,7 @@ void playerScored(byte player) {
 void buttonSetState() {
   // Manage control for multiple button presses:
   //  1. Start a new game in 1 second.
-  //  2. If pressed again, within 1 second, set faster ball speed.
+  //  2.  (to do) If pressed again, within 1 second, set faster ball speed.
   //  3.1 If pressed while in a game, pause the game.
   //  3.2 If pressed while in game pause state, continue the game.
   if (state == PLAYING_GAME) {
