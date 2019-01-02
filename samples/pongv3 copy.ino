@@ -1,61 +1,59 @@
 /********
-   A basic implementation of Pong on the Arduino using a TV for output.
-
-   Arduino Pong By Pete Lamonica,
-   modified by duboisvb,
-   updated by James Bruce: http://www.makeuseof.com/tag/author/jbruce
-   
+   Arduino Pong By Pete Lamonica modified by duboisvb
+   updated by James Bruce (http://www.makeuseof.com/tag/author/jbruce
+   A simple implementation of Pong on the Arduino using a TV for output.
    To compile, from the library manager (Sketch/Include library/Manage libraries), install: tvout.
    Move the directory, TVoutfonts, to the directory: Documents/Arduino/libraries.
 */
 #include <TVout.h>
 #include <fontALL.h>
 
-// Game states
-#define IN_MENU 0
-#define PLAYING_GAME 1
-#define GAME_OVER 2
-#define PLAYING_GAME_PAUSE 3
-
-#define BUTTON_ONE_PIN 2 // digital to control the game state
-#define PLAYER_ONE_PIN 0 // analog paddle control
-#define PLAYER_TWO_PIN 1 // analog paddle control
+#define WHEEL_ONE_PIN 0 //analog
+#define WHEEL_TWO_PIN 1 //analog
+#define BUTTON_ONE_PIN 2 //digital to start game
+// Not programmed: #define BUTTON_TWO_PIN 3 //digital to reset and go back to main menu
 
 #define PADDLE_HEIGHT 14
 #define PADDLE_WIDTH 1
+
 #define RIGHT_PADDLE_X (TV.hres()-4)
 #define LEFT_PADDLE_X 2
+
+#define IN_GAMEA 0 //in game state - draw constants of the game box
+#define IN_GAMEB 0 //in game state - draw the dynamic part of the game
+
+#define IN_MENU 1 //in menu state
+#define GAME_OVER 2 //game over state
+
+#define LEFT_SCORE_X (TV.hres()/2-15)
+#define RIGHT_SCORE_X (TV.hres()/2+10)
+#define SCORE_Y 4
+#define GAME_OVER_X (TV.hres()/2-20)
+#define GAME_OVER_Y 12
 
 #define MAX_Y_VELOCITY 6
 #define PLAY_TO 6
 
-// Display message locations
-#define LEFT_SCORE_X (TV.hres()/2-15)
-#define RIGHT_SCORE_X (TV.hres()/2+10)
-#define SCORE_Y 4
-//
-#define DISPLAY_MESSAGE_X 20
-#define GAME_OVER_Y 12
-
 TVout TV;
 
 int state = IN_MENU;
-boolean button1Status = false;
-boolean buttonPressed = false;
+
 boolean doDrawMenu = true;
 boolean doDrawWin = true;
 char volX = 3;
 char volY = 3;
 unsigned char x, y;
+
 int counter = 0;
-//
+
 int leftPlayerScore = 0;
 int rightPlayerScore = 0;
-int paddleOnePosition = 0;
-int paddleTwoPosition = 0;
+
+boolean button1Status = false;
+int wheelOnePosition = 0;
+int wheelTwoPosition = 0;
 int rightPaddleY = 0;
 int leftPaddleY = 0;
-//
 unsigned char ballX = 0;
 unsigned char ballY = 0;
 char ballVolX = 2;
@@ -69,12 +67,9 @@ void drawMenu() {
   TV.clear_screen();
   TV.select_font(font8x8);
   TV.print(6, 5, "Arduino Pong V3");
-  drawStartGame();
-}
-void drawStartGame() {
-  TV.select_font(font8x8);
-  TV.print(DISPLAY_MESSAGE_X, 35, "Press Button");
-  TV.print(DISPLAY_MESSAGE_X, 45, "For new Game.");
+  TV.select_font(font4x6);
+  TV.print(22, 35, "Press Button");
+  TV.print(30, 45, "To Start");
 }
 void drawMenuBall() {
     // TV.delay_frame(3);
@@ -108,18 +103,20 @@ void drawGameBoard() {
     TV.draw_line(TV.hres() / 2, i, TV.hres() / 2, i + 3, 1);
   }
   // had to make box a bit smaller to fit tv
-  TV.draw_line(0, 0, 126, 0, 1 );     // top
-  TV.draw_line(126, 0, 126, 95, 1 );  // right
-  TV.draw_line(0, 95, 126, 95, 1 );   // bottom
-  TV.draw_line(0, 0, 0, 95, 1 );      // left
+  TV.draw_line(0, 0, 0, 95, 1 ); // left
+  TV.draw_line(0, 0, 126, 0, 1 ); // top
+  TV.draw_line(126, 0, 126, 95, 1 ); // right
+  TV.draw_line(0, 95, 126, 95, 1 ); // bottom
 }
 void drawPaddles() {
-  rightPaddleY = ((paddleOnePosition / 8) * (TV.vres() - PADDLE_HEIGHT)) / 128;
+  //draw right paddle
+  rightPaddleY = ((wheelOnePosition / 8) * (TV.vres() - PADDLE_HEIGHT)) / 128;
   x = RIGHT_PADDLE_X;
   for (int i = 0; i < PADDLE_WIDTH; i++) {
     TV.draw_line(x + i, rightPaddleY, x + i, rightPaddleY + PADDLE_HEIGHT, 1);
   }
-  leftPaddleY = ((paddleTwoPosition / 8) * (TV.vres() - PADDLE_HEIGHT)) / 128;
+  //draw left paddle
+  leftPaddleY = ((wheelTwoPosition / 8) * (TV.vres() - PADDLE_HEIGHT)) / 128;
   x = LEFT_PADDLE_X;
   for (int i = 0; i < PADDLE_WIDTH; i++) {
     TV.draw_line(x + i, leftPaddleY, x + i, leftPaddleY + PADDLE_HEIGHT, 1);
@@ -135,38 +132,32 @@ void drawScore() {
 // Game action
 
 void gameBall() {
-  ballX += ballVolX;
-  ballY += ballVolY;
-  //
-  // change if hit top or bottom
-  if ( ballY <= 1 || ballY >= TV.vres() - 1 ) {
-    ballVolY = -ballVolY;
-  }
-  // test left side for wall hit
-  if (ballVolX < 0 && ballX == LEFT_PADDLE_X + PADDLE_WIDTH - 1 && ballY >= leftPaddleY && ballY <= leftPaddleY + PADDLE_HEIGHT) {
-    ballVolX = -ballVolX;
-    ballVolY += 2 * ((ballY - leftPaddleY) - (PADDLE_HEIGHT / 2)) / (PADDLE_HEIGHT / 2);
-  }
-  // test right side for wall hit
-  if (ballVolX > 0 && ballX == RIGHT_PADDLE_X && ballY >= rightPaddleY && ballY <= rightPaddleY + PADDLE_HEIGHT) {
-    ballVolX = -ballVolX;
-    ballVolY += 2 * ((ballY - rightPaddleY) - (PADDLE_HEIGHT / 2)) / (PADDLE_HEIGHT / 2);
-  }
-  //
-  // limit vertical speed
-  if (ballVolY > MAX_Y_VELOCITY) ballVolY = MAX_Y_VELOCITY;
-  if (ballVolY < -MAX_Y_VELOCITY) ballVolY = -MAX_Y_VELOCITY;
-  //
-  // Scoring
-  if (ballX <= 1) {
-    playerScored(RIGHT);
-  }
-  if (ballX >= TV.hres() - 1) {
-    playerScored(LEFT);
-  }
-  //
-  // draw the ball
-  TV.set_pixel(ballX, ballY, 2);
+      ballX += ballVolX;
+      ballY += ballVolY;
+      // change if hit top or bottom
+      if ( ballY <= 1 || ballY >= TV.vres() - 1 ) {
+        ballVolY = -ballVolY;
+      }
+      // test left side for wall hit
+      if (ballVolX < 0 && ballX == LEFT_PADDLE_X + PADDLE_WIDTH - 1 && ballY >= leftPaddleY && ballY <= leftPaddleY + PADDLE_HEIGHT) {
+        ballVolX = -ballVolX;
+        ballVolY += 2 * ((ballY - leftPaddleY) - (PADDLE_HEIGHT / 2)) / (PADDLE_HEIGHT / 2);
+      }
+      // test right side for wall hit
+      if (ballVolX > 0 && ballX == RIGHT_PADDLE_X && ballY >= rightPaddleY && ballY <= rightPaddleY + PADDLE_HEIGHT) {
+        ballVolX = -ballVolX;
+        ballVolY += 2 * ((ballY - rightPaddleY) - (PADDLE_HEIGHT / 2)) / (PADDLE_HEIGHT / 2);
+      }
+      //limit vertical speed
+      if (ballVolY > MAX_Y_VELOCITY) ballVolY = MAX_Y_VELOCITY;
+      if (ballVolY < -MAX_Y_VELOCITY) ballVolY = -MAX_Y_VELOCITY;
+      // Scoring
+      if (ballX <= 1) {
+        playerScored(RIGHT);
+      }
+      if (ballX >= TV.hres() - 1) {
+        playerScored(LEFT);
+      }
 }
 
 void playerScored(byte player) {
@@ -179,6 +170,12 @@ void playerScored(byte player) {
 }
 
 // -----------------------------------------------------------------------
+void getInputs() {
+  wheelOnePosition = analogRead(WHEEL_ONE_PIN);
+  wheelTwoPosition = analogRead(WHEEL_TWO_PIN);
+  button1Status = (digitalRead(BUTTON_ONE_PIN));
+}
+
 void setup()  {
   Serial.begin(9600);
   Serial.println("+++ Setup start.");
@@ -192,30 +189,21 @@ void setup()  {
 }
 
 // -----------------------------------------------------------------------
-void getInputs() {
-  paddleOnePosition = analogRead(PLAYER_ONE_PIN);
-  paddleTwoPosition = analogRead(PLAYER_TWO_PIN);
-  button1Status = (digitalRead(BUTTON_ONE_PIN));
-}
-
 void loop() {
   getInputs();
   delay(50);
   if (counter == 60) counter = 0; // increment or reset frame counter
   counter++;
-  /*  For testing. However, when used, the TV output doesn't work.
+  /*
   Serial.print("+ loop counter = ");
   Serial.print(counter);
-  Serial.print(" State: ");
-  Serial.print(state);
-  Serial.print(" One Two Button: ");
-  Serial.print(paddleOnePosition);
+  Serial.print(": One Two Button: ");
+  Serial.print(wheelOnePosition);
   Serial.print(" ");
-  Serial.print(paddleTwoPosition);
+  Serial.print(wheelTwoPosition);
   Serial.print(" ");
   Serial.println(button1Status);
   */
-  
   if (state == IN_MENU) {
     if (doDrawMenu) {
       drawMenu();
@@ -224,34 +212,18 @@ void loop() {
     drawMenuBall();
   }
   if (button1Status) {
-    buttonPressed = true;
-      state = PLAYING_GAME;
-      doDrawWin = true;
-    /*
-    if (state == IN_MENU) {
-      state = PLAYING_GAME;
-      doDrawWin = true;
-    }
-    if (state == PLAYING_GAME) {
-      // Pause
-      state == PLAYING_GAME_PAUSE;
-    }
-    if (state == PLAYING_GAME_PAUSE) {
-      state == PLAYING_GAME;
-    }
-    */
+    state = IN_GAMEA;
+    doDrawWin = true;
   }
-  /*
-  */
-  if (state == PLAYING_GAME) {
-    if (counter % 2 == 0) {
-      // Note, if display every loop, the ball looks duplicated.
-      drawGameBoard();
-      drawScore();
-      drawPaddles();
-      gameBall();
+  if (state == IN_GAMEA) {
+    if (counter % 3 == 0) {
+      gameBall(); // // every third loop
     }
-    TV.delay_frame(1);  // Required, else the screen flashes.
+    drawGameBoard();
+    drawPaddles();
+    drawScore();
+    TV.set_pixel(ballX, ballY, 2); //draw the ball
+    TV.delay_frame(1);
   }
   if (state == GAME_OVER) {
     if (doDrawWin) {
@@ -259,8 +231,9 @@ void loop() {
       drawScore();
       //
       TV.select_font(font8x8);
-      TV.print(DISPLAY_MESSAGE_X, GAME_OVER_Y, "Game over.");
-      drawStartGame();
+      TV.print(20, GAME_OVER_Y, "Game over");
+      TV.print(20, 35, "Press Button");
+      TV.print(20, 45, "For new Game.");
       rightPlayerScore = 0;
       leftPlayerScore = 0;
       //
