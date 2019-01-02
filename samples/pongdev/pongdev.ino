@@ -15,8 +15,8 @@
 // Game states
 #define IN_MENU 0
 #define PLAYING_GAME 1
-#define GAME_OVER 2
-#define PLAYING_GAME_PAUSE 3
+#define PLAYING_GAME_PAUSE 2
+#define GAME_OVER 3
 
 #define BUTTON_ONE_PIN 2 // digital to control the game state
 #define PLAYER_ONE_PIN 0 // analog paddle control
@@ -102,7 +102,7 @@ void drawMenuBall() {
 }
 
 // -----------------------------------------------------------------------
-// Game screen
+// Game screen components
 
 void drawGameBoard() {
   TV.clear_screen();
@@ -183,8 +183,10 @@ void playerScored(byte player) {
   if (player == RIGHT) rightPlayerScore++;
   if (player == LEFT) leftPlayerScore++;
   if (leftPlayerScore == PLAY_TO || rightPlayerScore == PLAY_TO) {
-    state = GAME_OVER;
     drawGameOver();
+    state = GAME_OVER;
+    rightPlayerScore = 0;
+    leftPlayerScore = 0;
   }
   ballVolX = -ballVolX;
 }
@@ -203,8 +205,6 @@ void buttonSetState() {
     state = PLAYING_GAME;
   } else if (state == IN_MENU || state == GAME_OVER) {
     state = PLAYING_GAME;
-    rightPlayerScore = 0;
-    leftPlayerScore = 0;
   }
 }
 
@@ -212,14 +212,15 @@ void buttonSetState() {
 void setup()  {
   Serial.begin(9600);
   Serial.println("+++ Setup start.");
+  //
   TV.begin(_NTSC);       //for devices with only 1k sram(m168) use TV.begin(_NTSC,128,56)
   x = 0;
   y = 0;
   ballX = TV.hres() / 2;
   ballY = TV.vres() / 2;
-  //
   state = IN_MENU;
   drawMenu();
+  //
   Serial.println("+ Setup complete.");
 }
 
@@ -262,15 +263,15 @@ void loop() {
   } else {
     buttonPressed = false;
   }
-  // ---------------------------------------------------------------------
-  // Game state actvities
   
-  if (state == IN_MENU) {
-    drawMenuBall();
-  }
+  // ---------------------------------------------------------------------
+  // Game state loop actvities
+  
   if (state == PLAYING_GAME) {
     if (counter % 2 == 0) {
-      // Note, if display every loop, the ball looks duplicated.
+      // Note, if display every loop, then the ball looks duplicated.
+      //
+      // Clear and redraw.
       drawGameBoard();
       drawScore();
       drawPaddles();
@@ -278,10 +279,12 @@ void loop() {
     }
     TV.delay_frame(1);  // Required, else the screen flashes.
   }
-  if (state == GAME_OVER) {
+  
+  if (state == IN_MENU || state == GAME_OVER) {
     drawMenuBall();
   }
-}
+
+} // loop end
 
 // -----------------------------------------------------------------------
 // eof
