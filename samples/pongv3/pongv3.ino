@@ -78,7 +78,9 @@ void drawStartGame() {
   TV.print(DISPLAY_MESSAGE_X, 45, "For new Game.");
 }
 void drawMenuBall() {
-    // TV.delay_frame(3);
+    TV.delay_frame(2);
+    delay(25);
+    //
     if (x + volX < 1 || x + volX > TV.hres() - 1) volX = -volX;
     if (y + volY < 1 || y + volY > TV.vres() - 1) volY = -volY;
     if (TV.get_pixel(x + volX, y + volY)) {
@@ -191,8 +193,10 @@ void buttonSetState() {
     TV.print(DISPLAY_MESSAGE_X, GAME_OVER_Y, "Game Paused.");
   } else if (state == PLAYING_GAME_PAUSE) {
     state = PLAYING_GAME;
-  } else if (state == IN_MENU) {
+  } else if (state == IN_MENU || state == GAME_OVER) {
     state = PLAYING_GAME;
+    rightPlayerScore = 0;
+    leftPlayerScore = 0;
     doDrawWin = true;
   }
 }
@@ -219,7 +223,7 @@ void getInputs() {
 
 void loop() {
   getInputs();
-  delay(50);
+  delay(25);
   if (counter == 60) counter = 10; // increment or reset frame counter
   counter++;
   /*  For testing. However, when used, the TV output doesn't work.
@@ -241,7 +245,7 @@ void loop() {
   
   // ---------------------------------------------------------------------
   if (button1Status) {
-    // This is a button toggle to hanle a quick click and a click and hold.
+    // This is a button toggle to hanle a quick click, and a click and hold.
     if (!buttonPressed) {
       buttonSetState();
       buttonPressed = true;
@@ -249,21 +253,9 @@ void loop() {
   } else {
     buttonPressed = false;
   }
-    /*
-  if (button1Status) {
-    // This is a button toggle to hanle a quick click and a click and hold.
-    if (buttonPressed) {
-      buttonPressedStill = true;
-    } else {
-      buttonPressed = true;
-      buttonSetState();
-    }
-  } else {
-    buttonPressed = false;
-    buttonPressedStill = false;
-  }
-    */
   // ---------------------------------------------------------------------
+  // Game states
+  
   if (state == IN_MENU) {
     if (doDrawMenu) {
       drawMenu();
@@ -271,8 +263,6 @@ void loop() {
     }
     drawMenuBall();
   }
-  /*
-  */
   if (state == PLAYING_GAME) {
     if (counter % 2 == 0) {
       // Note, if display every loop, the ball looks duplicated.
@@ -291,8 +281,6 @@ void loop() {
       TV.select_font(font8x8);
       TV.print(DISPLAY_MESSAGE_X, GAME_OVER_Y, "Game over.");
       drawStartGame();
-      rightPlayerScore = 0;
-      leftPlayerScore = 0;
       //
       doDrawWin = false;
     }
