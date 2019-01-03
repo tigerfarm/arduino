@@ -1,25 +1,21 @@
 /***************************************************
    DFPlayer - A Mini MP3 Player For Arduino
 
-   GitHub project:
+   Original GitHub project:
    https://github.com/DFRobot/DFRobotDFPlayerMini
    Get started sample:
    https://github.com/DFRobot/DFRobotDFPlayerMini/blob/master/examples/GetStarted/GetStarted.ino
    Full functions test:
    https://github.com/DFRobot/DFRobotDFPlayerMini/blob/master/examples/FullFunction/FullFunction.ino
 
-  Created 2016-12-07
-  By [Angelo qiao](Angelo.qiao@dfrobot.com)
-
+  Created 2016-12-07 bBy [Angelo qiao](Angelo.qiao@dfrobot.com)
   GNU Lesser General Public License.
   See <http://www.gnu.org/licenses/> for details.
   All above must be included in any redistribution
- ************************************************
 
   Connection and Diagram can be found here
   https://www.dfrobot.com/wiki/index.php/DFPlayer_Mini_SKU:DFR0299#Connection_Diagram
-
- ****************************************************/
+*/
 
 #include "Arduino.h"
 #include "SoftwareSerial.h"
@@ -40,9 +36,9 @@ boolean buttonPausePressed = false;
 boolean buttonNextPressed = false;
 boolean buttonPreviousPressed = false;
 
-SoftwareSerial mySoftwareSerial(10, 11); // RX, TX
+// -----------------------------------------------------------------------
+SoftwareSerial mySoftwareSerial(10, 11);      // RX, TX
 DFRobotDFPlayerMini myDFPlayer;
-void printDetail(uint8_t type, int value);
 void printDetail(uint8_t type, int value) {
   switch (type) {
     case TimeOut:
@@ -108,8 +104,8 @@ void printDetail(uint8_t type, int value) {
 void setup() {
   Serial.begin(9600);
   Serial.println();
-  Serial.println(F("DFRobot DFPlayer Mini Demo"));
-  Serial.println(F("Initializing DFPlayer ... (May take 3~5 seconds)"));
+  Serial.println(F("+++ DFRobot DFPlayer Mini"));
+  Serial.println(F("++ Initializing, may take a few seconds..."));
   //
   mySoftwareSerial.begin(9600);
   if (!myDFPlayer.begin(mySoftwareSerial)) {
@@ -134,7 +130,8 @@ void setup() {
   // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
   myDFPlayer.EQ(DFPLAYER_EQ_ROCK);
   //
-  myDFPlayer.play(2);
+  // myDFPlayer.play(2);
+  myDFPlayer.start();
 }
 
 // -----------------------------------------------------------------------
@@ -150,6 +147,8 @@ void loop() {
   delay(50);
   
   // ---------------------------------------------------------------------
+  // Buttons: Pause, Next, Previous
+  
   if (buttonPause) {
     if (!buttonPausePressed) {
       Serial.print("+ Press: buttonPause ");
@@ -186,38 +185,25 @@ void loop() {
   }
   
   // ---------------------------------------------------------------------
+  // Handle continuous playing, and play errors such as, memory card not inserted.
+  // Note, after card is inserted, the player automatically starts playing.
+  
   if (myDFPlayer.available()) {
-    if (myDFPlayer.readType() == DFPlayerPlayFinished) {
-      Serial.println("+ MP3 play completed.");
+    int theType = myDFPlayer.readType();
+    if (theType == DFPlayerPlayFinished) {
+      Serial.println("+ The playing of the MP3 file has completed.");
+      // When one song ends, play the next song.
       myDFPlayer.next();
-    } else {
-      //Print the detail message from DFPlayer to handle different errors and states.
+    } else if (theType == DFPlayerCardInserted ) {
+      myDFPlayer.start();
+    }
+    else {
+      //Print the detail message from DFPlayer to handle different errors and states,
+      // such as memory card not inserted.
       printDetail(myDFPlayer.readType(), myDFPlayer.read());
     }
   }
 
-  // ---------------------------------------------------------------------
- /* Sampling routine to play MP3 files every 6 seconds.
-  static unsigned long timer = millis();
-  if (millis() - timer > 6000) {
-    timer = millis();
-    myDFPlayer.next();
-  }
-  */
-  /*
-  myDFPlayer.start();     //start the mp3 from the pause
-  myDFPlayer.pause();     //pause the mp3
-  myDFPlayer.next();      //Play next mp3
-  myDFPlayer.previous();  //Play previous mp3
-  myDFPlayer.play(1);     //Play the first mp3
-  myDFPlayer.loop(1);     //Loop the first mp3
-
-  myDFPlayer.enableLoop();      //enable loop.
-  myDFPlayer.disableLoop();     //disable loop.
-  myDFPlayer.enableLoopAll();   //loop all mp3 files.
-  myDFPlayer.disableLoopAll();  //stop loop all mp3 files.
-  myDFPlayer.randomAll();       //Random play all the mp3.
-  */
 }
 
 // ---------------------------------------------------------------------
