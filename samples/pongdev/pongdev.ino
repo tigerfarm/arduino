@@ -43,7 +43,6 @@ TVout TV;
 int state = IN_MENU;
 boolean button1Status = false;
 boolean buttonPressed = false;
-boolean buttonPressedStill = false;
 char volX = 3;
 char volY = 3;
 unsigned char x, y;
@@ -245,8 +244,6 @@ void loop() {
   Serial.print(button1Status);
   Serial.print(" ");
   Serial.print(buttonPressed);
-  Serial.print(" ");
-  Serial.print(buttonPressedStill);
   Serial.print(" Paddle One Two: ");
   Serial.print(paddleOnePosition);
   Serial.print(" ");
