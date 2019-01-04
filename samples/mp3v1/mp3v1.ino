@@ -1,20 +1,19 @@
 /***************************************************
-   DFPlayer - A Mini MP3 Player For Arduino
+  DFPlayer - A Mini MP3 Player For Arduino
 
-   Original GitHub project:
-   https://github.com/DFRobot/DFRobotDFPlayerMini
-   Get started sample:
-   https://github.com/DFRobot/DFRobotDFPlayerMini/blob/master/examples/GetStarted/GetStarted.ino
-   Full functions test:
-   https://github.com/DFRobot/DFRobotDFPlayerMini/blob/master/examples/FullFunction/FullFunction.ino
-
+  Original GitHub project:
+  https://github.com/DFRobot/DFRobotDFPlayerMini
   Created 2016-12-07 bBy [Angelo qiao](Angelo.qiao@dfrobot.com)
   GNU Lesser General Public License.
   See <http://www.gnu.org/licenses/> for details.
+  https://www.dfrobot.com/product-1121.html
   All above must be included in any redistribution
 
-  Connection and Diagram can be found here
-  https://www.dfrobot.com/wiki/index.php/DFPlayer_Mini_SKU:DFR0299#Connection_Diagram
+  The following link is to a connection Diagram.
+  Then, use this program instead of the one in the project page:
+  http://educ8s.tv/arduino-mp3-player/
+
+  Use the library manager to load the DFRobot mini player library. I loaded version 1.05.
 */
 
 #include "Arduino.h"
@@ -24,14 +23,18 @@
 #define BUTTON_NEXT_PIN 2
 #define BUTTON_PAUSE_PIN 3
 #define BUTTON_PREVIOUS_PIN 4
+#define BUTTON_LOOP_PIN 5
 
-boolean loopAll = true;
-boolean loopSingle = false;
+boolean playPause = false;  // For toggling pause.
+boolean loopSingle = false; // For toggling single song.
+int currentSingle = 1;      // First song played when player starts up. Then incremented when next is played.
 
-boolean playPause = false;
+// For controling button presses: handle a quick click or a click and hold.
+boolean buttonLoop = false;
 boolean buttonPause = false;
 boolean buttonNext = false;
 boolean buttonPrevious = false;
+boolean buttonLoopPressed = false;
 boolean buttonPausePressed = false;
 boolean buttonNextPressed = false;
 boolean buttonPreviousPressed = false;
@@ -39,6 +42,7 @@ boolean buttonPreviousPressed = false;
 // -----------------------------------------------------------------------
 SoftwareSerial mySoftwareSerial(10, 11);      // RX, TX
 DFRobotDFPlayerMini myDFPlayer;
+void printDetail(uint8_t type, int value);
 void printDetail(uint8_t type, int value) {
   switch (type) {
     case TimeOut:
@@ -119,23 +123,46 @@ void setup() {
   }
   Serial.println(F("DFPlayer Mini online."));
   //
+  pinMode(BUTTON_LOOP_PIN, INPUT);
   pinMode(BUTTON_PAUSE_PIN, INPUT);
   pinMode(BUTTON_NEXT_PIN, INPUT);
   pinMode(BUTTON_PREVIOUS_PIN, INPUT);
+  digitalWrite(BUTTON_LOOP_PIN, HIGH);
   digitalWrite(BUTTON_PAUSE_PIN, HIGH);
   digitalWrite(BUTTON_NEXT_PIN, HIGH);
   digitalWrite(BUTTON_PREVIOUS_PIN, HIGH);
   //
+  myDFPlayer.setTimeOut(300);     // Set serial communictaion time out
+  myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
   myDFPlayer.volume(28);  //Set volume value. From 0 to 30
   // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
-  myDFPlayer.EQ(DFPLAYER_EQ_ROCK);
+  myDFPlayer.EQ(DFPLAYER_EQ_BASS);
   //
-  // myDFPlayer.play(2);
-  myDFPlayer.start();
+  // myDFPlayer.start();
+  myDFPlayer.play(currentSingle); // If I add a SD card for state, I can start based on the previous state.
+  //
+  /*
+  // Doesn't work:
+  int theState = myDFPlayer.readState();
+  Serial.print("+ mp3 state: ");
+  Serial.println(theState);
+  //
+  Serial.print("+ mp3 state: ");
+  Serial.println(myDFPlayer.readState());
+  Serial.print("+ current volume: ");
+  Serial.println(myDFPlayer.readVolume());
+  Serial.print("+ readEQ: ");
+  Serial.println(myDFPlayer.readEQ());
+  Serial.print("+ readFileCounts: ");
+  Serial.println(myDFPlayer.readFileCounts()); //read all file counts in SD card
+  Serial.print("+ readCurrentFileNumber: ");
+  Serial.println(myDFPlayer.readCurrentFileNumber());
+  */
 }
 
 // -----------------------------------------------------------------------
 void getInputs() {
+  buttonLoop = !(digitalRead(BUTTON_LOOP_PIN));
   buttonPause = !(digitalRead(BUTTON_PAUSE_PIN));
   buttonNext = !(digitalRead(BUTTON_NEXT_PIN));
   buttonPrevious = !(digitalRead(BUTTON_PREVIOUS_PIN));
@@ -147,12 +174,14 @@ void loop() {
   delay(50);
   
   // ---------------------------------------------------------------------
-  // Buttons: Pause, Next, Previous
+  // Buttons: Pause, Next, Previous, Loop single song
   
+  // ------------------------------
   if (buttonPause) {
     if (!buttonPausePressed) {
       Serial.print("+ Press: buttonPause ");
       Serial.println(playPause);
+      // Toggle the option.
       if (playPause) {
         myDFPlayer.start();
         playPause = false;
@@ -165,6 +194,7 @@ void loop() {
   } else {
     buttonPausePressed = false;
   }
+  // ------------------------------
   if (buttonNext) {
     if (!buttonNextPressed) {
       Serial.println("+ Press: buttonNext");
@@ -174,6 +204,7 @@ void loop() {
   } else {
     buttonNextPressed = false;
   }
+  // ------------------------------
   if (buttonPrevious) {
     if (!buttonPreviousPressed) {
       Serial.println("+ Press: buttonPrevious");
@@ -183,23 +214,60 @@ void loop() {
   } else {
     buttonPreviousPressed = false;
   }
+  // ------------------------------
+  if (buttonLoop) {
+    if (!buttonLoopPressed) {
+      Serial.print("+ Press: buttonLoop ");
+      Serial.println(loopSingle);
+      // Toggle the option.
+      if (loopSingle) {
+        Serial.println("+ Single MP3 loop is off.");
+        myDFPlayer.start();  // This identifies that the loop is off. Else I need a LED to indicate loop is on.
+        loopSingle = false;
+      } else {
+        Serial.println("+ Loop this single MP3.");
+        myDFPlayer.start();  // Restart the play. If I had an LED indicator, then I wouldn't to restart.
+        loopSingle = true;
+      }
+      buttonLoopPressed = true;
+    }
+  } else {
+    buttonLoopPressed = false;
+  }
   
   // ---------------------------------------------------------------------
   // Handle continuous playing, and play errors such as, memory card not inserted.
-  // Note, after card is inserted, the player automatically starts playing.
-  
   if (myDFPlayer.available()) {
     int theType = myDFPlayer.readType();
+    int theValue = myDFPlayer.read();
+    // ------------------------------
     if (theType == DFPlayerPlayFinished) {
-      Serial.println("+ The playing of the MP3 file has completed.");
-      // When one song ends, play the next song.
-      myDFPlayer.next();
+      Serial.print("+ The playing of the MP3 file has completed. ");
+      if (loopSingle) {
+        Serial.print("Loop/play the same MP3.");
+        myDFPlayer.start();
+      } else {
+        Serial.println("Play next MP3.");
+        myDFPlayer.next();
+      }
     } else if (theType == DFPlayerCardInserted ) {
+      Serial.println(F("+ SD mini card inserted. Start playing"));
       myDFPlayer.start();
+    } else if (theType == DFPlayerError ) {
+      // ------------------------------
+      if (theValue == FileIndexOut) {
+        Serial.println(F("+ Index Out of Bound"));
+        currentSingle = 1;
+        myDFPlayer.play(currentSingle);
+      }
+      else {
+        printDetail(myDFPlayer.readType(), myDFPlayer.read());
+      }
+      // ------------------------------
     }
     else {
-      //Print the detail message from DFPlayer to handle different errors and states,
-      // such as memory card not inserted.
+      // Print the detail message from DFPlayer to handle different errors and states,
+      //   such as memory card not inserted.
       printDetail(myDFPlayer.readType(), myDFPlayer.read());
     }
   }
