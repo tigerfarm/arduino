@@ -244,9 +244,9 @@ void loop() {
     int theValue = myDFPlayer.read();
     // ------------------------------
     if (theType == DFPlayerPlayFinished) {
-      Serial.print("+ The playing of the MP3 file has completed. ");
+      Serial.print("+ MP3 file play has completed. ");
       if (loopSingle) {
-        Serial.print("Loop/play the same MP3.");
+        Serial.println("Loop/play the same MP3.");
         myDFPlayer.start();
       } else {
         Serial.println("Play next MP3.");
