@@ -132,11 +132,14 @@ void setup() {
   digitalWrite(BUTTON_NEXT_PIN, HIGH);
   digitalWrite(BUTTON_PREVIOUS_PIN, HIGH);
   //
-  myDFPlayer.setTimeOut(300);     // Set serial communictaion time out
+  myDFPlayer.setTimeOut(300);   // Set serial communictaion time out
+  myDFPlayer.volume(18);        // Set speaker volume from 0 to 30. Doesn't effect DAC output.
+  //
+  // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP 
   myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
-  myDFPlayer.volume(28);  //Set volume value. From 0 to 30
+  //
   // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
-  myDFPlayer.EQ(DFPLAYER_EQ_BASS);
+  myDFPlayer.EQ(DFPLAYER_EQ_POP);
   //
   // myDFPlayer.start();
   myDFPlayer.play(currentSingle); // If I add a SD card for state, I can start based on the previous state.
@@ -170,11 +173,11 @@ void getInputs() {
 
 void loop() {
   // Serial.println("+ Loop.");
-  getInputs();
   delay(50);
-  
+
   // ---------------------------------------------------------------------
   // Buttons: Pause, Next, Previous, Loop single song
+  getInputs();
   
   // ------------------------------
   if (buttonPause) {
@@ -239,9 +242,9 @@ void loop() {
   
   // ---------------------------------------------------------------------
   // Handle continuous playing, and play errors such as, memory card not inserted.
+  
   if (myDFPlayer.available()) {
     int theType = myDFPlayer.readType();
-    int theValue = myDFPlayer.read();
     // ------------------------------
     if (theType == DFPlayerPlayFinished) {
       Serial.print("+ MP3 file play has completed. ");
@@ -252,25 +255,16 @@ void loop() {
         Serial.println("Play next MP3.");
         myDFPlayer.next();
       }
+      // ------------------------------
     } else if (theType == DFPlayerCardInserted ) {
       Serial.println(F("+ SD mini card inserted. Start playing"));
       myDFPlayer.start();
-    } else if (theType == DFPlayerError ) {
-      // ------------------------------
-      if (theValue == FileIndexOut) {
-        Serial.println(F("+ Index Out of Bound"));
-        currentSingle = 1;
-        myDFPlayer.play(currentSingle);
-      }
-      else {
-        printDetail(myDFPlayer.readType(), myDFPlayer.read());
-      }
-      // ------------------------------
     }
+    // ------------------------------
     else {
       // Print the detail message from DFPlayer to handle different errors and states,
       //   such as memory card not inserted.
-      printDetail(myDFPlayer.readType(), myDFPlayer.read());
+      printDetail(theType, myDFPlayer.read());
     }
   }
 
