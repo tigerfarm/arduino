@@ -222,11 +222,13 @@ void loop() {
       // Toggle the option.
       if (loopSingle) {
         Serial.println("+ Single MP3 loop is off.");
-        myDFPlayer.start();  // This identifies that the loop is off. Else I need a LED to indicate loop is on.
+        myDFPlayer.next();    // Play next identifies that loop is off.
         loopSingle = false;
       } else {
         Serial.println("+ Loop this single MP3.");
-        myDFPlayer.start();  // Restart the play. If I had an LED indicator, then I wouldn't to restart.
+        myDFPlayer.pause();  // Pause identifies that loop is on. Else I need a LED to indicate loop is on.
+        delay(200);
+        myDFPlayer.start();
         loopSingle = true;
       }
       buttonLoopPressed = true;
