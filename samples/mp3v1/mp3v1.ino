@@ -1,4 +1,13 @@
-/***************************************************
+/**************************************************************
+
+  MP3 player with: play next, previous, loop single, and pause.
+  
+  Version 3.0
+  This is an updated version of Angelo's development version.
+  To compile this version, use the library manager to load the
+    DFRobot mini player library. I loaded version 1.05.
+
+  // ----------------------------------------------------------
   DFPlayer - A Mini MP3 Player For Arduino
 
   Original GitHub project:
@@ -8,14 +17,15 @@
   See <http://www.gnu.org/licenses/> for details.
   https://www.dfrobot.com/product-1121.html
   All above must be included in any redistribution
+  // ----------------------------------------------------------
 
   The following link is to a connection Diagram.
-  Then, use this program instead of the one in the project page:
   http://educ8s.tv/arduino-mp3-player/
-
-  Use the library manager to load the DFRobot mini player library. I loaded version 1.05.
+  Then, use this program instead of the one in the project page.
+  Also, add another button for the loop single option.
 */
 
+// -----------------------------------------------------------------------
 #include "Arduino.h"
 #include "SoftwareSerial.h"
 #include "DFRobotDFPlayerMini.h"
@@ -145,7 +155,7 @@ void setup() {
   myDFPlayer.play(currentSingle); // If I add a SD card for state, I can start based on the previous state.
   //
   /*
-  // Doesn't work:
+  // The following should work, but doesn't work for me:
   int theState = myDFPlayer.readState();
   Serial.print("+ mp3 state: ");
   Serial.println(theState);
