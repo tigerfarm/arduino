@@ -177,8 +177,8 @@ void setup() {
   Serial.print("+ readCurrentFileNumber: ");
   Serial.println(myDFPlayer.readCurrentFileNumber());
   */
-  Serial.println(F("+ Initialize the infrared receiver."));
   irrecv.enableIRIn();
+  Serial.println(F("+ Initialized the infrared receiver."));
 }
 
 // -----------------------------------------------------------------------
@@ -194,38 +194,48 @@ void loop() {
   delay(50);
 
   // ---------------------------------------------------------------------
-  // Buttons: Pause, Next, Previous, Loop single song
+  // Get button press state.
   getInputs();
   
   // ---------------------------------------------------------------------
+  // Process infrared key presses.
   if (irrecv.decode(&results)) {
     switch (results.value) {
       case 0xFFFFFFFF:
         // Ignore. This is from holding the key down.
         break;
-      case 0xFF38C7:
-        Serial.println("+ OK");
-        myDFPlayer.start();
-        playPause = false;
-        break;
+      // -----------------------------------
+      // Song control
       case 0xFF10EF:
-        Serial.println("+ < - previous");
+        Serial.println("+ Key < - previous");
         buttonPrevious = true;
         break;
       case 0xFF5AA5:
-        Serial.println("+ > - next");
+        Serial.println("+ Key > - next");
         buttonNext = true;
         break;
       case 0xFF18E7:
-        Serial.println("+ up - next");
+        Serial.println("+ Key up - next");
         buttonNext = true;
         break;
       case 0xFF4AB5:
-        Serial.println("+ down - previous");
+        Serial.println("+ Key down - previous");
         buttonPrevious = true;
         break;
+      case 0xFF38C7:
+        Serial.println("+ Key OK - if paused, start the song.");
+        myDFPlayer.start();
+        playPause = false;
+        break;
+      case 0xFF9867:
+        Serial.println("+ Key 0 - Pause");
+        myDFPlayer.pause();
+        playPause = true;
+        break;
+      // -----------------------------------
+      // Single song loop
       case 0xFF6897:
-        Serial.println("+ * - Loop this single MP3.");
+        Serial.println("+ Key * - Loop on: loop this single MP3.");
         myDFPlayer.pause();  // Pause identifies that loop is on. Else I need a LED to indicate loop is on.
         delay(200);
         myDFPlayer.start();
@@ -233,16 +243,49 @@ void loop() {
         break;
       case 0xFFB04F:
         if (loopSingle) {
-          Serial.println("+ # - Single MP3 loop is off.");
+          Serial.println("+ Key # - Loop off: Single MP3 loop is off.");
           myDFPlayer.next();    // Play next identifies that loop is off.
           loopSingle = false;
         }
         break;
-      case 0xFF9867:
-        Serial.println("+ 0 - Pause");
-        myDFPlayer.pause();
-        playPause = true;
+      // -----------------------------------
+      // Not used.
+      //  1 : FFA25D
+      //  2 : FF629D
+      //  3 : FFE21D
+      // -----------------------------------
+      // Equalizer selection.
+      case 0xFF22DD:
+        Serial.print("+ Key 4: ");
+        Serial.println("DFPLAYER_EQ_POP");
+        myDFPlayer.EQ(DFPLAYER_EQ_POP);
         break;
+      case 0xFF02FD:
+        Serial.print("+ Key 5: ");
+        Serial.println("DFPLAYER_EQ_CLASSIC");
+        myDFPlayer.EQ(DFPLAYER_EQ_CLASSIC);
+        break;
+      case 0xFFC23D:
+        Serial.print("+ Key 6: ");
+        Serial.println("DFPLAYER_EQ_NORMAL");
+        myDFPlayer.EQ(DFPLAYER_EQ_NORMAL);
+        break;
+      case 0xFFE01F:
+        Serial.print("+ Key 7: ");
+        Serial.println("DFPLAYER_EQ_BASS");
+        myDFPlayer.EQ(DFPLAYER_EQ_BASS);
+        break;
+      case 0xFFA857:
+        Serial.print("+ Key 8: ");
+        Serial.println("DFPLAYER_EQ_ROCK");
+        myDFPlayer.EQ(DFPLAYER_EQ_ROCK);
+        break;
+      case 0xFF906F:
+        Serial.print("+ Key 9: ");
+        Serial.println("DFPLAYER_EQ_JAZZ");
+        myDFPlayer.EQ(DFPLAYER_EQ_JAZZ);
+        break;
+      // -----------------------------------
     }
     irrecv.resume();
   }
