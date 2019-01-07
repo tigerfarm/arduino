@@ -148,6 +148,9 @@ void setup() {
   digitalWrite(BUTTON_NEXT_PIN, HIGH);
   digitalWrite(BUTTON_PREVIOUS_PIN, HIGH);
   //
+  // ---------------------
+  // If I add a SD card for state, I can start based on the previous state.
+  //
   myDFPlayer.setTimeOut(300);   // Set serial communictaion time out
   myDFPlayer.volume(18);        // Set speaker volume from 0 to 30. Doesn't effect DAC output.
   //
@@ -155,11 +158,12 @@ void setup() {
   myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
   //
   // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
-  myDFPlayer.EQ(DFPLAYER_EQ_POP);
+  myDFPlayer.EQ(DFPLAYER_EQ_CLASSIC);
   //
   // myDFPlayer.start();
-  myDFPlayer.play(currentSingle); // If I add a SD card for state, I can start based on the previous state.
+  myDFPlayer.play(currentSingle);
   //
+  // ---------------------
   /*
   // The following should work, but doesn't work for me:
   int theState = myDFPlayer.readState();
@@ -272,8 +276,8 @@ void loop() {
         break;
       case 0xFFE01F:
         Serial.print("+ Key 7: ");
-        Serial.println("DFPLAYER_EQ_BASS");
-        myDFPlayer.EQ(DFPLAYER_EQ_BASS);
+        Serial.println("DFPLAYER_EQ_JAZZ");
+        myDFPlayer.EQ(DFPLAYER_EQ_JAZZ);
         break;
       case 0xFFA857:
         Serial.print("+ Key 8: ");
@@ -282,8 +286,8 @@ void loop() {
         break;
       case 0xFF906F:
         Serial.print("+ Key 9: ");
-        Serial.println("DFPLAYER_EQ_JAZZ");
-        myDFPlayer.EQ(DFPLAYER_EQ_JAZZ);
+        Serial.println("DFPLAYER_EQ_BASS");
+        myDFPlayer.EQ(DFPLAYER_EQ_BASS);
         break;
       // -----------------------------------
     }
