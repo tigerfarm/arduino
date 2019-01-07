@@ -125,11 +125,11 @@ void setup() {
   Serial.begin(9600);
   Serial.println();
   Serial.println(F("+++ DFRobot DFPlayer Mini"));
-  Serial.println(F("++ Initializing, may take a few seconds..."));
   //
+  Serial.println(F("++ Initializing, may take a few seconds..."));
   mySoftwareSerial.begin(9600);
   if (!myDFPlayer.begin(mySoftwareSerial)) {
-    //Use softwareSerial to communicate with mp3.
+    // Use softwareSerial to communicate with mp3.
     Serial.println(F("Unable to begin:"));
     Serial.println(F("1.Please recheck the connection!"));
     Serial.println(F("2.Please insert the SD card!"));
@@ -137,7 +137,7 @@ void setup() {
       delay(0);
     }
   }
-  Serial.println(F("DFPlayer Mini online."));
+  Serial.println(F("+ DFPlayer Mini online."));
   //
   pinMode(BUTTON_LOOP_PIN, INPUT);
   pinMode(BUTTON_PAUSE_PIN, INPUT);
