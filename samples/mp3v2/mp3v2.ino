@@ -44,6 +44,7 @@ decode_results results;
 boolean playPause = false;  // For toggling pause.
 boolean loopSingle = false; // For toggling single song.
 int currentSingle = 1;      // First song played when player starts up. Then incremented when next is played.
+int currentDirectory = 1;   // File directory name on the SD card. Example 1 is directory name: /01.
 
 // For controling button presses: handle a quick click or a click and hold.
 boolean buttonLoop = false;
@@ -107,6 +108,14 @@ void printDetail(uint8_t type, int value) {
           break;
         case FileMismatch:
           Serial.println(F("Cannot Find File"));
+          //
+          Serial.print("+ Assume the directory number was incremented too high, play previous directory: ");
+          if (currentDirectory > 1) {
+            currentDirectory --;
+          }
+          Serial.println(currentDirectory);
+          myDFPlayer.loopFolder(currentDirectory);
+          //
           break;
         case Advertise:
           Serial.println(F("In Advertise"));
@@ -153,6 +162,8 @@ void setup() {
   //
   myDFPlayer.setTimeOut(300);   // Set serial communictaion time out
   myDFPlayer.volume(18);        // Set speaker volume from 0 to 30. Doesn't effect DAC output.
+  // myDFPlayer.volumeUp(); //Volume Up
+  // myDFPlayer.volumeDown(); //Volume Down
   //
   // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP 
   myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
@@ -218,14 +229,6 @@ void loop() {
         Serial.println("+ Key > - next");
         buttonNext = true;
         break;
-      case 0xFF18E7:
-        Serial.println("+ Key up - next");
-        buttonNext = true;
-        break;
-      case 0xFF4AB5:
-        Serial.println("+ Key down - previous");
-        buttonPrevious = true;
-        break;
       case 0xFF38C7:
         Serial.println("+ Key OK - if paused, start the song.");
         myDFPlayer.start();
@@ -253,10 +256,41 @@ void loop() {
         }
         break;
       // -----------------------------------
-      // Not used.
-      //  1 : FFA25D
-      //  2 : FF629D
-      //  3 : FFE21D
+      // Folder, file directory selection.
+      case 0xFF18E7:
+        Serial.print("+ Key up - next directory, directory number: ");
+        currentDirectory ++;
+        Serial.println(currentDirectory);
+        myDFPlayer.loopFolder(currentDirectory);
+        // If no directory, get the error message: DFPlayerError:Cannot Find File
+        break;
+      case 0xFF4AB5:
+        Serial.print("+ Key down - previous directory, directory number: ");
+        if (currentDirectory > 1) {
+          currentDirectory --;
+        }
+        Serial.println(currentDirectory);
+        myDFPlayer.loopFolder(currentDirectory);
+        break;
+      case 0xFFA25D:
+        Serial.print("+ Key 1: ");
+        Serial.println("File directory 1");
+        // myDFPlayer.playFolder(1, 1); //play specific mp3 file in SD, named:/01/0001.mp3;
+        currentDirectory = 1;
+        myDFPlayer.loopFolder(currentDirectory);
+        break;
+      case 0xFF629D:
+        Serial.print("+ Key 2: ");
+        Serial.println("File directory 2");
+        currentDirectory = 2;
+        myDFPlayer.loopFolder(currentDirectory);
+        break;
+      case 0xFFE21D:
+        Serial.print("+ Key 3: ");
+        Serial.println("File directory 3");
+        currentDirectory = 3;
+        myDFPlayer.loopFolder(currentDirectory);
+        break;
       // -----------------------------------
       // Equalizer selection.
       case 0xFF22DD:
