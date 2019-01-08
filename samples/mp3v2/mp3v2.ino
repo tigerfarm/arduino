@@ -4,8 +4,9 @@
   
   Version 3.0
   This is an updated version of Angelo's development version.
+  This version includes infrared controls which is way better than breadboard buttons.
   To compile this version, use the library manager to load the
-    DFRobot mini player library. I loaded version 1.05.
+    DFRobot mini player library. For my implementation, I loaded version 1.05.
 
   // ----------------------------------------------------------
   DFPlayer - A Mini MP3 Player For Arduino
@@ -202,20 +203,16 @@ void setup() {
 }
 
 // -----------------------------------------------------------------------
-void getInputs() {
-  buttonLoop = !(digitalRead(BUTTON_LOOP_PIN));
-  buttonPause = !(digitalRead(BUTTON_PAUSE_PIN));
-  buttonNext = !(digitalRead(BUTTON_NEXT_PIN));
-  buttonPrevious = !(digitalRead(BUTTON_PREVIOUS_PIN));
-}
-
 void loop() {
-  // Serial.println("+ Loop.");
+
   delay(50);
 
   // ---------------------------------------------------------------------
   // Get button press state.
-  getInputs();
+  buttonLoop = !(digitalRead(BUTTON_LOOP_PIN));
+  buttonPause = !(digitalRead(BUTTON_PAUSE_PIN));
+  buttonNext = !(digitalRead(BUTTON_NEXT_PIN));
+  buttonPrevious = !(digitalRead(BUTTON_PREVIOUS_PIN));
   
   // ---------------------------------------------------------------------
   // Process infrared key presses.
@@ -248,7 +245,7 @@ void loop() {
       // Single song loop
       case 0xFF6897:
         Serial.println("+ Key * - Loop on: loop this single MP3.");
-        myDFPlayer.pause();  // Pause identifies that loop is on. Else I need a LED to indicate loop is on.
+        myDFPlayer.pause();     // Pause identifies that loop is on. Else I need a LED to indicate loop is on.
         delay(200);
         myDFPlayer.start();
         loopSingle = true;
@@ -280,9 +277,9 @@ void loop() {
       case 0xFFA25D:
         Serial.print("+ Key 1: ");
         Serial.println("File directory 1");
-        // myDFPlayer.playFolder(1, 1); //play specific mp3 file in SD, named:/01/0001.mp3;
+        // myDFPlayer.playFolder(1, 1); // In a specific directory, play a specific file: /01/0001.mp3;
         currentDirectory = 1;
-        myDFPlayer.loopFolder(currentDirectory);
+        myDFPlayer.loopFolder(currentDirectory);  // Doesn't require a specific filename in the directory.
         break;
       case 0xFF629D:
         Serial.print("+ Key 2: ");
@@ -297,7 +294,7 @@ void loop() {
         myDFPlayer.loopFolder(currentDirectory);
         break;
       // -----------------------------------
-      // Equalizer selection.
+      // Equalizer setting selection.
       case 0xFF22DD:
         Serial.print("+ Key 4: ");
         Serial.println("DFPLAYER_EQ_POP");
@@ -398,7 +395,7 @@ void loop() {
   }
   
   // ---------------------------------------------------------------------
-  // Handle continuous playing, and play errors such as, memory card not inserted.
+  // Handle continuous playing, and play errors such as: memory card not inserted.
   
   if (myDFPlayer.available()) {
     int theType = myDFPlayer.readType();
