@@ -142,11 +142,15 @@ void setup() {
     Serial.println(F("Unable to begin:"));
     Serial.println(F("1.Please recheck the connection!"));
     Serial.println(F("2.Please insert the SD card!"));
+    /*
+     * If SD card not installed, the will require a restart.
+     * Without the following, you can put the card in, and music will start playing.
     while (true) {
       delay(0);
     }
+    */
   }
-  Serial.println(F("+ DFPlayer Mini online."));
+  Serial.println(F("+ DFPlayer is initialized."));
   //
   pinMode(BUTTON_LOOP_PIN, INPUT);
   pinMode(BUTTON_PAUSE_PIN, INPUT);
@@ -177,6 +181,7 @@ void setup() {
   // ---------------------
   /*
   // The following should work, but doesn't work for me:
+  //
   int theState = myDFPlayer.readState();
   Serial.print("+ mp3 state: ");
   Serial.println(theState);
