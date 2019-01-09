@@ -28,24 +28,27 @@
 
 // -----------------------------------------------------------------------
 #include "Arduino.h"
-#include "SoftwareSerial.h"
 #include "DFRobotDFPlayerMini.h"
+// For communicating with the DFRobot player
+#include "SoftwareSerial.h"
+// Infrared:
 #include <IRremote.h>
-
-// Infrared receiver
-int IR_PIN = 9;
-IRrecv irrecv(IR_PIN);
-decode_results results;
 
 #define BUTTON_NEXT_PIN 2
 #define BUTTON_PAUSE_PIN 3
 #define BUTTON_PREVIOUS_PIN 4
 #define BUTTON_LOOP_PIN 5
 
-boolean playPause = false;  // For toggling pause.
-boolean loopSingle = false; // For toggling single song.
+// Infrared receiver
+int IR_PIN = 9;
+IRrecv irrecv(IR_PIN);
+decode_results results;
+
 int currentSingle = 1;      // First song played when player starts up. Then incremented when next is played.
 int currentDirectory = 1;   // File directory name on the SD card. Example 1 is directory name: /01.
+
+boolean playPause = false;  // For toggling pause.
+boolean loopSingle = false; // For toggling single song.
 
 // For controling button presses: handle a quick click or a click and hold.
 boolean buttonLoop = false;
