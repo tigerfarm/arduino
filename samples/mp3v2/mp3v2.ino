@@ -227,19 +227,23 @@ void loop() {
       // -----------------------------------
       // Song control
       case 0xFF10EF:
+      case 0xE0E0A659:
         Serial.println("+ Key < - previous");
         buttonPrevious = true;
         break;
       case 0xFF5AA5:
+      case 0xE0E046B9:
         Serial.println("+ Key > - next");
         buttonNext = true;
         break;
       case 0xFF38C7:
+      case 0xE0E016E9:
         Serial.println("+ Key OK - if paused, start the song.");
         myDFPlayer.start();
         playPause = false;
         break;
       case 0xFF9867:
+      case 0xE0E08877:
         Serial.println("+ Key 0 - Pause");
         myDFPlayer.pause();
         playPause = true;
@@ -247,15 +251,17 @@ void loop() {
       // -----------------------------------
       // Single song loop
       case 0xFF6897:
-        Serial.println("+ Key * - Loop on: loop this single MP3.");
+      case 0xE0E01AE5:
+        Serial.println("+ Key * (Return) - Loop on: loop this single MP3.");
         myDFPlayer.pause();     // Pause identifies that loop is on. Else I need a LED to indicate loop is on.
         delay(200);
         myDFPlayer.start();
         loopSingle = true;
         break;
       case 0xFFB04F:
+      case 0xE0E0B44B:
         if (loopSingle) {
-          Serial.println("+ Key # - Loop off: Single MP3 loop is off.");
+          Serial.println("+ Key # (Exit) - Loop off: Single MP3 loop is off.");
           myDFPlayer.next();    // Play next identifies that loop is off.
           loopSingle = false;
         }
@@ -263,6 +269,7 @@ void loop() {
       // -----------------------------------
       // Folder, file directory selection.
       case 0xFF18E7:
+      case 0xE0E006F9:
         Serial.print("+ Key up - next directory, directory number: ");
         currentDirectory ++;
         Serial.println(currentDirectory);
@@ -270,6 +277,7 @@ void loop() {
         // If no directory, get the error message: DFPlayerError:Cannot Find File
         break;
       case 0xFF4AB5:
+      case 0xE0E08679:
         Serial.print("+ Key down - previous directory, directory number: ");
         if (currentDirectory > 1) {
           currentDirectory --;
@@ -329,7 +337,11 @@ void loop() {
         myDFPlayer.EQ(DFPLAYER_EQ_BASS);
         break;
       // -----------------------------------
-    }
+      default:
+        Serial.print("+ Result value: ");
+        Serial.println(results.value, HEX);
+      // -----------------------------------
+      } // end switch
     irrecv.resume();
   }
 
