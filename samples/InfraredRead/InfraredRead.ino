@@ -62,7 +62,7 @@ void loop() {
         Serial.print("+ Result value: ");
         Serial.println(results.value, HEX);
     }
-    //
+    //  For the infrared mini-keypad:
     //  1 : FFA25D
     //  2 : FF629D
     //  3 : FFE21D
