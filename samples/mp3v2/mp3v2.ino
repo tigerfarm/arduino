@@ -61,6 +61,7 @@ boolean buttonNextPressed = false;
 boolean buttonPreviousPressed = false;
 
 // -----------------------------------------------------------------------
+// myDFPlayer configuration and error messages.
 SoftwareSerial mySoftwareSerial(10, 11);      // RX, TX
 DFRobotDFPlayerMini myDFPlayer;
 void printDetail(uint8_t type, int value);
@@ -112,14 +113,14 @@ void printDetail(uint8_t type, int value) {
           break;
         case FileMismatch:
           Serial.println(F("Cannot Find File"));
-          //
           Serial.print("+ Assume the directory number was incremented too high, play previous directory: ");
           if (currentDirectory > 1) {
             currentDirectory --;
+          } else {
+            currentDirectory = 1;
           }
           Serial.println(currentDirectory);
           myDFPlayer.loopFolder(currentDirectory);
-          //
           break;
         case Advertise:
           Serial.println(F("In Advertise"));
@@ -136,6 +137,9 @@ void printDetail(uint8_t type, int value) {
 // -----------------------------------------------------------------------
 void infraredSwitch() {
   // Serial.println("+ infraredSwitch");
+  //
+  // Should check if pause. If pause, then only allow unpause, i.e OK key.
+  //
   switch (results.value) {
     case 0xFFFFFFFF:
       // Ignore. This is from holding the key down.
@@ -353,7 +357,7 @@ void checkButtons() {
 // -----------------------------------------------------------------------
 void setup() {
   delay(1000);  // This prevents a crash in setup(), which causes the Arduino to restart.
-                // The likely issue, is giving the Arduino time to initialize, before Serial.begin.
+  // The likely issue, is giving the Arduino time to initialize, before Serial.begin.
   Serial.begin(9600);
   Serial.println();
   Serial.println("+++ DFRobot DFPlayer Mini");
@@ -411,7 +415,7 @@ void setup() {
     Serial.print("+ readCurrentFileNumber: ");
     Serial.println(myDFPlayer.readCurrentFileNumber());
   */
-  
+
   irrecv.enableIRIn();
   Serial.println(F("+ Initialized the infrared receiver."));
 
@@ -446,17 +450,19 @@ void loop() {
       if (loopSingle) {
         Serial.println("Loop/play the same MP3.");
         myDFPlayer.start();
+        Serial.println("+ myDFPlayer.read() " + myDFPlayer.read());
       } else {
         Serial.println("Play next MP3.");
+        // int value = myDFPlayer.read();
+        // Serial.print("+ value: ");
+        // Serial.println(value);
         myDFPlayer.next();
       }
       // ------------------------------
     } else if (theType == DFPlayerCardInserted ) {
       Serial.println(F("+ SD mini card inserted. Start playing"));
       myDFPlayer.start();
-    }
-    // ------------------------------
-    else {
+    } else {
       // Print the detail message from DFPlayer to handle different errors and states,
       //   such as memory card not inserted.
       printDetail(theType, myDFPlayer.read());
