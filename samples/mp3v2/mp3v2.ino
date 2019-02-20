@@ -1,7 +1,7 @@
 /**************************************************************
 
   MP3 player with: play next, previous, loop single, and pause.
-  
+
   Version 3.0
   This is an updated version of Angelo's development version.
   This version includes infrared controls which is way better than breadboard buttons.
@@ -134,28 +134,143 @@ void printDetail(uint8_t type, int value) {
 }
 
 // -----------------------------------------------------------------------
-void setup() {
-  Serial.begin(9600);
-  Serial.println();
-  Serial.println(F("+++ DFRobot DFPlayer Mini"));
-  //
-  Serial.println(F("++ Initializing, may take a few seconds..."));
-  mySoftwareSerial.begin(9600);
-  if (!myDFPlayer.begin(mySoftwareSerial)) {
-    // Use softwareSerial to communicate with mp3.
-    Serial.println(F("Unable to begin:"));
-    Serial.println(F("1.Please recheck the connection!"));
-    Serial.println(F("2.Please insert the SD card!"));
-    /*
-     * If SD card not installed, the will require a restart.
-     * Without the following, you can put the card in, and music will start playing.
-    while (true) {
-      delay(0);
-    }
-    */
-  }
-  Serial.println(F("+ DFPlayer is initialized."));
-  //
+void infraredSwitch() {
+  // Serial.println("+ infraredSwitch");
+  switch (results.value) {
+    case 0xFFFFFFFF:
+      // Ignore. This is from holding the key down.
+      break;
+    // -----------------------------------
+    // Song control
+    case 0xFF10EF:
+    case 0xE0E0A659:
+      Serial.println("+ Key < - previous");
+      myDFPlayer.previous();
+      break;
+    case 0xFF5AA5:
+    case 0xE0E046B9:
+      Serial.println("+ Key > - next");
+      myDFPlayer.next();
+      break;
+    case 0xFF38C7:
+    case 0xE0E016E9:
+      Serial.println("+ Key OK - Toggle: pause the song or start the song.");
+      if (playPause) {
+        myDFPlayer.start();
+        playPause = false;
+      } else {
+        myDFPlayer.pause();
+        playPause = true;
+      }
+      break;
+    case 0xFF9867:
+    case 0xE0E08877:
+      Serial.println("+ Key 0 - Pause");
+      myDFPlayer.pause();
+      playPause = true;
+      break;
+    // -----------------------------------
+    // Single song loop
+    case 0xFF6897:
+    case 0xE0E01AE5:
+      Serial.println("+ Key * (Return) - Loop on: loop this single MP3.");
+      myDFPlayer.pause();   // Pause identifies that loop is on. Else I need a LED to indicate loop is on.
+      delay(200);
+      myDFPlayer.start();
+      loopSingle = true;
+      break;
+    case 0xFFB04F:
+    case 0xE0E0B44B:
+      Serial.println("+ Key # (Exit) - Loop off: Single MP3 loop is off.");
+      if (loopSingle) {
+        myDFPlayer.pause(); // Pause identifies that loop is now off. Else I need a LED to indicate loop is on.
+        delay(1000);
+        myDFPlayer.start();
+        loopSingle = false;
+      }
+      break;
+    // -----------------------------------
+    // Folder, file directory selection.
+    case 0xFF18E7:
+    case 0xE0E006F9:
+      Serial.print("+ Key up - next directory, directory number: ");
+      currentDirectory ++;
+      Serial.println(currentDirectory);
+      myDFPlayer.loopFolder(currentDirectory);
+      // If no directory, get the error message: DFPlayerError:Cannot Find File
+      break;
+    case 0xFF4AB5:
+    case 0xE0E08679:
+      Serial.print("+ Key down - previous directory, directory number: ");
+      if (currentDirectory > 1) {
+        currentDirectory --;
+      }
+      Serial.println(currentDirectory);
+      myDFPlayer.loopFolder(currentDirectory);
+      break;
+    case 0xFFA25D:
+      Serial.print("+ Key 1: ");
+      Serial.println("File directory 1");
+      // myDFPlayer.playFolder(1, 1); // In a specific directory, play a specific file: /01/0001.mp3;
+      currentDirectory = 1;
+      myDFPlayer.loopFolder(currentDirectory);  // Doesn't require a specific filename in the directory.
+      break;
+    case 0xFF629D:
+      Serial.print("+ Key 2: ");
+      Serial.println("File directory 2");
+      currentDirectory = 2;
+      myDFPlayer.loopFolder(currentDirectory);
+      break;
+    case 0xFFE21D:
+      Serial.print("+ Key 3: ");
+      Serial.println("File directory 3");
+      currentDirectory = 3;
+      myDFPlayer.loopFolder(currentDirectory);
+      break;
+    // -----------------------------------
+    // Equalizer setting selection.
+    case 0xFF22DD:
+      Serial.print("+ Key 4: ");
+      Serial.println("DFPLAYER_EQ_POP");
+      myDFPlayer.EQ(DFPLAYER_EQ_POP);
+      break;
+    case 0xFF02FD:
+      Serial.print("+ Key 5: ");
+      Serial.println("DFPLAYER_EQ_CLASSIC");
+      myDFPlayer.EQ(DFPLAYER_EQ_CLASSIC);
+      break;
+    case 0xFFC23D:
+      Serial.print("+ Key 6: ");
+      Serial.println("DFPLAYER_EQ_NORMAL");
+      myDFPlayer.EQ(DFPLAYER_EQ_NORMAL);
+      break;
+    case 0xFFE01F:
+      Serial.print("+ Key 7: ");
+      Serial.println("DFPLAYER_EQ_JAZZ");
+      myDFPlayer.EQ(DFPLAYER_EQ_JAZZ);
+      break;
+    case 0xFFA857:
+      Serial.print("+ Key 8: ");
+      Serial.println("DFPLAYER_EQ_ROCK");
+      myDFPlayer.EQ(DFPLAYER_EQ_ROCK);
+      break;
+    case 0xFF906F:
+      Serial.print("+ Key 9: ");
+      Serial.println("DFPLAYER_EQ_BASS");
+      myDFPlayer.EQ(DFPLAYER_EQ_BASS);
+      break;
+    // -----------------------------------
+    default:
+      Serial.print("+ Result value: ");
+      Serial.println(results.value, HEX);
+      // -----------------------------------
+  } // end switch
+}
+
+// -----------------------------------------------------------------------
+// Process buttons: Pause, Next, Previous, Loop single song
+
+void setButtons() {
   pinMode(BUTTON_LOOP_PIN, INPUT);
   pinMode(BUTTON_PAUSE_PIN, INPUT);
   pinMode(BUTTON_NEXT_PIN, INPUT);
@@ -164,190 +279,15 @@ void setup() {
   digitalWrite(BUTTON_PAUSE_PIN, HIGH);
   digitalWrite(BUTTON_NEXT_PIN, HIGH);
   digitalWrite(BUTTON_PREVIOUS_PIN, HIGH);
-  //
-  // ---------------------
-  // If I add a SD card for state, I can start based on the previous state.
-  //
-  myDFPlayer.setTimeOut(300);   // Set serial communictaion time out
-  myDFPlayer.volume(18);        // Set speaker volume from 0 to 30. Doesn't effect DAC output.
-  // myDFPlayer.volumeUp(); //Volume Up
-  // myDFPlayer.volumeDown(); //Volume Down
-  //
-  // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP 
-  myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
-  //
-  // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
-  myDFPlayer.EQ(DFPLAYER_EQ_CLASSIC);
-  //
-  // myDFPlayer.start();
-  myDFPlayer.play(currentSingle);
-  //
-  // ---------------------
-  /*
-  // The following should work, but doesn't work for me:
-  //
-  int theState = myDFPlayer.readState();
-  Serial.print("+ mp3 state: ");
-  Serial.println(theState);
-  //
-  Serial.print("+ mp3 state: ");
-  Serial.println(myDFPlayer.readState());
-  Serial.print("+ current volume: ");
-  Serial.println(myDFPlayer.readVolume());
-  Serial.print("+ readEQ: ");
-  Serial.println(myDFPlayer.readEQ());
-  Serial.print("+ readFileCounts: ");
-  Serial.println(myDFPlayer.readFileCounts()); //read all file counts in SD card
-  Serial.print("+ readCurrentFileNumber: ");
-  Serial.println(myDFPlayer.readCurrentFileNumber());
-  */
-  irrecv.enableIRIn();
-  Serial.println(F("+ Initialized the infrared receiver."));
 }
 
-// -----------------------------------------------------------------------
-void loop() {
-
-  delay(50);
-
-  // ---------------------------------------------------------------------
+void checkButtons() {
+  //
   // Get button press state.
   buttonLoop = !(digitalRead(BUTTON_LOOP_PIN));
   buttonPause = !(digitalRead(BUTTON_PAUSE_PIN));
   buttonNext = !(digitalRead(BUTTON_NEXT_PIN));
   buttonPrevious = !(digitalRead(BUTTON_PREVIOUS_PIN));
-  
-  // ---------------------------------------------------------------------
-  // Process infrared key presses.
-  if (irrecv.decode(&results)) {
-    switch (results.value) {
-      case 0xFFFFFFFF:
-        // Ignore. This is from holding the key down.
-        break;
-      // -----------------------------------
-      // Song control
-      case 0xFF10EF:
-      case 0xE0E0A659:
-        Serial.println("+ Key < - previous");
-        buttonPrevious = true;
-        break;
-      case 0xFF5AA5:
-      case 0xE0E046B9:
-        Serial.println("+ Key > - next");
-        buttonNext = true;
-        break;
-      case 0xFF38C7:
-      case 0xE0E016E9:
-        Serial.println("+ Key OK - if paused, start the song.");
-        myDFPlayer.start();
-        playPause = false;
-        break;
-      case 0xFF9867:
-      case 0xE0E08877:
-        Serial.println("+ Key 0 - Pause");
-        myDFPlayer.pause();
-        playPause = true;
-        break;
-      // -----------------------------------
-      // Single song loop
-      case 0xFF6897:
-      case 0xE0E01AE5:
-        Serial.println("+ Key * (Return) - Loop on: loop this single MP3.");
-        myDFPlayer.pause();     // Pause identifies that loop is on. Else I need a LED to indicate loop is on.
-        delay(200);
-        myDFPlayer.start();
-        loopSingle = true;
-        break;
-      case 0xFFB04F:
-      case 0xE0E0B44B:
-        if (loopSingle) {
-          Serial.println("+ Key # (Exit) - Loop off: Single MP3 loop is off.");
-          myDFPlayer.next();    // Play next identifies that loop is off.
-          loopSingle = false;
-        }
-        break;
-      // -----------------------------------
-      // Folder, file directory selection.
-      case 0xFF18E7:
-      case 0xE0E006F9:
-        Serial.print("+ Key up - next directory, directory number: ");
-        currentDirectory ++;
-        Serial.println(currentDirectory);
-        myDFPlayer.loopFolder(currentDirectory);
-        // If no directory, get the error message: DFPlayerError:Cannot Find File
-        break;
-      case 0xFF4AB5:
-      case 0xE0E08679:
-        Serial.print("+ Key down - previous directory, directory number: ");
-        if (currentDirectory > 1) {
-          currentDirectory --;
-        }
-        Serial.println(currentDirectory);
-        myDFPlayer.loopFolder(currentDirectory);
-        break;
-      case 0xFFA25D:
-        Serial.print("+ Key 1: ");
-        Serial.println("File directory 1");
-        // myDFPlayer.playFolder(1, 1); // In a specific directory, play a specific file: /01/0001.mp3;
-        currentDirectory = 1;
-        myDFPlayer.loopFolder(currentDirectory);  // Doesn't require a specific filename in the directory.
-        break;
-      case 0xFF629D:
-        Serial.print("+ Key 2: ");
-        Serial.println("File directory 2");
-        currentDirectory = 2;
-        myDFPlayer.loopFolder(currentDirectory);
-        break;
-      case 0xFFE21D:
-        Serial.print("+ Key 3: ");
-        Serial.println("File directory 3");
-        currentDirectory = 3;
-        myDFPlayer.loopFolder(currentDirectory);
-        break;
-      // -----------------------------------
-      // Equalizer setting selection.
-      case 0xFF22DD:
-        Serial.print("+ Key 4: ");
-        Serial.println("DFPLAYER_EQ_POP");
-        myDFPlayer.EQ(DFPLAYER_EQ_POP);
-        break;
-      case 0xFF02FD:
-        Serial.print("+ Key 5: ");
-        Serial.println("DFPLAYER_EQ_CLASSIC");
-        myDFPlayer.EQ(DFPLAYER_EQ_CLASSIC);
-        break;
-      case 0xFFC23D:
-        Serial.print("+ Key 6: ");
-        Serial.println("DFPLAYER_EQ_NORMAL");
-        myDFPlayer.EQ(DFPLAYER_EQ_NORMAL);
-        break;
-      case 0xFFE01F:
-        Serial.print("+ Key 7: ");
-        Serial.println("DFPLAYER_EQ_JAZZ");
-        myDFPlayer.EQ(DFPLAYER_EQ_JAZZ);
-        break;
-      case 0xFFA857:
-        Serial.print("+ Key 8: ");
-        Serial.println("DFPLAYER_EQ_ROCK");
-        myDFPlayer.EQ(DFPLAYER_EQ_ROCK);
-        break;
-      case 0xFF906F:
-        Serial.print("+ Key 9: ");
-        Serial.println("DFPLAYER_EQ_BASS");
-        myDFPlayer.EQ(DFPLAYER_EQ_BASS);
-        break;
-      // -----------------------------------
-      default:
-        Serial.print("+ Result value: ");
-        Serial.println(results.value, HEX);
-      // -----------------------------------
-      } // end switch
-    irrecv.resume();
-  }
-
-  // ---------------------------------------------------------------------
-  // Process buttons: Pause, Next, Previous, Loop single song
-
   // ------------------------------
   if (buttonPause) {
     if (!buttonPausePressed) {
@@ -408,10 +348,96 @@ void loop() {
   } else {
     buttonLoopPressed = false;
   }
+}
+
+// -----------------------------------------------------------------------
+void setup() {
+  delay(1000);  // This prevents a crash in setup(), which causes the Arduino to restart.
+                // The likely issue, is giving the Arduino time to initialize, before Serial.begin.
+  Serial.begin(9600);
+  Serial.println();
+  Serial.println("+++ DFRobot DFPlayer Mini");
+  Serial.println(F("++ Initializing..."));
+  mySoftwareSerial.begin(9600);
+  if (!myDFPlayer.begin(mySoftwareSerial)) {
+    // Use softwareSerial to communicate with mp3.
+    Serial.println(F("Unable to begin:"));
+    Serial.println(F("1.Please recheck the connection!"));
+    Serial.println(F("2.Please insert the SD card!"));
+  }
+  Serial.println(F("+ DFPlayer is initialized."));
+  //
+  //
+  // ---------------------
+  // If I add a SD card for state, I can start based on the previous state.
+  //
+  myDFPlayer.setTimeOut(300);   // Set serial communictaion time out
+  delay(300);
+  myDFPlayer.volume(18);        // Set speaker volume from 0 to 30. Doesn't effect DAC output.
+  // myDFPlayer.volumeUp();     //Volume Up
+  // myDFPlayer.volumeDown();   //Volume Down
+  //
+  // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
+  myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
+  //
+  // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
+  myDFPlayer.EQ(DFPLAYER_EQ_CLASSIC);
+  //
+  // myDFPlayer.start();
+  myDFPlayer.loopFolder(currentDirectory);
+  // myDFPlayer.play(currentSingle);
+  //
+  // Serial.println(F("+ Pause the player when reset or powered on."));
+  delay(300); // need a delay after the previous myDFPlayer function call and the next.
+  myDFPlayer.pause();
+  playPause = true;
+  //
+  // ---------------------
+  /*
+    // The following should work, but doesn't work for me:
+    //
+    int theState = myDFPlayer.readState();
+    Serial.print("+ mp3 state: ");
+    Serial.println(theState);
+    //
+    Serial.print("+ mp3 state: ");
+    Serial.println(myDFPlayer.readState());
+    Serial.print("+ current volume: ");
+    Serial.println(myDFPlayer.readVolume());
+    Serial.print("+ readEQ: ");
+    Serial.println(myDFPlayer.readEQ());
+    Serial.print("+ readFileCounts: ");
+    Serial.println(myDFPlayer.readFileCounts()); //read all file counts in SD card
+    Serial.print("+ readCurrentFileNumber: ");
+    Serial.println(myDFPlayer.readCurrentFileNumber());
+  */
   
+  irrecv.enableIRIn();
+  Serial.println(F("+ Initialized the infrared receiver."));
+
+  // If using buttons, uncomment:
+  // setButtons();
+}
+
+// -----------------------------------------------------------------------
+void loop() {
+
+  delay(50);
+
+  // ---------------------------------------------------------------------
+  // If using buttons, uncomment:
+  // checkButtons();
+  //
+  // ---------------------------------------------------------------------
+  // Process infrared key presses.
+  if (irrecv.decode(&results)) {
+    infraredSwitch();
+    irrecv.resume();
+  }
+
   // ---------------------------------------------------------------------
   // Handle continuous playing, and play errors such as: memory card not inserted.
-  
+
   if (myDFPlayer.available()) {
     int theType = myDFPlayer.readType();
     // ------------------------------
