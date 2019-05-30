@@ -212,6 +212,7 @@ void infraredSwitch() {
       Serial.println(currentDirectory);
       myDFPlayer.loopFolder(currentDirectory);
       break;
+    // -----------------------------------
     case 0xFFA25D:
       Serial.print("+ Key 1: ");
       Serial.println("File directory 1");
