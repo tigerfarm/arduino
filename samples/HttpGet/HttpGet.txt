@@ -13,6 +13,9 @@ https://www.youtube.com/watch?v=p06NNRq5NTU
 
 In my router, the device shows up named: ESP_375742
 
++ Hello webserver program.
+https://github.com/esp8266/Arduino/blob/master/libraries/ESP8266WebServer/examples/HelloServer/HelloServer.ino
+
 --------------------------------------------------------------------------------
 
 Output from running:
@@ -67,3 +70,35 @@ cheers
 
 
 --------------------------------------------------------------------------------
+
+Sketch uses 258916 bytes (51%) of program storage space. Maximum is 499696 bytes.
+Global variables use 26788 bytes (32%) of dynamic memory, leaving 55132 bytes for local variables. Maximum is 81920 bytes.
+esptool.py v2.6
+2.6
+esptool.py v2.6
+Serial port /dev/cu.wchusbserial14120
+Connecting....
+Chip is ESP8266EX
+Features: WiFi
+MAC: 3c:71:bf:37:57:42
+Uploading stub...
+Running stub...
+Stub running...
+Configuring flash size...
+Auto-detected Flash size: 4MB
+Flash params set to 0x0340
+Compressed 263072 bytes to 192125...
+
+Writing at 0x00000000... (8 %)
+Writing at 0x00004000... (16 %)
+Writing at 0x00008000... (25 %)
+Writing at 0x0000c000... (33 %)
+Writing at 0x00010000... (41 %)
+Writing at 0x00014000... (50 %)
+Writing at 0x00018000... (58 %)
+Writing at 0x0001c000... (66 %)
+Writing at 0x00020000... (75 %)
+Writing at 0x00024000... (83 %)
+
+--------------------------------------------------------------------------------
+
