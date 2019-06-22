@@ -1,0 +1,55 @@
+5198427760
+
+--------------------------------------------------------------------------------
+Output from running:
+
++ Connecting to the WiFi network: BATCAVE
+.....
+++ WiFi connected on IP address: 192.168.1.79
+-------------------------------------------------------
++ Connecting to: 192.168.1.73
+++ Connected. Make request to the URL: /hello.txt
+-----------------
+Response:
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Accept-Ranges: bytes
+Cache-Control: public, max-age=0
+Last-Modified: Wed, 29 May 2019 01:36:03 GMT
+ETag: W/"24-16b013adbb8"
+Content-Type: text/plain; charset=UTF-8
+Content-Length: 36
+Date: Sat, 22 Jun 2019 01:17:24 GMT
+Connection: close
+
+File: hello.txt
+Hello there.
+
+cheers
+-----------------
++ Closing connection
+-------------------------------------------------------
++ Connecting to: 192.168.1.73
+++ Connected. Make request to the URL: /hello.txt
+-----------------
+Response:
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Accept-Ranges: bytes
+Cache-Control: public, max-age=0
+Last-Modified: Wed, 29 May 2019 01:36:03 GMT
+ETag: W/"24-16b013adbb8"
+Content-Type: text/plain; charset=UTF-8
+Content-Length: 36
+Date: Sat, 22 Jun 2019 01:17:39 GMT
+Connection: close
+
+File: hello.txt
+Hello there.
+
+cheers
+-----------------
++ Closing connection
+
+
+--------------------------------------------------------------------------------
