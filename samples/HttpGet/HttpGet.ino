@@ -2,7 +2,7 @@
 
 const char *ssid = "BATCAVE";  // WIFI SETTINGS: Network name (SSID) and password.
 // const char *password = "mypassword";
-const char *password = "";  // Note, I don't save my password when I upload to the repository.
+const char *password = "5198427760";  // Note, I don't save my password when I upload to the repository.
 
 // const char* host = "tigerfarmpress.com";
 const char *host = "192.168.1.73";
@@ -68,6 +68,7 @@ void setup() {
   Serial.println("");
   Serial.print("++ WiFi connected on IP address: ");
   Serial.println(WiFi.localIP());
+  // ------------------------------------------------
   //
   loopCounter = 0;
   digitalWrite(LED_PIN, HIGH);
