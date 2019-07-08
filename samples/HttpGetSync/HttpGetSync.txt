@@ -1,0 +1,12 @@
+--------------------------------------------------------------------------------
++++ ESP8266 ESP-12E NodeMcu HTTP Get notes
+
+$ ping tigsync.herokuapp.com
+PING tigsync.herokuapp.com (34.225.219.245)
+
++ Version I bought:
+++ ESP8266 ESP-12E NodeMcu Lua V3 CH340G WIFI Lua Wireless Development Board Module
+
+
+--------------------------------------------------------------------------------
+
