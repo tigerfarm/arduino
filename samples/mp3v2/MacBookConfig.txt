@@ -1,9 +1,0 @@
---------------------------------------------------------------------------------
-+++ Set up on my MacBook:
-
-+ In the IDE menu, select:
-++ Tools/Boards: Arduino Nano
-++ Processor: ATmega328P (Old Bootloader)
-++ Port: /dev/cu.wchusbserial14120
-
---------------------------------------------------------------------------------

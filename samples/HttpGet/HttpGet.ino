@@ -2,7 +2,7 @@
 
 const char *ssid = "BATCAVE";  // WIFI SETTINGS: Network name (SSID) and password.
 // const char *password = "mypassword";
-const char *password = "";  // Note, I don't save my password when I upload to the repository.
+const char *password = "5198427760";  // Note, I don't save my password when I upload to the repository.
 
 // const char* host = "tigerfarmpress.com";
 const char *host = "192.168.1.73";
@@ -25,6 +25,7 @@ void httpGet() {
     Serial.println("connection failed");
     return;
   }
+  // ------------------------------------------------
   digitalWrite(LED_PIN, LOW);
   String url = "/hello.txt";
   Serial.print("++ Connected. Make request to the URL: ");
@@ -42,6 +43,7 @@ void httpGet() {
     String line = client.readStringUntil('\r');
     Serial.print(line);
   }
+  // ------------------------------------------------
   digitalWrite(LED_PIN, LOW);
   Serial.println();
   Serial.println("-----------------");

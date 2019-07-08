@@ -30,7 +30,7 @@ void post()
   if (client.connect()) {
     Serial.println("connected");
     client.println(POST /2010-04-01/Accounts/" + my_account_SID + "/Messages.json HTTP/1.1);
-    client.println("Host:  artiswrong.com");
+    client.println("Host:  example.com");
     client.println("User-Agent: Arduino/1.0");
     client.println("Connection: close");
     client.println("Authorization: Basic " + encodedBasicAuthorization);

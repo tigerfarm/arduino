@@ -23,6 +23,9 @@ In my router, the device shows up named: ESP_375742
 + When changing a setting:
 ++ Build options changed, rebuilding all
 
++ Power options:
+http://henrysbench.capnfatz.com/henrys-bench/arduino-projects-tips-and-more/powering-the-esp-12e-nodemcu-development-board/
+
 --------------------------------------------------------------------------------
 +++ Webserver programs
 
