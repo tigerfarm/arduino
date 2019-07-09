@@ -6,6 +6,8 @@ const char *password = "";  // Note, I don't save my password when I upload to t
 
 // const char* host = "tigerfarmpress.com";
 const char *host = "192.168.1.73";
+// String uri = "/syncdocumentupdate?identity=esp8266&name=abc&position=5&value=O"; // "/hello.txt";
+String uri = "/hello.txt";
 
 #define LED_PIN 12
 void blinkLed() {
@@ -27,11 +29,10 @@ void httpGet() {
   }
   // ------------------------------------------------
   digitalWrite(LED_PIN, LOW);
-  String url = "/hello.txt";
   Serial.print("++ Connected. Make request to the URL: ");
-  Serial.println(url);
+  Serial.println(uri);
   client.print(
-    String("GET ") + url + " HTTP/1.1\r\n"
+    String("GET ") + uri + " HTTP/1.1\r\n"
     + "Host: " + host + "\r\n"
     + "Connection: close\r\n\r\n"
   );

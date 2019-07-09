@@ -22,9 +22,14 @@ const char *password = "";  // Note, I don't save my password on the repository.
 // $ ifconfig -a | grep broadcast
 //     inet 192.168.1.73
 const String hostname="localhost";
-// const char *host = "127.0.0.1";
 const char *host = "192.168.1.73";
 const int httpPort = 8000;
+
+String theValue = "A";
+String uri = "/syncdocumentupdate?identity=esp8266&name=abc&value=" + theValue + "&position=" + "5";
+// String uri = "/syncdocumentupdate?identity=esp8266&name=abc&position=5&value=O";
+// String uri = "/hello";
+// String uri = "/hello.txt";
 
 // -----------------------------------------------------------------------------
 #define LED_PIN 12
@@ -53,15 +58,12 @@ void httpGet() {
   }
 
   // ------------------------------------------------
-  digitalWrite(LED_PIN, LOW);
   Serial.print("++ Connected. Make request to the URI: ");
-  String uri = "/syncdocumentupdate?identity=esp8266&name=abc&position=5&value=O"; // "/hello.txt";
   Serial.println(uri);
   Serial.println("-----------------");
   delay(200);
 
   // ------------------------------------------------
-  digitalWrite(LED_PIN, HIGH);
   // Send GET request and headers.
   // Host header: specifies the domain name of the server, for virtual hosting; and optionally, the TCP listening port number:
   //    Host: <host>:<port>
@@ -70,8 +72,8 @@ void httpGet() {
     + "Host: " + hostname + "\r\n"
     + "Connection: close\r\n\r\n"
   );
-
   Serial.println("Response:");
+  delay(2000);
   while (client.available()) {
     String line = client.readStringUntil('\r');
     Serial.print(line);
@@ -94,8 +96,10 @@ void setup() {
   Serial.begin(115200);
   delay(10);
   Serial.println();
-  Serial.println();
+  Serial.println("+++ Setup.");
+  //
   // ------------------------------------------------
+  digitalWrite(LED_PIN, HIGH);
   Serial.print("+ Connecting to the WiFi network: ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);
@@ -110,7 +114,7 @@ void setup() {
   // ------------------------------------------------
   //
   loopCounter = 0;
-  digitalWrite(LED_PIN, HIGH);
+  digitalWrite(LED_PIN, LOW);
 }
 
 // -----------------------------------------------------------------------------
