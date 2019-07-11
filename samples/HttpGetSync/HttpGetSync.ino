@@ -7,39 +7,53 @@ const char *ssid = "BATCAVE";
 const char *password = "";  // Note, I don't save my password on the repository.
 
 // -----------------------------------------------------------------------------
-// Host definition, for HTTP requests
 
+// For creating TCP client connections.
+WiFiClient client;
+
+// ---------------------------
+// Host definition, for HTTP requests
+//
 // http://tigsync.herokuapp.com/
 // $ ping tigsync.herokuapp.com
 // PING tigsync.herokuapp.com (34.225.219.245)
-// const String hostname="tigsync.herokuapp.com";
-// const char *host = "34.225.219.245";
-// const int httpPort = 80;
+// ---
+const String hostname="tigsync.herokuapp.com";
+const char *host = "34.225.219.245";
+const int httpPort = 80;
 
 // http://localhost:8000/
 // $ ping localhost
 // PING localhost (127.0.0.1)
 // $ ifconfig -a | grep broadcast
 //     inet 192.168.1.73
-const String hostname = "localhost";
-const char *host = "192.168.1.73";
-const int httpPort = 8000;
+// ---
+// const String hostname = "localhost";
+// const char *host = "192.168.1.73";
+// const int httpPort = 8000;
 
+// ---------------------------
 // HTTP request timeout wait time.
-int secondsToWaitForResponse = 6;
+int secondsToWaitForResponse = 15;
+int responseWaitTime = 500; // Wait between retry, is 1/2 a second.
+// Times 2 (*2), because the delay is 1/2 a second.
+int timesToRetry = secondsToWaitForResponse *2;
 
-String theValue = "A";
+// Number of times to retry the HTTP request.
+int timesToRetryRequest = 3;
+
+// ---------------------------
 String uriName = "&name=";
 String uriNameValue = "abc";
-String uriBasic = "/syncdocumentupdate?identity=esp8266" + uriName + uriNameValue;
-String uriValue = "&value=";
-String uriValueValue = "A";
+//
 String uriPosition = "&position=";
-String theUri = uriBasic  + uriValue + uriValueValue + uriPosition;
-String uri = "/syncdocumentupdate?identity=esp8266&name=abc&value=" + theValue + "&position=";
-// String uri = "/syncdocumentupdate?identity=esp8266&name=abc&position=5&value=O";
-// String uri = "/hello";
-// String uri = "/hello.txt";
+String uriPositionValue = "1";
+//
+String uriValue = "&value=";
+String uriValueValue = "X";
+//
+String uriBasic = "/syncdocumentupdate?identity=esp8266" + uriName + uriNameValue;
+String theUri = uriBasic + uriPosition + uriPositionValue + uriValue + uriValueValue;
 
 // -----------------------------------------------------------------------------
 #define LED_PIN 12
@@ -78,38 +92,40 @@ void setup() {
 
   // ------------------------------------------------
   digitalWrite(LED_PIN, LOW);
+  
+  httpGetRequest(0,"");  // Start by clearing board.
 }
 
 // -----------------------------------------------------------------------------
 // Make an HTTP GET request.
 
-void httpGetRequest(int iPosition) {
-
+int httpGetRequest(int iPosition, String sValue) {
   digitalWrite(LED_PIN, HIGH);  // Turn the LED on during the request.
 
+  int returnValue = 0;
+
   Serial.println("-------------------------------------------------------");
+  String uriRequest = uriBasic + uriValue + sValue + uriPosition + iPosition;
+  // String uriRequest = uriBasic + uriValue + iPosition + uriPosition + iPosition;
+  Serial.print("+ Make request to the URI: ");
+  Serial.println(uriRequest);
+  //
+  // ------------------------------------------------
   Serial.print("+ Connecting to: ");
   Serial.print(hostname);
   Serial.print(" IP: ");
   Serial.print(host);
   Serial.print(" Port: ");
   Serial.println(httpPort);
-
-  // Create TCP connection.
-  WiFiClient client;
+  //
+  // I should test using the keep-alive header.
   if (!client.connect(host, httpPort)) {
     Serial.println("connection failed");
-    return;
+    digitalWrite(LED_PIN, LOW);
+    return 1;
   }
-
-  // ------------------------------------------------
-  // String uriRequest = uri + iPosition;
-  String uriRequest = uriBasic  + uriValue + iPosition + uriPosition + iPosition;
-  Serial.print("++ Connected. Make request to the URI: ");
-  Serial.println(uriRequest);
-  Serial.println("-----------------");
-  delay(200);
-
+  // delay(200);
+  
   // ------------------------------------------------
   // Send GET request and headers.
   //    https://en.wikipedia.org/wiki/List_of_HTTP_header_fields
@@ -120,6 +136,11 @@ void httpGetRequest(int iPosition) {
   //    Host: localhost
   //    Host: localhost:8000
   //
+  // Should test:
+  //    Connection: keep-alive
+  // Sample response header:
+  //    Keep-Alive: timeout=5, max=1000
+  //
   client.print(
     String("GET ") + uriRequest + " HTTP/1.1"
     + "\r\n"
@@ -128,14 +149,10 @@ void httpGetRequest(int iPosition) {
     + "Connection: close\r\n"
     + "\r\n"
   );
-  // ------------------------------------------------
-  // Wait for a response, and print the response.
-  Serial.println("Response:");
-  delay(200);
-
-  // Times 2 (*2), because the delay is 1/2 a second.
-  int timesToRetry = secondsToWaitForResponse *2;
   //
+  // Wait for a response, and print the response.
+  Serial.println("--- Response ---");
+  // delay(200);
   int doRetry = 0;
   while (doRetry < timesToRetry) {
     while (client.available()) {
@@ -144,19 +161,41 @@ void httpGetRequest(int iPosition) {
       doRetry = 99;
     }
     if (doRetry < timesToRetry) {
+      if (doRetry != 0) {
+        Serial.print("++ Waiting for response, retry: ");
+        Serial.println(doRetry);
+      }
       doRetry++;
-      Serial.print("++ Waiting for response, retry: ");
-      Serial.println(doRetry);
-      delay(500);
+      delay(responseWaitTime);
     }
   }
-
+  if (doRetry != 99) {
+    returnValue = 2;
+  }
   // ------------------------------------------------
   Serial.println();
   Serial.println("-----------------");
   Serial.println("+ Connection closed.");
 
   digitalWrite(LED_PIN, LOW);
+  return returnValue;
+}
+
+int httpGetRequestWithRetry(int iPosition, String sValue) {
+  //
+  // Need further testing on the retry, if the HTTP request failes.
+  //
+  int doRetry = 0;
+  int returnValue = 1;
+  while (doRetry < timesToRetryRequest && returnValue != 0) {
+    returnValue = httpGetRequest(iPosition,sValue);
+    if (returnValue != 0) {
+      doRetry++;
+      Serial.print("++ HTTP GET failed, retry: ");
+      Serial.println(doRetry);
+      delay(responseWaitTime);
+    }
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -166,17 +205,23 @@ int loopCounter = 0;
 int iPosition = 0;
 
 void loop() {
-  delay(3000);
+  delay(1000);
   ++loopCounter;
   Serial.print("+ loopCounter = ");
   Serial.println(loopCounter);
   //
   iPosition ++;
+  int doRetry = 0;
   if (iPosition > 9) {
     iPosition = 1;
-    httpGetRequest(0);  // This will clear the board.
+    httpGetRequestWithRetry(0,"");  // This will clear the board.
   }
-  httpGetRequest(iPosition);
+  httpGetRequestWithRetry(iPosition,uriValueValue);
+  if (uriValueValue == "X") {
+    uriValueValue = "O";
+  } else {
+    uriValueValue = "X";
+  }
 }
 
 // -----------------------------------------------------------------------------

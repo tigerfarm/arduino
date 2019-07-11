@@ -4,8 +4,9 @@
 $ ping tigsync.herokuapp.com
 PING tigsync.herokuapp.com (34.225.219.245)
 
-+ Version I bought:
++ Version I'm using:
 ++ ESP8266 ESP-12E NodeMCU Lua V3 CH340G WIFI Lua Wireless Development Board Module.
+++ Bought from eBay
 https://en.wikipedia.org/wiki/NodeMCU
 
 --------------------------------------------------------------------------------
