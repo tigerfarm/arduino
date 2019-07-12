@@ -1,0 +1,85 @@
+--------------------------------------------------------------------------------
++++ ESP8266 ESP-12E NodeMCU HTTP Get notes
+
+$ ping tigsync.herokuapp.com
+PING tigsync.herokuapp.com (34.225.219.245)
+
++ Version I'm using:
+++ ESP8266 ESP-12E NodeMCU Lua V3 CH340G WIFI Lua Wireless Development Board Module.
+++ Bought from eBay
+https://en.wikipedia.org/wiki/NodeMCU
+
+--------------------------------------------------------------------------------
++++ Infrared reader for ESP8266 NodeMCU
+
+https://www.instructables.com/id/Universal-Remote-Using-ESP8266Wifi-Controlled/
+
++ Select "Include Library" from there select "Manage libraries"
+++ Search for "IRremoteESP8266" and install it. I installed version 2.6.3.
+
+------------------------
+// Infrared settings
+
+#include <IRremoteESP8266.h>
+#include <IRrecv.h>
+#include <IRutils.h>
+
+int IR_PIN = 13;          // Pin D7
+IRrecv irrecv(IR_PIN);
+decode_results results;
+------------------------
+void setup() {
+  ...
+  irrecv.enableIRIn();
+}
+void loop() {
+  ...
+  if (irrecv.decode(&results)) {
+    serialPrintUint64(results.value, 16);
+    irrecv.resume();
+  }
+}
+------------------------
+
+--------------------------------------------------------------------------------
++++ ESP8266 ESP-12E NodeMCU pins
+
+Label   Pin
+D0      16
+D1      05
+D2      04
+D3      00
+D4      02
+3V      3v output
+G       Ground
+D5      14
+D6      12          Out to a resister, to an LED, to ground.
+D7      13          Infrared receive: input (Didn't work on D8)
+D8      15
+RX      03
+TX      01
+G       Ground      Infrared receive: ground
+3V      3v output   Infrared receive: power
+
+GPIO (GP: General Purpose, IO: Input/Output)
+
+--------------------------------------------------------------------------------
++++ To develop and test
+
++ Start the webserver which is used for the NodeMCU to make an HTTP request.
+$ node webserver
+
++ Start the Arduino IDE.
++ Open program: HttpGetSync.ino.
++ Enter the WiFI password. Note, after updates, before uploading the repository, remove the password.
+
++ Plug the NodeMCU into the computer's USB device. For my USB device, I click the USB On button.
++ Open the serial monitor from the IDE: Tools/Serial Monitor.
+
++ Watch the monitor. Example:
++ Connecting to the WiFi network: BATCAVE
+......................
+++ WiFi connected on IP address: 192.168.1.79
+...
+
+--------------------------------------------------------------------------------
