@@ -10,6 +10,38 @@ PING tigsync.herokuapp.com (34.225.219.245)
 https://en.wikipedia.org/wiki/NodeMCU
 
 --------------------------------------------------------------------------------
++++ Infrared reader for ESP8266 NodeMCU
+
+https://www.instructables.com/id/Universal-Remote-Using-ESP8266Wifi-Controlled/
+
++ Select "Include Library" from there select "Manage libraries"
+++ Search for "IRremoteESP8266" and install it. I installed version 2.6.3.
+
+------------------------
+// Infrared settings
+
+#include <IRremoteESP8266.h>
+#include <IRrecv.h>
+#include <IRutils.h>
+
+int IR_PIN = 13;          // Pin D7
+IRrecv irrecv(IR_PIN);
+decode_results results;
+------------------------
+void setup() {
+  ...
+  irrecv.enableIRIn();
+}
+void loop() {
+  ...
+  if (irrecv.decode(&results)) {
+    serialPrintUint64(results.value, 16);
+    irrecv.resume();
+  }
+}
+------------------------
+
+--------------------------------------------------------------------------------
 +++ ESP8266 ESP-12E NodeMCU pins
 
 Label   Pin
@@ -22,8 +54,8 @@ D4      02
 G       Ground
 D5      14
 D6      12          Out to a resister, to an LED, to ground.
-D7      13
-D8      15          Infrared receive: input
+D7      13          Infrared receive: input (Didn't work on D8)
+D8      15
 RX      03
 TX      01
 G       Ground      Infrared receive: ground
@@ -48,13 +80,6 @@ $ node webserver
 + Connecting to the WiFi network: BATCAVE
 ......................
 ++ WiFi connected on IP address: 192.168.1.79
-+ loopCounter = 1
--------------------------------------------------------
-+ Connecting to: 192.168.1.73
-++ Connected. Make request to the URI: /syncdocumentupdate?identity=esp8266&name=abc&position=5&value=O
------------------
-Response:
 ...
 
 --------------------------------------------------------------------------------
-

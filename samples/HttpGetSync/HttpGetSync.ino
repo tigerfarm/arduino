@@ -1,3 +1,4 @@
+// -----------------------------------------------------------------------------
 #include <ESP8266WiFi.h>
 
 // -----------------------------------------------------------------------------
@@ -93,7 +94,7 @@ void setup() {
   // ------------------------------------------------
   digitalWrite(LED_PIN, LOW);
   
-  httpGetRequest(0,"");  // Start by clearing board.
+  httpGetRequestWithRetry(0,"");  // Start by clearing the board.
 }
 
 // -----------------------------------------------------------------------------
@@ -106,7 +107,6 @@ int httpGetRequest(int iPosition, String sValue) {
 
   Serial.println("-------------------------------------------------------");
   String uriRequest = uriBasic + uriValue + sValue + uriPosition + iPosition;
-  // String uriRequest = uriBasic + uriValue + iPosition + uriPosition + iPosition;
   Serial.print("+ Make request to the URI: ");
   Serial.println(uriRequest);
   //
