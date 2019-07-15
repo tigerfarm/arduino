@@ -45,23 +45,25 @@ void loop() {
 +++ ESP8266 ESP-12E NodeMCU pins
 
 Label   Pin
-D0      16
-D1      05          Tested with button to turn LED on or off.
-D2      04          Tested with button to turn LED on or off.
+D0      16          Tested with button to turn LED on or off.
+D1      05
+D2      04
 D3      00
-D4      02
+D4(TX)  02
 3V      3v output
 G       Ground
 D5      14
 D6      12          Out to a resister, to an LED, to ground.
-D7      13          Infrared receive: input (Didn't work on D8)
-D8      15
+D7(RX)  13          Infrared receive: input (Didn't work on D8 which is TX)
+D8(TX)  15
 RX      03
 TX      01
 G       Ground      Infrared receive: ground
 3V      3v output   Infrared receive: power
 
 GPIO (GP: General Purpose, IO: Input/Output)
+
+Tested: button output using D0-D02
 
 --------------------------------------------------------------------------------
 +++ To develop and test
