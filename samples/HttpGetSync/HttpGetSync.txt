@@ -46,8 +46,8 @@ void loop() {
 
 Label   Pin
 D0      16
-D1      05
-D2      04
+D1      05          Tested with button to turn LED on or off.
+D2      04          Tested with button to turn LED on or off.
 D3      00
 D4      02
 3V      3v output

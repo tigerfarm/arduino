@@ -16,7 +16,7 @@ decode_results results;
 // WIFI SETTINGS: Network name (SSID) and password.
 
 const char *ssid = "BATCAVE";
-const char *password = "";  // Note, I don't save my password on the repository.
+const char *password = "5198427760";  // Note, I don't save my password on the repository.
 
 // -----------------------------------------------------------------------------
 
