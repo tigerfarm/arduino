@@ -1,4 +1,29 @@
 // -----------------------------------------------------------------------------
+/***
++++ ESP8266 ESP-12E NodeMCU pins
+
+Label   Pin:GPIO
+D0      16          Tested D0-D02: button to turn LED on or off.
+D1      05          Button
+D2      04
+D3      00
+D4(TX)  02          Built in, on board LED
+---
+3V      3v output   Infrared receive: power
+G       Ground      Infrared receive: ground
+---
+D5      14
+D6      12          Out to an LED(+), LED(-) to a resister, then to ground.
+D7(RX)  13          Infrared receive: input (Didn't work on D8 which is TX)
+D8(TX)  15
+RX      03
+TX      01
+---
+G       Ground      To breadboard ground (-).
+3V      3v output   To breadboard power (+).
+***/
+
+// -----------------------------------------------------------------------------
 #include <ESP8266WiFi.h>
 
 // -----------------------------------------------------------------------------
