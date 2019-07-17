@@ -16,11 +16,11 @@ decode_results results;
 // WIFI SETTINGS: Network name (SSID) and password.
 
 const char *ssid = "BATCAVE";
-const char *password = "5198427760";  // Note, I don't save my password on the repository.
+const char *password = "";  // Note, I don't save my password on the repository.
 
 // -----------------------------------------------------------------------------
 
-// For creating TCP client connections.
+// For creating a TCP client connection.
 WiFiClient client;
 
 // ---------------------------
@@ -55,17 +55,24 @@ int timesToRetry = secondsToWaitForResponse * 2;
 int timesToRetryRequest = 3;
 
 // ---------------------------
-String uriName = "&name=";
-String uriNameValue = "abc";
+String uriIdentity = "identity=";
+String uriIdentityValue = "nodemcu";
 //
-String uriPosition = "&position=";
+String uriName = "name=";
+String uriNameValue = "abc";  // Twilio Sync document name.
+//
+String uriPosition = "position=";
 String uriPositionValue = "1";
 //
-String uriValue = "&value=";
+String uriValue = "value=";
 String uriValueValue = "X";
 //
-String uriBasic = "/syncdocumentupdate?identity=nodemcu" + uriName + uriNameValue;
-String theUri = uriBasic + uriPosition + uriPositionValue + uriValue + uriValueValue;
+String uriBasic = "/syncdocumentupdate?"
+                  + uriIdentity + uriIdentityValue
+                  + "&" + uriName + uriNameValue;
+String theUri = uriBasic
+                + "&" + uriPosition + uriPositionValue
+                + "&" + uriValue + uriValueValue;
 
 // -----------------------------------------------------------------------------
 #define LED_PIN 12
@@ -107,7 +114,7 @@ void setup() {
 
   httpGetRequestWithRetry(0, ""); // Start by clearing the board.
 
-  irrecv.enableIRIn();
+  irrecv.enableIRIn();            // Initialized Infrared reader.
 }
 
 // -----------------------------------------------------------------------------
@@ -119,7 +126,9 @@ int httpGetRequest(int iPosition, String sValue) {
   int returnValue = 0;
 
   Serial.println("-------------------------------------------------------");
-  String uriRequest = uriBasic + uriValue + sValue + uriPosition + iPosition;
+  String uriRequest = uriBasic
+                      + "&" + uriValue + sValue
+                      + "&" + uriPosition + iPosition;
   Serial.print("+ Make request to the URI: ");
   Serial.println(uriRequest);
   //
@@ -167,7 +176,7 @@ int httpGetRequest(int iPosition, String sValue) {
   Serial.println("--- Response ---");
   // delay(200);
   // int doRetry = 0;  // Use to get the response.
-  int doRetry = 99;  // Use to bypass getting the response.
+  int doRetry = 99;  // Use to bypass waiting for the response.
   while (doRetry < timesToRetry) {
     while (client.available()) {
       String line = client.readStringUntil('\r');
@@ -214,58 +223,57 @@ int httpGetRequestWithRetry(int iPosition, String sValue) {
 
 // -----------------------------------------------------------------------
 void infraredSwitch() {
-  // Serial.println("+ infraredSwitch");
   //
-  // Top case value is for small remote controller.
-  // Lower case value is for Samsung TV remote controller.
+  // Top switch case value is for small remote controller.
+  // Lower switch case value is for Samsung TV remote controller.
   //
   switch (results.value) {
     case 0xFFFFFFFF:
     case 0xFFFFFFFFFFFFFFFF:
       // Ignore. This is from holding the key down on small remote controller.
       // When holding a key down on the Samsung remote, get arbitrary result values.
-      Serial.print(".");
+      // Serial.print(".");
       break;
     // -----------------------------------
     case 0xFFA25D:
     case 0xE0E020DF:
       Serial.println("+ Key 1: ");
-      httpGetRequestWithRetry(1, "X");
+      httpGetRequestWithRetry(1, uriValueValue);
       break;
     case 0xFF629D:
     case 0xE0E0A05F:
       Serial.println("+ Key 2: ");
-      httpGetRequestWithRetry(2, "X");
+      httpGetRequestWithRetry(2, uriValueValue);
       break;
     case 0xFFE21D:
     case 0xE0E0609F:
       Serial.println("+ Key 3: ");
-      httpGetRequestWithRetry(3, "X");
+      httpGetRequestWithRetry(3, uriValueValue);
       break;
     case 0xFF22DD:
     case 0xE0E010EF:
       Serial.println("+ Key 4: ");
-      httpGetRequestWithRetry(4, "X");
+      httpGetRequestWithRetry(4, uriValueValue);
       break;
     case 0xFF02FD:
     case 0xE0E0906F:
       Serial.println("+ Key 5: ");
-      httpGetRequestWithRetry(5, "X");
+      httpGetRequestWithRetry(5, uriValueValue);
       break;
     case 0xFFC23D:
     case 0xE0E050AF:
       Serial.println("+ Key 6: ");
-      httpGetRequestWithRetry(6, "X");
+      httpGetRequestWithRetry(6, uriValueValue);
       break;
     case 0xFFE01F:
     case 0xE0E030CF:
       Serial.println("+ Key 7: ");
-      httpGetRequestWithRetry(7, "X");
+      httpGetRequestWithRetry(7, uriValueValue);
       break;
     case 0xFFA857:
     case 0xE0E0B04F:
       Serial.println("+ Key 8: ");
-      httpGetRequestWithRetry(8, "X");
+      httpGetRequestWithRetry(8, uriValueValue);
       break;
     case 0xFF906F:
     case 0xE0E0708F:
@@ -303,17 +311,21 @@ void infraredSwitch() {
     case 0xE0E01AE5:
     case 0xE0E0C43B:
       Serial.println("+ Key *, button left of '0' or Return.");
+      Serial.println("+ Set to use: X.");
+      uriValueValue = "X";
       break;
     case 0xFFB04F:
     case 0xE0E0B44B:
     case 0xE0E0C837:
       Serial.println("+ Key #, button right of '0' or Exit.");
+      Serial.println("+ Set to use: O.");
+      uriValueValue = "O";
       break;
     // -----------------------------------
     default:
-      Serial.print("+ Result value: ");
-      serialPrintUint64(results.value, 16);
-      Serial.println("");
+      // Serial.print("+ Result value: ");
+      // serialPrintUint64(results.value, 16);
+      // Serial.println("");
       // -----------------------------------
   } // end switch
 
@@ -335,19 +347,6 @@ void loop() {
   if (irrecv.decode(&results)) {
     infraredSwitch();
     irrecv.resume();
-  }
-  //
-  iPosition ++;
-  int doRetry = 0;
-  if (iPosition > 9) {
-    iPosition = 1;
-    // httpGetRequestWithRetry(0, ""); // This will clear the board.
-  }
-  // httpGetRequestWithRetry(iPosition, uriValueValue);
-  if (uriValueValue == "X") {
-    uriValueValue = "O";
-  } else {
-    uriValueValue = "X";
   }
 }
 

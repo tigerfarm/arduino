@@ -7,21 +7,23 @@
   The circuit:
   - Board is either an Arduino or a NodeMCU.
   - LED ground is attached to a resister which is attached board ground.
-  - LED positive is attached to board pin.
+  - LED positive is attached to board pin (LED_PIN).
   - Button side 1 is attached board voltage +5V or 3.3V.
   - Button side 2 is attached to a 1K to 10K resistor which is attached to board ground.
-  - Button side 2 is attached to board pin.
+  - Button side 2 is attached to board pin (BUTTON_PIN).
 
-  - Note: on most Arduinos there is already an LED on the board
-    attached to pin 13.
+  - Note: on most Arduinos, there is an on board LED on pin 13.
 */
 
-// constants won't change. They're used here to set pin numbers:
-const int BUTTON_PIN = 16;     // Pushbutton pin: use D2(pin 4) or D1(pin 5) on NodeMCU.
-const int LED_PIN =  12;      // LED pin: 13 is for the onboard LED. D6 on NodeMCU.
+// Built in, on board LED: GPIO2 which is D4 on NodeMCU.
+// PIN 2 set to LOW (0) will turn the LED on.
+// PIN 2 set to HIGH (1) will turn the LED off.
+const int LED_ONBOARD_PIN =  2;
 
-// variables will change:
-int buttonState = 0;         // variable for reading the pushbutton status
+const int LED_PIN =  12;
+// const int LED_PIN =  LED_ONBOARD_PIN;
+
+const int BUTTON_PIN = 5;    // Pushbutton pin. On NodeMCU, tested using D2(pin 4) D1(pin 5) or D0(pin 16).
 
 void blinkLed() {
   digitalWrite(LED_PIN, HIGH);   // On
@@ -35,14 +37,22 @@ void setup() {
   Serial.println();
   Serial.println("+++ Setup.");
 
-  // initialize the LED pin for output.
-  pinMode(LED_PIN, OUTPUT);
+  // Initialize the onboard LED.
+  pinMode(LED_ONBOARD_PIN, OUTPUT);
+  // Turn it on for 1 seconds.
+  // This is nice for powering up, or clicking the reset button.
+  digitalWrite(LED_ONBOARD_PIN, LOW);   // On
+  delay(1000);
+  digitalWrite(LED_ONBOARD_PIN, HIGH);  // Off
   
-  // initialize the pushbutton pin for input:
-  pinMode(BUTTON_PIN, INPUT);
-
+  // Initialize the external LED pin for output.
+  pinMode(LED_PIN, OUTPUT);
+  // Blink the external LED.
   Serial.println("+ Blink LED.");
   blinkLed();
+
+  // Initialize the pushbutton pin for input:
+  pinMode(BUTTON_PIN, INPUT);
 }
 
 int loopCounter = 0;
@@ -51,16 +61,16 @@ void loop() {
   ++loopCounter;
   // Serial.print("+ loopCounter = ");
   // Serial.println(loopCounter);
-  
-  // read the state of the pushbutton value:
-  buttonState = digitalRead(BUTTON_PIN);
-  // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
-  if (buttonState == HIGH) {
+
+  // Read the push button status.
+  int buttonStatus = digitalRead(BUTTON_PIN);
+  // If the button is pressed, the button status is HIGH.
+  if (buttonStatus == HIGH) {
     Serial.println("+ Turn LED on.");
     digitalWrite(LED_PIN, HIGH);
   } else {
     Serial.println("+ Turn LED off.");
     digitalWrite(LED_PIN, LOW);
   }
-  
+
 }

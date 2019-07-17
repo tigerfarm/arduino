@@ -1,9 +1,6 @@
 --------------------------------------------------------------------------------
 +++ ESP8266 ESP-12E NodeMCU HTTP Get notes
 
-$ ping tigsync.herokuapp.com
-PING tigsync.herokuapp.com (34.225.219.245)
-
 + Version I'm using:
 ++ ESP8266 ESP-12E NodeMCU Lua V3 CH340G WIFI Lua Wireless Development Board Module.
 ++ Bought from eBay
@@ -44,12 +41,12 @@ void loop() {
 --------------------------------------------------------------------------------
 +++ ESP8266 ESP-12E NodeMCU pins
 
-Label   Pin
+Label   Pin:GPIO
 D0      16          Tested with button to turn LED on or off.
 D1      05
 D2      04
 D3      00
-D4(TX)  02
+D4(TX)  02          Built in, on board LED
 3V      3v output
 G       Ground
 D5      14
