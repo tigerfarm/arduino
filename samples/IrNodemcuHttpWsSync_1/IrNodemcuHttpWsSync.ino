@@ -13,28 +13,6 @@ IRrecv irrecv(IR_PIN);
 decode_results results;
 
 // -----------------------------------------------------------------------------
-// Push button to reset the game. 
-
-// On NodeMCU, tested using D2(pin 4) D1(pin 5) or D0(pin 16).
-const int BUTTON_PIN = 5;
-
-// -----------------------------------------------------------------------------
-// LEDs to identity activities.
-
-// Built in, on board LED: GPIO2 (Arduino pin 2) which is pin D4 on NodeMCU.
-// PIN 2 set to LOW (0) will turn the LED on.
-// PIN 2 set to HIGH (1) will turn the LED off.
-const int LED_ONBOARD_PIN =  2;
-
-#define LED_PIN 12
-
-void blinkLed() {
-  digitalWrite(LED_PIN, HIGH);   // On
-  delay(1000);
-  digitalWrite(LED_PIN, LOW);    // Off
-}
-
-// -----------------------------------------------------------------------------
 // WIFI SETTINGS: Network name (SSID) and password.
 
 const char *ssid = "BATCAVE";
@@ -97,20 +75,20 @@ String theUri = uriBasic
                 + "&" + uriValue + uriValueValue;
 
 // -----------------------------------------------------------------------------
+#define LED_PIN 12
+void blinkLed() {
+  digitalWrite(LED_PIN, HIGH);   // On
+  delay(1000);
+  digitalWrite(LED_PIN, LOW);    // Off
+}
+
+// -----------------------------------------------------------------------------
 // Device Setup
 
 void setup() {
 
-  // Initialize the onboard LED.
-  pinMode(LED_ONBOARD_PIN, OUTPUT);
-  // Turn it on for 1 seconds.
-  // This is nice for powering up, or clicking the reset button.
-  digitalWrite(LED_ONBOARD_PIN, LOW);   // On
-  delay(1000);
-  digitalWrite(LED_ONBOARD_PIN, HIGH);  // Off
-
   pinMode(LED_PIN, OUTPUT);
-  // blinkLed();
+  blinkLed();
 
   Serial.begin(115200);
   delay(100);
@@ -136,11 +114,7 @@ void setup() {
 
   httpGetRequestWithRetry(0, ""); // Start by clearing the board.
 
-  // Initialized Infrared reader.
-  irrecv.enableIRIn();
-
-  // Initialize the pushbutton pin for input:
-  pinMode(BUTTON_PIN, INPUT);
+  irrecv.enableIRIn();            // Initialized Infrared reader.
 }
 
 // -----------------------------------------------------------------------------
@@ -359,26 +333,6 @@ void infraredSwitch() {
 }
 
 // -----------------------------------------------------------------------------
-int buttonToggleStatus = 0;
-void checkButton() {
-  // If the button is pressed, the button status is HIGH.
-  if (digitalRead(BUTTON_PIN) == HIGH) {
-    Serial.println("+ Button pressed.");
-    digitalWrite(LED_PIN, HIGH);
-    if (buttonToggleStatus === 0) {
-       // Toggle: for the case when the person holds the button down.
-       //   Then the HTTP request is only sent once.
-       httpGetRequestWithRetry(0, ""); // This will clear the board.
-    }
-    buttonToggleStatus = 1;
-  } else {
-    Serial.println("+ Button not pressed..");
-    digitalWrite(LED_PIN, LOW);
-    buttonToggleStatus = 0;
-  }
-}
-
-// -----------------------------------------------------------------------------
 // Device Loop
 
 int loopCounter = 0;
@@ -394,8 +348,6 @@ void loop() {
     infraredSwitch();
     irrecv.resume();
   }
-  //
-  checkButton();    // Used to reset the game board.
 }
 
 // -----------------------------------------------------------------------------

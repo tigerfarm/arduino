@@ -31,6 +31,19 @@ void blinkLed() {
   digitalWrite(LED_PIN, LOW);    // Off
 }
 
+void checkButton() {
+  // Read the push button status.
+  int buttonStatus = digitalRead(BUTTON_PIN);
+  // If the button is pressed, the button status is HIGH.
+  if (buttonStatus == HIGH) {
+    Serial.println("+ Turn LED on.");
+    digitalWrite(LED_PIN, HIGH);
+  } else {
+    Serial.println("+ Turn LED off.");
+    digitalWrite(LED_PIN, LOW);
+  }
+}
+
 void setup() {
   Serial.begin(115200);
   delay(100);
@@ -62,15 +75,5 @@ void loop() {
   // Serial.print("+ loopCounter = ");
   // Serial.println(loopCounter);
 
-  // Read the push button status.
-  int buttonStatus = digitalRead(BUTTON_PIN);
-  // If the button is pressed, the button status is HIGH.
-  if (buttonStatus == HIGH) {
-    Serial.println("+ Turn LED on.");
-    digitalWrite(LED_PIN, HIGH);
-  } else {
-    Serial.println("+ Turn LED off.");
-    digitalWrite(LED_PIN, LOW);
-  }
-
+  checkButton();
 }
