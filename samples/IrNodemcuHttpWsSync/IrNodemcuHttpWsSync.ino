@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------------
 /***
-+++ ESP8266 ESP-12E NodeMCU pins
++++ ESP8266 ESP-12E NodeMCU pins used in this project.
 
 Label   Pin:GPIO
 D0      16          Tested D0-D02: button to turn LED on or off.
@@ -14,7 +14,7 @@ G       Ground      Infrared receive: ground
 ---
 D5      14
 D6      12          Out to an LED(+), LED(-) to a resister, then to ground.
-D7(RX)  13          Infrared receive: input (Didn't work on D8 which is TX)
+D7(RX)  13          Infrared receive(RX). Didn't work on D8 which is TX.
 D8(TX)  15
 RX      03
 TX      01
@@ -63,7 +63,7 @@ void blinkLed() {
 // WIFI SETTINGS: Network name (SSID) and password.
 
 const char *ssid = "BATCAVE";
-const char *password = "";  // Note, I don't save my password on the repository.
+const char *password = "5198427760";  // Note, I don't save my password on the repository.
 
 // -----------------------------------------------------------------------------
 
@@ -329,7 +329,7 @@ void infraredSwitch() {
     case 0xFF906F:
     case 0xE0E0708F:
       Serial.println("+ Key 9: ");
-      httpGetRequestWithRetry(9, "X");
+      httpGetRequestWithRetry(9, uriValueValue);
       break;
     case 0xFF9867:
     case 0xE0E08877:
@@ -376,7 +376,7 @@ void infraredSwitch() {
     default:
       // Serial.print("+ Result value: ");
       // serialPrintUint64(results.value, 16);
-      // Serial.println("");
+      Serial.print(".");
       // -----------------------------------
   } // end switch
 
@@ -390,14 +390,14 @@ void checkButton() {
   if (digitalRead(BUTTON_PIN) == HIGH) {
     Serial.println("+ Button pressed.");
     digitalWrite(LED_PIN, HIGH);
-    if (buttonToggleStatus === 0) {
+    if (buttonToggleStatus == 0) {
        // Toggle: for the case when the person holds the button down.
        //   Then the HTTP request is only sent once.
        httpGetRequestWithRetry(0, ""); // This will clear the board.
     }
     buttonToggleStatus = 1;
   } else {
-    Serial.println("+ Button not pressed..");
+    // Serial.println("+ Button not pressed..");
     digitalWrite(LED_PIN, LOW);
     buttonToggleStatus = 0;
   }
