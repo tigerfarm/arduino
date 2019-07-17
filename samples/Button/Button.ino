@@ -14,6 +14,7 @@
 
   - Note: on most Arduinos, there is an on board LED on pin 13.
 */
+// -----------------------------------------------------------------------------
 
 // Built in, on board LED: GPIO2 which is D4 on NodeMCU.
 // PIN 2 set to LOW (0) will turn the LED on.
@@ -31,19 +32,7 @@ void blinkLed() {
   digitalWrite(LED_PIN, LOW);    // Off
 }
 
-void checkButton() {
-  // Read the push button status.
-  int buttonStatus = digitalRead(BUTTON_PIN);
-  // If the button is pressed, the button status is HIGH.
-  if (buttonStatus == HIGH) {
-    Serial.println("+ Turn LED on.");
-    digitalWrite(LED_PIN, HIGH);
-  } else {
-    Serial.println("+ Turn LED off.");
-    digitalWrite(LED_PIN, LOW);
-  }
-}
-
+// -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
   delay(100);
@@ -68,6 +57,21 @@ void setup() {
   pinMode(BUTTON_PIN, INPUT);
 }
 
+// -----------------------------------------------------------------------------
+void checkButton() {
+  // Read the push button status.
+  int buttonStatus = digitalRead(BUTTON_PIN);
+  // If the button is pressed, the button status is HIGH.
+  if (buttonStatus == HIGH) {
+    Serial.println("+ Turn LED on.");
+    digitalWrite(LED_PIN, HIGH);
+  } else {
+    Serial.println("+ Turn LED off.");
+    digitalWrite(LED_PIN, LOW);
+  }
+}
+
+// -----------------------------------------------------------------------------
 int loopCounter = 0;
 void loop() {
   delay(100);
@@ -77,3 +81,5 @@ void loop() {
 
   checkButton();
 }
+
+// -----------------------------------------------------------------------------
