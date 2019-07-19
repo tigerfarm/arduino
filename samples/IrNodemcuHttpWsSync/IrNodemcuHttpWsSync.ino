@@ -3,8 +3,8 @@
 +++ ESP8266 ESP-12E NodeMCU pins used in this project.
 
 Label   Pin:GPIO
-D0      16          Tested D0-D02: button to turn LED on or off.
-D1      05          Button
+D0      16          Button to turn LED on or off.
+D1      05          
 D2      04
 D3      00
 D4(TX)  02          Built in, on board LED
@@ -38,12 +38,6 @@ IRrecv irrecv(IR_PIN);
 decode_results results;
 
 // -----------------------------------------------------------------------------
-// Push button to reset the game. 
-
-// On NodeMCU, tested using D2(pin 4) D1(pin 5) or D0(pin 16).
-const int BUTTON_PIN = 5;
-
-// -----------------------------------------------------------------------------
 // LEDs to identity activities.
 
 // Built in, on board LED: GPIO2 (Arduino pin 2) which is pin D4 on NodeMCU.
@@ -60,12 +54,65 @@ void blinkLed() {
 }
 
 // -----------------------------------------------------------------------------
+// Push button to reset the game. 
+
+// On NodeMCU, tested using D2(pin 4) D1(pin 5) or D0(pin 16).
+const int BUTTON_PIN = 16;
+
+int buttonToggleStatus = 0;
+void checkButton() {
+  // If the button is pressed, the button status is HIGH.
+  if (digitalRead(BUTTON_PIN) == HIGH) {
+    Serial.println("+ Button pressed.");
+    digitalWrite(LED_PIN, HIGH);
+    if (buttonToggleStatus == 0) {
+       // Toggle: for the case when the person holds the button down.
+       //   Then the HTTP request is only sent once.
+       httpGetRequestWithRetry(0, ""); // This will clear the board.
+    }
+    buttonToggleStatus = 1;
+  } else {
+    // Serial.println("+ Button not pressed..");
+    digitalWrite(LED_PIN, LOW);
+    buttonToggleStatus = 0;
+  }
+}
+
+// -------------------------------------------------------------------------------
+// Keypad: 3x3
+
+#include <Keypad.h>
+
+// For a 3x3 keypad. Match the number of rows and columns to keypad.
+const byte ROWS = 3;
+const byte COLS = 3;
+
+// For keys: 1 ... 9: 3x3.
+char hexaKeys[ROWS][COLS] = {
+  {'1', '2', '3'},
+  {'4', '5', '6'},
+  {'7', '8', '9'}
+};
+byte rowPins[ROWS] = { 5, 4, 0};    // D1 D2     D3
+byte colPins[COLS] = {14, 3, 9};    // D5 D9(RX) S3+S2: S3 to keypad, use S2 as the pin
+
+Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); 
+
+void checkKeypad() {
+  char customKey = customKeypad.getKey();
+  if (customKey) {
+    Serial.print("+ Key pressed: ");
+    Serial.println(customKey);
+  }
+}
+
+// -----------------------------------------------------------------------------
 // WIFI SETTINGS: Network name (SSID) and password.
 
 const char *ssid = "BATCAVE";
 const char *password = "";  // Note, I don't save my password on the repository.
 
-// -----------------------------------------------------------------------------
+// -------------------------------------
 
 // For creating a TCP client connection.
 WiFiClient client;
@@ -120,53 +167,6 @@ String uriBasic = "/syncdocumentupdate?"
 String theUri = uriBasic
                 + "&" + uriPosition + uriPositionValue
                 + "&" + uriValue + uriValueValue;
-
-// -----------------------------------------------------------------------------
-// Device Setup
-
-void setup() {
-
-  // Initialize the onboard LED.
-  pinMode(LED_ONBOARD_PIN, OUTPUT);
-  // Turn it on for 1 seconds.
-  // This is nice for powering up, or clicking the reset button.
-  digitalWrite(LED_ONBOARD_PIN, LOW);   // On
-  delay(1000);
-  digitalWrite(LED_ONBOARD_PIN, HIGH);  // Off
-
-  pinMode(LED_PIN, OUTPUT);
-  // blinkLed();
-
-  Serial.begin(115200);
-  delay(100);
-  Serial.println();
-  Serial.println("+++ Setup.");
-  //
-  // ------------------------------------------------
-  digitalWrite(LED_PIN, HIGH);
-
-  Serial.print("+ Connecting to the WiFi network: ");
-  Serial.println(ssid);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.print(".");
-  }
-  Serial.println("");
-  Serial.print("++ WiFi connected on IP address: ");
-  Serial.println(WiFi.localIP());
-
-  // ------------------------------------------------
-  digitalWrite(LED_PIN, LOW);
-
-  httpGetRequestWithRetry(0, ""); // Start by clearing the board.
-
-  // Initialized Infrared reader.
-  irrecv.enableIRIn();
-
-  // Initialize the pushbutton pin for input:
-  pinMode(BUTTON_PIN, INPUT);
-}
 
 // -----------------------------------------------------------------------------
 // Make an HTTP GET request.
@@ -384,23 +384,50 @@ void infraredSwitch() {
 }
 
 // -----------------------------------------------------------------------------
-int buttonToggleStatus = 0;
-void checkButton() {
-  // If the button is pressed, the button status is HIGH.
-  if (digitalRead(BUTTON_PIN) == HIGH) {
-    Serial.println("+ Button pressed.");
-    digitalWrite(LED_PIN, HIGH);
-    if (buttonToggleStatus == 0) {
-       // Toggle: for the case when the person holds the button down.
-       //   Then the HTTP request is only sent once.
-       httpGetRequestWithRetry(0, ""); // This will clear the board.
-    }
-    buttonToggleStatus = 1;
-  } else {
-    // Serial.println("+ Button not pressed..");
-    digitalWrite(LED_PIN, LOW);
-    buttonToggleStatus = 0;
+// Device Setup
+
+void setup() {
+
+  // Initialize the onboard LED.
+  pinMode(LED_ONBOARD_PIN, OUTPUT);
+  // Turn it on for 1 seconds.
+  // This is nice for powering up, or clicking the reset button.
+  digitalWrite(LED_ONBOARD_PIN, LOW);   // On
+  delay(1000);
+  digitalWrite(LED_ONBOARD_PIN, HIGH);  // Off
+
+  pinMode(LED_PIN, OUTPUT);
+  // blinkLed();
+
+  Serial.begin(115200);
+  delay(100);
+  Serial.println();
+  Serial.println("+++ Setup.");
+  //
+  // ------------------------------------------------
+  digitalWrite(LED_PIN, HIGH);
+
+  Serial.print("+ Connecting to the WiFi network: ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.print(".");
   }
+  Serial.println("");
+  Serial.print("++ WiFi connected on IP address: ");
+  Serial.println(WiFi.localIP());
+
+  // ------------------------------------------------
+  digitalWrite(LED_PIN, LOW);
+
+  httpGetRequestWithRetry(0, ""); // Start by clearing the board.
+
+  // Initialized Infrared reader.
+  irrecv.enableIRIn();
+
+  // Initialize the pushbutton pin for input:
+  pinMode(BUTTON_PIN, INPUT);
 }
 
 // -----------------------------------------------------------------------------
@@ -415,12 +442,17 @@ void loop() {
   // Serial.print("+ loopCounter = ");
   // Serial.println(loopCounter);
   //
+  // Infrared controls
   if (irrecv.decode(&results)) {
     infraredSwitch();
     irrecv.resume();
   }
   //
-  checkButton();    // Used to reset the game board.
+  // Used to reset the game board.
+  checkButton();
+  //
+  // Used to set game board squares: 1..9.
+  // checkKeypad();
 }
 
 // -----------------------------------------------------------------------------
