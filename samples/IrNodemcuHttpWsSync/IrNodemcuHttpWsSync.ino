@@ -3,24 +3,30 @@
   +++ ESP8266 ESP-12E NodeMCU pins used in this project.
 
   Label   Pin:GPIO
-  D0      16          Button to turn LED on or off.
-  D1      05
-  D2      04
-  D3      00
-  D4(TX)  02          Built in, on board LED
+  D0      16          Keypad: row 4
+  D1      05          Keypad: row 1
+  D2      04          Keypad: row 2
+  D3      00          Keypad: row 3
+  D4(TX)  02          Built in, on board LED. Out to an LED(+) and LED(-) to a resister, then to ground.
   ---
-  3V      3v output   Infrared receive: power
-  G       Ground      Infrared receive: ground
+  3V      3v output
+  G       Ground
   ---
-  D5      14
-  D6      12          Out to an LED(+), LED(-) to a resister, then to ground.
+  D5      14          Keypad: column 1
+  D6      12          Keypad: column 2
   D7(RX)  13          Infrared receive(RX). Didn't work on D8 which is TX.
   D8(TX)  15
-  RX(D9)  03
-  TX      01
+  RX(D9)  03          Keypad: column 3
+  TX      01          Button/toggle to reset the game.
   ---
-  G       Ground      To breadboard ground (-).
-  3V      3v output   To breadboard power (+).
+  G       Ground      To breadboard ground (-). Infrared receive: power
+  3V      3v output   To breadboard power (+).  Infrared receive: ground
+
+  Keypad:
+    1-9 game squares
+    0   Reset game
+    *   Use X.
+    #   Use O.
 ***/
 
 // -----------------------------------------------------------------------------
@@ -57,7 +63,7 @@ void blinkLed() {
 // Push button to reset the game.
 
 // On NodeMCU, tested using D2(pin 4) D1(pin 5) or D0(pin 16).
-const int BUTTON_PIN = 16;
+const int BUTTON_PIN = 1;  // was Do 16
 
 int buttonToggleStatus = 0;
 void checkButton() {
@@ -358,22 +364,23 @@ void infraredSwitch() {
 }
 
 // -------------------------------------------------------------------------------
-// Keypad: 3x3
+// Keypad pins are: first the rows(left), then the columns(right).
 
 #include <Keypad.h>
 
 // For a 3x3 keypad. Match the number of rows and columns to keypad.
-const byte ROWS = 3;
+const byte ROWS = 4;
 const byte COLS = 3;
 
 // For keys: 1 ... 9: 3x3.
 char hexaKeys[ROWS][COLS] = {
   {'1', '2', '3'},
   {'4', '5', '6'},
-  {'7', '8', '9'}
+  {'7', '8', '9'},
+  {'*', '0', '#'}
 };
-byte rowPins[ROWS] = { 5, 4, 0};    // D1 D2 D3
-byte colPins[COLS] = {14,12, 3};    // D5 D6 D9(RX)
+byte rowPins[ROWS] = { 5, 4, 0, 16};  // D1 D2 D3 D0
+byte colPins[COLS] = {14, 12, 3};     // D5 D6 D9(RX)
 
 Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
 
@@ -382,10 +389,18 @@ void keypadProcess() {
   Serial.print("+ Key pressed: ");
   Serial.println(keyPressed);
   int keyInt = keyPressed - '0';
-  if (keyInt >= 1 && keyInt <= 9) {
+  if (keyInt >= 0 && keyInt <= 9) {
     Serial.print("+ keyPressed: ");
     Serial.println(keyPressed);
     httpGetRequestWithRetry(keyInt, uriValueValue);
+  }
+  if (keyPressed == '*') {
+    Serial.print("+ Use: X");
+    uriValueValue = "X";
+  }
+  if (keyPressed == '#') {
+    Serial.print("+ Use: )");
+    uriValueValue = "O";
   }
 }
 
@@ -459,7 +474,7 @@ void loop() {
   //
   // Used to set game board squares: 1..9.
   if (keyPressed = customKeypad.getKey()) {
-    keypadProcess();;
+    keypadProcess();
   }
 }
 
