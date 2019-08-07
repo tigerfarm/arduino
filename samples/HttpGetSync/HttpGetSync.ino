@@ -15,12 +15,11 @@ WiFiClient client;
 // ---------------------------
 // Host definition, for HTTP requests
 //
-// http://tigsync.herokuapp.com/
-// $ ping tigsync.herokuapp.com
-// PING tigsync.herokuapp.com (34.225.219.245)
+// IP address or hostname of the webserver.
+const char* host = "tigerfarmpress.com";
+// const char *host = "34.225.219.245";
 // ---
-const String hostname="tigsync.herokuapp.com";
-const char *host = "34.225.219.245";
+const String hostname="tigerfarmpress.com";
 const int httpPort = 80;
 
 // http://localhost:8000/

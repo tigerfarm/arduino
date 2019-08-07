@@ -1,26 +1,26 @@
 // -----------------------------------------------------------------------------
 /***
-+++ ESP8266 ESP-12E NodeMCU pins used in this project.
+  +++ ESP8266 ESP-12E NodeMCU pins used in this project.
 
-Label   Pin:GPIO
-D0      16          Button to turn LED on or off.
-D1      05          
-D2      04
-D3      00
-D4(TX)  02          Built in, on board LED
----
-3V      3v output   Infrared receive: power
-G       Ground      Infrared receive: ground
----
-D5      14
-D6      12          Out to an LED(+), LED(-) to a resister, then to ground.
-D7(RX)  13          Infrared receive(RX). Didn't work on D8 which is TX.
-D8(TX)  15
-RX      03
-TX      01
----
-G       Ground      To breadboard ground (-).
-3V      3v output   To breadboard power (+).
+  Label   Pin:GPIO
+  D0      16          Button to turn LED on or off.
+  D1      05
+  D2      04
+  D3      00
+  D4(TX)  02          Built in, on board LED
+  ---
+  3V      3v output   Infrared receive: power
+  G       Ground      Infrared receive: ground
+  ---
+  D5      14
+  D6      12          Out to an LED(+), LED(-) to a resister, then to ground.
+  D7(RX)  13          Infrared receive(RX). Didn't work on D8 which is TX.
+  D8(TX)  15
+  RX(D9)  03
+  TX      01
+  ---
+  G       Ground      To breadboard ground (-).
+  3V      3v output   To breadboard power (+).
 ***/
 
 // -----------------------------------------------------------------------------
@@ -38,14 +38,14 @@ IRrecv irrecv(IR_PIN);
 decode_results results;
 
 // -----------------------------------------------------------------------------
-// LEDs to identity activities.
+// LED to identity activities.
+// NodeMCU: connect an LED to the same pin as the onboard LED.
 
 // Built in, on board LED: GPIO2 (Arduino pin 2) which is pin D4 on NodeMCU.
 // PIN 2 set to LOW (0) will turn the LED on.
 // PIN 2 set to HIGH (1) will turn the LED off.
 const int LED_ONBOARD_PIN =  2;
-
-#define LED_PIN 12
+#define LED_PIN 2
 
 void blinkLed() {
   digitalWrite(LED_PIN, HIGH);   // On
@@ -54,7 +54,7 @@ void blinkLed() {
 }
 
 // -----------------------------------------------------------------------------
-// Push button to reset the game. 
+// Push button to reset the game.
 
 // On NodeMCU, tested using D2(pin 4) D1(pin 5) or D0(pin 16).
 const int BUTTON_PIN = 16;
@@ -63,46 +63,18 @@ int buttonToggleStatus = 0;
 void checkButton() {
   // If the button is pressed, the button status is HIGH.
   if (digitalRead(BUTTON_PIN) == HIGH) {
-    Serial.println("+ Button pressed.");
     digitalWrite(LED_PIN, HIGH);
     if (buttonToggleStatus == 0) {
-       // Toggle: for the case when the person holds the button down.
-       //   Then the HTTP request is only sent once.
-       httpGetRequestWithRetry(0, ""); // This will clear the board.
+      Serial.println("+ Game reset button pressed.");
+      // Toggle: for the case when the person holds the button down.
+      //   Then the HTTP request is only sent once.
+      httpGetRequestWithRetry(0, ""); // This will clear the board.
     }
     buttonToggleStatus = 1;
   } else {
     // Serial.println("+ Button not pressed..");
     digitalWrite(LED_PIN, LOW);
     buttonToggleStatus = 0;
-  }
-}
-
-// -------------------------------------------------------------------------------
-// Keypad: 3x3
-
-#include <Keypad.h>
-
-// For a 3x3 keypad. Match the number of rows and columns to keypad.
-const byte ROWS = 3;
-const byte COLS = 3;
-
-// For keys: 1 ... 9: 3x3.
-char hexaKeys[ROWS][COLS] = {
-  {'1', '2', '3'},
-  {'4', '5', '6'},
-  {'7', '8', '9'}
-};
-byte rowPins[ROWS] = { 5, 4, 0};    // D1 D2     D3
-byte colPins[COLS] = {14, 3, 9};    // D5 D9(RX) S3+S2: S3 to keypad, use S2 as the pin
-
-Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); 
-
-void checkKeypad() {
-  char customKey = customKeypad.getKey();
-  if (customKey) {
-    Serial.print("+ Key pressed: ");
-    Serial.println(customKey);
   }
 }
 
@@ -120,12 +92,13 @@ WiFiClient client;
 // ---------------------------
 // Host definition, for HTTP requests
 //
-// http://tigsync.herokuapp.com/
-// $ ping tigsync.herokuapp.com
-// PING tigsync.herokuapp.com (34.225.219.245)
+// IP address or hostname of the webserver.
+const char* host = "tigerfarmpress.com";
+const String hostname  = "tigerfarmpress.com";
 // ---
-const String hostname = "tigsync.herokuapp.com";
-const char *host = "34.225.219.245";
+// const String hostname = "tigsync.herokuapp.com";
+// const char *host = "34.225.219.245";
+// ---
 const int httpPort = 80;
 
 // http://localhost:8000/
@@ -222,9 +195,10 @@ int httpGetRequest(int iPosition, String sValue) {
     + "Connection: close\r\n"
     + "\r\n"
   );
+  Serial.println("+ HTTP Request sent.");
   //
   // Wait for a response, and print the response.
-  Serial.println("--- Response ---");
+  // Serial.println("--- Response ---");
   // delay(200);
   // int doRetry = 0;  // Use to get the response.
   int doRetry = 99;  // Use to bypass waiting for the response.
@@ -247,9 +221,9 @@ int httpGetRequest(int iPosition, String sValue) {
     returnValue = 2;
   }
   // ------------------------------------------------
-  Serial.println();
-  Serial.println("-----------------");
+  // Serial.println();
   Serial.println("+ Connection closed.");
+  Serial.println("--------------------");
 
   digitalWrite(LED_PIN, LOW);
   return returnValue;
@@ -383,6 +357,38 @@ void infraredSwitch() {
   delay(60);  // To reduce repeat key results.
 }
 
+// -------------------------------------------------------------------------------
+// Keypad: 3x3
+
+#include <Keypad.h>
+
+// For a 3x3 keypad. Match the number of rows and columns to keypad.
+const byte ROWS = 3;
+const byte COLS = 3;
+
+// For keys: 1 ... 9: 3x3.
+char hexaKeys[ROWS][COLS] = {
+  {'1', '2', '3'},
+  {'4', '5', '6'},
+  {'7', '8', '9'}
+};
+byte rowPins[ROWS] = { 5, 4, 0};    // D1 D2 D3
+byte colPins[COLS] = {14,12, 3};    // D5 D6 D9(RX)
+
+Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
+
+char keyPressed;
+void keypadProcess() {
+  Serial.print("+ Key pressed: ");
+  Serial.println(keyPressed);
+  int keyInt = keyPressed - '0';
+  if (keyInt >= 1 && keyInt <= 9) {
+    Serial.print("+ keyPressed: ");
+    Serial.println(keyPressed);
+    httpGetRequestWithRetry(keyInt, uriValueValue);
+  }
+}
+
 // -----------------------------------------------------------------------------
 // Device Setup
 
@@ -452,7 +458,9 @@ void loop() {
   checkButton();
   //
   // Used to set game board squares: 1..9.
-  // checkKeypad();
+  if (keyPressed = customKeypad.getKey()) {
+    keypadProcess();;
+  }
 }
 
 // -----------------------------------------------------------------------------
