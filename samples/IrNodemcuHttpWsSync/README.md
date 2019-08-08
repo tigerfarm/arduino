@@ -14,12 +14,12 @@ http://tfpdocroot.herokuapp.com/syncdocumentupdate?identity=browser&name=abc&pos
 
 http://tfpdocroot.herokuapp.com/syncdocumentupdate?identity=browser&name=abc&position=1&value=B
 
-+ To see the result, go to the following URL. Password is “okaynow”.
++ To see the result, go to the following URL. You would need the password.
 You would enter your identity, any string. Enter “abc” as the Document name. Click Get token. Click Get game & subscribe.
 + https://tfpdocroot.herokuapp.com/tigsync/docroot/index.html
 
 --------------------------------------------------------------------------------
-+++ My Development steps:
+## My Development steps:
 
 + Install and test Arduino IDE with an Arduino board. Arduino Nano is my favorite.
 + Purchased and tested a NodeMCU:
