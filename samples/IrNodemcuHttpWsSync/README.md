@@ -1,5 +1,4 @@
---------------------------------------------------------------------------------
-+++ Notes: NodeMCU to Twilio Sync
+# Project: NodeMCU to Twilio Sync
 
 [Repository link](https://github.com/tigerfarm/arduino/tree/master/samples/IrNodemcuHttpWsSync)
 
@@ -18,15 +17,6 @@ http://tfpdocroot.herokuapp.com/syncdocumentupdate?identity=browser&name=abc&pos
 + To see the result, go to the following URL. Password is “okaynow”.
 You would enter your identity, any string. Enter “abc” as the Document name. Click Get token. Click Get game & subscribe.
 + https://tfpdocroot.herokuapp.com/tigsync/docroot/index.html
-
---------------------------------------------------------------------------------
-+++ MQTT for NodeMCU
-
-https://www.instructables.com/id/NodeMCU-MQTT-Basic-Example/
-
-In my IDE, using Tools/Manage libraries, I loaded the PubSubClient, by Nick O'Leary.
-
-Arduino IDE–>File–>Example–>PubSubClient–>mqtt esp8266
 
 --------------------------------------------------------------------------------
 +++ My Development steps:
@@ -49,5 +39,14 @@ send HTTP GET request,
 use button input to reset the Sync document game,
 use infrared input and keypad input to set game squares.
 + Tuned and tested.
+
+--------------------------------------------------------------------------------
++++ Future, test using MQTT with NodeMCU
+
+https://www.instructables.com/id/NodeMCU-MQTT-Basic-Example/
+
+In my IDE, using Tools/Manage libraries, I loaded the PubSubClient, by Nick O'Leary.
+
+Arduino IDE–>File–>Example–>PubSubClient–>mqtt esp8266
 
 --------------------------------------------------------------------------------
