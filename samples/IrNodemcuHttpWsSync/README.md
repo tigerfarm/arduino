@@ -6,8 +6,10 @@ YouTube [demo video](https://www.youtube.com/watch?v=GTzOTd_wcsk).
 
 What does the project do?
 + When a keypad key is pressed, the NodeMCU board sends an HTTP request with the keypress data to my Heroku web server application.
-+ The web server receives the data and sends a Sync document update HTTP request to Twilio.
-+ The following example will post a “B” to the first position of Sync document named, “abc”, using the user identity, “browser”:
++ The web server application receives the data and sends a Sync document update HTTP request to Twilio.
++ Twilio send the update to clients that are subscribed to the project's document.
+    The clients can be any where in the world, where there is an internet connection.
+
 Data flow:
 ````
 Keyboard >> NodeMCU >> WiFi router >> tfpdocroot.herokuapp.com >> Twilio Sync >> subscribed clients
@@ -15,6 +17,8 @@ Keyboard >> NodeMCU >> WiFi router >> tfpdocroot.herokuapp.com >> Twilio Sync >>
 
 The project is infrared enabled. Instead of pressing a key on the keypad, 
 pressing 1-9 on my infrared remote controller will also cause the NodeMCU board to send an HTTP request with the keypress data.
+
+The following example will post a “B” to the first position of Sync document named, “abc”, using the user identity, “browser”.
 
 http://tfpdocroot.herokuapp.com/syncdocumentupdate?identity=browser&name=abc&position=1&value=B
 
@@ -45,7 +49,7 @@ use infrared input and keypad input to set game squares.
 + Tuned and tested.
 
 --------------------------------------------------------------------------------
-+++ Future, test using MQTT with NodeMCU
+### Future, test using MQTT with NodeMCU
 
 https://www.instructables.com/id/NodeMCU-MQTT-Basic-Example/
 
