@@ -39,9 +39,16 @@
 #include <IRrecv.h>
 #include <IRutils.h>
 
-int IR_PIN = 13;          // Pin D7
+// For initializing Infrared reader.
+int IR_PIN = 13;          // NodeMCU pin D7
 IRrecv irrecv(IR_PIN);
 decode_results results;
+
+// -----------------------------------------------------------------------------
+// WIFI SETTINGS: Network name (SSID) and password.
+
+const char *ssid = "BATCAVE";
+const char *password = "";  // Note, I don't save my password on the repository.
 
 // -----------------------------------------------------------------------------
 // LED to identity activities.
@@ -85,12 +92,7 @@ void checkButton() {
 }
 
 // -----------------------------------------------------------------------------
-// WIFI SETTINGS: Network name (SSID) and password.
-
-const char *ssid = "BATCAVE";
-const char *password = "";  // Note, I don't save my password on the repository.
-
-// -------------------------------------
+// For Making HTTP Requests
 
 // For creating a TCP client connection.
 WiFiClient client;
@@ -101,9 +103,6 @@ WiFiClient client;
 // IP address or hostname of the webserver.
 const char* host = "tigerfarmpress.com";
 const String hostname  = "tigerfarmpress.com";
-// ---
-// const String hostname = "tigsync.herokuapp.com";
-// const char *host = "34.225.219.245";
 // ---
 const int httpPort = 80;
 
@@ -128,6 +127,8 @@ int timesToRetry = secondsToWaitForResponse * 2;
 int timesToRetryRequest = 3;
 
 // ---------------------------
+// http://example.com/syncdocumentupdate?identity=browser&name=abc&position=1&value=B
+
 String uriIdentity = "identity=";
 String uriIdentityValue = "nodemcu";
 //
