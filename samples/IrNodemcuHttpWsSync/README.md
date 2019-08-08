@@ -1,16 +1,20 @@
 # Project: NodeMCU to Twilio Sync
 
-[Repository link](https://github.com/tigerfarm/arduino/tree/master/samples/IrNodemcuHttpWsSync)
+[Repository link](https://github.com/tigerfarm/arduino/tree/master/samples/IrNodemcuHttpWsSync).
 
-Keyboard >> NodeMCU >> WiFi router >> tfpdocroot.herokuapp.com >> Twilio Sync
+YouTube [demo video](https://www.youtube.com/watch?v=GTzOTd_wcsk).
 
-Twilio Sync then syncs the tic-tac-toe document to clients that are subscribed.
-
-http://tfpdocroot.herokuapp.com/syncdocumentupdate?identity=browser&name=abc&position=1&value=B
-
-+ When a keypad key is pressed, the esp8266 NodeMCU board sends an HTTP request with the keypress data to my Heroku web server.
+What does the project do?
++ When a keypad key is pressed, the NodeMCU board sends an HTTP request with the keypress data to my Heroku web server application.
 + The web server receives the data and sends a Sync document update HTTP request to Twilio.
 + The following example will post a “B” to the first position of Sync document named, “abc”, using the user identity, “browser”:
+Data flow:
+````
+Keyboard >> NodeMCU >> WiFi router >> tfpdocroot.herokuapp.com >> Twilio Sync >> subscribed clients
+````
+
+The project is infrared enabled. Instead of pressing a key on the keypad, 
+pressing 1-9 on my infrared remote controller will also cause the NodeMCU board to send an HTTP request with the keypress data.
 
 http://tfpdocroot.herokuapp.com/syncdocumentupdate?identity=browser&name=abc&position=1&value=B
 
