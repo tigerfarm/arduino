@@ -26,6 +26,10 @@ http://tfpdocroot.herokuapp.com/syncdocumentupdate?identity=browser&name=abc&pos
 You would enter your identity, any string. Enter “abc” as the Document name. Click Get token. Click Get game & subscribe.
 + https://tfpdocroot.herokuapp.com/tigsync/docroot/index.html
 
+Photo of the circuit.
+
+<img src="circuitFulla-800.jpg" width="400"/>
+
 --------------------------------------------------------------------------------
 ## My Development steps:
 
