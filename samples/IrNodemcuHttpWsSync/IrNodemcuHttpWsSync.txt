@@ -1,7 +1,9 @@
 --------------------------------------------------------------------------------
 +++ Notes: NodeMCU to Twilio Sync
 
-To be added.
+Keyboard >> NodeMCU >> WiFi router >> tigerfarmpress.com >> Twilio Sync
+
+Twilio Sync then syncs the tic-tac-toe document to clients that are subscribed.
 
 --------------------------------------------------------------------------------
 
