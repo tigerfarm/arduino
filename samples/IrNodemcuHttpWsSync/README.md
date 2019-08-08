@@ -28,7 +28,7 @@ You would enter your identity, any string. Enter “abc” as the Document name.
 
 Photo of the circuit.
 
-<img src="circuitFulla-800.jpg" width="400"/>
+<img src="circuitFullb.jpg" width="400"/>
 
 --------------------------------------------------------------------------------
 ## My Development steps:
