@@ -9,7 +9,7 @@
   - Board is either an Arduino or a NodeMCU.
   - LED positive is connected to onboard LED pin.
   - Button side 1, connected to Arduino +5V or NodeMCU +3.3V.
-  - Button side 2, connected to a 1K-10K resistor which is connected to ground.
+  - Button side 2, connected to a 10K resistor which is connected to ground.
   - Button side 2, connected to board pin (BUTTON_PIN).
 
   - Note: on most Arduinos, there is an on board LED on pin 13.
@@ -18,7 +18,7 @@
 
   Label   Pin:GPIO
   D0      16          
-  D1      05          
+  D1      05          Button/toggle to have LED on only, not blinking
   D2      04          
   D3      00          
   D4(TX)  02          Built in, on board LED. Out to an LED(+). LED(-) to a resister, then to ground.
@@ -31,7 +31,7 @@
   D7(RX)  13          
   D8(TX)  15
   RX(D9)  03          
-  TX(D10) 01          Button/toggle to have LED on only, not blinking.
+  TX(D10) 01          .
   ---
   G       Ground      To breadboard ground (-).
   3V      3v output   To breadboard power (+).
@@ -52,8 +52,8 @@
 // PIN X set to LOW (0) will turn the LED on.
 // PIN X set to HIGH (1) will turn the LED off.
 
-const int LED_ONBOARD_PIN =  2;
-const int LED_PIN =  LED_ONBOARD_PIN;
+#define LED_ONBOARD_PIN 2
+#define LED_PIN 2
 
 void blinkLed() {
   Serial.println("+ Blink: LED on.");
@@ -65,8 +65,7 @@ void blinkLed() {
 
 // -----------------------------------------------------------------------------
 // Button
-const int BUTTON_PIN = 5;
-
+const int BUTTON_PIN = 5;   // NodeMCU D1
 void checkButton() {
   // Read the push button status.
   int buttonStatus = digitalRead(BUTTON_PIN);

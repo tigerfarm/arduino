@@ -3,31 +3,28 @@
   +++ ESP8266 ESP-12E NodeMCU pins used in this project.
 
   Label   Pin:GPIO
-  D0      16          Keypad: row 4
-  D1      05          Keypad: row 1
-  D2      04          Keypad: row 2
-  D3      00          Keypad: row 3
+  D0      16
+  D1      05          Button/toggle to reset the game.
+  D2      04
+  D3      00
   D4(TX)  02          Built in, on board LED. Out to an LED(+). LED(-) to a resister, then to ground.
   ---
   3V      3v output
   G       Ground
   ---
-  D5      14          Keypad: column 1
-  D6      12          Keypad: column 2
+  D5      14
+  D6      12
   D7(RX)  13          Infrared receive(RX), left pin.
   D8(TX)  15
-  RX(D9)  03          Keypad: column 3
-  TX(D10) 01          
+  RX(D9)  03
+  TX(D10) 01
   ---
   G       Ground      To breadboard ground (-). Infrared receive: power, center pin
   3V      3v output   To breadboard power (+).  Infrared receive: ground, right pin
 
-  Keypad pins are: first the rows(left), then the columns(right).
-  Keypad:
-    1-9 game squares
-    0   Reset game
-    *   Use X.
-    #   Use O.
+  Note, must not have button connected to TX(D10) when uploading compiled sketch
+  because the computer will not connect to the NodeMCU.
+  Also, if using TX(D10), if button is pressed, Serial.print will not work.
 ***/
 // -----------------------------------------------------------------------------
 #include <ESP8266WiFi.h>
@@ -37,20 +34,43 @@
 #include <IRrecv.h>
 #include <IRutils.h>
 
-#include <Keypad.h>
+#define LED_PIN 2
 
 // Built in, on board LED: GPIO2 (Arduino pin 2) which is pin D4 on NodeMCU.
 // PIN 2 set to LOW (0) will turn the LED on.
 // PIN 2 set to HIGH (1) will turn the LED off.
 #define LED_ONBOARD_PIN 2
 
-#define LED_PIN 2
-
 // -----------------------------------------------------------------------------
 // WIFI SETTINGS: Network name (SSID) and password.
 
 const char *ssid = "BATCAVE";
 const char *password = "";  // Note, I don't save my password on the repository.
+
+// -----------------------------------------------------------------------------
+// Button
+const int BUTTON_PIN = 5;   // NodeMCU D1
+int buttonToggleStatus = 0;
+void checkButton() {
+  // If the button is pressed, the button status is HIGH.
+  if (digitalRead(BUTTON_PIN) == HIGH) {
+    digitalWrite(LED_PIN, HIGH);
+    if (buttonToggleStatus == 0) {
+      Serial.println("+ Game reset button pressed/on.");
+      // Toggle: for the case when the person holds the button down.
+      //   Then the HTTP request is only sent once.
+      httpGetRequestWithRetry(0, ""); // This will clear the board.
+    }
+    buttonToggleStatus = 1;
+  } else {
+    if (buttonToggleStatus == 1) {
+      Serial.println("+ Game reset button released/off.");
+      buttonToggleStatus = 0;
+    }
+    // Serial.println("+ Button not pressed..");
+    // digitalWrite(LED_PIN, LOW);
+  }
+}
 
 // -----------------------------------------------------------------------------
 // For Making HTTP Requests
@@ -202,54 +222,6 @@ int httpGetRequestWithRetry(int iPosition, String sValue) {
       delay(responseWaitTime);
     }
   }
-}
-
-// -------------------------------------------------------------------------------
-// For a 4x3 keypad. Match the number of rows and columns to keypad.
-const byte ROWS = 4;
-const byte COLS = 3;
-char hexaKeys[ROWS][COLS] = {
-  {'1', '2', '3'},
-  {'4', '5', '6'},
-  {'7', '8', '9'},
-  {'*', '0', '#'}
-};
-byte rowPins[ROWS] = { 5,  4, 0, 16};  // D1 D2 D3 D0
-byte colPins[COLS] = {14, 12, 3};      // D5 D6 D9(RX)
-
-Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
-
-char keyPressed;
-void keypadProcess() {
-  Serial.print("+ Key pressed: ");
-  Serial.println(keyPressed);
-  int keyInt = keyPressed - '0';
-  if (keyInt >= 0 && keyInt <= 9) {
-    Serial.print("+ keyPressed: ");
-    Serial.println(keyPressed);
-    httpGetRequestWithRetry(keyInt, uriValueValue);
-  }
-  if (keyPressed == '*') {
-    Serial.print("+ Use: X");
-    uriValueValue = "X";
-  }
-  if (keyPressed == '#') {
-    Serial.print("+ Use: )");
-    uriValueValue = "O";
-  }
-  /*
-  switch (keyPressed) {
-    case '*':
-      Serial.print("+ Use: X");
-      uriValueValue = "X";
-      break;
-    case '#':
-      Serial.print("+ Use: )");
-      uriValueValue = "O";
-      break;
-    // default:
-  }
-   */
 }
 
 // -----------------------------------------------------------------------------
@@ -422,10 +394,7 @@ void loop() {
     infraredSwitch();
     irrecv.resume();
   }
-  //
-  if (keyPressed = customKeypad.getKey()) {
-    keypadProcess();;
-  }
+  checkButton();
 }
 
 // -----------------------------------------------------------------------------
