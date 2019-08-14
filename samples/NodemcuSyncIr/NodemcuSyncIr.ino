@@ -1,16 +1,17 @@
 // -----------------------------------------------------------------------------
 #include <ESP8266WiFi.h>
 
-// -----------------------------------------------------------------------------
 // Infrared settings
-
 #include <IRremoteESP8266.h>
 #include <IRrecv.h>
 #include <IRutils.h>
 
-int IR_PIN = 13;          // Pin D7
-IRrecv irrecv(IR_PIN);
-decode_results results;
+#define LED_PIN 2
+
+// Built in, on board LED: GPIO2 (Arduino pin 2) which is pin D4 on NodeMCU.
+// PIN 2 set to LOW (0) will turn the LED on.
+// PIN 2 set to HIGH (1) will turn the LED off.
+#define LED_ONBOARD_PIN 2
 
 // -----------------------------------------------------------------------------
 // WIFI SETTINGS: Network name (SSID) and password.
@@ -19,6 +20,7 @@ const char *ssid = "BATCAVE";
 const char *password = "";  // Note, I don't save my password on the repository.
 
 // -----------------------------------------------------------------------------
+// For Making HTTP Requests
 
 // For creating a TCP client connection.
 WiFiClient client;
@@ -26,23 +28,11 @@ WiFiClient client;
 // ---------------------------
 // Host definition, for HTTP requests
 //
-// http://tigsync.herokuapp.com/
-// $ ping tigsync.herokuapp.com
-// PING tigsync.herokuapp.com (34.225.219.245)
+// IP address or hostname of the webserver.
+const char* host = "tigerfarmpress.com";
+const String hostname  = "tigerfarmpress.com";
 // ---
-const String hostname = "tigsync.herokuapp.com";
-const char *host = "34.225.219.245";
 const int httpPort = 80;
-
-// http://localhost:8000/
-// $ ping localhost
-// PING localhost (127.0.0.1)
-// $ ifconfig -a | grep broadcast
-//     inet 192.168.1.73
-// ---
-// const String hostname = "localhost";
-// const char *host = "192.168.1.73";
-// const int httpPort = 8000;
 
 // ---------------------------
 // HTTP request timeout wait time.
@@ -55,6 +45,8 @@ int timesToRetry = secondsToWaitForResponse * 2;
 int timesToRetryRequest = 3;
 
 // ---------------------------
+// http://example.com/syncdocumentupdate?identity=browser&name=abc&position=1&value=B
+
 String uriIdentity = "identity=";
 String uriIdentityValue = "nodemcu";
 //
@@ -73,49 +65,6 @@ String uriBasic = "/syncdocumentupdate?"
 String theUri = uriBasic
                 + "&" + uriPosition + uriPositionValue
                 + "&" + uriValue + uriValueValue;
-
-// -----------------------------------------------------------------------------
-#define LED_PIN 12
-void blinkLed() {
-  digitalWrite(LED_PIN, HIGH);   // On
-  delay(1000);
-  digitalWrite(LED_PIN, LOW);    // Off
-}
-
-// -----------------------------------------------------------------------------
-// Device Setup
-
-void setup() {
-
-  pinMode(LED_PIN, OUTPUT);
-  blinkLed();
-
-  Serial.begin(115200);
-  delay(100);
-  Serial.println();
-  Serial.println("+++ Setup.");
-  //
-  // ------------------------------------------------
-  digitalWrite(LED_PIN, HIGH);
-
-  Serial.print("+ Connecting to the WiFi network: ");
-  Serial.println(ssid);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.print(".");
-  }
-  Serial.println("");
-  Serial.print("++ WiFi connected on IP address: ");
-  Serial.println(WiFi.localIP());
-
-  // ------------------------------------------------
-  digitalWrite(LED_PIN, LOW);
-
-  httpGetRequestWithRetry(0, ""); // Start by clearing the board.
-
-  irrecv.enableIRIn();            // Initialized Infrared reader.
-}
 
 // -----------------------------------------------------------------------------
 // Make an HTTP GET request.
@@ -171,9 +120,10 @@ int httpGetRequest(int iPosition, String sValue) {
     + "Connection: close\r\n"
     + "\r\n"
   );
+  Serial.println("+ HTTP Request sent.");
   //
   // Wait for a response, and print the response.
-  Serial.println("--- Response ---");
+  // Serial.println("--- Response ---");
   // delay(200);
   // int doRetry = 0;  // Use to get the response.
   int doRetry = 99;  // Use to bypass waiting for the response.
@@ -196,9 +146,9 @@ int httpGetRequest(int iPosition, String sValue) {
     returnValue = 2;
   }
   // ------------------------------------------------
-  Serial.println();
-  Serial.println("-----------------");
+  // Serial.println();
   Serial.println("+ Connection closed.");
+  Serial.println("--------------------");
 
   digitalWrite(LED_PIN, LOW);
   return returnValue;
@@ -221,7 +171,13 @@ int httpGetRequestWithRetry(int iPosition, String sValue) {
   }
 }
 
-// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// For initializing Infrared reader.
+int IR_PIN = 13;          // NodeMCU pin D7
+IRrecv irrecv(IR_PIN);
+decode_results results;
+
+// --------------------
 void infraredSwitch() {
   //
   // Top switch case value is for small remote controller.
@@ -278,7 +234,7 @@ void infraredSwitch() {
     case 0xFF906F:
     case 0xE0E0708F:
       Serial.println("+ Key 9: ");
-      httpGetRequestWithRetry(9, "X");
+      httpGetRequestWithRetry(9, uriValueValue);
       break;
     case 0xFF9867:
     case 0xE0E08877:
@@ -325,7 +281,7 @@ void infraredSwitch() {
     default:
       // Serial.print("+ Result value: ");
       // serialPrintUint64(results.value, 16);
-      // Serial.println("");
+      Serial.print(".");
       // -----------------------------------
   } // end switch
 
@@ -333,17 +289,54 @@ void infraredSwitch() {
 }
 
 // -----------------------------------------------------------------------------
-// Device Loop
+void setup() {
+  Serial.begin(115200);
+  delay(100);
+  Serial.println();
+  Serial.println("+++ Setup.");
 
+  // Initialize the onboard LED.
+  pinMode(LED_ONBOARD_PIN, OUTPUT);
+  // Turn it on for 1 seconds.
+  // This is nice for powering up, or clicking the reset button.
+  digitalWrite(LED_ONBOARD_PIN, LOW);   // On
+  delay(1000);
+  digitalWrite(LED_ONBOARD_PIN, HIGH);  // Off
+
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, HIGH);   // On
+
+  // ------------------------------------------------
+  Serial.print("+ Connecting to the WiFi network: ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.print("WiFi connected on IP address: ");
+  Serial.println(WiFi.localIP());
+
+  // ------------------------------------------------
+  digitalWrite(LED_PIN, LOW);
+  // Initialized Infrared reader.
+  irrecv.enableIRIn();
+  // Initialize the pushbutton pin for input:
+  // pinMode(BUTTON_PIN, INPUT);
+  Serial.println("+ Start loop()");
+}
+
+// -----------------------------------------------------------------------------
 int loopCounter = 0;
 int iPosition = 0;
-
 void loop() {
   delay(60);
-  ++loopCounter;
+  // ++loopCounter;
   // Serial.print("+ loopCounter = ");
   // Serial.println(loopCounter);
   //
+  // Infrared controls
   if (irrecv.decode(&results)) {
     infraredSwitch();
     irrecv.resume();

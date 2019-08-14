@@ -14,13 +14,14 @@
   ---
   D5      14          Keypad: column 1
   D6      12          Keypad: column 2
-  D7(RX)  13          Infrared receive(RX). Didn't work on D8 which is TX.
-  D8(TX)  15
+  D7(RX)  13          Infrared receive(RX), left pin.
+[';p'
+ gc                                                                                       ,,J.D8(TX)  15
   RX(D9)  03          Keypad: column 3
   TX      01          Button/toggle to reset the game.
   ---
-  G       Ground      To breadboard ground (-). Infrared receive: power
-  3V      3v output   To breadboard power (+).  Infrared receive: ground
+  G       Ground      To breadboard ground (-). Infrared receive: power, center pin
+  3V      3v output   To breadboard power (+).  Infrared receive: ground, right pin
 
   Keypad:
     1-9 game squares
@@ -28,16 +29,20 @@
     *   Use X.
     #   Use O.
 ***/
-
 // -----------------------------------------------------------------------------
 #include <ESP8266WiFi.h>
-
-#include <Keypad.h>
 
 // Infrared settings
 #include <IRremoteESP8266.h>
 #include <IRrecv.h>
 #include <IRutils.h>
+
+#include <Keypad.h>
+
+// Built in, on board LED: GPIO2 (Arduino pin 2) which is pin D4 on NodeMCU.
+// PIN 2 set to LOW (0) will turn the LED on.
+// PIN 2 set to HIGH (1) will turn the LED off.
+#define LED_ONBOARD_PIN 2
 
 #define LED_PIN 2
 
@@ -46,46 +51,6 @@
 
 const char *ssid = "BATCAVE";
 const char *password = "";  // Note, I don't save my password on the repository.
-
-// -----------------------------------------------------------------------------
-// LED to identity activities.
-// NodeMCU: connect an LED to the same pin as the onboard LED.
-
-// Built in, on board LED: GPIO2 (Arduino pin 2) which is pin D4 on NodeMCU.
-// PIN 2 set to LOW (0) will turn the LED on.
-// PIN 2 set to HIGH (1) will turn the LED off.
-const int LED_ONBOARD_PIN =  2;
-
-void blinkLed() {
-  digitalWrite(LED_PIN, HIGH);   // On
-  delay(1000);
-  digitalWrite(LED_PIN, LOW);    // Off
-}
-
-// -----------------------------------------------------------------------------
-// Push button to reset the game.
-
-// On NodeMCU, tested using D2(pin 4) D1(pin 5) or D0(pin 16).
-const int BUTTON_PIN = 1;  // was Do 16
-
-int buttonToggleStatus = 0;
-void checkButton() {
-  // If the button is pressed, the button status is HIGH.
-  if (digitalRead(BUTTON_PIN) == HIGH) {
-    digitalWrite(LED_PIN, HIGH);
-    if (buttonToggleStatus == 0) {
-      Serial.println("+ Game reset button pressed.");
-      // Toggle: for the case when the person holds the button down.
-      //   Then the HTTP request is only sent once.
-      httpGetRequestWithRetry(0, ""); // This will clear the board.
-    }
-    buttonToggleStatus = 1;
-  } else {
-    // Serial.println("+ Button not pressed..");
-    digitalWrite(LED_PIN, LOW);
-    buttonToggleStatus = 0;
-  }
-}
 
 // -----------------------------------------------------------------------------
 // For Making HTTP Requests
@@ -101,16 +66,6 @@ const char* host = "tigerfarmpress.com";
 const String hostname  = "tigerfarmpress.com";
 // ---
 const int httpPort = 80;
-
-// http://localhost:8000/
-// $ ping localhost
-// PING localhost (127.0.0.1)
-// $ ifconfig -a | grep broadcast
-//     inet 192.168.1.73
-// ---
-// const String hostname = "localhost";
-// const char *host = "192.168.1.73";
-// const int httpPort = 8000;
 
 // ---------------------------
 // HTTP request timeout wait time.
@@ -249,6 +204,56 @@ int httpGetRequestWithRetry(int iPosition, String sValue) {
   }
 }
 
+// -------------------------------------------------------------------------------
+// Keypad pins are: first the rows(left), then the columns(right).
+
+// For a 4x3 keypad. Match the number of rows and columns to keypad.
+const byte ROWS = 4;
+const byte COLS = 3;
+char hexaKeys[ROWS][COLS] = {
+  {'1', '2', '3'},
+  {'4', '5', '6'},
+  {'7', '8', '9'},
+  {'*', '0', '#'}
+};
+byte rowPins[ROWS] = { 5,  4, 0, 16};  // D1 D2 D3 D0
+byte colPins[COLS] = {14, 12, 3};      // D5 D6 D9(RX)
+
+Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
+
+char keyPressed;
+void keypadProcess() {
+  Serial.print("+ Key pressed: ");
+  Serial.println(keyPressed);
+  int keyInt = keyPressed - '0';
+  if (keyInt >= 0 && keyInt <= 9) {
+    Serial.print("+ keyPressed: ");
+    Serial.println(keyPressed);
+    httpGetRequestWithRetry(keyInt, uriValueValue);
+  }
+  if (keyPressed == '*') {
+    Serial.print("+ Use: X");
+    uriValueValue = "X";
+  }
+  if (keyPressed == '#') {
+    Serial.print("+ Use: )");
+    uriValueValue = "O";
+  }
+  /*
+  switch (keyPressed) {
+    case '*':
+      Serial.print("+ Use: X");
+      uriValueValue = "X";
+      break;
+    case '#':
+      Serial.print("+ Use: )");
+      uriValueValue = "O";
+      break;
+    // default:
+  }
+   */
+}
+
 // -----------------------------------------------------------------------------
 // For initializing Infrared reader.
 int IR_PIN = 13;          // NodeMCU pin D7
@@ -366,45 +371,6 @@ void infraredSwitch() {
   delay(60);  // To reduce repeat key results.
 }
 
-// -------------------------------------------------------------------------------
-// Keypad pins are: first the rows(left), then the columns(right).
-
-// For a 3x3 keypad. Match the number of rows and columns to keypad.
-const byte ROWS = 4;
-const byte COLS = 3;
-
-// For keys: 1 ... 9: 3x3.
-char hexaKeys[ROWS][COLS] = {
-  {'1', '2', '3'},
-  {'4', '5', '6'},
-  {'7', '8', '9'},
-  {'*', '0', '#'}
-};
-byte rowPins[ROWS] = { 5, 4, 0, 16};  // D1 D2 D3 D0
-byte colPins[COLS] = {14, 12, 3};     // D5 D6 D9(RX)
-
-Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
-
-char keyPressed;
-void keypadProcess() {
-  Serial.print("+ Key pressed: ");
-  Serial.println(keyPressed);
-  int keyInt = keyPressed - '0';
-  if (keyInt >= 0 && keyInt <= 9) {
-    Serial.print("+ keyPressed: ");
-    Serial.println(keyPressed);
-    httpGetRequestWithRetry(keyInt, uriValueValue);
-  }
-  if (keyPressed == '*') {
-    Serial.print("+ Use: X");
-    uriValueValue = "X";
-  }
-  if (keyPressed == '#') {
-    Serial.print("+ Use: )");
-    uriValueValue = "O";
-  }
-}
-
 // -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
@@ -440,7 +406,8 @@ void setup() {
   // Initialized Infrared reader.
   irrecv.enableIRIn();
   // Initialize the pushbutton pin for input:
-  pinMode(BUTTON_PIN, INPUT);
+  // pinMode(BUTTON_PIN, INPUT);
+  Serial.println("+ Start loop()");
 }
 
 // -----------------------------------------------------------------------------
@@ -448,9 +415,9 @@ int loopCounter = 0;
 int iPosition = 0;
 void loop() {
   delay(60);
-  ++loopCounter;
-  Serial.print("+ loopCounter = ");
-  Serial.println(loopCounter);
+  // ++loopCounter;
+  // Serial.print("+ loopCounter = ");
+  // Serial.println(loopCounter);
   //
   // Infrared controls
   if (irrecv.decode(&results)) {
@@ -458,12 +425,8 @@ void loop() {
     irrecv.resume();
   }
   //
-  // Used to reset the game board.
-  checkButton();
-  //
-  // Used to set game board squares: 1..9.
   if (keyPressed = customKeypad.getKey()) {
-    keypadProcess();
+    keypadProcess();;
   }
 }
 

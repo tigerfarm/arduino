@@ -32,10 +32,7 @@
 // -------------------------------------------------------------------------------
 #include <Keypad.h>
 
-// For a 4x4 keypad. Match the number of rows and columns to keypad.
-
-// -------------------------------------------
-// This matches the keypad characters to pins.
+// Match the number of rows and columns to keypad.
 
 // If only for the number 1 key: 1x1.
 /*
@@ -48,7 +45,7 @@ const byte COLS = 1;
   byte colPins[COLS] = {14};    // D5
 */
 
-// For keys: 1, 2, 4, 5: 2x2.
+// For keys: 2x2.
 /*
 const byte ROWS = 2;
 const byte COLS = 2;
@@ -60,9 +57,8 @@ const byte COLS = 2;
   byte colPins[COLS] = {14, 3};    // D5 D9(RX)
 */
 
-// For keys: 1 ... 9: 3x3.
+// For keys: 3x3.
 /*
-*/
 const byte ROWS = 3;
 const byte COLS = 3;
 char hexaKeys[ROWS][COLS] = {
@@ -72,25 +68,37 @@ char hexaKeys[ROWS][COLS] = {
 };
 byte rowPins[ROWS] = { 5, 4, 0};    // D1 D2 D3
 byte colPins[COLS] = {14,12, 3};    // D5 D6 D9(RX)
+*/
 
+// For keys: 4x3.
+const byte ROWS = 4;
+const byte COLS = 3;
+char hexaKeys[ROWS][COLS] = {
+  {'1', '2', '3'},
+  {'4', '5', '6'},
+  {'7', '8', '9'},
+  {'*', '0', '#'}
+};
+byte rowPins[ROWS] = { 5,  4, 0, 16};  // D1 D2 D3 D0
+byte colPins[COLS] = {14, 12, 3};      // D5 D6 D9(RX)
 
- // For keys: 1 ... 9: 4x4.
+// For keys: 4x4.
 /*
 const byte ROWS = 4;
 const byte COLS = 4;
-  char hexaKeys[ROWS][COLS] = {
+char hexaKeys[ROWS][COLS] = {
   {'1', '2', '3', 'A'},
   {'4', '5', '6', 'B'},
   {'7', '8', '9', 'C'},
   {'*', '0', '#', 'D'}
-  };
+};
   // For Arduino:
   // byte rowPins[ROWS] = {9, 8, 7, 6};
-  // byte colPins[COLS] = {5, 4, 3, 2};  // If using a 3x4 keypad, remove: ", 2".
+  // byte colPins[COLS] = {5, 4, 3, 2};
   //
   // For NodeMCU:
-  // byte rowPins[ROWS] = { 5, 4, 0, ?}; // D1 D2     D3 ?
-  // byte colPins[COLS] = {14, 3, 9, ?}; // D5 D9(RX) D0 ?
+byte rowPins[ROWS] = { 5,  4, 0, 16};  // D1 D2 D3 D0
+byte colPins[COLS] = {14, 12, 3,  ?};  // D5 D6 D9(RX)
   //
   // S3 to keypad, use S2 as the pin
 */
