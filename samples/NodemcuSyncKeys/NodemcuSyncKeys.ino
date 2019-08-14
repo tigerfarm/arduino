@@ -14,13 +14,13 @@
   ---
   D5      14          Keypad: column 1
   D6      12          Keypad: column 2
-  D7(RX)  13          Infrared receive(RX), left pin.
+  D7(RX)  13          
   D8(TX)  15
   RX(D9)  03          Keypad: column 3
   TX(D10) 01          
   ---
-  G       Ground      To breadboard ground (-). Infrared receive: power, center pin
-  3V      3v output   To breadboard power (+).  Infrared receive: ground, right pin
+  G       Ground      To breadboard ground (-)
+  3V      3v output   To breadboard power (+)
 
   Keypad pins are: first the rows(left), then the columns(right).
   Keypad:
@@ -31,11 +31,6 @@
 ***/
 // -----------------------------------------------------------------------------
 #include <ESP8266WiFi.h>
-
-// Infrared settings
-#include <IRremoteESP8266.h>
-#include <IRrecv.h>
-#include <IRutils.h>
 
 #include <Keypad.h>
 
@@ -244,123 +239,6 @@ void keypadProcess() {
 }
 
 // -----------------------------------------------------------------------------
-// For initializing Infrared reader.
-int IR_PIN = 13;          // NodeMCU pin D7
-IRrecv irrecv(IR_PIN);
-decode_results results;
-
-// --------------------
-void infraredSwitch() {
-  //
-  // Top switch case value is for small remote controller.
-  // Lower switch case value is for Samsung TV remote controller.
-  //
-  switch (results.value) {
-    case 0xFFFFFFFF:
-    case 0xFFFFFFFFFFFFFFFF:
-      // Ignore. This is from holding the key down on small remote controller.
-      // When holding a key down on the Samsung remote, get arbitrary result values.
-      // Serial.print(".");
-      break;
-    // -----------------------------------
-    case 0xFFA25D:
-    case 0xE0E020DF:
-      Serial.println("+ Key 1: ");
-      httpGetRequestWithRetry(1, uriValueValue);
-      break;
-    case 0xFF629D:
-    case 0xE0E0A05F:
-      Serial.println("+ Key 2: ");
-      httpGetRequestWithRetry(2, uriValueValue);
-      break;
-    case 0xFFE21D:
-    case 0xE0E0609F:
-      Serial.println("+ Key 3: ");
-      httpGetRequestWithRetry(3, uriValueValue);
-      break;
-    case 0xFF22DD:
-    case 0xE0E010EF:
-      Serial.println("+ Key 4: ");
-      httpGetRequestWithRetry(4, uriValueValue);
-      break;
-    case 0xFF02FD:
-    case 0xE0E0906F:
-      Serial.println("+ Key 5: ");
-      httpGetRequestWithRetry(5, uriValueValue);
-      break;
-    case 0xFFC23D:
-    case 0xE0E050AF:
-      Serial.println("+ Key 6: ");
-      httpGetRequestWithRetry(6, uriValueValue);
-      break;
-    case 0xFFE01F:
-    case 0xE0E030CF:
-      Serial.println("+ Key 7: ");
-      httpGetRequestWithRetry(7, uriValueValue);
-      break;
-    case 0xFFA857:
-    case 0xE0E0B04F:
-      Serial.println("+ Key 8: ");
-      httpGetRequestWithRetry(8, uriValueValue);
-      break;
-    case 0xFF906F:
-    case 0xE0E0708F:
-      Serial.println("+ Key 9: ");
-      httpGetRequestWithRetry(9, uriValueValue);
-      break;
-    case 0xFF9867:
-    case 0xE0E08877:
-      Serial.println("+ Key 0: ");
-      httpGetRequestWithRetry(0, ""); // This will clear the board.
-      break;
-    // -----------------------------------
-    case 0xFF10EF:
-    case 0xE0E0A659:
-      Serial.println("+ Key < - previous");
-      break;
-    case 0xFF5AA5:
-    case 0xE0E046B9:
-      Serial.println("+ Key > - next");
-      break;
-    case 0xFF38C7:
-    case 0xE0E016E9:
-      Serial.println("+ Key center, OK key");
-      break;
-    case 0xFF18E7:
-    case 0xE0E006F9:
-      Serial.println("+ Key up");
-      break;
-    case 0xFF4AB5:
-    case 0xE0E08679:
-      Serial.println("+ Key down");
-      break;
-    // -----------------------------------
-    case 0xFF6897:
-    case 0xE0E01AE5:
-    case 0xE0E0C43B:
-      Serial.println("+ Key *, button left of '0' or Return.");
-      Serial.println("+ Set to use: X.");
-      uriValueValue = "X";
-      break;
-    case 0xFFB04F:
-    case 0xE0E0B44B:
-    case 0xE0E0C837:
-      Serial.println("+ Key #, button right of '0' or Exit.");
-      Serial.println("+ Set to use: O.");
-      uriValueValue = "O";
-      break;
-    // -----------------------------------
-    default:
-      // Serial.print("+ Result value: ");
-      // serialPrintUint64(results.value, 16);
-      Serial.print(".");
-      // -----------------------------------
-  } // end switch
-
-  delay(60);  // To reduce repeat key results.
-}
-
-// -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
   delay(100);
@@ -392,10 +270,7 @@ void setup() {
 
   // ------------------------------------------------
   digitalWrite(LED_PIN, LOW);
-  // Initialized Infrared reader.
-  irrecv.enableIRIn();
   // Initialize the pushbutton pin for input:
-  // pinMode(BUTTON_PIN, INPUT);
   Serial.println("+ Start loop()");
 }
 
@@ -407,12 +282,6 @@ void loop() {
   // ++loopCounter;
   // Serial.print("+ loopCounter = ");
   // Serial.println(loopCounter);
-  //
-  // Infrared controls
-  if (irrecv.decode(&results)) {
-    infraredSwitch();
-    irrecv.resume();
-  }
   //
   if (keyPressed = customKeypad.getKey()) {
     keypadProcess();;
