@@ -17,11 +17,15 @@
   D7(RX)  13          Infrared receive(RX), left pin.
   D8(TX)  15
   RX(D9)  03          Keypad: column 3
-  TX      01          Button/toggle to reset the game.
+  TX(D10) 01          Button/toggle to reset the game.
   ---
   G       Ground      To breadboard ground (-). Infrared receive: power, center pin
   3V      3v output   To breadboard power (+).  Infrared receive: ground, right pin
 
+  Note, must not have button connected to TX(D10) when uploading compiled sketch
+  because the computer will not connect to the NodeMCU.
+  Also, if using TX(D10), if button is pressed, Serial.print will not work.
+  
   Keypad pins are: first the rows(left), then the columns(right).
   Keypad:
     1-9 game squares
@@ -50,7 +54,7 @@
 // WIFI SETTINGS: Network name (SSID) and password.
 
 const char *ssid = "BATCAVE";
-const char *password = "";  // Note, I don't save my password on the repository.
+const char *password = "5198427760";  // Note, I don't save my password on the repository.
 
 // -----------------------------------------------------------------------------
 // For Making HTTP Requests
