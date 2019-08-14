@@ -22,6 +22,7 @@
   G       Ground      To breadboard ground (-). Infrared receive: power, center pin
   3V      3v output   To breadboard power (+).  Infrared receive: ground, right pin
 
+  Keypad pins are: first the rows(left), then the columns(right).
   Keypad:
     1-9 game squares
     0   Reset game
@@ -204,8 +205,6 @@ int httpGetRequestWithRetry(int iPosition, String sValue) {
 }
 
 // -------------------------------------------------------------------------------
-// Keypad pins are: first the rows(left), then the columns(right).
-
 // For a 4x3 keypad. Match the number of rows and columns to keypad.
 const byte ROWS = 4;
 const byte COLS = 3;
