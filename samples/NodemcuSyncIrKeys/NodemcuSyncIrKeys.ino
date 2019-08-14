@@ -15,8 +15,7 @@
   D5      14          Keypad: column 1
   D6      12          Keypad: column 2
   D7(RX)  13          Infrared receive(RX), left pin.
-[';p'
- gc                                                                                       ,,J.D8(TX)  15
+  D8(TX)  15
   RX(D9)  03          Keypad: column 3
   TX      01          Button/toggle to reset the game.
   ---
