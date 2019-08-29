@@ -2,6 +2,8 @@
 /***
   +++ ESP8266 ESP-12E NodeMCU pins used in this project.
 
+  IDE: Tools/NodeMCU 1.0 (ESP-12E) Module
+
   Label   Pin:GPIO
   D0      16          Keypad: row 4
   D1      05          Keypad: row 1
