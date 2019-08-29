@@ -15,7 +15,10 @@ int displayColumns = 16;
 
 int theCounter = 0;
 void displayOneSecondCount() {
-  delay(992); // when 993, Arduino is sligtly behind.
+  //
+  // when 993, Arduino is sligtly behind.
+  delay(992);
+  //
   lcd.setCursor(8, 1);
   lcd.print(theCounter);
   theCounter++;
