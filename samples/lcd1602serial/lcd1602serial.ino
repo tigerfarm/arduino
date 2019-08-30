@@ -16,15 +16,17 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 // -----------------------------------------------------------------------------
 int displayColumns = 16;
 
+//                        1234567890123456
+String clearLineString = "                ";
+
 int theCounter = 0;
 int theSyncCounter = 0;
 void displayOneSecondCount() {
   //
-  // If 992, Arduino is part of a second faster, in a thousand count.
-  // If 993, Arduino gets behind.
-  if (theSyncCounter == 1000) {
+  // If 993, Arduino is part of a second faster, in a thousand count.
+  if (theSyncCounter == 500) {
     // Add a delay to get back in sync.
-    delay(996);
+    delay(1500);
     theSyncCounter = 0;
   } else {
     delay(993);
@@ -82,7 +84,7 @@ void setup() {
   lcd.clear();
   //
   Serial.println("+ Start counting.");
-  //                1234567890123456
+  //                 1234567890123456
   displayPrintln(0, "Start counting.");
   lcd.setCursor(1, 1);
   lcd.print("Count#");
@@ -92,7 +94,13 @@ void setup() {
   displayOneSecondCount();
   displayOneSecondCount();
   displayOneSecondCount();
-  displayPrintln(0, "Seconds,");
+  // displayPrintln(0, "Seconds,");
+  // lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(clearLineString);
+  lcd.setCursor(1, 1);
+  // lcd.print("Count#");
+  lcd.print("      ");
   Serial.println("+++ Go to loop.");
 }
 
