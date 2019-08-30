@@ -26,7 +26,7 @@ void displayOneSecondCount() {
   // If 993, Arduino is part of a second faster, in a thousand count.
   if (theSyncCounter == 500) {
     // Add a delay to get back in sync.
-    delay(1200);
+    delay(1100);
     theSyncCounter = 0;
   } else {
     delay(993);
