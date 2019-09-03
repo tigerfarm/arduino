@@ -1,14 +1,35 @@
 --------------------------------------------------------------------------------
 # Arduino Notes
 
---------------------------------------------------------------------------------
-## Twilio SMS with using an ESP8266
+delay(1060);
+10:00 =     0                                    0
+11:35 =  5697   1hr 35min   95min    5700sec   - 3sec about 1 second/30min
+01:23 = 12167   3hr 23min  203min   12180sec   -13sec about 1 second/16min
 
-+ To order:
-+ Cable: SSD to USB so that I can read my old computers files.
-+ DF Player and Yamaha amp. For my room.
-+ 3 NodeMCU
-+ 3 infrared receivers
+delay(1030);
+01:32 =     0                                    0
+02:02 =  1801               30min    1800sec   + 1sec          
+
+
+--------------------------------------------------------------------------------
+## Clock
+
++ Clock timer: battery powered clock, LCD 1602, control pins
++ DS3231: DC 3.3-5.5V, High Precision Real-Time Clock Module, $1.29
++ DS3231 use battery: CR2032, which should last for over a year
+
+i²c (I2C or i2c) bus: SDA and SCL
+
+Pins:
++ VCC to 3.3-5.5V
++ GND to ground
++ SDA to D4 (pin 4) on Uno and Nano
++ SCL to D5 (pin 5) on Uno and Nano
+
+
++ Clock using LCD 1602 shield.
+http://ediy.com.my/projects/item/138-arduino-based-lcd-digital-clock
+https://youtu.be/Hp1u-akidpM
 
 --------------------------------------------------------------------------------
 ## 1602 LCD Keypad Shield with an Arduino Uno R3
@@ -25,79 +46,6 @@ https://www.instructables.com/id/How-to-Use-Arduino-I2C-Serial-LCD-16x2-Yellow-B
 SDA - A4
 SCL - A5
 ````
---------------------------------------------------------------------------------
-## Altair 8800
-
-+ How to build one.
-https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
-+ Build your own.
-https://spectrum.ieee.org/geek-life/hands-on/build-your-own-altair-8800-personal-computer
-
-+ Assembled & Tested, $279.95 – $349.95
-https://www.adwaterandstir.com/product/altair-assembled/
-
-+ Uses the Arduino Due which is an Arduino for more powerful larger scale projects.
-https://store.arduino.cc/usa/due
-++ The Arduino Due is the first Arduino board based on a 32-bit ARM core microcontroller.
-++ 54 digital input/output pins, 12 analog inputs, a 84 MHz clock
-
-+ Intro to the Arduino Due
-https://www.theengineeringprojects.com/2018/09/introduction-to-arduino-due.html
-
-+ Code repository
-https://github.com/dhansel/Altair8800
-
-+ Altair 8800 Instructional Videos
-https://www.youtube.com/playlist?list=PLB3mwSROoJ4KLWM8KwK0cD1dhX35wILBj
-
-Google forums:
-https://groups.google.com/forum/#!forum/altair-duino
-
-+ Manual
-https://grantmestrength.github.io/RetroComputerInstructionManual/
-https://github.com/GrantMeStrength/RetroComputerInstructionManual
-
---------------------------------------------------------------------------------
-+ Excellent Arduino overview:
-https://www.youtube.com/watch?v=nL34zDTPkcs
-
-+ Twilio, Send SMS and MMS Messages From the ESP8266 in C++ 
-https://www.twilio.com/docs/sms/tutorials/how-to-send-sms-messages-esp8266-cpp
-++ On GitHub
-https://github.com/TwilioDevEd/twilio_esp8266_arduino_example
-
-+ Standard Libraries
-https://www.arduino.cc/en/reference/libraries
-++ WiFi
-https://www.arduino.cc/en/Reference/WiFi
-````
-#include <ESP8266WiFi.h>
-#include <WiFiClientSecure.h>
-https://github.com/witnessmenow/HTTPS-directly-from-ESP8266/blob/master/implentation/implentation.ino
-char host[] = "api.reddit.com";
-if (client.connect(host, 443)) {
-    Serial.println("connected");
-...
-}
-````
-https://www.youtube.com/watch?v=hMZdM0Wlt54
-
---------------------------------------------------------------------------------
-## Twilio SMS with using an ESP8266
-
-Send SMS and MMS Messages From the ESP8266 in C++ 
-https://www.twilio.com/docs/sms/tutorials/how-to-send-sms-messages-esp8266-cpp
-+ On GitHub
-https://github.com/TwilioDevEd/twilio_esp8266_arduino_example
-
-Includes code to connect to a WiFi network and verify the SHA1 signature of api.twilio.com.
-
-How to receive an SMS:
-https://www.twilio.com/docs/sms/tutorials/how-to-receive-and-reply
-
-Controlling a light on/off/status, using esp8266.
-https://www.youtube.com/watch?v=0U2Hqux1b88
-
 --------------------------------------------------------------------------------
 ## ESP8266 ESP-12E NodeMcu
 
@@ -169,24 +117,21 @@ https://www.ebay.com/itm/SIM800L-gprs-gsm-module-micro-sim-core-board-quad-band-
 
 
 --------------------------------------------------------------------------------
+## Twilio SMS with using an ESP8266
+
++ To order:
++ Cable: SSD to USB so that I can read my old computers files.
++ DF Player and Yamaha amp. For my room.
++ 3 NodeMCU
++ 3 infrared receivers
+
+--------------------------------------------------------------------------------
 ## Set up on my MacBook:
 
 In the IDE menu, select:
 + Tools/Boards: Arduino Nano
 + Processor: ATmega328P (Old Bootloader)
 + Port: /dev/cu.wchusbserial14120
-
---------------------------------------------------------------------------------
-## Fritzing for creating Network Diagrams
-
-Steps:
-+ Download and install.
-+ Once started, update the components and restart.
-
-Start Fritzing. Click the Breadboard tab. This is where diagrams are created.
-+ Video I briefed over to get started:
-https://www.youtube.com/watch?v=HNHu0jtS0cs
-+ How to create a circuit diagram starts at 3:20.
 
 --------------------------------------------------------------------------------
 ## Projects
@@ -218,7 +163,6 @@ https://github.com/tigerfarm/arduino/tree/master/samples/keypadv1
 -------------
 ### Other Projects to Do
 
-+ Clock timer: battery powered clock, LCD 1602, control pins
 + Example use: turn off and on lights using the 120v plugin controller
 
 + Weather report
@@ -242,7 +186,7 @@ https://www.arduino.cc/en/Tutorial/Debounce
 ++ 00-59 minutes, using 2 x 7 Segment LED(0-5 & 0-9)
 ++ Debounce button to set the minutes.
 + Keep the time when powered down
-++ Add battery powered clock timer
+++ Add battery powered clock timer to set the clock automatically
 ++ Or WiFi option to set the clock automatically
 
 -------------
@@ -322,16 +266,6 @@ https://www.gearbest.com/other-accessories/pp_216639.html?wid=1433363&currency=U
 https://www.youtube.com/watch?v=dZZynJLmTn8
 
 -------------
-+ Clock using LCD 1602 shield.
-http://ediy.com.my/projects/item/138-arduino-based-lcd-digital-clock
-https://youtu.be/Hp1u-akidpM
-
-+ Clock module
-https://howtomechatronics.com/tutorials/arduino/arduino-ds3231-real-time-clock-tutorial/
-+ DS3231 Real Time Clock using battery: CR2032
-+ Rinky Dink electronics for the library: DS3231.zip
-https://www.youtube.com/watch?v=E6wkvTG2Ofs
-
 + Read/Write to SD card
 https://www.youtube.com/watch?v=8MvRRNYxy9c
 
@@ -479,6 +413,18 @@ https://www.youtube.com/watch?v=6HArlDIf-NI
 https://www.adafruit.com/product/1958?gclid=EAIaIQobChMIo6-txJz63gIVilmGCh0rjwVgEAkYByABEgKZw_D_BwE
 
 --------------------------------------------------------------------------------
+## Fritzing for creating Network Diagrams
+
+Steps:
++ Download and install.
++ Once started, update the components and restart.
+
+Start Fritzing. Click the Breadboard tab. This is where diagrams are created.
++ Video I briefed over to get started:
+https://www.youtube.com/watch?v=HNHu0jtS0cs
++ How to create a circuit diagram starts at 3:20.
+
+--------------------------------------------------------------------------------
 #### Other hardware devices
 
 + Particle Electron
@@ -519,6 +465,79 @@ http://www.circuitstoday.com/arduino-nano-tutorial-pinout-schematics
 
 + Use the IDE on a Mac
 https://medium.com/@thuc/connect-arduino-nano-with-mac-osx-f922a46c0a5d
+
+--------------------------------------------------------------------------------
+## Altair 8800
+
++ How to build one.
+https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
++ Build your own.
+https://spectrum.ieee.org/geek-life/hands-on/build-your-own-altair-8800-personal-computer
+
++ Assembled & Tested, $279.95 – $349.95
+https://www.adwaterandstir.com/product/altair-assembled/
+
++ Uses the Arduino Due which is an Arduino for more powerful larger scale projects.
+https://store.arduino.cc/usa/due
+++ The Arduino Due is the first Arduino board based on a 32-bit ARM core microcontroller.
+++ 54 digital input/output pins, 12 analog inputs, a 84 MHz clock
+
++ Intro to the Arduino Due
+https://www.theengineeringprojects.com/2018/09/introduction-to-arduino-due.html
+
++ Code repository
+https://github.com/dhansel/Altair8800
+
++ Altair 8800 Instructional Videos
+https://www.youtube.com/playlist?list=PLB3mwSROoJ4KLWM8KwK0cD1dhX35wILBj
+
+Google forums:
+https://groups.google.com/forum/#!forum/altair-duino
+
++ Manual
+https://grantmestrength.github.io/RetroComputerInstructionManual/
+https://github.com/GrantMeStrength/RetroComputerInstructionManual
+
+--------------------------------------------------------------------------------
++ Excellent Arduino overview:
+https://www.youtube.com/watch?v=nL34zDTPkcs
+
++ Twilio, Send SMS and MMS Messages From the ESP8266 in C++ 
+https://www.twilio.com/docs/sms/tutorials/how-to-send-sms-messages-esp8266-cpp
+++ On GitHub
+https://github.com/TwilioDevEd/twilio_esp8266_arduino_example
+
++ Standard Libraries
+https://www.arduino.cc/en/reference/libraries
+++ WiFi
+https://www.arduino.cc/en/Reference/WiFi
+````
+#include <ESP8266WiFi.h>
+#include <WiFiClientSecure.h>
+https://github.com/witnessmenow/HTTPS-directly-from-ESP8266/blob/master/implentation/implentation.ino
+char host[] = "api.reddit.com";
+if (client.connect(host, 443)) {
+    Serial.println("connected");
+...
+}
+````
+https://www.youtube.com/watch?v=hMZdM0Wlt54
+
+--------------------------------------------------------------------------------
+## Twilio SMS with using an ESP8266
+
+Send SMS and MMS Messages From the ESP8266 in C++ 
+https://www.twilio.com/docs/sms/tutorials/how-to-send-sms-messages-esp8266-cpp
++ On GitHub
+https://github.com/TwilioDevEd/twilio_esp8266_arduino_example
+
+Includes code to connect to a WiFi network and verify the SHA1 signature of api.twilio.com.
+
+How to receive an SMS:
+https://www.twilio.com/docs/sms/tutorials/how-to-receive-and-reply
+
+Controlling a light on/off/status, using esp8266.
+https://www.youtube.com/watch?v=0U2Hqux1b88
 
 --------------------------------------------------------------------------------
 ## Chips

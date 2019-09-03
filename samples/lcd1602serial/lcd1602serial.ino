@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------
 /*
  * When syncing with a clock, start 8 seconds before the top,
- *  i.e. turn the power on at 52.
+ *  i.e. turn the power on at 52 seconds.
 
   SDA - A4
   SCL - A5
@@ -13,9 +13,10 @@
 #include<LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
+#define LCD_LIGHT_PIN A4 // The number of the pin where anode of the display backlight is.
+
 // -----------------------------------------------------------------------------
 int displayColumns = 16;
-
 //                        1234567890123456
 String clearLineString = "                ";
 
@@ -23,16 +24,17 @@ int theCounter = 0;
 int theSyncCounter = 0;
 void displayOneSecondCount() {
   //
-  // If 993, Arduino is part of a second faster, in a thousand count.
+  // With a delay of 993, Arduino is a small part of a second faster than actual time.
+  // With a delay of 992, Arduino is a slower by more that "a small part of a second."
   if (theSyncCounter == 500) {
-    // Add a delay to get back in sync.
-    delay(1100);
+    // Have a longer delay to get back in sync.
+    delay(1030);
     theSyncCounter = 0;
   } else {
     delay(993);
   }
   //
-  lcd.setCursor(8, 1);
+  lcd.setCursor(8, 1);    // Column, Row
   lcd.print(theCounter);
   theCounter++;
   theSyncCounter++;
@@ -83,6 +85,11 @@ void setup() {
   delay(3000);
   lcd.clear();
   //
+  // Try turning off the red LED.
+  // Need to find out how.
+  // Set the lcd display backlight anode pin to low - lcd light off.
+  digitalWrite(LCD_LIGHT_PIN, LOW);
+  //
   Serial.println("+ Start counting.");
   //                 1234567890123456
   displayPrintln(0, "Start counting.");
@@ -95,7 +102,6 @@ void setup() {
   displayOneSecondCount();
   displayOneSecondCount();
   // displayPrintln(0, "Seconds,");
-  // lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print(clearLineString);
   lcd.setCursor(1, 1);
