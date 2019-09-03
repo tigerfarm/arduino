@@ -81,7 +81,7 @@ void setup ()
   Serial.println("+ print: Hello there.");
   //                1234567890123456
   displayPrintln(0, "Hello there.");
-  delay(1000);
+  delay(3000);
 
   if (! rtc.begin()) {
     Serial.println("Couldn't find RTC");
@@ -111,15 +111,18 @@ void loop ()
 {
   delay(1000);
 
-  DateTime now = rtc.now();
-
   lcd.setCursor(5, 0);    // Column, Row
-  lcd.print(rtc.getTemperature());
-  int t = rtc.getTemperature() * 100;
-  float fahrenheit = t/100.0 * 9.0 / 5.0 + 32.0;
-  lcd.setCursor(11, 0);
-  lcd.print(fahrenheit);
+  lcd.print(rtc.getTemperature());  // a float
+  // int t = rtc.getTemperature() * 100; // time 100 to capture the 2 decimal places
+  // float fahrenheit = t/100.0 * 9.0 / 5.0 + 32.0;
+  // lcd.setCursor(11, 0);
+  // lcd.print(fahrenheit);
+  // printByte(timeCursor, 1, fahrenheit);
 
+  // Serial.println(now.toString(buffer));
+
+  DateTime now = rtc.now();
+  // ---
   timeCursor = 5;
   printByte(timeCursor, 1, now.hour());
   // ---
@@ -131,6 +134,7 @@ void loop ()
   timeCursor = timeCursor + 2;
   lcd.print(":");
   timeCursor++;
-  printByte(timeCursor, 1, now.second());
+  printByte(timeCursor, 1, now.minute());
   // ---
+  //  Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
 }
