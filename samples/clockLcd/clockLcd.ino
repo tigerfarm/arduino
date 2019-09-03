@@ -78,11 +78,11 @@ void setup ()
   lcd.init();
   lcd.backlight();
   Serial.println("+ print: Hello there.");
-  //                1234567890123456
+  //                 1234567890123456
   displayPrintln(0, "Hello there.");
   delay(2000);
 
-  if (! rtc.begin()) {
+  if (!rtc.begin()) {
     Serial.println("Couldn't find RTC");
     while (1);
   }
@@ -101,56 +101,64 @@ void setup ()
   lcd.setCursor(0, 0);
   lcd.print(clearLineString);
   //                 1234567890123456
-  displayPrintln(0, "Temp:");
-  // displayPrintln(1, "Now:");
+  displayPrintln(0, "Tmp:");
 }
 
 int theCursor;
+char charBuffer[4];
 void loop ()
 {
   delay(1000);
 
   // -----------------------------------------------------------------------------
   // Temperature
+  
+  float celcius = rtc.getTemperature() - 2.5; // subtract to get the actual.
+  float fahrenheit = celcius * 9.0 / 5.0 + 32.0;
+  //
   lcd.setCursor(5, 0);    // Column, Row
-  lcd.print(rtc.getTemperature());
-  int t = rtc.getTemperature() * 100;
-  float fahrenheit = t/100.0 * 9.0 / 5.0 + 32.0;
+  dtostrf(celcius, 4, 1, charBuffer);
+  lcd.print(charBuffer);
+  lcd.setCursor(9, 0);    // Column, Row
+  lcd.print("c");
+  //
   lcd.setCursor(11, 0);
-  lcd.print(fahrenheit);
-
-  DateTime now = rtc.now();
+  dtostrf(fahrenheit, 4, 1, charBuffer);
+  lcd.print(charBuffer);
+  lcd.setCursor(15, 0);    // Column, Row
+  lcd.print("f");
 
   // -----------------------------------------------------------------------------
   // Date
+
+  DateTime now = rtc.now();
+
+  // --- To do: Day of the week.
   theCursor = 0;
-  /*
-  // printByte(theCursor, 1, now.year());
+  lcd.setCursor(theCursor, 1);    // Column, Row
+  lcd.print("_");
   // ---
-*/
-  // theCursor = theCursor + 2;
-  lcd.print("/");
-  theCursor++;
-  printByte(theCursor, 1, now.month());
+  lcd.setCursor(++theCursor, 1);    // Column, Row
+  lcd.print(":");
+  printByte(++theCursor, 1, now.month());
   // ---
   theCursor = theCursor + 2;
   lcd.print("/");
-  theCursor++;
-  printByte(theCursor, 1, now.day());
+  printByte(++theCursor, 1, now.day());
+  
   // -----------------------------------------------------------------------------
   // Time
+  
   theCursor = 8;
   printByte(theCursor, 1, now.hour());
   // ---
   theCursor = theCursor + 2;
   lcd.print(":");
-  theCursor++;
-  printByte(theCursor, 1, now.minute());
+  printByte(++theCursor, 1, now.minute());
   // ---
   theCursor = theCursor + 2;
   lcd.print(":");
-  theCursor++;
-  printByte(theCursor, 1, now.second());
+  printByte(++theCursor, 1, now.second());
 
   // -----------------------------------------------------------------------------
 }
