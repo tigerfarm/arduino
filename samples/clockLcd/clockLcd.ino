@@ -27,6 +27,7 @@
 RTC_DS3231 rtc;
 
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+char dayOfTheWeek[7][1] = {"S", "M", "T", "W", "T", "F", "S"};
 
 // -----------------------------------------------------------------------------
 // For the display
@@ -100,7 +101,6 @@ void setup ()
 
   lcd.setCursor(0, 0);
   lcd.print(clearLineString);
-  //                 1234567890123456
   displayPrintln(0, "Tmp:");
 }
 
@@ -136,7 +136,7 @@ void loop ()
   // --- To do: Day of the week.
   theCursor = 0;
   lcd.setCursor(theCursor, 1);    // Column, Row
-  lcd.print("_");
+  lcd.print(dayOfTheWeek[now.dayOfTheWeek()]);
   // ---
   lcd.setCursor(++theCursor, 1);    // Column, Row
   lcd.print(":");
