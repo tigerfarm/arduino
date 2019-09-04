@@ -1,15 +1,77 @@
 --------------------------------------------------------------------------------
 # Arduino Notes
 
+--------------------------------------------------------------------------------
+## Program: lcd1602serial.ino
+
+I'm testing the program to have it count seconds, as best I can with out a clock, such as a DS3231.
+Each loop, the program runs delay(993), which is close to having a 1 second loop, with logic and displaying the counter to the LCD.
+Then I use an offset amount, such as 1030, every 500 seconds to re-sync to actual time.
+````
 delay(1060);
-10:00 =     0                                    0
-11:35 =  5697   1hr 35min   95min    5700sec   - 3sec about 1 second/30min
-01:23 = 12167   3hr 23min  203min   12180sec   -13sec about 1 second/16min
+10:00 =   0
+11:35 = - 3 sec about 1 second/30min
+01:23 = -13 sec about 1 second/16min
 
-delay(1030);
-01:32 =     0                                    0
-02:02 =  1801               30min    1800sec   + 1sec          
+delay(1033);
+12:13 =   0
+12:50 =   0 sec
+03:13 =  -8 sec ... 10792 seconds count. Actual time is 10800 (3 hours).
+21 sync changes (each 500 seconds) = 0.38 seconds/ sync change.
 
+delay(1060) = -13 in 3 hours (about)
+delay(1033) = -08 in 3 hours
+
+delay(1000);
+03:20 =   0
+10:59 = + 1sec          
+````
+
+You could make the warning go away by deleting the version of the library you currently have installed and then installing version 1.0.0:
+https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
+
+--------------------------------------------------------------------------------
+### Useful components
+
++ Arduino Nano 3.0 controller, CH340 USB driver
++ ESP8266 ESP-12E NodeMcu Lua V3 CH340G WIFI Lua Wireless Development Board Module
+
++ LCE 1602 16x2 Serial HD44780 Character LCD Board Display with White on Blue Backlight 5V with IIC/I2C Serial Interface Adapter
++ Infrared IR Wireless Remote Control Module Kits: Keyestudio 38KHz, IR receiver and small remote controller
++ 4 x 4 16 Key Matrix Membrane Switch Keypad
++ 10 Segment LED Bargraph Light Display
++ DS3231: DC 3.3-5.5V, High Precision Real-Time Clock Module, $1.29
+
+MP3 player components:
+https://secure.newegg.com/Wishlist/MyWishlistDetail?ID=8188917
++ YDA138-E Audio Amplifier Board 8W+8W 12W+12W Dual Mode HIFI Dual Channel Stereo Digital Amplifier Board DC12V For YAMAHA    $4.99
++ TRIXES Electronics Solderless 400 Point Prototyping Breadboard, $2.39
++ DFPlayer Mini MP3 Player Module, $2.78
+
++ 3.3V DC 800mA from 4.75V-12V, Voltage Regulator: AMS1117-3.3V
++ 5V DC from 6.0V-12V, Voltage Regulator: AMS1117-5.0V, 2 pins in, 2 pins out voltage
++ 5V power supply module: AMS1117 with DC seat and switch
++ Battery: CR2032, used in the DS3231 clock
+
+#### Sound interesting
++ 3V-5V power model NEO-6M GPS module GY-GPS6MV2 (Blue)
++ LD1117V33 Linear Voltage Regulator 3.3V
+
+#### Parts on Amazon.com
++ $03.54 Nano:
+https://www.amazon.com/SODIAL-ATmega328-P-20AU-Module-Board/dp/B00QPUEFNW/ref=sr_1_fkmrnull_1?keywords=SODIAL+nano&qid=1554232072&s=gateway&sr=8-1-fkmrnull
++ $01.66 DFPlayer MP3
+https://www.amazon.com/SODIAL-DFPlayer-Player-Module-Arduino/dp/B076BD15MR/ref=sr_1_fkmrnull_1?keywords=SODIAL+DFPlayer+MP3&qid=1554232133&s=gateway&sr=8-1-fkmrnull
++ $02.31 Infrared-Receiver, Pack of 5
+https://www.amazon.com/SODIAL-Infrared-Receiver-Wireless-Communication/dp/B077D1DR11/ref=sr_1_fkmrnull_5?keywords=SODIAL+Infrared+IR+Wireless+Remote+Control&qid=1554232355&s=gateway&sr=8-5-fkmrnull
++ $10.96 Yamaha amp
+https://www.amazon.com/TOOGOO-YDA138-Amplifier-Channel-Digital/dp/B07MDXK5L3/ref=sr_1_fkmr0_1?keywords=SODIAL+YDA138-E+Audio+Amplifier&qid=1554232178&s=gateway&sr=8-1-fkmr0
++ $02.01 Solderless Breadboard Bread Board 400 Tie Points Contacts
+https://www.amazon.com/Solderless-Breadboard-Bread-Points-Contacts/dp/B00JGFDKBQ/ref=sr_1_8?keywords=SODIAL+breadboard&qid=1554232722&s=gateway&sr=8-8
++ $01.51 Male to female, 20cm Long F/F Solderless Flexible Breadboard Jumper Cable Wire 40 Pcs 
+https://www.amazon.com/SODIAL-Solderless-Flexible-Breadboard-Jumper/dp/B00U8MK14K/ref=sr_1_7?keywords=SODIAL+jumper+cable+breadboard&qid=1554232815&s=gateway&sr=8-7
++ $2.66 140pcs U Shape Solderless Breadboard Jumper Cable Wire Kit for Arduino Shield 
+https://www.amazon.com/SODIAL-140pcs-Solderless-Breadboard-Arduino/dp/B00K67XXSI/ref=sr_1_10?keywords=SODIAL+jumper+cable+breadboard&qid=1554232815&s=gateway&sr=8-10
 
 --------------------------------------------------------------------------------
 ## Clock
@@ -26,10 +88,19 @@ Pins:
 + SDA to D4 (pin 4) on Uno and Nano
 + SCL to D5 (pin 5) on Uno and Nano
 
-
-+ Clock using LCD 1602 shield.
++ Clock using LCD 1602 keypad shield (left, right, up, down, select).
 http://ediy.com.my/projects/item/138-arduino-based-lcd-digital-clock
 https://youtu.be/Hp1u-akidpM
+
+#### Fix warning message:
+```
+"WARNING: Category 'Real-time clock' in library DS3231 is not valid. Setting to 'Uncategorized'"
+````
+You could make the warning go away by deleting the version of the library you currently have installed and then installing version 1.0.0:
+
+https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
+
+Reference: https://forum.arduino.cc/index.php?topic=477214.0
 
 --------------------------------------------------------------------------------
 ## 1602 LCD Keypad Shield with an Arduino Uno R3
@@ -567,7 +638,7 @@ CD4049BCN CMOS Hex Buffer/Converter
 T106C1 SCR
 ````
 --------------------------------------------------------------------------------
-+++ My first order:
+### My first order:
 ````
 Sales Order Number:       292111684
 Sold by SODIAL
@@ -625,30 +696,13 @@ Subtotal:	$82.03
 Tax:	$6.36
 Shipping and Handling:	$0.00
 Total Amount:	$88.39
-````
 
---------------------------------------------------------------------------------
-````
-+ AMS1117-3.3 DC Voltage Regulator Step Down Power Supply Module 4.75V-12V to 3.3V 800mA (Pack of 5)
-++ Small, 3 pin, in: 4.75v-12v, out: 3.3v.
-
-+ AMS1117-5.0V Power Supply, 6.0V-12V to 5v Regulator 2.5x1.1 cm
-++ 2 pins in, 2 pins out voltage
-
+Other parts
 + LM317 DC-DC 1.5A 1.2-37V Adjustable Power Supply Board DC Converter Buck Step Down Module Adjustable Linear
-
-+ AMS1117 5V power supply module with switch and DC female plug
-
 + Breadboard Power Supply Module 2 Channel: 3.3v and 5v
-
-+ Breadboard Power Supply Module MB102 with switch and DC female plug: 3.3v and 5v
-++ Input voltage: 6.5-12 V (DC) or USB power supply
-
-+ 1602 16x2 Serial HD44780 Character LCD Board Display with White on Blue Backlight 5V with IIC/I2C Serial ...
++ Breadboard Power Supply Module MB102 with switch and DC female plug: 3.3v and 5v, Input voltage: 6.5-12 V (DC) or USB power supply
 + 1602 LCD with Keypad Shield Board Blue Backlight Module for Arduino Duemilanove
-
 + Nano V3.0 ATmega328P controller compatible for arduino nano CH340 USB driver NO CABLE NANO 3.0
-+ DFPlayer Mini MP3 Player Module For Arduino
 ````
 --------------------------------------------------------------------------------
 eof

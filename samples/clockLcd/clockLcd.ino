@@ -14,6 +14,7 @@
   The DS3231 has an internal Temperature Compensated Crystal Oscillator(TCXO) which isn’t affected by temperature.
   It is accurate to a few minutes per year.
   The battery, a CR2032, can keep the RTC running for over 8 years without an external 5V power supply.
+  Another source said, the battery will keep the clock going for over 1 year.
   The 24C32 EEPROM (32K pin) uses I2C interface for communication and shares the same I2C bus as DS3231.
 
   Library:
@@ -101,10 +102,14 @@ void setup ()
   lcd.setCursor(0, 0);
   lcd.print(clearLineString);
   displayPrintln(0, "Tmp:");
+  
+  Serial.println("+ Start looping.");
 }
 
 int theCursor;
 char charBuffer[4];
+int thePrintRowTmp = 0;
+int thePrintRowDt = 1;
 void loop ()
 {
   delay(1000);
@@ -112,19 +117,23 @@ void loop ()
   // -----------------------------------------------------------------------------
   // Temperature
   
-  float celcius = rtc.getTemperature() - 2.5; // subtract to get the actual.
+  float celcius = rtc.getTemperature() - 2.25; // subtract to get the actual for my specific DS3231.
   float fahrenheit = celcius * 9.0 / 5.0 + 32.0;
   //
-  lcd.setCursor(5, 0);    // Column, Row
+  theCursor = 5;
+  lcd.setCursor(theCursor, thePrintRowTmp);    // Column, Row
   dtostrf(celcius, 4, 1, charBuffer);
   lcd.print(charBuffer);
-  lcd.setCursor(9, 0);    // Column, Row
-  lcd.print("c");
+  theCursor = theCursor + 4;
+  lcd.setCursor(theCursor, thePrintRowTmp);    // Column, Row
+  lcd.print("c ");
   //
-  lcd.setCursor(11, 0);
+  theCursor = theCursor + 2;
+  lcd.setCursor(the, thePrintRowTmp);
   dtostrf(fahrenheit, 4, 1, charBuffer);
   lcd.print(charBuffer);
-  lcd.setCursor(15, 0);    // Column, Row
+  theCursor = theCursor + 4;
+  lcd.setCursor(the, thePrintRowTmp);    // Column, Row
   lcd.print("f");
 
   // -----------------------------------------------------------------------------
@@ -134,30 +143,30 @@ void loop ()
 
   // --- To do: Day of the week.
   theCursor = 0;
-  lcd.setCursor(theCursor, 1);    // Column, Row
+  lcd.setCursor(theCursor, thePrintRowDt);    // Column, Row
   lcd.print(dayOfTheWeek[now.dayOfTheWeek()]);
   // ---
-  lcd.setCursor(++theCursor, 1);    // Column, Row
+  lcd.setCursor(++theCursor, thePrintRowDt);    // Column, Row
   lcd.print(":");
-  printByte(++theCursor, 1, now.month());
+  printByte(++theCursor, thePrintRowDt, now.month());
   // ---
   theCursor = theCursor + 2;
   lcd.print("/");
-  printByte(++theCursor, 1, now.day());
+  printByte(++theCursor, thePrintRowDt, now.day());
   
   // -----------------------------------------------------------------------------
   // Time
   
   theCursor = 8;
-  printByte(theCursor, 1, now.hour());
+  printByte(theCursor, thePrintRowDt, now.hour());
   // ---
   theCursor = theCursor + 2;
   lcd.print(":");
-  printByte(++theCursor, 1, now.minute());
+  printByte(++theCursor, thePrintRowDt, now.minute());
   // ---
   theCursor = theCursor + 2;
   lcd.print(":");
-  printByte(++theCursor, 1, now.second());
+  printByte(++theCursor, thePrintRowDt, now.second());
 
   // -----------------------------------------------------------------------------
 }

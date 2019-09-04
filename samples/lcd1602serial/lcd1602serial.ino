@@ -28,7 +28,7 @@ void displayOneSecondCount() {
   // With a delay of 992, Arduino is a slower by more that "a small part of a second."
   if (theSyncCounter == 500) {
     // Have a longer delay to get back in sync.
-    delay(1030);
+    delay(1000);
     theSyncCounter = 0;
   } else {
     delay(993);
