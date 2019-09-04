@@ -26,11 +26,10 @@
 #include "RTClib.h"
 RTC_DS3231 rtc;
 
-char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 char dayOfTheWeek[7][1] = {"S", "M", "T", "W", "T", "F", "S"};
 
 // -----------------------------------------------------------------------------
-// For the display
+// For the LCD.
 
 #include <Wire.h>
 
