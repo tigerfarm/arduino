@@ -24,11 +24,10 @@ int theCounter = 0;
 int theSyncCounter = 0;
 void displayOneSecondCount() {
   //
-  // With a delay of 993, Arduino is a small part of a second faster than actual time.
-  // With a delay of 992, Arduino is a slower by more that "a small part of a second."
+  // With a delay of 993, my Arduino Nano is a small bit slower than actual time.
   if (theSyncCounter == 500) {
     // Have a longer delay to get back in sync.
-    delay(1000);
+    delay(910);
     theSyncCounter = 0;
   } else {
     delay(993);

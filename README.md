@@ -8,23 +8,14 @@ I'm testing the program to have it count seconds, as best I can with out a clock
 Each loop, the program runs delay(993), which is close to having a 1 second loop, with logic and displaying the counter to the LCD.
 Then I use an offset amount, such as 1030, every 500 seconds to re-sync to actual time.
 ````
-delay(1060);
-10:00 =   0
-11:35 = - 3 sec about 1 second/30min
-01:23 = -13 sec about 1 second/16min
+delay(1060) = -13 seconds in 3 hours (about)
+delay(1030) = -08 seconds in 3 hours
+delay(1000) = -06 seconds in 3 hours (about, estimated)
+If 30 got me 2 seconds closer, and I have 6 (3*2) to go, then I need to reduce 90 (3*30).
 
-delay(1033);
-12:13 =   0
-12:50 =   0 sec
-03:13 =  -8 sec ... 10792 seconds count. Actual time is 10800 (3 hours).
-21 sync changes (each 500 seconds) = 0.38 seconds/ sync change.
-
-delay(1060) = -13 in 3 hours (about)
-delay(1033) = -08 in 3 hours
-
-delay(1000);
-03:20 =   0
-10:59 = + 1sec          
+delay(910);
+05:30 =   0
+06:30 =   0 sec
 ````
 
 You could make the warning go away by deleting the version of the library you currently have installed and then installing version 1.0.0:
