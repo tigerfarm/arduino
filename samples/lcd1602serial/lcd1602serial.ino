@@ -3,17 +3,14 @@
  * When syncing with a clock, start 8 seconds before the top,
  *  i.e. turn the power on at 52 seconds.
 
-  SDA - A4
-  SCL - A5
+  Connect LCD to Nano:
+    SDA - A4
+    SCL - A5
 */
 #include<Wire.h>
 
-// #include<LiquidCrystal_I2C_Hangul.h>
-// LiquidCrystal_I2C_Hangul lcd(0x3F,16,2);
 #include<LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x27, 20, 4);
-
-#define LCD_LIGHT_PIN A4 // The number of the pin where anode of the display backlight is.
 
 // -----------------------------------------------------------------------------
 int displayColumns = 16;
@@ -22,12 +19,13 @@ String clearLineString = "                ";
 
 int theCounter = 0;
 int theSyncCounter = 0;
+int theSyncDelay = 600;
 void displayOneSecondCount() {
   //
   // With a delay of 993, my Arduino Nano is a small bit slower than actual time.
   if (theSyncCounter == 500) {
     // Have a longer delay to get back in sync.
-    delay(910);
+    delay(theSyncDelay);
     theSyncCounter = 0;
   } else {
     delay(993);
@@ -55,16 +53,6 @@ void displayPrintln(int theRow, String theString) {
   }
   lcd.setCursor(0, theRow);
   lcd.print(printString);
-  /*  For testing.
-    Serial.print("+ theRest = ");
-    Serial.print(theRest);
-    Serial.print(", printString :");
-    Serial.print(printString);
-    Serial.print(":");
-    Serial.print(", theString :");
-    Serial.print(theString);
-    Serial.println(":");
-  */
 }
 
 // -----------------------------------------------------------------------------
@@ -81,30 +69,27 @@ void setup() {
   Serial.println("+ print: Hello there.");
   //                1234567890123456
   displayPrintln(0, "Hello there.");
+  String theLine = "SyncDelay = " + String(theSyncDelay);
+  displayPrintln(1, theLine);
   delay(3000);
   lcd.clear();
   //
-  // Try turning off the red LED.
-  // Need to find out how.
-  // Set the lcd display backlight anode pin to low - lcd light off.
-  digitalWrite(LCD_LIGHT_PIN, LOW);
+  // How to turn off the red LED on the LCD serial board?
   //
   Serial.println("+ Start counting.");
   //                 1234567890123456
   displayPrintln(0, "Start counting.");
-  lcd.setCursor(1, 1);
-  lcd.print("Count#");
+  displayPrintln(1, "Count#");
   displayOneSecondCount();
   displayOneSecondCount();
   displayOneSecondCount();
   displayOneSecondCount();
   displayOneSecondCount();
   displayOneSecondCount();
-  // displayPrintln(0, "Seconds,");
-  lcd.setCursor(0, 0);
+  lcd.setCursor(0, 0);  // col, row
   lcd.print(clearLineString);
-  lcd.setCursor(1, 1);
-  // lcd.print("Count#");
+  lcd.setCursor(0, 1);
+  //        "Count#"
   lcd.print("      ");
   Serial.println("+++ Go to loop.");
 }

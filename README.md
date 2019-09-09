@@ -7,15 +7,35 @@
 I'm testing the program to have it count seconds, as best I can with out a clock, such as a DS3231.
 Each loop, the program runs delay(993), which is close to having a 1 second loop, with logic and displaying the counter to the LCD.
 Then I use an offset amount, such as 1030, every 500 seconds to re-sync to actual time.
+I am trying various sync delay values to get better accuracy.
 ````
 delay(1060) = -13 seconds in 3 hours (about)
 delay(1030) = -08 seconds in 3 hours
 delay(1000) = -06 seconds in 3 hours (about, estimated)
-If 30 got me 2 seconds closer, and I have 6 (3*2) to go, then I need to reduce 90 (3*30).
+delay( 820) = -04 seconds in 3 hours
+delay(820);
+07:35 =   0
+10:35 =  -4 sec, 10796 counter seconds in 3 hours, 10800 actual
+          4*3*2 = 24 seconds a day, slower. Off one minute every 2 days.
+delay(700);
+10:50 =   0
+12:50 =   0 sec, in 2 hours, actual:  7200 seconds.
+03:50 =  -8 sec, in 4 hours, actual: 14400 seconds, counted: 14392.
+         -2 seconds an hour.
 
-delay(910);
-05:30 =   0
-06:30 =   0 sec
+delay(600);
+09:03 =   0
+12:03 =   0 sec, in 3 hours, 10800  seconds, counted: 10800. Actually, less then a second behind.
+04:03 = -20 sec, in 7 hours, 25200  seconds, counted: 25180. Actually, less then a second behind.
+06:03 = -32 sec, in 9 hours, 32400  seconds, counted: 32368. Actually, less then a second behind.
+
+12:00 =   0
+
+delay(500);
+03:09 =   0
+05:09 =  +3 sec, in 2 hours, actual:  7200 seconds, counted: 7204.
+
+3600seconds/hour. 2/3600 = .0006, losing 6 milliseconds/second
 ````
 
 You could make the warning go away by deleting the version of the library you currently have installed and then installing version 1.0.0:
