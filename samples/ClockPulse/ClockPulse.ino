@@ -82,9 +82,9 @@ void syncCountWithClock() {
 void displayOneSecondCount() {
   //
   // With a delay of ?, my Arduino Nano is a small bit slower than actual time.
-  delay(960);
+  delay(957);
   //
-  if (theCounterSeconds > 59) {
+  if (theCounterSeconds >= 59) {
     theCounterSeconds = 0;
     theCounterMinutes++;
     syncCounterMinutes++;
@@ -211,6 +211,7 @@ void setup() {
   // Set seconds
   now = rtc.now();
   syncCountWithClock();
+  theCounterSeconds--;
   //
   Serial.println("+++ Go to loop.");
 }
