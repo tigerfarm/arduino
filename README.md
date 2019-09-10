@@ -2,6 +2,17 @@
 # Arduino Notes
 
 --------------------------------------------------------------------------------
+## Build next
+
++ Fix Bluetooth hum
++ Update pong: align the boarders, and add cables for paddles for playing.
++ Complete the infra red sync device.
+
++ Minute clock pulse for complex clock.
++ Weather device: Temperature, Humidity and Pressure
++ MP3 player
+
+--------------------------------------------------------------------------------
 ## Program: lcd1602serial.ino
 
 I'm testing the program to have it count seconds, as best I can with out a clock, such as a DS3231.
@@ -9,14 +20,6 @@ Each loop, the program runs delay(993), which is close to having a 1 second loop
 Then I use an offset amount, such as 1030, every 500 seconds to re-sync to actual time.
 I am trying various sync delay values to get better accuracy.
 ````
-delay(1060) = -13 seconds in 3 hours (about)
-delay(1030) = -08 seconds in 3 hours
-delay(1000) = -06 seconds in 3 hours (about, estimated)
-delay( 820) = -04 seconds in 3 hours
-delay(820);
-07:35 =   0
-10:35 =  -4 sec, 10796 counter seconds in 3 hours, 10800 actual
-          4*3*2 = 24 seconds a day, slower. Off one minute every 2 days.
 delay(700);
 10:50 =   0
 12:50 =   0 sec, in 2 hours, actual:  7200 seconds.
@@ -28,14 +31,6 @@ delay(600);
 12:03 =   0 sec, in 3 hours, 10800  seconds, counted: 10800. Actually, less then a second behind.
 04:03 = -20 sec, in 7 hours, 25200  seconds, counted: 25180. Actually, less then a second behind.
 06:03 = -32 sec, in 9 hours, 32400  seconds, counted: 32368. Actually, less then a second behind.
-
-12:00 =   0
-
-delay(500);
-03:09 =   0
-05:09 =  +3 sec, in 2 hours, actual:  7200 seconds, counted: 7204.
-
-3600seconds/hour. 2/3600 = .0006, losing 6 milliseconds/second
 ````
 
 You could make the warning go away by deleting the version of the library you currently have installed and then installing version 1.0.0:
@@ -68,15 +63,31 @@ https://secure.newegg.com/Wishlist/MyWishlistDetail?ID=8188917
 + 3V-5V power model NEO-6M GPS module GY-GPS6MV2 (Blue)
 + LD1117V33 Linear Voltage Regulator 3.3V
 
+---------------
 #### Parts on Amazon.com
-+ $03.54 Nano:
-https://www.amazon.com/SODIAL-ATmega328-P-20AU-Module-Board/dp/B00QPUEFNW/ref=sr_1_fkmrnull_1?keywords=SODIAL+nano&qid=1554232072&s=gateway&sr=8-1-fkmrnull
-+ $01.66 DFPlayer MP3
-https://www.amazon.com/SODIAL-DFPlayer-Player-Module-Arduino/dp/B076BD15MR/ref=sr_1_fkmrnull_1?keywords=SODIAL+DFPlayer+MP3&qid=1554232133&s=gateway&sr=8-1-fkmrnull
-+ $02.31 Infrared-Receiver, Pack of 5
-https://www.amazon.com/SODIAL-Infrared-Receiver-Wireless-Communication/dp/B077D1DR11/ref=sr_1_fkmrnull_5?keywords=SODIAL+Infrared+IR+Wireless+Remote+Control&qid=1554232355&s=gateway&sr=8-5-fkmrnull
-+ $10.96 Yamaha amp
-https://www.amazon.com/TOOGOO-YDA138-Amplifier-Channel-Digital/dp/B07MDXK5L3/ref=sr_1_fkmr0_1?keywords=SODIAL+YDA138-E+Audio+Amplifier&qid=1554232178&s=gateway&sr=8-1-fkmr0
+
++ Search: YDA138-E Audio Amplifier
++ $2.78 & FREE Shipping 
+https://www.amazon.com/Semoic-YDA138-Channel-Digital-Amplifier/dp/B07MKX4FL4/ref=sr_1_7?keywords=YDA138-E+Audio+Amplifier
+
++ TDA7492P Digital Amplifier Board
+
++ Search: Infrared Receiver IR Sensor Module
++ Sold 2 at a time, 4 for: $4.78 + Free Shipping, $1.20/each(about)
+https://www.amazon.com/barterine-KY-022-Infrared-Receiver-Arduino/dp/B01MG1LFA0/ref=pd_day0_hl_201_2/133-5806447-0800931?_encoding=UTF8&pd_rd_i=B01MG1LFA0&pd_rd_r=cfe3b8b2-ca32-477b-a433-1e69ab7a5e3f&pd_rd_w=RFsGg&pd_rd_wg=Y9yhL&pf_rd_p=cd872437-0036-44da-b76a-718df210c36e&pf_rd_r=DPFTD1HBT427SWZBGF1A&psc=1&refRID=DPFTD1HBT427SWZBGF1A
++ For 3, $1.29 + $2.97 shipping = $4.26 for 3, $1.40/each(about)
+https://www.amazon.com/Manakayla-37-9KHz-Infrared-Receiver-Arduino/dp/B07R781JSD/ref=sr_1_3?keywords=Infrared+Receiver+IR+Sensor+Module&qid=1568131755&s=gateway&sr=8-3
+
++ DS3231 clock, $2.94 & FREE Shipping, Jiasijieke for Arduino DS3231 ZS042 AT24C32 IIC Module Precision RTC Real Time Clock Memory New 
+https://www.amazon.com/Jiasijieke-Arduino-DS3231-AT24C32-Precision/dp/B07MLRFRKF/ref=sr_1_14?crid=XGO2MU3QU4D6&keywords=ds3231+real+time+clock+module&qid=1568132528&s=electronics&sprefix=ds32%2Celectronics%2C200&sr=1-14
+
++ LCD 1602 Serial IIC I2C, For 2: $8.99 & FREE Shipping
+https://www.amazon.com/gp/product/B0711WLVP9/ref=ox_sc_act_title_1?smid=A304913WPKF57E&psc=1
+
++ DFPlayer MP3, 5 for: $9.98 & FREE Shipping.
+https://www.amazon.com/DAOKI-DFPlayer-Player-Module-Arduino/dp/B01MQD5IIA/ref=sr_1_14?keywords=dfplayer&qid=1568135351&s=pc&sr=1-14
+
+---------------
 + $02.01 Solderless Breadboard Bread Board 400 Tie Points Contacts
 https://www.amazon.com/Solderless-Breadboard-Bread-Points-Contacts/dp/B00JGFDKBQ/ref=sr_1_8?keywords=SODIAL+breadboard&qid=1554232722&s=gateway&sr=8-8
 + $01.51 Male to female, 20cm Long F/F Solderless Flexible Breadboard Jumper Cable Wire 40 Pcs 
@@ -243,7 +254,7 @@ http://www.circuitbasics.com/how-to-set-up-a-keypad-on-an-arduino/
 https://github.com/tigerfarm/arduino/tree/master/samples/keypadv1
 
 -------------
-### Other Projects to Do
+### Other Projects to do next
 
 + Example use: turn off and on lights using the 120v plugin controller
 
@@ -255,7 +266,7 @@ https://github.com/tigerfarm/arduino/tree/master/samples/keypadv1
 + Bluetooth update to the old AM radio
 
 -------------
-### Complicated project: LED Clock
+### Complex Clock project: LED Clock
 
 + Parts:
 ++ Arduino Nano, 2 x bar graph LEDs, 2 x 7 Segment LED, chips

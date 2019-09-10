@@ -1,36 +1,17 @@
 // -----------------------------------------------------------------------------
 /*
-   When syncing with a clock, start 8 seconds before the top,
-    i.e. turn the power on at 52 seconds.
-
-  Connect LCD to Nano:
-    SDA - A4
-    SCL - A5
-
-  DS3231 Clock adn the LCD display, pins:
+  Connect DS3231 Clock, and the LCD display, pins to the Nano:
   + VCC to 3.3-5.5V
   + GND to ground
   + SDA to D4 (pin 4) on Uno and Nano
   + SCL to D5 (pin 5) on Uno and Nano
 
   // -----------------------------------------------------------------------------
-  DS3231 Clock
-
-  Reference URL:
-  https://lastminuteengineers.com/ds3231-rtc-arduino-tutorial/
-
-  The DS3231 has an internal Temperature Compensated Crystal Oscillator(TCXO) which isn’t affected by temperature.
-  It is accurate to a few minutes per year.
-  The battery, a CR2032, can keep the RTC running for over 8 years without an external 5V power supply.
-  Another source said, the battery will keep the clock going for over 1 year.
-  The 24C32 EEPROM (32K pin) uses I2C interface for communication and shares the same I2C bus as DS3231.
-
-  Library:
+  DS3231 Clock Library:
   Filter your search by typing ‘rtclib’. There should be a couple entries. Look for RTClib by Adafruit.
   https://github.com/adafruit/RTClib
   Note, in the library source, uint8_t is the same as a byte: a type of unsigned integer of length 8 bits.
   Time and date units are are declared as, uint8_t.
-
 */
 // -----------------------------------------------------------------------------
 // For the clock board.
@@ -40,11 +21,9 @@ RTC_DS3231 rtc;
 
 char dayOfTheWeek[7][1] = {"S", "M", "T", "W", "T", "F", "S"};
 
-int theCursor;
-char charBuffer[4];
-// int thePrintRowTmp = 0;
-int thePrintRowDt = 0;
 DateTime now;
+int theCursor;
+int thePrintRowDt = 0;
 
 // -----------------------------------------------------------------------------
 // For the LCD.
@@ -56,67 +35,7 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 // -----------------------------------------------------------------------------
 int displayColumns = 16;
-//                        1234567890123456
-String clearLineString = "                ";
 
-// -----------------------------------------------------------------------------
-int theCounterSeconds = 0;
-int theCounterMinutes = 0;
-int syncCounterMinutes = 0;
-
-void syncCountWithClock() {
-  int clockSeconds = now.second();
-  int clockMinutes = now.minute();
-  theCounterSeconds = ++clockSeconds;
-  theCounterMinutes = clockMinutes;
-  Serial.print("+ syncCountWithClock, theCounterSeconds=");
-  Serial.print(theCounterSeconds);
-  Serial.print(" clockSeconds=");
-  Serial.print(clockSeconds);
-  Serial.print(" theCounterMinutes=");
-  Serial.print(theCounterMinutes);
-  Serial.print(" clockMinutes=");
-  Serial.println(clockMinutes);
-}
-
-void displayOneSecondCount() {
-  //
-  // With a delay of ?, my Arduino Nano is a small bit slower than actual time.
-  delay(956);
-  //
-  if (theCounterSeconds >= 59) {
-    theCounterSeconds = 0;
-    theCounterMinutes++;
-    syncCounterMinutes++;
-    // if (theCounterMinutes == 60) {
-    //   syncCountWithClock();
-    // }
-  }
-  if (syncCounterMinutes == 3) {
-    syncCounterMinutes = 0;
-    syncCountWithClock();
-  } else {
-    theCounterSeconds++;
-  }
-  theCursor = 11;
-  printClockInt(theCursor, 1, theCounterMinutes);
-  // ---
-  theCursor = theCursor + 3;
-  lcd.print(":");
-  printClockInt(theCursor, 1, theCounterSeconds);  // Column, Row
-
-}
-
-void printClockInt(int theColumn, int theRow, int theInt) {
-  lcd.setCursor(theColumn, theRow);    // Column, Row
-  if (theInt < 10) {
-    lcd.print("0");
-    lcd.setCursor(theColumn + 1, theRow);
-  }
-  lcd.print(theInt);
-}
-
-// -----------------------------------------------------------------------------
 void displayPrintln(int theRow, String theString) {
   // To overwrite anything on the current line.
   String printString = theString;
@@ -135,15 +54,61 @@ void displayPrintln(int theRow, String theString) {
   lcd.print(printString);
 }
 
-void printClockByte(int theColumn, int theRow, char theByte) {
-  int iByte = (char)theByte;
+// -----------------------------------------------------------------------------
+int theCounterSeconds = 0;
+int theCounterMinutes = 0;
+int theCounterHours = 0;
+
+void syncCountWithClock() {
+  theCounterSeconds = now.second();
+  theCounterMinutes = now.minute();
+  theCounterHours = now.hour();
+  //
+  theCursor = 8;
+  printClockInt(theCursor, 1, theCounterHours);  // Column, Row
+  theCursor = theCursor + 3;
+  lcd.print(":");
+  printClockInt(theCursor, 1, theCounterMinutes);
+  theCursor = theCursor + 3;
+  lcd.print(":");
+  printClockInt(theCursor, 1, theCounterSeconds);
+  //
+  Serial.print("+ syncCountWithClock,");
+  Serial.print(" theCounterHours=");
+  Serial.print(theCounterHours);
+  Serial.print(" theCounterMinutes=");
+  Serial.print(theCounterMinutes);
+  Serial.print(" theCounterSeconds=");
+  Serial.println(theCounterSeconds);
+}
+
+void printPulseHour() {
+  Serial.print(" theCounterHours= ");
+  Serial.println(theCounterHours);
+  printClockInt( 8, 1, theCounterHours);
+}
+
+void printPulseMinute() {
+  // Serial.print(" theCounterMinutes= ");
+  // Serial.println(theCounterMinutes);
+  printClockInt(11, 1, theCounterMinutes);
+}
+
+void printPulseSecond() {
+  // Serial.print("+ theCounterSeconds = ");
+  // Serial.println(theCounterSeconds);
+  printClockInt(14, 1, theCounterSeconds);  // Column, Row
+}
+
+void printClockInt(int theColumn, int theRow, int theInt) {
   lcd.setCursor(theColumn, theRow);    // Column, Row
-  if (iByte < 10) {
+  if (theInt < 10) {
     lcd.print("0");
     lcd.setCursor(theColumn + 1, theRow);
   }
-  lcd.print(iByte);
+  lcd.print(theInt);
 }
+
 // -----------------------------------------------------------------------------
 void printClockDate() {
   // --- To do: Day of the week.
@@ -160,7 +125,6 @@ void printClockDate() {
   printClockByte(++theCursor, thePrintRowDt, now.day());
 }
 
-// -----------------------------------------------------------------------------
 void printClockTime() {
   theCursor = 8;
   printClockByte(theCursor, thePrintRowDt, now.hour());
@@ -172,6 +136,16 @@ void printClockTime() {
   theCursor = theCursor + 2;
   lcd.print(":");
   printClockByte(++theCursor, thePrintRowDt, now.second());
+}
+
+void printClockByte(int theColumn, int theRow, char theByte) {
+  int iByte = (char)theByte;
+  lcd.setCursor(theColumn, theRow);    // Column, Row
+  if (iByte < 10) {
+    lcd.print("0");
+    lcd.setCursor(theColumn + 1, theRow);
+  }
+  lcd.print(iByte);
 }
 
 // -----------------------------------------------------------------------------
@@ -210,8 +184,8 @@ void setup() {
   //
   // Set seconds
   now = rtc.now();
+  printClockDate();
   syncCountWithClock();
-  theCounterSeconds--;
   //
   Serial.println("+++ Go to loop.");
 }
@@ -220,11 +194,30 @@ void setup() {
 // Device Loop
 
 void loop() {
-  now = rtc.now();
-  printClockDate();
-  printClockTime();
+  delay(100);
   //
-  displayOneSecondCount();
+  now = rtc.now();
+  if (now.second() != theCounterSeconds) {
+    // When the clock second value changes, that's a clock second pulse.
+    theCounterSeconds = now.second();
+    printPulseSecond();
+    if (theCounterSeconds == 0) {
+      // When the clock second value changes to zero, that's a clock minute pulse.
+      theCounterMinutes = now.minute();
+      printPulseMinute();
+      if (theCounterMinutes == 0) {
+        // When the clock minute value changes to zero, that's a clock hour pulse.
+        theCounterHours = now.hour();
+        printPulseHour();
+        if (now.hour() == 0) {
+          // When the clock hour value changes to zero, that's a clock day pulse.
+          // Reprint the date, at time: 00:00:00.
+          printClockDate();
+        }
+      }
+    }
+    printClockTime();
+  }
 
   // -----------------------------------------------------------------------------
 }
