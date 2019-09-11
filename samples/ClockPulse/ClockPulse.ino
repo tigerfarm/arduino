@@ -17,13 +17,10 @@
 // For the clock board.
 
 #include "RTClib.h"
+
 RTC_DS3231 rtc;
 
-char dayOfTheWeek[7][1] = {"S", "M", "T", "W", "T", "F", "S"};
-
 DateTime now;
-int theCursor;
-int thePrintRowDt = 0;
 
 // -----------------------------------------------------------------------------
 // For the LCD.
@@ -55,6 +52,15 @@ void displayPrintln(int theRow, String theString) {
 }
 
 // -----------------------------------------------------------------------------
+
+int theCursor;
+const int thePrintRowClock = 0;
+const int thePrintRowCount = 1;
+const int thePrintColDate = 0;
+const int thePrintColHour = 8;
+const int thePrintColMin = thePrintColHour + 3;
+const int thePrintColSec = thePrintColMin + 3;
+
 int theCounterSeconds = 0;
 int theCounterMinutes = 0;
 int theCounterHours = 0;
@@ -64,14 +70,14 @@ void syncCountWithClock() {
   theCounterMinutes = now.minute();
   theCounterHours = now.hour();
   //
-  theCursor = 8;
-  printClockInt(theCursor, 1, theCounterHours);  // Column, Row
+  theCursor = thePrintColHour;
+  printClockInt(theCursor, thePrintRowCount, theCounterHours);  // Column, Row
   theCursor = theCursor + 3;
   lcd.print(":");
-  printClockInt(theCursor, 1, theCounterMinutes);
+  printClockInt(theCursor, thePrintRowCount, theCounterMinutes);
   theCursor = theCursor + 3;
   lcd.print(":");
-  printClockInt(theCursor, 1, theCounterSeconds);
+  printClockInt(theCursor, thePrintRowCount, theCounterSeconds);
   //
   Serial.print("+ syncCountWithClock,");
   Serial.print(" theCounterHours=");
@@ -83,21 +89,21 @@ void syncCountWithClock() {
 }
 
 void printPulseHour() {
-  Serial.print(" theCounterHours= ");
+  Serial.print("+ printPulseHour(), theCounterHours= ");
   Serial.println(theCounterHours);
-  printClockInt( 8, 1, theCounterHours);
+  printClockInt(thePrintColHour, thePrintRowCount, theCounterHours);
 }
 
 void printPulseMinute() {
   // Serial.print(" theCounterMinutes= ");
   // Serial.println(theCounterMinutes);
-  printClockInt(11, 1, theCounterMinutes);
+  printClockInt(thePrintColMin, thePrintRowCount, theCounterMinutes);
 }
 
 void printPulseSecond() {
   // Serial.print("+ theCounterSeconds = ");
   // Serial.println(theCounterSeconds);
-  printClockInt(14, 1, theCounterSeconds);  // Column, Row
+  printClockInt(thePrintColSec, thePrintRowCount, theCounterSeconds);  // Column, Row
 }
 
 void printClockInt(int theColumn, int theRow, int theInt) {
@@ -110,32 +116,33 @@ void printClockInt(int theColumn, int theRow, int theInt) {
 }
 
 // -----------------------------------------------------------------------------
+char dayOfTheWeek[7][1] = {"S", "M", "T", "W", "T", "F", "S"};
+
 void printClockDate() {
-  // --- To do: Day of the week.
-  theCursor = 0;
-  lcd.setCursor(theCursor, thePrintRowDt);    // Column, Row
+  theCursor = thePrintColDate;
+  lcd.setCursor(theCursor, thePrintRowClock);    // Column, Row
   lcd.print(dayOfTheWeek[now.dayOfTheWeek()]);
   // ---
-  lcd.setCursor(++theCursor, thePrintRowDt);    // Column, Row
+  lcd.setCursor(++theCursor, thePrintRowClock);    // Column, Row
   lcd.print(":");
-  printClockByte(++theCursor, thePrintRowDt, now.month());
+  printClockByte(++theCursor, thePrintRowClock, now.month());
   // ---
   theCursor = theCursor + 2;
   lcd.print("/");
-  printClockByte(++theCursor, thePrintRowDt, now.day());
+  printClockByte(++theCursor, thePrintRowClock, now.day());
 }
 
 void printClockTime() {
-  theCursor = 8;
-  printClockByte(theCursor, thePrintRowDt, now.hour());
+  theCursor =thePrintColHour;
+  printClockByte(theCursor, thePrintRowClock, now.hour());
   // ---
   theCursor = theCursor + 2;
   lcd.print(":");
-  printClockByte(++theCursor, thePrintRowDt, now.minute());
+  printClockByte(++theCursor, thePrintRowClock, now.minute());
   // ---
   theCursor = theCursor + 2;
   lcd.print(":");
-  printClockByte(++theCursor, thePrintRowDt, now.second());
+  printClockByte(++theCursor, thePrintRowClock, now.second());
 }
 
 void printClockByte(int theColumn, int theRow, char theByte) {
@@ -161,27 +168,23 @@ void setup() {
     while (1);
   }
   if (rtc.lostPower()) {
-    Serial.println("RTC lost power, lets set the time!");
-    //
-    // Comment out below lines once you set the date & time.
-    // Following line sets the RTC to the date & time this sketch was compiled
-    // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-    //
-    // Following line sets the RTC with an explicit date & time
-    // for example to set January 27 2017 at 12:56 you would call:
-    // rtc.adjust(DateTime(2017, 1, 27, 12, 56, 0));
+    Serial.println("RTC lost power, need to reset the time.");
+    // Set the RTC to the date & time this sketch was compiled, which is only seconds behind the actual time.
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    // Or, set the RTC with an explicit date & time
+    // rtc.adjust(DateTime(2019, 9, 10, 16, 10, 0));   // year, month, day, hour, minute, seconds
   }
-  //
+
   lcd.init();
   lcd.backlight();
   Serial.println("+ print: Hello there.");
-  //                1234567890123456
+  //                 1234567890123456
   displayPrintln(0, "Hello there.");
   String theLine = "Start in 3 secs.";
   displayPrintln(1, theLine);
   delay(3000);
   lcd.clear();
-  //
+
   // Set seconds
   now = rtc.now();
   printClockDate();
