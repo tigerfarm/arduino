@@ -1,40 +1,75 @@
 --------------------------------------------------------------------------------
 # Arduino Notes
 
++ I'm getting a warning message.
+To remove the warning, deleting the version of the library you currently have installed and then installing version 1.0.0:
+https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
+
 --------------------------------------------------------------------------------
 ## Build next
 
 + Fix Bluetooth hum
 + Update pong: align the boarders, and add cables for paddles for playing.
-+ Complete the infra red sync device.
++ An infra red receiver for the HTTP request device, which is configured for Twilio sync.
 
-+ Minute clock pulse for complex clock.
-+ Weather device: Temperature, Humidity and Pressure
++ Weather device: Temperature, Humidity and Pressure.
+    Requires: NodeMCU, breadboard, LCD
++ Weather device: Temperature, Humidity and Pressure.
+    Requires: Nano, USB micro cable, breadboard, LCD
 + MP3 player
+    Requires: Nano, USB micro cable, IR receiver, DFPlayer, Yamaha amp, half size breadboard
++ Minute clock pulse for complex clock.
+    Requires DS3231 clock board and LCD, USB micro cable.
++ Timer to turn electrical lights on and off, using a 120v control relay.
+    Requires: Nano, USB micro cable, breadboard, DS3231 clock board, LCD
+
+Parts I have for building:
+
++ 1 NodeMCU
++ 2 Nano
++ 1 Uno
++ 1 Uno clone, for which I need to figured out a driver
+
++ 3 BME280
++ 5 5v power adapters
++ 4 Voltage Regulator: AMS1117-3.3v
++ 1 Voltage Regulator: AMS1117-5v
+
+--------------------------------------------------------------------------------
+## Weather project
+
++ Arduino Nano with BME280 for Temperature, Humidity and Pressure
+
++ BME280 6 pins labels (pins up):
++ Pins: VCC GND|SCL SDA|CSB SDO
++ BME280 pins down, and following: https://www.youtube.com/watch?v=PidE-pJiIXY
+````
+---------------
+| 1 3.3V      | To Arduino Nano, pin 3.3v
+| 2 GND       | To Arduino Nano, pin GND
+| 3 SCK/SCL   | To Arduino Nano, pin A5
+| 4 SDI/SDA   | To Arduino Nano, pin A4
+| 5 CSB       | Not used.
+| 6 SDO       | Not used.
+---------------
+````
+
+Library:
++ Grove - Barometer Senor BME280 by Seed Studio, version 1.02
+
++ Arduino Nano with BME280 for Temperature Humidity and Pressure
+https://www.instructables.com/id/Arduino-Nano-and-Visuino-Display-BME280-Temperatur/
++ Pressure: BME280
+1 x ($1.02) SODIAL Breakout Humidity/Digital Temperature/Barometric Pressure Sensor Module BME280
+
+https://www.instructables.com/id/Arduino-Easy-Weather-Station-With-BME280-Sensor/
 
 --------------------------------------------------------------------------------
 ## Program: lcd1602serial.ino
 
 I'm testing the program to have it count seconds, as best I can with out a clock, such as a DS3231.
 Each loop, the program runs delay(993), which is close to having a 1 second loop, with logic and displaying the counter to the LCD.
-Then I use an offset amount, such as 1030, every 500 seconds to re-sync to actual time.
-I am trying various sync delay values to get better accuracy.
-````
-delay(700);
-10:50 =   0
-12:50 =   0 sec, in 2 hours, actual:  7200 seconds.
-03:50 =  -8 sec, in 4 hours, actual: 14400 seconds, counted: 14392.
-         -2 seconds an hour.
-
-delay(600);
-09:03 =   0
-12:03 =   0 sec, in 3 hours, 10800  seconds, counted: 10800. Actually, less then a second behind.
-04:03 = -20 sec, in 7 hours, 25200  seconds, counted: 25180. Actually, less then a second behind.
-06:03 = -32 sec, in 9 hours, 32400  seconds, counted: 32368. Actually, less then a second behind.
-````
-
-You could make the warning go away by deleting the version of the library you currently have installed and then installing version 1.0.0:
-https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
+The accuracy various widely. Only good when approx time is okay.
 
 --------------------------------------------------------------------------------
 ### Useful components
@@ -42,11 +77,12 @@ https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
 + Arduino Nano 3.0 controller, CH340 USB driver
 + ESP8266 ESP-12E NodeMcu Lua V3 CH340G WIFI Lua Wireless Development Board Module
 
-+ LCE 1602 16x2 Serial HD44780 Character LCD Board Display with White on Blue Backlight 5V with IIC/I2C Serial Interface Adapter
++ LCD 1602 16x2 Serial HD44780 Character LCD Board Display with White on Blue Backlight 5V with IIC/I2C Serial Interface Adapter
 + Infrared IR Wireless Remote Control Module Kits: Keyestudio 38KHz, IR receiver and small remote controller
 + 4 x 4 16 Key Matrix Membrane Switch Keypad
 + 10 Segment LED Bargraph Light Display
 + DS3231: DC 3.3-5.5V, High Precision Real-Time Clock Module, $1.29
++ BME280: Humidity, Temperature, Barometric Pressure Sensor
 
 MP3 player components:
 https://secure.newegg.com/Wishlist/MyWishlistDetail?ID=8188917
@@ -58,6 +94,13 @@ https://secure.newegg.com/Wishlist/MyWishlistDetail?ID=8188917
 + 5V DC from 6.0V-12V, Voltage Regulator: AMS1117-5.0V, 2 pins in, 2 pins out voltage
 + 5V power supply module: AMS1117 with DC seat and switch
 + Battery: CR2032, used in the DS3231 clock
+
+What range of voltage should be expected from the Nano '5V' pin?
++ Maximum 5.5v
++ Sticking my multi meter directly up the USB port in the desktop gives me 5.11V.
++ You need 6.5V or so to get the on-board regulator working properly.
++ If you power the board from an external power supply of 7 to 12 V on the VIN pin, the onboard regulator would be used and you may find the 5V voltage is closer to 5V. 
++ ATmega328P will run at any voltage between 1.8 and 5.5 V depending configurations
 
 #### Sound interesting
 + 3V-5V power model NEO-6M GPS module GY-GPS6MV2 (Blue)
@@ -146,7 +189,7 @@ Adding infrared receiver:
 https://www.instructables.com/id/Universal-Remote-Using-ESP8266Wifi-Controlled/
 + Library: IRremoteESP8266?
 + Power on right side, G and 3V.
-+ D4 or D2 for receiver. Sample uses: TSOP1738 IR reciever or some other IR recievers.
++ D4 or D2 for receiver. Sample uses: TSOP1738 IR receiver or some other IR receivers.
 + The article also shows how to send infrared signals.
 
 + Video I used to get it working:
@@ -256,14 +299,8 @@ https://github.com/tigerfarm/arduino/tree/master/samples/keypadv1
 -------------
 ### Other Projects to do next
 
-+ Example use: turn off and on lights using the 120v plugin controller
-
-+ Weather report
-+ Use the LCD 1602 with Arduino.
-+ Environment monitor: temp, humidity, pressure
-
 + Card reader to store and read state
-+ Bluetooth update to the old AM radio
++ Bluetooth player board, update to the old AM radio
 
 -------------
 ### Complex Clock project: LED Clock
@@ -299,47 +336,8 @@ http://educ8s.tv/arduino-rgb-led-tutorial/
 https://www.youtube.com/watch?v=5Qi93MjlqzE
 
 --------------------------------------------------------------------------------
-## Weather project
-
-+ Arduino Nano with BME280 for Temperature, Humidity and Pressure
-
-+ BME280 6 pins labels (pins up):
-+ VCC GND|SCK SCL|SDA SDI|CSB SDO
-
-Likely pin actual:
-+ 3.3V GND SCK/SCL SDA/SDI CSB SDO
-+ Which means:
-+ 3.3V GND SCL SDA CSB SDO
-+ Or, depending on the diagram online
-+ 3.3V GND SCK SDI CSB SDO
-
-+ BME280 pins down, and following: https://www.youtube.com/watch?v=PidE-pJiIXY
-````
----------------
-| 1 3.3V      | To Arduino Nano, pin 3.3V
-| 2 GND       | To Arduino Nano, pin GND
-| 3 SCK/SCL   | To Arduino Nano, pin A5
-| 4 SDA/SDI   | To Arduino Nano, pin A4
-| 5 CSB       | Not used.
-| 6 SDO       | Not used.
----------------
-````
-
-Library:
-+ Grove - Barometer Senor BME280 by Seed Studio, version 1.02
-
-+ Arduino Nano with BME280 for Temperature, Humidity and Pressure
-https://www.instructables.com/id/Arduino-Nano-and-Visuino-Display-BME280-Temperatur/
-+ Pressure: BME280
-1 x ($1.02) SODIAL Breakout Humidity/Digital Temperature/Barometric Pressure Sensor Module BME280
-
-https://www.instructables.com/id/Arduino-Easy-Weather-Station-With-BME280-Sensor/
-
---------------------------------------------------------------------------------
 ## Information and sample project links
 
-+ Arduino Nano with BME280 for Temperature Humidity and Pressure
-https://www.instructables.com/id/Arduino-Nano-and-Visuino-Display-BME280-Temperatur/
 + Pressure: BME280
 1 x ($1.02) SODIAL Breakout Humidity/Digital Temperature/Barometric Pressure Sensor Module BME280
 $1.02

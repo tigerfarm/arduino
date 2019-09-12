@@ -1,16 +1,16 @@
 // -----------------------------------------------------------------------------
 /*
   Connect DS3231 Clock, and the LCD display, pins to the Nano:
-  + VCC to 3.3-5.5V
-  + GND to ground
-  + SDA to D4 (pin 4) on Uno and Nano
-  + SCL to D5 (pin 5) on Uno and Nano
+  + VCC to Nano 5v, note, also works with 3.3v, example: NodeMCU.
+  + GND to Nano ground.
+  + SDA to Nano D4 (pin 4), same on Uno.
+  + SCL to Nano D5 (pin 5), same on Uno.
 
   // -----------------------------------------------------------------------------
   DS3231 Clock Library:
   Filter your search by typing ‘rtclib’. There should be a couple entries. Look for RTClib by Adafruit.
   https://github.com/adafruit/RTClib
-  Note, in the library source, uint8_t is the same as a byte: a type of unsigned integer of length 8 bits.
+  Note, the library uses uint8_t, which is the same as a byte: an unsigned 8 bit integer.
   Time and date units are are declared as, uint8_t.
 */
 // -----------------------------------------------------------------------------
@@ -54,9 +54,9 @@ void displayPrintln(int theRow, String theString) {
 // -----------------------------------------------------------------------------
 
 int theCursor;
-const int thePrintRowClock = 0;
-const int thePrintRowCount = 1;
-const int thePrintColDate = 0;
+const int printRowClockDate = 0;
+const int printColClockDate = 0;
+const int printRowClockPulse = 0;
 const int thePrintColHour = 8;
 const int thePrintColMin = thePrintColHour + 3;
 const int thePrintColSec = thePrintColMin + 3;
@@ -71,13 +71,13 @@ void syncCountWithClock() {
   theCounterHours = now.hour();
   //
   theCursor = thePrintColHour;
-  printClockInt(theCursor, thePrintRowCount, theCounterHours);  // Column, Row
+  printClockInt(theCursor, printRowClockPulse, theCounterHours);  // Column, Row
   theCursor = theCursor + 3;
   lcd.print(":");
-  printClockInt(theCursor, thePrintRowCount, theCounterMinutes);
+  printClockInt(theCursor, printRowClockPulse, theCounterMinutes);
   theCursor = theCursor + 3;
   lcd.print(":");
-  printClockInt(theCursor, thePrintRowCount, theCounterSeconds);
+  printClockInt(theCursor, printRowClockPulse, theCounterSeconds);
   //
   Serial.print("+ syncCountWithClock,");
   Serial.print(" theCounterHours=");
@@ -91,19 +91,19 @@ void syncCountWithClock() {
 void printPulseHour() {
   Serial.print("+ printPulseHour(), theCounterHours= ");
   Serial.println(theCounterHours);
-  printClockInt(thePrintColHour, thePrintRowCount, theCounterHours);
+  printClockInt(thePrintColHour, printRowClockPulse, theCounterHours);
 }
 
 void printPulseMinute() {
   // Serial.print(" theCounterMinutes= ");
   // Serial.println(theCounterMinutes);
-  printClockInt(thePrintColMin, thePrintRowCount, theCounterMinutes);
+  printClockInt(thePrintColMin, printRowClockPulse, theCounterMinutes);
 }
 
 void printPulseSecond() {
   // Serial.print("+ theCounterSeconds = ");
   // Serial.println(theCounterSeconds);
-  printClockInt(thePrintColSec, thePrintRowCount, theCounterSeconds);  // Column, Row
+  printClockInt(thePrintColSec, printRowClockPulse, theCounterSeconds);  // Column, Row
 }
 
 void printClockInt(int theColumn, int theRow, int theInt) {
@@ -119,30 +119,17 @@ void printClockInt(int theColumn, int theRow, int theInt) {
 char dayOfTheWeek[7][1] = {"S", "M", "T", "W", "T", "F", "S"};
 
 void printClockDate() {
-  theCursor = thePrintColDate;
-  lcd.setCursor(theCursor, thePrintRowClock);    // Column, Row
+  theCursor = printColClockDate;
+  lcd.setCursor(theCursor, printRowClockDate);    // Column, Row
   lcd.print(dayOfTheWeek[now.dayOfTheWeek()]);
   // ---
-  lcd.setCursor(++theCursor, thePrintRowClock);    // Column, Row
+  lcd.setCursor(++theCursor, printRowClockDate);    // Column, Row
   lcd.print(":");
-  printClockByte(++theCursor, thePrintRowClock, now.month());
+  printClockByte(++theCursor, printRowClockDate, now.month());
   // ---
   theCursor = theCursor + 2;
   lcd.print("/");
-  printClockByte(++theCursor, thePrintRowClock, now.day());
-}
-
-void printClockTime() {
-  theCursor =thePrintColHour;
-  printClockByte(theCursor, thePrintRowClock, now.hour());
-  // ---
-  theCursor = theCursor + 2;
-  lcd.print(":");
-  printClockByte(++theCursor, thePrintRowClock, now.minute());
-  // ---
-  theCursor = theCursor + 2;
-  lcd.print(":");
-  printClockByte(++theCursor, thePrintRowClock, now.second());
+  printClockByte(++theCursor, printRowClockDate, now.day());
 }
 
 void printClockByte(int theColumn, int theRow, char theByte) {
@@ -219,7 +206,6 @@ void loop() {
         }
       }
     }
-    printClockTime();
   }
 
   // -----------------------------------------------------------------------------
