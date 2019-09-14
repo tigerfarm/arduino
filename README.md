@@ -13,9 +13,9 @@ https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
 + An infra red receiver for the HTTP request device, which is configured for Twilio sync.
 
 + Weather device: Temperature, Humidity and Pressure.
-    Requires: NodeMCU, breadboard, LCD
+    Requires: NodeMCU, breadboard, LCD, BME280
 + Weather device: Temperature, Humidity and Pressure.
-    Requires: Nano, USB micro cable, breadboard, LCD
+    Requires: Nano, USB micro cable, breadboard, LCD, BME280
 + MP3 player
     Requires: Nano, USB micro cable, IR receiver, DFPlayer, Yamaha amp, half size breadboard
 + Minute clock pulse for complex clock.
@@ -25,16 +25,34 @@ https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
 
 Parts I have for building:
 
-+ 1 NodeMCU
-+ 2 Nano
++ 1 NodeMCU, 3 on order
++ 2 Nano, 3 on order
 + 1 Uno
 + 1 Uno clone, for which I need to figured out a driver
 
++ 1 half size breadboards: MP3 player
++ 2 full size breadboards
++ 2 full length breadboards
+
++ 3 relay switches
 + 3 BME280
+
 + 5 5v power adapters
 + 4 Voltage Regulator: AMS1117-3.3v
 + 1 Voltage Regulator: AMS1117-5v
 
+--------------------------------------------------------------------------------
+## Wireless Communication – NRF24L01
+
+Steps:
+https://howtomechatronics.com/tutorials/arduino/arduino-wireless-communication-nrf24l01-tutorial/
+
+Video:
+https://www.youtube.com/watch?v=7rcVeFFHcFM
+
+Other video:
+https://www.youtube.com/watch?v=o74kQSlpGn4
+https://www.youtube.com/watch?v=D40cgHyBLL4
 --------------------------------------------------------------------------------
 ## Weather project
 
@@ -105,6 +123,11 @@ What range of voltage should be expected from the Nano '5V' pin?
 #### Sound interesting
 + 3V-5V power model NEO-6M GPS module GY-GPS6MV2 (Blue)
 + LD1117V33 Linear Voltage Regulator 3.3V
+
++ OLED
+https://www.youtube.com/watch?v=PrIAnDZ9dp8
++ Detail video
+https://www.youtube.com/watch?v=7x1P80X1V3E
 
 ---------------
 #### Parts on Amazon.com

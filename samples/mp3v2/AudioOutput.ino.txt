@@ -1,0 +1,39 @@
+// A simple sketch to check if the SD card is working properly
+// Coded by Ostrich Longneck
+// 8 December, 2016
+
+#include <TMRpcm.h>
+#include <SPI.h>
+#include <SD.h>
+
+char* sample[10] = { "Intro1.wav", "Intro2.wav", "Intro3.wav", "RedAlrt1.wav", "RedAlrt2.wav", "Torpedo.wav", "Torpedo.wav", "Phastorp.wav", "Phastorp.wav", "Phaser.wav" };
+char mychar;
+const int CS_PIN = 10;
+TMRpcm audio;
+
+void setup() {
+  audio.speakerPin = 9;
+  Serial.begin(9600);
+  Serial.println("Initializing Card");
+  pinMode(CS_PIN, OUTPUT);
+  if(!SD.begin(CS_PIN)) {
+    Serial.println("Card Failure");
+    return;
+  }
+  Serial.println("Card Ready");
+  audio.setVolume(5);
+  audio.quality(1);
+}
+void loop() {
+  Serial.println ();
+  for (int i = 0; i < 10; i++) {
+    Serial.print ("Playing: ");
+    Serial.println (sample[i]);
+    audio.play (sample[i]);
+    while (audio.isPlaying()) {
+    }
+    if (i < 5 or i==9) {
+      delay (1000);
+    }
+  }
+}

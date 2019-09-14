@@ -3,6 +3,8 @@
   http://www.arduino.cc/en/Tutorial/Blink
 */
 
+// Built in, on board LED: GPIO2 which is D04 on NodeMCU.
+// Built in, on board LED: GPI13 which is D13 on Nano and Uno. LED is red on Nano.
 #define LED_PIN 13
 
 // the setup function runs once when you press reset or power the board
