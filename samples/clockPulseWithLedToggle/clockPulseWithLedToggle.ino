@@ -6,6 +6,13 @@
   + SDA to Nano D4 (pin 4), same on Uno.
   + SCL to Nano D5 (pin 5), same on Uno.
 
+  The BUTTON circuit:
+  - Board is either an Arduino Uno, Nano, or a NodeMCU.
+  - LED positive is connected to onboard LED pin.
+  - Button side 1, connected to Arduino +5V or NodeMCU +3.3V.
+  - Button side 2, connected to a 10K resistor which is connected to ground.
+  - Button side 2, connected to board pin (BUTTON_PIN), example: D11 on Nano.
+
   // -----------------------------------------------------------------------------
   DS3231 Clock Library:
   Filter your search by typing ‘rtclib’. There should be a couple entries. Look for RTClib by Adafruit.
@@ -88,6 +95,31 @@ void syncCountWithClock() {
   Serial.println(theCounterSeconds);
 }
 
+// -----------------------------------------------------------------------------
+void processClockNow() {
+  now = rtc.now();
+  if (now.second() != theCounterSeconds) {
+    // When the clock second value changes, that's a clock second pulse.
+    theCounterSeconds = now.second();
+    printPulseSecond();
+    if (theCounterSeconds == 0) {
+      // When the clock second value changes to zero, that's a clock minute pulse.
+      theCounterMinutes = now.minute();
+      printPulseMinute();
+      if (theCounterMinutes == 0) {
+        // When the clock minute value changes to zero, that's a clock hour pulse.
+        theCounterHours = now.hour();
+        printPulseHour();
+        if (now.hour() == 0) {
+          // When the clock hour value changes to zero, that's a clock day pulse.
+          // Reprint the date, at time: 00:00:00.
+          printClockDate();
+        }
+      }
+    }
+  }
+}
+
 void printPulseHour() {
   Serial.print("+ printPulseHour(), theCounterHours= ");
   Serial.println(theCounterHours);
@@ -143,8 +175,34 @@ void printClockByte(int theColumn, int theRow, char theByte) {
 }
 
 // -----------------------------------------------------------------------------
+// Toggle the LCD backlight each time the button is pressed.
+
+const int BUTTON_PIN = 2;     // Nano D2
+boolean theToggle = true;
+boolean buttonAction = true;  // Case the button is pressed and held, only toggle once.
+
+void toggleLcdBacklight() {
+  if (digitalRead(BUTTON_PIN) == HIGH) {
+    if (buttonAction) {
+      if (theToggle) {
+        theToggle = false;
+        // Serial.println("+ toggleButton(), turn off.");
+        lcd.noBacklight(); // Backlight off
+      } else {
+        theToggle = true;
+        // Serial.println("+ toggleButton(), turn on.");
+        lcd.backlight(); // backlight on
+      }
+    }
+    buttonAction = false;
+  } else {
+    buttonAction = true;
+  }
+}
+
+// -----------------------------------------------------------------------------
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   // Give the serial connection time to start before the first print.
   delay(1000);
   Serial.println("+++ Setup.");
@@ -163,9 +221,7 @@ void setup() {
   }
 
   lcd.init();
-  //
   lcd.backlight(); // backlight on
-  // lcd.noBacklight(); // Backlight off
   //
   Serial.println("+ print: Hello there.");
   //                 1234567890123456
@@ -180,6 +236,8 @@ void setup() {
   printClockDate();
   syncCountWithClock();
   //
+  pinMode(BUTTON_PIN, INPUT);
+  //
   Serial.println("+++ Go to loop.");
 }
 
@@ -189,27 +247,8 @@ void setup() {
 void loop() {
   delay(100);
   //
-  now = rtc.now();
-  if (now.second() != theCounterSeconds) {
-    // When the clock second value changes, that's a clock second pulse.
-    theCounterSeconds = now.second();
-    printPulseSecond();
-    if (theCounterSeconds == 0) {
-      // When the clock second value changes to zero, that's a clock minute pulse.
-      theCounterMinutes = now.minute();
-      printPulseMinute();
-      if (theCounterMinutes == 0) {
-        // When the clock minute value changes to zero, that's a clock hour pulse.
-        theCounterHours = now.hour();
-        printPulseHour();
-        if (now.hour() == 0) {
-          // When the clock hour value changes to zero, that's a clock day pulse.
-          // Reprint the date, at time: 00:00:00.
-          printClockDate();
-        }
-      }
-    }
-  }
+  toggleLcdBacklight();
+  processClockNow();
 
   // -----------------------------------------------------------------------------
 }

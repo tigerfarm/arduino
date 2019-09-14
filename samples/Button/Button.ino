@@ -104,11 +104,11 @@ void toggleButton() {
     if (buttonAction) {
       if (theToggle) {
         theToggle = false;
-        Serial.println("+ toggleButton(), turn LED off.");
+        Serial.println("+ toggleButton(), turn off.");
         digitalWrite(LED_PIN, LOW);
       } else {
         theToggle = true;
-        Serial.println("+ toggleButton(), turn LED on.");
+        Serial.println("+ toggleButton(), turn on.");
         digitalWrite(LED_PIN, HIGH);
       }
     }
@@ -125,9 +125,11 @@ void setup() {
   Serial.println();
   Serial.println("+++ Setup.");
 
-  // Initialize the onboard LED.
+  // Initialize the LED pin.
   pinMode(LED_PIN, OUTPUT);
-  // Blink the external LED.
+  // Initialize the button pin.
+  pinMode(BUTTON_PIN, INPUT);
+
   Serial.println("+ Start loop()");
 }
 
