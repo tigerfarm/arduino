@@ -186,11 +186,11 @@ void toggleLcdBacklight() {
     if (buttonAction) {
       if (theToggle) {
         theToggle = false;
-        // Serial.println("+ toggleButton(), turn off.");
+        Serial.println("+ toggleButton(), turn off.");
         lcd.noBacklight(); // Backlight off
       } else {
         theToggle = true;
-        // Serial.println("+ toggleButton(), turn on.");
+        Serial.println("+ toggleButton(), turn on.");
         lcd.backlight(); // backlight on
       }
     }

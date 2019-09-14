@@ -143,8 +143,8 @@ void loop() {
 
   // LED and button options:
   // blinkLed();
-  // checkButton();
-  toggleButton();
+  checkButton();
+  // toggleButton();
 }
 
 // -----------------------------------------------------------------------------
