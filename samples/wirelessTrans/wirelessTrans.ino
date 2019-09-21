@@ -1,13 +1,24 @@
 // -----------------------------------------------------------------------------
 /*
+  NRF24L01 is a low powered 2.4 GHz wireless RF Module from Nordic Semiconductors.
+    https://www.instructables.com/id/NRF24L01-Wireless-Transmission-Between-Arduino/
+    + Can reach up to 300 feet in open space. 3,000 with an external antenna.
+    + Uses SPI protocol.
+    + Baud rates from 250 kbps up to 2 Mbps.
+    + Supply Voltage: 3V
+    + Pin Voltage: 5V Tolerant
+    + Has a 1 Mhz spacing, operating range of 2.40Ghz – 2.525 GHz.
+    + Possible to have 125 independently working modems on a single network.
+
   Connect the NRF24L01 Wireless board to the Nano:
   + VCC  to Nano 3.3v.
   + GND  to Nano ground.
-  + CE   to Nano D7.
-  + CSN  to Nano D8.
-  + MOSI to Nano D11.
-  + MISO to Nano D12.
-  + SCK  to Nano D13.
+  + CE   to Nano D7.  Chip Enable.
+  + CSN  to Nano D8.  Chip Select Not.
+  + MOSI to Nano D11. Master Out Slave In.
+  + MISO to Nano D12. Master in Slave Out
+  + SCK  to Nano D13. SPI Bus Serial Clock.
+  + IRQ  Not used.    Interrupt Pin (active low).
 
   On board pins     Nano connections
     Top  - Bottom
@@ -45,15 +56,11 @@ void setup() {
   delay(1000);
   Serial.println("+++ Setup.");
 
+  Serial.println("+ Configure radio transmitter.");
   radio.begin();
-
-  // radio.openWritingPipe(address);    // For transmitter.
-  radio.openReadingPipe(0, address); // For Receiver.
-
+  radio.openWritingPipe(address);
   radio.setPALevel(RF24_PA_MIN);     // Power Amplifier level set to minimum as rec & trans are close to each other.
-
-  // radio.stopListening();    // For transmitter.
-  radio.startListening();   // For Receiver.
+  radio.stopListening();
 
   Serial.println("+++ Go to loop.");
 }
@@ -64,18 +71,9 @@ void setup() {
 void loop() {
   delay(1000);
 
-/*
   // For transmitter.
   const char text[] = "Hello World";
   radio.write(&text, sizeof(text));
-*/
-
-  // For receiver.
-  if (radio.available()) {
-    char text[32] = "";
-    radio.read(&text, sizeof(text));
-    Serial.println(text);
-  }
 
   // -----------------------------------------------------------------------------
 }
