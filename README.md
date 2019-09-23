@@ -10,7 +10,6 @@ https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
 
 + Fix Bluetooth hum
 + Update pong: align the boarders, and add cables for paddles for playing.
-+ An infra red receiver for the HTTP request device, which is configured for Twilio sync.
 
 + Weather device: Temperature, Humidity and Pressure.
     Requires: NodeMCU, breadboard, LCD, BME280

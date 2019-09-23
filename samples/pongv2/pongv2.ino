@@ -1,6 +1,5 @@
 /********
    A basic implementation of Pong on the Arduino using a TV for output.
-
    Arduino Pong By Pete Lamonica,
    modified by duboisvb,
    updated by James Bruce: http://www.makeuseof.com/tag/author/jbruce
