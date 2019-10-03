@@ -1,6 +1,7 @@
 // -----------------------------------------------------------------------------
 /*
-  Connect a 7 segment display to a Nano:
+  Connect a 7 segment display to a Nano.
+  Needs to match: segmentPins as defined below.
   + Segment + to 1K resister, to Nano 5V. If common anode display.
   + Segment - to 1K resister, to Nano ground. If common cathode display.
   + Segment A to Nano pin 6.
@@ -23,11 +24,15 @@
 
   Code base from:
     http://www.circuitbasics.com/arduino-7-segment-display-tutorial/
+  To install library,
+    from the Arduino IDE: Sketch/include Library/Add .ZIP Library,
+    then select the downloaded SevSeg ZIP file.
 */
 // -----------------------------------------------------------------------------
 
-#include "SevSeg.h"
-SevSeg sevseg; 
+#include <SevSeg.h>
+// #include "SevSeg.h"
+SevSeg sevseg;
 
 // -----------------------------------------------------------------------------
 int counter = 0;
@@ -38,15 +43,15 @@ void setup ()  {
   delay(1000);
   Serial.println("+++ Setup.");
 
-    byte segmentPins[] = {6, 5, 2, 3, 4, 7, 8, 9};
-    byte numDigits = 1;                 // Number of display digits.
-    byte digitPins[] = {};              // Multi-digit display ground pins.
-    bool resistorsOnSegments = true;    // Set to true when using multi-digit displays.
+  byte hardwareConfig = COMMON_CATHODE;   // Or COMMON_ANODE
+  byte segmentPins[] = {6, 5, 2, 3, 4, 7, 8, 9};
+  byte numDigits = 1;                 // Number of display digits.
+  byte digitPins[] = {};              // Multi-digit display ground pins.
+  bool resistorsOnSegments = true;    // Set to true when using multi-digit displays.
 
-    byte hardwareConfig = COMMON_CATHODE;   // Or COMMON_ANODE
-    sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments);
-    sevseg.setBrightness(90);           // Value from 0 to 100.
-
+  sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments);
+  sevseg.setBrightness(3);           // Value from 0 to 100.
+  // Display a value.
   sevseg.setNumber(counter);
   sevseg.refreshDisplay();
   delay(1000);
@@ -66,5 +71,5 @@ void loop ()  {
   sevseg.setNumber(counter);
   sevseg.refreshDisplay();
 
-  // -----------------------------------------------------------------------------
 }
+// -----------------------------------------------------------------------------

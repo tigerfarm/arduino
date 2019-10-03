@@ -8,7 +8,13 @@ https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
 --------------------------------------------------------------------------------
 ## Build next
 
-+ Fix Bluetooth hum
++ Fix Bluetooth hum: I am replacing the simple board amp with a 
+https://www.amazon.com/dp/B07QRRQDDW
++ Another amp option, which looks better, Price: $39.99 & FREE Shipping:
+https://www.amazon.com/dp/B07HR7PRV5
+
++ LED digit 7 segment display
+
 + Update pong: align the boarders, and add cables for paddles for playing.
 
 + Weather device: Temperature, Humidity and Pressure.
