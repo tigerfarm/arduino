@@ -1,5 +1,7 @@
 // -----------------------------------------------------------------------------
 /*
+  Merge RotaryEncoder.ino with 7segment2Digit.ino.
+
   Connect a KY-040 rotary encoder to a Nano:
   + "+" to Nano 5v, note, also works with 3.3v, example: NodeMCU.
   + GND to Nano ground.
@@ -7,12 +9,7 @@
   + SW (switch) to Nano pin 3. Optional, can be used to reset the counter to zero.
   + DT (data) to Nano pin 4. Also referred to as output B. Can be used to reset the counter value.
 
-  Code base from:
-    https://www.brainy-bits.com/arduino-rotary-encoder-ky-040/
-  More info:
-    https://forum.arduino.cc/index.php?topic=242356.0
-    This link suggests using a capacitor, which I'm not using:
-    + Connect a 0,47µ (or 1uF) capacitor from ground to CLK, and other to DT, to handle debouncing).
+  
 */
 // -----------------------------------------------------------------------------
 
