@@ -9,18 +9,32 @@
 
   Code base from:
     https://www.brainy-bits.com/arduino-rotary-encoder-ky-040/
+  More info:
+    https://forum.arduino.cc/index.php?topic=242356.0
+    This link suggests:
+    + Connect a 0,47µ (or 1uF) capacitor from ground to CLK, and other to DT, to handle debouncing).
 */
 // -----------------------------------------------------------------------------
 
 volatile boolean TurnDetected;  // Type volatile for interrupts.
+volatile boolean turnRight;
 
-// Rotary Encoder Module connections
-const int PinCLK=2;   // Generating interrupts using CLK signal
-const int PinDT=4;    // Reading DT signal
+// Rotary Encoder module connections
+const int PinCLK = 2; // Generating interrupts using CLK signal
+const int PinDT = 4;  // Reading DT signal
 
-// Interrupt routine runs if CLK pin changes state
+// -----------------------------------------------------------------------------
+// Interrupt routine runs if rotary encoder CLK pin changes state.
 void rotarydetect ()  {
-  TurnDetected = true;
+  // The following logic sets: TurnDetected and in which direction (turnRight or !turnRight which is left).
+  TurnDetected = false;
+  if (digitalRead(PinDT) == 1) {
+    TurnDetected = true;
+    turnRight = false;
+    if (digitalRead(PinCLK) == 0) {
+      turnRight = true;
+    }
+  }
 }
 
 void setup ()  {
@@ -29,7 +43,8 @@ void setup ()  {
   delay(1000);
   Serial.println("+++ Setup.");
 
-  attachInterrupt (0,rotarydetect,CHANGE); // interrupt 0 always connected to pin 2 on Arduino
+  // CHANGE and FALLING are options.
+  attachInterrupt (0, rotarydetect, CHANGE); // interrupt 0 is pin 2 on Arduino.
 
   Serial.println("+++ Go to loop.");
 }
@@ -37,16 +52,24 @@ void setup ()  {
 // -----------------------------------------------------------------------------
 // Device Loop
 
+
 void loop ()  {
-  delay(10);
+  static long virtualPosition = 0;  // static is required to count correctly.
+
+  delay(20);
+
   if (TurnDetected)  {
-      // rotary has moved
-      TurnDetected = false;  // do NOT repeat IF loop until new rotation detected 
-      Serial.print("CLK Pin: ");
-      Serial.println(digitalRead(PinCLK));
-      Serial.print("DT Pin: ");
-      Serial.println(digitalRead(PinDT));
-      delay(5);
+    TurnDetected = false;  // Reset, until new rotation detected
+    if (turnRight) {
+      virtualPosition++;
+      Serial.print (" > ri count = ");
+      Serial.println (virtualPosition);
+    } else {
+      virtualPosition--;
+      Serial.print (" > lt count = ");
+      Serial.println (virtualPosition);
+    }
+    delay(10);
   }
 
   // -----------------------------------------------------------------------------
