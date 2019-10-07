@@ -27,17 +27,8 @@
         D  DP E  C CA2   -> Segments they control
         9     10 8 Rs3   -> Nano pins
 
-
-  Code base from:
-    https://www.tinkerhobby.com/arduino-2-digit-7-segment-display-counter/
-    and
-    http://www.circuitbasics.com/arduino-7-segment-display-tutorial/
-    and
-    http://www.arduinotutorialonline.com/2018/08/2-digit-7-segment-0-99-counter-with.html
-  To install library,
-    from the Arduino IDE: Sketch/include Library/Add .ZIP Library,
-    then select the downloaded SevSeg ZIP file.
-    http://www.circuitbasics.com/wp-content/uploads/2017/05/SevSeg.zip
+  To install library, download the zip and use: Sketch/Include Library/Add Zip Library.
+    https://github.com/DeanIsMe/SevSeg
 */
 // -----------------------------------------------------------------------------
 
@@ -45,65 +36,50 @@
 SevSeg sevseg;
 
 // -----------------------------------------------------------------------------
-int counter = 0;
-
 void setup ()  {
   Serial.begin(115200);
   // Give the serial connection time to start before the first print.
   delay(1000);
   Serial.println("+++ Setup.");
 
-  byte hardwareConfig = COMMON_CATHODE;   // COMMON_ANODE or COMMON_CATHODE
-  byte segmentPins[] = {6, 7, 8, 9, 10, 11, 12, 13};
+  byte hardwareConfig = COMMON_CATHODE; // COMMON_ANODE or COMMON_CATHODE
+  byte segmentPins[] = {6, 7, 8, 9, 10, 11, 12, 13};  // Mapping segment pins A..G, to Nano pins.
   byte numDigits = 2;                 // Number of display digits.
-  byte digitPins[] = {2, 3};          // Multi-digit display ground pins.
-  bool resistorsOnSegments = true;    // Set to true when using multi-digit displays.
+  byte digitPins[] = {2, 3};          // Multi-digit display ground/set pins.
+  bool resistorsOnSegments = true;    // Set to true when using a single resister per display digit.
   bool updateWithDelays = false;      // Doesn't work when true.
-  bool leadingZeros = true;
-  bool disableDecPoint = false; // Use 'true' if your decimal point doesn't exist or isn't connected
-
+  bool leadingZeros = true;           // Clock leading 0. When true: "01" rather that " 1".
+  bool disableDecPoint = true;        // Use 'true' if your decimal point doesn't exist or isn't connected
   sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments, updateWithDelays, leadingZeros, disableDecPoint);
-  //sevseg.setBrightness(100);           // Actually, it's refresh rate. Value from 0 to 100.
-
-  // Display a value.
-  // sevseg.setNumber(counter);
-  // sevseg.refreshDisplay();
-  // delay(1000);
+  // sevseg.setBrightness(10);           // It's a refresh rate value from 0 to 100, but doesn't seem to do anything.
 
   Serial.println("+++ Go to loop.");
 }
 
 // -----------------------------------------------------------------------------
 // Device Loop
+
+static unsigned long timer = millis();
+static int counter = 0;
 void loop ()  {
 
-  int showValue = 36;
-  
-  // delay(60);
-  static unsigned long timer = millis();
-  static int deciSeconds = 0;
+  // Each second, set the display value.
   if (millis() - timer >= 1000) {
     timer += 1000;
-    deciSeconds++; // 100 milliSeconds is equal to 1 deciSecond
-    if (deciSeconds == 100) { // Reset to 0 after counting to the max.
-      deciSeconds = 0;
-    }
-    sevseg.setNumber(deciSeconds, 1);
-    if (deciSeconds == 3) {
-      sevseg.setNumber(showValue, 1);
-    }
-  }
-  sevseg.refreshDisplay();
-
-  /*
-    delay(1000);
-    counter ++;
+    counter++;
     if (counter > 99) {
-    counter = 0;
+      // Reset to 0 after counting to the max.
+      counter = 0;
     }
-    Serial.println(counter);
-    sevseg.setNumber(counter);
-    sevseg.refreshDisplay();
-  */
+    sevseg.setNumber(counter, 1);
+  }
+  
+  // One digit is refreshed on one cylce, the other digit is refreshed on the next cyle.
+  // If using delay(1000), one digit displays on one cycle, then the next digit displays on the next cycle.
+  // The refresh (refreshDisplay) needs to be fast enough, that they look like they are always on.
+  // Delay of 10 is okay. Any longer delay, example 20, the digits start to flash.
+  delay(10);
+  sevseg.refreshDisplay(); 
+
 }
 // -----------------------------------------------------------------------------
