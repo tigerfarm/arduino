@@ -21,20 +21,20 @@ Click [here](https://www.arduino.cc/reference/en/language/functions/external-int
 --------------------------------------------------------------------------------
 ## Build next
 
++ Programmable clock module: DS3231 clock with enhancements. 1) Set time and date using infrared or rotary encoder. 2) Alarms.
 + MP3 player for the new Douk Audio amp.
-
 + Update pong: align the boarders, and add cables for paddles for playing.
-
-+ Weather device: Temperature, Humidity and Pressure.
-    Requires: NodeMCU, breadboard, LCD, BME280
-+ Weather device: Temperature, Humidity and Pressure.
-    Requires: Nano, USB micro cable, breadboard, LCD, BME280
-+ MP3 player
-    Requires: Nano, USB micro cable, IR receiver, DFPlayer, Yamaha amp, half size breadboard
-+ Minute clock pulse for complex clock.
-    Requires DS3231 clock board and LCD, USB micro cable.
 + Timer to turn electrical lights on and off, using a 120v control relay.
-    Requires: Nano, USB micro cable, breadboard, DS3231 clock board, LCD
+    Requires: Nano with a USB micro cable for power, breadboard, Programmable clock module.
+
++ Test BME280 weather device: Temperature, Humidity and Pressure.
++ Weather module: Temperature, Humidity and Pressure.
+    Requires: Nano with USB micro cable, breadboard, LCD, BME280
+
++ MP3 player
+    components: Nano with a USB micro cable for power, IR receiver, DFPlayer, half size breadboard, and amplifier
++ Minute clock pulse for complex clock.
+    Requires DS3231 clock board and LCD, Nano with a USB micro cable for power.
 
 Parts I have for building:
 
@@ -146,6 +146,10 @@ https://www.youtube.com/watch?v=7x1P80X1V3E
 https://www.amazon.com/dp/B07QRRQDDW
 + Another amp option, which looks better, Price: $39.99 & FREE Shipping:
 https://www.amazon.com/dp/B07HR7PRV5
+
++ Keypad
++ 1 x ($1.00) 4 x 4 16 Key Matrix Membrane Switch Keypad $1.00
+http://www.circuitbasics.com/how-to-set-up-a-keypad-on-an-arduino/
 
 ---------------
 #### Parts on Amazon.com
@@ -316,12 +320,31 @@ In the IDE menu, select:
 ### Working
 
 + Rotary Encoder
+https://github.com/tigerfarm/arduino/tree/master/samples/RotaryEncoder
 + Rotary Encoder with 2 LED digit 7 segment display
+https://github.com/tigerfarm/arduino/tree/master/samples/RotaryEncoder2digits
 
 + LED digit 7 segment display
+https://github.com/tigerfarm/arduino/tree/master/samples/7segment1digit
 + 2 LED digit 7 segment display
+https://github.com/tigerfarm/arduino/tree/master/samples/7segment2digit
 
 + 120v plugin controller: Arduino, relay, electrical supplies from Home Depot
+
++ DS3231 Clock: Clock pulses: second, minutes, hours, days.
+++ With option to toggle the LCD display on and off.
+https://github.com/tigerfarm/arduino/blob/master/samples/clockPulseWithLcdToggle/clockPulseWithLcdToggle.ino
++ DS3231 Clock and the LCD display
+https://github.com/tigerfarm/arduino/blob/master/samples/clockLcd/clockLcd.ino
+
++ Serial 1602 LCD display
+https://github.com/tigerfarm/arduino/tree/master/samples/lcd1602serial
+
++ Bar graph
+https://github.com/tigerfarm/arduino/tree/master/samples/BarGraph
+
++ Thin plastic Keypad
+https://github.com/tigerfarm/arduino/tree/master/samples/keypadv1
 
 + MP3 player: Arduino, DFPlayer MP3 Player, Yamaha Audio Amplifier, infrared keypad
 https://github.com/tigerfarm/arduino/tree/master/samples/mp3v2
@@ -337,11 +360,6 @@ https://tutorial45.com/arduino-ir-receiver/
 + Receiver has 3 pins: ground(-), +5v, control (S).
 https://github.com/tigerfarm/arduino/tree/master/samples/InfraredRead
 + 1 x ($1.08) SODIAL Infrared Wireless Remote Control Kit for Arduino DIY Project $1.08
-
-+ Keypad
-+ 1 x ($1.00) 4 x 4 16 Key Matrix Membrane Switch Keypad $1.00
-http://www.circuitbasics.com/how-to-set-up-a-keypad-on-an-arduino/
-https://github.com/tigerfarm/arduino/tree/master/samples/keypadv1
 
 -------------
 ### Other Projects to do next
