@@ -1,9 +1,6 @@
 // -----------------------------------------------------------------------------
 /*
-  Merge RotaryEncoder.ino with 7segment2Digit.ino.
-
-  + Test the rotary encoder while segment digits are displaying using the test sequence.
-  + Change the rotary encoder to increment and decrement the segment digit values from 0-59.
+  Use Rotary Encoder to count from 0-59 using a 2 digit, 7 segment, display.
 
   // -----------------------------------------------------------------------------
   Connect a KY-040 rotary encoder to a Nano.
@@ -45,11 +42,14 @@
 #include <SevSeg.h>
 SevSeg sevseg;
 
+#define MIN_VALUE 0
+#define MAX_VALUE 59
+
 // -----------------------------------------------------------------------------
 // Rotary Encoder module
 
 const int PinCLK = 2; // Generating interrupts using CLK signal
-const int PinDT = 4;  // Reading DT signal
+const int PinDT = 3;  // Reading DT signal
 
 volatile boolean TurnDetected;  // Type volatile for interrupts.
 volatile boolean turnRight;
@@ -88,6 +88,9 @@ void setup ()  {
   bool disableDecPoint = true;        // Use 'true' if your decimal point doesn't exist or isn't connected
   sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments, updateWithDelays, leadingZeros, disableDecPoint);
 
+  sevseg.setNumber(0, 1);
+  sevseg.refreshDisplay();
+
   Serial.println("+++ Go to loop.");
 }
 
@@ -98,19 +101,7 @@ void loop ()  {
 
   // static is required to count correctly.
   static long virtualPosition = 0;
-  static unsigned long timer = millis();
-  static int counter = 0;
 
-  // For testing: Each second, increment the display value: 0-99.
-  if (millis() - timer >= 1000) {
-    timer += 1000;
-    counter++;
-    if (counter > 99) {
-      // Reset to 0 after counting to the max.
-      counter = 0;
-    }
-    sevseg.setNumber(counter, 1);
-  }
   delay(10);  // at most, use a delay of 10, else the digits being displayed will flash.
 
   if (TurnDetected)  {
@@ -124,6 +115,14 @@ void loop ()  {
       Serial.print (" > left  count = ");
       Serial.println (virtualPosition);
     }
+    if (virtualPosition > MAX_VALUE) {
+      // Reset to 0 after counting to the max.
+      virtualPosition = MIN_VALUE;
+    } else if (virtualPosition < MIN_VALUE) {
+      // Set max, if less than zero.
+      virtualPosition = MAX_VALUE;
+    }
+    sevseg.setNumber(virtualPosition, 1);
     delay(10);
   }
 
