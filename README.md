@@ -6,14 +6,22 @@ To remove the warning, deleting the version of the library you currently have in
 https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
 
 --------------------------------------------------------------------------------
+### Interrupt pins
+
+Pins 2 and 3 are the interrupt pins on Nano, Uno, and other 328-based boards.
+
+Example setup for the rotary encoder, using Nano pin 2:
+````
+attachInterrupt (0, rotarydetect, CHANGE);
+--- or ---
+attachInterrupt (digitalPinToInterrupt(2), rotarydetect, CHANGE);
+````
+Click [here](https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/) for documentation.
+
+--------------------------------------------------------------------------------
 ## Build next
 
-+ Fix Bluetooth hum: I am replacing the simple board amp with a 
-https://www.amazon.com/dp/B07QRRQDDW
-+ Another amp option, which looks better, Price: $39.99 & FREE Shipping:
-https://www.amazon.com/dp/B07HR7PRV5
-
-+ LED digit 7 segment display
++ MP3 player for the new Douk Audio amp.
 
 + Update pong: align the boarders, and add cables for paddles for playing.
 
@@ -133,6 +141,11 @@ What range of voltage should be expected from the Nano '5V' pin?
 https://www.youtube.com/watch?v=PrIAnDZ9dp8
 + Detail video
 https://www.youtube.com/watch?v=7x1P80X1V3E
+
++ Fix Bluetooth hum: I am replacing the simple board amp with a 
+https://www.amazon.com/dp/B07QRRQDDW
++ Another amp option, which looks better, Price: $39.99 & FREE Shipping:
+https://www.amazon.com/dp/B07HR7PRV5
 
 ---------------
 #### Parts on Amazon.com
@@ -301,6 +314,12 @@ In the IDE menu, select:
 ## Projects
 
 ### Working
+
++ Rotary Encoder
++ Rotary Encoder with 2 LED digit 7 segment display
+
++ LED digit 7 segment display
++ 2 LED digit 7 segment display
 
 + 120v plugin controller: Arduino, relay, electrical supplies from Home Depot
 

@@ -6,7 +6,7 @@
   Connect a KY-040 rotary encoder to a Nano.
   + "+" to Nano 5v, note, also works with 3.3v, example: NodeMCU.
   + GND to Nano ground.
-  + CLK (clock) to Nano pin 2, the interrupt pin. Also referred to as output A.
+  + CLK (clock) to Nano pin 2, an interrupt pin. Also referred to as output A.
   + DT  (data)  to Nano pin 3. Also referred to as output B (encoder pin B).
 
   // -----------------------------------------------------------------------------
@@ -51,15 +51,15 @@ SevSeg sevseg;
 const int PinCLK = 2; // Generating interrupts using CLK signal
 const int PinDT = 3;  // Reading DT signal
 
-volatile boolean TurnDetected;  // Type volatile for interrupts.
+volatile boolean turnDetected;  // Type volatile for interrupts.
 volatile boolean turnRight;
 
 // Interrupt routine runs if rotary encoder CLK pin changes state.
 void rotarydetect ()  {
-  // Set TurnDetected, and in which direction: turnRight or left (!turnRight).
-  TurnDetected = false;
+  // Set turnDetected, and in which direction: turnRight or left (!turnRight).
+  turnDetected = false;
   if (digitalRead(PinDT) == 1) {
-    TurnDetected = true;
+    turnDetected = true;
     turnRight = false;
     if (digitalRead(PinCLK) == 0) {
       turnRight = true;
@@ -74,8 +74,8 @@ void setup ()  {
   delay(1000);
   Serial.println("+++ Setup.");
 
-  // Set up the rotary encoder.
-  attachInterrupt (0, rotarydetect, CHANGE); // Interrupt 0 is pin 2 on Arduino.
+  // Setup: rotary encoder interupt on Arduino pin 2.
+  attachInterrupt (digitalPinToInterrupt(2), rotarydetect, CHANGE);
 
   // Set up the libraries values that are used to write to the segment digits.
   byte hardwareConfig = COMMON_CATHODE; // COMMON_ANODE or COMMON_CATHODE
@@ -87,8 +87,8 @@ void setup ()  {
   bool leadingZeros = true;           // Clock leading 0. When true: "01" rather that " 1".
   bool disableDecPoint = true;        // Use 'true' if your decimal point doesn't exist or isn't connected
   sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments, updateWithDelays, leadingZeros, disableDecPoint);
-
-  sevseg.setNumber(0, 1);
+  // Display "00" to start.
+  sevseg.setNumber(0);
   sevseg.refreshDisplay();
 
   Serial.println("+++ Go to loop.");
@@ -101,11 +101,8 @@ void loop ()  {
 
   // static is required to count correctly.
   static long virtualPosition = 0;
-
-  delay(10);  // at most, use a delay of 10, else the digits being displayed will flash.
-
-  if (TurnDetected)  {
-    TurnDetected = false;  // Reset, until new rotation detected
+  if (turnDetected)  {
+    turnDetected = false;  // Reset, until new rotation detected
     if (turnRight) {
       virtualPosition++;
       Serial.print (" > right count = ");
@@ -126,7 +123,10 @@ void loop ()  {
     delay(10);
   }
 
-  sevseg.refreshDisplay();  // Display the digits.
+  // Display the digits.
+  sevseg.refreshDisplay();
+  // At most, use a delay of 10, else the digits being displayed will flash.
+  delay(10);
 
   // -----------------------------------------------------------------------------
 }
