@@ -2,8 +2,8 @@
 /*
   Connect a 7 segment display to a Nano.
   Needs to match: segmentPins and digitPins as defined below.
-  + Segment CA1 to 1K resister, to Nano pin 2. If common cathode display (-).
-  + Segment CA2 to 1K resister, to Nano pin 3. If common cathode display (-).
+  + Segment CA1 to 1K resister, to Nano pin 4. If common cathode display (-).
+  + Segment CA2 to 1K resister, to Nano pin 5. If common cathode display (-).
   + Segment A to Nano pin 6.
   + Segment B to Nano pin 7.
   + Segment C to Nano pin 8.
@@ -13,9 +13,9 @@
   + Segment G to Nano pin 12.
 
   Segment pins mapped to Nano pins:
-       Rs2 12 11 6  7    -> Nano pins
-       CA1 G  F  A  B    -> Segments they control
-        |  |  |  |  |
+       Rs-4 12 11 6  7    -> Nano pins
+       CA1  G  F  A  B    -> Segments they control
+        |   |  |  |  |
    ---------    ---------
    |   A   |    |   A   |
   F|       |B  F|       |B
@@ -23,9 +23,9 @@
   E|       |C  E|       |C
    |   D   |    |   D   |
    ---------    ---------
-        |  |  |  |  |
-        D  DP E  C CA2   -> Segments they control
-        9     10 8 Rs3   -> Nano pins
+        |   |  |  |  |
+        D   DP E  C CA2   -> Segments they control
+        9      10 8 Rs-5  -> Nano pins
 
   To install library, download the zip and use: Sketch/Include Library/Add Zip Library.
     https://github.com/DeanIsMe/SevSeg
@@ -45,7 +45,7 @@ void setup ()  {
   byte hardwareConfig = COMMON_CATHODE; // COMMON_ANODE or COMMON_CATHODE
   byte segmentPins[] = {6, 7, 8, 9, 10, 11, 12, 13};  // Mapping segment pins A..G, to Nano pins.
   byte numDigits = 2;                 // Number of display digits.
-  byte digitPins[] = {2, 3};          // Multi-digit display ground/set pins.
+  byte digitPins[] = {4, 5};          // Multi-digit display ground/set pins.
   bool resistorsOnSegments = true;    // Set to true when using a single resister per display digit.
   bool updateWithDelays = false;      // Doesn't work when true.
   bool leadingZeros = true;           // Clock leading 0. When true: "01" rather that " 1".
