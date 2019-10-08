@@ -66,6 +66,7 @@ https://www.youtube.com/watch?v=7rcVeFFHcFM
 Other video:
 https://www.youtube.com/watch?v=o74kQSlpGn4
 https://www.youtube.com/watch?v=D40cgHyBLL4
+
 --------------------------------------------------------------------------------
 ## Weather project
 
@@ -90,17 +91,7 @@ Library:
 
 + Arduino Nano with BME280 for Temperature Humidity and Pressure
 https://www.instructables.com/id/Arduino-Nano-and-Visuino-Display-BME280-Temperatur/
-+ Pressure: BME280
-1 x ($1.02) SODIAL Breakout Humidity/Digital Temperature/Barometric Pressure Sensor Module BME280
-
 https://www.instructables.com/id/Arduino-Easy-Weather-Station-With-BME280-Sensor/
-
---------------------------------------------------------------------------------
-## Program: lcd1602serial.ino
-
-I'm testing the program to have it count seconds, as best I can with out a clock, such as a DS3231.
-Each loop, the program runs delay(993), which is close to having a 1 second loop, with logic and displaying the counter to the LCD.
-The accuracy various widely. Only good when approx time is okay.
 
 --------------------------------------------------------------------------------
 ### Useful components
@@ -213,13 +204,13 @@ https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
 Reference: https://forum.arduino.cc/index.php?topic=477214.0
 
 --------------------------------------------------------------------------------
-## 1602 LCD Keypad Shield with an Arduino Uno R3
+#### 1602 LCD Keypad Shield with an Arduino Uno R3
 
 Program examples:
 https://create.arduino.cc/projecthub/electropeak/using-1602-lcd-keypad-shield-w-arduino-w-examples-e02d95
 
 --------------------------------------------------------------------------------
-## Use Arduino I2C Serial LCD 16x2
+#### Use Arduino I2C Serial LCD 16x2
 
 + Hello World
 https://www.instructables.com/id/How-to-Use-Arduino-I2C-Serial-LCD-16x2-Yellow-Back/
@@ -298,15 +289,6 @@ https://www.ebay.com/itm/SIM800L-gprs-gsm-module-micro-sim-core-board-quad-band-
 
 
 --------------------------------------------------------------------------------
-## Twilio SMS with using an ESP8266
-
-+ To order:
-+ Cable: SSD to USB so that I can read my old computers files.
-+ DF Player and Yamaha amp. For my room.
-+ 3 NodeMCU
-+ 3 infrared receivers
-
---------------------------------------------------------------------------------
 ## Set up on my MacBook:
 
 In the IDE menu, select:
@@ -339,6 +321,9 @@ https://github.com/tigerfarm/arduino/blob/master/samples/clockLcd/clockLcd.ino
 
 + Serial 1602 LCD display
 https://github.com/tigerfarm/arduino/tree/master/samples/lcd1602serial
++ Program to count seconds, as best I can without a clock such as a DS3231.
+Each loop, the program runs delay(993), which is close to having a 1 second loop, with logic and displaying the counter to the LCD.
+The accuracy various widely. Only good when approx time is okay.
 
 + Bar graph
 https://github.com/tigerfarm/arduino/tree/master/samples/BarGraph
