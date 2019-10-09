@@ -1,22 +1,10 @@
 --------------------------------------------------------------------------------
 # Arduino Notes
 
-+ I'm getting a warning message.
+To do:
++ I'm getting a warning message when compiling.
 To remove the warning, deleting the version of the library you currently have installed and then installing version 1.0.0:
 https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
-
---------------------------------------------------------------------------------
-### Interrupt pins
-
-Pins 2 and 3 are the interrupt pins on Nano, Uno, and other 328-based boards.
-
-Example setup for the rotary encoder, using Nano pin 2:
-````
-attachInterrupt (0, rotarydetect, CHANGE);
---- or ---
-attachInterrupt (digitalPinToInterrupt(2), rotarydetect, CHANGE);
-````
-Click [here](https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/) for documentation.
 
 --------------------------------------------------------------------------------
 ## Build next
@@ -37,25 +25,54 @@ Click [here](https://www.arduino.cc/reference/en/language/functions/external-int
     Requires DS3231 clock board and LCD, Nano with a USB micro cable for power.
 
 Parts I have for building:
-
-+ 1 NodeMCU, 3 on order
-+ 2 Nano, 3 on order
++ Nano boards
++ [NodeMCU ESP8266](https://www.instructables.com/id/NodeMCU-ESP8266-Details-and-Pinout/), with ESP12E for WiFi, boards
 + 1 Uno
 + 1 Uno clone, for which I need to figured out a driver
-
-+ 1 half size breadboards: MP3 player
-+ 2 full size breadboards
-+ 2 full length breadboards
-
++ Breadboards: 1/2 and full sized.
++ DS3231 clock boards
++ 4 rotary encoders
 + 3 relay switches
-+ 3 BME280
-
++ 3 BME280 boards
++ NRF24L01 wireless communication boards
++ USB cables to use a power source with USB wall plugs.
 + 5 5v power adapters
-+ 4 Voltage Regulator: AMS1117-3.3v
-+ 1 Voltage Regulator: AMS1117-5v
++ Voltage Regulator: AMS1117-3.3v
 
 --------------------------------------------------------------------------------
-## Wireless Communication – NRF24L01
+## Hardware Notes
+
+### Interrupt pins
+
+Pins 2 and 3 are the interrupt pins on Nano, Uno, and other 328-based boards.
+NodeMCU based ESP8266 has interrupt feature on GPIO pins D0-D8.
+
+Example setup for the rotary encoder, using Nano pin 2:
+````
+attachInterrupt (0, rotarydetect, CHANGE);
+--- or ---
+attachInterrupt (digitalPinToInterrupt(2), rotarydetect, CHANGE);
+````
+Click [here](https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/) for Nano documentation.
+Click [here](https://www.electronicwings.com/nodemcu/nodemcu-gpio-interrupts-with-arduino-ide) for NodeMCU documentation.
+
+NodeMCU sample interrupt program.
+Setup connections: NodeMCU 3.3v to button to D2 to resister to ground.
+````
+uint8_t GPIO_Pin = D2;
+void setup() {
+ Serial.begin(9600);
+ attachInterrupt(digitalPinToInterrupt(GPIO_Pin), IntCallback, RISING);
+}
+void loop() {
+}
+void IntCallback(){
+ Serial.print("Stamp(ms): ");
+ Serial.println(millis());
+}
+````
+--------------------------------------------------------------------------------
+### Wireless Communication – NRF24L01
 
 Steps:
 https://howtomechatronics.com/tutorials/arduino/arduino-wireless-communication-nrf24l01-tutorial/
@@ -68,10 +85,9 @@ https://www.youtube.com/watch?v=o74kQSlpGn4
 https://www.youtube.com/watch?v=D40cgHyBLL4
 
 --------------------------------------------------------------------------------
-## Weather project
+### BME280 board for Weather projects
 
-+ Arduino Nano with BME280 for Temperature, Humidity and Pressure
-
+Use an Nano with BME280 for Temperature, Humidity and Pressure
 + BME280 6 pins labels (pins up):
 + Pins: VCC GND|SCL SDA|CSB SDO
 + BME280 pins down, and following: https://www.youtube.com/watch?v=PidE-pJiIXY
@@ -85,11 +101,9 @@ https://www.youtube.com/watch?v=D40cgHyBLL4
 | 6 SDO       | Not used.
 ---------------
 ````
+Library suggested: Grove - Barometer Senor BME280 by Seed Studio, version 1.02
 
-Library:
-+ Grove - Barometer Senor BME280 by Seed Studio, version 1.02
-
-+ Arduino Nano with BME280 for Temperature Humidity and Pressure
+Projects:
 https://www.instructables.com/id/Arduino-Nano-and-Visuino-Display-BME280-Temperatur/
 https://www.instructables.com/id/Arduino-Easy-Weather-Station-With-BME280-Sensor/
 
@@ -311,7 +325,8 @@ https://github.com/tigerfarm/arduino/tree/master/samples/7segment1digit
 + 2 LED digit 7 segment display
 https://github.com/tigerfarm/arduino/tree/master/samples/7segment2digit
 
-+ 120v plugin controller: Arduino, relay, electrical supplies from Home Depot
++ 120v plugin controller: Arduino, relay, electrical supplies from Home Depot.
+I need to find the program I used to test.
 
 + DS3231 Clock: Clock pulses: second, minutes, hours, days.
 ++ With option to toggle the LCD display on and off.
