@@ -6,12 +6,21 @@
   + SDA to Nano D4 (pin 4), same on Uno.
   + SCL to Nano D5 (pin 5), same on Uno.
 
-  The BUTTON circuit:
-  - Board is either an Arduino Uno, Nano, or a NodeMCU.
-  - LED positive is connected to onboard LED pin.
-  - Button side 1, connected to Arduino +5V or NodeMCU +3.3V.
-  - Button side 2, connected to a 10K resistor which is connected to ground.
-  - Button side 2, connected to board pin (BUTTON_PIN), example: D11 on Nano.
+  Connect infrared receiver, pins from top left to right:
+    Left most (next to the X) - Nano pin 9
+    Center - 5V
+    Right  - ground
+
+    9 + -   - Nano connections
+    | | |   - Infrared receiver pins
+  ---------
+  |S      |
+  |       |
+  |  ---  |
+  |  | |  |
+  |  ---  |
+  |       |
+  ---------
 
   // -----------------------------------------------------------------------------
   DS3231 Clock Library:
@@ -20,20 +29,24 @@
   Note, the library uses uint8_t, which is the same as a byte: an unsigned 8 bit integer.
   Time and date units are are declared as, uint8_t.
 */
+// -----------------------------------------------------------------------
+// For the infrared receiver.
+#include <IRremote.h>
+int IR_PIN = 9;
+IRrecv irrecv(IR_PIN);
+decode_results results;
+
 // -----------------------------------------------------------------------------
 // For the clock board.
 
 #include "RTClib.h"
-
 RTC_DS3231 rtc;
-
 DateTime now;
 
 // -----------------------------------------------------------------------------
 // For the LCD.
 
 #include<Wire.h>
-
 #include<LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
@@ -200,6 +213,95 @@ void toggleLcdBacklight() {
   }
 }
 
+// -----------------------------------------------------------------------
+void infraredSwitch() {
+  // Serial.println("+ infraredSwitch");
+  switch (results.value) {
+    case 0xFFFFFFFF:
+      // Ignore. This is from holding the key down.
+      break;
+    // -----------------------------------
+    case 0xFF10EF:
+    case 0xE0E0A659:
+      Serial.println("+ Key < - previous");
+      break;
+    case 0xFF5AA5:
+    case 0xE0E046B9:
+      Serial.println("+ Key > - next");
+      break;
+    case 0xFF18E7:
+    case 0xE0E006F9:
+      Serial.println("+ Key up");
+      break;
+    case 0xFF4AB5:
+    case 0xE0E08679:
+      Serial.println("+ Key down");
+      break;
+    case 0xFF38C7:
+    case 0xE0E016E9:
+      Serial.println("+ Key OK - Toggle");
+      break;
+    // -----------------------------------
+    case 0xFF9867:
+    case 0xE0E08877:
+      Serial.print("+ Key 0:");
+      Serial.println("");
+      break;
+    case 0xFFA25D:
+      Serial.print("+ Key 1: ");
+      Serial.println("");
+      break;
+    case 0xFF629D:
+      Serial.print("+ Key 2: ");
+      Serial.println("");
+      break;
+    case 0xFFE21D:
+      Serial.print("+ Key 3: ");
+      Serial.println("");
+      break;
+    case 0xFF22DD:
+      Serial.print("+ Key 4: ");
+      Serial.println("");
+      break;
+    case 0xFF02FD:
+      Serial.print("+ Key 5: ");
+      Serial.println("");
+      break;
+    case 0xFFC23D:
+      Serial.print("+ Key 6: ");
+      Serial.println("");
+      break;
+    case 0xFFE01F:
+      Serial.print("+ Key 7: ");
+      Serial.println("");
+      break;
+    case 0xFFA857:
+      Serial.print("+ Key 8: ");
+      Serial.println("");
+      break;
+    case 0xFF906F:
+      Serial.print("+ Key 9: ");
+      Serial.println("");
+      break;
+    // -----------------------------------
+    case 0xFF6897:
+    case 0xE0E01AE5:
+      Serial.println("+ Key * (Return)");
+      toggleLcdBacklight();
+      break;
+    case 0xFFB04F:
+    case 0xE0E0B44B:
+      Serial.println("+ Key # (Exit)");
+      break;
+    // -----------------------------------
+    default:
+      Serial.print("+ Result value: ");
+      Serial.println(results.value, HEX);
+      // -----------------------------------
+  } // end switch
+
+}
+
 // -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
@@ -209,19 +311,19 @@ void setup() {
 
   // RTC: Real Time Clock
   if (!rtc.begin()) {
-    Serial.println("--- Did not find RTC.");
+    Serial.println("Couldn't find RTC");
     while (1);
   }
   if (rtc.lostPower()) {
-    Serial.println("RTC lost power, reset the time.");
+    Serial.println("RTC lost power, need to reset the time.");
     // Set the RTC to the date & time this sketch was compiled, which is only seconds behind the actual time.
-    // While not exact, it is close to actual.
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    // Or, set the RTC with an explicit date & time
+    // rtc.adjust(DateTime(2019, 10, 9, 13, 42, 20));   // year, month, day, hour, minute, seconds
   }
-  // Uncomment out the rtc command to set the time.
-  // To sequence with a clock, click the Upload at 0 seconds.
-  // It takes about 16 seconds to reach this point and set the clock time to:
-  // rtc.adjust(DateTime(2019, 10, 9, 13, 46, 16));   // year, month, day, hour, minute, seconds
+  // Uncomment out to manually adjust the time.
+  // Start the upload at 0 seconds.
+  rtc.adjust(DateTime(2019, 10, 9, 13, 46, 16));   // year, month, day, hour, minute, seconds
 
   lcd.init();
   lcd.backlight(); // backlight on
@@ -240,7 +342,9 @@ void setup() {
   syncCountWithClock();
   //
   pinMode(BUTTON_PIN, INPUT);
-  //
+
+  irrecv.enableIRIn();
+
   Serial.println("+++ Go to loop.");
 }
 
@@ -252,6 +356,13 @@ void loop() {
   //
   toggleLcdBacklight();
   processClockNow();
+
+  // ---------------------------------------------------------------------
+  // Process infrared key presses.
+  if (irrecv.decode(&results)) {
+    infraredSwitch();
+    irrecv.resume();
+  }
 
   // -----------------------------------------------------------------------------
 }
