@@ -4,8 +4,10 @@
  *  i.e. turn the power on at 52 seconds.
 
   Connect LCD to Nano:
-    SDA - A4
     SCL - A5
+    SDA - A4
+    VCC - 5V
+    GND - GND
 */
 #include<Wire.h>
 
@@ -100,6 +102,5 @@ void setup() {
 void loop() {
   displayOneSecondCount();
 }
-
 // -----------------------------------------------------------------------------
-// eof
+

@@ -5,6 +5,12 @@ To do:
 + I'm getting a warning message when compiling.
 To remove the warning, deleting the version of the library you currently have installed and then installing version 1.0.0:
 https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
+Reference: https://forum.arduino.cc/index.php?topic=477214.0
+
+A microcontroller unit (MCU) includes a processor, memory and input/output (I/O) pins on a single chip.
+Microprocessors are designed to maximize compute power on the chip, with internal bus connections (rather than direct I/O)
+to supporting hardware such as RAM and serial ports.
+Simply put, coffee makers use microcontrollers; desktop computers use microprocessors.
 
 --------------------------------------------------------------------------------
 ## Build next
@@ -40,7 +46,7 @@ Parts I have for building:
 + Voltage Regulator: AMS1117-3.3v
 
 --------------------------------------------------------------------------------
-## Hardware Notes
+## Hardware Component Notes
 
 ### Interrupt pins
 
@@ -108,6 +114,41 @@ https://www.instructables.com/id/Arduino-Nano-and-Visuino-Display-BME280-Tempera
 https://www.instructables.com/id/Arduino-Easy-Weather-Station-With-BME280-Sensor/
 
 --------------------------------------------------------------------------------
+### DS3231 Clock board
+
+It's a high precision real-time clock module.
++ DS3231 use battery: CR2032, which should last for over a year
+
+DS3231 Pins:
++ VCC to 3.3-5.5V
++ GND to ground
++ SDA to D4 (pin 4) on Uno and Nano
++ SCL to D5 (pin 5) on Uno and Nano
+
+The DS3231 connects to the Nano i²c (I2C or i2c) bus: SDA and SCL.
+
++ Project: Clock timer which uses a battery powered DS3231 clock and an LCD 1602.
+
++ Clock using LCD 1602 keypad shield (left, right, up, down, select).
+http://ediy.com.my/projects/item/138-arduino-based-lcd-digital-clock
+https://youtu.be/Hp1u-akidpM
+
+Reference: https://forum.arduino.cc/index.php?topic=477214.0
+
+--------------------------------------------------------------------------------
+### I2C Serial LCD 1602 (16 characters x 2 lines)
+
+Use I2C Serial, only 2 microcontroller pins, to display messages on the LCD 1602.
+
+Connect LCD to Nano:
+````
+SCL - A5
+SDA - A4
+VCC - 5V
+GND - GND
+````
+
+--------------------------------------------------------------------------------
 ### Useful components
 
 + Arduino Nano 3.0 controller, CH340 USB driver
@@ -152,86 +193,16 @@ https://www.amazon.com/dp/B07QRRQDDW
 + Another amp option, which looks better, Price: $39.99 & FREE Shipping:
 https://www.amazon.com/dp/B07HR7PRV5
 
++ DS3231 clock board: DC 3.3-5.5V, High Precision Real-Time Clock Module, $1.29
+
 + Keypad
 + 1 x ($1.00) 4 x 4 16 Key Matrix Membrane Switch Keypad $1.00
 http://www.circuitbasics.com/how-to-set-up-a-keypad-on-an-arduino/
 
----------------
-#### Parts on Amazon.com
-
-+ Search: YDA138-E Audio Amplifier
-+ $2.78 & FREE Shipping 
-https://www.amazon.com/Semoic-YDA138-Channel-Digital-Amplifier/dp/B07MKX4FL4/ref=sr_1_7?keywords=YDA138-E+Audio+Amplifier
-
-+ TDA7492P Digital Amplifier Board
-
-+ Search: Infrared Receiver IR Sensor Module
-+ Sold 2 at a time, 4 for: $4.78 + Free Shipping, $1.20/each(about)
-https://www.amazon.com/barterine-KY-022-Infrared-Receiver-Arduino/dp/B01MG1LFA0/ref=pd_day0_hl_201_2/133-5806447-0800931?_encoding=UTF8&pd_rd_i=B01MG1LFA0&pd_rd_r=cfe3b8b2-ca32-477b-a433-1e69ab7a5e3f&pd_rd_w=RFsGg&pd_rd_wg=Y9yhL&pf_rd_p=cd872437-0036-44da-b76a-718df210c36e&pf_rd_r=DPFTD1HBT427SWZBGF1A&psc=1&refRID=DPFTD1HBT427SWZBGF1A
-+ For 3, $1.29 + $2.97 shipping = $4.26 for 3, $1.40/each(about)
-https://www.amazon.com/Manakayla-37-9KHz-Infrared-Receiver-Arduino/dp/B07R781JSD/ref=sr_1_3?keywords=Infrared+Receiver+IR+Sensor+Module&qid=1568131755&s=gateway&sr=8-3
-
-+ DS3231 clock, $2.94 & FREE Shipping, Jiasijieke for Arduino DS3231 ZS042 AT24C32 IIC Module Precision RTC Real Time Clock Memory New 
-https://www.amazon.com/Jiasijieke-Arduino-DS3231-AT24C32-Precision/dp/B07MLRFRKF/ref=sr_1_14?crid=XGO2MU3QU4D6&keywords=ds3231+real+time+clock+module&qid=1568132528&s=electronics&sprefix=ds32%2Celectronics%2C200&sr=1-14
-
-+ LCD 1602 Serial IIC I2C, For 2: $8.99 & FREE Shipping
-https://www.amazon.com/gp/product/B0711WLVP9/ref=ox_sc_act_title_1?smid=A304913WPKF57E&psc=1
-
-+ DFPlayer MP3, 5 for: $9.98 & FREE Shipping.
-https://www.amazon.com/DAOKI-DFPlayer-Player-Module-Arduino/dp/B01MQD5IIA/ref=sr_1_14?keywords=dfplayer&qid=1568135351&s=pc&sr=1-14
-
----------------
-+ $02.01 Solderless Breadboard Bread Board 400 Tie Points Contacts
-https://www.amazon.com/Solderless-Breadboard-Bread-Points-Contacts/dp/B00JGFDKBQ/ref=sr_1_8?keywords=SODIAL+breadboard&qid=1554232722&s=gateway&sr=8-8
-+ $01.51 Male to female, 20cm Long F/F Solderless Flexible Breadboard Jumper Cable Wire 40 Pcs 
-https://www.amazon.com/SODIAL-Solderless-Flexible-Breadboard-Jumper/dp/B00U8MK14K/ref=sr_1_7?keywords=SODIAL+jumper+cable+breadboard&qid=1554232815&s=gateway&sr=8-7
-+ $2.66 140pcs U Shape Solderless Breadboard Jumper Cable Wire Kit for Arduino Shield 
-https://www.amazon.com/SODIAL-140pcs-Solderless-Breadboard-Arduino/dp/B00K67XXSI/ref=sr_1_10?keywords=SODIAL+jumper+cable+breadboard&qid=1554232815&s=gateway&sr=8-10
-
---------------------------------------------------------------------------------
-## Clock
-
-+ Clock timer: battery powered clock, LCD 1602, control pins
-+ DS3231: DC 3.3-5.5V, High Precision Real-Time Clock Module, $1.29
-+ DS3231 use battery: CR2032, which should last for over a year
-
-i²c (I2C or i2c) bus: SDA and SCL
-
-Pins:
-+ VCC to 3.3-5.5V
-+ GND to ground
-+ SDA to D4 (pin 4) on Uno and Nano
-+ SCL to D5 (pin 5) on Uno and Nano
-
-+ Clock using LCD 1602 keypad shield (left, right, up, down, select).
-http://ediy.com.my/projects/item/138-arduino-based-lcd-digital-clock
-https://youtu.be/Hp1u-akidpM
-
-#### Fix warning message:
-```
-"WARNING: Category 'Real-time clock' in library DS3231 is not valid. Setting to 'Uncategorized'"
-````
-You could make the warning go away by deleting the version of the library you currently have installed and then installing version 1.0.0:
-
-https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
-
-Reference: https://forum.arduino.cc/index.php?topic=477214.0
-
---------------------------------------------------------------------------------
-#### 1602 LCD Keypad Shield with an Arduino Uno R3
-
-Program examples:
++ 1602 LCD Keypad Shield for an Arduino Uno R3
++ Program examples:
 https://create.arduino.cc/projecthub/electropeak/using-1602-lcd-keypad-shield-w-arduino-w-examples-e02d95
 
---------------------------------------------------------------------------------
-#### Use Arduino I2C Serial LCD 16x2
-
-+ Hello World
-https://www.instructables.com/id/How-to-Use-Arduino-I2C-Serial-LCD-16x2-Yellow-Back/
-````
-SDA - A4
-SCL - A5
-````
 --------------------------------------------------------------------------------
 ## ESP8266 ESP-12E NodeMcu
 
@@ -300,7 +271,6 @@ ENC28J60 spi interface Ethernet network module
 
 sim800l gprs gsm module micro-sim core board quad-band for arduino
 https://www.ebay.com/itm/SIM800L-gprs-gsm-module-micro-sim-core-board-quad-band-for-arduinor-K5H1/263370283725?epid=26010975359&hash=item3d52179acd:g:iZIAAOSwEaBaKC03
-
 
 --------------------------------------------------------------------------------
 ## Set up on my MacBook:
@@ -722,6 +692,39 @@ CD4049BCN CMOS Hex Buffer/Converter
 
 T106C1 SCR
 ````
+
+--------------------------------------------------------------------------------
+#### Parts on Amazon.com
+
++ Search: YDA138-E Audio Amplifier
++ $2.78 & FREE Shipping 
+https://www.amazon.com/Semoic-YDA138-Channel-Digital-Amplifier/dp/B07MKX4FL4/ref=sr_1_7?keywords=YDA138-E+Audio+Amplifier
+
++ TDA7492P Digital Amplifier Board
+
++ Search: Infrared Receiver IR Sensor Module
++ Sold 2 at a time, 4 for: $4.78 + Free Shipping, $1.20/each(about)
+https://www.amazon.com/barterine-KY-022-Infrared-Receiver-Arduino/dp/B01MG1LFA0/ref=pd_day0_hl_201_2/133-5806447-0800931?_encoding=UTF8&pd_rd_i=B01MG1LFA0&pd_rd_r=cfe3b8b2-ca32-477b-a433-1e69ab7a5e3f&pd_rd_w=RFsGg&pd_rd_wg=Y9yhL&pf_rd_p=cd872437-0036-44da-b76a-718df210c36e&pf_rd_r=DPFTD1HBT427SWZBGF1A&psc=1&refRID=DPFTD1HBT427SWZBGF1A
++ For 3, $1.29 + $2.97 shipping = $4.26 for 3, $1.40/each(about)
+https://www.amazon.com/Manakayla-37-9KHz-Infrared-Receiver-Arduino/dp/B07R781JSD/ref=sr_1_3?keywords=Infrared+Receiver+IR+Sensor+Module&qid=1568131755&s=gateway&sr=8-3
+
++ DS3231 clock, $2.94 & FREE Shipping, Jiasijieke for Arduino DS3231 ZS042 AT24C32 IIC Module Precision RTC Real Time Clock Memory New 
+https://www.amazon.com/Jiasijieke-Arduino-DS3231-AT24C32-Precision/dp/B07MLRFRKF/ref=sr_1_14?crid=XGO2MU3QU4D6&keywords=ds3231+real+time+clock+module&qid=1568132528&s=electronics&sprefix=ds32%2Celectronics%2C200&sr=1-14
+
++ LCD 1602 Serial IIC I2C, For 2: $8.99 & FREE Shipping
+https://www.amazon.com/gp/product/B0711WLVP9/ref=ox_sc_act_title_1?smid=A304913WPKF57E&psc=1
+
++ DFPlayer MP3, 5 for: $9.98 & FREE Shipping.
+https://www.amazon.com/DAOKI-DFPlayer-Player-Module-Arduino/dp/B01MQD5IIA/ref=sr_1_14?keywords=dfplayer&qid=1568135351&s=pc&sr=1-14
+
+---------------
++ $02.01 Solderless Breadboard Bread Board 400 Tie Points Contacts
+https://www.amazon.com/Solderless-Breadboard-Bread-Points-Contacts/dp/B00JGFDKBQ/ref=sr_1_8?keywords=SODIAL+breadboard&qid=1554232722&s=gateway&sr=8-8
++ $01.51 Male to female, 20cm Long F/F Solderless Flexible Breadboard Jumper Cable Wire 40 Pcs 
+https://www.amazon.com/SODIAL-Solderless-Flexible-Breadboard-Jumper/dp/B00U8MK14K/ref=sr_1_7?keywords=SODIAL+jumper+cable+breadboard&qid=1554232815&s=gateway&sr=8-7
++ $2.66 140pcs U Shape Solderless Breadboard Jumper Cable Wire Kit for Arduino Shield 
+https://www.amazon.com/SODIAL-140pcs-Solderless-Breadboard-Arduino/dp/B00K67XXSI/ref=sr_1_10?keywords=SODIAL+jumper+cable+breadboard&qid=1554232815&s=gateway&sr=8-10
+
 --------------------------------------------------------------------------------
 ### My first order:
 ````
