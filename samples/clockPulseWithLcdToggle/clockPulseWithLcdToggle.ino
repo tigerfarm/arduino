@@ -1,4 +1,4 @@
-// -----------------------------------------------------------------------------
+ // -----------------------------------------------------------------------------
 /*
   Connect DS3231 Clock, and the LCD display, pins to the Nano:
   + VCC to Nano 5v, note, also works with 3.3v, example: NodeMCU.
@@ -217,8 +217,11 @@ void setup() {
     // Set the RTC to the date & time this sketch was compiled, which is only seconds behind the actual time.
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
     // Or, set the RTC with an explicit date & time
-    // rtc.adjust(DateTime(2019, 9, 10, 16, 10, 0));   // year, month, day, hour, minute, seconds
+    // rtc.adjust(DateTime(2019, 10, 9, 13, 42, 20));   // year, month, day, hour, minute, seconds
   }
+  // Uncomment out to manually adjust the time.
+  // Start the upload at 0 seconds.
+  rtc.adjust(DateTime(2019, 10, 9, 13, 46, 16));   // year, month, day, hour, minute, seconds
 
   lcd.init();
   lcd.backlight(); // backlight on

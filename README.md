@@ -13,6 +13,14 @@ to supporting hardware such as RAM and serial ports.
 Simply put, coffee makers use microcontrollers; desktop computers use microprocessors.
 
 --------------------------------------------------------------------------------
+### Set up on my MacBook:
+
+In the Arduino IDE menu, select:
++ Tools/Boards: Arduino Nano
++ Processor: ATmega328P (Old Bootloader). With some Nano boards, ATmega328P works.
++ Port: /dev/cu.wchusbserial14120
+
+--------------------------------------------------------------------------------
 ## Build next
 
 + Programmable clock module: DS3231 clock with enhancements. 1) Set time and date using infrared or rotary encoder. 2) Alarms.
@@ -116,15 +124,16 @@ https://www.instructables.com/id/Arduino-Easy-Weather-Station-With-BME280-Sensor
 --------------------------------------------------------------------------------
 ### DS3231 Clock board
 
-It's a high precision real-time clock module.
+DS3231 is a high precision real-time clock module. It has a temperature senor which helps with precision.
 + DS3231 use battery: CR2032, which should last for over a year
 
 DS3231 Pins:
-+ VCC to 3.3-5.5V
-+ GND to ground
-+ SDA to D4 (pin 4) on Uno and Nano
-+ SCL to D5 (pin 5) on Uno and Nano
-
+````
+VCC to 3.3-5.5V
+GND to ground
+SDA to D4 (pin 4) on Uno and Nano
+SCL to D5 (pin 5) on Uno and Nano
+````
 The DS3231 connects to the Nano i²c (I2C or i2c) bus: SDA and SCL.
 
 + Project: Clock timer which uses a battery powered DS3231 clock and an LCD 1602.
@@ -228,17 +237,14 @@ A suggested voltage regulator:
 https://lastminuteengineers.com/creating-esp8266-web-server-arduino-ide/
 
 ---------------
-+ I used Boards Manger, search for ESP and installed: ESP8266 Community version2.5.2.
-+ Alternative that didn't work: Preference, 
-URL to JSON file for adding in the IDE:
-http://arduino.esp8266.com/stable/package_esp8266com_index.json
++ I used Boards Manager, search for ESP and installed: ESP8266 Community version2.5.2.
 
 + Search: ESP8266 ESP-12E CH340
 + Search: ESP8266 ESP-12E CP2102
 + Looks like Arduino UNO uses FTDI USB drivers (FTDI FT232/FT232R that Arduino uses), not CH340 nor CP2102.
 
 LoLin version uses USB CH340, which same as my Arduino Nano chips
-CH340 just fine without needing a driver
+CH340 just fine without needing a driver with setup.
 Amica v.2 and DOIT v.3 use CP2102.
 
 Producers: Amica (see ‘NodeMCU and Amica‘ below), DOIT/SmartArduino, and LoLin/WeMos.
@@ -271,14 +277,6 @@ ENC28J60 spi interface Ethernet network module
 
 sim800l gprs gsm module micro-sim core board quad-band for arduino
 https://www.ebay.com/itm/SIM800L-gprs-gsm-module-micro-sim-core-board-quad-band-for-arduinor-K5H1/263370283725?epid=26010975359&hash=item3d52179acd:g:iZIAAOSwEaBaKC03
-
---------------------------------------------------------------------------------
-## Set up on my MacBook:
-
-In the IDE menu, select:
-+ Tools/Boards: Arduino Nano
-+ Processor: ATmega328P (Old Bootloader)
-+ Port: /dev/cu.wchusbserial14120
 
 --------------------------------------------------------------------------------
 ## Projects
