@@ -1,4 +1,4 @@
- // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 /*
   Connect DS3231 Clock, and the LCD display, pins to the Nano:
   + VCC to Nano 5v, note, also works with 3.3v, example: NodeMCU.
@@ -188,28 +188,17 @@ void printClockByte(int theColumn, int theRow, char theByte) {
 }
 
 // -----------------------------------------------------------------------------
-// Toggle the LCD backlight each time the button is pressed.
-
-const int BUTTON_PIN = 2;     // Nano D2
+// Toggle the LCD backlight on/off.
 boolean theToggle = true;
-boolean buttonAction = true;  // Case the button is pressed and held, only toggle once.
-
 void toggleLcdBacklight() {
-  if (digitalRead(BUTTON_PIN) == HIGH) {
-    if (buttonAction) {
-      if (theToggle) {
-        theToggle = false;
-        Serial.println("+ toggleButton(), turn off.");
-        lcd.noBacklight(); // Backlight off
-      } else {
-        theToggle = true;
-        Serial.println("+ toggleButton(), turn on.");
-        lcd.backlight(); // backlight on
-      }
-    }
-    buttonAction = false;
+  if (theToggle) {
+    theToggle = false;
+    Serial.println("+ toggleButton(), turn off.");
+    lcd.noBacklight(); // Backlight off
   } else {
-    buttonAction = true;
+    theToggle = true;
+    Serial.println("+ toggleButton(), turn on.");
+    lcd.backlight(); // backlight on
   }
 }
 
@@ -286,7 +275,7 @@ void infraredSwitch() {
     // -----------------------------------
     case 0xFF6897:
     case 0xE0E01AE5:
-      Serial.println("+ Key * (Return)");
+      Serial.println("+ Key * (Return): Toggle display on/off.");
       toggleLcdBacklight();
       break;
     case 0xFFB04F:
@@ -317,13 +306,17 @@ void setup() {
   if (rtc.lostPower()) {
     Serial.println("RTC lost power, need to reset the time.");
     // Set the RTC to the date & time this sketch was compiled, which is only seconds behind the actual time.
+    // While not exact, it is close to actual.
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-    // Or, set the RTC with an explicit date & time
-    // rtc.adjust(DateTime(2019, 10, 9, 13, 42, 20));   // year, month, day, hour, minute, seconds
   }
-  // Uncomment out to manually adjust the time.
-  // Start the upload at 0 seconds.
-  rtc.adjust(DateTime(2019, 10, 9, 13, 46, 16));   // year, month, day, hour, minute, seconds
+  // To manually adjust the time.
+  // Uncomment out the rtc line.
+  // Set to the next minute's time.
+  // Upload the change.
+  // Turn the circuit off.
+  // Start the circuit at 0 seconds. The 3 seconds is the time to reach this program step.
+  // Once set, comment out the line and upload the change.
+  // rtc.adjust(DateTime(2019, 10, 9, 16, 22, 3));   // year, month, day, hour, minute, seconds
 
   lcd.init();
   lcd.backlight(); // backlight on
@@ -340,12 +333,10 @@ void setup() {
   now = rtc.now();
   printClockDate();
   syncCountWithClock();
-  //
-  pinMode(BUTTON_PIN, INPUT);
 
   irrecv.enableIRIn();
 
-  Serial.println("+++ Go to loop.");
+  Serial.println("++ Go to loop.");
 }
 
 // -----------------------------------------------------------------------------
@@ -353,8 +344,7 @@ void setup() {
 
 void loop() {
   delay(100);
-  //
-  toggleLcdBacklight();
+
   processClockNow();
 
   // ---------------------------------------------------------------------

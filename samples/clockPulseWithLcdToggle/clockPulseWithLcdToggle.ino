@@ -218,10 +218,14 @@ void setup() {
     // While not exact, it is close to actual.
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   }
-  // Uncomment out the rtc command to set the time.
-  // To sequence with a clock, click the Upload at 0 seconds.
-  // It takes about 16 seconds to reach this point and set the clock time to:
-  // rtc.adjust(DateTime(2019, 10, 9, 13, 46, 16));   // year, month, day, hour, minute, seconds
+  // To manually adjust the time.
+  // Uncomment out the rtc line.
+  // Set to the next minute's time.
+  // Upload the change.
+  // Turn the circuit off.
+  // Start the circuit at 0 seconds. The 3 seconds is the time to reach this program step.
+  // Once set, comment out the line and upload the change.
+  // rtc.adjust(DateTime(2019, 10, 9, 16, 22, 3));   // year, month, day, hour, minute, seconds
 
   lcd.init();
   lcd.backlight(); // backlight on
