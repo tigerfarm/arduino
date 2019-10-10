@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------------
 /*
-  Connect the DS3231 Clock and the LCD display, to the Nano:
+  Connect the DS3231 Clock and the 1602 LCD display, to the Nano:
   + VCC to Nano 5v, note, also works with 3.3v, example: NodeMCU.
   + GND to Nano ground.
   + SDA to Nano D4 (pin 4), same on Uno.
@@ -55,18 +55,31 @@ void displayPrintln(int theRow, String theString) {
   // To overwrite anything on the current line.
   String printString = theString;
   int theRest = displayColumns - theString.length();
+  // Serial.print("*theRest=");
+  // Serial.print(theRest);
   if (theRest < 0) {
     // Shorten to the display column length.
     printString = theString.substring(0, displayColumns);
   } else {
     // Buffer with spaces to the end of line.
-    while (theRest < displayColumns) {
+    while (theRest > 0) {
       printString = printString + " ";
-      theRest++;
+      theRest--;
     }
   }
   lcd.setCursor(0, theRow);
   lcd.print(printString);
+  /*
+    Serial.print(":theString=");
+    Serial.print(theString);
+    Serial.print(":printString=");
+    Serial.print(printString);
+    Serial.print(":theRest=");
+    Serial.print(theRest);
+    Serial.println("*");
+    // Hello there.    :
+    // 1234567890123456:
+  */
 }
 
 void printClockInt(int theColumn, int theRow, int theInt) {
@@ -88,14 +101,21 @@ const int thePrintColHour = 8;
 const int thePrintColMin = thePrintColHour + 3;
 const int thePrintColSec = thePrintColMin + 3;
 
-int theCounterSeconds = 0;
-int theCounterMinutes = 0;
+// rtc.adjust(DateTime(2019, 10, 9, 16, 22, 3));   // year, month, day, hour, minute, seconds
+int theCounterYear = 0;
+int theCounterMonth = 0;
+int theCounterDay = 0;
 int theCounterHours = 0;
+int theCounterMinutes = 0;
+int theCounterSeconds = 0;
 
 void syncCountWithClock() {
-  theCounterSeconds = now.second();
-  theCounterMinutes = now.minute();
+  theCounterYear = now.year();
+  theCounterMonth = now.month();
+  theCounterDay = now.day();
   theCounterHours = now.hour();
+  theCounterMinutes = now.minute();
+  theCounterSeconds = now.second();
   //
   theCursor = thePrintColHour;
   printClockInt(theCursor, printRowClockPulse, theCounterHours);  // Column, Row
@@ -201,6 +221,13 @@ void toggleLcdBacklight() {
 }
 
 // -----------------------------------------------------------------------
+String clockMode = "Clock display";
+/*
+   display - clock running and displaying on the LCD.
+   set- Set: seconds, minutes, hours, day, month, or year.
+*/
+int setMinutes = 0;
+boolean setMode = false;
 void infraredSwitch() {
   // Serial.println("+ infraredSwitch");
   switch (results.value) {
@@ -208,25 +235,63 @@ void infraredSwitch() {
       // Ignore. This is from holding the key down.
       break;
     // -----------------------------------
-    case 0xFF10EF:
-    case 0xE0E0A659:
-      Serial.println("+ Key < - previous");
-      break;
     case 0xFF5AA5:
     case 0xE0E046B9:
-      Serial.println("+ Key > - next");
+      setMode = true;
+      //
+      Serial.print("+ Key > - next: ");
+      Serial.print("+ Current clock mode: ");
+      Serial.println(clockMode);
+      //                 1234567890123456
+      displayPrintln(1, "Set: min:");
+      setMinutes = theCounterMinutes;
+      printClockInt(11, 1, setMinutes);  // Column, Row
+      break;
+    case 0xFF10EF:
+    case 0xE0E0A659:
+      Serial.print("+ Key < - previous: ");
+      Serial.print("+ Current clock mode: ");
+      Serial.println(clockMode);
       break;
     case 0xFF18E7:
     case 0xE0E006F9:
-      Serial.println("+ Key up");
+      Serial.println("+ Key up, increment");
+      setMinutes++;
+      printClockInt(11, 1, setMinutes);  // Column, Row
       break;
     case 0xFF4AB5:
     case 0xE0E08679:
-      Serial.println("+ Key down");
+      Serial.println("+ Key down, decrement");
+      setMinutes--;
+      printClockInt(11, 1, setMinutes);  // Column, Row
       break;
     case 0xFF38C7:
     case 0xE0E016E9:
-      Serial.println("+ Key OK - Toggle");
+      Serial.println("+ Key OK, set");
+      if (setMode) {
+        // rtc.adjust(DateTime(2019, 10, 9, 16, setMinutes, theCounterSeconds));   // year, month, day, hour, minute, seconds
+        displayPrintln(1, "Value is set.");
+        delay(2000);
+        displayPrintln(1, "");
+      }
+      //
+      setMode = false;
+      break;
+    // -----------------------------------
+    case 0xFF6897:
+    case 0xE0E01AE5:
+      Serial.print("+ Key * (Return): ");
+      if (setMode) {
+        Serial.println("Cancel set.");
+        displayPrintln(1, "");
+        setMode = false;
+      }
+      break;
+    case 0xFFB04F:
+    case 0xE0E0B44B:
+      Serial.print("+ Key # (Exit): ");
+      Serial.println("Toggle display on/off.");
+      toggleLcdBacklight();
       break;
     // -----------------------------------
     case 0xFF9867:
@@ -235,6 +300,7 @@ void infraredSwitch() {
       Serial.println("");
       break;
     case 0xFFA25D:
+    case 0xE0E020DF:
       Serial.print("+ Key 1: ");
       Serial.println("");
       break;
@@ -269,16 +335,6 @@ void infraredSwitch() {
     case 0xFF906F:
       Serial.print("+ Key 9: ");
       Serial.println("");
-      break;
-    // -----------------------------------
-    case 0xFF6897:
-    case 0xE0E01AE5:
-      Serial.println("+ Key * (Return): Toggle display on/off.");
-      toggleLcdBacklight();
-      break;
-    case 0xFFB04F:
-    case 0xE0E0B44B:
-      Serial.println("+ Key # (Exit)");
       break;
     // -----------------------------------
     default:
@@ -316,7 +372,7 @@ void setup() {
   // Once set, comment out the line and upload the change.
   // rtc.adjust(DateTime(2019, 10, 9, 16, 22, 3));   // year, month, day, hour, minute, seconds
   Serial.println("+ Clock set.");
-  
+
   lcd.init();
   lcd.backlight(); // backlight on
   //

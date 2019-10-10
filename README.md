@@ -28,7 +28,7 @@ In the Arduino IDE menu, select:
 + Update pong: align the boarders, and add cables for paddles for playing.
 + Timer to turn electrical lights on and off, using a 120v control relay.
     Requires: Nano with a USB micro cable for power, breadboard, Programmable clock module.
-
++ I2C communications between Nano boards.
 + Test BME280 weather device: Temperature, Humidity and Pressure.
 + Weather module: Temperature, Humidity and Pressure.
     Requires: Nano with USB micro cable, breadboard, LCD, BME280
@@ -85,6 +85,102 @@ void IntCallback(){
  Serial.println(millis());
 }
 ````
+
+### I2C Bus synchronous serial protocol for component communications
+
+The DS3231 Clock and 1602 LCD display both communicate with the Nano using I2C.
+````
+Nano pins 4 (SDA) and 5 (SCL) are used for I2C.
+SDA is the serial data pin.
+SCL is the serial clock pin.
+The clock signal synchronizes data transfer between devices.
+````
+Only two wires are required for communication between up to almost 128 (112) devices when using 7 bits addressing.
+The 8th bit is used for indicating whether the master will write to the slave (logic low) or read from it (logic high).
+
+I2C (Inter-Integrated Circuit), pronounced I-two-C or I-squared-C.
+I²C is appropriate for peripherals where simplicity and low manufacturing cost are more important than speed.
+https://en.wikipedia.org/wiki/I%C2%B2C
+
+#### Connecting to Nano boards
+
+Reference:
+https://www.arduino.cc/en/Tutorial/MasterWriter
+
+Connect pin 5 (SCL) and pin 4 (SDA) on the master Nano (write) to the slave Nano (receive).
+Make sure that both boards share a common ground.
+Connect the 5V output of the Master to the VIN pin on the slave.
+
+1. Master write data to the slave.
+````
+#include <Wire.h>
+void setup() {
+  Wire.begin(); // join i2c bus (address optional for master)
+}
+byte x = 0;
+void loop() {
+  Wire.beginTransmission(8);    // transmit to device #8
+  Wire.write("x is ");          // sends five bytes
+  Wire.write(x);                // sends one byte
+  Wire.endTransmission();       // stop transmitting
+  x++;
+  delay(500);
+}
+````
+Slave receives the data.
+````
+#include <Wire.h>
+// Event function that executes whenever data is received.
+void receiveEvent(int howMany) {
+  while (1 < Wire.available()) { // loop through all but the last
+    char c = Wire.read(); // receive byte as a character
+    Serial.print(c);         // print the character
+  }
+  int x = Wire.read();    // receive byte as an integer
+  Serial.println(x);         // print the integer
+}
+void setup() {
+  Wire.begin(8);                // join i2c bus with address #8
+  Wire.onReceive(receiveEvent); // register event function
+  Serial.begin(9600);           // start serial for output
+}
+void loop() {
+  delay(100);
+}
+````
+
+Master request data from the slave, and then receives the data.
+````
+#include <Wire.h>
+void setup() {
+  Wire.begin();        // join i2c bus (address optional for master)
+  Serial.begin(9600);  // start serial for output
+}
+void loop() {
+  Wire.requestFrom(8, 6);       // request 6 bytes from slave device #8
+  while (Wire.available()) {    // slave may send less than requested
+    char c = Wire.read();       // receive a byte as character
+    Serial.print(c);            // print the character
+  }
+  delay(500);
+}
+````
+Slave write data, when requested by the master:
+````
+#include <Wire.h>
+// Event function that executes whenever data is requested by master.
+void requestEvent() {
+  Wire.write("hello ");         // respond with request message of length 6 bytes.
+}
+void setup() {
+  Wire.begin(8);                // join i2c bus with address #8
+  Wire.onRequest(requestEvent); // register event
+}
+void loop() {
+  delay(100);
+}
+````
+
 --------------------------------------------------------------------------------
 ### Wireless Communication – NRF24L01
 
@@ -124,8 +220,12 @@ https://www.instructables.com/id/Arduino-Easy-Weather-Station-With-BME280-Sensor
 --------------------------------------------------------------------------------
 ### DS3231 Clock board
 
-DS3231 is a high precision real-time clock module. It has a temperature senor which helps with precision.
-+ DS3231 use battery: CR2032, which should last for over a year
+DS3231 is a high precision real-time clock module.
++ The DS3231 has an internal Temperature Compensated Crystal Oscillator(TCXO) which isn’t affected by temperature.
+It is accurate to a few minutes per year.
++ The battery, a CR2032, can keep the RTC running for over 8 years without an external 5V power supply.
+Another source said, the battery will keep the clock going for over 1 year.
++ The 24C32 EEPROM (32K pin) uses I2C interface for communication and shares the same I2C bus as DS3231.
 
 DS3231 Pins:
 ````

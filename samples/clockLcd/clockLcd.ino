@@ -11,12 +11,6 @@
   Reference URL:
   https://lastminuteengineers.com/ds3231-rtc-arduino-tutorial/
 
-  The DS3231 has an internal Temperature Compensated Crystal Oscillator(TCXO) which isn’t affected by temperature.
-  It is accurate to a few minutes per year.
-  The battery, a CR2032, can keep the RTC running for over 8 years without an external 5V power supply.
-  Another source said, the battery will keep the clock going for over 1 year.
-  The 24C32 EEPROM (32K pin) uses I2C interface for communication and shares the same I2C bus as DS3231.
-
   Library:
   Filter your search by typing ‘rtclib’. There should be a couple entries. Look for RTClib by Adafruit.
   https://github.com/adafruit/RTClib
