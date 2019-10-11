@@ -110,6 +110,7 @@ int theCounterMinutes = 0;
 int theCounterSeconds = 0;
 
 void syncCountWithClock() {
+  now = rtc.now();
   theCounterYear = now.year();
   theCounterMonth = now.month();
   theCounterDay = now.day();
@@ -133,6 +134,8 @@ void syncCountWithClock() {
   Serial.print(theCounterMinutes);
   Serial.print(" theCounterSeconds=");
   Serial.println(theCounterSeconds);
+  //
+  printClockDate();
 }
 
 // -----------------------------------------------------------------------------
@@ -182,6 +185,7 @@ void printPulseSecond() {
 char dayOfTheWeek[7][1] = {"S", "M", "T", "W", "T", "F", "S"};
 
 void printClockDate() {
+  now = rtc.now();
   theCursor = printColClockDate;
   lcd.setCursor(theCursor, printRowClockDate);    // Column, Row
   lcd.print(dayOfTheWeek[now.dayOfTheWeek()]);
@@ -361,12 +365,10 @@ void infraredSwitch() {
           case 4:
             Serial.print("day");
             theCounterDay = setValue;
-            printClockDate();
             break;
           case 5:
             Serial.print("month");
             theCounterMonth = setValue;
-            printClockDate();
             break;
           case 6:
             Serial.print("year");
@@ -375,6 +377,7 @@ void infraredSwitch() {
         }
         rtc.adjust(DateTime(theCounterYear, theCounterMonth, theCounterDay, theCounterHours, theCounterMinutes, theCounterSeconds));
         displayPrintln(theSetRow, "Value is set.");
+        printClockDate();
         delay(2000);
         displayPrintln(theSetRow, "");
       }
@@ -488,8 +491,6 @@ void setup() {
   delay(3000);
   lcd.clear();
   //
-  now = rtc.now();
-  printClockDate();
   syncCountWithClock();
 
   irrecv.enableIRIn();
