@@ -48,20 +48,32 @@ DateTime now;
 #include<LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
-// -----------------------------------------------------------------------------
-int displayColumns = 16;
+// Toggle the LCD backlight on/off.
+boolean theToggle = true;
+void toggleLcdBacklight() {
+  if (theToggle) {
+    theToggle = false;
+    Serial.println("+ Toggle: off.");
+    lcd.noBacklight();
+  } else {
+    theToggle = true;
+    Serial.println("+ Toggle: on.");
+    lcd.backlight();
+  }
+}
 
+// -----------------------------------------------------------------------------
+// To overwrite anything on the current line.
+
+int displayColumns = 16;  // LCD display column length
 void displayPrintln(int theRow, String theString) {
-  // To overwrite anything on the current line.
   String printString = theString;
   int theRest = displayColumns - theString.length();
-  // Serial.print("*theRest=");
-  // Serial.print(theRest);
   if (theRest < 0) {
-    // Shorten to the display column length.
+    // Since longer that the display column length, shorten the string for printing.
     printString = theString.substring(0, displayColumns);
   } else {
-    // Buffer with spaces to the end of line.
+    // Buffer with spaces to the column length.
     while (theRest > 0) {
       printString = printString + " ";
       theRest--;
@@ -69,17 +81,6 @@ void displayPrintln(int theRow, String theString) {
   }
   lcd.setCursor(0, theRow);
   lcd.print(printString);
-  /*
-    Serial.print(":theString=");
-    Serial.print(theString);
-    Serial.print(":printString=");
-    Serial.print(printString);
-    Serial.print(":theRest=");
-    Serial.print(theRest);
-    Serial.println("*");
-    // Hello there.    :
-    // 1234567890123456:
-  */
 }
 
 void printClockInt(int theColumn, int theRow, int theInt) {
@@ -139,49 +140,6 @@ void syncCountWithClock() {
 }
 
 // -----------------------------------------------------------------------------
-void processClockNow() {
-  now = rtc.now();
-  if (now.second() != theCounterSeconds) {
-    // When the clock second value changes, that's a clock second pulse.
-    theCounterSeconds = now.second();
-    printPulseSecond();
-    if (theCounterSeconds == 0) {
-      // When the clock second value changes to zero, that's a clock minute pulse.
-      theCounterMinutes = now.minute();
-      printPulseMinute();
-      if (theCounterMinutes == 0) {
-        // When the clock minute value changes to zero, that's a clock hour pulse.
-        theCounterHours = now.hour();
-        printPulseHour();
-        if (now.hour() == 0) {
-          // When the clock hour value changes to zero, that's a clock day pulse.
-          // Reprint the date, at time: 00:00:00.
-          printClockDate();
-        }
-      }
-    }
-  }
-}
-
-void printPulseHour() {
-  Serial.print("+ printPulseHour(), theCounterHours= ");
-  Serial.println(theCounterHours);
-  printClockInt(thePrintColHour, printRowClockPulse, theCounterHours);
-}
-
-void printPulseMinute() {
-  // Serial.print(" theCounterMinutes= ");
-  // Serial.println(theCounterMinutes);
-  printClockInt(thePrintColMin, printRowClockPulse, theCounterMinutes);
-}
-
-void printPulseSecond() {
-  // Serial.print("+ theCounterSeconds = ");
-  // Serial.println(theCounterSeconds);
-  printClockInt(thePrintColSec, printRowClockPulse, theCounterSeconds);  // Column, Row
-}
-
-// -----------------------------------------------------------------------------
 char dayOfTheWeek[7][1] = {"S", "M", "T", "W", "T", "F", "S"};
 
 void printClockDate() {
@@ -210,22 +168,50 @@ void printClockByte(int theColumn, int theRow, char theByte) {
 }
 
 // -----------------------------------------------------------------------------
-// Toggle the LCD backlight on/off.
-boolean theToggle = true;
-void toggleLcdBacklight() {
-  if (theToggle) {
-    theToggle = false;
-    Serial.println("+ Toggle: off.");
-    lcd.noBacklight();
-  } else {
-    theToggle = true;
-    Serial.println("+ Toggle: on.");
-    lcd.backlight();
+void processClockNow() {
+  now = rtc.now();
+  if (now.second() != theCounterSeconds) {
+    // When the clock second value changes, that's a clock second pulse.
+    theCounterSeconds = now.second();
+    printPulseSecond();
+    if (theCounterSeconds == 0) {
+      // When the clock second value changes to zero, that's a clock minute pulse.
+      theCounterMinutes = now.minute();
+      printPulseMinute();
+      if (theCounterMinutes == 0) {
+        // When the clock minute value changes to zero, that's a clock hour pulse.
+        theCounterHours = now.hour();
+        printPulseHour();
+        if (now.hour() == 0) {
+          // When the clock hour value changes to zero, that's a clock day pulse.
+          // Reprint the date, at time: 00:00:00.
+          printClockDate();
+        }
+      }
+    }
   }
 }
 
+void printPulseHour() {
+  // Serial.print("+ printPulseHour(), theCounterHours= ");
+  // Serial.println(theCounterHours);
+  printClockInt(thePrintColHour, printRowClockPulse, theCounterHours);
+}
+
+void printPulseMinute() {
+  // Serial.print(" theCounterMinutes= ");
+  // Serial.println(theCounterMinutes);
+  printClockInt(thePrintColMin, printRowClockPulse, theCounterMinutes);
+}
+
+void printPulseSecond() {
+  // Serial.print("+ theCounterSeconds = ");
+  // Serial.println(theCounterSeconds);
+  printClockInt(thePrintColSec, printRowClockPulse, theCounterSeconds);  // Column, Row
+}
+
 // -----------------------------------------------------------------------
-// Menu to set the clock.
+// Menu to set the clock date and time.
 
 int theSetRow = 1;
 int theSetCol = 0;
@@ -233,8 +219,71 @@ int theSetMin = 0;
 int theSetMax = 59;
 int setValue = 0;
 int setClockValue = 0;
+
+void setMenuItem() {
+  switch (setClockValue) {
+    case 0:
+      Serial.print("Cancel set");
+      displayPrintln(theSetRow, "");
+      break;
+    case 1:
+      Serial.print("seconds");
+      displayPrintln(theSetRow, "Set:");
+      theSetMax = 59;
+      theSetMin = 0;
+      theSetCol = thePrintColSec;
+      setValue = theCounterSeconds;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 2:
+      Serial.print("minutes");
+      displayPrintln(theSetRow, "Set:");
+      theSetMax = 59;
+      theSetMin = 0;
+      theSetCol = thePrintColMin;
+      setValue = theCounterMinutes;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 3:
+      Serial.print("hours");
+      displayPrintln(theSetRow, "Set:");
+      theSetMax = 24;
+      theSetMin = 0;
+      theSetCol = thePrintColHour;
+      setValue = theCounterHours;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 4:
+      Serial.print("day");
+      displayPrintln(theSetRow, "Set day:");
+      theSetMax = 31;
+      theSetMin = 1;
+      theSetCol = thePrintColMin;
+      setValue = theCounterDay;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 5:
+      Serial.print("month");
+      displayPrintln(theSetRow, "Set month:");
+      theSetMax = 12;
+      theSetMin = 1;
+      theSetCol = thePrintColMin;
+      setValue = theCounterMonth;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 6:
+      Serial.print("year");
+      displayPrintln(theSetRow, "Set year:");
+      theSetMax = 2525; // In the year 2525, If man is still alive, If woman can survive...
+      theSetMin = 1795; // Year John Keats the poet was born.
+      theSetCol = thePrintColMin;
+      setValue = theCounterYear;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+  }
+}
+
 void infraredSwitch() {
-  // Serial.println("+ infraredSwitch");
   switch (results.value) {
     case 0xFFFFFFFF:
       // Ignore. This is from holding the key down.
@@ -243,76 +292,23 @@ void infraredSwitch() {
     case 0xFF5AA5:
     case 0xE0E046B9:
       Serial.print("+ Key > - next");
-      Serial.print(", set clock value");
+      Serial.print(", set clock menu option");
       setClockValue++;
       if (setClockValue > 6) {
         setClockValue = 0;
       }
-      switch (setClockValue) {
-        case 0:
-          Serial.print("Cancel set");
-          displayPrintln(theSetRow, "");
-          break;
-        case 1:
-          Serial.print("seconds");
-          displayPrintln(theSetRow, "Set:");
-          theSetMax = 59;
-          theSetMin = 0;
-          theSetCol = thePrintColSec;
-          setValue = theCounterSeconds;
-          printClockInt(theSetCol, theSetRow, setValue);
-          break;
-        case 2:
-          Serial.print("minutes");
-          displayPrintln(theSetRow, "Set:");
-          theSetMax = 59;
-          theSetMin = 0;
-          theSetCol = thePrintColMin;
-          setValue = theCounterMinutes;
-          printClockInt(theSetCol, theSetRow, setValue);
-          break;
-        case 3:
-          Serial.print("hours");
-          displayPrintln(theSetRow, "Set:");
-          theSetMax = 24;
-          theSetMin = 0;
-          theSetCol = thePrintColHour;
-          setValue = theCounterHours;
-          printClockInt(theSetCol, theSetRow, setValue);
-          break;
-        case 4:
-          Serial.print("day");
-          displayPrintln(theSetRow, "Set day:");
-          theSetMax = 31;
-          theSetMin = 1;
-          theSetCol = thePrintColMin;
-          setValue = theCounterDay;
-          printClockInt(theSetCol, theSetRow, setValue);
-          break;
-        case 5:
-          Serial.print("month");
-          displayPrintln(theSetRow, "Set month:");
-          theSetMax = 12;
-          theSetMin = 1;
-          theSetCol = thePrintColMin;
-          setValue = theCounterMonth;
-          printClockInt(theSetCol, theSetRow, setValue);
-          break;
-        case 6:
-          Serial.print("year");
-          displayPrintln(theSetRow, "Set year:");
-          theSetMax = 2525; // In the year 2525, If man is still alive, If woman can survive...
-          theSetMin = 1795; // Year John Keats the poet was born.
-          theSetCol = thePrintColMin;
-          setValue = theCounterYear;
-          printClockInt(theSetCol, theSetRow, setValue);
-          break;
-      }
+      setMenuItem();
       Serial.println(".");
       break;
     case 0xFF10EF:
     case 0xE0E0A659:
       Serial.print("+ Key < - previous");
+      Serial.print(", set clock menu option");
+      setClockValue--;
+      if (setClockValue < 0) {
+        setClockValue = 6;
+      }
+      setMenuItem();
       Serial.println(".");
       break;
     case 0xFF18E7:
@@ -451,6 +447,8 @@ void infraredSwitch() {
       // -----------------------------------
   } // end switch
 
+  irrecv.resume();
+
 }
 
 // -----------------------------------------------------------------------------
@@ -460,6 +458,16 @@ void setup() {
   delay(1000);
   Serial.println("+++ Setup.");
 
+  // Initialize the LCD with backlight on.
+  lcd.init();
+  lcd.backlight();
+  //                 1234567890123456
+  displayPrintln(0, "Hello there.");
+  displayPrintln(1, "Start in 2 secs.");
+  delay(2000);
+  lcd.clear();
+  Serial.println("+ LCD set.");
+
   // RTC: Real Time Clock
   if (!rtc.begin()) {
     Serial.println("Couldn't find RTC");
@@ -468,7 +476,7 @@ void setup() {
   if (rtc.lostPower()) {
     Serial.println("RTC lost power, need to reset the time.");
     // Set the RTC to the date & time this sketch was compiled, which is only seconds behind the actual time.
-    // While not exact, it is close to actual.
+    // While not exact, if compiled before running, it is close to actual.
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   }
   // --- To manually adjust the time ---
@@ -479,19 +487,9 @@ void setup() {
   // Start the circuit at 0 seconds. The 3 seconds is the time to reach this program step.
   // Once set, comment out the line and upload the change.
   // rtc.adjust(DateTime(2019, 10, 9, 16, 22, 3));   // year, month, day, hour, minute, seconds
-  Serial.println("+ Clock set.");
 
-  lcd.init();
-  lcd.backlight(); // backlight on
-  //
-  Serial.println("+ Print, Hello there, to LCD.");
-  //                 1234567890123456
-  displayPrintln(0, "Hello there.");
-  displayPrintln(1, "Start in 3 secs.");
-  delay(3000);
-  lcd.clear();
-  //
   syncCountWithClock();
+  Serial.println("+ Clock set.");
 
   irrecv.enableIRIn();
   Serial.println("+ Infrared receiver enabled.");
@@ -507,12 +505,10 @@ void loop() {
 
   processClockNow();
 
-  // -------------------------------
   // Process infrared key presses.
   if (irrecv.decode(&results)) {
     infraredSwitch();
-    irrecv.resume();
   }
 
-  // -----------------------------------------------------------------------------
 }
+// -----------------------------------------------------------------------------
