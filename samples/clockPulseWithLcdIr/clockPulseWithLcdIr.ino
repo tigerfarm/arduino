@@ -221,12 +221,14 @@ void toggleLcdBacklight() {
 }
 
 // -----------------------------------------------------------------------
-/*
-   Display - clock running and displaying on the LCD.
-   Set: seconds, minutes, hours, day, month, or year.
-*/
-int setMinutes = 0;
-boolean setMode = false;
+// Menu to set the clock.
+
+int theSetRow = 1;
+int theSetCol = 0;
+int theSetMin = 0;
+int theSetMax = 59;
+int setValue = 0;
+int setClockValue = 0;
 void infraredSwitch() {
   // Serial.println("+ infraredSwitch");
   switch (results.value) {
@@ -236,14 +238,72 @@ void infraredSwitch() {
     // -----------------------------------
     case 0xFF5AA5:
     case 0xE0E046B9:
-      setMode = true;
-      //
       Serial.print("+ Key > - next");
       Serial.print(", set clock value");
-      //                 1234567890123456
-      displayPrintln(1, "Set: min:");
-      setMinutes = theCounterMinutes;
-      printClockInt(11, 1, setMinutes);  // Column, Row
+      setClockValue++;
+      if (setClockValue > 6) {
+        setClockValue = 0;
+      }
+      switch (setClockValue) {
+        case 0:
+          Serial.print("Cancel set");
+          displayPrintln(theSetRow, "");
+          break;
+        case 1:
+          Serial.print("seconds");
+          displayPrintln(theSetRow, "Set:");
+          theSetMax = 59;
+          theSetMin = 0;
+          theSetCol = thePrintColSec;
+          setValue = theCounterSeconds;
+          printClockInt(theSetCol, theSetRow, setValue);
+          break;
+        case 2:
+          Serial.print("minutes");
+          displayPrintln(theSetRow, "Set:");
+          theSetMax = 59;
+          theSetMin = 0;
+          theSetCol = thePrintColMin;
+          setValue = theCounterMinutes;
+          printClockInt(theSetCol, theSetRow, setValue);
+          break;
+        case 3:
+          Serial.print("hours");
+          displayPrintln(theSetRow, "Set:");
+          theSetMax = 24;
+          theSetMin = 0;
+          theSetCol = thePrintColHour;
+          setValue = theCounterHours;
+          printClockInt(theSetCol, theSetRow, setValue);
+          break;
+        case 4:
+          Serial.print("day");
+          displayPrintln(theSetRow, "Set day:");
+          theSetMax = 31;
+          theSetMin = 1;
+          theSetCol = thePrintColMin;
+          setValue = theCounterDay;
+          printClockInt(theSetCol, theSetRow, setValue);
+          break;
+        case 5:
+          Serial.print("month");
+          displayPrintln(theSetRow, "Set month:");
+          theSetMax = 12;
+          theSetMin = 1;
+          theSetCol = thePrintColMin;
+          setValue = theCounterMonth;
+          printClockInt(theSetCol, theSetRow, setValue);
+          break;
+        case 6:
+          Serial.print("year");
+          displayPrintln(theSetRow, "Set year:");
+          theSetMax = 2525; // In the year 2525, If man is still alive, If woman can survive...
+          theSetMin = 1795; // Year John Keats the poet was born.
+          theSetCol = thePrintColMin;
+          setValue = theCounterYear;
+          printClockInt(theSetCol, theSetRow, setValue);
+          break;
+      }
       Serial.println(".");
       break;
     case 0xFF10EF:
@@ -254,55 +314,82 @@ void infraredSwitch() {
     case 0xFF18E7:
     case 0xE0E006F9:
       Serial.print("+ Key up");
-      if (setMode) {
+      if (setClockValue) {
         Serial.print(", increment");
-        setMinutes++;
-        if (setMinutes < 0) {
-          setMinutes = 59;
-        } else if (setMinutes > 59) {
-          setMinutes = 0;
+        setValue++;
+        if (setValue > theSetMax) {
+          setValue = theSetMin;
         }
-        printClockInt(11, 1, setMinutes);  // Column, Row
+        printClockInt(theSetCol, theSetRow, setValue);
       }
       Serial.println(".");
       break;
     case 0xFF4AB5:
     case 0xE0E08679:
       Serial.print("+ Key down");
-      if (setMode) {
+      if (setClockValue) {
         Serial.print(", decrement");
-        setMinutes--;
-        if (setMinutes < 0) {
-          setMinutes = 59;
-        } else if (setMinutes > 59) {
-          setMinutes = 0;
+        setValue--;
+        if (setValue < theSetMin) {
+          setValue = theSetMax;
         }
-        printClockInt(11, 1, setMinutes);  // Column, Row
+        printClockInt(theSetCol, theSetRow, setValue);
       }
       Serial.println(".");
       break;
     case 0xFF38C7:
     case 0xE0E016E9:
       Serial.print("+ Key OK");
-      if (setMode) {
-        Serial.print(", set");
-        // rtc.adjust(DateTime(2019, 10, 9, 16, setMinutes, theCounterSeconds));   // year, month, day, hour, minute, seconds
-        displayPrintln(1, "Value is set.");
+      if (setClockValue) {
+        Serial.print(", set ");
+        switch (setClockValue) {
+          case 1:
+            Serial.print("seconds");
+            theCounterSeconds = setValue;
+            printClockInt(theSetCol, printRowClockPulse, setValue);
+            break;
+          case 2:
+            Serial.print("minutes");
+            theCounterMinutes = setValue;
+            printClockInt(theSetCol, printRowClockPulse, setValue);
+            break;
+          case 3:
+            Serial.print("hours");
+            theCounterHours = setValue;
+            printClockInt(theSetCol, printRowClockPulse, setValue);
+            break;
+          case 4:
+            Serial.print("day");
+            theCounterDay = setValue;
+            printClockDate();
+            break;
+          case 5:
+            Serial.print("month");
+            theCounterMonth = setValue;
+            printClockDate();
+            break;
+          case 6:
+            Serial.print("year");
+            theCounterYear = setValue;
+            break;
+        }
+        rtc.adjust(DateTime(theCounterYear, theCounterMonth, theCounterDay, theCounterHours, theCounterMinutes, theCounterSeconds));
+        displayPrintln(theSetRow, "Value is set.");
         delay(2000);
-        displayPrintln(1, "");
+        displayPrintln(theSetRow, "");
       }
       Serial.println(".");
       //
-      setMode = false;
+      setClockValue = false;
       break;
     // -----------------------------------
     case 0xFF6897:
     case 0xE0E01AE5:
       Serial.print("+ Key * (Return): ");
-      if (setMode) {
+      if (setClockValue) {
         Serial.println("Cancel set.");
-        displayPrintln(1, "");
-        setMode = false;
+        displayPrintln(theSetRow, "");
+        setClockValue = false;
       }
       break;
     case 0xFFB04F:
