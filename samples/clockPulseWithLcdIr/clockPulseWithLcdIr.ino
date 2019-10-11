@@ -204,6 +204,15 @@ void toggleLcdBacklight() {
   }
 }
 
+int setClockValue = 0;
+void cancelSet() {
+  if (setClockValue) {
+    Serial.println("Cancel set.");
+    displayPrintln(theSetRow, "");
+    setClockValue = false;
+  }
+}
+
 // Menu to set the clock date and time.
 
 int theSetRow = 1;
@@ -211,7 +220,6 @@ int theSetCol = 0;
 int theSetMin = 0;
 int theSetMax = 59;
 int setValue = 0;
-int setClockValue = 0;
 
 void setClockMenuItems() {
   if (!theLcdBacklightOn) {
@@ -290,9 +298,9 @@ void infraredSwitch() {
     case 0xE0E046B9:
       Serial.print("+ Key > - next");
       Serial.print(", set clock menu option");
-      setClockValue++;
-      if (setClockValue > 6) {
-        setClockValue = 0;
+      setClockValue--;
+      if (setClockValue < 0) {
+        setClockValue = 6;
       }
       setClockMenuItems();
       Serial.println(".");
@@ -301,9 +309,9 @@ void infraredSwitch() {
     case 0xE0E0A659:
       Serial.print("+ Key < - previous");
       Serial.print(", set clock menu option");
-      setClockValue--;
-      if (setClockValue < 0) {
-        setClockValue = 6;
+      setClockValue++;
+      if (setClockValue > 6) {
+        setClockValue = 0;
       }
       setClockMenuItems();
       Serial.println(".");
@@ -368,7 +376,7 @@ void infraredSwitch() {
             theCounterYear = setValue;
             break;
         }
-        // This offsets the time to make the change.
+        // The following offsets the time to make the change.
         // Else, the clock looses about second each time a setting is made.
         theCounterSeconds ++;
         delay(100);
@@ -388,16 +396,14 @@ void infraredSwitch() {
     case 0xFF6897:
     case 0xE0E01AE5:
       Serial.print("+ Key * (Return): ");
-      if (setClockValue) {
-        Serial.println("Cancel set.");
-        displayPrintln(theSetRow, "");
-        setClockValue = false;
-      }
+      Serial.println("Cancel set.");
+      cancelSet();
       break;
     case 0xFFB04F:
     case 0xE0E0B44B:
       Serial.print("+ Key # (Exit): ");
-      Serial.println("Toggle display on/off.");
+      Serial.println("Cancel set and Toggle display on/off.");
+      cancelSet();
       toggleLcdBacklight();
       break;
     // -----------------------------------
