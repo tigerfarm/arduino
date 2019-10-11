@@ -1,33 +1,6 @@
 // -----------------------------------------------------------------------------
 /*
-  Connect the DS3231 Clock and the 1602 LCD display, to the Nano:
-  + VCC to Nano 5v, note, also works with 3.3v, example: NodeMCU.
-  + GND to Nano ground.
-  + SDA to Nano D4 (pin 4), same on Uno.
-  + SCL to Nano D5 (pin 5), same on Uno.
 
-  Connect infrared receiver, pins from top left to right:
-    Left most (next to the X) - Nano pin 9
-    Center - 5V
-    Right  - ground
-
-    9 + -   - Nano pin connections
-    | | |   - Infrared receiver pins
-  ---------
-  |S      |
-  |       |
-  |  ---  |
-  |  | |  |
-  |  ---  |
-  |       |
-  ---------
-
-  // -----------------------------------------------------------------------------
-  DS3231 Clock Library:
-  Filter your search by typing ‘rtclib’. There should be a couple entries. Look for RTClib by Adafruit.
-  https://github.com/adafruit/RTClib
-  Note, the library uses uint8_t, which is the same as a byte: an unsigned 8 bit integer.
-  Time and date units are are declared as, uint8_t.
 */
 // -----------------------------------------------------------------------
 // For the infrared receiver.
@@ -142,6 +115,16 @@ void printClockDate() {
   theCursor = theCursor + 2;
   lcd.print("/");
   printClockInt(++theCursor, printRowClockDate, theCounterDay);
+}
+
+void printClockByte(int theColumn, int theRow, char theByte) {
+  int iByte = (char)theByte;
+  lcd.setCursor(theColumn, theRow);    // Column, Row
+  if (iByte < 10) {
+    lcd.print("0");
+    lcd.setCursor(theColumn + 1, theRow);
+  }
+  lcd.print(iByte);
 }
 
 // -----------------------------------------------------------------------------
@@ -368,11 +351,6 @@ void infraredSwitch() {
             theCounterYear = setValue;
             break;
         }
-        // This offsets the time to make the change.
-        // Else, the clock looses about second each time a setting is made.
-        theCounterSeconds ++;
-        delay(100);
-        //
         rtc.adjust(DateTime(theCounterYear, theCounterMonth, theCounterDay, theCounterHours, theCounterMinutes, theCounterSeconds));
         displayPrintln(theSetRow, "Value is set.");
         printClockDate();

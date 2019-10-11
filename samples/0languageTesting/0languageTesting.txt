@@ -1,0 +1,15 @@
+// -----------------------------------------------------------------------------
+
+
+// Sample with conversation of char to int.
+void printClockByte(int theColumn, int theRow, char theByte) {
+  int iByte = (char)theByte;
+  lcd.setCursor(theColumn, theRow);    // Column, Row
+  if (iByte < 10) {
+    lcd.print("0");
+    lcd.setCursor(theColumn + 1, theRow);
+  }
+  lcd.print(iByte);
+}
+
+// -----------------------------------------------------------------------------
