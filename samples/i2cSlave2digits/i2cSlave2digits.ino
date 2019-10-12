@@ -52,23 +52,6 @@ SevSeg sevseg;
 #define MAX_VALUE 59
 
 // -----------------------------------------------------------------------------
-// I2C Communications
-
-#include <Wire.h> 
-
-void I2CreceiveEvent (int howMany)  {
-  Serial.print("+ I2CreceiveEvent: ");
-  while (1 < Wire.available()) {    // Loop through all but the last byte.
-    char c = Wire.read();           // Receive each byte as a character.
-    Serial.print(c);                // Print the character.
-  }
-  int x = Wire.read();              // receive byte as an integer: 0 to 255.
-  Serial.print(x);                  // print the integer
-  Serial.println(".");
-  sevseg.setNumber(x, 1);
-}
-
-// -----------------------------------------------------------------------------
 // Rotary Encoder module
 
 const int PinCLK = 2; // Generating interrupts using CLK signal
@@ -88,6 +71,23 @@ void rotarydetect ()  {
       turnRight = true;
     }
   }
+}
+
+// -----------------------------------------------------------------------------
+// I2C Communications
+
+#include <Wire.h> 
+
+void I2CreceiveEvent (int howMany)  {
+  Serial.print("+ I2CreceiveEvent: ");
+  while (1 < Wire.available()) {    // Loop through all but the last byte.
+    char c = Wire.read();           // Receive each byte as a character.
+    Serial.print(c);                // Print the character.
+  }
+  int x = Wire.read();              // receive byte as an integer: 0 to 255.
+  Serial.print(x);                  // print the integer
+  Serial.println(".");
+  sevseg.setNumber(x, 1);
 }
 
 // -----------------------------------------------------------------------------

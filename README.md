@@ -694,6 +694,43 @@ https://medium.com/@thuc/connect-arduino-nano-with-mac-osx-f922a46c0a5d
 --------------------------------------------------------------------------------
 ## Altair 8800
 
++ Nice programming sample. The video creator has an actual Altair 8800.
+https://www.youtube.com/watch?v=oZ1xHyuf0Bs
++ First, shows the Altair-Duino
++ Describes the functionality of the front panel.
+For example, the lower LEDs is the address, upper LEDs is the data value.
++ Load a program.
++ Run the program.
+
+Front panel lower toggle buttons:
++ Far left, toggle On/Off.
++ The other buttons flip up and flip down, always returning to the center.
++ Stop and Run: stop a running program, and initiate a program.
++ Flip up for Stop. Flip down for Run.
++ Flip up for Single Step, to step through memory: shows the address and data for each memory byte.
++ Examine and Examine Next
++ Deposit and Deposit Next
++ Rest and Clear
++ Protect and Unprotect
++ AUX
++ AUX
+
+Front panel upper toggle buttons:
++ For setting and entering addresses and data.
++ Toggle up (on) or down (off) position.
+
+Front panel LEDs:
++ Right top 8 LEDs are for 8 bit data display. Data range: 0-255.
++ Lower 16 (8 + 8) are for 16 bit address display.
++ Note, octal organized: 3 bits each octal.
+
+When first turning on: 
++ Flip Stop and Run, and Rest and Clear.
+
++ Instruction set.
+http://brooknet.no-ip.org/~lex/altair/_altair88b/manual/instructMain.html
++ Example: jump (jmp) 11 000 011 
+
 + How to build one.
 https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
 + Build your own.
