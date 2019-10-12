@@ -149,7 +149,7 @@ void loop() {
 }
 ````
 
-Master request data from the slave, and then receives the data.
+2. Master request data from the slave, and then receives the data.
 ````
 #include <Wire.h>
 void setup() {
@@ -170,6 +170,7 @@ Slave write data, when requested by the master:
 #include <Wire.h>
 // Event function that executes whenever data is requested by master.
 void requestEvent() {
+  //          123456
   Wire.write("hello ");         // respond with request message of length 6 bytes.
 }
 void setup() {

@@ -1,23 +1,20 @@
 // -----------------------------------------------------------------------------
 /*
-  Connect a KY-040 rotary encoder to a Nano:
-  + "+" to Nano 5v, note, also works with 3.3v, example: NodeMCU.
-  + GND to Nano ground.
-  + CLK (clock) to Nano pin 2, the interrupt pin. Also referred to as output A (encoder pin A).
-  + DT (data) to Nano pin 3. Also referred to as output B (encoder pin B).
-  + SW (switch) to Nano pin 4. Not used here. Can be used to reset the counter to zero.
+  On the Slave, connect to the computer's USB port. This allows serial printing.
+  
+  Connect Nanos together:
+  + 5v: positive
+  + GND: ground
+  + pins 4: SDA, data
+  + pins 5: SCL, clock
 
   Code base from:
-    https://www.brainy-bits.com/arduino-rotary-encoder-ky-040/
-  More info:
-    https://forum.arduino.cc/index.php?topic=242356.0
-    This link suggests using a capacitor, which I'm not using:
-    + Connect a 0,47µ (or 1uF) capacitor from ground to CLK, and other to DT, to handle debouncing).
+    https://www.arduino.cc/en/Tutorial/MasterWriter
 */
 // -----------------------------------------------------------------------------
 // I2C Communications
 
-#include <Wire.h>
+#include <Wire.h> 
 
 void I2CreceiveEvent (int howMany)  {
   Serial.print("+ I2CreceiveEvent: ");
@@ -25,7 +22,7 @@ void I2CreceiveEvent (int howMany)  {
     char c = Wire.read();           // Receive each byte as a character.
     Serial.print(c);                // Print the character.
   }
-  int x = Wire.read();              // receive byte as an integer
+  int x = Wire.read();              // receive byte as an integer: 0 to 255.
   Serial.print(x);                  // print the integer
   Serial.println(".");
 }
