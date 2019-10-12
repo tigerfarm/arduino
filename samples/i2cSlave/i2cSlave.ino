@@ -2,7 +2,7 @@
 /*
   On the Slave, connect to the computer's USB port. This allows serial printing.
   
-  Connect Nanos together:
+  Connect Nanos together for IC2 communications:
   + 5v: positive
   + GND: ground
   + pins 4: SDA, data
@@ -27,6 +27,7 @@ void I2CreceiveEvent (int howMany)  {
   Serial.println(".");
 }
 
+// -----------------------------------------------------------------------------
 void setup ()  {
   Serial.begin(115200);
   // Give the serial connection time to start before the first print.

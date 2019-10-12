@@ -13,6 +13,14 @@
     https://forum.arduino.cc/index.php?topic=242356.0
     This link suggests using a capacitor, which I'm not using:
     + Connect a 0,47µ (or 1uF) capacitor from ground to CLK, and other to DT, to handle debouncing).
+
+  Connect Nanos together for IC2 communications:
+  + 5v: positive
+  + GND: ground
+  + pins 4: SDA, data
+  + pins 5: SCL, clock
+  Code base from:
+    https://www.arduino.cc/en/Tutorial/MasterWriter
 */
 // -----------------------------------------------------------------------------
 // I2C Communications
@@ -31,7 +39,7 @@ void I2CsendValue (int sendValue)  {
   Wire.endTransmission();       // stop transmitting
   x++;
 }
-  
+
 // -----------------------------------------------------------------------------
 // Rotary Encoder module connections
 const int PinCLK = 2; // Generating interrupts using CLK signal
@@ -82,13 +90,12 @@ void loop ()  {
     if (turnRight) {
       virtualPosition++;
       Serial.print (" > right count = ");
-      Serial.println (virtualPosition);
-      I2CsendValue(virtualPosition);
     } else {
       virtualPosition--;
       Serial.print (" > left  count = ");
-      Serial.println (virtualPosition);
     }
+    Serial.println (virtualPosition);
+    I2CsendValue(virtualPosition);
     delay(10);
   }
 
