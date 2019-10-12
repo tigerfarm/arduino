@@ -3,7 +3,8 @@
   http://www.arduino.cc/en/Tutorial/Blink
 */
 
-#define LED_PIN 11
+// #define LED_PIN 11
+#define LED_PIN 13  // Onboard LED
 
 // the setup function runs once when you press reset or power the board
 void setup() {
@@ -18,4 +19,3 @@ void loop() {
   digitalWrite(LED_PIN, LOW);    // Off
   delay(500);
 }
-

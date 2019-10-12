@@ -8,10 +8,15 @@
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-  // initialize digital pins for output.
+  Serial.begin(115200);
+  // Give the serial connection time to start before the first print.
+  delay(1000);
+  Serial.println("+++ Setup.");
+
+  // initialize digital pin for output.
   pinMode(LED_PIN, OUTPUT);
-  Serial.begin(9600);
-  Serial.println("+ Setup complete.");
+
+  Serial.println("++ Go to loop.");
 }
 
 // the loop function runs over and over again forever

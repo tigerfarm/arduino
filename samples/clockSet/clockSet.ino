@@ -80,14 +80,22 @@ void setup ()
     Serial.println("Couldn't find RTC");
     while (1);
   }
-
-  Serial.println("+ Set real time clock time.");
-    //
+  if (rtc.lostPower()) {
+    Serial.println("RTC lost power, need to reset the time.");
     // Set the RTC to the date & time this sketch was compiled, which is only seconds behind the actual time.
+    // While not exact, if compiled before running, it is close to actual.
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-    //
-    // Set the RTC with an explicit date & time
-    // rtc.adjust(DateTime(2019, 9, 10, 16, 10, 0));   // year, month, day, hour, minute, seconds
+  }
+
+  // --- To manually adjust the time ---
+  // Serial.println("+ Manually set real time clock time.");
+  // Uncomment out the rtc line.
+  // Set to the next minute's time.
+  // Upload the change.
+  // Turn the circuit off.
+  // Start the circuit at 0 seconds. The 3 seconds is the time to reach this program step.
+  // Once set, comment out the line and upload the change.
+  // rtc.adjust(DateTime(2019, 10, 9, 16, 22, 3));   // year, month, day, hour, minute, seconds
 
   lcd.init();
   lcd.backlight();
