@@ -23,8 +23,11 @@ Simply put, coffee makers use microcontrollers; desktop computers use microproce
 + Or by downloading a Zip file.
 Then, IDE menu Sketch/Include Library/Add ZIP Library. Select the Zip file.
 + Or download a Zip file.
-Move the unzipped files directory, into the directory: Documents/Arduino/libraries.
+Move the unzipped files directory, into the directory: Users/.../Documents/Arduino/libraries.
 IDE menu Library manager (Sketch/Include library/Manage libraries), install: tvout.
+
+List of available libraries:
+https://www.arduinolibraries.info/categories/signal-input-output
 
 --------------------------------------------------------------------------------
 ### Set up on my MacBook:
@@ -233,6 +236,9 @@ Library suggested: Grove - Barometer Senor BME280 by Seed Studio, version 1.02
 Projects:
 https://www.instructables.com/id/Arduino-Nano-and-Visuino-Display-BME280-Temperatur/
 https://www.instructables.com/id/Arduino-Easy-Weather-Station-With-BME280-Sensor/
+
+TV output of temperature.
+https://www.onetransistor.eu/2018/01/arduino-thermometer-with-tv-output.html
 
 --------------------------------------------------------------------------------
 ### DS3231 Clock board
