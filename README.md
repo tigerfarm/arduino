@@ -7,23 +7,39 @@ To remove the warning, deleting the version of the library you currently have in
 https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
 Reference: https://forum.arduino.cc/index.php?topic=477214.0
 
-A microcontroller unit (MCU) includes a processor, memory and input/output (I/O) pins on a single chip.
-Microprocessors are designed to maximize compute power on the chip, with internal bus connections (rather than direct I/O)
-to supporting hardware such as RAM and serial ports.
+--------------------------------------------------------------------------------
+### General info
+
+A microcontroller unit (MCU) includes a processor, memory, and input/output (I/O) pins on a single chip.
+
+Computer microprocessors are designed to maximize compute power on the chip,
+with internal bus connections--rather than direct I/O--to supporting hardware such as RAM and serial ports.
+
 Simply put, coffee makers use microcontrollers; desktop computers use microprocessors.
+
+#### Library install
+
++ Either from the library manager: IDE menu Tools/Manage Libraries
++ Or by downloading a Zip file.
+Then, IDE menu Sketch/Include Library/Add ZIP Library. Select the Zip file.
++ Or download a Zip file.
+Move the unzipped files directory, into the directory: Documents/Arduino/libraries.
+IDE menu Library manager (Sketch/Include library/Manage libraries), install: tvout.
 
 --------------------------------------------------------------------------------
 ### Set up on my MacBook:
 
 In the Arduino IDE menu, select:
 + Tools/Boards: Arduino Nano
-+ Processor: ATmega328P (Old Bootloader). With some Nano boards, ATmega328P works.
++ Processor: ATmega328P (Old Bootloader), or with some Nano boards, use ATmega328P.
 + Port: /dev/cu.wchusbserial14120
 
 --------------------------------------------------------------------------------
 ## Build next
 
-+ Programmable clock module: DS3231 clock with enhancements. 1) Set time and date using infrared or rotary encoder. 2) Alarms.
++ Programmable clock module: DS3231 clock with enhancements.
+1) Set time and date using infrared remote control and receiver.
+2) Alarms.
 + MP3 player for the new Douk Audio amp.
 + Update pong: align the boarders, and add cables for paddles for playing.
 + Timer to turn electrical lights on and off, using a 120v control relay.

@@ -8,6 +8,7 @@
    
    To compile, from the library manager (Sketch/Include library/Manage libraries), install: tvout.
    Move the directory, TVoutfonts, to the directory: Documents/Arduino/libraries.
+
    Documentation: https://code.google.com/archive/p/arduino-tvout/wikis
    + clear_screen() Clear the screen.
    + hres() returns the horizontal resolution

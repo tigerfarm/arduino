@@ -2,20 +2,25 @@
 /*
   Button Sample
 
-  If the button is not pressed (circuit open), LED blinks.
-  If the button is pressed (circuit closed), LED is on.
+  LED and button options, use only one at a time:
+  1. blinkLed();
+  + Not button, just blink the onboard LED.
+  2. checkButton();
+  + If the button is not pressed (circuit open), LED blinks.
+    If the button is pressed (circuit closed), LED is on.
+  3. toggleButton();
+  + Toggle, if 
+    First press, toggle on, LED is on.
+    Second press, toggle off, LED is off.
 
-  The circuit:
-  - Board is either an Arduino Uno, Nano, or a NodeMCU.
-  - LED positive is connected to onboard LED pin.
+  The circuit for either an Arduino Uno, Nano, or a NodeMCU.
   - Button side 1, connected to Arduino +5V or NodeMCU +3.3V.
   - Button side 2, connected to a 10K resistor which is connected to ground.
-  - Button side 2, connected to board pin (BUTTON_PIN), example: D11 on Nano.
-
-  - Note: on most Arduinos, there is an on board LED on pin 13.
+  - Button side 2, connected to board pin (BUTTON_PIN), example: D2 on Nano.
+  - Connect an external LED positive is connected to onboard LED pin.
+  - Or use the on board LED: on pin 13 on Nano, pin 2 on NodeMCU.
 
   +++ ESP8266 ESP-12E NodeMCU pins used in this project.
-
   Label   Pin:GPIO
   D0      16
   D1      05          Button/toggle switch to have LED on only, not blinking
@@ -64,7 +69,7 @@ const int BUTTON_PIN = 2;   // Nano D2
 void blinkLed() {
   Serial.println("+ Blink: LED on.");
   digitalWrite(LED_PIN, HIGH);
-  delay(1000);
+  delay(500);
   Serial.println("+ Blink: LED off.");
   digitalWrite(LED_PIN, LOW);
 }
@@ -72,19 +77,25 @@ void blinkLed() {
 // -----------------------------------------------------------------------------
 // Turn light on when the button is pressed.
 
+// Only do the action once, don't repeat if the button is held down.
+// Don't repeat action if the button is not pressed.
+boolean setButtonState = true;
+
 void checkButton() {
-  
-  // Read the push button status.
-  int buttonStatus = digitalRead(BUTTON_PIN);
-  
   // If the button is pressed (circuit closed), the button status is HIGH.
-  if (buttonStatus == HIGH) {
-    Serial.println("+ checkButton(), turn LED on.");
-    digitalWrite(LED_PIN, HIGH);
+  if (digitalRead(BUTTON_PIN) == HIGH) {
+    if (!setButtonState) {
+      digitalWrite(LED_PIN, HIGH);
+      Serial.println("+ checkButton(), turn LED on.");
+      setButtonState = false;
+    }
+    setButtonState = true;
   } else {
-    Serial.println("+ checkButton(), turn LED off.");
-    digitalWrite(LED_PIN, LOW);
-    // blinkLed();
+    if (setButtonState) {
+      digitalWrite(LED_PIN, LOW);
+      Serial.println("+ checkButton(), turn LED off.");
+      setButtonState = false;
+    }
   }
 }
 
@@ -93,14 +104,9 @@ void checkButton() {
 
 boolean theToggle = true;
 boolean buttonAction = true;  // Case the button is pressed and held, only toggle once.
-
 void toggleButton() {
-  
-  // Read the push button status.
-  int buttonStatus = digitalRead(BUTTON_PIN);
-  
   // If the button is pressed (circuit closed), the button status is HIGH.  
-  if (buttonStatus == HIGH) {
+  if (digitalRead(BUTTON_PIN) == HIGH) {
     if (buttonAction) {
       if (theToggle) {
         theToggle = false;
@@ -134,17 +140,12 @@ void setup() {
 }
 
 // -----------------------------------------------------------------------------
-int loopCounter = 0;
 void loop() {
-  delay(500);
-  ++loopCounter;
-  // Serial.print("+ loopCounter = ");
-  // Serial.println(loopCounter);
-
+  delay(100);
   // LED and button options:
   // blinkLed();
-  checkButton();
-  // toggleButton();
+  // checkButton();
+  toggleButton();
 }
 
 // -----------------------------------------------------------------------------
