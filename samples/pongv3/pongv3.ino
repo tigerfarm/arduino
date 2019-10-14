@@ -4,35 +4,13 @@
    Arduino Pong By Pete Lamonica,
    modified by duboisvb,
    updated by James Bruce: http://www.makeuseof.com/tag/author/jbruce
-   updated by Stacy David: https://github.com/tigerfarm/arduino/tree/master/samples/pongv2
-   
-   To compile, from the library manager (Sketch/Include library/Manage libraries), install: tvout.
-   Move the directory, TVoutfonts, to the directory: Documents/Arduino/libraries.
+   updated by Stacy David: https://github.com/tigerfarm/arduino/tree/master/samples/pongv3
 
-   Documentation: https://code.google.com/archive/p/arduino-tvout/wikis
-   + clear_screen() Clear the screen.
-   + hres() returns the horizontal resolution
-   + vres() returns the vertical resolution
-   + select_font(font): font4x6, font6x8, font8x8, font8x8ext
-   + print(x,y,string) or println(x,y,string)
-   + draw_line(x0,y0,x1,y1,color)
-   + set_pixel(x,y,color) Set a pixel.
-   + get_pixel(x,y) Get a pixel.
-   + delay_frame(1): To prevent screen flashes.
+   Library setup:
+   + From the library manager (Sketch/Include library/Manage libraries), install: tvout.
+   + Move the directory, TVoutfonts, to the directory: Documents/Arduino/libraries.
 
-   To make the game more interesting to play:
-    + User set game ball speed.
-    + Long wires (3 wire cable) for each controller.
-*/
-// -----------------------------------------------------------------------
-#include <TVout.h>
-#include <fontALL.h>
-
-TVout TV;
-
-// -----------------------
-/*
-  Wiring:
+  --- Wiring ---
 
   Connect infrared receiver, pins from top left to right:
     Left most (next to the X) - Nano pin 9
@@ -52,7 +30,30 @@ TVout TV;
   + RCA video cable shielding (ground) wire, to v-.
   2nd RCA cable for sound.
   + Wire the signal pin to D11 for TV tones (TV.tone).
+
+   TVout Documentation: https://code.google.com/archive/p/arduino-tvout/wikis
+   + clear_screen() Clear the screen.
+   + hres() returns the horizontal resolution
+   + vres() returns the vertical resolution
+   + select_font(font): font4x6, font6x8, font8x8, font8x8ext
+   + print(x,y,string) or println(x,y,string)
+   + draw_line(x0,y0,x1,y1,color)
+   + set_pixel(x,y,color) Set a pixel.
+   + get_pixel(x,y) Get a pixel.
+   + delay_frame(1): To prevent screen flashes.
+
+   To make the game more interesting to play:
+   + Long wires (3 wire cable) for each controller.
+   + User set game ball speed.
+   + Fix ball bounce from boarders and paddles.
 */
+// -----------------------------------------------------------------------
+#include <TVout.h>
+#include <fontALL.h>
+
+TVout TV;
+
+// -----------------------------------------------------------------------
 #define PLAYER_ONE_PIN 0 // analog paddle control: right paddle
 #define PLAYER_TWO_PIN 1 // analog paddle control: left paddle
 
@@ -87,7 +88,6 @@ int state = IN_MENU;
 char volX = 3;
 char volY = 3;
 unsigned char x, y;
-int counter = 0;
 //
 int leftPlayerScore = 0;
 int rightPlayerScore = 0;
@@ -279,6 +279,7 @@ void setup()  {
 
 // -----------------------------------------------------------------------
 boolean buttonPressed = false;
+int counter = 0;
 void loop() {
   delay(25);
   // --------------------------------

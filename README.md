@@ -73,6 +73,32 @@ Parts I have for building:
 + Voltage Regulator: AMS1117-3.3v
 
 --------------------------------------------------------------------------------
+#### 7-segment display
+
+7-Segment Displays on the Arduino Setup for 1 and4 digits.
+http://www.circuitbasics.com/arduino-7-segment-display-tutorial/
++ Uses a 1k resister/digit to limit current.
++ Uses library: SevSeg.
++ For 1 digit, uses Nano digital pins 2-8, 6 pins.
++ My program sample for 1 digit:  7segment1digit.ino
++ For 2 digit, uses Nano digital pins 4-12, 9 pins.
++ My program sample for 2 digits: 7segment2digit.ino
+
+4 Nano pins for 1 7-segment display using a 74LS47 which is binary to display.
+Reference:
+https://www.electronics-tutorials.ws/counter/bcd-counter-circuit.html
+
+Texas Instruments 74LS47 7447 SN74HC47N IC BCD to Seven-Segment Decoder/Driver.
+On eBay.com, 5 for about $3.
+
+The display requires resisters: 220-470 ohm. 
+
+00 to 99 on 2 separate Seven-Segment Displays:
+https://create.arduino.cc/projecthub/KVLakshmiSri/00-to-99-on-seven-segment-displays-1ca7e0
++ Uses all digital pins 1-13.
++ no library required.
+
+--------------------------------------------------------------------------------
 ## Hardware Component Notes
 
 ### Interrupt pins
@@ -393,8 +419,6 @@ Humidity  Temperature Barometric Pressure Sensor Module BME280
 
 wall plug 5v power adaptor
 https://www.ebay.com/itm/5V-1A-Mini-USB-Home-Travel-Wall-Charger-Power-Charging-Adaptor-US-Plug-Hot-Sale/112542999293?hash=item1a3415e2fd%3Ag%3ArCwAAOSwXf9Zo8Mh&LH_BIN=1
-
-Texas Instruments 74LS47 7447 SN74HC47N IC BCD to Seven-Segment Decoder/Driver
 
 ENC28J60 spi interface Ethernet network module
 
