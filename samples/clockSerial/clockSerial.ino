@@ -13,23 +13,25 @@
   Filter your search by typing ‘rtclib’. There should be a couple entries. Look for RTClib by Adafruit.
   https://github.com/adafruit/RTClib
 */
+// -----------------------------------------------------------------------------
 #include <Wire.h>
 #include "RTClib.h"
-
 RTC_DS3231 rtc;
 
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
+// -----------------------------------------------------------------------------
 void setup ()
 {
-  Serial.begin(9600);
-  delay(3000); // wait for console opening
+  Serial.begin(115200);
+  // Give the serial connection time to start before the first print.
+  delay(1000);
+  Serial.println("+++ Setup.");
 
   if (! rtc.begin()) {
     Serial.println("Couldn't find RTC");
     while (1);
   }
-
   if (rtc.lostPower()) {
     Serial.println("RTC lost power, lets set the time!");
     
@@ -41,12 +43,17 @@ void setup ()
     // for example to set January 27 2017 at 12:56 you would call:
     // rtc.adjust(DateTime(2017, 1, 27, 12, 56, 0));
   }
+  Serial.println("+ Clock set and synched with program variables.");
+
+  Serial.println("+++ Go to loop.");
 }
 
+// -----------------------------------------------------------------------------
 void loop ()
 {
-  DateTime now = rtc.now();
+  delay(1000);
 
+  DateTime now = rtc.now();
   Serial.print("+ Current Date & Time: ");
   Serial.print(now.year(), DEC);
   Serial.print('/');
@@ -88,5 +95,4 @@ void loop ()
   Serial.println();
   Serial.println();
   ***/
-  delay(3000);
 }

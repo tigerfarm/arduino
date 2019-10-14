@@ -89,14 +89,25 @@ Reference:
 https://www.electronics-tutorials.ws/counter/bcd-counter-circuit.html
 
 Texas Instruments 74LS47 7447 SN74HC47N IC BCD to Seven-Segment Decoder/Driver.
-On eBay.com, 5 for about $3.
-
-The display requires resisters: 220-470 ohm. 
++ On eBay.com, 5 for about $3.
++ The display requires resisters: 220-470 ohm. 
+Use bitRead to get a specific bit of a number.
+Loop through the number of bits, to get all the bits.
+````
+lcd.setCursor(0,1); // set to first character bottom line
+for (int i=15; i>=0; i--)
+  if (bitRead(value,i)) lcd.print ("1"); else lcd.print ("0");
+````
+Reference:
+https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/bitread/
 
 00 to 99 on 2 separate Seven-Segment Displays:
 https://create.arduino.cc/projecthub/KVLakshmiSri/00-to-99-on-seven-segment-displays-1ca7e0
 + Uses all digital pins 1-13.
 + no library required.
+
++ Serial printing formats:
+https://www.arduino.cc/reference/en/language/functions/communication/serial/print/
 
 --------------------------------------------------------------------------------
 ## Hardware Component Notes

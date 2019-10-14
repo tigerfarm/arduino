@@ -28,5 +28,5 @@ void loop() {
   digitalWrite(LED_PIN, HIGH);   // On
   delay(500);                    // On:  for 1/2 a second
   digitalWrite(LED_PIN, LOW);    // Off
-  delay(2000);                   // Off: for 2 seconds
+  delay(500);                    // Off: for 1/2 a second
 }
