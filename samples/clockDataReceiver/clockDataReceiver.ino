@@ -39,7 +39,7 @@ SevSeg sevseg;
 // -----------------------------------------------------------------------------
 // Nano to Nano (N2N) Communications: Receiver.
 // Reference:
-//  https://www.youtube.com/watch?v=sNkERQlK8j8
+//  https://www.youtube.com/watch?v=eq5YpKHXJDM
 //  https://github.com/beneater/error-detection-videos
 //  https://github.com/beneater/error-detection-videos/blob/master/receiver/receiver.ino
 
