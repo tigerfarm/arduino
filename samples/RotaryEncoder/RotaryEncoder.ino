@@ -15,7 +15,6 @@
     + Connect a 0,47µ (or 1uF) capacitor from ground to CLK, and other to DT, to handle debouncing).
 */
 // -----------------------------------------------------------------------------
-
 // Rotary Encoder module connections
 const int PinCLK = 2; // Generating interrupts using CLK signal
 const int PinDT = 3;  // Reading DT signal
