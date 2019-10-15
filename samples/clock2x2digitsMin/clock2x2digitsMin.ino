@@ -6,10 +6,11 @@
   + SDA to Nano D4 (pin 4), same on Uno.
   + SCL to Nano D5 (pin 5), same on Uno.
 
-  Connect both 2 x 7 segment common cathode displays to each Nano.
-  Needs to match: segmentPins and digitPins as defined below.
+  Connect each 2 x 7-segment common cathode displays, to each Nano.
+  Needs to match digitPins as defined below:
   + Segment CA1 to 1K resister, to Nano pin 12.
   + Segment CA2 to 1K resister, to Nano pin  4.
+  Needs to match segmentPins as defined below:
   + Segment A to Nano pin 9.
   + Segment B to Nano pin 8.
   + Segment C to Nano pin 5.
@@ -18,9 +19,8 @@
   + Segment F to Nano pin 10.
   + Segment G to Nano pin 11.
 
-  Segment pins mapped to Nano pins:
-       Rs-4 12 11 6  7    -> Nano pins
-       CA1  G  F  A  B    -> Segments they control
+  7-Segment display pins:
+       CA1  G  F  A  B    -> Segment mapping
         |   |  |  |  |
    ---------    ---------
    |   A   |    |   A   |
@@ -30,40 +30,59 @@
    |   D   |    |   D   |
    ---------    ---------
         |   |  |  |  |
-        D   DP E  C CA2   -> Segments they control
-        9      10 8 Rs-5  -> Nano pins
+        D   DP E  C CA2   -> Segment mapping
 
-  Connect Nanos together for IC2 communications:
+  Connect Nanos together for communications:
   + 5v: positive
   + GND: ground
-  + pins 4: SDA, data
-  + pins 5: SCL, clock
+  + pins 2: clock
+  + pins 3: data
 */
 // -----------------------------------------------------------------------------
 // For the clock board.
-
 #include "RTClib.h"
 RTC_DS3231 rtc;
 DateTime now;
 
 // -----------------------------------------------------------------------------
-// For digit displays
+// For 2 x 7-segment digit displays
 #include <SevSeg.h>
 SevSeg sevseg;
 
 // -----------------------------------------------------------------------------
-// I2C Communications
+// Nano to Nano (N2N) Communications
+// Reference:
+//  https://www.youtube.com/watch?v=sNkERQlK8j8
+//  https://github.com/beneater/error-detection-videos
+//  https://github.com/beneater/error-detection-videos/blob/master/transmitter/transmitter.ino
 
-#include <Wire.h>
+#define TX_CLOCK 2
+#define TX_DATA 3
+#define TX_RATE 5
+int clockDelay = (1000 / TX_RATE) / 2;
+const char *message = "hi";
 
-byte x = 0;
-void I2CsendValue (int sendValue)  {
-  Serial.print("+ Send value: ");
-  Serial.println(sendValue);
-  x = (byte) sendValue;
-  Wire.beginTransmission(8);    // transmit to device #8
-  Wire.write(x);                // sends one byte.
-  Wire.endTransmission();       // stop transmitting
+// Nano to Nano (N2N) Communications: sender.
+void send2nano() {
+  // Transmit each bit in the byte.
+  for (int byte_idx = 0; byte_idx < strlen(message); byte_idx++) {
+    // Get each byte of the message.
+    char tx_byte = message[byte_idx];
+    for (int bit_idx = 0; bit_idx < 8; bit_idx++) {
+      // Transmit each bit of the byte.
+      // Get the bit to transmit.
+      bool tx_bit = tx_byte & (0x80 >> bit_idx);
+      // Set/write the data bit to transmit: either HIGH (1) or LOW (0) value.
+      digitalWrite(TX_DATA, tx_bit);
+      // Pulse the clock to transit the bit.
+      delay(clockDelay);
+      digitalWrite(TX_CLOCK, HIGH);
+      delay(clockDelay);
+      digitalWrite(TX_CLOCK, LOW);
+    }
+    // Set data bit to LOW (0).
+    digitalWrite(TX_DATA, LOW);
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -116,15 +135,17 @@ void clockPulseHour() {
   Serial.print("++ clockPulseHour(), theCounterHours= ");
   Serial.println(theCounterHours);
   // I2CsendValue(theCounterHours);
+  sevseg.setNumber(theCounterHours);
 }
 void clockPulseMinute() {
   Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
   Serial.println(theCounterMinutes);
-  sevseg.setNumber(theCounterMinutes, 1);
+  // sevseg.setNumber(theCounterMinutes);
 }
 void clockPulseSecond() {
   Serial.print("+ theCounterSeconds = ");
   Serial.println(theCounterSeconds);
+  // sevseg.setNumber(theCounterSeconds);
 }
 
 // -----------------------------------------------------------------------------
@@ -160,10 +181,11 @@ void setup() {
   sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments, updateWithDelays, leadingZeros, disableDecPoint);
   Serial.println("+ Digit display configured.");
   clockPulseMinute();
-  
-  Wire.begin(36); // Note, address optional for master.
-  Serial.println("+ Joined I2C bus.");
-  // clockPulseHour();
+
+  pinMode(TX_CLOCK, OUTPUT);
+  pinMode(TX_DATA, OUTPUT);
+  Serial.println("+ Communications with other Nana established.");
+  clockPulseHour();
 
   Serial.println("+++ Go to loop.");
 }
@@ -172,17 +194,18 @@ void setup() {
 // Device Loop
 static unsigned long timer = millis();
 void loop() {
+
   // Each second, check the clock.
   if (millis() - timer >= 1000) {
     processClockNow();
   }
-  
+
   // One digit is refreshed on one cylce, the other digit is refreshed on the next cyle.
   // If using delay(1000), one digit displays on one cycle, then the next digit displays on the next cycle.
   // The refresh (refreshDisplay) needs to be fast enough, that they look like they are always on.
   // Delay of 10 is okay. Any longer delay, example 20, the digits start to flash.
   delay(10);
   sevseg.refreshDisplay();
-  
+
 }
 // -----------------------------------------------------------------------------
