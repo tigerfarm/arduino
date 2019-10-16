@@ -29,8 +29,8 @@
 // Nano to Nano (N2N) Communications: transmission sender
 #define TX_CLOCK 2
 #define TX_DATA 5
-#define TX_RATE 5
-int clockDelay = (1000 / TX_RATE) / 2;
+#define TX_RATE 1
+int clockDelay = (1000 / TX_RATE) / 2;  // original
 const char *message = "TX";
 
 void sendBit2nano(bool tx_bit) {
@@ -94,8 +94,8 @@ void setup() {
   delay(1000);
   Serial.println("+++ Setup.");
 
-  // pinMode(TX_CLOCK, OUTPUT);
-  // pinMode(TX_DATA, OUTPUT);
+  pinMode(TX_CLOCK, OUTPUT);
+  pinMode(TX_DATA, OUTPUT);
   Serial.println("+ Configured: Nano to Nano (N2N) Communications for sending.");
 
   attachInterrupt (digitalPinToInterrupt(PinCLK), rotarydetect, CHANGE); // Interrupt 0 is pin 2 on Arduino.

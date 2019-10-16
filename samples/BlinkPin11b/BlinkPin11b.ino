@@ -4,7 +4,7 @@
 */
 
 // #define LED_PIN 11
-#define LED_PIN 13  // Onboard LED
+#define LED_PIN 6  // Nano onboard LED is 13.
 
 // the setup function runs once when you press reset or power the board
 void setup() {

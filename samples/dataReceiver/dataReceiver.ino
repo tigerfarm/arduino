@@ -12,33 +12,38 @@
 #define RX_CLOCK 2
 #define RX_DATA 3
 
-char message[16];
 volatile byte rx_bit = 0;
 volatile byte rx_byte = 0;
 volatile int bit_position = 0;
 volatile bool bitReceived = false;
+volatile bool byteReceived = false;
+volatile byte messageByte = 0;
+char message[16];
 
 void onClockPulse() {
   // Read a bit and add it to the byte.
+  bitReceived = true;
   rx_bit = digitalRead(RX_DATA);
-  if (bit_position == 8) {
-    rx_byte = 0;
-    bit_position = 0;
-  }
+  /*
+  */
+  Serial.print("+");
+  Serial.print(" bit_position: ");
+  Serial.print(bit_position);
+  Serial.print(" bit: ");
+  Serial.println(rx_bit);
+  // lcd.print(rx_byte & (0x80 >> i) ? "1" : "0");
+  //
   if (rx_bit) {
     rx_byte |= (0x80 >> bit_position);
   }
   bit_position++;
   if (bit_position == 8) {
+    messageByte = rx_byte;
     strncat(message, (const char *)&rx_byte, 1);
+    byteReceived = true;
+    rx_byte = 0;
+    bit_position = 0;
   }
-  /*
-  */
-  Serial.print("+ bit: ");
-  Serial.print(rx_bit);
-  Serial.print(" bit_position: ");
-  Serial.println(bit_position);
-  // bitReceived = true;
 }
 
 // -----------------------------------------------------------------------------
@@ -76,19 +81,16 @@ void loop() {
   }
 
   if (bitReceived) {
-    for (int i = 0; i < 8; i += 1) {
-      if (i < bit_position) {
-        // lcd.print(rx_byte & (0x80 >> i) ? "1" : "0");
-      } else {
-        // lcd.print(" ");
-      }
-    }
-    Serial.print("+ bit received: ");
-    Serial.println(rx_bit);
-    // Serial.println(message);
-    // Serial.println(":");
-    //
     bitReceived = false;
+    if (byteReceived) {
+      Serial.print("+");
+      Serial.print(" messageByte :");
+      Serial.print(messageByte);
+      Serial.print(" message :");
+      Serial.print(message);
+      Serial.println(":");
+      byteReceived = false;
+    }
   }
 
   delay(100);
