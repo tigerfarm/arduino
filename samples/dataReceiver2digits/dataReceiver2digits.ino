@@ -1,6 +1,7 @@
 // -----------------------------------------------------------------------------
 /*
-  Nano to Nano (N2N) Communications
+  Nano to Nano (N2N) Communications: Receiver.
+  
   Connect Nanos together for communications:
   + 5v: positive
   + GND: ground
@@ -91,6 +92,8 @@ void setup() {
   bool leadingZeros = true;           // Clock leading 0. When true: "01" rather that " 1".
   bool disableDecPoint = true;        // Use 'true' if your decimal point doesn't exist or isn't connected
   sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments, updateWithDelays, leadingZeros, disableDecPoint);
+  Serial.println("+ Digit display configured.");
+  sevseg.setNumber(42, 1);
 
   pinMode(RX_DATA, INPUT);
   attachInterrupt(digitalPinToInterrupt(RX_CLOCK), onClockPulse, RISING);

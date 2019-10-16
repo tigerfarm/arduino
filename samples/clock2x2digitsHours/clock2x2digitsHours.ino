@@ -1,5 +1,13 @@
 // -----------------------------------------------------------------------------
 /*
+  Nano to Nano (N2N) Communications: Receiver.
+
+  Connect Nanos together for communications:
+  + 5v: positive
+  + GND: ground
+  + pins 2: clock
+  + pins 3: data
+
   Connect both 2 x 7 segment common cathode displays to each Nano.
   Needs to match: segmentPins and digitPins as defined below.
   + Segment CA1 to 1K resister, to Nano pin 12.
@@ -13,8 +21,7 @@
   + Segment G to Nano pin 11.
 
   Segment pins mapped to Nano pins:
-       Rs-4 12 11 6  7    -> Nano pins
-       CA1  G  F  A  B    -> Segments they control
+       CA1  G  F  A  B    -> Pins mapped to segments
         |   |  |  |  |
    ---------    ---------
    |   A   |    |   A   |
@@ -24,11 +31,7 @@
    |   D   |    |   D   |
    ---------    ---------
         |   |  |  |  |
-        D   DP E  C CA2   -> Segments they control
-        9      10 8 Rs-5  -> Nano pins
-
-  Communications programs that don't use IC2.
-    https://github.com/beneater/error-detection-videos
+        D   DP E  C CA2   -> Pins mapped to segments
 
 */
 // -----------------------------------------------------------------------------
@@ -38,34 +41,39 @@ SevSeg sevseg;
 
 // -----------------------------------------------------------------------------
 // Nano to Nano (N2N) Communications: Receiver.
-// Reference:
-//  https://www.youtube.com/watch?v=sNkERQlK8j8
-//  https://github.com/beneater/error-detection-videos
-//  https://github.com/beneater/error-detection-videos/blob/master/receiver/receiver.ino
+#define RX_CLOCK 2
+#define RX_DATA 3
 
-#define TX_CLOCK 2
-#define TX_DATA 3
-
-char message[16];
+volatile byte rx_bit = 0;
 volatile byte rx_byte = 0;
 volatile int bit_position = 0;
 volatile bool bitReceived = false;
+volatile bool byteReceived = false;
+volatile byte messageByte = 0;
 
 void onClockPulse() {
+  bitReceived = true;
   // Read a bit and add it to the byte.
-  bool rx_bit = digitalRead(RX_DATA);
-  if (bit_position == 8) {
-    rx_byte = 0;
-    bit_position = 0;
-  }
+  rx_bit = digitalRead(RX_DATA);
+  /*
+    Serial.print("+");
+    Serial.print(" bit_position: ");
+    Serial.print(bit_position);
+    Serial.print(" bit: ");
+    Serial.println(rx_bit);
+  */
+  // Add bit to byte.
   if (rx_bit) {
     rx_byte |= (0x80 >> bit_position);
   }
-  bit_position += 1;
+  bit_position++;
   if (bit_position == 8) {
-    strncat(message, (const char *)&rx_byte, 1);
+    // 8 bits is a byte.
+    bit_position = 0;
+    byteReceived = true;
+    messageByte = rx_byte;
+    rx_byte = 0;
   }
-  bitReceived = true;
 }
 
 // -----------------------------------------------------------------------------
@@ -88,8 +96,6 @@ void setup() {
   Serial.println("+ Digit display configured.");
   sevseg.setNumber(42, 1);
 
-  // Prep to receive a message.
-  strcpy(message, "");
   pinMode(RX_DATA, INPUT);
   attachInterrupt(digitalPinToInterrupt(RX_CLOCK), onClockPulse, RISING);
   Serial.println("+ Ready to receive communications from the other Nano.");
@@ -99,38 +105,17 @@ void setup() {
 
 // -----------------------------------------------------------------------------
 // Device Loop
-static unsigned long timer = millis();
-static int counter = 0;
+
 void loop() {
 
-  // Each second, set the display value.
-  if (millis() - timer >= 1000) {
-    timer += 1000;
-    counter++;
-    if (counter > 59) {
-      // Reset to 0 after counting to the max.
-      counter = 0;
-    }
-    // sevseg.setNumber(counter, 1);
+  if (byteReceived) {
+    Serial.print("+");
+    Serial.print(" messageByte: ");
+    Serial.println(messageByte);
+    sevseg.setNumber(messageByte, 1);
+    byteReceived = false;
   }
 
-  if (bitReceived) {
-    bitReceived = false;
-    for (int i = 0; i < 8; i += 1) {
-      if (i < bit_position) {
-        // lcd.print(rx_byte & (0x80 >> i) ? "1" : "0");
-      } else {
-        // lcd.print(" ");
-      }
-    }
-    Serial.print("+ bit :");
-    Serial.println(message);
-    Serial.println(":");
-  }
-
-  // One digit is refreshed on one cylce, the other digit is refreshed on the next cyle.
-  // If using delay(1000), one digit displays on one cycle, then the next digit displays on the next cycle.
-  // The refresh (refreshDisplay) needs to be fast enough, that they look like they are always on.
   // Delay of 10 is okay. Any longer delay, example 20, the digits start to flash.
   delay(10);
   sevseg.refreshDisplay();

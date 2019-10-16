@@ -32,6 +32,7 @@
         |   |  |  |  |
         D   DP E  C CA2   -> Segment mapping
 
+  Nano to Nano (N2N) Communications: Sender.
   Connect Nanos together for communications:
   + 5v: positive
   + GND: ground
@@ -50,42 +51,44 @@ DateTime now;
 SevSeg sevseg;
 
 // -----------------------------------------------------------------------------
-// Nano to Nano (N2N) Communications
-// Reference:
-//  https://www.youtube.com/watch?v=sNkERQlK8j8
-//  https://github.com/beneater/error-detection-videos
-//  https://github.com/beneater/error-detection-videos/blob/master/transmitter/transmitter.ino
-
+// Nano to Nano (N2N) Communications: transmission sender
 #define TX_CLOCK 2
 #define TX_DATA 3
-#define TX_RATE 5
-int clockDelay = (1000 / TX_RATE) / 2;
-const char *message = "hi";
 
-// Nano to Nano (N2N) Communications: sender.
-void send2nano() {
-  // Transmit each bit in the byte.
-  for (int byte_idx = 0; byte_idx < strlen(message); byte_idx++) {
-    // Get each byte of the message.
-    char tx_byte = message[byte_idx];
-    for (int bit_idx = 0; bit_idx < 8; bit_idx++) {
-      // Transmit each bit of the byte.
-      // Get the bit to transmit.
-      bool tx_bit = tx_byte & (0x80 >> bit_idx);
-      // Set/write the data bit to transmit: either HIGH (1) or LOW (0) value.
-      digitalWrite(TX_DATA, tx_bit);
-      // Pulse the clock to transit the bit.
-      delay(clockDelay);
-      digitalWrite(TX_CLOCK, HIGH);
-      delay(clockDelay);
-      digitalWrite(TX_CLOCK, LOW);
-    }
-    // Set data bit to LOW (0).
-    digitalWrite(TX_DATA, LOW);
+// Rate notes:
+//  300 nice to watch the bits show.
+//    1 works fine, even with serial print statements.
+#define TX_RATE 1
+int clockDelay = (TX_RATE);
+
+void sendBit2nano(bool tx_bit) {
+  // Serial.print(tx_bit);
+  // Set/write the data bit to transmit: either HIGH (1) or LOW (0) value.
+  digitalWrite(TX_DATA, tx_bit);
+  // Pulse the clock to transit the bit.
+  delay(clockDelay);
+  digitalWrite(TX_CLOCK, HIGH);
+  delay(clockDelay);
+  digitalWrite(TX_CLOCK, LOW);
+}
+void sendByte2nano(char tx_byte) {
+  Serial.print("+ Send byte: ");
+  Serial.print(tx_byte, DEC);   // Note, BIN prints the binary value, example: DEC:12: BIN: 1100.
+  // Serial.print(": bits: ");
+  for (int bit_idx = 0; bit_idx < 8; bit_idx++) {
+    // Get the bit to transmit, and transmit it.
+    bool tx_bit = tx_byte & (0x80 >> bit_idx);
+    sendBit2nano(tx_bit);
   }
+  Serial.println(".");
+  //
+  // Set data bit to LOW (0).
+  digitalWrite(TX_DATA, LOW);
 }
 
 // -----------------------------------------------------------------------------
+// Clock blackboard values
+
 // rtc.adjust(DateTime(2019, 10, 9, 16, 22, 3));   // year, month, day, hour, minute, seconds
 int theCounterYear = 0;
 int theCounterMonth = 0;
@@ -117,7 +120,7 @@ void processClockNow() {
   if (now.second() != theCounterSeconds) {
     // When the clock second value changes, that's a clock second pulse.
     theCounterSeconds = now.second();
-    clockPulseSecond();
+    // clockPulseSecond();
     if (theCounterSeconds == 0) {
       // When the clock second value changes to zero, that's a clock minute pulse.
       theCounterMinutes = now.minute();
@@ -134,13 +137,12 @@ void processClockNow() {
 void clockPulseHour() {
   Serial.print("++ clockPulseHour(), theCounterHours= ");
   Serial.println(theCounterHours);
-  // I2CsendValue(theCounterHours);
-  sevseg.setNumber(theCounterHours);
+  sendByte2nano(theCounterHours);
 }
 void clockPulseMinute() {
   Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
   Serial.println(theCounterMinutes);
-  // sevseg.setNumber(theCounterMinutes);
+  sevseg.setNumber(theCounterMinutes);
 }
 void clockPulseSecond() {
   Serial.print("+ theCounterSeconds = ");
@@ -154,6 +156,22 @@ void setup() {
   // Give the serial connection time to start before the first print.
   delay(1000);
   Serial.println("+++ Setup.");
+
+  // Display minutes.
+  byte hardwareConfig = COMMON_CATHODE; // COMMON_ANODE or COMMON_CATHODE
+  byte segmentPins[] = {9, 8, 5, 7, 6, 10, 11, 13};  // Mapping segment pins A..G, to Nano pins.
+  byte numDigits = 2;                 // Number of display digits.
+  byte digitPins[] = {12, 4};          // Multi-digit display ground/set pins.
+  bool resistorsOnSegments = true;    // Set to true when using a single resister per display digit.
+  bool updateWithDelays = false;      // Doesn't work when true.
+  bool leadingZeros = true;           // Clock leading 0. When true: "01" rather that " 1".
+  bool disableDecPoint = true;        // Use 'true' if your decimal point doesn't exist or isn't connected
+  sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments, updateWithDelays, leadingZeros, disableDecPoint);
+  Serial.println("+ Digit display configured.");
+
+  pinMode(TX_CLOCK, OUTPUT);
+  pinMode(TX_DATA, OUTPUT);
+  Serial.println("+ Configured: Nano to Nano (N2N) Communications for sending.");
 
   // RTC: Real Time Clock
   if (!rtc.begin()) {
@@ -169,22 +187,7 @@ void setup() {
   syncCountWithClock();
   Serial.println("+ Clock set and synched with program variables.");
 
-  // Display minutes.
-  byte hardwareConfig = COMMON_CATHODE; // COMMON_ANODE or COMMON_CATHODE
-  byte segmentPins[] = {9, 8, 5, 7, 6, 10, 11, 13};  // Mapping segment pins A..G, to Nano pins.
-  byte numDigits = 2;                 // Number of display digits.
-  byte digitPins[] = {12, 4};          // Multi-digit display ground/set pins.
-  bool resistorsOnSegments = true;    // Set to true when using a single resister per display digit.
-  bool updateWithDelays = false;      // Doesn't work when true.
-  bool leadingZeros = true;           // Clock leading 0. When true: "01" rather that " 1".
-  bool disableDecPoint = true;        // Use 'true' if your decimal point doesn't exist or isn't connected
-  sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments, updateWithDelays, leadingZeros, disableDecPoint);
-  Serial.println("+ Digit display configured.");
   clockPulseMinute();
-
-  pinMode(TX_CLOCK, OUTPUT);
-  pinMode(TX_DATA, OUTPUT);
-  Serial.println("+ Communications with other Nana established.");
   clockPulseHour();
 
   Serial.println("+++ Go to loop.");
