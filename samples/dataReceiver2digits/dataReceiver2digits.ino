@@ -55,11 +55,11 @@ void onClockPulse() {
   // Read a bit and add it to the byte.
   rx_bit = digitalRead(RX_DATA);
   /*
-  Serial.print("+");
-  Serial.print(" bit_position: ");
-  Serial.print(bit_position);
-  Serial.print(" bit: ");
-  Serial.println(rx_bit);
+    Serial.print("+");
+    Serial.print(" bit_position: ");
+    Serial.print(bit_position);
+    Serial.print(" bit: ");
+    Serial.println(rx_bit);
   */
   // Add bit to byte.
   if (rx_bit) {
@@ -104,22 +104,19 @@ void setup() {
 
 void loop() {
 
-  if (bitReceived) {
-    bitReceived = false;
-    if (byteReceived) {
-      Serial.print("+");
-      Serial.print(" messageByte: ");
-      Serial.println(messageByte);
-      if (messageByte < 13) {
-        sevseg.setNumber(messageByte, 1);
-      }
-      byteReceived = false;
+  if (byteReceived) {
+    Serial.print("+");
+    Serial.print(" messageByte: ");
+    Serial.println(messageByte);
+    if (messageByte < 13) {
+      sevseg.setNumber(messageByte, 1);
     }
+    byteReceived = false;
   }
 
   // Delay of 10 is okay. Any longer delay, example 20, the digits start to flash.
   delay(10);
-  sevseg.refreshDisplay(); 
+  sevseg.refreshDisplay();
 
 }
 // -----------------------------------------------------------------------------
