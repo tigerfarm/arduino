@@ -29,8 +29,15 @@
 // Nano to Nano (N2N) Communications: transmission sender
 #define TX_CLOCK 2
 #define TX_DATA 5
+
+// Rate notes:
+//  300 nice to watch the bits show.
+//   10 fast for transfer.
+//    1 works fine, even with serial print statements.
 #define TX_RATE 1
-int clockDelay = (1000 / TX_RATE) / 2;  // original
+int clockDelay = (TX_RATE);
+// int clockDelay = (1000 / TX_RATE) / 2;  // original, where TX_RATE = 5.
+
 const char *message = "TX";
 
 void sendBit2nano(bool tx_bit) {
@@ -44,18 +51,19 @@ void sendBit2nano(bool tx_bit) {
   digitalWrite(TX_CLOCK, LOW);
 }
 void sendByte2nano(char tx_byte) {
-    Serial.print("+ byte:");
-    Serial.print(tx_byte);
-    Serial.print(": bits: ");
-    for (int bit_idx = 0; bit_idx < 8; bit_idx++) {
-      // Transmit each bit of the byte.
-      // Get the bit to transmit, and transmit it.
-      bool tx_bit = tx_byte & (0x80 >> bit_idx);
-      sendBit2nano(tx_bit);
-    }
-    Serial.println(".");
-    // Set data bit to LOW (0).
-    digitalWrite(TX_DATA, LOW);
+  Serial.print("+ byte:");
+  Serial.print(tx_byte);
+  Serial.print(": bits: ");
+  for (int bit_idx = 0; bit_idx < 8; bit_idx++) {
+    // Transmit each bit of the byte.
+    // Get the bit to transmit, and transmit it.
+    bool tx_bit = tx_byte & (0x80 >> bit_idx);
+    sendBit2nano(tx_bit);
+  }
+  Serial.println(".");
+  //
+  // Set data bit to LOW (0).
+  digitalWrite(TX_DATA, LOW);
 }
 // Nano to Nano (N2N) Communications: sender.
 void sendMessage2nano() {
@@ -115,7 +123,7 @@ void loop() {
     if (turnRight) {
       virtualPosition++;
       if (virtualPosition > 12) {
-        virtualPosition = 0;
+        virtualPosition = 1;
       }
       Serial.print (" > right count = ");
       Serial.println (virtualPosition);
@@ -127,11 +135,11 @@ void loop() {
       Serial.print (" > left  count = ");
       Serial.println (virtualPosition);
     }
-    sendMessage2nano();
+    // sendMessage2nano();
     sendByte2nano(virtualPosition);
-  } else {
-    delay(100);
   }
-  
+
+  delay(10);
+
 }
 // -----------------------------------------------------------------------------
