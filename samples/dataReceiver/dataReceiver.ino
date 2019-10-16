@@ -38,11 +38,11 @@ void onClockPulse() {
   }
   bit_position++;
   if (bit_position == 8) {
-    messageByte = rx_byte;
-    strncat(message, (const char *)&rx_byte, 1);
-    byteReceived = true;
-    rx_byte = 0;
     bit_position = 0;
+    byteReceived = true;
+    strncat(message, (const char *)&rx_byte, 1);
+    messageByte = rx_byte;
+    rx_byte = 0;
   }
 }
 
@@ -64,21 +64,7 @@ void setup() {
 
 // -----------------------------------------------------------------------------
 // Device Loop
-static unsigned long timer = millis();
-static int counter = 0;
 void loop() {
-
-  // Each second, set the display value.
-  if (millis() - timer >= 1000) {
-    timer += 1000;
-    counter++;
-    if (counter > 59) {
-      // Reset to 0 after counting to the max.
-      counter = 0;
-    }
-    // Serial.print("+ bit :");
-    // Serial.println(counter);
-  }
 
   if (bitReceived) {
     bitReceived = false;
@@ -86,7 +72,7 @@ void loop() {
       Serial.print("+");
       Serial.print(" messageByte :");
       Serial.print(messageByte);
-      Serial.print(" message :");
+      Serial.print(": message :");
       Serial.print(message);
       Serial.println(":");
       byteReceived = false;
