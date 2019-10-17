@@ -123,6 +123,11 @@ https://create.arduino.cc/projecthub/KVLakshmiSri/00-to-99-on-seven-segment-disp
 + Serial printing formats:
 https://www.arduino.cc/reference/en/language/functions/communication/serial/print/
 
+#### Using a 74HC595 Shift Register for serial to multiple pin outs.
+
+How 74HC595 Shift Register Works & Interface it with Arduino
+https://lastminuteengineers.com/74hc595-shift-register-arduino-tutorial/
+
 #### TM1637: 4 x 7-segment display
 
 Pins:

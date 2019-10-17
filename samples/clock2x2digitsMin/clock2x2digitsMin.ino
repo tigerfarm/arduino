@@ -138,7 +138,11 @@ void processClockNow() {
 void clockPulseHour() {
   Serial.print("++ clockPulseHour(), theCounterHours= ");
   Serial.println(theCounterHours);
-  sendByte2nano(theCounterHours);
+  if (theCounterHours <= 12) {
+    sendByte2nano(theCounterHours);
+  } else {
+    sendByte2nano(theCounterHours-12);    // Use 3, rather than 15.
+  }
 }
 void clockPulseMinute() {
   Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
@@ -165,7 +169,7 @@ void setup() {
   byte digitPins[] = {12, 4};          // Multi-digit display ground/set pins.
   bool resistorsOnSegments = true;    // Set to true when using a single resister per display digit.
   bool updateWithDelays = false;      // Doesn't work when true.
-  bool leadingZeros = true;           // Clock leading 0. When true: "01" rather that " 1".
+  bool leadingZeros = true;           // Leading zero. When true: "01". When false: " 1".
   bool disableDecPoint = true;        // Use 'true' if your decimal point doesn't exist or isn't connected
   sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments, updateWithDelays, leadingZeros, disableDecPoint);
   Serial.println("+ Digit display configured.");

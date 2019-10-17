@@ -48,7 +48,7 @@ void setup ()  {
   byte digitPins[] = {4, 5};          // Multi-digit display ground/set pins.
   bool resistorsOnSegments = true;    // Set to true when using a single resister per display digit.
   bool updateWithDelays = false;      // Doesn't work when true.
-  bool leadingZeros = true;           // Clock leading 0. When true: "01" rather that " 1".
+  bool leadingZeros = false;           // Clock leading 0. When true: "01" rather that " 1".
   bool disableDecPoint = true;        // Use 'true' if your decimal point doesn't exist or isn't connected
   sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments, updateWithDelays, leadingZeros, disableDecPoint);
   // sevseg.setBrightness(10);           // It's a refresh rate value from 0 to 100, but doesn't seem to do anything.
@@ -67,11 +67,12 @@ void loop ()  {
   if (millis() - timer >= 1000) {
     timer += 1000;
     counter++;
-    if (counter > 99) {
+    if (counter > 12) {
       // Reset to 0 after counting to the max.
       counter = 0;
     }
-    sevseg.setNumber(counter, 1);
+    // sevseg.setNumber(counter, 1);
+    sevseg.setNumber(counter);
   }
   
   // One digit is refreshed on one cylce, the other digit is refreshed on the next cyle.

@@ -90,7 +90,7 @@ void setup() {
   byte digitPins[] = {12, 4};          // Multi-digit display ground/set pins.
   bool resistorsOnSegments = true;    // Set to true when using a single resister per display digit.
   bool updateWithDelays = false;      // Doesn't work when true.
-  bool leadingZeros = true;           // Clock leading 0. When true: "01" rather that " 1".
+  bool leadingZeros = false;          // Leading zero. When true: "01". When false: " 1".
   bool disableDecPoint = true;        // Use 'true' if your decimal point doesn't exist or isn't connected
   sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments, updateWithDelays, leadingZeros, disableDecPoint);
   Serial.println("+ Digit display configured.");
@@ -112,7 +112,7 @@ void loop() {
     Serial.print("+");
     Serial.print(" messageByte: ");
     Serial.println(messageByte);
-    sevseg.setNumber(messageByte, 1);
+    sevseg.setNumber(messageByte);
     byteReceived = false;
   }
 
