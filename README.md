@@ -49,6 +49,12 @@ In the Arduino IDE menu, select:
 + Use TM1637, instead using 2 2x7-segment digit display with and extra Nano board to display the hours.
 + Alarms.
 
+#### Error handling for Non-I2C Nano to Nano communications between Nano boards.
+
+Non-I2C Nano to Nano communications works well in the Programmable Clock project.
+
+However, no error handling. If anything goes wrong, the circuit needs to be reset.
+
 #### Other projects
 
 + MP3 player for the new Douk Audio amp.
@@ -64,7 +70,8 @@ In the Arduino IDE menu, select:
 + Minute clock pulse for complex clock.
     Requires DS3231 clock board and LCD, Nano with a USB micro cable for power.
 
-Parts I have for building:
+#### Parts I have for building
+
 + Nano boards
 + [NodeMCU ESP8266](https://www.instructables.com/id/NodeMCU-ESP8266-Details-and-Pinout/), with ESP12E for WiFi, boards
 + 1 Uno
@@ -84,7 +91,7 @@ Parts I have for building:
 
 7-Segment Displays on the Arduino Setup for 1 and4 digits.
 http://www.circuitbasics.com/arduino-7-segment-display-tutorial/
-+ Uses a 1k resister/digit to limit current.
++ Use a 1k resister/digit to limit current.
 + Uses library: SevSeg.
 + For 1 digit, uses Nano digital pins 2-8, 6 pins.
 + My program sample for 1 digit:  7segment1digit.ino
@@ -351,7 +358,7 @@ GND - GND
 
 #### I2C communications between Nano boards.
 
-Works, but not when the project also includes a DS3231 clock board.
+Works, but not when the project also includes a DS3231 clock board which uses I2C.
 
 See projects: i2cSlave or i2cSlave2digits, and i2cMasterRotaryEncoder.
 
