@@ -53,8 +53,12 @@ volatile byte messageByte = 0;
 
 void onClockPulse() {
   bitReceived = true;
-  // Read a bit and add it to the byte.
+  // Read a bit.
   rx_bit = digitalRead(RX_DATA);
+  // Add bit to byte.
+  if (rx_bit) {
+    rx_byte |= (0x80 >> bit_position);
+  }
   /*
     Serial.print("+");
     Serial.print(" bit_position: ");
@@ -62,16 +66,12 @@ void onClockPulse() {
     Serial.print(" bit: ");
     Serial.println(rx_bit);
   */
-  // Add bit to byte.
-  if (rx_bit) {
-    rx_byte |= (0x80 >> bit_position);
-  }
   bit_position++;
   if (bit_position == 8) {
     // 8 bits is a byte.
-    bit_position = 0;
     byteReceived = true;
     messageByte = rx_byte;
+    bit_position = 0;
     rx_byte = 0;
   }
 }

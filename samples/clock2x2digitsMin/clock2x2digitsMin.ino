@@ -57,15 +57,16 @@ SevSeg sevseg;
 
 // Rate notes:
 //  300 nice to watch the bits show.
+//   10 is fast enough.
 //    1 works fine, even with serial print statements.
-#define TX_RATE 1
+#define TX_RATE 10
 int clockDelay = (TX_RATE);
 
 void sendBit2nano(bool tx_bit) {
-  // Serial.print(tx_bit);
+  // Serial.print(tx_bit);  // Used to print the bits, example: 00001100
   // Set/write the data bit to transmit: either HIGH (1) or LOW (0) value.
   digitalWrite(TX_DATA, tx_bit);
-  // Pulse the clock to transit the bit.
+  // Set the clock to HIGH to tell the receive that the bit is ready to be read.
   delay(clockDelay);
   digitalWrite(TX_CLOCK, HIGH);
   delay(clockDelay);
@@ -73,7 +74,7 @@ void sendBit2nano(bool tx_bit) {
 }
 void sendByte2nano(char tx_byte) {
   Serial.print("+ Send byte: ");
-  Serial.print(tx_byte, DEC);   // Note, BIN prints the binary value, example: DEC:12: BIN: 1100.
+  Serial.print(tx_byte, DEC);   // Note, DEC print integer value. BIN prints the binary value. Examples, DEC:12: BIN:1100:
   // Serial.print(": bits: ");
   for (int bit_idx = 0; bit_idx < 8; bit_idx++) {
     // Get the bit to transmit, and transmit it.
@@ -198,14 +199,10 @@ void setup() {
 static unsigned long timer = millis();
 void loop() {
 
-  // Each second, check the clock.
-  if (millis() - timer >= 1000) {
+  // Check the clock and pulse when the clock's second value changes.
+  if (millis() - timer >= 200) {
     processClockNow();
   }
-
-  // One digit is refreshed on one cylce, the other digit is refreshed on the next cyle.
-  // If using delay(1000), one digit displays on one cycle, then the next digit displays on the next cycle.
-  // The refresh (refreshDisplay) needs to be fast enough, that they look like they are always on.
   // Delay of 10 is okay. Any longer delay, example 20, the digits start to flash.
   delay(10);
   sevseg.refreshDisplay();

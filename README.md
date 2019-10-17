@@ -40,14 +40,21 @@ In the Arduino IDE menu, select:
 --------------------------------------------------------------------------------
 ## Build next
 
-+ Programmable clock module: DS3231 clock with enhancements.
-1) Set time and date using infrared remote control and receiver.
-2) Alarms.
+#### Programmable Clock project
+
++ Programmable clock components: DS3231 clock, 2 2x7-segment digit displays, and 2 Nano boards,
+    Nano with a USB micro cable for power, and full sized breadboard.
++ Set time and date using infrared remote control and receiver. Works with LCD 1602.
++ Need a program update for the new 2 2x7-segment digit display. This approach would also work with a TM1637 display.
++ Use TM1637, instead using 2 2x7-segment digit display with and extra Nano board to display the hours.
++ Alarms.
+
+#### Other projects
+
 + MP3 player for the new Douk Audio amp.
 + Update pong: align the boarders, and add cables for paddles for playing.
-+ Timer to turn electrical lights on and off, using a 120v control relay.
-    Requires: Nano with a USB micro cable for power, breadboard, Programmable clock module.
-+ I2C communications between Nano boards.
++ Timer to turn an electrical light on and off using a 120v control relay.
+    This project will use the Programmable Clock to control the 120v control relay.
 + Test BME280 weather device: Temperature, Humidity and Pressure.
 + Weather module: Temperature, Humidity and Pressure.
     Requires: Nano with USB micro cable, breadboard, LCD, BME280
@@ -109,6 +116,31 @@ https://create.arduino.cc/projecthub/KVLakshmiSri/00-to-99-on-seven-segment-disp
 + Serial printing formats:
 https://www.arduino.cc/reference/en/language/functions/communication/serial/print/
 
+#### TM1637: 4 x 7-segment display
+
+Pins:
++ Clock
++ Data I/O
++ 5+
++ Ground
+
+http://www.zonnepanelen.wouterlood.com/10-four-digit-7-segment-led-display-for-arduino-based-on-the-tm1637-driver/
+````
+#include <TM1637Display.h> // The library has the option to create custom characters.
+const int CLK = 9;         // set the CLK pin connection to the display
+const int DIO = 8;         // set the DIO pin connection to the display
+int i = 0;
+TM1637Display display(CLK, DIO);
+void setup(){
+    display.setBrightness(0x0a); // set the display to maximum brightness
+}
+void loop(){
+    for(i = 0; i < 9999; i++){
+        display.showNumberDec(i);
+        delay (250);
+    }
+}
+````
 --------------------------------------------------------------------------------
 ## Hardware Component Notes
 
@@ -316,6 +348,19 @@ SDA - A4
 VCC - 5V
 GND - GND
 ````
+
+#### I2C communications between Nano boards.
+
+Works, but not when the project also includes a DS3231 clock board.
+
+See projects: i2cSlave or i2cSlave2digits, and i2cMasterRotaryEncoder.
+
+#### Non-I2C Nano to Nano communications between Nano boards.
+
+Works well. However, no error handling.
+Currently, if anything goes wrong, the circuit needs to be reset.
+
+See projects: dataReceiver or dataReceiver2digits, and dataSenderRotaryEncoder.
 
 --------------------------------------------------------------------------------
 ### Useful components
@@ -985,5 +1030,41 @@ Other parts
 + 1602 LCD with Keypad Shield Board Blue Backlight Module for Arduino Duemilanove
 + Nano V3.0 ATmega328P controller compatible for arduino nano CH340 USB driver NO CABLE NANO 3.0
 ````
+
+--------------------------------------------------------------------------------
++++ Creating boards (PCB)
+
++ Fritzing's PCB
+https://fritzing.org/learning/tutorials/designing-pcb/
+
+Turning A Fritzing Board Into A PCB.
++ Right at the bottom of the screen, you can find a ‘Fabricate’ button that will send your board to a fab house in Berlin.
+The cost for my board is €6.26 for one. Of course, you can export a Fritzing board as a Gerber,
+and send that off to any fab house on the planet. For my board, OSH Park will give me three for $7.15.
+I could get ten of these boards made by the Fritzing fab for €55.44, but I already bought twenty of them for $36.29 from Seeed Studio.
++ Reference:
+https://hackaday.com/2016/10/11/creating-a-pcb-in-everything-friends-dont-let-friends-use-fritzing/
+
++ Tutorial: Creating A PCB In Everything: Introduction
+https://hackaday.com/2016/09/21/creating-a-pcb-in-everything-introduction/
+
++ JLC PCB reviews:
+https://pcbshopper.com/easyeda-reviews/
++ Get quote from JLC PCB
+https://jlcpcb.com/quote#/?orderType=1&stencilLayer=2
++ 10 boards, 80x150mm (about 3" x 6"), Engineering fee: $4.00 (one time), Boards: $4.10 for 5, $8.10 for 10.
++ Shipping: PostLink US Registered Mail  $6.76
++ Total = $12.10 + $6.76 = $18.86 for 10 boards.
++ Suggestion: choose 2oz copper as you will get a better board with less trace faults.
++ With 2oz copper weight, add $16.00, total: Engineering fee: $4.00 (one time), Copper Weight: $16.00, Board:$11.00
++ Total = $31.00 + $10.31 = $41.31 for 10 boards. 
++ Gerber upload of design.
++ Easyeda is a free online tool that we provide to design the PCB, and you can place your order on JLCPCB easily and quickly.
++ Can use online for free:
+https://easyeda.com/
+
++ Review on Elecrow for creating PCB:
+https://pcbshopper.com/elecrow-reviews/
+
 --------------------------------------------------------------------------------
 eof
