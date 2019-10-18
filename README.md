@@ -17,7 +17,16 @@ with internal bus connections--rather than direct I/O--to supporting hardware su
 
 Simply put, coffee makers use microcontrollers; desktop computers use microprocessors.
 
-#### Library install
+--------------------------------------------------------------------------------
+### Set up on my MacBook:
+
+In the Arduino IDE menu, select:
++ Tools/Boards: Arduino Nano
++ Processor: ATmega328P (Old Bootloader), or with some Nano boards, use ATmega328P.
++ Port: /dev/cu.wchusbserial14120
+
+--------------------------------------------------------------------------------
+### Library install
 
 + Either from the library manager: IDE menu Tools/Manage Libraries
 + Or by downloading a Zip file.
@@ -30,23 +39,19 @@ List of available libraries:
 https://www.arduinolibraries.info/categories/signal-input-output
 
 --------------------------------------------------------------------------------
-### Set up on my MacBook:
-
-In the Arduino IDE menu, select:
-+ Tools/Boards: Arduino Nano
-+ Processor: ATmega328P (Old Bootloader), or with some Nano boards, use ATmega328P.
-+ Port: /dev/cu.wchusbserial14120
-
---------------------------------------------------------------------------------
-## Build next
+## Build next and projects in progress
 
 #### Programmable Clock project
 
-+ Programmable clock components: DS3231 clock, 2 2x7-segment digit displays, and 2 Nano boards,
-    Nano with a USB micro cable for power, and full sized breadboard.
-+ Set time and date using infrared remote control and receiver. Works with LCD 1602.
-+ Need a program update for the new 2 2x7-segment digit display. This approach would also work with a TM1637 display.
-+ Use TM1637, instead using 2 2x7-segment digit display with and extra Nano board to display the hours.
++ Set Programmable Clock, components: DS3231 clock, 1602 LCD, infrared receiver, Nano board,
+    USB micro cable for power, and full sized breadboard.
++ Set date(year and month) and time (hours, minutes, seconds) using the infrared receiver and a remote control.
+
++ Programmable clock, components: DS3231 clock, 2 2x7-segment digit displays, 2 Nano boards,
+    USB micro cable for power, and full sized breadboard.
++ DS3231 clock is set by the Set Programmable Clock.
++ Need a program set the clock using the 2 2x7-segment digit displays. This approach would also work with a TM1637 display.
++ Use TM1637 to replace the 2 2x7-segment digit displays and the second Nano board which displays the hours.
 + Alarms.
 
 #### Error handling for Non-I2C Nano to Nano communications between Nano boards.
@@ -127,6 +132,18 @@ https://www.arduino.cc/reference/en/language/functions/communication/serial/prin
 
 How 74HC595 Shift Register Works & Interface it with Arduino
 https://lastminuteengineers.com/74hc595-shift-register-arduino-tutorial/
+
+74HC595 is a SIPO (Serial-In-Parallel-Out) shift registers, example: Texas Instruments SN74HC595N.
++ Clock pin
++ Data pin
++ Latch pin, which does the Parallel-Out task to the 8 output pins.
++ 8 output pin.
++ Pin to daisy chain 595s.
++ Shift register clear to set the out pins to 0.
++ 5+
++ Ground
+
+3 Nano pins, plus program logic, to control 16 pins. 3 Nano pins with 2 daisy chained 595s, gives 16 output pins.
 
 #### TM1637: 4 x 7-segment display
 
