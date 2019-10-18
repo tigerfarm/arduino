@@ -84,7 +84,7 @@ void setup() {
   Serial.println("+++ Setup.");
 
   byte hardwareConfig = COMMON_CATHODE; // COMMON_ANODE or COMMON_CATHODE
-  byte segmentPins[] = {6, 7, 8, 9, 10, 11, 12, 13};  // Mapping segment pins A..G, to Nano pins.
+  byte segmentPins[] = {6, 7, 8, 9, 10, 11, 12};  // Mapping segment pins A..G, to Nano pins.
   byte numDigits = 2;                 // Number of display digits.
   byte digitPins[] = {4, 5};          // Multi-digit display ground/set pins.
   bool resistorsOnSegments = true;    // Set to true when using a single resister per display digit.

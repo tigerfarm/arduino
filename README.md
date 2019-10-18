@@ -51,6 +51,7 @@ https://www.arduinolibraries.info/categories/signal-input-output
     USB micro cable for power, and full sized breadboard.
 + DS3231 clock is set by the Set Programmable Clock.
 + Need a program set the clock using the 2 2x7-segment digit displays. This approach would also work with a TM1637 display.
++ Or, add a NodeMCU board to make a request to a server to get the time, and then use that time to set the clock.
 + Use TM1637 to replace the 2 2x7-segment digit displays and the second Nano board which displays the hours.
 + Alarms.
 
