@@ -42,7 +42,7 @@ SevSeg sevseg;
 // -----------------------------------------------------------------------------
 // Nano to Nano (N2N) Communications: transmission sender
 #define TX_CLOCK 4
-#define TX_DATA A1
+#define TX_DATA 7
 
 // Rate notes:
 //  300 nice to watch the bits show.
@@ -128,7 +128,7 @@ void onClockPulse() {
 // -----------------------------------------------------------------------------
 // Rotary Encoder module connections
 const int PinCLK = 3; // Generating interrupts using CLK signal
-const int PinDT = A6;  // Reading DT signal
+const int PinDT = 6;  // Reading DT signal
 
 // Interrupt routine runs if rotary encoder CLK pin changes state.
 volatile boolean TurnDetected;  // Type volatile for interrupts.
@@ -153,7 +153,7 @@ void setup() {
   Serial.println("+++ Setup.");
 
   byte hardwareConfig = COMMON_CATHODE; // COMMON_ANODE or COMMON_CATHODE
-  byte segmentPins[] = {6, 7, 8, 9, 10, 11, 12};  // Mapping segment pins A..G, to Nano pins.
+  byte segmentPins[] = {0, 1, 8, 9, 10, 11, 12};  // Mapping segment pins A..G, to Nano pins.
   byte numDigits = 2;                 // Number of display digits.
   byte digitPins[] = {5, 13};          // Multi-digit display ground/set pins: can use pin 13.
   bool resistorsOnSegments = true;    // Set to true when using a single resister per display digit.

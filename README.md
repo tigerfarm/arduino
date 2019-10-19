@@ -826,7 +826,7 @@ https://medium.com/@thuc/connect-arduino-nano-with-mac-osx-f922a46c0a5d
 --------------------------------------------------------------------------------
 ## Altair 8800
 
-+ Nice programming sample. The video creator has an actual Altair 8800.
++ Nice programming sample. The creator of the video has an actual Altair 8800.
 https://www.youtube.com/watch?v=oZ1xHyuf0Bs
 + First, shows the Altair-Duino
 + Describes the functionality of the front panel.
@@ -834,31 +834,189 @@ For example, the lower LEDs is the address, upper LEDs is the data value.
 + Load a program.
 + Run the program.
 
-Front panel lower toggle buttons:
-+ Far left, toggle On/Off.
-+ The other buttons flip up and flip down, always returning to the center.
-+ Stop and Run: stop a running program, and initiate a program.
-+ Flip up for Stop. Flip down for Run.
-+ Flip up for Single Step, to step through memory: shows the address and data for each memory byte.
-+ Examine and Examine Next
-+ Deposit and Deposit Next
-+ Rest and Clear
-+ Protect and Unprotect
-+ AUX
-+ AUX
+-----------------------------
+++ The front panel.
 
-Front panel upper toggle buttons:
+Excellent front panel video:
+https://youtu.be/suyiMfzmZKs
+
+Front panel lower toggle buttons:
++ Far left: OFF/ON, toggle On/Off.
++ The other buttons flip up and flip down, always returning to the center.
++ STOP and RUN: stop a running program, and initiate a program.
++ Flip up for STOP. Flip down for RUN.
++ Flip up for SINGLE STEP, to step through memory: shows the address and data for each memory byte.
++ EXAMINE and EXAMINE Next.
++ DEPOSIT and DEPOSIT Next.
++ RESET and CLR (clear)
++ PROTECT and UNPROTECT - rare, if ever used
++ AUX - never really used
++ AUX - never really used
+
+Front panel upper toggle buttons,
++ Labeled: SENSE SW (sense switches).
 + For setting and entering addresses and data.
 + Toggle up (on) or down (off) position.
++ When the program was running, the left 8 toggles could be used as input to the program.
 
 Front panel LEDs:
-+ Right top 8 LEDs are for 8 bit data display. Data range: 0-255.
-+ Lower 16 (8 + 8) are for 16 bit address display.
++ Right top 8 LEDs are for 8 bit data display: D7 ... D0. Data range: 0-255.
+    When running, doesn't necessarily show what is on the bus; sometimes yes, other times, no.
++ Lower 16 (8 + 8) are for 16 bit memory address display: A15 ... A0 
+    Set on/off when selecting an address, or flashing when a program is running.
 + Note, octal organized: 3 bits each octal.
++ Top left 10 LEDs are status lights: memory cycles, state:
++ INTE PROT MEMR INP MI OUT HLTA STACK WO INT
++ 2 LEDs below, are: WAIT and HLDA
 
-When first turning on: 
-+ Flip Stop and Run, and Rest and Clear.
++ Total LEDs = 10 + 8 + 2 + 16 = 36 LEDs
++ Total toggles = 17 = 16 (for address entry) + 1 (on/off)
++ Total center return toggles = 8 : flip up or flip down. When not flipped, returns to center.
 
+-----------------------------
+++ Turn it on.
+
++ To turn it on, flip the On/Off toggle down. It turns on in a stopped state.
++ Lights on: MEMR, MI, WO.
++ Lights on: WAIT.
+When first turning on:
++ Raise and hold STOP, and press RESET (up): All address and data bit LEDs go on. Other LEDs are off.
++ When released, address LEDs go off, program counter is all zeros.
+    Data LEDs is the random data value in zero memory location.
++ Lights on: MEMR, MI, WO.
++ Lights on: WAIT.
++ On another video, the person flipped Stop and Run, and Reset and Clear.
+
+To see what is in memory location 2,
++ Set the sense switches (toggles) to address 2 (00 000 010) and flip up EXAMINE (switch returns to center).
++ EXAMINE Next will increase the memory location LEDs and display the memory value with the data LEDs.
+
+-----------------------------
+++ Set values into addresses.
+
+To set a value at location 0,
++ Set the address toggles to the value of the memory location to be set, example 0 (00 000 000).
++ Flip EXAMINE.
++ Address LEDs show the value 0 (00 000 000), and the current random value in the data LEDs.
++ Set the sense switch toggles to the value that is to be stored, example 7 (00 000 111).
++ Flip DEPOSIT.
++ Data LEDs show the value 7 (00 000 111).
+
+Set a value in the next location (1),
++ Flip NEXT.
++ Address LEDs show the value 1 (00 000 001), and the current random value in the data LEDs.
++ Set the sense switches to the value that is to be stored, example 6 (00 000 110).
++ Flip DEPOSIT.
++ Data LEDs show the value 6 (00 000 110).
+
+Set a value in the next location (2),
++ Flip NEXT.
++ Address LEDs show the value 2 (00 000 010), and the current random value in the data LEDs.
++ Set the sense switches to the value that is to be stored, example 5 (00 000 101).
++ Flip DEPOSIT.
++ Data LEDs show the value 5 (00 000 101).
+
+Shorter method to set a value in the next location (3),
++ Set the sense switches to the value that is to be stored, example 4 (00 000 100).
++ Flip DEPOSIT NEXT.
++ Address LEDs are incremented to address 3: 00 000 011.
++ Data LEDs show the value 4 (00 000 100).
+
+Set a value in the next location (4),
++ Set the sense switches to the value that is to be stored, example 3 (00 000 011).
++ Flip DEPOSIT NEXT.
++ Address LEDs are incremented to address 4: 00 000 100.
++ Data LEDs show the value 3 (00 000 011).
+
+Set a value in the next location (5),
++ Set the sense switches to the value that is to be stored, example 2 (00 000 010).
++ Flip DEPOSIT NEXT.
++ Address LEDs are incremented to address 5: 00 000 101.
++ Data LEDs show the value 2 (00 000 010).
+
+Set a value in the next location (6),
++ Set the sense switches to the value that is to be stored, example 1 (00 000 001).
++ Flip DEPOSIT NEXT.
++ Address LEDs are incremented to address 6: 00 000 110.
++ Data LEDs show the value 1 (00 000 001).
+
+Set a value in the next location (7),
++ Set the sense switches to the value that is to be stored, example 0 (00 000 000).
++ Flip DEPOSIT NEXT.
++ Address LEDs are incremented to address 6: 00 000 111.
++ Data LEDs show the value 1 (00 000 000).
+
+To view the entries,
++ Set the sense switches to address: 0 (00 000 000).
++ Flip EXAMINE.
++ Flip EXAMINE NEXT, 6 more times to the above entries.
+
+-----------------------------
+++ Video on entering and running the program, Kill the Bit.
+
+https://youtu.be/ZKeiQ8e18QY
+
+Kill the Bit game by Dean McDaniel, May 15, 1975
+Object: Kill the rotating bit. If you miss the lit bit, another bit turns on leaving two bits to destroy.
+Quickly toggle the switch, don't leave the switch in the up position.
+Before starting, make sure all the switches are in the down position.  
+
+https://altairclone.com/downloads/killbits.pdf
+Enter the following, starting at location 0.
+Data Values:
+041 000 000 026 200 001 016 000 032 032 032 032
+011 322 010 000 333 377 252 017 127 303 010 000
+
+EXAMINE from memory location 0.
+Address LEDs    Value:
+00 100 001      041 Note: 00(0) 100(4) 001(1), which is 041. High bits are 0.
++ Flip DEPOSIT NEXT after each entry.
+00 000 000      000
+00 000 000      000
+00 010 110      026
+10 000 000      200
+00 000 001      001
+...
+11 000 011      303
+00 001 000      010
+00 000 000      000
+
+The Program in assembler code:
+0000                   org     0
+0000 210000            lxi     h,0             ;initialize counter 
+0003 1680              mvi     d,080h          ;set up initial display bit 
+0005 010E00            lxi     b,0eh           ;higher value = faster 
+0008 1A        beg:    ldax    d               ;display bit pattern on 
+0009 1A                ldax    d               ;...upper 8 address lights 
+000A 1A                ldax    d 000B 1A                ldax    d 
+000C 09                dad     b               ;increment display counter 
+000D D20800            jnc     beg 
+0010 DBFF              in      0ffh            ;input data from sense switches 
+0012 AA                xra     d               ;exclusive or with A 
+0013 0F                rrc                     ;rotate display right one bit 
+0014 57                mov     d,a             ;move data to display reg 
+0015 C30800            jmp     beg             ;repeat sequence 
+0018                   end
+
+To run the program,
++ Set all sense switches to 0.
++ EXAMINE location 0.
++ Flip RUN.
++ WAIT LED goes off.
++ Data LEDs show the data values flashing.
++ Left 8 address LEDs (A15...A8) show an incremental light on/off, around and around, from A15 to A8.
++ Left 8 sense switches are for input.
++ Flip a sense switch up when the the LED above the switch is on.
++ If you do, the bit is killed. If not, another bit (LED) begins to flash.
+
+Flip RESET will restart the program while it's running.
+
+To stop the program, hit STOP. WAIT LED goes on.
+Flip RESET.
+Flip RUN to restart the program.
+
+
+-----------------------------
 + Instruction set.
 http://brooknet.no-ip.org/~lex/altair/_altair88b/manual/instructMain.html
 + Example: jump (jmp) 11 000 011 
