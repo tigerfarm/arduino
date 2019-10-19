@@ -834,6 +834,9 @@ For example, the lower LEDs is the address, upper LEDs is the data value.
 + Load a program.
 + Run the program.
 
+The following is how to get started, from the following link.
+https://www.ztop.com.br/gadget-do-dia-altair-8800-clone-computer/
+
 -----------------------------
 ++ The front panel.
 
@@ -841,7 +844,7 @@ Excellent front panel video:
 https://youtu.be/suyiMfzmZKs
 
 Front panel lower toggle buttons:
-+ Far left: OFF/ON, toggle On/Off.
++ Far left, toggle switch: OFF/ON.
 + The other buttons flip up and flip down, always returning to the center.
 + STOP and RUN: stop a running program, and initiate a program.
 + Flip up for STOP. Flip down for RUN.
@@ -879,13 +882,14 @@ Front panel LEDs:
 + To turn it on, flip the On/Off toggle down. It turns on in a stopped state.
 + Lights on: MEMR, MI, WO.
 + Lights on: WAIT.
-When first turning on:
-+ Raise and hold STOP, and press RESET (up): All address and data bit LEDs go on. Other LEDs are off.
+When first turning on, reset and clear it to get started,
++ On another video, the person flipped Stop, and Reset.
++ Or, in the video I'm following,
+    Raise and hold STOP, and press RESET (up): All address and data bit LEDs go on. Other LEDs are off.
 + When released, address LEDs go off, program counter is all zeros.
     Data LEDs is the random data value in zero memory location.
 + Lights on: MEMR, MI, WO.
 + Lights on: WAIT.
-+ On another video, the person flipped Stop and Run, and Reset and Clear.
 
 To see what is in memory location 2,
 + Set the sense switches (toggles) to address 2 (00 000 010) and flip up EXAMINE (switch returns to center).
@@ -977,8 +981,8 @@ Address LEDs    Value:
 10 000 000      200
 00 000 001      001
 ...
-11 000 011      303
-00 001 000      010
+11 000 011      303 Jump instruction: jmp beg
+00 001 000      010 ... to address 8. 00 001 000 = 8.
 00 000 000      000
 
 The Program in assembler code:
@@ -988,7 +992,8 @@ The Program in assembler code:
 0005 010E00            lxi     b,0eh           ;higher value = faster 
 0008 1A        beg:    ldax    d               ;display bit pattern on 
 0009 1A                ldax    d               ;...upper 8 address lights 
-000A 1A                ldax    d 000B 1A                ldax    d 
+000A 1A                ldax    d 
+000B 1A                ldax    d 
 000C 09                dad     b               ;increment display counter 
 000D D20800            jnc     beg 
 0010 DBFF              in      0ffh            ;input data from sense switches 
