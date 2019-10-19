@@ -1,56 +1,47 @@
 // -----------------------------------------------------------------------------
 /*
-  Nano to Nano (N2N) Communications: Receiver.
-  
-  Connect Nanos together for communications:
+  Nano to Nano (N2N) Communications: Sender
+
+  +++ Nana has 2 interrupt pins: 2 and 3.
+  + pin 2: Communications clock
+  + pin 3: rotary encoder
+
+  Connect a KY-040 rotary encoder to a Nano:
+  + "+" to Nano 5v, note, also works with 3.3v, example: NodeMCU.
+  + GND to Nano ground.
+  + CLK (clock) to Nano pin 3, the interrupt pin.
+  + DT (data)   to Nano pin 4.
+
+  Add LEDs:
+  + pin 2: LED(+) to resister to ground.
+  + pin 5: LED(+) to resister to ground.
+
+  Connect Nanos together for communications. On the sender Nano:
   + 5v: positive
   + GND: ground
-  + pins 2: clock
-  + pins 3: data
+  + pin 2: clock
+  + pin 5: data
 
-  Connect a 2 x 7 segment display to a Nano.
-  Needs to match: segmentPins and digitPins as defined below.
-  + Segment CA1 to 1K resister, to Nano pin 4. If common cathode display (-).
-  + Segment CA2 to 1K resister, to Nano pin 5. If common cathode display (-).
-  + Segment A to Nano pin 6.
-  + Segment B to Nano pin 7.
-  + Segment C to Nano pin 8.
-  + Segment D to Nano pin 9.
-  + Segment E to Nano pin 10.
-  + Segment F to Nano pin 11.
-  + Segment G to Nano pin 12.
-
-  2 x 7 segment display pins:
-       CA1  G  F  A  B    -> Pins mapped to segments
-        |   |  |  |  |
-   ---------    ---------
-   |   A   |    |   A   |
-  F|       |B  F|       |B
-   |---G---|    |---G---|
-  E|       |C  E|       |C
-   |   D   |    |   D   |
-   ---------    ---------
-        |   |  |  |  |
-        D   DP E  C CA2   -> Pins mapped to segments
+  Reference:
+    https://www.youtube.com/watch?v=eq5YpKHXJDM
+    https://github.com/beneater/error-detection-videos
+  Sender:
+    https://github.com/beneater/error-detection-videos/blob/master/transmitter/transmitter.ino
+  Receiver:
+    https://github.com/beneater/error-detection-videos/blob/master/receiver/receiver.ino
 
 */
 // -----------------------------------------------------------------------------
-// Used with the 2 x 7 segment display
-#include <SevSeg.h>
-SevSeg sevseg;
-
-// -----------------------------------------------------------------------------
 // Nano to Nano (N2N) Communications: transmission sender
-#define TX_CLOCK 4
-#define TX_DATA 7
+#define TX_CLOCK A2  // Works on pin 3, 4, 6 and A1.
+#define TX_DATA  A1  // Works on pin 4 and A1.
 
 // Rate notes:
 //  300 nice to watch the bits show.
 //   10 fast for transfer.
 //    1 works fine, even with serial print statements.
 #define TX_RATE 10
-int clockDelay = (TX_RATE);
-// int clockDelay = (1000 / TX_RATE) / 2;  // original, where TX_RATE = 5.
+int clockDelay = TX_RATE;
 
 const char *message = "TX";
 
@@ -91,9 +82,8 @@ void sendMessage2nano() {
 
 // -----------------------------------------------------------------------------
 // Nano to Nano (N2N) Communications: Receiver.
-
-#define RX_CLOCK 2
-#define RX_DATA A0
+#define RX_CLOCK 3    // Requires to be on an interrupt pin. For a Nano: 2 or 3.
+#define RX_DATA  A0   // Works on pin 4, A0, and A1.
 
 volatile byte rx_bit = 0;
 volatile byte rx_byte = 0;
@@ -110,11 +100,11 @@ void onClockPulse() {
   if (rx_bit) {
     rx_byte |= (0x80 >> bit_position);
   }
-  //  Serial.print("+");
-  //  Serial.print(" bit_position: ");
-  //  Serial.print(bit_position);
-  //  Serial.print(" bit: ");
-  //  Serial.println(rx_bit);
+  Serial.print("+");
+  Serial.print(" bit_position: ");
+  Serial.print(bit_position);
+  Serial.print(" bit: ");
+  Serial.println(rx_bit);
   bit_position++;
   if (bit_position == 8) {
     // 8 bits is a byte.
@@ -127,8 +117,8 @@ void onClockPulse() {
 
 // -----------------------------------------------------------------------------
 // Rotary Encoder module connections
-const int PinCLK = 3; // Generating interrupts using CLK signal
-const int PinDT = 6;  // Reading DT signal
+const int PinCLK = 2;  // Requires to be on an interrupt pin. For a Nano: 2 or 3.
+const int PinDT =  A4; // Reading DT signal
 
 // Interrupt routine runs if rotary encoder CLK pin changes state.
 volatile boolean TurnDetected;  // Type volatile for interrupts.
@@ -152,45 +142,30 @@ void setup() {
   delay(1000);
   Serial.println("+++ Setup.");
 
-  byte hardwareConfig = COMMON_CATHODE; // COMMON_ANODE or COMMON_CATHODE
-  byte segmentPins[] = {0, 1, 8, 9, 10, 11, 12};  // Mapping segment pins A..G, to Nano pins.
-  byte numDigits = 2;                 // Number of display digits.
-  byte digitPins[] = {5, 13};          // Multi-digit display ground/set pins: can use pin 13.
-  bool resistorsOnSegments = true;    // Set to true when using a single resister per display digit.
-  bool updateWithDelays = false;      // Doesn't work when true.
-  bool leadingZeros = true;           // Clock leading 0. When true: "01" rather that " 1".
-  bool disableDecPoint = true;        // Use 'true' if your decimal point doesn't exist or isn't connected
-  sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments, updateWithDelays, leadingZeros, disableDecPoint);
-  Serial.println("+ Digit display configured.");
-  sevseg.setNumber(42, 1);
-
   pinMode(TX_CLOCK, OUTPUT);
   pinMode(TX_DATA, OUTPUT);
   Serial.println("+ Configured: Nano to Nano (N2N) Communications for sending.");
 
+  attachInterrupt (digitalPinToInterrupt(PinCLK), rotarydetect, CHANGE);
+  Serial.println("+ Configured: rotary encoder.");
+
   pinMode(RX_DATA, INPUT);
   attachInterrupt(digitalPinToInterrupt(RX_CLOCK), onClockPulse, RISING);
   Serial.println("+ Ready to receive communications from the other Nano.");
-
-   attachInterrupt (digitalPinToInterrupt(PinCLK), rotarydetect, CHANGE);
-  Serial.println("+ Configured: rotary encoder.");
 
   Serial.println("+++ Go to loop.");
 }
 
 // -----------------------------------------------------------------------------
 // Device Loop
-
 static int virtualPosition = 0;
 void loop() {
 
   if (byteReceived) {
     Serial.print("+");
-    Serial.print(" messageByte: ");
+    Serial.print(" Received messageByte: ");
     Serial.println(messageByte);
-    if (messageByte < 13) {
-      sevseg.setNumber(messageByte, 1);
-    }
+    // sevseg.setNumber(messageByte, 1);
     byteReceived = false;
   }
 
@@ -205,7 +180,7 @@ void loop() {
       Serial.println (virtualPosition);
     } else {
       virtualPosition--;
-      if (virtualPosition < 0) {
+      if (virtualPosition < 1) {
         virtualPosition = 12;
       }
       Serial.print (" > left  count = ");
@@ -215,9 +190,7 @@ void loop() {
     sendByte2nano(virtualPosition);
   }
 
-  // Delay of 10 is okay. Any longer delay, example 20, the digits start to flash.
   delay(10);
-  sevseg.refreshDisplay();
 
 }
 // -----------------------------------------------------------------------------

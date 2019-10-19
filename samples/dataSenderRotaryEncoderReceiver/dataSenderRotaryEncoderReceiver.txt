@@ -32,6 +32,11 @@
 
 */
 // -----------------------------------------------------------------------------
+// Used with the 2 x 7 segment display
+#include <SevSeg.h>
+SevSeg sevseg;
+
+// -----------------------------------------------------------------------------
 // Nano to Nano (N2N) Communications: transmission sender
 #define TX_CLOCK A2  // Works on pin 3, 4, 6 and A1.
 #define TX_DATA  A1  // Works on pin 4 and A1.
@@ -81,6 +86,41 @@ void sendMessage2nano() {
 }
 
 // -----------------------------------------------------------------------------
+// Nano to Nano (N2N) Communications: Receiver.
+#define RX_CLOCK 3    // Requires to be on an interrupt pin. For a Nano: 2 or 3.
+#define RX_DATA  A0   // Works on pin 4, A0, and A1.
+
+volatile byte rx_bit = 0;
+volatile byte rx_byte = 0;
+volatile int bit_position = 0;
+volatile bool bitReceived = false;
+volatile bool byteReceived = false;
+volatile byte messageByte = 0;
+
+void onClockPulse() {
+  bitReceived = true;
+  // Read a bit.
+  rx_bit = digitalRead(RX_DATA);
+  // Add bit to byte.
+  if (rx_bit) {
+    rx_byte |= (0x80 >> bit_position);
+  }
+  Serial.print("+");
+  Serial.print(" bit_position: ");
+  Serial.print(bit_position);
+  Serial.print(" bit: ");
+  Serial.println(rx_bit);
+  bit_position++;
+  if (bit_position == 8) {
+    // 8 bits is a byte.
+    byteReceived = true;
+    messageByte = rx_byte;
+    bit_position = 0;
+    rx_byte = 0;
+  }
+}
+
+// -----------------------------------------------------------------------------
 // Rotary Encoder module connections
 const int PinCLK = 2;  // Requires to be on an interrupt pin. For a Nano: 2 or 3.
 const int PinDT =  A4; // Reading DT signal
@@ -107,12 +147,28 @@ void setup() {
   delay(1000);
   Serial.println("+++ Setup.");
 
+  byte hardwareConfig = COMMON_CATHODE; // COMMON_ANODE or COMMON_CATHODE
+  byte segmentPins[] = {6, 7, 8, 9, 10, 11, 12};  // Mapping segment pins A..G, to Nano pins.
+  byte numDigits = 2;                 // Number of display digits.
+  byte digitPins[] = {5, 13};          // Multi-digit display ground/set pins: can use pin 13.
+  bool resistorsOnSegments = true;    // Set to true when using a single resister per display digit.
+  bool updateWithDelays = false;      // Doesn't work when true.
+  bool leadingZeros = true;           // Clock leading 0. When true: "01" rather that " 1".
+  bool disableDecPoint = true;        // Use 'true' if your decimal point doesn't exist or isn't connected
+  sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments, updateWithDelays, leadingZeros, disableDecPoint);
+  Serial.println("+ Digit display configured.");
+  sevseg.setNumber(42, 1);
+
   pinMode(TX_CLOCK, OUTPUT);
   pinMode(TX_DATA, OUTPUT);
   Serial.println("+ Configured: Nano to Nano (N2N) Communications for sending.");
 
   attachInterrupt (digitalPinToInterrupt(PinCLK), rotarydetect, CHANGE);
   Serial.println("+ Configured: rotary encoder.");
+
+  pinMode(RX_DATA, INPUT);
+  attachInterrupt(digitalPinToInterrupt(RX_CLOCK), onClockPulse, RISING);
+  Serial.println("+ Ready to receive communications from the other Nano.");
 
   Serial.println("+++ Go to loop.");
 }
@@ -121,6 +177,16 @@ void setup() {
 // Device Loop
 static int virtualPosition = 0;
 void loop() {
+
+  if (byteReceived) {
+    Serial.print("+");
+    Serial.print(" messageByte: ");
+    Serial.println(messageByte);
+    if (messageByte < 13) {
+      sevseg.setNumber(messageByte, 1);
+    }
+    byteReceived = false;
+  }
 
   if (TurnDetected)  {
     TurnDetected = false;  // Reset, until new rotation detected
@@ -144,6 +210,7 @@ void loop() {
   }
 
   delay(10);
+  sevseg.refreshDisplay();
 
 }
 // -----------------------------------------------------------------------------
