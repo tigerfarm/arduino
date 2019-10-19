@@ -33,16 +33,15 @@
 */
 // -----------------------------------------------------------------------------
 // Nano to Nano (N2N) Communications: transmission sender
-#define TX_CLOCK 4
-#define TX_DATA A1
+#define TX_CLOCK A2  // Works on pin 3, 4, 6 and A1.
+#define TX_DATA  A1  // Works on pin 4 and A1.
 
 // Rate notes:
 //  300 nice to watch the bits show.
 //   10 fast for transfer.
 //    1 works fine, even with serial print statements.
 #define TX_RATE 10
-int clockDelay = (TX_RATE);
-// int clockDelay = (1000 / TX_RATE) / 2;  // original, where TX_RATE = 5.
+int clockDelay = TX_RATE;
 
 const char *message = "TX";
 
@@ -83,8 +82,8 @@ void sendMessage2nano() {
 
 // -----------------------------------------------------------------------------
 // Rotary Encoder module connections
-const int PinCLK = 3; // Generating interrupts using CLK signal
-const int PinDT = A6;  // Reading DT signal
+const int PinCLK = 2;  // Requires to be on an interrupt pin. For a Nano: 2 or 3.
+const int PinDT =  A4; // Reading DT signal
 
 // Interrupt routine runs if rotary encoder CLK pin changes state.
 volatile boolean TurnDetected;  // Type volatile for interrupts.

@@ -9,8 +9,8 @@
 */
 // -----------------------------------------------------------------------------
 // Nano to Nano (N2N) Communications: Receiver.
-#define RX_CLOCK 2
-#define RX_DATA 3
+#define RX_CLOCK 3    // Requires to be on an interrupt pin. For a Nano: 2 or 3.
+#define RX_DATA  4    // Works on pin 4 and A1.
 
 volatile byte rx_bit = 0;
 volatile byte rx_byte = 0;

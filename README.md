@@ -204,6 +204,7 @@ void IntCallback(){
 }
 ````
 
+--------------------------------------------------------------------------------
 ### I2C Bus synchronous serial protocol for component communications
 
 The DS3231 Clock and 1602 LCD display both communicate with the Nano using I2C.
@@ -220,7 +221,7 @@ I2C (Inter-Integrated Circuit), pronounced I-two-C or I-squared-C.
 I²C is appropriate for peripherals where simplicity and low manufacturing cost are more important than speed.
 https://en.wikipedia.org/wiki/I%C2%B2C
 
-#### Connecting to Nano boards
+#### Connecting 2 Nano boards
 
 Reference:
 https://www.arduino.cc/en/Tutorial/MasterWriter
@@ -388,7 +389,7 @@ See projects: i2cSlave or i2cSlave2digits, and i2cMasterRotaryEncoder.
 #### Non-I2C Nano to Nano communications between Nano boards.
 
 Works well. However, no error handling.
-Currently, if anything goes wrong, the circuit needs to be reset.
+Currently, if anything goes wrong, the sender and the receiver circuit needs to be reset.
 
 See projects: dataReceiver or dataReceiver2digits, and dataSenderRotaryEncoder.
 
