@@ -869,7 +869,7 @@ Front panel LEDs:
     Set on/off when selecting an address, or flashing when a program is running.
 + Note, octal organized: 3 bits each octal.
 + Top left 10 LEDs are status lights: memory cycles, state:
-+ INTE PROT MEMR INP MI OUT HLTA STACK WO INT
++ INTE PROT MEMR INP MI(memory read) OUT HLTA STACK WO INT
 + 2 LEDs below, are: WAIT and HLDA
 
 + Total LEDs = 10 + 8 + 2 + 16 = 36 LEDs
@@ -982,8 +982,8 @@ Address LEDs    Value:
 00 000 001      001
 ...
 11 000 011      303 Jump instruction: jmp beg
-00 001 000      010 ... to address 8. 00 001 000 = 8.
-00 000 000      000
+00 001 000      010 ... to address 8. 00 001 000 = 8. Low order address bits.
+00 000 000      000 High order address bits, to get a 16 bit address: 00 000 000 00 001 000 = 8.
 
 The Program in assembler code:
 0000                   org     0
