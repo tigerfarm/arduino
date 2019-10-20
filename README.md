@@ -969,10 +969,12 @@ Before starting, make sure all the switches are in the down position.
 https://altairclone.com/downloads/killbits.pdf
 Enter the following, starting at location 0.
 Data Values:
+````
 041 000 000 026 200 001 016 000 032 032 032 032
 011 322 010 000 333 377 252 017 127 303 010 000
-
+````
 EXAMINE from memory location 0.
+````
 Address LEDs    Value:
 00 100 001      041 Note: 00(0) 100(4) 001(1), which is 041. High bits are 0.
 + Flip DEPOSIT NEXT after each entry.
@@ -985,8 +987,9 @@ Address LEDs    Value:
 11 000 011      303 Jump instruction: jmp beg
 00 001 000      010 ... to address 8. 00 001 000 = 8. Low order address bits.
 00 000 000      000 High order address bits, to get a 16 bit address: 00 000 000 00 001 000 = 8.
-
+````
 The Program in assembler code:
+````
 0000                   org     0
 0000 210000            lxi     h,0             ;initialize counter 
 0003 1680              mvi     d,080h          ;set up initial display bit 
@@ -1003,7 +1006,7 @@ The Program in assembler code:
 0014 57                mov     d,a             ;move data to display reg 
 0015 C30800            jmp     beg             ;repeat sequence 
 0018                   end
-
+````
 To run the program,
 + Set all sense switches to 0.
 + EXAMINE location 0.
@@ -1020,7 +1023,6 @@ Flip RESET will restart the program while it's running.
 To stop the program, hit STOP. WAIT LED goes on.
 Flip RESET.
 Flip RUN to restart the program.
-
 
 -----------------------------
 + Instruction set.

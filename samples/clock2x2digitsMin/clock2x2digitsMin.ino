@@ -141,6 +141,7 @@ void clockPulseHour() {
   if (theCounterHours <= 12) {
     sendByte2nano(theCounterHours);
   } else {
+    // int theHour = theCounterHours-12;
     sendByte2nano(theCounterHours-12);    // Use 3, rather than 15.
   }
 }
