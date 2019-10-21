@@ -1,6 +1,7 @@
 // -----------------------------------------------------------------------------
 /*
-  Nano to Nano (N2N) Communications: Sender
+  Arduino communications: Sender.
+  For example: Nano to Nano data communications.
 
   +++ Nana has 2 interrupt pins: 2 and 3.
   + pin 2: Communications clock
@@ -37,7 +38,7 @@
 SevSeg sevseg;
 
 // -----------------------------------------------------------------------------
-// Nano to Nano (N2N) Communications: transmission sender
+// Arduino communications: transmission sender
 #define TX_CLOCK A2  // Works on pin 3, 4, 6 and A1.
 #define TX_DATA  A1  // Works on pin 4 and A1.
 
@@ -54,7 +55,7 @@ void sendBit2nano(bool tx_bit) {
   Serial.print(tx_bit);
   // Set/write the data bit to transmit: either HIGH (1) or LOW (0) value.
   digitalWrite(TX_DATA, tx_bit);
-  // Pulse the clock to transit the bit.
+  // Transit the bit: pulse the clock to let the other Arduino know that the data is ready to read.
   delay(clockDelay);
   digitalWrite(TX_CLOCK, HIGH);
   delay(clockDelay);
@@ -86,7 +87,7 @@ void sendMessage2nano() {
 }
 
 // -----------------------------------------------------------------------------
-// Nano to Nano (N2N) Communications: Receiver.
+// Arduino Communications: Receiver.
 #define RX_CLOCK 3    // Requires to be on an interrupt pin. For a Nano: 2 or 3.
 #define RX_DATA  A0   // Works on pin 4, A0, and A1.
 
@@ -122,8 +123,11 @@ void onClockPulse() {
 
 // -----------------------------------------------------------------------------
 // Rotary Encoder module connections
+
 const int PinCLK = 2;  // Requires to be on an interrupt pin. For a Nano: 2 or 3.
 const int PinDT =  A4; // Reading DT signal
+
+static int virtualPosition = 0; // Loop number of turns counter. Up(+1) for right, down(-1) for left.
 
 // Interrupt routine runs if rotary encoder CLK pin changes state.
 volatile boolean TurnDetected;  // Type volatile for interrupts.
@@ -175,7 +179,7 @@ void setup() {
 
 // -----------------------------------------------------------------------------
 // Device Loop
-static int virtualPosition = 0;
+
 void loop() {
 
   if (byteReceived) {

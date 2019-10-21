@@ -32,7 +32,7 @@
         |   |  |  |  |
         D   DP E  C CA2   -> Segment mapping
 
-  Nano to Nano (N2N) Communications: Sender.
+  Arduino Communications: Sender. The other, is the receiver.
   Connect Nanos together for communications:
   + 5v: positive
   + GND: ground
@@ -51,7 +51,7 @@ DateTime now;
 SevSeg sevseg;
 
 // -----------------------------------------------------------------------------
-// Nano to Nano (N2N) Communications: transmission sender
+// Arduino Communications: transmission sender
 #define TX_CLOCK 2
 #define TX_DATA 3
 
@@ -66,7 +66,7 @@ void sendBit2nano(bool tx_bit) {
   // Serial.print(tx_bit);  // Used to print the bits, example: 00001100
   // Set/write the data bit to transmit: either HIGH (1) or LOW (0) value.
   digitalWrite(TX_DATA, tx_bit);
-  // Set the clock to HIGH to tell the receive that the bit is ready to be read.
+  // Transit the bit: pulse the clock to let the other Arduino know that the data is ready to read.
   delay(clockDelay);
   digitalWrite(TX_CLOCK, HIGH);
   delay(clockDelay);
@@ -138,11 +138,11 @@ void processClockNow() {
 void clockPulseHour() {
   Serial.print("++ clockPulseHour(), theCounterHours= ");
   Serial.println(theCounterHours);
-  if (theCounterHours <= 12) {
-    sendByte2nano(theCounterHours);
-  } else {
+  if (theCounterHours > 12) {
     // int theHour = theCounterHours-12;
     sendByte2nano(theCounterHours-12);    // Use 3, rather than 15.
+  } else {
+    sendByte2nano(theCounterHours);
   }
 }
 void clockPulseMinute() {

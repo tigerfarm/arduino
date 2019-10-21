@@ -1,6 +1,7 @@
 // -----------------------------------------------------------------------------
 /*
-  Nano to Nano (N2N) Communications: Sender
+  Arduino communications: Sender.
+  For example: Nano to Nano data communications.
 
   +++ Nana has 2 interrupt pins: 2 and 3.
   + pin 2: Communications clock
@@ -49,7 +50,7 @@ void sendBit2nano(bool tx_bit) {
   Serial.print(tx_bit);
   // Set/write the data bit to transmit: either HIGH (1) or LOW (0) value.
   digitalWrite(TX_DATA, tx_bit);
-  // Pulse the clock to transit the bit.
+  // Transit the bit: pulse the clock to let the other Arduino know that the data is ready to read.
   delay(clockDelay);
   digitalWrite(TX_CLOCK, HIGH);
   delay(clockDelay);
@@ -70,7 +71,7 @@ void sendByte2nano(char tx_byte) {
   // Set data bit to LOW (0).
   digitalWrite(TX_DATA, LOW);
 }
-// Nano to Nano (N2N) Communications: sender.
+// Arduino Communications: sender.
 void sendMessage2nano() {
   // Transmit each bit in the byte.
   for (int byte_idx = 0; byte_idx < strlen(message); byte_idx++) {
@@ -81,7 +82,8 @@ void sendMessage2nano() {
 }
 
 // -----------------------------------------------------------------------------
-// Nano to Nano (N2N) Communications: Receiver.
+// Arduino Communications: Receiver.
+
 #define RX_CLOCK 3    // Requires to be on an interrupt pin. For a Nano: 2 or 3.
 #define RX_DATA  A0   // Works on pin 4, A0, and A1.
 
@@ -117,8 +119,11 @@ void onClockPulse() {
 
 // -----------------------------------------------------------------------------
 // Rotary Encoder module connections
+
 const int PinCLK = 2;  // Requires to be on an interrupt pin. For a Nano: 2 or 3.
 const int PinDT =  A4; // Reading DT signal
+
+static int virtualPosition = 0; // Loop number of turns counter. Up(+1) for right, down(-1) for left.
 
 // Interrupt routine runs if rotary encoder CLK pin changes state.
 volatile boolean TurnDetected;  // Type volatile for interrupts.
@@ -144,21 +149,21 @@ void setup() {
 
   pinMode(TX_CLOCK, OUTPUT);
   pinMode(TX_DATA, OUTPUT);
-  Serial.println("+ Configured: Nano to Nano (N2N) Communications for sending.");
-
-  attachInterrupt (digitalPinToInterrupt(PinCLK), rotarydetect, CHANGE);
-  Serial.println("+ Configured: rotary encoder.");
+  Serial.println("+ Configured: Arduino communications for sending.");
 
   pinMode(RX_DATA, INPUT);
   attachInterrupt(digitalPinToInterrupt(RX_CLOCK), onClockPulse, RISING);
-  Serial.println("+ Ready to receive communications from the other Nano.");
+  Serial.println("+ Configured: Arduino communications for receiving.");
+
+  attachInterrupt (digitalPinToInterrupt(PinCLK), rotarydetect, CHANGE);
+  Serial.println("+ Configured: rotary encoder.");
 
   Serial.println("+++ Go to loop.");
 }
 
 // -----------------------------------------------------------------------------
 // Device Loop
-static int virtualPosition = 0;
+
 void loop() {
 
   if (byteReceived) {

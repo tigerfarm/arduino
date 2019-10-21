@@ -146,6 +146,9 @@ https://lastminuteengineers.com/74hc595-shift-register-arduino-tutorial/
 
 3 Nano pins, plus program logic, to control 16 pins. 3 Nano pins with 2 daisy chained 595s, gives 16 output pins.
 
++ Video
+https://www.youtube.com/watch?v=N7CAboD1jU0
+
 #### TM1637: 4 x 7-segment display
 
 Pins:
@@ -825,6 +828,214 @@ http://www.circuitstoday.com/arduino-nano-tutorial-pinout-schematics
 https://medium.com/@thuc/connect-arduino-nano-with-mac-osx-f922a46c0a5d
 
 --------------------------------------------------------------------------------
++ Excellent Arduino overview:
+https://www.youtube.com/watch?v=nL34zDTPkcs
+
++ Twilio, Send SMS and MMS Messages From the ESP8266 in C++ 
+https://www.twilio.com/docs/sms/tutorials/how-to-send-sms-messages-esp8266-cpp
+++ On GitHub
+https://github.com/TwilioDevEd/twilio_esp8266_arduino_example
+
++ Standard Libraries
+https://www.arduino.cc/en/reference/libraries
+++ WiFi
+https://www.arduino.cc/en/Reference/WiFi
+````
+#include <ESP8266WiFi.h>
+#include <WiFiClientSecure.h>
+https://github.com/witnessmenow/HTTPS-directly-from-ESP8266/blob/master/implentation/implentation.ino
+char host[] = "api.reddit.com";
+if (client.connect(host, 443)) {
+    Serial.println("connected");
+...
+}
+````
+https://www.youtube.com/watch?v=hMZdM0Wlt54
+
+--------------------------------------------------------------------------------
+## Twilio SMS with using an ESP8266
+
+Send SMS and MMS Messages From the ESP8266 in C++ 
+https://www.twilio.com/docs/sms/tutorials/how-to-send-sms-messages-esp8266-cpp
++ On GitHub
+https://github.com/TwilioDevEd/twilio_esp8266_arduino_example
+
+Includes code to connect to a WiFi network and verify the SHA1 signature of api.twilio.com.
+
+How to receive an SMS:
+https://www.twilio.com/docs/sms/tutorials/how-to-receive-and-reply
+
+Controlling a light on/off/status, using esp8266.
+https://www.youtube.com/watch?v=0U2Hqux1b88
+
+--------------------------------------------------------------------------------
+## Chips
+````
+CMOS: HEF4511BP BCD to 7-segment latch/decoder/driver
+
+TA7205AP NTE Equvilent NTE1155 5.8W integrated audio power amplifier.
+
+TTL:  LM556 Dual timing circuit is a highly stable controller capable of producing accurate time delays or oscillation.
+TTL:  DM7404. Hex Inverting Gates
+
+CMOS: MC14049B Hex Inverter/Buffer
+CMOS: LM339N Comparator Differential
+CMOS: MC14011BCP Gates 3-18V Quad NAND 2-Input 
+CMOS: HEF4011BP is a quad two input NAND gate
+CMOS: MC14049BCP ON Semiconductor Buffers & Line Drivers 3-18V Hex CMOS
+
+CMOS: LM386 Low Voltage Audio Power Amplifier.
+LM741CN Texas Instruments Operational Amplifiers - Op Amps Operational Amplifier
+LM1458 and the LM1558 are general purpose dual operational amplifiers. 
+BA10324A ROHM Semiconductor Operational Amplifiers - Op Amps
+
+SN7476N Texas Instruments Flip Flops Dual J-K Positive-Edge-Triggered Flip-Flops with Preset and Clear
+CD4027BCN Fairchild Flip Flops Dual J-K Flip-Flop
+CD4049BCN CMOS Hex Buffer/Converter 
+
+T106C1 SCR
+````
+
+--------------------------------------------------------------------------------
+#### Parts on Amazon.com
+
++ Search: YDA138-E Audio Amplifier
++ $2.78 & FREE Shipping 
+https://www.amazon.com/Semoic-YDA138-Channel-Digital-Amplifier/dp/B07MKX4FL4/ref=sr_1_7?keywords=YDA138-E+Audio+Amplifier
+
++ TDA7492P Digital Amplifier Board
+
++ Search: Infrared Receiver IR Sensor Module
++ Sold 2 at a time, 4 for: $4.78 + Free Shipping, $1.20/each(about)
+https://www.amazon.com/barterine-KY-022-Infrared-Receiver-Arduino/dp/B01MG1LFA0/ref=pd_day0_hl_201_2/133-5806447-0800931?_encoding=UTF8&pd_rd_i=B01MG1LFA0&pd_rd_r=cfe3b8b2-ca32-477b-a433-1e69ab7a5e3f&pd_rd_w=RFsGg&pd_rd_wg=Y9yhL&pf_rd_p=cd872437-0036-44da-b76a-718df210c36e&pf_rd_r=DPFTD1HBT427SWZBGF1A&psc=1&refRID=DPFTD1HBT427SWZBGF1A
++ For 3, $1.29 + $2.97 shipping = $4.26 for 3, $1.40/each(about)
+https://www.amazon.com/Manakayla-37-9KHz-Infrared-Receiver-Arduino/dp/B07R781JSD/ref=sr_1_3?keywords=Infrared+Receiver+IR+Sensor+Module&qid=1568131755&s=gateway&sr=8-3
+
++ DS3231 clock, $2.94 & FREE Shipping, Jiasijieke for Arduino DS3231 ZS042 AT24C32 IIC Module Precision RTC Real Time Clock Memory New 
+https://www.amazon.com/Jiasijieke-Arduino-DS3231-AT24C32-Precision/dp/B07MLRFRKF/ref=sr_1_14?crid=XGO2MU3QU4D6&keywords=ds3231+real+time+clock+module&qid=1568132528&s=electronics&sprefix=ds32%2Celectronics%2C200&sr=1-14
+
++ LCD 1602 Serial IIC I2C, For 2: $8.99 & FREE Shipping
+https://www.amazon.com/gp/product/B0711WLVP9/ref=ox_sc_act_title_1?smid=A304913WPKF57E&psc=1
+
++ DFPlayer MP3, 5 for: $9.98 & FREE Shipping.
+https://www.amazon.com/DAOKI-DFPlayer-Player-Module-Arduino/dp/B01MQD5IIA/ref=sr_1_14?keywords=dfplayer&qid=1568135351&s=pc&sr=1-14
+
+---------------
++ $02.01 Solderless Breadboard Bread Board 400 Tie Points Contacts
+https://www.amazon.com/Solderless-Breadboard-Bread-Points-Contacts/dp/B00JGFDKBQ/ref=sr_1_8?keywords=SODIAL+breadboard&qid=1554232722&s=gateway&sr=8-8
++ $01.51 Male to female, 20cm Long F/F Solderless Flexible Breadboard Jumper Cable Wire 40 Pcs 
+https://www.amazon.com/SODIAL-Solderless-Flexible-Breadboard-Jumper/dp/B00U8MK14K/ref=sr_1_7?keywords=SODIAL+jumper+cable+breadboard&qid=1554232815&s=gateway&sr=8-7
++ $2.66 140pcs U Shape Solderless Breadboard Jumper Cable Wire Kit for Arduino Shield 
+https://www.amazon.com/SODIAL-140pcs-Solderless-Breadboard-Arduino/dp/B00K67XXSI/ref=sr_1_10?keywords=SODIAL+jumper+cable+breadboard&qid=1554232815&s=gateway&sr=8-10
+
+--------------------------------------------------------------------------------
+### My first order:
+````
+Sales Order Number:       292111684
+Sold by SODIAL
+Sales Order Date:              10/4/2018 10:36:09 PM
+Shipping Method:               Ship from Overseas(8-15 bus. days)
+Estimated to Ship Out On:   10/5/2018 by End of Day
+
+6 x ($3.21) SODIAL Nano V3.0 ATmega328P CH340G 5V 16M MINI USB Nano V3.0 Compatible to Arduino Blue $19.26
+1 x ($6.40) SODIAL UNO R3 Development Board microcontroller MEGA328P ATMEGA16U2 Compat for Arduino blue $6.40
+--------------------
+1 x ($1.02) SODIAL Breakout Humidity/Digital Temperature/Barometric Pressure Sensor Module BME280 $1.02
+1 x ($1.00) SPI Reader Micro SD Memory Card TF Memory Card Shield Module for Arduino $1.00
+1 x ($1.00) 4 x 4 16 Key Matrix Membrane Switch Keypad $1.00
+1 x ($1.29) DC 3.3-5.5V DS3231 High Precision Real-Time Clock Module for MCU $1.29
+2 x ($1.06) SODIAL 5V 1 channel H / L Level Trigger Relay Optocoupler Module for Arduino $2.12
+1 x ($1.00) DC 5V Coil Relay Module for SCM Development $1.00
+--------------------
+1 x ($1.08) SODIAL Infrared Wireless Remote Control Kit for Arduino DIY Project $1.08
+1 x ($1.00) SODIAL For Arduino Bluetooth Module Serial Board Transceiver Transmitter Receiver $1.00
+1 x ($1.00) New HC-SR04 Distance Measuring Transducer Sensor Ultrasonic Module for Arduino $1.00
+--------------------
+1 x ($6.86) SODIAL 3pcs MB-102 Breadboard 830 Point Solderless Prototype PCB Board Kit for Arduino Proto Shield Distribution Connecting Blocks $6.86
+1 x ($4.00) SODIAL 3X Mini 400 Points Prototype PCB Solderless Breadboard Protoboard $4.00
+1 x ($2.00) SODIAL 3X MB102 Breadboard Power Supply Module 3.3V 5V for Arduino Bread Board $2.00
+1 x ($1.30) SODIAL DC 9V PP3 Battery Holder Box Case Wire Lead ON/OFF Switch Cover + 2.1mm Plug $1.30
+--------------------
+1 x ($2.00) 1602 16x2 Character LCD Display Module Blue Blacklight $2.00
+1 x ($2.26) SODIAL 10 Segment LED Bargraph Light Display (5PCS RED) $2.26
+1 x ($2.00) MAX7219 Red Dot Matrix Module MCU Control LED Display DIY w Cable $2.00
+1 x ($1.30) 100 Pcs 5mm Red Green White Blue LED Light Emitting Diodes DC 2.5V-3V $1.30
+1 x ($1.12) 5 pcs Common Cathode 10 Pin 2 Bit 7 Segment 0.4" Red LED Display Digital Tube $1.12
+1 x ($1.22) 10 Pcs 10 Pin 1 Bit 7 Segment 0.5" Red LED Display Digital Tube $1.22
+--------------------
+2 x ($1.39) SODIAL DFPlayer Mini MP3 Player Module For Arduino Black $2.78
+1 x ($0.87) SODIAL PAM8403 mini 5V digital power amplifier board with switch potentiometer can USB power supply $0.87
+1 x ($2.59) SODIAL YDA138-E YAMAHA 12W+12W Dual Channel Digital Audio Amplifier Board DC 12V $2.59
+2 x ($1.81) SODIAL 2 Pcs 5W 8 Ohm Magnetic Speaker Loudspeaker 70mm x 30mm for TV Player $3.62
+--------------------
+1 x ($0.36) 10 Pcs 4 Pins Tactile Round Push Button Switch Momentary Tact $0.36
+1 x ($1.00) 2Pcs Single Linear Knurled Shaft Volume Rotary Potentiometers 1K Ohm $1.00
+4 x ($0.42) SODIAL Potentiometer Single Linear Potentiometer Resistance:10K $1.68
+2 x ($0.77) SODIAL Replacement 1.41 inchcap top diameter 6mm shaft hole non-slip potentiometer knob $1.54
+1 x ($3.00) SODIAL 1% Precision 1 / 4W 30 Values ??Metal Resistor Resistance Kit, Set of 600 pcs $3.00
+1 x ($2.00) New 5 Pcs AC 250V/3A 120V/6A On-Off 2 Position Spdt Self Locking Toggle Switch $2.00
+--------------------
+2 x ($1.00) 40 x 10 male - female jumper plug / socket jumpers jumper wires $2.00
+1 x ($1.43) SODIAL 65 x Jumper Wires Asked Jumpers Breadboard $1.43
+1 x ($1.29) 65PCS Male to Male Solderless Breadboard Jumper Cable $1.29
+1 x ($1.19) SODIAL 9v Battery Clip Snap Accessories with 2.1 X 5.5mm Male Dc Plug for Arduino(5 Pack) $1.19
+1 x ($0.77) SODIAL 1pcs MINI USB Cable for Arduino NANO Controller Board $0.77
+
+1 x (-$4.32) DISCOUNT FOR PROMOTION CODE
+-$4.32
+Subtotal:	$82.03
+Tax:	$6.36
+Shipping and Handling:	$0.00
+Total Amount:	$88.39
+
+Other parts
++ LM317 DC-DC 1.5A 1.2-37V Adjustable Power Supply Board DC Converter Buck Step Down Module Adjustable Linear
++ Breadboard Power Supply Module 2 Channel: 3.3v and 5v
++ Breadboard Power Supply Module MB102 with switch and DC female plug: 3.3v and 5v, Input voltage: 6.5-12 V (DC) or USB power supply
++ 1602 LCD with Keypad Shield Board Blue Backlight Module for Arduino Duemilanove
++ Nano V3.0 ATmega328P controller compatible for arduino nano CH340 USB driver NO CABLE NANO 3.0
+````
+
+--------------------------------------------------------------------------------
++++ Creating boards (PCB)
+
++ Fritzing's PCB
+https://fritzing.org/learning/tutorials/designing-pcb/
+
+Turning A Fritzing Board Into A PCB.
++ Right at the bottom of the screen, you can find a ‘Fabricate’ button that will send your board to a fab house in Berlin.
+The cost for my board is €6.26 for one. Of course, you can export a Fritzing board as a Gerber,
+and send that off to any fab house on the planet. For my board, OSH Park will give me three for $7.15.
+I could get ten of these boards made by the Fritzing fab for €55.44, but I already bought twenty of them for $36.29 from Seeed Studio.
++ Reference:
+https://hackaday.com/2016/10/11/creating-a-pcb-in-everything-friends-dont-let-friends-use-fritzing/
+
++ Tutorial: Creating A PCB In Everything: Introduction
+https://hackaday.com/2016/09/21/creating-a-pcb-in-everything-introduction/
+
++ Video
+https://www.hackster.io/jithinsanal1610/online-pcb-assembly-from-jlcpcb-b47458
+https://youtu.be/twbgW19gwr4
+
++ JLC PCB reviews:
+https://pcbshopper.com/easyeda-reviews/
++ Get quote from JLC PCB
+https://jlcpcb.com/quote#/?orderType=1&stencilLayer=2
++ 10 boards, 80x150mm (about 3" x 6"), Engineering fee: $4.00 (one time), Boards: $4.10 for 5, $8.10 for 10.
++ Shipping: PostLink US Registered Mail  $6.76
++ Total = $12.10 + $6.76 = $18.86 for 10 boards.
++ Suggestion: choose 2oz copper as you will get a better board with less trace faults.
++ With 2oz copper weight, add $16.00, total: Engineering fee: $4.00 (one time), Copper Weight: $16.00, Board:$11.00
++ Total = $31.00 + $10.31 = $41.31 for 10 boards. 
++ Gerber upload of design.
++ Easyeda is a free online tool that we provide to design the PCB, and you can place your order on JLCPCB easily and quickly.
++ Can use online for free:
+https://easyeda.com/
+
++ Review on Elecrow for creating PCB:
+https://pcbshopper.com/elecrow-reviews/
+
+--------------------------------------------------------------------------------
 ## Altair 8800
 
 + Nice programming sample. The creator of the video has an actual Altair 8800.
@@ -843,6 +1054,9 @@ https://www.ztop.com.br/gadget-do-dia-altair-8800-clone-computer/
 
 Excellent front panel video:
 https://youtu.be/suyiMfzmZKs
+
++ Buy front panel, $18.00, Laser-cut and screen printed 15″ x 6″ front panel for the Altair-duino kit
+https://www.adwaterandstir.com/product/front-panel/
 
 Front panel lower toggle buttons:
 + Far left, toggle switch: OFF/ON.
@@ -1029,10 +1243,26 @@ Flip RUN to restart the program.
 http://brooknet.no-ip.org/~lex/altair/_altair88b/manual/instructMain.html
 + Example: jump (jmp) 11 000 011 
 
++ How to load software onto the Arduino Due.
+https://www.adwaterandstir.com/install/
++ Code repository
+https://github.com/dhansel/Altair8800
+
 + How to build one.
 https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
 + Build your own.
 https://spectrum.ieee.org/geek-life/hands-on/build-your-own-altair-8800-personal-computer
++ About, with parts list
+https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
++ Getting started with the Arduino Due
+https://www.arduino.cc/en/Guide/ArduinoDue
++ The Arduino Due is a microcontroller board based on the Atmel SAM3X8E ARM Cortex-M3 CPU.
+It is the first Arduino board based on a 32-bit ARM core microcontroller.
++ The microcontroller mounted on the Arduino Due runs at 3.3V
++ 54 digital input/output pins, 12 analog inputs
++ Uses CH340G drivers
++ DUE R3 Board SAM3X8E 32-bit ARM Cortex-M3 Control Board Module For Arduino, US $14.64
+https://www.ebay.com/itm/DUE-R3-Board-SAM3X8E-32-bit-ARM-Cortex-M3-Control-Board-Module-For-Arduino/141976885203
 
 + Assembled & Tested, $279.95 – $349.95
 https://www.adwaterandstir.com/product/altair-assembled/
@@ -1045,9 +1275,6 @@ https://store.arduino.cc/usa/due
 + Intro to the Arduino Due
 https://www.theengineeringprojects.com/2018/09/introduction-to-arduino-due.html
 
-+ Code repository
-https://github.com/dhansel/Altair8800
-
 + Altair 8800 Instructional Videos
 https://www.youtube.com/playlist?list=PLB3mwSROoJ4KLWM8KwK0cD1dhX35wILBj
 
@@ -1058,209 +1285,14 @@ https://groups.google.com/forum/#!forum/altair-duino
 https://grantmestrength.github.io/RetroComputerInstructionManual/
 https://github.com/GrantMeStrength/RetroComputerInstructionManual
 
---------------------------------------------------------------------------------
-+ Excellent Arduino overview:
-https://www.youtube.com/watch?v=nL34zDTPkcs
++ original Altair manual
+http://www.classiccmp.org/dunfield/altair/d/88opman.pdf
 
-+ Twilio, Send SMS and MMS Messages From the ESP8266 in C++ 
-https://www.twilio.com/docs/sms/tutorials/how-to-send-sms-messages-esp8266-cpp
-++ On GitHub
-https://github.com/TwilioDevEd/twilio_esp8266_arduino_example
-
-+ Standard Libraries
-https://www.arduino.cc/en/reference/libraries
-++ WiFi
-https://www.arduino.cc/en/Reference/WiFi
-````
-#include <ESP8266WiFi.h>
-#include <WiFiClientSecure.h>
-https://github.com/witnessmenow/HTTPS-directly-from-ESP8266/blob/master/implentation/implentation.ino
-char host[] = "api.reddit.com";
-if (client.connect(host, 443)) {
-    Serial.println("connected");
-...
-}
-````
-https://www.youtube.com/watch?v=hMZdM0Wlt54
-
---------------------------------------------------------------------------------
-## Twilio SMS with using an ESP8266
-
-Send SMS and MMS Messages From the ESP8266 in C++ 
-https://www.twilio.com/docs/sms/tutorials/how-to-send-sms-messages-esp8266-cpp
-+ On GitHub
-https://github.com/TwilioDevEd/twilio_esp8266_arduino_example
-
-Includes code to connect to a WiFi network and verify the SHA1 signature of api.twilio.com.
-
-How to receive an SMS:
-https://www.twilio.com/docs/sms/tutorials/how-to-receive-and-reply
-
-Controlling a light on/off/status, using esp8266.
-https://www.youtube.com/watch?v=0U2Hqux1b88
-
---------------------------------------------------------------------------------
-## Chips
-````
-CMOS: HEF4511BP BCD to 7-segment latch/decoder/driver
-
-TA7205AP NTE Equvilent NTE1155 5.8W integrated audio power amplifier.
-
-TTL:  LM556 Dual timing circuit is a highly stable controller capable of producing accurate time delays or oscillation.
-TTL:  DM7404. Hex Inverting Gates
-
-CMOS: MC14049B Hex Inverter/Buffer
-CMOS: LM339N Comparator Differential
-CMOS: MC14011BCP Gates 3-18V Quad NAND 2-Input 
-CMOS: HEF4011BP is a quad two input NAND gate
-CMOS: MC14049BCP ON Semiconductor Buffers & Line Drivers 3-18V Hex CMOS
-
-CMOS: LM386 Low Voltage Audio Power Amplifier.
-LM741CN Texas Instruments Operational Amplifiers - Op Amps Operational Amplifier
-LM1458 and the LM1558 are general purpose dual operational amplifiers. 
-BA10324A ROHM Semiconductor Operational Amplifiers - Op Amps
-
-SN7476N Texas Instruments Flip Flops Dual J-K Positive-Edge-Triggered Flip-Flops with Preset and Clear
-CD4027BCN Fairchild Flip Flops Dual J-K Flip-Flop
-CD4049BCN CMOS Hex Buffer/Converter 
-
-T106C1 SCR
-````
-
---------------------------------------------------------------------------------
-#### Parts on Amazon.com
-
-+ Search: YDA138-E Audio Amplifier
-+ $2.78 & FREE Shipping 
-https://www.amazon.com/Semoic-YDA138-Channel-Digital-Amplifier/dp/B07MKX4FL4/ref=sr_1_7?keywords=YDA138-E+Audio+Amplifier
-
-+ TDA7492P Digital Amplifier Board
-
-+ Search: Infrared Receiver IR Sensor Module
-+ Sold 2 at a time, 4 for: $4.78 + Free Shipping, $1.20/each(about)
-https://www.amazon.com/barterine-KY-022-Infrared-Receiver-Arduino/dp/B01MG1LFA0/ref=pd_day0_hl_201_2/133-5806447-0800931?_encoding=UTF8&pd_rd_i=B01MG1LFA0&pd_rd_r=cfe3b8b2-ca32-477b-a433-1e69ab7a5e3f&pd_rd_w=RFsGg&pd_rd_wg=Y9yhL&pf_rd_p=cd872437-0036-44da-b76a-718df210c36e&pf_rd_r=DPFTD1HBT427SWZBGF1A&psc=1&refRID=DPFTD1HBT427SWZBGF1A
-+ For 3, $1.29 + $2.97 shipping = $4.26 for 3, $1.40/each(about)
-https://www.amazon.com/Manakayla-37-9KHz-Infrared-Receiver-Arduino/dp/B07R781JSD/ref=sr_1_3?keywords=Infrared+Receiver+IR+Sensor+Module&qid=1568131755&s=gateway&sr=8-3
-
-+ DS3231 clock, $2.94 & FREE Shipping, Jiasijieke for Arduino DS3231 ZS042 AT24C32 IIC Module Precision RTC Real Time Clock Memory New 
-https://www.amazon.com/Jiasijieke-Arduino-DS3231-AT24C32-Precision/dp/B07MLRFRKF/ref=sr_1_14?crid=XGO2MU3QU4D6&keywords=ds3231+real+time+clock+module&qid=1568132528&s=electronics&sprefix=ds32%2Celectronics%2C200&sr=1-14
-
-+ LCD 1602 Serial IIC I2C, For 2: $8.99 & FREE Shipping
-https://www.amazon.com/gp/product/B0711WLVP9/ref=ox_sc_act_title_1?smid=A304913WPKF57E&psc=1
-
-+ DFPlayer MP3, 5 for: $9.98 & FREE Shipping.
-https://www.amazon.com/DAOKI-DFPlayer-Player-Module-Arduino/dp/B01MQD5IIA/ref=sr_1_14?keywords=dfplayer&qid=1568135351&s=pc&sr=1-14
-
----------------
-+ $02.01 Solderless Breadboard Bread Board 400 Tie Points Contacts
-https://www.amazon.com/Solderless-Breadboard-Bread-Points-Contacts/dp/B00JGFDKBQ/ref=sr_1_8?keywords=SODIAL+breadboard&qid=1554232722&s=gateway&sr=8-8
-+ $01.51 Male to female, 20cm Long F/F Solderless Flexible Breadboard Jumper Cable Wire 40 Pcs 
-https://www.amazon.com/SODIAL-Solderless-Flexible-Breadboard-Jumper/dp/B00U8MK14K/ref=sr_1_7?keywords=SODIAL+jumper+cable+breadboard&qid=1554232815&s=gateway&sr=8-7
-+ $2.66 140pcs U Shape Solderless Breadboard Jumper Cable Wire Kit for Arduino Shield 
-https://www.amazon.com/SODIAL-140pcs-Solderless-Breadboard-Arduino/dp/B00K67XXSI/ref=sr_1_10?keywords=SODIAL+jumper+cable+breadboard&qid=1554232815&s=gateway&sr=8-10
-
---------------------------------------------------------------------------------
-### My first order:
-````
-Sales Order Number:       292111684
-Sold by SODIAL
-Sales Order Date:              10/4/2018 10:36:09 PM
-Shipping Method:               Ship from Overseas(8-15 bus. days)
-Estimated to Ship Out On:   10/5/2018 by End of Day
-
-6 x ($3.21) SODIAL Nano V3.0 ATmega328P CH340G 5V 16M MINI USB Nano V3.0 Compatible to Arduino Blue $19.26
-1 x ($6.40) SODIAL UNO R3 Development Board microcontroller MEGA328P ATMEGA16U2 Compat for Arduino blue $6.40
---------------------
-1 x ($1.02) SODIAL Breakout Humidity/Digital Temperature/Barometric Pressure Sensor Module BME280 $1.02
-1 x ($1.00) SPI Reader Micro SD Memory Card TF Memory Card Shield Module for Arduino $1.00
-1 x ($1.00) 4 x 4 16 Key Matrix Membrane Switch Keypad $1.00
-1 x ($1.29) DC 3.3-5.5V DS3231 High Precision Real-Time Clock Module for MCU $1.29
-2 x ($1.06) SODIAL 5V 1 channel H / L Level Trigger Relay Optocoupler Module for Arduino $2.12
-1 x ($1.00) DC 5V Coil Relay Module for SCM Development $1.00
---------------------
-1 x ($1.08) SODIAL Infrared Wireless Remote Control Kit for Arduino DIY Project $1.08
-1 x ($1.00) SODIAL For Arduino Bluetooth Module Serial Board Transceiver Transmitter Receiver $1.00
-1 x ($1.00) New HC-SR04 Distance Measuring Transducer Sensor Ultrasonic Module for Arduino $1.00
---------------------
-1 x ($6.86) SODIAL 3pcs MB-102 Breadboard 830 Point Solderless Prototype PCB Board Kit for Arduino Proto Shield Distribution Connecting Blocks $6.86
-1 x ($4.00) SODIAL 3X Mini 400 Points Prototype PCB Solderless Breadboard Protoboard $4.00
-1 x ($2.00) SODIAL 3X MB102 Breadboard Power Supply Module 3.3V 5V for Arduino Bread Board $2.00
-1 x ($1.30) SODIAL DC 9V PP3 Battery Holder Box Case Wire Lead ON/OFF Switch Cover + 2.1mm Plug $1.30
---------------------
-1 x ($2.00) 1602 16x2 Character LCD Display Module Blue Blacklight $2.00
-1 x ($2.26) SODIAL 10 Segment LED Bargraph Light Display (5PCS RED) $2.26
-1 x ($2.00) MAX7219 Red Dot Matrix Module MCU Control LED Display DIY w Cable $2.00
-1 x ($1.30) 100 Pcs 5mm Red Green White Blue LED Light Emitting Diodes DC 2.5V-3V $1.30
-1 x ($1.12) 5 pcs Common Cathode 10 Pin 2 Bit 7 Segment 0.4" Red LED Display Digital Tube $1.12
-1 x ($1.22) 10 Pcs 10 Pin 1 Bit 7 Segment 0.5" Red LED Display Digital Tube $1.22
---------------------
-2 x ($1.39) SODIAL DFPlayer Mini MP3 Player Module For Arduino Black $2.78
-1 x ($0.87) SODIAL PAM8403 mini 5V digital power amplifier board with switch potentiometer can USB power supply $0.87
-1 x ($2.59) SODIAL YDA138-E YAMAHA 12W+12W Dual Channel Digital Audio Amplifier Board DC 12V $2.59
-2 x ($1.81) SODIAL 2 Pcs 5W 8 Ohm Magnetic Speaker Loudspeaker 70mm x 30mm for TV Player $3.62
---------------------
-1 x ($0.36) 10 Pcs 4 Pins Tactile Round Push Button Switch Momentary Tact $0.36
-1 x ($1.00) 2Pcs Single Linear Knurled Shaft Volume Rotary Potentiometers 1K Ohm $1.00
-4 x ($0.42) SODIAL Potentiometer Single Linear Potentiometer Resistance:10K $1.68
-2 x ($0.77) SODIAL Replacement 1.41 inchcap top diameter 6mm shaft hole non-slip potentiometer knob $1.54
-1 x ($3.00) SODIAL 1% Precision 1 / 4W 30 Values ??Metal Resistor Resistance Kit, Set of 600 pcs $3.00
-1 x ($2.00) New 5 Pcs AC 250V/3A 120V/6A On-Off 2 Position Spdt Self Locking Toggle Switch $2.00
---------------------
-2 x ($1.00) 40 x 10 male - female jumper plug / socket jumpers jumper wires $2.00
-1 x ($1.43) SODIAL 65 x Jumper Wires Asked Jumpers Breadboard $1.43
-1 x ($1.29) 65PCS Male to Male Solderless Breadboard Jumper Cable $1.29
-1 x ($1.19) SODIAL 9v Battery Clip Snap Accessories with 2.1 X 5.5mm Male Dc Plug for Arduino(5 Pack) $1.19
-1 x ($0.77) SODIAL 1pcs MINI USB Cable for Arduino NANO Controller Board $0.77
-
-1 x (-$4.32) DISCOUNT FOR PROMOTION CODE
--$4.32
-Subtotal:	$82.03
-Tax:	$6.36
-Shipping and Handling:	$0.00
-Total Amount:	$88.39
-
-Other parts
-+ LM317 DC-DC 1.5A 1.2-37V Adjustable Power Supply Board DC Converter Buck Step Down Module Adjustable Linear
-+ Breadboard Power Supply Module 2 Channel: 3.3v and 5v
-+ Breadboard Power Supply Module MB102 with switch and DC female plug: 3.3v and 5v, Input voltage: 6.5-12 V (DC) or USB power supply
-+ 1602 LCD with Keypad Shield Board Blue Backlight Module for Arduino Duemilanove
-+ Nano V3.0 ATmega328P controller compatible for arduino nano CH340 USB driver NO CABLE NANO 3.0
-````
-
---------------------------------------------------------------------------------
-+++ Creating boards (PCB)
-
-+ Fritzing's PCB
-https://fritzing.org/learning/tutorials/designing-pcb/
-
-Turning A Fritzing Board Into A PCB.
-+ Right at the bottom of the screen, you can find a ‘Fabricate’ button that will send your board to a fab house in Berlin.
-The cost for my board is €6.26 for one. Of course, you can export a Fritzing board as a Gerber,
-and send that off to any fab house on the planet. For my board, OSH Park will give me three for $7.15.
-I could get ten of these boards made by the Fritzing fab for €55.44, but I already bought twenty of them for $36.29 from Seeed Studio.
-+ Reference:
-https://hackaday.com/2016/10/11/creating-a-pcb-in-everything-friends-dont-let-friends-use-fritzing/
-
-+ Tutorial: Creating A PCB In Everything: Introduction
-https://hackaday.com/2016/09/21/creating-a-pcb-in-everything-introduction/
-
-+ JLC PCB reviews:
-https://pcbshopper.com/easyeda-reviews/
-+ Get quote from JLC PCB
-https://jlcpcb.com/quote#/?orderType=1&stencilLayer=2
-+ 10 boards, 80x150mm (about 3" x 6"), Engineering fee: $4.00 (one time), Boards: $4.10 for 5, $8.10 for 10.
-+ Shipping: PostLink US Registered Mail  $6.76
-+ Total = $12.10 + $6.76 = $18.86 for 10 boards.
-+ Suggestion: choose 2oz copper as you will get a better board with less trace faults.
-+ With 2oz copper weight, add $16.00, total: Engineering fee: $4.00 (one time), Copper Weight: $16.00, Board:$11.00
-+ Total = $31.00 + $10.31 = $41.31 for 10 boards. 
-+ Gerber upload of design.
-+ Easyeda is a free online tool that we provide to design the PCB, and you can place your order on JLCPCB easily and quickly.
-+ Can use online for free:
-https://easyeda.com/
-
-+ Review on Elecrow for creating PCB:
-https://pcbshopper.com/elecrow-reviews/
++ MITS Altair Simulator, written entirely in Javascript.
++ and with thanks to Martin Maly and Chris Double for their 8080.js Intel 8080 emulator. 
+https://s2js.com/altair/
+https://s2js.com/altair/sim.html
+https://github.com/maly/8080js
 
 --------------------------------------------------------------------------------
 eof
