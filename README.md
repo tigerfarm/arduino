@@ -8,6 +8,35 @@ https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
 Reference: https://forum.arduino.cc/index.php?topic=477214.0
 
 --------------------------------------------------------------------------------
+### Parts to order
+
++ TM1637 4 x 7-segment digits
+
+
+##### Parts for Altair 8800 Front panel
+
++ Front panel, sticker, 3 Position Momentary toggles, 2 Position Toggle2, red LEDs
++ Total = $45 = $36 + $7 + $2
+
++ SPDT On/Off/On 3 Position Momentary toggles 10pcs
++ Diameter: 6mm (0.2inch), Micro mini, 10pcs for $6.79
+https://www.ebay.com/itm/10pcs-Red-3-Pin-3-Position-ON-OFF-ON-SPDT-Micro-Mini-Momentary-Toggle-Switch/223490809691
+
++ SPDT On/On 2 Position Mini Toggle Switch, 10Pcs for $2.68
+
++ Red LED 5mm, 100pcs for $1.50
++ 220Ω, 470Ω, 560Ω, 1k, or 3k resistors ... need to test to get the right size and wattage for physical size.
++ Use A09 Network Resistor 9-pin module?
+
++ Ordered Altair 8800 Front panel with sticker and shipping: $36.00
+https://www.adwaterandstir.com/product/front-panel/
+````
+Order number: 11282
+Date: October 22, 2019
+Altair 8800 Front panel: $18.00	
+Altair 8800 Front Panel Sticker: $5.00
+````
+--------------------------------------------------------------------------------
 ### General info
 
 A microcontroller unit (MCU) includes a processor, memory, and input/output (I/O) pins on a single chip.
@@ -26,7 +55,7 @@ In the Arduino IDE menu, select:
 + Port: /dev/cu.wchusbserial14120
 
 --------------------------------------------------------------------------------
-### Library install
+### Steps to Install Libraries
 
 + Either from the library manager: IDE menu Tools/Manage Libraries
 + Or by downloading a Zip file.
@@ -41,15 +70,18 @@ https://www.arduinolibraries.info/categories/signal-input-output
 --------------------------------------------------------------------------------
 ## Build next and projects in progress
 
-#### Programmable Clock project
+#### Programmable LCD Clock project: WiFi set time
 
+Project to set time using infrared:
 + Set Programmable Clock, components: DS3231 clock, 1602 LCD, infrared receiver, Nano board,
     USB micro cable for power, and full sized breadboard.
 + Set date(year and month) and time (hours, minutes, seconds) using the infrared receiver and a remote control.
 
-+ Programmable clock, components: DS3231 clock, 2 2x7-segment digit displays, 2 Nano boards,
+#### Digital Clock project
+
++ Digital clock, components: DS3231 clock, 2 2x7-segment digit displays, 2 Nano boards,
     USB micro cable for power, and full sized breadboard.
-+ DS3231 clock is set by the Set Programmable Clock.
++ DS3231 clock is set by using the Programmable LCD Clock.
 + Need a program set the clock using the 2 2x7-segment digit displays. This approach would also work with a TM1637 display.
 + Or, add a NodeMCU board to make a request to a server to get the time, and then use that time to set the clock.
 + Use TM1637 to replace the 2 2x7-segment digit displays and the second Nano board which displays the hours.
@@ -60,6 +92,14 @@ https://www.arduinolibraries.info/categories/signal-input-output
 Non-I2C Nano to Nano communications works well in the Programmable Clock project.
 
 However, no error handling. If anything goes wrong, the circuit needs to be reset.
+
+I have updated my data communications program for bi-directional data:
++ A Nano can send and receive data to/from another Nano that uses the same sketch.
++ I should implement bi-directional data, by adding data acknowledgement:
+Minutes Nano sends hour byte to the Hour Nano.
+After receiving the hour byte value, reply with an ack.
+Or if there was a data error, reply with a resend request.
++ Maybe add parity check.
 
 #### Other projects
 
@@ -78,8 +118,8 @@ However, no error handling. If anything goes wrong, the circuit needs to be rese
 
 #### Parts I have for building
 
-+ Nano boards
-+ [NodeMCU ESP8266](https://www.instructables.com/id/NodeMCU-ESP8266-Details-and-Pinout/), with ESP12E for WiFi, boards
++ 1 Nano boards
++ 4 [NodeMCU ESP8266](https://www.instructables.com/id/NodeMCU-ESP8266-Details-and-Pinout/), with ESP12E for WiFi, boards
 + 1 Uno
 + 1 Uno clone, for which I need to figured out a driver
 + Breadboards: 1/2 and full sized.
@@ -804,6 +844,13 @@ https://www.youtube.com/watch?v=vH5sx8qphdk
 + Programming ATtiny85 with Arduino Uno - Breadboard
 https://create.arduino.cc/projecthub/arjun/programming-attiny85-with-arduino-uno-afb829
 
++ Using an Arduino and a SIM800L to send SMS:
+https://drive.google.com/file/d/1HGcKj3CmnLDYkvfE0SdCQt91t06j1807/view
++ By Brian Mgrdichian, Senior Solutions Engineer.
++ Video: How to use a GSM module to send and receive SMS messages : SIM800L : AT Commands
+https://www.youtube.com/watch?v=sA4w6LaSmjM
++ I've been working on programming the attiny10 in assembly so I can use it on some custom PCBs
+kinda wanna make a "mute all" IR button that runs on a CR2023 and sends codes to my sound bar, TV, etc on button press
 --------------------------------------------------------------------------------
 #### Build an Arduino UNO
 https://www.youtube.com/watch?v=sNIMCdVOHOM
@@ -1204,22 +1251,22 @@ Address LEDs    Value:
 ````
 The Program in assembler code:
 ````
-0000                   org     0
-0000 210000            lxi     h,0             ;initialize counter 
-0003 1680              mvi     d,080h          ;set up initial display bit 
-0005 010E00            lxi     b,0eh           ;higher value = faster 
-0008 1A        beg:    ldax    d               ;display bit pattern on 
-0009 1A                ldax    d               ;...upper 8 address lights 
-000A 1A                ldax    d 
-000B 1A                ldax    d 
-000C 09                dad     b               ;increment display counter 
-000D D20800            jnc     beg 
-0010 DBFF              in      0ffh            ;input data from sense switches 
-0012 AA                xra     d               ;exclusive or with A 
-0013 0F                rrc                     ;rotate display right one bit 
-0014 57                mov     d,a             ;move data to display reg 
-0015 C30800            jmp     beg             ;repeat sequence 
-0018                   end
+0000              org     0
+0000 210000       lxi     h,0     ;initialize counter 
+0003 1680         mvi     d,080h  ;set up initial display bit 
+0005 010E00       lxi     b,0eh   ;higher value = faster 
+0008 1A      beg: ldax    d       ;display bit pattern on 
+0009 1A           ldax    d       ;...upper 8 address lights 
+000A 1A           ldax    d 
+000B 1A           ldax    d 
+000C 09           dad     b       ;increment display counter 
+000D D20800       jnc     beg 
+0010 DBFF         in      0ffh    ;input data from sense switches 
+0012 AA           xra     d       ;exclusive or with A 
+0013 0F           rrc             ;rotate display right one bit 
+0014 57           mov     d,a     ;move data to display reg 
+0015 C30800       jmp     beg     ;repeat sequence 
+0018              end
 ````
 To run the program,
 + Set all sense switches to 0.
@@ -1287,6 +1334,10 @@ https://github.com/GrantMeStrength/RetroComputerInstructionManual
 
 + original Altair manual
 http://www.classiccmp.org/dunfield/altair/d/88opman.pdf
+
+
++ Altair 8800 Clone, Ordering Information, (assembled) $621
+https://altairclone.com/ordering.htm
 
 + MITS Altair Simulator, written entirely in Javascript.
 + and with thanks to Martin Maly and Chris Double for their 8080.js Intel 8080 emulator. 
