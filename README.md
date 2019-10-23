@@ -1483,8 +1483,15 @@ Altair 101 board for LEDs and toggles:
 + 1 On/Off/On momentary toggles for Reset and CLR (clear),
     2 more bits on the above 595.
 
-Altair 8800 online simulator:
-https://s2js.com/altair/sim.html
+Next part is to run programs.
++ Enable STOP and RUN toggle: stop a running program, and run a program.
++ Add instructions.
++ Altair 8800b Instruction set.
+http://brooknet.no-ip.org/~lex/altair/_altair88b/manual/instructMain.html
++ Example: jump (jmp) 11 000 011 to 16 bit address.
+
+Altair 8800 online simulator to compare my Altair 101 to the Altair 8800:
++ https://s2js.com/altair/sim.html
 
 --------------------------------------------------------------------------------
 eof
