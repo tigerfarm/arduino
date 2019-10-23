@@ -12,7 +12,6 @@ Reference: https://forum.arduino.cc/index.php?topic=477214.0
 
 + TM1637 4 x 7-segment digits
 
-
 ##### Parts for Altair 8800 Front panel
 
 + Front panel, sticker, 3 Position Momentary toggles, 2 Position Toggle2, red LEDs
@@ -67,6 +66,42 @@ IDE menu Library manager (Sketch/Include library/Manage libraries), install: tvo
 
 List of available libraries:
 https://www.arduinolibraries.info/categories/signal-input-output
+
+--------------------------------------------------------------------------------
+## Altair 101, Partial functionality of the Altair 8800
+
+Build Altair 8800 components using  Arduino Nano based circuits.
+
+Partial functionality to start with:
++ Turn on/off
++ Memory storage: 16 bit address with 8 bit data.
++ Examine and Examine next.
++ Deposit and Deposit next.
++ Reset or CLR (clear): sets data and address LEDs on, then data and address LEDs off.
+
+Test board:
+8 LEDs for data bits.
++ 3 Nano pins, 74HC595 Shift Register, resistors, 1 LED bar
+
+Test board:
+8 input toggles for 8 data bits.
++ 3 Nano pins, 74HC595 Shift Register
+
+Altair 101 board for LEDs and toggles:
++ 1 Nano: 3 pins for LEDs, 3 pins for address toggles, 3 pins for On/Off/On momentary toggles.
++ 8 data LEDs, 3 Nano pins,
+    1 x 74HC595 Shift Register, resistors
++ 16 address LEDs, 3 Nano pins,
+    2 x 74HC595 Shift Register, resistors
++ 16 input toggles for setting 16 bit address and 8 data bits,
+    2 x 74HC595 Shift Register
++ 2 On/Off/On momentary toggles for Examine, Examine Next, Deposit and Deposit Next,
+    1 x 74HC595 Shift Register, 4 bits total.
++ 1 On/Off/On momentary toggles for Reset and CLR (clear),
+    2 more bits on the above 595.
+
+Altair 8800 online simulator:
+https://s2js.com/altair/sim.html
 
 --------------------------------------------------------------------------------
 ## Build next and projects in progress
