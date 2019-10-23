@@ -197,10 +197,20 @@ void clockPulseDay() {
   Serial.print("+++ clockPulseDay(), theCounterDay= ");
   Serial.println(theCounterDay);
 }
+int theHour = 0;
 void clockPulseHour() {
   Serial.print("++ clockPulseHour(), theCounterHours= ");
   Serial.println(theCounterHours);
-  printClockInt(thePrintColHour, printRowClockPulse, theCounterHours);
+  Serial.println(theCounterHours);
+  // Use AM/PM rather than 24 hours.
+  if (theCounterHours > 12) {
+    theHour = theCounterHours - 12;
+  } else if (theCounterHours == 0) {
+    theHour = 12; // 12 midnight, 12am
+  } else {
+    theHour = theCounterHours;
+  }
+  printClockInt(thePrintColHour, printRowClockPulse, theHour);
 }
 void clockPulseMinute() {
   Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
@@ -509,6 +519,15 @@ void setup() {
     Serial.println("--- Error: RTC not found.");
     while (1);
   }
+  //
+  // Set for testing. The following are for testing AM/PM.
+  // rtc.adjust(DateTime(2019, 10, 22, 23, 59, 56));
+  // rtc.adjust(DateTime(2019, 10, 22, 0, 59, 56));
+  // rtc.adjust(DateTime(2019, 10, 22, 1, 59, 56));
+  // rtc.adjust(DateTime(2019, 10, 22, 8, 59, 56));
+  // rtc.adjust(DateTime(2019, 10, 22, 12, 59, 56));
+  // delay(100);
+  //
   syncCountWithClock();
   Serial.println("+ Clock set and synched with program variables.");
 

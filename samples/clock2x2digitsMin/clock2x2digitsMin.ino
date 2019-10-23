@@ -135,15 +135,21 @@ void processClockNow() {
   }
 }
 
+int theHour = 0;
 void clockPulseHour() {
-  Serial.print("++ clockPulseHour(), theCounterHours= ");
-  Serial.println(theCounterHours);
+  // Use 3, rather than 15.
   if (theCounterHours > 12) {
-    // int theHour = theCounterHours-12;
-    sendByte2nano(theCounterHours-12);    // Use 3, rather than 15.
+    theHour = theCounterHours - 12;
+  } else if (theCounterHours == 0) {
+    theHour = 12; // 12 midnight, 12am
   } else {
-    sendByte2nano(theCounterHours);
+    theHour = theCounterHours;
   }
+  Serial.print("++ clockPulseHour(), theCounterHours= ");
+  Serial.print(theCounterHours);
+  Serial.print(", theHour= ");
+  Serial.println(theHour);
+  sendByte2nano(theHour);
 }
 void clockPulseMinute() {
   Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
@@ -186,10 +192,13 @@ void setup() {
   }
   if (rtc.lostPower()) {
     Serial.println("RTC lost power, need to reset the time.");
-    // Set the RTC to the date & time this sketch was compiled,
-    //  which is only seconds behind the actual time.
-    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    rtc.adjust(DateTime(2005, 11, 12, 0, 0, 0));
   }
+  //
+  // Set for testing.
+  // rtc.adjust(DateTime(2019, 10, 22, 23, 59, 56));
+  // delay(100);
+  //
   syncCountWithClock();
   Serial.println("+ Clock set and synched with program variables.");
 

@@ -14,19 +14,11 @@ Reference: https://forum.arduino.cc/index.php?topic=477214.0
 
 ##### Parts for Altair 8800 Front panel
 
-+ Front panel, sticker, 3 Position Momentary toggles, 2 Position Toggle2, red LEDs
-+ Total = $45 = $36 + $7 + $2
+Parts list from a clone:
+https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
 
-+ SPDT On/Off/On 3 Position Momentary toggles 10pcs
-+ Diameter: 6mm (0.2inch), Micro mini, 10pcs for $6.79
-https://www.ebay.com/itm/10pcs-Red-3-Pin-3-Position-ON-OFF-ON-SPDT-Micro-Mini-Momentary-Toggle-Switch/223490809691
-
-+ SPDT On/On 2 Position Mini Toggle Switch, 10Pcs for $2.68
-
-+ Red LED 5mm, 100pcs for $1.50
-+ 220Ω, 470Ω, 560Ω, 1k, or 3k resistors?
-+ Need to test to get the right ohms for brightness and wattage for physical size.
-+ Use A09 Network Resistor 9-pin module?
++ Front panel, sticker, and shipping + case + Nano + 3 Position Momentary toggles + 2 Position Toggle2 + red LEDs + 74HC595 + cables
++ Total = $88 = $36 + $35 + $3 + $7 + $2 + $2 + $3
 
 + Ordered Altair 8800 Front panel with sticker and shipping: $36.00
 https://www.adwaterandstir.com/product/front-panel/
@@ -35,7 +27,33 @@ Order number: 11282
 Date: October 22, 2019
 Altair 8800 Front panel: $18.00	
 Altair 8800 Front Panel Sticker: $5.00
+Shipping: $13.00
 ````
++ After paying for the order, I communicated with the manufacturer and ordered the regular case: $35.
++ Total: $71.00
+
++ Nano
+https://www.ebay.com/itm/MINI-USB-Nano-V3-0-ATmega328P-CH340G-5V-16M-Micro-controller-board-for-Arduino/383093281539
+
++ SPDT On/Off/On 3 Position Momentary toggles, Diameter: 6mm (0.2inch), Micro mini, 10pcs for $6.79
+https://www.ebay.com/itm/10pcs-Red-3-Pin-3-Position-ON-OFF-ON-SPDT-Micro-Mini-Momentary-Toggle-Switch/223490809691
+
++ SPDT On/On 2 Position Mini Toggle Switch, 10Pcs for $2.68
+https://www.ebay.com/itm/10Pcs-AC-250V-1-5A-125V-3A-SPDT-3-Pin-On-On-2-Position-Mini-Toggle-Switch-Blue/272882765795
+
++ Red LED 5mm, 100pcs for $1.50
+https://www.ebay.com/itm/100Pcs-LED-Lights-Emitting-Diodes-Lamp-Parts-3mm-5mm-for-Electronics-Arduino-DIY/202692215007?var=502802895935
+
++ 220Ω, 470Ω, 560Ω, 1k, or 3k resistors?
++ Need to test to get the right ohms for brightness and wattage for physical size.
++ Use A09 Network Resistor 9-pin module?
+
++ Shift Register SN74HC595N, 20pcs for $2
+https://www.ebay.com/itm/5-10-20pcs-Chip-Stable-2-0-6-0-V-74HC595-8-Bit-IC-Shift-Register-SN74HC595N/173212029799?var=471929852731
+
++ Cables
+https://www.ebay.com/itm/140Pcs-Solderless-Breadboard-Jumper-Cable-Wire-Kit-Box-For-Arduino-Shield-DIY/123825122614
+
 --------------------------------------------------------------------------------
 ### General info
 
