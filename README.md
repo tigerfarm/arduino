@@ -25,7 +25,8 @@ https://www.ebay.com/itm/10pcs-Red-3-Pin-3-Position-ON-OFF-ON-SPDT-Micro-Mini-Mo
 + SPDT On/On 2 Position Mini Toggle Switch, 10Pcs for $2.68
 
 + Red LED 5mm, 100pcs for $1.50
-+ 220Ω, 470Ω, 560Ω, 1k, or 3k resistors ... need to test to get the right size and wattage for physical size.
++ 220Ω, 470Ω, 560Ω, 1k, or 3k resistors?
++ Need to test to get the right ohms for brightness and wattage for physical size.
 + Use A09 Network Resistor 9-pin module?
 
 + Ordered Altair 8800 Front panel with sticker and shipping: $36.00
@@ -85,7 +86,7 @@ Project to set time using infrared:
 + Need a program set the clock using the 2 2x7-segment digit displays. This approach would also work with a TM1637 display.
 + Or, add a NodeMCU board to make a request to a server to get the time, and then use that time to set the clock.
 + Use TM1637 to replace the 2 2x7-segment digit displays and the second Nano board which displays the hours.
-+ Alarms.
++ Alarms: https://github.com/kriswiner/DS3231RTC/blob/master/DS3231RTCBasicExample.ino
 
 #### Error handling for Non-I2C Nano to Nano communications between Nano boards.
 
@@ -116,6 +117,82 @@ Or if there was a data error, reply with a resend request.
 + Minute clock pulse for complex clock.
     Requires DS3231 clock board and LCD, Nano with a USB micro cable for power.
 
++ SD card reader to store and read state
+
+--------------------------------------------------------------------------------
+#### DS3231 clock board EEPROM Read/write
+
++ Read/write to/from the 32K EEPROM of the AT24C32 chip on the DS3231 clock.
++ The AT24C32 has 32K bits of serial EEPROM memory organized as 4096 words of 8 bits each.
+````
+#include <Wire.h>
+
+void setup() {
+  Serial.begin (115200);
+  ...
+  Serial.println ();
+  Serial.println ("+ I2C device scanner, scanning...");
+  byte count = 0;
+  Wire.begin();
+  for (byte i = 8; i < 120; i++)
+  {
+    Wire.beginTransmission (i);
+    if (Wire.endTransmission () == 0)
+      {
+      Serial.print ("++ Address: ");
+      Serial.print (i, DEC);
+      Serial.print (" (0x");
+      Serial.print (i, HEX);
+      Serial.println (")");
+      count++;
+      delay (1);  // maybe unneeded?
+      }
+  }
+  Serial.print ("+ Found ");
+  Serial.print (count, DEC);
+  Serial.println (" device(s).");
+}
+````
+AT24C32 EEPROM write and read program.
+````
+#define AT24C32_I2C_ID 0x57   //I2C address for the AT24C32 EEPROM chip on the DS3231 RTC board
+
+void setup() {
+  Serial.begin(9600);
+  Wire.begin();
+  writeEEPROM(0,98);  		// Write 98 to EEPROM location 0
+  delay(5);                     // need this delay after a write before a read
+  byte c = readEEPROM(0);	// Read from location 0
+  Serial.print("+ Byte read from location 0 is ");
+  Serial.println(c);
+}
+
+void loop() {
+}
+
+void writeEEPROM(int address, byte data) {
+  Wire.beginTransmission(AT24C32_I2C_ID);
+  // send memory address to write
+  // the memory address consists of 12 bits (2^12 = 4096 = 32K bytes)
+  Wire.write(address >> 8);    // Address MSB = upper 4 bits
+  Wire.write(address & 0xff);  // Address LSB = last 8 bits
+  // write data
+  Wire.write(data);
+  Wire.endTransmission();
+}
+
+byte readEEPROM(int address) {
+  // send address to read
+  Wire.beginTransmission(AT24C32_I2C_ID);
+  Wire.write(address >> 8);    // Address MSB = upper 4 bits
+  Wire.write(address & 0xff);  // Address LSB = last 8 bits
+  Wire.endTransmission();
+  // request 1 byte to read
+  Wire.requestFrom(AT24C32_I2C_ID, 1);
+  return Wire.read();
+}
+````
+
 #### Parts I have for building
 
 + 1 Nano boards
@@ -123,7 +200,7 @@ Or if there was a data error, reply with a resend request.
 + 1 Uno
 + 1 Uno clone, for which I need to figured out a driver
 + Breadboards: 1/2 and full sized.
-+ DS3231 clock boards
++ 3 DS3231 clock boards
 + 4 rotary encoders
 + 3 relay switches
 + 3 BME280 boards
@@ -609,7 +686,6 @@ https://github.com/tigerfarm/arduino/tree/master/samples/InfraredRead
 -------------
 ### Other Projects to do next
 
-+ Card reader to store and read state
 + Bluetooth player board, update to the old AM radio
 
 -------------

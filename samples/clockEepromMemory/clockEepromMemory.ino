@@ -22,7 +22,7 @@ void setup()
     Serial.begin(9600);
     Serial.println("Writing into memory...");
   
-  // write to EEPROM
+    // write to EEPROM
     i2c_eeprom_write_page(0x57, 0, (byte *)somedata, sizeof(somedata));
 
     delay(100); //add a small delay
@@ -33,12 +33,9 @@ void loop()
 {
     Serial.print("Reading memory: ");
     int addr=0; //first address
-  
-  // access the first address from the memory
+    // access the first address from the memory
     byte b = i2c_eeprom_read_byte(0x57, 0);
-
-    while (b!=0)
-    {
+    while (b!=0) {
         Serial.print((char)b); //print content to serial port
         addr++; //increase address
         b = i2c_eeprom_read_byte(0x57, addr); //access an address from the memory
