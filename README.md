@@ -8,53 +8,6 @@ https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
 Reference: https://forum.arduino.cc/index.php?topic=477214.0
 
 --------------------------------------------------------------------------------
-### Parts to order
-
-+ TM1637 4 x 7-segment digits
-
-##### Parts for Altair 8800 Front panel
-
-Parts list from a clone:
-https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
-
-+ Front panel, sticker, and shipping + case + Nano + 3 Position Momentary toggles + 2 Position Toggle2 + red LEDs + 74HC595 + cables
-+ Total = $88 = $36 + $35 + $3 + $7 + $2 + $2 + $3
-
-+ Ordered Altair 8800 Front panel with sticker and shipping: $36.00
-https://www.adwaterandstir.com/product/front-panel/
-````
-Order number: 11282
-Date: October 22, 2019
-Altair 8800 Front panel: $18.00	
-Altair 8800 Front Panel Sticker: $5.00
-Shipping: $13.00
-````
-+ After paying for the order, I communicated with the manufacturer and ordered the regular case: $35.
-+ Total: $71.00
-
-+ Nano
-https://www.ebay.com/itm/MINI-USB-Nano-V3-0-ATmega328P-CH340G-5V-16M-Micro-controller-board-for-Arduino/383093281539
-
-+ SPDT On/Off/On 3 Position Momentary toggles, Diameter: 6mm (0.2inch), Micro mini, 10pcs for $6.79
-https://www.ebay.com/itm/10pcs-Red-3-Pin-3-Position-ON-OFF-ON-SPDT-Micro-Mini-Momentary-Toggle-Switch/223490809691
-
-+ SPDT On/On 2 Position Mini Toggle Switch, 10Pcs for $2.68
-https://www.ebay.com/itm/10Pcs-AC-250V-1-5A-125V-3A-SPDT-3-Pin-On-On-2-Position-Mini-Toggle-Switch-Blue/272882765795
-
-+ Red LED 5mm, 100pcs for $1.50
-https://www.ebay.com/itm/100Pcs-LED-Lights-Emitting-Diodes-Lamp-Parts-3mm-5mm-for-Electronics-Arduino-DIY/202692215007?var=502802895935
-
-+ 220Ω, 470Ω, 560Ω, 1k, or 3k resistors?
-+ Need to test to get the right ohms for brightness and wattage for physical size.
-+ Use A09 Network Resistor 9-pin module?
-
-+ Shift Register SN74HC595N, 20pcs for $2
-https://www.ebay.com/itm/5-10-20pcs-Chip-Stable-2-0-6-0-V-74HC595-8-Bit-IC-Shift-Register-SN74HC595N/173212029799?var=471929852731
-
-+ Cables
-https://www.ebay.com/itm/140Pcs-Solderless-Breadboard-Jumper-Cable-Wire-Kit-Box-For-Arduino-Shield-DIY/123825122614
-
---------------------------------------------------------------------------------
 ### General info
 
 A microcontroller unit (MCU) includes a processor, memory, and input/output (I/O) pins on a single chip.
@@ -84,42 +37,6 @@ IDE menu Library manager (Sketch/Include library/Manage libraries), install: tvo
 
 List of available libraries:
 https://www.arduinolibraries.info/categories/signal-input-output
-
---------------------------------------------------------------------------------
-## Altair 101, Partial functionality of the Altair 8800
-
-Build Altair 8800 components using  Arduino Nano based circuits.
-
-Partial functionality to start with:
-+ Turn on/off
-+ Memory storage: 16 bit address with 8 bit data.
-+ Examine and Examine next.
-+ Deposit and Deposit next.
-+ Reset or CLR (clear): sets data and address LEDs on, then data and address LEDs off.
-
-Test board:
-8 LEDs for data bits.
-+ 3 Nano pins, 74HC595 Shift Register, resistors, 1 LED bar
-
-Test board:
-8 input toggles for 8 data bits.
-+ 3 Nano pins, 74HC595 Shift Register
-
-Altair 101 board for LEDs and toggles:
-+ 1 Nano: 3 pins for LEDs, 3 pins for address toggles, 3 pins for On/Off/On momentary toggles.
-+ 8 data LEDs, 3 Nano pins,
-    1 x 74HC595 Shift Register, resistors
-+ 16 address LEDs, 3 Nano pins,
-    2 x 74HC595 Shift Register, resistors
-+ 16 input toggles for setting 16 bit address and 8 data bits,
-    2 x 74HC595 Shift Register
-+ 2 On/Off/On momentary toggles for Examine, Examine Next, Deposit and Deposit Next,
-    1 x 74HC595 Shift Register, 4 bits total.
-+ 1 On/Off/On momentary toggles for Reset and CLR (clear),
-    2 more bits on the above 595.
-
-Altair 8800 online simulator:
-https://s2js.com/altair/sim.html
 
 --------------------------------------------------------------------------------
 ## Build next and projects in progress
@@ -1473,6 +1390,101 @@ https://altairclone.com/ordering.htm
 https://s2js.com/altair/
 https://s2js.com/altair/sim.html
 https://github.com/maly/8080js
+
+--------------------------------------------------------------------------------
+## Altair 101 Project
+
+Goal to build a computer that has an Altair 8800 front panel and some of the Altair 8800 functionality.
+
+Second part of the project is to add functionality such as:
++ Load and save programs from/to SD card.
++ A digital clock using a DS3231.
++ Internet access using a NodeMCU.
++ Add sound by using a DFPlayer and an amp.
++ Interfaces: keypad, serial terminal, and infrared.
+
+--------------------------------------------------------------------------------
+### Parts to order to build my Altair 101
+
++ TM1637 4 x 7-segment digits
+
+##### Parts for Altair 8800 Front panel
+
+Parts list from a clone:
+https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
+
++ Front panel, sticker, and shipping + case + Nano + 3 Position Momentary toggles + 2 Position Toggle2 + red LEDs + 74HC595 + cables
++ Total = $88 = $36 + $35 + $3 + $7 + $2 + $2 + $3
+
++ Ordered Altair 8800 Front panel with sticker and shipping: $36.00
+https://www.adwaterandstir.com/product/front-panel/
+````
+Order number: 11282
+Date: October 22, 2019
+Altair 8800 Front panel: $18.00	
+Altair 8800 Front Panel Sticker: $5.00
+Shipping: $13.00
+````
++ After paying for the order, I communicated with the manufacturer and ordered the regular case: $35.
++ Total: $71.00
+
++ Nano
+https://www.ebay.com/itm/MINI-USB-Nano-V3-0-ATmega328P-CH340G-5V-16M-Micro-controller-board-for-Arduino/383093281539
+
++ SPDT On/Off/On 3 Position Momentary toggles, Diameter: 6mm (0.2inch), Micro mini, 10pcs for $6.79
+https://www.ebay.com/itm/10pcs-Red-3-Pin-3-Position-ON-OFF-ON-SPDT-Micro-Mini-Momentary-Toggle-Switch/223490809691
+
++ SPDT On/On 2 Position Mini Toggle Switch, 10Pcs for $2.68
+https://www.ebay.com/itm/10Pcs-AC-250V-1-5A-125V-3A-SPDT-3-Pin-On-On-2-Position-Mini-Toggle-Switch-Blue/272882765795
+
++ Red LED 5mm, 100pcs for $1.50
+https://www.ebay.com/itm/100Pcs-LED-Lights-Emitting-Diodes-Lamp-Parts-3mm-5mm-for-Electronics-Arduino-DIY/202692215007?var=502802895935
+
++ 220Ω, 470Ω, 560Ω, 1k, or 3k resistors?
++ Need to test to get the right ohms for brightness and wattage for physical size.
++ Use A09 Network Resistor 9-pin module?
+
++ Shift Register SN74HC595N, 20pcs for $2
+https://www.ebay.com/itm/5-10-20pcs-Chip-Stable-2-0-6-0-V-74HC595-8-Bit-IC-Shift-Register-SN74HC595N/173212029799?var=471929852731
+
++ Cables
+https://www.ebay.com/itm/140Pcs-Solderless-Breadboard-Jumper-Cable-Wire-Kit-Box-For-Arduino-Shield-DIY/123825122614
+
+--------------------------------------------------------------------------------
+## Altair 101, Partial functionality of the Altair 8800
+
+Build Altair 8800 components using  Arduino Nano based circuits.
+
+Partial functionality to start with:
++ Turn on/off
++ Memory storage: 16 bit address with 8 bit data.
++ Examine and Examine next.
++ Deposit and Deposit next.
++ Reset or CLR (clear): sets data and address LEDs on, then data and address LEDs off.
+
+Test board:
+8 LEDs for data bits.
++ 3 Nano pins, 74HC595 Shift Register, resistors, 1 LED bar
+
+Test board:
+8 input toggles for 8 data bits.
++ 3 Nano pins, 74HC595 Shift Register
+
+Altair 101 board for LEDs and toggles:
++ 1 Nano: 3 pins for LEDs, 3 pins for address toggles, 3 pins for On/Off/On momentary toggles.
++ 8 data LEDs, 3 Nano pins,
+    1 x 74HC595 Shift Register, resistors
++ 16 address LEDs, 3 Nano pins,
+    2 x 74HC595 Shift Register, resistors
++ 16 input toggles for setting 16 bit address and 8 data bits,
+    2 x 74HC595 Shift Register
++ 2 On/Off/On momentary toggles for Examine, Examine Next, Deposit and Deposit Next,
+    1 x 74HC595 Shift Register, 4 bits total.
++ 1 On/Off/On momentary toggles for Reset and CLR (clear),
+    2 more bits on the above 595.
+
+Altair 8800 online simulator:
+https://s2js.com/altair/sim.html
 
 --------------------------------------------------------------------------------
 eof
