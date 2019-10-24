@@ -216,26 +216,67 @@ https://create.arduino.cc/projecthub/KVLakshmiSri/00-to-99-on-seven-segment-disp
 + Serial printing formats:
 https://www.arduino.cc/reference/en/language/functions/communication/serial/print/
 
+--------------------------------------------------------------------------------
 #### Using a 74HC595 Shift Register for serial to multiple pin outs.
 
 How 74HC595 Shift Register Works & Interface it with Arduino
 https://lastminuteengineers.com/74hc595-shift-register-arduino-tutorial/
 
 74HC595 is a SIPO (Serial-In-Parallel-Out) shift registers, example: Texas Instruments SN74HC595N.
-+ Clock pin
-+ Data pin
-+ Latch pin, which does the Parallel-Out task to the 8 output pins.
++ Data pin (SRCLK) to pin 4 (SDA) on Nano
++ Latch pin (RCLK) to pin 5 on Nano, which does the Parallel-Out task to the 8 output pins.
++ Clock pin (SER) to pin 6 on Nano
 + 8 output pin.
 + Pin to daisy chain 595s.
 + Shift register clear to set the out pins to 0.
 + 5+
 + Ground
 
-3 Nano pins, plus program logic, to control 16 pins. 3 Nano pins with 2 daisy chained 595s, gives 16 output pins.
+Sample Nano pins to use:
+````
+int latchPin = 5;           // Latch pin of 74HC595 is connected to Digital pin 5
+int clockPin = 6;           // Clock pin of 74HC595 is connected to Digital pin 6
+int dataPin = 4;            // Data pin of 74HC595 is connected to Digital pin 4
+
+const int latchPin = 11;    // Pin ST_CP (12) of the 74HC595
+const int clockPin = 10;    // Pin SH_CP (11) of the 74HC595
+const int dataPin = 12;     // Pin DS (14) of the 74HC595
+
+int latchPin = 8;
+int clockPin = 12;
+int dataPin = 11;
+void setup() {
+    pinMode(latchPin, OUTPUT);
+    pinMode(clockPin, OUTPUT);
+    pinMode(dataPin, OUTPUT);  
+    byte leds = 0;
+    for (int i = 0; i < 8; i++) { // Turn all the LEDs ON one by one.
+        bitSet(leds, i);        // Set the bit that controls that LED in the variable 'leds'
+        updateShiftRegister();
+        delay(500);
+    }
+}
+void updateShiftRegister() {
+   digitalWrite(latchPin, LOW);
+   shiftOut(dataPin, clockPin, LSBFIRST, leds);
+   digitalWrite(latchPin, HIGH);
+}
+````
++ Sample sketch using a library:
+https://github.com/j-bellavance/HC595/blob/master/HC595LED.ino
++ Switch on, off or toggle up to 64 pins using up to 8 x 74HC595 Shift Out Serial Registers
+https://github.com/j-bellavance/HC595
++ Documentation:
+https://www.arduino.cc/en/Tutorial/ShiftOut
++ Samples
+https://www.arduino.cc/en/Tutorial/ShftOut13
+
+3 Nano pins with 2 daisy chained 595s, plus program logic, to control 16 output pins.
 
 + Video
 https://www.youtube.com/watch?v=N7CAboD1jU0
 
+--------------------------------------------------------------------------------
 #### TM1637: 4 x 7-segment display
 
 Pins:
@@ -389,6 +430,71 @@ void setup() {
 void loop() {
   delay(100);
 }
+````
+
+--------------------------------------------------------------------------------
++++ GPIO Port Extenders chip: PCF8574
+
++ Can connect up to 8, 8-bit GPIO Port Extenders (PCF8574), that run on the I2C bus.
+
++ I2C uses simple addressing, only two lines per bus one clock and one data for all connected devices.
++ I2C communication speeds are 100 kHz and 400 kHz for fast mode. I have seen 1.2 MHz though.
++ PCF8574 has only 1 power connection to drive all LED simultaneously, which may not be enough.
+
+Nice wiring sample:
+https://www.youtube.com/watch?v=mXMkgQf3fqU
++ Sketch for 2 chips.
+https://github.com/GadgetReboot/Arduino/blob/master/Uno/PCF8574/PCF8574.ino
+
++ Using only the Wire.h library.
+https://www.youtube.com/watch?v=kQZU8kE3ksU
+````
+#include "Arduino.h"
+#include <Wire.h>
+void setup() {
+// I2C Two Wire initialisation
+Wire.begin();
+// Turn OFF all pins by sending a high byte (1 bit per byte)
+Wire.beginTransmission(0x027);
+Wire.write(0xF);
+Wire.endTransmission();
+}
+loop {
+//Simple LED blink! Turn ON P0 bit by setting LOW (to zero)
+Wire.beginTransmission(0x027);
+Wire.write(0b11111110);
+Wire.endTransmission();
+delay (500);
+// Now turn OFF P0 and turn P1 ON
+Wire.beginTransmission(0x027);
+Wire.write(0b11111101);
+Wire.endTransmission();
+}
+```
++ Using the PCF8574.h library.
+https://www.instructables.com/id/PCF8574-GPIO-Extender-With-Arduino-and-NodeMCU/
++ Supporting video:
+https://www.youtube.com/watch?v=-CXSEWlMYFs
++ About the library:
+https://playground.arduino.cc/Main/PCF8574Class/
+````
+include the "PCF8574.h" library
+PCF8574(uint8_t address);
+pcf8574.pinMode(P0, OUTPUT);
+pcf8574.pinMode(P1, INPUT);
+//
+PCF8574.digitalWrite(P1, HIGH); // or LOW
+int p1 = PCF8574.digitalRead(P1); // reads pin P1
+// Read all pins:
+ PCF8574::DigitalInput di = PCF8574.digitalReadAll();
+Serial.print(di.p0); Serial.print(" - ");
+Serial.print(di.p1); Serial.print(" - ");
+...
+Serial.println(di.p7);
+// Function interrupt to monitor for key press
+void keyPressedOnPCF8574();
+// Set i2c HEX address
+PCF8574 pcf8574(0x20, ARDUINO_UNO_INTERRUPT_PIN, keyPressedOnPCF8574);
 ````
 
 --------------------------------------------------------------------------------
@@ -1414,7 +1520,7 @@ Parts list from a clone:
 https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
 
 + Front panel, sticker, and shipping + case + Nano + 3 Position Momentary toggles + 2 Position Toggle2 + red LEDs + 74HC595 + cables
-+ Total = $88 = $36 + $35 + $3 + $7 + $2 + $2 + $3
++ Total = $91 = $36 + $38 + $3 + $7 + $2 + $2 + $3
 
 + Ordered Altair 8800 Front panel with sticker and shipping: $36.00
 https://www.adwaterandstir.com/product/front-panel/
@@ -1425,8 +1531,8 @@ Altair 8800 Front panel: $18.00
 Altair 8800 Front Panel Sticker: $5.00
 Shipping: $13.00
 ````
-+ After paying for the order, I communicated with the manufacturer and ordered the regular case: $35.
-+ Total: $71.00
++ After paying for the order, I communicated with the manufacturer and ordered the regular case: $38 = $35 + $3.10 shipping.
++ Total: $74
 
 + Nano
 https://www.ebay.com/itm/MINI-USB-Nano-V3-0-ATmega328P-CH340G-5V-16M-Micro-controller-board-for-Arduino/383093281539
@@ -1447,28 +1553,92 @@ https://www.ebay.com/itm/100Pcs-LED-Lights-Emitting-Diodes-Lamp-Parts-3mm-5mm-fo
 + Shift Register SN74HC595N, 20pcs for $2
 https://www.ebay.com/itm/5-10-20pcs-Chip-Stable-2-0-6-0-V-74HC595-8-Bit-IC-Shift-Register-SN74HC595N/173212029799?var=471929852731
 
++ 10uf capacitor across positive and ground when using chips: SN74HC595N.
+
 + Cables
 https://www.ebay.com/itm/140Pcs-Solderless-Breadboard-Jumper-Cable-Wire-Kit-Box-For-Arduino-Shield-DIY/123825122614
+
++ GPIO Port Extenders chip: PCF8574 would work for toggles.
 
 --------------------------------------------------------------------------------
 ## Altair 101, Partial functionality of the Altair 8800
 
 Build Altair 8800 components using  Arduino Nano based circuits.
+Start with a basic memory model where the memory is Nano memory, example: an array.
+Use the front panel for memory management: examine and deposit.
+After memory works, develop an emulator to run machine code starting with Nop and JMP.
 
 Partial functionality to start with:
 + Turn on/off
-+ Memory storage: 16 bit address with 8 bit data.
-+ Examine and Examine next.
-+ Deposit and Deposit next.
++ Memory storage: each 16 bit address has 8 bits data.
++ Examine and Examine next address data value.
++ Deposit and Deposit next address data value.
 + Reset or CLR (clear): sets data and address LEDs on, then data and address LEDs off.
 
 Test board:
 8 LEDs for data bits.
 + 3 Nano pins, 74HC595 Shift Register, resistors, 1 LED bar
+https://www.youtube.com/watch?v=cAT07gy4DII
 
 Test board:
 8 input toggles for 8 data bits.
 + 3 Nano pins, 74HC595 Shift Register
++ Or use 74HC165, Expand Digital Inputs with the 74HC165
+https://www.ebay.com/itm/5-x-74HC165-74165-IC-8-BIT-SHIFT-REGISTER-FREE-SHIPPING/251118499363
+https://www.ebay.com/itm/10pcs-74HC165-SN74HC165N-8-Bit-Parallel-Load-Shift-Registers-DIP-16/181847051341
+
++ Using 74HC595 for inputs:
+https://www.theengineeringprojects.com/2018/11/arduino-74hc165-interfacing-increase-input-pins.html
+
++ Using 74HC595 for inputs:
+https://forum.arduino.cc/index.php?topic=163813.0
+https://www.youtube.com/watch?v=nXl4fb_LbcI
+https://www.youtube.com/watch?v=hR6qOhUeKMc
+
+````
+#include <SPI.h>
+byte Input, Output, Check=1;
+int j;
+void setup(){
+  pinMode(13, OUTPUT);//clock
+  pinMode(11, OUTPUT);//data
+  pinMode(4, OUTPUT);//latch
+  pinMode(2, INPUT);//Input from buttons
+  SPI.setBitOrder(MSBFIRST);
+  SPI.setDataMode(SPI_MODE0);
+  SPI.setClockDivider(SPI_CLOCK_DIV2);
+  SPI.begin();
+  SPI.transfer(255);
+  SPI.transfer(0);
+  digitalWrite(4, HIGH);
+  digitalWrite(4, LOW);
+  Serial.begin(9600);
+  attachInterrupt(0, pin_read, RISING); 
+}
+void loop(){}
+void pin_read(){
+  for(j=0; j<50; j++) 
+    delayMicroseconds(1000);
+
+  Check=1;
+  for(j=0; j<8; j++){
+    SPI.transfer(Check);
+    SPI.transfer(Output);
+    digitalWrite(4, HIGH);
+    digitalWrite(4, LOW);
+    delayMicroseconds(500);
+    if(digitalRead(2)==HIGH)
+      bitWrite(Output, j, 1);
+    else
+      bitWrite(Output, j, 0);
+    Check = Check<<1;
+  }  
+  SPI.transfer(255);
+  SPI.transfer(Output);
+  digitalWrite(4, HIGH);
+  digitalWrite(4, LOW);
+}
+````
 
 Altair 101 board for LEDs and toggles:
 + 1 Nano: 3 pins for LEDs, 3 pins for address toggles, 3 pins for On/Off/On momentary toggles.
@@ -1477,7 +1647,7 @@ Altair 101 board for LEDs and toggles:
 + 16 address LEDs, 3 Nano pins,
     2 x 74HC595 Shift Register, resistors
 + 16 input toggles for setting 16 bit address and 8 data bits,
-    2 x 74HC595 Shift Register
+    2 x 74HC595 Shift Register or use 2 Port Extender board: PCF8574?
 + 2 On/Off/On momentary toggles for Examine, Examine Next, Deposit and Deposit Next,
     1 x 74HC595 Shift Register, 4 bits total.
 + 1 On/Off/On momentary toggles for Reset and CLR (clear),
@@ -1492,6 +1662,9 @@ http://brooknet.no-ip.org/~lex/altair/_altair88b/manual/instructMain.html
 
 Altair 8800 online simulator to compare my Altair 101 to the Altair 8800:
 + https://s2js.com/altair/sim.html
+
+Binary Calculator
+https://www.calculator.net/binary-calculator.html
 
 --------------------------------------------------------------------------------
 eof
