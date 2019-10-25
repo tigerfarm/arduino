@@ -13,7 +13,7 @@ to compare my Altair clone with the original functionality.
 
 #### Altair 8800 Front Panel
 
-]<img width="600px"  src="Altair8800frontPanel15x6.jpg"/>](https://s2js.com/altair/sim.html)
+[<img width="600px"  src="Altair8800frontPanel15x6.jpg"/>](https://s2js.com/altair/sim.html)
 
 + Click [here](https://altairclone.com/downloads/)
     for high end Altair 8800 clone.
