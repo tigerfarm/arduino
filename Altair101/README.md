@@ -1,12 +1,47 @@
 --------------------------------------------------------------------------------
 # Altair 101 Project Notes
 
-Goal to build a computer that has an Altair 8800 front panel and some of the Altair 8800 functionality.
-Should be able to enter and run the classic Kill the Bit program.
+Goal to build a computer that has an Altair 8800 look and feel.
+It will have a clone front panel, similar LEDs and toggles, and basic Altair 8800 functionality.
+A major milestone will be when I can enter and run the classic, Kill the Bit program, on my Altair 101.
 
-Second part of the project is to add functionality such as:
+I will use an Arduino Nano microprocessor, and supporting chips, to control the I/O and run the computer's processes.
+
+--------------------------------------------------------------------------------
+### Phase 1, Front panel I/O and Memory management
+
+The first phase starts with a basic memory model and management.
++ The memory will be managed as Nano runtime memory.
++ Memory will be an array of bytes where each byte represent 8 bits of data at one address location.
++ The Altair 8800 clone front panel  will be used for memory I/O.
++ Front panel functionality: examine memory addresses and deposit data into the addresses.
+
+Front panel components and functionality:
++ 8 LEDs to display an 8-bit memory data value.
++ 16 LEDs to display a 16-bit memory address.
++ Nano runtime memory array: each array index represents a 16 bit address, and the value represents 8 bits data.
++ One on/off/on momentary toggle to Examine and Examine next address data value.
++ One on/off/on momentary toggle to Deposit and Deposit next address data value.
++ One on/off/on momentary toggle to Reset or CLR (clear): sets data and address LEDs on, then data and address LEDs off.
++ One on/off toggle to turn the computer's power on and off.
+
+I will use the Altair 8800 online simulator to guide my Altair 101 development:
++ https://s2js.com/altair/sim.html
+
+#### Altair 8800 Front Panel
+
+<img width="600px"  src="Altair8800frontPanel15x6.jpg"/>
+
+--------------------------------------------------------------------------------
+## Altair 8800, the Original and Clones
+
+
+After memory works, the next phase is to develop an emulator to run Altair 8800 machine code.
++ Likely starting with Nop and JMP.
+
+Second phase of the project is to add functionality such as:
 + Load and save programs from/to SD card.
-+ A digital clock using a DS3231.
++ A digital clock features using a DS3231.
 + Internet access using a NodeMCU.
 + Add sound by using a DFPlayer and an amp.
 + Add: small LCD screen, keypad (keyboard?), serial terminal interface, and infrared receiver.
@@ -26,7 +61,7 @@ The following is how to get started, from the following link.
 https://www.ztop.com.br/gadget-do-dia-altair-8800-clone-computer/
 
 -----------------------------
-++ The front panel.
+### The front panel.
 
 Excellent front panel video:
 https://youtu.be/suyiMfzmZKs
@@ -308,17 +343,15 @@ https://github.com/maly/8080js
 --------------------------------------------------------------------------------
 ### Parts to order to build my Altair 101
 
-+ TM1637 4 x 7-segment digits
-
-##### Parts for Altair 8800 Front panel
-
 Parts list from a clone:
 https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
 
-+ Front panel, sticker, and shipping + case + Nano + 3 Position Momentary toggles + 2 Position Toggle2 + red LEDs + 74HC595 + cables
-+ Total = $91 = $36 + $38 + $3 + $7 + $2 + $2 + $3
++ Front panel, sticker, case, and shipping = $74
++ Nano + on/off/on momentary toggles + on/off toggles + red LEDs
++ 20pcs 74HC595 + pin expander module PCF8574 + cables
++ Total = $95 = $74 + $3 + $7 + $2 + $2 + $3 + $4
 
-+ Ordered Altair 8800 Front panel with sticker and shipping: $36.00
++ Ordered Altair 8800 Front panel with sticker, standard case, and shipping: $74
 https://www.adwaterandstir.com/product/front-panel/
 ````
 Order number: 11282
@@ -349,27 +382,19 @@ https://www.ebay.com/itm/100Pcs-LED-Lights-Emitting-Diodes-Lamp-Parts-3mm-5mm-fo
 + Shift Register SN74HC595N, 20pcs for $2
 https://www.ebay.com/itm/5-10-20pcs-Chip-Stable-2-0-6-0-V-74HC595-8-Bit-IC-Shift-Register-SN74HC595N/173212029799?var=471929852731
 
-+ 10uf capacitor across positive and ground when using chips: SN74HC595N.
-
 + Cables
 https://www.ebay.com/itm/140Pcs-Solderless-Breadboard-Jumper-Cable-Wire-Kit-Box-For-Arduino-Shield-DIY/123825122614
 
-+ GPIO Port Extenders chip: PCF8574 would work for toggles.
++ 10uf capacitor across positive and ground when using chips: SN74HC595N.
 
---------------------------------------------------------------------------------
-## Altair 101, Partial functionality of the Altair 8800
+----------------
+#### Parts to test
 
-Build Altair 8800 components using  Arduino Nano based circuits.
-Start with a basic memory model where the memory is Nano memory, example: an array.
-Use the front panel for memory management: examine and deposit.
-After memory works, develop an emulator to run machine code starting with Nop and JMP.
++ GPIO Port Extenders chip: PCF8574 should work for toggles.
 
-Partial functionality to start with:
-+ Turn on/off
-+ Memory storage: each 16 bit address has 8 bits data.
-+ Examine and Examine next address data value.
-+ Deposit and Deposit next address data value.
-+ Reset or CLR (clear): sets data and address LEDs on, then data and address LEDs off.
++ An option to consider, is addressable LEDs that come on strips.
++ Arduino – Controlling a WS2812 LED strand with NeoPixel or FastLED
+https://www.tweaking4all.com/hardware/arduino/arduino-ws2812-led/
 
 --------------------------------------------------------------------------------
 #### LEB Outputs
