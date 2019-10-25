@@ -11,6 +11,14 @@ I will use an Arduino Nano microprocessor, and supporting chips, to control the 
 I will use the [Altair 8800 online simulator](https://s2js.com/altair/sim.html) ([homepage](https://s2js.com/altair/))
 to compare my Altair clone with the original functionality.
 
+I don't intend to implement full Altair 8800 functionality.
+For example, my machine will not run Basic, nor will it run CPM.
+I just want a computer that looks and feels like the limited edition that was available in 1975.
+Just the computer that did not have any interfaces. The version that cost $621.
+If I had work all summer during my high school years, I could have bought one.
+But I did not buy one because, without the other parts, the utility of it was extremely limited.
+See the original [price list](https://altairclone.com/ordering.htm), see parts costs.
+
 #### Altair 8800 Front Panel
 
 [<img width="600px"  src="Altair8800frontPanel15x6.jpg"/>](https://s2js.com/altair/sim.html)
@@ -41,21 +49,39 @@ Front panel components and functionality:
 + One on/off toggle to turn the computer's power on and off.
 
 --------------------------------------------------------------------------------
-## Altair 8800, the Original and Clones
-
+### Phase 2, Run Altair 8800 programs
 
 After memory works, the next phase is to develop an emulator to run Altair 8800 machine code.
 + Likely starting with Nop and JMP.
++ Add operational instructions to run Kill the Bit, and Pong.
++ Load programs from an SD card into memory.
++ Save programs from memory onto an SD card.
 
-Second phase of the project is to add functionality such as:
-+ Load and save programs from/to SD card.
-+ A digital clock features using a DS3231.
-+ Internet access using a NodeMCU.
+--------------------------------------------------------------------------------
+### Phase 3, Enhance with Modern Components and Functionality
+
+Add modern components:
++ Digital clock features using a DS3231.
 + Add sound by using a DFPlayer and an amp.
-+ Add: small LCD screen, keypad (keyboard?), serial terminal interface, and infrared receiver.
++ Internet access using a NodeMCU.
+
+Add new operational instructions for the modern components:
++ Select to use clock speeds of one second, one minute.
+For example, create a clock where the hours and minutes are display as binary values on the front panel.
++ Control MP3 playing.
++ Interface to receive commands from the internet and return a response.
+
+Maybe add the following:
++ Small LCD screen such as an 1602 LCD.
++ 7-segment LEDs. For example, to display data and memory digitally for the clock display.
++ Keypad or keyboard input
++ Serial terminal interface to send commands and receive results
++ Infrared receiver for controling functions
 
 --------------------------------------------------------------------------------
 ## Altair 8800, the Original and Clones
+
+The following is the base look and functionalit I intend for my computer.
 
 + Nice programming sample. The creator of the video has an actual Altair 8800.
 https://www.youtube.com/watch?v=oZ1xHyuf0Bs
