@@ -7,17 +7,16 @@ A major milestone will be when I can enter and run the classic, Kill the Bit pro
 
 I will use an Arduino Nano microprocessor, and supporting chips, to control the I/O and run the computer's processes.
 
-I will use the Altair 8800 online simulator to compare my Altair clone with the original functionality.
-+ https://s2js.com/altair/sim.html
+I will use the [Altair 8800 online simulator](https://s2js.com/altair/sim.html) to compare my Altair clone with the original functionality.
 
 #### Altair 8800 Front Panel
 
 <img width="600px"  src="Altair8800frontPanel15x6.jpg"/>
 
-+ Altair original and clone documents:
-https://altairclone.com/downloads/
++ Click [here](https://altairclone.com/downloads/)
+    for Altair 8800 original and clone documents.
 + Click [here](https://altairclone.com/downloads/interview.mp3)
- to hear an interview with the Altair 8800 clone creator, Mike Douglas.
+    to hear an interview with the Altair 8800 clone creator, Mike Douglas.
 
 --------------------------------------------------------------------------------
 ### Phase 1, Front panel I/O and Memory management
