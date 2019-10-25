@@ -11,14 +11,6 @@ I will use an Arduino Nano microprocessor, and supporting chips, to control the 
 I will use the [Altair 8800 online simulator](https://s2js.com/altair/sim.html) ([homepage](https://s2js.com/altair/))
 to compare my Altair clone with the original functionality.
 
-I don't intend to implement full Altair 8800 functionality.
-For example, my machine will not run Basic, nor will it run CPM.
-I just want a computer that looks and feels like the limited edition that was available in 1975.
-Just the computer that did not have any interfaces. The version that cost $621.
-If I had work all summer during my high school years, I could have bought one.
-But I did not buy one because, without the other parts, the utility of it was extremely limited.
-See the original [price list](https://altairclone.com/ordering.htm), see parts costs.
-
 #### Altair 8800 Front Panel
 
 [<img width="600px"  src="Altair8800frontPanel15x6.jpg"/>](https://s2js.com/altair/sim.html)
@@ -29,6 +21,14 @@ See the original [price list](https://altairclone.com/ordering.htm), see parts c
     for Altair 8800 original and clone documents.
 + Click [here](https://altairclone.com/downloads/interview.mp3)
     to hear an interview with the Altair 8800 clone creator, Mike Douglas.
+
+Note, I don't intend to implement full Altair 8800 functionality.
+For example, my machine will not run Basic, nor will it run CPM.
+I just want a computer that looks and feels like the limited edition that was available in 1975.
+Just the computer that did not have any interfaces. The version that cost $621.
+If I had work all summer during my high school years, I could have bought one.
+But I did not buy one because, without the other parts, the utility of it was extremely limited.
+See the original [price list](https://altairclone.com/ordering.htm), see parts costs.
 
 --------------------------------------------------------------------------------
 ### Phase 1, Front panel I/O and Memory management
