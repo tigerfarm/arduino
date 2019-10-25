@@ -1,7 +1,8 @@
 --------------------------------------------------------------------------------
 # Altair 101 Project Notes
 
-Goal to build a computer that has an Altair 8800 clone front panel, similar LEDs and toggles, and basic Altair 8800 functionality.
+My goal to build a computer that has an [Altair 8800 clone front panel](https://www.adwaterandstir.com/product/front-panel/),
+similar LEDs and toggles, and basic Altair 8800 functionality.
 This will give the computer an Altair 8800 look and feel.
 A major milestone will be when I can enter and run the classic, Kill the Bit program, on my Altair 101.
 
@@ -13,6 +14,8 @@ I will use the [Altair 8800 online simulator](https://s2js.com/altair/sim.html) 
 
 <img width="600px"  src="Altair8800frontPanel15x6.jpg"/>
 
++ Click [here](https://altairclone.com/downloads/)
+    for high end Altair 8800 clone.
 + Click [here](https://altairclone.com/downloads/)
     for Altair 8800 original and clone documents.
 + Click [here](https://altairclone.com/downloads/interview.mp3)
