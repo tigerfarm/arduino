@@ -16,7 +16,7 @@ I will use the Altair 8800 online simulator to compare my Altair clone with the 
 
 + Altair original and clone documents:
 https://altairclone.com/downloads/
-+ Click (here)[https://altairclone.com/downloads/interview.mp3]
++ Click [here](https://altairclone.com/downloads/interview.mp3)
  to hear an interview with the Altair 8800 clone creator, Mike Douglas.
 
 --------------------------------------------------------------------------------
