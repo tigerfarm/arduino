@@ -2,14 +2,14 @@
 # Altair 101 Project Notes
 
 My goal to build a computer that has an [Altair 8800 clone front panel](https://www.adwaterandstir.com/product/front-panel/),
-similar LEDs and toggles, and basic Altair 8800 functionality.
-This will give the computer an Altair 8800 look and feel.
+similar LEDs and toggles, and have basic Altair 8800 functionality.
+This will give the computer an Altair 8800 look and feel from a user's point of view.
 A major milestone will be when I can enter and run the classic, Kill the Bit program, on my Altair 101.
 
 I will use an Arduino Nano microprocessor and supporting chips to control the I/O and run the computer's processes.
 
 I will use the [Altair 8800 online simulator](https://s2js.com/altair/sim.html) ([homepage](https://s2js.com/altair/))
-to compare my Altair clone with the original functionality.
+to compare the original functionality with my Altair 101.
 
 #### Altair 8800 Front Panel
 
@@ -25,10 +25,13 @@ to compare my Altair clone with the original functionality.
 Note, I don't intend to implement full Altair 8800 functionality.
 For example, my machine will not run Basic, nor will it run CPM.
 I just want a computer that looks and feels like the limited edition that was available in 1975.
-Just the computer that did not have any interfaces. The version that cost $621.
-If I had work all summer during my high school years, I could have bought one.
-But I did not buy one because, without the other parts, the utility of it was extremely limited.
-See the original [price list](https://altairclone.com/ordering.htm), see parts that were available and their costs.
+That version did not have any interfaces. It cost $621 with extremely limited utility.
+If I had work all summer during my high school years, I could have bought one and few bucks to spare.
+However, I didn't buy one because without the other parts, there was little it could do.
+It couldn't even store programs that were entered. 
+It cost $1,980, 3 times the price of the computer, to have a usable disk drive.
+
+See the original [price list](https://altairclone.com/ordering.htm) to see parts that were available and their costs.
 
 --------------------------------------------------------------------------------
 ### Phase 1, Front panel I/O and Memory management
@@ -52,23 +55,39 @@ Front panel components and functionality:
 ### Phase 2, Run Altair 8800 programs
 
 After memory works, the next phase is to develop an emulator to run Altair 8800 machine code.
-+ Likely starting with Nop and JMP.
++ Enable STOP and RUN toggle: stop a running program, and run a program.
++ Add instructions, starting with the JMP instruction.
 + Add operational instructions to run Kill the Bit, and Pong.
 + Load programs from an SD card into memory.
 + Save programs from memory onto an SD card.
+
+I will use the Altair 8800 online simulator to enter and run sample programs.
++ https://s2js.com/altair/sim.html
++ Then, I will do the same steps on my Altair 101. The result needs to be the same.
+
+#### For Reference
+
+Altair 8800b Instruction set.
+http://brooknet.no-ip.org/~lex/altair/_altair88b/manual/instructMain.html
++ Example: JMP (jump) is octal 303 (11 000 011)
++ The jump instruction is followed by 2 bytes of data in the next two memory addresses.
++ The program will jump to that 16 bit address and continue processing.
+
+Binary Calculator
+https://www.calculator.net/binary-calculator.html
 
 --------------------------------------------------------------------------------
 ### Phase 3, Enhance with Modern Components and Functionality
 
 Add modern components:
-+ Digital clock features using a DS3231.
-+ Add sound by using a DFPlayer and an amp.
-+ Internet access using a NodeMCU.
++ Real time clock using a DS3231 board.
++ A DFPlayer, amp, and speaker for sound.
++ NodeMCU for internet access.
 
 Add new operational instructions for the modern components:
-+ Select to use clock speeds of one second, one minute.
++ Select to use computer clock speeds of one second, one minute.
 For example, create a clock where the hours and minutes are display as binary values on the front panel.
-+ Control MP3 playing.
++ Control the playing of MP3 files.
 + Interface to receive commands from the internet and return a response.
 
 Maybe add the following:
@@ -76,7 +95,7 @@ Maybe add the following:
 + 7-segment LEDs. For example, to display data and memory digitally for the clock display.
 + Keypad or keyboard input
 + Serial terminal interface to send commands and receive results
-+ Infrared receiver for controling functions
++ Infrared receiver input to computer instructions.
 
 --------------------------------------------------------------------------------
 ## Altair 8800, the Original and Clones
@@ -531,22 +550,6 @@ void pin_read(){
   digitalWrite(4, LOW);
 }
 ````
-
---------------------------------------------------------------------------------
-#### Run Programs
-
-Next part is to run programs.
-+ Enable STOP and RUN toggle: stop a running program, and run a program.
-+ Add instructions.
-+ Altair 8800b Instruction set.
-http://brooknet.no-ip.org/~lex/altair/_altair88b/manual/instructMain.html
-+ Example: jump (jmp) 11 000 011 to 16 bit address.
-
-Altair 8800 online simulator to compare my Altair 101 to the Altair 8800:
-+ https://s2js.com/altair/sim.html
-
-Binary Calculator
-https://www.calculator.net/binary-calculator.html
 
 --------------------------------------------------------------------------------
 eof
