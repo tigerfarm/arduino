@@ -7,6 +7,13 @@ A major milestone will be when I can enter and run the classic, Kill the Bit pro
 
 I will use an Arduino Nano microprocessor, and supporting chips, to control the I/O and run the computer's processes.
 
+I will use the Altair 8800 online simulator to compare my Altair clone with the original functionality.
++ https://s2js.com/altair/sim.html
+
+#### Altair 8800 Front Panel
+
+<img width="600px"  src="Altair8800frontPanel15x6.jpg"/>
+
 --------------------------------------------------------------------------------
 ### Phase 1, Front panel I/O and Memory management
 
@@ -24,13 +31,6 @@ Front panel components and functionality:
 + One on/off/on momentary toggle to Deposit and Deposit next address data value.
 + One on/off/on momentary toggle to Reset or CLR (clear): sets data and address LEDs on, then data and address LEDs off.
 + One on/off toggle to turn the computer's power on and off.
-
-I will use the Altair 8800 online simulator to guide my Altair 101 development:
-+ https://s2js.com/altair/sim.html
-
-#### Altair 8800 Front Panel
-
-<img width="600px"  src="Altair8800frontPanel15x6.jpg"/>
 
 --------------------------------------------------------------------------------
 ## Altair 8800, the Original and Clones
