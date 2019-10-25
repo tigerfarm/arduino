@@ -1,8 +1,8 @@
 --------------------------------------------------------------------------------
 # Altair 101 Project Notes
 
-Goal to build a computer that has an Altair 8800 look and feel.
-It will have a clone front panel, similar LEDs and toggles, and basic Altair 8800 functionality.
+Goal to build a computer that has an Altair 8800 clone front panel, similar LEDs and toggles, and basic Altair 8800 functionality.
+This will give the computer an Altair 8800 look and feel.
 A major milestone will be when I can enter and run the classic, Kill the Bit program, on my Altair 101.
 
 I will use an Arduino Nano microprocessor, and supporting chips, to control the I/O and run the computer's processes.
@@ -13,6 +13,11 @@ I will use the Altair 8800 online simulator to compare my Altair clone with the 
 #### Altair 8800 Front Panel
 
 <img width="600px"  src="Altair8800frontPanel15x6.jpg"/>
+
++ Altair original and clone documents:
+https://altairclone.com/downloads/
++ Click (here)[https://altairclone.com/downloads/interview.mp3]
+ to hear an interview with the Altair 8800 clone creator, Mike Douglas.
 
 --------------------------------------------------------------------------------
 ### Phase 1, Front panel I/O and Memory management
