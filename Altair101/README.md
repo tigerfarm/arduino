@@ -160,7 +160,7 @@ Summary of how to enter the jump loop program,
 + Set the address toggles to 0.
 + Flip EXAMINE, to view memory data from memory address location 0.
 + Enter the first program octal value, 303.
-+ 303 is 3(11) 0(000) 3(011) >> 00 100 001
++ 303 is 3(11) 0(000) 3(011) >> Data toggles: 11 000 011
 + Flip DEPOSIT NEXT.
 + Enter each of the values, then flip DEPOSIT NEXT.
 ````
