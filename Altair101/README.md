@@ -122,6 +122,26 @@ Here is the octal program listing:
 + Flip the Deposit Next toggle. The address is incremented one, to octal 000: 00 000 007.
 + Flip the Deposit Next toggle. The address is incremented one, to octal 000: 00 000 008.
 
+Summary of how to enter the jump loop program,
++ Set the address toggles to 0.
++ Flip EXAMINE, to view memory data from memory address location 0.
++ Enter the first program octal value, 303.
++ 041 is 0(00) 4(100) 1(001) >> 00 100 001
++ Flip DEPOSIT NEXT.
++ Enter each of the values, then flip DEPOSIT NEXT.
+````
+Address  Data toggles  Octal Value
+0        11 000 011     303 jmp: Jump instruction: jmp beg
+1        00 000 110     006      To address 6. 00 000 110 = 6. Low order address bits.
+2        00 000 000     000      High order address bits, to get a 16 bit address: 0 000 000 000 000 110 = 000 006 (octal).
+3        00 000 000     000 Used memory data.
+4        00 000 000     000 Used memory data.
+5        00 000 000     000 Used memory data.
+6        11 000 011     303 jmp: Jump instruction: jmp beg
+7        00 000 000     000      To address 0. 00 000 000 = 0. Low order address bits.
+8        00 000 000     000      High order address bits, to get a 16 bit address: 0 000 000 000 000 000 = 000 000 (octal).
+````
+
 The program is entered. Review the memory to confirm the entry
 + Set address toggles to 0.
 + Flip the Examine toggle. Confirm, data is octal 303: 11 000 011.
@@ -378,34 +398,33 @@ Following is how to enter the above program.
 + Enter the first octal value from the above program listing, 041.
 + 041 is 0(00) 4(100) 1(001) >> 00 100 001
 + Flip DEPOSIT NEXT.
-+ Enter each of the values, flipping DEPOSIT NEXT each time.
++ Enter each of the values, then flip DEPOSIT NEXT.
 ````
-Address LEDs    Value from above:
-
-00 100 001     041
-00 000 000     000
-00 000 000     000
-00 010 110     026
-10 000 000     200
-00 000 001     001
-00 001 110     016
-00 000 000     000
-00 011 010 beg:032
-00 011 010     032
-00 011 010     032
-00 011 010     032
-00 001 001     011
-11 010 010     322
-00 001 000     010
-00 000 000     000
-11 011 011     333
-11 111 111     377
-10 101 010     252
-00 001 111     017
-01 010 111     127
-11 000 011     303 jmp: Jump instruction: jmp beg
-00 001 000     010      To address 8. 00 001 000 = 8. Low order address bits.
-00 000 000     000 end: High order address bits, to get a 16 bit address: 00 000 000 00 001 000 = 8.
+Addr Data toggles  Octal Value
+00   00 100 001     041
+01   00 000 000     000
+02   00 000 000     000
+03   00 010 110     026
+04   10 000 000     200
+05   00 000 001     001
+06   00 001 110     016
+07   00 000 000     000
+08   00 011 010 beg:032
+09   00 011 010     032
+10   00 011 010     032
+11   00 011 010     032
+12   00 001 001     011
+13   11 010 010     322
+14   00 001 000     010
+15   00 000 000     000
+16   11 011 011     333
+17   11 111 111     377
+18   10 101 010     252
+19   00 001 111     017
+20   01 010 111     127
+21   11 000 011     303 jmp: Jump instruction: jmp beg
+22   00 001 000     010      To address 8. 00 001 000 = 8. Low order address bits.
+23   00 000 000     000 end: High order address bits, to get a 16 bit address: 00 000 000 00 001 000 = 8.
 ````
 Once enter, review, to confirm correct entry.
 + Set the address toggles to 0.
@@ -414,22 +433,57 @@ Once enter, review, to confirm correct entry.
 
 The Program in assembler code:
 ````
-0000           org     0
-0000 210000    lxi     h,0     ;initialize counter 
-0003 1680      mvi     d,080h  ;set up initial display bit 
-0005 010E00    lxi     b,0eh   ;higher value = faster 
-0008 1A   beg: ldax    d       ;display bit pattern on 
-0009 1A        ldax    d       ;...upper 8 address lights 
-000A 1A        ldax    d 
-000B 1A        ldax    d 
-000C 09        dad     b       ;increment display counter 
-000D D20800    jnc     beg 
-0010 DBFF      in      0ffh    ;input data from sense switches 
-0012 AA        xra     d       ;exclusive or with A 
-0013 0F        rrc             ;rotate display right one bit 
-0014 57        mov     d,a     ;move data to display reg 
-0015 C30800    jmp     beg     ;repeat sequence 
-0018           end
+Addr
+Dig HEX
+00  0000           org     0
+00  0000 210000    lxi     h,0     ;initialize counter 
+03  0003 1680      mvi     d,080h  ;set up initial display bit 
+05  0005 010E00    lxi     b,0eh   ;higher value = faster 
+06  0008 1A   beg: ldax    d       ;display bit pattern on 
+09  0009 1A        ldax    d       ;...upper 8 address lights 
+10  000A 1A        ldax    d 
+11  000B 1A        ldax    d 
+12  000C 09        dad     b       ;increment display counter 
+13  000D D20800    jnc     beg 
+16  0010 DBFF      in      0ffh    ;input data from sense switches 
+18  0012 AA        xra     d       ;exclusive or with A 
+19  0013 0F        rrc             ;rotate display right one bit 
+20  0014 57        mov     d,a     ;move data to display reg 
+21  0015 C30800    jmp     beg     ;repeat sequence 
+24  0018           end
+````
+Following is the above converted into binary and octal.
+Which match the above octal listing.
+````
+210000 = 00 100 001 : 00 000 000 : 00 000 000
+lxi      041 000 000
+  1680 = 00 010 110 : 10 000 000
+mvi      026 200
+010E00 = 00 000 001 : 00 001 110 : 00 000 000
+lxi      001 016 000
+    1A = 00 011 010
+ldax     032
+    1A = 00 011 010
+ldax     032
+    1A = 00 011 010
+ldax     032
+    1A = 00 011 010
+ldax     032
+    09 = 00 001 001
+dad      011
+D20800 = 11 010 010 : 00 001 000 : 00 000 000
+jnc      322 010 000
+  DBFF = 11 011 011 : 11 111 111
+in       333 377
+    AA = 10 101 010
+xra      252
+    0F = 00 001 111
+rrc      017
+    57 = 01 010 111
+mov      127
+C30800 = 110000110000100000000000
+jmp      11 000 011 : 00 001 000 : 00 000 000
+         303 010 000
 ````
 To run the program,
 + Set all sense switches to 0.
