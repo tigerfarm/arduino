@@ -2,13 +2,13 @@
 # Altair 101 Project Notes
 
 This computer, which I call the Altair 101, is designed and will be built for a user experience.
-It is meant to replicate the user experience of flipping toggles for data entry and watching lights flash to see the results.
+It is meant to replicate the user experience of flipping toggles for data entry and watching lights flash to see results.
 
-My goal to build a computer that has an [Altair 8800 clone front panel](https://www.adwaterandstir.com/product/front-panel/),
+My goal is to build a computer that has an [Altair 8800 clone front panel](https://www.adwaterandstir.com/product/front-panel/),
 similar LEDs and toggles to an Altair 8800, and have the base Altair 8800 functionality.
 This will give the computer an Altair 8800 look and feel from the user's point of view.
 
-A major milestone will be when I can enter and run the classic, Kill the Bit program, on my Altair 101.
+A major milestone will be when I can enter and run the classic, [Kill the Bit](https://youtu.be/ZKeiQ8e18QY) program, on my Altair 101.
 I will use an Arduino Nano microprocessor and supporting chips to control the I/O and run the computer's processes.
 I will use the [Altair 8800 online simulator](https://s2js.com/altair/sim.html) ([homepage](https://s2js.com/altair/))
 to compare the original functionality with my Altair 101.
