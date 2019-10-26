@@ -80,6 +80,10 @@ Test by entering a program.
 + Since the program doesn't use any other memory, the above is the complete program.
 + The instruction in address 6. The program will jump to address 0.
 
+Run the program one step at a time,
++ Examine address 0.
++ Flip the STEP toggle.
+
 Run the program,
 + Examine address 0. The wait LED is on.
 + Flip the RUN toggle. The wait LED goes off.
