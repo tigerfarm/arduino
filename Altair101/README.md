@@ -38,10 +38,10 @@ Too much a poor high school student doing golf course work.
 
 See the original [price list](https://altairclone.com/ordering.htm) to see parts that were available and their costs.
 
-I'm trying to keep the cost my Altair 101, to under $100.
+I'm tried to keep the cost of parts for my Altair 101, to under $100.
 The cost of the clone front panel, sticker, and standard case, is $74, which doesn't leave much for the electronics.
-The Arduino Nano is under $3. With the other parts, mostly from China, the total is just a few bucks over my target cost.
-All good. I have parts details [below](https://github.com/tigerfarm/arduino/tree/master/Altair101#parts-to-order-to-build-my-altair-101).
+With the electronic parts, mostly from China, the total is $101, only a buck over my target cost.
+All good. I have the parts listed [below](https://github.com/tigerfarm/arduino/tree/master/Altair101#parts-to-order-to-build-my-altair-101).
 
 --------------------------------------------------------------------------------
 ### Phase 1, Front panel I/O for Memory management
@@ -500,15 +500,16 @@ https://s2js.com/altair/sim.html
 https://github.com/maly/8080js
 
 --------------------------------------------------------------------------------
-### Parts to order to build my Altair 101
+### Altair 101 Parts List
 
 Parts list from a clone:
 https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
 
 + Front panel, sticker, case, and shipping = $74
 + Nano + on/off/on momentary toggles + on/off toggles + red LEDs
-+ 20pcs 74HC595 + pin expander module PCF8574 + cables
-+ Total = $95 = $74 + $3 + $7 + $2 + $2 + $3 + $4
++ 20pcs 74HC595 + pin expander module PCF8574
++ Breadboards + cables
++ Total = $101 = $74 + $3 + $7 + $2 + $2 + $3 + $6 + $4
 
 + Ordered Altair 8800 Front panel with sticker, standard case, and shipping: $74
 https://www.adwaterandstir.com/product/front-panel/
