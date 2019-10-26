@@ -45,7 +45,7 @@ Wow, $101 for my Altair 101.
 I have the parts listed [below](https://github.com/tigerfarm/arduino/tree/master/Altair101#parts-to-order-to-build-my-altair-101).
 
 --------------------------------------------------------------------------------
-### Phase 1, Front panel I/O for Memory management
+### Phase 1, Front panel I/O and Memory management
 
 The first phase starts with a basic memory model and memory management.
 
@@ -68,26 +68,13 @@ The memory management from the Altair 101 front panel,
 
 + One on/off toggle to turn the computer's power on and off.
 
---------------------------------------------------------------------------------
-### Phase 2, Enter and Run Altair 8800 programs
-
-After memory management works, the next phase is to develop an emulator to run Altair 8800 machine code.
-
-I will use the Altair 8800 online simulator to enter and run sample programs.
+I used the Altair 8800 online simulator to enter a sample program.
 + https://s2js.com/altair/sim.html
-+ Then, I will do the same steps on my Altair 101. The result needs to be the same.
-+ I entered and ran the jump loop program into the simulator. Now I need to implement the same in my Altair 101.
++ Once built, I will do the same steps on my Altair 101. The result needs to be the same.
++ On the simulator, I entered and ran the jump loop program.
++ Now I need to implement the same in my Altair 101.
 
-Front panel components to implement,
-+ One on/off/on momentary toggle to STOP and RUN programs.
-+ One on/off/on momentary toggle to STEP through a program, one program instruction at a time.
-+ Add a WAIT LED.
-+ The WAIT LED is on when a program is not running.
-+ The WAIT LED is off when a program is running.
-+ The WAIT LED remains on when stepping through a program.
-+ Add the first operational instruction, the JMP instruction.
-
-Test by entering a program called: jump loop.
+Test by entering a program I call: jump loop.
 + The first program will implement an infinite loop.
 + The first instruction is at address location 0.
 + Address 0 has the jump instruction, to jump to address 6.
@@ -141,6 +128,26 @@ The program is entered. Review the memory to confirm the entry
 + Flip the Examine Next toggle. Confirm, data is octal 006: 00 000 110.
 + Flip the Examine Next toggle. Confirm, data is octal 000: 00 000 000.
 + Flip the Examine Next toggle enough time to confirm memory is correct up to address 8.
+
+Memory management is working.
+
+--------------------------------------------------------------------------------
+### Phase 2, Enter and Run Altair 8800 programs
+
+The next phase is to develop a Arduino Nano program to run Altair 8800 machine code.
+
+I used the Altair 8800 online simulator to enter and run jump loop program.
++ https://s2js.com/altair/sim.html
++ Once I reach this stage, I will run the program on my Altair 101. The result needs to be the same.
+
+Front panel components to implement,
++ One on/off/on momentary toggle to STOP and RUN programs.
++ One on/off/on momentary toggle to STEP through a program, one program instruction at a time.
++ Add a WAIT LED.
++ The WAIT LED is on when a program is not running.
++ The WAIT LED is off when a program is running.
++ The WAIT LED remains on when stepping through a program.
++ Add the first operational instruction, the JMP instruction.
 
 Run the program one step at a time,
 + Set address toggles to 0.
