@@ -7,6 +7,7 @@ It is meant to replicate the user experience of flipping toggles for data entry 
 My goal is to build a computer that has an [Altair 8800 clone front panel](https://www.adwaterandstir.com/product/front-panel/),
 similar LEDs and toggles to an Altair 8800, and have the base Altair 8800 functionality.
 This will give the computer an Altair 8800 look and feel from the user's point of view.
+Then, I will add modern components: real time clock, MP3 player, SD drive for saving and loading programs, and yes, connect it to the internet.
 
 #### Altair 8800 Front Panel
 
@@ -29,7 +30,7 @@ For example, my machine will not run Basic, nor will it run CPM. You can run tho
 
 I just want a computer that looks and feels like the limited edition that was available in 1975.
 That version did not have any interfaces. It cost $621 with extremely limited utility.
-If I had worked during one high school summertime, I could have bought one and had few bucks to spare.
+If I had worked during one high school summertime, I could have bought one and had a few bucks to spare.
 I didn't buy one because without the other parts, there was little it could do.
 It couldn't even store programs that were entered. 
 A usable disk drive cost $1,980, 3 times the price of the computer.
