@@ -100,8 +100,6 @@ Test by entering a program called: jump loop.
 + Address 7(007) - data: 000. Lower byte of the address to jump to.
 + Address 8(010) - data: 000. Upper byte of the address to jump to.
 ````
-+ Since the program doesn't use any other memory, the above is the complete program.
-
 Enter the above, using the Examine and Deposit toggles.
 Here is the octal program listing:
 ````
@@ -109,6 +107,34 @@ Here is the octal program listing:
 000 000 000
 303 000 000 
 ````
++ Set address toggles to 0.
++ Flip the Examine toggle.
++ Flip the Deposit toggle. This sets the data LEDs to 0.
++ Set right most address toggles, the lower address byte to octal 303: 11 000 011.
++ Flip the Deposit toggle. This sets the data LEDs to octal 303: 11 000 011.
++ Flip the Examine Next toggle.
++ Set the lower address byte to octal 006: 00 000 110.
++ Flip the Deposit toggle. This sets the data LEDs to octal 303: 11 000 011.
++ Set the lower address byte to octal 000: 00 000 000.
++ Flip the Deposit Next toggle. The byte will be deposited into the next address location.
++ The address is incremented one, to octal 000: 00 000 001.
++ Flip the Deposit Next toggle. The byte will be deposited into the next address location.
++ The address is incremented one, to octal 000: 00 000 002.
++ Flip the Deposit Next toggle. The address is incremented one, to octal 000: 00 000 003.
++ Flip the Deposit Next toggle. The address is incremented one, to octal 000: 00 000 004.
++ Flip the Deposit Next toggle. The address is incremented one, to octal 000: 00 000 005.
++ Set the lower address byte to octal 303: 11 000 011.
++ Flip the Deposit Next toggle. The address is incremented one, to octal 000: 00 000 006.
++ Set the lower address byte to octal 000: 00 000 000.
++ Flip the Deposit Next toggle. The address is incremented one, to octal 000: 00 000 007.
++ Flip the Deposit Next toggle. The address is incremented one, to octal 000: 00 000 008.
+
+The program is entered. Review the memory to confirm the entry
++ Set address toggles to 0.
++ Flip the Examine toggle. Confirm, data is octal 303: 11 000 011.
++ Flip the Examine Next toggle. Confirm, data is octal 006: 00 000 110.
++ Flip the Examine Next toggle. Confirm, data is octal 000: 00 000 000.
++ Flip the Examine Next toggle enough time to confirm memory is correct up to address 8.
 
 Run the program one step at a time,
 + Set address toggles to 0.
