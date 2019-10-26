@@ -34,32 +34,61 @@ It cost $1,980, 3 times the price of the computer, to have a usable disk drive.
 See the original [price list](https://altairclone.com/ordering.htm) to see parts that were available and their costs.
 
 --------------------------------------------------------------------------------
-### Phase 1, Front panel I/O and Memory management
+### Phase 1, Front panel I/O for Memory management
 
 The first phase starts with a basic memory model and management.
-+ The memory will be managed as Nano runtime memory.
-+ Memory will be an array of bytes where each byte represent 8 bits of data at one address location.
-+ The Altair 8800 clone front panel  will be used for memory I/O.
-+ Front panel functionality: examine memory addresses and deposit data into the addresses.
 
-Front panel components and functionality:
-+ 8 LEDs to display an 8-bit memory data value.
-+ 16 LEDs to display a 16-bit memory address.
-+ Nano runtime memory array: each array index represents a 16 bit address, and the value represents 8 bits data.
-+ One on/off/on momentary toggle to Examine and Examine next address data value.
-+ One on/off/on momentary toggle to Deposit and Deposit next address data value.
-+ One on/off/on momentary toggle to Reset or CLR (clear): sets data and address LEDs on, then data and address LEDs off.
+The memory model,
++ Memory will be an array structure in a Nano runtime sketch.
++ Each array index in a memory address.
++ Each array is an 8 bit data value.
++ Example: altairMem[2] is memory address 2.
++ Address 2 is represented in LEDs as, high byte: 0 000 000 0 (octal: 000), and low byte: 00 000 010 (octal: 002).
++ If the value of altairMem[2] is three, then the data value is: 00 000 011 (octal: 003).
+
+The memory management from the Altair 101 front panel,
++ There will be 8 LEDs to display one 8-bit memory data value.
++ There will be 16 LEDs to display one 16-bit memory address.
++ The 8 lower byte address toggles will be used for memory data input.
++ The 16 upper and lower byte address toggles will be used for memory address input.
++ One on/off/on momentary toggle to Examine and Examine next address data values.
++ One on/off/on momentary toggle to Deposit and Deposit next address data values.
++ One on/off/on momentary toggle to Reset or CLR (clear): sets data and address LEDs on, then data and address LEDs go off.
+
 + One on/off toggle to turn the computer's power on and off.
 
 --------------------------------------------------------------------------------
-### Phase 2, Run Altair 8800 programs
+### Phase 2, Enter and Run Altair 8800 programs
 
-After memory works, the next phase is to develop an emulator to run Altair 8800 machine code.
-+ Enable STOP and RUN toggle: stop a running program, and run a program.
-+ Add instructions, starting with the JMP instruction.
-+ Add operational instructions to run Kill the Bit, and Pong.
-+ Load programs from an SD card into memory.
+After memory management works, the next phase is to develop an emulator to run Altair 8800 machine code.
++ One on/off/on momentary toggle to STOP and RUN programs.
++ Add a WAIT LED to indicate if a program is running or not.
++ Add the first operational instruction, the JMP instruction.
++ One on/off/on momentary toggle to STEP, to step one program instruction at a time when the computer is in a WAIT state.
+
+Test by entering a program.
++ Note, values not digital, are octal.
++ The first program will an infinite loop. The first instruction is at address location 0.
++ Example: 8 is binary: 1000 or represented in address LEDs as 00 001 000 which is octal 010.
++ Address 0 has the instruction to jump to address 6.
++ Address 0(000) - data: 303. A jump instruction value.
++ Address 1(001) - data: 006. Lower byte of the address to jump to.
++ Address 2(002) - data: 000. Upper byte of the address to jump to.
++ Address 6(006) - data: 303. A jump instruction value.
++ Address 7(007) - data: 000. Lower byte of the address to jump to.
++ Address 8(010) - data: 000. Upper byte of the address to jump to.
++ Since the program doesn't use any other memory, the above is the complete program.
++ The instruction in address 6. The program will jump to address 0.
+
+Run the program,
++ Examine address 0. The wait LED is on.
++ Flip the RUN toggle. The wait LED goes off.
++ The program will start running.
++ Flip the STOP toggle to stop the program. The wait LED goes on.
+
 + Save programs from memory onto an SD card.
++ Load programs from an SD card into memory.
++ Add more operational instructions to run Kill the Bit, and Pong.
 
 I will use the Altair 8800 online simulator to enter and run sample programs.
 + https://s2js.com/altair/sim.html
