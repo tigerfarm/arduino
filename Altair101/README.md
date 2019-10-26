@@ -32,7 +32,7 @@ That version did not have any interfaces. It cost $621 with extremely limited ut
 If I had worked during one high school summertime, I could have bought one and had few bucks to spare.
 I didn't buy one because without the other parts, there was little it could do.
 It couldn't even store programs that were entered. 
-It cost $1,980, 3 times the price of the computer, to have a usable disk drive.
+A usable disk drive cost $1,980, 3 times the price of the computer.
 Too much a poor high school student doing golf course work.
 
 See the original [price list](https://altairclone.com/ordering.htm) to see parts that were available and their costs.
