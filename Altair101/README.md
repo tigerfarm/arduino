@@ -82,18 +82,33 @@ Front panel components to implement,
 + Add the first operational instruction, the JMP instruction.
 
 Test by entering a program called: jump loop.
++ The first program will implement an infinite loop.
++ The first instruction is at address location 0.
++ Address 0 has the jump instruction, to jump to address 6.
++ Address 6 has the jump instruction, to jump to address 0.
++ The program will do an infinite jump loop.
 + Note, values not digital, are octal.
-+ The first program will an infinite loop. The first instruction is at address location 0.
-+ Example: 8 is binary: 1000 or represented in address LEDs as 00 001 000 which is octal 010.
-+ Address 0 has the instruction to jump to address 6.
-+ Address 0(000) - data: 303. A jump instruction value.
++ For example: 6 is binary: 110 or represented in address LEDs as 00 000 110 which is octal 006.
+````
++ Address 0(000) - data: 303. 303 is the jump instruction.
 + Address 1(001) - data: 006. Lower byte of the address to jump to.
 + Address 2(002) - data: 000. Upper byte of the address to jump to.
-+ Address 6(006) - data: 303. A jump instruction value.
++ Address 3(003) - data: 000. Unused. Actually, can be any value.
++ Address 4(004) - data: 000. Unused.
++ Address 5(005) - data: 000. Unused.
++ Address 6(006) - data: 303. A jump instruction.
 + Address 7(007) - data: 000. Lower byte of the address to jump to.
 + Address 8(010) - data: 000. Upper byte of the address to jump to.
+````
 + Since the program doesn't use any other memory, the above is the complete program.
-+ The instruction in address 6. The program will jump to address 0.
+
+Enter the above, using the Examine and Deposit toggles.
+Here is the octal program listing:
+````
+303 006 000
+000 000 000
+303 000 000 
+````
 
 Run the program one step at a time,
 + Set address toggles to 0.
