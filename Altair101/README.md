@@ -176,7 +176,7 @@ Address  Data toggles  Octal Value
 8        00 000 000     000      High order address bits, to get a 16 bit address: 0 000 000 000 000 000 = 000 000 (octal).
 ````
 
-The program is entered. Review the memory to confirm the entry
+The program is entered. Review the memory to confirm the entered data.
 + Set address toggles to 0.
 + Flip the Examine toggle. Confirm, data is octal 303: 11 000 011.
 + Flip the Examine Next toggle. Confirm, data is octal 006: 00 000 110.
@@ -186,13 +186,16 @@ The program is entered. Review the memory to confirm the entry
 Memory management is working.
 
 --------------------------------------------------------------------------------
-### Phase 2, Enter and Run Altair 8800 programs
+### Phase 2, Run Altair 8800 Programs on the Altair 101
 
 The next phase is to develop a Arduino Nano program to run Altair 8800 machine code.
 
 I used the Altair 8800 online simulator to enter and run jump loop program.
 + https://s2js.com/altair/sim.html
-+ Once I reach this stage, I will run the program on my Altair 101. The result needs to be the same.
+
+Once the Altair 101 memory management works, I can develop the Arduino sketch to process Altair 8800 operational instructions.
+Once I have enough instructions, I can run Altair 8800 programs on my Altair 101.
+The programs should run the same on the Altair 101, as on the Altair 8800 online simulator.
 
 Front panel components to implement,
 + One on/off/on momentary toggle to STOP and RUN programs.
