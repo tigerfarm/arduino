@@ -30,10 +30,10 @@ For example, my machine will not run Basic, nor will it run CPM. You can run tho
 I just want a computer that looks and feels like the limited edition that was available in 1975.
 That version did not have any interfaces. It cost $621 with extremely limited utility.
 If I had worked during one high school summertime, I could have bought one and had few bucks to spare.
-If the computer was more functional, I would have.
-However, I didn't buy one because without the other parts, there was little it could do.
+I didn't buy one because without the other parts, there was little it could do.
 It couldn't even store programs that were entered. 
 It cost $1,980, 3 times the price of the computer, to have a usable disk drive.
+Too much a poor high school student doing golf course work.
 
 See the original [price list](https://altairclone.com/ordering.htm) to see parts that were available and their costs.
 
