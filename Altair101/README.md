@@ -61,12 +61,22 @@ The memory management from the Altair 101 front panel,
 ### Phase 2, Enter and Run Altair 8800 programs
 
 After memory management works, the next phase is to develop an emulator to run Altair 8800 machine code.
-+ One on/off/on momentary toggle to STOP and RUN programs.
-+ Add a WAIT LED to indicate if a program is running or not.
-+ Add the first operational instruction, the JMP instruction.
-+ One on/off/on momentary toggle to STEP, to step one program instruction at a time when the computer is in a WAIT state.
 
-Test by entering a program.
+I will use the Altair 8800 online simulator to enter and run sample programs.
++ https://s2js.com/altair/sim.html
++ Then, I will do the same steps on my Altair 101. The result needs to be the same.
++ I entered and ran the jump loop program into the simulator. Now I need to implement the same in my Altair 101.
+
+Front panel components to implement,
++ One on/off/on momentary toggle to STOP and RUN programs.
++ One on/off/on momentary toggle to STEP through a program, one program instruction at a time.
++ Add a WAIT LED.
++ The WAIT LED is on when a program is not running.
++ The WAIT LED is off when a program is running.
++ The WAIT LED remains on when stepping through a program.
++ Add the first operational instruction, the JMP instruction.
+
+Test by entering a program called: jump loop.
 + Note, values not digital, are octal.
 + The first program will an infinite loop. The first instruction is at address location 0.
 + Example: 8 is binary: 1000 or represented in address LEDs as 00 001 000 which is octal 010.
@@ -81,22 +91,34 @@ Test by entering a program.
 + The instruction in address 6. The program will jump to address 0.
 
 Run the program one step at a time,
-+ Examine address 0.
++ Set address toggles to 0.
++ Flip the Examine toggle.
++ Data LEDs show the jump instruction: 11 000 011(303).
++ Address LEDs show 0: 00 000 000(000).
 + Flip the STEP toggle.
++ Data LEDs show the jump instruction: 11 000 011(303).
++ Address LEDs show 6: 00 000 110(006). The computer has jumped to address 6.
++ Flip the STEP toggle.
++ Data LEDs show the jump instruction: 11 000 011(303).
++ Address LEDs show 0: 00 000 000(000).
++ Each time the STEP toggle is flipped, the address LEDs change between 0 and 6..
++ You entered and run your first program one step at a time.
 
 Run the program,
++ Set address toggles to 0.
 + Examine address 0. The wait LED is on.
-+ Flip the RUN toggle. The wait LED goes off.
-+ The program will start running.
-+ Flip the STOP toggle to stop the program. The wait LED goes on.
++ Flip the RUN toggle. The wait LED goes off. The program starts running.
++ Data LEDs show the jump instruction: 11 000 011(303).
++ Address LEDs show 6: 00 000 110(006).
++ Flip the STOP toggle to stop the program. The wait LED goes off.
++ Data LEDs show the jump instruction: 11 000 011(303).
++ Address LEDs show 6: 00 000 110(006).
++ You entered and run your first program.
 
+Next, implement the following,
 + Save programs from memory onto an SD card.
 + Load programs from an SD card into memory.
 + Add more operational instructions to run Kill the Bit, and Pong.
-
-I will use the Altair 8800 online simulator to enter and run sample programs.
-+ https://s2js.com/altair/sim.html
-+ Then, I will do the same steps on my Altair 101. The result needs to be the same.
 
 #### For Reference
 
