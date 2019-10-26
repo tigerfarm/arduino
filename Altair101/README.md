@@ -38,6 +38,11 @@ Too much a poor high school student doing golf course work.
 
 See the original [price list](https://altairclone.com/ordering.htm) to see parts that were available and their costs.
 
+I'm trying to keep the cost my Altair 101, to under $100.
+The cost of the clone front panel, sticker, and standard case, is $74, which doesn't leave much for the electronics.
+The Arduino Nano is under $3. With the other parts, mostly from China, the total is just a few bucks over my target cost.
+All good. I have parts details [below](https://github.com/tigerfarm/arduino/tree/master/Altair101#parts-to-order-to-build-my-altair-101).
+
 --------------------------------------------------------------------------------
 ### Phase 1, Front panel I/O for Memory management
 
