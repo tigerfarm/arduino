@@ -8,11 +8,6 @@ My goal is to build a computer that has an [Altair 8800 clone front panel](https
 similar LEDs and toggles to an Altair 8800, and have the base Altair 8800 functionality.
 This will give the computer an Altair 8800 look and feel from the user's point of view.
 
-A major milestone will be when I can enter and run the classic, [Kill the Bit](https://youtu.be/ZKeiQ8e18QY) program, on my Altair 101.
-I will use an Arduino Nano microprocessor and supporting chips to control the I/O and run the computer's processes.
-I will use the [Altair 8800 online simulator](https://s2js.com/altair/sim.html) ([homepage](https://s2js.com/altair/))
-is the baseline functionality for my Altair 101. What the simulator does, my computer will do.
-
 #### Altair 8800 Front Panel
 
 [<img width="600px"  src="Altair8800frontPanel15x6.jpg"/>](https://s2js.com/altair/sim.html)
@@ -23,6 +18,11 @@ is the baseline functionality for my Altair 101. What the simulator does, my com
     for Altair 8800 original and clone documents.
 + Click [here](https://altairclone.com/downloads/interview.mp3)
     to hear an interview with the Altair 8800 clone creator, Mike Douglas.
+
+A major milestone will be when I can enter and run the classic, [Kill the Bit](https://youtu.be/ZKeiQ8e18QY) program, on my Altair 101.
+I will use an Arduino Nano microprocessor and supporting chips to control the I/O and run the computer's processes.
+I will use the [Altair 8800 online simulator](https://s2js.com/altair/sim.html) ([homepage](https://s2js.com/altair/))
+is the baseline functionality for my Altair 101. What the simulator does, my computer will do.
 
 Note, I don't intend to implement full Altair 8800 functionality.
 For example, my machine will not run Basic, nor will it run CPM. You can run those on a laptop computer emulator.
