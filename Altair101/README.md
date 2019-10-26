@@ -41,7 +41,7 @@ See the original [price list](https://altairclone.com/ordering.htm) to see parts
 --------------------------------------------------------------------------------
 ### Phase 1, Front panel I/O for Memory management
 
-The first phase starts with a basic memory model and management.
+The first phase starts with a basic memory model and memory management.
 
 The memory model,
 + Memory will be an array structure in a Nano runtime sketch.
