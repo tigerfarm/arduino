@@ -25,7 +25,8 @@ is the baseline functionality for my Altair 101. What the simulator does, my com
     to hear an interview with the Altair 8800 clone creator, Mike Douglas.
 
 Note, I don't intend to implement full Altair 8800 functionality.
-For example, my machine will not run Basic, nor will it run CPM. You can run those on laptop computer emulators.
+For example, my machine will not run Basic, nor will it run CPM. You can run those on a laptop computer emulator.
+
 I just want a computer that looks and feels like the limited edition that was available in 1975.
 That version did not have any interfaces. It cost $621 with extremely limited utility.
 If I had worked during one high school summertime, I could have bought one and had few bucks to spare.
