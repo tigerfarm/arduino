@@ -13,6 +13,32 @@ Then, I will add modern components: real time clock, MP3 player, SD drive for sa
 
 [<img width="600px"  src="Altair8800frontPanel15x6.jpg"/>](https://s2js.com/altair/sim.html)
 
+I will need to handle a limited number of operational instructions, such as the jump (JMP) instruction.
+A major milestone will be when I have enough instructions to run the classic, [Kill the Bit](https://youtu.be/ZKeiQ8e18QY) program, on my Altair 101.
+I will use an Arduino Nano microprocessor sketch program to interpret and process each operational instruction.
+
+I will use the [Altair 8800 online simulator](https://s2js.com/altair/sim.html) ([homepage](https://s2js.com/altair/))
+as the baseline functionality for my Altair 101. What the Altair 8800 simulator will do with my sample programs, my Altair 101 computer will do.
+I don't intend to implement full Altair 8800 operational instructions.
+Which means, my machine will not run Basic, nor will it run CPM. Anyway, you can run those on a laptop computer using an emulator.
+I just want a computer that looks and feels like the limited edition that was available in 1975.
+That version did not have any interfaces. It cost $621 with extremely limited utility.
+
+If I had worked during one high school summer, I could have bought one and had a few bucks to spare.
+I didn't buy one because without the other parts, there was little it could do.
+After entering a program, it couldn't even save program. I would need to re-enter the program every time it was turn off and back on.
+A usable disk drive cost 3 times as much as the computer.
+Too much a poor high school student doing golf course maintenance work for under $2/hour.
+
+See the original [price list](https://altairclone.com/ordering.htm) to see parts that were available and their costs.
+
+The target was to keep the cost of parts under $100.
+The cost of the clone front panel, sticker, and standard case, was $74, which doesn't leave much for the electronics.
+With the electronic parts, mostly from China, the total is $101.
+Wow, $101. An auspicious cost for an Altair 101.
+
+Following are reference links,
++ Altair 101 parts listed [below](https://github.com/tigerfarm/arduino/tree/master/Altair101#parts-to-order-to-build-my-altair-101).
 + Click [here](https://altairclone.com/downloads/)
     for the website of a high end Altair 8800 clone.
 + Click [here](https://altairclone.com/downloads/)
@@ -20,29 +46,37 @@ Then, I will add modern components: real time clock, MP3 player, SD drive for sa
 + Click [here](https://altairclone.com/downloads/interview.mp3)
     to hear an interview with the Altair 8800 clone creator, Mike Douglas.
 
-A major milestone will be when I can enter and run the classic, [Kill the Bit](https://youtu.be/ZKeiQ8e18QY) program, on my Altair 101.
-I will use an Arduino Nano microprocessor and supporting chips to control the I/O and run the computer's processes.
-I will use the [Altair 8800 online simulator](https://s2js.com/altair/sim.html) ([homepage](https://s2js.com/altair/))
-is the baseline functionality for my Altair 101. What the simulator does, my computer will do.
+--------------------------------------------------------------------------------
+### Build I/O Boards
 
-Note, I don't intend to implement full Altair 8800 functionality.
-For example, my machine will not run Basic, nor will it run CPM. You can run those on a laptop computer emulator.
+Build a toggle input test board:
++ 4 input toggles for 4 data bits.
++ 2 input On/Off/On momentary toggles for to control 4 data bit settings.
++ Use 3 Nano pins. Use a chip or board to Expand Digital Inputs.
++ Test using a 74HC595 Shift Register
++ Test with a PCF8574 board
 
-I just want a computer that looks and feels like the limited edition that was available in 1975.
-That version did not have any interfaces. It cost $621 with extremely limited utility.
-If I had worked during one high school summertime, I could have bought one and had a few bucks to spare.
-I didn't buy one because without the other parts, there was little it could do.
-It couldn't even store programs that were entered. 
-A usable disk drive cost $1,980, 3 times the price of the computer.
-Too much a poor high school student doing golf course work.
+Build an 8 LED output test board:
++ Use 3 pins of a Nano board
++ 74HC595 Shift Register
++ 1 LED bar-graph (10 LEB bars) and 8 resistors.
 
-See the original [price list](https://altairclone.com/ordering.htm) to see parts that were available and their costs.
+https://www.youtube.com/watch?v=cAT07gy4DII
 
-I'm tried to keep the cost of parts for my Altair 101, to under $100.
-The cost of the clone front panel, sticker, and standard case, is $74, which doesn't leave much for the electronics.
-With the electronic parts, mostly from China, the total is $101, only a buck over my target cost.
-Wow, $101 for my Altair 101.
-I have the parts listed [below](https://github.com/tigerfarm/arduino/tree/master/Altair101#parts-to-order-to-build-my-altair-101).
+The development Altair 101 will,
++ Use 3 Nano pins to turn the LEDs on and off.
++ 1 x 74HC595 Shift Register, 8 data LEDs, resistors
++ 2 x 74HC595 Shift Register, 16 address LEDs, resistors
++ Use 1 Nano pin for 1 LED to display that the computer is in the WAIT state or not. When power is first turned on, the WAIT LED comes on.
++ Final computer will also have a HLT LED and 10 operational LEDs, for a total of 36 LEDs (8+16+1+1+10).
+
+Note, using 74HC595 chips or a PCF8574 board, power them from outside the Nano.
+This means there is plenty of power to run the chips and LEDs.
++ +5V to Nano 5V.
++ Ground to Nano ground.
++ +5V and ground to each 74HC595.
++ Not powering the 74HC595 and LEDs from the Nano +5V pin when the power comes into the Nano from the USB port.
++ Using the +5V pin when the power comes into the Nano from the USB port, will be okay to build a single 74HC595 chip test board.
 
 --------------------------------------------------------------------------------
 ### Phase 1, Front panel I/O and Memory management
@@ -619,7 +653,7 @@ https://www.ebay.com/itm/140Pcs-Solderless-Breadboard-Jumper-Cable-Wire-Kit-Box-
 https://www.tweaking4all.com/hardware/arduino/arduino-ws2812-led/
 
 --------------------------------------------------------------------------------
-#### LEB Outputs
+#### LED Outputs
 
 Build an LED output test board:
 + 8 LEDs for data bits.
