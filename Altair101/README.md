@@ -11,24 +11,25 @@ This will give the computer an Altair 8800 look and feel from the user's point o
 A major milestone will be when I can enter and run the classic, [Kill the Bit](https://youtu.be/ZKeiQ8e18QY) program, on my Altair 101.
 I will use an Arduino Nano microprocessor and supporting chips to control the I/O and run the computer's processes.
 I will use the [Altair 8800 online simulator](https://s2js.com/altair/sim.html) ([homepage](https://s2js.com/altair/))
-to compare the original functionality with my Altair 101.
+is the baseline functionality for my Altair 101. What the simulator does, my computer will do.
 
 #### Altair 8800 Front Panel
 
 [<img width="600px"  src="Altair8800frontPanel15x6.jpg"/>](https://s2js.com/altair/sim.html)
 
 + Click [here](https://altairclone.com/downloads/)
-    for high end Altair 8800 clone.
+    for the website of a high end Altair 8800 clone.
 + Click [here](https://altairclone.com/downloads/)
     for Altair 8800 original and clone documents.
 + Click [here](https://altairclone.com/downloads/interview.mp3)
     to hear an interview with the Altair 8800 clone creator, Mike Douglas.
 
 Note, I don't intend to implement full Altair 8800 functionality.
-For example, my machine will not run Basic, nor will it run CPM.
+For example, my machine will not run Basic, nor will it run CPM. You can run those on laptop computer emulators.
 I just want a computer that looks and feels like the limited edition that was available in 1975.
 That version did not have any interfaces. It cost $621 with extremely limited utility.
-If I had work all summer during my high school years, I could have bought one and few bucks to spare.
+If I had worked during one high school summertime, I could have bought one and had few bucks to spare.
+If the computer was more functional, I would have.
 However, I didn't buy one because without the other parts, there was little it could do.
 It couldn't even store programs that were entered. 
 It cost $1,980, 3 times the price of the computer, to have a usable disk drive.
