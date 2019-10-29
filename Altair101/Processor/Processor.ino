@@ -93,6 +93,13 @@ byte jumpLoopProgram[] = {
   0303, 0000, 0000
 };
 
+// Define a program using halt(HLT B01 110 110).
+byte jumpHaltProgram[] = {
+  0303, 0006, 0000,
+  0000, 0000, 0000,
+  0166
+};
+
 // -----------------------------------------------------------------------------
 // Byte processing
 
@@ -163,31 +170,38 @@ void listByteArray() {
 // Operational Instruction
 
 int programCounter = 0;
-int nextAddress = 0;
+// int nextAddress = 0;
 
 // Following from, section: - 26 - 8080 Instruction Set
 //    https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
 // Octals stored as a bytes.
+//
 //                               Inst      Encoding          Flags   Description
+// Programmed:
+const byte HLT = B01110110;   // HLT       01110110          -       Halt processor
 const byte JMP = 0303;        // JMP a     11000011 lb hb    -       Unconditional jump*
 const byte NOP = 0;           // NOP       00000000          -       No operation
-const byte HLT = B01110110;   // HLT       01110110          -       Halt processor
+//
+// To be programmed:
 const byte IN =  B11011011;   // IN p      11011011 pa       -       Read input port into A
 const byte STA = B00110010;   // STA a     00110010 lb hb    -       Store A to memory
 //
-// For Kill the Bit program,
+// More program instructions for the Kill the Bit program,
 // DAD RP    00RP1001          C       Add register pair to HL (16 bit add)*
-// MVI D,#   00DDD110 db       -       Move immediate to register*
+// JNC ?
 // LDAX RP   00RP1010 *1       -       Load indirect through BC or DE
 //                    *1 = Only RP=00(BC) and 01(DE) are allowed for LDAX/STAX
-// JNC ?
-// lxi ?
-// XRA S     10101SSS          ZSPCA   Exclusive OR register with A 
-// RRC       00001111          C       Rotate A right 
+// LXI RP,#  00RP0001 lb hb    -       Load register pair immediate*
 // MOV D,S   01DDDSSS          -       Move register to register* 
+// MVI D,#   00DDD110 db       -       Move immediate to register*
+// RRC       00001111          C       Rotate A right 
+// XRA S     10101SSS          ZSPCA   Exclusive OR register with A 
 
 void processByte(byte theByte) {
   switch (theByte) {
+    case HLT:
+      Serial.print(" > HLT Instruction, Halt the processor.");
+      break;
     case JMP:
       Serial.print(" > JMP Instruction, jump to address :");
       // Serial.print(programCounter);
@@ -199,9 +213,6 @@ void processByte(byte theByte) {
       Serial.print(":DEC,");
       Serial.print(programCounter);
       Serial.print(":");
-      break;
-    case HLT:
-      Serial.print(" > HLT Instruction, Halt the processor.");
       break;
     case NOP:
       Serial.print(" > NOP Instruction, No operation.");
@@ -227,7 +238,7 @@ void setup() {
 }
 
 // -----------------------------------------------------------------------------
-// Device Loop
+// Device Loop for processing machine code.
 
 void loop() {
 
