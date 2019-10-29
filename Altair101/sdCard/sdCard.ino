@@ -134,6 +134,7 @@ void setup() {
   Serial.println("+++ Setup.");
 
   // Note, csPin is optional. The default is the hardware SS line (pin 10) of the SPI bus.
+  // If using pin, other than 10, add: pinMode(otherPin, OUTPUT);
   // The pin connected to the chip select pin (CS) of the SD card.
   if (!SD.begin(csPin)) {
     Serial.println("- Error initializing SD card.");
