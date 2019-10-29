@@ -59,25 +59,10 @@
   }
   }
 
-// -----------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------
   Following from:
     https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
 
-  Dest and Source reg fields:
-    111=A   (Accumulator)
-    000=B
-    001=C
-    010=D
-    011=E
-    100=H
-    101=L
-    110=M   (Memory reference through address in H:L)
-
-  Register pair 'RP' fields:
-    00=BC   (B:C as 16 bit register)
-    01=DE   (D:E as 16 bit register)
-    10=HL   (H:L as 16 bit register)
-    11=SP   (Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP)
 */
 
 // -----------------------------------------------------------------------------
@@ -93,11 +78,21 @@ byte jumpLoopProgram[] = {
   0303, 0000, 0000
 };
 
-// Define a program using halt(HLT B01 110 110).
-byte jumpHaltProgram[] = {
+// Define a jump loop program with NOP instructions.
+byte jumpLoopNopProgram[] = {
+  0303, 0004, 0000,
+  0000, 0000, 0000,
+  0303, 0000, 0000
+};
+
+// Define a jump loop program
+//    with a halt(HLT binary 01 110 110 = octal 166) instruction,
+//    and NOP instructions.
+byte jumpHaltLoopProgram[] = {
   0303, 0006, 0000,
   0000, 0000, 0000,
-  0166
+  0166, 0000, 0000,
+  0303, 0000, 0000
 };
 
 // -----------------------------------------------------------------------------
@@ -148,19 +143,22 @@ void initMemoryToZero() {
   }
 }
 
-void copyByteArrayToMemory() {
-  Serial.println("+ Copy the jump loop program into the computer's memory array.");
-  for (int i = 0; i < sizeof(jumpLoopProgram); i++) {
-    memoryData[i] = jumpLoopProgram[i];
+void copyByteArrayToMemory(byte btyeArray[], int arraySize) {
+  Serial.println("+ Copy the program into the computer's memory array.");
+  for (int i = 0; i < arraySize; i++) {
+    memoryData[i] = btyeArray[i];
   }
   Serial.println("+ Copied.");
 }
 
-void listByteArray() {
+void listByteArray(byte btyeArray[], int arraySize) {
   Serial.println("+ List the jump loop program.");
-  for (int i = 0; i < sizeof(jumpLoopProgram); i++) {
+  for (int i = 0; i < arraySize; i++) {
     Serial.print("++ ");
-    printData(jumpLoopProgram[i]);
+    sprintf(charBuffer, "%3d", i);
+    Serial.print(charBuffer);
+    Serial.print(": ");
+    printData(btyeArray[i]);
     Serial.println("");
   }
   Serial.println("+ End of listing.");
@@ -172,15 +170,39 @@ void listByteArray() {
 int programCounter = 0;
 // int nextAddress = 0;
 
+/*
+  Destination and Source register fields:
+    111=A   (Accumulator)
+    000=B
+    001=C
+    010=D
+    011=E
+    100=H
+    101=L
+    110=M   (Memory reference through address in H:L)
+
+  Register pair 'RP' fields:
+    00=BC   (B:C as 16 bit register)
+    01=DE   (D:E as 16 bit register)
+    10=HL   (H:L as 16 bit register)
+    11=SP   (Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP)
+
+    db = Data byte (8 bit)
+    lb = Low byte of 16 bit value
+    hb = High byte of 16 bit value
+    pa = Port address (8 bit) 
+    p  = 8 bit port address 
+*/
+
 // Following from, section: - 26 - 8080 Instruction Set
 //    https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
 // Octals stored as a bytes.
 //
 //                               Inst      Encoding          Flags   Description
-// Programmed:
-const byte HLT = B01110110;   // HLT       01110110          -       Halt processor
+// Programmed and tested:
+const byte HLT = 0166;        // HLT       01110110          -       Halt processor
 const byte JMP = 0303;        // JMP a     11000011 lb hb    -       Unconditional jump*
-const byte NOP = 0;           // NOP       00000000          -       No operation
+const byte NOP = 0000;        // NOP       00000000          -       No operation
 //
 // To be programmed:
 const byte IN =  B11011011;   // IN p      11011011 pa       -       Read input port into A
@@ -192,12 +214,15 @@ const byte STA = B00110010;   // STA a     00110010 lb hb    -       Store A to 
 // LDAX RP   00RP1010 *1       -       Load indirect through BC or DE
 //                    *1 = Only RP=00(BC) and 01(DE) are allowed for LDAX/STAX
 // LXI RP,#  00RP0001 lb hb    -       Load register pair immediate*
-// MOV D,S   01DDDSSS          -       Move register to register* 
+// MOV D,S   01DDDSSS          -       Move register to register*
 // MVI D,#   00DDD110 db       -       Move immediate to register*
-// RRC       00001111          C       Rotate A right 
-// XRA S     10101SSS          ZSPCA   Exclusive OR register with A 
+// RRC       00001111          C       Rotate A right
+// XRA S     10101SSS          ZSPCA   Exclusive OR register with A
 
 void processByte(byte theByte) {
+  // Serial.print(":theByte,");
+  // Serial.print(theByte);
+  // Serial.print(":");
   switch (theByte) {
     case HLT:
       Serial.print(" > HLT Instruction, Halt the processor.");
@@ -214,15 +239,15 @@ void processByte(byte theByte) {
       Serial.print(programCounter);
       Serial.print(":");
       break;
-    case NOP:
-      Serial.print(" > NOP Instruction, No operation.");
-      // Can add a delay, for example, to wait for an interrupt proccess.
-      // delay(10);
-      //
-      programCounter++;
-      break;
     default:
       Serial.print(" - Error, unknow instruction.");
+  }
+  if (theByte==NOP) {
+      // Note, NOP does not work in the switch statement.
+      Serial.print(" > NOP Instruction, No operation.");
+      // Can add a delay, for example, to wait for an interrupt proccess.
+      delay(10);
+      programCounter++;
   }
 }
 
@@ -233,9 +258,14 @@ void setup() {
   Serial.println(""); // Newline after garbage characters.
   Serial.println("+++ Setup.");
 
-  // List and load jump loop program.
-  listByteArray();
-  copyByteArrayToMemory();
+  // List and load a program.
+  // Possible programs:
+  //    jumpLoopProgram
+  //    jumpLoopNopProgram
+  //    jumpHaltLoopProgram
+  int programSize = sizeof(jumpLoopNopProgram);
+  listByteArray(jumpLoopNopProgram, programSize);
+  copyByteArrayToMemory(jumpLoopNopProgram, programSize);
 
   Serial.println("+++ Go to loop and run the program.");
 }
