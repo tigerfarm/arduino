@@ -47,14 +47,24 @@ Following are reference links,
     to hear an interview with the Altair 8800 clone creator, Mike Douglas.
 
 --------------------------------------------------------------------------------
-### Run Altair 8800 Programs on a Test Board
+### Test Running Altair 8800 Machine Code Programs on a Test Board
 
-Develop an Arduino Nano program to run Altair 8800 machine code.
+Build a board to run programs:
++ Nano
++ Button to STOP programs.
++ Button to RUN programs.
++ Button to STEP through a program, one program instruction at a time.
++ Add a WAIT LED.
++ The WAIT LED is on when a program is not running.
++ The WAIT LED is off when a program is running.
++ The WAIT LED remains on when stepping through a program.
+
+Develop an Arduino Nano program to run a Altair 8800 machine code program.
 
 Memory management:
 + Data memory is a byte array. For example 1K of memory is a 1024 byte array.
 + Sample programs for testing, which are byte arrays defined using octal values.
-+ Method to copy byte array defined programs into the processor memory..
++ Method to copy byte array defined programs into the processor memory.
 
 Jump loop program definition:
 ````
@@ -66,25 +76,15 @@ byte jumpLoopProgram[] = {
 ````
 
 Add routines to process operational instructions: 
-+ Jump, halt, NOP.
-
-Test board to run programs:
-+ Nano
-+ Button to STOP programs.
-+ Button to RUN programs.
-+ Button to STEP through a program, one program instruction at a time.
-+ Add a WAIT LED.
-+ The WAIT LED is on when a program is not running.
-+ The WAIT LED is off when a program is running.
-+ The WAIT LED remains on when stepping through a program.
++ Jump (JMP), halt (HLT), NOP.
 
 I used the [Altair 8800 online simulator](https://s2js.com/altair/sim.html)
 to enter and run sample programs.
 + I ran the sample programs on my Altair 101 test board.
 + The programs ran the same on the Altair 101, as on the Altair 8800 online simulator.
-+ Output at first, is serial print messages.
++ Currently, output is serial print messages.
 
-Sample program run.
+Sample program run using the STEP button.
 ````
 +++ Setup.
 + List the jump loop program.
@@ -100,7 +100,7 @@ Sample program run.
 + End of listing.
 + Copy the program into the computer's memory array.
 + Copied.
-+++ Go to loop and run the program.
++++ Start program loop.
 +   0 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000110:DEC,6:
 +   6 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000000:DEC,0:
 +   0 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000110:DEC,6:
@@ -109,35 +109,12 @@ Sample program run.
 +   6 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000000:DEC,0:
 ````
 
-Run the program one step at a time,
-+ Set address toggles to 0.
-+ Flip the Examine toggle.
-+ Data LEDs show the jump instruction: 11 000 011(303).
-+ Address LEDs show 0: 00 000 000(000).
-+ Flip the STEP toggle.
-+ Data LEDs show the jump instruction: 11 000 011(303).
-+ Address LEDs show 6: 00 000 110(006). The computer has jumped to address 6.
-+ Flip the STEP toggle.
-+ Data LEDs show the jump instruction: 11 000 011(303).
-+ Address LEDs show 0: 00 000 000(000).
-+ Each time the STEP toggle is flipped, the address LEDs change between 0 and 6..
-+ You entered and run your first program one step at a time.
-
-Run the program,
-+ Set address toggles to 0.
-+ Examine address 0. The wait LED is on.
-+ Flip the RUN toggle. The wait LED goes off. The program starts running.
-+ Data LEDs show the jump instruction: 11 000 011(303).
-+ Address LEDs show 6: 00 000 110(006).
-+ Flip the STOP toggle to stop the program. The wait LED goes off.
-+ Data LEDs show the jump instruction: 11 000 011(303).
-+ Address LEDs show 6: 00 000 110(006).
-+ You entered and run your first program.
-
-Next, implement the following,
-+ Save programs from memory onto an SD card.
-+ Load programs from an SD card into memory.
-+ Add more operational instructions to run Kill the Bit, and Pong.
+Next,
++ Improve halt processing: after halt, allow step processing, and restarting the program.
+Check if this is how the Altair 8800 works.
++ Add more operational instructions.
++ Add more button processes such as: Examine and Examine Next, when a program is not running.
++ Goal is to run Kill the Bit, and Pong.
 
 #### For Reference
 

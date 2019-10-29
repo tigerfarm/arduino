@@ -47,8 +47,8 @@
   Also, if using TX(D10), if button is pressed, Serial.print will not work.
 */
 // -----------------------------------------------------------------------------
+// Button Controls
 
-//
 // Built in LED on NodeMCU, LOW is LED on.
 // Built in LED on NodeMCU, HIGH is LED off.
 //

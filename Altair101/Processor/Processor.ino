@@ -248,6 +248,7 @@ int programCounter = 0;
     10=HL   (H:L as 16 bit register)
     11=SP   (Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP)
 
+  Instruction parameters:
     db = Data byte (8 bit)
     lb = Low byte of 16 bit value
     hb = High byte of 16 bit value
