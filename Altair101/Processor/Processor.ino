@@ -216,6 +216,9 @@ void processByte(byte theByte) {
       break;
     case NOP:
       Serial.print(" > NOP Instruction, No operation.");
+      // Can add a delay, for example, to wait for an interrupt proccess.
+      // delay(10);
+      //
       programCounter++;
       break;
     default:
