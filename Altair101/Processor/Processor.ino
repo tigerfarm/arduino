@@ -59,13 +59,32 @@
   }
   }
 
+// -----------------------------------------------------------------------------
+  Following from:
+    https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
+
+  Dest and Source reg fields:
+    111=A   (Accumulator)
+    000=B
+    001=C
+    010=D
+    011=E
+    100=H
+    101=L
+    110=M   (Memory reference through address in H:L)
+
+  Register pair 'RP' fields:
+    00=BC   (B:C as 16 bit register)
+    01=DE   (D:E as 16 bit register)
+    10=HL   (H:L as 16 bit register)
+    11=SP   (Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP)
 */
 
 // -----------------------------------------------------------------------------
 // Memory definitions
 
 int memoryBytes = 1024;
-byte arrayBytes[1024];
+byte memoryData[1024];
 
 // Define a jump loop program byte array.
 byte jumpLoopProgram[] = {
@@ -84,6 +103,13 @@ void printByte(byte b) {
   for (int i = 7; i >= 0; i--)
     Serial.print(bitRead(b, i));
 }
+void printWord(int theValue) {
+  String sValue = String(theValue, BIN);
+  for (int i = 1; i <= 16 - sValue.length(); i++) {
+    Serial.print("0");
+  }
+  Serial.print(sValue);
+}
 
 void printOctal(byte b) {
   String sOctal = String(b, OCT);
@@ -95,12 +121,12 @@ void printOctal(byte b) {
 
 void printData(byte theByte) {
   printByte(theByte);
-  // Serial.print(arrayBytes[i], BIN);
+  // Serial.print(memoryData[i], BIN);
   Serial.print(" :  ");
   printOctal(theByte);
-  // Serial.print(arrayBytes[i], OCT);
+  // Serial.print(memoryData[i], OCT);
   Serial.print(" : ");
-  // Serial.println(arrayBytes[i], DEC);
+  // Serial.println(memoryData[i], DEC);
   sprintf(charBuffer, "%3d", theByte);
   Serial.print(charBuffer);
 }
@@ -111,14 +137,14 @@ void printData(byte theByte) {
 void initMemoryToZero() {
   Serial.println("+ Initialize all memory bytes to zero.");
   for (int i = 0; i < memoryBytes; i++) {
-    arrayBytes[i] = zeroByte;
+    memoryData[i] = zeroByte;
   }
 }
 
 void copyByteArrayToMemory() {
   Serial.println("+ Copy the jump loop program into the computer's memory array.");
   for (int i = 0; i < sizeof(jumpLoopProgram); i++) {
-    arrayBytes[i] = jumpLoopProgram[i];
+    memoryData[i] = jumpLoopProgram[i];
   }
   Serial.println("+ Copied.");
 }
@@ -136,13 +162,53 @@ void listByteArray() {
 // -----------------------------------------------------------------------------
 // Operational Instruction
 
-const byte jmpCode = 0303;    // Octal stored as a byte.
+int programCounter = 0;
+int nextAddress = 0;
+
+// Following from, section: - 26 - 8080 Instruction Set
+//    https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
+// Octals stored as a bytes.
+//                               Inst      Encoding          Flags   Description
+const byte JMP = 0303;        // JMP a     11000011 lb hb    -       Unconditional jump*
+const byte NOP = 0;           // NOP       00000000          -       No operation
+const byte HLT = B01110110;   // HLT       01110110          -       Halt processor
+const byte IN =  B11011011;   // IN p      11011011 pa       -       Read input port into A
+const byte STA = B00110010;   // STA a     00110010 lb hb    -       Store A to memory
+//
+// For Kill the Bit program,
+// DAD RP    00RP1001          C       Add register pair to HL (16 bit add)*
+// MVI D,#   00DDD110 db       -       Move immediate to register*
+// LDAX RP   00RP1010 *1       -       Load indirect through BC or DE
+//                    *1 = Only RP=00(BC) and 01(DE) are allowed for LDAX/STAX
+// JNC ?
+// lxi ?
+// XRA S     10101SSS          ZSPCA   Exclusive OR register with A 
+// RRC       00001111          C       Rotate A right 
+// MOV D,S   01DDDSSS          -       Move register to register* 
 
 void processByte(byte theByte) {
   switch (theByte) {
-    case jmpCode:
-      Serial.print(" > Jump Instruction");
+    case JMP:
+      Serial.print(" > JMP Instruction, jump to address :");
+      // Serial.print(programCounter);
+      int lowOrder = ++programCounter;
+      int highOrder = ++programCounter;
+      // word(high order byte, low order byte)
+      programCounter = word(memoryData[highOrder], memoryData[lowOrder]);
+      printWord(programCounter);  // Example: 00 000 000 00 000 110
+      Serial.print(":DEC,");
+      Serial.print(programCounter);
+      Serial.print(":");
       break;
+    case HLT:
+      Serial.print(" > HLT Instruction, Halt the processor.");
+      break;
+    case NOP:
+      Serial.print(" > NOP Instruction, No operation.");
+      programCounter++;
+      break;
+    default:
+      Serial.print(" - Error, unknow instruction.");
   }
 }
 
@@ -153,27 +219,25 @@ void setup() {
   Serial.println(""); // Newline after garbage characters.
   Serial.println("+++ Setup.");
 
+  // List and load jump loop program.
   listByteArray();
   copyByteArrayToMemory();
 
-  Serial.println("+++ Go to process loop.");
+  Serial.println("+++ Go to loop and run the program.");
 }
 
 // -----------------------------------------------------------------------------
 // Device Loop
 
-int programCounter = 0;
 void loop() {
 
   Serial.print("+ ");
   sprintf(charBuffer, "%3d", programCounter);
   Serial.print(charBuffer);
   Serial.print(" > ");
-  printData(arrayBytes[programCounter]);
-  processByte(arrayBytes[programCounter]);
+  printData(memoryData[programCounter]);
+  processByte(memoryData[programCounter]);
   Serial.println("");
-  //
-  programCounter++;
 
   delay(3000);
 }
