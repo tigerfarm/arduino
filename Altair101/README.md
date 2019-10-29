@@ -84,7 +84,7 @@ to enter and run sample programs.
 + The programs ran the same on the Altair 101, as on the Altair 8800 online simulator.
 + Output at first, is serial print messages.
 
-Sample run using STEP button.
+Sample program run.
 ````
 +++ Setup.
 + List the jump loop program.
