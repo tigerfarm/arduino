@@ -65,20 +65,53 @@
 
 */
 // -----------------------------------------------------------------------------
-// Button Control
-// Turn light on when the button is pressed.
+// Front Panel Control Button
 
-const int BUTTON_PIN = 4;   // Nano D4
+const int STOP_BUTTON_PIN = 4;   // Nano D4
+const int RUN_BUTTON_PIN = 5;
+const int STEP_BUTTON_PIN = 6;
+
+boolean runProgram = false;
 
 // Only do the action once, don't repeat if the button is held down.
 // Don't repeat action if the button is not pressed.
 boolean setButtonState = true;
 
+void checkStopButton() {
+  if (digitalRead(RUN_BUTTON_PIN) == HIGH) {
+    if (!setButtonState) {
+      Serial.println("+ Stop process.");
+      runProgram = false;
+      setButtonState = false;
+    }
+    setButtonState = true;
+  } else {
+    if (setButtonState) {
+      setButtonState = false;
+    }
+  }
+}
+
+void checkRunButton() {
+  if (digitalRead(RUN_BUTTON_PIN) == HIGH) {
+    if (!setButtonState) {
+      Serial.println("+ Run process.");
+      runProgram = true;
+      setButtonState = false;
+    }
+    setButtonState = true;
+  } else {
+    if (setButtonState) {
+      setButtonState = false;
+    }
+  }
+}
+
 void checkStepButton() {
   // If the button is pressed (circuit closed), the button status is HIGH.
-  if (digitalRead(BUTTON_PIN) == HIGH) {
+  if (digitalRead(STEP_BUTTON_PIN) == HIGH) {
     if (!setButtonState) {
-      // digitalWrite(LED_PIN, HIGH);
+      // digitalWrite(STEP_BUTTON_PIN, HIGH);
       // Serial.println("+ checkButton(), turn LED on.");
       processStep();
       setButtonState = false;
@@ -86,7 +119,7 @@ void checkStepButton() {
     setButtonState = true;
   } else {
     if (setButtonState) {
-      // digitalWrite(LED_PIN, LOW);
+      // digitalWrite(STEP_BUTTON_PIN, LOW);
       // Serial.println("+ checkButton(), turn LED off.");
       setButtonState = false;
     }
@@ -193,7 +226,7 @@ void listByteArray(byte btyeArray[], int arraySize) {
 }
 
 // -----------------------------------------------------------------------------
-// Operational Instruction
+// Operational Instruction Set
 
 int programCounter = 0;
 // int nextAddress = 0;
@@ -218,8 +251,8 @@ int programCounter = 0;
     db = Data byte (8 bit)
     lb = Low byte of 16 bit value
     hb = High byte of 16 bit value
-    pa = Port address (8 bit) 
-    p  = 8 bit port address 
+    pa = Port address (8 bit)
+    p  = 8 bit port address
 */
 
 // Following from, section: - 26 - 8080 Instruction Set
@@ -270,12 +303,12 @@ void processByte(byte theByte) {
     default:
       Serial.print(" - Error, unknow instruction.");
   }
-  if (theByte==NOP) {
-      // Note, NOP does not work in the switch statement.
-      Serial.print(" > NOP Instruction, No operation.");
-      // Can add a delay, for example, to wait for an interrupt proccess.
-      delay(10);
-      programCounter++;
+  if (theByte == NOP) {
+    // Note, NOP does not work in the switch statement.
+    Serial.print(" > NOP Instruction, No operation.");
+    // Can add a delay, for example, to wait for an interrupt proccess.
+    delay(10);
+    programCounter++;
   }
 }
 
@@ -308,7 +341,7 @@ void setup() {
   listByteArray(jumpLoopProgram, programSize);
   copyByteArrayToMemory(jumpLoopProgram, programSize);
 
-  Serial.println("+++ Go to loop and run the program.");
+  Serial.println("+++ Start program loop.");
 }
 
 // -----------------------------------------------------------------------------
@@ -317,13 +350,17 @@ void setup() {
 static unsigned long timer = millis();
 void loop() {
 
-  checkStepButton();
-
-  // Execute a step based on this timer.
-  // 3000 : once every 3 seconds.
-  if (millis() - timer >= 3000) {
-    // processStep();
-    timer = millis();
+  if (runProgram) {
+    // Execute a step based on this timer.
+    // 3000 : once every 3 seconds.
+    if (millis() - timer >= 500) {
+      processStep();
+      timer = millis();
+    }
+    checkStopButton();
+  } else {
+    checkRunButton();
+    checkStepButton();
   }
 
   delay(60);

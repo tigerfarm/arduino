@@ -52,7 +52,7 @@ Following are reference links,
 Develop an Arduino Nano program to run Altair 8800 machine code.
 
 Memory management:
-+ Data memory is a byte array. For example 1K: 1024 bytes.
++ Data memory is a byte array. For example 1K of memory is a 1024 byte array.
 + Sample programs for testing, which are byte arrays defined using octal values.
 + Method to copy byte array defined programs into the processor memory..
 
@@ -65,18 +65,18 @@ byte jumpLoopProgram[] = {
 };
 ````
 
+Add routines to process operational instructions: 
++ Jump, halt, NOP.
+
 Test board to run programs:
 + Nano
-+ Button: to STEP through a program, one program instruction at a time.
-+ Button: to RUN programs.
-+ Button: to STOP programs.
++ Button to STOP programs.
++ Button to RUN programs.
++ Button to STEP through a program, one program instruction at a time.
 + Add a WAIT LED.
 + The WAIT LED is on when a program is not running.
 + The WAIT LED is off when a program is running.
 + The WAIT LED remains on when stepping through a program.
-
-Add the operational instructions,
-+ Jump, halt, NOP.
 
 I used the [Altair 8800 online simulator](https://s2js.com/altair/sim.html)
 to enter and run sample programs.
