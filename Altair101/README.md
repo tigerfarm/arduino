@@ -47,6 +47,110 @@ Following are reference links,
     to hear an interview with the Altair 8800 clone creator, Mike Douglas.
 
 --------------------------------------------------------------------------------
+### Run Altair 8800 Programs on a Test Board
+
+Develop an Arduino Nano program to run Altair 8800 machine code.
+
+Memory management:
++ Data memory is a byte array. For example 1K: 1024 bytes.
++ Sample programs for testing, which are byte arrays defined using octal values.
++ Method to copy byte array defined programs into the processor memory..
+
+Jump loop program definition:
+````
+byte jumpLoopProgram[] = {
+  0303, 0006, 0000,
+  0000, 0000, 0000,
+  0303, 0000, 0000
+};
+````
+
+Test board to run programs:
++ Nano
++ Button: to STEP through a program, one program instruction at a time.
++ Button: to RUN programs.
++ Button: to STOP programs.
++ Add a WAIT LED.
++ The WAIT LED is on when a program is not running.
++ The WAIT LED is off when a program is running.
++ The WAIT LED remains on when stepping through a program.
+
+Add the operational instructions,
++ Jump, halt, NOP.
+
+I used the [Altair 8800 online simulator](https://s2js.com/altair/sim.html)
+to enter and run sample programs.
++ I ran the sample programs on my Altair 101 test board.
++ The programs ran the same on the Altair 101, as on the Altair 8800 online simulator.
++ Output at first, is serial print messages.
+
+Sample run using STEP button.
+````
++++ Setup.
++ List the jump loop program.
+++   0: 11000011 :  303 : 195
+++   1: 00000110 :  006 :   6
+++   2: 00000000 :  000 :   0
+++   3: 00000000 :  000 :   0
+++   4: 00000000 :  000 :   0
+++   5: 00000000 :  000 :   0
+++   6: 11000011 :  303 : 195
+++   7: 00000000 :  000 :   0
+++   8: 00000000 :  000 :   0
++ End of listing.
++ Copy the program into the computer's memory array.
++ Copied.
++++ Go to loop and run the program.
++   0 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000110:DEC,6:
++   6 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000000:DEC,0:
++   0 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000110:DEC,6:
++   6 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000000:DEC,0:
++   0 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000110:DEC,6:
++   6 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000000:DEC,0:
+````
+
+Run the program one step at a time,
++ Set address toggles to 0.
++ Flip the Examine toggle.
++ Data LEDs show the jump instruction: 11 000 011(303).
++ Address LEDs show 0: 00 000 000(000).
++ Flip the STEP toggle.
++ Data LEDs show the jump instruction: 11 000 011(303).
++ Address LEDs show 6: 00 000 110(006). The computer has jumped to address 6.
++ Flip the STEP toggle.
++ Data LEDs show the jump instruction: 11 000 011(303).
++ Address LEDs show 0: 00 000 000(000).
++ Each time the STEP toggle is flipped, the address LEDs change between 0 and 6..
++ You entered and run your first program one step at a time.
+
+Run the program,
++ Set address toggles to 0.
++ Examine address 0. The wait LED is on.
++ Flip the RUN toggle. The wait LED goes off. The program starts running.
++ Data LEDs show the jump instruction: 11 000 011(303).
++ Address LEDs show 6: 00 000 110(006).
++ Flip the STOP toggle to stop the program. The wait LED goes off.
++ Data LEDs show the jump instruction: 11 000 011(303).
++ Address LEDs show 6: 00 000 110(006).
++ You entered and run your first program.
+
+Next, implement the following,
++ Save programs from memory onto an SD card.
++ Load programs from an SD card into memory.
++ Add more operational instructions to run Kill the Bit, and Pong.
+
+#### For Reference
+
+Altair 8800b Instruction set.
+http://brooknet.no-ip.org/~lex/altair/_altair88b/manual/instructMain.html
++ Example: JMP (jump) is octal 303 (11 000 011)
++ The jump instruction is followed by 2 bytes of data in the next two memory addresses.
++ The program will jump to that 16 bit address and continue processing.
+
+Binary Calculator
+https://www.calculator.net/binary-calculator.html
+
+--------------------------------------------------------------------------------
 ### Build I/O Boards
 
 Build a toggle input test board:

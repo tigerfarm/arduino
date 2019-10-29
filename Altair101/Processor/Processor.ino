@@ -64,6 +64,34 @@
     https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
 
 */
+// -----------------------------------------------------------------------------
+// Button Control
+// Turn light on when the button is pressed.
+
+const int BUTTON_PIN = 4;   // Nano D4
+
+// Only do the action once, don't repeat if the button is held down.
+// Don't repeat action if the button is not pressed.
+boolean setButtonState = true;
+
+void checkStepButton() {
+  // If the button is pressed (circuit closed), the button status is HIGH.
+  if (digitalRead(BUTTON_PIN) == HIGH) {
+    if (!setButtonState) {
+      // digitalWrite(LED_PIN, HIGH);
+      // Serial.println("+ checkButton(), turn LED on.");
+      processStep();
+      setButtonState = false;
+    }
+    setButtonState = true;
+  } else {
+    if (setButtonState) {
+      // digitalWrite(LED_PIN, LOW);
+      // Serial.println("+ checkButton(), turn LED off.");
+      setButtonState = false;
+    }
+  }
+}
 
 // -----------------------------------------------------------------------------
 // Memory definitions
@@ -96,7 +124,7 @@ byte jumpHaltLoopProgram[] = {
 };
 
 // -----------------------------------------------------------------------------
-// Byte processing
+// Print byte data
 
 byte zeroByte = B00000000;
 char charBuffer[16];
@@ -252,6 +280,19 @@ void processByte(byte theByte) {
 }
 
 // -----------------------------------------------------------------------------
+void processStep() {
+
+  Serial.print("+ ");
+  sprintf(charBuffer, "%3d", programCounter);
+  Serial.print(charBuffer);
+  Serial.print(" > ");
+  printData(memoryData[programCounter]);
+  processByte(memoryData[programCounter]);
+  Serial.println("");
+
+}
+
+// -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
   delay(1000);        // Give the serial connection time to start before the first print.
@@ -263,9 +304,9 @@ void setup() {
   //    jumpLoopProgram
   //    jumpLoopNopProgram
   //    jumpHaltLoopProgram
-  int programSize = sizeof(jumpLoopNopProgram);
-  listByteArray(jumpLoopNopProgram, programSize);
-  copyByteArrayToMemory(jumpLoopNopProgram, programSize);
+  int programSize = sizeof(jumpLoopProgram);
+  listByteArray(jumpLoopProgram, programSize);
+  copyByteArrayToMemory(jumpLoopProgram, programSize);
 
   Serial.println("+++ Go to loop and run the program.");
 }
@@ -273,16 +314,18 @@ void setup() {
 // -----------------------------------------------------------------------------
 // Device Loop for processing machine code.
 
+static unsigned long timer = millis();
 void loop() {
 
-  Serial.print("+ ");
-  sprintf(charBuffer, "%3d", programCounter);
-  Serial.print(charBuffer);
-  Serial.print(" > ");
-  printData(memoryData[programCounter]);
-  processByte(memoryData[programCounter]);
-  Serial.println("");
+  checkStepButton();
 
-  delay(3000);
+  // Execute a step based on this timer.
+  // 3000 : once every 3 seconds.
+  if (millis() - timer >= 3000) {
+    // processStep();
+    timer = millis();
+  }
+
+  delay(60);
 }
 // -----------------------------------------------------------------------------

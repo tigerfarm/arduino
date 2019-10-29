@@ -216,6 +216,7 @@ void loop() {
   // Check the clock and pulse when the clock's second value changes.
   if (millis() - timer >= 200) {
     processClockNow();
+    timer = millis();
   }
   // Delay of 10 is okay. Any longer delay, example 20, the digits start to flash.
   delay(10);

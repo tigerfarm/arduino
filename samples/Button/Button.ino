@@ -14,9 +14,9 @@
     Second press, toggle off, LED is off.
 
   The circuit for either an Arduino Uno, Nano, or a NodeMCU.
-  - Button side 1, connected to Arduino +5V or NodeMCU +3.3V.
-  - Button side 2, connected to a 10K resistor which is connected to ground.
-  - Button side 2, connected to board pin (BUTTON_PIN), example: D2 on Nano.
+  - Button side 1, connect to Arduino +5V or NodeMCU +3.3V.
+  - Button side 2, connect to a 10K resistor which is connected to ground.
+  - Button side 2, connect to board pin (BUTTON_PIN), example: D4 on Nano.
   - Connect an external LED positive is connected to onboard LED pin.
   - Or use the on board LED: on pin 13 on Nano, pin 2 on NodeMCU.
 
@@ -60,8 +60,7 @@
 #define LED_ONBOARD_PIN 13
 #define LED_PIN LED_ONBOARD_PIN
 
-// const int BUTTON_PIN = 5;   // NodeMCU D1
-const int BUTTON_PIN = 2;   // Nano D2
+const int BUTTON_PIN = 4;   // Nano D4
 
 // -----------------------------------------------------------------------------
 // Blink the LED on and off.
@@ -69,9 +68,10 @@ const int BUTTON_PIN = 2;   // Nano D2
 void blinkLed() {
   Serial.println("+ Blink: LED on.");
   digitalWrite(LED_PIN, HIGH);
-  delay(500);
+  delay(300);
   Serial.println("+ Blink: LED off.");
   digitalWrite(LED_PIN, LOW);
+  delay(300);
 }
 
 // -----------------------------------------------------------------------------
@@ -141,11 +141,11 @@ void setup() {
 
 // -----------------------------------------------------------------------------
 void loop() {
-  delay(100);
+  delay(60);
   // LED and button options:
   // blinkLed();
-  // checkButton();
-  toggleButton();
+  checkButton();
+  // toggleButton();
 }
 
 // -----------------------------------------------------------------------------
