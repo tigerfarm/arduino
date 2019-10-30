@@ -120,8 +120,13 @@ Sample program run using the STEP button, the RUN, STOP, and RUN.
 + Addr: 00000110   6 Data: 01110110:166 > HLT Instruction, Halt the processor.
 ````
 
-Next,
+Next, match my interpreter program with the the Altair 8800.
 + Check that halt, run, and step, work the same with the [Altair 8800 online simulator](https://s2js.com/altair/sim.html).
++ Unfortunately, the simulator doesn't react the same as the Altair 8800.
++ Fix single step to show every byte.
++ Show the address and data when ever the program address counter changes.
+
+Then,
 + Add more button processes such as: Examine and Examine Next, when a program is not running.
 + Add more operational instructions.
 + Goal is to run Kill the Bit, and Pong on the front panel.
@@ -133,6 +138,42 @@ http://brooknet.no-ip.org/~lex/altair/_altair88b/manual/instructMain.html
 
 Binary Calculator
 https://www.calculator.net/binary-calculator.html
+
+````
+Demonstrate status light combinations 
+0000         org     0 
+0000 3A2000  lda     40Q     ;opcode fetch, memory read x 3 
+0003 322100  sta     41Q     ;opcode fetch, mem read x 2, mem write 
+0006 312000  lxi     sp,40Q  ;opcode fetch, mem read x 2 
+0009 F5      push    a       ;opcode fetch, stack write x 2 
+000A F1      pop     a       ;opcode fetch, stack read x 2 
+000B DB10    in      20Q     ;opcode fetch, mem read, I/O input 
+000D D310    out     20Q     ;opcode fetch, mem read, I/O output 
+000F FB      ei              ;interrupts enabled
+0010 F3      di              ;interrupts disabled
+0011 76      hlt             ;halt  
+0012         end
+````
+HEX to octal and binary.
+````
+lda  40Q    | 3A2000 | 072 040 000 | 00 111 010 : 00 100 000 : 00 000 000
+sta  41Q    | 322100 | 062 041 000 | 00 110 010 : 00 100 001 : 00 000 000
+lxi  sp,40Q | 312000 | 061 040 000
+push a      | F5     | 365
+...
+````
+The program in octal for easier entry into the Altair:  
+````
+072 040 000 
+062 041 000 
+061 040 000
+365
+361 333 020 323 020 373 
+363 166
+````
+
+Converter:
+https://coderstoolbox.net/number/
 
 --------------------------------------------------------------------------------
 ### Build I/O Boards

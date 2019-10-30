@@ -20,7 +20,40 @@
 // -----------------------------------------------------------------------------
 // Front Panel LEDs
 
-const int WAIT_PIN = A2;
+const int INTE_PIN = 42;    // On, interrupts enabled.
+const int PROT_PIN = 42;    // Useful only if RAM has page protection impliemented.
+// Status LEDs
+const int MEMR_PIN = 42;    // Memory read such as fetching an op code (data instruction)
+const int INP_PIN = 42;     // Input
+const int MI_PIN = 42;      // On, doing an op code fetch: Machine cycle 1.
+const int OUT_PIN = 42;     // Write output.
+const int HLTA_PIN = 42;    // Halt acknowledge, halt instruction executed.
+const int STACK_PIN = 42;   // On, reading or writing to the stack.
+const int WO_PIN = 42;      // Write Output uses inverse logic. On, not writing output.
+const int INT_PIN = 42;     // On when executing an interrupt step.
+//
+const int WAIT_PIN = A2;    // On, program not running. Off, programrunning.
+const int HLDA_PIN = 42;    // 8080 processor go into a hold state because of other hardware.
+
+// Video demonstrating status lights:
+//    https://www.youtube.com/watch?v=3_73NwB6toY&t=18s
+// MEMR & MI & WO are on when fetching an op code, example: JMP(303) or lda(072).
+// MEMR & WO are on when fetching a low or high byte of an address.
+// MEMR & WO are on when fetching data from an address.
+// All status LEDs are off when storing a value to a memory address.
+// When doing a data write, data LEDs are all on.
+//
+// Halt: MEMR & HLTA & WO are on. All address and data lights are on.
+//  System is locked. To get going again, hard reset: flip stop and reset same time.
+//
+// STACK is the only status LED on when making a stack push (write to the stack).
+// MEMR & STACK & WO are on when reading from the stack.
+//
+// INP & WO are on when reading from an input port.
+// OUT is on when send an output to a port.
+//
+// INTE is on when interrupts are enabled.
+// INTE is off when interrupts are disabled.
 
 // -----------------------------------------------------------------------------
 // Front Panel Control Buttons
@@ -105,10 +138,19 @@ byte jumpLoopProgram[] = {
 // Needs to work like in the Altair in the following video, starting a 6 minutes in:
 //    https://www.youtube.com/watch?v=EV1ki6LiEmg
 // When single stepping,
-// Jump code is retrieved and shown. Status LED MI, is on.
-// Low order address byte is retrieved and shown. Status LED MI, goes off.
-// High order address byte is retrieved and shown. Status LED MI, stays off.
-// On the next step, it jumps to that address. Status LED MI, goes on.
+// + MEMR and WO are on.
+// + Flip single step,
+// ++ The new address is displayed and data value retreived and LED displayed.
+// ++ The data value is the jump instruction code.
+// + MEMR and WO are on. Status LED MI is off.
+// + Flip single step, status LED MI goes on.
+// + And Low order address byte is retrieved and shown. Status LED MI goes off.
+// + Flip single step, high order address byte is retrieved and shown.
+// + Status LED MI stays off.
+// + Flip single step,
+// ++ Program counter is to that address.
+// ++ The new address and data values are LED displayed.
+// ++ Status LED MI goes on.
 // Note, the simulator works like my code, which is different than the Altair in the video.
 
 // Define a jump loop program with NOP instructions.
