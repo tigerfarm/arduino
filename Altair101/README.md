@@ -120,8 +120,7 @@ Sample program run using the STEP button, the RUN, STOP, and RUN.
 ````
 
 Next,
-+ Improve halt processing: after halt, allow step processing, and restarting the program.
-Check if this is how the Altair 8800 works.
++ Check if halt works the same with the Altair 8800 simulator.
 + Add more button processes such as: Examine and Examine Next, when a program is not running.
 + Add more operational instructions.
 + Goal is to run Kill the Bit, and Pong on the front panel.
@@ -130,9 +129,6 @@ Check if this is how the Altair 8800 works.
 
 Altair 8800b Instruction set.
 http://brooknet.no-ip.org/~lex/altair/_altair88b/manual/instructMain.html
-+ Example: JMP (jump) is octal 303 (11 000 011)
-+ The jump instruction is followed by 2 bytes of data in the next two memory addresses.
-+ The program will jump to that 16 bit address and continue processing.
 
 Binary Calculator
 https://www.calculator.net/binary-calculator.html

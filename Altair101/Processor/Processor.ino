@@ -299,6 +299,9 @@ void processByte(byte theByte) {
   switch (theByte) {
     case HLT:
       Serial.print(" > HLT Instruction, Halt the processor.");
+      runProgram = false;
+      digitalWrite(WAIT_PIN, HIGH);
+      programCounter++;
       break;
     case JMP:
       Serial.print(" > JMP Instruction, jump to address :");
@@ -353,9 +356,9 @@ void setup() {
   //    jumpLoopProgram
   //    jumpLoopNopProgram
   //    jumpHaltLoopProgram
-  int programSize = sizeof(jumpLoopProgram);
-  listByteArray(jumpLoopProgram, programSize);
-  copyByteArrayToMemory(jumpLoopProgram, programSize);
+  int programSize = sizeof(jumpHaltLoopProgram);
+  listByteArray(jumpHaltLoopProgram, programSize);
+  copyByteArrayToMemory(jumpHaltLoopProgram, programSize);
 
   Serial.println("+++ Start program loop.");
 }
