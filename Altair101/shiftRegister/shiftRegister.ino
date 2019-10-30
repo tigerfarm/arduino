@@ -121,17 +121,34 @@ void setup() {
     pinMode(clockPin, OUTPUT);
     pinMode(dataPin, OUTPUT);
 
+    // From: https://www.arduino.cc/en/Tutorial/ShftOut11
+  Serial.println("+ Display the count from 0 to 25 on 8 LEDs.");
+  for (int numberToDisplay = 0; numberToDisplay < 256; numberToDisplay++) {
+    // take the latchPin low so 
+    // the LEDs don't change while you're sending in bits:
+    digitalWrite(latchPin, LOW);
+    // shift out the bits:
+    shiftOut(dataPin, clockPin, MSBFIRST, numberToDisplay);  
+
+    //take the latch pin high so the LEDs will light up:
+    digitalWrite(latchPin, HIGH);
+    // pause before next value:
+    delay(200);
+  }
+  Serial.println("+ Display count completed.");
+
   Serial.println("+++ Start program loop.");
 }
 
 // -----------------------------------------------------------------------------
 // Device Loop for processing machine code.
 
+byte leds = 0;
 void loop() {
   Serial.println("+ Looping");
 
-    // Turn all the LEDs ON one by one.
-    byte leds = 0;
+  Serial.println("+ Turn all the LEDs on one by one.");
+     leds = 0;
     for (int i = 0; i < 8; i++) {
         // Set the bit that controls that LED in the variable 'leds'
         bitSet(leds, i);
@@ -139,8 +156,8 @@ void loop() {
         delay(500);
     }
 
-    // Turn all the LEDs off one by one.
-    byte leds = 1;
+  Serial.println("+ Turn all the LEDs off one by one.");
+     leds = 1;
     for (int i = 0; i < 8; i++) {
         // Set the bit that controls that LED in the variable 'leds'
         bitSet(leds, i);

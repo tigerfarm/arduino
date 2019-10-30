@@ -102,6 +102,14 @@ byte jumpLoopProgram[] = {
   0000, 0000, 0000, // 3 4 5
   0303, 0000, 0000  // 6 7 8
 };
+// Needs to work like in the Altair in the following video, starting a 6 minutes in:
+//    https://www.youtube.com/watch?v=EV1ki6LiEmg
+// When single stepping,
+// Jump code is retrieved and shown. Status LED MI, is on.
+// Low order address byte is retrieved and shown. Status LED MI, goes off.
+// High order address byte is retrieved and shown. Status LED MI, stays off.
+// On the next step, it jumps to that address. Status LED MI, goes on.
+// Note, the simulator works like my code, which is different than the Altair in the video.
 
 // Define a jump loop program with NOP instructions.
 byte jumpLoopNopProgram[] = {
