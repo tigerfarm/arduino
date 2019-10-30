@@ -121,7 +121,7 @@ Sample program run using the STEP button, the RUN, STOP, and RUN.
 ````
 
 Next,
-+ Check if halt works the same with the Altair 8800 simulator.
++ Check that halt, run, and step, work the same with the [Altair 8800 online simulator](https://s2js.com/altair/sim.html).
 + Add more button processes such as: Examine and Examine Next, when a program is not running.
 + Add more operational instructions.
 + Goal is to run Kill the Bit, and Pong on the front panel.
