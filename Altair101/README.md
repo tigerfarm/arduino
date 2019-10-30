@@ -847,18 +847,12 @@ https://www.ebay.com/itm/5-10-20pcs-Chip-Stable-2-0-6-0-V-74HC595-8-Bit-IC-Shift
 
 + 10uf capacitor across positive and ground when using chips: SN74HC595N.
 
-Cables
-+ 1 x 40pcs/pack 20cm Male to Male Ribbon Breadboard Cable      (in cart)
-+ 1 x 40pcs/pack 10cm Male to Male Ribbon Breadboard Cable      (in cart)
-+ 2 x 40pcs/pack 20cm Female to Male Ribbon Breadboard Cable    (on order)
-+ 1 x 40pcs/pack 10cm Female to Female Ribbon Breadboard Cable  (in cart)
-+ 140pcs Solderless Breadboard Jumper Cable Wire Kit Box, $2.46 (on order)
-
-Cables required for LEDs and toggles:
-+ 20cm Male to Male Ribbon: 38
-+ 10cm Male to Male Ribbon: 22
-+ 20cm Female to Male Ribbon: 42
-+ 10cm Female to Female Ribbon: 32
+Cables on order,
++ 1 x 40pcs/pack 20cm Male to Male Ribbon Breadboard Cable
++ 1 x 40pcs/pack 10cm Male to Male Ribbon Breadboard Cable
++ 2 x 40pcs/pack 20cm Female to Male Ribbon Breadboard Cable
++ 1 x 40pcs/pack 10cm Female to Female Ribbon Breadboard Cable
++ 140pcs Solderless Breadboard Jumper Cable Wire Kit Box, $2.46
 
 ----------------
 #### Parts to test
