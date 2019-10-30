@@ -810,29 +810,44 @@ https://www.ebay.com/itm/100Pcs-LED-Lights-Emitting-Diodes-Lamp-Parts-3mm-5mm-fo
 + Shift Register SN74HC595N, 20pcs for $2
 https://www.ebay.com/itm/5-10-20pcs-Chip-Stable-2-0-6-0-V-74HC595-8-Bit-IC-Shift-Register-SN74HC595N/173212029799?var=471929852731
 
++ 10uf capacitor across positive and ground when using chips: SN74HC595N.
+
 Cables
 + 2 x 40pcs/pack 20cm Male to Male Ribbon Breadboard Cable, $3.22
 + 2 x 40pcs/pack 20cm Male to Female Ribbon Breadboard Cable, $3.66
 + 140pcs Solderless Breadboard Jumper Cable Wire Kit Box, $2.46
 
 Male to Male Ribbon Cables
-+ 1 + 16 toggles:
++ 1 power toggle:
+    2 x 20cm Male to Male Ribbon
++ 16 address toggles:
     16 x 20cm Male to Male Ribbon for control + 1 x 20cm Male to Male Ribbon for input into 74HC595
-    16 x 10cm Male to Male Ribbon for ground connection from one toggle to the next + 1 x 20cm Male to Male Ribbon to ground
-+ 8 (16 on/off switches) on/off/on momentary toggles: 
+    15 x 10cm Male to Male Ribbon for ground connection from one toggle to the next + 1 x 20cm Male to Male Ribbon to ground
++ 8 (16 on/off switches) on/off/on momentary control toggles: 
     16 x 20cm Male to Male Ribbon for control + 1 x 20cm Male to Male Ribbon for input into 74HC595
-    16 x 10cm Male to Male Ribbon for ground connection from one toggle to the next + 1 x 20cm Male to Male Ribbon to ground
+    15 x 10cm Male to Male Ribbon for ground connection from one toggle to the next + 1 x 20cm Male to Male Ribbon to ground
 + LEDs: 8 data + 16 address:
-    24 x 20cm Female to Male Ribbon for control + 1 x 20cm Male to Male Ribbon for input into 74HC595
-    24 x 10cm Female to Female Ribbon for ground connection from one LED to the next + 1 x 20cm Female to Male Ribbon to ground
-+ LEDs: 2 x state + 8 x status:
-    24 x 20cm Female to Male Ribbon for control + 1 x 20cm Male to Male Ribbon for input into 74HC595
-    24 x 10cm Female to Female Ribbon for ground connection from one LED to the next + 1 x 20cm Female to Male Ribbon to ground
+    24 x 20cm Female to Male Ribbon for control + 1 x 20cm Female to Male Ribbon for input into 74HC595
+    23 x 10cm Female to Female Ribbon for ground connection from one LED to the next + 1 x 20cm Female to Male Ribbon to ground
++ LEDs: 2 state + 8 status:
+    10 x 20cm Female to Male Ribbon for control + 1 x 20cm Female to Male Ribbon for input into 74HC595
+     9 x 10cm Female to Female Ribbon for ground connection from one LED to the next + 1 x 20cm Female to Male Ribbon to ground
 + LED: 2 x on/off (WAIT + HLDA):
-    2 x 20cm Female to Male Ribbon for control + 1 x 20cm Male to Male Ribbon for input into 74HC595
-    1 x 10cm Female to Female Ribbon for ground connection from one LED to the next + 1 x 20cm Female to Male Ribbon to ground
+     4 x 20cm Female to Male Ribbon for control + 1 x 20cm Female to Male Ribbon for input into 74HC595
 
-+ 10uf capacitor across positive and ground when using chips: SN74HC595N.
+Totals:
++ Toggles: 20cm Male to Male Ribbon:
+    2 + 18 + 18
++ Toggles: 10cm Male to Male Ribbon:
+    0 + 15 + 15
++ LEDs: 20cm Female to Male Ribbon:
+    26 + 12 + 4
++ LEDs: 10cm Female to Male Ribbon:
+    23 +  9 + 0
++ 20cm Male to Male Ribbon: 38
++ 10cm Male to Male Ribbon: 30
++ 20cm Female to Male Ribbon: 42
++ 10cm Female to Male Ribbon: 32
 
 ----------------
 #### Parts to test
