@@ -8,6 +8,8 @@ The cost of the clone front panel, sticker, and standard case, was $74, which do
 With the electronic parts, mostly from China, the total is $101.
 Wow, $101. An auspicious cost for an Altair 101.
 
+[<img width="300px"  src="originalPricelist.jpg"/>]
+
 In the following video, the person is building an Altair 8800 Replica using a similar strategy to what I'm using.
 https://www.youtube.com/watch?v=zqRILp6srBk&t=830s
 
@@ -19,31 +21,31 @@ His steps,
 + With the parts connected, he tests its.
 + Completes by  
 
-[<img width="500px"  src="AltairReplica00.jpg"/>]
+[<img width="400px"  src="AltairReplica00.jpg"/>]
 
-[<img width="500px"  src="AltairReplica01.jpg"/>]
+[<img width="400px"  src="AltairReplica01.jpg"/>]
 
-[<img width="500px"  src="AltairReplica02.jpg"/>]
+[<img width="400px"  src="AltairReplica02.jpg"/>]
 
-[<img width="500px"  src="AltairReplica03.jpg"/>]
+[<img width="400px"  src="AltairReplica03.jpg"/>]
 
-[<img width="500px"  src="AltairReplica04.jpg"/>]
+[<img width="400px"  src="AltairReplica04.jpg"/>]
 
-[<img width="500px"  src="AltairReplica05.jpg"/>]
+[<img width="400px"  src="AltairReplica05.jpg"/>]
 
-[<img width="500px"  src="AltairReplica06.jpg"/>]
+[<img width="400px"  src="AltairReplica06.jpg"/>]
 
-[<img width="500px"  src="AltairReplica08.jpg"/>]
+[<img width="400px"  src="AltairReplica08.jpg"/>]
 
-[<img width="500px"  src="AltairReplica09.jpg"/>]
+[<img width="400px"  src="AltairReplica09.jpg"/>]
 
-[<img width="500px"  src="AltairReplica10.jpg"/>]
+[<img width="400px"  src="AltairReplica10.jpg"/>]
 
-[<img width="500px"  src="AltairReplica11.jpg"/>]
+[<img width="400px"  src="AltairReplica11.jpg"/>]
 
-[<img width="500px"  src="AltairReplica12.jpg"/>]
+[<img width="400px"  src="AltairReplica12.jpg"/>]
 
-[<img width="500px"  src="AltairReplica14.jpg"/>]
+[<img width="400px"  src="AltairReplica14.jpg"/>]
 
 
 Following are reference links,
