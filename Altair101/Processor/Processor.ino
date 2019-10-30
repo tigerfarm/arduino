@@ -36,7 +36,7 @@ const int WAIT_PIN = A2;    // On, program not running. Off, programrunning.
 const int HLDA_PIN = 42;    // 8080 processor go into a hold state because of other hardware.
 
 // Video demonstrating status lights:
-//    https://www.youtube.com/watch?v=3_73NwB6toY&t=18s
+//    https://www.youtube.com/watch?v=3_73NwB6toY
 // MEMR & MI & WO are on when fetching an op code, example: JMP(303) or lda(072).
 // MEMR & WO are on when fetching a low or high byte of an address.
 // MEMR & WO are on when fetching data from an address.

@@ -45,10 +45,51 @@ Following are reference links,
     for Altair 8800 original and clone documents.
 + Click [here](https://altairclone.com/downloads/interview.mp3)
     to hear an interview with the Altair 8800 clone creator, Mike Douglas.
++ Altair 8800 Instructional Videos
+    https://www.youtube.com/playlist?list=PLB3mwSROoJ4KLWM8KwK0cD1dhX35wILBj
+
 
 --------------------------------------------------------------------------------
 ### Put Together my Altair 8800 Clone Case
 
+Has similarities to what I'm building.
+https://www.youtube.com/watch?v=zqRILp6srBk&t=832s
++ Video author showing Arduino IDE with the source code, at 11:50 of the video
++ Code repository
+https://github.com/dhansel/Altair8800
++ Link to Altair.ino program. "loop()" has the process method.
+https://github.com/dhansel/Altair8800/blob/master/Altair8800.ino
++ How to load software onto the Arduino Due.
+https://www.adwaterandstir.com/install/
++ 2 options: 1) Preparation steps, download, compile, and run. 2) Download a bin file, upload to run.
+
+loop() overview highlights:
++ If NOT in WAIT mode then enter the main simulation loop
++ while( ... ) {
++ + Post program counter(PC) on address bus LEDs
++ + Status M1 LED off.
++ + Read opcode, put it on data bus LEDs and advance PC.
++ + opcode = MEM_READ(regPC);
++ + opcode = MREAD(regPC);
++ + host_set_data_leds(opcode);
++ + regPC++;
++ + PROFILE_COUNT_OPCODE(opcode);
++ + CPU_EXEC(opcode);
++ }
+
++ Sample octal programs:
+https://github.com/dhansel/Altair8800/blob/master/prog_games.cpp
+````
+static const byte PROGMEM pong[] = {
+0001, 0016, 0000, 0061, 0175, 0000, 0041, 0000, 0000, 0042, 0200, 0000, 0021, 0000, 0200, 0303,
+0036, 0000, 0041, 0000, 0000, 0032, 0032, 0032, 0032, 0011, 0322, 0025, 0000, 0311, 0315, 0022,
+0000, 0333, 0377, 0346, 0001, 0312, 0055, 0000, 0172, 0263, 0346, 0037, 0137, 0172, 0346, 0001,
+0312, 0105, 0000, 0173, 0346, 0002, 0302, 0077, 0000, 0173, 0346, 0001, 0302, 0163, 0000, 0041,
+0201, 0000, 0064, 0036, 0000, 0172, 0017, 0127, 0303, 0036, 0000, 0315, 0022, 0000, 0333, 0377,
+0346, 0200, 0312, 0135, 0000, 0172, 0017, 0017, 0017, 0263, 0346, 0037, 0137, 0172, 0346, 0200,
+0312, 0165, 0000, 0173, 0346, 0010, 0302, 0157, 0000, 0173, 0346, 0020, 0302, 0103, 0000, 0041,
+0200, 0000, 0064, 0036, 0000, 0172, 0007, 0127, 0303, 0113, 0000};
+````
 --------------------------------------------------------------------------------
 ### Test Running Altair 8800 Machine Code Programs on a Test Board
 
@@ -397,6 +438,9 @@ Maybe add the following:
 + Serial terminal interface to send commands and receive results
 + Infrared receiver input to computer instructions.
 
+Bootloader, to load programs into memory from other devices.
+https://www.youtube.com/watch?v=8InWiihlIQw
+
 --------------------------------------------------------------------------------
 ## Altair 8800, the Original and Clones
 
@@ -684,29 +728,25 @@ https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
 https://spectrum.ieee.org/geek-life/hands-on/build-your-own-altair-8800-personal-computer
 + About, with parts list
 https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
+
 + Getting started with the Arduino Due
 https://www.arduino.cc/en/Guide/ArduinoDue
 + The Arduino Due is a microcontroller board based on the Atmel SAM3X8E ARM Cortex-M3 CPU.
-It is the first Arduino board based on a 32-bit ARM core microcontroller.
++ It is the first Arduino board based on a 32-bit ARM core microcontroller.
 + The microcontroller mounted on the Arduino Due runs at 3.3V
 + 54 digital input/output pins, 12 analog inputs
 + Uses CH340G drivers
 + DUE R3 Board SAM3X8E 32-bit ARM Cortex-M3 Control Board Module For Arduino, US $14.64
 https://www.ebay.com/itm/DUE-R3-Board-SAM3X8E-32-bit-ARM-Cortex-M3-Control-Board-Module-For-Arduino/141976885203
-
-+ Assembled & Tested, $279.95 – $349.95
-https://www.adwaterandstir.com/product/altair-assembled/
-
++ Intro to the Arduino Due
+https://www.theengineeringprojects.com/2018/09/introduction-to-arduino-due.html
 + Uses the Arduino Due which is an Arduino for more powerful larger scale projects.
 https://store.arduino.cc/usa/due
 ++ The Arduino Due is the first Arduino board based on a 32-bit ARM core microcontroller.
 ++ 54 digital input/output pins, 12 analog inputs, a 84 MHz clock
 
-+ Intro to the Arduino Due
-https://www.theengineeringprojects.com/2018/09/introduction-to-arduino-due.html
-
-+ Altair 8800 Instructional Videos
-https://www.youtube.com/playlist?list=PLB3mwSROoJ4KLWM8KwK0cD1dhX35wILBj
++ Assembled & Tested, $279.95 – $349.95
+https://www.adwaterandstir.com/product/altair-assembled/
 
 Google forums:
 https://groups.google.com/forum/#!forum/altair-duino
@@ -715,7 +755,7 @@ https://groups.google.com/forum/#!forum/altair-duino
 https://grantmestrength.github.io/RetroComputerInstructionManual/
 https://github.com/GrantMeStrength/RetroComputerInstructionManual
 
-+ original Altair manual
++ Original Altair manual
 http://www.classiccmp.org/dunfield/altair/d/88opman.pdf
 
 + Altair 8800 Clone, Ordering Information, (assembled) $621
@@ -770,8 +810,27 @@ https://www.ebay.com/itm/100Pcs-LED-Lights-Emitting-Diodes-Lamp-Parts-3mm-5mm-fo
 + Shift Register SN74HC595N, 20pcs for $2
 https://www.ebay.com/itm/5-10-20pcs-Chip-Stable-2-0-6-0-V-74HC595-8-Bit-IC-Shift-Register-SN74HC595N/173212029799?var=471929852731
 
-+ Cables
-https://www.ebay.com/itm/140Pcs-Solderless-Breadboard-Jumper-Cable-Wire-Kit-Box-For-Arduino-Shield-DIY/123825122614
+Cables
++ 2 x 40pcs/pack 20cm Male to Male Ribbon Breadboard Cable, $3.22
++ 2 x 40pcs/pack 20cm Male to Female Ribbon Breadboard Cable, $3.66
++ 140pcs Solderless Breadboard Jumper Cable Wire Kit Box, $2.46
+
+Male to Male Ribbon Cables
++ 1 + 16 toggles:
+    16 x 20cm Male to Male Ribbon for control + 1 x 20cm Male to Male Ribbon for input into 74HC595
+    16 x 10cm Male to Male Ribbon for ground connection from one toggle to the next + 1 x 20cm Male to Male Ribbon to ground
++ 8 (16 on/off switches) on/off/on momentary toggles: 
+    16 x 20cm Male to Male Ribbon for control + 1 x 20cm Male to Male Ribbon for input into 74HC595
+    16 x 10cm Male to Male Ribbon for ground connection from one toggle to the next + 1 x 20cm Male to Male Ribbon to ground
++ LEDs: 8 data + 16 address:
+    24 x 20cm Female to Male Ribbon for control + 1 x 20cm Male to Male Ribbon for input into 74HC595
+    24 x 10cm Female to Female Ribbon for ground connection from one LED to the next + 1 x 20cm Female to Male Ribbon to ground
++ LEDs: 2 x state + 8 x status:
+    24 x 20cm Female to Male Ribbon for control + 1 x 20cm Male to Male Ribbon for input into 74HC595
+    24 x 10cm Female to Female Ribbon for ground connection from one LED to the next + 1 x 20cm Female to Male Ribbon to ground
++ LED: 2 x on/off (WAIT + HLDA):
+    2 x 20cm Female to Male Ribbon for control + 1 x 20cm Male to Male Ribbon for input into 74HC595
+    1 x 10cm Female to Female Ribbon for ground connection from one LED to the next + 1 x 20cm Female to Male Ribbon to ground
 
 + 10uf capacitor across positive and ground when using chips: SN74HC595N.
 
@@ -832,59 +891,6 @@ Altair 101 board for 25 toggles (1+16 toggles + 8 momentary toggles):
 
 https://www.ebay.com/itm/5-x-74HC165-74165-IC-8-BIT-SHIFT-REGISTER-FREE-SHIPPING/251118499363
 https://www.ebay.com/itm/10pcs-74HC165-SN74HC165N-8-Bit-Parallel-Load-Shift-Registers-DIP-16/181847051341
-
-+ Using 74HC595 for inputs:
-https://www.theengineeringprojects.com/2018/11/arduino-74hc165-interfacing-increase-input-pins.html
-
-+ Using 74HC595 for inputs:
-https://forum.arduino.cc/index.php?topic=163813.0
-https://www.youtube.com/watch?v=nXl4fb_LbcI
-https://www.youtube.com/watch?v=hR6qOhUeKMc
-
-````
-#include <SPI.h>
-byte Input, Output, Check=1;
-int j;
-void setup(){
-  pinMode(13, OUTPUT);//clock
-  pinMode(11, OUTPUT);//data
-  pinMode(4, OUTPUT);//latch
-  pinMode(2, INPUT);//Input from buttons
-  SPI.setBitOrder(MSBFIRST);
-  SPI.setDataMode(SPI_MODE0);
-  SPI.setClockDivider(SPI_CLOCK_DIV2);
-  SPI.begin();
-  SPI.transfer(255);
-  SPI.transfer(0);
-  digitalWrite(4, HIGH);
-  digitalWrite(4, LOW);
-  Serial.begin(9600);
-  attachInterrupt(0, pin_read, RISING); 
-}
-void loop(){}
-void pin_read(){
-  for(j=0; j<50; j++) 
-    delayMicroseconds(1000);
-
-  Check=1;
-  for(j=0; j<8; j++){
-    SPI.transfer(Check);
-    SPI.transfer(Output);
-    digitalWrite(4, HIGH);
-    digitalWrite(4, LOW);
-    delayMicroseconds(500);
-    if(digitalRead(2)==HIGH)
-      bitWrite(Output, j, 1);
-    else
-      bitWrite(Output, j, 0);
-    Check = Check<<1;
-  }  
-  SPI.transfer(255);
-  SPI.transfer(Output);
-  digitalWrite(4, HIGH);
-  digitalWrite(4, LOW);
-}
-````
 
 --------------------------------------------------------------------------------
 eof
