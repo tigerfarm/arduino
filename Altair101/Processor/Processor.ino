@@ -12,53 +12,6 @@
     https://www.arduino.cc/reference/en/language/variables/constants/integerconstants/
     leading "0" characters 0-7 valid, for example: 0303 is octal 303.
 
-
-  -------------
-  void setup()
-  {
-  Serial.begin(9600);
-  byte myByte = B11000011;
-  //byte myByte = 0xC3;
-  //byte myByte = 195;
-  Serial.println(myByte, DEC);
-  Serial.println(myByte, BIN);
-  Serial.println(myByte, HEX);
-  shiftOut(1,1,LSBFIRST, myByte); // <<<< will shift out the same no matter which of the three assignments you choose above.
-  }
-
-  --------------------
-
-  int latchPin = 8;   //Pin connected to ST_CP of 74HC595
-  int clockPin = 12;  //Pin connected to SH_CP of 74HC595
-  int dataPin = 11;   //Pin connected to DS of 74HC595
-  byte myArray[] = {
-    B00000000, B10000000, B11100000,
-    B01100000, B01000000, B01110000,
-    B00110000, B00100000, B00111000,
-    B00011000, B00010000, B00011100,
-    B00001100, B00001000, B00001110,
-    B00000110, B00000100, B00000111,
-    B00000011, B00000010, B1000011,
-    B10000001, B00000001, B11000001,
-    B11000000
-  };
-  void setup() {
-  Serial.begin(9600);
-  //set pins to output because they are addressed in the main loop
-  pinMode(latchPin, OUTPUT);
-  pinMode(clockPin, OUTPUT);
-  pinMode(dataPin, OUTPUT);
-  }
-  void loop() {
-  for (int i = 0; i < sizeof(myArray)/sizeof(myArray[0]); i++) {
-    // "/sizeof(myArray[0]" not needed when array items are byte size.
-    digitalWrite(latchPin, LOW);
-    shiftOut(dataPin, clockPin, LSBFIRST, myArray[i]);
-    digitalWrite(latchPin, HIGH);
-    delay(100);
-  }
-  }
-
   // -----------------------------------------------------------------------------
   Following from:
     https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
@@ -140,8 +93,8 @@ void checkStepButton() {
 // -----------------------------------------------------------------------------
 // Memory definitions
 
-int memoryBytes = 1024;
-byte memoryData[1024];
+int memoryBytes = 512;
+byte memoryData[512];
 
 // Define a jump loop program byte array.
 byte jumpLoopProgram[] = {
@@ -196,13 +149,15 @@ void printOctal(byte b) {
 void printData(byte theByte) {
   printByte(theByte);
   // Serial.print(memoryData[i], BIN);
-  Serial.print(" :  ");
+  Serial.print(":");
+  //
   printOctal(theByte);
   // Serial.print(memoryData[i], OCT);
-  Serial.print(" : ");
+  // Serial.print(" : ");
+  //
   // Serial.println(memoryData[i], DEC);
-  sprintf(charBuffer, "%3d", theByte);
-  Serial.print(charBuffer);
+  // sprintf(charBuffer, "%3d", theByte);
+  // Serial.print(charBuffer);
 }
 
 // -----------------------------------------------------------------------------
@@ -224,7 +179,7 @@ void copyByteArrayToMemory(byte btyeArray[], int arraySize) {
 }
 
 void listByteArray(byte btyeArray[], int arraySize) {
-  Serial.println("+ List the jump loop program.");
+  Serial.println("+ List the program.");
   for (int i = 0; i < arraySize; i++) {
     Serial.print("++ ");
     sprintf(charBuffer, "%3d", i);
@@ -239,8 +194,8 @@ void listByteArray(byte btyeArray[], int arraySize) {
 // -----------------------------------------------------------------------------
 // Instruction Set
 
-int programCounter = 0;
-// int nextAddress = 0;
+// This section is base on section 26: 8080 Instruction Set
+//    https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
 
 /*
   Destination and Source register fields:
@@ -267,8 +222,9 @@ int programCounter = 0;
     p  = 8 bit port address
 */
 
-// Following from, section: - 26 - 8080 Instruction Set
-//    https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
+int programCounter = 0;
+// int nextAddress = 0;
+
 // Octals stored as a bytes.
 //
 //                               Inst      Encoding          Flags   Description
@@ -317,6 +273,8 @@ void processByte(byte theByte) {
       break;
     default:
       Serial.print(" - Error, unknow instruction.");
+      runProgram = false;
+      digitalWrite(WAIT_PIN, HIGH);
   }
   if (theByte == NOP) {
     // Note, NOP does not work in the switch statement.
@@ -330,10 +288,11 @@ void processByte(byte theByte) {
 // -----------------------------------------------------------------------------
 void processInstruction() {
 
-  Serial.print("+ ");
-  sprintf(charBuffer, "%3d", programCounter);
+  Serial.print("+ Addr: ");
+  printByte((byte)programCounter);
+  sprintf(charBuffer, "%4d", programCounter);
   Serial.print(charBuffer);
-  Serial.print(" > ");
+  Serial.print(" Data: ");
   printData(memoryData[programCounter]);
   processByte(memoryData[programCounter]);
   Serial.println("");
@@ -370,7 +329,7 @@ static unsigned long timer = millis();
 void loop() {
 
   if (runProgram) {
-    // Execute a step based on this timer.
+    // Execute an instruction controlled by the timer.
     // Example, 3000 : once every 3 seconds.
     if (millis() - timer >= 500) {
       processInstruction();

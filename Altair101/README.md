@@ -91,32 +91,33 @@ Sample program run using the STEP button, the RUN, STOP, and RUN.
 ````
 +++ Setup.
 + LEDs configured for output.
-+ List the jump loop program.
-++   0: 11000011 :  303 : 195
-++   1: 00000110 :  006 :   6
-++   2: 00000000 :  000 :   0
-++   3: 00000000 :  000 :   0
-++   4: 00000000 :  000 :   0
-++   5: 00000000 :  000 :   0
-++   6: 11000011 :  303 : 195
-++   7: 00000000 :  000 :   0
-++   8: 00000000 :  000 :   0
++ List the program.
+++   0: 11000011:303
+++   1: 00000110:006
+++   2: 00000000:000
+++   3: 00000000:000
+++   4: 00000000:000
+++   5: 00000000:000
+++   6: 01110110:166
+++   7: 00000000:000
+++   8: 00000000:000
+++   9: 11000011:303
+++  10: 00000000:000
+++  11: 00000000:000
 + End of listing.
 + Copy the program into the computer's memory array.
 + Copied.
 +++ Start program loop.
-+   0 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000110:DEC,6:
-+   6 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000000:DEC,0:
-+   0 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000110:DEC,6:
++ Addr: 00000000   0 Data: 11000011:303 > JMP Instruction, jump to address :0000000000000110:DEC,6:
++ Addr: 00000110   6 Data: 01110110:166 > HLT Instruction, Halt the processor.
++ Addr: 00000111   7 Data: 00000000:000 > NOP Instruction, No operation.
 + Run process.
-+   6 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000000:DEC,0:
-+   0 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000110:DEC,6:
-+   6 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000000:DEC,0:
-+   0 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000110:DEC,6:
++ Addr: 00001000   8 Data: 00000000:000 > NOP Instruction, No operation.
++ Addr: 00001001   9 Data: 11000011:303 > JMP Instruction, jump to address :0000000000000000:DEC,0:
 + Stop process.
 + Run process.
-+   6 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000000:DEC,0:
-+   0 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000110:DEC,6:
++ Addr: 00000000   0 Data: 11000011:303 > JMP Instruction, jump to address :0000000000000110:DEC,6:
++ Addr: 00000110   6 Data: 01110110:166 > HLT Instruction, Halt the processor.
 ````
 
 Next,
