@@ -47,6 +47,9 @@ Following are reference links,
     to hear an interview with the Altair 8800 clone creator, Mike Douglas.
 
 --------------------------------------------------------------------------------
+### Put Together my Altair 8800 Clone Case
+
+--------------------------------------------------------------------------------
 ### Test Running Altair 8800 Machine Code Programs on a Test Board
 
 Build a board to run programs:
@@ -84,9 +87,10 @@ to enter and run sample programs.
 + The programs ran the same on the Altair 101, as on the Altair 8800 online simulator.
 + Currently, output is serial print messages.
 
-Sample program run using the STEP button.
+Sample program run using the STEP button, the RUN, STOP, and RUN.
 ````
 +++ Setup.
++ LEDs configured for output.
 + List the jump loop program.
 ++   0: 11000011 :  303 : 195
 ++   1: 00000110 :  006 :   6
@@ -104,17 +108,23 @@ Sample program run using the STEP button.
 +   0 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000110:DEC,6:
 +   6 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000000:DEC,0:
 +   0 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000110:DEC,6:
++ Run process.
 +   6 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000000:DEC,0:
 +   0 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000110:DEC,6:
 +   6 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000000:DEC,0:
++   0 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000110:DEC,6:
++ Stop process.
++ Run process.
++   6 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000000:DEC,0:
++   0 > 11000011 :  303 : 195 > JMP Instruction, jump to address :0000000000000110:DEC,6:
 ````
 
 Next,
 + Improve halt processing: after halt, allow step processing, and restarting the program.
 Check if this is how the Altair 8800 works.
-+ Add more operational instructions.
 + Add more button processes such as: Examine and Examine Next, when a program is not running.
-+ Goal is to run Kill the Bit, and Pong.
++ Add more operational instructions.
++ Goal is to run Kill the Bit, and Pong on the front panel.
 
 #### For Reference
 

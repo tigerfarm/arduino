@@ -65,44 +65,55 @@
 
 */
 // -----------------------------------------------------------------------------
-// Front Panel Control Button
+// Front Panel LEDs
+
+const int WAIT_PIN = A2;
+
+// -----------------------------------------------------------------------------
+// Front Panel Control Buttons
 
 const int STOP_BUTTON_PIN = 4;   // Nano D4
 const int RUN_BUTTON_PIN = 5;
 const int STEP_BUTTON_PIN = 6;
+const int EXAMINE_BUTTON_PIN = 7;
+const int EXAMINENEXT_BUTTON_PIN = 8;
 
 boolean runProgram = false;
 
 // Only do the action once, don't repeat if the button is held down.
 // Don't repeat action if the button is not pressed.
-boolean setButtonState = true;
+boolean stopButtonState = true;
+boolean runButtonState = true;
+boolean stepButtonState = true;
 
 void checkStopButton() {
-  if (digitalRead(RUN_BUTTON_PIN) == HIGH) {
-    if (!setButtonState) {
+  if (digitalRead(STOP_BUTTON_PIN) == HIGH) {
+    if (!stopButtonState) {
       Serial.println("+ Stop process.");
       runProgram = false;
-      setButtonState = false;
+      digitalWrite(WAIT_PIN, HIGH);
+      stopButtonState = false;
     }
-    setButtonState = true;
+    stopButtonState = true;
   } else {
-    if (setButtonState) {
-      setButtonState = false;
+    if (stopButtonState) {
+      stopButtonState = false;
     }
   }
 }
 
 void checkRunButton() {
   if (digitalRead(RUN_BUTTON_PIN) == HIGH) {
-    if (!setButtonState) {
+    if (!runButtonState) {
       Serial.println("+ Run process.");
       runProgram = true;
-      setButtonState = false;
+      digitalWrite(WAIT_PIN, LOW);
+      runButtonState = false;
     }
-    setButtonState = true;
+    runButtonState = true;
   } else {
-    if (setButtonState) {
-      setButtonState = false;
+    if (runButtonState) {
+      runButtonState = false;
     }
   }
 }
@@ -110,18 +121,18 @@ void checkRunButton() {
 void checkStepButton() {
   // If the button is pressed (circuit closed), the button status is HIGH.
   if (digitalRead(STEP_BUTTON_PIN) == HIGH) {
-    if (!setButtonState) {
+    if (!stepButtonState) {
       // digitalWrite(STEP_BUTTON_PIN, HIGH);
       // Serial.println("+ checkButton(), turn LED on.");
-      processStep();
-      setButtonState = false;
+      processInstruction();
+      stepButtonState = false;
     }
-    setButtonState = true;
+    stepButtonState = true;
   } else {
-    if (setButtonState) {
+    if (stepButtonState) {
       // digitalWrite(STEP_BUTTON_PIN, LOW);
       // Serial.println("+ checkButton(), turn LED off.");
-      setButtonState = false;
+      stepButtonState = false;
     }
   }
 }
@@ -226,7 +237,7 @@ void listByteArray(byte btyeArray[], int arraySize) {
 }
 
 // -----------------------------------------------------------------------------
-// Operational Instruction Set
+// Instruction Set
 
 int programCounter = 0;
 // int nextAddress = 0;
@@ -314,7 +325,7 @@ void processByte(byte theByte) {
 }
 
 // -----------------------------------------------------------------------------
-void processStep() {
+void processInstruction() {
 
   Serial.print("+ ");
   sprintf(charBuffer, "%3d", programCounter);
@@ -332,6 +343,10 @@ void setup() {
   delay(1000);        // Give the serial connection time to start before the first print.
   Serial.println(""); // Newline after garbage characters.
   Serial.println("+++ Setup.");
+
+  pinMode(WAIT_PIN, OUTPUT);
+  digitalWrite(WAIT_PIN, HIGH);
+  Serial.println("+ LEDs configured for output.");
 
   // List and load a program.
   // Possible programs:
@@ -353,9 +368,9 @@ void loop() {
 
   if (runProgram) {
     // Execute a step based on this timer.
-    // 3000 : once every 3 seconds.
+    // Example, 3000 : once every 3 seconds.
     if (millis() - timer >= 500) {
-      processStep();
+      processInstruction();
       timer = millis();
     }
     checkStopButton();
