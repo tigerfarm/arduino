@@ -20,8 +20,8 @@ Their steps,
 + Puts the completed front panel into his case.
 + Wires the front panel components to his Arduino Duo.
 + I'm going to use an Arduino Nano with other components on breadboards.
-+ With the parts connected, he tests its.
-+ Completes by putting the case together all electronics enclosed.
++ With the parts connected, ran a test.
++ Completed by putting the case together with the electronics enclosed.
 
 [<img width="300px"  src="AltairReplica00.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
