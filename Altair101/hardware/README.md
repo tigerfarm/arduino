@@ -19,13 +19,17 @@ My Altair 101 parts listed [below](https://github.com/tigerfarm/arduino/tree/mas
 In the following video, the person is building an Altair 8800 Replica using a similar strategy to what I'm using.
 https://www.youtube.com/watch?v=zqRILp6srBk&t=830s
 
+The major difference is that they use an Arduino Due where as
+I'm going to use an Arduino Nano with other components on breadboards.
+I got the idea of building a computer on breadboards from Dan Eater's videos on 
+[how to Build an 8-bit computer from scratch](https://www.youtube.com/watch?v=HyznrdDSSGM&list=PLLlz7OhtlfKYk8nkyF1u-cDwzE_S0vcJs&index=14)
+
 Their steps,
-+ Adds toggles and LEDs to his Altair 8800 clone front panel,
-+ Puts the completed front panel into his case.
-+ Wires the front panel components to his Arduino Due.
-+ I'm going to use an Arduino Nano with other components on breadboards.
-+ With the parts connected, ran a test.
-+ Completed by putting the case together with the electronics enclosed.
++ Add toggles and LEDs onto the Altair 8800 clone front panel.
++ Put the completed front panel into the bottom part of the computer case.
++ Wire the front panel components to the Arduino Due.
++ With the parts connected, they ran a successful test.
++ It was completed by putting the case together with the electronics enclosed.
 
 [<img width="300px"  src="AltairReplica00.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
