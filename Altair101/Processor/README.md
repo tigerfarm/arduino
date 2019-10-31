@@ -111,8 +111,9 @@ Then,
 Altair 8800b Instruction set.
 http://brooknet.no-ip.org/~lex/altair/_altair88b/manual/instructMain.html
 
-Binary Calculator
-https://www.calculator.net/binary-calculator.html
+--------------------------------------------------------------------------------
+## Test Running Altair 8800 Machine Code Programs on a Test Board
+
 
 The following program demonstrates status lights for specific opcodes.
 ````
@@ -130,7 +131,7 @@ Addr HEX     Assembler code  ;Comments
 0011 76      hlt             ;halt  
 0012         end
 ````
-HEX to octal and binary.
+Assembler code to HEX value to octal values and binary machine code.
 ````
 Line of code  HEX      Octal         Binary machine code
 lda  40Q    | 3A2000 | 072 040 000 | 00 111 010 : 00 100 000 : 00 000 000
@@ -139,7 +140,7 @@ lxi  sp,40Q | 312000 | 061 040 000
 push a      | F5     | 365
 ...
 ````
-The program in octal for easier entry into the Altair:  
+The program octal values are used to entry a program using the panel toggles.
 ````
 072 040 000 
 062 041 000 
@@ -149,8 +150,7 @@ The program in octal for easier entry into the Altair:
 363 166
 ````
 
-Converter:
-https://coderstoolbox.net/number/
+Click [here](https://coderstoolbox.net/number/) for an online HEX, octal, binary converter.
 
 --------------------------------------------------------------------------------
 ### Front panel I/O and Memory management Software
