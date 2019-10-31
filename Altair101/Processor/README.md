@@ -28,8 +28,11 @@ Build a board to run programs,
 + The WAIT LED is off when a program is running.
 + The WAIT LED remains on when stepping through a program.
 
-[<img width="360px"  src="ProcessorBoard.jpg"/>](https://s2js.com/altair/sim.html)
+<img width="360px"  src="ProcessorBoard.jpg"/>
 
+Panel showing the placements for the WAIT LED and the STOP, RUN, and STEP toggles and.
+
+<img width="360px"  src="StopRunStepWait01a.jpg"/>
 
 --------------------------------------------------------------------------------
 
