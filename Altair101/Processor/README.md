@@ -2,43 +2,41 @@
 # Altair 101 Software
 
 The core program is the machine code processor that is written in C, using the Arduino IDE.
-For my development, the program is run an Arduino Nano microprocessor.
-The sketch program interprets and processes each operational instruction.
+The program is run an Arduino Nano microcontroller.
+It interprets and processes operational instructions, it runs a subset of Altair 8800 machine code programs.
 
 ## A Breadboard for Developing Altair 101 Software
 
-The Altair 101 main breadboard is the equivalent to a computer's motherboard.
-
-Board components,
-+ Arduino Nano to run the processor program and pins for button inputs and LED output.
-+ SD card module board for saving and loading programs.
-+ Button to STOP programs.
-+ Button to RUN programs.
-+ Button to STEP through a program, one program instruction at a time.
-+ A WAIT LED.
-+ The WAIT LED is on when a program is not running.
-+ The WAIT LED is off when a program is running.
-+ The WAIT LED remains on when stepping through a program.
+The main breadboard is the equivalent to a computer's motherboard that has CPU, RAM, and other parts.
 
 <img width="360px"  src="ProcessorBoard.jpg"/>
 
-#### Status
+Board components,
++ Arduino Nano to run the processor program and pins for I/O such as button inputs and LED outputs.
++ SD card module for saving and loading programs.
++ STOP button to stop programs that are running.
++ RUN button to start programs running, or continue the running of stopped programs.
++ STEP button to step through a program, one memory address at a time, one program instruction at a time.
++ A WAIT LED: on when a program is not running, and off when a program is running.
 
-Programs can be run, stopped, and stepped through on the processor breadboard.
+#### Progress Status
 
-Panel showing the placements: WAIT LED and the STOP, RUN, and STEP toggles and.
+Programs can be run, stopped, and stepped through using the processor development board.
+
+The following panel photo shows the placements: WAIT LED and the STOP, RUN, and STEP toggles.
 
 <img width="360px"  src="StopRunStepWait01a.jpg"/>
 
-Processor optional instruction codes, opcodes, programed and tested:
-+ JMP
-+ NOP
-+ HLT
+Processor optional instruction codes, opcodes, that are programed and tested:
++ JMP opcode is octal 303.
++ NOP opcode is octal 000.
++ HLT opcode is octal 166.
 
 THe processor can run sample machine code programs.
 Currently, test programs are defined in the processor program.
+The program definitions are copied into the processor memory and run.
 
-For example, jump loop program definition:
+Example jump loop program definition:
 ````
 byte jumpLoopProgram[] = {
   0303, 0006, 0000,
@@ -46,38 +44,9 @@ byte jumpLoopProgram[] = {
   0303, 0000, 0000
 };
 ````
-+ JMP opcode is octal 303.
-+ Octal values are declared with zero ("0") prefix.
+Note, octal values are declared with a zero ("0") prefix.
 
---------------------------------------------------------------------------------
-## Test Running Altair 8800 Machine Code Programs on a Test Board
-
-Develop an Arduino Nano program to run a Altair 8800 machine code program.
-
-Memory management:
-+ Data memory is a byte array. For example 1K of memory is a 1024 byte array.
-+ Sample programs for testing, which are byte arrays defined using octal values.
-+ Method to copy byte array defined programs into the processor memory.
-
-Jump loop program definition:
-````
-byte jumpLoopProgram[] = {
-  0303, 0006, 0000,
-  0000, 0000, 0000,
-  0303, 0000, 0000
-};
-````
-
-Add routines to process operational instructions: 
-+ Jump (JMP), halt (HLT), NOP.
-
-I used the [Altair 8800 online simulator](https://s2js.com/altair/sim.html)
-to enter and run sample programs.
-+ I ran the sample programs on my Altair 101 test board.
-+ The programs ran the same on the Altair 101, as on the Altair 8800 online simulator.
-+ Currently, output is serial print messages.
-
-Sample program run using the STEP button, the RUN, STOP, and RUN.
+Sample program run of the jump halt loop program, using the STEP button, the RUN, STOP, and RUN.
 ````
 +++ Setup.
 + LEDs configured for output.
@@ -110,10 +79,24 @@ Sample program run using the STEP button, the RUN, STOP, and RUN.
 + Addr: 00000110   6 Data: 01110110:166 > HLT Instruction, Halt the processor.
 ````
 
-Next, match my interpreter program with the the Altair 8800.
+--------------------------------------------------------------------------------
+## Test Running Altair 8800 Machine Code Programs on a Test Board
+
+Memory management:
++ Data memory is a byte array. For example 1K of memory is a 1024 byte array.
++ Sample programs for testing, which are byte arrays defined using octal values.
++ Method to copy byte array defined programs into the processor memory.
+
+I used the [Altair 8800 online simulator](https://s2js.com/altair/sim.html)
+to enter and step through sample programs.
++ I ran the sample programs on my Altair 101 test board.
++ The programs ran the same on the Altair 101, as on the Altair 8800 online simulator.
++ Currently, output is serial print messages.
+
+Next, match my interpreter program with the the Altair 8800 close instructional videos.
 + Check that halt, run, and step, work the same with the [Altair 8800 online simulator](https://s2js.com/altair/sim.html).
-+ Unfortunately, the simulator doesn't react the same as the Altair 8800.
-+ Fix single step to show every byte.
++ The simulator does react the same as the Altair 8800 when using the step option.
++ Fix single step to show every byte, included memory address bytes.
 + Show the address and data when ever the program address counter changes.
 
 Then,
