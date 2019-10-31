@@ -4,7 +4,7 @@
 I designed a computer to give a person the experience of using the first popular home computer.
 The Model-T was the first popular car. The Altair 8800 was the Model-T of the home computers.
 The Altair 101 will replicate the user experience of flipping toggles for program and data input.
-Then, I'll enjoy watching my computer's output, flashing LED lights.
+Then, I'll enjoy watching the computer's output which flashing LED lights.
 
 The Altair 101 will have an Altair 8800 look and feel from the user's point of view.
 It will be functional and have the ability to save and load programs to/from an SD card.
@@ -32,6 +32,8 @@ Once the base machine is complete, I will add modern components and functionalit
 + and yes, connect it to the internet.
 
 #### Getting Started with an Altair 8800 Clone Front Panel
+
+The front panel of LED lights and toggles is equivalent to a smartphone's touch screen display.
 
 [<img width="600px"  src="Altair8800frontPanel15x6.jpg"/>](https://s2js.com/altair/sim.html)
 

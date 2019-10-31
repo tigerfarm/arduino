@@ -1,13 +1,9 @@
 --------------------------------------------------------------------------------
 # Altair 101 Software
 
-This computer, which I call the Altair 101, is designed and will be built for a user experience.
-It is meant to replicate the user experience of flipping toggles for data entry and watching lights flash to see results.
-
-My goal is to build a computer that has an [Altair 8800 clone front panel](https://www.adwaterandstir.com/product/front-panel/),
-similar LEDs and toggles to an Altair 8800, and have the base Altair 8800 functionality.
-This will give the computer an Altair 8800 look and feel from the user's point of view.
-Then, I will add modern components: real time clock, MP3 player, SD drive for saving and loading programs, and yes, connect it to the internet.
+The core program is the machine code processor that is written in C, using the Arduino IDE.
+For my development, the program is run an Arduino Nano microprocessor.
+The sketch program interprets and processes each operational instruction.
 
 #### Altair 8800 Front Panel
 
@@ -15,31 +11,25 @@ Then, I will add modern components: real time clock, MP3 player, SD drive for sa
 
 I will need to handle a limited number of operational instructions, such as the jump (JMP) instruction.
 A major milestone will be when I have enough instructions to run the classic, [Kill the Bit](https://youtu.be/ZKeiQ8e18QY) program, on my Altair 101.
-I will use an Arduino Nano microprocessor sketch program to interpret and process each operational instruction.
 
-I don't intend to implement full Altair 8800 operational instructions.
+I don't intend to implement all the Altair 8800 operational instructions.
 Which means, my machine will not run Basic, nor will it run CPM. Anyway, you can run those on a laptop computer using an emulator.
-I just want a computer that looks and feels like the limited edition that was available in 1975.
-That version did not have any interfaces. It cost $621 with extremely limited utility.
 
 Following are reference links,
-+ Click [here](https://altairclone.com/downloads/)
-    for the website of a high end Altair 8800 clone.
-+ Click [here](https://altairclone.com/downloads/)
-    for Altair 8800 original and clone documents.
-+ Altair 8800 Instructional Videos
-    https://www.youtube.com/playlist?list=PLB3mwSROoJ4KLWM8KwK0cD1dhX35wILBj
++ Click [here](https://github.com/begoon/asm8080) for an Intel 8080 macro assembler
++ [Assembler source code](https://sourceforge.net/projects/asm8080/)
++ Click [here](https://altairclone.com/downloads/) for Altair 8800 original and clone documents.
++ Click [here](https://www.youtube.com/playlist?list=PLB3mwSROoJ4KLWM8KwK0cD1dhX35wILBj) Altair 8800 Instructional Videos
+
+Altair 8800 Clone/Simulator processor,
++ [Code repository](https://github.com/dhansel/Altair8800)
++ [Altair.ino program](https://github.com/dhansel/Altair8800/blob/master/Altair8800.ino)
+    that has the main setup() and loop().
++ How to [install the software](https://www.adwaterandstir.com/install/) onto the Arduino Due.
+    2 options: 1) Preparation steps, download, compile, and run. 2) Download a bin file, upload to run.
 
 --------------------------------------------------------------------------------
 ### Altair 8800 Clone Sample
-
-+ Code repository
-https://github.com/dhansel/Altair8800
-+ Link to Altair.ino program. "loop()" has the process method.
-https://github.com/dhansel/Altair8800/blob/master/Altair8800.ino
-+ How to load software onto the Arduino Due.
-https://www.adwaterandstir.com/install/
-+ 2 options: 1) Preparation steps, download, compile, and run. 2) Download a bin file, upload to run.
 
 loop() overview highlights:
 + If NOT in WAIT mode then enter the main simulation loop
