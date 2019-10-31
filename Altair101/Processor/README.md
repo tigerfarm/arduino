@@ -5,15 +5,6 @@ The core program is the machine code processor that is written in C, using the A
 For my development, the program is run an Arduino Nano microprocessor.
 The sketch program interprets and processes each operational instruction.
 
-#### Altair 101  Front Panel
-
-Modern computers have a keyboard and monitor. A mobile phone has touch screen display.
-The Altair 101 has a panel of toggles and LED lights.
-That's what the original Altair 8800 had in 1975, toggles and lights.
-
-<img width="360px"  src="FrontPanel01a.jpg"/>
-
---------------------------------------------------------------------------------
 ## A Breadboard for Developing Altair 101 Software
 
 The Altair 101 main breadboard is the equivalent to a computer's motherboard.

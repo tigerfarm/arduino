@@ -3,6 +3,12 @@
 
 The build starts with an [Altair 8800 clone front panel](https://www.adwaterandstir.com/product/front-panel/).
 
+Modern computers have a keyboard and monitor. A mobile phone has touch screen display.
+The Altair 101 has a panel of toggles and LED lights.
+That's what the original Altair 8800 had in 1975, toggles and lights.
+
+<img width="360px"  src="../FrontPanel01a.jpg"/>
+
 The target was to keep the cost of parts under $100.
 The cost of the clone front panel, sticker, and standard case, was $74, which doesn't leave much for the electronics.
 With the electronic parts, mostly from China, the total is $101.
