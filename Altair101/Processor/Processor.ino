@@ -306,14 +306,22 @@ int instructionCycle = 0;
 int lowOrder = 0;
 int highOrder = 0;
 
-void processByte(byte theByte) {
-  // Serial.print(":theByte,");
-  // Serial.print(theByte);
-  // Serial.print(":");
+void printAddressData() {
+  Serial.print("+ Addr: ");
+  sprintf(charBuffer, "%4d:", programCounter);
+  Serial.print(charBuffer);
+  Serial.print(" Data: ");
+  printData(memoryData[programCounter]);
+}
+
+void processData() {
+  printAddressData();
+  byte dataByte = memoryData[programCounter];
   if (opcode == JMP) {
     if (instructionCycle == 0) {
       instructionCycle++;
       lowOrder = programCounter++;
+      Serial.println("");
       return;
     }
     programCounter = word(memoryData[programCounter], memoryData[lowOrder]);
@@ -323,9 +331,10 @@ void processByte(byte theByte) {
     printByte((byte)programCounter);
     //
     opcode = 0;
+    Serial.println("");
     return;
   }
-  switch (theByte) {
+  switch (dataByte) {
     case HLT:
       Serial.print(" > HLT Instruction, Halt the processor.");
       runProgram = false;
@@ -346,22 +355,8 @@ void processByte(byte theByte) {
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
   }
-  programCounter++;
-}
-
-// -----------------------------------------------------------------------------
-void printAddressData() {
-  Serial.print("+ Addr: ");
-  sprintf(charBuffer, "%4d:", programCounter);
-  Serial.print(charBuffer);
-  Serial.print(" Data: ");
-  printData(memoryData[programCounter]);
-}
-
-void processData() {
-  printAddressData();
-  processByte(memoryData[programCounter]);
   Serial.println("");
+  programCounter++;
 }
 
 // -----------------------------------------------------------------------------
@@ -375,13 +370,13 @@ void setup() {
   digitalWrite(WAIT_PIN, HIGH);
   Serial.println("+ LEDs configured for output.");
 
-  // List and load a program.
-  // Possible programs:
+  // List a program. Available programs:
   //    jumpLoopProgram
   //    jumpLoopNopProgram
   //    jumpHaltLoopProgram
   int programSize = sizeof(jumpHaltLoopProgram);
   listByteArray(jumpHaltLoopProgram, programSize);
+  // Load a program.
   copyByteArrayToMemory(jumpHaltLoopProgram, programSize);
 
   Serial.println("+++ Start the processor loop.");
