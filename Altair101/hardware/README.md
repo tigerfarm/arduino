@@ -267,4 +267,72 @@ https://store.arduino.cc/usa/due
 ++ 54 digital input/output pins, 12 analog inputs, a 84 MHz clock
 
 --------------------------------------------------------------------------------
+### Reference links
+
++ Instruction set.
+http://brooknet.no-ip.org/~lex/altair/_altair88b/manual/instructMain.html
++ Example: jump (jmp) 11 000 011 
+
++ How to load software onto the Arduino Due.
+https://www.adwaterandstir.com/install/
++ Code repository
+https://github.com/dhansel/Altair8800
+
++ How to build one.
+https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
++ Build your own.
+https://spectrum.ieee.org/geek-life/hands-on/build-your-own-altair-8800-personal-computer
++ About, with parts list
+https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
+
++ Getting started with the Arduino Due
+https://www.arduino.cc/en/Guide/ArduinoDue
++ The Arduino Due is a microcontroller board based on the Atmel SAM3X8E ARM Cortex-M3 CPU.
++ It is the first Arduino board based on a 32-bit ARM core microcontroller.
++ The microcontroller mounted on the Arduino Due runs at 3.3V
++ 54 digital input/output pins, 12 analog inputs
++ Uses CH340G drivers
++ DUE R3 Board SAM3X8E 32-bit ARM Cortex-M3 Control Board Module For Arduino, US $14.64
+https://www.ebay.com/itm/DUE-R3-Board-SAM3X8E-32-bit-ARM-Cortex-M3-Control-Board-Module-For-Arduino/141976885203
++ Intro to the Arduino Due
+https://www.theengineeringprojects.com/2018/09/introduction-to-arduino-due.html
++ Uses the Arduino Due which is an Arduino for more powerful larger scale projects.
+https://store.arduino.cc/usa/due
+++ The Arduino Due is the first Arduino board based on a 32-bit ARM core microcontroller.
+++ 54 digital input/output pins, 12 analog inputs, a 84 MHz clock
+
++ Assembled & Tested, $279.95 – $349.95
+https://www.adwaterandstir.com/product/altair-assembled/
+
+Google forums:
+https://groups.google.com/forum/#!forum/altair-duino
+
++ Manual
+https://grantmestrength.github.io/RetroComputerInstructionManual/
+https://github.com/GrantMeStrength/RetroComputerInstructionManual
+
++ Original Altair manual
+http://www.classiccmp.org/dunfield/altair/d/88opman.pdf
+
++ Altair 8800 Clone, Ordering Information, (assembled) $621
+https://altairclone.com/ordering.htm
+
++ MITS Altair Simulator, written entirely in Javascript.
++ and with thanks to Martin Maly and Chris Double for their 8080.js Intel 8080 emulator. 
+https://s2js.com/altair/
+https://s2js.com/altair/sim.html
+https://github.com/maly/8080js
+
+Following are reference links,
++ Altair 101 parts listed [below](https://github.com/tigerfarm/arduino/tree/master/Altair101#parts-to-order-to-build-my-altair-101).
++ Click [here](https://altairclone.com/downloads/)
+    for the website of a high end Altair 8800 clone.
++ Click [here](https://altairclone.com/downloads/)
+    for Altair 8800 original and clone documents.
++ Click [here](https://altairclone.com/downloads/interview.mp3)
+    to hear an interview with the Altair 8800 clone creator, Mike Douglas.
++ Altair 8800 Instructional Videos
+    https://www.youtube.com/playlist?list=PLB3mwSROoJ4KLWM8KwK0cD1dhX35wILBj
+
+--------------------------------------------------------------------------------
 Cheers
