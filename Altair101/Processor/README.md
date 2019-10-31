@@ -7,7 +7,7 @@ The sketch program interprets and processes each operational instruction.
 
 #### Altair 8800 Front Panel
 
-[<img width="600px"  src="../Altair8800frontPanel15x6.jpg"/>](https://s2js.com/altair/sim.html)
+[<img width="600px"  src="FrontPanel01a.jpg"/>](https://s2js.com/altair/sim.html)
 
 I will need to handle a limited number of operational instructions, such as the jump (JMP) instruction.
 A major milestone will be when I have enough instructions to run the classic, [Kill the Bit](https://youtu.be/ZKeiQ8e18QY) program, on my Altair 101.
@@ -16,52 +16,19 @@ I don't intend to implement all the Altair 8800 operational instructions.
 Which means, my machine will not run Basic, nor will it run CPM. Anyway, you can run those on a laptop computer using an emulator.
 
 Following are reference links,
++ [Link](https://www.adwaterandstir.com/product/front-panel/) to where I got my Front Panel
+    and [Altair 8800 Computer](https://www.adwaterandstir.com/product/sticker/) sticker.
 + Click [here](https://github.com/begoon/asm8080) for an Intel 8080 macro assembler
 + [Assembler source code](https://sourceforge.net/projects/asm8080/)
 + Click [here](https://altairclone.com/downloads/) for Altair 8800 original and clone documents.
 + Click [here](https://www.youtube.com/playlist?list=PLB3mwSROoJ4KLWM8KwK0cD1dhX35wILBj) Altair 8800 Instructional Videos
 
-Altair 8800 Clone/Simulator processor,
-+ [Code repository](https://github.com/dhansel/Altair8800)
-+ [Altair.ino program](https://github.com/dhansel/Altair8800/blob/master/Altair8800.ino)
-    that has the main setup() and loop().
-+ How to [install the software](https://www.adwaterandstir.com/install/) onto the Arduino Due.
-    2 options: 1) Preparation steps, download, compile, and run. 2) Download a bin file, upload to run.
-
 --------------------------------------------------------------------------------
-### Altair 8800 Clone Sample
+## Test Running Altair 8800 Machine Code Programs on a Test Board
 
-loop() overview highlights:
-+ If NOT in WAIT mode then enter the main simulation loop
-+ while( ... ) {
-+ + Post program counter(PC) on address bus LEDs
-+ + Status M1 LED off.
-+ + Read opcode, put it on data bus LEDs and advance PC.
-+ + opcode = MEM_READ(regPC);
-+ + opcode = MREAD(regPC);
-+ + host_set_data_leds(opcode);
-+ + regPC++;
-+ + PROFILE_COUNT_OPCODE(opcode);
-+ + CPU_EXEC(opcode);
-+ }
+Develop an Arduino Nano program to run a Altair 8800 machine code program.
 
-+ Sample octal programs:
-https://github.com/dhansel/Altair8800/blob/master/prog_games.cpp
-````
-static const byte PROGMEM pong[] = {
-0001, 0016, 0000, 0061, 0175, 0000, 0041, 0000, 0000, 0042, 0200, 0000, 0021, 0000, 0200, 0303,
-0036, 0000, 0041, 0000, 0000, 0032, 0032, 0032, 0032, 0011, 0322, 0025, 0000, 0311, 0315, 0022,
-0000, 0333, 0377, 0346, 0001, 0312, 0055, 0000, 0172, 0263, 0346, 0037, 0137, 0172, 0346, 0001,
-0312, 0105, 0000, 0173, 0346, 0002, 0302, 0077, 0000, 0173, 0346, 0001, 0302, 0163, 0000, 0041,
-0201, 0000, 0064, 0036, 0000, 0172, 0017, 0127, 0303, 0036, 0000, 0315, 0022, 0000, 0333, 0377,
-0346, 0200, 0312, 0135, 0000, 0172, 0017, 0017, 0017, 0263, 0346, 0037, 0137, 0172, 0346, 0200,
-0312, 0165, 0000, 0173, 0346, 0010, 0302, 0157, 0000, 0173, 0346, 0020, 0302, 0103, 0000, 0041,
-0200, 0000, 0064, 0036, 0000, 0172, 0007, 0127, 0303, 0113, 0000};
-````
---------------------------------------------------------------------------------
-### Test Running Altair 8800 Machine Code Programs on a Test Board
-
-Build a board to run programs:
+Build a board to run programs,
 + Nano
 + Button to STOP programs.
 + Button to RUN programs.
@@ -71,7 +38,7 @@ Build a board to run programs:
 + The WAIT LED is off when a program is running.
 + The WAIT LED remains on when stepping through a program.
 
-Develop an Arduino Nano program to run a Altair 8800 machine code program.
+[<img width="600px"  src="ProcessorBoard.jpg"/>](https://s2js.com/altair/sim.html)
 
 Memory management:
 + Data memory is a byte array. For example 1K of memory is a 1024 byte array.
@@ -648,7 +615,48 @@ To stop the program, hit STOP. The WAIT LED goes on.
 + Flip RESET.
 + Flip RUN to restart the program.
 
------------------------------
+--------------------------------------------------------------------------------
+### Altair 8800 Clone Sample
+
+Altair 8800 Clone/Simulator processor,
++ [Code repository](https://github.com/dhansel/Altair8800)
++ [Altair.ino program](https://github.com/dhansel/Altair8800/blob/master/Altair8800.ino)
+    that has the main setup() and loop().
++ How to [install the software](https://www.adwaterandstir.com/install/) onto the Arduino Due.
+    2 options: 1) Preparation steps, download, compile, and run. 2) Download a bin file, upload to run.
+
+loop() overview highlights:
++ If NOT in WAIT mode then enter the main simulation loop
++ while( ... ) {
++ + Post program counter(PC) on address bus LEDs
++ + Status M1 LED off.
++ + Read opcode, put it on data bus LEDs and advance PC.
++ + opcode = MEM_READ(regPC);
++ + opcode = MREAD(regPC);
++ + host_set_data_leds(opcode);
++ + regPC++;
++ + PROFILE_COUNT_OPCODE(opcode);
++ + CPU_EXEC(opcode);
++ }
+
++ Sample octal programs:
+https://github.com/dhansel/Altair8800/blob/master/prog_games.cpp
+````
+static const byte PROGMEM pong[] = {
+0001, 0016, 0000, 0061, 0175, 0000, 0041, 0000, 0000, 0042, 0200, 0000, 0021, 0000, 0200, 0303,
+0036, 0000, 0041, 0000, 0000, 0032, 0032, 0032, 0032, 0011, 0322, 0025, 0000, 0311, 0315, 0022,
+0000, 0333, 0377, 0346, 0001, 0312, 0055, 0000, 0172, 0263, 0346, 0037, 0137, 0172, 0346, 0001,
+0312, 0105, 0000, 0173, 0346, 0002, 0302, 0077, 0000, 0173, 0346, 0001, 0302, 0163, 0000, 0041,
+0201, 0000, 0064, 0036, 0000, 0172, 0017, 0127, 0303, 0036, 0000, 0315, 0022, 0000, 0333, 0377,
+0346, 0200, 0312, 0135, 0000, 0172, 0017, 0017, 0017, 0263, 0346, 0037, 0137, 0172, 0346, 0200,
+0312, 0165, 0000, 0173, 0346, 0010, 0302, 0157, 0000, 0173, 0346, 0020, 0302, 0103, 0000, 0041,
+0200, 0000, 0064, 0036, 0000, 0172, 0007, 0127, 0303, 0113, 0000
+};
+````
+
+--------------------------------------------------------------------------------
+### Reference Links
+
 + Instruction set.
 http://brooknet.no-ip.org/~lex/altair/_altair88b/manual/instructMain.html
 + Example: jump (jmp) 11 000 011 
