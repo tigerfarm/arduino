@@ -243,16 +243,6 @@ void checkStepButton() {
 //    https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
 
 /*
-  Destination and Source register fields:
-    111=A   (Accumulator)
-    000=B
-    001=C
-    010=D
-    011=E
-    100=H
-    101=L
-    110=M   (Memory reference through address in H:L)
-
   Register pair 'RP' fields:
     00=BC   (B:C as 16 bit register)
     01=DE   (D:E as 16 bit register)
@@ -277,8 +267,6 @@ int regH = 0;   // 100=H
 int regL = 0;   // 101=L
 int regM = 0;   // 110=M   (Memory reference through address in H:L)
 
-// Octals stored as a bytes.
-//
 //                               Inst      Encoding          Flags   Description
 // Programmed and tested:
 const byte HLT = 0166;        // HLT       01110110          -       Halt processor
