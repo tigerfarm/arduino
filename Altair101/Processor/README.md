@@ -11,7 +11,7 @@ Then, I will add modern components: real time clock, MP3 player, SD drive for sa
 
 #### Altair 8800 Front Panel
 
-[<img width="600px"  src="Altair8800frontPanel15x6.jpg"/>](https://s2js.com/altair/sim.html)
+[<img width="600px"  src="../Altair8800frontPanel15x6.jpg"/>](https://s2js.com/altair/sim.html)
 
 I will need to handle a limited number of operational instructions, such as the jump (JMP) instruction.
 A major milestone will be when I have enough instructions to run the classic, [Kill the Bit](https://youtu.be/ZKeiQ8e18QY) program, on my Altair 101.
