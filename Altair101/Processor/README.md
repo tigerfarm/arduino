@@ -7,9 +7,31 @@ The sketch program interprets and processes each operational instruction.
 
 #### Altair 101  Front Panel
 
-A clone of the original Altair 8800 front panel.
+Modern computers have a keyboard and monitor. A mobile phone has touch screen display.
+The Altair 101 has a panel of toggles and LED lights.
+That all the original Altair 8800 had, toggles and lights in 1975.
 
 <img width="600px"  src="FrontPanel01a.jpg"/>
+
+--------------------------------------------------------------------------------
+## Building an Altair 101 Development Board
+
+The development Altair 101 breadboard, is the equivalent the development of a motherboard.
+
+Build a board to run programs,
++ Nano
++ Button to STOP programs.
++ Button to RUN programs.
++ Button to STEP through a program, one program instruction at a time.
++ Add a WAIT LED.
++ The WAIT LED is on when a program is not running.
++ The WAIT LED is off when a program is running.
++ The WAIT LED remains on when stepping through a program.
+
+[<img width="600px"  src="ProcessorBoard.jpg"/>](https://s2js.com/altair/sim.html)
+
+
+--------------------------------------------------------------------------------
 
 I will need to handle a limited number of operational instructions, such as the jump (JMP) instruction.
 A major milestone will be when I have enough instructions to run the classic, [Kill the Bit](https://youtu.be/ZKeiQ8e18QY) program, on my Altair 101.
@@ -29,18 +51,6 @@ Following are reference links,
 ## Test Running Altair 8800 Machine Code Programs on a Test Board
 
 Develop an Arduino Nano program to run a Altair 8800 machine code program.
-
-Build a board to run programs,
-+ Nano
-+ Button to STOP programs.
-+ Button to RUN programs.
-+ Button to STEP through a program, one program instruction at a time.
-+ Add a WAIT LED.
-+ The WAIT LED is on when a program is not running.
-+ The WAIT LED is off when a program is running.
-+ The WAIT LED remains on when stepping through a program.
-
-[<img width="600px"  src="ProcessorBoard.jpg"/>](https://s2js.com/altair/sim.html)
 
 Memory management:
 + Data memory is a byte array. For example 1K of memory is a 1024 byte array.
