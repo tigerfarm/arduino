@@ -37,8 +37,6 @@ Their steps,
 
 [<img width="300px"  src="AltairReplica06.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
-[<img width="300px"  src="AltairReplica08.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
-
 [<img width="300px"  src="AltairReplica09.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
 [<img width="300px"  src="AltairReplica10.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
