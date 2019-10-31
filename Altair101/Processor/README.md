@@ -14,16 +14,17 @@ That all the original Altair 8800 had, toggles and lights in 1975.
 <img width="360px"  src="FrontPanel01a.jpg"/>
 
 --------------------------------------------------------------------------------
-## Building an Altair 101 Development Board
+## A Breadboard for Developing Altair 101 Software
 
-The development Altair 101 breadboard, is the equivalent the development of a motherboard.
+The Altair 101 main breadboard is the equivalent to a computer's motherboard.
 
-Build a board to run programs,
-+ Nano
+Board components,
++ Arduino Nano to run the processor program and pins for button inputs and LED output.
++ SD card module board for saving and loading programs.
 + Button to STOP programs.
 + Button to RUN programs.
 + Button to STEP through a program, one program instruction at a time.
-+ Add a WAIT LED.
++ A WAIT LED.
 + The WAIT LED is on when a program is not running.
 + The WAIT LED is off when a program is running.
 + The WAIT LED remains on when stepping through a program.
@@ -34,21 +35,26 @@ Panel showing the placements for the WAIT LED and the STOP, RUN, and STEP toggle
 
 <img width="360px"  src="StopRunStepWait01a.jpg"/>
 
---------------------------------------------------------------------------------
+### Status
 
-I will need to handle a limited number of operational instructions, such as the jump (JMP) instruction.
-A major milestone will be when I have enough instructions to run the classic, [Kill the Bit](https://youtu.be/ZKeiQ8e18QY) program, on my Altair 101.
+Processor optional instruction codes, opcodes, programed and tested:
++ JMP
++ NOP
++ HLT
 
-I don't intend to implement all the Altair 8800 operational instructions.
-Which means, my machine will not run Basic, nor will it run CPM. Anyway, you can run those on a laptop computer using an emulator.
+THe processor can run sample machine code programs.
+Currently, test programs are defined in the processor program.
 
-Following are reference links,
-+ [Link](https://www.adwaterandstir.com/product/front-panel/) to where I got my Front Panel
-    and [Altair 8800 Computer](https://www.adwaterandstir.com/product/sticker/) sticker.
-+ Click [here](https://github.com/begoon/asm8080) for an Intel 8080 macro assembler
-+ [Assembler source code](https://sourceforge.net/projects/asm8080/)
-+ Click [here](https://altairclone.com/downloads/) for Altair 8800 original and clone documents.
-+ Click [here](https://www.youtube.com/playlist?list=PLB3mwSROoJ4KLWM8KwK0cD1dhX35wILBj) Altair 8800 Instructional Videos
+For example, jump loop program definition:
+````
+byte jumpLoopProgram[] = {
+  0303, 0006, 0000,
+  0000, 0000, 0000,
+  0303, 0000, 0000
+};
+````
++ JMP opcode is octal 303.
++ Octal values are declared with zero ("0") prefix.
 
 --------------------------------------------------------------------------------
 ## Test Running Altair 8800 Machine Code Programs on a Test Board
@@ -725,6 +731,22 @@ https://altairclone.com/ordering.htm
 https://s2js.com/altair/
 https://s2js.com/altair/sim.html
 https://github.com/maly/8080js
+
+--------------------------------------------------------------------------------
+
+I will need to handle a limited number of operational instructions, such as the jump (JMP) instruction.
+A major milestone will be when I have enough instructions to run the classic, [Kill the Bit](https://youtu.be/ZKeiQ8e18QY) program, on my Altair 101.
+
+I don't intend to implement all the Altair 8800 operational instructions.
+Which means, my machine will not run Basic, nor will it run CPM. Anyway, you can run those on a laptop computer using an emulator.
+
+Following are reference links,
++ [Link](https://www.adwaterandstir.com/product/front-panel/) to where I got my Front Panel
+    and [Altair 8800 Computer](https://www.adwaterandstir.com/product/sticker/) sticker.
++ Click [here](https://github.com/begoon/asm8080) for an Intel 8080 macro assembler
++ [Assembler source code](https://sourceforge.net/projects/asm8080/)
++ Click [here](https://altairclone.com/downloads/) for Altair 8800 original and clone documents.
++ Click [here](https://www.youtube.com/playlist?list=PLB3mwSROoJ4KLWM8KwK0cD1dhX35wILBj) Altair 8800 Instructional Videos
 
 --------------------------------------------------------------------------------
 Cheers
