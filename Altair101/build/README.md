@@ -8,48 +8,46 @@ The cost of the clone front panel, sticker, and standard case, was $74, which do
 With the electronic parts, mostly from China, the total is $101.
 Wow, $101. An auspicious cost for an Altair 101.
 
-[<img width="300px"  src="originalPricelist.jpg"/>]
+[<img width="300px"  src="originalPricelist.jpg"/>](https://altairclone.com/ordering.htm)
+
+My Altair 101 parts listed [below](https://github.com/tigerfarm/arduino/tree/master/Altair101/build#altair-101-parts-list).
 
 In the following video, the person is building an Altair 8800 Replica using a similar strategy to what I'm using.
 https://www.youtube.com/watch?v=zqRILp6srBk&t=830s
 
-His steps,
+Their steps,
 + Adds toggles and LEDs to his Altair 8800 clone front panel,
 + Puts the completed front panel into his case.
 + Wires the front panel components to his Arduino Duo.
 + I'm going to use an Arduino Nano with other components on breadboards.
 + With the parts connected, he tests its.
-+ Completes by  
++ Completes by putting the case together all electronics enclosed.
 
-[<img width="400px"  src="AltairReplica00.jpg"/>]
+[<img width="400px"  src="AltairReplica00.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
-[<img width="400px"  src="AltairReplica01.jpg"/>]
+[<img width="400px"  src="AltairReplica01.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
-[<img width="400px"  src="AltairReplica02.jpg"/>]
+[<img width="400px"  src="AltairReplica02.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
-[<img width="400px"  src="AltairReplica03.jpg"/>]
+[<img width="400px"  src="AltairReplica03.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
-[<img width="400px"  src="AltairReplica04.jpg"/>]
+[<img width="400px"  src="AltairReplica04.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
-[<img width="400px"  src="AltairReplica05.jpg"/>]
+[<img width="400px"  src="AltairReplica05.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
-[<img width="400px"  src="AltairReplica06.jpg"/>]
+[<img width="400px"  src="AltairReplica06.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
-[<img width="400px"  src="AltairReplica08.jpg"/>]
+[<img width="400px"  src="AltairReplica08.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
-[<img width="400px"  src="AltairReplica09.jpg"/>]
+[<img width="400px"  src="AltairReplica09.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
-[<img width="400px"  src="AltairReplica10.jpg"/>]
+[<img width="400px"  src="AltairReplica10.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
-[<img width="400px"  src="AltairReplica11.jpg"/>]
+[<img width="400px"  src="AltairReplica11.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
-[<img width="400px"  src="AltairReplica12.jpg"/>]
+[<img width="400px"  src="AltairReplica12.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
-[<img width="400px"  src="AltairReplica14.jpg"/>]
-
-
-Following are reference links,
-+ Altair 101 parts listed [below](https://github.com/tigerfarm/arduino/tree/master/Altair101#parts-to-order-to-build-my-altair-101).
+[<img width="400px"  src="AltairReplica14.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
 --------------------------------------------------------------------------------
 ### Front Panel I/O Hardware Boards
@@ -84,7 +82,7 @@ This means there is plenty of power to run the chips and LEDs.
 + Using the +5V pin when the power comes into the Nano from the USB port, will be okay to build a single 74HC595 chip test board.
 
 --------------------------------------------------------------------------------
-### Front Panel Cable Connections
+### Front Panel Cable Required for My Build
 
 Male to Male Ribbon Cables
 + 1 power toggle:
@@ -264,4 +262,4 @@ https://store.arduino.cc/usa/due
 ++ 54 digital input/output pins, 12 analog inputs, a 84 MHz clock
 
 --------------------------------------------------------------------------------
-eof
+Cheers
