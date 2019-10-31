@@ -8,8 +8,11 @@ The cost of the clone front panel, sticker, and standard case, was $74, which do
 With the electronic parts, mostly from China, the total is $101.
 Wow, $101. An auspicious cost for an Altair 101.
 
+#### Orginal Altair 8800 price list:
+
 [<img width="300px"  src="originalPricelist.jpg"/>](https://altairclone.com/ordering.htm)
-+ Altair 8800 Clone [Ordering Information](https://altairclone.com/ordering.htm), (assembled) $621
+
+Altair 8800 Clone [Ordering Information](https://altairclone.com/ordering.htm), (assembled) $621
 
 My Altair 101 parts listed [below](https://github.com/tigerfarm/arduino/tree/master/Altair101/build#altair-101-parts-list).
 
