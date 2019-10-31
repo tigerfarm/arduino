@@ -11,7 +11,7 @@ Modern computers have a keyboard and monitor. A mobile phone has touch screen di
 The Altair 101 has a panel of toggles and LED lights.
 That all the original Altair 8800 had, toggles and lights in 1975.
 
-<img width="600px"  src="FrontPanel01a.jpg"/>
+<img width="360px"  src="FrontPanel01a.jpg"/>
 
 --------------------------------------------------------------------------------
 ## Building an Altair 101 Development Board
@@ -28,7 +28,7 @@ Build a board to run programs,
 + The WAIT LED is off when a program is running.
 + The WAIT LED remains on when stepping through a program.
 
-[<img width="600px"  src="ProcessorBoard.jpg"/>](https://s2js.com/altair/sim.html)
+[<img width="360px"  src="ProcessorBoard.jpg"/>](https://s2js.com/altair/sim.html)
 
 
 --------------------------------------------------------------------------------
