@@ -223,7 +223,7 @@ void checkStepButton() {
     if (!stepButtonState) {
       // digitalWrite(STEP_BUTTON_PIN, HIGH);
       // Serial.println("+ checkButton(), turn LED on.");
-      processInstruction();
+      processData();
       stepButtonState = false;
     }
     stepButtonState = true;
@@ -267,8 +267,6 @@ void checkStepButton() {
     p  = 8 bit port address
 */
 
-int programCounter = 0;
-
 //   Destination and Source register fields.
 int regA = 0;   // 111=A   (Accumulator)
 int regB = 0;   // 000=B
@@ -302,6 +300,9 @@ const byte STA = B00110010;   // STA a     00110010 lb hb    -       Store A to 
 // RRC       00001111          C       Rotate A right
 // XRA S     10101SSS          ZSPCA   Exclusive OR register with A
 
+int programCounter = 0;
+byte opcode = 0;
+int instructionCycle = 0;
 int lowOrder = 0;
 int highOrder = 0;
 
@@ -309,73 +310,58 @@ void processByte(byte theByte) {
   // Serial.print(":theByte,");
   // Serial.print(theByte);
   // Serial.print(":");
+  if (opcode == JMP) {
+    if (instructionCycle == 0) {
+      instructionCycle++;
+      lowOrder = programCounter++;
+      return;
+    }
+    programCounter = word(memoryData[programCounter], memoryData[lowOrder]);
+    Serial.print(" > JMP, jump to:");
+    sprintf(charBuffer, "%4d:", programCounter);
+    Serial.print(charBuffer);
+    printByte((byte)programCounter);
+    //
+    opcode = 0;
+    return;
+  }
   switch (theByte) {
     case HLT:
       Serial.print(" > HLT Instruction, Halt the processor.");
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
-      programCounter++;
       break;
     case JMP:
-      Serial.println(" > JMP opcode, get address low and high order bytes.");
-      getLowHighAddress();
-      programCounter = regA;
-      Serial.print(" > JMP, jump to:");
-      sprintf(charBuffer, "%4d:", programCounter);
-      Serial.print(charBuffer);
-      printByte((byte)programCounter);
-      // Serial.println("");
+      opcode = JMP;
+      instructionCycle = 0;
+      Serial.print(" > JMP opcode, get address low and high order bytes.");
+      break;
+    case NOP:
+      Serial.print(" > NOP Instruction, No operation.");
+      // Can add a delay, for example, to wait for an interrupt proccess.
+      delay(10);
       break;
     default:
       Serial.print(" - Error, unknow instruction.");
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
   }
-  if (theByte == NOP) {
-    // Note, NOP does not work in the switch statement.
-    Serial.print(" > NOP Instruction, No operation.");
-    // Can add a delay, for example, to wait for an interrupt proccess.
-    delay(10);
-    programCounter++;
-  }
+  programCounter++;
 }
 
 // -----------------------------------------------------------------------------
-void getLowHighAddress() {
-
-  lowOrder = ++programCounter;
+void printAddressData() {
   Serial.print("+ Addr: ");
   sprintf(charBuffer, "%4d:", programCounter);
   Serial.print(charBuffer);
   Serial.print(" Data: ");
   printData(memoryData[programCounter]);
-  Serial.println("");
-
-  highOrder = ++programCounter;
-  Serial.print("+ Addr: ");
-  sprintf(charBuffer, "%4d:", programCounter);
-  Serial.print(charBuffer);
-  Serial.print(" Data: ");
-  printData(memoryData[programCounter]);
-  // Serial.println("");
-
-  // word(high order byte, low order byte)
-  regA = word(memoryData[highOrder], memoryData[lowOrder]);
-
 }
 
-// -----------------------------------------------------------------------------
-void processInstruction() {
-
-  Serial.print("+ Addr: ");
-  sprintf(charBuffer, "%4d:", programCounter);
-  Serial.print(charBuffer);
-  // printByte((byte)programCounter);
-  Serial.print(" Data: ");
-  printData(memoryData[programCounter]);
+void processData() {
+  printAddressData();
   processByte(memoryData[programCounter]);
   Serial.println("");
-
 }
 
 // -----------------------------------------------------------------------------
@@ -394,9 +380,9 @@ void setup() {
   //    jumpLoopProgram
   //    jumpLoopNopProgram
   //    jumpHaltLoopProgram
-  int programSize = sizeof(jumpLoopProgram);
-  listByteArray(jumpLoopProgram, programSize);
-  copyByteArrayToMemory(jumpLoopProgram, programSize);
+  int programSize = sizeof(jumpHaltLoopProgram);
+  listByteArray(jumpHaltLoopProgram, programSize);
+  copyByteArrayToMemory(jumpHaltLoopProgram, programSize);
 
   Serial.println("+++ Start the processor loop.");
 }
@@ -411,7 +397,7 @@ void loop() {
     // Execute an instruction controlled by the timer.
     // Example, 3000 : once every 3 seconds.
     if (millis() - timer >= 500) {
-      processInstruction();
+      processData();
       timer = millis();
     }
     checkStopButton();
