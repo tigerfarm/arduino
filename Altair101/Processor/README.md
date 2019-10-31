@@ -21,8 +21,10 @@ Board components,
 
 #### Progress Status
 
-Programs can be run, stopped, and stepped through using the processor development board.
+I have a sample program that can read and write to an SD card using the SD card module.
++ I need to integrate it so that programs can be saved to the SD card and loaded from the SD card.
 
+Programs can be run, stopped, and stepped through using the processor development board.
 The following panel photo shows the placements: WAIT LED and the STOP, RUN, and STEP toggles.
 
 <img width="360px"  src="StopRunStepWait01a.jpg"/>
