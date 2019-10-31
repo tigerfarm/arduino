@@ -9,6 +9,7 @@ With the electronic parts, mostly from China, the total is $101.
 Wow, $101. An auspicious cost for an Altair 101.
 
 [<img width="300px"  src="originalPricelist.jpg"/>](https://altairclone.com/ordering.htm)
++ Altair 8800 Clone [Ordering Information](https://altairclone.com/ordering.htm), (assembled) $621
 
 My Altair 101 parts listed [below](https://github.com/tigerfarm/arduino/tree/master/Altair101/build#altair-101-parts-list).
 
@@ -18,7 +19,7 @@ https://www.youtube.com/watch?v=zqRILp6srBk&t=830s
 Their steps,
 + Adds toggles and LEDs to his Altair 8800 clone front panel,
 + Puts the completed front panel into his case.
-+ Wires the front panel components to his Arduino Duo.
++ Wires the front panel components to his Arduino Due.
 + I'm going to use an Arduino Nano with other components on breadboards.
 + With the parts connected, ran a test.
 + Completed by putting the case together with the electronics enclosed.
@@ -48,7 +49,7 @@ Their steps,
 [<img width="300px"  src="AltairReplica14.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
 --------------------------------------------------------------------------------
-### Front Panel I/O Hardware Boards
+### Front Panel I/O Hardware Breadboards
 
 Build a toggle input test board:
 + 4 input toggles for 4 data bits.
@@ -78,41 +79,6 @@ This means there is plenty of power to run the chips and LEDs.
 + +5V and ground to each 74HC595.
 + Not powering the 74HC595 and LEDs from the Nano +5V pin when the power comes into the Nano from the USB port.
 + Using the +5V pin when the power comes into the Nano from the USB port, will be okay to build a single 74HC595 chip test board.
-
---------------------------------------------------------------------------------
-### Front Panel Cable Required for My Build
-
-Male to Male Ribbon Cables
-+ 1 power toggle:
-    2 x 20cm Male to Male Ribbon
-+ 16 address toggles:
-    16 x 20cm Male to Male Ribbon for control + 1 x 20cm Male to Male Ribbon for input into 74HC595
-    15 x 10cm Male to Male Ribbon for ground connection from one toggle to the next + 1 x 20cm Male to Male Ribbon to ground
-+ 8 control (16 on/off) on/off/on momentary toggles: 
-    16 x 20cm Male to Male Ribbon for control + 1 x 20cm Male to Male Ribbon for input into 74HC595
-     7 x 10cm Male to Male Ribbon for ground connection from one toggle to the next + 1 x 20cm Male to Male Ribbon to ground
-+ LEDs: 8 data + 16 address:
-    24 x 20cm Female to Male Ribbon for control + 1 x 20cm Female to Male Ribbon for input into 74HC595
-    23 x 10cm Female to Female Ribbon for ground connection from one LED to the next + 1 x 20cm Female to Male Ribbon to ground
-+ LEDs: 2 state + 8 status:
-    10 x 20cm Female to Male Ribbon for control + 1 x 20cm Female to Male Ribbon for input into 74HC595
-     9 x 10cm Female to Female Ribbon for ground connection from one LED to the next + 1 x 20cm Female to Male Ribbon to ground
-+ LED: 2 x on/off (WAIT + HLDA):
-     4 x 20cm Female to Male Ribbon for control + 1 x 20cm Female to Male Ribbon for input into 74HC595
-
-Totals:
-+ Toggles: 20cm Male to Male Ribbon:
-    2 + 18 + 18
-+ Toggles: 10cm Male to Male Ribbon:
-    0 + 15 +  7
-+ LEDs: 20cm Female to Male Ribbon:
-    26 + 12 + 4
-+ LEDs: 10cm Female to Female Ribbon:
-    23 +  9 + 0
-+ 20cm Male to Male Ribbon: 38
-+ 10cm Male to Male Ribbon: 22
-+ 20cm Female to Male Ribbon: 42
-+ 10cm Female to Female Ribbon: 32
 
 --------------------------------------------------------------------------------
 #### LED Outputs
@@ -162,6 +128,41 @@ Altair 101 board for 25 toggles (1+16 toggles + 8 momentary toggles):
 
 https://www.ebay.com/itm/5-x-74HC165-74165-IC-8-BIT-SHIFT-REGISTER-FREE-SHIPPING/251118499363
 https://www.ebay.com/itm/10pcs-74HC165-SN74HC165N-8-Bit-Parallel-Load-Shift-Registers-DIP-16/181847051341
+
+--------------------------------------------------------------------------------
+### Front Panel Cables Required for My Build
+
+Male to Male Ribbon Cables
++ 1 power toggle:
+    2 x 20cm Male to Male Ribbon
++ 16 address toggles:
+    16 x 20cm Male to Male Ribbon for control + 1 x 20cm Male to Male Ribbon for input into 74HC595
+    15 x 10cm Male to Male Ribbon for ground connection from one toggle to the next + 1 x 20cm Male to Male Ribbon to ground
++ 8 control (16 on/off) on/off/on momentary toggles: 
+    16 x 20cm Male to Male Ribbon for control + 1 x 20cm Male to Male Ribbon for input into 74HC595
+     7 x 10cm Male to Male Ribbon for ground connection from one toggle to the next + 1 x 20cm Male to Male Ribbon to ground
++ LEDs: 8 data + 16 address:
+    24 x 20cm Female to Male Ribbon for control + 1 x 20cm Female to Male Ribbon for input into 74HC595
+    23 x 10cm Female to Female Ribbon for ground connection from one LED to the next + 1 x 20cm Female to Male Ribbon to ground
++ LEDs: 2 state + 8 status:
+    10 x 20cm Female to Male Ribbon for control + 1 x 20cm Female to Male Ribbon for input into 74HC595
+     9 x 10cm Female to Female Ribbon for ground connection from one LED to the next + 1 x 20cm Female to Male Ribbon to ground
++ LED: 2 x on/off (WAIT + HLDA):
+     4 x 20cm Female to Male Ribbon for control + 1 x 20cm Female to Male Ribbon for input into 74HC595
+
+Totals:
++ Toggles: 20cm Male to Male Ribbon:
+    2 + 18 + 18
++ Toggles: 10cm Male to Male Ribbon:
+    0 + 15 +  7
++ LEDs: 20cm Female to Male Ribbon:
+    26 + 12 + 4
++ LEDs: 10cm Female to Female Ribbon:
+    23 +  9 + 0
++ 20cm Male to Male Ribbon: 38
++ 10cm Male to Male Ribbon: 22
++ 20cm Female to Male Ribbon: 42
++ 10cm Female to Female Ribbon: 32
 
 --------------------------------------------------------------------------------
 ### Altair 101 Parts List
@@ -237,11 +238,8 @@ https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
 + Assembled & Tested, $279.95 – $349.95
 https://www.adwaterandstir.com/product/altair-assembled/
 
-Google forums:
++ Google forums:
 https://groups.google.com/forum/#!forum/altair-duino
-
-+ Altair 8800 Clone, Ordering Information, (assembled) $621
-https://altairclone.com/ordering.htm
 
 + Getting started with the Arduino Due
 https://www.arduino.cc/en/Guide/ArduinoDue
