@@ -114,11 +114,12 @@ http://brooknet.no-ip.org/~lex/altair/_altair88b/manual/instructMain.html
 Binary Calculator
 https://www.calculator.net/binary-calculator.html
 
+The following program demonstrates status lights for specific opcodes.
 ````
-Demonstrate status light combinations 
+Addr HEX     Assembler code  ;Comments
 0000         org     0 
 0000 3A2000  lda     40Q     ;opcode fetch, memory read x 3 
-0003 322100  sta     41Q     ;opcode fetch, mem read x 2, mem write 
+0003 322100  sta     41Q     ;opcode fetch, mem read x 2, mem write x 1
 0006 312000  lxi     sp,40Q  ;opcode fetch, mem read x 2 
 0009 F5      push    a       ;opcode fetch, stack write x 2 
 000A F1      pop     a       ;opcode fetch, stack read x 2 
@@ -131,6 +132,7 @@ Demonstrate status light combinations
 ````
 HEX to octal and binary.
 ````
+Line of code  HEX      Octal         Binary machine code
 lda  40Q    | 3A2000 | 072 040 000 | 00 111 010 : 00 100 000 : 00 000 000
 sta  41Q    | 322100 | 062 041 000 | 00 110 010 : 00 100 001 : 00 000 000
 lxi  sp,40Q | 312000 | 061 040 000
