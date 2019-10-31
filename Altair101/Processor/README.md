@@ -5,9 +5,11 @@ The core program is the machine code processor that is written in C, using the A
 For my development, the program is run an Arduino Nano microprocessor.
 The sketch program interprets and processes each operational instruction.
 
-#### Altair 8800 Front Panel
+#### Altair 101  Front Panel
 
-[<img width="600px"  src="FrontPanel01a.jpg"/>](https://s2js.com/altair/sim.html)
+A clone of the original Altair 8800 front panel.
+
+<img width="600px"  src="FrontPanel01a.jpg"/>
 
 I will need to handle a limited number of operational instructions, such as the jump (JMP) instruction.
 A major milestone will be when I have enough instructions to run the classic, [Kill the Bit](https://youtu.be/ZKeiQ8e18QY) program, on my Altair 101.
