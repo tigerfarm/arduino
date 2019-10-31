@@ -235,6 +235,8 @@ https://www.tweaking4all.com/hardware/arduino/arduino-ws2812-led/
 --------------------------------------------------------------------------------
 ### Reference Links
 
+Ben Eater's kit, [Build an 8-bit computer from scratch](https://eater.net/8bit/kits).
+
 + How to build one.
 https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
 + Build your own.
