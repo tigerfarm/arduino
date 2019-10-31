@@ -12,7 +12,8 @@ The main breadboard is the equivalent to a computer's motherboard that has CPU, 
 <img width="360px"  src="ProcessorBoard.jpg"/>
 
 Board components,
-+ Arduino Nano to run the processor program and pins for I/O such as button inputs and LED outputs.
++ Arduino Nano to run the processor program.
++ The Nano has I/O pins to interact with button inputs and LED outputs.
 + SD card module for saving and loading programs.
 + STOP button to stop programs that are running.
 + RUN button to start programs running, or continue the running of stopped programs.
@@ -21,11 +22,11 @@ Board components,
 
 #### Progress Status
 
-I have a sample program that can read and write to an SD card using the SD card module.
+I have a sample program that can read and write from/to an SD card using the SD card module.
 + I need to integrate it so that programs can be saved to the SD card and loaded from the SD card.
 
 Programs can be run, stopped, and stepped through using the processor development board.
-The following panel photo shows the placements: WAIT LED and the STOP, RUN, and STEP toggles.
+The following panel photo shows the LED and toggle placements for the WAIT LED and the STOP, RUN, and STEP toggles.
 
 <img width="360px"  src="StopRunStepWait01a.jpg"/>
 
@@ -52,7 +53,8 @@ Sample program run of the jump halt loop program, using the STEP button, the RUN
 ````
 +++ Setup.
 + LEDs configured for output.
-+ List the program.
++ List the program:
+++ Address: data
 ++   0: 11000011:303
 ++   1: 00000110:006
 ++   2: 00000000:000
@@ -727,6 +729,25 @@ Following are reference links,
 + [Assembler source code](https://sourceforge.net/projects/asm8080/)
 + Click [here](https://altairclone.com/downloads/) for Altair 8800 original and clone documents.
 + Click [here](https://www.youtube.com/playlist?list=PLB3mwSROoJ4KLWM8KwK0cD1dhX35wILBj) Altair 8800 Instructional Videos
+
+--------------------------------------------------------------------------------
+#### Programming links
+
+  Reference > Language > Variables > Data types > Array
+    https://www.arduino.cc/reference/en/language/variables/data-types/array/
+
+  A byte stores an 8-bit unsigned number, from 0 to 255.
+    https://www.arduino.cc/reference/en/language/variables/data-types/byte/
+
+  Array size, sizeof(): Reference > Language > Variables > Utilities > Sizeof
+    https://www.arduino.cc/reference/en/language/variables/utilities/sizeof/
+
+  Octal,  Reference > Language > Variables > Constants > Integerconstants
+    https://www.arduino.cc/reference/en/language/variables/constants/integerconstants/
+    leading "0" characters 0-7 valid, for example: 0303 is octal 303.
+
+  Following from:
+    https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
 
 --------------------------------------------------------------------------------
 Cheers

@@ -1,22 +1,135 @@
 // -----------------------------------------------------------------------------
 /*
-  Altair 101 Memory Definitions and Management.
+  Altair 101 software microprocessor
 
-  Reference > Language > Variables > Data types > Array
-    https://www.arduino.cc/reference/en/language/variables/data-types/array/
-  A byte stores an 8-bit unsigned number, from 0 to 255.
-    https://www.arduino.cc/reference/en/language/variables/data-types/byte/
-  Array size, sizeof(): Reference > Language > Variables > Utilities > Sizeof
-    https://www.arduino.cc/reference/en/language/variables/utilities/sizeof/
-  Octal,  Reference > Language > Variables > Constants > Integerconstants
-    https://www.arduino.cc/reference/en/language/variables/constants/integerconstants/
-    leading "0" characters 0-7 valid, for example: 0303 is octal 303.
-
-  // -----------------------------------------------------------------------------
-  Following from:
-    https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
-
+    Definitions Memory and Memory Management.
+    Control Front Panel LED lights.
+    Process Front Panel toggle events.
+    Instruction Set, Opcodes, Registers
 */
+// -----------------------------------------------------------------------------
+// Memory definitions
+
+int memoryBytes = 512;
+byte memoryData[512];
+
+// Define a jump loop program byte array.
+byte jumpLoopProgram[] = {
+  0303, 0006, 0000, // 0 1 2
+  0000, 0000, 0000, // 3 4 5
+  0303, 0000, 0000  // 6 7 8
+};
+// Needs to work like in the Altair in the following video, starting a 6 minutes in:
+//    https://www.youtube.com/watch?v=EV1ki6LiEmg
+// When single stepping,
+// + MEMR and WO are on.
+// + Flip single step,
+// ++ The new address is displayed and data value retreived and LED displayed.
+// ++ The data value is the jump instruction code.
+// + MEMR and WO are on. Status LED MI is off.
+// + Flip single step, status LED MI goes on.
+// + And Low order address byte is retrieved and shown. Status LED MI goes off.
+// + Flip single step, high order address byte is retrieved and shown.
+// + Status LED MI stays off.
+// + Flip single step,
+// ++ Program counter is to that address.
+// ++ The new address and data values are LED displayed.
+// ++ Status LED MI goes on.
+// Note, the simulator works like my code, which is different than the Altair in the video.
+
+// Define a jump loop program with NOP instructions.
+byte jumpLoopNopProgram[] = {
+  0303, 0004, 0000,
+  0000, 0000, 0000,
+  0303, 0000, 0000
+};
+
+// Define a jump loop program
+//    with a halt(HLT binary 01 110 110 = octal 166) instruction,
+//    and NOP instructions.
+byte jumpHaltLoopProgram[] = {
+  0303, 0006, 0000,
+  0000, 0000, 0000,
+  0166, 0000, 0000,
+  0303, 0000, 0000
+};
+
+// -----------------------------------------------------------------------------
+// Output memory address and data valules.
+
+byte zeroByte = B00000000;
+char charBuffer[16];
+
+void printByte(byte b) {
+  for (int i = 7; i >= 0; i--)
+    Serial.print(bitRead(b, i));
+}
+void printWord(int theValue) {
+  String sValue = String(theValue, BIN);
+  for (int i = 1; i <= 16 - sValue.length(); i++) {
+    Serial.print("0");
+  }
+  Serial.print(sValue);
+}
+
+void printOctal(byte b) {
+  String sOctal = String(b, OCT);
+  for (int i = 1; i <= 3 - sOctal.length(); i++) {
+    Serial.print("0");
+  }
+  Serial.print(sOctal);
+}
+
+void printData(byte theByte) {
+  printOctal(theByte);
+  Serial.print(":");
+  printByte(theByte);
+  //
+  // printByte(theByte);
+  // Serial.print(memoryData[i], BIN);
+  // Serial.print(":");
+  //
+  // printOctal(theByte);
+  // Serial.print(memoryData[i], OCT);
+  // Serial.print(" : ");
+  //
+  // Serial.println(memoryData[i], DEC);
+  // sprintf(charBuffer, "%3d", theByte);
+  // Serial.print(charBuffer);
+}
+
+// -----------------------------------------------------------------------------
+// Memory Functions
+
+void initMemoryToZero() {
+  Serial.println("+ Initialize all memory bytes to zero.");
+  for (int i = 0; i < memoryBytes; i++) {
+    memoryData[i] = zeroByte;
+  }
+}
+
+void copyByteArrayToMemory(byte btyeArray[], int arraySize) {
+  Serial.println("+ Copy the program into the computer's memory array.");
+  for (int i = 0; i < arraySize; i++) {
+    memoryData[i] = btyeArray[i];
+  }
+  Serial.println("+ Copied.");
+}
+
+void listByteArray(byte btyeArray[], int arraySize) {
+  Serial.println("+ List the program.");
+  Serial.println("++ Address: Data value");
+  for (int i = 0; i < arraySize; i++) {
+    Serial.print("++ ");
+    sprintf(charBuffer, "%7d", i);
+    Serial.print(charBuffer);
+    Serial.print(": ");
+    printData(btyeArray[i]);
+    Serial.println("");
+  }
+  Serial.println("+ End of listing.");
+}
+
 // -----------------------------------------------------------------------------
 // Front Panel LEDs
 
@@ -124,125 +237,7 @@ void checkStepButton() {
 }
 
 // -----------------------------------------------------------------------------
-// Memory definitions
-
-int memoryBytes = 512;
-byte memoryData[512];
-
-// Define a jump loop program byte array.
-byte jumpLoopProgram[] = {
-  0303, 0006, 0000, // 0 1 2
-  0000, 0000, 0000, // 3 4 5
-  0303, 0000, 0000  // 6 7 8
-};
-// Needs to work like in the Altair in the following video, starting a 6 minutes in:
-//    https://www.youtube.com/watch?v=EV1ki6LiEmg
-// When single stepping,
-// + MEMR and WO are on.
-// + Flip single step,
-// ++ The new address is displayed and data value retreived and LED displayed.
-// ++ The data value is the jump instruction code.
-// + MEMR and WO are on. Status LED MI is off.
-// + Flip single step, status LED MI goes on.
-// + And Low order address byte is retrieved and shown. Status LED MI goes off.
-// + Flip single step, high order address byte is retrieved and shown.
-// + Status LED MI stays off.
-// + Flip single step,
-// ++ Program counter is to that address.
-// ++ The new address and data values are LED displayed.
-// ++ Status LED MI goes on.
-// Note, the simulator works like my code, which is different than the Altair in the video.
-
-// Define a jump loop program with NOP instructions.
-byte jumpLoopNopProgram[] = {
-  0303, 0004, 0000,
-  0000, 0000, 0000,
-  0303, 0000, 0000
-};
-
-// Define a jump loop program
-//    with a halt(HLT binary 01 110 110 = octal 166) instruction,
-//    and NOP instructions.
-byte jumpHaltLoopProgram[] = {
-  0303, 0006, 0000,
-  0000, 0000, 0000,
-  0166, 0000, 0000,
-  0303, 0000, 0000
-};
-
-// -----------------------------------------------------------------------------
-// Print byte data
-
-byte zeroByte = B00000000;
-char charBuffer[16];
-
-void printByte(byte b) {
-  for (int i = 7; i >= 0; i--)
-    Serial.print(bitRead(b, i));
-}
-void printWord(int theValue) {
-  String sValue = String(theValue, BIN);
-  for (int i = 1; i <= 16 - sValue.length(); i++) {
-    Serial.print("0");
-  }
-  Serial.print(sValue);
-}
-
-void printOctal(byte b) {
-  String sOctal = String(b, OCT);
-  for (int i = 1; i <= 3 - sOctal.length(); i++) {
-    Serial.print("0");
-  }
-  Serial.print(sOctal);
-}
-
-void printData(byte theByte) {
-  printByte(theByte);
-  // Serial.print(memoryData[i], BIN);
-  Serial.print(":");
-  //
-  printOctal(theByte);
-  // Serial.print(memoryData[i], OCT);
-  // Serial.print(" : ");
-  //
-  // Serial.println(memoryData[i], DEC);
-  // sprintf(charBuffer, "%3d", theByte);
-  // Serial.print(charBuffer);
-}
-
-// -----------------------------------------------------------------------------
-// Memory Functions
-
-void initMemoryToZero() {
-  Serial.println("+ Initialize all memory bytes to zero.");
-  for (int i = 0; i < memoryBytes; i++) {
-    memoryData[i] = zeroByte;
-  }
-}
-
-void copyByteArrayToMemory(byte btyeArray[], int arraySize) {
-  Serial.println("+ Copy the program into the computer's memory array.");
-  for (int i = 0; i < arraySize; i++) {
-    memoryData[i] = btyeArray[i];
-  }
-  Serial.println("+ Copied.");
-}
-
-void listByteArray(byte btyeArray[], int arraySize) {
-  Serial.println("+ List the program.");
-  for (int i = 0; i < arraySize; i++) {
-    Serial.print("++ ");
-    sprintf(charBuffer, "%3d", i);
-    Serial.print(charBuffer);
-    Serial.print(": ");
-    printData(btyeArray[i]);
-    Serial.println("");
-  }
-  Serial.println("+ End of listing.");
-}
-
-// -----------------------------------------------------------------------------
-// Instruction Set
+// Instruction Set, Opcodes, Registers
 
 // This section is base on section 26: 8080 Instruction Set
 //    https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
@@ -273,7 +268,16 @@ void listByteArray(byte btyeArray[], int arraySize) {
 */
 
 int programCounter = 0;
-// int nextAddress = 0;
+
+//   Destination and Source register fields.
+int regA = 0;   // 111=A   (Accumulator)
+int regB = 0;   // 000=B
+int regC = 0;   // 001=C
+int regD = 0;   // 010=D
+int regE = 0;   // 011=E
+int regH = 0;   // 100=H
+int regL = 0;   // 101=L
+int regM = 0;   // 110=M   (Memory reference through address in H:L)
 
 // Octals stored as a bytes.
 //
@@ -298,6 +302,9 @@ const byte STA = B00110010;   // STA a     00110010 lb hb    -       Store A to 
 // RRC       00001111          C       Rotate A right
 // XRA S     10101SSS          ZSPCA   Exclusive OR register with A
 
+int lowOrder = 0;
+int highOrder = 0;
+
 void processByte(byte theByte) {
   // Serial.print(":theByte,");
   // Serial.print(theByte);
@@ -310,16 +317,14 @@ void processByte(byte theByte) {
       programCounter++;
       break;
     case JMP:
-      Serial.print(" > JMP Instruction, jump to address :");
-      // Serial.print(programCounter);
-      int lowOrder = ++programCounter;
-      int highOrder = ++programCounter;
-      // word(high order byte, low order byte)
-      programCounter = word(memoryData[highOrder], memoryData[lowOrder]);
-      printWord(programCounter);  // Example: 00 000 000 00 000 110
-      Serial.print(":DEC,");
-      Serial.print(programCounter);
-      Serial.print(":");
+      Serial.println(" > JMP opcode, get address low and high order bytes.");
+      getLowHighAddress();
+      programCounter = regA;
+      Serial.print(" > JMP, jump to:");
+      sprintf(charBuffer, "%4d:", programCounter);
+      Serial.print(charBuffer);
+      printByte((byte)programCounter);
+      // Serial.println("");
       break;
     default:
       Serial.print(" - Error, unknow instruction.");
@@ -336,12 +341,36 @@ void processByte(byte theByte) {
 }
 
 // -----------------------------------------------------------------------------
+void getLowHighAddress() {
+
+  lowOrder = ++programCounter;
+  Serial.print("+ Addr: ");
+  sprintf(charBuffer, "%4d:", programCounter);
+  Serial.print(charBuffer);
+  Serial.print(" Data: ");
+  printData(memoryData[programCounter]);
+  Serial.println("");
+
+  highOrder = ++programCounter;
+  Serial.print("+ Addr: ");
+  sprintf(charBuffer, "%4d:", programCounter);
+  Serial.print(charBuffer);
+  Serial.print(" Data: ");
+  printData(memoryData[programCounter]);
+  // Serial.println("");
+
+  // word(high order byte, low order byte)
+  regA = word(memoryData[highOrder], memoryData[lowOrder]);
+
+}
+
+// -----------------------------------------------------------------------------
 void processInstruction() {
 
   Serial.print("+ Addr: ");
-  printByte((byte)programCounter);
-  sprintf(charBuffer, "%4d", programCounter);
+  sprintf(charBuffer, "%4d:", programCounter);
   Serial.print(charBuffer);
+  // printByte((byte)programCounter);
   Serial.print(" Data: ");
   printData(memoryData[programCounter]);
   processByte(memoryData[programCounter]);
@@ -365,11 +394,11 @@ void setup() {
   //    jumpLoopProgram
   //    jumpLoopNopProgram
   //    jumpHaltLoopProgram
-  int programSize = sizeof(jumpLoopNopProgram);
-  listByteArray(jumpLoopNopProgram, programSize);
-  copyByteArrayToMemory(jumpLoopNopProgram, programSize);
+  int programSize = sizeof(jumpLoopProgram);
+  listByteArray(jumpLoopProgram, programSize);
+  copyByteArrayToMemory(jumpLoopProgram, programSize);
 
-  Serial.println("+++ Start program loop.");
+  Serial.println("+++ Start the processor loop.");
 }
 
 // -----------------------------------------------------------------------------
