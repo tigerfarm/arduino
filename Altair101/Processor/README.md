@@ -9,7 +9,7 @@ The sketch program interprets and processes each operational instruction.
 
 Modern computers have a keyboard and monitor. A mobile phone has touch screen display.
 The Altair 101 has a panel of toggles and LED lights.
-That all the original Altair 8800 had, toggles and lights in 1975.
+That's what the original Altair 8800 had in 1975, toggles and lights.
 
 <img width="360px"  src="FrontPanel01a.jpg"/>
 
@@ -31,11 +31,13 @@ Board components,
 
 <img width="360px"  src="ProcessorBoard.jpg"/>
 
-Panel showing the placements for the WAIT LED and the STOP, RUN, and STEP toggles and.
+#### Status
+
+Programs can be run, stopped, and stepped through on the processor breadboard.
+
+Panel showing the placements: WAIT LED and the STOP, RUN, and STEP toggles and.
 
 <img width="360px"  src="StopRunStepWait01a.jpg"/>
-
-### Status
 
 Processor optional instruction codes, opcodes, programed and tested:
 + JMP
