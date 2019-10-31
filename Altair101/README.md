@@ -1,8 +1,9 @@
 --------------------------------------------------------------------------------
 # Altair 101 Project Notes
 
-My computer, which I call the Altair 101, is designed to the user experience of an original Altair 8800.
-It is meant to replicate the user experience of flipping toggles for data entry and watching LED lights flash to see results.
+My computer, which I call the Altair 101, is designed to give a person the experience of using an original Altair 8800.
+It will replicate the user experience of flipping toggles for program and data input.
+Then, I'll enjoy watching the computer's output, flashing LED lights.
 
 The Altair 101 will have an Altair 8800 look and feel from the user's point of view.
 It will be functional and have the ability to save and load programs to/from an SD card.
