@@ -1,9 +1,10 @@
 --------------------------------------------------------------------------------
 # Altair 101 Project Notes
 
-My computer, which I call the Altair 101, is designed to give a person the experience of using an original Altair 8800.
-It will replicate the user experience of flipping toggles for program and data input.
-Then, I'll enjoy watching the computer's output, flashing LED lights.
+I designed a computer to give a person the experience of using the first popular home computer.
+The Model-T was the first popular car. The Altair 8800 was the Model-T of the home computers.
+The Altair 101 will replicate the user experience of flipping toggles for program and data input.
+Then, I'll enjoy watching my computer's output, flashing LED lights.
 
 The Altair 101 will have an Altair 8800 look and feel from the user's point of view.
 It will be functional and have the ability to save and load programs to/from an SD card.
@@ -14,7 +15,7 @@ I have a few working operational codes that I used to run a few basic Altair 880
 
 My goal is to,
 + Build a computer that has an [Altair 8800 clone front panel](https://www.adwaterandstir.com/product/front-panel/),
-similar LEDs and toggles to an Altair 8800.
+similar LEDs and toggles to an [original Altair 8800](https://en.wikipedia.org/wiki/Altair_8800).
 + It will be built with a minimum amount of soldering as the chips, module boards, and other electronic components will be built on breadboards.
 + It will run original machine code which gives it the basic Altair 8800 functionality.
 
