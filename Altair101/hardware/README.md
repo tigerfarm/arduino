@@ -5,18 +5,20 @@ The build starts with an [Altair 8800 clone front panel](https://www.adwaterands
 The Altair 101 has a panel of toggles and LED lights.
 That's what the original Altair 8800 had in 1975, toggles and lights.
 
-[<img width="360px"  src="../FrontPanel01a.jpg"/>](https://www.adwaterandstir.com/product/upgrade/)
+[<img width="360px"  src="../FrontPanel01a.jpg"/>](https://www.adwaterandstir.com/product/front-panel/)
 
-I also bought the accompanying Pro case which is part of the expansion upgrade.
+I also bought the accompanying Pro case which is part of the [expansion upgrade](https://www.adwaterandstir.com/product/upgrade/).
 
-<img width="360px"  src="https://www.adwaterandstir.com/wp-content/uploads/2019/07/AD1.jpg"/>
+<img width="360px"  src="https://www.adwaterandstir.com/wp-content/uploads/2019/07/AD1.jpg"/>](https://www.adwaterandstir.com/product/upgrade/)
 
-The target was to keep the cost of parts under $100.
-The cost of the clone front panel, sticker, and standard case, was $74, which doesn't leave much for the electronics.
-With the electronic parts, mostly from China, the total is $101.
+The cost of the clone front panel, sticker, standard case, and shipping, was a very reasonable $74.
+However, my target was to keep the cost of parts to about $100, which doesn't leave much for the electronics.
+I used Ebay.com to select and order parts, mostly from China. The total is $101.
 Wow, $101. An auspicious cost for an Altair 101.
 
-#### Orginal Altair 8800 price list:
+Following is the Original Altair 8800 price list.
+The [Altar 8800 Clone site](https://altairclone.com/), has supper case.
+They prices their clone using the original price list. The red markups are notes regarding their product offering.
 
 [<img width="300px"  src="originalPricelist.jpg"/>](https://altairclone.com/ordering.htm)
 
