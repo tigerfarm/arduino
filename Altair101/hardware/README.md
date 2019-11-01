@@ -1,9 +1,17 @@
 --------------------------------------------------------------------------------
 # Altair 101 Build Plan
 
-The build starts with an [Altair 8800 clone front panel](https://www.adwaterandstir.com/product/front-panel/). Modern computers have a keyboard and monitor. A mobile phone has touch screen display.
-The Altair 101 has a panel of toggles and LED lights.
+Modern computers have a keyboard and monitor. A mobile phone has a touch screen display.
+My Altair 101 has a front panel of toggles and LED lights.
 That's what the original Altair 8800 had in 1975, toggles and lights.
+
+My goals are keep soldering to minimum, design for adding modern components, and a low cost.
+The Altair 8800 simulator clone uses an Arduino Due. I will use an Arduino Nano.
+All other Altair 8800 clones use a PCB board. I will use breadboards.
+I got the idea of building a computer on breadboards from Dan Eater's videos on 
+[how to Build an 8-bit computer from scratch](https://www.youtube.com/watch?v=HyznrdDSSGM&list=PLLlz7OhtlfKYk8nkyF1u-cDwzE_S0vcJs&index=14)
+
+My hardware designed around my [Altair 8800 clone front panel](https://www.adwaterandstir.com/product/front-panel/).
 
 [<img width="360px"  src="../FrontPanel01a.jpg"/>](https://www.adwaterandstir.com/product/front-panel/)
 
@@ -27,10 +35,6 @@ The red markups are notes regarding their product offering.
 My Altair 101 parts listed [below](#altair-101-parts-list).
 
 Their Altar 8800 Clone has a supper case and more advanced electronic components that my design.
-My goals are keep soldering to minimum, a simplistic design, and low cost.
-I will be using breadboards instead of PCB board, and an Arduino Nano instead of an Arduino Due.
-I got the idea of building a computer on breadboards from Dan Eater's videos on 
-[how to Build an 8-bit computer from scratch](https://www.youtube.com/watch?v=HyznrdDSSGM&list=PLLlz7OhtlfKYk8nkyF1u-cDwzE_S0vcJs&index=14)
 
 ### Build steps,
 
