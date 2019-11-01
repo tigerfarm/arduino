@@ -7,8 +7,13 @@ The Altair 101 will replicate the user experience of flipping toggles for progra
 Then, I'll enjoy watching the computer's output which flashing LED lights.
 
 The Altair 101 will have an Altair 8800 look and feel from the user's point of view.
-It will be functional and have the ability to save and load programs to/from an SD card.
-An inexpensive method to save and load programs was the reason I didn't buy an original when it was first available in 1975.
+It will be functional and have the ability to load programs from an SD card and save programs to an SD card.
+The lack of inexpensive method to save and load programs was the reason I didn't buy an original when it was first available in 1975.
+
+I will add LED lights and toggles to Altair 8800 clone front panel.
+The front panel is equivalent to a smartphone's touch screen display only retro. Very retro.
+
+<img width="600px"  src="FrontPanel01c.jpg"/>
 
 The current processor software program runs on an Arduino Nano.
 I have a few working operational codes that I used to run a few basic Altair 8800 machine code programs.
@@ -32,10 +37,6 @@ Once the base machine is complete, I will add modern components and functionalit
 + and yes, connect it to the internet.
 
 #### Getting Started with an Altair 8800 Clone Front Panel
-
-The front panel of LED lights and toggles is equivalent to a smartphone's touch screen display.
-
-<img width="600px"  src="FrontPanel01c.jpg"/>
 
 A major milestone will be when I have enough opcodes, operational instructions, to run the classic program, 
 [Kill the Bit](https://youtu.be/ZKeiQ8e18QY).
