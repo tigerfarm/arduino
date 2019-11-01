@@ -267,13 +267,8 @@ int regH = 0;   // 100=H
 int regL = 0;   // 101=L
 int regM = 0;   // 110=M   (Memory reference through address in H:L)
 
-//                               Inst      Encoding          Flags   Description
-// Programmed and tested:
-const byte HLT = 0166;        // HLT       01110110          -       Halt processor
-const byte JMP = 0303;        // JMP a     11000011 lb hb    -       Unconditional jump*
-const byte NOP = 0000;        // NOP       00000000          -       No operation
-//
 // To be programmed:
+//        Code   Octal           Inst      Encoding          Flags   Description
 const byte IN =  B11011011;   // IN p      11011011 pa       -       Read input port into A
 const byte STA = B00110010;   // STA a     00110010 lb hb    -       Store A to memory
 //
@@ -295,7 +290,7 @@ int lowOrder = 0;
 int highOrder = 0;
 
 void printAddressData() {
-  Serial.print("+ Addr: ");
+  Serial.print("Addr: ");
   sprintf(charBuffer, "%4d:", programCounter);
   Serial.print(charBuffer);
   Serial.print(" Data: ");
@@ -303,25 +298,25 @@ void printAddressData() {
 }
 
 void processData() {
-  printAddressData();
-  byte dataByte = memoryData[programCounter];
-  if (opcode == JMP) {
-    if (instructionCycle == 0) {
-      instructionCycle++;
-      lowOrder = programCounter++;
-      Serial.println("");
-      return;
-    }
-    programCounter = word(memoryData[programCounter], memoryData[lowOrder]);
-    Serial.print(" > JMP, jump to:");
-    sprintf(charBuffer, "%4d:", programCounter);
-    Serial.print(charBuffer);
-    printByte((byte)programCounter);
-    //
-    opcode = 0;
-    Serial.println("");
-    return;
+  if (opcode == 0) {
+    Serial.print("+ ");
+    printAddressData();
+    processOpcode();
+  } else {
+    Serial.print("> ");
+    printAddressData();
+    processOpcodeCycles();
   }
+}
+
+// Opcodes that are programmed and tested:
+//        Code   Octal           Inst      Encoding          Flags   Description
+const byte HLT = 0166;        // HLT       01110110          -       Halt processor
+const byte JMP = 0303;        // JMP a     11000011 lb hb    -       Unconditional jump*
+const byte NOP = 0000;        // NOP       00000000          -       No operation
+
+void processOpcode() {
+  byte dataByte = memoryData[programCounter];
   switch (dataByte) {
     case HLT:
       Serial.print(" > HLT Instruction, Halt the processor.");
@@ -345,6 +340,34 @@ void processData() {
   }
   Serial.println("");
   programCounter++;
+}
+
+// Opcode implementation.
+void processOpcodeCycles() {
+  instructionCycle++;
+  switch (opcode) {
+    case JMP:
+      if (instructionCycle == 1) {
+        lowOrder = programCounter++;
+        Serial.println("");
+        return;
+      }
+      // instructionCycle == 2
+      programCounter = word(memoryData[programCounter], memoryData[lowOrder]);
+      Serial.print(" > JMP, jump to:");
+      sprintf(charBuffer, "%4d:", programCounter);
+      Serial.print(charBuffer);
+      printByte((byte)programCounter);
+      Serial.println("");
+      //
+      break;
+    default:
+      Serial.print(" - Error, unknow instruction.");
+      runProgram = false;
+      digitalWrite(WAIT_PIN, HIGH);
+  }
+  // Opcode cycles are completed.
+  opcode = 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -387,8 +410,8 @@ void loop() {
   } else {
     checkRunButton();
     checkStepButton();
+    delay(60);
   }
 
-  delay(60);
 }
 // -----------------------------------------------------------------------------

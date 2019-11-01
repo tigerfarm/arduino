@@ -15,29 +15,48 @@ Board components,
 + Arduino Nano to run the processor program.
 + The Nano has I/O pins to interact with button inputs and LED outputs.
 + SD card module for saving and loading programs.
-+ STOP button to stop programs that are running.
-+ RUN button to start programs running, or continue the running of stopped programs.
-+ STEP button to step through a program, one memory address at a time, one program instruction at a time.
-+ A WAIT LED: on when a program is not running, and off when a program is running.
++ Buttons: STOP, RUN, STEP.
++ A WAIT LED.
 
-#### Progress Status
+#### Software Progress
 
-I have a sample program that can read and write from/to an SD card using the SD card module.
-+ I need to integrate it so that programs can be saved to the SD card and loaded from the SD card.
++ STOP button will stop a running program.
++ RUN button will start a program, or continue it after a program was stopped or halted.
++ STEP button will step through a program, one memory address at a time.
++ The WAIT LED is on when a program is not running or halted. It's off when a program is running.
 
-Programs can be run, stopped, and stepped through using the processor development board.
 The following panel photo shows the LED and toggle placements for the WAIT LED and the STOP, RUN, and STEP toggles.
 
 <img width="360px"  src="StopRunStepWait01a.jpg"/>
 
+I have a sample program that can read and write from/to an SD card using the SD card module.
++ I need to integrate it so that the processor program can save programs to the SD card and load programs from the SD card.
+
+Programs can be run on the processor development board.
 Processor optional instruction codes, opcodes, that are programed and tested:
 + JMP opcode is octal 303.
 + NOP opcode is octal 000.
 + HLT opcode is octal 166.
 
+JMP opcode,
++ Instruction cycle 1) Step to the next memory address to get the low order address byte.
++ Instruction cycle 2) Step to the next memory address to get the high order address byte.
++ Then jump to that address.
+
+NOP opcode,
++ No operations are run.
++ Step to the next memory address.
+
+HLT opcode,
++ The program run process is stopped.
++ Step to the next memory address.
++ Note, the Altair locks up on a halt opcode. I chose instead to stop.
++ RUN will continue the running of the program after the halt.
++ STEP will process the current data opcode, and continue.
+
 THe processor can run sample machine code programs.
 Currently, test programs are defined in the processor program.
-The program definitions are copied into the processor memory and run.
+The program definitions are copied into the processor memory and are then ready to run.
 
 Example jump loop program definition:
 ````
