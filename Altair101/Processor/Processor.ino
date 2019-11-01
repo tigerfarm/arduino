@@ -16,8 +16,16 @@
 // -----------------------------------------------------------------------------
 // Memory definitions
 
-int memoryBytes = 512;
-byte memoryData[512];
+const int memoryBytes = 512;
+byte memoryData[memoryBytes];
+
+// Should move the memory into an object?
+/*
+void computerMemory(byte b) {
+  const int memoryBytes2 = 1024;
+  byte memoryData2[memoryBytes2];
+}
+*/
 
 // Define a jump loop program byte array.
 byte jumpLoopProgram[] = {
@@ -337,11 +345,11 @@ void printAddressData() {
 
 void processData() {
   if (opcode == 0) {
-    Serial.print("+ ");
+    Serial.print("> ");
     printAddressData();
     processOpcode();
   } else {
-    Serial.print("> ");
+    Serial.print("+ ");
     printAddressData();
     processOpcodeCycles();
   }
