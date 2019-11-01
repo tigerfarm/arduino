@@ -20,8 +20,8 @@ I plan to modify mine for ease of maintenance, and to cover the blue with someth
 
 [<img width="360px"  src="https://www.adwaterandstir.com/wp-content/uploads/2019/07/AD1.jpg"/>](https://www.adwaterandstir.com/product/upgrade/)
 
-The cost of the clone front panel, sticker, case, and shipping, was a reasonable $74.
-However, my target was to keep the cost to about $100, which doesn't leave much for the electronics.
+The cost of my front panel, sticker, case, and shipping, was a reasonable $74.
+However, my target was to keep the cost to about $100, which didn't leave much for the electronics.
 I used Ebay.com to select and order parts, mostly from China. The total is $101.
 Wow, $101. An auspicious cost for an Altair 101.
 
@@ -32,13 +32,11 @@ The red markups are notes regarding their product offering.
 
 [<img width="300px"  src="originalPricelist.jpg"/>](https://altairclone.com/ordering.htm)
 
-My Altair 101 parts listed [below](#altair-101-parts-list).
-
-Their Altar 8800 Clone has a supper case and more advanced electronic components that my design.
+My Altair 101 parts are listed [below](#altair-101-parts-list).
 
 ### Build steps,
 
-In the following video, the person is building an Altair 8800 Replica is using a similar strategy to my plan.
+In the following video, the person is building an Altair 8800 Replica using a strategy that is similar to my plan.
 https://www.youtube.com/watch?v=zqRILp6srBk&t=830s
 
 Solder wires to the toggles and add the toggles onto the front panel.
@@ -53,12 +51,11 @@ Front panel with wired toggles and LED lights.
 
 [<img width="300px"  src="AltairReplica02.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
-Put the completed front panel into the bottom part of the computer case.
+Put the completed front panel into the top part of the computer case.
 
 [<img width="300px"  src="AltairReplica03.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
 Wire the front panel components to the Arduino Due.
-I am using an Arduino Nano on a breadboard with supporting components.
 
 [<img width="300px"  src="AltairReplica04.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
@@ -70,7 +67,7 @@ I am using an Arduino Nano on a breadboard with supporting components.
 
 [<img width="300px"  src="AltairReplica10.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
-With the Arduino connected to the front panel components, successful program tests were ran.
+With the Arduino connected to the front panel components, successful program tests were run.
 
 [<img width="300px"  src="AltairReplica11.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
