@@ -30,24 +30,31 @@ I'm going to use an Arduino Nano with other components on breadboards.
 I got the idea of building a computer on breadboards from Dan Eater's videos on 
 [how to Build an 8-bit computer from scratch](https://www.youtube.com/watch?v=HyznrdDSSGM&list=PLLlz7OhtlfKYk8nkyF1u-cDwzE_S0vcJs&index=14)
 
-Their steps,
-+ Add toggles and LEDs onto the Altair 8800 clone front panel.
-+ Put the completed front panel into the bottom part of the computer case.
-+ Wire the front panel components to the Arduino Due.
-+ With the parts connected, they ran a successful test.
-+ It was completed by putting the case together with the electronics enclosed.
+Build steps,
+
+Add toggles aonto the Altair 8800 clone front panel.
 
 [<img width="300px"  src="AltairReplica00.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
+Add LEDs onto the front panel.
+
 [<img width="300px"  src="AltairReplica01.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
+
+Front panel with wired toggles and LED lights.
 
 [<img width="300px"  src="AltairReplica02.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
+Put the completed front panel into the bottom part of the computer case.
+
 [<img width="300px"  src="AltairReplica03.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
+
+Wire the front panel components to the Arduino Due.
 
 [<img width="300px"  src="AltairReplica04.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
 [<img width="300px"  src="AltairReplica05.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
+
+With the parts connected, they ran a successful test.
 
 [<img width="300px"  src="AltairReplica06.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
@@ -56,6 +63,8 @@ Their steps,
 [<img width="300px"  src="AltairReplica10.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
 [<img width="300px"  src="AltairReplica11.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
+
+It was completed by putting the case together with the electronics enclosed.
 
 [<img width="300px"  src="AltairReplica12.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
