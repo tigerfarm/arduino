@@ -61,7 +61,7 @@ I am using an Arduino Nano on a breadboard with supporting components.
 
 [<img width="300px"  src="AltairReplica10.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
-With the parts connected, they ran a successful test.
+With the Arduino connected to the front panel components, successful program tests were ran.
 
 [<img width="300px"  src="AltairReplica11.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
