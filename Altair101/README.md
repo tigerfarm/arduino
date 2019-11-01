@@ -1,19 +1,20 @@
 --------------------------------------------------------------------------------
 # Altair 101 Project Notes
 
-I designed a computer to give a person the experience of using the first popular home computer.
-The Model-T was the first popular car. The Altair 8800 was the Model-T of the home computers.
+The Model-T was the first popular car. The Altair 8800 was the first popular personal computer, the Model-T of the home computers.
+I designing and building a computer to give a person the experience of using that personal computer.
 The Altair 101 will replicate the user experience of flipping toggles for program and data input.
-Then, I'll enjoy watching the computer's output which flashing LED lights.
+And then the user will enjoy watching flashing LED lights, which is the computer's output.
+
+The following photo is my Altair 8800 clone front panel.
+The front panel is equivalent to a smartphone's touch screen display only retro.
+As it only has LED lights and toggles, it's very retro.
+
+<img width="600px"  src="FrontPanel01c.jpg"/>
 
 The Altair 101 will have an Altair 8800 look and feel from the user's point of view.
 It will be functional and have the ability to load programs from an SD card and save programs to an SD card.
 The lack of inexpensive method to save and load programs was the reason I didn't buy an original when it was first available in 1975.
-
-I will add LED lights and toggles to Altair 8800 clone front panel.
-The front panel is equivalent to a smartphone's touch screen display only retro. Very retro.
-
-<img width="600px"  src="FrontPanel01c.jpg"/>
 
 The current processor software program runs on an Arduino Nano.
 I have a few working operational codes that I used to run a few basic Altair 8800 machine code programs.
