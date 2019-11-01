@@ -8,33 +8,34 @@ That's what the original Altair 8800 had in 1975, toggles and lights.
 [<img width="360px"  src="../FrontPanel01a.jpg"/>](https://www.adwaterandstir.com/product/front-panel/)
 
 I also bought the accompanying Pro case which is part of the [expansion upgrade](https://www.adwaterandstir.com/product/upgrade/).
+I plan to modify mine for ease of maintenance, and to cover the blue with something a bit more to my style.
 
-<img width="360px"  src="https://www.adwaterandstir.com/wp-content/uploads/2019/07/AD1.jpg"/>](https://www.adwaterandstir.com/product/upgrade/)
+[<img width="360px"  src="https://www.adwaterandstir.com/wp-content/uploads/2019/07/AD1.jpg"/>](https://www.adwaterandstir.com/product/upgrade/)
 
-The cost of the clone front panel, sticker, standard case, and shipping, was a very reasonable $74.
-However, my target was to keep the cost of parts to about $100, which doesn't leave much for the electronics.
+The cost of the clone front panel, sticker, case, and shipping, was a reasonable $74.
+However, my target was to keep the cost to about $100, which doesn't leave much for the electronics.
 I used Ebay.com to select and order parts, mostly from China. The total is $101.
 Wow, $101. An auspicious cost for an Altair 101.
 
 Following is the Original Altair 8800 price list.
-The [Altar 8800 Clone site](https://altairclone.com/), has supper case.
-They prices their clone using the original price list. The red markups are notes regarding their product offering.
+The [Altar 8800 Clone site](https://altairclone.com/) used the original price list, as base for their
+[price list](https://altairclone.com/ordering.htm), (assembled) $621.
+The red markups are notes regarding their product offering.
 
 [<img width="300px"  src="originalPricelist.jpg"/>](https://altairclone.com/ordering.htm)
 
-Altair 8800 Clone [Ordering Information](https://altairclone.com/ordering.htm), (assembled) $621
-
 My Altair 101 parts listed [below](https://github.com/tigerfarm/arduino/tree/master/Altair101/build#altair-101-parts-list).
 
-In the following video, the person is building an Altair 8800 Replica using a similar strategy to what I'm using.
-https://www.youtube.com/watch?v=zqRILp6srBk&t=830s
-
-The major difference is that they use an Arduino Due where as
-I'm going to use an Arduino Nano with other components on breadboards.
+Their Altar 8800 Clone has a supper case and more advanced electronic components that my design.
+My goals are keep soldering to minimum, a simplistic design, and low cost.
+I will be using breadboards instead of PCB board, and an Arduino Nano instead of an Arduino Due.
 I got the idea of building a computer on breadboards from Dan Eater's videos on 
 [how to Build an 8-bit computer from scratch](https://www.youtube.com/watch?v=HyznrdDSSGM&list=PLLlz7OhtlfKYk8nkyF1u-cDwzE_S0vcJs&index=14)
 
-Build steps,
+### Build steps,
+
+In the following video, the person is building an Altair 8800 Replica is using a similar strategy to my plan.
+https://www.youtube.com/watch?v=zqRILp6srBk&t=830s
 
 Solder wires to the toggles and add the toggles onto the front panel.
 
