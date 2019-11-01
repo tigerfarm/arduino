@@ -133,6 +133,9 @@ void listByteArray(byte btyeArray[], int arraySize) {
 // -----------------------------------------------------------------------------
 // Front Panel LEDs
 
+// Video demonstrating status lights:
+//    https://www.youtube.com/watch?v=3_73NwB6toY
+
 const int INTE_PIN = 42;    // On, interrupts enabled.
 const int PROT_PIN = 42;    // Useful only if RAM has page protection impliemented.
 // Status LEDs
@@ -148,8 +151,6 @@ const int INT_PIN = 42;     // On when executing an interrupt step.
 const int WAIT_PIN = A2;    // On, program not running. Off, programrunning.
 const int HLDA_PIN = 42;    // 8080 processor go into a hold state because of other hardware.
 
-// Video demonstrating status lights:
-//    https://www.youtube.com/watch?v=3_73NwB6toY
 // MEMR & MI & WO are on when fetching an op code, example: JMP(303) or lda(072).
 // MEMR & WO are on when fetching a low or high byte of an address.
 // MEMR & WO are on when fetching data from an address.
@@ -237,6 +238,7 @@ void checkStepButton() {
 }
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Instruction Set, Opcodes, Registers
 
 // This section is base on section 26: 8080 Instruction Set
@@ -283,12 +285,19 @@ const byte STA = B00110010;   // STA a     00110010 lb hb    -       Store A to 
 // RRC       00001111          C       Rotate A right
 // XRA S     10101SSS          ZSPCA   Exclusive OR register with A
 
+// -----------------------------------------------------------------------------
+// Processing Opcodes
+
 int programCounter = 0;
 byte opcode = 0;
 int instructionCycle = 0;
 int lowOrder = 0;
 int highOrder = 0;
 
+/*
++ Addr:    0: Data: 303:11000011
+> Addr:    1: Data: 006:00000110
+ */
 void printAddressData() {
   Serial.print("Addr: ");
   sprintf(charBuffer, "%4d:", programCounter);
@@ -307,6 +316,7 @@ void processData() {
     printAddressData();
     processOpcodeCycles();
   }
+  Serial.println("");
 }
 
 // Opcodes that are programmed and tested:
@@ -338,18 +348,15 @@ void processOpcode() {
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
   }
-  Serial.println("");
   programCounter++;
 }
 
-// Opcode implementation.
 void processOpcodeCycles() {
   instructionCycle++;
   switch (opcode) {
     case JMP:
       if (instructionCycle == 1) {
         lowOrder = programCounter++;
-        Serial.println("");
         return;
       }
       // instructionCycle == 2
@@ -358,7 +365,6 @@ void processOpcodeCycles() {
       sprintf(charBuffer, "%4d:", programCounter);
       Serial.print(charBuffer);
       printByte((byte)programCounter);
-      Serial.println("");
       //
       break;
     default:
