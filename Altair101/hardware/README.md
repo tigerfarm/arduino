@@ -32,11 +32,11 @@ I got the idea of building a computer on breadboards from Dan Eater's videos on
 
 Build steps,
 
-Add toggles onto the Altair 8800 clone front panel.
+Solder wires to the toggles and add the toggles onto the front panel.
 
 [<img width="300px"  src="AltairReplica00.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
-Add LEDs onto the front panel.
+Wire and add LEDs onto the front panel.
 
 [<img width="300px"  src="AltairReplica01.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
