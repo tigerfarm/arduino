@@ -1,24 +1,37 @@
 --------------------------------------------------------------------------------
 # Altair 101 Software
 
-The core program is the machine code processor that is written in C, using the Arduino IDE.
-The program is run an Arduino Nano microcontroller.
-It interprets and processes operational instructions, it runs a subset of Altair 8800 machine code programs.
+The core program is the [machine code processor](Processor.ino).
+It interprets and processes a subset of the Altair 8800 operational instructions which are Intel 8080 opcodes.
+It's written in C, using the Arduino IDE, and is tested on an Arduino Nano microcontroller.
 
-## A Breadboard for Developing Altair 101 Software
+Processor program sections,
++ Memory definitions and sample program definitions.
++ Output: Front Panel LED lights and serial log messages.
++ Memory Management.
++ Front Panel Status LEDs.
++ Process Front Panel toggle events.
++ Instruction set opcodes and Registers.
++ Processing opcodes and opcode cycles.
++ setup() Computer initialization.
++ loop()  Clock cycling through memory to run programs.
 
-The main breadboard is the equivalent to a computer's motherboard that has CPU, RAM, and other parts.
+## The Altair 101 Development Computer
+
+I built a breadboard which has a microcontroller and I/O components.
+The microcontroller is the Altair 101's CPU and RAM. The buttons and LED lights are the computer's keyboard and monitor.
+Log messages are displayed in the Arduino serial monitor.
 
 <img width="360px"  src="ProcessorBoard.jpg"/>
 
 Board components,
 + Arduino Nano to run the processor program.
-+ The Nano has I/O pins to interact with button inputs and LED outputs.
-+ SD card module for saving and loading programs.
++ The Nano has I/O pins to for button event input, and turning LED lights on and off for output.
++ The SD card module will be used for loading and saving programs. Not integrated at this time.
 + Buttons: STOP, RUN, STEP.
 + A WAIT LED.
 
-#### Software Progress
+#### Progress
 
 + STOP button will stop a running program.
 + RUN button will start a program, or continue it after a program was stopped or halted.
@@ -29,10 +42,6 @@ The following panel photo shows the LED and toggle placements for the WAIT LED a
 
 <img width="360px"  src="StopRunStepWait01a.jpg"/>
 
-I have a sample program that can read and write from/to an SD card using the SD card module.
-+ I need to integrate it so that the processor program can save programs to the SD card and load programs from the SD card.
-
-Programs can be run on the processor development board.
 Processor optional instruction codes, opcodes, that are programed and tested:
 + JMP opcode is octal 303.
 + NOP opcode is octal 000.
@@ -54,8 +63,7 @@ HLT opcode,
 + RUN will continue the running of the program after the halt.
 + STEP will process the current data opcode, and continue.
 
-THe processor can run sample machine code programs.
-Currently, test programs are defined in the processor program.
+Currently, test machine code programs are defined in the processor program.
 The program definitions are copied into the processor memory and are then ready to run.
 
 Example jump loop program definition:

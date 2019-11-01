@@ -35,7 +35,7 @@ Once the base machine is complete, I will add modern components and functionalit
 
 The front panel of LED lights and toggles is equivalent to a smartphone's touch screen display.
 
-[<img width="600px"  src="Altair8800frontPanel15x6.jpg"/>](https://s2js.com/altair/sim.html)
+<img width="600px"  src="FrontPanel01c.jpg"/>
 
 A major milestone will be when I have enough opcodes, operational instructions, to run the classic program, 
 [Kill the Bit](https://youtu.be/ZKeiQ8e18QY).

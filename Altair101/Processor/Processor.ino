@@ -36,7 +36,7 @@ byte jumpLoopProgram[] = {
 // + Flip single step, status LED MI goes on.
 // + And Low order address byte is retrieved and shown. Status LED MI goes off.
 // + Flip single step, high order address byte is retrieved and shown.
-// + Status LED MI stays off.
+// + Status LED MI goes off.
 // + Flip single step,
 // ++ Program counter is to that address.
 // ++ The new address and data values are LED displayed.
@@ -147,14 +147,14 @@ const int PROT_PIN = 42;    // Useful only if RAM has page protection impliement
 // Status LEDs
 const int MEMR_PIN = 42;    // Memory read such as fetching an op code (data instruction)
 const int INP_PIN = 42;     // Input
-const int MI_PIN = 42;      // On, doing an op code fetch: Machine cycle 1.
+const int MI_PIN = A1;      // On, doing an op code fetch: Machine cycle 1.
 const int OUT_PIN = 42;     // Write output.
 const int HLTA_PIN = 42;    // Halt acknowledge, halt instruction executed.
 const int STACK_PIN = 42;   // On, reading or writing to the stack.
 const int WO_PIN = 42;      // Write Output uses inverse logic. On, not writing output.
 const int INT_PIN = 42;     // On when executing an interrupt step.
 //
-const int WAIT_PIN = A2;    // On, program not running. Off, programrunning.
+const int WAIT_PIN = A0;    // On, program not running. Off, programrunning.
 const int HLDA_PIN = 42;    // 8080 processor go into a hold state because of other hardware.
 
 // MEMR & MI & WO are on when fetching an op code, example: JMP(303) or lda(072).
@@ -304,9 +304,9 @@ int lowOrder = 0;           // Low order address byte
 int highOrder = 0;          // High order address byte
 
 /*
-+ Addr:    0: Data: 303:11000011
-> Addr:    1: Data: 006:00000110
- */
+  + Addr:    0: Data: 303:11000011
+  > Addr:    1: Data: 006:00000110
+*/
 void printAddressData() {
   Serial.print("Addr: ");
   sprintf(charBuffer, "%4d:", programCounter);
@@ -344,6 +344,9 @@ const byte NOP = 0000;  // NOP        00000000          -    No operation
 */
 
 void processOpcode() {
+  //
+  digitalWrite(MI_PIN, LOW);
+  //
   byte dataByte = memoryData[programCounter];
   switch (dataByte) {
     case HLT:
@@ -374,6 +377,7 @@ void processOpcodeCycles() {
   switch (opcode) {
     case JMP:
       if (instructionCycle == 1) {
+        digitalWrite(MI_PIN, HIGH);
         lowOrder = programCounter++;
         return;
       }
@@ -403,6 +407,8 @@ void setup() {
 
   pinMode(WAIT_PIN, OUTPUT);
   digitalWrite(WAIT_PIN, HIGH);
+  pinMode(MI_PIN, OUTPUT);
+  digitalWrite(MI_PIN, LOW);
   Serial.println("+ LEDs configured for output.");
 
   // List a program. Available programs:
