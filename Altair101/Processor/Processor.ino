@@ -2,10 +2,16 @@
 /*
   Altair 101 software microprocessor
 
-    Definitions Memory and Memory Management.
-    Control Front Panel LED lights.
+  Program sections,
+    Memory definitions and sample program definitions.
+    Output: Front Panel LED lights and serial log messages.
+    Memory Management.
+    Front Panel Status LEDs.
     Process Front Panel toggle events.
-    Instruction Set, Opcodes, Registers
+    Instruction Set, Opcodes, Registers.
+    Processing opcodes and opcode cycles
+    setup() Computer initialization.
+    loop()  Clock cycling through memory.
 */
 // -----------------------------------------------------------------------------
 // Memory definitions
@@ -55,7 +61,7 @@ byte jumpHaltLoopProgram[] = {
 };
 
 // -----------------------------------------------------------------------------
-// Output memory address and data valules.
+// Output: Front Panel and log messages such as memory address and data valules.
 
 byte zeroByte = B00000000;
 char charBuffer[16];
@@ -131,7 +137,7 @@ void listByteArray(byte btyeArray[], int arraySize) {
 }
 
 // -----------------------------------------------------------------------------
-// Front Panel LEDs
+// Front Panel Status LEDs
 
 // Video demonstrating status lights:
 //    https://www.youtube.com/watch?v=3_73NwB6toY
@@ -170,7 +176,7 @@ const int HLDA_PIN = 42;    // 8080 processor go into a hold state because of ot
 // INTE is off when interrupts are disabled.
 
 // -----------------------------------------------------------------------------
-// Front Panel Control Buttons
+// Front Panel toggle events
 
 const int STOP_BUTTON_PIN = 4;   // Nano D4
 const int RUN_BUTTON_PIN = 5;
@@ -255,6 +261,7 @@ void checkStepButton() {
     db = Data byte (8 bit)
     lb = Low byte of 16 bit value
     hb = High byte of 16 bit value
+    a  = lb + hb
     pa = Port address (8 bit)
     p  = 8 bit port address
 */
@@ -286,13 +293,15 @@ const byte STA = B00110010;   // STA a     00110010 lb hb    -       Store A to 
 // XRA S     10101SSS          ZSPCA   Exclusive OR register with A
 
 // -----------------------------------------------------------------------------
-// Processing Opcodes
+// Processing opcodes and opcode cycles
 
-int programCounter = 0;
-byte opcode = 0;
-int instructionCycle = 0;
-int lowOrder = 0;
-int highOrder = 0;
+int programCounter = 0;     // Program address value
+byte opcode = 0;            // Opcode being processed
+int instructionCycle = 0;   // Opcode process cycle
+
+// highOrder + lowOrder = 16 bit memory address
+int lowOrder = 0;           // Low order address byte
+int highOrder = 0;          // High order address byte
 
 /*
 + Addr:    0: Data: 303:11000011
@@ -320,10 +329,19 @@ void processData() {
 }
 
 // Opcodes that are programmed and tested:
-//        Code   Octal           Inst      Encoding          Flags   Description
-const byte HLT = 0166;        // HLT       01110110          -       Halt processor
-const byte JMP = 0303;        // JMP a     11000011 lb hb    -       Unconditional jump*
-const byte NOP = 0000;        // NOP       00000000          -       No operation
+//        Code   Octal    Inst Param  Encoding Param  Flags  Description
+const byte HLT = 0166;  // HLT        01110110          -    Halt processor
+const byte JMP = 0303;  // JMP a      11000011 lb hb    -    Unconditional jump
+const byte NOP = 0000;  // NOP        00000000          -    No operation
+/*
+  Instruction parameters:
+    db = Data byte (8 bit)
+    lb = Low byte of 16 bit value
+    hb = High byte of 16 bit value
+    a  = hb + lb (16 bit value)
+    pa = Port address (8 bit)
+    p  = 8 bit port address
+*/
 
 void processOpcode() {
   byte dataByte = memoryData[programCounter];
@@ -400,14 +418,14 @@ void setup() {
 }
 
 // -----------------------------------------------------------------------------
-// Device Loop for processing machine code.
+// Device Loop for processing each byte of machine code.
 
 static unsigned long timer = millis();
 void loop() {
 
   if (runProgram) {
-    // Execute an instruction controlled by the timer.
-    // Example, 3000 : once every 3 seconds.
+    // Clock process timing is controlled by the timer.
+    // Example, 50000 : once every 1/2 second.
     if (millis() - timer >= 500) {
       processData();
       timer = millis();
