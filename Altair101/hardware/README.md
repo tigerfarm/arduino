@@ -24,7 +24,7 @@ The red markups are notes regarding their product offering.
 
 [<img width="300px"  src="originalPricelist.jpg"/>](https://altairclone.com/ordering.htm)
 
-My Altair 101 parts listed [below](https://github.com/tigerfarm/arduino/tree/master/Altair101/build#altair-101-parts-list).
+My Altair 101 parts listed [below](#altair-101-parts-list).
 
 Their Altar 8800 Clone has a supper case and more advanced electronic components that my design.
 My goals are keep soldering to minimum, a simplistic design, and low cost.
