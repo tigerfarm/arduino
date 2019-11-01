@@ -124,12 +124,12 @@ void copyByteArrayToMemory(byte btyeArray[], int arraySize) {
 
 void listByteArray(byte btyeArray[], int arraySize) {
   Serial.println("+ List the program.");
-  Serial.println("++ Address: Data value");
+  Serial.println("++   Address:       Data value");
   for (int i = 0; i < arraySize; i++) {
-    Serial.print("++ ");
-    sprintf(charBuffer, "%7d", i);
+    Serial.print("+ Addr: ");
+    sprintf(charBuffer, "%4d:", i);
     Serial.print(charBuffer);
-    Serial.print(": ");
+    Serial.print(" Data: ");
     printData(btyeArray[i]);
     Serial.println("");
   }
@@ -191,6 +191,7 @@ boolean runProgram = false;
 boolean stopButtonState = true;
 boolean runButtonState = true;
 boolean stepButtonState = true;
+boolean examineButtonState = true;
 
 void checkStopButton() {
   if (digitalRead(STOP_BUTTON_PIN) == HIGH) {
@@ -239,6 +240,25 @@ void checkStepButton() {
       // digitalWrite(STEP_BUTTON_PIN, LOW);
       // Serial.println("+ checkButton(), turn LED off.");
       stepButtonState = false;
+    }
+  }
+}
+
+void checkExamineButton() {
+  // If the button is pressed (circuit closed), the button status is HIGH.
+  if (digitalRead(EXAMINE_BUTTON_PIN) == HIGH) {
+    if (!examineButtonState) {
+      // Serial.println("+ Examine switch clicked on.");
+      Serial.print("? ");
+      printAddressData();
+      Serial.println("");
+      // processData();
+      examineButtonState = false;
+    }
+    examineButtonState = true;
+  } else {
+    if (examineButtonState) {
+      examineButtonState = false;
     }
   }
 }
@@ -405,11 +425,18 @@ void setup() {
   Serial.println(""); // Newline after garbage characters.
   Serial.println("+++ Setup.");
 
+  pinMode(STOP_BUTTON_PIN, INPUT);
+  pinMode(RUN_BUTTON_PIN, INPUT);
+  pinMode(STEP_BUTTON_PIN, INPUT);
+  pinMode(EXAMINE_BUTTON_PIN, INPUT);
+  // pinMode(EXAMINENEXT_BUTTON_PIN, INPUT);
+  Serial.println("+ Toggle/button switches configured for input.");
+
   pinMode(WAIT_PIN, OUTPUT);
   digitalWrite(WAIT_PIN, HIGH);
   pinMode(MI_PIN, OUTPUT);
   digitalWrite(MI_PIN, LOW);
-  Serial.println("+ LEDs configured for output.");
+  Serial.println("+ LED lights configured for output.");
 
   // List a program. Available programs:
   //    jumpLoopProgram
@@ -440,6 +467,7 @@ void loop() {
   } else {
     checkRunButton();
     checkStepButton();
+    checkExamineButton();
     delay(60);
   }
 
