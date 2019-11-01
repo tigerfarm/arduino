@@ -32,7 +32,7 @@ I got the idea of building a computer on breadboards from Dan Eater's videos on
 
 Build steps,
 
-Add toggles aonto the Altair 8800 clone front panel.
+Add toggles onto the Altair 8800 clone front panel.
 
 [<img width="300px"  src="AltairReplica00.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
@@ -49,18 +49,19 @@ Put the completed front panel into the bottom part of the computer case.
 [<img width="300px"  src="AltairReplica03.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
 Wire the front panel components to the Arduino Due.
+I am using an Arduino Nano on a breadboard with supporting components.
 
 [<img width="300px"  src="AltairReplica04.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
 [<img width="300px"  src="AltairReplica05.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
-
-With the parts connected, they ran a successful test.
 
 [<img width="300px"  src="AltairReplica06.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
 [<img width="300px"  src="AltairReplica09.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
 [<img width="300px"  src="AltairReplica10.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
+
+With the parts connected, they ran a successful test.
 
 [<img width="300px"  src="AltairReplica11.jpg"/>](https://www.youtube.com/watch?v=zqRILp6srBk&t=830s)
 
