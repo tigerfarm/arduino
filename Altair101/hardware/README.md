@@ -195,26 +195,17 @@ Totals:
 --------------------------------------------------------------------------------
 ### Altair 101 Parts List
 
-Parts list from a clone:
+For reference, I used the following parts list from a clone:
 https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
 
-+ Front panel, sticker, case, and shipping = $74
-+ Nano + on/off/on momentary toggles + on/off toggles + red LEDs
-+ 20pcs 74HC595 + pin expander module PCF8574
-+ Breadboards + cables
-+ Total = $101 = $74 + $3 + $7 + $2 + $2 + $3 + $6 + $4
++ Front panel, sticker, case, and shipping = $18.00 + $5 + $35 + $16 = $74
++ Nano + on/off/on momentary toggles + on/off toggles + red LEDs = $3 + $7 + $2 + $2
++ 20pcs 74HC595 + pin expander module PCF8574 = $2 + $1
++ Breadboards + cables = $6 + $4
++ Total = $101 = $74 + $3 + $7 + $2 + $2 + $2 + $1 + $6 + $4
 
 + Ordered Altair 8800 Front panel with sticker, standard case, and shipping: $74
 https://www.adwaterandstir.com/product/front-panel/
-````
-Order number: 11282
-Date: October 22, 2019
-Altair 8800 Front panel: $18.00	
-Altair 8800 Front Panel Sticker: $5.00
-Shipping: $13.00
-````
-+ After paying for the order, I communicated with the manufacturer and ordered the regular case: $38 = $35 + $3.10 shipping.
-+ Total: $74
 
 + Nano
 https://www.ebay.com/itm/MINI-USB-Nano-V3-0-ATmega328P-CH340G-5V-16M-Micro-controller-board-for-Arduino/383093281539
@@ -222,7 +213,7 @@ https://www.ebay.com/itm/MINI-USB-Nano-V3-0-ATmega328P-CH340G-5V-16M-Micro-contr
 + SPDT On/Off/On 3 Position Momentary toggles, Diameter: 6mm (0.2inch), Micro mini, 10pcs for $6.79
 https://www.ebay.com/itm/10pcs-Red-3-Pin-3-Position-ON-OFF-ON-SPDT-Micro-Mini-Momentary-Toggle-Switch/223490809691
 
-+ SPDT On/On 2 Position Mini Toggle Switch, 10Pcs for $2.68
++ SPDT On/On 2 Position Mini Toggle Switch, Diameter: 6mm (0.2inch), 10Pcs for $2.68
 https://www.ebay.com/itm/10Pcs-AC-250V-1-5A-125V-3A-SPDT-3-Pin-On-On-2-Position-Mini-Toggle-Switch-Blue/272882765795
 
 + Red LED 5mm, 100pcs for $1.50
