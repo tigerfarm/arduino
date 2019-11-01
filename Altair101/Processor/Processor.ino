@@ -92,14 +92,14 @@ void printData(byte theByte) {
   printByte(theByte);
   //
   // printByte(theByte);
-  // Serial.print(memoryData[i], BIN);
+  // Serial.print(theByte, BIN);
   // Serial.print(":");
   //
   // printOctal(theByte);
-  // Serial.print(memoryData[i], OCT);
+  // Serial.print(theByte, OCT);
   // Serial.print(" : ");
   //
-  // Serial.println(memoryData[i], DEC);
+  // Serial.println(theByte, DEC);
   // sprintf(charBuffer, "%3d", theByte);
   // Serial.print(charBuffer);
 }
@@ -176,13 +176,13 @@ const int HLDA_PIN = 42;    // 8080 processor go into a hold state because of ot
 // INTE is off when interrupts are disabled.
 
 // -----------------------------------------------------------------------------
-// Front Panel toggle events
+// Front Panel toggle/button switch events
 
-const int STOP_BUTTON_PIN = 4;   // Nano D4
+const int STOP_BUTTON_PIN = 4;        // Nano pin D4
 const int RUN_BUTTON_PIN = 5;
 const int STEP_BUTTON_PIN = 6;
-const int EXAMINE_BUTTON_PIN = 7;
-const int EXAMINENEXT_BUTTON_PIN = 8;
+const int EXAMINE_BUTTON_PIN = 7;     // Display the address and data that is next to be processed.
+const int EXAMINENEXT_BUTTON_PIN = 8; // Increment the program counter and display the address and data
 
 boolean runProgram = false;
 
@@ -430,7 +430,7 @@ void setup() {
   pinMode(STEP_BUTTON_PIN, INPUT);
   pinMode(EXAMINE_BUTTON_PIN, INPUT);
   // pinMode(EXAMINENEXT_BUTTON_PIN, INPUT);
-  Serial.println("+ Toggle/button switches configured for input.");
+  Serial.println("+ Toggle/button switches are configured for input.");
 
   pinMode(WAIT_PIN, OUTPUT);
   digitalWrite(WAIT_PIN, HIGH);

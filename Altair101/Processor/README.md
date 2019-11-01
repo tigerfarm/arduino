@@ -31,6 +31,22 @@ Board components,
 + Buttons: STOP, RUN, STEP.
 + A WAIT LED.
 
+About the Nano,
++ Has 2048 bytes (2K) of dynamic memory which the type of memory I'm using for machine code program and data memory.
++ The other large global memory usage, is test programs.
++ Maybe I should put the memory data array instead a function. Need to test.
++ Following is a sample compile message when I'm using 512 bytes for program runtime memory.
+````
+Global variables use 1248 bytes (60%) of dynamic memory, leaving 800 bytes for local variables. Maximum is 2048 bytes.
+````
++ Has 30K memory for programs.
++ Can I use this memory for machine code program and data memory? Need to test.
++ Following is a sample compile message
+````
+Sketch uses 6692 bytes (21%) of program storage space. Maximum is 30720 bytes.
+````
++ 4 digital pins used for the SD card module.
+
 #### Progress
 
 + STOP button will stop a running program.
