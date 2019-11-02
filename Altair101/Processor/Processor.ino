@@ -94,29 +94,29 @@ byte lxiNopLoopProgram[] = {
   0000, 0000, 0000  //       end
 };
 // byte NopLxiMovInxHltJmpCpiProgram[] = {
-byte runProgram[] = {
+byte theProgram[] = {
   // ------------------------------------------------------------------
   //                         Start program.
   0000,                   // NOP
-  0041, 14, 0000,         // LXI_HL lb hb. Load 0000:14 into register H:L.
+  0041, 25, 0000,         // LXI_HL lb hb. Load hb:lb into registers H(hb):L(lb).
   //
   //                While address:data != 0111
   0176,                   // MOV M:address(H:L):data > register A
   0376, 0111,             // CPI Compare A with 0111.
-  0312, 0000, 0000,       // JZ lb hb. If it matches, jump to lb hb
+  0312, 18, 0000,         // JZ lb hb. If it matches, jump to lb hb (end while)
   0000,                   // NOP
   0043,                   // INX > Increment H:L
   0000,                   // NOP
   0166,                   // HLT
   0000,                   // NOP
-  0303, 0006, 0000,       // JMP to 6, jump to the MOV operation.
+  0303, 0004, 0000,       // JMP to the MOV operation, the start of the while loop.
   //                End while.
-  0000,                   // NOP, address 18.
+  0000,                   // NOP, at address 18.
   0166,                   // HLT
   0000,                   // NOP
   0303, 1, 0000,          // JMP to 1. Restart: jump to program start.
   // ------------------------------------------------------------------
-  //                         Data, starts at address 25.
+  //                         Data, starts at address 24.
   0000, 0101, 0110,       // 3 4 5
   0111, 0000, 0000,       // 6 7 8
   //
@@ -389,24 +389,12 @@ void printAddressData() {
   printData(memoryData[programCounter]);
 }
 
-void processData() {
-  if (opcode == 0) {
-    Serial.print("> ");
-    printAddressData();
-    processOpcode();
-  } else {
-    Serial.print("+ ");
-    printAddressData();
-    processOpcodeCycles();
-  }
-  Serial.println("");
-}
-
 // Instruction parameters:
 int lowOrder = 0;           // lb: Low order byte of 16 bit value.
 int highOrder = 0;          // hb: High order byte of 16 bit value.
 //                             Example: hb + lb = 16 bit memory address.
 int dataByte = 0;           // db = Data byte (8 bit)
+
 /*
     a  = hb + lb (16 bit value)
     pa = Port address (8 bit)
@@ -459,6 +447,21 @@ const byte LXI_SP = 0061; //           00 110 001 RP = 10 which matches "11=SP".
 
 boolean compareResult = true; // Used CPI and JZ.
 
+void processData() {
+  if (opcode == 0) {
+    Serial.print("> ");
+    printAddressData();
+    processOpcode();
+    programCounter++;
+    instructionCycle = 0;
+  } else {
+    Serial.print("+ ");
+    printAddressData();
+    processOpcodeCycles();
+  }
+  Serial.println("");
+}
+
 void processOpcode() {
   //
   digitalWrite(MI_PIN, LOW);
@@ -468,89 +471,100 @@ void processOpcode() {
   switch (dataByte) {
     case CPI:
       opcode = CPI;
-      Serial.print(" > CPI opcode, compare next data byte to A.");
+      Serial.print(" > CPI, compare next data byte to A. Store true or false into compareResult.");
       break;
     case JZ:
       opcode = JZ;
-      Serial.print(" > JZ opcode, if compareResult, jump to the following address (lh hb).");
+      Serial.print(" > JZ, if compareResult, jump to the following address (lh hb).");
       break;
     case JMP:
       opcode = JMP;
-      Serial.print(" > JMP opcode, get address low and high order bytes.");
+      Serial.print(" > JMP, get address low and high order bytes.");
       break;
     case LXI_HL:
       opcode = LXI_HL;
-      Serial.print(" > LXI opcode, move lb hb address into register paire H:L.");
+      Serial.print(" > LXI, move lb hb address into register pair H(hb):L(lb).");
       break;
     case INX_HL:
-      Serial.print(" > INX opcode, increment register pair H:L");
-      regL++;                     // Update this later because need to update the pair.
+      regL++;       // Update this later because need to update the pair.
+      Serial.print(" > INX, increment the 16 bit register pair H:L.");
       Serial.print(", regL = ");
       Serial.print(regL);
       // printOctal(regL);
-      programCounter++;
       break;
     case MOV_AM:
-      Serial.print(" > MOV opcode");
+      Serial.print(" > MOV");
       anAddress = word(regH, regL);
       regA = memoryData[anAddress];
-      Serial.print(", Accumulator = ");
-      printOctal(regA);
-      Serial.print(" from Addr: ");
+      Serial.print(" data from Addr: ");
       sprintf(charBuffer, "%4d:", anAddress);
       Serial.print(charBuffer);
-      programCounter++;
+      Serial.print(", to Accumulator = ");
+      printOctal(regA);
+      Serial.print(" = ");
+      Serial.print(regA);
       break;
     case HLT:
-      Serial.print(" > HLT opcode, halt the processor.");
+      Serial.print(" > HLT, halt the processor.");
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
-      programCounter++;
       break;
     case NOP:
       Serial.print(" > NOP ---");
       delay(100);
-      programCounter++;
       break;
     default:
       Serial.print(" - Error, unknown instruction.");
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
   }
-  instructionCycle = 0;
 }
 
 void processOpcodeCycles() {
-  programCounter++;
+  
+  // Note,
+  //    if jumping, don't increment programCounter.
+  //    if not jumping, increment programCounter.
+  
   instructionCycle++;
   switch (opcode) {
     case CPI:
       // instructionCycle == 1
-      dbByte = memoryData[programCounter];
-      Serial.print(" > CPI, compare db: ");
-      Serial.print(dbByte);
-      Serial.print(" to A: ");
+      dataByte = memoryData[programCounter];
+      compareResult = dataByte == regA;
+      Serial.print(" > CPI, compareResult db: ");
+      Serial.print(dataByte);
+      if (compareResult) {
+        Serial.print(" == ");
+      } else {
+        Serial.print(" != ");
+      }
+      Serial.print(" A: ");
       Serial.print(regA);
-      compareResult = dbByte == regA;
-      printByte((byte)programCounter);
+      programCounter++;
       break;
     case JZ:
       if (instructionCycle == 1) {
         digitalWrite(MI_PIN, HIGH);
-        lowOrder = programCounter;
-        Serial.print(" > JZ, lb: ");
-        Serial.print(lowOrder);
+        lowOrder = memoryData[programCounter];
+        Serial.print(" < JZ, lb: ");
+        sprintf(charBuffer, "%4d:", lowOrder);
+        Serial.print(charBuffer);
+        programCounter++;
         return;
       }
       // instructionCycle == 2
+      highOrder = memoryData[programCounter];
+      Serial.print(" < JZ, hb: ");
+      sprintf(charBuffer, "%4d:", highOrder);
+      Serial.print(charBuffer);
       if (compareResult) {
-        programCounter = word(memoryData[programCounter], memoryData[lowOrder]);
-        Serial.print(" > JMP, jump to:");
-        sprintf(charBuffer, "%4d:", programCounter);
-        Serial.print(charBuffer);
-        printByte((byte)programCounter);
+        Serial.print(" > JZ, jump to:");
+        programCounter = word(highOrder, lowOrder);
+        Serial.print(programCounter);
       } else {
-        Serial.print(" - Not equal, don't jump.");
+        Serial.print(" - compareResult is false, don't jump.");
+        programCounter++;
       }
       break;
     case JMP:
@@ -559,6 +573,7 @@ void processOpcodeCycles() {
         lowOrder = programCounter;
         Serial.print(" > JMP, lb: ");
         Serial.print(lowOrder);
+        programCounter++;
         return;
       }
       // instructionCycle == 2
@@ -572,20 +587,25 @@ void processOpcodeCycles() {
       if (instructionCycle == 1) {
         // digitalWrite(MI_PIN, HIGH);
         regL = memoryData[programCounter];
-        Serial.print(" > JMP, lb: ");
-        Serial.print(regL);
+        Serial.print(" < LXI, lb: ");
+        sprintf(charBuffer, "%4d:", regL);
+        Serial.print(charBuffer);
+        programCounter++;
         return;
       }
       // instructionCycle == 2
       programCounter;
       regH = memoryData[programCounter];
-      Serial.print(" > LXI_HL, address: ");
-      sprintf(charBuffer, "%4d:", word(regH, regL));
+      Serial.print(" < LXI, hb: ");
+      sprintf(charBuffer, "%4d:", regH);
       Serial.print(charBuffer);
-      Serial.print(" regL:");
-      Serial.print(regL);
-      Serial.print(" regH:");
-      Serial.print(regH);
+      Serial.print(" > H:L address: ");
+      sprintf(charBuffer, "%8d:", word(regH, regL));
+      Serial.print(charBuffer);
+      printOctal(regH);
+      Serial.print(" = ");
+      printOctal(regL);
+      programCounter++;
       break;
     default:
       Serial.print(" - Error, unknow instruction.");
@@ -621,10 +641,10 @@ void setup() {
   //    jumpLoopNopProgram
   //    jumpHaltLoopProgram
   //    lxiNopLoopProgram
-  int programSize = sizeof(runProgram);
-  listByteArray(runProgram, programSize);
+  int programSize = sizeof(theProgram);
+  listByteArray(theProgram, programSize);
   // Load a program.
-  copyByteArrayToMemory(runProgram, programSize);
+  copyByteArrayToMemory(theProgram, programSize);
 
   Serial.println("+++ Start the processor loop.");
 }
