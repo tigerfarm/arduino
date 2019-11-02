@@ -22,10 +22,10 @@ byte memoryData[memoryBytes];
 
 // Should move the memory into an object?
 /*
-void computerMemory(byte b) {
+  void computerMemory(byte b) {
   const int memoryBytes2 = 1024;
   byte memoryData2[memoryBytes2];
-}
+  }
 */
 
 // Define a jump loop program byte array.
@@ -69,14 +69,35 @@ byte jumpHaltLoopProgram[] = {
   0303, 0000, 0000
 };
 
-// Sample to test LXI_HL. HL will be set to 10.
+// Sample to test:
+//  LXI_HL : Intialize address value in H:L.
+//  MOV_HL : Move the data at address H:L, to register A.
+//  INX_HL : Increment the address H:L.
+//  HLT    : Halt the program.
+//  JMP    : Jump back to the move, and loop.
 byte lxiNopLoopProgram[] = {
-  0041, 0012, 0000, // 0 1 2  10 = 00 001 010 = 012
-  0000, 0000, 0000, // 3 4 5
-  0303, 0000, 0000, // 6 7 8
-  0000, 0000, 0000  // 9 0 1
+  //                         Start program.
+  0000, 0000, 0000, // 0 1 2 NOP NOP NOP
+  0041, 0020, 0000, // 3 4 5 LXI_HL, 16 = 00 010 000 = 020. Load 000:020 in register H:L.
+  0176, 0000, 0043, // 6 7 8 MOV(M:data to register A) NOP INX(Increment H:L)
+  0000, 0166, 0000, // 9 0 1 NOP HLT NOP
+  0303, 0006, 0000, // 2 3 4 JMP to 6
+  //                         Data
+  0000, 0101, 0110, // 5 6 7
+  0111, 0000, 0000, // 8 9 0
+  //
+  0000, 0000, 0000  //       end
 };
-
+/*
+  00 000 000 = 000 =   0
+  00 000 010 = 002 =   2
+  00 000 100 = 040 =   4
+  00 001 000 = 010 =   8
+  00 010 000 = 020 =  16
+  00 100 000 = 014 =  32
+  01 000 000 = 014 =  64
+  10 000 000 = 014 = 128
+*/
 // -----------------------------------------------------------------------------
 // Output: Front Panel and log messages such as memory address and data valules.
 
@@ -318,32 +339,6 @@ void checkExamineNextButton() {
     p  = 8 bit port address
 */
 
-//   Destination and Source register fields.
-int regA = 0;   // 111=A   (Accumulator)
-int regB = 0;   // 000=B
-int regC = 0;   // 001=C
-int regD = 0;   // 010=D
-int regE = 0;   // 011=E
-int regH = 0;   // 100=H
-int regL = 0;   // 101=L
-int regM = 0;   // 110=M   (Memory reference through address in H:L)
-
-// To be programmed:
-//        Code   Octal           Inst      Encoding          Flags   Description
-const byte IN =  B11011011;   // IN p      11011011 pa       -       Read input port into A
-const byte STA = B00110010;   // STA a     00110010 lb hb    -       Store A to memory
-//
-// More program instructions for the Kill the Bit program,
-// DAD RP    00RP1001          C       Add register pair to HL (16 bit add)*
-// JNC ?
-// LDAX RP   00RP1010 *1       -       Load indirect through BC or DE
-//                    *1 = Only RP=00(BC) and 01(DE) are allowed for LDAX/STAX
-// LXI RP,#  00RP0001 lb hb    -       Load register pair immediate*
-// MOV D,S   01DDDSSS          -       Move register to register*
-// MVI D,#   00DDD110 db       -       Move immediate to register*
-// RRC       00001111          C       Rotate A right
-// XRA S     10101SSS          ZSPCA   Exclusive OR register with A
-
 // -----------------------------------------------------------------------------
 // Processing opcodes and opcode cycles
 
@@ -379,6 +374,19 @@ void processData() {
   Serial.println("");
 }
 
+// To be programmed:
+//        Code   Octal           Inst      Encoding          Flags   Description
+const byte IN =  B11011011;   // IN p      11011011 pa       -       Read input port into A
+//
+// More program instructions for the Kill the Bit program,
+// DAD RP    00RP1001          C       Add register pair to HL (16 bit add)*
+// JNC ?
+// LDAX RP   00RP1010 *1       -       Load indirect through BC or DE
+//                    *1 = Only RP=00(BC) and 01(DE) are allowed for LDAX/STAX
+// MVI D,#   00DDD110 db       -       Move immediate to register*
+// RRC       00001111          C       Rotate A right
+// XRA S     10101SSS          ZSPCA   Exclusive OR register with A
+
 /*
   Instruction parameters:
     db = Data byte (8 bit)
@@ -387,69 +395,112 @@ void processData() {
     a  = hb + lb (16 bit value)
     pa = Port address (8 bit)
     p  = 8 bit port address
-
+*/
+/*
     Register pair 'RP' fields:
     00=BC   (B:C as 16 bit register)
     01=DE   (D:E as 16 bit register)
     10=HL   (H:L as 16 bit register)
     11=SP   (Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP)
 */
+//   Destination and Source register fields.
+int regA = 0;   // 111=A   Accumulator
+int regB = 0;   // 000=B
+int regC = 0;   // 001=C
+int regD = 0;   // 010=D
+int regE = 0;   // 011=E
+int regH = 0;   // 100=H
+int regL = 0;   // 101=L
+int regM = 0;   // 110=M   Memory reference through address in H:L
 
+// -------------------
 // Opcodes that are programmed and tested:
-//        Code   Octal    Inst Param  Encoding Param  Flags  Description
-const byte HLT = 0166;  // HLT        01110110          -    Halt processor
-const byte JMP = 0303;  // JMP a      11000011 lb hb    -    Unconditional jump
-const byte NOP = 0000;  // NOP        00000000          -    No operation
+//        Code   Octal       Inst Param  Encoding Param  Flags  Description
+const byte HLT = 0166;    // HLT         01110110          -    Halt processor
+const byte JMP = 0303;    // JMP a       11000011 lb hb    -    Unconditional jump
+const byte NOP = 0000;    // NOP         00000000          -    No operation
+const byte LXI_HL = 0041; // LXI RP,a  00 100 001 00RP0001 = 10 which matches "10=HL".
+//
+// MOV D,S   01DDDSSS          -       Move register to a register.
+// MOV D,M   01DDD110          -    Or Move register to the register M's address in H:L.
+// Example, MOV A,M 176 =    01 111 110  Move the DATA at address H/L to register A.
+const byte MOV_AM = 0176; // MOV  A  M(H:L) Where A is register A and M is the address in H:L
+//
+//                           INX RP    00RP0011          -     Increment register pair
+const byte INX_HL = 0043; // INX HL    00 100 011        -     Increment H:L (can be a 16 bit address)
+//
+//
+// -------------------
 // In progress:
 //         Code     Octal    Inst Param  Encoding Param  Flags  Description
-//         LXI_RP = 0041; // LXI RP,#  00RP0001 lb hb    -    Load register pair immediate*
-const byte LXI_BC = 0001; //           00000001 RP = 00 which matches "00=BC".
-const byte LXI_DE = 0021; //           00010001 RP = 10 which matches "01=DE".
-const byte LXI_HL = 0041; //           00100001 RP = 10 which matches "10=HL".
-const byte LXI_SP = 0061; //           00110001 RP = 10 which matches "11=SP".
+const byte STA =    0062; // STA a     00110010 lb hb    -    Store register A to memory address: lb hb
+const byte LDA =    0062; // LDA is for copying data from memory location to accumulator
+//         LXI_RP = 0041; // LXI RP,#  00RP0001 lb hb    -    Load lb and hb into the register pair (RP)
+const byte LXI_BC = 0001; //           00 000 001 RP = 00 which matches "00=BC".
+const byte LXI_DE = 0021; //           00 010 001 RP = 10 which matches "01=DE".
+const byte LXI_SP = 0061; //           00 110 001 RP = 10 which matches "11=SP".
 
 void processOpcode() {
   //
   digitalWrite(MI_PIN, LOW);
   //
+  int anAddress = 0;
   byte dataByte = memoryData[programCounter];
   switch (dataByte) {
-    case HLT:
-      Serial.print(" > HLT opcode, halt the processor.");
-      runProgram = false;
-      digitalWrite(WAIT_PIN, HIGH);
-      break;
     case JMP:
       opcode = JMP;
-      instructionCycle = 0;
       Serial.print(" > JMP opcode, get address low and high order bytes.");
       break;
     case LXI_HL:
       opcode = LXI_HL;
-      instructionCycle = 0;
       Serial.print(" > LXI opcode, move lb hb address into register HL.");
-      // digitalWrite(WAIT_PIN, HIGH);
+      break;
+    case INX_HL:
+      Serial.print(" > INX opcode, increment register pair H:L");
+      regL++;                     // Update this later because need to update the pair.
+      Serial.print(", regL = ");
+      Serial.print(regL);
+      // printOctal(regL);
+      programCounter++;
+      break;
+    case MOV_AM:
+      Serial.print(" > MOV opcode");
+      anAddress = word(regH, regL);
+      regA = memoryData[anAddress];
+      Serial.print(", Accumulator = ");
+      printOctal(regA);
+      Serial.print(" from Addr: ");
+      sprintf(charBuffer, "%4d:", anAddress);
+      Serial.print(charBuffer);
+      programCounter++;
+      break;
+    case HLT:
+      Serial.print(" > HLT opcode, halt the processor.");
+      runProgram = false;
+      digitalWrite(WAIT_PIN, HIGH);
+      programCounter++;
       break;
     case NOP:
-      Serial.print(" > NOP opcode, No operation.");
-      // Can add a delay, for example, to wait for an interrupt proccess.
-      delay(10);
+      Serial.print(" > NOP ---");
+      delay(100);
+      programCounter++;
       break;
     default:
       Serial.print(" - Error, unknown instruction.");
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
   }
-  programCounter++;
+  instructionCycle = 0;
 }
 
 void processOpcodeCycles() {
+  programCounter++;
   instructionCycle++;
   switch (opcode) {
     case JMP:
       if (instructionCycle == 1) {
         digitalWrite(MI_PIN, HIGH);
-        lowOrder = programCounter++;
+        lowOrder = programCounter;
         return;
       }
       // instructionCycle == 2
@@ -462,11 +513,11 @@ void processOpcodeCycles() {
     case LXI_HL:
       if (instructionCycle == 1) {
         // digitalWrite(MI_PIN, HIGH);
-        regL = memoryData[programCounter++];
+        regL = memoryData[programCounter];
         return;
       }
       // instructionCycle == 2
-      programCounter++;
+      programCounter;
       regH = memoryData[programCounter];
       Serial.print(" > LXI_HL, address: ");
       sprintf(charBuffer, "%4d:", word(regH, regL));
@@ -481,7 +532,7 @@ void processOpcodeCycles() {
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
   }
-  // Opcode cycles are completed.
+  // The opcode cycles are complete.
   opcode = 0;
 }
 
@@ -510,10 +561,10 @@ void setup() {
   //    jumpLoopNopProgram
   //    jumpHaltLoopProgram
   //    lxiNopLoopProgram
-  int programSize = sizeof(jumpLoopProgram);
-  listByteArray(jumpLoopProgram, programSize);
+  int programSize = sizeof(lxiNopLoopProgram);
+  listByteArray(lxiNopLoopProgram, programSize);
   // Load a program.
-  copyByteArrayToMemory(jumpLoopProgram, programSize);
+  copyByteArrayToMemory(lxiNopLoopProgram, programSize);
 
   Serial.println("+++ Start the processor loop.");
 }
