@@ -16,6 +16,7 @@
 // -----------------------------------------------------------------------------
 // Memory definitions
 
+int programCounter = 0;     // Program address value
 const int memoryBytes = 512;
 byte memoryData[memoryBytes];
 
@@ -66,6 +67,14 @@ byte jumpHaltLoopProgram[] = {
   0000, 0000, 0000,
   0166, 0000, 0000,
   0303, 0000, 0000
+};
+
+// Sample to test LXI_HL. HL will be set to 10.
+byte lxiNopLoopProgram[] = {
+  0041, 0012, 0000, // 0 1 2  10 = 00 001 010 = 012
+  0000, 0000, 0000, // 3 4 5
+  0303, 0000, 0000, // 6 7 8
+  0000, 0000, 0000  // 9 0 1
 };
 
 // -----------------------------------------------------------------------------
@@ -200,6 +209,7 @@ boolean stopButtonState = true;
 boolean runButtonState = true;
 boolean stepButtonState = true;
 boolean examineButtonState = true;
+boolean examineNextButtonState = true;
 
 void checkStopButton() {
   if (digitalRead(STOP_BUTTON_PIN) == HIGH) {
@@ -271,6 +281,25 @@ void checkExamineButton() {
   }
 }
 
+void checkExamineNextButton() {
+  // If the button is pressed (circuit closed), the button status is HIGH.
+  if (digitalRead(EXAMINENEXT_BUTTON_PIN) == HIGH) {
+    if (!examineNextButtonState) {
+      // Serial.println("+ Examine Next switch clicked on.");
+      programCounter++;
+      Serial.print("? ");
+      printAddressData();
+      Serial.println("");
+      examineNextButtonState = false;
+    }
+    examineNextButtonState = true;
+  } else {
+    if (examineNextButtonState) {
+      examineNextButtonState = false;
+    }
+  }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Instruction Set, Opcodes, Registers
@@ -279,11 +308,6 @@ void checkExamineButton() {
 //    https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
 
 /*
-  Register pair 'RP' fields:
-    00=BC   (B:C as 16 bit register)
-    01=DE   (D:E as 16 bit register)
-    10=HL   (H:L as 16 bit register)
-    11=SP   (Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP)
 
   Instruction parameters:
     db = Data byte (8 bit)
@@ -323,7 +347,6 @@ const byte STA = B00110010;   // STA a     00110010 lb hb    -       Store A to 
 // -----------------------------------------------------------------------------
 // Processing opcodes and opcode cycles
 
-int programCounter = 0;     // Program address value
 byte opcode = 0;            // Opcode being processed
 int instructionCycle = 0;   // Opcode process cycle
 
@@ -356,11 +379,6 @@ void processData() {
   Serial.println("");
 }
 
-// Opcodes that are programmed and tested:
-//        Code   Octal    Inst Param  Encoding Param  Flags  Description
-const byte HLT = 0166;  // HLT        01110110          -    Halt processor
-const byte JMP = 0303;  // JMP a      11000011 lb hb    -    Unconditional jump
-const byte NOP = 0000;  // NOP        00000000          -    No operation
 /*
   Instruction parameters:
     db = Data byte (8 bit)
@@ -369,7 +387,26 @@ const byte NOP = 0000;  // NOP        00000000          -    No operation
     a  = hb + lb (16 bit value)
     pa = Port address (8 bit)
     p  = 8 bit port address
+
+    Register pair 'RP' fields:
+    00=BC   (B:C as 16 bit register)
+    01=DE   (D:E as 16 bit register)
+    10=HL   (H:L as 16 bit register)
+    11=SP   (Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP)
 */
+
+// Opcodes that are programmed and tested:
+//        Code   Octal    Inst Param  Encoding Param  Flags  Description
+const byte HLT = 0166;  // HLT        01110110          -    Halt processor
+const byte JMP = 0303;  // JMP a      11000011 lb hb    -    Unconditional jump
+const byte NOP = 0000;  // NOP        00000000          -    No operation
+// In progress:
+//         Code     Octal    Inst Param  Encoding Param  Flags  Description
+//         LXI_RP = 0041; // LXI RP,#  00RP0001 lb hb    -    Load register pair immediate*
+const byte LXI_BC = 0001; //           00000001 RP = 00 which matches "00=BC".
+const byte LXI_DE = 0021; //           00010001 RP = 10 which matches "01=DE".
+const byte LXI_HL = 0041; //           00100001 RP = 10 which matches "10=HL".
+const byte LXI_SP = 0061; //           00110001 RP = 10 which matches "11=SP".
 
 void processOpcode() {
   //
@@ -378,7 +415,7 @@ void processOpcode() {
   byte dataByte = memoryData[programCounter];
   switch (dataByte) {
     case HLT:
-      Serial.print(" > HLT Instruction, Halt the processor.");
+      Serial.print(" > HLT opcode, halt the processor.");
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
       break;
@@ -387,13 +424,19 @@ void processOpcode() {
       instructionCycle = 0;
       Serial.print(" > JMP opcode, get address low and high order bytes.");
       break;
+    case LXI_HL:
+      opcode = LXI_HL;
+      instructionCycle = 0;
+      Serial.print(" > LXI opcode, move lb hb address into register HL.");
+      // digitalWrite(WAIT_PIN, HIGH);
+      break;
     case NOP:
-      Serial.print(" > NOP Instruction, No operation.");
+      Serial.print(" > NOP opcode, No operation.");
       // Can add a delay, for example, to wait for an interrupt proccess.
       delay(10);
       break;
     default:
-      Serial.print(" - Error, unknow instruction.");
+      Serial.print(" - Error, unknown instruction.");
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
   }
@@ -415,7 +458,23 @@ void processOpcodeCycles() {
       sprintf(charBuffer, "%4d:", programCounter);
       Serial.print(charBuffer);
       printByte((byte)programCounter);
-      //
+      break;
+    case LXI_HL:
+      if (instructionCycle == 1) {
+        // digitalWrite(MI_PIN, HIGH);
+        regL = memoryData[programCounter++];
+        return;
+      }
+      // instructionCycle == 2
+      programCounter++;
+      regH = memoryData[programCounter];
+      Serial.print(" > LXI_HL, address: ");
+      sprintf(charBuffer, "%4d:", word(regH, regL));
+      Serial.print(charBuffer);
+      Serial.print(" regL:");
+      Serial.print(regL);
+      Serial.print(" regH:");
+      Serial.print(regH);
       break;
     default:
       Serial.print(" - Error, unknow instruction.");
@@ -437,7 +496,7 @@ void setup() {
   pinMode(RUN_BUTTON_PIN, INPUT);
   pinMode(STEP_BUTTON_PIN, INPUT);
   pinMode(EXAMINE_BUTTON_PIN, INPUT);
-  // pinMode(EXAMINENEXT_BUTTON_PIN, INPUT);
+  pinMode(EXAMINENEXT_BUTTON_PIN, INPUT);
   Serial.println("+ Toggle/button switches are configured for input.");
 
   pinMode(WAIT_PIN, OUTPUT);
@@ -450,10 +509,11 @@ void setup() {
   //    jumpLoopProgram
   //    jumpLoopNopProgram
   //    jumpHaltLoopProgram
-  int programSize = sizeof(jumpHaltLoopProgram);
-  listByteArray(jumpHaltLoopProgram, programSize);
+  //    lxiNopLoopProgram
+  int programSize = sizeof(jumpLoopProgram);
+  listByteArray(jumpLoopProgram, programSize);
   // Load a program.
-  copyByteArrayToMemory(jumpHaltLoopProgram, programSize);
+  copyByteArrayToMemory(jumpLoopProgram, programSize);
 
   Serial.println("+++ Start the processor loop.");
 }
@@ -476,6 +536,7 @@ void loop() {
     checkRunButton();
     checkStepButton();
     checkExamineButton();
+    checkExamineNextButton();
     delay(60);
   }
 
