@@ -96,29 +96,39 @@ byte lxiNopLoopProgram[] = {
 // byte NopLxiMovInxHltJmpCpiProgram[] = {
 byte theProgram[] = {
   // ------------------------------------------------------------------
-  //                         Start program.
-  0000,                   // NOP
-  0041, 25, 0000,         // LXI_HL lb hb. Load hb:lb into registers H(hb):L(lb).
+  // Initialize memory read location to memory start.
+  // Move the first data byte to the accumulator, which is register A.
+  // While not hit the end character (0111)
+  //    Increment the memory pointer (H:L).
+  //    Move the next data byte to the accumulator.
+  //    Halt the process.
+  //    Restart the while loop.
+  // End while.
+  // Restart the program from memory initialization.
+  //
+  //                Start program.
+  0000,             // NOP
+  0041, 24, 0000,   // LXI_HL lb hb. Load hb:lb into registers H(hb):L(lb).
+  0176,             // MOV M:address(H:L):data > register A
   //
   //                While address:data != 0111
-  0176,                   // MOV M:address(H:L):data > register A
   0376, 0111,             // CPI Compare A with 0111.
-  0312, 18, 0000,         // JZ lb hb. If it matches, jump to lb hb (end while)
+  0312, 19, 0000,         // JZ lb hb. If it matches, jump to lb hb (end while)
   0000,                   // NOP
+  0166,                   // HLT
   0043,                   // INX > Increment H:L
+  0176,                   // MOV M:address(H:L):data > register A
   0000,                   // NOP
-  0166,                   // HLT
-  0000,                   // NOP
-  0303, 0004, 0000,       // JMP to the MOV operation, the start of the while loop.
+  0303, 0005, 0000,       // JMP to the start of the while loop.
   //                End while.
-  0000,                   // NOP, at address 18.
-  0166,                   // HLT
-  0000,                   // NOP
-  0303, 1, 0000,          // JMP to 1. Restart: jump to program start.
+  0000,             // NOP
+  0166,             // HLT
+  0000,             // NOP
+  0303, 1, 0000,    // JMP to 1. Restart: jump to program start.
   // ------------------------------------------------------------------
-  //                         Data, starts at address 24.
-  0000, 0101, 0110,       // 3 4 5
-  0111, 0000, 0000,       // 6 7 8
+  //                Data, starts at address 24.
+  0000, 0101, 0001, // 5 6 7
+  0010, 0110, 0111, // 8 9 0
   //
   0000, 0000, 0000  //       end
 };
@@ -579,7 +589,7 @@ void processOpcodeCycles() {
       // instructionCycle == 2
       programCounter = word(memoryData[programCounter], memoryData[lowOrder]);
       Serial.print(" > JMP, jump to:");
-      sprintf(charBuffer, "%4d:", programCounter);
+      sprintf(charBuffer, "%4d = ", programCounter);
       Serial.print(charBuffer);
       printByte((byte)programCounter);
       break;
