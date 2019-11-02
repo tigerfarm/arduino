@@ -413,22 +413,20 @@ int regH = 0;   // 100=H
 int regL = 0;   // 101=L
 int regM = 0;   // 110=M   Memory reference through address in H:L
 
-// -------------------
+// -----------------------------------------------------------------------------
 // Opcodes that are programmed and tested:
+
 //        Code   Octal       Inst Param  Encoding Param  Flags  Description
 const byte HLT = 0166;    // HLT         01110110          -    Halt processor
 const byte JMP = 0303;    // JMP a       11000011 lb hb    -    Unconditional jump
 const byte NOP = 0000;    // NOP         00000000          -    No operation
-const byte LXI_HL = 0041; // LXI RP,a  00 100 001 00RP0001 = 10 which matches "10=HL".
+const byte LXI_HL = 0041; // LXI RP,a  00 100 001 00RP0001 RP=10 which matches "10=HL".
+const byte INX_HL = 0043; // INX HL    00 100 011 00RP0011      Increment H:L (can be a 16 bit address)
 //
 // MOV D,S   01DDDSSS          -       Move register to a register.
 // MOV D,M   01DDD110          -    Or Move register to the register M's address in H:L.
 // Example, MOV A,M 176 =    01 111 110  Move the DATA at address H/L to register A.
 const byte MOV_AM = 0176; // MOV  A  M(H:L) Where A is register A and M is the address in H:L
-//
-//                           INX RP    00RP0011          -     Increment register pair
-const byte INX_HL = 0043; // INX HL    00 100 011        -     Increment H:L (can be a 16 bit address)
-//
 //
 // -------------------
 // In progress:
