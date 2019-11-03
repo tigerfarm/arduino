@@ -12,6 +12,13 @@
     Processing opcodes and opcode cycles
     setup() Computer initialization.
     loop()  Clock cycling through memory.
+
+  Reference document, Intel 8080 Assembly Language Programming Manual:
+    https://altairclone.com/downloads/manuals/8080%20Programmers%20Manual.pdf
+
+ Altair programming video, starting a 6 minutes in:
+    https://www.youtube.com/watch?v=EV1ki6LiEmg
+
 */
 // -----------------------------------------------------------------------------
 // Memory definitions
@@ -29,23 +36,6 @@ byte jumpLoopProgram[] = {
   0000, 0000, 0000, // 3 4 5
   0303, 0000, 0000  // 6 7 8
 };
-// Needs to work like in the Altair in the following video, starting a 6 minutes in:
-//    https://www.youtube.com/watch?v=EV1ki6LiEmg
-// When single stepping,
-// + MEMR and WO are on.
-// + Flip single step,
-// ++ The new address is displayed and data value retreived and LED displayed.
-// ++ The data value is the jump instruction code.
-// + MEMR and WO are on. Status LED MI is off.
-// + Flip single step, status LED MI goes on.
-// + And Low order address byte is retrieved and shown. Status LED MI goes off.
-// + Flip single step, high order address byte is retrieved and shown.
-// + Status LED MI goes off.
-// + Flip single step,
-// ++ Program counter is to that address.
-// ++ The new address and data values are LED displayed.
-// ++ Status LED MI goes on.
-// Note, the simulator works like my code, which is different than the Altair in the video.
 
 // Define a jump loop program with NOP instructions.
 byte jumpLoopNopProgram[] = {
