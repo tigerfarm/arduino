@@ -95,7 +95,7 @@ byte lxiNopLoopProgram[] = {
   0000, 0000, 0000  //       end
 };
 // byte NopLxiMovInxHltJmpCpiProgram[] = {
-byte theProgram[] = {
+byte NopLxiMovInxHltJmpCpiProgram[] = {
   // ------------------------------------------------------------------
   // Initialize memory read location to memory start.
   // Move the first data byte to the accumulator, which is register A.
@@ -133,6 +133,55 @@ byte theProgram[] = {
   //
   0000, 0000, 0000  //       end
 };
+byte theProgram[] = {
+  /*
+//         Code     Octal    Inst Param  Encoding Param  Flags  Description
+const byte DAD_BC = 0011; // DAD         00001001          C    Add B:C to H:L. Set carry bit.
+//                           DAD  RP     00RP1001          C    Add register pair to HL (16 bit add)
+//                           Set carry bit if the addition causes a carry out.
+const byte JNC =    0322; // JNC  lb hb  11010010               Jump if carry bit is 0 (false).
+
+   */
+  // ------------------------------------------------------------------
+  // Initialize memory read location to memory start.
+  // Move the first data byte to the accumulator, which is register A.
+  // While not hit the end character (0111)
+  //    Increment the memory pointer (H:L).
+  //    Move the next data byte to the accumulator.
+  //    Halt the process.
+  //    Restart the while loop.
+  // End while.
+  // Restart the program from memory initialization.
+  //
+  //                Start program.
+  0000,             // NOP
+  0166,             // HLT  : Halt to check the program listing.
+  0006, 0776,       // MVI  B,db : Move db to register B.
+  0016, 0777,       // MVI  C,db : Move db to register B.
+  //                While address:data != 0111
+  0376, 0111,             // DAD Add B:C to H:L. Set carry bit.
+  0312, 19, 0000,         // JNC lb hb. If carry bit false, jump to lb hb (end while)
+  0000,                   // NOP
+  0000,                   // NOP
+  0000,                   // NOP
+  0000,                   // NOP
+  0166,                   // HLT
+  0043,                   // INX > Increment B
+  0000,                   // NOP
+  0303, 0005, 0000,       // JMP to the start of the while loop.
+  //                End while.
+  0000,             // NOP
+  0166,             // HLT
+  0000,             // NOP
+  0303, 1, 0000,    // JMP to 1. Restart: jump to program start.
+  // ------------------------------------------------------------------
+  //                Data, starts at address 24.
+  0000, 0101, 0001, // 5 6 7
+  0010, 0110, 0111, // 8 9 0
+  //
+  0000, 0000, 0000  //       end
+};
+
 /*
   00 000 000 = 000 =   0 2^0
   00 000 001 = 002 =   1 2^0
@@ -446,7 +495,6 @@ const byte LDA =    0062; // LDA is for copying data from memory location to acc
 //
 
 // More opcodes for Kill the Bit:
-const byte MVI =    0026; // MVI D,#   00DDD110 db       -       Move immediate to register*
 const byte LDAX =   0032; // LDAX RP   00RP1010 *1       -       Load indirect through BC or DE
 //                    *1 = Only RP=00(BC) and 01(DE) are allowed for LDAX/STAX
 const byte XRA =    0252; // XRA S     10101SSS          ZSPCA   Exclusive OR register with A
@@ -473,8 +521,12 @@ const byte NOP = 0000;    // NOP         00000000          -    No operation
 // -------------------
 // In progress, Kill the Bit opcodes:
 //         Code     Octal    Inst Param  Encoding Param  Flags  Description
-const byte DAD_BC = 0011; // DAD         00001001          C    Add B:C to H:L. Set carry bit.
-//                           DAD  RP     00RP1001          C    Add register pair to HL (16 bit add)
+const byte MVI_B =  0006; // MVI  B,db   00 000 110 db     -      Move db to register B.
+const byte MVI_C =  0016; // MVI  C,db   00 001 110 db     -      Move db to register B.
+//                           MVI  R,db   00 RRR 110 db     -      Move db to register R.
+//
+const byte DAD_BC = 0011; // DAD         00001001        C      Add B:C to H:L. Set carry bit.
+//                           DAD  RP     00RP1001        C      Add register pair to HL (16 bit add)
 //                           Set carry bit if the addition causes a carry out.
 const byte JNC =    0322; // JNC  lb hb  11010010               Jump if carry bit is 0 (false).
 
@@ -534,9 +586,13 @@ void processOpcode() {
       opcode = JMP;
       Serial.print(" > JMP, get address low and high order bytes.");
       break;
-    case LXI_HL:
-      opcode = LXI_HL;
-      Serial.print(" > LXI, move lb hb address into register pair H(hb):L(lb).");
+    case HLT:
+      Serial.print(" > HLT, halt the processor.");
+      runProgram = false;
+      halted = true;
+      // digitalWrite(HLTA_PIN, HIGH);
+      // Set all the address and data lights on.
+      digitalWrite(WAIT_PIN, HIGH);
       break;
     case INX_HL:
       regL++;       // Update this later because need to update the pair.
@@ -544,6 +600,10 @@ void processOpcode() {
       Serial.print(", regL = ");
       Serial.print(regL);
       // printOctal(regL);
+      break;
+    case LXI_HL:
+      opcode = LXI_HL;
+      Serial.print(" > LXI, move lb hb address into register pair H(hb):L(lb).");
       break;
     case MOV_AM:
       Serial.print(" > MOV");
@@ -557,13 +617,13 @@ void processOpcode() {
       Serial.print(" = ");
       Serial.print(regA);
       break;
-    case HLT:
-      Serial.print(" > HLT, halt the processor.");
-      runProgram = false;
-      halted = true;
-      // digitalWrite(HLTA_PIN, HIGH);
-      // Set all the address and data lights on.
-      digitalWrite(WAIT_PIN, HIGH);
+    case MVI_B:
+      opcode = MVI_B;
+      Serial.print(" > MVI, move db address into register B.");
+      break;
+    case MVI_C:
+      opcode = MVI_C;
+      Serial.print(" > MVI, move db address into register C.");
       break;
     case NOP:
       Serial.print(" > NOP ---");
@@ -681,6 +741,18 @@ void processOpcodeData() {
       printOctal(regH);
       Serial.print(" = ");
       printOctal(regL);
+      programCounter++;
+      break;
+    case MVI_B:
+      regB = memoryData[programCounter];
+      Serial.print(" db > register B: ");
+      Serial.print(regB);
+      programCounter++;
+      break;
+    case MVI_C:
+      regC = memoryData[programCounter];
+      Serial.print(" db > register C: ");
+      Serial.print(regC);
       programCounter++;
       break;
     default:
