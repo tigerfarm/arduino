@@ -449,9 +449,9 @@ const byte LDA =    0062; // LDA is for copying data from memory location to acc
 const byte MVI =    0026; // MVI D,#   00DDD110 db       -       Move immediate to register*
 const byte LDAX =   0032; // LDAX RP   00RP1010 *1       -       Load indirect through BC or DE
 //                    *1 = Only RP=00(BC) and 01(DE) are allowed for LDAX/STAX
-const byte IN =     0333; // IN p      11011011 pa       -       Read input port into A
 const byte XRA =    0252; // XRA S     10101SSS          ZSPCA   Exclusive OR register with A
 const byte RRC =    0017; // RRC       00001111          C       Rotate A right
+const byte IN =     0333; // IN p      11011011 pa       -       Read input port into A
 
 // -----------------------------------------------------------------------------
 // Opcodes that are programmed and tested:
@@ -459,12 +459,12 @@ const byte RRC =    0017; // RRC       00001111          C       Rotate A right
 //        Code   Octal       Inst Param  Encoding Param  Flags  Description
 const byte CPI = 0376;    // CPI db      00000000          -    Compare db with A > compareResult.
 const byte HLT = 0166;    // HLT         01110110          -    Halt processor
+const byte INX_HL = 0043; // INX HL    00 100 011 00RP0011      Increment H:L (can be a 16 bit address)
 const byte JMP = 0303;    // JMP a       11000011 lb hb    -    Unconditional jump
 const byte JZ  = 0312;    // JZ lb hb    00000000          -    If compareResult is true, jump to lb hb.
-const byte NOP = 0000;    // NOP         00000000          -    No operation
 const byte LXI_HL = 0041; // LXI RP,a  00 100 001 00RP0001 RP=10 which matches "10=HL".
-const byte INX_HL = 0043; // INX HL    00 100 011 00RP0011      Increment H:L (can be a 16 bit address)
 const byte MOV_AM = 0176; // MOV  A  M(H:L) Where A is register A and M is the address in H:L
+const byte NOP = 0000;    // NOP         00000000          -    No operation
 //
 // MOV D,S   01DDDSSS          -       Move register to a register.
 // MOV D,M   01DDD110          -    Or Move register to the register M's address in H:L.
@@ -478,8 +478,10 @@ const byte DAD_BC = 0011; // DAD         00001001          C    Add B:C to H:L. 
 //                           Set carry bit if the addition causes a carry out.
 const byte JNC =    0322; // JNC  lb hb  11010010               Jump if carry bit is 0 (false).
 
-boolean compareResult = true; // Used by CPI and JZ.
-boolean carryBit = false;     // Used DAD and JC.
+// -------------------
+// Process flags and values.
+boolean compareResult = true; // Set by CPI. Used by JZ.
+boolean carryBit = false;     // Set by DAD. Used JNC.
 boolean halted = false;       // Set true for an HLT opcode.
 
 void processData() {
