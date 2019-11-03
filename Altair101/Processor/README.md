@@ -2,36 +2,74 @@
 # Altair 101 Software
 
 The core program is the [machine code processor](Processor.ino).
-It interprets and processes a subset of the Altair 8800 operational instructions which are Intel 8080 opcodes.
 It's written in C, using the Arduino IDE, and is tested on an Arduino Nano microcontroller.
-
-Processor program sections,
-+ Memory definitions and sample program definitions.
-+ Output: Front Panel LED lights and serial log messages.
-+ Memory Management.
-+ Front Panel Status LEDs.
-+ Process Front Panel toggle events.
-+ Instruction set opcodes and Registers.
-+ Processing opcodes and opcode cycles.
-+ setup() Computer initialization.
-+ loop()  Clock cycling through memory to run programs.
+It interprets and processes a subset of the Altair 8800 operational instructions which are Intel 8080 chip opcodes.
 
 ## The Altair 101 Development Computer
 
-I built a breadboard which has a microcontroller and I/O components.
-The microcontroller is the Altair 101's CPU and RAM. The buttons and LED lights are the computer's keyboard and monitor.
-Log messages are displayed in the Arduino serial monitor.
+To develop the processor software, I have a Nano on a breadboard with buttons, LED lights, and serial connection for I/O.
+The microcontroller is the Altair 101's CPU and RAM.
+The buttons and LED lights are the computer's keyboard and monitor.
+Log messages are displayed in the Arduino serial monitor that runs on my laptop that is USB connected to the Nano.
 
 <img width="360px"  src="ProcessorBoard.jpg"/>
 
 Board components,
 + Arduino Nano to run the processor program.
-+ The Nano has I/O pins to for button event input, and turning LED lights on and off for output.
-+ The SD card module will be used for loading and saving programs. Not integrated at this time.
-+ Buttons: STOP, RUN, STEP.
++ Buttons: STOP, RUN, STEP, Examine, and Examine Next.
 + A WAIT LED.
++ A MI (Memory Input) LED.
++ I need to a RESET button to reset a program. The workaround is to push the Nano reset button.
 
-About the Nano,
+Video showing [startup LED lights](https://www.youtube.com/watch?v=suyiMfzmZKs).
+
+Video showing [programming](https://www.youtube.com/watch?v=EV1ki6LiEmg) using the front panel toggles.
++ A jump loop program is entered, examined, stepped through, and run.
++ I coded the Altair 101 processor program to react the same way.
+
+--------------------------------------------------------------------------------
+## Altair 8800 Status Lights
+
+Video showing [status LED lights](https://www.youtube.com/watch?v=3_73NwB6toY).
+
+The following program demonstrates status lights for specific opcodes.
+````
+Addr HEX     Assembler code  ;Comments
+0000         org     0 
+0000 3A2000  lda     40Q     ;opcode fetch, memory read x 3 
+0003 322100  sta     41Q     ;opcode fetch, mem read x 2, mem write x 1
+0006 312000  lxi     sp,40Q  ;opcode fetch, mem read x 2 
+0009 F5      push    a       ;opcode fetch, stack write x 2 
+000A F1      pop     a       ;opcode fetch, stack read x 2 
+000B DB10    in      20Q     ;opcode fetch, mem read, I/O input 
+000D D310    out     20Q     ;opcode fetch, mem read, I/O output 
+000F FB      ei              ;interrupts enabled
+0010 F3      di              ;interrupts disabled
+0011 76      hlt             ;halt  
+0012         end
+````
+Assembler code to HEX value to octal values and binary machine code.
+````
+Line of code  HEX      Octal         Binary machine code
+lda  40Q    | 3A2000 | 072 040 000 | 00 111 010 : 00 100 000 : 00 000 000
+sta  41Q    | 322100 | 062 041 000 | 00 110 010 : 00 100 001 : 00 000 000
+lxi  sp,40Q | 312000 | 061 040 000
+push a      | F5     | 365
+...
+````
+The program octal values are used to entry a program using the panel toggles.
+````
+072 040 000 
+062 041 000 
+061 040 000
+365
+361 333 020 323 020 373 
+363 166
+````
+
+Click [here](https://coderstoolbox.net/number/) for an online HEX, octal, binary converter.
+
+#### About the Nano,
 + Has 2048 bytes (2K) of dynamic memory which the type of memory I'm using for machine code program and data memory.
 + The other large global memory usage, is test programs.
 + Maybe I should put the memory data array instead a function. Need to test.
@@ -155,47 +193,6 @@ Then,
 
 Altair 8800b Instruction set.
 http://brooknet.no-ip.org/~lex/altair/_altair88b/manual/instructMain.html
-
---------------------------------------------------------------------------------
-## Test Running Altair 8800 Machine Code Programs on a Test Board
-
-
-The following program demonstrates status lights for specific opcodes.
-````
-Addr HEX     Assembler code  ;Comments
-0000         org     0 
-0000 3A2000  lda     40Q     ;opcode fetch, memory read x 3 
-0003 322100  sta     41Q     ;opcode fetch, mem read x 2, mem write x 1
-0006 312000  lxi     sp,40Q  ;opcode fetch, mem read x 2 
-0009 F5      push    a       ;opcode fetch, stack write x 2 
-000A F1      pop     a       ;opcode fetch, stack read x 2 
-000B DB10    in      20Q     ;opcode fetch, mem read, I/O input 
-000D D310    out     20Q     ;opcode fetch, mem read, I/O output 
-000F FB      ei              ;interrupts enabled
-0010 F3      di              ;interrupts disabled
-0011 76      hlt             ;halt  
-0012         end
-````
-Assembler code to HEX value to octal values and binary machine code.
-````
-Line of code  HEX      Octal         Binary machine code
-lda  40Q    | 3A2000 | 072 040 000 | 00 111 010 : 00 100 000 : 00 000 000
-sta  41Q    | 322100 | 062 041 000 | 00 110 010 : 00 100 001 : 00 000 000
-lxi  sp,40Q | 312000 | 061 040 000
-push a      | F5     | 365
-...
-````
-The program octal values are used to entry a program using the panel toggles.
-````
-072 040 000 
-062 041 000 
-061 040 000
-365
-361 333 020 323 020 373 
-363 166
-````
-
-Click [here](https://coderstoolbox.net/number/) for an online HEX, octal, binary converter.
 
 --------------------------------------------------------------------------------
 ### Front panel I/O and Memory management Software
@@ -560,30 +557,31 @@ Following is how to enter the above program.
 + Enter each of the values, then flip DEPOSIT NEXT.
 ````
 Addr Data toggles  Octal Value
-00   00 100 001     041
+00   00 100 001     041 lxi
 01   00 000 000     000
 02   00 000 000     000
-03   00 010 110     026
+03   00 010 110     026 mvi
 04   10 000 000     200
-05   00 000 001     001
+05   00 000 001     001 lxi
 06   00 001 110     016
 07   00 000 000     000
-08   00 011 010 beg:032
-09   00 011 010     032
-10   00 011 010     032
-11   00 011 010     032
-12   00 001 001     011
-13   11 010 010     322
+08   00 011 010 beg:032 ldax
+09   00 011 010     032 ldax
+10   00 011 010     032 ldax
+11   00 011 010     032 ldax
+12   00 001 001     011 dad
+13   11 010 010     322 jnc --- Jump to address 8(000:010)
 14   00 001 000     010
 15   00 000 000     000
-16   11 011 011     333
+16   11 011 011     333 in
 17   11 111 111     377
-18   10 101 010     252
-19   00 001 111     017
-20   01 010 111     127
+18   10 101 010     252 xra
+19   00 001 111     017 rrc
+20   01 010 111     127 mov
 21   11 000 011     303 jmp: Jump instruction: jmp beg
 22   00 001 000     010      To address 8. 00 001 000 = 8. Low order address bits.
-23   00 000 000     000 end: High order address bits, to get a 16 bit address: 00 000 000 00 001 000 = 8.
+23   00 000 000     000      High order address bits, to get a 16 bit address: 00 000 000 00 001 000 = 8.
+24                      end
 ````
 Once enter, review, to confirm correct entry.
 + Set the address toggles to 0.
@@ -598,7 +596,7 @@ Dig HEX
 00  0000 210000    lxi     h,0     ;initialize counter 
 03  0003 1680      mvi     d,080h  ;set up initial display bit 
 05  0005 010E00    lxi     b,0eh   ;higher value = faster 
-06  0008 1A   beg: ldax    d       ;display bit pattern on 
+08  0008 1A   beg: ldax    d       ;display bit pattern on 
 09  0009 1A        ldax    d       ;...upper 8 address lights 
 10  000A 1A        ldax    d 
 11  000B 1A        ldax    d 

@@ -16,17 +16,12 @@
 // -----------------------------------------------------------------------------
 // Memory definitions
 
+// Should move the memory into a function?
+// Test if that will move memoryData from Global memory (2K) to program memory (30K).
+
 int programCounter = 0;     // Program address value
 const int memoryBytes = 512;
 byte memoryData[memoryBytes];
-
-// Should move the memory into an object?
-/*
-  void computerMemory(byte b) {
-  const int memoryBytes2 = 1024;
-  byte memoryData2[memoryBytes2];
-  }
-*/
 
 // Define a jump loop program byte array.
 byte jumpLoopProgram[] = {
@@ -54,9 +49,15 @@ byte jumpLoopProgram[] = {
 
 // Define a jump loop program with NOP instructions.
 byte jumpLoopNopProgram[] = {
-  0303, 0004, 0000,
-  0000, 0000, 0000,
-  0303, 0000, 0000
+  0303, 0004, 0000, // 0 1 2
+  0000, 0000, 0000, // 3 4 5
+  0303, 0000, 0000  // 6 7 8
+};
+
+byte TestProgram[] = {
+  0303, 0003, 0000, // 0 1 2 JMP to address: 4 
+  0041, 0006, 0000, // 3 4 5 LXI_HL lb hb. Load 0000:0006 into register H:L.
+  0303, 0000, 0000  // 6 7 8
 };
 
 // Define a jump loop program
@@ -133,14 +134,24 @@ byte theProgram[] = {
   0000, 0000, 0000  //       end
 };
 /*
-  00 000 000 = 000 =   0
-  00 000 010 = 002 =   2
-  00 000 100 = 040 =   4
-  00 001 000 = 010 =   8
-  00 010 000 = 020 =  16
-  00 100 000 = 014 =  32
-  01 000 000 = 014 =  64
-  10 000 000 = 014 = 128
+  00 000 000 = 000 =   0 2^0
+  00 000 001 = 002 =   1 2^0
+  00 000 010 = 002 =   2 2^1
+  00 000 100 = 040 =   4 2^2
+  00 001 000 = 010 =   8 2^3
+  00 010 000 = 020 =  16 2^4
+  00 100 000 = 014 =  32 2^5
+  01 000 000 = 014 =  64 2^6
+  10 000 000 = 014 = 128 2^7
+                     256 2^8
+                     512 2^9
+                    1024 2^10  1K
+                    2048 2^11  2K
+                    4096 2^12  4K
+                    8192 2^13  8K
+                   16384 2^14 16K
+                   32768 2^15 32k
+                   65535 2^16 64k
 */
 // -----------------------------------------------------------------------------
 // Output: Front Panel and log messages such as memory address and data valules.
@@ -229,7 +240,7 @@ const int PROT_PIN = 42;    // Useful only if RAM has page protection impliement
 // Status LEDs
 const int MEMR_PIN = 42;    // Memory read such as fetching an op code (data instruction)
 const int INP_PIN = 42;     // Input
-const int MI_PIN = A1;      // On, doing an op code fetch: Machine cycle 1.
+const int M1_PIN = A1;      // On, when current address is an opcode, which is Machine cycle 1. Off when getting an opcodes data bytes.
 const int OUT_PIN = 42;     // Write output.
 const int HLTA_PIN = 42;    // Halt acknowledge, halt instruction executed.
 const int STACK_PIN = 42;   // On, reading or writing to the stack.
@@ -276,6 +287,8 @@ boolean stepButtonState = true;
 boolean examineButtonState = true;
 boolean examineNextButtonState = true;
 
+boolean buttonWentHigh = false;
+
 void checkStopButton() {
   if (digitalRead(STOP_BUTTON_PIN) == HIGH) {
     if (!stopButtonState) {
@@ -283,6 +296,7 @@ void checkStopButton() {
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
       stopButtonState = false;
+      buttonWentHigh = true;
     }
     stopButtonState = true;
   } else {
@@ -299,6 +313,7 @@ void checkRunButton() {
       runProgram = true;
       digitalWrite(WAIT_PIN, LOW);
       runButtonState = false;
+      buttonWentHigh = true;
     }
     runButtonState = true;
   } else {
@@ -316,6 +331,7 @@ void checkStepButton() {
       // Serial.println("+ checkButton(), turn LED on.");
       processData();
       stepButtonState = false;
+      buttonWentHigh = true;
     }
     stepButtonState = true;
   } else {
@@ -337,6 +353,7 @@ void checkExamineButton() {
       Serial.println("");
       // processData();
       examineButtonState = false;
+      buttonWentHigh = true;
     }
     examineButtonState = true;
   } else {
@@ -356,6 +373,7 @@ void checkExamineNextButton() {
       printAddressData();
       Serial.println("");
       examineNextButtonState = false;
+      buttonWentHigh = true;
     }
     examineNextButtonState = true;
   } else {
@@ -372,19 +390,6 @@ void checkExamineNextButton() {
 // This section is base on section 26: 8080 Instruction Set
 //    https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
 
-// To be programmed:
-//        Code   Octal           Inst      Encoding          Flags   Description
-const byte IN =  B11011011;   // IN p      11011011 pa       -       Read input port into A
-//
-// More program instructions for the Kill the Bit program,
-// DAD RP    00RP1001          C       Add register pair to HL (16 bit add)*
-// JNC ?
-// LDAX RP   00RP1010 *1       -       Load indirect through BC or DE
-//                    *1 = Only RP=00(BC) and 01(DE) are allowed for LDAX/STAX
-// MVI D,#   00DDD110 db       -       Move immediate to register*
-// RRC       00001111          C       Rotate A right
-// XRA S     10101SSS          ZSPCA   Exclusive OR register with A
-
 // -----------------------------------------------------------------------------
 // Processing opcodes and opcode cycles
 
@@ -400,10 +405,10 @@ void printAddressData() {
 }
 
 // Instruction parameters:
-int lowOrder = 0;           // lb: Low order byte of 16 bit value.
-int highOrder = 0;          // hb: High order byte of 16 bit value.
+byte lowOrder = 0;           // lb: Low order byte of 16 bit value.
+byte highOrder = 0;          // hb: High order byte of 16 bit value.
 //                             Example: hb + lb = 16 bit memory address.
-int dataByte = 0;           // db = Data byte (8 bit)
+byte dataByte = 0;           // db = Data byte (8 bit)
 
 /*
     a  = hb + lb (16 bit value)
@@ -418,70 +423,106 @@ int dataByte = 0;           // db = Data byte (8 bit)
     11=SP   (Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP)
 */
 //   Destination and Source register fields.
-int regA = 0;   // 111=A  A, register A, or Accumulator
-int regB = 0;   // 000=B  B, register B
-int regC = 0;   // 001=C  C
-int regD = 0;   // 010=D  D
-int regE = 0;   // 011=E  E
-int regH = 0;   // 100=H  H
-int regL = 0;   // 101=L  L
-int regM = 0;   // 110=M  Memory reference through address in H:L
+byte regA = 0;   // 111=A  A, register A, or Accumulator
+byte regB = 0;   // 000=B  B, register B
+byte regC = 0;   // 001=C  C
+byte regD = 0;   // 010=D  D
+byte regE = 0;   // 011=E  E
+byte regH = 0;   // 100=H  H
+byte regL = 0;   // 101=L  L
+byte regM = 0;   // 110=M  Memory reference through address in H:L
 
-// -----------------------------------------------------------------------------
-// Opcodes that are programmed and tested:
-
-//        Code   Octal       Inst Param  Encoding Param  Flags  Description
-const byte HLT = 0166;    // HLT         01110110          -    Halt processor
-const byte JMP = 0303;    // JMP a       11000011 lb hb    -    Unconditional jump
-const byte NOP = 0000;    // NOP         00000000          -    No operation
-const byte LXI_HL = 0041; // LXI RP,a  00 100 001 00RP0001 RP=10 which matches "10=HL".
-const byte INX_HL = 0043; // INX HL    00 100 011 00RP0011      Increment H:L (can be a 16 bit address)
+// To do:
 //
-// MOV D,S   01DDDSSS          -       Move register to a register.
-// MOV D,M   01DDD110          -    Or Move register to the register M's address in H:L.
-// Example, MOV A,M 176 =    01 111 110  Move the DATA at address H/L to register A.
-const byte MOV_AM = 0176; // MOV  A  M(H:L) Where A is register A and M is the address in H:L
-//
-// -------------------
-// In progress:
-//         Code     Octal    Inst Param  Encoding Param  Flags  Description
-const byte CPI = 0376;    // CPI db      00000000          -    Compare db with A > compareResult.
-const byte JZ  = 0312;    // JZ lb hb    00000000          -    If compareResult is true, jump to lb hb.
-//
-const byte STA =    0062; // STA a     00110010 lb hb    -    Store register A to memory address: lb hb
-const byte LDA =    0062; // LDA is for copying data from memory location to accumulator
 //         LXI_RP = 0041; // LXI RP,#  00RP0001 lb hb    -    Load lb and hb into the register pair (RP)
 const byte LXI_BC = 0001; //           00 000 001 RP = 00 which matches "00=BC".
 const byte LXI_DE = 0021; //           00 010 001 RP = 10 which matches "01=DE".
 const byte LXI_SP = 0061; //           00 110 001 RP = 10 which matches "11=SP".
 
-boolean compareResult = true; // Used CPI and JZ.
+// Others to code:
+// For STA and LDA, see the video: https://www.youtube.com/watch?v=3_73NwB6toY
+const byte STA =    0062; // STA a     00110010 lb hb    -    Store register A to memory address: lb hb
+const byte LDA =    0062; // LDA is for copying data from memory location to accumulator
+//
+
+// More opcodes for Kill the Bit:
+const byte MVI =    0026; // MVI D,#   00DDD110 db       -       Move immediate to register*
+const byte LDAX =   0032; // LDAX RP   00RP1010 *1       -       Load indirect through BC or DE
+//                    *1 = Only RP=00(BC) and 01(DE) are allowed for LDAX/STAX
+const byte IN =     0333; // IN p      11011011 pa       -       Read input port into A
+const byte XRA =    0252; // XRA S     10101SSS          ZSPCA   Exclusive OR register with A
+const byte RRC =    0017; // RRC       00001111          C       Rotate A right
+
+// -----------------------------------------------------------------------------
+// Opcodes that are programmed and tested:
+
+//        Code   Octal       Inst Param  Encoding Param  Flags  Description
+const byte CPI = 0376;    // CPI db      00000000          -    Compare db with A > compareResult.
+const byte HLT = 0166;    // HLT         01110110          -    Halt processor
+const byte JMP = 0303;    // JMP a       11000011 lb hb    -    Unconditional jump
+const byte JZ  = 0312;    // JZ lb hb    00000000          -    If compareResult is true, jump to lb hb.
+const byte NOP = 0000;    // NOP         00000000          -    No operation
+const byte LXI_HL = 0041; // LXI RP,a  00 100 001 00RP0001 RP=10 which matches "10=HL".
+const byte INX_HL = 0043; // INX HL    00 100 011 00RP0011      Increment H:L (can be a 16 bit address)
+const byte MOV_AM = 0176; // MOV  A  M(H:L) Where A is register A and M is the address in H:L
+//
+// MOV D,S   01DDDSSS          -       Move register to a register.
+// MOV D,M   01DDD110          -    Or Move register to the register M's address in H:L.
+// Example, MOV A,M 176 =    01 111 110  Move the DATA at address H/L to register A.
+//
+// -------------------
+// In progress, Kill the Bit opcodes:
+//         Code     Octal    Inst Param  Encoding Param  Flags  Description
+const byte DAD_BC = 0011; // DAD         00001001          C    Add B:C to H:L. Set carry bit.
+//                           DAD  RP     00RP1001          C    Add register pair to HL (16 bit add)
+//                           Set carry bit if the addition causes a carry out.
+const byte JNC =    0322; // JNC  lb hb  11010010               Jump if carry bit is 0 (false).
+
+boolean compareResult = true; // Used by CPI and JZ.
+boolean carryBit = false;     // Used DAD and JC.
+boolean halted = false;       // Set true for an HLT opcode.
 
 void processData() {
   if (opcode == 0) {
     Serial.print("> ");
     printAddressData();
+    digitalWrite(M1_PIN, HIGH); // Machine cycle 1, get an opcode.
     processOpcode();
     programCounter++;
     instructionCycle = 0;
   } else {
     Serial.print("+ ");
     printAddressData();
-    processOpcodeCycles();
+    digitalWrite(M1_PIN, LOW); // Machine cycle 1+x, getting opcode data.
+    processOpcodeData();
   }
   Serial.println("");
 }
 
 void processOpcode() {
-  //
-  digitalWrite(MI_PIN, LOW);
-  //
+  int aValue = 0;       // For calculating if there is a carry over.
   int anAddress = 0;
   byte dataByte = memoryData[programCounter];
   switch (dataByte) {
     case CPI:
       opcode = CPI;
       Serial.print(" > CPI, compare next data byte to A. Store true or false into compareResult.");
+      break;
+    case DAD_BC:
+      Serial.print(" > DAD_BC, Add B:C to H:L. Set carry bit. ");
+      aValue = (int)word(regB, regC) + (int)word(regH, regL);
+      // 2^16 = 65535 = 64k = 11 111 111 : 11 111 111
+      if (aValue > 65535) {
+        carryBit = true;
+      } else {
+        carryBit = false;
+      }
+      Serial.print(", sum = ");
+      Serial.print(aValue);
+      break;
+    case JNC:
+      opcode = JNC;
+      Serial.print(" > JNC, Jump if carry bit is 0 (false), not set.");
       break;
     case JZ:
       opcode = JZ;
@@ -517,11 +558,14 @@ void processOpcode() {
     case HLT:
       Serial.print(" > HLT, halt the processor.");
       runProgram = false;
+      halted = true;
+      // digitalWrite(HLTA_PIN, HIGH);
+      // Set all the address and data lights on.
       digitalWrite(WAIT_PIN, HIGH);
       break;
     case NOP:
       Serial.print(" > NOP ---");
-      delay(100);
+      // delay(100);
       break;
     default:
       Serial.print(" - Error, unknown instruction.");
@@ -530,11 +574,11 @@ void processOpcode() {
   }
 }
 
-void processOpcodeCycles() {
+void processOpcodeData() {
   
   // Note,
-  //    if jumping, don't increment programCounter.
   //    if not jumping, increment programCounter.
+  //    if jumping, don't increment programCounter.
   
   instructionCycle++;
   switch (opcode) {
@@ -553,9 +597,31 @@ void processOpcodeCycles() {
       Serial.print(regA);
       programCounter++;
       break;
+    case JNC:
+      if (instructionCycle == 1) {
+        lowOrder = memoryData[programCounter];
+        Serial.print(" < JNC, lb: ");
+        sprintf(charBuffer, "%4d:", lowOrder);
+        Serial.print(charBuffer);
+        programCounter++;
+        return;
+      }
+      // instructionCycle == 2
+      highOrder = memoryData[programCounter];
+      Serial.print(" < JNC, hb: ");
+      sprintf(charBuffer, "%4d:", highOrder);
+      Serial.print(charBuffer);
+      if (!carryBit) {
+        Serial.print(" > JNC, jump to:");
+        programCounter = word(highOrder, lowOrder);
+        Serial.print(programCounter);
+      } else {
+        Serial.print(" - carryBit is true, don't jump.");
+        programCounter++;
+      }
+      break;
     case JZ:
       if (instructionCycle == 1) {
-        digitalWrite(MI_PIN, HIGH);
         lowOrder = memoryData[programCounter];
         Serial.print(" < JZ, lb: ");
         sprintf(charBuffer, "%4d:", lowOrder);
@@ -579,7 +645,6 @@ void processOpcodeCycles() {
       break;
     case JMP:
       if (instructionCycle == 1) {
-        digitalWrite(MI_PIN, HIGH);
         lowOrder = programCounter;
         Serial.print(" > JMP, lb: ");
         Serial.print(lowOrder);
@@ -595,7 +660,6 @@ void processOpcodeCycles() {
       break;
     case LXI_HL:
       if (instructionCycle == 1) {
-        // digitalWrite(MI_PIN, HIGH);
         regL = memoryData[programCounter];
         Serial.print(" < LXI, lb: ");
         sprintf(charBuffer, "%4d:", regL);
@@ -638,13 +702,17 @@ void setup() {
   pinMode(STEP_BUTTON_PIN, INPUT);
   pinMode(EXAMINE_BUTTON_PIN, INPUT);
   pinMode(EXAMINENEXT_BUTTON_PIN, INPUT);
+  // pinMode(RESET_BUTTON_PIN, INPUT);
   Serial.println("+ Toggle/button switches are configured for input.");
 
   pinMode(WAIT_PIN, OUTPUT);
   digitalWrite(WAIT_PIN, HIGH);
-  pinMode(MI_PIN, OUTPUT);
-  digitalWrite(MI_PIN, LOW);
-  Serial.println("+ LED lights configured for output.");
+  pinMode(M1_PIN, OUTPUT);
+  digitalWrite(M1_PIN, HIGH);
+  // digitalWrite(MEMR_PIN, HIGH);
+  // digitalWrite(HLTA_PIN, LOW);
+  // digitalWrite(WO_PIN, HIGH);
+  Serial.println("+ LED lights configured and initialized.");
 
   // List a program. Available programs:
   //    jumpLoopProgram
@@ -666,14 +734,20 @@ static unsigned long timer = millis();
 void loop() {
 
   if (runProgram) {
+    // When testing, can add a cycle delay.
     // Clock process timing is controlled by the timer.
     // Example, 50000 : once every 1/2 second.
-    if (millis() - timer >= 500) {
+    // if (millis() - timer >= 500) {
       processData();
-      timer = millis();
-    }
+      // timer = millis();
+    // }
     checkStopButton();
   } else {
+    if (buttonWentHigh && halted) {
+      halted = false;
+      buttonWentHigh = false;
+      // digitalWrite(HLTA_PIN, LOW); // Not halted anymore.
+    }
     checkRunButton();
     checkStepButton();
     checkExamineButton();
