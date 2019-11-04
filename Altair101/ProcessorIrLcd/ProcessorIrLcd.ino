@@ -122,15 +122,15 @@ const int PROT_PIN = 42;    // Useful only if RAM has page protection impliement
 // Status LEDs
 const int MEMR_PIN = 42;    // Memory read such as fetching an op code (data instruction)
 const int INP_PIN = 42;     // Input
-const int M1_PIN = A2;      // On, when current address is an opcode, which is Machine cycle 1. Off when getting an opcodes data bytes.
+const int M1_PIN = A3;      // On, when current address is an opcode, which is Machine cycle 1. Off when getting an opcodes data bytes.
 const int OUT_PIN = 42;     // Write output.
-const int HLTA_PIN = 42;    // Halt acknowledge, halt instruction executed.
+const int HLTA_PIN = A5;    // Halt acknowledge, halt instruction executed.
 const int STACK_PIN = 42;   // On, reading or writing to the stack.
 const int WO_PIN = 42;      // Write Output uses inverse logic. On, not writing output.
 const int INT_PIN = 42;     // On when executing an interrupt step.
 //
 const int WAIT_PIN = A0;    // On, program not running. Off, programrunning.
-const int HLDA_PIN = A1;    // 8080 processor go into a hold state because of other hardware.
+const int HLDA_PIN = 42;    // 8080 processor go into a hold state because of other hardware.
 
 // MEMR & MI & WO are on when fetching an op code, example: JMP(303) or lda(072).
 // MEMR & WO are on when fetching a low or high byte of an address.
@@ -588,8 +588,8 @@ void infraredSwitch() {
       // Serial.println(F("+ Key > - next"));
       // digitalWrite(STEP_BUTTON_PIN, HIGH);
       // Serial.println("+ checkButton(), turn LED on.");
-      processData();
       buttonWentHigh = true;
+      processData();
       break;
     case 0xFF18E7:
     case 0xE0E006F9:
@@ -707,6 +707,7 @@ void setup() {
   pinMode(M1_PIN, OUTPUT);
   digitalWrite(M1_PIN, HIGH);
   // digitalWrite(MEMR_PIN, HIGH);
+  // digitalWrite(WO_PIN, HIGH);
   digitalWrite(HLTA_PIN, LOW);
   digitalWrite(WO_PIN, HIGH);
   Serial.println(F("+ LED lights configured and initialized."));
