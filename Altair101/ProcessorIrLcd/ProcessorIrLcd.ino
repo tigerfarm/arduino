@@ -403,7 +403,10 @@ void processOpcode() {
 }
 
 void processOpcodeData() {
-  int hbLb16BitValue = 0;       // For calculating hb:lb as a 16 value.
+  // For calculating hb:lb as a 16 value.
+  unsigned int hbLb16BitValue = 0;       
+  unsigned int hbLb16BitValue1 = 0;
+  unsigned int hbLb16BitValue2 = 0;
 
   // Note,
   //    if not jumping, increment programCounter.
@@ -506,12 +509,20 @@ void processOpcodeData() {
       Serial.print(F(":"));
       printOctal(regL);
       Serial.print(F(" = "));
-      hbLb16BitValue = regH * 256 + regL;
-      // hbLb16BitValue = (int)word(regB, regC);
+      hbLb16BitValue1 = regH;
+      hbLb16BitValue2 = regL;
+      hbLb16BitValue = hbLb16BitValue1 * 256 + hbLb16BitValue2;
       Serial.print(hbLb16BitValue);
+      // hbLb16BitValue = (int)word(regB, regC);
+      // Serial.print(F(" = "));
+      // hbLb16BitValue = (int)word(regB, regC);
+      // Serial.print(hbLb16BitValue);
       // sprintf(charBuffer, "%8d:", hbLb16BitValue);
       // Serial.print(charBuffer);
-      /* Example of how to calculate the value of hb and hl:
+      /* 
++ Addr:    7: Data: 255 = 377 = 11111111 < LXI, hb:  255: > H:L = 377:373 = 4294967291 = 258
+
+Example of how to calculate the value of hb and hl:
 + Addr:    6: Data: 251 = 373 = 11111011 < LXI, lb:  251:
 + Addr:    7: Data: 255 = 377 = 11111111 < LXI, hb:  255: > H:L = 377:373 = ?
 11111111:11111111 = 65535
