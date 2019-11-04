@@ -358,9 +358,9 @@ void processOpcode() {
       Serial.print(F(" > HLT, halt the processor."));
       runProgram = false;
       halted = true;
-      // digitalWrite(HLTA_PIN, HIGH);
-      // Set all the address and data lights on.
+      digitalWrite(HLTA_PIN, HIGH);
       digitalWrite(WAIT_PIN, HIGH);
+      // To do: set all the address and data lights on.
       break;
     case INX_HL:
       regL++;       // Update this later because need to update the pair.
@@ -404,7 +404,7 @@ void processOpcode() {
 
 void processOpcodeData() {
   // For calculating hb:lb as a 16 value.
-  unsigned int hbLb16BitValue = 0;       
+  unsigned int hbLb16BitValue = 0;
   unsigned int hbLb16BitValue1 = 0;
   unsigned int hbLb16BitValue2 = 0;
 
@@ -519,23 +519,23 @@ void processOpcodeData() {
       // Serial.print(hbLb16BitValue);
       // sprintf(charBuffer, "%8d:", hbLb16BitValue);
       // Serial.print(charBuffer);
-      /* 
-+ Addr:    7: Data: 255 = 377 = 11111111 < LXI, hb:  255: > H:L = 377:373 = 4294967291 = 258
+      /*
+        + Addr:    7: Data: 255 = 377 = 11111111 < LXI, hb:  255: > H:L = 377:373 = 4294967291 = 258
 
-Example of how to calculate the value of hb and hl:
-+ Addr:    6: Data: 251 = 373 = 11111011 < LXI, lb:  251:
-+ Addr:    7: Data: 255 = 377 = 11111111 < LXI, hb:  255: > H:L = 377:373 = ?
-11111111:11111111 = 65535
-11111111:11111011 = 65531
-11111111:00000000 = 65280
-11111111 = 255
-11111011 = 251
-65531 - 251 = 65280
-65280 / 255 = 256
-255 * 256 + 251 = 65531
-+ Addr:    6: Data: 251 = 373 = 11111011 < LXI, lb:  251:
-+ Addr:    7: Data: 255 = 377 = 11111111 < LXI, hb:  255: > H:L = 377:373 = 65531
-       */
+        Example of how to calculate the value of hb and hl:
+        + Addr:    6: Data: 251 = 373 = 11111011 < LXI, lb:  251:
+        + Addr:    7: Data: 255 = 377 = 11111111 < LXI, hb:  255: > H:L = 377:373 = ?
+        11111111:11111111 = 65535
+        11111111:11111011 = 65531
+        11111111:00000000 = 65280
+        11111111 = 255
+        11111011 = 251
+        65531 - 251 = 65280
+        65280 / 255 = 256
+        255 * 256 + 251 = 65531
+        + Addr:    6: Data: 251 = 373 = 11111011 < LXI, lb:  251:
+        + Addr:    7: Data: 255 = 377 = 11111111 < LXI, hb:  255: > H:L = 377:373 = 65531
+      */
       programCounter++;
       break;
     case MVI_B:
@@ -573,6 +573,18 @@ IRrecv irrecv(IR_PIN);
 decode_results results;
 
 void infraredSwitch() {
+
+  // If a program is running, only the STOP option is avaiable.
+  if (runProgram) {
+    if (results.value == 0xFF4AB5 || results.value == 0xE0E08679) {
+      Serial.println(F("+ Stop process."));
+      runProgram = false;
+      digitalWrite(WAIT_PIN, HIGH);
+      digitalWrite(HLTA_PIN, LOW);
+    }
+    return;
+  }
+
   // Serial.println(F("+ infraredSwitch"));
   switch (results.value) {
     case 0xFFFFFFFF:
@@ -588,7 +600,7 @@ void infraredSwitch() {
       // Serial.println(F("+ Key > - next"));
       // digitalWrite(STEP_BUTTON_PIN, HIGH);
       // Serial.println("+ checkButton(), turn LED on.");
-      buttonWentHigh = true;
+      digitalWrite(HLTA_PIN, LOW);
       processData();
       break;
     case 0xFF18E7:
@@ -597,15 +609,15 @@ void infraredSwitch() {
       Serial.println(F("+ Run process."));
       runProgram = true;
       digitalWrite(WAIT_PIN, LOW);
-      buttonWentHigh = true;
+      digitalWrite(HLTA_PIN, LOW);
       break;
     case 0xFF4AB5:
     case 0xE0E08679:
       // Serial.println(F("+ Key down"));
-      Serial.println(F("+ Stop process."));
-      runProgram = false;
-      digitalWrite(WAIT_PIN, HIGH);
-      buttonWentHigh = true;
+      // Serial.println(F("+ Stop process."));
+      // runProgram = false;
+      // digitalWrite(WAIT_PIN, HIGH);
+      // digitalWrite(HLTA_PIN, LOW);
       break;
     case 0xFF38C7:
     case 0xE0E016E9:
@@ -614,7 +626,7 @@ void infraredSwitch() {
       Serial.println(F("+ Stop process."));
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
-      buttonWentHigh = true;
+      digitalWrite(HLTA_PIN, LOW);
       //
       break;
     // -----------------------------------
@@ -704,12 +716,14 @@ void setup() {
 
   pinMode(WAIT_PIN, OUTPUT);
   digitalWrite(WAIT_PIN, HIGH);
+  // pinMode(MEMR_PIN, OUTPUT);
+  // digitalWrite(MEMR_PIN, HIGH);
   pinMode(M1_PIN, OUTPUT);
   digitalWrite(M1_PIN, HIGH);
-  // digitalWrite(MEMR_PIN, HIGH);
-  // digitalWrite(WO_PIN, HIGH);
+  pinMode(HLTA_PIN, OUTPUT);
   digitalWrite(HLTA_PIN, LOW);
-  digitalWrite(WO_PIN, HIGH);
+  // pinMode(WO_PIN, OUTPUT);
+  // digitalWrite(WO_PIN, HIGH);
   Serial.println(F("+ LED lights configured and initialized."));
 
   int programSize = sizeof(theProgram);
@@ -742,11 +756,6 @@ void loop() {
     // timer = millis();
     // }
   } else {
-    if (buttonWentHigh && halted) {
-      halted = false;
-      buttonWentHigh = false;
-      // digitalWrite(HLTA_PIN, LOW); // Not halted anymore.
-    }
     delay(60);
   }
 
