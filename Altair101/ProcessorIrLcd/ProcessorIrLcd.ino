@@ -4,11 +4,10 @@
 
   Program sections,
     Definitions: Memory and sample program.
-    Output: Front Panel LED lights and serial log messages.
     Memory Functions.
     Front Panel Status LEDs.
     Definitions: Instruction Set, Opcodes, Registers.
-    Output: Front Panel Output and log messages
+    Output: Front Panel LED lights and serial log messages.
     Processor: Processing opcodes instructions
     Input: Front Panel toggle/button switch events
     setup() Computer initialization.
@@ -20,6 +19,8 @@
   Altair programming video, starting a 6 minutes in:
     https://www.youtube.com/watch?v=EV1ki6LiEmg
 
+  Binary calculator:
+    https://www.calculator.net/binary-calculator.html
 */
 // -----------------------------------------------------------------------------
 // Memory definitions
@@ -32,10 +33,12 @@ byte theProgram[] = {
   // Test: MVI, DAD, JNC
   //                Start program.
   0000,             // NOP
-  0006, 0000,       // MVI  B,db : Move db to register B.
-  0016, 0001,       // MVI  C,db : Move db to register B.
-  0041, 0773, 0777, // LXI_HL lb hb. Load 0000:1 into register H:L.
-  //                While carry bit {
+  //                               Set B:C to 0000:2
+  0006, 0001,       // MVI  B,db : Move db to register B.
+  0016, 0002,       // MVI  C,db : Move db to register D.
+  //                               Set H:L to 0000:3. Later, set to: 0373, 0377
+  0041, 0373, 0377, // LXI_HL lb hb. Load 0000:1 into register H:L.
+  //                Until !carry bit {
   0000,               // NOP
   0166,               // HLT
   0011,               // DAD Add B:C to H:L. Set carry bit.
@@ -46,7 +49,7 @@ byte theProgram[] = {
   0000,             // NOP
   0303, 1, 0000,    // JMP to 1. Restart: jump to program start.
   // ------------------------------------------------------------------
-  //                Data, starts at address 27.
+  //                Data, starts at address ?
   0000, 0101, 0001, // 5 6 7
   0010, 0110, 0111, // 8 9 0
   //
@@ -62,7 +65,7 @@ byte theProgram[] = {
   00 010 000 = 020 =  16 2^4
   00 100 000 = 014 =  32 2^5
   01 000 000 = 014 =  64 2^6
-  10 000 000 = 014 = 128 2^7
+  10 000 000 = 014 = 128 2^7 8 bits store valuse: 0 ... 255
                      256 2^8
                      512 2^9
                     1024 2^10  1K
@@ -75,6 +78,9 @@ byte theProgram[] = {
 */
 // -----------------------------------------------------------------------------
 // Memory Functions
+
+char charBuffer[17];
+byte zeroByte = B00000000;
 
 void initMemoryToZero() {
   Serial.println(F("+ Initialize all memory bytes to zero."));
@@ -232,9 +238,6 @@ const byte JNC =    0322; // JNC  lb hb  11010010               Jump if carry bi
 // -----------------------------------------------------------------------------
 // Output: Front Panel Output and log messages
 
-byte zeroByte = B00000000;
-char charBuffer[16];
-
 void printByte(byte b) {
   for (int i = 7; i >= 0; i--)
     Serial.print(bitRead(b, i));
@@ -256,11 +259,10 @@ void printOctal(byte b) {
 }
 
 void printData(byte theByte) {
-  sprintf(charBuffer, "%3d:", theByte);
+  sprintf(charBuffer, "%3d = ", theByte);
   Serial.print(charBuffer);
-  Serial.print(":");
   printOctal(theByte);
-  Serial.print(":");
+  Serial.print(F(" = "));
   printByte(theByte);
 }
 
@@ -316,7 +318,7 @@ void processOpcode() {
       Serial.print(F(" > CPI, compare next data byte to A. Store true or false into compareResult."));
       break;
     case DAD_BC:
-      Serial.print(F(" > DAD_BC, Add B:C to H:L. Set carry bit. "));
+      Serial.print(F(" > DAD_BC, Add B:C to H:L."));
       aValue = (int)word(regB, regC);
       bValue = (int)word(regH, regL);
       cValue = aValue + bValue;
@@ -326,16 +328,23 @@ void processOpcode() {
       } else {
         carryBit = false;
       }
+      regL = cValue;            // Stacy, update for H:L, not just L.
       Serial.print(F(", B:C "));
       Serial.print(aValue);
-      Serial.print(F(" +  H:L "));
+      Serial.print(F(" + H:L "));
       Serial.print(bValue);
       Serial.print(F(" = "));
       Serial.print(cValue);
+      Serial.print(F(", Carry bit set: "));
+      if (carryBit) {
+        Serial.print(F("true."));
+      } else {
+        Serial.print(F("false."));
+      }
       break;
     case JNC:
       opcode = JNC;
-      Serial.print(F(" > JNC, Jump if carry bit is 0 (false), not set."));
+      Serial.print(F(" > JNC, Jump if carry bit is false (0, not set)."));
       break;
     case JZ:
       opcode = JZ;
@@ -372,9 +381,7 @@ void processOpcode() {
       sprintf(charBuffer, "%4d:", anAddress);
       Serial.print(charBuffer);
       Serial.print(F(", to Accumulator = "));
-      printOctal(regA);
-      Serial.print(" = ");
-      Serial.print(regA);
+      printData(regA);
       break;
     case MVI_B:
       opcode = MVI_B;
@@ -396,6 +403,7 @@ void processOpcode() {
 }
 
 void processOpcodeData() {
+  int hbLb16BitValue = 0;       // For calculating hb:lb as a 16 value.
 
   // Note,
   //    if not jumping, increment programCounter.
@@ -433,7 +441,7 @@ void processOpcodeData() {
       sprintf(charBuffer, "%4d:", highOrder);
       Serial.print(charBuffer);
       if (!carryBit) {
-        Serial.print(F(" > JNC, jump to:"));
+        Serial.print(F(" > JNC, carryBit is false, jump to:"));
         programCounter = word(highOrder, lowOrder);
         Serial.print(programCounter);
       } else {
@@ -489,37 +497,46 @@ void processOpcodeData() {
         return;
       }
       // instructionCycle == 2
-      programCounter;
       regH = memoryData[programCounter];
       Serial.print(F(" < LXI, hb: "));
       sprintf(charBuffer, "%4d:", regH);
       Serial.print(charBuffer);
-      Serial.print(F(" > H:L address: "));
-      sprintf(charBuffer, "%8d:", word(regH, regL));
-      Serial.print(charBuffer);
+      Serial.print(F(" > H:L = "));
       printOctal(regH);
-      Serial.print(F(" = "));
+      Serial.print(F(":"));
       printOctal(regL);
+      Serial.print(F(" = "));
+      hbLb16BitValue = regH * 256 + regL;
+      // hbLb16BitValue = (int)word(regB, regC);
+      Serial.print(hbLb16BitValue);
+      // sprintf(charBuffer, "%8d:", hbLb16BitValue);
+      // Serial.print(charBuffer);
+      /* Example of how to calculate the value of hb and hl:
++ Addr:    6: Data: 251 = 373 = 11111011 < LXI, lb:  251:
++ Addr:    7: Data: 255 = 377 = 11111111 < LXI, hb:  255: > H:L = 377:373 = ?
+11111111:11111111 = 65535
+11111111:11111011 = 65531
+11111111:00000000 = 65280
+11111111 = 255
+11111011 = 251
+65531 - 251 = 65280
+65280 / 255 = 256
+255 * 256 + 251 = 65531
++ Addr:    6: Data: 251 = 373 = 11111011 < LXI, lb:  251:
++ Addr:    7: Data: 255 = 377 = 11111111 < LXI, hb:  255: > H:L = 377:373 = 65531
+       */
       programCounter++;
       break;
     case MVI_B:
       regB = memoryData[programCounter];
-      Serial.print(F(" > MVI, move db > register B: "));
-      Serial.print(regB);
-      Serial.print(F(" = "));
-      printOctal(regB);
-      Serial.print(F(" = "));
-      printByte(regB);
+      Serial.print(F(" < MVI, move db > register B: "));
+      printData(regB);
       programCounter++;
       break;
     case MVI_C:
       regC = memoryData[programCounter];
-      Serial.print(F(" > MVI, move db > register C: "));
-      Serial.print(regC);
-      Serial.print(F(" = "));
-      printOctal(regC);
-      Serial.print(F(" = "));
-      printByte(regC);
+      Serial.print(F(" < MVI, move db > register C: "));
+      printData(regC);
       programCounter++;
       break;
     default:
