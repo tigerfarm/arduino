@@ -26,7 +26,7 @@
 // -----------------------------------------------------------------------
 #include <IRremote.h>
 
-int IR_PIN = 9;
+int IR_PIN = 4;
 IRrecv irrecv(IR_PIN);
 decode_results results;
 

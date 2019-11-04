@@ -69,34 +69,7 @@ The program octal values are used to entry a program using the panel toggles.
 
 Click [here](https://coderstoolbox.net/number/) for an online HEX, octal, binary converter.
 
-#### About the Arduino Boards
-
-+ Nano [Memory](https://www.arduino.cc/en/tutorial/memory):
-````
-    FLASH 32k bytes (of which .5k is used for the bootloader),
-    SRAM   2k bytes,
-    EEPROM 1k byte
-````
-+ If you don't need to modify the strings or data while your sketch is running,
-    you can store them in flash (program) memory instead of SRAM;
-    to do this, use the [PROGMEM](https://www.arduino.cc/reference/en/language/variables/utilities/progmem/) keyword.
-+ The ATmega2560 in the Mega2560 has larger memory space:
-````
-    FLASH  256k bytes (of which 8k is used for the bootloader)
-    SRAM   8k bytes
-    EEPROM 4k byte
-````
-+ Even Serial.print messages are stored in SRAM.
-    Example: Serial.print(" > JMP, get address low and high order bytes.");
-
-Use "F" in Serial.print messages to have the string message stored in FLASH memory
-````
-Without "F".
-Global variables use 1681 bytes (82%) of dynamic memory, leaving  367 bytes for local variables.
-Withe "F", Example: Serial.print(F(" > MVI, move db address into register C."));
-Global variables use  469 bytes (22%) of dynamic memory, leaving 1579 bytes for local variables.
-````
-
+#### About the Nano,
 + Has 2048 bytes (2K) of dynamic memory which the type of memory I'm using for machine code program and data memory.
 + The other large global memory usage, is test programs.
 + Maybe I should put the memory data array instead a function. Need to test.
