@@ -3,13 +3,14 @@
   Altair 101 software microprocessor
 
   Program sections,
-    Memory definitions and sample program definitions.
+    Definitions: Memory and sample program.
     Output: Front Panel LED lights and serial log messages.
-    Memory Management.
+    Memory Functions.
     Front Panel Status LEDs.
-    Process Front Panel toggle events.
-    Instruction Set, Opcodes, Registers.
-    Processing opcodes and opcode cycles
+    Definitions: Instruction Set, Opcodes, Registers.
+    Output: Front Panel Output and log messages
+    Processor: Processing opcodes instructions
+    Input: Front Panel toggle/button switch events
     setup() Computer initialization.
     loop()  Clock cycling through memory.
 
@@ -23,19 +24,10 @@
 // -----------------------------------------------------------------------------
 // Memory definitions
 
-int programCounter = 0;     // Program address value
 const int memoryBytes = 512;
 byte memoryData[memoryBytes];
 
 byte theProgram[] = {
-  /*
-    //         Code     Octal    Inst Param  Encoding Param  Flags  Description
-    const byte DAD_BC = 0011; // DAD         00001001          C    Add B:C to H:L. Set carry bit.
-    //                           DAD  RP     00RP1001          C    Add register pair to HL (16 bit add)
-    //                           Set carry bit if the addition causes a carry out.
-    const byte JNC =    0322; // JNC  lb hb  11010010               Jump if carry bit is 0 (false).
-
-  */
   // ------------------------------------------------------------------
   // Test: MVI, DAD, JNC
   //                Start program.
@@ -62,7 +54,7 @@ byte theProgram[] = {
 };
 
 /*
-  00 000 000 = 000 =   0 2^0
+  00 000 000 = 000 =   0
   00 000 001 = 002 =   1 2^0
   00 000 010 = 002 =   2 2^1
   00 000 100 = 040 =   4 2^2
@@ -81,50 +73,6 @@ byte theProgram[] = {
                    32768 2^15 32k
                    65535 2^16 64k
 */
-// -----------------------------------------------------------------------------
-// Output: Front Panel and log messages such as memory address and data valules.
-
-byte zeroByte = B00000000;
-char charBuffer[16];
-
-void printByte(byte b) {
-  for (int i = 7; i >= 0; i--)
-    Serial.print(bitRead(b, i));
-}
-void printWord(int theValue) {
-  String sValue = String(theValue, BIN);
-  for (int i = 1; i <= 16 - sValue.length(); i++) {
-    Serial.print("0");
-  }
-  Serial.print(sValue);
-}
-
-void printOctal(byte b) {
-  String sOctal = String(b, OCT);
-  for (int i = 1; i <= 3 - sOctal.length(); i++) {
-    Serial.print("0");
-  }
-  Serial.print(sOctal);
-}
-
-void printData(byte theByte) {
-  printOctal(theByte);
-  Serial.print(":");
-  printByte(theByte);
-  //
-  // printByte(theByte);
-  // Serial.print(theByte, BIN);
-  // Serial.print(":");
-  //
-  // printOctal(theByte);
-  // Serial.print(theByte, OCT);
-  // Serial.print(" : ");
-  //
-  // Serial.println(theByte, DEC);
-  // sprintf(charBuffer, "%3d", theByte);
-  // Serial.print(charBuffer);
-}
-
 // -----------------------------------------------------------------------------
 // Memory Functions
 
@@ -198,16 +146,13 @@ const int HLDA_PIN = 42;    // 8080 processor go into a hold state because of ot
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// Instruction Set, Opcodes, Registers
+// Definitions: Instruction Set, Opcodes, Registers
 
 // This section is base on section 26: 8080 Instruction Set
 //    https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
 
-// -----------------------------------------------------------------------------
+// ------------------------------------
 // Processing opcodes and opcode cycles
-
-byte opcode = 0;            // Opcode being processed
-int instructionCycle = 0;   // Opcode process cycle
 
 // Instruction parameters:
 byte lowOrder = 0;           // lb: Low order byte of 16 bit value.
@@ -219,8 +164,7 @@ byte dataByte = 0;           // db = Data byte (8 bit)
     a  = hb + lb (16 bit value)
     pa = Port address (8 bit)
     p  = 8 bit port address
-*/
-/*
+
     Register pair 'RP' fields:
     00=BC   (B:C as 16 bit register)
     01=DE   (D:E as 16 bit register)
@@ -244,7 +188,6 @@ const byte LXI_BC = 0001; //           00 000 001 RP = 00 which matches "00=BC".
 const byte LXI_DE = 0021; //           00 010 001 RP = 10 which matches "01=DE".
 const byte LXI_SP = 0061; //           00 110 001 RP = 10 which matches "11=SP".
 
-// Others to code:
 // For STA and LDA, see the video: https://www.youtube.com/watch?v=3_73NwB6toY
 const byte STA =    0062; // STA a     00110010 lb hb    -    Store register A to memory address: lb hb
 const byte LDA =    0062; // LDA is for copying data from memory location to accumulator
@@ -286,12 +229,48 @@ const byte DAD_BC = 0011; // DAD         00001001        C      Add B:C to H:L. 
 //                           Set carry bit if the addition causes a carry out.
 const byte JNC =    0322; // JNC  lb hb  11010010               Jump if carry bit is 0 (false).
 
-// -------------------
-// Process flags and values.
-boolean compareResult = true; // Set by CPI. Used by JZ.
-boolean carryBit = false;     // Set by DAD. Used JNC.
-boolean halted = false;       // Set true for an HLT opcode.
-boolean runProgram = false;
+// -----------------------------------------------------------------------------
+// Output: Front Panel Output and log messages
+
+byte zeroByte = B00000000;
+char charBuffer[16];
+
+void printByte(byte b) {
+  for (int i = 7; i >= 0; i--)
+    Serial.print(bitRead(b, i));
+}
+void printWord(int theValue) {
+  String sValue = String(theValue, BIN);
+  for (int i = 1; i <= 16 - sValue.length(); i++) {
+    Serial.print("0");
+  }
+  Serial.print(sValue);
+}
+
+void printOctal(byte b) {
+  String sOctal = String(b, OCT);
+  for (int i = 1; i <= 3 - sOctal.length(); i++) {
+    Serial.print("0");
+  }
+  Serial.print(sOctal);
+}
+
+void printData(byte theByte) {
+  sprintf(charBuffer, "%3d:", theByte);
+  Serial.print(charBuffer);
+  Serial.print(":");
+  printOctal(theByte);
+  Serial.print(":");
+  printByte(theByte);
+}
+
+// -----------------------------------------------------------------------------
+// Processor: Processing opcode instructions
+
+int programCounter = 0;     // Program address value
+
+byte opcode = 0;            // Opcode being processed
+int instructionCycle = 0;   // Opcode process cycle
 
 void printAddressData() {
   Serial.print(F("Addr: "));
@@ -317,6 +296,13 @@ void processData() {
   }
   Serial.println("");
 }
+
+// -----------------------------------
+// Process flags and values.
+boolean compareResult = true; // Set by CPI. Used by JZ.
+boolean carryBit = false;     // Set by DAD. Used JNC.
+boolean halted = false;       // Set true for an HLT opcode.
+boolean runProgram = false;
 
 void processOpcode() {
   int aValue = 0;       // For calculating if there is a carry over.
@@ -547,6 +533,7 @@ void processOpcodeData() {
 
 // -----------------------------------------------------------------------------
 // Front Panel toggle/button switch events
+// Using an infrared receiver for simplier hardware setup.
 
 boolean buttonWentHigh = false;
 
