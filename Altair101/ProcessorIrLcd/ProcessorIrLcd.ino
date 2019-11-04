@@ -16,105 +16,10 @@
   Reference document, Intel 8080 Assembly Language Programming Manual:
     https://altairclone.com/downloads/manuals/8080%20Programmers%20Manual.pdf
 
- Altair programming video, starting a 6 minutes in:
+  Altair programming video, starting a 6 minutes in:
     https://www.youtube.com/watch?v=EV1ki6LiEmg
 
 */
-// -----------------------------------------------------------------------
-#include <IRremote.h>
-
-int IR_PIN = 4;
-IRrecv irrecv(IR_PIN);
-decode_results results;
-
-// -----------------------------------------------------------------------
-void infraredSwitch() {
-  // Serial.println("+ infraredSwitch");
-  switch (results.value) {
-    case 0xFFFFFFFF:
-      // Ignore. This is from holding the key down.
-      break;
-    // -----------------------------------
-    case 0xFF10EF:
-    case 0xE0E0A659:
-      Serial.println("+ Key < - previous");
-      break;
-    case 0xFF5AA5:
-    case 0xE0E046B9:
-      Serial.println("+ Key > - next");
-      break;
-    case 0xFF18E7:
-    case 0xE0E006F9:
-      Serial.println("+ Key up");
-      break;
-    case 0xFF4AB5:
-    case 0xE0E08679:
-      Serial.println("+ Key down");
-      break;
-    case 0xFF38C7:
-    case 0xE0E016E9:
-      Serial.println("+ Key OK - Toggle");
-      break;
-    // -----------------------------------
-    case 0xFF9867:
-    case 0xE0E08877:
-      Serial.print("+ Key 0:");
-      Serial.println("");
-      break;
-    case 0xFFA25D:
-      Serial.print("+ Key 1: ");
-      Serial.println("");
-      break;
-    case 0xFF629D:
-      Serial.print("+ Key 2: ");
-      Serial.println("");
-      break;
-    case 0xFFE21D:
-      Serial.print("+ Key 3: ");
-      Serial.println("");
-      break;
-    case 0xFF22DD:
-      Serial.print("+ Key 4: ");
-      Serial.println("");
-      break;
-    case 0xFF02FD:
-      Serial.print("+ Key 5: ");
-      Serial.println("");
-      break;
-    case 0xFFC23D:
-      Serial.print("+ Key 6: ");
-      Serial.println("");
-      break;
-    case 0xFFE01F:
-      Serial.print("+ Key 7: ");
-      Serial.println("");
-      break;
-    case 0xFFA857:
-      Serial.print("+ Key 8: ");
-      Serial.println("");
-      break;
-    case 0xFF906F:
-      Serial.print("+ Key 9: ");
-      Serial.println("");
-      break;
-    // -----------------------------------
-    case 0xFF6897:
-    case 0xE0E01AE5:
-      Serial.println("+ Key * (Return)");
-      break;
-    case 0xFFB04F:
-    case 0xE0E0B44B:
-      Serial.println("+ Key # (Exit)");
-      break;
-    // -----------------------------------
-    default:
-      Serial.print("+ Result value: ");
-      Serial.println(results.value, HEX);
-      // -----------------------------------
-  } // end switch
-
-}
-
 // -----------------------------------------------------------------------------
 // Memory definitions
 
@@ -124,47 +29,32 @@ byte memoryData[memoryBytes];
 
 byte theProgram[] = {
   /*
-//         Code     Octal    Inst Param  Encoding Param  Flags  Description
-const byte DAD_BC = 0011; // DAD         00001001          C    Add B:C to H:L. Set carry bit.
-//                           DAD  RP     00RP1001          C    Add register pair to HL (16 bit add)
-//                           Set carry bit if the addition causes a carry out.
-const byte JNC =    0322; // JNC  lb hb  11010010               Jump if carry bit is 0 (false).
+    //         Code     Octal    Inst Param  Encoding Param  Flags  Description
+    const byte DAD_BC = 0011; // DAD         00001001          C    Add B:C to H:L. Set carry bit.
+    //                           DAD  RP     00RP1001          C    Add register pair to HL (16 bit add)
+    //                           Set carry bit if the addition causes a carry out.
+    const byte JNC =    0322; // JNC  lb hb  11010010               Jump if carry bit is 0 (false).
 
-   */
+  */
   // ------------------------------------------------------------------
-  // Initialize memory read location to memory start.
-  // Move the first data byte to the accumulator, which is register A.
-  // While not hit the end character (0111)
-  //    Increment the memory pointer (H:L).
-  //    Move the next data byte to the accumulator.
-  //    Halt the process.
-  //    Restart the while loop.
-  // End while.
-  // Restart the program from memory initialization.
-  //
+  // Test: MVI, DAD, JNC
   //                Start program.
   0000,             // NOP
-  0166,             // HLT  : Halt to check the program listing.
-  0006, 0776,       // MVI  B,db : Move db to register B.
-  0016, 0777,       // MVI  C,db : Move db to register B.
-  //                While address:data != 0111
-  0376, 0111,             // DAD Add B:C to H:L. Set carry bit.
-  0312, 19, 0000,         // JNC lb hb. If carry bit false, jump to lb hb (end while)
-  0000,                   // NOP
-  0000,                   // NOP
-  0000,                   // NOP
-  0000,                   // NOP
-  0166,                   // HLT
-  0043,                   // INX > Increment B
-  0000,                   // NOP
-  0303, 0005, 0000,       // JMP to the start of the while loop.
-  //                End while.
-  0000,             // NOP
+  0006, 0000,       // MVI  B,db : Move db to register B.
+  0016, 0001,       // MVI  C,db : Move db to register B.
+  0041, 0773, 0777, // LXI_HL lb hb. Load 0000:1 into register H:L.
+  //                While carry bit {
+  0000,               // NOP
+  0166,               // HLT
+  0011,               // DAD Add B:C to H:L. Set carry bit.
+  0322,  8, 0000,     // JNC lb hb. If carry bit false, jump to lb hb (end while)
+  0303, 17, 0000,     // JMP to the start of the while loop.
+  //                }
   0166,             // HLT
   0000,             // NOP
   0303, 1, 0000,    // JMP to 1. Restart: jump to program start.
   // ------------------------------------------------------------------
-  //                Data, starts at address 24.
+  //                Data, starts at address 27.
   0000, 0101, 0001, // 5 6 7
   0010, 0110, 0111, // 8 9 0
   //
@@ -307,121 +197,6 @@ const int HLDA_PIN = 42;    // 8080 processor go into a hold state because of ot
 // INTE is off when interrupts are disabled.
 
 // -----------------------------------------------------------------------------
-// Front Panel toggle/button switch events
-
-const int STOP_BUTTON_PIN = 4;        // Nano pin D4
-const int RUN_BUTTON_PIN = 5;
-const int STEP_BUTTON_PIN = 6;
-const int EXAMINE_BUTTON_PIN = 7;     // Display the address and data that is next to be processed.
-const int EXAMINENEXT_BUTTON_PIN = 8; // Increment the program counter and display the address and data
-
-boolean runProgram = false;
-
-// Only do the action once, don't repeat if the button is held down.
-// Don't repeat action if the button is not pressed.
-boolean stopButtonState = true;
-boolean runButtonState = true;
-boolean stepButtonState = true;
-boolean examineButtonState = true;
-boolean examineNextButtonState = true;
-
-boolean buttonWentHigh = false;
-
-void checkStopButton() {
-  if (digitalRead(STOP_BUTTON_PIN) == HIGH) {
-    if (!stopButtonState) {
-      Serial.println(F("+ Stop process."));
-      runProgram = false;
-      digitalWrite(WAIT_PIN, HIGH);
-      stopButtonState = false;
-      buttonWentHigh = true;
-    }
-    stopButtonState = true;
-  } else {
-    if (stopButtonState) {
-      stopButtonState = false;
-    }
-  }
-}
-
-void checkRunButton() {
-  if (digitalRead(RUN_BUTTON_PIN) == HIGH) {
-    if (!runButtonState) {
-      Serial.println(F("+ Run process."));
-      runProgram = true;
-      digitalWrite(WAIT_PIN, LOW);
-      runButtonState = false;
-      buttonWentHigh = true;
-    }
-    runButtonState = true;
-  } else {
-    if (runButtonState) {
-      runButtonState = false;
-    }
-  }
-}
-
-void checkStepButton() {
-  // If the button is pressed (circuit closed), the button status is HIGH.
-  if (digitalRead(STEP_BUTTON_PIN) == HIGH) {
-    if (!stepButtonState) {
-      // digitalWrite(STEP_BUTTON_PIN, HIGH);
-      // Serial.println("+ checkButton(), turn LED on.");
-      processData();
-      stepButtonState = false;
-      buttonWentHigh = true;
-    }
-    stepButtonState = true;
-  } else {
-    if (stepButtonState) {
-      // digitalWrite(STEP_BUTTON_PIN, LOW);
-      // Serial.println("+ checkButton(), turn LED off.");
-      stepButtonState = false;
-    }
-  }
-}
-
-void checkExamineButton() {
-  // If the button is pressed (circuit closed), the button status is HIGH.
-  if (digitalRead(EXAMINE_BUTTON_PIN) == HIGH) {
-    if (!examineButtonState) {
-      // Serial.println("+ Examine switch clicked on.");
-      Serial.print("? ");
-      printAddressData();
-      Serial.println("");
-      // processData();
-      examineButtonState = false;
-      buttonWentHigh = true;
-    }
-    examineButtonState = true;
-  } else {
-    if (examineButtonState) {
-      examineButtonState = false;
-    }
-  }
-}
-
-void checkExamineNextButton() {
-  // If the button is pressed (circuit closed), the button status is HIGH.
-  if (digitalRead(EXAMINENEXT_BUTTON_PIN) == HIGH) {
-    if (!examineNextButtonState) {
-      // Serial.println("+ Examine Next switch clicked on.");
-      programCounter++;
-      Serial.print("? ");
-      printAddressData();
-      Serial.println("");
-      examineNextButtonState = false;
-      buttonWentHigh = true;
-    }
-    examineNextButtonState = true;
-  } else {
-    if (examineNextButtonState) {
-      examineNextButtonState = false;
-    }
-  }
-}
-
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Instruction Set, Opcodes, Registers
 
@@ -433,14 +208,6 @@ void checkExamineNextButton() {
 
 byte opcode = 0;            // Opcode being processed
 int instructionCycle = 0;   // Opcode process cycle
-
-void printAddressData() {
-  Serial.print(F("Addr: "));
-  sprintf(charBuffer, "%4d:", programCounter);
-  Serial.print(charBuffer);
-  Serial.print(F(" Data: "));
-  printData(memoryData[programCounter]);
-}
 
 // Instruction parameters:
 byte lowOrder = 0;           // lb: Low order byte of 16 bit value.
@@ -524,19 +291,28 @@ const byte JNC =    0322; // JNC  lb hb  11010010               Jump if carry bi
 boolean compareResult = true; // Set by CPI. Used by JZ.
 boolean carryBit = false;     // Set by DAD. Used JNC.
 boolean halted = false;       // Set true for an HLT opcode.
+boolean runProgram = false;
+
+void printAddressData() {
+  Serial.print(F("Addr: "));
+  sprintf(charBuffer, "%4d:", programCounter);
+  Serial.print(charBuffer);
+  Serial.print(F(" Data: "));
+  printData(memoryData[programCounter]);
+}
 
 void processData() {
   if (opcode == 0) {
+    digitalWrite(M1_PIN, HIGH); // Machine cycle 1, get an opcode.
     Serial.print("> ");
     printAddressData();
-    digitalWrite(M1_PIN, HIGH); // Machine cycle 1, get an opcode.
     processOpcode();
     programCounter++;
     instructionCycle = 0;
   } else {
+    digitalWrite(M1_PIN, LOW); // Machine cycle 1+x, getting opcode data.
     Serial.print("+ ");
     printAddressData();
-    digitalWrite(M1_PIN, LOW); // Machine cycle 1+x, getting opcode data.
     processOpcodeData();
   }
   Serial.println("");
@@ -544,6 +320,8 @@ void processData() {
 
 void processOpcode() {
   int aValue = 0;       // For calculating if there is a carry over.
+  int bValue = 0;
+  int cValue = 0;
   int anAddress = 0;
   byte dataByte = memoryData[programCounter];
   switch (dataByte) {
@@ -553,15 +331,21 @@ void processOpcode() {
       break;
     case DAD_BC:
       Serial.print(F(" > DAD_BC, Add B:C to H:L. Set carry bit. "));
-      aValue = (int)word(regB, regC) + (int)word(regH, regL);
+      aValue = (int)word(regB, regC);
+      bValue = (int)word(regH, regL);
+      cValue = aValue + bValue;
       // 2^16 = 65535 = 64k = 11 111 111 : 11 111 111
-      if (aValue > 65535) {
+      if (cValue > 65535) {
         carryBit = true;
       } else {
         carryBit = false;
       }
-      Serial.print(F(", sum = "));
+      Serial.print(F(", B:C "));
       Serial.print(aValue);
+      Serial.print(F(" +  H:L "));
+      Serial.print(bValue);
+      Serial.print(F(" = "));
+      Serial.print(cValue);
       break;
     case JNC:
       opcode = JNC;
@@ -626,11 +410,11 @@ void processOpcode() {
 }
 
 void processOpcodeData() {
-  
+
   // Note,
   //    if not jumping, increment programCounter.
   //    if jumping, don't increment programCounter.
-  
+
   instructionCycle++;
   switch (opcode) {
     case CPI:
@@ -734,14 +518,22 @@ void processOpcodeData() {
       break;
     case MVI_B:
       regB = memoryData[programCounter];
-      Serial.print(F(" db > register B: "));
+      Serial.print(F(" > MVI, move db > register B: "));
       Serial.print(regB);
+      Serial.print(F(" = "));
+      printOctal(regB);
+      Serial.print(F(" = "));
+      printByte(regB);
       programCounter++;
       break;
     case MVI_C:
       regC = memoryData[programCounter];
-      Serial.print(F(" db > register C: "));
+      Serial.print(F(" > MVI, move db > register C: "));
       Serial.print(regC);
+      Serial.print(F(" = "));
+      printOctal(regC);
+      Serial.print(F(" = "));
+      printByte(regC);
       programCounter++;
       break;
     default:
@@ -754,6 +546,138 @@ void processOpcodeData() {
 }
 
 // -----------------------------------------------------------------------------
+// Front Panel toggle/button switch events
+
+boolean buttonWentHigh = false;
+
+// -----------------------------------------------------------------------
+#include <IRremote.h>
+
+int IR_PIN = 9;
+IRrecv irrecv(IR_PIN);
+decode_results results;
+
+void infraredSwitch() {
+  // Serial.println(F("+ infraredSwitch"));
+  switch (results.value) {
+    case 0xFFFFFFFF:
+      // Ignore. This is from holding the key down.
+      break;
+    // -----------------------------------
+    case 0xFF10EF:
+    case 0xE0E0A659:
+      // Serial.println(F("+ Key < - previous"));
+      break;
+    case 0xFF5AA5:
+    case 0xE0E046B9:
+      // Serial.println(F("+ Key > - next"));
+      // digitalWrite(STEP_BUTTON_PIN, HIGH);
+      // Serial.println("+ checkButton(), turn LED on.");
+      processData();
+      buttonWentHigh = true;
+      break;
+    case 0xFF18E7:
+    case 0xE0E006F9:
+      // Serial.println(F("+ Key up"));
+      Serial.println(F("+ Run process."));
+      runProgram = true;
+      digitalWrite(WAIT_PIN, LOW);
+      buttonWentHigh = true;
+      break;
+    case 0xFF4AB5:
+    case 0xE0E08679:
+      // Serial.println(F("+ Key down"));
+      Serial.println(F("+ Stop process."));
+      runProgram = false;
+      digitalWrite(WAIT_PIN, HIGH);
+      buttonWentHigh = true;
+      break;
+    case 0xFF38C7:
+    case 0xE0E016E9:
+      Serial.println(F("+ Key OK - Toggle"));
+      //
+      Serial.println(F("+ Stop process."));
+      runProgram = false;
+      digitalWrite(WAIT_PIN, HIGH);
+      buttonWentHigh = true;
+      //
+      break;
+    // -----------------------------------
+    case 0xFF9867:
+    case 0xE0E08877:
+      // Serial.print(F("+ Key 0:"));
+      // Serial.println("");
+      break;
+    case 0xFFA25D:
+      // Serial.println(F("+ Key 1: "));
+      // Serial.println("+ Examine.");
+      Serial.print("? ");
+      printAddressData();
+      Serial.println("");
+      buttonWentHigh = true;
+      break;
+    case 0xFF629D:
+      // Serial.println(F("+ Key 2: "));
+      // Serial.println("+ Examine Next.");
+      programCounter++;
+      Serial.print("? ");
+      printAddressData();
+      Serial.println("");
+      buttonWentHigh = true;
+      break;
+    case 0xFFE21D:
+      // Serial.println(F("+ Key 3: "));
+      // Serial.println("+ Examine Previous.");
+      programCounter--;
+      Serial.print("? ");
+      printAddressData();
+      Serial.println("");
+      buttonWentHigh = true;
+      break;
+    case 0xFF22DD:
+      // Serial.print(F("+ Key 4: "));
+      // Serial.println("");
+      break;
+    case 0xFF02FD:
+      // Serial.print(F("+ Key 5: "));
+      // Serial.println("");
+      break;
+    case 0xFFC23D:
+      // Serial.print(F("+ Key 6: "));
+      // Serial.println("");
+      break;
+    case 0xFFE01F:
+      // Serial.print(F("+ Key 7: "));
+      // Serial.println("");
+      break;
+    case 0xFFA857:
+      // Serial.print(F("+ Key 8: "));
+      // Serial.println("");
+      break;
+    case 0xFF906F:
+      // Serial.print(F("+ Key 9: "));
+      // Serial.println("");
+      break;
+    // -----------------------------------
+    case 0xFF6897:
+    case 0xE0E01AE5:
+      // Serial.println(F("+ Key * (Return)"));
+      break;
+    case 0xFFB04F:
+    case 0xE0E0B44B:
+      // Serial.println(F("+ Key # (Exit)"));
+      break;
+    // -----------------------------------
+    default:
+      // Serial.print("+ Result value: ");
+      // Serial.println(results.value, HEX);
+      break;
+      // -----------------------------------
+  } // end switch
+
+}
+
+// -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
   delay(1000);        // Give the serial connection time to start before the first print.
@@ -761,15 +685,7 @@ void setup() {
   Serial.println(F("+++ Setup."));
 
   irrecv.enableIRIn();
-  Serial.println("+ Initialized the infrared receiver.");
-  
-  pinMode(STOP_BUTTON_PIN, INPUT);
-  pinMode(RUN_BUTTON_PIN, INPUT);
-  pinMode(STEP_BUTTON_PIN, INPUT);
-  pinMode(EXAMINE_BUTTON_PIN, INPUT);
-  pinMode(EXAMINENEXT_BUTTON_PIN, INPUT);
-  // pinMode(RESET_BUTTON_PIN, INPUT);
-  Serial.println(F("+ Toggle/button switches are configured for input."));
+  Serial.println(F("+ infrared receiver initialized for input."));
 
   pinMode(WAIT_PIN, OUTPUT);
   digitalWrite(WAIT_PIN, HIGH);
@@ -780,12 +696,8 @@ void setup() {
   // digitalWrite(WO_PIN, HIGH);
   Serial.println(F("+ LED lights configured and initialized."));
 
-  // List a program. Available programs:
-  //    jumpLoopProgram
-  //    jumpLoopNopProgram
-  //    jumpHaltLoopProgram
-  //    lxiNopLoopProgram
   int programSize = sizeof(theProgram);
+  // List a program.
   listByteArray(theProgram, programSize);
   // Load a program.
   copyByteArrayToMemory(theProgram, programSize);
@@ -796,7 +708,7 @@ void setup() {
 // -----------------------------------------------------------------------------
 // Device Loop for processing each byte of machine code.
 
-static unsigned long timer = millis();
+// static unsigned long timer = millis();
 void loop() {
 
   // Process infrared key presses.
@@ -804,26 +716,21 @@ void loop() {
     infraredSwitch();
     irrecv.resume();
   }
-  
+
   if (runProgram) {
     // When testing, can add a cycle delay.
     // Clock process timing is controlled by the timer.
     // Example, 50000 : once every 1/2 second.
     // if (millis() - timer >= 500) {
-      processData();
-      // timer = millis();
+    processData();
+    // timer = millis();
     // }
-    checkStopButton();
   } else {
     if (buttonWentHigh && halted) {
       halted = false;
       buttonWentHigh = false;
       // digitalWrite(HLTA_PIN, LOW); // Not halted anymore.
     }
-    checkRunButton();
-    checkStepButton();
-    checkExamineButton();
-    checkExamineNextButton();
     delay(60);
   }
 
