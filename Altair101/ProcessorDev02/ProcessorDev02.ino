@@ -25,38 +25,6 @@
     https://www.calculator.net/binary-calculator.html
 */
 // -----------------------------------------------------------------------------
-/*
-  Connect LCD to Nano:
-    SCL - A5
-    SDA - A4
-    VCC - 5V
-    GND - GND
-*/
-#include<Wire.h>
-
-#include<LiquidCrystal_I2C.h>
-LiquidCrystal_I2C lcd(0x27, 20, 4);
-
-String theLine = "";
-int displayColumns = 16;
-void displayPrintln(int theRow, String theString) {
-  // To overwrite anything on the current line.
-  String printString = theString;
-  int theRest = displayColumns - theString.length();
-  if (theRest < 0) {
-    // Shorten to the display column length.
-    printString = theString.substring(0, displayColumns);
-  } else {
-    // Buffer with spaces to the end of line.
-    while (theRest < displayColumns) {
-      printString = printString + " ";
-      theRest++;
-    }
-  }
-  lcd.setCursor(0, theRow);
-  lcd.print(printString);
-}
-
 // -----------------------------------------------------------------------------
 // Memory definitions
 
@@ -249,7 +217,7 @@ const byte INX_HL = 0043; // INX HL    00 100 011 00RP0011      Increment H:L (c
 const byte JMP    = 0303; // JMP a       11000011 lb hb    -    Unconditional jump
 const byte JNC    = 0322; // JNC  lb hb  11010010               Jump if carry bit is 0 (false).
 const byte JZ     = 0312; // JZ lb hb    00000000          -    If compareResult is true, jump to lb hb.
-const byte LXI_HL = 0041; // LXI RP,a  00 100 001               Move the data at lb hb address, into register pair H(hb):L(lb)
+const byte LXI_HL = 0041; // LXI RP,a  00 100 001               Move the data at lb hb, into register pair H:L = hb:lb.
 const byte MOV_AM = 0176; // MOV  A,M  01 111 110               Move data from M(address in H:L) to register A.
 const byte MVI_B  = 0006; // MVI  B,db   00 000 110 db     -      Move db to register B.
 const byte MVI_C  = 0016; // MVI  C,db   00 001 110 db     -      Move db to register C.
@@ -273,7 +241,7 @@ const byte NOP    = 0000; // NOP         00000000          -    No operation
 //         Code     Octal    Inst Param  Encoding Param  Flags  Description
 const byte MOV_DA = 0127; // MOV  D,A    01 010 111             Move register A content to register D.
 const byte MVI_D  = 0026; // MVI  D,db   00 010 110 db   -      Move db to register D.
-const byte LXI_BC = 0001; // LXI  BC,a   00 000 001 BC,a        Move the data at lb hb address, into register pair B(hb):C(lb)
+const byte LXI_BC = 0001; // LXI  BC,a   00 000 001 BC,a        Move the lb hb address, into register pair B(hb):C(lb)
 const byte LDAX   = 0032; // LDAX DE     00 011 010      -      Load indirect through DE.
 
 //  Kill the Bit program:
@@ -785,16 +753,6 @@ void setup() {
 
   irrecv.enableIRIn();
   Serial.println(F("+ infrared receiver ready for input."));
-
-  lcd.init();
-  lcd.backlight();
-  //                1234567890123456
-  displayPrintln(0, "Altair 101");
-  theLine = "LCD ready...";
-  displayPrintln(1, theLine);
-  // delay(3000);
-  // lcd.clear();
-  Serial.println(F("+ LCD ready for output."));
 
   pinMode(WAIT_PIN, OUTPUT);
   digitalWrite(WAIT_PIN, HIGH);

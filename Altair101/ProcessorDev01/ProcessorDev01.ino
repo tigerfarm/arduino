@@ -2,6 +2,8 @@
 /*
   Altair 101 software microprocessor
 
+  Button version.
+
   Program sections,
     Memory definitions and sample program definitions.
     Output: Front Panel LED lights and serial log messages.
@@ -20,7 +22,13 @@
     https://www.youtube.com/watch?v=EV1ki6LiEmg
 
 */
-// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Memory definitions
+
+int programCounter = 0;     // Program address value
+const int memoryBytes = 512;
+byte memoryData[memoryBytes];
+
 byte theProgram[] = {
   /*
 //         Code     Octal    Inst Param  Encoding Param  Flags  Description
@@ -91,72 +99,6 @@ const byte JNC =    0322; // JNC  lb hb  11010010               Jump if carry bi
                    65535 2^16 64k
 */
 // -----------------------------------------------------------------------------
-// Memory definitions
-
-// Should move the memory into a function?
-// Test if that will move memoryData from Global memory (2K) to program memory (30K).
-
-int programCounter = 0;     // Program address value
-const int memoryBytes = 128;
-byte memoryData[memoryBytes];
-
-// Define a jump loop program byte array.
-byte jumpLoopProgram[] = {
-  0303, 0006, 0000, // 0 1 2
-  0000, 0000, 0000, // 3 4 5
-  0303, 0000, 0000  // 6 7 8
-};
-
-// Define a jump loop program
-//    with a halt(HLT binary 01 110 110 = octal 166) instruction,
-//    and NOP instructions.
-byte jumpHaltLoopProgram[] = {
-  0303, 0006, 0000,
-  0000, 0000, 0000,
-  0166, 0000, 0000,
-  0303, 0000, 0000
-};
-
-byte NopLxiMovInxHltJmpCpiProgram[] = {
-  // ------------------------------------------------------------------
-  // Initialize memory read location to memory start.
-  // Move the first data byte to the accumulator, which is register A.
-  // While not hit the end character (0111)
-  //    Increment the memory pointer (H:L).
-  //    Move the next data byte to the accumulator.
-  //    Halt the process.
-  //    Restart the while loop.
-  // End while.
-  // Restart the program from memory initialization.
-  //
-  //                Start program.
-  0000,             // NOP
-  0041, 24, 0000,   // LXI_HL lb hb. Load hb:lb into registers H(hb):L(lb).
-  0176,             // MOV M:address(H:L):data > register A
-  //
-  //                While address:data != 0111
-  0376, 0111,             // CPI Compare A with 0111.
-  0312, 19, 0000,         // JZ lb hb. If it matches, jump to lb hb (end while)
-  0000,                   // NOP
-  0166,                   // HLT
-  0043,                   // INX > Increment H:L
-  0176,                   // MOV M:address(H:L):data > register A
-  0000,                   // NOP
-  0303, 0005, 0000,       // JMP to the start of the while loop.
-  //                End while.
-  0000,             // NOP
-  0166,             // HLT
-  0000,             // NOP
-  0303, 1, 0000,    // JMP to 1. Restart: jump to program start.
-  // ------------------------------------------------------------------
-  //                Data, starts at address 24.
-  0000, 0101, 0001, // 5 6 7
-  0010, 0110, 0111, // 8 9 0
-  //
-  0000, 0000, 0000  //       end
-};
-
-// -----------------------------------------------------------------------------
 // Output: Front Panel and log messages such as memory address and data valules.
 
 byte zeroByte = B00000000;
@@ -186,38 +128,50 @@ void printData(byte theByte) {
   printOctal(theByte);
   Serial.print(":");
   printByte(theByte);
+  //
+  // printByte(theByte);
+  // Serial.print(theByte, BIN);
+  // Serial.print(":");
+  //
+  // printOctal(theByte);
+  // Serial.print(theByte, OCT);
+  // Serial.print(" : ");
+  //
+  // Serial.println(theByte, DEC);
+  // sprintf(charBuffer, "%3d", theByte);
+  // Serial.print(charBuffer);
 }
 
 // -----------------------------------------------------------------------------
 // Memory Functions
 
 void initMemoryToZero() {
-  Serial.println("+ Initialize all memory bytes to zero.");
+  Serial.println(F("+ Initialize all memory bytes to zero."));
   for (int i = 0; i < memoryBytes; i++) {
     memoryData[i] = zeroByte;
   }
 }
 
 void copyByteArrayToMemory(byte btyeArray[], int arraySize) {
-  Serial.println("+ Copy the program into the computer's memory array.");
+  Serial.println(F("+ Copy the program into the computer's memory array."));
   for (int i = 0; i < arraySize; i++) {
     memoryData[i] = btyeArray[i];
   }
-  Serial.println("+ Copied.");
+  Serial.println(F("+ Copied."));
 }
 
 void listByteArray(byte btyeArray[], int arraySize) {
-  Serial.println("+ List the program.");
-  Serial.println("++   Address:       Data value");
+  Serial.println(F("+ List the program."));
+  Serial.println(F("++   Address:       Data value"));
   for (int i = 0; i < arraySize; i++) {
-    Serial.print("+ Addr: ");
+    Serial.print(F("+ Addr: "));
     sprintf(charBuffer, "%4d:", i);
     Serial.print(charBuffer);
-    Serial.print(" Data: ");
+    Serial.print(F(" Data: "));
     printData(btyeArray[i]);
     Serial.println("");
   }
-  Serial.println("+ End of listing.");
+  Serial.println(F("+ End of listing."));
 }
 
 // -----------------------------------------------------------------------------
@@ -241,6 +195,9 @@ const int INT_PIN = 42;     // On when executing an interrupt step.
 const int WAIT_PIN = A0;    // On, program not running. Off, programrunning.
 const int HLDA_PIN = 42;    // 8080 processor go into a hold state because of other hardware.
 
+// MEMR & MI & WO are on when fetching an op code, example: JMP(303) or lda(072).
+// MEMR & WO are on when fetching a low or high byte of an address.
+// MEMR & WO are on when fetching data from an address.
 // All status LEDs are off when storing a value to a memory address.
 // When doing a data write, data LEDs are all on.
 //
@@ -277,6 +234,99 @@ boolean examineNextButtonState = true;
 
 boolean buttonWentHigh = false;
 
+void checkStopButton() {
+  if (digitalRead(STOP_BUTTON_PIN) == HIGH) {
+    if (!stopButtonState) {
+      Serial.println(F("+ Stop process."));
+      runProgram = false;
+      digitalWrite(WAIT_PIN, HIGH);
+      stopButtonState = false;
+      buttonWentHigh = true;
+    }
+    stopButtonState = true;
+  } else {
+    if (stopButtonState) {
+      stopButtonState = false;
+    }
+  }
+}
+
+void checkRunButton() {
+  if (digitalRead(RUN_BUTTON_PIN) == HIGH) {
+    if (!runButtonState) {
+      Serial.println(F("+ Run process."));
+      runProgram = true;
+      digitalWrite(WAIT_PIN, LOW);
+      runButtonState = false;
+      buttonWentHigh = true;
+    }
+    runButtonState = true;
+  } else {
+    if (runButtonState) {
+      runButtonState = false;
+    }
+  }
+}
+
+void checkStepButton() {
+  // If the button is pressed (circuit closed), the button status is HIGH.
+  if (digitalRead(STEP_BUTTON_PIN) == HIGH) {
+    if (!stepButtonState) {
+      // digitalWrite(STEP_BUTTON_PIN, HIGH);
+      // Serial.println("+ checkButton(), turn LED on.");
+      processData();
+      stepButtonState = false;
+      buttonWentHigh = true;
+    }
+    stepButtonState = true;
+  } else {
+    if (stepButtonState) {
+      // digitalWrite(STEP_BUTTON_PIN, LOW);
+      // Serial.println("+ checkButton(), turn LED off.");
+      stepButtonState = false;
+    }
+  }
+}
+
+void checkExamineButton() {
+  // If the button is pressed (circuit closed), the button status is HIGH.
+  if (digitalRead(EXAMINE_BUTTON_PIN) == HIGH) {
+    if (!examineButtonState) {
+      // Serial.println("+ Examine switch clicked on.");
+      Serial.print("? ");
+      printAddressData();
+      Serial.println("");
+      // processData();
+      examineButtonState = false;
+      buttonWentHigh = true;
+    }
+    examineButtonState = true;
+  } else {
+    if (examineButtonState) {
+      examineButtonState = false;
+    }
+  }
+}
+
+void checkExamineNextButton() {
+  // If the button is pressed (circuit closed), the button status is HIGH.
+  if (digitalRead(EXAMINENEXT_BUTTON_PIN) == HIGH) {
+    if (!examineNextButtonState) {
+      // Serial.println("+ Examine Next switch clicked on.");
+      programCounter++;
+      Serial.print("? ");
+      printAddressData();
+      Serial.println("");
+      examineNextButtonState = false;
+      buttonWentHigh = true;
+    }
+    examineNextButtonState = true;
+  } else {
+    if (examineNextButtonState) {
+      examineNextButtonState = false;
+    }
+  }
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -292,10 +342,10 @@ byte opcode = 0;            // Opcode being processed
 int instructionCycle = 0;   // Opcode process cycle
 
 void printAddressData() {
-  Serial.print("Addr: ");
+  Serial.print(F("Addr: "));
   sprintf(charBuffer, "%4d:", programCounter);
   Serial.print(charBuffer);
-  Serial.print(" Data: ");
+  Serial.print(F(" Data: "));
   printData(memoryData[programCounter]);
 }
 
@@ -406,10 +456,10 @@ void processOpcode() {
   switch (dataByte) {
     case CPI:
       opcode = CPI;
-      Serial.print(" > CPI, compare next data byte to A. Store true or false into compareResult.");
+      Serial.print(F(" > CPI, compare next data byte to A. Store true or false into compareResult."));
       break;
     case DAD_BC:
-      Serial.print(" > DAD_BC, Add B:C to H:L. Set carry bit. ");
+      Serial.print(F(" > DAD_BC, Add B:C to H:L. Set carry bit. "));
       aValue = (int)word(regB, regC) + (int)word(regH, regL);
       // 2^16 = 65535 = 64k = 11 111 111 : 11 111 111
       if (aValue > 65535) {
@@ -417,23 +467,23 @@ void processOpcode() {
       } else {
         carryBit = false;
       }
-      Serial.print(", sum = ");
+      Serial.print(F(", sum = "));
       Serial.print(aValue);
       break;
     case JNC:
       opcode = JNC;
-      Serial.print(" > JNC, Jump if carry bit is 0 (false), not set.");
+      Serial.print(F(" > JNC, Jump if carry bit is 0 (false), not set."));
       break;
     case JZ:
       opcode = JZ;
-      Serial.print(" > JZ, if compareResult, jump to the following address (lh hb).");
+      Serial.print(F(" > JZ, if compareResult, jump to the following address (lh hb)."));
       break;
     case JMP:
       opcode = JMP;
-      Serial.print(" > JMP, get address low and high order bytes.");
+      Serial.print(F(" > JMP, get address low and high order bytes."));
       break;
     case HLT:
-      Serial.print(" > HLT, halt the processor.");
+      Serial.print(F(" > HLT, halt the processor."));
       runProgram = false;
       halted = true;
       // digitalWrite(HLTA_PIN, HIGH);
@@ -442,41 +492,41 @@ void processOpcode() {
       break;
     case INX_HL:
       regL++;       // Update this later because need to update the pair.
-      Serial.print(" > INX, increment the 16 bit register pair H:L.");
-      Serial.print(", regL = ");
+      Serial.print(F(" > INX, increment the 16 bit register pair H:L."));
+      Serial.print(F(", regL = "));
       Serial.print(regL);
       // printOctal(regL);
       break;
     case LXI_HL:
       opcode = LXI_HL;
-      Serial.print(" > LXI, move lb hb address into register pair H(hb):L(lb).");
+      Serial.print(F(" > LXI, move lb hb address into register pair H(hb):L(lb)."));
       break;
     case MOV_AM:
-      Serial.print(" > MOV");
+      Serial.print(F(" > MOV"));
       anAddress = word(regH, regL);
       regA = memoryData[anAddress];
-      Serial.print(" data from Addr: ");
+      Serial.print(F(" data from Addr: "));
       sprintf(charBuffer, "%4d:", anAddress);
       Serial.print(charBuffer);
-      Serial.print(", to Accumulator = ");
+      Serial.print(F(", to Accumulator = "));
       printOctal(regA);
       Serial.print(" = ");
       Serial.print(regA);
       break;
     case MVI_B:
       opcode = MVI_B;
-      Serial.print(" > MVI, move db address into register B.");
+      Serial.print(F(" > MVI, move db address into register B."));
       break;
     case MVI_C:
       opcode = MVI_C;
-      Serial.print(" > MVI, move db address into register C.");
+      Serial.print(F(" > MVI, move db address into register C."));
       break;
     case NOP:
-      Serial.print(" > NOP ---");
+      Serial.print(F(" > NOP ---"));
       // delay(100);
       break;
     default:
-      Serial.print(" - Error, unknown instruction.");
+      Serial.print(F(" - Error, unknown instruction."));
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
   }
@@ -494,21 +544,21 @@ void processOpcodeData() {
       // instructionCycle == 1
       dataByte = memoryData[programCounter];
       compareResult = dataByte == regA;
-      Serial.print(" > CPI, compareResult db: ");
+      Serial.print(F(" > CPI, compareResult db: "));
       Serial.print(dataByte);
       if (compareResult) {
-        Serial.print(" == ");
+        Serial.print(F(" == "));
       } else {
-        Serial.print(" != ");
+        Serial.print(F(" != "));
       }
-      Serial.print(" A: ");
+      Serial.print(F(" A: "));
       Serial.print(regA);
       programCounter++;
       break;
     case JNC:
       if (instructionCycle == 1) {
         lowOrder = memoryData[programCounter];
-        Serial.print(" < JNC, lb: ");
+        Serial.print(F(" < JNC, lb: "));
         sprintf(charBuffer, "%4d:", lowOrder);
         Serial.print(charBuffer);
         programCounter++;
@@ -516,22 +566,22 @@ void processOpcodeData() {
       }
       // instructionCycle == 2
       highOrder = memoryData[programCounter];
-      Serial.print(" < JNC, hb: ");
+      Serial.print(F(" < JNC, hb: "));
       sprintf(charBuffer, "%4d:", highOrder);
       Serial.print(charBuffer);
       if (!carryBit) {
-        Serial.print(" > JNC, jump to:");
+        Serial.print(F(" > JNC, jump to:"));
         programCounter = word(highOrder, lowOrder);
         Serial.print(programCounter);
       } else {
-        Serial.print(" - carryBit is true, don't jump.");
+        Serial.print(F(" - carryBit is true, don't jump."));
         programCounter++;
       }
       break;
     case JZ:
       if (instructionCycle == 1) {
         lowOrder = memoryData[programCounter];
-        Serial.print(" < JZ, lb: ");
+        Serial.print(F(" < JZ, lb: "));
         sprintf(charBuffer, "%4d:", lowOrder);
         Serial.print(charBuffer);
         programCounter++;
@@ -539,29 +589,29 @@ void processOpcodeData() {
       }
       // instructionCycle == 2
       highOrder = memoryData[programCounter];
-      Serial.print(" < JZ, hb: ");
+      Serial.print(F(" < JZ, hb: "));
       sprintf(charBuffer, "%4d:", highOrder);
       Serial.print(charBuffer);
       if (compareResult) {
-        Serial.print(" > JZ, jump to:");
+        Serial.print(F(" > JZ, jump to:"));
         programCounter = word(highOrder, lowOrder);
         Serial.print(programCounter);
       } else {
-        Serial.print(" - compareResult is false, don't jump.");
+        Serial.print(F(" - compareResult is false, don't jump."));
         programCounter++;
       }
       break;
     case JMP:
       if (instructionCycle == 1) {
         lowOrder = programCounter;
-        Serial.print(" > JMP, lb: ");
+        Serial.print(F(" > JMP, lb: "));
         Serial.print(lowOrder);
         programCounter++;
         return;
       }
       // instructionCycle == 2
       programCounter = word(memoryData[programCounter], memoryData[lowOrder]);
-      Serial.print(" > JMP, jump to:");
+      Serial.print(F(" > JMP, jump to:"));
       sprintf(charBuffer, "%4d = ", programCounter);
       Serial.print(charBuffer);
       printByte((byte)programCounter);
@@ -569,7 +619,7 @@ void processOpcodeData() {
     case LXI_HL:
       if (instructionCycle == 1) {
         regL = memoryData[programCounter];
-        Serial.print(" < LXI, lb: ");
+        Serial.print(F(" < LXI, lb: "));
         sprintf(charBuffer, "%4d:", regL);
         Serial.print(charBuffer);
         programCounter++;
@@ -578,31 +628,31 @@ void processOpcodeData() {
       // instructionCycle == 2
       programCounter;
       regH = memoryData[programCounter];
-      Serial.print(" < LXI, hb: ");
+      Serial.print(F(" < LXI, hb: "));
       sprintf(charBuffer, "%4d:", regH);
       Serial.print(charBuffer);
-      Serial.print(" > H:L address: ");
+      Serial.print(F(" > H:L address: "));
       sprintf(charBuffer, "%8d:", word(regH, regL));
       Serial.print(charBuffer);
       printOctal(regH);
-      Serial.print(" = ");
+      Serial.print(F(" = "));
       printOctal(regL);
       programCounter++;
       break;
     case MVI_B:
       regB = memoryData[programCounter];
-      Serial.print(" db > register B: ");
+      Serial.print(F(" db > register B: "));
       Serial.print(regB);
       programCounter++;
       break;
     case MVI_C:
       regC = memoryData[programCounter];
-      Serial.print(" db > register C: ");
+      Serial.print(F(" db > register C: "));
       Serial.print(regC);
       programCounter++;
       break;
     default:
-      Serial.print(" - Error, unknow instruction.");
+      Serial.print(F(" - Error, unknow instruction."));
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
   }
@@ -615,19 +665,16 @@ void setup() {
   Serial.begin(115200);
   delay(1000);        // Give the serial connection time to start before the first print.
   Serial.println(""); // Newline after garbage characters.
-  Serial.println("+++ Setup.");
+  Serial.println(F("+++ Setup."));
 
-  irrecv.enableIRIn();
-  Serial.println("+ Initialized the infrared receiver.");
-/*
   pinMode(STOP_BUTTON_PIN, INPUT);
   pinMode(RUN_BUTTON_PIN, INPUT);
   pinMode(STEP_BUTTON_PIN, INPUT);
   pinMode(EXAMINE_BUTTON_PIN, INPUT);
   pinMode(EXAMINENEXT_BUTTON_PIN, INPUT);
   // pinMode(RESET_BUTTON_PIN, INPUT);
-  Serial.println("+ Toggle/button switches are configured for input.");
-*/
+  Serial.println(F("+ Toggle/button switches are configured for input."));
+
   pinMode(WAIT_PIN, OUTPUT);
   digitalWrite(WAIT_PIN, HIGH);
   pinMode(M1_PIN, OUTPUT);
@@ -635,7 +682,7 @@ void setup() {
   // digitalWrite(MEMR_PIN, HIGH);
   // digitalWrite(HLTA_PIN, LOW);
   // digitalWrite(WO_PIN, HIGH);
-  Serial.println("+ LED lights configured and initialized.");
+  Serial.println(F("+ LED lights configured and initialized."));
 
   // List a program. Available programs:
   //    jumpLoopProgram
@@ -647,7 +694,7 @@ void setup() {
   // Load a program.
   copyByteArrayToMemory(theProgram, programSize);
 
-  Serial.println("+++ Start the processor loop.");
+  Serial.println(F("+++ Start the processor loop."));
 }
 
 // -----------------------------------------------------------------------------
@@ -655,12 +702,6 @@ void setup() {
 
 static unsigned long timer = millis();
 void loop() {
-
-  // Process infrared key presses.
-  if (irrecv.decode(&results)) {
-    infraredSwitch();
-    irrecv.resume();
-  }
 
   if (runProgram) {
     // When testing, can add a cycle delay.
@@ -670,17 +711,17 @@ void loop() {
       processData();
       // timer = millis();
     // }
-    // checkStopButton();
+    checkStopButton();
   } else {
     if (buttonWentHigh && halted) {
       halted = false;
       buttonWentHigh = false;
       // digitalWrite(HLTA_PIN, LOW); // Not halted anymore.
     }
-    // checkRunButton();
-    // checkStepButton();
-    // checkExamineButton();
-    // checkExamineNextButton();
+    checkRunButton();
+    checkStepButton();
+    checkExamineButton();
+    checkExamineNextButton();
     delay(60);
   }
 

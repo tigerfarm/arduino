@@ -25,35 +25,64 @@
     https://www.calculator.net/binary-calculator.html
 */
 // -----------------------------------------------------------------------------
+/*
+  Connect LCD to Nano:
+    SCL - A5
+    SDA - A4
+    VCC - 5V
+    GND - GND
+*/
+#include<Wire.h>
+
+#include<LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x27, 20, 4);
+
+String theLine = "";
+int displayColumns = 16;
+void displayPrintln(int theRow, String theString) {
+  // To overwrite anything on the current line.
+  String printString = theString;
+  int theRest = displayColumns - theString.length();
+  if (theRest < 0) {
+    // Shorten to the display column length.
+    printString = theString.substring(0, displayColumns);
+  } else {
+    // Buffer with spaces to the end of line.
+    while (theRest < displayColumns) {
+      printString = printString + " ";
+      theRest++;
+    }
+  }
+  lcd.setCursor(0, theRow);
+  lcd.print(printString);
+}
+
+// -----------------------------------------------------------------------------
 // Memory definitions
 
 const int memoryBytes = 512;
 byte memoryData[memoryBytes];
 
-/* Test:
-const byte MOV_DA = 0127; // MOV  D,A  01 010 111        Move register A content to register D.
-const byte MVI_D  = 0026; // MVI  D,db 00 010 110 -      Move db to register D.
-const byte MVI_E  = 0036; // MVI  E,db 00 011 110 -      Move db to register E.
-const byte LXI_BC = 0001; // LXI  BC,a 00 000 001        Move a(lb hb) into register pair, B:C = hb:lb.
- */
 byte theProgram[] = {
   // ------------------------------------------------------------------
   // Test: MVI, DAD, JNC
   //                Start program.
   0000,             // NOP
-  //
-  0026, 0012,       // MVI  D,db  ; Move db to register D.
-  0036, 0034,       // MVI  E,db  ; Move db to register E.
-  //
-  0041, 19, 0000,   // LXI M,a    ; Load 0000:19 into register H:L.
-  0176,             // MOV A,M    ; Move data at address(H:L) to register A.
-  0127,             // MOV D,A    ; Move register A content to register D.
-  //
-  0001, 0034, 0056, // LXI B,a    ; Load a(lb:hb) into register B:C = 2:1.
-  // 
+  //                               Set B:C to 0000:2
+  0006, 0000,       // MVI  B,db : Move db to register B.
+  0016, 0001,       // MVI  C,db : Move db to register C.
+  //                               Set
+  0041, 0373, 0377, // LXI_HL lb hb. Load into register H:L = 377:373 = 65531.
+  //                Until !carry bit {
+  0000,               // NOP
+  0166,               // HLT
+  0011,               // DAD Add B:C to H:L. Set carry bit at: 65535.
+  0322,  8, 0000,     // JNC lb hb. If carry bit false, jump to lb hb (end while)
+  0303, 17, 0000,     // JMP to the start of the while loop.
+  //                }
   0166,             // HLT
   0000,             // NOP
-  0303, 1, 0000,    // JMP        ; Jump to 1. Restart the program.
+  0303, 1, 0000,    // JMP to 1. Restart: jump to program start.
   // ------------------------------------------------------------------
   //                Data, starts at address ?
   0000, 0101, 0001, // 5 6 7
@@ -212,74 +241,71 @@ byte regM = 0;   // 110=M  Memory reference through address in H:L
 // -----------------------------------------------------------------------------
 // Opcodes that are programmed and tested:
 
-//        Code   Octal       Inst Param  Encoding Flags  Description
-const byte CPI    = 0376; // CPI db    11 111 110   -    Compare db with A > compareResult.
-const byte DAD_BC = 0011; // DAD       00 001 001   C    Add B:C to H:L. Set carry bit.
+//        Code   Octal       Inst Param  Encoding Param  Flags  Description
+const byte CPI    = 0376; // CPI db      00000000          -    Compare db with A > compareResult.
+const byte DAD_BC = 0011; // DAD         00001001        C      Add B:C to H:L. Set carry bit.
 const byte HLT    = 0166; // HLT         01110110          -    Halt processor
-const byte INX_HL = 0043; // INX  HL   00 100 011        Increment H:L (can be a 16 bit address)
-const byte JMP    = 0303; // JMP  a      11000011   -    Unconditional jump
-const byte JNC    = 0322; // JNC  lb hb  11010010        Jump if carry bit is 0 (false).
-const byte JZ     = 0312; // JZ   lb hb  11001010   -    If compareResult is true, jump to lb hb.
-const byte LXI_HL = 0041; // LXI  RP,a 00 100 001        Move a(lb hb) into register pair, H:L = hb:lb.
-const byte MOV_AM = 0176; // MOV  A,M  01 111 110        Move data from M(address in H:L) to register A.
-const byte MVI_B  = 0006; // MVI  B,db   00 000 110 -    Move db to register B.
-const byte MVI_C  = 0016; // MVI  C,db   00 001 110 -    Move db to register C.
-const byte NOP    = 0000; // NOP         00000000   -    No operation
+const byte INX_HL = 0043; // INX HL    00 100 011 00RP0011      Increment H:L (can be a 16 bit address)
+const byte JMP    = 0303; // JMP a       11000011 lb hb    -    Unconditional jump
+const byte JNC    = 0322; // JNC  lb hb  11010010               Jump if carry bit is 0 (false).
+const byte JZ     = 0312; // JZ lb hb    00000000          -    If compareResult is true, jump to lb hb.
+const byte LXI_HL = 0041; // LXI RP,a  00 100 001               Move the data at lb hb, into register pair H:L = hb:lb.
+const byte MOV_AM = 0176; // MOV  A,M  01 111 110               Move data from M(address in H:L) to register A.
+const byte MVI_B  = 0006; // MVI  B,db   00 000 110 db     -      Move db to register B.
+const byte MVI_C  = 0016; // MVI  C,db   00 001 110 db     -      Move db to register C.
+const byte NOP    = 0000; // NOP         00000000          -    No operation
 //
 // Opcode notes, more details:
 // --------------------------
-//        Code   Octal       Inst Param  Encoding Flags  Description
-//                           DAD  RP     00RP1001 C      Add register pair(RP) to H:L (16 bit add)
-//                           INX  RP     00RP0011        Increment H:L (can be a 16 bit address)
-//                           LDAX RP     00RP1010 -      Load indirect through BC(RP=00) or DE(RP=01)
-//                           LXI  RP,a   00RP0001        RP=10  which matches "10=HL".
-//                           MVI  R,db   00RRR110 db     Move db to register R.
+//                           DAD  RP     00RP1001        C      Add register pair to HL (16 bit add)
+//                           LDAX RP     00RP1010 *1     -      Load indirect through BC(RP=00) or DE(RP=01)
+//                           LXI  RP,a   00 100 001 00RP0001 RP=10 which matches "10=HL".
 //
-//        DAD                Set carry bit if the addition causes a carry out.
+//                           Set carry bit if the addition causes a carry out.
+//                           MVI  R,db   00 RRR 110 db     -      Move db to register R.
 //
 // MOV D,S   01DDDSSS          -       Move register to a register.
-// MOV D,M   01DDD110          -    Or Move data from M(H:L) address, to register DDD.
+// MOV D,M   01DDD110          -    Or Move register to the register M's address in H:L.
 // Example, MOV A,M 176 =    01 111 110  Move the DATA at address H/L to register A.
 //
 // --------------------------------------
 // In progress, Kill the Bit opcodes:
-//         Code     Octal    Inst Param  Encoding Flags  Description
-const byte MOV_DA = 0127; // MOV  D,A  01 010 111        Move register A content to register D.
-const byte MVI_D  = 0026; // MVI  D,db 00 010 110 -      Move db to register D.
-const byte MVI_E  = 0036; // MVI  E,db 00 011 110 -      Move db to register E.
-const byte LXI_BC = 0001; // LXI  BC,a 00 000 001        Move a(lb hb) into register pair, B:C = hb:lb.
-const byte LDAX   = 0032; // LDAX DE   00 011 010 -      Load indirect through DE.
+//         Code     Octal    Inst Param  Encoding Param  Flags  Description
+const byte MOV_DA = 0127; // MOV  D,A    01 010 111             Move register A content to register D.
+const byte MVI_D  = 0026; // MVI  D,db   00 010 110 db   -      Move db to register D.
+const byte LXI_BC = 0001; // LXI  BC,a   00 000 001 BC,a        Move the lb hb address, into register pair B(hb):C(lb)
+const byte LDAX   = 0032; // LDAX DE     00 011 010      -      Load indirect through DE.
 
 //  Kill the Bit program:
 /*
-  Addr Data toggles  Octal Value
-  00   00 100 001     041 lxi  : Move the data at lb hb address, into register pair H(hb):L(lb)
-  01   00 000 000     000      : lb
-  02   00 000 000     000      : hb
-  03   00 010 110     026 mvi  : Move db to register D.
-  04   10 000 000     200      : db
-  05   00 000 001     001 lxi  : Move the lb hb data, into register pair > B:C = hb:lb.
-  06   00 001 110     016      : lb = 016
-  07   00 000 000     000      : hb = 000
-  //                         Make the bit that move across the hb address LED lights.
-  08   00 011 010 beg:032 ldax : Load indirect through DE
-  09   00 011 010     032 ldax
-  10   00 011 010     032 ldax
-  11   00 011 010     032 ldax
-  12   00 001 001     011 dad  : Add B:C to H:L. Set carry bit.
-  13   11 010 010     322 jnc  : Jump to address 8(000:010)
-  14   00 001 000     010
-  15   00 000 000     000
-  //
-  16   11 011 011     333 in   : Check for the toggled input that can kill the bit.
-  17   11 111 111     377
-  18   10 101 010     252 xra
-  19   00 001 111     017 rrc
-  20   01 010 111     127 mov  : Move register A to register D.
-  21   11 000 011     303 jmp  : Jump instruction: jmp beg
-  22   00 001 000     010      : lb = 8. 00 001 000 = 8. Low order address bits.
-  23   00 000 000     000      : hb = 0, to get a 16 bit address(hb:lb): 00 000 000 : 00 001 000 = 8.
-  24                      end
+Addr Data toggles  Octal Value
+00   00 100 001     041 lxi  : Move the data at lb hb address, into register pair H(hb):L(lb)
+01   00 000 000     000      : lb
+02   00 000 000     000      : hb
+03   00 010 110     026 mvi  : Move db to register D.
+04   10 000 000     200      : db
+05   00 000 001     001 lxi  : Move the lb hb data, into register pair B(hb):C(lb)
+06   00 001 110     016      : lb = 016
+07   00 000 000     000      : hb = 000
+//                         Make the bit that move across the hb address LED lights.
+08   00 011 010 beg:032 ldax : Load indirect through DE
+09   00 011 010     032 ldax
+10   00 011 010     032 ldax
+11   00 011 010     032 ldax
+12   00 001 001     011 dad  : Add B:C to H:L. Set carry bit.
+13   11 010 010     322 jnc  : Jump to address 8(000:010)
+14   00 001 000     010
+15   00 000 000     000
+//
+16   11 011 011     333 in   : Check for the toggled input that can kill the bit.
+17   11 111 111     377
+18   10 101 010     252 xra
+19   00 001 111     017 rrc
+20   01 010 111     127 mov  : Move register A to register D.
+21   11 000 011     303 jmp  : Jump instruction: jmp beg
+22   00 001 000     010      : lb = 8. 00 001 000 = 8. Low order address bits.
+23   00 000 000     000      : hb = 0, to get a 16 bit address(hb:lb): 00 000 000 : 00 001 000 = 8.
+24                      end
 */
 // -----------------------------------------------------------------------------
 // Output: Front Panel Output and log messages
@@ -353,7 +379,7 @@ boolean halted = false;       // Set true for an HLT opcode.
 boolean runProgram = false;
 
 void processOpcode() {
-
+  
   // For calculating if there is a carry over.
   unsigned int bValue = 0;
   unsigned int cValue = 0;
@@ -445,13 +471,9 @@ void processOpcode() {
       Serial.print(regL);
       // printOctal(regL);
       break;
-    case LXI_BC:
-      opcode = LXI_BC;
-      Serial.print(F(" > LXI, Move the lb hb data, into register pair B:C = hb:lb."));
-      break;
     case LXI_HL:
       opcode = LXI_HL;
-      Serial.print(F(" > LXI, Move the lb hb data, into register pair H:L = hb:lb."));
+      Serial.print(F(" > LXI, Move the lb hb data, into register pair H(hb):L(lb)."));
       break;
     case MOV_AM:
       Serial.print(F(" > MOV"));
@@ -463,13 +485,6 @@ void processOpcode() {
       Serial.print(F(", to Accumulator = "));
       printData(regA);
       break;
-    case MOV_DA:
-      Serial.print(F(" > MOV"));
-      regD = regA;
-      Serial.print(F(", move data from register A "));
-      Serial.print(F(" to register D = "));
-      printData(regD);
-      break;
     case MVI_B:
       opcode = MVI_B;
       Serial.print(F(" > MVI, move db address into register B."));
@@ -477,14 +492,6 @@ void processOpcode() {
     case MVI_C:
       opcode = MVI_C;
       Serial.print(F(" > MVI, move db address into register C."));
-      break;
-    case MVI_D:
-      opcode = MVI_D;
-      Serial.print(F(" > MVI, move db address into register D."));
-      break;
-    case MVI_E:
-      opcode = MVI_E;
-      Serial.print(F(" > MVI, move db address into register E."));
       break;
     case NOP:
       Serial.print(F(" > NOP ---"));
@@ -585,26 +592,6 @@ void processOpcodeData() {
       Serial.print(charBuffer);
       printByte((byte)programCounter);
       break;
-    case LXI_BC:
-      if (instructionCycle == 1) {
-        regB = memoryData[programCounter];
-        Serial.print(F(" < LXI, lb data: "));
-        sprintf(charBuffer, "%4d:", regL);
-        Serial.print(charBuffer);
-        programCounter++;
-        return;
-      }
-      // instructionCycle == 2
-      regC = memoryData[programCounter];
-      Serial.print(F(" < LXI, hb data: "));
-      sprintf(charBuffer, "%4d:", regH);
-      Serial.print(charBuffer);
-      Serial.print(F(" > B:C = "));
-      printOctal(regB);
-      Serial.print(F(":"));
-      printOctal(regC);
-      programCounter++;
-      break;
     case LXI_HL:
       if (instructionCycle == 1) {
         regL = memoryData[programCounter];
@@ -637,18 +624,6 @@ void processOpcodeData() {
       printData(regC);
       programCounter++;
       break;
-    case MVI_D:
-      regD = memoryData[programCounter];
-      Serial.print(F(" < MVI, move db > register D: "));
-      printData(regD);
-      programCounter++;
-      break;
-    case MVI_E:
-      regE = memoryData[programCounter];
-      Serial.print(F(" < MVI, move db > register E: "));
-      printData(regE);
-      programCounter++;
-      break;
     default:
       Serial.print(F(" - Error, unknow instruction."));
       runProgram = false;
@@ -677,7 +652,7 @@ void infraredSwitch() {
   // The OK (Return) button, becomes STOP when a program is running.
   if (runProgram) {
     if (results.value == 0xFF4AB5 || results.value == 0xE0E08679
-        ||  results.value == 0xFF38C7 || results.value == 0xE0E016E9) {
+    ||  results.value == 0xFF38C7 || results.value == 0xE0E016E9) {
       Serial.println(F("+ Stop process."));
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
@@ -802,45 +777,6 @@ void infraredSwitch() {
 }
 
 // -----------------------------------------------------------------------------
-// 1602 LCD
-/*
-#include<Wire.h>
-#include<LiquidCrystal_I2C.h>
-
-LiquidCrystal_I2C lcd(0x27, 20, 4);
-
-String theLine = "";
-int displayColumns = 16;
-void displayPrintln(int theRow, String theString) {
-  // To overwrite anything on the current line.
-  String printString = theString;
-  int theRest = displayColumns - theString.length();
-  if (theRest < 0) {
-    // Shorten to the display column length.
-    printString = theString.substring(0, displayColumns);
-  } else {
-    // Buffer with spaces to the end of line.
-    while (theRest < displayColumns) {
-      printString = printString + " ";
-      theRest++;
-    }
-  }
-  lcd.setCursor(0, theRow);
-  lcd.print(printString);
-}
-
-void readyLcd() {
-  lcd.init();
-  lcd.backlight();
-  //                1234567890123456
-  displayPrintln(0, "Altair 101");
-  theLine = "LCD ready...";
-  displayPrintln(1, theLine);
-  // delay(3000);
-  // lcd.clear();
-}
-*/
-// -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
   delay(1000);        // Give the serial connection time to start before the first print.
@@ -850,8 +786,15 @@ void setup() {
   irrecv.enableIRIn();
   Serial.println(F("+ infrared receiver ready for input."));
 
-  // readyLcd();
-  // Serial.println(F("+ LCD ready for output."));
+  lcd.init();
+  lcd.backlight();
+  //                1234567890123456
+  displayPrintln(0, "Altair 101");
+  theLine = "LCD ready...";
+  displayPrintln(1, theLine);
+  // delay(3000);
+  // lcd.clear();
+  Serial.println(F("+ LCD ready for output."));
 
   pinMode(WAIT_PIN, OUTPUT);
   digitalWrite(WAIT_PIN, HIGH);

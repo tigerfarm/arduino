@@ -143,6 +143,33 @@ const byte JNC =    0322; // JNC  lb hb  11010010               Jump if carry bi
   0000, 0000, 0000  //       end
 };
 
+byte theProgram[] = {
+  // ------------------------------------------------------------------
+  // Test: MVI, DAD, JNC
+  //                Start program.
+  0000,             // NOP
+  //                               Set B:C to 0000:1
+  0006, 0000,       // MVI  B,db : Move db to register B.
+  0016, 0001,       // MVI  C,db : Move db to register C.
+  //                               Set
+  0041, 0373, 0377, // LXI_HL lb hb. Load into register H:L = 377:373 = 65531.
+  //                Until !carry bit {
+  0000,               // NOP
+  0166,               // HLT
+  0011,               // DAD Add B:C to H:L. Set carry bit at: 65535.
+  0322,  8, 0000,     // JNC lb hb. If carry bit false, jump to lb hb (end while)
+  0303, 17, 0000,     // JMP to the start of the while loop.
+  //                }
+  0166,             // HLT
+  0000,             // NOP
+  0303, 1, 0000,    // JMP to 1. Restart: jump to program start.
+  // ------------------------------------------------------------------
+  //                Data, starts at address ?
+  0000, 0101, 0001, // 5 6 7
+  0010, 0110, 0111, // 8 9 0
+  0000, 0000, 0000  //       end
+};
+
 /*
   00 000 000 = 000 =   0 2^0
   00 000 001 = 002 =   1 2^0
