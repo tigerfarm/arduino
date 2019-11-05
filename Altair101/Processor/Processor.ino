@@ -30,36 +30,64 @@
 const int memoryBytes = 512;
 byte memoryData[memoryBytes];
 
-/* Test:
-const byte MOV_DA = 0127; // MOV  D,A  01 010 111        Move register A content to register D.
-const byte MVI_D  = 0026; // MVI  D,db 00 010 110 -      Move db to register D.
-const byte MVI_E  = 0036; // MVI  E,db 00 011 110 -      Move db to register E.
-const byte LXI_BC = 0001; // LXI  BC,a 00 000 001        Move a(lb hb) into register pair, B:C = hb:lb.
- */
 byte theProgram[] = {
   // ------------------------------------------------------------------
-  // Test: MVI, DAD, JNC
+  // Kill the Bit program.
   //                Start program.
-  0000,             // NOP
+  0041, 0000, 0000, // LXI M,a    ; Move the data at lb hb address, into register pair H(hb):L(lb)
+  0026, 0200,       // MVI D,db   ; Move db to register D.
+  0001, 0016, 0000, // LXI B,a    ; Load a(lb:hb) into register B:C.
   //
-  0026, 0012,       // MVI  D,db  ; Move db to register D.
-  0036, 0034,       // MVI  E,db  ; Move db to register E.
+  0032,             // LDAX D     ; Move data from address D:E, to register A.
+  0032,             // LDAX D     ; Move data from address D:E, to register A.
+  0032,             // LDAX D     ; Move data from address D:E, to register A.
+  0032,             // LDAX D     ; Move data from address D:E, to register A.
+  0011, 0111,       // DAD M,B    ; Add B:C to H:L. Set carry bit.
+  0312, 0010, 0000, // JNC        ; If carry bit false, jump to lb hb, LDAX instruction start.
   //
-  0041, 19, 0000,   // LXI M,a    ; Load 0000:19 into register H:L.
-  0176,             // MOV A,M    ; Move data at address(H:L) to register A.
-  0127,             // MOV D,A    ; Move register A content to register D.
-  //
-  0001, 0034, 0056, // LXI B,a    ; Load a(lb:hb) into register B:C = 2:1.
+  0333, 0377,       // IN B,a     ; Check for the toggled input that can kill the bit.
+  0252,             // XRA
+  0017,             // RRC
   // 
-  0166,             // HLT
-  0000,             // NOP
-  0303, 1, 0000,    // JMP        ; Jump to 1. Restart the program.
+  0176,             // MOV  A,M   ; Move data from M(address in H:L) to register A.
+  0303, 0010, 0000, // JMP        ; Jump to lb hb, LDAX instruction start.
+  // 0000,             // NOP
+  // 0166,             // HLT
   // ------------------------------------------------------------------
-  //                Data, starts at address ?
-  0000, 0101, 0001, // 5 6 7
-  0010, 0110, 0111, // 8 9 0
   0000, 0000, 0000  //       end
 };
+
+//  Kill the Bit program:
+/*
+  Addr Data toggles  Octal Value
+  00   00 100 001     041 lxi  : Move the data at lb hb address, into register pair H(hb):L(lb)
+  01   00 000 000     000      : lb
+  02   00 000 000     000      : hb
+  03   00 010 110     026 mvi  : Move db to register D.
+  04   10 000 000     200      : db
+  05   00 000 001     001 lxi  : Move the lb hb data, into register pair > B:C = hb:lb.
+  06   00 001 110     016      : lb = 016
+  07   00 000 000     000      : hb = 000
+  //                         Make the bit that move across the hb address LED lights.
+  08   00 011 010 beg:032 ldax : Load register A with the data at address D:E.
+  09   00 011 010     032 ldax
+  10   00 011 010     032 ldax
+  11   00 011 010     032 ldax
+  12   00 001 001     011 dad  : Add B:C to H:L. Set carry bit.
+  13   11 010 010     322 jnc  : Jump to address 8(000:010)
+  14   00 001 000     010
+  15   00 000 000     000
+  //
+  16   11 011 011     333 in   : Check for the toggled input that can kill the bit.
+  17   11 111 111     377
+  18   10 101 010     252 xra
+  19   00 001 111     017 rrc
+  20   01 010 111     127 mov  : Move register A to register D.
+  21   11 000 011     303 jmp  : Jump instruction: jmp beg
+  22   00 001 000     010      : lb = 8. 00 001 000 = 8. Low order address bits.
+  23   00 000 000     000      : hb = 0, to get a 16 bit address(hb:lb): 00 000 000 : 00 001 000 = 8.
+  24                      end
+*/
 
 /*
   00 000 000 = 000 =   0
@@ -182,11 +210,6 @@ const byte STA =    0062; // STA a     00110010 lb hb    -    Store register A t
 const byte LDA =    0062; // LDA is for copying data from memory location to accumulator
 //
 
-// More opcodes for Kill the Bit:
-const byte XRA =    0252; // XRA S     10101SSS          ZSPCA   Exclusive OR register with A
-const byte RRC =    0017; // RRC       00001111          C       Rotate A right (shift byte right 1 bit)
-const byte IN =     0333; // IN p      11011011 pa       -       Read input port into A
-
 /*
     a  = hb + lb (16 bit value)
     d  = 8 bit data, such as data from an address
@@ -215,15 +238,19 @@ byte regM = 0;   // 110=M  Memory reference through address in H:L
 //        Code   Octal       Inst Param  Encoding Flags  Description
 const byte CPI    = 0376; // CPI db    11 111 110   -    Compare db with A > compareResult.
 const byte DAD_BC = 0011; // DAD       00 001 001   C    Add B:C to H:L. Set carry bit.
-const byte HLT    = 0166; // HLT         01110110          -    Halt processor
+const byte HLT    = 0166; // HLT         01110110   -    Halt processor
 const byte INX_HL = 0043; // INX  HL   00 100 011        Increment H:L (can be a 16 bit address)
 const byte JMP    = 0303; // JMP  a      11000011   -    Unconditional jump
 const byte JNC    = 0322; // JNC  lb hb  11010010        Jump if carry bit is 0 (false).
 const byte JZ     = 0312; // JZ   lb hb  11001010   -    If compareResult is true, jump to lb hb.
+const byte LXI_BC = 0001; // LXI  BC,a 00 000 001        Move a(lb hb) into register pair, B:C = hb:lb.
 const byte LXI_HL = 0041; // LXI  RP,a 00 100 001        Move a(lb hb) into register pair, H:L = hb:lb.
 const byte MOV_AM = 0176; // MOV  A,M  01 111 110        Move data from M(address in H:L) to register A.
+const byte MOV_DA = 0127; // MOV  D,A  01 010 111        Move register A content to register D.
 const byte MVI_B  = 0006; // MVI  B,db   00 000 110 -    Move db to register B.
 const byte MVI_C  = 0016; // MVI  C,db   00 001 110 -    Move db to register C.
+const byte MVI_D  = 0026; // MVI  D,db 00 010 110 -      Move db to register D.
+const byte MVI_E  = 0036; // MVI  E,db 00 011 110 -      Move db to register E.
 const byte NOP    = 0000; // NOP         00000000   -    No operation
 //
 // Opcode notes, more details:
@@ -236,6 +263,7 @@ const byte NOP    = 0000; // NOP         00000000   -    No operation
 //                           MVI  R,db   00RRR110 db     Move db to register R.
 //
 //        DAD                Set carry bit if the addition causes a carry out.
+//        LDAX D : Load the accumulator from memory location 938BH, where register D contains 93H and register E contains 8BH.
 //
 // MOV D,S   01DDDSSS          -       Move register to a register.
 // MOV D,M   01DDD110          -    Or Move data from M(H:L) address, to register DDD.
@@ -244,43 +272,11 @@ const byte NOP    = 0000; // NOP         00000000   -    No operation
 // --------------------------------------
 // In progress, Kill the Bit opcodes:
 //         Code     Octal    Inst Param  Encoding Flags  Description
-const byte MOV_DA = 0127; // MOV  D,A  01 010 111        Move register A content to register D.
-const byte MVI_D  = 0026; // MVI  D,db 00 010 110 -      Move db to register D.
-const byte MVI_E  = 0036; // MVI  E,db 00 011 110 -      Move db to register E.
-const byte LXI_BC = 0001; // LXI  BC,a 00 000 001        Move a(lb hb) into register pair, B:C = hb:lb.
-const byte LDAX   = 0032; // LDAX DE   00 011 010 -      Load indirect through DE.
+const byte LDAX_D = 0032; // LDAX D    00 011 010 -      Load register A with the data at address D:E.
+const byte XRA    = 0252; // XRA S     10101SSS          ZSPCA   Exclusive OR register with A
+const byte RRC    = 0017; // RRC       00001111          C       Rotate A right (shift byte right 1 bit)
+const byte IN     = 0333; // IN p      11011011 pa       -       Read input port into A
 
-//  Kill the Bit program:
-/*
-  Addr Data toggles  Octal Value
-  00   00 100 001     041 lxi  : Move the data at lb hb address, into register pair H(hb):L(lb)
-  01   00 000 000     000      : lb
-  02   00 000 000     000      : hb
-  03   00 010 110     026 mvi  : Move db to register D.
-  04   10 000 000     200      : db
-  05   00 000 001     001 lxi  : Move the lb hb data, into register pair > B:C = hb:lb.
-  06   00 001 110     016      : lb = 016
-  07   00 000 000     000      : hb = 000
-  //                         Make the bit that move across the hb address LED lights.
-  08   00 011 010 beg:032 ldax : Load indirect through DE
-  09   00 011 010     032 ldax
-  10   00 011 010     032 ldax
-  11   00 011 010     032 ldax
-  12   00 001 001     011 dad  : Add B:C to H:L. Set carry bit.
-  13   11 010 010     322 jnc  : Jump to address 8(000:010)
-  14   00 001 000     010
-  15   00 000 000     000
-  //
-  16   11 011 011     333 in   : Check for the toggled input that can kill the bit.
-  17   11 111 111     377
-  18   10 101 010     252 xra
-  19   00 001 111     017 rrc
-  20   01 010 111     127 mov  : Move register A to register D.
-  21   11 000 011     303 jmp  : Jump instruction: jmp beg
-  22   00 001 000     010      : lb = 8. 00 001 000 = 8. Low order address bits.
-  23   00 000 000     000      : hb = 0, to get a 16 bit address(hb:lb): 00 000 000 : 00 001 000 = 8.
-  24                      end
-*/
 // -----------------------------------------------------------------------------
 // Output: Front Panel Output and log messages
 
@@ -445,6 +441,16 @@ void processOpcode() {
       Serial.print(regL);
       // printOctal(regL);
       break;
+    case LDAX_D:
+      Serial.print(F(" > LDAX, Load register A with the data at address D:E.."));
+      anAddress = word(regD, regE);
+      regA = memoryData[anAddress];
+      Serial.print(F(", Load data from Address D:E: "));
+      sprintf(charBuffer, "%4d:", anAddress);
+      Serial.print(charBuffer);
+      Serial.print(F(", to Accumulator = "));
+      printData(regA);
+      break;
     case LXI_BC:
       opcode = LXI_BC;
       Serial.print(F(" > LXI, Move the lb hb data, into register pair B:C = hb:lb."));
@@ -457,7 +463,7 @@ void processOpcode() {
       Serial.print(F(" > MOV"));
       anAddress = word(regH, regL);
       regA = memoryData[anAddress];
-      Serial.print(F(" data from Addr: "));
+      Serial.print(F(", Move data from Address: "));
       sprintf(charBuffer, "%4d:", anAddress);
       Serial.print(charBuffer);
       Serial.print(F(", to Accumulator = "));
@@ -589,7 +595,7 @@ void processOpcodeData() {
       if (instructionCycle == 1) {
         regB = memoryData[programCounter];
         Serial.print(F(" < LXI, lb data: "));
-        sprintf(charBuffer, "%4d:", regL);
+        sprintf(charBuffer, "%4d:", regB);
         Serial.print(charBuffer);
         programCounter++;
         return;
