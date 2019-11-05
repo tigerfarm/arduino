@@ -52,7 +52,6 @@ byte theProgram[] = {
   //                Data, starts at address ?
   0000, 0101, 0001, // 5 6 7
   0010, 0110, 0111, // 8 9 0
-  //
   0000, 0000, 0000  //       end
 };
 
@@ -307,9 +306,14 @@ boolean halted = false;       // Set true for an HLT opcode.
 boolean runProgram = false;
 
 void processOpcode() {
-  int aValue = 0;       // For calculating if there is a carry over.
-  int bValue = 0;
-  int cValue = 0;
+  
+  // For calculating if there is a carry over.
+  unsigned int bValue = 0;
+  unsigned int cValue = 0;
+  unsigned int hValue = 0;
+  unsigned int lValue = 0;
+  unsigned int hlValue = 0;
+
   int anAddress = 0;
   byte dataByte = memoryData[programCounter];
   switch (dataByte) {
@@ -319,16 +323,19 @@ void processOpcode() {
       break;
     case DAD_BC:
       Serial.print(F(" > DAD_BC, Add B:C to H:L."));
-      aValue = (int)word(regB, regC);
-      bValue = (int)word(regH, regL);
-      cValue = aValue + bValue;
+      bValue = regB;
+      cValue = regC;
+      hValue = regH;
+      lValue = regL;
+      bcValue = bValue * 256 + cValue;
+      hlValue = (hValue * 256 + lValue) + (bValue * 256 + cValue);
       // 2^16 = 65535 = 64k = 11 111 111 : 11 111 111
-      if (cValue > 65535) {
+      if (hlValue > 65535) {
         carryBit = true;
       } else {
         carryBit = false;
       }
-      regL = cValue;            // Stacy, update for H:L, not just L.
+      regL = cValue + lValue;            // Stacy, update for H:L, not just L.
       Serial.print(F(", B:C "));
       Serial.print(aValue);
       Serial.print(F(" + H:L "));
@@ -337,9 +344,9 @@ void processOpcode() {
       Serial.print(cValue);
       Serial.print(F(", Carry bit set: "));
       if (carryBit) {
-        Serial.print(F("true."));
+        Serial.print(F("true. Over: 65535."));
       } else {
-        Serial.print(F("false."));
+        Serial.print(F("false. Not over: 65535."));
       }
       break;
     case JNC:
@@ -358,8 +365,9 @@ void processOpcode() {
       Serial.print(F(" > HLT, halt the processor."));
       runProgram = false;
       halted = true;
-      digitalWrite(HLTA_PIN, HIGH);
       digitalWrite(WAIT_PIN, HIGH);
+      digitalWrite(M1_PIN, LOW);
+      digitalWrite(HLTA_PIN, HIGH);
       // To do: set all the address and data lights on.
       break;
     case INX_HL:
@@ -575,8 +583,10 @@ decode_results results;
 void infraredSwitch() {
 
   // If a program is running, only the STOP option is avaiable.
+  // The OK (Return) button, becomes STOP when a program is running.
   if (runProgram) {
-    if (results.value == 0xFF4AB5 || results.value == 0xE0E08679) {
+    if (results.value == 0xFF4AB5 || results.value == 0xE0E08679
+    ||  results.value == 0xFF38C7 || results.value == 0xE0E016E9) {
       Serial.println(F("+ Stop process."));
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
@@ -597,9 +607,7 @@ void infraredSwitch() {
       break;
     case 0xFF5AA5:
     case 0xE0E046B9:
-      // Serial.println(F("+ Key > - next"));
-      // digitalWrite(STEP_BUTTON_PIN, HIGH);
-      // Serial.println("+ checkButton(), turn LED on.");
+      // Serial.println(F("+ Key > - next: SINGLE STEP toggle/button switch."));
       digitalWrite(HLTA_PIN, LOW);
       processData();
       break;
@@ -621,13 +629,11 @@ void infraredSwitch() {
       break;
     case 0xFF38C7:
     case 0xE0E016E9:
-      Serial.println(F("+ Key OK - Toggle"));
-      //
-      Serial.println(F("+ Stop process."));
-      runProgram = false;
-      digitalWrite(WAIT_PIN, HIGH);
+      // Serial.println(F("+ Key OK - Toggle RUN and STOP."));
+      Serial.println(F("+ Run process."));
+      runProgram = true;
+      digitalWrite(WAIT_PIN, LOW);
       digitalWrite(HLTA_PIN, LOW);
-      //
       break;
     // -----------------------------------
     case 0xFF9867:
