@@ -34,10 +34,10 @@ byte theProgram[] = {
   //                Start program.
   0000,             // NOP
   //                               Set B:C to 0000:2
-  0006, 0001,       // MVI  B,db : Move db to register B.
-  0016, 0002,       // MVI  C,db : Move db to register D.
-  //                               Set H:L to 0000:3. Later, set to: 0373, 0377
-  0041, 0373, 0377, // LXI_HL lb hb. Load 0000:1 into register H:L.
+  0006, 0000,       // MVI  B,db : Move db to register B.
+  0016, 0001,       // MVI  C,db : Move db to register C.
+  //                               Set
+  0041, 0373, 0377, // LXI_HL lb hb. Load into register H:L = 377:373 = 65531. Carry bit at: 65535.
   //                Until !carry bit {
   0000,               // NOP
   0166,               // HLT
@@ -199,8 +199,6 @@ const byte LDA =    0062; // LDA is for copying data from memory location to acc
 //
 
 // More opcodes for Kill the Bit:
-const byte LDAX =   0032; // LDAX RP   00RP1010 *1       -       Load indirect through BC or DE
-//                    *1 = Only RP=00(BC) and 01(DE) are allowed for LDAX/STAX
 const byte XRA =    0252; // XRA S     10101SSS          ZSPCA   Exclusive OR register with A
 const byte RRC =    0017; // RRC       00001111          C       Rotate A right
 const byte IN =     0333; // IN p      11011011 pa       -       Read input port into A
@@ -209,14 +207,25 @@ const byte IN =     0333; // IN p      11011011 pa       -       Read input port
 // Opcodes that are programmed and tested:
 
 //        Code   Octal       Inst Param  Encoding Param  Flags  Description
-const byte CPI = 0376;    // CPI db      00000000          -    Compare db with A > compareResult.
-const byte HLT = 0166;    // HLT         01110110          -    Halt processor
+const byte CPI    = 0376; // CPI db      00000000          -    Compare db with A > compareResult.
+const byte DAD_BC = 0011; // DAD         00001001        C      Add B:C to H:L. Set carry bit.
+const byte HLT    = 0166; // HLT         01110110          -    Halt processor
 const byte INX_HL = 0043; // INX HL    00 100 011 00RP0011      Increment H:L (can be a 16 bit address)
-const byte JMP = 0303;    // JMP a       11000011 lb hb    -    Unconditional jump
-const byte JZ  = 0312;    // JZ lb hb    00000000          -    If compareResult is true, jump to lb hb.
+const byte JMP    = 0303; // JMP a       11000011 lb hb    -    Unconditional jump
+const byte JNC    = 0322; // JNC  lb hb  11010010               Jump if carry bit is 0 (false).
+const byte JZ     = 0312; // JZ lb hb    00000000          -    If compareResult is true, jump to lb hb.
 const byte LXI_HL = 0041; // LXI RP,a  00 100 001 00RP0001 RP=10 which matches "10=HL".
 const byte MOV_AM = 0176; // MOV  A  M(H:L) Where A is register A and M is the address in H:L
-const byte NOP = 0000;    // NOP         00000000          -    No operation
+const byte MVI_B  = 0006; // MVI  B,db   00 000 110 db     -      Move db to register B.
+const byte MVI_C  = 0016; // MVI  C,db   00 001 110 db     -      Move db to register B.
+const byte NOP    = 0000; // NOP         00000000          -    No operation
+//
+// Opcode notes, more details:
+// --------------------------
+//                           DAD  RP     00RP1001        C      Add register pair to HL (16 bit add)
+//
+//                           Set carry bit if the addition causes a carry out.
+//                           MVI  R,db   00 RRR 110 db     -      Move db to register R.
 //
 // MOV D,S   01DDDSSS          -       Move register to a register.
 // MOV D,M   01DDD110          -    Or Move register to the register M's address in H:L.
@@ -225,14 +234,8 @@ const byte NOP = 0000;    // NOP         00000000          -    No operation
 // -------------------
 // In progress, Kill the Bit opcodes:
 //         Code     Octal    Inst Param  Encoding Param  Flags  Description
-const byte MVI_B =  0006; // MVI  B,db   00 000 110 db     -      Move db to register B.
-const byte MVI_C =  0016; // MVI  C,db   00 001 110 db     -      Move db to register B.
-//                           MVI  R,db   00 RRR 110 db     -      Move db to register R.
-//
-const byte DAD_BC = 0011; // DAD         00001001        C      Add B:C to H:L. Set carry bit.
-//                           DAD  RP     00RP1001        C      Add register pair to HL (16 bit add)
-//                           Set carry bit if the addition causes a carry out.
-const byte JNC =    0322; // JNC  lb hb  11010010               Jump if carry bit is 0 (false).
+const byte LDAX =   0032; // LDAX RP   00RP1010 *1       -       Load indirect through BC or DE
+//                    *1 = Only RP=00(BC) and 01(DE) are allowed for LDAX/STAX
 
 // -----------------------------------------------------------------------------
 // Output: Front Panel Output and log messages
@@ -312,7 +315,9 @@ void processOpcode() {
   unsigned int cValue = 0;
   unsigned int hValue = 0;
   unsigned int lValue = 0;
+  unsigned int bcValue = 0;
   unsigned int hlValue = 0;
+  unsigned int hlValueNew = 0;
 
   int anAddress = 0;
   byte dataByte = memoryData[programCounter];
@@ -328,20 +333,24 @@ void processOpcode() {
       hValue = regH;
       lValue = regL;
       bcValue = bValue * 256 + cValue;
-      hlValue = (hValue * 256 + lValue) + (bValue * 256 + cValue);
+      hlValue = hValue * 256 + lValue;
+      hlValueNew = (hValue * 256 + lValue) + (bValue * 256 + cValue);
       // 2^16 = 65535 = 64k = 11 111 111 : 11 111 111
-      if (hlValue > 65535) {
+      // B:C 1 + H:L 65533 = 65534
+      // B:C 1 + H:L 65534 = 65535
+      // B:C 1 + H:L 65535 = 0
+      if (hlValueNew < bcValue || hlValueNew < hlValue) {
         carryBit = true;
       } else {
         carryBit = false;
       }
       regL = cValue + lValue;            // Stacy, update for H:L, not just L.
       Serial.print(F(", B:C "));
-      Serial.print(aValue);
+      Serial.print(bcValue);
       Serial.print(F(" + H:L "));
-      Serial.print(bValue);
+      Serial.print(hlValue);
       Serial.print(F(" = "));
-      Serial.print(cValue);
+      Serial.print(hlValueNew);
       Serial.print(F(", Carry bit set: "));
       if (carryBit) {
         Serial.print(F("true. Over: 65535."));
