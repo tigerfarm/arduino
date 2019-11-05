@@ -32,7 +32,7 @@ byte memoryData[memoryBytes];
 
 byte theProgram[] = {
   // ------------------------------------------------------------------
-  // Kill the Bit program.
+  // Need to confirm the following code, for the Kill the Bit program.
   //                Start program.
   0041, 0000, 0000, // LXI M,a    ; Move the data at lb hb address, into register pair H(hb):L(lb)
   0026, 0200,       // MVI D,db   ; Move db to register D.
