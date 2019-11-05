@@ -32,12 +32,12 @@ byte memoryData[memoryBytes];
 
 byte theProgram[] = {
   // ------------------------------------------------------------------
-  // Need to confirm the following code, for the Kill the Bit program.
+  // Kill the Bit program.
   // Before starting, make sure all the sense switches are in the down position.
   //                Start program.
-  0041, 0000, 0000, // LXI H,0    ; Move the data at lb hb address, into register pair H(hb):L(lb)
-  0026, 0200,       // MVI D,080h ; Move db to register D. Set initial display bit. 080h = 0200 = regD = 10 000 000
-  0001, 0016, 0000, // LXI B,0eh  ; Load a(lb:hb) into register B:C. 0016 =                       B:C  = 00 010 000
+  0041, 0000, 0000, // LXI H,0    ; Move the data at lb hb address, into register pair H(hb):L(lb). Initialize counter
+  0026, 0200,       // MVI D,080h ; Move db to register D. Set initial display bit.  080h = 0200 = regD = 10 000 000
+  0001, 0016, 0000, // LXI B,0eh  ; Load a(lb:hb) into register B:C. Higher value = faster. 0016 = B:C  = 00 010 000
   //
   //  ; Display bit pattern on upper 8 address lights.
   //                // BEG:
@@ -51,9 +51,9 @@ byte theProgram[] = {
   //
   0333, 0377,       // IN 0ffh    ; Check for the toggled input, at port 377 (toggle sense switches), that can kill the bit.
   0252,             // XRA D      ; Exclusive OR register with A
-  0017,             // RRC        ; Rotate A right (shift byte right 1 bit). Set carry bit.
+  0017,             // RRC        ; Rotate A right (shift byte right 1 bit). Set carry bit. Rotate display right one bit 
+  0127,             // MOV D,A    ; Move register A to register D. Move data to display reg
   // 
-  0127,             // MOV D,A    ; Move register A to register D.
   0303, 0010, 0000, // JMP BEG    ; Jump to lb hb, LDAX instruction start.
   // 0000,             // NOP
   // 0166,             // HLT
