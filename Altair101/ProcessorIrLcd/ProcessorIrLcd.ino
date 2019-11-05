@@ -15,6 +15,8 @@
 
   Reference document, Intel 8080 Assembly Language Programming Manual:
     https://altairclone.com/downloads/manuals/8080%20Programmers%20Manual.pdf
+  Text listing of 8080 opcodes:
+    http://www.classiccmp.org/dunfield/r/8080.txt
 
   Altair programming video, starting a 6 minutes in:
     https://www.youtube.com/watch?v=EV1ki6LiEmg
@@ -167,6 +169,7 @@ byte dataByte = 0;           // db = Data byte (8 bit)
 
 /*
     a  = hb + lb (16 bit value)
+    d  = 8 bit data, such as data from an address
     pa = Port address (8 bit)
     p  = 8 bit port address
 
@@ -214,15 +217,17 @@ const byte INX_HL = 0043; // INX HL    00 100 011 00RP0011      Increment H:L (c
 const byte JMP    = 0303; // JMP a       11000011 lb hb    -    Unconditional jump
 const byte JNC    = 0322; // JNC  lb hb  11010010               Jump if carry bit is 0 (false).
 const byte JZ     = 0312; // JZ lb hb    00000000          -    If compareResult is true, jump to lb hb.
-const byte LXI_HL = 0041; // LXI RP,a  00 100 001 00RP0001 RP=10 which matches "10=HL".
+const byte LXI_HL = 0041; // LXI RP,a  00 100 001               Move the data at lb hb address, into register pair H(hb):L(lb)
 const byte MOV_AM = 0176; // MOV  A  M(H:L) Where A is register A and M is the address in H:L
 const byte MVI_B  = 0006; // MVI  B,db   00 000 110 db     -      Move db to register B.
-const byte MVI_C  = 0016; // MVI  C,db   00 001 110 db     -      Move db to register B.
+const byte MVI_C  = 0016; // MVI  C,db   00 001 110 db     -      Move db to register C.
 const byte NOP    = 0000; // NOP         00000000          -    No operation
 //
 // Opcode notes, more details:
 // --------------------------
 //                           DAD  RP     00RP1001        C      Add register pair to HL (16 bit add)
+//                           LDAX RP     00RP1010 *1     -      Load indirect through BC(RP=00) or DE(RP=01)
+//                           LXI RP,a    00 100 001 00RP0001 RP=10 which matches "10=HL".
 //
 //                           Set carry bit if the addition causes a carry out.
 //                           MVI  R,db   00 RRR 110 db     -      Move db to register R.
@@ -231,12 +236,43 @@ const byte NOP    = 0000; // NOP         00000000          -    No operation
 // MOV D,M   01DDD110          -    Or Move register to the register M's address in H:L.
 // Example, MOV A,M 176 =    01 111 110  Move the DATA at address H/L to register A.
 //
-// -------------------
+// --------------------------------------
 // In progress, Kill the Bit opcodes:
 //         Code     Octal    Inst Param  Encoding Param  Flags  Description
-const byte LDAX =   0032; // LDAX RP   00RP1010 *1       -       Load indirect through BC or DE
-//                    *1 = Only RP=00(BC) and 01(DE) are allowed for LDAX/STAX
+const byte MVI_D  = 0026; // MVI  D,db   00 010 110 db   -      Move db to register D.
+const byte LDAX   = 0032; // LDAX DE     00 011 010      -      Load indirect through DE
+const byte LXI_BC = 0001; // LXI  BC,a   00 000 001 BC,a        Move the data at lb hb address, into register pair B(hb):C(lb)
+// Reconfirm what LXI does.
 
+//  Kill the Bit program:
+/*
+Addr Data toggles  Octal Value
+00   00 100 001     041 lxi
+01   00 000 000     000
+02   00 000 000     000
+03   00 010 110     026 mvi
+04   10 000 000     200
+05   00 000 001     001 lxi
+06   00 001 110     016
+07   00 000 000     000
+08   00 011 010 beg:032 ldax
+09   00 011 010     032 ldax
+10   00 011 010     032 ldax
+11   00 011 010     032 ldax
+12   00 001 001     011 dad
+13   11 010 010     322 jnc --- Jump to address 8(000:010)
+14   00 001 000     010
+15   00 000 000     000
+16   11 011 011     333 in
+17   11 111 111     377
+18   10 101 010     252 xra
+19   00 001 111     017 rrc
+20   01 010 111     127 mov
+21   11 000 011     303 jmp: Jump instruction: jmp beg
+22   00 001 000     010      To address 8. 00 001 000 = 8. Low order address bits.
+23   00 000 000     000      High order address bits, to get a 16 bit address: 00 000 000 00 001 000 = 8.
+24                      end
+*/
 // -----------------------------------------------------------------------------
 // Output: Front Panel Output and log messages
 
@@ -388,7 +424,7 @@ void processOpcode() {
       break;
     case LXI_HL:
       opcode = LXI_HL;
-      Serial.print(F(" > LXI, move lb hb address into register pair H(hb):L(lb)."));
+      Serial.print(F(" > LXI, move the data at lb hb address, into register pair H(hb):L(lb)."));
       break;
     case MOV_AM:
       Serial.print(F(" > MOV"));
