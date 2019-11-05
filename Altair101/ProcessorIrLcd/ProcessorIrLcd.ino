@@ -39,11 +39,11 @@ byte theProgram[] = {
   0006, 0000,       // MVI  B,db : Move db to register B.
   0016, 0001,       // MVI  C,db : Move db to register C.
   //                               Set
-  0041, 0373, 0377, // LXI_HL lb hb. Load into register H:L = 377:373 = 65531. Carry bit at: 65535.
+  0041, 0373, 0377, // LXI_HL lb hb. Load into register H:L = 377:373 = 65531.
   //                Until !carry bit {
   0000,               // NOP
   0166,               // HLT
-  0011,               // DAD Add B:C to H:L. Set carry bit.
+  0011,               // DAD Add B:C to H:L. Set carry bit at: 65535.
   0322,  8, 0000,     // JNC lb hb. If carry bit false, jump to lb hb (end while)
   0303, 17, 0000,     // JMP to the start of the while loop.
   //                }
@@ -203,7 +203,7 @@ const byte LDA =    0062; // LDA is for copying data from memory location to acc
 
 // More opcodes for Kill the Bit:
 const byte XRA =    0252; // XRA S     10101SSS          ZSPCA   Exclusive OR register with A
-const byte RRC =    0017; // RRC       00001111          C       Rotate A right
+const byte RRC =    0017; // RRC       00001111          C       Rotate A right (shift byte right 1 bit)
 const byte IN =     0333; // IN p      11011011 pa       -       Read input port into A
 
 // -----------------------------------------------------------------------------
@@ -227,7 +227,7 @@ const byte NOP    = 0000; // NOP         00000000          -    No operation
 // --------------------------
 //                           DAD  RP     00RP1001        C      Add register pair to HL (16 bit add)
 //                           LDAX RP     00RP1010 *1     -      Load indirect through BC(RP=00) or DE(RP=01)
-//                           LXI RP,a    00 100 001 00RP0001 RP=10 which matches "10=HL".
+//                           LXI  RP,a   00 100 001 00RP0001 RP=10 which matches "10=HL".
 //
 //                           Set carry bit if the addition causes a carry out.
 //                           MVI  R,db   00 RRR 110 db     -      Move db to register R.
@@ -239,38 +239,40 @@ const byte NOP    = 0000; // NOP         00000000          -    No operation
 // --------------------------------------
 // In progress, Kill the Bit opcodes:
 //         Code     Octal    Inst Param  Encoding Param  Flags  Description
+const byte MOV_AM = 0127; // MOV  D,A    01 010 111             Move register A to register D.
 const byte MVI_D  = 0026; // MVI  D,db   00 010 110 db   -      Move db to register D.
-const byte LDAX   = 0032; // LDAX DE     00 011 010      -      Load indirect through DE
 const byte LXI_BC = 0001; // LXI  BC,a   00 000 001 BC,a        Move the data at lb hb address, into register pair B(hb):C(lb)
-// Reconfirm what LXI does.
+const byte LDAX   = 0032; // LDAX DE     00 011 010      -      Load indirect through DE.
 
 //  Kill the Bit program:
 /*
 Addr Data toggles  Octal Value
-00   00 100 001     041 lxi
-01   00 000 000     000
-02   00 000 000     000
-03   00 010 110     026 mvi
-04   10 000 000     200
-05   00 000 001     001 lxi
-06   00 001 110     016
-07   00 000 000     000
-08   00 011 010 beg:032 ldax
+00   00 100 001     041 lxi  : Move the data at lb hb address, into register pair H(hb):L(lb)
+01   00 000 000     000      : lb
+02   00 000 000     000      : hb
+03   00 010 110     026 mvi  : Move db to register D.
+04   10 000 000     200      : db
+05   00 000 001     001 lxi  : Move the lb hb data, into register pair B(hb):C(lb)
+06   00 001 110     016      : lb = 016
+07   00 000 000     000      : hb = 000
+//                         Make the bit that move across the hb address LED lights.
+08   00 011 010 beg:032 ldax : Load indirect through DE
 09   00 011 010     032 ldax
 10   00 011 010     032 ldax
 11   00 011 010     032 ldax
-12   00 001 001     011 dad
-13   11 010 010     322 jnc --- Jump to address 8(000:010)
+12   00 001 001     011 dad  : Add B:C to H:L. Set carry bit.
+13   11 010 010     322 jnc  : Jump to address 8(000:010)
 14   00 001 000     010
 15   00 000 000     000
-16   11 011 011     333 in
+//
+16   11 011 011     333 in   : Check for the toggled input that can kill the bit.
 17   11 111 111     377
 18   10 101 010     252 xra
 19   00 001 111     017 rrc
-20   01 010 111     127 mov
-21   11 000 011     303 jmp: Jump instruction: jmp beg
-22   00 001 000     010      To address 8. 00 001 000 = 8. Low order address bits.
-23   00 000 000     000      High order address bits, to get a 16 bit address: 00 000 000 00 001 000 = 8.
+20   01 010 111     127 mov  : Move register A to register D.
+21   11 000 011     303 jmp  : Jump instruction: jmp beg
+22   00 001 000     010      : lb = 8. 00 001 000 = 8. Low order address bits.
+23   00 000 000     000      : hb = 0, to get a 16 bit address(hb:lb): 00 000 000 : 00 001 000 = 8.
 24                      end
 */
 // -----------------------------------------------------------------------------
@@ -393,6 +395,21 @@ void processOpcode() {
       } else {
         Serial.print(F("false. Not over: 65535."));
       }
+      /*
+        Example of how to calculate the value of hb and hl:
+        + Addr:    6: Data: 251 = 373 = 11111011 < LXI, lb:  251:
+        + Addr:    7: Data: 255 = 377 = 11111111 < LXI, hb:  255: > H:L = 377:373 = ?
+        11111111:11111111 = 65535
+        11111111:11111011 = 65531
+        11111111:00000000 = 65280
+        11111111 = 255
+        11111011 = 251
+        65531 - 251 = 65280
+        65280 / 255 = 256
+        255 * 256 + 251 = 65531
+        + Addr:    6: Data: 251 = 373 = 11111011 < LXI, lb:  251:
+        + Addr:    7: Data: 255 = 377 = 11111111 < LXI, hb:  255: > H:L = 377:373 = 65531
+      */
       break;
     case JNC:
       opcode = JNC;
@@ -424,7 +441,7 @@ void processOpcode() {
       break;
     case LXI_HL:
       opcode = LXI_HL;
-      Serial.print(F(" > LXI, move the data at lb hb address, into register pair H(hb):L(lb)."));
+      Serial.print(F(" > LXI, Move the lb hb data, into register pair H(hb):L(lb)."));
       break;
     case MOV_AM:
       Serial.print(F(" > MOV"));
@@ -546,7 +563,7 @@ void processOpcodeData() {
     case LXI_HL:
       if (instructionCycle == 1) {
         regL = memoryData[programCounter];
-        Serial.print(F(" < LXI, lb: "));
+        Serial.print(F(" < LXI, lb data: "));
         sprintf(charBuffer, "%4d:", regL);
         Serial.print(charBuffer);
         programCounter++;
@@ -554,41 +571,13 @@ void processOpcodeData() {
       }
       // instructionCycle == 2
       regH = memoryData[programCounter];
-      Serial.print(F(" < LXI, hb: "));
+      Serial.print(F(" < LXI, hb data: "));
       sprintf(charBuffer, "%4d:", regH);
       Serial.print(charBuffer);
       Serial.print(F(" > H:L = "));
       printOctal(regH);
       Serial.print(F(":"));
       printOctal(regL);
-      Serial.print(F(" = "));
-      hbLb16BitValue1 = regH;
-      hbLb16BitValue2 = regL;
-      hbLb16BitValue = hbLb16BitValue1 * 256 + hbLb16BitValue2;
-      Serial.print(hbLb16BitValue);
-      // hbLb16BitValue = (int)word(regB, regC);
-      // Serial.print(F(" = "));
-      // hbLb16BitValue = (int)word(regB, regC);
-      // Serial.print(hbLb16BitValue);
-      // sprintf(charBuffer, "%8d:", hbLb16BitValue);
-      // Serial.print(charBuffer);
-      /*
-        + Addr:    7: Data: 255 = 377 = 11111111 < LXI, hb:  255: > H:L = 377:373 = 4294967291 = 258
-
-        Example of how to calculate the value of hb and hl:
-        + Addr:    6: Data: 251 = 373 = 11111011 < LXI, lb:  251:
-        + Addr:    7: Data: 255 = 377 = 11111111 < LXI, hb:  255: > H:L = 377:373 = ?
-        11111111:11111111 = 65535
-        11111111:11111011 = 65531
-        11111111:00000000 = 65280
-        11111111 = 255
-        11111011 = 251
-        65531 - 251 = 65280
-        65280 / 255 = 256
-        255 * 256 + 251 = 65531
-        + Addr:    6: Data: 251 = 373 = 11111011 < LXI, lb:  251:
-        + Addr:    7: Data: 255 = 377 = 11111111 < LXI, hb:  255: > H:L = 377:373 = 65531
-      */
       programCounter++;
       break;
     case MVI_B:
