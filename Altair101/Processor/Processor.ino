@@ -9,7 +9,7 @@
     Definitions: Instruction Set, Opcodes, Registers.
     Output: Front Panel LED lights and serial log messages.
     Processor: Processing opcodes instructions
-    Input: Front Panel toggle/button switch events
+    Input: Front Panel infrared switch events
     setup() Computer initialization.
     loop()  Clock cycling through memory.
 
@@ -18,36 +18,35 @@
   Text listing of 8080 opcodes:
     http://www.classiccmp.org/dunfield/r/8080.txt
 
-  Altair programming video, starting a 6 minutes in:
+  Altair programming video, starting about 6 minutes in:
     https://www.youtube.com/watch?v=EV1ki6LiEmg
 
   Binary calculator:
     https://www.calculator.net/binary-calculator.html
 */
 // -----------------------------------------------------------------------------
-// Memory definitions
-
-const int memoryBytes = 512;
-byte memoryData[memoryBytes];
+// Program to test opcodes.
 
 byte theProgram[] = {
   // ------------------------------------------------------------------
   // Kill the Bit program.
   // Before starting, make sure all the sense switches are in the down position.
+  //
   //                Start program.
-  0041, 0000, 0000, // LXI H,0    ; Move the data at lb hb address, into register pair H(hb):L(lb). Initialize counter
+  0041, 0000, 0000, // LXI H,0    ; Move the lb hb data values into the register pair H(hb):L(lb). Initialize counter
   0026, 0200,       // MVI D,080h ; Move db to register D. Set initial display bit.  080h = 0200 = regD = 10 000 000
-  0001, 0016, 0000, // LXI B,0eh  ; Load a(lb:hb) into register B:C. Higher value = faster. 0016 = B:C  = 00 010 000
+  0001, 0036, 0000, // LXI B,0eh  ; Load a(lb:hb) into register B:C. Higher value = faster. Default: 0016 = B:C  = 00 010 000
   //
   //  ; Display bit pattern on upper 8 address lights.
   //                // BEG:
+  0166,             // HLT
   0032,             // LDAX D     ; Move data from address D:E, to register A.
   0032,             // LDAX D     ; Move data from address D:E, to register A.
   0032,             // LDAX D     ; Move data from address D:E, to register A.
   0032,             // LDAX D     ; Move data from address D:E, to register A.
   //
-  0011, 0111,       // DAD B      ; Add B:C to H:L. Set carry bit. Increments the display counter 
-  0312, 0010, 0000, // JNC BEG    ; If carry bit false, jump to lb hb, LDAX instruction start.
+  0011,             // DAD B      ; Add B:C to H:L. Set carry bit. Increments the display counter 
+  0322, 0010, 0000, // JNC BEG    ; If carry bit false, jump to lb hb, LDAX instruction start.
   //
   0333, 0377,       // IN 0ffh    ; Check for the toggled input, at port 377 (toggle sense switches), that can kill the bit.
   0252,             // XRA D      ; Exclusive OR register with A
@@ -113,6 +112,12 @@ byte theProgram[] = {
                    32768 2^15 32k
                    65535 2^16 64k
 */
+// -----------------------------------------------------------------------------
+// Memory definitions
+
+const int memoryBytes = 512;
+byte memoryData[memoryBytes];
+
 // -----------------------------------------------------------------------------
 // Memory Functions
 
@@ -357,13 +362,16 @@ void processOpcode() {
   // For calculating if there is a carry over.
   unsigned int bValue = 0;
   unsigned int cValue = 0;
+  unsigned int dValue = 0;
+  unsigned int eValue = 0;
   unsigned int hValue = 0;
   unsigned int lValue = 0;
   unsigned int bcValue = 0;
+  unsigned int deValue = 0;
   unsigned int hlValue = 0;
   unsigned int hlValueNew = 0;
 
-  int anAddress = 0;
+  unsigned int anAddress = 0;
   byte dataByte = memoryData[programCounter];
   switch (dataByte) {
     case CPI:
@@ -371,7 +379,7 @@ void processOpcode() {
       Serial.print(F(" > CPI, compare next data byte to A. Store true or false into compareResult."));
       break;
     case DAD_BC:
-      Serial.print(F(" > DAD_BC, Add B:C to H:L."));
+      Serial.print(F(" > DAD_BC"));
       bValue = regB;
       cValue = regC;
       hValue = regH;
@@ -388,13 +396,29 @@ void processOpcode() {
       } else {
         carryBit = false;
       }
-      regL = cValue + lValue;            // Stacy, update for H:L, not just L.
-      Serial.print(F(", B:C "));
+      Serial.print(F(", Add B:C "));
       Serial.print(bcValue);
+      Serial.print("(");
+      Serial.print(regB);
+      Serial.print(":");
+      Serial.print(regC);
+      Serial.print(")");
       Serial.print(F(" + H:L "));
       Serial.print(hlValue);
+      Serial.print("(");
+      Serial.print(regH);
+      Serial.print(":");
+      Serial.print(regL);
+      Serial.print(")");
       Serial.print(F(" = "));
       Serial.print(hlValueNew);
+      regH = regB + regH;   // Stacy, update for proper 16 bit addition.
+      regL = regC + regL;
+      Serial.print("(");
+      Serial.print(regH);
+      Serial.print(":");
+      Serial.print(regL);
+      Serial.print(")");
       Serial.print(F(", Carry bit set: "));
       if (carryBit) {
         Serial.print(F("true. Over: 65535."));
@@ -446,12 +470,22 @@ void processOpcode() {
       // printOctal(regL);
       break;
     case LDAX_D:
-      Serial.print(F(" > LDAX, Load register A with the data at address D:E.."));
+      Serial.print(F(" > LDAX"));
       anAddress = word(regD, regE);
-      regA = memoryData[anAddress];
-      Serial.print(F(", Load data from Address D:E: "));
-      sprintf(charBuffer, "%4d:", anAddress);
-      Serial.print(charBuffer);
+      dValue = regD;
+      eValue = regE;
+      deValue = dValue * 256 + eValue;
+      if (deValue < memoryBytes){
+        regA = memoryData[deValue];
+      } else {
+        regA = 0;
+      }
+      Serial.print(F(", Load data from Address D:E = "));
+      printOctal(regD);
+      Serial.print(F(" : "));
+      printOctal(regE);
+      Serial.print(F(" = "));
+      Serial.print(deValue);
       Serial.print(F(", to Accumulator = "));
       printData(regA);
       break;
