@@ -23,6 +23,15 @@
 
   Binary calculator:
     https://www.calculator.net/binary-calculator.html
+
+  Bitwise, shift right:
+    https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitshiftright/
+  Exclusive or (XOR):
+    https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitwisexor/
+  Extract highBtye()
+    https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/highbyte/
+  lowByte()
+    https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/lowbyte/
 */
 // -----------------------------------------------------------------------------
 // Program to test opcodes.
@@ -46,9 +55,9 @@ byte theProgram[] = {
   0032,             // LDAX D     ; Move data from address D:E, to register A.
   //
   0011,             // DAD B      ; Add B:C to H:L. Set carry bit. Increments the display counter 
-  0322, 0010, 0000, // JNC BEG    ; If carry bit false, jump to lb hb, LDAX instruction start.
+  // 0322, 0010, 0000, // JNC BEG    ; If carry bit false, jump to lb hb, LDAX instruction start.
   //
-  0333, 0377,       // IN 0ffh    ; Check for the toggled input, at port 377 (toggle sense switches), that can kill the bit.
+  0333, 0377,       // IN 0ffh    ; Check for toggled input, at port 377 (toggle sense switches), that can kill the bit.
   0252,             // XRA D      ; Exclusive OR register with A
   0017,             // RRC        ; Rotate A right (shift byte right 1 bit). Set carry bit. Rotate display right one bit 
   0127,             // MOV D,A    ; Move register A to register D. Move data to display reg
@@ -252,6 +261,7 @@ const byte INX_HL = 0043; // INX  HL   00 100 011        Increment H:L (can be a
 const byte JMP    = 0303; // JMP  a      11000011   -    Unconditional jump
 const byte JNC    = 0322; // JNC  lb hb  11010010        Jump if carry bit is 0 (false).
 const byte JZ     = 0312; // JZ   lb hb  11001010   -    If compareResult is true, jump to lb hb.
+const byte LDAX_D = 0032; // LDAX D    00 011 010   -      Load register A with the data at address D:E.
 const byte LXI_BC = 0001; // LXI  BC,a 00 000 001        Move a(lb hb) into register pair, B:C = hb:lb.
 const byte LXI_HL = 0041; // LXI  RP,a 00 100 001        Move a(lb hb) into register pair, H:L = hb:lb.
 const byte MOV_AM = 0176; // MOV  A,M  01 111 110        Move data from M(address in H:L) to register A.
@@ -261,6 +271,8 @@ const byte MVI_C  = 0016; // MVI  C,db   00 001 110 -    Move db to register C.
 const byte MVI_D  = 0026; // MVI  D,db 00 010 110 -      Move db to register D.
 const byte MVI_E  = 0036; // MVI  E,db 00 011 110 -      Move db to register E.
 const byte NOP    = 0000; // NOP         00000000   -    No operation
+const byte RRC    = 0017; // RRC       00 001 111   C    Rotate A right (shift byte right 1 bit). Note, carry bit not handled at this time.
+const byte XRA_D  = 0252; // XRA RP    10 101 010  ZSPCA Register D, exclusive OR with register with A.
 //
 // Opcode notes, more details:
 // --------------------------
@@ -269,7 +281,8 @@ const byte NOP    = 0000; // NOP         00000000   -    No operation
 //                           INX  RP     00RP0011        Increment H:L (can be a 16 bit address)
 //                           LDAX RP     00RP1010 -      Load indirect through BC(RP=00) or DE(RP=01)
 //                           LXI  RP,a   00RP0001        RP=10  which matches "10=HL".
-//                           MVI  R,db   00RRR110 db     Move db to register R.
+//                           MVI  R,db   00RRR110        Move db to register R.
+//                           XRA  R      10101SSS        Register exclusive OR with register with A.
 //
 //        DAD                Set carry bit if the addition causes a carry out.
 //        LDAX D : Load the accumulator from memory location 938BH, where register D contains 93H and register E contains 8BH.
@@ -281,9 +294,6 @@ const byte NOP    = 0000; // NOP         00000000   -    No operation
 // --------------------------------------
 // In progress, Kill the Bit opcodes:
 //         Code     Octal    Inst Param  Encoding Flags  Description
-const byte LDAX_D = 0032; // LDAX D    00 011 010 -      Load register A with the data at address D:E.
-const byte XRA    = 0252; // XRA S     10101SSS          ZSPCA   Exclusive OR register with A
-const byte RRC    = 0017; // RRC       00001111          C       Rotate A right (shift byte right 1 bit)
 const byte IN     = 0333; // IN p      11011011 pa       -       Read input port into A
 
 // -----------------------------------------------------------------------------
@@ -462,6 +472,10 @@ void processOpcode() {
       digitalWrite(HLTA_PIN, HIGH);
       // To do: set all the address and data lights on.
       break;
+    case IN:
+      opcode = IN;
+      Serial.print(F(" > IN, If input value is available, get the input byte."));
+      break;
     case INX_HL:
       regL++;       // Update this later because need to update the pair.
       Serial.print(F(" > INX, increment the 16 bit register pair H:L."));
@@ -534,6 +548,24 @@ void processOpcode() {
       Serial.print(F(" > NOP ---"));
       // delay(100);
       break;
+    case RRC:
+      Serial.print(F(" > RRC"));
+      Serial.print(F(", Shift register A: "));
+      printByte(regA);
+      Serial.print(F(", right 1 bit: "));
+      regA = regA >> 1;
+      printByte(regA);
+      break;
+    case XRA_D:
+      Serial.print(F(" > XRA"));
+      Serial.print(F(", Register D: "));
+      printByte(regD);
+      Serial.print(F(", Exclusive OR with register A: "));
+      printByte(regA);
+      Serial.print(F(" = "));
+      regA = regD ^ regA;
+      printByte(regA);
+      break;
     default:
       Serial.print(F(" - Error, unknown instruction."));
       runProgram = false;
@@ -566,6 +598,14 @@ void processOpcodeData() {
       }
       Serial.print(F(" A: "));
       Serial.print(regA);
+      programCounter++;
+      break;
+    case IN:
+      // instructionCycle == 1
+      dataByte = memoryData[programCounter];
+      Serial.print(F(" > IN, input port: "));
+      Serial.print(dataByte);
+      Serial.print(F(". Not implemented, yet."));
       programCounter++;
       break;
     case JNC:

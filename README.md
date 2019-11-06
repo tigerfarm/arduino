@@ -17,6 +17,13 @@ with internal bus connections--rather than direct I/O--to supporting hardware su
 
 Simply put, coffee makers use microcontrollers; desktop computers use microprocessors.
 
+On Ebay,
+https://www.ebay.com/itm/MINI-USB-Nano-V3-0-ATmega328P-CH340G-5V-16M-Micro-controller-board-for-Arduino/383093281539
+Note, there are differences Nano boards. The processors are ATmega328P, however they use various USB connection chips. I use the cheap one, CH340 USB driver. This required me to install a driver. Here is a link to how I got my MacBook to communicate with my Nano CH340 boards:
+https://github.com/tigerfarm/arduino/tree/master/MacInstall
+On Windows, I installed a CH340 driver and all was good.
+One other note, I have the cheap cheap ones, I set my IDE to use “Processor ATmega328P (Old Bootloader)“. Some of the ones I got for a little over $3, they use “Processor ATmega328P”. Either way, they work fine, I don’t see any noticeable difference. I’ve bought over a dozen Nano boards, their my favorite, great for use on a breadboard.
+
 --------------------------------------------------------------------------------
 ### Set up on my MacBook:
 
