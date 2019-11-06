@@ -33,37 +33,12 @@
 // Program to test opcodes.
 
 byte theProgram[] = {
-  //                //            ; --------------------------------------
-  //                // BEG:       ; Start
-  //
-  0343, 30,         // OUT 30     ; Run report 30: print the registers.
+                    // BEG:     ; Start
+  0000,             // NOP
   0166,             // HLT
-  //
-  //                //            ; --------------------------------------
-  //                //            ; Intialize registers with values.
-  //
-  0041, 0000, 0000, // LXI_HL lb hb. Load into register H:L = 0000:0000.
-  0176,             // MOV M:address(H:L):data > register A
-  //                //             Set B:C to 0001:2
-  0006, 0001,       // MVI B,1    ; Move db to register B.
-  0016, 0002,       // MVI C,2    ; Move db to register C.
-  0127,             // MOV D,A    ; Move register A to register D.
-  0036, 0003,       // MVI E,3    ; Move db to register E.
-  //
-  0343, 30,         // OUT 30     ; Run report 30: print the registers.
-  0166,             // HLT
-  //
-  //                //            ; --------------------------------------
-  //                // LOOP:      ; Change values and loop.
-  //
-  0043,             // INX > Increment H:L
-  0176,             // MOV M:address(H:L):data > register A
-  //
-  0343, 30,         // OUT 30     ; Run report 30: print the registers.
-  0166,             // HLT
-  0303, 14, 0000,   // JMP        ; Jump to the LOOP.
-  //
-  0000              //            ; End.
+  0343, 30,         // OUT 30   ; Run report 30.
+  0303, 0000, 0000, // JMP      ; Jump to the start.
+  0000, 0000, 0000  //          ; End.
 };
 
 byte theProgramKtb[] = {
@@ -291,7 +266,7 @@ const byte INX_HL = 0043; // INX  HL   00 100 011        Increment H:L (can be a
 const byte JMP    = 0303; // JMP  a      11000011   -    Unconditional jump
 const byte JNC    = 0322; // JNC  lb hb  11010010        Jump if carry bit is 0 (false).
 const byte JZ     = 0312; // JZ   lb hb  11001010   -    If compareResult is true, jump to lb hb.
-const byte LDAX_D = 0032; // LDAX D    00 011 010   -     Load register A with the data at address D:E.
+const byte LDAX_D = 0032; // LDAX D    00 011 010   -      Load register A with the data at address D:E.
 const byte LXI_BC = 0001; // LXI  BC,a 00 000 001        Move a(lb hb) into register pair, B:C = hb:lb.
 const byte LXI_HL = 0041; // LXI  RP,a 00 100 001        Move a(lb hb) into register pair, H:L = hb:lb.
 const byte MOV_AM = 0176; // MOV  A,M  01 111 110        Move data from M(address in H:L) to register A.
@@ -581,7 +556,7 @@ void processOpcode() {
       break;
     case OUT:
       opcode = OUT;
-      Serial.print(F(" > OUT, Write output to the port address(following db)."));
+      Serial.print(F(" > OUT, Write output to port address data, or use the data to call a function."));
       break;
     case RRC:
       Serial.print(F(" > RRC"));
@@ -774,15 +749,8 @@ void processOpcodeData() {
       Serial.print(F(" < OUT, input port: "));
       Serial.print(dataByte);
       switch (dataByte) {
-        case 1:
-          Serial.print(F(", terminal output to be implemented on LCD."));
-          break;
         case 30:
-          Serial.println("");
-          Serial.println(F("------------"));
           printRegisters();
-          Serial.print(F("------------"));
-          break;
         default:
           Serial.print(F("-- Error, unknow OUT port number: "));
       }
@@ -795,34 +763,6 @@ void processOpcodeData() {
   }
   // The opcode cycles are complete.
   opcode = 0;
-}
-
-// -----------------------------------------------------------------------------
-//  Output Functions
-
-void printRegisters() {
-  Serial.print(F("+ regA: "));
-  printData(regA);
-  Serial.println("");
-  // ---
-  Serial.print(F("+ regB: "));
-  printData(regB);
-  Serial.print(F("  regC: "));
-  printData(regC);
-  Serial.println("");
-  // ---
-  Serial.print(F("+ regD: "));
-  printData(regD);
-  Serial.print(F("  regE: "));
-  printData(regE);
-  Serial.println("");
-  // ---
-  Serial.print(F("+ regH: "));
-  printData(regH);
-  Serial.print(F("  regL: "));
-  printData(regL);
-  // ---
-  Serial.println("");
 }
 
 // -----------------------------------------------------------------------------
@@ -1007,6 +947,35 @@ void infraredSwitch() {
   // lcd.clear();
   }
 */
+
+// -----------------------------------------------------------------------------
+//  Output Functions
+
+void printRegisters() {
+  Serial.println(F(" ?- Status01 output registers."));
+  Serial.print(F("+ regA: "));
+  printData(regA);
+  Serial.println("");
+  // ---
+  Serial.print(F("+ regB: "));
+  printData(regB);
+  Serial.print(F("  regC: "));
+  printData(regC);
+  Serial.println("");
+  // ---
+  Serial.print(F("+ regD: "));
+  printData(regD);
+  Serial.print(F("  regE: "));
+  printData(regE);
+  Serial.println("");
+  // ---
+  Serial.print(F("+ regH: "));
+  printData(regH);
+  Serial.print(F("  regL: "));
+  printData(regL);
+  Serial.println("");
+  // ---
+}
 
 // -----------------------------------------------------------------------------
 void setup() {

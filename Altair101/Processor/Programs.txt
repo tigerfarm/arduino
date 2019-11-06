@@ -1,4 +1,12 @@
 // -----------------------------------------------------------------------------
+//  Programing links
+
+  Bitwise, shift right:
+    https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitshiftright/
+  Exclusive or (XOR):
+    https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitwisexor/
+
+// -----------------------------------------------------------------------------
 // Sample machine code programs.
 
 // Define a jump loop program byte array.
