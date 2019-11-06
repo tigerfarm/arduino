@@ -30,7 +30,7 @@
 // I/O program.
 // IN this program, terminal output is to the 1602 LCD.
 
-0041, 26, 0,    // LXI M        ; M is H:L registers. 26 is address of the first data byte.
+0041, 26, 0,    // LXI M        ; M address is H:L registers. 26 is address of the first data byte.
 //
 //              // OSTATUS:     ; Check output status availability
 0333, 0,        // IN STATUS    ; Input terminal output status

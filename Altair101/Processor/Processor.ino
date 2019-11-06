@@ -36,29 +36,26 @@ byte theProgram[] = {
   //                //            ; --------------------------------------
   //                // BEG:       ; Start
   //
-  0343, 30,         // OUT 30     ; Run report 30: print the registers.
+  0343, 30,         // OUT 30     ; Print the intial register values.
   0166,             // HLT
   //
   //                //            ; --------------------------------------
-  //                //            ; Intialize registers with values.
+  //                //            ; Intialize register values.
   //
   0041, 0000, 0000, // LXI H,BEG  ; LXI_HL lb hb. Load into register H:L = 0000:0000.
   0176,             // MOV M      ; Move the data in register M(register address H:L), to register A.
-  //                //            ; Set B:C to 0001:2
   0006, 0001,       // MVI B,1    ; Move db to register B.
   0016, 0002,       // MVI C,2    ; Move db to register C.
   0127,             // MOV D,A    ; Move register A to register D.
   0036, 0003,       // MVI E,3    ; Move db to register E.
   //
-  0343, 30,         // OUT 30     ; Run report 30: print the registers.
+  0343, 30,         // OUT 30     ; Print the Intialized register values.
   0166,             // HLT
   //
   //                //            ; --------------------------------------
   //                // LOOP:      ; Change values and loop.
-  //
   0043,             // INX M      ; Increment register M(register address H:L).
   0176,             // MOV M      ; Move the data in register M(register address H:L), to register A.
-  //
   0343, 30,         // OUT 30     ; Print the registers.
   0166,             // HLT
   0303, 14, 0000,   // JMP        ; Jump to the LOOP.
@@ -193,7 +190,7 @@ byte regD = 0;   // 010=D  D
 byte regE = 0;   // 011=E  E
 byte regH = 0;   // 100=H  H
 byte regL = 0;   // 101=L  L
-byte regM = 0;   // 110=M  Memory reference through address in H:L
+byte regM = 0;   // 110=M  Memory reference for address in H:L
 
 // -----------------------------------------------------------------------------
 // Opcodes that are programmed and tested:
@@ -211,8 +208,8 @@ const byte LXI_BC = 0001; // LXI  BC,a 00 000 001        Move a(lb hb) into regi
 const byte LXI_HL = 0041; // LXI  RP,a 00 100 001        Move a(lb hb) into register pair, H:L = hb:lb.
 const byte MOV_AM = 0176; // MOV  A,M  01 111 110        Move data from M(address in H:L) to register A.
 const byte MOV_DA = 0127; // MOV  D,A  01 010 111        Move register A content to register D.
-const byte MVI_B  = 0006; // MVI  B,db   00 000 110 -    Move db to register B.
-const byte MVI_C  = 0016; // MVI  C,db   00 001 110 -    Move db to register C.
+const byte MVI_B  = 0006; // MVI  B,db 00 000 110   -    Move db to register B.
+const byte MVI_C  = 0016; // MVI  C,db 00 001 110   -    Move db to register C.
 const byte MVI_D  = 0026; // MVI  D,db 00 010 110 -      Move db to register D.
 const byte MVI_E  = 0036; // MVI  E,db 00 011 110 -      Move db to register E.
 const byte NOP    = 0000; // NOP         00000000   -    No operation
@@ -368,8 +365,13 @@ void processOpcode() {
       Serial.print(")");
       Serial.print(F(" = "));
       Serial.print(hlValueNew);
-      regH = regB + regH;   // Stacy, update for proper 16 bit addition.
+      regH = regB + regH;
+      lValue = regL;
       regL = regC + regL;
+      if (regL < regC || regL < lValue) {
+        // If the sum is less the either part, then add 1 to the higher byte.
+        regH++;
+      }
       Serial.print("(");
       Serial.print(regH);
       Serial.print(":");
@@ -382,19 +384,36 @@ void processOpcode() {
         Serial.print(F("false. Not over: 65535."));
       }
       /*
-        Example of how to calculate the value of hb and hl:
-        + Addr:    6: Data: 251 = 373 = 11111011 < LXI, lb:  251:
-        + Addr:    7: Data: 255 = 377 = 11111111 < LXI, hb:  255: > H:L = 377:373 = ?
-        11111111:11111111 = 65535
-        11111111:11111011 = 65531
-        11111111:00000000 = 65280
-        11111111 = 255
-        11111011 = 251
-        65531 - 251 = 65280
-        65280 / 255 = 256
-        255 * 256 + 251 = 65531
-        + Addr:    6: Data: 251 = 373 = 11111011 < LXI, lb:  251:
-        + Addr:    7: Data: 255 = 377 = 11111111 < LXI, hb:  255: > H:L = 377:373 = 65531
+        void _I8080_DAD(uint8_t rp) {
+        uint16_t d16_1;
+        uint16_t d16_2;
+        uint16_t d16_3;
+        d16_1 = _rH * 256 + _rL;
+        switch (rp) {
+        case _RP_BC:
+        d16_2 = _rB * 256 + _rC;
+        break;
+        case _RP_DE:
+        d16_2 = _rD * 256 + _rE;
+        break;
+        case _RP_HL:
+        d16_2 = _rH * 256 + _rL;
+        break;
+        case _RP_SP:
+        d16_2 = _SP;
+        break;
+        }
+        d16_3 = d16_1 + d16_2;
+        _rH = highByte(d16_3);
+        _rL = lowByte(d16_3);
+        if ((d16_3 < d16_1) || (d16_3 < d16_2)) {
+        _setFlags_C(1);
+        }
+        else {
+        _setFlags_C(0);
+        }
+        _PC++;
+        }
       */
       break;
     case JNC:
@@ -410,25 +429,63 @@ void processOpcode() {
       Serial.print(F(" > JMP, get address low and high order bytes."));
       break;
     case HLT:
-      Serial.print(F(" > HLT, halt the processor."));
+      Serial.println(F(" > HLT, halt the processor."));
       runProgram = false;
       halted = true;
       digitalWrite(WAIT_PIN, HIGH);
       digitalWrite(M1_PIN, LOW);
       digitalWrite(HLTA_PIN, HIGH);
       // To do: set all the address and data lights on.
+      Serial.print(F("+ Process halted."));
       break;
     case IN:
       opcode = IN;
       Serial.print(F(" > IN, If input value is available, get the input byte."));
       break;
     case INX_HL:
-      regL++;       // Update this later because need to update the pair.
+      regL++;
+      if (regL == 0) {
+        regH++;
+      }
       Serial.print(F(" > INX, increment the 16 bit register pair H:L."));
-      Serial.print(F(", regL = "));
+      Serial.print(F(", regH:regL = "));
+      Serial.print(regH);
+      Serial.print(":");
       Serial.print(regL);
-      // printOctal(regL);
+      Serial.print(" = ");
+      printOctal(regH);
+      Serial.print(":");
+      printOctal(regL);
       break;
+    /*
+      //INX
+      void _I8080_INX(uint8_t rp) {
+      switch (rp)  {
+      case _RP_BC:
+      _rC++;
+      if (_rC == 0) {
+      _rB++;
+      }
+      break;
+      case _RP_DE:
+      _rE++;
+      if (_rE == 0) {
+      _rD++;
+      }
+      break;
+      case _RP_HL:
+      _rL++;
+      if (_rL == 0) {
+      _rH++;
+      }
+      break;
+      case _RP_SP:
+      _SP++;
+      break;
+      }
+      _PC++;
+      }
+    */
     case LDAX_D:
       Serial.print(F(" > LDAX"));
       anAddress = word(regD, regE);
@@ -753,21 +810,7 @@ int IR_PIN = 9;
 IRrecv irrecv(IR_PIN);
 decode_results results;
 
-void infraredSwitch() {
-
-  // If a program is running, only the STOP option is avaiable.
-  // The OK (Return) button, becomes STOP when a program is running.
-  if (runProgram) {
-    if (results.value == 0xFF4AB5 || results.value == 0xE0E08679
-        ||  results.value == 0xFF38C7 || results.value == 0xE0E016E9) {
-      Serial.println(F("+ Stop process."));
-      runProgram = false;
-      digitalWrite(WAIT_PIN, HIGH);
-      digitalWrite(HLTA_PIN, LOW);
-    }
-    return;
-  }
-
+void infraredSwitchControl() {
   // Serial.println(F("+ infraredSwitch"));
   switch (results.value) {
     case 0xFFFFFFFF:
@@ -839,6 +882,101 @@ void infraredSwitch() {
       printAddressData();
       Serial.println("");
       buttonWentHigh = true;
+      break;
+    case 0xFF22DD:
+      // Serial.print(F("+ Key 4: "));
+      // Serial.println("");
+      break;
+    case 0xFF02FD:
+      // Serial.print(F("+ Key 5: "));
+      // Serial.println("");
+      break;
+    case 0xFFC23D:
+      // Serial.print(F("+ Key 6: "));
+      // Serial.println("");
+      break;
+    case 0xFFE01F:
+      // Serial.print(F("+ Key 7: "));
+      // Serial.println("");
+      break;
+    case 0xFFA857:
+      // Serial.print(F("+ Key 8: "));
+      // Serial.println("");
+      break;
+    case 0xFF906F:
+      // Serial.print(F("+ Key 9: "));
+      // Serial.println("");
+      break;
+    // -----------------------------------
+    case 0xFF6897:
+    case 0xE0E01AE5:
+      // Serial.println(F("+ Key * (Return)"));
+      break;
+    case 0xFFB04F:
+    case 0xE0E0B44B:
+      // Serial.println(F("+ Key # (Exit)"));
+      break;
+    // -----------------------------------
+    default:
+      // Serial.print("+ Result value: ");
+      // Serial.println(results.value, HEX);
+      break;
+      // -----------------------------------
+  } // end switch
+
+}
+
+// -----------------------------------------------------------------------------
+void infraredSwitchInput() {
+  // Serial.println(F("+ infraredSwitch"));
+  switch (results.value) {
+    case 0xFFFFFFFF:
+      // Ignore. This is from holding the key down.
+      break;
+    // -----------------------------------
+    case 0xFF10EF:
+    case 0xE0E0A659:
+      // Serial.println(F("+ Key < - previous"));
+      break;
+    case 0xFF5AA5:
+    case 0xE0E046B9:
+      // Serial.println(F("+ Key > - next."));
+      processData();
+      break;
+    case 0xFF18E7:
+    case 0xE0E006F9:
+      // Serial.println(F("+ Key up"));
+      break;
+    case 0xFF4AB5:
+    case 0xE0E08679:
+      // Serial.println(F("+ Key down"));
+      Serial.println(F("+ Stop process."));
+      runProgram = false;
+      digitalWrite(WAIT_PIN, HIGH);
+      digitalWrite(HLTA_PIN, LOW);
+      break;
+    case 0xFF38C7:
+    case 0xE0E016E9:
+      // Serial.println(F("+ Key OK - Toggle RUN and STOP."));
+      Serial.println(F("+ Stop process."));
+      runProgram = false;
+      digitalWrite(WAIT_PIN, HIGH);
+      digitalWrite(HLTA_PIN, LOW);
+      break;
+    // -----------------------------------
+    case 0xFF9867:
+    case 0xE0E08877:
+      // Serial.print(F("+ Key 0:"));
+      // Serial.println("");
+      break;
+    case 0xFFA25D:
+      // Serial.println(F("+ Key 1: "));
+      break;
+    case 0xFF629D:
+      // Serial.println(F("+ Key 2: "));
+      break;
+    case 0xFFE21D:
+      // Serial.println(F("+ Key 3: "));
       break;
     case 0xFF22DD:
       // Serial.print(F("+ Key 4: "));
@@ -960,12 +1098,19 @@ void setup() {
 // -----------------------------------------------------------------------------
 // Device Loop for processing each byte of machine code.
 
-// static unsigned long timer = millis();
+static unsigned long timer = millis();
 void loop() {
 
   // Process infrared key presses.
   if (irrecv.decode(&results)) {
-    infraredSwitch();
+    if (runProgram) {
+      // STOP, or
+      // Use a keyboard input into a running program. UseD by opcode: IN.
+      infraredSwitchInput();
+    } else {
+      // RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous.
+      infraredSwitchControl();
+    }
     irrecv.resume();
   }
 
@@ -973,10 +1118,10 @@ void loop() {
     // When testing, can add a cycle delay.
     // Clock process timing is controlled by the timer.
     // Example, 50000 : once every 1/2 second.
-    // if (millis() - timer >= 500) {
+    if (millis() - timer >= 500) {
     processData();
-    // timer = millis();
-    // }
+    timer = millis();
+    }
   } else {
     delay(60);
   }
