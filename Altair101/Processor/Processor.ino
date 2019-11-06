@@ -42,9 +42,9 @@ byte theProgram[] = {
   //                //            ; --------------------------------------
   //                //            ; Intialize registers with values.
   //
-  0041, 0000, 0000, // LXI_HL lb hb. Load into register H:L = 0000:0000.
-  0176,             // MOV M:address(H:L):data > register A
-  //                //             Set B:C to 0001:2
+  0041, 0000, 0000, // LXI H,BEG  ; LXI_HL lb hb. Load into register H:L = 0000:0000.
+  0176,             // MOV M      ; Move the data in register M(register address H:L), to register A.
+  //                //            ; Set B:C to 0001:2
   0006, 0001,       // MVI B,1    ; Move db to register B.
   0016, 0002,       // MVI C,2    ; Move db to register C.
   0127,             // MOV D,A    ; Move register A to register D.
@@ -56,101 +56,16 @@ byte theProgram[] = {
   //                //            ; --------------------------------------
   //                // LOOP:      ; Change values and loop.
   //
-  0043,             // INX > Increment H:L
-  0176,             // MOV M:address(H:L):data > register A
+  0043,             // INX M      ; Increment register M(register address H:L).
+  0176,             // MOV M      ; Move the data in register M(register address H:L), to register A.
   //
-  0343, 30,         // OUT 30     ; Run report 30: print the registers.
+  0343, 30,         // OUT 30     ; Print the registers.
   0166,             // HLT
   0303, 14, 0000,   // JMP        ; Jump to the LOOP.
   //
   0000              //            ; End.
 };
 
-byte theProgramKtb[] = {
-  // ------------------------------------------------------------------
-  // Kill the Bit program.
-  // Before starting, make sure all the sense switches are in the down position.
-  //
-  //                Start program.
-  0041, 0000, 0000, // LXI H,0    ; Move the lb hb data values into the register pair H(hb):L(lb). Initialize counter
-  0026, 0200,       // MVI D,080h ; Move db to register D. Set initial display bit.  080h = 0200 = regD = 10 000 000
-  0001, 0036, 0000, // LXI B,0eh  ; Load a(lb:hb) into register B:C. Higher value = faster. Default: 0016 = B:C  = 00 010 000
-  //
-  //  ; Display bit pattern on upper 8 address lights.
-  //                // BEG:
-  0166,             // HLT
-  0032,             // LDAX D     ; Move data from address D:E, to register A.
-  0032,             // LDAX D     ; Move data from address D:E, to register A.
-  0032,             // LDAX D     ; Move data from address D:E, to register A.
-  0032,             // LDAX D     ; Move data from address D:E, to register A.
-  //
-  0011,             // DAD B      ; Add B:C to H:L. Set carry bit. Increments the display counter
-  // 0322, 0010, 0000, // JNC BEG    ; If carry bit false, jump to lb hb, LDAX instruction start.
-  //
-  0333, 0377,       // IN 0ffh    ; Check for toggled input, at port 377 (toggle sense switches), that can kill the bit.
-  0252,             // XRA D      ; Exclusive OR register with A
-  0017,             // RRC        ; Rotate A right (shift byte right 1 bit). Set carry bit. Rotate display right one bit
-  0127,             // MOV D,A    ; Move register A to register D. Move data to display reg
-  //
-  0303, 0010, 0000, // JMP BEG    ; Jump to lb hb, LDAX instruction start.
-  // 0000,             // NOP
-  // 0166,             // HLT
-  // ------------------------------------------------------------------
-  0000, 0000, 0000  //       end
-};
-
-//  Kill the Bit program:
-/*
-  Addr Data toggles  Octal Value
-  00   00 100 001     041 lxi  : Move the data at lb hb address, into register pair H(hb):L(lb)
-  01   00 000 000     000      : lb
-  02   00 000 000     000      : hb
-  03   00 010 110     026 mvi  : Move db to register D.
-  04   10 000 000     200      : db
-  05   00 000 001     001 lxi  : Move the lb hb data, into register pair > B:C = hb:lb.
-  06   00 001 110     016      : lb = 016
-  07   00 000 000     000      : hb = 000
-  //                         Make the bit that move across the hb address LED lights.
-  08   00 011 010 beg:032 ldax : Load register A with the data at address D:E.
-  09   00 011 010     032 ldax
-  10   00 011 010     032 ldax
-  11   00 011 010     032 ldax
-  12   00 001 001     011 dad  : Add B:C to H:L. Set carry bit.
-  13   11 010 010     322 jnc  : Jump to address 8(000:010)
-  14   00 001 000     010
-  15   00 000 000     000
-  //
-  16   11 011 011     333 in   : Check for the toggled input that can kill the bit.
-  17   11 111 111     377
-  18   10 101 010     252 xra
-  19   00 001 111     017 rrc
-  20   01 010 111     127 mov  : Move register A to register D.
-  21   11 000 011     303 jmp  : Jump instruction: jmp beg
-  22   00 001 000     010      : lb = 8. 00 001 000 = 8. Low order address bits.
-  23   00 000 000     000      : hb = 0, to get a 16 bit address(hb:lb): 00 000 000 : 00 001 000 = 8.
-  24                      end
-*/
-
-/*
-  00 000 000 = 000 =   0
-  00 000 001 = 002 =   1 2^0
-  00 000 010 = 002 =   2 2^1
-  00 000 100 = 040 =   4 2^2
-  00 001 000 = 010 =   8 2^3
-  00 010 000 = 020 =  16 2^4
-  00 100 000 = 014 =  32 2^5
-  01 000 000 = 014 =  64 2^6
-  10 000 000 = 014 = 128 2^7 8 bits store valuse: 0 ... 255
-                     256 2^8
-                     512 2^9
-                    1024 2^10  1K
-                    2048 2^11  2K
-                    4096 2^12  4K
-                    8192 2^13  8K
-                   16384 2^14 16K
-                   32768 2^15 32k
-                   65535 2^16 64k
-*/
 // -----------------------------------------------------------------------------
 // Memory definitions
 
