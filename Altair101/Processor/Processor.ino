@@ -837,6 +837,7 @@ void infraredSwitchControl() {
       break;
     case 0xFF4AB5:
     case 0xE0E08679:
+      // Already stopped.
       // Serial.println(F("+ Key down"));
       // Serial.println(F("+ Stop process."));
       // runProgram = false;
