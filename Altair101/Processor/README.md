@@ -5,32 +5,33 @@ The core program is the [machine code processor](Processor.ino).
 It's written in C, using the Arduino IDE, and is tested on an Arduino Nano microcontroller.
 It interprets and processes a subset of the Altair 8800 operational instructions which are Intel 8080 chip opcodes.
 
+The program is able to run 8080 machine code programs using the programmed opcodes.
+I will refine the code and increase the opcode functionality.
+I'm adding program input functionality via the infrared remote control.
+And, adding output via a 1602 LCD.
+
 ## The Altair 101 Development Computer
 
-To develop the processor software, I have a Nano on a breadboard with buttons, LED lights, and serial connection for I/O.
+I'm developing the processor software on a Nano which is on a breadboard with an infrared receiver, LCD, and LED lights.
+The processor program is compiled and uploaded from my laptop to the Nano through a USB cable.
+Program log messages are displayed in the Arduino serial monitor that runs on the laptop.
+
 The microcontroller is the Altair 101's CPU and RAM.
-The buttons and LED lights are the computer's keyboard and monitor.
-Log messages are displayed in the Arduino serial monitor that runs on my laptop that is USB connected to the Nano.
+The infrared receiver is the computer's keyboard, and LCD is the monitor.
 
 <img width="360px"  src="ProcessorBoard.jpg"/>
 
-Board components,
-+ Arduino Nano to run the processor program.
-+ Buttons: STOP, RUN, STEP, Examine, and Examine Next.
-+ A WAIT LED.
-+ A MI (Memory Input) LED.
-+ I need to a RESET button to reset a program. The workaround is to push the Nano reset button.
-
-Video showing [startup LED lights](https://www.youtube.com/watch?v=suyiMfzmZKs).
-
-Video showing [programming](https://www.youtube.com/watch?v=EV1ki6LiEmg) using the front panel toggles.
+There are a number of online videos showing how an Altair 8800 works.
++ Video showing [startup LED lights](https://www.youtube.com/watch?v=suyiMfzmZKs).
++ Video showing [programming](https://www.youtube.com/watch?v=EV1ki6LiEmg) using the front panel toggles.
 + A jump loop program is entered, examined, stepped through, and run.
-+ I coded the Altair 101 processor program to react the same way.
+
+I coded the Altair 101 processor program to react the same way.
 
 --------------------------------------------------------------------------------
 ## Altair 8800 Status Lights
 
-Video showing [status LED lights](https://www.youtube.com/watch?v=3_73NwB6toY).
+Video showing [status LED light](https://www.youtube.com/watch?v=3_73NwB6toY) functionality.
 
 The following program demonstrates status lights for specific opcodes.
 ````
