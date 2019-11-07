@@ -182,6 +182,7 @@ const byte LDA =    0062; // LDA is for copying data from memory location to acc
     10=HL   (H:L as 16 bit register)
     11=SP   (Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP)
 */
+
 //   Destination and Source register fields.
 byte regA = 0;   // 111=A  A, register A, or Accumulator
 byte regB = 0;   // 000=B  B, register B
@@ -192,29 +193,73 @@ byte regH = 0;   // 100=H  H
 byte regL = 0;   // 101=L  L
 byte regM = 0;   // 110=M  Memory reference for address in H:L
 
+// MVI R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
+// MVI A,#  00 111 110  0036
+// MVI B,#  00 000 110  0006
+// MVI C,#  00 001 110  0016
+// MVI D,#  00 010 110  0026
+// MVI E,#  00 011 110  0036
+// MVI H,#  00 100 110  0046
+// MVI L,#  00 101 110  0056
+
+// MOV D,S  01 DDD SSS   Move register to a register.
+// MOV B,A  01 000 111  0103
+// MOV C,A  01 001 111  0113
+// MOV D,A  01 010 111  0123  * Done
+// MOV E,A  01 011 111  0133
+// MOV H,A  01 100 111  0143
+// MOV L,A  01 101 111  0153
+
+// -----------------------------------------------------------------------------
+// Opcodes ordering
+
+// Without parameters in the opcode:
+// NOP      00 000 000  No operation
+// RLC      00 000 111  Rotate A left. Need to handle carry bit.
+// RRC      00 001 111  Rotate A right (shift byte right 1 bit). Need to handle carry bit.
+// HLT      01 110 110  Halt processor
+// JMP a    11 000 011  Unconditional jump
+// JZ  a    11 001 010  If compareResult is true, jump to lb hb.
+// JNC a    11 010 010  Jump if carry bit is 0 (false).
+// OUT p    11 010 011  Write A to output port a.
+// IN  p    11 011 011  Read input for port a, into A
+// CPI #    11 111 110  Compare db with A > compareResult.
+
+// With parameters in the opcode:
+// MOV D,S  01 DDD SSS  Move register to a register.
+// XRA R    10 101 SSS  Register exclusive OR with register with A.
+
+// LDAX RP  00 RP1 010  Load indirect through BC(RP=00) or DE(RP=01)
+// INX RP   00 RP0 011  Increment H:L (can be a 16 bit address)
+// MVI R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
+
+// LXI RP,a 00 RP0 001  RP=10  which matches "10=HL".
+// DAD RP   00 RP1 001  Add register pair(RP) to H:L (16 bit add). And set carry bit.
+
 // -----------------------------------------------------------------------------
 // Opcodes that are programmed and tested:
 
 //        Code   Octal       Inst Param  Encoding Flags  Description
-const byte CPI    = 0376; // CPI db    11 111 110   -    Compare db with A > compareResult.
-const byte DAD_BC = 0011; // DAD       00 001 001   C    Add B:C to H:L. Set carry bit.
-const byte HLT    = 0166; // HLT         01110110   -    Halt processor
-const byte INX_HL = 0043; // INX  HL   00 100 011        Increment H:L (can be a 16 bit address)
-const byte JMP    = 0303; // JMP  a      11000011   -    Unconditional jump
+const byte CPI    = 0376; // CPI db    11 111 110        Compare db with A > compareResult.
+const byte HLT    = 0166; // HLT         01110110        Halt processor
+const byte JMP    = 0303; // JMP  a      11000011        Unconditional jump
 const byte JNC    = 0322; // JNC  lb hb  11010010        Jump if carry bit is 0 (false).
-const byte JZ     = 0312; // JZ   lb hb  11001010   -    If compareResult is true, jump to lb hb.
-const byte LDAX_D = 0032; // LDAX D    00 011 010   -     Load register A with the data at address D:E.
+const byte JZ     = 0312; // JZ   lb hb  11001010        If compareResult is true, jump to lb hb.
+const byte NOP    = 0000; // NOP         00000000        No operation
+const byte OUT    = 0343; // OUT pa      11010011        Write A to output port
+const byte RRC    = 0017; // RRC       00 001 111   C    Rotate A right (shift byte right 1 bit). Note, carry bit not handled at this time.
+
+const byte DAD_BC = 0011; // DAD       00 001 001   C    Add B:C to H:L. Set carry bit.
+const byte INX_HL = 0043; // INX  HL   00 100 011        Increment H:L (can be a 16 bit address)
+const byte LDAX_D = 0032; // LDAX D    00 011 010         Load register A with the data at address D:E.
 const byte LXI_BC = 0001; // LXI  BC,a 00 000 001        Move a(lb hb) into register pair, B:C = hb:lb.
 const byte LXI_HL = 0041; // LXI  RP,a 00 100 001        Move a(lb hb) into register pair, H:L = hb:lb.
 const byte MOV_AM = 0176; // MOV  A,M  01 111 110        Move data from M(address in H:L) to register A.
 const byte MOV_DA = 0127; // MOV  D,A  01 010 111        Move register A content to register D.
-const byte MVI_B  = 0006; // MVI  B,db 00 000 110   -    Move db to register B.
-const byte MVI_C  = 0016; // MVI  C,db 00 001 110   -    Move db to register C.
-const byte MVI_D  = 0026; // MVI  D,db 00 010 110 -      Move db to register D.
-const byte MVI_E  = 0036; // MVI  E,db 00 011 110 -      Move db to register E.
-const byte NOP    = 0000; // NOP         00000000   -    No operation
-const byte OUT    = 0343; // OUT pa      11010011 pa     Write A to output port
-const byte RRC    = 0017; // RRC       00 001 111   C    Rotate A right (shift byte right 1 bit). Note, carry bit not handled at this time.
+const byte MVI_B  = 0006; // MVI  B,db 00 000 110        Move db to register B.
+const byte MVI_C  = 0016; // MVI  C,db 00 001 110        Move db to register C.
+const byte MVI_D  = 0026; // MVI  D,db 00 010 110        Move db to register D.
+const byte MVI_E  = 0036; // MVI  E,db 00 011 110        Move db to register E.
 const byte XRA_D  = 0252; // XRA RP    10 101 010  ZSPCA Register D, exclusive OR with register with A.
 //
 // Opcode notes, more details:
