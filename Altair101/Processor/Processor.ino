@@ -72,11 +72,11 @@ byte theProgram[] = {
   //1DDDSSS
   B00111110, 7,     // MVI A,7              ; Move # to register A.
   B01000111,        // MOV B,A  01 000 111  ; Move register A to each register.
-  B01000111,        // MOV C,A  01 001 111
-  B01000111,        // MOV D,A  01 010 111
-  B01000111,        // MOV E,A  01 011 111
-  B01000111,        // MOV H,A  01 100 111
-  B01000111,        // MOV L,A  01 101 111
+  B01001111,        // MOV C,A  01 001 111
+  B01010111,        // MOV D,A  01 010 111
+  B01011111,        // MOV E,A  01 011 111
+  B01100111,        // MOV H,A  01 100 111
+  B01101111,        // MOV L,A  01 101 111
   0343, 30,         // OUT 30     ; Print the intial register values.
   0166,             // HLT
   //
@@ -156,6 +156,17 @@ byte theProgram[] = {
   0000              //            ; End.
 };
 
+/*
+    case B00111110:
+      regD = regA;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV"));
+      Serial.print(F(", move data from register A "));
+      Serial.print(F(" to register D = "));
+      printData(regD);
+#endif
+      break;
+ */
 byte theProgram2[] = {
   //                //            ; --------------------------------------
   //                // BEG:       ; Start
@@ -350,7 +361,7 @@ byte regM = 0;   // 110=M  Memory reference for address in H:L
 // XRA R    10 101 SSS  Register exclusive OR with register with A.
 
 // LDAX RP  00 RP1 010  Load indirect through BC(RP=00) or DE(RP=01)
-// INX RP   00 RP0 011  Increment H:L (can be a 16 bit address)
+// INX RP   00 RP0 011  Increment a register pair, example: H:L (a 16 bit value)
 // MVI R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
 
 // LXI RP,a 00 RP0 001  RP=10  which matches "10=HL".
@@ -370,8 +381,7 @@ const byte OUT    = 0343; // OUT pa      11010011        Write A to output port
 const byte RRC    = 0017; // RRC       00 001 111   C    Rotate A right (shift byte right 1 bit). Note, carry bit not handled at this time.
 
 const byte DAD_BC = 0011; // DAD       00 001 001   C    Add B:C to H:L. Set carry bit.
-const byte INX_HL = 0043; // INX  HL   00 100 011        Increment H:L (can be a 16 bit address)
-const byte LDAX_D = 0032; // LDAX D    00 011 010         Load register A with the data at address D:E.
+const byte LDAX_D = 0032; // LDAX D    00 011 010        Load register A with the data at address D:E.
 const byte LXI_BC = 0001; // LXI  BC,a 00 000 001        Move a(lb hb) into register pair, B:C = hb:lb.
 const byte LXI_HL = 0041; // LXI  RP,a 00 100 001        Move a(lb hb) into register pair, H:L = hb:lb.
 const byte MOV_AM = 0176; // MOV  A,M  01 111 110        Move data from M(address in H:L) to register A.
@@ -393,6 +403,7 @@ const byte XRA_D  = 0252; // XRA RP    10 101 010  ZSPCA Register D, exclusive O
 //                           XRA  R      10101SSS        Register exclusive OR with register with A.
 //
 //        DAD                Set carry bit if the addition causes a carry out.
+//        INX                Not done for the stack pointer.
 //        LDAX D : Load the accumulator from memory location 938BH, where register D contains 93H and register E contains 8BH.
 //
 // MOV D,S   01DDDSSS          -       Move register to a register.
@@ -407,6 +418,9 @@ const byte IN     = 0333; // IN p      11011011 pa       -       Read input port
 // For STA and LDA, see the video: https://www.youtube.com/watch?v=3_73NwB6toY
 const byte STA =    0062; // STA a     00110010 lb hb    -    Store register A to memory address: lb hb
 const byte LDA =    0062; // LDA is for copying data from memory location to accumulator
+//
+// INR D     00DDD100    Flags:ZSPA    Increment register
+// DCR D     00DDD101          ZSPA    Decrement register
 
 // -----------------------------------------------------------------------------
 // Output: Front Panel Output and log messages
@@ -504,6 +518,7 @@ void processOpcode() {
       Serial.print(F("> CPI, compare next data byte to A. Store true or false into compareResult."));
 #endif
       break;
+      // ---------------------------------------------------------------------
     case DAD_BC:
       bValue = regB;
       cValue = regC;
@@ -591,6 +606,7 @@ void processOpcode() {
         }
       */
       break;
+      // ---------------------------------------------------------------------
     case JNC:
       opcode = JNC;
 #ifdef LOG_MESSAGES
@@ -609,6 +625,7 @@ void processOpcode() {
       Serial.print(F("> JMP, get address low and high order bytes."));
 #endif
       break;
+      // ---------------------------------------------------------------------
     case HLT:
       runProgram = false;
       halted = true;
@@ -628,7 +645,42 @@ void processOpcode() {
       Serial.print(F("> IN, If input value is available, get the input byte."));
 #endif
       break;
-    case INX_HL:
+      // ---------------------------------------------------------------------
+    case B00000011:
+      regC++;
+      if (regC == 0) {
+        regB++;
+      }
+#ifdef LOG_MESSAGES
+      Serial.print(F("> INX, increment the 16 bit register pair B:C."));
+      Serial.print(F(", regB:regC = "));
+      Serial.print(regB);
+      Serial.print(":");
+      Serial.print(regC);
+      Serial.print(" = ");
+      printOctal(regB);
+      Serial.print(":");
+      printOctal(regC);
+#endif
+      break;
+    case B00010011:
+      regE++;
+      if (regE == 0) {
+        regD++;
+      }
+#ifdef LOG_MESSAGES
+      Serial.print(F("> INX, increment the 16 bit register pair D:E."));
+      Serial.print(F(", regD:regE = "));
+      Serial.print(regD);
+      Serial.print(":");
+      Serial.print(regE);
+      Serial.print(" = ");
+      printOctal(regD);
+      Serial.print(":");
+      printOctal(regE);
+#endif
+      break;
+    case B00100011:
       regL++;
       if (regL == 0) {
         regH++;
@@ -645,28 +697,11 @@ void processOpcode() {
       printOctal(regL);
 #endif
       break;
-    /*
-      //INX
+      // 00RP0011 -------------------------------------------------
+    /*   00110011 Not done for the stack pointer.
+      // INX
       void _I8080_INX(uint8_t rp) {
-      switch (rp)  {
-      case _RP_BC:
-      _rC++;
-      if (_rC == 0) {
-      _rB++;
-      }
-      break;
-      case _RP_DE:
-      _rE++;
-      if (_rE == 0) {
-      _rD++;
-      }
-      break;
-      case _RP_HL:
-      _rL++;
-      if (_rL == 0) {
-      _rH++;
-      }
-      break;
+      ...
       case _RP_SP:
       _SP++;
       break;
@@ -674,6 +709,7 @@ void processOpcode() {
       _PC++;
       }
     */
+      // ---------------------------------------------------------------------
     case LDAX_D:
       anAddress = word(regD, regE);
       dValue = regD;
@@ -696,6 +732,7 @@ void processOpcode() {
       printData(regA);
 #endif
       break;
+      // ---------------------------------------------------------------------
     case LXI_BC:
       opcode = LXI_BC;
 #ifdef LOG_MESSAGES
@@ -708,6 +745,7 @@ void processOpcode() {
       Serial.print(F("> LXI, Move the lb hb data, into register pair H:L = hb:lb."));
 #endif
       break;
+      // ---------------------------------------------------------------------
     case MOV_AM:
       anAddress = word(regH, regL);
       regA = memoryData[anAddress];
@@ -720,16 +758,97 @@ void processOpcode() {
       printData(regA);
 #endif
       break;
-    case MOV_DA:
+      // ---------------------------------------------------------------------
+    case B01000111:
+      regB = regA;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register A to B = "));
+      printData(regB);
+#endif
+      break;
+    case B01001111:
+      regC = regA;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register A to C = "));
+      printData(regC);
+#endif
+      break;
+    case B01010111:
       regD = regA;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> MOV"));
-      Serial.print(F(", move data from register A "));
-      Serial.print(F(" to register D = "));
+      Serial.print(F("> MOV register A to D = "));
       printData(regD);
 #endif
       break;
+    case B01011111:
+      regE = regA;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register A to E = "));
+      printData(regE);
+#endif
+      break;
+    case B01100111:
+      regH = regA;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register A to H = "));
+      printData(regH);
+#endif
+      break;
+    case B01101111:
+      regL = regA;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register A to L = "));
+      printData(regL);
+#endif
+      break;
+      // ---------------------------------------------------------------------
+    case B01111000:
+      regA = regB;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register B to A = "));
+      printData(regL);
+#endif
+      break;
+    case B01001000:
+      regC = regB;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register B to C = "));
+      printData(regL);
+#endif
+      break;
+    case B01010000:
+      regD = regB;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register B to D = "));
+      printData(regD);
+#endif
+      break;
+    case B01011000:
+      regE = regB;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register B to E = "));
+      printData(regE);
+#endif
+      break;
+    case B01100000:
+      regH = regB;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register B to H = "));
+      printData(regH);
+#endif
+      break;
+    case B01101000:
+      regL = regB;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register B to L = "));
+      printData(regL);
+#endif
+      break;
+      // ---------------------------------------------------------------------
+/*
+  B01DDDSSS         // MOV D,S  ; Move from one register to another.
 
+       */
     // ------------------------------------------------------------------------------------------
     // MVI R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
     // MVI A,#  00 111 110  0036
@@ -1059,6 +1178,7 @@ void processOpcodeData() {
 #endif
       programCounter++;
       break;
+      // ---------------------------------------------------------------------
     case OUT:
       // instructionCycle == 1
       dataByte = memoryData[programCounter];
