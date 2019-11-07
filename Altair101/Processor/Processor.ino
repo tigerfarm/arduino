@@ -34,31 +34,115 @@
 
 byte theProgram[] = {
   //                //            ; --------------------------------------
-  //                // BEG:       ; Start
+  //                // BEG:       ; Start: Testing opcode MOV.
   //
   0343, 30,         // OUT 30     ; Print the intial register values.
   0166,             // HLT
   //
   // ------------------------------------------------------------------------------------------
-  // MVI R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
-  // MVI A,#  00 111 110  0036
-  // MVI B,#  00 000 110  0006
-  // MVI C,#  00 001 110  0016
-  // MVI D,#  00 010 110  0026
-  // MVI E,#  00 011 110  0036
-  // MVI H,#  00 100 110  0046
-  // MVI L,#  00 101 110  0056
-  //                //            ; --------------------------------------
   //                //            ; Intialize register values.
   //
-  B00111110, 7,       // MVI A,7    ; Move db to register A.
-  B00000110, 0,       // MVI B,0    ; Move db to register B.
-  B00001110, 1,       // MVI C,1    ; Move db to register C.
-  B00010110, 2,       // MVI D,2    ; Move db to register D.
-  B00011110, 3,       // MVI E,3    ; Move db to register E.
-  B00100110, 4,       // MVI H,4    ; Move db to register H.
-  B00101110, 5,       // MVI L,5    ; Move db to register L.
+  B00111110, 6,     // MVI A,6    ; Move # to registers.
+  B00000110, 0,     // MVI B,0
+  B00001110, 1,     // MVI C,1
+  B00010110, 2,     // MVI D,2
+  B00011110, 3,     // MVI E,3
+  B00100110, 4,     // MVI H,4
+  B00101110, 5,     // MVI L,5
+  0343, 30,         // OUT 30     ; Print the intial register values.
+  0166,             // HLT
   //
+  // ------------------------------------------------------------------------------------------
+  // MOV D,S  01 DDD SSS   Move register to a register. 36 register to register combinations.
+  //                 111 A
+  //                 000 B
+  //                 001 C
+  //                 010 D
+  //                 011 E
+  //                 100 H
+  //                 101 L
+  //
+  //1DDDSSS
+  B00111110, 7,     // MVI A,7              ; Move # to register A.
+  B01000111,        // MOV B,A  01 000 111  ; Move register A to each register.
+  B01000111,        // MOV C,A  01 001 111
+  B01000111,        // MOV D,A  01 010 111
+  B01000111,        // MOV E,A  01 011 111
+  B01000111,        // MOV H,A  01 100 111
+  B01000111,        // MOV L,A  01 101 111
+  0343, 30,         // OUT 30     ; Print the intial register values.
+  0166,             // HLT
+  //
+  //1DDDSSS
+  B00000110, 0,     // MVI B,0  ; Move # to register B.
+  B01111000,        // MOV A,B  ; Move register B to each register.
+  B01001000,        // MOV C,B
+  B01010000,        // MOV D,B
+  B01011000,        // MOV E,B
+  B01100000,        // MOV H,B
+  B01101000,        // MOV L,B
+  0343, 30,         // OUT 30     ; Print the Intialized register values.
+  0166,             // HLT
+  //
+  //1DDDSSS
+  B00001110, 1,     // MVI C,1  ; Move # to register C.
+  B01111001,        // MOV A,C  ; Move register C to each register.
+  B01000001,        // MOV B,C
+  B01010001,        // MOV D,C
+  B01011001,        // MOV E,C
+  B01100001,        // MOV H,C
+  B01101001,        // MOV L,C
+  0343, 30,         // OUT 30     ; Print the Intialized register values.
+  0166,             // HLT
+  //
+  //1DDDSSS
+  B00010110, 2,     // MVI D,2  ; Move # to register D.
+  B01111010,        // MOV A,D  ; Move register D to each register.
+  B01000010,        // MOV B,D
+  B01001010,        // MOV C,D
+  B01011010,        // MOV E,D
+  B01100010,        // MOV H,D
+  B01101010,        // MOV L,D
+  0343, 30,         // OUT 30     ; Print the Intialized register values.
+  0166,             // HLT
+  //
+  //1DDDSSS
+  B00011110, 3,     // MVI E,3  ; Move # to register E.
+  B01111011,        // MOV A,E  ; Move register E to each register.
+  B01000011,        // MOV B,E
+  B01001011,        // MOV C,E
+  B01010011,        // MOV D,E
+  B01100011,        // MOV H,E
+  B01101011,        // MOV L,E
+  0343, 30,         // OUT 30     ; Print the Intialized register values.
+  0166,             // HLT
+  //
+  //1DDDSSS
+  B00011110, 4,     // MVI H,4  ; Move # to register H.
+  B01111100,        // MOV A,H  ; Move register H to each register.
+  B01000100,        // MOV B,H
+  B01001100,        // MOV C,H
+  B01010100,        // MOV D,H
+  B01011100,        // MOV E,H
+  B01101100,        // MOV L,HE
+  0343, 30,         // OUT 30     ; Print the Intialized register values.
+  0166,             // HLT
+  //
+  //1DDDSSS
+  B00011110, 5,     // MVI L,5  ; Move # to register L.
+  B01111101,        // MOV A,L  ; Move register L to each register.
+  B01000101,        // MOV B,L
+  B01001101,        // MOV C,L
+  B01010101,        // MOV D,L
+  B01011101,        // MOV E,L
+  B01100101,        // MOV H,L
+  0343, 30,         // OUT 30     ; Print the Intialized register values.
+  0166,             // HLT
+  //
+  // ------------------------------------------------------------------------------------------
+  //
+  0041, 0000, 0000, // LXI H,BEG  ; LXI_HL lb hb. Load into register H:L = 0000:0000.
+  0176,             // MOV M,A    ; Move the data in register M(register address H:L), to register A.
   0343, 30,         // OUT 30     ; Print the Intialized register values.
   0166,             // HLT
   //
@@ -197,10 +281,6 @@ byte dataByte = 0;           // db = Data byte (8 bit)
 //         LXI_RP = 0041; // LXI RP,#  00RP0001 lb hb    -    Load lb and hb into the register pair (RP)
 const byte LXI_DE = 0021; //           00 010 001 RP = 10 which matches "01=DE".
 const byte LXI_SP = 0061; //           00 110 001 RP = 10 which matches "11=SP".
-
-// For STA and LDA, see the video: https://www.youtube.com/watch?v=3_73NwB6toY
-const byte STA =    0062; // STA a     00110010 lb hb    -    Store register A to memory address: lb hb
-const byte LDA =    0062; // LDA is for copying data from memory location to accumulator
 //
 
 /*
@@ -316,6 +396,10 @@ const byte XRA_D  = 0252; // XRA RP    10 101 010  ZSPCA Register D, exclusive O
 // In progress, Kill the Bit opcodes:
 //         Code     Octal    Inst Param  Encoding Flags  Description
 const byte IN     = 0333; // IN p      11011011 pa       -       Read input port into A
+//
+// For STA and LDA, see the video: https://www.youtube.com/watch?v=3_73NwB6toY
+const byte STA =    0062; // STA a     00110010 lb hb    -    Store register A to memory address: lb hb
+const byte LDA =    0062; // LDA is for copying data from memory location to accumulator
 
 // -----------------------------------------------------------------------------
 // Output: Front Panel Output and log messages
@@ -1246,10 +1330,10 @@ void loop() {
     // When testing, can add a cycle delay.
     // Clock process timing is controlled by the timer.
     // Example, 50000 : once every 1/2 second.
-    if (millis() - timer >= 500) {
+    // if (millis() - timer >= 500) {
       processData();
-      timer = millis();
-    }
+    //  timer = millis();
+    // }
   } else {
     delay(60);
   }

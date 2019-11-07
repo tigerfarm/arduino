@@ -26,6 +26,43 @@
                    32768 2^15 32k
                    65535 2^16 64k
 */
+
+// -----------------------------------------------------------------------------
+// Opcode MVI test program.
+
+byte theProgram[] = {
+  //                //            ; --------------------------------------
+  //                // BEG:       ; Start: Testing opcode MVI.
+  //
+  0343, 30,         // OUT 30     ; Print the intial register values.
+  0166,             // HLT
+  //
+  // ------------------------------------------------------------------------------------------
+  // MVI R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
+  // MVI A,#  00 111 110  0036
+  // MVI B,#  00 000 110  0006
+  // MVI C,#  00 001 110  0016
+  // MVI D,#  00 010 110  0026
+  // MVI E,#  00 011 110  0036
+  // MVI H,#  00 100 110  0046
+  // MVI L,#  00 101 110  0056
+  //                //            ; --------------------------------------
+  //                //            ; Intialize register values.
+  //
+  B00111110, 7,       // MVI A,7    ; Move db to register A.
+  B00000110, 0,       // MVI B,0    ; Move db to register B.
+  B00001110, 1,       // MVI C,1    ; Move db to register C.
+  B00010110, 2,       // MVI D,2    ; Move db to register D.
+  B00011110, 3,       // MVI E,3    ; Move db to register E.
+  B00100110, 4,       // MVI H,4    ; Move db to register H.
+  B00101110, 5,       // MVI L,5    ; Move db to register L.
+  //
+  0343, 30,         // OUT 30     ; Print the Intialized register values.
+  0166,             // HLT
+  //
+  0000              //            ; End.
+};
+
 // -----------------------------------------------------------------------------
 // I/O program.
 // IN this program, terminal output is to the 1602 LCD.
