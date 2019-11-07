@@ -51,13 +51,13 @@ byte theProgram[] = {
   //                //            ; --------------------------------------
   //                //            ; Intialize register values.
   //
-  B00111110, 0007,       // MVI A,7    ; Move db to register A.
-  B00000110, 0009,       // MVI B,0    ; Move db to register B.
-  B00001110, 0001,       // MVI C,1    ; Move db to register C.
-  B00010110, 0002,       // MVI D,2    ; Move db to register D.
-  B00011110, 0003,       // MVI E,3    ; Move db to register E.
-  B00100110, 0004,       // MVI H,4    ; Move db to register H.
-  B00101110, 0005,       // MVI L,5    ; Move db to register L.
+  B00111110, 7,       // MVI A,7    ; Move db to register A.
+  B00000110, 0,       // MVI B,0    ; Move db to register B.
+  B00001110, 1,       // MVI C,1    ; Move db to register C.
+  B00010110, 2,       // MVI D,2    ; Move db to register D.
+  B00011110, 3,       // MVI E,3    ; Move db to register E.
+  B00100110, 4,       // MVI H,4    ; Move db to register H.
+  B00101110, 5,       // MVI L,5    ; Move db to register L.
   //
   0343, 30,         // OUT 30     ; Print the Intialized register values.
   0166,             // HLT
@@ -640,11 +640,11 @@ void processOpcode() {
       Serial.print(F(" > MVI, move db address into register E."));
       break;
     case B00100110:
-      opcode = B00111110;
+      opcode = B00100110;
       Serial.print(F(" > MVI, move db address into register H."));
       break;
     case B00101110:
-      opcode = B00111110;
+      opcode = B00101110;
       Serial.print(F(" > MVI, move db address into register L."));
       break;
     case NOP:
