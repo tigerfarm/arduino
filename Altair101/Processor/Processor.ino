@@ -39,6 +39,39 @@ byte theProgram[] = {
   0343, 30,         // OUT 30     ; Print the intial register values.
   0166,             // HLT
   //
+  // ------------------------------------------------------------------------------------------
+  // MVI R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
+  // MVI A,#  00 111 110  0036
+  // MVI B,#  00 000 110  0006
+  // MVI C,#  00 001 110  0016
+  // MVI D,#  00 010 110  0026
+  // MVI E,#  00 011 110  0036
+  // MVI H,#  00 100 110  0046
+  // MVI L,#  00 101 110  0056
+  //                //            ; --------------------------------------
+  //                //            ; Intialize register values.
+  //
+  B00111110, 0007,       // MVI A,7    ; Move db to register A.
+  B00000110, 0009,       // MVI B,0    ; Move db to register B.
+  B00001110, 0001,       // MVI C,1    ; Move db to register C.
+  B00010110, 0002,       // MVI D,2    ; Move db to register D.
+  B00011110, 0003,       // MVI E,3    ; Move db to register E.
+  B00100110, 0004,       // MVI H,4    ; Move db to register H.
+  B00101110, 0005,       // MVI L,5    ; Move db to register L.
+  //
+  0343, 30,         // OUT 30     ; Print the Intialized register values.
+  0166,             // HLT
+  //
+  0000              //            ; End.
+};
+
+byte theProgram2[] = {
+  //                //            ; --------------------------------------
+  //                // BEG:       ; Start
+  //
+  0343, 30,         // OUT 30     ; Print the intial register values.
+  0166,             // HLT
+  //
   //                //            ; --------------------------------------
   //                //            ; Intialize register values.
   //
@@ -576,6 +609,20 @@ void processOpcode() {
       Serial.print(F(" to register D = "));
       printData(regD);
       break;
+
+    // ------------------------------------------------------------------------------------------
+    // MVI R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
+    // MVI A,#  00 111 110  0036
+    // MVI B,#  00 000 110  0006
+    // MVI C,#  00 001 110  0016
+    // MVI D,#  00 010 110  0026
+    // MVI E,#  00 011 110  0036
+    // MVI H,#  00 100 110  0046
+    // MVI L,#  00 101 110  0056
+    case B00111110:
+      opcode = B00111110;
+      Serial.print(F(" > MVI, move db address into register A."));
+      break;
     case MVI_B:
       opcode = MVI_B;
       Serial.print(F(" > MVI, move db address into register B."));
@@ -591,6 +638,14 @@ void processOpcode() {
     case MVI_E:
       opcode = MVI_E;
       Serial.print(F(" > MVI, move db address into register E."));
+      break;
+    case B00100110:
+      opcode = B00111110;
+      Serial.print(F(" > MVI, move db address into register H."));
+      break;
+    case B00101110:
+      opcode = B00111110;
+      Serial.print(F(" > MVI, move db address into register L."));
       break;
     case NOP:
       Serial.print(F(" > NOP ---"));
@@ -761,6 +816,21 @@ void processOpcodeData() {
       printOctal(regL);
       programCounter++;
       break;
+    // ------------------------------------------------------------------------------------------
+    // MVI R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
+    // MVI A,#  00 111 110  0036
+    // MVI B,#  00 000 110  0006
+    // MVI C,#  00 001 110  0016
+    // MVI D,#  00 010 110  0026
+    // MVI E,#  00 011 110  0036
+    // MVI H,#  00 100 110  0046
+    // MVI L,#  00 101 110  0056
+    case B00111110:
+      regA = memoryData[programCounter];
+      Serial.print(F(" < MVI, move db > register A: "));
+      printData(regA);
+      programCounter++;
+      break;
     case MVI_B:
       regB = memoryData[programCounter];
       Serial.print(F(" < MVI, move db > register B: "));
@@ -783,6 +853,18 @@ void processOpcodeData() {
       regE = memoryData[programCounter];
       Serial.print(F(" < MVI, move db > register E: "));
       printData(regE);
+      programCounter++;
+      break;
+    case B00100110:
+      regH = memoryData[programCounter];
+      Serial.print(F(" < MVI, move db > register H: "));
+      printData(regH);
+      programCounter++;
+      break;
+    case B00101110:
+      regL = memoryData[programCounter];
+      Serial.print(F(" < MVI, move db > register L: "));
+      printData(regL);
       programCounter++;
       break;
     case OUT:
@@ -1165,8 +1247,8 @@ void loop() {
     // Clock process timing is controlled by the timer.
     // Example, 50000 : once every 1/2 second.
     if (millis() - timer >= 500) {
-    processData();
-    timer = millis();
+      processData();
+      timer = millis();
     }
   } else {
     delay(60);
