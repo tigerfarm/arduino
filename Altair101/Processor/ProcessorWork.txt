@@ -619,6 +619,7 @@ void processOpcode() {
       Serial.print(F("+ Process halted."));
       // To do: set all the address and data lights on.
       break;
+======================================================================================================
     case IN:
       opcode = IN;
 #ifdef LOG_MESSAGES
@@ -822,6 +823,7 @@ void processOpcode() {
       digitalWrite(WAIT_PIN, HIGH);
   }
 }
+======================================================================================================
 
 void processOpcodeData() {
   // For calculating hb:lb as a 16 value.
@@ -891,6 +893,7 @@ void processOpcodeData() {
         programCounter++;
       }
       break;
+======================================================================================================
     case JZ:
       if (instructionCycle == 1) {
         lowOrder = memoryData[programCounter];

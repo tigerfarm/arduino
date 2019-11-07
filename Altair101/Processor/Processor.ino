@@ -30,6 +30,13 @@
     https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/lowbyte/
 */
 // -----------------------------------------------------------------------------
+// Code compilation options.
+
+// #define RUN_DELAY 1
+// #define INCLUDE_LCD 1
+#define LOG_MESSAGES 1
+
+// -----------------------------------------------------------------------------
 // Program to test opcodes.
 
 byte theProgram[] = {
@@ -453,6 +460,7 @@ void processData() {
     digitalWrite(M1_PIN, HIGH); // Machine cycle 1, get an opcode.
     Serial.print("> ");
     printAddressData();
+    Serial.print(" ");
     processOpcode();
     programCounter++;
     instructionCycle = 0;
@@ -460,6 +468,7 @@ void processData() {
     digitalWrite(M1_PIN, LOW); // Machine cycle 1+x, getting opcode data.
     Serial.print("+ ");
     printAddressData();
+    Serial.print(" ");
     processOpcodeData();
   }
   Serial.println("");
@@ -491,10 +500,11 @@ void processOpcode() {
   switch (dataByte) {
     case CPI:
       opcode = CPI;
-      Serial.print(F(" > CPI, compare next data byte to A. Store true or false into compareResult."));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> CPI, compare next data byte to A. Store true or false into compareResult."));
+#endif
       break;
     case DAD_BC:
-      Serial.print(F(" > DAD_BC"));
       bValue = regB;
       cValue = regC;
       hValue = regH;
@@ -511,22 +521,6 @@ void processOpcode() {
       } else {
         carryBit = false;
       }
-      Serial.print(F(", Add B:C "));
-      Serial.print(bcValue);
-      Serial.print("(");
-      Serial.print(regB);
-      Serial.print(":");
-      Serial.print(regC);
-      Serial.print(")");
-      Serial.print(F(" + H:L "));
-      Serial.print(hlValue);
-      Serial.print("(");
-      Serial.print(regH);
-      Serial.print(":");
-      Serial.print(regL);
-      Serial.print(")");
-      Serial.print(F(" = "));
-      Serial.print(hlValueNew);
       regH = regB + regH;
       lValue = regL;
       regL = regC + regL;
@@ -534,6 +528,24 @@ void processOpcode() {
         // If the sum is less the either part, then add 1 to the higher byte.
         regH++;
       }
+#ifdef LOG_MESSAGES
+      Serial.print(F("> DAD_BC"));
+      Serial.print(F(", Add B:C "));
+      Serial.print(bcValue);
+      Serial.print("(");
+      Serial.print(bValue);
+      Serial.print(":");
+      Serial.print(cValue);
+      Serial.print(")");
+      Serial.print(F(" + H:L "));
+      Serial.print(hlValue);
+      Serial.print("(");
+      Serial.print(hValue);
+      Serial.print(":");
+      Serial.print(lValue);
+      Serial.print(")");
+      Serial.print(F(" = "));
+      Serial.print(hlValueNew);
       Serial.print("(");
       Serial.print(regH);
       Serial.print(":");
@@ -545,6 +557,7 @@ void processOpcode() {
       } else {
         Serial.print(F("false. Not over: 65535."));
       }
+#endif
       /*
         void _I8080_DAD(uint8_t rp) {
         uint16_t d16_1;
@@ -580,36 +593,48 @@ void processOpcode() {
       break;
     case JNC:
       opcode = JNC;
-      Serial.print(F(" > JNC, Jump if carry bit is false (0, not set)."));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> JNC, Jump if carry bit is false (0, not set)."));
+#endif
       break;
     case JZ:
       opcode = JZ;
-      Serial.print(F(" > JZ, if compareResult, jump to the following address (lh hb)."));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> JZ, if compareResult, jump to the following address (lh hb)."));
+#endif
       break;
     case JMP:
       opcode = JMP;
-      Serial.print(F(" > JMP, get address low and high order bytes."));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> JMP, get address low and high order bytes."));
+#endif
       break;
     case HLT:
-      Serial.println(F(" > HLT, halt the processor."));
       runProgram = false;
       halted = true;
+#ifdef LOG_MESSAGES
+      Serial.println(F("> HLT, halt the processor."));
       digitalWrite(WAIT_PIN, HIGH);
       digitalWrite(M1_PIN, LOW);
       digitalWrite(HLTA_PIN, HIGH);
-      // To do: set all the address and data lights on.
+#else
+      Serial.println("");
+#endif
       Serial.print(F("+ Process halted."));
+      // To do: set all the address and data lights on.
       break;
-    case IN:
       opcode = IN;
-      Serial.print(F(" > IN, If input value is available, get the input byte."));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> IN, If input value is available, get the input byte."));
+#endif
       break;
     case INX_HL:
       regL++;
       if (regL == 0) {
         regH++;
       }
-      Serial.print(F(" > INX, increment the 16 bit register pair H:L."));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> INX, increment the 16 bit register pair H:L."));
       Serial.print(F(", regH:regL = "));
       Serial.print(regH);
       Serial.print(":");
@@ -618,6 +643,7 @@ void processOpcode() {
       printOctal(regH);
       Serial.print(":");
       printOctal(regL);
+#endif
       break;
     /*
       //INX
@@ -649,7 +675,6 @@ void processOpcode() {
       }
     */
     case LDAX_D:
-      Serial.print(F(" > LDAX"));
       anAddress = word(regD, regE);
       dValue = regD;
       eValue = regE;
@@ -659,6 +684,8 @@ void processOpcode() {
       } else {
         regA = 0;
       }
+#ifdef LOG_MESSAGES
+      Serial.print(F("> LDAX"));
       Serial.print(F(", Load data from Address D:E = "));
       printOctal(regD);
       Serial.print(F(" : "));
@@ -667,31 +694,40 @@ void processOpcode() {
       Serial.print(deValue);
       Serial.print(F(", to Accumulator = "));
       printData(regA);
+#endif
       break;
     case LXI_BC:
       opcode = LXI_BC;
-      Serial.print(F(" > LXI, Move the lb hb data, into register pair B:C = hb:lb."));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> LXI, Move the lb hb data, into register pair B:C = hb:lb."));
+#endif
       break;
     case LXI_HL:
       opcode = LXI_HL;
-      Serial.print(F(" > LXI, Move the lb hb data, into register pair H:L = hb:lb."));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> LXI, Move the lb hb data, into register pair H:L = hb:lb."));
+#endif
       break;
     case MOV_AM:
-      Serial.print(F(" > MOV"));
       anAddress = word(regH, regL);
       regA = memoryData[anAddress];
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV"));
       Serial.print(F(", Move data from Address: "));
       sprintf(charBuffer, "%4d:", anAddress);
       Serial.print(charBuffer);
       Serial.print(F(", to Accumulator = "));
       printData(regA);
+#endif
       break;
     case MOV_DA:
-      Serial.print(F(" > MOV"));
       regD = regA;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV"));
       Serial.print(F(", move data from register A "));
       Serial.print(F(" to register D = "));
       printData(regD);
+#endif
       break;
 
     // ------------------------------------------------------------------------------------------
@@ -705,57 +741,85 @@ void processOpcode() {
     // MVI L,#  00 101 110  0056
     case B00111110:
       opcode = B00111110;
-      Serial.print(F(" > MVI, move db address into register A."));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MVI, move db address into register A."));
+#endif
       break;
     case MVI_B:
       opcode = MVI_B;
-      Serial.print(F(" > MVI, move db address into register B."));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MVI, move db address into register B."));
+#endif
       break;
     case MVI_C:
       opcode = MVI_C;
-      Serial.print(F(" > MVI, move db address into register C."));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MVI, move db address into register C."));
+#endif
       break;
     case MVI_D:
       opcode = MVI_D;
-      Serial.print(F(" > MVI, move db address into register D."));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MVI, move db address into register D."));
+#endif
       break;
     case MVI_E:
       opcode = MVI_E;
-      Serial.print(F(" > MVI, move db address into register E."));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MVI, move db address into register E."));
+#endif
       break;
     case B00100110:
       opcode = B00100110;
-      Serial.print(F(" > MVI, move db address into register H."));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MVI, move db address into register H."));
+#endif
       break;
     case B00101110:
       opcode = B00101110;
-      Serial.print(F(" > MVI, move db address into register L."));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MVI, move db address into register L."));
+#endif
       break;
     case NOP:
-      Serial.print(F(" > NOP ---"));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> NOP ---"));
+#endif
       delay(100);
       break;
     case OUT:
       opcode = OUT;
-      Serial.print(F(" > OUT, Write output to the port address(following db)."));
+#ifdef LOG_MESSAGES
+#else
+      Serial.println("");
+#endif
+      Serial.print(F("> OUT, Write output to the port address(following db)."));
       break;
     case RRC:
-      Serial.print(F(" > RRC"));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> RRC"));
       Serial.print(F(", Shift register A: "));
       printByte(regA);
       Serial.print(F(", right 1 bit: "));
+#endif
       regA = regA >> 1;
+#ifdef LOG_MESSAGES
       printByte(regA);
+#endif
       break;
     case XRA_D:
-      Serial.print(F(" > XRA"));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> XRA"));
       Serial.print(F(", Register D: "));
       printByte(regD);
       Serial.print(F(", Exclusive OR with register A: "));
       printByte(regA);
       Serial.print(F(" = "));
+#endif
       regA = regD ^ regA;
+#ifdef LOG_MESSAGES
       printByte(regA);
+#endif
       break;
     default:
       Serial.print(F(" - Error, unknown instruction."));
@@ -780,7 +844,8 @@ void processOpcodeData() {
       // instructionCycle == 1
       dataByte = memoryData[programCounter];
       compareResult = dataByte == regA;
-      Serial.print(F(" > CPI, compareResult db: "));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> CPI, compareResult db: "));
       Serial.print(dataByte);
       if (compareResult) {
         Serial.print(F(" == "));
@@ -789,12 +854,13 @@ void processOpcodeData() {
       }
       Serial.print(F(" A: "));
       Serial.print(regA);
+#endif
       programCounter++;
       break;
     case IN:
       // instructionCycle == 1
       dataByte = memoryData[programCounter];
-      Serial.print(F(" < IN, input port: "));
+      Serial.print(F("< IN, input port: "));
       Serial.print(dataByte);
       Serial.print(F(". Not implemented, yet."));
       programCounter++;
@@ -802,102 +868,130 @@ void processOpcodeData() {
     case JNC:
       if (instructionCycle == 1) {
         lowOrder = memoryData[programCounter];
-        Serial.print(F(" < JNC, lb: "));
+#ifdef LOG_MESSAGES
+        Serial.print(F("< JNC, lb: "));
         sprintf(charBuffer, "%4d:", lowOrder);
         Serial.print(charBuffer);
+#endif
         programCounter++;
         return;
       }
       // instructionCycle == 2
       highOrder = memoryData[programCounter];
-      Serial.print(F(" < JNC, hb: "));
+#ifdef LOG_MESSAGES
+      Serial.print(F("< JNC, hb: "));
       sprintf(charBuffer, "%4d:", highOrder);
       Serial.print(charBuffer);
+#endif
       if (!carryBit) {
-        Serial.print(F(" > JNC, carryBit is false, jump to:"));
         programCounter = word(highOrder, lowOrder);
+#ifdef LOG_MESSAGES
+        Serial.print(F("> JNC, carryBit is false, jump to:"));
         Serial.print(programCounter);
+#endif
       } else {
+#ifdef LOG_MESSAGES
         Serial.print(F(" - carryBit is true, don't jump."));
+#endif
         programCounter++;
       }
       break;
     case JZ:
       if (instructionCycle == 1) {
         lowOrder = memoryData[programCounter];
-        Serial.print(F(" < JZ, lb: "));
+#ifdef LOG_MESSAGES
+        Serial.print(F("< JZ, lb: "));
         sprintf(charBuffer, "%4d:", lowOrder);
         Serial.print(charBuffer);
+#endif
         programCounter++;
         return;
       }
       // instructionCycle == 2
       highOrder = memoryData[programCounter];
-      Serial.print(F(" < JZ, hb: "));
+#ifdef LOG_MESSAGES
+      Serial.print(F("< JZ, hb: "));
       sprintf(charBuffer, "%4d:", highOrder);
       Serial.print(charBuffer);
+#endif
       if (compareResult) {
-        Serial.print(F(" > JZ, jump to:"));
         programCounter = word(highOrder, lowOrder);
+#ifdef LOG_MESSAGES
+        Serial.print(F("> JZ, jump to:"));
         Serial.print(programCounter);
+#endif
       } else {
+#ifdef LOG_MESSAGES
         Serial.print(F(" - compareResult is false, don't jump."));
+#endif
         programCounter++;
       }
       break;
     case JMP:
       if (instructionCycle == 1) {
         lowOrder = programCounter;
-        Serial.print(F(" > JMP, lb: "));
+#ifdef LOG_MESSAGES
+        Serial.print(F("> JMP, lb: "));
         Serial.print(lowOrder);
+#endif
         programCounter++;
         return;
       }
       // instructionCycle == 2
       programCounter = word(memoryData[programCounter], memoryData[lowOrder]);
-      Serial.print(F(" > JMP, jump to:"));
+#ifdef LOG_MESSAGES
+      Serial.print(F("> JMP, jump to:"));
       sprintf(charBuffer, "%4d = ", programCounter);
       Serial.print(charBuffer);
       printByte((byte)programCounter);
+#endif
       break;
     case LXI_BC:
       if (instructionCycle == 1) {
         regB = memoryData[programCounter];
-        Serial.print(F(" < LXI, lb data: "));
+#ifdef LOG_MESSAGES
+        Serial.print(F("< LXI, lb data: "));
         sprintf(charBuffer, "%4d:", regB);
         Serial.print(charBuffer);
+#endif
         programCounter++;
         return;
       }
       // instructionCycle == 2
       regC = memoryData[programCounter];
-      Serial.print(F(" < LXI, hb data: "));
+#ifdef LOG_MESSAGES
+      Serial.print(F("< LXI, hb data: "));
       sprintf(charBuffer, "%4d:", regH);
       Serial.print(charBuffer);
-      Serial.print(F(" > B:C = "));
+      Serial.print(F("> B:C = "));
       printOctal(regB);
       Serial.print(F(":"));
       printOctal(regC);
+#endif
       programCounter++;
       break;
     case LXI_HL:
       if (instructionCycle == 1) {
         regL = memoryData[programCounter];
-        Serial.print(F(" < LXI, lb data: "));
+#ifdef LOG_MESSAGES
+        Serial.print(F("< LXI, lb data: "));
         sprintf(charBuffer, "%4d:", regL);
         Serial.print(charBuffer);
+#endif
         programCounter++;
         return;
       }
       // instructionCycle == 2
       regH = memoryData[programCounter];
-      Serial.print(F(" < LXI, hb data: "));
+#ifdef LOG_MESSAGES
+      Serial.print(F("< LXI, hb data: "));
       sprintf(charBuffer, "%4d:", regH);
       Serial.print(charBuffer);
-      Serial.print(F(" > H:L = "));
+      Serial.print(F("> H:L = "));
       printOctal(regH);
       Serial.print(F(":"));
       printOctal(regL);
+#endif
       programCounter++;
       break;
     // ------------------------------------------------------------------------------------------
@@ -911,50 +1005,68 @@ void processOpcodeData() {
     // MVI L,#  00 101 110  0056
     case B00111110:
       regA = memoryData[programCounter];
-      Serial.print(F(" < MVI, move db > register A: "));
+#ifdef LOG_MESSAGES
+      Serial.print(F("< MVI, move db > register A: "));
       printData(regA);
+#endif
       programCounter++;
       break;
     case MVI_B:
       regB = memoryData[programCounter];
-      Serial.print(F(" < MVI, move db > register B: "));
+#ifdef LOG_MESSAGES
+      Serial.print(F("< MVI, move db > register B: "));
       printData(regB);
+#endif
       programCounter++;
       break;
     case MVI_C:
       regC = memoryData[programCounter];
-      Serial.print(F(" < MVI, move db > register C: "));
+#ifdef LOG_MESSAGES
+      Serial.print(F("< MVI, move db > register C: "));
       printData(regC);
+#endif
       programCounter++;
       break;
     case MVI_D:
       regD = memoryData[programCounter];
-      Serial.print(F(" < MVI, move db > register D: "));
+#ifdef LOG_MESSAGES
+      Serial.print(F("< MVI, move db > register D: "));
       printData(regD);
+#endif
       programCounter++;
       break;
     case MVI_E:
       regE = memoryData[programCounter];
-      Serial.print(F(" < MVI, move db > register E: "));
+#ifdef LOG_MESSAGES
+      Serial.print(F("< MVI, move db > register E: "));
       printData(regE);
+#endif
       programCounter++;
       break;
     case B00100110:
       regH = memoryData[programCounter];
-      Serial.print(F(" < MVI, move db > register H: "));
+#ifdef LOG_MESSAGES
+      Serial.print(F("< MVI, move db > register H: "));
       printData(regH);
+#endif
       programCounter++;
       break;
     case B00101110:
       regL = memoryData[programCounter];
-      Serial.print(F(" < MVI, move db > register L: "));
+#ifdef LOG_MESSAGES
+      Serial.print(F("< MVI, move db > register L: "));
       printData(regL);
+#endif
       programCounter++;
       break;
     case OUT:
       // instructionCycle == 1
       dataByte = memoryData[programCounter];
-      Serial.print(F(" < OUT, input port: "));
+#ifdef LOG_MESSAGES
+#else
+      Serial.println("");
+#endif
+      Serial.print(F("< OUT, input port: "));
       Serial.print(dataByte);
       switch (dataByte) {
         case 1:
@@ -1136,6 +1248,8 @@ void infraredSwitchControl() {
       // -----------------------------------
   } // end switch
 
+  irrecv.resume();
+
 }
 
 // -----------------------------------------------------------------------------
@@ -1231,11 +1345,14 @@ void infraredSwitchInput() {
       // -----------------------------------
   } // end switch
 
+  irrecv.resume();
+
 }
 
 // -----------------------------------------------------------------------------
 // 1602 LCD
-/*
+#ifdef INCLUDE_LCD
+
   #include<Wire.h>
   #include<LiquidCrystal_I2C.h>
 
@@ -1271,7 +1388,7 @@ void infraredSwitchInput() {
   // delay(3000);
   // lcd.clear();
   }
-*/
+#endif
 
 // -----------------------------------------------------------------------------
 void setup() {
@@ -1283,8 +1400,10 @@ void setup() {
   irrecv.enableIRIn();
   Serial.println(F("+ infrared receiver ready for input."));
 
-  // readyLcd();
-  // Serial.println(F("+ LCD ready for output."));
+#ifdef INCLUDE_LCD
+  readyLcd();
+  Serial.println(F("+ LCD ready for output."));
+#endif
 
   pinMode(WAIT_PIN, OUTPUT);
   digitalWrite(WAIT_PIN, HIGH);
@@ -1310,31 +1429,35 @@ void setup() {
 // -----------------------------------------------------------------------------
 // Device Loop for processing each byte of machine code.
 
+#ifdef RUN_DELAY
 static unsigned long timer = millis();
+#endif
 void loop() {
 
   // Process infrared key presses.
-  if (irrecv.decode(&results)) {
-    if (runProgram) {
-      // STOP, or
-      // Use a keyboard input into a running program. UseD by opcode: IN.
-      infraredSwitchInput();
-    } else {
-      // RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous.
-      infraredSwitchControl();
-    }
-    irrecv.resume();
-  }
-
   if (runProgram) {
+#ifdef RUN_DELAY
     // When testing, can add a cycle delay.
     // Clock process timing is controlled by the timer.
     // Example, 50000 : once every 1/2 second.
-    // if (millis() - timer >= 500) {
+    if (millis() - timer >= 500) {
+#endif
       processData();
-    //  timer = millis();
-    // }
+#ifdef RUN_DELAY
+      timer = millis();
+    }
+#endif
+    if (irrecv.decode(&results)) {
+      // Key pressed:
+      // + STOP program running, or
+      // + Use the keypress value as input into the running program. Used by opcode: IN.
+      infraredSwitchInput();
+    }
   } else {
+    if (irrecv.decode(&results)) {
+      // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous.
+      infraredSwitchControl();
+    }
     delay(60);
   }
 
