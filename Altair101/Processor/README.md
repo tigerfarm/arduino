@@ -12,7 +12,7 @@ And, adding output via a 1602 LCD.
 
 ## The Altair 101 Development Computer
 
-I'm developing the processor software on a Nano which is on a breadboard with an infrared receiver, LCD, and LED lights.
+The processor software runs on an Arduino Nano that is on a breadboard with an infrared receiver,  LED lights, and LCD.
 The processor program is compiled and uploaded from my laptop to the Nano through a USB cable.
 Program log messages are displayed in the Arduino serial monitor that runs on the laptop.
 
@@ -27,6 +27,35 @@ There are a number of online videos showing how an Altair 8800 works.
 + A jump loop program is entered, examined, stepped through, and run.
 
 I coded the Altair 101 processor program to react the same way.
+
+--------------------------------------------------------------------------------
+## 8080 Opcode Development
+
+Opcodes programed and tested:
+````
++ CPI #    Compare db with A > compareResult.
++ HLT      Halt processor
++ IN  p    Read input for port a, into A
++ JMP a    Unconditional jump
++ JZ  a    If compareResult is true, jump to lb hb.
++ JNC a    Jump if carry bit is 0 (false).
++ MVI R,#  Move a number (#), which is the next db, to register RRR.
++ MOV D,S  Move register to a register.
++ NOP      No operation
++ RLC      Rotate A left. Need to handle carry bit.
++ RRC      0Rotate A right (shift byte right 1 bit). Need to handle carry bit.
+````
+Partly programmed:
+````
++ DAD RP   00 RP1 001  Add register pair(RP) to H:L (16 bit add). And set carry bit.
++ LDAX RP  00 RP1 010  Load indirect through BC(RP=00) or DE(RP=01)
++ INR R    Increment the register. I still need to set flags.
++ INX RP   00 RP0 011  Increment a register pair, example: H:L (a 16 bit value)
++ LXI RP,a 00 RP0 001  RP=10  which matches "10=HL".
++ OUT p    Write A to output port a.
++ XRA R    10 101 SSS  Register exclusive OR with register with A.
+````
+Click [here](http://www.classiccmp.org/dunfield/r/8080.txt) for a listing of the 8080 opcodes.
 
 --------------------------------------------------------------------------------
 ## Altair 8800 Status Lights

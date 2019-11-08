@@ -39,9 +39,43 @@
 // -----------------------------------------------------------------------------
 // Program to test opcodes.
 
+byte theProgramInr[] = {
+  //                //            ; --------------------------------------
+  //                // BEG:       ; Start: Testing opcode INR.
+  // ------------------------------------------------------------------------------------------
+  //                //            ; Intialize register values.
+  //1RRR110
+  B00111110, 6,     // MVI A,6    ; Move # to registers.
+  B00000110, 0,     // MVI B,0
+  B00001110, 1,     // MVI C,1
+  B00010110, 2,     // MVI D,2
+  B00011110, 3,     // MVI E,3
+  B00100110, 4,     // MVI H,4
+  B00101110, 5,     // MVI L,5
+  0343, 30,         // OUT 30     ; Print the intial register values.
+  0166,             // HLT
+  //
+  // ------------------------------------------------------------------------------------------
+  //0DDD100
+  B00111100,        // INR A      ; Increment the register
+  B00000100,        // INR B 
+  B00001100,        // INR C
+  B00010100,        // INR D
+  B00011100,        // INR E
+  B00100100,        // INR H
+  B00101100,        // INR L
+  0343, 30,         // OUT 30     ; Print the incrmented register values.
+  0166,             // HLT
+  //
+  // ------------------------------------------------------------------------------------------
+  0303, 0000, 0000, // JMP BEG    ; Jump to the beginning to avoid endless NOPs.
+  0000              //            ; End.
+};
+
 byte theProgram[] = {
   //                //            ; --------------------------------------
-  //                // BEG:       ; Start: Testing opcode MOV.
+  //                // BEG:       ; Start: Testing opcodes MVI, MOV, INR.
+  //                              ;   Also uses: LXI, OUT, HLT.
   //
   0343, 30,         // OUT 30     ; Print the intial register values.
   0166,             // HLT
@@ -49,6 +83,7 @@ byte theProgram[] = {
   // ------------------------------------------------------------------------------------------
   //                //            ; Intialize register values.
   //
+  //1RRR110
   B00111110, 6,     // MVI A,6    ; Move # to registers.
   B00000110, 0,     // MVI B,0
   B00001110, 1,     // MVI C,1
@@ -69,79 +104,121 @@ byte theProgram[] = {
   //                 100 H
   //                 101 L
   //
+  //1RRR110
+  B00111110, 7,     // MVI A,7    ; Move # to register A.
   //1DDDSSS
-  B00111110, 7,     // MVI A,7              ; Move # to register A.
-  B01000111,        // MOV B,A  01 000 111  ; Move register A to each register.
-  B01001111,        // MOV C,A  01 001 111
-  B01010111,        // MOV D,A  01 010 111
-  B01011111,        // MOV E,A  01 011 111
-  B01100111,        // MOV H,A  01 100 111
-  B01101111,        // MOV L,A  01 101 111
+  B01000111,        // MOV B,A    ; 01 000 111  ; Move register A to each register.
+  B00111100,        // INR A      ; Increment the register
+  B01001111,        // MOV C,A    ; 01 001 111
+  B00111100,        // INR A
+  B01010111,        // MOV D,A    ; 01 010 111
+  B00111100,        // INR A
+  B01011111,        // MOV E,A    ; 01 011 111
+  B00111100,        // INR A
+  B01100111,        // MOV H,A    ; 01 100 111
+  B00111100,        // INR A
+  B01101111,        // MOV L,A    ; 01 101 111
   0343, 30,         // OUT 30     ; Print the intial register values.
   0166,             // HLT
   //
-  //1DDDSSS
+  //1RRR110
   B00000110, 0,     // MVI B,0  ; Move # to register B.
+  //1DDDSSS
   B01111000,        // MOV A,B  ; Move register B to each register.
+  B00000100,        // INR B 
   B01001000,        // MOV C,B
+  B00000100,        // INR B 
   B01010000,        // MOV D,B
+  B00000100,        // INR B 
   B01011000,        // MOV E,B
+  B00000100,        // INR B 
   B01100000,        // MOV H,B
+  B00000100,        // INR B 
   B01101000,        // MOV L,B
   0343, 30,         // OUT 30     ; Print the Intialized register values.
   0166,             // HLT
   //
-  //1DDDSSS
+  //1RRR110
   B00001110, 1,     // MVI C,1  ; Move # to register C.
+  //1DDDSSS
   B01111001,        // MOV A,C  ; Move register C to each register.
+  B00001100,        // INR C
   B01000001,        // MOV B,C
+  B00001100,        // INR C
   B01010001,        // MOV D,C
+  B00001100,        // INR C
   B01011001,        // MOV E,C
+  B00001100,        // INR C
   B01100001,        // MOV H,C
+  B00001100,        // INR C
   B01101001,        // MOV L,C
   0343, 30,         // OUT 30     ; Print the Intialized register values.
   0166,             // HLT
   //
-  //1DDDSSS
+  //1RRR110
   B00010110, 2,     // MVI D,2  ; Move # to register D.
+  //1DDDSSS
   B01111010,        // MOV A,D  ; Move register D to each register.
+  B00010100,        // INR D
   B01000010,        // MOV B,D
+  B00010100,        // INR D
   B01001010,        // MOV C,D
+  B00010100,        // INR D
   B01011010,        // MOV E,D
+  B00010100,        // INR D
   B01100010,        // MOV H,D
+  B00010100,        // INR D
   B01101010,        // MOV L,D
   0343, 30,         // OUT 30     ; Print the Intialized register values.
   0166,             // HLT
   //
-  //1DDDSSS
+  //1RRR110
   B00011110, 3,     // MVI E,3  ; Move # to register E.
+  //1DDDSSS
   B01111011,        // MOV A,E  ; Move register E to each register.
+  B00011100,        // INR E
   B01000011,        // MOV B,E
+  B00011100,        // INR E
   B01001011,        // MOV C,E
+  B00011100,        // INR E
   B01010011,        // MOV D,E
+  B00011100,        // INR E
   B01100011,        // MOV H,E
+  B00011100,        // INR E
   B01101011,        // MOV L,E
   0343, 30,         // OUT 30     ; Print the Intialized register values.
   0166,             // HLT
   //
+  //1RRR110
+  B00100110, 4,     // MVI H,4  ; Move # to register H.
   //1DDDSSS
-  B00011110, 4,     // MVI H,4  ; Move # to register H.
   B01111100,        // MOV A,H  ; Move register H to each register.
+  B00100100,        // INR H
   B01000100,        // MOV B,H
+  B00100100,        // INR H
   B01001100,        // MOV C,H
+  B00100100,        // INR H
   B01010100,        // MOV D,H
+  B00100100,        // INR H
   B01011100,        // MOV E,H
-  B01101100,        // MOV L,HE
+  B00100100,        // INR H
+  B01101100,        // MOV L,H
   0343, 30,         // OUT 30     ; Print the Intialized register values.
   0166,             // HLT
   //
+  //1RRR110
+  B00101110, 5,     // MVI L,5  ; Move # to register L.
   //1DDDSSS
-  B00011110, 5,     // MVI L,5  ; Move # to register L.
   B01111101,        // MOV A,L  ; Move register L to each register.
+  B00101100,        // INR L
   B01000101,        // MOV B,L
+  B00101100,        // INR L
   B01001101,        // MOV C,L
+  B00101100,        // INR L
   B01010101,        // MOV D,L
+  B00101100,        // INR L
   B01011101,        // MOV E,L
+  B00101100,        // INR L
   B01100101,        // MOV H,L
   0343, 30,         // OUT 30     ; Print the Intialized register values.
   0166,             // HLT
@@ -153,20 +230,10 @@ byte theProgram[] = {
   0343, 30,         // OUT 30     ; Print the Intialized register values.
   0166,             // HLT
   //
+  0303, 0000, 0000, // JMP BEG    ; Jump back to beginning to avoid endless NOPs.
   0000              //            ; End.
 };
 
-/*
-    case B00111110:
-      regD = regA;
-  #ifdef LOG_MESSAGES
-      Serial.print(F("> MOV"));
-      Serial.print(F(", move data from register A "));
-      Serial.print(F(" to register D = "));
-      printData(regD);
-  #endif
-      break;
-*/
 byte theProgram2[] = {
   //                //            ; --------------------------------------
   //                // BEG:       ; Start
@@ -193,8 +260,7 @@ byte theProgram2[] = {
   0176,             // MOV M      ; Move the data in register M(register address H:L), to register A.
   0343, 30,         // OUT 30     ; Print the registers.
   0166,             // HLT
-  0303, 14, 0000,   // JMP        ; Jump to the LOOP.
-  //
+  0303, 14, 0000,   // JMP        ; Jump to LOOP.
   0000              //            ; End.
 };
 
@@ -646,6 +712,108 @@ void processOpcode() {
 #endif
       break;
     // ---------------------------------------------------------------------
+    // INR D : increment a register. To do: update the flags.
+    //    00DDD100    Flags:ZSPA
+    case B00111100:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> INR register A: "));
+      Serial.print(regA);
+#endif
+      regA++;
+      if (regA == 0) {
+        // Set flag.
+      }
+#ifdef LOG_MESSAGES
+      Serial.print("++ = ");
+      Serial.print(regA);
+#endif
+      break;
+    case B00000100:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> INR register B: "));
+      Serial.print(regB);
+#endif
+      regB++;
+      if (regB == 0) {
+        // Set flag.
+      }
+#ifdef LOG_MESSAGES
+      Serial.print("++ = ");
+      Serial.print(regB);
+#endif
+      break;
+    case B00001100:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> INR register C: "));
+      Serial.print(regC);
+#endif
+      regC++;
+      if (regC == 0) {
+        // Set flag.
+      }
+#ifdef LOG_MESSAGES
+      Serial.print("++ = ");
+      Serial.print(regC);
+#endif
+      break;
+    case B00010100:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> INR register D: "));
+      Serial.print(regD);
+#endif
+      regD++;
+      if (regD == 0) {
+        // Set flag.
+      }
+#ifdef LOG_MESSAGES
+      Serial.print("++ = ");
+      Serial.print(regD);
+#endif
+      break;
+    case B00011100:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> INR register E: "));
+      Serial.print(regE);
+#endif
+      regE++;
+      if (regE == 0) {
+        // Set flag.
+      }
+#ifdef LOG_MESSAGES
+      Serial.print("++ = ");
+      Serial.print(regE);
+#endif
+      break;
+    case B00100100:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> INR register H: "));
+      Serial.print(regH);
+#endif
+      regH++;
+      if (regH == 0) {
+        // Set flag.
+      }
+#ifdef LOG_MESSAGES
+      Serial.print("++ = ");
+      Serial.print(regH);
+#endif
+      break;
+    case B00101100:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> INR register L: "));
+      Serial.print(regL);
+#endif
+      regL++;
+      if (regL == 0) {
+        // Set flag.
+      }
+#ifdef LOG_MESSAGES
+      Serial.print("++ = ");
+      Serial.print(regL);
+#endif
+      break;
+    // ---------------------------------------------------------------------
+    // INX : increment a register pair.
     case B00000011:
       regC++;
       if (regC == 0) {
@@ -758,6 +926,10 @@ void processOpcode() {
       printData(regA);
 #endif
       break;
+    // ------------------------------------------------------------------------------------------
+    /*
+      B01DDDSSS         // MOV D,S  ; Move from one register to another.
+    */
     // ---------------------------------------------------------------------
     case B01000111:
       regB = regA;
@@ -1017,16 +1189,48 @@ void processOpcode() {
 #endif
       break;
     // ------------------------------------------------------------------------------------------
-    /*
-      B01DDDSSS         // MOV D,S  ; Move from one register to another.
-
-      B01111101,        // MOV A,L  ; Move register L to each register.
-      B01000101,        // MOV B,L
-      B01001101,        // MOV C,L
-      B01010101,        // MOV D,L
-      B01011101,        // MOV E,L
-      B01100101,        // MOV H,L
-    */
+    case B01111101:
+      regA = regL;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register L to A = "));
+      printData(regA);
+#endif
+      break;
+    case B01000101:
+      regB = regL;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register L to B = "));
+      printData(regB);
+#endif
+      break;
+    case B01001101:
+      regC = regL;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register L to C = "));
+      printData(regC);
+#endif
+      break;
+    case B01010101:
+      regD = regL;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register L to D = "));
+      printData(regD);
+#endif
+      break;
+    case B01011101:
+      regE = regL;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register L to E = "));
+      printData(regE);
+#endif
+      break;
+    case B01100101:
+      regH = regL;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register L to H = "));
+      printData(regH);
+#endif
+      break;
     // ------------------------------------------------------------------------------------------
     // MVI R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
     // MVI A,#  00 111 110  0036
@@ -1127,7 +1331,7 @@ void processOpcode() {
       Serial.print(F(" - Error, unknown instruction."));
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
-    // ------------------------------------------------------------------------------------------
+      // ------------------------------------------------------------------------------------------
   }
 }
 
