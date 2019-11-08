@@ -159,14 +159,14 @@ byte theProgram[] = {
 /*
     case B00111110:
       regD = regA;
-#ifdef LOG_MESSAGES
+  #ifdef LOG_MESSAGES
       Serial.print(F("> MOV"));
       Serial.print(F(", move data from register A "));
       Serial.print(F(" to register D = "));
       printData(regD);
-#endif
+  #endif
       break;
- */
+*/
 byte theProgram2[] = {
   //                //            ; --------------------------------------
   //                // BEG:       ; Start
@@ -518,7 +518,7 @@ void processOpcode() {
       Serial.print(F("> CPI, compare next data byte to A. Store true or false into compareResult."));
 #endif
       break;
-      // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
     case DAD_BC:
       bValue = regB;
       cValue = regC;
@@ -606,7 +606,7 @@ void processOpcode() {
         }
       */
       break;
-      // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
     case JNC:
       opcode = JNC;
 #ifdef LOG_MESSAGES
@@ -625,7 +625,7 @@ void processOpcode() {
       Serial.print(F("> JMP, get address low and high order bytes."));
 #endif
       break;
-      // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
     case HLT:
       runProgram = false;
       halted = true;
@@ -645,7 +645,7 @@ void processOpcode() {
       Serial.print(F("> IN, If input value is available, get the input byte."));
 #endif
       break;
-      // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
     case B00000011:
       regC++;
       if (regC == 0) {
@@ -697,7 +697,7 @@ void processOpcode() {
       printOctal(regL);
 #endif
       break;
-      // 00RP0011 -------------------------------------------------
+    // 00RP0011 -------------------------------------------------
     /*   00110011 Not done for the stack pointer.
       // INX
       void _I8080_INX(uint8_t rp) {
@@ -709,7 +709,7 @@ void processOpcode() {
       _PC++;
       }
     */
-      // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
     case LDAX_D:
       anAddress = word(regD, regE);
       dValue = regD;
@@ -732,7 +732,7 @@ void processOpcode() {
       printData(regA);
 #endif
       break;
-      // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
     case LXI_BC:
       opcode = LXI_BC;
 #ifdef LOG_MESSAGES
@@ -745,7 +745,7 @@ void processOpcode() {
       Serial.print(F("> LXI, Move the lb hb data, into register pair H:L = hb:lb."));
 #endif
       break;
-      // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
     case MOV_AM:
       anAddress = word(regH, regL);
       regA = memoryData[anAddress];
@@ -758,7 +758,7 @@ void processOpcode() {
       printData(regA);
 #endif
       break;
-      // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
     case B01000111:
       regB = regA;
 #ifdef LOG_MESSAGES
@@ -801,7 +801,7 @@ void processOpcode() {
       printData(regL);
 #endif
       break;
-      // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
     case B01111000:
       regA = regB;
 #ifdef LOG_MESSAGES
@@ -844,11 +844,124 @@ void processOpcode() {
       printData(regL);
 #endif
       break;
-      // ---------------------------------------------------------------------
-/*
-  B01DDDSSS         // MOV D,S  ; Move from one register to another.
+    // ---------------------------------------------------------------------
+    case B01111001:
+      regA = regC;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register C to A = "));
+      printData(regA);
+#endif
+      break;
+    case B01000001:
+      regB = regC;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register C to B = "));
+      printData(regB);
+#endif
+      break;
+    case B01010001:
+      regD = regC;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register C to D = "));
+      printData(regD);
+#endif
+      break;
+    case B01011001:
+      regE = regC;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register C to E = "));
+      printData(regE);
+#endif
+      break;
+    case B01100001:
+      regH = regC;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register C to H = "));
+      printData(regH);
+#endif
+      break;
+    case B01101001:
+      regL = regC;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register C to L = "));
+      printData(regL);
+#endif
+      break;
+    // ------------------------------------------------------------------------------------------
+    case B01111010:
+      regA = regD;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register D to A = "));
+      printData(regA);
+#endif
+      break;
+    case B01000010:
+      regB = regD;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register D to B = "));
+      printData(regB);
+#endif
+      break;
+    case B01001010:
+      regC = regD;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register D to C = "));
+      printData(regC);
+#endif
+      break;
+    case B01011010:
+      regE = regD;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register D to E = "));
+      printData(regE);
+#endif
+      break;
+    case B01100010:
+      regH = regD;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register D to H = "));
+      printData(regH);
+#endif
+      break;
+    case B01101010:
+      regL = regD;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register D to L = "));
+      printData(regL);
+#endif
+      break;
+    // ------------------------------------------------------------------------------------------
+    case B01111011:
+      regA = regE;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register D to A = "));
+      printData(regA);
+#endif
+      break;
+    // ------------------------------------------------------------------------------------------
+    /*
+      B01DDDSSS         // MOV D,S  ; Move from one register to another.
 
-       */
+      B01000011,        // MOV B,E
+      B01001011,        // MOV C,E
+      B01010011,        // MOV D,E
+      B01100011,        // MOV H,E
+      B01101011,        // MOV L,E
+
+      B01111100,        // MOV A,H  ; Move register H to each register.
+      B01000100,        // MOV B,H
+      B01001100,        // MOV C,H
+      B01010100,        // MOV D,H
+      B01011100,        // MOV E,H
+      B01101100,        // MOV L,HE
+
+      B01111101,        // MOV A,L  ; Move register L to each register.
+      B01000101,        // MOV B,L
+      B01001101,        // MOV C,L
+      B01010101,        // MOV D,L
+      B01011101,        // MOV E,L
+      B01100101,        // MOV H,L
+    */
     // ------------------------------------------------------------------------------------------
     // MVI R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
     // MVI A,#  00 111 110  0036
@@ -900,12 +1013,14 @@ void processOpcode() {
       Serial.print(F("> MVI, move db address into register L."));
 #endif
       break;
+    // ------------------------------------------------------------------------------------------
     case NOP:
 #ifdef LOG_MESSAGES
       Serial.print(F("> NOP ---"));
 #endif
       delay(100);
       break;
+    // ------------------------------------------------------------------------------------------
     case OUT:
       opcode = OUT;
 #ifdef LOG_MESSAGES
@@ -914,6 +1029,7 @@ void processOpcode() {
 #endif
       Serial.print(F("> OUT, Write output to the port address(following db)."));
       break;
+    // ------------------------------------------------------------------------------------------
     case RRC:
 #ifdef LOG_MESSAGES
       Serial.print(F("> RRC"));
@@ -926,6 +1042,7 @@ void processOpcode() {
       printByte(regA);
 #endif
       break;
+    // ------------------------------------------------------------------------------------------
     case XRA_D:
 #ifdef LOG_MESSAGES
       Serial.print(F("> XRA"));
@@ -940,10 +1057,12 @@ void processOpcode() {
       printByte(regA);
 #endif
       break;
+    // ------------------------------------------------------------------------------------------
     default:
       Serial.print(F(" - Error, unknown instruction."));
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
+    // ------------------------------------------------------------------------------------------
   }
 }
 
@@ -1178,7 +1297,7 @@ void processOpcodeData() {
 #endif
       programCounter++;
       break;
-      // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
     case OUT:
       // instructionCycle == 1
       dataByte = memoryData[programCounter];
@@ -1473,14 +1592,14 @@ void infraredSwitchInput() {
 // 1602 LCD
 #ifdef INCLUDE_LCD
 
-  #include<Wire.h>
-  #include<LiquidCrystal_I2C.h>
+#include<Wire.h>
+#include<LiquidCrystal_I2C.h>
 
-  LiquidCrystal_I2C lcd(0x27, 20, 4);
+LiquidCrystal_I2C lcd(0x27, 20, 4);
 
-  String theLine = "";
-  int displayColumns = 16;
-  void displayPrintln(int theRow, String theString) {
+String theLine = "";
+int displayColumns = 16;
+void displayPrintln(int theRow, String theString) {
   // To overwrite anything on the current line.
   String printString = theString;
   int theRest = displayColumns - theString.length();
@@ -1496,9 +1615,9 @@ void infraredSwitchInput() {
   }
   lcd.setCursor(0, theRow);
   lcd.print(printString);
-  }
+}
 
-  void readyLcd() {
+void readyLcd() {
   lcd.init();
   lcd.backlight();
   //                1234567890123456
@@ -1507,7 +1626,7 @@ void infraredSwitchInput() {
   displayPrintln(1, theLine);
   // delay(3000);
   // lcd.clear();
-  }
+}
 #endif
 
 // -----------------------------------------------------------------------------
