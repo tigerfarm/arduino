@@ -59,9 +59,12 @@ byte theProgram[] = {
   B00111110, 6,     // mvi a,0    ; Move # to register A.
   0343, 37,         // out 37     ; Print register A.
   //
+  0000,             // nop
   B00110010, 60, 0, // sta 60     ; Store register A's data to the address(hb:lb).
   0343, 36,         // out 36     ; Print memory address data value. "36" prints the register pair H:L and data at the address.
   //
+  0000,             // nop
+  B00111110, 0,     // mvi a,0    ; Move # to register A.
   B00111010, 60, 0, // lda 60     ; Load register A from the address(hb:lb).
   0343, 37,         // out 37     ; Print register A.
   //
@@ -1227,7 +1230,7 @@ void processOpcode() {
     // ------------------------------------------------------------------------------------------
     case nop:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> nop ---"));
+      Serial.print(F("> nop ------------"));
 #endif
       delay(100);
       break;
@@ -1262,7 +1265,7 @@ void processOpcode() {
 #endif
       break;
     case B00111010:
-      opcode = B00110010;
+      opcode = B00111010;
 #ifdef LOG_MESSAGES
       Serial.print(F("> lda, Load register A with data from the hb:lb address."));
 #endif
