@@ -59,10 +59,10 @@ byte theProgram[] = {
   B00111110, 6,     // mvi a,0    ; Move # to register A.
   0343, 37,         // out 37     ; Print register A.
   //
-  B00110010, 60, 0, // sta        ; Store register A's data to the hb:lb address.
+  B00110010, 60, 0, // sta 60     ; Store register A's data to the address(hb:lb).
   0343, 36,         // out 36     ; Print memory address data value. "36" prints the register pair H:L and data at the address.
   //
-  B00111010, 60, 0, // lda        ; Store the register value.
+  B00111010, 60, 0, // lda 60     ; Load register A from the address(hb:lb).
   0343, 37,         // out 37     ; Print register A.
   //
   0166,             // hlt
@@ -1571,7 +1571,7 @@ void processOpcodeData() {
           printData(regL);
           break;
         case 36:
-          Serial.print(F("> Register H:L = "));
+          Serial.print(F(" > Register H:L = "));
           Serial.print(regH);
           Serial.print(F(":"));
           Serial.print(regL);
