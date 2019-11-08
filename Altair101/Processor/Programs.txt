@@ -1,135 +1,8 @@
 // -----------------------------------------------------------------------------
 //  Programing links
 
-Assembler style guide:
-http://www.sourceformat.com/coding-standard-asm-assembly.htm
-````
-1234567890123456789012345678901234567890
-                mov     ax, x
-                cwd
-                add     ax, 0ffffh
-                rcl     dx, 1
-                mov     y, dx
-````
-If then else
-````
-        if ( x=y ) then
-
-                write( 'x = y' );
-
-        else
-
-                write( 'x <> y' );
-
-        endif;
-
-; Corresponding Assembly Code:
-
-                mov     ax, x
-                cmp     ax, y
-                jne     ElsePart
-
-                print   "x=y",nl
-                jmp     IfDone
-
-ElsePart:       print   "x<>y",nl
-IfDone:
-````
-Sample program:
-````
-;**************************************************
-;
-; AddHex-
-;
-; This simple program reads two integer values from
-; the user, computes their sum, and prints the
-; result to the display.
-;
-; This example uses the "UCR Standard Library for
-; 80x86 Assembly Language Programmers v2.0"
-;
-; Randall Hyde
-; 12/13/96
-
-                title           AddHex
-                .xlist
-                include         ucrlib.a
-                includelib      ucrlib.lib
-                .list
-
-
-
-cseg            segment para public 'code'
-                assume  cs:cseg
-
-; GetInt-
-;
-; This function reads an integer value from the keyboard and
-; returns that value in the AX register.
-;
-; This routine traps illegal values (either too large or
-; incorrect digits) and makes the user re-enter the value.
-
-;234567890123456789012345678901234567890
-GetInt          textequ <call GetInt_p>
-GetInt_p        proc
-                push    dx              ;DX hold error code.
-
-GetIntLoop:     mov     dx, false       ;Assume no error.
-                try                     ;Trap any errors.
-
-                FlushGetc               ;Force input from a new line.
-                geti                    ;Read the integer.
-
-                except  $Conversion     ;Trap if bad characters.
-                print   "Illegal numeric conversion, pleasere-enter", nl
-                mov     dx, true
-
-                except  $Overflow       ;Trap if # too large.
-                print   "Value out of range, please re-enter.",nl
-                mov     dx, true
-
-
-                endtry
-                cmp     dx, true
-                je      GetIntLoop
-                pop     dx
-                ret
-GetInt_p        endp
-
-
-
-Main            proc
-
-                InitExcept
-
-                print   'Enter value 1: '
-                GetInt
-                mov     bx, ax
-
-                print   'Enter value 2: '
-                GetInt
-                print   cr, lf, 'The sum of the two values is '
-                add     ax, bx
-                puti
-                putcr
-
-Quit:           CleanUpEx
-                ExitPgm                 ;DOS macro to quit program.
-Main            endp
-
-cseg            ends
-
-sseg            segment para stack 'stack'
-stk             db      256 dup (?)
-sseg            ends
-
-
-zzzzzzseg       segment para public 'zzzzzz'
-LastBytes       db      16 dup (?)
-zzzzzzseg       ends
-                end     Main
-````
+8080 opcodes:
+file:///Users/dthurston/Projects/arduino/Altair101/documents/8080opcodes.txt
 
 // -----------------------------------------------------------------------------
   Bitwise, shift right:
@@ -137,88 +10,112 @@ zzzzzzseg       ends
   Exclusive or (XOR):
     https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitwisexor/
 
-/*
-  00 000 000 = 000 =   0
-  00 000 001 = 002 =   1 2^0
-  00 000 010 = 002 =   2 2^1
-  00 000 100 = 040 =   4 2^2
-  00 001 000 = 010 =   8 2^3
-  00 010 000 = 020 =  16 2^4
-  00 100 000 = 014 =  32 2^5
-  01 000 000 = 014 =  64 2^6
-  10 000 000 = 014 = 128 2^7 8 bits store valuse: 0 ... 255
-                     256 2^8
-                     512 2^9
-                    1024 2^10  1K
-                    2048 2^11  2K
-                    4096 2^12  4K
-                    8192 2^13  8K
-                   16384 2^14 16K
-                   32768 2^15 32k
-                   65535 2^16 64k
-*/
+// -----------------------------------------------------------------------------
+// Sample loop
+
+byte theProgram[] = {
+  //                //            ; --------------------------------------
+  //                // Start:       ; Start
+  //
+  0343, 38,         // out 38     ; Print the intial register values.
+  0166,             // hlt
+  //
+  //                //            ; --------------------------------------
+  //                //            ; Intialize register values.
+  //
+  0041, 0000, 0000, // lxi h,Start  ; lxi_HL lb hb. Load into register H:L = 0000:0000.
+  0176,             // mov M      ; Move the data in register M(register address H:L), to register A.
+  0006, 0001,       // mvi b,1    ; Move db to register B.
+  0016, 0002,       // mvi c,2    ; Move db to register C.
+  0127,             // mov d,a    ; Move register a to register D.
+  0036, 0003,       // mvi e,3    ; Move db to register E.
+  //
+  0343, 38,         // out 38     ; Print the Intialized register values.
+  0166,             // hlt
+  //
+  //                //            ; --------------------------------------
+  //                // LOOP:      ; Change values and loop.
+  0043,             // inx M      ; Increment register M(register address H:L).
+  0176,             // mov M      ; Move the data in register M(register address H:L), to register A.
+  0343, 38,         // out 38     ; Print the registers.
+  0166,             // hlt
+  0303, 14, 0000,   // jmp        ; Jump to LOOP.
+  0000              //            ; End.
+};
 
 // -----------------------------------------------------------------------------
 // INR: Increment opcode test.
 
 byte theProgram[] = {
   //                //            ; --------------------------------------
-  //                // BEG:       ; Start: Testing opcode INR.
+  //                // Start:     ; Testing opcodes inr and dcr.
   // ------------------------------------------------------------------------------------------
   //                //            ; Intialize register values.
-  //
-  B00111110, 6,     // MVI A,6    ; Move # to registers.
-  B00000110, 0,     // MVI B,0
-  B00001110, 1,     // MVI C,1
-  B00010110, 2,     // MVI D,2
-  B00011110, 3,     // MVI E,3
-  B00100110, 4,     // MVI H,4
-  B00101110, 5,     // MVI L,5
-  0343, 30,         // OUT 30     ; Print the intial register values.
-  0166,             // HLT
+  //1RRR110
+  B00111110, 6,     // mvi a,6    ; Move # to registers.
+  B00000110, 0,     // mvi b,0
+  B00001110, 1,     // mvi c,1
+  B00010110, 2,     // mvi d,2
+  B00011110, 3,     // mvi e,3
+  B00100110, 4,     // mvi h,4
+  B00101110, 5,     // mvi l,5
+  0343, 38,         // out 38     ; Print the intial register values.
+  0166,             // hlt
   //
   // ------------------------------------------------------------------------------------------
   //0DDD100
-  B00111100,        // INR A      ; Increment the register
-  B00000100,        // INR B 
-  B00001100,        // INR C
-  B00010100,        // INR D
-  B00011100,        // INR E
-  B00100100,        // INR H
-  B00101100,        // INR L
-  0343, 30,         // OUT 30     ; Print the incrmented register values.
-  0166,             // HLT
+  B00111100,        // inr a      ; Increment the register
+  B00000100,        // inr b 
+  B00001100,        // inr C
+  B00010100,        // inr D
+  B00011100,        // inr E
+  B00100100,        // inr H
+  B00101100,        // inr L
+  0343, 38,         // out 38     ; Print the incrmented register values.
+  0166,             // hlt
   //
   // ------------------------------------------------------------------------------------------
+  //0DDD101
+  B00111101,        // dcr a      ; Decrement the register
+  B00000101,        // dcr b 
+  B00001101,        // dcr C
+  B00010101,        // dcr D
+  B00011101,        // dcr E
+  B00100101,        // dcr H
+  B00101101,        // dcr L
+  0343, 38,         // out 38     ; Print the decremented register values.
+  0166,             // hlt
   //
+  // ------------------------------------------------------------------------------------------
+  0303, 0000, 0000, // jmp Start    ; Jump to the beginning to avoid endless nops.
   0000              //            ; End.
 };
 
-/ -----------------------------------------------------------------------------
-// Test MVI and MOV opcodes.
-
+// -----------------------------------------------------------------------------
 byte theProgram[] = {
   //                //            ; --------------------------------------
-  //                // BEG:       ; Start: Testing opcode MOV.
+  //                // Start:     ; Start: Testing opcodes mvi, mov, inr.
+  //                              ;   Also uses: lxi, OUT, hlt.
   //
-  0343, 30,         // OUT 30     ; Print the intial register values.
-  0166,             // HLT
+  0343, 38,         // out 38     ; Print the intial register values.
+  0166,             // hlt
   //
   // ------------------------------------------------------------------------------------------
   //                //            ; Intialize register values.
   //
-  B00111110, 6,     // MVI A,6    ; Move # to registers.
-  B00000110, 0,     // MVI B,0
-  B00001110, 1,     // MVI C,1
-  B00010110, 2,     // MVI D,2
-  B00011110, 3,     // MVI E,3
-  B00100110, 4,     // MVI H,4
-  B00101110, 5,     // MVI L,5
-  0343, 30,         // OUT 30     ; Print the intial register values.
-  0166,             // HLT
+  //1RRR110
+  B00111110, 6,     // mvi a,6    ; Move # to registers.
+  B00000110, 0,     // mvi b,0
+  B00001110, 1,     // mvi c,1
+  B00010110, 2,     // mvi d,2
+  B00011110, 3,     // mvi e,3
+  B00100110, 4,     // mvi h,4
+  B00101110, 5,     // mvi l,5
+  0343, 38,         // out 38     ; Print the intial register values.
+  0166,             // hlt
   //
   // ------------------------------------------------------------------------------------------
-  // MOV D,S  01 DDD SSS   Move register to a register. 36 register to register combinations.
+  // mov d,S  01 DDD SSS   Move register to a register. 36 register to register combinations.
   //                 111 A
   //                 000 B
   //                 001 C
@@ -228,96 +125,132 @@ byte theProgram[] = {
   //                 101 L
   //
   //1RRR110
-  B00111110, 7,     // MVI A,7              ; Move # to register A.
+  B00111110, 7,     // mvi a,7    ; Move # to register A.
   //1DDDSSS
-  B01000111,        // MOV B,A  01 000 111  ; Move register A to each register.
-  B01001111,        // MOV C,A  01 001 111
-  B01010111,        // MOV D,A  01 010 111
-  B01011111,        // MOV E,A  01 011 111
-  B01100111,        // MOV H,A  01 100 111
-  B01101111,        // MOV L,A  01 101 111
-  0343, 30,         // OUT 30     ; Print the intial register values.
-  0166,             // HLT
+  B01000111,        // mov b,a    ; 01 000 111  ; Move register a to each register.
+  B00111100,        // inr a      ; Increment the register
+  B01001111,        // mov c,a    ; 01 001 111
+  B00111100,        // inr A
+  B01010111,        // mov d,a    ; 01 010 111
+  B00111100,        // inr A
+  B01011111,        // mov e,a    ; 01 011 111
+  B00111100,        // inr A
+  B01100111,        // mov h,a    ; 01 100 111
+  B00111100,        // inr A
+  B01101111,        // mov l,a    ; 01 101 111
+  0343, 38,         // out 38     ; Print the intial register values.
+  0166,             // hlt
   //
   //1RRR110
-  B00000110, 0,     // MVI B,0  ; Move # to register B.
+  B00000110, 0,     // mvi b,0  ; Move # to register B.
   //1DDDSSS
-  B01111000,        // MOV A,B  ; Move register B to each register.
-  B01001000,        // MOV C,B
-  B01010000,        // MOV D,B
-  B01011000,        // MOV E,B
-  B01100000,        // MOV H,B
-  B01101000,        // MOV L,B
-  0343, 30,         // OUT 30     ; Print the Intialized register values.
-  0166,             // HLT
+  B01111000,        // mov a,b  ; Move register b to each register.
+  B00000100,        // inr b 
+  B01001000,        // mov c,b
+  B00000100,        // inr b 
+  B01010000,        // mov d,b
+  B00000100,        // inr b 
+  B01011000,        // mov e,b
+  B00000100,        // inr b 
+  B01100000,        // mov h,b
+  B00000100,        // inr b 
+  B01101000,        // mov l,b
+  0343, 38,         // out 38     ; Print the Intialized register values.
+  0166,             // hlt
   //
   //1RRR110
-  B00001110, 1,     // MVI C,1  ; Move # to register C.
+  B00001110, 1,     // mvi c,1  ; Move # to register C.
   //1DDDSSS
-  B01111001,        // MOV A,C  ; Move register C to each register.
-  B01000001,        // MOV B,C
-  B01010001,        // MOV D,C
-  B01011001,        // MOV E,C
-  B01100001,        // MOV H,C
-  B01101001,        // MOV L,C
-  0343, 30,         // OUT 30     ; Print the Intialized register values.
-  0166,             // HLT
+  B01111001,        // mov a,c  ; Move register c to each register.
+  B00001100,        // inr C
+  B01000001,        // mov b,c
+  B00001100,        // inr C
+  B01010001,        // mov d,c
+  B00001100,        // inr C
+  B01011001,        // mov e,c
+  B00001100,        // inr C
+  B01100001,        // mov h,c
+  B00001100,        // inr C
+  B01101001,        // mov l,c
+  0343, 38,         // out 38     ; Print the Intialized register values.
+  0166,             // hlt
   //
   //1RRR110
-  B00010110, 2,     // MVI D,2  ; Move # to register D.
+  B00010110, 2,     // mvi d,2  ; Move # to register D.
   //1DDDSSS
-  B01111010,        // MOV A,D  ; Move register D to each register.
-  B01000010,        // MOV B,D
-  B01001010,        // MOV C,D
-  B01011010,        // MOV E,D
-  B01100010,        // MOV H,D
-  B01101010,        // MOV L,D
-  0343, 30,         // OUT 30     ; Print the Intialized register values.
-  0166,             // HLT
+  B01111010,        // mov a,d  ; Move register d to each register.
+  B00010100,        // inr D
+  B01000010,        // mov b,d
+  B00010100,        // inr D
+  B01001010,        // mov c,d
+  B00010100,        // inr D
+  B01011010,        // mov e,d
+  B00010100,        // inr D
+  B01100010,        // mov h,d
+  B00010100,        // inr D
+  B01101010,        // mov l,d
+  0343, 38,         // out 38     ; Print the Intialized register values.
+  0166,             // hlt
   //
   //1RRR110
-  B00011110, 3,     // MVI E,3  ; Move # to register E.
+  B00011110, 3,     // mvi e,3  ; Move # to register E.
   //1DDDSSS
-  B01111011,        // MOV A,E  ; Move register E to each register.
-  B01000011,        // MOV B,E
-  B01001011,        // MOV C,E
-  B01010011,        // MOV D,E
-  B01100011,        // MOV H,E
-  B01101011,        // MOV L,E
-  0343, 30,         // OUT 30     ; Print the Intialized register values.
-  0166,             // HLT
+  B01111011,        // mov a,E  ; Move register e to each register.
+  B00011100,        // inr E
+  B01000011,        // mov b,E
+  B00011100,        // inr E
+  B01001011,        // mov c,E
+  B00011100,        // inr E
+  B01010011,        // mov d,E
+  B00011100,        // inr E
+  B01100011,        // mov h,E
+  B00011100,        // inr E
+  B01101011,        // mov l,E
+  0343, 38,         // out 38     ; Print the Intialized register values.
+  0166,             // hlt
   //
   //1RRR110
-  B00100110, 4,     // MVI H,4  ; Move # to register H.
+  B00100110, 4,     // mvi h,4  ; Move # to register H.
   //1DDDSSS
-  B01111100,        // MOV A,H  ; Move register H to each register.
-  B01000100,        // MOV B,H
-  B01001100,        // MOV C,H
-  B01010100,        // MOV D,H
-  B01011100,        // MOV E,H
-  B01101100,        // MOV L,HE
-  0343, 30,         // OUT 30     ; Print the Intialized register values.
-  0166,             // HLT
+  B01111100,        // mov a,h  ; Move register h to each register.
+  B00100100,        // inr H
+  B01000100,        // mov b,h
+  B00100100,        // inr H
+  B01001100,        // mov c,h
+  B00100100,        // inr H
+  B01010100,        // mov d,h
+  B00100100,        // inr H
+  B01011100,        // mov e,h
+  B00100100,        // inr H
+  B01101100,        // mov l,h
+  0343, 38,         // out 38     ; Print the Intialized register values.
+  0166,             // hlt
   //
   //1RRR110
-  B00101110, 5,     // MVI L,5  ; Move # to register L.
+  B00101110, 5,     // mvi l,5  ; Move # to register L.
   //1DDDSSS
-  B01111101,        // MOV A,L  ; Move register L to each register.
-  B01000101,        // MOV B,L
-  B01001101,        // MOV C,L
-  B01010101,        // MOV D,L
-  B01011101,        // MOV E,L
-  B01100101,        // MOV H,L
-  0343, 30,         // OUT 30     ; Print the Intialized register values.
-  0166,             // HLT
+  B01111101,        // mov a,l  ; Move register l to each register.
+  B00101100,        // inr L
+  B01000101,        // mov b,l
+  B00101100,        // inr L
+  B01001101,        // mov c,l
+  B00101100,        // inr L
+  B01010101,        // mov d,l
+  B00101100,        // inr L
+  B01011101,        // mov e,l
+  B00101100,        // inr L
+  B01100101,        // mov h,l
+  0343, 38,         // out 38     ; Print the Intialized register values.
+  0166,             // hlt
   //
   // ------------------------------------------------------------------------------------------
   //
-  0041, 0000, 0000, // LXI H,BEG  ; LXI_HL lb hb. Load into register H:L = 0000:0000.
-  0176,             // MOV M,A    ; Move the data in register M(register address H:L), to register A.
-  0343, 30,         // OUT 30     ; Print the Intialized register values.
-  0166,             // HLT
+  0041, 0000, 0000, // lxi h,Start  ; lxi_HL lb hb. Load into register H:L = 0000:0000.
+  0176,             // mov M,a    ; Move the data in register M(register address H:L), to register A.
+  0343, 38,         // out 38     ; Print the Intialized register values.
+  0166,             // hlt
   //
+  0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
   0000              //            ; End.
 };
 
@@ -328,7 +261,7 @@ byte theProgram[] = {
   //                //            ; --------------------------------------
   //                // BEG:       ; Start: Testing opcode MVI.
   //
-  0343, 30,         // OUT 30     ; Print the intial register values.
+  0343, 38,         // OUT 30     ; Print the intial register values.
   0166,             // HLT
   //
   // ------------------------------------------------------------------------------------------
@@ -351,7 +284,7 @@ byte theProgram[] = {
   B00100110, 4,       // MVI H,4    ; Move db to register H.
   B00101110, 5,       // MVI L,5    ; Move db to register L.
   //
-  0343, 30,         // OUT 30     ; Print the Intialized register values.
+  0343, 38,         // OUT 30     ; Print the Intialized register values.
   0166,             // HLT
   //
   0000              //            ; End.

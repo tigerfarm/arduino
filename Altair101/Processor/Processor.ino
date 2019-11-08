@@ -39,206 +39,47 @@
 // -----------------------------------------------------------------------------
 // Program to test opcodes.
 
-byte thePrograminr[] = {
-  //                //            ; --------------------------------------
-  //                // Start:     ; Testing opcode inr.
-  // ------------------------------------------------------------------------------------------
-  //                //            ; Intialize register values.
-  //1RRR110
-  B00111110, 6,     // mvi a,6    ; Move # to registers.
-  B00000110, 0,     // mvi b,0
-  B00001110, 1,     // mvi c,1
-  B00010110, 2,     // mvi d,2
-  B00011110, 3,     // mvi e,3
-  B00100110, 4,     // mvi h,4
-  B00101110, 5,     // mvi l,5
-  0343, 30,         // out 30     ; Print the intial register values.
-  0166,             // hlt
-  //
-  // ------------------------------------------------------------------------------------------
-  //0DDD100
-  B00111100,        // inr a      ; Increment the register
-  B00000100,        // inr b 
-  B00001100,        // inr C
-  B00010100,        // inr D
-  B00011100,        // inr E
-  B00100100,        // inr H
-  B00101100,        // inr L
-  0343, 30,         // out 30     ; Print the incrmented register values.
-  0166,             // hlt
-  //
-  // ------------------------------------------------------------------------------------------
-  0303, 0000, 0000, // jmp Start    ; Jump to the beginning to avoid endless nops.
-  0000              //            ; End.
-};
-
 byte theProgram[] = {
   //                //            ; --------------------------------------
-  //                // Start:       ; Start: Testing opcodes mvi, mov, inr.
-  //                              ;   Also uses: lxi, OUT, hlt.
+  //                // Start:     ; Start
   //
-  0343, 30,         // out 30     ; Print the intial register values.
-  0166,             // hlt
-  //
-  // ------------------------------------------------------------------------------------------
+  //                //            ; --------------------------------------
   //                //            ; Intialize register values.
-  //
   //1RRR110
-  B00111110, 6,     // mvi a,6    ; Move # to registers.
-  B00000110, 0,     // mvi b,0
-  B00001110, 1,     // mvi c,1
-  B00010110, 2,     // mvi d,2
-  B00011110, 3,     // mvi e,3
-  B00100110, 4,     // mvi h,4
-  B00101110, 5,     // mvi l,5
-  0343, 30,         // out 30     ; Print the intial register values.
+  B00111110, 6,     // mvi a,0    ; Move # to register A.
+  //
+  B00100110, 0,     // mvi h,0    ; Address for memory address testing.
+  B00101110, 60,    // mvi l,60
+  //
+  0343, 38,         // out 38     ; Print the intial register values.
   0166,             // hlt
   //
-  // ------------------------------------------------------------------------------------------
-  // mov d,S  01 DDD SSS   Move register to a register. 36 register to register combinations.
-  //                 111 A
-  //                 000 B
-  //                 001 C
-  //                 010 D
-  //                 011 E
-  //                 100 H
-  //                 101 L
+  // -----------------------------------------------------------------------------
   //
-  //1RRR110
-  B00111110, 7,     // mvi a,7    ; Move # to register A.
-  //1DDDSSS
-  B01000111,        // mov b,a    ; 01 000 111  ; Move register a to each register.
-  B00111100,        // inr a      ; Increment the register
-  B01001111,        // mov c,a    ; 01 001 111
-  B00111100,        // inr A
-  B01010111,        // mov d,a    ; 01 010 111
-  B00111100,        // inr A
-  B01011111,        // mov e,a    ; 01 011 111
-  B00111100,        // inr A
-  B01100111,        // mov h,a    ; 01 100 111
-  B00111100,        // inr A
-  B01101111,        // mov l,a    ; 01 101 111
-  0343, 30,         // out 30     ; Print the intial register values.
+  B00111110, 6,     // mvi a,0    ; Move # to register A.
+  0343, 37,         // out 37     ; Print register A.
+  //
+  B00110010, 60, 0, // sta        ; Store register A's data to the hb:lb address.
+  0343, 36,         // out 36     ; Print memory address data value. "36" prints the register pair H:L and data at the address.
+  //
+  B00111010, 60, 0, // lda        ; Store the register value.
+  0343, 37,         // out 37     ; Print register A.
+  //
   0166,             // hlt
   //
-  //1RRR110
-  B00000110, 0,     // mvi b,0  ; Move # to register B.
-  //1DDDSSS
-  B01111000,        // mov a,b  ; Move register b to each register.
-  B00000100,        // inr b 
-  B01001000,        // mov c,b
-  B00000100,        // inr b 
-  B01010000,        // mov d,b
-  B00000100,        // inr b 
-  B01011000,        // mov e,b
-  B00000100,        // inr b 
-  B01100000,        // mov h,b
-  B00000100,        // inr b 
-  B01101000,        // mov l,b
-  0343, 30,         // out 30     ; Print the Intialized register values.
-  0166,             // hlt
-  //
-  //1RRR110
-  B00001110, 1,     // mvi c,1  ; Move # to register C.
-  //1DDDSSS
-  B01111001,        // mov a,c  ; Move register c to each register.
-  B00001100,        // inr C
-  B01000001,        // mov b,c
-  B00001100,        // inr C
-  B01010001,        // mov d,c
-  B00001100,        // inr C
-  B01011001,        // mov e,c
-  B00001100,        // inr C
-  B01100001,        // mov h,c
-  B00001100,        // inr C
-  B01101001,        // mov l,c
-  0343, 30,         // out 30     ; Print the Intialized register values.
-  0166,             // hlt
-  //
-  //1RRR110
-  B00010110, 2,     // mvi d,2  ; Move # to register D.
-  //1DDDSSS
-  B01111010,        // mov a,d  ; Move register d to each register.
-  B00010100,        // inr D
-  B01000010,        // mov b,d
-  B00010100,        // inr D
-  B01001010,        // mov c,d
-  B00010100,        // inr D
-  B01011010,        // mov e,d
-  B00010100,        // inr D
-  B01100010,        // mov h,d
-  B00010100,        // inr D
-  B01101010,        // mov l,d
-  0343, 30,         // out 30     ; Print the Intialized register values.
-  0166,             // hlt
-  //
-  //1RRR110
-  B00011110, 3,     // mvi e,3  ; Move # to register E.
-  //1DDDSSS
-  B01111011,        // mov a,E  ; Move register e to each register.
-  B00011100,        // inr E
-  B01000011,        // mov b,E
-  B00011100,        // inr E
-  B01001011,        // mov c,E
-  B00011100,        // inr E
-  B01010011,        // mov d,E
-  B00011100,        // inr E
-  B01100011,        // mov h,E
-  B00011100,        // inr E
-  B01101011,        // mov l,E
-  0343, 30,         // out 30     ; Print the Intialized register values.
-  0166,             // hlt
-  //
-  //1RRR110
-  B00100110, 4,     // mvi h,4  ; Move # to register H.
-  //1DDDSSS
-  B01111100,        // mov a,h  ; Move register h to each register.
-  B00100100,        // inr H
-  B01000100,        // mov b,h
-  B00100100,        // inr H
-  B01001100,        // mov c,h
-  B00100100,        // inr H
-  B01010100,        // mov d,h
-  B00100100,        // inr H
-  B01011100,        // mov e,h
-  B00100100,        // inr H
-  B01101100,        // mov l,h
-  0343, 30,         // out 30     ; Print the Intialized register values.
-  0166,             // hlt
-  //
-  //1RRR110
-  B00101110, 5,     // mvi l,5  ; Move # to register L.
-  //1DDDSSS
-  B01111101,        // mov a,l  ; Move register l to each register.
-  B00101100,        // inr L
-  B01000101,        // mov b,l
-  B00101100,        // inr L
-  B01001101,        // mov c,l
-  B00101100,        // inr L
-  B01010101,        // mov d,l
-  B00101100,        // inr L
-  B01011101,        // mov e,l
-  B00101100,        // inr L
-  B01100101,        // mov h,l
-  0343, 30,         // out 30     ; Print the Intialized register values.
-  0166,             // hlt
-  //
-  // ------------------------------------------------------------------------------------------
-  //
-  0041, 0000, 0000, // lxi h,Start  ; lxi_HL lb hb. Load into register H:L = 0000:0000.
-  0176,             // mov M,a    ; Move the data in register M(register address H:L), to register A.
-  0343, 30,         // out 30     ; Print the Intialized register values.
-  0166,             // hlt
-  //
+  // -----------------------------------------------------------------------------
   0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
   0000              //            ; End.
 };
 
-byte theProgram2[] = {
+// -----------------------------------------------------------------------------
+// Loop Program.
+
+byte theProgramLoop[] = {
   //                //            ; --------------------------------------
   //                // Start:       ; Start
   //
-  0343, 30,         // out 30     ; Print the intial register values.
+  0343, 38,         // out 38     ; Print the intial register values.
   0166,             // hlt
   //
   //                //            ; --------------------------------------
@@ -251,14 +92,14 @@ byte theProgram2[] = {
   0127,             // mov d,a    ; Move register a to register D.
   0036, 0003,       // mvi e,3    ; Move db to register E.
   //
-  0343, 30,         // out 30     ; Print the Intialized register values.
+  0343, 38,         // out 38     ; Print the Intialized register values.
   0166,             // hlt
   //
   //                //            ; --------------------------------------
   //                // LOOP:      ; Change values and loop.
   0043,             // inx M      ; Increment register M(register address H:L).
   0176,             // mov M      ; Move the data in register M(register address H:L), to register A.
-  0343, 30,         // out 30     ; Print the registers.
+  0343, 38,         // out 38     ; Print the registers.
   0166,             // hlt
   0303, 14, 0000,   // jmp        ; Jump to LOOP.
   0000              //            ; End.
@@ -486,7 +327,7 @@ const byte STA =    0062; // STA a     00110010 lb hb    -    Store register a t
 const byte LDA =    0062; // LDA is for copying data from memory location to accumulator
 //
 // inr d     00DDD100    Flags:ZSPA    Increment register
-// DCR d     00DDD101          ZSPA    Decrement register
+// dcr d     00DDD101          ZSPA    Decrement register
 
 // -----------------------------------------------------------------------------
 // Output: Front Panel Output and log messages
@@ -561,19 +402,19 @@ boolean carryBit = false;     // Set by dad. Used jnc.
 boolean halted = false;       // Set true for an hlt opcode.
 boolean runProgram = false;
 
-void processOpcode() {
+// For calculating 16 values.
+unsigned int bValue = 0;
+unsigned int cValue = 0;
+unsigned int dValue = 0;
+unsigned int eValue = 0;
+unsigned int hValue = 0;
+unsigned int lValue = 0;
+unsigned int bcValue = 0;
+unsigned int deValue = 0;
+unsigned int hlValue = 0;
+unsigned int hlValueNew = 0;
 
-  // For calculating if there is a carry over.
-  unsigned int bValue = 0;
-  unsigned int cValue = 0;
-  unsigned int dValue = 0;
-  unsigned int eValue = 0;
-  unsigned int hValue = 0;
-  unsigned int lValue = 0;
-  unsigned int bcValue = 0;
-  unsigned int deValue = 0;
-  unsigned int hlValue = 0;
-  unsigned int hlValueNew = 0;
+void processOpcode() {
 
   unsigned int anAddress = 0;
   byte dataByte = memoryData[programCounter];
@@ -671,6 +512,107 @@ void processOpcode() {
         _PC++;
         }
       */
+      break;
+    // ---------------------------------------------------------------------
+    // dcr d : decrement a register. To do: update the flags.
+    //    00DDD101    Flags:ZSPA
+    case B00111101:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> dcr register A: "));
+      Serial.print(regA);
+#endif
+      regA--;
+      if (regA == 0) {
+        // Set flag.
+      }
+#ifdef LOG_MESSAGES
+      Serial.print("-- = ");
+      Serial.print(regA);
+#endif
+      break;
+    case B00000101:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> dcr register B: "));
+      Serial.print(regB);
+#endif
+      regB--;
+      if (regB == 0) {
+        // Set flag.
+      }
+#ifdef LOG_MESSAGES
+      Serial.print("-- = ");
+      Serial.print(regB);
+#endif
+      break;
+    case B00001101:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> dcr register C: "));
+      Serial.print(regC);
+#endif
+      regC--;
+      if (regC == 0) {
+        // Set flag.
+      }
+#ifdef LOG_MESSAGES
+      Serial.print("-- = ");
+      Serial.print(regC);
+#endif
+      break;
+    case B00010101:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> dcr register D: "));
+      Serial.print(regD);
+#endif
+      regD--;
+      if (regD == 0) {
+        // Set flag.
+      }
+#ifdef LOG_MESSAGES
+      Serial.print("-- = ");
+      Serial.print(regD);
+#endif
+      break;
+    case B00011101:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> dcr register E: "));
+      Serial.print(regE);
+#endif
+      regE--;
+      if (regE == 0) {
+        // Set flag.
+      }
+#ifdef LOG_MESSAGES
+      Serial.print("-- = ");
+      Serial.print(regE);
+#endif
+      break;
+    case B00100101:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> dcr register H: "));
+      Serial.print(regH);
+#endif
+      regH--;
+      if (regH == 0) {
+        // Set flag.
+      }
+#ifdef LOG_MESSAGES
+      Serial.print("-- = ");
+      Serial.print(regH);
+#endif
+      break;
+    case B00101101:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> dcr register L: "));
+      Serial.print(regL);
+#endif
+      regL--;
+      if (regL == 0) {
+        // Set flag.
+      }
+#ifdef LOG_MESSAGES
+      Serial.print("-- = ");
+      Serial.print(regL);
+#endif
       break;
     // ---------------------------------------------------------------------
     case jnc:
@@ -1312,6 +1254,20 @@ void processOpcode() {
 #endif
       break;
     // ------------------------------------------------------------------------------------------
+    // stacy
+    case B00110010:
+      opcode = B00110010;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> sta, Store register A to the hb:lb address."));
+#endif
+      break;
+    case B00111010:
+      opcode = B00110010;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> lda, Load register A with data from the hb:lb address."));
+#endif
+      break;
+    // ------------------------------------------------------------------------------------------
     case xra_D:
 #ifdef LOG_MESSAGES
       Serial.print(F("> xra"));
@@ -1580,17 +1536,107 @@ void processOpcodeData() {
         case 1:
           Serial.print(F(", terminal output to be implemented on LCD."));
           break;
-        case 30:
+        case 38:
           Serial.println("");
           Serial.println(F("------------"));
           printRegisters();
           Serial.print(F("------------"));
+          break;
+        case 37:
+          Serial.print(F(" > Register A = "));
+          printData(regA);
+          break;
+        case 30:
+          Serial.print(F(" > Register B = "));
+          printData(regB);
+          break;
+        case 31:
+          Serial.print(F(" > Register C = "));
+          printData(regC);
+          break;
+        case 32:
+          Serial.print(F(" > Register D = "));
+          printData(regD);
+          break;
+        case 33:
+          Serial.print(F(" > Register E = "));
+          printData(regE);
+          break;
+        case 34:
+          Serial.print(F(" > Register H = "));
+          printData(regH);
+          break;
+        case 35:
+          Serial.print(F(" > Register L = "));
+          printData(regL);
+          break;
+        case 36:
+          Serial.print(F("> Register H:L = "));
+          Serial.print(regH);
+          Serial.print(F(":"));
+          Serial.print(regL);
+          Serial.print(F(", Data: "));
+          hlValue = regH * 256 + regL;
+          Serial.print(memoryData[hlValue]);
           break;
         default:
           Serial.print(F("-- Error, unknow out port number: "));
       }
       programCounter++;
       break;
+    // ------------------------------------------------------------------------------------------
+    // stacy
+    case B00110010:
+      if (instructionCycle == 1) {
+        lowOrder = memoryData[programCounter];
+#ifdef LOG_MESSAGES
+        Serial.print(F("< sta, lb: "));
+        sprintf(charBuffer, "%4d:", lowOrder);
+        Serial.print(charBuffer);
+#endif
+        programCounter++;
+        return;
+      }
+      // instructionCycle == 2
+      highOrder = memoryData[programCounter];
+      hlValue = highOrder * 256 + lowOrder;
+      memoryData[hlValue] = regA;
+#ifdef LOG_MESSAGES
+      Serial.print(F("< sta, hb: "));
+      sprintf(charBuffer, "%4d:", highOrder);
+      Serial.print(charBuffer);
+      Serial.print(F(", register A: "));
+      Serial.print(regA);
+      Serial.print(F(", stored to the hb:lb address."));
+#endif
+      programCounter++;
+      break;
+    // -----------------------------------------
+    case B00111010:
+      if (instructionCycle == 1) {
+        lowOrder = memoryData[programCounter];
+#ifdef LOG_MESSAGES
+        Serial.print(F("< lda, lb: "));
+        sprintf(charBuffer, "%4d:", lowOrder);
+        Serial.print(charBuffer);
+#endif
+        programCounter++;
+        return;
+      }
+      // instructionCycle == 2
+      highOrder = memoryData[programCounter];
+      hlValue = highOrder * 256 + lowOrder;
+      regA = memoryData[hlValue];
+#ifdef LOG_MESSAGES
+      Serial.print(F("< lda, hb: "));
+      sprintf(charBuffer, "%4d:", highOrder);
+      Serial.print(charBuffer);
+      Serial.print(F(" hb:lb address data move to register A: "));
+      Serial.print(regA);
+#endif
+      programCounter++;
+      break;
+    // ------------------------------------------------------------------------------------------
     default:
       Serial.print(F(" -- Error, unknow instruction."));
       runProgram = false;
