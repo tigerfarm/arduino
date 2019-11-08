@@ -1,6 +1,137 @@
 // -----------------------------------------------------------------------------
 //  Programing links
 
+Assembler style guide:
+http://www.sourceformat.com/coding-standard-asm-assembly.htm
+````
+1234567890123456789012345678901234567890
+                mov     ax, x
+                cwd
+                add     ax, 0ffffh
+                rcl     dx, 1
+                mov     y, dx
+````
+If then else
+````
+        if ( x=y ) then
+
+                write( 'x = y' );
+
+        else
+
+                write( 'x <> y' );
+
+        endif;
+
+; Corresponding Assembly Code:
+
+                mov     ax, x
+                cmp     ax, y
+                jne     ElsePart
+
+                print   "x=y",nl
+                jmp     IfDone
+
+ElsePart:       print   "x<>y",nl
+IfDone:
+````
+Sample program:
+````
+;**************************************************
+;
+; AddHex-
+;
+; This simple program reads two integer values from
+; the user, computes their sum, and prints the
+; result to the display.
+;
+; This example uses the "UCR Standard Library for
+; 80x86 Assembly Language Programmers v2.0"
+;
+; Randall Hyde
+; 12/13/96
+
+                title           AddHex
+                .xlist
+                include         ucrlib.a
+                includelib      ucrlib.lib
+                .list
+
+
+
+cseg            segment para public 'code'
+                assume  cs:cseg
+
+; GetInt-
+;
+; This function reads an integer value from the keyboard and
+; returns that value in the AX register.
+;
+; This routine traps illegal values (either too large or
+; incorrect digits) and makes the user re-enter the value.
+
+;234567890123456789012345678901234567890
+GetInt          textequ <call GetInt_p>
+GetInt_p        proc
+                push    dx              ;DX hold error code.
+
+GetIntLoop:     mov     dx, false       ;Assume no error.
+                try                     ;Trap any errors.
+
+                FlushGetc               ;Force input from a new line.
+                geti                    ;Read the integer.
+
+                except  $Conversion     ;Trap if bad characters.
+                print   "Illegal numeric conversion, pleasere-enter", nl
+                mov     dx, true
+
+                except  $Overflow       ;Trap if # too large.
+                print   "Value out of range, please re-enter.",nl
+                mov     dx, true
+
+
+                endtry
+                cmp     dx, true
+                je      GetIntLoop
+                pop     dx
+                ret
+GetInt_p        endp
+
+
+
+Main            proc
+
+                InitExcept
+
+                print   'Enter value 1: '
+                GetInt
+                mov     bx, ax
+
+                print   'Enter value 2: '
+                GetInt
+                print   cr, lf, 'The sum of the two values is '
+                add     ax, bx
+                puti
+                putcr
+
+Quit:           CleanUpEx
+                ExitPgm                 ;DOS macro to quit program.
+Main            endp
+
+cseg            ends
+
+sseg            segment para stack 'stack'
+stk             db      256 dup (?)
+sseg            ends
+
+
+zzzzzzseg       segment para public 'zzzzzz'
+LastBytes       db      16 dup (?)
+zzzzzzseg       ends
+                end     Main
+````
+
+// -----------------------------------------------------------------------------
   Bitwise, shift right:
     https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitshiftright/
   Exclusive or (XOR):
