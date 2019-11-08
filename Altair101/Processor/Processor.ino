@@ -934,26 +934,91 @@ void processOpcode() {
     case B01111011:
       regA = regE;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> MOV register D to A = "));
+      Serial.print(F("> MOV register E to A = "));
       printData(regA);
+#endif
+      break;
+    case B01000011:
+      regB = regE;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register E to B = "));
+      printData(regB);
+#endif
+      break;
+    case B01001011:
+      regC = regE;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register E to C = "));
+      printData(regC);
+#endif
+      break;
+    case B01010011:
+      regD = regE;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register E to D = "));
+      printData(regD);
+#endif
+      break;
+    case B01100011:
+      regH = regE;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register E to H = "));
+      printData(regH);
+#endif
+      break;
+    case B01101011:
+      regL = regE;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register E to L = "));
+      printData(regL);
+#endif
+      break;
+    // ------------------------------------------------------------------------------------------
+    case B01111100:
+      regA = regH;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register H to A = "));
+      printData(regA);
+#endif
+      break;
+    case B01000100:
+      regB = regH;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register H to B = "));
+      printData(regB);
+#endif
+      break;
+    case B01001100:
+      regC = regH;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register H to C = "));
+      printData(regC);
+#endif
+      break;
+    case B01010100:
+      regD = regH;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register H to D = "));
+      printData(regD);
+#endif
+      break;
+    case B01011100:
+      regE = regH;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register H to E = "));
+      printData(regE);
+#endif
+      break;
+    case B01101100:
+      regL = regH;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> MOV register H to L = "));
+      printData(regL);
 #endif
       break;
     // ------------------------------------------------------------------------------------------
     /*
       B01DDDSSS         // MOV D,S  ; Move from one register to another.
-
-      B01000011,        // MOV B,E
-      B01001011,        // MOV C,E
-      B01010011,        // MOV D,E
-      B01100011,        // MOV H,E
-      B01101011,        // MOV L,E
-
-      B01111100,        // MOV A,H  ; Move register H to each register.
-      B01000100,        // MOV B,H
-      B01001100,        // MOV C,H
-      B01010100,        // MOV D,H
-      B01011100,        // MOV E,H
-      B01101100,        // MOV L,HE
 
       B01111101,        // MOV A,L  ; Move register L to each register.
       B01000101,        // MOV B,L
