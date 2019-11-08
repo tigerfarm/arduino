@@ -2,6 +2,13 @@
 /*
   Altair 101 software microprocessor
 
+  Next:
+  + Control OUT and WO status LED lights.
+  + Confirm opcodes: ldax, inx, and dad.
+  + Clean up opcode note section.
+  + Get input opcode, in, to work.
+  + Test program, Kill the Bit.
+
   Program sections,
     Definitions: Memory and sample program.
     Memory Functions.
@@ -39,9 +46,44 @@
 // -----------------------------------------------------------------------------
 // Program to test opcodes.
 
+// For STA and LDa, see the video: https://www.youtube.com/watch?v=3_73NwB6toY
+// 1:30 to 6:05 time.
+// ---
+// Process instruction: lda 40Q
+// First: 
+// Opcode fetch: on: MEMR MI WO
+// MEMR : Memory instruction
+// MI : opcode fetch.
+// WO : inverse logic for write output.
+// Next
+// Memory read: on: MEMR WO
+// Fetch lb.
+// Next
+// Memory read: on: MEMR WO
+// Fetch hb.
+// Next, loading from memory.
+// Memory read: on: MEMR WO
+// Fetching the data, shows the address (40Q) and the data (at 40Q) on the LED lights.
+// ---
+// Next, to process next instruction: sta 41Q
+// Opcode fetch: on: MEMR MI WO
+// MI : opcode fetch.
+// WO : inverse logic for write output.
+// Next
+// Memory read: on: MEMR WO
+// Fetch lb.
+// Next
+// Memory read: on: MEMR WO
+// Fetch hb.
+// Next, writting to memory.
+// Memory read: all status lights are off. Since it is a write output, and WO is reverse logic, WO is off.
+// Address LED lights: 41Q.
+// Data LED lights are all on because the data lights are tied to the data input bus, which is floating.
+
+
 byte theProgram[] = {
   //                //            ; --------------------------------------
-  //                // Start:     ; Start
+  //                // Start:     ; Test opcodes sta and lda.
   //
   //                //            ; --------------------------------------
   //                //            ; Intialize register values.
@@ -99,12 +141,12 @@ byte theProgramLoop[] = {
   0166,             // hlt
   //
   //                //            ; --------------------------------------
-  //                // LOOP:      ; Change values and loop.
+  //                // Loop:      ; Change increment and loop.
   0043,             // inx M      ; Increment register M(register address H:L).
   0176,             // mov M      ; Move the data in register M(register address H:L), to register A.
   0343, 38,         // out 38     ; Print the registers.
   0166,             // hlt
-  0303, 14, 0000,   // jmp        ; Jump to LOOP.
+  0303, 14, 0000,   // jmp        ; Jump to Loop.
   0000              //            ; End.
 };
 
@@ -290,16 +332,10 @@ const byte nop    = 0000; // nop         00000000        No operation
 const byte out    = 0343; // out pa      11010011        Write a to output port
 const byte rrc    = 0017; // rrc       00 001 111   c    Rotate a right (shift byte right 1 bit). Note, carry bit not handled at this time.
 
-const byte dad_BC = 0011; // dad       00 001 001   c    Add B:C to H:L. Set carry bit.
+const byte dad_BC = 0011; // dad       00 001 001   c    Add B:C to H:L (16 bit add). Set carry bit.
 const byte ldax_D = 0032; // ldax d    00 011 010        Load register a with the data at address D:E.
-const byte lxi_BC = 0001; // lxi  Bc,a 00 000 001        Move a(lb hb) into register pair, B:C = hb:lb.
-const byte lxi_HL = 0041; // lxi  RP,a 00 100 001        Move a(lb hb) into register pair, H:L = hb:lb.
-const byte mov_AM = 0176; // mov  a,M  01 111 110        Move data from M(address in H:L) to register A.
-const byte mov_DA = 0127; // mov  d,a  01 010 111        Move register a content to register D.
-const byte mvi_B  = 0006; // mvi  b,db 00 000 110        Move db to register B.
-const byte mvi_C  = 0016; // mvi  c,db 00 001 110        Move db to register C.
-const byte mvi_D  = 0026; // mvi  d,db 00 010 110        Move db to register D.
-const byte mvi_E  = 0036; // mvi  e,db 00 011 110        Move db to register E.
+const byte lxi_BC = 0001; // lxi  bc,a 00 000 001        Move a(hb:lb) into register pair, B:C = hb:lb.
+const byte lxi_HL = 0041; // lxi  hl,a 00 100 001        Move a(lb hb) into register pair, H:L = hb:lb.
 const byte xra_D  = 0252; // xra RP    10 101 010  ZSPCA Register d, exclusive OR with register with A.
 //
 // Opcode notes, more details:
@@ -325,12 +361,10 @@ const byte xra_D  = 0252; // xra RP    10 101 010  ZSPCA Register d, exclusive O
 //         Code     Octal    Inst Param  Encoding Flags  Description
 const byte IN     = 0333; // IN p      11011011 pa       -       Read input port into A
 //
-// For STA and LDa, see the video: https://www.youtube.com/watch?v=3_73NwB6toY
-const byte STA =    0062; // STA a     00110010 lb hb    -    Store register a to memory address: lb hb
-const byte LDA =    0062; // LDA is for copying data from memory location to accumulator
-//
-// inr d     00DDD100    Flags:ZSPA    Increment register
-// dcr d     00DDD101          ZSPA    Decrement register
+// CALL a    11001101 lb hb    -       Unconditional subroutine call
+// RET       11001001          -       Unconditional return from subroutine
+// PUSH RP   11RP0101 *2       -       Push register pair on the stack
+// POP RP    11RP0001 *2       *2      Pop  register pair from the stack
 
 // -----------------------------------------------------------------------------
 // Output: Front Panel Output and log messages
@@ -417,6 +451,8 @@ unsigned int deValue = 0;
 unsigned int hlValue = 0;
 unsigned int hlValueNew = 0;
 
+// ------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------
 void processOpcode() {
 
   unsigned int anAddress = 0;
@@ -455,7 +491,7 @@ void processOpcode() {
       }
 #ifdef LOG_MESSAGES
       Serial.print(F("> dad_BC"));
-      Serial.print(F(", Add B:C "));
+      Serial.print(F(", 16 bit add of B:C "));
       Serial.print(bcValue);
       Serial.print("(");
       Serial.print(bValue);
@@ -476,7 +512,7 @@ void processOpcode() {
       Serial.print(":");
       Serial.print(regL);
       Serial.print(")");
-      Serial.print(F(", Carry bit set: "));
+      Serial.print(F(", Carry bit: "));
       if (carryBit) {
         Serial.print(F("true. Over: 65535."));
       } else {
@@ -859,7 +895,7 @@ void processOpcode() {
 #endif
       break;
     // ---------------------------------------------------------------------
-    case mov_AM:
+    case B01111110:
       anAddress = word(regH, regL);
       regA = memoryData[anAddress];
 #ifdef LOG_MESSAGES
@@ -1290,16 +1326,12 @@ void processOpcode() {
       Serial.print(F(" - Error, unknown instruction."));
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
-      // ------------------------------------------------------------------------------------------
   }
 }
 
+// ------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------
 void processOpcodeData() {
-  // For calculating hb:lb as a 16 value.
-  unsigned int hbLb16BitValue = 0;
-  unsigned int hbLb16BitValue1 = 0;
-  unsigned int hbLb16BitValue2 = 0;
-
   // Note,
   //    if not jumping, increment programCounter.
   //    if jumping, don't increment programCounter.
@@ -1677,6 +1709,7 @@ void printRegisters() {
   Serial.println("");
 }
 
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Front Panel toggle/button switch events
 // Using an infrared receiver for simplier hardware setup.
