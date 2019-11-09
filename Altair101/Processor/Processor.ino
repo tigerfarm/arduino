@@ -371,7 +371,7 @@ const byte IN     = 0333; // IN p      11011011 pa       -       Read input port
 // POP RP    11RP0001 *2       *2      Pop  register pair from the stack
 
 // -----------------------------------------------------------------------------
-// Output: Front Panel Output and log messages
+// Output: log messages and Front Panel LED data lights.
 
 void printByte(byte b) {
   for (int i = 7; i >= 0; i--)
