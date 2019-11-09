@@ -50,7 +50,7 @@
 // 1:30 to 6:05 time.
 // ---
 // Process instruction: lda 40Q
-// First: 
+// First:
 // Opcode fetch: on: MEMR MI WO
 // MEMR : Memory instruction
 // MI : opcode fetch.
@@ -189,6 +189,25 @@ void listByteArray(byte btyeArray[], int arraySize) {
     Serial.println("");
   }
   Serial.println(F("+ End of listing."));
+}
+
+// -----------------------------------------------------------------------------
+// Shift Register
+/*
+  const int latchPin =  8;  // Nano Pin 08 connected to pin 12 74HC595: ST_CP.
+  const int dataPin  = 11;  // Nano Pin 11 connected to pin 14 74HC595: DS.
+  const int clockPin = 12;  // Nano Pin 12 connected to pin 11 74HC595: SH_CP.
+*/
+const int latchPin = 5;           // Latch pin of 74HC595 is connected to Digital pin 5
+const int dataPin = 4;            // Data pin of 74HC595 is connected to Digital pin 4
+const int clockPin = 6;           // Clock pin of 74HC595 is connected to Digital pin 6
+
+byte ledDataByte = B01010101;
+
+void updateShiftRegister() {
+  digitalWrite(latchPin, LOW);
+  shiftOut(dataPin, clockPin, LSBFIRST, ledDataByte);
+  digitalWrite(latchPin, HIGH);
 }
 
 // -----------------------------------------------------------------------------
@@ -332,6 +351,10 @@ const byte nop    = 0000; // nop         00000000        No operation
 const byte out    = 0343; // out pa      11010011        Write a to output port
 const byte rrc    = 0017; // rrc       00 001 111   c    Rotate a right (shift byte right 1 bit). Note, carry bit not handled at this time.
 
+const byte mvi_B  = 0006; // MVI  B,db   00 000 110 db     -      Move db to register B.
+const byte mvi_C  = 0016; // MVI  C,db   00 001 110 db     -      Move db to register C.
+const byte mvi_D  = 0026; // MVI  D,db   00 001 110 db     -      Move db to register D.
+const byte mvi_E  = 0036; // MVI  E,db   00 001 110 db     -      Move db to register E.
 const byte dad_BC = 0011; // dad       00 001 001   c    Add B:C to H:L (16 bit add). Set carry bit.
 const byte ldax_D = 0032; // ldax d    00 011 010        Load register a with the data at address D:E.
 const byte lxi_BC = 0001; // lxi  bc,a 00 000 001        Move a(hb:lb) into register pair, B:C = hb:lb.
@@ -410,7 +433,9 @@ void printAddressData() {
   sprintf(charBuffer, "%4d:", programCounter);
   Serial.print(charBuffer);
   Serial.print(F(" Data: "));
-  printData(memoryData[programCounter]);
+  ledDataByte = memoryData[programCounter];
+  updateShiftRegister();
+  printData(ledDataByte);
 }
 
 void processData() {
@@ -427,7 +452,8 @@ void processData() {
     Serial.print("+ ");
     printAddressData();
     Serial.print(" ");
-    processOpcodeData();
+    processOpcodeData();      // Example: sta 42: 0. fetch the opcode, 1. fetch lb, 2. fetch hb, 3. store the data.
+    instructionCycle++;
   }
   Serial.println("");
 }
@@ -1293,7 +1319,6 @@ void processOpcode() {
 #endif
       break;
     // ------------------------------------------------------------------------------------------
-    // stacy
     case B00110010:
       opcode = B00110010;
 #ifdef LOG_MESSAGES
@@ -1624,7 +1649,7 @@ void processOpcodeData() {
     case B00110010:
       if (instructionCycle == 1) {
         lowOrder = memoryData[programCounter];
-#ifdef LOG_MESSAGES
+#ifdef LOG_MESSAGE
         Serial.print(F("< sta, lb: "));
         sprintf(charBuffer, "%4d:", lowOrder);
         Serial.print(charBuffer);
@@ -1632,15 +1657,23 @@ void processOpcodeData() {
         programCounter++;
         return;
       }
-      // instructionCycle == 2
-      highOrder = memoryData[programCounter];
+      if (instructionCycle == 2) {
+        highOrder = memoryData[programCounter];
+#ifdef LOG_MESSAGES
+        Serial.print(F("< sta, hb: "));
+        sprintf(charBuffer, "%4d:", highOrder);
+        Serial.print(charBuffer);
+#endif
+        return;
+      }
+      // instructionCycle == 3
       hlValue = highOrder * 256 + lowOrder;
       memoryData[hlValue] = regA;
+      // Stacy, to do:
+      //  Set address lights to hb:lb. Set data lights to regA.
+      //  Turn status light MEMR, MI, and WO off during this step.
 #ifdef LOG_MESSAGES
-      Serial.print(F("< sta, hb: "));
-      sprintf(charBuffer, "%4d:", highOrder);
-      Serial.print(charBuffer);
-      Serial.print(F(", register A: "));
+      Serial.print(F("> sta, register A: "));
       Serial.print(regA);
       Serial.print(F(", stored to the hb:lb address."));
 #endif
@@ -1658,15 +1691,19 @@ void processOpcodeData() {
         programCounter++;
         return;
       }
-      // instructionCycle == 2
-      highOrder = memoryData[programCounter];
+      if (instructionCycle == 2) {
+        highOrder = memoryData[programCounter];
+#ifdef LOG_MESSAGES
+        Serial.print(F("< lda, hb: "));
+        sprintf(charBuffer, "%4d:", highOrder);
+        Serial.print(charBuffer);
+#endif
+        return;
+      }
       hlValue = highOrder * 256 + lowOrder;
       regA = memoryData[hlValue];
 #ifdef LOG_MESSAGES
-      Serial.print(F("< lda, hb: "));
-      sprintf(charBuffer, "%4d:", highOrder);
-      Serial.print(charBuffer);
-      Serial.print(F(" hb:lb address data move to register A: "));
+      Serial.print(F("> lda, hb:lb address data is moved to register A: "));
       Serial.print(regA);
 #endif
       programCounter++;
@@ -1994,6 +2031,15 @@ void setup() {
   readyLcd();
   Serial.println(F("+ LCD ready for output."));
 #endif
+
+  pinMode(latchPin, OUTPUT);
+  pinMode(clockPin, OUTPUT);
+  pinMode(dataPin, OUTPUT);
+  delay(300);
+  // Initial test pattern.
+  ledDataByte = B01010101;
+  updateShiftRegister();
+  Serial.println(F("+ Data LED shiftregister set."));
 
   pinMode(WAIT_PIN, OUTPUT);
   digitalWrite(WAIT_PIN, HIGH);
