@@ -192,25 +192,6 @@ void listByteArray(byte btyeArray[], int arraySize) {
 }
 
 // -----------------------------------------------------------------------------
-// Shift Register
-/*
-  const int latchPin =  8;  // Nano Pin 08 connected to pin 12 74HC595: ST_CP.
-  const int dataPin  = 11;  // Nano Pin 11 connected to pin 14 74HC595: DS.
-  const int clockPin = 12;  // Nano Pin 12 connected to pin 11 74HC595: SH_CP.
-*/
-const int latchPin = 5;           // Latch pin of 74HC595 is connected to Digital pin 5
-const int dataPin = 4;            // Data pin of 74HC595 is connected to Digital pin 4
-const int clockPin = 6;           // Clock pin of 74HC595 is connected to Digital pin 6
-
-byte ledDataByte = B01010101;
-
-void updateShiftRegister() {
-  digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, LSBFIRST, ledDataByte);
-  digitalWrite(latchPin, HIGH);
-}
-
-// -----------------------------------------------------------------------------
 // Front Panel Status LEDs
 
 // Video demonstrating status lights:
@@ -420,6 +401,18 @@ void printData(byte theByte) {
   printByte(theByte);
 }
 
+// --------------------
+// Data LED lights displayed using a shift register chip: SN74HC595N.
+const int latchPin = 5;  // Nano Pin 08 connected to pin 12 74HC595: ST_CP.
+const int dataPin  = 4;  // Nano Pin 11 connected to pin 14 74HC595: DS.
+const int clockPin = 6;  // Nano Pin 12 connected to pin 11 74HC595: SH_CP.
+
+void displayLedData(byte dataByte) {
+  digitalWrite(latchPin, LOW);
+  shiftOut(dataPin, clockPin, LSBFIRST, dataByte);
+  digitalWrite(latchPin, HIGH);
+}
+
 // -----------------------------------------------------------------------------
 // Processor: Processing opcode instructions
 
@@ -429,13 +422,16 @@ byte opcode = 0;            // Opcode being processed
 int instructionCycle = 0;   // Opcode process cycle
 
 void printAddressData() {
+  //
   Serial.print(F("Addr: "));
   sprintf(charBuffer, "%4d:", programCounter);
   Serial.print(charBuffer);
+  //
   Serial.print(F(" Data: "));
-  ledDataByte = memoryData[programCounter];
-  updateShiftRegister();
-  printData(ledDataByte);
+  dataByte = memoryData[programCounter];
+  displayLedData(dataByte);
+  printData(dataByte);
+  //
 }
 
 void processData() {
@@ -2037,9 +2033,8 @@ void setup() {
   pinMode(dataPin, OUTPUT);
   delay(300);
   // Initial test pattern.
-  ledDataByte = B01010101;
-  updateShiftRegister();
-  Serial.println(F("+ Data LED shiftregister set."));
+  displayLedData(B01010101);
+  Serial.println(F("+ Data LED shift register set."));
 
   pinMode(WAIT_PIN, OUTPUT);
   digitalWrite(WAIT_PIN, HIGH);
