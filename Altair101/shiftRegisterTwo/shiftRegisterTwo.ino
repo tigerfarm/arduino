@@ -22,7 +22,9 @@
   + Samples
   https://www.arduino.cc/en/Tutorial/ShftOut21
 
-
+  + Binary, Digital calculator
+  https://www.calculator.net/binary-calculator.html
+  
 */
 // -----------------------------------------------------------------------------
 // Shift Register
