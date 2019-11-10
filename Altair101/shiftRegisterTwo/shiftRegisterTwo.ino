@@ -4,6 +4,31 @@
 
   Using a 74HC595 Shift Register for serial to multiple pin outs.
 
+  First 74HC595:
+  + 74HC595 pin 16: to 5V+.
+  + 74HC595 pin 15: LED 0.
+  + 74HC595 pin 14: Latch pin (RCLK) to Nano pin 5, which does the Parallel-Out task to the 8 output pins.
+  + 74HC595 pin 13: to ground (-).
+  + 74HC595 pin 12: Data-in pin (SRCLK) to Nano pin 4(data out), data transfer from Nano to 595.
+  + 74HC595 pin 11: Clock pin (SER)  to Nano pin 6, clock signal to say that the data is ready.
+  + 74HC595 pin 10: to 5V+.
+  + 74HC595 pin 09: Not used in single 74HC595. Used to daisy chain to next 74HC595, pin 14 (data).
+  + 74HC595 pin 08: to ground (-).
+  + 74HC595 pin 07: LED 7.
+  + 74HC595 pin 06: LED 6.
+  + 74HC595 pin 05: LED 5.
+  + 74HC595 pin 04: LED 4.
+  + 74HC595 pin 03: LED 3.
+  + 74HC595 pin 02: LED 2.
+  + 74HC595 pin 01: LED 1.
+
+  Second 74HC595 pins are the same as above, except:
+  + First 74HC595 pin 09 is connected to second 74HC595 pin 14 (data).
+  + This daisy chains data from the first 74HC595 to next 74HC595.
+  + Clock(pin 11) and latch(pin 14) are the same for each 74HC595.
+  + 2 pins to +5V:   10 and 16.
+  + 2 pins to ground: 9 and 13.
+  
   Documentation, shiftOut():
   https://www.arduino.cc/reference/tr/language/functions/advanced-io/shiftout/
   + Shifts out a byte of data one bit at a time.
@@ -19,8 +44,6 @@
 
   + Documentation:
   https://www.arduino.cc/en/Tutorial/ShiftOut
-  + Samples
-  https://www.arduino.cc/en/Tutorial/ShftOut21
 
   + Binary, Digital calculator
   https://www.calculator.net/binary-calculator.html

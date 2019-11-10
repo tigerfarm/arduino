@@ -1,37 +1,44 @@
 // -----------------------------------------------------------------------------
 /*
-  Shifting to Expand I/O.
+  Shifting 8 bits to Expand I/O.
 
   Using a 74HC595 Shift Register for serial to multiple pin outs.
 
-  How 74HC595 Shift Register Works & Interface it with Arduino
-  https://lastminuteengineers.com/74hc595-shift-register-arduino-tutorial/
-
   74HC595 is a SIPO (Serial-In-Parallel-Out) shift registers, example: Texas Instruments SN74HC595N.
-  + Data pin (SRCLK) to pin 4 (SDA) on Nano
-  + Latch pin (RCLK) to pin 5 on Nano, which does the Parallel-Out task to the 8 output pins.
-  + Clock pin (SER) to pin 6 on Nano
-  + 8 output pin.
-  + Pin 9 to daisy chain 595s.
-  + Shift register clear to set the out pins to 0.
-  + 5+
-  + Ground
-
+  + 74HC595 pin 16: to 5V+.
+  + 74HC595 pin 15: LED 0.
+  + 74HC595 pin 14: Latch pin (RCLK) to Nano pin 5, which does the Parallel-Out task to the 8 output pins.
+  + 74HC595 pin 13: to ground (-).
+  + 74HC595 pin 12: Data pin (SRCLK) to Nano pin 4, data transfer from Nano to 595.
+  + 74HC595 pin 11: Clock pin (SER)  to Nano pin 6, clock signal to say that the data is ready.
+  + 74HC595 pin 10: to 5V+.
+  + 74HC595 pin 09: Not used in single 74HC595. Used to daisy chain to next 74HC595, pin 14 (data).
+  + 74HC595 pin 08: to ground (-).
+  + 74HC595 pin 07: LED 7.
+  + 74HC595 pin 06: LED 6.
+  + 74HC595 pin 05: LED 5.
+  + 74HC595 pin 04: LED 4.
+  + 74HC595 pin 03: LED 3.
+  + 74HC595 pin 02: LED 2.
+  + 74HC595 pin 01: LED 1.
 
   Documentation, shiftOut():
   https://www.arduino.cc/reference/tr/language/functions/advanced-io/shiftout/
   + Shifts out a byte of data one bit at a time.
+  + Shifts out a byte of data one bit at a time.
+  + MSBFIRST: Most signifigent first.
+  + LSBFIRST: Lest signifigent first.
 
   Documentation:
   https://www.arduino.cc/en/Tutorial/ShiftOut
-  + Samples
-  https://www.arduino.cc/en/Tutorial/ShftOut13
-
-  3 Nano pins with 2 daisy chained 595s, plus program logic, to control 16 output pins.
-
+  + How 74HC595 Shift Register Works & Interface it with Arduino
+  https://lastminuteengineers.com/74hc595-shift-register-arduino-tutorial/
   + Video
   https://www.youtube.com/watch?v=N7CAboD1jU0
 
+  + Binary, Digital calculator
+  https://www.calculator.net/binary-calculator.html
+  
 */
 // -----------------------------------------------------------------------------
 // Shift Register
@@ -46,7 +53,7 @@ const int clockPin = 6;           // Clock pin of 74HC595 is connected to Digita
 
 byte dataByte = B01010101;
 
-void updateShiftRegister() {
+void updateShiftRegister(byte dataByte) {
   digitalWrite(latchPin, LOW);
   shiftOut(dataPin, clockPin, LSBFIRST, dataByte);
   digitalWrite(latchPin, HIGH);
@@ -65,9 +72,8 @@ void setup() {
   delay(300);
   Serial.println("+ Connection to the 595 is set.");
 
-  dataByte = B01010101;
   digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, MSBFIRST, dataByte);  // MSBFIRST or LSBFIRST
+  shiftOut(dataPin, clockPin, MSBFIRST, B01010101);  // MSBFIRST or LSBFIRST
   digitalWrite(latchPin, HIGH);
 
   Serial.println("+++ Start program loop.");
@@ -79,13 +85,10 @@ void setup() {
 void loop() {
   Serial.println("+ Looping");
   delay(500);
-  dataByte = 0;  // Initially turns all the LEDs off, by giving the variable 'leds' the value 0
-  updateShiftRegister();
+  updateShiftRegister(0); // Turns all the LEDs off.
   delay(500);
   for (int numberToDisplay = 0; numberToDisplay < 256; numberToDisplay++) {
-    digitalWrite(latchPin, LOW);
-    shiftOut(dataPin, clockPin, MSBFIRST, numberToDisplay);
-    digitalWrite(latchPin, HIGH);
+    updateShiftRegister(numberToDisplay);
     delay(60);
   }
 }
