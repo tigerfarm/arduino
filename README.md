@@ -187,6 +187,28 @@ byte readEEPROM(int address) {
 + Voltage Regulator: AMS1117-3.3v
 
 --------------------------------------------------------------------------------
+#### TTL UART CP2102 Converter for serial communications through USB.
+
++ CP2102 can be used to migrate legacy serial port based devices to USB.
++ RS232/Serial Communication protocol, to build USB devices very easily.
++ The module creates a virtual COM port using USB on your computer which can support various standard Baud Rates for serial communication.
++ After driver installation, plug the module into any USB port of your PC.
+Driver [link](https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers).
++ A new COM port is made available to the PC. Convenient for TTL level data i/o.
++ The Rx and Tx pin can be connected directly to the MCUs pins (assuming 5v i/o).
+
+
+
+Pinouts
+This module has 6 pin breakout which includes 
++    TXD = Transmit Output - Connect to Receive Pin(RXD) of Micro controller. This pin is TX pin of CP2102 on board.
++    RXD = Receive Input - Connect to Transmit Pin(TXD) of Micro controller. This pin is RX pin of CP2102 on board.
++    GND = Should be common to microcontroller ground.
++    3V3 = Optional output to power external circuit upto 50mA.
++    5V = Optional output to power external circuit upto 500mA
++    DTR/RST = Optional output pin to reset external microcontrollers like Arduino.
+
+--------------------------------------------------------------------------------
 #### 7-segment display
 
 7-Segment Displays on the Arduino Setup for 1 and4 digits.

@@ -4,6 +4,19 @@
 
   Using a 74HC595 Shift Register for serial to multiple pin outs.
 
+  Documentation, shiftOut():
+  https://www.arduino.cc/reference/tr/language/functions/advanced-io/shiftout/
+  + Shifts out a byte of data one bit at a time.
+  + MSBFIRST: Most signifigent first.
+  + LSBFIRST: Lest signifigent first.
+
+  Documentation, lowByte():
+  https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/lowbyte/
+  + Extracts the low-order (rightmost) byte of a variable (e.g. a word).
+  Documentation, highByte():
+  https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/highbyte/
+  + Extracts the high-order (leftmost) byte of a word (or the second lowest byte of a larger data type).
+
   + Documentation:
   https://www.arduino.cc/en/Tutorial/ShiftOut
   + Samples
@@ -20,7 +33,7 @@ const int clockPin = 6;           // Clock pin of 74HC595 is connected to Digita
 
 byte dataByte = B01010101;
 
-void updateShiftRegister() {
+void displayLedData(byte dataByte) {
   digitalWrite(latchPin, LOW);
   shiftOut(dataPin, clockPin, LSBFIRST, dataByte);
   digitalWrite(latchPin, HIGH);
@@ -41,7 +54,10 @@ void setup() {
 
   dataByte = B01010101;
   digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, MSBFIRST, dataByte);  // MSBFIRST or LSBFIRST
+  shiftOut(dataPin, clockPin, LSBFIRST, dataByte);
+  digitalWrite(latchPin, HIGH);
+  digitalWrite(latchPin, LOW);
+  shiftOut(dataPin, clockPin, LSBFIRST, 0);
   digitalWrite(latchPin, HIGH);
 
   Serial.println("+++ Start program loop.");
@@ -52,15 +68,25 @@ void setup() {
 
 void loop() {
   Serial.println("+ Looping");
-  delay(500);
-  dataByte = 0;  // Initially turns all the LEDs off, by giving the variable 'leds' the value 0
-  updateShiftRegister();
-  delay(500);
-  for (int numberToDisplay = 0; numberToDisplay < 256; numberToDisplay++) {
+  delay(3000);
+  // dataByte = 0;  // Initially turns all the LEDs off, by giving the variable 'leds' the value 0
+  // displayLedData(B00000100);
+
+  // 300 = 00 000 001 : 00 101 100
+  int aWord16bits= 300;
+  digitalWrite(latchPin, LOW);
+  shiftOut(dataPin, clockPin, LSBFIRST, lowByte(aWord16bits));
+  shiftOut(dataPin, clockPin, LSBFIRST, highByte(aWord16bits));
+  digitalWrite(latchPin, HIGH);
+  delay(3000);
+  // displayLedData(B00010000);
+  /*
+    for (int numberToDisplay = 0; numberToDisplay < 256; numberToDisplay++) {
     digitalWrite(latchPin, LOW);
     shiftOut(dataPin, clockPin, MSBFIRST, numberToDisplay);
     digitalWrite(latchPin, HIGH);
     delay(60);
-  }
+    }
+  */
 }
 // -----------------------------------------------------------------------------
