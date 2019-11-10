@@ -46,41 +46,6 @@
 // -----------------------------------------------------------------------------
 // Program to test opcodes.
 
-// For STA and LDa, see the video: https://www.youtube.com/watch?v=3_73NwB6toY
-// 1:30 to 6:05 time.
-// ---
-// Process instruction: lda 40Q
-// First:
-// Opcode fetch: on: MEMR MI WO
-// MEMR : Memory instruction
-// MI : opcode fetch.
-// WO : inverse logic for write output.
-// Next
-// Memory read: on: MEMR WO
-// Fetch lb.
-// Next
-// Memory read: on: MEMR WO
-// Fetch hb.
-// Next, loading from memory.
-// Memory read: on: MEMR WO
-// Fetching the data, shows the address (40Q) and the data (at 40Q) on the LED lights.
-// ---
-// Next, to process next instruction: sta 41Q
-// Opcode fetch: on: MEMR MI WO
-// MI : opcode fetch.
-// WO : inverse logic for write output.
-// Next
-// Memory read: on: MEMR WO
-// Fetch lb.
-// Next
-// Memory read: on: MEMR WO
-// Fetch hb.
-// Next, writting to memory.
-// Memory read: all status lights are off. Since it is a write output, and WO is reverse logic, WO is off.
-// Address LED lights: 41Q.
-// Data LED lights are all on because the data lights are tied to the data input bus, which is floating.
-
-
 byte theProgram[] = {
   //                //            ; --------------------------------------
   //                // Start:     ; Test opcodes sta and lda.
@@ -196,22 +161,6 @@ void listByteArray(byte btyeArray[], int arraySize) {
 
 // Video demonstrating status lights:
 //    https://www.youtube.com/watch?v=3_73NwB6toY
-
-const int INTE_PIN = 42;    // On, interrupts enabled.
-const int PROT_PIN = 42;    // Useful only if RAM has page protection impliemented.
-// Status LEDs
-const int MEMR_PIN = 42;    // Memory read such as fetching an op code (data instruction)
-const int INP_PIN = 42;     // Input
-const int M1_PIN = A3;      // On, when current address is an opcode, which is Machine cycle 1. Off when getting an opcodes data bytes.
-const int OUT_PIN = 42;     // Write output.
-const int hltA_PIN = A2;    // Halt acknowledge, halt instruction executed.
-const int STACK_PIN = 42;   // On, reading or writing to the stack.
-const int WO_PIN = 42;      // Write Output uses inverse logic. On, not writing output.
-const int INT_PIN = 42;     // On when executing an interrupt step.
-//
-const int WAIT_PIN = A0;    // On, program not running. Off, programrunning.
-const int HLDA_PIN = 42;    // 8080 processor go into a hold state because of other hardware.
-
 // MEMR & MI & WO are on when fetching an op code, example: jmp(303) or lda(072).
 // MEMR & WO are on when fetching a low or high byte of an address.
 // MEMR & WO are on when fetching data from an address.
@@ -230,6 +179,55 @@ const int HLDA_PIN = 42;    // 8080 processor go into a hold state because of ot
 // INTE is on when interrupts are enabled.
 // INTE is off when interrupts are disabled.
 
+// For STA and LDa,
+// See the video: https://www.youtube.com/watch?v=3_73NwB6toY : 1:30 to 6:05 time.
+// ---
+// Process instruction: lda 40Q
+// First:
+// Opcode fetch: on: MEMR MI WO
+// MEMR : Memory instruction
+// MI : opcode fetch.
+// WO : inverse logic for write output.
+// Next
+// Memory read: on: MEMR WO
+// Fetch lb.
+// Next
+// Memory read: on: MEMR WO
+// Fetch hb.
+// Next, loading from memory.
+// Memory read: on: MEMR WO
+// Fetching the data, shows the address (40Q) and the data (at 40Q) on the LED lights.
+// ---
+// Next, to process next instruction: sta 41Q
+// Opcode fetch: on: MEMR MI WO
+// MI : opcode fetch.
+// WO : inverse logic for write output.
+// Next
+// Memory read: on: MEMR WO
+// Fetch lb.
+// Next
+// Memory read: on: MEMR WO
+// Fetch hb.
+// Next, writting to memory.
+// Memory read: all status lights are off. Since it is a write output, and WO is reverse logic, WO is off.
+// Address LED lights: 41Q.
+// Data LED lights are all on because the data lights are tied to the data input bus, which is floating.
+
+const int INTE_PIN = 42;    // On, interrupts enabled.
+const int PROT_PIN = 42;    // Useful only if RAM has page protection impliemented.
+// Status LEDs
+const int MEMR_PIN = 42;    // Memory read such as fetching an op code (data instruction)
+const int INP_PIN = 42;     // Input
+const int M1_PIN = A3;      // On, when current address is an opcode, which is Machine cycle 1. Off when getting an opcodes data bytes.
+const int OUT_PIN = 42;     // Write output.
+const int hltA_PIN = A2;    // Halt acknowledge, halt instruction executed.
+const int STACK_PIN = 42;   // On, reading or writing to the stack.
+const int WO_PIN = 42;      // Write Output uses inverse logic. On, not writing output.
+const int INT_PIN = 42;     // On when executing an interrupt step.
+//
+const int WAIT_PIN = A0;    // On, program not running. Off, programrunning.
+const int HLDA_PIN = 42;    // 8080 processor go into a hold state because of other hardware.
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Definitions: Instruction Set, Opcodes, Registers
@@ -245,13 +243,6 @@ byte lowOrder = 0;           // lb: Low order byte of 16 bit value.
 byte highOrder = 0;          // hb: High order byte of 16 bit value.
 //                             Example: hb + lb = 16 bit memory address.
 byte dataByte = 0;           // db = Data byte (8 bit)
-
-// To do:
-//
-//         lxi_RP = 0041; // lxi RP,#  00RP0001 lb hb    -    Load lb and hb into the register pair (RP)
-const byte lxi_DE = 0021; //           00 010 001 RP = 10 which matches "01=DE".
-const byte lxi_SP = 0061; //           00 110 001 RP = 10 which matches "11=SP".
-//
 
 /*
     a  = hb + lb (16 bit value)
@@ -275,15 +266,6 @@ byte regE = 0;   // 011=E  E
 byte regH = 0;   // 100=H  H
 byte regL = 0;   // 101=L  L
 byte regM = 0;   // 110=M  Memory reference for address in H:L
-
-// mvi R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
-// mvi a,#  00 111 110  0036
-// mvi b,#  00 000 110  0006
-// mvi c,#  00 001 110  0016
-// mvi d,#  00 010 110  0026
-// mvi e,#  00 011 110  0036
-// mvi h,#  00 100 110  0046
-// mvi l,#  00 101 110  0056
 
 // mov d,S  01 DDD SSS   Move register to a register.
 // mov b,a  01 000 111  0103
@@ -361,6 +343,12 @@ const byte xra_D  = 0252; // xra RP    10 101 010  ZSPCA Register d, exclusive O
 // Example, mov a,M 176 =    01 111 110  Move the DATA at address H/L to register A.
 //
 // --------------------------------------
+// To do:
+//
+//         lxi_RP = 0041; // lxi RP,#  00RP0001 lb hb    -    Load lb and hb into the register pair (RP)
+const byte lxi_DE = 0021; //           00 010 001 RP = 10 which matches "01=DE".
+const byte lxi_SP = 0061; //           00 110 001 RP = 10 which matches "11=SP".
+//
 // In progress, Kill the Bit opcodes:
 //         Code     Octal    Inst Param  Encoding Flags  Description
 const byte IN     = 0333; // IN p      11011011 pa       -       Read input port into A
@@ -402,7 +390,7 @@ void printData(byte theByte) {
 }
 
 // --------------------
-// Data LED lights displayed using a shift register chip: SN74HC595N.
+// Data LED lights displayed using a shift register chips: SN74HC595N.
 const int latchPin = 5;  // Nano Pin 08 connected to pin 12 74HC595: ST_CP.
 const int dataPin  = 4;  // Nano Pin 11 connected to pin 14 74HC595: DS.
 const int clockPin = 6;  // Nano Pin 12 connected to pin 11 74HC595: SH_CP.
@@ -410,6 +398,14 @@ const int clockPin = 6;  // Nano Pin 12 connected to pin 11 74HC595: SH_CP.
 void displayLedData(byte dataByte) {
   digitalWrite(latchPin, LOW);
   shiftOut(dataPin, clockPin, LSBFIRST, dataByte);
+  digitalWrite(latchPin, HIGH);
+}
+
+void displayLedAddressData(unsigned int data16bits, byte data8bits) {
+  digitalWrite(latchPin, LOW);
+  shiftOut(dataPin, clockPin, LSBFIRST, data8bits);
+  shiftOut(dataPin, clockPin, LSBFIRST, lowByte(data16bits));
+  shiftOut(dataPin, clockPin, LSBFIRST, highByte(data16bits));
   digitalWrite(latchPin, HIGH);
 }
 
@@ -423,15 +419,15 @@ int instructionCycle = 0;   // Opcode process cycle
 
 void printAddressData() {
   //
+  displayLedData(dataByte);
+  // displayLedAddressData(programCounter, dataByte);
+  //
   Serial.print(F("Addr: "));
   sprintf(charBuffer, "%4d:", programCounter);
   Serial.print(charBuffer);
-  //
   Serial.print(F(" Data: "));
   dataByte = memoryData[programCounter];
-  displayLedData(dataByte);
   printData(dataByte);
-  //
 }
 
 void processData() {
@@ -456,12 +452,13 @@ void processData() {
 
 // -----------------------------------
 // Process flags and values.
-boolean compareResult = true; // Set by cpi. Used by jz.
-boolean carryBit = false;     // Set by dad. Used jnc.
-boolean halted = false;       // Set true for an hlt opcode.
 boolean runProgram = false;
+boolean halted = false;       // Set true for an hlt opcode.
+boolean carryBit = false;     // Set by dad. Used jnc.
+boolean compareResult = true; // Set by cpi. Used by jz.
 
-// For calculating 16 values.
+// For calculating 16 bit values.
+// uint16_t bValue;           // Test using uint16_t instead of "unsigned int".
 unsigned int bValue = 0;
 unsigned int cValue = 0;
 unsigned int dValue = 0;
@@ -541,38 +538,6 @@ void processOpcode() {
         Serial.print(F("false. Not over: 65535."));
       }
 #endif
-      /*
-        void _I8080_dad(uint8_t rp) {
-        uint16_t d16_1;
-        uint16_t d16_2;
-        uint16_t d16_3;
-        d16_1 = _rH * 256 + _rL;
-        switch (rp) {
-        case _RP_BC:
-        d16_2 = _rB * 256 + _rC;
-        break;
-        case _RP_DE:
-        d16_2 = _rD * 256 + _rE;
-        break;
-        case _RP_HL:
-        d16_2 = _rH * 256 + _rL;
-        break;
-        case _RP_SP:
-        d16_2 = _SP;
-        break;
-        }
-        d16_3 = d16_1 + d16_2;
-        _rH = highByte(d16_3);
-        _rL = lowByte(d16_3);
-        if ((d16_3 < d16_1) || (d16_3 < d16_2)) {
-        _setFlags_C(1);
-        }
-        else {
-        _setFlags_C(0);
-        }
-        _PC++;
-        }
-      */
       break;
     // ---------------------------------------------------------------------
     // dcr d : decrement a register. To do: update the flags.

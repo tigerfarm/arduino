@@ -35,9 +35,16 @@ const int clockPin = 6;           // Clock pin of 74HC595 is connected to Digita
 
 byte dataByte = B01010101;
 
-void displayLedData(byte dataByte) {
+void displayLedByte(byte data8bits) {
   digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, LSBFIRST, dataByte);
+  shiftOut(dataPin, clockPin, LSBFIRST, data8bits);
+  digitalWrite(latchPin, HIGH);
+}
+
+void displayLedWord(unsigned int data16bits) {
+  digitalWrite(latchPin, LOW);
+  shiftOut(dataPin, clockPin, LSBFIRST, lowByte(data16bits));
+  shiftOut(dataPin, clockPin, LSBFIRST, highByte(data16bits));
   digitalWrite(latchPin, HIGH);
 }
 

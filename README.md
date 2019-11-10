@@ -197,8 +197,6 @@ Driver [link](https://www.silabs.com/products/development-tools/software/usb-to-
 + A new COM port is made available to the PC. Convenient for TTL level data i/o.
 + The Rx and Tx pin can be connected directly to the MCUs pins (assuming 5v i/o).
 
-
-
 Pinouts
 This module has 6 pin breakout which includes 
 +    TXD = Transmit Output - Connect to Receive Pin(RXD) of Micro controller. This pin is TX pin of CP2102 on board.
