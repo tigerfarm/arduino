@@ -343,12 +343,6 @@ const byte xra_D  = 0252; // xra RP    10 101 010  ZSPCA Register d, exclusive O
 // Example, mov a,M 176 =    01 111 110  Move the DATA at address H/L to register A.
 //
 // --------------------------------------
-// To do:
-//
-//         lxi_RP = 0041; // lxi RP,#  00RP0001 lb hb    -    Load lb and hb into the register pair (RP)
-const byte lxi_DE = 0021; //           00 010 001 RP = 10 which matches "01=DE".
-const byte lxi_SP = 0061; //           00 110 001 RP = 10 which matches "11=SP".
-//
 // In progress, Kill the Bit opcodes:
 //         Code     Octal    Inst Param  Encoding Flags  Description
 const byte IN     = 0333; // IN p      11011011 pa       -       Read input port into A
@@ -357,6 +351,20 @@ const byte IN     = 0333; // IN p      11011011 pa       -       Read input port
 // RET       11001001          -       Unconditional return from subroutine
 // PUSH RP   11RP0101 *2       -       Push register pair on the stack
 // POP RP    11RP0001 *2       *2      Pop  register pair from the stack
+//
+// To do:
+//         lxi_RP = 0041; // lxi RP,#  00RP0001 lb hb    -    Load lb and hb into the register pair (RP)
+const byte lxi_DE = 0021; //           00 010 001 RP = 10 which matches "01=DE".
+const byte lxi_SP = 0061; //           00 110 001 RP = 10 which matches "11=SP".
+//
+// Additional opcodes for Pong:
+//         Code     Octal    Inst Param  Encoding Flags  Description
+// lxi (all RP options)                Load register pair immediate
+// lxi  RP,a 00RP0001                  Move a(hb:lb) into register pair RP, example, B:C = hb:lb.
+// shld a    00100010 lb hb    -       Store H:L to memory
+// ret       11001001          -       Unconditional return from subroutine
+// ani #     11100110 db       ZSPCA   AND immediate with A
+// ora S     10110SSS          ZSPCA   OR  register with A
 
 // -----------------------------------------------------------------------------
 // Output: log messages and Front Panel LED data lights.
