@@ -27,7 +27,7 @@
 
   Reference document, Intel 8080 Assembly Language Programming Manual:
     https://altairclone.com/downloads/manuals/8080%20Programmers%20Manual.pdf
- This section is base on section 26: 8080 Instruction Set
+  This section is base on section 26: 8080 Instruction Set
     https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
   Text listing of 8080 opcodes:
     http://www.classiccmp.org/dunfield/r/8080.txt
@@ -73,12 +73,22 @@ byte theProgram[] = {
   0166,             // hlt
   //
   // -----------------------------------------------------------------------------
+  //                        xra R    10 101 SSS  Register exclusive OR with register with A.
   //
-  B00000001, 0002,0001, // lxi b,513  ; lxi b,16-bit-address: 00 000 010 : 00 000 001 = 002 : 001
-  B00010001, 0004,0021, // lxi d,1041 ; lxi b,16-bit-address. 00 000 100 : 00 010 001 = 004 : 021
-  B00100001, 0006,0041, // lxi h,1569 ; lxi b,16-bit-address. 00 000 110 : 00 100 001 = 010 : 041
+  B00111110, 6,     // mvi a,6    ; Set register A, then do the exclusive OR.
+  B10101000,        // xra b
+  B00111110, 6,     // mvi a,6
+  B10101001,        // xra c
+  B00111110, 6,     // mvi a,6
+  B10101010,        // xra d
+  B00111110, 6,     // mvi a,6
+  B10101011,        // xra e
+  B00111110, 6,     // mvi a,6
+  B10101100,        // xra h
+  B00111110, 6,     // mvi a,6
+  B10101101,        // xra l
   //
-  0343, 38,         // out 38     ; Print the Intialized register values.
+  0343, 38,         // out 38     ; Print the updated register values.
   0166,             // hlt
   //
   // -----------------------------------------------------------------------------
@@ -284,7 +294,6 @@ const byte rrc    = 0017; // rrc       00 001 111   c    Rotate a right (shift b
 
 const byte dad_BC = 0011; // dad       00 001 001   c    Add B:C to H:L (16 bit add). Set carry bit.
 const byte ldax_D = 0032; // ldax d    00 011 010        Load register a with the data at address D:E.
-const byte xra_D  = 0252; // xra RP    10 101 010  ZSPCA Register d, exclusive OR with register with A.
 //
 // Opcode notes, more details:
 // --------------------------
@@ -1289,7 +1298,43 @@ void processOpcode() {
 #endif
       break;
     // ------------------------------------------------------------------------------------------
-    case xra_D:
+    // XRA S     10101SSS          ZSPCA   ExclusiveOR register with A.
+    //                             ZSPCA   Stacy, need to set flags.
+    // ---------------
+    case B10101000:
+      // xra b
+#ifdef LOG_MESSAGES
+      Serial.print(F("> xra"));
+      Serial.print(F(", Register B: "));
+      printByte(regB);
+      Serial.print(F(", Exclusive OR with register A: "));
+      printByte(regA);
+      Serial.print(F(" = "));
+#endif
+      regA = regB ^ regA;
+#ifdef LOG_MESSAGES
+      printByte(regA);
+#endif
+      break;
+    // ---------------
+    case B10101001:
+      // xra c
+#ifdef LOG_MESSAGES
+      Serial.print(F("> xra"));
+      Serial.print(F(", Register C: "));
+      printByte(regC);
+      Serial.print(F(", Exclusive OR with register A: "));
+      printByte(regA);
+      Serial.print(F(" = "));
+#endif
+      regA = regC ^ regA;
+#ifdef LOG_MESSAGES
+      printByte(regA);
+#endif
+      break;
+    // ---------------
+    case B10101010:
+      // xra d
 #ifdef LOG_MESSAGES
       Serial.print(F("> xra"));
       Serial.print(F(", Register D: "));
@@ -1299,6 +1344,54 @@ void processOpcode() {
       Serial.print(F(" = "));
 #endif
       regA = regD ^ regA;
+#ifdef LOG_MESSAGES
+      printByte(regA);
+#endif
+      break;
+    // ---------------
+    case B10101011:
+      // xra e
+#ifdef LOG_MESSAGES
+      Serial.print(F("> xra"));
+      Serial.print(F(", Register E: "));
+      printByte(regE);
+      Serial.print(F(", Exclusive OR with register A: "));
+      printByte(regA);
+      Serial.print(F(" = "));
+#endif
+      regA = regE ^ regA;
+#ifdef LOG_MESSAGES
+      printByte(regA);
+#endif
+      break;
+    // ---------------
+    case B10101100:
+      // xra h
+#ifdef LOG_MESSAGES
+      Serial.print(F("> xra"));
+      Serial.print(F(", Register H: "));
+      printByte(regH);
+      Serial.print(F(", Exclusive OR with register A: "));
+      printByte(regA);
+      Serial.print(F(" = "));
+#endif
+      regA = regH ^ regA;
+#ifdef LOG_MESSAGES
+      printByte(regA);
+#endif
+      break;
+    // ---------------
+    case B10101101:
+      // xra l
+#ifdef LOG_MESSAGES
+      Serial.print(F("> xra"));
+      Serial.print(F(", Register L: "));
+      printByte(regL);
+      Serial.print(F(", Exclusive OR with register A: "));
+      printByte(regA);
+      Serial.print(F(" = "));
+#endif
+      regA = regL ^ regA;
 #ifdef LOG_MESSAGES
       printByte(regA);
 #endif
