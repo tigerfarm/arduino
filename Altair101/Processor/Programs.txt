@@ -49,6 +49,51 @@ byte theProgram[] = {
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+// Program to test opcodes.
+
+byte theProgram[] = {
+  //                //            ; --------------------------------------
+  //                // Start:     ; Test opcode xra. Register exclusive OR with register with A.
+  //
+  //                //            ; --------------------------------------
+  //                //            ; Intialize register values.
+  //
+  B00111110, 6,     // mvi a,6    ; Move # to registers.
+  B00000110, 0,     // mvi b,0
+  B00001110, 1,     // mvi c,1
+  B00010110, 2,     // mvi d,2
+  B00011110, 3,     // mvi e,3
+  B00100110, 4,     // mvi h,4
+  B00101110, 5,     // mvi l,5
+  //
+  0343, 38,         // out 38     ; Print the Intialized register values.
+  0166,             // hlt
+  //
+  // -----------------------------------------------------------------------------
+  //                        xra R    10 101 SSS  Register exclusive OR with register with A.
+  //
+  B00111110, 6,     // mvi a,6    ; Set register A, then do the exclusive OR.
+  B10101000,        // xra b
+  B00111110, 6,     // mvi a,6
+  B10101001,        // xra c
+  B00111110, 6,     // mvi a,6
+  B10101010,        // xra d
+  B00111110, 6,     // mvi a,6
+  B10101011,        // xra e
+  B00111110, 6,     // mvi a,6
+  B10101100,        // xra h
+  B00111110, 6,     // mvi a,6
+  B10101101,        // xra l
+  //
+  0343, 38,         // out 38     ; Print the updated register values.
+  0166,             // hlt
+  //
+  // -----------------------------------------------------------------------------
+  0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
+  0000              //            ; End.
+};
+
+// -----------------------------------------------------------------------------
 // Test opcode lxi.
 
 byte theProgram[] = {
