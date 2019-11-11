@@ -82,8 +82,8 @@ byte theProgram[] = {
   B00001010,        // ldax b
   0343, 37,         // out 37     ; Print register A.
   //
-  B00010110, 2,     // mvi d,0
-  B00011110, 3,     // mvi e,3    ; D:E = 0:3, data = B00000110
+  B00010110, 0,     // mvi d,0
+  B00011110, 6,     // mvi e,6    ; D:E data = B00010110 = 22
   B00011010,        // ldax d
   0343, 37,         // out 37     ; Print register A.
   //
