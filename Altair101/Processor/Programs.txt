@@ -44,6 +44,86 @@ byte theProgram[] = {
 };
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+//  Opcode Test Programs
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Test opcode lxi.
+
+byte theProgram[] = {
+  //                //            ; --------------------------------------
+  //                // Start:     ; Test opcode lxi. Load register pair immediate.
+  //                              ; Move a(hb:lb) into register pair RP, example, B:C = hb:lb.
+  //
+  //                //            ; --------------------------------------
+  //                //            ; Intialize register values.
+  //
+  B00111110, 6,     // mvi a,6    ; Move # to registers.
+  B00000110, 0,     // mvi b,0
+  B00001110, 1,     // mvi c,1
+  B00010110, 2,     // mvi d,2
+  B00011110, 3,     // mvi e,3
+  B00100110, 4,     // mvi h,4
+  B00101110, 5,     // mvi l,5
+  //
+  0343, 38,         // out 38     ; Print the Intialized register values.
+  0166,             // hlt
+  //
+  // -----------------------------------------------------------------------------
+  //
+  B00000001, 0002,0001, // lxi b,513  ; lxi b,16-bit-address: 00 000 010 : 00 000 001 = 002 : 001
+  B00010001, 0004,0021, // lxi d,1041 ; lxi b,16-bit-address. 00 000 100 : 00 010 001 = 004 : 021
+  B00100001, 0006,0041, // lxi h,1569 ; lxi b,16-bit-address. 00 000 110 : 00 100 001 = 010 : 041
+  //
+  0343, 38,         // out 38     ; Print the Intialized register values.
+  0166,             // hlt
+  //
+  // -----------------------------------------------------------------------------
+  0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
+  0000              //            ; End.
+};
+
+// -----------------------------------------------------------------------------
+// Test opcodes sta and lda.
+
+byte theProgram[] = {
+  //                //            ; --------------------------------------
+  //                // Start:     ; Test opcodes sta and lda.
+  //
+  //                //            ; --------------------------------------
+  //                //            ; Intialize register values.
+  //1RRR110
+  B00111110, 6,     // mvi a,0    ; Move # to register A.
+  //
+  B00100110, 0,     // mvi h,0    ; Address for memory address testing.
+  B00101110, 60,    // mvi l,60
+  //
+  0343, 38,         // out 38     ; Print the intial register values.
+  0166,             // hlt
+  //
+  // -----------------------------------------------------------------------------
+  //
+  B00111110, 6,     // mvi a,0    ; Move # to register A.
+  0343, 37,         // out 37     ; Print register A.
+  //
+  0000,             // nop
+  B00110010, 60, 0, // sta 60     ; Store register A's data to the address(hb:lb).
+  0343, 36,         // out 36     ; Print memory address data value. "36" prints the register pair H:L and data at the address.
+  //
+  0000,             // nop
+  B00111110, 0,     // mvi a,0    ; Move # to register A.
+  B00111010, 60, 0, // lda 60     ; Load register A from the address(hb:lb).
+  0343, 37,         // out 37     ; Print register A.
+  //
+  0166,             // hlt
+  //
+  // -----------------------------------------------------------------------------
+  0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
+  0000              //            ; End.
+};
+
+// -----------------------------------------------------------------------------
 // INR: Increment opcode test.
 
 byte theProgram[] = {
@@ -255,40 +335,45 @@ byte theProgram[] = {
 };
 
 // -----------------------------------------------------------------------------
-// Opcode MVI test program.
+// Opcode mvi test program.
 
 byte theProgram[] = {
   //                //            ; --------------------------------------
-  //                // BEG:       ; Start: Testing opcode MVI.
+  //                // BEG:       ; Start: Testing opcode mvi.
   //
   0343, 38,         // OUT 30     ; Print the intial register values.
   0166,             // HLT
   //
   // ------------------------------------------------------------------------------------------
-  // MVI R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
-  // MVI A,#  00 111 110  0036
-  // MVI B,#  00 000 110  0006
-  // MVI C,#  00 001 110  0016
-  // MVI D,#  00 010 110  0026
-  // MVI E,#  00 011 110  0036
-  // MVI H,#  00 100 110  0046
-  // MVI L,#  00 101 110  0056
+  // mvi R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
+  // mvi A,#  00 111 110  0036
+  // mvi B,#  00 000 110  0006
+  // mvi C,#  00 001 110  0016
+  // mvi D,#  00 010 110  0026
+  // mvi E,#  00 011 110  0036
+  // mvi H,#  00 100 110  0046
+  // mvi L,#  00 101 110  0056
   //                //            ; --------------------------------------
   //                //            ; Intialize register values.
   //
-  B00111110, 7,       // MVI A,7    ; Move db to register A.
-  B00000110, 0,       // MVI B,0    ; Move db to register B.
-  B00001110, 1,       // MVI C,1    ; Move db to register C.
-  B00010110, 2,       // MVI D,2    ; Move db to register D.
-  B00011110, 3,       // MVI E,3    ; Move db to register E.
-  B00100110, 4,       // MVI H,4    ; Move db to register H.
-  B00101110, 5,       // MVI L,5    ; Move db to register L.
+  B00111110, 7,       // mvi A,7    ; Move db to register A.
+  B00000110, 0,       // mvi B,0    ; Move db to register B.
+  B00001110, 1,       // mvi C,1    ; Move db to register C.
+  B00010110, 2,       // mvi D,2    ; Move db to register D.
+  B00011110, 3,       // mvi E,3    ; Move db to register E.
+  B00100110, 4,       // mvi H,4    ; Move db to register H.
+  B00101110, 5,       // mvi L,5    ; Move db to register L.
   //
   0343, 38,         // OUT 30     ; Print the Intialized register values.
   0166,             // HLT
   //
   0000              //            ; End.
 };
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+//  Other Test Programs
+// -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
 // I/O program.
@@ -332,7 +417,7 @@ byte theProgramKtb[] = {
   //
   //                Start program.
   0041, 0000, 0000, // LXI H,0    ; Move the lb hb data values into the register pair H(hb):L(lb). Initialize counter
-  0026, 0200,       // MVI D,080h ; Move db to register D. Set initial display bit.  080h = 0200 = regD = 10 000 000
+  0026, 0200,       // mvi D,080h ; Move db to register D. Set initial display bit.  080h = 0200 = regD = 10 000 000
   0001, 0036, 0000, // LXI B,0eh  ; Load a(lb:hb) into register B:C. Higher value = faster. Default: 0016 = B:C  = 00 010 000
   //
   //  ; Display bit pattern on upper 8 address lights.
@@ -509,8 +594,8 @@ const byte JNC =    0322; // JNC  lb hb  11010010               Jump if carry bi
   //                Start program.
   0000,             // NOP
   0166,             // HLT  : Halt to check the program listing.
-  0006, 0776,       // MVI  B,db : Move db to register B.
-  0016, 0777,       // MVI  C,db : Move db to register B.
+  0006, 0776,       // mvi  B,db : Move db to register B.
+  0016, 0777,       // mvi  C,db : Move db to register B.
   //                While address:data != 0111
   0376, 0111,             // DAD Add B:C to H:L. Set carry bit.
   0312, 19, 0000,         // JNC lb hb. If carry bit false, jump to lb hb (end while)
@@ -537,12 +622,12 @@ const byte JNC =    0322; // JNC  lb hb  11010010               Jump if carry bi
 
 byte theProgram[] = {
   // ------------------------------------------------------------------
-  // Test: MVI, DAD, JNC
+  // Test: mvi, DAD, JNC
   //                Start program.
   0000,             // NOP
   //                               Set B:C to 0000:1
-  0006, 0000,       // MVI  B,db : Move db to register B.
-  0016, 0001,       // MVI  C,db : Move db to register C.
+  0006, 0000,       // mvi  B,db : Move db to register B.
+  0016, 0001,       // mvi  C,db : Move db to register C.
   //                               Set
   0041, 0373, 0377, // LXI_HL lb hb. Load into register H:L = 377:373 = 65531.
   //                Until !carry bit {

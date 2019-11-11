@@ -33,17 +33,18 @@ I coded the Altair 101 processor program to react the same way.
 
 Opcodes programed and tested:
 ````
-+ CPI #    Compare db with A > compareResult.
-+ HLT      Halt processor
-+ IN  p    Read input for port a, into A
-+ JMP a    Unconditional jump
-+ JZ  a    If compareResult is true, jump to lb hb.
-+ JNC a    Jump if carry bit is 0 (false).
-+ MVI R,#  Move a number (#), which is the next db, to register RRR.
-+ MOV D,S  Move register to a register.
-+ NOP      No operation
-+ RLC      Rotate A left. Need to handle carry bit.
-+ RRC      0Rotate A right (shift byte right 1 bit). Need to handle carry bit.
++ cpi #    Compare db with A > compareResult.
++ hlt      Halt processor
++ in  p    Read input for port a, into A
++ jmp a    Unconditional jump
++ jz  a    If compareResult is true, jump to lb hb.
++ jnc a    Jump if carry bit is 0 (false).
++ lxi RP,a 00 RP0 001  RP=10  which matches "10=HL".
++ mvi R,#  Move a number (#), which is the next db, to register RRR.
++ mov D,S  Move register to a register.
++ nop      No operation
++ rlc      Rotate A left. Need to handle carry bit.
++ rrc      0Rotate A right (shift byte right 1 bit). Need to handle carry bit.
 ````
 Partly programmed:
 ````
@@ -51,7 +52,6 @@ Partly programmed:
 + LDAX RP  00 RP1 010  Load indirect through BC(RP=00) or DE(RP=01)
 + INR R    Increment the register. I still need to set flags.
 + INX RP   00 RP0 011  Increment a register pair, example: H:L (a 16 bit value)
-+ LXI RP,a 00 RP0 001  RP=10  which matches "10=HL".
 + OUT p    Write A to output port a.
 + XRA R    10 101 SSS  Register exclusive OR with register with A.
 ````

@@ -3,25 +3,32 @@
   Altair 101 software microprocessor
 
   Next:
-  + Control OUT and WO status LED lights.
-  + Confirm opcodes: ldax, inx, and dad.
-  + Clean up opcode note section.
+  + Control status LED lights: OUT and WO.
+  + Complete opcodes: ldax, inx, and dad.
   + Get input opcode, in, to work.
   + Test program, Kill the Bit.
 
   Program sections,
-    Definitions: Memory and sample program.
+    Sample program.
+    Definitions: Memory.
     Memory Functions.
     Front Panel Status LEDs.
-    Definitions: Instruction Set, Opcodes, Registers.
     Output: Front Panel LED lights and serial log messages.
-    Processor: Processing opcodes instructions
+    ----------------------------
+    Process opcodes instructions:
+    + Instruction Set control.
+    + Process opcode instruction step 1, fetch opcode and process instruction step 1.
+    + Process opcode instruction steps greater than 1.
+    ----------------------------
     Input: Front Panel infrared switch events
+    ----------------------------
     setup() Computer initialization.
     loop()  Clock cycling through memory.
 
   Reference document, Intel 8080 Assembly Language Programming Manual:
     https://altairclone.com/downloads/manuals/8080%20Programmers%20Manual.pdf
+ This section is base on section 26: 8080 Instruction Set
+    https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
   Text listing of 8080 opcodes:
     http://www.classiccmp.org/dunfield/r/8080.txt
 
@@ -33,7 +40,7 @@
 
   Extract highBtye()
     https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/highbyte/
-  lowByte()
+  Extract lowByte()
     https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/lowbyte/
 */
 // -----------------------------------------------------------------------------
@@ -48,33 +55,30 @@
 
 byte theProgram[] = {
   //                //            ; --------------------------------------
-  //                // Start:     ; Test opcodes sta and lda.
+  //                // Start:     ; Test opcode lxi. Load register pair immediate.
+  //                              ; Move a(hb:lb) into register pair RP, example, B:C = hb:lb.
   //
   //                //            ; --------------------------------------
   //                //            ; Intialize register values.
-  //1RRR110
-  B00111110, 6,     // mvi a,0    ; Move # to register A.
   //
-  B00100110, 0,     // mvi h,0    ; Address for memory address testing.
-  B00101110, 60,    // mvi l,60
+  B00111110, 6,     // mvi a,6    ; Move # to registers.
+  B00000110, 0,     // mvi b,0
+  B00001110, 1,     // mvi c,1
+  B00010110, 2,     // mvi d,2
+  B00011110, 3,     // mvi e,3
+  B00100110, 4,     // mvi h,4
+  B00101110, 5,     // mvi l,5
   //
-  0343, 38,         // out 38     ; Print the intial register values.
+  0343, 38,         // out 38     ; Print the Intialized register values.
   0166,             // hlt
   //
   // -----------------------------------------------------------------------------
   //
-  B00111110, 6,     // mvi a,0    ; Move # to register A.
-  0343, 37,         // out 37     ; Print register A.
+  B00000001, 0002,0001, // lxi b,513  ; lxi b,16-bit-address: 00 000 010 : 00 000 001 = 002 : 001
+  B00010001, 0004,0021, // lxi d,1041 ; lxi b,16-bit-address. 00 000 100 : 00 010 001 = 004 : 021
+  B00100001, 0006,0041, // lxi h,1569 ; lxi b,16-bit-address. 00 000 110 : 00 100 001 = 010 : 041
   //
-  0000,             // nop
-  B00110010, 60, 0, // sta 60     ; Store register A's data to the address(hb:lb).
-  0343, 36,         // out 36     ; Print memory address data value. "36" prints the register pair H:L and data at the address.
-  //
-  0000,             // nop
-  B00111110, 0,     // mvi a,0    ; Move # to register A.
-  B00111010, 60, 0, // lda 60     ; Load register A from the address(hb:lb).
-  0343, 37,         // out 37     ; Print register A.
-  //
+  0343, 38,         // out 38     ; Print the Intialized register values.
   0166,             // hlt
   //
   // -----------------------------------------------------------------------------
@@ -232,9 +236,6 @@ const int HLDA_PIN = 42;    // 8080 processor go into a hold state because of ot
 // -----------------------------------------------------------------------------
 // Definitions: Instruction Set, Opcodes, Registers
 
-// This section is base on section 26: 8080 Instruction Set
-//    https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
-
 // ------------------------------------
 // Processing opcodes and opcode cycles
 
@@ -244,39 +245,8 @@ byte highOrder = 0;          // hb: High order byte of 16 bit value.
 //                             Example: hb + lb = 16 bit memory address.
 byte dataByte = 0;           // db = Data byte (8 bit)
 
-/*
-    a  = hb + lb (16 bit value)
-    d  = 8 bit data, such as data from an address
-    pa = Port address (8 bit)
-    p  = 8 bit port address
-
-    Register pair 'RP' fields:
-    00=BC   (B:C as 16 bit register)
-    01=DE   (D:E as 16 bit register)
-    10=HL   (H:L as 16 bit register)
-    11=SP   (Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP)
-*/
-
-//   Destination and Source register fields.
-byte regA = 0;   // 111=A  a, register a, or Accumulator
-byte regB = 0;   // 000=B  b, register B
-byte regC = 0;   // 001=C  C
-byte regD = 0;   // 010=D  D
-byte regE = 0;   // 011=E  E
-byte regH = 0;   // 100=H  H
-byte regL = 0;   // 101=L  L
-byte regM = 0;   // 110=M  Memory reference for address in H:L
-
-// mov d,S  01 DDD SSS   Move register to a register.
-// mov b,a  01 000 111  0103
-// mov c,a  01 001 111  0113
-// mov d,a  01 010 111  0123  * Done
-// mov e,a  01 011 111  0133
-// mov h,a  01 100 111  0143
-// mov l,a  01 101 111  0153
-
 // -----------------------------------------------------------------------------
-// Opcodes ordering
+// Opcode ordering
 
 // Without parameters in the opcode:
 // nop      00 000 000  No operation
@@ -291,15 +261,13 @@ byte regM = 0;   // 110=M  Memory reference for address in H:L
 // cpi #    11 111 110  Compare db with a > compareResult.
 
 // With parameters in the opcode:
-// mov d,S  01 DDD SSS  Move register to a register.
-// xra R    10 101 SSS  Register exclusive OR with register with A.
-
 // ldax RP  00 RP1 010  Load indirect through BC(RP=00) or DE(RP=01)
 // inx RP   00 RP0 011  Increment a register pair, example: H:L (a 16 bit value)
 // mvi R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
-
 // lxi RP,a 00 RP0 001  RP=10  which matches "10=HL".
 // dad RP   00 RP1 001  Add register pair(RP) to H:L (16 bit add). And set carry bit.
+// mov d,S  01 DDD SSS  Move register to a register.
+// xra R    10 101 SSS  Register exclusive OR with register with A.
 
 // -----------------------------------------------------------------------------
 // Opcodes that are programmed and tested:
@@ -314,14 +282,8 @@ const byte nop    = 0000; // nop         00000000        No operation
 const byte out    = 0343; // out pa      11010011        Write a to output port
 const byte rrc    = 0017; // rrc       00 001 111   c    Rotate a right (shift byte right 1 bit). Note, carry bit not handled at this time.
 
-const byte mvi_B  = 0006; // MVI  B,db   00 000 110 db     -      Move db to register B.
-const byte mvi_C  = 0016; // MVI  C,db   00 001 110 db     -      Move db to register C.
-const byte mvi_D  = 0026; // MVI  D,db   00 001 110 db     -      Move db to register D.
-const byte mvi_E  = 0036; // MVI  E,db   00 001 110 db     -      Move db to register E.
 const byte dad_BC = 0011; // dad       00 001 001   c    Add B:C to H:L (16 bit add). Set carry bit.
 const byte ldax_D = 0032; // ldax d    00 011 010        Load register a with the data at address D:E.
-const byte lxi_BC = 0001; // lxi  bc,a 00 000 001        Move a(hb:lb) into register pair, B:C = hb:lb.
-const byte lxi_HL = 0041; // lxi  hl,a 00 100 001        Move a(lb hb) into register pair, H:L = hb:lb.
 const byte xra_D  = 0252; // xra RP    10 101 010  ZSPCA Register d, exclusive OR with register with A.
 //
 // Opcode notes, more details:
@@ -330,41 +292,49 @@ const byte xra_D  = 0252; // xra RP    10 101 010  ZSPCA Register d, exclusive O
 //                           dad  RP     00RP1001 c      Add register pair(RP) to H:L (16 bit add)
 //                           inx  RP     00RP0011        Increment H:L (can be a 16 bit address)
 //                           ldax RP     00RP1010 -      Load indirect through BC(RP=00) or DE(RP=01)
-//                           lxi  RP,a   00RP0001        RP=10  which matches "10=HL".
-//                           mvi  R,db   00RRR110        Move db to register R.
 //                           xra  R      10101SSS        Register exclusive OR with register with A.
 //
 //        dad                Set carry bit if the addition causes a carry out.
 //        inx                Not done for the stack pointer.
 //        ldax d : Load the accumulator from memory location 938Bh, where register d contains 93H and register e contains 8BH.
 //
-// mov d,S   01DDDSSS          -       Move register to a register.
-// mov d,M   01DDD110          -    Or Move data from M(H:L) address, to register DDD.
-// Example, mov a,M 176 =    01 111 110  Move the DATA at address H/L to register A.
-//
 // --------------------------------------
-// In progress, Kill the Bit opcodes:
-//         Code     Octal    Inst Param  Encoding Flags  Description
-const byte IN     = 0333; // IN p      11011011 pa       -       Read input port into A
+// To do:
 //
 // CALL a    11001101 lb hb    -       Unconditional subroutine call
 // RET       11001001          -       Unconditional return from subroutine
 // PUSH RP   11RP0101 *2       -       Push register pair on the stack
 // POP RP    11RP0001 *2       *2      Pop  register pair from the stack
 //
-// To do:
-//         lxi_RP = 0041; // lxi RP,#  00RP0001 lb hb    -    Load lb and hb into the register pair (RP)
-const byte lxi_DE = 0021; //           00 010 001 RP = 10 which matches "01=DE".
-const byte lxi_SP = 0061; //           00 110 001 RP = 10 which matches "11=SP".
-//
-// Additional opcodes for Pong:
+// Kill the Bit opcodes:
 //         Code     Octal    Inst Param  Encoding Flags  Description
-// lxi (all RP options)                Load register pair immediate
-// lxi  RP,a 00RP0001                  Move a(hb:lb) into register pair RP, example, B:C = hb:lb.
+const byte IN     = 0333; // IN p      11011011 pa       -       Read input port into A
+//
+// Pong opcodes:
+//         Code     Octal    Inst Param  Encoding Flags  Description
 // shld a    00100010 lb hb    -       Store H:L to memory
-// ret       11001001          -       Unconditional return from subroutine
 // ani #     11100110 db       ZSPCA   AND immediate with A
 // ora S     10110SSS          ZSPCA   OR  register with A
+// ret       11001001          -       Unconditional return from subroutine
+
+//   Destination and Source registers and register pairs.
+byte regA = 0;   // 111=A  a  register A, or Accumulator
+//
+//                            Register pair 'RP' fields:
+//
+byte regB = 0;   // 000=B  b  00=BC   (B:C as 16 bit register)
+byte regC = 0;   // 001=C  c
+byte regD = 0;   // 010=D  d  01=DE   (D:E as 16 bit register)
+byte regE = 0;   // 011=E  e
+byte regH = 0;   // 100=H  h  10=HL   (H:L as 16 bit register)
+byte regL = 0;   // 101=L  l
+byte regM = 0;   // 110=M  m  Memory reference for address in H:L
+//                            11=SP   (Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP)
+
+//    a  = hb + lb (16 bit value)
+//    d  = 8 bit data, such as data from an address
+//    pa = Port address (8 bit)
+//    p  = 8 bit port address
 
 // -----------------------------------------------------------------------------
 // Output: log messages and Front Panel LED data lights.
@@ -877,17 +847,35 @@ void processOpcode() {
 #endif
       break;
     // ---------------------------------------------------------------------
-    case lxi_BC:
-      opcode = lxi_BC;
+    // lxi                                Load register pair immediate
+    // lxi RP,a 00RP0001                  Move a(hb:lb) into register pair RP, example, B:C = hb:lb.
+    case B00000001:
+      opcode = B00000001;
 #ifdef LOG_MESSAGES
       Serial.print(F("> lxi, Move the lb hb data, into register pair B:C = hb:lb."));
 #endif
       break;
-    case lxi_HL:
-      opcode = lxi_HL;
+    case B00010001:
+      opcode = B00010001;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> lxi, Move the lb hb data, into register pair D:E = hb:lb."));
+#endif
+      break;
+    case B00100001:
+      opcode = B00100001;
 #ifdef LOG_MESSAGES
       Serial.print(F("> lxi, Move the lb hb data, into register pair H:L = hb:lb."));
 #endif
+      break;
+    case B00110001:
+      // stacy
+      // opcode = B00110001;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> lxi, Need to figure out: move the lb hb data, to the stack pointer."));
+#endif
+      Serial.print(F(" - Error, unhandled instruction."));
+      runProgram = false;
+      digitalWrite(WAIT_PIN, HIGH);
       break;
     // ---------------------------------------------------------------------
     case B01111110:
@@ -1222,26 +1210,26 @@ void processOpcode() {
       Serial.print(F("> mvi, move db address into register A."));
 #endif
       break;
-    case mvi_B:
-      opcode = mvi_B;
+    case B00000110:
+      opcode = B00000110;
 #ifdef LOG_MESSAGES
       Serial.print(F("> mvi, move db address into register B."));
 #endif
       break;
-    case mvi_C:
-      opcode = mvi_C;
+    case B00001110:
+      opcode = B00001110;
 #ifdef LOG_MESSAGES
       Serial.print(F("> mvi, move db address into register C."));
 #endif
       break;
-    case mvi_D:
-      opcode = mvi_D;
+    case B00010110:
+      opcode = B00010110;
 #ifdef LOG_MESSAGES
       Serial.print(F("> mvi, move db address into register D."));
 #endif
       break;
-    case mvi_E:
-      opcode = mvi_E;
+    case B00011110:
+      opcode = B00011110;
 #ifdef LOG_MESSAGES
       Serial.print(F("> mvi, move db address into register E."));
 #endif
@@ -1438,22 +1426,24 @@ void processOpcodeData() {
       printByte((byte)programCounter);
 #endif
       break;
-    case lxi_BC:
+    // ---------------------------------------------------------------------
+    case B00000001:
+      // lxi b,16-bit-address
       if (instructionCycle == 1) {
-        regB = memoryData[programCounter];
+        regC = memoryData[programCounter];
 #ifdef LOG_MESSAGES
         Serial.print(F("< lxi, lb data: "));
-        sprintf(charBuffer, "%4d:", regB);
+        sprintf(charBuffer, "%4d:", regC);
         Serial.print(charBuffer);
 #endif
         programCounter++;
         return;
       }
       // instructionCycle == 2
-      regC = memoryData[programCounter];
+      regB = memoryData[programCounter];
 #ifdef LOG_MESSAGES
       Serial.print(F("< lxi, hb data: "));
-      sprintf(charBuffer, "%4d:", regH);
+      sprintf(charBuffer, "%4d:", regB);
       Serial.print(charBuffer);
       Serial.print(F("> B:C = "));
       printOctal(regB);
@@ -1462,7 +1452,35 @@ void processOpcodeData() {
 #endif
       programCounter++;
       break;
-    case lxi_HL:
+    // -------------------
+    case B00010001:
+      // lxi d,16-bit-address
+      if (instructionCycle == 1) {
+        regE = memoryData[programCounter];
+#ifdef LOG_MESSAGES
+        Serial.print(F("< lxi, lb data: "));
+        sprintf(charBuffer, "%4d:", regE);
+        Serial.print(charBuffer);
+#endif
+        programCounter++;
+        return;
+      }
+      // instructionCycle == 2
+      regD = memoryData[programCounter];
+#ifdef LOG_MESSAGES
+      Serial.print(F("< lxi, hb data: "));
+      sprintf(charBuffer, "%4d:", regD);
+      Serial.print(charBuffer);
+      Serial.print(F("> D:E = "));
+      printOctal(regD);
+      Serial.print(F(":"));
+      printOctal(regE);
+#endif
+      programCounter++;
+      break;
+    // -------------------
+    case B00100001:
+      // lxi h,16-bit-address
       if (instructionCycle == 1) {
         regL = memoryData[programCounter];
 #ifdef LOG_MESSAGES
@@ -1503,7 +1521,7 @@ void processOpcodeData() {
 #endif
       programCounter++;
       break;
-    case mvi_B:
+    case B00000110:
       regB = memoryData[programCounter];
 #ifdef LOG_MESSAGES
       Serial.print(F("< mvi, move db > register B: "));
@@ -1511,7 +1529,7 @@ void processOpcodeData() {
 #endif
       programCounter++;
       break;
-    case mvi_C:
+    case B00001110:
       regC = memoryData[programCounter];
 #ifdef LOG_MESSAGES
       Serial.print(F("< mvi, move db > register C: "));
@@ -1519,7 +1537,7 @@ void processOpcodeData() {
 #endif
       programCounter++;
       break;
-    case mvi_D:
+    case B00010110:
       regD = memoryData[programCounter];
 #ifdef LOG_MESSAGES
       Serial.print(F("< mvi, move db > register D: "));
@@ -1527,7 +1545,7 @@ void processOpcodeData() {
 #endif
       programCounter++;
       break;
-    case mvi_E:
+    case B00011110:
       regE = memoryData[programCounter];
 #ifdef LOG_MESSAGES
       Serial.print(F("< mvi, move db > register E: "));
