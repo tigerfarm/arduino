@@ -42,16 +42,10 @@
 // -----------------------------------------------------------------------------
 // Shift Register
 
-const int dataPin = 4;            // 74HC595 Data  pin 12 is connected to Digital pin 4
-const int latchPin = 5;           // 74HC595 Latch pin 14 is connected to Digital pin 5
+const int dataPin = 4;            // 74HC595 Data  pin 14 is connected to Digital pin 4
+const int latchPin = 5;           // 74HC595 Latch pin 12 is connected to Digital pin 5
 const int clockPin = 6;           // 74HC595 Clock pin 11 is connected to Digital pin 6
 const int dataInputPin = 3;       // Nano digital data input check pin.
-
-void updateShiftRegister(byte dataByte) {
-  digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, LSBFIRST, dataByte);
-  digitalWrite(latchPin, HIGH);
-}
 
 // -----------------------------------------------------------------------------
 // Only do the action once, don't repeat if the button is held down.
@@ -116,7 +110,6 @@ void setup() {
   delay(300);
   Serial.println("+ Ready for input.");
 
-  // updateShiftRegister(B11111111);
   byte dataByte = B11111111;
   digitalWrite(latchPin, LOW);
   shiftOut(dataPin, clockPin, LSBFIRST, dataByte);

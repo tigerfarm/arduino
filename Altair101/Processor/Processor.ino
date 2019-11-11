@@ -399,9 +399,9 @@ void printData(byte theByte) {
 
 // --------------------
 // Data LED lights displayed using a shift register chips: SN74HC595N.
-const int latchPin = 5;  // Nano Pin 08 connected to pin 12 74HC595: ST_CP.
-const int dataPin  = 4;  // Nano Pin 11 connected to pin 14 74HC595: DS.
-const int clockPin = 6;  // Nano Pin 12 connected to pin 11 74HC595: SH_CP.
+const int dataPin = 4;            // 74HC595 Data  pin 14 is connected to Digital pin 4
+const int latchPin = 5;           // 74HC595 Latch pin 12 is connected to Digital pin 5
+const int clockPin = 6;           // 74HC595 Clock pin 11 is connected to Digital pin 6
 
 void displayLedData(byte dataByte) {
   digitalWrite(latchPin, LOW);
