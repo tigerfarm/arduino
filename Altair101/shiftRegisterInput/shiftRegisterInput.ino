@@ -66,13 +66,22 @@ void printByte(byte b) {
 void buttonCheck() {
   byte dataByte = B10000000;
   for (int i = 0; i < 8; i++) {
-    printByte(dataByte);
+    // Serial.print(F("+ "));
+    // printByte(dataByte);
+    digitalWrite(latchPin, LOW);
+    shiftOut(dataPin, clockPin, LSBFIRST, dataByte);
+    digitalWrite(latchPin, HIGH);
+    // delay(60);
+    if (digitalRead(dataInputPin) == HIGH) {
+      Serial.print("+ Pressed: ");
+      Serial.print(i);
+      Serial.println("");
+    }
     dataByte = dataByte >> 1;
-    // digitalWrite(latchPin, LOW);
-    // shiftOut(dataPin, clockPin, MSBFIRST, numberToDisplay);
-    // digitalWrite(latchPin, HIGH);
-    delay(60);
   }
+  digitalWrite(latchPin, LOW);
+  shiftOut(dataPin, clockPin, LSBFIRST, B1111111);
+  digitalWrite(latchPin, HIGH);
 }
 
 void checkButton() {
