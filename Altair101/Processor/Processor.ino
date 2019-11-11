@@ -55,8 +55,8 @@
 
 byte theProgram[] = {
   //                //            ; --------------------------------------
-  //                // Start:     ; Test opcode lxi. Load register pair immediate.
-  //                              ; Move a(hb:lb) into register pair RP, example, B:C = hb:lb.
+  //                // Start:     ; Test opcode ldax.
+  //                //            ; Load register A with data value from address B:C or D:E.
   //
   //                //            ; --------------------------------------
   //                //            ; Intialize register values.
@@ -66,29 +66,27 @@ byte theProgram[] = {
   B00001110, 1,     // mvi c,1
   B00010110, 2,     // mvi d,2
   B00011110, 3,     // mvi e,3
-  B00100110, 4,     // mvi h,4
-  B00101110, 5,     // mvi l,5
+  B00100110, 4,     // mvi h,0
+  B00101110, 5,     // mvi l,0
   //
   0343, 38,         // out 38     ; Print the Intialized register values.
   0166,             // hlt
   //
   // -----------------------------------------------------------------------------
-  //                        xra R    10 101 SSS  Register exclusive OR with register with A.
+  // ldax RP  00RP1010 - Load register A with indirect through BC(RP=00) or DE(RP=01)
+  // ---------------
+  //  case B00001010:
   //
-  B00111110, 6,     // mvi a,6    ; Set register A, then do the exclusive OR.
-  B10101000,        // xra b
-  B00111110, 6,     // mvi a,6
-  B10101001,        // xra c
-  B00111110, 6,     // mvi a,6
-  B10101010,        // xra d
-  B00111110, 6,     // mvi a,6
-  B10101011,        // xra e
-  B00111110, 6,     // mvi a,6
-  B10101100,        // xra h
-  B00111110, 6,     // mvi a,6
-  B10101101,        // xra l
+  B00000110, 0,     // mvi b,0    ; Set registers, then move data to register A.
+  B00001110, 1,     // mvi c,1    ; B:C = 0:1, data = 6
+  B00001010,        // ldax b
+  0343, 37,         // out 37     ; Print register A.
   //
-  0343, 38,         // out 38     ; Print the updated register values.
+  B00010110, 2,     // mvi d,0
+  B00011110, 3,     // mvi e,3    ; D:E = 0:3, data = B00000110
+  B00011010,        // ldax d
+  0343, 37,         // out 37     ; Print register A.
+  //
   0166,             // hlt
   //
   // -----------------------------------------------------------------------------
@@ -326,11 +324,11 @@ const byte IN     = 0333; // IN p      11011011 pa       -       Read input port
 // ora S     10110SSS          ZSPCA   OR  register with A
 // ret       11001001          -       Unconditional return from subroutine
 
-//   Destination and Source registers and register pairs.
+// -----------------------------------------------------------
+// Destination and Source registers and register pairs.
 byte regA = 0;   // 111=A  a  register A, or Accumulator
-//
+//                            --------------------------------
 //                            Register pair 'RP' fields:
-//
 byte regB = 0;   // 000=B  b  00=BC   (B:C as 16 bit register)
 byte regC = 0;   // 001=C  c
 byte regD = 0;   // 010=D  d  01=DE   (D:E as 16 bit register)
@@ -833,8 +831,31 @@ void processOpcode() {
       }
     */
     // ---------------------------------------------------------------------
-    case ldax_D:
-      anAddress = word(regD, regE);
+    // ldax RP  00RP1010 - Load indirect through BC(RP=00) or DE(RP=01)
+    // ---------------
+    case B00001010:
+      bValue = regB;
+      cValue = regC;
+      bcValue = bValue * 256 + cValue;
+      if (deValue < memoryBytes) {
+        regA = memoryData[bcValue];
+      } else {
+        regA = 0;
+      }
+#ifdef LOG_MESSAGES
+      Serial.print(F("> ldax"));
+      Serial.print(F(", Load data from Address B:C = "));
+      printOctal(regB);
+      Serial.print(F(" : "));
+      printOctal(regC);
+      Serial.print(F(" = "));
+      Serial.print(bcValue);
+      Serial.print(F(", to Accumulator = "));
+      printData(regA);
+#endif
+      break;
+    // ---------------
+    case B00011010:
       dValue = regD;
       eValue = regE;
       deValue = dValue * 256 + eValue;
