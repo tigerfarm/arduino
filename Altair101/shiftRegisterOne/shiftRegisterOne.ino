@@ -47,9 +47,9 @@
   const int dataPin  = 11;  // Nano Pin 11 connected to pin 14 74HC595: DS.
   const int clockPin = 12;  // Nano Pin 12 connected to pin 11 74HC595: SH_CP.
 */
-const int latchPin = 5;           // Latch pin of 74HC595 is connected to Digital pin 5
-const int dataPin = 4;            // Data pin of 74HC595 is connected to Digital pin 4
-const int clockPin = 6;           // Clock pin of 74HC595 is connected to Digital pin 6
+const int dataPin = 4;            // 74HC595 Data  pin 12 is connected to Digital pin 4
+const int latchPin = 5;           // 74HC595 Latch pin 14 is connected to Digital pin 5
+const int clockPin = 6;           // 74HC595 Clock pin 11 is connected to Digital pin 6
 
 byte dataByte = B01010101;
 
@@ -80,15 +80,15 @@ void setup() {
 }
 
 // -----------------------------------------------------------------------------
-// Device Loop for processing machine code.
+// Device Loop.
 
 void loop() {
   Serial.println("+ Looping");
   delay(500);
-  updateShiftRegister(0); // Turns all the LEDs off.
+  // updateShiftRegister(0); // Turns all the LEDs off.
   delay(500);
   for (int numberToDisplay = 0; numberToDisplay < 256; numberToDisplay++) {
-    updateShiftRegister(numberToDisplay);
+    // updateShiftRegister(numberToDisplay);
     delay(60);
   }
 }

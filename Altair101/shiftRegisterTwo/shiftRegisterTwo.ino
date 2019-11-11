@@ -28,7 +28,7 @@
   + Clock(pin 11) and latch(pin 14) are the same for each 74HC595.
   + 2 pins to +5V:   10 and 16.
   + 2 pins to ground: 9 and 13.
-  
+
   Documentation, shiftOut():
   https://www.arduino.cc/reference/tr/language/functions/advanced-io/shiftout/
   + Shifts out a byte of data one bit at a time.
@@ -47,14 +47,14 @@
 
   + Binary, Digital calculator
   https://www.calculator.net/binary-calculator.html
-  
+
 */
 // -----------------------------------------------------------------------------
 // Shift Register
 
-const int latchPin = 5;           // Latch pin of 74HC595 is connected to Digital pin 5
-const int dataPin = 4;            // Data pin of 74HC595 is connected to Digital pin 4
-const int clockPin = 6;           // Clock pin of 74HC595 is connected to Digital pin 6
+const int dataPin = 4;            // 74HC595 Data  pin 12 is connected to Digital pin 4
+const int latchPin = 5;           // 74HC595 Latch pin 14 is connected to Digital pin 5
+const int clockPin = 6;           // 74HC595 Clock pin 11 is connected to Digital pin 6
 
 byte dataByte = B01010101;
 
@@ -87,8 +87,6 @@ void setup() {
   dataByte = B01010101;
   digitalWrite(latchPin, LOW);
   shiftOut(dataPin, clockPin, LSBFIRST, dataByte);
-  digitalWrite(latchPin, HIGH);
-  digitalWrite(latchPin, LOW);
   shiftOut(dataPin, clockPin, LSBFIRST, 0);
   digitalWrite(latchPin, HIGH);
 
@@ -105,20 +103,18 @@ void loop() {
   // displayLedData(B00000100);
 
   // 300 = 00 000 001 : 00 101 100
-  int aWord16bits= 300;
+  int aWord16bits = 300;
   digitalWrite(latchPin, LOW);
   shiftOut(dataPin, clockPin, LSBFIRST, lowByte(aWord16bits));
   shiftOut(dataPin, clockPin, LSBFIRST, highByte(aWord16bits));
   digitalWrite(latchPin, HIGH);
   delay(3000);
-  // displayLedData(B00010000);
-  /*
-    for (int numberToDisplay = 0; numberToDisplay < 256; numberToDisplay++) {
+  displayLedByte(B00010000);
+  for (int numberToDisplay = 0; numberToDisplay < 256; numberToDisplay++) {
     digitalWrite(latchPin, LOW);
     shiftOut(dataPin, clockPin, MSBFIRST, numberToDisplay);
     digitalWrite(latchPin, HIGH);
     delay(60);
-    }
-  */
+  }
 }
 // -----------------------------------------------------------------------------

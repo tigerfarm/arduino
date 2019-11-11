@@ -6,7 +6,9 @@
   Uses 3 or 4 pins on the microcontroller.
 
   Wiring,
-  + 8 buttons, one side all connected to Nano digital interupt pin (2 or 3), with a 10K pull down resister.
+  + 8 buttons, one side all connected to Nano digital pin: 3.
+  ++ If using the interupt method, use Nano pin 2 or 3.
+  + Attach a 10K pull down resister to the Nano digital pin.
   + The other side of the buttons, each goes to a diode, then to a sift register output.
   ++ Diodes handle multiple key presses, add a diode to stop shorts.
 
@@ -22,17 +24,17 @@
     Shift out B00010000. If high on the Nano pin, then this button was pressed.
     Shift out B00001000. If high on the Nano pin, then this button was pressed.
     Shift out B00000100. If high on the Nano pin, then this button was pressed.
-    Shift out B00000100. If high on the Nano pin, then this button was pressed.
     Shift out B00000010. If high on the Nano pin, then this button was pressed.
     Shift out B00000001. If high on the Nano pin, then this button was pressed.
-  + Scan all to find out if more than 1 button was pressed.
-  
+  + To check for multiple button presses, scan all buttons.
+  + To check for a single button presses, scan until one is found.
+
   + The above technique is of using 74HC595 for inputs, is from the following:
   https://www.youtube.com/watch?v=nXl4fb_LbcI
   https://www.youtube.com/watch?v=1Vb2BpxPnjU
   + Link where I found the video links:
   https://forum.arduino.cc/index.php?topic=163813.0
-  
+
   + Another method, use 74HC165 for inputs, which is parallel to serial:
   https://www.youtube.com/watch?v=hR6qOhUeKMc
   https://www.theengineeringprojects.com/2018/11/arduino-74hc165-interfacing-increase-input-pins.html
@@ -40,38 +42,55 @@
 // -----------------------------------------------------------------------------
 // Shift Register
 
-#include <SPI.h>
-byte Input, Output, Check = 1;
-int j;
+const int dataPin = 4;            // 74HC595 Data  pin 12 is connected to Digital pin 4
+const int latchPin = 5;           // 74HC595 Latch pin 14 is connected to Digital pin 5
+const int clockPin = 6;           // 74HC595 Clock pin 11 is connected to Digital pin 6
+const int dataInputPin = 3;       // Nano digital data input check pin.
 
-void pin_read() {
-  for (j = 0; j < 50; j++) {
-    // 50 mili-second debounce delay. Also, always the capture of multiple buttons pushed.
-    // Delay without using delay(), since this is in an interupt and delay() using interupts.
-    delayMicroseconds(1000);
+void updateShiftRegister(byte dataByte) {
+  digitalWrite(latchPin, LOW);
+  shiftOut(dataPin, clockPin, LSBFIRST, dataByte);
+  digitalWrite(latchPin, HIGH);
+}
+
+// -----------------------------------------------------------------------------
+// Only do the action once, don't repeat if the button is held down.
+// Don't repeat action if the button is not pressed.
+boolean stopButtonState = true;
+
+void printByte(byte b) {
+  for (int i = 7; i >= 0; i--)
+    Serial.print(bitRead(b, i));
+}
+
+void buttonCheck() {
+  byte dataByte = B10000000;
+  for (int i = 0; i < 8; i++) {
+    printByte(dataByte);
+    dataByte = dataByte >> 1;
+    // digitalWrite(latchPin, LOW);
+    // shiftOut(dataPin, clockPin, MSBFIRST, numberToDisplay);
+    // digitalWrite(latchPin, HIGH);
+    delay(60);
   }
-  Check = 1;
-  for (j = 0; j < 8; j++) {
-    // Check which buttons have been pressed.
-    SPI.transfer(Check);
-    SPI.transfer(Output);
-    digitalWrite(4, HIGH);
-    digitalWrite(4, LOW);
-    // Time for pins to go high.
-    delayMicroseconds(500);
-    //
-    // Shift through. This should be rewritten.
-    if (digitalRead(2) == HIGH)
-      bitWrite(Output, j, 1);
-    else
-      bitWrite(Output, j, 0);
-    //
-    Check = Check << 1;
+}
+
+void checkButton() {
+  if (digitalRead(dataInputPin) == HIGH) {
+    if (!stopButtonState) {
+      Serial.println(F("+ Button pressed."));
+      //
+      // Action code.
+      buttonCheck();
+      //
+      stopButtonState = false;
+    }
+    stopButtonState = true;
+  } else {
+    if (stopButtonState) {
+      stopButtonState = false;
+    }
   }
-  SPI.transfer(255);
-  SPI.transfer(Output);
-  digitalWrite(4, HIGH);
-  digitalWrite(4, LOW);
 }
 
 // -----------------------------------------------------------------------------
@@ -81,26 +100,19 @@ void setup() {
   Serial.println(""); // Newline after garbage characters.
   Serial.println("+++ Setup.");
 
-  pinMode(13, OUTPUT);    // Nano SPI clock pin, used in the SPI library.
-  pinMode(11, OUTPUT);    // Nano SPI data pin, used in the SPI library.
-  pinMode(4, OUTPUT);     // latch
-  pinMode(2, INPUT);      // Interupt input pin connected to one side of all the buttons.
-  //
-  SPI.setBitOrder(MSBFIRST);
-  SPI.setDataMode(SPI_MODE0);
-  SPI.setClockDivider(SPI_CLOCK_DIV2);  // Runs at 8mhz. Nano runs at 16mhz.
-  SPI.begin();
-  //
-  // 2 shift register output commands.
-  // The second register sets the buttons all to high.
-  SPI.transfer(255);
-  SPI.transfer(0);
-  //
-  digitalWrite(4, HIGH);  // Latch the shift values.
-  digitalWrite(4, LOW);
-  
-  attachInterrupt(0, pin_read, RISING); // Nano digital pin 2.
+  pinMode(latchPin, OUTPUT);
+  pinMode(clockPin, OUTPUT);
+  pinMode(dataPin, OUTPUT);
+  pinMode(dataInputPin, INPUT);
+  delay(300);
   Serial.println("+ Ready for input.");
+
+  // updateShiftRegister(B11111111);
+  byte dataByte = B11111111;
+  digitalWrite(latchPin, LOW);
+  shiftOut(dataPin, clockPin, LSBFIRST, dataByte);
+  digitalWrite(latchPin, HIGH);
+  Serial.println("+ All shift register pins set high.");
 
   Serial.println("+++ Start program loop.");
 }
@@ -109,7 +121,8 @@ void setup() {
 // Device Loop.
 
 void loop() {
-  Serial.println("+ Looping");
-  delay(1000);
+  // Serial.println("+ Looping");
+  checkButton();
+  delay(60);
 }
 // -----------------------------------------------------------------------------
