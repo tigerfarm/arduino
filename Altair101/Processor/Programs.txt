@@ -49,6 +49,47 @@ byte theProgram[] = {
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+// Test opcode inx.
+
+byte theProgram[] = {
+  //                //            ; --------------------------------------
+  //                // Start:     ; Test opcode inx.
+  //                //            ; INX RP 00RP0011 Increment register pair
+  //
+  //                //            ; --------------------------------------
+  //                //            ; Intialize register values.
+  //
+  B00111110, 6,     // mvi a,6    ; Move # to registers.
+  B00000110, 0,     // mvi b,0
+  B00001110, 1,     // mvi c,1
+  B00010110, 2,     // mvi d,2
+  B00011110, 3,     // mvi e,3
+  B00100110, 4,     // mvi h,0
+  B00101110, 5,     // mvi l,0
+  //
+  0343, 38,         // out 38     ; Print the Intialized register values.
+  0166,             // hlt
+  //
+  // -----------------------------------------------------------------------------
+  // INX RP 00RP0011 Increment register pair
+  //          00=BC   (B:C as 16 bit register)
+  //          01=DE   (D:E as 16 bit register)
+  //          10=HL   (H:L as 16 bit register)
+  //
+  //0RP0011
+  B00000011,             // inx b      ; Increment register pair B:C.
+  B00010011,             // inx d      ; D:E
+  B00100011,             // inx m      ; Increment register M(register address H:L).
+  //
+  0343, 38,         // out 38     ; Print the Intialized register values.
+  0166,             // hlt
+  //
+  // -----------------------------------------------------------------------------
+  0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
+  0000              //            ; End.
+};
+
+// -----------------------------------------------------------------------------
 // Test opcode ldax.
 
 byte theProgram[] = {

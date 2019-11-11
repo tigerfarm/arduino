@@ -4,7 +4,8 @@
 
   Next:
   + Control status LED lights: OUT and WO.
-  + Complete opcodes: ldax, inx, and dad.
+  + Test program for inx.
+  + Complete opcode: dad.
   + Get input opcode, in, to work.
   + Test program, Kill the Bit.
 
@@ -55,8 +56,8 @@
 
 byte theProgram[] = {
   //                //            ; --------------------------------------
-  //                // Start:     ; Test opcode ldax.
-  //                //            ; Load register A with data value from address B:C or D:E.
+  //                // Start:     ; Test opcode inx.
+  //                //            ; INX RP 00RP0011 Increment register pair
   //
   //                //            ; --------------------------------------
   //                //            ; Intialize register values.
@@ -73,20 +74,17 @@ byte theProgram[] = {
   0166,             // hlt
   //
   // -----------------------------------------------------------------------------
-  // ldax RP  00RP1010 - Load register A with indirect through BC(RP=00) or DE(RP=01)
-  // ---------------
-  //  case B00001010:
+  // INX RP 00RP0011 Increment register pair
+  //          00=BC   (B:C as 16 bit register)
+  //          01=DE   (D:E as 16 bit register)
+  //          10=HL   (H:L as 16 bit register)
   //
-  B00000110, 0,     // mvi b,0    ; Set registers, then move data to register A.
-  B00001110, 1,     // mvi c,1    ; B:C = 0:1, data = 6
-  B00001010,        // ldax b
-  0343, 37,         // out 37     ; Print register A.
+  //0RP0011
+  B00000011,             // inx b      ; Increment register pair B:C.
+  B00010011,             // inx d      ; D:E
+  B00100011,             // inx m      ; Increment register M(register address H:L).
   //
-  B00010110, 0,     // mvi d,0
-  B00011110, 6,     // mvi e,6    ; D:E data = B00010110 = 22
-  B00011010,        // ldax d
-  0343, 37,         // out 37     ; Print register A.
-  //
+  0343, 38,         // out 38     ; Print the Intialized register values.
   0166,             // hlt
   //
   // -----------------------------------------------------------------------------
@@ -291,13 +289,11 @@ const byte out    = 0343; // out pa      11010011        Write a to output port
 const byte rrc    = 0017; // rrc       00 001 111   c    Rotate a right (shift byte right 1 bit). Note, carry bit not handled at this time.
 
 const byte dad_BC = 0011; // dad       00 001 001   c    Add B:C to H:L (16 bit add). Set carry bit.
-const byte ldax_D = 0032; // ldax d    00 011 010        Load register a with the data at address D:E.
 //
 // Opcode notes, more details:
 // --------------------------
 //        Code   Octal       Inst Param  Encoding Flags  Description
 //                           dad  RP     00RP1001 c      Add register pair(RP) to H:L (16 bit add)
-//                           inx  RP     00RP0011        Increment H:L (can be a 16 bit address)
 //                           ldax RP     00RP1010 -      Load indirect through BC(RP=00) or DE(RP=01)
 //                           xra  R      10101SSS        Register exclusive OR with register with A.
 //
@@ -767,14 +763,16 @@ void processOpcode() {
       break;
     // ---------------------------------------------------------------------
     // inx : increment a register pair.
+    // ------------
     case B00000011:
+      // inb b
       regC++;
       if (regC == 0) {
         regB++;
       }
 #ifdef LOG_MESSAGES
       Serial.print(F("> inx, increment the 16 bit register pair B:C."));
-      Serial.print(F(", regB:regC = "));
+      Serial.print(F(", B:C = "));
       Serial.print(regB);
       Serial.print(":");
       Serial.print(regC);
@@ -784,7 +782,9 @@ void processOpcode() {
       printOctal(regC);
 #endif
       break;
+    // ------------
     case B00010011:
+      // inx d
       regE++;
       if (regE == 0) {
         regD++;
@@ -801,7 +801,9 @@ void processOpcode() {
       printOctal(regE);
 #endif
       break;
+    // ------------
     case B00100011:
+      // inx m (h:l)
       regL++;
       if (regL == 0) {
         regH++;
