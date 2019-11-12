@@ -51,13 +51,17 @@ I coded the Altair 101 processor program to react the same way.
 
 Not used:
 + D2, D3, the digital interrupt pins
-+ D11, D12, D13, digital pins
++ D11, D12, D13, digital pins. SPI pins, if I need.
 
 Nano pins:
 + D2...D13 digital pins.
 + A0, A2, A3 work as digital pins.
 + A4 and A5 for IC2 communications with LCD and clock modules.
 + A1, A6 and A7 didn't work for LED on and off. Probably not work as digital pins.
+
+Hardware components:
++ Nano
++ 7 SN74HC595N chips
 
 --------------------------------------------------------------------------------
 ## 8080 Opcode Development
