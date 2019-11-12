@@ -31,12 +31,11 @@ I coded the Altair 101 processor program to react the same way.
 --------------------------------------------------------------------------------
 ## 8080 Opcode Development
 
-Opcodes programed and tested:
+Opcodes programmed and tested:
 ````
 + cpi #    Compare db with A > compareResult.
 + dad RP   00 RP1 001  Add register pair(RP) to H:L (16 bit add). And set carry bit.
 + hlt      Halt processor
-+ in  p    Read input for port a, into A
 + inr R    Increment the register.
 + inx RP   Increment a register pair, a 16 bit increment. Example: H:L.
 + jmp a    Unconditional jump
@@ -47,13 +46,16 @@ Opcodes programed and tested:
 + mvi R,#  Move a number (#), which is the next db, to register RRR.
 + mov D,S  Move register to a register.
 + nop      No operation
++ out p    Currently, used to print out log messages.
 + rlc      Rotate A left. Shift byte left 1 bit.
 + rrc      Rotate A right. Shift byte right 1 bit.
 + xra R    10 101 SSS  Register exclusive OR with register with A.
 ````
 Still to program on the above:
 ````
-+ OUT p    Write A to output port a.
++ in  p    Read input for port a, into register A
++ out p    Write A to output port a.
+
 + inr R    I still need to set flags.
 + lxi      Need to figure out: move the lb hb data, to the stack pointer.
 + rlc      Need to handle carry bit.

@@ -3,7 +3,7 @@
   Altair 101 software microprocessor
 
   Next:
-  + Control status LED lights: OUT and WO.
+  + Control status LED lights wired to use a SN74HC595N. Then update this program.
   + Get input opcode, in, to work.
   + Test program, Kill the Bit.
   + Next opcodes to program, to run Pong: shld ani ora ret.
@@ -171,7 +171,7 @@ void listByteArray(byte btyeArray[], int arraySize) {
 
 // Video demonstrating status lights:
 //    https://www.youtube.com/watch?v=3_73NwB6toY
-// MEMR & MI & WO are on when fetching an op code, example: jmp(303) or lda(072).
+// MEMR & M1 & WO are on when fetching an op code, example: jmp(303) or lda(072).
 // MEMR & WO are on when fetching a low or high byte of an address.
 // MEMR & WO are on when fetching data from an address.
 // All status LEDs are off when storing a value to a memory address.
@@ -223,16 +223,30 @@ void listByteArray(byte btyeArray[], int arraySize) {
 // Address LED lights: 41Q.
 // Data LED lights are all on because the data lights are tied to the data input bus, which is floating.
 
+// ------------------------------
 const int INTE_PIN = 42;    // On, interrupts enabled.
 const int PROT_PIN = 42;    // Useful only if RAM has page protection impliemented.
+
+// ------------------------------
 // Status LEDs
+//
+// Bit pattern for shift register:
+// B10000000 : MEMR   Memory
+// B01000000 : INP    Input
+// B00100000 : M1     Machine cycle 1, fetch opcode
+// B00010000 : OUT    ?- Output
+// B00001000 : HLTA   Machine halted
+// B00000100 : STACK  Stack process
+// B00000010 : WO     Write out (inverse logic)
+// B00000001 : INT    ?- Interupts enabled/disabled
+//
 const int MEMR_PIN = 42;    // Memory read such as fetching an op code (data instruction)
 const int INP_PIN = 42;     // Input
 const int M1_PIN = A3;      // On, when current address is an opcode, which is Machine cycle 1. Off when getting an opcodes data bytes.
 const int OUT_PIN = 42;     // Write output.
-const int hltA_PIN = A2;    // Halt acknowledge, halt instruction executed.
+const int HLTA_PIN = A2;    // Halt acknowledge, halt instruction executed.
 const int STACK_PIN = 42;   // On, reading or writing to the stack.
-const int WO_PIN = 42;      // Write Output uses inverse logic. On, not writing output.
+const int WO_PIN = 10;      // Write Output uses inverse logic. On, not writing output.
 const int INT_PIN = 42;     // On when executing an interrupt step.
 //
 const int WAIT_PIN = A0;    // On, program not running. Off, programrunning.
@@ -667,25 +681,6 @@ void processOpcode() {
 #endif
       break;
     // ---------------------------------------------------------------------
-    case jnc:
-      opcode = jnc;
-#ifdef LOG_MESSAGES
-      Serial.print(F("> jnc, Jump if carry bit is false (0, not set)."));
-#endif
-      break;
-    case jz:
-      opcode = jz;
-#ifdef LOG_MESSAGES
-      Serial.print(F("> jz, if compareResult, jump to the following address (lh hb)."));
-#endif
-      break;
-    case jmp:
-      opcode = jmp;
-#ifdef LOG_MESSAGES
-      Serial.print(F("> jmp, get address low and high order bytes."));
-#endif
-      break;
-    // ---------------------------------------------------------------------
     case hlt:
       runProgram = false;
       halted = true;
@@ -693,14 +688,16 @@ void processOpcode() {
       Serial.println(F("> hlt, halt the processor."));
       digitalWrite(WAIT_PIN, HIGH);
       digitalWrite(M1_PIN, LOW);
-      digitalWrite(hltA_PIN, HIGH);
+      digitalWrite(HLTA_PIN, HIGH);
 #else
       Serial.println("");
 #endif
       Serial.print(F("+ Process halted."));
       // To do: set all the address and data lights on.
       break;
-      opcode = IN;
+    case B11011011:
+      opcode = B11011011;
+     // INP status light is on when reading from an input port.
 #ifdef LOG_MESSAGES
       Serial.print(F("> IN, If input value is available, get the input byte."));
 #endif
@@ -877,6 +874,25 @@ void processOpcode() {
       _PC++;
       }
     */
+    // ---------------------------------------------------------------------
+    case jnc:
+      opcode = jnc;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> jnc, Jump if carry bit is false (0, not set)."));
+#endif
+      break;
+    case jz:
+      opcode = jz;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> jz, if compareResult, jump to the following address (lh hb)."));
+#endif
+      break;
+    case jmp:
+      opcode = jmp;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> jmp, get address low and high order bytes."));
+#endif
+      break;
     // ---------------------------------------------------------------------
     // ldax RP  00RP1010 - Load indirect through BC(RP=00) or DE(RP=01)
     // ---------------
@@ -1333,6 +1349,7 @@ void processOpcode() {
     // ------------------------------------------------------------------------------------------
     case out:
       opcode = out;
+      digitalWrite(WO_PIN, LOW);  // Inverse logic: off writing out. On when not.
 #ifdef LOG_MESSAGES
 #else
       Serial.println("");
@@ -1481,6 +1498,7 @@ void processOpcodeData() {
 
   instructionCycle++;
   switch (opcode) {
+    // ---------------------------------------------------------------------
     case cpi:
       // instructionCycle == 1
       dataByte = memoryData[programCounter];
@@ -1498,14 +1516,17 @@ void processOpcodeData() {
 #endif
       programCounter++;
       break;
-    case IN:
+    // ---------------------------------------------------------------------
+    case B11011011:
       // instructionCycle == 1
+      // // INP & WO are on when reading from an input port.
       dataByte = memoryData[programCounter];
       Serial.print(F("< IN, input port: "));
       Serial.print(dataByte);
       Serial.print(F(". Not implemented, yet."));
       programCounter++;
       break;
+    // ---------------------------------------------------------------------
     case jnc:
       if (instructionCycle == 1) {
         lowOrder = memoryData[programCounter];
@@ -1537,6 +1558,7 @@ void processOpcodeData() {
         programCounter++;
       }
       break;
+    // ---------------------------------------------------------------------
     case jz:
       if (instructionCycle == 1) {
         lowOrder = memoryData[programCounter];
@@ -1568,6 +1590,7 @@ void processOpcodeData() {
         programCounter++;
       }
       break;
+    // ---------------------------------------------------------------------
     case jmp:
       if (instructionCycle == 1) {
         lowOrder = programCounter;
@@ -1613,7 +1636,7 @@ void processOpcodeData() {
 #endif
       programCounter++;
       break;
-    // -------------------
+    // ---------------------------------------------------------------------
     case B00010001:
       // lxi d,16-bit-address
       if (instructionCycle == 1) {
@@ -1790,10 +1813,10 @@ void processOpcodeData() {
         default:
           Serial.print(F("-- Error, unknow out port number: "));
       }
+      digitalWrite(WO_PIN, HIGH);  // Inverse logic: off writing out. On when not.
       programCounter++;
       break;
     // ------------------------------------------------------------------------------------------
-    // stacy
     case B00110010:
       if (instructionCycle == 1) {
         lowOrder = memoryData[programCounter];
@@ -1922,7 +1945,7 @@ void infraredSwitchControl() {
     case 0xFF5AA5:
     case 0xE0E046B9:
       // Serial.println(F("+ Key > - next: SINGLE STEP toggle/button switch."));
-      digitalWrite(hltA_PIN, LOW);
+      digitalWrite(HLTA_PIN, LOW);
       processData();
       break;
     case 0xFF18E7:
@@ -1931,7 +1954,7 @@ void infraredSwitchControl() {
       Serial.println(F("+ Run process."));
       runProgram = true;
       digitalWrite(WAIT_PIN, LOW);
-      digitalWrite(hltA_PIN, LOW);
+      digitalWrite(HLTA_PIN, LOW);
       break;
     case 0xFF4AB5:
     case 0xE0E08679:
@@ -1940,7 +1963,7 @@ void infraredSwitchControl() {
       // Serial.println(F("+ Stop process."));
       // runProgram = false;
       // digitalWrite(WAIT_PIN, HIGH);
-      // digitalWrite(hltA_PIN, LOW);
+      // digitalWrite(HLTA_PIN, LOW);
       break;
     case 0xFF38C7:
     case 0xE0E016E9:
@@ -1948,7 +1971,7 @@ void infraredSwitchControl() {
       Serial.println(F("+ Run process."));
       runProgram = true;
       digitalWrite(WAIT_PIN, LOW);
-      digitalWrite(hltA_PIN, LOW);
+      digitalWrite(HLTA_PIN, LOW);
       break;
     // -----------------------------------
     case 0xFF9867:
@@ -2054,7 +2077,7 @@ void infraredSwitchInput() {
       Serial.println(F("+ Stop process."));
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
-      digitalWrite(hltA_PIN, LOW);
+      digitalWrite(HLTA_PIN, LOW);
       break;
     case 0xFF38C7:
     case 0xE0E016E9:
@@ -2062,7 +2085,7 @@ void infraredSwitchInput() {
       Serial.println(F("+ Stop process."));
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
-      digitalWrite(hltA_PIN, LOW);
+      digitalWrite(HLTA_PIN, LOW);
       break;
     // -----------------------------------
     case 0xFF9867:
@@ -2189,15 +2212,16 @@ void setup() {
   Serial.println(F("+ Data LED shift register set."));
 
   pinMode(WAIT_PIN, OUTPUT);
-  digitalWrite(WAIT_PIN, HIGH);
   // pinMode(MEMR_PIN, OUTPUT);
-  // digitalWrite(MEMR_PIN, HIGH);
   pinMode(M1_PIN, OUTPUT);
-  digitalWrite(M1_PIN, HIGH);
-  pinMode(hltA_PIN, OUTPUT);
-  digitalWrite(hltA_PIN, LOW);
-  // pinMode(WO_PIN, OUTPUT);
-  // digitalWrite(WO_PIN, HIGH);
+  pinMode(HLTA_PIN, OUTPUT);
+  pinMode(WO_PIN, OUTPUT);
+  //
+  digitalWrite(WAIT_PIN, HIGH);     // Wait: on.
+  // digitalWrite(MEMR_PIN, HIGH);
+  digitalWrite(M1_PIN, HIGH);       // MI: on.
+  digitalWrite(HLTA_PIN, LOW);
+  digitalWrite(WO_PIN, HIGH);       // WO: on, Inverse logic: off when writing out. On when not.
   Serial.println(F("+ LED lights configured and initialized."));
 
   int programSize = sizeof(theProgram);
