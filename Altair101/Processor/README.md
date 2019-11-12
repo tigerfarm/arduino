@@ -34,26 +34,31 @@ I coded the Altair 101 processor program to react the same way.
 Opcodes programed and tested:
 ````
 + cpi #    Compare db with A > compareResult.
++ dad RP   00 RP1 001  Add register pair(RP) to H:L (16 bit add). And set carry bit.
 + hlt      Halt processor
 + in  p    Read input for port a, into A
++ inr R    Increment the register.
++ inx RP   Increment a register pair, a 16 bit increment. Example: H:L.
 + jmp a    Unconditional jump
 + jz  a    If compareResult is true, jump to lb hb.
 + jnc a    Jump if carry bit is 0 (false).
-+ lxi RP,a 00 RP0 001  RP=10  which matches "10=HL".
++ ldax RP  Load indirect through BC(RP=00) or DE(RP=01)
++ lxi RP,a Move the lb hb data to the register pair.
 + mvi R,#  Move a number (#), which is the next db, to register RRR.
 + mov D,S  Move register to a register.
 + nop      No operation
-+ rlc      Rotate A left. Need to handle carry bit.
-+ rrc      0Rotate A right (shift byte right 1 bit). Need to handle carry bit.
++ rlc      Rotate A left. Shift byte left 1 bit.
++ rrc      Rotate A right. Shift byte right 1 bit.
++ xra R    10 101 SSS  Register exclusive OR with register with A.
 ````
-Partly programmed:
+Still to program on the above:
 ````
-+ DAD RP   00 RP1 001  Add register pair(RP) to H:L (16 bit add). And set carry bit.
-+ LDAX RP  00 RP1 010  Load indirect through BC(RP=00) or DE(RP=01)
-+ INR R    Increment the register. I still need to set flags.
-+ INX RP   00 RP0 011  Increment a register pair, example: H:L (a 16 bit value)
 + OUT p    Write A to output port a.
-+ XRA R    10 101 SSS  Register exclusive OR with register with A.
++ inr R    I still need to set flags.
++ lxi      Need to figure out: move the lb hb data, to the stack pointer.
++ rlc      Need to handle carry bit.
++ rrc      Need to handle carry bit.
++ xra      ZSPCA   Stacy, need to set flags.
 ````
 Click [here](http://www.classiccmp.org/dunfield/r/8080.txt) for a listing of the 8080 opcodes.
 

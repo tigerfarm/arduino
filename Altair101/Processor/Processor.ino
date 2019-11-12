@@ -4,11 +4,10 @@
 
   Next:
   + Control status LED lights: OUT and WO.
-  + Test program for inx.
-  + Complete opcode: dad.
   + Get input opcode, in, to work.
   + Test program, Kill the Bit.
-
+  + Next opcodes to program, to run Pong: shld ani ora ret.
+  
   Program sections,
     Sample program.
     Definitions: Memory.
@@ -39,9 +38,9 @@
   Binary calculator:
     https://www.calculator.net/binary-calculator.html
 
-  Extract highBtye()
+  Extract highByte()
     https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/highbyte/
-  Extract lowByte()
+  Extract lowBtye()
     https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/lowbyte/
 */
 // -----------------------------------------------------------------------------
@@ -56,8 +55,8 @@
 
 byte theProgram[] = {
   //                //            ; --------------------------------------
-  //                // Start:     ; Test opcode inx.
-  //                //            ; INX RP 00RP0011 Increment register pair
+  //                // Start:     ; Test opcode dad.
+  //                //            ; Add register pair to H:L. Set carry bit.
   //
   //                //            ; --------------------------------------
   //                //            ; Intialize register values.
@@ -74,15 +73,16 @@ byte theProgram[] = {
   0166,             // hlt
   //
   // -----------------------------------------------------------------------------
-  // INX RP 00RP0011 Increment register pair
+  // DAD RP 00RP1001  Add register pair to H:L. Set carry bit.
   //          00=BC   (B:C as 16 bit register)
   //          01=DE   (D:E as 16 bit register)
   //          10=HL   (H:L as 16 bit register)
   //
-  //0RP0011
-  B00000011,             // inx b      ; Increment register pair B:C.
-  B00010011,             // inx d      ; D:E
-  B00100011,             // inx m      ; Increment register M(register address H:L).
+  //0RP1001
+  B00001001,        // dad b      ; Add register pair B:C to H:L.
+  0343, 36,         // out 36     ; Print register pair, H:L.
+  B00011001,        // dad d      ; Add register pair D:E to H:L.
+  0343, 36,         // out 36     ; Print register pair, H:L.
   //
   0343, 38,         // out 38     ; Print the Intialized register values.
   0166,             // hlt
@@ -288,8 +288,6 @@ const byte nop    = 0000; // nop         00000000        No operation
 const byte out    = 0343; // out pa      11010011        Write a to output port
 const byte rrc    = 0017; // rrc       00 001 111   c    Rotate a right (shift byte right 1 bit). Note, carry bit not handled at this time.
 
-const byte dad_BC = 0011; // dad       00 001 001   c    Add B:C to H:L (16 bit add). Set carry bit.
-//
 // Opcode notes, more details:
 // --------------------------
 //        Code   Octal       Inst Param  Encoding Flags  Description
@@ -331,8 +329,8 @@ byte regD = 0;   // 010=D  d  01=DE   (D:E as 16 bit register)
 byte regE = 0;   // 011=E  e
 byte regH = 0;   // 100=H  h  10=HL   (H:L as 16 bit register)
 byte regL = 0;   // 101=L  l
-byte regM = 0;   // 110=M  m  Memory reference for address in H:L
 //                            11=SP   (Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP)
+byte regM = 0;   // 110=M  m  Memory reference for address in H:L
 
 //    a  = hb + lb (16 bit value)
 //    d  = 8 bit data, such as data from an address
@@ -465,46 +463,42 @@ void processOpcode() {
 #endif
       break;
     // ---------------------------------------------------------------------
-    case dad_BC:
+    // dad RP   00RP1001  Add register pair(RP) to H:L (16 bit add). And set carry bit.
+    // ----------
+    //    00RP1001
+    case B00001001:
+      // dad b  : Add B:C to H:L (16 bit add). Set carry bit.
+#ifdef LOG_MESSAGES
       bValue = regB;
       cValue = regC;
       hValue = regH;
       lValue = regL;
+      Serial.print(F("> dad, 16 bit add: B:C("));
+      Serial.print(bValue);
+      Serial.print(":");
+      Serial.print(cValue);
+      Serial.print(")");
+      Serial.print(F(" + H:L("));
+      Serial.print(hValue);
+      Serial.print(":");
+      Serial.print(lValue);
+      Serial.print(")");
+#endif
       bcValue = bValue * 256 + cValue;
       hlValue = hValue * 256 + lValue;
-      hlValueNew = (hValue * 256 + lValue) + (bValue * 256 + cValue);
-      // 2^16 = 65535 = 64k = 11 111 111 : 11 111 111
-      // B:C 1 + H:L 65533 = 65534
-      // B:C 1 + H:L 65534 = 65535
-      // B:C 1 + H:L 65535 = 0
+      hlValueNew = bcValue + hlValue;
       if (hlValueNew < bcValue || hlValueNew < hlValue) {
         carryBit = true;
       } else {
         carryBit = false;
       }
-      regH = regB + regH;
-      lValue = regL;
-      regL = regC + regL;
-      if (regL < regC || regL < lValue) {
-        // If the sum is less the either part, then add 1 to the higher byte.
-        regH++;
-      }
+      regH = highByte(hlValueNew);
+      regL = lowByte(hlValueNew);
 #ifdef LOG_MESSAGES
-      Serial.print(F("> dad_BC"));
-      Serial.print(F(", 16 bit add of B:C "));
+      Serial.print(F(" = "));
       Serial.print(bcValue);
-      Serial.print("(");
-      Serial.print(bValue);
-      Serial.print(":");
-      Serial.print(cValue);
-      Serial.print(")");
-      Serial.print(F(" + H:L "));
+      Serial.print(F(" + "));
       Serial.print(hlValue);
-      Serial.print("(");
-      Serial.print(hValue);
-      Serial.print(":");
-      Serial.print(lValue);
-      Serial.print(")");
       Serial.print(F(" = "));
       Serial.print(hlValueNew);
       Serial.print("(");
@@ -514,9 +508,60 @@ void processOpcode() {
       Serial.print(")");
       Serial.print(F(", Carry bit: "));
       if (carryBit) {
-        Serial.print(F("true. Over: 65535."));
+        Serial.print(F("true. Sum over: 65535."));
       } else {
-        Serial.print(F("false. Not over: 65535."));
+        Serial.print(F("false. Sum <= 65535."));
+      }
+#endif
+      break;
+    // ----------
+    //    00RP1001
+    case B00011001:
+      // dad d  : Add D:E to H:L (16 bit add). Set carry bit.
+      dValue = regD;
+      eValue = regE;
+      hValue = regH;
+      lValue = regL;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> dad, 16 bit add: D:E"));
+      Serial.print("(");
+      Serial.print(dValue);
+      Serial.print(":");
+      Serial.print(eValue);
+      Serial.print(")");
+      Serial.print(F(" + H:L "));
+      Serial.print("(");
+      Serial.print(hValue);
+      Serial.print(":");
+      Serial.print(lValue);
+      Serial.print(")");
+#endif
+      deValue = dValue * 256 + eValue;
+      hlValue = hValue * 256 + lValue;
+      hlValueNew = deValue + hlValue;
+      if (hlValueNew < deValue || hlValueNew < hlValue) {
+        carryBit = true;
+      } else {
+        carryBit = false;
+      }
+      regH = highByte(hlValueNew);
+      regL = lowByte(hlValueNew);
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      Serial.print(deValue);
+      Serial.print(F(" + "));
+      Serial.print(hlValue);
+      Serial.print(F(" = "));
+      Serial.print(hlValueNew);
+      Serial.print("(");
+      Serial.print(regH);
+      Serial.print(":");
+      Serial.print(regL);
+      Serial.print(")");
+      if (carryBit) {
+        Serial.print(F("true. Sum over: 65535."));
+      } else {
+        Serial.print(F("false. Sum <= 65535."));
       }
 #endif
       break;
