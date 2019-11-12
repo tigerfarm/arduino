@@ -29,6 +29,37 @@ There are a number of online videos showing how an Altair 8800 works.
 I coded the Altair 101 processor program to react the same way.
 
 --------------------------------------------------------------------------------
+## Pin requirements
+
+0 pins for power off/on toggle.
+
+1 pin for infrared.
++ D10
+
+1 pin for WAIT LED light. Maybe can be used with the status shift register chip.
+
+3 pins for LED lights using SN74HC595N chips:
++ D4, D5, D6
++ 1 chip for status LED lights.
++ 1 chip for data LED lights.
++ 2 chips for address LED lights.
+
+3 pins for switches using SN74HC595N chips:
++ D7, D8, D9
++ 2 chips for address toggles.
++ 1 chip for control on/off/on toggles: STOP, RUN, SINGLE STEP, EXAMINE PREVIOUS, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT.
+
+Not used:
++ D2, D3, the digital interrupt pins
++ D11, D12, D13, digital pins
+
+Nano pins:
++ D2...D13 digital pins.
++ A0, A2, A3 work as digital pins.
++ A4 and A5 for IC2 communications with LCD and clock modules.
++ A1, A6 and A7 didn't work for LED on and off. Probably not work as digital pins.
+
+--------------------------------------------------------------------------------
 ## 8080 Opcode Development
 
 Opcodes programmed and tested:
