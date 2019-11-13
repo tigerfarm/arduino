@@ -4,10 +4,10 @@
 
   Next:
   + Control status LED lights wired to use a SN74HC595N. Then update this program.
-  + Get input opcode, in, to work.
+  + Get input opcode, IN, to work.
   + Test program, Kill the Bit.
-  + Next opcodes to program, to run Pong: shld ani ora ret.
-  
+  + Next opcodes to program, to run Pong: ora ani ret.
+
   Program sections,
     Sample program.
     Definitions: Memory.
@@ -24,6 +24,8 @@
     ----------------------------
     setup() Computer initialization.
     loop()  Clock cycling through memory.
+
+  Altair 8800 Operator's Manual.pdf has a description of each opcode.
 
   Reference document, Intel 8080 Assembly Language Programming Manual:
     https://altairclone.com/downloads/manuals/8080%20Programmers%20Manual.pdf
@@ -58,31 +60,28 @@ byte theProgram[] = {
   //                // Start:     ; Test opcode dad.
   //                //            ; Add register pair to H:L. Set carry bit.
   //
+  0303, 0006, 0000, // jmp Start  ; Jump to program Intialization.
+  0000, 0000, 0000, //            ; These next 3 bytes (3,4,5) can be used for memory storage testing.
+  //
   //                //            ; --------------------------------------
   //                //            ; Intialize register values.
-  //
-  B00111110, 6,     // mvi a,6    ; Move # to registers.
-  B00000110, 0,     // mvi b,0
-  B00001110, 1,     // mvi c,1
-  B00010110, 2,     // mvi d,2
-  B00011110, 3,     // mvi e,3
-  B00100110, 4,     // mvi h,0
-  B00101110, 5,     // mvi l,0
-  //
-  0343, 38,         // out 38     ; Print the Intialized register values.
-  0166,             // hlt
+  //                              ; Start at memory location: 6.
+  B00101110, 4,     // mvi l,0
+  B00100110, 5,     // mvi h,0
+  0343, 36,         // out 36     ; Print register pair H:L and it's address data value.
   //
   // -----------------------------------------------------------------------------
-  // DAD RP 00RP1001  Add register pair to H:L. Set carry bit.
-  //          00=BC   (B:C as 16 bit register)
-  //          01=DE   (D:E as 16 bit register)
-  //          10=HL   (H:L as 16 bit register)
+  // shld a    00100010 lb hb    -  Store register L to memory address hb:lb. Store register H to hb:lb + 1.
+  // The contents of register L, are stored in the memory address specified in bytes lb and hb (hb:lb).
+  // The contents of register H, are stored in the memory at the next higher address (hb:lb + 1).
   //
-  //0RP1001
-  B00001001,        // dad b      ; Add register pair B:C to H:L.
-  0343, 36,         // out 36     ; Print register pair, H:L.
-  B00011001,        // dad d      ; Add register pair D:E to H:L.
-  0343, 36,         // out 36     ; Print register pair, H:L.
+  //0100010
+  B00100010, 3, 0,  // shld 3     ; Store L value to memory location: 3(0:3). Store H value at: 3 + 1.
+  // View the memory:
+  B00111010, 3, 0,  // lda 3      ; Load register A from the address(hb:lb).
+  0343, 37,         // out 37     ; Print register A.
+  B00111010, 4, 0,  // lda 4      ; Load register A from the address(hb:lb).
+  0343, 37,         // out 37     ; Print register A.
   //
   0343, 38,         // out 38     ; Print the Intialized register values.
   0166,             // hlt
@@ -224,13 +223,18 @@ void listByteArray(byte btyeArray[], int arraySize) {
 // Data LED lights are all on because the data lights are tied to the data input bus, which is floating.
 
 // ------------------------------
-const int INTE_PIN = 42;    // On, interrupts enabled.
-const int PROT_PIN = 42;    // Useful only if RAM has page protection impliemented.
+// Not in use:
+// const int INTE_PIN = 42;    // On, interrupts enabled.
+// const int PROT_PIN = 42;    // Useful only if RAM has page protection impliemented.
+//
+// const int HLDA_PIN = 42;    // 8080 processor go into a hold state because of other hardware.
+//
+// B00000001 : INT    ?- Interupts enabled/disabled
 
 // ------------------------------
 // Status LEDs
 //
-// Bit pattern for shift register:
+// Bit pattern for the status shift register (SN74HC595N):
 // B10000000 : MEMR   Memory
 // B01000000 : INP    Input
 // B00100000 : M1     Machine cycle 1, fetch opcode
@@ -238,7 +242,7 @@ const int PROT_PIN = 42;    // Useful only if RAM has page protection impliement
 // B00001000 : HLTA   Machine halted
 // B00000100 : STACK  Stack process
 // B00000010 : WO     Write out (inverse logic)
-// B00000001 : INT    ?- Interupts enabled/disabled
+// B00000001 : WAIT   For now, use this one for WAIT light status
 //
 const int MEMR_PIN = 42;    // Memory read such as fetching an op code (data instruction)
 const int INP_PIN = 42;     // Input
@@ -247,10 +251,8 @@ const int OUT_PIN = 42;     // Write output.
 const int HLTA_PIN = A2;    // Halt acknowledge, halt instruction executed.
 const int STACK_PIN = 42;   // On, reading or writing to the stack.
 const int WO_PIN = 10;      // Write Output uses inverse logic. On, not writing output.
-const int INT_PIN = 42;     // On when executing an interrupt step.
 //
 const int WAIT_PIN = A0;    // On, program not running. Off, programrunning.
-const int HLDA_PIN = 42;    // 8080 processor go into a hold state because of other hardware.
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -270,8 +272,9 @@ byte dataByte = 0;           // db = Data byte (8 bit)
 
 // Without parameters in the opcode:
 // nop      00 000 000  No operation
-// RLC      00 000 111  Rotate a left. Need to handle carry bit.
+// rlc      00 000 111  Rotate a left. Need to handle carry bit.
 // rrc      00 001 111  Rotate a right (shift byte right 1 bit). Need to handle carry bit.
+// shld a   00 100 010  Store L value to memory location: a(hb:lb). Store H value at: a + 1.
 // hlt      01 110 110  Halt processor
 // jmp a    11 000 011  Unconditional jump
 // jz  a    11 001 010  If compareResult is true, jump to lb hb.
@@ -327,9 +330,8 @@ const byte IN     = 0333; // IN p      11011011 pa       -       Read input port
 //
 // Pong opcodes:
 //         Code     Octal    Inst Param  Encoding Flags  Description
-// shld a    00100010 lb hb    -       Store H:L to memory
-// ani #     11100110 db       ZSPCA   AND immediate with A
 // ora S     10110SSS          ZSPCA   OR  register with A
+// ani #     11100110 db       ZSPCA   AND immediate with A
 // ret       11001001          -       Unconditional return from subroutine
 
 // -----------------------------------------------------------
@@ -437,8 +439,8 @@ void processData() {
     Serial.print("+ ");
     printAddressData();
     Serial.print(" ");
-    processOpcodeData();      // Example: sta 42: 0. fetch the opcode, 1. fetch lb, 2. fetch hb, 3. store the data.
     instructionCycle++;
+    processOpcodeData();      // Example: sta 42: 0. fetch the opcode, 1. fetch lb, 2. fetch hb, 3. store the data.
   }
   Serial.println("");
 }
@@ -697,7 +699,7 @@ void processOpcode() {
       break;
     case B11011011:
       opcode = B11011011;
-     // INP status light is on when reading from an input port.
+      // INP status light is on when reading from an input port.
 #ifdef LOG_MESSAGES
       Serial.print(F("> IN, If input value is available, get the input byte."));
 #endif
@@ -1370,6 +1372,16 @@ void processOpcode() {
 #endif
       break;
     // ------------------------------------------------------------------------------------------
+    // shld a    00100010 lb hb    -  Store register L to memory address hb:lb. Store register H to hb:lb + 1.
+    // The contents of register L, are stored in the memory address specified in bytes lb and hb (hb:lb).
+    // The contents of register H, are stored in the memory at the next higher address (hb:lb + 1).
+    case B00100010:
+      opcode = B00100010;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> shld, Store register L to memory address hb:lb. Store register H to hb:lb + 1."));
+#endif
+      break;
+    // ------------------------------------------------------------------------------------------
     case B00110010:
       opcode = B00110010;
 #ifdef LOG_MESSAGES
@@ -1495,8 +1507,7 @@ void processOpcodeData() {
   // Note,
   //    if not jumping, increment programCounter.
   //    if jumping, don't increment programCounter.
-
-  instructionCycle++;
+  
   switch (opcode) {
     // ---------------------------------------------------------------------
     case cpi:
@@ -1876,6 +1887,43 @@ void processOpcodeData() {
 #ifdef LOG_MESSAGES
       Serial.print(F("> lda, hb:lb address data is moved to register A: "));
       Serial.print(regA);
+#endif
+      programCounter++;
+      break;
+    // ------------------------------------------------------------------------------------------
+    case B00100010:
+      // shld a
+      if (instructionCycle == 1) {
+        lowOrder = memoryData[programCounter];
+#ifdef LOG_MESSAGES
+        Serial.print(F("< shld, lb: "));
+        sprintf(charBuffer, "%4d:", lowOrder);
+        Serial.print(charBuffer);
+#endif
+        programCounter++;
+        return;
+      }
+      if (instructionCycle == 2) {
+        highOrder = memoryData[programCounter];
+#ifdef LOG_MESSAGES
+        Serial.print(F("< shld, hb: "));
+        sprintf(charBuffer, "%4d:", highOrder);
+        Serial.print(charBuffer);
+#endif
+        return;
+      }
+      hlValue = highOrder * 256 + lowOrder;
+      memoryData[hlValue] = regL;
+      memoryData[hlValue + 1] = regH;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> shld, Store register L:"));
+      Serial.print(regL);
+      Serial.print(F(" to memory address hb:lb :"));
+      Serial.print(hlValue);
+      Serial.print(F(". Store register H:"));
+      Serial.print(regH);
+      Serial.print(F(" to hb:lb + 1 = "));
+      Serial.print(hlValue + 1);
 #endif
       programCounter++;
       break;
