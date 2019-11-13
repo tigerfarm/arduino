@@ -52,6 +52,9 @@ Not used:
 + D2, D3, the digital interrupt pins
 + D11, D12, D13, digital pins. SPI pins, if I need.
 
+To do: 3 pins for control outputs, using a SN74HC595N chip:
++ D11, D12, D13
+
 Nano pins:
 + RX0 (D0) and TX1 (D1), for RS232 serial communications. Confirm, if can be used with DFPlayer: DFPlayer:TX to Nano:RX, and DFPlayer:RX to Nano:TX.
 + D2...D13 digital pins.
@@ -67,8 +70,8 @@ Hardware components:
 + 8 on/off/on toggles.
 
 Other modules to add:
-+ Clock to I2C (A4 & A5).
-+ Clock to I2C (A4 & A5).
++ Clock: I2C (A4 & A5).
++ Rotary encoder: requires an interrupt pin (2 or 3).
 
 --------------------------------------------------------------------------------
 ## 8080 Opcode Development

@@ -6,7 +6,8 @@
   + Control status LED lights wired to use a SN74HC595N. Then update this program.
   + Get input opcode, IN, to work.
   + Test program, Kill the Bit.
-  + Next opcodes to program, to run Pong: ora ani ret.
+  + Next opcodes to program, to run Pong:
+  RET       11001001          -       Unconditional return from subroutine
 
   Program sections,
     Sample program.
@@ -57,33 +58,96 @@
 
 byte theProgram[] = {
   //                //            ; --------------------------------------
-  //                // Start:     ; Test opcode dad.
-  //                //            ; Add register pair to H:L. Set carry bit.
-  //
-  0303, 0006, 0000, // jmp Start  ; Jump to program Intialization.
-  0000, 0000, 0000, //            ; These next 3 bytes (3,4,5) can be used for memory storage testing.
-  //
-  //                //            ; --------------------------------------
-  //                //            ; Intialize register values.
-  //                              ; Start at memory location: 6.
-  B00101110, 4,     // mvi l,0
-  B00100110, 5,     // mvi h,0
-  0343, 36,         // out 36     ; Print register pair H:L and it's address data value.
+  //                // Start:     ; Test opcode ani.
   //
   // -----------------------------------------------------------------------------
-  // shld a    00100010 lb hb    -  Store register L to memory address hb:lb. Store register H to hb:lb + 1.
-  // The contents of register L, are stored in the memory address specified in bytes lb and hb (hb:lb).
-  // The contents of register H, are stored in the memory at the next higher address (hb:lb + 1).
+  //ANI #     11100110 db       ZSPCA   AND immediate with A
   //
-  //0100010
-  B00100010, 3, 0,  // shld 3     ; Store L value to memory location: 3(0:3). Store H value at: 3 + 1.
-  // View the memory:
-  B00111010, 3, 0,  // lda 3      ; Load register A from the address(hb:lb).
-  0343, 37,         // out 37     ; Print register A.
-  B00111010, 4, 0,  // lda 4      ; Load register A from the address(hb:lb).
-  0343, 37,         // out 37     ; Print register A.
+  //1RRR110 mvi                                        ORA S 10 110 SSS
+  B00111110, 176,   // mvi a,176  ; Move # to register A:    10 110 000 = 176 which is ora b.
+  //1100110 ani
+  B11100110, 248,   // ani 248    ; AND # with register A:   11 111 000 = 248
+  0343, 37,         // out 37     ; Print register A answer: 10 110 000 = 176 which identifies the opcode ora.
+  //
+  B00111110, 177,   // mvi a,177  ; Move # to register A:    10 110 001 = 177 which is ora c.
+  B11100110, 248,   // ani 248    ; AND # with register A:   11 111 000 = 248
+  0343, 37,         // out 37     ; Print register A answer: 10 110 000 = 176 which identifies the opcode ora.
+  //
+  B00111110, 178,   // mvi a,178  ; Move # to register A:    10 110 010 = 178 which is ora d.
+  B11100110, 7,     // ani b      ; AND # with register A:   00 000 111 =   7
+  0343, 37,         // out 37     ; Print register A answer: 00 000 010 =   2 which is the code for register d.
+  //
+  0343, 38,         // out 38     ; Print the register values.
+  0166,             // hlt
+  //
+  // -----------------------------------------------------------------------------
+  0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
+  0000              //            ; End.
+};
+
+// -----------------------------------------------------------------------------
+// Program to test opcodes.
+
+byte theProgramOra[] = {
+  //                //            ; --------------------------------------
+  //                // Start:     ; Test opcode ora.
+  //                //            ; OR source register, with register A.
+  //
+  //                //            ; --------------------------------------
+  //                //            ; Intialize registers to starter values.
+  //
+  B00111110, 6,     // mvi a,6    ; Move # to registers.
+  B00000110, 0,     // mvi b,0
+  B00001110, 1,     // mvi c,1
+  B00010110, 2,     // mvi d,2
+  B00011110, 3,     // mvi e,3
+  B00100110, 4,     // mvi h,4
+  B00101110, 5,     // mvi l,5
   //
   0343, 38,         // out 38     ; Print the Intialized register values.
+  0166,             // hlt
+  //
+  // -----------------------------------------------------------------------------
+  // ORA S     10110SSS          ZSPCA   OR source register with A
+  //
+  //1RRR110 mvi
+  B00111110, 73,    // mvi a,73   ; Move # to register A:    01 001 001 = 73
+  B00000110, 70,    // mvi b,70   ; Move # to register B:    01 000 110 = 70
+  //0110SSS ora
+  B10110000,        // ora b      ; OR register B, with register A.
+  0343, 37,         // out 37     ; Print register A answer: 00 100 1111.
+  //
+  B00111110, 73,    // mvi a,73
+  B00001110, 70,    // mvi c,70
+  B10110001,        // ora c
+  0343, 37,         // out 37
+  //
+  B00111110, 73,    // mvi a,73
+  B00001110, 70,    // mvi c,70
+  B10110001,        // ora c
+  0343, 37,         // out 37
+  //
+  B00111110, 73,    // mvi a,73
+  B00010110, 70,    // mvi d,70
+  B10110010,        // ora d
+  0343, 37,         // out 37
+  //
+  B00111110, 73,    // mvi a,73
+  B00011110, 70,    // mvi e,3
+  B10110011,        // ora e
+  0343, 37,         // out 37
+  //
+  B00111110, 73,    // mvi a,73
+  B00100110, 70,    // mvi h,70
+  B10110100,        // ora h
+  0343, 37,         // out 37
+  //
+  B00111110, 73,    // mvi a,73
+  B00101110, 5,     // mvi l,5
+  B10110101,        // ora l
+  0343, 37,         // out 37
+  //
+  0343, 38,         // out 38     ; Print the register values.
   0166,             // hlt
   //
   // -----------------------------------------------------------------------------
