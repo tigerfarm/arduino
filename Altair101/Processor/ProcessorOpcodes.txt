@@ -5,29 +5,27 @@
 ### Conventions used when describing Opcodes
 
 Instruction source and encoding:
-  a = A 16 bit address value, often stated in hexadecimal format, example:
-        ani 80h ;get A15 alone
-  lb  = Low byte of 16 bit value
-  hb  = High byte of 16 bit value
+  a     = A 16 bit address value, often stated in hexadecimal format, example:
+          ani 80h ;get A15 alone
+  lb    = Low byte of 16 bit value
+  hb    = High byte of 16 bit value
   lb hb = A 16 bit address which is 2 bytes, low order byte first, high order byte second.
-  p = 8 bit port address, example:
-        in 0ffh ;A=front panel switches
-      Encoding, 0ffh = 00000000:11111111(binary) = 255(decimal):
-        11011011:11111111:00000000(in:lb:hb)
+          Example: LDA a, encoded as 8 bit (1 byte) opcode, 1 byte lb, 1 byte hb: "00111010 lb hb".
+  p     = 8 bit port address, example:
+          in 0ffh ;A=front panel switches
+        Encoding, 0ffh = 00000000:11111111(binary) = 255(decimal):
+          11011011:11111111:00000000(in:lb:hb)
 
-  # = 8 or 16 bit immediate operand, example:
-        ani 01h ;get A8 alone
-  RP = Register pair (16 bit): B:C(b), D:E(d), H:L(m). For example:
-        ldax d ;display bit pattern on upper 8 address lights
+  #     = 8 or 16 bit immediate operand, example:
+          ani 01h ;get A8 alone
+  RP    = Register pair (16 bit): B:C(b), D:E(d), H:L(m). For example:
+          ldax d ;display bit pattern on upper 8 address lights
   RRR (or R) = Register binary value, example: 010, for register D.
-  DDD (or S) = Destination register binary value, example: 011, for register E.
+  DDD (or D) = Destination register binary value, example: 011, for register E.
   SSS (or S) = Source register binary value, example: 011, for register E.
-  ccc = Conditional
-  db  = Data byte (8 bit) value
-  pa  = Port address (8 bit) value
-
-lb hb, a 16 bit address:
-+ Example: LDA a, encoded as 8 bit (1 byte) opcode, 1 byte lb, 1 byte hb: "00111010 lb hb".
+  ccc   = Conditional
+  db    = Data byte (8 bit) value
+  pa    = Port address (8 bit) value
 
 Register pair identifiers:
   b = B:C, 00=B:C
@@ -89,8 +87,8 @@ xra R    10 101 SSS  Register exclusive OR with register with A.
 From list:
 file:///Users/dthurston/Projects/arduino/Altair101/documents/8080opcodes.txt
 + 57 opcodes, total
-+ 23 opcodes added into the Altair 101 processor.
-+ 34 not added.
++ 20 opcodes added into the Altair 101 processor.
++ 37 not added.
 
 Added to Altair 101:
 Inst      Encoding          Flags   Description
@@ -112,8 +110,8 @@ ORA S     10110SSS          ZSPCA   OR  register with A
 XRA S     10101SSS          ZSPCA   ExclusiveOR register with A
 RRC       00001111          C       Rotate A right
 JMP a     11000011 lb hb    -       Unconditional jump
-IN p      11011011 pa       -       Read input port into A
-OUT p     11010011 pa       -       Write A to output port
+IN  pa    11011011 pa       -       Read input port into A
+OUT pa    11010011 pa       -       Write A to output port
 HLT       01110110          -       Halt processor
 NOP       00000000          -       No operation
 
@@ -217,7 +215,6 @@ byte regM = 0;   110=M  m  Memory reference for address in H:L
 
 -----------------------------------------------------------------------------
 Opcodes that are programmed and tested:
-````
        Code   Octal       Inst Param  Encoding Flags  Description
 const byte cpi    = 0376; cpi db    11 111 110        Compare db with a > compareResult.
 const byte jz     = 0312; jz   lb hb  11001010        If compareResult is true, jump to lb hb.
@@ -226,6 +223,6 @@ Opcode notes, more details:
 --------------------------
        inx                Not done for the stack pointer.
        ldax d : Load the accumulator from memory location 938Bh, where register d contains 93H and register e contains 8BH.
-````
+
 -----------------------------------------------------------------------------
 Cheers
