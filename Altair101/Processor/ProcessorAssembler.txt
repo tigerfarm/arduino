@@ -2,6 +2,55 @@
 #  Altair 101 Opcodes
 
 --------------------------------------------------------------------------------
+### Conventions used when describing Opcodes
+
+Instruction source and encoding:
+````
+  a = A 16 bit address value, often stated in hexadecimal format, example:
+        ani 80h ;get A15 alone
+  lb  = Low byte of 16 bit value
+  hb  = High byte of 16 bit value
+  lb hb = A 16 bit address which is 2 bytes, low order byte first, high order byte second.
+  p = 8 bit port address, example:
+        in 0ffh ;A=front panel switches
+      Encoding, 0ffh = 00000000:11111111(binary) = 255(decimal):
+        11011011:11111111:00000000(in:lb:hb)
+
+  # = 8 or 16 bit immediate operand, example:
+        ani 01h ;get A8 alone
+  RP = Register pair (16 bit): B:C(b), D:E(d), H:L(m). For example:
+        ldax d ;display bit pattern on upper 8 address lights
+  RRR (or R) = Register binary value, example: 010, for register D.
+  DDD (or S) = Destination register binary value, example: 011, for register E.
+  SSS (or S) = Source register binary value, example: 011, for register E.
+  ccc = Conditional
+  db  = Data byte (8 bit) value
+  pa  = Port address (8 bit) value
+````
+Conventions in instruction encoding:
+    db  = Data byte (8 bit)
+    pa  = Port address (8 bit)
+
+lb hb, a 16 bit address:
++ Example: LDA a, encoded as 8 bit (1 byte) opcode, 1 byte lb, 1 byte hb: "00111010 lb hb".
+
+Register pair identifiers:
+````
+  b = B:C, 00=B:C
+  d = D:E, 01=D:E
+  m = H:L, 10=H:L
+  m = H:L, 11=SP, Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP.
+````
+Register identifiers (binary value=R):
+````
+  000=B
+  001=C
+  010=D
+  011=E
+  100=H
+  101=L
+````
+--------------------------------------------------------------------------------
 ## Programmed Opcodes
 
 Opcodes without parameters in the opcode:
@@ -16,8 +65,8 @@ hlt      01 110 110  Halt processor
 jmp a    11 000 011  Unconditional jump
 jz  a    11 001 010  If compareResult is true, jump to lb hb.
 jnc a    11 010 010  Jump if carry bit is 0 (false).
-out p    11 010 011  Write a to output port a.
-IN  p    11 011 011  Read input for port a, into A
+out pa   11 010 011  Write a to output port a.
+in  pa   11 011 011  Read input for port a, into A
 ani #    11 100 110  AND # (immediate) with register A.
 cpi #    11 111 110  Compare db with a > compareResult.
 ````
@@ -47,7 +96,6 @@ Added to Altair 101
 ````
 Inst      Encoding          Flags   Description
 ----------------------------------------------------------------------
-
 CPI #     11111110          ZSPCA   Compare immediate with A
 MOV D,S   01DDDSSS          -       Move register to register
 MVI D,#   00DDD110 db       -       Move immediate to register
@@ -117,7 +165,8 @@ SPHL      11111001          -       Set SP to content of H:L
 EI        11111011          -       Enable interrupts
 DI        11110011          -       Disable interrupts
 
-
+*2 = RP=11 refers to PSW for PUSH/POP (cannot push/pop SP).
+     When PSW is POP'd, ALL flags are affected.
 ````
 --------------------------------------
 ### To Do

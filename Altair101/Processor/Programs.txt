@@ -882,6 +882,9 @@ byte theProgram[] = {
 // -----------------------------------------------------------------------------
 // Altair 8800 Pong Program
 // -----------------------------------------------------------------------------
+ https://altairclone.com/downloads/pong.pdf
+
+Click [here](https://www.youtube.com/watch?v=BZykunYYeQk) to watch a video for Pong.
 
                 ;---------------------------------------------------------------
                 ;  PONG for Altair front panel.
