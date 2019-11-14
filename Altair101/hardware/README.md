@@ -15,25 +15,6 @@ My hardware designed around my [Altair 8800 clone front panel](https://www.adwat
 
 [<img width="360px"  src="../FrontPanel01a.jpg"/>](https://www.adwaterandstir.com/product/front-panel/)
 
-I also bought the accompanying Pro case which is part of the [expansion upgrade](https://www.adwaterandstir.com/product/upgrade/).
-I plan to modify mine for ease of maintenance, and to cover the blue with something a bit more to my style.
-
-[<img width="360px"  src="https://www.adwaterandstir.com/wp-content/uploads/2019/07/AD1.jpg"/>](https://www.adwaterandstir.com/product/upgrade/)
-
-The cost of my front panel, sticker, case, and shipping, was a reasonable $74.
-However, my target was to keep the cost to about $100, which didn't leave much for the electronics.
-I used Ebay.com to select and order parts, mostly from China. The total is $101.
-Wow, $101. An auspicious cost for an Altair 101.
-
-Following is the Original Altair 8800 price list.
-The [Altar 8800 Clone site](https://altairclone.com/) used the original price list, as base for their
-[price list](https://altairclone.com/ordering.htm), (assembled) $621.
-The red markups are notes regarding their product offering.
-
-[<img width="300px"  src="originalPricelist.jpg"/>](https://altairclone.com/ordering.htm)
-
-My Altair 101 parts are listed [below](#altair-101-parts-list).
-
 --------------------------------------------------------------------------------
 ## Pin requirements
 
@@ -52,14 +33,17 @@ My Altair 101 parts are listed [below](#altair-101-parts-list).
 + 1 chip for control on/off/on toggles: STOP, RUN, SINGLE STEP, EXAMINE PREVIOUS, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT.
 
 1 pin for infrared.
-+ D10
++ Need to test it on another pin, currently using: D10.
+
+4 pins for SD card module,
++ D10 pin for enable/disable.
++ SPI digital pins: D11, D12, D13.
+
+Need to test: 3 pins for control outputs, using a SN74HC595N chip:
++ Need to test with pins: A0, A2, A3.
 
 Not used:
 + D2, D3, the digital interrupt pins
-+ D11, D12, D13, digital pins. SPI pins, if I need.
-
-To do: 3 pins for control outputs, using a SN74HC595N chip:
-+ D11, D12, D13
 
 Nano pins:
 + RX0 (D0) and TX1 (D1), for RS232 serial communications. Confirm, if can be used with DFPlayer: DFPlayer:TX to Nano:RX, and DFPlayer:RX to Nano:TX.
@@ -90,26 +74,61 @@ Front panel toggle input test board:
 + Serial monitor log output.
 + To do: 2 input On/Off/On momentary toggles for to control 4 data bit settings.
 + To do: Test with a PCF8574 board
++ Program [link](../shiftRegisterInput/shiftRegisterInput.ino)
 
 Front panel 16 LED output test board:
 + Use 3 pins of a Nano board
 + 2 x 74HC595 Shift Register
 + 2 x LED bar-graph (10 LEB bars) and 16 resistors.
++ Program [link, one shift register](../shiftRegisterOne/shiftRegisterOne.ino)
++ Program [link, two shift registers](../shiftRegisterTwo/shiftRegisterTwo.ino)
 
 SD card board test:
 + Nano, using 4 pins: 3 SPI + 1 for enable/disable.
 + SD card module
++ Program [link](../sdCard/sdCard.ino)
 
 Clock board, #1:
 + Nano board, using 3 pins: A4 & A5 for I2C communications 
 + DS3231 clock module
 + 1602 LC display
 + Program to display and set time.
++ Program [link](../../clockSet/clockSet.ino)
 Clock board, #2:
 + 2 Nano boards
 + DS3231 clock module
 + 2 x 2-7-segment digit displays
 + Program to display time, and communicate between Nano boards.
++ Program [link](../../clock2x2digitsMin/clock2x2digitsMin.ino)
++ Program [link](../../clock2x2digitsHours/clock2x2digitsHours.ino)
+
+Rotary encoder board:
++ Nano, using 4 pins: 3 SPI + 1 for enable/disable.
++ SD card module
++ Program [link](../RotaryEncoder/RotaryEncoder.ino)
++ Program [link](../RotaryEncoder2digits/RotaryEncoder2digits.ino)
+
+--------------------------------------------------------------------------------
+### Altair 101 Case
+
+I bought the Altair 8800 simulater Pro case which is part of the [expansion upgrade](https://www.adwaterandstir.com/product/upgrade/).
+I plan to modify mine for ease of maintenance, and to cover the blue with something a bit more to my style.
+
+[<img width="360px"  src="https://www.adwaterandstir.com/wp-content/uploads/2019/07/AD1.jpg"/>](https://www.adwaterandstir.com/product/upgrade/)
+
+The cost of my front panel, sticker, case, and shipping, was a reasonable $74.
+However, my target was to keep the cost to about $100, which didn't leave much for the electronics.
+I used Ebay.com to select and order parts, mostly from China. The total is $101.
+Wow, $101. An auspicious cost for an Altair 101.
+
+Following is the Original Altair 8800 price list.
+The [Altar 8800 Clone site](https://altairclone.com/) used the original price list, as base for their
+[price list](https://altairclone.com/ordering.htm), (assembled) $621.
+The red markups are notes regarding their product offering.
+
+[<img width="300px"  src="originalPricelist.jpg"/>](https://altairclone.com/ordering.htm)
+
+My Altair 101 parts are listed [below](#altair-101-parts-list).
 
 --------------------------------------------------------------------------------
 ### Build steps,
