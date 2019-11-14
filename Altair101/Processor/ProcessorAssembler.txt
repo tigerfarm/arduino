@@ -27,9 +27,6 @@ Instruction source and encoding:
   db  = Data byte (8 bit) value
   pa  = Port address (8 bit) value
 ````
-Conventions in instruction encoding:
-    db  = Data byte (8 bit)
-    pa  = Port address (8 bit)
 
 lb hb, a 16 bit address:
 + Example: LDA a, encoded as 8 bit (1 byte) opcode, 1 byte lb, 1 byte hb: "00111010 lb hb".
@@ -49,6 +46,18 @@ Register identifiers (binary value=R):
   011=E
   100=H
   101=L
+````
+
+Condition code 'CCC' fields: (FLAGS: S Z x A x P x C)
+````
+    000=NZ  ('Z'ero flag not set)
+    001=Z   ('Z'ero flag set)
+    010=NC  ('C'arry flag not set)
+    011=C   ('C'arry flag set)
+    100=PO  ('P'arity flag not set - ODD)
+    101=PE  ('P'arity flag set - EVEN)
+    110=P   ('S'ign flag not set - POSITIVE)
+    111=M   ('S'ign flag set - MINUS)
 ````
 --------------------------------------------------------------------------------
 ## Programmed Opcodes
