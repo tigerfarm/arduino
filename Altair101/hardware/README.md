@@ -16,7 +16,71 @@ My hardware designed around my [Altair 8800 clone front panel](https://www.adwat
 [<img width="360px"  src="../FrontPanel01a.jpg"/>](https://www.adwaterandstir.com/product/front-panel/)
 
 --------------------------------------------------------------------------------
-## Pin requirements
+### Development Boards
+
+Front panel toggle input test board:
++ 6 input buttons for 6 data bits.
++ 6 diodes to control current flow.
++ Nano, using 3 pins. Use a chip or board to Expand Digital Inputs.
++ A 74HC595 Shift Register.
++ Serial monitor log output.
++ To do: 2 input On/Off/On momentary toggles for to control 4 data bit settings.
++ To do: Test with a PCF8574 board
++ Program [link](../shiftRegisterInput/shiftRegisterInput.ino)
+
+Front panel 16 LED output test board:
++ Use 3 pins of a Nano board
++ 2 x 74HC595 Shift Register
++ 2 x LED bar-graph (10 LEB bars) and 16 resistors.
++ Program [link, one shift register](../shiftRegisterOne/shiftRegisterOne.ino)
++ Program [link, two shift registers](../shiftRegisterTwo/shiftRegisterTwo.ino)
+
+SD card board test:
++ Nano, using 4 pins: 3 SPI + 1 for enable/disable.
++ SD card module
++ Program [link](../sdCard/sdCard.ino)
+
+Clock board, #1:
++ Nano board, using 3 pins: A4 & A5 for I2C communications 
++ DS3231 clock module
++ 1602 LC display
++ Program to display and set time.
++ Program [link](../../samples/clockSet/clockSet.ino)
+Clock board, #2:
++ 2 Nano boards
++ DS3231 clock module
++ 2 x 2-7-segment digit displays
++ Program to display time, and communicate between Nano boards.
++ Program [link](../../samples/clock2x2digitsMin/clock2x2digitsMin.ino)
++ Program [link](../../samples/clock2x2digitsHours/clock2x2digitsHours.ino)
+
+Rotary encoder board:
++ Nano, using 4 pins: 3 SPI + 1 for enable/disable.
++ SD card module
++ Program [link](../../samples/RotaryEncoder/RotaryEncoder.ino)
++ Program [link](../../samples/RotaryEncoder2digits/RotaryEncoder2digits.ino)
+
+--------------------------------------------------------------------------------
+## Nano Board Pin Requirements
+
+     -------------
+D13 |             | D12
+3V3 |             | D11
+REF |             | D10
+A0  |             | D9
+A1  |             | D8
+A2  |             | D7
+A3  |             | D6
+A4  |             | D5
+A5  |             | D4
+A6  |             | D3
+A7  |             | D4
+5V  |             | D2
+RST |             | GND
+GND |             | RST
+VIN |             | RXD
+    |             | TX1
+     -------------
 
 0 pins for power off/on toggle.
 
@@ -62,51 +126,6 @@ Hardware components:
 Other modules to add:
 + Clock: I2C (A4 & A5).
 + Rotary encoder: requires an interrupt pin (2 or 3).
-
---------------------------------------------------------------------------------
-### Development Boards
-
-Front panel toggle input test board:
-+ 6 input buttons for 6 data bits.
-+ 6 diodes to control current flow.
-+ Nano, using 3 pins. Use a chip or board to Expand Digital Inputs.
-+ A 74HC595 Shift Register.
-+ Serial monitor log output.
-+ To do: 2 input On/Off/On momentary toggles for to control 4 data bit settings.
-+ To do: Test with a PCF8574 board
-+ Program [link](../shiftRegisterInput/shiftRegisterInput.ino)
-
-Front panel 16 LED output test board:
-+ Use 3 pins of a Nano board
-+ 2 x 74HC595 Shift Register
-+ 2 x LED bar-graph (10 LEB bars) and 16 resistors.
-+ Program [link, one shift register](../shiftRegisterOne/shiftRegisterOne.ino)
-+ Program [link, two shift registers](../shiftRegisterTwo/shiftRegisterTwo.ino)
-
-SD card board test:
-+ Nano, using 4 pins: 3 SPI + 1 for enable/disable.
-+ SD card module
-+ Program [link](../sdCard/sdCard.ino)
-
-Clock board, #1:
-+ Nano board, using 3 pins: A4 & A5 for I2C communications 
-+ DS3231 clock module
-+ 1602 LC display
-+ Program to display and set time.
-+ Program [link](../../samples/clockSet/clockSet.ino)
-Clock board, #2:
-+ 2 Nano boards
-+ DS3231 clock module
-+ 2 x 2-7-segment digit displays
-+ Program to display time, and communicate between Nano boards.
-+ Program [link](../../samples/clock2x2digitsMin/clock2x2digitsMin.ino)
-+ Program [link](../../samples/clock2x2digitsHours/clock2x2digitsHours.ino)
-
-Rotary encoder board:
-+ Nano, using 4 pins: 3 SPI + 1 for enable/disable.
-+ SD card module
-+ Program [link](../../samples/RotaryEncoder/RotaryEncoder.ino)
-+ Program [link](../../samples/RotaryEncoder2digits/RotaryEncoder2digits.ino)
 
 --------------------------------------------------------------------------------
 ### Altair 101 Case
