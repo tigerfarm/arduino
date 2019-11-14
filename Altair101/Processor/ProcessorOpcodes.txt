@@ -51,6 +51,15 @@ Condition code 'CCC' fields: (FLAGS: S Z x A x P x C)
     110=P   ('S'ign flag not set - POSITIVE)
     111=M   ('S'ign flag set - MINUS)
 
+indirect: the data value at the give address.
+    Example: LDAX RP - Load indirect through BC or DE.
+    Detail explanation:
+        Load data value
+            at the register pair (BC(RP=00) or DE(RP=01)) address location,
+            into register A (accumulator).
+immediate: the immediate byte value.
+    Example: ANI # - AND immediate with A.
+
 --------------------------------------------------------------------------------
 ## Programmed Opcodes
 
@@ -73,7 +82,7 @@ cpi #    11 111 110  Compare db with a > compareResult.
 Opcodes with parameters in the opcode, binary ordered:
 Opcode   Binary      Description
 -------------------------------------
-ldax RP  00 RP1 010  Load indirect through BC(RP=00) or DE(RP=01)
+ldax RP  00 RP1 010  Load data value at the register pair (BC(RP=00) or DE(RP=01)) address, into register A (accumulator).
 inx RP   00 RP0 011  Increment a register pair, example: H:L (a 16 bit value)
 mvi R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
 lxi RP,a 00 RP0 001  RP=10  which matches "10=HL".
@@ -103,7 +112,7 @@ SHLD a    00100010 lb hb    -       Store H:L to memory
 LDAX RP   00RP1010 *1       -       Load indirect through BC or DE
 INR D     00DDD100          ZSPA    Increment register
 DCR D     00DDD101          ZSPA    Decrement register
-INX RP    00RP0011          -       Increment register pair
+INX RP    00RP0011          -       Increment register pair. Not coded for the stack pointer.
 DAD RP    00RP1001          C       Add register pair to HL (16 bit add)
 ANI #     11100110 db       ZSPCA   AND immediate with A
 ORA S     10110SSS          ZSPCA   OR  register with A
@@ -199,18 +208,21 @@ byte regM = 0;   110=M  m  Memory reference for address in H:L
 -----------------------------------------------------------------------------
 ### Reference Links
 
-  Altair 8800 Operator's Manual.pdf has a description of each opcode.
+Altair 8800 Operator's Manual.pdf has a description of each opcode.
+    https://altairclone.com/downloads/manuals/Altair%208800%20Operator's%20Manual.pdf
+From original Altair Manuals:
+    https://altairclone.com/altair_manuals.htm
 
-  Reference document, Intel 8080 Assembly Language Programming Manual:
+Reference document, Intel 8080 Assembly Language Programming Manual:
     https://altairclone.com/downloads/manuals/8080%20Programmers%20Manual.pdf
 
-  This section is base on section 26: 8080 Instruction Set
+This section is base on section 26: 8080 Instruction Set
     https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
 
-  Text listing of 8080 opcodes:
+Text listing of 8080 opcodes:
     http://www.classiccmp.org/dunfield/r/8080.txt
 
-  Binary calculator:
+Binary calculator:
     https://www.calculator.net/binary-calculator.html
 
 -----------------------------------------------------------------------------
@@ -218,11 +230,6 @@ Opcodes that are programmed and tested:
        Code   Octal       Inst Param  Encoding Flags  Description
 const byte cpi    = 0376; cpi db    11 111 110        Compare db with a > compareResult.
 const byte jz     = 0312; jz   lb hb  11001010        If compareResult is true, jump to lb hb.
-
-Opcode notes, more details:
---------------------------
-       inx                Not done for the stack pointer.
-       ldax d : Load the accumulator from memory location 938Bh, where register d contains 93H and register e contains 8BH.
 
 -----------------------------------------------------------------------------
 Cheers
