@@ -29,51 +29,6 @@ There are a number of online videos showing how an Altair 8800 works.
 I coded the Altair 101 processor program to react the same way.
 
 --------------------------------------------------------------------------------
-## Pin requirements
-
-0 pins for power off/on toggle.
-
-3 pins for LED lights using SN74HC595N chips:
-+ D4, D5, D6
-+ Each SN74HC595N chip handles 8 bits, for 8 LED lights.
-+ 1 chip for status LED lights, one of which will be used for the WAIT light.
-+ 1 chip for data LED lights.
-+ 2 chips for address LED lights.
-
-3 pins for switches using SN74HC595N chips:
-+ D7, D8, D9
-+ 2 chips for address toggles.
-+ 1 chip for control on/off/on toggles: STOP, RUN, SINGLE STEP, EXAMINE PREVIOUS, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT.
-
-1 pin for infrared.
-+ D10
-
-Not used:
-+ D2, D3, the digital interrupt pins
-+ D11, D12, D13, digital pins. SPI pins, if I need.
-
-To do: 3 pins for control outputs, using a SN74HC595N chip:
-+ D11, D12, D13
-
-Nano pins:
-+ RX0 (D0) and TX1 (D1), for RS232 serial communications. Confirm, if can be used with DFPlayer: DFPlayer:TX to Nano:RX, and DFPlayer:RX to Nano:TX.
-+ D2...D13 digital pins.
-+ A0, A2, A3 work as digital pins.
-+ A4 and A5 for IC2 communications with LCD and clock modules.
-+ A1, A6 and A7 didn't work for LED on and off. Probably not work as digital pins.
-
-Hardware components:
-+ Nano
-+ 7 SN74HC595N chips
-+ 36 LED lights. Not all used.
-+ 17 toggles.
-+ 8 on/off/on toggles.
-
-Other modules to add:
-+ Clock: I2C (A4 & A5).
-+ Rotary encoder: requires an interrupt pin (2 or 3).
-
---------------------------------------------------------------------------------
 ## 8080 Opcode Development
 
 Opcodes programmed and tested:

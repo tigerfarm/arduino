@@ -34,6 +34,84 @@ The red markups are notes regarding their product offering.
 
 My Altair 101 parts are listed [below](#altair-101-parts-list).
 
+--------------------------------------------------------------------------------
+## Pin requirements
+
+0 pins for power off/on toggle.
+
+3 pins for LED lights using SN74HC595N chips:
++ D4, D5, D6
++ Each SN74HC595N chip handles 8 bits, for 8 LED lights.
++ 1 chip for status LED lights, one of which will be used for the WAIT light.
++ 1 chip for data LED lights.
++ 2 chips for address LED lights.
+
+3 pins for switches using SN74HC595N chips:
++ D7, D8, D9
++ 2 chips for address toggles.
++ 1 chip for control on/off/on toggles: STOP, RUN, SINGLE STEP, EXAMINE PREVIOUS, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT.
+
+1 pin for infrared.
++ D10
+
+Not used:
++ D2, D3, the digital interrupt pins
++ D11, D12, D13, digital pins. SPI pins, if I need.
+
+To do: 3 pins for control outputs, using a SN74HC595N chip:
++ D11, D12, D13
+
+Nano pins:
++ RX0 (D0) and TX1 (D1), for RS232 serial communications. Confirm, if can be used with DFPlayer: DFPlayer:TX to Nano:RX, and DFPlayer:RX to Nano:TX.
++ D2...D13 digital pins.
++ A0, A2, A3 work as digital pins.
++ A4 and A5 for IC2 communications with LCD and clock modules.
++ A1, A6 and A7 didn't work for LED on and off. Probably not work as digital pins.
+
+Hardware components:
++ Nano
++ 7 SN74HC595N chips
++ 36 LED lights. Not all used.
++ 17 toggles.
++ 8 on/off/on toggles.
+
+Other modules to add:
++ Clock: I2C (A4 & A5).
++ Rotary encoder: requires an interrupt pin (2 or 3).
+
+--------------------------------------------------------------------------------
+### Development Boards
+
+Front panel toggle input test board:
++ 6 input buttons for 6 data bits.
++ 6 diodes to control current flow.
++ Nano, using 3 pins. Use a chip or board to Expand Digital Inputs.
++ A 74HC595 Shift Register.
++ Serial monitor log output.
++ To do: 2 input On/Off/On momentary toggles for to control 4 data bit settings.
++ To do: Test with a PCF8574 board
+
+Front panel 16 LED output test board:
++ Use 3 pins of a Nano board
++ 2 x 74HC595 Shift Register
++ 2 x LED bar-graph (10 LEB bars) and 16 resistors.
+
+SD card board test:
++ Nano, using 4 pins: 3 SPI + 1 for enable/disable.
++ SD card module
+
+Clock board, #1:
++ Nano board, using 3 pins: A4 & A5 for I2C communications 
++ DS3231 clock module
++ 1602 LC display
++ Program to display and set time.
+Clock board, #2:
++ 2 Nano boards
++ DS3231 clock module
++ 2 x 2-7-segment digit displays
++ Program to display time, and communicate between Nano boards.
+
+--------------------------------------------------------------------------------
 ### Build steps,
 
 In the following video, the person is building an Altair 8800 Replica using a strategy that is similar to my plan.
