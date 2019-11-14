@@ -93,20 +93,20 @@ Clock board, #1:
 + DS3231 clock module
 + 1602 LC display
 + Program to display and set time.
-+ Program [link](../../clockSet/clockSet.ino)
++ Program [link](../../samples/clockSet/clockSet.ino)
 Clock board, #2:
 + 2 Nano boards
 + DS3231 clock module
 + 2 x 2-7-segment digit displays
 + Program to display time, and communicate between Nano boards.
-+ Program [link](../../clock2x2digitsMin/clock2x2digitsMin.ino)
-+ Program [link](../../clock2x2digitsHours/clock2x2digitsHours.ino)
++ Program [link](../../samples/clock2x2digitsMin/clock2x2digitsMin.ino)
++ Program [link](../../samples/clock2x2digitsHours/clock2x2digitsHours.ino)
 
 Rotary encoder board:
 + Nano, using 4 pins: 3 SPI + 1 for enable/disable.
 + SD card module
-+ Program [link](../RotaryEncoder/RotaryEncoder.ino)
-+ Program [link](../RotaryEncoder2digits/RotaryEncoder2digits.ino)
++ Program [link](../../samples/RotaryEncoder/RotaryEncoder.ino)
++ Program [link](../../samples/RotaryEncoder2digits/RotaryEncoder2digits.ino)
 
 --------------------------------------------------------------------------------
 ### Altair 101 Case
