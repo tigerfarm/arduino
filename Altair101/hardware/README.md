@@ -16,7 +16,7 @@ My hardware designed around my [Altair 8800 clone front panel](https://www.adwat
 [<img width="360px"  src="../FrontPanel01a.jpg"/>](https://www.adwaterandstir.com/product/front-panel/)
 
 --------------------------------------------------------------------------------
-### Development Boards
+### Development Boards and Sample Programs
 
 Front panel toggle input test board:
 + 6 input buttons for 6 data bits.
@@ -60,27 +60,36 @@ Rotary encoder board:
 + Program [link](../../samples/RotaryEncoder/RotaryEncoder.ino)
 + Program [link](../../samples/RotaryEncoder2digits/RotaryEncoder2digits.ino)
 
+MP3 player:
++ Nano, using 2 pins. Need to test by using RXD and TX1.
++ DFPlayer module.
++ Infrared receiver for play/pause/next/previous. Input is from a remote controller.
+
 --------------------------------------------------------------------------------
 ## Nano Board Pin Requirements
-
-     -------------
-D13 |             | D12
-3V3 |             | D11
-REF |             | D10
-A0  |             | D9
-A1  |             | D8
-A2  |             | D7
-A3  |             | D6
-A4  |             | D5
-A5  |             | D4
-A6  |             | D3
-A7  |             | D4
-5V  |             | D2
-RST |             | GND
-GND |             | RST
-VIN |             | RXD
-    |             | TX1
-     -------------
+````
+                      -------------
+SD card: SPI bus D13 |             | D12 SPI bus: SD card
+                 3V3 |             | D11 SPI bus: SD card
+                 REF |             | D10: SD card SPI enable/disable
+                 A0  |             | D9: Front panel toggle switches
+                 A1  |             | D8: Front panel toggle switches
+                 A2  |             | D7: Front panel toggle switches
+                 A3  |             | D6: Front panel LED lights
+         I2C bus A4  |             | D5: Front panel LED lights
+         I2C bus A5  |             | D4: Front panel LED lights
+                 A6  |             | D3: 
+                 A7  |             | D2: 
+                 5V  |             | GND: Join with external power ground
+                 RST |             | RST
+                 GND |             | RX0: Used for Serial communications
+                 VIN |             | TX1: Used for Serial communications
+                      -------------
+I/O:
++ 12C bus: Clock, 1602 LCD
++ SPI bus: SD card, maybe in the future: 64K SRAM
+````
+##### To test: a new pin for infrared receiver.
 
 0 pins for power off/on toggle.
 
@@ -110,11 +119,13 @@ Not used:
 + D2, D3, the digital interrupt pins
 
 Nano pins:
-+ RX0 (D0) and TX1 (D1), for RS232 serial communications. Confirm, if can be used with DFPlayer: DFPlayer:TX to Nano:RX, and DFPlayer:RX to Nano:TX.
 + D2...D13 digital pins.
 + A0, A2, A3 work as digital pins.
 + A4 and A5 for IC2 communications with LCD and clock modules.
 + A1, A6 and A7 didn't work for LED on and off. Probably not work as digital pins.
++ RX0 (D0) and TX1 (D1), for for RS232 serial communications, example: uploading programs to the Nano, or Serial.print commands
+    Serial.begin() will cause pins 0(D0) and 1(D1) to be serial pins.
+    Topic: Serial Input Basics, https://forum.arduino.cc/index.php?topic=396450
 
 Hardware components:
 + Nano
@@ -462,6 +473,9 @@ Following are reference links,
     to hear an interview with the Altair 8800 clone creator, Mike Douglas.
 + Altair 8800 Instructional Videos
     https://www.youtube.com/playlist?list=PLB3mwSROoJ4KLWM8KwK0cD1dhX35wILBj
+
+Arduino SPI Library
+https://www.arduino.cc/en/reference/SPI
 
 --------------------------------------------------------------------------------
 Cheers

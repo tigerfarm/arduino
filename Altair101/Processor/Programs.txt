@@ -619,74 +619,6 @@ byte theProgram[] = {
 0377            //              ; Stop code for CPI instruction.
 
 // -----------------------------------------------------------------------------
-// Kill the Bit program.
-
-byte theProgramKtb[] = {
-  // ------------------------------------------------------------------
-  // Kill the Bit program.
-  // Before starting, make sure all the sense switches are in the down position.
-  //
-  //                Start program.
-  0041, 0000, 0000, // LXI H,0    ; Move the lb hb data values into the register pair H(hb):L(lb). Initialize counter
-  0026, 0200,       // mvi D,080h ; Move db to register D. Set initial display bit.  080h = 0200 = regD = 10 000 000
-  0001, 0036, 0000, // LXI B,0eh  ; Load a(lb:hb) into register B:C. Higher value = faster. Default: 0016 = B:C  = 00 010 000
-  //
-  //  ; Display bit pattern on upper 8 address lights.
-  //                // BEG:
-  0166,             // HLT
-  0032,             // LDAX D     ; Move data from address D:E, to register A.
-  0032,             // LDAX D     ; Move data from address D:E, to register A.
-  0032,             // LDAX D     ; Move data from address D:E, to register A.
-  0032,             // LDAX D     ; Move data from address D:E, to register A.
-  //
-  0011,             // DAD B      ; Add B:C to H:L. Set carry bit. Increments the display counter
-  // 0322, 0010, 0000, // JNC BEG    ; If carry bit false, jump to lb hb, LDAX instruction start.
-  //
-  0333, 0377,       // IN 0ffh    ; Check for toggled input, at port 377 (toggle sense switches), that can kill the bit.
-  0252,             // XRA D      ; Exclusive OR register with A
-  0017,             // RRC        ; Rotate A right (shift byte right 1 bit). Set carry bit. Rotate display right one bit
-  0127,             // MOV D,A    ; Move register A to register D. Move data to display reg
-  //
-  0303, 0010, 0000, // JMP BEG    ; Jump to lb hb, LDAX instruction start.
-  // 0000,             // NOP
-  // 0166,             // HLT
-  // ------------------------------------------------------------------
-  0000, 0000, 0000  //       end
-};
-
-//  Kill the Bit program:
-/*
-  Addr Data toggles  Octal Value
-  00   00 100 001     041 lxi  : Move the data at lb hb address, into register pair H(hb):L(lb)
-  01   00 000 000     000      : lb
-  02   00 000 000     000      : hb
-  03   00 010 110     026 mvi  : Move db to register D.
-  04   10 000 000     200      : db
-  05   00 000 001     001 lxi  : Move the lb hb data, into register pair > B:C = hb:lb.
-  06   00 001 110     016      : lb = 016
-  07   00 000 000     000      : hb = 000
-  //                         Make the bit that move across the hb address LED lights.
-  08   00 011 010 beg:032 ldax : Load register A with the data at address D:E.
-  09   00 011 010     032 ldax
-  10   00 011 010     032 ldax
-  11   00 011 010     032 ldax
-  12   00 001 001     011 dad  : Add B:C to H:L. Set carry bit.
-  13   11 010 010     322 jnc  : Jump to address 8(000:010)
-  14   00 001 000     010
-  15   00 000 000     000
-  //
-  16   11 011 011     333 in   : Check for the toggled input that can kill the bit.
-  17   11 111 111     377
-  18   10 101 010     252 xra
-  19   00 001 111     017 rrc
-  20   01 010 111     127 mov  : Move register A to register D.
-  21   11 000 011     303 jmp  : Jump instruction: jmp beg
-  22   00 001 000     010      : lb = 8. 00 001 000 = 8. Low order address bits.
-  23   00 000 000     000      : hb = 0, to get a 16 bit address(hb:lb): 00 000 000 : 00 001 000 = 8.
-  24                      end
-*/
-
-// -----------------------------------------------------------------------------
 // Sample machine code programs.
 
 // Define a jump loop program byte array.
@@ -882,7 +814,8 @@ byte theProgram[] = {
 // -----------------------------------------------------------------------------
 // Altair 8800 Pong Program
 // -----------------------------------------------------------------------------
- https://altairclone.com/downloads/pong.pdf
+
+Click [here](https://altairclone.com/downloads/pong.pdf) code PDF document.
 
 Click [here](https://www.youtube.com/watch?v=BZykunYYeQk) to watch a video for Pong.
 
@@ -1036,6 +969,73 @@ Here is PONG in octal if you really want to enter it manually!
  140: 312 165 000 173 346 010 302 157   000 173 346 020 302 103 000 041
  160: 200 000 064 036 000 172 007 127   303 113 000
 
+// -----------------------------------------------------------------------------
+// Kill the Bit program.
+
+byte theProgramKtb[] = {
+  // ------------------------------------------------------------------
+  // Kill the Bit program.
+  // Before starting, make sure all the sense switches are in the down position.
+  //
+  //                Start program.
+  0041, 0000, 0000, // LXI H,0    ; Move the lb hb data values into the register pair H(hb):L(lb). Initialize counter
+  0026, 0200,       // mvi D,080h ; Move db to register D. Set initial display bit.  080h = 0200 = regD = 10 000 000
+  0001, 0036, 0000, // LXI B,0eh  ; Load a(lb:hb) into register B:C. Higher value = faster. Default: 0016 = B:C  = 00 010 000
+  //
+  //  ; Display bit pattern on upper 8 address lights.
+  //                // BEG:
+  0166,             // HLT
+  0032,             // LDAX D     ; Move data from address D:E, to register A.
+  0032,             // LDAX D     ; Move data from address D:E, to register A.
+  0032,             // LDAX D     ; Move data from address D:E, to register A.
+  0032,             // LDAX D     ; Move data from address D:E, to register A.
+  //
+  0011,             // DAD B      ; Add B:C to H:L. Set carry bit. Increments the display counter
+  // 0322, 0010, 0000, // JNC BEG    ; If carry bit false, jump to lb hb, LDAX instruction start.
+  //
+  0333, 0377,       // IN 0ffh    ; Check for toggled input, at port 377 (toggle sense switches), that can kill the bit.
+  0252,             // XRA D      ; Exclusive OR register with A
+  0017,             // RRC        ; Rotate A right (shift byte right 1 bit). Set carry bit. Rotate display right one bit
+  0127,             // MOV D,A    ; Move register A to register D. Move data to display reg
+  //
+  0303, 0010, 0000, // JMP BEG    ; Jump to lb hb, LDAX instruction start.
+  // 0000,             // NOP
+  // 0166,             // HLT
+  // ------------------------------------------------------------------
+  0000, 0000, 0000  //       end
+};
+
+//  Kill the Bit program:
+/*
+  Addr Data toggles  Octal Value
+  00   00 100 001     041 lxi  : Move the data at lb hb address, into register pair H(hb):L(lb)
+  01   00 000 000     000      : lb
+  02   00 000 000     000      : hb
+  03   00 010 110     026 mvi  : Move db to register D.
+  04   10 000 000     200      : db
+  05   00 000 001     001 lxi  : Move the lb hb data, into register pair > B:C = hb:lb.
+  06   00 001 110     016      : lb = 016
+  07   00 000 000     000      : hb = 000
+  //                         Make the bit that move across the hb address LED lights.
+  08   00 011 010 beg:032 ldax : Load register A with the data at address D:E.
+  09   00 011 010     032 ldax
+  10   00 011 010     032 ldax
+  11   00 011 010     032 ldax
+  12   00 001 001     011 dad  : Add B:C to H:L. Set carry bit.
+  13   11 010 010     322 jnc  : Jump to address 8(000:010)
+  14   00 001 000     010
+  15   00 000 000     000
+  //
+  16   11 011 011     333 in   : Check for the toggled input that can kill the bit.
+  17   11 111 111     377
+  18   10 101 010     252 xra
+  19   00 001 111     017 rrc
+  20   01 010 111     127 mov  : Move register A to register D.
+  21   11 000 011     303 jmp  : Jump instruction: jmp beg
+  22   00 001 000     010      : lb = 8. 00 001 000 = 8. Low order address bits.
+  23   00 000 000     000      : hb = 0, to get a 16 bit address(hb:lb): 00 000 000 : 00 001 000 = 8.
+  24                      end
+*/
 
 // -----------------------------------------------------------------------------
 eof

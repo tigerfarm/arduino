@@ -3,6 +3,7 @@
   Altair 101 software microprocessor
 
   Next:
+  + Program opcodes ora and ani.
   + Control status LED lights wired to use a SN74HC595N. Then update this program.
   + Get input opcode, IN, to work.
   + Test program, Kill the Bit.
@@ -41,6 +42,8 @@
   Binary calculator:
     https://www.calculator.net/binary-calculator.html
 
+  Bitwise operators:
+    https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitwiseand/
   Extract highByte()
     https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/highbyte/
   Extract lowBtye()
@@ -52,6 +55,42 @@
 // #define RUN_DELAY 1
 // #define INCLUDE_LCD 1
 #define LOG_MESSAGES 1
+
+// -----------------------------------------------------------------------------
+// Kill the Bit program.
+
+byte theProgramKtb[] = {
+  // ------------------------------------------------------------------
+  // Kill the Bit program.
+  // Before starting, make sure all the sense switches are in the down position.
+  //
+  //                Start program.
+  0041, 0000, 0000, // LXI H,0    ; Move the lb hb data values into the register pair H(hb):L(lb). Initialize counter
+  0026, 0200,       // mvi D,080h ; Move db to register D. Set initial display bit.  080h = 0200 = regD = 10 000 000
+  0001, 0036, 0000, // LXI B,0eh  ; Load a(lb:hb) into register B:C. Higher value = faster. Default: 0016 = B:C  = 00 010 000
+  //
+  //  ; Display bit pattern on upper 8 address lights.
+  //                // BEG:
+  0166,             // HLT
+  0032,             // LDAX D     ; Move data from address D:E, to register A.
+  0032,             // LDAX D     ; Move data from address D:E, to register A.
+  0032,             // LDAX D     ; Move data from address D:E, to register A.
+  0032,             // LDAX D     ; Move data from address D:E, to register A.
+  //
+  0011,             // DAD B      ; Add B:C to H:L. Set carry bit. Increments the display counter
+  // 0322, 0010, 0000, // JNC BEG    ; If carry bit false, jump to lb hb, LDAX instruction start.
+  //
+  0333, 0377,       // IN 0ffh    ; Check for toggled input, at port 377 (toggle sense switches), that can kill the bit.
+  0252,             // XRA D      ; Exclusive OR register with A
+  0017,             // RRC        ; Rotate A right (shift byte right 1 bit). Set carry bit. Rotate display right one bit
+  0127,             // MOV D,A    ; Move register A to register D. Move data to display reg
+  //
+  0303, 0010, 0000, // JMP BEG    ; Jump to lb hb, LDAX instruction start.
+  // 0000,             // NOP
+  // 0166,             // HLT
+  // ------------------------------------------------------------------
+  0000, 0000, 0000  //       end
+};
 
 // -----------------------------------------------------------------------------
 // Program to test opcodes.
@@ -152,39 +191,6 @@ byte theProgramOra[] = {
   //
   // -----------------------------------------------------------------------------
   0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
-  0000              //            ; End.
-};
-
-// -----------------------------------------------------------------------------
-// Loop Program.
-
-byte theProgramLoop[] = {
-  //                //            ; --------------------------------------
-  //                // Start:       ; Start
-  //
-  0343, 38,         // out 38     ; Print the intial register values.
-  0166,             // hlt
-  //
-  //                //            ; --------------------------------------
-  //                //            ; Intialize register values.
-  //
-  0041, 0000, 0000, // lxi h,Start  ; lxi_HL lb hb. Load into register H:L = 0000:0000.
-  0176,             // mov M      ; Move the data in register M(register address H:L), to register A.
-  0006, 0001,       // mvi b,1    ; Move db to register B.
-  0016, 0002,       // mvi c,2    ; Move db to register C.
-  0127,             // mov d,a    ; Move register a to register D.
-  0036, 0003,       // mvi e,3    ; Move db to register E.
-  //
-  0343, 38,         // out 38     ; Print the Intialized register values.
-  0166,             // hlt
-  //
-  //                //            ; --------------------------------------
-  //                // Loop:      ; Change increment and loop.
-  0043,             // inx M      ; Increment register M(register address H:L).
-  0176,             // mov M      ; Move the data in register M(register address H:L), to register A.
-  0343, 38,         // out 38     ; Print the registers.
-  0166,             // hlt
-  0303, 14, 0000,   // jmp        ; Jump to Loop.
   0000              //            ; End.
 };
 
@@ -536,6 +542,14 @@ void processOpcode() {
   unsigned int anAddress = 0;
   byte dataByte = memoryData[programCounter];
   switch (dataByte) {
+    // ---------------------------------------------------------------------
+    //ANI #     11100110 db       ZSPCA   AND immediate with A
+    case B11100110:
+      opcode = B11100110;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> ani, AND db with register A."));
+#endif
+      break;
     case cpi:
       opcode = cpi;
 #ifdef LOG_MESSAGES
@@ -1571,8 +1585,26 @@ void processOpcodeData() {
   // Note,
   //    if not jumping, increment programCounter.
   //    if jumping, don't increment programCounter.
-  
+
   switch (opcode) {
+    // ---------------------------------------------------------------------
+    // stacy
+    //ANI #     11100110 db       ZSPCA   AND immediate with A
+    case B11100110:
+      // instructionCycle == 1
+      dataByte = memoryData[programCounter];
+#ifdef LOG_MESSAGES
+      Serial.print(F("> ani, AND db:"));
+      printBinary(dataByte);
+      Serial.print(F(" with register A:"));
+      printBinary(regA);
+#endif
+      regA = regA & dataByte;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      printBinary(regA);
+#endif
+      break;
     // ---------------------------------------------------------------------
     case cpi:
       // instructionCycle == 1
