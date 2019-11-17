@@ -54,7 +54,39 @@
 
 // #define RUN_DELAY 1
 // #define INCLUDE_LCD 1
-#define LOG_MESSAGES 1
+// #define LOG_MESSAGES 1
+
+// -----------------------------------------------------------------------------
+// Program to test opcodes.
+
+byte theProgram[] = {
+  //                //            ; --------------------------------------
+  //                // Start:     ; Test opcode ani.
+  //
+  // -----------------------------------------------------------------------------
+  //ANI #     11100110 db       ZSPCA   AND immediate with A
+  //
+  //1RRR110 mvi                                        ORA S 10 110 SSS
+  B00111110, 176,   // mvi a,176  ; Move # to register A:    10 110 000 = 176 which is ora b.
+  //1100110 ani
+  B11100110, 248,   // ani 248    ; AND # with register A:   11 111 000 = 248
+  0343, 37,         // out 37     ; Print register A answer: 10 110 000 = 176 which identifies the opcode ora.
+  //
+  B00111110, 177,   // mvi a,177  ; Move # to register A:    10 110 001 = 177 which is ora c.
+  B11100110, 248,   // ani 248    ; AND # with register A:   11 111 000 = 248
+  0343, 37,         // out 37     ; Print register A answer: 10 110 000 = 176 which identifies the opcode ora.
+  //
+  B00111110, 178,   // mvi a,178  ; Move # to register A:    10 110 010 = 178 which is ora d.
+  B11100110, 7,     // ani b      ; AND # with register A:   00 000 111 =   7
+  0343, 37,         // out 37     ; Print register A answer: 00 000 010 =   2 which is the code for register d.
+  //
+  0343, 38,         // out 38     ; Print the register values.
+  0166,             // hlt
+  //
+  // -----------------------------------------------------------------------------
+  0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
+  0000              //            ; End.
+};
 
 // -----------------------------------------------------------------------------
 // Kill the Bit program.
@@ -90,38 +122,6 @@ byte theProgramKtb[] = {
   // 0166,             // HLT
   // ------------------------------------------------------------------
   0000, 0000, 0000  //       end
-};
-
-// -----------------------------------------------------------------------------
-// Program to test opcodes.
-
-byte theProgram[] = {
-  //                //            ; --------------------------------------
-  //                // Start:     ; Test opcode ani.
-  //
-  // -----------------------------------------------------------------------------
-  //ANI #     11100110 db       ZSPCA   AND immediate with A
-  //
-  //1RRR110 mvi                                        ORA S 10 110 SSS
-  B00111110, 176,   // mvi a,176  ; Move # to register A:    10 110 000 = 176 which is ora b.
-  //1100110 ani
-  B11100110, 248,   // ani 248    ; AND # with register A:   11 111 000 = 248
-  0343, 37,         // out 37     ; Print register A answer: 10 110 000 = 176 which identifies the opcode ora.
-  //
-  B00111110, 177,   // mvi a,177  ; Move # to register A:    10 110 001 = 177 which is ora c.
-  B11100110, 248,   // ani 248    ; AND # with register A:   11 111 000 = 248
-  0343, 37,         // out 37     ; Print register A answer: 10 110 000 = 176 which identifies the opcode ora.
-  //
-  B00111110, 178,   // mvi a,178  ; Move # to register A:    10 110 010 = 178 which is ora d.
-  B11100110, 7,     // ani b      ; AND # with register A:   00 000 111 =   7
-  0343, 37,         // out 37     ; Print register A answer: 00 000 010 =   2 which is the code for register d.
-  //
-  0343, 38,         // out 38     ; Print the register values.
-  0166,             // hlt
-  //
-  // -----------------------------------------------------------------------------
-  0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
-  0000              //            ; End.
 };
 
 // -----------------------------------------------------------------------------
@@ -1431,10 +1431,10 @@ void processOpcode() {
       opcode = out;
       digitalWrite(WO_PIN, LOW);  // Inverse logic: off writing out. On when not.
 #ifdef LOG_MESSAGES
+      Serial.print(F("> OUT, Write output to the port address(following db)."));
 #else
       Serial.println("");
 #endif
-      Serial.print(F("> OUT, Write output to the port address(following db)."));
       break;
     // ------------------------------------------------------------------------------------------
     case rrc:
@@ -1571,7 +1571,7 @@ void processOpcode() {
       printByte(regA);
 #endif
       break;
-    // ------------------------------------------------------------------------------------------
+    // -------------------------------------------------------------------------------------
     default:
       Serial.print(F(" - Error, unknown instruction."));
       runProgram = false;
@@ -1595,15 +1595,16 @@ void processOpcodeData() {
       dataByte = memoryData[programCounter];
 #ifdef LOG_MESSAGES
       Serial.print(F("> ani, AND db:"));
-      printBinary(dataByte);
+      printByte(dataByte);
       Serial.print(F(" with register A:"));
-      printBinary(regA);
+      printByte(regA);
 #endif
       regA = regA & dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F(" = "));
-      printBinary(regA);
+      printByte(regA);
 #endif
+      programCounter++;
       break;
     // ---------------------------------------------------------------------
     case cpi:
@@ -1865,11 +1866,11 @@ void processOpcodeData() {
       // instructionCycle == 1
       dataByte = memoryData[programCounter];
 #ifdef LOG_MESSAGES
+      Serial.print(F("< OUT, input port: "));
+      Serial.print(dataByte);
 #else
       Serial.println("");
 #endif
-      Serial.print(F("< OUT, input port: "));
-      Serial.print(dataByte);
       switch (dataByte) {
         case 1:
           Serial.print(F(", terminal output to be implemented on LCD."));
