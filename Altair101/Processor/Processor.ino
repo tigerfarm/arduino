@@ -57,41 +57,9 @@
 // #define LOG_MESSAGES 1
 
 // -----------------------------------------------------------------------------
-// Program to test opcodes.
-
-byte theProgram[] = {
-  //                //            ; --------------------------------------
-  //                // Start:     ; Test opcode ani.
-  //
-  // -----------------------------------------------------------------------------
-  //ANI #     11100110 db       ZSPCA   AND immediate with A
-  //
-  //1RRR110 mvi                                        ORA S 10 110 SSS
-  B00111110, 176,   // mvi a,176  ; Move # to register A:    10 110 000 = 176 which is ora b.
-  //1100110 ani
-  B11100110, 248,   // ani 248    ; AND # with register A:   11 111 000 = 248
-  0343, 37,         // out 37     ; Print register A answer: 10 110 000 = 176 which identifies the opcode ora.
-  //
-  B00111110, 177,   // mvi a,177  ; Move # to register A:    10 110 001 = 177 which is ora c.
-  B11100110, 248,   // ani 248    ; AND # with register A:   11 111 000 = 248
-  0343, 37,         // out 37     ; Print register A answer: 10 110 000 = 176 which identifies the opcode ora.
-  //
-  B00111110, 178,   // mvi a,178  ; Move # to register A:    10 110 010 = 178 which is ora d.
-  B11100110, 7,     // ani b      ; AND # with register A:   00 000 111 =   7
-  0343, 37,         // out 37     ; Print register A answer: 00 000 010 =   2 which is the code for register d.
-  //
-  0343, 38,         // out 38     ; Print the register values.
-  0166,             // hlt
-  //
-  // -----------------------------------------------------------------------------
-  0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
-  0000              //            ; End.
-};
-
-// -----------------------------------------------------------------------------
 // Kill the Bit program.
 
-byte theProgramKtb[] = {
+byte theProgram[] = {
   // ------------------------------------------------------------------
   // Kill the Bit program.
   // Before starting, make sure all the sense switches are in the down position.
@@ -1432,8 +1400,6 @@ void processOpcode() {
       digitalWrite(WO_PIN, LOW);  // Inverse logic: off writing out. On when not.
 #ifdef LOG_MESSAGES
       Serial.print(F("> OUT, Write output to the port address(following db)."));
-#else
-      Serial.println("");
 #endif
       break;
     // ------------------------------------------------------------------------------------------
@@ -1876,7 +1842,9 @@ void processOpcodeData() {
           Serial.print(F(", terminal output to be implemented on LCD."));
           break;
         case 38:
+#ifdef LOG_MESSAGES
           Serial.println("");
+#endif
           Serial.println(F("------------"));
           printRegisters();
           Serial.print(F("------------"));
