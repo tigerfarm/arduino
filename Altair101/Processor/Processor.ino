@@ -46,7 +46,7 @@
     https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitwiseand/
   Extract highByte()
     https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/highbyte/
-  Extract lowBtye()
+  Extract lowByte()
     https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/lowbyte/
 */
 // -----------------------------------------------------------------------------
@@ -272,15 +272,17 @@ void listByteArray(byte btyeArray[], int arraySize) {
 // ------------------------------
 // Status LEDs
 //
+// Info: page 33 of the Altair 8800 oprator's manaul.
 // Bit pattern for the status shift register (SN74HC595N):
-// B10000000 : MEMR   Memory
-// B01000000 : INP    Input
-// B00100000 : M1     Machine cycle 1, fetch opcode
-// B00010000 : OUT    ?- Output
-// B00001000 : HLTA   Machine halted
+// B10000000 : MEMR   The memory bus will be used for memory read data.
+// B01000000 : INP    The address bus containing the address of an input device. The input data should be placed on the data bus when the data bus is in the input mode
+// B00100000 : M1     Machine cycle 1, fetch opcode.
+// B00010000 : OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
+// B00001000 : HLTA   Machine opcode hlt, has halted the machine.
 // B00000100 : STACK  Stack process
 // B00000010 : WO     Write out (inverse logic)
 // B00000001 : WAIT   For now, use this one for WAIT light status
+//             INT    An interrupt request has been acknowledged.
 //
 const int MEMR_PIN = 42;    // Memory read such as fetching an op code (data instruction)
 const int INP_PIN = 42;     // Input
@@ -461,6 +463,12 @@ void printAddressData() {
   Serial.print(F(" Data: "));
   dataByte = memoryData[programCounter];
   printData(dataByte);
+  Serial.print(" > ");
+  printByte(highByte(programCounter));
+  Serial.print(":");
+  printByte(lowByte(programCounter));
+  Serial.print(":");
+  printByte(lowByte(regA));
 }
 
 void processData() {
@@ -1595,9 +1603,11 @@ void processOpcodeData() {
       // instructionCycle == 1
       // // INP & WO are on when reading from an input port.
       dataByte = memoryData[programCounter];
+#ifdef LOG_MESSAGES
       Serial.print(F("< IN, input port: "));
       Serial.print(dataByte);
       Serial.print(F(". Not implemented, yet."));
+#endif
       programCounter++;
       break;
     // ---------------------------------------------------------------------

@@ -72,5 +72,8 @@ Very nice [Altair 8800 Clone](https://altairclone.com/).
     to build my processor emulation software and hardware. I want my machine to do the basics of what his machine can do.
 + Altair 8800 Clone [order information](https://altairclone.com/ordering.htm), (assembled) $621.
 
+Another Altair Clone:
+https://github.com/companje/Altair8800
+
 --------------------------------------------------------------------------------
 eof
