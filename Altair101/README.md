@@ -72,8 +72,12 @@ Very nice [Altair 8800 Clone](https://altairclone.com/).
     to build my processor emulation software and hardware. I want my machine to do the basics of what his machine can do.
 + Altair 8800 Clone [order information](https://altairclone.com/ordering.htm), (assembled) $621.
 
-Another Altair Clone:
-https://github.com/companje/Altair8800
+Another Altair Clone: [GitHub](https://github.com/companje/Altair8800), [website](http://www.companje.nl/altair.html).
+This one resembles some of my goals: runs on an Arduino UNO(Nano), and simple code base.
+I uses 74HC595 for LED outputs, and 74HC166 for inputs, and a 23LC1024 for 128KB RAM.
+
+[Directory](https://altairclone.com/downloads/cpu_tests/) of nice sample assembler programs
+such as this [8080 opcode test program](https://altairclone.com/downloads/cpu_tests/TST8080.PRN).
 
 --------------------------------------------------------------------------------
 eof
