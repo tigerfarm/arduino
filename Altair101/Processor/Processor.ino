@@ -72,7 +72,7 @@ byte theProgram[] = {
   //  ; Display bit pattern on upper 8 address lights.
   //                // BEG:
   0166,             // HLT
-  0032,             // LDAX D     ; Move data from address D:E, to register A.
+  0032,             // LDAX D     ; Move data from address D:E, to register A. vgggggg                                                                    
   0032,             // LDAX D     ; Move data from address D:E, to register A.
   0032,             // LDAX D     ; Move data from address D:E, to register A.
   0032,             // LDAX D     ; Move data from address D:E, to register A.
@@ -454,8 +454,8 @@ int instructionCycle = 0;   // Opcode process cycle
 
 void printAddressData() {
   //
-  displayLedData(dataByte);
-  // displayLedAddressData(programCounter, dataByte);
+  // displayLedData(dataByte);
+  displayLedAddressData(programCounter, dataByte);
   //
   Serial.print(F("Addr: "));
   sprintf(charBuffer, "%4d:", programCounter);
@@ -463,12 +463,15 @@ void printAddressData() {
   Serial.print(F(" Data: "));
   dataByte = memoryData[programCounter];
   printData(dataByte);
+#ifdef LOG_MESSAGES
+#else
   Serial.print(" > ");
   printByte(highByte(programCounter));
   Serial.print(":");
   printByte(lowByte(programCounter));
   Serial.print(":");
   printByte(lowByte(regA));
+#endif
 }
 
 void processData() {
