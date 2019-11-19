@@ -57,19 +57,57 @@ void printByte(byte b) {
     Serial.print(bitRead(b, i));
 }
 
+boolean button2state = false;
+boolean button3state = false;
+void switchPressed2() {
+  if (!button2state) {
+    Serial.println("+ Button 2: pressed");
+    button2state = true;
+  }
+}
+
 void buttonCheck() {
   byte dataByte = B10000000;
   for (int i = 0; i < 8; i++) {
-    // Serial.print(F("+ "));
-    // printByte(dataByte);
     digitalWrite(latchPin, LOW);
     shiftOut(dataPin, clockPin, LSBFIRST, dataByte);
     digitalWrite(latchPin, HIGH);
     // delay(60);
     if (digitalRead(dataInputPin) == HIGH) {
-      Serial.print("+ Pressed: ");
-      Serial.print(i);
-      Serial.println("");
+      switch (i) {
+        case 2:
+          if (!button2state) {
+            Serial.println("+ Button 2: pressed");
+            button2state = true;
+          }
+          break;
+        case 3:
+          if (!button3state) {
+            Serial.println("+ Button 3: pressed");
+            button3state = true;
+          }
+          break;
+        // -----------------------------------
+        default:
+          Serial.print("+ Pressed other: ");
+          Serial.println(i);
+          // -----------------------------------
+      }
+    } else {
+      switch (i) {
+        case 2:
+          if (button2state) {
+            Serial.println("+ Button 2: released");
+            button2state = false;
+          }
+          break;
+        case 3:
+          if (button3state) {
+            Serial.println("+ Button 3: released");
+            button3state = false;
+          }
+          break;
+      }
     }
     dataByte = dataByte >> 1;
   }
@@ -124,7 +162,8 @@ void setup() {
 
 void loop() {
   // Serial.println("+ Looping");
-  checkButton();
+  // checkButton();
+  buttonCheck();
   delay(60);
 }
 // -----------------------------------------------------------------------------

@@ -68,23 +68,23 @@ MP3 player:
 --------------------------------------------------------------------------------
 ## Nano Board Pin Requirements
 ````
-                      -------------
-SD card: SPI bus D13 |             | D12 SPI bus: SD card
-                 3V3 |             | D11 SPI bus: SD card
-                 REF |             | D10: SD card SPI enable/disable
-                 A0  |             | D9: Front panel toggle switches
-                 A1  |             | D8: Front panel toggle switches
-                 A2  |             | D7: Front panel toggle switches
-                 A3  |             | D6: Front panel LED lights
-         I2C bus A4  |             | D5: Front panel LED lights
-         I2C bus A5  |             | D4: Front panel LED lights
-                 A6  |             | D3: 
-                 A7  |             | D2: 
-                 5V  |             | GND: Join with external power ground
-                 RST |             | RST
-                 GND |             | RX0: Used for Serial communications
-                 VIN |             | TX1: Used for Serial communications
-                      -------------
+                       -------------
+ SD card: SPI bus D13 |             | D12 SPI bus: SD card
+                  3V3 |             | D11 SPI bus: SD card
+                  REF |             | D10: SD card SPI enable/disable
+                  A0  |             | D9: Front panel toggle switches
+Infrared receiver A1  |             | D8: Front panel toggle switches
+                  A2  |             | D7: Front panel toggle switches
+                  A3  |             | D6: Front panel LED lights
+          I2C bus A4  |             | D5: Front panel LED lights
+          I2C bus A5  |             | D4: Front panel LED lights
+                  A6  |             | D3: 
+                  A7  |             | D2: 
+                  5V  |             | GND: Join with external power ground
+                  RST |             | RST
+                  GND |             | RX0: Used for Serial communications
+                  VIN |             | TX1: Used for Serial communications
+                       -------------
 I/O:
 + 12C bus: Clock, 1602 LCD
 + SPI bus: SD card, maybe in the future: 64K SRAM
