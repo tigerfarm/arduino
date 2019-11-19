@@ -16,6 +16,42 @@ My hardware designed around my [Altair 8800 clone front panel](https://www.adwat
 [<img width="360px"  src="../FrontPanel01a.jpg"/>](https://www.adwaterandstir.com/product/front-panel/)
 
 --------------------------------------------------------------------------------
+## Nano Board Pin Usage
+
+Has 30 pins.
+````
+                           -----
+                       ---| USB |---
+ SD card: SPI bus D13 |   |     |   | D12 SPI bus: SD card
+                  3V3 |   |     |   | D11 SPI bus: SD card
+                  REF |    -----    | D10 SD card SPI enable/disable
+  Address toggles  A0 |             | D9  Address toggles
+Infrared receiver  A1 |             | D8  Address toggles
+                   A2 |             | D7  Address toggles
+                   A3 |             | D6  Front panel LED lights
+          I2C bus  A4 |             | D5  Front panel LED lights
+          I2C bus  A5 |             | D4  Front panel LED lights
+                   A6 |             | D3  
+                   A7 |             | D2  
+                   5V |             | GND Join with external power ground
+                  RST |             | RST
+                  GND |             | RX0 Used for Serial communications
+                  VIN |             | TX1 Used for Serial communications
+                       -------------
+
+RX0 and TX1 are in use, for example: to upload program sketches and Serial.print().
+D2 and D3 are Digital interrupt pins.
+A0 to A3 can be used as digital pins.
+I/O devices:
++ SD card:  SPI bus + a digital enable pin.
++ Clock:    12C bus
++ 1602 LCD: 12C bus 
++ DFPlayer: 2 digital pins.
++ 4 x 7-segment digits: 2 digital pins.
++ SRAM 32K: SPI bus + a digital enable pin.
++ Rotary encoder: 1 digital pin and an interrupt pin.
+````
+--------------------------------------------------------------------------------
 ### Development Boards and Sample Programs
 
 Front panel toggle input test board:
@@ -64,32 +100,6 @@ MP3 player:
 + Nano, using 2 pins. Need to test by using RXD and TX1.
 + DFPlayer module.
 + Infrared receiver for play/pause/next/previous. Input is from a remote controller.
-
---------------------------------------------------------------------------------
-## Nano Board Pin Requirements
-````
-                       -------------
- SD card: SPI bus D13 |             | D12 SPI bus: SD card
-                  3V3 |             | D11 SPI bus: SD card
-                  REF |             | D10: SD card SPI enable/disable
-   Front panel SW A0  |             | D9: Front panel toggle switches (SW)
-Infrared receiver A1  |             | D8: Front panel toggle switches (SW)
-                  A2  |             | D7: Front panel toggle switches (SW)
-                  A3  |             | D6: Front panel LED lights
-          I2C bus A4  |             | D5: Front panel LED lights
-          I2C bus A5  |             | D4: Front panel LED lights
-                  A6  |             | D3: 
-                  A7  |             | D2: 
-                  5V  |             | GND: Join with external power ground
-                  RST |             | RST
-                  GND |             | RX0: Used for Serial communications
-                  VIN |             | TX1: Used for Serial communications
-                       -------------
-I/O:
-+ 12C bus: Clock, 1602 LCD
-+ SPI bus: SD card, maybe in the future: 64K SRAM
-````
-##### To test: a new pin for infrared receiver.
 
 0 pins for power off/on toggle.
 

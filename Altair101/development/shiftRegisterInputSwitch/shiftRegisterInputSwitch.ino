@@ -41,9 +41,9 @@
 // -----------------------------------------------------------------------------
 // Shift Register
 
-const int dataPin = 4;            // 74HC595 Data  pin 14 is connected to Digital pin 4
-const int latchPin = 5;           // 74HC595 Latch pin 12 is connected to Digital pin 5
-const int clockPin = 6;           // 74HC595 Clock pin 11 is connected to Digital pin 6
+const int dataPin = 7;            // 74HC595 Data  pin 14 is connected to Digital pin 7
+const int latchPin = 8;           // 74HC595 Latch pin 12 is connected to Digital pin 8
+const int clockPin = 9;           // 74HC595 Clock pin 11 is connected to Digital pin 9
 const int dataInputPin = A0;      // Nano data input check pin. Digital pins work and some analog pins work.
 
 // -----------------------------------------------------------------------------
@@ -95,8 +95,7 @@ void setup() {
   digitalWrite(latchPin, LOW);
   shiftOut(dataPin, clockPin, LSBFIRST, B11111111);
   digitalWrite(latchPin, HIGH);
-  Serial.println("+ All shift register pins set high.");
-  Serial.println("+ Ready monitor input switches.");
+  Serial.println("+ Ready to monitor input switches.");
 
   Serial.println("+++ Start program loop.");
 }

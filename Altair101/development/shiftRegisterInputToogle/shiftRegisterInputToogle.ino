@@ -39,45 +39,37 @@
   https://www.theengineeringprojects.com/2018/11/arduino-74hc165-interfacing-increase-input-pins.html
 */
 // -----------------------------------------------------------------------------
+void printByte(byte b) {
+  for (int i = 7; i >= 0; i--)
+    Serial.print(bitRead(b, i));
+}
+
+// -----------------------------------------------------------------------------
 // Shift Register
 
-const int dataPin = 4;            // 74HC595 Data  pin 14 is connected to Digital pin 4
-const int latchPin = 5;           // 74HC595 Latch pin 12 is connected to Digital pin 5
-const int clockPin = 6;           // 74HC595 Clock pin 11 is connected to Digital pin 6
+const int dataPin = 7;            // 74HC595 Data  pin 14 is connected to Digital pin 7
+const int latchPin = 8;           // 74HC595 Latch pin 12 is connected to Digital pin 8
+const int clockPin = 9;           // 74HC595 Clock pin 11 is connected to Digital pin 9
 const int dataInputPin = A0;      // Nano data input check pin. Digital pins work and some analog pins work.
 
 // -----------------------------------------------------------------------------
 // Only do the action once, don't repeat if the button is held down.
 // Don't repeat action if the button is not pressed.
 
-const int numberOfSwitches = 8;
-boolean switchState[numberOfSwitches] = {
-  false, false, false, false, false, false, false, false
-};
-void buttonCheck() {
-  byte dataByte = B10000000;
-  for (int i = 0; i < numberOfSwitches; i++) {
+const int numberOfToogles = 8;
+byte toggleAddressByte = B00000000;
+void getToogleAddress() {
+  toggleAddressByte = B00000000;
+  byte toggleAddressBit = B10000000;
+  for (int i = 0; i < numberOfToogles; i++) {
     digitalWrite(latchPin, LOW);
-    shiftOut(dataPin, clockPin, LSBFIRST, dataByte);
+    shiftOut(dataPin, clockPin, LSBFIRST, toggleAddressBit);
     digitalWrite(latchPin, HIGH);
-    //
     if (digitalRead(dataInputPin) == HIGH) {
-      if (!switchState[i]) {
-        switchState[i] = true;
-        Serial.print("+ Button pressed: ");
-        Serial.println(i);
-      }
-    } else if (switchState[i]) {
-        switchState[i] = false;
-        Serial.print("+ Button released: ");
-        Serial.println(i);
+      toggleAddressByte = toggleAddressByte | toggleAddressBit;
     }
-    //
-    dataByte = dataByte >> 1;
+    toggleAddressBit = toggleAddressBit >> 1;
   }
-  digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, LSBFIRST, B1111111);
-  digitalWrite(latchPin, HIGH);
 }
 
 // -----------------------------------------------------------------------------
@@ -91,12 +83,7 @@ void setup() {
   pinMode(clockPin, OUTPUT);
   pinMode(dataPin, OUTPUT);
   pinMode(dataInputPin, INPUT);
-  delay(300);
-  digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, LSBFIRST, B11111111);
-  digitalWrite(latchPin, HIGH);
-  Serial.println("+ All shift register pins set high.");
-  Serial.println("+ Ready monitor input switches.");
+  Serial.println("+ Ready to check toogles.");
 
   Serial.println("+++ Start program loop.");
 }
@@ -105,9 +92,10 @@ void setup() {
 // Device Loop.
 
 void loop() {
-  // Serial.println("+ Looping");
-  // checkButton();
-  buttonCheck();
-  delay(60);
+  Serial.print("+ getToogleAddress = ");
+  getToogleAddress();
+  printByte(toggleAddressByte);
+  Serial.println("");
+  delay(3000);
 }
 // -----------------------------------------------------------------------------
