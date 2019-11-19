@@ -21,8 +21,8 @@ My hardware designed around my [Altair 8800 clone front panel](https://www.adwat
 Front panel toggle input test board:
 + 6 input buttons for 6 data bits.
 + 6 diodes to control current flow.
-+ Nano, using 3 pins. Use a chip or board to Expand Digital Inputs.
-+ A 74HC595 Shift Register.
++ Nano, using 4 pins.
++ A 74HC595 Shift Register to Expand Digital Inputs.
 + Serial monitor log output.
 + To do: 2 input On/Off/On momentary toggles for to control 4 data bit settings.
 + To do: Test with a PCF8574 board
@@ -72,9 +72,9 @@ MP3 player:
  SD card: SPI bus D13 |             | D12 SPI bus: SD card
                   3V3 |             | D11 SPI bus: SD card
                   REF |             | D10: SD card SPI enable/disable
-                  A0  |             | D9: Front panel toggle switches
-Infrared receiver A1  |             | D8: Front panel toggle switches
-                  A2  |             | D7: Front panel toggle switches
+   Front panel SW A0  |             | D9: Front panel toggle switches (SW)
+Infrared receiver A1  |             | D8: Front panel toggle switches (SW)
+                  A2  |             | D7: Front panel toggle switches (SW)
                   A3  |             | D6: Front panel LED lights
           I2C bus A4  |             | D5: Front panel LED lights
           I2C bus A5  |             | D4: Front panel LED lights

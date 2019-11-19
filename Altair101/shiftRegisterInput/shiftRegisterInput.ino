@@ -45,7 +45,7 @@
 const int dataPin = 4;            // 74HC595 Data  pin 14 is connected to Digital pin 4
 const int latchPin = 5;           // 74HC595 Latch pin 12 is connected to Digital pin 5
 const int clockPin = 6;           // 74HC595 Clock pin 11 is connected to Digital pin 6
-const int dataInputPin = A6;       // Nano digital data input check pin.
+const int dataInputPin = A0;       // Nano digital data input check pin.
 
 // -----------------------------------------------------------------------------
 // Only do the action once, don't repeat if the button is held down.
