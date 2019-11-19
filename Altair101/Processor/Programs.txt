@@ -54,8 +54,10 @@ byte theProgram[] = {
 byte theProgram[] = {
   //                //            ; --------------------------------------
   //                // Start:     ; Test opcode ani.
-  0303, 4, 0,       // jmp Start  ; Jump to bypass the halt.
+  0303, 4, 0,       // jmp Test   ; Jump to bypass the halt.
+  //                // Halt:
   0166,             // hlt        ; Then, the program will halt at each iteration.
+  //                // Test:
   //
   // -----------------------------------------------------------------------------
   //ANI #     11100110 db       ZSPCA   AND immediate with A
@@ -77,7 +79,7 @@ byte theProgram[] = {
   0343, 38,         // out 38     ; Print the register values.
   //
   // -----------------------------------------------------------------------------
-  0303, 0003, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
+  0303, 0003, 0000, // jmp Halt   ; Jump back to the halt statement.
   0000              //            ; End.
 };
 
@@ -210,40 +212,29 @@ byte theProgram[] = {
   //                //            ; --------------------------------------
   //                // Start:     ; Test opcode ldax.
   //                //            ; Load register A with data value from address B:C or D:E.
-  //
-  //                //            ; --------------------------------------
-  //                //            ; Intialize register values.
-  //
-  B00111110, 6,     // mvi a,6    ; Move # to registers.
-  B00000110, 0,     // mvi b,0
-  B00001110, 1,     // mvi c,1
-  B00010110, 2,     // mvi d,2
-  B00011110, 3,     // mvi e,3
-  B00100110, 4,     // mvi h,0
-  B00101110, 5,     // mvi l,0
-  //
-  0343, 38,         // out 38     ; Print the Intialized register values.
-  0166,             // hlt
+  0303, 4, 0,       // jmp Test   ; Jump to bypass the halt.
+  //                // Halt:
+  0166,             // hlt        ; Then, the program will halt at each iteration.
+  //                // Test:
   //
   // -----------------------------------------------------------------------------
   // ldax RP  00RP1010 - Load register A with indirect through BC(RP=00) or DE(RP=01)
   // ---------------
-  //  case B00001010:
   //
   B00000110, 0,     // mvi b,0    ; Set registers, then move data to register A.
-  B00001110, 1,     // mvi c,1    ; B:C data = 6
+  B00001110, 0,     // mvi c,0    ; B:C data = octal 303
+  //0RP1010
   B00001010,        // ldax b
-  0343, 37,         // out 37     ; Print register A.
+  0343, 37,         // out 37     ; Print register A = 195 = 303 = 11000011
   //
   B00010110, 0,     // mvi d,0
-  B00011110, 6,     // mvi e,6    ; D:E data = B00010110 = 22
+  B00011110, 3,     // mvi e,3    ; D:E data = octal 166
+  //0RP1010
   B00011010,        // ldax d
-  0343, 37,         // out 37     ; Print register A.
-  //
-  0166,             // hlt
+  0343, 37,         // out 37     ; Print register A = 118 = 166 = 01110110
   //
   // -----------------------------------------------------------------------------
-  0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
+  0303, 3, 0,       // jmp Halt   ; Jump back to beginning of the test.
   0000              //            ; End.
 };
 

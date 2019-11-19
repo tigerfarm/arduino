@@ -54,7 +54,7 @@
 
 // #define RUN_DELAY 1
 // #define INCLUDE_LCD 1
-// #define LOG_MESSAGES 1
+#define LOG_MESSAGES 1
 
 // -----------------------------------------------------------------------------
 // Kill the Bit program.
@@ -72,7 +72,7 @@ byte theProgram[] = {
   //  ; Display bit pattern on upper 8 address lights.
   //                // BEG:
   0166,             // HLT
-  0032,             // LDAX D     ; Move data from address D:E, to register A. vgggggg                                                                    
+  0032,             // LDAX D     ; Move data from address D:E, to register A. vgggggg
   0032,             // LDAX D     ; Move data from address D:E, to register A.
   0032,             // LDAX D     ; Move data from address D:E, to register A.
   0032,             // LDAX D     ; Move data from address D:E, to register A.
@@ -956,46 +956,22 @@ void processOpcode() {
     // ldax RP  00RP1010 - Load indirect through BC(RP=00) or DE(RP=01)
     // ---------------
     case B00001010:
-      bValue = regB;
-      cValue = regC;
-      bcValue = bValue * 256 + cValue;
-      if (deValue < memoryBytes) {
-        regA = memoryData[bcValue];
-      } else {
-        regA = 0;
-      }
+      opcode = B00001010;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> ldax"));
-      Serial.print(F(", Load data from Address B:C = "));
+      Serial.print(F("> ldax, Into register A, load data from B:C address: "));
       printOctal(regB);
       Serial.print(F(" : "));
       printOctal(regC);
-      Serial.print(F(" = "));
-      Serial.print(bcValue);
-      Serial.print(F(", to Accumulator = "));
-      printData(regA);
 #endif
       break;
     // ---------------
     case B00011010:
-      dValue = regD;
-      eValue = regE;
-      deValue = dValue * 256 + eValue;
-      if (deValue < memoryBytes) {
-        regA = memoryData[deValue];
-      } else {
-        regA = 0;
-      }
+      opcode = B00011010;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> ldax"));
-      Serial.print(F(", Load data from Address D:E = "));
+      Serial.print(F("> ldax, Into register A, load data from D:E address: "));
       printOctal(regD);
       Serial.print(F(" : "));
       printOctal(regE);
-      Serial.print(F(" = "));
-      Serial.print(deValue);
-      Serial.print(F(", to Accumulator = "));
-      printData(regA);
 #endif
       break;
     // ---------------------------------------------------------------------
@@ -1023,7 +999,7 @@ void processOpcode() {
       // stacy
       // opcode = B00110001;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> lxi, Need to figure out: move the lb hb data, to the stack pointer."));
+      Serial.print(F("> lxi, Stacy, to do: move the lb hb data, to the stack pointer."));
 #endif
       Serial.print(F(" - Error, unhandled instruction."));
       runProgram = false;
@@ -1695,6 +1671,38 @@ void processOpcodeData() {
       sprintf(charBuffer, "%4d = ", programCounter);
       Serial.print(charBuffer);
       printByte((byte)programCounter);
+#endif
+      break;
+    // ---------------------------------------------------------------------
+    // ldax RP  00RP1010 - Load indirect through BC(RP=00) or DE(RP=01)
+    // ---------------
+    case B00001010:
+      bValue = regB;
+      cValue = regC;
+      bcValue = bValue * 256 + cValue;
+      if (deValue < memoryBytes) {
+        regA = memoryData[bcValue];
+      } else {
+        regA = 0;
+      }
+#ifdef LOG_MESSAGES
+      Serial.print(F("< ldax, the data moved into Accumulator is "));
+      printData(regA);
+#endif
+      break;
+    // ---------------
+    case B00011010:
+      dValue = regD;
+      eValue = regE;
+      deValue = dValue * 256 + eValue;
+      if (deValue < memoryBytes) {
+        regA = memoryData[deValue];
+      } else {
+        regA = 0;
+      }
+#ifdef LOG_MESSAGES
+      Serial.print(F("< ldax, the data moved into Accumulator is "));
+      printData(regA);
 #endif
       break;
     // ---------------------------------------------------------------------

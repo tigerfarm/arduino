@@ -2,9 +2,10 @@
 # Altair 101 Project Notes
 
 The Model-T was the first popular car. The Altair 8800 was the first popular personal computer, the Model-T of the home computers.
-I designing and building a computer to give a person the experience of using that personal computer.
-The Altair 101 will replicate the user experience of flipping toggles for program and data input.
-And then the user will enjoy watching flashing LED lights, which is the computer's output.
+I wanted an Altair 8800 when it was first available in 1975, but I was short on funds.
+Now, I am designing and building a computer that has similarities to the 8800.
+I call mine, the Altair 101. The 101 will replicate the basic user experience of using an 8800:
+entering programs by flipping toggles, and then the enjoyment of watching flashing LED lights as the program runs.
 
 The following photo is my Altair 8800 clone front panel.
 The front panel is equivalent to a smartphone's touch screen display only retro.

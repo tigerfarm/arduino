@@ -24,6 +24,9 @@ https://github.com/tigerfarm/arduino/tree/master/MacInstall
 On Windows, I installed a CH340 driver and all was good.
 One other note, I have the cheap cheap ones, I set my IDE to use “Processor ATmega328P (Old Bootloader)“. Some of the ones I got for a little over $3, they use “Processor ATmega328P”. Either way, they work fine, I don’t see any noticeable difference. I’ve bought over a dozen Nano boards, their my favorite, great for use on a breadboard.
 
++ pulse-width modulate (PWM), example: control brightness of an LED using analogWrite(x) to an LED on a digital PWM pin.
+https://www.allaboutcircuits.com/projects/using-the-arduinos-analog-io/
+
 --------------------------------------------------------------------------------
 ### Set up on my MacBook:
 
