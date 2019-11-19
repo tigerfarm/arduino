@@ -57,10 +57,15 @@ void printByte(byte b) {
     Serial.print(bitRead(b, i));
 }
 
-int numberOfSwitches = 8;
-boolean switchState[8] = {
-  false, false, false, false, false, false, false, false
-};
+boolean button2state = false;
+boolean button3state = false;
+void switchPressed2() {
+  if (!button2state) {
+    Serial.println("+ Button 2: pressed");
+    button2state = true;
+  }
+}
+
 void buttonCheck() {
   byte dataByte = B10000000;
   for (int i = 0; i < 8; i++) {
@@ -69,16 +74,39 @@ void buttonCheck() {
     digitalWrite(latchPin, HIGH);
     // delay(60);
     if (digitalRead(dataInputPin) == HIGH) {
-      if (!switchState[i]) {
-        switchState[i] = true;
-        Serial.print("+ Button pressed: ");
-        Serial.println(i);
+      switch (i) {
+        case 2:
+          if (!button2state) {
+            Serial.println("+ Button 2: pressed");
+            button2state = true;
+          }
+          break;
+        case 3:
+          if (!button3state) {
+            Serial.println("+ Button 3: pressed");
+            button3state = true;
+          }
+          break;
+        // -----------------------------------
+        default:
+          Serial.print("+ Pressed other: ");
+          Serial.println(i);
+          // -----------------------------------
       }
     } else {
-      if (switchState[i]) {
-        switchState[i] = false;
-        Serial.print("+ Button released: ");
-        Serial.println(i);
+      switch (i) {
+        case 2:
+          if (button2state) {
+            Serial.println("+ Button 2: released");
+            button2state = false;
+          }
+          break;
+        case 3:
+          if (button3state) {
+            Serial.println("+ Button 3: released");
+            button3state = false;
+          }
+          break;
       }
     }
     dataByte = dataByte >> 1;
