@@ -45,17 +45,11 @@
 const int dataPin = 4;            // 74HC595 Data  pin 14 is connected to Digital pin 4
 const int latchPin = 5;           // 74HC595 Latch pin 12 is connected to Digital pin 5
 const int clockPin = 6;           // 74HC595 Clock pin 11 is connected to Digital pin 6
-const int dataInputPin = 3;       // Nano digital data input check pin.
+const int dataInputPin = A6;       // Nano digital data input check pin.
 
 // -----------------------------------------------------------------------------
 // Only do the action once, don't repeat if the button is held down.
 // Don't repeat action if the button is not pressed.
-boolean stopButtonState = true;
-
-void printByte(byte b) {
-  for (int i = 7; i >= 0; i--)
-    Serial.print(bitRead(b, i));
-}
 
 int numberOfSwitches = 8;
 boolean switchState[8] = {
@@ -67,7 +61,7 @@ void buttonCheck() {
     digitalWrite(latchPin, LOW);
     shiftOut(dataPin, clockPin, LSBFIRST, dataByte);
     digitalWrite(latchPin, HIGH);
-    // delay(60);
+    //
     if (digitalRead(dataInputPin) == HIGH) {
       if (!switchState[i]) {
         switchState[i] = true;
@@ -81,29 +75,12 @@ void buttonCheck() {
         Serial.println(i);
       }
     }
+    //
     dataByte = dataByte >> 1;
   }
   digitalWrite(latchPin, LOW);
   shiftOut(dataPin, clockPin, LSBFIRST, B1111111);
   digitalWrite(latchPin, HIGH);
-}
-
-void checkButton() {
-  if (digitalRead(dataInputPin) == HIGH) {
-    if (!stopButtonState) {
-      Serial.println(F("+ Button pressed."));
-      //
-      // Action code.
-      buttonCheck();
-      //
-      stopButtonState = false;
-    }
-    stopButtonState = true;
-  } else {
-    if (stopButtonState) {
-      stopButtonState = false;
-    }
-  }
 }
 
 // -----------------------------------------------------------------------------
