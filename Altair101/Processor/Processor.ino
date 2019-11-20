@@ -52,9 +52,10 @@
 // -----------------------------------------------------------------------------
 // Code compilation options.
 
-// #define RUN_DELAY 1
 // #define INCLUDE_LCD 1
-#define LOG_MESSAGES 1
+// #define RUN_DELAY 1
+#define RUN_NOW 1
+// #define LOG_MESSAGES 1
 
 // -----------------------------------------------------------------------------
 // Kill the Bit program.
@@ -64,32 +65,32 @@ byte theProgram[] = {
   // Kill the Bit program.
   // Before starting, make sure all the sense switches are in the down position.
   //
-  //                Start program.
-  0041, 0000, 0000, // LXI H,0    ; Move the lb hb data values into the register pair H(hb):L(lb). Initialize counter
-  0026, 0200,       // mvi D,080h ; Move db to register D. Set initial display bit.  080h = 0200 = regD = 10 000 000
-  0001, 0036, 0000, // LXI B,0eh  ; Load a(lb:hb) into register B:C. Higher value = faster. Default: 0016 = B:C  = 00 010 000
+  //                    //            ; Start program.
+  0,                    // org 0      ; An assembler directive, I guess.
+  0041, 0, 0,           // LXI H,0    ; Move the lb hb data values into the register pair H(hb):L(lb). Initialize counter
+  0026, 128,            // mvi D,80h ; Move db to register D. Set initial display bit.  080h = 128 = regD = 10 000 000
+  0001, 0, 3,           // LXI B,0eh  ; Load a(lb:hb) into register B:C. Higher value = faster. Default: 0014 = B:C  = 00 010 000
   //
   //  ; Display bit pattern on upper 8 address lights.
-  //                // BEG:
-  0166,             // HLT
-  0032,             // LDAX D     ; Move data from address D:E, to register A. vgggggg
-  0032,             // LDAX D     ; Move data from address D:E, to register A.
-  0032,             // LDAX D     ; Move data from address D:E, to register A.
-  0032,             // LDAX D     ; Move data from address D:E, to register A.
+  //                    // BEG:
+  // 0343, 38,
+  // 0166,                 // HLT
+  0032,                 // ldax d     ; Move data from address D:E, to register A.
+  0032,                 // ldax d     ; Move data from address D:E, to register A.
+  0032,                 // ldax d     ; Move data from address D:E, to register A.
+  0032,                 // ldax d     ; Move data from address D:E, to register A.
   //
-  0011,             // DAD B      ; Add B:C to H:L. Set carry bit. Increments the display counter
-  // 0322, 0010, 0000, // JNC BEG    ; If carry bit false, jump to lb hb, LDAX instruction start.
+  0011,                 // DAD B      ; Add B:C to H:L. Set carry bit. Increments the display counter
+  0322, 9, 0,           // JNC BEG    ; If carry bit false, jump to BEG, LDAX instruction start.
   //
-  0333, 0377,       // IN 0ffh    ; Check for toggled input, at port 377 (toggle sense switches), that can kill the bit.
-  0252,             // XRA D      ; Exclusive OR register with A
-  0017,             // RRC        ; Rotate A right (shift byte right 1 bit). Set carry bit. Rotate display right one bit
-  0127,             // MOV D,A    ; Move register A to register D. Move data to display reg
+  0333, 0377,           // IN 0ffh    ; Input into A. Check for toggled input, at port 377 (toggle sense switches), that can kill the bit.
+  0252,                 // XRA D      ; Exclusive OR register with A
+  0017,                 // RRC        ; Rotate A right (shift byte right 1 bit). Set carry bit. Rotate display right one bit
+  0127,                 // MOV D,A    ; Move register A to register D. Move data to display reg
   //
-  0303, 0010, 0000, // JMP BEG    ; Jump to lb hb, LDAX instruction start.
-  // 0000,             // NOP
-  // 0166,             // HLT
+  0303, 9, 0,           // JMP BEG    ; Jump to BEG, halt before LDAX instructions restart.
   // ------------------------------------------------------------------
-  0000, 0000, 0000  //       end
+  0000, 0000, 0000      //             ; end
 };
 
 // -----------------------------------------------------------------------------
@@ -477,21 +478,27 @@ void printAddressData() {
 void processData() {
   if (opcode == 0) {
     digitalWrite(M1_PIN, HIGH); // Machine cycle 1, get an opcode.
+#ifdef LOG_MESSAGES
     Serial.print("> ");
     printAddressData();
     Serial.print(" ");
+#endif
     processOpcode();
     programCounter++;
     instructionCycle = 0;
   } else {
     digitalWrite(M1_PIN, LOW); // Machine cycle 1+x, getting opcode data.
+#ifdef LOG_MESSAGES
     Serial.print("+ ");
     printAddressData();
     Serial.print(" ");
+#endif
     instructionCycle++;
     processOpcodeData();      // Example: sta 42: 0. fetch the opcode, 1. fetch lb, 2. fetch hb, 3. store the data.
   }
+#ifdef LOG_MESSAGES
   Serial.println("");
+#endif
 }
 
 // -----------------------------------
@@ -541,11 +548,11 @@ void processOpcode() {
     //    00RP1001
     case B00001001:
       // dad b  : Add B:C to H:L (16 bit add). Set carry bit.
-#ifdef LOG_MESSAGES
       bValue = regB;
       cValue = regC;
       hValue = regH;
       lValue = regL;
+#ifdef LOG_MESSAGES
       Serial.print(F("> dad, 16 bit add: B:C("));
       Serial.print(bValue);
       Serial.print(":");
@@ -1398,6 +1405,9 @@ void processOpcode() {
       Serial.print(F(", right 1 bit: "));
 #endif
       regA = regA >> 1;
+      if (regA == 0) {
+        regA = B10000000;
+      }
 #ifdef LOG_MESSAGES
       printByte(regA);
 #endif
@@ -1438,6 +1448,7 @@ void processOpcode() {
       Serial.print(F(", Exclusive OR with register A: "));
       printByte(regA);
       Serial.print(F(" = "));
+      // If one but not both of the variables has a value of one, the bit will be one, else zero.
 #endif
       regA = regB ^ regA;
 #ifdef LOG_MESSAGES
@@ -1685,6 +1696,7 @@ void processOpcodeData() {
       } else {
         regA = 0;
       }
+      displayLedAddressData(deValue, regA);
 #ifdef LOG_MESSAGES
       Serial.print(F("< ldax, the data moved into Accumulator is "));
       printData(regA);
@@ -1700,6 +1712,7 @@ void processOpcodeData() {
       } else {
         regA = 0;
       }
+      displayLedAddressData(deValue, regA);
 #ifdef LOG_MESSAGES
       Serial.print(F("< ldax, the data moved into Accumulator is "));
       printData(regA);
@@ -2365,6 +2378,9 @@ void setup() {
   copyByteArrayToMemory(theProgram, programSize);
 
   Serial.println(F("+++ Start the processor loop."));
+#ifdef RUN_NOW
+  runProgram = true;
+#endif
 }
 
 // -----------------------------------------------------------------------------
