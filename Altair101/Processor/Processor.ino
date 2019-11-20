@@ -1410,6 +1410,9 @@ void processOpcode() {
       Serial.print(F(", right 1 bit: "));
 #endif
       regA = regA >> 1;
+      // https://github.com/knowncold/8080/blob/master/opcode
+      // # 0x0f RRC 1 CY  A = A >> 1; bit 7 = prev bit 0; CY = prev bit 0
+      // Need to improve the if, i.e. wrap 1 or 0, not always use 1.
       if (regA == 0) {
         regA = B10000000;
       }
