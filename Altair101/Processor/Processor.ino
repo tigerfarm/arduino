@@ -3,6 +3,12 @@
   Altair 101 software microprocessor
 
   ---------------------------------------------
+  Next software updates:
+  + Next opcodes to program, to run Pong:
+  RET       11001001          -       Unconditional return from subroutine
+  ++ RET requires CALL which requires PUSH and POP which requires stack memory.
+
+  ---------------------------------------------
   Next, hardware and software updates to complete the core hardware and software system:
 
   + Control status LED lights wired to use a 595 chip.
@@ -45,12 +51,6 @@
   + Clock
   + MP3 player and amp
   
-  ---------------------------------------------
-  Next software updates:
-  + Next opcodes to program, to run Pong:
-  RET       11001001          -       Unconditional return from subroutine
-  ++ RET requires CALL which requires PUSH and POP which requires stack memory.
-
   ---------------------------------------------
   Program sections,
     Sample programs.
@@ -98,13 +98,13 @@
 
 // #define INCLUDE_LCD 1
 // #define RUN_DELAY 1
-#define RUN_NOW 1
-// #define LOG_MESSAGES 1
+// #define RUN_NOW 1
+#define LOG_MESSAGES 1
 
 // -----------------------------------------------------------------------------
 // Kill the Bit program.
 
-byte theProgram[] = {
+byte theProgramKtb[] = {
   // ------------------------------------------------------------------
   // Kill the Bit program.
   // Before starting, make sure all the sense switches are in the down position.
@@ -370,7 +370,6 @@ byte dataByte = 0;           // db = Data byte (8 bit)
 // mvi R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
 // mov d,S  01 DDD SSS  Move register to a register.
 // nop      00 000 000  No operation
-// rlc      00 000 111  Rotate a left. Need to handle carry bit.
 // rrc      00 001 111  Rotate a right (shift byte right 1 bit). Need to handle carry bit.
 // shld a   00 100 010  Store L value to memory location: a(hb:lb). Store H value at: a + 1.
 // xra R    10 101 SSS  Register exclusive OR with register with A.
@@ -952,7 +951,7 @@ void processOpcode() {
 #endif
       break;
     // 00RP0011 -------------------------------------------------
-    /*   00110011 Not done for the stack pointer.
+    /*   00110011 To do, increment the stack pointer.
       // inx
       void _I8080_inx(uint8_t rp) {
       ...
@@ -1029,12 +1028,16 @@ void processOpcode() {
       // stacy
       // opcode = B00110001;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> lxi, Stacy, to do: move the lb hb data, to the stack pointer."));
+      Serial.print(F("> lxi, Stacy, to do: move the lb hb data, to the stack pointer address."));
 #endif
       Serial.print(F(" - Error, unhandled instruction."));
       runProgram = false;
       digitalWrite(WAIT_PIN, HIGH);
       break;
+    // ------------------------------------------------------------------------------------------
+    /*
+      B01DDDSSS         // mov d,S  ; Move from one register to another.
+    */
     // ---------------------------------------------------------------------
     case B01111110:
       anAddress = word(regH, regL);
@@ -1048,11 +1051,6 @@ void processOpcode() {
       printData(regA);
 #endif
       break;
-    // ------------------------------------------------------------------------------------------
-    /*
-      B01DDDSSS         // mov d,S  ; Move from one register to another.
-    */
-    // ---------------------------------------------------------------------
     case B01000111:
       regB = regA;
 #ifdef LOG_MESSAGES
@@ -1428,9 +1426,8 @@ void processOpcode() {
       Serial.print(F(", right 1 bit: "));
 #endif
       regA = regA >> 1;
-      // https://github.com/knowncold/8080/blob/master/opcode
       // # 0x0f RRC 1 CY  A = A >> 1; bit 7 = prev bit 0; CY = prev bit 0
-      // Need to improve the if, i.e. wrap 1 or 0, not always use 1.
+      // To do: improve the if statement, i.e. if bit 7 == 1, wrap 1 instead of the default 0.
       if (regA == 0) {
         regA = B10000000;
       }
