@@ -455,23 +455,24 @@ int instructionCycle = 0;   // Opcode process cycle
 
 void printAddressData() {
   //
-  // displayLedData(dataByte);
   displayLedAddressData(programCounter, dataByte);
   //
+#ifdef LOG_MESSAGES
   Serial.print(F("Addr: "));
   sprintf(charBuffer, "%4d:", programCounter);
   Serial.print(charBuffer);
   Serial.print(F(" Data: "));
   dataByte = memoryData[programCounter];
   printData(dataByte);
-#ifdef LOG_MESSAGES
 #else
+/*
   Serial.print(" > ");
   printByte(highByte(programCounter));
   Serial.print(":");
   printByte(lowByte(programCounter));
   Serial.print(":");
   printByte(lowByte(regA));
+  */
 #endif
 }
 
@@ -480,7 +481,9 @@ void processData() {
     digitalWrite(M1_PIN, HIGH); // Machine cycle 1, get an opcode.
 #ifdef LOG_MESSAGES
     Serial.print("> ");
+#endif
     printAddressData();
+#ifdef LOG_MESSAGES
     Serial.print(" ");
 #endif
     processOpcode();
@@ -490,7 +493,9 @@ void processData() {
     digitalWrite(M1_PIN, LOW); // Machine cycle 1+x, getting opcode data.
 #ifdef LOG_MESSAGES
     Serial.print("+ ");
+#endif
     printAddressData();
+#ifdef LOG_MESSAGES
     Serial.print(" ");
 #endif
     instructionCycle++;
