@@ -2,10 +2,51 @@
 /*
   Altair 101 software microprocessor
 
-  Next:
-  + Control status LED lights wired to use a SN74HC595N. Then update this program.
-  + Get input opcode, IN, to work.
-  + Test program, Kill the Bit.
+  ---------------------------------------------
+  Next, hardware and software updates to complete the core hardware and software system:
+
+  + Control status LED lights wired to use a 595 chip.
+  ++ And update this program to use bit identifiers to control the lights.
+
+  + Wire in the 595 chip for button usage in the dev machine.
+  ++ Add switch controls from the shiftRegisterInputSwitch program.
+  ++ Implement Examine to view program data.
+  
+  + Solder and add 8 toggles to the dev machine.
+  ++ Add toggle controls from the shiftRegisterInputToggle program.
+  ++ Implement Deposit to enter program data.
+  + Solder and add on/off/on toggles to the dev machine, replacing the buttons.
+  + Solder and add 8 more toggles to the dev machine as sense switches.
+  ++ Get input opcode IN to work.
+  ++ Test program, Kill the Bit.
+  +++ The final step to completely running Kill the Bit.
+  
+  The basic development computer is complete!
+
+  ---------------------------
+  After the above, I move into the next stage of tunning and enhancing.
+
+  Build my Altair 101 machine,
+  + Work on the final basic design.
+  + Order parts to build the protype machine.
+  + Make enhancements to the case so that it's ready for the electronic parts.
+  + Build a new breadboard computer to fit into the case.
+  + Put it all together.
+
+  Program development,
+  + SD card module implementation to load and run programs.
+  + Update and enhance my set of test and development programs.
+  ++ Debug programs to confirm opcodes are working correctly.
+  ++ Samples: looping, branching, calling subroutines.
+  + A basic assembler to convert my programs to machine code.
+  + Implement the next major Altair 8800 sample program: Pong.
+  
+  I/O Updates,
+  + Clock
+  + MP3 player and amp
+  
+  ---------------------------------------------
+  Next software updates:
   + Next opcodes to program, to run Pong:
   RET       11001001          -       Unconditional return from subroutine
   ++ RET requires CALL which requires PUSH and POP which requires stack memory.
@@ -36,7 +77,7 @@
   This section is base on section 26: 8080 Instruction Set
     https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
   Text listing of 8080 opcodes:
-    https://github.com/tigerfarm/arduino/blob/master/Altair101/Processor/ProcessorOpcodes.txt
+    https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/ProcessorOpcodes.txt
     https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodesBinaryList.txt
     
   Altair programming video, starting about 6 minutes in:
