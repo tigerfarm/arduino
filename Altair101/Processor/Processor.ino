@@ -3,15 +3,16 @@
   Altair 101 software microprocessor
 
   Next:
-  + Program opcodes ora and ani.
   + Control status LED lights wired to use a SN74HC595N. Then update this program.
   + Get input opcode, IN, to work.
   + Test program, Kill the Bit.
   + Next opcodes to program, to run Pong:
   RET       11001001          -       Unconditional return from subroutine
+  ++ RET requires CALL which requires PUSH and POP which requires stack memory.
 
+  ---------------------------------------------
   Program sections,
-    Sample program.
+    Sample programs.
     Definitions: Memory.
     Memory Functions.
     Front Panel Status LEDs.
@@ -19,13 +20,14 @@
     ----------------------------
     Process opcodes instructions:
     + Instruction Set control.
-    + Process opcode instruction step 1, fetch opcode and process instruction step 1.
-    + Process opcode instruction steps greater than 1.
+    + Process opcode instruction: fetch opcode and process instruction cycle 1.
+    + Process opcode instruction cycles greater than 1.
     ----------------------------
     Input: Front Panel infrared switch events
     ----------------------------
     setup() Computer initialization.
     loop()  Clock cycling through memory.
+  ---------------------------------------------
 
   Altair 8800 Operator's Manual.pdf has a description of each opcode.
 
@@ -34,8 +36,9 @@
   This section is base on section 26: 8080 Instruction Set
     https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
   Text listing of 8080 opcodes:
-    http://www.classiccmp.org/dunfield/r/8080.txt
-
+    https://github.com/tigerfarm/arduino/blob/master/Altair101/Processor/ProcessorOpcodes.txt
+    https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodesBinaryList.txt
+    
   Altair programming video, starting about 6 minutes in:
     https://www.youtube.com/watch?v=EV1ki6LiEmg
 
@@ -205,6 +208,7 @@ void listByteArray(byte btyeArray[], int arraySize) {
 }
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Front Panel Status LEDs
 
 // Video demonstrating status lights:
@@ -309,32 +313,26 @@ byte highOrder = 0;          // hb: High order byte of 16 bit value.
 byte dataByte = 0;           // db = Data byte (8 bit)
 
 // -----------------------------------------------------------------------------
-// Opcode ordering
+// Opcodes that are programmed and tested:
 
-// Without parameters in the opcode:
+// cpi #    11 111 110  Compare db with a > compareResult.
+// dad RP   00 RP1 001  Add register pair(RP) to H:L (16 bit add). And set carry bit if the addition causes a carry out.
+// hlt      01 110 110  Halt processor
+// inx RP   00 RP0 011  Increment a register pair, example: H:L (a 16 bit value). To do: stack pointer INX.
+// jmp a    11 000 011  Unconditional jump
+// jz  a    11 001 010  If compareResult is true, jump to lb hb.
+// jnc a    11 010 010  Jump if carry bit is 0 (false).
+// ldax RP  00 RP1 010  Load indirect through BC(RP=00) or DE(RP=01)
+//        ldax d : Load the accumulator from memory location 938Bh, where register d contains 93H and register e contains 8BH.
+// lxi RP,a 00 RP0 001  RP=10  which matches "10=HL".
+// out p    11 010 011  Write a to output port a.
+// mvi R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
+// mov d,S  01 DDD SSS  Move register to a register.
 // nop      00 000 000  No operation
 // rlc      00 000 111  Rotate a left. Need to handle carry bit.
 // rrc      00 001 111  Rotate a right (shift byte right 1 bit). Need to handle carry bit.
 // shld a   00 100 010  Store L value to memory location: a(hb:lb). Store H value at: a + 1.
-// hlt      01 110 110  Halt processor
-// jmp a    11 000 011  Unconditional jump
-// jz  a    11 001 010  If compareResult is true, jump to lb hb.
-// jnc a    11 010 010  Jump if carry bit is 0 (false).
-// out p    11 010 011  Write a to output port a.
-// IN  p    11 011 011  Read input for port a, into A
-// cpi #    11 111 110  Compare db with a > compareResult.
-
-// With parameters in the opcode:
-// ldax RP  00 RP1 010  Load indirect through BC(RP=00) or DE(RP=01)
-// inx RP   00 RP0 011  Increment a register pair, example: H:L (a 16 bit value)
-// mvi R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
-// lxi RP,a 00 RP0 001  RP=10  which matches "10=HL".
-// dad RP   00 RP1 001  Add register pair(RP) to H:L (16 bit add). And set carry bit.
-// mov d,S  01 DDD SSS  Move register to a register.
 // xra R    10 101 SSS  Register exclusive OR with register with A.
-
-// -----------------------------------------------------------------------------
-// Opcodes that are programmed and tested:
 
 //        Code   Octal       Inst Param  Encoding Flags  Description
 const byte cpi    = 0376; // cpi db    11 111 110        Compare db with a > compareResult.
@@ -346,34 +344,18 @@ const byte nop    = 0000; // nop         00000000        No operation
 const byte out    = 0343; // out pa      11010011        Write a to output port
 const byte rrc    = 0017; // rrc       00 001 111   c    Rotate a right (shift byte right 1 bit). Note, carry bit not handled at this time.
 
-// Opcode notes, more details:
-// --------------------------
-//        Code   Octal       Inst Param  Encoding Flags  Description
-//                           dad  RP     00RP1001 c      Add register pair(RP) to H:L (16 bit add)
-//                           ldax RP     00RP1010 -      Load indirect through BC(RP=00) or DE(RP=01)
-//                           xra  R      10101SSS        Register exclusive OR with register with A.
+// -----------------------------------------------------------------------------
+// Next opcodes to do:
 //
-//        dad                Set carry bit if the addition causes a carry out.
-//        inx                Not done for the stack pointer.
-//        ldax d : Load the accumulator from memory location 938Bh, where register d contains 93H and register e contains 8BH.
-//
-// --------------------------------------
-// To do:
-//
+// Pong opcodes:
+// Code      Binary   Param  Flags     Description
 // CALL a    11001101 lb hb    -       Unconditional subroutine call
 // RET       11001001          -       Unconditional return from subroutine
 // PUSH RP   11RP0101 *2       -       Push register pair on the stack
 // POP RP    11RP0001 *2       *2      Pop  register pair from the stack
-//
 // Kill the Bit opcodes:
-//         Code     Octal    Inst Param  Encoding Flags  Description
-const byte IN     = 0333; // IN p      11011011 pa       -       Read input port into A
-//
-// Pong opcodes:
-//         Code     Octal    Inst Param  Encoding Flags  Description
-// ora S     10110SSS          ZSPCA   OR  register with A
-// ani #     11100110 db       ZSPCA   AND immediate with A
-// ret       11001001          -       Unconditional return from subroutine
+const byte IN     = 0333;
+// IN p      11011011 pa       -       Read input for port a, into A
 
 // -----------------------------------------------------------
 // Destination and Source registers and register pairs.
@@ -388,11 +370,6 @@ byte regH = 0;   // 100=H  h  10=HL   (H:L as 16 bit register)
 byte regL = 0;   // 101=L  l
 //                            11=SP   (Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP)
 byte regM = 0;   // 110=M  m  Memory reference for address in H:L
-
-//    a  = hb + lb (16 bit value)
-//    d  = 8 bit data, such as data from an address
-//    pa = Port address (8 bit)
-//    p  = 8 bit port address
 
 // -----------------------------------------------------------------------------
 // Output: log messages and Front Panel LED data lights.
