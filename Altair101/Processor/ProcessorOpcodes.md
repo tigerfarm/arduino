@@ -60,6 +60,7 @@ inx RP   00 RP0 011  Increment a register pair (a 16 bit value): B:C, D:E, H:L. 
 jnc a    11 010 010  Jump if not carry bit, i.e. if carry bit value is 0, false, not set.
 jmp a    11 000 011  Unconditional jump.
 jz  a    11 001 010  If compareResult is true, jump to address (a = lb hb).
+lda a    00 110 010  Load register A with data from the address, a(hb:lb).
 ldax RP  00 RP1 010  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.
 lxi RP,a 00 RP0 001  Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.
 mov D,S  01 DDD SSS  Move source register data, to the destination register.
@@ -69,7 +70,6 @@ out pa   11 010 011  Write the accumulator data out to port a. I'm using this op
 rrc      00 001 111  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
 shld a   00 100 010  Store L value to memory location: a(hb:lb). Store H value at: a + 1.
 sta a    00 110 010  Store register A to the hb:lb address.
-lda a    00 110 010  Load register A with data from the address, a(hb:lb).
 xra R    10 101 SSS  Exclusive OR, the register(R) with register A.
 ````
 --------------------------------------------------------------------------------

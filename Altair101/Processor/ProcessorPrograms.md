@@ -1,22 +1,24 @@
 # Development Programs for the Altair 101
 
+These are my machine code programs.
+
 Sample Method Programs
 + [Loop](#loop)
 
-Opcode Test Programs
-+ [ANI](#test-opcode-ani)
-+ [SHLD](#test-opcode-shld)
-+ [DAD](#test-opcode-dad)
-+ [INX](#test-opcode-inx)
-+ [LDAX](#test-opcode-ldax)
-+ [XRA](#test-opcode-xra)
-+ [LXI](#test-opcode-lxi)
-+ [LDA and STA](#test-opcodes-lda-and-sta)
-+ [INR and DCR](#test-opcodes-inr-and-dcr)
-+ [MVI and MOV](#test-opcodes-mvi-and-mov)
-+ [MVI](#test-opcode-mvi)
+Opcode Test Programs,
++ [ANI](#test-opcode-ani) : AND # (immediate db) with register A.
++ [DAD](#test-opcode-dad) : Add register pair(RP, B:C or D:E) to H:L (16 bit add). And set carry bit.
++ [INX](#test-opcode-inx) : Increment a register pair (a 16 bit value): B:C, D:E, H:L.
++ [LDA and STA](#test-opcodes-lda-and-sta) : Load register A with data from the address, a(hb:lb).
++ [LDAX](#test-opcode-ldax) : Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.
++ [LXI](#test-opcode-lxi) : Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L.
++ [INR and DCR](#test-opcodes-inr-and-dcr) : Increment and decrement registers.
++ [MVI and MOV](#test-opcodes-mvi-and-mov) : Move source register data, to the destination register.
++ [MVI](#test-opcode-mvi) : Move a number (#, db) to a register.
++ [SHLD](#test-opcode-shld) : Store L value to memory location: a(hb:lb). Store H value at: a + 1.
++ [XRA](#test-opcode-xra) : Exclusive OR, the register(R) with register A.
 
-Other Test Programs
+Other Test Programs,
 + [The Initial Programs that I started with](#the-initial-programs-that-i-started-with)
 + [Altair 8800 Pong](#altair-8800-pong-program)
 + [Altair 8800 Kill the Bit](#kill-the-bit-program)
