@@ -9,37 +9,11 @@ The opcodes to run Pong and Kill the Bit, are my target opcode base for my 8080 
 I have not planned on implementing all the 8080 opcodes, just the ones that I will use when writing my own programs.
 
 ## Programmed Opcodes
-From [Processor.ino](Processor.ino) function:
+From the processor program, [Processor.ino](Processor.ino), the opcode implementation function:
 ````
     void processOpcode() {
     ...
     }
-````
-#### Alphabetically order list of implemented opcodes:
-````
-Opcode   Binary      Description
--------------------------------------
-ani #    11 100 110  AND # (immediate db) with register A.
-cpi #    11 111 110  Compare # to A. Store true or false into compareResult.
-dad RP   00 RP1 001  Add register pair(RP, B:C or D:E) to H:L (16 bit add). And set carry bit.
-dcr D    00 DDD 101  Decrement a register. To do, set flags: ZSPA.
-hlt      01 110 110  Halt processor.
-inr D    00 DDD 101  Increment a register. To do, set flags: ZSPA.
-inx RP   00 RP0 011  Increment a register pair (a 16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
-jnc a    11 010 010  Jump if not carry bit, i.e. if carry bit value is 0, false, not set.
-jmp a    11 000 011  Unconditional jump.
-jz  a    11 001 010  If compareResult is true, jump to address (a = lb hb).
-ldax RP  00 RP1 010  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.
-lxi RP,a 00 RP0 001  Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.
-mov D,S  01 DDD SSS  Move source register data, to the destination register.
-mvi R,#  00 RRR 110  Move a number (#, db) to a register.
-nop      00 000 000  No operation. I added a delay: delay(100).
-out pa   11 010 011  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
-rrc      00 001 111  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
-shld a   00 100 010  Store L value to memory location: a(hb:lb). Store H value at: a + 1.
-sta a    00 110 010  Store register A to the hb:lb address.
-lda a    00 110 010  Load register A with data from the address, a(hb:lb).
-xra R    10 101 SSS  Exclusive OR, the register(R) with register A.
 ````
 #### Functionally ordered list of implemented opcodes:
 ````
@@ -71,6 +45,32 @@ dad RP   00 RP1 001  16 bit add. Add register pair(RP, B:C or D:E) to H:L. And s
 hlt      01 110 110  Halt processor.
 nop      00 000 000  No operation. I added a delay: delay(100).
 out pa   11 010 011  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
+````
+#### Alphabetically order list of implemented opcodes:
+````
+Opcode   Binary      Description
+-------------------------------------
+ani #    11 100 110  AND # (immediate db) with register A.
+cpi #    11 111 110  Compare # to A. Store true or false into compareResult.
+dad RP   00 RP1 001  Add register pair(RP, B:C or D:E) to H:L (16 bit add). And set carry bit.
+dcr D    00 DDD 101  Decrement a register. To do, set flags: ZSPA.
+hlt      01 110 110  Halt processor.
+inr D    00 DDD 101  Increment a register. To do, set flags: ZSPA.
+inx RP   00 RP0 011  Increment a register pair (a 16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
+jnc a    11 010 010  Jump if not carry bit, i.e. if carry bit value is 0, false, not set.
+jmp a    11 000 011  Unconditional jump.
+jz  a    11 001 010  If compareResult is true, jump to address (a = lb hb).
+ldax RP  00 RP1 010  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.
+lxi RP,a 00 RP0 001  Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.
+mov D,S  01 DDD SSS  Move source register data, to the destination register.
+mvi R,#  00 RRR 110  Move a number (#, db) to a register.
+nop      00 000 000  No operation. I added a delay: delay(100).
+out pa   11 010 011  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
+rrc      00 001 111  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
+shld a   00 100 010  Store L value to memory location: a(hb:lb). Store H value at: a + 1.
+sta a    00 110 010  Store register A to the hb:lb address.
+lda a    00 110 010  Load register A with data from the address, a(hb:lb).
+xra R    10 101 SSS  Exclusive OR, the register(R) with register A.
 ````
 --------------------------------------------------------------------------------
 ### 8080 Opcodes Not added to Altair 101
