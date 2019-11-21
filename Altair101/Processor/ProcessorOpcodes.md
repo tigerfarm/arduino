@@ -2,20 +2,20 @@
 #  Altair 101 Opcodes
 
 I have added 8080 opcodes to run the classic program, Kill the Bit.
-Other opcodes are for testing opcodes, example mvi, to set test values of other opcodes.
-I am also adding opcodes the program Pong.
+Other opcodes are for testing opcodes, for example mvi, to set test values when testing other opcodes.
+I am also adding opcodes to run the program Pong.
 
 The opcodes to run Pong and Kill the Bit, are my target opcode base for my 8080 emulator.
-I have not planned on implementing all the 8080 opcodes.
+I have not planned on implementing all the 8080 opcodes, just the ones that I will use when writing my own programs.
 
 ## Programmed Opcodes
+From [Processor.ino](Processor.ino) function:
 ````
-From Processor.ino function:
     void processOpcode() {
     ...
     }
 ````
-#### Alphabetically order list of opcodes:
+#### Alphabetically order list of implemented opcodes:
 ````
 Opcode   Binary      Description
 -------------------------------------
@@ -41,7 +41,7 @@ sta a    00 110 010  Store register A to the hb:lb address.
 lda a    00 110 010  Load register A with data from the address, a(hb:lb).
 xra R    10 101 SSS  Exclusive OR, the register(R) with register A.
 ````
-#### Functionally ordered list of opcodes:
+#### Functionally ordered list of implemented opcodes:
 ````
 Opcode   Binary      Description
 -------------------------------------
@@ -75,8 +75,9 @@ out pa   11 010 011  Write the accumulator data out to port a. I'm using this op
 --------------------------------------------------------------------------------
 ### 8080 Opcodes Not added to Altair 101
 
-From list a [popular list](https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodes.txt)
-and from a [binary order list](https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodesBinaryList.txt),
+The following list is from a [popular list](https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodes.txt).
+
+I also use information from a [binary order list](https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodesBinaryList.txt),
 which I find functional and interesting. It's also a practical help in that it describes the implementation better than the other list.
 ````
 Inst      Encoding          Flags   Description
