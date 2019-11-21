@@ -3,20 +3,20 @@
   Altair 101 software microprocessor program
 
   +++ Need to confirm/test LED light data, sift order and content.
-  + Serach _PIN to set and use shift register for status LED.
 
-  + Control status LED lights wired to use a 595 chip.
-  ++ And update this program to use bit identifiers to control the lights.
-
+  Move status LED lights from digital pins to a shift register,
+  + Wire control status LED lights to use a shift register.
+  + Serach "_PIN" remove the old "_PIN" statements, and use shift register for status lights.
+  + Test.
+  
   ---------------------------------------------
-  Next software updates:
-  + Next opcodes to program, to run Pong:
-  ++ RET, which requires CALL which requires PUSH and POP which requires stack memory.
+  Next opcodes to implement, which completes the opcodes for Pong,
   // Code      Binary   Param  Flags     Description
+  // PUSH RP   11RP0101          -       Push register pair on the stack
+  // POP RP    11RP0001          -       Pop  register pair from the stack
   // CALL a    11001101 lb hb    -       Unconditional subroutine call
   // RET       11001001          -       Unconditional return from subroutine
-  // PUSH RP   11RP0101 *2       -       Push register pair on the stack
-  // POP RP    11RP0001 *2       *2      Pop  register pair from the stack
+  ++ RET requires CALL, which requires PUSH and POP, which requires stack memory.
 
   ---------------------------------------------
   Next, hardware and software updates to complete the core hardware and software system:
@@ -36,8 +36,8 @@
 
   The basic development computer is complete!
 
-  ---------------------------
-  After the above, I move into the next stage of tunning and enhancing.
+  ---------------------------------------------
+  After the above, I move into the next stage of tuning and enhancing.
 
   Build my Altair 101 machine,
   + Work on the final basic design.
@@ -59,7 +59,7 @@
   + MP3 player and amp
 
   ---------------------------------------------
-  Program sections,
+  Processor program sections,
     Sample programs.
     Definitions: Memory.
     Memory Functions.
