@@ -1,8 +1,26 @@
 # Development Programs for the Altair 101
 
-[Opcode Test Programs](#opcode-test-programs)
+Sample Method Programs
++ [Loop](#loop)
 
-[Opcode Test Programs](ProcessorPrograms.md#opcode-test-programs)
+[Opcode Test Programs](#opcode-test-programs)
++ [ANI](#test-opcode-ani)
++ [SHLD](#test-opcode-shld)
++ [DAD](#test-opcode-dad)
++ [INX](#test-opcode-inx)
++ [LDAX](#test-opcode-ldax)
++ [XRA](#test-opcode-xra)
++ [LXI](#test-opcode-lxi)
++ [LDA and STA](#test-opcodes-lda-and-sta)
++ [INR and DCR](#test-opcodes-inr-and-dcr)
++ [MVI and MOV](#test-opcodes-mvi-and-mov)
++ [MVI](#test-opcode-mvi)
+
+[Other Test Programs](#other-test-programs)
++ [The Initial Programs that I started with](#the-initial-programs-that-i-started-with)
++ [Altair 8800 Pong](#altair-8800-pong-program)
++ [Altair 8800 Kill the Bit](#kill-the-bit-program)
++ [Other test programs](#other-test-programs-1)
 
 --------------------------------------------------------------------------------
 ### Programing links
