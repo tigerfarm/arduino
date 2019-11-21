@@ -75,10 +75,11 @@ out pa   11 010 011  Write the accumulator data out to port a. I'm using this op
 --------------------------------------------------------------------------------
 ### 8080 Opcodes Not added to Altair 101
 
-The following list is from a [popular list](https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodes.txt).
+The following list is from a [popular text list](https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodes.txt).
 
 I also use information from a [binary order list](https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodesBinaryList.txt),
-which I find functional and interesting. It's also a practical help in that it describes the implementation better than the other list.
+which I find functional and interesting.
+It's also a practical help, in that it describes opcode implementations, better than the other list.
 ````
 Inst      Encoding          Flags   Description
 ----------------------------------------------------------------------
@@ -129,8 +130,10 @@ DI        11110011          -       Disable interrupts
 *2 = RP=11 refers to PSW for PUSH/POP (cannot push/pop SP).
      When PSW is POP'd, ALL flags are affected.
 ````
------------------------------------------------------------
-Destination and Source registers and register pairs.
+--------------------------------------------------------------------------------
+### Conventions used when describing Opcodes
+
+#### Destination and Source registers and register pairs.
 ````
 byte regA = 0;   111=A  a  register A, or Accumulator
                            --------------------------------
@@ -144,10 +147,24 @@ byte regL = 0;   101=L  l
                            11=SP   (Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP)
 byte regM = 0;   110=M  m  Memory reference for address in H:L
 ````
---------------------------------------------------------------------------------
-### Conventions used when describing Opcodes
+Register pair identifiers:
 ````
-Instruction source and encoding:
+  b = B:C, 00=B:C
+  d = D:E, 01=D:E
+  m = H:L, 10=H:L
+  m = H:L, 11=SP, Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP.
+````
+Register identifiers (binary value=R):
+````
+  000=B
+  001=C
+  010=D
+  011=E
+  100=H
+  101=L
+````
+#### Instruction encoding parameter index:
+````
   a     = A 16 bit address value, often stated in hexadecimal format, example:
           ani 80h ;get A15 alone
   lb    = Low byte of 16 bit value
@@ -169,20 +186,6 @@ Instruction source and encoding:
   ccc   = Conditional
   db    = Data byte (8 bit) value
   pa    = Port address (8 bit) value
-
-Register pair identifiers:
-  b = B:C, 00=B:C
-  d = D:E, 01=D:E
-  m = H:L, 10=H:L
-  m = H:L, 11=SP, Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP.
-
-Register identifiers (binary value=R):
-  000=B
-  001=C
-  010=D
-  011=E
-  100=H
-  101=L
 
 Condition code 'CCC' fields: (FLAGS: S Z x A x P x C)
     000=NZ  ('Z'ero flag not set)
