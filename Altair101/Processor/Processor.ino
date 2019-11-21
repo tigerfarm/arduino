@@ -2,13 +2,13 @@
 /*
   Altair 101 software microprocessor program
 
-  +++ Need to confirm/test LED light data, sift order and content.
-
   Move status LED lights from digital pins to a shift register,
   + Wire control status LED lights to use a shift register.
   + Serach "_PIN" remove the old "_PIN" statements, and use shift register for status lights.
   + Test.
   
+  +++ Need to confirm/test LED light data, sift order and content.
+
   ---------------------------------------------
   Next opcodes to implement, which completes the opcodes for Pong,
   // Code      Binary   Param  Flags     Description

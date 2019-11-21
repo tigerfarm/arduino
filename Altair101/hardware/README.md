@@ -51,6 +51,56 @@ I/O devices:
 + SRAM 32K: SPI bus + a digital enable pin.
 + Rotary encoder: 1 digital pin and an interrupt pin.
 ````
+
+--------------------------------------------------------------------------------
+### Hardware to Nano details
+
+Hardware component requirements:
++ Nano board: CPU, program 30K RAM, 2K dynamic RAM.
++ 8 SN74HC595N chips
++ 36 LED lights. A few not actually used for the basic implementation.
++ 1 toggle for power. Need power input details worked out.
++ 16 toggles for addresses. 8 of those are also used as sense switches.
++ 8 on/off/on control toggles.
+
+Cables that I have for connections:
++ 20cm cables: 80 male to male
++ 20cm cables: 80 male to female
++ 20cm cables: 40 female to female 
++ 10cm cables: 30 male to female
+
+SN74HC595N (595) notes,
++ Each chip handles 8 bits: 8 LED lights or 8 toggle switches.
++ Each chip requires 3 Nano pins for the LED lights.
++ Each chip requires 3 Nano controls pins and 1 input pin, for the toggle switches.
+
+LED lights:
++ Pins D4, D5, D6 to control 4 x 595s.
++ 1 chip for status LED lights, one of which will be used for the WAIT light.
++ 2 chips for address LED lights.
++ 1 chip for data LED lights.
+
+Toggle switches using SN74HC595N chips:
++ D7, D8, D9, A0 to control 4 x 595s.
++ 2 chips for address toggles.
++ 1 chip for control on/off/on toggles: STOP, RUN, SINGLE STEP, EXAMINE PREVIOUS, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT.
++ 1 chip for extra feature on/off/on toggles: RESET, CLR, PROTECT, UNPROTECT, AUX1 up, AUX1 down, AUX2 up, AUX2 down
+
+Need to test: 3 pins for control outputs, using a SN74HC595N chip:
++ Need to test with pins: A0, A2, A3.
+
+Not used:
++ D2, D3, the digital interrupt pins
+
+Nano pins:
++ D2...D13 digital pins.
++ A0, A2, A3 work as digital pins.
++ A4 and A5 for IC2 communications with LCD and clock modules.
++ A1, A6 and A7 didn't work for LED on and off. Probably not work as digital pins.
++ RX0 (D0) and TX1 (D1), for for RS232 serial communications, example: uploading programs to the Nano, or Serial.print commands
+    Serial.begin() will cause pins 0(D0) and 1(D1) to be serial pins.
+    Topic: Serial Input Basics, https://forum.arduino.cc/index.php?topic=396450
+
 --------------------------------------------------------------------------------
 ### Development Boards and Sample Programs
 
@@ -82,6 +132,7 @@ Clock board, #1:
 + 1602 LC display
 + Program to display and set time.
 + Program [link](../../samples/clockSet/clockSet.ino)
+
 Clock board, #2:
 + 2 Nano boards
 + DS3231 clock module
@@ -90,63 +141,16 @@ Clock board, #2:
 + Program [link](../../samples/clock2x2digitsMin/clock2x2digitsMin.ino)
 + Program [link](../../samples/clock2x2digitsHours/clock2x2digitsHours.ino)
 
-Rotary encoder board:
-+ Nano, using 4 pins: 3 SPI + 1 for enable/disable.
-+ SD card module
-+ Program [link](../../samples/RotaryEncoder/RotaryEncoder.ino)
-+ Program [link](../../samples/RotaryEncoder2digits/RotaryEncoder2digits.ino)
-
 MP3 player:
 + Nano, using 2 pins. Need to test by using RXD and TX1.
 + DFPlayer module.
 + Infrared receiver for play/pause/next/previous. Input is from a remote controller.
 
-0 pins for power off/on toggle.
-
-3 pins for LED lights using SN74HC595N chips:
-+ D4, D5, D6
-+ Each SN74HC595N chip handles 8 bits, for 8 LED lights.
-+ 1 chip for status LED lights, one of which will be used for the WAIT light.
-+ 1 chip for data LED lights.
-+ 2 chips for address LED lights.
-
-3 pins for switches using SN74HC595N chips:
-+ D7, D8, D9
-+ 2 chips for address toggles.
-+ 1 chip for control on/off/on toggles: STOP, RUN, SINGLE STEP, EXAMINE PREVIOUS, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT.
-
-1 pin for infrared.
-+ Need to test it on another pin, currently using: D10.
-
-4 pins for SD card module,
-+ D10 pin for enable/disable.
-+ SPI digital pins: D11, D12, D13.
-
-Need to test: 3 pins for control outputs, using a SN74HC595N chip:
-+ Need to test with pins: A0, A2, A3.
-
-Not used:
-+ D2, D3, the digital interrupt pins
-
-Nano pins:
-+ D2...D13 digital pins.
-+ A0, A2, A3 work as digital pins.
-+ A4 and A5 for IC2 communications with LCD and clock modules.
-+ A1, A6 and A7 didn't work for LED on and off. Probably not work as digital pins.
-+ RX0 (D0) and TX1 (D1), for for RS232 serial communications, example: uploading programs to the Nano, or Serial.print commands
-    Serial.begin() will cause pins 0(D0) and 1(D1) to be serial pins.
-    Topic: Serial Input Basics, https://forum.arduino.cc/index.php?topic=396450
-
-Hardware components:
-+ Nano
-+ 7 SN74HC595N chips
-+ 36 LED lights. Not all used.
-+ 17 toggles.
-+ 8 on/off/on toggles.
-
-Other modules to add:
-+ Clock: I2C (A4 & A5).
-+ Rotary encoder: requires an interrupt pin (2 or 3).
+Rotary encoder board:
++ Nano, using 4 pins: 3 SPI + 1 for enable/disable.
++ Rotary encoder module
++ Program [link](../../samples/RotaryEncoder/RotaryEncoder.ino)
++ Program [link](../../samples/RotaryEncoder2digits/RotaryEncoder2digits.ino)
 
 --------------------------------------------------------------------------------
 ### Altair 101 Case
