@@ -24,6 +24,14 @@ Other Test Programs,
 + [Altair 8800 Kill the Bit](#kill-the-bit-program)
 + [Other test programs](#other-test-programs-1)
 
+````
+// Define a jump loop program byte array.
+byte jumpLoopProgram[] = {
+  0303, 0006, 0000, // 0 1 2
+  0000, 0000, 0000, // 3 4 5
+  0303, 0000, 0000  // 6 7 8
+};
+````
 --------------------------------------------------------------------------------
 ### Programing links
 
