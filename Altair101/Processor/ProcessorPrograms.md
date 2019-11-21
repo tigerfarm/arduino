@@ -3,7 +3,7 @@
 Sample Method Programs
 + [Loop](#loop)
 
-[Opcode Test Programs](#opcode-test-programs)
+Opcode Test Programs
 + [ANI](#test-opcode-ani)
 + [SHLD](#test-opcode-shld)
 + [DAD](#test-opcode-dad)
@@ -16,7 +16,7 @@ Sample Method Programs
 + [MVI and MOV](#test-opcodes-mvi-and-mov)
 + [MVI](#test-opcode-mvi)
 
-[Other Test Programs](#other-test-programs)
+Other Test Programs
 + [The Initial Programs that I started with](#the-initial-programs-that-i-started-with)
 + [Altair 8800 Pong](#altair-8800-pong-program)
 + [Altair 8800 Kill the Bit](#kill-the-bit-program)
