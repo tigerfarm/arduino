@@ -1,15 +1,19 @@
-// -----------------------------------------------------------------------------
-//  Programing links
+# Development Programs for the Altair 101
 
-8080 opcodes:
-file:///Users/dthurston/Projects/arduino/Altair101/documents/8080opcodes.txt
+--------------------------------------------------------------------------------
+### Programing links
 
-// -----------------------------------------------------------------------------
-  Bitwise, shift right:
-    https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitshiftright/
-  Exclusive or (XOR):
-    https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitwisexor/
+[8080 opcodes](ProcessorOpcodes.md)
 
+[Bitwise, shift right](https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitshiftright/)
+
+[Exclusive or (XOR)](https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitwisexor/)
+
+--------------------------------------------------------------------------------
+## Sample Method Programs
+
+##### Loop
+````
 // -----------------------------------------------------------------------------
 // Sample loop
 
@@ -42,12 +46,16 @@ byte theProgram[] = {
   0303, 14, 0000,   // jmp        ; Jump to LOOP.
   0000              //            ; End.
 };
+````
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-//  Opcode Test Programs
-// -----------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+## Opcode Test Programs
 
+Programs to test the functionality of specific opcodes.
+
+-----------------------------------------------------------------------------
+##### Test opcode ANI
+````
 // -----------------------------------------------------------------------------
 // Test opcode ani.
 
@@ -82,7 +90,10 @@ byte theProgram[] = {
   0303, 0003, 0000, // jmp Halt   ; Jump back to the halt statement.
   0000              //            ; End.
 };
-
+````
+-----------------------------------------------------------------------------
+##### Test opcode SHLD
+````
 // -----------------------------------------------------------------------------
 // Test opcode shld.
 
@@ -121,7 +132,10 @@ byte theProgram[] = {
   0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
   0000              //            ; End.
 };
-
+````
+-----------------------------------------------------------------------------
+##### Test opcode DAD
+````
 // -----------------------------------------------------------------------------
 // Test opcode dad.
 
@@ -163,7 +177,10 @@ byte theProgram[] = {
   0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
   0000              //            ; End.
 };
-
+````
+-----------------------------------------------------------------------------
+##### Test opcode INX
+````
 // -----------------------------------------------------------------------------
 // Test opcode inx.
 
@@ -204,7 +221,10 @@ byte theProgram[] = {
   0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
   0000              //            ; End.
 };
-
+````
+-----------------------------------------------------------------------------
+##### Test opcode LDAX
+````
 // -----------------------------------------------------------------------------
 // Test opcode ldax.
 
@@ -237,7 +257,10 @@ byte theProgram[] = {
   0303, 3, 0,       // jmp Halt   ; Jump back to beginning of the test.
   0000              //            ; End.
 };
-
+````
+-----------------------------------------------------------------------------
+##### Test opcode XRA
+````
 // -----------------------------------------------------------------------------
 // Test opcode xra.
 
@@ -282,6 +305,10 @@ byte theProgram[] = {
   0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
   0000              //            ; End.
 };
+````
+-----------------------------------------------------------------------------
+##### Test opcode LXI
+````
 
 // -----------------------------------------------------------------------------
 // Test opcode lxi.
@@ -318,7 +345,10 @@ byte theProgram[] = {
   0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
   0000              //            ; End.
 };
-
+````
+-----------------------------------------------------------------------------
+##### Test opcodes LDA and STA
+````
 // -----------------------------------------------------------------------------
 // Test opcodes sta and lda.
 
@@ -357,7 +387,10 @@ byte theProgram[] = {
   0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
   0000              //            ; End.
 };
-
+````
+-----------------------------------------------------------------------------
+##### Test opcode INR and DCR
+````
 // -----------------------------------------------------------------------------
 // INR: Increment opcode test.
 
@@ -365,7 +398,7 @@ byte theProgram[] = {
   //                //            ; --------------------------------------
   //                // Start:     ; Testing opcodes inr and dcr.
   // ------------------------------------------------------------------------------------------
-  //                //            ; Intialize register values.
+  //                //            ; Initialize register values.
   //1RRR110
   B00111110, 6,     // mvi a,6    ; Move # to registers.
   B00000110, 0,     // mvi b,0
@@ -405,7 +438,10 @@ byte theProgram[] = {
   0303, 0000, 0000, // jmp Start    ; Jump to the beginning to avoid endless nops.
   0000              //            ; End.
 };
-
+````
+-----------------------------------------------------------------------------
+##### Test opcodes MVI and MOV
+````
 // -----------------------------------------------------------------------------
 byte theProgram[] = {
   //                //            ; --------------------------------------
@@ -568,7 +604,10 @@ byte theProgram[] = {
   0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
   0000              //            ; End.
 };
-
+````
+-----------------------------------------------------------------------------
+##### Test opcode MVI
+````
 // -----------------------------------------------------------------------------
 // Opcode mvi test program.
 
@@ -604,12 +643,12 @@ byte theProgram[] = {
   //
   0000              //            ; End.
 };
+````
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-//  Other Test Programs
-// -----------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+### Other Test Programs
 
+````
 // -----------------------------------------------------------------------------
 // I/O program.
 // IN this program, terminal output is to the 1602 LCD.
@@ -641,7 +680,11 @@ byte theProgram[] = {
 0105            //              ; ASCII E
 0015            //              ; ASCII CR
 0377            //              ; Stop code for CPI instruction.
+````
+--------------------------------------------------------------------------------
+### The Initial Programs that I started with
 
+````
 // -----------------------------------------------------------------------------
 // Sample machine code programs.
 
@@ -674,7 +717,237 @@ byte jumpHaltLoopProgram[] = {
   0166, 0000, 0000,
   0303, 0000, 0000
 };
+````
 
+--------------------------------------------------------------------------------
+### Altair 8800 Pong Program
+
+Click [here](https://altairclone.com/downloads/pong.pdf) code PDF document.
+
+Click [here](https://www.youtube.com/watch?v=BZykunYYeQk) to watch a video for Pong.
+````
+                ;---------------------------------------------------------------
+                ;  PONG for Altair front panel.
+                ;     May 2014, Mike Douglas
+                ; 
+                ;  Left player quickly toggles A15 to hit the "ball."
+                ;  Right player toggles A8.
+                ;  Score is kept in memory locations
+                ;  80h and 81h (left and right).
+                ;  Score is missed balls, so the lower number wins.
+                ;---------------------------------------------------------------
+                ; Parameters:
+                ;   SPEED determines how fast the ball moves. Higher values
+                ;       move faster. Speed can easily be patched at address 1.
+                ;
+                ;   HITMSK, HITEDG determines how easy it is to hit the ball.
+                ;       These are best changed by re-assembling the program.
+                ;       Frankly, even the medium setting is too easy. Probably
+                ;       best to stick with "hard" and change difficulty by
+                ;       adjusting SPEED.
+                ;
+                ;   DEMO mode can be set by patching 35h and 65h to zero
+                ;       and raising A15 and A8.
+                ;
+000E =          SPEED   equ     0eh         ;higher value is faster
+
+0001 =          HITMSKR equ     01h         ;01h=hard, 03h=med, 07h=easy 
+0002 =          HITEDGR equ     02h         ;02h=hard, 04h=med, 08h=easy
+                                            ;00h=demo with A15,A8 up
+
+0010 =          HITMSKL equ     10h         ;10h=hard, 18h=med, 1ch=easy 
+0008 =          HITEDGL equ     08h         ;08h=hard, 04h=med, 02h=easy
+                                            ;00h=demo with A15,A8 up
+
+                ;---------------------------------------------------------------- 
+                ; Initialize
+0000                    org     0
+0000 010E00             lxi     b,SPEED     ;BC=adder for speed 
+0003 317D00             lxi     sp,stack    ;init stack pointer 
+0006 210000             lxi     h,0         ;zero the score 
+0009 228000             shld    scoreL 
+000C 110080             lxi     d,8000h     ;D=ball bit, E=switch status 
+000F C31E00             jmp     rLoop       ;begin moving right
+
+                ;------------------------------------------------------------------
+                ; ledOut - Write D to LEDs A15-A8.
+                ;   Loop accessing the address in DE which causes the proper LED
+                ;   to light on the address lights. This routine is placed low
+                ;   in memory so that address light A7-A5 remain off to make
+                ;   A15-A8 look better.
+                ;------------------------------------------------------------------ 
+0012 210000     ledOut  lxi     h,0         ;HL=16 bit counter 
+0015 1A         ledLoop ldax    d           ;display bit pattern on 
+0016 1A                 ldax    d           ;...upper 8 address lights 
+0017 1A                 ldax    d 
+0018 1A                 ldax    d 
+0019 09                 dad     b           ;increment display counter 
+001A D21500             jnc     ledLoop 
+001D C9                 ret
+
+                ;----------------------------------------------------------------
+                ;  Moving Right
+                ;---------------------------------------------------------------- 
+001E CD1200     rLoop   call    ledOut      ;output to LEDs A15-A8 from D
+                ; Record the current right paddle state (A8) in the bit position
+                ;   in E corresponding to the present ball position. 
+0021 DBFF               in      0ffh        ;A=front panel switches 
+0023 E601               ani     01h         ;get A8 alone 
+0025 CA2D00             jz      chkRt       ;switch not up, bit already zero 
+0028 7A                 mov     a,d         ;set bit in E corresponding to... 
+0029 B3                 ora     e           ;   the current ball position 
+002A E61F               ani     1fh         ;keep b7-b5 zero
+002C 5F                 mov     e,a
+                ; See if at the right edge. If so, see if A8 "paddle" has a hit 
+002D 7A         chkRt   mov     a,d         ;is ball at right edge? 
+002E E601               ani     1 
+0030 CA4500             jz      moveRt      ;no, continue moving right 
+0033 7B                 mov     a,e         ;switch state for each ball position 
+0034 E602               ani     HITEDGR     ;test edge for switch too early 
+0036 C23F00             jnz     missRt      ;hit too early 
+0039 7B                 mov     a,e         ;test for hit 
+003A E601               ani     HITMSKR 
+003C C27300             jnz     moveLfR     ;have a hit, switch direction
+                ; missRt - right player missed the ball. Increment count 
+003F 218100     missRt  lxi     h,scoreR    ;increment right misses 
+0042 34                 inr     m
+                ; moveRt - Move the ball right again. 
+0043 1E00       moveRtR mvi     e,0         ;reset switch state 
+0045 7A         moveRt  mov     a,d         ;move right again 
+0046 0F                 rrc 
+0047 57                 mov     d,a
+0048 C31E00             jmp     rLoop
+
+                ;----------------------------------------------------------------
+                ;  Moving left
+                ;---------------------------------------------------------------- 
+04B CD1200      lLoop   call    ledOut      ;output to LEDs A15-A8 from D
+                ; Record the current left paddle state (A15) in the bit position
+                ;   in E corresponding to the present ball position. 
+004E DBFF               in      0ffh        ;A=front panel switches 
+0050 E680               ani     80h         ;get A15 alone 
+0052 CA5D00             jz      chkLft      ;switch not up, bit already zero 
+0055 7A                 mov     a,d         ;A=ball position 
+0056 0F                 rrc                 ;move b7..b3 to b4..b0 
+0057 0F                 rrc                 ;   so LEDs A7-A5 stay off 
+0058 0F                 rrc
+0059 B3                 ora     e           ;form switch state in E 
+005A E61F               ani     1fh         ;keep b7-b5 zero 
+005C 5F                 mov     e,a
+                ; See if at the left edge. If so, see if A15 "paddle" has a hit 
+005D 7A         chkLft  mov     a,d         ;is ball at left edge? 
+005E E680               ani     80h 
+0060 CA7500             jz      moveLf      ;no, continue moving left 
+0063 7B                 mov     a,e         ;switch state for each ball position 
+0064 E608               ani     HITEDGL     ;test edge for switch too early 
+0066 C26F00             jnz     missLf      ;hit too early 
+0069 7B                 mov     a,e         ;test for hit 
+006A E610               ani     HITMSKL 
+006C C24300             jnz     moveRtR     ;have a hit, switch direction
+                ; missLf - left player missed the ball. Increment count 
+006F 218000     missLf  lxi     h,scoreL    ;increment left misses 
+0072 34                 inr     m
+                ; moveLf - Move the ball left again. 
+0073 1E00       LfR     mvi     e,0         ;reset switch state 
+0075 7A         moveLf  mov     a,d         ;move right again 
+0076 07                 rlc
+0077 57                 mov     d,a 
+0078 C34B00             jmp     lLoop
+
+                ;------------------------------------------------------------------
+                ; Data Storage
+                ;------------------------------------------------------------------ 
+007B                    ds      2           ;stack space
+007D =         stack    equ     $ 
+0080                    org     80h         ;put at 80h and 81h 
+0080           scoreL   ds      1           ;score for left paddle 
+0081           scoreR   ds      1           ;score for right paddle
+0082                    end
+````
+// -----------------------------------------------------------------------------
+Here is PONG in octal if you really want to enter it manually!
+````
+   0: 001 016 000 061 175 000 041 000   000 042 200 000 021 000 200 303
+  20: 036 000 041 000 000 032 032 032   032 011 322 025 000 311 315 022
+  40: 000 333 377 346 001 312 055 000   172 263 346 037 137 172 346 001
+  60: 312 105 000 173 346 002 302 077   000 173 346 001 302 163 000 041
+ 100: 201 000 064 036 000 172 017 127   303 036 000 315 022 000 333 377
+ 120: 346 200 312 135 000 172 017 017   017 263 346 037 137 172 346 200
+ 140: 312 165 000 173 346 010 302 157   000 173 346 020 302 103 000 041
+ 160: 200 000 064 036 000 172 007 127   303 113 000
+````
+
+--------------------------------------------------------------------------------
+### Kill the Bit program.
+````
+byte theProgramKtb[] = {
+  // ------------------------------------------------------------------
+  // Kill the Bit program.
+  // Before starting, make sure all the sense switches are in the down position.
+  //
+  //                Start program.
+  0041, 0000, 0000, // LXI H,0    ; Move the lb hb data values into the register pair H(hb):L(lb). Initialize counter
+  0026, 0200,       // mvi D,080h ; Move db to register D. Set initial display bit.  080h = 0200 = regD = 10 000 000
+  0001, 0036, 0000, // LXI B,0eh  ; Load a(lb:hb) into register B:C. Higher value = faster. Default: 0016 = B:C  = 00 010 000
+  //
+  //  ; Display bit pattern on upper 8 address lights.
+  //                // BEG:
+  0166,             // HLT
+  0032,             // LDAX D     ; Move data from address D:E, to register A.
+  0032,             // LDAX D     ; Move data from address D:E, to register A.
+  0032,             // LDAX D     ; Move data from address D:E, to register A.
+  0032,             // LDAX D     ; Move data from address D:E, to register A.
+  //
+  0011,             // DAD B      ; Add B:C to H:L. Set carry bit. Increments the display counter
+  // 0322, 0010, 0000, // JNC BEG    ; If carry bit false, jump to lb hb, LDAX instruction start.
+  //
+  0333, 0377,       // IN 0ffh    ; Check for toggled input, at port 377 (toggle sense switches), that can kill the bit.
+  0252,             // XRA D      ; Exclusive OR register with A
+  0017,             // RRC        ; Rotate A right (shift byte right 1 bit). Set carry bit. Rotate display right one bit
+  0127,             // MOV D,A    ; Move register A to register D. Move data to display reg
+  //
+  0303, 0010, 0000, // JMP BEG    ; Jump to lb hb, LDAX instruction start.
+  // 0000,             // NOP
+  // 0166,             // HLT
+  // ------------------------------------------------------------------
+  0000, 0000, 0000  //       end
+};
+````
+#### Kill the Bit program expanded to byte level
+````
+  Addr Data toggles  Octal Value
+  00   00 100 001     041 lxi  : Move the data at lb hb address, into register pair H(hb):L(lb)
+  01   00 000 000     000      : lb
+  02   00 000 000     000      : hb
+  03   00 010 110     026 mvi  : Move db to register D.
+  04   10 000 000     200      : db
+  05   00 000 001     001 lxi  : Move the lb hb data, into register pair > B:C = hb:lb.
+  06   00 001 110     016      : lb = 016
+  07   00 000 000     000      : hb = 000
+  //                         Make the bit that move across the hb address LED lights.
+  08   00 011 010 beg:032 ldax : Load register A with the data at address D:E.
+  09   00 011 010     032 ldax
+  10   00 011 010     032 ldax
+  11   00 011 010     032 ldax
+  12   00 001 001     011 dad  : Add B:C to H:L. Set carry bit.
+  13   11 010 010     322 jnc  : Jump to address 8(000:010)
+  14   00 001 000     010
+  15   00 000 000     000
+  //
+  16   11 011 011     333 in   : Check for the toggled input that can kill the bit.
+  17   11 111 111     377
+  18   10 101 010     252 xra
+  19   00 001 111     017 rrc
+  20   01 010 111     127 mov  : Move register A to register D.
+  21   11 000 011     303 jmp  : Jump instruction: jmp beg
+  22   00 001 000     010      : lb = 8. 00 001 000 = 8. Low order address bits.
+  23   00 000 000     000      : hb = 0, to get a 16 bit address(hb:lb): 00 000 000 : 00 001 000 = 8.
+  24                      end
+````
+
+--------------------------------------------------------------------------------
+### Other test programs
+````
 // Sample to test:
 //  LXI_HL : Intialize address value in H:L.
 //  MOV_HL : Move the data at address H:L, to register A.
@@ -834,232 +1107,7 @@ byte theProgram[] = {
                    32768 2^15 32k
                    65535 2^16 64k
 */
+````
 
-// -----------------------------------------------------------------------------
-// Altair 8800 Pong Program
-// -----------------------------------------------------------------------------
-
-Click [here](https://altairclone.com/downloads/pong.pdf) code PDF document.
-
-Click [here](https://www.youtube.com/watch?v=BZykunYYeQk) to watch a video for Pong.
-
-                ;---------------------------------------------------------------
-                ;  PONG for Altair front panel.
-                ;     May 2014, Mike Douglas
-                ; 
-                ;  Left player quickly toggles A15 to hit the "ball."
-                ;  Right player toggles A8.
-                ;  Score is kept in memory locations
-                ;  80h and 81h (left and right).
-                ;  Score is missed balls, so the lower number wins.
-                ;---------------------------------------------------------------
-                ; Parameters:
-                ;   SPEED determines how fast the ball moves. Higher values
-                ;       move faster. Speed can easily be patched at address 1.
-                ;
-                ;   HITMSK, HITEDG determines how easy it is to hit the ball.
-                ;       These are best changed by re-assembling the program.
-                ;       Frankly, even the medium setting is too easy. Probably
-                ;       best to stick with "hard" and change difficulty by
-                ;       adjusting SPEED.
-                ;
-                ;   DEMO mode can be set by patching 35h and 65h to zero
-                ;       and raising A15 and A8.
-                ;
-000E =          SPEED   equ     0eh         ;higher value is faster
-
-0001 =          HITMSKR equ     01h         ;01h=hard, 03h=med, 07h=easy 
-0002 =          HITEDGR equ     02h         ;02h=hard, 04h=med, 08h=easy
-                                            ;00h=demo with A15,A8 up
-
-0010 =          HITMSKL equ     10h         ;10h=hard, 18h=med, 1ch=easy 
-0008 =          HITEDGL equ     08h         ;08h=hard, 04h=med, 02h=easy
-                                            ;00h=demo with A15,A8 up
-
-                ;---------------------------------------------------------------- 
-                ; Initialize
-0000                    org     0
-0000 010E00             lxi     b,SPEED     ;BC=adder for speed 
-0003 317D00             lxi     sp,stack    ;init stack pointer 
-0006 210000             lxi     h,0         ;zero the score 
-0009 228000             shld    scoreL 
-000C 110080             lxi     d,8000h     ;D=ball bit, E=switch status 
-000F C31E00             jmp     rLoop       ;begin moving right
-
-                ;------------------------------------------------------------------
-                ; ledOut - Write D to LEDs A15-A8.
-                ;   Loop accessing the address in DE which causes the proper LED
-                ;   to light on the address lights. This routine is placed low
-                ;   in memory so that address light A7-A5 remain off to make
-                ;   A15-A8 look better.
-                ;------------------------------------------------------------------ 
-0012 210000     ledOut  lxi     h,0         ;HL=16 bit counter 
-0015 1A         ledLoop ldax    d           ;display bit pattern on 
-0016 1A                 ldax    d           ;...upper 8 address lights 
-0017 1A                 ldax    d 
-0018 1A                 ldax    d 
-0019 09                 dad     b           ;increment display counter 
-001A D21500             jnc     ledLoop 
-001D C9                 ret
-
-                ;----------------------------------------------------------------
-                ;  Moving Right
-                ;---------------------------------------------------------------- 
-001E CD1200     rLoop   call    ledOut      ;output to LEDs A15-A8 from D
-                ; Record the current right paddle state (A8) in the bit position
-                ;   in E corresponding to the present ball position. 
-0021 DBFF               in      0ffh        ;A=front panel switches 
-0023 E601               ani     01h         ;get A8 alone 
-0025 CA2D00             jz      chkRt       ;switch not up, bit already zero 
-0028 7A                 mov     a,d         ;set bit in E corresponding to... 
-0029 B3                 ora     e           ;   the current ball position 
-002A E61F               ani     1fh         ;keep b7-b5 zero
-002C 5F                 mov     e,a
-                ; See if at the right edge. If so, see if A8 "paddle" has a hit 
-002D 7A         chkRt   mov     a,d         ;is ball at right edge? 
-002E E601               ani     1 
-0030 CA4500             jz      moveRt      ;no, continue moving right 
-0033 7B                 mov     a,e         ;switch state for each ball position 
-0034 E602               ani     HITEDGR     ;test edge for switch too early 
-0036 C23F00             jnz     missRt      ;hit too early 
-0039 7B                 mov     a,e         ;test for hit 
-003A E601               ani     HITMSKR 
-003C C27300             jnz     moveLfR     ;have a hit, switch direction
-                ; missRt - right player missed the ball. Increment count 
-003F 218100     missRt  lxi     h,scoreR    ;increment right misses 
-0042 34                 inr     m
-                ; moveRt - Move the ball right again. 
-0043 1E00       moveRtR mvi     e,0         ;reset switch state 
-0045 7A         moveRt  mov     a,d         ;move right again 
-0046 0F                 rrc 
-0047 57                 mov     d,a
-0048 C31E00             jmp     rLoop
-
-                ;----------------------------------------------------------------
-                ;  Moving left
-                ;---------------------------------------------------------------- 
-04B CD1200      lLoop   call    ledOut      ;output to LEDs A15-A8 from D
-                ; Record the current left paddle state (A15) in the bit position
-                ;   in E corresponding to the present ball position. 
-004E DBFF               in      0ffh        ;A=front panel switches 
-0050 E680               ani     80h         ;get A15 alone 
-0052 CA5D00             jz      chkLft      ;switch not up, bit already zero 
-0055 7A                 mov     a,d         ;A=ball position 
-0056 0F                 rrc                 ;move b7..b3 to b4..b0 
-0057 0F                 rrc                 ;   so LEDs A7-A5 stay off 
-0058 0F                 rrc
-0059 B3                 ora     e           ;form switch state in E 
-005A E61F               ani     1fh         ;keep b7-b5 zero 
-005C 5F                 mov     e,a
-                ; See if at the left edge. If so, see if A15 "paddle" has a hit 
-005D 7A         chkLft  mov     a,d         ;is ball at left edge? 
-005E E680               ani     80h 
-0060 CA7500             jz      moveLf      ;no, continue moving left 
-0063 7B                 mov     a,e         ;switch state for each ball position 
-0064 E608               ani     HITEDGL     ;test edge for switch too early 
-0066 C26F00             jnz     missLf      ;hit too early 
-0069 7B                 mov     a,e         ;test for hit 
-006A E610               ani     HITMSKL 
-006C C24300             jnz     moveRtR     ;have a hit, switch direction
-                ; missLf - left player missed the ball. Increment count 
-006F 218000     missLf  lxi     h,scoreL    ;increment left misses 
-0072 34                 inr     m
-                ; moveLf - Move the ball left again. 
-0073 1E00       LfR     mvi     e,0         ;reset switch state 
-0075 7A         moveLf  mov     a,d         ;move right again 
-0076 07                 rlc
-0077 57                 mov     d,a 
-0078 C34B00             jmp     lLoop
-
-                ;------------------------------------------------------------------
-                ; Data Storage
-                ;------------------------------------------------------------------ 
-007B                    ds      2           ;stack space
-007D =         stack    equ     $ 
-0080                    org     80h         ;put at 80h and 81h 
-0080           scoreL   ds      1           ;score for left paddle 
-0081           scoreR   ds      1           ;score for right paddle
-0082                    end
-
-// -----------------------------------------------------------------------------
-Here is PONG in octal if you really want to enter it manually!
-
-   0: 001 016 000 061 175 000 041 000   000 042 200 000 021 000 200 303
-  20: 036 000 041 000 000 032 032 032   032 011 322 025 000 311 315 022
-  40: 000 333 377 346 001 312 055 000   172 263 346 037 137 172 346 001
-  60: 312 105 000 173 346 002 302 077   000 173 346 001 302 163 000 041
- 100: 201 000 064 036 000 172 017 127   303 036 000 315 022 000 333 377
- 120: 346 200 312 135 000 172 017 017   017 263 346 037 137 172 346 200
- 140: 312 165 000 173 346 010 302 157   000 173 346 020 302 103 000 041
- 160: 200 000 064 036 000 172 007 127   303 113 000
-
-// -----------------------------------------------------------------------------
-// Kill the Bit program.
-
-byte theProgramKtb[] = {
-  // ------------------------------------------------------------------
-  // Kill the Bit program.
-  // Before starting, make sure all the sense switches are in the down position.
-  //
-  //                Start program.
-  0041, 0000, 0000, // LXI H,0    ; Move the lb hb data values into the register pair H(hb):L(lb). Initialize counter
-  0026, 0200,       // mvi D,080h ; Move db to register D. Set initial display bit.  080h = 0200 = regD = 10 000 000
-  0001, 0036, 0000, // LXI B,0eh  ; Load a(lb:hb) into register B:C. Higher value = faster. Default: 0016 = B:C  = 00 010 000
-  //
-  //  ; Display bit pattern on upper 8 address lights.
-  //                // BEG:
-  0166,             // HLT
-  0032,             // LDAX D     ; Move data from address D:E, to register A.
-  0032,             // LDAX D     ; Move data from address D:E, to register A.
-  0032,             // LDAX D     ; Move data from address D:E, to register A.
-  0032,             // LDAX D     ; Move data from address D:E, to register A.
-  //
-  0011,             // DAD B      ; Add B:C to H:L. Set carry bit. Increments the display counter
-  // 0322, 0010, 0000, // JNC BEG    ; If carry bit false, jump to lb hb, LDAX instruction start.
-  //
-  0333, 0377,       // IN 0ffh    ; Check for toggled input, at port 377 (toggle sense switches), that can kill the bit.
-  0252,             // XRA D      ; Exclusive OR register with A
-  0017,             // RRC        ; Rotate A right (shift byte right 1 bit). Set carry bit. Rotate display right one bit
-  0127,             // MOV D,A    ; Move register A to register D. Move data to display reg
-  //
-  0303, 0010, 0000, // JMP BEG    ; Jump to lb hb, LDAX instruction start.
-  // 0000,             // NOP
-  // 0166,             // HLT
-  // ------------------------------------------------------------------
-  0000, 0000, 0000  //       end
-};
-
-//  Kill the Bit program:
-/*
-  Addr Data toggles  Octal Value
-  00   00 100 001     041 lxi  : Move the data at lb hb address, into register pair H(hb):L(lb)
-  01   00 000 000     000      : lb
-  02   00 000 000     000      : hb
-  03   00 010 110     026 mvi  : Move db to register D.
-  04   10 000 000     200      : db
-  05   00 000 001     001 lxi  : Move the lb hb data, into register pair > B:C = hb:lb.
-  06   00 001 110     016      : lb = 016
-  07   00 000 000     000      : hb = 000
-  //                         Make the bit that move across the hb address LED lights.
-  08   00 011 010 beg:032 ldax : Load register A with the data at address D:E.
-  09   00 011 010     032 ldax
-  10   00 011 010     032 ldax
-  11   00 011 010     032 ldax
-  12   00 001 001     011 dad  : Add B:C to H:L. Set carry bit.
-  13   11 010 010     322 jnc  : Jump to address 8(000:010)
-  14   00 001 000     010
-  15   00 000 000     000
-  //
-  16   11 011 011     333 in   : Check for the toggled input that can kill the bit.
-  17   11 111 111     377
-  18   10 101 010     252 xra
-  19   00 001 111     017 rrc
-  20   01 010 111     127 mov  : Move register A to register D.
-  21   11 000 011     303 jmp  : Jump instruction: jmp beg
-  22   00 001 000     010      : lb = 8. 00 001 000 = 8. Low order address bits.
-  23   00 000 000     000      : hb = 0, to get a 16 bit address(hb:lb): 00 000 000 : 00 001 000 = 8.
-  24                      end
-*/
-
-// -----------------------------------------------------------------------------
-eof
+--------------------------------------------------------------------------------
+Cheers
