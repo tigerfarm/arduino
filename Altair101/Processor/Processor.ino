@@ -6,7 +6,7 @@
   + Wire control status LED lights to use a shift register.
   + Serach "_PIN" remove the old "_PIN" statements, and use shift register for status lights.
   + Test.
-  
+
   +++ Need to confirm/test LED light data, sift order and content.
 
   ---------------------------------------------
@@ -105,7 +105,7 @@
 
 // #define INCLUDE_LCD 1
 // #define RUN_DELAY 1
-// #define RUN_NOW 1
+#define RUN_NOW 1
 #define LOG_MESSAGES 1
 
 // -----------------------------------------------------------------------------
@@ -147,24 +147,15 @@ byte theProgramKtb[] = {
 // -----------------------------------------------------------------------------
 // Program to test opcodes.
 
-byte theProgramOra[] = {
+byte theProgram[] = {
   //                //            ; --------------------------------------
   //                // Start:     ; Test opcode ora.
   //                //            ; OR source register, with register A.
   //
-  //                //            ; --------------------------------------
-  //                //            ; Intialize registers to starter values.
-  //
-  B00111110, 6,     // mvi a,6    ; Move # to registers.
-  B00000110, 0,     // mvi b,0
-  B00001110, 1,     // mvi c,1
-  B00010110, 2,     // mvi d,2
-  B00011110, 3,     // mvi e,3
-  B00100110, 4,     // mvi h,4
-  B00101110, 5,     // mvi l,5
-  //
-  0343, 38,         // out 38     ; Print the Intialized register values.
-  0166,             // hlt
+  0303, 4, 0,       // jmp Test   ; Jump to bypass the halt.
+  //                // Halt:
+  0166,             // hlt        ; Then, the program will halt at each iteration.
+  //                // Test:
   //
   // -----------------------------------------------------------------------------
   // ORA S     10110SSS          ZSPCA   OR source register with A
@@ -173,44 +164,35 @@ byte theProgramOra[] = {
   B00111110, 73,    // mvi a,73   ; Move # to register A:    01 001 001 = 73
   B00000110, 70,    // mvi b,70   ; Move # to register B:    01 000 110 = 70
   //0110SSS ora
-  B10110000,        // ora b      ; OR register B, with register A.
-  0343, 37,         // out 37     ; Print register A answer: 00 100 1111.
+  B10110000,        // ora b      ; OR register B, with register A. Answer: 01 001 111 = 79.
   //
   B00111110, 73,    // mvi a,73
   B00001110, 70,    // mvi c,70
   B10110001,        // ora c
-  0343, 37,         // out 37
-  //
-  B00111110, 73,    // mvi a,73
-  B00001110, 70,    // mvi c,70
-  B10110001,        // ora c
-  0343, 37,         // out 37
   //
   B00111110, 73,    // mvi a,73
   B00010110, 70,    // mvi d,70
   B10110010,        // ora d
-  0343, 37,         // out 37
   //
   B00111110, 73,    // mvi a,73
   B00011110, 70,    // mvi e,3
   B10110011,        // ora e
-  0343, 37,         // out 37
   //
   B00111110, 73,    // mvi a,73
   B00100110, 70,    // mvi h,70
   B10110100,        // ora h
-  0343, 37,         // out 37
   //
   B00111110, 73,    // mvi a,73
-  B00101110, 5,     // mvi l,5
+  B00101110, 70,    // mvi l,70
   B10110101,        // ora l
-  0343, 37,         // out 37
   //
-  0343, 38,         // out 38     ; Print the register values.
-  0166,             // hlt
+  B00111110, 73,    // mvi a,73
+  B00100110, 0,     // mvi h,0
+  B00101110, 0,     // mvi l,0    ; Register M address data = 11 000 011
+  B10110110,        // ora m      ; OR data a register M address, with register A. Answer: 11 001 011.
   //
   // -----------------------------------------------------------------------------
-  0303, 0000, 0000, // jmp Start    ; Jump back to beginning to avoid endless nops.
+  0303, 3, 0,       // jmp Start  ; Jump back to beginning to avoid endless nops.
   0000              //            ; End.
 };
 
@@ -1453,6 +1435,113 @@ void processOpcode() {
       Serial.print(F("> nop ------------"));
 #endif
       delay(100);
+      break;
+    // ------------------------------------------------------------------------------------------
+    // ORA10110SSS
+    case B10110000:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> ora, OR register B: "));
+      printByte(regB);
+      Serial.print(F(", with register A: "));
+      printByte(regA);
+      Serial.print(F(" = "));
+#endif
+      regA = regA | regB;
+#ifdef LOG_MESSAGES
+      printByte(regA);
+#endif
+      break;
+    // ---------------------
+    // ORA10110SSS
+    case B10110001:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> ora, OR register C: "));
+      printByte(regC);
+      Serial.print(F(", with register A: "));
+      printByte(regA);
+      Serial.print(F(" = "));
+#endif
+      regA = regA | regC;
+#ifdef LOG_MESSAGES
+      printByte(regA);
+#endif
+      break;
+    // ---------------------
+    // ORA10110SSS
+    case B10110010:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> ora, OR register D: "));
+      printByte(regD);
+      Serial.print(F(", with register A: "));
+      printByte(regC);
+      Serial.print(F(" = "));
+#endif
+      regA = regA | regD;
+#ifdef LOG_MESSAGES
+      printByte(regA);
+#endif
+      break;
+    // ---------------------
+    // ORA10110SSS
+    case B10110011:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> ora, OR register E: "));
+      printByte(regE);
+      Serial.print(F(", with register A: "));
+      printByte(regA);
+      Serial.print(F(" = "));
+#endif
+      regA = regA | regE;
+#ifdef LOG_MESSAGES
+      printByte(regA);
+#endif
+      break;
+    // ---------------------
+    // ORA10110SSS
+    case B10110100:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> ora, OR register H: "));
+      printByte(regH);
+      Serial.print(F(", with register A: "));
+      printByte(regA);
+      Serial.print(F(" = "));
+#endif
+      regA = regA | regH;
+#ifdef LOG_MESSAGES
+      printByte(regA);
+#endif
+      break;
+    // ---------------------
+    // ORA10110SSS
+    case B10110101:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> ora, OR register L: "));
+      printByte(regL);
+      Serial.print(F(", with register A: "));
+      printByte(regA);
+      Serial.print(F(" = "));
+#endif
+      regA = regA | regL;
+#ifdef LOG_MESSAGES
+      printByte(regA);
+#endif
+      break;
+    // ---------------------
+    // ORA10110SSS
+    case B10110110:
+      hlValue = regH * 256 + regL;
+      dataByte = memoryData[hlValue];
+#ifdef LOG_MESSAGES
+      Serial.print(F("> ora, OR data from address register M(H:L): "));
+      printByte(dataByte);
+      Serial.print(F(", with register A: "));
+      printByte(regA);
+      Serial.print(F(" = "));
+#endif
+      regA = regA | dataByte;
+#ifdef LOG_MESSAGES
+      printByte(regA);
+#endif
       break;
     // ------------------------------------------------------------------------------------------
     case out:

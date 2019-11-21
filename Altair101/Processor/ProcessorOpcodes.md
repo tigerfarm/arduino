@@ -37,6 +37,7 @@ dcr D    00 DDD 101  Decrement a register. To do, set flags: ZSPA.
 inx RP   00 RP0 011  Increment a register pair (a 16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
 
 ani #    11 100 110  AND # (immediate db) with register A.
+ora R    10 110 SSS  OR register R, with register A.
 xra R    10 101 SSS  Exclusive OR, the register(R) with register A.
 rrc      00 001 111  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
 
@@ -66,6 +67,7 @@ lxi RP,a 00 RP0 001  Move the data at the address, a(lb hb), into register pair:
 mov D,S  01 DDD SSS  Move source register data, to the destination register.
 mvi R,#  00 RRR 110  Move a number (#, db) to a register.
 nop      00 000 000  No operation. I added a delay: delay(100).
+ora R    10 110 SSS  OR register R, with register A.
 out pa   11 010 011  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
 rrc      00 001 111  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
 shld a   00 100 010  Store L value to memory location: a(hb:lb). Store H value at: a + 1.
@@ -90,7 +92,6 @@ POP RP    11RP0001 *2       *2      Pop  register pair from the stack
 
 DCX RP    00RP1011          -       Decrement register pair
 LHLD a    00101010 lb hb    -       Load H:L from memory
-ORA S     10110SSS          ZSPCA   OR  register with A
 ORI #     11110110          ZSPCA   OR  immediate with A
 ANA S     10100SSS          ZSCPA   AND register with A
 CMP S     10111SSS          ZSPCA   Compare register with A

@@ -86,6 +86,61 @@ byte theProgram[] = {
 Programs to test the functionality of specific opcodes.
 
 -----------------------------------------------------------------------------
+##### Test opcode ORA
+````
+// -----------------------------------------------------------------------------
+// Program to test opcodes.
+
+byte theProgram[] = {
+  //                //            ; --------------------------------------
+  //                // Start:     ; Test opcode ora.
+  //                //            ; OR source register, with register A.
+  //
+  0303, 4, 0,       // jmp Test   ; Jump to bypass the halt.
+  //                // Halt:
+  0166,             // hlt        ; Then, the program will halt at each iteration.
+  //                // Test:
+  //
+  // -----------------------------------------------------------------------------
+  // ORA S     10110SSS          ZSPCA   OR source register with A
+  //
+  //1RRR110 mvi
+  B00111110, 73,    // mvi a,73   ; Move # to register A:    01 001 001 = 73
+  B00000110, 70,    // mvi b,70   ; Move # to register B:    01 000 110 = 70
+  //0110SSS ora
+  B10110000,        // ora b      ; OR register B, with register A. Answer: 01 001 111 = 79.
+  //
+  B00111110, 73,    // mvi a,73
+  B00001110, 70,    // mvi c,70
+  B10110001,        // ora c
+  //
+  B00111110, 73,    // mvi a,73
+  B00010110, 70,    // mvi d,70
+  B10110010,        // ora d
+  //
+  B00111110, 73,    // mvi a,73
+  B00011110, 70,    // mvi e,3
+  B10110011,        // ora e
+  //
+  B00111110, 73,    // mvi a,73
+  B00100110, 70,    // mvi h,70
+  B10110100,        // ora h
+  //
+  B00111110, 73,    // mvi a,73
+  B00101110, 70,    // mvi l,70
+  B10110101,        // ora l
+  //
+  B00111110, 73,    // mvi a,73
+  B00100110, 0,     // mvi h,0
+  B00101110, 0,     // mvi l,0    ; Register M address data = 11 000 011
+  B10110110,        // ora m      ; OR data a register M address, with register A. Answer: 11 001 011.
+  //
+  // -----------------------------------------------------------------------------
+  0303, 3, 0,       // jmp Start  ; Jump back to beginning to avoid endless nops.
+  0000              //            ; End.
+};
+````
+-----------------------------------------------------------------------------
 ##### Test opcode ANI
 ````
 // -----------------------------------------------------------------------------
