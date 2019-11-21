@@ -1,5 +1,9 @@
 # Development Programs for the Altair 101
 
+[Opcode Test Programs](#opcode-test-programs)
+
+[Opcode Test Programs](ProcessorPrograms.md#opcode-test-programs)
+
 --------------------------------------------------------------------------------
 ### Programing links
 
