@@ -1,23 +1,30 @@
 // -----------------------------------------------------------------------------
 /*
-  Altair 101 software microprocessor
+  Altair 101 software microprocessor program
 
-  ---------------------------------------------
-  Next software updates:
-  + Next opcodes to program, to run Pong:
-  RET       11001001          -       Unconditional return from subroutine
-  ++ RET requires CALL which requires PUSH and POP which requires stack memory.
-
-  ---------------------------------------------
-  Next, hardware and software updates to complete the core hardware and software system:
+  +++ Need to confirm/test LED light data, sift order and content.
+  + Serach _PIN to set and use shift register for status LED.
 
   + Control status LED lights wired to use a 595 chip.
   ++ And update this program to use bit identifiers to control the lights.
 
-  + Wire in the 595 chip for button usage in the dev machine.
+  ---------------------------------------------
+  Next software updates:
+  + Next opcodes to program, to run Pong:
+  ++ RET, which requires CALL which requires PUSH and POP which requires stack memory.
+  // Code      Binary   Param  Flags     Description
+  // CALL a    11001101 lb hb    -       Unconditional subroutine call
+  // RET       11001001          -       Unconditional return from subroutine
+  // PUSH RP   11RP0101 *2       -       Push register pair on the stack
+  // POP RP    11RP0001 *2       *2      Pop  register pair from the stack
+
+  ---------------------------------------------
+  Next, hardware and software updates to complete the core hardware and software system:
+
+  + For button usage, wire in the 595 chip to Nano of the dev machine.
   ++ Add switch controls from the shiftRegisterInputSwitch program.
   ++ Implement Examine to view program data.
-  
+
   + Solder and add 8 toggles to the dev machine.
   ++ Add toggle controls from the shiftRegisterInputToggle program.
   ++ Implement Deposit to enter program data.
@@ -26,7 +33,7 @@
   ++ Get input opcode IN to work.
   ++ Test program, Kill the Bit.
   +++ The final step to completely running Kill the Bit.
-  
+
   The basic development computer is complete!
 
   ---------------------------
@@ -46,11 +53,11 @@
   ++ Samples: looping, branching, calling subroutines.
   + A basic assembler to convert my programs to machine code.
   + Implement the next major Altair 8800 sample program: Pong.
-  
+
   I/O Updates,
   + Clock
   + MP3 player and amp
-  
+
   ---------------------------------------------
   Program sections,
     Sample programs.
@@ -79,7 +86,7 @@
   Text listing of 8080 opcodes:
     https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/ProcessorOpcodes.txt
     https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodesBinaryList.txt
-    
+
   Altair programming video, starting about 6 minutes in:
     https://www.youtube.com/watch?v=EV1ki6LiEmg
 
@@ -213,6 +220,9 @@ byte theProgramOra[] = {
 const int memoryBytes = 512;
 byte memoryData[memoryBytes];
 
+const int stackBytes = 32;
+int stackData[memoryBytes];
+
 // -----------------------------------------------------------------------------
 // Memory Functions
 
@@ -308,12 +318,6 @@ void listByteArray(byte btyeArray[], int arraySize) {
 
 // ------------------------------
 // Not in use:
-// const int INTE_PIN = 42;    // On, interrupts enabled.
-// const int PROT_PIN = 42;    // Useful only if RAM has page protection impliemented.
-//
-// const int HLDA_PIN = 42;    // 8080 processor go into a hold state because of other hardware.
-//
-// B00000001 : INT    ?- Interupts enabled/disabled
 
 // ------------------------------
 // Status LEDs
@@ -328,16 +332,33 @@ void listByteArray(byte btyeArray[], int arraySize) {
 // B00000100 : STACK  Stack process
 // B00000010 : WO     Write out (inverse logic)
 // B00000001 : WAIT   For now, use this one for WAIT light status
-//             INT    An interrupt request has been acknowledged.
+// Not in use:
+// INTE : On, interrupts enabled.
+// PROT : Useful only if RAM has page protection impliemented. I'm not implementing PROT.
+// HLDA : 8080 processor go into a hold state because of other hardware.
+// INT : An interrupt request has been acknowledged.
 //
-const int MEMR_PIN = 42;    // Memory read such as fetching an op code (data instruction)
-const int INP_PIN = 42;     // Input
+byte statusByte = B00000000;
+const byte MEMR_ON = B10000000;   // Used with OR.
+const byte MEMR_OFF = B01111111;  // Used with AND.
+const byte INP_ON = B01000000;
+const byte INP_OFF = B10111111;
+const byte M1_ON = B00100000;
+const byte M1_OFF = B11011111;
+const byte OUT_ON = B00010000;
+const byte OUT_OFF = B11101111;
+const byte HLTA_ON = B00001000;
+const byte HLTA_OFF = B11110111;
+const byte STACK_ON = B00000100;
+const byte STACK_OFF = B11111011;
+const byte WO_ON = B00000010;
+const byte WO_OFF = B11111101;
+const byte WAIT_ON = B00000001;
+const byte WAIT_OFF = B11111110;
+//
 const int M1_PIN = A3;      // On, when current address is an opcode, which is Machine cycle 1. Off when getting an opcodes data bytes.
-const int OUT_PIN = 42;     // Write output.
 const int HLTA_PIN = A2;    // Halt acknowledge, halt instruction executed.
-const int STACK_PIN = 42;   // On, reading or writing to the stack.
 const int WO_PIN = 10;      // Write Output uses inverse logic. On, not writing output.
-//
 const int WAIT_PIN = A0;    // On, program not running. Off, programrunning.
 
 // -----------------------------------------------------------------------------
@@ -442,8 +463,9 @@ void printData(byte theByte) {
   printByte(theByte);
 }
 
-// --------------------
+// ------------------------------------------------------------------------
 // Data LED lights displayed using a shift register chips: SN74HC595N.
+
 const int dataPin = 4;            // 74HC595 Data  pin 14 is connected to Digital pin 4
 const int latchPin = 5;           // 74HC595 Latch pin 12 is connected to Digital pin 5
 const int clockPin = 6;           // 74HC595 Clock pin 11 is connected to Digital pin 6
@@ -462,6 +484,17 @@ void displayLedAddressData(unsigned int data16bits, byte data8bits) {
   digitalWrite(latchPin, HIGH);
 }
 
+// Hardware order, shift order:
+//  Status, address high, address low, data.
+void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) {
+  digitalWrite(latchPin, LOW);
+  shiftOut(dataPin, clockPin, LSBFIRST, status8bits);
+  shiftOut(dataPin, clockPin, LSBFIRST, highByte(address16bits));
+  shiftOut(dataPin, clockPin, LSBFIRST, lowByte(address16bits));
+  shiftOut(dataPin, clockPin, LSBFIRST, data8bits);
+  digitalWrite(latchPin, HIGH);
+}
+
 // -----------------------------------------------------------------------------
 // Processor: Processing opcode instructions
 
@@ -470,8 +503,9 @@ int programCounter = 0;     // Program address value
 byte opcode = 0;            // Opcode being processed
 int instructionCycle = 0;   // Opcode process cycle
 
-void printAddressData() {
+void displayStatusAddressData() {
   //
+  // lightsStatusAddressData(statusByte, programCounter, dataByte);
   displayLedAddressData(programCounter, dataByte);
   //
 #ifdef LOG_MESSAGES
@@ -482,24 +516,25 @@ void printAddressData() {
   dataByte = memoryData[programCounter];
   printData(dataByte);
 #else
-/*
-  Serial.print(" > ");
-  printByte(highByte(programCounter));
-  Serial.print(":");
-  printByte(lowByte(programCounter));
-  Serial.print(":");
-  printByte(lowByte(regA));
+  /*
+    Serial.print(" > ");
+    printByte(highByte(programCounter));
+    Serial.print(":");
+    printByte(lowByte(programCounter));
+    Serial.print(":");
+    printByte(lowByte(regA));
   */
 #endif
 }
 
 void processData() {
   if (opcode == 0) {
-    digitalWrite(M1_PIN, HIGH); // Machine cycle 1, get an opcode.
 #ifdef LOG_MESSAGES
     Serial.print("> ");
 #endif
-    printAddressData();
+    statusByte = statusByte | M1_ON; // Machine cycle 1, get an opcode.
+    digitalWrite(M1_PIN, HIGH);
+    displayStatusAddressData();
 #ifdef LOG_MESSAGES
     Serial.print(" ");
 #endif
@@ -507,11 +542,12 @@ void processData() {
     programCounter++;
     instructionCycle = 0;
   } else {
-    digitalWrite(M1_PIN, LOW); // Machine cycle 1+x, getting opcode data.
 #ifdef LOG_MESSAGES
     Serial.print("+ ");
 #endif
-    printAddressData();
+    statusByte = statusByte | M1_OFF; // Machine cycle 1+x, getting opcode data.
+    digitalWrite(M1_PIN, LOW);
+    displayStatusAddressData();
 #ifdef LOG_MESSAGES
     Serial.print(" ");
 #endif
@@ -774,6 +810,12 @@ void processOpcode() {
       halted = true;
 #ifdef LOG_MESSAGES
       Serial.println(F("> hlt, halt the processor."));
+      statusByte = statusByte | WAIT_ON;
+      statusByte = statusByte | M1_OFF;
+      statusByte = statusByte | HLTA_ON;
+      // To do: set all the address and data lights on.
+      // displayStatusAddressData();
+      //
       digitalWrite(WAIT_PIN, HIGH);
       digitalWrite(M1_PIN, LOW);
       digitalWrite(HLTA_PIN, HIGH);
@@ -781,7 +823,6 @@ void processOpcode() {
       Serial.println("");
 #endif
       Serial.print(F("+ Process halted."));
-      // To do: set all the address and data lights on.
       break;
     case B11011011:
       opcode = B11011011;
@@ -1032,6 +1073,10 @@ void processOpcode() {
 #endif
       Serial.print(F(" - Error, unhandled instruction."));
       runProgram = false;
+      statusByte = statusByte | WAIT_ON;
+      statusByte = statusByte | M1_ON;
+      statusByte = statusByte | HLTA_ON;
+      // displayStatusAddressData();
       digitalWrite(WAIT_PIN, HIGH);
       break;
     // ------------------------------------------------------------------------------------------
@@ -1412,7 +1457,8 @@ void processOpcode() {
     // ------------------------------------------------------------------------------------------
     case out:
       opcode = out;
-      digitalWrite(WO_PIN, LOW);  // Inverse logic: off writing out. On when not.
+      statusByte = statusByte | WO_OFF;  // Inverse logic: off writing out. On when not.
+      digitalWrite(WO_PIN, LOW);
 #ifdef LOG_MESSAGES
       Serial.print(F("> OUT, Write output to the port address(following db)."));
 #endif
@@ -1562,6 +1608,10 @@ void processOpcode() {
     default:
       Serial.print(F(" - Error, unknown instruction."));
       runProgram = false;
+      statusByte = statusByte | WAIT_ON;
+      statusByte = statusByte | M1_ON;
+      statusByte = statusByte | HLTA_ON;
+      // displayStatusAddressData();
       digitalWrite(WAIT_PIN, HIGH);
   }
 }
@@ -1946,7 +1996,8 @@ void processOpcodeData() {
         default:
           Serial.print(F("-- Error, unknow out port number: "));
       }
-      digitalWrite(WO_PIN, HIGH);  // Inverse logic: off writing out. On when not.
+      statusByte = statusByte | WO_ON;  // Inverse logic: off writing out. On when not.
+      digitalWrite(WO_PIN, HIGH);
       programCounter++;
       break;
     // ------------------------------------------------------------------------------------------
@@ -2053,6 +2104,10 @@ void processOpcodeData() {
     default:
       Serial.print(F(" -- Error, unknow instruction."));
       runProgram = false;
+      statusByte = statusByte | WAIT_ON;
+      statusByte = statusByte | M1_ON;
+      statusByte = statusByte | HLTA_ON;
+      // displayStatusAddressData();
       digitalWrite(WAIT_PIN, HIGH);
   }
   // The opcode cycles are complete.
@@ -2115,6 +2170,7 @@ void infraredSwitchControl() {
     case 0xFF5AA5:
     case 0xE0E046B9:
       // Serial.println(F("+ Key > - next: SINGLE STEP toggle/button switch."));
+      statusByte = statusByte | HLTA_OFF;
       digitalWrite(HLTA_PIN, LOW);
       processData();
       break;
@@ -2123,6 +2179,8 @@ void infraredSwitchControl() {
       // Serial.println(F("+ Key up"));
       Serial.println(F("+ Run process."));
       runProgram = true;
+      statusByte = statusByte | WAIT_OFF;
+      statusByte = statusByte | HLTA_OFF;
       digitalWrite(WAIT_PIN, LOW);
       digitalWrite(HLTA_PIN, LOW);
       break;
@@ -2140,6 +2198,8 @@ void infraredSwitchControl() {
       // Serial.println(F("+ Key OK - Toggle RUN and STOP."));
       Serial.println(F("+ Run process."));
       runProgram = true;
+      statusByte = statusByte | WAIT_OFF;
+      statusByte = statusByte | HLTA_OFF;
       digitalWrite(WAIT_PIN, LOW);
       digitalWrite(HLTA_PIN, LOW);
       break;
@@ -2153,7 +2213,7 @@ void infraredSwitchControl() {
       // Serial.println(F("+ Key 1: "));
       // Serial.println("+ Examine.");
       Serial.print("? ");
-      printAddressData();
+      displayStatusAddressData();
       Serial.println("");
       buttonWentHigh = true;
       break;
@@ -2162,7 +2222,7 @@ void infraredSwitchControl() {
       // Serial.println("+ Examine Next.");
       programCounter++;
       Serial.print("? ");
-      printAddressData();
+      displayStatusAddressData();
       Serial.println("");
       buttonWentHigh = true;
       break;
@@ -2171,7 +2231,7 @@ void infraredSwitchControl() {
       // Serial.println("+ Examine Previous.");
       programCounter--;
       Serial.print("? ");
-      printAddressData();
+      displayStatusAddressData();
       Serial.println("");
       buttonWentHigh = true;
       break;
@@ -2246,6 +2306,8 @@ void infraredSwitchInput() {
       // Serial.println(F("+ Key down"));
       Serial.println(F("+ Stop process."));
       runProgram = false;
+      statusByte = statusByte | WAIT_ON;
+      statusByte = statusByte | HLTA_OFF;
       digitalWrite(WAIT_PIN, HIGH);
       digitalWrite(HLTA_PIN, LOW);
       break;
@@ -2254,6 +2316,8 @@ void infraredSwitchInput() {
       // Serial.println(F("+ Key OK - Toggle RUN and STOP."));
       Serial.println(F("+ Stop process."));
       runProgram = false;
+      statusByte = statusByte | WAIT_ON;
+      statusByte = statusByte | HLTA_OFF;
       digitalWrite(WAIT_PIN, HIGH);
       digitalWrite(HLTA_PIN, LOW);
       break;
@@ -2365,6 +2429,7 @@ void setup() {
   Serial.println(""); // Newline after garbage characters.
   Serial.println(F("+++ Setup."));
 
+  // ----------------------------------------------------
   irrecv.enableIRIn();
   Serial.println(F("+ infrared receiver ready for input."));
 
@@ -2373,6 +2438,7 @@ void setup() {
   Serial.println(F("+ LCD ready for output."));
 #endif
 
+  // ----------------------------------------------------
   pinMode(latchPin, OUTPUT);
   pinMode(clockPin, OUTPUT);
   pinMode(dataPin, OUTPUT);
@@ -2381,29 +2447,37 @@ void setup() {
   displayLedData(B01010101);
   Serial.println(F("+ Data LED shift register set."));
 
-  pinMode(WAIT_PIN, OUTPUT);
-  // pinMode(MEMR_PIN, OUTPUT);
-  pinMode(M1_PIN, OUTPUT);
-  pinMode(HLTA_PIN, OUTPUT);
-  pinMode(WO_PIN, OUTPUT);
-  //
-  digitalWrite(WAIT_PIN, HIGH);     // Wait: on.
-  // digitalWrite(MEMR_PIN, HIGH);
-  digitalWrite(M1_PIN, HIGH);       // MI: on.
-  digitalWrite(HLTA_PIN, LOW);
-  digitalWrite(WO_PIN, HIGH);       // WO: on, Inverse logic: off when writing out. On when not.
-  Serial.println(F("+ LED lights configured and initialized."));
-
+  // ----------------------------------------------------
   int programSize = sizeof(theProgram);
   // List a program.
   listByteArray(theProgram, programSize);
   // Load a program.
   copyByteArrayToMemory(theProgram, programSize);
-
-  Serial.println(F("+++ Start the processor loop."));
 #ifdef RUN_NOW
   runProgram = true;
 #endif
+
+  // ----------------------------------------------------
+  pinMode(WAIT_PIN, OUTPUT);
+  pinMode(M1_PIN, OUTPUT);
+  pinMode(HLTA_PIN, OUTPUT);
+  pinMode(WO_PIN, OUTPUT);
+  //
+  digitalWrite(WAIT_PIN, HIGH);     // Wait: on.
+  digitalWrite(M1_PIN, HIGH);       // MI: on.
+  digitalWrite(HLTA_PIN, LOW);
+  digitalWrite(WO_PIN, HIGH);       // WO: on, Inverse logic: off when writing out. On when not.
+  //
+  // Status lights are off by default.
+  statusByte = statusByte | WAIT_ON;
+  statusByte = statusByte | MEMR_ON;
+  statusByte = statusByte | M1_ON;
+  statusByte = statusByte | WO_ON;  // WO: on, Inverse logic: off when writing out. On when not.
+  // lightsStatusAddressData(statusByte, programCounter, dataByte);
+  Serial.println(F("+ Status LED lights initialized."));
+  // ----------------------------------------------------
+
+  Serial.println(F("+++ Start the processor loop."));
 }
 
 // -----------------------------------------------------------------------------
