@@ -1,21 +1,22 @@
 --------------------------------------------------------------------------------
 #  Altair 101 Opcodes
 
------------------------------------------------------------------------------
-Opcodes that are programmed and tested:
-       Code   Octal       Inst Param  Encoding Flags  Description
-const byte cpi    = 0376; cpi db    11 111 110        Compare db with a > compareResult.
-const byte jz     = 0312; jz   lb hb  11001010        If compareResult is true, jump to lb hb.
+I have added 8080 opcodes to run the classic program, Kill the Bit.
+Other opcodes are for testing opcodes, example mvi, to set test values of other opcodes.
+I am also adding opcodes the program Pong.
 
---------------------------------------------------------------------------------
+The opcodes to run Pong and Kill the Bit, are my target opcode base for my 8080 emulator.
+I have not planned on implementing all the 8080 opcodes.
+
 ## Programmed Opcodes
-
+````
 From Processor.ino function:
     void processOpcode() {
     ...
     }
-
-Alphabetically order list of opcodes:
+````
+#### Alphabetically order list of opcodes:
+````
 Opcode   Binary      Description
 -------------------------------------
 ani #    11 100 110  AND # (immediate db) with register A.
@@ -39,8 +40,9 @@ shld a   00 100 010  Store L value to memory location: a(hb:lb). Store H value a
 sta a    00 110 010  Store register A to the hb:lb address.
 lda a    00 110 010  Load register A with data from the address, a(hb:lb).
 xra R    10 101 SSS  Exclusive OR, the register(R) with register A.
-
-Functionally ordered list of opcodes:
+````
+#### Functionally ordered list of opcodes:
+````
 Opcode   Binary      Description
 -------------------------------------
 mvi R,#  00 RRR 110  Move a number (#, db) to a register.
@@ -69,14 +71,14 @@ dad RP   00 RP1 001  16 bit add. Add register pair(RP, B:C or D:E) to H:L. And s
 hlt      01 110 110  Halt processor.
 nop      00 000 000  No operation. I added a delay: delay(100).
 out pa   11 010 011  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
-
+````
 --------------------------------------------------------------------------------
 ### 8080 Opcodes Not added to Altair 101
 
-From list:
-https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodes.txt
-https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodesBinaryList.txt
-
+From list a [popular list](https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodes.txt)
+and from a [binary order list](https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodesBinaryList.txt),
+which I find functional and interesting. It's also a practical help in that it describes the implementation better than the other list.
+````
 Inst      Encoding          Flags   Description
 ----------------------------------------------------------------------
 CALL a    11001101 lb hb    -       Unconditional subroutine call
@@ -125,10 +127,10 @@ DI        11110011          -       Disable interrupts
 
 *2 = RP=11 refers to PSW for PUSH/POP (cannot push/pop SP).
      When PSW is POP'd, ALL flags are affected.
-
+````
 -----------------------------------------------------------
 Destination and Source registers and register pairs.
-
+````
 byte regA = 0;   111=A  a  register A, or Accumulator
                            --------------------------------
                            Register pair 'RP' fields:
@@ -140,10 +142,10 @@ byte regH = 0;   100=H  h  10=HL   (H:L as 16 bit register)
 byte regL = 0;   101=L  l
                            11=SP   (Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP)
 byte regM = 0;   110=M  m  Memory reference for address in H:L
-
+````
 --------------------------------------------------------------------------------
 ### Conventions used when describing Opcodes
-
+````
 Instruction source and encoding:
   a     = A 16 bit address value, often stated in hexadecimal format, example:
           ani 80h ;get A15 alone
@@ -199,12 +201,13 @@ indirect: the data value at the give address.
             into register A (accumulator).
 immediate: the immediate byte value.
     Example: ANI # - AND immediate with A.
-
+````
 -----------------------------------------------------------------------------
 ### Reference Links
 
 Altair 8800 Operator's Manual.pdf has a description of each opcode.
     https://altairclone.com/downloads/manuals/Altair%208800%20Operator's%20Manual.pdf
+
 From original Altair Manuals:
     https://altairclone.com/altair_manuals.htm
 
