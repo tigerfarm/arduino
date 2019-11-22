@@ -602,7 +602,7 @@ void processOpcode() {
     // RET  11001001  Unconditional return from subroutine. 1 cycles.
     case B11001001:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> ret, Return from a subroutine to the address after the original CALL: "));
+      Serial.print(F("> ret, Return from a subroutine to the original CALL address: "));
 #endif
       stackPointer++;
       highOrder = stackData[stackPointer];
@@ -1465,7 +1465,7 @@ void processOpcode() {
     // ------------------------------------------------------------------------------------------
     case nop:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> nop ------------"));
+      Serial.print(F("> nop ---------------------------"));
 #endif
       delay(100);
       break;
@@ -1787,20 +1787,26 @@ void processOpcodeData() {
       Serial.print(charBuffer);
 #endif
       // instructionCycle == 3
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > call, jumping from address: "));
+      Serial.print(programCounter);
+#endif
       // Push the next memory location onto the stack. This will be used by the RET opcode.
       stackData[stackPointer--] = lowByte(programCounter);
       stackData[stackPointer--] = highByte(programCounter);
       // Jump to the subroutine.
       programCounter = highOrder * 256 + lowOrder;
 #ifdef LOG_MESSAGES
-      Serial.print(F(" > call, jumping to the subroutine address: "));
+      Serial.print(F(", to the subroutine address: "));
       Serial.print(programCounter);
       Serial.print(F(". stackPointer = "));
       Serial.print(stackPointer);
+     /*
       Serial.print(F(", stackData[stackPointer+1] = "));
       Serial.print(stackData[stackPointer+1]);
       Serial.print(F(", stackData[stackPointer+2] = "));
       Serial.print(stackData[stackPointer+2]);
+      */
 #endif
       break;
     // ---------------------------------------------------------------------
