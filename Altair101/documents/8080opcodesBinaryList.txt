@@ -18,7 +18,7 @@ The following is from:
 # 0x05  1  Z,S,P,AC DCR B      B <- B-1   
 # 0x06  2           MVI B, D8  B <- byte 2
 # 0x07  1  CY       RLC        A = A << 1;
-0x08                               -0
+0x08                -
 # 0x09  1  CY       DAD B      HL = HL + B
 # 0x0a  1           LDAX B     A <- (BC)  
 # 0x0b  1           DCX B      BC = BC-1  
@@ -26,7 +26,7 @@ The following is from:
 # 0x0d  1  Z,S,P,AC DCR C      C <-C-1    
 # 0x0e  2           MVI C,D8   C <- byte 2
 # 0x0f  1  CY       RRC        A = A >> 1;
-0x10                               -0
+0x10                -
 # 0x11  3           LXI D,D16  D <- byte 3
 # 0x12  1           STAX D     (DE) <- A  
 # 0x13  1           INX D      DE <- DE + 
@@ -34,7 +34,7 @@ The following is from:
 # 0x15  1  Z,S,P,AC DCR D      D <- D-1   
 # 0x16  2           MVI D, D8  D <- byte 2
 # 0x17  1  CY       RAL        A = A << 1;
-0x18                               -0
+0x18                -
 # 0x19  1  CY       DAD D      HL = HL + D
 # 0x1a  1           LDAX D     A <- (DE)  
 # 0x1b  1           DCX D      DE = DE-1  
@@ -50,7 +50,7 @@ The following is from:
 # 0x25  1  Z,S,P,AC DCR H      H <- H-1   
 # 0x26  2           MVI H,D8   H <- byte 2
 # 0x27  1           DAA        special    
-0x28                               -0
+0x28                -
 # 0x29  1  CY       DAD H      HL = HL + H
 # 0x2a  3           LHLD adr   L <- (adr);
 # 0x2b  1           DCX H      HL = HL-1  
@@ -66,7 +66,7 @@ The following is from:
 # 0x35  1  Z,S,P,AC DCR M      (HL) <- (HL
 0x36    2           MVI M,D8   (HL) <- byt
 # 0x37  1  CY       STC        CY = 1     
-0x38                               -0
+0x38                -
 # 0x39  1  CY       DAD SP     HL = HL + S
 # 0x3a  3           LDA adr    A <- (adr) 
 # 0x3b  1           DCX SP     SP = SP-1  
@@ -213,7 +213,7 @@ The following is from:
 # 0xc8  1           RZ         if Z, RET  
 # 0xc9  1           RET        PC.lo <- (s
 # 0xca  3           JZ adr     if Z, PC <-
-0xcb                               -0
+0xcb                -
 # 0xcc  3           CZ adr     if Z, CALL 
 # 0xcd  3           CALL adr   (SP-1)<-PC.
 # 0xce  2 Z,S,P,CY  ACI D8     A <- A + da
@@ -227,11 +227,11 @@ The following is from:
 # 0xd6  2 Z,S,P,CY  SUI D8     A <- A - da
 # 0xd7  1           RST 2      CALL $10   
 # 0xd8  1           RC         if CY, RET 
-0xd9                               -0
+0xd9                -
 # 0xda  3           JC adr     if CY, PC<-
 # 0xdb  2           IN D8      special    
 # 0xdc  3           CC adr     if CY, CALL
-0xdd                               -0
+0xdd                -
 # 0xde  2 Z,S,P,CY  SBI D8     A <- A - da
 # 0xdf  1           RST 3      CALL $18   
 0xe0    1           RPO        if PO, RET 
@@ -247,7 +247,7 @@ The following is from:
 0xea    3           JPE adr    if PE, PC <
 # 0xeb  1           XCHG       H <-> D; L 
 0xec    3           CPE adr    if PE, CALL
-0xed                               -0
+0xed                -
 # 0xee  2 Z,S,P,CY  XRI D8     A <- A ^ da
 # 0xef  1           RST 5      CALL $28   
 0xf0    1           RP         if P, RET  
@@ -263,7 +263,7 @@ The following is from:
 # 0xfa  3           JM adr     if M, PC <-
 # 0xfb  1           EI         special    
 0xfc    3           CM adr     if M, CALL 
-0xfd                               -0
+0xfd                -
 # 0xfe  2 Z,S,P,CY  CPI D8     A - data   
 # 0xff  1           RST 7      CALL $38  
 
