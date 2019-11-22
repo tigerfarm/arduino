@@ -10,13 +10,19 @@
   +++ Need to confirm/test LED light data, sift order and content.
 
   ---------------------------------------------
-  Next opcodes to implement, which completes the opcodes for Pong,
-  // Code      Binary   Param  Flags     Description
-  // PUSH RP   11RP0101          -       Push register pair on the stack
-  // POP RP    11RP0001          -       Pop  register pair from the stack
-  // CALL a    11001101 lb hb    -       Unconditional subroutine call
-  // RET       11001001          -       Unconditional return from subroutine
-  ++ RET requires CALL, which requires PUSH and POP, which requires stack memory.
+  Pong requires the RET opcode.
+  + RET requires CALL, which requires PUSH and POP, which requires a stack pointer and stack memory.
+  ++ I created stack memory, but should likely use the current memory.
+  ++ I need to create a stack pointer and operations to increment and decrement it (INX and DCX).
+
+  List of opcodes to implement the calling of subroutine, which is required for Pong.
+    Code      Binary   Param  Flags   Description
+    INX RP   00 RP0 011               Increment a register pair is coded. Need to do the stack pointer.
+    DCX RP   00 RP1 011               Decrement register pair, including the stack pointer.
+    PUSH RP  11 RP0 101          -    Push register pair on the stack
+    POP RP   11 RP0 001          -    Pop  register pair from the stack
+    CALL a   11 001 101 lb hb    -    Unconditional subroutine call
+    RET      11 001 001          -    Unconditional return from subroutine
 
   ---------------------------------------------
   Next, hardware and software updates to complete the core hardware and software system:
@@ -357,26 +363,6 @@ byte highOrder = 0;          // hb: High order byte of 16 bit value.
 byte dataByte = 0;           // db = Data byte (8 bit)
 
 // -----------------------------------------------------------------------------
-// Opcodes that are programmed and tested:
-
-// cpi #    11 111 110  Compare db with a > compareResult.
-// dad RP   00 RP1 001  Add register pair(RP) to H:L (16 bit add). And set carry bit if the addition causes a carry out.
-// hlt      01 110 110  Halt processor
-// inx RP   00 RP0 011  Increment a register pair, example: H:L (a 16 bit value). To do: stack pointer INX.
-// jmp a    11 000 011  Unconditional jump
-// jz  a    11 001 010  If compareResult is true, jump to lb hb.
-// jnc a    11 010 010  Jump if carry bit is 0 (false).
-// ldax RP  00 RP1 010  Load indirect through BC(RP=00) or DE(RP=01)
-//        ldax d : Load the accumulator from memory location 938Bh, where register d contains 93H and register e contains 8BH.
-// lxi RP,a 00 RP0 001  RP=10  which matches "10=HL".
-// out p    11 010 011  Write a to output port a.
-// mvi R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
-// mov d,S  01 DDD SSS  Move register to a register.
-// nop      00 000 000  No operation
-// rrc      00 001 111  Rotate a right (shift byte right 1 bit). Need to handle carry bit.
-// shld a   00 100 010  Store L value to memory location: a(hb:lb). Store H value at: a + 1.
-// xra R    10 101 SSS  Register exclusive OR with register with A.
-
 //        Code   Octal       Inst Param  Encoding Flags  Description
 const byte cpi    = 0376; // cpi db    11 111 110        Compare db with a > compareResult.
 const byte hlt    = 0166; // hlt         01110110        Halt processor
@@ -387,16 +373,7 @@ const byte nop    = 0000; // nop         00000000        No operation
 const byte out    = 0343; // out pa      11010011        Write a to output port
 const byte rrc    = 0017; // rrc       00 001 111   c    Rotate a right (shift byte right 1 bit). Note, carry bit not handled at this time.
 
-// -----------------------------------------------------------------------------
-// Next opcodes to do:
-//
-// Pong opcodes:
-// Code      Binary   Param  Flags     Description
-// CALL a    11001101 lb hb    -       Unconditional subroutine call
-// RET       11001001          -       Unconditional return from subroutine
-// PUSH RP   11RP0101 *2       -       Push register pair on the stack
-// POP RP    11RP0001 *2       *2      Pop  register pair from the stack
-// Kill the Bit opcodes:
+// Kill the Bit opcode to implement:
 const byte IN     = 0333;
 // IN p      11011011 pa       -       Read input for port a, into A
 

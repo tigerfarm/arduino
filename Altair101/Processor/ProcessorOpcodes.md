@@ -40,13 +40,11 @@ ora R    10 110 SSS  OR register R, with register A.
 xra R    10 101 SSS  Exclusive OR, the register(R) with register A.
 rrc      00 001 111  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
 
-Increment and decrement:
+Arithmetic:
+dad RP   00 RP1 001  16 bit add. Add register pair(RP: B:C or D:E) to H:L. And set carry bit.
 inr D    00 DDD 101  Increment a register. To do, set flags: ZSPA.
 dcr D    00 DDD 101  Decrement a register. To do, set flags: ZSPA.
 inx RP   00 RP0 011  Increment a register pair (a 16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
-
-Arithmetic:
-dad RP   00 RP1 001  16 bit add. Add register pair(RP, B:C or D:E) to H:L. And set carry bit.
 
 Process:
 hlt      01 110 110  Halt processor.
