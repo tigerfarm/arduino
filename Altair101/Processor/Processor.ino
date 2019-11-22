@@ -12,10 +12,11 @@
   ---------------------------------------------
   Pong requires the RET opcode.
   + RET requires CALL, which requires PUSH and POP, which requires a stack pointer and stack memory.
-  ++ I created stack memory, but should likely use the current memory.
-  ++ I need to create a stack pointer and operations to increment and decrement it (INX and DCX).
+  ++ I created stack memory separate from current memory. Should use current memory?
+  ++ I need to create a stack pointer (type int)
+  ++ Update with operations to increment and decrement the stack pointer (INX and DCX).
 
-  List of opcodes to implement the calling of subroutine, which is required for Pong.
+  List of opcodes to implement the calling of subroutines, which is required for Pong.
     Code      Binary   Param  Flags   Description
     INX RP   00 RP0 011               Increment a register pair is coded. Need to do the stack pointer.
     DCX RP   00 RP1 011               Decrement register pair, including the stack pointer.
@@ -115,6 +116,63 @@
 #define LOG_MESSAGES 1
 
 // -----------------------------------------------------------------------------
+// Program to test opcodes.
+
+byte theProgram[] = {
+  //                //            ; --------------------------------------
+  //                // Start:     ; Test stack opcodes PUSH and POP.
+  // PUSH RP   11RP0101 Push    register pair (B:C or D:E) onto the stack
+  // POP RP    11RP0001 Pop     register pair (B:C or D:E) from the stack
+  // CALL a    11001101 lb hb   Unconditional subroutine call
+  // RET       11001001         Unconditional return from subroutine
+  //
+  0303, 4, 0,       // jmp Test   ; Jump to bypass the subroutine and the halt command.
+  //
+  //                // IncrementB:
+  B00000100,        // inr b
+  0343, 30,         // out b      ; Print register b.
+  B11001001,        // ret        ; Return to the caller address + 1.
+  //
+  //                // Halt:      ; Halt, address: 7.
+  0166,             // hlt        ; Then, the program will halt at each iteration.
+  //                // Test:
+  //
+  // -----------------------------------------------------------------------------
+  // ORA S     10110SSS          ZSPCA   OR source register with A
+  //
+  //1RRR110 mvi
+  B00000110, 1,     // mvi b,1    ; Move # to register B:    01 000 110 = 70
+  B00001110, 2,     // mvi c,2
+  //1RP0101 push
+  B11000101,        // push b     ; Push register pair B:C onto the stack.
+  //
+  B00010110, 3,     // mvi d,3
+  B00011110, 5,     // mvi e,5
+  //1RP0101 push
+  B11010101,        // push d     ; Push register pair D:E onto the stack.
+  //
+  B00000110, 0,     // mvi b,0
+  B00001110, 0,     // mvi c,0
+  //1RP0001 pop
+  B11000001,        // pop d      ; Pop register pair D:E from the stack.
+  //
+  B00010110, 0,     // mvi d,0
+  B00011110, 0,     // mvi e,0
+  //1RP0001 pop
+  B11010001,        // pop d      ; Pop register pair D:E from the stack.
+  //
+  B00000110, 1,     // mvi b,7
+  0,                // NOP
+  B11001101, 3,     // call IncrementB
+  0,                // NOP
+  //
+  // -----------------------------------------------------------------------------
+  0303, 7, 0,       // jmp Halt   ; Jump back to the start halt command.
+  //
+  0000              //            ; End.
+};
+
+// -----------------------------------------------------------------------------
 // Kill the Bit program.
 
 byte theProgramKtb[] = {
@@ -151,65 +209,15 @@ byte theProgramKtb[] = {
 };
 
 // -----------------------------------------------------------------------------
-// Program to test opcodes.
-
-byte theProgram[] = {
-  //                //            ; --------------------------------------
-  //                // Start:     ; Test opcode ora.
-  //                //            ; OR source register, with register A.
-  //
-  0303, 4, 0,       // jmp Test   ; Jump to bypass the halt.
-  //                // Halt:
-  0166,             // hlt        ; Then, the program will halt at each iteration.
-  //                // Test:
-  //
-  // -----------------------------------------------------------------------------
-  // ORA S     10110SSS          ZSPCA   OR source register with A
-  //
-  //1RRR110 mvi
-  B00111110, 73,    // mvi a,73   ; Move # to register A:    01 001 001 = 73
-  B00000110, 70,    // mvi b,70   ; Move # to register B:    01 000 110 = 70
-  //0110SSS ora
-  B10110000,        // ora b      ; OR register B, with register A. Answer: 01 001 111 = 79.
-  //
-  B00111110, 73,    // mvi a,73
-  B00001110, 70,    // mvi c,70
-  B10110001,        // ora c
-  //
-  B00111110, 73,    // mvi a,73
-  B00010110, 70,    // mvi d,70
-  B10110010,        // ora d
-  //
-  B00111110, 73,    // mvi a,73
-  B00011110, 70,    // mvi e,3
-  B10110011,        // ora e
-  //
-  B00111110, 73,    // mvi a,73
-  B00100110, 70,    // mvi h,70
-  B10110100,        // ora h
-  //
-  B00111110, 73,    // mvi a,73
-  B00101110, 70,    // mvi l,70
-  B10110101,        // ora l
-  //
-  B00111110, 73,    // mvi a,73
-  B00100110, 0,     // mvi h,0
-  B00101110, 0,     // mvi l,0    ; Register M address data = 11 000 011
-  B10110110,        // ora m      ; OR data a register M address, with register A. Answer: 11 001 011.
-  //
-  // -----------------------------------------------------------------------------
-  0303, 3, 0,       // jmp Start  ; Jump back to beginning to avoid endless nops.
-  0000              //            ; End.
-};
-
-// -----------------------------------------------------------------------------
 // Memory definitions
 
 const int memoryBytes = 512;
 byte memoryData[memoryBytes];
+unsigned int programCounter = 0;     // Program address value
 
 const int stackBytes = 32;
 int stackData[memoryBytes];
+unsigned int stackPointer = stackBytes;
 
 // -----------------------------------------------------------------------------
 // Memory Functions
@@ -456,8 +464,6 @@ void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte
 
 // -----------------------------------------------------------------------------
 // Processor: Processing opcode instructions
-
-int programCounter = 0;     // Program address value
 
 byte opcode = 0;            // Opcode being processed
 int instructionCycle = 0;   // Opcode process cycle

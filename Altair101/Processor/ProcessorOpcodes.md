@@ -89,10 +89,10 @@ It's also a practical help, in that it describes opcode implementations, better 
 ````
 Inst      Encoding          Flags   Description
 ----------------------------------------------------------------------
-CALL a    11001101 lb hb    -       Unconditional subroutine call
-RET       11001001          -       Unconditional return from subroutine
 PUSH RP   11RP0101 *2       -       Push register pair on the stack
 POP RP    11RP0001 *2       *2      Pop  register pair from the stack
+CALL a    11001101 lb hb    -       Unconditional subroutine call
+RET       11001001          -       Unconditional return from subroutine
 
 DCX RP    00RP1011          -       Decrement register pair
 LHLD a    00101010 lb hb    -       Load H:L from memory
@@ -115,6 +115,7 @@ SUB S     10010SSS          ZSCPA   Subtract register from A
 SUI #     11010110 db       ZSCPA   Subtract immediate from A
 SBB S     10011SSS          ZSCPA   Subtract register from A with borrow
 SBI #     11011110 db       ZSCPA   Subtract immediate from A with borrow
+
 DAA       00100111          ZSPCA   Decimal Adjust accumulator
 
 RLC       00000111          C       Rotate A left

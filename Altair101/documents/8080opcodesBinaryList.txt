@@ -2,270 +2,270 @@
 8080 Opcode List, Binary order from 0 to 255.
 
 This list include a fix for RRC that was not describe in other documents:
-+ bit 7 = prev bit 0 ... i.e. circular rotation.
++ bit 7 = prev bit 0, i.e. circular rotation.
 
 The following is from:
     https://github.com/knowncold/8080/blob/master/opcode
 
 --------------------------------------------------------------------------------
-     Cycles Flags  Instruction Description
+  Cycles Flags  Instruction  Description
                                      
-# 0x00  1           NOP        
-# 0x01  3           LXI B,D16  B <- byte 3
-# 0x02  1           STAX B     (BC) <- A  
-# 0x03  1           INX B      BC <- BC+1 
-# 0x04  1  Z,S,P,AC INR B      B <- B+1   
-# 0x05  1  Z,S,P,AC DCR B      B <- B-1   
-# 0x06  2           MVI B, D8  B <- byte 2
-# 0x07  1  CY       RLC        A = A << 1;
-0x08                -
-# 0x09  1  CY       DAD B      HL = HL + B
-# 0x0a  1           LDAX B     A <- (BC)  
-# 0x0b  1           DCX B      BC = BC-1  
-# 0x0c  1  Z,S,P,AC INR C      C <- C+1   
-# 0x0d  1  Z,S,P,AC DCR C      C <-C-1    
-# 0x0e  2           MVI C,D8   C <- byte 2
-# 0x0f  1  CY       RRC        A = A >> 1;
-0x10                -
-# 0x11  3           LXI D,D16  D <- byte 3
-# 0x12  1           STAX D     (DE) <- A  
-# 0x13  1           INX D      DE <- DE + 
-# 0x14  1  Z,S,P,AC INR D      D <- D+1   
-# 0x15  1  Z,S,P,AC DCR D      D <- D-1   
-# 0x16  2           MVI D, D8  D <- byte 2
-# 0x17  1  CY       RAL        A = A << 1;
-0x18                -
-# 0x19  1  CY       DAD D      HL = HL + D
-# 0x1a  1           LDAX D     A <- (DE)  
-# 0x1b  1           DCX D      DE = DE-1  
-# 0x1c  1  Z,S,P,AC INR E      E <-E+1    
-# 0x1d  1  Z,S,P,AC DCR E      E <- E-1   
-# 0x1e  2           MVI E,D8   E <- byte 2
-# 0x1f  1  CY       RAR        A = A >> 1;
-# 0x20  1           RIM        special    
-# 0x21  3           LXI H,D16  H <- byte 3
-# 0x22  3           SHLD adr   (adr) <-L; 
-# 0x23  1           INX H      HL <- HL + 
-# 0x24  1  Z,S,P,AC INR H      H <- H+1   
-# 0x25  1  Z,S,P,AC DCR H      H <- H-1   
-# 0x26  2           MVI H,D8   H <- byte 2
-# 0x27  1           DAA        special    
-0x28                -
-# 0x29  1  CY       DAD H      HL = HL + H
-# 0x2a  3           LHLD adr   L <- (adr);
-# 0x2b  1           DCX H      HL = HL-1  
-# 0x2c  1  Z,S,P,AC INR L      L <- L+1   
-# 0x2d  1  Z,S,P,AC DCR L      L <- L-1   
-# 0x2e  2           MVI L, D8  L <- byte 2
-# 0x2f  1           CMA        A <- !A    
-0x30    1           SIM        special    
-# 0x31  3           LXI SP, D16SP.hi <- by
-# 0x32  3           STA adr    (adr) <- A 
-# 0x33  1           INX SP     SP = SP + 1
-# 0x34  1  Z,S,P,AC INR M      (HL) <- (HL
-# 0x35  1  Z,S,P,AC DCR M      (HL) <- (HL
-0x36    2           MVI M,D8   (HL) <- byt
-# 0x37  1  CY       STC        CY = 1     
-0x38                -
-# 0x39  1  CY       DAD SP     HL = HL + S
-# 0x3a  3           LDA adr    A <- (adr) 
-# 0x3b  1           DCX SP     SP = SP-1  
-# 0x3c  1  Z,S,P,AC INR A      A <- A+1   
-# 0x3d  1  Z,S,P,AC DCR A      A <- A-1   
-# 0x3e  2           MVI A,D8   A <- byte 2
-# 0x3f  1  CY       CMC        CY=!CY     
-# 0x40  1           MOV B,B    B <- B     
-# 0x41  1           MOV B,C    B <- C     
-# 0x42  1           MOV B,D    B <- D     
-# 0x43  1           MOV B,E    B <- E     
-# 0x44  1           MOV B,H    B <- H     
-# 0x45  1           MOV B,L    B <- L     
-# 0x46  1           MOV B,M    B <- (HL)  
-# 0x47  1           MOV B,A    B <- A     
-# 0x48  1           MOV C,B    C <- B     
-# 0x49  1           MOV C,C    C <- C     
-# 0x4a  1           MOV C,D    C <- D     
-# 0x4b  1           MOV C,E    C <- E     
-# 0x4c  1           MOV C,H    C <- H     
-# 0x4d  1           MOV C,L    C <- L     
-# 0x4e  1           MOV C,M    C <- (HL)  
-# 0x4f  1           MOV C,A    C <- A     
-# 0x50  1           MOV D,B    D <- B     
-# 0x51  1           MOV D,C    D <- C     
-# 0x52  1           MOV D,D    D <- D     
-# 0x53  1           MOV D,E    D <- E     
-# 0x54  1           MOV D,H    D <- H     
-# 0x55  1           MOV D,L    D <- L     
-# 0x56  1           MOV D,M    D <- (HL)  
-# 0x57  1           MOV D,A    D <- A     
-# 0x58  1           MOV E,B    E <- B     
-# 0x59  1           MOV E,C    E <- C     
-# 0x5a  1           MOV E,D    E <- D     
-# 0x5b  1           MOV E,E    E <- E     
-# 0x5c  1           MOV E,H    E <- H     
-# 0x5d  1           MOV E,L    E <- L     
-# 0x5e  1           MOV E,M    E <- (HL)  
-# 0x5f  1           MOV E,A    E <- A     
-# 0x60  1           MOV H,B    H <- B     
-# 0x61  1           MOV H,C    H <- C     
-# 0x62  1           MOV H,D    H <- D     
-# 0x63  1           MOV H,E    H <- E     
-# 0x64  1           MOV H,H    H <- H     
-# 0x65  1           MOV H,L    H <- L     
-# 0x66  1           MOV H,M    H <- (HL)  
-# 0x67  1           MOV H,A    H <- A     
-# 0x68  1           MOV L,B    L <- B     
-# 0x69  1           MOV L,C    L <- C     
-# 0x6a  1           MOV L,D    L <- D     
-# 0x6b  1           MOV L,E    L <- E     
-# 0x6c  1           MOV L,H    L <- H     
-# 0x6d  1           MOV L,L    L <- L     
-# 0x6e  1           MOV L,M    L <- (HL)  
-# 0x6f  1           MOV L,A    L <- A     
-# 0x70  1           MOV M,B    (HL) <- B  
-# 0x71  1           MOV M,C    (HL) <- C  
-# 0x72  1           MOV M,D    (HL) <- D  
-# 0x73  1           MOV M,E    (HL) <- E  
-# 0x74  1           MOV M,H    (HL) <- H  
-# 0x75  1           MOV M,L    (HL) <- L  
-0x76    1           HLT        special    
-# 0x77  1           MOV M,A    (HL) <- A  
-# 0x78  1           MOV A,B    A <- B     
-# 0x79  1           MOV A,C    A <- C     
-# 0x7a  1           MOV A,D    A <- D     
-# 0x7b  1           MOV A,E    A <- E     
-# 0x7c  1           MOV A,H    A <- H     
-# 0x7d  1           MOV A,L    A <- L     
-# 0x7e  1           MOV A,M    A <- (HL)  
-# 0x7f  1           MOV A,A    A <- A     
-# 0x80  1 Z,S,P,CY  ADD B      A <- A + B 
-# 0x81  1 Z,S,P,CY  ADD C      A <- A + C 
-# 0x82  1 Z,S,P,CY  ADD D      A <- A + D 
-# 0x83  1 Z,S,P,CY  ADD E      A <- A + E 
-# 0x84  1 Z,S,P,CY  ADD H      A <- A + H 
-# 0x85  1 Z,S,P,CY  ADD L      A <- A + L 
-# 0x86  1 Z,S,P,CY  ADD M      A <- A + (H
-# 0x87  1 Z,S,P,CY  ADD A      A <- A + A 
-# 0x88  1 Z,S,P,CY  ADC B      A <- A + B 
-# 0x89  1 Z,S,P,CY  ADC C      A <- A + C 
-# 0x8a  1 Z,S,P,CY  ADC D      A <- A + D 
-# 0x8b  1 Z,S,P,CY  ADC E      A <- A + E 
-# 0x8c  1 Z,S,P,CY  ADC H      A <- A + H 
-# 0x8d  1 Z,S,P,CY  ADC L      A <- A + L 
-# 0x8e  1 Z,S,P,CY  ADC M      A <- A + (H
-# 0x8f  1 Z,S,P,CY  ADC A      A <- A + A 
-# 0x90  1 Z,S,P,CY  SUB B      A <- A - B 
-# 0x91  1 Z,S,P,CY  SUB C      A <- A - C 
-# 0x92  1 Z,S,P,CY  SUB D      A <- A + D 
-# 0x93  1 Z,S,P,CY  SUB E      A <- A - E 
-# 0x94  1 Z,S,P,CY  SUB H      A <- A + H 
-# 0x95  1 Z,S,P,CY  SUB L      A <- A - L 
-# 0x96  1 Z,S,P,CY  SUB M      A <- A + (H
-# 0x97  1 Z,S,P,CY  SUB A      A <- A - A 
-0x98    1 Z,S,P,CY  SBB B      A <- A - B 
-0x99    1 Z,S,P,CY  SBB C      A <- A - C 
-0x9a    1 Z,S,P,CY  SBB D      A <- A - D 
-0x9b    1 Z,S,P,CY  SBB E      A <- A - E 
-0x9c    1 Z,S,P,CY  SBB H      A <- A - H 
-0x9d    1 Z,S,P,CY  SBB L      A <- A - L 
-0x9e    1 Z,S,P,CY  SBB M      A <- A - (H
-0x9f    1 Z,S,P,CY  SBB A      A <- A - A 
-# 0xa0  1 Z,S,P,CY  ANA B      A <- A & B 
-# 0xa1  1 Z,S,P,CY  ANA C      A <- A & C 
-# 0xa2  1 Z,S,P,CY  ANA D      A <- A & D 
-# 0xa3  1 Z,S,P,CY  ANA E      A <- A & E 
-# 0xa4  1 Z,S,P,CY  ANA H      A <- A & H 
-# 0xa5  1 Z,S,P,CY  ANA L      A <- A & L 
-# 0xa6  1 Z,S,P,CY  ANA M      A <- A & (H
-# 0xa7  1 Z,S,P,CY  ANA A      A <- A & A 
-# 0xa8  1 Z,S,P,CY  XRA B      A <- A ^ B 
-# 0xa9  1 Z,S,P,CY  XRA C      A <- A ^ C 
-# 0xaa  1 Z,S,P,CY  XRA D      A <- A ^ D 
-# 0xab  1 Z,S,P,CY  XRA E      A <- A ^ E 
-# 0xac  1 Z,S,P,CY  XRA H      A <- A ^ H 
-# 0xad  1 Z,S,P,CY  XRA L      A <- A ^ L 
-# 0xae  1 Z,S,P,CY  XRA M      A <- A ^ (H
-# 0xaf  1 Z,S,P,CY  XRA A      A <- A ^ A 
-# 0xb0  1 Z,S,P,CY  ORA B      A <- A | B 
-# 0xb1  1 Z,S,P,CY  ORA C      A <- A | C 
-# 0xb2  1 Z,S,P,CY  ORA D      A <- A | D 
-# 0xb3  1 Z,S,P,CY  ORA E      A <- A | E 
-# 0xb4  1 Z,S,P,CY  ORA H      A <- A | H 
-# 0xb5  1 Z,S,P,CY  ORA L      A <- A | L 
-# 0xb6  1 Z,S,P,CY  ORA M      A <- A | (H
-# 0xb7  1 Z,S,P,CY  ORA A      A <- A | A 
-# 0xb8  1 Z,S,P,CY  CMP B      A - B      
-# 0xb9  1 Z,S,P,CY  CMP C      A - C      
-# 0xba  1 Z,S,P,CY  CMP D      A - D      
-# 0xbb  1 Z,S,P,CY  CMP E      A - E      
-# 0xbc  1 Z,S,P,CY  CMP H      A - H      
-# 0xbd  1 Z,S,P,CY  CMP L      A - L      
-# 0xbe  1 Z,S,P,CY  CMP M      A - (HL)   
-# 0xbf  1 Z,S,P,CY  CMP A      A - A      
-# 0xc0  1           RNZ        if NZ, RET 
-# 0xc1  1           POP B      C <- (sp); 
-# 0xc2  3           JNZ adr    if NZ, PC <
-# 0xc3  3           JMP adr    PC <= adr  
-# 0xc4  3           CNZ adr    if NZ, CALL
-# 0xc5  1           PUSH B     (sp-2)<-C; 
-0xc6    2 Z,S,P,CY  ADI D8     A <- A + by
-# 0xc7  1           RST 0      CALL $0    
-# 0xc8  1           RZ         if Z, RET  
-# 0xc9  1           RET        PC.lo <- (s
-# 0xca  3           JZ adr     if Z, PC <-
-0xcb                -
-# 0xcc  3           CZ adr     if Z, CALL 
-# 0xcd  3           CALL adr   (SP-1)<-PC.
-# 0xce  2 Z,S,P,CY  ACI D8     A <- A + da
-# 0xcf  1           RST 1      CALL $8    
-# 0xd0  1           RNC        if NCY, RET
-# 0xd1  1           POP D      E <- (sp); 
-# 0xd2  3           JNC adr    if NCY, PC<
-# 0xd3  2           OUT D8     special    
-# 0xd4  3           CNC adr    if NCY, CAL
-# 0xd5  1           PUSH D     (sp-2)<-E; 
-# 0xd6  2 Z,S,P,CY  SUI D8     A <- A - da
-# 0xd7  1           RST 2      CALL $10   
-# 0xd8  1           RC         if CY, RET 
-0xd9                -
-# 0xda  3           JC adr     if CY, PC<-
-# 0xdb  2           IN D8      special    
-# 0xdc  3           CC adr     if CY, CALL
-0xdd                -
-# 0xde  2 Z,S,P,CY  SBI D8     A <- A - da
-# 0xdf  1           RST 3      CALL $18   
-0xe0    1           RPO        if PO, RET 
-# 0xe1  1           POP H      L <- (sp); 
-0xe2    3           JPO adr    if PO, PC <
-# 0xe3  1           XTHL       L <-> (SP);
-0xe4    3           CPO adr    if PO, CALL
-# 0xe5  1           PUSH H     (sp-2)<-L; 
-# 0xe6  2 Z,S,P,CY  ANI D8     A <- A & da
-# 0xe7  1           RST 4      CALL $20   
-0xe8    1           RPE        if PE, RET 
-# 0xe9  1           PCHL       PC.hi <- H;
-0xea    3           JPE adr    if PE, PC <
-# 0xeb  1           XCHG       H <-> D; L 
-0xec    3           CPE adr    if PE, CALL
-0xed                -
-# 0xee  2 Z,S,P,CY  XRI D8     A <- A ^ da
-# 0xef  1           RST 5      CALL $28   
-0xf0    1           RP         if P, RET  
-# 0xf1  1           POP PSW    flags <- (s
-# 0xf2  3           JP adr     if P=1 PC <
-# 0xf3  1           DI         special    
-0xf4    3           CP adr     if P, PC <-
-# 0xf5  1           PUSH PSW   (sp-2)<-fla
-# 0xf6  2 Z,S,P,CY  ORI D8     A <- A | da
-# 0xf7  1           RST 6      CALL $30   
-0xf8    1           RM         if M, RET  
-0xf9    1           SPHL       SP=HL      
-# 0xfa  3           JM adr     if M, PC <-
-# 0xfb  1           EI         special    
-0xfc    3           CM adr     if M, CALL 
-0xfd                -
-# 0xfe  2 Z,S,P,CY  CPI D8     A - data   
-# 0xff  1           RST 7      CALL $38  
+0x00  1           NOP        
+0x01  3           LXI B,D16  B <- byte 3
+0x02  1           STAX B     (BC) <- A  
+0x03  1           INX B      BC <- BC+1 
+0x04  1  Z,S,P,AC INR B      B <- B+1   
+0x05  1  Z,S,P,AC DCR B      B <- B-1   
+0x06  2           MVI B, D8  B <- byte 2
+0x07  1  CY       RLC        A = A << 1;
+0x08              -
+0x09  1  CY       DAD B      HL = HL + B
+0x0a  1           LDAX B     A <- (BC)  
+0x0b  1           DCX B      BC = BC-1  
+0x0c  1  Z,S,P,AC INR C      C <- C+1   
+0x0d  1  Z,S,P,AC DCR C      C <-C-1    
+0x0e  2           MVI C,D8   C <- byte 2
+0x0f  1  CY       RRC        A = A >> 1;
+0x10              -
+0x11  3           LXI D,D16  D <- byte 3
+0x12  1           STAX D     (DE) <- A  
+0x13  1           INX D      DE <- DE + 
+0x14  1  Z,S,P,AC INR D      D <- D+1   
+0x15  1  Z,S,P,AC DCR D      D <- D-1   
+0x16  2           MVI D, D8  D <- byte 2
+0x17  1  CY       RAL        A = A << 1;
+0x18              -
+0x19  1  CY       DAD D      HL = HL + D
+0x1a  1           LDAX D     A <- (DE)  
+0x1b  1           DCX D      DE = DE-1  
+0x1c  1  Z,S,P,AC INR E      E <-E+1    
+0x1d  1  Z,S,P,AC DCR E      E <- E-1   
+0x1e  2           MVI E,D8   E <- byte 2
+0x1f  1  CY       RAR        A = A >> 1;
+0x20  1           RIM        special    
+0x21  3           LXI H,D16  H <- byte 3
+0x22  3           SHLD adr   (adr) <-L; 
+0x23  1           INX H      HL <- HL + 
+0x24  1  Z,S,P,AC INR H      H <- H+1   
+0x25  1  Z,S,P,AC DCR H      H <- H-1   
+0x26  2           MVI H,D8   H <- byte 2
+0x27  1           DAA        special    
+0x28              -
+0x29  1  CY       DAD H      HL = HL + H
+0x2a  3           LHLD adr   L <- (adr);
+0x2b  1           DCX H      HL = HL-1  
+0x2c  1  Z,S,P,AC INR L      L <- L+1   
+0x2d  1  Z,S,P,AC DCR L      L <- L-1   
+0x2e  2           MVI L, D8  L <- byte 2
+0x2f  1           CMA        A <- !A    
+0x30  1           SIM        special    
+0x31  3           LXI SP, D16SP.hi <- by
+0x32  3           STA adr    (adr) <- A 
+0x33  1           INX SP     SP = SP + 1
+0x34  1  Z,S,P,AC INR M      (HL) <- (HL
+0x35  1  Z,S,P,AC DCR M      (HL) <- (HL
+0x36  2           MVI M,D8   (HL) <- byt
+0x37  1  CY       STC        CY = 1     
+0x38              -
+0x39  1  CY       DAD SP     HL = HL + S
+0x3a  3           LDA adr    A <- (adr) 
+0x3b  1           DCX SP     SP = SP-1  
+0x3c  1  Z,S,P,AC INR A      A <- A+1   
+0x3d  1  Z,S,P,AC DCR A      A <- A-1   
+0x3e  2           MVI A,D8   A <- byte 2
+0x3f  1  CY       CMC        CY=!CY     
+0x40  1           MOV B,B    B <- B     
+0x41  1           MOV B,C    B <- C     
+0x42  1           MOV B,D    B <- D     
+0x43  1           MOV B,E    B <- E     
+0x44  1           MOV B,H    B <- H     
+0x45  1           MOV B,L    B <- L     
+0x46  1           MOV B,M    B <- (HL)  
+0x47  1           MOV B,A    B <- A     
+0x48  1           MOV C,B    C <- B     
+0x49  1           MOV C,C    C <- C     
+0x4a  1           MOV C,D    C <- D     
+0x4b  1           MOV C,E    C <- E     
+0x4c  1           MOV C,H    C <- H     
+0x4d  1           MOV C,L    C <- L     
+0x4e  1           MOV C,M    C <- (HL)  
+0x4f  1           MOV C,A    C <- A     
+0x50  1           MOV D,B    D <- B     
+0x51  1           MOV D,C    D <- C     
+0x52  1           MOV D,D    D <- D     
+0x53  1           MOV D,E    D <- E     
+0x54  1           MOV D,H    D <- H     
+0x55  1           MOV D,L    D <- L     
+0x56  1           MOV D,M    D <- (HL)  
+0x57  1           MOV D,A    D <- A     
+0x58  1           MOV E,B    E <- B     
+0x59  1           MOV E,C    E <- C     
+0x5a  1           MOV E,D    E <- D     
+0x5b  1           MOV E,E    E <- E     
+0x5c  1           MOV E,H    E <- H     
+0x5d  1           MOV E,L    E <- L     
+0x5e  1           MOV E,M    E <- (HL)  
+0x5f  1           MOV E,A    E <- A     
+0x60  1           MOV H,B    H <- B     
+0x61  1           MOV H,C    H <- C     
+0x62  1           MOV H,D    H <- D     
+0x63  1           MOV H,E    H <- E     
+0x64  1           MOV H,H    H <- H     
+0x65  1           MOV H,L    H <- L     
+0x66  1           MOV H,M    H <- (HL)  
+0x67  1           MOV H,A    H <- A     
+0x68  1           MOV L,B    L <- B     
+0x69  1           MOV L,C    L <- C     
+0x6a  1           MOV L,D    L <- D     
+0x6b  1           MOV L,E    L <- E     
+0x6c  1           MOV L,H    L <- H     
+0x6d  1           MOV L,L    L <- L     
+0x6e  1           MOV L,M    L <- (HL)  
+0x6f  1           MOV L,A    L <- A     
+0x70  1           MOV M,B    (HL) <- B  
+0x71  1           MOV M,C    (HL) <- C  
+0x72  1           MOV M,D    (HL) <- D  
+0x73  1           MOV M,E    (HL) <- E  
+0x74  1           MOV M,H    (HL) <- H  
+0x75  1           MOV M,L    (HL) <- L  
+0x76  1           HLT        special    
+0x77  1           MOV M,A    (HL) <- A  
+0x78  1           MOV A,B    A <- B     
+0x79  1           MOV A,C    A <- C     
+0x7a  1           MOV A,D    A <- D     
+0x7b  1           MOV A,E    A <- E     
+0x7c  1           MOV A,H    A <- H     
+0x7d  1           MOV A,L    A <- L     
+0x7e  1           MOV A,M    A <- (HL)  
+0x7f  1           MOV A,A    A <- A     
+0x80  1 Z,S,P,CY  ADD B      A <- A + B 
+0x81  1 Z,S,P,CY  ADD C      A <- A + C 
+0x82  1 Z,S,P,CY  ADD D      A <- A + D 
+0x83  1 Z,S,P,CY  ADD E      A <- A + E 
+0x84  1 Z,S,P,CY  ADD H      A <- A + H 
+0x85  1 Z,S,P,CY  ADD L      A <- A + L 
+0x86  1 Z,S,P,CY  ADD M      A <- A + (H
+0x87  1 Z,S,P,CY  ADD A      A <- A + A 
+0x88  1 Z,S,P,CY  ADC B      A <- A + B 
+0x89  1 Z,S,P,CY  ADC C      A <- A + C 
+0x8a  1 Z,S,P,CY  ADC D      A <- A + D 
+0x8b  1 Z,S,P,CY  ADC E      A <- A + E 
+0x8c  1 Z,S,P,CY  ADC H      A <- A + H 
+0x8d  1 Z,S,P,CY  ADC L      A <- A + L 
+0x8e  1 Z,S,P,CY  ADC M      A <- A + (H
+0x8f  1 Z,S,P,CY  ADC A      A <- A + A 
+0x90  1 Z,S,P,CY  SUB B      A <- A - B 
+0x91  1 Z,S,P,CY  SUB C      A <- A - C 
+0x92  1 Z,S,P,CY  SUB D      A <- A + D 
+0x93  1 Z,S,P,CY  SUB E      A <- A - E 
+0x94  1 Z,S,P,CY  SUB H      A <- A + H 
+0x95  1 Z,S,P,CY  SUB L      A <- A - L 
+0x96  1 Z,S,P,CY  SUB M      A <- A + (H
+0x97  1 Z,S,P,CY  SUB A      A <- A - A 
+0x98  1 Z,S,P,CY  SBB B      A <- A - B 
+0x99  1 Z,S,P,CY  SBB C      A <- A - C 
+0x9a  1 Z,S,P,CY  SBB D      A <- A - D 
+0x9b  1 Z,S,P,CY  SBB E      A <- A - E 
+0x9c  1 Z,S,P,CY  SBB H      A <- A - H 
+0x9d  1 Z,S,P,CY  SBB L      A <- A - L 
+0x9e  1 Z,S,P,CY  SBB M      A <- A - (H
+0x9f  1 Z,S,P,CY  SBB A      A <- A - A 
+0xa0  1 Z,S,P,CY  ANA B      A <- A & B 
+0xa1  1 Z,S,P,CY  ANA C      A <- A & C 
+0xa2  1 Z,S,P,CY  ANA D      A <- A & D 
+0xa3  1 Z,S,P,CY  ANA E      A <- A & E 
+0xa4  1 Z,S,P,CY  ANA H      A <- A & H 
+0xa5  1 Z,S,P,CY  ANA L      A <- A & L 
+0xa6  1 Z,S,P,CY  ANA M      A <- A & (H
+0xa7  1 Z,S,P,CY  ANA A      A <- A & A 
+0xa8  1 Z,S,P,CY  XRA B      A <- A ^ B 
+0xa9  1 Z,S,P,CY  XRA C      A <- A ^ C 
+0xaa  1 Z,S,P,CY  XRA D      A <- A ^ D 
+0xab  1 Z,S,P,CY  XRA E      A <- A ^ E 
+0xac  1 Z,S,P,CY  XRA H      A <- A ^ H 
+0xad  1 Z,S,P,CY  XRA L      A <- A ^ L 
+0xae  1 Z,S,P,CY  XRA M      A <- A ^ (H
+0xaf  1 Z,S,P,CY  XRA A      A <- A ^ A 
+0xb0  1 Z,S,P,CY  ORA B      A <- A | B 
+0xb1  1 Z,S,P,CY  ORA C      A <- A | C 
+0xb2  1 Z,S,P,CY  ORA D      A <- A | D 
+0xb3  1 Z,S,P,CY  ORA E      A <- A | E 
+0xb4  1 Z,S,P,CY  ORA H      A <- A | H 
+0xb5  1 Z,S,P,CY  ORA L      A <- A | L 
+0xb6  1 Z,S,P,CY  ORA M      A <- A | (H
+0xb7  1 Z,S,P,CY  ORA A      A <- A | A 
+0xb8  1 Z,S,P,CY  CMP B      A - B      
+0xb9  1 Z,S,P,CY  CMP C      A - C      
+0xba  1 Z,S,P,CY  CMP D      A - D      
+0xbb  1 Z,S,P,CY  CMP E      A - E      
+0xbc  1 Z,S,P,CY  CMP H      A - H      
+0xbd  1 Z,S,P,CY  CMP L      A - L      
+0xbe  1 Z,S,P,CY  CMP M      A - (HL)   
+0xbf  1 Z,S,P,CY  CMP A      A - A      
+0xc0  1           RNZ        if NZ, RET 
+0xc1  1           POP B      C <- (sp); 
+0xc2  3           JNZ adr    if NZ, PC <
+0xc3  3           JMP adr    PC <= adr  
+0xc4  3           CNZ adr    if NZ, CALL
+0xc5  1           PUSH B     (sp-2)<-C; 
+0xc6  2 Z,S,P,CY  ADI D8     A <- A + by
+0xc7  1           RST 0      CALL $0    
+0xc8  1           RZ         if Z, RET  
+0xc9  1           RET        PC.lo <- (s
+0xca  3           JZ adr     if Z, PC <-
+0xcb              -
+0xcc  3           CZ adr     if Z, CALL 
+0xcd  3           CALL adr   (SP-1)<-PC.
+0xce  2 Z,S,P,CY  ACI D8     A <- A + da
+0xcf  1           RST 1      CALL $8    
+0xd0  1           RNC        if NCY, RET
+0xd1  1           POP D      E <- (sp); 
+0xd2  3           JNC adr    if NCY, PC<
+0xd3  2           OUT D8     special    
+0xd4  3           CNC adr    if NCY, CAL
+0xd5  1           PUSH D     (sp-2)<-E; 
+0xd6  2 Z,S,P,CY  SUI D8     A <- A - da
+0xd7  1           RST 2      CALL $10   
+0xd8  1           RC         if CY, RET 
+0xd9              -
+0xda  3           JC adr     if CY, PC<-
+0xdb  2           IN D8      special    
+0xdc  3           CC adr     if CY, CALL
+0xdd              -
+0xde  2 Z,S,P,CY  SBI D8     A <- A - da
+0xdf  1           RST 3      CALL $18   
+0xe0  1           RPO        if PO, RET 
+0xe1  1           POP H      L <- (sp); 
+0xe2  3           JPO adr    if PO, PC <
+0xe3  1           XTHL       L <-> (SP);
+0xe4  3           CPO adr    if PO, CALL
+0xe5  1           PUSH H     (sp-2)<-L; 
+0xe6  2 Z,S,P,CY  ANI D8     A <- A & da
+0xe7  1           RST 4      CALL $20   
+0xe8  1           RPE        if PE, RET 
+0xe9  1           PCHL       PC.hi <- H;
+0xea  3           JPE adr    if PE, PC <
+0xeb  1           XCHG       H <-> D; L 
+0xec  3           CPE adr    if PE, CALL
+0xed              -
+0xee  2 Z,S,P,CY  XRI D8     A <- A ^ da
+0xef  1           RST 5      CALL $28   
+0xf0  1           RP         if P, RET  
+0xf1  1           POP PSW    flags <- (s
+0xf2  3           JP adr     if P=1 PC <
+0xf3  1           DI         special    
+0xf4  3           CP adr     if P, PC <-
+0xf5  1           PUSH PSW   (sp-2)<-fla
+0xf6  2 Z,S,P,CY  ORI D8     A <- A | da
+0xf7  1           RST 6      CALL $30   
+0xf8  1           RM         if M, RET  
+0xf9  1           SPHL       SP=HL      
+0xfa  3           JM adr     if M, PC <-
+0xfb  1           EI         special    
+0xfc  3           CM adr     if M, CALL 
+0xfd              -
+0xfe  2 Z,S,P,CY  CPI D8     A - data   
+0xff  1           RST 7      CALL $38  
 
 --------------------------------------------------------------------------------
 eof

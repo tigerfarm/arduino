@@ -5,18 +5,23 @@ These are my machine code programs.
 Sample Method Programs
 + [Loop](#loop)
 
-Opcode Test Programs,
+### Opcode Test Programs
+
 + [ANI](#test-opcode-ani) : AND # (immediate db) with register A.
++ [XRA](#test-opcode-xra) : Exclusive OR, the register(R) with register A.
+
 + [DAD](#test-opcode-dad) : Add register pair(RP, B:C or D:E) to H:L (16 bit add). And set carry bit.
 + [INX](#test-opcode-inx) : Increment a register pair (a 16 bit value): B:C, D:E, H:L.
-+ [LDA and STA](#test-opcodes-lda-and-sta) : Load register A with data from the address, a(hb:lb).
++ [INR](#test-opcodes-inr-and-dcr) : Increment a register.
++ [DCR](#test-opcodes-inr-and-dcr) : Decrement a register.
+
++ [LDA](#test-opcodes-lda-and-sta) : Load register A with data from the address, a(hb:lb).
++ [STA](#test-opcodes-lda-and-sta) : Store register A, as data, to the address, a(hb:lb).
 + [LDAX](#test-opcode-ldax) : Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.
 + [LXI](#test-opcode-lxi) : Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L.
-+ [INR and DCR](#test-opcodes-inr-and-dcr) : Increment and decrement registers.
 + [MVI and MOV](#test-opcodes-mvi-and-mov) : Move source register data, to the destination register.
 + [MVI](#test-opcode-mvi) : Move a number (#, db) to a register.
 + [SHLD](#test-opcode-shld) : Store L value to memory location: a(hb:lb). Store H value at: a + 1.
-+ [XRA](#test-opcode-xra) : Exclusive OR, the register(R) with register A.
 
 Other Test Programs,
 + [The Initial Programs that I started with](#the-initial-programs-that-i-started-with)
@@ -24,9 +29,11 @@ Other Test Programs,
 + [Altair 8800 Kill the Bit](#kill-the-bit-program)
 + [Other test programs](#other-test-programs-1)
 
+My first test program, a jump loop.
 ````
 // Define a jump loop program byte array.
 byte jumpLoopProgram[] = {
+                    // Memory address:
   0303, 0006, 0000, // 0 1 2
   0000, 0000, 0000, // 3 4 5
   0303, 0000, 0000  // 6 7 8
@@ -51,31 +58,29 @@ byte jumpLoopProgram[] = {
 
 byte theProgram[] = {
   //                //            ; --------------------------------------
-  //                // Start:       ; Start
-  //
-  0343, 38,         // out 38     ; Print the intial register values.
-  0166,             // hlt
+  //                // Start:     ; Start
   //
   //                //            ; --------------------------------------
-  //                //            ; Intialize register values.
+  //                //            ; Initialize register values.
   //
   0041, 0000, 0000, // lxi h,Start  ; lxi_HL lb hb. Load into register H:L = 0000:0000.
-  0176,             // mov M      ; Move the data in register M(register address H:L), to register A.
+  0176,             // mov M      ; Move the data in register M address(register address H:L), to register A.
+  //
   0006, 0001,       // mvi b,1    ; Move db to register B.
   0016, 0002,       // mvi c,2    ; Move db to register C.
   0127,             // mov d,a    ; Move register a to register D.
   0036, 0003,       // mvi e,3    ; Move db to register E.
   //
-  0343, 38,         // out 38     ; Print the Intialized register values.
+  0343, 38,         // out 38     ; Print the Initialized register values.
   0166,             // hlt
   //
   //                //            ; --------------------------------------
-  //                // LOOP:      ; Change values and loop.
+  //                // Loop:      ; Change values and loop.
   0043,             // inx M      ; Increment register M(register address H:L).
   0176,             // mov M      ; Move the data in register M(register address H:L), to register A.
   0343, 38,         // out 38     ; Print the registers.
   0166,             // hlt
-  0303, 14, 0000,   // jmp        ; Jump to LOOP.
+  0303, 14, 0000,   // jmp Loop   ; Jump to the Loop label address.
   0000              //            ; End.
 };
 ````
