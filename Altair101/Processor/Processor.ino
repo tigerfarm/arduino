@@ -120,25 +120,32 @@
 
 byte theProgram[] = {
   //                //            ; --------------------------------------
-  //                // Start:     ; Test stack opcodes PUSH and POP.
-  // PUSH RP   11RP0101 Push    register pair (B:C or D:E) onto the stack
-  // POP RP    11RP0001 Pop     register pair (B:C or D:E) from the stack
+  //                //            ; Test stack opcodes.
   // CALL a    11001101 lb hb   Unconditional subroutine call
   // RET       11001001         Unconditional return from subroutine
+  // PUSH RP   11RP0101 Push    register pair (B:C or D:E) onto the stack
+  // POP RP    11RP0001 Pop     register pair (B:C or D:E) from the stack
   //
+  //                // Start:     ; Test stack opcodes:
   0303, 4, 0,       // jmp Test   ; Jump to bypass the subroutine and the halt command.
   //
+  //                //            ; --------------------------------------
+  //                //            ; Subroutine to increment register B.
   //                // IncrementB:
-  B00000100,        // inr b
-  0343, 30,         // out b      ; Print register b.
+  B00000100,        // inr b      ; Increment register B.
   B11001001,        // ret        ; Return to the caller address + 1.
   //
-  //                // Halt:      ; Halt, address: 7.
+  //                //            ; --------------------------------------
+  //                // Halt:      ; Halt, address: 5.
   0166,             // hlt        ; Then, the program will halt at each iteration.
   //                // Test:
   //
-  // -----------------------------------------------------------------------------
-  // ORA S     10110SSS          ZSPCA   OR source register with A
+  //                //            ; --------------------------------------
+  0,                // NOP
+  B00000110, 1,     // mvi b,7
+  B11001101, 3,     // call IncrementB
+  0343, 30,         // out b      ; Print register B, value = 8.
+  0,                // NOP
   //
   //1RRR110 mvi
   B00000110, 1,     // mvi b,1    ; Move # to register B:    01 000 110 = 70
@@ -151,24 +158,28 @@ byte theProgram[] = {
   //1RP0101 push
   B11010101,        // push d     ; Push register pair D:E onto the stack.
   //
+  B00010110, 3,     // mvi h,7
+  B00011110, 5,     // mvi l,11
+  //1RP0101 push
+  B11100101,        // push h     ; Push register pair H:L onto the stack.
+  //
   B00000110, 0,     // mvi b,0
   B00001110, 0,     // mvi c,0
   //1RP0001 pop
-  B11000001,        // pop d      ; Pop register pair D:E from the stack.
+  B11000001,        // pop b      ; Pop register pair B:C from the stack.
   //
   B00010110, 0,     // mvi d,0
   B00011110, 0,     // mvi e,0
   //1RP0001 pop
   B11010001,        // pop d      ; Pop register pair D:E from the stack.
   //
-  B00000110, 1,     // mvi b,7
-  0,                // NOP
-  B11001101, 3,     // call IncrementB
-  0,                // NOP
+  B00010110, 0,     // mvi h,0
+  B00011110, 0,     // mvi l,0
+  //1RP0001 pop
+  B11100001,        // pop h      ; Pop register pair H:L from the stack.
   //
-  // -----------------------------------------------------------------------------
-  0303, 7, 0,       // jmp Halt   ; Jump back to the start halt command.
-  //
+  //                //            ; --------------------------------------
+  0303, 5, 0,       // jmp Halt   ; Jump back to the start halt command.
   0000              //            ; End.
 };
 
@@ -564,6 +575,39 @@ void processOpcode() {
 #ifdef LOG_MESSAGES
       Serial.print(F("> cpi, compare next data byte to A. Store true or false into compareResult."));
 #endif
+      break;
+    // ---------------------------------------------------------------------
+    // Stack opcodes.
+    // PUSH RP   11RP0101 Push    register pair (B:C or D:E) onto the stack. 1 cycles.
+    // POP RP    11RP0001 Pop     register pair (B:C or D:E) from the stack. 1 cycles.
+    // -----------------
+    // CALL a    11001101 lb hb   Unconditional subroutine call. 3 cycles.
+    case B11001101:
+      opcode = B11001101;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> call, call a subroutine."));
+#endif
+      Serial.print(F(" - Error, unhandled instruction: call."));
+      runProgram = false;
+      statusByte = statusByte | WAIT_ON;
+      statusByte = statusByte | M1_ON;
+      statusByte = statusByte | HLTA_ON;
+      // displayStatusAddressData();
+      digitalWrite(WAIT_PIN, HIGH);
+      break;
+    // -----------------
+    // RET  11001001  Unconditional return from subroutine. 1 cycles.
+    case B11001001:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> ret, return from a subroutine."));
+#endif
+      Serial.print(F(" - Error, unhandled instruction: ret."));
+      runProgram = false;
+      statusByte = statusByte | WAIT_ON;
+      statusByte = statusByte | M1_ON;
+      statusByte = statusByte | HLTA_ON;
+      // displayStatusAddressData();
+      digitalWrite(WAIT_PIN, HIGH);
       break;
     // ---------------------------------------------------------------------
     // dad RP   00RP1001  Add register pair(RP) to H:L (16 bit add). And set carry bit.
