@@ -211,7 +211,7 @@ The following is from:
 0xc6  2 Z,S,P,CY  ADI D8     A <- A + by
 0xc7  1           RST 0      CALL $0    
 0xc8  1           RZ         if Z, RET  
-0xc9  1           RET        PC.lo <- (s
+0xc9  1           RET        PC.lo <- (sp); PC.hi<-(sp+1); SP <- SP+2
 0xca  3           JZ adr     if Z, PC <-
 0xcb              -
 0xcc  3           CZ adr     if Z, CALL 

@@ -121,10 +121,10 @@
 byte theProgram[] = {
   //                //            ; --------------------------------------
   //                //            ; Test stack opcodes.
-  // CALL a    11001101 lb hb   Unconditional subroutine call
-  // RET       11001001         Unconditional return from subroutine
-  // PUSH RP   11RP0101 Push    register pair (B:C or D:E) onto the stack
-  // POP RP    11RP0001 Pop     register pair (B:C or D:E) from the stack
+  // CALL a    11001101 lb hb   Unconditional subroutine call.              (SP-1)<-PC.
+  // RET       11001001         Unconditional return from subroutine        PC.lo <- (sp); PC.hi<-(sp+1); SP <- SP+2
+  // PUSH RP   11RP0101 Push    register pair (B, D, or H) onto the stack.  (sp-2) <- RP;
+  // POP RP    11RP0001 Pop     register pair (B, D, or H) from the stack.  RP <- (sp);
   //
   //                // Start:     ; Test stack opcodes:
   0303, 4, 0,       // jmp Test   ; Jump to bypass the subroutine and the halt command.
