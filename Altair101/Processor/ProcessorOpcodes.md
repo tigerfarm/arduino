@@ -47,6 +47,8 @@ dcr D    00 DDD 101  Decrement a register. To do, set flags: ZSPA.
 inx RP   00 RP0 011  Increment a register pair (a 16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
 
 Process:
+call a   11 001 101  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.
+ret      11 001 001  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.
 hlt      01 110 110  Halt processor.
 nop      00 000 000  No operation. I added a delay: delay(100).
 out pa   11 010 011  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
@@ -56,6 +58,7 @@ out pa   11 010 011  Write the accumulator data out to port a. I'm using this op
 Opcode   Binary      Description
 -------------------------------------
 ani #    11 100 110  AND # (immediate db) with register A.
+call a   11 001 101  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.
 cpi #    11 111 110  Compare # to A. Store true or false into compareResult.
 dad RP   00 RP1 001  Add register pair(RP, B:C or D:E) to H:L (16 bit add). And set carry bit.
 dcr D    00 DDD 101  Decrement a register. To do, set flags: ZSPA.
@@ -73,6 +76,7 @@ mvi R,#  00 RRR 110  Move a number (#, db) to a register.
 nop      00 000 000  No operation. I added a delay: delay(100).
 ora R    10 110 SSS  OR register R, with register A.
 out pa   11 010 011  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
+ret      11 001 001  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.
 rrc      00 001 111  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
 shld a   00 100 010  Store L value to memory location: a(hb:lb). Store H value at: a + 1.
 sta a    00 110 010  Store register A to the hb:lb address.
@@ -91,8 +95,6 @@ Inst      Encoding          Flags   Description
 ----------------------------------------------------------------------
 PUSH RP   11RP0101 *2       -       Push register pair on the stack
 POP RP    11RP0001 *2       *2      Pop  register pair from the stack
-CALL a    11001101 lb hb    -       Unconditional subroutine call
-RET       11001001          -       Unconditional return from subroutine
 
 DCX RP    00RP1011          -       Decrement register pair
 LHLD a    00101010 lb hb    -       Load H:L from memory
