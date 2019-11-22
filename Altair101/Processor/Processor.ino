@@ -127,7 +127,7 @@ byte theProgram[] = {
   // POP RP    11RP0001 Pop     register pair (B, D, or H) from the stack.  RP <- (sp);
   //
   //                // Start:     ; Test stack opcodes:
-  0303, 4, 0,       // jmp Test   ; Jump to bypass the subroutine and the halt command.
+  0303, 6, 0,       // jmp Test   ; Jump to bypass the subroutine and the halt command.
   //
   //                //            ; --------------------------------------
   //                //            ; Subroutine to increment register B.
@@ -142,8 +142,8 @@ byte theProgram[] = {
   //
   //                //            ; --------------------------------------
   0,                // NOP
-  B00000110, 1,     // mvi b,7
-  B11001101, 3,     // call IncrementB
+  B00000110, 7,     // mvi b,7
+  B11001101, 3, 0,  // call IncrementB
   0343, 30,         // out b      ; Print register B, value = 8.
   0,                // NOP
   //
@@ -222,7 +222,7 @@ byte theProgramKtb[] = {
 // -----------------------------------------------------------------------------
 // Memory definitions
 
-const int memoryBytes = 512;
+const int memoryBytes = 256;
 byte memoryData[memoryBytes];
 unsigned int programCounter = 0;     // Program address value
 
@@ -578,8 +578,9 @@ void processOpcode() {
       break;
     // ---------------------------------------------------------------------
     // Stack opcodes.
-    // PUSH RP   11RP0101 Push    register pair (B:C or D:E) onto the stack. 1 cycles.
-    // POP RP    11RP0001 Pop     register pair (B:C or D:E) from the stack. 1 cycles.
+    // stacy
+    // PUSH RP   11RP0101 Push    register pair (B, D, or H) onto the stack. 1 cycles.
+    // POP RP    11RP0001 Pop     register pair (B, D, or H) from the stack. 1 cycles.
     // -----------------
     // CALL a    11001101 lb hb   Unconditional subroutine call. 3 cycles.
     case B11001101:
@@ -587,27 +588,32 @@ void processOpcode() {
 #ifdef LOG_MESSAGES
       Serial.print(F("> call, call a subroutine."));
 #endif
-      Serial.print(F(" - Error, unhandled instruction: call."));
+/*
+      Serial.print(F(" - Testing instruction: call."));
       runProgram = false;
       statusByte = statusByte | WAIT_ON;
       statusByte = statusByte | M1_ON;
       statusByte = statusByte | HLTA_ON;
       // displayStatusAddressData();
       digitalWrite(WAIT_PIN, HIGH);
+*/
       break;
     // -----------------
     // RET  11001001  Unconditional return from subroutine. 1 cycles.
     case B11001001:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> ret, return from a subroutine."));
+      Serial.print(F("> ret, Return from a subroutine to the address after the original CALL: "));
 #endif
-      Serial.print(F(" - Error, unhandled instruction: ret."));
-      runProgram = false;
-      statusByte = statusByte | WAIT_ON;
-      statusByte = statusByte | M1_ON;
-      statusByte = statusByte | HLTA_ON;
-      // displayStatusAddressData();
-      digitalWrite(WAIT_PIN, HIGH);
+      stackPointer++;
+      highOrder = stackData[stackPointer];
+      stackPointer++;
+      lowOrder = stackData[stackPointer];
+      programCounter = highOrder * 256 + lowOrder;
+#ifdef LOG_MESSAGES
+      Serial.print(programCounter);
+      Serial.print(F(". stackPointer = "));
+      Serial.print(stackPointer);
+#endif
       break;
     // ---------------------------------------------------------------------
     // dad RP   00RP1001  Add register pair(RP) to H:L (16 bit add). And set carry bit.
@@ -1758,6 +1764,44 @@ void processOpcodeData() {
       printByte(regA);
 #endif
       programCounter++;
+      break;
+    // ---------------------------------------------------------------------
+    // CALL a    11001101 lb hb   Unconditional subroutine call. 3 cycles.
+    // stacy
+    case B11001101:
+      if (instructionCycle == 1) {
+        lowOrder = memoryData[programCounter];
+#ifdef LOG_MESSAGES
+        Serial.print(F("< call, lb: "));
+        sprintf(charBuffer, "%4d:", lowOrder);
+        Serial.print(charBuffer);
+#endif
+        programCounter++;
+        return;
+      }
+      // instructionCycle == 2
+      highOrder = memoryData[programCounter];
+#ifdef LOG_MESSAGES
+      Serial.print(F("< call, hb: "));
+      sprintf(charBuffer, "%4d:", highOrder);
+      Serial.print(charBuffer);
+#endif
+      // instructionCycle == 3
+      // Push the next memory location onto the stack. This will be used by the RET opcode.
+      stackData[stackPointer--] = lowByte(programCounter);
+      stackData[stackPointer--] = highByte(programCounter);
+      // Jump to the subroutine.
+      programCounter = highOrder * 256 + lowOrder;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > call, jumping to the subroutine address: "));
+      Serial.print(programCounter);
+      Serial.print(F(". stackPointer = "));
+      Serial.print(stackPointer);
+      Serial.print(F(", stackData[stackPointer+1] = "));
+      Serial.print(stackData[stackPointer+1]);
+      Serial.print(F(", stackData[stackPointer+2] = "));
+      Serial.print(stackData[stackPointer+2]);
+#endif
       break;
     // ---------------------------------------------------------------------
     case cpi:
