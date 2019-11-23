@@ -158,6 +158,11 @@ const byte WO_ON = B00000010;
 const byte WO_OFF = B11111101;
 const byte WAIT_ON = B00000001;
 const byte WAIT_OFF = B11111110;
+//
+const int M1_PIN = A3;      // On, when current address is an opcode, which is Machine cycle 1. Off when getting an opcodes data bytes.
+const int HLTA_PIN = A2;    // Halt acknowledge, halt instruction executed.
+const int WO_PIN = 10;      // Write Output uses inverse logic. On, not writing output.
+const int WAIT_PIN = A0;    // On, program not running. Off, programrunning.
 
 // -----------------------------------------------------------------------------
 // Program to test opcodes.
@@ -2712,12 +2717,22 @@ void setup() {
 #endif
 
   // ----------------------------------------------------
+  pinMode(WAIT_PIN, OUTPUT);
+  pinMode(M1_PIN, OUTPUT);
+  pinMode(HLTA_PIN, OUTPUT);
+  pinMode(WO_PIN, OUTPUT);
+  //
+  digitalWrite(WAIT_PIN, HIGH);     // Wait: on.
+  digitalWrite(M1_PIN, HIGH);       // MI: on.
+  digitalWrite(HLTA_PIN, LOW);
+  digitalWrite(WO_PIN, HIGH);       // WO: on, Inverse logic: off when writing out. On when not.
+  //
   // Status lights are off by default.
   statusByte = statusByte | WAIT_ON;
   statusByte = statusByte | MEMR_ON;
   statusByte = statusByte | M1_ON;
   statusByte = statusByte | WO_ON;  // WO: on, Inverse logic: off when writing out. On when not.
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  // lightsStatusAddressData(statusByte, programCounter, dataByte);
   Serial.println(F("+ Status LED lights initialized."));
   // ----------------------------------------------------
 
