@@ -2665,8 +2665,8 @@ void buttonCheck() {
     if (digitalRead(dataInputPin) == HIGH) {
       if (!switchState[i]) {
         switchState[i] = true;
-        Serial.print("+ Button pressed: ");
-        Serial.println(i);
+        // Serial.print("+ Button pressed: ");
+        // Serial.println(i);
       }
     } else if (switchState[i]) {
       switchState[i] = false;
