@@ -112,7 +112,7 @@
 
 // #define INCLUDE_LCD 1
 // #define RUN_DELAY 1
-#define RUN_NOW 1
+// #define RUN_NOW 1
 #define LOG_MESSAGES 1
 
 // ------------------------------------------------------------------------
@@ -141,23 +141,24 @@ const int clockPin = 9;           // 74HC595 Clock pin 11 is connected to Nano p
 // HLDA : 8080 processor go into a hold state because of other hardware.
 // INT : An interrupt request has been acknowledged.
 //
-byte statusByte = B00000000;
-const byte MEMR_ON = B10000000;   // Used with OR.
-const byte MEMR_OFF = B01111111;  // Used with AND.
-const byte INP_ON = B01000000;
-const byte INP_OFF = B10111111;
-const byte M1_ON = B00100000;
-const byte M1_OFF = B11011111;
-const byte OUT_ON = B00010000;
-const byte OUT_OFF = B11101111;
-const byte HLTA_ON = B00001000;
-const byte HLTA_OFF = B11110111;
-const byte STACK_ON = B00000100;
-const byte STACK_OFF = B11111011;
-const byte WO_ON = B00000010;
-const byte WO_OFF = B11111101;
-const byte WAIT_ON = B00000001;
-const byte WAIT_OFF = B11111110;
+byte statusByte = B00000000;        // By default, all are OFF.
+const byte MEMR_ON =    B10000000;  // Use OR  to turn ON.
+const byte INP_ON =     B01000000;
+const byte M1_ON =      B00100000;
+const byte OUT_ON =     B00010000;
+const byte HLTA_ON =    B00001000;
+const byte STACK_ON =   B00000100;
+const byte WO_ON =      B00000010;
+const byte WAIT_ON =    B00000001;
+
+const byte MEMR_OFF =   B01111111;  // Use AND to turn OFF.
+const byte INP_OFF =    B10111111;
+const byte M1_OFF =     B11011111;
+const byte OUT_OFF =    B11101111;
+const byte HLTA_OFF =   B11110111;
+const byte STACK_OFF =  B11111011;
+const byte WO_OFF =     B11111101;
+const byte WAIT_OFF =   B11111110;
 
 // -----------------------------------------------------------------------------
 // Program to test opcodes.
@@ -469,28 +470,12 @@ void printData(byte theByte) {
 // ------------------------------------------------------------------------
 // Data LED lights displayed using shift registers.
 
-void displayLedData(byte dataByte) {
-  digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, LSBFIRST, dataByte);
-  digitalWrite(latchPin, HIGH);
-}
-
-void displayLedAddressData(unsigned int data16bits, byte data8bits) {
-  digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, LSBFIRST, data8bits);
-  shiftOut(dataPin, clockPin, LSBFIRST, lowByte(data16bits));
-  shiftOut(dataPin, clockPin, LSBFIRST, highByte(data16bits));
-  digitalWrite(latchPin, HIGH);
-}
-
-// Hardware order, shift order:
-//  Status, address high, address low, data.
 void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) {
   digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, LSBFIRST, status8bits);
-  shiftOut(dataPin, clockPin, LSBFIRST, highByte(address16bits));
-  shiftOut(dataPin, clockPin, LSBFIRST, lowByte(address16bits));
   shiftOut(dataPin, clockPin, LSBFIRST, data8bits);
+  shiftOut(dataPin, clockPin, LSBFIRST, lowByte(address16bits));
+  shiftOut(dataPin, clockPin, LSBFIRST, highByte(address16bits));
+  shiftOut(dataPin, clockPin, MSBFIRST, status8bits); // MSBFIRST matches the bit to LED mapping.
   digitalWrite(latchPin, HIGH);
 }
 
@@ -502,8 +487,7 @@ int instructionCycle = 0;   // Opcode process cycle
 
 void displayStatusAddressData() {
   //
-  // lightsStatusAddressData(statusByte, programCounter, dataByte);
-  displayLedAddressData(programCounter, dataByte);
+  lightsStatusAddressData(statusByte, programCounter, dataByte);
   //
 #ifdef LOG_MESSAGES
   Serial.print(F("Addr: "));
@@ -530,8 +514,7 @@ void processData() {
     Serial.print("> ");
 #endif
     statusByte = statusByte | M1_ON; // Machine cycle 1, get an opcode.
-    digitalWrite(M1_PIN, HIGH);
-    displayStatusAddressData();
+    lightsStatusAddressData(statusByte, programCounter, dataByte);
 #ifdef LOG_MESSAGES
     Serial.print(" ");
 #endif
@@ -542,9 +525,8 @@ void processData() {
 #ifdef LOG_MESSAGES
     Serial.print("+ ");
 #endif
-    statusByte = statusByte | M1_OFF; // Machine cycle 1+x, getting opcode data.
-    digitalWrite(M1_PIN, LOW);
-    displayStatusAddressData();
+    statusByte = statusByte & M1_OFF; // Machine cycle 1+x, getting opcode data.
+    lightsStatusAddressData(statusByte, programCounter, dataByte);
 #ifdef LOG_MESSAGES
     Serial.print(" ");
 #endif
@@ -914,14 +896,10 @@ void processOpcode() {
 #ifdef LOG_MESSAGES
       Serial.println(F("> hlt, halt the processor."));
       statusByte = statusByte | WAIT_ON;
-      statusByte = statusByte | M1_OFF;
+      statusByte = statusByte & MEMR_OFF;
+      statusByte = statusByte & M1_OFF;
       statusByte = statusByte | HLTA_ON;
-      // To do: set all the address and data lights on.
-      // displayStatusAddressData();
-      //
-      digitalWrite(WAIT_PIN, HIGH);
-      digitalWrite(M1_PIN, LOW);
-      digitalWrite(HLTA_PIN, HIGH);
+      lightsStatusAddressData(statusByte, programCounter, dataByte);
 #else
       Serial.println("");
 #endif
@@ -1179,8 +1157,7 @@ void processOpcode() {
       statusByte = statusByte | WAIT_ON;
       statusByte = statusByte | M1_ON;
       statusByte = statusByte | HLTA_ON;
-      // displayStatusAddressData();
-      digitalWrite(WAIT_PIN, HIGH);
+      lightsStatusAddressData(statusByte, programCounter, dataByte);
       break;
     // ------------------------------------------------------------------------------------------
     /*
@@ -1667,8 +1644,7 @@ void processOpcode() {
     // ------------------------------------------------------------------------------------------
     case out:
       opcode = out;
-      statusByte = statusByte | WO_OFF;  // Inverse logic: off writing out. On when not.
-      digitalWrite(WO_PIN, LOW);
+      statusByte = statusByte & WO_OFF;  // Inverse logic: off writing out. On when not.
 #ifdef LOG_MESSAGES
       Serial.print(F("> OUT, Write output to the port address(following db)."));
 #endif
@@ -1821,8 +1797,7 @@ void processOpcode() {
       statusByte = statusByte | WAIT_ON;
       statusByte = statusByte | M1_ON;
       statusByte = statusByte | HLTA_ON;
-      // displayStatusAddressData();
-      digitalWrite(WAIT_PIN, HIGH);
+      lightsStatusAddressData(statusByte, programCounter, dataByte);
   }
 }
 
@@ -2023,7 +1998,7 @@ void processOpcodeData() {
       } else {
         regA = 0;
       }
-      displayLedAddressData(deValue, regA);
+      lightsStatusAddressData(statusByte, deValue, regA);
 #ifdef LOG_MESSAGES
       Serial.print(F("< ldax, the data moved into Accumulator is "));
       printData(regA);
@@ -2039,7 +2014,7 @@ void processOpcodeData() {
       } else {
         regA = 0;
       }
-      displayLedAddressData(deValue, regA);
+      lightsStatusAddressData(statusByte, deValue, regA);
 #ifdef LOG_MESSAGES
       Serial.print(F("< ldax, the data moved into Accumulator is "));
       printData(regA);
@@ -2251,7 +2226,6 @@ void processOpcodeData() {
           Serial.print(F("-- Error, unknow out port number: "));
       }
       statusByte = statusByte | WO_ON;  // Inverse logic: off writing out. On when not.
-      digitalWrite(WO_PIN, HIGH);
       programCounter++;
       break;
     // ------------------------------------------------------------------------------------------
@@ -2361,8 +2335,7 @@ void processOpcodeData() {
       statusByte = statusByte | WAIT_ON;
       statusByte = statusByte | M1_ON;
       statusByte = statusByte | HLTA_ON;
-      // displayStatusAddressData();
-      digitalWrite(WAIT_PIN, HIGH);
+      lightsStatusAddressData(statusByte, programCounter, dataByte);
   }
   // The opcode cycles are complete.
   opcode = 0;
@@ -2424,8 +2397,7 @@ void infraredSwitchControl() {
     case 0xFF5AA5:
     case 0xE0E046B9:
       // Serial.println(F("+ Key > - next: SINGLE STEP toggle/button switch."));
-      statusByte = statusByte | HLTA_OFF;
-      digitalWrite(HLTA_PIN, LOW);
+      statusByte = statusByte & HLTA_OFF;
       processData();
       break;
     case 0xFF18E7:
@@ -2433,10 +2405,8 @@ void infraredSwitchControl() {
       // Serial.println(F("+ Key up"));
       Serial.println(F("+ Run process."));
       runProgram = true;
-      statusByte = statusByte | WAIT_OFF;
-      statusByte = statusByte | HLTA_OFF;
-      digitalWrite(WAIT_PIN, LOW);
-      digitalWrite(HLTA_PIN, LOW);
+      statusByte = statusByte & WAIT_OFF;
+      statusByte = statusByte & HLTA_OFF;
       break;
     case 0xFF4AB5:
     case 0xE0E08679:
@@ -2452,10 +2422,8 @@ void infraredSwitchControl() {
       // Serial.println(F("+ Key OK - Toggle RUN and STOP."));
       Serial.println(F("+ Run process."));
       runProgram = true;
-      statusByte = statusByte | WAIT_OFF;
-      statusByte = statusByte | HLTA_OFF;
-      digitalWrite(WAIT_PIN, LOW);
-      digitalWrite(HLTA_PIN, LOW);
+      statusByte = statusByte & WAIT_OFF;
+      statusByte = statusByte & HLTA_OFF;
       break;
     // -----------------------------------
     case 0xFF9867:
@@ -2561,9 +2529,7 @@ void infraredSwitchInput() {
       Serial.println(F("+ Stop process."));
       runProgram = false;
       statusByte = statusByte | WAIT_ON;
-      statusByte = statusByte | HLTA_OFF;
-      digitalWrite(WAIT_PIN, HIGH);
-      digitalWrite(HLTA_PIN, LOW);
+      statusByte = statusByte & HLTA_OFF;
       break;
     case 0xFF38C7:
     case 0xE0E016E9:
@@ -2571,9 +2537,7 @@ void infraredSwitchInput() {
       Serial.println(F("+ Stop process."));
       runProgram = false;
       statusByte = statusByte | WAIT_ON;
-      statusByte = statusByte | HLTA_OFF;
-      digitalWrite(WAIT_PIN, HIGH);
-      digitalWrite(HLTA_PIN, LOW);
+      statusByte = statusByte & HLTA_OFF;
       break;
     // -----------------------------------
     case 0xFF9867:
@@ -2677,29 +2641,71 @@ void readyLcd() {
 #endif
 
 // -----------------------------------------------------------------------------
+// Input control
+//
+const int dataPinIn = 4;            // 74HC595 Data  pin 14 is connected to Digital pin 7
+const int latchPinIn = 5;           // 74HC595 Latch pin 12 is connected to Digital pin 8
+const int clockPinIn = 6;           // 74HC595 Clock pin 11 is connected to Digital pin 9
+const int dataInputPin = A0;      // Nano data input check pin. Digital pins work and some analog pins work.
+
+// Only do the action once, don't repeat if the button is held down.
+// Don't repeat action if the button is not pressed.
+
+const int numberOfSwitches = 8;
+boolean switchState[numberOfSwitches] = {
+  false, false, false, false, false, false, false, false
+};
+void buttonCheck() {
+  byte dataByte = B10000000;
+  for (int i = 0; i < numberOfSwitches; i++) {
+    digitalWrite(latchPinIn, LOW);
+    shiftOut(dataPinIn, clockPinIn, LSBFIRST, dataByte);
+    digitalWrite(latchPinIn, HIGH);
+    //
+    if (digitalRead(dataInputPin) == HIGH) {
+      if (!switchState[i]) {
+        switchState[i] = true;
+        Serial.print("+ Button pressed: ");
+        Serial.println(i);
+      }
+    } else if (switchState[i]) {
+      switchState[i] = false;
+      //
+      if (i == 1 & runProgram) {
+        Serial.println(F("> hlt, halt the processor."));
+        runProgram = false;
+        statusByte = 0;
+        statusByte = statusByte | WAIT_ON;
+        statusByte = statusByte | HLTA_ON;
+        lightsStatusAddressData(statusByte, programCounter, dataByte);
+      } else if (i == 2) {
+        Serial.println(F("+ Run process."));
+        runProgram = true;
+        statusByte = statusByte & WAIT_OFF;
+        statusByte = statusByte & HLTA_OFF;
+      } else if (i == 3 & !runProgram) {
+        // Single Step
+        statusByte = statusByte & HLTA_OFF;
+        processData();
+      } else {
+        // Serial.print("+ Button released: ");
+        // Serial.println(i);
+      }
+    }
+    //
+    dataByte = dataByte >> 1;
+  }
+  digitalWrite(latchPinIn, LOW);
+  shiftOut(dataPinIn, clockPinIn, LSBFIRST, B1111111);
+  digitalWrite(latchPinIn, HIGH);
+}
+
+// -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
   delay(1000);        // Give the serial connection time to start before the first print.
   Serial.println(""); // Newline after garbage characters.
   Serial.println(F("+++ Setup."));
-
-  // ----------------------------------------------------
-  irrecv.enableIRIn();
-  Serial.println(F("+ infrared receiver ready for input."));
-
-#ifdef INCLUDE_LCD
-  readyLcd();
-  Serial.println(F("+ LCD ready for output."));
-#endif
-
-  // ----------------------------------------------------
-  pinMode(latchPin, OUTPUT);
-  pinMode(clockPin, OUTPUT);
-  pinMode(dataPin, OUTPUT);
-  delay(300);
-  // Initial test pattern.
-  displayLedData(B01010101);
-  Serial.println(F("+ Data LED shift register set."));
 
   // ----------------------------------------------------
   int programSize = sizeof(theProgram);
@@ -2712,13 +2718,41 @@ void setup() {
 #endif
 
   // ----------------------------------------------------
+  irrecv.enableIRIn();
+  Serial.println(F("+ infrared receiver ready for input."));
+
+#ifdef INCLUDE_LCD
+  readyLcd();
+  Serial.println(F("+ LCD ready for output."));
+#endif
+
+  // ----------------------------------------------------
+  pinMode(latchPinIn, OUTPUT);
+  pinMode(clockPinIn, OUTPUT);
+  pinMode(dataPinIn, OUTPUT);
+  pinMode(dataInputPin, INPUT);
+  delay(300);
+  digitalWrite(latchPin, LOW);
+  shiftOut(dataPin, clockPin, LSBFIRST, B11111111);
+  digitalWrite(latchPin, HIGH);
+  Serial.println("+ Ready to monitor input switches.");
+
+  // ----------------------------------------------------
+  pinMode(latchPin, OUTPUT);
+  pinMode(clockPin, OUTPUT);
+  pinMode(dataPin, OUTPUT);
+  delay(300);
+  Serial.println(F("+ Front panel LED shift registers ready."));
+  //
   // Status lights are off by default.
   statusByte = statusByte | WAIT_ON;
   statusByte = statusByte | MEMR_ON;
   statusByte = statusByte | M1_ON;
   statusByte = statusByte | WO_ON;  // WO: on, Inverse logic: off when writing out. On when not.
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
-  Serial.println(F("+ Status LED lights initialized."));
+  // lightsStatusAddressData(statusByte, programCounter, dataByte);
+  int testLights = B10011001 * 256 + B01100110;
+  lightsStatusAddressData(statusByte, testLights, dataByte);
+  Serial.println(F("+ Front panel LED lights initialized."));
   // ----------------------------------------------------
 
   Serial.println(F("+++ Start the processor loop."));
@@ -2751,11 +2785,13 @@ void loop() {
       // + Use the keypress value as input into the running program. Used by opcode: IN.
       infraredSwitchInput();
     }
+    buttonCheck();
   } else {
     if (irrecv.decode(&results)) {
-      // Program control: RUN, SINGLE STEP, EXAMINe, EXAMINE NEXT, Examine previous.
+      // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous.
       infraredSwitchControl();
     }
+    buttonCheck();
     delay(60);
   }
 

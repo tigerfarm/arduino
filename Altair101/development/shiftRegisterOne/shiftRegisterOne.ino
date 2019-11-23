@@ -13,7 +13,7 @@
   + 74HC595 pin 12: Data    pin (SRCLK) to Nano pin 4, data transfer from Nano to 595.
   + 74HC595 pin 11: Clock   pin (SER)  to Nano pin 6, clock signal to say that the data is ready.
   + 74HC595 pin 10: 5V+
-  + 74HC595 pin 09: Not used in single 74HC595. Used to daisy chain to next 74HC595, pin 14 (data).
+  + 74HC595 pin 09: Daisy chain to next 74HC595, pin 14 (data). Not used in single 74HC595.
   + 74HC595 pin 08: Ground (-)
   + 74HC595 pin 07: LED 7.
   + 74HC595 pin 06: LED 6.
