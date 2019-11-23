@@ -7,6 +7,8 @@ Sample Method Programs
 
 ### Opcode Test Programs
 
++ [ANI](#test-stack-opcode) : Test stack opcodes: CALL, RET, PUSH, and POP.
+
 + [ANI](#test-opcode-ani) : AND # (immediate db) with register A.
 + [XRA](#test-opcode-xra) : Exclusive OR, the register(R) with register A.
 
@@ -90,6 +92,104 @@ byte theProgram[] = {
 
 Programs to test the functionality of specific opcodes.
 
+-----------------------------------------------------------------------------
+##### Test stack opcodes
+````
+
+// -----------------------------------------------------------------------------
+// Program to test stack opcodes.
+
+byte theProgram[] = {
+  //                //            ; --------------------------------------
+  //                //            ; Test stack opcodes.
+  // CALL a    11001101 lb hb   Unconditional subroutine call.              (SP-1)<-PC.
+  // RET       11001001         Unconditional return from subroutine        PC.lo <- (sp); PC.hi<-(sp+1); SP <- SP+2
+  // PUSH RP   11RP0101 Push    register pair (B, D, or H) onto the stack.  (sp-2) <- RP;
+  // POP RP    11RP0001 Pop     register pair (B, D, or H) from the stack.  RP <- (sp);
+  //
+  //                // Start:     ; Test stack opcodes:
+  0303, 6, 0,       // jmp Test   ; Jump to bypass the subroutine and the halt command.
+  //
+  //                //            ; --------------------------------------
+  //                //            ; Subroutine to increment register B.
+  //                // IncrementB:
+  B00000100,        // inr b      ; Increment register B.
+  B11001001,        // ret        ; Return to the caller address + 1.
+  //
+  //                //            ; --------------------------------------
+  //                // Halt:      ; Halt, address: 5.
+  0166,             // hlt        ; Then, the program will halt at each iteration.
+  //                // Test:
+  //
+  //                //            ; --------------------------------------
+  0,                // NOP
+  B00000110, 7,     // mvi b,7
+  B11001101, 3, 0,  // call IncrementB
+  0343, 30,         // out b      ; Print register B, value = 8.
+  0,                // NOP
+  //
+  //                //            ; --------------------------------------
+  //0RRR110 mvi
+  B00000110, 1,     // mvi b,1    ; Move # to register B and C.
+  B00001110, 2,     // mvi c,2
+  //1RP0101 push
+  B11000101,        // push b     ; Push register pair B:C onto the stack.
+  //
+  B00000110, 0,     // mvi b,0
+  B00001110, 0,     // mvi c,0
+  //1RP0001 pop
+  B11000001,        // pop b      ; Pop register pair B:C from the stack.
+  //
+  //                //            ; --------------------------------------
+  0,                // NOP
+  B00010110, 3,     // mvi d,3
+  B00011110, 5,     // mvi e,5
+  //1RP0101 push
+  B11010101,        // push d     ; Push register pair D:E onto the stack.
+  //
+  B00010110, 0,     // mvi d,0
+  B00011110, 0,     // mvi e,0
+  //1RP0001 pop
+  B11010001,        // pop d      ; Pop register pair D:E from the stack.
+  //
+  //                //            ; --------------------------------------
+  0,                // NOP
+  B00100110, 7,     // mvi h,7
+  B00101110, 11,    // mvi l,11
+  //1RP0101 push
+  B11100101,        // push h     ; Push register pair H:L onto the stack.
+  //
+  B00100110, 0,     // mvi h,0
+  B00101110, 0,     // mvi l,0
+  //1RP0001 pop
+  B11100001,        // pop h      ; Pop register pair H:L from the stack.
+  //
+  //                //            ; --------------------------------------
+  0,                // NOP
+  //1RP0101 push
+  B11000101,        // push b     ; Push register pair B:C onto the stack.
+  B11010101,        // push d     ; Push register pair D:E onto the stack.
+  B11100101,        // push h     ; Push register pair H:L onto the stack.
+  //0RRR110 mvi
+  B00000110, 0,     // mvi b,0
+  B00001110, 0,     // mvi c,0
+  B00010110, 0,     // mvi d,0
+  B00011110, 0,     // mvi e,0
+  B00100110, 0,     // mvi h,0
+  B00101110, 0,     // mvi l,0
+  0343, 38,         // out 38     ; Print the register values.
+  //1RP0001 pop
+  B11100001,        // pop h      ; Pop register pair H:L from the stack.
+  B11010001,        // pop d      ; Pop register pair D:E from the stack.
+  B11000001,        // pop b      ; Pop register pair B:C from the stack.
+  0343, 38,         // out 38     ; Print the register values.
+  //
+  //                //            ; --------------------------------------
+  0,                // NOP
+  0303, 5, 0,       // jmp Halt   ; Jump back to the start halt command.
+  0000              //            ; End.
+};
+````
 -----------------------------------------------------------------------------
 ##### Test opcode ORA
 ````
