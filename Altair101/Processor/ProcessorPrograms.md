@@ -7,7 +7,7 @@ Sample Method Programs
 
 ### Opcode Test Programs
 
-+ [ANI](#test-stack-opcode) : Test stack opcodes: CALL, RET, PUSH, and POP.
++ [Stack opcodes](#test-stack-opcodes) : Test stack opcodes: CALL, RET, PUSH, and POP.
 
 + [ANI](#test-opcode-ani) : AND # (immediate db) with register A.
 + [XRA](#test-opcode-xra) : Exclusive OR, the register(R) with register A.
