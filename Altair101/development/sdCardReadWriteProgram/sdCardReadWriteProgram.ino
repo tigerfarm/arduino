@@ -186,8 +186,13 @@ void readProgramFileIntoMemory(String theFilename) {
   while (myFile.available()) {
     // Reads one character at a time.
     fileMemoryData[i] = myFile.read();
+    // Print Binary:Octal:Decimal values.
+    Serial.print("B");
     printByte(fileMemoryData[i]);
     Serial.print(":");
+    printOctal (fileMemoryData[i]);
+    Serial.print(":");
+    Serial.println(fileMemoryData[i], DEC);
     i++;
     if (i > memoryBytes) {
       Serial.println("-+ Warning, file contains more data bytes than abailable memory.");
