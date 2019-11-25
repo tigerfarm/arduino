@@ -232,7 +232,6 @@ void setup() {
 
   // Read the SD card file data into an array.
   readProgramFileIntoMemory("dad.asm");
-  // comparedProgramFileIntoMemory();
 
   // ----------------------------------------------------
   Serial.println("+++ Go to loop.");
