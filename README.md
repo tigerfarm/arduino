@@ -35,6 +35,13 @@ Nano       ATmega328P  5 V / 7-9 V      16 MHz     8/0           14/6           
 Mega 2560  ATmega2560  5 V / 7-12 V     16 MHz    16/0           54/15           4             8         256      Regular  4
 Due        ATSAM3X8E   3.3 V / 7-12 V   84 MHz    12/2           54/12           -            96         512      Micro    4
 ```
+
+USB cable wiring:
++ Red: 5V+
++ Black: ground(-)
++ White: data +
++ Green: data -
+
 --------------------------------------------------------------------------------
 ### Set up on my MacBook:
 

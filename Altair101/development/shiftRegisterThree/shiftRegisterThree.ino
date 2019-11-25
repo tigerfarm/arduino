@@ -115,35 +115,11 @@ void setup() {
 void loop() {
   Serial.println("+ Looping");
   delay(3000);
-  // dataByte = 0;  // Initially turns all the LEDs off, by giving the variable 'leds' the value 0
-  // displayLedData(B00000100);
   for (int numberToDisplay = 0; numberToDisplay < 256; numberToDisplay++) {
     displayLedAddressData(programCounter++, dataByte);
     delay(3000);
     displayLedAddressData(programCounter, dataByte++);
     delay(3000);
   }
-  /*
-    dataByte = B01010101;
-    digitalWrite(latchPin, LOW);
-    shiftOut(dataPin, clockPin, LSBFIRST, B01010101);
-    shiftOut(dataPin, clockPin, LSBFIRST, B01010101);
-    digitalWrite(latchPin, HIGH);
-
-    // 300 = 00 000 001 : 00 101 100
-    int aWord16bits = 300;
-    digitalWrite(latchPin, LOW);
-    shiftOut(dataPin, clockPin, LSBFIRST, lowByte(aWord16bits));
-    shiftOut(dataPin, clockPin, LSBFIRST, highByte(aWord16bits));
-    digitalWrite(latchPin, HIGH);
-    delay(3000);
-    displayLedByte(B00010000);
-    for (int numberToDisplay = 0; numberToDisplay < 256; numberToDisplay++) {
-      digitalWrite(latchPin, LOW);
-      shiftOut(dataPin, clockPin, MSBFIRST, numberToDisplay);
-      digitalWrite(latchPin, HIGH);
-      delay(60);
-    }
-  */
 }
 // -----------------------------------------------------------------------------

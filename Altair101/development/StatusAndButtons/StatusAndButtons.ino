@@ -1,7 +1,6 @@
 // -----------------------------------------------------------------------------
 /*
-  Shifting 4 bytes, 8+16+8 bits, to Expand I/O.
-
+    For testing status LED lights, with check buttons.
 */
 
 // -----------------------------------------------------------------------------
@@ -142,15 +141,12 @@ void setup() {
   statusByte = statusByte | MEMR_ON;
   statusByte = statusByte | M1_ON;
   statusByte = statusByte | WO_ON;  // WO: on, Inverse logic: off when writing out. On when not.
-  // statusByte = 10100011
-
-  // lightsStatusAddressData(statusByte, programCounter, dataByte);
-  lightsStatusAddressData(statusByte, testLights, dataByte);
-  printByte(statusByte);
   Serial.println(F("+ Front panel LED lights initialized."));
 
+  testLights = B10011001 * 256 + B01100110;
+  // lightsStatusAddressData(statusByte, programCounter, dataByte);
+  printByte(statusByte);
   lightsStatusAddressData(statusByte, testLights, dataByte);
-
   delay(3000);
   statusByte = B10000000;
   printByte(statusByte);
@@ -166,15 +162,5 @@ void loop() {
   // Serial.println("+ Looping");
   buttonCheck();
   delay(60);
-
-  // B10000000 : MEMR   The memory bus will be used for memory read data.
-  // B01000000 : INP    The address bus containing the address of an input device. The input data should be placed on the data bus when the data bus is in the input mode
-  // B00100000 : M1     Machine cycle 1, fetch opcode.
-  // B00010000 : OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
-  // B00001000 : HLTA   Machine opcode hlt, has halted the machine.
-  // B00000100 : STACK  Stack process
-  // B00000010 : WO     Write out (inverse logic)
-  // B00000001 : WAIT   For now, use this one for WAIT light status
-  // statusByte = 0;
 }
 // -----------------------------------------------------------------------------

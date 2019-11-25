@@ -2,33 +2,21 @@
 /*
   Altair 101 software microprocessor program
 
-  Move status LED lights from digital pins to a shift register,
-  + Wire control status LED lights to use a shift register.
-  + Serach "_PIN" remove the old "_PIN" statements, and use shift register for status lights.
-  + Test.
-
-  +++ Need to confirm/test LED light data, sift order and content.
+  +++ Need to confirm/test LED light data timing and content.
+  + Altair programming video, starting about 6 minutes in:
+    https://www.youtube.com/watch?v=EV1ki6LiEmg
 
   ---------------------------------------------
   Pong requires the RET opcode.
-  + RET requires CALL, which requires PUSH and POP, which requires a stack pointer and stack memory.
-  ++ I created stack memory separate from current memory. Should use current memory?
-  ++ I need to create a stack pointer (type int)
-  ++ Update with operations to increment and decrement the stack pointer (INX and DCX).
-
-  List of opcodes to implement the calling of subroutines, which is required for Pong.
+  + Update with operations to increment and decrement the stack pointer (INX and DCX).
     Code      Binary   Param  Flags   Description
     INX RP   00 RP0 011               Increment a register pair is coded. Need to do the stack pointer.
     DCX RP   00 RP1 011               Decrement register pair, including the stack pointer.
-    PUSH RP  11 RP0 101          -    Push register pair on the stack
-    POP RP   11 RP0 001          -    Pop  register pair from the stack
-    CALL a   11 001 101 lb hb    -    Unconditional subroutine call
-    RET      11 001 001          -    Unconditional return from subroutine
 
   ---------------------------------------------
   Next, hardware and software updates to complete the core hardware and software system:
 
-  + For button usage, wire in the 595 chip to Nano of the dev machine.
+  + For button usage on the dev machine.
   ++ Add switch controls from the shiftRegisterInputSwitch program.
   ++ Implement Examine to view program data.
 
@@ -93,9 +81,6 @@
   Text listing of 8080 opcodes:
     https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/ProcessorOpcodes.txt
     https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodesBinaryList.txt
-
-  Altair programming video, starting about 6 minutes in:
-    https://www.youtube.com/watch?v=EV1ki6LiEmg
 
   Binary calculator:
     https://www.calculator.net/binary-calculator.html
