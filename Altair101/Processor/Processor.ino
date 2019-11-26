@@ -1,58 +1,69 @@
 // -----------------------------------------------------------------------------
 /*
-  Altair 101 software microprocessor program
+  Altair 101 8080 Microprocessor Emulator Program
 
+  ---------------------------------------------
   +++ Need to confirm/test LED light data timing and content.
+  
   + Altair programming video, starting about 6 minutes in:
     https://www.youtube.com/watch?v=EV1ki6LiEmg
 
   ---------------------------------------------
-  Pong requires the RET opcode.
-  + Update with operations to increment and decrement the stack pointer (INX and DCX).
-    Code      Binary   Param  Flags   Description
-    INX RP   00 RP0 011               Increment a register pair is coded. Need to do the stack pointer.
-    DCX RP   00 RP1 011               Decrement register pair, including the stack pointer.
-
-  ---------------------------------------------
   Next, hardware and software updates to complete the core hardware and software system:
 
-  + For button usage on the dev machine.
-  ++ Add switch controls from the shiftRegisterInputSwitch program.
-  ++ Implement Examine to view program data.
-
-  + Solder and add 8 toggles to the dev machine.
-  ++ Add toggle controls from the shiftRegisterInputToggle program.
-  ++ Implement Deposit to enter program data.
-  + Solder and add on/off/on toggles to the dev machine, replacing the buttons.
-  + Solder and add 8 more toggles to the dev machine as sense switches.
-  ++ Get input opcode IN to work.
+  Add 8 toggles to the dev machine.
+  + Solder and add 8 toggles (on/off) to the dev machine.
+  ++ Add toggle software controls from the shiftRegisterInputToggle program.
+  + When a program is not running,
+  ++ Use the toggles to Examine to view program data.
+  ++ Use the toggles to Deposit to enter program data.
+  + When a program is running, use the toggles as sense switches (input).
+  ++ Get IN (input) opcode  to work.
   ++ Test program, Kill the Bit.
-  +++ The final step to completely running Kill the Bit.
+
+  The computer is finally functioning.
+  + Kill the Bit, is the standard defacto basic demostration program of clones and replicas.
+  + And Altair 101 runs it!
+  
+  + Solder and add on/off/on toggles to the dev machine, replacing the buttons.
+  ++ Add Reset, which resets the program counter 0, to start a program over.
 
   The basic development computer is complete!
 
   ---------------------------------------------
-  After the above, I move into the next stage of tuning and enhancing.
+  Add modern I/O components,
 
-  Build my Altair 101 machine,
-  + Work on the final basic design.
-  + Order parts to build the protype machine.
+  + Implement the 1602 LCD for output.
+  + Add SD card features: save program memory to card, load program memory from card.
+  ++ Use an on/off/on toggle: up to save (upload), down to load (download).
+  ++ Confirm message on the LCD: "Confirm save to file x." Or, "Confirm load from file x."
+  +++ The file number, is the toggle value. For example, 003.MEM, is A8 and A9 toggles are up.
+  ++ View the result: "Saved.", "Loaded.", or "Error."
+  + Add DS3231 clock.
+  ++ Use an on/off/on toggle to display the time on the LCD.
+  ++ Time is show on the LCD, when the LCD isn't used by a running program.
+  + Add MP3 player (DFPlayer) and amp.
+  ++ Controled using an infrared controller. At first, independent from programs running.
+
+  ---------------------------------------------
+  Build the first Altair 101 machine,
+  
+  + Complete the final design.
+  + Order parts to build the machine.
   + Make enhancements to the case so that it's ready for the electronic parts.
   + Build a new breadboard computer to fit into the case.
+  ++ Use an Audruino UNO.
   + Put it all together.
 
+  ---------------------------------------------
   Program development,
-  + SD card module implementation to load and run programs.
-  + Update and enhance my set of test and development programs.
-  ++ Debug programs to confirm opcodes are working correctly.
-  ++ Samples: looping, branching, calling subroutines.
-  + A basic assembler to convert my programs to machine code.
+  + A basic assembler to convert assembly programs into machine code.
   + Implement the next major Altair 8800 sample program: Pong.
+  + Update and enhance my set of test and development programs.
+  ++ Samples: looping, branching, calling subroutines.
+  ++ Continue adding opcodes with sample programs to confirm that the opcodes are working correctly.
 
-  I/O Updates,
-  + Clock
-  + MP3 player and amp
-
+  ---------------------------------------------
   ---------------------------------------------
   Processor program sections,
     Sample programs.
@@ -118,44 +129,6 @@ const int dataPin = 7;            // 74HC595 Data  pin 14 is connected to Nano p
 const int latchPin = 8;           // 74HC595 Latch pin 12 is connected to Nano pin.
 const int clockPin = 9;           // 74HC595 Clock pin 11 is connected to Nano pin.
 
-// ------------------------------
-// Status LEDs
-//
-// Info: page 33 of the Altair 8800 oprator's manaul.
-// Bit pattern for the status shift register (SN74HC595N):
-// B10000000 : MEMR   The memory bus will be used for memory read data.
-// B01000000 : INP    The address bus containing the address of an input device. The input data should be placed on the data bus when the data bus is in the input mode
-// B00100000 : M1     Machine cycle 1, fetch opcode.
-// B00010000 : OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
-// B00001000 : HLTA   Machine opcode hlt, has halted the machine.
-// B00000100 : STACK  Stack process
-// B00000010 : WO     Write out (inverse logic)
-// B00000001 : WAIT   For now, use this one for WAIT light status
-// Not in use:
-// INTE : On, interrupts enabled.
-// PROT : Useful only if RAM has page protection impliemented. I'm not implementing PROT.
-// HLDA : 8080 processor go into a hold state because of other hardware.
-// INT : An interrupt request has been acknowledged.
-//
-byte statusByte = B00000000;        // By default, all are OFF.
-const byte MEMR_ON =    B10000000;  // Use OR  to turn ON.
-const byte INP_ON =     B01000000;
-const byte M1_ON =      B00100000;
-const byte OUT_ON =     B00010000;
-const byte HLTA_ON =    B00001000;
-const byte STACK_ON =   B00000100;
-const byte WO_ON =      B00000010;
-const byte WAIT_ON =    B00000001;
-
-const byte MEMR_OFF =   B01111111;  // Use AND to turn OFF.
-const byte INP_OFF =    B10111111;
-const byte M1_OFF =     B11011111;
-const byte OUT_OFF =    B11101111;
-const byte HLTA_OFF =   B11110111;
-const byte STACK_OFF =  B11111011;
-const byte WO_OFF =     B11111101;
-const byte WAIT_OFF =   B11111110;
-
 // -----------------------------------------------------------------------------
 // SD Card module uses SPI.
 #ifdef INCLUDE_SDCARD
@@ -163,10 +136,10 @@ const byte WAIT_OFF =   B11111110;
 #include <SPI.h>
 #include <SD.h>
 
-// SD Card Module is an SPI slave device.
-//  CS (chip/slave select)     to Nano pin 10 (SS pin). Can be any digital pin on the master(Nano) to enable and disable this device on the SPI bus.
+// SD Card Module is an SPI bus slave device.
+//  CS (chip/slave select)     to Nano pin 10 (SS pin). Can be any master(Nano) digital pin to enable/disable this device on the SPI bus.
 // SCK, MOSI, MISO are the SPI hardware pins are declared in the SPI library.
-//  SCK (serial clock)         to Nano pin 13 SPI: accepts clock pulses which synchronize data transmission generated by Arduino
+//  SCK (serial clock)         to Nano pin 13 SPI: accepts clock pulses which synchronize data transmission generated by Arduino.
 //  MOSI (master out slave in) to Nano pin 11 SPI: input to the Micro SD Card Module.
 //  MISO (master in slave Out) to Nano pin 12 SPI: output from the Micro SD Card Module.
 //  VCC (3.3V or 5V)           to Nano pin 5V+
@@ -174,6 +147,7 @@ const byte WAIT_OFF =   B11111110;
 
 // The CS pin is the only one that is not really fixed as any of the Arduino digital pin.
 const int csPin = 10;  // SD Card module is connected to Nano pin 10.
+
 File myFile;
 
 #endif
@@ -357,6 +331,44 @@ void listByteArray(byte btyeArray[], int arraySize) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Front Panel Status LEDs
+
+// ------------------------------
+// Status LEDs
+//
+// Info: page 33 of the Altair 8800 oprator's manaul.
+// Bit pattern for the status shift register (SN74HC595N):
+// B10000000 : MEMR   The memory bus will be used for memory read data.
+// B01000000 : INP    The address bus containing the address of an input device. The input data should be placed on the data bus when the data bus is in the input mode
+// B00100000 : M1     Machine cycle 1, fetch opcode.
+// B00010000 : OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
+// B00001000 : HLTA   Machine opcode hlt, has halted the machine.
+// B00000100 : STACK  Stack process
+// B00000010 : WO     Write out (inverse logic)
+// B00000001 : WAIT   For now, use this one for WAIT light status
+// Not in use:
+// INTE : On, interrupts enabled.
+// PROT : Useful only if RAM has page protection impliemented. I'm not implementing PROT.
+// HLDA : 8080 processor go into a hold state because of other hardware.
+// INT : An interrupt request has been acknowledged.
+//
+byte statusByte = B00000000;        // By default, all are OFF.
+const byte MEMR_ON =    B10000000;  // Use OR  to turn ON.
+const byte INP_ON =     B01000000;
+const byte M1_ON =      B00100000;
+const byte OUT_ON =     B00010000;
+const byte HLTA_ON =    B00001000;
+const byte STACK_ON =   B00000100;
+const byte WO_ON =      B00000010;
+const byte WAIT_ON =    B00000001;
+
+const byte MEMR_OFF =   B01111111;  // Use AND to turn OFF.
+const byte INP_OFF =    B10111111;
+const byte M1_OFF =     B11011111;
+const byte OUT_OFF =    B11101111;
+const byte HLTA_OFF =   B11110111;
+const byte STACK_OFF =  B11111011;
+const byte WO_OFF =     B11111101;
+const byte WAIT_OFF =   B11111110;
 
 // Video demonstrating status lights:
 //    https://www.youtube.com/watch?v=3_73NwB6toY
