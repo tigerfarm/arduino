@@ -1084,7 +1084,7 @@ Here is PONG in octal if you really want to enter it manually!
  140: 312 165 000 173 346 010 302 157   000 173 346 020 302 103 000 041
  160: 200 000 064 036 000 172 007 127   303 113 000
 ````
-Or, load it from an array. Which can be saved to SD card.
+Or, load it from an array. Which can be saved as a binary file on an SD card.
 ````
 byte theProgramPong[] = {
   0001, 0016, 0000, 0061, 0175, 0000, 0041, 0000, 0000, 0042, 0200, 0000, 0021, 0000, 0200, 0303,
