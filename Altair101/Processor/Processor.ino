@@ -56,9 +56,10 @@
   + Put it all together.
 
   ---------------------------------------------
-  Program development,
+  Program Development Phase
+  
   + A basic assembler to convert assembly programs into machine code.
-  + Implement the next major Altair 8800 sample program: Pong.
+  + Implement the next major Altair 8800 sample program, Pong.
   + Update and enhance my set of test and development programs.
   ++ Samples: looping, branching, calling subroutines.
   ++ Continue adding opcodes with sample programs to confirm that the opcodes are working correctly.
