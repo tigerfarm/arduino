@@ -9,8 +9,32 @@
   SPI reference: https://www.arduino.cc/en/Reference/SPI
   SD card library reference: https://www.arduino.cc/en/reference/SD
 */
+
+// #define INCLUDE_LCD 1
+#define INCLUDE_CLOCK 1
+// #define INCLUDE_SDCARD 1
+#define LOG_MESSAGES 1
+
+// -----------------------------------------------------------------------------
+// For the clock board.
+#ifdef INCLUDE_CLOCK
+
+#include "RTClib.h"
+
+RTC_DS3231 rtc;
+DateTime now;
+/*
+  Connect DS3231 Clock, and the LCD display, pins to the Nano:
+  + VCC to Nano 5v, note, also works with 3.3v, example: NodeMCU.
+  + GND to Nano ground.
+  + SDA to Nano D4 (pin 4), same on Uno.
+  + SCL to Nano D5 (pin 5), same on Uno.
+*/
+#endif
+
 // -----------------------------------------------------------------------------
 // SD Card module uses SPI.
+#ifdef INCLUDE_SDCARD
 
 #include <SPI.h>
 #include <SD.h>
@@ -31,6 +55,8 @@ File myFile;
 // Test file name.
 // Files are created using uppercase: F1.TXT.
 String theFilename = "f1.txt";
+
+#endif
 
 // -----------------------------------------------------------------------------
 // Test program to use in this program. The program tests the 16 bit add opcode, dad.
@@ -135,16 +161,19 @@ void printData(byte theByte) {
 
 // -----------------------------------------------------------------------------
 // Write Program memory to a file.
+#ifdef INCLUDE_SDCARD
 
 void writeProgramMemoryToFile(String theFilename) {
+#ifdef LOG_MESSAGES
   Serial.println("+ Write program memory to a new file named: ");
   Serial.print(theFilename);
   Serial.println("+ Check if file exists. ");
+#endif
   if (SD.exists(theFilename)) {
     SD.remove(theFilename);
-    Serial.println("++ Exists, so it was deleted.");
+    // Serial.println("++ Exists, so it was deleted.");
   } else {
-    Serial.println("++ Doesn't exist.");
+    // Serial.println("++ Doesn't exist.");
   }
   myFile = SD.open(theFilename, FILE_WRITE);
   if (!myFile) {
@@ -152,9 +181,11 @@ void writeProgramMemoryToFile(String theFilename) {
     Serial.println(theFilename);
     return; // When used in setup(), causes jump to loop().
   }
+#ifdef LOG_MESSAGES
   Serial.println("++ New file opened.");
   Serial.println("++ Write binary memory to the file.");
-  for (int i =0; i < memoryBytes; i++) {
+#endif
+  for (int i = 0; i < memoryBytes; i++) {
     myFile.write(memoryData[i]);
   }
   myFile.close();
@@ -201,6 +232,170 @@ void readProgramFileIntoMemory(String theFilename) {
   myFile.close();
   Serial.println("+ File closed.");
 }
+#endif
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 1602 LCD
+#ifdef INCLUDE_LCD
+
+#include<Wire.h>
+#include<LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 20, 4);
+
+String theLine = "";
+int displayColumns = 16;
+void displayPrintln(int theRow, String theString) {
+  // To overwrite anything on the current line.
+  String printString = theString;
+  int theRest = displayColumns - theString.length();
+  if (theRest < 0) {
+    // Shorten to the display column length.
+    printString = theString.substring(0, displayColumns);
+  } else {
+    // Buffer with spaces to the end of line.
+    while (theRest < displayColumns) {
+      printString = printString + " ";
+      theRest++;
+    }
+  }
+  lcd.setCursor(0, theRow);
+  lcd.print(printString);
+}
+
+void readyLcd() {
+  lcd.init();
+  lcd.backlight();
+  //                1234567890123456
+  displayPrintln(0, "Altair 101");
+  theLine = "LCD ready...";
+  displayPrintln(1, theLine);
+  // delay(3000);
+  // lcd.clear();
+}
+#endif
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// DS3231 Clock
+#ifdef INCLUDE_CLOCK
+
+int theCursor;
+const int printRowClockDate = 0;
+const int printColClockDate = 0;
+const int printRowClockPulse = 0;
+const int thePrintColHour = 8;
+const int thePrintColMin = thePrintColHour + 3;
+const int thePrintColSec = thePrintColMin + 3;
+
+int theCounterSeconds = 0;
+int theCounterMinutes = 0;
+int theCounterHours = 0;
+
+void syncCountWithClock() {
+  now = rtc.now();
+  theCounterHours = now.hour();
+  theCounterMinutes = now.minute();
+  theCounterSeconds = now.second();
+  //
+#ifdef LOG_MESSAGES
+  Serial.println("+ syncCountWithClock, current time:");
+  Serial.print(" theCounterHours=");
+  Serial.println(theCounterHours);
+  Serial.print(" theCounterMinutes=");
+  Serial.println(theCounterMinutes);
+  Serial.print(" theCounterSeconds=");
+  Serial.println(theCounterSeconds);
+#endif
+}
+
+void processClockNow() {
+  //
+  now = rtc.now();
+  //
+  if (now.second() != theCounterSeconds) {
+    // When the clock second value changes, that's a clock second pulse.
+    theCounterSeconds = now.second();
+    // clockPulseSecond();
+    if (theCounterSeconds == 0) {
+      // When the clock second value changes to zero, that's a clock minute pulse.
+      theCounterMinutes = now.minute();
+      clockPulseMinute();
+      if (theCounterMinutes == 0) {
+        // When the clock minute value changes to zero, that's a clock hour pulse.
+        theCounterHours = now.hour();
+        clockPulseHour();
+      }
+    }
+  }
+}
+
+int theHour = 0;
+void clockPulseHour() {
+  // Use 3, rather than 15.
+  if (theCounterHours > 12) {
+    theHour = theCounterHours - 12;
+  } else if (theCounterHours == 0) {
+    theHour = 12; // 12 midnight, 12am
+  } else {
+    theHour = theCounterHours;
+  }
+#ifdef LOG_MESSAGES
+  Serial.print("++ clockPulseHour(), theCounterHours= ");
+  Serial.print(theCounterHours);
+  Serial.print(", theHour= ");
+  Serial.println(theHour);
+#endif
+  // sendByte2nano(theHour);
+}
+void clockPulseMinute() {
+#ifdef LOG_MESSAGES
+  Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
+  Serial.println(theCounterMinutes);
+  Serial.print("+ theCounterSeconds > ");
+#endif
+  // sevseg.setNumber(theCounterMinutes);
+}
+void clockPulseSecond() {
+#ifdef LOG_MESSAGES
+  Serial.print(theCounterSeconds);
+  Serial.print(".");
+#endif
+  // sevseg.setNumber(theCounterSeconds);
+}
+
+#endif
+
+// -----------------------------------------------------------------------------
+char dayOfTheWeek[7][1] = {"S", "M", "T", "W", "T", "F", "S"};
+#ifdef INCLUDE_LCD
+
+void printClockDate() {
+  theCursor = printColClockDate;
+  lcd.setCursor(theCursor, printRowClockDate);    // Column, Row
+  lcd.print(dayOfTheWeek[now.dayOfTheWeek()]);
+  // ---
+  lcd.setCursor(++theCursor, printRowClockDate);    // Column, Row
+  lcd.print(":");
+  printClockByte(++theCursor, printRowClockDate, now.month());
+  // ---
+  theCursor = theCursor + 2;
+  lcd.print("/");
+  printClockByte(++theCursor, printRowClockDate, now.day());
+}
+
+void printClockByte(int theColumn, int theRow, char theByte) {
+  int iByte = (char)theByte;
+  lcd.setCursor(theColumn, theRow);    // Column, Row
+  if (iByte < 10) {
+    lcd.print("0");
+    lcd.setCursor(theColumn + 1, theRow);
+  }
+  lcd.print(iByte);
+}
+
+#endif
 
 // -----------------------------------------------------------------------------
 void setup() {
@@ -211,14 +406,32 @@ void setup() {
   Serial.println("+++ Setup.");
 
   // ----------------------------------------------------
-  // Note, csPin is optional. The default is the hardware SS line (pin 10) of the SPI bus.
-  // If using pin, other than 10, add: pinMode(otherPin, OUTPUT);
-  // The pin connected to the chip select pin (CS) of the SD card.
-  if (!SD.begin(csPin)) {
-    Serial.println("- Error initializing SD card.");
-    return; // When used in setup(), causes jump to loop().
+#ifdef INCLUDE_LCD
+  readyLcd();
+  Serial.println(F("+ LCD ready for output."));
+#endif
+
+  // ----------------------------------------------------
+#ifdef INCLUDE_CLOCK
+  // RTC: Real Time Clock
+  if (!rtc.begin()) {
+    Serial.println("Couldn't find RTC");
+    while (1);
   }
-  Serial.println("+ SD card initialized.");
+  if (rtc.lostPower()) {
+    Serial.println("RTC lost power, need to reset the time.");
+    rtc.adjust(DateTime(2005, 11, 12, 0, 0, 0));
+  }
+  //
+  // Set for testing.
+  // rtc.adjust(DateTime(2019, 10, 22, 23, 59, 56));
+  // delay(100);
+  //
+  syncCountWithClock();
+  Serial.println("+ Clock set and synched with program variables.");
+  clockPulseMinute();
+  clockPulseHour();
+#endif
 
   // ----------------------------------------------------
   int programSize = sizeof(theProgram);
@@ -227,11 +440,23 @@ void setup() {
   // Load a program.
   copyByteArrayToMemory(theProgram, programSize);
 
+#ifdef INCLUDE_SDCARD
+  // ----------------------------------------------------
+  // Note, csPin is optional. The default is the hardware SS line (pin 10) of the SPI bus.
+  // If using pin, other than 10, add: pinMode(otherPin, OUTPUT);
+  // The pin connected to the chip select pin (CS) of the SD card.
+  if (!SD.begin(csPin)) {
+    Serial.println("- Error initializing SD card.");
+    return; // When used in setup(), causes jump to loop().
+  }
+  Serial.println("+ SD card initialized.");
+  //
   // Write the file to the SD card.
   // writeProgramMemoryToFile("dad.asm");
-
+  //
   // Read the SD card file data into an array.
   readProgramFileIntoMemory("dad.asm");
+#endif
 
   // ----------------------------------------------------
   Serial.println("+++ Go to loop.");
@@ -239,8 +464,21 @@ void setup() {
 
 // -----------------------------------------------------------------------------
 // Device Loop
+#ifdef INCLUDE_CLOCK
+static unsigned long clockTimer = millis();
+#endif
 void loop() {
+  
+#ifdef INCLUDE_CLOCK
+  // Check the clock and pulse when the clock's second value changes.
+  if (millis() - clockTimer >= 200) {
+    processClockNow();
+    clockTimer = millis();
+  }
+#else
   Serial.println("+ Looping");
   delay(10000);
+#endif
+
 }
 // -----------------------------------------------------------------------------
