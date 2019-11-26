@@ -14,7 +14,7 @@
 #define INCLUDE_CLOCK 1
 #define CLOCK_MESSAGES 1
 // #define INCLUDE_SDCARD 1
-#define LOG_MESSAGES 1
+// #define SDCARD_MESSAGES 1
 
 // -----------------------------------------------------------------------------
 // For the clock board.
@@ -170,7 +170,7 @@ void printData(byte theByte) {
 // Write Program Memory To File
 
 void writeProgramMemoryToFile(String theFilename) {
-#ifdef LOG_MESSAGES
+#ifdef SDCARD_MESSAGES
   Serial.println("+ Write program memory to a new file named: ");
   Serial.print(theFilename);
   Serial.println("+ Check if file exists. ");
@@ -187,7 +187,7 @@ void writeProgramMemoryToFile(String theFilename) {
     Serial.println(theFilename);
     return; // When used in setup(), causes jump to loop().
   }
-#ifdef LOG_MESSAGES
+#ifdef SDCARD_MESSAGES
   Serial.println("++ New file opened.");
   Serial.println("++ Write binary memory to the file.");
 #endif
@@ -195,7 +195,9 @@ void writeProgramMemoryToFile(String theFilename) {
     myFile.write(memoryData[i]);
   }
   myFile.close();
+#ifdef SDCARD_MESSAGES
   Serial.println("+ Completed, file closed.");
+#endif
 }
 
 // -----------------------------
@@ -204,25 +206,32 @@ void writeProgramMemoryToFile(String theFilename) {
 byte fileMemoryData[memoryBytes];
 
 void readProgramFileIntoMemory(String theFilename) {
+#ifdef SDCARD_MESSAGES
   Serial.println("+ Read a file into program memory, file named: ");
   Serial.print(theFilename);
   Serial.println("+ Check if file exists. ");
+#endif
   if (SD.exists(theFilename)) {
+#ifdef SDCARD_MESSAGES
     Serial.println("++ Exists, so it can be read.");
+#endif
   } else {
-    Serial.println("++ Doesn't exist, cannot read.");
+    Serial.println("-- Doesn't exist, cannot read.");
     return;
   }
   myFile = SD.open(theFilename);
   if (!myFile) {
+#ifdef SDCARD_MESSAGES
     Serial.print("- Error opening file: ");
     Serial.println(theFilename);
+#ifdef SDCARD_MESSAGES
     return;
   }
   int i = 0;
   while (myFile.available()) {
     // Reads one character at a time.
     fileMemoryData[i] = myFile.read();
+#ifdef SDCARD_MESSAGES
     // Print Binary:Octal:Decimal values.
     Serial.print("B");
     printByte(fileMemoryData[i]);
@@ -230,13 +239,16 @@ void readProgramFileIntoMemory(String theFilename) {
     printOctal (fileMemoryData[i]);
     Serial.print(":");
     Serial.println(fileMemoryData[i], DEC);
+#endif
     i++;
     if (i > memoryBytes) {
       Serial.println("-+ Warning, file contains more data bytes than abailable memory.");
     }
   }
   myFile.close();
+#ifdef SDCARD_MESSAGES
   Serial.println("+ File closed.");
+#endif
 }
 #endif
 
