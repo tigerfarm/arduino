@@ -12,6 +12,7 @@
 
 // #define INCLUDE_LCD 1
 #define INCLUDE_CLOCK 1
+#define CLOCK_MESSAGES 1
 // #define INCLUDE_SDCARD 1
 #define LOG_MESSAGES 1
 
@@ -160,8 +161,13 @@ void printData(byte theByte) {
 }
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 // Write Program memory to a file.
 #ifdef INCLUDE_SDCARD
+
+// -----------------------------
+// Write Program Memory To File
 
 void writeProgramMemoryToFile(String theFilename) {
 #ifdef LOG_MESSAGES
@@ -192,8 +198,8 @@ void writeProgramMemoryToFile(String theFilename) {
   Serial.println("+ Completed, file closed.");
 }
 
-// -----------------------------------------------------------------------------
-// Open and read a file.
+// -----------------------------
+// Read Program File Into Memory
 
 byte fileMemoryData[memoryBytes];
 
@@ -299,7 +305,7 @@ void syncCountWithClock() {
   theCounterMinutes = now.minute();
   theCounterSeconds = now.second();
   //
-#ifdef LOG_MESSAGES
+#ifdef CLOCK_MESSAGES
   Serial.println("+ syncCountWithClock, current time:");
   Serial.print(" theCounterHours=");
   Serial.println(theCounterHours);
@@ -311,13 +317,11 @@ void syncCountWithClock() {
 }
 
 void processClockNow() {
-  //
   now = rtc.now();
-  //
   if (now.second() != theCounterSeconds) {
     // When the clock second value changes, that's a clock second pulse.
     theCounterSeconds = now.second();
-    // clockPulseSecond();
+    clockPulseSecond();
     if (theCounterSeconds == 0) {
       // When the clock second value changes to zero, that's a clock minute pulse.
       theCounterMinutes = now.minute();
@@ -333,7 +337,7 @@ void processClockNow() {
 
 int theHour = 0;
 void clockPulseHour() {
-  // Use 3, rather than 15.
+  // 12 hour AM/PM clock. Use 3, rather than 15.
   if (theCounterHours > 12) {
     theHour = theCounterHours - 12;
   } else if (theCounterHours == 0) {
@@ -341,7 +345,7 @@ void clockPulseHour() {
   } else {
     theHour = theCounterHours;
   }
-#ifdef LOG_MESSAGES
+#ifdef CLOCK_MESSAGES
   Serial.print("++ clockPulseHour(), theCounterHours= ");
   Serial.print(theCounterHours);
   Serial.print(", theHour= ");
@@ -350,7 +354,8 @@ void clockPulseHour() {
   // sendByte2nano(theHour);
 }
 void clockPulseMinute() {
-#ifdef LOG_MESSAGES
+#ifdef CLOCK_MESSAGES
+  Serial.println("");
   Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
   Serial.println(theCounterMinutes);
   Serial.print("+ theCounterSeconds > ");
@@ -358,7 +363,11 @@ void clockPulseMinute() {
   // sevseg.setNumber(theCounterMinutes);
 }
 void clockPulseSecond() {
-#ifdef LOG_MESSAGES
+#ifdef CLOCK_MESSAGES
+  if (theCounterSeconds == 21 || theCounterSeconds == 41) {
+    Serial.println("");
+    Serial.print("+ theCounterSeconds > ");
+  }
   Serial.print(theCounterSeconds);
   Serial.print(".");
 #endif
@@ -369,6 +378,7 @@ void clockPulseSecond() {
 
 // -----------------------------------------------------------------------------
 char dayOfTheWeek[7][1] = {"S", "M", "T", "W", "T", "F", "S"};
+#ifdef INCLUDE_CLOCK
 #ifdef INCLUDE_LCD
 
 void printClockDate() {
@@ -395,6 +405,7 @@ void printClockByte(int theColumn, int theRow, char theByte) {
   lcd.print(iByte);
 }
 
+#endif
 #endif
 
 // -----------------------------------------------------------------------------
@@ -429,10 +440,9 @@ void setup() {
   //
   syncCountWithClock();
   Serial.println("+ Clock set and synched with program variables.");
-  clockPulseMinute();
-  clockPulseHour();
 #endif
 
+#ifdef INCLUDE_SDCARD
   // ----------------------------------------------------
   int programSize = sizeof(theProgram);
   // List a program.
@@ -440,7 +450,6 @@ void setup() {
   // Load a program.
   copyByteArrayToMemory(theProgram, programSize);
 
-#ifdef INCLUDE_SDCARD
   // ----------------------------------------------------
   // Note, csPin is optional. The default is the hardware SS line (pin 10) of the SPI bus.
   // If using pin, other than 10, add: pinMode(otherPin, OUTPUT);
@@ -458,8 +467,12 @@ void setup() {
   readProgramFileIntoMemory("dad.asm");
 #endif
 
-  // ----------------------------------------------------
+  // -------------------------------
   Serial.println("+++ Go to loop.");
+
+#ifdef INCLUDE_LCD
+  Serial.print("+ theCounterSeconds > ");
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -468,7 +481,7 @@ void setup() {
 static unsigned long clockTimer = millis();
 #endif
 void loop() {
-  
+
 #ifdef INCLUDE_CLOCK
   // Check the clock and pulse when the clock's second value changes.
   if (millis() - clockTimer >= 200) {
