@@ -2569,31 +2569,31 @@ void buttonCheck() {
     } else if (switchState[i]) {
       switchState[i] = false;
       //
-      if (i == 1 & runProgram) {
+      if (i == 0 & runProgram) {
         Serial.println(F("> hlt, halt the processor."));
         runProgram = false;
         statusByte = 0;
         statusByte = statusByte | WAIT_ON;
         statusByte = statusByte | HLTA_ON;
         lightsStatusAddressData(statusByte, programCounter, dataByte);
-      } else if (i == 2) {
+      } else if (i == 1) {
         Serial.println(F("+ Run process."));
         runProgram = true;
         statusByte = statusByte & WAIT_OFF;
         statusByte = statusByte & HLTA_OFF;
-      } else if (i == 3 & !runProgram) {
+      } else if (i == 2 & !runProgram) {
         // Single Step
         statusByte = statusByte & HLTA_OFF;
         processData();
-      } else if (i == 4 & !runProgram) {
+      } else if (i == 3 & !runProgram) {
         // Examine 8 address bits, A0...A7 (data)
         getToogleAddress();
         Serial.print(F("+ toggleAddressByte: "));
         printByte(toggleAddressByte);
         Serial.println("");
       } else {
-        Serial.print("+ Button released: ");
-        Serial.println(i);
+        // Serial.print("+ Button released: ");
+        // Serial.println(i);
       }
     }
     //
@@ -2734,8 +2734,8 @@ void infraredSwitchControl() {
       break;
     // -----------------------------------
     default:
-      Serial.print("+ Result value: ");
-      Serial.println(results.value, HEX);
+      // Serial.print("+ Result value: ");
+      // Serial.println(results.value, HEX);
       break;
       // -----------------------------------
   } // end switch
