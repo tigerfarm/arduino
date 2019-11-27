@@ -14,7 +14,7 @@
   Add 8 toggles and a total of 3 x 595 chips, to the dev machine.
   + Solder and add 8 toggles (on/off) to the dev machine.
   ++ Add toggle software controls from the shiftRegisterInputToggle program.
-  
+
   Emulator Program Logic,
   + Add Reset, which resets the program counter 0, to start a program over.
   ++ Maybe, solder and add on/off/on toggles to the dev machine, replacing the buttons.
@@ -115,6 +115,15 @@
 // #define RUN_DELAY 1
 // #define RUN_NOW 1
 #define LOG_MESSAGES 1
+
+// -----------------------------------------------------------------------------
+// Infrared Receiver
+
+#include <IRremote.h>
+
+int IR_PIN = A1;
+IRrecv irrecv(IR_PIN);
+decode_results results;
 
 // -----------------------------------------------------------------------------
 // Input toggle shift register(SN74HC595N) pins
@@ -519,6 +528,7 @@ int instructionCycle = 0;   // Opcode process cycle
 
 void displayStatusAddressData() {
   //
+  dataByte = memoryData[programCounter];
   lightsStatusAddressData(statusByte, programCounter, dataByte);
   //
 #ifdef LOG_MESSAGES
@@ -546,7 +556,7 @@ void processData() {
     Serial.print("> ");
 #endif
     statusByte = statusByte | M1_ON; // Machine cycle 1, get an opcode.
-    lightsStatusAddressData(statusByte, programCounter, dataByte);
+    displayStatusAddressData();
 #ifdef LOG_MESSAGES
     Serial.print(" ");
 #endif
@@ -558,7 +568,7 @@ void processData() {
     Serial.print("+ ");
 #endif
     statusByte = statusByte & M1_OFF; // Machine cycle 1+x, getting opcode data.
-    lightsStatusAddressData(statusByte, programCounter, dataByte);
+    displayStatusAddressData();
 #ifdef LOG_MESSAGES
     Serial.print(" ");
 #endif
@@ -931,7 +941,8 @@ void processOpcode() {
       statusByte = statusByte & MEMR_OFF;
       statusByte = statusByte & M1_OFF;
       statusByte = statusByte | HLTA_ON;
-      lightsStatusAddressData(statusByte, programCounter, dataByte);
+      // lightsStatusAddressData(statusByte, programCounter, dataByte);
+      displayStatusAddressData();
 #else
       Serial.println("");
 #endif
@@ -1189,7 +1200,8 @@ void processOpcode() {
       statusByte = statusByte | WAIT_ON;
       statusByte = statusByte | M1_ON;
       statusByte = statusByte | HLTA_ON;
-      lightsStatusAddressData(statusByte, programCounter, dataByte);
+      // lightsStatusAddressData(statusByte, programCounter, dataByte);
+      displayStatusAddressData();
       break;
     // ------------------------------------------------------------------------------------------
     /*
@@ -1829,7 +1841,8 @@ void processOpcode() {
       statusByte = statusByte | WAIT_ON;
       statusByte = statusByte | M1_ON;
       statusByte = statusByte | HLTA_ON;
-      lightsStatusAddressData(statusByte, programCounter, dataByte);
+      // lightsStatusAddressData(statusByte, programCounter, dataByte);
+      displayStatusAddressData();
   }
 }
 
@@ -2367,7 +2380,8 @@ void processOpcodeData() {
       statusByte = statusByte | WAIT_ON;
       statusByte = statusByte | M1_ON;
       statusByte = statusByte | HLTA_ON;
-      lightsStatusAddressData(statusByte, programCounter, dataByte);
+      // lightsStatusAddressData(statusByte, programCounter, dataByte);
+      displayStatusAddressData();
   }
   // The opcode cycles are complete.
   opcode = 0;
@@ -2576,7 +2590,8 @@ void buttonCheck() {
         statusByte = 0;
         statusByte = statusByte | WAIT_ON;
         statusByte = statusByte | HLTA_ON;
-        lightsStatusAddressData(statusByte, programCounter, dataByte);
+        // lightsStatusAddressData(statusByte, programCounter, dataByte);
+        displayStatusAddressData();
       } else if (i == 1) {
         Serial.println(F("+ Run process."));
         runProgram = true;
@@ -2634,18 +2649,8 @@ void buttonCheck() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// Front Panel toggle/button switch events
-// Using an infrared receiver for simplier hardware setup.
-
-boolean buttonWentHigh = false;
-
 // -----------------------------------------------------------------------
-#include <IRremote.h>
-
-int IR_PIN = A1;
-IRrecv irrecv(IR_PIN);
-decode_results results;
+// Infrared options when a program is NOT running.
 
 void infraredSwitchControl() {
   // Serial.println(F("+ infraredSwitch"));
@@ -2701,7 +2706,6 @@ void infraredSwitchControl() {
       Serial.print("? ");
       displayStatusAddressData();
       Serial.println("");
-      buttonWentHigh = true;
       break;
     case 0xFF629D:
       // Serial.println(F("+ Key 2: "));
@@ -2710,7 +2714,6 @@ void infraredSwitchControl() {
       Serial.print("? ");
       displayStatusAddressData();
       Serial.println("");
-      buttonWentHigh = true;
       break;
     case 0xFFE21D:
       // Serial.println(F("+ Key 3: "));
@@ -2719,7 +2722,6 @@ void infraredSwitchControl() {
       Serial.print("? ");
       displayStatusAddressData();
       Serial.println("");
-      buttonWentHigh = true;
       break;
     case 0xFF22DD:
       Serial.print(F("+ Key 4: "));
@@ -2772,7 +2774,8 @@ void infraredSwitchControl() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+// Infrared options while a program is running.
+
 void infraredSwitchInput() {
   // Serial.println(F("+ infraredSwitch"));
   switch (results.value) {
@@ -2787,7 +2790,6 @@ void infraredSwitchInput() {
     case 0xFF5AA5:
     case 0xE0E046B9:
       // Serial.println(F("+ Key > - next."));
-      processData();
       break;
     case 0xFF18E7:
     case 0xE0E006F9:
@@ -2812,8 +2814,7 @@ void infraredSwitchInput() {
     // -----------------------------------
     case 0xFF9867:
     case 0xE0E08877:
-      // Serial.print(F("+ Key 0:"));
-      // Serial.println("");
+      // Serial.println(F("+ Key 0:"));
       break;
     case 0xFFA25D:
       // Serial.println(F("+ Key 1: "));
@@ -2825,28 +2826,22 @@ void infraredSwitchInput() {
       // Serial.println(F("+ Key 3: "));
       break;
     case 0xFF22DD:
-      // Serial.print(F("+ Key 4: "));
-      // Serial.println("");
+      // Serial.println(F("+ Key 4: "));
       break;
     case 0xFF02FD:
-      // Serial.print(F("+ Key 5: "));
-      // Serial.println("");
+      // Serial.println(F("+ Key 5: "));
       break;
     case 0xFFC23D:
-      // Serial.print(F("+ Key 6: "));
-      // Serial.println("");
+      // Serial.println(F("+ Key 6: "));
       break;
     case 0xFFE01F:
-      // Serial.print(F("+ Key 7: "));
-      // Serial.println("");
+      // Serial.println(F("+ Key 7: "));
       break;
     case 0xFFA857:
-      // Serial.print(F("+ Key 8: "));
-      // Serial.println("");
+      // Serial.println(F("+ Key 8: "));
       break;
     case 0xFF906F:
-      // Serial.print(F("+ Key 9: "));
-      // Serial.println("");
+      // Serial.println(F("+ Key 9: "));
       break;
     // -----------------------------------
     case 0xFF6897:
@@ -2869,6 +2864,7 @@ void infraredSwitchInput() {
 
 }
 
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
@@ -2904,14 +2900,14 @@ void setup() {
   digitalWrite(latchPinIn, LOW);
   shiftOut(dataPinIn, clockPinIn, LSBFIRST, B11111111);
   digitalWrite(latchPinIn, HIGH);
-  Serial.println("+ Ready to monitor input switches.");
+  Serial.println("+ Front panel Input switches ready to be used.");
 
   // ----------------------------------------------------
   pinMode(latchPinLed, OUTPUT);
   pinMode(clockPinLed, OUTPUT);
   pinMode(dataPinLed, OUTPUT);
   delay(300);
-  Serial.println(F("+ Front panel LED shift registers ready."));
+  // Serial.println(F("+ Front panel LED shift registers ready."));
   //
   // Status lights are off by default.
   statusByte = statusByte | WAIT_ON;
@@ -2935,8 +2931,8 @@ static unsigned long timer = millis();
 #endif
 void loop() {
 
-  // Process infrared key presses.
   if (runProgram) {
+    // ----------------------------
 #ifdef RUN_DELAY
     // When testing, can add a cycle delay.
     // Clock process timing is controlled by the timer.
@@ -2955,6 +2951,7 @@ void loop() {
       infraredSwitchInput();
     }
     buttonCheck();
+    // ----------------------------
   } else {
     if (irrecv.decode(&results)) {
       // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous.
