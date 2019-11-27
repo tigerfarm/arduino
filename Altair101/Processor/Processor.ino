@@ -11,16 +11,16 @@
   ---------------------------------------------
   Next, hardware and software updates to complete the core system:
 
-  Add 8 toggles and a total of 3 x 595 chips, to the dev machine.
+  Completed: Add 8 toggles and a total of 3 x 595 chips, to the dev machine.
   + Solder and add 8 toggles (on/off) to the dev machine.
   ++ Add toggle software controls from the shiftRegisterInputToggle program.
-
   Emulator Program Logic,
   + Add Reset, which resets the program counter 0, to start a program over.
-  ++ Maybe, solder and add on/off/on toggles to the dev machine, replacing the buttons.
   + When a program is not running,
   ++ Use the toggles to Examine data in program memory.
   ++ Use the toggles to Deposit data into program memory.
+
+  Emulator Program Logic,
   + When a program is running, use the toggles as sense switches (input).
   ++ Get IN (input) opcode to work.
   ++ Load and play, Kill the Bit.
