@@ -509,7 +509,6 @@ void setup() {
   lcd.backlight();
   //                 1234567890123456
   displayPrintln(0, "Starting up...");
-  // displayPrintln(1, "Start in 2 secs.");
   delay(2000);
   lcd.clear();
   Serial.println("+ LCD set.");

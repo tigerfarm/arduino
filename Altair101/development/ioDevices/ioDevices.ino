@@ -2,19 +2,25 @@
 /*
   Use a Micro SD Card Module to save and load binary 8080 machine language programs.
 
-  The arrry, theProgram, is a binary 8080 machine language program.
-  Write it to the SD card.
-  Read it from the SD card and compare it with the original array.
-
-  SPI reference: https://www.arduino.cc/en/Reference/SPI
-  SD card library reference: https://www.arduino.cc/en/reference/SD
+  Connect DS3231 Clock, and the LCD display, pins to the Nano:
+  + VCC to Nano 5v, note, also works with 3.3v, example: NodeMCU.
+  + GND to Nano ground.
+  + SDA to Nano D4 (pin 4), same on Uno.
+  + SCL to Nano D5 (pin 5), same on Uno.
 */
 
-// #define INCLUDE_LCD 1
+#define INCLUDE_LCD 1
 #define INCLUDE_CLOCK 1
 #define CLOCK_MESSAGES 1
 // #define INCLUDE_SDCARD 1
 // #define SDCARD_MESSAGES 1
+
+// -----------------------------------------------------------------------
+// For the infrared receiver.
+#include <IRremote.h>
+int IR_PIN = A1;
+IRrecv irrecv(IR_PIN);
+decode_results results;
 
 // -----------------------------------------------------------------------------
 // For the clock board.
@@ -24,13 +30,7 @@
 
 RTC_DS3231 rtc;
 DateTime now;
-/*
-  Connect DS3231 Clock, and the LCD display, pins to the Nano:
-  + VCC to Nano 5v, note, also works with 3.3v, example: NodeMCU.
-  + GND to Nano ground.
-  + SDA to Nano D4 (pin 4), same on Uno.
-  + SCL to Nano D5 (pin 5), same on Uno.
-*/
+
 #endif
 
 // -----------------------------------------------------------------------------
@@ -53,7 +53,7 @@ DateTime now;
 const int csPin = 10;  // SD Card module is connected to Nano pin 10.
 File myFile;
 
-// Test file name.
+// Test filename.
 // Files are created using uppercase: F1.TXT.
 String theFilename = "f1.txt";
 
@@ -224,7 +224,7 @@ void readProgramFileIntoMemory(String theFilename) {
 #ifdef SDCARD_MESSAGES
     Serial.print("- Error opening file: ");
     Serial.println(theFilename);
-#ifdef SDCARD_MESSAGES
+#endif
     return;
   }
   int i = 0;
@@ -250,6 +250,7 @@ void readProgramFileIntoMemory(String theFilename) {
   Serial.println("+ File closed.");
 #endif
 }
+
 #endif
 
 // -----------------------------------------------------------------------------
@@ -282,16 +283,6 @@ void displayPrintln(int theRow, String theString) {
   lcd.print(printString);
 }
 
-void readyLcd() {
-  lcd.init();
-  lcd.backlight();
-  //                1234567890123456
-  displayPrintln(0, "Altair 101");
-  theLine = "LCD ready...";
-  displayPrintln(1, theLine);
-  // delay(3000);
-  // lcd.clear();
-}
 #endif
 
 // -----------------------------------------------------------------------------
@@ -307,16 +298,32 @@ const int thePrintColHour = 8;
 const int thePrintColMin = thePrintColHour + 3;
 const int thePrintColSec = thePrintColMin + 3;
 
-int theCounterSeconds = 0;
-int theCounterMinutes = 0;
+int theCounterYear = 0;
+int theCounterMonth = 0;
+int theCounterDay = 0;
 int theCounterHours = 0;
+int theCounterMinutes = 0;
+int theCounterSeconds = 0;
 
 void syncCountWithClock() {
   now = rtc.now();
   theCounterHours = now.hour();
   theCounterMinutes = now.minute();
   theCounterSeconds = now.second();
+  printClockDate();
+
+#ifdef INCLUDE_LCD
   //
+  theCursor = thePrintColHour;
+  printClockInt(theCursor, printRowClockPulse, theCounterHours);  // Column, Row
+  theCursor = theCursor + 3;
+  lcd.print(":");
+  printClockInt(theCursor, printRowClockPulse, theCounterMinutes);
+  theCursor = theCursor + 3;
+  lcd.print(":");
+  printClockInt(theCursor, printRowClockPulse, theCounterSeconds);
+#endif
+
 #ifdef CLOCK_MESSAGES
   Serial.println("+ syncCountWithClock, current time:");
   Serial.print(" theCounterHours=");
@@ -342,11 +349,39 @@ void processClockNow() {
         // When the clock minute value changes to zero, that's a clock hour pulse.
         theCounterHours = now.hour();
         clockPulseHour();
+        // -------------------------
+        // Date pulses.
+        if (now.hour() == 0) {
+          // When the clock hour value changes to zero, that's a clock day pulse.
+          printClockDate(); // Prints and sets the values for day, month, and year.
+          clockPulseDay();
+          if (theCounterDay == 1) {
+            // When the clock day value changes to one, that's a clock month pulse.
+            clockPulseMonth();
+            if (theCounterMonth == 1) {
+              // When the clock Month value changes to one, that's a clock year pulse.
+              clockPulseYear();
+            }
+          }
+        }
+        // -------------------------
       }
     }
   }
 }
 
+void clockPulseYear() {
+  Serial.print("+++++ clockPulseYear(), theCounterYear= ");
+  Serial.println(theCounterYear);
+}
+void clockPulseMonth() {
+  Serial.print("++++ clockPulseMonth(), theCounterMonth= ");
+  Serial.println(theCounterMonth);
+}
+void clockPulseDay() {
+  Serial.print("+++ clockPulseDay(), theCounterDay= ");
+  Serial.println(theCounterDay);
+}
 int theHour = 0;
 void clockPulseHour() {
   // 12 hour AM/PM clock. Use 3, rather than 15.
@@ -357,33 +392,41 @@ void clockPulseHour() {
   } else {
     theHour = theCounterHours;
   }
+  printClockInt(thePrintColHour, printRowClockPulse, theHour);
+  // sendByte2nano(theHour);
 #ifdef CLOCK_MESSAGES
   Serial.print("++ clockPulseHour(), theCounterHours= ");
   Serial.print(theCounterHours);
   Serial.print(", theHour= ");
   Serial.println(theHour);
 #endif
-  // sendByte2nano(theHour);
 }
 void clockPulseMinute() {
+  printClockInt(thePrintColMin, printRowClockPulse, theCounterMinutes);
+  // sevseg.setNumber(theCounterMinutes);
 #ifdef CLOCK_MESSAGES
   Serial.println("");
   Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
   Serial.println(theCounterMinutes);
-  Serial.print("+ theCounterSeconds > ");
 #endif
-  // sevseg.setNumber(theCounterMinutes);
 }
 void clockPulseSecond() {
+  printClockInt(thePrintColSec, printRowClockPulse, theCounterSeconds);  // Column, Row
+  // sevseg.setNumber(theCounterSeconds);
 #ifdef CLOCK_MESSAGES
-  if (theCounterSeconds == 21 || theCounterSeconds == 41) {
+  if (theCounterSeconds == 1) {
+    Serial.print("+ theCounterSeconds > ");
+  } else if (theCounterSeconds == 21 || theCounterSeconds == 41) {
     Serial.println("");
     Serial.print("+ theCounterSeconds > ");
   }
-  Serial.print(theCounterSeconds);
+  if (theCounterSeconds == 0) {
+    Serial.print("60");
+  } else {
+    Serial.print(theCounterSeconds);
+  }
   Serial.print(".");
 #endif
-  // sevseg.setNumber(theCounterSeconds);
 }
 
 #endif
@@ -393,7 +436,21 @@ char dayOfTheWeek[7][1] = {"S", "M", "T", "W", "T", "F", "S"};
 #ifdef INCLUDE_CLOCK
 #ifdef INCLUDE_LCD
 
+void printClockInt(int theColumn, int theRow, int theInt) {
+  lcd.setCursor(theColumn, theRow);    // Column, Row
+  if (theInt < 10) {
+    lcd.print("0");
+    lcd.setCursor(theColumn + 1, theRow);
+  }
+  lcd.print(theInt);
+}
+
 void printClockDate() {
+  now = rtc.now();
+  theCounterYear = now.year();
+  theCounterMonth = now.month();
+  theCounterDay = now.day();
+  //
   theCursor = printColClockDate;
   lcd.setCursor(theCursor, printRowClockDate);    // Column, Row
   lcd.print(dayOfTheWeek[now.dayOfTheWeek()]);
@@ -420,6 +477,282 @@ void printClockByte(int theColumn, int theRow, char theByte) {
 #endif
 #endif
 
+// -----------------------------------------------------------------------
+// Menu options and menu processing.
+
+// Toggle the LCD backlight on/off.
+boolean theLcdBacklightOn = true;
+void toggleLcdBacklight() {
+  if (theLcdBacklightOn) {
+    theLcdBacklightOn = false;
+    // Serial.println("+ Toggle: off.");
+    lcd.noBacklight();
+  } else {
+    theLcdBacklightOn = true;
+    // Serial.println("+ Toggle: on.");
+    lcd.backlight();
+  }
+}
+
+int theSetRow = 1;
+int theSetCol = 0;
+int theSetMin = 0;
+int theSetMax = 59;
+int setValue = 0;
+
+int setClockValue = 0;
+void cancelSet() {
+  if (setClockValue) {
+    // Serial.println("Cancel set.");
+    displayPrintln(theSetRow, "");
+    setClockValue = false;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------
+// Menu items to set the clock date and time values.
+
+void setClockMenuItems() {
+  if (!theLcdBacklightOn) {
+    // Don't make clock setting changes when the LCD is off.
+    return;
+  }
+  switch (setClockValue) {
+    case 0:
+      // Serial.print("Cancel set");
+      displayPrintln(theSetRow, "");
+      break;
+    case 1:
+      // Serial.print("seconds");
+      displayPrintln(theSetRow, "Set:");
+      theSetMax = 59;
+      theSetMin = 0;
+      theSetCol = thePrintColSec;
+      setValue = theCounterSeconds;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 2:
+      // Serial.print("minutes");
+      displayPrintln(theSetRow, "Set:");
+      theSetMax = 59;
+      theSetMin = 0;
+      theSetCol = thePrintColMin;
+      setValue = theCounterMinutes;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 3:
+      // Serial.print("hours");
+      displayPrintln(theSetRow, "Set:");
+      theSetMax = 24;
+      theSetMin = 0;
+      theSetCol = thePrintColHour;
+      setValue = theCounterHours;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 4:
+      // Serial.print("day");
+      displayPrintln(theSetRow, "Set day:");
+      theSetMax = 31;
+      theSetMin = 1;
+      theSetCol = thePrintColMin;
+      setValue = theCounterDay;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 5:
+      // Serial.print("month");
+      displayPrintln(theSetRow, "Set month:");
+      theSetMax = 12;
+      theSetMin = 1;
+      theSetCol = thePrintColMin;
+      setValue = theCounterMonth;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 6:
+      // Serial.print("year");
+      displayPrintln(theSetRow, "Set year:");
+      theSetMax = 2525; // In the year 2525, If man is still alive, If woman can survive...
+      theSetMin = 1795; // Year John Keats the poet was born.
+      theSetCol = thePrintColMin;
+      setValue = theCounterYear;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+  }
+}
+
+void infraredSwitch() {
+  switch (results.value) {
+    case 0xFFFFFFFF:
+      // Ignore. This is from holding the key down.
+      break;
+    // -----------------------------------
+    case 0xFF5AA5:
+    case 0xE0E046B9:
+      // Serial.print("+ Key > - next");
+      // Serial.print(", set clock menu option");
+      setClockValue--;
+      if (setClockValue < 0) {
+        setClockValue = 6;
+      }
+      setClockMenuItems();
+      // Serial.println(".");
+      break;
+    case 0xFF10EF:
+    case 0xE0E0A659:
+      // Serial.print("+ Key < - previous");
+      // Serial.print(", set clock menu option");
+      setClockValue++;
+      if (setClockValue > 6) {
+        setClockValue = 0;
+      }
+      setClockMenuItems();
+      // Serial.println(".");
+      break;
+    case 0xFF18E7:
+    case 0xE0E006F9:
+      // Serial.print("+ Key up");
+      if (setClockValue) {
+        // Serial.print(", increment");
+        setValue++;
+        if (setValue > theSetMax) {
+          setValue = theSetMin;
+        }
+        printClockInt(theSetCol, theSetRow, setValue);
+      }
+      // Serial.println(".");
+      break;
+    case 0xFF4AB5:
+    case 0xE0E08679:
+      // Serial.print("+ Key down");
+      if (setClockValue) {
+        // Serial.print(", decrement");
+        setValue--;
+        if (setValue < theSetMin) {
+          setValue = theSetMax;
+        }
+        printClockInt(theSetCol, theSetRow, setValue);
+      }
+      // Serial.println(".");
+      break;
+    case 0xFF38C7:
+    case 0xE0E016E9:
+      // Serial.print("+ Key OK");
+      if (setClockValue) {
+        // Serial.print(", set ");
+        switch (setClockValue) {
+          case 1:
+            // Serial.print("seconds");
+            theCounterSeconds = setValue;
+            printClockInt(theSetCol, printRowClockPulse, setValue);
+            break;
+          case 2:
+            // Serial.print("minutes");
+            theCounterMinutes = setValue;
+            printClockInt(theSetCol, printRowClockPulse, setValue);
+            break;
+          case 3:
+            // Serial.print("hours");
+            theCounterHours = setValue;
+            printClockInt(theSetCol, printRowClockPulse, setValue);
+            break;
+          case 4:
+            // Serial.print("day");
+            theCounterDay = setValue;
+            break;
+          case 5:
+            // Serial.print("month");
+            theCounterMonth = setValue;
+            break;
+          case 6:
+            // Serial.print("year");
+            theCounterYear = setValue;
+            break;
+        }
+        // The following offsets the time to make the change.
+        // Else, the clock looses about second each time a setting is made.
+        theCounterSeconds ++;
+        delay(100);
+        //
+        rtc.adjust(DateTime(theCounterYear, theCounterMonth, theCounterDay, theCounterHours, theCounterMinutes, theCounterSeconds));
+        displayPrintln(theSetRow, "Value is set.");
+        printClockDate();
+        delay(2000);
+        displayPrintln(theSetRow, "");
+      }
+      // Serial.println(".");
+      //
+      setClockValue = false;
+      delay(200);   // To block the double press.
+      break;
+    // -----------------------------------
+    case 0xFF6897:
+    case 0xE0E01AE5:
+      // Serial.print("+ Key * (Return): ");
+      // Serial.println("Cancel set.");
+      cancelSet();
+      break;
+    case 0xFFB04F:
+    case 0xE0E0B44B:
+      // Serial.print("+ Key # (Exit): ");
+      // Serial.println("Cancel set and Toggle display on/off.");
+      cancelSet();
+      toggleLcdBacklight();
+      break;
+    // -----------------------------------
+    case 0xFF9867:
+    case 0xE0E08877:
+      Serial.print("+ Key 0:");
+      Serial.println("");
+      break;
+    case 0xFFA25D:
+    case 0xE0E020DF:
+      Serial.print("+ Key 1: ");
+      Serial.println("");
+      break;
+    case 0xFF629D:
+      Serial.print("+ Key 2: ");
+      Serial.println("");
+      break;
+    case 0xFFE21D:
+      Serial.print("+ Key 3: ");
+      Serial.println("");
+      break;
+    case 0xFF22DD:
+      Serial.print("+ Key 4: ");
+      Serial.println("");
+      break;
+    case 0xFF02FD:
+      Serial.print("+ Key 5: ");
+      Serial.println("");
+      break;
+    case 0xFFC23D:
+      Serial.print("+ Key 6: ");
+      Serial.println("");
+      break;
+    case 0xFFE01F:
+      Serial.print("+ Key 7: ");
+      Serial.println("");
+      break;
+    case 0xFFA857:
+      Serial.print("+ Key 8: ");
+      Serial.println("");
+      break;
+    case 0xFF906F:
+      Serial.print("+ Key 9: ");
+      Serial.println("");
+      break;
+    // -----------------------------------
+    default:
+      Serial.print("+ Result value: ");
+      Serial.println(results.value, HEX);
+      // -----------------------------------
+  } // end switch
+
+  irrecv.resume();
+
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
@@ -429,8 +762,18 @@ void setup() {
   Serial.println("+++ Setup.");
 
   // ----------------------------------------------------
+  irrecv.enableIRIn();
+  Serial.println("+ Infrared receiver enabled.");
+
+  // ----------------------------------------------------
 #ifdef INCLUDE_LCD
-  readyLcd();
+  lcd.init();
+  lcd.backlight();
+  //                1234567890123456
+  displayPrintln(0, "Ready...");
+  displayPrintln(1, "Altair 101");
+  delay(3000);
+  displayPrintln(0, "        ");
   Serial.println(F("+ LCD ready for output."));
 #endif
 
@@ -482,7 +825,7 @@ void setup() {
   // -------------------------------
   Serial.println("+++ Go to loop.");
 
-#ifdef INCLUDE_LCD
+#ifdef INCLUDE_CLOCK
   Serial.print("+ theCounterSeconds > ");
 #endif
 }
@@ -493,6 +836,11 @@ void setup() {
 static unsigned long clockTimer = millis();
 #endif
 void loop() {
+
+  // Process infrared key presses.
+  if (irrecv.decode(&results)) {
+    infraredSwitch();
+  }
 
 #ifdef INCLUDE_CLOCK
   // Check the clock and pulse when the clock's second value changes.
