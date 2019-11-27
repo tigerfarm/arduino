@@ -108,7 +108,7 @@ void buttonCheck() {
       if (i == 4) {
         // Examine 8 address bits, A0...A7 (data)
         getToogleAddress();
-        Serial.println(F("+ toggleAddressByte: "));
+        Serial.print(F("+ toggleAddressByte: "));
         printByte(toggleAddressByte);
         Serial.println("");
       } else {
