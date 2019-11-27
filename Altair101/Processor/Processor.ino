@@ -4,14 +4,14 @@
 
   ---------------------------------------------
   +++ Need to confirm/test LED light data timing and content.
-  
+
   + Altair programming video, starting about 6 minutes in:
     https://www.youtube.com/watch?v=EV1ki6LiEmg
 
   ---------------------------------------------
   Next, hardware and software updates to complete the core hardware and software system:
 
-  Add 8 toggles to the dev machine.
+  Add 8 toggles and a total of 3 x 595 chips, to the dev machine.
   + Solder and add 8 toggles (on/off) to the dev machine.
   ++ Add toggle software controls from the shiftRegisterInputToggle program.
   + When a program is not running,
@@ -21,10 +21,10 @@
   ++ Get IN (input) opcode  to work.
   ++ Test program, Kill the Bit.
 
-  The computer is finally functioning.
-  + Kill the Bit, is the standard defacto basic demostration program of clones and replicas.
-  + And Altair 101 runs it!
-  
+  The computer is finally has the basic functionality of an Altair 8800.
+  + Kill the Bit, is the standard defacto basic demostration program of an Altair 8800, and its clones and replicas.
+  + And at this point, Altair 101 runs it!
+
   + Solder and add on/off/on toggles to the dev machine, replacing the buttons.
   ++ Add Reset, which resets the program counter 0, to start a program over.
 
@@ -47,7 +47,7 @@
 
   ---------------------------------------------
   Build the first Altair 101 machine,
-  
+
   + Complete the final design.
   + Order parts to build the machine.
   + Make enhancements to the case so that it's ready for the electronic parts.
@@ -57,7 +57,7 @@
 
   ---------------------------------------------
   Program Development Phase
-  
+
   + A basic assembler to convert assembly programs into machine code.
   + Implement the next major Altair 8800 sample program, Pong.
   + Update and enhance my set of test and development programs.
@@ -2425,7 +2425,7 @@ void writeProgramMemoryToFile(String theFilename) {
   }
   Serial.println("++ New file opened.");
   Serial.println("++ Write binary memory to the file.");
-  for (int i =0; i < memoryBytes; i++) {
+  for (int i = 0; i < memoryBytes; i++) {
     myFile.write(memoryData[i]);
   }
   myFile.close();
@@ -2519,6 +2519,96 @@ void readyLcd() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+// Front Panel Input Toggles
+
+// -----------------------
+// Only do the action once, don't repeat if the button is held down.
+// Don't repeat action if the button is not pressed.
+
+const int numberOfToogles = 8;
+byte toggleAddressByte = B00000000;
+void getToogleAddress() {
+  toggleAddressByte = B00000000;
+  byte toggleAddressBit = B10000000;
+  for (int i = 0; i < numberOfToogles; i++) {
+    digitalWrite(latchPin, LOW);
+    shiftOut(dataPin, clockPin, LSBFIRST, toggleAddressBit);
+    shiftOut(dataPin, clockPin, LSBFIRST, 0);
+    shiftOut(dataPin, clockPin, LSBFIRST, 0);
+    digitalWrite(latchPin, HIGH);
+    if (digitalRead(dataInputPin) == HIGH) {
+      toggleAddressByte = toggleAddressByte | toggleAddressBit;
+    }
+    toggleAddressBit = toggleAddressBit >> 1;
+  }
+}
+
+// -----------------------
+// Only do the action once, don't repeat if the button is held down.
+// Don't repeat action if the button is not pressed.
+
+const int numberOfSwitches = 8;
+boolean switchState[numberOfSwitches] = {
+  false, false, false, false, false, false, false, false
+};
+void buttonCheck() {
+  byte dataByte = B10000000;
+  for (int i = 0; i < numberOfSwitches; i++) {
+    digitalWrite(latchPinIn, LOW);
+    shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
+    shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
+    shiftOut(dataPinIn, clockPinIn, LSBFIRST, dataByte);
+    digitalWrite(latchPinIn, HIGH);
+    //
+    if (digitalRead(dataInputPin) == HIGH) {
+      if (!switchState[i]) {
+        switchState[i] = true;
+        Serial.print("+ Button pressed: ");
+        Serial.println(i);
+      }
+    } else if (switchState[i]) {
+      switchState[i] = false;
+      //
+      if (i == 1 & runProgram) {
+        Serial.println(F("> hlt, halt the processor."));
+        runProgram = false;
+        statusByte = 0;
+        statusByte = statusByte | WAIT_ON;
+        statusByte = statusByte | HLTA_ON;
+        lightsStatusAddressData(statusByte, programCounter, dataByte);
+      } else if (i == 2) {
+        Serial.println(F("+ Run process."));
+        runProgram = true;
+        statusByte = statusByte & WAIT_OFF;
+        statusByte = statusByte & HLTA_OFF;
+      } else if (i == 3 & !runProgram) {
+        // Single Step
+        statusByte = statusByte & HLTA_OFF;
+        processData();
+      } else if (i == 4 & !runProgram) {
+        // Examine 8 address bits, A0...A7 (data)
+        statusByte = statusByte & HLTA_OFF;
+        getToogleAddress();
+        Serial.println(F("+ toggleAddressByte: "));
+        printByte(toggleAddressByte);
+        Serial.println("");
+      } else {
+        Serial.print("+ Button released: ");
+        Serial.println(i);
+      }
+    }
+    //
+    dataByte = dataByte >> 1;
+  }
+  digitalWrite(latchPinIn, LOW);
+  shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
+  shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
+  shiftOut(dataPinIn, clockPinIn, LSBFIRST, B1111111);
+  digitalWrite(latchPinIn, HIGH);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Front Panel toggle/button switch events
 // Using an infrared receiver for simplier hardware setup.
 
@@ -2606,8 +2696,13 @@ void infraredSwitchControl() {
       buttonWentHigh = true;
       break;
     case 0xFF22DD:
-      // Serial.print(F("+ Key 4: "));
+      Serial.print(F("+ Key 4: "));
       // Serial.println("");
+      // Display address toggle bits, A0...A7 (data)
+      getToogleAddress();
+      Serial.print(F("+ toggleAddressByte: "));
+      printByte(toggleAddressByte);
+      Serial.println("");
       break;
     case 0xFF02FD:
       // Serial.print(F("+ Key 5: "));
@@ -2640,8 +2735,8 @@ void infraredSwitchControl() {
       break;
     // -----------------------------------
     default:
-      // Serial.print("+ Result value: ");
-      // Serial.println(results.value, HEX);
+      Serial.print("+ Result value: ");
+      Serial.println(results.value, HEX);
       break;
       // -----------------------------------
   } // end switch
@@ -2746,61 +2841,6 @@ void infraredSwitchInput() {
 
   irrecv.resume();
 
-}
-
-// -----------------------------------------------------------------------------
-// Input control
-
-// Only do the action once, don't repeat if the button is held down.
-// Don't repeat action if the button is not pressed.
-
-const int numberOfSwitches = 8;
-boolean switchState[numberOfSwitches] = {
-  false, false, false, false, false, false, false, false
-};
-void buttonCheck() {
-  byte dataByte = B10000000;
-  for (int i = 0; i < numberOfSwitches; i++) {
-    digitalWrite(latchPinIn, LOW);
-    shiftOut(dataPinIn, clockPinIn, LSBFIRST, dataByte);
-    digitalWrite(latchPinIn, HIGH);
-    //
-    if (digitalRead(dataInputPin) == HIGH) {
-      if (!switchState[i]) {
-        switchState[i] = true;
-        // Serial.print("+ Button pressed: ");
-        // Serial.println(i);
-      }
-    } else if (switchState[i]) {
-      switchState[i] = false;
-      //
-      if (i == 1 & runProgram) {
-        Serial.println(F("> hlt, halt the processor."));
-        runProgram = false;
-        statusByte = 0;
-        statusByte = statusByte | WAIT_ON;
-        statusByte = statusByte | HLTA_ON;
-        lightsStatusAddressData(statusByte, programCounter, dataByte);
-      } else if (i == 2) {
-        Serial.println(F("+ Run process."));
-        runProgram = true;
-        statusByte = statusByte & WAIT_OFF;
-        statusByte = statusByte & HLTA_OFF;
-      } else if (i == 3 & !runProgram) {
-        // Single Step
-        statusByte = statusByte & HLTA_OFF;
-        processData();
-      } else {
-        // Serial.print("+ Button released: ");
-        // Serial.println(i);
-      }
-    }
-    //
-    dataByte = dataByte >> 1;
-  }
-  digitalWrite(latchPinIn, LOW);
-  shiftOut(dataPinIn, clockPinIn, LSBFIRST, B1111111);
-  digitalWrite(latchPinIn, HIGH);
 }
 
 // -----------------------------------------------------------------------------
