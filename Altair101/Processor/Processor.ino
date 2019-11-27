@@ -2587,11 +2587,37 @@ void buttonCheck() {
         statusByte = statusByte & HLTA_OFF;
         processData();
       } else if (i == 3 & !runProgram) {
-        // Examine 8 address bits, A0...A7 (data)
+        Serial.println(F("+ Examine toggle address data. Address bits: A0...A7."));
         getToogleAddress();
-        Serial.print(F("+ toggleAddressByte: "));
+        programCounter = toggleAddressByte;
+        dataByte = memoryData[programCounter];
+        lightsStatusAddressData(statusByte, programCounter, dataByte);
+      } else if (i == 4 & !runProgram) {
+        Serial.println(F("+ Examine Next address."));
+        programCounter++;
+        dataByte = memoryData[programCounter];
+        lightsStatusAddressData(statusByte, programCounter, dataByte);
+      } else if (i == 5 & !runProgram) {
+        Serial.print(F("+ Deposit toggleAddressByte: "));
+        getToogleAddress();
+        dataByte = toggleAddressByte;
+        memoryData[programCounter] = dataByte;
+        lightsStatusAddressData(statusByte, programCounter, dataByte);
+        Serial.print(F("+ Deposit toggleAddressByte: "));
         printByte(toggleAddressByte);
         Serial.println("");
+      } else if (i == 6 & !runProgram) {
+        Serial.println(F("+ Deposit toggle byte into the next address."));
+        getToogleAddress();
+        dataByte = toggleAddressByte;
+        programCounter++;
+        memoryData[programCounter] = dataByte;
+        lightsStatusAddressData(statusByte, programCounter, dataByte);
+      } else if (i == 7 & !runProgram) {
+        Serial.println(F("+ Reset program counter, program address, to 0."));
+        programCounter = 0;
+        dataByte = memoryData[programCounter];
+        lightsStatusAddressData(statusByte, programCounter, dataByte);
       } else {
         // Serial.print("+ Button released: ");
         // Serial.println(i);
