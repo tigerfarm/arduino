@@ -263,20 +263,18 @@ void readProgramFileIntoMemory(String theFilename) {
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
-String theLine = "";
-int displayColumns = 16;
+int displayColumns = 16;  // LCD display column length
 void displayPrintln(int theRow, String theString) {
-  // To overwrite anything on the current line.
   String printString = theString;
   int theRest = displayColumns - theString.length();
   if (theRest < 0) {
-    // Shorten to the display column length.
+    // Since longer that the display column length, shorten the string for printing.
     printString = theString.substring(0, displayColumns);
   } else {
-    // Buffer with spaces to the end of line.
-    while (theRest < displayColumns) {
+    // Buffer with spaces to the column length.
+    while (theRest > 0) {
       printString = printString + " ";
-      theRest++;
+      theRest--;
     }
   }
   lcd.setCursor(0, theRow);
@@ -783,10 +781,6 @@ void setup() {
   if (!rtc.begin()) {
     Serial.println("Couldn't find RTC");
     while (1);
-  }
-  if (rtc.lostPower()) {
-    Serial.println("RTC lost power, need to reset the time.");
-    rtc.adjust(DateTime(2005, 11, 12, 0, 0, 0));
   }
   //
   // Set for testing.
