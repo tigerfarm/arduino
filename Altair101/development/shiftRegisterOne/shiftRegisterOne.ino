@@ -8,9 +8,9 @@
   74HC595 is a SIPO (Serial-In-Parallel-Out) shift registers, example: Texas Instruments SN74HC595N.
   + 74HC595 pin 16: 5V+
   + 74HC595 pin 15: LED 0
-  + 74HC595 pin 14: Latch   pin (RCLK) to Nano pin 5, which does the Parallel-Out task to the 8 output pins.
+  + 74HC595 pin 14: Data    pin (SRCLK) to Nano pin 4, data transfer from Nano to 595.
   + 74HC595 pin 13: Ground (-)
-  + 74HC595 pin 12: Data    pin (SRCLK) to Nano pin 4, data transfer from Nano to 595.
+  + 74HC595 pin 12: Latch   pin (RCLK) to Nano pin 5, which does the Parallel-Out task to the 8 output pins.
   + 74HC595 pin 11: Clock   pin (SER)  to Nano pin 6, clock signal to say that the data is ready.
   + 74HC595 pin 10: 5V+
   + 74HC595 pin 09: Daisy chain to next 74HC595, pin 14 (data). Not used in single 74HC595.
@@ -43,14 +43,9 @@
 */
 // -----------------------------------------------------------------------------
 // Shift Register
-/*
-  const int latchPin =  8;  // Nano Pin 08 connected to pin 12 74HC595: ST_CP.
-  const int dataPin  = 11;  // Nano Pin 11 connected to pin 14 74HC595: DS.
-  const int clockPin = 12;  // Nano Pin 12 connected to pin 11 74HC595: SH_CP.
-*/
-const int dataPin = 4;            // 74HC595 Data  pin 12 is connected to Digital pin 4
-const int latchPin = 5;           // 74HC595 Latch pin 14 is connected to Digital pin 5
-const int clockPin = 6;           // 74HC595 Clock pin 11 is connected to Digital pin 6
+const int dataPin = 7;      // Connected to 74HC595 Data  pin 14.
+const int latchPin = 8;     // Connected to 74HC595 Latch pin 12.
+const int clockPin = 9;     // Connected to 74HC595 Clock pin 11.
 
 byte dataByte = B01010101;
 

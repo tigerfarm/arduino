@@ -126,9 +126,9 @@ const int dataInputPin = A0;      // Nano data input check pin. Digital pins wor
 // ------------------------------------------------------------------------
 // Output LED light shift register(SN74HC595N) pins
 
-const int dataPin = 7;            // 74HC595 Data  pin 14 is connected to Nano pin.
-const int latchPin = 8;           // 74HC595 Latch pin 12 is connected to Nano pin.
-const int clockPin = 9;           // 74HC595 Clock pin 11 is connected to Nano pin.
+const int dataPinLed = 7;            // 74HC595 Data  pin 14 is connected to Nano pin.
+const int latchPinLed = 8;           // 74HC595 Latch pin 12 is connected to Nano pin.
+const int clockPinLed = 9;           // 74HC595 Clock pin 11 is connected to Nano pin.
 
 // -----------------------------------------------------------------------------
 // SD Card module uses SPI.
@@ -502,12 +502,12 @@ void printData(byte theByte) {
 // Data LED lights displayed using shift registers.
 
 void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) {
-  digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, LSBFIRST, data8bits);
-  shiftOut(dataPin, clockPin, LSBFIRST, lowByte(address16bits));
-  shiftOut(dataPin, clockPin, LSBFIRST, highByte(address16bits));
-  shiftOut(dataPin, clockPin, MSBFIRST, status8bits); // MSBFIRST matches the bit to LED mapping.
-  digitalWrite(latchPin, HIGH);
+  digitalWrite(latchPinLed, LOW);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(address16bits));
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(address16bits));
+  shiftOut(dataPinLed, clockPinLed, MSBFIRST, status8bits); // MSBFIRST matches the bit to LED mapping.
+  digitalWrite(latchPinLed, HIGH);
 }
 
 // -----------------------------------------------------------------------------
@@ -2531,11 +2531,11 @@ void getToogleAddress() {
   toggleAddressByte = B00000000;
   byte toggleAddressBit = B10000000;
   for (int i = 0; i < numberOfToogles; i++) {
-    digitalWrite(latchPin, LOW);
-    shiftOut(dataPin, clockPin, LSBFIRST, toggleAddressBit);
-    shiftOut(dataPin, clockPin, LSBFIRST, 0);
-    shiftOut(dataPin, clockPin, LSBFIRST, 0);
-    digitalWrite(latchPin, HIGH);
+    digitalWrite(latchPinIn, LOW);
+    shiftOut(dataPinIn, clockPinIn, LSBFIRST, toggleAddressBit);
+    shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
+    shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
+    digitalWrite(latchPinIn, HIGH);
     if (digitalRead(dataInputPin) == HIGH) {
       toggleAddressByte = toggleAddressByte | toggleAddressBit;
     }
@@ -2587,7 +2587,6 @@ void buttonCheck() {
         processData();
       } else if (i == 4 & !runProgram) {
         // Examine 8 address bits, A0...A7 (data)
-        statusByte = statusByte & HLTA_OFF;
         getToogleAddress();
         Serial.println(F("+ toggleAddressByte: "));
         printByte(toggleAddressByte);
@@ -2875,15 +2874,15 @@ void setup() {
   pinMode(dataPinIn, OUTPUT);
   pinMode(dataInputPin, INPUT);
   delay(300);
-  digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, LSBFIRST, B11111111);
-  digitalWrite(latchPin, HIGH);
+  digitalWrite(latchPinIn, LOW);
+  shiftOut(dataPinIn, clockPinIn, LSBFIRST, B11111111);
+  digitalWrite(latchPinIn, HIGH);
   Serial.println("+ Ready to monitor input switches.");
 
   // ----------------------------------------------------
-  pinMode(latchPin, OUTPUT);
-  pinMode(clockPin, OUTPUT);
-  pinMode(dataPin, OUTPUT);
+  pinMode(latchPinLed, OUTPUT);
+  pinMode(clockPinLed, OUTPUT);
+  pinMode(dataPinLed, OUTPUT);
   delay(300);
   Serial.println(F("+ Front panel LED shift registers ready."));
   //
