@@ -164,103 +164,9 @@ File myFile;
 #endif
 
 // -----------------------------------------------------------------------------
-// Program to test opcodes.
-
-byte theProgram[] = {
-  //                //            ; --------------------------------------
-  //                //            ; Test stack opcodes.
-  // CALL a    11001101 lb hb   Unconditional subroutine call.              (SP-1)<-PC.
-  // RET       11001001         Unconditional return from subroutine        PC.lo <- (sp); PC.hi<-(sp+1); SP <- SP+2
-  // PUSH RP   11RP0101 Push    register pair (B, D, or H) onto the stack.  (sp-2) <- RP;
-  // POP RP    11RP0001 Pop     register pair (B, D, or H) from the stack.  RP <- (sp);
-  //
-  //                // Start:     ; Test stack opcodes:
-  0303, 6, 0,       // jmp Test   ; Jump to bypass the subroutine and the halt command.
-  //
-  //                //            ; --------------------------------------
-  //                //            ; Subroutine to increment register B.
-  //                // IncrementB:
-  B00000100,        // inr b      ; Increment register B.
-  B11001001,        // ret        ; Return to the caller address + 1.
-  //
-  //                //            ; --------------------------------------
-  //                // Halt:      ; Halt, address: 5.
-  0166,             // hlt        ; Then, the program will halt at each iteration.
-  //                // Test:
-  //
-  //                //            ; --------------------------------------
-  0,                // NOP
-  B00000110, 7,     // mvi b,7
-  B11001101, 3, 0,  // call IncrementB
-  0343, 30,         // out b      ; Print register B, value = 8.
-  0,                // NOP
-  //
-  //                //            ; --------------------------------------
-  //0RRR110 mvi
-  B00000110, 1,     // mvi b,1    ; Move # to register B and C.
-  B00001110, 2,     // mvi c,2
-  //1RP0101 push
-  B11000101,        // push b     ; Push register pair B:C onto the stack.
-  //
-  B00000110, 0,     // mvi b,0
-  B00001110, 0,     // mvi c,0
-  //1RP0001 pop
-  B11000001,        // pop b      ; Pop register pair B:C from the stack.
-  //
-  //                //            ; --------------------------------------
-  0,                // NOP
-  B00010110, 3,     // mvi d,3
-  B00011110, 5,     // mvi e,5
-  //1RP0101 push
-  B11010101,        // push d     ; Push register pair D:E onto the stack.
-  //
-  B00010110, 0,     // mvi d,0
-  B00011110, 0,     // mvi e,0
-  //1RP0001 pop
-  B11010001,        // pop d      ; Pop register pair D:E from the stack.
-  //
-  //                //            ; --------------------------------------
-  0,                // NOP
-  B00100110, 7,     // mvi h,7
-  B00101110, 11,    // mvi l,11
-  //1RP0101 push
-  B11100101,        // push h     ; Push register pair H:L onto the stack.
-  //
-  B00100110, 0,     // mvi h,0
-  B00101110, 0,     // mvi l,0
-  //1RP0001 pop
-  B11100001,        // pop h      ; Pop register pair H:L from the stack.
-  //
-  //                //            ; --------------------------------------
-  0,                // NOP
-  //1RP0101 push
-  B11000101,        // push b     ; Push register pair B:C onto the stack.
-  B11010101,        // push d     ; Push register pair D:E onto the stack.
-  B11100101,        // push h     ; Push register pair H:L onto the stack.
-  //0RRR110 mvi
-  B00000110, 0,     // mvi b,0
-  B00001110, 0,     // mvi c,0
-  B00010110, 0,     // mvi d,0
-  B00011110, 0,     // mvi e,0
-  B00100110, 0,     // mvi h,0
-  B00101110, 0,     // mvi l,0
-  0343, 38,         // out 38     ; Print the register values.
-  //1RP0001 pop
-  B11100001,        // pop h      ; Pop register pair H:L from the stack.
-  B11010001,        // pop d      ; Pop register pair D:E from the stack.
-  B11000001,        // pop b      ; Pop register pair B:C from the stack.
-  0343, 38,         // out 38     ; Print the register values.
-  //
-  //                //            ; --------------------------------------
-  0,                // NOP
-  0303, 5, 0,       // jmp Halt   ; Jump back to the start halt command.
-  0000              //            ; End.
-};
-
-// -----------------------------------------------------------------------------
 // Kill the Bit program.
 
-byte theProgramKtb[] = {
+byte theProgram[] = {
   // ------------------------------------------------------------------
   // Kill the Bit program.
   // Before starting, make sure all the sense switches are in the down position.
@@ -2562,13 +2468,14 @@ void getToogleAddress() {
 // Only do the action once, don't repeat if the button is held down.
 // Don't repeat action if the button is not pressed.
 
-const int numberOfSwitches = 8;
+const int numberOfSwitches = 7;
 boolean switchState[numberOfSwitches] = {
-  false, false, false, false, false, false, false, false
+  false, false, false, false, false, false, false
 };
-void buttonCheck() {
-  byte dataByte = B10000000;
-  for (int i = 0; i < numberOfSwitches; i++) {
+void checkControlButtons() {
+  // Start with the run button.
+  byte dataByte = B01000000;
+  for (int i = 1; i < numberOfSwitches; i++) {
     digitalWrite(latchPinIn, LOW);
     shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
     shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
@@ -2584,35 +2491,27 @@ void buttonCheck() {
     } else if (switchState[i]) {
       switchState[i] = false;
       //
-      if (i == 0 & runProgram) {
-        Serial.println(F("> hlt, halt the processor."));
-        runProgram = false;
-        statusByte = 0;
-        statusByte = statusByte | WAIT_ON;
-        statusByte = statusByte | HLTA_ON;
-        // lightsStatusAddressData(statusByte, programCounter, dataByte);
-        displayStatusAddressData();
-      } else if (i == 1) {
+      if (i == 1) {
         Serial.println(F("+ Run process."));
         runProgram = true;
         statusByte = statusByte & WAIT_OFF;
         statusByte = statusByte & HLTA_OFF;
-      } else if (i == 2 & !runProgram) {
+      } else if (i == 2) {
         // Single Step
         statusByte = statusByte & HLTA_OFF;
         processData();
-      } else if (i == 3 & !runProgram) {
+      } else if (i == 3) {
         Serial.println(F("+ Examine toggle address data. Address bits: A0...A7."));
         getToogleAddress();
         programCounter = toggleAddressByte;
         dataByte = memoryData[programCounter];
         lightsStatusAddressData(statusByte, programCounter, dataByte);
-      } else if (i == 4 & !runProgram) {
+      } else if (i == 4) {
         Serial.println(F("+ Examine Next address."));
         programCounter++;
         dataByte = memoryData[programCounter];
         lightsStatusAddressData(statusByte, programCounter, dataByte);
-      } else if (i == 5 & !runProgram) {
+      } else if (i == 5) {
         Serial.print(F("+ Deposit toggleAddressByte: "));
         getToogleAddress();
         dataByte = toggleAddressByte;
@@ -2621,14 +2520,15 @@ void buttonCheck() {
         Serial.print(F("+ Deposit toggleAddressByte: "));
         printByte(toggleAddressByte);
         Serial.println("");
-      } else if (i == 6 & !runProgram) {
+      } else if (i == 6) {
         Serial.println(F("+ Deposit toggle byte into the next address."));
         getToogleAddress();
         dataByte = toggleAddressByte;
         programCounter++;
         memoryData[programCounter] = dataByte;
         lightsStatusAddressData(statusByte, programCounter, dataByte);
-      } else if (i == 7 & !runProgram) {
+      } else if (i == 7) {
+        Serial.println("+ Running RESET Button pressed.");
         Serial.println(F("+ Reset program counter, program address, to 0."));
         programCounter = 0;
         dataByte = memoryData[programCounter];
@@ -2641,11 +2541,55 @@ void buttonCheck() {
     //
     dataByte = dataByte >> 1;
   }
+}
+
+byte switchByte;
+boolean switchStop = false;
+boolean switchReset = false;
+void checkRunningButtons() {
+  // Check STOP button.
+  switchByte = B10000000;
   digitalWrite(latchPinIn, LOW);
   shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
   shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
-  shiftOut(dataPinIn, clockPinIn, LSBFIRST, B1111111);
+  shiftOut(dataPinIn, clockPinIn, LSBFIRST, switchByte);
   digitalWrite(latchPinIn, HIGH);
+  if (digitalRead(dataInputPin) == HIGH) {
+    if (!switchStop) {
+      switchStop = true;
+      Serial.println("+ Running STOP Button pressed.");
+    } else if (switchStop) {
+      switchStop = false;
+      Serial.println("+ Running STOP Button released.");
+      Serial.println(F("> hlt, halt the processor."));
+      runProgram = false;
+      statusByte = 0;
+      statusByte = statusByte | WAIT_ON;
+      statusByte = statusByte | HLTA_ON;
+      // lightsStatusAddressData(statusByte, programCounter, dataByte);
+      displayStatusAddressData();
+    }
+  }
+  // Check RESET button.
+  switchByte = B00000001;
+  digitalWrite(latchPinIn, LOW);
+  shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
+  shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
+  shiftOut(dataPinIn, clockPinIn, LSBFIRST, switchByte);
+  digitalWrite(latchPinIn, HIGH);
+  if (digitalRead(dataInputPin) == HIGH) {
+    if (switchReset) {
+      switchReset = true;
+      Serial.println("+ Running RESET Button pressed.");
+    } else if (switchReset) {
+      switchReset = false;
+      Serial.println("+ Running RESET Button released.");
+      Serial.println(F("+ Reset program counter, program address, to 0."));
+      programCounter = 0;
+      dataByte = memoryData[programCounter];
+      lightsStatusAddressData(statusByte, programCounter, dataByte);
+    }
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -2950,14 +2894,14 @@ void loop() {
       // + Use the keypress value as input into the running program. Used by opcode: IN.
       infraredSwitchInput();
     }
-    buttonCheck();
+    checkRunningButtons();
     // ----------------------------
   } else {
     if (irrecv.decode(&results)) {
       // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous.
       infraredSwitchControl();
     }
-    buttonCheck();
+    checkControlButtons();
     delay(60);
   }
 
