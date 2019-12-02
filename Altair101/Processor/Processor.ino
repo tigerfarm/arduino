@@ -2558,17 +2558,17 @@ void checkRunningButtons() {
     if (!switchStop) {
       switchStop = true;
       Serial.println("+ Running STOP Button pressed.");
-    } else if (switchStop) {
-      switchStop = false;
-      Serial.println("+ Running STOP Button released.");
-      Serial.println(F("> hlt, halt the processor."));
-      runProgram = false;
-      statusByte = 0;
-      statusByte = statusByte | WAIT_ON;
-      statusByte = statusByte | HLTA_ON;
-      // lightsStatusAddressData(statusByte, programCounter, dataByte);
-      displayStatusAddressData();
     }
+  } else if (switchStop) {
+    switchStop = false;
+    Serial.println("+ Running STOP Button released.");
+    Serial.println(F("> hlt, halt the processor."));
+    runProgram = false;
+    statusByte = 0;
+    statusByte = statusByte | WAIT_ON;
+    statusByte = statusByte | HLTA_ON;
+    // lightsStatusAddressData(statusByte, programCounter, dataByte);
+    displayStatusAddressData();
   }
   // Check RESET button.
   switchByte = B00000001;
