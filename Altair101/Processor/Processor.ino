@@ -16,18 +16,22 @@
   ++ Add toggle software controls from the shiftRegisterInputToggle program.
   Emulator Program Logic,
   + Add Reset, which resets the program counter 0, to start a program over.
+  + When a program is running,
+  ++ Only monitor and execute options: STOP and RESET.
   + When a program is not running,
-  ++ Use the toggles to Examine data in program memory.
-  ++ Use the toggles to Deposit data into program memory.
+  ++ Monitor and execute options: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, and RESET.
+  ++ Use the toggle address to Examine data in program memory.
+  ++ Use the toggle binary value to Deposit data into program memory.
 
   Emulator Program Logic,
-  + When a program is running, use the toggles as sense switches (input).
-  ++ Get IN (input) opcode to work.
+  + When a program is running,
+  ++ Use the toggles as sense switches (input) via the IN opcode.
   ++ Load and play, Kill the Bit.
 
   The computer finally has the basic functionality of an Altair 8800.
-  + Kill the Bit, is the standard defacto basic demostration program of an Altair 8800, and its clones and replicas.
+  + Kill the Bit, is the standard defacto basic demostration program of an Altair 8800 and its clones, and replicas.
   + And at this point, Altair 101 if functionaly complete!
+  + The only major difference, is that I don't have all the 8080 opcodes implemented.
 
   The basic development computer is complete!
 
@@ -115,6 +119,7 @@
 // #define RUN_DELAY 1
 // #define RUN_NOW 1
 // #define LOG_MESSAGES 1
+// #define SWITCH_MESSAGES 1
 
 // -----------------------------------------------------------------------------
 // Infrared Receiver
@@ -2440,11 +2445,10 @@ void readyLcd() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// Front Panel Input Toggles
+// Front Panel Switches
 
-// -----------------------
-// Only do the action once, don't repeat if the button is held down.
-// Don't repeat action if the button is not pressed.
+// -------------------------
+// Get Front Panel Toggles value
 
 const int numberOfToogles = 8;
 byte toggleAddressByte = B00000000;
@@ -2464,7 +2468,9 @@ void getToogleAddress() {
   }
 }
 
-// -----------------------
+// -------------------------
+// Front Panel Control Switches, when a program is not running.
+
 // Only do the action once, don't repeat if the button is held down.
 // Don't repeat action if the button is not pressed.
 
@@ -2475,7 +2481,7 @@ boolean switchState[numberOfSwitches] = {
 void checkControlButtons() {
   // Start with the run button.
   byte dataByte = B01000000;
-  for (int i = 1; i < numberOfSwitches; i++) {
+  for (int i = 0; i < numberOfSwitches; i++) {
     digitalWrite(latchPinIn, LOW);
     shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
     shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
@@ -2485,51 +2491,65 @@ void checkControlButtons() {
     if (digitalRead(dataInputPin) == HIGH) {
       if (!switchState[i]) {
         switchState[i] = true;
-        Serial.print("+ Button pressed: ");
-        Serial.println(i);
+        // Serial.print("+ Button pressed: ");
+        // Serial.println(i);
       }
     } else if (switchState[i]) {
       switchState[i] = false;
       //
-      if (i == 1) {
+      if (i == 0) {
+#ifdef SWITCH_MESSAGES
         Serial.println(F("+ Run process."));
+#endif
         runProgram = true;
         statusByte = statusByte & WAIT_OFF;
         statusByte = statusByte & HLTA_OFF;
-      } else if (i == 2) {
+      } else if (i == 1) {
         // Single Step
         statusByte = statusByte & HLTA_OFF;
         processData();
-      } else if (i == 3) {
+      } else if (i == 2) {
+#ifdef SWITCH_MESSAGES
         Serial.println(F("+ Examine toggle address data. Address bits: A0...A7."));
+#endif
         getToogleAddress();
         programCounter = toggleAddressByte;
         dataByte = memoryData[programCounter];
         lightsStatusAddressData(statusByte, programCounter, dataByte);
-      } else if (i == 4) {
+      } else if (i == 3) {
+#ifdef SWITCH_MESSAGES
         Serial.println(F("+ Examine Next address."));
+#endif
         programCounter++;
         dataByte = memoryData[programCounter];
         lightsStatusAddressData(statusByte, programCounter, dataByte);
-      } else if (i == 5) {
+      } else if (i == 4) {
+#ifdef SWITCH_MESSAGES
         Serial.print(F("+ Deposit toggleAddressByte: "));
+#endif
         getToogleAddress();
         dataByte = toggleAddressByte;
         memoryData[programCounter] = dataByte;
         lightsStatusAddressData(statusByte, programCounter, dataByte);
+#ifdef SWITCH_MESSAGES
         Serial.print(F("+ Deposit toggleAddressByte: "));
         printByte(toggleAddressByte);
         Serial.println("");
-      } else if (i == 6) {
+#endif
+      } else if (i == 5) {
+#ifdef SWITCH_MESSAGES
         Serial.println(F("+ Deposit toggle byte into the next address."));
+#endif
         getToogleAddress();
         dataByte = toggleAddressByte;
         programCounter++;
         memoryData[programCounter] = dataByte;
         lightsStatusAddressData(statusByte, programCounter, dataByte);
-      } else if (i == 7) {
+      } else if (i == 6) {
+#ifdef SWITCH_MESSAGES
         Serial.println("+ Running RESET Button pressed.");
         Serial.println(F("+ Reset program counter, program address, to 0."));
+#endif
         programCounter = 0;
         dataByte = memoryData[programCounter];
         lightsStatusAddressData(statusByte, programCounter, dataByte);
@@ -2541,10 +2561,10 @@ void checkControlButtons() {
     //
     dataByte = dataByte >> 1;
   }
-  digitalWrite(latchPinIn, LOW);
-  shiftOut(dataPinIn, clockPinIn, LSBFIRST, B1111111);
-  digitalWrite(latchPinIn, HIGH);
 }
+
+// -------------------------
+// Front Panel Control Switches, when a program is running.
 
 byte switchByte;
 boolean switchStop = false;
@@ -2558,21 +2578,22 @@ void checkRunningButtons() {
   shiftOut(dataPinIn, clockPinIn, LSBFIRST, switchByte);
   digitalWrite(latchPinIn, HIGH);
   if (digitalRead(dataInputPin) == HIGH) {
-    // Serial.println("+ switchStop: (digitalRead(dataInputPin) == HIGH)");
     if (!switchStop) {
       switchStop = true;
+#ifdef SWITCH_MESSAGES
       Serial.println("+ Running, STOP Button pressed.");
+#endif
     }
-    // delay(30);
   } else if (switchStop) {
     switchStop = false;
+#ifdef SWITCH_MESSAGES
     Serial.println("+ Running, STOP Button released.");
     Serial.println(F("> hlt, halt the processor."));
+#endif
     runProgram = false;
     statusByte = 0;
     statusByte = statusByte | WAIT_ON;
     statusByte = statusByte | HLTA_ON;
-    // lightsStatusAddressData(statusByte, programCounter, dataByte);
     displayStatusAddressData();
   }
   // Check RESET button.
@@ -2583,16 +2604,18 @@ void checkRunningButtons() {
   shiftOut(dataPinIn, clockPinIn, LSBFIRST, switchByte);
   digitalWrite(latchPinIn, HIGH);
   if (digitalRead(dataInputPin) == HIGH) {
-    // Serial.println("+ switchStop: (digitalRead(dataInputPin) == HIGH)");
     if (!switchReset) {
       switchReset = true;
+#ifdef SWITCH_MESSAGES
       Serial.println("+ Running, RESET Button pressed.");
+#endif
     }
-    // delay(30);
   } else if (switchReset) {
     switchReset = false;
+#ifdef SWITCH_MESSAGES
     Serial.println("+ Running, RESET Button released.");
     Serial.println(F("+ Reset program counter, program address, to 0."));
+#endif
     programCounter = 0;
     dataByte = memoryData[programCounter];
     lightsStatusAddressData(statusByte, programCounter, dataByte);
@@ -2862,12 +2885,7 @@ void setup() {
   pinMode(dataPinIn, OUTPUT);
   pinMode(dataInputPin, INPUT);
   delay(300);
-  digitalWrite(latchPinIn, LOW);
-  shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
-  shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
-  shiftOut(dataPinIn, clockPinIn, LSBFIRST, B11111111);
-  digitalWrite(latchPinIn, HIGH);
-  Serial.println("+ Front panel Input switches ready to be used.");
+  Serial.println("+ Front panel switches ready to be used.");
 
   // ----------------------------------------------------
   pinMode(latchPinLed, OUTPUT);
@@ -2901,9 +2919,8 @@ void loop() {
   if (runProgram) {
     // ----------------------------
 #ifdef RUN_DELAY
-    // When testing, can add a cycle delay.
-    // Clock process timing is controlled by the timer.
-    // Example, 50000 : once every 1/2 second.
+    // For testing, clock process timing is controlled by the timer.
+    // Example, 500 : once every 1/2 second.
     if (millis() - timer >= 500) {
 #endif
       processData();
@@ -2911,20 +2928,19 @@ void loop() {
       timer = millis();
     }
 #endif
+    // Program control: STOP or RESET.
     if (irrecv.decode(&results)) {
-      // Key pressed:
-      // + STOP program running, or
-      // + Use the keypress value as input into the running program. Used by opcode: IN.
+      // Future: use the keypress value(1-8) as input into the running program via IN opcode.
       infraredSwitchInput();
     }
     checkRunningButtons();
     // ----------------------------
   } else {
+    // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
     if (irrecv.decode(&results)) {
-      // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous.
       infraredSwitchControl();
     }
-    // checkControlButtons();
+    checkControlButtons();
     delay(60);
   }
 
