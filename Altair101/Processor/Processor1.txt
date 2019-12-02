@@ -2541,9 +2541,6 @@ void checkControlButtons() {
     //
     dataByte = dataByte >> 1;
   }
-  digitalWrite(latchPinIn, LOW);
-  shiftOut(dataPinIn, clockPinIn, LSBFIRST, B1111111);
-  digitalWrite(latchPinIn, HIGH);
 }
 
 byte switchByte;
@@ -2558,15 +2555,13 @@ void checkRunningButtons() {
   shiftOut(dataPinIn, clockPinIn, LSBFIRST, switchByte);
   digitalWrite(latchPinIn, HIGH);
   if (digitalRead(dataInputPin) == HIGH) {
-    // Serial.println("+ switchStop: (digitalRead(dataInputPin) == HIGH)");
     if (!switchStop) {
       switchStop = true;
-      Serial.println("+ Running, STOP Button pressed.");
+      Serial.println("+ Running STOP Button pressed.");
     }
-    // delay(30);
   } else if (switchStop) {
     switchStop = false;
-    Serial.println("+ Running, STOP Button released.");
+    Serial.println("+ Running STOP Button released.");
     Serial.println(F("> hlt, halt the processor."));
     runProgram = false;
     statusByte = 0;
@@ -2583,19 +2578,17 @@ void checkRunningButtons() {
   shiftOut(dataPinIn, clockPinIn, LSBFIRST, switchByte);
   digitalWrite(latchPinIn, HIGH);
   if (digitalRead(dataInputPin) == HIGH) {
-    // Serial.println("+ switchStop: (digitalRead(dataInputPin) == HIGH)");
-    if (!switchReset) {
+    if (switchReset) {
       switchReset = true;
-      Serial.println("+ Running, RESET Button pressed.");
+      Serial.println("+ Running RESET Button pressed.");
+    } else if (switchReset) {
+      switchReset = false;
+      Serial.println("+ Running RESET Button released.");
+      Serial.println(F("+ Reset program counter, program address, to 0."));
+      programCounter = 0;
+      dataByte = memoryData[programCounter];
+      lightsStatusAddressData(statusByte, programCounter, dataByte);
     }
-    // delay(30);
-  } else if (switchReset) {
-    switchReset = false;
-    Serial.println("+ Running, RESET Button released.");
-    Serial.println(F("+ Reset program counter, program address, to 0."));
-    programCounter = 0;
-    dataByte = memoryData[programCounter];
-    lightsStatusAddressData(statusByte, programCounter, dataByte);
   }
 }
 
@@ -2654,37 +2647,25 @@ void infraredSwitchControl() {
     case 0xFFA25D:
       // Serial.println(F("+ Key 1: "));
       // Serial.println("+ Examine.");
-#ifdef LOG_MESSAGES
       Serial.print("? ");
       displayStatusAddressData();
       Serial.println("");
-#else
-      displayStatusAddressData();
-#endif
       break;
     case 0xFF629D:
       // Serial.println(F("+ Key 2: "));
       // Serial.println("+ Examine Next.");
       programCounter++;
-#ifdef LOG_MESSAGES
       Serial.print("? ");
       displayStatusAddressData();
       Serial.println("");
-#else
-      displayStatusAddressData();
-#endif
       break;
     case 0xFFE21D:
       // Serial.println(F("+ Key 3: "));
       // Serial.println("+ Examine Previous.");
       programCounter--;
-#ifdef LOG_MESSAGES
       Serial.print("? ");
       displayStatusAddressData();
       Serial.println("");
-#else
-      displayStatusAddressData();
-#endif
       break;
     case 0xFF22DD:
       Serial.print(F("+ Key 4: "));
@@ -2765,7 +2746,6 @@ void infraredSwitchInput() {
       runProgram = false;
       statusByte = statusByte | WAIT_ON;
       statusByte = statusByte & HLTA_OFF;
-      displayStatusAddressData();
       break;
     case 0xFF38C7:
     case 0xE0E016E9:
@@ -2774,7 +2754,6 @@ void infraredSwitchInput() {
       runProgram = false;
       statusByte = statusByte | WAIT_ON;
       statusByte = statusByte & HLTA_OFF;
-      displayStatusAddressData();
       break;
     // -----------------------------------
     case 0xFF9867:
@@ -2865,7 +2844,7 @@ void setup() {
   digitalWrite(latchPinIn, LOW);
   shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
   shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
-  shiftOut(dataPinIn, clockPinIn, LSBFIRST, B11111111);
+  shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
   digitalWrite(latchPinIn, HIGH);
   Serial.println("+ Front panel Input switches ready to be used.");
 
@@ -2917,14 +2896,14 @@ void loop() {
       // + Use the keypress value as input into the running program. Used by opcode: IN.
       infraredSwitchInput();
     }
-    checkRunningButtons();
+    // checkRunningButtons();
     // ----------------------------
   } else {
     if (irrecv.decode(&results)) {
       // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous.
       infraredSwitchControl();
     }
-    // checkControlButtons();
+    checkControlButtons();
     delay(60);
   }
 
