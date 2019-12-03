@@ -185,8 +185,13 @@ byte theProgram[] = {
   //                    //            ; Start program.
   0,                    // org 0      ; An assembler directive, I guess.
   0041, 0, 0,           // LXI H,0    ; Move the lb hb data values into the register pair H(hb):L(lb). Initialize counter
-  0026, 128,            // mvi D,80h ; Move db to register D. Set initial display bit.  080h = 128 = regD = 10 000 000
-  0001, 0, 3,           // LXI B,0eh  ; Load a(lb:hb) into register B:C. Higher value = faster. Default: 0014 = B:C  = 00 010 000
+  0026, 128,            // mvi D,80h  ; Move db to register D. Set initial display bit.  080h = 128 = regD = 10 000 000
+  0001, 0, 5,           // LXI B,?  0  ; Load a(lb:hb) into register B:C. Higher value = faster.
+                        //            ;    Default: 0014 = B:C  = 00 010 000
+                        //            ;    Slow:    0020 = B:C  = 00 010 000
+                        //            ;    Nice:    0040 = B:C  = 00 100 000
+                        //            ;    Fast:    0100 = B:C  = 01 000 000
+                        //            ;Too fast:    0100 = B:C  = 01 001 000
   //
   //  ; Display bit pattern on upper 8 address lights.
   //                    // BEG:
@@ -200,7 +205,7 @@ byte theProgram[] = {
   0011,                 // DAD B      ; Add B:C to H:L. Set carry bit. Increments the display counter
   0322, 9, 0,           // JNC BEG    ; If carry bit false, jump to BEG, LDAX instruction start.
   //
-  0343, 32,             // out d      ; Show register D, which contains the value that is matched to input toggles.
+  // 0343, 32,             // out d      ; Show register D, which contains the value that is matched to input toggles.
   0333, 0377,           // IN 0ffh    ; Input into A. Check for toggled input, at port 377 (toggle sense switches), that can kill the bit.
   0252,                 // XRA D      ; Exclusive OR register with A
   //
