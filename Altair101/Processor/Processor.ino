@@ -9,35 +9,17 @@
     https://www.youtube.com/watch?v=EV1ki6LiEmg
 
   ---------------------------------------------
-  Hardware and software updates to complete the core system:
-
-  Completed: Add 8 toggles and a total of 3 x 595 chips, to the dev machine.
-  + Solder and add 8 toggles (on/off) to the dev machine.
-  ++ Add toggle software controls from the shiftRegisterInputToggle program.
-  Emulator Program Logic,
-  + Add Reset, which resets the program counter 0, to start a program over.
-  + When a program is running,
-  ++ Only monitor and execute options: STOP and RESET.
-  + When a program is not running,
-  ++ Monitor and execute options: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, and RESET.
-  ++ Use the toggle address to Examine data in program memory.
-  ++ Use the toggle binary value to Deposit data into program memory.
-
-  ---------------------------------------------
-  Emulator Program Logic,
-  + When a program is running,
-  ++ Use the toggles as sense switches (input) via the IN opcode.
-  ++ Load and play, Kill the Bit.
+  The basic development computer is complete!
 
   The computer finally has the basic functionality of an Altair 8800.
   + Kill the Bit, is the standard defacto basic demostration program of an Altair 8800 and its clones, and replicas.
-  + And at this point, Altair 101 if functionaly complete!
+  + At this point, Altair 101 if functionaly complete!
   + The only major difference, is that I don't have all the 8080 opcodes implemented.
 
-  The basic development computer is complete!
+  I need to do more testing...
 
   ---------------------------------------------
-  Add modern I/O components,
+  Next add modern I/O components,
 
   Add SD card,
   + Save program memory to card, load program memory from card.
@@ -99,23 +81,11 @@
 
   Altair 8800 Operator's Manual.pdf has a description of each opcode.
 
-  Reference document, Intel 8080 Assembly Language Programming Manual:
-    https://altairclone.com/downloads/manuals/8080%20Programmers%20Manual.pdf
-  This section is base on section 26: 8080 Instruction Set
-    https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
-  Text listing of 8080 opcodes:
-    https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/ProcessorOpcodes.txt
-    https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodesBinaryList.txt
-
   Binary calculator:
     https://www.calculator.net/binary-calculator.html
 
   Bitwise operators:
     https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitwiseand/
-  Extract highByte()
-    https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/highbyte/
-  Extract lowByte()
-    https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/lowbyte/
 */
 // -----------------------------------------------------------------------------
 // Code compilation options.
