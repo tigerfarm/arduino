@@ -9,7 +9,7 @@
     https://www.youtube.com/watch?v=EV1ki6LiEmg
 
   ---------------------------------------------
-  Next, hardware and software updates to complete the core system:
+  Hardware and software updates to complete the core system:
 
   Completed: Add 8 toggles and a total of 3 x 595 chips, to the dev machine.
   + Solder and add 8 toggles (on/off) to the dev machine.
@@ -23,6 +23,7 @@
   ++ Use the toggle address to Examine data in program memory.
   ++ Use the toggle binary value to Deposit data into program memory.
 
+  ---------------------------------------------
   Emulator Program Logic,
   + When a program is running,
   ++ Use the toggles as sense switches (input) via the IN opcode.
@@ -38,20 +39,25 @@
   ---------------------------------------------
   Add modern I/O components,
 
-  + Implement the 1602 LCD for output.
-  + Add SD card features: save program memory to card, load program memory from card.
+  Add SD card,
+  + Save program memory to card, load program memory from card.
   ++ Use an on/off/on toggle: up to save (upload), down to load (download).
-  ++ Confirm message on the LCD: "Confirm save to file x." Or, "Confirm load from file x."
-  +++ The file number, is the toggle value. For example, 003.MEM, is A8 and A9 toggles are up.
+
+  Add a 1602 LCD,
+  ++ Confirm messages on the LCD: "Confirm, save to file x." Or, "Confirm, load file x."
+  +++ The file number, is the toggle value. For example, 003.MEM, is A8 and A9 toggles up.
   ++ View the result: "Saved.", "Loaded.", or "Error."
-  + Add DS3231 clock.
-  ++ Use an on/off/on toggle to display the time on the LCD.
-  ++ Time is show on the LCD, when the LCD isn't used by a running program.
-  + Add MP3 player (DFPlayer) and amp.
+
+  Add DS3231 clock.
+  + Use an on/off/on toggle to display the time on the LCD.
+  + Time is shown on the LCD, when the LCD isn't used by a running program.
+  + Program option to take over the LEDs to display the time.
+
+  Add MP3 player (DFPlayer) and amp.
   ++ Controled using an infrared controller. At first, independent from programs running.
 
   ---------------------------------------------
-  Build the first Altair 101 machine,
+  Build my first Altair 101 machine,
 
   + Complete the final design.
   + Order parts to build the machine.
@@ -194,8 +200,10 @@ byte theProgram[] = {
   0011,                 // DAD B      ; Add B:C to H:L. Set carry bit. Increments the display counter
   0322, 9, 0,           // JNC BEG    ; If carry bit false, jump to BEG, LDAX instruction start.
   //
+  0343, 32,             // out d      ; Show register D, which contains the value that is matched to input toggles.
   0333, 0377,           // IN 0ffh    ; Input into A. Check for toggled input, at port 377 (toggle sense switches), that can kill the bit.
   0252,                 // XRA D      ; Exclusive OR register with A
+  //
   0017,                 // RRC        ; Rotate A right (shift byte right 1 bit). Set carry bit. Rotate display right one bit
   0127,                 // MOV D,A    ; Move register A to register D. Move data to display reg
   //
@@ -373,6 +381,7 @@ const byte rrc    = 0017; // rrc       00 001 111   c    Rotate a right (shift b
 // Kill the Bit opcode to implement:
 const byte IN     = 0333;
 // IN p      11011011 pa       -       Read input for port a, into A
+// 0333, 0377,  // IN 0ffh    ;Check toggle sense switches for non-zero input. Used in the program, kill the bit.
 
 // -----------------------------------------------------------
 // Destination and Source registers and register pairs.
@@ -497,6 +506,8 @@ boolean runProgram = false;
 boolean halted = false;       // Set true for an hlt opcode.
 boolean carryBit = false;     // Set by dad. Used jnc.
 boolean compareResult = true; // Set by cpi. Used by jz.
+
+byte bit7;                    // For capturing a bit when doing bitwise calculations.
 
 // For calculating 16 bit values.
 // uint16_t bValue;           // Test using uint16_t instead of "unsigned int".
@@ -862,6 +873,7 @@ void processOpcode() {
     case B11011011:
       opcode = B11011011;
       // INP status light is on when reading from an input port.
+      statusByte = statusByte | INP_ON;
 #ifdef LOG_MESSAGES
       Serial.print(F("> IN, If input value is available, get the input byte."));
 #endif
@@ -1612,11 +1624,12 @@ void processOpcode() {
       printByte(regA);
       Serial.print(F(", right 1 bit: "));
 #endif
-      regA = regA >> 1;
       // # 0x0f RRC 1 CY  A = A >> 1; bit 7 = prev bit 0; CY = prev bit 0
-      // To do: improve the if statement, i.e. if bit 7 == 1, wrap 1 instead of the default 0.
-      if (regA == 0) {
-        regA = B10000000;
+      // Get bit 7, and use it to set bit 0, after the shift.
+      bit7 = regA & B00000001;
+      regA = regA >> 1;
+      if (bit7 == 1) {
+        regA = regA | B10000000;
       }
 #ifdef LOG_MESSAGES
       printByte(regA);
@@ -1848,13 +1861,33 @@ void processOpcodeData() {
       break;
     // ---------------------------------------------------------------------
     case B11011011:
+    // stacy
       // instructionCycle == 1
-      // // INP & WO are on when reading from an input port.
+      // INP & WO are on when reading from an input port.
+      // IN p      11011011 pa       -       Read input for port a, into A
+      //                    pa = 0ffh        Check toggle sense switches for non-zero input.
+      //                         0ffh = B11111111 = 255
+      //
       dataByte = memoryData[programCounter];
 #ifdef LOG_MESSAGES
       Serial.print(F("< IN, input port: "));
       Serial.print(dataByte);
-      Serial.print(F(". Not implemented, yet."));
+      Serial.print(F("."));
+#endif
+      if (dataByte == 255) {
+        regA = toggleSenseByte();
+      } else {
+        regA = 0;
+#ifdef LOG_MESSAGES
+        Serial.print(F(" IN not implemented on this port."));
+#endif
+      }
+#ifdef LOG_MESSAGES
+      Serial.print(F(" Register A = "));
+      Serial.print(regA);
+      Serial.print(F(" = "));
+      printByte(regA);
+      Serial.print(F("."));
 #endif
       programCounter++;
       break;
@@ -2179,7 +2212,10 @@ void processOpcodeData() {
           Serial.print(memoryData[hlValue]);
           break;
         default:
-          Serial.print(F("-- Error, unknow out port number: "));
+          regA = 0;
+#ifdef LOG_MESSAGES
+          Serial.print(F(". OUT not implemented on this port."));
+#endif
       }
       statusByte = statusByte | WO_ON;  // Inverse logic: off writing out. On when not.
       programCounter++;
@@ -2466,6 +2502,23 @@ void getToogleAddress() {
     }
     toggleAddressBit = toggleAddressBit >> 1;
   }
+}
+
+int toggleSenseByte() {
+  byte toggleByte = B00000000;
+  byte toggleAddressBit = B10000000;
+  for (int i = 0; i < numberOfToogles; i++) {
+    digitalWrite(latchPinIn, LOW);
+    shiftOut(dataPinIn, clockPinIn, LSBFIRST, toggleAddressBit);
+    shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
+    shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
+    digitalWrite(latchPinIn, HIGH);
+    if (digitalRead(dataInputPin) == HIGH) {
+      toggleByte = toggleByte | toggleAddressBit;
+    }
+    toggleAddressBit = toggleAddressBit >> 1;
+  }
+  return toggleByte;
 }
 
 // -------------------------

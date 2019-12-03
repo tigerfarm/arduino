@@ -15,6 +15,10 @@ From the processor program, [Processor.ino](Processor.ino), the opcode implement
     ...
     }
 ````
+
+Click [here](https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodesBinaryList.txt)
+to view a binary opcode list with the opcode number of cycles.
+
 #### Functionally ordered list of implemented opcodes:
 ````
 Opcode   Binary      Description
