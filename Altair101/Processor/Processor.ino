@@ -1,35 +1,40 @@
 // -----------------------------------------------------------------------------
 /*
-  Altair 101 Processor, which is an Altair 8800 Microprocessor Emulator Program
+  Altair 101 Processor, which is an Altair 8800 Microprocessor Emulator Program.
 
-  ---------------------------------------------
-  +++ Need to confirm/test LED light data timing and content.
-
+  This program emulate the Altair 8800 hardware on an Arduino Uno, Nano, or Mega.
+  It includes a partial intel 8080 microprocessor emulater to process the 8080 machine instructions.
+  
   ---------------------------------------------
   The Altair 101 development computer is functionaly complete!
 
   The computer finally has the basic functionality of an Altair 8800.
-  + Kill the Bit, is the standard defacto basic demostration program of an Altair 8800 and its clones, and replicas.
+  + Kill the Bit, is the standard defacto basic demostration program of an Altair 8800 and its clones and replicas.
   + The only major difference, is that I don't have all the 8080 opcodes implemented.
-  + Another difference to modern clones and replicas, is that they have 64K of memory,
-    and the Altair 101 only has 256 bytes of memory. Note, I can add more memory later.
+  + The Altair 101 only has only 256 bytes of memory which is the same as the original basic Altair 8800.
+  + Modern clones and replicas have 64K of memory. Note, I can later add more memory and opcodes to the 101.
 
   ---------------------------------------------
-  Complete the physical dev machine.
+  Next, complete the physical dev machine.
+
+  Note, I need to decide on the LED resister value to use: 1K, 2K?
 
   The components will be mounted on a $4 clickboard from Staples.
-  This will allow me to use it like tablet.
-  
-  Create a toggle keyboard for the dev machine.
+  This will allow me to use it like an Android tablet.
 
-  Toggle keyboard to replaces the current buttons, and uses the current toggles,
-  + Current, 8 toggles for address and data entry. Also used as sense switches for input.
+  -------------------------
+  Create a toggle keyboard.
+
+  The toggle keyboard will replace the current breadboard buttons,
+  and will continue to use the current toggles.
+  + Current 8 toggles are for address and data entry. Also used as sense switches for input.
+  ++ Only 8 are required because of the limited 256 bytes of memory.
   + Add 7 x on/off/on toggles for controls,
   ++ 1. STOP and RUN
-  ++ 2. SINGLE STEP. Maybe: Examine previous
-  ++ 3. EXAMINE, EXAMINE NEXT
+  ++ 2. SINGLE STEP. Maybe add: Examine previous
+  ++ 3. EXAMINE and EXAMINE NEXT
   ++ 4. DEPOSIT and DEPOSIT NEXT
-  ++ 5. RESET.
+  ++ 5. RESET. Not implemented: CLR, clear external I/O equipement.
   ++ 6. AUX 1, not decided what to control with AUX 1.
   ++ 7. AUX 2, for save and load from SD card.
 
@@ -42,6 +47,7 @@
   |  5         0         0   6      7  |
    ------------------------------------
 
+  -------------------------
   Mount the dev machine components onto the clipboard.
 
   Power for the dev machine,
@@ -50,7 +56,7 @@
   + For portablity, should test using a 9V power supply.
 
   ---------------------------------------------
-  Next add modern I/O components,
+  Next, add modern I/O components and controls.
 
   Add SD card,
   + Save program memory to card, load program memory from card.
