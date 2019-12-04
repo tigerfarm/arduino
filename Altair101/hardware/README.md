@@ -112,19 +112,23 @@ Front panel toggle input test board:
 + Serial monitor log output.
 + To do: 2 input On/Off/On momentary toggles for to control 4 data bit settings.
 + To do: Test with a PCF8574 board
-+ Program [link](../shiftRegisterInput/shiftRegisterInput.ino)
++ Program [link](../developmment/shiftRegisterInputSwitch/shiftRegisterInputSwitch.ino)
++ Program [link](../developmment/shiftRegisterInputToggle/shiftRegisterInputToggle.ino)
 
 Front panel 16 LED output test board:
 + Use 3 pins of a Nano board
 + 2 x 74HC595 Shift Register
 + 2 x LED bar-graph (10 LEB bars) and 16 resistors.
-+ Program [link, one shift register](../shiftRegisterOne/shiftRegisterOne.ino)
-+ Program [link, two shift registers](../shiftRegisterTwo/shiftRegisterTwo.ino)
++ Program [link, one shift register](../developmment/shiftRegisterOne/shiftRegisterOne.ino)
++ Program [link, two shift registers](../developmment/shiftRegisterTwo/shiftRegisterTwo.ino)
++ Program [link, three shift registers](../developmment/shiftRegisterThree/shiftRegisterThree.ino)
++ Program [link, status shift register](../developmment/StatusAndButtons/StatusAndButtons.ino)
 
 SD card board test:
 + Nano, using 4 pins: 3 SPI + 1 for enable/disable.
 + SD card module
-+ Program [link](../sdCard/sdCard.ino)
++ Program [link](../developmment/sdCard/sdCard.ino)
++ Program [link](../developmment/sdCard/sdCard.ino)
 
 Clock board, #1:
 + Nano board, using 3 pins: A4 & A5 for I2C communications 
@@ -151,6 +155,13 @@ Rotary encoder board:
 + Rotary encoder module
 + Program [link](../../samples/RotaryEncoder/RotaryEncoder.ino)
 + Program [link](../../samples/RotaryEncoder2digits/RotaryEncoder2digits.ino)
+
+Note,
++ 74HC595 Shift Register is faster and better for driving LED lights, than a PCF8574 module.
++ PCF8574 maybe better for input. I need to test.
++ PCF8574 is an I2C module, which can save me 3 digital pins, if I can use it for input.
++ PCF8574 has an interrupt pin, which can be connected to Nano pin 2 or 3 to signify switch activity.
+    This can save loop() checking cycles when a program is running.
 
 --------------------------------------------------------------------------------
 ### Altair 101 Case
