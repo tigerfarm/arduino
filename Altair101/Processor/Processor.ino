@@ -1,25 +1,29 @@
 // -----------------------------------------------------------------------------
 /*
-  Altair 101 8080 Microprocessor Emulator Program
+  Altair 101 Processor, which is an Altair 8800 Microprocessor Emulator Program
 
   ---------------------------------------------
   +++ Need to confirm/test LED light data timing and content.
 
   ---------------------------------------------
-  The basic development computer is complete!
+  The Altair 101 development computer is functionaly complete!
 
   The computer finally has the basic functionality of an Altair 8800.
   + Kill the Bit, is the standard defacto basic demostration program of an Altair 8800 and its clones, and replicas.
-  + At this point, Altair 101 if functionaly complete!
   + The only major difference, is that I don't have all the 8080 opcodes implemented.
-
-  I need to do more testing...
+  + Another difference to modern clones and replicas, is that they have 64K of memory,
+    and the Altair 101 only has 256 bytes of memory. Note, I can add more memory later.
 
   ---------------------------------------------
+  Complete the physical dev machine.
+
+  The components will be mounted on a $4 clickboard from Staples.
+  This will allow me to use it like tablet.
+  
   Create a toggle keyboard for the dev machine.
 
   Toggle keyboard to replaces the current buttons, and uses the current toggles,
-  + Current 8 toggles for address and data entry. Also used as sense switches for input.
+  + Current, 8 toggles for address and data entry. Also used as sense switches for input.
   + Add 7 x on/off/on toggles for controls,
   ++ 1. STOP and RUN
   ++ 2. SINGLE STEP. Maybe: Examine previous
@@ -29,14 +33,21 @@
   ++ 6. AUX 1, not decided what to control with AUX 1.
   ++ 7. AUX 2, for save and load from SD card.
 
-  Layout, where '0' are screws to connect the keyboard to the clipboard.
+  Keyboard layout, where '0' are screws to connect the keyboard to the clipboard.
    ------------------------------------
   |  1      2       0        3      4  |
   |                                    |
   |   A7  A6  A5  A4  A3  A2  A1  A0   |
   |                                    |
-  |  5         0         0   7      6  |
-   -----------------------------------
+  |  5         0         0   6      7  |
+   ------------------------------------
+
+  Mount the dev machine components onto the clipboard.
+
+  Power for the dev machine,
+  + Cable to plug into a USB power supply that is plugged in a wall socket.
+  + On/off toggle, or use a USB hub with on/off switches.
+  + For portablity, should test using a 9V power supply.
 
   ---------------------------------------------
   Next add modern I/O components,
@@ -81,26 +92,27 @@
   ---------------------------------------------
   ---------------------------------------------
   Processor program sections,
-    Sample programs.
-    Definitions: Memory.
+    Sample machine code program in a memory array.
+    Definitions: machine memory and stack memory.
     Memory Functions.
     Output: 1602 LCD
     Front Panel Status LEDs.
-    Output: Front Panel LED lights and serial log messages.
+    Output: Front Panel LED lights.
     ----------------------------
-    Process opcodes instructions:
+    Process a subset of the Intel 8080 opcode instructions:
     + Instruction Set control.
     + Process opcode instruction machine cycle one (M1): fetch opcode and process it.
     + Process opcode instruction machine cycles greater than 1.
     ----------------------------
     I/O: SD Card reader: save and load machine memory.
-    Input: Front Panel toggle switch events
-    Input: Front Panel infrared switch events
+    Input: Front Panel toggle switch control and data entry events
+    Input: Infrared switch events
     ----------------------------
-    setup() Computer initialization.
-    loop()  Clock cycling through memory.
-  ---------------------------------------------
+    setup() : Computer initialization.
+    loop()  : Clock cycling through memory.
+    ----------------------------
 
+  ---------------------------------------------
   Altair 8800 Operator's Manual.pdf has a description of each opcode.
 
   Binary calculator:
