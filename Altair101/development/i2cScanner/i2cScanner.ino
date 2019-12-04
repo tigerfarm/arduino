@@ -1,14 +1,9 @@
 // -----------------------------------------------------------------------------
 /*
-  PCF8574 I2C Module
-
-  Nice wiring sample:
-    https://www.youtube.com/watch?v=mXMkgQf3fqU
-
- Sketch for 2 chips.
-    https://github.com/GadgetReboot/Arduino/blob/master/Uno/PCF8574/PCF8574.ino
-
+    Scan for I2C devices
 */
+
+#include<Wire.h>
 
 // -----------------------------------------------------------------------------
 void setup() {
@@ -19,21 +14,23 @@ void setup() {
   Serial.println("+++ Setup.");
 
   // ------------------------------
-  // I2C Two Wire initialization
-
+  Serial.println("Scanning...");
+  byte count = 0;
   Wire.begin();
-  Serial.println("+ Turn OFF all pins by sending a high byte (1 bit per byte).");
-  Wire.beginTransmission(0x027);
-  Wire.write(B11111111);
-  Wire.endTransmission();
-
-  Wire.begin();
-  Serial.println("+ Turn ON all pins by sending a high byte (1 bit per byte).");
-  Wire.beginTransmission(0x027);
-  Wire.write(B00000000);
-  Wire.endTransmission();
-
-  Serial.println("+ PCF module initialized.");
+  for (byte i = 8; i < 120; i++) {
+    Wire.beginTransmission (i);
+    if (Wire.endTransmission () == 0) {
+      Serial.print ("+ Found address: ");
+      Serial.print (i, DEC);
+      Serial.print (" (0x");
+      Serial.print (i, HEX);
+      Serial.println (")");
+      count++;
+      delay (1);
+    }
+  }
+  Serial.print("+ Scan completed. Number of devices found = ");
+  Serial.println(count, DEC);
 
   // ------------------------------
   Serial.println("+++ Go to loop.");
@@ -42,19 +39,7 @@ void setup() {
 // -----------------------------------------------------------------------------
 // Device Loop
 void loop() {
-  Serial.println("+ Loop.");
-
-  // ON: setting bit LOW (to zero)
-  // OFF: setting bit HIGH (to one)
-
-  Wire.beginTransmission(0x027);
-  Wire.write(B01010101);
-  Wire.endTransmission();
-  delay (500);
-
-  Wire.beginTransmission(0x027);
-  Wire.write(B01010101);
-  Wire.endTransmission();
-  delay (500);
+  // Serial.println("+ Loop.");
+  delay(5000);
 }
 // -----------------------------------------------------------------------------
