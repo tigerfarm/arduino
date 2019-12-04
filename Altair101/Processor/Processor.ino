@@ -16,6 +16,29 @@
   I need to do more testing...
 
   ---------------------------------------------
+  Create a toggle keyboard for the dev machine.
+
+  Toggle keyboard to replaces the current buttons, and uses the current toggles,
+  + Current 8 toggles for address and data entry. Also used as sense switches for input.
+  + Add 7 x on/off/on toggles for controls,
+  ++ 1. STOP and RUN
+  ++ 2. SINGLE STEP. Maybe: Examine previous
+  ++ 3. EXAMINE, EXAMINE NEXT
+  ++ 4. DEPOSIT and DEPOSIT NEXT
+  ++ 5. RESET.
+  ++ 6. AUX 1, not decided what to control with AUX 1.
+  ++ 7. AUX 2, for save and load from SD card.
+
+  Layout, where '0' are screws to connect the keyboard to the clipboard.
+   ------------------------------------
+  |  1      2       0        3      4  |
+  |                                    |
+  |   A7  A6  A5  A4  A3  A2  A1  A0   |
+  |                                    |
+  |  5         0         0   7      6  |
+   -----------------------------------
+
+  ---------------------------------------------
   Next add modern I/O components,
 
   Add SD card,
@@ -28,6 +51,7 @@
   ++ View the result: "Saved.", "Loaded.", or "Error."
 
   Add DS3231 clock.
+  + Add HLDA status light to signal when running in clock mode.
   + Use an on/off/on toggle to display the time on the LCD.
   + Time is shown on the LCD, when the LCD isn't used by a running program.
   + Program option to take over the LEDs to display the time.
@@ -2558,6 +2582,7 @@ void checkControlButtons() {
         Serial.println(F("+ Reset program counter, program address, to 0."));
 #endif
         programCounter = 0;
+        stackPointer = 0;
         dataByte = memoryData[programCounter];
         lightsStatusAddressData(statusByte, programCounter, dataByte);
       } else {
@@ -2624,6 +2649,7 @@ void checkRunningButtons() {
     Serial.println(F("+ Reset program counter, program address, to 0."));
 #endif
     programCounter = 0;
+    stackPointer = 0;
     dataByte = memoryData[programCounter];
     lightsStatusAddressData(statusByte, programCounter, dataByte);
   }

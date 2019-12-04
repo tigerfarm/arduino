@@ -17,8 +17,8 @@
   + SCL to Nano A5.
   + GND to Nano GND
   + VCC to Nano 5V
-  + INT to Nano interrupt pin, pin 2 in this program.
-  + P0 ... O7 to switch. Other side of the switch to ground.
+  + INT to Nano interrupt pin, pin 2 in this sample program.
+  + P0 ... O7 to switches. Other side of the switch to ground.
 
   Basic code sample:
     https://protosupplies.com/product/pcf8574-i2c-i-o-expansion-module/
