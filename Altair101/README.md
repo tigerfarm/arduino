@@ -96,9 +96,11 @@ Next, came the research and design stage.
 
 To get started, I put together components on a breadboard,
 + Nano, SD card read/write module.
-+ 
-````
 
+Nice history video.
+https://www.youtube.com/watch?v=X5lpOskKF9I
+
+````
   ---------------------------------------------
   Hardware and software updates to complete the core system:
 
@@ -113,23 +115,31 @@ To get started, I put together components on a breadboard,
   ++ Monitor and execute options: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, and RESET.
   ++ Use the toggle address to Examine data in program memory.
   ++ Use the toggle binary value to Deposit data into program memory.
+````
 
+Now, I can do, what is done, in the [Altair programming video](https://www.youtube.com/watch?v=EV1ki6LiEmg):
+Altair 8800 - Video #2 - Front Panel Programming.
+
+````
   Emulator Program Logic,
   + When a program is running,
   ++ Use the toggles as sense switches (input) via the IN opcode.
   ++ Load and play, Kill the Bit.
   ++ Pause and change the bit move speed. Then start it up again using RUN or RESET.
+````
 
-  The computer finally has the basic functionality of an Altair 8800.
-  + Kill the Bit, is the standard defacto basic demostration program of an Altair 8800 and its clones, and replicas.
-  + And at this point, Altair 101 if functionaly complete!
-  + The only major difference, is that I don't have all the 8080 opcodes implemented.
+The Altair 101 is basically, functionally, complete!
 
-  ---------------------------------------------
-  The basic development computer is complete!
+My computer finally has the basic functionality of an Altair 8800.
+It can run the [Kill the Bit program](https://www.youtube.com/watch?v=ZKeiQ8e18QY),
+which is the standard defacto basic demonstration program of an Altair 8800 and its clones, and replicas.
+
+The major difference with other clones and replicas,
+is that I haven't implemented all the 8080 opcodes implemented.
 
   Test it out...
 
+````
   ---------------------------------------------
   Add modern I/O components,
 
