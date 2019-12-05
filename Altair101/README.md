@@ -1,45 +1,63 @@
 --------------------------------------------------------------------------------
 # Altair 101 Project Notes
 
-The Model-T was the first popular car. The Altair 8800 was the first popular personal computer, the Model-T of the home computers.
-I wanted an Altair 8800 when it was first available in 1975, but I was short on funds.
-Now, I am designing and building a computer that has similarities to the 8800.
-I call mine, the Altair 101. The 101 will replicate the basic user experience of using an 8800:
-entering programs by flipping toggles, and then the enjoyment of watching flashing LED lights as the program runs.
+The Model-T was the first popular car. The Altair 8800 was the first popular personal computer, the Model-T of home computers.
+I wanted an Altair 8800 when it was first available in 1975.
+I could afford the basic computer, but I was short on funds to buy a method of saving and loading programs.
+Now, I am designing and building a computer that emulates the basic Altair 8800.
+Mine will replicate the user experience of using an 8800.
+I can enter programs by flipping toggles, and then have the enjoyment of watching flashing LED lights as the program runs.
+As an upgrade from the 8800, my Altair, which I'm calling the Altair 101, will also have the ability to load and save programs from and to an SD card.
 
-The following photo is my Altair 8800 clone front panel.
-The front panel is equivalent to a smartphone's touch screen display only retro.
-As it only has LED lights and toggles, it's very retro.
+Instead of a smartphone's touch screen display, the Altair 8800 had toggles and LED lights.
+the following photo is my Altair 8800 clone front panel, very retro.
 
 <img width="600px"  src="FrontPanel01c.jpg"/>
 
-The Altair 101 will have an Altair 8800 look and feel from the user's point of view.
-It will be functional and have the ability to load programs from an SD card and save programs to an SD card.
-The lack of inexpensive method to save and load programs was the reason I didn't buy an original when it was first available in 1975.
-
 The project started late October, 2019.
-I began the study of the Altair clone videos, each under 20 minutes long.
-They clearly showed the interactivity of toggles to entry and control the 
+I began with a study of the Altair clone videos
+The [first video](https://www.youtube.com/watch?v=suyiMfzmZKs) was a great intro.
+From the [second video](https://www.youtube.com/watch?v=EV1ki6LiEmg), I learned how to write an Altair 8800 program.
+They clearly showed how to use the toggles to entry and control programs.
+For a learning experience, I wrote out the steps the presenter went through to enter and run a program.
 
-The current processor software program runs on an Arduino Nano.
-I have a few working operational codes that I used to run a few basic Altair 8800 machine code programs.
+I wanted to try it on a real Altair computer. I seen one on eBay for $5,000.
+Too much for me. Also, I didn't want to get into maintaining an old machine.
+My first computer was a 1983 machine based on the 8086 processor.
+It had 384K of memory. I didn't want that again. I only wanted the fun side of running retro.
 
-My goal is to,
+--------------------------------------------------------------------------------
+### Down the Retro Path
+
+A quick search showed that their are modern clones, simulators, and emulators available.
+
+I decided to use my favorite microcontroller, Arduino Nano, to start developing.
+I wrote a processor program with a few working operational machine codes that I seen run on the Altair 8800 clone videos.
+
+My hardware goal was to,
 + Build a computer that has an [Altair 8800 clone front panel](https://www.adwaterandstir.com/product/front-panel/),
 similar LEDs and toggles to an [original Altair 8800](https://en.wikipedia.org/wiki/Altair_8800).
-+ It will be built with a minimum amount of soldering as the chips, module boards, and other electronic components will be built on breadboards.
-+ It will run original machine code which gives it the basic Altair 8800 functionality.
++ Use a minimum amount of soldering as I such at soldering.
++ Use module boards, modern chips, and other electronic components.
++ I'll build on breadboards.
 
-The first phase is to write the processor software and build the hardware.
-The Altair 101 software needs to run programs such as Kill the Bit, and Pong, on the front panel.
-The base hardware components need to be built and put into the clone case I bought.
-I will be able to save, and load programs and data using an SD card.
+My software goal was to,
++ Run original machine code which gives it the basic Altair 8800 functionality.
++ I would simulate the Intel 8080 operational machine codes, opcodes as they're called.
++ My processor program would use simple coding methods and only be a single file program.
+    This makes easy, a single file, [Processor.ino](Processor/Processor.ino).
++ Other developer's programs were too complex for me. I wanted code that was easy to modify and extend.
 
-Once the base machine is complete, I will add modern components and functionality:
-+ MP3 player for playing sounds and music,
+The first phase is to write the processor software.
+In parallel, start designing and building a development machine.
+The longer term goal was to have the Altair 101 run the classic Altair 8800 programs Kill the Bit, and Pong.
+And, to be able to save and load programs using an SD card module.
+
+To the base machine, I planned to add modern components and functionality:
++ Infrared receiver to receive commands and data from a remote control, such as a TV remote.
 + A real time clock that can display the time on the front panel,
 + A digital display,
-+ Infrared receiver to receive commands and data from a remote control, such as a TV remote.
++ MP3 player for playing sounds and music,
 + and yes, connect it to the internet.
 
 #### Getting Started with an Altair 8800 Clone Front Panel

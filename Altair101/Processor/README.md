@@ -151,8 +151,10 @@ Sketch uses 6692 bytes (21%) of program storage space. Maximum is 30720 bytes.
 ````
 + 4 digital pins used for the SD card module.
 
-#### Progress
+--------------------------------------------------------------------------------
+#### First Machine Code Program
 
+Hardware controls,
 + STOP button will stop a running program.
 + RUN button will start a program, or continue it after a program was stopped or halted.
 + STEP button will step through a program, one memory address at a time.
@@ -162,28 +164,31 @@ The following panel photo shows the LED and toggle placements for the WAIT LED a
 
 <img width="360px"  src="StopRunStepWait01a.jpg"/>
 
-Processor optional instruction codes, opcodes, that are programed and tested:
+Processor operational instruction codes, opcodes, that are programed and tested:
 + JMP opcode is octal 303.
 + NOP opcode is octal 000.
 + HLT opcode is octal 166.
 
 JMP opcode,
-+ Instruction cycle 1) Step to the next memory address to get the low order address byte.
-+ Instruction cycle 2) Step to the next memory address to get the high order address byte.
-+ Then jump to that address.
++ Instruction cycle 1) Fetch the opcode.
++ Instruction cycle 2) Step to the next memory address to get the low order address byte.
++ Instruction cycle 3) Step to the next memory address to get the high order address byte.
++ Then jump to that address: program counter = high order address byte * 256 + low order address byte.
 
 NOP opcode,
 + No operations are run.
 + Step to the next memory address.
+++ program counter = program counter ++
 
 HLT opcode,
 + The program run process is stopped.
 + Step to the next memory address.
-+ Note, the Altair locks up on a halt opcode. I chose instead to stop.
-+ RUN will continue the running of the program after the halt.
-+ STEP will process the current data opcode, and continue.
+++ program counter = program counter ++
++ Note, the Altair 8800 locks up on a halt opcode. I chose instead to stop.
+++ RUN will continue the running of the program after the halt.
+++ STEP will process the current data opcode, and will step to the next memory location.
 
-Currently, test machine code programs are defined in the processor program.
+Test machine code programs are defined in the processor program.
 The program definitions are copied into the processor memory and are then ready to run.
 
 Example jump loop program definition:
@@ -229,6 +234,7 @@ Sample program run of the jump halt loop program, using the STEP button, the RUN
 + Addr: 00000000   0 Data: 11000011:303 > JMP Instruction, jump to address :0000000000000110:DEC,6:
 + Addr: 00000110   6 Data: 01110110:166 > HLT Instruction, Halt the processor.
 ````
+Note, at this time, I was not process machine cycles which I did later in the development cycle.
 
 --------------------------------------------------------------------------------
 ## Test Running Altair 8800 Machine Code Programs on a Test Board
@@ -247,7 +253,7 @@ to enter and step through sample programs.
 Next, match my interpreter program with the the Altair 8800 close instructional videos.
 + Check that halt, run, and step, work the same with the [Altair 8800 online simulator](https://s2js.com/altair/sim.html).
 + The simulator does react the same as the Altair 8800 when using the step option.
-+ Fix single step to show every byte, included memory address bytes.
++ Fix single step to show every byte, including the retrieval of memory address bytes.
 + Show the address and data when ever the program address counter changes.
 
 Then,
@@ -271,7 +277,7 @@ The memory model,
 + Each array is an 8 bit data value.
 + Example: altairMem[2] is memory address 2.
 + Address 2 is represented in LEDs as, high byte: 0 000 000 0 (octal: 000), and low byte: 00 000 010 (octal: 002).
-+ If the value of altairMem[2] is three, then the data value is: 00 000 011 (octal: 003).
++ If the value of altairMem[2] is three, then the data binary value is: 00 000 011 (octal: 003).
 
 The memory management from the Altair 101 front panel,
 + There will be 8 LEDs to display one 8-bit memory data value.
@@ -280,7 +286,7 @@ The memory management from the Altair 101 front panel,
 + The 16 upper and lower byte address toggles will be used for memory address input.
 + One on/off/on momentary toggle to Examine and Examine next address data values.
 + One on/off/on momentary toggle to Deposit and Deposit next address data values.
-+ One on/off/on momentary toggle to Reset or CLR (clear): sets data and address LEDs on, then data and address LEDs go off.
++ One on/off/on momentary toggle to Reset: sets data and address LEDs on, then data and address LEDs go off.
 
 + One on/off toggle to turn the computer's power on and off.
 
@@ -527,7 +533,7 @@ When first turning on, reset and clear it to get started,
 + Lights on: WAIT.
 
 To see what is in memory location 2,
-+ Set the sense switches (toggles) to address 2 (00 000 010) and flip up EXAMINE (switch returns to center).
++ Set the lower address switches (toggles) to address 2 (00 000 010) and flip up EXAMINE (switch returns to center).
 + EXAMINE Next will increase the memory location LEDs and display the memory value with the data LEDs.
 
 -----------------------------
