@@ -21,41 +21,41 @@ to view a binary opcode list with the opcode number of cycles.
 
 #### Functionally ordered list of implemented opcodes:
 ````
-Opcode   Binary      Description
+Opcode   Binary   Cycles Description
 -------------------------------------
 Initialize and store values:
-mvi R,#  00 RRR 110  Move a number (#, db) to a register.
-mov D,S  01 DDD SSS  Move source register data, to the destination register.
-lxi RP,a 00 RP0 001  Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.
-sta a    00 110 010  Store register A to the address, a(hb:lb).
-lda a    00 110 010  Load register A with data from the address, a(hb:lb).
-ldax RP  00 RP1 010  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.
-shld a   00 100 010  Store data value from memory location: a(hb:lb), to register L. Store value at: a + 1, to register H.
+mvi R,#  00 RRR 110  2  Move a number (#, db) to a register.
+mov D,S  01 DDD SSS  1  Move source register data, to the destination register.
+lxi RP,a 00 RP0 001  3  Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.
+sta a    00 110 010  3  Store register A to the address, a(hb:lb).
+lda a    00 110 010  3  Load register A with data from the address, a(hb:lb).
+ldax RP  00 RP1 010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.
+shld a   00 100 010  3  Store data value from memory location: a(hb:lb), to register L. Store value at: a + 1, to register H.
 
 Branching:
-cpi #    11 111 110  Compare # to A. Store true or false into compareResult.
-jnc a    11 010 010  Jump if not carry bit, i.e. if carry bit value is 0, false, not set.
-jmp a    11 000 011  Unconditional jump.
-jz  a    11 001 010  If compareResult is true, jump to address (a = lb hb).
+cpi #    11 111 110  2  Compare # to A. Store true or false into compareResult.
+jnc a    11 010 010  3  Jump if not carry bit, i.e. if carry bit value is 0, false, not set.
+jmp a    11 000 011  3  Unconditional jump.
+jz  a    11 001 010  3  If compareResult is true, jump to address (a = lb hb).
 
 Logical and bitwise:
-ani #    11 100 110  AND # (immediate db) with register A.
-ora R    10 110 SSS  OR register R, with register A.
-xra R    10 101 SSS  Exclusive OR, the register(R) with register A.
-rrc      00 001 111  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
+ani #    11 100 110  2  AND # (immediate db) with register A.
+ora R    10 110 SSS  1  OR register R, with register A.
+xra R    10 101 SSS  1  Exclusive OR, the register(R) with register A.
+rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
 
 Arithmetic:
-dad RP   00 RP1 001  16 bit add. Add register pair(RP: B:C or D:E) to H:L. And set carry bit.
-inr D    00 DDD 101  Increment a register. To do, set flags: ZSPA.
-dcr D    00 DDD 101  Decrement a register. To do, set flags: ZSPA.
-inx RP   00 RP0 011  Increment a register pair (a 16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
+dad RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L. And set carry bit.
+inr D    00 DDD 101  1  Increment a register. To do, set flags: ZSPA.
+dcr D    00 DDD 101  1  Decrement a register. To do, set flags: ZSPA.
+inx RP   00 RP0 011  1  Increment a register pair (a 16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
 
 Process:
-call a   11 001 101  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.
-ret      11 001 001  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.
-hlt      01 110 110  Halt processor.
-nop      00 000 000  No operation. I added a delay: delay(100).
-out pa   11 010 011  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
+call a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.
+ret      11 001 001  1  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.
+hlt      01 110 110  1  Halt processor.
+nop      00 000 000  1  No operation. I added a delay: delay(100).
+out pa   11 010 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
 ````
 #### Alphabetically order list of implemented opcodes:
 ````
