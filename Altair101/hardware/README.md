@@ -1,24 +1,27 @@
 --------------------------------------------------------------------------------
 # Altair 101 Build Plan
 
-Modern computers have a keyboard and monitor. A mobile phone has a touch screen display.
-My Altair 101 has a front panel of toggles and LED lights.
-That's what the original Altair 8800 had in 1975, toggles and lights.
+Your mobile phone has a touch screen display. Your computer has a keyboard and monitor.
+In 1975, the first available popular computer only had toggles and lights.
+It was the Altair 8800 which launch the home computer revolution.
+As I want a similar computer, I designed my Altair 101 to have a front panel of toggles and LED lights.
 
-My goals are keep soldering to minimum, design for adding modern components, and a low cost.
-The Altair 8800 simulator clone uses an Arduino Due. I will use an Arduino Nano.
-All other Altair 8800 clones use a PCB board. I will use breadboards.
+My goals are a design that emulates the Altair 8800, expandable to add modern components such as an SD card module,
+to keep soldering to minimum, and a low cost of about $99.
+Most clones, replicas, use an Arduino Due. I will use an Arduino Nano, only $3 each.
+Others use a PCB board. I will use breadboards.
 I got the idea of building a computer on breadboards from Dan Eater's videos on 
 [how to Build an 8-bit computer from scratch](https://www.youtube.com/watch?v=HyznrdDSSGM&list=PLLlz7OhtlfKYk8nkyF1u-cDwzE_S0vcJs&index=14)
 
-My hardware designed around my [Altair 8800 clone front panel](https://www.adwaterandstir.com/product/front-panel/).
+My hardware design centers around my [Altair 8800 clone front panel](https://www.adwaterandstir.com/product/front-panel/).
 
 [<img width="360px"  src="../FrontPanel01a.jpg"/>](https://www.adwaterandstir.com/product/front-panel/)
 
 --------------------------------------------------------------------------------
 ## Nano Board Pin Usage
 
-Has 30 pins.
+The original Intel 8080 cpu was a 40 pin chip.
+I'm use a Nano which as 30 pins.
 ````
                            -----
                        ---| USB |---
@@ -39,8 +42,8 @@ Infrared receiver  A1 |             | D8  Address toggles
                   VIN |             | TX1 Used for Serial communications
                        -------------
 
-RX0 and TX1 are in use, for example: to upload program sketches and Serial.print().
-D2 and D3 are Digital interrupt pins.
+RX0 and TX1 are in use, for example: to receive program sketches and putput log messages using Serial.print().
+D2 and D3 are Digital interrupt pins. Not in use at this time.
 A0 to A3 can be used as digital pins.
 I/O devices:
 + SD card:  SPI bus + a digital enable pin.
@@ -48,31 +51,34 @@ I/O devices:
 + 1602 LCD: 12C bus 
 + DFPlayer: 2 digital pins.
 + 4 x 7-segment digits: 2 digital pins.
-+ SRAM 32K: SPI bus + a digital enable pin.
++ SRAM 32K: SPI bus + a digital enable pin. A future option.
 + Rotary encoder: 1 digital pin and an interrupt pin.
 ````
+
+--------------------------------------------------------------------------------
+### Hardware Inventory
+
+Cables that I have for connections:
++ 20cm cables: 80 male to male
++ 20cm cables: 80 male to female
++ 20cm cables: 40 female to female
++ 10cm cables: 30 male to female
 
 --------------------------------------------------------------------------------
 ### Hardware to Nano details
 
 Hardware component requirements:
 + Nano board: CPU, program 30K RAM, 2K dynamic RAM.
-+ 8 SN74HC595N chips
++ 8 x SN74HC595N chips. Development machine only uses 7, 1 less because only using 8 address toggles.
 + 36 LED lights. A few not actually used for the basic implementation.
-+ 1 toggle for power. Need power input details worked out.
-+ 16 toggles for addresses. 8 of those are also used as sense switches.
++ 1 toggle for power. Power wiring details to worked out.
++ 16 toggles for addresses. 8 of those are also used as input sense switches.
 + 8 on/off/on control toggles.
-
-Cables that I have for connections:
-+ 20cm cables: 80 male to male
-+ 20cm cables: 80 male to female
-+ 20cm cables: 40 female to female 
-+ 10cm cables: 30 male to female
 
 SN74HC595N (595) notes,
 + Each chip handles 8 bits: 8 LED lights or 8 toggle switches.
-+ Each chip requires 3 Nano pins for the LED lights.
-+ Each chip requires 3 Nano controls pins and 1 input pin, for the toggle switches.
++ Output: each chip requires 3 Nano pins, for example, for LED lights.
++ Input:  each chip requires 3 Nano controls pins and 1 input pin, for the toggle switches.
 
 LED lights:
 + Pins D4, D5, D6 to control 4 x 595s.
@@ -84,7 +90,7 @@ Toggle switches using SN74HC595N chips:
 + D7, D8, D9, A0 to control 4 x 595s.
 + 2 chips for address toggles.
 + 1 chip for control on/off/on toggles: STOP, RUN, SINGLE STEP, EXAMINE PREVIOUS, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT.
-+ 1 chip for extra feature on/off/on toggles: RESET, CLR, PROTECT, UNPROTECT, AUX1 up, AUX1 down, AUX2 up, AUX2 down
++ 1 chip for extra feature on/off/on toggles: RESET, AUX1 up, AUX1 down, AUX2 up, AUX2 down
 
 Need to test: 3 pins for control outputs, using a SN74HC595N chip:
 + Need to test with pins: A0, A2, A3.
@@ -103,6 +109,8 @@ Nano pins:
 
 --------------------------------------------------------------------------------
 ### Development Boards and Sample Programs
+
+To test new components and design circuits for the 101, I developed a number of test boards.
 
 Front panel toggle input test board:
 + 6 input buttons for 6 data bits.
@@ -157,11 +165,11 @@ Rotary encoder board:
 + Program [link](../../samples/RotaryEncoder2digits/RotaryEncoder2digits.ino)
 
 Note,
-+ 74HC595 Shift Register is faster and better for driving LED lights, than a PCF8574 module.
++ 74HC595 Shift Registers are faster and better for driving LED lights, than a PCF8574 module.
 + PCF8574 maybe better for input. I need to test.
-+ PCF8574 is an I2C module, which can save me 3 digital pins, if I can use it for input.
-+ PCF8574 has an interrupt pin, which can be connected to Nano pin 2 or 3 to signify switch activity.
-    This can save loop() checking cycles when a program is running.
++ For input, the PCF8574 is an I2C module, and needs an interrupt pin to be notified of an input.
+    This can save loop() checking cycles when a program is running, as I don't need to check the shift registers.
++ For input, the PCF8574 can save me 2 digital pins, but requires one of the interrupt pins.
 
 --------------------------------------------------------------------------------
 ### Altair 101 Case
@@ -501,6 +509,12 @@ Following are reference links,
 
 Arduino SPI Library
 https://www.arduino.cc/en/reference/SPI
+
+https://en.wikipedia.org/wiki/Ohm%27s_law
+````
+I = V/R
+I(current amps) = V(volts) / R(resister ohms)
+````
 
 --------------------------------------------------------------------------------
 Cheers

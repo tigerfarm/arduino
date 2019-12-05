@@ -4,6 +4,19 @@
 
   This program emulate the Altair 8800 hardware on an Arduino Uno, Nano, or Mega.
   It includes a partial intel 8080 microprocessor emulater to process the 8080 machine instructions.
+
+  In computing, an emulator is hardware or software that enables one computer system (called the host) to behave like another computer system (called the guest).
+  An emulator typically enables the host system to run software or use peripheral devices designed for the guest system.
+    https://en.wikipedia.org/wiki/Emulator
+  Logic simulation is the use of a computer program to simulate the operation of a digital circuit such as a processor. This is done after a digital circuit has been designed in logic equations,
+  but before the circuit is fabricated in hardware.
+  For example, a computer specially built for running programs designed for another architecture is an emulator.
+  In contrast, a simulator could be a program which runs on a PC, so that old Atari games can be simulated on it.  
+  The term "emulation" often means the complete imitation of a machine executing binary code.
+  The term "simulation" often refers to computer simulation,
+  where a computer program is used to simulate an abstract model.
+  
+  Altair 101 is an emulator of the Altair 8800.
   
   ---------------------------------------------
   The Altair 101 development computer is functionaly complete!
