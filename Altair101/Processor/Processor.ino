@@ -58,7 +58,7 @@
   + For portablity, should test using a 9V power supply.
 
   ---------------------------------------------
-  Next, add modern I/O components and controls.
+  Add modern I/O components and controls.
 
   Add SD card,
   + Save program memory to card, load program memory from card.

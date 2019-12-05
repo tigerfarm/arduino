@@ -17,6 +17,10 @@ The Altair 101 will have an Altair 8800 look and feel from the user's point of v
 It will be functional and have the ability to load programs from an SD card and save programs to an SD card.
 The lack of inexpensive method to save and load programs was the reason I didn't buy an original when it was first available in 1975.
 
+The project started late October, 2019.
+I began the study of the Altair clone videos, each under 20 minutes long.
+They clearly showed the interactivity of toggles to entry and control the 
+
 The current processor software program runs on an Arduino Nano.
 I have a few working operational codes that I used to run a few basic Altair 8800 machine code programs.
 
