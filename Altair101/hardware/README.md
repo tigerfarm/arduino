@@ -56,7 +56,41 @@ I/O devices:
 ````
 
 --------------------------------------------------------------------------------
+### Altair 101 Parts List
+
+For reference, I used the following parts list from a simulator:
+https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
+
++ Front panel, sticker, case, and shipping = $18.00 + $5 + $35 + $16 = $74
++ Nano + on/off/on momentary toggles + on/off toggles + red LEDs = $3 + $7 + $2 + $2
++ 20pcs 74HC595 + diodes for input = $2 + $1
++ Breadboards + cables = $6 + $4
++ Total = $101 = $74 + $3 + $7 + $2 + $2 + $2 + $1 + $6 + $4
+
++ Ordered Altair 8800 Front panel with sticker, pro case, and shipping: $74
+https://www.adwaterandstir.com/product/front-panel/
+
+Parts bought on eBay,
++ Nano: V3, ATmega328P, CH340G
++ SPDT On/Off/On 3 Position Momentary toggles, Diameter: 6mm (0.2inch), Micro mini, 10pcs for $6.79
++ SPDT On/On 2 Position Mini Toggle Switch, Diameter: 6mm (0.2inch), 10Pcs for $2.68
++ Red LED 5mm, 100pcs for $1.50
++ 5k resistors for LED lights.
++ 10k resistors for Nano digital pin pull down.
++ Switching Diodes: 40PCS for $1, 1N4148 IN4148
++ Shift Register SN74HC595N, 20pcs on sale for $2
++ Suggested, not used: 10uf capacitor across positive and ground when using chips: SN74HC595N.
+
+Cables on order,
++ 1 x 40pcs/pack 10cm Male to Female Ribbon Breadboard Cable
++ 1 x 40pcs/pack 10cm Female to Female Ribbon Breadboard Cable
+
+--------------------------------------------------------------------------------
 ### Hardware Inventory
+
++ Few Nano boards
++ Few clock boards
++ Few DFPlayer (MP3) boards
 
 Cables that I have for connections:
 + 20cm cables: 80 male to male
@@ -352,49 +386,6 @@ Totals:
 + 10cm Male to Male Ribbon: 22
 + 20cm Female to Male Ribbon: 42
 + 10cm Female to Female Ribbon: 32
-
---------------------------------------------------------------------------------
-### Altair 101 Parts List
-
-For reference, I used the following parts list from a clone:
-https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
-
-+ Front panel, sticker, case, and shipping = $18.00 + $5 + $35 + $16 = $74
-+ Nano + on/off/on momentary toggles + on/off toggles + red LEDs = $3 + $7 + $2 + $2
-+ 20pcs 74HC595 + pin expander module PCF8574 = $2 + $1
-+ Breadboards + cables = $6 + $4
-+ Total = $101 = $74 + $3 + $7 + $2 + $2 + $2 + $1 + $6 + $4
-
-+ Ordered Altair 8800 Front panel with sticker, standard case, and shipping: $74
-https://www.adwaterandstir.com/product/front-panel/
-
-+ Nano
-https://www.ebay.com/itm/MINI-USB-Nano-V3-0-ATmega328P-CH340G-5V-16M-Micro-controller-board-for-Arduino/383093281539
-
-+ SPDT On/Off/On 3 Position Momentary toggles, Diameter: 6mm (0.2inch), Micro mini, 10pcs for $6.79
-https://www.ebay.com/itm/10pcs-Red-3-Pin-3-Position-ON-OFF-ON-SPDT-Micro-Mini-Momentary-Toggle-Switch/223490809691
-
-+ SPDT On/On 2 Position Mini Toggle Switch, Diameter: 6mm (0.2inch), 10Pcs for $2.68
-https://www.ebay.com/itm/10Pcs-AC-250V-1-5A-125V-3A-SPDT-3-Pin-On-On-2-Position-Mini-Toggle-Switch-Blue/272882765795
-
-+ Red LED 5mm, 100pcs for $1.50
-https://www.ebay.com/itm/100Pcs-LED-Lights-Emitting-Diodes-Lamp-Parts-3mm-5mm-for-Electronics-Arduino-DIY/202692215007?var=502802895935
-
-+ 220Ω, 470Ω, 560Ω, 1k, or 3k resistors?
-+ Need to test to get the right ohms for brightness and wattage for physical size.
-+ Use A09 Network Resistor 9-pin module?
-
-+ Shift Register SN74HC595N, 20pcs for $2
-https://www.ebay.com/itm/5-10-20pcs-Chip-Stable-2-0-6-0-V-74HC595-8-Bit-IC-Shift-Register-SN74HC595N/173212029799?var=471929852731
-
-+ 10uf capacitor across positive and ground when using chips: SN74HC595N.
-
-Cables on order,
-+ 1 x 40pcs/pack 20cm Male to Male Ribbon Breadboard Cable
-+ 1 x 40pcs/pack 10cm Male to Male Ribbon Breadboard Cable
-+ 2 x 40pcs/pack 20cm Female to Male Ribbon Breadboard Cable
-+ 1 x 40pcs/pack 10cm Female to Female Ribbon Breadboard Cable
-+ 140pcs Solderless Breadboard Jumper Cable Wire Kit Box, $2.46
 
 ----------------
 #### Parts to test
