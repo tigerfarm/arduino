@@ -9,9 +9,13 @@ The opcodes to run Pong and Kill the Bit, are my target opcode base for my 8080 
 I have not planned on implementing all the 8080 opcodes, just the ones that I will use when writing my own programs.
 
 ## Programmed Opcodes
+
 From the processor program, [Processor.ino](Processor.ino), the opcode implementation function:
 ````
     void processOpcode() {
+    ...
+    }
+    void processOpcodeData() {
     ...
     }
 ````
@@ -101,16 +105,13 @@ It's also a practical help, in that it describes opcode implementations, better 
 ````
 Inst      Encoding          Flags   Description
 ----------------------------------------------------------------------
+CMP S     10111SSS          ZSPCA   Compare register with A
 DCX RP    00RP1011          -       Decrement register pair
 LHLD a    00101010 lb hb    -       Load H:L from memory
 ORI #     11110110          ZSPCA   OR  immediate with A
 ANA S     10100SSS          ZSCPA   AND register with A
-CMP S     10111SSS          ZSPCA   Compare register with A
 XRI #     11101110 db       ZSPCA   ExclusiveOR immediate with A
-
-Jccc a    11CCC010 lb hb    -       Conditional jumps: JNC, JZ, etc.
 PCHL      11101001          -       Jump to address in H:L
-
 STAX RP   00RP0010 *1       -       Store indirect through BC or DE
 XCHG      11101011          -       Exchange DE and HL content
 
@@ -134,6 +135,8 @@ STC       00110111          C       Set Carry flag
 Cccc a    11CCC100 lb hb    -       Conditional subroutine call
 Rccc      11CCC000          -       Conditional return from subroutine
 RST n     11NNN111          -       Restart (Call n*8)
+
+Jccc a    11CCC010 lb hb    -       Conditional jumps: JNC, JZ, etc.
 
 XTHL      11100011          -       Swap H:L with top word on stack
 SPHL      11111001          -       Set SP to content of H:L
