@@ -53,6 +53,8 @@ inx RP   00 RP0 011  1  Increment a register pair (a 16 bit value): B:C, D:E, H:
 Process:
 call a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.
 ret      11 001 001  1  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.
+push RP  11 RP0 101  1  Push register pair on the stack.
+pop  RP  11 RP0 001  1  Push register pair on the stack.
 hlt      01 110 110  1  Halt processor.
 nop      00 000 000  1  No operation. I added a delay: delay(100).
 out pa   11 010 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
@@ -80,6 +82,8 @@ mov D,S  01 DDD SSS  1  Move source register data, to the destination register.
 nop      00 000 000  1  No operation. I added a delay: delay(100).
 out pa   11 010 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
 ora R    10 110 SSS  1  OR register R, with register A.
+push RP  11 RP0 101  1  Push register pair on the stack.
+pop  RP  11 RP0 001  1  Push register pair on the stack.
 ret      11 001 001  1  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.
 rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
 shld a   00 100 010  3  Store data value from memory location: a(hb:lb), to register L. Store value at: a + 1, to register H.
@@ -97,9 +101,6 @@ It's also a practical help, in that it describes opcode implementations, better 
 ````
 Inst      Encoding          Flags   Description
 ----------------------------------------------------------------------
-PUSH RP   11RP0101 *2       -       Push register pair on the stack
-POP RP    11RP0001 *2       *2      Pop  register pair from the stack
-
 DCX RP    00RP1011          -       Decrement register pair
 LHLD a    00101010 lb hb    -       Load H:L from memory
 ORI #     11110110          ZSPCA   OR  immediate with A
