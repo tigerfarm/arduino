@@ -435,11 +435,10 @@ byte dataByte = 0;           // db = Data byte (8 bit)
 
 // -----------------------------------------------------------------------------
 //        Code   Octal       Inst Param  Encoding Flags  Description
-const byte cpi    = 0376; // cpi db    11 111 110        Compare db with a > compareResult.
+const byte cpi    = 0376; // cpi db    11 111 110        Compare db with a and set Zero bit flag.
 const byte hlt    = 0166; // hlt         01110110        Halt processor
 const byte jmp    = 0303; // jmp  a      11000011        Unconditional jump
-const byte jnc    = 0322; // jnc  lb hb  11010010        Jump if carry bit is 0 (false).
-const byte jz     = 0312; // jz   lb hb  11001010        If compareResult is true, jump to lb hb.
+const byte jz     = 0312; // jz   lb hb  11001010        If Zero bit flag is true, jump to lb hb.
 const byte nop    = 0000; // nop         00000000        No operation
 const byte out    = 0343; // out pa      11010011        Write a to output port
 const byte rrc    = 0017; // rrc       00 001 111   c    Rotate a right (shift byte right 1 bit). Note, carry bit not handled at this time.
@@ -570,8 +569,9 @@ void processData() {
 // Process flags and values.
 boolean runProgram = false;
 boolean halted = false;       // Set true for an hlt opcode.
-boolean carryBit = false;     // Set by dad. Used jnc.
-boolean compareResult = true; // Set by cpi. Used by jz.
+
+boolean flagCarryBit = false; // Set by dad. Used jnc.
+boolean flagZeroBit = true;   // Set by cpi. Used by jz.
 
 byte bit7;                    // For capturing a bit when doing bitwise calculations.
 
@@ -606,7 +606,7 @@ void processOpcode() {
     case cpi:
       opcode = cpi;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> cpi, compare next data byte to A. Store true or false into compareResult."));
+      Serial.print(F("> cpi, compare next data byte to A. Store true or false into Zero bit flag."));
 #endif
       break;
     // ---------------------------------------------------------------------
@@ -741,9 +741,9 @@ void processOpcode() {
       hlValue = hValue * 256 + lValue;
       hlValueNew = bcValue + hlValue;
       if (hlValueNew < bcValue || hlValueNew < hlValue) {
-        carryBit = true;
+        flagCarryBit = true;
       } else {
-        carryBit = false;
+        flagCarryBit = false;
       }
       regH = highByte(hlValueNew);
       regL = lowByte(hlValueNew);
@@ -760,7 +760,7 @@ void processOpcode() {
       Serial.print(regL);
       Serial.print(")");
       Serial.print(F(", Carry bit: "));
-      if (carryBit) {
+      if (flagCarryBit) {
         Serial.print(F("true. Sum over: 65535."));
       } else {
         Serial.print(F("false. Sum <= 65535."));
@@ -793,9 +793,9 @@ void processOpcode() {
       hlValue = hValue * 256 + lValue;
       hlValueNew = deValue + hlValue;
       if (hlValueNew < deValue || hlValueNew < hlValue) {
-        carryBit = true;
+        flagCarryBit = true;
       } else {
-        carryBit = false;
+        flagCarryBit = false;
       }
       regH = highByte(hlValueNew);
       regL = lowByte(hlValueNew);
@@ -811,7 +811,7 @@ void processOpcode() {
       Serial.print(":");
       Serial.print(regL);
       Serial.print(")");
-      if (carryBit) {
+      if (flagCarryBit) {
         Serial.print(F("true. Sum over: 65535."));
       } else {
         Serial.print(F("false. Sum <= 65535."));
@@ -1104,31 +1104,42 @@ void processOpcode() {
       printOctal(regL);
 #endif
       break;
-    // 00RP0011 -------------------------------------------------
-    /*   00110011 To do, increment the stack pointer.
-      // inx
-      void _I8080_inx(uint8_t rp) {
-      ...
-      case _RP_SP:
-      _SP++;
-      break;
-      }
-      _PC++;
-      }
-    */
     // ---------------------------------------------------------------------
-    case jnc:
-      opcode = jnc;
+    // Jump options.
+    
+    // ----------------
+    //    110CC010
+    case B11000010:
+      opcode = B11000010;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> jnc, Jump if carry bit is false (0, not set)."));
+      Serial.print(F("> jnz, Jump if zero bit flag is not set(false)."));
 #endif
       break;
-    case jz:
-      opcode = jz;
+    // ----------------
+    //    110CC010
+    case B11001010:
+      opcode = B11001010;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> jz, if compareResult, jump to the following address (lh hb)."));
+      Serial.print(F("> jz, Jump if Zero bit flag is set(true)."));
 #endif
       break;
+    // ----------------
+    //    110CC010
+    case B11010010:
+      opcode = B11010010;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> jnc, Jump if carry bit is not set(false)."));
+#endif
+      break;
+    // ----------------
+    //    110CC010
+    case B11011010:
+      opcode = B11011010;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> jc, Jump if carry bit is set(true)."));
+#endif
+      break;
+    // ----------------
     case jmp:
       opcode = jmp;
 #ifdef LOG_MESSAGES
@@ -1911,11 +1922,11 @@ void processOpcodeData() {
     case cpi:
       // instructionCycle == 1
       dataByte = memoryData[programCounter];
-      compareResult = dataByte == regA;
+      flagZeroBit = dataByte == regA;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> cpi, compareResult db: "));
+      Serial.print(F("> cpi, compare the result db: "));
       Serial.print(dataByte);
-      if (compareResult) {
+      if (flagZeroBit) {
         Serial.print(F(" == "));
       } else {
         Serial.print(F(" != "));
@@ -1958,7 +1969,7 @@ void processOpcodeData() {
       programCounter++;
       break;
     // ---------------------------------------------------------------------
-    case jnc:
+    case B11010010:
       if (instructionCycle == 1) {
         lowOrder = memoryData[programCounter];
 #ifdef LOG_MESSAGES
@@ -1976,21 +1987,21 @@ void processOpcodeData() {
       sprintf(charBuffer, "%4d:", highOrder);
       Serial.print(charBuffer);
 #endif
-      if (!carryBit) {
+      if (!flagCarryBit) {
         programCounter = word(highOrder, lowOrder);
 #ifdef LOG_MESSAGES
-        Serial.print(F("> jnc, carryBit is false, jump to:"));
+        Serial.print(F("> jnc, Carry bit flag is false, jump to:"));
         Serial.print(programCounter);
 #endif
       } else {
 #ifdef LOG_MESSAGES
-        Serial.print(F(" - carryBit is true, don't jump."));
+        Serial.print(F(" - Carry bit flag is true, don't jump."));
 #endif
         programCounter++;
       }
       break;
     // ---------------------------------------------------------------------
-    case jz:
+    case B11001010:
       if (instructionCycle == 1) {
         lowOrder = memoryData[programCounter];
 #ifdef LOG_MESSAGES
@@ -2008,7 +2019,7 @@ void processOpcodeData() {
       sprintf(charBuffer, "%4d:", highOrder);
       Serial.print(charBuffer);
 #endif
-      if (compareResult) {
+      if (flagZeroBit) {
         programCounter = word(highOrder, lowOrder);
 #ifdef LOG_MESSAGES
         Serial.print(F("> jz, jump to:"));
@@ -2016,7 +2027,7 @@ void processOpcodeData() {
 #endif
       } else {
 #ifdef LOG_MESSAGES
-        Serial.print(F(" - compareResult is false, don't jump."));
+        Serial.print(F(" - Zero bit flag is false, don't jump."));
 #endif
         programCounter++;
       }

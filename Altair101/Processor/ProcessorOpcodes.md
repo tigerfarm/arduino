@@ -41,8 +41,8 @@ jmp a    11 000 011  3  Unconditional jump.
 Set condition:
 cpi #    11 111 110  2  Compare # to A. Store true or false into compareResult(Zero bit).
 Conditional jumps:
-jnc a    11 010 010  3  Jump if not carry bit, i.e. if carry bit value is 0, false, not set.
-jz  a    11 001 010  3  If Zero bit is set(equals 1), i.e. If the Zero Bit status is 1, jump to address (a = lb hb).
+jnc a    11 010 010  3  Jump to a, if Carry bit flag is not set (equals 0).
+jz  a    11 001 010  3  Jump to a, if zero bit flag is set (equals 1).
 
 Logical and bitwise:
 ani #    11 100 110  2  AND # (immediate db) with register A.
