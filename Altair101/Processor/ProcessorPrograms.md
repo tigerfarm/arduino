@@ -1207,7 +1207,7 @@ byte NopLxiMovInxHltJmpCpiProgram[] = {
   //
   //                Start program.
   0000,             // NOP
-  0041, 24, 0000,   // LXI_HL lb hb. Load hb:lb into registers H(hb):L(lb).
+  0041, 24, 0000,   // LXI a ;Load a (hb:lb) into registers H(hb):L(lb).
   0176,             // MOV M:address(H:L):data > register A
   //
   //                While address:data != 0111

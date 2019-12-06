@@ -156,7 +156,9 @@
 
 #include <IRremote.h>
 
-int IR_PIN = A1;        // Nano pin
+//        Nano pin
+int IR_PIN = A1;
+
 IRrecv irrecv(IR_PIN);
 decode_results results;
 
@@ -168,7 +170,7 @@ const int dataPinIn = 4;      // pin 14 Data pin.
 const int latchPinIn = 5;     // pin 12 Latch pin.
 const int clockPinIn = 6;     // pin 11 Clock pin.
 
-const int dataInputPin = A0;  // Nano data input pin to check switches. Digital pins and some analog pins, work.
+const int dataInputPin = A0;  // Data input pin to check switches. Digital pins and some analog pins, work.
 
 // ------------------------------------------------------------------------
 // Output LED light shift register(SN74HC595N) pins
@@ -203,9 +205,37 @@ File myFile;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+byte theProgram[] = {
+  //                //            ; --------------------------------------
+  //                //            ; Test CPI and conditional jumps.
+  //
+  0303, 4, 0,       // jmp Test   ; Jump to bypass the halt.
+  //                // Halt:
+  0166,             // hlt        ; Then, the program will halt at each iteration.
+  //                // Test:
+  //
+  //                //            ; --------------------------------------
+  B00111110, 73,    // mvi a,73   ; Move # to register A:    01 001 001 = 73
+  //
+  0376, 73,         // cpi #      ; Compare # to A. Store true or false into flagZeroBit(Zero bit).
+  0312, 19, 0000,   // jz lb hb. If it matches, jump to lb hb (end while)
+  //
+  0376, 74,         // cpi #      ; Compare # to A. Store true or false into flagZeroBit(Zero bit).
+  0312, 19, 0000,   // jz lb hb. If it matches, jump to lb hb (end while)
+  //
+  0376, 73,         // cpi #      ; Compare # to A. Store true or false into flagZeroBit(Zero bit).
+  0312, 19, 0000,   // jz lb hb. If it matches, jump to lb hb (end while)
+  //
+  //                //            ; --------------------------------------
+  0,                // NOP
+  0303, 3, 0,       // jmp Halt   ; Jump back to the start halt command.
+  0000              //            ; End.
+};
+
+// -----------------------------------------------------------------------------
 // Kill the Bit program.
 
-byte theProgram[] = {
+byte theProgramKtb[] = {
   // ------------------------------------------------------------------
   // Kill the Bit program.
   // Before starting, make sure all the sense switches are in the down position.
@@ -441,15 +471,12 @@ const byte WAIT_OFF =   B11111110;
 const byte hlt    = 0166; // hlt         01110110        Halt processor
 const byte nop    = 0000; // nop         00000000        No operation
 const byte out    = 0343; // out pa      11010011        Write a to output port
-const byte rrc    = 0017; // rrc       00 001 111   c    Rotate a right (shift byte right 1 bit). Note, carry bit not handled at this time.
-
-// Kill the Bit opcode to implement:
 const byte IN     = 0333;
-// IN p      11011011 pa       -       Read input for port a, into A
-// 0333, 0377,  // IN 0ffh    ;Check toggle sense switches for non-zero input. Used in the program, kill the bit.
+// IN p      11011011 pa       -       Read input from port a, into A
+// 0333, 0377,  // IN 0ffh    ; Check toggle sense switches for non-zero input. Used in the program, kill the bit.
 
 // -----------------------------------------------------------
-// Destination and Source registers and register pairs.
+// Source registers, Destination registers, and register pairs.
 byte regA = 0;   // 111=A  a  register A, or Accumulator
 //                            --------------------------------
 //                            Register pair 'RP' fields:
@@ -1700,7 +1727,7 @@ void processOpcode() {
 #endif
       break;
     // ------------------------------------------------------------------------------------------
-    case rrc:
+    case B00001111:
 #ifdef LOG_MESSAGES
       Serial.print(F("> rrc"));
       Serial.print(F(", Shift register A: "));
@@ -1974,7 +2001,6 @@ void processOpcodeData() {
 #endif
       programCounter++;
       break;
-    // ---------------------------------------------------------------------
     // ---------------------------------------------------------------------
     // Jump opcodes
 
