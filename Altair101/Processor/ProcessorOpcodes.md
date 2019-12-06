@@ -108,12 +108,12 @@ It's also a practical help, in that it describes opcode implementations, better 
 Inst      Encoding          Flags   Description
 ----------------------------------------------------------------------
 
-CMP S     10 111 SSS        ZSPCA   Compare register(SSS) with register A. If SSS=A, set Z bit to 1. If SSS>A, C bit = 1. If SSS<A, C bit = 0.
+CMP S     10 111 SSS        ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.
 The following jumps work with CMP and CPI.
-JNZ a     11 000 010 lb hb          Jump to a, if Zero bit is not set (equals 0).
-JZ a      11 001 010 lb hb          Jump to a, if zero bit is set (equals 1).       Already coded.
-JNC a     11 010 010 lb hb          Jump to a, if Carry bit is not set (equals 0).  Already coded.
-JC a      11 011 010 lb hb          Jump to a, if Carry bit is set (equals 1).
+JNZ a     11 000 010 lb hb          Jump to a, if Zero bit flag is not set (equals 0).
+JZ a      11 001 010 lb hb          Jump to a, if zero bit flag is set (equals 1).       Already coded.
+JNC a     11 010 010 lb hb          Jump to a, if Carry bit flag is not set (equals 0).  Already coded.
+JC a      11 011 010 lb hb          Jump to a, if Carry bit flag is set (equals 1).
 
 DCX RP    00RP1011          -       Decrement register pair
 LHLD a    00101010 lb hb    -       Load H:L from memory
