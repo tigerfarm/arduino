@@ -54,7 +54,32 @@ I/O devices:
 + SRAM 32K: SPI bus + a digital enable pin. A future option.
 + Rotary encoder: 1 digital pin and an interrupt pin.
 ````
+--------------------------------------------------------------------------------
+### Create a toggle keyboard
 
+````
+  The toggle keyboard will replace the current breadboard buttons,
+  and will continue to use the current toggles.
+  + Current 8 toggles are for address and data entry. Also used as sense switches for input.
+  ++ Only 8 are required because of the limited 256 bytes of memory.
+  + Add 7 x on/off/on toggles for controls,
+  ++ 1. STOP and RUN
+  ++ 2. SINGLE STEP. Maybe add: Examine previous
+  ++ 3. EXAMINE and EXAMINE NEXT
+  ++ 4. DEPOSIT and DEPOSIT NEXT
+  ++ 5. RESET. Not implemented: CLR, clear external I/O equipment.
+  ++ 6. AUX 1, not decided what to control with AUX 1.
+  ++ 7. AUX 2, for save and load from SD card.
+
+  Keyboard layout, where '0' are screws to connect the keyboard to the clipboard.
+   ------------------------------------
+  |  1      2       0        3      4  |
+  |                                    |
+  |   A7  A6  A5  A4  A3  A2  A1  A0   |
+  |                                    |
+  |  5         0         0   6      7  |
+   ------------------------------------
+````
 --------------------------------------------------------------------------------
 ### Altair 101 Parts List
 

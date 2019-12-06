@@ -27,19 +27,6 @@
   -------------------------
   Create a toggle keyboard.
 
-  The toggle keyboard will replace the current breadboard buttons,
-  and will continue to use the current toggles.
-  + Current 8 toggles are for address and data entry. Also used as sense switches for input.
-  ++ Only 8 are required because of the limited 256 bytes of memory.
-  + Add 7 x on/off/on toggles for controls,
-  ++ 1. STOP and RUN
-  ++ 2. SINGLE STEP. Maybe add: Examine previous
-  ++ 3. EXAMINE and EXAMINE NEXT
-  ++ 4. DEPOSIT and DEPOSIT NEXT
-  ++ 5. RESET. Not implemented: CLR, clear external I/O equipement.
-  ++ 6. AUX 1, not decided what to control with AUX 1.
-  ++ 7. AUX 2, for save and load from SD card.
-
   Keyboard layout, where '0' are screws to connect the keyboard to the clipboard.
    ------------------------------------
   |  1      2       0        3      4  |
@@ -48,6 +35,22 @@
   |                                    |
   |  5         0         0   6      7  |
    ------------------------------------
+  The keyboard on/off toggles were already mounted and wired.
+  I have added the 7 x on/off/on toggles.
+  I now need to solder wires to them. Then I can use them on the dev machine.
+  I also need mounting screws and/or brackets.
+  
+  The toggle keyboard will replace the current breadboard buttons,
+  + The current 8 on/off toggles are for address and data entry. Also used as input switches.
+  ++ Only 8 are required because of the limited 256 bytes of memory.
+  + There will be 7 x on/off/on toggles for program controls,
+  ++ 1. STOP and RUN
+  ++ 2. SINGLE STEP. Maybe add: Examine previous
+  ++ 3. EXAMINE and EXAMINE NEXT
+  ++ 4. DEPOSIT and DEPOSIT NEXT
+  ++ 5. RESET. Not implemented: CLR, clear external I/O equipement.
+  ++ 6. AUX 1, not decided what to control with AUX 1.
+  ++ 7. AUX 2, for save and load from SD card.
 
   -------------------------
   Mount the dev machine components onto the clipboard.
