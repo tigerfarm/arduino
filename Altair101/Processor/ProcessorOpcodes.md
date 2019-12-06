@@ -39,7 +39,7 @@ shld a   00 100 010  3  Store data value from memory location: a(hb:lb), to regi
 Jumping and conditions:
 jmp a    11 000 011  3  Unconditional jump.
 Set condition:
-cpi #    11 111 110  2  Compare # to A. Store true or false into flagZeroBit(Zero bit).
+cpi #    11 111 110  2  Compare # to A, then set flags. If #=A, set Zero bit to 1. If #>A, Carry bit = 1. If #<A, Carry bit = 0.
 Conditional jumps:
 JNZ a     11 000 010 lb hb          Jump to a, if Zero bit flag is not set (equals 0).
 JZ a      11 001 010 lb hb          Jump to a, if zero bit flag is set (equals 1).       Already tested.

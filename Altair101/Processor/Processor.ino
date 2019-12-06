@@ -1,14 +1,14 @@
 // -----------------------------------------------------------------------------
 /*
   Altair 101 Processor program
-  
+
   This is an Altair 8800 Microprocessor Emulator Program.
   This program emulates the basic Altair 8800 hardware. It's testing on an Arduino Nano.
   It includes a number of the Intel 8080 microprocessor machine instructions (opcodes).
   The Altair 8800 is based on the 8080.
 
   Altair 101 is a hardware and software emulator of the core, basic, Altair 8800 computer.
-  
+
   ---------------------------------------------
   The Altair 101 development computer is functionaly complete!
 
@@ -48,7 +48,7 @@
   I have added the 7 x on/off/on toggles.
   I now need to solder wires to them. Then I can use them on the dev machine.
   I also need mounting screws and/or brackets.
-  
+
   The toggle keyboard will replace the current breadboard buttons,
   + The current 8 on/off toggles are for address and data entry. Also used as input switches.
   ++ Only 8 are required because of the limited 256 bytes of memory.
@@ -148,8 +148,8 @@
 // #define INCLUDE_SDCARD 1
 // #define RUN_DELAY 1
 // #define RUN_NOW 1
-// #define LOG_MESSAGES 1
 // #define SWITCH_MESSAGES 1
+#define LOG_MESSAGES 1
 
 // -----------------------------------------------------------------------------
 // Infrared Receiver
@@ -208,27 +208,59 @@ File myFile;
 byte theProgram[] = {
   //                //            ; --------------------------------------
   //                //            ; Test CPI and conditional jumps.
+  //                              ; Compare #(dataByte) to A, and then set Carry and Zero bit flags.
+  //                              ; If #=A, set Zero bit to 1, Carry bit to 0. If #>A, Carry bit = 1. If #<A, Carry bit = 0.
   //
-  0303, 4, 0,       // jmp Test   ; Jump to bypass the halt.
+  B11000011, 4, 0,  // jmp Test   ; Jump to bypass the halt.
   //                // Halt:
-  0166,             // hlt        ; Then, the program will halt at each iteration.
-  //                // Test:
+  B01110110,        // hlt        ; The program will halt at each iteration, after the first.
+  //
+  //                // Error:
+  0343, 38,         // out 38     ; Print the register values.
+  0343, 39,         // out 39     ; Print the other system values.
+  B01110110,        // hlt        ; The program will halt at each iteration, after the first.
   //
   //                //            ; --------------------------------------
-  B00111110, 73,    // mvi a,73   ; Move # to register A:    01 001 001 = 73
+  //                // Test:
+  B00111110, 73,    // mvi a,73   ; Move # to register A.
+  B00000110, 0,     // mvi b,0    ; Move 0 to register B. Use for flow validation.
   //
-  0376, 73,         // cpi #      ; Compare # to A. Store true or false into flagZeroBit(Zero bit).
-  0312, 19, 0000,   // jz lb hb. If it matches, jump to lb hb (end while)
+  //                //            ; --------------------------------------
+  B11111110, 73,    // cpi #      ; # = A. Zero bit flag is true. Carry bit is false.
+  B11000010, 4, 0,  // jnz Error  ; Zero bit flag is set, don't jump.
+  B11011010, 4, 0,  // jc Error   ; Carry bit flag is not set, don't jump.
+  B11001010, 22, 0, // jz okay1a  ; Zero bit flag is set, jump.
+  B11000011, 4, 0,  // jmp Error  ; The above should have jumpped passed this.
+  //                // okay1a:    ; address 22
+  B11000010, 19, 0, // jnc okay1b ; Carry bit flag is not set, jump to the end of this test.
+  B11000011, 4, 0,  // jmp Error  ; The above should have jumpped passed this.
+  //                // okay1b:
   //
-  0376, 74,         // cpi #      ; Compare # to A. Store true or false into flagZeroBit(Zero bit).
-  0312, 19, 0000,   // jz lb hb. If it matches, jump to lb hb (end while)
+  //                //            ; --------------------------------------
+  B11111110, 74,    // cpi #      ; # > A. Zero bit flag is false. Carry bit is true.
+  B11001010, 4, 0,  // jz Error   ; Zero bit flag is not set, don't jump.
+  B11000010, 4, 0,  // jnc Error  ; Carry bit flag is set, don't jump.
+  B11011010, 19, 0, // jc okay2a  ; Carry bit flag is set, jump.
+  B11000011, 4, 0,  // jmp Error  ; The above should have jumpped passed this.
+  //                // okay2a:
+  B11000010, 19, 0, // jnz Error  ; Zero bit flag is not set, jump to the end of this test.
+  B11000011, 4, 0,  // jmp Error  ; The above should have jumpped passed this.
+  //                // okay2b:
   //
-  0376, 73,         // cpi #      ; Compare # to A. Store true or false into flagZeroBit(Zero bit).
-  0312, 19, 0000,   // jz lb hb. If it matches, jump to lb hb (end while)
+  //                //            ; --------------------------------------
+  B11111110, 72,    // cpi #      ; # < A. Zero bit flag is false. Carry bit is false.
+  B11001010, 4, 0,  // jz Error   ; Zero bit flag is not set, don't jump.
+  B11011010, 4, 0,  // jc Error   ; Carry bit flag is not set, don't jump.
+  B11000010, 19, 0, // jnz okay2a ; Zero bit flag is not set, jump to the end of this test.
+  B11000011, 4, 0,  // jmp Error  ; The above should have jumpped passed this.
+  //                // okay3a:
+  B11000010, 19, 0, // jnc okay2b ; Carry bit flag is not set, jump to the end of this test.
+  B11000011, 4, 0,  // jmp Error  ; The above should have jumpped passed this.
+  //                // okay3b:
   //
   //                //            ; --------------------------------------
   0,                // NOP
-  0303, 3, 0,       // jmp Halt   ; Jump back to the start halt command.
+  B11000011, 3, 0,  // jmp Halt   ; Jump back to the start halt command.
   0000              //            ; End.
 };
 
@@ -245,11 +277,11 @@ byte theProgramKtb[] = {
   0041, 0, 0,           // LXI H,0    ; Move the lb hb data values into the register pair H(hb):L(lb). Initialize counter
   0026, 128,            // mvi D,80h  ; Move db to register D. Set initial display bit.  080h = 128 = regD = 10 000 000
   0001, 0, 5,           // LXI B,?  0  ; Load a(lb:hb) into register B:C. Higher value = faster.
-                        //            ;    Default: 0014 = B:C  = 00 010 000
-                        //            ;    Slow:    0020 = B:C  = 00 010 000
-                        //            ;    Nice:    0040 = B:C  = 00 100 000
-                        //            ;    Fast:    0100 = B:C  = 01 000 000
-                        //            ;Too fast:    0100 = B:C  = 01 001 000
+  //            ;    Default: 0014 = B:C  = 00 010 000
+  //            ;    Slow:    0020 = B:C  = 00 010 000
+  //            ;    Nice:    0040 = B:C  = 00 100 000
+  //            ;    Fast:    0100 = B:C  = 01 000 000
+  //            ;Too fast:    0100 = B:C  = 01 001 000
   //
   //  ; Display bit pattern on upper 8 address lights.
   //                    // BEG:
@@ -1139,7 +1171,7 @@ void processOpcode() {
       break;
     // ---------------------------------------------------------------------
     // Jump options.
-    
+
     // ----------------
     //    110CC010
     case B11000010:
@@ -1955,14 +1987,21 @@ void processOpcodeData() {
     case B11111110:
       // instructionCycle == 1
       dataByte = memoryData[programCounter];
+      // Compare #(dataByte) to A, then set Carry and Zero bit flags.
+      // If #=A, set Zero bit to 1. If #>A, Carry bit = 1. If #<A, Carry bit = 0.
       flagZeroBit = dataByte == regA;
+      flagCarryBit = dataByte > regA;
 #ifdef LOG_MESSAGES
       Serial.print(F("> cpi, compare the result db: "));
       Serial.print(dataByte);
       if (flagZeroBit) {
         Serial.print(F(" == "));
       } else {
-        Serial.print(F(" != "));
+        if (flagCarryBit) {
+          Serial.print(F(" > "));
+        } else {
+          Serial.print(F(" < "));
+        }
       }
       Serial.print(F(" A: "));
       Serial.print(regA);
@@ -1971,7 +2010,7 @@ void processOpcodeData() {
       break;
     // ---------------------------------------------------------------------
     case B11011011:
-    // stacy
+      // stacy
       // instructionCycle == 1
       // INP & WO are on when reading from an input port.
       // IN p      11011011 pa       -       Read input for port a, into A
@@ -2351,6 +2390,14 @@ void processOpcodeData() {
           printRegisters();
           Serial.print(F("------------"));
           break;
+        case 39:
+#ifdef LOG_MESSAGES
+          Serial.println("");
+#endif
+          Serial.println(F("------------"));
+          printOther();
+          Serial.print(F("------------"));
+          break;
         case 37:
           Serial.print(F(" > Register A = "));
           printData(regA);
@@ -2513,6 +2560,17 @@ void processOpcodeData() {
 
 // -----------------------------------------------------------------------------
 //  Output Functions
+
+void printOther() {
+  Serial.print(F("+ Zero bit flag: "));
+  Serial.print(flagZeroBit);
+  Serial.print(F(", Carry bit flag: "));
+  Serial.print(flagCarryBit);
+  Serial.println("");
+  Serial.print(F("+ Stack pointer: "));
+  Serial.print(stackPointer);
+  Serial.println("");
+}
 
 void printRegisters() {
   Serial.print(F("+ regA: "));
