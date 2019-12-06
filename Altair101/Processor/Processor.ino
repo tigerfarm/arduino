@@ -3,9 +3,9 @@
   Altair 101 Processor program
   
   This is an Altair 8800 Microprocessor Emulator Program.
-  This program emulates the basic Altair 8800 hardware on an Arduino Uno, Nano, or Mega.
-  It includes a partial Intel 8080 microprocessor emulater to process 8080 machine instructions
-  which the Altair 8800 is based.
+  This program emulates the basic Altair 8800 hardware. It's testing on an Arduino Nano.
+  It includes a number of the Intel 8080 microprocessor machine instructions (opcodes).
+  The Altair 8800 is based on the 8080.
 
   Altair 101 is a hardware and software emulator of the core, basic, Altair 8800 computer.
   
@@ -16,7 +16,17 @@
   + Kill the Bit, is the standard defacto basic demostration program of an Altair 8800 and its clones and replicas.
   + The only major difference, is that I don't have all the 8080 opcodes implemented.
   + The Altair 101 only has only 256 bytes of memory which is the same as the original basic Altair 8800.
-  + Modern clones and replicas have 64K of memory. Note, I can later add more memory and opcodes to the 101.
+  + Modern clones and replicas have 64K of memory.
+  + Later, I can add memory and more opcodes to the 101.
+
+  ---------------------------------------------
+  In the process of implementing the opcodes:
+  JNZ a     11 000 010 lb hb          Jump to a, if Zero bit flag is not set (equals 0).
+  JC a      11 011 010 lb hb          Jump to a, if Carry bit flag is set (equals 1).
+  + I need to code machine cycle 2 for each.
+  + And write test program using CPI.
+  Then, I'll implement:
+  CMP S     10 111 SSS        ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.
 
   ---------------------------------------------
   Next, complete the physical dev machine.
