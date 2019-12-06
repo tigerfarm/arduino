@@ -23,7 +23,6 @@
   In the process of implementing the opcodes:
   JNZ a     11 000 010 lb hb          Jump to a, if Zero bit flag is not set (equals 0).
   JC a      11 011 010 lb hb          Jump to a, if Carry bit flag is set (equals 1).
-  + I need to code machine cycle 2 for each.
   + And write test program using CPI.
   Then, I'll implement:
   CMP S     10 111 SSS        ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.
@@ -437,18 +436,9 @@ const byte WAIT_OFF =   B11111110;
 // ------------------------------------
 // Processing opcodes and opcode cycles
 
-// Instruction parameters:
-byte lowOrder = 0;           // lb: Low order byte of 16 bit value.
-byte highOrder = 0;          // hb: High order byte of 16 bit value.
-//                             Example: hb + lb = 16 bit memory address.
-byte dataByte = 0;           // db = Data byte (8 bit)
-
 // -----------------------------------------------------------------------------
 //        Code   Octal       Inst Param  Encoding Flags  Description
-const byte cpi    = 0376; // cpi db    11 111 110        Compare db with a and set Zero bit flag.
 const byte hlt    = 0166; // hlt         01110110        Halt processor
-const byte jmp    = 0303; // jmp  a      11000011        Unconditional jump
-const byte jz     = 0312; // jz   lb hb  11001010        If Zero bit flag is true, jump to lb hb.
 const byte nop    = 0000; // nop         00000000        No operation
 const byte out    = 0343; // out pa      11010011        Write a to output port
 const byte rrc    = 0017; // rrc       00 001 111   c    Rotate a right (shift byte right 1 bit). Note, carry bit not handled at this time.
@@ -520,6 +510,12 @@ void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte
 
 byte opcode = 0;            // Opcode being processed
 int instructionCycle = 0;   // Opcode process cycle
+
+// Instruction parameters:
+byte dataByte = 0;           // db = Data byte (8 bit)
+
+byte lowOrder = 0;           // lb: Low order byte of 16 bit value.
+byte highOrder = 0;          // hb: High order byte of 16 bit value.
 
 void displayStatusAddressData() {
   //
@@ -613,8 +609,8 @@ void processOpcode() {
       Serial.print(F("> ani, AND db with register A."));
 #endif
       break;
-    case cpi:
-      opcode = cpi;
+    case B11111110:
+      opcode = B11111110;
 #ifdef LOG_MESSAGES
       Serial.print(F("> cpi, compare next data byte to A. Store true or false into Zero bit flag."));
 #endif
@@ -1150,8 +1146,8 @@ void processOpcode() {
 #endif
       break;
     // ----------------
-    case jmp:
-      opcode = jmp;
+    case B11000011:
+      opcode = B11000011;
 #ifdef LOG_MESSAGES
       Serial.print(F("> jmp, get address low and high order bytes."));
 #endif
@@ -1929,7 +1925,7 @@ void processOpcodeData() {
 #endif
       break;
     // ---------------------------------------------------------------------
-    case cpi:
+    case B11111110:
       // instructionCycle == 1
       dataByte = memoryData[programCounter];
       flagZeroBit = dataByte == regA;
@@ -1979,11 +1975,35 @@ void processOpcodeData() {
       programCounter++;
       break;
     // ---------------------------------------------------------------------
-    case B11010010:
+    // ---------------------------------------------------------------------
+    // Jump opcodes
+
+    //-----------------------------------------
+    case B11000011:
+      if (instructionCycle == 1) {
+        lowOrder = programCounter;
+#ifdef LOG_MESSAGES
+        Serial.print(F("> jmp, lb: "));
+        Serial.print(lowOrder);
+#endif
+        programCounter++;
+        return;
+      }
+      // instructionCycle == 2
+      programCounter = word(memoryData[programCounter], memoryData[lowOrder]);
+#ifdef LOG_MESSAGES
+      Serial.print(F("> jmp, jump to:"));
+      sprintf(charBuffer, "%4d = ", programCounter);
+      Serial.print(charBuffer);
+      printByte((byte)programCounter);
+#endif
+      break;
+    //-----------------------------------------
+    case B11000010:
       if (instructionCycle == 1) {
         lowOrder = memoryData[programCounter];
 #ifdef LOG_MESSAGES
-        Serial.print(F("< jnc, lb: "));
+        Serial.print(F("< jnz, lb: "));
         sprintf(charBuffer, "%4d:", lowOrder);
         Serial.print(charBuffer);
 #endif
@@ -1993,24 +2013,24 @@ void processOpcodeData() {
       // instructionCycle == 2
       highOrder = memoryData[programCounter];
 #ifdef LOG_MESSAGES
-      Serial.print(F("< jnc, hb: "));
+      Serial.print(F("< jnz, hb: "));
       sprintf(charBuffer, "%4d:", highOrder);
       Serial.print(charBuffer);
 #endif
-      if (!flagCarryBit) {
+      if (!flagZeroBit) {
         programCounter = word(highOrder, lowOrder);
 #ifdef LOG_MESSAGES
-        Serial.print(F("> jnc, Carry bit flag is false, jump to:"));
+        Serial.print(F("> jnz, Zero bit flag is false, jump to:"));
         Serial.print(programCounter);
 #endif
       } else {
 #ifdef LOG_MESSAGES
-        Serial.print(F(" - Carry bit flag is true, don't jump."));
+        Serial.print(F(" - Carry Zero flag is true, don't jump."));
 #endif
         programCounter++;
       }
       break;
-    // ---------------------------------------------------------------------
+    //-----------------------------------------
     case B11001010:
       if (instructionCycle == 1) {
         lowOrder = memoryData[programCounter];
@@ -2042,25 +2062,69 @@ void processOpcodeData() {
         programCounter++;
       }
       break;
-    // ---------------------------------------------------------------------
-    case jmp:
+    //-----------------------------------------
+    case B11010010:
       if (instructionCycle == 1) {
-        lowOrder = programCounter;
+        lowOrder = memoryData[programCounter];
 #ifdef LOG_MESSAGES
-        Serial.print(F("> jmp, lb: "));
-        Serial.print(lowOrder);
+        Serial.print(F("< jnc, lb: "));
+        sprintf(charBuffer, "%4d:", lowOrder);
+        Serial.print(charBuffer);
 #endif
         programCounter++;
         return;
       }
       // instructionCycle == 2
-      programCounter = word(memoryData[programCounter], memoryData[lowOrder]);
+      highOrder = memoryData[programCounter];
 #ifdef LOG_MESSAGES
-      Serial.print(F("> jmp, jump to:"));
-      sprintf(charBuffer, "%4d = ", programCounter);
+      Serial.print(F("< jnc, hb: "));
+      sprintf(charBuffer, "%4d:", highOrder);
       Serial.print(charBuffer);
-      printByte((byte)programCounter);
 #endif
+      if (!flagCarryBit) {
+        programCounter = word(highOrder, lowOrder);
+#ifdef LOG_MESSAGES
+        Serial.print(F("> jnc, Carry bit flag is false, jump to:"));
+        Serial.print(programCounter);
+#endif
+      } else {
+#ifdef LOG_MESSAGES
+        Serial.print(F(" - Carry bit flag is true, don't jump."));
+#endif
+        programCounter++;
+      }
+      break;
+    //-----------------------------------------
+    case B11011010:
+      if (instructionCycle == 1) {
+        lowOrder = memoryData[programCounter];
+#ifdef LOG_MESSAGES
+        Serial.print(F("< jc, lb: "));
+        sprintf(charBuffer, "%4d:", lowOrder);
+        Serial.print(charBuffer);
+#endif
+        programCounter++;
+        return;
+      }
+      // instructionCycle == 2
+      highOrder = memoryData[programCounter];
+#ifdef LOG_MESSAGES
+      Serial.print(F("< jc, hb: "));
+      sprintf(charBuffer, "%4d:", highOrder);
+      Serial.print(charBuffer);
+#endif
+      if (flagCarryBit) {
+        programCounter = word(highOrder, lowOrder);
+#ifdef LOG_MESSAGES
+        Serial.print(F("> jc, jump to:"));
+        Serial.print(programCounter);
+#endif
+      } else {
+#ifdef LOG_MESSAGES
+        Serial.print(F(" - Carry bit flag is false, don't jump."));
+#endif
+        programCounter++;
+      }
       break;
     // ---------------------------------------------------------------------
     // ldax RP  00RP1010 - Load indirect through BC(RP=00) or DE(RP=01)

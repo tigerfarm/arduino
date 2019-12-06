@@ -39,10 +39,12 @@ shld a   00 100 010  3  Store data value from memory location: a(hb:lb), to regi
 Jumping and conditions:
 jmp a    11 000 011  3  Unconditional jump.
 Set condition:
-cpi #    11 111 110  2  Compare # to A. Store true or false into compareResult(Zero bit).
+cpi #    11 111 110  2  Compare # to A. Store true or false into flagZeroBit(Zero bit).
 Conditional jumps:
-jnc a    11 010 010  3  Jump to a, if Carry bit flag is not set (equals 0).
-jz  a    11 001 010  3  Jump to a, if zero bit flag is set (equals 1).
+JNZ a     11 000 010 lb hb          Jump to a, if Zero bit flag is not set (equals 0).
+JZ a      11 001 010 lb hb          Jump to a, if zero bit flag is set (equals 1).       Already tested.
+JNC a     11 010 010 lb hb          Jump to a, if Carry bit flag is not set (equals 0).  Already tested.
+JC a      11 011 010 lb hb          Jump to a, if Carry bit flag is set (equals 1).
 
 Logical and bitwise:
 ani #    11 100 110  2  AND # (immediate db) with register A.
@@ -51,7 +53,7 @@ xra R    10 101 SSS  1  Exclusive OR, the register(R) with register A.
 rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
 
 Arithmetic:
-dad RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L. And set carry bit.
+dad RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L, into H:L. And set carry bit.
 inr D    00 DDD 101  1  Increment register DDD. To do, set flags: ZSPA.
 dcr D    00 DDD 101  1  Decrement register DDD. To do, set flags: ZSPA.
 inx RP   00 RP0 011  1  Increment a register pair (a 16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
@@ -70,7 +72,7 @@ out pa   11 010 011  2  Write the accumulator data out to port a. I'm using this
 Opcode   Binary   Cycles Description
 -------------------------------------
 ani #    11 100 110  2  AND # (immediate db) with register A.
-cpi #    11 111 110  2  Compare # to A. Store true or false into compareResult.
+cpi #    11 111 110  2  Compare # to A. Store true or false into flagZeroBit.
 dad RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L. And set carry bit.
 call a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.
 dcr D    00 DDD 101  1  Decrement a register. To do, set flags: ZSPA.
@@ -80,7 +82,7 @@ inr D    00 DDD 101  1  Increment a register. To do, set flags: ZSPA.
 inx RP   00 RP0 011  1  Increment a register pair (a 16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
 jnc a    11 010 010  3  Jump if not carry bit, i.e. if carry bit value is 0, false, not set.
 jmp a    11 000 011  3  Unconditional jump.
-jz  a    11 001 010  3  If compareResult is true, jump to address (a = lb hb).
+jz  a    11 001 010  3  If flagZeroBit is true, jump to address (a = lb hb).
 lda a    00 110 010  3  Load register A with data from the address, a(hb:lb).
 ldax RP  00 RP1 010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.
 mvi R,#  00 RRR 110  2  Move a number (#, db) to a register.
@@ -109,11 +111,6 @@ Inst      Encoding          Flags   Description
 ----------------------------------------------------------------------
 
 CMP S     10 111 SSS        ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.
-The following jumps work with CMP and CPI.
-JNZ a     11 000 010 lb hb          Jump to a, if Zero bit flag is not set (equals 0).
-JZ a      11 001 010 lb hb          Jump to a, if zero bit flag is set (equals 1).       Already coded.
-JNC a     11 010 010 lb hb          Jump to a, if Carry bit flag is not set (equals 0).  Already coded.
-JC a      11 011 010 lb hb          Jump to a, if Carry bit flag is set (equals 1).
 
 DCX RP    00RP1011          -       Decrement register pair
 LHLD a    00101010 lb hb    -       Load H:L from memory
