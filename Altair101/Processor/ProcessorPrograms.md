@@ -109,6 +109,71 @@ byte theProgram[] = {
 Programs to test the functionality of specific opcodes.
 
 -----------------------------------------------------------------------------
+##### Test CPI and conditional jumps:   JNZ, JZ, JNC, JC
+````
+byte theProgram[] = {
+  //                //            ; --------------------------------------
+  //                //            ; Test CPI and conditional jumps.
+  //                              ; Compare #(dataByte) to A, and then set Carry and Zero bit flags.
+  //                              ; If #=A, set Zero bit to 1, Carry bit to 0. If #>A, Carry bit = 1. If #<A, Carry bit = 0.
+  //                              ; Note, register A remain the same after the compare.
+  //
+  B11000011, 9, 0,  // jmp Test   ; Jump to bypass the halt.
+  0,                // nop
+  //
+  //                // Error:
+  B11100011, 38,    // out 38     ; Print the register values.
+  B11100011, 39,    // out 39     ; Print the other system values.
+  //
+  //                // Halt:
+  B01110110,        // hlt        ; The program will halt at each iteration, after the first.
+  //
+  //                //            ; --------------------------------------
+  //                // Test:
+  B00111110, 73,    // mvi a,73   ; Move # to register A.
+  B00000110, 0,     // mvi b,0    ; Move 0 to register B. Use for flow validation.
+  //
+  //                //            ; --------------------------------------
+  B11111110, 73,    // cpi #      ; # = A. Zero bit flag is true. Carry bit is false.
+  B11000010, 4, 0,  // jnz Error  ; Zero bit flag is set, don't jump.
+  B11011010, 4, 0,  // jc Error   ; Carry bit flag is not set, don't jump.
+  B11001010, 27, 0, // jz okay1a  ; Zero bit flag is set, jump.
+  B11000011, 4, 0,  // jmp Error  ; The above should have jumped passed this.
+  //                // okay1a:    ; address 22
+  B11010010, 33, 0, // jnc okay1b ; Carry bit flag is not set, jump to the end of this test.
+  B11000011, 4, 0,  // jmp Error  ; The above should have jumped passed this.
+  //                // okay1b:
+  //
+  //                //            ; --------------------------------------
+  B11111110, 74,    // cpi #      ; # > A. Zero bit flag is false. Carry bit is true.
+  B11001010, 4, 0,  // jz Error   ; Zero bit flag is not set, don't jump.
+  B11010010, 4, 0,  // jnc Error  ; Carry bit flag is set, don't jump.
+  B11011010, 47, 0, // jc okay2a  ; Carry bit flag is set, jump.
+  B11000011, 4, 0,  // jmp Error  ; The above should have jumped passed this.
+  //                // okay2a:
+  B11000010, 53, 0, // jnz okay2b ; Zero bit flag is not set, jump to the end of this test.
+  B11000011, 4, 0,  // jmp Error  ; The above should have jumped passed this.
+  //                // okay2b:
+  //
+  //                //            ; --------------------------------------
+  B11111110, 72,    // cpi #      ; # < A. Zero bit flag is false. Carry bit is false.
+  B11001010, 4, 0,  // jz Error   ; Zero bit flag is not set, don't jump.
+  B11011010, 4, 0,  // jc Error   ; Carry bit flag is not set, don't jump.
+  B11000010, 67, 0, // jnz okay3a ; Zero bit flag is not set, jump to the end of this test.
+  B11000011, 4, 0,  // jmp Error  ; The above should have jumped passed this.
+  //                // okay3a:
+  B11010010, 73, 0, // jnc okay3b ; Carry bit flag is not set, jump to the end of this test.
+  B11000011, 4, 0,  // jmp Error  ; The above should have jumped passed this.
+  //                // okay3b:
+  //
+  //                //            ; --------------------------------------
+  0,                // NOP
+  B11000011, 8, 0,  // jmp Halt   ; Jump back to the early halt command.
+  0000              //            ; End.
+};
+````
+
+-----------------------------------------------------------------------------
 ##### Test stack opcodes
 ````
 

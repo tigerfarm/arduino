@@ -20,12 +20,7 @@
   + Later, I can add memory and more opcodes to the 101.
 
   ---------------------------------------------
-  In the process of implementing the opcodes:
-  JNZ a     11 000 010 lb hb          Jump to a, if Zero bit flag is not set (equals 0).
-  JC a      11 011 010 lb hb          Jump to a, if Carry bit flag is set (equals 1).
-  + And write test program using CPI.
-  Then, I'll implement:
-  CMP S     10 111 SSS        ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.
+  In the process of writing and testing the opcode CMP test program.
 
   ---------------------------------------------
   Next, complete the physical dev machine.
@@ -147,7 +142,7 @@
 // #define INCLUDE_LCD 1
 // #define INCLUDE_SDCARD 1
 // #define RUN_DELAY 1
-// #define RUN_NOW 1
+#define RUN_NOW 1
 // #define SWITCH_MESSAGES 1
 #define LOG_MESSAGES 1
 
@@ -207,60 +202,40 @@ File myFile;
 // -----------------------------------------------------------------------------
 byte theProgram[] = {
   //                //            ; --------------------------------------
-  //                //            ; Test CPI and conditional jumps.
-  //                              ; Compare #(dataByte) to A, and then set Carry and Zero bit flags.
+  //                //            ; Test CMP and conditional jumps.
+  //                              ; Compare a register to A, and then set Carry and Zero bit flags.
   //                              ; If #=A, set Zero bit to 1, Carry bit to 0. If #>A, Carry bit = 1. If #<A, Carry bit = 0.
+  //                              ; Note, register A remain the same after the compare.
   //
-  B11000011, 4, 0,  // jmp Test   ; Jump to bypass the halt.
-  //                // Halt:
-  B01110110,        // hlt        ; The program will halt at each iteration, after the first.
+  B11000011, 6, 0,  // jmp Test   ; Jump to bypass the halt.
   //
   //                // Error:
-  0343, 38,         // out 38     ; Print the register values.
-  0343, 39,         // out 39     ; Print the other system values.
+  B11100011, 39,    // out 39     ; Print the registers other system values.
+  //
+  //                // Halt:
   B01110110,        // hlt        ; The program will halt at each iteration, after the first.
   //
   //                //            ; --------------------------------------
   //                // Test:
   B00111110, 73,    // mvi a,73   ; Move # to register A.
-  B00000110, 0,     // mvi b,0    ; Move 0 to register B. Use for flow validation.
   //
   //                //            ; --------------------------------------
-  B11111110, 73,    // cpi #      ; # = A. Zero bit flag is true. Carry bit is false.
-  B11000010, 4, 0,  // jnz Error  ; Zero bit flag is set, don't jump.
-  B11011010, 4, 0,  // jc Error   ; Carry bit flag is not set, don't jump.
-  B11001010, 22, 0, // jz okay1a  ; Zero bit flag is set, jump.
-  B11000011, 4, 0,  // jmp Error  ; The above should have jumpped passed this.
-  //                // okay1a:    ; address 22
-  B11000010, 19, 0, // jnc okay1b ; Carry bit flag is not set, jump to the end of this test.
-  B11000011, 4, 0,  // jmp Error  ; The above should have jumpped passed this.
+  //0RRR110
+  B00000110, 73,    // mvi b,73   ; Move # to register B.
+  //0111SSS
+  B10111000,        // cmp b      ; B = A. Zero bit flag is true. Carry bit is false.
+  B11000010, 3, 0,  // jnz Error  ; Zero bit flag is set, don't jump.
+  B11011010, 3, 0,  // jc Error   ; Carry bit flag is not set, don't jump.
+  B11001010, 23, 0, // jz okay1a  ; Zero bit flag is set, jump.
+  B11000011, 3, 0,  // jmp Error  ; The above should have jumped passed this.
+  //                // okay1a:
+  B11010010, 29, 0, // jnc okay1b ; Carry bit flag is not set, jump to the end of this test.
+  B11000011, 3, 0,  // jmp Error  ; The above should have jumped passed this.
   //                // okay1b:
   //
   //                //            ; --------------------------------------
-  B11111110, 74,    // cpi #      ; # > A. Zero bit flag is false. Carry bit is true.
-  B11001010, 4, 0,  // jz Error   ; Zero bit flag is not set, don't jump.
-  B11000010, 4, 0,  // jnc Error  ; Carry bit flag is set, don't jump.
-  B11011010, 19, 0, // jc okay2a  ; Carry bit flag is set, jump.
-  B11000011, 4, 0,  // jmp Error  ; The above should have jumpped passed this.
-  //                // okay2a:
-  B11000010, 19, 0, // jnz Error  ; Zero bit flag is not set, jump to the end of this test.
-  B11000011, 4, 0,  // jmp Error  ; The above should have jumpped passed this.
-  //                // okay2b:
-  //
-  //                //            ; --------------------------------------
-  B11111110, 72,    // cpi #      ; # < A. Zero bit flag is false. Carry bit is false.
-  B11001010, 4, 0,  // jz Error   ; Zero bit flag is not set, don't jump.
-  B11011010, 4, 0,  // jc Error   ; Carry bit flag is not set, don't jump.
-  B11000010, 19, 0, // jnz okay2a ; Zero bit flag is not set, jump to the end of this test.
-  B11000011, 4, 0,  // jmp Error  ; The above should have jumpped passed this.
-  //                // okay3a:
-  B11000010, 19, 0, // jnc okay2b ; Carry bit flag is not set, jump to the end of this test.
-  B11000011, 4, 0,  // jmp Error  ; The above should have jumpped passed this.
-  //                // okay3b:
-  //
-  //                //            ; --------------------------------------
   0,                // NOP
-  B11000011, 3, 0,  // jmp Halt   ; Jump back to the start halt command.
+  B11000011, 5, 0,  // jmp Halt   ; Jump back to the early halt command.
   0000              //            ; End.
 };
 
@@ -653,6 +628,26 @@ unsigned int deValue = 0;
 unsigned int hlValue = 0;
 unsigned int hlValueNew = 0;
 
+void displayCmp(String theRegister, byte theRegValue) {
+  Serial.print(F("> cmp, compare register "));
+  Serial.print(theRegister);
+  Serial.print(F(" to A. "));
+  Serial.print(theRegister);
+  Serial.print(F(":"));
+  Serial.print(theRegValue);
+  if (flagZeroBit) {
+    Serial.print(F(" == "));
+  } else {
+    if (flagCarryBit) {
+      Serial.print(F(" > "));
+    } else {
+      Serial.print(F(" < "));
+    }
+  }
+  Serial.print(F(" A:"));
+  Serial.print(regA);
+}
+
 // ------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------
 void processOpcode() {
@@ -668,10 +663,82 @@ void processOpcode() {
       Serial.print(F("> ani, AND db with register A."));
 #endif
       break;
+    // ---------------------------------------------------------------------
+    // Compare register to A, then set Carry and Zero bit flags.
+    // If #=A, set Zero bit to 1. If #>A, Carry bit = 1. If #<A, Carry bit = 0.
+    //    10111SSS
+    case B10111000:
+      dataByte = regB;
+      flagZeroBit = dataByte == regA;
+      flagCarryBit = dataByte > regA;
+#ifdef LOG_MESSAGES
+      displayCmp("B", regB);
+#endif
+      break;
+    // ------------------------
+    //    10111SSS
+    case B10111001:
+      dataByte = regC;
+      flagZeroBit = dataByte == regA;
+      flagCarryBit = dataByte > regA;
+#ifdef LOG_MESSAGES
+      displayCmp("C", regC);
+#endif
+      break;
+    // ------------------------
+    //    10111SSS
+    case B10111010:
+      dataByte = regD;
+      flagZeroBit = dataByte == regA;
+      flagCarryBit = dataByte > regA;
+#ifdef LOG_MESSAGES
+      displayCmp("D", regD);
+#endif
+      break;
+    // ------------------------
+    //    10111SSS
+    case B10111011:
+      dataByte = regE;
+      flagZeroBit = dataByte == regA;
+      flagCarryBit = dataByte > regA;
+#ifdef LOG_MESSAGES
+      displayCmp("E", regE);
+#endif
+      break;
+    // ------------------------
+    //    10111SSS
+    case B10111100:
+      dataByte = regH;
+      flagZeroBit = dataByte == regA;
+      flagCarryBit = dataByte > regA;
+#ifdef LOG_MESSAGES
+      displayCmp("H", regH);
+#endif
+      break;
+    // ------------------------
+    //    10111SSS
+    case B10111101:
+      dataByte = regL;
+      flagZeroBit = dataByte == regA;
+      flagCarryBit = dataByte > regA;
+#ifdef LOG_MESSAGES
+      displayCmp("L", regH);
+#endif
+      break;
+    // ------------------------
+    //    10111SSS  Stacy, need to get memory data to compare.
+    case B10111110:
+      flagZeroBit = regB == regA;
+      flagCarryBit = regB > regA;
+#ifdef LOG_MESSAGES
+      displayCmp("M", regB);
+#endif
+      break;
+    // ---------------------------------------------------------------------
     case B11111110:
       opcode = B11111110;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> cpi, compare next data byte to A. Store true or false into Zero bit flag."));
+      Serial.print(F("> cpi, compare next data byte to A, and set Zero bit and Carry bit flags."));
 #endif
       break;
     // ---------------------------------------------------------------------
@@ -995,7 +1062,7 @@ void processOpcode() {
       statusByte = statusByte & M1_OFF;
       statusByte = statusByte | HLTA_ON;
       // lightsStatusAddressData(statusByte, programCounter, dataByte);
-      displayStatusAddressData();
+      // displayStatusAddressData();
 #else
       Serial.println("");
 #endif
@@ -2395,6 +2462,7 @@ void processOpcodeData() {
           Serial.println("");
 #endif
           Serial.println(F("------------"));
+          printRegisters();
           printOther();
           Serial.print(F("------------"));
           break;
