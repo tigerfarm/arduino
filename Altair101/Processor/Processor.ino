@@ -56,6 +56,10 @@
   ++ 6. AUX 1, not decided what to control with AUX 1.
   ++ 7. AUX 2, for save and load from SD card.
 
+  Test PCF8574 module for input.
+  + Basic test program with a library.
+  + Add Processer logic.
+  
   -------------------------
   Mount the dev machine components onto the clipboard.
 
