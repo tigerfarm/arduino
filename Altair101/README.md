@@ -224,8 +224,8 @@ Very nice [Altair 8800 Clone](https://altairclone.com/).
 + Altair 8800 Clone [order information](https://altairclone.com/ordering.htm), (assembled) $621.
 
 Another Altair Clone: [GitHub](https://github.com/companje/Altair8800), [website](http://www.companje.nl/altair.html).
-This one resembles some of my goals: runs on an Arduino UNO(Nano), and simple code base.
-I uses 74HC595 for LED outputs, and 74HC166 for inputs, and a 23LC1024 for 128KB RAM.
+This one has similarities to my machine: runs on an Arduino UNO(Nano), and simple code base.
+It uses 74HC595 for LED outputs, and 74HC166 for inputs, and a 23LC1024 for 128KB RAM.
 
 + [Directory](https://altairclone.com/downloads/cpu_tests/) of nice sample assembler programs
 such as this [8080 opcode test program](https://altairclone.com/downloads/cpu_tests/TST8080.PRN).
@@ -249,4 +249,4 @@ is hardware or software that enables one computer system (called the host) to be
   where a computer program is used to simulate an abstract model.
   
 --------------------------------------------------------------------------------
-eof
+Cheers
