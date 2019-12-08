@@ -20,27 +20,29 @@
   + INT to Nano interrupt pin, pin 2 in this sample program.
   + P0 ... O7 to switches. Other side of the switch to ground.
 
-  Basic code sample:
+  Library:
+    https://github.com/xreef/PCF8574_library
+  Information and code sample:
     https://protosupplies.com/product/pcf8574-i2c-i-o-expansion-module/
-  Input sample with a keypad:
-    https://www.instructables.com/id/Arduino-Nano-I2C-Matrix-Keypad-With-PCF8574PCF8574/
-    https://www.bastelgarage.ch/index.php?route=extension/d_blog_module/post&post_id=8
 */
 
 // -----------------------------------------------------------------------------
 #include "Arduino.h"
 #include "PCF8574.h"
 
-
-// Interrupt setup: pin to use, I2C address, interrupt handler routine)
-const int INTERRUPT_PIN = 2;
-int PCF_INTERRUPT_ADDRESS = 0x020;
+// Button press flag.
+boolean keyPress = false;
+//
 void PCF8574_Interrupt();
-PCF8574 pcf8574(PCF_INTERRUPT_ADDRESS, INTERRUPT_PIN, pcf01interrupt);
-bool keyPress = false;  // Button press flag.
+//
+// Interrupt setup: I2C address, interrupt pin to use, interrupt handler routine.
+int PCF_INTERRUPT_ADDRESS = 0x020;
+const int INTERRUPT_PIN = 2;
 void pcf01interrupt() {
   keyPress = true;
 }
+PCF8574 pcf8574(PCF_INTERRUPT_ADDRESS, INTERRUPT_PIN, pcf01interrupt);
+
 
 // -----------------------------------------------------------------------------
 void setup() {
@@ -84,16 +86,16 @@ void setup() {
 // -----------------------------------------------------------------------------
 // Device Loop
 void loop() {
-  Serial.println("+ Loop.");
+  // Serial.println("+ Loop.");
   if (keyPress) {
     for (int i = 0; i < 8; i++) {
       int val = pcf8574.digitalRead(i);  // Read each PCF8574 input
       if (val == 0) {                    // If LOW, button was pushed
         Serial.print("+ Button pressed, pin: ");
-        Serial.print(i);
+        Serial.println(i);
       }
     }
-    delay(250);           // Handle switch debounce.
+    delay(30);           // Handle switch debounce.
     keyPress = false;
   }
   delay (60);

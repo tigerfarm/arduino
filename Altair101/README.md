@@ -227,6 +227,8 @@ Another Altair Clone: [GitHub](https://github.com/companje/Altair8800), [website
 This one has similarities to my machine: runs on an Arduino UNO(Nano), and simple code base.
 It uses 74HC595 for LED outputs, and 74HC166 for inputs, and a 23LC1024 for 128KB RAM.
 
+[Zork online](https://classicreload.com/zork-i.html) or [Another Zork[(https://archive.org/details/msdos_Zork_I_-_The_Great_Underground_Empire_1980)
+
 + [Directory](https://altairclone.com/downloads/cpu_tests/) of nice sample assembler programs
 such as this [8080 opcode test program](https://altairclone.com/downloads/cpu_tests/TST8080.PRN).
 + [Extract highByte()](https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/highbyte/)
