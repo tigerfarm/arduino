@@ -236,7 +236,7 @@ such as this [8080 opcode test program](https://altairclone.com/downloads/cpu_te
 + Text listing of [8080 opcodes](https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/ProcessorOpcodes.txt).
   [Binary listing](https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodesBinaryList.txt).
 
-  In computing, an emulator([Wikipedia)](https://en.wikipedia.org/wiki/Emulator))
+  In computing, an emulator([Wikipedia](https://en.wikipedia.org/wiki/Emulator))
 is hardware or software that enables one computer system (called the host) to behave like another computer system (called the guest).
   An emulator typically enables the host system to run software or use peripheral devices designed for the guest system.
     
