@@ -206,6 +206,8 @@ is that I haven't implemented all the 8080 opcodes implemented.
 --------------------------------------------------------------------------------
 #### Reference links
 
+[Front panel programs](https://altairclone.com/downloads/front_panel/) such as Pong and Kill the Bit.
+
 David Hansel wrote an [Altair 8800 simulator](https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6).
 It is the code people use when using an Arduino Due to build an Altair 8800 clone/simulator computer.
 
@@ -225,25 +227,19 @@ Another Altair Clone: [GitHub](https://github.com/companje/Altair8800), [website
 This one resembles some of my goals: runs on an Arduino UNO(Nano), and simple code base.
 I uses 74HC595 for LED outputs, and 74HC166 for inputs, and a 23LC1024 for 128KB RAM.
 
-[Directory](https://altairclone.com/downloads/cpu_tests/) of nice sample assembler programs
++ [Directory](https://altairclone.com/downloads/cpu_tests/) of nice sample assembler programs
 such as this [8080 opcode test program](https://altairclone.com/downloads/cpu_tests/TST8080.PRN).
++ [Extract highByte()](https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/highbyte/)
++ [Extract lowByte()](https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/lowbyte/)
++ Reference document, [Intel 8080 Assembly Language Programming Manual](https://altairclone.com/downloads/manuals/8080%20Programmers%20Manual.pdf).
+  This section is base on section 26: [8080 Instruction Set](https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf).
++ Text listing of [8080 opcodes](https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/ProcessorOpcodes.txt).
+  [Binary listing](https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodesBinaryList.txt).
 
-  Extract highByte()
-    https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/highbyte/
-  Extract lowByte()
-    https://www.arduino.cc/reference/en/language/functions/bits-and-bytes/lowbyte/
-
-  Reference document, Intel 8080 Assembly Language Programming Manual:
-    https://altairclone.com/downloads/manuals/8080%20Programmers%20Manual.pdf
-  This section is base on section 26: 8080 Instruction Set
-    https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
-  Text listing of 8080 opcodes:
-    https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/ProcessorOpcodes.txt
-    https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodesBinaryList.txt
-
-  In computing, an emulator is hardware or software that enables one computer system (called the host) to behave like another computer system (called the guest).
+  In computing, an emulator([Wikipedia)](https://en.wikipedia.org/wiki/Emulator))
+is hardware or software that enables one computer system (called the host) to behave like another computer system (called the guest).
   An emulator typically enables the host system to run software or use peripheral devices designed for the guest system.
-    https://en.wikipedia.org/wiki/Emulator
+    
   Logic simulation is the use of a computer program to simulate the operation of a digital circuit such as a processor. This is done after a digital circuit has been designed in logic equations,
   but before the circuit is fabricated in hardware.
   For example, a computer specially built for running programs designed for another architecture is an emulator.
