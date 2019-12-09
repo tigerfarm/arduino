@@ -245,7 +245,7 @@ void setup() {
 
   // ------------------------------
   // I2C based switch initialization
-
+  pinMode(INTERRUPT_PIN, INPUT_PULLUP); // Enable pullup on interrupt pin of Uno
   attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf02interrupt, CHANGE);
   pcf8574.pinMode(P0, INPUT);           // Set all pins as inputs on PCF8574
   pcf8574.pinMode(P1, INPUT);
@@ -298,7 +298,6 @@ void loop() {
     }
     delay (30);
     // ----------------------------
-
   }
 
 }
