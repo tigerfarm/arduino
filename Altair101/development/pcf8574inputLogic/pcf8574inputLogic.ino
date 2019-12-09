@@ -48,6 +48,10 @@ void pcf01interrupt() {
 }
 PCF8574 pcf8574(PCF_INTERRUPT_ADDRESS, INTERRUPT_PIN, pcf01interrupt);
 
+void pcf02interrupt() {
+  keyPress = true;
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Front Panel Control Switches
@@ -75,99 +79,107 @@ boolean switchReset = false;
 // ----------------------------------------------
 // When a program is not running.
 
-void controlSwitches() {
-  // -------------------
-  // Check Run switch.
-  switchValue = pcf8574.digitalRead(pinRun);
-  if (switchValue == 0) {
-    if (!switchRun) {
-      switchRun = true;
-    }
-  } else if (switchRun) {
-    switchRun = false;
+void controlSwitches(int pinGet, int pinValue) {
+  switch (pinGet) {
+    // -------------------
+    case pinRun:
+      if (pinValue == 0) {
+        if (!switchRun) {
+          switchRun = true;
+        }
+      } else if (switchRun) {
+        switchRun = false;
 #ifdef SWITCH_MESSAGES
-    Serial.println("+ Control, Run.");
+        Serial.println("+ Control, Run > run the program.");
 #endif
-    // ...
-    runProgram = true;
-  }
-  // -------------------
-  // Check Step switch.
-  if (pcf8574.digitalRead(pinStep) == LOW) {
-    if (!switchStep) {
-      switchStep = true;
-    }
-  } else if (switchStep) {
-    switchStep = false;
+        // ...
+        runProgram = true;
+      }
+      break;
+    // -------------------
+    case pinStep:
+      if (pinValue == 0) {
+        if (!switchStep) {
+          switchStep = true;
+        }
+      } else if (switchStep) {
+        switchStep = false;
 #ifdef SWITCH_MESSAGES
-    Serial.println("+ Control, Step.");
+        Serial.println("+ Control, Step.");
 #endif
-    // ...
-  }
-  // -------------------
-  // Check Examine switch.
-  if (pcf8574.digitalRead(pinExamine) == LOW) {
-    if (!switchExamine) {
-      switchExamine = true;
-    }
-  } else if (switchExamine) {
-    switchExamine = false;
+        // ...
+      }
+      break;
+    // -------------------
+    case pinExamine:
+      if (pinValue == 0) {
+        if (!switchExamine) {
+          switchExamine = true;
+        }
+      } else if (switchExamine) {
+        switchExamine = false;
 #ifdef SWITCH_MESSAGES
-    Serial.println("+ Control, Examine.");
+        Serial.println("+ Control, Examine.");
 #endif
-    // ...
-  }
-  // -------------------
-  // Check ExamineNext switch.
-  if (pcf8574.digitalRead(pinExamineNext) == LOW) {
-    if (!switchExamineNext) {
-      switchExamineNext = true;
-    }
-  } else if (switchExamineNext) {
-    switchExamineNext = false;
+        // ...
+      }
+      break;
+    // -------------------
+    case pinExamineNext:
+      if (pinValue == 0) {
+        if (!switchExamineNext) {
+          switchExamineNext = true;
+        }
+      } else if (switchExamineNext) {
+        switchExamineNext = false;
 #ifdef SWITCH_MESSAGES
-    Serial.println("+ Control, ExamineNext.");
+        Serial.println("+ Control, Examine Next.");
 #endif
-    // ...
-  }
-  // -------------------
-  // Check Deposit switch.
-  if (pcf8574.digitalRead(pinDeposit) == LOW) {
-    if (!switchDeposit) {
-      switchReset = true;
-    }
-  } else if (switchDeposit) {
-    switchDeposit = false;
+        // ...
+      }
+      break;
+    // -------------------
+    case pinDeposit:
+      if (pinValue == 0) {
+        if (!switchDeposit) {
+          switchDeposit = true;
+        }
+      } else if (switchDeposit) {
+        switchDeposit = false;
 #ifdef SWITCH_MESSAGES
-    Serial.println("+ Control, Deposit.");
+        Serial.println("+ Control, Deposit.");
 #endif
-    // ...
-  }
-  // -------------------
-  // Check DepositNext switch.
-  if (pcf8574.digitalRead(pinDepositNext) == LOW) {
-    if (!switchDepositNext) {
-      switchReset = true;
-    }
-  } else if (switchDepositNext) {
-    switchDepositNext = false;
+        // ...
+      }
+      break;
+    // -------------------
+    case pinDepositNext:
+      if (pinValue == 0) {
+        if (!switchDepositNext) {
+          switchDepositNext = true;
+        }
+      } else if (switchDepositNext) {
+        switchDepositNext = false;
 #ifdef SWITCH_MESSAGES
-    Serial.println("+ Control, DepositNext.");
+        Serial.println("+ Control, Deposit Next.");
 #endif
-    // ...
-  }
-  // -------------------
-  // Check RESET switch.
-  if (pcf8574.digitalRead(pinReset) == LOW) {
-    if (!switchReset) {
-      switchReset = true;
-    }
-  } else if (switchReset) {
-    switchReset = false;
+        // ...
+      }
+      break;
+    // -------------------
+    case pinReset:
+      if (pinValue == 0) {
+        if (!switchReset) {
+          switchReset = true;
+        }
+      } else if (switchReset) {
+        switchReset = false;
 #ifdef SWITCH_MESSAGES
-    Serial.println("+ Control, RESET.");
+        Serial.println("+ Control, Reset.");
 #endif
-    // ...
+        // ...
+      }
+      break;
   }
   // -------------------
 }
@@ -175,40 +187,52 @@ void controlSwitches() {
 // ----------------------------------------------
 // When a program is running.
 
-void runningSwitches(int thePin) {
-  switch (thePin) {
-    case pinStop:
-      // -------------------
-      // Set STOP switch.
-      if (switchValue == 0) {
-        if (!switchStop) {
-          switchStop = true;
-        }
-      } else if (switchStop) {
-        switchStop = false;
+void runningSwitches() {
+  for (int pinGet = 0; pinGet < 8; pinGet++) {
+    int pinValue = pcf8574.digitalRead(pinGet);  // Read each PCF8574 input
+    switch (pinGet) {
+      case pinStop:
+        if (pinValue == 0) {
+          if (!switchStop) {
+            switchStop = true;
+          }
+        } else if (switchStop) {
+          switchStop = false;
 #ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Running, STOP > hlt, halt the processor."));
+          Serial.println("+ Running, Stop > hlt, halt the processor.");
 #endif
-        runProgram = false;
-        // ...
-      }
-      break;
-    case pinReset:
-      // -------------------
-      // Check RESET switch.
-      if (pcf8574.digitalRead(pinReset) == LOW) {
-        if (!switchReset) {
-          switchReset = true;
+          // ...
+          runProgram = false;
         }
-      } else if (switchReset) {
-        switchReset = false;
-#ifdef SWITCH_MESSAGES
-        Serial.println("+ Running, RESET.");
-#endif
-        // ...
-      }
+        break;
       // -------------------
+      case pinReset:
+        if (pinValue == 0) {
+          if (!switchReset) {
+            switchReset = true;
+          }
+        } else if (switchReset) {
+          switchReset = false;
+#ifdef SWITCH_MESSAGES
+          Serial.println("+ Running, Reset.");
+#endif
+          // ...
+        }
+        break;
+    }
+    // -------------------
+    /*
+      Serial.print(" :");
+      Serial.print(pinGet);
+      if (pinValue == 0) {                    // If LOW, button was pushed
+      Serial.print("s");
+      } else {
+      Serial.print("u");
+      }
+    */
+    // -------------------
   }
+  // Serial.println(":");
 }
 
 // -----------------------------------------------------------------------------
@@ -224,8 +248,8 @@ void setup() {
 
   // Can I use attachInterrupt?
   // I need change or PULLDOWN?
-  pinMode(INTERRUPT_PIN, INPUT_PULLUP); // Enable pullup on interrupt pin of Uno
-  // attachInterrupt (digitalPinToInterrupt(PinCLK), rotarydetect, CHANGE);
+  // pinMode(INTERRUPT_PIN, INPUT_PULLUP); // Enable pullup on interrupt pin of Uno
+  attachInterrupt (digitalPinToInterrupt(INTERRUPT_PIN), pcf02interrupt, CHANGE);
 
   pcf8574.pinMode(P0, INPUT);           // Set all pins as inputs on PCF8574
   pcf8574.pinMode(P1, INPUT);
@@ -236,14 +260,14 @@ void setup() {
   pcf8574.pinMode(P6, INPUT);
   pcf8574.pinMode(P7, INPUT);
 
-  pcf8574.digitalWrite(P0, HIGH);     // Enable weak internal pullups of the PCF8574
-  pcf8574.digitalWrite(P1, HIGH);     // To pull the inputs HIGH
-  pcf8574.digitalWrite(P2, HIGH);
-  pcf8574.digitalWrite(P3, HIGH);
-  pcf8574.digitalWrite(P4, HIGH);
-  pcf8574.digitalWrite(P5, HIGH);
-  pcf8574.digitalWrite(P6, HIGH);
-  pcf8574.digitalWrite(P7, HIGH);
+  pcf8574.digitalWrite(P0, LOW);
+  pcf8574.digitalWrite(P1, LOW);
+  pcf8574.digitalWrite(P2, LOW);
+  pcf8574.digitalWrite(P3, LOW);
+  pcf8574.digitalWrite(P4, LOW);
+  pcf8574.digitalWrite(P5, LOW);
+  pcf8574.digitalWrite(P6, LOW);
+  pcf8574.digitalWrite(P7, LOW);
 
   pcf8574.begin();
 
@@ -266,15 +290,7 @@ void loop() {
   if (runProgram) {
     if (keyPress) {
       // Serial.println("+ runProgram = true, keyPress is true.");
-      // runningSwitches();
-      for (int i = 0; i < 8; i++) {
-        int val = pcf8574.digitalRead(i);  // Read each PCF8574 input
-        if (val == 0) {                    // If LOW, button was pushed
-          Serial.print("+ Button pressed, pin: ");
-          Serial.println(i);
-          runningSwitches(i);
-        }
-      }
+      runningSwitches();
       delay(30);           // Handle switch debounce.
       keyPress = false;
     }
@@ -283,18 +299,28 @@ void loop() {
   } else {
     if (keyPress) {
       // Serial.println("+ runProgram = false, keyPress is true.");
-      // controlSwitches();
-      for (int i = 0; i < 8; i++) {
-        int val = pcf8574.digitalRead(i);  // Read each PCF8574 input
-        if (val == 0) {                    // If LOW, button was pushed
-          Serial.print("+ Button pressed, pin: ");
-          Serial.println(i);
-        }
+      for (int pinGet = 0; pinGet < 8; pinGet++) {
+        int pinValue = pcf8574.digitalRead(pinGet);  // Read each PCF8574 input
+        controlSwitches(pinGet, pinValue);
+        // -------------------
+        /*
+          Serial.print(" :");
+          Serial.print(pinGet);
+          if (pinValue == 0) {                    // If LOW, button was pushed
+          Serial.print("s");
+          } else {
+          Serial.print("u");
+          }
+        */
+        // -------------------
       }
+      // Serial.println(":");
       delay(30);           // Handle switch debounce.
       keyPress = false;
     }
-    delay(30);
+    delay (30);
+    // ----------------------------
+
   }
 
 }

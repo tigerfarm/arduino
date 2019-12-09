@@ -292,6 +292,9 @@ void loop(){
 
 ### Interrupt pins
 
+Documentation:
++ [attachInterrupt(digitalPinToInterrupt(pin), ISR, mode)](https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/)
++ [pinMode(pin, mode) ](https://www.arduino.cc/en/Reference.PinMode)
 Pins 2 and 3 are the interrupt pins on Nano, Uno, and other 328-based boards.
 NodeMCU based ESP8266 has interrupt feature on GPIO pins D0-D8.
 
