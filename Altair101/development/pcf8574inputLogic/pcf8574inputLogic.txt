@@ -1,7 +1,9 @@
 // -----------------------------------------------------------------------------
 /*
   PCF8574 I2C Module
+
   I2C to 8-bit Parallel-Port Expander
+
   Module adjustable pin address settings:
   A0 A1 A2
    0  0  0 = 0x20
@@ -9,6 +11,7 @@
    0  1  0 = 0x22
     ...
    1  1  1 = 0x27
+
   Wiring:
   + SDA to Nano A4.
   + SCL to Nano A5.
@@ -16,6 +19,7 @@
   + VCC to Nano 5V
   + INT to Nano interrupt pin, pin 2 in this sample program.
   + P0 ... O7 to switches. Other side of the switch to ground.
+
   Library:
     https://github.com/xreef/PCF8574_library
   Information and code sample:
@@ -75,113 +79,109 @@ boolean switchReset = false;
 // ----------------------------------------------
 // When a program is not running.
 
-// void controlSwitches(int pinGet, int pinValue) {
-void controlSwitches() {
-  for (int pinGet = 0; pinGet < 8; pinGet++) {
-    int pinValue = pcf8574.digitalRead(pinGet);  // Read each PCF8574 input
-    switch (pinGet) {
-      // -------------------
-      case pinRun:
-        if (pinValue == 0) {
-          if (!switchRun) {
-            switchRun = true;
-          }
-        } else if (switchRun) {
-          switchRun = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println("+ Control, Run > run the program.");
-#endif
-          // ...
-          runProgram = true;
-        }
-        break;
-      // -------------------
-      case pinStep:
-        if (pinValue == 0) {
-          if (!switchStep) {
-            switchStep = true;
-          }
-        } else if (switchStep) {
-          switchStep = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println("+ Control, Step.");
-#endif
-          // ...
-        }
-        break;
-      // -------------------
-      case pinExamine:
-        if (pinValue == 0) {
-          if (!switchExamine) {
-            switchExamine = true;
-          }
-        } else if (switchExamine) {
-          switchExamine = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println("+ Control, Examine.");
-#endif
-          // ...
-        }
-        break;
-      // -------------------
-      case pinExamineNext:
-        if (pinValue == 0) {
-          if (!switchExamineNext) {
-            switchExamineNext = true;
-          }
-        } else if (switchExamineNext) {
-          switchExamineNext = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println("+ Control, Examine Next.");
-#endif
-          // ...
-        }
-        break;
-      // -------------------
-      case pinDeposit:
-        if (pinValue == 0) {
-          if (!switchDeposit) {
-            switchDeposit = true;
-          }
-        } else if (switchDeposit) {
-          switchDeposit = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println("+ Control, Deposit.");
-#endif
-          // ...
-        }
-        break;
-      // -------------------
-      case pinDepositNext:
-        if (pinValue == 0) {
-          if (!switchDepositNext) {
-            switchDepositNext = true;
-          }
-        } else if (switchDepositNext) {
-          switchDepositNext = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println("+ Control, Deposit Next.");
-#endif
-          // ...
-        }
-        break;
-      // -------------------
-      case pinReset:
-        if (pinValue == 0) {
-          if (!switchReset) {
-            switchReset = true;
-          }
-        } else if (switchReset) {
-          switchReset = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println("+ Control, Reset.");
-#endif
-          // ...
-        }
-        break;
-    }
+void controlSwitches(int pinGet, int pinValue) {
+  switch (pinGet) {
     // -------------------
+    case pinRun:
+      if (pinValue == 0) {
+        if (!switchRun) {
+          switchRun = true;
+        }
+      } else if (switchRun) {
+        switchRun = false;
+#ifdef SWITCH_MESSAGES
+        Serial.println("+ Control, Run > run the program.");
+#endif
+        // ...
+        runProgram = true;
+      }
+      break;
+    // -------------------
+    case pinStep:
+      if (pinValue == 0) {
+        if (!switchStep) {
+          switchStep = true;
+        }
+      } else if (switchStep) {
+        switchStep = false;
+#ifdef SWITCH_MESSAGES
+        Serial.println("+ Control, Step.");
+#endif
+        // ...
+      }
+      break;
+    // -------------------
+    case pinExamine:
+      if (pinValue == 0) {
+        if (!switchExamine) {
+          switchExamine = true;
+        }
+      } else if (switchExamine) {
+        switchExamine = false;
+#ifdef SWITCH_MESSAGES
+        Serial.println("+ Control, Examine.");
+#endif
+        // ...
+      }
+      break;
+    // -------------------
+    case pinExamineNext:
+      if (pinValue == 0) {
+        if (!switchExamineNext) {
+          switchExamineNext = true;
+        }
+      } else if (switchExamineNext) {
+        switchExamineNext = false;
+#ifdef SWITCH_MESSAGES
+        Serial.println("+ Control, Examine Next.");
+#endif
+        // ...
+      }
+      break;
+    // -------------------
+    case pinDeposit:
+      if (pinValue == 0) {
+        if (!switchDeposit) {
+          switchDeposit = true;
+        }
+      } else if (switchDeposit) {
+        switchDeposit = false;
+#ifdef SWITCH_MESSAGES
+        Serial.println("+ Control, Deposit.");
+#endif
+        // ...
+      }
+      break;
+    // -------------------
+    case pinDepositNext:
+      if (pinValue == 0) {
+        if (!switchDepositNext) {
+          switchDepositNext = true;
+        }
+      } else if (switchDepositNext) {
+        switchDepositNext = false;
+#ifdef SWITCH_MESSAGES
+        Serial.println("+ Control, Deposit Next.");
+#endif
+        // ...
+      }
+      break;
+    // -------------------
+    case pinReset:
+      if (pinValue == 0) {
+        if (!switchReset) {
+          switchReset = true;
+        }
+      } else if (switchReset) {
+        switchReset = false;
+#ifdef SWITCH_MESSAGES
+        Serial.println("+ Control, Reset.");
+#endif
+        // ...
+      }
+      break;
   }
+  // -------------------
 }
 
 // ----------------------------------------------
@@ -299,7 +299,6 @@ void loop() {
   } else {
     if (keyPress) {
       // Serial.println("+ runProgram = false, keyPress is true.");
-      controlSwitches();
       delay(30);           // Handle switch debounce.
       keyPress = false;
     }
