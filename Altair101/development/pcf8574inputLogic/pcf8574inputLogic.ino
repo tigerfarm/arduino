@@ -29,11 +29,7 @@
 // -----------------------------------------------------------------------------
 #define SWITCH_MESSAGES 1
 
-bool runProgram = true;
-byte statusByte = 0;
-void processData() {
-  Serial.println("++ processData();");
-}
+bool runProgram = false;
 
 // -----------------------------------------------------------------------------
 #include "Arduino.h"
@@ -54,8 +50,7 @@ PCF8574 pcf8574(PCF_INTERRUPT_ADDRESS, INTERRUPT_PIN, pcf01interrupt);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// -------------------------
-// Front Panel Control Switches, when a program is not running.
+// Front Panel Control Switches
 
 const int pinStop = 0;
 const int pinRun = 1;
@@ -66,115 +61,154 @@ const int pinDeposit = 5;
 const int pinDepositNext = 6;
 const int pinReset = 7;
 
-// Only do the action once, don't repeat if the button is held down.
-// Don't repeat action if the button is not pressed.
+int switchValue = 1;
 
-const int numberOfSwitches = 7;
-boolean switchState[numberOfSwitches] = {
-  false, false, false, false, false, false, false
-};
-void checkControlButtons() {
-  // Start with the run button.
-  for (int i = 1; i < numberOfSwitches; i++) {
-    if (pcf8574.digitalRead(i) == LOW) {
-      if (!switchState[i]) {
-        switchState[i] = true;
-        // Serial.print("+ Button pressed: ");
-        // Serial.println(i);
-      }
-    } else if (switchState[i]) {
-      switchState[i] = false;
-      //
-      // -------------------
-      if (i == pinRun) {
-        // -------------------
-#ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Run process."));
-#endif
-        runProgram = true;
-      } else if (i == pinStep) {
-        // -------------------
-#ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Single Step."));
-#endif
-      } else if (i == pinExamine) {
-        // -------------------
-#ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Examine."));
-#endif
-      } else if (i == pinExamineNext) {
-        // -------------------
-#ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Examine Next address."));
-#endif
-      } else if (i == pinDeposit) {
-        // -------------------
-#ifdef SWITCH_MESSAGES
-        Serial.print(F("+ Deposit."));
-        Serial.println("");
-#endif
-      } else if (i == pinDepositNext) {
-        // -------------------
-#ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Deposit next."));
-#endif
-      } else if (i == pinReset) {
-        // -------------------
-#ifdef SWITCH_MESSAGES
-        Serial.println("+ RESET.");
-#endif
-      } else {
-        // Serial.print("+ Button released: ");
-        // Serial.println(i);
-      }
-    }
-    //
-    // dataByte = dataByte >> 1;
-  }
-}
-
-// -------------------------
-// Front Panel Control Switches, when a program is running.
-
-byte switchByte;
 boolean switchStop = false;
+boolean switchRun = false;
+boolean switchStep = false;
+boolean switchExamine = false;
+boolean switchExamineNext = false;
+boolean switchDeposit = false;;
+boolean switchDepositNext = false;;
 boolean switchReset = false;
-void checkRunningButtons() {
+
+// ----------------------------------------------
+// When a program is not running.
+
+void controlSwitches() {
   // -------------------
-  // Check STOP button.
-  if (pcf8574.digitalRead(pinStop) == LOW) {
-    if (!switchStop) {
-      switchStop = true;
-#ifdef SWITCH_MESSAGES
-      // Serial.println("+ Running, STOP Button pressed.");
-#endif
+  // Check Run switch.
+  switchValue = pcf8574.digitalRead(pinRun);
+  if (switchValue == 0) {
+    if (!switchRun) {
+      switchRun = true;
     }
-  } else if (switchStop) {
-    switchStop = false;
+  } else if (switchRun) {
+    switchRun = false;
 #ifdef SWITCH_MESSAGES
-    Serial.println("+ Running, STOP Button released.");
-    Serial.println(F("> hlt, halt the processor."));
+    Serial.println("+ Control, Run.");
 #endif
-    runProgram = false;
+    // ...
+    runProgram = true;
+  }
+  // -------------------
+  // Check Step switch.
+  if (pcf8574.digitalRead(pinStep) == LOW) {
+    if (!switchStep) {
+      switchStep = true;
+    }
+  } else if (switchStep) {
+    switchStep = false;
+#ifdef SWITCH_MESSAGES
+    Serial.println("+ Control, Step.");
+#endif
     // ...
   }
   // -------------------
-  // Check RESET button.
+  // Check Examine switch.
+  if (pcf8574.digitalRead(pinExamine) == LOW) {
+    if (!switchExamine) {
+      switchExamine = true;
+    }
+  } else if (switchExamine) {
+    switchExamine = false;
+#ifdef SWITCH_MESSAGES
+    Serial.println("+ Control, Examine.");
+#endif
+    // ...
+  }
+  // -------------------
+  // Check ExamineNext switch.
+  if (pcf8574.digitalRead(pinExamineNext) == LOW) {
+    if (!switchExamineNext) {
+      switchExamineNext = true;
+    }
+  } else if (switchExamineNext) {
+    switchExamineNext = false;
+#ifdef SWITCH_MESSAGES
+    Serial.println("+ Control, ExamineNext.");
+#endif
+    // ...
+  }
+  // -------------------
+  // Check Deposit switch.
+  if (pcf8574.digitalRead(pinDeposit) == LOW) {
+    if (!switchDeposit) {
+      switchReset = true;
+    }
+  } else if (switchDeposit) {
+    switchDeposit = false;
+#ifdef SWITCH_MESSAGES
+    Serial.println("+ Control, Deposit.");
+#endif
+    // ...
+  }
+  // -------------------
+  // Check DepositNext switch.
+  if (pcf8574.digitalRead(pinDepositNext) == LOW) {
+    if (!switchDepositNext) {
+      switchReset = true;
+    }
+  } else if (switchDepositNext) {
+    switchDepositNext = false;
+#ifdef SWITCH_MESSAGES
+    Serial.println("+ Control, DepositNext.");
+#endif
+    // ...
+  }
+  // -------------------
+  // Check RESET switch.
   if (pcf8574.digitalRead(pinReset) == LOW) {
     if (!switchReset) {
       switchReset = true;
-#ifdef SWITCH_MESSAGES
-      // Serial.println("+ Running, RESET Button pressed.");
-#endif
     }
   } else if (switchReset) {
     switchReset = false;
 #ifdef SWITCH_MESSAGES
-    Serial.println("+ Running, RESET Button released.");
+    Serial.println("+ Control, RESET.");
 #endif
     // ...
   }
   // -------------------
+}
+
+// ----------------------------------------------
+// When a program is running.
+
+void runningSwitches(int thePin) {
+  switch (thePin) {
+    case pinStop:
+      // -------------------
+      // Set STOP switch.
+      if (switchValue == 0) {
+        if (!switchStop) {
+          switchStop = true;
+        }
+      } else if (switchStop) {
+        switchStop = false;
+#ifdef SWITCH_MESSAGES
+        Serial.println(F("+ Running, STOP > hlt, halt the processor."));
+#endif
+        runProgram = false;
+        // ...
+      }
+      break;
+    case pinReset:
+      // -------------------
+      // Check RESET switch.
+      if (pcf8574.digitalRead(pinReset) == LOW) {
+        if (!switchReset) {
+          switchReset = true;
+        }
+      } else if (switchReset) {
+        switchReset = false;
+#ifdef SWITCH_MESSAGES
+        Serial.println("+ Running, RESET.");
+#endif
+        // ...
+      }
+      // -------------------
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -186,9 +220,12 @@ void setup() {
   Serial.println("+++ Setup.");
 
   // ------------------------------
-  // I2C Two Wire initialization
+  // I2C based switch initialization
 
+  // Can I use attachInterrupt?
+  // I need change or PULLDOWN?
   pinMode(INTERRUPT_PIN, INPUT_PULLUP); // Enable pullup on interrupt pin of Uno
+  // attachInterrupt (digitalPinToInterrupt(PinCLK), rotarydetect, CHANGE);
 
   pcf8574.pinMode(P0, INPUT);           // Set all pins as inputs on PCF8574
   pcf8574.pinMode(P1, INPUT);
@@ -228,20 +265,37 @@ void loop() {
 
   if (runProgram) {
     if (keyPress) {
-      // Serial.println("+ runProgram, keyPress is true.");
-      delay (30);
-      checkRunningButtons();
+      // Serial.println("+ runProgram = true, keyPress is true.");
+      // runningSwitches();
+      for (int i = 0; i < 8; i++) {
+        int val = pcf8574.digitalRead(i);  // Read each PCF8574 input
+        if (val == 0) {                    // If LOW, button was pushed
+          Serial.print("+ Button pressed, pin: ");
+          Serial.println(i);
+          runningSwitches(i);
+        }
+      }
+      delay(30);           // Handle switch debounce.
       keyPress = false;
     }
     delay (30);
     // ----------------------------
   } else {
     if (keyPress) {
-      delay (30);
-      checkControlButtons();
+      // Serial.println("+ runProgram = false, keyPress is true.");
+      // controlSwitches();
+      for (int i = 0; i < 8; i++) {
+        int val = pcf8574.digitalRead(i);  // Read each PCF8574 input
+        if (val == 0) {                    // If LOW, button was pushed
+          Serial.print("+ Button pressed, pin: ");
+          Serial.println(i);
+        }
+      }
+      delay(30);           // Handle switch debounce.
       keyPress = false;
     }
     delay(30);
   }
+
 }
 // -----------------------------------------------------------------------------
