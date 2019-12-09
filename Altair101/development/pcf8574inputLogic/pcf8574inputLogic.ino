@@ -64,7 +64,7 @@ const int pinExamine = 3;
 const int pinExamineNext = 4;
 const int pinDeposit = 5;
 const int pinDepositNext = 6;
-const int pinRest = 7;
+const int pinReset = 7;
 
 // Only do the action once, don't repeat if the button is held down.
 // Don't repeat action if the button is not pressed.
@@ -75,75 +75,61 @@ boolean switchState[numberOfSwitches] = {
 };
 void checkControlButtons() {
   // Start with the run button.
-  byte dataByte = B01000000;
   for (int i = 1; i < numberOfSwitches; i++) {
     if (pcf8574.digitalRead(i) == LOW) {
       if (!switchState[i]) {
         switchState[i] = true;
-        Serial.print("+ Button pressed: ");
-        Serial.println(i);
+        // Serial.print("+ Button pressed: ");
+        // Serial.println(i);
       }
     } else if (switchState[i]) {
       switchState[i] = false;
       //
+      // -------------------
       if (i == pinRun) {
+        // -------------------
 #ifdef SWITCH_MESSAGES
         Serial.println(F("+ Run process."));
 #endif
         runProgram = true;
-        // statusByte = statusByte & WAIT_OFF;
-        // statusByte = statusByte & HLTA_OFF;
-      } else if (i == 1) {
-        // Single Step
-        // statusByte = statusByte & HLTA_OFF;
-        processData();
-      } else if (i == 2) {
+      } else if (i == pinStep) {
+        // -------------------
 #ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Examine toggle address data. Address bits: A0...A7."));
+        Serial.println(F("+ Single Step."));
 #endif
-        // programCounter = toggleSenseByte();
-        // dataByte = memoryData[programCounter];
-        // lightsStatusAddressData(statusByte, programCounter, dataByte);
-      } else if (i == 3) {
+      } else if (i == pinExamine) {
+        // -------------------
+#ifdef SWITCH_MESSAGES
+        Serial.println(F("+ Examine."));
+#endif
+      } else if (i == pinExamineNext) {
+        // -------------------
 #ifdef SWITCH_MESSAGES
         Serial.println(F("+ Examine Next address."));
 #endif
-        // programCounter++;
-        // dataByte = memoryData[programCounter];
-        // lightsStatusAddressData(statusByte, programCounter, dataByte);
-      } else if (i == 4) {
-        // dataByte = toggleSenseByte();
-        // memoryData[programCounter] = dataByte;
-        // lightsStatusAddressData(statusByte, programCounter, dataByte);
+      } else if (i == pinDeposit) {
+        // -------------------
 #ifdef SWITCH_MESSAGES
-        Serial.print(F("+ Deposited toggle address byte: "));
-        // printByte(dataByte);
+        Serial.print(F("+ Deposit."));
         Serial.println("");
 #endif
-      } else if (i == 5) {
+      } else if (i == pinDepositNext) {
+        // -------------------
 #ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Deposit toggle byte into the next address."));
+        Serial.println(F("+ Deposit next."));
 #endif
-        // dataByte = toggleSenseByte();
-        // programCounter++;
-        // memoryData[programCounter] = dataByte;
-        // lightsStatusAddressData(statusByte, programCounter, dataByte);
-      } else if (i == 6) {
+      } else if (i == pinReset) {
+        // -------------------
 #ifdef SWITCH_MESSAGES
-        Serial.println("+ Running RESET Button pressed.");
-        Serial.println(F("+ Reset program counter, program address, to 0."));
+        Serial.println("+ RESET.");
 #endif
-        // programCounter = 0;
-        // stackPointer = 0;
-        // dataByte = memoryData[programCounter];
-        // lightsStatusAddressData(statusByte, programCounter, dataByte);
       } else {
         // Serial.print("+ Button released: ");
         // Serial.println(i);
       }
     }
     //
-    dataByte = dataByte >> 1;
+    // dataByte = dataByte >> 1;
   }
 }
 
@@ -154,12 +140,13 @@ byte switchByte;
 boolean switchStop = false;
 boolean switchReset = false;
 void checkRunningButtons() {
+  // -------------------
   // Check STOP button.
   if (pcf8574.digitalRead(pinStop) == LOW) {
     if (!switchStop) {
       switchStop = true;
 #ifdef SWITCH_MESSAGES
-      Serial.println("+ Running, STOP Button pressed.");
+      // Serial.println("+ Running, STOP Button pressed.");
 #endif
     }
   } else if (switchStop) {
@@ -171,22 +158,23 @@ void checkRunningButtons() {
     runProgram = false;
     // ...
   }
+  // -------------------
   // Check RESET button.
-  if (pcf8574.digitalRead(pinRest) == LOW) {
+  if (pcf8574.digitalRead(pinReset) == LOW) {
     if (!switchReset) {
       switchReset = true;
 #ifdef SWITCH_MESSAGES
-      Serial.println("+ Running, RESET Button pressed.");
+      // Serial.println("+ Running, RESET Button pressed.");
 #endif
     }
   } else if (switchReset) {
     switchReset = false;
 #ifdef SWITCH_MESSAGES
     Serial.println("+ Running, RESET Button released.");
-    Serial.println(F("+ Reset program counter, program address, to 0."));
 #endif
     // ...
   }
+  // -------------------
 }
 
 // -----------------------------------------------------------------------------
@@ -239,20 +227,21 @@ void setup() {
 void loop() {
 
   if (runProgram) {
-    // processData();
     if (keyPress) {
       // Serial.println("+ runProgram, keyPress is true.");
+      delay (30);
       checkRunningButtons();
       keyPress = false;
     }
-    delay (60);
+    delay (30);
     // ----------------------------
   } else {
     if (keyPress) {
+      delay (30);
       checkControlButtons();
       keyPress = false;
     }
-    delay(60);
+    delay(30);
   }
 }
 // -----------------------------------------------------------------------------
