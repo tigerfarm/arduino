@@ -246,11 +246,7 @@ void setup() {
   // ------------------------------
   // I2C based switch initialization
 
-  // Can I use attachInterrupt?
-  // I need change or PULLDOWN?
-  // pinMode(INTERRUPT_PIN, INPUT_PULLUP); // Enable pullup on interrupt pin of Uno
-  attachInterrupt (digitalPinToInterrupt(INTERRUPT_PIN), pcf02interrupt, CHANGE);
-
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf02interrupt, CHANGE);
   pcf8574.pinMode(P0, INPUT);           // Set all pins as inputs on PCF8574
   pcf8574.pinMode(P1, INPUT);
   pcf8574.pinMode(P2, INPUT);
@@ -259,18 +255,16 @@ void setup() {
   pcf8574.pinMode(P5, INPUT);
   pcf8574.pinMode(P6, INPUT);
   pcf8574.pinMode(P7, INPUT);
-
-  pcf8574.digitalWrite(P0, LOW);
-  pcf8574.digitalWrite(P1, LOW);
-  pcf8574.digitalWrite(P2, LOW);
-  pcf8574.digitalWrite(P3, LOW);
-  pcf8574.digitalWrite(P4, LOW);
-  pcf8574.digitalWrite(P5, LOW);
-  pcf8574.digitalWrite(P6, LOW);
-  pcf8574.digitalWrite(P7, LOW);
-
+  pcf8574.digitalWrite(P0, HIGH);
+  pcf8574.digitalWrite(P1, HIGH);
+  pcf8574.digitalWrite(P2, HIGH);
+  pcf8574.digitalWrite(P3, HIGH);
+  pcf8574.digitalWrite(P4, HIGH);
+  pcf8574.digitalWrite(P5, HIGH);
+  pcf8574.digitalWrite(P6, HIGH);
+  pcf8574.digitalWrite(P7, HIGH);
   pcf8574.begin();
-
+  delay(300);
   Serial.println("+ PCF module initialized.");
 
   if (runProgram) {
@@ -294,7 +288,6 @@ void loop() {
       delay(30);           // Handle switch debounce.
       keyPress = false;
     }
-    delay (30);
     // ----------------------------
   } else {
     if (keyPress) {
