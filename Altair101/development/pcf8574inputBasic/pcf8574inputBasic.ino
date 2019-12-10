@@ -25,9 +25,9 @@
   Information and code sample:
     https://protosupplies.com/product/pcf8574-i2c-i-o-expansion-module/
 */
-
+#define SWITCH_MESSAGES 1
+bool runProgram = false;
 byte dataByte;
-
 void printByte(byte b) {
   for (int i = 7; i >= 0; i--)
     Serial.print(bitRead(b, i));
@@ -48,6 +48,83 @@ void pcf20interrupt() {
 }
 
 // -----------------------------------------------------------------------------
+// Front Panel Control Switches
+
+const int pinStop = 0;
+const int pinRun = 1;
+const int pinStep = 2;
+const int pinExamine = 3;
+const int pinExamineNext = 4;
+const int pinDeposit = 5;
+const int pinDepositNext = 6;
+const int pinReset = 7;
+
+boolean switchStop = false;
+boolean switchRun = false;
+boolean switchStep = false;
+boolean switchExamine = false;
+boolean switchExamineNext = false;
+boolean switchDeposit = false;;
+boolean switchDepositNext = false;;
+boolean switchReset = false;
+
+void runningSwitches() {
+
+  // Serial.print("+ PCF8574 byte = ");
+  // Serial.println(pcf20.read8());
+
+  Serial.print("+ pinValue:");
+  for (int pinGet = 7; pinGet >= 0; pinGet--) {
+    int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
+    Serial.print(pinGet);
+    Serial.print(":");
+    Serial.print(pinValue);
+    Serial.print("-");
+    switch (pinGet) {
+      case pinStop:
+        if (pinValue == 0) {    // 0 : switch is on.
+          if (!switchStop) {
+            switchStop = true;
+          }
+        } else if (switchStop) {
+          switchStop = false;
+#ifdef SWITCH_MESSAGES
+          Serial.println("+ Running, Stop > hlt, halt the processor.");
+#endif
+          // ...
+          runProgram = false;
+        }
+        break;
+      // -------------------
+      case pinReset:
+        if (pinValue == 0) {
+          if (!switchReset) {
+            switchReset = true;
+          }
+        } else if (switchReset) {
+          switchReset = false;
+#ifdef SWITCH_MESSAGES
+          Serial.println("+ Running, Reset.");
+#endif
+          // ...
+        }
+        break;
+      // -------------------
+      default:
+        delay (10);
+#ifdef SWITCH_MESSAGES
+        Serial.print("+ pinGet: ");
+        Serial.print(pinGet);
+        Serial.print("+ pinValue: ");
+        Serial.print(pinValue);
+        Serial.println("");
+#endif
+    }
+  }
+  Serial.println(":");
+}
+
+// -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
   // Give the serial connection time to start before the first print.
@@ -56,9 +133,9 @@ void setup() {
   Serial.println("+++ Setup.");
 
   // ------------------------------
-  // I2C Two Wire initialization
+  // I2C Two Wire + interrupt initialization
   pcf20.begin();
-  delay (300);
+  pinMode(INTERRUPT_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf20interrupt, CHANGE);
   Serial.println("+ PCF module initialized.");
 
@@ -69,24 +146,25 @@ void setup() {
 // -----------------------------------------------------------------------------
 // Device Loop
 void loop() {
+  /*
+    dataByte = pcf20.read8();
+    Serial.print("+ PCF8574 byte = ");
+    printByte(dataByte);
+    Serial.println("");
 
-  dataByte = pcf20.read8();
-  Serial.print("+ PCF8574 byte = ");
-  printByte(dataByte);
-  Serial.println("");
-
-  Serial.print("+ PCF8574 byte = ");
-  for (int pinGet = 7; pinGet >= 0; pinGet--) {
-    int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
-    Serial.print(pinValue);
-  }
-  Serial.println("");
-
+    Serial.print("+ PCF8574 byte = ");
+    for (int pinGet = 7; pinGet >= 0; pinGet--) {
+      int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
+      Serial.print(pinValue);
+    }
+    Serial.println("");
+  */
   if (switchSetOn) {
-    Serial.println("+ Interrupt call, switchSetOn is true.");
+    // Serial.println("+ Interrupt call, switchSetOn is true.");
+    runningSwitches();
     switchSetOn = false;
   }
 
-  delay (2000);
+  delay (60);
 }
 // -----------------------------------------------------------------------------
