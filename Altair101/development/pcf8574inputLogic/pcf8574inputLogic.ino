@@ -36,17 +36,16 @@
 bool runProgram = false;
 
 // -----------------------------------------------------------------------------
-#include "PCF8574.h"
+#include <PCF8574.h>
 #include <Wire.h>
 
-const int INTERRUPT_PIN = 2;
-
-PCF8574 pcf20(0x020);                                                        
+PCF8574 pcf20(0x020);
 
 // Set switch flag for on/off.
+const int INTERRUPT_PIN = 2;
 boolean switchSetOn = false;
 // Interrupt setup: I2C address, interrupt pin to use, interrupt handler routine.
-void pcf01interrupt() {
+void pcf20interrupt() {
   switchSetOn = true;
 }
 
@@ -77,7 +76,7 @@ boolean switchReset = false;
 
 // void controlSwitches(int pinGet, int pinValue) {
 void controlSwitches() {
-  for (int pinGet = 0; pinGet < 8; pinGet++) {
+  for (int pinGet = 7; pinGet >= 0; pinGet--) {
     int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
     switch (pinGet) {
       // -------------------
@@ -188,7 +187,7 @@ void controlSwitches() {
 // When a program is running.
 
 void runningSwitches() {
-  for (int pinGet = 0; pinGet < 8; pinGet++) {
+  for (int pinGet = 7; pinGet >= 0; pinGet--) {
     int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
     switch (pinGet) {
       case pinStop:
@@ -236,12 +235,11 @@ void setup() {
   Serial.println("+++ Setup.");
 
   // ------------------------------
-  // I2C based switch initialization
-  // pinMode(INTERRUPT_PIN, INPUT_PULLUP); // Enable pullup on interrupt pin of Uno
-  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf01interrupt, CHANGE);
+  // I2C Two Wire + interrupt initialization
   pcf20.begin();
-  // delay(300); // required to give startup time for the PCF8574 module.
-  Serial.println("+ I2C PCF input module initialized.");
+  pinMode(INTERRUPT_PIN, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf20interrupt, CHANGE);
+  Serial.println("+ PCF module initialized.");
 
   // ------------------------------
   if (runProgram) {
@@ -260,24 +258,21 @@ void loop() {
 
   if (runProgram) {
     if (switchSetOn) {
-      Serial.println("+ runProgram = true, switchSetOn is true.");
+      // Serial.println("+ runProgram = true, switchSetOn is true.");
       runningSwitches();
       delay(30);           // Handle switch debounce.
       switchSetOn = false;
-    } else {
-      delay(30);
     }
     // ----------------------------
   } else {
     if (switchSetOn) {
-      Serial.println("+ runProgram = false, switchSetOn is true.");
+      // Serial.println("+ runProgram = false, switchSetOn is true.");
       controlSwitches();
       delay(30);           // Handle switch debounce.
       switchSetOn = false;
-    } else {
-      delay(30);
     }
     // ----------------------------
+      delay(30);
   }
 
 }
