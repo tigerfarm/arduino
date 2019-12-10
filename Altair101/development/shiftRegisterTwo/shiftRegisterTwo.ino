@@ -84,10 +84,11 @@ void setup() {
   delay(300);
   Serial.println("+ Connection to the 595 is set.");
 
-  dataByte = B01010101;
   digitalWrite(latchPin, LOW);
+  dataByte = B11000011;
   shiftOut(dataPin, clockPin, LSBFIRST, dataByte);
-  shiftOut(dataPin, clockPin, LSBFIRST, 0);
+  dataByte = B01010101;
+  shiftOut(dataPin, clockPin, LSBFIRST, B11000011);
   digitalWrite(latchPin, HIGH);
 
   Serial.println("+++ Start program loop.");
@@ -99,19 +100,17 @@ void setup() {
 void loop() {
   Serial.println("+ Looping");
   delay(3000);
-  // dataByte = 0;  // Initially turns all the LEDs off, by giving the variable 'leds' the value 0
-  // displayLedData(B00000100);
 
-  // 300 = 00 000 001 : 00 101 100
-  int aWord16bits = 300;
+  unsigned int aWord16bits = B11000011 * 256 + B10101010; // 17322, 195 = 11 000 011 : 170 = 10101010
   digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, LSBFIRST, lowByte(aWord16bits));
   shiftOut(dataPin, clockPin, LSBFIRST, highByte(aWord16bits));
+  shiftOut(dataPin, clockPin, LSBFIRST, lowByte(aWord16bits));
   digitalWrite(latchPin, HIGH);
   delay(3000);
   displayLedByte(B00010000);
   for (int numberToDisplay = 0; numberToDisplay < 256; numberToDisplay++) {
     digitalWrite(latchPin, LOW);
+    shiftOut(dataPin, clockPin, MSBFIRST, numberToDisplay);
     shiftOut(dataPin, clockPin, MSBFIRST, numberToDisplay);
     digitalWrite(latchPin, HIGH);
     delay(60);
