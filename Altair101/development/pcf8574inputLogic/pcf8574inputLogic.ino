@@ -32,7 +32,7 @@ bool runProgram = false;
 #include "PCF8574.h"
 
 // Button press flag.
-boolean keyPress = false;
+boolean switchSetOn = false;
 //
 void PCF8574_Interrupt();
 //
@@ -40,12 +40,12 @@ void PCF8574_Interrupt();
 int PCF_INTERRUPT_ADDRESS = 0x020;
 const int INTERRUPT_PIN = 2;
 void pcf01interrupt() {
-  keyPress = true;
+  switchSetOn = true;
 }
 PCF8574 pcf8574(PCF_INTERRUPT_ADDRESS, INTERRUPT_PIN, pcf01interrupt);
 
 void pcf02interrupt() {
-  keyPress = true;
+  switchSetOn = true;
 }
 
 // -----------------------------------------------------------------------------
@@ -82,7 +82,7 @@ void controlSwitches() {
     switch (pinGet) {
       // -------------------
       case pinRun:
-        if (pinValue == 0) {
+        if (pinValue == 0) {    // 0 : switch is on.
           if (!switchRun) {
             switchRun = true;
           }
@@ -192,7 +192,7 @@ void runningSwitches() {
     int pinValue = pcf8574.digitalRead(pinGet);  // Read each PCF8574 input
     switch (pinGet) {
       case pinStop:
-        if (pinValue == 0) {
+        if (pinValue == 0) {    // 0 : switch is on.
           if (!switchStop) {
             switchStop = true;
           }
@@ -282,19 +282,19 @@ void setup() {
 void loop() {
 
   if (runProgram) {
-    if (keyPress) {
-      // Serial.println("+ runProgram = true, keyPress is true.");
+    if (switchSetOn) {
+      // Serial.println("+ runProgram = true, switchSetOn is true.");
       runningSwitches();
       delay(30);           // Handle switch debounce.
-      keyPress = false;
+      switchSetOn = false;
     }
     // ----------------------------
   } else {
-    if (keyPress) {
-      // Serial.println("+ runProgram = false, keyPress is true.");
+    if (switchSetOn) {
+      // Serial.println("+ runProgram = false, switchSetOn is true.");
       controlSwitches();
       delay(30);           // Handle switch debounce.
-      keyPress = false;
+      switchSetOn = false;
     }
     delay (30);
     // ----------------------------
