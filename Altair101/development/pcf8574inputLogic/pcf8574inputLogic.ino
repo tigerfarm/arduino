@@ -44,10 +44,6 @@ void pcf01interrupt() {
 }
 PCF8574 pcf8574(PCF_INTERRUPT_ADDRESS, INTERRUPT_PIN, pcf01interrupt);
 
-void pcf02interrupt() {
-  switchSetOn = true;
-}
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Front Panel Control Switches
@@ -60,8 +56,6 @@ const int pinExamineNext = 4;
 const int pinDeposit = 5;
 const int pinDepositNext = 6;
 const int pinReset = 7;
-
-int switchValue = 1;
 
 boolean switchStop = false;
 boolean switchRun = false;
@@ -219,18 +213,10 @@ void runningSwitches() {
           // ...
         }
         break;
+      // -------------------
+      default:
+        delay(10);
     }
-    // -------------------
-    /*
-      Serial.print(" :");
-      Serial.print(pinGet);
-      if (pinValue == 0) {                    // If LOW, button was pushed
-      Serial.print("s");
-      } else {
-      Serial.print("u");
-      }
-    */
-    // -------------------
   }
   // Serial.println(":");
 }
@@ -245,9 +231,10 @@ void setup() {
 
   // ------------------------------
   // I2C based switch initialization
-  pinMode(INTERRUPT_PIN, INPUT_PULLUP); // Enable pullup on interrupt pin of Uno
-  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf02interrupt, CHANGE);
-  pcf8574.pinMode(P0, INPUT);           // Set all pins as inputs on PCF8574
+  // pinMode(INTERRUPT_PIN, INPUT_PULLUP); // Enable pullup on interrupt pin of Uno
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf01interrupt, CHANGE);
+  // Set all pins as inputs on the PCF8574 module.
+  pcf8574.pinMode(P0, INPUT);
   pcf8574.pinMode(P1, INPUT);
   pcf8574.pinMode(P2, INPUT);
   pcf8574.pinMode(P3, INPUT);
@@ -255,6 +242,7 @@ void setup() {
   pcf8574.pinMode(P5, INPUT);
   pcf8574.pinMode(P6, INPUT);
   pcf8574.pinMode(P7, INPUT);
+  // Set an intial state.
   pcf8574.digitalWrite(P0, HIGH);
   pcf8574.digitalWrite(P1, HIGH);
   pcf8574.digitalWrite(P2, HIGH);
@@ -264,9 +252,10 @@ void setup() {
   pcf8574.digitalWrite(P6, HIGH);
   pcf8574.digitalWrite(P7, HIGH);
   pcf8574.begin();
-  delay(300);
-  Serial.println("+ PCF module initialized.");
+  delay(300); // required to give startup time for the PCF8574 module.
+  Serial.println("+ I2C PCF input module initialized.");
 
+  // ------------------------------
   if (runProgram) {
     Serial.println("+ runProgram is true.");
   } else {
@@ -295,8 +284,9 @@ void loop() {
       controlSwitches();
       delay(30);           // Handle switch debounce.
       switchSetOn = false;
+    } else {
+      delay(30);
     }
-    delay (30);
     // ----------------------------
   }
 
