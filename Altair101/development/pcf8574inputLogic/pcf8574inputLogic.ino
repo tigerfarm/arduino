@@ -27,7 +27,7 @@
     https://forum.arduino.cc/index.php?topic=204596.msg1506639#msg1506639
 
   Example statements:
-    uint8_t value = PCF_38.read8();
+    uint8_t value = pcf20.read8();
     Serial.println(pcf20.read8(), BIN);
 */
 // -----------------------------------------------------------------------------
@@ -41,8 +41,7 @@ bool runProgram = false;
 
 const int INTERRUPT_PIN = 2;
 
-int PCF_INTERRUPT_ADDRESS = 0x020;
-PCF8574 pcf20(PCF_INTERRUPT_ADDRESS);                                                        
+PCF8574 pcf20(0x020);                                                        
 
 // Set switch flag for on/off.
 boolean switchSetOn = false;
@@ -271,7 +270,7 @@ void loop() {
     // ----------------------------
   } else {
     if (switchSetOn) {
-      // Serial.println("+ runProgram = false, switchSetOn is true.");
+      Serial.println("+ runProgram = false, switchSetOn is true.");
       controlSwitches();
       delay(30);           // Handle switch debounce.
       switchSetOn = false;
