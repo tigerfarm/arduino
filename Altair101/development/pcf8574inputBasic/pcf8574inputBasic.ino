@@ -70,16 +70,9 @@ boolean switchReset = false;
 
 void runningSwitches() {
 
-  // Serial.print("+ PCF8574 byte = ");
-  // Serial.println(pcf20.read8());
-
   Serial.print("+ pinValue:");
   for (int pinGet = 7; pinGet >= 0; pinGet--) {
     int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
-    Serial.print(pinGet);
-    Serial.print(":");
-    Serial.print(pinValue);
-    Serial.print("-");
     switch (pinGet) {
       case pinStop:
         if (pinValue == 0) {    // 0 : switch is on.
@@ -112,13 +105,6 @@ void runningSwitches() {
       // -------------------
       default:
         delay (10);
-#ifdef SWITCH_MESSAGES
-        Serial.print("+ pinGet: ");
-        Serial.print(pinGet);
-        Serial.print("+ pinValue: ");
-        Serial.print(pinValue);
-        Serial.println("");
-#endif
     }
   }
   Serial.println(":");
