@@ -23,6 +23,11 @@
   In the process of writing and testing the opcode CMP test program.
 
   ---------------------------------------------
+  Component integration testing:
+  + Tested: LCD, clock, and SD card module.
+  + Test with PCF8574.
+  
+  ---------------------------------------------
   Next, complete the physical dev machine.
 
   The components will be mounted on a $4 clickboard from Staples.

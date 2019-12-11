@@ -421,9 +421,6 @@ void clockPulseSecond() {
   if (theCounterSeconds == 0) {
     Serial.print("60");
   } else {
-    if (theCounterSeconds < 10) {
-      Serial.print("0");
-    }
     Serial.print(theCounterSeconds);
   }
   Serial.print(".");
