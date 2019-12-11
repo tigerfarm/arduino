@@ -21,14 +21,6 @@
   
   Library:
     https://github.com/RobTillaart/Arduino/tree/master/libraries/PCF8574
-  Sample switch/button program:
-    https://github.com/RobTillaart/Arduino/blob/master/libraries/PCF8574/examples/buttonRead/buttonRead.ino
-  Reference:
-    https://forum.arduino.cc/index.php?topic=204596.msg1506639#msg1506639
-
-  Example statements:
-    uint8_t value = pcf20.read8();
-    Serial.println(pcf20.read8(), BIN);
 */
 // -----------------------------------------------------------------------------
 #define SWITCH_MESSAGES 1

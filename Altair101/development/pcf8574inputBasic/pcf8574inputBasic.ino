@@ -21,9 +21,15 @@
   + P0 ... O7 to switches. Other side of the switch to ground.
 
   Library:
-    https://github.com/xreef/PCF8574_library
-  Information and code sample:
-    https://protosupplies.com/product/pcf8574-i2c-i-o-expansion-module/
+    https://github.com/RobTillaart/Arduino/tree/master/libraries/PCF8574
+  Sample switch/button program:
+    https://github.com/RobTillaart/Arduino/blob/master/libraries/PCF8574/examples/buttonRead/buttonRead.ino
+  Reference:
+    https://forum.arduino.cc/index.php?topic=204596.msg1506639#msg1506639
+
+  Example statements:
+    uint8_t value = pcf20.read8();
+    Serial.println(pcf20.read8(), BIN);
 */
 #define SWITCH_MESSAGES 1
 bool runProgram = false;
@@ -48,69 +54,6 @@ void pcf20interrupt() {
 }
 
 // -----------------------------------------------------------------------------
-// Front Panel Control Switches
-
-const int pinStop = 0;
-const int pinRun = 1;
-const int pinStep = 2;
-const int pinExamine = 3;
-const int pinExamineNext = 4;
-const int pinDeposit = 5;
-const int pinDepositNext = 6;
-const int pinReset = 7;
-
-boolean switchStop = false;
-boolean switchRun = false;
-boolean switchStep = false;
-boolean switchExamine = false;
-boolean switchExamineNext = false;
-boolean switchDeposit = false;;
-boolean switchDepositNext = false;;
-boolean switchReset = false;
-
-void runningSwitches() {
-
-  Serial.print("+ pinValue:");
-  for (int pinGet = 7; pinGet >= 0; pinGet--) {
-    int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
-    switch (pinGet) {
-      case pinStop:
-        if (pinValue == 0) {    // 0 : switch is on.
-          if (!switchStop) {
-            switchStop = true;
-          }
-        } else if (switchStop) {
-          switchStop = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println("+ Running, Stop > hlt, halt the processor.");
-#endif
-          // ...
-          runProgram = false;
-        }
-        break;
-      // -------------------
-      case pinReset:
-        if (pinValue == 0) {
-          if (!switchReset) {
-            switchReset = true;
-          }
-        } else if (switchReset) {
-          switchReset = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println("+ Running, Reset.");
-#endif
-          // ...
-        }
-        break;
-      // -------------------
-      default:
-        delay (10);
-    }
-  }
-  Serial.println(":");
-}
-
-// -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
   // Give the serial connection time to start before the first print.
@@ -132,7 +75,9 @@ void setup() {
 // -----------------------------------------------------------------------------
 // Device Loop
 void loop() {
-  /*
+
+  if (switchSetOn) {
+    Serial.println("+ Interrupt call, switchSetOn is true.");
     dataByte = pcf20.read8();
     Serial.print("+ PCF8574 byte = ");
     printByte(dataByte);
@@ -144,10 +89,6 @@ void loop() {
       Serial.print(pinValue);
     }
     Serial.println("");
-  */
-  if (switchSetOn) {
-    // Serial.println("+ Interrupt call, switchSetOn is true.");
-    runningSwitches();
     switchSetOn = false;
   }
 
