@@ -12,62 +12,38 @@ And, adding output via a 1602 LCD.
 
 ## The Altair 101 Development Computer
 
-The processor software runs on an Arduino Nano that is on a breadboard with an infrared receiver,  LED lights, and LCD.
-The processor program is compiled and uploaded from my laptop to the Nano through a USB cable.
-Program log messages are displayed in the Arduino serial monitor that runs on the laptop.
+The processor software runs on an Arduino Nano that is on the breadboard development computer.
+The processor program is written and compiled on my laptop.
+Then, the program is uploaded to the Nano through a USB cable.
+Program log messages are displayed in the Arduino IDE serial monitor that runs on the laptop.
 
-The microcontroller is the Altair 101's CPU and RAM.
-The infrared receiver is the computer's keyboard, and LCD is the monitor.
+Top breadboard, in the following diagram:
++ Cables connecting shift register(SN74HC595N) to the LED lights: address and data lights.
++ In the middle of the cables is the infrared receiver.
+    The receiver is used to send control commands such as stop, run, examine, deposit.
+
+Center breadboard:
++ Shift register(SN74HC595N) to the status LED lights.
++ Status LED lights in a bar. LED wait status light.
++ 3 shift register(SN74HC595N) for the input buttons and toggles.
+
+Center breadboard:
++ Nano board which is the Altair 101's CPU and RAM.
++ Input control buttons
++ Below the breadboards is the input toggles for entering address and data.
 
 <img width="360px"  src="../hardware/Altair101dev3.jpg"/>
 
 There are a number of online videos showing how an Altair 8800 works.
+I coded the Altair 101 processor program to react the same way.
 + Video showing [startup LED lights](https://www.youtube.com/watch?v=suyiMfzmZKs).
 + Video showing [programming](https://www.youtube.com/watch?v=EV1ki6LiEmg) using the front panel toggles.
 + A jump loop program is entered, examined, stepped through, and run.
 
-I coded the Altair 101 processor program to react the same way.
-
---------------------------------------------------------------------------------
-## 8080 Opcode Development
-
-Opcodes programmed and tested:
-````
-+ cpi #    Compare db with A > compareResult.
-+ dad RP   00 RP1 001  Add register pair(RP) to H:L (16 bit add). And set carry bit.
-+ hlt      Halt processor
-+ inr R    Increment the register.
-+ inx RP   Increment a register pair, a 16 bit increment. Example: H:L.
-+ jmp a    Unconditional jump
-+ jz  a    If compareResult is true, jump to lb hb.
-+ jnc a    Jump if carry bit is 0 (false).
-+ ldax RP  Load indirect through BC(RP=00) or DE(RP=01)
-+ lxi RP,a Move the lb hb data to the register pair.
-+ mvi R,#  Move a number (#), which is the next db, to register RRR.
-+ mov D,S  Move register to a register.
-+ nop      No operation
-+ out p    Currently, used to print out log messages.
-+ rlc      Rotate A left. Shift byte left 1 bit.
-+ rrc      Rotate A right. Shift byte right 1 bit.
-+ xra R    10 101 SSS  Register exclusive OR with register with A.
-````
-Still to program on the above:
-````
-+ in  p    Read input for port a, into register A
-+ out p    Write A to output port a.
-
-+ inr R    I still need to set flags.
-+ lxi      Need to figure out: move the lb hb data, to the stack pointer.
-+ rlc      Need to handle carry bit.
-+ rrc      Need to handle carry bit.
-+ xra      ZSPCA   Stacy, need to set flags.
-````
-Click [here](http://www.classiccmp.org/dunfield/r/8080.txt) for a listing of the 8080 opcodes.
-
 --------------------------------------------------------------------------------
 ## Altair 8800 Status Lights
 
-Video showing [status LED light](https://www.youtube.com/watch?v=3_73NwB6toY) functionality.
+[Video](https://www.youtube.com/watch?v=3_73NwB6toY) showing status LED light functionality.
 
 The following program demonstrates status lights for specific opcodes.
 ````
@@ -104,35 +80,31 @@ The program octal values are used to entry a program using the panel toggles.
 363 166
 ````
 
-Click [here](https://coderstoolbox.net/number/) for an online HEX, octal, binary converter.
-
 #### About the Arduino Boards
 
 + Nano [Memory](https://www.arduino.cc/en/tutorial/memory):
 ````
-    FLASH 32k bytes (of which .5k is used for the bootloader),
-    SRAM   2k bytes,
-    EEPROM 1k byte
+    FLASH 32K bytes (of which .5k is used for the bootloader),
+    SRAM   2K bytes,
+    Flash program memory = 32K - 2K = 30K
 ````
 + If you don't need to modify the strings or data while your sketch is running,
-    you can store them in flash (program) memory instead of SRAM;
-    to do this, use the [PROGMEM](https://www.arduino.cc/reference/en/language/variables/utilities/progmem/) keyword.
+    store them in flash program memory instead of SRAM.
+    Can use the [PROGMEM](https://www.arduino.cc/reference/en/language/variables/utilities/progmem/) keyword.
 
 + The ATmega2560 in the Mega2560 has larger memory space:
 ````
-    FLASH  256k bytes (of which 8k is used for the bootloader)
-    SRAM   8k bytes
-    EEPROM 4k byte
+    FLASH  256K bytes (of which 8k is used for the bootloader)
+    SRAM   8K bytes
 ````
-+ Even Serial.print messages are stored in SRAM.
-    Example: 
-    Serial.print(" > JMP, get address low and high order bytes.");
+Serial.print messages are stored in SRAM.
 Use "F" in Serial.print messages to have the string message stored in FLASH memory
-    Serial.print(F(" > JMP, get address low and high order bytes."));
 ````
 Without "F".
+  Serial.print(" > JMP, get address low and high order bytes.");
 Global variables use 1681 bytes (82%) of dynamic memory, leaving  367 bytes for local variables.
 With "F":
+  Serial.print(F(" > JMP, get address low and high order bytes."));
 Global variables use  469 bytes (22%) of dynamic memory, leaving 1579 bytes for local variables.
 ````
 
