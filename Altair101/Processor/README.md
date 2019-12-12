@@ -18,27 +18,30 @@ Then, the program is uploaded to the Nano through a USB cable.
 Program log messages are displayed in the Arduino IDE serial monitor that runs on the laptop.
 
 Top breadboard, in the following diagram:
-+ Cables connecting shift register(SN74HC595N) to the LED lights: address and data lights.
++ Cables connecting 3 shift registers(SN74HC595N) to the LED lights: 16 address and 8 data lights.
 + In the middle of the cables is the infrared receiver.
     The receiver is used to send control commands such as stop, run, examine, deposit.
 
 Center breadboard:
 + Shift register(SN74HC595N) to the status LED lights.
-+ Status LED lights in a bar. LED wait status light.
-+ 3 shift register(SN74HC595N) for the input buttons and toggles.
++ Status LED lights in a bar. Separate LED wait status light.
++ 3 shift registers(SN74HC595N) for the input buttons and toggles.
 
-Center breadboard:
+Bottom breadboard:
 + Nano board which is the Altair 101's CPU and RAM.
 + Input control buttons
 + Below the breadboards is the input toggles for entering address and data.
+    The toggle board is from a 1970's mainframe computer.
 
 <img width="360px"  src="../hardware/Altair101dev3.jpg"/>
 
 There are a number of online videos showing how an Altair 8800 works.
 I coded the Altair 101 processor program to react the same way.
-+ Video showing [startup LED lights](https://www.youtube.com/watch?v=suyiMfzmZKs).
-+ Video showing [programming](https://www.youtube.com/watch?v=EV1ki6LiEmg) using the front panel toggles.
-+ A jump loop program is entered, examined, stepped through, and run.
++ Video #1, shows the [startup](https://www.youtube.com/watch?v=suyiMfzmZKs) of the Altair, and how to enter data.
++ Video #2, shows how to [program](https://www.youtube.com/watch?v=EV1ki6LiEmg) using the front panel toggles.
+    A jump loop program is entered, examined, stepped through, and run.
++ Video #3, shows the entering and running of the [Kill the Bit](https://www.youtube.com/watch?v=ZKeiQ8e18QY) program.
+    The current development machine can run Kill the Bit.
 
 --------------------------------------------------------------------------------
 ## Altair 8800 Status Lights
