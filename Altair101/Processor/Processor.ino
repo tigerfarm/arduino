@@ -10,10 +10,10 @@
   Altair 101 is a hardware and software emulator of the core, basic, Altair 8800 computer.
 
   ---------------------------------------------
-  The Altair 101 development computer is functionaly complete!
+  The Altair 101 development computer is functionally complete!
 
   The computer finally has the basic functionality of an Altair 8800.
-  + Kill the Bit, is the standard defacto basic demostration program of an Altair 8800 and its clones and replicas.
+  + Kill the Bit, is the standard de facto basic demonstration program of an Altair 8800 and its clones and replicas.
   + The only major difference, is that I don't have all the 8080 opcodes implemented.
   + The Altair 101 only has only 256 bytes of memory which is the same as the original basic Altair 8800.
   + Modern clones and replicas have 64K of memory.
@@ -24,9 +24,50 @@
 
   ---------------------------------------------
   Component integration testing:
-  + Tested: LCD, clock, and SD card module.
-  + Test with PCF8574.
-  
+  + Test with PCF8574(I2C).
+  + Tested: LCD(I2C), clock(I2C), and SD card module.
+
+  Memory requirements are beyond the Nano.
+    Program storage (Flash) requirements:
+        18042 : Processor.ino
+        13538 : SD card module
+         8528 : Clock module
+         6720 : LCD module
+        46828 : Total, 46K
+        
+    SRAM requirements:
+         1332 : Processor.ino
+         1304 : SD card module
+          690 : Clock module
+          554 : LCD module
+         3880 : Total, 4K
+
+    Name       Processor   CPU Speed Analog In  Digital IO/PWM  SRAM[kB]  Flash[kB]
+    Nano       ATmega328P  16 MHz     8         14/6            2          32
+    Mega 2560  ATmega2560  16 MHz    16         54/15           8         256
+
+  The Processor.ino memory requirements:
+    Sketch uses 18042 bytes (58%) of 30720 bytes of program storage.
+    Global variables use 1332 bytes (65%) of 2048 bytes dynamic memory.
+
+  The Clock module uses a fair amount memory as well.
+    Sketch uses 8528 bytes (27%) of 30720 bytes of program storage.
+    Global variables use 690 bytes (33%) of 2048 bytes dynamic memory.
+
+  The LCD memory requirements:
+    Sketch uses 6720 bytes (21%) of 30720 bytes of program storage.
+    Global variables use 554 bytes (27%) of 2048 bytes dynamic memory.
+
+  Since Clock module is combined with the LCD, they use a lot memory,
+  it will not work with my current design.
+    Sketch uses 16410 bytes (53%) of 30720 bytes of program storage.
+    Global variables use 1285 bytes (62%) of 2048 bytes dynamic memory.
+
+  Since SD card module requires the SPI and SD libraries, which use a lot memory,
+  it will not work with my current design.
+    Sketch uses 13538 bytes (44%) of 30720 bytes of program storage.
+    Global variables use 1304 bytes (63%) of 2048 bytes dynamic memory.
+
   ---------------------------------------------
   Next, complete the physical dev machine.
 
@@ -151,9 +192,9 @@
 // #define INCLUDE_LCD 1
 // #define INCLUDE_SDCARD 1
 // #define RUN_DELAY 1
-#define RUN_NOW 1
+// #define RUN_NOW 1
 // #define SWITCH_MESSAGES 1
-#define LOG_MESSAGES 1
+// #define LOG_MESSAGES 1
 
 // -----------------------------------------------------------------------------
 // Infrared Receiver

@@ -12,8 +12,207 @@
 #define INCLUDE_LCD 1
 #define INCLUDE_CLOCK 1
 #define CLOCK_MESSAGES 1
+// #define INCLUDE_PCF8574 1
 // #define INCLUDE_SDCARD 1
 // #define SDCARD_MESSAGES 1
+
+#ifdef INCLUDE_PCF8574
+// -----------------------------------------------------------------------------
+#define SWITCH_MESSAGES 1
+
+bool runProgram = false;
+
+// -----------------------------------------------------------------------------
+#include <PCF8574.h>
+#include <Wire.h>
+
+PCF8574 pcf20(0x020);
+
+// Set switch flag for on/off.
+const int INTERRUPT_PIN = 2;
+boolean switchSetOn = false;
+// Interrupt setup: I2C address, interrupt pin to use, interrupt handler routine.
+void pcf20interrupt() {
+  switchSetOn = true;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Front Panel Control Switches
+
+const int pinStop = 0;
+const int pinRun = 1;
+const int pinStep = 2;
+const int pinExamine = 3;
+const int pinExamineNext = 4;
+const int pinDeposit = 5;
+const int pinDepositNext = 6;
+const int pinReset = 7;
+
+boolean switchStop = false;
+boolean switchRun = false;
+boolean switchStep = false;
+boolean switchExamine = false;
+boolean switchExamineNext = false;
+boolean switchDeposit = false;;
+boolean switchDepositNext = false;;
+boolean switchReset = false;
+
+// ----------------------------------------------
+// When a program is not running.
+
+// void controlSwitches(int pinGet, int pinValue) {
+void controlSwitches() {
+  for (int pinGet = 7; pinGet >= 0; pinGet--) {
+    int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
+    switch (pinGet) {
+      // -------------------
+      case pinRun:
+        if (pinValue == 0) {    // 0 : switch is on.
+          if (!switchRun) {
+            switchRun = true;
+          }
+        } else if (switchRun) {
+          switchRun = false;
+#ifdef SWITCH_MESSAGES
+          Serial.println("+ Control, Run > run the program.");
+#endif
+          // ...
+          runProgram = true;
+        }
+        break;
+      // -------------------
+      case pinStep:
+        if (pinValue == 0) {
+          if (!switchStep) {
+            switchStep = true;
+          }
+        } else if (switchStep) {
+          switchStep = false;
+#ifdef SWITCH_MESSAGES
+          Serial.println("+ Control, Step.");
+#endif
+          // ...
+        }
+        break;
+      // -------------------
+      case pinExamine:
+        if (pinValue == 0) {
+          if (!switchExamine) {
+            switchExamine = true;
+          }
+        } else if (switchExamine) {
+          switchExamine = false;
+#ifdef SWITCH_MESSAGES
+          Serial.println("+ Control, Examine.");
+#endif
+          // ...
+        }
+        break;
+      // -------------------
+      case pinExamineNext:
+        if (pinValue == 0) {
+          if (!switchExamineNext) {
+            switchExamineNext = true;
+          }
+        } else if (switchExamineNext) {
+          switchExamineNext = false;
+#ifdef SWITCH_MESSAGES
+          Serial.println("+ Control, Examine Next.");
+#endif
+          // ...
+        }
+        break;
+      // -------------------
+      case pinDeposit:
+        if (pinValue == 0) {
+          if (!switchDeposit) {
+            switchDeposit = true;
+          }
+        } else if (switchDeposit) {
+          switchDeposit = false;
+#ifdef SWITCH_MESSAGES
+          Serial.println("+ Control, Deposit.");
+#endif
+          // ...
+        }
+        break;
+      // -------------------
+      case pinDepositNext:
+        if (pinValue == 0) {
+          if (!switchDepositNext) {
+            switchDepositNext = true;
+          }
+        } else if (switchDepositNext) {
+          switchDepositNext = false;
+#ifdef SWITCH_MESSAGES
+          Serial.println("+ Control, Deposit Next.");
+#endif
+          // ...
+        }
+        break;
+      // -------------------
+      case pinReset:
+        if (pinValue == 0) {
+          if (!switchReset) {
+            switchReset = true;
+          }
+        } else if (switchReset) {
+          switchReset = false;
+#ifdef SWITCH_MESSAGES
+          Serial.println("+ Control, Reset.");
+#endif
+          // ...
+        }
+        break;
+    }
+    // -------------------
+  }
+}
+
+// ----------------------------------------------
+// When a program is running.
+
+void runningSwitches() {
+  for (int pinGet = 7; pinGet >= 0; pinGet--) {
+    int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
+    switch (pinGet) {
+      case pinStop:
+        if (pinValue == 0) {    // 0 : switch is on.
+          if (!switchStop) {
+            switchStop = true;
+          }
+        } else if (switchStop) {
+          switchStop = false;
+#ifdef SWITCH_MESSAGES
+          Serial.println("+ Running, Stop > hlt, halt the processor.");
+#endif
+          // ...
+          runProgram = false;
+        }
+        break;
+      // -------------------
+      case pinReset:
+        if (pinValue == 0) {
+          if (!switchReset) {
+            switchReset = true;
+          }
+        } else if (switchReset) {
+          switchReset = false;
+#ifdef SWITCH_MESSAGES
+          Serial.println("+ Running, Reset.");
+#endif
+          // ...
+        }
+        break;
+      // -------------------
+      default:
+        delay(3);
+    }
+  }
+  // Serial.println(":");
+}
+#endif
 
 // -----------------------------------------------------------------------
 // For the infrared receiver.
@@ -171,9 +370,9 @@ void printData(byte theByte) {
 
 void writeProgramMemoryToFile(String theFilename) {
 #ifdef SDCARD_MESSAGES
-  Serial.println("+ Write program memory to a new file named: ");
+  Serial.println(F("+ Write program memory to a new file named: "));
   Serial.print(theFilename);
-  Serial.println("+ Check if file exists. ");
+  Serial.println(F("+ Check if file exists. "));
 #endif
   if (SD.exists(theFilename)) {
     SD.remove(theFilename);
@@ -183,46 +382,44 @@ void writeProgramMemoryToFile(String theFilename) {
   }
   myFile = SD.open(theFilename, FILE_WRITE);
   if (!myFile) {
-    Serial.print("- Error opening file: ");
+    Serial.print(F("- Error opening file: "));
     Serial.println(theFilename);
     return; // When used in setup(), causes jump to loop().
   }
 #ifdef SDCARD_MESSAGES
-  Serial.println("++ New file opened.");
-  Serial.println("++ Write binary memory to the file.");
+  Serial.println(F("++ New file opened."));
+  Serial.println(F("++ Write binary memory to the file."));
 #endif
   for (int i = 0; i < memoryBytes; i++) {
     myFile.write(memoryData[i]);
   }
   myFile.close();
 #ifdef SDCARD_MESSAGES
-  Serial.println("+ Completed, file closed.");
+  Serial.println(F("+ Completed, file closed."));
 #endif
 }
 
 // -----------------------------
 // Read Program File Into Memory
 
-byte fileMemoryData[memoryBytes];
-
 void readProgramFileIntoMemory(String theFilename) {
 #ifdef SDCARD_MESSAGES
-  Serial.println("+ Read a file into program memory, file named: ");
+  Serial.println(F("+ Read a file into program memory, file named: "));
   Serial.print(theFilename);
-  Serial.println("+ Check if file exists. ");
+  Serial.println(F("+ Check if file exists. "));
 #endif
   if (SD.exists(theFilename)) {
 #ifdef SDCARD_MESSAGES
-    Serial.println("++ Exists, so it can be read.");
+    Serial.println(F("++ Exists, so it can be read."));
 #endif
   } else {
-    Serial.println("-- Doesn't exist, cannot read.");
+    Serial.println(F("-- Doesn't exist, cannot read."));
     return;
   }
   myFile = SD.open(theFilename);
   if (!myFile) {
 #ifdef SDCARD_MESSAGES
-    Serial.print("- Error opening file: ");
+    Serial.print(F("- Error opening file: "));
     Serial.println(theFilename);
 #endif
     return;
@@ -230,24 +427,24 @@ void readProgramFileIntoMemory(String theFilename) {
   int i = 0;
   while (myFile.available()) {
     // Reads one character at a time.
-    fileMemoryData[i] = myFile.read();
+    memoryData[i] = myFile.read();
 #ifdef SDCARD_MESSAGES
     // Print Binary:Octal:Decimal values.
     Serial.print("B");
-    printByte(fileMemoryData[i]);
+    printByte(memoryData[i]);
     Serial.print(":");
-    printOctal (fileMemoryData[i]);
+    printOctal (memoryData[i]);
     Serial.print(":");
-    Serial.println(fileMemoryData[i], DEC);
+    Serial.println(memoryData[i], DEC);
 #endif
     i++;
     if (i > memoryBytes) {
-      Serial.println("-+ Warning, file contains more data bytes than abailable memory.");
+      Serial.println(F("-+ Warning, file contains more data bytes than abailable memory."));
     }
   }
   myFile.close();
 #ifdef SDCARD_MESSAGES
-  Serial.println("+ File closed.");
+  Serial.println(F("+ File closed."));
 #endif
 }
 
@@ -323,12 +520,12 @@ void syncCountWithClock() {
 #endif
 
 #ifdef CLOCK_MESSAGES
-  Serial.println("+ syncCountWithClock, current time:");
-  Serial.print(" theCounterHours=");
+  Serial.println(F("+ syncCountWithClock, current time:"));
+  Serial.print(F(" theCounterHours="));
   Serial.println(theCounterHours);
-  Serial.print(" theCounterMinutes=");
+  Serial.print(F(" theCounterMinutes="));
   Serial.println(theCounterMinutes);
-  Serial.print(" theCounterSeconds=");
+  Serial.print(F(" theCounterSeconds="));
   Serial.println(theCounterSeconds);
 #endif
 }
@@ -369,15 +566,15 @@ void processClockNow() {
 }
 
 void clockPulseYear() {
-  Serial.print("+++++ clockPulseYear(), theCounterYear= ");
+  Serial.print(F("+++++ clockPulseYear(), theCounterYear= "));
   Serial.println(theCounterYear);
 }
 void clockPulseMonth() {
-  Serial.print("++++ clockPulseMonth(), theCounterMonth= ");
+  Serial.print(F("++++ clockPulseMonth(), theCounterMonth= "));
   Serial.println(theCounterMonth);
 }
 void clockPulseDay() {
-  Serial.print("+++ clockPulseDay(), theCounterDay= ");
+  Serial.print(F("+++ clockPulseDay(), theCounterDay= "));
   Serial.println(theCounterDay);
 }
 int theHour = 0;
@@ -393,9 +590,9 @@ void clockPulseHour() {
   printClockInt(thePrintColHour, printRowClockPulse, theHour);
   // sendByte2nano(theHour);
 #ifdef CLOCK_MESSAGES
-  Serial.print("++ clockPulseHour(), theCounterHours= ");
+  Serial.print(F("++ clockPulseHour(), theCounterHours= "));
   Serial.print(theCounterHours);
-  Serial.print(", theHour= ");
+  Serial.print(F(", theHour= "));
   Serial.println(theHour);
 #endif
 }
@@ -404,7 +601,7 @@ void clockPulseMinute() {
   // sevseg.setNumber(theCounterMinutes);
 #ifdef CLOCK_MESSAGES
   Serial.println("");
-  Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
+  Serial.print(F("+ clockPulseMinute(), theCounterMinutes= "));
   Serial.println(theCounterMinutes);
 #endif
 }
@@ -413,10 +610,10 @@ void clockPulseSecond() {
   // sevseg.setNumber(theCounterSeconds);
 #ifdef CLOCK_MESSAGES
   if (theCounterSeconds == 1) {
-    Serial.print("+ theCounterSeconds > ");
+    Serial.print(F("+ theCounterSeconds > "));
   } else if (theCounterSeconds == 21 || theCounterSeconds == 41) {
     Serial.println("");
-    Serial.print("+ theCounterSeconds > ");
+    Serial.print(F("+ theCounterSeconds > "));
   }
   if (theCounterSeconds == 0) {
     Serial.print("60");
@@ -481,6 +678,7 @@ void printClockByte(int theColumn, int theRow, char theByte) {
 // -----------------------------------------------------------------------
 // Menu options and menu processing.
 
+#ifdef INCLUDE_LCD
 // Toggle the LCD backlight on/off.
 boolean theLcdBacklightOn = true;
 void toggleLcdBacklight() {
@@ -494,6 +692,7 @@ void toggleLcdBacklight() {
     lcd.backlight();
   }
 }
+#endif
 
 int theSetRow = 1;
 int theSetCol = 0;
@@ -764,7 +963,7 @@ void setup() {
 
   // ----------------------------------------------------
   irrecv.enableIRIn();
-  Serial.println("+ Infrared receiver enabled.");
+  Serial.println(F("+ Infrared receiver enabled."));
 
   // ----------------------------------------------------
 #ifdef INCLUDE_LCD
@@ -782,7 +981,7 @@ void setup() {
 #ifdef INCLUDE_CLOCK
   // RTC: Real Time Clock
   if (!rtc.begin()) {
-    Serial.println("Couldn't find RTC");
+    Serial.println(F("Couldn't find RTC"));
     while (1);
   }
   //
@@ -791,7 +990,16 @@ void setup() {
   // delay(100);
   //
   syncCountWithClock();
-  Serial.println("+ Clock set and synched with program variables.");
+  Serial.println(F("+ Clock set and synched with program variables."));
+#endif
+
+#ifdef INCLUDE_PCF8574
+  // ------------------------------
+  // I2C Two Wire + interrupt initialization
+  pcf20.begin();
+  pinMode(INTERRUPT_PIN, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf20interrupt, CHANGE);
+  Serial.println("+ PCF module initialized.");
 #endif
 
 #ifdef INCLUDE_SDCARD
@@ -807,10 +1015,10 @@ void setup() {
   // If using pin, other than 10, add: pinMode(otherPin, OUTPUT);
   // The pin connected to the chip select pin (CS) of the SD card.
   if (!SD.begin(csPin)) {
-    Serial.println("- Error initializing SD card.");
+    Serial.println(F("- Error initializing SD card."));
     return; // When used in setup(), causes jump to loop().
   }
-  Serial.println("+ SD card initialized.");
+  Serial.println(F("+ SD card initialized."));
   //
   // Write the file to the SD card.
   // writeProgramMemoryToFile("dad.asm");
@@ -820,15 +1028,16 @@ void setup() {
 #endif
 
   // -------------------------------
-  Serial.println("+++ Go to loop.");
+  Serial.println(F("+++ Go to loop."));
 
 #ifdef INCLUDE_CLOCK
-  Serial.print("+ theCounterSeconds > ");
+  Serial.print(F("+ theCounterSeconds > "));
 #endif
 }
 
 // -----------------------------------------------------------------------------
 // Device Loop
+
 #ifdef INCLUDE_CLOCK
 static unsigned long clockTimer = millis();
 #endif
@@ -848,6 +1057,27 @@ void loop() {
 #else
   Serial.println("+ Looping");
   delay(10000);
+#endif
+
+#ifdef INCLUDE_PCF8574
+  if (runProgram) {
+    if (switchSetOn) {
+      // Serial.println("+ runProgram = true, switchSetOn is true.");
+      runningSwitches();
+      delay(30);           // Handle switch debounce.
+      switchSetOn = false;
+    }
+    // ----------------------------
+  } else {
+    if (switchSetOn) {
+      // Serial.println("+ runProgram = false, switchSetOn is true.");
+      controlSwitches();
+      delay(30);           // Handle switch debounce.
+      switchSetOn = false;
+    }
+    // ----------------------------
+      delay(30);
+  }
 #endif
 
 }
