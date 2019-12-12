@@ -27,24 +27,28 @@
   + Test with PCF8574(I2C).
   + Tested: LCD(I2C), clock(I2C), and SD card module.
 
-  Memory requirements are beyond the Nano.
-    Program storage (Flash) requirements:
+  Memory requirements:
+    Flash program storage requirements:
+        30720 : Nano bytes available, 30K
         18042 : Processor.ino
-        13538 : SD card module
          8528 : Clock module
          6720 : LCD module
-        46828 : Total, 46K
+        13538 : SD card module
+        46828 : Total for all components, 46K
         
     SRAM requirements:
+         2048 : Nano bytes available, 2K
          1332 : Processor.ino
-         1304 : SD card module
-          690 : Clock module
           554 : LCD module
-         3880 : Total, 4K
+         1886 : Processor + LCD Subtotal
+          690 : Clock module
+         2022 : Processor + Clock Subtotal
+         1304 : SD card module
+         3880 : Total for all components, 4K
 
-    Name       Processor   CPU Speed Analog In  Digital IO/PWM  SRAM[kB]  Flash[kB]
-    Nano       ATmega328P  16 MHz     8         14/6            2          32
-    Mega 2560  ATmega2560  16 MHz    16         54/15           8         256
+    Microcontroller  Processor   CPU Speed Analog In  Digital IO/PWM  SRAM  Flash  Program Memory
+    Nano             ATmega328P  16 MHz     8         14/6            2K     32K    32 - 2 =  30K
+    Mega 2560        ATmega2560  16 MHz    16         54/15           8K    256K   256 - 8 = 248K
 
   The Processor.ino memory requirements:
     Sketch uses 18042 bytes (58%) of 30720 bytes of program storage.

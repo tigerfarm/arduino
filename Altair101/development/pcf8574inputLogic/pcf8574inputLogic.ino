@@ -11,7 +11,7 @@
     ...
    1  1  1 = 0x27
    
-  Wiring:
+  PCF8574 Wiring:
   + SDA to Nano A4.
   + SCL to Nano A5.
   + GND to Nano GND
