@@ -1,14 +1,12 @@
 --------------------------------------------------------------------------------
 # Altair 101 Software
 
-The core program is the [machine code processor](Processor.ino).
-It's written in C, using the Arduino IDE, and is tested on an Arduino Nano microcontroller.
+The Altair 101 software is contained in a single program, the [machine code processor](Processor.ino) program.
 It interprets and processes a subset of the Altair 8800 operational instructions which are Intel 8080 chip opcodes.
+The program also manages the turning the on and off of the LED lights, and makes use of the toggle switch inputs.
 
-The program is able to run 8080 machine code programs using the programmed opcodes.
-I will refine the code and increase the opcode functionality.
-I'm adding program input functionality via the infrared remote control.
-And, adding output via a 1602 LCD.
+The program is written in C, using the Arduino IDE, and is tested on an Arduino Nano microcontroller.
+The program is able to run 8080 machine code programs because I have programmed opcodes into the Processor program.
 
 ## The Altair 101 Development Computer
 
@@ -42,6 +40,17 @@ I coded the Altair 101 processor program to react the same way.
     A jump loop program is entered, examined, stepped through, and run.
 + Video #3, shows the entering and running of the [Kill the Bit](https://www.youtube.com/watch?v=ZKeiQ8e18QY) program.
     The current development machine can run Kill the Bit.
+
+The early development machine had only infrared remote control instead of toggle switches.
+I was also testing with a 1602 LCD.
+
+<img width="360px"  src="../hardware/Altair101dev2.jpg"/>
+
+With the first machine, I thought I could use an SD card module for saving and storing programs.
+I soon realized that functionality was a long way off.
+I did use buttons, but later found that infrared remote control was quicker for early development.
+
+<img width="360px"  src="../hardware/Altair101dev1.jpg"/>
 
 --------------------------------------------------------------------------------
 ## Altair 8800 Status Lights
