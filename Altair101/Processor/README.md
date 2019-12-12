@@ -8,7 +8,7 @@ The program also manages the turning the on and off of the LED lights, and makes
 The program is written in C, using the Arduino IDE, and is tested on an Arduino Nano microcontroller.
 The program is able to run 8080 machine code programs because I have programmed opcodes into the Processor program.
 
-## The Altair 101 Development Computer
+## The Altair 101 Development Machines
 
 The processor software runs on an Arduino Nano that is on the breadboard development computer.
 The processor program is written and compiled on my laptop.
@@ -42,7 +42,8 @@ I coded the Altair 101 processor program to react the same way.
     The current development machine can run Kill the Bit.
 
 The early development machine had only infrared remote control instead of toggle switches.
-I was also testing with a 1602 LCD.
+I was also testing with a 1602 LCD. Including an LCD was shelved for the time
+because I'm using serial log messages while developing.
 
 <img width="360px"  src="../hardware/Altair101dev2.jpg"/>
 
@@ -92,7 +93,8 @@ The program octal values are used to entry a program using the panel toggles.
 363 166
 ````
 
-#### About the Arduino Boards
+--------------------------------------------------------------------------------
+#### Memory Requirements and Availability
 
 + Nano [Memory](https://www.arduino.cc/en/tutorial/memory):
 ````

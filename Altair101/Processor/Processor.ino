@@ -2,121 +2,43 @@
 /*
   Altair 101 Processor program
 
-  This is an Altair 8800 Microprocessor Emulator Program.
-  This program emulates the basic Altair 8800 hardware. It's testing on an Arduino Nano.
-  It includes a number of the Intel 8080 microprocessor machine instructions (opcodes).
-  The Altair 8800 is based on the 8080.
+  This is an Altair 8800 emulator program that is being developed on an Arduino Nano microprocessor.
+  It emulates the basic Altair 8800 hardware which was built around the Intel 8080 CPU chip.
+  This program includes a number of the Intel 8080 microprocessor machine instructions (opcodes).
+  It has more than enough opcodes to run the classic programs, Kill the Bit and Pong.
 
-  Altair 101 is a hardware and software emulator of the core, basic, Altair 8800 computer.
+  The Altair 101 is a hardware and software emulator of the basic Altair 8800 computer from 1975.
+  The current development computer is functionally complete!
 
-  ---------------------------------------------
-  The Altair 101 development computer is functionally complete!
-
-  The computer finally has the basic functionality of an Altair 8800.
-  + Kill the Bit, is the standard de facto basic demonstration program of an Altair 8800 and its clones and replicas.
+  The computer finally has the basic functionality.
+  + It runs Kill the Bit, which is the standard de facto demonstration program of an Altair 8800 and its clones and replicas.
   + The only major difference, is that I don't have all the 8080 opcodes implemented.
   + The Altair 101 only has only 256 bytes of memory which is the same as the original basic Altair 8800.
   + Modern clones and replicas have 64K of memory.
   + Later, I can add memory and more opcodes to the 101.
 
   ---------------------------------------------
-  In the process of writing and testing the opcode CMP test program.
+  Current work,
+  + In the process of writing and testing the opcode CMP test program.
+
+  As a quick test, re-connect the toggle keyboard to the Dev machine.
+  + The toggle keyboard will replace the current breadboard control buttons.
+  + Decide if I want to use the PCF8574 module for control switch input.
 
   ---------------------------------------------
-  Component integration testing:
-  + Test with PCF8574(I2C).
-  + Tested: LCD(I2C), clock(I2C), and SD card module.
+  Build an new Dev machine.
 
-  Memory requirements:
-    Flash program storage requirements:
-        30720 : Nano bytes available, 30K
-        18042 : Processor.ino
-         8528 : Clock module
-         6720 : LCD module
-        13538 : SD card module
-        46828 : Total for all components, 46K
-        
-    SRAM requirements:
-         2048 : Nano bytes available, 2K
-         1332 : Processor.ino
-          554 : LCD module
-         1886 : Processor + LCD Subtotal
-          690 : Clock module
-         2022 : Processor + Clock Subtotal
-         1304 : SD card module
-         3880 : Total for all components, 4K
-
-    Microcontroller  Processor   CPU Speed Analog In  Digital IO/PWM  SRAM  Flash  Program Memory
-    Nano             ATmega328P  16 MHz     8         14/6            2K     32K    32 - 2 =  30K
-    Mega 2560        ATmega2560  16 MHz    16         54/15           8K    256K   256 - 8 = 248K
-
-  The Processor.ino memory requirements:
-    Sketch uses 18042 bytes (58%) of 30720 bytes of program storage.
-    Global variables use 1332 bytes (65%) of 2048 bytes dynamic memory.
-
-  The Clock module uses a fair amount memory as well.
-    Sketch uses 8528 bytes (27%) of 30720 bytes of program storage.
-    Global variables use 690 bytes (33%) of 2048 bytes dynamic memory.
-
-  The LCD memory requirements:
-    Sketch uses 6720 bytes (21%) of 30720 bytes of program storage.
-    Global variables use 554 bytes (27%) of 2048 bytes dynamic memory.
-
-  Since Clock module is combined with the LCD, they use a lot memory,
-  it will not work with my current design.
-    Sketch uses 16410 bytes (53%) of 30720 bytes of program storage.
-    Global variables use 1285 bytes (62%) of 2048 bytes dynamic memory.
-
-  Since SD card module requires the SPI and SD libraries, which use a lot memory,
-  it will not work with my current design.
-    Sketch uses 13538 bytes (44%) of 30720 bytes of program storage.
-    Global variables use 1304 bytes (63%) of 2048 bytes dynamic memory.
-
-  ---------------------------------------------
-  Next, complete the physical dev machine.
-
-  The components will be mounted on a $4 clickboard from Staples.
+  The new machine will be mounted on a $4 clipboard from Staples.
   This will allow me to use it like an Android tablet.
 
-  -------------------------
-  Create a toggle keyboard.
-
-  Keyboard layout, where '0' are screws to connect the keyboard to the clipboard.
-   ------------------------------------
-  |  1      2       0        3      4  |
-  |                                    |
-  |   A7  A6  A5  A4  A3  A2  A1  A0   |
-  |                                    |
-  |  5         0         0   6      7  |
-   ------------------------------------
-  The keyboard on/off toggles were already mounted and wired.
-  I have added the 7 x on/off/on toggles.
-  I now need to solder wires to them. Then I can use them on the dev machine.
-  I also need mounting screws and/or brackets.
-
-  The toggle keyboard will replace the current breadboard buttons,
-  + The current 8 on/off toggles are for address and data entry. Also used as input switches.
-  ++ Only 8 are required because of the limited 256 bytes of memory.
-  + There will be 7 x on/off/on toggles for program controls,
-  ++ 1. STOP and RUN
-  ++ 2. SINGLE STEP. Maybe add: Examine previous
-  ++ 3. EXAMINE and EXAMINE NEXT
-  ++ 4. DEPOSIT and DEPOSIT NEXT
-  ++ 5. RESET. Not implemented: CLR, clear external I/O equipement.
-  ++ 6. AUX 1, not decided what to control with AUX 1.
-  ++ 7. AUX 2, for save and load from SD card.
-
-  Test PCF8574 module for input.
-  + Basic test program with a library.
-  + Add Processer logic.
-  
-  -------------------------
-  Mount the dev machine components onto the clipboard.
-
-  Power for the dev machine,
+  Wire new breadboards:
+  + 1 for shift registers.
+  + 1 for LED lights: status, address, and data.
+  + 1 for the Nano and clock module.
+  + Mount the new breadboards onto the clipboard.
   + Cable to plug into a USB power supply that is plugged in a wall socket.
   + On/off toggle, or use a USB hub with on/off switches.
-  + For portablity, should test using a 9V power supply.
+  + For portability, I should test using a 9V power supply.
 
   ---------------------------------------------
   Add modern I/O components and controls.

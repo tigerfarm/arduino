@@ -55,29 +55,79 @@ I/O devices:
 + Rotary encoder: 1 digital pin and an interrupt pin.
 ````
 --------------------------------------------------------------------------------
-### Create a toggle keyboard
+#### About the Arduino Boards
+
++ Nano [Memory](https://www.arduino.cc/en/tutorial/memory):
+````
+    FLASH 32K bytes (of which .5k is used for the bootloader),
+    SRAM   2K bytes,
+    Flash program memory = 32K - 2K = 30K
+````
++ The ATmega2560 in the Mega2560 has larger memory space:
+````
+    FLASH  256K bytes (of which 8k is used for the bootloader)
+    SRAM   8K bytes
+````
+
+--------------------------------------------------------------------------------
+### Component Integration Testing
+
++ The PCF8574(I2C) works fine with the LCD(I2C), clock(I2C)
++ The SD card module works fine standalone.
+
+Component Memory Requirements
+````
+Flash program storage requirements:
+  30720 : Nano bytes available, 30K
+   8042 : Processor.ino
+   8528 : Clock module
+   6720 : LCD module
+  13538 : SD card module
+  46828 : Total for all components, 46K
+        
+SRAM requirements:
+   2048 : Nano bytes available, 2K
+   1332 : Processor.ino
+    554 : LCD module
+   1886 : Processor + LCD Subtotal
+    690 : Clock module
+   2022 : Processor + Clock Subtotal
+   1304 : SD card module
+   3880 : Total for all components, 4K
+````
+
+Microcontroller Specifications
+````
+Microcontroller  Processor   CPU Speed Analog In  Digital IO/PWM  SRAM  Flash  Program Memory
+Nano             ATmega328P  16 MHz     8         14/6            2K     32K    32 - 2 =  30K
+Mega 2560        ATmega2560  16 MHz    16         54/15           8K    256K   256 - 8 = 248K
+````
+
+--------------------------------------------------------------------------------
+### Toggle Console Keyboard
 
 ````
-  The toggle keyboard will replace the current breadboard buttons,
-  and will continue to use the current toggles.
-  + Current 8 toggles are for address and data entry. Also used as sense switches for input.
-  ++ Only 8 are required because of the limited 256 bytes of memory.
-  + Add 7 x on/off/on toggles for controls,
-  ++ 1. STOP and RUN
-  ++ 2. SINGLE STEP. Maybe add: Examine previous
-  ++ 3. EXAMINE and EXAMINE NEXT
-  ++ 4. DEPOSIT and DEPOSIT NEXT
-  ++ 5. RESET. Not implemented: CLR, clear external I/O equipment.
-  ++ 6. AUX 1, not decided what to control with AUX 1.
-  ++ 7. AUX 2, for save and load from SD card.
+The toggle keyboard will replace the current breadboard buttons,
+and will continue to use the current toggles.
++ Current 8 toggles are for address and data entry. Also used as sense switches for input.
+++ Only 8 are required because of the limited 256 bytes of memory.
++ Added 7 x on/off/on toggles for controls,
+++ 1. STOP and RUN
+++ 2. SINGLE STEP. Maybe add: Examine previous
+++ 3. EXAMINE and EXAMINE NEXT
+++ 4. DEPOSIT and DEPOSIT NEXT
+++ 5. RESET. Not implemented: CLR, clear external I/O equipment.
+++ 6. AUX 1, maybe to switch from computer processing to clock display on the LED lights.
+              Or switch to MP3 player.
+++ 7. AUX 2, for save and load from SD card.
 
-  Keyboard layout, where '0' are screws to connect the keyboard to the clipboard.
+Keyboard layout, where 'O' is the bolt to connect the keyboard to the clipboard.
    ------------------------------------
-  |  1      2       0        3      4  |
+  |  1      2       O        3      4  |
   |                                    |
   |   A7  A6  A5  A4  A3  A2  A1  A0   |
   |                                    |
-  |  5         0         0   6      7  |
+  |  5                       6      7  |
    ------------------------------------
 ````
 --------------------------------------------------------------------------------
