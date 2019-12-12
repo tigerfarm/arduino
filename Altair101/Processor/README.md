@@ -19,7 +19,7 @@ Program log messages are displayed in the Arduino serial monitor that runs on th
 The microcontroller is the Altair 101's CPU and RAM.
 The infrared receiver is the computer's keyboard, and LCD is the monitor.
 
-<img width="360px"  src="ProcessorBoard.jpg"/>
+<img width="360px"  src="../hardware/Altair101dev3.jpg"/>
 
 There are a number of online videos showing how an Altair 8800 works.
 + Video showing [startup LED lights](https://www.youtube.com/watch?v=suyiMfzmZKs).
