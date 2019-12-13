@@ -142,7 +142,10 @@ Keyboard layout, where 'O' is the bolt to connect the keyboard to the clipboard.
   |  5                       6      7  |
    ------------------------------------
 ````
-<img width="300px"  src="Altair101toggleConsole.jpg"/>
+The console on/off/on switches are connected to a PCF8574.
+The PCF8574 simplifies the wiring.
+
+<img width="500px"  src="Altair101toggleConsole.jpg"/>
 
 --------------------------------------------------------------------------------
 ### Altair 101 Parts List
