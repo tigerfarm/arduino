@@ -24,6 +24,7 @@
   As a quick test, re-connect the toggle keyboard to the Dev machine.
   + The toggle keyboard will replace the current breadboard control buttons.
   + Decide if I want to use the PCF8574 module for control switch input.
+  + Try adding a clock module. They may not be enough memory available with a Nano.
 
   ---------------------------------------------
   Build an new Dev machine.
@@ -64,11 +65,10 @@
   ---------------------------------------------
   Build my first Altair 101 machine,
 
-  + Complete the final design.
+  + Complete the final design that will use an Arduino Mega for straight forward expansion.
   + Order parts to build the machine.
   + Make enhancements to the case so that it's ready for the electronic parts.
-  + Build a new breadboard computer to fit into the case.
-  ++ Use an Audruino UNO.
+  + Wire new breadboards to fit into the case.
   + Put it all together.
 
   ---------------------------------------------
@@ -137,19 +137,19 @@ decode_results results;
 // Input toggle shift register(SN74HC595N) pins
 
 //        Nano pin               74HC595 Pins
-const int dataPinIn = 4;      // pin 14 Data pin.
-const int latchPinIn = 5;     // pin 12 Latch pin.
-const int clockPinIn = 6;     // pin 11 Clock pin.
+const PROGMEM int dataPinIn = 4;      // pin 14 Data pin.
+const PROGMEM int latchPinIn = 5;     // pin 12 Latch pin.
+const PROGMEM int clockPinIn = 6;     // pin 11 Clock pin.
 
-const int dataInputPin = A0;  // Data input pin to check switches. Digital pins and some analog pins, work.
+const PROGMEM int dataInputPin = A0;  // Data input pin to check switches. Digital pins and some analog pins, work.
 
 // ------------------------------------------------------------------------
 // Output LED light shift register(SN74HC595N) pins
 
 //        Nano pin               74HC595 Pins
-const int dataPinLed = 7;     // pin 14 Data pin.
-const int latchPinLed = 8;    // pin 12 Latch pin.
-const int clockPinLed = 9;    // pin 11 Clock pin.
+const PROGMEM int dataPinLed = 7;     // pin 14 Data pin.
+const PROGMEM int latchPinLed = 8;    // pin 12 Latch pin.
+const PROGMEM int clockPinLed = 9;    // pin 11 Clock pin.
 
 // -----------------------------------------------------------------------------
 // SD Card module is an SPI bus slave device.
@@ -176,7 +176,7 @@ File myFile;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-byte theProgram[] = {
+const PROGMEM byte theProgram[] = {
   //                //            ; --------------------------------------
   //                //            ; Test CMP and conditional jumps.
   //                              ; Compare a register to A, and then set Carry and Zero bit flags.
@@ -218,7 +218,7 @@ byte theProgram[] = {
 // -----------------------------------------------------------------------------
 // Kill the Bit program.
 
-byte theProgramKtb[] = {
+const PROGMEM byte theProgramKtb[] = {
   // ------------------------------------------------------------------
   // Kill the Bit program.
   // Before starting, make sure all the sense switches are in the down position.
@@ -261,11 +261,11 @@ byte theProgramKtb[] = {
 // -----------------------------------------------------------------------------
 // Memory definitions
 
-const int memoryBytes = 256;
+const PROGMEM int memoryBytes = 256;
 byte memoryData[memoryBytes];
 unsigned int programCounter = 0;     // Program address value
 
-const int stackBytes = 32;
+const PROGMEM int stackBytes = 32;
 int stackData[memoryBytes];
 unsigned int stackPointer = stackBytes;
 
@@ -273,12 +273,11 @@ unsigned int stackPointer = stackBytes;
 // Memory Functions
 
 char charBuffer[17];
-byte zeroByte = B00000000;
 
 void initMemoryToZero() {
   Serial.println(F("+ Initialize all memory bytes to zero."));
   for (int i = 0; i < memoryBytes; i++) {
-    memoryData[i] = zeroByte;
+    memoryData[i] = 0;
   }
 }
 
@@ -315,7 +314,7 @@ void listByteArray(byte btyeArray[], int arraySize) {
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 String theLine = "";
-int displayColumns = 16;
+const PROGMEM int displayColumns = 16;
 void displayPrintln(int theRow, String theString) {
   // To overwrite anything on the current line.
   String printString = theString;
@@ -3133,6 +3132,10 @@ void setup() {
 #ifdef RUN_NOW
   runProgram = true;
 #endif
+  Serial.print(F("+ Program loaded."));
+  if (runProgram) {
+    Serial.println(F(" It will start automatically."));
+  }
 
   // ----------------------------------------------------
   irrecv.enableIRIn();
