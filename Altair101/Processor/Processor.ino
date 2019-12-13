@@ -32,14 +32,19 @@
   The new machine will be mounted on a $4 clipboard from Staples.
   This will allow me to use it like an Android tablet.
 
-  Wire new breadboards:
+  + Mount the new breadboards onto the clipboard.
+  + Use a cable to plug into a USB power supply that is plugged in a wall socket.
+  + Control the power with an on/off toggle, or use a USB hub with on/off switches.
+  + For portability, I should test using a 9V power supply.
+
+  Re-wire the breadboards:
   + 1 for shift registers.
   + 1 for LED lights: status, address, and data.
-  + 1 for the Nano and clock module.
-  + Mount the new breadboards onto the clipboard.
-  + Cable to plug into a USB power supply that is plugged in a wall socket.
-  + On/off toggle, or use a USB hub with on/off switches.
-  + For portability, I should test using a 9V power supply.
+  + 1 for the Nano and other modules.
+
+  Integration testing:
+  + Add an SD card reader or clock module onto the Nano.
+  + Maybe use my Nano to Nano communications programs to add another Nano for the SD card reader and LCD.
 
   ---------------------------------------------
   Add modern I/O components and controls.
