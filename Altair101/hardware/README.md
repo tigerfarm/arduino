@@ -146,6 +146,41 @@ I planned to use another PCF8574 for the toggles.
 <img width="500px"  src="Altair101toggleConsole.jpg"/>
 
 --------------------------------------------------------------------------------
+## The Altair 101 Development Machines
+
+The processor software runs on an Arduino Nano that is on the breadboard development computer.
+
+Top breadboard, in the following photo:
++ Cables connecting 3 shift registers(SN74HC595N) to the LED lights: 16 address and 8 data lights.
++ In the middle of the cables is the infrared receiver.
+    The receiver is used to send control commands such as stop, run, examine, deposit.
+
+Center breadboard:
++ Shift register(SN74HC595N) to the status LED lights.
++ Status LED lights in a bar. Separate LED wait status light.
++ 3 shift registers(SN74HC595N) for the input buttons and toggles.
+
+Bottom breadboard:
++ Nano board which is the Altair 101's CPU and RAM.
++ Input control buttons
++ Below the breadboards is the input toggles for entering address and data.
+    The toggle board is from a 1970's mainframe computer.
+
+<img width="360px"  src="../hardware/Altair101dev3.jpg"/>
+
+The early development machine had only infrared remote control instead of toggle switches.
+I was also testing with a 1602 LCD. Including an LCD was shelved for the time
+because I'm using serial log messages while developing.
+
+<img width="360px"  src="../hardware/Altair101dev2.jpg"/>
+
+With the first machine, I thought I could use an SD card module for saving and storing programs.
+I soon realized that functionality was a long way off.
+I did use buttons, but later found that infrared remote control was quicker for early development.
+
+<img width="360px"  src="../hardware/Altair101dev1.jpg"/>
+
+--------------------------------------------------------------------------------
 ### Altair 101 Parts List
 
 For reference, I used the following parts list from a simulator:

@@ -8,28 +8,12 @@ The program also manages the turning the on and off of the LED lights, and makes
 The program is written in C, using the Arduino IDE, and is tested on an Arduino Nano microcontroller.
 The program is able to run 8080 machine code programs because I have programmed opcodes into the Processor program.
 
-## The Altair 101 Development Machines
+#### The Altair 101 Development Machine
 
 The processor software runs on an Arduino Nano that is on the breadboard development computer.
 The processor program is written and compiled on my laptop.
 Then, the program is uploaded to the Nano through a USB cable.
 Program log messages are displayed in the Arduino IDE serial monitor that runs on the laptop.
-
-Top breadboard, in the following diagram:
-+ Cables connecting 3 shift registers(SN74HC595N) to the LED lights: 16 address and 8 data lights.
-+ In the middle of the cables is the infrared receiver.
-    The receiver is used to send control commands such as stop, run, examine, deposit.
-
-Center breadboard:
-+ Shift register(SN74HC595N) to the status LED lights.
-+ Status LED lights in a bar. Separate LED wait status light.
-+ 3 shift registers(SN74HC595N) for the input buttons and toggles.
-
-Bottom breadboard:
-+ Nano board which is the Altair 101's CPU and RAM.
-+ Input control buttons
-+ Below the breadboards is the input toggles for entering address and data.
-    The toggle board is from a 1970's mainframe computer.
 
 <img width="360px"  src="../hardware/Altair101dev3.jpg"/>
 
@@ -40,18 +24,6 @@ I coded the Altair 101 processor program to react the same way.
     A jump loop program is entered, examined, stepped through, and run.
 + Video #3, shows the entering and running of the [Kill the Bit](https://www.youtube.com/watch?v=ZKeiQ8e18QY) program.
     The current development machine can run Kill the Bit.
-
-The early development machine had only infrared remote control instead of toggle switches.
-I was also testing with a 1602 LCD. Including an LCD was shelved for the time
-because I'm using serial log messages while developing.
-
-<img width="360px"  src="../hardware/Altair101dev2.jpg"/>
-
-With the first machine, I thought I could use an SD card module for saving and storing programs.
-I soon realized that functionality was a long way off.
-I did use buttons, but later found that infrared remote control was quicker for early development.
-
-<img width="360px"  src="../hardware/Altair101dev1.jpg"/>
 
 --------------------------------------------------------------------------------
 ## Altair 8800 Status Lights
