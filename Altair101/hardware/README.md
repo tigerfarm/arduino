@@ -42,7 +42,7 @@ Infrared receiver  A1 |             | D8  Address toggles
                   VIN |             | TX1 Used for Serial communications
                        -------------
 
-RX0 and TX1 are in use, for example: to receive program sketches and putput log messages using Serial.print().
+RX0 and TX1 is used to receive program and output Serial.print() messages.
 D2 and D3 are Digital interrupt pins. Not in use at this time.
 A0 to A3 can be used as digital pins.
 I/O devices:
@@ -51,20 +51,17 @@ I/O devices:
 + 1602 LCD: 12C bus 
 + DFPlayer: 2 digital pins.
 + 4 x 7-segment digits: 2 digital pins.
-+ SRAM 32K: SPI bus + a digital enable pin. A future option. 23lc512 has 512 kilobit, or 64 kilobyte, SRAM module with SPI interface.
++ SRAM 32K: SPI bus + a digital enable pin. A future option.
 + Rotary encoder: 1 digital pin and an interrupt pin.
 ````
 
-SPI 23LC512, uses 5V
+23LC512: SPI interface, uses 5V, and has 64 kilobytes of SRAM.
 https://www.instructables.com/id/Interface-an-SRAM-bus-to-your-arduino/
 
-SPI 23K256 chip has 32k SRAM. Power it from the 3.3V Arduino pin.
-https://playground.arduino.cc/Main/SpiRAM/
-
-DS3231 clock module has a 32K(4K bytes) EEPROM chip, accessible through I2C.
+DS3231 clock module has a 4K byte (32 kilobits) EEPROM chip, accessible through I2C.
 The only issue is that EEPROM is made for a lot of read/writes.
 However, I just read, "Most EEPROMs have a maximum re-write number of 1 million or more."
-Should be okay for save and loading programs.
+Should be okay for saving and loading programs.
 
 --------------------------------------------------------------------------------
 #### About the Arduino Boards
@@ -142,8 +139,9 @@ Keyboard layout, where 'O' is the bolt to connect the keyboard to the clipboard.
   |  5                       6      7  |
    ------------------------------------
 ````
-The console on/off/on switches are connected to a PCF8574.
+The console on/off/on switches are connected to an I2C PCF8574 module.
 The PCF8574 simplifies the wiring.
+I planned to use another PCF8574 for the toggles.
 
 <img width="500px"  src="Altair101toggleConsole.jpg"/>
 
