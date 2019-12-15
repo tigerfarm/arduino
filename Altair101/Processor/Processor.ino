@@ -141,7 +141,7 @@ decode_results results;
 // -----------------------------------------------------------------------------
 // Input toggle shift register(SN74HC595N) pins
 
-//        Nano pin               74HC595 Pins
+//                Nano pin               74HC595 Pins
 const PROGMEM int dataPinIn = 4;      // pin 14 Data pin.
 const PROGMEM int latchPinIn = 5;     // pin 12 Latch pin.
 const PROGMEM int clockPinIn = 6;     // pin 11 Clock pin.
@@ -151,7 +151,7 @@ const PROGMEM int dataInputPin = A0;  // Data input pin to check switches. Digit
 // ------------------------------------------------------------------------
 // Output LED light shift register(SN74HC595N) pins
 
-//        Nano pin               74HC595 Pins
+//                Nano pin               74HC595 Pins
 const PROGMEM int dataPinLed = 7;     // pin 14 Data pin.
 const PROGMEM int latchPinLed = 8;    // pin 12 Latch pin.
 const PROGMEM int clockPinLed = 9;    // pin 11 Clock pin.
@@ -213,6 +213,20 @@ const PROGMEM byte theProgram[] = {
   B11010010, 29, 0, // jnc okay1b ; Carry bit flag is not set, jump to the end of this test.
   B11000011, 3, 0,  // jmp Error  ; The above should have jumped passed this.
   //                // okay1b:
+  //
+  //                //            ; --------------------------------------
+  //0RRR110
+  B00001110, 73,    // mvi c,73   ; Move # to register B.
+  //0111SSS
+  B10111001,        // cmp c      ; C = A. Zero bit flag is true. Carry bit is false.
+  B11000010, 3, 0,  // jnz Error  ; Zero bit flag is set, don't jump.
+  B11011010, 3, 0,  // jc Error   ; Carry bit flag is not set, don't jump.
+  B11001010, 44, 0, // jz okay2a  ; Zero bit flag is set, jump.
+  B11000011, 3, 0,  // jmp Error  ; The above should have jumped passed this.
+  //                // okay2a:
+  B11010010, 50, 0, // jnc okay2b ; Carry bit flag is not set, jump to the end of this test.
+  B11000011, 3, 0,  // jmp Error  ; The above should have jumped passed this.
+  //                // okay2b:
   //
   //                //            ; --------------------------------------
   0,                // NOP

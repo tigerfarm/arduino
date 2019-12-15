@@ -26,6 +26,16 @@ Too much for me. Also, I didn't want to get into maintaining an old machine.
 My first computer was a 1983 machine based on the 8086 processor.
 It had 384K of memory. I didn't want that again. I only wanted the fun side of running retro.
 
+The 8080 was an 8 bit microprocessor produced by Intel, released in 1974.
+The 8085 was an 8 bit microprocessor produced by Intel, released in 1976.
+They have the same opcodes. The 8085 has few enhancements that made it easier to work with.
+The 8086 was a 16 bit microprocessor produced by Intel, released in 1978.
+The Intel 8088, released July 1, 1979. It was in the IBM PC, the first computer I had a job working on.
+The 8088 was an 8 bit microprocessor produced by Intel. It's allowed the building of cheaper computer.
+
+8085 Java assembler
+https://sourceforge.net/projects/j8085sim/
+
 --------------------------------------------------------------------------------
 ### Down the Retro Path
 
