@@ -29,115 +29,166 @@ void printByte(byte b) {
     Serial.print(bitRead(b, i));
 }
 
-// ------------------------------------------------------------------------
-// Data LED lights displayed using shift registers.
+// -----------------------------------------------------------------------------
+// For the clock board.
+#include "RTClib.h"
+RTC_DS3231 rtc;
+DateTime now;
 
-byte theCounterYear = 0;
-byte theCounterMonth = 0;
-byte theCounterDay = 0;
 byte theCounterHours = 0;
 byte theCounterMinutes = 0;
 byte theCounterSeconds = 0;
 
+void syncCountWithClock() {
+  now = rtc.now();
+  theCounterHours = now.hour();
+  theCounterMinutes = now.minute();
+  theCounterSeconds = now.second();
+  //
+  Serial.print("+ syncCountWithClock,");
+  Serial.print(" theCounterHours=");
+  Serial.print(theCounterHours);
+  Serial.print(" theCounterMinutes=");
+  Serial.print(theCounterMinutes);
+  Serial.print(" theCounterSeconds=");
+  Serial.println(theCounterSeconds);
+}
+
+// -----------------------------------------------------------------------------
+void processClockNow() {
+  //
+  now = rtc.now();
+  //
+  if (now.second() != theCounterSeconds) {
+    // When the clock second value changes, that's a clock second pulse.
+    theCounterSeconds = now.second();
+    // clockPulseSecond();
+    if (theCounterSeconds == 0) {
+      // When the clock second value changes to zero, that's a clock minute pulse.
+      theCounterMinutes = now.minute();
+      if (theCounterMinutes != 0) {
+        clockPulseMinute();
+      } else {
+        // When the clock minute value changes to zero, that's a clock hour pulse.
+        theCounterHours = now.hour();
+        clockPulseHour();
+      }
+    }
+  }
+}
+
+int theHour = 0;
+void clockPulseHour() {
+  Serial.print("++ clockPulseHour(), theCounterHours= ");
+  Serial.println(theCounterHours);
+  Serial.println(theCounterHours);
+  // Use AM/PM rather than 24 hours.
+  if (theCounterHours > 12) {
+    theHour = theCounterHours - 12;
+  } else if (theCounterHours == 0) {
+    theHour = 12; // 12 midnight, 12am
+  } else {
+    theHour = theCounterHours;
+  }
+  displayTheTime( theCounterMinutes, theHour );
+}
+void clockPulseMinute() {
+  Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
+  Serial.println(theCounterMinutes);
+  displayTheTime( theCounterMinutes, theHour );
+}
+
 // ------------------------------------------------------------------------
 // Display hours and minutes on LED lights.
 
-byte theCounterMinuteBinary = 0;
-byte theCounterHours1 = 0;
-byte theCounterHours2 = 0;
+void displayTheTime(byte theMinute, byte theHour) {
+  byte theMinuteOnes = 0;
+  byte theMinuteTens = 0;
+  byte theBinaryMinute = 0;
+  byte theBinaryHour1 = 0;
+  byte theBinaryHour2 = 0;
 
-void displayTheHour( byte theHour) {
-  switch (theHour) {
-    case 1:
-      //                 B11111111
-      theCounterHours1 = B00000010;
-      theCounterHours2 = 0;
-      break;
-    case 2:
-      //                 B11111111
-      theCounterHours1 = B00000100;
-      theCounterHours2 = 0;
-      break;
-    case 3:
-      //                 B11111111
-      theCounterHours1 = B00001000;
-      theCounterHours2 = 0;
-      break;
-    case 4:
-      //                 B11111111
-      theCounterHours1 = B00010000;
-      theCounterHours2 = 0;
-      break;
-    case 5:
-      //                 B11111111
-      theCounterHours1 = B00100000;
-      theCounterHours2 = 0;
-      break;
-    case 6:
-      //                 B11111111
-      theCounterHours1 = B01000000;
-      theCounterHours2 = 0;
-      break;
-    case 7:
-      //                 B11111111
-      theCounterHours1 = 0;
-      theCounterHours2 = B00000010;
-      break;
-    case 8:
-      //                 B11111111
-      theCounterHours1 = 0;
-      theCounterHours2 = B00000100;
-      break;
-    case 9:
-      //                 B11111111
-      theCounterHours1 = 0;
-      theCounterHours2 = B00001000;
-      break;
-    case 10:
-      //                 B11111111
-      theCounterHours1 = 0;
-      theCounterHours2 = B00010000;
-      break;
-    case 11:
-      //                 B11111111
-      theCounterHours1 = 0;
-      theCounterHours2 = B00100000;
-      break;
-    case 12:
-      //                 B11111111
-      theCounterHours1 = 0;
-      theCounterHours2 = B01000000;
-      break;
-  }
-  lightsStatusAddressData(theCounterMinuteBinary, theCounterHours1, theCounterHours2);
-}
-
-void displayTheMinute(byte theMinute) {
-  byte theCounterMinuteOnes = 0;
-  byte theCounterMinuteTens = 0;
+  // ----------------------------------------------
+  // Convert the minute into binary for display.
   if (theMinute < 10) {
-    theCounterMinuteBinary = theMinute;
+    theBinaryMinute = theMinute;
   } else {
     // There are 3 bits for the tens: 0, 10, 20, 30, 40, or 50.
     // There are 4 bits for the ones: 0 ... 9.
     //                         Tens & Minutes: B-tttmmmm
     //                                         B00001111 = 2 ^ 4 = 16
-    // theMinute = 10, theCounterMinuteBinary = 00010000
-    theCounterMinuteTens = theMinute / 10;
-    theCounterMinuteOnes = theMinute - theCounterMinuteTens * 10;
-    theCounterMinuteBinary = 16 * theCounterMinuteTens + theCounterMinuteOnes;
-    /*
-    Serial.print(F(", theMinute = "));
-    Serial.print(theMinute);
-    Serial.print(F(", theCounterMinuteOnes = "));
-    Serial.print(theCounterMinuteOnes);
-    Serial.print(F(", theCounterMinuteTens = "));
-    Serial.print(theCounterMinuteTens);
-    Serial.print(F(", theCounterMinuteBinary = "));
-    printByte(theCounterMinuteBinary);
-    */
+    // theMinute = 10, theBinaryMinute = 00010000
+    theMinuteTens = theMinute / 10;
+    theMinuteOnes = theMinute - theMinuteTens * 10;
+    theBinaryMinute = 16 * theMinuteTens + theMinuteOnes;
   }
-  lightsStatusAddressData(theCounterMinuteBinary, theCounterHours1, theCounterHours2);
+
+  // ----------------------------------------------
+  // Convert the hour into binary for display.
+  switch (theHour) {
+    case 1:
+      //                 B11111111
+      theBinaryHour1 = B00000010;
+      theBinaryHour2 = 0;
+      break;
+    case 2:
+      //                 B11111111
+      theBinaryHour1 = B00000100;
+      theBinaryHour2 = 0;
+      break;
+    case 3:
+      //                 B11111111
+      theBinaryHour1 = B00001000;
+      theBinaryHour2 = 0;
+      break;
+    case 4:
+      //                 B11111111
+      theBinaryHour1 = B00010000;
+      theBinaryHour2 = 0;
+      break;
+    case 5:
+      //                 B11111111
+      theBinaryHour1 = B00100000;
+      theBinaryHour2 = 0;
+      break;
+    case 6:
+      //                 B11111111
+      theBinaryHour1 = B01000000;
+      theBinaryHour2 = 0;
+      break;
+    case 7:
+      //                 B11111111
+      theBinaryHour1 = 0;
+      theBinaryHour2 = B00000010;
+      break;
+    case 8:
+      //                 B11111111
+      theBinaryHour1 = 0;
+      theBinaryHour2 = B00000100;
+      break;
+    case 9:
+      //                 B11111111
+      theBinaryHour1 = 0;
+      theBinaryHour2 = B00001000;
+      break;
+    case 10:
+      //                 B11111111
+      theBinaryHour1 = 0;
+      theBinaryHour2 = B00010000;
+      break;
+    case 11:
+      //                 B11111111
+      theBinaryHour1 = 0;
+      theBinaryHour2 = B00100000;
+      break;
+    case 12:
+      //                 B11111111
+      theBinaryHour1 = 0;
+      theBinaryHour2 = B01000000;
+      break;
+  }
+  // ----------------------------------------------
+  lightsStatusAddressData(theBinaryMinute, theBinaryHour1, theBinaryHour2);
 }
 
 // -----------------------------------------------------------------------------
@@ -152,21 +203,14 @@ void setup() {
   pinMode(clockPinLed, OUTPUT);
   pinMode(dataPinLed, OUTPUT);
   delay(300);
+  lightsStatusAddressData(0, 0, 0);
   Serial.println(F("+ Front panel LED shift registers ready."));
 
-  Serial.println(F("+ All LED lights on."));
-  // lightsStatusAddressData(statusByte, programCounter, dataByte);
-  // delay(3000);
-  Serial.println(F("+ All LED lights off."));
-  lightsStatusAddressData(0, 0, 0);
-  Serial.println("------------------------");
-  for (byte numberToDisplay = 1; numberToDisplay <= 12; numberToDisplay++) {
-    Serial.print("+ Hour to display: ");
-    Serial.print(numberToDisplay);
-    displayTheHour(numberToDisplay);
-    delay(500);
-    Serial.println("");
-  }
+  // ----------------------------------------------------
+  syncCountWithClock();
+  Serial.println("+ Clock set and synched with program variables.");
+
+  // ----------------------------------------------------
   Serial.println("+++ Start program loop.");
 }
 
@@ -174,13 +218,7 @@ void setup() {
 // Loop for displaying hours and minutes.
 
 void loop() {
-  Serial.println("------------------------");
-  for (byte numberToDisplay = 0; numberToDisplay < 60; numberToDisplay++) {
-    Serial.print("+ Minute to display: ");
-    Serial.print(numberToDisplay);
-    displayTheMinute(numberToDisplay);
-    delay(500);
-    Serial.println("");
-  }
+  delay(100);
+  processClockNow();
 }
 // -----------------------------------------------------------------------------
