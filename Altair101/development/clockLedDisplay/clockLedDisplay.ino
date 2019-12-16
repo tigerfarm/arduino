@@ -41,7 +41,6 @@ void syncCountWithClock() {
   theCounterHours = now.hour();
   theCounterMinutes = now.minute();
   theCounterSeconds = now.second();
-  displayTheTime( theCounterMinutes, theCounterHours );
   //
   Serial.print("+ syncCountWithClock,");
   Serial.print(" theCounterHours=");
@@ -207,6 +206,7 @@ void setup() {
     while (1);
   }
   syncCountWithClock();
+  displayTheTime( theCounterMinutes, theCounterHours );
   Serial.println("+ Clock set and synched with program variables.");
 
   // ----------------------------------------------------
