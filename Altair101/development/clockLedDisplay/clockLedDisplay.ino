@@ -1,6 +1,12 @@
 // -----------------------------------------------------------------------------
 /*
   Clock with LED lights for diplay.
+
+  Connect the DS3231 Clock and the 1602 LCD display, to the Nano:
+  + VCC to Nano 5v, note, also works with 3.3v, example: NodeMCU.
+  + GND to Nano ground.
+  + SDA to Nano D4 (pin 4), same on Uno.
+  + SCL to Nano D5 (pin 5), same on Uno.
 */
 // ------------------------------------------------------------------------
 // Output LED light shift register(SN74HC595N) pins
@@ -26,15 +32,16 @@ void lightsStatusAddressData( byte status8bits, byte address16bits, byte data8bi
 RTC_DS3231 rtc;
 DateTime now;
 
-byte theCounterHours = 0;
-byte theCounterMinutes = 0;
-byte theCounterSeconds = 0;
+int theCounterHours = 0;
+int theCounterMinutes = 0;
+int theCounterSeconds = 0;
 
 void syncCountWithClock() {
   now = rtc.now();
   theCounterHours = now.hour();
   theCounterMinutes = now.minute();
   theCounterSeconds = now.second();
+  displayTheTime( theCounterMinutes, theCounterHours );
   //
   Serial.print("+ syncCountWithClock,");
   Serial.print(" theCounterHours=");
@@ -63,21 +70,13 @@ void processClockNow() {
         Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
         Serial.println(theCounterMinutes);
         // ----------------------------------------------
-        displayTheTime( theCounterMinutes, the12thHour );
+        displayTheTime( theCounterMinutes, theCounterHours );
       } else {
         // When the clock minute value changes to zero, that's an hour pulse.
         // clockPulseHour();
         theCounterHours = now.hour();
         Serial.print("++ clockPulseHour(), theCounterHours= ");
         Serial.println(theCounterHours);
-        // Use a 12 hour clock value rather than 24 value.
-        if (theCounterHours > 12) {
-          the12thHour = theCounterHours - 12;
-        } else if (theCounterHours == 0) {
-          the12thHour = 12; // 12 midnight, 12am
-        } else {
-          the12thHour = theCounterHours;
-        }
         // ----------------------------------------------
         displayTheTime( theCounterMinutes, the12thHour );
       }
@@ -114,6 +113,12 @@ void displayTheTime(byte theMinute, byte theHour) {
 
   // ----------------------------------------------
   // Convert the hour into binary for display.
+  // Use a 12 hour clock value rather than 24 value.
+  if (theHour > 12) {
+    theHour = theHour - 12;
+  } else if (theHour == 0) {
+    theHour = 12; // 12 midnight, 12am
+  }
   switch (theHour) {
     case 1:
       //                 B11111111
@@ -196,6 +201,11 @@ void setup() {
   Serial.println(F("+ Front panel LED shift registers ready."));
 
   // ----------------------------------------------------
+  // Initialize the Real Time Clock (RTC).
+  if (!rtc.begin()) {
+    Serial.println("--- Error: RTC not found.");
+    while (1);
+  }
   syncCountWithClock();
   Serial.println("+ Clock set and synched with program variables.");
 
