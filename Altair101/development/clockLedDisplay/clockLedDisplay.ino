@@ -1,7 +1,6 @@
 // -----------------------------------------------------------------------------
 /*
   Clock with LED lights for diplay.
-
 */
 // ------------------------------------------------------------------------
 byte programCounter = B11111111;
@@ -16,6 +15,20 @@ const PROGMEM int dataPinLed = 7;     // pin 14 Data pin.
 const PROGMEM int latchPinLed = 8;    // pin 12 Latch pin.
 const PROGMEM int clockPinLed = 9;    // pin 11 Clock pin.
 
+void lightsStatusAddressData( byte status8bits, byte address16bits, byte data8bits) {
+  digitalWrite(latchPinLed, LOW);
+  // MSBFIRST matches the bit to LED mapping.
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, address16bits);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, status8bits);
+  digitalWrite(latchPinLed, HIGH);
+}
+
+void printByte(byte b) {
+  for (int i = 7; i >= 0; i--)
+    Serial.print(bitRead(b, i));
+}
+
 // ------------------------------------------------------------------------
 // Data LED lights displayed using shift registers.
 
@@ -26,8 +39,13 @@ byte theCounterHours = 0;
 byte theCounterMinutes = 0;
 byte theCounterSeconds = 0;
 
+// ------------------------------------------------------------------------
+// Display hours and minutes on LED lights.
+
+byte theCounterMinuteBinary = 0;
 byte theCounterHours1 = 0;
 byte theCounterHours2 = 0;
+
 void displayTheHour( byte theHour) {
   switch (theHour) {
     case 1:
@@ -91,33 +109,35 @@ void displayTheHour( byte theHour) {
       theCounterHours2 = B01000000;
       break;
   }
-  lightsStatusAddressData(theCounterMinutes, theCounterHours1, theCounterHours2);
+  lightsStatusAddressData(theCounterMinuteBinary, theCounterHours1, theCounterHours2);
 }
 
-byte theCounterMinuteOnes = 0;
-byte theCounterMinuteTens = 0;
-byte theCounterMinuteBinary = 0;
-void displayTheMinute( byte theMinute) {
+void displayTheMinute(byte theMinute) {
+  byte theCounterMinuteOnes = 0;
+  byte theCounterMinuteTens = 0;
   if (theMinute < 10) {
     theCounterMinuteBinary = theMinute;
   } else {
     // There are 3 bits for the tens: 0, 10, 20, 30, 40, or 50.
     // There are 4 bits for the ones: 0 ... 9.
-    // Tens & Minutes: BTTTMMMM0
-    //                 B00011111 = 2 ^ 5 = 16
+    //                         Tens & Minutes: B-tttmmmm
+    //                                         B00001111 = 2 ^ 4 = 16
+    // theMinute = 10, theCounterMinuteBinary = 00010000
     theCounterMinuteTens = theMinute / 10;
-    theCounterMinuteOnes = theCounterMinuteTens * 10 - theMinute;
+    theCounterMinuteOnes = theMinute - theCounterMinuteTens * 10;
     theCounterMinuteBinary = 16 * theCounterMinuteTens + theCounterMinuteOnes;
+    /*
+    Serial.print(F(", theMinute = "));
+    Serial.print(theMinute);
+    Serial.print(F(", theCounterMinuteOnes = "));
+    Serial.print(theCounterMinuteOnes);
+    Serial.print(F(", theCounterMinuteTens = "));
+    Serial.print(theCounterMinuteTens);
+    Serial.print(F(", theCounterMinuteBinary = "));
+    printByte(theCounterMinuteBinary);
+    */
   }
   lightsStatusAddressData(theCounterMinuteBinary, theCounterHours1, theCounterHours2);
-}
-
-void lightsStatusAddressData( byte status8bits, byte address16bits, byte data8bits) {
-  digitalWrite(latchPinLed, LOW);
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, address16bits);
-  shiftOut(dataPinLed, clockPinLed, MSBFIRST, status8bits); // MSBFIRST matches the bit to LED mapping.
-  digitalWrite(latchPinLed, HIGH);
 }
 
 // -----------------------------------------------------------------------------
@@ -135,10 +155,18 @@ void setup() {
   Serial.println(F("+ Front panel LED shift registers ready."));
 
   Serial.println(F("+ All LED lights on."));
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
-  delay(3000);
+  // lightsStatusAddressData(statusByte, programCounter, dataByte);
+  // delay(3000);
   Serial.println(F("+ All LED lights off."));
   lightsStatusAddressData(0, 0, 0);
+  Serial.println("------------------------");
+  for (byte numberToDisplay = 1; numberToDisplay <= 12; numberToDisplay++) {
+    Serial.print("+ Hour to display: ");
+    Serial.print(numberToDisplay);
+    displayTheHour(numberToDisplay);
+    delay(500);
+    Serial.println("");
+  }
   Serial.println("+++ Start program loop.");
 }
 
@@ -147,19 +175,11 @@ void setup() {
 
 void loop() {
   Serial.println("------------------------");
-  for (byte numberToDisplay = 1; numberToDisplay <= 12; numberToDisplay++) {
-    Serial.print("+ Hour to display: ");
-    Serial.print(numberToDisplay);
-    displayTheHour(numberToDisplay);
-    delay(1000);
-    Serial.println("");
-  }
-  Serial.println("------------------------");
   for (byte numberToDisplay = 0; numberToDisplay < 60; numberToDisplay++) {
     Serial.print("+ Minute to display: ");
     Serial.print(numberToDisplay);
     displayTheMinute(numberToDisplay);
-    delay(1000);
+    delay(500);
     Serial.println("");
   }
 }
