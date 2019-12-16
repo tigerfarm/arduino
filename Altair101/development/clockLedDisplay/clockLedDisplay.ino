@@ -4,17 +4,17 @@
 
 */
 // ------------------------------------------------------------------------
+byte programCounter = B11111111;
+byte dataByte       = B11111111;
+byte statusByte     = B11111111;
+
+// ------------------------------------------------------------------------
 // Output LED light shift register(SN74HC595N) pins
 
 //                Nano pin               74HC595 Pins
 const PROGMEM int dataPinLed = 7;     // pin 14 Data pin.
 const PROGMEM int latchPinLed = 8;    // pin 12 Latch pin.
 const PROGMEM int clockPinLed = 9;    // pin 11 Clock pin.
-
-// ------------------------------------------------------------------------
-byte programCounter = B11111111;
-byte dataByte       = B11111111;
-byte statusByte     = B11111111;
 
 // ------------------------------------------------------------------------
 // Data LED lights displayed using shift registers.
@@ -94,6 +94,24 @@ void displayTheHour( byte theHour) {
   lightsStatusAddressData(theCounterMinutes, theCounterHours1, theCounterHours2);
 }
 
+byte theCounterMinuteOnes = 0;
+byte theCounterMinuteTens = 0;
+byte theCounterMinuteBinary = 0;
+void displayTheMinute( byte theMinute) {
+  if (theMinute < 10) {
+    theCounterMinuteBinary = theMinute;
+  } else {
+    // There are 3 bits for the tens: 0, 10, 20, 30, 40, or 50.
+    // There are 4 bits for the ones: 0 ... 9.
+    // Tens & Minutes: BTTTMMMM0
+    //                 B00011111 = 2 ^ 5 = 16
+    theCounterMinuteTens = theMinute / 10;
+    theCounterMinuteOnes = theCounterMinuteTens * 10 - theMinute;
+    theCounterMinuteBinary = 16 * theCounterMinuteTens + theCounterMinuteOnes;
+  }
+  lightsStatusAddressData(theCounterMinuteBinary, theCounterHours1, theCounterHours2);
+}
+
 void lightsStatusAddressData( byte status8bits, byte address16bits, byte data8bits) {
   digitalWrite(latchPinLed, LOW);
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
@@ -125,13 +143,22 @@ void setup() {
 }
 
 // -----------------------------------------------------------------------------
-// Device Loop for processing machine code.
+// Loop for displaying hours and minutes.
 
 void loop() {
+  Serial.println("------------------------");
   for (byte numberToDisplay = 1; numberToDisplay <= 12; numberToDisplay++) {
     Serial.print("+ Hour to display: ");
     Serial.print(numberToDisplay);
     displayTheHour(numberToDisplay);
+    delay(1000);
+    Serial.println("");
+  }
+  Serial.println("------------------------");
+  for (byte numberToDisplay = 0; numberToDisplay < 60; numberToDisplay++) {
+    Serial.print("+ Minute to display: ");
+    Serial.print(numberToDisplay);
+    displayTheMinute(numberToDisplay);
     delay(1000);
     Serial.println("");
   }
