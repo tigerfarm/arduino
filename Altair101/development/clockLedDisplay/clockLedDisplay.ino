@@ -3,11 +3,6 @@
   Clock with LED lights for diplay.
 */
 // ------------------------------------------------------------------------
-byte programCounter = B11111111;
-byte dataByte       = B11111111;
-byte statusByte     = B11111111;
-
-// ------------------------------------------------------------------------
 // Output LED light shift register(SN74HC595N) pins
 
 //                Nano pin               74HC595 Pins
@@ -17,18 +12,14 @@ const PROGMEM int clockPinLed = 9;    // pin 11 Clock pin.
 
 void lightsStatusAddressData( byte status8bits, byte address16bits, byte data8bits) {
   digitalWrite(latchPinLed, LOW);
-  // MSBFIRST matches the bit to LED mapping.
+  // Use LSBFIRST or MSBFIRST to map the bits to LED lights.
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, address16bits);
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, status8bits);
   digitalWrite(latchPinLed, HIGH);
 }
 
-void printByte(byte b) {
-  for (int i = 7; i >= 0; i--)
-    Serial.print(bitRead(b, i));
-}
-
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // For the clock board.
 #include "RTClib.h"
@@ -56,46 +47,42 @@ void syncCountWithClock() {
 
 // -----------------------------------------------------------------------------
 void processClockNow() {
+  int the12thHour = 0;
   //
   now = rtc.now();
   //
   if (now.second() != theCounterSeconds) {
-    // When the clock second value changes, that's a clock second pulse.
+    // When the clock second value changes, that's a second pulse.
     theCounterSeconds = now.second();
     // clockPulseSecond();
     if (theCounterSeconds == 0) {
-      // When the clock second value changes to zero, that's a clock minute pulse.
+      // When the clock second value changes to zero, that's a minute pulse.
       theCounterMinutes = now.minute();
       if (theCounterMinutes != 0) {
-        clockPulseMinute();
+        // clockPulseMinute();
+        Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
+        Serial.println(theCounterMinutes);
+        // ----------------------------------------------
+        displayTheTime( theCounterMinutes, the12thHour );
       } else {
-        // When the clock minute value changes to zero, that's a clock hour pulse.
+        // When the clock minute value changes to zero, that's an hour pulse.
+        // clockPulseHour();
         theCounterHours = now.hour();
-        clockPulseHour();
+        Serial.print("++ clockPulseHour(), theCounterHours= ");
+        Serial.println(theCounterHours);
+        // Use a 12 hour clock value rather than 24 value.
+        if (theCounterHours > 12) {
+          the12thHour = theCounterHours - 12;
+        } else if (theCounterHours == 0) {
+          the12thHour = 12; // 12 midnight, 12am
+        } else {
+          the12thHour = theCounterHours;
+        }
+        // ----------------------------------------------
+        displayTheTime( theCounterMinutes, the12thHour );
       }
     }
   }
-}
-
-int theHour = 0;
-void clockPulseHour() {
-  Serial.print("++ clockPulseHour(), theCounterHours= ");
-  Serial.println(theCounterHours);
-  Serial.println(theCounterHours);
-  // Use AM/PM rather than 24 hours.
-  if (theCounterHours > 12) {
-    theHour = theCounterHours - 12;
-  } else if (theCounterHours == 0) {
-    theHour = 12; // 12 midnight, 12am
-  } else {
-    theHour = theCounterHours;
-  }
-  displayTheTime( theCounterMinutes, theHour );
-}
-void clockPulseMinute() {
-  Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
-  Serial.println(theCounterMinutes);
-  displayTheTime( theCounterMinutes, theHour );
 }
 
 // ------------------------------------------------------------------------
@@ -113,10 +100,12 @@ void displayTheTime(byte theMinute, byte theHour) {
   if (theMinute < 10) {
     theBinaryMinute = theMinute;
   } else {
-    // There are 3 bits for the tens: 0, 10, 20, 30, 40, or 50.
+    // There are 3 bits for the tens: 0 ... 5 (00, 10, 20, 30, 40, or 50).
     // There are 4 bits for the ones: 0 ... 9.
-    //                         Tens & Minutes: B-tttmmmm
-    //                                         B00001111 = 2 ^ 4 = 16
+    // LED diplay lights: ttt mmmm
+    // Example:      23 = 010 0011
+    //                  Tens & Minutes: B-tttmmmm
+    //                                  B00001111 = 2 ^ 4 = 16
     // theMinute = 10, theBinaryMinute = 00010000
     theMinuteTens = theMinute / 10;
     theMinuteOnes = theMinute - theMinuteTens * 10;
