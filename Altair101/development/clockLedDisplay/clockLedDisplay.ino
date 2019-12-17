@@ -119,62 +119,50 @@ void displayTheTime(byte theMinute, byte theHour) {
   }
   switch (theHour) {
     case 1:
-      //               B11111111
       theBinaryHour1 = B00000010; // Note, on the shift register, B00000001 is not wired, not used.
       theBinaryHour2 = 0;
       break;
     case 2:
-      //               B11111111
       theBinaryHour1 = B00000100;
       theBinaryHour2 = 0;
       break;
     case 3:
-      //               B11111111
       theBinaryHour1 = B00001000;
       theBinaryHour2 = 0;
       break;
     case 4:
-      //               B11111111
       theBinaryHour1 = B00010000;
       theBinaryHour2 = 0;
       break;
     case 5:
-      //               B11111111
       theBinaryHour1 = B00100000;
       theBinaryHour2 = 0;
       break;
     case 6:
-      //               B11111111
       theBinaryHour1 = B01000000;
       theBinaryHour2 = 0;
       break;
     case 7:
-      //               B11111111
       theBinaryHour1 = 0;
       theBinaryHour2 = B00000010;
       break;
     case 8:
-      //               B11111111
       theBinaryHour1 = 0;
       theBinaryHour2 = B00000100;
       break;
     case 9:
-      //               B11111111
       theBinaryHour1 = 0;
       theBinaryHour2 = B00001000;
       break;
     case 10:
-      //               B11111111
       theBinaryHour1 = 0;
       theBinaryHour2 = B00010000;
       break;
     case 11:
-      //               B11111111
       theBinaryHour1 = 0;
       theBinaryHour2 = B00100000;
       break;
     case 12:
-      //               B11111111
       theBinaryHour1 = 0;
       theBinaryHour2 = B01000000;
       break;
@@ -183,6 +171,7 @@ void displayTheTime(byte theMinute, byte theHour) {
   lightsStatusAddressData(theBinaryMinute, theBinaryHour1, theBinaryHour2);
 }
 
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);

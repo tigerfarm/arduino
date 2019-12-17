@@ -10,71 +10,13 @@
   The Altair 101 is a hardware and software emulator of the basic Altair 8800 computer from 1975.
   The current development computer is functionally complete!
 
-  The computer finally has the basic functionality.
-  + It runs Kill the Bit, which is the standard de facto demonstration program of an Altair 8800 and its clones and replicas.
-  + The only major difference, is that I don't have all the 8080 opcodes implemented.
-  + The Altair 101 only has only 256 bytes of memory which is the same as the original basic Altair 8800.
-  + Modern clones and replicas have 64K of memory.
-  + Later, I can add memory and more opcodes to the 101.
-
   ---------------------------------------------
   Current work,
   + In the process of writing and testing the opcode CMP test program.
-
-  As a quick test, re-connect the toggle keyboard to the Dev machine.
-  + The toggle keyboard will replace the current breadboard control buttons.
-  + Decide if I want to use the PCF8574 module for control switch input.
-  + Try adding a clock module. They may not be enough memory available with a Nano.
-
-  ---------------------------------------------
-  Build an new Dev machine.
-
-  The new machine will be mounted on a $4 clipboard from Staples.
-  This will allow me to use it like an Android tablet.
-
-  + Mount the new breadboards onto the clipboard.
-  + Use a cable to plug into a USB power supply that is plugged in a wall socket.
-  + Control the power with an on/off toggle, or use a USB hub with on/off switches.
-  + For portability, I should test using a 9V power supply.
-
-  Re-wire the breadboards:
-  + 1 for shift registers.
-  + 1 for LED lights: status, address, and data.
-  + 1 for the Nano and other modules.
-
-  Integration testing:
-  + Add an SD card reader or clock module onto the Nano.
-  + Maybe use my Nano to Nano communications programs to add another Nano for the SD card reader and LCD.
-
-  ---------------------------------------------
-  Add modern I/O components and controls.
-
-  Add SD card,
-  + Save program memory to card, load program memory from card.
-  ++ Use an on/off/on toggle: up to save (upload), down to load (download).
-
-  Add a 1602 LCD,
-  ++ Confirm messages on the LCD: "Confirm, save to file x." Or, "Confirm, load file x."
-  +++ The file number, is the toggle value. For example, 003.MEM, is A8 and A9 toggles up.
-  ++ View the result: "Saved.", "Loaded.", or "Error."
-
-  Add DS3231 clock.
-  + Add HLDA status light to signal when running in clock mode.
-  + Use an on/off/on toggle to display the time on the LCD.
-  + Time is shown on the LCD, when the LCD isn't used by a running program.
-  + Program option to take over the LEDs to display the time.
-
-  Add MP3 player (DFPlayer) and amp.
-  ++ Controled using an infrared controller. At first, independent from programs running.
-
-  ---------------------------------------------
-  Build my first Altair 101 machine,
-
-  + Complete the final design that will use an Arduino Mega for straight forward expansion.
-  + Order parts to build the machine.
-  + Make enhancements to the case so that it's ready for the electronic parts.
-  + Wire new breadboards to fit into the case.
-  + Put it all together.
+  
+  + Fix the 4 and 7 bit wiring on the toggle console.
+  + Re-connect the toggle keyboard to the Dev machine using a PCF8574.
+  + The toggle console will replace the current breadboard control buttons.
 
   ---------------------------------------------
   Program Development Phase
@@ -85,7 +27,6 @@
   ++ Samples: looping, branching, calling subroutines.
   ++ Continue adding opcodes with sample programs to confirm that the opcodes are working correctly.
 
-  ---------------------------------------------
   ---------------------------------------------
   Processor program sections,
     Sample machine code program in a memory array.

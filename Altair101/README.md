@@ -37,6 +37,64 @@ The 8088 was an 8 bit microprocessor produced by Intel. It's allowed the buildin
 https://sourceforge.net/projects/j8085sim/
 
 --------------------------------------------------------------------------------
+### Next Development Steps
+
+Note, the computer has the basic Altair 8800 functionality.
++ It runs Kill the Bit, which is the standard de facto demonstration program.
++ The Altair 101 only has only 256 bytes of memory which is the same as the original basic Altair 8800.
++ Modern clones and replicas have 64K of memory.
++ Another difference, is that I don't have all the 8080 opcodes implemented.
++ Later, I can add external memory and more implement more opcodes.
+
+##### Complete the Dev Machine
+
+After fixing and completing, the toggle console, the components on a $4 clipboard.
+This will allow me to use it like an Android tablet.
+````
++ Mount the breadboards onto the clipboard.
++ Use a cable to plug into a USB power supply that is plugged in a wall socket.
++ Control the power with an on/off toggle, or use a USB hub with on/off switches.
++ For portability, I should test using a 9V power supply.
+
+Re-wire the breadboards:
+  + 1 breadboard for shift registers.
+  + 1 for LED lights: status, address, and data.
+  + 1 for the Nano and other components.
+
+---------------------------------------------
+Add I/O components and controls.
+
+  Integration testing:
+  + Add an SD card reader or clock module onto the Nano.
+  ++ Clock module also has 4K bytes of EEPROM that can be used for saving/loading programs.
+  ++ Use an on/off/on toggle: up to save (upload), down to load (download).
+  + Maybe use Nano to Nano communications to add another Nano to manage the SD card reader and LCD.
+
+  Add DS3231 clock.
+  + Add HLDA status light to signal when running in clock mode.
+  + Use an on/off/on toggle to display the time on the LCD.
+  + Time is shown on the LCD, when the LCD isn't used by a running program.
+  + Program option to take over the LEDs to display the time.
+
+  Add a 1602 LCD,
+  ++ Confirm messages on the LCD: "Confirm, save to file x." Or, "Confirm, load file x."
+  +++ The file number, is the toggle value. For example, 003.MEM, is A8 and A9 toggles up.
+  ++ View the result: "Saved.", "Loaded.", or "Error."
+
+  Add MP3 player (DFPlayer) and amp.
+  ++ Controled using an infrared controller. At first, independent from programs running.
+
+  ---------------------------------------------
+  Build my first Altair 101 machine,
+
+  + Complete the final design that will use an Arduino Mega for straight forward expansion.
+  + Order parts to build the machine.
+  + Make enhancements to the case so that it's ready for the electronic parts.
+  + Wire new breadboards to fit into the case.
+  + Put it all together.
+````
+
+--------------------------------------------------------------------------------
 ### Down the Retro Path
 
 A quick search showed that their are modern clones, simulators, and emulators available.

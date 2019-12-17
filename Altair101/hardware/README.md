@@ -55,13 +55,16 @@ I/O devices:
 + Rotary encoder: 1 digital pin and an interrupt pin.
 ````
 
-23LC512: SPI interface, uses 5V, and has 64 kilobytes of SRAM.
+External memory:
++ External I2C EEPROM to Arduino [24LC256](http://www.hobbytronics.co.uk/arduino-external-eeprom),
+    256kbit which is 32kbytes.
++ [PCF8570P](https://arduino-related.livejournal.com/1414.html) I2C 2Kb SRAM (static low-voltage RAM)
++ 23LC512: SPI interface, uses 5V, and has 64 kilobytes of SRAM.
 https://www.instructables.com/id/Interface-an-SRAM-bus-to-your-arduino/
 
 DS3231 clock module has a 4K byte (32 kilobits) EEPROM chip, accessible through I2C.
-The only issue is that EEPROM is made for a lot of read/writes.
-However, I just read, "Most EEPROMs have a maximum re-write number of 1 million or more."
-Should be okay for saving and loading programs.
++ The only issue is that EEPROM is made for a lot of read/writes.
+I read, "EEPROM chips are only good for a million rewrites," which is okay for saving and loading programs.
 
 --------------------------------------------------------------------------------
 #### About the Arduino Boards
