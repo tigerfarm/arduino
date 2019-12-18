@@ -1,29 +1,50 @@
 --------------------------------------------------------------------------------
-# Altair 101 Project Notes
+# Coming out of the Computer Dark Ages
 
 A long time ago in a high school far, far away, a teenager read the front cover of a magazine, "World's First Minicomputer...Altair 8800."
-I read the article over and over. I had only seen a computer once before on school trip.
+I read the article over and over.
+The Altair 8800 was the first popular home computer that a person could buy.
+````
+It was a period of technology darkness.
+Students were taught slide rulers in
+math. There were early victories,
+rebels against the evil technophobes
+had bought their own calculators,
+the lightsabers of the age.
+````
+As I lived in the country side, I had only seen a computer once before on a school trip.
 Now, I could buy one for $600, about $3,000 adjusting to 2019 dollars.
-In math class they were still teaching the slide ruler.
-I was one of the few, in the school, that had their own calculator. It cost me $140 (2019 dollars).
-Besides the basic four functions, it also calculated square root.
+Yeah, it was rural where I grew up, a village of 500 people. When I left, there was a guy out changing the sign to 499.
 
-The Altair 8800 was the first popular personal computer, the Model-T of home computers.
-Because I had worked all summer on a golf course, I could afford the basic computer.
+The Altair 8800 was the first home computer, the Model-T of computers.
+Or, as I prefer to call it, the Chevy Corvette of home computers, the first American affordable, popular, sports car, computer.
+Because I had worked all summer on a golf course making over $1/hour, I could afford the basic computer.
+Yeah, I was working full time and under 16 years old.
+But we didn't call it child slave labor, our parents called it, "Get your lazy ass up and do something" work.
+
 Alas, I was short on funds to buy a component to save and load programs.
-The basic computer was a CPU with simple data entry and display, but no permanent storage.
-A floppy drive was $10,000 (2019 dollars).
+The basic computer was a CPU with 256 bytes of memory with a simple data entry system and an LED light display.
+Functional, however, no permanent storage. Which meant, your entered program work was lost when it was powered down.
+And I couldn't afford the $10,000 (2019 dollars) for a floppy drive. So no computer for me while I was in high school.
 
-Now, I am designing and building a computer that emulates the basic Altair 8800.
+--------------------------------------------------------------------------------
+## My 2019 Altair 8800 Emulator
+
+I'm in the final stage of designing and building my basic Altair 8800 emulator.
 Mine will replicate the 8800's user experience.
 I can enter programs by flipping toggles, and then have the enjoyment of watching flashing LED lights as the program runs.
 As an upgrade from the 8800, my Altair, which I'm calling the Altair 101, will also have the ability to load and save programs.
 
 Instead of a smartphone's touch screen display, the Altair 8800 had toggles and LED lights.
-the following photo is my Altair 8800 clone front panel, very retro.
+The following photo is my Altair 8800 clone front panel, very retro.
 
 <img width="600px"  src="FrontPanel01c.jpg"/>
 
+[Link](https://www.in2013dollars.com/us/inflation/1975?amount=621) to the inflation calculator used in this article.
+For example, my calculator cost me $30 in 1975, which is $140 in 2019 dollars.
+Besides the basic four functions, it also calculated percentages.
+
+--------------------------------------------------------------------------------
 The project started late October, 2019.
 I began with a study of the Altair clone videos
 The [first video](https://www.youtube.com/watch?v=suyiMfzmZKs) was a great intro.
