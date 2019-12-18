@@ -10,7 +10,7 @@ Students were taught slide rulers in
 math. There were early victories,
 rebels against the evil technophobes
 had bought their own calculators,
-the lightsabers of the age.
+the lightsaber of the age.
 ````
 As I lived in the country side, I had only seen a computer once before on a school trip.
 Now, I could buy one for $600, about $3,000 adjusting to 2019 dollars.
@@ -31,7 +31,7 @@ And I couldn't afford the $10,000 (2019 dollars) for a floppy drive. So no compu
 For example, my calculator cost me $30 in 1975, which is $140 in 2019 dollars.
 Besides the basic four functions, it also calculated percentages.
 
-<img width="600px"  src="SlideRulerCalculator.jpg"/>
+<img width="600px"  src="hardware/SlideRulerCalculator.jpg"/>
 
 --------------------------------------------------------------------------------
 ## My 2019 Altair 8800 Emulator
