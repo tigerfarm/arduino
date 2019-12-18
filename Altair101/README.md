@@ -27,6 +27,7 @@ The basic computer was a CPU with 256 bytes of memory with a simple data entry s
 Functional, however, no permanent storage. Which meant, your entered program work was lost when it was powered down.
 And I couldn't afford the $10,000 (2019 dollars) for a floppy drive. So no computer for me while I was in high school.
 
+--------------------------------------------------------------------------------
 [Link](https://www.in2013dollars.com/us/inflation/1975?amount=621) to the inflation calculator used in this article.
 For example, my calculator cost me $30 in 1975, which is $140 in 2019 dollars.
 Besides the basic four functions, it also calculated percentages.
