@@ -1,13 +1,23 @@
 --------------------------------------------------------------------------------
 # Altair 101 Project Notes
 
-The Model-T was the first popular car. The Altair 8800 was the first popular personal computer, the Model-T of home computers.
-I wanted an Altair 8800 when it was first available in 1975.
-I could afford the basic computer, but I was short on funds to buy a method of saving and loading programs.
+A long time ago in a high school far, far away, a teenager read the front cover of a magazine, "World's First Minicomputer...Altair 8800."
+I read the article over and over. I had only seen a computer once before on school trip.
+Now, I could buy one for $600, about $3,000 adjusting to 2019 dollars.
+In math class they were still teaching the slide ruler.
+I was one of the few, in the school, that had their own calculator. It cost me $140 (2019 dollars).
+Besides the basic four functions, it also calculated square root.
+
+The Altair 8800 was the first popular personal computer, the Model-T of home computers.
+Because I had worked all summer on a golf course, I could afford the basic computer.
+Alas, I was short on funds to buy a component to save and load programs.
+The basic computer was a CPU with simple data entry and display, but no permanent storage.
+A floppy drive was $10,000 (2019 dollars).
+
 Now, I am designing and building a computer that emulates the basic Altair 8800.
-Mine will replicate the user experience of using an 8800.
+Mine will replicate the 8800's user experience.
 I can enter programs by flipping toggles, and then have the enjoyment of watching flashing LED lights as the program runs.
-As an upgrade from the 8800, my Altair, which I'm calling the Altair 101, will also have the ability to load and save programs from and to an SD card.
+As an upgrade from the 8800, my Altair, which I'm calling the Altair 101, will also have the ability to load and save programs.
 
 Instead of a smartphone's touch screen display, the Altair 8800 had toggles and LED lights.
 the following photo is my Altair 8800 clone front panel, very retro.
@@ -23,7 +33,7 @@ For a learning experience, I wrote out the steps the presenter went through to e
 
 I wanted to try it on a real Altair computer. I seen one on eBay for $5,000.
 Too much for me. Also, I didn't want to get into maintaining an old machine.
-My first computer was a 1983 machine based on the 8086 processor.
+My first computer was a 1983 machine based on the 8086 processor. Cost over $8,000 (adjusted to 2019 dollar value).
 It had 384K of memory. I didn't want that again. I only wanted the fun side of running retro.
 
 The 8080 was an 8 bit microprocessor produced by Intel, released in 1974.
