@@ -27,22 +27,25 @@ The basic computer was a CPU with 256 bytes of memory with a simple data entry s
 Functional, however, no permanent storage. Which meant, your entered program work was lost when it was powered down.
 And I couldn't afford the $10,000 (2019 dollars) for a floppy drive. So no computer for me while I was in high school.
 
+[Link](https://www.in2013dollars.com/us/inflation/1975?amount=621) to the inflation calculator used in this article.
+For example, my calculator cost me $30 in 1975, which is $140 in 2019 dollars.
+Besides the basic four functions, it also calculated percentages.
+
+<img width="600px"  src="SlideRulerCalculator.jpg"/>
+
 --------------------------------------------------------------------------------
 ## My 2019 Altair 8800 Emulator
 
 I'm in the final stage of designing and building my basic Altair 8800 emulator.
-Mine will replicate the 8800's user experience.
-I can enter programs by flipping toggles, and then have the enjoyment of watching flashing LED lights as the program runs.
-As an upgrade from the 8800, my Altair, which I'm calling the Altair 101, will also have the ability to load and save programs.
 
 Instead of a smartphone's touch screen display, the Altair 8800 had toggles and LED lights.
 The following photo is my Altair 8800 clone front panel, very retro.
 
 <img width="600px"  src="FrontPanel01c.jpg"/>
 
-[Link](https://www.in2013dollars.com/us/inflation/1975?amount=621) to the inflation calculator used in this article.
-For example, my calculator cost me $30 in 1975, which is $140 in 2019 dollars.
-Besides the basic four functions, it also calculated percentages.
+Mine will replicate the 8800's user experience.
+I can enter programs by flipping toggles, and then have the enjoyment of watching flashing LED lights as the program runs.
+As an upgrade from the 8800, my Altair, which I'm calling the Altair 101, will also have the ability to save and load programs.
 
 --------------------------------------------------------------------------------
 The project started late October, 2019.
