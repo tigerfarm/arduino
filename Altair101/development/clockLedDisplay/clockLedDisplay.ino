@@ -2,6 +2,13 @@
 /*
   Clock with LED lights for diplay.
 
+  12 lights, one for each hour.
+  3 lights for the tens part of the minutes.
+  4 lights for the ones part of the minutes.
+  Example, 23 minutes is: 010 0011.
+  + 2, binary 010, for the tens.
+  + 3, binary 0011, for the ones. 
+
   Connect the DS3231 Clock and the 1602 LCD display, to the Nano:
   + VCC to Nano 5v, note, also works with 3.3v, example: NodeMCU.
   + GND to Nano ground.
