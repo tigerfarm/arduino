@@ -42,13 +42,13 @@ In the above photo, the slide ruler is set to calculated answer of, 2 x 4.
 I'm in the final stage of designing and building my basic Altair 8800 emulator.
 
 Instead of a smartphone's touch screen display, the Altair 8800 had toggles and LED lights.
-The following photo is my Altair 8800 clone front panel, very retro.
+The following photo is my Altair 8800 replica front panel. Retro, very retro.
 
 <img width="600px"  src="FrontPanel01c.jpg"/>
 
 Mine will replicate the 8800's user experience.
 I can enter programs by flipping toggles, and then have the enjoyment of watching flashing LED lights as the program runs.
-As an upgrade from the 8800, my Altair, which I'm calling the Altair 101, will also have the ability to save and load programs.
+As an upgrade from the basic 8800, my Altair, which I'm calling the Altair 101, will also have the ability to save and load programs.
 
 --------------------------------------------------------------------------------
 The project started late October, 2019.
