@@ -60,11 +60,10 @@ void printByte(byte b) {
 
 PCF8574 pcf20(0x020);
 
-// Set switch flag for on/off.
+// Interrupt setup: interrupt pin to use, interrupt handler routine.
 const int INTERRUPT_PIN = 2;
 boolean switchSetOn = false;
-// Interrupt setup: I2C address, interrupt pin to use, interrupt handler routine.
-void pcf20interrupt() {
+void pcfinterrupt() {
   switchSetOn = true;
 }
 
@@ -80,7 +79,7 @@ void setup() {
   // I2C Two Wire + interrupt initialization
   pcf20.begin();
   pinMode(INTERRUPT_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf20interrupt, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcfinterrupt, CHANGE);
   Serial.println("+ PCF module initialized.");
 
   // ------------------------------

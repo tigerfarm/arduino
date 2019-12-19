@@ -43,9 +43,8 @@
   Reference:
     https://forum.arduino.cc/index.php?topic=204596.msg1506639#msg1506639
 
-  Example statements:
+  Example statement:
     uint8_t value = pcf20.read8();
-    Serial.println(pcf20.read8(), BIN);
 */
 // -----------------------------------------------------------------------------
 #define SWITCH_MESSAGES 1
@@ -63,10 +62,9 @@ void printByte(byte b) {
 PCF8574 pcf20(0x020);
 PCF8574 pcf21(0x021);
 
-// Set switch flag for on/off.
+// Interrupt setup: interrupt pin to use, interrupt handler routine.
 const int INTERRUPT_PIN = 2;
 boolean switchSetOn = false;
-// Interrupt setup: I2C address, interrupt pin to use, interrupt handler routine.
 void pcfinterrupt() {
   switchSetOn = true;
 }
