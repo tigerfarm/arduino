@@ -47,6 +47,7 @@
     uint8_t value = pcf20.read8();
     Serial.println(pcf20.read8(), BIN);
 */
+// -----------------------------------------------------------------------------
 #define SWITCH_MESSAGES 1
 bool runProgram = false;
 byte dataByte;
@@ -66,7 +67,7 @@ PCF8574 pcf21(0x021);
 const int INTERRUPT_PIN = 2;
 boolean switchSetOn = false;
 // Interrupt setup: I2C address, interrupt pin to use, interrupt handler routine.
-void pcf20interrupt() {
+void pcfinterrupt() {
   switchSetOn = true;
 }
 
@@ -79,13 +80,13 @@ void setup() {
   Serial.println("+++ Setup.");
 
   // ------------------------------
-  // PCF device initialization
+  // PCF8574 device initialization
   pcf20.begin();
   pcf21.begin();
-  // PCF device Interrupt initialization
+  // PCF8574 device Interrupt initialization
   pinMode(INTERRUPT_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf20interrupt, CHANGE);
-  Serial.println("+ PCF module initialized.");
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcfinterrupt, CHANGE);
+  Serial.println("+ PCF8574 modules initialized.");
 
   // ------------------------------
   Serial.println("+++ Go to loop.");
@@ -97,13 +98,14 @@ void loop() {
 
   if (switchSetOn) {
     Serial.println("+ Interrupt call, switchSetOn is true.");
+    //
     dataByte = pcf20.read8();
     Serial.print("+ PCF8574 0x20 byte, read8      = ");
     printByte(dataByte);
     Serial.println("");
     Serial.print("+ PCF8574 0x20 byte, readButton = ");
     for (int pinGet = 7; pinGet >= 0; pinGet--) {
-      int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
+      int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input pin
       Serial.print(pinValue);
     }
     Serial.println("");
@@ -114,12 +116,12 @@ void loop() {
     Serial.println("");
     Serial.print("+ PCF8574 0x21 byte, readButton = ");
     for (int pinGet = 7; pinGet >= 0; pinGet--) {
-      int pinValue = pcf21.readButton(pinGet);  // Read each PCF8574 input
+      int pinValue = pcf21.readButton(pinGet);  // Read each PCF8574 input pin
       Serial.print(pinValue);
     }
     Serial.println("");
     //
-    switchSetOn = false;    // Ready for next switch event.
+    switchSetOn = false;    // Set ready for next switch event.
   }
 
   delay (60);
