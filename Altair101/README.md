@@ -2,24 +2,27 @@
 # Coming out of the Computer Dark Ages
 
 A long time ago in a high school far, far away, a teenager read the front cover of a magazine, "World's First Minicomputer...Altair 8800."
-I read the article over and over.
-The Altair 8800 was the first popular home computer that a person could buy.
+I read that Popular Electronics article over and over.
 ````
 It was a period of technology darkness.
 Students were taught slide rulers in
 math. There were early victories,
 rebels against the evil technophobes
 had bought their own calculators,
-the lightsaber of the age.
+the lightsabers of the age.
 ````
-As I lived in the country side, I had only seen a computer once before on a school trip.
-Now, I could buy one for $600, about $3,000 adjusting to 2019 dollars.
-Yeah, it was rural where I grew up, a village of 500 people. When I left, there was a guy out changing the sign to 499.
+The Altair 8800 was the first home computer that a regular person like me, could buy.
+I lived in the country side.
+Yeah, it was rural, a village of 500 people. When I finally left, there was a guy out changing the sign to 499.
+I had only seen a computer once before on a school trip.
+It was a mechanical monster filling a small room. In science fiction terms, it was a steampunk computer.
+The Altair 8800 was a modern electronic wonder.
 
+I could buy one for $600, which is $3,000 adjusted to 2019 dollars.
 The Altair 8800 was the first home computer, the Model-T of computers.
 Or, as I prefer to call it, the Chevy Corvette of home computers, the first American affordable, popular, sports car, computer.
 Because I had worked all summer on a golf course making over $1/hour, I could afford the basic computer.
-Yeah, I was working full time and under 16 years old.
+Yeah, I was working full time. And yeah, I was under 16 years old.
 But we didn't call it child slave labor, our parents called it, "Get your lazy ass up and do something" work.
 
 Alas, I was short on funds to buy a component to save and load programs.
