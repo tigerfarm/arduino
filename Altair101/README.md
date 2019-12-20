@@ -1,8 +1,8 @@
 --------------------------------------------------------------------------------
 # Coming out of the Computer Dark Ages
 
-A long time ago in a high school far, far away, a teenager read the front cover of a magazine, "World's First Minicomputer...Altair 8800."
-I read that Popular Electronics article over and over.
+A long time ago in a high school far, far away, a teenager read a magazine front cover headline, "World's First Minicomputer...Altair 8800."
+It was a monumental event in the history of computer toys, and business work computers.
 ````
 It was a period of technology darkness.
 Students were taught slide rulers in
@@ -11,23 +11,29 @@ rebels against the evil technophobes
 had bought their own calculators,
 the lightsabers of the age.
 ````
-The Altair 8800 was the first home computer that a regular person like me, could buy.
+And now there was the Altair 8800, the first home computer that a regular person like me, could buy.
+
 I lived in the country side.
 Yeah, it was rural, a village of 500 people. When I finally left, there was a guy out changing the sign to 499.
 I had only seen a computer once before on a school trip.
-It was a mechanical monster filling a small room. In science fiction terms, it was a steampunk computer.
-The Altair 8800 was a modern electronic wonder.
-
-I could buy one for $600, which is $3,000 adjusted to 2019 dollars.
-The Altair 8800 was the first home computer, the Model-T of computers.
+It was a mechanical monster filling a small room.
+In science fiction terms, it was a steampunk computer, tall metal body parts reaching to the ceiling, parts buzzing and moving around.
+Where as the Altair 8800 was a modern electronic wonder.
+And I could buy one for $600, which is $3,000 adjusted to 2019 dollars.
+The Altair 8800 was the Model-T of computers.
 Or, as I prefer to call it, the Chevy Corvette of home computers, the first American affordable, popular, sports car, computer.
-Because I had worked all summer on a golf course making over $1/hour, I could afford the basic computer.
-Yeah, I was working full time. And yeah, I was under 16 years old.
-But we didn't call it child slave labor, our parents called it, "Get your lazy ass up and do something" work.
 
-Alas, I was short on funds to buy a component to save and load programs.
-The basic computer was a CPU with 256 bytes of memory with a simple data entry system and an LED light display.
-Functional, however, no permanent storage. Which meant, your entered program work was lost when it was powered down.
+I had worked all summer on a golf course making over a dollar an hour, I could afford the basic computer.
+Yeah, I was working full time. And yeah, I was under 16 years old.
+But we didn't call it child slave labor work, our parents called it, "Get your lazy ass up and do something" work.
+
+It was exciting it could change my life, it could get me out that one horse town.
+I read that Popular Electronics article over and over.
+Alas, I realized it didn't come with the ability to save and load programs.
+The basic computer was a CPU with 256 bytes of memory, less the length of a tweet. 
+It had toggle switches to enter programs and data, and a 36 LED lights for the display.
+Functional, however, no permanent storage. Which meant, when I entered a program, it would be lost when I powered down.
+I was short on funds to buy a component to save and load programs.
 And I couldn't afford the $10,000 (2019 dollars) for a floppy drive. So no computer for me while I was in high school.
 
 --------------------------------------------------------------------------------
