@@ -11,7 +11,7 @@ function startsWith($string, $startString) {
 
 function parseLine($lineParts) {
     $arrayLength = count($lineParts);
-    echo "Array length = " . $arrayLength . " ";
+    echo "++ Array length = " . $arrayLength . " ";
     if ($lineParts[0] == "mvi") {
         echo "MVI";
     }
@@ -19,6 +19,7 @@ function parseLine($lineParts) {
     for ($i = 0; $i < $arrayLength; $i++) {
         echo $lineParts[$i] . "|";
     }
+    echo "\xA";
 }
 
 // -----------------------------------------------------------------------------
@@ -29,15 +30,14 @@ echo "+ Read file: " . $asmFile . "\xA";
 $readFile = fopen($asmFile, "r");
 while (!feof($readFile)) {
     $lineParts = explode(" ", trim(fgets($readFile)));
-    echo "++ ";
     if ($lineParts[0] == "") {
-        echo "Empty line.";
+        // echo "++ Empty line.";
     } elseif (startsWith($lineParts[0], ";")) {
-        echo "Comment line.";
+        // echo "++ Comment line.";
     } else {
         parseLine($lineParts);
     }
-    echo "\xA";
+    // echo "\xA";
 }
 fclose($readFile);
 echo "+ File read, and closed.\xA";

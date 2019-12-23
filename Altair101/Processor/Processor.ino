@@ -94,9 +94,9 @@ PCF8574 pcf21(0x021);
 const PROGMEM int INTERRUPT_PIN = 2;
 
 // Interrupt setup: interrupt pin to use, interrupt handler routine.
-boolean switchSetOn = false;
-void pcfinterrupt() {
-  switchSetOn = true;
+boolean pcf20interrupted = false;
+void pcf20interrupt() {
+  pcf20interrupted = true;
 }
 
 // ------------------------------------------------------------------------
@@ -3209,14 +3209,18 @@ void loop() {
       // Future: use the keypress value(1-8) as input into the running program via IN opcode.
       infraredSwitchInput();
     }
-    checkRunningButtons();
+    if (pcf20interrupted) {
+      checkRunningButtons();
+    }
     // ----------------------------
   } else {
     // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
     if (irrecv.decode(&results)) {
       infraredSwitchControl();
     }
-    checkControlButtons();
+    if (pcf20interrupted) {
+      checkControlButtons();
+    }
     delay(60);
   }
 
