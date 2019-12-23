@@ -26,24 +26,40 @@
 #define SWITCH_MESSAGES 1
 
 bool runProgram = false;
+byte dataByte = 0;
+
+void printByte(byte b) {
+  for (int i = 7; i >= 0; i--)
+    Serial.print(bitRead(b, i));
+}
 
 // -----------------------------------------------------------------------------
 #include <PCF8574.h>
 #include <Wire.h>
 
 PCF8574 pcf20(0x020);
+PCF8574 pcf21(0x021);
 
 // Set switch flag for on/off.
 const int INTERRUPT_PIN = 2;
-boolean switchSetOn = false;
+boolean pcf20interrupted = false;
 // Interrupt setup: I2C address, interrupt pin to use, interrupt handler routine.
 void pcf20interrupt() {
-  switchSetOn = true;
+  pcf20interrupted = true;
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Front Panel Control Switches
+
+// -------------------------
+// Get Front Panel Toggles value, the sense switches.
+
+int toggleSenseByte() {
+  byte toggleByte = pcf21.read8();
+  // Invert byte bits using bitwise not operator: "~";
+  return ~toggleByte;
+}
 
 const int pinStop = 0;
 const int pinRun = 1;
@@ -112,6 +128,12 @@ void controlSwitches() {
           Serial.println("+ Control, Examine.");
 #endif
           // ...
+          dataByte = toggleSenseByte();
+#ifdef SWITCH_MESSAGES
+          Serial.print("++ toggleSenseByte = ");
+          printByte(dataByte);
+          Serial.println("");
+#endif
         }
         break;
       // -------------------
@@ -249,19 +271,19 @@ void setup() {
 void loop() {
 
   if (runProgram) {
-    if (switchSetOn) {
+    if (pcf20interrupted) {
       // Serial.println("+ runProgram = true, switchSetOn is true.");
       runningSwitches();
       delay(30);           // Handle switch debounce.
-      switchSetOn = false;
+      pcf20interrupted = false;
     }
     // ----------------------------
   } else {
-    if (switchSetOn) {
+    if (pcf20interrupted) {
       // Serial.println("+ runProgram = false, switchSetOn is true.");
       controlSwitches();
       delay(30);           // Handle switch debounce.
-      switchSetOn = false;
+      pcf20interrupted = false;
     }
     // ----------------------------
     delay(30);

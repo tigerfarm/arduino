@@ -69,7 +69,7 @@
 // #define INCLUDE_SDCARD 1
 // #define RUN_DELAY 1
 // #define RUN_NOW 1
-// #define SWITCH_MESSAGES 1
+#define SWITCH_MESSAGES 1
 // #define LOG_MESSAGES 1
 
 // -----------------------------------------------------------------------------
@@ -1906,6 +1906,10 @@ void processOpcode() {
     // -------------------------------------------------------------------------------------
     default:
       Serial.print(F(" - Error, unknown instruction."));
+#ifdef LOG_MESSAGES
+#else
+      Serial.println(F(""));
+#endif
       runProgram = false;
       statusByte = statusByte | WAIT_ON;
       statusByte = statusByte | M1_ON;
@@ -2732,6 +2736,7 @@ void checkControlButtons() {
           runProgram = true;
           statusByte = statusByte & WAIT_OFF;
           statusByte = statusByte & HLTA_OFF;
+          processData();
         }
         break;
       // -------------------
@@ -3160,7 +3165,7 @@ void setup() {
   pcf21.begin();
   // PCF8574 device Interrupt initialization
   pinMode(INTERRUPT_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcfinterrupt, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf20interrupt, CHANGE);
   Serial.println("+ PCF8574 modules initialized.");
 
   // ----------------------------------------------------
@@ -3211,6 +3216,7 @@ void loop() {
     }
     if (pcf20interrupted) {
       checkRunningButtons();
+      pcf20interrupted = false; // Reset for next interrupt.
     }
     // ----------------------------
   } else {
@@ -3220,6 +3226,7 @@ void loop() {
     }
     if (pcf20interrupted) {
       checkControlButtons();
+      pcf20interrupted = false; // Reset for next interrupt.
     }
     delay(60);
   }
