@@ -108,6 +108,7 @@ const PROGMEM int latchPinLed = 8;    // pin 12 Latch pin.
 const PROGMEM int clockPinLed = 9;    // pin 11 Clock pin.
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // SD Card module is an SPI bus slave device.
 #ifdef INCLUDE_SDCARD
 
@@ -132,7 +133,7 @@ File myFile;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-const PROGMEM byte theProgram[] = {
+const byte theTestProgram[] = {
   //                //            ; --------------------------------------
   //                //            ; Test CMP and conditional jumps.
   //                              ; Compare a register to A, and then set Carry and Zero bit flags.
@@ -188,7 +189,7 @@ const PROGMEM byte theProgram[] = {
 // -----------------------------------------------------------------------------
 // Kill the Bit program.
 
-const PROGMEM byte theProgramKtb[] = {
+const byte theProgram[] = {
   // ------------------------------------------------------------------
   // Kill the Bit program.
   // Before starting, make sure all the sense switches are in the down position.
