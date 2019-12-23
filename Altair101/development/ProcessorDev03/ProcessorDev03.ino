@@ -2,102 +2,21 @@
 /*
   Altair 101 Processor program
 
-  This is an Altair 8800 Microprocessor Emulator Program.
-  This program emulates the basic Altair 8800 hardware. It's testing on an Arduino Nano.
-  It includes a number of the Intel 8080 microprocessor machine instructions (opcodes).
-  The Altair 8800 is based on the 8080.
+  This is an Altair 8800 emulator program that is being developed on an Arduino Nano microprocessor.
+  It emulates the basic Altair 8800 hardware which was built around the Intel 8080 CPU chip.
+  This program includes a number of the Intel 8080 microprocessor machine instructions (opcodes).
+  It has more than enough opcodes to run the classic programs, Kill the Bit and Pong.
 
-  Altair 101 is a hardware and software emulator of the core, basic, Altair 8800 computer.
-
-  ---------------------------------------------
-  The Altair 101 development computer is functionaly complete!
-
-  The computer finally has the basic functionality of an Altair 8800.
-  + Kill the Bit, is the standard defacto basic demostration program of an Altair 8800 and its clones and replicas.
-  + The only major difference, is that I don't have all the 8080 opcodes implemented.
-  + The Altair 101 only has only 256 bytes of memory which is the same as the original basic Altair 8800.
-  + Modern clones and replicas have 64K of memory.
-  + Later, I can add memory and more opcodes to the 101.
+  The Altair 101 is a hardware and software emulator of the basic Altair 8800 computer from 1975.
+  The current development computer is functionally complete!
 
   ---------------------------------------------
-  In the process of writing and testing the opcode CMP test program.
-
-  ---------------------------------------------
-  Next, complete the physical dev machine.
-
-  The components will be mounted on a $4 clickboard from Staples.
-  This will allow me to use it like an Android tablet.
-
-  -------------------------
-  Create a toggle keyboard.
-
-  Keyboard layout, where '0' are screws to connect the keyboard to the clipboard.
-   ------------------------------------
-  |  1      2       0        3      4  |
-  |                                    |
-  |   A7  A6  A5  A4  A3  A2  A1  A0   |
-  |                                    |
-  |  5         0         0   6      7  |
-   ------------------------------------
-  The keyboard on/off toggles were already mounted and wired.
-  I have added the 7 x on/off/on toggles.
-  I now need to solder wires to them. Then I can use them on the dev machine.
-  I also need mounting screws and/or brackets.
-
-  The toggle keyboard will replace the current breadboard buttons,
-  + The current 8 on/off toggles are for address and data entry. Also used as input switches.
-  ++ Only 8 are required because of the limited 256 bytes of memory.
-  + There will be 7 x on/off/on toggles for program controls,
-  ++ 1. STOP and RUN
-  ++ 2. SINGLE STEP. Maybe add: Examine previous
-  ++ 3. EXAMINE and EXAMINE NEXT
-  ++ 4. DEPOSIT and DEPOSIT NEXT
-  ++ 5. RESET. Not implemented: CLR, clear external I/O equipement.
-  ++ 6. AUX 1, not decided what to control with AUX 1.
-  ++ 7. AUX 2, for save and load from SD card.
-
-  Test PCF8574 module for input.
-  + Basic test program with a library.
-  + Add Processer logic.
+  Current work,
+  + In the process of writing and testing the opcode CMP test program.
   
-  -------------------------
-  Mount the dev machine components onto the clipboard.
-
-  Power for the dev machine,
-  + Cable to plug into a USB power supply that is plugged in a wall socket.
-  + On/off toggle, or use a USB hub with on/off switches.
-  + For portablity, should test using a 9V power supply.
-
-  ---------------------------------------------
-  Add modern I/O components and controls.
-
-  Add SD card,
-  + Save program memory to card, load program memory from card.
-  ++ Use an on/off/on toggle: up to save (upload), down to load (download).
-
-  Add a 1602 LCD,
-  ++ Confirm messages on the LCD: "Confirm, save to file x." Or, "Confirm, load file x."
-  +++ The file number, is the toggle value. For example, 003.MEM, is A8 and A9 toggles up.
-  ++ View the result: "Saved.", "Loaded.", or "Error."
-
-  Add DS3231 clock.
-  + Add HLDA status light to signal when running in clock mode.
-  + Use an on/off/on toggle to display the time on the LCD.
-  + Time is shown on the LCD, when the LCD isn't used by a running program.
-  + Program option to take over the LEDs to display the time.
-
-  Add MP3 player (DFPlayer) and amp.
-  ++ Controled using an infrared controller. At first, independent from programs running.
-
-  ---------------------------------------------
-  Build my first Altair 101 machine,
-
-  + Complete the final design.
-  + Order parts to build the machine.
-  + Make enhancements to the case so that it's ready for the electronic parts.
-  + Build a new breadboard computer to fit into the case.
-  ++ Use an Audruino UNO.
-  + Put it all together.
+  + Fix the 4 and 7 bit wiring on the toggle console.
+  + Re-connect the toggle keyboard to the Dev machine using a PCF8574.
+  + The toggle console will replace the current breadboard control buttons.
 
   ---------------------------------------------
   Program Development Phase
@@ -108,7 +27,6 @@
   ++ Samples: looping, branching, calling subroutines.
   ++ Continue adding opcodes with sample programs to confirm that the opcodes are working correctly.
 
-  ---------------------------------------------
   ---------------------------------------------
   Processor program sections,
     Sample machine code program in a memory array.
@@ -146,9 +64,9 @@
 // #define INCLUDE_LCD 1
 // #define INCLUDE_SDCARD 1
 // #define RUN_DELAY 1
-#define RUN_NOW 1
+// #define RUN_NOW 1
 // #define SWITCH_MESSAGES 1
-#define LOG_MESSAGES 1
+// #define LOG_MESSAGES 1
 
 // -----------------------------------------------------------------------------
 // Infrared Receiver
@@ -164,20 +82,20 @@ decode_results results;
 // -----------------------------------------------------------------------------
 // Input toggle shift register(SN74HC595N) pins
 
-//        Nano pin               74HC595 Pins
-const int dataPinIn = 4;      // pin 14 Data pin.
-const int latchPinIn = 5;     // pin 12 Latch pin.
-const int clockPinIn = 6;     // pin 11 Clock pin.
+//                Nano pin               74HC595 Pins
+const PROGMEM int dataPinIn = 4;      // pin 14 Data pin.
+const PROGMEM int latchPinIn = 5;     // pin 12 Latch pin.
+const PROGMEM int clockPinIn = 6;     // pin 11 Clock pin.
 
-const int dataInputPin = A0;  // Data input pin to check switches. Digital pins and some analog pins, work.
+const PROGMEM int dataInputPin = A0;  // Data input pin to check switches. Digital pins and some analog pins, work.
 
 // ------------------------------------------------------------------------
 // Output LED light shift register(SN74HC595N) pins
 
-//        Nano pin               74HC595 Pins
-const int dataPinLed = 7;     // pin 14 Data pin.
-const int latchPinLed = 8;    // pin 12 Latch pin.
-const int clockPinLed = 9;    // pin 11 Clock pin.
+//                Nano pin               74HC595 Pins
+const PROGMEM int dataPinLed = 7;     // pin 14 Data pin.
+const PROGMEM int latchPinLed = 8;    // pin 12 Latch pin.
+const PROGMEM int clockPinLed = 9;    // pin 11 Clock pin.
 
 // -----------------------------------------------------------------------------
 // SD Card module is an SPI bus slave device.
@@ -204,7 +122,7 @@ File myFile;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-byte theProgram[] = {
+const PROGMEM byte theProgram[] = {
   //                //            ; --------------------------------------
   //                //            ; Test CMP and conditional jumps.
   //                              ; Compare a register to A, and then set Carry and Zero bit flags.
@@ -238,6 +156,20 @@ byte theProgram[] = {
   //                // okay1b:
   //
   //                //            ; --------------------------------------
+  //0RRR110
+  B00001110, 73,    // mvi c,73   ; Move # to register B.
+  //0111SSS
+  B10111001,        // cmp c      ; C = A. Zero bit flag is true. Carry bit is false.
+  B11000010, 3, 0,  // jnz Error  ; Zero bit flag is set, don't jump.
+  B11011010, 3, 0,  // jc Error   ; Carry bit flag is not set, don't jump.
+  B11001010, 44, 0, // jz okay2a  ; Zero bit flag is set, jump.
+  B11000011, 3, 0,  // jmp Error  ; The above should have jumped passed this.
+  //                // okay2a:
+  B11010010, 50, 0, // jnc okay2b ; Carry bit flag is not set, jump to the end of this test.
+  B11000011, 3, 0,  // jmp Error  ; The above should have jumped passed this.
+  //                // okay2b:
+  //
+  //                //            ; --------------------------------------
   0,                // NOP
   B11000011, 5, 0,  // jmp Halt   ; Jump back to the early halt command.
   0000              //            ; End.
@@ -246,7 +178,7 @@ byte theProgram[] = {
 // -----------------------------------------------------------------------------
 // Kill the Bit program.
 
-byte theProgramKtb[] = {
+const PROGMEM byte theProgramKtb[] = {
   // ------------------------------------------------------------------
   // Kill the Bit program.
   // Before starting, make sure all the sense switches are in the down position.
@@ -289,11 +221,11 @@ byte theProgramKtb[] = {
 // -----------------------------------------------------------------------------
 // Memory definitions
 
-const int memoryBytes = 256;
+const PROGMEM int memoryBytes = 256;
 byte memoryData[memoryBytes];
 unsigned int programCounter = 0;     // Program address value
 
-const int stackBytes = 32;
+const PROGMEM int stackBytes = 32;
 int stackData[memoryBytes];
 unsigned int stackPointer = stackBytes;
 
@@ -301,12 +233,11 @@ unsigned int stackPointer = stackBytes;
 // Memory Functions
 
 char charBuffer[17];
-byte zeroByte = B00000000;
 
 void initMemoryToZero() {
   Serial.println(F("+ Initialize all memory bytes to zero."));
   for (int i = 0; i < memoryBytes; i++) {
-    memoryData[i] = zeroByte;
+    memoryData[i] = 0;
   }
 }
 
@@ -343,7 +274,7 @@ void listByteArray(byte btyeArray[], int arraySize) {
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 String theLine = "";
-int displayColumns = 16;
+const PROGMEM int displayColumns = 16;
 void displayPrintln(int theRow, String theString) {
   // To overwrite anything on the current line.
   String printString = theString;
@@ -2883,7 +2814,7 @@ void checkRunningButtons() {
   } else if (switchStop) {
     switchStop = false;
 #ifdef SWITCH_MESSAGES
-    Serial.println("+ Running, STOP Button released.");
+    Serial.println(F("+ Running, STOP Button released."));
     Serial.println(F("> hlt, halt the processor."));
 #endif
     runProgram = false;
@@ -3161,6 +3092,10 @@ void setup() {
 #ifdef RUN_NOW
   runProgram = true;
 #endif
+  Serial.print(F("+ Program loaded."));
+  if (runProgram) {
+    Serial.println(F(" It will start automatically."));
+  }
 
   // ----------------------------------------------------
   irrecv.enableIRIn();

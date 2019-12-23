@@ -13,7 +13,7 @@
   ---------------------------------------------
   Current work,
   + In the process of writing and testing the opcode CMP test program.
-  
+
   + Fix the 4 and 7 bit wiring on the toggle console.
   + Re-connect the toggle keyboard to the Dev machine using a PCF8574.
   + The toggle console will replace the current breadboard control buttons.
@@ -57,6 +57,10 @@
 
   Bitwise operators:
     https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitwiseand/
+
+  Bitwise not operator to invert bits:
+    int a = 103;  // binary:  0000000001100111
+    int b = ~a;   // binary:  1111111110011000 = -104
 */
 // -----------------------------------------------------------------------------
 // Code compilation options.
@@ -80,14 +84,20 @@ IRrecv irrecv(IR_PIN);
 decode_results results;
 
 // -----------------------------------------------------------------------------
-// Input toggle shift register(SN74HC595N) pins
+#include <PCF8574.h>
+#include <Wire.h>
 
-//                Nano pin               74HC595 Pins
-const PROGMEM int dataPinIn = 4;      // pin 14 Data pin.
-const PROGMEM int latchPinIn = 5;     // pin 12 Latch pin.
-const PROGMEM int clockPinIn = 6;     // pin 11 Clock pin.
+PCF8574 pcf20(0x020);
+PCF8574 pcf21(0x021);
 
-const PROGMEM int dataInputPin = A0;  // Data input pin to check switches. Digital pins and some analog pins, work.
+//                Nano pin for control toggle interrupt.
+const PROGMEM int INTERRUPT_PIN = 2;
+
+// Interrupt setup: interrupt pin to use, interrupt handler routine.
+boolean switchSetOn = false;
+void pcfinterrupt() {
+  switchSetOn = true;
+}
 
 // ------------------------------------------------------------------------
 // Output LED light shift register(SN74HC595N) pins
@@ -498,15 +508,6 @@ void displayStatusAddressData() {
   Serial.print(F(" Data: "));
   dataByte = memoryData[programCounter];
   printData(dataByte);
-#else
-  /*
-    Serial.print(" > ");
-    printByte(highByte(programCounter));
-    Serial.print(":");
-    printByte(lowByte(programCounter));
-    Serial.print(":");
-    printByte(lowByte(regA));
-  */
 #endif
 }
 
@@ -2680,24 +2681,12 @@ void readProgramFileIntoMemory(String theFilename) {
 // Front Panel Switches
 
 // -------------------------
-// Get Front Panel Toggles value
+// Get Front Panel Toggles value, the sense switches.
 
-const int numberOfToogles = 8;
 int toggleSenseByte() {
-  byte toggleByte = B00000000;
-  byte toggleAddressBit = B10000000;
-  for (int i = 0; i < numberOfToogles; i++) {
-    digitalWrite(latchPinIn, LOW);
-    shiftOut(dataPinIn, clockPinIn, LSBFIRST, toggleAddressBit);
-    shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
-    shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
-    digitalWrite(latchPinIn, HIGH);
-    if (digitalRead(dataInputPin) == HIGH) {
-      toggleByte = toggleByte | toggleAddressBit;
-    }
-    toggleAddressBit = toggleAddressBit >> 1;
-  }
-  return toggleByte;
+  byte toggleByte = pcf21.read8();
+  // Invert byte bits using bitwise not operator: "~";
+  return ~toggleByte;
 }
 
 // -------------------------
@@ -2706,147 +2695,206 @@ int toggleSenseByte() {
 // Only do the action once, don't repeat if the button is held down.
 // Don't repeat action if the button is not pressed.
 
-const int numberOfSwitches = 7;
-boolean switchState[numberOfSwitches] = {
-  false, false, false, false, false, false, false
-};
+const int pinStop = 0;
+const int pinRun = 1;
+const int pinStep = 2;
+const int pinExamine = 3;
+const int pinExamineNext = 4;
+const int pinDeposit = 5;
+const int pinDepositNext = 6;
+const int pinReset = 7;
+
+boolean switchStop = false;
+boolean switchRun = false;
+boolean switchStep = false;
+boolean switchExamine = false;
+boolean switchExamineNext = false;
+boolean switchDeposit = false;;
+boolean switchDepositNext = false;;
+boolean switchReset = false;
+
 void checkControlButtons() {
-  // Start with the run button.
-  byte dataByte = B01000000;
-  for (int i = 0; i < numberOfSwitches; i++) {
-    digitalWrite(latchPinIn, LOW);
-    shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
-    shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
-    shiftOut(dataPinIn, clockPinIn, LSBFIRST, dataByte);
-    digitalWrite(latchPinIn, HIGH);
-    //
-    if (digitalRead(dataInputPin) == HIGH) {
-      if (!switchState[i]) {
-        switchState[i] = true;
-        // Serial.print("+ Button pressed: ");
-        // Serial.println(i);
-      }
-    } else if (switchState[i]) {
-      switchState[i] = false;
-      //
-      if (i == 0) {
+  for (int pinGet = 7; pinGet >= 0; pinGet--) {
+    int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
+    switch (pinGet) {
+      // -------------------
+      case pinRun:
+        if (pinValue == 0) {    // 0 : switch is on.
+          if (!switchRun) {
+            switchRun = true;
+          }
+        } else if (switchRun) {
+          switchRun = false;
 #ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Run process."));
+          Serial.println(F("+ Control, Run > run the program."));
 #endif
-        runProgram = true;
-        statusByte = statusByte & WAIT_OFF;
-        statusByte = statusByte & HLTA_OFF;
-      } else if (i == 1) {
-        // Single Step
-        statusByte = statusByte & HLTA_OFF;
-        processData();
-      } else if (i == 2) {
+          // ...
+          runProgram = true;
+          statusByte = statusByte & WAIT_OFF;
+          statusByte = statusByte & HLTA_OFF;
+        }
+        break;
+      // -------------------
+      case pinStep:
+        if (pinValue == 0) {
+          if (!switchStep) {
+            switchStep = true;
+          }
+        } else if (switchStep) {
+          switchStep = false;
 #ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Examine toggle address data. Address bits: A0...A7."));
+          Serial.println("+ Control, Step.");
 #endif
-        programCounter = toggleSenseByte();
-        dataByte = memoryData[programCounter];
-        lightsStatusAddressData(statusByte, programCounter, dataByte);
-      } else if (i == 3) {
+          // ...
+          statusByte = statusByte & HLTA_OFF;
+          processData();
+        }
+        break;
+      // -------------------
+      case pinExamine:
+        if (pinValue == 0) {
+          if (!switchExamine) {
+            switchExamine = true;
+          }
+        } else if (switchExamine) {
+          switchExamine = false;
+          // ...
+          programCounter = toggleSenseByte();
+          dataByte = memoryData[programCounter];
+          lightsStatusAddressData(statusByte, programCounter, dataByte);
 #ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Examine Next address."));
+          Serial.println(F("+ Control, Examine."));
+          printByte(dataByte);
+          Serial.println("");
 #endif
-        programCounter++;
-        dataByte = memoryData[programCounter];
-        lightsStatusAddressData(statusByte, programCounter, dataByte);
-      } else if (i == 4) {
-        dataByte = toggleSenseByte();
-        memoryData[programCounter] = dataByte;
-        lightsStatusAddressData(statusByte, programCounter, dataByte);
+        }
+        break;
+      // -------------------
+      case pinExamineNext:
+        if (pinValue == 0) {
+          if (!switchExamineNext) {
+            switchExamineNext = true;
+          }
+        } else if (switchExamineNext) {
+          switchExamineNext = false;
+          // ...
+          programCounter++;
+          dataByte = memoryData[programCounter];
+          lightsStatusAddressData(statusByte, programCounter, dataByte);
 #ifdef SWITCH_MESSAGES
-        Serial.print(F("+ Deposited toggle address byte: "));
-        printByte(dataByte);
-        Serial.println("");
+          Serial.println(F("+ Control, Examine Next."));
+          printByte(dataByte);
+          Serial.println("");
 #endif
-      } else if (i == 5) {
+        }
+        break;
+      // -------------------
+      case pinDeposit:
+        if (pinValue == 0) {
+          if (!switchDeposit) {
+            switchDeposit = true;
+          }
+        } else if (switchDeposit) {
+          switchDeposit = false;
 #ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Deposit toggle byte into the next address."));
+          Serial.println("+ Control, Deposit.");
 #endif
-        dataByte = toggleSenseByte();
-        programCounter++;
-        memoryData[programCounter] = dataByte;
-        lightsStatusAddressData(statusByte, programCounter, dataByte);
-      } else if (i == 6) {
+          // ...
+          dataByte = toggleSenseByte();
+          memoryData[programCounter] = dataByte;
+          lightsStatusAddressData(statusByte, programCounter, dataByte);
+        }
+        break;
+      // -------------------
+      case pinDepositNext:
+        if (pinValue == 0) {
+          if (!switchDepositNext) {
+            switchDepositNext = true;
+          }
+        } else if (switchDepositNext) {
+          switchDepositNext = false;
 #ifdef SWITCH_MESSAGES
-        Serial.println("+ Running RESET Button pressed.");
-        Serial.println(F("+ Reset program counter, program address, to 0."));
+          Serial.println(F("+ Control, Deposit Next."));
 #endif
-        programCounter = 0;
-        stackPointer = 0;
-        dataByte = memoryData[programCounter];
-        lightsStatusAddressData(statusByte, programCounter, dataByte);
-      } else {
-        // Serial.print("+ Button released: ");
-        // Serial.println(i);
-      }
+          // ...
+          programCounter++;
+          dataByte = toggleSenseByte();
+          memoryData[programCounter] = dataByte;
+          lightsStatusAddressData(statusByte, programCounter, dataByte);
+        }
+        break;
+      // -------------------
+      case pinReset:
+        if (pinValue == 0) {
+          if (!switchReset) {
+            switchReset = true;
+          }
+        } else if (switchReset) {
+          switchReset = false;
+#ifdef SWITCH_MESSAGES
+          Serial.println(F("+ Control, Reset."));
+#endif
+          // ...
+          programCounter = 0;
+          stackPointer = 0;
+          dataByte = memoryData[programCounter];
+          lightsStatusAddressData(statusByte, programCounter, dataByte);
+        }
+        break;
     }
-    //
-    dataByte = dataByte >> 1;
+    // -------------------
   }
 }
 
 // -------------------------
 // Front Panel Control Switches, when a program is running.
 
-byte switchByte;
-boolean switchStop = false;
-boolean switchReset = false;
 void checkRunningButtons() {
-  // Check STOP button.
-  switchByte = B10000000;
-  digitalWrite(latchPinIn, LOW);
-  shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
-  shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
-  shiftOut(dataPinIn, clockPinIn, LSBFIRST, switchByte);
-  digitalWrite(latchPinIn, HIGH);
-  if (digitalRead(dataInputPin) == HIGH) {
-    if (!switchStop) {
-      switchStop = true;
+  for (int pinGet = 7; pinGet >= 0; pinGet--) {
+    int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
+    switch (pinGet) {
+      // -------------------
+      case pinStop:
+        if (pinValue == 0) {    // 0 : switch is on.
+          if (!switchStop) {
+            switchStop = true;
+          }
+        } else if (switchStop) {
+          switchStop = false;
 #ifdef SWITCH_MESSAGES
-      Serial.println("+ Running, STOP Button pressed.");
+          Serial.println(F("+ Control, Stop > stop running the program."));
+          Serial.println(F("> hlt, halt the processor."));
 #endif
+          // ...
+          runProgram = false;
+          statusByte = 0;
+          statusByte = statusByte | WAIT_ON;
+          statusByte = statusByte | HLTA_ON;
+          // Only here, causes a compile error: displayStatusAddressData();
+          dataByte = memoryData[programCounter];
+          lightsStatusAddressData(statusByte, programCounter, dataByte);
+        }
+        break;
+      // -------------------
+      case pinReset:
+        if (pinValue == 0) {
+          if (!switchReset) {
+            switchReset = true;
+          }
+        } else if (switchReset) {
+          switchReset = false;
+#ifdef SWITCH_MESSAGES
+          Serial.println(F("+ Control, Reset."));
+#endif
+          // ...
+          programCounter = 0;
+          stackPointer = 0;
+          dataByte = memoryData[programCounter];
+          lightsStatusAddressData(statusByte, programCounter, dataByte);
+        }
+        break;
     }
-  } else if (switchStop) {
-    switchStop = false;
-#ifdef SWITCH_MESSAGES
-    Serial.println("+ Running, STOP Button released.");
-    Serial.println(F("> hlt, halt the processor."));
-#endif
-    runProgram = false;
-    statusByte = 0;
-    statusByte = statusByte | WAIT_ON;
-    statusByte = statusByte | HLTA_ON;
-    displayStatusAddressData();
-  }
-  // Check RESET button.
-  switchByte = B00000001;
-  digitalWrite(latchPinIn, LOW);
-  shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
-  shiftOut(dataPinIn, clockPinIn, LSBFIRST, 0);
-  shiftOut(dataPinIn, clockPinIn, LSBFIRST, switchByte);
-  digitalWrite(latchPinIn, HIGH);
-  if (digitalRead(dataInputPin) == HIGH) {
-    if (!switchReset) {
-      switchReset = true;
-#ifdef SWITCH_MESSAGES
-      Serial.println("+ Running, RESET Button pressed.");
-#endif
-    }
-  } else if (switchReset) {
-    switchReset = false;
-#ifdef SWITCH_MESSAGES
-    Serial.println("+ Running, RESET Button released.");
-    Serial.println(F("+ Reset program counter, program address, to 0."));
-#endif
-    programCounter = 0;
-    stackPointer = 0;
-    dataByte = memoryData[programCounter];
-    lightsStatusAddressData(statusByte, programCounter, dataByte);
+    // -------------------
   }
 }
 
@@ -3106,13 +3154,14 @@ void setup() {
   Serial.println(F("+ LCD ready for output."));
 #endif
 
-  // ----------------------------------------------------
-  pinMode(latchPinIn, OUTPUT);
-  pinMode(clockPinIn, OUTPUT);
-  pinMode(dataPinIn, OUTPUT);
-  pinMode(dataInputPin, INPUT);
-  delay(300);
-  Serial.println("+ Front panel switches ready to be used.");
+  // ------------------------------
+  // PCF8574 device initialization
+  pcf20.begin();
+  pcf21.begin();
+  // PCF8574 device Interrupt initialization
+  pinMode(INTERRUPT_PIN, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcfinterrupt, CHANGE);
+  Serial.println("+ PCF8574 modules initialized.");
 
   // ----------------------------------------------------
   pinMode(latchPinLed, OUTPUT);

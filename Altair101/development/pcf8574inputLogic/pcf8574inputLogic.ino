@@ -10,7 +10,7 @@
    0  1  0 = 0x22
     ...
    1  1  1 = 0x27
-   
+
   PCF8574 Wiring:
   + SDA to Nano A4.
   + SCL to Nano A5.
@@ -18,7 +18,7 @@
   + VCC to Nano 5V
   + INT to Nano interrupt pin, pin 2 in this sample program.
   + P0 ... O7 to switches. Other side of the switch to ground.
-  
+
   Library:
     https://github.com/RobTillaart/Arduino/tree/master/libraries/PCF8574
 */
@@ -212,7 +212,7 @@ void runningSwitches() {
         break;
       // -------------------
       default:
-        delay(3);
+      delay(3);
     }
   }
   // Serial.println(":");
@@ -264,7 +264,7 @@ void loop() {
       switchSetOn = false;
     }
     // ----------------------------
-      delay(30);
+    delay(30);
   }
 
 }

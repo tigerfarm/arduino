@@ -12,12 +12,12 @@ I have not planned on implementing all the 8080 opcodes, just the ones that I wi
 
 From the processor program, [Processor.ino](Processor.ino), the opcode implementation function:
 ````
-    void processOpcode() {
+void processOpcode() {
     ...
-    }
-    void processOpcodeData() {
+}
+void processOpcodeData() {
     ...
-    }
+}
 ````
 
 Click [here](https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodesBinaryList.txt)
