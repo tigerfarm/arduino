@@ -2728,7 +2728,7 @@ void checkControlButtons() {
 #ifdef SWITCH_MESSAGES
           Serial.println(F("+ Control, Run > run the program."));
 #endif
-          // ...
+          // Switch logic...
           runProgram = true;
           statusByte = statusByte & WAIT_OFF;
           statusByte = statusByte & HLTA_OFF;
@@ -2745,7 +2745,7 @@ void checkControlButtons() {
 #ifdef SWITCH_MESSAGES
           Serial.println("+ Control, Step.");
 #endif
-          // ...
+          // Switch logic...
           statusByte = statusByte & HLTA_OFF;
           processData();
         }
@@ -2758,7 +2758,7 @@ void checkControlButtons() {
           }
         } else if (switchExamine) {
           switchExamine = false;
-          // ...
+          // Switch logic...
           programCounter = toggleSenseByte();
           dataByte = memoryData[programCounter];
           lightsStatusAddressData(statusByte, programCounter, dataByte);
@@ -2777,7 +2777,7 @@ void checkControlButtons() {
           }
         } else if (switchExamineNext) {
           switchExamineNext = false;
-          // ...
+          // Switch logic...
           programCounter++;
           dataByte = memoryData[programCounter];
           lightsStatusAddressData(statusByte, programCounter, dataByte);
@@ -2799,7 +2799,7 @@ void checkControlButtons() {
 #ifdef SWITCH_MESSAGES
           Serial.println("+ Control, Deposit.");
 #endif
-          // ...
+          // Switch logic...
           dataByte = toggleSenseByte();
           memoryData[programCounter] = dataByte;
           lightsStatusAddressData(statusByte, programCounter, dataByte);
@@ -2816,7 +2816,7 @@ void checkControlButtons() {
 #ifdef SWITCH_MESSAGES
           Serial.println(F("+ Control, Deposit Next."));
 #endif
-          // ...
+          // Switch logic...
           programCounter++;
           dataByte = toggleSenseByte();
           memoryData[programCounter] = dataByte;
@@ -2834,7 +2834,7 @@ void checkControlButtons() {
 #ifdef SWITCH_MESSAGES
           Serial.println(F("+ Control, Reset."));
 #endif
-          // ...
+          // Switch logic...
           programCounter = 0;
           stackPointer = 0;
           dataByte = memoryData[programCounter];
@@ -2865,7 +2865,7 @@ void checkRunningButtons() {
           Serial.println(F("+ Control, Stop > stop running the program."));
           Serial.println(F("> hlt, halt the processor."));
 #endif
-          // ...
+          // Switch logic...
           runProgram = false;
           statusByte = 0;
           statusByte = statusByte | WAIT_ON;
@@ -2886,7 +2886,7 @@ void checkRunningButtons() {
 #ifdef SWITCH_MESSAGES
           Serial.println(F("+ Control, Reset."));
 #endif
-          // ...
+          // Switch logic...
           programCounter = 0;
           stackPointer = 0;
           dataByte = memoryData[programCounter];

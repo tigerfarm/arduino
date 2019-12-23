@@ -1,5 +1,0 @@
-/Users/dthurston/Projects/arduino/Altair101/development/asm/asm/obj/x86/Debug/.NETFramework,Version=v4.5.AssemblyAttribute.cs
-/Users/dthurston/Projects/arduino/Altair101/development/asm/asm/bin/Debug/asm.pdb
-/Users/dthurston/Projects/arduino/Altair101/development/asm/asm/bin/Debug/asm.exe
-/Users/dthurston/Projects/arduino/Altair101/development/asm/asm/obj/x86/Debug/asm.exe
-/Users/dthurston/Projects/arduino/Altair101/development/asm/asm/obj/x86/Debug/asm.pdb
