@@ -5,8 +5,8 @@
 
   Module adjustable pin address settings:
   A0 A1 A2
-   0  0  0 = 0x20
-   0  0  1 = 0x21
+   0  0  0 = 0x20   Control toggle switches
+   0  0  1 = 0x21   Data toggles
    0  1  0 = 0x22
     ...
    1  1  1 = 0x27
@@ -17,7 +17,10 @@
   + GND to Nano GND
   + VCC to Nano 5V
   + INT to Nano interrupt pin, pin 2 in this sample program.
-  + P0 ... O7 to switches. Other side of the switch to ground.
+  + P0 ... O7 to switches.
+  ++ Other side of the switches are connected together, and then to ground.
+  ++ Connect(plug) the toggle grounds into the PCF8574 module ground.
+  + Daisy chain 2 module: 1) Control toggle switches with interrupt, 2) Data toggles.
 
   Library:
     https://github.com/RobTillaart/Arduino/tree/master/libraries/PCF8574

@@ -3,20 +3,17 @@
   Altair 101 Processor program
 
   This is an Altair 8800 emulator program that is being developed on an Arduino Nano microprocessor.
-  It emulates the basic Altair 8800 hardware which was built around the Intel 8080 CPU chip.
-  This program includes a number of the Intel 8080 microprocessor machine instructions (opcodes).
+  It emulates the basic Altair 8800 hardware--from 1975--which was built around the Intel 8080 CPU chip.
+  This program includes a number of the 8080 microprocessor machine instructions (opcodes).
   It has more than enough opcodes to run the classic programs, Kill the Bit and Pong.
-
-  The Altair 101 is a hardware and software emulator of the basic Altair 8800 computer from 1975.
-  The current development computer is functionally complete!
 
   ---------------------------------------------
   Current work,
   + In the process of writing and testing the opcode CMP test program.
-
-  + Fix the 4 and 7 bit wiring on the toggle console.
-  + Re-connect the toggle keyboard to the Dev machine using a PCF8574.
-  + The toggle console will replace the current breadboard control buttons.
+  + Add the ADI(add imediate) and SUI(subtract imediate) opcode for demos.
+  ++ Inst      Encoding          Flags   Description
+  ++ ADI #     11000110 db       ZSCPA   Add immediate to A
+  ++ SUI #     11010110 db       ZSCPA   Subtract immediate from A
 
   ---------------------------------------------
   Program Development Phase
@@ -58,9 +55,6 @@
   Bitwise operators:
     https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitwiseand/
 
-  Bitwise not operator to invert bits:
-    int a = 103;  // binary:  0000000001100111
-    int b = ~a;   // binary:  1111111110011000 = -104
 */
 // -----------------------------------------------------------------------------
 // Code compilation options.
@@ -77,7 +71,7 @@
 
 #include <IRremote.h>
 
-//        Nano pin
+//          Nano pin
 int IR_PIN = A1;
 
 IRrecv irrecv(IR_PIN);
@@ -2689,8 +2683,11 @@ void readProgramFileIntoMemory(String theFilename) {
 // Get Front Panel Toggles value, the sense switches.
 
 int toggleSenseByte() {
-  byte toggleByte = ~pcf21.read8();
   // Invert byte bits using bitwise not operator: "~";
+  // Bitwise "not" operator to invert bits:
+  //  int a = 103;  // binary:  0000000001100111
+  //  int b = ~a;   // binary:  1111111110011000 = -104
+  byte toggleByte = ~pcf21.read8();
   return toggleByte;
 }
 
