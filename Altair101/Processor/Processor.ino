@@ -2689,9 +2689,9 @@ void readProgramFileIntoMemory(String theFilename) {
 // Get Front Panel Toggles value, the sense switches.
 
 int toggleSenseByte() {
-  byte toggleByte = pcf21.read8();
+  byte toggleByte = ~pcf21.read8();
   // Invert byte bits using bitwise not operator: "~";
-  return ~toggleByte;
+  return toggleByte;
 }
 
 // -------------------------
