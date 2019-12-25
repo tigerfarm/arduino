@@ -1,0 +1,27 @@
+# Ignore my specific variables:
+/nbproject/private/
+/build/
+
+1setvarsCc.sh
+2setvars.sh
+2setvars-Machine.sh
+3setSync-Master.sh
+8setvarsSync-Labs.sh
+#
+/mediaStreams/google_creds.json
+/mediaStreams/package-lock.json
+#
+/flex/plugin-p1/node_modules/
+/flex/plugin-p1/public/
+#
+/java/fileio/build/
+/java/fileio/nbproject/private/
+/java/arrays/build/
+/java/arrays/nbproject/private/
+#
+/wss/venv/
+/wss/__pycache__/
+#
+/sendgrid/node_modules/
+#
+/tigauthy-node/node_modules/

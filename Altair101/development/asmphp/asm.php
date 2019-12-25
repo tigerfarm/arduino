@@ -12,12 +12,12 @@ function startsWith($string, $startString) {
 function parseLine($lineParts) {
     $arrayLength = count($lineParts);
     echo "++ Array length = " . $arrayLength . " ";
-    if ($lineParts[0] == "mvi") {
-        echo "MVI";
-    }
     echo "|";
     for ($i = 0; $i < $arrayLength; $i++) {
         echo $lineParts[$i] . "|";
+    }
+    if ($lineParts[0] == "mvi") {
+        echo "MVI";
     }
     echo "\xA";
 }
