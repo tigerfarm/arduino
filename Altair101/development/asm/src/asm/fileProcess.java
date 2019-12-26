@@ -4,6 +4,64 @@ import java.io.*;
 
 public class fileProcess {
 
+    private void opcodes() {
+        String[] name;
+        name = new String[255];
+        byte[] value;
+        value = new byte[255];
+        int top = 0;
+        // ---------------------------------------------------------------------
+        name[top] = "cmpa";  // 10111SSS
+        value[top++] = (byte) 0b10111111;
+        name[top] = "cmpb";
+        value[top++] = (byte) 0b10111000;
+        name[top] = "cmpc";
+        value[top++] = (byte) 0b10111001;
+        name[top] = "cmpd";
+        value[top++] = (byte) 0b10111010;
+        name[top] = "cmpe";
+        value[top++] = (byte) 0b10111011;
+        name[top] = "cmph";
+        value[top++] = (byte) 0b10111100;
+        name[top] = "cmpl";
+        value[top++] = (byte) 0b10111101;
+        // ---------------------------------------------------------------------
+        name[top] = "hlt";
+        value[top++] = (byte) 0b01110110;
+        // ---------------------------------------------------------------------
+        name[top] = "jmp";
+        value[top++] = (byte) 0b11000011;
+        name[top] = "jnz";   //11 000 010
+        value[top++] = (byte) 0b11000010;
+        name[top] = "jz";
+        value[top++] = (byte) 0b11001010;
+        name[top] = "jnc";
+        value[top++] = (byte) 0b110100010;
+        name[top] = "jc";
+        value[top++] = (byte) 0b11011010;
+        // ---------------------------------------------------------------------
+        name[top] = "mvia";  // 00RRR110
+        value[top++] = (byte) 0b00111110;
+        name[top] = "mvib";
+        value[top++] = (byte) 0b00000110;
+        name[top] = "mvic";
+        value[top++] = (byte) 0b00001110;
+        name[top] = "mvid";
+        value[top++] = (byte) 0b00010110;
+        name[top] = "mvie";
+        value[top++] = (byte) 0b00011110;
+        name[top] = "mvih";
+        value[top++] = (byte) 0b00100110;
+        name[top] = "mvil";
+        value[top++] = (byte) 0b00101110;
+        // ---------------------------------------------------------------------
+        name[top] = "nop";
+        value[top++] = (byte) 0b00000000;
+        // ---------------------------------------------------------------------
+        name[top] = "out";
+        value[top++] = (byte) 0b11100011;
+    }
+
     private void parseLine(String orgLine) {
         String label;
         String opcode;
