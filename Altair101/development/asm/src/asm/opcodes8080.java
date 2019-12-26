@@ -2,16 +2,16 @@ package asm;
 
 public class opcodes8080 {
 
+    private int top = 0;
     private String[] name;
     private byte[] value;
-    private int top = 0;
 
     public opcodes8080() {
         setOpcodeData();
     }
 
     public byte getOpcode(String theName) {
-        byte returnValue = 0;
+        byte returnValue = (byte)255;
         for (int i = 0; i < top; i++) {
             // System.out.println("++ " + i + ": " + name[i] + " " + value[i]);
             if (name[i].equals(theName)) {
@@ -89,12 +89,16 @@ public class opcodes8080 {
         System.out.println("+ End list.");
     }
 
-    public static String toBinary(byte a, int bits) {
-    if (--bits > 0)
-        return toBinary((byte) (a>>1), bits)+((a&0x1)==0?"0":"1");
-    else 
-        return (a&0x1)==0?"0":"1";
-  }
+    public static String printByte(byte aByte) {
+        return toBinary(aByte, 8);
+    }
+    private static String toBinary(byte a, int bits) {
+        if (--bits > 0) {
+            return toBinary((byte) (a >> 1), bits) + ((a & 0x1) == 0 ? "0" : "1");
+        } else {
+            return (a & 0x1) == 0 ? "0" : "1";
+        }
+    }
 
     public static void main(String args[]) {
         System.out.println("+++ Start.");
@@ -102,10 +106,7 @@ public class opcodes8080 {
         opcodes8080 theOpcodes = new opcodes8080();
         //theOpcodes.opcodesList();
         String anOpcode = "jmp";
-        // Integer.toString(100,8) // prints 144 --octal representation
-        // Integer.toString(100,2) // prints 1100100 --binary representation
-        // Integer.toString(100,16) //prints 64 --Hex representation
-        System.out.println("+ Opcode: " + anOpcode + " " + toBinary(theOpcodes.getOpcode(anOpcode), 8));
+        System.out.println("+ Opcode: " + anOpcode + " " + printByte(theOpcodes.getOpcode(anOpcode)));
 
         System.out.println("+++ Exit.");
     }

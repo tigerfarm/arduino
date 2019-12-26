@@ -5,19 +5,12 @@ import java.io.InputStreamReader;
 
 public class asm {
 
+    fileProcess processFile = new fileProcess();
+
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
-    public static void main(String[] args) {
-
-        System.out.println("+++ Start 8080/8085 assembler.");
-        asm dataioObj = new asm();    // none static data input
-        dataioObj.run();
-
-        System.out.println("\n++ Exit.");
-    }
-
     public void run() {
-        fileProcess doList = new fileProcess();
+        // fileProcess doList = new fileProcess();
         String theFilename = "p1.asm";
         String cmd;
         String theRest;
@@ -38,32 +31,50 @@ public class asm {
             int c1 = consoleInLine.indexOf(" ", si);
             if (c1 > 0) {
                 cmd = consoleInLine.substring(si, c1).toLowerCase();
-                theRest = consoleInLine.substring(c1+1).trim();
+                theRest = consoleInLine.substring(c1 + 1).trim();
             } else {
                 cmd = consoleInLine.toLowerCase();
-                theRest = consoleInLine.substring(c1+1);
+                theRest = "";
             }
             //
-            if (cmd.equals("file")) {
-                // > file this.asm
-                ei = theRest.indexOf(" ");
-                if (ei > c1) {
-                    theFilename = theRest.substring(0, ei);
-                } else {
-                    theFilename = theRest;
-                }
-                System.out.println("+ File name to use : " + theFilename + ".");
-            } else if (cmd.equals("list")) {
-                System.out.println("+ List file: " + theFilename + ":");
-                doList.listFile(theFilename);
-                // doList.listFile(theFilename, "p1.txt");
-            }
-            if (consoleInLine.equalsIgnoreCase("help")) {
-                System.out.println("Help");
-                System.out.println("+ file <filename> : set the assembler program file name to use in other commands.");
-                System.out.println("+ list : list the file to screen.");
-                System.out.println("+ exit : Exit program.");
+            System.out.println("+ cmd : " + cmd + ":" + theRest + ".");
+            switch (cmd) {
+                case "go":
+                    System.out.println("+ Process file: " + theFilename + ":");
+                    processFile.parseFile(theFilename);
+                    // doList.listFile(theFilename, "p1.txt");
+                    break;
+                case "file":
+                    // > file this.asm
+                    if (theRest.length() > 0) {
+                        theFilename = theRest;
+                    }
+                    System.out.println("+ File name to use : " + theFilename + ".");
+                    break;
+                case "list":
+                    System.out.println("+ List file: " + theFilename + ":");
+                    processFile.listFile(theFilename);
+                    // doList.listFile(theFilename, "p1.txt");
+                    break;
+                case "help":
+                    System.out.println("Help");
+                    System.out.println("+ file <filename> : set the assembler program file name to use in other commands.");
+                    System.out.println("+ go    : Process the file.");
+                    System.out.println("+ list  : list the file to screen.");
+                    System.out.println("+ exit  : Exit this program.");
+                    break;
+                default:
+                    break;
             }
         }
+    }
+
+    public static void main(String[] args) {
+        System.out.println("+++ Start 8080/8085 assembler.");
+
+        asm asmProcess = new asm();    // none static data input
+        asmProcess.run();
+
+        System.out.println("\n++ Exit.");
     }
 }
