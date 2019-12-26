@@ -2,9 +2,127 @@ package asm;
 
 import java.io.*;
 
-public class list {
+public class fileProcess {
 
-    public static void listFile(String theReadFilename, String theWriteFilename) {
+    private void parseLine(String orgLine) {
+        String label;
+        String opcode;
+        String p1;
+        String p2;
+        String theRest;
+        int si = 0;
+        int ei = 0;
+        int c1 = 0;
+        //
+        String theLine = orgLine.trim();
+        if (theLine.length() == 0) {
+            System.out.println("++");
+            return;
+        }
+        if (theLine.startsWith(";")) {
+            System.out.println("++ " + orgLine);
+            return;
+        }
+        //
+        ei = theLine.indexOf(";");
+        if (ei > 1) {
+            // Remove trailing comment.
+            //    mvi a,1     ; Move 1 to A.
+            //  > mvi a,1
+            theLine = theLine.substring(0, ei).trim();
+        }
+        // ---------------------------------------------------------------------
+        // Label line: "Start:"
+        if (theLine.endsWith(":")) {
+            label = theLine.substring(0, theLine.length() - 1).toLowerCase();
+            System.out.println("++ label: " + label);
+            return;
+        }
+        // ---------------------------------------------------------------------
+        // Opcode line.
+        // Opcodes have 0, 1, or 2 parameters.
+        // 0) nop
+        // 1) jmp Next
+        // 2) mvi a,1
+
+        c1 = theLine.indexOf(" ");
+        if (c1 < 1) {
+            // Opcode, no parameters, example: "nop".
+            opcode = theLine.toLowerCase();
+            System.out.println("++ Opcode, no parameters: " + opcode);
+            return;
+        }
+        //
+        opcode = theLine.substring(0, c1).toLowerCase();
+        theRest = theLine.substring(c1 + 1).trim();
+        //
+        c1 = theRest.indexOf(",");
+        if (c1 < 1) {
+            // Opcode, Single parameter, example: "jmp Next".
+            p1 = theRest;
+            System.out.println("++ Opcode, Single parameter|" + opcode + "| p1|" + p1 + "|");
+            return;
+        }
+        p1 = theRest.substring(0, c1).trim();
+        if (theRest.length() <= c1 + 1) {
+            // Error, example: "mvi e,".
+            System.out.println("++ Opcode|" + opcode + "| p1|" + p1 + "| * Error, missing p2.");
+            return;
+        }
+        p2 = theRest.substring(c1 + 1).trim();
+        //
+        System.out.println("++ Opcode|" + opcode + "| p1|" + p1 + "|" + " p2|" + p2 + "|");
+    }
+
+    public void parseFile(String theReadFilename) {
+        File readFile;
+        FileInputStream fin;
+        DataInputStream pin;
+        try {
+            readFile = new File(theReadFilename);
+            if (!readFile.exists()) {
+                System.out.println("+ ** ERROR, theReadFilename does not exist.");
+                return;
+            }
+            fin = new FileInputStream(readFile);
+            pin = new DataInputStream(fin);
+            String theLine = pin.readLine();
+            while (theLine != null) {
+                parseLine(theLine);
+                theLine = pin.readLine();
+            }
+            pin.close();
+        } catch (IOException ioe) {
+            System.out.print("+ *** IOException: ");
+            System.out.println(ioe.toString());
+        }
+    }
+
+    public void listFile(String theReadFilename) {
+        File readFile;
+        FileInputStream fin;
+        DataInputStream pin;
+        try {
+            readFile = new File(theReadFilename);
+            if (!readFile.exists()) {
+                System.out.println("+ ** ERROR, theReadFilename does not exist.");
+                return;
+            }
+            fin = new FileInputStream(readFile);
+            pin = new DataInputStream(fin);
+            String theLine = pin.readLine();
+            while (theLine != null) {
+                System.out.println("+ " + theLine);
+                theLine = pin.readLine();
+            }
+            pin.close();
+        } catch (IOException ioe) {
+            System.out.print("+ *** IOException: ");
+            System.out.println(ioe.toString());
+        }
+    }
+
+    public static void transFile(String theReadFilename, String theWriteFilename) {
         File readFile;
         FileInputStream fin;
         DataInputStream pin;
@@ -153,21 +271,11 @@ public class list {
     }
 
     public static void main(String args[]) {
+        System.out.println("++ Start.");
+        fileProcess thisProcess = new fileProcess();
 
-        System.out.println("++ Start Class: transWiki2Links");
+        thisProcess.parseFile("p1.asm");
 
-        if (args.length != 2) {
-            System.out.println("+ Syntax: transWiki2Links <read filename> <write filename>");
-            System.out.println("+ Example: transWiki2Links /java2012/opt/wikiDataTiger/Travel.txt /java2012/opt/write/Travel.txt");
-            return;
-        }
-        String theReadFilename = args[0];
-        System.out.println("+ theReadFilename: " + theReadFilename);
-        String theWriteFilename = args[1];
-        System.out.println("+ theWriteFilename: " + theWriteFilename);
-
-        listFile(theReadFilename, theWriteFilename);
-
-        System.out.println("++ Exit...");
+        System.out.println("++ Exit.");
     }
 }

@@ -17,8 +17,12 @@ public class asm {
     }
 
     public void run() {
-        list doList = new list();
+        fileProcess doList = new fileProcess();
         String theFilename = "p1.asm";
+        String cmd;
+        String theRest;
+        int si = 0;
+        int ei = 0;
 
         String thePrompt = "> ";
         System.out.print("+ Enter 'exit' to exit. 'help' to get a command listing.");
@@ -27,24 +31,37 @@ public class asm {
         while (!(consoleInLine.equals("exit"))) {
             System.out.print(thePrompt);
             try {
-                consoleInLine = this.br.readLine();
+                consoleInLine = this.br.readLine().trim();
             } catch (Exception e) {
                 System.out.print("--- Error exception." + e.getMessage());
             }
-            /*
-                if (!consoleInLine.equalsIgnoreCase("")) {
-                    System.out.println("+ Echo input string :" + consoleInLine + ":");
+            int c1 = consoleInLine.indexOf(" ", si);
+            if (c1 > 0) {
+                cmd = consoleInLine.substring(si, c1).toLowerCase();
+                theRest = consoleInLine.substring(c1+1).trim();
+            } else {
+                cmd = consoleInLine.toLowerCase();
+                theRest = consoleInLine.substring(c1+1);
+            }
+            //
+            if (cmd.equals("file")) {
+                // > file this.asm
+                ei = theRest.indexOf(" ");
+                if (ei > c1) {
+                    theFilename = theRest.substring(0, ei);
+                } else {
+                    theFilename = theRest;
                 }
-             */
-            if (consoleInLine.equalsIgnoreCase("file")) {
                 System.out.println("+ File name to use : " + theFilename + ".");
-            } else if (consoleInLine.equalsIgnoreCase("list")) {
+            } else if (cmd.equals("list")) {
                 System.out.println("+ List file: " + theFilename + ":");
-                doList.listFile(theFilename,"p1.txt");
+                doList.listFile(theFilename);
+                // doList.listFile(theFilename, "p1.txt");
             }
             if (consoleInLine.equalsIgnoreCase("help")) {
                 System.out.println("Help");
                 System.out.println("+ file <filename> : set the assembler program file name to use in other commands.");
+                System.out.println("+ list : list the file to screen.");
                 System.out.println("+ exit : Exit program.");
             }
         }

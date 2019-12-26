@@ -1,13 +1,19 @@
 ; Sample test program.
-org 0
 
+org 0
+        ; Program start
 Start:
-mvi a,1
-mvi b,2
+    nop
+    jmp Next
+    mvi a,1     ; Move 1 to A.
+    mvi b,24
+    mvi c,255
+Next:
 mvi c, 3
 mvi d , 5
 mvi e,7
 
 Errors:
 mvi f
-mvi e,7
+mvi e,
+mvi e,7 1
