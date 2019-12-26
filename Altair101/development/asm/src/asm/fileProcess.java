@@ -36,6 +36,22 @@ public class fileProcess {
         System.out.println("+ End of list.");
     }
 
+    public String getLabelAddress(String findName) {
+        // System.out.println("+ findName: " + findName);
+        String returnValue = "";
+        Iterator<String> lName = labelName.iterator();
+        Iterator<Integer> lAddress = labelAddress.iterator();
+        while (lName.hasNext()) {
+            String theName = lName.next();
+            int theAddress = lAddress.next();
+            if (theName.equals(findName)) {
+                returnValue = Integer.toString(theAddress);
+                // System.out.println("+ Found.");
+                break;
+            }
+        }
+        return returnValue;
+    }
     public void listProgramBytes() {
         System.out.println("+ List Program Bytes:");
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
@@ -47,13 +63,17 @@ public class fileProcess {
 
     public void setProgramByteLabels() {
         System.out.println("+ Set Program Labels:");
+        int i = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
             if (theValue.startsWith("p1:")) {
-                System.out.println("++ Label? " + theValue);
+                String lableAddress = getLabelAddress(theValue.substring(3));
+                System.out.println("++ Label: " + theValue + ":" + lableAddress);
+                programBytes.set(i, theValue + ":" + lableAddress);
             } else {
                 System.out.println("++ " + theValue);
             }
+            i++;
         }
         System.out.println("+ End of list.");
     }
