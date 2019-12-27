@@ -52,6 +52,7 @@ public class fileProcess {
         }
         return returnValue;
     }
+
     public void listProgramBytes() {
         System.out.println("+ List Program Bytes:");
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
@@ -61,21 +62,48 @@ public class fileProcess {
         System.out.println("+ End of list.");
     }
 
+    public void programBytesArray() {
+        String sOpcode = "opcode:";
+        int sOpcodeLen = sOpcode.length();
+        String sP1 = "p1:";
+        int sP1Len = sP1.length();
+        int c2;
+        System.out.println("+ Print a program array from the program data:");
+        for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
+            String theValue = it.next();
+            //   B11000011, 9, 0,  // jmp Test
+            if (theValue.startsWith("opcode:")) {
+                //                   12345678
+                System.out.println("");
+                c2 = theValue.indexOf(":", sOpcodeLen + 1);
+                opcode = theValue.substring(sOpcodeLen, c2);
+                System.out.print("   "
+                        + "B" + theValue.substring(c2 + 1)
+                        + ",   // " + theValue.substring(sOpcodeLen, c2)
+                ); // print: B11000011,
+            } else if (theValue.startsWith("p1:")) {
+                c2 = theValue.indexOf(":", sP1Len + 1);
+                System.out.print("   "
+                        + theValue.substring(c2 + 1)
+                        + ",   // " + theValue.substring(sP1Len, c2)
+                ); // print: 9, 0,
+            }
+        }
+        System.out.println("+ End of list.");
+    }
+
     public void setProgramByteLabels() {
-        System.out.println("+ Set Program Labels:");
+        // System.out.println("+ Set Program Labels:");
         int i = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
             if (theValue.startsWith("p1:")) {
                 String lableAddress = getLabelAddress(theValue.substring(3));
-                System.out.println("++ Label: " + theValue + ":" + lableAddress);
+                // System.out.println("++ Label: " + theValue + ":" + lableAddress);
                 programBytes.set(i, theValue + ":" + lableAddress);
-            } else {
-                System.out.println("++ " + theValue);
             }
             i++;
         }
-        System.out.println("+ End of list.");
     }
 
     private void parseLine(String orgLine) {
@@ -131,7 +159,7 @@ public class fileProcess {
                 System.out.println("-- Error, Opcode not valid: " + opcode);
                 return;
             }
-            programBytes.add("opcode:" + opcode + ":" + opcodeBinary);
+            programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
             programTop++;
             System.out.println("++ Opcode: " + opcode + " " + printByte(opcodeBinary));
             return;
@@ -175,9 +203,6 @@ public class fileProcess {
         }
     }
 
-    public void checkLine() {
-    }
-
     public void parseFile(String theReadFilename) {
         File readFile;
         FileInputStream fin;
@@ -193,7 +218,6 @@ public class fileProcess {
             String theLine = pin.readLine();
             while (theLine != null) {
                 parseLine(theLine);
-                checkLine();
                 theLine = pin.readLine();
             }
             pin.close();
@@ -201,6 +225,7 @@ public class fileProcess {
             System.out.print("+ *** IOException: ");
             System.out.println(ioe.toString());
         }
+        System.out.println("");
     }
 
     public void listFile(String theReadFilename) {
@@ -231,10 +256,13 @@ public class fileProcess {
         System.out.println("++ Start.");
         fileProcess thisProcess = new fileProcess();
 
+        System.out.println("\n+ Parse file lines.");
         thisProcess.parseFile("p2.asm");
+        //
         thisProcess.setProgramByteLabels();
-        thisProcess.listLabels();
+        // thisProcess.listLabels();
         thisProcess.listProgramBytes();
+        thisProcess.programBytesArray();
 
         System.out.println("++ Exit.");
     }

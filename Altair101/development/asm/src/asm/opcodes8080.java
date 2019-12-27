@@ -84,7 +84,7 @@ public class opcodes8080 {
     public void opcodesList() {
         System.out.println("+ List opcode data.");
         for (int i = 0; i < top; i++) {
-            System.out.println("++ " + i + ": " + name[i] + " " + value[i]);
+            System.out.println("++ " + i + ": " + name[i] + " " + printByte(value[i]));
         }
         System.out.println("+ End list.");
     }
@@ -104,7 +104,7 @@ public class opcodes8080 {
         System.out.println("+++ Start.");
 
         opcodes8080 theOpcodes = new opcodes8080();
-        //theOpcodes.opcodesList();
+        theOpcodes.opcodesList();
         String anOpcode = "jmp";
         System.out.println("+ Opcode: " + anOpcode + " " + printByte(theOpcodes.getOpcode(anOpcode)));
 
