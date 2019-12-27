@@ -15,14 +15,16 @@ public class fileProcess {
     private String p1;
     private String p2;
     //
+    // Use for storing program bytes and calculating label addresses.
+    private int programTop = 0;
+    private List<String> programBytes = new ArrayList<String>();
+
+    // -------------------------------------------------------------------------
+    //
     private String label;
     private int labelTop = 0;
     private List<String> labelName = new ArrayList<String>();
     private List<Integer> labelAddress = new ArrayList<Integer>();
-    //
-    // Use for storing program bytes and calculating label addresses.
-    private int programTop = 0;
-    private List<String> programBytes = new ArrayList<String>();
 
     public void listLabels() {
         System.out.println("+ List labels:");
@@ -36,6 +38,7 @@ public class fileProcess {
         System.out.println("+ End of list.");
     }
 
+    // -------------------------------------------------------------------------
     public String getLabelAddress(String findName) {
         // System.out.println("+ findName: " + findName);
         String returnValue = "";
@@ -53,6 +56,22 @@ public class fileProcess {
         return returnValue;
     }
 
+    public void setProgramByteLabels() {
+        // System.out.println("+ Set Program Labels:");
+        int i = 0;
+        for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
+            String theValue = it.next();
+            if (theValue.startsWith("p1:")) {
+                String lableAddress = getLabelAddress(theValue.substring(3));
+                // System.out.println("++ Label: " + theValue + ":" + lableAddress);
+                programBytes.set(i, theValue + ":" + lableAddress);
+            }
+            i++;
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    //
     public void listProgramBytes() {
         System.out.println("+ List Program Bytes:");
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
@@ -92,19 +111,57 @@ public class fileProcess {
         System.out.println("+ End of list.");
     }
 
-    public void setProgramByteLabels() {
-        // System.out.println("+ Set Program Labels:");
-        int i = 0;
-        for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
-            String theValue = it.next();
-            if (theValue.startsWith("p1:")) {
-                String lableAddress = getLabelAddress(theValue.substring(3));
-                // System.out.println("++ Label: " + theValue + ":" + lableAddress);
-                programBytes.set(i, theValue + ":" + lableAddress);
-            }
-            i++;
+    // -------------------------------------------------------------------------
+    private void parseOpcode(String opcode) {
+        // Opcode, no parameters, example: "nop".
+        opcodeBinary = theOpcodes.getOpcode(opcode);
+        if (opcodeBinary == theOpcodes.OpcodeNotFound) {
+            opcode = "INVALID-" + opcode;
+            System.out.print("-- Error, ");
+        }
+        programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
+        programTop++;
+        System.out.println("++ Opcode: " + opcode + " " + printByte(opcodeBinary));
+    }
+
+    private void parseOpcode(String opcode, String p1) {
+        // Opcode, single parameter, example: jmp Next
+        opcodeBinary = theOpcodes.getOpcode(opcode);
+        programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
+        programTop++;
+        programBytes.add("p1:" + p1);
+        programTop++;
+        System.out.println("++ Opcode, Single parameter: "
+                + opcode + " " + printByte(opcodeBinary)
+                + " | p1|" + p1 + "|");
+    }
+
+    private void parseOpcode(String opcode, String p1, String p2) {
+        // Opcode, 2 parameters, example: mvi a,1
+        switch (opcode) {
+            case "mvi":
+                opcodeBinary = theOpcodes.getOpcode(opcode + p1);
+                programBytes.add("opcode:" + opcode + p1 + ":" + printByte(opcodeBinary));
+                programTop++;
+                System.out.println("++ Opcode, 2 parameters: "
+                        + opcode + " " + printByte(opcodeBinary)
+                        + " | p1|" + p1 + "|" + " p2|" + p2 + "|");
+                break;
+            case "cmp":
+                opcodeBinary = theOpcodes.getOpcode(opcode + p1);
+                programBytes.add("opcode:" + opcode + p1 + ":" + printByte(opcodeBinary));
+                programTop++;
+                System.out.println("++ Opcode, 2 parameters: "
+                        + opcode + " " + printByte(opcodeBinary)
+                        + " | p1|" + p1 + "|" + " p2|" + p2 + "|");
+                break;
+            default:
+                programBytes.add(p2);
+                System.out.println("++ Opcode|" + opcode + "| p1|" + p1 + "|" + " p2|" + p2 + "|");
+                break;
         }
     }
+    // -------------------------------------------------------------------------
 
     private void parseLine(String orgLine) {
         String theRest;
@@ -145,23 +202,17 @@ public class fileProcess {
         }
         // ---------------------------------------------------------------------
         // Opcode line.
-        // Opcodes have 0, 1, or 2 parameters.
-        // 0) nop
-        // 1) jmp Next
-        // 2) mvi a,1
+        // Opcodes have 0, 1, or 2 parameters. For example:
+        //      0) nop
+        //      1) jmp Next
+        //      2) mvi a,1
 
         c1 = theLine.indexOf(" ");
+        // ------------------------------------------
         if (c1 < 1) {
             // Opcode, no parameters, example: "nop".
             opcode = theLine.toLowerCase();
-            opcodeBinary = theOpcodes.getOpcode(opcode);
-            if (opcodeBinary == 255) {
-                System.out.println("-- Error, Opcode not valid: " + opcode);
-                return;
-            }
-            programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
-            programTop++;
-            System.out.println("++ Opcode: " + opcode + " " + printByte(opcodeBinary));
+            parseOpcode(opcode);
             return;
         }
         //
@@ -169,40 +220,28 @@ public class fileProcess {
         theRest = theLine.substring(c1 + 1).trim();
         //
         c1 = theRest.indexOf(",");
+        // ------------------------------------------
         if (c1 < 1) {
             // Opcode, Single parameter, example: "jmp Next".
             p1 = theRest;
-            opcodeBinary = theOpcodes.getOpcode(opcode);
-            programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
-            programTop++;
-            programBytes.add("p1:" + p1);
-            programTop++;
-            System.out.println("++ Opcode, Single parameter: "
-                    + opcode + " " + printByte(opcodeBinary)
-                    + " | p1|" + p1 + "|");
+            parseOpcode(opcode, p1);
             return;
         }
         p1 = theRest.substring(0, c1).trim();
+        //
+        // ------------------------------------------
         if (theRest.length() <= c1 + 1) {
             // Error, example: "mvi e,".
             System.out.println("++ Opcode|" + opcode + "| p1|" + p1 + "| * Error, missing p2.");
             return;
         }
+        // ------------------------------------------
+        // Opcode, 2 parameters, example: "mvi a,3".
         p2 = theRest.substring(c1 + 1).trim();
-        programBytes.add(p2);
-        //
-        if (opcode.equals("mvi")) {
-            opcodeBinary = theOpcodes.getOpcode(opcode + p1);
-            programBytes.add("opcode:" + opcode + p1 + ":" + printByte(opcodeBinary));
-            programTop++;
-            System.out.println("++ Opcode, Single parameter: "
-                    + opcode + " " + printByte(opcodeBinary)
-                    + " | p1|" + p1 + "|" + " p2|" + p2 + "|");
-        } else {
-            System.out.println("++ Opcode|" + opcode + "| p1|" + p1 + "|" + " p2|" + p2 + "|");
-        }
+        parseOpcode(opcode, p1, p2);
     }
 
+    // -------------------------------------------------------------------------
     public void parseFile(String theReadFilename) {
         File readFile;
         FileInputStream fin;
@@ -228,6 +267,7 @@ public class fileProcess {
         System.out.println("");
     }
 
+    // -------------------------------------------------------------------------
     public void listFile(String theReadFilename) {
         File readFile;
         FileInputStream fin;
@@ -252,6 +292,8 @@ public class fileProcess {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // For testing.
     public static void main(String args[]) {
         System.out.println("++ Start.");
         fileProcess thisProcess = new fileProcess();

@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 public class asm {
 
     fileProcess processFile = new fileProcess();
+    opcodes8080 theOpcodes = new opcodes8080();
 
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
@@ -37,12 +38,12 @@ public class asm {
                 theRest = "";
             }
             //
-            System.out.println("+ cmd : " + cmd + ":" + theRest + ".");
+            // System.out.println("+ cmd : " + cmd + ":" + theRest + ".");
             switch (cmd) {
-                case "go":
-                    System.out.println("+ Process file: " + theFilename + ":");
+                case "parse":
+                    System.out.println("+ -------------------------------------");
+                    System.out.println("+ Parse the file: " + theFilename + ":");
                     processFile.parseFile(theFilename);
-                    // doList.listFile(theFilename, "p1.txt");
                     break;
                 case "file":
                     // > file this.asm
@@ -52,16 +53,35 @@ public class asm {
                     System.out.println("+ File name to use : " + theFilename + ".");
                     break;
                 case "list":
-                    System.out.println("+ List file: " + theFilename + ":");
-                    processFile.listFile(theFilename);
-                    // doList.listFile(theFilename, "p1.txt");
+                    switch (theRest) {
+                        case "":
+                        case "file":
+                            System.out.println("+ -------------------------------------");
+                            System.out.println("+ List file: " + theFilename + ":");
+                            processFile.listFile(theFilename);
+                            break;
+                        default:
+                            System.out.println("- Invalid list option." + theRest);
+                            break;
+                    }
+                    break;
+                case "opcode":
+                    theOpcodes.getOpcodeInfo(theRest);
+                    break;
+                case "opcodes":
+                    System.out.println("+ -------------------------------------");
+                    theOpcodes.opcodesList();
                     break;
                 case "help":
+                    System.out.println("---------------------------------------");
                     System.out.println("Help");
-                    System.out.println("+ file <filename> : set the assembler program file name to use in other commands.");
-                    System.out.println("+ go    : Process the file.");
-                    System.out.println("+ list  : list the file to screen.");
-                    System.out.println("+ exit  : Exit this program.");
+                    System.out.println("+ file <filename>   : set the assembler program file name to use in other commands.");
+                    System.out.println("+ parse             : Parse the file, output to screen.");
+                    System.out.println("+ list              : list the file to screen.");
+                    System.out.println("+ list file         : list the file to screen.");
+                    System.out.println("+ opcode <opcode>   : list the opcodes to screen.");
+                    System.out.println("+ opcodes           : list the opcodes to screen.");
+                    System.out.println("+ exit              : Exit this program.");
                     break;
                 default:
                     break;
