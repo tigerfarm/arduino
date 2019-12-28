@@ -976,7 +976,7 @@ byte jumpLoopNopProgram[] = {
 };
 
 byte TestProgram[] = {
-  0303, 0003, 0000, // 0 1 2 JMP to address: 4 
+  0303, 0003, 0000, // 0 1 2 JMP to address: 3 
   0041, 0006, 0000, // 3 4 5 LXI_HL lb hb. Load 0000:0006 into register H:L.
   0303, 0000, 0000  // 6 7 8
 };

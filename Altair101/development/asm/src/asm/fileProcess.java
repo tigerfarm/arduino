@@ -61,7 +61,7 @@ public class fileProcess {
         int i = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
-            if (theValue.startsWith("p1:")) {
+            if (theValue.startsWith("lb:")) {
                 String lableAddress = getLabelAddress(theValue.substring(3));
                 // System.out.println("++ Label: " + theValue + ":" + lableAddress);
                 programBytes.set(i, theValue + ":" + lableAddress);
@@ -73,7 +73,7 @@ public class fileProcess {
     // -------------------------------------------------------------------------
     //
     public void listProgramBytes() {
-        System.out.println("+ List Program Bytes:");
+        System.out.println("\n+ List Program Bytes:");
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
             System.out.println("++ " + theValue);
@@ -119,7 +119,7 @@ public class fileProcess {
         // Address label
         labelName.add(label);
         labelAddress.add(programTop);
-        System.out.println("++ Label Name: " + label + " Address: " + programTop);
+        System.out.println("++ Label Name: " + label + ", Address: " + programTop);
     }
 
     private void parseOpcode(String opcode) {
@@ -136,13 +136,22 @@ public class fileProcess {
 
     private void parseOpcode(String opcode, String p1) {
         // Opcode, single parameter, example: jmp Next
-        System.out.println("++ Opcode, Single parameter: "
+        System.out.println("++ Opcode: "
                 + opcode + " " + printByte(opcodeBinary)
                 + " p1|" + p1 + "|");
         switch (opcode) {
             case "inr":
                 opcodeBinary = theOpcodes.getOpcode(opcode + p1);
                 programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
+                programTop++;
+                break;
+            case "jmp":
+                opcodeBinary = theOpcodes.getOpcode(opcode);
+                programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
+                programTop++;
+                programBytes.add("lb:" + p1);
+                programTop++;
+                programBytes.add("hb:" + 0);
                 programTop++;
                 break;
             default:
@@ -161,11 +170,13 @@ public class fileProcess {
             case "mvi":
             case "cmp":
                 opcodeBinary = theOpcodes.getOpcode(opcode + p1);
-                programBytes.add("opcode:" + opcode + p1 + ":" + printByte(opcodeBinary));
+                programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
                 programTop++;
-                System.out.println("++ Opcode, 2 parameters: "
+                programBytes.add("p1:" + p1 + ":p2:" + p2 );
+                programTop++;
+                System.out.println("++ Opcode: "
                         + opcode + " " + printByte(opcodeBinary)
-                        + " | p1|" + p1 + "|" + " p2|" + p2 + "|");
+                        + " p1|" + p1 + "|" + " p2|" + p2 + "|");
                 break;
             default:
                 programBytes.add(p2);
@@ -192,12 +203,13 @@ public class fileProcess {
             return;
         }
         if (theLine.startsWith(";")) {
-            System.out.println("++ " + orgLine);
+            System.out.println("++ " + orgLine.trim());
             return;
         }
         //
         ei = theLine.indexOf(";");
         if (ei > 1) {
+            System.out.println("++ " + theLine.substring(ei).trim());
             // Remove trailing comment.
             //    mvi a,1     ; Move 1 to A.
             //  > mvi a,1
@@ -312,9 +324,10 @@ public class fileProcess {
         thisProcess.parseFile("p1.asm");
         //
         thisProcess.setProgramByteLabels();
-        // thisProcess.listLabels();
+        thisProcess.listLabels();
+        //
         thisProcess.listProgramBytes();
-        thisProcess.printProgramBytesArray();
+        // thisProcess.printProgramBytesArray();
 
         System.out.println("++ Exit.");
     }
