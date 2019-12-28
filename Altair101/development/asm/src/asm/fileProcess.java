@@ -91,6 +91,33 @@ public class fileProcess {
         int i = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
+            // Get the line components.
+            switch (opcode) {
+                case "inr":
+                    opcodeBinary = theOpcodes.getOpcode(opcode + p1);
+                    programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
+                    programTop++;
+                    break;
+                case "jmp":
+                    // ++ opcode:jmp:11000011
+                    // ++ lb:Loop:2
+                    // ++ hb:0
+                    opcodeBinary = theOpcodes.getOpcode(opcode);
+                    programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
+                    programTop++;
+                    programBytes.add("lb:" + p1);
+                    programTop++;
+                    programBytes.add("hb:" + 0);
+                    programTop++;
+                    break;
+                default:
+                    opcodeBinary = theOpcodes.getOpcode(opcode);
+                    programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
+                    programTop++;
+                    programBytes.add("p1:" + p1);
+                    programTop++;
+                    break;
+            }
             //   B11000011, 9, 0,  // jmp Test
             if (theValue.startsWith("opcode:")) {
                 if (i > 0) {
@@ -172,7 +199,7 @@ public class fileProcess {
                 opcodeBinary = theOpcodes.getOpcode(opcode + p1);
                 programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
                 programTop++;
-                programBytes.add("p1:" + p1 + ":p2:" + p2 );
+                programBytes.add("p1:" + p1 + ":p2:" + p2);
                 programTop++;
                 System.out.println("++ Opcode: "
                         + opcode + " " + printByte(opcodeBinary)
@@ -327,7 +354,7 @@ public class fileProcess {
         thisProcess.listLabels();
         //
         thisProcess.listProgramBytes();
-        // thisProcess.printProgramBytesArray();
+        thisProcess.printProgramBytesArray();
 
         System.out.println("++ Exit.");
     }
