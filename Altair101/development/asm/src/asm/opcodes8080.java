@@ -93,6 +93,13 @@ public class opcodes8080 {
         info[top] = "hlt      01 110 110  1  Halt processor.";
         value[top++] = (byte) 0b01110110;
         // ---------------------------------------------------------------------
+        name[top] = "inr";
+        info[top] = "inr D    00 DDD 101  1  Increment register DDD. To do, set flags: ZSPA.";
+        name[top] = "inra";  // 00DDD101
+        value[top++] = (byte) 0b00111101;
+        name[top] = "inrb";  // 00DDD101
+        value[top++] = (byte) 0b00000101;
+        // ---------------------------------------------------------------------
         name[top] = "jmp";
         info[top] = "jmp a    11 000 011  3  Unconditional jump.";
         value[top++] = (byte) 0b11000011;

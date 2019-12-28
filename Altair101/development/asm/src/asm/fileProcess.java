@@ -81,19 +81,21 @@ public class fileProcess {
         System.out.println("+ End of list.");
     }
 
-    public void programBytesArray() {
+    public void printProgramBytesArray() {
         String sOpcode = "opcode:";
         int sOpcodeLen = sOpcode.length();
         String sP1 = "p1:";
         int sP1Len = sP1.length();
         int c2;
-        System.out.println("+ Print a program array from the program data:");
+        System.out.println("\n+ Print a program array from the program data:");
+        int i = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
             //   B11000011, 9, 0,  // jmp Test
             if (theValue.startsWith("opcode:")) {
-                //                   12345678
-                System.out.println("");
+                if (i > 0) {
+                    System.out.println("");
+                }
                 c2 = theValue.indexOf(":", sOpcodeLen + 1);
                 opcode = theValue.substring(sOpcodeLen, c2);
                 System.out.print("   "
@@ -107,11 +109,19 @@ public class fileProcess {
                         + ",   // " + theValue.substring(sP1Len, c2)
                 ); // print: 9, 0,
             }
+            i++;
         }
-        System.out.println("+ End of list.");
+        System.out.println("\n+ End of array.");
     }
 
     // -------------------------------------------------------------------------
+    private void parseLabel(String label) {
+        // Address label
+        labelName.add(label);
+        labelAddress.add(programTop);
+        System.out.println("++ Label Name: " + label + " Address: " + programTop);
+    }
+
     private void parseOpcode(String opcode) {
         // Opcode, no parameters, example: "nop".
         opcodeBinary = theOpcodes.getOpcode(opcode);
@@ -126,27 +136,29 @@ public class fileProcess {
 
     private void parseOpcode(String opcode, String p1) {
         // Opcode, single parameter, example: jmp Next
-        opcodeBinary = theOpcodes.getOpcode(opcode);
-        programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
-        programTop++;
-        programBytes.add("p1:" + p1);
-        programTop++;
         System.out.println("++ Opcode, Single parameter: "
                 + opcode + " " + printByte(opcodeBinary)
-                + " | p1|" + p1 + "|");
+                + " p1|" + p1 + "|");
+        switch (opcode) {
+            case "inr":
+                opcodeBinary = theOpcodes.getOpcode(opcode + p1);
+                programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
+                programTop++;
+                break;
+            default:
+                opcodeBinary = theOpcodes.getOpcode(opcode);
+                programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
+                programTop++;
+                programBytes.add("p1:" + p1);
+                programTop++;
+                break;
+        }
     }
 
     private void parseOpcode(String opcode, String p1, String p2) {
         // Opcode, 2 parameters, example: mvi a,1
         switch (opcode) {
             case "mvi":
-                opcodeBinary = theOpcodes.getOpcode(opcode + p1);
-                programBytes.add("opcode:" + opcode + p1 + ":" + printByte(opcodeBinary));
-                programTop++;
-                System.out.println("++ Opcode, 2 parameters: "
-                        + opcode + " " + printByte(opcodeBinary)
-                        + " | p1|" + p1 + "|" + " p2|" + p2 + "|");
-                break;
             case "cmp":
                 opcodeBinary = theOpcodes.getOpcode(opcode + p1);
                 programBytes.add("opcode:" + opcode + p1 + ":" + printByte(opcodeBinary));
@@ -195,9 +207,7 @@ public class fileProcess {
         // Label line: "Start:"
         if (theLine.endsWith(":")) {
             label = theLine.substring(0, theLine.length() - 1);
-            labelName.add(label);
-            labelAddress.add(programTop);
-            System.out.println("++ Label Name: " + label + " Address: " + programTop);
+            parseLabel(label);
             return;
         }
         // ---------------------------------------------------------------------
@@ -299,12 +309,12 @@ public class fileProcess {
         fileProcess thisProcess = new fileProcess();
 
         System.out.println("\n+ Parse file lines.");
-        thisProcess.parseFile("p2.asm");
+        thisProcess.parseFile("p1.asm");
         //
         thisProcess.setProgramByteLabels();
         // thisProcess.listLabels();
         thisProcess.listProgramBytes();
-        thisProcess.programBytesArray();
+        thisProcess.printProgramBytesArray();
 
         System.out.println("++ Exit.");
     }
