@@ -84,38 +84,41 @@ public class fileProcess {
     public void printProgramBytesArray() {
         System.out.println("\n+ Print a program array from the program data:");
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
+            String opcodeStatement = "";
+            String opcodeComment = "";
             String[] byteValues;
+            //
             String theValue = it.next();
-            System.out.println("++ theValue |" + theValue + "|");
-            // Byte type examples:
-            // ++ opcode:jmp:11000011:
-            // ++ immediate:1
-            // ++ lb:There:8
-            // ++ hb:0
+            // System.out.println("++ theValue |" + theValue + "|");
             String[] opcodeValues = theValue.split(":");
             opcode = opcodeValues[1];
             if (opcodeValues[0].equals("opcode")) {
-                System.out.print("   " + "B" + opcodeValues[2] + ",");    // B11000011,
+                opcodeStatement = "B" + opcodeValues[2] + ",";    // B11000011,
             }
             switch (opcode) {
+                case "hlt":
                 case "nop":
                     // ++ opcode:nop:00000000:
-                    System.out.println("   // " + opcode);
+                    opcodeComment = opcode;
                     break;
                 case "inr":
                     // ++ opcode:inr:00111101:a:
-                    System.out.println("   // " + opcode + " " + opcodeValues[3]);
+                    opcodeComment = opcode + " " + opcodeValues[3];
                     break;
                 case "jmp":
+                case "jnz":
+                case "jz":
+                case "jnc":
+                case "jc":
                     // ++ opcode:jmp:11000011:There:
                     // ++ lb:Loop:2
                     // ++ hb:0
                     theValue = it.next();
                     byteValues = theValue.split(":");
-                    System.out.print(" " + byteValues[2] + "," );
+                    opcodeStatement += " " + byteValues[2] + ",";
                     it.next();  // ++ hb:0
-                    System.out.print(" 0," );
-                    System.out.println("   " + "// " + opcode + " " + opcodeValues[3]);
+                    opcodeStatement += " 0,";
+                    opcodeComment = opcode + " " + opcodeValues[3];
                     break;
                 case "mvi":
                     // mvi a,1
@@ -123,12 +126,22 @@ public class fileProcess {
                     // immediate:1
                     theValue = it.next();
                     byteValues = theValue.split(":");
-                    System.out.print(" " + byteValues[1] + "," );
-                    System.out.println("   " + "// " + opcode + " " + opcodeValues[3] + "," + opcodeValues[4]);
+                    opcodeStatement += " " + byteValues[1] + ",";
+                    opcodeComment = opcode + " " + opcodeValues[3] + "," + opcodeValues[4];
+                    break;
+                case "out":
+                    // out 39
+                    // ++ opcode:out:11100011:39
+                    // immediate:39
+                    theValue = it.next();
+                    byteValues = theValue.split(":");
+                    opcodeStatement += " " + byteValues[1] + ",";
+                    opcodeComment = opcode + " " + opcodeValues[3];
                     break;
                 default:
                     break;
             }
+            System.out.println("   " + opcodeStatement + "   // " + opcodeComment);
         }
         System.out.println("\n+ End of array.");
     }
@@ -168,6 +181,10 @@ public class fileProcess {
                 programTop++;
                 break;
             case "jmp":
+            case "jnz":
+            case "jz":
+            case "jnc":
+            case "jc":
                 // jmp There
                 opcodeBinary = theOpcodes.getOpcode(opcode);
                 programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary) + ":" + p1);
@@ -344,7 +361,8 @@ public class fileProcess {
         fileProcess thisProcess = new fileProcess();
 
         System.out.println("\n+ Parse file lines.");
-        thisProcess.parseFile("p1.asm");
+        // thisProcess.parseFile("p1.asm");
+        thisProcess.parseFile("opcodeCmp.asm");
         //
         thisProcess.setProgramByteLabels();
         thisProcess.listLabels();
