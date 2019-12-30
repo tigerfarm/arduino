@@ -94,28 +94,13 @@ public class fileProcess {
             // Get the line components.
             switch (opcode) {
                 case "inr":
-                    opcodeBinary = theOpcodes.getOpcode(opcode + p1);
-                    programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
-                    programTop++;
                     break;
                 case "jmp":
                     // ++ opcode:jmp:11000011
                     // ++ lb:Loop:2
                     // ++ hb:0
-                    opcodeBinary = theOpcodes.getOpcode(opcode);
-                    programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
-                    programTop++;
-                    programBytes.add("lb:" + p1);
-                    programTop++;
-                    programBytes.add("hb:" + 0);
-                    programTop++;
                     break;
                 default:
-                    opcodeBinary = theOpcodes.getOpcode(opcode);
-                    programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
-                    programTop++;
-                    programBytes.add("p1:" + p1);
-                    programTop++;
                     break;
             }
             //   B11000011, 9, 0,  // jmp Test
