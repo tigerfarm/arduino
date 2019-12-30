@@ -28,13 +28,13 @@ One other note, I have the cheap cheap ones, I set my IDE to use “Processor AT
 https://www.allaboutcircuits.com/projects/using-the-arduinos-analog-io/
 
 ````
-Name       Processor   Operating/Input  CPU Speed Analog In/Out  Digital IO/PWM  EEPROM[kB]  SRAM[kB]  Flash[kB]  USB   UART
-                        Voltage                                                                        (program)
-Uno        ATmega328P  5 V / 7-9 V      16 MHz     6/0           14/6            1             2          32      Regular  1
-Nano       ATmega328P  5 V / 7-9 V      16 MHz     8/0           14/6            1             2          32      Mini     1
-Mega 2560  ATmega2560  5 V / 7-12 V     16 MHz    16/0           54/15           4             8         256      Regular  4
-Due        ATSAM3X8E   3.3 V / 7-12 V   84 MHz    12/2           54/12           -            96         512      Micro    4
-Blue Pill  STM32L0 ARM® 2.6V ~ 3.6V     72 MHz                                                20          64
+Name       Processor   Operating/Input  CPU   Analog  Digital  EEPROM  SRAM  Flash]  USB   UART
+                        Voltage        Speed  In/Out  IO/PWM    [kB]   [kB]  [kB]                                                (program)
+Uno        ATmega328P  5 V / 7-9 V     16 MHz   6/0   14/6        1      2    32   Regular  1
+Nano       ATmega328P  5 V / 7-9 V     16 MHz   8/0   14/6        1      2    32   Mini     1
+Mega 2560  ATmega2560  5 V / 7-12 V    16 MHz  16/0   54/15       4      8   256   Regular  4
+Due        ATSAM3X8E   3.3 V / 7-12 V  84 MHz  12/2   54/12       -     96   512   Micro    4
+Blue Pill  STM32L0 ARM® 2.6V ~ 3.6V    72 MHz                           20    64
 ````
 
 Another 32 bit board is the STM32, STM32L031K6, STM32L0 ARM® MCU 32-Bit
