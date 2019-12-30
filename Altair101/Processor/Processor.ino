@@ -130,54 +130,45 @@ File myFile;
 const byte theTestProgram[] = {
   //                //            ; --------------------------------------
   //                //            ; Test CMP and conditional jumps.
-  //                              ; Compare a register to A, and then set Carry and Zero bit flags.
-  //                              ; If #=A, set Zero bit to 1, Carry bit to 0. If #>A, Carry bit = 1. If #<A, Carry bit = 0.
-  //                              ; Note, register A remain the same after the compare.
-  //
-  B11000011, 6, 0,  // jmp Test   ; Jump to bypass the halt.
-  //
-  //                // Error:
-  B11100011, 39,    // out 39     ; Print the registers other system values.
-  //
-  //                // Halt:
-  B01110110,        // hlt        ; The program will halt at each iteration, after the first.
-  //
-  //                //            ; --------------------------------------
-  //                // Test:
-  B00111110, 73,    // mvi a,73   ; Move # to register A.
-  //
-  //                //            ; --------------------------------------
-  //0RRR110
-  B00000110, 73,    // mvi b,73   ; Move # to register B.
-  //0111SSS
-  B10111000,        // cmp b      ; B = A. Zero bit flag is true. Carry bit is false.
-  B11000010, 3, 0,  // jnz Error  ; Zero bit flag is set, don't jump.
-  B11011010, 3, 0,  // jc Error   ; Carry bit flag is not set, don't jump.
-  B11001010, 23, 0, // jz okay1a  ; Zero bit flag is set, jump.
-  B11000011, 3, 0,  // jmp Error  ; The above should have jumped passed this.
-  //                // okay1a:
-  B11010010, 29, 0, // jnc okay1b ; Carry bit flag is not set, jump to the end of this test.
-  B11000011, 3, 0,  // jmp Error  ; The above should have jumped passed this.
-  //                // okay1b:
-  //
-  //                //            ; --------------------------------------
-  //0RRR110
-  B00001110, 73,    // mvi c,73   ; Move # to register B.
-  //0111SSS
-  B10111001,        // cmp c      ; C = A. Zero bit flag is true. Carry bit is false.
-  B11000010, 3, 0,  // jnz Error  ; Zero bit flag is set, don't jump.
-  B11011010, 3, 0,  // jc Error   ; Carry bit flag is not set, don't jump.
-  B11001010, 44, 0, // jz okay2a  ; Zero bit flag is set, jump.
-  B11000011, 3, 0,  // jmp Error  ; The above should have jumped passed this.
-  //                // okay2a:
-  B11010010, 50, 0, // jnc okay2b ; Carry bit flag is not set, jump to the end of this test.
-  B11000011, 3, 0,  // jmp Error  ; The above should have jumped passed this.
-  //                // okay2b:
-  //
-  //                //            ; --------------------------------------
-  0,                // NOP
-  B11000011, 5, 0,  // jmp Halt   ; Jump back to the early halt command.
-  0000              //            ; End.
+  B11000011, 6, 0,   // jmp Test
+  B11100011, 39,   // out 39
+  B01110110,   // hlt
+  B00111110, 73,   // mvi a,73
+  B00000110, 73,   // mvi b,73
+  B10111000,   // cmp b
+  B11000010, 3, 0,   // jnz Error
+  B11011010, 3, 0,   // jc Error
+  B11001010, 23, 0,   // jz okayb1
+  B11000011, 3, 0,   // jmp Error
+  B10100010, 29, 0,   // jnc okayb2
+  B11000011, 3, 0,   // jmp Error
+  B00001110, 73,   // mvi c,73
+  B10111001,   // cmp c
+  B11000010, 3, 0,   // jnz Error
+  B11011010, 3, 0,   // jc Error
+  B11001010, 44, 0,   // jz okayc1
+  B11000011, 3, 0,   // jmp Error
+  B10100010, 50, 0,   // jnc okayc2
+  B11000011, 3, 0,   // jmp Error
+  B00010110, 73,   // mvi d,73
+  B10111010,   // cmp d
+  B11000010, 3, 0,   // jnz Error
+  B11011010, 3, 0,   // jc Error
+  B11001010, 65, 0,   // jz okayd1
+  B11000011, 3, 0,   // jmp Error
+  B10100010, 71, 0,   // jnc okayd2
+  B11000011, 3, 0,   // jmp Error
+  B00011110, 73,   // mvi e,73
+  B10111011,   // cmp e
+  B11000010, 3, 0,   // jnz Error
+  B11011010, 3, 0,   // jc Error
+  B11001010, 86, 0,   // jz okaye1
+  B11000011, 3, 0,   // jmp Error
+  B10100010, 92, 0,   // jnc okaye2
+  B11000011, 3, 0,   // jmp Error
+  B00000000,   // nop
+  B11000011, 5, 0,   // jmp Halt
+  0                  // end
 };
 
 // -----------------------------------------------------------------------------

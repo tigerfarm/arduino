@@ -101,6 +101,7 @@ public class fileProcess {
                     // ++ opcode:nop:00000000:
                     opcodeComment = opcode;
                     break;
+                case "cmp":
                 case "inr":
                     // ++ opcode:inr:00111101:a:
                     opcodeComment = opcode + " " + opcodeValues[3];
@@ -143,6 +144,7 @@ public class fileProcess {
             }
             System.out.println("   " + opcodeStatement + "   // " + opcodeComment);
         }
+        System.out.println("   0   // End of program");
         System.out.println("\n+ End of array.");
     }
 
