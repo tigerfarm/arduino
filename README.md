@@ -27,7 +27,8 @@ One other note, I have the cheap cheap ones, I set my IDE to use “Processor AT
 + pulse-width modulate (PWM), example: control brightness of an LED using analogWrite(x) to an LED on a digital PWM pin.
 https://www.allaboutcircuits.com/projects/using-the-arduinos-analog-io/
 
-````                                                                Program  Dynamic
+````
+                                                                    Program  Dynamic
 Name       Processor   Operating/Input  CPU   Analog  Digital  EEPROM  SRAM  Flash  USB   UART
                         Voltage        Speed  In/Out  IO/PWM    [kB]   [kB]  [kB]
 Uno        ATmega328P  5 V / 7-9 V     16 MHz   6/0   14/6        1      2    32   Regular  1
