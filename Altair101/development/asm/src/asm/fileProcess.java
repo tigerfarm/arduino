@@ -82,46 +82,53 @@ public class fileProcess {
     }
 
     public void printProgramBytesArray() {
-        String sOpcode = "opcode:";
-        int sOpcodeLen = sOpcode.length();
-        String sP1 = "p1:";
-        int sP1Len = sP1.length();
-        int c2;
         System.out.println("\n+ Print a program array from the program data:");
-        int i = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
+            String[] byteValues;
             String theValue = it.next();
-            // Get the line components.
+            System.out.println("++ theValue |" + theValue + "|");
+            // Byte type examples:
+            // ++ opcode:jmp:11000011:
+            // ++ immediate:1
+            // ++ lb:There:8
+            // ++ hb:0
+            String[] opcodeValues = theValue.split(":");
+            opcode = opcodeValues[1];
+            if (opcodeValues[0].equals("opcode")) {
+                System.out.print("   " + "B" + opcodeValues[2] + ",");    // B11000011,
+            }
             switch (opcode) {
+                case "nop":
+                    // ++ opcode:nop:00000000:
+                    System.out.println("   // " + opcode);
+                    break;
                 case "inr":
+                    // ++ opcode:inr:00111101:a:
+                    System.out.println("   // " + opcode + " " + opcodeValues[3]);
                     break;
                 case "jmp":
-                    // ++ opcode:jmp:11000011
+                    // ++ opcode:jmp:11000011:There:
                     // ++ lb:Loop:2
                     // ++ hb:0
+                    theValue = it.next();
+                    byteValues = theValue.split(":");
+                    System.out.print(" " + byteValues[2] + "," );
+                    it.next();  // ++ hb:0
+                    System.out.print(" 0," );
+                    System.out.println("   " + "// " + opcode + " " + opcodeValues[3]);
+                    break;
+                case "mvi":
+                    // mvi a,1
+                    // ++ opcode:mvi:00111110:a:1
+                    // immediate:1
+                    theValue = it.next();
+                    byteValues = theValue.split(":");
+                    System.out.print(" " + byteValues[1] + "," );
+                    System.out.println("   " + "// " + opcode + " " + opcodeValues[3] + "," + opcodeValues[4]);
                     break;
                 default:
                     break;
             }
-            //   B11000011, 9, 0,  // jmp Test
-            if (theValue.startsWith("opcode:")) {
-                if (i > 0) {
-                    System.out.println("");
-                }
-                c2 = theValue.indexOf(":", sOpcodeLen + 1);
-                opcode = theValue.substring(sOpcodeLen, c2);
-                System.out.print("   "
-                        + "B" + theValue.substring(c2 + 1)
-                        + ",   // " + theValue.substring(sOpcodeLen, c2)
-                ); // print: B11000011,
-            } else if (theValue.startsWith("p1:")) {
-                c2 = theValue.indexOf(":", sP1Len + 1);
-                System.out.print("   "
-                        + theValue.substring(c2 + 1)
-                        + ",   // " + theValue.substring(sP1Len, c2)
-                ); // print: 9, 0,
-            }
-            i++;
         }
         System.out.println("\n+ End of array.");
     }
@@ -152,14 +159,18 @@ public class fileProcess {
                 + opcode + " " + printByte(opcodeBinary)
                 + " p1|" + p1 + "|");
         switch (opcode) {
+            case "cmp":
             case "inr":
+                // cmp c
+                // inr a
                 opcodeBinary = theOpcodes.getOpcode(opcode + p1);
-                programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
+                programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary) + ":" + p1);
                 programTop++;
                 break;
             case "jmp":
+                // jmp There
                 opcodeBinary = theOpcodes.getOpcode(opcode);
-                programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
+                programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary) + ":" + p1);
                 programTop++;
                 programBytes.add("lb:" + p1);
                 programTop++;
@@ -168,7 +179,7 @@ public class fileProcess {
                 break;
             default:
                 opcodeBinary = theOpcodes.getOpcode(opcode);
-                programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
+                programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary) + ":" + p1);
                 programTop++;
                 programBytes.add("p1:" + p1);
                 programTop++;
@@ -180,11 +191,11 @@ public class fileProcess {
         // Opcode, 2 parameters, example: mvi a,1
         switch (opcode) {
             case "mvi":
-            case "cmp":
+                // mvi a,1
                 opcodeBinary = theOpcodes.getOpcode(opcode + p1);
-                programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary));
+                programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary) + ":" + p1 + ":" + p2);
                 programTop++;
-                programBytes.add("p1:" + p1 + ":p2:" + p2);
+                programBytes.add("immediate:" + p2);
                 programTop++;
                 System.out.println("++ Opcode: "
                         + opcode + " " + printByte(opcodeBinary)
