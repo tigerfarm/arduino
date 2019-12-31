@@ -75,7 +75,7 @@
 // #define RUN_DELAY 1
 // #define RUN_NOW 1
 // #define SWITCH_MESSAGES 1
-#define LOG_MESSAGES 1
+// #define LOG_MESSAGES 1
 
 // -----------------------------------------------------------------------------
 // Infrared Receiver
@@ -138,7 +138,7 @@ File myFile;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-const byte theProgram[] = {
+const byte theProgramCmp[] = {
   //                //            ; --------------------------------------
   //                //            ; Test CMP and conditional jumps.
   B11000011, 6, 0,     //   0: jmp Test
@@ -185,50 +185,32 @@ const byte theProgram[] = {
 // -----------------------------------------------------------------------------
 // Kill the Bit program.
 
-const byte theProgramKtb[] = {
+const byte theProgram[] = {
   // ------------------------------------------------------------------
   // Kill the Bit program.
   // Before starting, make sure all the sense switches are in the down position.
-  //
-  //                    //            ; Start program.
-  0,                    // org 0      ; An assembler directive.
-  0041, 0, 0,           // LXI H,0    ; Move the lb hb data values into the register pair H(hb):L(lb). Initialize counter
-  0026, 128,            // mvi D,80h  ; Move db to register D. Set initial display bit.  080h = 128 = regD = 10 000 000
-  0001, 0, 5,           // LXI B,5    ; Load a(lb:hb) into register B:C. Higher value = faster.
-  //            ;    Default: 0014 = B:C  = 00 010 000
-  //            ;    Slow:    0020 = B:C  = 00 010 000
-  //            ;    Nice:    0040 = B:C  = 00 100 000
-  //            ;    Fast:    0100 = B:C  = 01 000 000
-  //            ;Too fast:    0100 = B:C  = 01 001 000
-  //
-  //  ; Display bit pattern on upper 8 address lights.
-  //                    // BEG:
-  // 0343, 38,
-  // 0166,                 // HLT
-  0032,                 // ldax d     ; Move data from address D:E, to register A.
-  0032,                 // ldax d     ; Move data from address D:E, to register A.
-  0032,                 // ldax d     ; Move data from address D:E, to register A.
-  0032,                 // ldax d     ; Move data from address D:E, to register A.
-  //
-  0011,                 // DAD B      ; Add B:C to H:L. Set carry bit. Increments the display counter
-  0322, 9, 0,           // JNC BEG    ; If carry bit false, jump to BEG, LDAX instruction start.
-  //
-  // 0343, 32,             // out d      ; Show register D, which contains the value that is matched to input toggles.
-  0333, 0377,           // IN 0ffh    ; Input into A. Check for toggled input, at port 377 (toggle sense switches), that can kill the bit.
-  0252,                 // XRA D      ; Exclusive OR register with A
-  //
-  0017,                 // RRC        ; Rotate A right (shift byte right 1 bit). Set carry bit. Rotate display right one bit
-  0127,                 // MOV D,A    ; Move register A to register D. Move data to display reg
-  //
-  0303, 9, 0,           // JMP BEG    ; Jump to BEG, halt before LDAX instructions restart.
-  // ------------------------------------------------------------------
-  0000, 0000, 0000      //             ; end
+  B00000000,           //   0: nop
+  B00100001, 0, 0,     //   1: lxi h,0
+  B00010110, 0x80,      //   4: mvi d,080h ... Change 080h to 0x80 to 128.
+  B00000001, 0, 5,     //   6: lxi b,5
+  B00011010,           //   9: ldax d
+  B00011010,           //  10: ldax d
+  B00011010,           //  11: ldax d
+  B00011010,           //  12: ldax d
+  B00001001,           //  13: dad b
+  B11010010, 9, 0,     //  14: jnc Begin
+  B11011011, 0xff,      //  17: in 0ffh ... Change 0ffh to 0xff to 255.
+  B10101010,           //  19: xra d
+  B00001111,           //  20: rrc
+  B01010111,           //  21: mov d,a
+  B11000011, 9, 0,     //  22: jmp Begin
+  0                    //  25: End of program
 };
 
 // -----------------------------------------------------------------------------
 // Memory definitions
 
-const int memoryBytes = 1024;
+const int memoryBytes = 256;  // When using Mega: 1024
 byte memoryData[memoryBytes];
 unsigned int programCounter = 0;     // Program address value
 
