@@ -66,6 +66,7 @@ pop  RP  11 RP0 001  1  Push register pair on the stack.
 hlt      01 110 110  1  Halt processor.
 nop      00 000 000  1  No operation. I added a delay: delay(100).
 out pa   11 010 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
+in pa    11 011 011  2  Read port a data into the accumulator. Example, a=0377 is the sense switches.
 ````
 #### Alphabetically order list of implemented opcodes:
 ````
@@ -78,6 +79,7 @@ call a   11 001 101  3  Unconditional subroutine call. Push current address onto
 dcr D    00 DDD 101  1  Decrement a register. To do, set flags: ZSPA.
 hlt      01 110 110  1  Halt processor.
 lxi RP,a 00 RP0 001  3  Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.
+in pa    11 011 011  2  Read port a data into the accumulator. Example, a=0377 is the sense switches.
 inr D    00 DDD 101  1  Increment a register. To do, set flags: ZSPA.
 inx RP   00 RP0 011  1  Increment a register pair (a 16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
 jnc a    11 010 010  3  Jump if not carry bit, i.e. if carry bit value is 0, false, not set.

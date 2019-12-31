@@ -180,7 +180,7 @@ const byte theProgram[] = {
   // Before starting, make sure all the sense switches are in the down position.
   //
   //                    //            ; Start program.
-  0,                    // org 0      ; An assembler directive, I guess.
+  0,                    // org 0      ; An assembler directive.
   0041, 0, 0,           // LXI H,0    ; Move the lb hb data values into the register pair H(hb):L(lb). Initialize counter
   0026, 128,            // mvi D,80h  ; Move db to register D. Set initial display bit.  080h = 128 = regD = 10 000 000
   0001, 0, 5,           // LXI B,?  0  ; Load a(lb:hb) into register B:C. Higher value = faster.

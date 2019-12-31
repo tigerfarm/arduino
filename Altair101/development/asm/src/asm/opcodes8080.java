@@ -73,7 +73,7 @@ public class opcodes8080 {
         // ---------------------------------------------------------------------
         name[top] = "cmp";
         info[top] = "CMP S     10 111 SSS        ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.";
-        value[top++] = (byte) 0b10111111;
+        value[top++] = (byte) 0b10111111;   // not used value
         name[top] = "cmpa";  // 10111SSS
         value[top++] = (byte) 0b10111111;
         name[top] = "cmpb";
@@ -89,16 +89,56 @@ public class opcodes8080 {
         name[top] = "cmpl";
         value[top++] = (byte) 0b10111101;
         // ---------------------------------------------------------------------
+        name[top] = "dad";
+        info[top] = "DAD RP     00RP1001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L, into H:L. And set carry bit.";
+        value[top++] = (byte) 0b00111001;   // not used value
+        name[top] = "dadb";
+        value[top++] = (byte) 0b00001001;
+        name[top] = "dadd";
+        value[top++] = (byte) 0b00101001;
+        // ---------------------------------------------------------------------
         name[top] = "hlt";
         info[top] = "hlt      01 110 110  1  Halt processor.";
         value[top++] = (byte) 0b01110110;
+        // ---------------------------------------------------------------------
+        name[top] = "in";
+        info[top] = "in pa    11 011 011  2  Read port a data into the accumulator. Example, a=0377 is the sense switches.";
+        value[top++] = (byte) 0b11100011;
+        // ---------------------------------------------------------------------
+        name[top] = "ldax";
+        info[top] = "ldax RP    00RP1010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.";
+        value[top++] = (byte) 0b00111010;   // not used value
+        name[top] = "ldaxb";
+        value[top++] = (byte) 0b00001010;
+        name[top] = "ldaxd";
+        value[top++] = (byte) 0b00011010;
+        // ---------------------------------------------------------------------
+        name[top] = "lxi";
+        info[top] = "lxi RP,a   00RP0001  3  Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.";
+        value[top++] = (byte) 0b00110001;   // not used value
+        name[top] = "lxib";
+        value[top++] = (byte) 0b00000001;
+        name[top] = "lxid";
+        value[top++] = (byte) 0b00010001;
+        name[top] = "lxih";
+        value[top++] = (byte) 0b00100001;
         // ---------------------------------------------------------------------
         name[top] = "inr";
         info[top] = "inr D    00 DDD 101  1  Increment register DDD. To do, set flags: ZSPA.";
         name[top] = "inra";  // 00DDD101
         value[top++] = (byte) 0b00111101;
-        name[top] = "inrb";  // 00DDD101
+        name[top] = "inrb";
         value[top++] = (byte) 0b00000101;
+        name[top] = "inrc";
+        value[top++] = (byte) 0b00001101;
+        name[top] = "inrd";
+        value[top++] = (byte) 0b00010101;
+        name[top] = "inre";
+        value[top++] = (byte) 0b00011101;
+        name[top] = "inrh";
+        value[top++] = (byte) 0b00100101;
+        name[top] = "inrl";
+        value[top++] = (byte) 0b00101101;
         // ---------------------------------------------------------------------
         name[top] = "jmp";
         info[top] = "jmp a    11 000 011  3  Unconditional jump.";
@@ -115,6 +155,95 @@ public class opcodes8080 {
         name[top] = "jc";
         info[top] = "JC a      11 011 010 lb hb          Jump to a, if Carry bit flag is set (equals 1).";
         value[top++] = (byte) 0b11011010;
+        // ---------------------------------------------------------------------
+        name[top] = "mov";
+        info[top] = "mov D,S    01DDDSSS  1  Move source register data, to the destination register.";
+        value[top++] = (byte) 0b01111111;   // not used
+        name[top] = "movab";  //01111000
+        value[top++] = (byte) 0b01111000;
+        name[top] = "movac";
+        value[top++] = (byte) 0b01111001;
+        name[top] = "movad";
+        value[top++] = (byte) 0b01111010;
+        name[top] = "movae";
+        value[top++] = (byte) 0b01111011;
+        name[top] = "movah";
+        value[top++] = (byte) 0b01111100;
+        name[top] = "moval";
+        value[top++] = (byte) 0b01111101;
+        name[top] = "movba";  //01000111
+        value[top++] = (byte) 0b01000111;
+        name[top] = "movbc";
+        value[top++] = (byte) 0b01000001;
+        name[top] = "movbd";
+        value[top++] = (byte) 0b01000010;
+        name[top] = "movbe";
+        value[top++] = (byte) 0b01000011;
+        name[top] = "movbh";
+        value[top++] = (byte) 0b01000100;
+        name[top] = "movbl";
+        value[top++] = (byte) 0b01000101;
+        name[top] = "movca";  //01001111
+        value[top++] = (byte) 0b01001111;
+        name[top] = "movcb";
+        value[top++] = (byte) 0b01001000;
+        name[top] = "movcd";
+        value[top++] = (byte) 0b01001010;
+        name[top] = "movce";
+        value[top++] = (byte) 0b01001011;
+        name[top] = "movch";
+        value[top++] = (byte) 0b01001100;
+        name[top] = "movcl";
+        value[top++] = (byte) 0b01001101;
+        name[top] = "movda";  //01010111
+        value[top++] = (byte) 0b01010111;
+        name[top] = "movdb";
+        value[top++] = (byte) 0b01010000;
+        name[top] = "movdc";
+        value[top++] = (byte) 0b01010001;
+        name[top] = "movde";
+        value[top++] = (byte) 0b01010011;
+        name[top] = "movdh";
+        value[top++] = (byte) 0b01010100;
+        name[top] = "movdl";
+        value[top++] = (byte) 0b01010101;
+        name[top] = "movea";  //01011111
+        value[top++] = (byte) 0b01011111;
+        name[top] = "moveb";
+        value[top++] = (byte) 0b01011000;
+        name[top] = "movec";
+        value[top++] = (byte) 0b01011001;
+        name[top] = "moved";
+        value[top++] = (byte) 0b01011010;
+        name[top] = "moveh";
+        value[top++] = (byte) 0b01011100;
+        name[top] = "movel";
+        value[top++] = (byte) 0b01011101;
+        name[top] = "movha";  //01100111
+        value[top++] = (byte) 0b01100111;
+        name[top] = "movhb";
+        value[top++] = (byte) 0b01100000;
+        name[top] = "movhc";
+        value[top++] = (byte) 0b01100001;
+        name[top] = "movhd";
+        value[top++] = (byte) 0b01100010;
+        name[top] = "movhe";
+        value[top++] = (byte) 0b01100011;
+        name[top] = "movhl";
+        value[top++] = (byte) 0b01100101;
+        name[top] = "movla";  //01101111
+        value[top++] = (byte) 0b01101111;
+        name[top] = "movlb";
+        value[top++] = (byte) 0b01101000;
+        name[top] = "movlc";
+        value[top++] = (byte) 0b01101001;
+        name[top] = "movld";
+        value[top++] = (byte) 0b01101010;
+        name[top] = "movle";
+        value[top++] = (byte) 0b01101011;
+        name[top] = "movlh";
+        value[top++] = (byte) 0b01101100;
+        
         // ---------------------------------------------------------------------
         name[top] = "mvi";
         info[top] = "mvi R,#  00 RRR 110  2  Move a number (#, db) to a register.";
@@ -140,7 +269,27 @@ public class opcodes8080 {
         name[top] = "out";
         info[top] = "out pa   11 010 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.";
         value[top++] = (byte) 0b11100011;
-
+        // ---------------------------------------------------------------------
+        name[top] = "rrc";
+        info[top] = "rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.";
+        value[top++] = (byte) 0b11100011;
+        // ---------------------------------------------------------------------
+        name[top] = "xra";
+        info[top] = "xra R      10101SSS  1  Exclusive OR, the register(R) with register A.";
+        value[top++] = (byte) 0b10101111;
+        name[top] = "xrab";
+        value[top++] = (byte) 0b10101000;
+        name[top] = "xrac";
+        value[top++] = (byte) 0b10101001;
+        name[top] = "xrad";
+        value[top++] = (byte) 0b10101010;
+        name[top] = "xrae";
+        value[top++] = (byte) 0b10101011;
+        name[top] = "xrah";
+        value[top++] = (byte) 0b10101100;
+        name[top] = "xral";
+        value[top++] = (byte) 0b10101101;        
+        // ---------------------------------------------------------------------
         System.out.println("++ Number opcode values = " + top);
     }
 
