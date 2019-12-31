@@ -98,12 +98,24 @@ public class fileProcess {
             switch (opcode) {
                 case "hlt":
                 case "nop":
+                    // opcode (no parameters)
                     // ++ opcode:nop:00000000:
                     opcodeComment = opcode;
                     break;
                 case "cmp":
                 case "inr":
+                    // opcode <register>
                     // ++ opcode:inr:00111101:a:
+                    opcodeComment = opcode + " " + opcodeValues[3];
+                    break;
+                case "out":
+                    // opcode <immediate>
+                    // out 39
+                    // ++ opcode:out:11100011:39
+                    // ++ immediate:39
+                    theValue = it.next();   // ++ immediate:39
+                    byteValues = theValue.split(":");
+                    opcodeStatement += " " + byteValues[1] + ",";
                     opcodeComment = opcode + " " + opcodeValues[3];
                     break;
                 case "jmp":
@@ -111,40 +123,33 @@ public class fileProcess {
                 case "jz":
                 case "jnc":
                 case "jc":
+                    // opcode <address label>
                     // ++ opcode:jmp:11000011:There:
                     // ++ lb:Loop:2
                     // ++ hb:0
-                    theValue = it.next();
+                    theValue = it.next();   // ++ lb:Loop:2
                     byteValues = theValue.split(":");
                     opcodeStatement += " " + byteValues[2] + ",";
-                    it.next();  // ++ hb:0
+                    it.next();              // ++ hb:0
                     opcodeStatement += " 0,";
                     opcodeComment = opcode + " " + opcodeValues[3];
                     break;
                 case "mvi":
+                    // opcode <register>,<immediate>
                     // mvi a,1
                     // ++ opcode:mvi:00111110:a:1
-                    // immediate:1
-                    theValue = it.next();
+                    // ++ immediate:1
+                    theValue = it.next();   // ++ immediate:1
                     byteValues = theValue.split(":");
                     opcodeStatement += " " + byteValues[1] + ",";
                     opcodeComment = opcode + " " + opcodeValues[3] + "," + opcodeValues[4];
                     break;
-                case "out":
-                    // out 39
-                    // ++ opcode:out:11100011:39
-                    // immediate:39
-                    theValue = it.next();
-                    byteValues = theValue.split(":");
-                    opcodeStatement += " " + byteValues[1] + ",";
-                    opcodeComment = opcode + " " + opcodeValues[3];
-                    break;
                 default:
                     break;
             }
-            System.out.println("   " + opcodeStatement + "   // " + opcodeComment);
+            System.out.println("  " + opcodeStatement + "   // " + opcodeComment);
         }
-        System.out.println("   0   // End of program");
+        System.out.println("  0   // End of program");
         System.out.println("\n+ End of array.");
     }
 
@@ -157,7 +162,9 @@ public class fileProcess {
     }
 
     private void parseOpcode(String opcode) {
-        // Opcode, no parameters, example: "nop".
+        // opcode (no parameters)
+        // hlt
+        // nop
         opcodeBinary = theOpcodes.getOpcode(opcode);
         if (opcodeBinary == theOpcodes.OpcodeNotFound) {
             opcode = "INVALID-" + opcode;
@@ -170,16 +177,23 @@ public class fileProcess {
 
     private void parseOpcode(String opcode, String p1) {
         // Opcode, single parameter, example: jmp Next
-        System.out.println("++ Opcode: "
-                + opcode + " " + printByte(opcodeBinary)
-                + " p1|" + p1 + "|");
         switch (opcode) {
             case "cmp":
             case "inr":
+                // opcode <register>
                 // cmp c
                 // inr a
                 opcodeBinary = theOpcodes.getOpcode(opcode + p1);
                 programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary) + ":" + p1);
+                programTop++;
+                break;
+            case "out":
+                // opcode <immediate>
+                // out 39
+                opcodeBinary = theOpcodes.getOpcode(opcode);
+                programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary) + ":" + p1);
+                programTop++;
+                programBytes.add("immediate:" + p1);
                 programTop++;
                 break;
             case "jmp":
@@ -187,6 +201,7 @@ public class fileProcess {
             case "jz":
             case "jnc":
             case "jc":
+                // opcode <address label>
                 // jmp There
                 opcodeBinary = theOpcodes.getOpcode(opcode);
                 programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary) + ":" + p1);
@@ -197,34 +212,35 @@ public class fileProcess {
                 programTop++;
                 break;
             default:
-                opcodeBinary = theOpcodes.getOpcode(opcode);
-                programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary) + ":" + p1);
-                programTop++;
-                programBytes.add("p1:" + p1);
-                programTop++;
+                opcode = "INVALID-" + opcode;
+                System.out.print("-- Error, ");
                 break;
         }
+        System.out.println("++ Opcode: "
+                + opcode + " " + printByte(opcodeBinary)
+                + " p1|" + p1 + "|");
     }
 
     private void parseOpcode(String opcode, String p1, String p2) {
         // Opcode, 2 parameters, example: mvi a,1
         switch (opcode) {
             case "mvi":
+                // opcode <register>,<immediate>
                 // mvi a,1
                 opcodeBinary = theOpcodes.getOpcode(opcode + p1);
                 programBytes.add("opcode:" + opcode + ":" + printByte(opcodeBinary) + ":" + p1 + ":" + p2);
                 programTop++;
                 programBytes.add("immediate:" + p2);
                 programTop++;
-                System.out.println("++ Opcode: "
-                        + opcode + " " + printByte(opcodeBinary)
-                        + " p1|" + p1 + "|" + " p2|" + p2 + "|");
                 break;
             default:
-                programBytes.add(p2);
-                System.out.println("++ Opcode|" + opcode + "| p1|" + p1 + "|" + " p2|" + p2 + "|");
+                opcode = "INVALID-" + opcode;
+                System.out.print("-- Error, ");
                 break;
         }
+        System.out.println("++ Opcode: "
+                + opcode + " " + printByte(opcodeBinary)
+                + " p1|" + p1 + "|" + " p2|" + p2 + "|");
     }
     // -------------------------------------------------------------------------
 
@@ -367,9 +383,9 @@ public class fileProcess {
         thisProcess.parseFile("opcodeCmp.asm");
         //
         thisProcess.setProgramByteLabels();
-        thisProcess.listLabels();
+        // thisProcess.listLabels();
         //
-        thisProcess.listProgramBytes();
+        // thisProcess.listProgramBytes();
         thisProcess.printProgramBytesArray();
 
         System.out.println("++ Exit.");
