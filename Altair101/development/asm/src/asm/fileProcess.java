@@ -155,15 +155,12 @@ public class fileProcess {
 
     private void printProgramBytesArrayLine(String opcodeStatement, String opcodeComment) {
         String marginPadding = "  ";
-        //
         opcodeStatement += marginPadding;
         for (int i = opcodeStatement.length(); i < 21; i++) {
             // 12345678901234567890123456789
-            //   B00111110, 73,    // mvi a,73   ; Move # to register A.
+            //   B00111110, 73,    // mvi a,73
             opcodeStatement += " ";
         }
-        // 1234567890123456789012345678901234567890
-        //             B11000011, 6, 0,            // jmp Test
         System.out.println(marginPadding + opcodeStatement + "// " + opcodeComment);
     }
 
