@@ -147,10 +147,24 @@ public class fileProcess {
                 default:
                     break;
             }
-            System.out.println("  " + opcodeStatement + "   // " + opcodeComment);
+            printProgramBytesArrayLine(opcodeStatement, opcodeComment);
         }
-        System.out.println("  0   // End of program");
+        printProgramBytesArrayLine("0", "End of program");
         System.out.println("\n+ End of array.");
+    }
+
+    private void printProgramBytesArrayLine(String opcodeStatement, String opcodeComment) {
+        String marginPadding = "  ";
+        //
+        opcodeStatement += marginPadding;
+        for (int i = opcodeStatement.length(); i < 21; i++) {
+            // 12345678901234567890123456789
+            //   B00111110, 73,    // mvi a,73   ; Move # to register A.
+            opcodeStatement += " ";
+        }
+        // 1234567890123456789012345678901234567890
+        //             B11000011, 6, 0,            // jmp Test
+        System.out.println(marginPadding + opcodeStatement + "// " + opcodeComment);
     }
 
     // -------------------------------------------------------------------------

@@ -130,45 +130,45 @@ File myFile;
 const byte theTestProgram[] = {
   //                //            ; --------------------------------------
   //                //            ; Test CMP and conditional jumps.
-  B11000011, 6, 0,   // jmp Test
-  B11100011, 39,   // out 39
-  B01110110,   // hlt
-  B00111110, 73,   // mvi a,73
-  B00000110, 73,   // mvi b,73
-  B10111000,   // cmp b
-  B11000010, 3, 0,   // jnz Error
-  B11011010, 3, 0,   // jc Error
-  B11001010, 23, 0,   // jz okayb1
-  B11000011, 3, 0,   // jmp Error
-  B10100010, 29, 0,   // jnc okayb2
-  B11000011, 3, 0,   // jmp Error
-  B00001110, 73,   // mvi c,73
-  B10111001,   // cmp c
-  B11000010, 3, 0,   // jnz Error
-  B11011010, 3, 0,   // jc Error
-  B11001010, 44, 0,   // jz okayc1
-  B11000011, 3, 0,   // jmp Error
-  B10100010, 50, 0,   // jnc okayc2
-  B11000011, 3, 0,   // jmp Error
-  B00010110, 73,   // mvi d,73
-  B10111010,   // cmp d
-  B11000010, 3, 0,   // jnz Error
-  B11011010, 3, 0,   // jc Error
-  B11001010, 65, 0,   // jz okayd1
-  B11000011, 3, 0,   // jmp Error
-  B10100010, 71, 0,   // jnc okayd2
-  B11000011, 3, 0,   // jmp Error
-  B00011110, 73,   // mvi e,73
-  B10111011,   // cmp e
-  B11000010, 3, 0,   // jnz Error
-  B11011010, 3, 0,   // jc Error
-  B11001010, 86, 0,   // jz okaye1
-  B11000011, 3, 0,   // jmp Error
-  B10100010, 92, 0,   // jnc okaye2
-  B11000011, 3, 0,   // jmp Error
-  B00000000,   // nop
-  B11000011, 5, 0,   // jmp Halt
-  0                  // end
+  B11000011, 6, 0,     // jmp Test
+  B11100011, 39,       // out 39
+  B01110110,           // hlt
+  B00111110, 73,       // mvi a,73
+  B00000110, 73,       // mvi b,73
+  B10111000,           // cmp b
+  B11000010, 3, 0,     // jnz Error
+  B11011010, 3, 0,     // jc Error
+  B11001010, 23, 0,    // jz okayb1
+  B11000011, 3, 0,     // jmp Error
+  B10100010, 29, 0,    // jnc okayb2
+  B11000011, 3, 0,     // jmp Error
+  B00001110, 73,       // mvi c,73
+  B10111001,           // cmp c
+  B11000010, 3, 0,     // jnz Error
+  B11011010, 3, 0,     // jc Error
+  B11001010, 44, 0,    // jz okayc1
+  B11000011, 3, 0,     // jmp Error
+  B10100010, 50, 0,    // jnc okayc2
+  B11000011, 3, 0,     // jmp Error
+  B00010110, 73,       // mvi d,73
+  B10111010,           // cmp d
+  B11000010, 3, 0,     // jnz Error
+  B11011010, 3, 0,     // jc Error
+  B11001010, 65, 0,    // jz okayd1
+  B11000011, 3, 0,     // jmp Error
+  B10100010, 71, 0,    // jnc okayd2
+  B11000011, 3, 0,     // jmp Error
+  B00011110, 73,       // mvi e,73
+  B10111011,           // cmp e
+  B11000010, 3, 0,     // jnz Error
+  B11011010, 3, 0,     // jc Error
+  B11001010, 86, 0,    // jz okaye1
+  B11000011, 3, 0,     // jmp Error
+  B10100010, 92, 0,    // jnc okaye2
+  B11000011, 3, 0,     // jmp Error
+  B00000000,           // nop
+  B11000011, 5, 0,     // jmp Halt
+  0                    // End of program
 };
 
 // -----------------------------------------------------------------------------
