@@ -8,7 +8,7 @@ public class opcodes8080 {
     private String[] info;
     public final byte OpcodeNotFound = (byte) 255;
 
-    public static String printByte(byte aByte) {
+    public static String byteToString(byte aByte) {
         return toBinary(aByte, 8);
     }
 
@@ -28,7 +28,7 @@ public class opcodes8080 {
     public void opcodesList() {
         System.out.println("+ List opcode data.");
         for (int i = 0; i < top; i++) {
-            System.out.println("++ " + i + ": " + name[i] + " " + printByte(value[i]));
+            System.out.println("++ " + i + ": " + name[i] + " " + byteToString(value[i]));
         }
         System.out.println("+ End list.");
     }
@@ -103,25 +103,7 @@ public class opcodes8080 {
         // ---------------------------------------------------------------------
         name[top] = "in";
         info[top] = "in pa    11 011 011  2  Read port a data into the accumulator. Example, a=0377 is the sense switches.";
-        value[top++] = (byte) 0b11100011;
-        // ---------------------------------------------------------------------
-        name[top] = "ldax";
-        info[top] = "ldax RP    00RP1010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.";
-        value[top++] = (byte) 0b00111010;   // not used value
-        name[top] = "ldaxb";
-        value[top++] = (byte) 0b00001010;
-        name[top] = "ldaxd";
-        value[top++] = (byte) 0b00011010;
-        // ---------------------------------------------------------------------
-        name[top] = "lxi";
-        info[top] = "lxi RP,a   00RP0001  3  Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.";
-        value[top++] = (byte) 0b00110001;   // not used value
-        name[top] = "lxib";
-        value[top++] = (byte) 0b00000001;
-        name[top] = "lxid";
-        value[top++] = (byte) 0b00010001;
-        name[top] = "lxih";
-        value[top++] = (byte) 0b00100001;
+        value[top++] = (byte) 0b11011011;
         // ---------------------------------------------------------------------
         name[top] = "inr";
         info[top] = "inr D    00 DDD 101  1  Increment register DDD. To do, set flags: ZSPA.";
@@ -151,10 +133,28 @@ public class opcodes8080 {
         value[top++] = (byte) 0b11001010;
         name[top] = "jnc";
         info[top] = "JNC a     11 010 010 lb hb          Jump to a, if Carry bit flag is not set (equals 0).";
-        value[top++] = (byte) 0b110100010;
+        value[top++] = (byte) 0b11010010;
         name[top] = "jc";
         info[top] = "JC a      11 011 010 lb hb          Jump to a, if Carry bit flag is set (equals 1).";
         value[top++] = (byte) 0b11011010;
+        // ---------------------------------------------------------------------
+        name[top] = "ldax";
+        info[top] = "ldax RP    00RP1010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.";
+        value[top++] = (byte) 0b00111010;   // not used value
+        name[top] = "ldaxb";
+        value[top++] = (byte) 0b00001010;
+        name[top] = "ldaxd";
+        value[top++] = (byte) 0b00011010;
+        // ---------------------------------------------------------------------
+        name[top] = "lxi";
+        info[top] = "lxi RP,a   00RP0001  3  Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.";
+        value[top++] = (byte) 0b00110001;   // not used value
+        name[top] = "lxib";
+        value[top++] = (byte) 0b00000001;
+        name[top] = "lxid";
+        value[top++] = (byte) 0b00010001;
+        name[top] = "lxih";
+        value[top++] = (byte) 0b00100001;
         // ---------------------------------------------------------------------
         name[top] = "mov";
         info[top] = "mov D,S    01DDDSSS  1  Move source register data, to the destination register.";
@@ -272,7 +272,7 @@ public class opcodes8080 {
         // ---------------------------------------------------------------------
         name[top] = "rrc";
         info[top] = "rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.";
-        value[top++] = (byte) 0b11100011;
+        value[top++] = (byte) 0b00001111;
         // ---------------------------------------------------------------------
         name[top] = "xra";
         info[top] = "xra R      10101SSS  1  Exclusive OR, the register(R) with register A.";
@@ -301,7 +301,7 @@ public class opcodes8080 {
         opcodes8080 theOpcodes = new opcodes8080();
         theOpcodes.opcodesList();
         String anOpcode = "jmp";
-        System.out.println("+ Opcode: " + anOpcode + " " + printByte(theOpcodes.getOpcode(anOpcode)));
+        System.out.println("+ Opcode: " + anOpcode + " " + byteToString(theOpcodes.getOpcode(anOpcode)));
 
         System.out.println("+++ Exit.");
     }

@@ -55,6 +55,17 @@
   Bitwise operators:
     https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitwiseand/
 
+  ---------------------------------------------
+    9 + -   - Nano connections
+    | | |   - Infrared receiver pins
+  ---------
+  |S      |
+  |       |
+  |  ---  |
+  |  | |  |
+  |  ---  |
+  |       |
+  ---------
 */
 // -----------------------------------------------------------------------------
 // Code compilation options.
@@ -63,8 +74,8 @@
 // #define INCLUDE_SDCARD 1
 // #define RUN_DELAY 1
 // #define RUN_NOW 1
-#define SWITCH_MESSAGES 1
-// #define LOG_MESSAGES 1
+// #define SWITCH_MESSAGES 1
+#define LOG_MESSAGES 1
 
 // -----------------------------------------------------------------------------
 // Infrared Receiver
@@ -85,7 +96,7 @@ PCF8574 pcf20(0x020);
 PCF8574 pcf21(0x021);
 
 //                Nano pin for control toggle interrupt.
-const PROGMEM int INTERRUPT_PIN = 2;
+const int INTERRUPT_PIN = 2;
 
 // Interrupt setup: interrupt pin to use, interrupt handler routine.
 boolean pcf20interrupted = false;
@@ -97,9 +108,9 @@ void pcf20interrupt() {
 // Output LED light shift register(SN74HC595N) pins
 
 //                Nano pin               74HC595 Pins
-const PROGMEM int dataPinLed = 7;     // pin 14 Data pin.
-const PROGMEM int latchPinLed = 8;    // pin 12 Latch pin.
-const PROGMEM int clockPinLed = 9;    // pin 11 Clock pin.
+const int dataPinLed = 7;     // pin 14 Data pin.
+const int latchPinLed = 8;    // pin 12 Latch pin.
+const int clockPinLed = 9;    // pin 11 Clock pin.
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -127,54 +138,54 @@ File myFile;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-const byte theTestProgram[] = {
+const byte theProgram[] = {
   //                //            ; --------------------------------------
   //                //            ; Test CMP and conditional jumps.
-  B11000011, 6, 0,     // jmp Test
-  B11100011, 39,       // out 39
-  B01110110,           // hlt
-  B00111110, 73,       // mvi a,73
-  B00000110, 73,       // mvi b,73
-  B10111000,           // cmp b
-  B11000010, 3, 0,     // jnz Error
-  B11011010, 3, 0,     // jc Error
-  B11001010, 23, 0,    // jz okayb1
-  B11000011, 3, 0,     // jmp Error
-  B10100010, 29, 0,    // jnc okayb2
-  B11000011, 3, 0,     // jmp Error
-  B00001110, 73,       // mvi c,73
-  B10111001,           // cmp c
-  B11000010, 3, 0,     // jnz Error
-  B11011010, 3, 0,     // jc Error
-  B11001010, 44, 0,    // jz okayc1
-  B11000011, 3, 0,     // jmp Error
-  B10100010, 50, 0,    // jnc okayc2
-  B11000011, 3, 0,     // jmp Error
-  B00010110, 73,       // mvi d,73
-  B10111010,           // cmp d
-  B11000010, 3, 0,     // jnz Error
-  B11011010, 3, 0,     // jc Error
-  B11001010, 65, 0,    // jz okayd1
-  B11000011, 3, 0,     // jmp Error
-  B10100010, 71, 0,    // jnc okayd2
-  B11000011, 3, 0,     // jmp Error
-  B00011110, 73,       // mvi e,73
-  B10111011,           // cmp e
-  B11000010, 3, 0,     // jnz Error
-  B11011010, 3, 0,     // jc Error
-  B11001010, 86, 0,    // jz okaye1
-  B11000011, 3, 0,     // jmp Error
-  B10100010, 92, 0,    // jnc okaye2
-  B11000011, 3, 0,     // jmp Error
-  B00000000,           // nop
-  B11000011, 5, 0,     // jmp Halt
-  0                    // End of program
+  B11000011, 6, 0,     //   0: jmp Test
+  B11100011, 39,       //   3: out 39
+  B01110110,           //   5: hlt
+  B00111110, 73,       //   6: mvi a,73
+  B00000110, 73,       //   8: mvi b,73
+  B10111000,           //  10: cmp b
+  B11000010, 3, 0,     //  11: jnz Error
+  B11011010, 3, 0,     //  14: jc Error
+  B11001010, 23, 0,    //  17: jz okayb1
+  B11000011, 3, 0,     //  20: jmp Error
+  B11010010, 29, 0,    //  23: jnc okayb2
+  B11000011, 3, 0,     //  26: jmp Error
+  B00001110, 73,       //  29: mvi c,73
+  B10111001,           //  31: cmp c
+  B11000010, 3, 0,     //  32: jnz Error
+  B11011010, 3, 0,     //  35: jc Error
+  B11001010, 44, 0,    //  38: jz okayc1
+  B11000011, 3, 0,     //  41: jmp Error
+  B11010010, 50, 0,    //  44: jnc okayc2
+  B11000011, 3, 0,     //  47: jmp Error
+  B00010110, 73,       //  50: mvi d,73
+  B10111010,           //  52: cmp d
+  B11000010, 3, 0,     //  53: jnz Error
+  B11011010, 3, 0,     //  56: jc Error
+  B11001010, 65, 0,    //  59: jz okayd1
+  B11000011, 3, 0,     //  62: jmp Error
+  B11010010, 71, 0,    //  65: jnc okayd2
+  B11000011, 3, 0,     //  68: jmp Error
+  B00011110, 73,       //  71: mvi e,73
+  B10111011,           //  73: cmp e
+  B11000010, 3, 0,     //  74: jnz Error
+  B11011010, 3, 0,     //  77: jc Error
+  B11001010, 86, 0,    //  80: jz okaye1
+  B11000011, 3, 0,     //  83: jmp Error
+  B11010010, 92, 0,    //  86: jnc okaye2
+  B11000011, 3, 0,     //  89: jmp Error
+  B00000000,           //  92: nop
+  B11000011, 5, 0,     //  93: jmp Halt
+  0                    //  96: End of program
 };
 
 // -----------------------------------------------------------------------------
 // Kill the Bit program.
 
-const byte theProgram[] = {
+const byte theProgramKtb[] = {
   // ------------------------------------------------------------------
   // Kill the Bit program.
   // Before starting, make sure all the sense switches are in the down position.
@@ -217,11 +228,11 @@ const byte theProgram[] = {
 // -----------------------------------------------------------------------------
 // Memory definitions
 
-const PROGMEM int memoryBytes = 256;
+const int memoryBytes = 1024;
 byte memoryData[memoryBytes];
 unsigned int programCounter = 0;     // Program address value
 
-const PROGMEM int stackBytes = 32;
+const int stackBytes = 32;
 int stackData[memoryBytes];
 unsigned int stackPointer = stackBytes;
 
@@ -270,7 +281,7 @@ void listByteArray(byte btyeArray[], int arraySize) {
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 String theLine = "";
-const PROGMEM int displayColumns = 16;
+const int displayColumns = 16;
 void displayPrintln(int theRow, String theString) {
   // To overwrite anything on the current line.
   String printString = theString;
@@ -2039,18 +2050,25 @@ void processOpcodeData() {
     //-----------------------------------------
     case B11000011:
       if (instructionCycle == 1) {
-        lowOrder = programCounter;
+        lowOrder = memoryData[programCounter];
 #ifdef LOG_MESSAGES
-        Serial.print(F("> jmp, lb: "));
-        Serial.print(lowOrder);
+        Serial.print(F("> jmp, lb:"));
+        sprintf(charBuffer, "%4d:", lowOrder);
+        Serial.print(charBuffer);
 #endif
         programCounter++;
         return;
       }
       // instructionCycle == 2
-      programCounter = word(memoryData[programCounter], memoryData[lowOrder]);
 #ifdef LOG_MESSAGES
-      Serial.print(F("> jmp, jump to:"));
+      highOrder = memoryData[programCounter];
+#endif
+      programCounter = word(highOrder, lowOrder);
+#ifdef LOG_MESSAGES
+      Serial.print(F("> jmp, hb:"));
+      sprintf(charBuffer, "%4d:", highOrder);
+      Serial.print(charBuffer);
+      Serial.print(F(", jmp, jump to:"));
       sprintf(charBuffer, "%4d = ", programCounter);
       Serial.print(charBuffer);
       printByte((byte)programCounter);
@@ -2896,7 +2914,7 @@ void checkRunningButtons() {
 // -----------------------------------------------------------------------
 // Infrared options when a program is NOT running.
 
-void infraredSwitchControl() {
+void infraredControl() {
   // Serial.println(F("+ infraredSwitch"));
   switch (results.value) {
     case 0xFFFFFFFF:
@@ -3027,7 +3045,7 @@ void infraredSwitchControl() {
 // -----------------------------------------------------------------------------
 // Infrared options while a program is running.
 
-void infraredSwitchInput() {
+void infraredRunning() {
   // Serial.println(F("+ infraredSwitch"));
   switch (results.value) {
     case 0xFFFFFFFF:
@@ -3201,7 +3219,7 @@ void loop() {
     // Program control: STOP or RESET.
     if (irrecv.decode(&results)) {
       // Future: use the keypress value(1-8) as input into the running program via IN opcode.
-      infraredSwitchInput();
+      infraredRunning();
     }
     if (pcf20interrupted) {
       checkRunningButtons();
@@ -3211,7 +3229,7 @@ void loop() {
   } else {
     // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
     if (irrecv.decode(&results)) {
-      infraredSwitchControl();
+      infraredControl();
     }
     if (pcf20interrupted) {
       checkControlButtons();
