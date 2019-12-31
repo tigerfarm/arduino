@@ -159,7 +159,7 @@ public class opcodes8080 {
         name[top] = "mov";
         info[top] = "mov D,S    01DDDSSS  1  Move source register data, to the destination register.";
         value[top++] = (byte) 0b01111111;   // not used
-        name[top] = "movab";  //01111000
+        name[top] = "movab";  //01111111
         value[top++] = (byte) 0b01111000;
         name[top] = "movac";
         value[top++] = (byte) 0b01111001;
