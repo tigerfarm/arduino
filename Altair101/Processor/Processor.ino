@@ -2843,387 +2843,388 @@ void checkControlButtons() {
         // -------------------
     }
   }
+}
 
-  // -------------------------
-  // Front Panel Control Switches, when a program is running.
+// -------------------------
+// Front Panel Control Switches, when a program is running.
 
-  void checkRunningButtons() {
-    for (int pinGet = 7; pinGet >= 0; pinGet--) {
-      int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
-      switch (pinGet) {
-        // -------------------
-        case pinStop:
-          if (pinValue == 0) {    // 0 : switch is on.
-            if (!switchStop) {
-              switchStop = true;
-            }
-          } else if (switchStop) {
-            switchStop = false;
-#ifdef SWITCH_MESSAGES
-            Serial.println(F("+ Control, Stop > stop running the program."));
-            Serial.println(F("> hlt, halt the processor."));
-#endif
-            // Switch logic...
-            runProgram = false;
-            statusByte = 0;
-            statusByte = statusByte | WAIT_ON;
-            statusByte = statusByte | HLTA_ON;
-            // Only here, causes a compile error: displayStatusAddressData();
-            dataByte = memoryData[programCounter];
-            lightsStatusAddressData(statusByte, programCounter, dataByte);
-          }
-          break;
-        // -------------------
-        case pinReset:
-          if (pinValue == 0) {
-            if (!switchReset) {
-              switchReset = true;
-            }
-          } else if (switchReset) {
-            switchReset = false;
-#ifdef SWITCH_MESSAGES
-            Serial.println(F("+ Control, Reset."));
-#endif
-            // Switch logic...
-            controlResetLogic();
-          }
-          break;
-      }
+void checkRunningButtons() {
+  for (int pinGet = 7; pinGet >= 0; pinGet--) {
+    int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
+    switch (pinGet) {
       // -------------------
+      case pinStop:
+        if (pinValue == 0) {    // 0 : switch is on.
+          if (!switchStop) {
+            switchStop = true;
+          }
+        } else if (switchStop) {
+          switchStop = false;
+#ifdef SWITCH_MESSAGES
+          Serial.println(F("+ Control, Stop > stop running the program."));
+          Serial.println(F("> hlt, halt the processor."));
+#endif
+          // Switch logic...
+          runProgram = false;
+          statusByte = 0;
+          statusByte = statusByte | WAIT_ON;
+          statusByte = statusByte | HLTA_ON;
+          // Only here, causes a compile error: displayStatusAddressData();
+          dataByte = memoryData[programCounter];
+          lightsStatusAddressData(statusByte, programCounter, dataByte);
+        }
+        break;
+      // -------------------
+      case pinReset:
+        if (pinValue == 0) {
+          if (!switchReset) {
+            switchReset = true;
+          }
+        } else if (switchReset) {
+          switchReset = false;
+#ifdef SWITCH_MESSAGES
+          Serial.println(F("+ Control, Reset."));
+#endif
+          // Switch logic...
+          controlResetLogic();
+        }
+        break;
     }
+    // -------------------
   }
+}
 
-  // -----------------------------------------------------------------------------
-  // -----------------------------------------------------------------------
-  // Infrared options when a program is NOT running.
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------
+// Infrared options when a program is NOT running.
 
-  void infraredControl() {
-    // Serial.println(F("+ infraredSwitch"));
-    switch (results.value) {
-      case 0xFFFFFFFF:
-        // Ignore. This is from holding the key down.
-        break;
-      // -----------------------------------
-      case 0xFF10EF:
-      case 0xE0E0A659:
-        // Serial.println(F("+ Key < - previous"));
-        break;
-      case 0xFF5AA5:
-      case 0xE0E046B9:
-        // Serial.println(F("+ Key > - next: SINGLE STEP toggle/button switch."));
-        statusByte = statusByte & HLTA_OFF;
-        processData();
-        break;
-      case 0xFF18E7:
-      case 0xE0E006F9:
-        // Serial.println(F("+ Key up"));
-        Serial.println(F("+ Run process."));
-        runProgram = true;
-        statusByte = statusByte & WAIT_OFF;
-        statusByte = statusByte & HLTA_OFF;
-        break;
-      case 0xFF4AB5:
-      case 0xE0E08679:
-        // Already stopped.
-        // Serial.println(F("+ Key down"));
-        // Serial.println(F("+ Stop process."));
-        // runProgram = false;
-        // digitalWrite(WAIT_PIN, HIGH);
-        // digitalWrite(HLTA_PIN, LOW);
-        break;
-      case 0xFF38C7:
-      case 0xE0E016E9:
-        // Serial.println(F("+ Key OK - Toggle RUN and STOP."));
-        Serial.println(F("+ Run process."));
-        runProgram = true;
-        statusByte = statusByte & WAIT_OFF;
-        statusByte = statusByte & HLTA_OFF;
-        break;
-      // -----------------------------------
-      case 0xFF9867:
-      case 0xE0E08877:
-        // Serial.print(F("+ Key 0:"));
-        // Serial.println("");
-        break;
-      case 0xFFA25D:
-        // Serial.println(F("+ Key 1: "));
-        // Serial.println("+ Examine.");
+void infraredControl() {
+  // Serial.println(F("+ infraredSwitch"));
+  switch (results.value) {
+    case 0xFFFFFFFF:
+      // Ignore. This is from holding the key down.
+      break;
+    // -----------------------------------
+    case 0xFF10EF:
+    case 0xE0E0A659:
+      // Serial.println(F("+ Key < - previous"));
+      break;
+    case 0xFF5AA5:
+    case 0xE0E046B9:
+      // Serial.println(F("+ Key > - next: SINGLE STEP toggle/button switch."));
+      statusByte = statusByte & HLTA_OFF;
+      processData();
+      break;
+    case 0xFF18E7:
+    case 0xE0E006F9:
+      // Serial.println(F("+ Key up"));
+      Serial.println(F("+ Run process."));
+      runProgram = true;
+      statusByte = statusByte & WAIT_OFF;
+      statusByte = statusByte & HLTA_OFF;
+      break;
+    case 0xFF4AB5:
+    case 0xE0E08679:
+      // Already stopped.
+      // Serial.println(F("+ Key down"));
+      // Serial.println(F("+ Stop process."));
+      // runProgram = false;
+      // digitalWrite(WAIT_PIN, HIGH);
+      // digitalWrite(HLTA_PIN, LOW);
+      break;
+    case 0xFF38C7:
+    case 0xE0E016E9:
+      // Serial.println(F("+ Key OK - Toggle RUN and STOP."));
+      Serial.println(F("+ Run process."));
+      runProgram = true;
+      statusByte = statusByte & WAIT_OFF;
+      statusByte = statusByte & HLTA_OFF;
+      break;
+    // -----------------------------------
+    case 0xFF9867:
+    case 0xE0E08877:
+      // Serial.print(F("+ Key 0:"));
+      // Serial.println("");
+      break;
+    case 0xFFA25D:
+      // Serial.println(F("+ Key 1: "));
+      // Serial.println("+ Examine.");
 #ifdef LOG_MESSAGES
-        Serial.print("? ");
-        displayStatusAddressData();
-        Serial.println("");
+      Serial.print("? ");
+      displayStatusAddressData();
+      Serial.println("");
 #else
-        displayStatusAddressData();
+      displayStatusAddressData();
 #endif
-        break;
-      case 0xFF629D:
-        // Serial.println(F("+ Key 2: "));
-        // Serial.println("+ Examine Next.");
-        programCounter++;
+      break;
+    case 0xFF629D:
+      // Serial.println(F("+ Key 2: "));
+      // Serial.println("+ Examine Next.");
+      programCounter++;
 #ifdef LOG_MESSAGES
-        Serial.print("? ");
-        displayStatusAddressData();
-        Serial.println("");
+      Serial.print("? ");
+      displayStatusAddressData();
+      Serial.println("");
 #else
-        displayStatusAddressData();
+      displayStatusAddressData();
 #endif
-        break;
-      case 0xFFE21D:
-        // Serial.println(F("+ Key 3: "));
-        // Serial.println("+ Examine Previous.");
-        programCounter--;
+      break;
+    case 0xFFE21D:
+      // Serial.println(F("+ Key 3: "));
+      // Serial.println("+ Examine Previous.");
+      programCounter--;
 #ifdef LOG_MESSAGES
-        Serial.print("? ");
-        displayStatusAddressData();
-        Serial.println("");
+      Serial.print("? ");
+      displayStatusAddressData();
+      Serial.println("");
 #else
-        displayStatusAddressData();
+      displayStatusAddressData();
 #endif
-        break;
-      case 0xFF22DD:
-        // Serial.print(F("+ Key 4: "));
-        // Serial.println("");
-        break;
-      case 0xFF02FD:
-        // Serial.print(F("+ Key 5: "));
-        // Serial.println("");
-        break;
-      case 0xFFC23D:
-        // Serial.print(F("+ Key 6: "));
-        // Serial.println("");
-        break;
-      case 0xFFE01F:
-        // Serial.print(F("+ Key 7: "));
-        // Serial.println("");
-        break;
-      case 0xFFA857:
-        // Serial.print(F("+ Key 8: "));
-        // Serial.println("");
-        break;
-      case 0xFF906F:
-        // Serial.print(F("+ Key 9: "));
-        // Serial.println("");
-        break;
+      break;
+    case 0xFF22DD:
+      // Serial.print(F("+ Key 4: "));
+      // Serial.println("");
+      break;
+    case 0xFF02FD:
+      // Serial.print(F("+ Key 5: "));
+      // Serial.println("");
+      break;
+    case 0xFFC23D:
+      // Serial.print(F("+ Key 6: "));
+      // Serial.println("");
+      break;
+    case 0xFFE01F:
+      // Serial.print(F("+ Key 7: "));
+      // Serial.println("");
+      break;
+    case 0xFFA857:
+      // Serial.print(F("+ Key 8: "));
+      // Serial.println("");
+      break;
+    case 0xFF906F:
+      // Serial.print(F("+ Key 9: "));
+      // Serial.println("");
+      break;
+    // -----------------------------------
+    case 0xFF6897:
+    case 0xE0E01AE5:
+      // Serial.println(F("+ Key * (Return)"));
+      // Use as Reset when running.
+      controlResetLogic();
+      break;
+    case 0xFFB04F:
+    case 0xE0E0B44B:
+      // Serial.println(F("+ Key # (Exit)"));
+      break;
+    // -----------------------------------
+    default:
+      // Serial.print("+ Result value: ");
+      // Serial.println(results.value, HEX);
+      break;
       // -----------------------------------
-      case 0xFF6897:
-      case 0xE0E01AE5:
-        // Serial.println(F("+ Key * (Return)"));
-        // Use as Reset when running.
-        controlResetLogic();
-        break;
-      case 0xFFB04F:
-      case 0xE0E0B44B:
-        // Serial.println(F("+ Key # (Exit)"));
-        break;
+  } // end switch
+
+  irrecv.resume();
+
+}
+
+// -----------------------------------------------------------------------------
+// Infrared options while a program is running.
+
+void infraredRunning() {
+  // Serial.println(F("+ infraredSwitch"));
+  switch (results.value) {
+    case 0xFFFFFFFF:
+      // Ignore. This is from holding the key down.
+      break;
+    // -----------------------------------
+    case 0xFF10EF:
+    case 0xE0E0A659:
+      // Serial.println(F("+ Key < - previous"));
+      break;
+    case 0xFF5AA5:
+    case 0xE0E046B9:
+      // Serial.println(F("+ Key > - next."));
+      break;
+    case 0xFF18E7:
+    case 0xE0E006F9:
+      // Serial.println(F("+ Key up"));
+      break;
+    case 0xFF4AB5:
+    case 0xE0E08679:
+      // Serial.println(F("+ Key down"));
+      Serial.println(F("+ Stop process."));
+      runProgram = false;
+      statusByte = statusByte | WAIT_ON;
+      statusByte = statusByte & HLTA_OFF;
+      displayStatusAddressData();
+      break;
+    case 0xFF38C7:
+    case 0xE0E016E9:
+      // Serial.println(F("+ Key OK - Toggle RUN and STOP."));
+      Serial.println(F("+ Stop process."));
+      runProgram = false;
+      statusByte = statusByte | WAIT_ON;
+      statusByte = statusByte & HLTA_OFF;
+      displayStatusAddressData();
+      break;
+    // -----------------------------------
+    case 0xFF9867:
+    case 0xE0E08877:
+      // Serial.println(F("+ Key 0:"));
+      break;
+    case 0xFFA25D:
+      // Serial.println(F("+ Key 1: "));
+      break;
+    case 0xFF629D:
+      // Serial.println(F("+ Key 2: "));
+      break;
+    case 0xFFE21D:
+      // Serial.println(F("+ Key 3: "));
+      break;
+    case 0xFF22DD:
+      // Serial.println(F("+ Key 4: "));
+      break;
+    case 0xFF02FD:
+      // Serial.println(F("+ Key 5: "));
+      break;
+    case 0xFFC23D:
+      // Serial.println(F("+ Key 6: "));
+      break;
+    case 0xFFE01F:
+      // Serial.println(F("+ Key 7: "));
+      break;
+    case 0xFFA857:
+      // Serial.println(F("+ Key 8: "));
+      break;
+    case 0xFF906F:
+      // Serial.println(F("+ Key 9: "));
+      break;
+    // -----------------------------------
+    case 0xFF6897:
+    case 0xE0E01AE5:
+      // Serial.println(F("+ Key * (Return)"));
+      // Use as Reset when running.
+      controlResetLogic();
+      break;
+    case 0xFFB04F:
+    case 0xE0E0B44B:
+      // Serial.println(F("+ Key # (Exit)"));
+      break;
+    // -----------------------------------
+    default:
+      // Serial.print("+ Result value: ");
+      // Serial.println(results.value, HEX);
+      break;
       // -----------------------------------
-      default:
-        // Serial.print("+ Result value: ");
-        // Serial.println(results.value, HEX);
-        break;
-        // -----------------------------------
-    } // end switch
+  } // end switch
 
-    irrecv.resume();
+  irrecv.resume();
 
-  }
+}
 
-  // -----------------------------------------------------------------------------
-  // Infrared options while a program is running.
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void setup() {
+  Serial.begin(115200);
+  delay(1000);        // Give the serial connection time to start before the first print.
+  Serial.println(""); // Newline after garbage characters.
+  Serial.println(F("+++ Setup."));
 
-  void infraredRunning() {
-    // Serial.println(F("+ infraredSwitch"));
-    switch (results.value) {
-      case 0xFFFFFFFF:
-        // Ignore. This is from holding the key down.
-        break;
-      // -----------------------------------
-      case 0xFF10EF:
-      case 0xE0E0A659:
-        // Serial.println(F("+ Key < - previous"));
-        break;
-      case 0xFF5AA5:
-      case 0xE0E046B9:
-        // Serial.println(F("+ Key > - next."));
-        break;
-      case 0xFF18E7:
-      case 0xE0E006F9:
-        // Serial.println(F("+ Key up"));
-        break;
-      case 0xFF4AB5:
-      case 0xE0E08679:
-        // Serial.println(F("+ Key down"));
-        Serial.println(F("+ Stop process."));
-        runProgram = false;
-        statusByte = statusByte | WAIT_ON;
-        statusByte = statusByte & HLTA_OFF;
-        displayStatusAddressData();
-        break;
-      case 0xFF38C7:
-      case 0xE0E016E9:
-        // Serial.println(F("+ Key OK - Toggle RUN and STOP."));
-        Serial.println(F("+ Stop process."));
-        runProgram = false;
-        statusByte = statusByte | WAIT_ON;
-        statusByte = statusByte & HLTA_OFF;
-        displayStatusAddressData();
-        break;
-      // -----------------------------------
-      case 0xFF9867:
-      case 0xE0E08877:
-        // Serial.println(F("+ Key 0:"));
-        break;
-      case 0xFFA25D:
-        // Serial.println(F("+ Key 1: "));
-        break;
-      case 0xFF629D:
-        // Serial.println(F("+ Key 2: "));
-        break;
-      case 0xFFE21D:
-        // Serial.println(F("+ Key 3: "));
-        break;
-      case 0xFF22DD:
-        // Serial.println(F("+ Key 4: "));
-        break;
-      case 0xFF02FD:
-        // Serial.println(F("+ Key 5: "));
-        break;
-      case 0xFFC23D:
-        // Serial.println(F("+ Key 6: "));
-        break;
-      case 0xFFE01F:
-        // Serial.println(F("+ Key 7: "));
-        break;
-      case 0xFFA857:
-        // Serial.println(F("+ Key 8: "));
-        break;
-      case 0xFF906F:
-        // Serial.println(F("+ Key 9: "));
-        break;
-      // -----------------------------------
-      case 0xFF6897:
-      case 0xE0E01AE5:
-        // Serial.println(F("+ Key * (Return)"));
-        // Use as Reset when running.
-        controlResetLogic();
-        break;
-      case 0xFFB04F:
-      case 0xE0E0B44B:
-        // Serial.println(F("+ Key # (Exit)"));
-        break;
-      // -----------------------------------
-      default:
-        // Serial.print("+ Result value: ");
-        // Serial.println(results.value, HEX);
-        break;
-        // -----------------------------------
-    } // end switch
-
-    irrecv.resume();
-
-  }
-
-  // -----------------------------------------------------------------------------
-  // -----------------------------------------------------------------------------
-  void setup() {
-    Serial.begin(115200);
-    delay(1000);        // Give the serial connection time to start before the first print.
-    Serial.println(""); // Newline after garbage characters.
-    Serial.println(F("+++ Setup."));
-
-    // ----------------------------------------------------
-    int programSize = sizeof(theProgram);
-    // List a program.
-    listByteArray(theProgram, programSize);
-    // Load a program.
-    copyByteArrayToMemory(theProgram, programSize);
+  // ----------------------------------------------------
+  int programSize = sizeof(theProgram);
+  // List a program.
+  listByteArray(theProgram, programSize);
+  // Load a program.
+  copyByteArrayToMemory(theProgram, programSize);
 #ifdef RUN_NOW
-    runProgram = true;
+  runProgram = true;
 #endif
-    Serial.print(F("+ Program loaded."));
-    if (runProgram) {
-      Serial.println(F(" It will start automatically."));
-    }
+  Serial.print(F("+ Program loaded."));
+  if (runProgram) {
+    Serial.println(F(" It will start automatically."));
+  }
 
-    // ----------------------------------------------------
-    irrecv.enableIRIn();
-    Serial.println(F("+ infrared receiver ready for input."));
+  // ----------------------------------------------------
+  irrecv.enableIRIn();
+  Serial.println(F("+ infrared receiver ready for input."));
 
 #ifdef INCLUDE_LCD
-    readyLcd();
-    Serial.println(F("+ LCD ready for output."));
+  readyLcd();
+  Serial.println(F("+ LCD ready for output."));
 #endif
 
-    // ------------------------------
-    // PCF8574 device initialization
-    pcf20.begin();
-    pcf21.begin();
-    // PCF8574 device Interrupt initialization
-    pinMode(INTERRUPT_PIN, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf20interrupt, CHANGE);
-    Serial.println("+ PCF8574 modules initialized.");
+  // ------------------------------
+  // PCF8574 device initialization
+  pcf20.begin();
+  pcf21.begin();
+  // PCF8574 device Interrupt initialization
+  pinMode(INTERRUPT_PIN, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf20interrupt, CHANGE);
+  Serial.println("+ PCF8574 modules initialized.");
 
-    // ----------------------------------------------------
-    pinMode(latchPinLed, OUTPUT);
-    pinMode(clockPinLed, OUTPUT);
-    pinMode(dataPinLed, OUTPUT);
-    delay(300);
-    // Serial.println(F("+ Front panel LED shift registers ready."));
-    //
-    // Status lights are off by default.
-    statusByte = statusByte | WAIT_ON;
-    statusByte = statusByte | MEMR_ON;
-    statusByte = statusByte | M1_ON;
-    statusByte = statusByte | WO_ON;  // WO: on, Inverse logic: off when writing out. On when not.
-    // lightsStatusAddressData(statusByte, programCounter, dataByte);
-    int testLights = B10011001 * 256 + B01100110;
-    lightsStatusAddressData(statusByte, testLights, dataByte);
-    Serial.println(F("+ Front panel LED lights initialized."));
-    // ----------------------------------------------------
+  // ----------------------------------------------------
+  pinMode(latchPinLed, OUTPUT);
+  pinMode(clockPinLed, OUTPUT);
+  pinMode(dataPinLed, OUTPUT);
+  delay(300);
+  // Serial.println(F("+ Front panel LED shift registers ready."));
+  //
+  // Status lights are off by default.
+  statusByte = statusByte | WAIT_ON;
+  statusByte = statusByte | MEMR_ON;
+  statusByte = statusByte | M1_ON;
+  statusByte = statusByte | WO_ON;  // WO: on, Inverse logic: off when writing out. On when not.
+  // lightsStatusAddressData(statusByte, programCounter, dataByte);
+  int testLights = B10011001 * 256 + B01100110;
+  lightsStatusAddressData(statusByte, testLights, dataByte);
+  Serial.println(F("+ Front panel LED lights initialized."));
+  // ----------------------------------------------------
 
-    Serial.println(F("+++ Start the processor loop."));
-  }
+  Serial.println(F("+++ Start the processor loop."));
+}
 
-  // -----------------------------------------------------------------------------
-  // Device Loop for processing each byte of machine code.
+// -----------------------------------------------------------------------------
+// Device Loop for processing each byte of machine code.
 
 #ifdef RUN_DELAY
-  static unsigned long timer = millis();
+static unsigned long timer = millis();
 #endif
-  void loop() {
+void loop() {
 
-    if (runProgram) {
-      // ----------------------------
+  if (runProgram) {
+    // ----------------------------
 #ifdef RUN_DELAY
-      // For testing, clock process timing is controlled by the timer.
-      // Example, 500 : once every 1/2 second.
-      if (millis() - timer >= 500) {
+    // For testing, clock process timing is controlled by the timer.
+    // Example, 500 : once every 1/2 second.
+    if (millis() - timer >= 500) {
 #endif
-        processData();
+      processData();
 #ifdef RUN_DELAY
-        timer = millis();
-      }
-#endif
-      // Program control: STOP or RESET.
-      if (irrecv.decode(&results)) {
-        // Future: use the keypress value(1-8) as input into the running program via IN opcode.
-        infraredRunning();
-      }
-      if (pcf20interrupted) {
-        checkRunningButtons();
-        pcf20interrupted = false; // Reset for next interrupt.
-      }
-      // ----------------------------
-    } else {
-      // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
-      if (irrecv.decode(&results)) {
-        infraredControl();
-      }
-      if (pcf20interrupted) {
-        checkControlButtons();
-        pcf20interrupted = false; // Reset for next interrupt.
-      }
-      delay(60);
+      timer = millis();
     }
-
+#endif
+    // Program control: STOP or RESET.
+    if (irrecv.decode(&results)) {
+      // Future: use the keypress value(1-8) as input into the running program via IN opcode.
+      infraredRunning();
+    }
+    if (pcf20interrupted) {
+      checkRunningButtons();
+      pcf20interrupted = false; // Reset for next interrupt.
+    }
+    // ----------------------------
+  } else {
+    // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
+    if (irrecv.decode(&results)) {
+      infraredControl();
+    }
+    if (pcf20interrupted) {
+      checkControlButtons();
+      pcf20interrupted = false; // Reset for next interrupt.
+    }
+    delay(60);
   }
-  // -----------------------------------------------------------------------------
+
+}
+// -----------------------------------------------------------------------------
