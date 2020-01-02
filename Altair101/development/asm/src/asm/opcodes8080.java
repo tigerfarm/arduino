@@ -1,7 +1,6 @@
 package asm;
 
 /*
-
 --------------------------------------------------------------------------------
 Opcodes implemented by this program,
 Opcode   Binary   Cycles Description
