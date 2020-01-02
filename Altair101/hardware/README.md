@@ -151,9 +151,10 @@ I planned to use another PCF8574 for the toggles.
 --------------------------------------------------------------------------------
 ## The Altair 101 Development Machines
 
-The processor software runs on an Arduino Nano that is on the breadboard development computer.
+The processor software runs on an Arduino Mega.
+I moved to the Mega when I started to run out memory (RAM) on Nano.
 
-Top breadboard, in the following photo:
+Top breadboard, in the following photo of the current development machine:
 + Cables connecting 3 shift registers(SN74HC595N) to the LED lights in the center board.
 + In the middle of the cables is the infrared receiver.
     The receiver is used to send control commands such as stop, run, examine, deposit.
@@ -180,6 +181,7 @@ Below the breadboards:
 
 --------------------
 In the following, the previous version used a Nano on the bottom breadboard.
+It also used buttons for control that were joined to the Nano using Shift registers(SN74HC595N).
 
 <img width="360px"  src="../hardware/Altair101dev3.jpg"/>
 
