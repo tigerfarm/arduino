@@ -28,7 +28,7 @@ to view a binary opcode list with the opcode number of cycles.
 Opcode   Binary   Cycles Description
 -------------------------------------
 Initialize and store values:
-mvi R,#  00 RRR 110  2  Move a number (#, db) to a register.
+mvi R,#  00 DDD 110  2  Move a number (#/db) to a register.
 mov D,S  01 DDD SSS  1  Move source register data, to the destination register.
 lxi RP,a 00 RP0 001  3  Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.
 sta a    00 110 010  3  Store register A to the address, a(hb:lb).
@@ -48,8 +48,8 @@ JC a      11 011 010 lb hb          Jump to a, if Carry bit flag is set (equals 
 
 Logical and bitwise:
 ani #    11 100 110  2  AND # (immediate db) with register A.
-ora R    10 110 SSS  1  OR register R, with register A.
-xra R    10 101 SSS  1  Exclusive OR, the register(R) with register A.
+ora S    10 110 SSS  1  OR register S, with register A.
+xra S    10 101 SSS  1  Exclusive OR, the register(S) with register A.
 rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
 
 Arithmetic:
@@ -73,6 +73,8 @@ in pa    11 011 011  2  Read port a data into the accumulator. Example, a=0377 i
 Opcode   Binary   Cycles Description
 -------------------------------------
 ani #    11 100 110  2  AND # (immediate db) with register A.
+call a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.
+cmp S    10 111 SSS     ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.
 cpi #    11 111 110  2  Compare # to A. Store true or false into flagZeroBit.
 dad RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L. And set carry bit.
 call a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.
@@ -91,14 +93,14 @@ mvi R,#  00 RRR 110  2  Move a number (#, db) to a register.
 mov D,S  01 DDD SSS  1  Move source register data, to the destination register.
 nop      00 000 000  1  No operation. I added a delay: delay(100).
 out pa   11 010 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
-ora R    10 110 SSS  1  OR register R, with register A.
+ora S    10 110 SSS  1  OR register S, with register A.
 push RP  11 RP0 101  1  Push register pair on the stack.
 pop  RP  11 RP0 001  1  Push register pair on the stack.
 ret      11 001 001  1  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.
 rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
 shld a   00 100 010  3  Store data value from memory location: a(hb:lb), to register L. Store value at: a + 1, to register H.
 sta a    00 110 010  3  Store register A to the address, a(hb:lb).
-xra R    10 101 SSS  1  Exclusive OR, the register(R) with register A.
+xra S    10 101 SSS  1  Exclusive OR, the register(S) with register A.
 ````
 --------------------------------------------------------------------------------
 ### 8080 Opcodes Not added to Altair 101
@@ -111,8 +113,6 @@ It's also a practical help, in that it describes opcode implementations, better 
 ````
 Inst      Encoding          Flags   Description
 ----------------------------------------------------------------------
-
-CMP S     10 111 SSS        ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.
 
 DCX RP    00RP1011          -       Decrement register pair
 LHLD a    00101010 lb hb    -       Load H:L from memory

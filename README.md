@@ -626,6 +626,7 @@ https://www.youtube.com/watch?v=7x1P80X1V3E
 + Fix Bluetooth hum: I am replacing the simple board amp with a 
 https://www.amazon.com/dp/B07QRRQDDW
 + Another amp option, which looks better, Price: $39.99 & FREE Shipping:
+++ Douk Audio is the newer version of NobSound.
 https://www.amazon.com/dp/B07HR7PRV5
 
 + DS3231 clock board: DC 3.3-5.5V, High Precision Real-Time Clock Module, $1.29
