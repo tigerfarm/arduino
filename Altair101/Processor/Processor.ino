@@ -74,7 +74,7 @@
 // #define INCLUDE_SDCARD 1
 // #define RUN_DELAY 1
 // #define RUN_NOW 1
-// #define SWITCH_MESSAGES 1
+#define SWITCH_MESSAGES 1
 // #define LOG_MESSAGES 1
 
 // -----------------------------------------------------------------------------
@@ -2832,6 +2832,7 @@ void checkControlButtons() {
           programCounter = 0;
           stackPointer = 0;
           dataByte = memoryData[programCounter];
+          opcode = "";  // For the case when the processing cycle 2 or more.
           lightsStatusAddressData(statusByte, programCounter, dataByte);
         }
         break;
@@ -3037,6 +3038,12 @@ void infraredRunning() {
     case 0xFF10EF:
     case 0xE0E0A659:
       // Serial.println(F("+ Key < - previous"));
+      // Use as Reset when running.
+      programCounter = 0;
+      stackPointer = 0;
+      dataByte = memoryData[programCounter];
+      opcode = "";  // For the case when the processing cycle 2 or more.
+      lightsStatusAddressData(statusByte, programCounter, dataByte);
       break;
     case 0xFF5AA5:
     case 0xE0E046B9:

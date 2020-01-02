@@ -161,6 +161,22 @@ DI        11110011          -       Disable interrupts
 --------------------------------------------------------------------------------
 ### Conventions used when describing Opcodes
 
+Source line format:
+````
+Label: Opcode Operand ;Comment
+-- or --
+Name   Opcode Operand ;Comment
+````
+A name is required for the SET, EQU, and MACRO directives.
+
+A dollar sign can be used as a symbol to denote the value currently in the location counter.
+For example, the command
+````
+JMP $+6
+````
+Reference document:
+http://www.nj7p.org/Manuals/PDFs/Intel/9800301D.pdf
+
 #### Destination and Source registers and register pairs.
 ````
 byte regA = 0;   111=A  a  register A, or Accumulator
@@ -173,7 +189,7 @@ byte regE = 0;   011=E  e
 byte regH = 0;   100=H  h  10=HL   (H:L as 16 bit register)
 byte regL = 0;   101=L  l
                            11=SP   (Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP)
-byte regM = 0;   110=M  m  Memory reference for address in H:L
+byte regM = 0;   110=M  m  Memory reference for a memory address in H:L
 ````
 Register pair identifiers:
 ````

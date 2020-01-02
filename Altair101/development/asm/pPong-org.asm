@@ -48,8 +48,8 @@
                 ;   in memory so that address light A7-A5 remain off to make
                 ;   A15-A8 look better.
                 ;------------------------------------------------------------------ 
-0012 210000     ledOut: lxi     h,0         ;HL=16 bit counter 
-0015 1A         ledLoop: ldax    d           ;display bit pattern on 
+0012 210000     ledOut  lxi     h,0         ;HL=16 bit counter 
+0015 1A         ledLoop ldax    d           ;display bit pattern on 
 0016 1A                 ldax    d           ;...upper 8 address lights 
 0017 1A                 ldax    d 
 0018 1A                 ldax    d 
@@ -60,7 +60,7 @@
                 ;----------------------------------------------------------------
                 ;  Moving Right
                 ;---------------------------------------------------------------- 
-001E CD1200     rLoop:  call    ledOut      ;output to LEDs A15-A8 from D
+001E CD1200     rLoop   call    ledOut      ;output to LEDs A15-A8 from D
                 ; Record the current right paddle state (A8) in the bit position
                 ;   in E corresponding to the present ball position. 
 0021 DBFF               in      0ffh        ;A=front panel switches 
@@ -71,7 +71,7 @@
 002A E61F               ani     1fh         ;keep b7-b5 zero
 002C 5F                 mov     e,a
                 ; See if at the right edge. If so, see if A8 "paddle" has a hit 
-002D 7A         chkRt:  mov     a,d         ;is ball at right edge? 
+002D 7A         chkRt   mov     a,d         ;is ball at right edge? 
 002E E601               ani     1 
 0030 CA4500             jz      moveRt      ;no, continue moving right 
 0033 7B                 mov     a,e         ;switch state for each ball position 
@@ -81,11 +81,11 @@
 003A E601               ani     HITMSKR 
 003C C27300             jnz     moveLfR     ;have a hit, switch direction
                 ; missRt - right player missed the ball. Increment count 
-003F 218100     missRt: lxi     h,scoreR    ;increment right misses 
+003F 218100     missRt  lxi     h,scoreR    ;increment right misses 
 0042 34                 inr     m
                 ; moveRt - Move the ball right again. 
-0043 1E00       moveRtR: mvi     e,0         ;reset switch state 
-0045 7A         moveRt: mov     a,d         ;move right again 
+0043 1E00       moveRtR mvi     e,0         ;reset switch state 
+0045 7A         moveRt  mov     a,d         ;move right again 
 0046 0F                 rrc 
 0047 57                 mov     d,a
 0048 C31E00             jmp     rLoop
@@ -107,7 +107,7 @@
 005A E61F               ani     1fh         ;keep b7-b5 zero 
 005C 5F                 mov     e,a
                 ; See if at the left edge. If so, see if A15 "paddle" has a hit 
-005D 7A         chkLft: mov     a,d         ;is ball at left edge? 
+005D 7A         chkLft  mov     a,d         ;is ball at left edge? 
 005E E680               ani     80h 
 0060 CA7500             jz      moveLf      ;no, continue moving left 
 0063 7B                 mov     a,e         ;switch state for each ball position 
@@ -117,11 +117,11 @@
 006A E610               ani     HITMSKL 
 006C C24300             jnz     moveRtR     ;have a hit, switch direction
                 ; missLf - left player missed the ball. Increment count 
-006F 218000     missLf: lxi     h,scoreL    ;increment left misses 
+006F 218000     missLf  lxi     h,scoreL    ;increment left misses 
 0072 34                 inr     m
                 ; moveLf - Move the ball left again. 
-0073 1E00       LfR:    mvi     e,0         ;reset switch state 
-0075 7A         moveLf: mov     a,d         ;move right again 
+0073 1E00       LfR     mvi     e,0         ;reset switch state 
+0075 7A         moveLf  mov     a,d         ;move right again 
 0076 07                 rlc
 0077 57                 mov     d,a 
 0078 C34B00             jmp     lLoop
@@ -130,7 +130,7 @@
                 ; Data Storage
                 ;------------------------------------------------------------------ 
 007B                    ds      2           ;stack space
-007D =         stack    equ     $
+007D =         stack    equ     $ 
 0080                    org     80h         ;put at 80h and 81h 
 0080           scoreL   ds      1           ;score for left paddle 
 0081           scoreR   ds      1           ;score for right paddle
