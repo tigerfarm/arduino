@@ -146,7 +146,7 @@ The console on/off/on switches are connected to an I2C PCF8574 module.
 The PCF8574 simplifies the wiring.
 I planned to use another PCF8574 for the toggles.
 
-<img width="500px"  src="Altair101toggleConsole.jpg"/>
+<img width="300px"  src="Altair101toggleConsole.jpg"/>
 
 --------------------------------------------------------------------------------
 ## The Altair 101 Development Machines
@@ -154,20 +154,32 @@ I planned to use another PCF8574 for the toggles.
 The processor software runs on an Arduino Nano that is on the breadboard development computer.
 
 Top breadboard, in the following photo:
-+ Cables connecting 3 shift registers(SN74HC595N) to the LED lights: 16 address and 8 data lights.
++ Cables connecting 3 shift registers(SN74HC595N) to the LED lights in the center board.
 + In the middle of the cables is the infrared receiver.
     The receiver is used to send control commands such as stop, run, examine, deposit.
 
 Center breadboard:
-+ Shift register(SN74HC595N) to the status LED lights.
++ Display LED lights: 16 address and 8 data lights.
+
 + Status LED lights in a bar. Separate LED wait status light.
 + 3 shift registers(SN74HC595N) for the input buttons and toggles.
 
 Bottom breadboard:
-+ Nano board which is the Altair 101's CPU and RAM.
++ Shift register(SN74HC595N) to the status LED lights.
 + Input control buttons
-+ Below the breadboards is the input toggles for entering address and data.
+
+Below the breadboards:
++ Arduino Mega board which is the Altair 101's CPU and RAM.
++ Input toggles for entering address and data.
     The toggle board is from a 1970's mainframe computer.
++ Control toggles arranged on the 70's toggle board, in the fashion of a game console.
+
+##### Current development machine:
+
+<img width="360px"  src="../hardware/Altair101dev4.jpg"/>
+
+--------------------
+In the following, the previous version used a Nano on the bottom breadboard.
 
 <img width="360px"  src="../hardware/Altair101dev3.jpg"/>
 
