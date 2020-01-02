@@ -144,7 +144,7 @@ Keyboard layout, where 'O' is the bolt to connect the keyboard to the clipboard.
 ````
 The console on/off/on switches are connected to an I2C PCF8574 module.
 The PCF8574 simplifies the wiring.
-I planned to use another PCF8574 for the toggles.
+The current dev machine has another PCF8574 for the A0...A7 toggles.
 
 <img width="300px"  src="Altair101toggleConsole.jpg"/>
 
