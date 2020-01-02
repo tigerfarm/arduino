@@ -162,12 +162,10 @@ Top breadboard, in the following photo of the current development machine:
 Center breadboard:
 + Display LED lights: 16 address and 8 data lights.
 
-+ Status LED lights in a bar. Separate LED wait status light.
-+ 3 shift registers(SN74HC595N) for the input buttons and toggles.
-
 Bottom breadboard:
 + Shift register(SN74HC595N) to the status LED lights.
-+ Input control buttons
++ The I2C pins from the Mega are connected here, to allow multiple devices to connect.
+    Currently, the input toggles are I2C connected.
 
 Below the breadboards:
 + Arduino Mega board which is the Altair 101's CPU and RAM.
