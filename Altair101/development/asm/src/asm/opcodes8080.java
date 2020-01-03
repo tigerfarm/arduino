@@ -5,6 +5,7 @@ package asm;
 Opcodes implemented by this program,
 Opcode   Binary   Cycles Description
 -------------------------------------
+adi #    11 000 110     ZSCPA Add immedite number to register A.
 cmp S    10 111 SSS     ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.
 dad RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L. And set carry bit.
 ldax RP  00 RP1 010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.
@@ -20,6 +21,7 @@ mov D,S  01 DDD SSS  1  Move source register data, to the destination register.
 nop      00 000 000  1  No operation. I added a delay: delay(100).
 out pa   11 010 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
 rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
+sui #    11 010 110     ZSCPA Subtract immedite number from register A.
 xra S    10 101 SSS  1  Exclusive OR, the register(R) with register A.
 
 Opcodes implemented in Processor.ino, but not yet in this program,
@@ -111,8 +113,12 @@ public class opcodes8080 {
         info = new String[255];
         value = new byte[255];
         // ---------------------------------------------------------------------
+        name[top] = "adi";
+        info[top] = "ADI #     11000110 db   ZSCPA Add immediate number to register A.";
+        value[top++] = (byte) 0b11000110;
+        // ---------------------------------------------------------------------
         name[top] = "cmp";
-        info[top] = "CMP S     10 111 SSS        ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.";
+        info[top] = "CMP S     10 111 SSS    ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.";
         value[top++] = (byte) 0b10111111;   // not used value
         name[top] = "cmpa";  // 10111SSS
         value[top++] = (byte) 0b10111111;
@@ -313,6 +319,10 @@ public class opcodes8080 {
         name[top] = "rrc";
         info[top] = "rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.";
         value[top++] = (byte) 0b00001111;
+        // ---------------------------------------------------------------------
+        name[top] = "sui";
+        info[top] = "SUI #     11010110 db   ZSCPA Subtract immediate number from register A.";
+        value[top++] = (byte) 0b11010110;
         // ---------------------------------------------------------------------
         name[top] = "xra";
         info[top] = "xra R      10101SSS  1  Exclusive OR, the register(R) with register A.";

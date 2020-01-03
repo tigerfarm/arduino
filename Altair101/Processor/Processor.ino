@@ -11,11 +11,11 @@
   Current/Next Work
 
   Add more opcodes,
-  + In the process of writing and testing the opcode CMP test program.
-  + Add the ADI(add imediate) and SUI(subtract imediate) opcode for demos.
-  ++ Inst      Encoding          Flags   Description
-  ++ ADI #     11000110 db       ZSCPA   Add immediate to A
-  ++ SUI #     11010110 db       ZSCPA   Subtract immediate from A
+  + Serial terminal output of register A.
+  ++ mvi a,'h'
+  ++ out 3    ; Output register A content to the serial port (serial monitor).
+  ++ mvi a,'e'
+  ++ out 3
 
   SD card program read and write,
   + Read(download) and write(uplaod) switches need to be connected to Mega pins.
@@ -24,7 +24,7 @@
   ++ If switches are set to: 00000101, then the filename is: 00000101.asm.
   ++ When rebooting or resetting the Mega, if 00000000.asm exists, load and run it.
   + Display LED lights to notify read/write success or failure.
-    
+
   ---------------------------------------------
   Program Development Phase
 
@@ -150,54 +150,30 @@ File myFile;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-const byte theProgramCmp[] = {
+const byte theProgram[] = {
   //                //            ; --------------------------------------
-  //                //            ; Test CMP and conditional jumps.
-  B11000011, 6, 0,     //   0: jmp Test
-  B11100011, 39,       //   3: out 39
-  B01110110,           //   5: hlt
-  B00111110, 73,       //   6: mvi a,73
-  B00000110, 73,       //   8: mvi b,73
-  B10111000,           //  10: cmp b
-  B11000010, 3, 0,     //  11: jnz Error
-  B11011010, 3, 0,     //  14: jc Error
-  B11001010, 23, 0,    //  17: jz okayb1
-  B11000011, 3, 0,     //  20: jmp Error
-  B11010010, 29, 0,    //  23: jnc okayb2
-  B11000011, 3, 0,     //  26: jmp Error
-  B00001110, 73,       //  29: mvi c,73
-  B10111001,           //  31: cmp c
-  B11000010, 3, 0,     //  32: jnz Error
-  B11011010, 3, 0,     //  35: jc Error
-  B11001010, 44, 0,    //  38: jz okayc1
-  B11000011, 3, 0,     //  41: jmp Error
-  B11010010, 50, 0,    //  44: jnc okayc2
-  B11000011, 3, 0,     //  47: jmp Error
-  B00010110, 73,       //  50: mvi d,73
-  B10111010,           //  52: cmp d
-  B11000010, 3, 0,     //  53: jnz Error
-  B11011010, 3, 0,     //  56: jc Error
-  B11001010, 65, 0,    //  59: jz okayd1
-  B11000011, 3, 0,     //  62: jmp Error
-  B11010010, 71, 0,    //  65: jnc okayd2
-  B11000011, 3, 0,     //  68: jmp Error
-  B00011110, 73,       //  71: mvi e,73
-  B10111011,           //  73: cmp e
-  B11000010, 3, 0,     //  74: jnz Error
-  B11011010, 3, 0,     //  77: jc Error
-  B11001010, 86, 0,    //  80: jz okaye1
-  B11000011, 3, 0,     //  83: jmp Error
-  B11010010, 92, 0,    //  86: jnc okaye2
-  B11000011, 3, 0,     //  89: jmp Error
-  B00000000,           //  92: nop
-  B11000011, 5, 0,     //  93: jmp Halt
-  0                    //  96: End of program
+  //                //            ; Test OUT to serial monitor.
+  B11000011, 4, 0,     //   0: jmp Start
+  B01110110,           //   3: hlt
+  B00111110, 'H',      //   4: mvi a,'H'
+  B11100011, 3,        //   6: out 3
+  B00111110, 'e',      //   8: mvi a,'e'
+  B11100011, 3,        //  10: out 3
+  B00111110, 'l',      //  12: mvi a,'l'
+  B11100011, 3,        //  14: out 3
+  B00111110, 'l',      //  16: mvi a,'l'
+  B11100011, 3,        //  18: out 3
+  B00111110, 'o',      //  20: mvi a,'o'
+  B11100011, 3,        //  22: out 3
+  B00000000,           //  24: nop
+  B11000011, 3, 0,     //  25: jmp Halt
+  0                    //  28: End of program
 };
 
 // -----------------------------------------------------------------------------
 // Kill the Bit program.
 
-const byte theProgram[] = {
+const byte theProgramKtb[] = {
   // ------------------------------------------------------------------
   // Kill the Bit program.
   // Before starting, make sure all the sense switches are in the down position.
@@ -541,6 +517,7 @@ boolean flagCarryBit = false; // Set by dad. Used jnc.
 boolean flagZeroBit = true;   // Set by cpi. Used by jz.
 
 byte bit7;                    // For capturing a bit when doing bitwise calculations.
+char asciiChar;  // For printing ascii characters, example 72 is the letter "H".
 
 // For calculating 16 bit values.
 // uint16_t bValue;           // Test using uint16_t instead of "unsigned int".
@@ -582,6 +559,23 @@ void processOpcode() {
   unsigned int anAddress = 0;
   byte dataByte = memoryData[programCounter];
   switch (dataByte) {
+
+    // ---------------------------------------------------------------------
+    // ++ ADI #     11000110 db       ZSCPA   Add immediate to A
+    case B11000110:
+      opcode = B11000110;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> ani, Add immedite number to register A."));
+#endif
+      break;
+    //-----------------------
+    // ++ SUI #     11010110 db       ZSCPA   Subtract immediate from A
+    case B11010110:
+      opcode = B11010110;
+#ifdef LOG_MESSAGES
+      Serial.print(F("> sui, Subtract immedite number from register A."));
+#endif
+      break;
     // ---------------------------------------------------------------------
     //ANI #     11100110 db       ZSPCA   AND immediate with A
     case B11100110:
@@ -984,16 +978,20 @@ void processOpcode() {
       halted = true;
 #ifdef LOG_MESSAGES
       Serial.println(F("> hlt, halt the processor."));
+#else
+      Serial.println("");
+#endif
       statusByte = statusByte | WAIT_ON;
       statusByte = statusByte & MEMR_OFF;
       statusByte = statusByte & M1_OFF;
       statusByte = statusByte | HLTA_ON;
       // lightsStatusAddressData(statusByte, programCounter, dataByte);
       // displayStatusAddressData();
-#else
-      Serial.println("");
-#endif
+#ifdef LOG_MESSAGES
       Serial.print(F("+ Process halted."));
+#else
+      Serial.println(F("+ Process halted."));
+#endif
       break;
     case B11011011:
       opcode = B11011011;
@@ -1918,8 +1916,45 @@ void processOpcodeData() {
   //    if jumping, don't increment programCounter.
 
   switch (opcode) {
+
     // ---------------------------------------------------------------------
-    // stacy
+    //ADI #     11000110 db   ZSCPA Add immediate number to register A.
+    case B11000110:
+      // instructionCycle == 1
+      dataByte = memoryData[programCounter];
+#ifdef LOG_MESSAGES
+      Serial.print(F("> adi, Add immediate number:"));
+      printByte(dataByte);
+      Serial.print(F(" to register A:"));
+      printByte(regA);
+#endif
+      regA = regA + dataByte;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      printByte(regA);
+#endif
+      programCounter++;
+      break;
+    // ---------------------------------------------------------------------
+    //SUI #     11010110 db   ZSCPA Subtract immediate number from register A.
+    case B11010110:
+      // instructionCycle == 1
+      dataByte = memoryData[programCounter];
+#ifdef LOG_MESSAGES
+      Serial.print(F("> adi, Subtract immediate number:"));
+      printByte(dataByte);
+      Serial.print(F(" from register A:"));
+      printByte(regA);
+#endif
+      regA = regA - dataByte;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      printByte(regA);
+#endif
+      programCounter++;
+      break;
+    // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
     //ANI #     11100110 db       ZSPCA   AND immediate with A
     case B11100110:
       // instructionCycle == 1
@@ -2381,11 +2416,29 @@ void processOpcodeData() {
       Serial.print(F("< OUT, input port: "));
       Serial.print(dataByte);
 #else
+      // -----------------------------------------
+      // Special case of output to serial monitor.
+      if (dataByte == 3) {
+        asciiChar = regA;
+        Serial.print(asciiChar);
+        opcode = 0;
+        return;
+      }
+      // -----------------------------------------
       Serial.println("");
 #endif
       switch (dataByte) {
         case 1:
           Serial.print(F(", terminal output to be implemented on LCD."));
+          break;
+        case 3:
+#ifdef LOG_MESSAGES
+          Serial.print(F(", Serial terminal output of register A."));
+          Serial.print(regA);
+          Serial.print(":");
+#endif
+          asciiChar = regA;
+          Serial.print(asciiChar);
           break;
         case 38:
 #ifdef LOG_MESSAGES

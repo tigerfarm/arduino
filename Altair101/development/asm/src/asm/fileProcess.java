@@ -117,8 +117,10 @@ public class fileProcess {
                     // ++ opcode:inr:00111101:a:
                     opcodeComment = opcode + " " + opcodeValues[3];
                     break;
+                case "adi":
                 case "in":
                 case "out":
+                case "sui":
                     // opcode <immediate>
                     // out 39
                     // ++ opcode:out:11100011:39
@@ -249,8 +251,10 @@ public class fileProcess {
                 programBytes.add("opcode:" + opcode + ":" + sOpcodeBinary + ":" + p1);
                 programTop++;
                 break;
-            case "in":
-            case "out":
+                case "adi":
+                case "in":
+                case "out":
+                case "sui":
                 // opcode <immediate>
                 // out 39
                 sOpcodeBinary = getOpcodeBinary(opcode);
@@ -470,12 +474,14 @@ public class fileProcess {
 
         System.out.println("\n+ Parse file lines.");
         // thisProcess.parseFile("p1.asm");
-        thisProcess.parseFile("pKillTheBit.asm");
-        //
+        // thisProcess.parseFile("pKillTheBit.asm");
+        thisProcess.parseFile("opOut.asm");
+        // Required:
         thisProcess.setProgramByteLabels();
+        //
         // thisProcess.listLabels();
         //
-        thisProcess.listProgramBytes();
+        // thisProcess.listProgramBytes();
         thisProcess.printProgramBytesArray();
 
         System.out.println("++ Exit.");
