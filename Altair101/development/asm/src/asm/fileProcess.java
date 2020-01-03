@@ -2,8 +2,7 @@ package asm;
 
 /*
     Stacy, fix: handle addresses greater than 255.
-*/
-
+ */
 import static asm.opcodes8080.byteToString;
 import java.io.*;
 import java.util.ArrayList;
@@ -45,17 +44,17 @@ public class fileProcess {
     }
 
     // -------------------------------------------------------------------------
-    private String getLabelAddress(String findName) {
+    private int getLabelAddress(String findName) {
         // System.out.println("+ findName: " + findName);
-        String returnValue = "";
+        int returnValue = 0;
         Iterator<String> lName = labelName.iterator();
         Iterator<Integer> lAddress = labelAddress.iterator();
         while (lName.hasNext()) {
             String theName = lName.next();
             int theAddress = lAddress.next();
             if (theName.equals(findName)) {
-                returnValue = Integer.toString(theAddress);
-                // System.out.println("+ Found.");
+                returnValue = theAddress;
+                // System.out.println("+ Found theAddress: " + returnValue);
                 break;
             }
         }
@@ -68,9 +67,36 @@ public class fileProcess {
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
             if (theValue.startsWith("lb:")) {
-                String lableAddress = getLabelAddress(theValue.substring(3));
-                // System.out.println("++ Label: " + theValue + ":" + lableAddress);
-                programBytes.set(i, theValue + ":" + lableAddress);
+                //
+                int intAddress = getLabelAddress(theValue.substring(3));
+                // ++ Label: lb:okaym1:265
+                // B11001010, 9, 1,   // 259: jz okaym1  265 in binary hb=00000001 lb=00001001
+                //
+                if (intAddress < 256) {
+                    // lb:
+                    String labelAddress = Integer.toString(intAddress);
+                    programBytes.set(i, theValue + ":" + labelAddress);
+                    System.out.println("++ Label, lb: " + theValue + ":" + labelAddress);
+                    // hb:
+                    // Already set to default of 0.
+                    theValue = it.next();
+                    i++;
+                    System.out.println("++ Label, " + theValue);
+                } else {
+                    // Need to also set hb (high byte).
+                    // Address: 265, in binary hb=00000001(digital=1) lb=00001001(digital=9)
+                    int hb = intAddress/256;
+                    int lb = intAddress - (hb * 256);
+                    //-------------------
+                    // lb:
+                    programBytes.set(i, theValue + ":" + lb);
+                    System.out.println("++ Label, lb: " + theValue + ":" + lb);
+                    // hb:
+                    it.next();
+                    i++;
+                    programBytes.set(i, "hb:" + hb);
+                    System.out.println("++ Label, hb:" + hb);
+                }
             }
             i++;
         }
@@ -158,13 +184,17 @@ public class fileProcess {
                     // ++ opcode:jmp:11000011:There:
                     // ++ lb:Loop:2
                     // ++ hb:0
+                    //------------
                     theValue = it.next();   // ++ lb:Loop:2
                     programTop++;
                     byteValues = theValue.split(":");
                     opcodeStatement += " " + byteValues[2] + ",";
-                    it.next();              // ++ hb:0
+                    //------------
+                    theValue = it.next();   // ++ hb:x
                     programTop++;
-                    opcodeStatement += " 0,";
+                    byteValues = theValue.split(":");
+                    opcodeStatement += " " + byteValues[1] + ",";
+                    //
                     opcodeComment = opcode + " " + opcodeValues[3];
                     break;
                 // -----------------------------

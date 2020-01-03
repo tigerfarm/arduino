@@ -6,6 +6,7 @@ Opcodes implemented by this assembler, implemented in Processor.ino, and tested.
 Opcode   Binary   Cycles Description
 -------------------------------------
 adi #    11 000 110     ZSCPA Add immedite number to register A.
+ani #    11 100 110  2  AND # (immediate db) with register A.
 cmp S    10 111 SSS     ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.
 dad RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L. And set carry bit.
 ldax RP  00 RP1 010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.
@@ -27,9 +28,7 @@ xra S    10 101 SSS  1  Exclusive OR, the register(R) with register A.
 Opcodes implemented by this assembler, implemented in Processor.ino, but not tested.
 Opcode   Binary   Cycles Description
 -------------------------------------
-ani #    11 100 110  2  AND # (immediate db) with register A.
 ora S    10 110 SSS  1  OR register S, with register A.
-
 cpi #    11 111 110  2  Compare # to A. Store true or false into flagZeroBit.
 
 call a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.
