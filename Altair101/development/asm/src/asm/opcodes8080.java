@@ -5,9 +5,9 @@ package asm;
 Opcodes implemented by this assembler, implemented in Processor.ino, and tested.
 Opcode   Binary   Cycles Description
 -------------------------------------
-adi #    11 000 110     ZSCPA Add immedite number to register A.
+adi #    11 000 110     Add immediate number to register A, and set ZSCPA.
 ani #    11 100 110  2  AND # (immediate db) with register A.
-cmp S    10 111 SSS     ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.
+cmp S    10 111 SSS     Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.
 dad RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L. And set carry bit.
 ldax RP  00 RP1 010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.
 hlt      01 110 110  1  Halt processor.
@@ -20,6 +20,7 @@ lxi RP,a 00 RP0 001  3  Move the data at the address, a(lb hb), into register pa
 mvi D,#  00 DDD 110  2  Move a number (#/db) to a register.
 mov D,S  01 DDD SSS  1  Move source register data, to the destination register.
 nop      00 000 000  1  No operation. I added a delay: delay(100).
+ora S    10 110 SSS  1  OR register S, with register A.
 out pa   11 010 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
 rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
 sui #    11 010 110     ZSCPA Subtract immedite number from register A.
@@ -28,7 +29,6 @@ xra S    10 101 SSS  1  Exclusive OR, the register(R) with register A.
 Opcodes implemented by this assembler, implemented in Processor.ino, but not tested.
 Opcode   Binary   Cycles Description
 -------------------------------------
-ora S    10 110 SSS  1  OR register S, with register A.
 cpi #    11 111 110  2  Compare # to A. Store true or false into flagZeroBit.
 
 call a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.
