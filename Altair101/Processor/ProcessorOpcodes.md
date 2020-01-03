@@ -39,6 +39,7 @@ shld a   00 100 010  3  Store data value from memory location: a(hb:lb), to regi
 Jumping and conditions:
 jmp a    11 000 011  3  Unconditional jump.
 Set condition:
+cmp S    10 111 SSS  1  ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.
 cpi #    11 111 110  2  Compare # to A, then set flags. If #=A, set Zero bit to 1. If #>A, Carry bit = 1. If #<A, Carry bit = 0.
 Conditional jumps:
 JNZ a     11 000 010 lb hb          Jump to a, if Zero bit flag is not set (equals 0).
@@ -74,7 +75,7 @@ Opcode   Binary   Cycles Description
 -------------------------------------
 ani #    11 100 110  2  AND # (immediate db) with register A.
 call a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.
-cmp S    10 111 SSS     ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.
+cmp S    10 111 SSS  1  ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.
 cpi #    11 111 110  2  Compare # to A. Store true or false into flagZeroBit.
 dad RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L. And set carry bit.
 call a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.

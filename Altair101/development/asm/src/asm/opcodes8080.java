@@ -121,7 +121,7 @@ public class opcodes8080 {
         value = new byte[255];
         // ---------------------------------------------------------------------
         name[top] = "adi";
-        info[top] = "ADI #     11000110 db   ZSCPA Add immediate number to register A.";
+        info[top] = "ADI #      11000110  3  Add immediate number to register A, set: ZSCPA.";
         value[top++] = (byte) 0b11000110;
         // ---------------------------------------------------------------------
         name[top] = "ani";
@@ -133,7 +133,7 @@ public class opcodes8080 {
         value[top++] = (byte) 0b11001101;
         // ---------------------------------------------------------------------
         name[top] = "cmp";
-        info[top] = "CMP S     10 111 SSS    ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.";
+        info[top] = "CMP S    10 111 SSS  1  Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.";
         value[top++] = (byte) 0b10111111;   // not used value
         name[top] = "cmpa";  // 10111SSS
         value[top++] = (byte) 0b10111111;
@@ -181,15 +181,15 @@ public class opcodes8080 {
         value[top++] = (byte) 0b00101101;
         // ---------------------------------------------------------------------
         name[top] = "hlt";
-        info[top] = "hlt      01 110 110  1  Halt processor.";
+        info[top] = "HLT      01 110 110  1  Halt processor.";
         value[top++] = (byte) 0b01110110;
         // ---------------------------------------------------------------------
         name[top] = "in";
-        info[top] = "in pa    11 011 011  2  Read port a data into the accumulator. Example, a=0377 is the sense switches.";
+        info[top] = "IN pa    11 011 011  2  Read port a data into the accumulator. Example, a=0377 is the sense switches.";
         value[top++] = (byte) 0b11011011;
         // ---------------------------------------------------------------------
         name[top] = "inr";
-        info[top] = "inr D    00 DDD 101  1  Increment register DDD. To do, set flags: ZSPA.";
+        info[top] = "INR D    00 DDD 101  1  Increment register DDD. To do, set flags: ZSPA.";
         name[top] = "inra";  // 00DDD101
         value[top++] = (byte) 0b00111101;
         name[top] = "inrb";
@@ -216,19 +216,19 @@ public class opcodes8080 {
         value[top++] = (byte) 0b00100011;
         // ---------------------------------------------------------------------
         name[top] = "jmp";
-        info[top] = "jmp a    11 000 011  3  Unconditional jump.";
+        info[top] = "JMP a    11 000 011  3  Unconditional jump.";
         value[top++] = (byte) 0b11000011;
         name[top] = "jnz";   //11 000 010
-        info[top] = "JNZ a     11 000 010 lb hb          Jump to a, if Zero bit flag is not set (equals 0).";
+        info[top] = "JNZ a    11 000 010  3  Jump to a, if Zero bit flag is not set (equals 0).";
         value[top++] = (byte) 0b11000010;
         name[top] = "jz";
-        info[top] = "JZ a      11 001 010 lb hb          Jump to a, if zero bit flag is set (equals 1).";
+        info[top] = "JZ a     11 001 010  3  Jump to a, if zero bit flag is set (equals 1).";
         value[top++] = (byte) 0b11001010;
         name[top] = "jnc";
-        info[top] = "JNC a     11 010 010 lb hb          Jump to a, if Carry bit flag is not set (equals 0).";
+        info[top] = "JNC a    11 010 010  3  Jump to a, if Carry bit flag is not set (equals 0).";
         value[top++] = (byte) 0b11010010;
         name[top] = "jc";
-        info[top] = "JC a      11 011 010 lb hb          Jump to a, if Carry bit flag is set (equals 1).";
+        info[top] = "JC a     11 011 010  3  Jump to a, if Carry bit flag is set (equals 1).";
         value[top++] = (byte) 0b11011010;
         // ---------------------------------------------------------------------
         name[top] = "lda";
@@ -236,7 +236,7 @@ public class opcodes8080 {
         value[top++] = (byte) 0b00110010;
         // ---------------------------------------------------------------------
         name[top] = "ldax";
-        info[top] = "ldax RP    00RP1010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.";
+        info[top] = "LDAX RP    00RP1010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.";
         value[top++] = (byte) 0b00111010;   // not used value
         name[top] = "ldaxb";
         value[top++] = (byte) 0b00001010;
@@ -244,7 +244,7 @@ public class opcodes8080 {
         value[top++] = (byte) 0b00011010;
         // ---------------------------------------------------------------------
         name[top] = "lxi";
-        info[top] = "lxi RP,a   00RP0001  3  Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.";
+        info[top] = "LXI RP,a   00RP0001  3  Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.";
         value[top++] = (byte) 0b00110001;   // not used value
         name[top] = "lxib";
         value[top++] = (byte) 0b00000001;
@@ -254,7 +254,7 @@ public class opcodes8080 {
         value[top++] = (byte) 0b00100001;
         // ---------------------------------------------------------------------
         name[top] = "mov";
-        info[top] = "mov D,S    01DDDSSS  1  Move source register data, to the destination register.";
+        info[top] = "MOV D,S    01DDDSSS  1  Move source register data, to the destination register.";
         value[top++] = (byte) 0b01111111;   // not used
         name[top] = "movab";  //01111111
         value[top++] = (byte) 0b01111000;
@@ -343,7 +343,7 @@ public class opcodes8080 {
         
         // ---------------------------------------------------------------------
         name[top] = "mvi";
-        info[top] = "mvi R,#  00 RRR 110  2  Move a number (#, db) to a register.";
+        info[top] = "MVI R,#  00 RRR 110  2  Move a number (#, db) to a register.";
         name[top] = "mvia";  // 00RRR110
         value[top++] = (byte) 0b00111110;
         name[top] = "mvib";
@@ -360,7 +360,7 @@ public class opcodes8080 {
         value[top++] = (byte) 0b00101110;
         // ---------------------------------------------------------------------
         name[top] = "nop";
-        info[top] = "nop      00 000 000  1  No operation. I added a delay: delay(100).";
+        info[top] = "NOP      00 000 000  1  No operation. I added a delay: delay(100).";
         value[top++] = (byte) 0b00000000;
         // ---------------------------------------------------------------------
         name[top] = "ora";
@@ -384,7 +384,7 @@ public class opcodes8080 {
         value[top++] = (byte) 0b10110110;
         // ---------------------------------------------------------------------
         name[top] = "out";
-        info[top] = "out pa   11 010 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.";
+        info[top] = "OUT pa   11 010 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.";
         value[top++] = (byte) 0b11100011;
         // ---------------------------------------------------------------------
         name[top] = "ret";
@@ -392,7 +392,7 @@ public class opcodes8080 {
         value[top++] = (byte) 0b11001001;
         // ---------------------------------------------------------------------
         name[top] = "rrc";
-        info[top] = "rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.";
+        info[top] = "RRC      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.";
         value[top++] = (byte) 0b00001111;
         // ---------------------------------------------------------------------
         name[top] = "shld";
@@ -400,15 +400,15 @@ public class opcodes8080 {
         value[top++] = (byte) 0b00100010;
         // ---------------------------------------------------------------------
         name[top] = "sta";
-        info[top] = "sta a    00 110 010  3  Store register A to the address, a(hb:lb).";
+        info[top] = "STA a    00 110 010  3  Store register A to the address, a(hb:lb).";
         value[top++] = (byte) 0b00110010;
         // ---------------------------------------------------------------------
         name[top] = "sui";
-        info[top] = "SUI #     11010110 db   ZSCPA Subtract immediate number from register A.";
+        info[top] = "SUI #      11010110  3  Subtract immediate number from register A, set ZSCPA.";
         value[top++] = (byte) 0b11010110;
         // ---------------------------------------------------------------------
         name[top] = "xra";
-        info[top] = "xra R      10101SSS  1  Exclusive OR, the register(R) with register A.";
+        info[top] = "XRA R      10101SSS  1  Exclusive OR, the register(R) with register A.";
         value[top++] = (byte) 0b10101111;
         name[top] = "xrab";
         value[top++] = (byte) 0b10101000;
