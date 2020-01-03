@@ -2,7 +2,7 @@ package asm;
 
 /*
 --------------------------------------------------------------------------------
-Opcodes implemented by this program,
+Opcodes implemented by this assembler, implemented in Processor.ino, and tested.
 Opcode   Binary   Cycles Description
 -------------------------------------
 adi #    11 000 110     ZSCPA Add immedite number to register A.
@@ -24,7 +24,7 @@ rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapp
 sui #    11 010 110     ZSCPA Subtract immedite number from register A.
 xra S    10 101 SSS  1  Exclusive OR, the register(R) with register A.
 
-Opcodes implemented in Processor.ino, but not yet in this program,
+Opcodes implemented by this assembler, implemented in Processor.ino, but not tested.
 Opcode   Binary   Cycles Description
 -------------------------------------
 ani #    11 100 110  2  AND # (immediate db) with register A.
@@ -34,11 +34,15 @@ dcr D    00 DDD 101  1  Decrement a register. To do, set flags: ZSPA.
 inx RP   00 RP0 011  1  Increment a register pair (a 16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
 lda a    00 110 010  3  Load register A with data from the address, a(hb:lb).
 ora S    10 110 SSS  1  OR register S, with register A.
-push RP  11 RP0 101  1  Push register pair on the stack.
-pop  RP  11 RP0 001  1  Push register pair on the stack.
 ret      11 001 001  1  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.
 shld a   00 100 010  3  Store data value from memory location: a(hb:lb), to register L. Store value at: a + 1, to register H.
 sta a    00 110 010  3  Store register A to the address, a(hb:lb).
+
+Opcodes implemented in Processor.ino, but not yet in this assembler,
+Opcode   Binary   Cycles Description
+-------------------------------------
+push RP  11 RP0 101  1  Push register pair on the stack.
+pop  RP  11 RP0 001  1  POP register pair from the stack.
 
 */
 
@@ -117,6 +121,14 @@ public class opcodes8080 {
         info[top] = "ADI #     11000110 db   ZSCPA Add immediate number to register A.";
         value[top++] = (byte) 0b11000110;
         // ---------------------------------------------------------------------
+        name[top] = "ani";
+        info[top] = "ANI #    11 100 110  2  AND # (immediate db) with register A.";
+        value[top++] = (byte) 0b11100110;
+        // ---------------------------------------------------------------------
+        name[top] = "call";
+        info[top] = "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.";
+        value[top++] = (byte) 0b11001101;
+        // ---------------------------------------------------------------------
         name[top] = "cmp";
         info[top] = "CMP S     10 111 SSS    ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.";
         value[top++] = (byte) 0b10111111;   // not used value
@@ -135,6 +147,10 @@ public class opcodes8080 {
         name[top] = "cmpl";
         value[top++] = (byte) 0b10111101;
         // ---------------------------------------------------------------------
+        name[top] = "cpi";
+        info[top] = "CPI #    11 111 110  2  Compare # to A. Store true or false into flagZeroBit.";
+        value[top++] = (byte) 0b11111110;
+        // ---------------------------------------------------------------------
         name[top] = "dad";
         info[top] = "DAD RP     00RP1001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L, into H:L. And set carry bit.";
         value[top++] = (byte) 0b00111001;   // not used value
@@ -142,6 +158,24 @@ public class opcodes8080 {
         value[top++] = (byte) 0b00001001;
         name[top] = "dadd";
         value[top++] = (byte) 0b00101001;
+        // ---------------------------------------------------------------------
+        name[top] = "dcr";
+        info[top] = "DCR D    00 DDD 101  1  Decrement a register. To do, set flags: ZSPA.";
+        value[top++] = (byte) 0b00111101;   // not used value
+        name[top] = "dcra";  // 00DDD101
+        value[top++] = (byte) 0b00111101;
+        name[top] = "dcrb";
+        value[top++] = (byte) 0b00000101;
+        name[top] = "dcrc";
+        value[top++] = (byte) 0b00001101;
+        name[top] = "dcrd";
+        value[top++] = (byte) 0b00010101;
+        name[top] = "dcre";
+        value[top++] = (byte) 0b00011101;
+        name[top] = "dcrh";
+        value[top++] = (byte) 0b00100101;
+        name[top] = "dcrl";
+        value[top++] = (byte) 0b00101101;
         // ---------------------------------------------------------------------
         name[top] = "hlt";
         info[top] = "hlt      01 110 110  1  Halt processor.";
@@ -168,6 +202,16 @@ public class opcodes8080 {
         name[top] = "inrl";
         value[top++] = (byte) 0b00101101;
         // ---------------------------------------------------------------------
+        name[top] = "inx";
+        info[top] = "INX RP   00 RP0 011  1  Increment a register pair (a 16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.";
+        value[top++] = (byte) 0b00110011;   // not used value
+        name[top] = "inxb"; //  00RP0011
+        value[top++] = (byte) 0b00000011;
+        name[top] = "inxd";
+        value[top++] = (byte) 0b00010011;
+        name[top] = "inxh";
+        value[top++] = (byte) 0b00100011;
+        // ---------------------------------------------------------------------
         name[top] = "jmp";
         info[top] = "jmp a    11 000 011  3  Unconditional jump.";
         value[top++] = (byte) 0b11000011;
@@ -183,6 +227,10 @@ public class opcodes8080 {
         name[top] = "jc";
         info[top] = "JC a      11 011 010 lb hb          Jump to a, if Carry bit flag is set (equals 1).";
         value[top++] = (byte) 0b11011010;
+        // ---------------------------------------------------------------------
+        name[top] = "lda";
+        info[top] = "LDA a    00 110 010  3  Load register A with data from the address, a(hb:lb).";
+        value[top++] = (byte) 0b00110010;
         // ---------------------------------------------------------------------
         name[top] = "ldax";
         info[top] = "ldax RP    00RP1010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.";
@@ -312,13 +360,43 @@ public class opcodes8080 {
         info[top] = "nop      00 000 000  1  No operation. I added a delay: delay(100).";
         value[top++] = (byte) 0b00000000;
         // ---------------------------------------------------------------------
+        name[top] = "ora";
+        info[top] = "ora S    10 110 SSS  1  OR register S, with register A.";
+        value[top++] = (byte) 0b10110111;   // not used value
+        name[top] = "oraa";  // 10110SSS
+        value[top++] = (byte) 0b10110111;
+        name[top] = "orab";
+        value[top++] = (byte) 0b10110000;
+        name[top] = "orac";
+        value[top++] = (byte) 0b10110001;
+        name[top] = "orad";
+        value[top++] = (byte) 0b10110010;
+        name[top] = "orae";
+        value[top++] = (byte) 0b10110011;
+        name[top] = "orah";
+        value[top++] = (byte) 0b10110100;
+        name[top] = "oral";
+        value[top++] = (byte) 0b10110101;
+        // ---------------------------------------------------------------------
         name[top] = "out";
         info[top] = "out pa   11 010 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.";
         value[top++] = (byte) 0b11100011;
         // ---------------------------------------------------------------------
+        name[top] = "ret";
+        info[top] = "RET      11 001 001  1  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.";
+        value[top++] = (byte) 0b11001001;
+        // ---------------------------------------------------------------------
         name[top] = "rrc";
         info[top] = "rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.";
         value[top++] = (byte) 0b00001111;
+        // ---------------------------------------------------------------------
+        name[top] = "shld";
+        info[top] = "SHLD a   00 100 010  3  Store data value from memory location: a(hb:lb), to register L. Store value at: a + 1, to register H.";
+        value[top++] = (byte) 0b00100010;
+        // ---------------------------------------------------------------------
+        name[top] = "sta";
+        info[top] = "sta a    00 110 010  3  Store register A to the address, a(hb:lb).";
+        value[top++] = (byte) 0b00110010;
         // ---------------------------------------------------------------------
         name[top] = "sui";
         info[top] = "SUI #     11010110 db   ZSCPA Subtract immediate number from register A.";

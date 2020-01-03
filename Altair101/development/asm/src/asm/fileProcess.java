@@ -101,23 +101,32 @@ public class fileProcess {
                 opcodeStatement = "B" + opcodeValues[2] + ",";    // B11000011,
             }
             switch (opcode) {
+                // -----------------------------
                 case "hlt":
                 case "nop":
+                case "ret":
                 case "rrc":
                     // opcode (no parameters)
                     // ++ opcode:nop:00000000:
                     opcodeComment = opcode;
                     break;
+                // -----------------------------
                 case "cmp":
                 case "dad":
+                case "dcr":
                 case "inr":
+                case "inx":
                 case "ldax":
+                case "ora":
                 case "xra":
-                    // opcode <register>
+                    // opcode <register|RegisterPair>
                     // ++ opcode:inr:00111101:a:
                     opcodeComment = opcode + " " + opcodeValues[3];
                     break;
+                // -----------------------------
                 case "adi":
+                case "ani":
+                case "cpi":
                 case "in":
                 case "out":
                 case "sui":
@@ -131,11 +140,16 @@ public class fileProcess {
                     opcodeStatement += " " + byteValues[1] + ",";
                     opcodeComment = opcode + " " + opcodeValues[3];
                     break;
+                // -----------------------------
+                case "call":
                 case "jmp":
                 case "jnz":
                 case "jz":
                 case "jnc":
                 case "jc":
+                case "lda":
+                case "shld":
+                case "sta":
                     // opcode <address label>
                     // ++ opcode:jmp:11000011:There:
                     // ++ lb:Loop:2
@@ -149,6 +163,7 @@ public class fileProcess {
                     opcodeStatement += " 0,";
                     opcodeComment = opcode + " " + opcodeValues[3];
                     break;
+                // -----------------------------
                 case "lxi":
                     // opcode <register>,<address>
                     // lxi b,5
@@ -164,6 +179,7 @@ public class fileProcess {
                     opcodeStatement += " 0,";
                     opcodeComment = opcode + " " + opcodeValues[3] + "," + opcodeValues[4];
                     break;
+                // -----------------------------
                 case "mvi":
                     // opcode <register>,<immediate>
                     // mvi a,1
@@ -175,12 +191,14 @@ public class fileProcess {
                     opcodeStatement += " " + byteValues[1] + ",";
                     opcodeComment = opcode + " " + opcodeValues[3] + "," + opcodeValues[4];
                     break;
+                // -----------------------------
                 case "mov":
                     // opcode <register>,<register>
                     // mov a,b
                     // ++ opcode:mov:00111110:a:b
                     opcodeComment = opcode + " " + opcodeValues[3] + "," + opcodeValues[4];
                     break;
+                // -----------------------------
                 default:
                     break;
             }
@@ -239,22 +257,29 @@ public class fileProcess {
     private void parseOpcode(String opcode, String p1) {
         // Opcode, single parameter, example: jmp Next
         switch (opcode) {
+            // -----------------------------
             case "cmp":
             case "dad":
+            case "dcr":
             case "inr":
+            case "inx":
             case "ldax":
+            case "ora":
             case "xra":
-                // opcode <register>
+                // opcode <register|RegisterPair>
                 // cmp c
                 p1 = p1.toLowerCase();
                 sOpcodeBinary = getOpcodeBinary(opcode + p1);
                 programBytes.add("opcode:" + opcode + ":" + sOpcodeBinary + ":" + p1);
                 programTop++;
                 break;
-                case "adi":
-                case "in":
-                case "out":
-                case "sui":
+            // -----------------------------
+            case "adi":
+            case "ani":
+            case "cpi":
+            case "in":
+            case "out":
+            case "sui":
                 // opcode <immediate>
                 // out 39
                 sOpcodeBinary = getOpcodeBinary(opcode);
@@ -263,11 +288,16 @@ public class fileProcess {
                 programBytes.add("immediate:" + p1);
                 programTop++;
                 break;
+            // -----------------------------
+            case "call":
             case "jmp":
             case "jnz":
             case "jz":
             case "jnc":
             case "jc":
+            case "lda":
+            case "shld":
+            case "sta":
                 // opcode <address label>
                 // jmp There
                 sOpcodeBinary = getOpcodeBinary(opcode);
@@ -278,6 +308,7 @@ public class fileProcess {
                 programBytes.add("hb:" + 0);
                 programTop++;
                 break;
+            // -----------------------------
             default:
                 opcode = "INVALID: " + opcode;
                 System.out.print("-- Error, ");
