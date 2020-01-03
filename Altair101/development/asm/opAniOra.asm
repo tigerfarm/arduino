@@ -5,6 +5,22 @@
                         ; --------------------------------------
             jmp Test    ; Jump to bypass the halt.
     Error:
+            mvi a,'-'   ; Move the byte value of "-" to register A.
+            out 3       ; Output register A content to the serial port (serial monitor).
+            mvi a,'-'
+            out 3
+            mvi a,' '
+            out 3
+            mvi a,'E'
+            out 3
+            mvi a,'r'
+            out 3
+            mvi a,'r'
+            out 3
+            mvi a,'o'
+            out 3
+            mvi a,'r'
+            out 3
             out 39      ; Print the registers and other system values.
     Halt:
             hlt         ; The program will halt at each iteration, after the first.
