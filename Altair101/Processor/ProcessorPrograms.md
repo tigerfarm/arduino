@@ -1,22 +1,7 @@
 # Development Programs for the Altair 101
 
 Following are my machine code programs.
-
-I found an assembler that I need to try:
-+ Video showing how to [download and make](https://www.youtube.com/watch?v=oO8_2JJV0B4) the VASM assembler.
-+ vasm [home page](http://sun.hasenbraten.de/vasm/),
-    [source](http://sun.hasenbraten.de/vasm/index.php?view=relsrc)
-
-After downloading and unzipping the source, run the following:
-````
-cd /Users/.../work/vasm
-$ make CPU=Z80 SYNTAX=oldstyle
-...
-$ ./vasmZ80_oldstyle
-...
-$ cp vasmZ80_oldstyle ../asm
-$ cd ..
-````
+These were my test programs before I wrote the assembler program.
 
 Sample Method Programs
 + [Loop](#loop)

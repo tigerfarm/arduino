@@ -41,7 +41,7 @@ public class fileProcess {
     }
 
     // -------------------------------------------------------------------------
-    public String getLabelAddress(String findName) {
+    private String getLabelAddress(String findName) {
         // System.out.println("+ findName: " + findName);
         String returnValue = "";
         Iterator<String> lName = labelName.iterator();
@@ -83,7 +83,7 @@ public class fileProcess {
         System.out.println("+ End of list.");
     }
 
-    public void printProgramBytesArray() {
+    private void printProgramBytesArray() {
         System.out.println("\n+ Print a program array from the program data:");
         programCounter = 0;
         programTop = 0;
@@ -495,6 +495,13 @@ public class fileProcess {
             System.out.print("+ *** IOException: ");
             System.out.println(ioe.toString());
         }
+    }
+
+    // -------------------------------------------------------------------------
+    public void printProgramByteArray(fileProcess thisProcess, String theReadFilename) {
+        thisProcess.parseFile(theReadFilename);
+        thisProcess.setProgramByteLabels();
+        thisProcess.printProgramBytesArray();
     }
 
     // -------------------------------------------------------------------------

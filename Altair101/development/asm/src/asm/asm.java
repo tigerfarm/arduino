@@ -42,8 +42,13 @@ public class asm {
             switch (cmd) {
                 case "parse":
                     System.out.println("+ -------------------------------------");
-                    System.out.println("+ Parse the file: " + theFilename + ":");
+                    System.out.println("+ Parse the program: " + theFilename + ":");
                     processFile.parseFile(theFilename);
+                    break;
+                case "printarray":
+                    System.out.println("+ -------------------------------------");
+                    System.out.println("+ Print the byte array for the program: " + theFilename + ":");
+                    processFile.printProgramByteArray(processFile, theFilename);
                     break;
                 case "file":
                     // > file this.asm
@@ -77,9 +82,9 @@ public class asm {
                     System.out.println("Help");
                     System.out.println("+ file <filename>   : set the assembler program file name to use in other commands.");
                     System.out.println("+ parse             : Parse the file, output to screen.");
-                    System.out.println("+ list              : list the file to screen.");
-                    System.out.println("+ list file         : list the file to screen.");
-                    System.out.println("+ opcode <opcode>   : list the opcodes to screen.");
+                    System.out.println("+ printarray        : Print the byte array for the program to screen.");
+                    System.out.println("+ list [file]       : list the file to screen.");
+                    System.out.println("+ opcode <opcode>   : list the opcode information to the screen.");
                     System.out.println("+ opcodes           : list the opcodes to screen.");
                     System.out.println("+ exit              : Exit this program.");
                     break;
