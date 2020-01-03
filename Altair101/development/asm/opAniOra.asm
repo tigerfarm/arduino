@@ -1,0 +1,76 @@
+                        ; --------------------------------------
+                        ; Test opcode ANI and ORA.
+                        ; AND # (immediate db) with register A.
+                        ; OR register S, with register A.
+                        ; --------------------------------------
+            jmp Test    ; Jump to bypass the halt.
+    Error:
+            out 39      ; Print the registers and other system values.
+    Halt:
+            hlt         ; The program will halt at each iteration, after the first.
+                        ; --------------------------------------
+    Test:
+                        ;          ani # 11 100 110
+            mvi a,176   ; Move # to register A:    10 110 000 = 176
+            ani 248     ; AND # with register A:   11 111 000 = 248
+            out 37      ; Print register A answer: 10 110 000 = 176
+            cpi 176     ; 176 = A. Zero bit flag is true.
+            jz okayani  ; Zero bit flag is set, jump.
+            jmp Error   ; The above should have jumped passed this.
+    okayani:
+                        ; --------------------------------------
+                        ; ORA S     10110SSS          ZSPCA   OR source register with A
+            mvi a,73    ; Move # to register A:                   01 001 001 = 73
+            mvi b,70    ; Move # to register B:                   01 000 110 = 70
+            ora b       ; OR register B, with register A. Answer: 01 001 111 = 79.
+            cpi 79      ; 79 = A. Zero bit flag is true.
+            jz okayb1   ; Zero bit flag is set, jump.
+            jmp Error   ; The above should have jumped passed this.
+    okayb1:
+            mvi a,73
+            mvi c,70
+            ora c
+            cpi 79
+            jz okayc1
+            jmp Error
+    okayc1:
+            mvi a,73
+            mvi d,70
+            ora d
+            cpi 79
+            jz okayd1
+            jmp Error
+    okayd1:
+            mvi a,73
+            mvi e,3
+            ora e
+            cpi 79
+            jz okaye1
+            jmp Error
+    okaye1:
+            mvi a,73
+            mvi h,70
+            ora h
+            cpi 79
+            jz okayh1
+            jmp Error
+    okayh1:
+            mvi a,73
+            mvi l,70
+            ora l
+            cpi 79
+            jz okayl1
+            jmp Error
+    okayl1:
+            mvi a,73    ; Move # to register A:                                  01 001 001 = 73
+            mvi h,0
+            mvi l,0     ; Register M address data (opcode jmp) =                 11 000 011
+            ora m       ; OR data a register M address, with register A. Answer: 11 001 011 = ?
+            cpi 79      ; Wrong answer will dump the answer.
+            jz okaym1
+            jmp Error
+    okaym1:
+                        ; --------------------------------------
+            NOP
+            jmp Halt    ; Jump back to the early halt command.
+                        ; End.

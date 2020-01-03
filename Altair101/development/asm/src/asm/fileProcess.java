@@ -506,7 +506,7 @@ public class fileProcess {
         System.out.println("\n+ Parse file lines.");
         // thisProcess.parseFile("p1.asm");
         // thisProcess.parseFile("pKillTheBit.asm");
-        thisProcess.parseFile("opOut.asm");
+        thisProcess.parseFile("opAniOra.asm");
         // Required:
         thisProcess.setProgramByteLabels();
         //

@@ -12,21 +12,21 @@
     Test:
             mvi a,73    ; Move # to register A.
             out 37
-            mvi b,76    ; Move # to register B.
-            mvi c,73    ; Move # to register C.
                         ; --------------------------------------
-            adi 3       ; Add immediate number to register A. Answer should be 76.
+            adi 3       ; Add immediate number to register A. 
             out 37
+            mvi b,76    ; Answer should be 76. Move # to register B.
             cmp b       ; B = A. Zero bit flag is true.
             jz okayb1   ; Zero bit flag is set, jump.
             jmp Error   ; The above should have jumped passed this.
     okayb1:
                         ; --------------------------------------
-            sui 3       ; Subtract immediate number from register A.
+            sui 6       ; Subtract immediate number from register A.
             out 37
-            cmp c       ; C = A. Zero bit flag is true.
-            jz okayc1   ; Zero bit flag is set, jump.
-            jmp Error   ; The above should have jumped passed this.
+            mvi c,70    ; Move # to register C.
+            cmp c       ; C = A.
+            jz okayc1
+            jmp Error
     okayc1:
                         ; --------------------------------------
             NOP

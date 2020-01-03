@@ -343,7 +343,6 @@ byte theProgram[] = {
   // -----------------------------------------------------------------------------
   //ANI #     11100110 db       ZSPCA   AND immediate with A
   //
-  //1RRR110 mvi                                        ORA S 10 110 SSS
   B00111110, 176,   // mvi a,176  ; Move # to register A:    10 110 000 = 176 which is ora b.
   //1100110 ani
   B11100110, 248,   // ani 248    ; AND # with register A:   11 111 000 = 248

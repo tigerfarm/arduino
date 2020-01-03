@@ -28,13 +28,16 @@ Opcodes implemented by this assembler, implemented in Processor.ino, but not tes
 Opcode   Binary   Cycles Description
 -------------------------------------
 ani #    11 100 110  2  AND # (immediate db) with register A.
-call a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.
+ora S    10 110 SSS  1  OR register S, with register A.
+
 cpi #    11 111 110  2  Compare # to A. Store true or false into flagZeroBit.
+
+call a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.
+ret      11 001 001  1  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.
+
 dcr D    00 DDD 101  1  Decrement a register. To do, set flags: ZSPA.
 inx RP   00 RP0 011  1  Increment a register pair (a 16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
 lda a    00 110 010  3  Load register A with data from the address, a(hb:lb).
-ora S    10 110 SSS  1  OR register S, with register A.
-ret      11 001 001  1  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.
 shld a   00 100 010  3  Store data value from memory location: a(hb:lb), to register L. Store value at: a + 1, to register H.
 sta a    00 110 010  3  Store register A to the address, a(hb:lb).
 
@@ -361,7 +364,7 @@ public class opcodes8080 {
         value[top++] = (byte) 0b00000000;
         // ---------------------------------------------------------------------
         name[top] = "ora";
-        info[top] = "ora S    10 110 SSS  1  OR register S, with register A.";
+        info[top] = "ORA S    10 110 SSS  1  OR register S, with register A.";
         value[top++] = (byte) 0b10110111;   // not used value
         name[top] = "oraa";  // 10110SSS
         value[top++] = (byte) 0b10110111;
@@ -377,6 +380,8 @@ public class opcodes8080 {
         value[top++] = (byte) 0b10110100;
         name[top] = "oral";
         value[top++] = (byte) 0b10110101;
+        name[top] = "oram";
+        value[top++] = (byte) 0b10110110;
         // ---------------------------------------------------------------------
         name[top] = "out";
         info[top] = "out pa   11 010 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.";
