@@ -237,10 +237,98 @@ void runningSwitches() {
         break;
       // -------------------
       default:
-      delay(3);
+        delay(3);
     }
   }
   // Serial.println(":");
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Switches
+
+// Reference:
+//  https://create.arduino.cc/projecthub/muhammad-aqib/arduino-button-tutorial-using-arduino-digitalread-function-08adb5#toc-using-internal-pull-up-resistor-9
+
+const int CLOCK_SWITCH_PIN = A11;  // Tested pins, works: 4, A11. Soesn't work: 24, 33.
+const int PLAYER_SWITCH_PIN = A12;
+const int UPLOAD_SWITCH_PIN = A13;
+const int DOWNLOAD_SWITCH_PIN = A14;
+
+// Only do the action once, don't repeat if the switch is held down.
+// Don't repeat action if the switch is not pressed.
+boolean clockSwitchState = true;
+boolean playerSwitchState = true;
+boolean uploadSwitchState = true;
+boolean downloadSwitchState = true;
+
+void checkClockSwitch() {
+  if (digitalRead(CLOCK_SWITCH_PIN) == HIGH) {
+    if (!clockSwitchState) {
+      Serial.println(F("+ Clock switch released."));
+      
+      clockSwitchState = false;
+      // Switch logic ...
+    }
+    clockSwitchState = true;
+  } else {
+    if (clockSwitchState) {
+      Serial.println(F("+ Clock switch pressed."));
+      clockSwitchState = false;
+      // Switch logic ...
+    }
+  }
+}
+void checkPlayerSwitch() {
+  if (digitalRead(PLAYER_SWITCH_PIN) == HIGH) {
+    if (!playerSwitchState) {
+      Serial.println(F("+ Player switch released."));
+      
+      playerSwitchState = false;
+      // Switch logic ...
+    }
+    playerSwitchState = true;
+  } else {
+    if (playerSwitchState) {
+      Serial.println(F("+ Player switch pressed."));
+      playerSwitchState = false;
+      // Switch logic ...
+    }
+  }
+}
+void checkUploadSwitch() {
+  if (digitalRead(UPLOAD_SWITCH_PIN) == HIGH) {
+    if (!uploadSwitchState) {
+      Serial.println(F("+ Upload switch released."));
+      
+      uploadSwitchState = false;
+      // Switch logic ...
+    }
+    uploadSwitchState = true;
+  } else {
+    if (uploadSwitchState) {
+      Serial.println(F("+ Upload switch pressed."));
+      uploadSwitchState = false;
+      // Switch logic ...
+    }
+  }
+}
+void checkDownloadSwitch() {
+  if (digitalRead(DOWNLOAD_SWITCH_PIN) == HIGH) {
+    if (!downloadSwitchState) {
+      Serial.println(F("+ Download switch released."));
+      
+      downloadSwitchState = false;
+      // Change to high, switch logic ...
+    }
+    downloadSwitchState = true;
+  } else {
+    if (uploadSwitchState) {
+      Serial.println(F("+ Download switch pressed."));
+      downloadSwitchState = false;
+      // Change to low, switch logic ...
+    }
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -257,6 +345,12 @@ void setup() {
   pinMode(INTERRUPT_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf20interrupt, CHANGE);
   Serial.println("+ PCF module initialized.");
+
+  pinMode(CLOCK_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(PLAYER_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(UPLOAD_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(DOWNLOAD_SWITCH_PIN, INPUT_PULLUP);
+  Serial.println(F("+ Toggle/button switches are configured for input."));
 
   // ------------------------------
   if (runProgram) {
@@ -288,6 +382,10 @@ void loop() {
       delay(30);           // Handle switch debounce.
       pcf20interrupted = false;
     }
+    checkClockSwitch();
+    checkPlayerSwitch();
+    checkUploadSwitch();
+    checkDownloadSwitch();
     // ----------------------------
     delay(30);
   }
