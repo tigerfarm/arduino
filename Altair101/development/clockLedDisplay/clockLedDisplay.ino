@@ -19,9 +19,9 @@
 // Output LED light shift register(SN74HC595N) pins
 
 //                Nano pin               74HC595 Pins
-const PROGMEM int dataPinLed = 7;     // pin 14 Data pin.
-const PROGMEM int latchPinLed = 8;    // pin 12 Latch pin.
-const PROGMEM int clockPinLed = 9;    // pin 11 Clock pin.
+const int dataPinLed = 7;     // pin 14 Data pin.
+const int latchPinLed = 8;    // pin 12 Latch pin.
+const int clockPinLed = 9;    // pin 11 Clock pin.
 
 void lightsStatusAddressData( byte status8bits, byte address16bits, byte data8bits) {
   digitalWrite(latchPinLed, LOW);
