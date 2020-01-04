@@ -1,7 +1,10 @@
 package asm;
 
 /*
-    Stacy, fix: handle addresses greater than 255.
+    Stacy, fix: handle operands containing ":", which is used as the separator.
+    Example:
+            mvi a,':'
+            out 3
  */
 import static asm.opcodes8080.byteToString;
 import java.io.*;

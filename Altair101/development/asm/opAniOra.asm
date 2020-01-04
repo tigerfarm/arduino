@@ -30,10 +30,10 @@
     Halt:
             mvi a,'\n'
             out 3
-            mvi a,' '
-            out 3
             mvi a,'+'   ; Move the byte value of "+" to register A.
             out 3       ; Output register A content to the serial port (serial monitor).
+            mvi a,' '
+            out 3
             mvi a,'S'
             out 3
             mvi a,'u'

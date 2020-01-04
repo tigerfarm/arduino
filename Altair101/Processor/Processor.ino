@@ -15,17 +15,10 @@
   
   -----------------------------
   +++ Fix:
-  + Not working: B11001010, 265, 0,   // 259: jz okaym1
-  + Should be:   B11001010, ?, ?,   // 259: jz okaym1
+  + Not working: + Success- ORAs- ORAs- ORAs- ...
+  ++ The jump, does not jump back to the original place. The bytes are correct:
+  ++ B11000011, 45, 0,    // 326: jmp Halt
 
- > Register A =  79 = 117 = 01001111
- > Register A = 203 = 313 = 11001011⸮- Error
-------------
-+ regA: 114 = 162 = 01110010
-+ regB:  70 = 106 = 01000110  regC:  78 = 116 = 01001110
-+ regD:  70 = 106 = 01000110  regE:  70 = 106 = 01000110
-+ regH:   0 = 000 = 00000000  regL:   0 = 000 = 00000000
-+ Zero bit flag: 1, Carry bit flag: 0
   -----------------------------
 
   SD card program read and write,
@@ -188,9 +181,9 @@ const byte theProgram[] = {
   B11000011, 86, 0,    //  42: jmp Test
   B00111110, '\n',     //  45: mvi a,'\n'
   B11100011, 3,        //  47: out 3
-  B00111110, ' ',      //  49: mvi a,' '
+  B00111110, '+',      //  49: mvi a,'+'
   B11100011, 3,        //  51: out 3
-  B00111110, '+',      //  53: mvi a,'+'
+  B00111110, ' ',      //  53: mvi a,' '
   B11100011, 3,        //  55: out 3
   B00111110, 'S',      //  57: mvi a,'S'
   B11100011, 3,        //  59: out 3
@@ -2246,9 +2239,7 @@ void processOpcodeData() {
         return;
       }
       // instructionCycle == 2
-#ifdef LOG_MESSAGES
       highOrder = memoryData[programCounter];
-#endif
       programCounter = word(highOrder, lowOrder);
 #ifdef LOG_MESSAGES
       Serial.print(F("> jmp, hb:"));
