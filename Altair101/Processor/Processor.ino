@@ -11,14 +11,21 @@
   Current/Next Work
 
   Add more opcodes,
+  + Next: CALL and RET
   ...
+
+  Connect AUX1 and AUX2 switches to Mega pins.
+  + AUX1 to switch between the clock process and the emulator process.
+  + AUX1 to switch between the MP3 player and the emulator process.
+  + Use RESET to switch back to the emulator process.
+  + AUX2 to Read(download) and write(uplaod) program files.
   
   -----------------------------
-  +++ Fix:
-  + Not working: + Success- ORAs- ORAs- ORAs- ...
-  ++ The jump, does not jump back to the original place. The bytes are correct:
-  ++ B11000011, 45, 0,    // 326: jmp Halt
-
+  Add clock,
+  + Add clock routines to tell the time using the LED lights.
+  ++ Use: clockLedDisplay.ino
+  + AUX1, switch up connected to Mega pin to switch to clock process verses emulator process.
+  
   -----------------------------
 
   SD card program read and write,
