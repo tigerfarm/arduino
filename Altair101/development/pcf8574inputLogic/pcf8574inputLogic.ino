@@ -323,7 +323,7 @@ void checkDownloadSwitch() {
     }
     downloadSwitchState = true;
   } else {
-    if (uploadSwitchState) {
+    if (downloadSwitchState) {
       Serial.println(F("+ Download switch pressed."));
       downloadSwitchState = false;
       // Change to low, switch logic ...
