@@ -24,6 +24,38 @@
 
   Library:
     https://github.com/RobTillaart/Arduino/tree/master/libraries/PCF8574
+
+  Reference for AUX switches:
+   Digital Pins, Properties of Pins Configured as INPUT_PULLUP:
+    https://www.arduino.cc/en/Tutorial/DigitalPins
+  Sample curcuits:
+    https://create.arduino.cc/projecthub/muhammad-aqib/arduino-button-tutorial-using-arduino-digitalread-function-08adb5#toc-using-internal-pull-up-resistor-9
+  Note, INPUT_PULLUP didn't work for Mega pins 24 and 33.
+    I read, to try using an external pull up resister.
+    Also read, When connecting a sensor to a pin configured with INPUT_PULLUP, 
+      the other end should be connected to the ground. 
+      In case of a switch, the pin reads HIGH when the switch is open and LOW when the switch is pressed.
+        void setup () { ... pinMode(button , INPUT_PULLUP); ... }
+        void loop () { ... If (digitalRead(button ) == LOW) // if button pressed { ... }
+  Mega pin notes,
+    http://www.circuitstoday.com/arduino-mega-pinout-schematics
+    Digital pin 2-13 can be used as PWM output with analogWrite().
+    Digital pin 20 SDA and 21 for SCK, for I2C.
+    Pin 22 - SS, Pin 23 - SCK, Pin 24 - MOSI, Pin 25 – MISO
+  USART Pins :
+    Pin 0 – RXD0, pin 1 – TXD0
+    Pin 19 – RXD1, pin 18 – TXD1
+    Pin 17 – RXD2, pin 16 – TXD2
+    Pin 15 – RXD3, pin 14 – TXD3
+  Pinchange Interrupt Pins:
+    Digital Pin 0,22,23,24,25,10,11,12,13,15,14
+    Analog Pin 6,7,8,9,10,11,12,13,14,15
+    Example :
+      pinMode(0, OUTPUT);
+      pinMode(1, INPUT_PULLUP);
+      attachInterrupt(digitalPinToInterrupt(1), LOW, CHANGE);
+    Digital pin 18 – 21,2,3 hardware interrupt
+
 */
 // -----------------------------------------------------------------------------
 #define SWITCH_MESSAGES 1
@@ -247,10 +279,7 @@ void runningSwitches() {
 // -----------------------------------------------------------------------------
 // Switches
 
-// Reference:
-//  https://create.arduino.cc/projecthub/muhammad-aqib/arduino-button-tutorial-using-arduino-digitalread-function-08adb5#toc-using-internal-pull-up-resistor-9
-
-const int CLOCK_SWITCH_PIN = A11;  // Tested pins, works: 4, A11. Soesn't work: 24, 33.
+const int CLOCK_SWITCH_PIN = A11;  // Tested pins, works: 4, A11. Doesn't work: 24, 33.
 const int PLAYER_SWITCH_PIN = A12;
 const int UPLOAD_SWITCH_PIN = A13;
 const int DOWNLOAD_SWITCH_PIN = A14;
@@ -266,7 +295,6 @@ void checkClockSwitch() {
   if (digitalRead(CLOCK_SWITCH_PIN) == HIGH) {
     if (!clockSwitchState) {
       Serial.println(F("+ Clock switch released."));
-      
       clockSwitchState = false;
       // Switch logic ...
     }
@@ -283,7 +311,6 @@ void checkPlayerSwitch() {
   if (digitalRead(PLAYER_SWITCH_PIN) == HIGH) {
     if (!playerSwitchState) {
       Serial.println(F("+ Player switch released."));
-      
       playerSwitchState = false;
       // Switch logic ...
     }
@@ -300,7 +327,6 @@ void checkUploadSwitch() {
   if (digitalRead(UPLOAD_SWITCH_PIN) == HIGH) {
     if (!uploadSwitchState) {
       Serial.println(F("+ Upload switch released."));
-      
       uploadSwitchState = false;
       // Switch logic ...
     }
@@ -317,16 +343,15 @@ void checkDownloadSwitch() {
   if (digitalRead(DOWNLOAD_SWITCH_PIN) == HIGH) {
     if (!downloadSwitchState) {
       Serial.println(F("+ Download switch released."));
-      
       downloadSwitchState = false;
-      // Change to high, switch logic ...
+      // Switch logic ...
     }
     downloadSwitchState = true;
   } else {
     if (downloadSwitchState) {
       Serial.println(F("+ Download switch pressed."));
       downloadSwitchState = false;
-      // Change to low, switch logic ...
+      // Switch logic ...
     }
   }
 }
@@ -346,6 +371,8 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf20interrupt, CHANGE);
   Serial.println("+ PCF module initialized.");
 
+  // Maybe use the following when using an external pull up resister:
+  //  pinMode(SWITCH_PIN, INPUT);
   pinMode(CLOCK_SWITCH_PIN, INPUT_PULLUP);
   pinMode(PLAYER_SWITCH_PIN, INPUT_PULLUP);
   pinMode(UPLOAD_SWITCH_PIN, INPUT_PULLUP);
