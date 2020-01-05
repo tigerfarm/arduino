@@ -3627,6 +3627,8 @@ void setup() {
 #endif
 
   // ------------------------------
+  // Front panel toggle switches.
+  
   // PCF8574 device initialization
   pcf20.begin();
   pcf21.begin();
@@ -3634,6 +3636,13 @@ void setup() {
   pinMode(INTERRUPT_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf20interrupt, CHANGE);
   Serial.println("+ PCF8574 modules initialized.");
+
+  // Device switches.
+  pinMode(CLOCK_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(PLAYER_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(UPLOAD_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(DOWNLOAD_SWITCH_PIN, INPUT_PULLUP);
+  Serial.println(F("+ Toggle/button switches are configured for input."));
 
   // ----------------------------------------------------
   pinMode(latchPinLed, OUTPUT);
