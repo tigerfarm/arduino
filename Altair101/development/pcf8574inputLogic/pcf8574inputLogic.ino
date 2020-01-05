@@ -43,13 +43,13 @@
     Digital pin 20 SDA and 21 for SCK, for I2C.
     Pin 22 - SS, Pin 23 - SCK, Pin 24 - MOSI, Pin 25 – MISO
   USART Pins :
-    Pin 0 – RXD0, pin 1 – TXD0
+    Pin 00 – RXD0, pin 01 – TXD0
     Pin 19 – RXD1, pin 18 – TXD1
     Pin 17 – RXD2, pin 16 – TXD2
     Pin 15 – RXD3, pin 14 – TXD3
   Pinchange Interrupt Pins:
-    Digital Pin 0,22,23,24,25,10,11,12,13,15,14
-    Analog Pin 6,7,8,9,10,11,12,13,14,15
+    Digital Pin 0,10,11,12,13,15,14,22,23,24,25
+    Analog  Pin 6,7,8,9,10,11,12,13,14,15
     Example :
       pinMode(0, OUTPUT);
       pinMode(1, INPUT_PULLUP);

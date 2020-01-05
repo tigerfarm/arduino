@@ -19,13 +19,13 @@
   + AUX1 to switch between the MP3 player and the emulator process.
   + Use RESET to switch back to the emulator process.
   + AUX2 to Read(download) and write(uplaod) program files.
-  
+
   -----------------------------
   Add clock,
   + Add clock routines to tell the time using the LED lights.
   ++ Use: clockLedDisplay.ino
   + AUX1, switch up connected to Mega pin to switch to clock process verses emulator process.
-  
+
   -----------------------------
 
   SD card program read and write,
@@ -100,6 +100,12 @@
 // #define RUN_NOW 1
 #define SWITCH_MESSAGES 1
 // #define LOG_MESSAGES 1
+
+#define PROGRAM_WAIT 0
+#define PROGRAM_RUN 1
+#define CLOCK_RUN 2
+#define PLAYER_RUN 3
+int programState = PROGRAM_WAIT;
 
 // -----------------------------------------------------------------------------
 // Infrared Receiver
@@ -669,7 +675,7 @@ void processData() {
 
 // -----------------------------------
 // Process flags and values.
-boolean runProgram = false;
+
 boolean halted = false;       // Set true for an hlt opcode.
 
 boolean flagCarryBit = false; // Set by dad. Used jnc.
@@ -1133,7 +1139,7 @@ void processOpcode() {
       break;
     // ---------------------------------------------------------------------
     case hlt:
-      runProgram = false;
+      programState = PROGRAM_WAIT;
       halted = true;
 #ifdef LOG_MESSAGES
       Serial.println(F("> hlt, halt the processor."));
@@ -1412,7 +1418,7 @@ void processOpcode() {
       Serial.print(F("> lxi, Stacy, to do: move the lb hb data, to the stack pointer address."));
 #endif
       Serial.print(F(" - Error, unhandled instruction."));
-      runProgram = false;
+      programState = PROGRAM_WAIT;
       statusByte = statusByte | WAIT_ON;
       statusByte = statusByte | M1_ON;
       statusByte = statusByte | HLTA_ON;
@@ -2058,7 +2064,7 @@ void processOpcode() {
 #else
       Serial.println(F(""));
 #endif
-      runProgram = false;
+      programState = PROGRAM_WAIT;
       statusByte = statusByte | WAIT_ON;
       statusByte = statusByte | M1_ON;
       statusByte = statusByte | HLTA_ON;
@@ -2763,7 +2769,7 @@ void processOpcodeData() {
     // ------------------------------------------------------------------------------------------
     default:
       Serial.print(F(" -- Error, unknow instruction."));
-      runProgram = false;
+      programState = PROGRAM_WAIT;
       statusByte = statusByte | WAIT_ON;
       statusByte = statusByte | M1_ON;
       statusByte = statusByte | HLTA_ON;
@@ -2952,7 +2958,7 @@ void checkControlButtons() {
           Serial.println(F("+ Control, Run > run the program."));
 #endif
           // Switch logic...
-          runProgram = true;
+          programState = PROGRAM_RUN;
           statusByte = statusByte & WAIT_OFF;
           statusByte = statusByte & HLTA_OFF;
           processData();
@@ -3087,7 +3093,7 @@ void checkRunningButtons() {
           Serial.println(F("> hlt, halt the processor."));
 #endif
           // Switch logic...
-          runProgram = false;
+          programState = PROGRAM_WAIT;
           statusByte = 0;
           statusByte = statusByte | WAIT_ON;
           statusByte = statusByte | HLTA_ON;
@@ -3222,24 +3228,19 @@ void infraredControl() {
     case 0xE0E006F9:
       // Serial.println(F("+ Key up"));
       Serial.println(F("+ Run process."));
-      runProgram = true;
+      programState = PROGRAM_RUN;
       statusByte = statusByte & WAIT_OFF;
       statusByte = statusByte & HLTA_OFF;
       break;
     case 0xFF4AB5:
     case 0xE0E08679:
-      // Already stopped.
       // Serial.println(F("+ Key down"));
-      // Serial.println(F("+ Stop process."));
-      // runProgram = false;
-      // digitalWrite(WAIT_PIN, HIGH);
-      // digitalWrite(HLTA_PIN, LOW);
       break;
     case 0xFF38C7:
     case 0xE0E016E9:
       // Serial.println(F("+ Key OK - Toggle RUN and STOP."));
       Serial.println(F("+ Run process."));
-      runProgram = true;
+      programState = PROGRAM_RUN;
       statusByte = statusByte & WAIT_OFF;
       statusByte = statusByte & HLTA_OFF;
       break;
@@ -3357,7 +3358,7 @@ void infraredRunning() {
     case 0xE0E08679:
       // Serial.println(F("+ Key down"));
       Serial.println(F("+ Stop process."));
-      runProgram = false;
+      programState = PROGRAM_WAIT;
       statusByte = statusByte | WAIT_ON;
       statusByte = statusByte & HLTA_OFF;
       displayStatusAddressData();
@@ -3366,7 +3367,7 @@ void infraredRunning() {
     case 0xE0E016E9:
       // Serial.println(F("+ Key OK - Toggle RUN and STOP."));
       Serial.println(F("+ Stop process."));
-      runProgram = false;
+      programState = PROGRAM_WAIT;
       statusByte = statusByte | WAIT_ON;
       statusByte = statusByte & HLTA_OFF;
       displayStatusAddressData();
@@ -3585,12 +3586,12 @@ void displayTheTime(byte theMinute, byte theHour) {
   lightsStatusAddressData(statusByte, hourWord, theBinaryMinute);
 
   /*
-// Loop for displaying hours and minutes.
-void loop() {
-  delay(100);
-  processClockNow();
-}
-   */
+    // Loop for displaying hours and minutes.
+    void loop() {
+    delay(100);
+    processClockNow();
+    }
+  */
 }
 #endif
 
@@ -3609,10 +3610,10 @@ void setup() {
   // Load a program.
   copyByteArrayToMemory(theProgram, programSize);
 #ifdef RUN_NOW
-  runProgram = true;
+  programState = PROGRAM_RUN;
 #endif
   Serial.print(F("+ Program loaded."));
-  if (runProgram) {
+  if (programState == PROGRAM_RUN) {
     Serial.println(F(" It will start automatically."));
   }
 
@@ -3650,7 +3651,7 @@ void setup() {
   int testLights = B10011001 * 256 + B01100110;
   lightsStatusAddressData(statusByte, testLights, dataByte);
   Serial.println(F("+ Front panel LED lights initialized."));
-  
+
   // ----------------------------------------------------
   // Initialize the Real Time Clock (RTC).
 #ifdef INCLUDE_CLOCK
@@ -3662,7 +3663,7 @@ void setup() {
   displayTheTime( theCounterMinutes, theCounterHours );
   Serial.println("+ Clock set and synched with program variables.");
 #endif
-  
+
   // ----------------------------------------------------
   Serial.println(F("+++ Start the processor loop."));
 }
@@ -3675,38 +3676,55 @@ static unsigned long timer = millis();
 #endif
 void loop() {
 
-  if (runProgram) {
+  switch (programState) {
     // ----------------------------
+    case PROGRAM_RUN:
 #ifdef RUN_DELAY
-    // For testing, clock process timing is controlled by the timer.
-    // Example, 500 : once every 1/2 second.
-    if (millis() - timer >= 500) {
+      // For testing, clock process timing is controlled by the timer.
+      // Example, 500 : once every 1/2 second.
+      if (millis() - timer >= 500) {
 #endif
-      processData();
+        processData();
 #ifdef RUN_DELAY
-      timer = millis();
-    }
+        timer = millis();
+      }
 #endif
-    // Program control: STOP or RESET.
-    if (irrecv.decode(&results)) {
-      // Future: use the keypress value(1-8) as input into the running program via IN opcode.
-      infraredRunning();
-    }
-    if (pcf20interrupted) {
-      checkRunningButtons();
-      pcf20interrupted = false; // Reset for next interrupt.
-    }
+      // Program control: STOP or RESET.
+      if (irrecv.decode(&results)) {
+        // Future: use the keypress value(1-8) as input into the running program via IN opcode.
+        infraredRunning();
+      }
+      if (pcf20interrupted) {
+        checkRunningButtons();
+        pcf20interrupted = false; // Reset for next interrupt.
+      }
+      break;
     // ----------------------------
-  } else {
-    // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
-    if (irrecv.decode(&results)) {
-      infraredControl();
-    }
-    if (pcf20interrupted) {
-      checkControlButtons();
-      pcf20interrupted = false; // Reset for next interrupt.
-    }
-    delay(60);
+    case PROGRAM_WAIT:
+      // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
+      if (irrecv.decode(&results)) {
+        infraredControl();
+      }
+      if (pcf20interrupted) {
+        checkControlButtons();
+        pcf20interrupted = false; // Reset for next interrupt.
+      }
+      // checkClockSwitch();
+      // checkPlayerSwitch();
+      // checkUploadSwitch();
+      // checkDownloadSwitch();
+      delay(60);
+      break;
+    // ----------------------------
+    case CLOCK_RUN:
+      Serial.println(F("+ State: CLOCK_RUN"));
+      delay(100);
+      processClockNow();
+      break;
+    // ----------------------------
+    case PLAYER_RUN:
+      Serial.println(F("+ State: PLAYER_RUN"));
+      break;
   }
 
 }
