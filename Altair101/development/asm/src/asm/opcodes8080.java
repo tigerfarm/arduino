@@ -34,9 +34,9 @@ call a   11 001 101  3  Unconditional subroutine call. Push current address onto
 ret      11 001 001  1  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.
 
 dcr D    00 DDD 101  1  Decrement a register. To do, set flags: ZSPA.
-inx RP   00 RP0 011  1  Increment a register pair (a 16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
+inx RP   00 RP0 011  1  Increment a register pair(16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
 lda a    00 110 010  3  Load register A with data from the address, a(hb:lb).
-shld a   00 100 010  3  Store data value from memory location: a(hb:lb), to register L. Store value at: a + 1, to register H.
+shld a   00 100 010  3  Store data value from memory location: a(address hb:lb), to register L. Store value at: a + 1, to register H.
 sta a    00 110 010  3  Store register A to the address, a(hb:lb).
 
 Opcodes implemented in Processor.ino, but not yet in this assembler,
@@ -204,7 +204,7 @@ public class opcodes8080 {
         value[top++] = (byte) 0b00101101;
         // ---------------------------------------------------------------------
         name[top] = "inx";
-        info[top] = "INX RP   00 RP0 011  1  Increment a register pair (a 16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.";
+        info[top] = "INX RP   00 RP0 011  1  Increment a register pair(16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.";
         value[top++] = (byte) 0b00110011;   // not used value
         name[top] = "inxb"; //  00RP0011
         value[top++] = (byte) 0b00000011;
@@ -394,7 +394,7 @@ public class opcodes8080 {
         value[top++] = (byte) 0b00001111;
         // ---------------------------------------------------------------------
         name[top] = "shld";
-        info[top] = "SHLD a   00 100 010  3  Store data value from memory location: a(hb:lb), to register L. Store value at: a + 1, to register H.";
+        info[top] = "SHLD a   00 100 010  3  Store data value from memory location: a(address hb:lb), to register L. Store value at: a + 1, to register H.";
         value[top++] = (byte) 0b00100010;
         // ---------------------------------------------------------------------
         name[top] = "sta";

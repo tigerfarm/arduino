@@ -13,6 +13,14 @@
   Add more opcodes,
   + Test opcodes implemented in the assembler, but not tested:
   ++ CALL and RET, then others: dcr, inx, lda, sta, shld.
+  lda a    00 110 010  3  Load register A with data from the address, a(hb:lb).
+  sta a    00 110 010  3  Store register A to the address, a(hb:lb).
+  dcr D    00 DDD 101  1  Decrement a register. To do, set flags: ZSPA.
+  inx RP   00 RP0 011  1  Increment a register pair(16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
+  shld a   00 100 010  3  Store data value from memory location: a(address hb:lb), to register L. Store value at: a + 1, to register H.
+    // shld a    00100010 lb hb    -  Store register L to memory address hb:lb. Store register H to hb:lb + 1.
+    // The contents of register L, are stored in the memory address specified in bytes lb and hb (hb:lb).
+    // The contents of register H, are stored in the memory at the next higher address (hb:lb + 1).
 
   ----------
   Add clock logic,
@@ -169,168 +177,141 @@ File myFile;
 // -----------------------------------------------------------------------------
 const byte theProgram[] = {
   //                //            ; --------------------------------------
-  //                //            ; Test opcode ANI and ORA.
-  B11000011, 86, 0,    //   0: jmp Test
+  //                //            ; Test opcode CALL and RET.
+  B11000011, 38, 0,    //   0: jmp Test
   B00111110, '\n',     //   3: mvi a,'\n'
   B11100011, 3,        //   5: out 3
   B00111110, '-',      //   7: mvi a,'-'
   B11100011, 3,        //   9: out 3
-  B00111110, '-',      //  11: mvi a,'-'
+  B00111110, ' ',      //  11: mvi a,' '
   B11100011, 3,        //  13: out 3
-  B00111110, ' ',      //  15: mvi a,' '
+  B00111110, 'E',      //  15: mvi a,'E'
   B11100011, 3,        //  17: out 3
-  B00111110, 'E',      //  19: mvi a,'E'
+  B00111110, 'r',      //  19: mvi a,'r'
   B11100011, 3,        //  21: out 3
   B00111110, 'r',      //  23: mvi a,'r'
   B11100011, 3,        //  25: out 3
-  B00111110, 'r',      //  27: mvi a,'r'
+  B00111110, 'o',      //  27: mvi a,'o'
   B11100011, 3,        //  29: out 3
-  B00111110, 'o',      //  31: mvi a,'o'
+  B00111110, 'r',      //  31: mvi a,'r'
   B11100011, 3,        //  33: out 3
-  B00111110, 'r',      //  35: mvi a,'r'
-  B11100011, 3,        //  37: out 3
-  B11100011, 39,       //  39: out 39
-  B01110110,           //  41: hlt
-  B11000011, 86, 0,    //  42: jmp Test
-  B00111110, '\n',     //  45: mvi a,'\n'
-  B11100011, 3,        //  47: out 3
-  B00111110, '+',      //  49: mvi a,'+'
-  B11100011, 3,        //  51: out 3
-  B00111110, ' ',      //  53: mvi a,' '
-  B11100011, 3,        //  55: out 3
-  B00111110, 'S',      //  57: mvi a,'S'
-  B11100011, 3,        //  59: out 3
-  B00111110, 'u',      //  61: mvi a,'u'
-  B11100011, 3,        //  63: out 3
-  B00111110, 'c',      //  65: mvi a,'c'
-  B11100011, 3,        //  67: out 3
-  B00111110, 'c',      //  69: mvi a,'c'
-  B11100011, 3,        //  71: out 3
-  B00111110, 'e',      //  73: mvi a,'e'
-  B11100011, 3,        //  75: out 3
-  B00111110, 's',      //  77: mvi a,'s'
-  B11100011, 3,        //  79: out 3
-  B00111110, 's',      //  81: mvi a,'s'
-  B11100011, 3,        //  83: out 3
-  B01110110,           //  85: hlt
-  B00111110, 176,      //  86: mvi a,176
-  B11100110, 248,      //  88: ani 248
-  B11100011, 37,       //  90: out 37
-  B11111110, 176,      //  92: cpi 176
-  B11001010, 100, 0,   //  94: jz okayani
-  B11000011, 3, 0,     //  97: jmp Error
-  B00111110, '\n',     // 100: mvi a,'\n'
-  B11100011, 3,        // 102: out 3
-  B00111110, '+',      // 104: mvi a,'+'
-  B11100011, 3,        // 106: out 3
-  B00111110, ' ',      // 108: mvi a,' '
-  B11100011, 3,        // 110: out 3
-  B00111110, 'S',      // 112: mvi a,'S'
-  B11100011, 3,        // 114: out 3
-  B00111110, 'u',      // 116: mvi a,'u'
-  B11100011, 3,        // 118: out 3
-  B00111110, 'c',      // 120: mvi a,'c'
-  B11100011, 3,        // 122: out 3
-  B00111110, 'c',      // 124: mvi a,'c'
-  B11100011, 3,        // 126: out 3
-  B00111110, 'e',      // 128: mvi a,'e'
-  B11100011, 3,        // 130: out 3
-  B00111110, 's',      // 132: mvi a,'s'
-  B11100011, 3,        // 134: out 3
-  B00111110, 's',      // 136: mvi a,'s'
-  B11100011, 3,        // 138: out 3
-  B00111110, '-',      // 140: mvi a,'-'
-  B11100011, 3,        // 142: out 3
-  B00111110, ' ',      // 144: mvi a,' '
-  B11100011, 3,        // 146: out 3
-  B00111110, 'A',      // 148: mvi a,'A'
-  B11100011, 3,        // 150: out 3
-  B00111110, 'N',      // 152: mvi a,'N'
-  B11100011, 3,        // 154: out 3
-  B00111110, 'I',      // 156: mvi a,'I'
-  B11100011, 3,        // 158: out 3
-  B00111110, 73,       // 160: mvi a,73
-  B00000110, 70,       // 162: mvi b,70
-  B10110000,           // 164: ora b
-  B11100011, 37,       // 165: out 37
-  B11111110, 79,       // 167: cpi 79
-  B11001010, 175, 0,   // 169: jz okayb1
-  B11000011, 3, 0,     // 172: jmp Error
-  B00111110, 73,       // 175: mvi a,73
-  B00001110, 70,       // 177: mvi c,70
-  B10110001,           // 179: ora c
-  B11100011, 37,       // 180: out 37
-  B11111110, 79,       // 182: cpi 79
-  B11001010, 190, 0,   // 184: jz okayc1
+  B11100011, 39,       //  35: out 39
+  B01110110,           //  37: hlt
+  B00000000,           //  38: nop
+  B00111110, 1,        //  39: mvi a,1
+  B11100011, 37,       //  41: out 37
+  B11001101, 118, 0,   //  43: call Hello1
+  B00111110, 2,        //  46: mvi a,2
+  B11100011, 37,       //  48: out 37
+  B11001101, 190, 0,   //  50: call Hello2
+  B00000000,           //  53: nop
+  B00111110, '\n',     //  54: mvi a,'\n'
+  B11100011, 3,        //  56: out 3
+  B00111110, '+',      //  58: mvi a,'+'
+  B11100011, 3,        //  60: out 3
+  B00111110, ' ',      //  62: mvi a,' '
+  B11100011, 3,        //  64: out 3
+  B00111110, 'S',      //  66: mvi a,'S'
+  B11100011, 3,        //  68: out 3
+  B00111110, 'u',      //  70: mvi a,'u'
+  B11100011, 3,        //  72: out 3
+  B00111110, 'c',      //  74: mvi a,'c'
+  B11100011, 3,        //  76: out 3
+  B00111110, 'c',      //  78: mvi a,'c'
+  B11100011, 3,        //  80: out 3
+  B00111110, 'e',      //  82: mvi a,'e'
+  B11100011, 3,        //  84: out 3
+  B00111110, 's',      //  86: mvi a,'s'
+  B11100011, 3,        //  88: out 3
+  B00111110, 's',      //  90: mvi a,'s'
+  B11100011, 3,        //  92: out 3
+  B00111110, '-',      //  94: mvi a,'-'
+  B11100011, 3,        //  96: out 3
+  B00111110, ' ',      //  98: mvi a,' '
+  B11100011, 3,        // 100: out 3
+  B00111110, 'C',      // 102: mvi a,'C'
+  B11100011, 3,        // 104: out 3
+  B00111110, 'P',      // 106: mvi a,'P'
+  B11100011, 3,        // 108: out 3
+  B00111110, 'I',      // 110: mvi a,'I'
+  B11100011, 3,        // 112: out 3
+  B00000000,           // 114: nop
+  B11000011, 37, 0,    // 115: jmp Halt
+  B00000000,           // 118: nop
+  B00111110, '\n',     // 119: mvi a,'\n'
+  B11100011, 3,        // 121: out 3
+  B00111110, 'C',      // 123: mvi a,'C'
+  B11100011, 3,        // 125: out 3
+  B00111110, 'a',      // 127: mvi a,'a'
+  B11100011, 3,        // 129: out 3
+  B00111110, 'l',      // 131: mvi a,'l'
+  B11100011, 3,        // 133: out 3
+  B00111110, 'l',      // 135: mvi a,'l'
+  B11100011, 3,        // 137: out 3
+  B00111110, 'e',      // 139: mvi a,'e'
+  B11100011, 3,        // 141: out 3
+  B00111110, 'd',      // 143: mvi a,'d'
+  B00111110, '*',      // 145: mvi a,'*'
+  B11100011, 3,        // 147: out 3
+  B00111110, ' ',      // 149: mvi a,' '
+  B11100011, 3,        // 151: out 3
+  B00111110, 'H',      // 153: mvi a,'H'
+  B11100011, 3,        // 155: out 3
+  B00111110, 'e',      // 157: mvi a,'e'
+  B11100011, 3,        // 159: out 3
+  B00111110, 'l',      // 161: mvi a,'l'
+  B11100011, 3,        // 163: out 3
+  B00111110, 'l',      // 165: mvi a,'l'
+  B11100011, 3,        // 167: out 3
+  B00111110, 'o',      // 169: mvi a,'o'
+  B11100011, 3,        // 171: out 3
+  B00111110, ' ',      // 173: mvi a,' '
+  B11100011, 3,        // 175: out 3
+  B00111110, '#',      // 177: mvi a,'#'
+  B11100011, 3,        // 179: out 3
+  B00111110, '1',      // 181: mvi a,'1'
+  B11100011, 3,        // 183: out 3
+  B11001001,           // 185: ret
+  B00000000,           // 186: nop
   B11000011, 3, 0,     // 187: jmp Error
-  B00111110, 73,       // 190: mvi a,73
-  B00010110, 70,       // 192: mvi d,70
-  B10110010,           // 194: ora d
-  B11111110, 79,       // 195: cpi 79
-  B11001010, 203, 0,   // 197: jz okayd1
-  B11000011, 3, 0,     // 200: jmp Error
-  B00111110, 73,       // 203: mvi a,73
-  B00011110, 70,       // 205: mvi e,70
-  B10110011,           // 207: ora e
-  B11100011, 37,       // 208: out 37
-  B11111110, 79,       // 210: cpi 79
-  B11001010, 218, 0,   // 212: jz okaye1
-  B11000011, 3, 0,     // 215: jmp Error
-  B00111110, 73,       // 218: mvi a,73
-  B00100110, 70,       // 220: mvi h,70
-  B10110100,           // 222: ora h
-  B11100011, 37,       // 223: out 37
-  B11111110, 79,       // 225: cpi 79
-  B11001010, 233, 0,   // 227: jz okayh1
-  B11000011, 3, 0,     // 230: jmp Error
-  B00111110, 73,       // 233: mvi a,73
-  B00101110, 70,       // 235: mvi l,70
-  B10110101,           // 237: ora l
-  B11100011, 37,       // 238: out 37
-  B11111110, 79,       // 240: cpi 79
-  B11001010, 248, 0,   // 242: jz okayl1
-  B11000011, 3, 0,     // 245: jmp Error
-  B00111110, 73,       // 248: mvi a,73
-  B00100110, 0,        // 250: mvi h,0
-  B00101110, 0,        // 252: mvi l,0
-  B10110110,           // 254: ora m
-  B11100011, 37,       // 255: out 37
-  B11111110, 203,      // 257: cpi 203
-  B11001010, 9, 1,     // 259: jz okaym1
-  B11000011, 3, 0,     // 262: jmp Error
-  B00111110, '\n',     // 265: mvi a,'\n'
-  B11100011, 3,        // 267: out 3
-  B00111110, '+',      // 269: mvi a,'+'
-  B11100011, 3,        // 271: out 3
-  B00111110, ' ',      // 273: mvi a,' '
-  B11100011, 3,        // 275: out 3
-  B00111110, 'S',      // 277: mvi a,'S'
-  B11100011, 3,        // 279: out 3
-  B00111110, 'u',      // 281: mvi a,'u'
-  B11100011, 3,        // 283: out 3
-  B00111110, 'c',      // 285: mvi a,'c'
-  B11100011, 3,        // 287: out 3
-  B00111110, 'c',      // 289: mvi a,'c'
-  B11100011, 3,        // 291: out 3
-  B00111110, 'e',      // 293: mvi a,'e'
-  B11100011, 3,        // 295: out 3
-  B00111110, 's',      // 297: mvi a,'s'
-  B11100011, 3,        // 299: out 3
-  B00111110, 's',      // 301: mvi a,'s'
-  B11100011, 3,        // 303: out 3
-  B00111110, '-',      // 305: mvi a,'-'
-  B11100011, 3,        // 307: out 3
-  B00111110, ' ',      // 309: mvi a,' '
-  B11100011, 3,        // 311: out 3
-  B00111110, 'O',      // 313: mvi a,'O'
-  B11100011, 3,        // 315: out 3
-  B00111110, 'R',      // 317: mvi a,'R'
-  B11100011, 3,        // 319: out 3
-  B00111110, 'A',      // 321: mvi a,'A'
-  B11100011, 3,        // 323: out 3
-  B00000000,           // 325: nop
-  B11000011, 45, 0,    // 326: jmp Halt
-  0                    // 329: End of program
+  B00000000,           // 190: nop
+  B00111110, '\n',     // 191: mvi a,'\n'
+  B11100011, 3,        // 193: out 3
+  B00111110, 'C',      // 195: mvi a,'C'
+  B11100011, 3,        // 197: out 3
+  B00111110, 'a',      // 199: mvi a,'a'
+  B11100011, 3,        // 201: out 3
+  B00111110, 'l',      // 203: mvi a,'l'
+  B11100011, 3,        // 205: out 3
+  B00111110, 'l',      // 207: mvi a,'l'
+  B11100011, 3,        // 209: out 3
+  B00111110, 'e',      // 211: mvi a,'e'
+  B11100011, 3,        // 213: out 3
+  B00111110, 'd',      // 215: mvi a,'d'
+  B00111110, '*',      // 217: mvi a,'*'
+  B11100011, 3,        // 219: out 3
+  B00111110, ' ',      // 221: mvi a,' '
+  B11100011, 3,        // 223: out 3
+  B00111110, 'H',      // 225: mvi a,'H'
+  B11100011, 3,        // 227: out 3
+  B00111110, 'e',      // 229: mvi a,'e'
+  B11100011, 3,        // 231: out 3
+  B00111110, 'l',      // 233: mvi a,'l'
+  B11100011, 3,        // 235: out 3
+  B00111110, 'l',      // 237: mvi a,'l'
+  B11100011, 3,        // 239: out 3
+  B00111110, 'o',      // 241: mvi a,'o'
+  B11100011, 3,        // 243: out 3
+  B00111110, ' ',      // 245: mvi a,' '
+  B11100011, 3,        // 247: out 3
+  B00111110, '#',      // 249: mvi a,'#'
+  B11100011, 3,        // 251: out 3
+  B00111110, '2',      // 253: mvi a,'2'
+  B11100011, 3,        // 255: out 3
+  B11001001,           // 257: ret
+  B00000000,           // 258: nop
+  B11000011, 3, 0,     // 259: jmp Error
+  0                    // 262: End of program
 };
 
 // -----------------------------------------------------------------------------
@@ -2938,6 +2919,27 @@ void controlResetLogic() {
   dataByte = memoryData[programCounter];
   opcode = 0;  // For the case when the processing cycle 2 or more.
   lightsStatusAddressData(statusByte, programCounter, dataByte);
+  if (programState == CLOCK_RUN) {
+    programState = PROGRAM_WAIT;
+  }
+}
+
+void controlStopLogic() {
+#ifdef SWITCH_MESSAGES
+  if (programState == CLOCK_RUN) {
+    Serial.println(F("+ Control, Stop > stop running the clock."));
+  } else {
+    Serial.println(F("+ Control, Stop > stop running the program."));
+    Serial.println(F("> hlt, halt the processor."));
+  }
+#endif
+  programState = PROGRAM_WAIT;
+  statusByte = 0;
+  statusByte = statusByte | WAIT_ON;
+  statusByte = statusByte | HLTA_ON;
+  // Only here, causes a compile error: displayStatusAddressData();
+  dataByte = memoryData[programCounter];
+  lightsStatusAddressData(statusByte, programCounter, dataByte);
 }
 
 void checkControlButtons() {
@@ -2991,7 +2993,7 @@ void checkControlButtons() {
           dataByte = memoryData[programCounter];
           lightsStatusAddressData(statusByte, programCounter, dataByte);
 #ifdef SWITCH_MESSAGES
-          Serial.println(F("+ Control, Examine."));
+          Serial.print(F("+ Control, Examine: "));
           printByte(dataByte);
           Serial.println("");
 #endif
@@ -3010,7 +3012,7 @@ void checkControlButtons() {
           dataByte = memoryData[programCounter];
           lightsStatusAddressData(statusByte, programCounter, dataByte);
 #ifdef SWITCH_MESSAGES
-          Serial.println(F("+ Control, Examine Next."));
+          Serial.print(F("+ Control, Examine Next: "));
           printByte(dataByte);
           Serial.println("");
 #endif
@@ -3086,18 +3088,8 @@ void checkRunningButtons() {
           }
         } else if (switchStop) {
           switchStop = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println(F("+ Control, Stop > stop running the program."));
-          Serial.println(F("> hlt, halt the processor."));
-#endif
           // Switch logic...
-          programState = PROGRAM_WAIT;
-          statusByte = 0;
-          statusByte = statusByte | WAIT_ON;
-          statusByte = statusByte | HLTA_ON;
-          // Only here, causes a compile error: displayStatusAddressData();
-          dataByte = memoryData[programCounter];
-          lightsStatusAddressData(statusByte, programCounter, dataByte);
+          controlStopLogic();
         }
         break;
       // -------------------
@@ -3139,15 +3131,19 @@ boolean downloadSwitchState = true;
 void checkClockSwitch() {
   if (digitalRead(CLOCK_SWITCH_PIN) == HIGH) {
     if (!clockSwitchState) {
-      Serial.println(F("+ Clock switch released."));
+      // Serial.println(F("+ Clock switch released."));
       clockSwitchState = false;
       // Switch logic ...
-      programState = CLOCK_RUN;
+      if (programState == CLOCK_RUN) {
+        controlStopLogic();
+      } else {
+        programState = CLOCK_RUN;
+      }
     }
     clockSwitchState = true;
   } else {
     if (clockSwitchState) {
-      Serial.println(F("+ Clock switch pressed."));
+      // Serial.println(F("+ Clock switch pressed."));
       clockSwitchState = false;
       // Switch logic ...
     }
@@ -3587,10 +3583,13 @@ void displayTheTime(byte theMinute, byte theHour) {
 
 // ------------------------
 void clockRun() {
-  theCounterSeconds = 0;  // Reset to cause the immediate display of time.
+  // theCounterSeconds = 99;  // 99 will cause the immediate display of time.
+  syncCountWithClock();
+  displayTheTime( theCounterMinutes, theCounterHours );
   while (programState == CLOCK_RUN) {
     processClockNow();
     checkRunningButtons();
+    checkClockSwitch();
     delay(100);
   }
 }

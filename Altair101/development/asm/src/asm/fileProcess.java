@@ -21,6 +21,9 @@ public class fileProcess {
     private String sOpcodeBinary;
     private String p1;
     private String p2;
+    private final String SEPARATOR = ":";
+    private final String SEPARATOR_TEMP = "^^";
+    private String sImmediate = "";
     //
     // Use for storing program bytes and calculating label addresses.
     private int programCounter = 0;
@@ -78,7 +81,7 @@ public class fileProcess {
                 if (intAddress < 256) {
                     // lb:
                     String labelAddress = Integer.toString(intAddress);
-                    programBytes.set(i, theValue + ":" + labelAddress);
+                    programBytes.set(i, theValue + SEPARATOR + labelAddress);
                     System.out.println("++ Label, lb: " + theValue + ":" + labelAddress);
                     // hb:
                     // Already set to default of 0.
@@ -88,11 +91,11 @@ public class fileProcess {
                 } else {
                     // Need to also set hb (high byte).
                     // Address: 265, in binary hb=00000001(digital=1) lb=00001001(digital=9)
-                    int hb = intAddress/256;
+                    int hb = intAddress / 256;
                     int lb = intAddress - (hb * 256);
                     //-------------------
                     // lb:
-                    programBytes.set(i, theValue + ":" + lb);
+                    programBytes.set(i, theValue + SEPARATOR + lb);
                     System.out.println("++ Label, lb: " + theValue + ":" + lb);
                     // hb:
                     it.next();
@@ -128,7 +131,7 @@ public class fileProcess {
             String theValue = it.next();
             programTop++;
             // System.out.println("++ theValue |" + theValue + "|");
-            String[] opcodeValues = theValue.split(":");
+            String[] opcodeValues = theValue.split(SEPARATOR);
             opcode = opcodeValues[1];
             if (opcodeValues[0].equals("opcode")) {
                 opcodeStatement = "B" + opcodeValues[2] + ",";    // B11000011,
@@ -169,7 +172,7 @@ public class fileProcess {
                     // ++ immediate:39
                     theValue = it.next();   // ++ immediate:39
                     programTop++;
-                    byteValues = theValue.split(":");
+                    byteValues = theValue.split(SEPARATOR);
                     opcodeStatement += " " + byteValues[1] + ",";
                     opcodeComment = opcode + " " + opcodeValues[3];
                     break;
@@ -190,12 +193,12 @@ public class fileProcess {
                     //------------
                     theValue = it.next();   // ++ lb:Loop:2
                     programTop++;
-                    byteValues = theValue.split(":");
+                    byteValues = theValue.split(SEPARATOR);
                     opcodeStatement += " " + byteValues[2] + ",";
                     //------------
                     theValue = it.next();   // ++ hb:x
                     programTop++;
-                    byteValues = theValue.split(":");
+                    byteValues = theValue.split(SEPARATOR);
                     opcodeStatement += " " + byteValues[1] + ",";
                     //
                     opcodeComment = opcode + " " + opcodeValues[3];
@@ -209,7 +212,7 @@ public class fileProcess {
                     // ++ hb:0
                     theValue = it.next();   // ++ lb:5:
                     programTop++;
-                    byteValues = theValue.split(":");
+                    byteValues = theValue.split(SEPARATOR);
                     opcodeStatement += " " + byteValues[1] + ",";
                     it.next();              // ++ hb:0
                     programTop++;
@@ -224,9 +227,15 @@ public class fileProcess {
                     // ++ immediate:1
                     theValue = it.next();   // ++ immediate:1
                     programTop++;
-                    byteValues = theValue.split(":");
-                    opcodeStatement += " " + byteValues[1] + ",";
-                    opcodeComment = opcode + " " + opcodeValues[3] + "," + opcodeValues[4];
+                    byteValues = theValue.split(SEPARATOR);
+                    //
+                    sImmediate = byteValues[1];
+                    if (byteValues[1].equals("'" + SEPARATOR_TEMP + "'")) {
+                        sImmediate = "'" + SEPARATOR + "'";
+                    }
+                    //
+                    opcodeStatement += " " + sImmediate + ",";
+                    opcodeComment = opcode + " " + opcodeValues[3] + "," + sImmediate;
                     break;
                 // -----------------------------
                 case "mov":
@@ -286,7 +295,7 @@ public class fileProcess {
         // hlt
         // nop
         sOpcodeBinary = getOpcodeBinary(opcode);
-        programBytes.add("opcode:" + opcode + ":" + sOpcodeBinary);
+        programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary);
         programTop++;
         System.out.println("++ Opcode: " + opcode + " " + sOpcodeBinary);
     }
@@ -307,7 +316,7 @@ public class fileProcess {
                 // cmp c
                 p1 = p1.toLowerCase();
                 sOpcodeBinary = getOpcodeBinary(opcode + p1);
-                programBytes.add("opcode:" + opcode + ":" + sOpcodeBinary + ":" + p1);
+                programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1);
                 programTop++;
                 break;
             // -----------------------------
@@ -320,7 +329,7 @@ public class fileProcess {
                 // opcode <immediate>
                 // out 39
                 sOpcodeBinary = getOpcodeBinary(opcode);
-                programBytes.add("opcode:" + opcode + ":" + sOpcodeBinary + ":" + p1);
+                programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1);
                 programTop++;
                 programBytes.add("immediate:" + p1);
                 programTop++;
@@ -338,7 +347,7 @@ public class fileProcess {
                 // opcode <address label>
                 // jmp There
                 sOpcodeBinary = getOpcodeBinary(opcode);
-                programBytes.add("opcode:" + opcode + ":" + sOpcodeBinary + ":" + p1);
+                programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1);
                 programTop++;
                 programBytes.add("lb:" + p1);
                 programTop++;
@@ -364,7 +373,7 @@ public class fileProcess {
                 // lxi b,5
                 p1 = p1.toLowerCase();
                 sOpcodeBinary = getOpcodeBinary(opcode + p1);
-                programBytes.add("opcode:" + opcode + ":" + sOpcodeBinary + ":" + p1 + ":" + p2);
+                programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1 + SEPARATOR + p2);
                 programTop++;
                 programBytes.add("lb:" + p2);
                 programTop++;
@@ -375,8 +384,15 @@ public class fileProcess {
                 // opcode <register>,<immediate>
                 // mvi a,1
                 p1 = p1.toLowerCase();
+                //
+                // Case of the immediate equaling the separator.
                 sOpcodeBinary = getOpcodeBinary(opcode + p1);
-                programBytes.add("opcode:" + opcode + ":" + sOpcodeBinary + ":" + p1 + ":" + p2);
+                sImmediate = p2;
+                if (p2.equals("'" + SEPARATOR + "'")) {
+                    p2 = "'" + SEPARATOR_TEMP + "'";
+                }
+                //
+                programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1 + SEPARATOR + p2);
                 programTop++;
                 programBytes.add("immediate:" + p2);
                 programTop++;
@@ -387,7 +403,7 @@ public class fileProcess {
                 p1 = p1.toLowerCase();
                 p2 = p2.toLowerCase();
                 sOpcodeBinary = getOpcodeBinary(opcode + p1 + p2);
-                programBytes.add("opcode:" + opcode + ":" + sOpcodeBinary + ":" + p1 + ":" + p2);
+                programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1 + SEPARATOR + p2);
                 programTop++;
                 break;
             default:
@@ -550,7 +566,7 @@ public class fileProcess {
         System.out.println("\n+ Parse file lines.");
         // thisProcess.parseFile("p1.asm");
         // thisProcess.parseFile("pKillTheBit.asm");
-        thisProcess.parseFile("opAniOra.asm");
+        thisProcess.parseFile("p1.asm");
         // Required:
         thisProcess.setProgramByteLabels();
         //

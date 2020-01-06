@@ -55,15 +55,7 @@
             out 3
             mvi a,'s'
             out 3
-            mvi a,'-'
-            out 3
-            mvi a,' '
-            out 3
-            mvi a,'C'
-            out 3
-            mvi a,'P'
-            out 3
-            mvi a,'I'
+            mvi a,'.'
             out 3
                         ; --------------------------------------
             NOP
@@ -86,6 +78,7 @@
             mvi a,'e'
             out 3
             mvi a,'d'
+            out 3
             mvi a,'*'
             out 3
             mvi a,' '
@@ -124,6 +117,7 @@
             mvi a,'e'
             out 3
             mvi a,'d'
+            out 3
             mvi a,'*'
             out 3
             mvi a,' '
