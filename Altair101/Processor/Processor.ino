@@ -3144,6 +3144,7 @@ void checkClockSwitch() {
       Serial.println(F("+ Clock switch released."));
       clockSwitchState = false;
       // Switch logic ...
+      programState = CLOCK_RUN;
     }
     clockSwitchState = true;
   } else {
@@ -3726,11 +3727,11 @@ void loop() {
       break;
     // ----------------------------
     case CLOCK_RUN:
-      Serial.println(F("+ State: CLOCK_RUN"));
-      delay(100);
+      // Serial.println(F("+ State: CLOCK_RUN"));
       processClockNow();
-      checkClockSwitch();
-      checkPlayerSwitch();
+      // checkClockSwitch();
+      checkRunningButtons();
+      delay(100);
       break;
     // ----------------------------
     case PLAYER_RUN:
