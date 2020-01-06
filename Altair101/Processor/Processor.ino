@@ -3626,7 +3626,7 @@ void setup() {
   Serial.println(F("+ LCD ready for output."));
 #endif
 
-  // ------------------------------
+  // ----------------------------------------------------
   // Front panel toggle switches.
   
   // PCF8574 device initialization
@@ -3718,10 +3718,10 @@ void loop() {
         checkControlButtons();
         pcf20interrupted = false; // Reset for next interrupt.
       }
-      // checkClockSwitch();
-      // checkPlayerSwitch();
-      // checkUploadSwitch();
-      // checkDownloadSwitch();
+      checkClockSwitch();
+      checkPlayerSwitch();
+      checkUploadSwitch();
+      checkDownloadSwitch();
       delay(60);
       break;
     // ----------------------------
@@ -3729,6 +3729,8 @@ void loop() {
       Serial.println(F("+ State: CLOCK_RUN"));
       delay(100);
       processClockNow();
+      checkClockSwitch();
+      checkPlayerSwitch();
       break;
     // ----------------------------
     case PLAYER_RUN:
