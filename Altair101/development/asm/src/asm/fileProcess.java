@@ -1,11 +1,18 @@
 package asm;
 
 /*
-    Stacy, fix: handle operands containing ":", which is used as the separator.
-    Example:
-            mvi a,':'
-            out 3
- */
+    Add parsing for the following (see program p1.asm).
+
+    EQU, works like a label:
+        SPEED   equ     0eh         ;higher value is faster
+                ...
+                lxi     b,SPEED
+
+    DB value, that is a label to a string.:
+        TERMB   equ     0ffh        ; Name for a value. Similar to: TERMB = 0ffh;
+        Hello   db      "Hello"     ; Translate into bytes with a terminate byte (TERMB).
+*/
+
 import static asm.opcodes8080.byteToString;
 import java.io.*;
 import java.util.ArrayList;

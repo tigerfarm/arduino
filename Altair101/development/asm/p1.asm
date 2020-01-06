@@ -1,17 +1,24 @@
-    Start:
-            mvi a,1     ; Move 1 to A.
-    Loop:
-            nop
-            jmp There   ; 0303, 5, 0,
-            mvi a,'a'
-            out 3
-            mvi a,':'
-            out 3
-            mvi a,'b'
-            out 3
-            nop
-            nop
-    There:
-            inr a
-            jmp Loop
-                        ; End
+        TERMB   equ     0ffh        ; Name for a value. Similar to: TERMB = 0ffh;
+        Hello   db      "Hello"     ; Translate into bytes with a terminate byte (TERMB).
+                ...
+    Start
+                ...
+                call PrintLoop
+                ...
+                hlt
+                                    ; ------------------------------------------
+                                    ; Routine that uses Hello to OUT the "Hello" string.
+                (Needs development, the following is not complete)
+        PrintLoop:
+                lxi Hello           ; Move label address to registers H:L.
+                mov a,m             ; Move the content ('H') at the address H:L to register A.
+                cpi TERMB           ; Compare to see if it's the string terminate byte.
+                jz Done
+                out 3               ; Out A.
+                inx h               ; Increment H:L register pair.
+                mov a,m             ; Move the content ('e') at the address H:L to register A.
+                out 3
+                ...
+        Done:
+                ret
+                                    ; End
