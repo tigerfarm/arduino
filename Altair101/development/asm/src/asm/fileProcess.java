@@ -564,9 +564,8 @@ public class fileProcess {
         fileProcess thisProcess = new fileProcess();
 
         System.out.println("\n+ Parse file lines.");
-        // thisProcess.parseFile("p1.asm");
         // thisProcess.parseFile("pKillTheBit.asm");
-        thisProcess.parseFile("p1.asm");
+        thisProcess.parseFile("opCallRet.asm");
         // Required:
         thisProcess.setProgramByteLabels();
         //

@@ -79,7 +79,7 @@
             out 3
             mvi a,'d'
             out 3
-            mvi a,'*'
+            mvi a,':'
             out 3
             mvi a,' '
             out 3
@@ -118,7 +118,7 @@
             out 3
             mvi a,'d'
             out 3
-            mvi a,'*'
+            mvi a,':'
             out 3
             mvi a,' '
             out 3
