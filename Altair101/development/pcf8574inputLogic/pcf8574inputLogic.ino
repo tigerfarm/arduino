@@ -371,8 +371,6 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf20interrupt, CHANGE);
   Serial.println("+ PCF module initialized.");
 
-  // Maybe use the following when using an external pull up resister:
-  //  pinMode(SWITCH_PIN, INPUT);
   pinMode(CLOCK_SWITCH_PIN, INPUT_PULLUP);
   pinMode(PLAYER_SWITCH_PIN, INPUT_PULLUP);
   pinMode(UPLOAD_SWITCH_PIN, INPUT_PULLUP);

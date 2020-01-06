@@ -11,20 +11,17 @@
   Current/Next Work
 
   Add more opcodes,
-  + Next: CALL and RET
-  ...
+  + Test opcodes implemented in the assembler, but not tested:
+  ++ CALL and RET, then others: dcr, inx, lda, sta, shld.
 
-  Connect AUX1 and AUX2 switches to Mega pins.
-  + AUX1 to switch between the clock process and the emulator process.
-  + AUX1 to switch between the MP3 player and the emulator process.
-  + Use RESET to switch back to the emulator process.
-  + AUX2 to Read(download) and write(uplaod) program files.
-
-  -----------------------------
-  Add clock,
+  ----------
+  Add clock logic,
   + Add clock routines to tell the time using the LED lights.
-  ++ Use: clockLedDisplay.ino
-  + AUX1, switch up connected to Mega pin to switch to clock process verses emulator process.
+  + Add HLDA light to indicate clock state, i.e. running the clock functions instead of a programing.
+
+  Add 1602 LED display,
+  + Add OUT opcode to out characters to the LED display.
+  + Add 1602 LED display clock time and to set the time.
 
   -----------------------------
 
@@ -32,9 +29,10 @@
   + Read(download) and write(uplaod) switches need to be connected to Mega pins.
   + Logic to monitor and react to the switches.
   + When saving or reading a file, get the filename from the sense switches.
-  ++ If switches are set to: 00000101, then the filename is: 00000101.asm.
-  ++ When rebooting or resetting the Mega, if 00000000.asm exists, load and run it.
+  ++ If switches are set to: 00000101, then the filename is: 00000101.bin.
+  + When rebooting or resetting the Mega, if 00000000.bin exists, load and run it.
   + Display LED lights to notify read/write success or failure.
+  + Confirm saving or reading a file.
 
   ---------------------------------------------
   Program Development Phase
@@ -3585,14 +3583,16 @@ void displayTheTime(byte theMinute, byte theHour) {
   // Address word LED lights: theBinaryHour2 & theBinaryHour1.
   unsigned int hourWord = theBinaryHour2 * 256 + theBinaryHour1;
   lightsStatusAddressData(statusByte, hourWord, theBinaryMinute);
+}
 
-  /*
-    // Loop for displaying hours and minutes.
-    void loop() {
-    delay(100);
+// ------------------------
+void clockRun() {
+  theCounterSeconds = 0;  // Reset to cause the immediate display of time.
+  while (programState == CLOCK_RUN) {
     processClockNow();
-    }
-  */
+    checkRunningButtons();
+    delay(100);
+  }
 }
 #endif
 
@@ -3629,7 +3629,7 @@ void setup() {
 
   // ----------------------------------------------------
   // Front panel toggle switches.
-  
+
   // PCF8574 device initialization
   pcf20.begin();
   pcf21.begin();
@@ -3727,11 +3727,8 @@ void loop() {
       break;
     // ----------------------------
     case CLOCK_RUN:
-      // Serial.println(F("+ State: CLOCK_RUN"));
-      processClockNow();
-      // checkClockSwitch();
-      checkRunningButtons();
-      delay(100);
+      Serial.println(F("+ State: CLOCK_RUN"));
+      clockRun();
       break;
     // ----------------------------
     case PLAYER_RUN:

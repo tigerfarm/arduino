@@ -18,7 +18,7 @@
   Also, connect PCF8574:
   + INT to Nano interrupt pin, pin 2 in this sample program.
   + P0 ... O7 to switches. Other side of the switch to ground.
-  
+
   Use a Micro SD Card Module to save and load binary 8080 machine language programs.
   // Nano pin - SPI module pins
   // Pin 10   - CS   : chip/slave select (SS pin). Can be any master(Nano) digital pin to enable/disable this device on the SPI bus.
@@ -649,6 +649,15 @@ void clockPulseSecond() {
 #endif
 }
 
+void clockRun() {
+  theCounterSeconds = 0;  // Reset to cause the immediate display of time.
+  while (programState == CLOCK_RUN) {
+    processClockNow();
+    checkRunningButtons();
+    delay(100);
+  }
+}
+
 #endif
 
 // -----------------------------------------------------------------------------
@@ -976,6 +985,94 @@ void infraredSwitch() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+// Front Panel AUX Switches
+
+#define PROGRAM_WAIT 0
+#define PROGRAM_RUN 1
+#define CLOCK_RUN 2
+#define PLAYER_RUN 3
+int programState = PROGRAM_WAIT;
+
+const int CLOCK_SWITCH_PIN = A11;  // Tested pins, works: 4, A11. Doesn't work: 24, 33.
+const int PLAYER_SWITCH_PIN = A12;
+const int UPLOAD_SWITCH_PIN = A13;
+const int DOWNLOAD_SWITCH_PIN = A14;
+
+// Only do the action once, don't repeat if the switch is held down.
+// Don't repeat action if the switch is not pressed.
+boolean clockSwitchState = true;
+boolean playerSwitchState = true;
+boolean uploadSwitchState = true;
+boolean downloadSwitchState = true;
+
+void checkClockSwitch() {
+  if (digitalRead(CLOCK_SWITCH_PIN) == HIGH) {
+    if (!clockSwitchState) {
+      Serial.println(F("+ Clock switch released."));
+      clockSwitchState = false;
+      // Switch logic ...
+      programState = CLOCK_RUN;
+    }
+    clockSwitchState = true;
+  } else {
+    if (clockSwitchState) {
+      Serial.println(F("+ Clock switch pressed."));
+      clockSwitchState = false;
+      // Switch logic ...
+    }
+  }
+}
+void checkPlayerSwitch() {
+  if (digitalRead(PLAYER_SWITCH_PIN) == HIGH) {
+    if (!playerSwitchState) {
+      Serial.println(F("+ Player switch released."));
+      playerSwitchState = false;
+      // Switch logic ...
+    }
+    playerSwitchState = true;
+  } else {
+    if (playerSwitchState) {
+      Serial.println(F("+ Player switch pressed."));
+      playerSwitchState = false;
+      // Switch logic ...
+    }
+  }
+}
+void checkUploadSwitch() {
+  if (digitalRead(UPLOAD_SWITCH_PIN) == HIGH) {
+    if (!uploadSwitchState) {
+      Serial.println(F("+ Upload switch released."));
+      uploadSwitchState = false;
+      // Switch logic ...
+    }
+    uploadSwitchState = true;
+  } else {
+    if (uploadSwitchState) {
+      Serial.println(F("+ Upload switch pressed."));
+      uploadSwitchState = false;
+      // Switch logic ...
+    }
+  }
+}
+void checkDownloadSwitch() {
+  if (digitalRead(DOWNLOAD_SWITCH_PIN) == HIGH) {
+    if (!downloadSwitchState) {
+      Serial.println(F("+ Download switch released."));
+      downloadSwitchState = false;
+      // Switch logic ...
+    }
+    downloadSwitchState = true;
+  } else {
+    if (downloadSwitchState) {
+      Serial.println(F("+ Download switch pressed."));
+      downloadSwitchState = false;
+      // Switch logic ...
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
   // Give the serial connection time to start before the first print.
@@ -1023,6 +1120,13 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf20interrupt, CHANGE);
   Serial.println("+ PCF module initialized.");
 #endif
+
+  pinMode(CLOCK_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(PLAYER_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(UPLOAD_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(DOWNLOAD_SWITCH_PIN, INPUT_PULLUP);
+  Serial.println(F("+ Toggle/button switches are configured for input."));
+
 
 #ifdef INCLUDE_SDCARD
   // ----------------------------------------------------
@@ -1081,7 +1185,26 @@ void loop() {
   delay(10000);
 #endif
 
+  
 #ifdef INCLUDE_PCF8574
+  switch (programState) {
+    // ----------------------------
+    case PROGRAM_RUN:
+      break;
+    // ----------------------------
+    case PROGRAM_WAIT:
+      break;
+    // ----------------------------
+    case CLOCK_RUN:
+      Serial.println(F("+ State: CLOCK_RUN"));
+      clockRun();
+      break;
+    // ----------------------------
+    case PLAYER_RUN:
+      Serial.println(F("+ State: PLAYER_RUN"));
+      break;
+  }
+
   if (runProgram) {
     if (switchSetOn) {
       // Serial.println("+ runProgram = true, switchSetOn is true.");
@@ -1098,7 +1221,7 @@ void loop() {
       switchSetOn = false;
     }
     // ----------------------------
-      delay(30);
+    delay(30);
   }
 #endif
 
