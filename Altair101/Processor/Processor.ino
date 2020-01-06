@@ -17,14 +17,14 @@
   ----------
   Add clock logic,
   + Add clock routines to tell the time using the LED lights.
-  + Add HLDA light to indicate clock state, i.e. running the clock functions instead of a programing.
+  + Add HLDA light to indicate clock state, i.e. running the clock functions, instead of the emulator controls.
 
+  ----------
   Add 1602 LED display,
   + Add OUT opcode to out characters to the LED display.
   + Add 1602 LED display clock time and to set the time.
 
-  -----------------------------
-
+  ----------
   SD card program read and write,
   + Read(download) and write(uplaod) switches need to be connected to Mega pins.
   + Logic to monitor and react to the switches.
