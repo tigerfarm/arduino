@@ -42,10 +42,10 @@ Set condition:
 cmp S    10 111 SSS  1  ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.
 cpi #    11 111 110  2  Compare # to A, then set flags. If #=A, set Zero bit to 1. If #>A, Carry bit = 1. If #<A, Carry bit = 0.
 Conditional jumps:
-JNZ a     11 000 010 lb hb          Jump to a, if Zero bit flag is not set (equals 0).
-JZ a      11 001 010 lb hb          Jump to a, if zero bit flag is set (equals 1).
-JNC a     11 010 010 lb hb          Jump to a, if Carry bit flag is not set (equals 0).
-JC a      11 011 010 lb hb          Jump to a, if Carry bit flag is set (equals 1).
+jz a     11 001 010  1  Jump to a, if zero bit flag is set (equals 1).
+jnz a    11 000 010  1  Jump to a, if Zero bit flag is not set (equals 0).
+jc a     11 011 010  1  Jump to a, if Carry bit flag is set (equals 1).
+jnc a    11 010 010  1  Jump to a, if Carry bit flag is not set (equals 0).
 
 Logical and bitwise:
 ani #    11 100 110  2  AND # (immediate db) with register A.
@@ -87,7 +87,10 @@ inr D    00 DDD 101  1  Increment a register. To do, set flags: ZSPA.
 inx RP   00 RP0 011  1  Increment a register pair (a 16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
 jnc a    11 010 010  3  Jump if not carry bit, i.e. if carry bit value is 0, false, not set.
 jmp a    11 000 011  3  Unconditional jump.
-jz  a    11 001 010  3  If flagZeroBit is true, jump to address (a = lb hb).
+jc a     11 011 010  1  Jump to a, if Carry bit flag is set (equals 1).
+jnc a    11 010 010  1  Jump to a, if Carry bit flag is not set (equals 0).
+jnz a    11 000 010  1  Jump to a, if Zero bit flag is not set (equals 0).
+jz a     11 001 010  1  Jump to a, if zero bit flag is set (equals 1).
 lda a    00 110 010  3  Load register A with data from the address, a(hb:lb).
 ldax RP  00 RP1 010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.
 mvi R,#  00 RRR 110  2  Move a number (#, db) to a register.
