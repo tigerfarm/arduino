@@ -12,10 +12,11 @@
 
   ----------
   Add clock logic,
-  + Add which-buttom-pushed, because, if STOP(HLT) or STEP, use programCounter-1 because programCounter hold the next program step.
-  + Implement HLDA LED light to indicate clock running state, 8080 emulator is on hold.
+  + Add which-buttom-pushed,
+  ++ Because, if STOP(HLT) or STEP, use "programCounter-1" because programCounter hold the next program step.
+  + Wire and test the code implemention of the HLDA LED status indicator,
+  ++ Status light: clock function or emulator control.
   ++ HLDA : 8080 processor go into a hold state because of other hardware.
-  ++ Running the clock functions, instead of the emulator controls.
 
   ----------
   Next opcodes to add/test,
@@ -47,12 +48,15 @@
   ---------------------------------------------
   Program Development Phase
 
-  + Create an assembler to convert assembly programs into machine code.
-  ++ Basic assembler works.
-  ++ Create more opcode test programs.
-  ++ Add more opcodes.
-  ++ Need to handle directives: org and equ.
-  + Implement the next major Altair 8800 sample program, Pong.
+  Create an assembler to convert assembly programs into machine code.
+  + Basic assembler works.
+  + Add more opcodes and create more opcode test programs.
+  + Need to handle directives:
+  ++ org : initial address location to load the following bytes.
+  ++ equ : Variable value declarations.
+  ++ db : String label address declarations, and covert to bytes.
+  ++ Sample program: p1.asm.
+  + Compile and run the next major Altair 8800 sample program, Pong.
   + Create more samples: looping, branching, calling subroutines, sense switch interation.
 
   ---------------------------------------------
@@ -65,11 +69,13 @@
     Output: Front Panel LED lights.
     ----------------------------
     Process a subset of the Intel 8080 opcode instructions:
-    + Instruction Set control.
+    + Control of the instruction set of opcodes.
     + Process opcode instruction machine cycle one (M1): fetch opcode and process it.
-    + Process opcode instruction machine cycles greater than 1.
+    + Process opcode instruction machine cycles greater than 1: address and immediate bytes.
     ----------------------------
     I/O: SD Card reader: save and load machine memory.
+    I/O: Clock functions.
+    ----------------------------
     Input: Front Panel toggle switch control and data entry events
     Input: Infrared switch events
     ----------------------------
@@ -113,7 +119,7 @@
 #define PROGRAM_RUN 1
 #define CLOCK_RUN 2
 #define PLAYER_RUN 3
-int programState = PROGRAM_WAIT;
+int programState = PROGRAM_WAIT;  // Intial, default.
 
 // -----------------------------------------------------------------------------
 // Infrared Receiver
@@ -150,6 +156,10 @@ void pcf20interrupt() {
 const int dataPinLed = 7;     // pin 14 Data pin.
 const int latchPinLed = 8;    // pin 12 Latch pin.
 const int clockPinLed = 9;    // pin 11 Clock pin.
+
+// Status LED light,
+// HLDA : 8080 processor go into a hold state because of other hardware.
+const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock processing (on/HIGH).
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -431,27 +441,31 @@ void readyLcd() {
 //
 // Info: page 33 of the Altair 8800 oprator's manaul.
 // Not in use:
-// HLDA : 8080 processor go into a hold state because of other hardware.
 // INTE : On, interrupts enabled.
 // INT : An interrupt request has been acknowledged.
 // PROT : Useful only if RAM has page protection impliemented. I'm not implementing PROT.
+
+// Ready to wire and test the Standalone LED,
+// HLDA : 8080 processor go into a hold state because of other hardware such as the clock.
 
 // ------------
 // Bit patterns for the status shift register (SN74HC595N):
 
 byte statusByte = B00000000;        // By default, all are OFF.
 
-// Use OR  to turn ON.
-const byte MEMR_ON =    B10000000;  MEMR   The memory bus will be used for memory read data.
-const byte INP_ON =     B01000000;  INP    The address bus containing the address of an input device. The input data should be placed on the data bus when the data bus is in the input mode
-const byte M1_ON =      B00100000;  M1     Machine cycle 1, fetch opcode.
-const byte OUT_ON =     B00010000;  OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
-const byte HLTA_ON =    B00001000;  HLTA   Machine opcode hlt, has halted the machine.
-const byte STACK_ON =   B00000100;  STACK  Stack process
-const byte WO_ON =      B00000010;  WO     Write out (inverse logic)
-const byte WAIT_ON =    B00000001;  WAIT   For now, use this one for WAIT light status
+// Use OR to turn ON. Example: 
+//  statusByte = statusByte | MEMR_ON;
+const byte MEMR_ON =    B10000000;  // MEMR   The memory bus will be used for memory read data.
+const byte INP_ON =     B01000000;  // INP    The address bus containing the address of an input device. The input data should be placed on the data bus when the data bus is in the input mode
+const byte M1_ON =      B00100000;  // M1     Machine cycle 1, fetch opcode.
+const byte OUT_ON =     B00010000;  // OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
+const byte HLTA_ON =    B00001000;  // HLTA   Machine opcode hlt, has halted the machine.
+const byte STACK_ON =   B00000100;  // STACK  Stack process
+const byte WO_ON =      B00000010;  // WO     Write out (inverse logic)
+const byte WAIT_ON =    B00000001;  // WAIT   For now, use this one for WAIT light status
 
-// Use AND to turn OFF.
+// Use AND to turn OFF. Example: 
+//  statusByte = statusByte & M1_OFF;
 const byte MEMR_OFF =   B01111111;  
 const byte INP_OFF =    B10111111;
 const byte M1_OFF =     B11011111;
@@ -2868,6 +2882,179 @@ void readProgramFileIntoMemory(String theFilename) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+// Clock
+
+#ifdef INCLUDE_CLOCK
+
+// For the clock board.
+#include "RTClib.h"
+RTC_DS3231 rtc;
+DateTime now;
+
+int theCounterHours = 0;
+int theCounterMinutes = 0;
+int theCounterSeconds = 0;
+
+void syncCountWithClock() {
+  now = rtc.now();
+  theCounterHours = now.hour();
+  theCounterMinutes = now.minute();
+  theCounterSeconds = now.second();
+  //
+  Serial.print("+ syncCountWithClock,");
+  Serial.print(" theCounterHours=");
+  Serial.print(theCounterHours);
+  Serial.print(" theCounterMinutes=");
+  Serial.print(theCounterMinutes);
+  Serial.print(" theCounterSeconds=");
+  Serial.println(theCounterSeconds);
+}
+
+// -----------------------------------------------------------------------------
+void processClockNow() {
+  //
+  now = rtc.now();
+  //
+  if (now.second() != theCounterSeconds) {
+    // When the clock second value changes, that's a second pulse.
+    theCounterSeconds = now.second();
+    // clockPulseSecond();
+    if (theCounterSeconds == 0) {
+      // When the clock second value changes to zero, that's a minute pulse.
+      theCounterMinutes = now.minute();
+      if (theCounterMinutes != 0) {
+        // clockPulseMinute();
+        Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
+        Serial.println(theCounterMinutes);
+        // ----------------------------------------------
+        displayTheTime( theCounterMinutes, theCounterHours );
+      } else {
+        // When the clock minute value changes to zero, that's an hour pulse.
+        // clockPulseHour();
+        theCounterHours = now.hour();
+        Serial.print("++ clockPulseHour(), theCounterHours= ");
+        Serial.println(theCounterHours);
+        // ----------------------------------------------
+        displayTheTime( theCounterMinutes, theCounterHours );
+      }
+    }
+  }
+}
+
+// ------------------------------------------------------------------------
+// Display hours and minutes on LED lights.
+
+void displayTheTime(byte theMinute, byte theHour) {
+  byte theMinuteOnes = 0;
+  byte theMinuteTens = 0;
+  byte theBinaryMinute = 0;
+  byte theBinaryHour1 = 0;
+  byte theBinaryHour2 = 0;
+
+  // ----------------------------------------------
+  // Convert the minute into binary for display.
+  if (theMinute < 10) {
+    theBinaryMinute = theMinute;
+  } else {
+    // There are 3 bits for the tens: 0 ... 5 (00, 10, 20, 30, 40, or 50).
+    // There are 4 bits for the ones: 0 ... 9.
+    // LED diplay lights: ttt mmmm
+    // Example:      23 = 010 0011
+    //      Clock: Tens(t) & Minutes(m): B-tttmmmm
+    //                                   B00001111 = 2 ^ 4 = 16
+    // Altair 101: Tens(t) & Minutes(m): Bttt-mmmm
+    //                                   B00011111 = 2 ^ 5 = 32
+    // theMinute = 10, theBinaryMinute =  00100000
+    theMinuteTens = theMinute / 10;
+    theMinuteOnes = theMinute - theMinuteTens * 10;
+    theBinaryMinute = 32 * theMinuteTens + theMinuteOnes;
+  }
+
+  // ----------------------------------------------
+  // Convert the hour into binary for display.
+  // Use a 12 hour clock value rather than 24 value.
+  if (theHour > 12) {
+    theHour = theHour - 12;
+  } else if (theHour == 0) {
+    theHour = 12; // 12 midnight, 12am
+  }
+  switch (theHour) {
+    case 1:
+      theBinaryHour1 = B00000001; // Note, on the shift register, B00000001 is not wired, not used.
+      theBinaryHour2 = 0;
+      break;
+    case 2:
+      theBinaryHour1 = B00000010;
+      theBinaryHour2 = 0;
+      break;
+    case 3:
+      theBinaryHour1 = B00000100;
+      theBinaryHour2 = 0;
+      break;
+    case 4:
+      theBinaryHour1 = B00001000;
+      theBinaryHour2 = 0;
+      break;
+    case 5:
+      theBinaryHour1 = B00010000;
+      theBinaryHour2 = 0;
+      break;
+    case 6:
+      theBinaryHour1 = B00100000;
+      theBinaryHour2 = 0;
+      break;
+    case 7:
+      theBinaryHour1 = B01000000;
+      theBinaryHour2 = 0;
+      break;
+    case 8:
+      theBinaryHour1 = B10000000;
+      theBinaryHour2 = 0;
+      break;
+    case 9:
+      theBinaryHour1 = 0;
+      theBinaryHour2 = B00000001;
+      break;
+    case 10:
+      theBinaryHour1 = 0;
+      theBinaryHour2 = B00000010;
+      break;
+    case 11:
+      theBinaryHour1 = 0;
+      theBinaryHour2 = B00000100;
+      break;
+    case 12:
+      theBinaryHour1 = 0;
+      theBinaryHour2 = B00001000;
+      break;
+  }
+  // ----------------------------------------------
+  // void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) { ... }
+  // lightsStatusAddressData(statusByte, programCounter, dataByte);
+  //
+  // Need enter: theBinaryMinute, theBinaryHour1, theBinaryHour2, into the following:
+  // Data byte LED lights: theBinaryMinute.
+  // Address word LED lights: theBinaryHour2 & theBinaryHour1.
+  unsigned int hourWord = theBinaryHour2 * 256 + theBinaryHour1;
+  lightsStatusAddressData(statusByte, hourWord, theBinaryMinute);
+}
+
+// ------------------------
+void clockRun() {
+  // theCounterSeconds = 99;  // 99 will cause the immediate display of time.
+  syncCountWithClock();
+  displayTheTime( theCounterMinutes, theCounterHours );
+  while (programState == CLOCK_RUN) {
+    processClockNow();
+    checkRunningButtons();
+    checkClockSwitch();
+    delay(100);
+  }
+}
+#endif
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Front Panel Switches
 
 // -------------------------
@@ -3128,9 +3315,11 @@ void checkClockSwitch() {
       clockSwitchState = false;
       // Switch logic ...
       if (programState == CLOCK_RUN) {
-        controlStopLogic();
+        controlStopLogic();   // Changes programState to wait.
+        digitalWrite(HLDA_PIN, LOW);
       } else {
         programState = CLOCK_RUN;
+        digitalWrite(HLDA_PIN, HIGH);
       }
     }
     clockSwitchState = true;
@@ -3417,179 +3606,6 @@ void infraredRunning() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// Clock
-
-#ifdef INCLUDE_CLOCK
-
-// For the clock board.
-#include "RTClib.h"
-RTC_DS3231 rtc;
-DateTime now;
-
-int theCounterHours = 0;
-int theCounterMinutes = 0;
-int theCounterSeconds = 0;
-
-void syncCountWithClock() {
-  now = rtc.now();
-  theCounterHours = now.hour();
-  theCounterMinutes = now.minute();
-  theCounterSeconds = now.second();
-  //
-  Serial.print("+ syncCountWithClock,");
-  Serial.print(" theCounterHours=");
-  Serial.print(theCounterHours);
-  Serial.print(" theCounterMinutes=");
-  Serial.print(theCounterMinutes);
-  Serial.print(" theCounterSeconds=");
-  Serial.println(theCounterSeconds);
-}
-
-// -----------------------------------------------------------------------------
-void processClockNow() {
-  //
-  now = rtc.now();
-  //
-  if (now.second() != theCounterSeconds) {
-    // When the clock second value changes, that's a second pulse.
-    theCounterSeconds = now.second();
-    // clockPulseSecond();
-    if (theCounterSeconds == 0) {
-      // When the clock second value changes to zero, that's a minute pulse.
-      theCounterMinutes = now.minute();
-      if (theCounterMinutes != 0) {
-        // clockPulseMinute();
-        Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
-        Serial.println(theCounterMinutes);
-        // ----------------------------------------------
-        displayTheTime( theCounterMinutes, theCounterHours );
-      } else {
-        // When the clock minute value changes to zero, that's an hour pulse.
-        // clockPulseHour();
-        theCounterHours = now.hour();
-        Serial.print("++ clockPulseHour(), theCounterHours= ");
-        Serial.println(theCounterHours);
-        // ----------------------------------------------
-        displayTheTime( theCounterMinutes, theCounterHours );
-      }
-    }
-  }
-}
-
-// ------------------------------------------------------------------------
-// Display hours and minutes on LED lights.
-
-void displayTheTime(byte theMinute, byte theHour) {
-  byte theMinuteOnes = 0;
-  byte theMinuteTens = 0;
-  byte theBinaryMinute = 0;
-  byte theBinaryHour1 = 0;
-  byte theBinaryHour2 = 0;
-
-  // ----------------------------------------------
-  // Convert the minute into binary for display.
-  if (theMinute < 10) {
-    theBinaryMinute = theMinute;
-  } else {
-    // There are 3 bits for the tens: 0 ... 5 (00, 10, 20, 30, 40, or 50).
-    // There are 4 bits for the ones: 0 ... 9.
-    // LED diplay lights: ttt mmmm
-    // Example:      23 = 010 0011
-    //      Clock: Tens(t) & Minutes(m): B-tttmmmm
-    //                                   B00001111 = 2 ^ 4 = 16
-    // Altair 101: Tens(t) & Minutes(m): Bttt-mmmm
-    //                                   B00011111 = 2 ^ 5 = 32
-    // theMinute = 10, theBinaryMinute =  00100000
-    theMinuteTens = theMinute / 10;
-    theMinuteOnes = theMinute - theMinuteTens * 10;
-    theBinaryMinute = 32 * theMinuteTens + theMinuteOnes;
-  }
-
-  // ----------------------------------------------
-  // Convert the hour into binary for display.
-  // Use a 12 hour clock value rather than 24 value.
-  if (theHour > 12) {
-    theHour = theHour - 12;
-  } else if (theHour == 0) {
-    theHour = 12; // 12 midnight, 12am
-  }
-  switch (theHour) {
-    case 1:
-      theBinaryHour1 = B00000001; // Note, on the shift register, B00000001 is not wired, not used.
-      theBinaryHour2 = 0;
-      break;
-    case 2:
-      theBinaryHour1 = B00000010;
-      theBinaryHour2 = 0;
-      break;
-    case 3:
-      theBinaryHour1 = B00000100;
-      theBinaryHour2 = 0;
-      break;
-    case 4:
-      theBinaryHour1 = B00001000;
-      theBinaryHour2 = 0;
-      break;
-    case 5:
-      theBinaryHour1 = B00010000;
-      theBinaryHour2 = 0;
-      break;
-    case 6:
-      theBinaryHour1 = B00100000;
-      theBinaryHour2 = 0;
-      break;
-    case 7:
-      theBinaryHour1 = B01000000;
-      theBinaryHour2 = 0;
-      break;
-    case 8:
-      theBinaryHour1 = B10000000;
-      theBinaryHour2 = 0;
-      break;
-    case 9:
-      theBinaryHour1 = 0;
-      theBinaryHour2 = B00000001;
-      break;
-    case 10:
-      theBinaryHour1 = 0;
-      theBinaryHour2 = B00000010;
-      break;
-    case 11:
-      theBinaryHour1 = 0;
-      theBinaryHour2 = B00000100;
-      break;
-    case 12:
-      theBinaryHour1 = 0;
-      theBinaryHour2 = B00001000;
-      break;
-  }
-  // ----------------------------------------------
-  // void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) { ... }
-  // lightsStatusAddressData(statusByte, programCounter, dataByte);
-  //
-  // Need enter: theBinaryMinute, theBinaryHour1, theBinaryHour2, into the following:
-  // Data byte LED lights: theBinaryMinute.
-  // Address word LED lights: theBinaryHour2 & theBinaryHour1.
-  unsigned int hourWord = theBinaryHour2 * 256 + theBinaryHour1;
-  lightsStatusAddressData(statusByte, hourWord, theBinaryMinute);
-}
-
-// ------------------------
-void clockRun() {
-  // theCounterSeconds = 99;  // 99 will cause the immediate display of time.
-  syncCountWithClock();
-  displayTheTime( theCounterMinutes, theCounterHours );
-  while (programState == CLOCK_RUN) {
-    processClockNow();
-    checkRunningButtons();
-    checkClockSwitch();
-    delay(100);
-  }
-}
-#endif
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
   delay(1000);        // Give the serial connection time to start before the first print.
@@ -3631,6 +3647,8 @@ void setup() {
   Serial.println("+ PCF8574 modules initialized.");
 
   // Device switches.
+  pinMode(HLDA_PIN, OUTPUT);    // Indicator: clock process (LED on) or emulator (LED off).
+  digitalWrite(HLDA_PIN, LOW);  // Default to emulator.
   pinMode(CLOCK_SWITCH_PIN, INPUT_PULLUP);
   pinMode(PLAYER_SWITCH_PIN, INPUT_PULLUP);
   pinMode(UPLOAD_SWITCH_PIN, INPUT_PULLUP);
