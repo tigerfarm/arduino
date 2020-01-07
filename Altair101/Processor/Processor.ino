@@ -10,9 +10,16 @@
   ---------------------------------------------
   Current/Next Work
 
-  Add more opcodes,
-  + Test opcodes implemented in the assembler, but not tested:
-  ++ CALL and RET, then others: dcr, inx, lda, sta, shld.
+  ----------
+  Add clock logic,
+  + Add which-buttom-pushed, because, if STOP(HLT) or STEP, use programCounter-1 because programCounter hold the next program step.
+  + Implement HLDA LED light to indicate clock running state, 8080 emulator is on hold.
+  ++ HLDA : 8080 processor go into a hold state because of other hardware.
+  ++ Running the clock functions, instead of the emulator controls.
+
+  ----------
+  Next opcodes to add/test,
+  + Opcodes implemented in the assembler, but not tested with a program:
   lda a    00 110 010  3  Load register A with data from the address, a(hb:lb).
   sta a    00 110 010  3  Store register A to the address, a(hb:lb).
   dcr D    00 DDD 101  1  Decrement a register. To do, set flags: ZSPA.
@@ -21,11 +28,6 @@
     // shld a    00100010 lb hb    -  Store register L to memory address hb:lb. Store register H to hb:lb + 1.
     // The contents of register L, are stored in the memory address specified in bytes lb and hb (hb:lb).
     // The contents of register H, are stored in the memory at the next higher address (hb:lb + 1).
-
-  ----------
-  Add clock logic,
-  + Add clock routines to tell the time using the LED lights.
-  + Add HLDA light to indicate clock state, i.e. running the clock functions, instead of the emulator controls.
 
   ----------
   Add 1602 LED display,
@@ -428,32 +430,29 @@ void readyLcd() {
 // Status LEDs
 //
 // Info: page 33 of the Altair 8800 oprator's manaul.
-// Bit pattern for the status shift register (SN74HC595N):
-// B10000000 : MEMR   The memory bus will be used for memory read data.
-// B01000000 : INP    The address bus containing the address of an input device. The input data should be placed on the data bus when the data bus is in the input mode
-// B00100000 : M1     Machine cycle 1, fetch opcode.
-// B00010000 : OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
-// B00001000 : HLTA   Machine opcode hlt, has halted the machine.
-// B00000100 : STACK  Stack process
-// B00000010 : WO     Write out (inverse logic)
-// B00000001 : WAIT   For now, use this one for WAIT light status
 // Not in use:
-// INTE : On, interrupts enabled.
-// PROT : Useful only if RAM has page protection impliemented. I'm not implementing PROT.
 // HLDA : 8080 processor go into a hold state because of other hardware.
+// INTE : On, interrupts enabled.
 // INT : An interrupt request has been acknowledged.
-//
-byte statusByte = B00000000;        // By default, all are OFF.
-const byte MEMR_ON =    B10000000;  // Use OR  to turn ON.
-const byte INP_ON =     B01000000;
-const byte M1_ON =      B00100000;
-const byte OUT_ON =     B00010000;
-const byte HLTA_ON =    B00001000;
-const byte STACK_ON =   B00000100;
-const byte WO_ON =      B00000010;
-const byte WAIT_ON =    B00000001;
+// PROT : Useful only if RAM has page protection impliemented. I'm not implementing PROT.
 
-const byte MEMR_OFF =   B01111111;  // Use AND to turn OFF.
+// ------------
+// Bit patterns for the status shift register (SN74HC595N):
+
+byte statusByte = B00000000;        // By default, all are OFF.
+
+// Use OR  to turn ON.
+const byte MEMR_ON =    B10000000;  MEMR   The memory bus will be used for memory read data.
+const byte INP_ON =     B01000000;  INP    The address bus containing the address of an input device. The input data should be placed on the data bus when the data bus is in the input mode
+const byte M1_ON =      B00100000;  M1     Machine cycle 1, fetch opcode.
+const byte OUT_ON =     B00010000;  OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
+const byte HLTA_ON =    B00001000;  HLTA   Machine opcode hlt, has halted the machine.
+const byte STACK_ON =   B00000100;  STACK  Stack process
+const byte WO_ON =      B00000010;  WO     Write out (inverse logic)
+const byte WAIT_ON =    B00000001;  WAIT   For now, use this one for WAIT light status
+
+// Use AND to turn OFF.
+const byte MEMR_OFF =   B01111111;  
 const byte INP_OFF =    B10111111;
 const byte M1_OFF =     B11011111;
 const byte OUT_OFF =    B11101111;
