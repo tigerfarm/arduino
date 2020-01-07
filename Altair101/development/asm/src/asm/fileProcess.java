@@ -571,14 +571,18 @@ public class fileProcess {
         fileProcess thisProcess = new fileProcess();
 
         System.out.println("\n+ Parse file lines.");
-        // thisProcess.parseFile("pKillTheBit.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/pLoop.asm");
-        // Required:
+        // Required, starts the process:
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/pLoop.asm");
+        thisProcess.parseFile("p1.asm");
+        //
+        // Required, sets actual address byte values for the labels:
         thisProcess.setProgramByteLabels();
         //
+        // Optional, used for debugging:
         // thisProcess.listLabels();
-        //
         // thisProcess.listProgramBytes();
+        //
+        // Required, prints the output for use in Processor.ino:
         thisProcess.printProgramBytesArray();
 
         System.out.println("++ Exit.");

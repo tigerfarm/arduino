@@ -1,19 +1,11 @@
-                                    ; --------------------------------------
-                                    ; Test OUT to the serial monitor.
-                                    ; --------------------------------------
-                jmp Start           ; Jump to Start to bypass declarations halt.
-                                    ;
-                                    ; --------------------------------------
-                                    ; Data declarations
         TERMB   equ     0ffh        ; Name for a value. Similar to: TERMB = 0ffh;
-        Hello   db      'Hello'     ; Translate into bytes with a terminate byte (TERMB).
-                                    ; --------------------------------------
-    Halt:
-                hlt                 ; The program will halt at each iteration, after the first.
-                                    ; --------------------------------------
-    Start:
+        Hello   db      "Hello"     ; Translate into bytes with a terminate byte (TERMB).
+                ...
+    Start
+                ...
                 call PrintLoop
-                jmp Halt
+                ...
+                hlt
                                     ; ------------------------------------------
                                     ; Routine that uses Hello to OUT the "Hello" string.
                 (Needs development, the following is not complete)
@@ -29,5 +21,4 @@
                 ...
         Done:
                 ret
-                                    ; ------------------------------------------
                                     ; End

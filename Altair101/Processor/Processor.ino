@@ -14,12 +14,11 @@
   Add clock logic,
   + Add which-buttom-pushed,
   ++ Because, if STOP(HLT) or STEP, use "programCounter-1" because programCounter hold the next program step.
-  + Wire and test the code implemention of the HLDA LED status indicator,
-  ++ Status light: clock function or emulator control.
-  ++ HLDA : 8080 processor go into a hold state because of other hardware.
 
   ----------
   Next opcodes to add/test,
+  + Parse assembler directives: org, equ, and db.
+  ++ Develop test program: p1.asm.
   + Opcodes implemented in the assembler, but not tested with a program:
   lda a    00 110 010  3  Load register A with data from the address, a(hb:lb).
   sta a    00 110 010  3  Store register A to the address, a(hb:lb).
@@ -187,7 +186,7 @@ File myFile;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-const byte theProgram[] = {
+const byte theProgramTest[] = {
   //                //            ; --------------------------------------
   //                //            ; Test opcode CALL and RET.
   B11000011, 38, 0,    //   0: jmp Test
@@ -323,7 +322,7 @@ const byte theProgram[] = {
 // -----------------------------------------------------------------------------
 // Kill the Bit program.
 
-const byte theProgramKtb[] = {
+const byte theProgram[] = {
   // ------------------------------------------------------------------
   // Kill the Bit program.
   // Before starting, make sure all the sense switches are in the down position.
@@ -2911,6 +2910,7 @@ void syncCountWithClock() {
 }
 
 // -----------------------------------------------------------------------------
+  boolean HLDA_ON = false;
 void processClockNow() {
   //
   now = rtc.now();
@@ -2919,6 +2919,13 @@ void processClockNow() {
     // When the clock second value changes, that's a second pulse.
     theCounterSeconds = now.second();
     // clockPulseSecond();
+    if (HLDA_ON) {
+      digitalWrite(HLDA_PIN, LOW);
+      HLDA_ON = false;
+    } else {
+      digitalWrite(HLDA_PIN, HIGH);
+      HLDA_ON = true;
+    }
     if (theCounterSeconds == 0) {
       // When the clock second value changes to zero, that's a minute pulse.
       theCounterMinutes = now.minute();
@@ -3093,6 +3100,7 @@ boolean switchDeposit = false;;
 boolean switchDepositNext = false;;
 boolean switchReset = false;
 
+// -------------------------
 void controlResetLogic() {
   programCounter = 0;
   stackPointer = 0;
@@ -3122,6 +3130,7 @@ void controlStopLogic() {
   lightsStatusAddressData(statusByte, programCounter, dataByte);
 }
 
+// -------------------------
 void checkControlButtons() {
   for (int pinGet = 7; pinGet >= 0; pinGet--) {
     int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
@@ -3320,6 +3329,7 @@ void checkClockSwitch() {
       } else {
         programState = CLOCK_RUN;
         digitalWrite(HLDA_PIN, HIGH);
+        statusByte = statusByte & WAIT_OFF;
       }
     }
     clockSwitchState = true;
