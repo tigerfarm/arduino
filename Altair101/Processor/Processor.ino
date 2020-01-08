@@ -677,22 +677,41 @@ void displayStatusAddressData() {
 
 void processData() {
   if (opcode == 0) {
+    // Instruction cycle 1 (M1 cycle), fetch the opcode.
+    statusByte = statusByte | M1_ON;  // Machine cycle 1, get an opcode.
+    instructionCycle = 1;
+    // If no parameter bytes (immediate data byte or address bytes), process the opcode.
+    // Else, the opcode variable is set to the opcode byte value.
     opcode = 0;
-    processOpcode();  // opcode is set, if more than 1 instruction cycle.
+#ifdef LOG_MESSAGES
+    Serial.print("> ");
+#endif
+    displayStatusAddressData();       // Sets the dataByte.
+    processOpcode();
     programCounter++;
-    instructionCycle = 0;
+    if (programState == PROGRAM_WAIT) {
+      // Either HLT opcode was just processed, or using STEP to step through .
+      if (dataByte == hlt) {
+        // HLT opcode was just processed. Try the following, display the opcode after HLT.
+        displayStatusAddressData();
+      }
+    }
   } else {
+    // Machine cycles 2 and/or 3,
+    //  Getting opcode data: an immediate data byte or an address of 2 bytes,
+    //  Processing the opcode data.
+    instructionCycle++;
+    statusByte = statusByte & M1_OFF;
+    //
 #ifdef LOG_MESSAGES
     Serial.print("+ ");
 #endif
-    // Machine cycle 1+x, getting opcode data: an address or an immediate data byte.
-    instructionCycle++;
-    statusByte = statusByte & M1_OFF;
     displayStatusAddressData();
 #ifdef LOG_MESSAGES
     Serial.print(" ");
 #endif
-    processOpcodeData();      // Example: sta 42: 0. fetch the opcode, 1. fetch lb, 2. fetch hb, 3. store the data.
+    //
+    processOpcodeData(); // programCounter incremented if not a jump.
   }
 #ifdef LOG_MESSAGES
   Serial.println("");
@@ -705,11 +724,6 @@ void processOpcode() {
 
   unsigned int anAddress = 0;
 
-#ifdef LOG_MESSAGES
-  Serial.print("> ");
-#endif
-  statusByte = statusByte | M1_ON;  // Machine cycle 1, get an opcode.
-  displayStatusAddressData();       // Sets the dataByte.
   switch (dataByte) {
 
     // ---------------------------------------------------------------------
@@ -2041,6 +2055,16 @@ void processOpcode() {
 // ------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------
 void processOpcodeData() {
+
+  // Process data types:
+  // 1) Immediate data byte:
+  // + Instruction cycle 1 (M1), get the opcode in processOpcode().
+  // + Instruction cycle 2, get the immediate data byte and process it.
+  // 2) Address bytes:
+  // + Instruction cycle 1 (M1), get the opcode in processOpcode().
+  // + Instruction cycle 2, get the lower data byte (lb: lowByte).
+  // + Instruction cycle 3, get the higher data byte (hb: lowByte), and process the address, hb:lb.
+
   // Note,
   //    if not jumping, increment programCounter.
   //    if jumping, don't increment programCounter.
@@ -2052,8 +2076,8 @@ void processOpcodeData() {
     // ---------------------------------------------------------------------
     //ADI #     11000110 db   ZSCPA Add immediate number to register A.
     case B11000110:
-      // instructionCycle == 1
-      
+      // instructionCycle == 2
+
 #ifdef LOG_MESSAGES
       Serial.print(F("> adi, Add immediate number:"));
       printByte(dataByte);
@@ -2070,7 +2094,7 @@ void processOpcodeData() {
     // ---------------------------------------------------------------------
     //SUI #     11010110 db   ZSCPA Subtract immediate number from register A.
     case B11010110:
-      // instructionCycle == 1
+      // instructionCycle == 2
 #ifdef LOG_MESSAGES
       Serial.print(F("> adi, Subtract immediate number:"));
       printByte(dataByte);
@@ -2088,7 +2112,7 @@ void processOpcodeData() {
     // ---------------------------------------------------------------------
     //ANI #     11100110 db       ZSPCA   AND immediate with A
     case B11100110:
-      // instructionCycle == 1
+      // instructionCycle == 2
 #ifdef LOG_MESSAGES
       Serial.print(F("> ani, AND db:"));
       printByte(dataByte);
@@ -2106,7 +2130,7 @@ void processOpcodeData() {
     // CALL a    11001101 lb hb   Unconditional subroutine call. 3 cycles.
     // stacy
     case B11001101:
-      if (instructionCycle == 1) {
+      if (instructionCycle == 2) {
         lowOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< call, lb: "));
@@ -2116,7 +2140,7 @@ void processOpcodeData() {
         programCounter++;
         return;
       }
-      // instructionCycle == 2
+      // instructionCycle == 3
       highOrder = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< call, hb: "));
@@ -2148,7 +2172,7 @@ void processOpcodeData() {
       break;
     // ---------------------------------------------------------------------
     case B11111110:
-      // instructionCycle == 1
+      // instructionCycle == 2
       // Compare #(dataByte) to A, then set Carry and Zero bit flags.
       // If #=A, set Zero bit to 1. If #>A, Carry bit = 1. If #<A, Carry bit = 0.
       flagZeroBit = dataByte == regA;
@@ -2173,7 +2197,7 @@ void processOpcodeData() {
     // ---------------------------------------------------------------------
     case B11011011:
       // stacy
-      // instructionCycle == 1
+      // instructionCycle == 2
       // INP & WO are on when reading from an input port.
       // IN p      11011011 pa       -       Read input for port a, into A
       //                    pa = 0ffh        Check toggle sense switches for non-zero input.
@@ -2206,7 +2230,7 @@ void processOpcodeData() {
 
     //-----------------------------------------
     case B11000011:
-      if (instructionCycle == 1) {
+      if (instructionCycle == 2) {
         lowOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("> jmp, lb:"));
@@ -2216,7 +2240,7 @@ void processOpcodeData() {
         programCounter++;
         return;
       }
-      // instructionCycle == 2
+      // instructionCycle == 3
       highOrder = dataByte;
       programCounter = word(highOrder, lowOrder);
 #ifdef LOG_MESSAGES
@@ -2231,7 +2255,7 @@ void processOpcodeData() {
       break;
     //-----------------------------------------
     case B11000010:
-      if (instructionCycle == 1) {
+      if (instructionCycle == 2) {
         lowOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< jnz, lb: "));
@@ -2241,7 +2265,7 @@ void processOpcodeData() {
         programCounter++;
         return;
       }
-      // instructionCycle == 2
+      // instructionCycle == 3
       highOrder = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< jnz, hb: "));
@@ -2263,7 +2287,7 @@ void processOpcodeData() {
       break;
     //-----------------------------------------
     case B11001010:
-      if (instructionCycle == 1) {
+      if (instructionCycle == 2) {
         lowOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< jz, lb: "));
@@ -2273,7 +2297,7 @@ void processOpcodeData() {
         programCounter++;
         return;
       }
-      // instructionCycle == 2
+      // instructionCycle == 3
       highOrder = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< jz, hb: "));
@@ -2295,7 +2319,7 @@ void processOpcodeData() {
       break;
     //-----------------------------------------
     case B11010010:
-      if (instructionCycle == 1) {
+      if (instructionCycle == 2) {
         lowOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< jnc, lb: "));
@@ -2305,7 +2329,7 @@ void processOpcodeData() {
         programCounter++;
         return;
       }
-      // instructionCycle == 2
+      // instructionCycle == 3
       highOrder = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< jnc, hb: "));
@@ -2327,7 +2351,7 @@ void processOpcodeData() {
       break;
     //-----------------------------------------
     case B11011010:
-      if (instructionCycle == 1) {
+      if (instructionCycle == 2) {
         lowOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< jc, lb: "));
@@ -2337,7 +2361,7 @@ void processOpcodeData() {
         programCounter++;
         return;
       }
-      // instructionCycle == 2
+      // instructionCycle == 3
       highOrder = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< jc, hb: "));
@@ -2394,7 +2418,7 @@ void processOpcodeData() {
     // ---------------------------------------------------------------------
     case B00000001:
       // lxi b,16-bit-address
-      if (instructionCycle == 1) {
+      if (instructionCycle == 2) {
         regC = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< lxi, lb data: "));
@@ -2404,7 +2428,7 @@ void processOpcodeData() {
         programCounter++;
         return;
       }
-      // instructionCycle == 2
+      // instructionCycle == 3
       regB = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< lxi, hb data: "));
@@ -2420,7 +2444,7 @@ void processOpcodeData() {
     // ---------------------------------------------------------------------
     case B00010001:
       // lxi d,16-bit-address
-      if (instructionCycle == 1) {
+      if (instructionCycle == 2) {
         regE = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< lxi, lb data: "));
@@ -2430,7 +2454,7 @@ void processOpcodeData() {
         programCounter++;
         return;
       }
-      // instructionCycle == 2
+      // instructionCycle == 3
       regD = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< lxi, hb data: "));
@@ -2446,7 +2470,7 @@ void processOpcodeData() {
     // -------------------
     case B00100001:
       // lxi h,16-bit-address
-      if (instructionCycle == 1) {
+      if (instructionCycle == 2) {
         regL = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< lxi, lb data: "));
@@ -2456,7 +2480,7 @@ void processOpcodeData() {
         programCounter++;
         return;
       }
-      // instructionCycle == 2
+      // instructionCycle == 3
       regH = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< lxi, hb data: "));
@@ -2536,7 +2560,7 @@ void processOpcodeData() {
       break;
     // ---------------------------------------------------------------------
     case out:
-      // instructionCycle == 1
+      // instructionCycle == 2
       dataByte = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< OUT, input port: "));
@@ -2631,7 +2655,7 @@ void processOpcodeData() {
       break;
     // ------------------------------------------------------------------------------------------
     case B00110010:
-      if (instructionCycle == 1) {
+      if (instructionCycle == 2) {
         lowOrder = dataByte;
 #ifdef LOG_MESSAGE
         Serial.print(F("< sta, lb: "));
@@ -2641,7 +2665,7 @@ void processOpcodeData() {
         programCounter++;
         return;
       }
-      if (instructionCycle == 2) {
+      if (instructionCycle == 3) {
         highOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< sta, hb: "));
@@ -2665,7 +2689,7 @@ void processOpcodeData() {
       break;
     // -----------------------------------------
     case B00111010:
-      if (instructionCycle == 1) {
+      if (instructionCycle == 2) {
         lowOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< lda, lb: "));
@@ -2675,7 +2699,7 @@ void processOpcodeData() {
         programCounter++;
         return;
       }
-      if (instructionCycle == 2) {
+      if (instructionCycle == 3) {
         highOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< lda, hb: "));
@@ -2695,7 +2719,7 @@ void processOpcodeData() {
     // ------------------------------------------------------------------------------------------
     case B00100010:
       // shld a
-      if (instructionCycle == 1) {
+      if (instructionCycle == 2) {
         lowOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< shld, lb: "));
@@ -2705,7 +2729,7 @@ void processOpcodeData() {
         programCounter++;
         return;
       }
-      if (instructionCycle == 2) {
+      if (instructionCycle == 3) {
         highOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< shld, hb: "));
@@ -3009,9 +3033,6 @@ void displayTheTime(byte theMinute, byte theHour) {
       break;
   }
   // ----------------------------------------------
-  // void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) { ... }
-  // lightsStatusAddressData(statusByte, programCounter, dataByte);
-  //
   // Need enter: theBinaryMinute, theBinaryHour1, theBinaryHour2, into the following:
   // Data byte LED lights: theBinaryMinute.
   // Address word LED lights: theBinaryHour2 & theBinaryHour1.
@@ -3638,17 +3659,17 @@ void setup() {
   pinMode(clockPinLed, OUTPUT);
   pinMode(dataPinLed, OUTPUT);
   delay(300);
-  // Serial.println(F("+ Front panel LED shift registers ready."));
+  Serial.println(F("+ Front panel LED lights initialized."));
   //
   // Status lights are off by default.
   statusByte = statusByte | WAIT_ON;
   statusByte = statusByte | MEMR_ON;
   statusByte = statusByte | M1_ON;
   statusByte = statusByte | WO_ON;  // WO: on, Inverse logic: off when writing out. On when not.
-  // lightsStatusAddressData(statusByte, programCounter, dataByte);
-  int testLights = B10011001 * 256 + B01100110;
-  lightsStatusAddressData(statusByte, testLights, dataByte);
-  Serial.println(F("+ Front panel LED lights initialized."));
+  programCounter = 0;
+  dataByte = memoryData[programCounter];
+  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  Serial.println(F("+ Initialized: statusByte, programCounter, dataByte."));
 
   // ----------------------------------------------------
   // Initialize the Real Time Clock (RTC).
@@ -3657,8 +3678,6 @@ void setup() {
     Serial.println("--- Error: RTC not found.");
     while (1);
   }
-  syncCountWithClock();
-  displayTheTime( theCounterMinutes, theCounterHours );
   Serial.println("+ Clock set and synched with program variables.");
 #endif
 

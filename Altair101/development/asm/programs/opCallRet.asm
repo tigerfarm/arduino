@@ -20,6 +20,8 @@
             mvi a,'r'
             out 3
             out 39      ; Print the registers and other system values.
+            mvi a,'\n'
+            out 3
     Halt:
             hlt         ; The program will halt at each iteration, after the first.
                         ;
@@ -56,6 +58,8 @@
             mvi a,'s'
             out 3
             mvi a,'.'
+            out 3
+            mvi a,'\n'
             out 3
                         ; --------------------------------------
             NOP
