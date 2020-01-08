@@ -2045,13 +2045,15 @@ void processOpcodeData() {
   //    if not jumping, increment programCounter.
   //    if jumping, don't increment programCounter.
 
+  dataByte = memoryData[programCounter];
+
   switch (opcode) {
 
     // ---------------------------------------------------------------------
     //ADI #     11000110 db   ZSCPA Add immediate number to register A.
     case B11000110:
       // instructionCycle == 1
-      dataByte = memoryData[programCounter];
+      
 #ifdef LOG_MESSAGES
       Serial.print(F("> adi, Add immediate number:"));
       printByte(dataByte);
@@ -2069,7 +2071,6 @@ void processOpcodeData() {
     //SUI #     11010110 db   ZSCPA Subtract immediate number from register A.
     case B11010110:
       // instructionCycle == 1
-      dataByte = memoryData[programCounter];
 #ifdef LOG_MESSAGES
       Serial.print(F("> adi, Subtract immediate number:"));
       printByte(dataByte);
@@ -2088,7 +2089,6 @@ void processOpcodeData() {
     //ANI #     11100110 db       ZSPCA   AND immediate with A
     case B11100110:
       // instructionCycle == 1
-      dataByte = memoryData[programCounter];
 #ifdef LOG_MESSAGES
       Serial.print(F("> ani, AND db:"));
       printByte(dataByte);
@@ -2107,7 +2107,7 @@ void processOpcodeData() {
     // stacy
     case B11001101:
       if (instructionCycle == 1) {
-        lowOrder = memoryData[programCounter];
+        lowOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< call, lb: "));
         sprintf(charBuffer, "%4d:", lowOrder);
@@ -2117,7 +2117,7 @@ void processOpcodeData() {
         return;
       }
       // instructionCycle == 2
-      highOrder = memoryData[programCounter];
+      highOrder = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< call, hb: "));
       sprintf(charBuffer, "%4d:", highOrder);
@@ -2149,7 +2149,6 @@ void processOpcodeData() {
     // ---------------------------------------------------------------------
     case B11111110:
       // instructionCycle == 1
-      dataByte = memoryData[programCounter];
       // Compare #(dataByte) to A, then set Carry and Zero bit flags.
       // If #=A, set Zero bit to 1. If #>A, Carry bit = 1. If #<A, Carry bit = 0.
       flagZeroBit = dataByte == regA;
@@ -2180,7 +2179,6 @@ void processOpcodeData() {
       //                    pa = 0ffh        Check toggle sense switches for non-zero input.
       //                         0ffh = B11111111 = 255
       //
-      dataByte = memoryData[programCounter];
 #ifdef LOG_MESSAGES
       Serial.print(F("< IN, input port: "));
       Serial.print(dataByte);
@@ -2209,7 +2207,7 @@ void processOpcodeData() {
     //-----------------------------------------
     case B11000011:
       if (instructionCycle == 1) {
-        lowOrder = memoryData[programCounter];
+        lowOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("> jmp, lb:"));
         sprintf(charBuffer, "%4d:", lowOrder);
@@ -2219,7 +2217,7 @@ void processOpcodeData() {
         return;
       }
       // instructionCycle == 2
-      highOrder = memoryData[programCounter];
+      highOrder = dataByte;
       programCounter = word(highOrder, lowOrder);
 #ifdef LOG_MESSAGES
       Serial.print(F("> jmp, hb:"));
@@ -2234,7 +2232,7 @@ void processOpcodeData() {
     //-----------------------------------------
     case B11000010:
       if (instructionCycle == 1) {
-        lowOrder = memoryData[programCounter];
+        lowOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< jnz, lb: "));
         sprintf(charBuffer, "%4d:", lowOrder);
@@ -2244,7 +2242,7 @@ void processOpcodeData() {
         return;
       }
       // instructionCycle == 2
-      highOrder = memoryData[programCounter];
+      highOrder = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< jnz, hb: "));
       sprintf(charBuffer, "%4d:", highOrder);
@@ -2266,7 +2264,7 @@ void processOpcodeData() {
     //-----------------------------------------
     case B11001010:
       if (instructionCycle == 1) {
-        lowOrder = memoryData[programCounter];
+        lowOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< jz, lb: "));
         sprintf(charBuffer, "%4d:", lowOrder);
@@ -2276,7 +2274,7 @@ void processOpcodeData() {
         return;
       }
       // instructionCycle == 2
-      highOrder = memoryData[programCounter];
+      highOrder = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< jz, hb: "));
       sprintf(charBuffer, "%4d:", highOrder);
@@ -2298,7 +2296,7 @@ void processOpcodeData() {
     //-----------------------------------------
     case B11010010:
       if (instructionCycle == 1) {
-        lowOrder = memoryData[programCounter];
+        lowOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< jnc, lb: "));
         sprintf(charBuffer, "%4d:", lowOrder);
@@ -2308,7 +2306,7 @@ void processOpcodeData() {
         return;
       }
       // instructionCycle == 2
-      highOrder = memoryData[programCounter];
+      highOrder = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< jnc, hb: "));
       sprintf(charBuffer, "%4d:", highOrder);
@@ -2330,7 +2328,7 @@ void processOpcodeData() {
     //-----------------------------------------
     case B11011010:
       if (instructionCycle == 1) {
-        lowOrder = memoryData[programCounter];
+        lowOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< jc, lb: "));
         sprintf(charBuffer, "%4d:", lowOrder);
@@ -2340,7 +2338,7 @@ void processOpcodeData() {
         return;
       }
       // instructionCycle == 2
-      highOrder = memoryData[programCounter];
+      highOrder = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< jc, hb: "));
       sprintf(charBuffer, "%4d:", highOrder);
@@ -2397,7 +2395,7 @@ void processOpcodeData() {
     case B00000001:
       // lxi b,16-bit-address
       if (instructionCycle == 1) {
-        regC = memoryData[programCounter];
+        regC = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< lxi, lb data: "));
         sprintf(charBuffer, "%4d:", regC);
@@ -2407,7 +2405,7 @@ void processOpcodeData() {
         return;
       }
       // instructionCycle == 2
-      regB = memoryData[programCounter];
+      regB = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< lxi, hb data: "));
       sprintf(charBuffer, "%4d:", regB);
@@ -2423,7 +2421,7 @@ void processOpcodeData() {
     case B00010001:
       // lxi d,16-bit-address
       if (instructionCycle == 1) {
-        regE = memoryData[programCounter];
+        regE = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< lxi, lb data: "));
         sprintf(charBuffer, "%4d:", regE);
@@ -2433,7 +2431,7 @@ void processOpcodeData() {
         return;
       }
       // instructionCycle == 2
-      regD = memoryData[programCounter];
+      regD = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< lxi, hb data: "));
       sprintf(charBuffer, "%4d:", regD);
@@ -2449,7 +2447,7 @@ void processOpcodeData() {
     case B00100001:
       // lxi h,16-bit-address
       if (instructionCycle == 1) {
-        regL = memoryData[programCounter];
+        regL = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< lxi, lb data: "));
         sprintf(charBuffer, "%4d:", regL);
@@ -2459,7 +2457,7 @@ void processOpcodeData() {
         return;
       }
       // instructionCycle == 2
-      regH = memoryData[programCounter];
+      regH = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< lxi, hb data: "));
       sprintf(charBuffer, "%4d:", regH);
@@ -2481,7 +2479,7 @@ void processOpcodeData() {
     // mvi h,#  00 100 110  0046
     // mvi l,#  00 101 110  0056
     case B00111110:
-      regA = memoryData[programCounter];
+      regA = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< mvi, move db > register A: "));
       printData(regA);
@@ -2489,7 +2487,7 @@ void processOpcodeData() {
       programCounter++;
       break;
     case B00000110:
-      regB = memoryData[programCounter];
+      regB = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< mvi, move db > register B: "));
       printData(regB);
@@ -2497,7 +2495,7 @@ void processOpcodeData() {
       programCounter++;
       break;
     case B00001110:
-      regC = memoryData[programCounter];
+      regC = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< mvi, move db > register C: "));
       printData(regC);
@@ -2505,7 +2503,7 @@ void processOpcodeData() {
       programCounter++;
       break;
     case B00010110:
-      regD = memoryData[programCounter];
+      regD = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< mvi, move db > register D: "));
       printData(regD);
@@ -2513,7 +2511,7 @@ void processOpcodeData() {
       programCounter++;
       break;
     case B00011110:
-      regE = memoryData[programCounter];
+      regE = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< mvi, move db > register E: "));
       printData(regE);
@@ -2521,7 +2519,7 @@ void processOpcodeData() {
       programCounter++;
       break;
     case B00100110:
-      regH = memoryData[programCounter];
+      regH = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< mvi, move db > register H: "));
       printData(regH);
@@ -2529,7 +2527,7 @@ void processOpcodeData() {
       programCounter++;
       break;
     case B00101110:
-      regL = memoryData[programCounter];
+      regL = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< mvi, move db > register L: "));
       printData(regL);
@@ -2539,7 +2537,7 @@ void processOpcodeData() {
     // ---------------------------------------------------------------------
     case out:
       // instructionCycle == 1
-      dataByte = memoryData[programCounter];
+      dataByte = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< OUT, input port: "));
       Serial.print(dataByte);
@@ -2634,7 +2632,7 @@ void processOpcodeData() {
     // ------------------------------------------------------------------------------------------
     case B00110010:
       if (instructionCycle == 1) {
-        lowOrder = memoryData[programCounter];
+        lowOrder = dataByte;
 #ifdef LOG_MESSAGE
         Serial.print(F("< sta, lb: "));
         sprintf(charBuffer, "%4d:", lowOrder);
@@ -2644,7 +2642,7 @@ void processOpcodeData() {
         return;
       }
       if (instructionCycle == 2) {
-        highOrder = memoryData[programCounter];
+        highOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< sta, hb: "));
         sprintf(charBuffer, "%4d:", highOrder);
@@ -2668,7 +2666,7 @@ void processOpcodeData() {
     // -----------------------------------------
     case B00111010:
       if (instructionCycle == 1) {
-        lowOrder = memoryData[programCounter];
+        lowOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< lda, lb: "));
         sprintf(charBuffer, "%4d:", lowOrder);
@@ -2678,7 +2676,7 @@ void processOpcodeData() {
         return;
       }
       if (instructionCycle == 2) {
-        highOrder = memoryData[programCounter];
+        highOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< lda, hb: "));
         sprintf(charBuffer, "%4d:", highOrder);
@@ -2698,7 +2696,7 @@ void processOpcodeData() {
     case B00100010:
       // shld a
       if (instructionCycle == 1) {
-        lowOrder = memoryData[programCounter];
+        lowOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< shld, lb: "));
         sprintf(charBuffer, "%4d:", lowOrder);
@@ -2708,7 +2706,7 @@ void processOpcodeData() {
         return;
       }
       if (instructionCycle == 2) {
-        highOrder = memoryData[programCounter];
+        highOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< shld, hb: "));
         sprintf(charBuffer, "%4d:", highOrder);
