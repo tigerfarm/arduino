@@ -14,7 +14,8 @@
   Add clock logic,
   + Before adding which-buttom-pushed, I need to test more.
   ++ Is the correct in all cases?
-  +++ if STOP(HLT) or STEP, use "programCounter-1" because programCounter hold the next program step.
+  +++ if HLT opcode run in a program or STEP,
+  +++   use "programCounter-1" because programCounter holds the next program step.
 
   ----------
   Next opcodes to add/test,

@@ -11,8 +11,9 @@ package asm;
     DB value, that is a label to a string.:
         TERMB   equ     0ffh        ; Name for a value. Similar to: TERMB = 0ffh;
         Hello   db      "Hello"     ; Translate into bytes with a terminate byte (TERMB).
-*/
 
+    Also parse hex numbers from: 0ffh, to 0xff, or 10h to 0x10
+ */
 import static asm.opcodes8080.byteToString;
 import java.io.*;
 import java.util.ArrayList;
@@ -35,14 +36,13 @@ public class fileProcess {
     // Use for storing program bytes and calculating label addresses.
     private int programCounter = 0;
     private int programTop = 0;
-    private List<String> programBytes = new ArrayList<String>();
+    private final List<String> programBytes = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     //
     private String label;
-    private int labelTop = 0;
-    private List<String> labelName = new ArrayList<String>();
-    private List<Integer> labelAddress = new ArrayList<Integer>();
+    private final List<String> labelName = new ArrayList<>();
+    private final List<Integer> labelAddress = new ArrayList<>();
 
     public void listLabels() {
         System.out.println("+ List labels:");
@@ -442,7 +442,7 @@ public class fileProcess {
         }
         if (theLine.startsWith(";")) {
             // Comment lines are not parsed farther.
-            System.out.println("++ " + orgLine.trim());
+            // System.out.println("++ " + orgLine.trim());
             return;
         }
         ei = theLine.indexOf(";");
@@ -450,22 +450,9 @@ public class fileProcess {
             // Remove trailing comment.
             //    mvi a,1     ; Move 1 to A.
             //  > mvi a,1
-            System.out.println("++ " + theLine.substring(ei).trim());
+            // System.out.println("++ " + theLine.substring(ei).trim());
             theLine = theLine.substring(0, ei).trim();
         }
-        // ---------------------------------------------------------------------
-        // Add parsing for the following directives.
-        // Also parse hex numbers from: 0ffh, to 0xff, or 10h to 0x10
-        //  org     0
-        //  org     80h
-        //  TERMB   equ     0ffh
-        //  Hello   db      "Hello"
-        if (theLine.startsWith("org")) {
-            System.out.println("++ For now, org line is NOP." + orgLine.trim());
-            parseOpcode("nop");
-            return;
-        }
-        
         // ---------------------------------------------------------------------
         // Label line: "Start:"
         if (theLine.endsWith(":")) {
@@ -474,44 +461,77 @@ public class fileProcess {
             return;
         }
         // ---------------------------------------------------------------------
-        // Opcode lines.
-        // Opcodes have 0, 1, or 2 parameters. For example:
-        //      0) nop
-        //      1) jmp Next
+        // Opcode lines. Opcodes can have 0, 1, or 2 parameters. For example:
+        //      1) nop
         //      2) mvi a,1
+        //      3) jmp Next
+        // Or assembler directives:
+        //      4) org     0
+        //      5) TERMB   equ     0ffh
+        //      6) Hello   db      "Hello"
 
+        // ---------------------------------------------------------------------
         c1 = theLine.indexOf(" ");
-        // ------------------------------------------
         if (c1 < 1) {
-            // Opcode, no parameters, example: "nop".
+            //  1) Opcode, no parameters, example: "nop".
             opcode = theLine.toLowerCase();
+            System.out.println("++ parseLine, Opcode|" + opcode + "|");
             parseOpcode(opcode);
             return;
         }
-        //
-        opcode = theLine.substring(0, c1).toLowerCase();
+        // ---------------------------------------------------------------------
+        // Get the other line components.
+        String part1 = theLine.substring(0, c1).toLowerCase();
         theRest = theLine.substring(c1 + 1).trim();
+        // System.out.println("++ parseLine, part1|" + part1 + "| theRest|" + theRest + "|");
         //
+        // Check for opcode with 2 parameters, example: mvi a,1
         c1 = theRest.indexOf(",");
-        // ------------------------------------------
-        if (c1 < 1) {
-            // Opcode, Single parameter, example: "jmp Next".
-            p1 = theRest;
-            parseOpcode(opcode, p1);
-            return;
-        }
-        p1 = theRest.substring(0, c1).trim();
-        //
         // ------------------------------------------
         if (theRest.length() <= c1 + 1) {
             // Error, example: "mvi e,".
-            System.out.println("++ Opcode|" + opcode + "| p1|" + p1 + "| * Error, missing p2.");
+            System.out.println("++ parseLine, Opcode|" + opcode + "| p1|" + p1 + "| * Error, missing p2.");
+            return;
+        } else if (c1 > 0) {
+            // ------------------------------------------
+            //  2) Opcode, 2 parameters, example: "mvi a,3".
+            p1 = theRest.substring(0, c1).trim();
+            p2 = theRest.substring(c1 + 1).trim();
+            System.out.println("++ parseLine, Opcode|" + part1 + "| p1|" + p1 + "| p2|" + p2 + "|");
+            parseOpcode(part1, p1, p2);
+        }
+        // ---------------------------------------------------------------------
+        // Check for single parameter lines:
+        //  Opcode lines. Opcodes can have 0, 1, or 2 parameters. For example:
+        //      3) jmp Next
+        //  Or assembler directives:
+        //      4) org     0
+        c1 = theRest.indexOf(" ");
+        if (c1 < 1) {
+            if (theLine.startsWith("org")) {
+                // Assembler directives:
+                //  4) org     0
+                System.out.println("++ parseLine, for now, parse org line, as a NOP line: " + orgLine.trim());
+                parseOpcode("nop");
+                return;
+            }
+            // Opcode, Single parameter, example: "jmp Next".
+            p1 = theRest;
+            parseOpcode(part1, p1);
             return;
         }
+        // ---------------------------------------------------------------------
+        // Parse assembler directives:
+        //      5) TERMB   equ     0ffh
+        //      6) Hello   db      "Hello"
+        //
+        String part2 = theRest.substring(0, c1).toLowerCase();
+        String part3 = theRest.substring(c1 + 1).trim();
+        System.out.println("++ parseLine, Directive|" + part1 + "| part2|" + part2 + "| part3|" + part3 + "|");
+        // ++ parseLine, Directive|termb| part2|equ| part3|0ffh|
+        // ++ parseLine, Directive|hello| part2|db| part3|'Hello'|
+        //
         // ------------------------------------------
-        // Opcode, 2 parameters, example: "mvi a,3".
-        p2 = theRest.substring(c1 + 1).trim();
-        parseOpcode(opcode, p1, p2);
     }
 
     // -------------------------------------------------------------------------
@@ -584,14 +604,14 @@ public class fileProcess {
         thisProcess.parseFile("p1.asm");
         //
         // Required, sets actual address byte values for the labels:
-        thisProcess.setProgramByteLabels();
+        // thisProcess.setProgramByteLabels();
         //
         // Optional, used for debugging:
         // thisProcess.listLabels();
         // thisProcess.listProgramBytes();
         //
         // Required, prints the output for use in Processor.ino:
-        thisProcess.printProgramBytesArray();
+        // thisProcess.printProgramBytesArray();
 
         System.out.println("++ Exit.");
     }

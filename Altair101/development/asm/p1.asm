@@ -1,6 +1,7 @@
                                     ; --------------------------------------
                                     ; Test OUT to the serial monitor.
                                     ; --------------------------------------
+                org 0
                 jmp Start           ; Jump to Start to bypass declarations halt.
                                     ;
                                     ; --------------------------------------
@@ -16,7 +17,7 @@
                 jmp Halt
                                     ; ------------------------------------------
                                     ; Routine that uses Hello to OUT the "Hello" string.
-                (Needs development, the following is not complete)
+                ; (Needs development, the following is not complete)
         PrintLoop:
                 lxi Hello           ; Move label address to registers H:L.
                 mov a,m             ; Move the content ('H') at the address H:L to register A.
