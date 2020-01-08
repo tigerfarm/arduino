@@ -2,9 +2,9 @@
 /*
   Altair 101 Processor program
 
-  This is an Altair 8800 emulator program that is being developed on an Arduino Nano microprocessor.
+  This is an Altair 8800 emulator program that is being developed on an Arduino Nano or Mega microprocessor.
   It emulates the basic Altair 8800 hardware--from 1975--which was built around the Intel 8080 CPU chip.
-  This program includes a number of the 8080 microprocessor machine instructions (opcodes).
+  This program includes many of the 8080 microprocessor machine instructions (opcodes).
   It has more than enough opcodes to run the classic programs, Kill the Bit and Pong.
 
   ---------------------------------------------
@@ -12,12 +12,13 @@
 
   ----------
   Add clock logic,
-  + Add which-buttom-pushed,
-  ++ Because, if STOP(HLT) or STEP, use "programCounter-1" because programCounter hold the next program step.
+  + Before adding which-buttom-pushed, I need to test more.
+  ++ Is the correct in all cases?
+  +++ if STOP(HLT) or STEP, use "programCounter-1" because programCounter hold the next program step.
 
   ----------
   Next opcodes to add/test,
-  + Parse assembler directives: org, equ, and db.
+  + First, add parsing for assembler directives: org, equ, and db.
   ++ Develop test program: p1.asm.
   + Opcodes implemented in the assembler, but not tested with a program:
   lda a    00 110 010  3  Load register A with data from the address, a(hb:lb).
@@ -148,6 +149,15 @@ void pcf20interrupt() {
 }
 
 // -----------------------------------------------------------------------------
+// Front Panel AUX Switches
+
+//                              Mega pins
+const int CLOCK_SWITCH_PIN =    A11;  // Tested pins, works: 4, A11. Doesn't work: 24, 33.
+const int PLAYER_SWITCH_PIN =   A12;
+const int UPLOAD_SWITCH_PIN =   A13;
+const int DOWNLOAD_SWITCH_PIN = A14;
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Output LED light shift register(SN74HC595N) pins
 
@@ -186,7 +196,7 @@ File myFile;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-const byte theProgramTest[] = {
+const byte theProgram[] = {
   //                //            ; --------------------------------------
   //                //            ; Test opcode CALL and RET.
   B11000011, 38, 0,    //   0: jmp Test
@@ -322,7 +332,7 @@ const byte theProgramTest[] = {
 // -----------------------------------------------------------------------------
 // Kill the Bit program.
 
-const byte theProgram[] = {
+const byte theProgramKtb[] = {
   // ------------------------------------------------------------------
   // Kill the Bit program.
   // Before starting, make sure all the sense switches are in the down position.
@@ -452,7 +462,7 @@ void readyLcd() {
 
 byte statusByte = B00000000;        // By default, all are OFF.
 
-// Use OR to turn ON. Example: 
+// Use OR to turn ON. Example:
 //  statusByte = statusByte | MEMR_ON;
 const byte MEMR_ON =    B10000000;  // MEMR   The memory bus will be used for memory read data.
 const byte INP_ON =     B01000000;  // INP    The address bus containing the address of an input device. The input data should be placed on the data bus when the data bus is in the input mode
@@ -463,9 +473,9 @@ const byte STACK_ON =   B00000100;  // STACK  Stack process
 const byte WO_ON =      B00000010;  // WO     Write out (inverse logic)
 const byte WAIT_ON =    B00000001;  // WAIT   For now, use this one for WAIT light status
 
-// Use AND to turn OFF. Example: 
+// Use AND to turn OFF. Example:
 //  statusByte = statusByte & M1_OFF;
-const byte MEMR_OFF =   B01111111;  
+const byte MEMR_OFF =   B01111111;
 const byte INP_OFF =    B10111111;
 const byte M1_OFF =     B11011111;
 const byte OUT_OFF =    B11101111;
@@ -532,17 +542,12 @@ const byte WAIT_OFF =   B11111110;
 // -----------------------------------------------------------------------------
 // Definitions: Instruction Set, Opcodes, Registers
 
-// ------------------------------------
-// Processing opcodes and opcode cycles
-
 // -----------------------------------------------------------------------------
 //        Code   Octal       Inst Param  Encoding Flags  Description
 const byte hlt    = 0166; // hlt         01110110        Halt processor
 const byte nop    = 0000; // nop         00000000        No operation
 const byte out    = 0343; // out pa      11010011        Write a to output port
 const byte IN     = 0333;
-// IN p      11011011 pa       -       Read input from port a, into A
-// 0333, 0377,  // IN 0ffh    ; Check toggle sense switches for non-zero input. Used in the program, kill the bit.
 
 // -----------------------------------------------------------
 // Source registers, Destination registers, and register pairs.
@@ -557,6 +562,28 @@ byte regH = 0;   // 100=H  h  10=HL   (H:L as 16 bit register)
 byte regL = 0;   // 101=L  l
 //                            11=SP   (Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP)
 byte regM = 0;   // 110=M  m  Memory reference for address in H:L
+
+// -----------------------------------
+// Process flags and values.
+
+boolean flagCarryBit = false; // Set by dad. Used jnc.
+boolean flagZeroBit = true;   // Set by cpi. Used by jz.
+
+byte bit7;                    // For capturing a bit when doing bitwise calculations.
+char asciiChar;  // For printing ascii characters, example 72 is the letter "H".
+
+// For calculating 16 bit values.
+// uint16_t bValue;           // Test using uint16_t instead of "unsigned int".
+unsigned int bValue = 0;
+unsigned int cValue = 0;
+unsigned int dValue = 0;
+unsigned int eValue = 0;
+unsigned int hValue = 0;
+unsigned int lValue = 0;
+unsigned int bcValue = 0;
+unsigned int deValue = 0;
+unsigned int hlValue = 0;
+unsigned int hlValueNew = 0;
 
 // -----------------------------------------------------------------------------
 // Output: log messages and Front Panel LED data lights.
@@ -587,6 +614,26 @@ void printData(byte theByte) {
   printOctal(theByte);
   Serial.print(F(" = "));
   printByte(theByte);
+}
+
+void displayCmp(String theRegister, byte theRegValue) {
+  Serial.print(F("> cmp, compare register "));
+  Serial.print(theRegister);
+  Serial.print(F(" to A. "));
+  Serial.print(theRegister);
+  Serial.print(F(":"));
+  Serial.print(theRegValue);
+  if (flagZeroBit) {
+    Serial.print(F(" == "));
+  } else {
+    if (flagCarryBit) {
+      Serial.print(F(" > "));
+    } else {
+      Serial.print(F(" < "));
+    }
+  }
+  Serial.print(F(" A:"));
+  Serial.print(regA);
 }
 
 // ------------------------------------------------------------------------
@@ -630,27 +677,21 @@ void displayStatusAddressData() {
 
 void processData() {
   if (opcode == 0) {
-#ifdef LOG_MESSAGES
-    Serial.print("> ");
-#endif
-    statusByte = statusByte | M1_ON; // Machine cycle 1, get an opcode.
-    displayStatusAddressData();
-#ifdef LOG_MESSAGES
-    Serial.print(" ");
-#endif
-    processOpcode();
+    opcode = 0;
+    processOpcode();  // opcode is set, if more than 1 instruction cycle.
     programCounter++;
     instructionCycle = 0;
   } else {
 #ifdef LOG_MESSAGES
     Serial.print("+ ");
 #endif
-    statusByte = statusByte & M1_OFF; // Machine cycle 1+x, getting opcode data.
+    // Machine cycle 1+x, getting opcode data: an address or an immediate data byte.
+    instructionCycle++;
+    statusByte = statusByte & M1_OFF;
     displayStatusAddressData();
 #ifdef LOG_MESSAGES
     Serial.print(" ");
 #endif
-    instructionCycle++;
     processOpcodeData();      // Example: sta 42: 0. fetch the opcode, 1. fetch lb, 2. fetch hb, 3. store the data.
   }
 #ifdef LOG_MESSAGES
@@ -658,56 +699,17 @@ void processData() {
 #endif
 }
 
-// -----------------------------------
-// Process flags and values.
-
-boolean halted = false;       // Set true for an hlt opcode.
-
-boolean flagCarryBit = false; // Set by dad. Used jnc.
-boolean flagZeroBit = true;   // Set by cpi. Used by jz.
-
-byte bit7;                    // For capturing a bit when doing bitwise calculations.
-char asciiChar;  // For printing ascii characters, example 72 is the letter "H".
-
-// For calculating 16 bit values.
-// uint16_t bValue;           // Test using uint16_t instead of "unsigned int".
-unsigned int bValue = 0;
-unsigned int cValue = 0;
-unsigned int dValue = 0;
-unsigned int eValue = 0;
-unsigned int hValue = 0;
-unsigned int lValue = 0;
-unsigned int bcValue = 0;
-unsigned int deValue = 0;
-unsigned int hlValue = 0;
-unsigned int hlValueNew = 0;
-
-void displayCmp(String theRegister, byte theRegValue) {
-  Serial.print(F("> cmp, compare register "));
-  Serial.print(theRegister);
-  Serial.print(F(" to A. "));
-  Serial.print(theRegister);
-  Serial.print(F(":"));
-  Serial.print(theRegValue);
-  if (flagZeroBit) {
-    Serial.print(F(" == "));
-  } else {
-    if (flagCarryBit) {
-      Serial.print(F(" > "));
-    } else {
-      Serial.print(F(" < "));
-    }
-  }
-  Serial.print(F(" A:"));
-  Serial.print(regA);
-}
-
 // ------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------
 void processOpcode() {
 
   unsigned int anAddress = 0;
-  byte dataByte = memoryData[programCounter];
+
+#ifdef LOG_MESSAGES
+  Serial.print("> ");
+#endif
+  statusByte = statusByte | M1_ON;  // Machine cycle 1, get an opcode.
+  displayStatusAddressData();       // Sets the dataByte.
   switch (dataByte) {
 
     // ---------------------------------------------------------------------
@@ -1124,24 +1126,12 @@ void processOpcode() {
       break;
     // ---------------------------------------------------------------------
     case hlt:
-      programState = PROGRAM_WAIT;
-      halted = true;
 #ifdef LOG_MESSAGES
-      Serial.println(F("> hlt, halt the processor."));
+      Serial.print(F("+ HLT opcode, program halted."));
 #else
-      Serial.println("");
+      Serial.println(F("+ HLT opcode, program halted."));
 #endif
-      statusByte = statusByte | WAIT_ON;
-      statusByte = statusByte & MEMR_OFF;
-      statusByte = statusByte & M1_OFF;
-      statusByte = statusByte | HLTA_ON;
-      // lightsStatusAddressData(statusByte, programCounter, dataByte);
-      // displayStatusAddressData();
-#ifdef LOG_MESSAGES
-      Serial.print(F("+ Process halted."));
-#else
-      Serial.println(F("+ Process halted."));
-#endif
+      controlStopLogic();
       break;
     case B11011011:
       opcode = B11011011;
@@ -1403,12 +1393,7 @@ void processOpcode() {
       Serial.print(F("> lxi, Stacy, to do: move the lb hb data, to the stack pointer address."));
 #endif
       Serial.print(F(" - Error, unhandled instruction."));
-      programState = PROGRAM_WAIT;
-      statusByte = statusByte | WAIT_ON;
-      statusByte = statusByte | M1_ON;
-      statusByte = statusByte | HLTA_ON;
-      // lightsStatusAddressData(statusByte, programCounter, dataByte);
-      displayStatusAddressData();
+      controlStopLogic();
       break;
     // ------------------------------------------------------------------------------------------
     /*
@@ -2049,12 +2034,7 @@ void processOpcode() {
 #else
       Serial.println(F(""));
 #endif
-      programState = PROGRAM_WAIT;
-      statusByte = statusByte | WAIT_ON;
-      statusByte = statusByte | M1_ON;
-      statusByte = statusByte | HLTA_ON;
-      // lightsStatusAddressData(statusByte, programCounter, dataByte);
-      displayStatusAddressData();
+      controlStopLogic();
   }
 }
 
@@ -2754,12 +2734,7 @@ void processOpcodeData() {
     // ------------------------------------------------------------------------------------------
     default:
       Serial.print(F(" -- Error, unknow instruction."));
-      programState = PROGRAM_WAIT;
-      statusByte = statusByte | WAIT_ON;
-      statusByte = statusByte | M1_ON;
-      statusByte = statusByte | HLTA_ON;
-      // lightsStatusAddressData(statusByte, programCounter, dataByte);
-      displayStatusAddressData();
+      controlStopLogic();
   }
   // The opcode cycles are complete.
   opcode = 0;
@@ -2910,7 +2885,7 @@ void syncCountWithClock() {
 }
 
 // -----------------------------------------------------------------------------
-  boolean HLDA_ON = false;
+boolean HLDA_ON = false;
 void processClockNow() {
   //
   now = rtc.now();
@@ -3113,19 +3088,10 @@ void controlResetLogic() {
 }
 
 void controlStopLogic() {
-#ifdef SWITCH_MESSAGES
-  if (programState == CLOCK_RUN) {
-    Serial.println(F("+ Control, Stop > stop running the clock."));
-  } else {
-    Serial.println(F("+ Control, Stop > stop running the program."));
-    Serial.println(F("> hlt, halt the processor."));
-  }
-#endif
   programState = PROGRAM_WAIT;
   statusByte = 0;
   statusByte = statusByte | WAIT_ON;
   statusByte = statusByte | HLTA_ON;
-  // Only here, causes a compile error: displayStatusAddressData();
   dataByte = memoryData[programCounter];
   lightsStatusAddressData(statusByte, programCounter, dataByte);
 }
@@ -3278,6 +3244,10 @@ void checkRunningButtons() {
         } else if (switchStop) {
           switchStop = false;
           // Switch logic...
+#ifdef SWITCH_MESSAGES
+          Serial.println(F("+ Control, Stop > stop running the program."));
+          Serial.println(F("> Program halted."));
+#endif
           controlStopLogic();
         }
         break;
@@ -3305,11 +3275,6 @@ void checkRunningButtons() {
 // -----------------------------------------------------------------------------
 // Front Panel AUX Switches
 
-const int CLOCK_SWITCH_PIN = A11;  // Tested pins, works: 4, A11. Doesn't work: 24, 33.
-const int PLAYER_SWITCH_PIN = A12;
-const int UPLOAD_SWITCH_PIN = A13;
-const int DOWNLOAD_SWITCH_PIN = A14;
-
 // Only do the action once, don't repeat if the switch is held down.
 // Don't repeat action if the switch is not pressed.
 boolean clockSwitchState = true;
@@ -3324,6 +3289,9 @@ void checkClockSwitch() {
       clockSwitchState = false;
       // Switch logic ...
       if (programState == CLOCK_RUN) {
+#ifdef SWITCH_MESSAGES
+        Serial.println(F("+ Stop running the clock, return to the 8080 emulator."));
+#endif
         controlStopLogic();   // Changes programState to wait.
         digitalWrite(HLDA_PIN, LOW);
       } else {
@@ -3649,14 +3617,16 @@ void setup() {
   // Front panel toggle switches.
 
   // PCF8574 device initialization
+  // Control switches
   pcf20.begin();
+  // Address/Sense switches
   pcf21.begin();
   // PCF8574 device Interrupt initialization
   pinMode(INTERRUPT_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf20interrupt, CHANGE);
   Serial.println("+ PCF8574 modules initialized.");
 
-  // Device switches.
+  // AUX device switches.
   pinMode(HLDA_PIN, OUTPUT);    // Indicator: clock process (LED on) or emulator (LED off).
   digitalWrite(HLDA_PIN, LOW);  // Default to emulator.
   pinMode(CLOCK_SWITCH_PIN, INPUT_PULLUP);

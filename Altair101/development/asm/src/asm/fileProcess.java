@@ -440,24 +440,32 @@ public class fileProcess {
             System.out.println("++");
             return;
         }
-        if (theLine.startsWith("org")) {
-            System.out.println("++ For now, org line is NOP." + orgLine.trim());
-            parseOpcode("nop");
-            return;
-        }
-        //
         if (theLine.startsWith(";")) {
+            // Comment lines are not parsed farther.
             System.out.println("++ " + orgLine.trim());
             return;
         }
         ei = theLine.indexOf(";");
         if (ei > 1) {
-            System.out.println("++ " + theLine.substring(ei).trim());
             // Remove trailing comment.
             //    mvi a,1     ; Move 1 to A.
             //  > mvi a,1
+            System.out.println("++ " + theLine.substring(ei).trim());
             theLine = theLine.substring(0, ei).trim();
         }
+        // ---------------------------------------------------------------------
+        // Add parsing for the following directives.
+        // Also parse hex numbers from: 0ffh, to 0xff, or 10h to 0x10
+        //  org     0
+        //  org     80h
+        //  TERMB   equ     0ffh
+        //  Hello   db      "Hello"
+        if (theLine.startsWith("org")) {
+            System.out.println("++ For now, org line is NOP." + orgLine.trim());
+            parseOpcode("nop");
+            return;
+        }
+        
         // ---------------------------------------------------------------------
         // Label line: "Start:"
         if (theLine.endsWith(":")) {
