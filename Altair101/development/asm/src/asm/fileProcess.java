@@ -202,14 +202,25 @@ public class fileProcess {
             //
             String theValue = it.next();
             programTop++;
-            // System.out.println("++ theValue |" + theValue + "|");
             String[] opcodeValues = theValue.split(SEPARATOR);
             opcode = opcodeValues[1];
             if (opcodeValues[0].equals("opcode")) {
                 opcodeStatement = "B" + opcodeValues[2] + ",";    // B11000011,
+            } else {
+                opcode = opcodeValues[0];
             }
+            System.out.println("++ printProgramBytesArray, opcode|" + opcode + "| theValue |" + theValue + "|");
             switch (opcode) {
-                // -----------------------------
+                // -------------------------------------------------------------
+                // Assembler directives.
+                case "dbname":
+                case "dsname":
+                    // ++ printProgramBytesArray, opcode|dbname| theValue |dbname:hello:'|
+                    opcodeStatement = opcodeValues[2] + ",";
+                    opcodeComment = opcode + ": " + opcodeValues[1];
+                    break;
+                // -------------------------------------------------------------
+                // Opcodes
                 case "hlt":
                 case "nop":
                 case "ret":
@@ -376,9 +387,9 @@ public class fileProcess {
     private void parseDb(String theName, String theValue) {
         System.out.println("++ DB variable name: " + theName + ", string of bytes: " + theValue);
         variableName.add(theName);
-        variableValue.add(programTop+1);        // Address to the tring of bytes.
+        variableValue.add(programTop + 1);        // Address to the tring of bytes.
         for (int i = 0; i < theValue.length(); i++) {
-            programBytes.add("dbname:" + theName + SEPARATOR + theValue.substring(i, i+1));
+            programBytes.add("dbname:" + theName + SEPARATOR + theValue.substring(i, i + 1));
             programTop++;
         }
     }
@@ -386,7 +397,7 @@ public class fileProcess {
     private void parseDs(String theName, String theValue) {
         System.out.println("++ DS variable name: " + theName + ", number of bytes: " + theValue);
         variableName.add(theName);
-        variableValue.add(programTop+1);        // Address to the bytes.
+        variableValue.add(programTop + 1);        // Address to the bytes.
         for (int i = 0; i < Integer.parseInt(theValue); i++) {
             programBytes.add("dsname:" + theName + SEPARATOR + theValue);
             programTop++;
@@ -643,7 +654,7 @@ public class fileProcess {
         }
         if (part2.equals("db")) {
             System.out.println("++ parseLine, db directive: part1|" + part1 + "| part3|" + part3 + "|");
-                parseDb(part1, part3);
+            parseDb(part1, part3);
             return;
         }
         if (part2.equals("ds")) {

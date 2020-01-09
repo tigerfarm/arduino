@@ -11,12 +11,14 @@
                                     ; --------------------------------------
     Halt:       hlt                 ; The program will halt at each iteration, after the first.
                                     ; --------------------------------------
+                                    ; Test lines from Pong.asm.
+                lxi     h,scoreL    ;increment left misses
+                                    ; --------------------------------------
     Start:
                 call PrintLoop
                 jmp Halt
                                     ; ------------------------------------------
                                     ; Routine that uses Hello to OUT the "Hello" string.
-                ; (Needs development, the following is not complete)
         PrintLoop:
                 lxi h,Start         ; Move label address to registers H:L.
                 mov a,b
