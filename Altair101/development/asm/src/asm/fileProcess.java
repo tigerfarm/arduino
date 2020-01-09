@@ -56,7 +56,7 @@ public class fileProcess {
         System.out.println("+ End of list.");
     }
 
-    // -------------------------------------------------------------------------
+    // ------------------------
     private int getLabelAddress(String findName) {
         // System.out.println("+ findName: " + findName);
         int returnValue = 0;
@@ -110,6 +110,60 @@ public class fileProcess {
                     programBytes.set(i, "hb:" + hb);
                     System.out.println("++ Label, hb:" + hb);
                 }
+            }
+            i++;
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    //
+    private String name;
+    private final List<String> variableName = new ArrayList<>();
+    private final List<Integer> variableValue = new ArrayList<>();
+
+    public void listNames() {
+        System.out.println("+ List names:");
+        Iterator<String> lName = variableName.iterator();
+        Iterator<Integer> lValue = variableValue.iterator();
+        while (lName.hasNext()) {
+            String theName = lName.next();
+            int theValue = lValue.next();
+            System.out.println("++ " + theName + ": " + theValue);
+        }
+        System.out.println("+ End of list.");
+    }
+
+    // ------------------------
+    private int getNameValue(String findName) {
+        System.out.println("+ getNameValue, findName: " + findName);
+        int returnValue = 0;
+        Iterator<String> lName = variableName.iterator();
+        Iterator<Integer> lValue = variableValue.iterator();
+        while (lName.hasNext()) {
+            String theName = lName.next();
+            int theValue = lValue.next();
+            if (theName.equals(findName)) {
+                returnValue = theValue;
+                System.out.println("+ Found theValue: " + returnValue);
+                break;
+            }
+        }
+        return returnValue;
+    }
+
+    private void setProgramByteNames() {
+        System.out.println("+ Set Program Names:");
+        int i = 0;
+        for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
+            String theValue = it.next();
+            if (theValue.startsWith("name:")) {
+                int intAddress = getLabelAddress(theValue.substring(3));
+                // ++ Name:265
+                // B11001010, 9, 1,   // 259: jz okaym1  265 in binary hb=00000001 lb=00001001
+                //
+                String labelAddress = Integer.toString(intAddress);
+                programBytes.set(i, theValue + SEPARATOR + labelAddress);
+                System.out.println("++ Label, lb: " + theValue + ":" + labelAddress);
             }
             i++;
         }
@@ -597,9 +651,14 @@ public class fileProcess {
         fileProcess thisProcess = new fileProcess();
 
         System.out.println("\n+ Parse file lines.");
+        thisProcess.printProgramByteArray(
+                thisProcess,
+                "/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/opCpi.asm"
+        );
+
+        // Or process in parts with optional, extra debug listings.
         // Required, starts the process:
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/opCpi.asm");
-        thisProcess.parseFile("p1.asm");
+        // thisProcess.parseFile("p1.asm");
         //
         // Required, sets actual address byte values for the labels:
         // thisProcess.setProgramByteLabels();
@@ -610,7 +669,6 @@ public class fileProcess {
         //
         // Required, prints the output for use in Processor.ino:
         // thisProcess.printProgramBytesArray();
-
         System.out.println("++ Exit.");
     }
 }
