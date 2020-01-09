@@ -479,26 +479,24 @@ public class fileProcess {
             parseOpcode(opcode);
             return;
         }
-        // ---------------------------------------------------------------------
+        // ------------------------------
         // Get the other line components.
         String part1 = theLine.substring(0, c1).toLowerCase();
         theRest = theLine.substring(c1 + 1).trim();
-        // System.out.println("++ parseLine, part1|" + part1 + "| theRest|" + theRest + "|");
+        System.out.println("++ parseLine, part1|" + part1 + "| theRest|" + theRest + "|");
         //
+        // ---------------------------------------------------------------------
         // Check for opcode with 2 parameters, example: mvi a,1
         c1 = theRest.indexOf(",");
         // ------------------------------------------
-        if (theRest.length() <= c1 + 1) {
-            // Error, example: "mvi e,".
-            System.out.println("++ parseLine, Opcode|" + opcode + "| p1|" + p1 + "| * Error, missing p2.");
-            return;
-        } else if (c1 > 0) {
+        if (c1 > 0) {
             // ------------------------------------------
             //  2) Opcode, 2 parameters, example: "mvi a,3".
             p1 = theRest.substring(0, c1).trim();
             p2 = theRest.substring(c1 + 1).trim();
             System.out.println("++ parseLine, Opcode|" + part1 + "| p1|" + p1 + "| p2|" + p2 + "|");
             parseOpcode(part1, p1, p2);
+            return;
         }
         // ---------------------------------------------------------------------
         // Check for single parameter lines:
@@ -511,13 +509,13 @@ public class fileProcess {
             if (theLine.startsWith("org")) {
                 // Assembler directives:
                 //  4) org     0
-                System.out.println("++ parseLine, for now, parse org line, as a NOP line: " + orgLine.trim());
+                System.out.println("++ parseLine, Directive: org. For now, parse org line, as a NOP line: " + orgLine.trim());
                 parseOpcode("nop");
                 return;
             }
             // Opcode, Single parameter, example: "jmp Next".
-            p1 = theRest;
-            parseOpcode(part1, p1);
+            System.out.println("++ parseLine, Opcode|" + part1 + "| theRest|" + theRest + "|");
+            parseOpcode(part1, theRest);
             return;
         }
         // ---------------------------------------------------------------------
@@ -600,7 +598,7 @@ public class fileProcess {
 
         System.out.println("\n+ Parse file lines.");
         // Required, starts the process:
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/pLoop.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/opCpi.asm");
         thisProcess.parseFile("p1.asm");
         //
         // Required, sets actual address byte values for the labels:

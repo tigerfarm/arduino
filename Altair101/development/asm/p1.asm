@@ -19,7 +19,8 @@
                                     ; Routine that uses Hello to OUT the "Hello" string.
                 ; (Needs development, the following is not complete)
         PrintLoop:
-                lxi Hello           ; Move label address to registers H:L.
+                lxi h,Start         ; Move label address to registers H:L.
+                mov a,b
                 mov a,m             ; Move the content ('H') at the address H:L to register A.
                 cpi TERMB           ; Compare to see if it's the string terminate byte.
                 jz Done
