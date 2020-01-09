@@ -2,17 +2,24 @@ package asm;
 
 /*
     Add parsing for the following (see program p1.asm).
+    This is based on the Pong assembler program.
 
-    EQU, works like a label:
-        SPEED   equ     0eh         ;higher value is faster
-                ...
-                lxi     b,SPEED
-
-    DB value, that is a label to a string.:
+    DB value, that is a label to a string of byte characters.
         TERMB   equ     0ffh        ; Name for a value. Similar to: TERMB = 0ffh;
-        Hello   db      "Hello"     ; Translate into bytes with a terminate byte (TERMB).
+        Hello   db      'Hello'     ; Start with a label address, followed by a number of bytes with a terminate byte (TERMB).
 
-    Also parse hex numbers from: 0ffh, to 0xff, or 10h to 0x10
+    Add logic for assembler directive, ds.
+                lxi     h,scoreL    ; Increment left misses. "scoreL" is a memory address.
+                ...
+        scoreL  ds      1           ; Score for left paddle. "1" is the number of bytes.
+
+    Add parsing for a label on a opcode line.
+        Halt:   hlt
+        ledOut: lxi     h,0         ;HL=16 bit counter
+
+    Add logic for assembler directive, org.
+                org 0
+                org 80h
  */
 import static asm.opcodes8080.byteToString;
 import java.io.*;
@@ -118,7 +125,6 @@ public class fileProcess {
 
     // -------------------------------------------------------------------------
     // Assembler directive variable names.
-    
     private final List<String> variableName = new ArrayList<>();
     private final List<Integer> variableValue = new ArrayList<>();
 
@@ -361,7 +367,7 @@ public class fileProcess {
             }
             theValue = theValue.substring(si, 3);   // Hex string to integer.
         }
-        variableValue.add(Integer.parseInt(theValue,16));
+        variableValue.add(Integer.parseInt(theValue, 16));
         System.out.println("++ Variable name: " + theName + ", value: " + theValue);
     }
 
@@ -609,7 +615,7 @@ public class fileProcess {
         // ------------------------------------------
         if (part2.equals("equ")) {
             System.out.println("++ parseLine, equ directive: part3|" + part3 + "|");
-            parseName(part1,part3);
+            parseName(part1, part3);
             return;
         }
         if (part2.equals("db")) {

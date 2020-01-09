@@ -9,8 +9,7 @@
         TERMB   equ     0ffh        ; Name for a value. Similar to: TERMB = 0ffh;
         Hello   db      'Hello'     ; Translate into bytes with a terminate byte (TERMB).
                                     ; --------------------------------------
-    Halt:
-                hlt                 ; The program will halt at each iteration, after the first.
+    Halt:       hlt                 ; The program will halt at each iteration, after the first.
                                     ; --------------------------------------
     Start:
                 call PrintLoop
@@ -32,5 +31,9 @@
                 ; ...
         Done:
                 ret
+                                    ; ------------------------------------------
+                org 80h
+                scoreL   ds 1       ;score for left paddle 
+                scoreR   ds 1       ;score for right paddle
                                     ; ------------------------------------------
                                     ; End

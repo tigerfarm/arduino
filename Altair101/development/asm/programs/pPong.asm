@@ -93,7 +93,7 @@
                 ;----------------------------------------------------------------
                 ;  Moving left
                 ;---------------------------------------------------------------- 
-04B CD1200      lLoop   call    ledOut      ;output to LEDs A15-A8 from D
+04B CD1200      lLoop:  call    ledOut      ;output to LEDs A15-A8 from D
                 ; Record the current left paddle state (A15) in the bit position
                 ;   in E corresponding to the present ball position. 
 004E DBFF               in      0ffh        ;A=front panel switches 
