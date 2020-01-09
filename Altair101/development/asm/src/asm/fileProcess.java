@@ -32,6 +32,7 @@ public class fileProcess {
     private final String SEPARATOR = ":";
     private final String SEPARATOR_TEMP = "^^";
     private String sImmediate = "";
+    private final int NAME_NOT_FOUND = 256;
     //
     // Use for storing program bytes and calculating label addresses.
     private int programCounter = 0;
@@ -116,8 +117,8 @@ public class fileProcess {
     }
 
     // -------------------------------------------------------------------------
-    //
-    private String name;
+    // Assembler directive variable names.
+    
     private final List<String> variableName = new ArrayList<>();
     private final List<Integer> variableValue = new ArrayList<>();
 
@@ -134,9 +135,10 @@ public class fileProcess {
     }
 
     // ------------------------
-    private int getNameValue(String findName) {
-        System.out.println("+ getNameValue, findName: " + findName);
-        int returnValue = 0;
+    private String getNameValue(String findName) {
+        // System.out.println("+ getNameValue, findName: " + findName);
+        String returnString = findName;
+        int returnValue = NAME_NOT_FOUND;
         Iterator<String> lName = variableName.iterator();
         Iterator<Integer> lValue = variableValue.iterator();
         while (lName.hasNext()) {
@@ -144,11 +146,14 @@ public class fileProcess {
             int theValue = lValue.next();
             if (theName.equals(findName)) {
                 returnValue = theValue;
-                System.out.println("+ Found theValue: " + returnValue);
+                // System.out.println("+ Found theValue: " + returnValue);
                 break;
             }
         }
-        return returnValue;
+        if (returnValue != NAME_NOT_FOUND) {
+            returnString = Integer.toString(returnValue);
+        }
+        return returnString;
     }
 
     private void setProgramByteNames() {
@@ -234,8 +239,13 @@ public class fileProcess {
                     theValue = it.next();   // ++ immediate:39
                     programTop++;
                     byteValues = theValue.split(SEPARATOR);
-                    opcodeStatement += " " + byteValues[1] + ",";
-                    opcodeComment = opcode + " " + opcodeValues[3];
+                    String nameValue = getNameValue(byteValues[1].toLowerCase());
+                    opcodeStatement += " " + nameValue + ",";
+                    if (nameValue.equals(byteValues[1])) {
+                        opcodeComment = opcode + " " + opcodeValues[3];
+                    } else {
+                        opcodeComment = opcode + " " + nameValue + " (" + byteValues[1] + ")";
+                    }
                     break;
                 // -----------------------------
                 case "call":
@@ -339,6 +349,20 @@ public class fileProcess {
         labelName.add(label);
         labelAddress.add(programTop);
         System.out.println("++ Label Name: " + label + ", Address: " + programTop);
+    }
+
+    private void parseName(String theName, String theValue) {
+        variableName.add(theName);
+        if (theValue.endsWith("h")) {
+            // Change 0ffh to integer.
+            int si = 0;
+            if (theValue.startsWith("0")) {
+                si = 1;
+            }
+            theValue = theValue.substring(si, 3);   // Hex string to integer.
+        }
+        variableValue.add(Integer.parseInt(theValue,16));
+        System.out.println("++ Variable name: " + theName + ", value: " + theValue);
     }
 
     private String getOpcodeBinary(String opcode) {
@@ -582,8 +606,17 @@ public class fileProcess {
         System.out.println("++ parseLine, Directive|" + part1 + "| part2|" + part2 + "| part3|" + part3 + "|");
         // ++ parseLine, Directive|termb| part2|equ| part3|0ffh|
         // ++ parseLine, Directive|hello| part2|db| part3|'Hello'|
-        //
         // ------------------------------------------
+        if (part2.equals("equ")) {
+            System.out.println("++ parseLine, equ directive: part3|" + part3 + "|");
+            parseName(part1,part3);
+            return;
+        }
+        if (part2.equals("db")) {
+            System.out.println("++ parseLine, db directive: part3|" + part3 + "|");
+            return;
+        }
+        System.out.print("-- Error parsing line: " + theLine);
     }
 
     // -------------------------------------------------------------------------
@@ -651,24 +684,23 @@ public class fileProcess {
         fileProcess thisProcess = new fileProcess();
 
         System.out.println("\n+ Parse file lines.");
-        thisProcess.printProgramByteArray(
-                thisProcess,
-                "/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/opCpi.asm"
-        );
+        //thisProcess.printProgramByteArray(thisProcess,
+        //    "/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/opCpi.asm");
 
         // Or process in parts with optional, extra debug listings.
         // Required, starts the process:
-        // thisProcess.parseFile("p1.asm");
+        thisProcess.parseFile("p1.asm");
+        thisProcess.listNames();
         //
         // Required, sets actual address byte values for the labels:
-        // thisProcess.setProgramByteLabels();
+        thisProcess.setProgramByteLabels();
         //
         // Optional, used for debugging:
         // thisProcess.listLabels();
         // thisProcess.listProgramBytes();
         //
         // Required, prints the output for use in Processor.ino:
-        // thisProcess.printProgramBytesArray();
+        thisProcess.printProgramBytesArray();
         System.out.println("++ Exit.");
     }
 }

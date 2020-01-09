@@ -22,13 +22,14 @@
                 lxi h,Start         ; Move label address to registers H:L.
                 mov a,b
                 mov a,m             ; Move the content ('H') at the address H:L to register A.
+                cpi 42              ; Test parsing.
                 cpi TERMB           ; Compare to see if it's the string terminate byte.
                 jz Done
                 out 3               ; Out A.
                 inx h               ; Increment H:L register pair.
                 mov a,m             ; Move the content ('e') at the address H:L to register A.
                 out 3
-                ...
+                ; ...
         Done:
                 ret
                                     ; ------------------------------------------
