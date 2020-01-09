@@ -4,14 +4,12 @@ package asm;
     Add parsing for the following (see program p1.asm).
     This is based on the Pong assembler program.
 
-    DB value, that is a label to a string of byte characters.
-        TERMB   equ     0ffh        ; Name for a value. Similar to: TERMB = 0ffh;
-        Hello   db      'Hello'     ; Start with a label address, followed by a number of bytes with a terminate byte (TERMB).
-
     Add logic for assembler directive, ds.
                 lxi     h,scoreL    ; Increment left misses. "scoreL" is a memory address.
                 ...
         scoreL  ds      1           ; Score for left paddle. "1" is the number of bytes.
+
+    Need to handle addresses better, for example: lb:Loop:2 --or-- lb:5:
 
     Add parsing for a label on a opcode line.
         Halt:   hlt
@@ -20,6 +18,10 @@ package asm;
     Add logic for assembler directive, org.
                 org 0
                 org 80h
+
+    Add for stack.
+                ds      2           ;stack space
+007D =         stack    equ     $
  */
 import static asm.opcodes8080.byteToString;
 import java.io.*;
@@ -40,6 +42,7 @@ public class fileProcess {
     private final String SEPARATOR_TEMP = "^^";
     private String sImmediate = "";
     private final int NAME_NOT_FOUND = 256;
+    private final int DB_STRING_TERMINATOR = 255;   // ffh = B11111111
     //
     // Use for storing program bytes and calculating label addresses.
     private int programCounter = 0;
@@ -209,13 +212,23 @@ public class fileProcess {
             } else {
                 opcode = opcodeValues[0];
             }
-            System.out.println("++ printProgramBytesArray, opcode|" + opcode + "| theValue |" + theValue + "|");
+            // System.out.println("++ printProgramBytesArray, opcode|" + opcode + "| theValue |" + theValue + "|");
             switch (opcode) {
                 // -------------------------------------------------------------
                 // Assembler directives.
                 case "dbname":
+                    // ++ printProgramBytesArray, opcode|dbname| theValue |dbname:hello:H|
+                    opcodeStatement = "'" + opcodeValues[2] + "'" + ",";
+                    opcodeComment = opcode + ": " + opcodeValues[1];
+                    break;
+                    
+                case "dbstringterminator":
+                    // ++ printProgramBytesArray, opcode|dbstringterminator| theValue|dbstringterminator:hello:255|
+                    opcodeStatement = opcodeValues[2] + ",";
+                    opcodeComment = opcode + ": " + opcodeValues[1];
+                    break;
                 case "dsname":
-                    // ++ printProgramBytesArray, opcode|dbname| theValue |dbname:hello:'|
+                    // ++ printProgramBytesArray, opcode|dsname| theValue|dsname:scorer:1|
                     opcodeStatement = opcodeValues[2] + ",";
                     opcodeComment = opcode + ": " + opcodeValues[1];
                     break;
@@ -278,7 +291,7 @@ public class fileProcess {
                     // ++ opcode:jmp:11000011:There:
                     // ++ lb:Loop:2
                     // ++ hb:0
-                    //------------
+                    //------------------------------------------------
                     theValue = it.next();   // ++ lb:Loop:2
                     programTop++;
                     byteValues = theValue.split(SEPARATOR);
@@ -288,6 +301,7 @@ public class fileProcess {
                     programTop++;
                     byteValues = theValue.split(SEPARATOR);
                     opcodeStatement += " " + byteValues[1] + ",";
+                    //------------------------------------------------
                     //
                     opcodeComment = opcode + " " + opcodeValues[3];
                     break;
@@ -298,13 +312,19 @@ public class fileProcess {
                     // ++ opcode:lxi:00000001:b:5
                     // ++ lb:5:
                     // ++ hb:0
-                    theValue = it.next();   // ++ lb:5:
+                    // Stacy: ++ opcode:lxi:00100001:h:scoreL
+                    // Need to handle: lb:Loop:2 --or-- lb:5:
+                    //------------------------------------------------
+                    theValue = it.next();   // ++ lb:Loop:2
+                    programTop++;
+                    byteValues = theValue.split(SEPARATOR);
+                    opcodeStatement += " " + byteValues[2] + ",";
+                    //------------
+                    theValue = it.next();   // ++ hb:x
                     programTop++;
                     byteValues = theValue.split(SEPARATOR);
                     opcodeStatement += " " + byteValues[1] + ",";
-                    it.next();              // ++ hb:0
-                    programTop++;
-                    opcodeStatement += " 0,";
+                    //------------------------------------------------
                     opcodeComment = opcode + " " + opcodeValues[3] + "," + opcodeValues[4];
                     break;
                 // -----------------------------
@@ -388,10 +408,13 @@ public class fileProcess {
         System.out.println("++ DB variable name: " + theName + ", string of bytes: " + theValue);
         variableName.add(theName);
         variableValue.add(programTop + 1);        // Address to the tring of bytes.
-        for (int i = 0; i < theValue.length(); i++) {
+        for (int i = 1; i < theValue.length() - 1; i++) {
             programBytes.add("dbname:" + theName + SEPARATOR + theValue.substring(i, i + 1));
             programTop++;
         }
+        programBytes.add("dbstringterminator:" + theName + SEPARATOR + DB_STRING_TERMINATOR);
+        programTop++;
+
     }
 
     private void parseDs(String theName, String theValue) {
@@ -399,7 +422,7 @@ public class fileProcess {
         variableName.add(theName);
         variableValue.add(programTop + 1);        // Address to the bytes.
         for (int i = 0; i < Integer.parseInt(theValue); i++) {
-            programBytes.add("dsname:" + theName + SEPARATOR + theValue);
+            programBytes.add("dsname:" + theName + SEPARATOR + 0);  // default value.
             programTop++;
         }
     }
@@ -745,7 +768,7 @@ public class fileProcess {
         //
         // Optional, used for debugging:
         // thisProcess.listLabels();
-        // thisProcess.listProgramBytes();
+        thisProcess.listProgramBytes();
         //
         // Required, prints the output for use in Processor.ino:
         thisProcess.printProgramBytesArray();

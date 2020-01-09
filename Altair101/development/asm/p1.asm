@@ -20,7 +20,7 @@
                                     ; ------------------------------------------
                                     ; Routine that uses Hello to OUT the "Hello" string.
         PrintLoop:
-                lxi h,Start         ; Move label address to registers H:L.
+                lxi h,Hello         ; Move label address to registers H:L.
                 mov a,b
                 mov a,m             ; Move the content ('H') at the address H:L to register A.
                 cpi 42              ; Test parsing.

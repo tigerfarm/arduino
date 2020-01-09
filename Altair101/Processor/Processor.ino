@@ -12,24 +12,20 @@
 
   ----------
   Add clock logic,
-  + Before adding which-buttom-pushed, I need to test more.
-  ++ Is the correct in all cases?
-  +++ if HLT opcode run in a program or STEP,
-  +++   use "programCounter-1" because programCounter holds the next program step.
+  + Handle: if HLT opcode run in a program or STEP,
+  ++ Add a which-buttom-pushed boolean?
+  +++ If HLT opcode run in a program or STEP, use "programCounter-1" because programCounter holds the next program step.
 
   ----------
   Next opcodes to add/test,
-  + First, add parsing for assembler directives: org, equ, and db.
-  ++ Develop test program: p1.asm.
+  + Develop test program: pPrintDbString.asm.
   + Opcodes implemented in the assembler, but not tested with a program:
   lda a    00 110 010  3  Load register A with data from the address, a(hb:lb).
   sta a    00 110 010  3  Store register A to the address, a(hb:lb).
   dcr D    00 DDD 101  1  Decrement a register. To do, set flags: ZSPA.
   inx RP   00 RP0 011  1  Increment a register pair(16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
   shld a   00 100 010  3  Store data value from memory location: a(address hb:lb), to register L. Store value at: a + 1, to register H.
-    // shld a    00100010 lb hb    -  Store register L to memory address hb:lb. Store register H to hb:lb + 1.
-    // The contents of register L, are stored in the memory address specified in bytes lb and hb (hb:lb).
-    // The contents of register H, are stored in the memory at the next higher address (hb:lb + 1).
+  // shld a    00100010 lb hb    -  Store register L contents to memory address hb:lb. Store register H contents to hb:lb+1.
 
   ----------
   Add 1602 LED display,
