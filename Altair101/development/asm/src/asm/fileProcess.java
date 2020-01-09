@@ -360,15 +360,37 @@ public class fileProcess {
     private void parseName(String theName, String theValue) {
         variableName.add(theName);
         if (theValue.endsWith("h")) {
-            // Change 0ffh to integer.
+            // Hex number. For example, change 0ffh or ffh to integer.
             int si = 0;
             if (theValue.startsWith("0")) {
                 si = 1;
             }
             theValue = theValue.substring(si, 3);   // Hex string to integer.
+            variableValue.add(Integer.parseInt(theValue, 16));
+        } else {
+            variableValue.add(Integer.parseInt(theValue));
         }
-        variableValue.add(Integer.parseInt(theValue, 16));
         System.out.println("++ Variable name: " + theName + ", value: " + theValue);
+    }
+
+    private void parseDb(String theName, String theValue) {
+        System.out.println("++ DB variable name: " + theName + ", string of bytes: " + theValue);
+        variableName.add(theName);
+        variableValue.add(programTop+1);        // Address to the tring of bytes.
+        for (int i = 0; i < theValue.length(); i++) {
+            programBytes.add("dbname:" + theName + SEPARATOR + theValue.substring(i, i+1));
+            programTop++;
+        }
+    }
+
+    private void parseDs(String theName, String theValue) {
+        System.out.println("++ DS variable name: " + theName + ", number of bytes: " + theValue);
+        variableName.add(theName);
+        variableValue.add(programTop+1);        // Address to the bytes.
+        for (int i = 0; i < Integer.parseInt(theValue); i++) {
+            programBytes.add("dsname:" + theName + SEPARATOR + theValue);
+            programTop++;
+        }
     }
 
     private String getOpcodeBinary(String opcode) {
@@ -612,14 +634,23 @@ public class fileProcess {
         System.out.println("++ parseLine, Directive|" + part1 + "| part2|" + part2 + "| part3|" + part3 + "|");
         // ++ parseLine, Directive|termb| part2|equ| part3|0ffh|
         // ++ parseLine, Directive|hello| part2|db| part3|'Hello'|
+        // ++ parseLine, ds directive: part1|scorer| part3|1|
         // ------------------------------------------
         if (part2.equals("equ")) {
-            System.out.println("++ parseLine, equ directive: part3|" + part3 + "|");
+            System.out.println("++ parseLine, equ directive: part1|" + part1 + "| part3|" + part3 + "|");
             parseName(part1, part3);
             return;
         }
         if (part2.equals("db")) {
-            System.out.println("++ parseLine, db directive: part3|" + part3 + "|");
+            System.out.println("++ parseLine, db directive: part1|" + part1 + "| part3|" + part3 + "|");
+                parseDb(part1, part3);
+            return;
+        }
+        if (part2.equals("ds")) {
+            System.out.println("++ parseLine, ds directive: part1|" + part1 + "| part3|" + part3 + "|");
+            if (part3.equals("1")) {
+                parseDs(part1, part3);
+            }
             return;
         }
         System.out.print("-- Error parsing line: " + theLine);
