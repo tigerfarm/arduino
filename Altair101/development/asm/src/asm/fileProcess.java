@@ -19,6 +19,9 @@ package asm;
         Halt:   hlt
         ledOut: lxi     h,0         ;HL=16 bit counter
 
++++ Stacy, not parsing:
+lxi h,Hello         ; Move label address to registers H:L.
+
     Add logic for assembler directive, org.
                 org 0
                 org 80h
@@ -181,8 +184,6 @@ public class fileProcess {
                     // ++ opcode:lxi:00000001:b:5
                     // ++ lb:5:
                     // ++ hb:0
-                    // Stacy: ++ opcode:lxi:00100001:h:scoreL
-                    // Need to handle: lb:Loop:2 --or-- lb:5:
                     //------------------------------------------------
                     theValue = it.next();   // ++ lb:Loop:2
                     programTop++;
@@ -300,6 +301,10 @@ public class fileProcess {
                 break;
             }
         }
+        // int returnValue = Integer.parseInt(findName);
+        if (!findName.equals("0") && returnValue == 0) {
+            returnValue = Integer.parseInt(findName);
+        }
         return returnValue;
     }
 
@@ -312,13 +317,16 @@ public class fileProcess {
         // ++ hb:0
         // Variable name and address value:
         // ++ scorel: 40
+        // Program bytes become:
+        // ++ lb:scoreL:40
+        // ++ hb:0
         // --------------
         // Similar to a label:
         // ++ opcode:call:11001101:PrintLoop
         // ++ lb:PrintLoop:19
         // ++ hb:0
         // Label data:
-        // ++ Label, lb: lb:PrintLoop:19
+        // ++ Label, lb:PrintLoop:19
         // ++ Label, hb:0
         // --------------
         int i = 0;
@@ -569,7 +577,6 @@ public class fileProcess {
                 //
                 // Case of the immediate equaling the separator.
                 sOpcodeBinary = getOpcodeBinary(opcode + p1);
-                String sImmediate = p2;
                 if (p2.equals("'" + SEPARATOR + "'")) {
                     p2 = "'" + SEPARATOR_TEMP + "'";
                 }
@@ -664,10 +671,18 @@ public class fileProcess {
         // Get the other line components.
         String part1asIs = theLine.substring(0, c1);
         if (part1asIs.endsWith(":")) {
-            // Stacy, example:
-            // Label line:
+            // Label line.
             //  2) Halt1:      hlt
-            parseLabel(part1asIs);
+            parseLabel(part1asIs.substring(0, part1asIs.length() - 1)); // Remove the ":".
+            theLine = theLine.substring(c1 + 1).trim();
+            c1 = theLine.indexOf(" ");
+            if (c1 < 1) {
+                //  1) Opcode, no parameters, example: "nop".
+                opcode = theLine.toLowerCase();
+                System.out.println("++ parseLine, Opcode|" + opcode + "|");
+                parseOpcode(opcode);
+                return;
+            }
         }
 
         String part1 = theLine.substring(0, c1).toLowerCase();
@@ -690,7 +705,8 @@ public class fileProcess {
         // ---------------------------------------------------------------------
         // Check for single parameter lines:
         //  Opcode lines. Opcodes can have 0, 1, or 2 parameters. For example:
-        //      3) jmp Next
+        //      3.1) jmp Next
+        //      3.2) jmp 42
         //  Or assembler directives:
         //      4.1) org     0
         //      4.2) ds      2
@@ -729,7 +745,10 @@ public class fileProcess {
         // ------------------------------------------
         if (part2.equals("equ")) {
             if (part3.equals("$")) {
-                part3 = "0";
+                // stack   equ $    ; "$" is current address.
+                part3 = Integer.toString(programTop);
+                parseLabel(part3);
+                return;
             }
             System.out.println("++ parseLine, equ directive: part1|" + part1 + "| part3|" + part3 + "|");
             parseName(part1, part3);

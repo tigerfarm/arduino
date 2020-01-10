@@ -9,6 +9,7 @@
         TERMB   equ     0ffh        ; Name for a value. Similar to: TERMB = 0ffh;
         Hello   db      'Hello'     ; Translate into bytes with a terminate byte (TERMB).
                                     ; --------------------------------------
+                jmp 42              ; Jump to Start to bypass declarations halt.
     Halt1:      hlt                 ; This needs to be parsed.
     Halt:                           ; The program will halt at each iteration, after the first.
                 hlt                 ; The program will halt at each iteration, after the first.
@@ -19,13 +20,15 @@
     Start:
                 call PrintLoop
                 jmp Halt
+                jmp CPI3
                                     ; ------------------------------------------
                                     ; Routine that uses Hello to OUT the "Hello" string.
         PrintLoop:
-                lxi h,Hello         ; Move label address to registers H:L.
+                ; lxi h,Hello         ; Move label address to registers H:L.
                 mov a,b
                 mov a,m             ; Move the content ('H') at the address H:L to register A.
                 cpi 42              ; Test parsing.
+        CPI3:   cpi 43              ; Test label line parsing.
                 cpi TERMB           ; Compare to see if it's the string terminate byte.
                 jz Done
                 out 3               ; Out A.
