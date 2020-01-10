@@ -8,22 +8,22 @@ package asm;
     + Immediate variable name and value management.
     + Parse opcodes into program bytes.
     + Parse program lines.
-    + File level process: read files, and parse or list the files.
+    + File level process: read files, and parse or list the file lines.
 
     Be consistent with label and name case sensitivity.
+
+    Add parsing for the following (see program p1.asm).
+    Required for the Pong assembler program.
 
     Add parsing for a label on an opcode line.
         Halt:   hlt
         ledOut: lxi     h,0         ;HL=16 bit counter
 
-    Add parsing for the following (see program p1.asm).
-    Required for the Pong assembler program.
-
     Add logic for assembler directive, org.
                 org 0
                 org 80h
 
-    Add for stack. Or ignore the command because Processor.ino has separate stack memory.
+    Add "$" for stack. Or ignore the directive because Processor.ino has separate stack memory.
                 stack    equ     $
  */
 import static asm.opcodes8080.byteToString;
@@ -43,7 +43,6 @@ public class fileProcess {
     private String p2;
     private final String SEPARATOR = ":";
     private final String SEPARATOR_TEMP = "^^";
-    private String sImmediate = "";
     private final int NAME_NOT_FOUND = 256;
     private final int DB_STRING_TERMINATOR = 255;   // ffh = B11111111
     //
@@ -573,7 +572,7 @@ public class fileProcess {
                 //
                 // Case of the immediate equaling the separator.
                 sOpcodeBinary = getOpcodeBinary(opcode + p1);
-                sImmediate = p2;
+                String sImmediate = p2;
                 if (p2.equals("'" + SEPARATOR + "'")) {
                     p2 = "'" + SEPARATOR_TEMP + "'";
                 }
