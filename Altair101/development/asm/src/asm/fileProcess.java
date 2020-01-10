@@ -11,22 +11,20 @@ package asm;
     + File level process: read files, and parse or list the file lines.
 
     Be consistent with label and name case sensitivity.
+    + Match, getLabelAddress() with the address names being added.
+    + Match, getImmediateValue() with the immediates being added.
+
+    Add a note at the end to signify there was an error.
+    + Improve error handling.
 
     Add parsing for the following (see program p1.asm).
     Required for the Pong assembler program.
-
-    Add parsing for a label on an opcode line.
-        Halt:   hlt
-        ledOut: lxi     h,0         ;HL=16 bit counter
-
-+++ Stacy, not parsing:
-lxi h,Hello         ; Move label address to registers H:L.
 
     Add logic for assembler directive, org.
                 org 0
                 org 80h
 
-    Add "$" for stack. Or ignore the directive because Processor.ino has separate stack memory.
+    Note, currently, "stack" is not use in Processor.ino because it has separate stack memory.
                 stack    equ     $
  */
 import static asm.opcodes8080.byteToString;
@@ -288,22 +286,26 @@ public class fileProcess {
 
     // ------------------------
     private int getLabelAddress(String findName) {
-        // System.out.println("+ findName: " + findName);
+        System.out.println("+ findName: " + findName);
         int returnValue = 0;
         Iterator<String> lName = labelName.iterator();
         Iterator<Integer> lAddress = labelAddress.iterator();
         while (lName.hasNext()) {
             String theName = lName.next();
             int theAddress = lAddress.next();
-            if (theName.equals(findName)) {
+            if (theName.toLowerCase().equals(findName.toLowerCase())) {
                 returnValue = theAddress;
-                // System.out.println("+ Found theAddress: " + returnValue);
+                System.out.println("+ Found theAddress: " + returnValue);
                 break;
             }
         }
-        // int returnValue = Integer.parseInt(findName);
         if (!findName.equals("0") && returnValue == 0) {
-            returnValue = Integer.parseInt(findName);
+            try {
+                returnValue = Integer.parseInt(findName);
+            } catch (NumberFormatException e) {
+                System.out.println("\n- Error, address label not found: " + findName + ".\n");
+                returnValue = 0;
+            }
         }
         return returnValue;
     }
@@ -395,8 +397,8 @@ public class fileProcess {
 
     private void parseDb(String theName, String theValue) {
         System.out.println("++ DB variable name: " + theName + ", string of bytes: " + theValue);
-        variableName.add(theName);
-        variableValue.add(programTop + 1);        // Address to the tring of bytes.
+        labelName.add(theName);
+        labelAddress.add(programTop + 1);        // Address to the string of bytes.
         for (int i = 1; i < theValue.length() - 1; i++) {
             programBytes.add("dbname:" + theName + SEPARATOR + theValue.substring(i, i + 1));
             programTop++;
@@ -559,7 +561,7 @@ public class fileProcess {
         // Opcode, 2 parameters, example: mvi a,1
         switch (opcode) {
             case "lxi":
-                // opcode <register>,<address label>
+                // opcode <register>,<address label|number>
                 // lxi b,5
                 p1 = p1.toLowerCase();
                 sOpcodeBinary = getOpcodeBinary(opcode + p1);
