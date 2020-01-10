@@ -1,6 +1,16 @@
 package asm;
 
 /*
+    Program sections:
+    + Program byte output: Listing and printing bytes.
+    + Assembler directive: Label management: parsing, listing, and setting label program byte values.
+    + Parse opcodes into program bytes.
+    + Parse program lines.
+    + File level process: read and parse or list files.
+
+    Update: setProgramByteAddresses
+    Update: setProgramByteImmediates
+
     Add parsing for the following (see program p1.asm).
     This is based on the Pong assembler program.
 
@@ -50,141 +60,8 @@ public class fileProcess {
     private final List<String> programBytes = new ArrayList<>();
 
     // -------------------------------------------------------------------------
-    //
-    private String label;
-    private final List<String> labelName = new ArrayList<>();
-    private final List<Integer> labelAddress = new ArrayList<>();
-
-    public void listLabels() {
-        System.out.println("+ List labels:");
-        Iterator<String> lName = labelName.iterator();
-        Iterator<Integer> lAddress = labelAddress.iterator();
-        while (lName.hasNext()) {
-            String theName = lName.next();
-            int theAddress = lAddress.next();
-            System.out.println("++ " + theName + ": " + theAddress);
-        }
-        System.out.println("+ End of list.");
-    }
-
-    // ------------------------
-    private int getLabelAddress(String findName) {
-        // System.out.println("+ findName: " + findName);
-        int returnValue = 0;
-        Iterator<String> lName = labelName.iterator();
-        Iterator<Integer> lAddress = labelAddress.iterator();
-        while (lName.hasNext()) {
-            String theName = lName.next();
-            int theAddress = lAddress.next();
-            if (theName.equals(findName)) {
-                returnValue = theAddress;
-                // System.out.println("+ Found theAddress: " + returnValue);
-                break;
-            }
-        }
-        return returnValue;
-    }
-
-    private void setProgramByteLabels() {
-        // System.out.println("+ Set Program Labels:");
-        int i = 0;
-        for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
-            String theValue = it.next();
-            if (theValue.startsWith("lb:")) {
-                //
-                int intAddress = getLabelAddress(theValue.substring(3));
-                // ++ Label: lb:okaym1:265
-                // B11001010, 9, 1,   // 259: jz okaym1  265 in binary hb=00000001 lb=00001001
-                //
-                if (intAddress < 256) {
-                    // lb:
-                    String labelAddress = Integer.toString(intAddress);
-                    programBytes.set(i, theValue + SEPARATOR + labelAddress);
-                    System.out.println("++ Label, lb: " + theValue + ":" + labelAddress);
-                    // hb:
-                    // Already set to default of 0.
-                    theValue = it.next();
-                    i++;
-                    System.out.println("++ Label, " + theValue);
-                } else {
-                    // Need to also set hb (high byte).
-                    // Address: 265, in binary hb=00000001(digital=1) lb=00001001(digital=9)
-                    int hb = intAddress / 256;
-                    int lb = intAddress - (hb * 256);
-                    //-------------------
-                    // lb:
-                    programBytes.set(i, theValue + SEPARATOR + lb);
-                    System.out.println("++ Label, lb: " + theValue + ":" + lb);
-                    // hb:
-                    it.next();
-                    i++;
-                    programBytes.set(i, "hb:" + hb);
-                    System.out.println("++ Label, hb:" + hb);
-                }
-            }
-            i++;
-        }
-    }
-
     // -------------------------------------------------------------------------
-    // Assembler directive variable names.
-    private final List<String> variableName = new ArrayList<>();
-    private final List<Integer> variableValue = new ArrayList<>();
-
-    public void listNames() {
-        System.out.println("+ List names:");
-        Iterator<String> lName = variableName.iterator();
-        Iterator<Integer> lValue = variableValue.iterator();
-        while (lName.hasNext()) {
-            String theName = lName.next();
-            int theValue = lValue.next();
-            System.out.println("++ " + theName + ": " + theValue);
-        }
-        System.out.println("+ End of list.");
-    }
-
-    // ------------------------
-    private String getNameValue(String findName) {
-        // System.out.println("+ getNameValue, findName: " + findName);
-        String returnString = findName;
-        int returnValue = NAME_NOT_FOUND;
-        Iterator<String> lName = variableName.iterator();
-        Iterator<Integer> lValue = variableValue.iterator();
-        while (lName.hasNext()) {
-            String theName = lName.next();
-            int theValue = lValue.next();
-            if (theName.equals(findName)) {
-                returnValue = theValue;
-                // System.out.println("+ Found theValue: " + returnValue);
-                break;
-            }
-        }
-        if (returnValue != NAME_NOT_FOUND) {
-            returnString = Integer.toString(returnValue);
-        }
-        return returnString;
-    }
-
-    private void setProgramByteNames() {
-        System.out.println("+ Set Program Names:");
-        int i = 0;
-        for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
-            String theValue = it.next();
-            if (theValue.startsWith("name:")) {
-                int intAddress = getLabelAddress(theValue.substring(3));
-                // ++ Name:265
-                // B11001010, 9, 1,   // 259: jz okaym1  265 in binary hb=00000001 lb=00001001
-                //
-                String labelAddress = Integer.toString(intAddress);
-                programBytes.set(i, theValue + SEPARATOR + labelAddress);
-                System.out.println("++ Label, lb: " + theValue + ":" + labelAddress);
-            }
-            i++;
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    //
+    // Program byte output: Listing and printing bytes.
     public void listProgramBytes() {
         System.out.println("\n+ List Program Bytes:");
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
@@ -221,7 +98,7 @@ public class fileProcess {
                     opcodeStatement = "'" + opcodeValues[2] + "'" + ",";
                     opcodeComment = opcode + ": " + opcodeValues[1];
                     break;
-                    
+
                 case "dbstringterminator":
                     // ++ printProgramBytesArray, opcode|dbstringterminator| theValue|dbstringterminator:hello:255|
                     opcodeStatement = opcodeValues[2] + ",";
@@ -265,16 +142,16 @@ public class fileProcess {
                     // opcode <immediate>
                     // out 39
                     // ++ opcode:out:11100011:39
-                    // ++ immediate:39
-                    theValue = it.next();   // ++ immediate:39
+                    // ++ immediate:39:39
+                    // ++ immediate:TERMB:255
+                    theValue = it.next();   // ++ immediate:39:39
                     programTop++;
                     byteValues = theValue.split(SEPARATOR);
-                    String nameValue = getNameValue(byteValues[1].toLowerCase());
-                    opcodeStatement += " " + nameValue + ",";
-                    if (nameValue.equals(byteValues[1])) {
-                        opcodeComment = opcode + " " + opcodeValues[3];
+                    opcodeStatement += " " + byteValues[2] + ",";
+                    if (byteValues[1].equals(byteValues[2])) {
+                        opcodeComment = opcode + " " + byteValues[1];
                     } else {
-                        opcodeComment = opcode + " " + nameValue + " (" + byteValues[1] + ")";
+                        opcodeComment = opcode + " " + byteValues[2] + " (" + byteValues[1] + ")";
                     }
                     break;
                 // -----------------------------
@@ -332,18 +209,17 @@ public class fileProcess {
                     // opcode <register>,<immediate>
                     // mvi a,1
                     // ++ opcode:mvi:00111110:a:1
-                    // ++ immediate:1
-                    theValue = it.next();   // ++ immediate:1
+                    // ++ immediate:1:1
+                    // ++ immediate:TERMB:255
+                    theValue = it.next();   // ++ immediate:1:1
                     programTop++;
                     byteValues = theValue.split(SEPARATOR);
-                    //
-                    sImmediate = byteValues[1];
-                    if (byteValues[1].equals("'" + SEPARATOR_TEMP + "'")) {
-                        sImmediate = "'" + SEPARATOR + "'";
+                    opcodeStatement += " " + byteValues[2] + ",";
+                    if (byteValues[1].equals(byteValues[2])) {
+                        opcodeComment = opcode + " " + opcodeValues[1];
+                    } else {
+                        opcodeComment = opcode + " " + opcodeValues[2] + " (" + byteValues[1] + ")";
                     }
-                    //
-                    opcodeStatement += " " + sImmediate + ",";
-                    opcodeComment = opcode + " " + opcodeValues[3] + "," + sImmediate;
                     break;
                 // -----------------------------
                 case "mov":
@@ -381,12 +257,124 @@ public class fileProcess {
     }
 
     // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Assembler directive: Label management:
+    // + Parsing, listing, and setting label program byte values.
+    private String label;
+    private final List<String> labelName = new ArrayList<>();
+    private final List<Integer> labelAddress = new ArrayList<>();
+
     private void parseLabel(String label) {
         // Address label
         labelName.add(label);
         labelAddress.add(programTop);
         System.out.println("++ Label Name: " + label + ", Address: " + programTop);
     }
+
+    private void parseDs(String theName, String theValue) {
+        System.out.println("++ DS variable name: " + theName + ", number of bytes: " + theValue);
+        labelName.add(theName);
+        labelAddress.add(programTop + 1);        // Address to the bytes.
+        for (int i = 0; i < Integer.parseInt(theValue); i++) {
+            programBytes.add("dsname:" + theName + SEPARATOR + 0);  // default value.
+            programTop++;
+        }
+    }
+
+    public void listLabelAddresses() {
+        System.out.println("\n+ List label Addresses:");
+        Iterator<String> lName = labelName.iterator();
+        Iterator<Integer> lAddress = labelAddress.iterator();
+        while (lName.hasNext()) {
+            String theName = lName.next();
+            int theAddress = lAddress.next();
+            System.out.println("++ " + theName + ": " + theAddress);
+        }
+        System.out.println("+ End of list.");
+    }
+
+    // ------------------------
+    private int getLabelAddress(String findName) {
+        // System.out.println("+ findName: " + findName);
+        int returnValue = 0;
+        Iterator<String> lName = labelName.iterator();
+        Iterator<Integer> lAddress = labelAddress.iterator();
+        while (lName.hasNext()) {
+            String theName = lName.next();
+            int theAddress = lAddress.next();
+            if (theName.equals(findName)) {
+                returnValue = theAddress;
+                // System.out.println("+ Found theAddress: " + returnValue);
+                break;
+            }
+        }
+        return returnValue;
+    }
+
+    private void setProgramByteAddresses() {
+        System.out.println("\n+ Set Program Label address values...");
+        // --------------
+        // Set label address values, whether assembler labels or assembler directive labels.
+        // ++ opcode:lxi:00100001:h:scoreL
+        // ++ lb:scoreL:0
+        // ++ hb:0
+        // Variable name and address value:
+        // ++ scorel: 40
+        // --------------
+        // Similar to a label:
+        // ++ opcode:call:11001101:PrintLoop
+        // ++ lb:PrintLoop:19
+        // ++ hb:0
+        // Label data:
+        // ++ Label, lb: lb:PrintLoop:19
+        // ++ Label, hb:0
+        // --------------
+        int i = 0;
+        for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
+            String theValue = it.next();
+            if (theValue.startsWith("lb:")) {
+                //
+                int intAddress = getLabelAddress(theValue.substring(3));
+                // ++ Label: lb:okaym1:265
+                // B11001010, 9, 1,   // 259: jz okaym1  265 in binary hb=00000001 lb=00001001
+                //
+                if (intAddress < 256) {
+                    // lb:
+                    String labelAddress = Integer.toString(intAddress);
+                    programBytes.set(i, theValue + SEPARATOR + labelAddress);
+                    System.out.println("++ Label, " + theValue + ":" + labelAddress);
+                    // hb:
+                    // Already set to default of 0.
+                    theValue = it.next();
+                    i++;
+                    System.out.println("++ Label, " + theValue);
+                } else {
+                    // Need to also set hb (high byte).
+                    // Address: 265, in binary hb=00000001(digital=1) lb=00001001(digital=9)
+                    int hb = intAddress / 256;
+                    int lb = intAddress - (hb * 256);
+                    //-------------------
+                    // lb:
+                    programBytes.set(i, theValue + SEPARATOR + lb);
+                    System.out.println("++ Label, lb: " + theValue + ":" + lb);
+                    // hb:
+                    it.next();
+                    i++;
+                    programBytes.set(i, "hb:" + hb);
+                    System.out.println("++ Label, hb:" + hb);
+                }
+            }
+            i++;
+        }
+        System.out.println("+ Label address values, set.");
+    }
+
+    // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Assembler directive: DB and DS Variable name management:
+    // + Parsing, listing, and setting label program byte values.
+    private final List<String> variableName = new ArrayList<>();
+    private final List<Integer> variableValue = new ArrayList<>();
 
     private void parseName(String theName, String theValue) {
         variableName.add(theName);
@@ -417,16 +405,70 @@ public class fileProcess {
 
     }
 
-    private void parseDs(String theName, String theValue) {
-        System.out.println("++ DS variable name: " + theName + ", number of bytes: " + theValue);
-        variableName.add(theName);
-        variableValue.add(programTop + 1);        // Address to the bytes.
-        for (int i = 0; i < Integer.parseInt(theValue); i++) {
-            programBytes.add("dsname:" + theName + SEPARATOR + 0);  // default value.
-            programTop++;
+    // ------------------------
+    public void listImmediateValues() {
+        System.out.println("+ List immediate values...");
+        Iterator<String> lName = variableName.iterator();
+        Iterator<Integer> lValue = variableValue.iterator();
+        while (lName.hasNext()) {
+            String theName = lName.next();
+            int theValue = lValue.next();
+            System.out.println("++ " + theName + ": " + theValue);
         }
+        System.out.println("+ End of list.");
     }
 
+    // ------------------------
+    private String getImmediateValue(String findName) {
+        // System.out.println("+ getImmediateValue, findName: " + findName);
+        String returnString = findName;
+        int returnValue = NAME_NOT_FOUND;
+        Iterator<String> lName = variableName.iterator();
+        Iterator<Integer> lValue = variableValue.iterator();
+        while (lName.hasNext()) {
+            String theName = lName.next();
+            int theValue = lValue.next();
+            if (theName.equals(findName.toLowerCase())) {
+                returnValue = theValue;
+                // System.out.println("+ Found theValue: " + returnValue);
+                break;
+            }
+        }
+        if (returnValue != NAME_NOT_FOUND) {
+            returnString = Integer.toString(returnValue);
+        }
+        return returnString;
+    }
+
+    private void setProgramByteImmediates() {
+        System.out.println("\n+ Set program immediate values...");
+        // --------------
+        // Set immediate values.
+        // Program byte:
+        // ++ immediate:TERMB
+        // Variable name and value data:
+        // ++ termb: 255
+        //
+        int i = 0;
+        for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
+            String theValue = it.next();
+            if (theValue.startsWith("immediate" + SEPARATOR)) {
+                String sImmediate = theValue.substring("immediate:".length());
+                // ++ immediate:TERMB
+                // ++ immediate:42
+                programBytes.set(i, "immediate" + SEPARATOR + sImmediate + SEPARATOR + getImmediateValue(sImmediate));
+                System.out.println("++ immediate" + SEPARATOR + sImmediate + SEPARATOR + getImmediateValue(sImmediate));
+                // ++ immediate:TERMB:255
+                // ++ immediate:42:42
+            }
+            i++;
+        }
+        System.out.println("+ Program immediate values, set.");
+    }
+
+    // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Parse opcodes into program bytes.
     private String getOpcodeBinary(String opcode) {
         opcodeBinary = theOpcodes.getOpcode(opcode);
         if (opcodeBinary == theOpcodes.OpcodeNotFound) {
@@ -562,8 +604,10 @@ public class fileProcess {
                 + opcode + " " + sOpcodeBinary
                 + " p1|" + p1 + "|" + " p2|" + p2 + "|");
     }
-    // -------------------------------------------------------------------------
 
+    // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Parse program lines.
     private void parseLine(String orgLine) {
         String theRest;
         int ei;
@@ -606,9 +650,11 @@ public class fileProcess {
         //      2) mvi a,1
         //      3) jmp Next
         // Or assembler directives:
-        //      4) org     0
+        //      4.1) org     0
+        //      4.2) ds      2
         //      5) TERMB   equ     0ffh
         //      6) Hello   db      "Hello"
+        //      7) scoreR  ds       1
 
         // ---------------------------------------------------------------------
         c1 = theLine.indexOf(" ");
@@ -621,9 +667,10 @@ public class fileProcess {
         }
         // ------------------------------
         // Get the other line components.
+        String part1asIs = theLine.substring(0, c1);
         String part1 = theLine.substring(0, c1).toLowerCase();
         theRest = theLine.substring(c1 + 1).trim();
-        System.out.println("++ parseLine, part1|" + part1 + "| theRest|" + theRest + "|");
+        // System.out.println("++ parseLine, part1|" + part1 + "| theRest|" + theRest + "|");
         //
         // ---------------------------------------------------------------------
         // Check for opcode with 2 parameters, example: mvi a,1
@@ -643,14 +690,21 @@ public class fileProcess {
         //  Opcode lines. Opcodes can have 0, 1, or 2 parameters. For example:
         //      3) jmp Next
         //  Or assembler directives:
-        //      4) org     0
+        //      4.1) org     0
+        //      4.2) ds      2
         c1 = theRest.indexOf(" ");
         if (c1 < 1) {
             if (theLine.startsWith("org")) {
                 // Assembler directives:
-                //  4) org     0
-                System.out.println("++ parseLine, Directive: org. For now, parse org line, as a NOP line: " + orgLine.trim());
+                //  4.1) org     0
+                System.out.println("++ parseLine, org directive. For now, parse org line, as a NOP line: " + orgLine.trim());
                 parseOpcode("nop");
+                return;
+            } else if (theLine.startsWith("ds")) {
+                // Assembler directives:
+                //  4.2) ds     2
+                System.out.println("++ parseLine, ds directive without a label name: " + orgLine.trim() + "| theRest|" + theRest);
+                parseDs("", theRest);   // No label name required.
                 return;
             }
             // Opcode, Single parameter, example: "jmp Next".
@@ -660,8 +714,9 @@ public class fileProcess {
         }
         // ---------------------------------------------------------------------
         // Parse assembler directives:
-        //      5) TERMB   equ     0ffh
-        //      6) Hello   db      "Hello"
+        //      5) TERMB   equ      0ffh
+        //      6) Hello   db       "Hello"
+        //      7) scoreR  ds       1
         //
         String part2 = theRest.substring(0, c1).toLowerCase();
         String part3 = theRest.substring(c1 + 1).trim();
@@ -683,7 +738,7 @@ public class fileProcess {
         if (part2.equals("ds")) {
             System.out.println("++ parseLine, ds directive: part1|" + part1 + "| part3|" + part3 + "|");
             if (part3.equals("1")) {
-                parseDs(part1, part3);
+                parseDs(part1asIs, part3);
             }
             return;
         }
@@ -691,6 +746,15 @@ public class fileProcess {
     }
 
     // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // File level process: parse and listing.
+    public void printProgramByteArray(fileProcess thisProcess, String theReadFilename) {
+        thisProcess.parseFile(theReadFilename);
+        thisProcess.setProgramByteAddresses();
+        thisProcess.setProgramByteImmediates();
+        thisProcess.printProgramBytesArray();
+    }
+
     public void parseFile(String theReadFilename) {
         File readFile;
         FileInputStream fin;
@@ -742,12 +806,6 @@ public class fileProcess {
     }
 
     // -------------------------------------------------------------------------
-    public void printProgramByteArray(fileProcess thisProcess, String theReadFilename) {
-        thisProcess.parseFile(theReadFilename);
-        thisProcess.setProgramByteLabels();
-        thisProcess.printProgramBytesArray();
-    }
-
     // -------------------------------------------------------------------------
     // For testing.
     public static void main(String args[]) {
@@ -761,14 +819,17 @@ public class fileProcess {
         // Or process in parts with optional, extra debug listings.
         // Required, starts the process:
         thisProcess.parseFile("p1.asm");
-        thisProcess.listNames();
-        //
-        // Required, sets actual address byte values for the labels:
-        thisProcess.setProgramByteLabels();
         //
         // Optional, used for debugging:
-        // thisProcess.listLabels();
-        thisProcess.listProgramBytes();
+        thisProcess.listImmediateValues();
+        thisProcess.listLabelAddresses();
+        //
+        // Required, sets actual values:
+        thisProcess.setProgramByteAddresses();
+        thisProcess.setProgramByteImmediates();
+        //
+        // Optional, used for debugging:
+        // thisProcess.listProgramBytes();
         //
         // Required, prints the output for use in Processor.ino:
         thisProcess.printProgramBytesArray();
