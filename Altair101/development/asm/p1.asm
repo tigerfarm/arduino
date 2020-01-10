@@ -9,7 +9,7 @@
         TERMB   equ     0ffh        ; Name for a value. Similar to: TERMB = 0ffh;
         Hello   db      'Hello'     ; Translate into bytes with a terminate byte (TERMB).
                                     ; --------------------------------------
-    ; Halt:       hlt                 ; This needs to be parsed.
+    Halt1:      hlt                 ; This needs to be parsed.
     Halt:                           ; The program will halt at each iteration, after the first.
                 hlt                 ; The program will halt at each iteration, after the first.
                                     ; --------------------------------------
@@ -38,8 +38,8 @@
                                     ; ------------------------------------------
                 org 80h
                                     ;
-                ds 2                ;stack space
-        ;stack  equ $
+                ds 2                ; Stack space
+        stack   equ $               ; What is "$"? It seems to be an address, not an immediate value.
                                     ;
         scoreL  ds 1                ;score for left paddle 
         scoreR  ds 1                ;score for right paddle

@@ -12,12 +12,12 @@ package asm;
 
     Be consistent with label and name case sensitivity.
 
-    Add parsing for the following (see program p1.asm).
-    Required for the Pong assembler program.
-
     Add parsing for a label on an opcode line.
         Halt:   hlt
         ledOut: lxi     h,0         ;HL=16 bit counter
+
+    Add parsing for the following (see program p1.asm).
+    Required for the Pong assembler program.
 
     Add logic for assembler directive, org.
                 org 0
@@ -636,6 +636,8 @@ public class fileProcess {
         }
         // ---------------------------------------------------------------------
         // Label line: "Start:"
+        //  1) Start:
+        //  2) Halt1:      hlt
         if (theLine.endsWith(":")) {
             label = theLine.substring(0, theLine.length() - 1);
             parseLabel(label);
@@ -723,6 +725,9 @@ public class fileProcess {
         // ++ parseLine, ds directive: part1|scorer| part3|1|
         // ------------------------------------------
         if (part2.equals("equ")) {
+            if (part3.equals("$")) {
+                part3 = "0";
+            }
             System.out.println("++ parseLine, equ directive: part1|" + part1 + "| part3|" + part3 + "|");
             parseName(part1, part3);
             return;
