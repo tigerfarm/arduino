@@ -1,6 +1,7 @@
                 ;---------------------------------------------------------------
                 ;  PONG for Altair front panel.
-                ;     May 2014, Mike Douglas
+                ;       May 2014, Mike Douglas
+                ;       https://altairclone.com/downloads/front_panel/PONG.PRN
                 ; 
                 ;  Left player quickly toggles A15 to hit the "ball."
                 ;  Right player toggles A8.

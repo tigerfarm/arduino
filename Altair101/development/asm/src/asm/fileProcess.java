@@ -13,8 +13,8 @@ package asm;
     Add a note at the end to signify there was an error.
     + Improve error handling.
 
-    + Required for the Pong assembler program.
-    ++ Add logic for assembler directive, org.
+    Still required for the Pong assembler program.
+    + Add logic for assembler directive, org.
                 org 0
                 org 80h
 
@@ -44,6 +44,8 @@ public class fileProcess {
     private final String SEPARATOR_TEMP = "^^";
     private final int NAME_NOT_FOUND = 256;
     private final int DB_STRING_TERMINATOR = 255;   // ffh = B11111111
+    private int errorCount = 0;
+    private static int ignoreFirstCharacters = 0;
     //
     // Use for storing program bytes and calculating label addresses.
     private int programCounter = 0;
@@ -301,6 +303,7 @@ public class fileProcess {
             try {
                 returnValue = Integer.parseInt(findName);
             } catch (NumberFormatException e) {
+                errorCount++;
                 System.out.println("\n- Error, address label not found: " + findName + ".\n");
                 returnValue = 0;
             }
@@ -609,6 +612,7 @@ public class fileProcess {
     // -------------------------------------------------------------------------
     // Parse program lines.
     private void parseLine(String orgLine) {
+        String theLine;
         String theRest;
         int ei;
         int c1;
@@ -618,8 +622,13 @@ public class fileProcess {
         opcodeBinary = 0;
         p1 = "";
         p2 = "";
+
+        if (ignoreFirstCharacters > 0 && orgLine.length() > ignoreFirstCharacters) {
+            theLine = orgLine.substring(ignoreFirstCharacters, orgLine.length()).trim();
+        } else {
+            theLine = orgLine.trim();
+        }
         //
-        String theLine = orgLine.trim();
         if (theLine.length() == 0) {
             System.out.println("++");
             return;
@@ -773,10 +782,14 @@ public class fileProcess {
     // -------------------------------------------------------------------------
     // File level process: parse and listing.
     public void printProgramByteArray(fileProcess thisProcess, String theReadFilename) {
+        errorCount = 0;
         thisProcess.parseFile(theReadFilename);
         thisProcess.setProgramByteAddresses();
         thisProcess.setProgramByteImmediates();
         thisProcess.printProgramBytesArray();
+        if (errorCount > 0) {
+            System.out.println("-- Number of errors: " + errorCount);
+        }
     }
 
     public void parseFile(String theReadFilename) {
@@ -787,6 +800,7 @@ public class fileProcess {
             readFile = new File(theReadFilename);
             if (!readFile.exists()) {
                 System.out.println("+ ** ERROR, theReadFilename does not exist.");
+                errorCount++;
                 return;
             }
             fin = new FileInputStream(readFile);
@@ -802,6 +816,9 @@ public class fileProcess {
             System.out.println(ioe.toString());
         }
         System.out.println("");
+        if (errorCount > 0) {
+            System.out.println("-- parseFile, Number of errors: " + errorCount);
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -813,6 +830,7 @@ public class fileProcess {
             readFile = new File(theReadFilename);
             if (!readFile.exists()) {
                 System.out.println("+ ** ERROR, theReadFilename does not exist.");
+                errorCount++;
                 return;
             }
             fin = new FileInputStream(readFile);
@@ -840,6 +858,8 @@ public class fileProcess {
         //thisProcess.printProgramByteArray(thisProcess,
         //    "/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/opCpi.asm");
 
+        ignoreFirstCharacters = 0;     // Set to 12 for Pong program.
+
         // Or process in parts with optional, extra debug listings.
         // Required, starts the process:
         thisProcess.parseFile("p1.asm");
@@ -857,6 +877,11 @@ public class fileProcess {
         //
         // Required, prints the output for use in Processor.ino:
         thisProcess.printProgramBytesArray();
+        //
+        if (thisProcess.errorCount > 0) {
+            System.out.println("\n-- Number of errors: " + thisProcess.errorCount + "\n");
+        }
+
         System.out.println("++ Exit.");
     }
 }

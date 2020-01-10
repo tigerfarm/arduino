@@ -10,7 +10,6 @@
         Hello   db      'Hello'     ; Translate into bytes with a terminate byte (TERMB).
                                     ; --------------------------------------
                 jmp 42              ; Jump to Start to bypass declarations halt.
-
     Halt1:      hlt                 ; This needs to be parsed.
     Halt:                           ; The program will halt at each iteration, after the first.
                 hlt                 ; The program will halt at each iteration, after the first.
@@ -47,8 +46,5 @@
                                     ;
         scoreL  ds 1                ;score for left paddle 
         scoreR  ds 1                ;score for right paddle
-                                    ; ------------------------------------------
-        Errors:
-                jz Nowhere
                                     ; ------------------------------------------
                                     ; End
