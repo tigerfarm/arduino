@@ -6,6 +6,7 @@
                                     ;
                                     ; --------------------------------------
                                     ; Data declarations
+        abc     equ     3
         TERMB   equ     0ffh        ; Name for a value. Similar to: TERMB = 0ffh;
         Hello   db      'Hello'     ; Translate into bytes with a terminate byte (TERMB).
                                     ; --------------------------------------
@@ -30,6 +31,7 @@
                 mov a,m             ; Move the content ('H') at the address H:L to register A.
                 cpi 42              ; Test parsing.
         CPI3:   cpi 43              ; Test label line parsing.
+                cpi abc             ; Compare to see if it's the string terminate byte.
                 cpi TERMB           ; Compare to see if it's the string terminate byte.
                 jz Done
                 out 3               ; Out A.
@@ -49,6 +51,7 @@
         scoreR  ds 1                ;score for right paddle
                                     ; ------------------------------------------
         Errors:
-                jz Nowhere
+                ; jz Nowhere
+                ; cpi Nothere
                                     ; ------------------------------------------
                                     ; End

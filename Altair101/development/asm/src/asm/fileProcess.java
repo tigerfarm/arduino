@@ -411,7 +411,7 @@ public class fileProcess {
 
     // ------------------------
     public void listImmediateValues() {
-        System.out.println("+ List immediate values...");
+        System.out.println("\n+ List immediate values...");
         Iterator<String> lName = variableName.iterator();
         Iterator<Integer> lValue = variableValue.iterator();
         while (lName.hasNext()) {
@@ -424,7 +424,7 @@ public class fileProcess {
 
     // ------------------------
     private String getImmediateValue(String findName) {
-        // System.out.println("+ getImmediateValue, findName: " + findName);
+        // System.out.println("\n+ getImmediateValue, findName: " + findName);
         String returnString = findName;
         int returnValue = NAME_NOT_FOUND;
         Iterator<String> lName = variableName.iterator();
@@ -432,15 +432,25 @@ public class fileProcess {
         while (lName.hasNext()) {
             String theName = lName.next();
             int theValue = lValue.next();
-            if (theName.equals(findName.toLowerCase())) {
+            if (theName.toLowerCase().equals(findName.toLowerCase())) {
                 returnValue = theValue;
                 // System.out.println("+ Found theValue: " + returnValue);
                 break;
             }
         }
-        if (returnValue != NAME_NOT_FOUND) {
+        if (returnValue == NAME_NOT_FOUND) {
+            //System.out.println("+ getImmediateValue, not found: " + findName + ".");
+            returnString = findName;
+            try {
+                Integer.parseInt(returnString);
+            } catch (NumberFormatException e) {
+                errorCount++;
+                System.out.println("\n- Error, immediate label not found: " + findName + ".\n");
+            }
+        } else {
             returnString = Integer.toString(returnValue);
         }
+        // System.out.println("+ getImmediateValue, returnString: " + returnString);
         return returnString;
     }
 
@@ -460,8 +470,9 @@ public class fileProcess {
                 String sImmediate = theValue.substring("immediate:".length());
                 // ++ immediate:TERMB
                 // ++ immediate:42
-                programBytes.set(i, "immediate" + SEPARATOR + sImmediate + SEPARATOR + getImmediateValue(sImmediate));
-                System.out.println("++ immediate" + SEPARATOR + sImmediate + SEPARATOR + getImmediateValue(sImmediate));
+                sImmediate = getImmediateValue(sImmediate);
+                programBytes.set(i, theValue + SEPARATOR + sImmediate);
+                System.out.println("++ " + theValue + SEPARATOR + sImmediate);
                 // ++ immediate:TERMB:255
                 // ++ immediate:42:42
             }
@@ -865,8 +876,8 @@ public class fileProcess {
         thisProcess.parseFile("p1.asm");
         //
         // Optional, used for debugging:
-        thisProcess.listImmediateValues();
         thisProcess.listLabelAddresses();
+        thisProcess.listImmediateValues();
         //
         // Required, sets actual values:
         thisProcess.setProgramByteAddresses();
