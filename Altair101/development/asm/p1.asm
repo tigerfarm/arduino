@@ -37,7 +37,11 @@
                 ret
                                     ; ------------------------------------------
                 org 80h
-                scoreL   ds 1       ;score for left paddle 
-                scoreR   ds 1       ;score for right paddle
+                                    ;
+                ds 2                ;stack space
+        ;stack  equ $
+                                    ;
+        scoreL  ds 1                ;score for left paddle 
+        scoreR  ds 1                ;score for right paddle
                                     ; ------------------------------------------
                                     ; End

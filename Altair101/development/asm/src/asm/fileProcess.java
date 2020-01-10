@@ -2,26 +2,20 @@ package asm;
 
 /*
     Program sections:
-    + Program byte output: Listing and printing bytes.
-    + Assembler directive: Label management: parsing, listing, and setting label program byte values.
+    + Program byte output: listing and printing program bytes.
+    + Program byte output: printing program bytes into an array for use in Processor.ino.
+    + Address label name and value management.
+    + Immediate variable name and value management.
     + Parse opcodes into program bytes.
     + Parse program lines.
-    + File level process: read and parse or list files.
+    + File level process: read files, and parse or list the files.
 
-    Update: setProgramByteAddresses
-    Update: setProgramByteImmediates
+    Be consistent with label and name case sensitivity.
 
     Add parsing for the following (see program p1.asm).
-    This is based on the Pong assembler program.
+    Required for the Pong assembler program.
 
-    Add logic for assembler directive, ds.
-                lxi     h,scoreL    ; Increment left misses. "scoreL" is a memory address.
-                ...
-        scoreL  ds      1           ; Score for left paddle. "1" is the number of bytes.
-
-    Need to handle addresses better, for example: lb:Loop:2 --or-- lb:5:
-
-    Add parsing for a label on a opcode line.
+    Add parsing for a label on an opcode line.
         Halt:   hlt
         ledOut: lxi     h,0         ;HL=16 bit counter
 
@@ -29,9 +23,8 @@ package asm;
                 org 0
                 org 80h
 
-    Add for stack.
-                ds      2           ;stack space
-007D =         stack    equ     $
+    Add for stack. Or ignore the command because Processor.ino has separate stack memory.
+                stack    equ     $
  */
 import static asm.opcodes8080.byteToString;
 import java.io.*;
@@ -62,6 +55,7 @@ public class fileProcess {
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
     // Program byte output: Listing and printing bytes.
+    
     public void listProgramBytes() {
         System.out.println("\n+ List Program Bytes:");
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
@@ -258,8 +252,9 @@ public class fileProcess {
 
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
-    // Assembler directive: Label management:
-    // + Parsing, listing, and setting label program byte values.
+    // Address label name and value management.
+    //  Parsing, listing, and setting address program byte values.
+    
     private String label;
     private final List<String> labelName = new ArrayList<>();
     private final List<Integer> labelAddress = new ArrayList<>();
@@ -371,8 +366,10 @@ public class fileProcess {
 
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
+    // Immediate variable name and value management.
     // Assembler directive: DB and DS Variable name management:
     // + Parsing, listing, and setting label program byte values.
+    
     private final List<String> variableName = new ArrayList<>();
     private final List<Integer> variableValue = new ArrayList<>();
 
