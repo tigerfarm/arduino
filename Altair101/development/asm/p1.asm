@@ -39,7 +39,7 @@
                 org 80h
                                     ;
                 ds 2                ; Stack space
-        stack   equ $               ; What is "$"? It seems to be an address, not an immediate value.
+        stack   equ $               ; Confirm the meaning of "$". It seems to be an address, not an immediate value.
                                     ;
         scoreL  ds 1                ;score for left paddle 
         scoreR  ds 1                ;score for right paddle

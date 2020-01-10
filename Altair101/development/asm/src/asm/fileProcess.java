@@ -54,7 +54,6 @@ public class fileProcess {
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
     // Program byte output: Listing and printing bytes.
-    
     public void listProgramBytes() {
         System.out.println("\n+ List Program Bytes:");
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
@@ -253,7 +252,6 @@ public class fileProcess {
     // -------------------------------------------------------------------------
     // Address label name and value management.
     //  Parsing, listing, and setting address program byte values.
-    
     private String label;
     private final List<String> labelName = new ArrayList<>();
     private final List<Integer> labelAddress = new ArrayList<>();
@@ -368,7 +366,6 @@ public class fileProcess {
     // Immediate variable name and value management.
     // Assembler directive: DB and DS Variable name management:
     // + Parsing, listing, and setting label program byte values.
-    
     private final List<String> variableName = new ArrayList<>();
     private final List<Integer> variableValue = new ArrayList<>();
 
@@ -666,6 +663,13 @@ public class fileProcess {
         // ------------------------------
         // Get the other line components.
         String part1asIs = theLine.substring(0, c1);
+        if (part1asIs.endsWith(":")) {
+            // Stacy, example:
+            // Label line:
+            //  2) Halt1:      hlt
+            parseLabel(part1asIs);
+        }
+
         String part1 = theLine.substring(0, c1).toLowerCase();
         theRest = theLine.substring(c1 + 1).trim();
         // System.out.println("++ parseLine, part1|" + part1 + "| theRest|" + theRest + "|");
