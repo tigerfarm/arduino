@@ -10,19 +10,17 @@ package asm;
     + Parse program lines.
     + File level process: read files, and parse or list the file lines.
 
-    Be consistent with label and name case sensitivity.
-    + Match, getLabelAddress() with the address names being added.
-    + Match, getImmediateValue() with the immediates being added.
-
     Add a note at the end to signify there was an error.
     + Improve error handling.
 
-    Add parsing for the following (see program p1.asm).
-    Required for the Pong assembler program.
-
-    Add logic for assembler directive, org.
+    + Required for the Pong assembler program.
+    ++ Add logic for assembler directive, org.
                 org 0
                 org 80h
+
+    Be consistent with label and name case sensitivity.
+    + Match, getLabelAddress() with the address names being added.
+    + Match, getImmediateValue() with the immediates being added.
 
     Note, currently, "stack" is not use in Processor.ino because it has separate stack memory.
                 stack    equ     $
