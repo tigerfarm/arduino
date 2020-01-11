@@ -55,7 +55,7 @@ rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapp
 
 Arithmetic:
 dad RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L, into H:L. And set carry bit.
-inr D    00 DDD 101  1  Increment register DDD. To do, set flags: ZSPA.
+inr D    00 DDD 100  1  Increment register DDD. To do, set flags: ZSPA.
 dcr D    00 DDD 101  1  Decrement register DDD. To do, set flags: ZSPA.
 inx RP   00 RP0 011  1  Increment a register pair (a 16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
 
@@ -83,7 +83,7 @@ dcr D    00 DDD 101  1  Decrement a register. To do, set flags: ZSPA.
 hlt      01 110 110  1  Halt processor.
 lxi RP,a 00 RP0 001  3  Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.
 in pa    11 011 011  2  Read port a data into the accumulator. Example, a=0377 is the sense switches.
-inr D    00 DDD 101  1  Increment a register. To do, set flags: ZSPA.
+inr D    00 DDD 100  1  Increment a register. To do, set flags: ZSPA.
 inx RP   00 RP0 011  1  Increment a register pair (a 16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
 jnc a    11 010 010  3  Jump if not carry bit, i.e. if carry bit value is 0, false, not set.
 jmp a    11 000 011  3  Unconditional jump.

@@ -1,4 +1,5 @@
                                     ; --------------------------------------
+                                    ; Test address values and variables and strings.
                                     ; Sample routine to print DB strings.
                                     ;
                                     ; --------------------------------------
@@ -8,8 +9,9 @@
                                     ; Data declarations.
                                     ;
         Hello   db      'Hello'     ; Strings to print out.
-        ;SPACE   equ     ' '
         ;There   db      'there.'
+        SPACE   equ     32          ; 32 is space, ' '.
+        NL      equ     10          ; 10 is new line, '\n'.
         ;TERMB   equ     0ffh        ; String terminator.
                                     ; --------------------------------------
     Halt:       hlt                 ; The program will halt at each iteration, after the first.
@@ -20,9 +22,22 @@
                 out 35              ; Echo the register L.
                 lda Hello           ; Load the data from Hello address to register A.
                 out 37              ; Echo the register A.
-                mov a,m             ; Move the data from H:L address to register A. (HL) -> A. 
+                mov a,m
                 out 37              ; Echo the register A.
+                mvi a,NL
                 out 3               ; Out register A to the serial terminal port.
+                mov a,m             ; Move the data from H:L address to register A. (HL) -> A. 
+                out 3 
+                mvi a,NL
+                out 3
+                                    ; ------------------------------------------
+                                    ; Print the next character.
+                inr m               ; Increment M, H:L address. (HL)+1 -> (HL).
+                mov a,m             ; Move the data from H:L address to register A. (HL) -> A. 
+                out 3 
+                mvi a,NL
+                out 3
+                                    ; ------------------------------------------
                 jmp Halt            ; Stop to confirm the correct addresses and data.
                                     ; ------------------------------------------
                                     ; End

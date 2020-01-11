@@ -104,13 +104,17 @@
 // -----------------------------------------------------------------------------
 // Code compilation options.
 
-#define INCLUDE_CLOCK 1
+// #define INCLUDE_CLOCK 1
 // #define INCLUDE_LCD 1
 // #define INCLUDE_SDCARD 1
 // #define RUN_DELAY 1
-// #define RUN_NOW 1
+#define RUN_NOW 1
 #define SWITCH_MESSAGES 1
 // #define LOG_MESSAGES 1
+// #define INCLUDE_AUX 1
+
+// -----------------------------------------------------------------------------
+// Program states
 
 #define PROGRAM_WAIT 0
 #define PROGRAM_RUN 1
@@ -148,11 +152,13 @@ void pcf20interrupt() {
 // -----------------------------------------------------------------------------
 // Front Panel AUX Switches
 
+#ifdef INCLUDE_AUX
 //                              Mega pins
 const int CLOCK_SWITCH_PIN =    A11;  // Tested pins, works: 4, A11. Doesn't work: 24, 33.
 const int PLAYER_SWITCH_PIN =   A12;
 const int UPLOAD_SWITCH_PIN =   A13;
 const int DOWNLOAD_SWITCH_PIN = A14;
+#endif
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -165,7 +171,10 @@ const int clockPinLed = 9;    // pin 11 Clock pin.
 
 // Status LED light,
 // HLDA : 8080 processor go into a hold state because of other hardware.
+
+#ifdef INCLUDE_AUX
 const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock processing (on/HIGH).
+#endif
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -207,13 +216,23 @@ const byte theProgram[] = {
   B00100001, 3, 0,     //  10: lxi h,Hello
   B11100011, 34,       //  13: out 34
   B11100011, 35,       //  15: out 35
-  B00110010, 3, 0,     //  17: lda Hello
+  B00111010, 3, 0,     //  17: lda Hello
   B11100011, 37,       //  20: out 37
   B01111110,           //  22: mov a,m
   B11100011, 37,       //  23: out 37
-  B11100011, 3,        //  25: out 3
-  B11000011, 9, 0,     //  27: jmp Halt
-  0                    //  30: End of program
+  B00111110, 10,       //  25: mvi 00111110 (NL)
+  B11100011, 3,        //  27: out 3
+  B01111110,           //  29: mov a,m
+  B11100011, 3,        //  30: out 3
+  B00111110, 10,       //  32: mvi 00111110 (NL)
+  B11100011, 3,        //  34: out 3
+  B00101100,           //  36: inr m
+  B01111110,           //  37: mov a,m
+  B11100011, 3,        //  38: out 3
+  B00111110, 10,       //  40: mvi 00111110 (NL)
+  B11100011, 3,        //  42: out 3
+  B11000011, 9, 0,     //  44: jmp Halt
+  0                    //  47: End of program
 };
 
 // -----------------------------------------------------------------------------
@@ -244,7 +263,7 @@ const byte theProgramKtb[] = {
 // -----------------------------------------------------------------------------
 // Memory definitions
 
-const int memoryBytes = 1024;  // When using Mega: 1024
+const int memoryBytes = 128;  // When using Mega: 1024, for Nano: 128
 byte memoryData[memoryBytes];
 unsigned int programCounter = 0;     // Program address value
 
@@ -391,7 +410,7 @@ const byte WAIT_OFF =   B11111110;
 // INTE is on when interrupts are enabled.
 // INTE is off when interrupts are disabled.
 
-// For STA and LDa,
+// For STA and LDA,
 // See the video: https://www.youtube.com/watch?v=3_73NwB6toY : 1:30 to 6:05 time.
 // ---
 // Process instruction: lda 40Q
@@ -1030,7 +1049,7 @@ void processOpcode() {
 #ifdef LOG_MESSAGES
       Serial.print(F("+ HLT opcode, program halted."));
 #else
-      Serial.println(F("+ HLT opcode, program halted."));
+      Serial.println(F("\n+ HLT opcode, program halted."));
 #endif
       controlStopLogic();
       break;
@@ -1140,6 +1159,25 @@ void processOpcode() {
       }
 #ifdef LOG_MESSAGES
       Serial.print("++ = ");
+      Serial.print(regL);
+#endif
+      break;
+    case B00110100:
+    // stacy
+#ifdef LOG_MESSAGES
+      Serial.print(F("> inr address M (H:L): "));
+      Serial.print(regH);
+      Serial.print(":");
+      Serial.print(regL);
+#endif
+      regL++;
+      if (regL == 0) {
+        regH++;
+      }
+#ifdef LOG_MESSAGES
+      Serial.print("++ = ");
+      Serial.print(regH);
+      Serial.print(":");
       Serial.print(regL);
 #endif
       break;
@@ -3260,6 +3298,7 @@ void checkRunningButtons() {
 // -----------------------------------------------------------------------------
 // Front Panel AUX Switches
 
+#ifdef INCLUDE_AUX
 // Only do the action once, don't repeat if the switch is held down.
 // Don't repeat action if the switch is not pressed.
 boolean clockSwitchState = true;
@@ -3342,6 +3381,7 @@ void checkDownloadSwitch() {
     }
   }
 }
+#endif
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------
@@ -3612,6 +3652,7 @@ void setup() {
   Serial.println("+ PCF8574 modules initialized.");
 
   // AUX device switches.
+#ifdef INCLUDE_AUX
   pinMode(HLDA_PIN, OUTPUT);    // Indicator: clock process (LED on) or emulator (LED off).
   digitalWrite(HLDA_PIN, LOW);  // Default to emulator.
   pinMode(CLOCK_SWITCH_PIN, INPUT_PULLUP);
@@ -3619,7 +3660,7 @@ void setup() {
   pinMode(UPLOAD_SWITCH_PIN, INPUT_PULLUP);
   pinMode(DOWNLOAD_SWITCH_PIN, INPUT_PULLUP);
   Serial.println(F("+ Toggle/button switches are configured for input."));
-
+#endif
   // ----------------------------------------------------
   pinMode(latchPinLed, OUTPUT);
   pinMode(clockPinLed, OUTPUT);
@@ -3692,13 +3733,16 @@ void loop() {
         checkControlButtons();
         pcf20interrupted = false; // Reset for next interrupt.
       }
+#ifdef INCLUDE_AUX
       checkClockSwitch();
       checkPlayerSwitch();
       checkUploadSwitch();
       checkDownloadSwitch();
+#endif
       delay(60);
       break;
     // ----------------------------
+#ifdef INCLUDE_AUX
     case CLOCK_RUN:
       Serial.println(F("+ State: CLOCK_RUN"));
       clockRun();
@@ -3707,6 +3751,7 @@ void loop() {
     case PLAYER_RUN:
       Serial.println(F("+ State: PLAYER_RUN"));
       break;
+#endif
   }
 
 }

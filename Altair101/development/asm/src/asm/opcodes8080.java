@@ -32,9 +32,9 @@ xra S    10 101 SSS  1  Exclusive OR, the register(R) with register A.
 Opcodes implemented by this assembler, implemented in Processor.ino, but not tested.
 Opcode   Binary   Cycles Description
 -------------------------------------
-lda a    00 110 010  3  Load register A with data from the address, a(hb:lb).
-inx RP   00 RP0 011  1  Increment a register pair(16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
+lda a    00 111 010  3  Load register A with data from the address, a(hb:lb).
 sta a    00 110 010  3  Store register A to the address, a(hb:lb).
+inx RP   00 RP0 011  1  Increment a register pair(16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
 
 dcr D    00 DDD 101  1  Decrement a register. To do, set flags: ZSPA.
 shld a   00 100 010  3  Store data value from memory location: a(address hb:lb), to register L. Store value at: a + 1, to register H.
@@ -187,21 +187,23 @@ public class opcodes8080 {
         value[top++] = (byte) 0b11011011;
         // ---------------------------------------------------------------------
         name[top] = "inr";
-        info[top] = "INR D    00 DDD 101  1  Increment register DDD. To do, set flags: ZSPA.";
-        name[top] = "inra";  // 00DDD101
-        value[top++] = (byte) 0b00111101;
+        info[top] = "INR D    00 DDD 100  1  Increment register DDD. To do, set flags: ZSPA.";
+        name[top] = "inra";  // 00DDD100
+        value[top++] = (byte) 0b00111100;
         name[top] = "inrb";
-        value[top++] = (byte) 0b00000101;
+        value[top++] = (byte) 0b00000100;
         name[top] = "inrc";
-        value[top++] = (byte) 0b00001101;
+        value[top++] = (byte) 0b00001100;
         name[top] = "inrd";
-        value[top++] = (byte) 0b00010101;
+        value[top++] = (byte) 0b00010100;
         name[top] = "inre";
-        value[top++] = (byte) 0b00011101;
+        value[top++] = (byte) 0b00011100;
         name[top] = "inrh";
-        value[top++] = (byte) 0b00100101;
+        value[top++] = (byte) 0b00100100;
         name[top] = "inrl";
-        value[top++] = (byte) 0b00101101;
+        value[top++] = (byte) 0b00101100;
+        name[top] = "inrm";
+        value[top++] = (byte) 0b00101100;
         // ---------------------------------------------------------------------
         name[top] = "inx";
         info[top] = "INX RP   00 RP0 011  1  Increment a register pair(16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.";
@@ -230,8 +232,8 @@ public class opcodes8080 {
         value[top++] = (byte) 0b11011010;
         // ---------------------------------------------------------------------
         name[top] = "lda";
-        info[top] = "LDA a    00 110 010  3  Load register A with data from the address, a(hb:lb).";
-        value[top++] = (byte) 0b00110010;
+        info[top] = "LDA a    00 111 010  3  Load register A with data from the address, a(hb:lb).";
+        value[top++] = (byte) 0b00111010;
         // ---------------------------------------------------------------------
         name[top] = "ldax";
         info[top] = "LDAX RP    00RP1010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.";
