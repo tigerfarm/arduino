@@ -57,14 +57,23 @@
 #define INCLUDE_CLOCK 1
 #define CLOCK_MESSAGES 1
 #define INCLUDE_PCF8574 1
-// #define INCLUDE_SDCARD 1
-// #define SDCARD_MESSAGES 1
+#define INCLUDE_SDCARD 1
+#define SDCARD_MESSAGES 1
 
 #ifdef INCLUDE_PCF8574
 // -----------------------------------------------------------------------------
 #define SWITCH_MESSAGES 1
 
 bool runProgram = false;
+
+// -----------------------------------------------------------------------------
+// Program states
+
+#define PROGRAM_WAIT 0
+#define PROGRAM_RUN 1
+#define CLOCK_RUN 2
+#define PLAYER_RUN 3
+int programState = PROGRAM_WAIT;  // Intial, default.
 
 // -----------------------------------------------------------------------------
 #include <PCF8574.h>
@@ -675,7 +684,7 @@ void clockRun() {
   theCounterSeconds = 0;  // Reset to cause the immediate display of time.
   while (programState == CLOCK_RUN) {
     processClockNow();
-    checkRunningButtons();
+    // checkRunningButtons();
     delay(100);
   }
 }
@@ -745,7 +754,6 @@ void toggleLcdBacklight() {
     lcd.backlight();
   }
 }
-#endif
 
 int theSetRow = 1;
 int theSetCol = 0;
@@ -761,11 +769,13 @@ void cancelSet() {
     setClockValue = false;
   }
 }
+#endif
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------
 // Menu items to set the clock date and time values.
 
+#ifdef INCLUDE_CLOCK
 void setClockMenuItems() {
   if (!theLcdBacklightOn) {
     // Don't make clock setting changes when the LCD is off.
@@ -832,6 +842,7 @@ void setClockMenuItems() {
       break;
   }
 }
+#endif
 
 void infraredSwitch() {
   switch (results.value) {
@@ -926,11 +937,13 @@ void infraredSwitch() {
         theCounterSeconds ++;
         delay(100);
         //
+#ifdef INCLUDE_CLOCK
         rtc.adjust(DateTime(theCounterYear, theCounterMonth, theCounterDay, theCounterHours, theCounterMinutes, theCounterSeconds));
         displayPrintln(theSetRow, "Value is set.");
         printClockDate();
         delay(2000);
         displayPrintln(theSetRow, "");
+#endif
       }
       // Serial.println(".");
       //
@@ -1013,7 +1026,6 @@ void infraredSwitch() {
 #define PROGRAM_RUN 1
 #define CLOCK_RUN 2
 #define PLAYER_RUN 3
-int programState = PROGRAM_WAIT;
 
 const int CLOCK_SWITCH_PIN = A11;  // Tested pins, works: 4, A11. Doesn't work: 24, 33.
 const int PLAYER_SWITCH_PIN = A12;

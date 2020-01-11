@@ -39,6 +39,30 @@ pcf8574inputLogic.ino further develops the code by adding logic that is used in 
   ++ Status light: clock function or emulator control.
   ++ HLDA : 8080 processor go into a hold state because of other hardware.
 
+  ----------
+  SD card program read and write,
+  + Read(download) and write(uplaod) switches need to be connected to Mega pins.
+  + Logic to monitor and react to the switches.
+  + When saving or reading a file, get the filename from the sense switches.
+  ++ If switches are set to: 00000101, then the filename is: 00000101.bin.
+  + When rebooting or resetting the Mega, if 00000000.bin exists, load and run it.
+  + Display LED lights to notify read/write success or failure.
+  + Confirm saving or reading a file.
+
+  ---------------------------------------------
+  Program Development Phase
+
+  Create an assembler to convert assembly programs into machine code.
+  + Basic assembler works.
+  + Add more opcodes and create more opcode test programs.
+  + Need to handle directives:
+  ++ org : initial address location to load the following bytes.
+  ++ equ : Variable value declarations.
+  ++ db : String label address declarations, and covert to bytes.
+  ++ Sample program: p1.asm.
+  + Compile and run the next major Altair 8800 sample program, Pong.
+  + Create more samples: looping, branching, calling subroutines, sense switch interation.
+
 ````
 --------------------------------------------------------------------------------
 

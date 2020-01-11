@@ -28,12 +28,8 @@
 
   ----------
   SD card program read and write,
-  + Read(download) and write(uplaod) switches need to be connected to Mega pins.
-  + Logic to monitor and react to the switches.
-  + When saving or reading a file, get the filename from the sense switches.
-  ++ If switches are set to: 00000101, then the filename is: 00000101.bin.
+  + Status HLDA on while reading or writing.
   + When rebooting or resetting the Mega, if 00000000.bin exists, load and run it.
-  + Display LED lights to notify read/write success or failure.
   + Confirm saving or reading a file.
 
   ---------------------------------------------
@@ -42,11 +38,6 @@
   Create an assembler to convert assembly programs into machine code.
   + Basic assembler works.
   + Add more opcodes and create more opcode test programs.
-  + Need to handle directives:
-  ++ org : initial address location to load the following bytes.
-  ++ equ : Variable value declarations.
-  ++ db : String label address declarations, and covert to bytes.
-  ++ Sample program: p1.asm.
   + Compile and run the next major Altair 8800 sample program, Pong.
   + Create more samples: looping, branching, calling subroutines, sense switch interation.
 
@@ -68,6 +59,7 @@
     I/O: Clock functions.
     ----------------------------
     Input: Front Panel toggle switch control and data entry events
+    Input: Front Panel toggle switch AUX events for devices: clock and SD card module.
     Input: Infrared switch events
     ----------------------------
     setup() : Computer initialization.
@@ -101,7 +93,7 @@
 #define INCLUDE_AUX 1
 #define INCLUDE_CLOCK 1
 // #define INCLUDE_LCD 1
-// #define INCLUDE_SDCARD 1
+#define INCLUDE_SDCARD 1
 // #define RUN_DELAY 1
 // #define RUN_NOW 1
 #define SWITCH_MESSAGES 1
@@ -188,7 +180,8 @@ const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock processi
 // Note, Nano pins are declared in the SPI library for SCK, MOSI, and MISO.
 
 // The CS pin is the only one that is not really fixed as any of the Arduino digital pin.
-const int csPin = 10;  // SD Card module is connected to Nano pin 10.
+// const int csPin = 10;  // SD Card module is connected to Nano pin 10.
+const int csPin = 53;  // SD Card module is connected to Mega pin 53.
 
 File myFile;
 
@@ -1199,7 +1192,7 @@ void processOpcode() {
 #endif
       break;
     case B00110100:
-    // stacy
+      // stacy
 #ifdef LOG_MESSAGES
       Serial.print(F("> inr address M (H:L): "));
       Serial.print(regH);
@@ -2845,51 +2838,110 @@ void printRegisters() {
 // -----------------------------------------------------------------------------
 #ifdef INCLUDE_SDCARD
 
+// Handle the case if the card is not inserted. Once inserted, the module will be re-initialized.
+boolean sdcardFailed = false;
+void initSdcard() {
+  sdcardFailed = false;
+  if (!SD.begin(csPin)) {
+    sdcardFailed = true;
+    Serial.println("- Error initializing SD card.");
+    return; // When used in setup(), causes jump to loop().
+  }
+  Serial.println("+ SD card initialized.");
+}
+
+void ledFlashSuccess() {
+  int delayTime = 60;
+  lightsStatusAddressData(0, 0, B00000000);
+  delay(delayTime);
+  for (int i = 0; i < 2; i++) {
+    byte flashByte = B10000000;
+    for (int i = 0; i < 8; i++) {
+      lightsStatusAddressData(0, 0, flashByte);
+      flashByte = flashByte >> 1;
+      delay(delayTime);
+    }
+    flashByte = B00000001;
+    for (int i = 0; i < 8; i++) {
+      lightsStatusAddressData(0, 0, flashByte);
+      flashByte = flashByte << 1;
+      delay(delayTime);
+    }
+  }
+  // Reset to original.
+  lightsStatusAddressData(statusByte, programCounter, dataByte);
+}
+void ledFlashError() {
+  int delayTime = 300;
+  for (int i = 0; i < 3; i++) {
+    lightsStatusAddressData(0, 0, B11111111);
+    delay(delayTime);
+    lightsStatusAddressData(0, 0, B00000000);
+    delay(delayTime);
+  }
+  // Reset to original.
+  lightsStatusAddressData(statusByte, programCounter, dataByte);
+}
+
 // -------------------------------------
 // Write Program memory to a file.
 
 void writeProgramMemoryToFile(String theFilename) {
-  Serial.println("+ Write program memory to a new file named: ");
-  Serial.print(theFilename);
-  Serial.println("+ Check if file exists. ");
+  if (sdcardFailed) {
+    initSdcard();
+  }
+  // Serial.print(F("+ Write program memory to a new file named: "));
+  // Serial.println(theFilename);
+  // Serial.println("+ Check if file exists. ");
   if (SD.exists(theFilename)) {
     SD.remove(theFilename);
-    Serial.println("++ Exists, so it was deleted.");
+    // Serial.println("++ Exists, so it was deleted.");
   } else {
-    Serial.println("++ Doesn't exist.");
+    // Serial.println("++ Doesn't exist.");
   }
   myFile = SD.open(theFilename, FILE_WRITE);
   if (!myFile) {
-    Serial.print("- Error opening file: ");
+    Serial.print(F("- Error opening file: "));
     Serial.println(theFilename);
+    ledFlashError();
+    sdcardFailed = true;
     return; // When used in setup(), causes jump to loop().
   }
-  Serial.println("++ New file opened.");
-  Serial.println("++ Write binary memory to the file.");
+  // Serial.println("++ New file opened.");
+  // Serial.println("++ Write binary memory to the file.");
   for (int i = 0; i < memoryBytes; i++) {
     myFile.write(memoryData[i]);
   }
   myFile.close();
-  Serial.println("+ Completed, file closed.");
+  Serial.println(F("+ Write completed, file closed."));
+  ledFlashSuccess();
 }
 
 // -------------------------------------
 // Read program memory from a file.
 
 void readProgramFileIntoMemory(String theFilename) {
-  Serial.println("+ Read a file into program memory, file named: ");
-  Serial.print(theFilename);
-  Serial.println("+ Check if file exists. ");
+  if (sdcardFailed) {
+    initSdcard();
+  }
+  // Serial.println("+ Read a file into program memory, file named: ");
+  // Serial.print(theFilename);
+  // Serial.println("+ Check if file exists. ");
   if (SD.exists(theFilename)) {
-    Serial.println("++ Exists, so it can be read.");
+    // Serial.println("++ Exists, so it can be read.");
   } else {
-    Serial.println("++ Doesn't exist, cannot read.");
+    Serial.print(F("- Read ERROR, file doesn't exist: "));
+    Serial.println(theFilename);
+    ledFlashError();
+    sdcardFailed = true;
     return;
   }
   myFile = SD.open(theFilename);
   if (!myFile) {
-    Serial.print("- Error opening file: ");
+    Serial.print(F("- Read ERROR, cannot open file: "));
     Serial.println(theFilename);
+    ledFlashError();
+    sdcardFailed = true;
     return;
   }
   int i = 0;
@@ -2907,11 +2959,12 @@ void readProgramFileIntoMemory(String theFilename) {
 #endif
     i++;
     if (i > memoryBytes) {
-      Serial.println("-+ Warning, file contains more data bytes than available memory.");
+      Serial.println(F("-+ Warning, file contains more data bytes than available memory."));
     }
   }
   myFile.close();
-  Serial.println("+ File closed.");
+  Serial.println(F("+ Read completed, file closed."));
+  ledFlashSuccess();
 }
 
 #endif
@@ -3387,17 +3440,32 @@ void checkPlayerSwitch() {
     }
   }
 }
+String getSenseSwitchValue() {
+  byte bValue = toggleSenseByte();
+  String sValue = String(bValue, BIN);
+  int addZeros = 8 - sValue.length();
+  for (int i = 0; i < addZeros; i++) {
+    sValue = "0" + sValue;
+  }
+  return sValue;
+}
 void checkUploadSwitch() {
   if (digitalRead(UPLOAD_SWITCH_PIN) == HIGH) {
     if (!uploadSwitchState) {
-      Serial.println(F("+ Upload switch released."));
+      // Serial.println(F("+ Upload switch released."));
       uploadSwitchState = false;
       // Switch logic ...
+#ifdef INCLUDE_SDCARD
+      String theFilename = getSenseSwitchValue() + ".bin";
+      Serial.print(F("+ Write memory to filename: "));
+      Serial.println(theFilename);
+      writeProgramMemoryToFile(theFilename);
+#endif
     }
     uploadSwitchState = true;
   } else {
     if (uploadSwitchState) {
-      Serial.println(F("+ Upload switch pressed."));
+      // Serial.println(F("+ Upload switch pressed."));
       uploadSwitchState = false;
       // Switch logic ...
     }
@@ -3406,14 +3474,20 @@ void checkUploadSwitch() {
 void checkDownloadSwitch() {
   if (digitalRead(DOWNLOAD_SWITCH_PIN) == HIGH) {
     if (!downloadSwitchState) {
-      Serial.println(F("+ Download switch released."));
+      // Serial.println(F("+ Download switch released."));
       downloadSwitchState = false;
       // Switch logic ...
+#ifdef INCLUDE_SDCARD
+      String theFilename = getSenseSwitchValue() + ".bin";
+      Serial.print(F("+ Read the filename into memory: "));
+      Serial.println(theFilename);
+      readProgramFileIntoMemory(theFilename);
+#endif
     }
     downloadSwitchState = true;
   } else {
     if (downloadSwitchState) {
-      Serial.println(F("+ Download switch pressed."));
+      // Serial.println(F("+ Download switch pressed."));
       downloadSwitchState = false;
       // Switch logic ...
     }
@@ -3717,6 +3791,20 @@ void setup() {
   Serial.println(F("+ Initialized: statusByte, programCounter, dataByte."));
 
   // ----------------------------------------------------
+#ifdef INCLUDE_SDCARD
+  // Note, csPin is optional. The default is the hardware SS line (pin 10) of the SPI bus.
+  // If using pin, other than 10, add: pinMode(otherPin, OUTPUT);
+  // The pin connected to the chip select pin (CS) of the SD card.
+  if (!SD.begin(csPin)) {
+    Serial.println("- Error initializing SD card.");
+    ledFlashError();
+  } else {
+    Serial.println("+ SD card initialized.");
+    ledFlashSuccess();
+  }  
+#endif
+
+  // ----------------------------------------------------
   // Initialize the Real Time Clock (RTC).
 #ifdef INCLUDE_CLOCK
   if (!rtc.begin()) {
@@ -3779,7 +3867,7 @@ void loop() {
 #endif
       delay(60);
       break;
-    // ----------------------------
+      // ----------------------------
 #ifdef INCLUDE_AUX
     case CLOCK_RUN:
       Serial.println(F("+ State: CLOCK_RUN"));
