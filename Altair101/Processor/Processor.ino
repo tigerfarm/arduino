@@ -28,6 +28,7 @@
 
   ----------
   SD card program read and write,
+  + After reading, do a reset which displays address 0 and its data byte.
   + Status HLDA on while reading or writing.
   + When rebooting or resetting the Mega, if 00000000.bin exists, load and run it.
   + Confirm saving or reading a file.
