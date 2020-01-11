@@ -1044,6 +1044,25 @@ void processOpcode() {
       Serial.print(regL);
 #endif
       break;
+    case B00110101:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> dcr M, memory address, register pair H:L: "));
+      Serial.print(regH);
+      Serial.print(":");
+      Serial.print(regL);
+#endif
+      regL--;
+      if (regL == 0) {
+        regH--;
+        regL = 255;
+      }
+#ifdef LOG_MESSAGES
+      Serial.print("-- = ");
+      Serial.print(regH);
+      Serial.print(":");
+      Serial.print(regL);
+#endif
+      break;
     // ---------------------------------------------------------------------
     case hlt:
 #ifdef LOG_MESSAGES
@@ -1223,7 +1242,7 @@ void processOpcode() {
       break;
     // ------------
     case B00100011:
-      // inx m (h:l)
+      // inx h (h:l)
       regL++;
       if (regL == 0) {
         regH++;

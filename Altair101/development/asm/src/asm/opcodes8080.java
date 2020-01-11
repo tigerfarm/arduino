@@ -14,7 +14,6 @@ dad RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L. An
 ldax RP  00 RP1 010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.
 hlt      01 110 110  1  Halt processor.
 in pa    11 011 011  2  Read port a data into the accumulator. Example, a=0377 is the sense switches.
-inr D    00 DDD 101  1  Increment a register. To do, set flags: ZSPA.
 jnc a    11 010 010  3  Jump if not carry bit, i.e. if carry bit value is 0, false, not set.
 jmp a    11 000 011  3  Unconditional jump.
 jz  a    11 001 010  3  If flagZeroBit is true, jump to address (a = lb hb).
@@ -32,11 +31,12 @@ xra S    10 101 SSS  1  Exclusive OR, the register(R) with register A.
 Opcodes implemented by this assembler, implemented in Processor.ino, but not tested.
 Opcode   Binary   Cycles Description
 -------------------------------------
+inr D    00 DDD 100  1  Increment a register. To do, set flags: ZSPA.
+dcr D    00 DDD 101  1  Decrement a register. To do, set flags: ZSPA.
 lda a    00 111 010  3  Load register A with data from the address, a(hb:lb).
 sta a    00 110 010  3  Store register A to the address, a(hb:lb).
 inx RP   00 RP0 011  1  Increment a register pair(16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
 
-dcr D    00 DDD 101  1  Decrement a register. To do, set flags: ZSPA.
 shld a   00 100 010  3  Store data value from memory location: a(address hb:lb), to register L. Store value at: a + 1, to register H.
 
 Opcodes implemented in Processor.ino, but not yet in this assembler,
