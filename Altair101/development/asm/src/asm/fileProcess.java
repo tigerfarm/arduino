@@ -10,8 +10,7 @@ package asm;
     + Parse program lines.
     + File level process: read files, and parse or list the file lines.
 
-    Add a note at the end to signify there was an error.
-    + Improve error handling.
+    Improve error handling.
 
     Still required for the Pong assembler program.
     + Add logic for assembler directive, org.
@@ -19,6 +18,7 @@ package asm;
                 org 80h
 
     Be consistent with label and name case sensitivity.
+    + Currently, not case sensitive.
     + Match, getLabelAddress() with the address names being added.
     + Match, getImmediateValue() with the immediates being added.
 
@@ -384,11 +384,12 @@ public class fileProcess {
         variableName.add(theName);
         if (theValue.endsWith("h")) {
             // Hex number. For example, change 0ffh or ffh to integer.
+            // Samples: 0ffh, 0eh
             int si = 0;
-            if (theValue.startsWith("0")) {
+            if (theValue.startsWith("0") && theValue.length()>3) {
                 si = 1;
             }
-            theValue = theValue.substring(si, 3);   // Hex string to integer.
+            theValue = theValue.substring(si, theValue.length()-1);   // Hex string to integer. Remove the "h".
             variableValue.add(Integer.parseInt(theValue, 16));
         } else {
             variableValue.add(Integer.parseInt(theValue));
@@ -399,7 +400,7 @@ public class fileProcess {
     private void parseDb(String theName, String theValue) {
         System.out.println("++ DB variable name: " + theName + ", string of bytes: " + theValue);
         labelName.add(theName);
-        labelAddress.add(programTop + 1);        // Address to the string of bytes.
+        labelAddress.add(programTop);        // Address to the string of bytes.
         for (int i = 1; i < theValue.length() - 1; i++) {
             programBytes.add("dbname:" + theName + SEPARATOR + theValue.substring(i, i + 1));
             programTop++;
@@ -764,6 +765,8 @@ public class fileProcess {
         // ++ parseLine, ds directive: part1|scorer| part3|1|
         // ------------------------------------------
         if (part2.equals("equ")) {
+            // Variable name and value.
+            // 5) TERMB   equ      0ffh
             if (part3.equals("$")) {
                 // stack   equ $    ; "$" is current address.
                 part3 = Integer.toString(programTop);
@@ -775,11 +778,15 @@ public class fileProcess {
             return;
         }
         if (part2.equals("db")) {
+            // String of bytes.
+            // 6) Hello   db       "Hello"
             System.out.println("++ parseLine, db directive: part1|" + part1 + "| part3|" + part3 + "|");
             parseDb(part1, part3);
             return;
         }
         if (part2.equals("ds")) {
+            // Number of uninitialezed bytes.
+            // 7) scoreR  ds       1
             System.out.println("++ parseLine, ds directive: part1|" + part1 + "| part3|" + part3 + "|");
             if (part3.equals("1")) {
                 parseDs(part1asIs, part3);
@@ -873,7 +880,8 @@ public class fileProcess {
 
         // Or process in parts with optional, extra debug listings.
         // Required, starts the process:
-        thisProcess.parseFile("p1.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/pong.asm");
+        thisProcess.parseFile("printDbString.asm");
         //
         // Optional, used for debugging:
         thisProcess.listLabelAddresses();

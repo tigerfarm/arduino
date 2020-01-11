@@ -29,7 +29,7 @@ Opcode   Binary   Cycles Description
 -------------------------------------
 Initialize and store values:
 mvi R,#  00 DDD 110  2  Move a number (#/db) to a register.
-mov D,S  01 DDD SSS  1  Move source register data, to the destination register.
+mov D,S  01 DDD SSS  1  Move source register data, to the destination register. If source(S) is M(110), move data from address H:L, to D.
 lxi RP,a 00 RP0 001  3  Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.
 sta a    00 110 010  3  Store register A to the address, a(hb:lb).
 lda a    00 110 010  3  Load register A with data from the address, a(hb:lb).
@@ -119,7 +119,7 @@ Inst      Encoding          Flags   Description
 ----------------------------------------------------------------------
 
 DCX RP    00RP1011          -       Decrement register pair
-LHLD a    00101010 lb hb    -       Load H:L from memory
+LHLD a    00101010 lb hb    -       Load H:L with address value. 
 ORI #     11110110          ZSPCA   OR  immediate with A
 ANA S     10100SSS          ZSCPA   AND register with A
 XRI #     11101110 db       ZSPCA   ExclusiveOR immediate with A

@@ -18,7 +18,7 @@ inr D    00 DDD 101  1  Increment a register. To do, set flags: ZSPA.
 jnc a    11 010 010  3  Jump if not carry bit, i.e. if carry bit value is 0, false, not set.
 jmp a    11 000 011  3  Unconditional jump.
 jz  a    11 001 010  3  If flagZeroBit is true, jump to address (a = lb hb).
-lxi RP,a 00 RP0 001  3  Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.
+lxi RP,a 00 RP0 001  3  Move the data at the address, a(lb hb), into address of the register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.
 mvi D,#  00 DDD 110  2  Move a number (#/db) to a register.
 mov D,S  01 DDD SSS  1  Move source register data, to the destination register.
 nop      00 000 000  1  No operation. I added a delay: delay(100).
@@ -252,7 +252,7 @@ public class opcodes8080 {
         value[top++] = (byte) 0b00100001;
         // ---------------------------------------------------------------------
         name[top] = "mov";
-        info[top] = "MOV D,S    01DDDSSS  1  Move source register data, to the destination register.";
+        info[top] = "MOV D,S    01DDDSSS  1  Move source register data, to the destination register. If source(S) is M(110), move data from address H:L, to D.";
         value[top++] = (byte) 0b01111111;   // not used
         name[top] = "movab";  //01111111
         value[top++] = (byte) 0b01111000;
@@ -266,6 +266,7 @@ public class opcodes8080 {
         value[top++] = (byte) 0b01111100;
         name[top] = "moval";
         value[top++] = (byte) 0b01111101;
+        // -----------------------------
         name[top] = "movba";  //01000111
         value[top++] = (byte) 0b01000111;
         name[top] = "movbc";
@@ -338,6 +339,21 @@ public class opcodes8080 {
         value[top++] = (byte) 0b01101011;
         name[top] = "movlh";
         value[top++] = (byte) 0b01101100;
+        // -----------------------------
+        name[top] = "movam";  //01DDDSSS
+        value[top++] = (byte) 0b01111110;
+        name[top] = "movbm";  //01DDDSSS
+        value[top++] = (byte) 0b01000110;
+        name[top] = "movcm";  //01DDDSSS
+        value[top++] = (byte) 0b01001110;
+        name[top] = "movdm";  //01DDDSSS
+        value[top++] = (byte) 0b01010110;
+        name[top] = "movem";  //01DDDSSS
+        value[top++] = (byte) 0b01011110;
+        name[top] = "movhm";  //01DDDSSS
+        value[top++] = (byte) 0b01100110;
+        name[top] = "movlm";  //01DDDSSS
+        value[top++] = (byte) 0b01101110;
         
         // ---------------------------------------------------------------------
         name[top] = "mvi";

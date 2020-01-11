@@ -7,14 +7,19 @@
                                     ; --------------------------------------
                                     ; Data declarations.
                                     ;
-        TERMB   equ     0ffh        ; Name for a value. Similar to: TERMB = 0ffh;
-        Hello   db      'Hello'
+        Hello   db      'Hello'     ; Strings to print out.
         There   db      'there.'
+        TERMB   equ     0ffh        ; String terminator.
+        aPrint  ds      2           ; Address of the byte to be sent to the serial terminal port.
                                     ; --------------------------------------
     Halt:       hlt                 ; The program will halt at each iteration, after the first.
                                     ; --------------------------------------
     Start:
-                lxi h,Hello         ; Set address to start of the string to print.
+                shld Hello          ; Copy string address to H:L.
+                out 34              ; Echo the register H.
+                out 35              ; Echo the register L.
+                jmp Halt            ; Stop  to confirm the correct address.
+                                    ; ------------------------------------------
                 call PrintString    ; Print the string.
                 lxi h,There
                 call PrintString
@@ -22,11 +27,11 @@
                                     ; ------------------------------------------
                                     ; Routine loop to print a DB string which starts a address, M.
         PrintString:
-                mov a,m             ; Move first character, at the address H:L, to register A.
+                lda aPrint          ; Load register A with data from the address, a(hb:lb).
                 cpi TERMB           ; Compare to see if it's the string terminate byte.
                 jz Done
-                out 3               ; Out A.
-                inx h               ; Increment H:L register pair.
+                out 3               ; Out register A to the serial terminal port.
+                inr m               ; Increment H:L register pair.
                 jmp PrintString
                 ; ...
         Done:

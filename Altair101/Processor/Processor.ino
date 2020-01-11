@@ -195,135 +195,25 @@ File myFile;
 // -----------------------------------------------------------------------------
 const byte theProgram[] = {
   //                //            ; --------------------------------------
-  //                //            ; Test opcode CALL and RET.
-  B11000011, 38, 0,    //   0: jmp Test
-  B00111110, '\n',     //   3: mvi a,'\n'
-  B11100011, 3,        //   5: out 3
-  B00111110, '-',      //   7: mvi a,'-'
-  B11100011, 3,        //   9: out 3
-  B00111110, ' ',      //  11: mvi a,' '
-  B11100011, 3,        //  13: out 3
-  B00111110, 'E',      //  15: mvi a,'E'
-  B11100011, 3,        //  17: out 3
-  B00111110, 'r',      //  19: mvi a,'r'
-  B11100011, 3,        //  21: out 3
-  B00111110, 'r',      //  23: mvi a,'r'
+  //                //            ; Developing a string print routine.
+  B11000011, 10, 0,    //   0: jmp Start
+  'H',                 //   3: dbname: hello
+  'e',                 //   4: dbname: hello
+  'l',                 //   5: dbname: hello
+  'l',                 //   6: dbname: hello
+  'o',                 //   7: dbname: hello
+  255,                 //   8: dbstringterminator: hello
+  B01110110,           //   9: hlt
+  B00100001, 3, 0,     //  10: lxi h,Hello
+  B11100011, 34,       //  13: out 34
+  B11100011, 35,       //  15: out 35
+  B00110010, 3, 0,     //  17: lda Hello
+  B11100011, 37,       //  20: out 37
+  B01111110,           //  22: mov a,m
+  B11100011, 37,       //  23: out 37
   B11100011, 3,        //  25: out 3
-  B00111110, 'o',      //  27: mvi a,'o'
-  B11100011, 3,        //  29: out 3
-  B00111110, 'r',      //  31: mvi a,'r'
-  B11100011, 3,        //  33: out 3
-  B11100011, 39,       //  35: out 39
-  B01110110,           //  37: hlt
-  B00000000,           //  38: nop
-  B00111110, 1,        //  39: mvi a,1
-  B11100011, 37,       //  41: out 37
-  B11001101, 102, 0,   //  43: call Hello1
-  B00111110, 2,        //  46: mvi a,2
-  B11100011, 37,       //  48: out 37
-  B11001101, 176, 0,   //  50: call Hello2
-  B00000000,           //  53: nop
-  B00111110, '\n',     //  54: mvi a,'\n'
-  B11100011, 3,        //  56: out 3
-  B00111110, '+',      //  58: mvi a,'+'
-  B11100011, 3,        //  60: out 3
-  B00111110, ' ',      //  62: mvi a,' '
-  B11100011, 3,        //  64: out 3
-  B00111110, 'S',      //  66: mvi a,'S'
-  B11100011, 3,        //  68: out 3
-  B00111110, 'u',      //  70: mvi a,'u'
-  B11100011, 3,        //  72: out 3
-  B00111110, 'c',      //  74: mvi a,'c'
-  B11100011, 3,        //  76: out 3
-  B00111110, 'c',      //  78: mvi a,'c'
-  B11100011, 3,        //  80: out 3
-  B00111110, 'e',      //  82: mvi a,'e'
-  B11100011, 3,        //  84: out 3
-  B00111110, 's',      //  86: mvi a,'s'
-  B11100011, 3,        //  88: out 3
-  B00111110, 's',      //  90: mvi a,'s'
-  B11100011, 3,        //  92: out 3
-  B00111110, '.',      //  94: mvi a,'.'
-  B11100011, 3,        //  96: out 3
-  B00000000,           //  98: nop
-  B11000011, 37, 0,    //  99: jmp Halt
-  B00000000,           // 102: nop
-  B00111110, '\n',     // 103: mvi a,'\n'
-  B11100011, 3,        // 105: out 3
-  B00111110, 'C',      // 107: mvi a,'C'
-  B11100011, 3,        // 109: out 3
-  B00111110, 'a',      // 111: mvi a,'a'
-  B11100011, 3,        // 113: out 3
-  B00111110, 'l',      // 115: mvi a,'l'
-  B11100011, 3,        // 117: out 3
-  B00111110, 'l',      // 119: mvi a,'l'
-  B11100011, 3,        // 121: out 3
-  B00111110, 'e',      // 123: mvi a,'e'
-  B11100011, 3,        // 125: out 3
-  B00111110, 'd',      // 127: mvi a,'d'
-  B11100011, 3,        // 129: out 3
-  B00111110, ':',      // 131: mvi a,':'
-  B11100011, 3,        // 133: out 3
-  B00111110, ' ',      // 135: mvi a,' '
-  B11100011, 3,        // 137: out 3
-  B00111110, 'H',      // 139: mvi a,'H'
-  B11100011, 3,        // 141: out 3
-  B00111110, 'e',      // 143: mvi a,'e'
-  B11100011, 3,        // 145: out 3
-  B00111110, 'l',      // 147: mvi a,'l'
-  B11100011, 3,        // 149: out 3
-  B00111110, 'l',      // 151: mvi a,'l'
-  B11100011, 3,        // 153: out 3
-  B00111110, 'o',      // 155: mvi a,'o'
-  B11100011, 3,        // 157: out 3
-  B00111110, ' ',      // 159: mvi a,' '
-  B11100011, 3,        // 161: out 3
-  B00111110, '#',      // 163: mvi a,'#'
-  B11100011, 3,        // 165: out 3
-  B00111110, '1',      // 167: mvi a,'1'
-  B11100011, 3,        // 169: out 3
-  B11001001,           // 171: ret
-  B00000000,           // 172: nop
-  B11000011, 3, 0,     // 173: jmp Error
-  B00000000,           // 176: nop
-  B00111110, '\n',     // 177: mvi a,'\n'
-  B11100011, 3,        // 179: out 3
-  B00111110, 'C',      // 181: mvi a,'C'
-  B11100011, 3,        // 183: out 3
-  B00111110, 'a',      // 185: mvi a,'a'
-  B11100011, 3,        // 187: out 3
-  B00111110, 'l',      // 189: mvi a,'l'
-  B11100011, 3,        // 191: out 3
-  B00111110, 'l',      // 193: mvi a,'l'
-  B11100011, 3,        // 195: out 3
-  B00111110, 'e',      // 197: mvi a,'e'
-  B11100011, 3,        // 199: out 3
-  B00111110, 'd',      // 201: mvi a,'d'
-  B11100011, 3,        // 203: out 3
-  B00111110, ':',      // 205: mvi a,':'
-  B11100011, 3,        // 207: out 3
-  B00111110, ' ',      // 209: mvi a,' '
-  B11100011, 3,        // 211: out 3
-  B00111110, 'H',      // 213: mvi a,'H'
-  B11100011, 3,        // 215: out 3
-  B00111110, 'e',      // 217: mvi a,'e'
-  B11100011, 3,        // 219: out 3
-  B00111110, 'l',      // 221: mvi a,'l'
-  B11100011, 3,        // 223: out 3
-  B00111110, 'l',      // 225: mvi a,'l'
-  B11100011, 3,        // 227: out 3
-  B00111110, 'o',      // 229: mvi a,'o'
-  B11100011, 3,        // 231: out 3
-  B00111110, ' ',      // 233: mvi a,' '
-  B11100011, 3,        // 235: out 3
-  B00111110, '#',      // 237: mvi a,'#'
-  B11100011, 3,        // 239: out 3
-  B00111110, '2',      // 241: mvi a,'2'
-  B11100011, 3,        // 243: out 3
-  B11001001,           // 245: ret
-  B00000000,           // 246: nop
-  B11000011, 3, 0,     // 247: jmp Error
-  0                    // 250: End of program
+  B11000011, 9, 0,     //  27: jmp Halt
+  0                    //  30: End of program
 };
 
 // -----------------------------------------------------------------------------
@@ -1412,8 +1302,87 @@ void processOpcode() {
     */
     // ---------------------------------------------------------------------
     case B01111110:
+      // B01DDDSSS
       anAddress = word(regH, regL);
       regA = memoryData[anAddress];
+#ifdef LOG_MESSAGES
+      Serial.print(F("> mov"));
+      Serial.print(F(", Move data from Address: "));
+      sprintf(charBuffer, "%4d:", anAddress);
+      Serial.print(charBuffer);
+      Serial.print(F(", to Accumulator = "));
+      printData(regA);
+#endif
+      break;
+    case B01000110:
+      // B01DDDSSS
+      anAddress = word(regH, regL);
+      regB = memoryData[anAddress];
+#ifdef LOG_MESSAGES
+      Serial.print(F("> mov"));
+      Serial.print(F(", Move data from Address: "));
+      sprintf(charBuffer, "%4d:", anAddress);
+      Serial.print(charBuffer);
+      Serial.print(F(", to Accumulator = "));
+      printData(regA);
+#endif
+      break;
+    case B01001110:
+      // B01DDDSSS
+      anAddress = word(regH, regL);
+      regC = memoryData[anAddress];
+#ifdef LOG_MESSAGES
+      Serial.print(F("> mov"));
+      Serial.print(F(", Move data from Address: "));
+      sprintf(charBuffer, "%4d:", anAddress);
+      Serial.print(charBuffer);
+      Serial.print(F(", to Accumulator = "));
+      printData(regA);
+#endif
+      break;
+    case B01010110:
+      // B01DDDSSS
+      anAddress = word(regH, regL);
+      regD = memoryData[anAddress];
+#ifdef LOG_MESSAGES
+      Serial.print(F("> mov"));
+      Serial.print(F(", Move data from Address: "));
+      sprintf(charBuffer, "%4d:", anAddress);
+      Serial.print(charBuffer);
+      Serial.print(F(", to Accumulator = "));
+      printData(regA);
+#endif
+      break;
+    case B01011110:
+      // B01DDDSSS
+      anAddress = word(regH, regL);
+      regE = memoryData[anAddress];
+#ifdef LOG_MESSAGES
+      Serial.print(F("> mov"));
+      Serial.print(F(", Move data from Address: "));
+      sprintf(charBuffer, "%4d:", anAddress);
+      Serial.print(charBuffer);
+      Serial.print(F(", to Accumulator = "));
+      printData(regA);
+#endif
+      break;
+    case B01100110:
+      // B01DDDSSS
+      anAddress = word(regH, regL);
+      regH = memoryData[anAddress];
+#ifdef LOG_MESSAGES
+      Serial.print(F("> mov"));
+      Serial.print(F(", Move data from Address: "));
+      sprintf(charBuffer, "%4d:", anAddress);
+      Serial.print(charBuffer);
+      Serial.print(F(", to Accumulator = "));
+      printData(regA);
+#endif
+      break;
+    case B01101110:
+      // B01DDDSSS
+      anAddress = word(regH, regL);
+      regL = memoryData[anAddress];
 #ifdef LOG_MESSAGES
       Serial.print(F("> mov"));
       Serial.print(F(", Move data from Address: "));
