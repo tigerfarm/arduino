@@ -104,14 +104,14 @@
 // -----------------------------------------------------------------------------
 // Code compilation options.
 
-// #define INCLUDE_CLOCK 1
+#define INCLUDE_AUX 1
+#define INCLUDE_CLOCK 1
 // #define INCLUDE_LCD 1
 // #define INCLUDE_SDCARD 1
 // #define RUN_DELAY 1
-#define RUN_NOW 1
+// #define RUN_NOW 1
 #define SWITCH_MESSAGES 1
 // #define LOG_MESSAGES 1
-// #define INCLUDE_AUX 1
 
 // -----------------------------------------------------------------------------
 // Program states
@@ -202,7 +202,7 @@ File myFile;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-const byte theProgram[] = {
+const byte theProgramTest[] = {
   //                //            ; --------------------------------------
   //                //            ; Developing a string print routine.
   B11000011, 17, 0,    //   0: jmp Start
@@ -262,7 +262,7 @@ const byte theProgram[] = {
 // -----------------------------------------------------------------------------
 // Kill the Bit program.
 
-const byte theProgramKtb[] = {
+const byte theProgram[] = {
   // ------------------------------------------------------------------
   // Kill the Bit program.
   // Before starting, make sure all the sense switches are in the down position.
@@ -287,7 +287,7 @@ const byte theProgramKtb[] = {
 // -----------------------------------------------------------------------------
 // Memory definitions
 
-const int memoryBytes = 256;  // When using Mega: 1024, for Nano: 256
+const int memoryBytes = 1024;  // When using Mega: 1024, for Nano: 256
 byte memoryData[memoryBytes];
 unsigned int programCounter = 0;     // Program address value
 
@@ -3199,6 +3199,8 @@ void checkControlButtons() {
           // Switch logic...
           statusByte = statusByte & HLTA_OFF;
           processData();
+          dataByte = memoryData[programCounter];
+          lightsStatusAddressData(statusByte, programCounter, dataByte);
         }
         break;
       // -------------------

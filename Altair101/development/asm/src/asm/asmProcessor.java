@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class fileProcess {
+public class asmProcessor {
 
     opcodes8080 theOpcodes = new opcodes8080();
     //
@@ -799,7 +799,7 @@ public class fileProcess {
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
     // File level process: parse and listing.
-    public void printProgramByteArray(fileProcess thisProcess, String theReadFilename) {
+    public void printProgramByteArray(asmProcessor thisProcess, String theReadFilename) {
         errorCount = 0;
         thisProcess.parseFile(theReadFilename);
         thisProcess.setProgramByteAddresses();
@@ -870,7 +870,7 @@ public class fileProcess {
     // For testing.
     public static void main(String args[]) {
         System.out.println("++ Start.");
-        fileProcess thisProcess = new fileProcess();
+        asmProcessor thisProcess = new asmProcessor();
 
         System.out.println("\n+ Parse file lines.");
         //thisProcess.printProgramByteArray(thisProcess,

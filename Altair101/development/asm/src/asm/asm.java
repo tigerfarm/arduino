@@ -5,13 +5,13 @@ import java.io.InputStreamReader;
 
 public class asm {
 
-    fileProcess processFile = new fileProcess();
+    asmProcessor processFile = new asmProcessor();
     opcodes8080 theOpcodes = new opcodes8080();
 
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
     public void run() {
-        // fileProcess doList = new fileProcess();
+        // asmProcessor doList = new asmProcessor();
         String theFilename = "p1.asm";
         String cmd;
         String theRest;
