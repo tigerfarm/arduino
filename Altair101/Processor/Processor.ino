@@ -287,7 +287,7 @@ const byte theProgramKtb[] = {
 // -----------------------------------------------------------------------------
 // Memory definitions
 
-const int memoryBytes = 128;  // When using Mega: 1024, for Nano: 128
+const int memoryBytes = 256;  // When using Mega: 1024, for Nano: 256
 byte memoryData[memoryBytes];
 unsigned int programCounter = 0;     // Program address value
 
