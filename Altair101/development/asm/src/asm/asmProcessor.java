@@ -10,20 +10,15 @@ package asm;
     + Parse program lines.
     + File level process: read files, and parse or list the file lines.
 
-    Improve error handling.
+    Ready to assemble the Pong program.
 
-    Still required for the Pong assembler program.
-    + Add logic for assembler directive, org.
-                org 0
-                org 80h
+    Standardize use of hex numbers.
+    Improve error handling.
 
     Be consistent with label and name case sensitivity.
     + Currently, not case sensitive.
     + Match, getLabelAddress() with the address names being added.
     + Match, getImmediateValue() with the immediates being added.
-
-    Note, currently, "stack" is not use in Processor.ino because it has separate stack memory.
-                stack    equ     $
  */
 import static asm.opcodes8080.byteToString;
 import java.io.*;
@@ -919,12 +914,13 @@ public class asmProcessor {
         //thisProcess.printProgramByteArray(thisProcess,
         //    "/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/opCpi.asm");
 
-        ignoreFirstCharacters = 0;     // Set to 12 for Pong program.
-
-        // Or process in parts with optional, extra debug listings.
+        // Assemble the Pong program.
+        ignoreFirstCharacters = 12;     // Set to 12 for Pong program.
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/pong.asm");
+        //
+        // Or other programs.
         // Required, starts the process:
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/pong.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/pKillTheBit.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/pKillTheBit.asm");
         //
         // Optional, used for debugging:
         thisProcess.listLabelAddresses();
