@@ -205,34 +205,58 @@ File myFile;
 const byte theProgram[] = {
   //                //            ; --------------------------------------
   //                //            ; Developing a string print routine.
-  B11000011, 10, 0,    //   0: jmp Start
+  B11000011, 17, 0,    //   0: jmp Start
   'H',                 //   3: dbname: hello
   'e',                 //   4: dbname: hello
   'l',                 //   5: dbname: hello
   'l',                 //   6: dbname: hello
   'o',                 //   7: dbname: hello
   255,                 //   8: dbstringterminator: hello
-  B01110110,           //   9: hlt
-  B00100001, 3, 0,     //  10: lxi h,Hello
-  B11100011, 34,       //  13: out 34
-  B11100011, 35,       //  15: out 35
-  B00111010, 3, 0,     //  17: lda Hello
-  B11100011, 37,       //  20: out 37
-  B01111110,           //  22: mov a,m
-  B11100011, 37,       //  23: out 37
-  B00111110, 10,       //  25: mvi 00111110 (NL)
-  B11100011, 3,        //  27: out 3
+  't',                 //   9: dbname: there
+  'h',                 //  10: dbname: there
+  'e',                 //  11: dbname: there
+  'r',                 //  12: dbname: there
+  'e',                 //  13: dbname: there
+  '.',                 //  14: dbname: there
+  255,                 //  15: dbstringterminator: there
+  B01110110,           //  16: hlt
+  B00100001, 3, 0,     //  17: lxi h,Hello
+  B11100011, 34,       //  20: out 34
+  B11100011, 35,       //  22: out 35
+  B00111010, 3, 0,     //  24: lda Hello
+  B11100011, 37,       //  27: out 37
   B01111110,           //  29: mov a,m
-  B11100011, 3,        //  30: out 3
+  B11100011, 37,       //  30: out 37
   B00111110, 10,       //  32: mvi 00111110 (NL)
   B11100011, 3,        //  34: out 3
-  B00101100,           //  36: inr m
-  B01111110,           //  37: mov a,m
-  B11100011, 3,        //  38: out 3
-  B00111110, 10,       //  40: mvi 00111110 (NL)
-  B11100011, 3,        //  42: out 3
-  B11000011, 9, 0,     //  44: jmp Halt
-  0                    //  47: End of program
+  B01111110,           //  36: mov a,m
+  B11100011, 3,        //  37: out 3
+  B00111110, 10,       //  39: mvi 00111110 (NL)
+  B11100011, 3,        //  41: out 3
+  B00101100,           //  43: inr m
+  B01111110,           //  44: mov a,m
+  B11100011, 3,        //  45: out 3
+  B00111110, 10,       //  47: mvi 00111110 (NL)
+  B11100011, 3,        //  49: out 3
+  B00111110, 10,       //  51: mvi 00111110 (NL)
+  B11100011, 3,        //  53: out 3
+  B00100001, 3, 0,     //  55: lxi h,Hello
+  B11001101, 78, 0,    //  58: call PrintString
+  B00111110, 32,       //  61: mvi 00111110 (SPACE)
+  B11100011, 3,        //  63: out 3
+  B00100001, 9, 0,     //  65: lxi h,there
+  B11001101, 78, 0,    //  68: call PrintString
+  B00111110, 10,       //  71: mvi 00111110 (NL)
+  B11100011, 3,        //  73: out 3
+  B11000011, 16, 0,    //  75: jmp Halt
+  B01111110,           //  78: mov a,m
+  B11111110, 255,      //  79: cpi 255 (TERMB)
+  B11001010, 90, 0,    //  81: jz Done
+  B11100011, 3,        //  84: out 3
+  B00101100,           //  86: inr m
+  B11000011, 78, 0,    //  87: jmp PrintString
+  B11001001,           //  90: ret
+  0                    //  91: End of program
 };
 
 // -----------------------------------------------------------------------------

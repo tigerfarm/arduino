@@ -45,6 +45,8 @@ Opcode   Binary   Cycles Description
 push RP  11 RP0 101  1  Push register pair on the stack.
 pop  RP  11 RP0 001  1  POP register pair from the stack.
 
++ Hex, Octal, Binary, Decimal conversion calculator
+https://coderstoolbox.net/number/
 */
 
 public class opcodes8080 {
