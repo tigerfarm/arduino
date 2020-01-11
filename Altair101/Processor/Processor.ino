@@ -11,17 +11,11 @@
   Current/Next Work
 
   ----------
-  Add clock logic,
-  + Handle: if HLT opcode run in a program or STEP,
-  ++ Add a which-buttom-pushed boolean?
-  +++ If HLT opcode run in a program or STEP, use "programCounter-1" because programCounter holds the next program step.
-
-  ----------
   Next opcodes to add/test,
-  + Develop test program: pPrintDbString.asm.
   + Opcodes implemented in the assembler, but not tested with a program:
   lda a    00 110 010  3  Load register A with data from the address, a(hb:lb).
   sta a    00 110 010  3  Store register A to the address, a(hb:lb).
+  inr D    00 DDD 100  1  Increment a register. To do, set flags: ZSPA.
   dcr D    00 DDD 101  1  Decrement a register. To do, set flags: ZSPA.
   inx RP   00 RP0 011  1  Increment a register pair(16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
   shld a   00 100 010  3  Store data value from memory location: a(address hb:lb), to register L. Store value at: a + 1, to register H.
@@ -266,22 +260,21 @@ const byte theProgram[] = {
   // ------------------------------------------------------------------
   // Kill the Bit program.
   // Before starting, make sure all the sense switches are in the down position.
-  B00000000,           //   0: nop
-  B00100001, 0, 0,     //   1: lxi h,0
-  B00010110, 0x80,      //   4: mvi d,080h ... Change 080h to 0x80 to 128.
-  B00000001, 0, 5,     //   6: lxi b,5
+  B00100001, 0, 0,     //   0: lxi h,0
+  B00010110, 128,      //   3: mvi 00010110 (080h)
+  B00000001, 0, 5,     //   5: lxi b,500h
+  B00011010,           //   8: ldax d
   B00011010,           //   9: ldax d
   B00011010,           //  10: ldax d
   B00011010,           //  11: ldax d
-  B00011010,           //  12: ldax d
-  B00001001,           //  13: dad b
-  B11010010, 9, 0,     //  14: jnc Begin
-  B11011011, 0xff,      //  17: in 0ffh ... Change 0ffh to 0xff to 255.
-  B10101010,           //  19: xra d
-  B00001111,           //  20: rrc
-  B01010111,           //  21: mov d,a
-  B11000011, 9, 0,     //  22: jmp Begin
-  0                    //  25: End of program
+  B00001001,           //  12: dad b
+  B11010010, 8, 0,     //  13: jnc Begin
+  B11011011, 255,      //  16: in 255 (0ffh)
+  B10101010,           //  18: xra d
+  B00001111,           //  19: rrc
+  B01010111,           //  20: mov d,a
+  B11000011, 8, 0,     //  21: jmp Begin
+  0                    //  24: End of program
 };
 
 // -----------------------------------------------------------------------------

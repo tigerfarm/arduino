@@ -1,9 +1,10 @@
             org 0       ; An assembler directive on where to load this program.
+            ; nop
     Start:
             LXI H,0     ; Move the lb hb data values into the register pair H(hb):L(lb). Initialize counter
             mvi D,080h  ; Move db to register D. Set initial display bit.  080h = 0200 = regD = 10 000 000
                         ; Fix: Change 080h to 0x80 with is decimal 128.
-            LXI B,5     ; Load a(lb:hb) into register B:C. Higher value = faster. Default: 0016 = B:C  = 00 010 000
+            LXI B,500h  ; Load a(lb:hb) into register B:C. Higher value = faster. Default: 0016 = B:C  = 00 010 000
                         ; Fix: B00000001, 0, 5,     //   6: lxi b,5
                         ;  My default: 0005 = B:C  = 00 000 101
                         ;     Default: 0014 = B:C  = 00 010 000
@@ -32,3 +33,4 @@
             JMP Begin   ; Jump to BEG, LDAX instruction start.
                         ; ------------------------------------------------
                         ; End of program.
+                        ; ------------------------------------------------

@@ -262,6 +262,27 @@ public class asmProcessor {
         System.out.println("++ Label Name: " + label + ", Address: " + programTop);
     }
 
+    private void parseOrg(String theValue) {
+        String theName = "org";
+        System.out.println("++ Org address value: " + theValue);
+        int intValue;
+        if (theValue.endsWith("h")) {
+            // Hex number. For example, change 0ffh or ffh to integer.
+            // Samples: 0ffh, 0eh
+            int si = 0;
+            if (theValue.startsWith("0") && theValue.length() > 3) {
+                si = 1;
+            }
+            theValue = theValue.substring(si, theValue.length() - 1);   // Hex string to integer. Remove the "h".
+            intValue = Integer.parseInt(theValue, 16);
+        } else {
+            intValue = Integer.parseInt(theValue);
+        }
+        for (int i = programTop; programTop < intValue; programTop++) {
+            programBytes.add("dsname:" + theName + SEPARATOR + 0);  // default value.
+        }
+    }
+
     private void parseDs(String theName, String theValue) {
         System.out.println("++ DS variable name: " + theName + ", number of bytes: " + theValue);
         labelName.add(theName);
@@ -299,7 +320,16 @@ public class asmProcessor {
                 break;
             }
         }
-        if (!findName.equals("0") && returnValue == 0) {
+        if (findName.endsWith("h")) {
+            // Hex number. For example, change 0ffh or ffh to integer.
+            // Samples: 0ffh, 0eh
+            int si = 0;
+            if (findName.startsWith("0") && findName.length() > 3) {
+                si = 1;
+            }
+            findName = findName.substring(si, findName.length() - 1);   // Hex string to integer. Remove the "h".
+            returnValue = Integer.parseInt(findName, 16);
+        } else if (!findName.equals("0") && returnValue == 0) {
             try {
                 returnValue = Integer.parseInt(findName);
             } catch (NumberFormatException e) {
@@ -359,7 +389,7 @@ public class asmProcessor {
                     //-------------------
                     // lb:
                     programBytes.set(i, theValue + SEPARATOR + lb);
-                    System.out.println("++ Label, lb: " + theValue + ":" + lb);
+                    System.out.println("++ Label, " + theValue + ":" + lb);
                     // hb:
                     it.next();
                     i++;
@@ -386,10 +416,10 @@ public class asmProcessor {
             // Hex number. For example, change 0ffh or ffh to integer.
             // Samples: 0ffh, 0eh
             int si = 0;
-            if (theValue.startsWith("0") && theValue.length()>3) {
+            if (theValue.startsWith("0") && theValue.length() > 3) {
                 si = 1;
             }
-            theValue = theValue.substring(si, theValue.length()-1);   // Hex string to integer. Remove the "h".
+            theValue = theValue.substring(si, theValue.length() - 1);   // Hex string to integer. Remove the "h".
             variableValue.add(Integer.parseInt(theValue, 16));
         } else {
             variableValue.add(Integer.parseInt(theValue));
@@ -463,7 +493,9 @@ public class asmProcessor {
         // ++ immediate:TERMB
         // Variable name and value data:
         // ++ termb: 255
-        //
+        // Set to:
+        // ++ immediate:TERMB:255
+        // --------------
         int i = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
@@ -471,6 +503,17 @@ public class asmProcessor {
                 String sImmediate = theValue.substring("immediate:".length());
                 // ++ immediate:TERMB
                 // ++ immediate:42
+                // ++ immediate:080h
+                if (sImmediate.endsWith("h")) {
+                    // Hex number. For example, change 0ffh or ffh to integer.
+                    // Samples: 0ffh, 0eh
+                    int si = 0;
+                    if (sImmediate.startsWith("0") && sImmediate.length() > 3) {
+                        si = 1;
+                    }
+                    sImmediate = sImmediate.substring(si, sImmediate.length() - 1);   // Hex string to integer. Remove the "h".
+                    sImmediate = Integer.toString(Integer.parseInt(sImmediate, 16));
+                }
                 sImmediate = getImmediateValue(sImmediate);
                 programBytes.set(i, theValue + SEPARATOR + sImmediate);
                 System.out.println("++ " + theValue + SEPARATOR + sImmediate);
@@ -571,7 +614,7 @@ public class asmProcessor {
     }
 
     private void parseOpcode(String opcode, String p1, String p2) {
-        // Opcode, 2 parameters, example: mvi a,1
+        // Opcode with 2 parameters, example: mvi a,1
         switch (opcode) {
             case "lxi":
                 // opcode <register>,<address label|number>
@@ -642,7 +685,7 @@ public class asmProcessor {
         }
         //
         if (theLine.length() == 0) {
-            System.out.println("++");
+            // Ignore blank lines.
             return;
         }
         if (theLine.startsWith(";")) {
@@ -736,8 +779,8 @@ public class asmProcessor {
             if (theLine.startsWith("org")) {
                 // Assembler directives:
                 //  4.1) org     0
-                System.out.println("++ parseLine, org directive. For now, parse org line, as a NOP line: " + orgLine.trim());
-                parseOpcode("nop");
+                System.out.println("++ parseLine, org directive. For now, ignore org line: " + orgLine.trim());
+                parseOrg(theRest);
                 return;
             } else if (theLine.startsWith("ds")) {
                 // Assembler directives:
@@ -881,7 +924,7 @@ public class asmProcessor {
         // Or process in parts with optional, extra debug listings.
         // Required, starts the process:
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/pong.asm");
-        thisProcess.parseFile("printDbString.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/pKillTheBit.asm");
         //
         // Optional, used for debugging:
         thisProcess.listLabelAddresses();
