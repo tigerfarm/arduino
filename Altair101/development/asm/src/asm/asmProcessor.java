@@ -5,17 +5,17 @@ package asm;
     Altair 101 Assembler Program
 
     The basic assembler works:
-    + Runs a set of tested opcodes and assembler directives.
+    + It can assemble programs from a set of tested Intl 8080/8085 opcodes and assembler directives.
+    + It assemble the Kill the Bit program, which was run on the Altair 101 dev machine.
 
-    +++ Ready to assemble the Pong program.
+    +++ Ready to be updated so that it can assemble the Pong program.
 
     ---------------------------------------------
-    Update the Altair 101 assembler, current/next work
+    Next assembler updates,
 
-    + Create more opcode test programs.
-    + Create more samples: looping, branching, calling subroutines, sense switch interation.
-    + Compile and run the next major Altair 8800 sample program, Pong.
-    + Add more opcodes.
+    + Create more opcode test programs and samples,
+    ++ looping, branching, sense switch interation.
+    ++ Create subroutines such as print and println.
 
     Next opcodes to add/test,
     + Opcodes implemented in the assembler, but not tested with a program:
@@ -43,8 +43,10 @@ package asm;
 
     Be consistent with label and name case sensitivity.
     + Currently, not case sensitive.
-    + Match, getLabelAddress() with the address names being added.
-    + Match, getImmediateValue() with the immediates being added.
+    + Match, getLabelAddress() with how the address names being added.
+    + Match, getImmediateValue() with how the immediates being added.
+
+    ----------------------------------------------------------------------------
  */
 import static asm.opcodes8080.byteToString;
 import java.io.*;
