@@ -23,7 +23,10 @@ mov D,S  01 DDD SSS  1  Move source register data, to the destination register.
 nop      00 000 000  1  No operation. I added a delay: delay(100).
 ora S    10 110 SSS  1  OR register S, with register A.
 out pa   11 010 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
-rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
+
+rlc      00 000 111  1  Rotate accumulator left by shift left 1 bit, and wrapping the first bit to the last position. Need to handle carry bit (CY = prev bit 7).
+rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit (CY = prev bit 0).
+
 sui #    11 010 110     ZSCPA Subtract immedite number from register A.
 ret      11 001 001  1  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.
 xra S    10 101 SSS  1  Exclusive OR, the register(R) with register A.
@@ -409,8 +412,12 @@ public class opcodes8080 {
         info[top] = "RET      11 001 001  1  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.";
         value[top++] = (byte) 0b11001001;
         // ---------------------------------------------------------------------
+        name[top] = "rlc";
+        info[top] = "RLC      00 000 111  1  Rotate accumulator left by shift left 1 bit, and wrapping the first bit to the last position. Need to handle carry bit (CY = prev bit 7).";
+        value[top++] = (byte) 0b00000111;
+        // ---------------------------------------------------------------------
         name[top] = "rrc";
-        info[top] = "RRC      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.";
+        info[top] = "RRC      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit (CY = prev bit 0).";
         value[top++] = (byte) 0b00001111;
         // ---------------------------------------------------------------------
         name[top] = "shld";

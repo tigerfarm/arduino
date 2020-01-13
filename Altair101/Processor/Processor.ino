@@ -10,12 +10,12 @@
   ---------------------------------------------
   Current/Next Work
 
-  In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
+  + Test: opcode rlc (similar to rrc), which is used in the Pong program.
+  + Test: status HLDA on while reading or writing.
+  + Test: After reading, do a reset which displays address 0 and its data byte.
 
   ----------
   SD card read and write,
-  + Test: status HLDA on while reading or writing.
-  + Test: After reading, do a reset which displays address 0 and its data byte.
   + When rebooting or resetting the Mega, if 00000000.bin exists, read it in, and run it.
   + Confirm saving or reading a file,
   ++ Fast flash HLDA for 1 second.
@@ -25,6 +25,8 @@
   Add 1602 LED display,
   + Add OUT opcode to out characters to the LED display.
   + Add 1602 LED display clock time and to set the time.
+
+  In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
 
   -----------------------------------------------------------------------------
   Processor program sections,
@@ -469,7 +471,7 @@ byte regM = 0;   // 110=M  m  Memory reference for address in H:L
 boolean flagCarryBit = false; // Set by dad. Used jnc.
 boolean flagZeroBit = true;   // Set by cpi. Used by jz.
 
-byte bit7;                    // For capturing a bit when doing bitwise calculations.
+byte aByteBit;                    // For capturing a bit when doing bitwise calculations.
 char asciiChar;  // For printing ascii characters, example 72 is the letter "H".
 
 // For calculating 16 bit values.
@@ -1917,6 +1919,25 @@ void processOpcode() {
 #endif
       break;
     // ------------------------------------------------------------------------------------------
+    case B00000111:
+#ifdef LOG_MESSAGES
+      Serial.print(F("> rlc"));
+      Serial.print(F(", Shift register A: "));
+      printByte(regA);
+      Serial.print(F(", left 1 bit: "));
+#endif
+      // # 0x07  1  CY       RLC        A = A << 1; bit 0 = prev bit 7; CY = prev bit 7
+      // Get bit 0, and use it to set bit 7, after the shift.
+      aByteBit = regA & B10000000;
+      regA = regA << 1;
+      if (aByteBit > 0) {
+        regA = regA | B00000001;
+      }
+#ifdef LOG_MESSAGES
+      printByte(regA);
+#endif
+      break;
+    // ------------------------------------------------------------------------------------------
     case B00001111:
 #ifdef LOG_MESSAGES
       Serial.print(F("> rrc"));
@@ -1926,9 +1947,9 @@ void processOpcode() {
 #endif
       // # 0x0f RRC 1 CY  A = A >> 1; bit 7 = prev bit 0; CY = prev bit 0
       // Get bit 7, and use it to set bit 0, after the shift.
-      bit7 = regA & B00000001;
+      aByteBit = regA & B00000001;
       regA = regA >> 1;
-      if (bit7 == 1) {
+      if (aByteBit == 1) {
         regA = regA | B10000000;
       }
 #ifdef LOG_MESSAGES

@@ -11,6 +11,7 @@ package asm;
     +++ Ready to be updated so that it can assemble the Pong program.
     + Add directive, end, which tells the assemble to end processing the file its assembiling.
     + Add opcode, rlc: RLC       00000111          C       Rotate A left
+    ++ Similar to:     rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
 
     ---------------------------------------------
     Next assembler updates,
@@ -132,6 +133,7 @@ public class asmProcessor {
                 case "hlt":
                 case "nop":
                 case "ret":
+                case "rlc":
                 case "rrc":
                     // opcode (no parameters)
                     // ++ opcode:nop:00000000:
@@ -945,12 +947,12 @@ public class asmProcessor {
         //    "/Users/dthurston/Projects/arduino/Altair101/asm/programs/opCpi.asm");
 
         // Assemble the Pong program.
-        ignoreFirstCharacters = 12;     // Set to 12 for Pong program.
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pong.asm");
+        // ignoreFirstCharacters = 12;     // Set to 12 for Pong program.
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pong.asm");
         //
         // Or other programs.
         // Required, starts the process:
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/pKillTheBit.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opTemplate.asm");
         //
         // Optional, used for debugging:
         thisProcess.listLabelAddresses();
