@@ -1,6 +1,33 @@
 package asm;
 
 /*
+    ----------------------------------------------------------------------------
+    Altair 101 Assembler Program
+
+    The basic assembler works:
+    + Runs a set of tested opcodes and assembler directives.
+
+    +++ Ready to assemble the Pong program.
+
+    ---------------------------------------------
+    Update the Altair 101 assembler, current/next work
+
+    + Create more opcode test programs.
+    + Create more samples: looping, branching, calling subroutines, sense switch interation.
+    + Compile and run the next major Altair 8800 sample program, Pong.
+    + Add more opcodes.
+
+    Next opcodes to add/test,
+    + Opcodes implemented in the assembler, but not tested with a program:
+    lda a    00 110 010  3  Load register A with data from the address, a(hb:lb).
+    sta a    00 110 010  3  Store register A to the address, a(hb:lb).
+    inr D    00 DDD 100  1  Increment a register. To do, set flags: ZSPA.
+    dcr D    00 DDD 101  1  Decrement a register. To do, set flags: ZSPA.
+    inx RP   00 RP0 011  1  Increment a register pair(16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
+    shld a   00 100 010  3  Store data value from memory location: a(address hb:lb), to register L. Store value at: a + 1, to register H.
+    // shld a    00100010 lb hb    -  Store register L contents to memory address hb:lb. Store register H contents to hb:lb+1.
+
+    ----------------------------------------------------------------------------
     Program sections:
     + Program byte output: listing and printing program bytes.
     + Program byte output: printing program bytes into an array for use in Processor.ino.
@@ -10,8 +37,7 @@ package asm;
     + Parse program lines.
     + File level process: read files, and parse or list the file lines.
 
-    Ready to assemble the Pong program.
-
+    ----------------------------------------------------------------------------
     Standardize use of hex numbers.
     Improve error handling.
 

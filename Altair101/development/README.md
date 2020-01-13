@@ -11,6 +11,15 @@ pcf8574inputLogic.ino is key program I use when developing code for my toggle in
 pcf8574inputBasic.ino was used first, to developed the basic code that is used in pcf8574inputLogic.ino.
 pcf8574inputLogic.ino further develops the code by adding logic that is used in Processor.ino.
 
+
+### Components
+
++ Processor.ini to emulate the Altair 8800 processes.
++ Hardware to emulate the Altair 8800
++ Assembler to write programs
+
+--------------------------------------------------------------------------------
+## Hardware to emulate the Altair 8800
 ````
   ---------------------------------------------
   Work,
@@ -65,6 +74,17 @@ pcf8574inputLogic.ino further develops the code by adding logic that is used in 
 
 ````
 --------------------------------------------------------------------------------
+## Assembler Program
+````
+  ---------------------------------------------
+  Program Development Phase
 
+  Create an assembler to convert assembly programs into machine code.
+  + Basic assembler works.
+  + Add more opcodes and create more opcode test programs.
+  + Compile and run the next major Altair 8800 sample program, Pong.
+  + Create more samples: looping, branching, calling subroutines, sense switch interation.
+
+````
 --------------------------------------------------------------------------------
 Cheers

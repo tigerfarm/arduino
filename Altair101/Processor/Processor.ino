@@ -10,6 +10,20 @@
   ---------------------------------------------
   Current/Next Work
 
+  In checkRunningButtons(), replace for-loop with 2 if statements.
+
+  ----------
+  SD card program read and write,
+  + Test: status HLDA on while reading or writing.
+  + Test: After reading, do a reset which displays address 0 and its data byte.
+  + When rebooting or resetting the Mega, if 00000000.bin exists, load and run it.
+  + Confirm saving or reading a file.
+
+  ----------
+  Add 1602 LED display,
+  + Add OUT opcode to out characters to the LED display.
+  + Add 1602 LED display clock time and to set the time.
+
   ----------
   Next opcodes to add/test,
   + Opcodes implemented in the assembler, but not tested with a program:
@@ -21,26 +35,15 @@
   shld a   00 100 010  3  Store data value from memory location: a(address hb:lb), to register L. Store value at: a + 1, to register H.
   // shld a    00100010 lb hb    -  Store register L contents to memory address hb:lb. Store register H contents to hb:lb+1.
 
-  ----------
-  Add 1602 LED display,
-  + Add OUT opcode to out characters to the LED display.
-  + Add 1602 LED display clock time and to set the time.
-
-  ----------
-  SD card program read and write,
-  + After reading, do a reset which displays address 0 and its data byte.
-  + Status HLDA on while reading or writing.
-  + When rebooting or resetting the Mega, if 00000000.bin exists, load and run it.
-  + Confirm saving or reading a file.
-
   ---------------------------------------------
   Program Development Phase
 
-  Create an assembler to convert assembly programs into machine code.
-  + Basic assembler works.
-  + Add more opcodes and create more opcode test programs.
-  + Compile and run the next major Altair 8800 sample program, Pong.
+  Update the Altair 101 assembler.
+  + Basic assembler works: set of tested opcodes and assembler directives.
+  + Create more opcode test programs.
   + Create more samples: looping, branching, calling subroutines, sense switch interation.
+  + Compile and run the next major Altair 8800 sample program, Pong.
+  + Add more opcodes.
 
   ---------------------------------------------
   Processor program sections,
@@ -96,9 +99,9 @@
 // #define INCLUDE_LCD 1
 #define INCLUDE_SDCARD 1
 // #define RUN_DELAY 1
-// #define RUN_NOW 1
 #define SWITCH_MESSAGES 1
 // #define LOG_MESSAGES 1
+#define RUN_NOW 1
 
 // -----------------------------------------------------------------------------
 // Program states
@@ -156,10 +159,9 @@ const int dataPinLed = 7;     // pin 14 Data pin.
 const int latchPinLed = 8;    // pin 12 Latch pin.
 const int clockPinLed = 9;    // pin 11 Clock pin.
 
+#ifdef INCLUDE_AUX
 // Status LED light,
 // HLDA : 8080 processor go into a hold state because of other hardware.
-
-#ifdef INCLUDE_AUX
 const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock processing (on/HIGH).
 #endif
 
@@ -190,7 +192,7 @@ File myFile;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-const byte theProgramTest[] = {
+const byte theProgram[] = {
   //                //            ; --------------------------------------
   //                //            ; Developing a string print routine.
   B11000011, 17, 0,    //   0: jmp Start
@@ -250,7 +252,7 @@ const byte theProgramTest[] = {
 // -----------------------------------------------------------------------------
 // Kill the Bit program.
 
-const byte theProgram[] = {
+const byte theProgramKtb[] = {
   // ------------------------------------------------------------------
   // Kill the Bit program.
   // Before starting, make sure all the sense switches are in the down position.
@@ -2888,6 +2890,7 @@ void ledFlashError() {
 // Write Program memory to a file.
 
 void writeProgramMemoryToFile(String theFilename) {
+  digitalWrite(HLDA_PIN, HIGH);
   if (sdcardFailed) {
     initSdcard();
   }
@@ -2906,6 +2909,7 @@ void writeProgramMemoryToFile(String theFilename) {
     Serial.println(theFilename);
     ledFlashError();
     sdcardFailed = true;
+    digitalWrite(HLDA_PIN, LOW);
     return; // When used in setup(), causes jump to loop().
   }
   // Serial.println("++ New file opened.");
@@ -2916,12 +2920,14 @@ void writeProgramMemoryToFile(String theFilename) {
   myFile.close();
   Serial.println(F("+ Write completed, file closed."));
   ledFlashSuccess();
+  digitalWrite(HLDA_PIN, LOW);
 }
 
 // -------------------------------------
 // Read program memory from a file.
 
 void readProgramFileIntoMemory(String theFilename) {
+  digitalWrite(HLDA_PIN, HIGH);
   if (sdcardFailed) {
     initSdcard();
   }
@@ -2935,6 +2941,7 @@ void readProgramFileIntoMemory(String theFilename) {
     Serial.println(theFilename);
     ledFlashError();
     sdcardFailed = true;
+    digitalWrite(HLDA_PIN, LOW);
     return;
   }
   myFile = SD.open(theFilename);
@@ -2943,6 +2950,7 @@ void readProgramFileIntoMemory(String theFilename) {
     Serial.println(theFilename);
     ledFlashError();
     sdcardFailed = true;
+    digitalWrite(HLDA_PIN, LOW);
     return;
   }
   int i = 0;
@@ -2966,6 +2974,8 @@ void readProgramFileIntoMemory(String theFilename) {
   myFile.close();
   Serial.println(F("+ Read completed, file closed."));
   ledFlashSuccess();
+  digitalWrite(HLDA_PIN, LOW);
+  controlResetLogic();
 }
 
 #endif
