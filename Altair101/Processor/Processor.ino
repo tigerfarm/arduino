@@ -10,42 +10,23 @@
   ---------------------------------------------
   Current/Next Work
 
-  In checkRunningButtons(), replace for-loop with 2 if statements.
+  In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
 
   ----------
-  SD card program read and write,
+  SD card read and write,
   + Test: status HLDA on while reading or writing.
   + Test: After reading, do a reset which displays address 0 and its data byte.
-  + When rebooting or resetting the Mega, if 00000000.bin exists, load and run it.
-  + Confirm saving or reading a file.
+  + When rebooting or resetting the Mega, if 00000000.bin exists, read it in, and run it.
+  + Confirm saving or reading a file,
+  ++ Fast flash HLDA for 1 second.
+  ++ If read or write switch repeated, then run, else return to program wait status.
 
   ----------
   Add 1602 LED display,
   + Add OUT opcode to out characters to the LED display.
   + Add 1602 LED display clock time and to set the time.
 
-  ----------
-  Next opcodes to add/test,
-  + Opcodes implemented in the assembler, but not tested with a program:
-  lda a    00 110 010  3  Load register A with data from the address, a(hb:lb).
-  sta a    00 110 010  3  Store register A to the address, a(hb:lb).
-  inr D    00 DDD 100  1  Increment a register. To do, set flags: ZSPA.
-  dcr D    00 DDD 101  1  Decrement a register. To do, set flags: ZSPA.
-  inx RP   00 RP0 011  1  Increment a register pair(16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
-  shld a   00 100 010  3  Store data value from memory location: a(address hb:lb), to register L. Store value at: a + 1, to register H.
-  // shld a    00100010 lb hb    -  Store register L contents to memory address hb:lb. Store register H contents to hb:lb+1.
-
-  ---------------------------------------------
-  Program Development Phase
-
-  Update the Altair 101 assembler.
-  + Basic assembler works: set of tested opcodes and assembler directives.
-  + Create more opcode test programs.
-  + Create more samples: looping, branching, calling subroutines, sense switch interation.
-  + Compile and run the next major Altair 8800 sample program, Pong.
-  + Add more opcodes.
-
-  ---------------------------------------------
+  -----------------------------------------------------------------------------
   Processor program sections,
     Sample machine code program in a memory array.
     Definitions: machine memory and stack memory.
@@ -3739,40 +3720,17 @@ void setup() {
   Serial.println(F("+++ Setup."));
 
   // ----------------------------------------------------
-  int programSize = sizeof(theProgram);
-  // List a program.
-  listByteArray(theProgram, programSize);
-  // Load a program.
-  copyByteArrayToMemory(theProgram, programSize);
-#ifdef RUN_NOW
-  programState = PROGRAM_RUN;
-#endif
-  Serial.print(F("+ Program loaded."));
-  if (programState == PROGRAM_RUN) {
-    Serial.println(F(" It will start automatically."));
-  }
-
-  // ----------------------------------------------------
-  irrecv.enableIRIn();
-  Serial.println(F("+ infrared receiver ready for input."));
-
 #ifdef INCLUDE_LCD
   readyLcd();
   Serial.println(F("+ LCD ready for output."));
 #endif
 
   // ----------------------------------------------------
-  // Front panel toggle switches.
+  irrecv.enableIRIn();
+  Serial.println(F("+ Infrared receiver ready for input."));
 
-  // PCF8574 device initialization
-  // Control switches
-  pcf20.begin();
-  // Address/Sense switches
-  pcf21.begin();
-  // PCF8574 device Interrupt initialization
-  pinMode(INTERRUPT_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf20interrupt, CHANGE);
-  Serial.println("+ PCF8574 modules initialized.");
+  // ----------------------------------------------------
+  // Front panel toggle switches.
 
   // AUX device switches.
 #ifdef INCLUDE_AUX
@@ -3782,15 +3740,20 @@ void setup() {
   pinMode(PLAYER_SWITCH_PIN, INPUT_PULLUP);
   pinMode(UPLOAD_SWITCH_PIN, INPUT_PULLUP);
   pinMode(DOWNLOAD_SWITCH_PIN, INPUT_PULLUP);
-  Serial.println(F("+ Toggle/button switches are configured for input."));
+  Serial.println(F("+ AUX device toggle switches are configured for input."));
 #endif
+
+  // PCF8574 device initialization
+  // Control switches
+  pcf20.begin();
+  // Address/Sense switches
+  pcf21.begin();
+  // PCF8574 device Interrupt initialization
+  pinMode(INTERRUPT_PIN, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf20interrupt, CHANGE);
+  Serial.println(F("+ All front panel toggle switches are configured for input."));
+
   // ----------------------------------------------------
-  pinMode(latchPinLed, OUTPUT);
-  pinMode(clockPinLed, OUTPUT);
-  pinMode(dataPinLed, OUTPUT);
-  delay(300);
-  Serial.println(F("+ Front panel LED lights initialized."));
-  //
   // Status lights are off by default.
   statusByte = statusByte | WAIT_ON;
   statusByte = statusByte | MEMR_ON;
@@ -3798,35 +3761,56 @@ void setup() {
   statusByte = statusByte | WO_ON;  // WO: on, Inverse logic: off when writing out. On when not.
   programCounter = 0;
   dataByte = memoryData[programCounter];
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
   Serial.println(F("+ Initialized: statusByte, programCounter, dataByte."));
+  //
+  pinMode(latchPinLed, OUTPUT);
+  pinMode(clockPinLed, OUTPUT);
+  pinMode(dataPinLed, OUTPUT);
+  delay(300);
+  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  Serial.println(F("+ Front panel LED lights are initialized."));
 
   // ----------------------------------------------------
 #ifdef INCLUDE_SDCARD
-  // Note, csPin is optional. The default is the hardware SS line (pin 10) of the SPI bus.
-  // If using pin, other than 10, add: pinMode(otherPin, OUTPUT);
-  // The pin connected to the chip select pin (CS) of the SD card.
+  // The csPin pin is connected to the SD card module select pin (CS).
   if (!SD.begin(csPin)) {
-    Serial.println("- Error initializing SD card.");
+    Serial.println("- Error initializing SD card module.");
     ledFlashError();
   } else {
-    Serial.println("+ SD card initialized.");
+    Serial.println("+ SD card module is initialized.");
     ledFlashSuccess();
-  }  
+  }
 #endif
 
   // ----------------------------------------------------
   // Initialize the Real Time Clock (RTC).
 #ifdef INCLUDE_CLOCK
   if (!rtc.begin()) {
-    Serial.println("--- Error: RTC not found.");
-    while (1);
+    Serial.println("- Error: RTC not found, not set.");
+    ledFlashError();
   }
-  Serial.println("+ Clock set and synched with program variables.");
+  Serial.println("+ Read time clock is initialized.");
 #endif
 
   // ----------------------------------------------------
-  Serial.println(F("+++ Start the processor loop."));
+  // Options to Load/Read/Run a initialization program
+  //
+  // ---------------------------
+  // + If 00000000.bin exists, read it in, and run it.
+  // ---------------------------
+  // + If 00000000.bin not exists, load the memory array program.
+  int programSize = sizeof(theProgram);
+  if (programSize > 0) {
+    // List the program array.
+    listByteArray(theProgram, programSize);
+    copyByteArrayToMemory(theProgram, programSize);
+    Serial.print(F("+ Program loaded from memory array."));
+    programState = PROGRAM_RUN;
+    Serial.println(F(" It will start automatically."));
+  }
+
+  // ----------------------------------------------------
+  Serial.println(F("\n+++ Start the processor loop."));
 }
 
 // -----------------------------------------------------------------------------
