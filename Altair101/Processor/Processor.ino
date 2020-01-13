@@ -15,8 +15,8 @@
   + Test: After reading, do a reset which displays address 0 and its data byte.
 
   ----------
-  SD card read and write,
-  + When rebooting or resetting the Mega, if 00000000.bin exists, read it in, and run it.
+  SD card module options,
+  + When rebooting the Mega: if 00000000.bin exists, read it and run it.
   + Confirm saving or reading a file,
   ++ Fast flash HLDA for 1 second.
   ++ If read or write switch repeated, then run, else return to program wait status.

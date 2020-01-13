@@ -16,6 +16,17 @@ package asm;
     ---------------------------------------------
     Next assembler updates,
 
+    + Add directive, "end".
+    + Handle ":" (SEPARATOR) in a DB string.
+++ Example:
+++ msgSuccess  db      '+ Success: '
+++ ++ ':',                 //   7: dbname: msgsuccess
+
+    ++ When reading in the string, exchange SEPARATOR with SEPARATOR_TEMP.
+    ++ When writing out each character (dbname), exchange SEPARATOR_TEMP with SEPARATOR.
+    + Print the comment properly, when it contains a SEPARATOR in an EQU, example:
+    ++ B00111110, 58,       //  50: mvi 00111110 ('^^')
+
     + Create more opcode test programs and samples,
     ++ looping, branching, sense switch interation.
     ++ Create subroutines such as print and println.
@@ -48,6 +59,8 @@ package asm;
     + Currently, not case sensitive.
     + Match, getLabelAddress() with how the address names being added.
     + Match, getImmediateValue() with how the immediates being added.
+
+    https://en.wikipedia.org/wiki/ASCII
 
     ----------------------------------------------------------------------------
  */
@@ -459,6 +472,7 @@ public class asmProcessor {
         labelName.add(theName);
         labelAddress.add(programTop);        // Address to the string of bytes.
         for (int i = 1; i < theValue.length() - 1; i++) {
+            // Remove quotes, 'Hello' -> Hello
             programBytes.add("dbname:" + theName + SEPARATOR + theValue.substring(i, i + 1));
             programTop++;
         }
@@ -483,6 +497,13 @@ public class asmProcessor {
     // ------------------------
     private String getImmediateValue(String findName) {
         // System.out.println("\n+ getImmediateValue, findName: " + findName);
+        if (findName.equals("'^^'")) {
+            return Integer.toString(SEPARATOR.charAt(0));
+        }
+        if (findName.startsWith("'") && findName.endsWith("'")) {
+            // Need to handle characters, example: ":" return 58 (colon ascii value).
+            return Integer.toString(findName.charAt(1));
+        }
         String returnString = findName;
         int returnValue = NAME_NOT_FOUND;
         Iterator<String> lName = variableName.iterator();
