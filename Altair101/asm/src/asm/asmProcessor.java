@@ -9,6 +9,8 @@ package asm;
     + It assemble the Kill the Bit program, which was run on the Altair 101 dev machine.
 
     +++ Ready to be updated so that it can assemble the Pong program.
+    + Add directive, end, which tells the assemble to end processing the file its assembiling.
+    + Add opcode, rlc: RLC       00000111          C       Rotate A left
 
     ---------------------------------------------
     Next assembler updates,
@@ -802,13 +804,13 @@ public class asmProcessor {
             if (theLine.startsWith("org")) {
                 // Assembler directives:
                 //  4.1) org     0
-                System.out.println("++ parseLine, org directive. For now, ignore org line: " + orgLine.trim());
+                System.out.println("++ parseLine, org directive, theRest: " + theRest);
                 parseOrg(theRest);
                 return;
             } else if (theLine.startsWith("ds")) {
                 // Assembler directives:
                 //  4.2) ds     2
-                System.out.println("++ parseLine, ds directive without a label name: " + orgLine.trim() + "| theRest|" + theRest);
+                System.out.println("++ parseLine, ds directive without a label name, theRest|" + theRest);
                 parseDs("", theRest);   // No label name required.
                 return;
             }
@@ -940,11 +942,11 @@ public class asmProcessor {
 
         System.out.println("\n+ Parse file lines.");
         //thisProcess.printProgramByteArray(thisProcess,
-        //    "/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/opCpi.asm");
+        //    "/Users/dthurston/Projects/arduino/Altair101/asm/programs/opCpi.asm");
 
         // Assemble the Pong program.
         ignoreFirstCharacters = 12;     // Set to 12 for Pong program.
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/development/asm/programs/pong.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pong.asm");
         //
         // Or other programs.
         // Required, starts the process:
