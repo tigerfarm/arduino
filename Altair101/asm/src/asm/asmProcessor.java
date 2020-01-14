@@ -26,9 +26,10 @@ package asm;
     Next assembler updates,
 
     + Properly print,
-    +       mvi a,1
-    +       B00111110, 1,        // 127: mvi a
-    + Currently handles, 'a'. Need to handle, '\n', an escaped character.
+    ++       mvi a,1
+    ++       B00111110, 1,        // 127: mvi a
+    + Currently handles, 'a'.
+    ++ Need to handle, '\n', an escaped character.
 
     + Use TERMB EQU value, as this program's DB_STRING_TERMINATOR, and keep the default.
     ++ This allows an override.
