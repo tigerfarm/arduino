@@ -6,33 +6,39 @@ package asm;
 
     The basic assembler works:
     + It can assemble programs from a set of tested Intl 8080/8085 opcodes and assembler directives.
-    + It assemble the Kill the Bit program, which was run on the Altair 101 dev machine.
+    + The assembled, Kill the Bit program, run on the Altair 101 dev machine.
 
-    +++ Ready to be updated so that it can assemble the Pong program.
-    + Add directive, end, which tells the assemble to end processing the file its assembiling.
-    + Add opcode, rlc: RLC       00000111          C       Rotate A left
-    ++ Similar to:     rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
+    ---------------------------------------------
+    + Pong program work notes.
+
+    + I updated to have EQU as an immediate byte and a name-value label.
+    + Need to test. For example,
+    ++      SPEED   equ     0eh         ;higher value is faster
+    ++      lxi     b,SPEED             ;BC=adder for speed
+
+    + The following is assembled in this program, but not handled in Processor.ino.
+    + Since Altair 101 has its own stack space, I can ignore the following.
+    ++      lxi     sp,stack    ;init stack pointer 
+    ++ Note, if I don't ignore, need to check the following.
+    ++      stack   equ     $
 
     ---------------------------------------------
     Next assembler updates,
 
-    + Add directive, "end".
-    + Handle ":" (SEPARATOR) in a DB string.
-++ Example:
-++ msgSuccess  db      '+ Success: '
-++ ++ ':',                 //   7: dbname: msgsuccess
+    + Properly print,
+    +       mvi a,1
+    +       B00111110, 1,        // 127: mvi a
+    + Currently handles, 'a'. Need to handle, '\n', an escaped character.
 
-    ++ When reading in the string, exchange SEPARATOR with SEPARATOR_TEMP.
-    ++ When writing out each character (dbname), exchange SEPARATOR_TEMP with SEPARATOR.
-    + Print the comment properly, when it contains a SEPARATOR in an EQU, example:
-    ++ B00111110, 58,       //  50: mvi 00111110 ('^^')
+    + Use TERMB EQU value, as this program's DB_STRING_TERMINATOR, and keep the default.
+    ++ This allows an override.
 
     + Create more opcode test programs and samples,
     ++ looping, branching, sense switch interation.
     ++ Create subroutines such as print and println.
 
     Next opcodes to add/test,
-    + Opcodes implemented in the assembler, but not tested with a program:
+    + Opcodes implemented in the assembler, but not tested with an assembler generated program:
     lda a    00 110 010  3  Load register A with data from the address, a(hb:lb).
     sta a    00 110 010  3  Store register A to the address, a(hb:lb).
     inr D    00 DDD 100  1  Increment a register. To do, set flags: ZSPA.
@@ -74,7 +80,7 @@ public class asmProcessor {
 
     opcodes8080 theOpcodes = new opcodes8080();
     //
-    private String opcode;
+    private String opcode = "";
     private byte opcodeBinary;
     private String sOpcodeBinary;
     private String p1;
@@ -127,7 +133,12 @@ public class asmProcessor {
                 // Assembler directives.
                 case "dbname":
                     // ++ printProgramBytesArray, opcode|dbname| theValue |dbname:hello:H|
-                    opcodeStatement = "'" + opcodeValues[2] + "'" + ",";
+                    if (opcodeValues[2].equals(SEPARATOR_TEMP)) {
+                        // '^^',                //  16: dbname: msgsuccess
+                        opcodeStatement = "'" + SEPARATOR + "'" + ",";
+                    } else {
+                        opcodeStatement = "'" + opcodeValues[2] + "'" + ",";
+                    }
                     opcodeComment = opcode + ": " + opcodeValues[1];
                     break;
 
@@ -247,9 +258,9 @@ public class asmProcessor {
                     byteValues = theValue.split(SEPARATOR);
                     opcodeStatement += " " + byteValues[2] + ",";
                     if (byteValues[1].equals(byteValues[2])) {
-                        opcodeComment = opcode + " " + opcodeValues[1];
+                        opcodeComment = opcode + " " + opcodeValues[3];
                     } else {
-                        opcodeComment = opcode + " " + opcodeValues[2] + " (" + byteValues[1] + ")";
+                        opcodeComment = opcode + " " + opcodeValues[3] + ", " + byteValues[1];
                     }
                     break;
                 // -----------------------------
@@ -299,6 +310,27 @@ public class asmProcessor {
         // Address label
         labelName.add(label);
         labelAddress.add(programTop);
+        System.out.println("++ Label Name: " + label + ", Address: " + programTop);
+    }
+
+    private void parseLabelValue(String theName, String theValue) {
+        // Address label and value.
+        // ++ Variable name: speed, value: 0e
+        labelName.add(theName);
+        int intValue;
+        if (theValue.endsWith("h")) {
+            // Hex number. For example, change 0ffh or ffh to integer.
+            // Samples: 0ffh, 0eh
+            int si = 0;
+            if (theValue.startsWith("0") && theValue.length() > 3) {
+                si = 1;
+            }
+            theValue = theValue.substring(si, theValue.length() - 1);   // Hex string to integer. Remove the "h".
+            intValue = Integer.parseInt(theValue, 16);
+        } else {
+            intValue = Integer.parseInt(theValue);
+        }
+        labelAddress.add(intValue);
         System.out.println("++ Label Name: " + label + ", Address: " + programTop);
     }
 
@@ -472,8 +504,12 @@ public class asmProcessor {
         labelName.add(theName);
         labelAddress.add(programTop);        // Address to the string of bytes.
         for (int i = 1; i < theValue.length() - 1; i++) {
-            // Remove quotes, 'Hello' -> Hello
-            programBytes.add("dbname:" + theName + SEPARATOR + theValue.substring(i, i + 1));
+            // Only use what is contained within the quotes, 'Hello' -> Hello
+            if (theValue.substring(i, i + 1).equals(SEPARATOR)) {
+                programBytes.add("dbname:" + theName + SEPARATOR + SEPARATOR_TEMP);
+            } else {
+                programBytes.add("dbname:" + theName + SEPARATOR + theValue.substring(i, i + 1));
+            }
             programTop++;
         }
         programBytes.add("dbstringterminator:" + theName + SEPARATOR + DB_STRING_TERMINATOR);
@@ -579,8 +615,9 @@ public class asmProcessor {
     private String getOpcodeBinary(String opcode) {
         opcodeBinary = theOpcodes.getOpcode(opcode);
         if (opcodeBinary == theOpcodes.OpcodeNotFound) {
+            errorCount++;
+            System.out.println("\n-- Error, invalid opode: " + opcode + "\n");
             opcode = "INVALID: " + opcode;
-            System.out.print("-- Error, ");
             return ("INVALID: " + opcode);
         }
         return (byteToString(opcodeBinary));
@@ -776,6 +813,10 @@ public class asmProcessor {
             //  1) Opcode, no parameters, example: "nop".
             opcode = theLine.toLowerCase();
             System.out.println("++ parseLine, Opcode|" + opcode + "|");
+            if (opcode.equals("end")) {
+                // End file processing
+                return;
+            }
             parseOpcode(opcode);
             return;
         }
@@ -856,15 +897,18 @@ public class asmProcessor {
         // ++ parseLine, ds directive: part1|scorer| part3|1|
         // ------------------------------------------
         if (part2.equals("equ")) {
-            // Variable name and value.
-            // 5) TERMB   equ      0ffh
+            // EQU variable names and values, can either be an immediate byte, or an 2 byte address.
+            // So, add both, an address label and a immediate name-value pair.
+            // 5.1) TERMB   equ     0ffh
+            // 5.2) stack   equ     $
             if (part3.equals("$")) {
                 // stack   equ $    ; "$" is current address.
                 part3 = Integer.toString(programTop);
-                parseLabel(part3);
-                return;
             }
             System.out.println("++ parseLine, equ directive: part1|" + part1 + "| part3|" + part3 + "|");
+            // Stacy, incorrect: ++ Label Name: 0eh, Address: 0
+            parseLabelValue(part1, part3);
+            // ++ Variable name: speed, value: 0e
             parseName(part1, part3);
             return;
         }
@@ -915,7 +959,7 @@ public class asmProcessor {
             fin = new FileInputStream(readFile);
             pin = new DataInputStream(fin);
             String theLine = pin.readLine();
-            while (theLine != null) {
+            while (theLine != null && !opcode.equals("end")) {
                 parseLine(theLine);
                 theLine = pin.readLine();
             }
@@ -973,7 +1017,7 @@ public class asmProcessor {
         //
         // Or other programs.
         // Required, starts the process:
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opTemplate.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opRlcRrc.asm");
         //
         // Optional, used for debugging:
         thisProcess.listLabelAddresses();

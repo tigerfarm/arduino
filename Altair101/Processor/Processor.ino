@@ -177,59 +177,145 @@ File myFile;
 // -----------------------------------------------------------------------------
 const byte theProgram[] = {
   //                //            ; --------------------------------------
-  //                //            ; Developing a string print routine.
-  B11000011, 17, 0,    //   0: jmp Start
-  'H',                 //   3: dbname: hello
-  'e',                 //   4: dbname: hello
-  'l',                 //   5: dbname: hello
-  'l',                 //   6: dbname: hello
-  'o',                 //   7: dbname: hello
-  255,                 //   8: dbstringterminator: hello
-  't',                 //   9: dbname: there
-  'h',                 //  10: dbname: there
-  'e',                 //  11: dbname: there
-  'r',                 //  12: dbname: there
-  'e',                 //  13: dbname: there
-  '.',                 //  14: dbname: there
-  255,                 //  15: dbstringterminator: there
-  B01110110,           //  16: hlt
-  B00100001, 3, 0,     //  17: lxi h,Hello
-  B11100011, 34,       //  20: out 34
-  B11100011, 35,       //  22: out 35
-  B00111010, 3, 0,     //  24: lda Hello
-  B11100011, 37,       //  27: out 37
-  B01111110,           //  29: mov a,m
-  B11100011, 37,       //  30: out 37
-  B00111110, 10,       //  32: mvi 00111110 (NL)
-  B11100011, 3,        //  34: out 3
-  B01111110,           //  36: mov a,m
-  B11100011, 3,        //  37: out 3
-  B00111110, 10,       //  39: mvi 00111110 (NL)
-  B11100011, 3,        //  41: out 3
-  B00101100,           //  43: inr m
-  B01111110,           //  44: mov a,m
-  B11100011, 3,        //  45: out 3
-  B00111110, 10,       //  47: mvi 00111110 (NL)
-  B11100011, 3,        //  49: out 3
-  B00111110, 10,       //  51: mvi 00111110 (NL)
-  B11100011, 3,        //  53: out 3
-  B00100001, 3, 0,     //  55: lxi h,Hello
-  B11001101, 78, 0,    //  58: call PrintString
-  B00111110, 32,       //  61: mvi 00111110 (SPACE)
-  B11100011, 3,        //  63: out 3
-  B00100001, 9, 0,     //  65: lxi h,there
-  B11001101, 78, 0,    //  68: call PrintString
-  B00111110, 10,       //  71: mvi 00111110 (NL)
-  B11100011, 3,        //  73: out 3
-  B11000011, 16, 0,    //  75: jmp Halt
-  B01111110,           //  78: mov a,m
-  B11111110, 255,      //  79: cpi 255 (TERMB)
-  B11001010, 90, 0,    //  81: jz Done
-  B11100011, 3,        //  84: out 3
-  B00101100,           //  86: inr m
-  B11000011, 78, 0,    //  87: jmp PrintString
-  B11001001,           //  90: ret
-  0                    //  91: End of program
+  //                //            ; Test programs.
+  B11000011, 32, 0,    //   0: jmp Start
+  'R',                 //   3: dbname: opcode1
+  'L',                 //   4: dbname: opcode1
+  'C',                 //   5: dbname: opcode1
+  255,                 //   6: dbstringterminator: opcode1
+  'R',                 //   7: dbname: opcode2
+  'R',                 //   8: dbname: opcode2
+  'C',                 //   9: dbname: opcode2
+  255,                 //  10: dbstringterminator: opcode2
+  '+',                 //  11: dbname: msgsuccess
+  ' ',                 //  12: dbname: msgsuccess
+  'S',                 //  13: dbname: msgsuccess
+  'u',                 //  14: dbname: msgsuccess
+  'c',                 //  15: dbname: msgsuccess
+  'c',                 //  16: dbname: msgsuccess
+  'e',                 //  17: dbname: msgsuccess
+  's',                 //  18: dbname: msgsuccess
+  's',                 //  19: dbname: msgsuccess
+  ':',                 //  20: dbname: msgsuccess
+  ' ',                 //  21: dbname: msgsuccess
+  255,                 //  22: dbstringterminator: msgsuccess
+  '-',                 //  23: dbname: msgerror
+  ' ',                 //  24: dbname: msgerror
+  'E',                 //  25: dbname: msgerror
+  'r',                 //  26: dbname: msgerror
+  'r',                 //  27: dbname: msgerror
+  'o',                 //  28: dbname: msgerror
+  'r',                 //  29: dbname: msgerror
+  '.',                 //  30: dbname: msgerror
+  255,                 //  31: dbstringterminator: msgerror
+  B00111110, 1,        //  32: mvi a
+  B11100011, 37,       //  34: out 37
+  B11111110, 1,        //  36: cpi 1
+  B11000010, 226, 0,   //  38: jnz Error
+  B00000111,           //  41: rlc
+  B11100011, 37,       //  42: out 37
+  B11111110, 2,        //  44: cpi 2
+  B11000010, 226, 0,   //  46: jnz Error
+  B00000111,           //  49: rlc
+  B11100011, 37,       //  50: out 37
+  B11111110, 4,        //  52: cpi 4
+  B11000010, 226, 0,   //  54: jnz Error
+  B00000111,           //  57: rlc
+  B11100011, 37,       //  58: out 37
+  B11111110, 8,        //  60: cpi 8
+  B11000010, 226, 0,   //  62: jnz Error
+  B00000111,           //  65: rlc
+  B11100011, 37,       //  66: out 37
+  B11111110, 16,       //  68: cpi 16
+  B11000010, 226, 0,   //  70: jnz Error
+  B00000111,           //  73: rlc
+  B11100011, 37,       //  74: out 37
+  B11111110, 32,       //  76: cpi 32
+  B11000010, 226, 0,   //  78: jnz Error
+  B00000111,           //  81: rlc
+  B11100011, 37,       //  82: out 37
+  B11111110, 64,       //  84: cpi 64
+  B11000010, 226, 0,   //  86: jnz Error
+  B00000111,           //  89: rlc
+  B11100011, 37,       //  90: out 37
+  B11111110, 128,      //  92: cpi 128
+  B11000010, 226, 0,   //  94: jnz Error
+  B00000111,           //  97: rlc
+  B11100011, 37,       //  98: out 37
+  B11111110, 1,        // 100: cpi 1
+  B11000010, 226, 0,   // 102: jnz Error
+  B11001101, 1, 1,     // 105: call printNL
+  B00100001, 11, 0,    // 108: lxi h,msgSuccess
+  B11001101, 244, 0,   // 111: call print
+  B00100001, 3, 0,     // 114: lxi h,opcode1
+  B11001101, 244, 0,   // 117: call print
+  B00111110, 46,       // 120: mvi a, '.'
+  B11100011, 3,        // 122: out 3 (PRINT_PORT)
+  B11001101, 1, 1,     // 124: call printNL
+  B00111110, 1,        // 127: mvi a
+  B11100011, 37,       // 129: out 37
+  B11111110, 128,      // 131: cpi 128
+  B11000010, 226, 0,   // 133: jnz Error
+  B00001111,           // 136: rrc
+  B11100011, 37,       // 137: out 37
+  B11111110, 64,       // 139: cpi 64
+  B11000010, 226, 0,   // 141: jnz Error
+  B00001111,           // 144: rrc
+  B11100011, 37,       // 145: out 37
+  B11111110, 32,       // 147: cpi 32
+  B11000010, 226, 0,   // 149: jnz Error
+  B00001111,           // 152: rrc
+  B11100011, 37,       // 153: out 37
+  B11111110, 16,       // 155: cpi 16
+  B11000010, 226, 0,   // 157: jnz Error
+  B00001111,           // 160: rrc
+  B11100011, 37,       // 161: out 37
+  B11111110, 8,        // 163: cpi 8
+  B11000010, 226, 0,   // 165: jnz Error
+  B00001111,           // 168: rrc
+  B11100011, 37,       // 169: out 37
+  B11111110, 4,        // 171: cpi 4
+  B11000010, 226, 0,   // 173: jnz Error
+  B00001111,           // 176: rrc
+  B11100011, 37,       // 177: out 37
+  B11111110, 2,        // 179: cpi 2
+  B11000010, 226, 0,   // 181: jnz Error
+  B00001111,           // 184: rrc
+  B11100011, 37,       // 185: out 37
+  B11111110, 1,        // 187: cpi 1
+  B11000010, 226, 0,   // 189: jnz Error
+  B00001111,           // 192: rrc
+  B11100011, 37,       // 193: out 37
+  B11111110, 129,      // 195: cpi 129
+  B11000010, 226, 0,   // 197: jnz Error
+  B11001101, 1, 1,     // 200: call printNL
+  B00100001, 11, 0,    // 203: lxi h,msgSuccess
+  B11001101, 244, 0,   // 206: call print
+  B00100001, 7, 0,     // 209: lxi h,opcode2
+  B11001101, 244, 0,   // 212: call print
+  B00111110, 46,       // 215: mvi a, '.'
+  B11100011, 3,        // 217: out 3 (PRINT_PORT)
+  B11001101, 1, 1,     // 219: call printNL
+  B01110110,           // 222: hlt
+  B11000011, 32, 0,    // 223: jmp Start
+  B11001101, 1, 1,     // 226: call printNL
+  B00100001, 23, 0,    // 229: lxi h,msgError
+  B11001101, 244, 0,   // 232: call print
+  B11001101, 1, 1,     // 235: call printNL
+  B11100011, 39,       // 238: out 39
+  B01110110,           // 240: hlt
+  B11000011, 32, 0,    // 241: jmp Start
+  B01111110,           // 244: mov a,m
+  B11111110, 255,      // 245: cpi 255 (TERMB)
+  B11001010, 0, 1,     // 247: jz Done
+  B11100011, 3,        // 250: out 3 (PRINT_PORT)
+  B00101100,           // 252: inr m
+  B11000011, 244, 0,   // 253: jmp print
+  B11001001,           // 256: ret
+  B00111110, 10,       // 257: mvi a, NL
+  B11100011, 3,        // 259: out 3 (PRINT_PORT)
+  B11001001,           // 261: ret
+  0                    // 262: End of program
 };
 
 // -----------------------------------------------------------------------------

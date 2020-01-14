@@ -7,13 +7,12 @@
                 jmp Start
                                     ; ------------------------------------------
     opcode      db      'ANI'
-    msgSuccess  db      '+ Success'
-    msgError    db      '+ Error.'
+    msgSuccess  db      '+ Success: '
+    msgError    db      '- Error.'
     PRINT_PORT  equ     3           ; Print to the serial port.
                                     ;
                                     ; -------------------
                                     ; Special characters:
-    SPACE       equ     32          ; Space, ' '.
     NL          equ     10          ; New line, '\n'.
     TERMB       equ     0ffh        ; String terminator.
                                     ;
@@ -32,12 +31,10 @@
                 call printNL
                 lxi h,msgSuccess
                 call print
-                mvi a,':'
-                out PRINT_PORT
-                mvi a,' '
-                out PRINT_PORT
                 lxi h,opcode
                 call print
+                mvi a,'.'
+                out PRINT_PORT
                 call printNL
                                     ;
                 hlt                 ; The program will halt at each iteration, after the first.
@@ -69,4 +66,4 @@
                 out PRINT_PORT
                 ret
 
-                                    ; End.
+                end

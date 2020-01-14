@@ -1,11 +1,10 @@
                         ; --------------------------------------
-                        ; Test opcode ANI and ORA.
-                        ; AND # (immediate db) with register A.
+                        ; Test opcode ORA.
                         ; OR register S, with register A.
                         ; --------------------------------------
             jmp Test    ; Jump to bypass the halt.
     Error:
-            mvi a,'\n'
+            mvi a,10    ; Newline
             out 3
             mvi a,'-'   ; Move the byte value of "-" to register A.
             out 3       ; Output register A content to the serial port (serial monitor).
@@ -28,7 +27,7 @@
             jmp Test    ; Jump to bypass the halt.
                         ; --------------------------------------
     Halt:
-            mvi a,'\n'
+            mvi a,10    ; Newline
             out 3
             mvi a,'+'   ; Move the byte value of "+" to register A.
             out 3       ; Output register A content to the serial port (serial monitor).
@@ -51,44 +50,6 @@
             hlt         ; The program will halt at each iteration, after the first.
                         ; --------------------------------------
     Test:
-                        ;          ani # 11 100 110
-            mvi a,176   ; Move # to register A:    10 110 000 = 176
-            ani 248     ; AND # with register A:   11 111 000 = 248
-            out 37      ; Print register A answer: 10 110 000 = 176
-            cpi 176     ; 176 = A. Zero bit flag is true.
-            jz okayani  ; Zero bit flag is set, jump.
-            jmp Error   ; The above should have jumped passed this.
-    okayani:
-            mvi a,'\n'
-            out 3
-            mvi a,'+'   ; Move the byte value of "+" to register A.
-            out 3       ; Output register A content to the serial port (serial monitor).
-            mvi a,' '
-            out 3
-            mvi a,'S'
-            out 3
-            mvi a,'u'
-            out 3
-            mvi a,'c'
-            out 3
-            mvi a,'c'
-            out 3
-            mvi a,'e'
-            out 3
-            mvi a,'s'
-            out 3
-            mvi a,'s'
-            out 3
-            mvi a,'-'
-            out 3
-            mvi a,' '
-            out 3
-            mvi a,'A'
-            out 3
-            mvi a,'N'
-            out 3
-            mvi a,'I'
-            out 3
                         ; --------------------------------------
                         ; ORA S     10110SSS          ZSPCA   OR source register with A
             mvi a,73    ; Move # to register A:                   01 001 001 = 73
@@ -147,7 +108,7 @@
             jz okaym1
             jmp Error
     okaym1:
-            mvi a,'\n'
+            mvi a,10    ; Newline
             out 3
             mvi a,'+'   ; Move the byte value of "+" to register A.
             out 3       ; Output register A content to the serial port (serial monitor).

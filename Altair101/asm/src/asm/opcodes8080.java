@@ -257,6 +257,8 @@ public class opcodes8080 {
         value[top++] = (byte) 0b00010001;
         name[top] = "lxih";
         value[top++] = (byte) 0b00100001;
+        name[top] = "lxisp";
+        value[top++] = (byte) 0b00110001;
         // ---------------------------------------------------------------------
         name[top] = "mov";
         info[top] = "MOV D,S    01DDDSSS  1  Move source register data, to the destination register. If source(S) is M(110), move data from address H:L, to D.";

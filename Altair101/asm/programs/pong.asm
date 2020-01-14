@@ -121,7 +121,7 @@
 006F 218000     missLf: lxi     h,scoreL    ;increment left misses 
 0072 34                 inr     m
                 ; moveLf - Move the ball left again. 
-0073 1E00       LfR:    mvi     e,0         ;reset switch state 
+0073 1E00      moveLfR: mvi     e,0         ;reset switch state 
 0075 7A         moveLf: mov     a,d         ;move right again 
 0076 07                 rlc
 0077 57                 mov     d,a 

@@ -6,7 +6,7 @@
                         ;
                         ; --------------------------------------
     Success:
-            mvi a,'\n'
+            mvi a,10    ; Print newline.
             out 3
             mvi a,'+'   ; Move the byte value of "+" to register A.
             out 3       ; Output register A content to the serial port (serial monitor).
@@ -41,7 +41,7 @@
             jmp Test
                         ; --------------------------------------
     Error:
-            mvi a,'\n'
+            mvi a,10    ; Print newline.
             out 3
             mvi a,'-'   ; Move the byte value of "-" to register A.
             out 3       ; Output register A content to the serial port (serial monitor).
