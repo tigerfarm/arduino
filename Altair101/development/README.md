@@ -48,6 +48,10 @@ pcf8574inputLogic.ino further develops the code by adding logic that is used in 
   ++ Status light: clock function or emulator control.
   ++ HLDA : 8080 processor go into a hold state because of other hardware.
 
+  + Test: opcode rlc (similar to rrc), which is used in the Pong program.
+  + Test: status HLDA on while reading or writing.
+  + Test: After reading, do a reset which displays address 0 and its data byte.
+
   ----------
   SD card program read and write,
   + Read(download) and write(uplaod) switches need to be connected to Mega pins.
@@ -71,6 +75,9 @@ pcf8574inputLogic.ino further develops the code by adding logic that is used in 
   ++ Sample program: p1.asm.
   + Compile and run the next major Altair 8800 sample program, Pong.
   + Create more samples: looping, branching, calling subroutines, sense switch interation.
+
+    + Currently handles, 'a'.
+    ++ Need to handle, '\n', an escaped character.
 
 ````
 --------------------------------------------------------------------------------

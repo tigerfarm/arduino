@@ -25,11 +25,17 @@ package asm;
     ---------------------------------------------
     Next assembler updates,
 
-    + Properly print,
-    ++       mvi a,1
-    ++       B00111110, 1,        // 127: mvi a
-    + Currently handles, 'a'.
-    ++ Need to handle, '\n', an escaped character.
+    + Handle ',', in a DB string. Example:
+    +   NO_INPUT    db      '+ No input, value = 0.'
+
+    + The following causes address error. printPrompt was set to the same address as prompt.
+    ++ The processor calls address prompt, instead of address printPrompt.
+    ...
+    call printPrompt
+    ...
+    prompt      db      '+ Enter byte > '
+    printPrompt:
+                call printNL        ; Print prompt.
 
     + Use TERMB EQU value, as this program's DB_STRING_TERMINATOR, and keep the default.
     ++ This allows an override.
@@ -68,6 +74,13 @@ package asm;
     + Match, getImmediateValue() with how the immediates being added.
 
     https://en.wikipedia.org/wiki/ASCII
+    Space = 32
+    ! = 33
+    0 = 48
+    A = 65
+    a = 97
+    Printable character in ascii decimal order:
+        !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
 
     ----------------------------------------------------------------------------
  */
@@ -259,9 +272,9 @@ public class asmProcessor {
                     byteValues = theValue.split(SEPARATOR);
                     opcodeStatement += " " + byteValues[2] + ",";
                     if (byteValues[1].equals(byteValues[2])) {
-                        opcodeComment = opcode + " " + opcodeValues[3];
+                        opcodeComment = opcode + " " + opcodeValues[3] + "," + byteValues[1];
                     } else {
-                        opcodeComment = opcode + " " + opcodeValues[3] + ", " + byteValues[1];
+                        opcodeComment = opcode + " " + opcodeValues[3] + "," + byteValues[1];
                     }
                     break;
                 // -----------------------------
@@ -538,7 +551,28 @@ public class asmProcessor {
             return Integer.toString(SEPARATOR.charAt(0));
         }
         if (findName.startsWith("'") && findName.endsWith("'")) {
-            // Need to handle characters, example: ":" return 58 (colon ascii value).
+            // Need to handle characters, example: ":" return 58 (colon ascii value), or "\n" return 10.
+            // Reference: https://en.wikipedia.org/wiki/ASCII
+            if (findName.charAt(1) == '\\') {
+                switch (findName.charAt(2)) {
+                    case 'n':
+                        // Line feed
+                        return "10";
+                    case 'b':
+                        // Backspace
+                        return "7";
+                    case 'a':
+                        // Bell
+                        return "7";
+                    case 't':
+                        // Tab
+                        return "9";
+                    default:
+                        errorCount++;
+                        System.out.println("\n- Error, unhandled escape character: " + findName + ".\n");
+                        return "0";
+                }
+            }
             return Integer.toString(findName.charAt(1));
         }
         String returnString = findName;
@@ -1018,7 +1052,7 @@ public class asmProcessor {
         //
         // Or other programs.
         // Required, starts the process:
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opRlcRrc.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
         //
         // Optional, used for debugging:
         thisProcess.listLabelAddresses();
