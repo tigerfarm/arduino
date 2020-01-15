@@ -7,7 +7,8 @@
 
 // -----------------------------------------------------------------------------
 void setup() {
-  Serial.begin(115200);
+  // Serial.begin(115200);
+  Serial.begin(9600);
   // Give the serial connection time to start before the first print.
   delay(1000);
   Serial.println(""); // Newline after garbage characters.

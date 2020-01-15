@@ -1,5 +1,3 @@
-package asm;
-
 /*
     ----------------------------------------------------------------------------
     Altair 101 Assembler Program
@@ -23,7 +21,7 @@ package asm;
     ++      stack   equ     $
 
     ---------------------------------------------
-    Next assembler updates,
+    Next assembler updates and issues,
 
     + Handle ',', in a DB string. Example:
     +   NO_INPUT    db      '+ No input, value = 0.'
@@ -84,6 +82,8 @@ package asm;
 
     ----------------------------------------------------------------------------
  */
+package asm;
+
 import static asm.opcodes8080.byteToString;
 import java.io.*;
 import java.util.ArrayList;

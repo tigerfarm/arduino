@@ -33,8 +33,9 @@
                                     ; ------------------------------------------
                                     ; Process the input byte value.
                                     ;
-                mov b,a             ; Store/push/move the byte.
+                mov b,a             ; Move the byte to register B.
                 out 30              ; Print register B to the serial port.
+                                    ;
                 call printNL
                 lxi h,ECHO
                 call print

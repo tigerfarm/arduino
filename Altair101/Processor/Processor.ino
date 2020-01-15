@@ -73,10 +73,11 @@
 // -----------------------------------------------------------------------------
 // Code compilation options.
 
-#define INCLUDE_AUX 1
-#define INCLUDE_CLOCK 1
+// #define FOR_MEGA 1
+// #define INCLUDE_AUX 1
+// #define INCLUDE_CLOCK 1
 // #define INCLUDE_LCD 1
-#define INCLUDE_SDCARD 1
+// #define INCLUDE_SDCARD 1
 // #define RUN_DELAY 1
 #define SWITCH_MESSAGES 1
 // #define LOG_MESSAGES 1
@@ -3553,7 +3554,8 @@ void checkDownloadSwitch() {
 // Infrared options when a program is NOT running.
 
 void infraredControl() {
-  // Serial.println(F("+ infraredSwitch"));
+  // Serial.print(F("+ infraredControl: "));
+  // Serial.println(results.value);
   switch (results.value) {
     case 0xFFFFFFFF:
       // Ignore. This is from holding the key down.
@@ -3561,11 +3563,12 @@ void infraredControl() {
     // -----------------------------------
     case 0xFF10EF:
     case 0xE0E0A659:
-      // Serial.println(F("+ Key < - previous"));
+      Serial.println(F("+ Key < - previous"));
       break;
-    case 0xFF5AA5:
+    case 16734885:
+    // case 0xFF5AA5:
     case 0xE0E046B9:
-      // Serial.println(F("+ Key > - next: SINGLE STEP toggle/button switch."));
+      Serial.println(F("+ Key > - next: SINGLE STEP toggle/button switch."));
       statusByte = statusByte & HLTA_OFF;
       processData();
       break;
@@ -3579,7 +3582,7 @@ void infraredControl() {
       break;
     case 0xFF4AB5:
     case 0xE0E08679:
-      // Serial.println(F("+ Key down"));
+      Serial.println(F("+ Key down"));
       break;
     case 0xFF38C7:
     case 0xE0E016E9:
@@ -3592,83 +3595,71 @@ void infraredControl() {
     // -----------------------------------
     case 0xFF9867:
     case 0xE0E08877:
-      // Serial.print(F("+ Key 0:"));
-      // Serial.println("");
+      Serial.print(F("+ Key 0:"));
+      Serial.println("");
       break;
-    case 0xFFA25D:
+    case 16753245:
       // Serial.println(F("+ Key 1: "));
-      // Serial.println("+ Examine.");
-#ifdef LOG_MESSAGES
-      Serial.print("? ");
+      Serial.println(F("+ Examine."));
       displayStatusAddressData();
       Serial.println("");
-#else
-      displayStatusAddressData();
-#endif
       break;
-    case 0xFF629D:
-      // Serial.println(F("+ Key 2: "));
+    case 16736925:
+    // case 0xFF629D:
+      Serial.println(F("+ Key 2: "));
       // Serial.println("+ Examine Next.");
       programCounter++;
-#ifdef LOG_MESSAGES
-      Serial.print("? ");
       displayStatusAddressData();
       Serial.println("");
-#else
-      displayStatusAddressData();
-#endif
       break;
     case 0xFFE21D:
       // Serial.println(F("+ Key 3: "));
-      // Serial.println("+ Examine Previous.");
+      Serial.println("+ Examine Previous.");
       programCounter--;
-#ifdef LOG_MESSAGES
-      Serial.print("? ");
       displayStatusAddressData();
       Serial.println("");
-#else
-      displayStatusAddressData();
-#endif
       break;
     case 0xFF22DD:
-      // Serial.print(F("+ Key 4: "));
-      // Serial.println("");
+      Serial.print(F("+ Key 4: "));
+      Serial.println("");
       break;
     case 0xFF02FD:
-      // Serial.print(F("+ Key 5: "));
-      // Serial.println("");
+      Serial.print(F("+ Key 5: "));
+      Serial.println("");
       break;
     case 0xFFC23D:
-      // Serial.print(F("+ Key 6: "));
-      // Serial.println("");
+      Serial.print(F("+ Key 6: "));
+      Serial.println("");
       break;
     case 0xFFE01F:
-      // Serial.print(F("+ Key 7: "));
-      // Serial.println("");
+      Serial.print(F("+ Key 7: "));
+      Serial.println("");
       break;
     case 0xFFA857:
-      // Serial.print(F("+ Key 8: "));
-      // Serial.println("");
+      Serial.print(F("+ Key 8: "));
+      Serial.println("");
       break;
     case 0xFF906F:
-      // Serial.print(F("+ Key 9: "));
-      // Serial.println("");
+      Serial.print(F("+ Key 9: "));
+      Serial.println("");
       break;
     // -----------------------------------
     case 0xFF6897:
     case 0xE0E01AE5:
-      // Serial.println(F("+ Key * (Return)"));
+      Serial.println(F("+ Key * (Return)"));
       // Use as Reset when running.
       controlResetLogic();
       break;
     case 0xFFB04F:
     case 0xE0E0B44B:
-      // Serial.println(F("+ Key # (Exit)"));
+      Serial.println(F("+ Key # (Exit)"));
       break;
     // -----------------------------------
     default:
-      // Serial.print("+ Result value: ");
-      // Serial.println(results.value, HEX);
+      Serial.print("+ Result value: ");
+      Serial.print(results.value);
+      Serial.print(" HEX:");
+      Serial.println(results.value, HEX);
       break;
       // -----------------------------------
   } // end switch
@@ -3775,7 +3766,7 @@ void infraredRunning() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(115200); // 115200 or 9600
   delay(1000);        // Give the serial connection time to start before the first print.
   Serial.println(""); // Newline after garbage characters.
   Serial.println(F("+++ Setup."));
