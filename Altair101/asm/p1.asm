@@ -1,5 +1,5 @@
                                     ; --------------------------------------
-                                    ; Test OUT to the serial monitor.
+                                    ; Test asm parsing. Not meant as a valid program.
                                     ; --------------------------------------
                 org 0
                 jmp Start           ; Jump to Start to bypass declarations halt.
