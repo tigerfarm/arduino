@@ -11,7 +11,7 @@
     PRINT_PORT  equ     3           ; Output port: print to the serial port.
                                     ; -------------------
     ECHO        db      '+ Input data: '
-    NO_INPUT    db      '+ No input. value = 0.'
+    NO_INPUT    db      '+ No input, value = 0.'
                                     ; -------------------
                                     ; Special characters:
     NL          equ     10          ; New line, '\n'.

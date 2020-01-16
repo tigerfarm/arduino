@@ -23,9 +23,6 @@
     ---------------------------------------------
     Next assembler updates and issues,
 
-    + Handle ',', in a DB string. Example:
-    +   NO_INPUT    db      '+ No input, value = 0.'
-
     + The following causes address error. printPrompt was set to the same address as prompt.
     ++ The processor calls address prompt, instead of address printPrompt.
     ...
@@ -420,7 +417,7 @@ public class asmProcessor {
                 returnValue = Integer.parseInt(findName);
             } catch (NumberFormatException e) {
                 errorCount++;
-                System.out.println("\n- Error, address label not found: " + findName + ".\n");
+                System.out.println("\n- Error, programTop: " + programTop + ", address label not found: " + findName + ".\n");
                 returnValue = 0;
             }
         }
@@ -569,7 +566,7 @@ public class asmProcessor {
                         return "9";
                     default:
                         errorCount++;
-                        System.out.println("\n- Error, unhandled escape character: " + findName + ".\n");
+                        System.out.println("\n- Error, programTop: " + programTop + ", unhandled escape character: " + findName + ".\n");
                         return "0";
                 }
             }
@@ -595,7 +592,7 @@ public class asmProcessor {
                 Integer.parseInt(returnString);
             } catch (NumberFormatException e) {
                 errorCount++;
-                System.out.println("\n- Error, immediate label not found: " + findName + ".\n");
+                System.out.println("\n- Error, programTop: " + programTop + ", immediate label not found: " + findName + ".\n");
             }
         } else {
             returnString = Integer.toString(returnValue);
@@ -651,7 +648,7 @@ public class asmProcessor {
         opcodeBinary = theOpcodes.getOpcode(opcode);
         if (opcodeBinary == theOpcodes.OpcodeNotFound) {
             errorCount++;
-            System.out.println("\n-- Error, invalid opode: " + opcode + "\n");
+            System.out.println("\n-- Error, programTop: " + programTop + ", invalid opode: " + opcode + "\n");
             opcode = "INVALID: " + opcode;
             return ("INVALID: " + opcode);
         }
@@ -725,7 +722,8 @@ public class asmProcessor {
             // -----------------------------
             default:
                 opcode = "INVALID: " + opcode;
-                System.out.print("-- Error, ");
+                System.out.print("-- Error, programTop: " + programTop + " ");
+                errorCount++;
                 break;
         }
         System.out.println("++ Opcode: "
@@ -775,7 +773,8 @@ public class asmProcessor {
                 break;
             default:
                 opcode = "INVALID: " + opcode;
-                System.out.print("-- Error, ");
+                System.out.print("-- Error, programTop: " + programTop + " ");
+                errorCount++;
                 break;
         }
         System.out.println("++ Opcode: "
@@ -929,6 +928,29 @@ public class asmProcessor {
         //      -- Error, ++ Opcode: INVALID: abc 11000011 p1|db     'okay| p2|yes?'|
         //
         // Check for opcode with 2 parameters, example: mvi a,1
+        c1 = theRest.indexOf("'");
+        if (c1 > 0) {
+            // Take care of the case where "," is inside a DB string.
+            // ++ parseLine, part1|abc| theRest|db     'okay, yes?'|
+            // ++ parseLine, DB string contains ','.
+            int c2 = theRest.indexOf(" ");
+            if (c2 > 1) {
+                // If c2<i, then not a directive. Example: mvi a,'\n'
+                String theDirective = theRest.substring(0, c2).toLowerCase();
+                // System.out.println("++ parseLine, DB string contains ','. theDirective = " + theDirective + ".");
+                if (theDirective.equals("db")) {
+                    // String of bytes.
+                    // 6) Hello   db       "Hello"
+                    String part3 = theRest.substring(c1, theRest.length());
+                    System.out.println("++ parseLine, db directive: part1|" + part1 + "| part3|" + part3 + "|");
+                    parseDb(part1, part3);
+                    return;
+                } else {
+                    errorCount++;
+                    System.out.print("-- Error, programTop: " + programTop + ", line: " + theLine);
+                }
+            }
+        }
         c1 = theRest.indexOf(",");
         // ------------------------------------------
         if (c1 > 0) {
@@ -1102,8 +1124,8 @@ public class asmProcessor {
         //
         // Or other programs.
         // Required, starts the process:
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
         //
         // Optional, used for debugging:
         thisProcess.listLabelAddresses();
