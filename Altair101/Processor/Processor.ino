@@ -73,6 +73,7 @@
 // -----------------------------------------------------------------------------
 // Code compilation options.
 
+#define INFRARED_MESSAGES 1
 // #define FOR_MEGA 1
 // #define INCLUDE_AUX 1
 // #define INCLUDE_CLOCK 1
@@ -603,7 +604,7 @@ void displayStatusAddressData() {
   dataByte = memoryData[programCounter];
   lightsStatusAddressData(statusByte, programCounter, dataByte);
   //
-#ifdef LOG_MESSAGES
+#ifdef LOG_MESSAGES || INFRARED_MESSAGES
   Serial.print(F("Addr: "));
   sprintf(charBuffer, "%4d:", programCounter);
   Serial.print(charBuffer);
