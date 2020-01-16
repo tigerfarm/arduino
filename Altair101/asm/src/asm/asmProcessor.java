@@ -786,6 +786,59 @@ public class asmProcessor {
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
     // Parse program lines.
+    //
+    // ---------------------------------------------------------------------
+    // Types of opcode lines:
+    //      opcode                                          ret
+    //      opcode <immediate>                              out 30
+    //      opcode <address label>                          call print
+    //      opcode <register>,<address label|16-bit number> 
+    //      opcode <register|RegisterPair>                  inr m
+    //      opcode <RegisterPair>,<address label>           lxi h,prompt
+    //      opcode <register>,<immediate>                   mvi a,73
+    //      opcode <register>,<register>                    mov b,a
+    //
+    // Others:
+    //      
+    // Types of directive lines:
+    //                          org     <number>
+    //                          ds      2
+    //      <variable name>     equ     <immediate>
+    //      <address label>     equ     <immediate>
+    //      <address label>     db      '<characters>'
+    //      <address label>     ds      1
+    //
+    // ---------------------------------------------------------------------
+    // Lines with comments:
+    //                      ; Comment line
+    //      jmp Next        ; Comment after an assembler statement.
+    // Labels:
+    //      Start:          ; Label line
+    //      Start: jmp Next ; Assembler statement after a label.
+    // Number types:
+    //      80
+    //      80h
+    //      080h
+    // Immediate types:
+    //      80
+    //      80h
+    //      080h
+    //      'a'
+    //      '\n'
+    // Opcode lines. Opcodes can have 0, 1, or 2 parameters. For example:
+    //      0)          nop
+    //      1)          jmp Next
+    //      1)          jmp <number>
+    //      1)          cpi <immediate>
+    //      2)          mvi a,<immediate>
+    // Or assembler directives:
+    //      4)          org     <number>
+    //      4)          ds      2
+    //      5) var1     equ     <immediate>
+    //      6) Hello    db      'Hello, there: yes, there.'
+    //      7) scoreR   ds      1
+    //      7) scoreS   ds      2
+    //
     private void parseLine(String orgLine) {
         String theLine;
         String theRest;
@@ -831,18 +884,6 @@ public class asmProcessor {
             return;
         }
         // ---------------------------------------------------------------------
-        // Opcode lines. Opcodes can have 0, 1, or 2 parameters. For example:
-        //      1) nop
-        //      2) mvi a,1
-        //      3) jmp Next
-        // Or assembler directives:
-        //      4.1) org     0
-        //      4.2) ds      2
-        //      5) TERMB   equ     0ffh
-        //      6) Hello   db      "Hello"
-        //      7) scoreR  ds       1
-
-        // ---------------------------------------------------------------------
         c1 = theLine.indexOf(" ");
         if (c1 < 1) {
             //  1) Opcode, no parameters, example: "nop".
@@ -878,6 +919,15 @@ public class asmProcessor {
         // System.out.println("++ parseLine, part1|" + part1 + "| theRest|" + theRest + "|");
         //
         // ---------------------------------------------------------------------
+        //
+        // stacy
+        // Works:
+        //  mvi a,3
+        // Error:
+        //  abc     db     'okay, yes?'
+        //      ++ parseLine, Opcode|abc| p1|db     'okay| p2|yes?'|
+        //      -- Error, ++ Opcode: INVALID: abc 11000011 p1|db     'okay| p2|yes?'|
+        //
         // Check for opcode with 2 parameters, example: mvi a,1
         c1 = theRest.indexOf(",");
         // ------------------------------------------
@@ -1052,7 +1102,8 @@ public class asmProcessor {
         //
         // Or other programs.
         // Required, starts the process:
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
         //
         // Optional, used for debugging:
         thisProcess.listLabelAddresses();

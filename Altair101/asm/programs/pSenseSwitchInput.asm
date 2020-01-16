@@ -10,7 +10,6 @@
     SENSE_SW    equ     255         ; Input port address: toggle sense switch byte, into register A.
     PRINT_PORT  equ     3           ; Output port: print to the serial port.
                                     ; -------------------
-    prompt      db      '+ Enter byte > '
     ECHO        db      '+ Input data: '
     NO_INPUT    db      '+ No input. value = 0.'
                                     ; -------------------
@@ -56,6 +55,8 @@
                                     ; ------------------------------------------
                                     ; ------------------------------------------
                                     ; Print prompt.
+    prompt      db      '+ Enter byte > '
+                                    ;
     printPrompt:
                 call printNL        ; Print prompt.
                 lxi h,prompt

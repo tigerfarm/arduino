@@ -1,9 +1,10 @@
 --------------------------------------------------------------------------------
-# Altair 101 Assembler Programs
+# Writing Altair 101 Assembler Programs
 
-The programs in this directory are used to test opcodes and develop programming methods.
+The programs in this directory are used to test and demonstrate the use of each opcode.
+I'm also developing programs to demonstrate the Altair 101 abilities.
 
-First phase programs were hard coded bytes in a memory array, in Processor.ino.
+During the first early phase, programs were hard coded bytes in a memory array, in the processor program, Processor.ino.
 
 My first test program, a jump loop.
 ````
@@ -17,7 +18,7 @@ byte jumpLoopProgram[] = {
 ````
 
 In the second phase, I began writing assembler commands beside the byte arrays.
-This aided my program development.
+This sped up my program development.
 I also began using program labels, my first assembler directive.
 
 I complied sample programs into the file, ProcessorPrograms.md.
@@ -31,21 +32,29 @@ byte jumpLoopProgram[] = {
 };
 ````
 
-As I wrote more programs, my assembler skills increased.
-However it was slow and difficult to write simple programs.
-Readjusting jumps was a major issue without labels.
+It was slow and difficult to write simple programs.
+Re-adjusting jumps was a major issue without labels.
 I needed an assembler program. But I couldn't find one online.
 
-The third phase, this phase, is writing an assembler program to convert assembler programs into byte arrays.
-I then copy the assembler output, the byte arrays, into Processor.ino.
-I run the assembler program in Processor.ino.
-This is where I further debug the assembler program,
-debug the opcode processing of Processor.ino, and debug the assembler program itself.
+In the third phase, this phase, I'm writing an assembler program to convert assembler programs into byte arrays.
+I then copy the assembler output, the byte arrays, into the Altair 101 process program, Processor.ino.
+I run the assembled program in the processor program where I further debug:
++ The assembler program,
++ How the processor program processes opcodes,
++ And debug the assembler program itself.
 
-As the third phase ends, the assembler program is becoming reliable and complete enough for me to write the programs I want to write.
-I'm enter the program development phase.
+As the third phase ends, I'm enter the program development phase.
+The assembler program has become reliable and complete enough for me to write the programs I want to write.
 Rather than debugging the processor or assembler programs,
-I'm writing programs to demonstrate the capabilities of the Altair 101.
+I write programs to study and test the capabilities and uses of each opcode.
+This leads to the writing of programs to demonstrate the capabilities of the Altair 101.
+
+The program development phase will include the ability to upload byte programs to the 101.
+The new steps will be:
++ Write assembler programs on my laptop.
++ Assemble the programs into a byte code file; no longer using byte array output.
++ Use a new serial program (in development) to upload the byte file to the processor.
++ The Altair 101 processor can then run the program, and optionally, store the program into a file for future use.
 
 --------------------------------------------------------------------------------
 ## Program notes
