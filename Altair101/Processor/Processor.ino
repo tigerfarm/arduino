@@ -605,6 +605,15 @@ void displayStatusAddressData() {
   dataByte = memoryData[programCounter];
   lightsStatusAddressData(statusByte, programCounter, dataByte);
   //
+#ifdef INFRARED_MESSAGES
+  Serial.print(F("Addr: "));
+  sprintf(charBuffer, "%4d:", programCounter);
+  Serial.print(charBuffer);
+  Serial.print(F(" Data: "));
+  dataByte = memoryData[programCounter];
+  printData(dataByte);
+  Serial.println("");
+#endif
 #ifdef LOG_MESSAGES || INFRARED_MESSAGES
   Serial.print(F("Addr: "));
   sprintf(charBuffer, "%4d:", programCounter);
@@ -1238,7 +1247,7 @@ void processOpcode() {
     // inx : increment a register pair.
     // ------------
     case B00000011:
-      // inb b
+      // inx b
       regC++;
       if (regC == 0) {
         regB++;
@@ -2639,10 +2648,9 @@ void processOpcodeData() {
 #endif
       programCounter++;
       break;
-    // ---------------------------------------------------------------------
+    // -------------------------------------------------------------------------------------------
     case out:
       // instructionCycle == 2
-      dataByte = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< OUT, input port: "));
       Serial.print(dataByte);
@@ -2650,8 +2658,22 @@ void processOpcodeData() {
       // -----------------------------------------
       // Special case of output to serial monitor.
       if (dataByte == 3) {
+#ifdef INFRARED_MESSAGES
+        Serial.print(F("Serial terminal output of the contents of register A :"));
+        Serial.print(regA);
+        Serial.print(":");
+#endif
+#ifdef LOG_MESSAGES
+        Serial.print(F(", Serial terminal output of the contents of register A :"));
+        Serial.print(regA);
+        Serial.print(":");
+#endif
         asciiChar = regA;
         Serial.print(asciiChar);
+#ifdef INFRARED_MESSAGES
+        Serial.print(":");
+        Serial.println("");
+#endif
         opcode = 0;
         return;
       }
@@ -2663,13 +2685,7 @@ void processOpcodeData() {
           Serial.print(F(", terminal output to be implemented on LCD."));
           break;
         case 3:
-#ifdef LOG_MESSAGES
-          Serial.print(F(", Serial terminal output of register A."));
-          Serial.print(regA);
-          Serial.print(":");
-#endif
-          asciiChar = regA;
-          Serial.print(asciiChar);
+          // Handled before this switch statement.
           break;
         case 38:
 #ifdef LOG_MESSAGES
@@ -3565,7 +3581,7 @@ void infraredControl() {
     // -----------------------------------
     case 0xFF10EF:
     case 0xE0E0A659:
-      Serial.println(F("+ Key < - previous"));
+      Serial.println(F("+ Key <"));
       break;
     case 16734885:
     // case 0xFF5AA5:
@@ -3577,7 +3593,7 @@ void infraredControl() {
     case 0xFF18E7:
     case 0xE0E006F9:
       // Serial.println(F("+ Key up"));
-      Serial.println(F("+ Run process."));
+      Serial.println(F("+ Key ^ - Run process."));
       programState = PROGRAM_RUN;
       statusByte = statusByte & WAIT_OFF;
       statusByte = statusByte & HLTA_OFF;
@@ -3602,24 +3618,21 @@ void infraredControl() {
       break;
     case 16753245:
       // Serial.println(F("+ Key 1: "));
-      Serial.println(F("+ Examine."));
-      displayStatusAddressData();
-      Serial.println("");
-      break;
-    case 16736925:
-    // case 0xFF629D:
-      Serial.println(F("+ Key 2: "));
-      // Serial.println("+ Examine Next.");
-      programCounter++;
-      displayStatusAddressData();
-      Serial.println("");
-      break;
-    case 0xFFE21D:
-      // Serial.println(F("+ Key 3: "));
       Serial.println("+ Examine Previous.");
       programCounter--;
       displayStatusAddressData();
-      Serial.println("");
+      break;
+    case 16736925:
+      // case 0xFF629D:
+      // Serial.println(F("+ Key 2: "));
+      Serial.println(F("+ Examine."));
+      displayStatusAddressData();
+      break;
+    case 0xFFE21D:
+      // Serial.println(F("+ Key 3: "));
+      Serial.println("+ Examine Next.");
+      programCounter++;
+      displayStatusAddressData();
       break;
     case 0xFF22DD:
       Serial.print(F("+ Key 4: "));
@@ -3648,9 +3661,10 @@ void infraredControl() {
     // -----------------------------------
     case 0xFF6897:
     case 0xE0E01AE5:
-      Serial.println(F("+ Key * (Return)"));
+      Serial.println(F("+ Key * (Return) - Reset"));
       // Use as Reset when running.
       controlResetLogic();
+      displayStatusAddressData();
       break;
     case 0xFFB04F:
     case 0xE0E0B44B:
@@ -3658,10 +3672,12 @@ void infraredControl() {
       break;
     // -----------------------------------
     default:
+    /*
       Serial.print("+ Result value: ");
       Serial.print(results.value);
       Serial.print(" HEX:");
       Serial.println(results.value, HEX);
+      */
       break;
       // -----------------------------------
   } // end switch

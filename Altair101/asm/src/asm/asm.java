@@ -86,6 +86,7 @@ public class asm {
                     System.out.println("+ list [file]       : list the file to screen.");
                     System.out.println("+ opcode <opcode>   : list the opcode information to the screen.");
                     System.out.println("+ opcodes           : list the opcodes to screen.");
+                    System.out.println("+ upload            : Serial upload the program bytes to the Arduino.");
                     System.out.println("+ exit              : Exit this program.");
                     break;
                 default:

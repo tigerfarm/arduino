@@ -120,6 +120,43 @@ public class asmProcessor {
         System.out.println("+ End of list.");
     }
 
+    public void printProgramBytesToFile() {
+        System.out.println("\n+ Print Program Bytes:");
+        programTop = 0;
+        for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
+            String theValue = it.next();
+            // System.out.println("++ " + theValue);
+            //
+            System.out.print("++ " + programTop + " ");
+            programTop++;
+            String[] opcodeValues = theValue.split(SEPARATOR);
+            String keyword = opcodeValues[0];
+            switch (keyword) {
+                case "opcode":
+                    // ++ opcode:jmp:11000011:Start
+                    System.out.println("opcode: " + opcodeValues[2]);
+                    break;
+                case "hb":
+                    // ++ hb:0
+                    System.out.println("hb: " + opcodeValues[1]);
+                    break;
+                case "lb":
+                    // ++ lb:Start:14
+                    System.out.println("lb: " + opcodeValues[2]);
+                    break;
+                case "dbname":
+                    // ++ dbname:abc:k
+                    System.out.println("dbname: " + opcodeValues[2]);
+                    break;
+                case "dbstringterminator":
+                    // dbstringterminator:def:255
+                    System.out.println("dbstringterminator: " + opcodeValues[2]);
+                    break;
+            }
+        }
+        System.out.println("+ End of list.");
+    }
+
     private void printProgramBytesArray() {
         System.out.println("\n+ Print a program array from the program data:");
         programCounter = 0;
@@ -1124,22 +1161,24 @@ public class asmProcessor {
         //
         // Or other programs.
         // Required, starts the process:
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
         //
         // Optional, used for debugging:
-        thisProcess.listLabelAddresses();
-        thisProcess.listImmediateValues();
+        // thisProcess.listLabelAddresses();
+        // thisProcess.listImmediateValues();
         //
         // Required, sets actual values:
         thisProcess.setProgramByteAddresses();
         thisProcess.setProgramByteImmediates();
         //
         // Optional, used for debugging:
-        // thisProcess.listProgramBytes();
+        thisProcess.listProgramBytes();
+        // Option to create a binary file of the program:
+        thisProcess.printProgramBytesToFile();
         //
         // Required, prints the output for use in Processor.ino:
-        thisProcess.printProgramBytesArray();
+        // thisProcess.printProgramBytesArray();
         //
         if (thisProcess.errorCount > 0) {
             System.out.println("\n-- Number of errors: " + thisProcess.errorCount + "\n");
