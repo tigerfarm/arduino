@@ -120,8 +120,12 @@ public class asmProcessor {
         System.out.println("+ End of list.");
     }
 
-    public void printProgramBytesToFile() {
-        System.out.println("\n+ Print Program Bytes:");
+    public void printProgramBytesToFile(String theFileNameTo) {
+        byte[] fileBytes = new byte[1024];    // Hold the bytes to be written.
+        System.out.println("\n+ Print Program Bytes and description.");
+        if (!theFileNameTo.equals("")) {
+            System.out.println("+ Also, write the bytes to the file:  " + theFileNameTo);
+        }
         programTop = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
@@ -134,7 +138,6 @@ public class asmProcessor {
                 programCounterPadding = " ";
             }
             System.out.print("++ " + programCounterPadding + programTop + ": ");
-            programTop++;
             String[] opcodeValues = theValue.split(SEPARATOR);
             String keyword = opcodeValues[0];
             switch (keyword) {
@@ -145,35 +148,57 @@ public class asmProcessor {
                     // pcode:mov:01111000:a:b
                     // System.out.print(opcodeValues[2] + " " + theValue + " > opcode: " + opcodeValues[1]);
                     System.out.print(opcodeValues[2] + " > opcode: " + opcodeValues[1]);
-                    if (opcodeValues.length>3) {
+                    if (opcodeValues.length > 3) {
                         System.out.print(" " + opcodeValues[3]);
                     }
-                    if (opcodeValues.length>4) {
+                    if (opcodeValues.length > 4) {
                         System.out.print("," + opcodeValues[4]);
                     }
                     System.out.println("");
+                    fileBytes[programTop] = (byte)Integer.parseInt(opcodeValues[2], 2);;
                     break;
                 case "lb":
                     // ++ lb:Start:14
                     System.out.println(byteToString((byte) Integer.parseInt(opcodeValues[2])) + " : lb: " + opcodeValues[2]); // byteToString(value[i])
+                    fileBytes[programTop] = (byte)Integer.parseInt(opcodeValues[2]);
                     break;
                 case "hb":
                     // ++ hb:0
                     System.out.println(byteToString((byte) Integer.parseInt(opcodeValues[1])) + " : hb: " + opcodeValues[1]);
+                    fileBytes[programTop] = (byte)Integer.parseInt(opcodeValues[1]);
                     break;
-                case "dbname":
-                    // ++ dbname:abc:k
+                case "databyte":
+                    // ++ databyte:abc:k
                     char[] ch = new char[1];
-                    ch[0] = opcodeValues[2].charAt(0); 
-                    System.out.println(byteToString((byte)(int)ch[0]) + " : dbname: " + opcodeValues[2] + " : " + (int)ch[0]);
+                    ch[0] = opcodeValues[2].charAt(0);
+                    System.out.println(byteToString((byte) (int) ch[0]) + " : databyte: " + opcodeValues[2] + " : " + (int) ch[0]);
+                    fileBytes[programTop] = (byte)(int)ch[0];
                     break;
-                case "dbstringterminator":
-                    // dbstringterminator:def:255
-                    System.out.println(byteToString((byte) Integer.parseInt(opcodeValues[2])) + " : dbstringterminator: " + opcodeValues[2]);
+                case "dbterm":
+                    // dbterm:def:255
+                    System.out.println(byteToString((byte) Integer.parseInt(opcodeValues[2])) + " : dbterm: " + opcodeValues[2]);
+                    fileBytes[programTop] = (byte)Integer.parseInt(opcodeValues[2]);
+                    break;
+                default:
+                    System.out.println("- Error, unknown keyword: " + keyword + " at: " + programTop);
                     break;
             }
+            programTop++;
         }
         System.out.println("+ End of list.");
+        if (!theFileNameTo.equals("")) {
+            System.out.println("+ Write the bytes to the file:  " + theFileNameTo);
+            File dirTo = new File(theFileNameTo);
+            try {
+                try (OutputStream out = new FileOutputStream(dirTo)) {
+                    out.write(fileBytes, 0, programTop);   // programTop is the number of bytes to write.
+                }
+            } catch (IOException e) {
+                System.out.println("-- Error, writing to file: " + e);
+                System.exit(1);
+            }
+        }
+
     }
 
     private void printProgramBytesArray() {
@@ -198,10 +223,10 @@ public class asmProcessor {
             switch (opcode) {
                 // -------------------------------------------------------------
                 // Assembler directives.
-                case "dbname":
-                    // ++ printProgramBytesArray, opcode|dbname| theValue |dbname:hello:H|
+                case "databyte":
+                    // ++ printProgramBytesArray, opcode|databyte| theValue |databyte:hello:H|
                     if (opcodeValues[2].equals(SEPARATOR_TEMP)) {
-                        // '^^',                //  16: dbname: msgsuccess
+                        // '^^',                //  16: databyte: msgsuccess
                         opcodeStatement = "'" + SEPARATOR + "'" + ",";
                     } else {
                         opcodeStatement = "'" + opcodeValues[2] + "'" + ",";
@@ -209,8 +234,8 @@ public class asmProcessor {
                     opcodeComment = opcode + ": " + opcodeValues[1];
                     break;
 
-                case "dbstringterminator":
-                    // ++ printProgramBytesArray, opcode|dbstringterminator| theValue|dbstringterminator:hello:255|
+                case "dbterm":
+                    // ++ printProgramBytesArray, opcode|dbterm| theValue|dbterm:hello:255|
                     opcodeStatement = opcodeValues[2] + ",";
                     opcodeComment = opcode + ": " + opcodeValues[1];
                     break;
@@ -573,13 +598,13 @@ public class asmProcessor {
         for (int i = 1; i < theValue.length() - 1; i++) {
             // Only use what is contained within the quotes, 'Hello' -> Hello
             if (theValue.substring(i, i + 1).equals(SEPARATOR)) {
-                programBytes.add("dbname:" + theName + SEPARATOR + SEPARATOR_TEMP);
+                programBytes.add("databyte:" + theName + SEPARATOR + SEPARATOR_TEMP);
             } else {
-                programBytes.add("dbname:" + theName + SEPARATOR + theValue.substring(i, i + 1));
+                programBytes.add("databyte:" + theName + SEPARATOR + theValue.substring(i, i + 1));
             }
             programTop++;
         }
-        programBytes.add("dbstringterminator:" + theName + SEPARATOR + DB_STRING_TERMINATOR);
+        programBytes.add("dbterm:" + theName + SEPARATOR + DB_STRING_TERMINATOR);
         programTop++;
 
     }
@@ -1195,7 +1220,7 @@ public class asmProcessor {
         // Optional, used for debugging:
         // thisProcess.listProgramBytes();
         // Option to create a binary file of the program:
-        thisProcess.printProgramBytesToFile();
+        thisProcess.printProgramBytesToFile("");
         //
         // Required, prints the output for use in Processor.ino:
         // thisProcess.printProgramBytesArray();
