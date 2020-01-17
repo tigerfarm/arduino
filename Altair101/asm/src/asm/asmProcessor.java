@@ -123,9 +123,9 @@ public class asmProcessor {
     public void printProgramBytesToFile(String theFileNameTo) {
         byte[] fileBytes = new byte[1024];    // Hold the bytes to be written.
         System.out.println("\n+ Print Program Bytes and description.");
-        if (!theFileNameTo.equals("")) {
-            System.out.println("+ Also, write the bytes to the file:  " + theFileNameTo);
-        }
+        // ++ <count>: binary   :hex > description.
+        // ++       0: 11000011 : C3 > opcode: jmp Start
+        System.out.println("++ <count>: binary   :hex > description");
         programTop = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
@@ -137,7 +137,7 @@ public class asmProcessor {
             } else if (programTop < 100) {
                 programCounterPadding = " ";
             }
-            System.out.print("++ " + programCounterPadding + programTop + ": ");
+            System.out.print("++     " + programCounterPadding + programTop + ": ");
             String[] opcodeValues = theValue.split(SEPARATOR);
             String keyword = opcodeValues[0];
             switch (keyword) {
@@ -147,7 +147,9 @@ public class asmProcessor {
                     // opcode:ret:11001001
                     // pcode:mov:01111000:a:b
                     // System.out.print(opcodeValues[2] + " " + theValue + " > opcode: " + opcodeValues[1]);
-                    System.out.print(opcodeValues[2] + " > opcode: " + opcodeValues[1]);
+                    System.out.print(opcodeValues[2] + " : ");
+                    System.out.print(String.format("%02X", Integer.parseInt(opcodeValues[2], 2)));
+                    System.out.print(" > opcode: " + opcodeValues[1]);
                     if (opcodeValues.length > 3) {
                         System.out.print(" " + opcodeValues[3]);
                     }
@@ -159,24 +161,32 @@ public class asmProcessor {
                     break;
                 case "lb":
                     // ++ lb:Start:14
-                    System.out.println(byteToString((byte) Integer.parseInt(opcodeValues[2])) + " : lb: " + opcodeValues[2]); // byteToString(value[i])
+                    System.out.print(byteToString((byte) Integer.parseInt(opcodeValues[2])) + " : ");
+                    System.out.print(String.format("%02X", Integer.parseInt(opcodeValues[2])));
+                    System.out.println(" > lb: " + opcodeValues[2]); // byteToString(value[i])
                     fileBytes[programTop] = (byte)Integer.parseInt(opcodeValues[2]);
                     break;
                 case "hb":
                     // ++ hb:0
-                    System.out.println(byteToString((byte) Integer.parseInt(opcodeValues[1])) + " : hb: " + opcodeValues[1]);
+                    System.out.print(byteToString((byte) Integer.parseInt(opcodeValues[1])) + " : ");
+                    System.out.print(String.format("%02X", Integer.parseInt(opcodeValues[1])));
+                    System.out.println(" > hb: " + opcodeValues[1]);
                     fileBytes[programTop] = (byte)Integer.parseInt(opcodeValues[1]);
                     break;
                 case "databyte":
                     // ++ databyte:abc:k
                     char[] ch = new char[1];
                     ch[0] = opcodeValues[2].charAt(0);
-                    System.out.println(byteToString((byte) (int) ch[0]) + " : databyte: " + opcodeValues[2] + " : " + (int) ch[0]);
+                    System.out.print(byteToString((byte) (int) ch[0]) + " : ");
+                    System.out.print(String.format("%02X", (int) ch[0]));
+                    System.out.println(" > databyte: " + opcodeValues[2] + " : " + (int) ch[0]);
                     fileBytes[programTop] = (byte)(int)ch[0];
                     break;
                 case "dbterm":
                     // dbterm:def:255
-                    System.out.println(byteToString((byte) Integer.parseInt(opcodeValues[2])) + " : dbterm: " + opcodeValues[2]);
+                    System.out.print(byteToString((byte) Integer.parseInt(opcodeValues[2])) + " : ");
+                    System.out.print(String.format("%02X", Integer.parseInt(opcodeValues[2])));
+                    System.out.println(" > dbterm: " + opcodeValues[2]);
                     fileBytes[programTop] = (byte)Integer.parseInt(opcodeValues[2]);
                     break;
                 default:
@@ -1220,7 +1230,7 @@ public class asmProcessor {
         // Optional, used for debugging:
         // thisProcess.listProgramBytes();
         // Option to create a binary file of the program:
-        thisProcess.printProgramBytesToFile("");
+        thisProcess.printProgramBytesToFile("p1.bin");
         //
         // Required, prints the output for use in Processor.ino:
         // thisProcess.printProgramBytesArray();
