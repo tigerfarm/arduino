@@ -97,7 +97,13 @@ public class asm {
                     System.out.println("---------------------------------------");
                     System.out.println("Help");
                     System.out.println("+ file <filename>    : set the input file name to use in other commands.");
+                    if (!theFilename.equals("")) {
+                        System.out.println("++ Input file name: " + theFilename);
+                    }
                     System.out.println("+ fileout <filename> : set the output file name to use in other commands.");
+                    if (!theFilename.equals("")) {
+                        System.out.println("++ Output file name: " + outFilename);
+                    }
                     System.out.println("+ list [file]        : list the input file to the screen.");
                     System.out.println("");
                     System.out.println("+ print              : Parse the file, output to screen.");
