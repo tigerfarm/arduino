@@ -127,30 +127,38 @@ public class asmProcessor {
             String theValue = it.next();
             // System.out.println("++ " + theValue);
             //
-            System.out.print("++ " + programTop + " ");
+            String programCounterPadding = "";
+            if (programTop < 10) {
+                programCounterPadding = "  ";
+            } else if (programTop < 100) {
+                programCounterPadding = " ";
+            }
+            System.out.print("++ " + programCounterPadding + programTop + " ");
             programTop++;
             String[] opcodeValues = theValue.split(SEPARATOR);
             String keyword = opcodeValues[0];
             switch (keyword) {
                 case "opcode":
                     // ++ opcode:jmp:11000011:Start
-                    System.out.println("opcode: " + opcodeValues[2]);
-                    break;
-                case "hb":
-                    // ++ hb:0
-                    System.out.println("hb: " + opcodeValues[1]);
+                    System.out.println(opcodeValues[2] + " : opcode: " + opcodeValues[1]);
                     break;
                 case "lb":
                     // ++ lb:Start:14
-                    System.out.println("lb: " + opcodeValues[2]);
+                    System.out.println(byteToString((byte) Integer.parseInt(opcodeValues[2])) + " : lb: " + opcodeValues[2]); // byteToString(value[i])
+                    break;
+                case "hb":
+                    // ++ hb:0
+                    System.out.println(byteToString((byte) Integer.parseInt(opcodeValues[1])) + " : hb: " + opcodeValues[1]);
                     break;
                 case "dbname":
                     // ++ dbname:abc:k
-                    System.out.println("dbname: " + opcodeValues[2]);
+                    char[] ch = new char[1];
+                    ch[0] = opcodeValues[2].charAt(0); 
+                    System.out.println(byteToString((byte)(int)ch[0]) + " : dbname: " + opcodeValues[2] + " : " + (int)ch[0]);
                     break;
                 case "dbstringterminator":
                     // dbstringterminator:def:255
-                    System.out.println("dbstringterminator: " + opcodeValues[2]);
+                    System.out.println(byteToString((byte) Integer.parseInt(opcodeValues[2])) + " : dbstringterminator: " + opcodeValues[2]);
                     break;
             }
         }
@@ -1162,6 +1170,7 @@ public class asmProcessor {
         // Or other programs.
         // Required, starts the process:
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opRlcRrc.asm");
         thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
         //
         // Optional, used for debugging:
@@ -1173,7 +1182,7 @@ public class asmProcessor {
         thisProcess.setProgramByteImmediates();
         //
         // Optional, used for debugging:
-        thisProcess.listProgramBytes();
+        // thisProcess.listProgramBytes();
         // Option to create a binary file of the program:
         thisProcess.printProgramBytesToFile();
         //

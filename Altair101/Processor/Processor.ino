@@ -74,15 +74,15 @@
 // Code compilation options.
 
 // #define FOR_MEGA 1
-// #define INCLUDE_AUX 1
-// #define INCLUDE_CLOCK 1
+#define INCLUDE_AUX 1
+#define INCLUDE_CLOCK 1
+#define INCLUDE_SDCARD 1
 // #define INCLUDE_LCD 1
-// #define INCLUDE_SDCARD 1
 // #define RUN_DELAY 1
 //
-// #define LOG_MESSAGES 1     // Has large memory requirements.
+// #define LOG_MESSAGES 1         // Has large memory requirements.
+// #define INFRARED_MESSAGES 1    // For a simple setup: Mega + infrared, with serial messages.
 #define SWITCH_MESSAGES 1
-#define INFRARED_MESSAGES 1   // For a simple setup: Mega + infrared, with serial messages.
 #define RUN_NOW 1
 
 // -----------------------------------------------------------------------------
@@ -177,97 +177,144 @@ File myFile;
 const byte theProgram[] = {
   //                //            ; --------------------------------------
   //                //            ; Test programs.
-  B11000011, 57, 0,    //   0: jmp GetByte
-  '+',                 //   3: dbname: prompt
-  ' ',                 //   4: dbname: prompt
-  'E',                 //   5: dbname: prompt
-  'n',                 //   6: dbname: prompt
-  't',                 //   7: dbname: prompt
-  'e',                 //   8: dbname: prompt
-  'r',                 //   9: dbname: prompt
-  ' ',                 //  10: dbname: prompt
-  'b',                 //  11: dbname: prompt
-  'y',                 //  12: dbname: prompt
-  't',                 //  13: dbname: prompt
-  'e',                 //  14: dbname: prompt
-  ' ',                 //  15: dbname: prompt
-  '>',                 //  16: dbname: prompt
-  ' ',                 //  17: dbname: prompt
-  255,                 //  18: dbstringterminator: prompt
-  '+',                 //  19: dbname: echo
-  ' ',                 //  20: dbname: echo
-  'I',                 //  21: dbname: echo
-  'n',                 //  22: dbname: echo
-  'p',                 //  23: dbname: echo
-  'u',                 //  24: dbname: echo
-  't',                 //  25: dbname: echo
-  ' ',                 //  26: dbname: echo
-  'd',                 //  27: dbname: echo
-  'a',                 //  28: dbname: echo
-  't',                 //  29: dbname: echo
-  'a',                 //  30: dbname: echo
-  ':',                 //  31: dbname: echo
-  ' ',                 //  32: dbname: echo
-  255,                 //  33: dbstringterminator: echo
-  '+',                 //  34: dbname: no_input
-  ' ',                 //  35: dbname: no_input
-  'N',                 //  36: dbname: no_input
-  'o',                 //  37: dbname: no_input
-  ' ',                 //  38: dbname: no_input
-  'i',                 //  39: dbname: no_input
-  'n',                 //  40: dbname: no_input
-  'p',                 //  41: dbname: no_input
-  'u',                 //  42: dbname: no_input
-  't',                 //  43: dbname: no_input
-  '.',                 //  44: dbname: no_input
-  ' ',                 //  45: dbname: no_input
-  'v',                 //  46: dbname: no_input
-  'a',                 //  47: dbname: no_input
-  'l',                 //  48: dbname: no_input
-  'u',                 //  49: dbname: no_input
-  'e',                 //  50: dbname: no_input
-  ' ',                 //  51: dbname: no_input
-  '=',                 //  52: dbname: no_input
-  ' ',                 //  53: dbname: no_input
-  '0',                 //  54: dbname: no_input
-  '.',                 //  55: dbname: no_input
-  255,                 //  56: dbstringterminator: no_input
-  B11001101, 108, 0,   //  57: call printPrompt
-  B01110110,           //  60: hlt
-  B11011011, 255,      //  61: in 255 (SENSE_SW)
-  B11100011, 37,       //  63: out 37
-  B11111110, 0,        //  65: cpi 0
-  B11001010, 93, 0,    //  67: jz NoInput
-  B01000111,           //  70: mov b,a
-  B11001101, 131, 0,   //  71: call printNL
-  B00100001, 19, 0,    //  74: lxi h,ECHO
-  B11001101, 118, 0,   //  77: call print
-  B01111000,           //  80: mov a,b
-  B11100011, 3,        //  81: out 3 (PRINT_PORT)
-  B00111110, 46,       //  83: mvi a,'.'
-  B11100011, 3,        //  85: out 3 (PRINT_PORT)
-  B11001101, 131, 0,   //  87: call printNL
-  B11000011, 57, 0,    //  90: jmp GetByte
-  B11001101, 131, 0,   //  93: call printNL
-  B00100001, 34, 0,    //  96: lxi h,NO_INPUT
-  B11001101, 118, 0,   //  99: call print
-  B11001101, 131, 0,   // 102: call printNL
-  B11000011, 57, 0,    // 105: jmp GetByte
-  B11001101, 131, 0,   // 108: call printNL
-  B00100001, 3, 0,     // 111: lxi h,prompt
-  B11001101, 118, 0,   // 114: call print
-  B11001001,           // 117: ret
-  B01111110,           // 118: mov a,m
-  B11111110, 255,      // 119: cpi 255 (TERMB)
-  B11001010, 130, 0,   // 121: jz printed
-  B11100011, 3,        // 124: out 3 (PRINT_PORT)
-  B00101100,           // 126: inr m
-  B11000011, 118, 0,   // 127: jmp print
-  B11001001,           // 130: ret
-  B00111110, 10,       // 131: mvi a,NL
-  B11100011, 3,        // 133: out 3 (PRINT_PORT)
-  B11001001,           // 135: ret
-  0                    // 136: End of program
+  B11000011, 32, 0,    //   0: jmp Start
+  'R',                 //   3: dbname: opcode1
+  'L',                 //   4: dbname: opcode1
+  'C',                 //   5: dbname: opcode1
+  255,                 //   6: dbstringterminator: opcode1
+  'R',                 //   7: dbname: opcode2
+  'R',                 //   8: dbname: opcode2
+  'C',                 //   9: dbname: opcode2
+  255,                 //  10: dbstringterminator: opcode2
+  '+',                 //  11: dbname: msgsuccess
+  ' ',                 //  12: dbname: msgsuccess
+  'S',                 //  13: dbname: msgsuccess
+  'u',                 //  14: dbname: msgsuccess
+  'c',                 //  15: dbname: msgsuccess
+  'c',                 //  16: dbname: msgsuccess
+  'e',                 //  17: dbname: msgsuccess
+  's',                 //  18: dbname: msgsuccess
+  's',                 //  19: dbname: msgsuccess
+  ':',                 //  20: dbname: msgsuccess
+  ' ',                 //  21: dbname: msgsuccess
+  255,                 //  22: dbstringterminator: msgsuccess
+  '-',                 //  23: dbname: msgerror
+  ' ',                 //  24: dbname: msgerror
+  'E',                 //  25: dbname: msgerror
+  'r',                 //  26: dbname: msgerror
+  'r',                 //  27: dbname: msgerror
+  'o',                 //  28: dbname: msgerror
+  'r',                 //  29: dbname: msgerror
+  '.',                 //  30: dbname: msgerror
+  255,                 //  31: dbstringterminator: msgerror
+  B00111110, 1,        //  32: mvi a,1
+  B11100011, 37,       //  34: out 37
+  B11111110, 1,        //  36: cpi 1
+  B11000010, 226, 0,   //  38: jnz Error
+  B00000111,           //  41: rlc
+  B11100011, 37,       //  42: out 37
+  B11111110, 2,        //  44: cpi 2
+  B11000010, 226, 0,   //  46: jnz Error
+  B00000111,           //  49: rlc
+  B11100011, 37,       //  50: out 37
+  B11111110, 4,        //  52: cpi 4
+  B11000010, 226, 0,   //  54: jnz Error
+  B00000111,           //  57: rlc
+  B11100011, 37,       //  58: out 37
+  B11111110, 8,        //  60: cpi 8
+  B11000010, 226, 0,   //  62: jnz Error
+  B00000111,           //  65: rlc
+  B11100011, 37,       //  66: out 37
+  B11111110, 16,       //  68: cpi 16
+  B11000010, 226, 0,   //  70: jnz Error
+  B00000111,           //  73: rlc
+  B11100011, 37,       //  74: out 37
+  B11111110, 32,       //  76: cpi 32
+  B11000010, 226, 0,   //  78: jnz Error
+  B00000111,           //  81: rlc
+  B11100011, 37,       //  82: out 37
+  B11111110, 64,       //  84: cpi 64
+  B11000010, 226, 0,   //  86: jnz Error
+  B00000111,           //  89: rlc
+  B11100011, 37,       //  90: out 37
+  B11111110, 128,      //  92: cpi 128
+  B11000010, 226, 0,   //  94: jnz Error
+  B00000111,           //  97: rlc
+  B11100011, 37,       //  98: out 37
+  B11111110, 1,        // 100: cpi 1
+  B11000010, 226, 0,   // 102: jnz Error
+  B11001101, 1, 1,     // 105: call printNL
+  B00100001, 11, 0,    // 108: lxi h,msgSuccess
+  B11001101, 244, 0,   // 111: call print
+  B00100001, 3, 0,     // 114: lxi h,opcode1
+  B11001101, 244, 0,   // 117: call print
+  B00111110, 46,       // 120: mvi a,'.'
+  B11100011, 3,        // 122: out 3 (PRINT_PORT)
+  B11001101, 1, 1,     // 124: call printNL
+  B00111110, 128,      // 127: mvi a,128
+  B11100011, 37,       // 129: out 37
+  B11111110, 128,      // 131: cpi 128
+  B11000010, 226, 0,   // 133: jnz Error
+  B00001111,           // 136: rrc
+  B11100011, 37,       // 137: out 37
+  B11111110, 64,       // 139: cpi 64
+  B11000010, 226, 0,   // 141: jnz Error
+  B00001111,           // 144: rrc
+  B11100011, 37,       // 145: out 37
+  B11111110, 32,       // 147: cpi 32
+  B11000010, 226, 0,   // 149: jnz Error
+  B00001111,           // 152: rrc
+  B11100011, 37,       // 153: out 37
+  B11111110, 16,       // 155: cpi 16
+  B11000010, 226, 0,   // 157: jnz Error
+  B00001111,           // 160: rrc
+  B11100011, 37,       // 161: out 37
+  B11111110, 8,        // 163: cpi 8
+  B11000010, 226, 0,   // 165: jnz Error
+  B00001111,           // 168: rrc
+  B11100011, 37,       // 169: out 37
+  B11111110, 4,        // 171: cpi 4
+  B11000010, 226, 0,   // 173: jnz Error
+  B00001111,           // 176: rrc
+  B11100011, 37,       // 177: out 37
+  B11111110, 2,        // 179: cpi 2
+  B11000010, 226, 0,   // 181: jnz Error
+  B00001111,           // 184: rrc
+  B11100011, 37,       // 185: out 37
+  B11111110, 1,        // 187: cpi 1
+  B11000010, 226, 0,   // 189: jnz Error
+  B00001111,           // 192: rrc
+  B11100011, 37,       // 193: out 37
+  B11111110, 128,      // 195: cpi 128
+  B11000010, 226, 0,   // 197: jnz Error
+  B11001101, 1, 1,     // 200: call printNL
+  B00100001, 11, 0,    // 203: lxi h,msgSuccess
+  B11001101, 244, 0,   // 206: call print
+  B00100001, 7, 0,     // 209: lxi h,opcode2
+  B11001101, 244, 0,   // 212: call print
+  B00111110, 46,       // 215: mvi a,'.'
+  B11100011, 3,        // 217: out 3 (PRINT_PORT)
+  B11001101, 1, 1,     // 219: call printNL
+  B01110110,           // 222: hlt
+  B11000011, 32, 0,    // 223: jmp Start
+  B11001101, 1, 1,     // 226: call printNL
+  B00100001, 23, 0,    // 229: lxi h,msgError
+  B11001101, 244, 0,   // 232: call print
+  B11001101, 1, 1,     // 235: call printNL
+  B11100011, 39,       // 238: out 39
+  B01110110,           // 240: hlt
+  B11000011, 32, 0,    // 241: jmp Start
+  B01111110,           // 244: mov a,m
+  B11111110, 255,      // 245: cpi 255 (TERMB)
+  B11001010, 0, 1,     // 247: jz Done
+  B11100011, 3,        // 250: out 3 (PRINT_PORT)
+  B00101100,           // 252: inr m
+  B11000011, 244, 0,   // 253: jmp print
+  B11001001,           // 256: ret
+  B00111110, 10,       // 257: mvi a,NL
+  B11100011, 3,        // 259: out 3 (PRINT_PORT)
+  B11001001,           // 261: ret
+  0                    // 262: End of program
 };
 
 // -----------------------------------------------------------------------------
