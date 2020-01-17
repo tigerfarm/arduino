@@ -133,14 +133,25 @@ public class asmProcessor {
             } else if (programTop < 100) {
                 programCounterPadding = " ";
             }
-            System.out.print("++ " + programCounterPadding + programTop + " ");
+            System.out.print("++ " + programCounterPadding + programTop + ": ");
             programTop++;
             String[] opcodeValues = theValue.split(SEPARATOR);
             String keyword = opcodeValues[0];
             switch (keyword) {
                 case "opcode":
-                    // ++ opcode:jmp:11000011:Start
-                    System.out.println(opcodeValues[2] + " : opcode: " + opcodeValues[1]);
+                    // opcode:jmp:11000011:Start
+                    // opcode:call:11001101:PrintLoop
+                    // opcode:ret:11001001
+                    // pcode:mov:01111000:a:b
+                    // System.out.print(opcodeValues[2] + " " + theValue + " > opcode: " + opcodeValues[1]);
+                    System.out.print(opcodeValues[2] + " > opcode: " + opcodeValues[1]);
+                    if (opcodeValues.length>3) {
+                        System.out.print(" " + opcodeValues[3]);
+                    }
+                    if (opcodeValues.length>4) {
+                        System.out.print("," + opcodeValues[4]);
+                    }
+                    System.out.println("");
                     break;
                 case "lb":
                     // ++ lb:Start:14
