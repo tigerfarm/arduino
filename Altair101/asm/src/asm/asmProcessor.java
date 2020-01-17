@@ -1132,16 +1132,6 @@ public class asmProcessor {
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
     // File level process: parse and listing.
-    public void printProgramByteArray(asmProcessor thisProcess, String theReadFilename) {
-        errorCount = 0;
-        thisProcess.parseFile(theReadFilename);
-        thisProcess.setProgramByteAddresses();
-        thisProcess.setProgramByteImmediates();
-        thisProcess.printProgramBytesArray();
-        if (errorCount > 0) {
-            System.out.println("-- Number of errors: " + errorCount);
-        }
-    }
 
     public void parseFile(String theReadFilename) {
         File readFile;
@@ -1200,6 +1190,31 @@ public class asmProcessor {
 
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
+
+    public void printProgramByteArray(asmProcessor thisProcess, String theReadFilename) {
+        errorCount = 0;
+        thisProcess.parseFile(theReadFilename);
+        thisProcess.setProgramByteAddresses();
+        thisProcess.setProgramByteImmediates();
+        thisProcess.printProgramBytesArray();
+        if (errorCount > 0) {
+            System.out.println("-- Number of errors: " + errorCount);
+        }
+    }
+
+    public void printProgramBytesToFile(asmProcessor thisProcess, String readFilename, String writeFilename) {
+        errorCount = 0;
+        thisProcess.parseFile(readFilename);
+        thisProcess.setProgramByteAddresses();
+        thisProcess.setProgramByteImmediates();
+        thisProcess.printProgramBytesToFile(writeFilename);
+        if (errorCount > 0) {
+            System.out.println("-- Number of errors: " + errorCount);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // For testing.
     public static void main(String args[]) {
         System.out.println("++ Start.");
@@ -1219,7 +1234,7 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opRlcRrc.asm");
         thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
         //
-        // Optional, used for debugging:
+        // Option: for debugging:
         // thisProcess.listLabelAddresses();
         // thisProcess.listImmediateValues();
         //
@@ -1227,12 +1242,13 @@ public class asmProcessor {
         thisProcess.setProgramByteAddresses();
         thisProcess.setProgramByteImmediates();
         //
-        // Optional, used for debugging:
+        // Option: for debugging.
         // thisProcess.listProgramBytes();
-        // Option to create a binary file of the program:
-        thisProcess.printProgramBytesToFile("p1.bin");
         //
-        // Required, prints the output for use in Processor.ino:
+        // Option: create a binary file of the program. And has a nice listing.
+        thisProcess.printProgramBytesToFile("10000000.bin");
+        //
+        // Option: print array format for use in Processor.ino.
         // thisProcess.printProgramBytesArray();
         //
         if (thisProcess.errorCount > 0) {
