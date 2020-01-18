@@ -103,19 +103,19 @@ public class asmProcessor {
     private final int NAME_NOT_FOUND = 256;
     private final int DB_STRING_TERMINATOR = 255;   // ffh = B11111111
     private int errorCount = 0;
-    private static int ignoreFirstCharacters = 0;
+    private final static int ignoreFirstCharacters = 0;
     //
     // Use for storing program bytes and calculating label addresses.
     private int programCounter = 0;
     private int programTop = 0;
-    private static List<String> programBytes = new ArrayList<>();
+    private final static List<String> programBytes = new ArrayList<>();
 
     private String label;
-    private static List<String> labelName = new ArrayList<>();
-    private static List<Integer> labelAddress = new ArrayList<>();
+    private final static List<String> labelName = new ArrayList<>();
+    private final static List<Integer> labelAddress = new ArrayList<>();
 
-    private static List<String> variableName = new ArrayList<>();
-    private static List<Integer> variableValue = new ArrayList<>();
+    private final static List<String> variableName = new ArrayList<>();
+    private final static List<Integer> variableValue = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
