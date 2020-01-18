@@ -109,7 +109,8 @@
                         ; --------------------------------------
                         ; Test MOV with register L.
             inr h
-            mov l,h
+            mov l,h     ; Keep incrementing up.
+            mov a,l
             inr l
             mov b,l
             inr l
