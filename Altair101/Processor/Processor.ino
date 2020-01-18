@@ -9,7 +9,13 @@
 
   ---------------------------------------------
   Current/Next Work
-
+  
+  Get opLadSta.asm to work.
+  + STA: Store register A content to an address.
+  + LDA: Load register A from an address.
+  + Use an immediate value for the address.
+  + Use an address label for the address.
+  
   ----------
   SD card module options,
   + When rebooting the Mega: if 00000000.bin exists, read it and run it.
@@ -179,112 +185,32 @@ const byte theProgram[] = {
   //                //            ; Test programs.
   B11000011, 4, 0,     //   0: jmp Start
   B01110110,           //   3: hlt
-  B00111110, 0,        //   4: mvi a,0
-  B00111100,           //   6: inr a
-  B01000111,           //   7: mov b,a
-  B00111100,           //   8: inr a
-  B01001111,           //   9: mov c,a
-  B00111100,           //  10: inr a
-  B01010111,           //  11: mov d,a
-  B00111100,           //  12: inr a
-  B01011111,           //  13: mov e,a
-  B00111100,           //  14: inr a
-  B01100111,           //  15: mov h,a
-  B00111100,           //  16: inr a
-  B01101111,           //  17: mov l,a
-  B11100011, 38,       //  18: out 38
-  B00111100,           //  20: inr a
-  B01000111,           //  21: mov b,a
-  B01111000,           //  22: mov a,b
-  B00000100,           //  23: inr b
-  B01001000,           //  24: mov c,b
-  B00000100,           //  25: inr b
-  B01010000,           //  26: mov d,b
-  B00000100,           //  27: inr b
-  B01011000,           //  28: mov e,b
-  B00000100,           //  29: inr b
-  B01100000,           //  30: mov h,b
-  B00000100,           //  31: inr b
-  B01101000,           //  32: mov l,b
-  B11100011, 38,       //  33: out 38
-  B00000100,           //  35: inr b
-  B01001000,           //  36: mov c,b
-  B01111001,           //  37: mov a,c
-  B00001100,           //  38: inr c
-  B01000001,           //  39: mov b,c
-  B00001100,           //  40: inr c
-  B01010001,           //  41: mov d,c
-  B00001100,           //  42: inr c
-  B01011001,           //  43: mov e,c
-  B00001100,           //  44: inr c
-  B01100001,           //  45: mov h,c
-  B00001100,           //  46: inr c
-  B01101001,           //  47: mov l,c
-  B00001100,           //  48: inr c
-  B11100011, 38,       //  49: out 38
-  B00001100,           //  51: inr c
-  B01010001,           //  52: mov d,c
-  B01111010,           //  53: mov a,d
-  B00010100,           //  54: inr d
-  B01000010,           //  55: mov b,d
-  B00010100,           //  56: inr d
-  B01001010,           //  57: mov c,d
-  B00010100,           //  58: inr d
-  B01011010,           //  59: mov e,d
-  B00010100,           //  60: inr d
-  B01100010,           //  61: mov h,d
-  B00010100,           //  62: inr d
-  B01101010,           //  63: mov l,d
-  B00010100,           //  64: inr d
-  B11100011, 38,       //  65: out 38
-  B00010100,           //  67: inr d
-  B01011010,           //  68: mov e,d
-  B01111011,           //  69: mov a,e
-  B00011100,           //  70: inr e
-  B01000011,           //  71: mov b,e
-  B00011100,           //  72: inr e
-  B01001011,           //  73: mov c,e
-  B00011100,           //  74: inr e
-  B01010011,           //  75: mov d,e
-  B00011100,           //  76: inr e
-  B01100011,           //  77: mov h,e
-  B00011100,           //  78: inr e
-  B01101011,           //  79: mov l,e
-  B00011100,           //  80: inr e
-  B11100011, 38,       //  81: out 38
-  B00011100,           //  83: inr e
-  B01100011,           //  84: mov h,e
-  B01111100,           //  85: mov a,h
-  B00100100,           //  86: inr h
-  B01000100,           //  87: mov b,h
-  B00100100,           //  88: inr h
-  B01001100,           //  89: mov c,h
-  B00100100,           //  90: inr h
-  B01010100,           //  91: mov d,h
-  B00100100,           //  92: inr h
-  B01011100,           //  93: mov e,h
-  B00100100,           //  94: inr h
-  B01101100,           //  95: mov l,h
-  B00100100,           //  96: inr h
-  B11100011, 38,       //  97: out 38
-  B00100100,           //  99: inr h
-  B01101100,           // 100: mov l,h
-  B01111101,           // 101: mov a,l
-  B00101100,           // 102: inr l
-  B01000101,           // 103: mov b,l
-  B00101100,           // 104: inr l
-  B01001101,           // 105: mov c,l
-  B00101100,           // 106: inr l
-  B01010101,           // 107: mov d,l
-  B00101100,           // 108: inr l
-  B01011101,           // 109: mov e,l
-  B00101100,           // 110: inr l
-  B01100101,           // 111: mov h,l
-  B00101100,           // 112: inr l
-  B11100011, 38,       // 113: out 38
-  B00000000,           // 115: nop
-  B11000011, 3, 0,     // 116: jmp Halt
-  0                    // 119: End of program
+  B00100110, 0,        //   4: mvi h,0
+  B00101110, 64,       //   6: mvi l,64
+  B00111110, 6,        //   8: mvi a,6
+  B11100011, 37,       //  10: out 37
+  B00110010, 64, 0,    //  12: sta 64
+  B11100011, 36,       //  15: out 36
+  B01110110,           //  17: hlt
+  B00111110, 0,        //  18: mvi a,0
+  B11100011, 37,       //  20: out 37
+  B00111010, 64, 0,    //  22: lda 64
+  B11100011, 37,       //  25: out 37
+  B01110110,           //  27: hlt
+  B00100001, 54, 0,    //  28: lxi h,Addr1
+  B11100011, 36,       //  31: out 36
+  B00111110, 6,        //  33: mvi a,6
+  B00110010, 54, 0,    //  35: sta Addr1
+  B11100011, 38,       //  38: out 38
+  B01110110,           //  40: hlt
+  B00111110, 0,        //  41: mvi a,0
+  B00111010, 60, 0,    //  43: lda 60
+  B11100011, 37,       //  46: out 37
+  B01110110,           //  48: hlt
+  B00000000,           //  49: nop
+  B11000011, 3, 0,     //  50: jmp Halt
+  0,                   //  53: dsname: Addr1
+  0                    //  54: End of program
 };
 
 // -----------------------------------------------------------------------------
@@ -3895,6 +3821,7 @@ void setup() {
     programState = PROGRAM_RUN;
     Serial.println(F(" It will start automatically."));
   }
+  controlResetLogic();
 
   // ----------------------------------------------------
   Serial.println(F("\n+++ Start the processor loop."));

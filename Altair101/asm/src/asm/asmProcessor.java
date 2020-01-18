@@ -24,6 +24,19 @@
     Next assembler updates and issues,
 
     --------------
+    +++ Testing: opLadSta.asm.
+
+    + Incorrect address, lb should be 55:
+++      30: 00100001 : 21 > opcode: lxi h,Addr1
+++      31: 00111000 : 38 > lb: 56
+++      32: 00000000 : 00 > hb: 0
+    ...
+++      52: 11000011 : C3 > opcode: jmp Halt
+++      53: 00000011 : 03 > lb: 3
+++      54: 00000000 : 00 > hb: 0
+++      55: 00000000 : 00 > dsname: Addr1 : 0
+
+    --------------
     + The following causes address error. printPrompt was set to the same address as prompt.
     ++ The processor calls address prompt, instead of address printPrompt.
     ...
@@ -1270,7 +1283,7 @@ public class asmProcessor {
         // Or other programs.
         // Required, starts the process:
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opMov.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opLdaSta.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
         //
         // Option: for debugging:

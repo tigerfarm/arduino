@@ -15,15 +15,20 @@
                             ; --------------------------------------
     Start:
             mvi h,0         ; Address for memory address testing.
-            mvi l,60
+            mvi l,64
+            out 36          ; Print the register values for H:L and the content at that address.
                             ;
             mvi a,6         ; Move # to register A.
-            sta 60          ; Store register A's content to the address(hb:lb).
-            out 38          ; Print the register values.
+            out 37          ; Print register A.
+            sta 64          ; Store register A's content to the address(hb:lb).
+            out 36          ; Print the register values for H:L and the content at that address.
+            hlt
                             ;
             mvi a,0         ; Move # to register A.
-            lda 60          ; Load register A from the address(hb:lb).
             out 37          ; Print register A.
+            lda 64          ; Load register A from the address(hb:lb).
+            out 37          ; Print register A.
+            hlt
                             ;
                             ; --------------------------------------
             lxi h,Addr1     ; Load an address into H:L.
@@ -32,10 +37,12 @@
             mvi a,6         ; Move # to register A.
             sta Addr1       ; Store register A's content to the address(hb:lb).
             out 38          ; Print the register values.
+            hlt
                             ;
             mvi a,0         ; Move # to register A.
             lda 60          ; Load register A from the address(hb:lb).
             out 37          ; Print register A.
+            hlt
                             ;
                             ; --------------------------------------
             NOP
