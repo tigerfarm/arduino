@@ -8,19 +8,23 @@
                                     ; Data declarations
         abc     db     'okay, yes?'
                                     ; --------------------------------------
+    Halt:
+                out 30
+                hlt
     Start:
-                call PrintLoop
+                call PrintOut
                 mov a,b
-                jmp Start
+                jmp Halt
                                     ; ------------------------------------------
-                def     db     'now'
-        PrintLoop:
+        def     db     'now'
+        PrintOut:
+                out 37
                 mov c,d
                 ret
                                     ; ------------------------------------------
                 ds      2           ;stack space
         stack   equ     $
-                org     36
+                org     42
         total   ds      2
         scoreL  ds      1           ;score for left paddle 
         scoreR  ds      1           ;score for right paddle
