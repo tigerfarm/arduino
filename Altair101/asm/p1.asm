@@ -13,9 +13,16 @@
                 mov a,b
                 jmp Start
                                     ; ------------------------------------------
-        def     db     'now'
+                def     db     'now'
         PrintLoop:
                 mov c,d
                 ret
+                                    ; ------------------------------------------
+                ds      2           ;stack space
+        stack   equ     $
+                org     36
+        total   ds      2
+        scoreL  ds      1           ;score for left paddle 
+        scoreR  ds      1           ;score for right paddle
                                     ; ------------------------------------------
                 End

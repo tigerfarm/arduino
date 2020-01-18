@@ -24,12 +24,6 @@
     Next assembler updates and issues,
 
     --------------
-    +++ Error happens the second time the parse is called.
-+ Set Program Label address values...
-+ findName: Start:14
-- Error, programTop: 27, address label not found: Start:14.
-
-    --------------
     + The following causes address error. printPrompt was set to the same address as prompt.
     ++ The processor calls address prompt, instead of address printPrompt.
     ...
@@ -140,7 +134,7 @@ public class asmProcessor {
         System.out.println("\n+ Print Program Bytes and description.");
         // ++ <count>: binary   :hex > description.
         // ++       0: 11000011 : C3 > opcode: jmp Start
-        System.out.println("++ <count>: binary   :hex > description");
+        System.out.println("++ Address: byte     :hex > description");
         programTop = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
@@ -189,6 +183,13 @@ public class asmProcessor {
                     System.out.println(" > hb: " + opcodeValues[1]);
                     fileBytes[programTop] = (byte) Integer.parseInt(opcodeValues[1]);
                     break;
+                case "immediate":
+                    // ++ immediate:'l':108
+                    System.out.print(byteToString((byte) Integer.parseInt(opcodeValues[2])) + " : ");
+                    System.out.print(String.format("%02X", Integer.parseInt(opcodeValues[2])));
+                    System.out.println(" > immediate: " + opcodeValues[1] + " : " + opcodeValues[2]);
+                    fileBytes[programTop] = (byte) Integer.parseInt(opcodeValues[2]);
+                    break;
                 case "databyte":
                     // ++ databyte:abc:k
                     char[] ch = new char[1];
@@ -203,6 +204,14 @@ public class asmProcessor {
                     System.out.print(byteToString((byte) Integer.parseInt(opcodeValues[2])) + " : ");
                     System.out.print(String.format("%02X", Integer.parseInt(opcodeValues[2])));
                     System.out.println(" > dbterm: " + opcodeValues[2]);
+                    fileBytes[programTop] = (byte) Integer.parseInt(opcodeValues[2]);
+                    break;
+                case "dsname":
+                    // ++ dsname::0
+                    // ++ dsname:org:0
+                    System.out.print(byteToString((byte) Integer.parseInt(opcodeValues[2])) + " : ");
+                    System.out.print(String.format("%02X", Integer.parseInt(opcodeValues[2])));
+                    System.out.println(" > dsname: " + opcodeValues[1] + " : " + opcodeValues[2]);
                     fileBytes[programTop] = (byte) Integer.parseInt(opcodeValues[2]);
                     break;
                 default:
@@ -1129,10 +1138,9 @@ public class asmProcessor {
         if (part2.equals("ds")) {
             // Number of uninitialezed bytes.
             // 7) scoreR  ds       1
+            // 7) scoreR  ds       2
             System.out.println("++ parseLine, ds directive: part1|" + part1 + "| part3|" + part3 + "|");
-            if (part3.equals("1")) {
-                parseDs(part1asIs, part3);
-            }
+            parseDs(part1asIs, part3);
             return;
         }
         System.out.print("-- Error parsing line: " + theLine);
@@ -1214,6 +1222,16 @@ public class asmProcessor {
         variableValue.clear();
     }
 
+    public void printProgramBytes(asmProcessor thisProcess, String theReadFilename) {
+        thisProcess.parseFile(theReadFilename);
+        thisProcess.setProgramByteAddresses();
+        thisProcess.setProgramByteImmediates();
+        thisProcess.listProgramBytes();
+        if (errorCount > 0) {
+            System.out.println("-- Number of errors: " + errorCount);
+        }
+    }
+
     public void printProgramByteArray(asmProcessor thisProcess, String theReadFilename) {
         thisProcess.parseFile(theReadFilename);
         thisProcess.setProgramByteAddresses();
@@ -1252,7 +1270,7 @@ public class asmProcessor {
         // Or other programs.
         // Required, starts the process:
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opRlcRrc.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opOut.asm");
         thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
         //
         // Option: for debugging:
@@ -1263,17 +1281,11 @@ public class asmProcessor {
         thisProcess.setProgramByteAddresses();
         thisProcess.setProgramByteImmediates();
         //
-        //
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
-        thisProcess.setProgramByteAddresses();
-        thisProcess.setProgramByteImmediates();
-        thisProcess.listLabelAddresses();
-        //
         // Option: for debugging.
-        // thisProcess.listProgramBytes();
+        thisProcess.listProgramBytes();
         //
         // Option: create a binary file of the program. And has a nice listing.
-        // thisProcess.printProgramBytesToFile("10000000.bin");
+        thisProcess.printProgramBytesToFile("10000000.bin");
         //
         // Option: print array format for use in Processor.ino.
         // thisProcess.printProgramBytesArray();

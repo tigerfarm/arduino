@@ -12,7 +12,7 @@ public class asm {
 
     public void run() {
         // asmProcessor doList = new asmProcessor();
-        String theFilename = "p1.asm";
+        String inFilename = "p1.asm";
         String outFilename = "p1.bin";
         String cmd;
         String theRest;
@@ -43,40 +43,45 @@ public class asm {
             switch (cmd) {
                 case "print":
                     System.out.println("+ -------------------------------------");
-                    System.out.println("+ Print and parse the program: " + theFilename + ":");
-                    processFile.parseFile(theFilename);
+                    System.out.println("+ Print and parse the program: " + inFilename + ":");
+                    processFile.parseFile(inFilename);
+                    break;
+                case "printbytes":
+                    System.out.println("+ -------------------------------------");
+                    System.out.println("+ Print the byte array for the program: " + inFilename + ":");
+                    processFile.printProgramBytes(processFile, inFilename);
                     break;
                 case "printarray":
                     System.out.println("+ -------------------------------------");
-                    System.out.println("+ Print the byte array for the program: " + theFilename + ":");
-                    processFile.printProgramByteArray(processFile, theFilename);
+                    System.out.println("+ Print the byte array for the program: " + inFilename + ":");
+                    processFile.printProgramByteArray(processFile, inFilename);
                     break;
                 case "printfile":
                     System.out.println("+ -------------------------------------");
-                    System.out.println("+ Print the byte array for the program: " + theFilename + ":");
-                    processFile.printProgramBytesToFile(processFile, theFilename, outFilename);
+                    System.out.println("+ Print the byte array for the program: " + inFilename + ":");
+                    processFile.printProgramBytesToFile(processFile, inFilename, outFilename);
                     break;
                 case "file":
                     // > file this.asm
                     if (theRest.length() > 0) {
-                        theFilename = theRest;
+                        inFilename = theRest;
                     }
-                    System.out.println("+ File name to use for input: " + theFilename + ".");
+                    System.out.println("+ File name to use for input: " + inFilename + ".");
                     break;
                 case "fileout":
                     // > fileout this.bin
                     if (theRest.length() > 0) {
-                        theFilename = theRest;
+                        outFilename = theRest;
                     }
-                    System.out.println("+ File name to use for output: " + theFilename + ".");
+                    System.out.println("+ File name to use for output: " + outFilename + ".");
                     break;
                 case "list":
                     switch (theRest) {
                         case "":
                         case "file":
                             System.out.println("+ -------------------------------------");
-                            System.out.println("+ List file: " + theFilename + ":");
-                            processFile.listFile(theFilename);
+                            System.out.println("+ List file: " + inFilename + ":");
+                            processFile.listFile(inFilename);
                             break;
                         default:
                             System.out.println("- Invalid list option." + theRest);
@@ -97,16 +102,17 @@ public class asm {
                     System.out.println("---------------------------------------");
                     System.out.println("Help");
                     System.out.println("+ file <filename>    : set the input file name to use in other commands.");
-                    if (!theFilename.equals("")) {
-                        System.out.println("++ Input file name: " + theFilename);
+                    if (!inFilename.equals("")) {
+                        System.out.println("++ Input file name: " + inFilename);
                     }
                     System.out.println("+ fileout <filename> : set the output file name to use in other commands.");
-                    if (!theFilename.equals("")) {
+                    if (!inFilename.equals("")) {
                         System.out.println("++ Output file name: " + outFilename);
                     }
                     System.out.println("+ list [file]        : list the input file to the screen.");
                     System.out.println("");
                     System.out.println("+ print              : Parse the file, output to screen.");
+                    System.out.println("+ printbytes         : Print the program bytes to screen.");
                     System.out.println("+ printarray         : Print the byte array for the program to screen.");
                     System.out.println("+ printfile          : Print binary file, and output info to screen.");
                     System.out.println("");
