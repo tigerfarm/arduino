@@ -177,144 +177,113 @@ File myFile;
 const byte theProgram[] = {
   //                //            ; --------------------------------------
   //                //            ; Test programs.
-  B11000011, 32, 0,    //   0: jmp Start
-  'R',                 //   3: dbname: opcode1
-  'L',                 //   4: dbname: opcode1
-  'C',                 //   5: dbname: opcode1
-  255,                 //   6: dbstringterminator: opcode1
-  'R',                 //   7: dbname: opcode2
-  'R',                 //   8: dbname: opcode2
-  'C',                 //   9: dbname: opcode2
-  255,                 //  10: dbstringterminator: opcode2
-  '+',                 //  11: dbname: msgsuccess
-  ' ',                 //  12: dbname: msgsuccess
-  'S',                 //  13: dbname: msgsuccess
-  'u',                 //  14: dbname: msgsuccess
-  'c',                 //  15: dbname: msgsuccess
-  'c',                 //  16: dbname: msgsuccess
-  'e',                 //  17: dbname: msgsuccess
-  's',                 //  18: dbname: msgsuccess
-  's',                 //  19: dbname: msgsuccess
-  ':',                 //  20: dbname: msgsuccess
-  ' ',                 //  21: dbname: msgsuccess
-  255,                 //  22: dbstringterminator: msgsuccess
-  '-',                 //  23: dbname: msgerror
-  ' ',                 //  24: dbname: msgerror
-  'E',                 //  25: dbname: msgerror
-  'r',                 //  26: dbname: msgerror
-  'r',                 //  27: dbname: msgerror
-  'o',                 //  28: dbname: msgerror
-  'r',                 //  29: dbname: msgerror
-  '.',                 //  30: dbname: msgerror
-  255,                 //  31: dbstringterminator: msgerror
-  B00111110, 1,        //  32: mvi a,1
-  B11100011, 37,       //  34: out 37
-  B11111110, 1,        //  36: cpi 1
-  B11000010, 226, 0,   //  38: jnz Error
-  B00000111,           //  41: rlc
-  B11100011, 37,       //  42: out 37
-  B11111110, 2,        //  44: cpi 2
-  B11000010, 226, 0,   //  46: jnz Error
-  B00000111,           //  49: rlc
-  B11100011, 37,       //  50: out 37
-  B11111110, 4,        //  52: cpi 4
-  B11000010, 226, 0,   //  54: jnz Error
-  B00000111,           //  57: rlc
-  B11100011, 37,       //  58: out 37
-  B11111110, 8,        //  60: cpi 8
-  B11000010, 226, 0,   //  62: jnz Error
-  B00000111,           //  65: rlc
-  B11100011, 37,       //  66: out 37
-  B11111110, 16,       //  68: cpi 16
-  B11000010, 226, 0,   //  70: jnz Error
-  B00000111,           //  73: rlc
-  B11100011, 37,       //  74: out 37
-  B11111110, 32,       //  76: cpi 32
-  B11000010, 226, 0,   //  78: jnz Error
-  B00000111,           //  81: rlc
-  B11100011, 37,       //  82: out 37
-  B11111110, 64,       //  84: cpi 64
-  B11000010, 226, 0,   //  86: jnz Error
-  B00000111,           //  89: rlc
-  B11100011, 37,       //  90: out 37
-  B11111110, 128,      //  92: cpi 128
-  B11000010, 226, 0,   //  94: jnz Error
-  B00000111,           //  97: rlc
-  B11100011, 37,       //  98: out 37
-  B11111110, 1,        // 100: cpi 1
-  B11000010, 226, 0,   // 102: jnz Error
-  B11001101, 1, 1,     // 105: call printNL
-  B00100001, 11, 0,    // 108: lxi h,msgSuccess
-  B11001101, 244, 0,   // 111: call print
-  B00100001, 3, 0,     // 114: lxi h,opcode1
-  B11001101, 244, 0,   // 117: call print
-  B00111110, 46,       // 120: mvi a,'.'
-  B11100011, 3,        // 122: out 3 (PRINT_PORT)
-  B11001101, 1, 1,     // 124: call printNL
-  B00111110, 128,      // 127: mvi a,128
-  B11100011, 37,       // 129: out 37
-  B11111110, 128,      // 131: cpi 128
-  B11000010, 226, 0,   // 133: jnz Error
-  B00001111,           // 136: rrc
-  B11100011, 37,       // 137: out 37
-  B11111110, 64,       // 139: cpi 64
-  B11000010, 226, 0,   // 141: jnz Error
-  B00001111,           // 144: rrc
-  B11100011, 37,       // 145: out 37
-  B11111110, 32,       // 147: cpi 32
-  B11000010, 226, 0,   // 149: jnz Error
-  B00001111,           // 152: rrc
-  B11100011, 37,       // 153: out 37
-  B11111110, 16,       // 155: cpi 16
-  B11000010, 226, 0,   // 157: jnz Error
-  B00001111,           // 160: rrc
-  B11100011, 37,       // 161: out 37
-  B11111110, 8,        // 163: cpi 8
-  B11000010, 226, 0,   // 165: jnz Error
-  B00001111,           // 168: rrc
-  B11100011, 37,       // 169: out 37
-  B11111110, 4,        // 171: cpi 4
-  B11000010, 226, 0,   // 173: jnz Error
-  B00001111,           // 176: rrc
-  B11100011, 37,       // 177: out 37
-  B11111110, 2,        // 179: cpi 2
-  B11000010, 226, 0,   // 181: jnz Error
-  B00001111,           // 184: rrc
-  B11100011, 37,       // 185: out 37
-  B11111110, 1,        // 187: cpi 1
-  B11000010, 226, 0,   // 189: jnz Error
-  B00001111,           // 192: rrc
-  B11100011, 37,       // 193: out 37
-  B11111110, 128,      // 195: cpi 128
-  B11000010, 226, 0,   // 197: jnz Error
-  B11001101, 1, 1,     // 200: call printNL
-  B00100001, 11, 0,    // 203: lxi h,msgSuccess
-  B11001101, 244, 0,   // 206: call print
-  B00100001, 7, 0,     // 209: lxi h,opcode2
-  B11001101, 244, 0,   // 212: call print
-  B00111110, 46,       // 215: mvi a,'.'
-  B11100011, 3,        // 217: out 3 (PRINT_PORT)
-  B11001101, 1, 1,     // 219: call printNL
-  B01110110,           // 222: hlt
-  B11000011, 32, 0,    // 223: jmp Start
-  B11001101, 1, 1,     // 226: call printNL
-  B00100001, 23, 0,    // 229: lxi h,msgError
-  B11001101, 244, 0,   // 232: call print
-  B11001101, 1, 1,     // 235: call printNL
-  B11100011, 39,       // 238: out 39
-  B01110110,           // 240: hlt
-  B11000011, 32, 0,    // 241: jmp Start
-  B01111110,           // 244: mov a,m
-  B11111110, 255,      // 245: cpi 255 (TERMB)
-  B11001010, 0, 1,     // 247: jz Done
-  B11100011, 3,        // 250: out 3 (PRINT_PORT)
-  B00101100,           // 252: inr m
-  B11000011, 244, 0,   // 253: jmp print
-  B11001001,           // 256: ret
-  B00111110, 10,       // 257: mvi a,NL
-  B11100011, 3,        // 259: out 3 (PRINT_PORT)
-  B11001001,           // 261: ret
-  0                    // 262: End of program
+  B11000011, 4, 0,     //   0: jmp Start
+  B01110110,           //   3: hlt
+  B00111110, 0,        //   4: mvi a,0
+  B00111100,           //   6: inr a
+  B01000111,           //   7: mov b,a
+  B00111100,           //   8: inr a
+  B01001111,           //   9: mov c,a
+  B00111100,           //  10: inr a
+  B01010111,           //  11: mov d,a
+  B00111100,           //  12: inr a
+  B01011111,           //  13: mov e,a
+  B00111100,           //  14: inr a
+  B01100111,           //  15: mov h,a
+  B00111100,           //  16: inr a
+  B01101111,           //  17: mov l,a
+  B11100011, 38,       //  18: out 38
+  B00111100,           //  20: inr a
+  B01000111,           //  21: mov b,a
+  B01111000,           //  22: mov a,b
+  B00000100,           //  23: inr b
+  B01001000,           //  24: mov c,b
+  B00000100,           //  25: inr b
+  B01010000,           //  26: mov d,b
+  B00000100,           //  27: inr b
+  B01011000,           //  28: mov e,b
+  B00000100,           //  29: inr b
+  B01100000,           //  30: mov h,b
+  B00000100,           //  31: inr b
+  B01101000,           //  32: mov l,b
+  B11100011, 38,       //  33: out 38
+  B00000100,           //  35: inr b
+  B01001000,           //  36: mov c,b
+  B01111001,           //  37: mov a,c
+  B00001100,           //  38: inr c
+  B01000001,           //  39: mov b,c
+  B00001100,           //  40: inr c
+  B01010001,           //  41: mov d,c
+  B00001100,           //  42: inr c
+  B01011001,           //  43: mov e,c
+  B00001100,           //  44: inr c
+  B01100001,           //  45: mov h,c
+  B00001100,           //  46: inr c
+  B01101001,           //  47: mov l,c
+  B00001100,           //  48: inr c
+  B11100011, 38,       //  49: out 38
+  B00001100,           //  51: inr c
+  B01010001,           //  52: mov d,c
+  B01111010,           //  53: mov a,d
+  B00010100,           //  54: inr d
+  B01000010,           //  55: mov b,d
+  B00010100,           //  56: inr d
+  B01001010,           //  57: mov c,d
+  B00010100,           //  58: inr d
+  B01011010,           //  59: mov e,d
+  B00010100,           //  60: inr d
+  B01100010,           //  61: mov h,d
+  B00010100,           //  62: inr d
+  B01101010,           //  63: mov l,d
+  B00010100,           //  64: inr d
+  B11100011, 38,       //  65: out 38
+  B00010100,           //  67: inr d
+  B01011010,           //  68: mov e,d
+  B01111011,           //  69: mov a,e
+  B00011100,           //  70: inr e
+  B01000011,           //  71: mov b,e
+  B00011100,           //  72: inr e
+  B01001011,           //  73: mov c,e
+  B00011100,           //  74: inr e
+  B01010011,           //  75: mov d,e
+  B00011100,           //  76: inr e
+  B01100011,           //  77: mov h,e
+  B00011100,           //  78: inr e
+  B01101011,           //  79: mov l,e
+  B00011100,           //  80: inr e
+  B11100011, 38,       //  81: out 38
+  B00011100,           //  83: inr e
+  B01100011,           //  84: mov h,e
+  B01111100,           //  85: mov a,h
+  B00100100,           //  86: inr h
+  B01000100,           //  87: mov b,h
+  B00100100,           //  88: inr h
+  B01001100,           //  89: mov c,h
+  B00100100,           //  90: inr h
+  B01010100,           //  91: mov d,h
+  B00100100,           //  92: inr h
+  B01011100,           //  93: mov e,h
+  B00100100,           //  94: inr h
+  B01101100,           //  95: mov l,h
+  B00100100,           //  96: inr h
+  B11100011, 38,       //  97: out 38
+  B00100100,           //  99: inr h
+  B01101100,           // 100: mov l,h
+  B00101100,           // 101: inr l
+  B01000101,           // 102: mov b,l
+  B00101100,           // 103: inr l
+  B01001101,           // 104: mov c,l
+  B00101100,           // 105: inr l
+  B01010101,           // 106: mov d,l
+  B00101100,           // 107: inr l
+  B01011101,           // 108: mov e,l
+  B00101100,           // 109: inr l
+  B01100101,           // 110: mov h,l
+  B00101100,           // 111: inr l
+  B11100011, 38,       // 112: out 38
+  B00000000,           // 114: nop
+  B11000011, 3, 0,     // 115: jmp Halt
+  0                    // 118: End of program
 };
 
 // -----------------------------------------------------------------------------
@@ -2734,27 +2703,6 @@ void processOpcodeData() {
         case 3:
           // Handled before this switch statement.
           break;
-        case 38:
-#ifdef LOG_MESSAGES
-          Serial.println("");
-#endif
-          Serial.println(F("------------"));
-          printRegisters();
-          Serial.print(F("------------"));
-          break;
-        case 39:
-#ifdef LOG_MESSAGES
-          Serial.println("");
-#endif
-          Serial.println(F("------------"));
-          printRegisters();
-          printOther();
-          Serial.print(F("------------"));
-          break;
-        case 37:
-          Serial.print(F(" > Register A = "));
-          printData(regA);
-          break;
         case 30:
           Serial.print(F(" > Register B = "));
           printData(regB);
@@ -2787,6 +2735,27 @@ void processOpcodeData() {
           Serial.print(F(", Data: "));
           hlValue = regH * 256 + regL;
           Serial.print(memoryData[hlValue]);
+          break;
+        case 37:
+          Serial.print(F(" > Register A = "));
+          printData(regA);
+          break;
+        case 38:
+#ifdef LOG_MESSAGES
+          Serial.println("");
+#endif
+          Serial.println(F("------------"));
+          printRegisters();
+          Serial.print(F("------------"));
+          break;
+        case 39:
+#ifdef LOG_MESSAGES
+          Serial.println("");
+#endif
+          Serial.println(F("------------"));
+          printRegisters();
+          printOther();
+          Serial.print(F("------------"));
           break;
         default:
           regA = 0;

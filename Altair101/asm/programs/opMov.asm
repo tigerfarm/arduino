@@ -1,21 +1,31 @@
-                        ; --------------------------------------
-                        ; Test MVI and MOV to the serial monitor.
-                        ; --------------------------------------
-            jmp Start   ; Jump to bypass the halt.
+                            ; --------------------------------------
+                            ; Test MOV using serial monitor output.
+                            ; --------------------------------------
+            jmp Start       ; Jump to bypass the halt.
     Halt:
-            hlt         ; The program will halt at each iteration, after the first.
-                        ; --------------------------------------
+            hlt             ; The program will halt at each iteration, after the first.
+                            ; --------------------------------------
     Start:
-            mvi a,6     ; Move # to registers.
-            mvi b,0
-            mvi c,1
-            mvi d,2
-            mvi e,3
-            mvi h,4
-            mvi l,5
-            out 38      ; Print the register values.
-                        ; --------------------------------------
-            mvi b,7     ; Move # to register B.
+                            ; --------------------------------------
+                            ; Test MOV with register A.
+            mvi a,0         ; Set initial register A value.
+            inr a
+            mov b,a         ; Move register A content to each other registers.
+            inr a           ; Increment register A each time.
+            mov c,a
+            inr a
+            mov d,a
+            inr a
+            mov e,a
+            inr a
+            mov h,a
+            inr a
+            mov l,a
+            out 38
+                            ; --------------------------------------
+                            ; Test MOV with register B.
+            inr a           ; Keep incrementing up.
+            mov b,a
             mov a,b
             inr b
             mov c,b
@@ -27,10 +37,11 @@
             mov h,b
             inr b
             mov l,b
-            inr b
             out 38
                         ; --------------------------------------
-            mvi c,7     ; Move # to register C.
+                        ; Test MOV with register C.
+            inr b
+            mov c,b     ; Keep incrementing up.
             mov a,c
             inr c
             mov b,c
@@ -45,7 +56,9 @@
             inr c
             out 38
                         ; --------------------------------------
-            mvi d,7     ; Move # to register D.
+                        ; Test MOV with register D.
+            inr c
+            mov d,c     ; Keep incrementing up.
             mov a,d
             inr d
             mov b,d
@@ -60,7 +73,9 @@
             inr d
             out 38
                         ; --------------------------------------
-            mvi e,7     ; Move # to register E.
+                        ; Test MOV with register E.
+            inr d
+            mov e,d     ; Keep incrementing up.
             mov a,e
             inr e
             mov b,e
@@ -75,7 +90,9 @@
             inr e
             out 38
                         ; --------------------------------------
-            mvi h,7     ; Move # to register H.
+                        ; Test MOV with register H.
+            inr e
+            mov h,e     ; Keep incrementing up.
             mov a,h
             inr h
             mov b,h
@@ -90,8 +107,9 @@
             inr h
             out 38
                         ; --------------------------------------
-            mvi l,7     ; Move # to register L.
-            mov a,l
+                        ; Test MOV with register L.
+            inr h
+            mov l,h
             inr l
             mov b,l
             inr l

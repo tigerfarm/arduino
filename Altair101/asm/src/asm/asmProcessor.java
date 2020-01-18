@@ -1270,11 +1270,11 @@ public class asmProcessor {
         // Or other programs.
         // Required, starts the process:
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opOut.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opMov.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
         //
         // Option: for debugging:
-        thisProcess.listLabelAddresses();
+        // thisProcess.listLabelAddresses();
         // thisProcess.listImmediateValues();
         //
         // Required, sets actual values:
@@ -1282,13 +1282,13 @@ public class asmProcessor {
         thisProcess.setProgramByteImmediates();
         //
         // Option: for debugging.
-        thisProcess.listProgramBytes();
+        // thisProcess.listProgramBytes();
         //
         // Option: create a binary file of the program. And has a nice listing.
-        thisProcess.printProgramBytesToFile("10000000.bin");
+        // thisProcess.printProgramBytesToFile("10000000.bin");
         //
         // Option: print array format for use in Processor.ino.
-        // thisProcess.printProgramBytesArray();
+        thisProcess.printProgramBytesArray();
         //
         if (thisProcess.errorCount > 0) {
             System.out.println("\n-- Number of errors: " + thisProcess.errorCount + "\n");
