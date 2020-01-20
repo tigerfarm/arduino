@@ -18,12 +18,13 @@
 
 // -----------------------------------------------------------------------------
 // Add another serial port settings, to connect to the new serial hardware module.
-#include <SoftwareSerical.h>
-
+#include <SoftwareSerial.h>
+//
 // 1st is receive, second is for sending.
 // If not sending, then the second pin doesn't need to be connect or used.
-SoftwareSerical Serial2(5,6);
+// SoftwareSerical Serial2(5,6);
 // Then, read from the new serial port, use:
+//    Serial2.begin(9600);
 //    Serial2.available()
 //    Serial2.read();
 
@@ -46,8 +47,8 @@ void setup() {
   Serial.println("+++ Setup.");
   Serial.println("+ Ready for serial communications.");
 
-  Serial2.begin(9600);
-  Serial.println("+ Ready to use the second serial port.");
+  //  Serial2.begin(9600);
+  //  Serial.println("+ Ready to use the second serial port.");
 
 
   Serial.println("+++ Go to loop.");
@@ -61,11 +62,20 @@ void loop() {
   if (Serial.available() > 0) {
     // read the incoming byte:
     readByte = Serial.read();
-    // Serial.print("++ Byte: ");
-    // printByte(readByte);
-    // Serial.print(" = ");
-    // Serial.println(readByte, DEC);
-    // Serial.write(readByte);
+    if (readByte == 10) {
+      // New line character.
+      Serial.println("");
+    } else {
+      Serial.write(readByte);
+      /*
+      Serial.print("++ Character: ");
+      Serial.write(readByte);
+      Serial.print(", Byte: ");
+      printByte(readByte);
+      Serial.print(" = ");
+      Serial.print(readByte, DEC);
+      */
+    }
   }
   delay(30);
 }

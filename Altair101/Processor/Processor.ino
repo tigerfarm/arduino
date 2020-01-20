@@ -11,8 +11,8 @@
   Current/Next Work
   
   Get opLadSta.asm to work.
-  + STA: Store register A content to an address.
-  + LDA: Load register A from an address.
+  + STA a: Store register A content to an address (a).
+  + LDA a: Load register A from an address (a).
   + Use an immediate value for the address.
   + Use an address label for the address.
   
@@ -2695,6 +2695,7 @@ void processOpcodeData() {
       break;
     // ------------------------------------------------------------------------------------------
     case B00110010:
+      // STA a : Store register A's content to the address (a).
       if (instructionCycle == 2) {
         lowOrder = dataByte;
 #ifdef LOG_MESSAGE
@@ -2714,21 +2715,25 @@ void processOpcodeData() {
 #endif
         return;
       }
-      // instructionCycle == 3
+      // instructionCycle == 4
       hlValue = highOrder * 256 + lowOrder;
       memoryData[hlValue] = regA;
+      statusByte = 0;
+      // Turn all the status lights off, during this step.
+      lightsStatusAddressData(statusByte, hlValue, regA);
       // Stacy, to do:
       //  Set address lights to hb:lb. Set data lights to regA.
-      //  Turn status light MEMR, MI, and WO off during this step.
+      //  Turn status light MEMR and WO are no, MI is off, during this step.
 #ifdef LOG_MESSAGES
-      Serial.print(F("> sta, register A: "));
+      Serial.print(F("> sta, register A data: "));
       Serial.print(regA);
-      Serial.print(F(", stored to the hb:lb address."));
+      Serial.print(F(", is stored to the hb:lb address."));
 #endif
       programCounter++;
       break;
     // -----------------------------------------
     case B00111010:
+      // LDA a : Load register A with data from the address, a(hb:lb).
       if (instructionCycle == 2) {
         lowOrder = dataByte;
 #ifdef LOG_MESSAGES
@@ -2748,10 +2753,15 @@ void processOpcodeData() {
 #endif
         return;
       }
+      // instructionCycle == 4
+      //  Status lights, MEMR and WO are on, MI is off, during this step.
+      statusByte = statusByte & MI_OFF
+      //
       hlValue = highOrder * 256 + lowOrder;
       regA = memoryData[hlValue];
+      lightsStatusAddressData(statusByte, hlValue, regA);
 #ifdef LOG_MESSAGES
-      Serial.print(F("> lda, hb:lb address data is moved to register A: "));
+      Serial.print(F("> lda, load data at hb:lb address, into register A: "));
       Serial.print(regA);
 #endif
       programCounter++;

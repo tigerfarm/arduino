@@ -494,7 +494,7 @@ public class asmProcessor {
     private void parseDs(String theName, String theValue) {
         System.out.println("++ DS variable name: " + theName + ", number of bytes: " + theValue);
         labelName.add(theName);
-        labelAddress.add(programTop + 1);        // Address to the bytes.
+        labelAddress.add(programTop);        // Address to the bytes.
         for (int i = 0; i < Integer.parseInt(theValue); i++) {
             programBytes.add("dsname:" + theName + SEPARATOR + 0);  // default value.
             programTop++;

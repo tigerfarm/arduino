@@ -26,7 +26,7 @@ package serialcoms;
 import java.io.IOException;
 import com.fazecast.jSerialComm.SerialPort;
 
-public class SerialComs {
+public class SearialjWrite {
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
