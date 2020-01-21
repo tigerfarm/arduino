@@ -1171,7 +1171,7 @@ public class asmProcessor {
         try {
             readFile = new File(theReadFilename);
             if (!readFile.exists()) {
-                System.out.println("+ ** ERROR, theReadFilename does not exist.");
+                System.out.println("-- ERROR, theReadFilename does not exist.");
                 errorCount++;
                 return;
             }
@@ -1219,6 +1219,36 @@ public class asmProcessor {
             System.out.print("+ *** IOException: ");
             System.out.println(ioe.toString());
         }
+    }
+
+    // -------------------------------------------------------------------------
+    public void showFile(String theReadFilename) {
+        // System.out.println("++ Show binary file: " + theReadFilename);
+        int theLength = 0;
+        byte bArray[] = null;
+        try {
+            File theFile = new File(theReadFilename);
+            theLength = (int)theFile.length();
+            bArray = new byte[(int) theLength];
+            FileInputStream in = new FileInputStream(theReadFilename);
+            in.read(bArray);
+            in.close();
+        } catch (IOException ioe) {
+            System.out.print("IOException: ");
+            System.out.println(ioe.toString());
+        }
+        System.out.println("+ Show the bytes. Number of bytes: " + theLength + " in the file: " + theReadFilename);
+        int i;
+        int tenCount = 0;
+        for (i = 0; i < theLength; i++) {
+            if (tenCount==10) {
+                tenCount = 0;
+                System.out.println("");
+            }
+            tenCount++;
+            System.out.print(String.format("%02X ", bArray[i]));
+        }
+        System.out.println("\n+ Display completed.");
     }
 
     // -------------------------------------------------------------------------
@@ -1273,9 +1303,14 @@ public class asmProcessor {
         asmProcessor thisProcess = new asmProcessor();
 
         System.out.println("\n+ Parse file lines.");
+        /*
+        thisProcess.showFile("10000000.bin");
+        if (1 == 1) {
+            return;
+        }
+        */
         //thisProcess.printProgramByteArray(thisProcess,
         //    "/Users/dthurston/Projects/arduino/Altair101/asm/programs/opCpi.asm");
-
         // Assemble the Pong program.
         // ignoreFirstCharacters = 12;     // Set to 12 for Pong program.
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pong.asm");
@@ -1283,8 +1318,13 @@ public class asmProcessor {
         // Or other programs.
         // Required, starts the process:
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opLdaSta.asm");
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opLdaSta.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pLoop.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
+        if (thisProcess.errorCount > 0) {
+            System.out.println("\n-- Number of errors: " + thisProcess.errorCount + "\n");
+            return;
+        }
         //
         // Option: for debugging:
         // thisProcess.listLabelAddresses();
@@ -1298,10 +1338,13 @@ public class asmProcessor {
         // thisProcess.listProgramBytes();
         //
         // Option: create a binary file of the program. And has a nice listing.
-        // thisProcess.printProgramBytesToFile("10000000.bin");
+        thisProcess.printProgramBytesToFile("10000000.bin");
+        thisProcess.showFile("10000000.bin");
+        // C3 00 6B 79 20 65 3F E3 76 1C 78 0E 6E 77 E3 4A 00 00 00 00 00 00 00 C3 00
         //
         // Option: print array format for use in Processor.ino.
-        thisProcess.printProgramBytesArray();
+        // thisProcess.printProgramBytesArray();
+        //
         //
         if (thisProcess.errorCount > 0) {
             System.out.println("\n-- Number of errors: " + thisProcess.errorCount + "\n");

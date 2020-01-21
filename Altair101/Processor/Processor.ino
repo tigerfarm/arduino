@@ -2976,7 +2976,7 @@ void readProgramFileIntoMemory(String theFilename) {
     Serial.print("B");
     printByte(memoryData[i]);
     Serial.print(":");
-    printOctal (memoryData[i]);
+    printOctal(memoryData[i]);
     Serial.print(":");
     Serial.println(memoryData[i], DEC);
 #endif

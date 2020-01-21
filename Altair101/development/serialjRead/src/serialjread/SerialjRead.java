@@ -1,21 +1,13 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ Reference,
+    https://github.com/Fazecast/jSerialComm/wiki/Blocking-and-Semiblocking-Reading-Usage-Example
  */
 package serialjread;
 
 import com.fazecast.jSerialComm.SerialPort;
 
-/**
- *
- * @author dthurston
- */
 public class SerialjRead {
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) {
         System.out.println("+++ Start.");
 
@@ -24,23 +16,29 @@ public class SerialjRead {
         // Connection settings must match Arduino program settings.
         // Baud rate, data bits, stop bits, and parity
         sp.setComPortParameters(9600, 8, 1, 0);
-        // block until bytes can be written
-        sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
+        
+        // Block until ready.
+        sp.setComPortTimeouts(SerialPort.TIMEOUT_READ_BLOCKING, 100, 0);  // READ/100 or WRITE/0.
         if (!sp.openPort()) {
             System.out.println("- Error, failed to open port.");
             return;
         }
-        System.out.println("+ Port is open.");
-
-        System.out.println("+ Receive bytes.");
-
-        if (sp.closePort()) {
-            System.out.println("+ Port is closed.");
-        } else {
-            System.out.println("- Error: Failed to close port.(");
+        
+        System.out.println("+ Port is open, ready to receive bytes.");
+        // ...
+        try {
+            while (true) {
+                while (sp.bytesAvailable() == 0) {
+                    Thread.sleep(20);
+                }
+                byte[] readBuffer = new byte[sp.bytesAvailable()];
+                int numRead = sp.readBytes(readBuffer, readBuffer.length);
+                System.out.println("+ Read " + numRead + " bytes.");
+            }
+        } catch (InterruptedException e) {
+            System.out.println("- Read error: " + e.getMessage());
         }
-
-        System.out.println("+++ Exit.");
+        sp.closePort();
     }
-    
+
 }

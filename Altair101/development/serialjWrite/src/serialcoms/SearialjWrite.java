@@ -20,13 +20,58 @@
         https://github.com/Fazecast/jSerialComm/wiki/Usage-Examples
     Java docs:
         http://fazecast.github.io/jSerialComm/javadoc/com/fazecast/jSerialComm/package-summary.html
+
+  String for testing,
+    abcdefghijklmnopqrstuvwxyz
  */
 package serialcoms;
 
 import java.io.IOException;
 import com.fazecast.jSerialComm.SerialPort;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SearialjWrite {
+
+    // -------------------------------------------------------------------------
+    public static void sendFile(SerialPort sp, String theReadFilename) {
+        // System.out.println("++ Write out binary file: " + theReadFilename);
+        int theLength = 0;
+        byte bArray[] = null;
+        try {
+            File theFile = new File(theReadFilename);
+            theLength = (int) theFile.length();
+            bArray = new byte[(int) theLength];
+            FileInputStream in = new FileInputStream(theReadFilename);
+            in.read(bArray);
+            in.close();
+        } catch (IOException ioe) {
+            System.out.print("IOException: ");
+            System.out.println(ioe.toString());
+        }
+        System.out.println("+ Write to serial port. Number of bytes: " + theLength + " in the file: " + theReadFilename);
+        //
+        Integer i;
+        int tenCount = 0;
+        try {
+            for (i = 0; i < theLength; i++) {
+                if (tenCount == 10) {
+                    tenCount = 0;
+                    System.out.println("");
+                }
+                tenCount++;
+                System.out.print(String.format("%02X ", bArray[i]));
+                sp.getOutputStream().write(i.byteValue());
+                sp.getOutputStream().flush();
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(SearialjWrite.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        //
+        System.out.println("\n+ Write completed.");
+    }
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
@@ -44,17 +89,25 @@ public class SearialjWrite {
             return;
         }
         System.out.println("+ Port is open.");
+
+        // ---------------------------------------------------------------------       
         System.out.println("+ Send bytes.");
+
+        sendFile(sp, "/Users/dthurston/Projects/arduino/Altair101/asm/10000000.bin");
+        /*
         for (Integer i = 0; i < 5; ++i) {
             sp.getOutputStream().write(i.byteValue());
             sp.getOutputStream().flush();
             System.out.println("++ Byte sent: " + i);
-            Thread.sleep(1000);
+            // Thread.sleep(1000);
         }
+        */
+        
+        // ---------------------------------------------------------------------
         if (sp.closePort()) {
             System.out.println("+ Port is closed.");
         } else {
-            System.out.println("- Error: Failed to close port.(");
+            System.out.println("- Error: Failed to close port.");
         }
 
         System.out.println("+++ Exit.");

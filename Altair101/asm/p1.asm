@@ -28,5 +28,7 @@
         total   ds      2
         scoreL  ds      1           ;score for left paddle 
         scoreR  ds      1           ;score for right paddle
+        Final   equ     42
+                jmp Final
                                     ; ------------------------------------------
                 End
