@@ -50,8 +50,7 @@ pop  RP  11 RP0 001  1  POP register pair from the stack.
 
 + Hex, Octal, Binary, Decimal conversion calculator
 https://coderstoolbox.net/number/
-*/
-
+ */
 public class opcodes8080 {
 
     private int top = 0;
@@ -85,17 +84,29 @@ public class opcodes8080 {
         System.out.println("+ End list.");
     }
 
+    public void opcodeInfoList() {
+        System.out.println("+ List opcode info.");
+        System.out.println("Opcode   Binary   Cycles Description");
+        System.out.println("-------------------------------------");
+        for (int i = 0; i < top; i++) {
+            if (info[i] != null) {
+                System.out.println(info[i]);
+            }
+        }
+        System.out.println("+ End list.");
+    }
+
     public void getOpcodeInfo(String theName) {
         byte returnValue = OpcodeNotFound;
         for (int i = 0; i < top; i++) {
             if (name[i].equals(theName)) {
+                // System.out.println("++ "+ name[i] + " " + byteToString(value[i]));
                 if (info[i] != null) {
                     System.out.println("Opcode   Binary   Cycles Description");
                     System.out.println("-------------------------------------");
                     System.out.println(info[i]);
+                    returnValue = 1;
                 }
-                System.out.println("++ " + i + ": " + name[i] + " " + value[i]);
-                returnValue = value[i];
                 break;
             }
         }
@@ -124,7 +135,7 @@ public class opcodes8080 {
         value = new byte[255];
         // ---------------------------------------------------------------------
         name[top] = "adi";
-        info[top] = "ADI #      11000110  3  Add immediate number to register A, set: ZSCPA.";
+        info[top] = "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA.";
         value[top++] = (byte) 0b11000110;
         // ---------------------------------------------------------------------
         name[top] = "ani";
@@ -158,7 +169,7 @@ public class opcodes8080 {
         value[top++] = (byte) 0b11111110;
         // ---------------------------------------------------------------------
         name[top] = "dad";
-        info[top] = "DAD RP     00RP1001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L, into H:L. And set carry bit.";
+        info[top] = "DAD RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L, into H:L. And set carry bit.";
         value[top++] = (byte) 0b00111001;   // not used value
         name[top] = "dadb";
         value[top++] = (byte) 0b00001001;
@@ -241,7 +252,7 @@ public class opcodes8080 {
         value[top++] = (byte) 0b00111010;
         // ---------------------------------------------------------------------
         name[top] = "ldax";
-        info[top] = "LDAX RP    00RP1010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.";
+        info[top] = "LDAX RP  00 RP1 010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.";
         value[top++] = (byte) 0b00111010;   // not used value
         name[top] = "ldaxb";
         value[top++] = (byte) 0b00001010;
@@ -249,7 +260,7 @@ public class opcodes8080 {
         value[top++] = (byte) 0b00011010;
         // ---------------------------------------------------------------------
         name[top] = "lxi";
-        info[top] = "LXI RP,a   00RP0001  3  Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.";
+        info[top] = "LXI RP,a 00 RP0 001  3  Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.";
         value[top++] = (byte) 0b00110001;   // not used value
         name[top] = "lxib";
         value[top++] = (byte) 0b00000001;
@@ -261,7 +272,7 @@ public class opcodes8080 {
         value[top++] = (byte) 0b00110001;
         // ---------------------------------------------------------------------
         name[top] = "mov";
-        info[top] = "MOV D,S    01DDDSSS  1  Move source register data, to the destination register. If source(S) is M(110), move data from address H:L, to D.";
+        info[top] = "MOV D,S  01 DDD SSS  1  Move source register data, to the destination register. If source(S) is M(110), move data from address H:L, to D.";
         value[top++] = (byte) 0b01111111;   // not used
         name[top] = "movab";  //01111111
         value[top++] = (byte) 0b01111000;
@@ -363,7 +374,7 @@ public class opcodes8080 {
         value[top++] = (byte) 0b01100110;
         name[top] = "movlm";  //01DDDSSS
         value[top++] = (byte) 0b01101110;
-        
+
         // ---------------------------------------------------------------------
         name[top] = "mvi";
         info[top] = "MVI R,#  00 RRR 110  2  Move a number (#, db) to a register.";
@@ -431,11 +442,11 @@ public class opcodes8080 {
         value[top++] = (byte) 0b00110010;
         // ---------------------------------------------------------------------
         name[top] = "sui";
-        info[top] = "SUI #      11010110  3  Subtract immediate number from register A, set ZSCPA.";
+        info[top] = "SUI #    11 010 110  3  Subtract immediate number from register A, set ZSCPA.";
         value[top++] = (byte) 0b11010110;
         // ---------------------------------------------------------------------
         name[top] = "xra";
-        info[top] = "XRA R      10101SSS  1  Exclusive OR, the register(R) with register A.";
+        info[top] = "XRA R    10 101 SSS  1  Exclusive OR, the register(R) with register A.";
         value[top++] = (byte) 0b10101111;
         name[top] = "xrab";
         value[top++] = (byte) 0b10101000;
@@ -448,7 +459,7 @@ public class opcodes8080 {
         name[top] = "xrah";
         value[top++] = (byte) 0b10101100;
         name[top] = "xral";
-        value[top++] = (byte) 0b10101101;        
+        value[top++] = (byte) 0b10101101;
         // ---------------------------------------------------------------------
         System.out.println("++ Number opcode values = " + top);
     }
@@ -460,6 +471,7 @@ public class opcodes8080 {
 
         opcodes8080 theOpcodes = new opcodes8080();
         theOpcodes.opcodesList();
+        theOpcodes.opcodeInfoList();
         String anOpcode = "jmp";
         System.out.println("+ Opcode: " + anOpcode + " " + byteToString(theOpcodes.getOpcode(anOpcode)));
 

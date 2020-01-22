@@ -98,6 +98,7 @@
 #define PROGRAM_RUN 1
 #define CLOCK_RUN 2
 #define PLAYER_RUN 3
+#define SERIAL_DOWNLOAD 4
 int programState = PROGRAM_WAIT;  // Intial, default.
 
 // -----------------------------------------------------------------------------
@@ -3504,6 +3505,11 @@ void checkDownloadSwitch() {
       // Switch logic ...
 #ifdef INCLUDE_SDCARD
       String theFilename = getSenseSwitchValue() + ".bin";
+      if (theFilename == "11111111.bin") {
+        Serial.print(F("+ Get ready to download over the serial port."));
+        programState = SERIAL_DOWNLOAD;
+        return;
+      }
       Serial.print(F("+ Read the filename into memory: "));
       Serial.println(theFilename);
       readProgramFileIntoMemory(theFilename);
@@ -3519,6 +3525,10 @@ void checkDownloadSwitch() {
   }
 }
 #endif
+
+void downloadSerialBytes() {
+      Serial.println(F("+ Download Bytes from the serial port into memory."));
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------
@@ -3883,6 +3893,9 @@ void loop() {
       checkPlayerSwitch();
       checkUploadSwitch();
       checkDownloadSwitch();
+      if (programState == SERIAL_DOWNLOAD) {
+        // SERIAL_DOWNLOAD logic
+      }
 #endif
       delay(60);
       break;

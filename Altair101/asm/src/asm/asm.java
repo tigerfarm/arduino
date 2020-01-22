@@ -41,25 +41,30 @@ public class asm {
             //
             // System.out.println("+ cmd : " + cmd + ":" + theRest + ".");
             switch (cmd) {
-                case "print":
+                case "parsefile":
                     System.out.println("+ -------------------------------------");
                     System.out.println("+ Print and parse the program: " + inFilename + ":");
                     processFile.parseFile(inFilename);
                     break;
-                case "printbytes":
+                case "listbytes":
                     System.out.println("+ -------------------------------------");
-                    System.out.println("+ Print the byte array for the program: " + inFilename + ":");
-                    processFile.printProgramBytes(processFile, inFilename);
+                    System.out.println("+ List the parsed byte array to screen.");
+                    processFile.listProgramBytes();
+                    break;
+                case "writebytes":
+                    System.out.println("+ -------------------------------------");
+                    System.out.println("+ Write the program byte array to the file: " + outFilename + ":");
+                    processFile.printProgramBytesToFile(outFilename);
+                    break;
+                case "showfile":
+                    System.out.println("+ -------------------------------------");
+                    System.out.println("+ Print binary file bytes to screen: " + outFilename + ":");
+                    processFile.showFile(outFilename);
                     break;
                 case "printarray":
                     System.out.println("+ -------------------------------------");
                     System.out.println("+ Print the byte array for the program: " + inFilename + ":");
-                    processFile.printProgramByteArray(processFile, inFilename);
-                    break;
-                case "printfile":
-                    System.out.println("+ -------------------------------------");
-                    System.out.println("+ Print the byte array for the program: " + inFilename + ":");
-                    processFile.printProgramBytesToFile(processFile, inFilename, outFilename);
+                    processFile.printProgramBytesArray();
                     break;
                 case "file":
                     // > file this.asm
@@ -92,11 +97,14 @@ public class asm {
                     theOpcodes.getOpcodeInfo(theRest);
                     break;
                 case "opcodes":
+                    theOpcodes.opcodeInfoList();
+                    break;
+                case "opcodebytes":
                     System.out.println("+ -------------------------------------");
                     theOpcodes.opcodesList();
                     break;
                 case "upload":
-                    System.out.println("++ Not available, yet.");
+                    processFile.uploadFile(outFilename);
                     break;
                 case "help":
                     System.out.println("---------------------------------------");
@@ -111,18 +119,23 @@ public class asm {
                     }
                     System.out.println("+ list [file]        : list the input file to the screen.");
                     System.out.println("");
-                    System.out.println("+ print              : Parse the file, output to screen.");
-                    System.out.println("+ printbytes         : Print the program bytes to screen.");
+                    System.out.println("+ parsefile          : Parse the file, output to screen.");
+                    System.out.println("+ listbytes          : List the parsed bytes to screen.");
+                    System.out.println("+ writebytes         : Write bytes to a binary file, and output info to screen.");
+                    System.out.println("+ showfile           : Print binary file bytes to screen.");
                     System.out.println("+ printarray         : Print the byte array for the program to screen.");
-                    System.out.println("+ printfile          : Print binary file, and output info to screen.");
                     System.out.println("");
-                    System.out.println("+ opcode <opcode>    : list the opcode information to the screen.");
-                    System.out.println("+ opcodes            : list the opcodes to screen.");
+                    System.out.println("+ opcode <opcode>    : list an opcode's information to the screen.");
+                    System.out.println("+ opcodes            : list all opcode information to screen.");
+                    System.out.println("+ opcodebytes        : list the opcode search byte values to screen.");
                     System.out.println("");
                     System.out.println("+ upload             : Serial upload the program bytes to the Arduino.");
                     System.out.println("+ exit               : Exit this program.");
                     break;
                 default:
+                    if (!cmd.equals("")) {
+                        System.out.println("- Invalid command: " + cmd);
+                    }
                     break;
             }
         }

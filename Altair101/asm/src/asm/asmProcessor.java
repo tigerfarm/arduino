@@ -249,7 +249,7 @@ public class asmProcessor {
 
     }
 
-    private void printProgramBytesArray() {
+    public void printProgramBytesArray() {
         System.out.println("\n+ Print a program array from the program data:");
         programCounter = 0;
         programTop = 0;
@@ -418,6 +418,9 @@ public class asmProcessor {
         }
         printProgramBytesArrayLine("0", "End of program");
         System.out.println("\n+ End of array.");
+        if (errorCount > 0) {
+            System.out.println("-- Number of errors: " + errorCount);
+        }
     }
 
     private void printProgramBytesArrayLine(String opcodeStatement, String opcodeComment) {
@@ -1167,7 +1170,15 @@ public class asmProcessor {
         FileInputStream fin;
         DataInputStream pin;
 
-        initProgramData();
+        errorCount = 0;
+        programCounter = 0;
+        programTop = 0;
+        programBytes.clear();
+        labelName.clear();
+        labelName.clear();
+        labelAddress.clear();
+        variableName.clear();
+        variableValue.clear();
         try {
             readFile = new File(theReadFilename);
             if (!readFile.exists()) {
@@ -1192,7 +1203,10 @@ public class asmProcessor {
         System.out.println("");
         if (errorCount > 0) {
             System.out.println("-- parseFile, Number of errors: " + errorCount);
+            return;
         }
+        setProgramByteAddresses();
+        setProgramByteImmediates();
     }
 
     // -------------------------------------------------------------------------
@@ -1222,13 +1236,18 @@ public class asmProcessor {
     }
 
     // -------------------------------------------------------------------------
+    public void uploadFile(String theReadFilename) {
+        System.out.println("++ Upload the binary file through the serial port: " + theReadFilename);
+        System.out.println("++ Not available, yet.");
+    }
+
     public void showFile(String theReadFilename) {
         // System.out.println("++ Show binary file: " + theReadFilename);
         int theLength = 0;
         byte bArray[] = null;
         try {
             File theFile = new File(theReadFilename);
-            theLength = (int)theFile.length();
+            theLength = (int) theFile.length();
             bArray = new byte[(int) theLength];
             FileInputStream in = new FileInputStream(theReadFilename);
             in.read(bArray);
@@ -1241,7 +1260,7 @@ public class asmProcessor {
         int i;
         int tenCount = 0;
         for (i = 0; i < theLength; i++) {
-            if (tenCount==10) {
+            if (tenCount == 10) {
                 tenCount = 0;
                 System.out.println("");
             }
@@ -1249,50 +1268,6 @@ public class asmProcessor {
             System.out.print(String.format("%02X ", bArray[i]));
         }
         System.out.println("\n+ Display completed.");
-    }
-
-    // -------------------------------------------------------------------------
-    // -------------------------------------------------------------------------
-    public void initProgramData() {
-        errorCount = 0;
-        programCounter = 0;
-        programTop = 0;
-        programBytes.clear();
-        labelName.clear();
-        labelName.clear();
-        labelAddress.clear();
-        variableName.clear();
-        variableValue.clear();
-    }
-
-    public void printProgramBytes(asmProcessor thisProcess, String theReadFilename) {
-        thisProcess.parseFile(theReadFilename);
-        thisProcess.setProgramByteAddresses();
-        thisProcess.setProgramByteImmediates();
-        thisProcess.listProgramBytes();
-        if (errorCount > 0) {
-            System.out.println("-- Number of errors: " + errorCount);
-        }
-    }
-
-    public void printProgramByteArray(asmProcessor thisProcess, String theReadFilename) {
-        thisProcess.parseFile(theReadFilename);
-        thisProcess.setProgramByteAddresses();
-        thisProcess.setProgramByteImmediates();
-        thisProcess.printProgramBytesArray();
-        if (errorCount > 0) {
-            System.out.println("-- Number of errors: " + errorCount);
-        }
-    }
-
-    public void printProgramBytesToFile(asmProcessor thisProcess, String readFilename, String writeFilename) {
-        thisProcess.parseFile(readFilename);
-        thisProcess.setProgramByteAddresses();
-        thisProcess.setProgramByteImmediates();
-        thisProcess.printProgramBytesToFile(writeFilename);
-        if (errorCount > 0) {
-            System.out.println("-- Number of errors: " + errorCount);
-        }
     }
 
     // -------------------------------------------------------------------------
@@ -1308,7 +1283,7 @@ public class asmProcessor {
         if (1 == 1) {
             return;
         }
-        */
+         */
         //thisProcess.printProgramByteArray(thisProcess,
         //    "/Users/dthurston/Projects/arduino/Altair101/asm/programs/opCpi.asm");
         // Assemble the Pong program.
@@ -1331,8 +1306,6 @@ public class asmProcessor {
         // thisProcess.listImmediateValues();
         //
         // Required, sets actual values:
-        thisProcess.setProgramByteAddresses();
-        thisProcess.setProgramByteImmediates();
         //
         // Option: for debugging.
         // thisProcess.listProgramBytes();
