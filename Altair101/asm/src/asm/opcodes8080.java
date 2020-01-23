@@ -1,5 +1,10 @@
 package asm;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+
 /*
 --------------------------------------------------------------------------------
 Opcodes implemented by this assembler, implemented in Processor.ino, and tested.
@@ -75,7 +80,7 @@ public class opcodes8080 {
         Opcodes[0].value = (byte) 0b11000110;
     
         http://www.javawithus.com/tutorial/array-of-objects
-    */
+     */
     private int top = 0;
     private String[] name;
     private byte[] value;
@@ -107,10 +112,28 @@ public class opcodes8080 {
         System.out.println("+ End list.");
     }
 
-    public void opcodesList2() {
+    public void fileWriteOpcodes() {
         System.out.println("+ Write opcode data to file.");
-        for (int i = 0; i < top; i++) {
-            System.out.println("++ " + i + ": " + name[i] + " " + byteToString(value[i]));
+        String theWriteFilename = "opcodes2.txt";
+        System.out.println("+ theWriteFilename: " + theWriteFilename);
+        File writeFile;
+        FileOutputStream fout;
+        PrintStream pout;
+        writeFile = new File(theWriteFilename);
+        try {
+            fout = new FileOutputStream(writeFile);
+            pout = new PrintStream(fout);
+            for (int i = 0; i < top; i++) {
+                System.out.println("++ " + i + ": " + name[i] + " " + byteToString(value[i]));
+                if (info[i] != null) {
+                    pout.println(name[i] + ":" + byteToString(value[i]) + ":" + info[i]);
+                } else {
+                    pout.println(name[i] + ":" + byteToString(value[i]) + ":");
+                }
+            }
+        } catch (IOException ioe) {
+            System.out.print("--- IOException: ");
+            System.out.println(ioe.toString());
         }
         System.out.println("+ End list.");
     }
@@ -501,10 +524,13 @@ public class opcodes8080 {
         System.out.println("+++ Start.");
 
         opcodes8080 theOpcodes = new opcodes8080();
+        /*
         theOpcodes.opcodesList();
         theOpcodes.opcodeInfoList();
         String anOpcode = "jmp";
         System.out.println("+ Opcode: " + anOpcode + " " + byteToString(theOpcodes.getOpcode(anOpcode)));
+         */
+        theOpcodes.fileWriteOpcodes();
 
         System.out.println("+++ Exit.");
     }
