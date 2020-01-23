@@ -3,6 +3,8 @@ package asm;
 import java.util.Arrays;
 import java.util.Comparator;
 
+// Reference: https://www.geeksforgeeks.org/arrays-in-java/
+
 // -----------------------------------------------------------------------------
 public class opcodeInfo {
 
@@ -60,6 +62,19 @@ class Main {
     public static void main(String[] args) {
         
         // Need a method to load the data from a text file.
+        /*
+        // Declare and initialize. 
+        int[] arr = new int[2]; 
+        arr[0] = 10; 
+        arr[1] = 20; 
+        
+        opcodeInfoSample[] arr = new[255];
+        arr[0].name = "nop";
+        arr[0].value = (byte)0;
+        arr[1].name = "adi";
+        arr[1].value = (byte)0b11000110;
+        arr[1].info = "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA.";
+        */
         opcodeInfo[] arr = {
             new opcodeInfo((byte)0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA."),
             new opcodeInfo((byte)0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A."),
