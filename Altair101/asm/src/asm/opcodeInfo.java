@@ -3,7 +3,9 @@ package asm;
 import java.util.Arrays;
 import java.util.Comparator;
 
-// Reference: https://www.geeksforgeeks.org/arrays-in-java/
+// References:
+//  https://www.geeksforgeeks.org/arrays-in-java/
+//  https://www.edureka.co/blog/array-of-objects-in-java/
 
 // -----------------------------------------------------------------------------
 public class opcodeInfo {
@@ -62,31 +64,22 @@ class Main {
     public static void main(String[] args) {
         
         // Need a method to load the data from a text file.
-        /*
         // Declare and initialize. 
-        int[] arr = new int[2]; 
-        arr[0] = 10; 
-        arr[1] = 20; 
-        
-        opcodeInfoSample[] arr = new[255];
-        arr[0].name = "nop";
-        arr[0].value = (byte)0;
-        arr[1].name = "adi";
-        arr[1].value = (byte)0b11000110;
-        arr[1].info = "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA.";
-        */
+        /*
+        // First declaration iteration:
         opcodeInfo[] arr = {
             new opcodeInfo((byte)0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA."),
             new opcodeInfo((byte)0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A."),
             new opcodeInfo((byte)0b11001101, "call", "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.")
         };
-
+        */
+        // Second declaration iteration:
+        opcodeInfo[] arr = new opcodeInfo[3];
+        arr[0] = new opcodeInfo((byte)0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA.");
+        arr[1] = new opcodeInfo((byte)0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A.");
+        arr[2] = new opcodeInfo((byte)0b11001101, "call", "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.");
+        
         System.out.println("Unsorted");
-        for (int i = 0; i < arr.length; i++) {
-            System.out.println(arr[i]);
-        }
-        Arrays.sort(arr, new SortbyValue());
-        System.out.println("\nSorted by value");
         for (int i = 0; i < arr.length; i++) {
             System.out.println(arr[i]);
         }
@@ -95,5 +88,11 @@ class Main {
         for (int i = 0; i < arr.length; i++) {
             System.out.println(arr[i]);
         }
+        Arrays.sort(arr, new SortbyValue());
+        System.out.println("\nSorted by value");
+        for (int i = 0; i < arr.length; i++) {
+            System.out.println(arr[i]);
+        }
+
     }
 }
