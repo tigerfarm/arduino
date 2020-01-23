@@ -53,6 +53,29 @@ https://coderstoolbox.net/number/
  */
 public class opcodes8080 {
 
+    /*
+        Consider using an array of objects. It would allow for sorting.
+        Since sort is important, create a test before changing this program.
+            Very nice example:
+            https://www.geeksforgeeks.org/arrays-sort-in-java-with-examples/
+            More advanced options, not as simple:
+            https://stackoverflow.com/questions/18895915/how-to-sort-an-array-of-objects-in-java
+        Following is a simple sample, without using getters and setters.
+        static class OpcodeInfo {
+            public String name;
+            public String info;
+            public byte value;
+        }
+        OpcodeInfo[] Opcodes = new OpcodeInfo[OpcodeCount];
+        for(int i = 0; i < OpcodeCount ; i++) {
+            Opcodes[i] = new OpcodeInfo(i);
+        }
+        Opcodes[0].name = "adi";
+        Opcodes[0].info = "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA.";
+        Opcodes[0].value = (byte) 0b11000110;
+    
+        http://www.javawithus.com/tutorial/array-of-objects
+    */
     private int top = 0;
     private String[] name;
     private byte[] value;

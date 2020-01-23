@@ -1,17 +1,4 @@
---------------------------------------------------------------------------------
-8080 Opcode List, Binary order from 0 to 255.
-
-This list include a fix for RRC that was not describe in other documents:
-+ bit 7 = prev bit 0, i.e. circular rotation.
-
-The following is from:
-    https://github.com/knowncold/8080/blob/master/opcode
-
---------------------------------------------------------------------------------
-  Cycles Flags  Instruction  Description
-                                     
-0x00  1           NOP        
-0x01  3           LXI B,D16  B <- byte 3, C <- byte 2
+  Cycles Flags  Instruction  Description (0x00 and 0x01 are at the bottom)
 0x02  1           STAX B     (BC) <- A  
 0x03  1           INX B      BC <- BC+1 
 0x04  1  Z,S,P,AC INR B      B <- B+1   
@@ -266,6 +253,20 @@ The following is from:
 0xfd              -
 0xfe  2 Z,S,P,CY  CPI D8     A - data   
 0xff  1           RST 7      CALL $38  
+
+--------------------------------------------------------------------------------
+8080 Opcode List, Binary order from 0 to 255.
+
+This list include a fix for RRC that was not describe in other documents:
++ bit 7 = prev bit 0, i.e. circular rotation.
+
+The following is from:
+    https://github.com/knowncold/8080/blob/master/opcode
+
+--------------------------------------------------------------------------------
+  Cycles Flags  Instruction  Description
+0x00  1           NOP        
+0x01  3           LXI B,D16  B <- byte 3, C <- byte 2
 
 --------------------------------------------------------------------------------
 eof
