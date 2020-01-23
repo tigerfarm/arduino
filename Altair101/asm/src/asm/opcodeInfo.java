@@ -66,6 +66,7 @@ class SortbyName implements Comparator<opcodeInfo> {
 class Opcodes {
 
     private int errorCount = 0;
+    int opcodeCount;
 
     // -------------------------------------------------------------------------
     public void fileLoadOpcodes(String theReadFilename) {
@@ -74,6 +75,7 @@ class Opcodes {
         FileInputStream fin;
         DataInputStream pin;
         try {
+            // Get a count of the number of opcodes.
             readFile = new File(theReadFilename);
             if (!readFile.exists()) {
                 System.out.println("+ ** ERROR, theReadFilename does not exist.");
@@ -83,15 +85,17 @@ class Opcodes {
             fin = new FileInputStream(readFile);
             pin = new DataInputStream(fin);
             String theLine = pin.readLine();
+            opcodeCount = 0;
             while (theLine != null) {
                 // System.out.println("+ " + theLine);
-                int c1 = theLine.indexOf(":");
+                int c1 = theLine.indexOf(SEPARATOR);
                 if (c1 > 0) {
                     String opcode = theLine.substring(0, c1);
-                    int c2 = theLine.substring(c1 + 1).indexOf(":");
+                    int c2 = theLine.substring(c1 + 1).indexOf(SEPARATOR);
                     if (c2 > 0) {
-                        String value = theLine.substring(c1+1,c1+8+1);
-                        String info = theLine.substring(c1+8+1+1, theLine.length());
+                        opcodeCount++;
+                        String value = theLine.substring(c1 + 1, c1 + 8 + 1);
+                        String info = theLine.substring(c1 + 8 + 1 + 1, theLine.length());
                         System.out.println("+ opcode:" + opcode + ":" + value + ":" + info);
                     }
                 }
@@ -117,31 +121,39 @@ class Opcodes {
         };
          */
         // Second declaration iteration:
+        /*
         opcodeInfo[] arr = new opcodeInfo[3];
         arr[0] = new opcodeInfo((byte) 0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA.");
         arr[1] = new opcodeInfo((byte) 0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A.");
         arr[2] = new opcodeInfo((byte) 0b11001101, "call", "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.");
-
+         */
+        // Third declaration iteration, load from a file:
         System.out.println("\n+ List opcode data text file.");
         Opcodes opcodeCodes = new Opcodes();
+        //
         opcodeCodes.fileLoadOpcodes("opcodes8080.txt");
-        // parseOpcodeData("opcodes8080.txt");
+        opcodeInfo[] arr = new opcodeInfo[255];
+        arr[0] = new opcodeInfo((byte) 0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA.");
+        arr[1] = new opcodeInfo((byte) 0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A.");
+        arr[2] = new opcodeInfo((byte) 0b11001101, "call", "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.");
+        opcodeCodes.opcodeCount = 3;
 
         // ---------------------------------------------------------------------
         System.out.println("\n+ List unsorted");
-        for (int i = 0; i < arr.length; i++) {
+        for (int i = 0; i < opcodeCodes.opcodeCount; i++) {
             System.out.println(arr[i]);
         }
+        /*
         Arrays.sort(arr, new SortbyName());
         System.out.println("\n+ List sorted by name.");
-        for (int i = 0; i < arr.length; i++) {
+        for (int i = 0; i < opcodeCodes.opcodeCount; i++) {
             System.out.println(arr[i]);
         }
         Arrays.sort(arr, new SortbyValue());
         System.out.println("\n+ List sorted by value.");
-        for (int i = 0; i < arr.length; i++) {
+        for (int i = 0; i < opcodeCodes.opcodeCount; i++) {
             System.out.println(arr[i]);
         }
-
+         */
     }
 }
