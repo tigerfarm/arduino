@@ -23,11 +23,14 @@ public class opcodeInfoSample {
 }
 
 class Sortbyroll1 implements Comparator<opcodeInfoSample> {
-
-    // Used for sorting in ascending order of 
-    // roll number 
     public int compare(opcodeInfoSample a, opcodeInfoSample b) {
         return a.rollno - b.rollno;
+    }
+}
+
+class Sortbyname1 implements Comparator<opcodeInfoSample> {
+    public int compare(opcodeInfoSample a, opcodeInfoSample b) {
+        return a.name.compareTo(b.name);
     }
 }
 
@@ -39,15 +42,17 @@ class Main1 {
             new opcodeInfoSample(131, "aaaa", "nyc"),
             new opcodeInfoSample(121, "cccc", "jaipur")
         };
-
         System.out.println("Unsorted");
         for (int i = 0; i < arr.length; i++) {
             System.out.println(arr[i]);
         }
-
         Arrays.sort(arr, new Sortbyroll1());
-
         System.out.println("\nSorted by rollno");
+        for (int i = 0; i < arr.length; i++) {
+            System.out.println(arr[i]);
+        }
+        Arrays.sort(arr, new Sortbyname1());
+        System.out.println("\nSorted by name");
         for (int i = 0; i < arr.length; i++) {
             System.out.println(arr[i]);
         }
