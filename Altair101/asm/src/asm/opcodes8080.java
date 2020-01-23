@@ -107,6 +107,14 @@ public class opcodes8080 {
         System.out.println("+ End list.");
     }
 
+    public void opcodesList2() {
+        System.out.println("+ Write opcode data to file.");
+        for (int i = 0; i < top; i++) {
+            System.out.println("++ " + i + ": " + name[i] + " " + byteToString(value[i]));
+        }
+        System.out.println("+ End list.");
+    }
+
     public void opcodeInfoList() {
         System.out.println("+ List opcode info.");
         System.out.println("Opcode   Binary   Cycles Description");
