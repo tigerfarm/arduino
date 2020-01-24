@@ -1,16 +1,9 @@
 package asm;
 
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import static asm.opcodeInfo2.byteToString;
 import java.util.Arrays;
 import java.util.Comparator;
 
-// References:
-//  https://www.geeksforgeeks.org/arrays-in-java/
-//  https://www.edureka.co/blog/array-of-objects-in-java/
-// -----------------------------------------------------------------------------
 public class opcodeInfo {
 
     int value;
@@ -23,10 +16,11 @@ public class opcodeInfo {
         this.info = info;
     }
 
+    // Used to print student details in main() 
     @Override
     public String toString() {
         return byteToString((byte) this.value)
-                + " " + this.name
+                + ": " + this.name
                 + ": " + this.info;
     }
 
@@ -47,7 +41,6 @@ public class opcodeInfo {
 
 class SortbyValue implements Comparator<opcodeInfo> {
 
-    @Override
     public int compare(opcodeInfo a, opcodeInfo b) {
         return a.value - b.value;
     }
@@ -55,105 +48,43 @@ class SortbyValue implements Comparator<opcodeInfo> {
 
 class SortbyName implements Comparator<opcodeInfo> {
 
-    @Override
     public int compare(opcodeInfo a, opcodeInfo b) {
         return a.name.compareTo(b.name);
     }
 }
 
-// -----------------------------------------------------------------------------
-// For testing.
 class Opcodes {
 
+    static opcodeInfo[] opcodeArray = new opcodeInfo[255];
+    static int opcodeCount;
     private int errorCount = 0;
-    int opcodeCount;
-
-    // -------------------------------------------------------------------------
-    public void fileLoadOpcodes(String theReadFilename) {
-        String SEPARATOR = ":";
-        File readFile;
-        FileInputStream fin;
-        DataInputStream pin;
-        try {
-            // Get a count of the number of opcodes.
-            readFile = new File(theReadFilename);
-            if (!readFile.exists()) {
-                System.out.println("+ ** ERROR, theReadFilename does not exist.");
-                errorCount++;
-                return;
-            }
-            fin = new FileInputStream(readFile);
-            pin = new DataInputStream(fin);
-            String theLine = pin.readLine();
-            opcodeCount = 0;
-            while (theLine != null) {
-                // System.out.println("+ " + theLine);
-                int c1 = theLine.indexOf(SEPARATOR);
-                if (c1 > 0) {
-                    String opcode = theLine.substring(0, c1);
-                    int c2 = theLine.substring(c1 + 1).indexOf(SEPARATOR);
-                    if (c2 > 0) {
-                        opcodeCount++;
-                        String value = theLine.substring(c1 + 1, c1 + 8 + 1);
-                        String info = theLine.substring(c1 + 8 + 1 + 1, theLine.length());
-                        System.out.println("+ opcode:" + opcode + ":" + value + ":" + info);
-                    }
-                }
-                theLine = pin.readLine();
-            }
-            pin.close();
-        } catch (IOException ioe) {
-            System.out.print("+ *** IOException: ");
-            System.out.println(ioe.toString());
-        }
-    }
 
     public static void main(String[] args) {
-
-        // Need a method to load the data from a text file.
-        // Declare and initialize. 
-        /*
-        // First declaration iteration:
-        opcodeInfo[] arr = {
-            new opcodeInfo((byte)0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA."),
-            new opcodeInfo((byte)0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A."),
-            new opcodeInfo((byte)0b11001101, "call", "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.")
+        opcodeInfo[] opcodeArray = {
+            new opcodeInfo((byte) 111, "bbbb", "london"),
+            new opcodeInfo((byte) 131, "aaaa", "nyc"),
+            new opcodeInfo((byte) 121, "cccc", "jaipur")
         };
-         */
-        // Second declaration iteration:
         /*
-        opcodeInfo[] arr = new opcodeInfo[3];
-        arr[0] = new opcodeInfo((byte) 0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA.");
-        arr[1] = new opcodeInfo((byte) 0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A.");
-        arr[2] = new opcodeInfo((byte) 0b11001101, "call", "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.");
+        opcodeArray[0] = new opcodeInfo((byte) 0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA.");
+        opcodeArray[1] = new opcodeInfo((byte) 0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A.");
+        opcodeArray[2] = new opcodeInfo((byte) 0b11001101, "call", "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.");
          */
-        // Third declaration iteration, load from a file:
-        System.out.println("\n+ List opcode data text file.");
-        Opcodes opcodeCodes = new Opcodes();
-        //
-        opcodeCodes.fileLoadOpcodes("opcodes8080.txt");
-        opcodeInfo[] arr = new opcodeInfo[255];
-        arr[0] = new opcodeInfo((byte) 0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA.");
-        arr[1] = new opcodeInfo((byte) 0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A.");
-        arr[2] = new opcodeInfo((byte) 0b11001101, "call", "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.");
-        opcodeCodes.opcodeCount = 3;
+        opcodeCount = 3;
 
-        // ---------------------------------------------------------------------
-        System.out.println("\n+ List unsorted");
-        for (int i = 0; i < opcodeCodes.opcodeCount; i++) {
-            System.out.println(arr[i]);
+        System.out.println("Unsorted");
+        for (int i = 0; i < opcodeCount; i++) {
+            System.out.println(opcodeArray[i]);
         }
-        /*
-        Arrays.sort(arr, new SortbyName());
-        System.out.println("\n+ List sorted by name.");
-        for (int i = 0; i < opcodeCodes.opcodeCount; i++) {
-            System.out.println(arr[i]);
+        Arrays.sort(opcodeArray, new SortbyValue());
+        System.out.println("\nSorted by rollno");
+        for (int i = 0; i < opcodeCount; i++) {
+            System.out.println(opcodeArray[i]);
         }
-        Arrays.sort(arr, new SortbyValue());
-        System.out.println("\n+ List sorted by value.");
-        for (int i = 0; i < opcodeCodes.opcodeCount; i++) {
-            System.out.println(arr[i]);
+        Arrays.sort(opcodeArray, new SortbyName());
+        System.out.println("\nSorted by name");
+        for (int i = 0; i < opcodeCount; i++) {
+            System.out.println(opcodeArray[i]);
         }
-         */
     }
 }
