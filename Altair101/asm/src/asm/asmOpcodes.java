@@ -436,29 +436,16 @@ public class asmOpcodes {
             System.out.println("+ Opcode, " + sOpcode + " value: " + theOpcodes.byteToString(bOpcode));
         }
 
+        System.out.println("\n-----------------------------------------------");
         System.out.println("");
         theOpcodes.opcodeInfoList();
         System.out.println("");
         theOpcodes.opcodesList();
+        System.out.println("");
         theOpcodes.opcodesListByName();
+        System.out.println("");
         theOpcodes.opcodesListByValue();
 
-        /*
-        Arrays.sort(opcodeArray, new SortbyValue());
-        System.out.println("\n+ Sorted by value.");
-        for (int i = 0; i < opcodeCount; i++) {
-            System.out.println(opcodeArray[i]);
-        }
-        System.out.println("\n+ Unsorted list of opcode data.");
-        for (int i = 0; i < opcodeCount; i++) {
-            System.out.println(opcodeArray[i]);
-        }
-        Arrays.sort(opcodeArray, new SortbyName());
-        System.out.println("\n+ Sorted by name.");
-        for (int i = 0; i < opcodeCount; i++) {
-            System.out.println(opcodeArray[i]);
-        }
-         */
         System.out.println("\n+++ Exit.\n");
     }
 }
