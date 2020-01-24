@@ -104,7 +104,7 @@ import java.util.List;
 
 public class asmProcessor {
 
-    opcodes8080 theOpcodes = new opcodes8080();
+    opcodes8080 theOpcodes = new opcodes8080(); // Use to get an opcode's binary value.
     //
     private String opcode = "";
     private byte opcodeBinary;
