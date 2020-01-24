@@ -420,14 +420,17 @@ public class asmOpcodes {
 
         System.out.println("\n-----------------------------------------------");
         System.out.println("+ Test retrieve methods.\n");
+        //
         String sOpcode = "jmp";
         theOpcodes.printOpcodeInfo(sOpcode);
+        //
         byte bOpcode = theOpcodes.getOpcode(sOpcode);
         if (bOpcode == theOpcodes.OpcodeNotFound) {
             System.out.println("\n- Opcode, Not found: " + sOpcode + ".");
         } else {
             System.out.println("\n+ Opcode, " + sOpcode + " value: " + theOpcodes.byteToString(bOpcode));
         }
+        //
         sOpcode = "jmpx";
         bOpcode = theOpcodes.getOpcode(sOpcode);
         if (bOpcode == theOpcodes.OpcodeNotFound) {
