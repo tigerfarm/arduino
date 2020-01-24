@@ -57,8 +57,8 @@ class SortbyName implements Comparator<opcodeInfo> {
 
 class Opcodes {
 
-    // static opcodeInfo[] opcodeArray = new opcodeInfo[2];
-    static int opcodeCount;
+    static int opcodeCount = 3;
+    static opcodeInfo[] opcodeArray = new opcodeInfo[opcodeCount];
     private int errorCount = 0;
 
     /*
@@ -66,17 +66,19 @@ class Opcodes {
      */
     public static void main(String[] args) {
         /*
-        opcodeInfo[] opcodeArray = new opcodeInfo[255];
+         */
+        // opcodeInfo[] opcodeArray;
+        opcodeArray = new opcodeInfo[3];
         opcodeArray[0] = new opcodeInfo((byte) 0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA.");
         opcodeArray[1] = new opcodeInfo((byte) 0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A.");
         opcodeArray[2] = new opcodeInfo((byte) 0b11001101, "call", "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.");
-         */
-        opcodeInfo[] opcodeArray = {
+        /*
+        opcodeInfo[] opcodeArray2 = {
             new opcodeInfo((byte) 0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA."),
             new opcodeInfo((byte) 0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A."),
             new opcodeInfo((byte) 0b11001101, "call", "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.")
         };
-
+        */
         opcodeCount = 3;
         System.out.println("Unsorted");
         for (int i = 0; i < opcodeCount; i++) {
