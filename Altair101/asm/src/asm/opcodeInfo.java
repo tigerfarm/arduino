@@ -9,12 +9,12 @@ import java.util.Comparator;
 
 public class opcodeInfo {
 
-    int value;
+    String value;
     String name;
     String info;
 
     // Constructor 
-    public opcodeInfo(byte value, String name, String info) {
+    public opcodeInfo(String value, String name, String info) {
         this.value = value;
         this.name = name;
         this.info = info;
@@ -38,9 +38,7 @@ public class opcodeInfo {
                 break;
         }
 
-        return byteToString((byte) this.value)
-                + " : " + this.name + thePadding
-                + " : " + this.info;
+        return this.value + " : " + this.name + thePadding + " : " + this.info;
     }
 
     // -------------------------------------------------------------------------
@@ -63,7 +61,7 @@ class SortbyValue implements Comparator<opcodeInfo> {
     @Override
     public int compare(opcodeInfo a, opcodeInfo b) {
         // Need to do something about unsigned value. There's likely something over effient, but this works.
-        return opcodeInfo.byteToString((byte) a.value).compareTo(opcodeInfo.byteToString((byte) b.value));
+        return a.value.compareTo(b.value);
     }
 }
 
@@ -109,7 +107,7 @@ class Opcodes {
                         String value = theLine.substring(c1 + 1, c1 + 8 + 1);
                         String info = theLine.substring(c1 + 8 + 1 + 1, theLine.length());
                         // System.out.println("+ opcode:" + opcode + ":" + value + ":" + info);
-                        opcodeArray[opcodeCount++] = new opcodeInfo((byte) Integer.parseInt(value, 2), opcode, info);
+                        opcodeArray[opcodeCount++] = new opcodeInfo(value, opcode, info);
                     }
                 }
                 theLine = pin.readLine();
