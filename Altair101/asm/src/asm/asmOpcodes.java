@@ -7,20 +7,20 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 
-public class opcodeInfo {
+public class asmOpcodes {
 
     String value;
     String name;
     String info;
 
     // Constructor 
-    public opcodeInfo(String value, String name, String info) {
+    public asmOpcodes(String value, String name, String info) {
         this.value = value;
         this.name = name;
         this.info = info;
     }
 
-    // Used to print student details in main() 
+    // Used to print the data.
     @Override
     public String toString() {
         String thePadding = "";
@@ -37,38 +37,24 @@ public class opcodeInfo {
             default:
                 break;
         }
-
         return this.value + " : " + this.name + thePadding + " : " + this.info;
-    }
-
-    // -------------------------------------------------------------------------
-    public static String byteToString(byte aByte) {
-        return toBinary(aByte, 8);
-    }
-
-    private static String toBinary(byte a, int bits) {
-        if (--bits > 0) {
-            return toBinary((byte) (a >> 1), bits) + ((a & 0x1) == 0 ? "0" : "1");
-        } else {
-            return (a & 0x1) == 0 ? "0" : "1";
-        }
     }
 
 }
 
-class SortbyValue implements Comparator<opcodeInfo> {
+class SortbyValue implements Comparator<asmOpcodes> {
 
     @Override
-    public int compare(opcodeInfo a, opcodeInfo b) {
+    public int compare(asmOpcodes a, asmOpcodes b) {
         // Need to do something about unsigned value. There's likely something over effient, but this works.
         return a.value.compareTo(b.value);
     }
 }
 
-class SortbyName implements Comparator<opcodeInfo> {
+class SortbyName implements Comparator<asmOpcodes> {
 
     @Override
-    public int compare(opcodeInfo a, opcodeInfo b) {
+    public int compare(asmOpcodes a, asmOpcodes b) {
         return a.name.compareTo(b.name);
     }
 }
@@ -76,11 +62,12 @@ class SortbyName implements Comparator<opcodeInfo> {
 class Opcodes {
 
     static int opcodeCount = 3;
-    static opcodeInfo[] opcodeArray = new opcodeInfo[opcodeCount];
+    static asmOpcodes[] opcodeArray = new asmOpcodes[opcodeCount];
     private int errorCount = 0;
+    public final byte OpcodeNotFound = (byte) 255;
 
     // -------------------------------------------------------------------------
-    static public void fileLoadOpcodes(String theReadFilename) {
+    private static void fileLoadOpcodes(String theReadFilename) {
         String SEPARATOR = ":";
         File readFile;
         FileInputStream fin;
@@ -107,7 +94,7 @@ class Opcodes {
                         String value = theLine.substring(c1 + 1, c1 + 8 + 1);
                         String info = theLine.substring(c1 + 8 + 1 + 1, theLine.length());
                         // System.out.println("+ opcode:" + opcode + ":" + value + ":" + info);
-                        opcodeArray[opcodeCount++] = new opcodeInfo(value, opcode, info);
+                        opcodeArray[opcodeCount++] = new asmOpcodes(value, opcode, info);
                     }
                 }
                 theLine = pin.readLine();
@@ -119,7 +106,7 @@ class Opcodes {
         }
     }
 
-    static public int getOpcodeCount(String theReadFilename) {
+    private static int getOpcodeCount(String theReadFilename) {
         String SEPARATOR = ":";
         File readFile;
         FileInputStream fin;
@@ -159,26 +146,66 @@ class Opcodes {
         return opcodeCount;
     }
 
+    // -------------------------------------------------------------------------
+    public byte getOpcode(String theName) {
+        byte returnValue = OpcodeNotFound;
+        for (int i = 0; i < opcodeCount; i++) {
+            // System.out.println("++ " + i + ": " + name[i] + " " + value[i]);
+            if (opcodeArray[i].name.equals(theName)) {
+                returnValue = (byte) Integer.parseInt(opcodeArray[i].value, 2);
+                break;
+            }
+        }
+        return returnValue;
+    }
+
+    // -------------------------------------------------------------------------
+    public String byteToString(byte aByte) {
+        return toBinary(aByte, 8);
+    }
+
+    private String toBinary(byte a, int bits) {
+        if (--bits > 0) {
+            return toBinary((byte) (a >> 1), bits) + ((a & 0x1) == 0 ? "0" : "1");
+        } else {
+            return (a & 0x1) == 0 ? "0" : "1";
+        }
+    }
+
+    // -------------------------------------------------------------------------
     public static void main(String[] args) {
+        
+        System.out.println("+++ Start.");
+
         /* First test.
-        opcodeInfo[] opcodeArray2 = {
-            new opcodeInfo((byte) 0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA."),
-            new opcodeInfo((byte) 0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A."),
-            new opcodeInfo((byte) 0b11001101, "call", "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.")
+        asmOpcodes[] opcodeArray2 = {
+            new asmOpcodes((byte) 0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA."),
+            new asmOpcodes((byte) 0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A."),
+            new asmOpcodes((byte) 0b11001101, "call", "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.")
         };
         /* Second test.
-        opcodeArray = new opcodeInfo[3];
-        opcodeArray[0] = new opcodeInfo((byte) 0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA.");
-        opcodeArray[1] = new opcodeInfo((byte) 0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A.");
-        opcodeArray[2] = new opcodeInfo((byte) 0b11001101, "call", "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.");
+        opcodeArray = new asmOpcodes[3];
+        opcodeArray[0] = new asmOpcodes((byte) 0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA.");
+        opcodeArray[1] = new asmOpcodes((byte) 0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A.");
+        opcodeArray[2] = new asmOpcodes((byte) 0b11001101, "call", "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.");
          */
         // opcodeCount = 3;
 
         // Third set up test, using a file of data.
-        opcodeCount = getOpcodeCount("opcodes8080.txt");
+        Opcodes theOpcodes = new Opcodes();
+
+        opcodeCount = theOpcodes.getOpcodeCount("asmOpcodes.txt");
         System.out.println("+ opcodeCount = " + opcodeCount);
-        opcodeArray = new opcodeInfo[opcodeCount];
-        fileLoadOpcodes("opcodes8080.txt");
+        opcodeArray = new asmOpcodes[opcodeCount];
+        fileLoadOpcodes("asmOpcodes.txt");
+        
+        String sOpcode = "jmp";
+        byte bOpcode = theOpcodes.getOpcode(sOpcode);
+        if (bOpcode == theOpcodes.OpcodeNotFound) {
+            System.out.println("\n- Not found, Opcode, " + sOpcode + ".");            
+        } else {
+            System.out.println("\n+ Opcode, " + sOpcode + " value: " + theOpcodes.byteToString(bOpcode));
+        }
 
         Arrays.sort(opcodeArray, new SortbyValue());
         System.out.println("\n+ Sorted by value.");
@@ -196,5 +223,7 @@ class Opcodes {
             System.out.println(opcodeArray[i]);
         }
          */
+        
+        System.out.println("\n+++ Exit.\n");
     }
 }
