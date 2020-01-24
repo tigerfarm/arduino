@@ -9,9 +9,9 @@ import java.util.Comparator;
 
 public class opcodeInfo {
 
-    public byte value;
-    public String name;
-    public String info;
+    int value;
+    String name;
+    String info;
 
     // Constructor 
     public opcodeInfo(byte value, String name, String info) {
@@ -23,9 +23,24 @@ public class opcodeInfo {
     // Used to print student details in main() 
     @Override
     public String toString() {
+        String thePadding = "";
+        switch (this.name.length()) {
+            case 2:
+                thePadding = "   ";
+                break;
+            case 3:
+                thePadding = "  ";
+                break;
+            case 4:
+                thePadding = " ";
+                break;
+            default:
+                break;
+        }
+
         return byteToString((byte) this.value)
-                + ": " + this.name
-                + ": " + this.info;
+                + " : " + this.name + thePadding
+                + " : " + this.info;
     }
 
     // -------------------------------------------------------------------------
@@ -47,7 +62,8 @@ class SortbyValue implements Comparator<opcodeInfo> {
 
     @Override
     public int compare(opcodeInfo a, opcodeInfo b) {
-        return a.value - b.value;
+        // Need to do something about unsigned value. There's likely something over effient, but this works.
+        return opcodeInfo.byteToString((byte) a.value).compareTo(opcodeInfo.byteToString((byte) b.value));
     }
 }
 
@@ -93,7 +109,7 @@ class Opcodes {
                         String value = theLine.substring(c1 + 1, c1 + 8 + 1);
                         String info = theLine.substring(c1 + 8 + 1 + 1, theLine.length());
                         // System.out.println("+ opcode:" + opcode + ":" + value + ":" + info);
-                        opcodeArray[opcodeCount++] = new opcodeInfo((byte) Integer.parseInt(value,2), opcode, info);
+                        opcodeArray[opcodeCount++] = new opcodeInfo((byte) Integer.parseInt(value, 2), opcode, info);
                     }
                 }
                 theLine = pin.readLine();
@@ -104,6 +120,7 @@ class Opcodes {
             System.out.println(ioe.toString());
         }
     }
+
     static public int getOpcodeCount(String theReadFilename) {
         String SEPARATOR = ":";
         File readFile;
@@ -145,32 +162,33 @@ class Opcodes {
     }
 
     public static void main(String[] args) {
-        /*
-         */
-        // opcodeInfo[] opcodeArray;
-        opcodeCount = getOpcodeCount("opcodes8080.txt");
-        System.out.println("+ opcodeCount = " + opcodeCount);
-        opcodeArray = new opcodeInfo[opcodeCount];
-        fileLoadOpcodes("opcodes8080.txt");
-        /*
-        opcodeArray = new opcodeInfo[3];
-        opcodeArray[0] = new opcodeInfo((byte) 0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA.");
-        opcodeArray[1] = new opcodeInfo((byte) 0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A.");
-        opcodeArray[2] = new opcodeInfo((byte) 0b11001101, "call", "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.");
-        /*
+        /* First test.
         opcodeInfo[] opcodeArray2 = {
             new opcodeInfo((byte) 0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA."),
             new opcodeInfo((byte) 0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A."),
             new opcodeInfo((byte) 0b11001101, "call", "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.")
         };
-        */
+        /* Second test.
+        opcodeArray = new opcodeInfo[3];
+        opcodeArray[0] = new opcodeInfo((byte) 0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA.");
+        opcodeArray[1] = new opcodeInfo((byte) 0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A.");
+        opcodeArray[2] = new opcodeInfo((byte) 0b11001101, "call", "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.");
+         */
         // opcodeCount = 3;
-        System.out.println("\n+ Unsorted list of opcode data.");
+
+        // Third set up test, using a file of data.
+        opcodeCount = getOpcodeCount("opcodes8080.txt");
+        System.out.println("+ opcodeCount = " + opcodeCount);
+        opcodeArray = new opcodeInfo[opcodeCount];
+        fileLoadOpcodes("opcodes8080.txt");
+
+        Arrays.sort(opcodeArray, new SortbyValue());
+        System.out.println("\n+ Sorted by value.");
         for (int i = 0; i < opcodeCount; i++) {
             System.out.println(opcodeArray[i]);
         }
-        Arrays.sort(opcodeArray, new SortbyValue());
-        System.out.println("\n+ Sorted by value.");
+        /*
+        System.out.println("\n+ Unsorted list of opcode data.");
         for (int i = 0; i < opcodeCount; i++) {
             System.out.println(opcodeArray[i]);
         }
@@ -179,5 +197,6 @@ class Opcodes {
         for (int i = 0; i < opcodeCount; i++) {
             System.out.println(opcodeArray[i]);
         }
+         */
     }
 }
