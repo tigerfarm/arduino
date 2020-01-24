@@ -1,13 +1,13 @@
 package asm;
 
-import static asm.opcodeInfo2.byteToString;
 import java.util.Arrays;
 import java.util.Comparator;
 
 public class opcodeInfo {
 
-    int value;
-    String name, info;
+    public byte value;
+    public String name;
+    public String info;
 
     // Constructor 
     public opcodeInfo(byte value, String name, String info) {
@@ -41,6 +41,7 @@ public class opcodeInfo {
 
 class SortbyValue implements Comparator<opcodeInfo> {
 
+    @Override
     public int compare(opcodeInfo a, opcodeInfo b) {
         return a.value - b.value;
     }
@@ -48,6 +49,7 @@ class SortbyValue implements Comparator<opcodeInfo> {
 
 class SortbyName implements Comparator<opcodeInfo> {
 
+    @Override
     public int compare(opcodeInfo a, opcodeInfo b) {
         return a.name.compareTo(b.name);
     }
@@ -55,23 +57,27 @@ class SortbyName implements Comparator<opcodeInfo> {
 
 class Opcodes {
 
-    static opcodeInfo[] opcodeArray = new opcodeInfo[255];
+    // static opcodeInfo[] opcodeArray = new opcodeInfo[2];
     static int opcodeCount;
     private int errorCount = 0;
 
+    /*
+    /*
+     */
     public static void main(String[] args) {
-        opcodeInfo[] opcodeArray = {
-            new opcodeInfo((byte) 111, "bbbb", "london"),
-            new opcodeInfo((byte) 131, "aaaa", "nyc"),
-            new opcodeInfo((byte) 121, "cccc", "jaipur")
-        };
         /*
+        opcodeInfo[] opcodeArray = new opcodeInfo[255];
         opcodeArray[0] = new opcodeInfo((byte) 0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA.");
         opcodeArray[1] = new opcodeInfo((byte) 0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A.");
         opcodeArray[2] = new opcodeInfo((byte) 0b11001101, "call", "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.");
          */
-        opcodeCount = 3;
+        opcodeInfo[] opcodeArray = {
+            new opcodeInfo((byte) 0b11000110, "adi", "ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA."),
+            new opcodeInfo((byte) 0b11100110, "ani", "ANI #    11 100 110  2  AND # (immediate db) with register A."),
+            new opcodeInfo((byte) 0b11001101, "call", "CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.")
+        };
 
+        opcodeCount = 3;
         System.out.println("Unsorted");
         for (int i = 0; i < opcodeCount; i++) {
             System.out.println(opcodeArray[i]);
