@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 public class asm {
 
     asmProcessor processFile = new asmProcessor();
-    opcodes8080 theOpcodes = new opcodes8080();
+    asmOpcodes theOpcodes = new asmOpcodes();
 
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
@@ -94,14 +94,22 @@ public class asm {
                     }
                     break;
                 case "opcode":
-                    theOpcodes.getOpcodeInfo(theRest);
+                    theOpcodes.printOpcodeInfo(theRest);
                     break;
                 case "opcodes":
                     theOpcodes.opcodeInfoList();
                     break;
-                case "opcodebytes":
+                case "opcodelist":
                     System.out.println("+ -------------------------------------");
                     theOpcodes.opcodesList();
+                    break;
+                case "opcodebytes":
+                    System.out.println("+ -------------------------------------");
+                    theOpcodes.opcodesListByValue();
+                    break;
+                case "opcodenames":
+                    System.out.println("+ -------------------------------------");
+                    theOpcodes.opcodesListByName();
                     break;
                 case "upload":
                     processFile.uploadFile(outFilename);
@@ -125,9 +133,11 @@ public class asm {
                     System.out.println("+ showfile           : Print binary file bytes to screen.");
                     System.out.println("+ printarray         : Print the byte array for the program to screen.");
                     System.out.println("");
-                    System.out.println("+ opcode <opcode>    : list an opcode's information to the screen.");
-                    System.out.println("+ opcodes            : list all opcode information to screen.");
-                    System.out.println("+ opcodebytes        : list the opcode search byte values to screen.");
+                    System.out.println("+ opcode <opcode>    : list an opcode's information.");
+                    System.out.println("+ opcodes            : list opcode information.");
+                    System.out.println("+ opcodelist         : list the opcode data, ordered the same as in the file.");
+                    System.out.println("+ opcodebytes        : list the opcode data, sorted by value.");
+                    System.out.println("+ opcodenames        : list the opcode data, sorted by name.");
                     System.out.println("");
                     System.out.println("+ upload             : Serial upload the program bytes to the Arduino.");
                     System.out.println("+ exit               : Exit this program.");

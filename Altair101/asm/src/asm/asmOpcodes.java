@@ -262,8 +262,9 @@ public class asmOpcodes {
     public void opcodeInfoList() {
         Arrays.sort(opcodeArray, new SortbyName());
         System.out.println("+ List opcode info ordered by opcode name.");
-        System.out.println("Opcode   Binary   Cycles Description");
+        System.out.println("Binary             Opcode   Binary   Cycles Description");
         System.out.println("-------------------------------------");
+        //                  11100110 : ani   : ANI #    11 100 110  2  AND # (immediate db) with register A.
         for (int i = 0; i < opcodeCount; i++) {
             if (!opcodeArray[i].info.equals("")) {
                 System.out.println(opcodeArray[i]);
@@ -359,8 +360,8 @@ public class asmOpcodes {
     public void opcodesListByValue() {
         Arrays.sort(opcodeArray, new SortbyValue());
         System.out.println("+ List opcode data ordered by value.");
-        System.out.println("        Name: Value");
-        //                  ++   1: adi   11000110
+        System.out.println("        Binary          Opcode   Binary   Cycles Description");
+        //                  ++   1: 00000000 nop    NOP      00 000 000  1  No operation.
         System.out.println("-------------------------------------");
         int iCounter = 0;
         String counterPadding;

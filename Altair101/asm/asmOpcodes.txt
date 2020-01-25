@@ -24,7 +24,7 @@ dcrl:00101101:
 hlt:01110110:HLT      01 110 110  1  Halt processor.
 in:11011011:IN pa    11 011 011  2  Read port a data into the accumulator. Example, a=0377 is the sense switches.
 inr:00DDD100:INR D    00 DDD 100  1  Increment register DDD. To do, set flags: ZSPA.
-inra:00111100:INR D    00 DDD 100  1  Increment register DDD. To do, set flags: ZSPA.
+inra:00111100:
 inrb:00000100:
 inrc:00001100:
 inrd:00010100:
