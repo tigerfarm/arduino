@@ -1,3 +1,9 @@
+/*
+
+    Program replaced by asmOpcodes.java, which stores the opcode data in a text file.
+    It also can sort the data before printing.
+
+*/
 package asm;
 
 import java.io.File;
