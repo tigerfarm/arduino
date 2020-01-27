@@ -21,8 +21,11 @@
     Java docs:
         http://fazecast.github.io/jSerialComm/javadoc/com/fazecast/jSerialComm/package-summary.html
 
-  String for testing,
-    abcdefghijklmnopqrstuvwxyz
+  Strings for testing,
+ abcdefghijklmnopqrstuvwxyz
+          1         2         3         4         5         6         7         8         9         0         1         2         3
+01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+00a0b000c0000000d000000000000000e0000000000000000000000000000000f000000000000000000000000000000000000000000000000000000000000000g00
  */
 package serialcoms;
 
@@ -36,6 +39,16 @@ import java.util.logging.Logger;
 public class SearialjWrite {
 
     // -------------------------------------------------------------------------
+    public static String byteToString(byte aByte) {
+        return toBinary(aByte, 8);
+    }
+    private static String toBinary(byte a, int bits) {
+        if (--bits > 0) {
+            return toBinary((byte) (a >> 1), bits) + ((a & 0x1) == 0 ? "0" : "1");
+        } else {
+            return (a & 0x1) == 0 ? "0" : "1";
+        }
+    }
     public static void sendFile(SerialPort sp, String theReadFilename) {
         // System.out.println("++ Write out binary file: " + theReadFilename);
         int theLength = 0;
@@ -62,7 +75,9 @@ public class SearialjWrite {
                     System.out.println("");
                 }
                 tenCount++;
-                System.out.print(String.format("%02X ", bArray[i]));
+                // Print binary formatted output for viewing with Examine/Next.
+                System.out.print(byteToString(bArray[i]) + " ");
+                // Hex: System.out.print(String.format("%02X ", bArray[i]));
                 sp.getOutputStream().write(i.byteValue());
                 sp.getOutputStream().flush();
             }
@@ -95,6 +110,8 @@ public class SearialjWrite {
         System.out.println("+ Send bytes.");
 
         sendFile(sp, "/Users/dthurston/Projects/arduino/Altair101/asm/10000000.bin");
+        // programs/pLoop.asm >> 10000000.bin:
+        //  11000011 00000110 00000000 00000000 00000000 00000000 11000011 00000000 00000000
         /*
         for (Integer i = 0; i < 5; ++i) {
             sp.getOutputStream().write(i.byteValue());

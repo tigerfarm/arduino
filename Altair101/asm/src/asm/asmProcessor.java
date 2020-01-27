@@ -1249,6 +1249,16 @@ public class asmProcessor {
         System.out.println("++ Not available, yet.");
     }
 
+    public static String byteToString(byte aByte) {
+        return toBinary(aByte, 8);
+    }
+    private static String toBinary(byte a, int bits) {
+        if (--bits > 0) {
+            return toBinary((byte) (a >> 1), bits) + ((a & 0x1) == 0 ? "0" : "1");
+        } else {
+            return (a & 0x1) == 0 ? "0" : "1";
+        }
+    }
     public void showFile(String theReadFilename) {
         // System.out.println("++ Show binary file: " + theReadFilename);
         int theLength = 0;
@@ -1274,6 +1284,16 @@ public class asmProcessor {
             }
             tenCount++;
             System.out.print(String.format("%02X ", bArray[i]));
+        }
+        System.out.println("\n+ Display completed.");
+        tenCount = 0;
+        for (i = 0; i < theLength; i++) {
+            if (tenCount == 10) {
+                tenCount = 0;
+                System.out.println("");
+            }
+            tenCount++;
+            System.out.print(byteToString(bArray[i]) + " ");
         }
         System.out.println("\n+ Display completed.");
     }

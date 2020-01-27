@@ -3908,21 +3908,22 @@ void loop() {
 #ifdef INCLUDE_AUX
     case SERIAL_DOWNLOAD:
       Serial.println(F("+ State: SERIAL_DOWNLOAD"));
+      //
       // Set status lights:
-      // HLDA off (LOW), then on (HIGH) when Serial.available().
+      // HLDA on when in this mode. Later, HLDA off (LOW), then on (HIGH) when bytes downloading (Serial.available).
+      digitalWrite(HLDA_PIN, HIGH);
       // INP on
       statusByte = statusByte | INP_ON;
       statusByte = statusByte & M1_OFF;
       lightsStatusAddressData(statusByte, programCounter, dataByte);
-      readByteCount = 0;
+      //
+      readByteCount = 0;  // Number of downloaded bytes.
       while (programState == SERIAL_DOWNLOAD) {
         if (Serial.available() > 0) {
           // Read and process an incoming byte.
           readByte = Serial.read();
           memoryData[readByteCount] = readByte;
           readByteCount++;
-          digitalWrite(HLDA_PIN, HIGH);
-          delay(10);  // Stacy, need to test that bytes are not lost, and that the light stays on.
           //
           if (readByte == 10) {
             // New line character.
@@ -3941,13 +3942,13 @@ void loop() {
             Serial.write(readByte);
           */
         }
-        digitalWrite(HLDA_PIN, LOW);
         if (pcf20interrupted) {
           checkRunningButtons();
           pcf20interrupted = false; // Reset for next interrupt.
         }
       }
       Serial.print(F("+ Exit serial download."));
+      digitalWrite(HLDA_PIN, LOW);
       statusByte = statusByte & INP_OFF;
       if (readByteCount > 0) {
         // Program bytes were loaded. Reset and display the statusByte.
@@ -3962,7 +3963,7 @@ void loop() {
       break;
     // ----------------------------
     case PLAYER_RUN:
-      Serial.println(F("+ State: PLAYER_RUN"));
+      Serial.println(F("+ State: PLAYER_RUN. Not implemented, yet."));
       break;
 #endif
   }
