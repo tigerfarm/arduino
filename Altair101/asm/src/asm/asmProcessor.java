@@ -113,7 +113,7 @@ public class asmProcessor {
     private String p2;
     private final String SEPARATOR = ":";
     private final String SEPARATOR_TEMP = "^^";
-    private final int NAME_NOT_FOUND = 256;
+    private final int NAME_NOT_FOUND = -1;
     private final int DB_STRING_TERMINATOR = 255;   // ffh = B11111111
     private int errorCount = 0;
     private final static int ignoreFirstCharacters = 0;
@@ -519,7 +519,7 @@ public class asmProcessor {
     // ------------------------
     private int getLabelAddress(String findName) {
         System.out.println("+ findName: " + findName);
-        int returnValue = 0;
+        int returnValue = NAME_NOT_FOUND;
         Iterator<String> lName = labelName.iterator();
         Iterator<Integer> lAddress = labelAddress.iterator();
         while (lName.hasNext()) {
@@ -531,6 +531,11 @@ public class asmProcessor {
                 break;
             }
         }
+        if (returnValue == NAME_NOT_FOUND) {
+            errorCount++;
+            System.out.println("\n- Error, programTop: " + programTop + ", address label not found: " + findName + ".\n");
+            return returnValue;
+        }
         if (findName.endsWith("h")) {
             // Hex number. For example, change 0ffh or ffh to integer.
             // Samples: 0ffh, 0eh
@@ -540,15 +545,18 @@ public class asmProcessor {
             }
             findName = findName.substring(si, findName.length() - 1);   // Hex string to integer. Remove the "h".
             returnValue = Integer.parseInt(findName, 16);
-        } else if (!findName.equals("0") && returnValue == 0) {
+        }
+        /*
+        else {
             try {
                 returnValue = Integer.parseInt(findName);
             } catch (NumberFormatException e) {
                 errorCount++;
-                System.out.println("\n- Error, programTop: " + programTop + ", address label not found: " + findName + ".\n");
+                System.out.println("\n- Error, programTop: " + programTop + ", invalid address value for: " + findName + ".\n");
                 returnValue = 0;
             }
         }
+        */
         return returnValue;
     }
 
@@ -1294,8 +1302,8 @@ public class asmProcessor {
         // Required, starts the process:
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opLdaSta.asm");
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pLoop.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pLoop.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
         if (thisProcess.errorCount > 0) {
             System.out.println("\n-- Number of errors: " + thisProcess.errorCount + "\n");
             return;

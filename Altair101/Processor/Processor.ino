@@ -554,7 +554,6 @@ void displayStatusAddressData() {
   sprintf(charBuffer, "%4d:", programCounter);
   Serial.print(charBuffer);
   Serial.print(F(" Data: "));
-  dataByte = memoryData[programCounter];
   printData(dataByte);
   Serial.println("");
 #endif
@@ -563,7 +562,6 @@ void displayStatusAddressData() {
   sprintf(charBuffer, "%4d:", programCounter);
   Serial.print(charBuffer);
   Serial.print(F(" Data: "));
-  dataByte = memoryData[programCounter];
   printData(dataByte);
 #endif
 }
@@ -2959,6 +2957,9 @@ void readProgramFileIntoMemory(String theFilename) {
     digitalWrite(HLDA_PIN, LOW);
     return;
   }
+  statusByte = statusByte | INP_ON;
+  statusByte = statusByte & M1_OFF;
+  lightsStatusAddressData(statusByte, programCounter, dataByte);
   myFile = SD.open(theFilename);
   if (!myFile) {
     Serial.print(F("- Read ERROR, cannot open file: "));
@@ -2990,6 +2991,7 @@ void readProgramFileIntoMemory(String theFilename) {
   Serial.println(F("+ Read completed, file closed."));
   ledFlashSuccess();
   digitalWrite(HLDA_PIN, LOW);
+  statusByte = statusByte & INP_OFF;
   controlResetLogic();
 }
 
@@ -3217,8 +3219,8 @@ boolean switchReset = false;
 void controlResetLogic() {
   programCounter = 0;
   stackPointer = 0;
-  dataByte = memoryData[programCounter];
   opcode = 0;  // For the case when the processing cycle 2 or more.
+  dataByte = memoryData[programCounter];
   lightsStatusAddressData(statusByte, programCounter, dataByte);
   if (programState == CLOCK_RUN || programState == SERIAL_DOWNLOAD) {
     programState = PROGRAM_WAIT;
@@ -3906,14 +3908,21 @@ void loop() {
 #ifdef INCLUDE_AUX
     case SERIAL_DOWNLOAD:
       Serial.println(F("+ State: SERIAL_DOWNLOAD"));
+      // Set status lights:
+      // HLDA off (LOW), then on (HIGH) when Serial.available().
+      // INP on
+      statusByte = statusByte | INP_ON;
+      statusByte = statusByte & M1_OFF;
+      lightsStatusAddressData(statusByte, programCounter, dataByte);
       readByteCount = 0;
       while (programState == SERIAL_DOWNLOAD) {
-        // SERIAL_DOWNLOAD logic
         if (Serial.available() > 0) {
           // Read and process an incoming byte.
           readByte = Serial.read();
           memoryData[readByteCount] = readByte;
           readByteCount++;
+          digitalWrite(HLDA_PIN, HIGH);
+          delay(10);  // Stacy, need to test that bytes are not lost, and that the light stays on.
           //
           if (readByte == 10) {
             // New line character.
@@ -3932,14 +3941,20 @@ void loop() {
             Serial.write(readByte);
           */
         }
-        // delay(100);
+        digitalWrite(HLDA_PIN, LOW);
         if (pcf20interrupted) {
           checkRunningButtons();
           pcf20interrupted = false; // Reset for next interrupt.
         }
       }
       Serial.print(F("+ Exit serial download."));
-      Serial.println(programState);
+      statusByte = statusByte & INP_OFF;
+      if (readByteCount > 0) {
+        // Program bytes were loaded. Reset and display the statusByte.
+        programCounter = 0;
+        dataByte = memoryData[programCounter];
+        lightsStatusAddressData(statusByte, programCounter, dataByte);
+      }
       break;
     case CLOCK_RUN:
       Serial.println(F("+ State: CLOCK_RUN"));

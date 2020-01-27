@@ -78,7 +78,8 @@ public class SearialjWrite {
         System.out.println("+++ Start.");
 
         // Uses the device name that can be found in the Arduino IDE, under the menu item Tools/Port.
-        SerialPort sp = SerialPort.getCommPort("/dev/cu.usbmodem14121");
+        //SerialPort sp = SerialPort.getCommPort("/dev/cu.usbmodem14120");
+        SerialPort sp = SerialPort.getCommPort("/dev/cu.wchusbserial14120");
         // Connection settings must match Arduino program settings.
         // Baud rate, data bits, stop bits, and parity
         sp.setComPortParameters(9600, 8, 1, 0);
