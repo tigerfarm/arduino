@@ -38,10 +38,10 @@ import java.util.logging.Logger;
 
 public class SearialjWrite {
 
-    // -------------------------------------------------------------------------
     public static String byteToString(byte aByte) {
         return toBinary(aByte, 8);
     }
+
     private static String toBinary(byte a, int bits) {
         if (--bits > 0) {
             return toBinary((byte) (a >> 1), bits) + ((a & 0x1) == 0 ? "0" : "1");
@@ -49,6 +49,13 @@ public class SearialjWrite {
             return (a & 0x1) == 0 ? "0" : "1";
         }
     }
+
+    // -------------------------------------------------------------------------
+    // Write binary assembler program file to the serial port.
+    //
+    // programs/pLoop.asm >> 10000000.bin:
+    //  11000011 00000110 00000000 00000000 00000000 00000000 11000011 00000000 00000000
+    //
     public static void sendFile(SerialPort sp, String theReadFilename) {
         // System.out.println("++ Write out binary file: " + theReadFilename);
         int theLength = 0;
@@ -110,8 +117,6 @@ public class SearialjWrite {
         System.out.println("+ Send bytes.");
 
         sendFile(sp, "/Users/dthurston/Projects/arduino/Altair101/asm/10000000.bin");
-        // programs/pLoop.asm >> 10000000.bin:
-        //  11000011 00000110 00000000 00000000 00000000 00000000 11000011 00000000 00000000
         /*
         for (Integer i = 0; i < 5; ++i) {
             sp.getOutputStream().write(i.byteValue());
@@ -119,15 +124,14 @@ public class SearialjWrite {
             System.out.println("++ Byte sent: " + i);
             // Thread.sleep(1000);
         }
-        */
-        
+         */
+
         // ---------------------------------------------------------------------
         if (sp.closePort()) {
             System.out.println("+ Port is closed.");
         } else {
             System.out.println("- Error: Failed to close port.");
         }
-
         System.out.println("+++ Exit.");
     }
 

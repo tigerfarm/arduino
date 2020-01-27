@@ -89,7 +89,7 @@
 // #define LOG_MESSAGES 1         // Has large memory requirements.
 // #define INFRARED_MESSAGES 1    // For a simple setup: Mega + infrared, with serial messages.
 #define SWITCH_MESSAGES 1
-#define RUN_NOW 1
+// #define RUN_NOW 1
 
 // -----------------------------------------------------------------------------
 // Program states
@@ -3844,8 +3844,10 @@ void setup() {
     listByteArray(theProgram, programSize);
     copyByteArrayToMemory(theProgram, programSize);
     Serial.print(F("+ Program loaded from memory array."));
+#ifdef RUN_NOW
     programState = PROGRAM_RUN;
     Serial.println(F(" It will start automatically."));
+#endif
   }
   controlResetLogic();
 
@@ -3948,7 +3950,6 @@ void loop() {
         }
       }
       Serial.print(F("+ Exit serial download."));
-      digitalWrite(HLDA_PIN, LOW);
       statusByte = statusByte & INP_OFF;
       if (readByteCount > 0) {
         // Program bytes were loaded. Reset and display the statusByte.
@@ -3956,6 +3957,7 @@ void loop() {
         dataByte = memoryData[programCounter];
         lightsStatusAddressData(statusByte, programCounter, dataByte);
       }
+      digitalWrite(HLDA_PIN, LOW);
       break;
     case CLOCK_RUN:
       Serial.println(F("+ State: CLOCK_RUN"));

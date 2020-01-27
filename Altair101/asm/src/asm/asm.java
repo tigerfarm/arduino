@@ -1,7 +1,18 @@
 package asm;
 
+import com.fazecast.jSerialComm.SerialPort;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+// Looks like I need to add the new serial port module to get this to work.
+// It maybe possible to disable the USB serial port reset using to following link.
+//  https://playground.arduino.cc/Main/DisablingAutoResetOnSerialConnection/
+//  Stick a 120 ohm resistor in the headers between 5v and reset
 
 public class asm {
 
@@ -10,6 +21,80 @@ public class asm {
 
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
+    // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+
+    public static String byteToString(byte aByte) {
+        return toBinary(aByte, 8);
+    }
+
+    private static String toBinary(byte a, int bits) {
+        if (--bits > 0) {
+            return toBinary((byte) (a >> 1), bits) + ((a & 0x1) == 0 ? "0" : "1");
+        } else {
+            return (a & 0x1) == 0 ? "0" : "1";
+        }
+    }
+    public static void sendFile(String theReadFilename) {
+        // Uses the device name that can be found in the Arduino IDE, under the menu item Tools/Port.
+        //SerialPort sp = SerialPort.getCommPort("/dev/cu.usbmodem14120");
+        SerialPort sp = SerialPort.getCommPort("/dev/cu.wchusbserial14120");
+        // Connection settings must match Arduino program settings.
+        // Baud rate, data bits, stop bits, and parity
+        sp.setComPortParameters(9600, 8, 1, 0);
+        // block until bytes can be written
+        sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
+        if (!sp.openPort()) {
+            System.out.println("- Error, failed to open port.");
+            return;
+        }
+        System.out.println("+ Port is open.");
+        // System.out.println("++ Write out binary file: " + theReadFilename);
+        int theLength = 0;
+        byte bArray[] = null;
+        try {
+            // File theFile = new File(theReadFilename);
+            File theFile = new File("/Users/dthurston/Projects/arduino/Altair101/asm/10000000.bin");
+            theLength = (int) theFile.length();
+            bArray = new byte[(int) theLength];
+            FileInputStream in = new FileInputStream(theReadFilename);
+            in.read(bArray);
+            in.close();
+        } catch (IOException ioe) {
+            System.out.print("IOException: ");
+            System.out.println(ioe.toString());
+        }
+        System.out.println("+ Write to serial port. Number of bytes: " + theLength + " in the file: " + theReadFilename);
+        //
+        Integer i;
+        int tenCount = 0;
+        try {
+            for (i = 0; i < theLength; i++) {
+                if (tenCount == 10) {
+                    tenCount = 0;
+                    System.out.println("");
+                }
+                tenCount++;
+                // Print binary formatted output for viewing with Examine/Next.
+                System.out.print(byteToString(bArray[i]) + " ");
+                // Hex: System.out.print(String.format("%02X ", bArray[i]));
+                sp.getOutputStream().write(i.byteValue());
+                sp.getOutputStream().flush();
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(asm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        // ---------------------------------------------------------------------
+        if (sp.closePort()) {
+            System.out.println("+ Serial port is closed.");
+        } else {
+            System.out.println("- Error: Failed to close serial port.");
+        }
+        //
+        System.out.println("\n+ Write completed.");
+    }
+
+    // -------------------------------------------------------------------------
     public void run() {
         // asmProcessor doList = new asmProcessor();
         String inFilename = "p1.asm";
@@ -112,7 +197,10 @@ public class asm {
                     theOpcodes.opcodesListByName();
                     break;
                 case "upload":
-                    processFile.uploadFile(outFilename);
+                    // processFile.uploadFile(outFilename);
+                    System.out.println("+ -------------------------------------");
+                    System.out.println("+ Write to the serail port, the program file: " + outFilename + ":");
+                    sendFile(outFilename);
                     break;
                 case "help":
                     System.out.println("---------------------------------------");
@@ -141,6 +229,10 @@ public class asm {
                     System.out.println("");
                     System.out.println("+ upload             : Serial upload the program bytes to the Arduino.");
                     System.out.println("+ exit               : Exit this program.");
+                    break;
+                case "exit":
+                    System.out.println("+ -------------------------------------");
+                    System.out.println("+++ Exit.");
                     break;
                 default:
                     if (!cmd.equals("")) {
