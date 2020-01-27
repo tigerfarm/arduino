@@ -19,6 +19,15 @@
   ++ During the receive, if no characters received in a 1/2 second interval, end receive.
   + Echo information about the received buffer.
 
+  + Second port module:
+  ++ CH340 USB To RS232 TTL Auto Converter Module Serial Port FOR Arduino STC TA-02L
+  + The one I bought, doesn't work. Probably needs a driver.
+  ++ CP2102 USB 2.0 to TTL UART Module 6Pin Serial Converter STC FT232 26.5mm*15.6mm
+  ++ Download driver: https://www.pololu.com/docs/0J7/3 : OSX_cp2102_drivers.dmg
+
+  View serial ports:
+  $ ls /dev/tty.*
+
   I'm following the video,
     https://www.youtube.com/watch?v=BdzzyEuUWYk
     
@@ -33,6 +42,19 @@
 01214111811111116111111111111111211111111111111111111111111111114111111111111111111111111111111111111111111111111111111111111111811
 
 */
+
+// -----------------------------------------------------------------------------
+// Add another serial port settings, to connect to the new serial hardware module.
+#include <SoftwareSerial.h>
+// Connections:
+//  If not transmiting, then the second pin doesn't need to be connected.
+//
+// Parameters: (receive, transmit).
+SoftwareSerial serial2(5,6);
+// Then, to read from the new serial port, use:
+//    serial2.begin(9600);
+//    serial2.available()
+//    serial2.read();
 
 // -----------------------------------------------------------------------------
 // Memory definitions
@@ -57,13 +79,16 @@ void printOctal(byte b) {
 
 // -----------------------------------------------------------------------------
 void setup() {
-  
-  // Speed for serial read, which matches the sending program.
-  Serial.begin(9600);
+  // Speed port for logging.
+  Serial.begin(9600); // 9600 115200
+  // Give the serial connection time to start before the first print.
   delay(1000);
   Serial.println(""); // Newline after garbage characters.
   Serial.println("+++ Setup.");
   Serial.println("+ Ready for serial communications.");
+
+  serial2.begin(9600);
+  Serial.println("+ Ready to use the second serial port.");
 
   Serial.println("+++ Go to loop.");
 }
@@ -74,9 +99,9 @@ byte readByte = 0;
 int readByteCount = 0;
 void loop() {
 
-  if (Serial.available() > 0) {
+  if (serial2.available() > 0) {
     // Read and process an incoming byte.
-    readByte = Serial.read();
+    readByte = serial2.read();
     memoryData[readByteCount];
     readByteCount++;
     //

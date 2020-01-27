@@ -23,6 +23,8 @@ public class asm {
 
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
+    // To view serial ports:
+    //  $ ls /dev/tty.*
 
     public static String byteToString(byte aByte) {
         return toBinary(aByte, 8);
