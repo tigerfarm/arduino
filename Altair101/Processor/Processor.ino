@@ -9,13 +9,13 @@
 
   ---------------------------------------------
   Current/Next Work
-  
+
   Get opLadSta.asm to work.
   + STA a: Store register A content to an address (a).
   + LDA a: Load register A from an address (a).
   + Use an immediate value for the address.
   + Use an address label for the address.
-  
+
   ----------
   SD card module options,
   + When rebooting the Mega: if 00000000.bin exists, read it and run it.
@@ -2756,7 +2756,7 @@ void processOpcodeData() {
       }
       // instructionCycle == 4
       //  Status lights, MEMR and WO are on, MI is off, during this step.
-      statusByte = statusByte & MI_OFF
+      statusByte = statusByte & M1_OFF;
       //
       hlValue = highOrder * 256 + lowOrder;
       regA = memoryData[hlValue];
@@ -3220,7 +3220,7 @@ void controlResetLogic() {
   dataByte = memoryData[programCounter];
   opcode = 0;  // For the case when the processing cycle 2 or more.
   lightsStatusAddressData(statusByte, programCounter, dataByte);
-  if (programState == CLOCK_RUN) {
+  if (programState == CLOCK_RUN || programState == SERIAL_DOWNLOAD) {
     programState = PROGRAM_WAIT;
   }
 }
@@ -3290,6 +3290,8 @@ void checkControlButtons() {
 #ifdef SWITCH_MESSAGES
           Serial.print(F("+ Control, Examine: "));
           printByte(dataByte);
+          Serial.print(" = ");
+          Serial.print(dataByte);
           Serial.println("");
 #endif
         }
@@ -3309,6 +3311,8 @@ void checkControlButtons() {
 #ifdef SWITCH_MESSAGES
           Serial.print(F("+ Control, Examine Next: "));
           printByte(dataByte);
+          Serial.print(" = ");
+          Serial.print(dataByte);
           Serial.println("");
 #endif
         }
@@ -3506,13 +3510,13 @@ void checkDownloadSwitch() {
 #ifdef INCLUDE_SDCARD
       String theFilename = getSenseSwitchValue() + ".bin";
       if (theFilename == "11111111.bin") {
-        Serial.print(F("+ Get ready to download over the serial port."));
+        Serial.println(F("+ Set to download over the serial port."));
         programState = SERIAL_DOWNLOAD;
-        return;
+      } else {
+        Serial.print(F("+ Read the filename into memory: "));
+        Serial.println(theFilename);
+        readProgramFileIntoMemory(theFilename);
       }
-      Serial.print(F("+ Read the filename into memory: "));
-      Serial.println(theFilename);
-      readProgramFileIntoMemory(theFilename);
 #endif
     }
     downloadSwitchState = true;
@@ -3527,7 +3531,7 @@ void checkDownloadSwitch() {
 #endif
 
 void downloadSerialBytes() {
-      Serial.println(F("+ Download Bytes from the serial port into memory."));
+  Serial.println(F("+ Download Bytes from the serial port into memory."));
 }
 
 // -----------------------------------------------------------------------------
@@ -3635,11 +3639,11 @@ void infraredControl() {
       break;
     // -----------------------------------
     default:
-    /*
-      Serial.print("+ Result value: ");
-      Serial.print(results.value);
-      Serial.print(" HEX:");
-      Serial.println(results.value, HEX);
+      /*
+        Serial.print("+ Result value: ");
+        Serial.print(results.value);
+        Serial.print(" HEX:");
+        Serial.println(results.value, HEX);
       */
       break;
       // -----------------------------------
@@ -3853,6 +3857,8 @@ void setup() {
 #ifdef RUN_DELAY
 static unsigned long timer = millis();
 #endif
+byte readByte = 0;
+int readByteCount = 0;
 void loop() {
 
   switch (programState) {
@@ -3893,14 +3899,48 @@ void loop() {
       checkPlayerSwitch();
       checkUploadSwitch();
       checkDownloadSwitch();
-      if (programState == SERIAL_DOWNLOAD) {
-        // SERIAL_DOWNLOAD logic
-      }
 #endif
       delay(60);
       break;
       // ----------------------------
 #ifdef INCLUDE_AUX
+    case SERIAL_DOWNLOAD:
+      Serial.println(F("+ State: SERIAL_DOWNLOAD"));
+      readByteCount = 0;
+      while (programState == SERIAL_DOWNLOAD) {
+        // SERIAL_DOWNLOAD logic
+        if (Serial.available() > 0) {
+          // Read and process an incoming byte.
+          readByte = Serial.read();
+          memoryData[readByteCount] = readByte;
+          readByteCount++;
+          //
+          if (readByte == 10) {
+            // New line character.
+            Serial.println("");
+          } else {
+            Serial.write(readByte);
+          }
+          /*  When displaying only binary data.
+            Serial.print("++ Byte: ");
+            printByte(readByte);
+            Serial.print(" = ");
+            printOctal(readByte);
+            Serial.print(" = ");
+            Serial.print(readByte, DEC);
+            Serial.print(", Character: ");
+            Serial.write(readByte);
+          */
+        }
+        // delay(100);
+        if (pcf20interrupted) {
+          checkRunningButtons();
+          pcf20interrupted = false; // Reset for next interrupt.
+        }
+      }
+      Serial.print(F("+ Exit serial download."));
+      Serial.println(programState);
+      break;
     case CLOCK_RUN:
       Serial.println(F("+ State: CLOCK_RUN"));
       clockRun();
