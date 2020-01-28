@@ -2,6 +2,8 @@
     For serial communications between my computer and the arduino of the Altair 101.
     Intension, is to use this to upload binary programs to run on the 101.
 
+    "java serial write to arduino"
+
     The following is base of the video:
         https://www.youtube.com/watch?v=BdzzyEuUWYk
     Documentation:
@@ -20,6 +22,8 @@
         https://github.com/Fazecast/jSerialComm/wiki/Usage-Examples
     Java docs:
         http://fazecast.github.io/jSerialComm/javadoc/com/fazecast/jSerialComm/package-summary.html
+
+    https://playground.arduino.cc/Interfacing/Java/
 
   Strings for testing,
  abcdefghijklmnopqrstuvwxyz
@@ -56,7 +60,7 @@ public class SearialjWrite {
     // programs/pLoop.asm >> 10000000.bin:
     //  11000011 00000110 00000000 00000000 00000000 00000000 11000011 00000000 00000000
     //
-    public static void sendFile(SerialPort sp, String theReadFilename) {
+    public static void sendFile(SerialPort sp, String theReadFilename) throws InterruptedException {
         // System.out.println("++ Write out binary file: " + theReadFilename);
         int theLength = 0;
         byte bArray[] = null;
@@ -85,8 +89,9 @@ public class SearialjWrite {
                 // Print binary formatted output for viewing with Examine/Next.
                 System.out.print(byteToString(bArray[i]) + " ");
                 // Hex: System.out.print(String.format("%02X ", bArray[i]));
-                sp.getOutputStream().write(i.byteValue());
+                sp.getOutputStream().write(bArray[i]);
                 sp.getOutputStream().flush();
+                // Thread.sleep(100);
             }
         } catch (IOException ex) {
             Logger.getLogger(SearialjWrite.class.getName()).log(Level.SEVERE, null, ex);
@@ -101,12 +106,13 @@ public class SearialjWrite {
 
         // Uses the device name that can be found in the Arduino IDE, under the menu item Tools/Port.
         //SerialPort sp = SerialPort.getCommPort("/dev/cu.usbmodem14120");
-        SerialPort sp = SerialPort.getCommPort("/dev/cu.wchusbserial14120");
+        // SerialPort sp = SerialPort.getCommPort("/dev/cu.SLAB_USBtoUART");
+        SerialPort sp = SerialPort.getCommPort("/dev/tty.SLAB_USBtoUART");
         // Connection settings must match Arduino program settings.
         // Baud rate, data bits, stop bits, and parity
         sp.setComPortParameters(9600, 8, 1, 0);
-        // block until bytes can be written
-        sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
+        // sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
+        sp.setComPortTimeouts(SerialPort.TIMEOUT_SCANNER, 0, 0);
         if (!sp.openPort()) {
             System.out.println("- Error, failed to open port.");
             return;
@@ -118,11 +124,14 @@ public class SearialjWrite {
 
         sendFile(sp, "/Users/dthurston/Projects/arduino/Altair101/asm/10000000.bin");
         /*
+        // PrintWriter output = new PrintWriter(sp.getOutputStream());
         for (Integer i = 0; i < 5; ++i) {
+            // output.print(i);
+            // output.flush();
             sp.getOutputStream().write(i.byteValue());
             sp.getOutputStream().flush();
             System.out.println("++ Byte sent: " + i);
-            // Thread.sleep(1000);
+            Thread.sleep(1000);
         }
          */
 

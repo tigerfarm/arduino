@@ -21,25 +21,32 @@
 
   + Second port module:
   ++ CH340 USB To RS232 TTL Auto Converter Module Serial Port FOR Arduino STC TA-02L
-  + The one I bought, doesn't work. Probably needs a driver.
+  + The one I bought, requires a new driver.
   ++ CP2102 USB 2.0 to TTL UART Module 6Pin Serial Converter STC FT232 26.5mm*15.6mm
-  ++ Download driver: https://www.pololu.com/docs/0J7/3 : OSX_cp2102_drivers.dmg
+  ++ Download driver:https://www.silabs.com/community/interface/knowledge-base.entry.html/2017/01/10/legacy_os_softwarea-bgvU
+  +++ http://www.silabs.com/Support%20Documents/Software/Mac_OSX_VCP_Driver_10_6.zip
 
   View serial ports:
   $ ls /dev/tty.*
 
   I'm following the video,
     https://www.youtube.com/watch?v=BdzzyEuUWYk
-    
+
   Reference,
+    +
+    https://www.arduino.cc/en/Tutorial/SoftwareSerialExample
+       Note:, Not all pins on the Mega and Mega 2560 support change interrupts,
+        so only the following can be used for RX:
+        10, 11, 12, 13, 50, 51, 52, 53, 62, 63, 64, 65, 66, 67, 68, 69
+
     https://forum.arduino.cc/index.php?topic=396450
     + The 64 byte serial input buffer does not limit the number of receive characters
       because the code in the examples can empty the buffer faster than new data arrives.
 
-0         1         2         3         4         5         6         7         8         9         0         1         2         3
-01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-01214111811111116111111111111111211111111111111111111111111111114111111111111111111111111111111111111111111111111111111111111111811
-01214111811111116111111111111111211111111111111111111111111111114111111111111111111111111111111111111111111111111111111111111111811
+  0         1         2         3         4         5         6         7         8         9         0         1         2         3
+  01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+  01214111811111116111111111111111211111111111111111111111111111114111111111111111111111111111111111111111111111111111111111111111811
+  01214111811111116111111111111111211111111111111111111111111111114111111111111111111111111111111111111111111111111111111111111111811
 
 */
 
@@ -50,7 +57,12 @@
 //  If not transmiting, then the second pin doesn't need to be connected.
 //
 // Parameters: (receive, transmit).
-SoftwareSerial serial2(5,6);
+// Receive needs to be on an interrupt pin.
+// Pin 10 or 12 (tested) is connected to TXD on the serial module. TXD transmits received bytes to the Arduino.
+// Note, doesn't work on pin 11 or 13.
+// Pin ? is not connected to RXD on the serial module.
+SoftwareSerial serial2(12,11);
+
 // Then, to read from the new serial port, use:
 //    serial2.begin(9600);
 //    serial2.available()
@@ -81,6 +93,9 @@ void printOctal(byte b) {
 void setup() {
   // Speed port for logging.
   Serial.begin(9600); // 9600 115200
+  while (!Serial) {
+    ;
+  }
   // Give the serial connection time to start before the first print.
   delay(1000);
   Serial.println(""); // Newline after garbage characters.
@@ -88,8 +103,17 @@ void setup() {
   Serial.println("+ Ready for serial communications.");
 
   serial2.begin(9600);
+  while (!serial2) {
+    ;
+  }
+  // serial2.listen(); // Not likely required.
+  if (serial2.isListening()) {
+    Serial.println("+ serial2 is listening.");
+  }
   Serial.println("+ Ready to use the second serial port.");
 
+  pinMode(10, INPUT); // Not likely required.
+  pinMode(11, OUTPUT); // Not likely required.
   Serial.println("+++ Go to loop.");
 }
 
@@ -98,28 +122,34 @@ void setup() {
 byte readByte = 0;
 int readByteCount = 0;
 void loop() {
-
-  if (serial2.available() > 0) {
+  /*
+  */
+  if (Serial.available() > 0) {
     // Read and process an incoming byte.
-    readByte = serial2.read();
-    memoryData[readByteCount];
-    readByteCount++;
-    //
+    readByte = Serial.read();
     if (readByte == 10) {
       // New line character.
       Serial.println("");
     } else {
       Serial.write(readByte);
     }
-    /*  When displaying only binary data.
-      Serial.print("++ Byte: ");
-      printByte(readByte);
-      Serial.print(" = ");
-      printOctal(readByte);
-      Serial.print(" = ");
-      Serial.print(readByte, DEC);
-      Serial.print(", Character: ");
-      Serial.write(readByte);
+  }
+  if (serial2.available() > 0) {
+    // Read and process an incoming byte.
+    Serial.print("++ Byte: ");
+    readByte = serial2.read();
+    // When displaying only binary data.
+    memoryData[readByteCount];
+    readByteCount++;
+    printByte(readByte);
+    Serial.print(" Octal:");
+    printOctal(readByte);
+    Serial.print(" Decimal");
+    Serial.print(readByte, DEC);
+    // Serial.print(", Character: ");
+    // Serial.write(readByte);
+    Serial.println("");
+    /*
     */
   }
   // delay(30); // Arduino sample code, doesn't use a delay.

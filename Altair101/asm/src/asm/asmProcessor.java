@@ -518,7 +518,7 @@ public class asmProcessor {
 
     // ------------------------
     private int getLabelAddress(String findName) {
-        System.out.println("+ findName: " + findName);
+        System.out.println("+ getLabelAddress, findName: " + findName);
         int returnValue = NAME_NOT_FOUND;
         Iterator<String> lName = labelName.iterator();
         Iterator<Integer> lAddress = labelAddress.iterator();
@@ -531,32 +531,24 @@ public class asmProcessor {
                 break;
             }
         }
-        if (returnValue == NAME_NOT_FOUND) {
-            errorCount++;
-            System.out.println("\n- Error, programTop: " + programTop + ", address label not found: " + findName + ".\n");
-            return returnValue;
-        }
-        if (findName.endsWith("h")) {
-            // Hex number. For example, change 0ffh or ffh to integer.
-            // Samples: 0ffh, 0eh
+        if (returnValue == NAME_NOT_FOUND && findName.endsWith("h")) {
+            // Hex number. For example, change 0ffh or ffh to integer: 255.
+            // Samples: 0ffh, 0eh, 500h
             int si = 0;
             if (findName.startsWith("0") && findName.length() > 3) {
                 si = 1;
             }
             findName = findName.substring(si, findName.length() - 1);   // Hex string to integer. Remove the "h".
             returnValue = Integer.parseInt(findName, 16);
-        }
-        /*
-        else {
+        } else if (returnValue == NAME_NOT_FOUND) {
             try {
                 returnValue = Integer.parseInt(findName);
             } catch (NumberFormatException e) {
                 errorCount++;
                 System.out.println("\n- Error, programTop: " + programTop + ", invalid address value for: " + findName + ".\n");
-                returnValue = 0;
+                returnValue = NAME_NOT_FOUND;
             }
         }
-        */
         return returnValue;
     }
 
@@ -1322,7 +1314,7 @@ public class asmProcessor {
         // Required, starts the process:
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opLdaSta.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pLoop.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pKillTheBit.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
         if (thisProcess.errorCount > 0) {
             System.out.println("\n-- Number of errors: " + thisProcess.errorCount + "\n");

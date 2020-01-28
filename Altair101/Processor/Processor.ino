@@ -180,6 +180,24 @@ File myFile;
 #endif
 
 // -----------------------------------------------------------------------------
+// Add another serial port settings, to connect to the new serial hardware module.
+#include <SoftwareSerial.h>
+// Connections:
+//  If not transmiting, then the second pin doesn't need to be connected.
+//
+// Parameters: (receive, transmit).
+// Receive needs to be on an interrupt pin.
+// Pin 10 or 12 (tested) is connected to TXD on the serial module.
+// Note, doesn't work on pin 11 or 13.
+// Pin ? is not connected to RXD on the serial module.
+SoftwareSerial serial2(12,13);
+
+// Then, to read from the new serial port, use:
+//    serial2.begin(9600);
+//    serial2.available()
+//    serial2.read();
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 const byte theProgram[] = {
   //                //            ; --------------------------------------
@@ -3921,28 +3939,21 @@ void loop() {
       //
       readByteCount = 0;  // Number of downloaded bytes.
       while (programState == SERIAL_DOWNLOAD) {
-        if (Serial.available() > 0) {
+        if (serial2.available() > 0) {
           // Read and process an incoming byte.
-          readByte = Serial.read();
+          readByte = serial2.read();
           memoryData[readByteCount] = readByte;
           readByteCount++;
-          //
-          if (readByte == 10) {
-            // New line character.
-            Serial.println("");
-          } else {
-            Serial.write(readByte);
-          }
-          /*  When displaying only binary data.
-            Serial.print("++ Byte: ");
-            printByte(readByte);
-            Serial.print(" = ");
-            printOctal(readByte);
-            Serial.print(" = ");
-            Serial.print(readByte, DEC);
-            Serial.print(", Character: ");
-            Serial.write(readByte);
-          */
+          // Display binary data.
+          Serial.print("++ Byte: ");
+          printByte(readByte);
+          Serial.print(" Octal:");
+          printOctal(readByte);
+          Serial.print(" Decimal");
+          Serial.print(readByte, DEC);
+          // Serial.print(", Character: ");
+          // Serial.write(readByte);
+          Serial.println("");
         }
         if (pcf20interrupted) {
           checkRunningButtons();
