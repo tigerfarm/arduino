@@ -220,13 +220,13 @@ public class asm {
                     if (!inFilename.equals("")) {
                         System.out.println("++ Output file name: " + outFilename);
                     }
-                    System.out.println("+ list [file]        : list the input file to the screen.");
                     System.out.println("");
-                    System.out.println("+ parsefile          : Parse the file, output to screen.");
+                    System.out.println("+ list [file]        : list the input file to the screen.");
+                    System.out.println("+ parsefile          : Parse the input file.");
                     System.out.println("+ listbytes          : List the parsed bytes to screen.");
+                    System.out.println("+ printarray         : Print the program bytes as a C-language array.");
                     System.out.println("+ writebytes         : Write bytes to a binary file, and output info to screen.");
                     System.out.println("+ showfile           : Print binary file bytes to screen.");
-                    System.out.println("+ printarray         : Print the byte array for the program to screen.");
                     System.out.println("");
                     System.out.println("+ opcode <opcode>    : list an opcode's information.");
                     System.out.println("+ opcodes            : list opcode information.");

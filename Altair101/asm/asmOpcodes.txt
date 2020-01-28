@@ -124,7 +124,7 @@ rrc:00001111:RRC      00 001 111  1  Rotate accumulator right by shift right 1 b
 shld:00100010:SHLD a   00 100 010  3  Store data value from memory location: a(address hb:lb), to register L. Store value at: a + 1, to register H.
 sta:00110010:STA a    00 110 010  3  Store register A to the address, a(hb:lb).
 sui:11010110:SUI #    11 010 110  3  Subtract immediate number from register A, set ZSCPA.
-xra:10101111:XRA R    10 101 SSS  1  Exclusive OR, the register(R) with register A.
+xra:10101SSS:XRA R    10 101 SSS  1  Exclusive OR, the register(R) with register A.
 xrab:10101000:
 xrac:10101001:
 xrad:10101010:

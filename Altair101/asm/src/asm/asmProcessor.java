@@ -1276,7 +1276,7 @@ public class asmProcessor {
             tenCount++;
             System.out.print(String.format("%02X ", bArray[i]));
         }
-        System.out.println("\n+ Display completed.");
+        System.out.println("\n+ Hex display completed.");
         tenCount = 0;
         for (i = 0; i < theLength; i++) {
             if (tenCount == 10) {
@@ -1286,7 +1286,7 @@ public class asmProcessor {
             tenCount++;
             System.out.print(String.format("%03o ", bArray[i]));
         }
-        System.out.println("\n+ Display completed.");
+        System.out.println("\n+ Octal display completed.");
         tenCount = 0;
         for (i = 0; i < theLength; i++) {
             if (tenCount == 10) {
@@ -1296,7 +1296,7 @@ public class asmProcessor {
             tenCount++;
             System.out.print(byteToString(bArray[i]) + " ");
         }
-        System.out.println("\n+ Display completed.");
+        System.out.println("\n+ Binary display completed.");
     }
 
     // -------------------------------------------------------------------------
