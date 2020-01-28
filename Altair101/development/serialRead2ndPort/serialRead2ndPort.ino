@@ -105,11 +105,11 @@ void setup() {
   while (!serial2) {
     ;
   }
-  // serial2.listen(); // Not likely required.
+  // serial2.listen(); // Not required when only using one serial module.
   if (serial2.isListening()) {
     Serial.println("+ serial2 is listening.");
   }
-  Serial.println("+ Ready to use the second serial port.");
+  Serial.println("+ Ready to use the second serial port for receiving program bytes.");
 
   Serial.println("+++ Go to loop.");
 }
