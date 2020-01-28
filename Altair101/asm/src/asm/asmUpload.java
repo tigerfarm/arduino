@@ -1,5 +1,9 @@
 /*
+// -----------------------------------------------------------------------------
     Upload binary files to the Altair 101 through a serial port.
+
+    To view serial ports on a Mac:
+    $ ls /dev/tty.*
  */
 package asm;
 
@@ -12,14 +16,19 @@ import java.util.logging.Logger;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// Opcode processing.
+//
 public class asmUpload {
 
+    // Uses the device name that can be found in the Arduino IDE, under the menu item Tools/Port.
     private static final String SERIALPORT = "/dev/tty.SLAB_USBtoUART";
 
     // -------------------------------------------------------------------------
-    // To view serial ports:
-    //  $ ls /dev/tty.*
+    // Constructor to ...
+    public asmUpload() {
+        System.out.println("+ asmUpload() constructor");
+    }
+
+    // -------------------------------------------------------------------------
     public static String byteToString(byte aByte) {
         return toBinary(aByte, 8);
     }
@@ -33,8 +42,6 @@ public class asmUpload {
     }
 
     public static void sendFile(String theReadFilename) {
-        // Uses the device name that can be found in the Arduino IDE, under the menu item Tools/Port.
-        
         SerialPort sp = SerialPort.getCommPort(SERIALPORT);
         // Connection settings must match Arduino program settings.
         // Baud rate, data bits, stop bits, and parity
@@ -45,12 +52,11 @@ public class asmUpload {
             System.out.println("- Error, failed to open serial port: " + SERIALPORT);
             return;
         }
-        System.out.println("+ Port is open.");
+        System.out.println("+ Serial port is open.");
         // System.out.println("++ Write out binary file: " + theReadFilename);
         int theLength = 0;
         byte bArray[] = null;
         try {
-            // File theFile = new File("/Users/dthurston/Projects/arduino/Altair101/asm/10000000.bin");
             File theFile = new File(theReadFilename);
             theLength = (int) theFile.length();
             bArray = new byte[(int) theLength];
@@ -90,14 +96,7 @@ public class asmUpload {
     }
 
     // -------------------------------------------------------------------------
-    // Constructor to ...
-    public asmUpload() {
-        System.out.println("+ asmUpload() constructor");
-    }
-
-    // -------------------------------------------------------------------------
     public static void main(String[] args) {
-
         System.out.println("+++ Start.");
 
         String outFilename = "10000000.bin";
