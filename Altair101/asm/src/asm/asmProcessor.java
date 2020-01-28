@@ -96,7 +96,6 @@
  */
 package asm;
 
-import static asm.opcodes8080.byteToString;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -533,7 +532,7 @@ public class asmProcessor {
         }
         if (returnValue == NAME_NOT_FOUND && findName.endsWith("h")) {
             // Hex number. For example, change 0ffh or ffh to integer: 255.
-            // Samples: 0ffh, 0eh, 500h
+            // Samples: 0ffh, 0eh, 500h(00000101 00000000)
             int si = 0;
             if (findName.startsWith("0") && findName.length() > 3) {
                 si = 1;
@@ -1266,7 +1265,7 @@ public class asmProcessor {
             System.out.print("IOException: ");
             System.out.println(ioe.toString());
         }
-        System.out.println("+ Show the bytes. Number of bytes: " + theLength + " in the file: " + theReadFilename);
+        System.out.println("+ Show, " + theLength + " bytes from the file: " + theReadFilename);
         int i;
         int tenCount = 0;
         for (i = 0; i < theLength; i++) {
@@ -1276,6 +1275,16 @@ public class asmProcessor {
             }
             tenCount++;
             System.out.print(String.format("%02X ", bArray[i]));
+        }
+        System.out.println("\n+ Display completed.");
+        tenCount = 0;
+        for (i = 0; i < theLength; i++) {
+            if (tenCount == 10) {
+                tenCount = 0;
+                System.out.println("");
+            }
+            tenCount++;
+            System.out.print(String.format("%03o ", bArray[i]));
         }
         System.out.println("\n+ Display completed.");
         tenCount = 0;
@@ -1336,7 +1345,7 @@ public class asmProcessor {
         // C3 00 6B 79 20 65 3F E3 76 1C 78 0E 6E 77 E3 4A 00 00 00 00 00 00 00 C3 00
         //
         // Option: print array format for use in Processor.ino.
-        // thisProcess.printProgramBytesArray();
+        thisProcess.printProgramBytesArray();
         //
         //
         if (thisProcess.errorCount > 0) {

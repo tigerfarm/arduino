@@ -1181,6 +1181,27 @@ byte theProgramKtb[] = {
   // ------------------------------------------------------------------
   0000, 0000, 0000  //       end
 };
+
+const byte theProgramKtb[] = {
+  // ------------------------------------------------------------------
+  // Kill the Bit program.
+  // Before starting, make sure all the sense switches are in the down position.
+  B00100001, 0, 0,     //   0: lxi h,0
+  B00010110, 128,      //   3: mvi 00010110 (080h)
+  B00000001, 0, 5,     //   5: lxi b,500h
+  B00011010,           //   8: ldax d
+  B00011010,           //   9: ldax d
+  B00011010,           //  10: ldax d
+  B00011010,           //  11: ldax d
+  B00001001,           //  12: dad b
+  B11010010, 8, 0,     //  13: jnc Begin
+  B11011011, 255,      //  16: in 255 (0ffh)
+  B10101010,           //  18: xra d
+  B00001111,           //  19: rrc
+  B01010111,           //  20: mov d,a
+  B11000011, 8, 0,     //  21: jmp Begin
+  0                    //  24: End of program
+};
 ````
 #### Kill the Bit program expanded to byte level
 ````

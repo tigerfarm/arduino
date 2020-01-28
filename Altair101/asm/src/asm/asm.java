@@ -1,3 +1,10 @@
+/*
+    Interactive program to assemble programs into byte code for Processor.ini to run.
+
+    From a command prompt, call various Altair 101 assembly functions.    
+    To run:
+        $ java -jar asm.jar
+*/
 package asm;
 
 import com.fazecast.jSerialComm.SerialPort;
@@ -39,15 +46,15 @@ public class asm {
     }
     public static void sendFile(String theReadFilename) {
         // Uses the device name that can be found in the Arduino IDE, under the menu item Tools/Port.
-        //SerialPort sp = SerialPort.getCommPort("/dev/cu.usbmodem14120");
-        SerialPort sp = SerialPort.getCommPort("/dev/cu.wchusbserial14120");
+        String theSerialPort = "/dev/tty.SLAB_USBtoUART";
+        SerialPort sp = SerialPort.getCommPort(theSerialPort);
         // Connection settings must match Arduino program settings.
         // Baud rate, data bits, stop bits, and parity
         sp.setComPortParameters(9600, 8, 1, 0);
         // block until bytes can be written
         sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
         if (!sp.openPort()) {
-            System.out.println("- Error, failed to open port.");
+            System.out.println("- Error, failed to open serial port: " + theSerialPort);
             return;
         }
         System.out.println("+ Port is open.");
@@ -55,8 +62,8 @@ public class asm {
         int theLength = 0;
         byte bArray[] = null;
         try {
-            // File theFile = new File(theReadFilename);
-            File theFile = new File("/Users/dthurston/Projects/arduino/Altair101/asm/10000000.bin");
+            // File theFile = new File("/Users/dthurston/Projects/arduino/Altair101/asm/10000000.bin");
+            File theFile = new File(theReadFilename);
             theLength = (int) theFile.length();
             bArray = new byte[(int) theLength];
             FileInputStream in = new FileInputStream(theReadFilename);
@@ -77,10 +84,8 @@ public class asm {
                     System.out.println("");
                 }
                 tenCount++;
-                // Print binary formatted output for viewing with Examine/Next.
                 System.out.print(byteToString(bArray[i]) + " ");
-                // Hex: System.out.print(String.format("%02X ", bArray[i]));
-                sp.getOutputStream().write(i.byteValue());
+                sp.getOutputStream().write(bArray[i]);
                 sp.getOutputStream().flush();
             }
         } catch (IOException ex) {
