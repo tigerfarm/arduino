@@ -59,7 +59,6 @@
 // Parameters: (receive, transmit).
 // Receive needs to be on an interrupt pin.
 // Pin 10 or 12 (tested) is connected to TXD on the serial module. TXD transmits received bytes to the Arduino.
-// Note, doesn't work on pin 11 or 13.
 // Pin ? is not connected to RXD on the serial module.
 SoftwareSerial serial2(12,11);
 
@@ -112,8 +111,6 @@ void setup() {
   }
   Serial.println("+ Ready to use the second serial port.");
 
-  pinMode(10, INPUT); // Not likely required.
-  pinMode(11, OUTPUT); // Not likely required.
   Serial.println("+++ Go to loop.");
 }
 

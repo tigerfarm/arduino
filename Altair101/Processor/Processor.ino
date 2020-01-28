@@ -3850,6 +3850,13 @@ void setup() {
 #endif
 
   // ----------------------------------------------------
+  serial2.begin(9600);
+  if (serial2.isListening()) {
+    Serial.println("+ serial2 is listening.");
+  }
+  Serial.println("+ Ready to use the second serial port.");
+
+  // ----------------------------------------------------
   // Options to Load/Read/Run a initialization program
   //
   // ---------------------------
