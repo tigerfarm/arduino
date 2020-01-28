@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 public class asmUpload {
 
     // Uses the device name that can be found in the Arduino IDE, under the menu item Tools/Port.
-    private static final String SERIALPORT = "/dev/tty.SLAB_USBtoUART";
+    private static String SerialPortName = "/dev/tty.SLAB_USBtoUART";   // Default name.
 
     // -------------------------------------------------------------------------
     // Constructor to ...
@@ -41,15 +41,20 @@ public class asmUpload {
         }
     }
 
+    public void setSerialPort(String theSerialPortName) {
+        this.SerialPortName = theSerialPortName;
+        System.out.println("+ Serial port set to: " + SerialPortName);
+    }
+
     public static void sendFile(String theReadFilename) {
-        SerialPort sp = SerialPort.getCommPort(SERIALPORT);
+        SerialPort sp = SerialPort.getCommPort(SerialPortName);
         // Connection settings must match Arduino program settings.
         // Baud rate, data bits, stop bits, and parity
         sp.setComPortParameters(9600, 8, 1, 0);
         // block until bytes can be written
         sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
         if (!sp.openPort()) {
-            System.out.println("- Error, failed to open serial port: " + SERIALPORT);
+            System.out.println("- Error, failed to open serial port: " + SerialPortName);
             return;
         }
         System.out.println("+ Serial port is open.");
