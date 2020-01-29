@@ -78,8 +78,26 @@ pcf8574inputLogic.ino further develops the code by adding logic that is used in 
 
     + Currently handles, 'a'.
     ++ Need to handle, '\n', an escaped character.
-
 ````
+---------------------------------------------
+Add ability to upload binary programs from my Mac to the dev machine.
+
+Everything in hardware, has so many steps.
+For me, I to add a serial port module to my Arduino Altair 8800 emulator project, so that I could upload byte files (assembler programs) from my Mac, the Arduino, I went through the following steps:
++ Buy the serial port module and wait for it to ship from China, about $1.50.
++ Find a sample program Java upload program, Arduino receive/download program, and a YouTube video. Select from many that are not specific to my requirement: upload bytes from my Mac to my Arduino Mega.
++ Test serial upload using the default Mega USB port, using the IDE serial monitor program.
++ Write a sample Java serial port program, based on the sample. Test that it can open the default Arduino serial port.
++ Test the Java program with the default Mega USB port. And find out, that uploading causes the Mega to auto-reset, as though I was upload a new program.
++ Wire in the new serial port module.
++ After various test, and reading many other sample Arduino receive programs, I realized that I needed to wire the Mega receive pin to the serial port module TXD pin, not the RXD (receive) pin. And I needed to use an interrupt pin and that Mega has different interrupt pins from the Uno.
++ With proper wiring, Java upload program, and Arduino download program … It works!
++ Then, integrate the test Java program into my Java assembler program, making it a nice proper Java class.
++ Update the Altair emulator program with more logic such as, how to use the toggle switches to put the device into receive mode, and exit receive mode.
++ Integrate the test Arduino download program into my Altair emulator program so that it can receive the upload bytes and store them properly.
++ Test and tune.
+Now, I can write Intel 8080 assembler programs using my NetBeans IDE on my Mac. Then use the Java assembler program to assemble the program into bytes and upload it to the Altair emulator, and run the program.
+
 --------------------------------------------------------------------------------
 ## Assembler Program
 ````
