@@ -25,7 +25,7 @@
   ++ CP2102 USB 2.0 to TTL UART Module 6Pin Serial Converter STC FT232 26.5mm*15.6mm
   ++ Download driver:https://www.silabs.com/community/interface/knowledge-base.entry.html/2017/01/10/legacy_os_softwarea-bgvU
   +++ http://www.silabs.com/Support%20Documents/Software/Mac_OSX_VCP_Driver_10_6.zip
-  +++ I saved it as: CP2102-MacSerialDriver.zip.
+  +++ I unzipped it and renamed it: CP2102-MacSerialDriver.dmg.
   + Consider buying a serial port module that matches the Arduino current CH340 USB driver:
   ++ CH340 USB To RS232 TTL Auto Converter Module Serial Port FOR Arduino STC TA-02L
 
