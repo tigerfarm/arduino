@@ -8,7 +8,6 @@
 package asm;
 
 import com.fazecast.jSerialComm.SerialPort;
-import static com.fazecast.jSerialComm.SerialPort.getCommPorts;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -31,17 +30,33 @@ public class asmUpload {
         SerialPort serials[] = SerialPort.getCommPorts();
         boolean IsFound = false;
         for (SerialPort serial : serials) {
-            if (theSerialPortName.equals(serial.getSystemPortName()) ) {
+            if (theSerialPortName.startsWith(serial.getPortDescription()) ) {
                 // System.out.println("++ Found: " + theSerialPortName);
                 IsFound = true;
             }
         }
         if (!IsFound) {
-            System.out.println("+ Serial port name not found: " + SerialPortName);
+            System.out.println("+ Serial port name not found: " + theSerialPortName);
             return;
         }
-        this.SerialPortName = "/dev/tty." + theSerialPortName;
-        System.out.println("+ Serial port set to: " + SerialPortName);
+        asmUpload.SerialPortName = "/dev/tty." + theSerialPortName;
+        System.out.println("+ Serial port set to: " + asmUpload.SerialPortName);
+    }
+
+    public static void listSerialPorts() {
+        System.out.println("+ List of serial ports:");
+        SerialPort serials[] = SerialPort.getCommPorts();
+        for (SerialPort serial : serials) {
+            System.out.println("++ "
+                    + serial.getPortDescription()
+                    // + " : " + serial.getSystemPortName()
+                    + " BaudRate:" + serial.getBaudRate()
+                    + " Data Bits:" + serial.getNumDataBits()
+                    + " Stop Bits:" + serial.getNumStopBits()
+                    + " Parity:" + serial.getParity()
+            );
+        }
+        System.out.println("+ End of list.");
     }
 
     // -------------------------------------------------------------------------
@@ -61,21 +76,6 @@ public class asmUpload {
         } else {
             return (a & 0x1) == 0 ? "0" : "1";
         }
-    }
-
-    public static void listSerialPorts() {
-        System.out.println("+ List of serial ports:");
-        SerialPort serials[] = SerialPort.getCommPorts();
-        for (SerialPort serial : serials) {
-            System.out.println("++ " + serial.getSystemPortName()
-                    + " : " + serial.getPortDescription()
-                    + " BaudRate:" + serial.getBaudRate()
-                    + " Data Bits:" + serial.getNumDataBits()
-                    + " Stop Bits:" + serial.getNumStopBits()
-                    + " Parity:" + serial.getParity()
-            );
-        }
-        System.out.println("+ End of list.");
     }
 
     public static void sendFile(String theReadFilename) {
@@ -137,11 +137,13 @@ public class asmUpload {
         System.out.println("+++ Start.");
 
         asmUpload upload = new asmUpload();
-        upload.listSerialPorts();
+        asmUpload.listSerialPorts();
+        upload.setSerialPort("Bluetooth-Incoming-Port");
+        upload.setSerialPort("abc");
 
         String outFilename = "10000000.bin";
-        System.out.println("+ Write to the serail port, the program file: " + outFilename + ":");
-        sendFile(outFilename);
+        // System.out.println("+ Write to the serail port, the program file: " + outFilename + ":");
+        // sendFile(outFilename);
 
         System.out.println("\n+++ Exit.\n");
     }
