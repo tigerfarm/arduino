@@ -8,6 +8,7 @@
 package asm;
 
 import com.fazecast.jSerialComm.SerialPort;
+import static com.fazecast.jSerialComm.SerialPort.getCommPorts;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -21,6 +22,27 @@ public class asmUpload {
 
     // Uses the device name that can be found in the Arduino IDE, under the menu item Tools/Port.
     private static String SerialPortName = "/dev/tty.SLAB_USBtoUART";   // Default name.
+
+    public String getSerialPort() {
+        return asmUpload.SerialPortName;
+    }
+
+    public void setSerialPort(String theSerialPortName) {
+        SerialPort serials[] = SerialPort.getCommPorts();
+        boolean IsFound = false;
+        for (SerialPort serial : serials) {
+            if (theSerialPortName.equals(serial.getSystemPortName()) ) {
+                // System.out.println("++ Found: " + theSerialPortName);
+                IsFound = true;
+            }
+        }
+        if (!IsFound) {
+            System.out.println("+ Serial port name not found: " + SerialPortName);
+            return;
+        }
+        this.SerialPortName = "/dev/tty." + theSerialPortName;
+        System.out.println("+ Serial port set to: " + SerialPortName);
+    }
 
     // -------------------------------------------------------------------------
     // Constructor to ...
@@ -41,9 +63,19 @@ public class asmUpload {
         }
     }
 
-    public void setSerialPort(String theSerialPortName) {
-        this.SerialPortName = theSerialPortName;
-        System.out.println("+ Serial port set to: " + SerialPortName);
+    public static void listSerialPorts() {
+        System.out.println("+ List of serial ports:");
+        SerialPort serials[] = SerialPort.getCommPorts();
+        for (SerialPort serial : serials) {
+            System.out.println("++ " + serial.getSystemPortName()
+                    + " : " + serial.getPortDescription()
+                    + " BaudRate:" + serial.getBaudRate()
+                    + " Data Bits:" + serial.getNumDataBits()
+                    + " Stop Bits:" + serial.getNumStopBits()
+                    + " Parity:" + serial.getParity()
+            );
+        }
+        System.out.println("+ End of list.");
     }
 
     public static void sendFile(String theReadFilename) {
@@ -103,6 +135,9 @@ public class asmUpload {
     // -------------------------------------------------------------------------
     public static void main(String[] args) {
         System.out.println("+++ Start.");
+
+        asmUpload upload = new asmUpload();
+        upload.listSerialPorts();
 
         String outFilename = "10000000.bin";
         System.out.println("+ Write to the serail port, the program file: " + outFilename + ":");

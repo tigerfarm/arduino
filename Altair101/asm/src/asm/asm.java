@@ -4,13 +4,11 @@
     From a command prompt, call various Altair 101 assembly functions.    
     To run:
         $ java -jar asm.jar
-*/
+ */
 package asm;
 
-import com.fazecast.jSerialComm.SerialPort;
+import static asm.asmUpload.sendFile;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.logging.Level;
@@ -20,86 +18,13 @@ import java.util.logging.Logger;
 // It maybe possible to disable the USB serial port reset using to following link.
 //  https://playground.arduino.cc/Main/DisablingAutoResetOnSerialConnection/
 //  Stick a 120 ohm resistor in the headers between 5v and reset
-
 public class asm {
 
     asmProcessor processFile = new asmProcessor();
     asmOpcodes theOpcodes = new asmOpcodes();
+    asmUpload upload = new asmUpload();
 
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-
-    // -------------------------------------------------------------------------
-    // -------------------------------------------------------------------------
-    // To view serial ports:
-    //  $ ls /dev/tty.*
-
-    public static String byteToString(byte aByte) {
-        return toBinary(aByte, 8);
-    }
-
-    private static String toBinary(byte a, int bits) {
-        if (--bits > 0) {
-            return toBinary((byte) (a >> 1), bits) + ((a & 0x1) == 0 ? "0" : "1");
-        } else {
-            return (a & 0x1) == 0 ? "0" : "1";
-        }
-    }
-    public static void sendFile(String theReadFilename) {
-        // Uses the device name that can be found in the Arduino IDE, under the menu item Tools/Port.
-        String theSerialPort = "/dev/tty.SLAB_USBtoUART";
-        SerialPort sp = SerialPort.getCommPort(theSerialPort);
-        // Connection settings must match Arduino program settings.
-        // Baud rate, data bits, stop bits, and parity
-        sp.setComPortParameters(9600, 8, 1, 0);
-        // block until bytes can be written
-        sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
-        if (!sp.openPort()) {
-            System.out.println("- Error, failed to open serial port: " + theSerialPort);
-            return;
-        }
-        System.out.println("+ Port is open.");
-        // System.out.println("++ Write out binary file: " + theReadFilename);
-        int theLength = 0;
-        byte bArray[] = null;
-        try {
-            // File theFile = new File("/Users/dthurston/Projects/arduino/Altair101/asm/10000000.bin");
-            File theFile = new File(theReadFilename);
-            theLength = (int) theFile.length();
-            bArray = new byte[(int) theLength];
-            FileInputStream in = new FileInputStream(theReadFilename);
-            in.read(bArray);
-            in.close();
-        } catch (IOException ioe) {
-            System.out.print("IOException: ");
-            System.out.println(ioe.toString());
-        }
-        System.out.println("+ Write to serial port. Number of bytes: " + theLength + " in the file: " + theReadFilename);
-        //
-        Integer i;
-        int tenCount = 0;
-        try {
-            for (i = 0; i < theLength; i++) {
-                if (tenCount == 10) {
-                    tenCount = 0;
-                    System.out.println("");
-                }
-                tenCount++;
-                System.out.print(byteToString(bArray[i]) + " ");
-                sp.getOutputStream().write(bArray[i]);
-                sp.getOutputStream().flush();
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(asm.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        // ---------------------------------------------------------------------
-        if (sp.closePort()) {
-            System.out.println("+ Serial port is closed.");
-        } else {
-            System.out.println("- Error: Failed to close serial port.");
-        }
-        //
-        System.out.println("\n+ Write completed.");
-    }
 
     // -------------------------------------------------------------------------
     public void run() {
@@ -204,11 +129,21 @@ public class asm {
                     theOpcodes.opcodesListByName();
                     break;
                 case "upload":
-                    // processFile.uploadFile(outFilename);
                     System.out.println("+ -------------------------------------");
                     System.out.println("+ Write to the serail port, the program file: " + outFilename + ":");
                     sendFile(outFilename);
                     break;
+                case "uploadset":
+                    if (theRest.length() == 0) {
+                        System.out.println("- Require name to set the serial port: uploadset <name>");
+                    }
+                    System.out.println("+ Set the serial port name: " + theRest);
+                    upload.setSerialPort(theRest);
+                    break;
+                case "showports": {
+                    upload.listSerialPorts();
+                    break;
+                }
                 case "help":
                     System.out.println("---------------------------------------");
                     System.out.println("Help");
@@ -235,6 +170,10 @@ public class asm {
                     System.out.println("+ opcodenames        : list the opcode data, sorted by name.");
                     System.out.println("");
                     System.out.println("+ upload             : Serial upload the program bytes to the Arduino.");
+                    System.out.println("++ Serial port name: " + upload.getSerialPort());
+                    System.out.println("+ showports          : List available serial ports.");
+                    System.out.println("+ uploadset          : Set serial port to use for uploading.");
+                    System.out.println("");
                     System.out.println("+ exit               : Exit this program.");
                     break;
                 case "exit":
