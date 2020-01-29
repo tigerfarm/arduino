@@ -100,7 +100,8 @@ movdm:01010110:
 movem:01011110:
 movhm:01100110:
 movlm:01101110:
-mvia:00RRR110:MVI R,#  00 RRR 110  2  Move a number (#, db) to a register.
+mvi:00RRR110:MVI R,#  00 RRR 110  2  Move a number (#, db) to a register.
+mvia:00111110:
 mvib:00000110:
 mvic:00001110:
 mvid:00010110:

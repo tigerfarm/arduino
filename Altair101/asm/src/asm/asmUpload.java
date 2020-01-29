@@ -4,6 +4,20 @@
 
     To view serial ports on a Mac:
     $ ls /dev/tty.*
+
+    Need to control/limit the listing to relavent ports, example contains ".cu".
++ List of serial ports:
+++ cu.Bluetooth-Incoming-Port : Bluetooth-Incoming-Port BaudRate:9600 Data Bits:8 Stop Bits:1 Parity:0
+++ tty.Bluetooth-Incoming-Port : Bluetooth-Incoming-Port (Dial-In) BaudRate:9600 Data Bits:8 Stop Bits:1 Parity:0
+++ cu.wchusbserial14120 : USB2.0-Serial BaudRate:9600 Data Bits:8 Stop Bits:1 Parity:0
+++ tty.wchusbserial14120 : USB2.0-Serial (Dial-In) BaudRate:9600 Data Bits:8 Stop Bits:1 Parity:0
+++ cu.SLAB_USBtoUART : CP2102 USB to UART Bridge Controller BaudRate:9600 Data Bits:8 Stop Bits:1 Parity:0
+++ tty.SLAB_USBtoUART : CP2102 USB to UART Bridge Controller (Dial-In) BaudRate:9600 Data Bits:8 Stop Bits:1 Parity:0
++ End of list.
+
+    List files in a program directory.
+    + Set and get program directory value.
+
  */
 package asm;
 
@@ -20,7 +34,7 @@ import java.util.logging.Logger;
 public class asmUpload {
 
     // Uses the device name that can be found in the Arduino IDE, under the menu item Tools/Port.
-    private static String SerialPortName = "/dev/tty.SLAB_USBtoUART";   // Default name.
+    private static String SerialPortName = "/dev/cu.SLAB_USBtoUART";   // Default name.
 
     public String getSerialPortName() {
         return asmUpload.SerialPortName;
@@ -29,17 +43,19 @@ public class asmUpload {
     public void setSerialPortName(String theSerialPortName) {
         SerialPort serials[] = SerialPort.getCommPorts();
         boolean IsFound = false;
+        String theSystemPortName = "";
         for (SerialPort serial : serials) {
             if (theSerialPortName.startsWith(serial.getPortDescription()) ) {
                 // System.out.println("++ Found: " + theSerialPortName);
                 IsFound = true;
+                theSystemPortName = serial.getSystemPortName();
             }
         }
         if (!IsFound) {
             System.out.println("+ Serial port name not found: " + theSerialPortName);
             return;
         }
-        asmUpload.SerialPortName = "/dev/tty." + theSerialPortName;
+        asmUpload.SerialPortName = "/dev/" + theSystemPortName;
         System.out.println("+ Serial port set to: " + theSerialPortName);
         System.out.println("+ Serial port set to system name: " + asmUpload.SerialPortName);
     }
@@ -48,9 +64,9 @@ public class asmUpload {
         System.out.println("+ List of serial ports:");
         SerialPort serials[] = SerialPort.getCommPorts();
         for (SerialPort serial : serials) {
-            System.out.println("++ "
-                    + serial.getPortDescription()
-                    // + " : " + serial.getSystemPortName()
+            System.out.println(
+                    "++ " + serial.getSystemPortName()
+                    + " : " + serial.getPortDescription()
                     + " BaudRate:" + serial.getBaudRate()
                     + " Data Bits:" + serial.getNumDataBits()
                     + " Stop Bits:" + serial.getNumStopBits()
@@ -63,7 +79,7 @@ public class asmUpload {
     // -------------------------------------------------------------------------
     // Constructor to ...
     public asmUpload() {
-        System.out.println("+ asmUpload() constructor");
+        System.out.println("+ asmUpload(), current SerialPortName: " + asmUpload.SerialPortName);
     }
 
     // -------------------------------------------------------------------------
@@ -125,7 +141,7 @@ public class asmUpload {
         }
         // ---------------------------------------------------------------------
         if (sp.closePort()) {
-            System.out.println("+ Serial port is closed.");
+            System.out.println("\n+ Serial port is closed.");
         } else {
             System.out.println("- Error: Failed to close serial port.");
         }
