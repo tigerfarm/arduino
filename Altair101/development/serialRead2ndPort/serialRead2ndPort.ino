@@ -58,8 +58,8 @@
 // Receive needs to be an interrupt pin.
 // Computer USB >> serial2 module TXD >> RX pin for the Arduino to receive the bytes.
 //                                TXD transmits received bytes to the Arduino receive (RX) pin.
-PIN_RX = 12;  // Arduino receive is connected to TXD on the serial module.
-PIN_TX = 11;  // Arduino transmit is not used, and therefore notconnected to RXD pin on the serial module.
+const int PIN_RX = 12;  // Arduino receive is connected to TXD on the serial module.
+const int PIN_TX = 11;  // Arduino transmit is not used, and therefore notconnected to RXD pin on the serial module.
 SoftwareSerial serial2(PIN_RX, PIN_TX);
 
 // Then, to read from the new serial port, use:
@@ -130,7 +130,13 @@ void loop() {
     // Input on the external serial port module.
     // Read and process an incoming byte.
     Serial.print("++ Byte array number: ");
-    Serial.print(readByte);
+    if (readByteCount<10) {
+      Serial.print(" ");
+    }
+    if (readByteCount<100) {
+      Serial.print(" ");
+    }
+    Serial.print(readByteCount);
     readByte = serial2.read();
     memoryData[readByteCount] = readByte;
     readByteCount++;

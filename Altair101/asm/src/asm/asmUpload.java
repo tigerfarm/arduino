@@ -137,14 +137,14 @@ public class asmUpload {
     public static void main(String[] args) {
         System.out.println("+++ Start.");
 
-        asmUpload upload = new asmUpload();
+        // asmUpload upload = new asmUpload();
         asmUpload.listSerialPorts();
-        upload.setSerialPortName("Bluetooth-Incoming-Port");
-        upload.setSerialPortName("abc");
+        // upload.setSerialPortName("Bluetooth-Incoming-Port");
+        // upload.setSerialPortName("abc");
 
         String outFilename = "10000000.bin";
-        // System.out.println("+ Write to the serail port, the program file: " + outFilename + ":");
-        // sendFile(outFilename);
+        System.out.println("+ Write to the serail port, the program file: " + outFilename + ":");
+        sendFile(outFilename);
 
         System.out.println("\n+++ Exit.\n");
     }
