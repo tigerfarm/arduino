@@ -7,12 +7,12 @@
  */
 package asm;
 
+import static asm.asmUpload.getSerialPortName;
+import static asm.asmUpload.listSerialPorts;
 import static asm.asmUpload.sendFile;
+import static asm.asmUpload.setSerialPortName;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 // Looks like I need to add the new serial port module to get this to work.
 // It maybe possible to disable the USB serial port reset using to following link.
@@ -22,7 +22,6 @@ public class asm {
 
     asmProcessor processFile = new asmProcessor();
     asmOpcodes theOpcodes = new asmOpcodes();
-    asmUpload upload = new asmUpload();
 
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
@@ -135,14 +134,14 @@ public class asm {
                     break;
                 case "uploadset":
                     if (theRest.length() == 0) {
-                        System.out.println("+ Serial port name set to: uploadset: " + upload.getSerialPortName());
+                        System.out.println("+ Serial port name set to: uploadset: " + getSerialPortName());
                     } else {
                         System.out.println("+ Set the serial port name: " + theRest);
-                        upload.setSerialPortName(theRest);
+                        setSerialPortName(theRest);
                     }
                     break;
-                case "showports": {
-                    upload.listSerialPorts();
+                case "listports": {
+                    listSerialPorts();
                     break;
                 }
                 case "help":
@@ -171,8 +170,8 @@ public class asm {
                     System.out.println("+ opcodenames        : list the opcode data, sorted by name.");
                     System.out.println("");
                     System.out.println("+ upload             : Serial upload the program bytes to the Arduino.");
-                    System.out.println("++ Serial port name: " + upload.getSerialPortName());
-                    System.out.println("+ showports          : List available serial ports.");
+                    System.out.println("++ Serial port name: " + getSerialPortName());
+                    System.out.println("+ listports          : List available serial ports.");
                     System.out.println("+ uploadset          : Set serial port to use for uploading.");
                     System.out.println("");
                     System.out.println("+ exit               : Exit this program.");

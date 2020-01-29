@@ -15,7 +15,8 @@
 ++ tty.SLAB_USBtoUART : CP2102 USB to UART Bridge Controller (Dial-In) BaudRate:9600 Data Bits:8 Stop Bits:1 Parity:0
 + End of list.
 
-    List files in a program directory.
+    Find program files from asm:
+    + List files in a program directory.
     + Set and get program directory value.
 
  */
@@ -36,11 +37,17 @@ public class asmUpload {
     // Uses the device name that can be found in the Arduino IDE, under the menu item Tools/Port.
     private static String SerialPortName = "/dev/cu.SLAB_USBtoUART";   // Default name.
 
-    public String getSerialPortName() {
+    // -------------------------------------------------------------------------
+    // Constructor to ...
+    public asmUpload() {
+        System.out.println("+ asmUpload(), current Serial Port Name: " + asmUpload.SerialPortName);
+    }
+
+    public static String getSerialPortName() {
         return asmUpload.SerialPortName;
     }
 
-    public void setSerialPortName(String theSerialPortName) {
+    public static void setSerialPortName(String theSerialPortName) {
         SerialPort serials[] = SerialPort.getCommPorts();
         boolean IsFound = false;
         String theSystemPortName = "";
@@ -74,12 +81,6 @@ public class asmUpload {
             );
         }
         System.out.println("+ End of list.");
-    }
-
-    // -------------------------------------------------------------------------
-    // Constructor to ...
-    public asmUpload() {
-        System.out.println("+ asmUpload(), current SerialPortName: " + asmUpload.SerialPortName);
     }
 
     // -------------------------------------------------------------------------
