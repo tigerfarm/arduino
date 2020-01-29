@@ -135,10 +135,11 @@ public class asm {
                     break;
                 case "uploadset":
                     if (theRest.length() == 0) {
-                        System.out.println("- Require name to set the serial port: uploadset <name>");
+                        System.out.println("+ Serial port name set to: uploadset: " + upload.getSerialPortName());
+                    } else {
+                        System.out.println("+ Set the serial port name: " + theRest);
+                        upload.setSerialPortName(theRest);
                     }
-                    System.out.println("+ Set the serial port name: " + theRest);
-                    upload.setSerialPort(theRest);
                     break;
                 case "showports": {
                     upload.listSerialPorts();
@@ -170,7 +171,7 @@ public class asm {
                     System.out.println("+ opcodenames        : list the opcode data, sorted by name.");
                     System.out.println("");
                     System.out.println("+ upload             : Serial upload the program bytes to the Arduino.");
-                    System.out.println("++ Serial port name: " + upload.getSerialPort());
+                    System.out.println("++ Serial port name: " + upload.getSerialPortName());
                     System.out.println("+ showports          : List available serial ports.");
                     System.out.println("+ uploadset          : Set serial port to use for uploading.");
                     System.out.println("");

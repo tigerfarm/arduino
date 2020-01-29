@@ -22,11 +22,11 @@ public class asmUpload {
     // Uses the device name that can be found in the Arduino IDE, under the menu item Tools/Port.
     private static String SerialPortName = "/dev/tty.SLAB_USBtoUART";   // Default name.
 
-    public String getSerialPort() {
+    public String getSerialPortName() {
         return asmUpload.SerialPortName;
     }
 
-    public void setSerialPort(String theSerialPortName) {
+    public void setSerialPortName(String theSerialPortName) {
         SerialPort serials[] = SerialPort.getCommPorts();
         boolean IsFound = false;
         for (SerialPort serial : serials) {
@@ -40,7 +40,8 @@ public class asmUpload {
             return;
         }
         asmUpload.SerialPortName = "/dev/tty." + theSerialPortName;
-        System.out.println("+ Serial port set to: " + asmUpload.SerialPortName);
+        System.out.println("+ Serial port set to: " + theSerialPortName);
+        System.out.println("+ Serial port set to system name: " + asmUpload.SerialPortName);
     }
 
     public static void listSerialPorts() {
@@ -138,8 +139,8 @@ public class asmUpload {
 
         asmUpload upload = new asmUpload();
         asmUpload.listSerialPorts();
-        upload.setSerialPort("Bluetooth-Incoming-Port");
-        upload.setSerialPort("abc");
+        upload.setSerialPortName("Bluetooth-Incoming-Port");
+        upload.setSerialPortName("abc");
 
         String outFilename = "10000000.bin";
         // System.out.println("+ Write to the serail port, the program file: " + outFilename + ":");
