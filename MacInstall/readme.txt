@@ -1,3 +1,23 @@
+--------------------------------------------------------------------------------
++++ Configure Mac with USB Serial drivers.
+
+The drivers allow:
++ The Mac Arduino IDE to communicate with Arduino boards.
++ An Arduino serial port module to communicate with Mac apps such as my Java serial upload program.
+
+--------------------------------------------------------------------------------
++++ CP2102 serial port module
+
+CP2102 USB 2.0 to TTL UART Module 6Pin Serial Converter STC FT232 26.5mm*15.6mm
++ Download driver:https://www.silabs.com/community/interface/knowledge-base.entry.html/2017/01/10/legacy_os_softwarea-bgvU
+++ http://www.silabs.com/Support%20Documents/Software/Mac_OSX_VCP_Driver_10_6.zip
+++ I saved it as: CP2102-MacSerialDriver.zip.
+
+After installing, requires a reboot.
+
+--------------------------------------------------------------------------------
++++ CH340 USB serial driver.
+
 How to steps from:
 https://medium.com/@thuc/connect-arduino-nano-with-mac-osx-f922a46c0a5d
 
@@ -27,3 +47,4 @@ https://apple.stackexchange.com/questions/256138/trying-to-set-boot-args-with-nv
 + /Applications/Arduino.app/Contents/Java/hardware/arduino/avr/platform.txt
 + /Applications/Arduino.app/Contents/Java/hardware/arduino/avr/programmers.txt
 
+--------------------------------------------------------------------------------
