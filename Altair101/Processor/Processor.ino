@@ -183,15 +183,14 @@ File myFile;
 // Add another serial port settings, to connect to the new serial hardware module.
 #include <SoftwareSerial.h>
 // Connections:
-//  If not transmiting, then the second pin doesn't need to be connected.
-//
+// Since not transmiting, the second parameter pin doesn't need to be connected.
 // Parameters: (receive, transmit).
-// Receive needs to be on an interrupt pin.
-// Pin 10 or 12 (tested) is connected to TXD on the serial module.
-// Note, doesn't work on pin 11 or 13.
-// Pin ? is not connected to RXD on the serial module.
-SoftwareSerial serial2(12,13);
-
+// Receive needs to be an interrupt pin.
+// Computer USB >> serial2 module TXD >> RX pin for the Arduino to receive the bytes.
+//                                TXD transmits received bytes to the Arduino receive (RX) pin.
+PIN_RX = 12;  // Arduino receive is connected to TXD on the serial module.
+PIN_TX = 11;  // Arduino transmit is not used, and therefore notconnected to RXD pin on the serial module.
+SoftwareSerial serial2(PIN_RX, PIN_TX);
 // Then, to read from the new serial port, use:
 //    serial2.begin(9600);
 //    serial2.available()
@@ -3242,6 +3241,7 @@ void controlResetLogic() {
   lightsStatusAddressData(statusByte, programCounter, dataByte);
   if (programState == CLOCK_RUN || programState == SERIAL_DOWNLOAD) {
     programState = PROGRAM_WAIT;
+    statusByte = statusByte | WAIT_ON;
   }
 }
 
@@ -3853,8 +3853,8 @@ void setup() {
   serial2.begin(9600);
   if (serial2.isListening()) {
     Serial.println("+ serial2 is listening.");
+    Serial.println("+ Ready to use the second serial port for receiving program bytes.");
   }
-  Serial.println("+ Ready to use the second serial port.");
 
   // ----------------------------------------------------
   // Options to Load/Read/Run a initialization program
@@ -3942,24 +3942,25 @@ void loop() {
       // INP on
       statusByte = statusByte | INP_ON;
       statusByte = statusByte & M1_OFF;
+      statusByte = statusByte & WAIT_OFF;
       lightsStatusAddressData(statusByte, programCounter, dataByte);
       //
-      readByteCount = 0;  // Number of downloaded bytes.
+      readByteCount = 0;  // Counter where the downloaded bytes are entered into memory.
       while (programState == SERIAL_DOWNLOAD) {
         if (serial2.available() > 0) {
+          // Input on the external serial port module.
           // Read and process an incoming byte.
+          Serial.print("++ Byte array number: ");
+          Serial.print(readByte);
           readByte = serial2.read();
           memoryData[readByteCount] = readByte;
           readByteCount++;
-          // Display binary data.
-          Serial.print("++ Byte: ");
+          Serial.print(", Byte: ");
           printByte(readByte);
           Serial.print(" Octal:");
           printOctal(readByte);
           Serial.print(" Decimal");
           Serial.print(readByte, DEC);
-          // Serial.print(", Character: ");
-          // Serial.write(readByte);
           Serial.println("");
         }
         if (pcf20interrupted) {
@@ -3967,19 +3968,23 @@ void loop() {
           pcf20interrupted = false; // Reset for next interrupt.
         }
       }
-      Serial.print(F("+ Exit serial download."));
+      Serial.print(F("+ Exit serial download state."));
       statusByte = statusByte & INP_OFF;
+      statusByte = statusByte | WAIT_ON;
       if (readByteCount > 0) {
         // Program bytes were loaded. Reset and display the statusByte.
         programCounter = 0;
         dataByte = memoryData[programCounter];
         lightsStatusAddressData(statusByte, programCounter, dataByte);
       }
-      digitalWrite(HLDA_PIN, LOW);
+      digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;
     case CLOCK_RUN:
       Serial.println(F("+ State: CLOCK_RUN"));
+      // HLDA on when in this mode.
+      digitalWrite(HLDA_PIN, HIGH);
       clockRun();
+      digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;
     // ----------------------------
     case PLAYER_RUN:
