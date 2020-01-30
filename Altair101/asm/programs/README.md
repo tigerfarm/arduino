@@ -1,36 +1,66 @@
 --------------------------------------------------------------------------------
 # Writing Altair 101 Assembler Programs
 
-Tested:
+I have moved into the program development stage.
+I have, wrote, an assembler program that can assemble programs into byte code, and then, upload the code to the dev machine.
+The dev machine can run the programs with, or without, detail step logging messages.
+
+My first programs are to test, study, and demonstrate the implemented opcodes.
+I have also started to develop programs to demonstrate the Altair 101 abilities.
+
+### Opcode Program Testing
+
+Test each opcode using various parameter types to study how to use the opcodes in a program.
+Document the details to show what can be used in a program.
+
+The programs are ordered, where opcodes are tested and then used in later programs.
+For example, opMvi.asm is before opInrDcr.asm because MVI is used to initialize register values in opInrDcr.asm.
 ````
-Program             Opcodes tested, and other tests.
-programs/pLoop.asm      JMP
-programs/opMvi.asm      MVI with immediate types: decimal, hex, character (eg. 'a'), and EQU value.
+Program                 Opcodes tested, and test details.
+-------                 -------------------------------------
+pLoop.asm               JMP : Jump to a label. The first program tested.
+                        NOP : Used as a spacer.
+
+opMvi.asm               MVI : Move immediate values to registers, using immediate types: decimal, hex, character (eg. 'a'), and EQU value.
+                        HLT : Halt and restart.
+                        EQU : Used to set an immediate value.
                         Program length = 72 bytes.
                         Because the serial read buffer is 64 bytes, I had to add "Thread.sleep(30);" in the Java program to slow the upload.
-programs/opMov.asm      MOV with all combination of registers: A,B,C,D,E,H,L.
-                        INR with all combination of registers: A,B,C,D,E,H,L.
-                        NOP
-programs/opOra.asm      ORA, OR with register A and registers: B,C,D,E,H,L and M.
-                        Test: out 3, to print messages.
-                        This program requires, LOG_MESSAGES not defined, because it outputs messages, eg. "+ Success: ORA".
-                        Program length = 255.
-programs/opOut.asm
-programs/opRlcRrc.asm
-programs/opAdiSui.asm
-programs/opAni.asm
-programs/opCallRet.asm
-programs/opCmp.asm
-programs/opCpi.asm
-programs/opInOut.asm
-programs/opLdaSta.asm
 
-programs/pKillTheBit.asm
-programs/pSenseSwitchInput.asm
-programs/printDbString.asm
+opInrDcr.asm            INR : Increment value in the registers: A,B,C,D,E,H,L.
+                        DCR : Decrement value in the registers: A,B,C,D,E,H,L.
+
+opJmp.asm               JMP : Jump to types: decimal, hex, and EQU value.
+
+opCpi.asm               CPI : Compare immediate decimal with register A.
+                        JZ
+                        JNZ
+                        JC
+                        JNC
+opCmp.asm               CMP with register A and registers: B,C,D,E.
+
+opMov.asm               MOV : Move values between the registers: A,B,C,D,E,H,L.
+
+opOra.asm               ORA, OR with register A and registers: B,C,D,E,H,L and M.
+                        Test: out 3, to print messages.
+                        This program requires, LOG_MESSAGES not defined, because it outputs messages, example: "+ Success: ORA".
+                        Program length = 255.
+
+opAni.asm
+opRlcRrc.asm
+opAdiSui.asm
+
+opCallRet.asm
+opOut.asm
+opInOut.asm
+opLdaSta.asm
+
+pKillTheBit.asm
+pSenseSwitchInput.asm
+printDbString.asm
 ````
-The programs in this directory are used to test and demonstrate the use of each opcode.
-I'm also developing programs to demonstrate the Altair 101 abilities.
+
+## Background Development
 
 During the first early phase, programs were hard coded bytes in a memory array, in the processor program, Processor.ino.
 
