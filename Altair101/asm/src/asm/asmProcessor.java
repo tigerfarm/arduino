@@ -6,6 +6,14 @@
     + It can assemble programs from a set of tested Intl 8080/8085 opcodes and assembler directives.
     + The assembled, Kill the Bit program, run on the Altair 101 dev machine.
 
+> file programs/opMvi.asm
+> parsefile
+> writebytes
+
+    ---------------------------------------------
+    +++ Program testing.
+-- Error, programTop: 15, line: mvi a,' '++ parseLine, Opcode|mvi| p1|a| p2|' '|
+
     ---------------------------------------------
     + Pong program work notes.
 
@@ -1039,7 +1047,7 @@ public class asmProcessor {
 
         String part1 = theLine.substring(0, c1).toLowerCase();
         theRest = theLine.substring(c1 + 1).trim();
-        // System.out.println("++ parseLine, part1|" + part1 + "| theRest|" + theRest + "|");
+        System.out.println("++ parseLine, part1|" + part1 + "| theRest|" + theRest + "|");
         //
         // ---------------------------------------------------------------------
         //
@@ -1061,7 +1069,7 @@ public class asmProcessor {
             if (c2 > 1) {
                 // If c2<i, then not a directive. Example: mvi a,'\n'
                 String theDirective = theRest.substring(0, c2).toLowerCase();
-                // System.out.println("++ parseLine, DB string contains ','. theDirective = " + theDirective + ".");
+                System.out.println("++ parseLine, DB string contains ','. theDirective = " + theDirective + ".");
                 if (theDirective.equals("db")) {
                     // String of bytes.
                     // 6) Hello   db       "Hello"
@@ -1069,6 +1077,12 @@ public class asmProcessor {
                     System.out.println("++ parseLine, db directive: part1|" + part1 + "| part3|" + part3 + "|");
                     parseDb(part1, part3);
                     return;
+                } else if (theDirective.endsWith("'")) {
+                    //
+                    // Case: mvi a,' '
+                    // ++ parseLine, DB string contains ','. theDirective = a,'.
+                    // -- Error, programTop: 15, line: mvi a,' '++ parseLine, Opcode|mvi| p1|a| p2|' '|
+                    //
                 } else {
                     errorCount++;
                     System.out.print("-- Error, programTop: " + programTop + ", line: " + theLine);
@@ -1243,6 +1257,7 @@ public class asmProcessor {
     public static String byteToString(byte aByte) {
         return toBinary(aByte, 8);
     }
+
     private static String toBinary(byte a, int bits) {
         if (--bits > 0) {
             return toBinary((byte) (a >> 1), bits) + ((a & 0x1) == 0 ? "0" : "1");
@@ -1250,6 +1265,7 @@ public class asmProcessor {
             return (a & 0x1) == 0 ? "0" : "1";
         }
     }
+
     public void showFile(String theReadFilename) {
         // System.out.println("++ Show binary file: " + theReadFilename);
         int theLength = 0;

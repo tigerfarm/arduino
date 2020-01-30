@@ -128,7 +128,7 @@
             out 3
             mvi a,'s'
             out 3
-            mvi a,'-'
+            mvi a,':'
             out 3
             mvi a,' '
             out 3

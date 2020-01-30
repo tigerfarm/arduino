@@ -87,7 +87,7 @@
 // #define RUN_DELAY 1
 // #define INFRARED_MESSAGES 1    // For a simple setup: Mega + infrared, with serial messages.
 //
-#define LOG_MESSAGES 1         // Has large memory requirements.
+// #define LOG_MESSAGES 1         // Has large memory requirements.
 #define SWITCH_MESSAGES 1
 // #define RUN_NOW 1
 
@@ -201,34 +201,12 @@ SoftwareSerial serial2(PIN_RX, PIN_TX);
 const byte theProgram[] = {
   //                //            ; --------------------------------------
   //                //            ; Test programs.
-  B11000011, 4, 0,     //   0: jmp Start
-  B01110110,           //   3: hlt
-  B00100110, 0,        //   4: mvi h,0
-  B00101110, 64,       //   6: mvi l,64
-  B00111110, 6,        //   8: mvi a,6
-  B11100011, 37,       //  10: out 37
-  B00110010, 64, 0,    //  12: sta 64
-  B11100011, 36,       //  15: out 36
-  B01110110,           //  17: hlt
-  B00111110, 0,        //  18: mvi a,0
-  B11100011, 37,       //  20: out 37
-  B00111010, 64, 0,    //  22: lda 64
-  B11100011, 37,       //  25: out 37
-  B01110110,           //  27: hlt
-  B00100001, 54, 0,    //  28: lxi h,Addr1
-  B11100011, 36,       //  31: out 36
-  B00111110, 6,        //  33: mvi a,6
-  B00110010, 54, 0,    //  35: sta Addr1
-  B11100011, 38,       //  38: out 38
-  B01110110,           //  40: hlt
-  B00111110, 0,        //  41: mvi a,0
-  B00111010, 60, 0,    //  43: lda 60
-  B11100011, 37,       //  46: out 37
-  B01110110,           //  48: hlt
-  B00000000,           //  49: nop
-  B11000011, 3, 0,     //  50: jmp Halt
-  0,                   //  53: dsname: Addr1
-  0                    //  54: End of program
+  B11000011, 6, 0,     //   0: jmp There
+  B00000000,           //   3: nop
+  B00000000,           //   4: nop
+  B00000000,           //   5: nop
+  B11000011, 0, 0,     //   6: jmp Start
+  0                    //   9: End of program
 };
 
 // -----------------------------------------------------------------------------
@@ -518,7 +496,7 @@ void printData(byte theByte) {
 }
 
 void displayCmp(String theRegister, byte theRegValue) {
-  Serial.print(F("> cmp, compare register "));
+  Serial.print(F(" > cmp, compare register "));
   Serial.print(theRegister);
   Serial.print(F(" to A. "));
   Serial.print(theRegister);
@@ -592,7 +570,7 @@ void processData() {
     // Else, the opcode variable is set to the opcode byte value.
     opcode = 0;
 #ifdef LOG_MESSAGES
-    Serial.print("> ");
+    Serial.print(" > ");
 #endif
     displayStatusAddressData();       // Sets the dataByte.
     processOpcode();
@@ -639,7 +617,7 @@ void processOpcode() {
     case B11000110:
       opcode = B11000110;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> ani, Add immedite number to register A."));
+      Serial.print(F(" > ani, Add immedite number to register A."));
 #endif
       break;
     //-----------------------
@@ -647,7 +625,7 @@ void processOpcode() {
     case B11010110:
       opcode = B11010110;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> sui, Subtract immedite number from register A."));
+      Serial.print(F(" > sui, Subtract immedite number from register A."));
 #endif
       break;
     // ---------------------------------------------------------------------
@@ -655,7 +633,7 @@ void processOpcode() {
     case B11100110:
       opcode = B11100110;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> ani, AND db with register A."));
+      Serial.print(F(" > ani, AND db with register A."));
 #endif
       break;
     // ---------------------------------------------------------------------
@@ -733,7 +711,7 @@ void processOpcode() {
     case B11111110:
       opcode = B11111110;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> cpi, compare next data byte to A, and set Zero bit and Carry bit flags."));
+      Serial.print(F(" > cpi, compare next data byte to A, and set Zero bit and Carry bit flags."));
 #endif
       break;
     // ---------------------------------------------------------------------
@@ -744,14 +722,14 @@ void processOpcode() {
     case B11001101:
       opcode = B11001101;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> call, call a subroutine."));
+      Serial.print(F(" > call, call a subroutine."));
 #endif
       break;
     // -----------------
     // RET  11001001  Unconditional return from subroutine. 1 cycles.
     case B11001001:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> ret, Return from a subroutine to the original CALL address: "));
+      Serial.print(F(" > ret, Return from a subroutine to the original CALL address: "));
 #endif
       stackPointer++;
       highOrder = stackData[stackPointer];
@@ -768,7 +746,7 @@ void processOpcode() {
     //    11RP0101 Push    register pair B onto the stack. 1 cycles.
     case B11000101:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> push, Push register pair B:C onto the stack."));
+      Serial.print(F(" > push, Push register pair B:C onto the stack."));
 #endif
       stackData[stackPointer--] = regC;
       stackData[stackPointer--] = regB;
@@ -777,7 +755,7 @@ void processOpcode() {
     //    11RP0001 Pop    register pair B from the stack. 1 cycles.
     case B11000001:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> pop, Pop register pair B:C from the stack."));
+      Serial.print(F(" > pop, Pop register pair B:C from the stack."));
 #endif
       stackPointer++;
       regB = stackData[stackPointer];
@@ -794,7 +772,7 @@ void processOpcode() {
     //    11RP0101 Push    register pair D:E onto the stack. 1 cycles.
     case B11010101:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> push, Push register pair D:E onto the stack."));
+      Serial.print(F(" > push, Push register pair D:E onto the stack."));
 #endif
       stackData[stackPointer--] = regE;
       stackData[stackPointer--] = regD;
@@ -803,7 +781,7 @@ void processOpcode() {
     //    11RP0001 Pop    register pair D:E from the stack. 1 cycles.
     case B11010001:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> pop, Pop register pair D:E from the stack."));
+      Serial.print(F(" > pop, Pop register pair D:E from the stack."));
 #endif
       stackPointer++;
       regD = stackData[stackPointer];
@@ -820,7 +798,7 @@ void processOpcode() {
     //    11RP0101 Push    register pair H:L onto the stack. 1 cycles.
     case B11100101:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> push, Push register pair H:L onto the stack."));
+      Serial.print(F(" > push, Push register pair H:L onto the stack."));
 #endif
       stackData[stackPointer--] = regL;
       stackData[stackPointer--] = regH;
@@ -829,7 +807,7 @@ void processOpcode() {
     //    11RP0001 Pop    register pair H:L from the stack. 1 cycles.
     case B11100001:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> pop, Pop register pair H:L from the stack."));
+      Serial.print(F(" > pop, Pop register pair H:L from the stack."));
 #endif
       stackPointer++;
       regH = stackData[stackPointer];
@@ -853,7 +831,7 @@ void processOpcode() {
       hValue = regH;
       lValue = regL;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> dad, 16 bit add: B:C("));
+      Serial.print(F(" > dad, 16 bit add: B:C("));
       Serial.print(bValue);
       Serial.print(":");
       Serial.print(cValue);
@@ -903,7 +881,7 @@ void processOpcode() {
       hValue = regH;
       lValue = regL;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> dad, 16 bit add: D:E"));
+      Serial.print(F(" > dad, 16 bit add: D:E"));
       Serial.print("(");
       Serial.print(dValue);
       Serial.print(":");
@@ -950,7 +928,7 @@ void processOpcode() {
     //    00DDD101    Flags:ZSPA
     case B00111101:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> dcr register A: "));
+      Serial.print(F(" > dcr register A: "));
       Serial.print(regA);
 #endif
       regA--;
@@ -964,7 +942,7 @@ void processOpcode() {
       break;
     case B00000101:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> dcr register B: "));
+      Serial.print(F(" > dcr register B: "));
       Serial.print(regB);
 #endif
       regB--;
@@ -978,7 +956,7 @@ void processOpcode() {
       break;
     case B00001101:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> dcr register C: "));
+      Serial.print(F(" > dcr register C: "));
       Serial.print(regC);
 #endif
       regC--;
@@ -992,7 +970,7 @@ void processOpcode() {
       break;
     case B00010101:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> dcr register D: "));
+      Serial.print(F(" > dcr register D: "));
       Serial.print(regD);
 #endif
       regD--;
@@ -1006,7 +984,7 @@ void processOpcode() {
       break;
     case B00011101:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> dcr register E: "));
+      Serial.print(F(" > dcr register E: "));
       Serial.print(regE);
 #endif
       regE--;
@@ -1020,7 +998,7 @@ void processOpcode() {
       break;
     case B00100101:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> dcr register H: "));
+      Serial.print(F(" > dcr register H: "));
       Serial.print(regH);
 #endif
       regH--;
@@ -1034,7 +1012,7 @@ void processOpcode() {
       break;
     case B00101101:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> dcr register L: "));
+      Serial.print(F(" > dcr register L: "));
       Serial.print(regL);
 #endif
       regL--;
@@ -1048,7 +1026,7 @@ void processOpcode() {
       break;
     case B00110101:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> dcr M, memory address, register pair H:L: "));
+      Serial.print(F(" > dcr M, memory address, register pair H:L: "));
       Serial.print(regH);
       Serial.print(":");
       Serial.print(regL);
@@ -1079,7 +1057,7 @@ void processOpcode() {
       // INP status light is on when reading from an input port.
       statusByte = statusByte | INP_ON;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> IN, If input value is available, get the input byte."));
+      Serial.print(F(" > IN, If input value is available, get the input byte."));
 #endif
       break;
     // ---------------------------------------------------------------------
@@ -1087,7 +1065,7 @@ void processOpcode() {
     //    00DDD100    Flags:ZSPA
     case B00111100:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> inr register A: "));
+      Serial.print(F(" > inr register A: "));
       Serial.print(regA);
 #endif
       regA++;
@@ -1101,7 +1079,7 @@ void processOpcode() {
       break;
     case B00000100:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> inr register B: "));
+      Serial.print(F(" > inr register B: "));
       Serial.print(regB);
 #endif
       regB++;
@@ -1115,7 +1093,7 @@ void processOpcode() {
       break;
     case B00001100:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> inr register C: "));
+      Serial.print(F(" > inr register C: "));
       Serial.print(regC);
 #endif
       regC++;
@@ -1129,7 +1107,7 @@ void processOpcode() {
       break;
     case B00010100:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> inr register D: "));
+      Serial.print(F(" > inr register D: "));
       Serial.print(regD);
 #endif
       regD++;
@@ -1143,7 +1121,7 @@ void processOpcode() {
       break;
     case B00011100:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> inr register E: "));
+      Serial.print(F(" > inr register E: "));
       Serial.print(regE);
 #endif
       regE++;
@@ -1157,7 +1135,7 @@ void processOpcode() {
       break;
     case B00100100:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> inr register H: "));
+      Serial.print(F(" > inr register H: "));
       Serial.print(regH);
 #endif
       regH++;
@@ -1171,7 +1149,7 @@ void processOpcode() {
       break;
     case B00101100:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> inr register L: "));
+      Serial.print(F(" > inr register L: "));
       Serial.print(regL);
 #endif
       regL++;
@@ -1186,7 +1164,7 @@ void processOpcode() {
     case B00110100:
       // stacy
 #ifdef LOG_MESSAGES
-      Serial.print(F("> inr address M (H:L): "));
+      Serial.print(F(" > inr address M (H:L): "));
       Serial.print(regH);
       Serial.print(":");
       Serial.print(regL);
@@ -1212,7 +1190,7 @@ void processOpcode() {
         regB++;
       }
 #ifdef LOG_MESSAGES
-      Serial.print(F("> inx, increment the 16 bit register pair B:C."));
+      Serial.print(F(" > inx, increment the 16 bit register pair B:C."));
       Serial.print(F(", B:C = "));
       Serial.print(regB);
       Serial.print(":");
@@ -1231,7 +1209,7 @@ void processOpcode() {
         regD++;
       }
 #ifdef LOG_MESSAGES
-      Serial.print(F("> inx, increment the 16 bit register pair D:E."));
+      Serial.print(F(" > inx, increment the 16 bit register pair D:E."));
       Serial.print(F(", regD:regE = "));
       Serial.print(regD);
       Serial.print(":");
@@ -1250,7 +1228,7 @@ void processOpcode() {
         regH++;
       }
 #ifdef LOG_MESSAGES
-      Serial.print(F("> inx, increment the 16 bit register pair H:L."));
+      Serial.print(F(" > inx, increment the 16 bit register pair H:L."));
       Serial.print(F(", regH:regL = "));
       Serial.print(regH);
       Serial.print(":");
@@ -1269,7 +1247,7 @@ void processOpcode() {
     case B11000010:
       opcode = B11000010;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> jnz, Jump if zero bit flag is not set(false)."));
+      Serial.print(F(" > jnz, Jump if zero bit flag is not set(false)."));
 #endif
       break;
     // ----------------
@@ -1277,7 +1255,7 @@ void processOpcode() {
     case B11001010:
       opcode = B11001010;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> jz, Jump if Zero bit flag is set(true)."));
+      Serial.print(F(" > jz, Jump if Zero bit flag is set(true)."));
 #endif
       break;
     // ----------------
@@ -1285,7 +1263,7 @@ void processOpcode() {
     case B11010010:
       opcode = B11010010;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> jnc, Jump if carry bit is not set(false)."));
+      Serial.print(F(" > jnc, Jump if carry bit is not set(false)."));
 #endif
       break;
     // ----------------
@@ -1293,14 +1271,14 @@ void processOpcode() {
     case B11011010:
       opcode = B11011010;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> jc, Jump if carry bit is set(true)."));
+      Serial.print(F(" > jc, Jump if carry bit is set(true)."));
 #endif
       break;
     // ----------------
     case B11000011:
       opcode = B11000011;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> jmp, get address low and high order bytes."));
+      Serial.print(F(" > jmp, get address low and high order bytes."));
 #endif
       break;
     // ---------------------------------------------------------------------
@@ -1309,7 +1287,7 @@ void processOpcode() {
     case B00001010:
       opcode = B00001010;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> ldax, Into register A, load data from B:C address: "));
+      Serial.print(F(" > ldax, Into register A, load data from B:C address: "));
       printOctal(regB);
       Serial.print(F(" : "));
       printOctal(regC);
@@ -1319,7 +1297,7 @@ void processOpcode() {
     case B00011010:
       opcode = B00011010;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> ldax, Into register A, load data from D:E address: "));
+      Serial.print(F(" > ldax, Into register A, load data from D:E address: "));
       printOctal(regD);
       Serial.print(F(" : "));
       printOctal(regE);
@@ -1331,26 +1309,26 @@ void processOpcode() {
     case B00000001:
       opcode = B00000001;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> lxi, Move the lb hb data, into register pair B:C = hb:lb."));
+      Serial.print(F(" > lxi, Move the lb hb data, into register pair B:C = hb:lb."));
 #endif
       break;
     case B00010001:
       opcode = B00010001;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> lxi, Move the lb hb data, into register pair D:E = hb:lb."));
+      Serial.print(F(" > lxi, Move the lb hb data, into register pair D:E = hb:lb."));
 #endif
       break;
     case B00100001:
       opcode = B00100001;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> lxi, Move the lb hb data, into register pair H:L = hb:lb."));
+      Serial.print(F(" > lxi, Move the lb hb data, into register pair H:L = hb:lb."));
 #endif
       break;
     case B00110001:
       // stacy
       // opcode = B00110001;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> lxi, Stacy, to do: move the lb hb data, to the stack pointer address."));
+      Serial.print(F(" > lxi, Stacy, to do: move the lb hb data, to the stack pointer address."));
 #endif
       Serial.print(F(" - Error, unhandled instruction."));
       controlStopLogic();
@@ -1365,7 +1343,7 @@ void processOpcode() {
       anAddress = word(regH, regL);
       regA = memoryData[anAddress];
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov"));
+      Serial.print(F(" > mov"));
       Serial.print(F(", Move data from Address: "));
       sprintf(charBuffer, "%4d:", anAddress);
       Serial.print(charBuffer);
@@ -1378,7 +1356,7 @@ void processOpcode() {
       anAddress = word(regH, regL);
       regB = memoryData[anAddress];
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov"));
+      Serial.print(F(" > mov"));
       Serial.print(F(", Move data from Address: "));
       sprintf(charBuffer, "%4d:", anAddress);
       Serial.print(charBuffer);
@@ -1391,7 +1369,7 @@ void processOpcode() {
       anAddress = word(regH, regL);
       regC = memoryData[anAddress];
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov"));
+      Serial.print(F(" > mov"));
       Serial.print(F(", Move data from Address: "));
       sprintf(charBuffer, "%4d:", anAddress);
       Serial.print(charBuffer);
@@ -1404,7 +1382,7 @@ void processOpcode() {
       anAddress = word(regH, regL);
       regD = memoryData[anAddress];
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov"));
+      Serial.print(F(" > mov"));
       Serial.print(F(", Move data from Address: "));
       sprintf(charBuffer, "%4d:", anAddress);
       Serial.print(charBuffer);
@@ -1417,7 +1395,7 @@ void processOpcode() {
       anAddress = word(regH, regL);
       regE = memoryData[anAddress];
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov"));
+      Serial.print(F(" > mov"));
       Serial.print(F(", Move data from Address: "));
       sprintf(charBuffer, "%4d:", anAddress);
       Serial.print(charBuffer);
@@ -1430,7 +1408,7 @@ void processOpcode() {
       anAddress = word(regH, regL);
       regH = memoryData[anAddress];
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov"));
+      Serial.print(F(" > mov"));
       Serial.print(F(", Move data from Address: "));
       sprintf(charBuffer, "%4d:", anAddress);
       Serial.print(charBuffer);
@@ -1443,7 +1421,7 @@ void processOpcode() {
       anAddress = word(regH, regL);
       regL = memoryData[anAddress];
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov"));
+      Serial.print(F(" > mov"));
       Serial.print(F(", Move data from Address: "));
       sprintf(charBuffer, "%4d:", anAddress);
       Serial.print(charBuffer);
@@ -1454,42 +1432,42 @@ void processOpcode() {
     case B01000111:
       regB = regA;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register a to b = "));
+      Serial.print(F(" > mov register a to b = "));
       printData(regB);
 #endif
       break;
     case B01001111:
       regC = regA;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register a to c = "));
+      Serial.print(F(" > mov register a to c = "));
       printData(regC);
 #endif
       break;
     case B01010111:
       regD = regA;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register a to d = "));
+      Serial.print(F(" > mov register a to d = "));
       printData(regD);
 #endif
       break;
     case B01011111:
       regE = regA;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register a to e = "));
+      Serial.print(F(" > mov register a to e = "));
       printData(regE);
 #endif
       break;
     case B01100111:
       regH = regA;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register a to h = "));
+      Serial.print(F(" > mov register a to h = "));
       printData(regH);
 #endif
       break;
     case B01101111:
       regL = regA;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register a to l = "));
+      Serial.print(F(" > mov register a to l = "));
       printData(regL);
 #endif
       break;
@@ -1497,42 +1475,42 @@ void processOpcode() {
     case B01111000:
       regA = regB;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register b to a = "));
+      Serial.print(F(" > mov register b to a = "));
       printData(regL);
 #endif
       break;
     case B01001000:
       regC = regB;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register b to c = "));
+      Serial.print(F(" > mov register b to c = "));
       printData(regL);
 #endif
       break;
     case B01010000:
       regD = regB;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register b to d = "));
+      Serial.print(F(" > mov register b to d = "));
       printData(regD);
 #endif
       break;
     case B01011000:
       regE = regB;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register b to e = "));
+      Serial.print(F(" > mov register b to e = "));
       printData(regE);
 #endif
       break;
     case B01100000:
       regH = regB;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register b to h = "));
+      Serial.print(F(" > mov register b to h = "));
       printData(regH);
 #endif
       break;
     case B01101000:
       regL = regB;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register b to l = "));
+      Serial.print(F(" > mov register b to l = "));
       printData(regL);
 #endif
       break;
@@ -1540,42 +1518,42 @@ void processOpcode() {
     case B01111001:
       regA = regC;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register c to a = "));
+      Serial.print(F(" > mov register c to a = "));
       printData(regA);
 #endif
       break;
     case B01000001:
       regB = regC;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register c to b = "));
+      Serial.print(F(" > mov register c to b = "));
       printData(regB);
 #endif
       break;
     case B01010001:
       regD = regC;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register c to d = "));
+      Serial.print(F(" > mov register c to d = "));
       printData(regD);
 #endif
       break;
     case B01011001:
       regE = regC;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register c to e = "));
+      Serial.print(F(" > mov register c to e = "));
       printData(regE);
 #endif
       break;
     case B01100001:
       regH = regC;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register c to h = "));
+      Serial.print(F(" > mov register c to h = "));
       printData(regH);
 #endif
       break;
     case B01101001:
       regL = regC;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register c to l = "));
+      Serial.print(F(" > mov register c to l = "));
       printData(regL);
 #endif
       break;
@@ -1583,42 +1561,42 @@ void processOpcode() {
     case B01111010:
       regA = regD;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register d to a = "));
+      Serial.print(F(" > mov register d to a = "));
       printData(regA);
 #endif
       break;
     case B01000010:
       regB = regD;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register d to b = "));
+      Serial.print(F(" > mov register d to b = "));
       printData(regB);
 #endif
       break;
     case B01001010:
       regC = regD;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register d to c = "));
+      Serial.print(F(" > mov register d to c = "));
       printData(regC);
 #endif
       break;
     case B01011010:
       regE = regD;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register d to e = "));
+      Serial.print(F(" > mov register d to e = "));
       printData(regE);
 #endif
       break;
     case B01100010:
       regH = regD;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register d to h = "));
+      Serial.print(F(" > mov register d to h = "));
       printData(regH);
 #endif
       break;
     case B01101010:
       regL = regD;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register d to l = "));
+      Serial.print(F(" > mov register d to l = "));
       printData(regL);
 #endif
       break;
@@ -1626,42 +1604,42 @@ void processOpcode() {
     case B01111011:
       regA = regE;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register e to a = "));
+      Serial.print(F(" > mov register e to a = "));
       printData(regA);
 #endif
       break;
     case B01000011:
       regB = regE;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register e to b = "));
+      Serial.print(F(" > mov register e to b = "));
       printData(regB);
 #endif
       break;
     case B01001011:
       regC = regE;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register e to c = "));
+      Serial.print(F(" > mov register e to c = "));
       printData(regC);
 #endif
       break;
     case B01010011:
       regD = regE;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register e to d = "));
+      Serial.print(F(" > mov register e to d = "));
       printData(regD);
 #endif
       break;
     case B01100011:
       regH = regE;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register e to h = "));
+      Serial.print(F(" > mov register e to h = "));
       printData(regH);
 #endif
       break;
     case B01101011:
       regL = regE;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register e to l = "));
+      Serial.print(F(" > mov register e to l = "));
       printData(regL);
 #endif
       break;
@@ -1669,42 +1647,42 @@ void processOpcode() {
     case B01111100:
       regA = regH;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register h to a = "));
+      Serial.print(F(" > mov register h to a = "));
       printData(regA);
 #endif
       break;
     case B01000100:
       regB = regH;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register h to b = "));
+      Serial.print(F(" > mov register h to b = "));
       printData(regB);
 #endif
       break;
     case B01001100:
       regC = regH;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register h to c = "));
+      Serial.print(F(" > mov register h to c = "));
       printData(regC);
 #endif
       break;
     case B01010100:
       regD = regH;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register h to d = "));
+      Serial.print(F(" > mov register h to d = "));
       printData(regD);
 #endif
       break;
     case B01011100:
       regE = regH;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register h to e = "));
+      Serial.print(F(" > mov register h to e = "));
       printData(regE);
 #endif
       break;
     case B01101100:
       regL = regH;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register h to l = "));
+      Serial.print(F(" > mov register h to l = "));
       printData(regL);
 #endif
       break;
@@ -1712,42 +1690,42 @@ void processOpcode() {
     case B01111101:
       regA = regL;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register l to a = "));
+      Serial.print(F(" > mov register l to a = "));
       printData(regA);
 #endif
       break;
     case B01000101:
       regB = regL;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register l to b = "));
+      Serial.print(F(" > mov register l to b = "));
       printData(regB);
 #endif
       break;
     case B01001101:
       regC = regL;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register l to c = "));
+      Serial.print(F(" > mov register l to c = "));
       printData(regC);
 #endif
       break;
     case B01010101:
       regD = regL;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register l to d = "));
+      Serial.print(F(" > mov register l to d = "));
       printData(regD);
 #endif
       break;
     case B01011101:
       regE = regL;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register l to e = "));
+      Serial.print(F(" > mov register l to e = "));
       printData(regE);
 #endif
       break;
     case B01100101:
       regH = regL;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mov register l to h = "));
+      Serial.print(F(" > mov register l to h = "));
       printData(regH);
 #endif
       break;
@@ -1763,49 +1741,49 @@ void processOpcode() {
     case B00111110:
       opcode = B00111110;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mvi, move db address into register A."));
+      Serial.print(F(" > mvi, move db address into register A."));
 #endif
       break;
     case B00000110:
       opcode = B00000110;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mvi, move db address into register B."));
+      Serial.print(F(" > mvi, move db address into register B."));
 #endif
       break;
     case B00001110:
       opcode = B00001110;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mvi, move db address into register C."));
+      Serial.print(F(" > mvi, move db address into register C."));
 #endif
       break;
     case B00010110:
       opcode = B00010110;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mvi, move db address into register D."));
+      Serial.print(F(" > mvi, move db address into register D."));
 #endif
       break;
     case B00011110:
       opcode = B00011110;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mvi, move db address into register E."));
+      Serial.print(F(" > mvi, move db address into register E."));
 #endif
       break;
     case B00100110:
       opcode = B00100110;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mvi, move db address into register H."));
+      Serial.print(F(" > mvi, move db address into register H."));
 #endif
       break;
     case B00101110:
       opcode = B00101110;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> mvi, move db address into register L."));
+      Serial.print(F(" > mvi, move db address into register L."));
 #endif
       break;
     // ------------------------------------------------------------------------------------------
     case nop:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> nop ---------------------------"));
+      Serial.print(F(" > nop ---------------------------"));
 #endif
       delay(100);
       break;
@@ -1813,7 +1791,7 @@ void processOpcode() {
     // ORA10110SSS
     case B10110000:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> ora, OR register B: "));
+      Serial.print(F(" > ora, OR register B: "));
       printByte(regB);
       Serial.print(F(", with register A: "));
       printByte(regA);
@@ -1828,7 +1806,7 @@ void processOpcode() {
     // ORA10110SSS
     case B10110001:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> ora, OR register C: "));
+      Serial.print(F(" > ora, OR register C: "));
       printByte(regC);
       Serial.print(F(", with register A: "));
       printByte(regA);
@@ -1843,7 +1821,7 @@ void processOpcode() {
     // ORA10110SSS
     case B10110010:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> ora, OR register D: "));
+      Serial.print(F(" > ora, OR register D: "));
       printByte(regD);
       Serial.print(F(", with register A: "));
       printByte(regC);
@@ -1858,7 +1836,7 @@ void processOpcode() {
     // ORA10110SSS
     case B10110011:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> ora, OR register E: "));
+      Serial.print(F(" > ora, OR register E: "));
       printByte(regE);
       Serial.print(F(", with register A: "));
       printByte(regA);
@@ -1873,7 +1851,7 @@ void processOpcode() {
     // ORA10110SSS
     case B10110100:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> ora, OR register H: "));
+      Serial.print(F(" > ora, OR register H: "));
       printByte(regH);
       Serial.print(F(", with register A: "));
       printByte(regA);
@@ -1888,7 +1866,7 @@ void processOpcode() {
     // ORA10110SSS
     case B10110101:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> ora, OR register L: "));
+      Serial.print(F(" > ora, OR register L: "));
       printByte(regL);
       Serial.print(F(", with register A: "));
       printByte(regA);
@@ -1905,7 +1883,7 @@ void processOpcode() {
       hlValue = regH * 256 + regL;
       dataByte = memoryData[hlValue];
 #ifdef LOG_MESSAGES
-      Serial.print(F("> ora, OR data from address register M(H:L): "));
+      Serial.print(F(" > ora, OR data from address register M(H:L): "));
       printByte(dataByte);
       Serial.print(F(", with register A: "));
       printByte(regA);
@@ -1921,13 +1899,13 @@ void processOpcode() {
       opcode = out;
       statusByte = statusByte & WO_OFF;  // Inverse logic: off writing out. On when not.
 #ifdef LOG_MESSAGES
-      Serial.print(F("> OUT, Write output to the port address(following db)."));
+      Serial.print(F(" > OUT, Write output to the port address(following db)."));
 #endif
       break;
     // ------------------------------------------------------------------------------------------
     case B00000111:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> rlc"));
+      Serial.print(F(" > rlc"));
       Serial.print(F(", Shift register A: "));
       printByte(regA);
       Serial.print(F(", left 1 bit: "));
@@ -1946,7 +1924,7 @@ void processOpcode() {
     // ------------------------------------------------------------------------------------------
     case B00001111:
 #ifdef LOG_MESSAGES
-      Serial.print(F("> rrc"));
+      Serial.print(F(" > rrc"));
       Serial.print(F(", Shift register A: "));
       printByte(regA);
       Serial.print(F(", right 1 bit: "));
@@ -1969,20 +1947,20 @@ void processOpcode() {
     case B00100010:
       opcode = B00100010;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> shld, Store register L to memory address hb:lb. Store register H to hb:lb + 1."));
+      Serial.print(F(" > shld, Store register L to memory address hb:lb. Store register H to hb:lb + 1."));
 #endif
       break;
     // ------------------------------------------------------------------------------------------
     case B00110010:
       opcode = B00110010;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> sta, Store register A to the hb:lb address."));
+      Serial.print(F(" > sta, Store register A to the hb:lb address."));
 #endif
       break;
     case B00111010:
       opcode = B00111010;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> lda, Load register A with data from the hb:lb address."));
+      Serial.print(F(" > lda, Load register A with data from the hb:lb address."));
 #endif
       break;
     // ------------------------------------------------------------------------------------------
@@ -1992,7 +1970,7 @@ void processOpcode() {
     case B10101000:
       // xra b
 #ifdef LOG_MESSAGES
-      Serial.print(F("> xra"));
+      Serial.print(F(" > xra"));
       Serial.print(F(", Register B: "));
       printByte(regB);
       Serial.print(F(", Exclusive OR with register A: "));
@@ -2009,7 +1987,7 @@ void processOpcode() {
     case B10101001:
       // xra c
 #ifdef LOG_MESSAGES
-      Serial.print(F("> xra"));
+      Serial.print(F(" > xra"));
       Serial.print(F(", Register C: "));
       printByte(regC);
       Serial.print(F(", Exclusive OR with register A: "));
@@ -2025,7 +2003,7 @@ void processOpcode() {
     case B10101010:
       // xra d
 #ifdef LOG_MESSAGES
-      Serial.print(F("> xra"));
+      Serial.print(F(" > xra"));
       Serial.print(F(", Register D: "));
       printByte(regD);
       Serial.print(F(", Exclusive OR with register A: "));
@@ -2041,7 +2019,7 @@ void processOpcode() {
     case B10101011:
       // xra e
 #ifdef LOG_MESSAGES
-      Serial.print(F("> xra"));
+      Serial.print(F(" > xra"));
       Serial.print(F(", Register E: "));
       printByte(regE);
       Serial.print(F(", Exclusive OR with register A: "));
@@ -2057,7 +2035,7 @@ void processOpcode() {
     case B10101100:
       // xra h
 #ifdef LOG_MESSAGES
-      Serial.print(F("> xra"));
+      Serial.print(F(" > xra"));
       Serial.print(F(", Register H: "));
       printByte(regH);
       Serial.print(F(", Exclusive OR with register A: "));
@@ -2073,7 +2051,7 @@ void processOpcode() {
     case B10101101:
       // xra l
 #ifdef LOG_MESSAGES
-      Serial.print(F("> xra"));
+      Serial.print(F(" > xra"));
       Serial.print(F(", Register L: "));
       printByte(regL);
       Serial.print(F(", Exclusive OR with register A: "));
@@ -2128,7 +2106,7 @@ void processOpcodeData() {
       // instructionCycle == 2
 
 #ifdef LOG_MESSAGES
-      Serial.print(F("> adi, Add immediate number:"));
+      Serial.print(F(" > adi, Add immediate number:"));
       printByte(dataByte);
       Serial.print(F(" to register A:"));
       printByte(regA);
@@ -2145,7 +2123,7 @@ void processOpcodeData() {
     case B11010110:
       // instructionCycle == 2
 #ifdef LOG_MESSAGES
-      Serial.print(F("> adi, Subtract immediate number:"));
+      Serial.print(F(" > adi, Subtract immediate number:"));
       printByte(dataByte);
       Serial.print(F(" from register A:"));
       printByte(regA);
@@ -2163,7 +2141,7 @@ void processOpcodeData() {
     case B11100110:
       // instructionCycle == 2
 #ifdef LOG_MESSAGES
-      Serial.print(F("> ani, AND db:"));
+      Serial.print(F(" > ani, AND db:"));
       printByte(dataByte);
       Serial.print(F(" with register A:"));
       printByte(regA);
@@ -2227,7 +2205,7 @@ void processOpcodeData() {
       flagZeroBit = dataByte == regA;
       flagCarryBit = dataByte > regA;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> cpi, compare the result db: "));
+      Serial.print(F(" > cpi, compare the result db: "));
       Serial.print(dataByte);
       if (flagZeroBit) {
         Serial.print(F(" == "));
@@ -2282,7 +2260,7 @@ void processOpcodeData() {
       if (instructionCycle == 2) {
         lowOrder = dataByte;
 #ifdef LOG_MESSAGES
-        Serial.print(F("> jmp, lb:"));
+        Serial.print(F(" > jmp, lb:"));
         sprintf(charBuffer, "%4d:", lowOrder);
         Serial.print(charBuffer);
 #endif
@@ -2293,7 +2271,7 @@ void processOpcodeData() {
       highOrder = dataByte;
       programCounter = word(highOrder, lowOrder);
 #ifdef LOG_MESSAGES
-      Serial.print(F("> jmp, hb:"));
+      Serial.print(F(" > jmp, hb:"));
       sprintf(charBuffer, "%4d:", highOrder);
       Serial.print(charBuffer);
       Serial.print(F(", jmp, jump to:"));
@@ -2324,7 +2302,7 @@ void processOpcodeData() {
       if (!flagZeroBit) {
         programCounter = word(highOrder, lowOrder);
 #ifdef LOG_MESSAGES
-        Serial.print(F("> jnz, Zero bit flag is false, jump to:"));
+        Serial.print(F(" > jnz, Zero bit flag is false, jump to:"));
         Serial.print(programCounter);
 #endif
       } else {
@@ -2356,7 +2334,7 @@ void processOpcodeData() {
       if (flagZeroBit) {
         programCounter = word(highOrder, lowOrder);
 #ifdef LOG_MESSAGES
-        Serial.print(F("> jz, jump to:"));
+        Serial.print(F(" > jz, jump to:"));
         Serial.print(programCounter);
 #endif
       } else {
@@ -2388,7 +2366,7 @@ void processOpcodeData() {
       if (!flagCarryBit) {
         programCounter = word(highOrder, lowOrder);
 #ifdef LOG_MESSAGES
-        Serial.print(F("> jnc, Carry bit flag is false, jump to:"));
+        Serial.print(F(" > jnc, Carry bit flag is false, jump to:"));
         Serial.print(programCounter);
 #endif
       } else {
@@ -2420,7 +2398,7 @@ void processOpcodeData() {
       if (flagCarryBit) {
         programCounter = word(highOrder, lowOrder);
 #ifdef LOG_MESSAGES
-        Serial.print(F("> jc, jump to:"));
+        Serial.print(F(" > jc, jump to:"));
         Serial.print(programCounter);
 #endif
       } else {
@@ -2483,7 +2461,7 @@ void processOpcodeData() {
       Serial.print(F("< lxi, hb data: "));
       sprintf(charBuffer, "%4d:", regB);
       Serial.print(charBuffer);
-      Serial.print(F("> B:C = "));
+      Serial.print(F(" > B:C = "));
       printOctal(regB);
       Serial.print(F(":"));
       printOctal(regC);
@@ -2509,7 +2487,7 @@ void processOpcodeData() {
       Serial.print(F("< lxi, hb data: "));
       sprintf(charBuffer, "%4d:", regD);
       Serial.print(charBuffer);
-      Serial.print(F("> D:E = "));
+      Serial.print(F(" > D:E = "));
       printOctal(regD);
       Serial.print(F(":"));
       printOctal(regE);
@@ -2535,7 +2513,7 @@ void processOpcodeData() {
       Serial.print(F("< lxi, hb data: "));
       sprintf(charBuffer, "%4d:", regH);
       Serial.print(charBuffer);
-      Serial.print(F("> H:L = "));
+      Serial.print(F(" > H:L = "));
       printOctal(regH);
       Serial.print(F(":"));
       printOctal(regL);
@@ -2741,7 +2719,7 @@ void processOpcodeData() {
       //  Set address lights to hb:lb. Set data lights to regA.
       //  Turn status light MEMR and WO are no, MI is off, during this step.
 #ifdef LOG_MESSAGES
-      Serial.print(F("> sta, register A data: "));
+      Serial.print(F(" > sta, register A data: "));
       Serial.print(regA);
       Serial.print(F(", is stored to the hb:lb address."));
 #endif
@@ -2777,7 +2755,7 @@ void processOpcodeData() {
       regA = memoryData[hlValue];
       lightsStatusAddressData(statusByte, hlValue, regA);
 #ifdef LOG_MESSAGES
-      Serial.print(F("> lda, load data at hb:lb address, into register A: "));
+      Serial.print(F(" > lda, load data at hb:lb address, into register A: "));
       Serial.print(regA);
 #endif
       programCounter++;
@@ -2808,7 +2786,7 @@ void processOpcodeData() {
       memoryData[hlValue] = regL;
       memoryData[hlValue + 1] = regH;
 #ifdef LOG_MESSAGES
-      Serial.print(F("> shld, Store register L:"));
+      Serial.print(F(" > shld, Store register L:"));
       Serial.print(regL);
       Serial.print(F(" to memory address hb:lb :"));
       Serial.print(hlValue);
@@ -3410,7 +3388,7 @@ void checkRunningButtons() {
           // Switch logic...
 #ifdef SWITCH_MESSAGES
           Serial.println(F("+ Control, Stop > stop running the program."));
-          Serial.println(F("> Program halted."));
+          Serial.println(F(" > Program halted."));
 #endif
           controlStopLogic();
         }

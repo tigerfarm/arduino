@@ -52,7 +52,7 @@ public class asmUpload {
         boolean IsFound = false;
         String theSystemPortName = "";
         for (SerialPort serial : serials) {
-            if (theSerialPortName.startsWith(serial.getPortDescription()) ) {
+            if (theSerialPortName.startsWith(serial.getPortDescription())) {
                 // System.out.println("++ Found: " + theSerialPortName);
                 IsFound = true;
                 theSystemPortName = serial.getSystemPortName();
@@ -136,9 +136,12 @@ public class asmUpload {
                 System.out.print(byteToString(bArray[i]) + " ");
                 sp.getOutputStream().write(bArray[i]);
                 sp.getOutputStream().flush();
+                Thread.sleep(30);
             }
         } catch (IOException ex) {
             Logger.getLogger(asm.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(asmUpload.class.getName()).log(Level.SEVERE, null, ex);
         }
         // ---------------------------------------------------------------------
         if (sp.closePort()) {
