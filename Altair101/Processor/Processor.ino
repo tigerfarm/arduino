@@ -85,9 +85,9 @@
 #define INCLUDE_SDCARD 1
 // #define INCLUDE_LCD 1
 // #define RUN_DELAY 1
-//
-// #define LOG_MESSAGES 1         // Has large memory requirements.
 // #define INFRARED_MESSAGES 1    // For a simple setup: Mega + infrared, with serial messages.
+//
+#define LOG_MESSAGES 1         // Has large memory requirements.
 #define SWITCH_MESSAGES 1
 // #define RUN_NOW 1
 
