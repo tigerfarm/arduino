@@ -142,9 +142,18 @@ public class asmProcessor {
     // Program byte output: Listing and printing bytes.
     public void listProgramBytes() {
         System.out.println("\n+ List Program Bytes:");
+        programTop = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
+            String programCounterPadding = "";
+            if (programTop < 10) {
+                programCounterPadding = "  ";
+            } else if (programTop < 100) {
+                programCounterPadding = " ";
+            }
+            System.out.print("++     " + programCounterPadding + programTop + ": ");
             System.out.println("++ " + theValue);
+            programTop++;
         }
         System.out.println("+ End of list.");
     }
@@ -1338,8 +1347,8 @@ public class asmProcessor {
         // Or other programs.
         // Required, starts the process:
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opLdaSta.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pKillTheBit.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opJmp.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pKillTheBit.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
         if (thisProcess.errorCount > 0) {
             System.out.println("\n-- Number of errors: " + thisProcess.errorCount + "\n");
@@ -1353,15 +1362,15 @@ public class asmProcessor {
         // Required, sets actual values:
         //
         // Option: for debugging.
-        // thisProcess.listProgramBytes();
+        thisProcess.listProgramBytes();
         //
         // Option: create a binary file of the program. And has a nice listing.
-        thisProcess.printProgramBytesToFile("10000000.bin");
-        thisProcess.showFile("10000000.bin");
+        // thisProcess.printProgramBytesToFile("10000000.bin");
+        // thisProcess.showFile("10000000.bin");
         // C3 00 6B 79 20 65 3F E3 76 1C 78 0E 6E 77 E3 4A 00 00 00 00 00 00 00 C3 00
         //
         // Option: print array format for use in Processor.ino.
-        thisProcess.printProgramBytesArray();
+        // thisProcess.printProgramBytesArray();
         //
         //
         if (thisProcess.errorCount > 0) {

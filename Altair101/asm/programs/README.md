@@ -2,13 +2,16 @@
 # Writing Altair 101 Assembler Programs
 
 I have moved into the program development stage.
-I have, wrote, an assembler program that can assemble programs into byte code, and then, upload the code to the dev machine.
-The dev machine can run the programs with, or without, detail step logging messages.
+I have, wrote, an assembler program that runs my laptop, that assembles programs into byte code.
+The assembler can also upload the code to the dev machine over a serial port.
+The dev machine can run the programs with, or without, detail step logging messages that are displayed on my laptop over a serial port.
 
-My first programs are to test, study, and demonstrate the implemented opcodes.
+My first programs are to test, study, and demonstrate the implemented Intel 8080/8085 opcodes.
 I have also started to develop programs to demonstrate the Altair 101 abilities.
+To prove that Altair 101 is a true emulator, I can assemble and run the classic program, Kill the Bit.
+That was a celebrated accomplishment after months of work.
 
-### Opcode Program Testing
+### Opcode Test Program Development
 
 Test each opcode using various parameter types to study how to use the opcodes in a program.
 Document the details to show what can be used in a program.
@@ -21,6 +24,8 @@ Program                 Opcodes tested, and test details.
 pLoop.asm               JMP : Jump to a label. The first program tested.
                         NOP : Used as a spacer.
 
+opJmp.asm               JMP : Jump to label or to a decimal or hex address.
+
 opMvi.asm               MVI : Move immediate values to registers, using immediate types: decimal, hex, character (eg. 'a'), and EQU value.
                         HLT : Halt and restart.
                         EQU : Used to set an immediate value.
@@ -29,8 +34,6 @@ opMvi.asm               MVI : Move immediate values to registers, using immediat
 
 opInrDcr.asm            INR : Increment value in the registers: A,B,C,D,E,H,L.
                         DCR : Decrement value in the registers: A,B,C,D,E,H,L.
-
-opJmp.asm               JMP : Jump to types: decimal, hex, and EQU value.
 
 opCpi.asm               CPI : Compare immediate decimal with register A.
                         JZ

@@ -1,7 +1,11 @@
-# Development Programs for the Altair 101
+# Early Program Development for the Altair 101
 
-Following are my machine code programs.
-These were my test programs before I wrote the assembler program.
+Following are my machine code programs that I wrote before I wrote the assembler program.
+These early first programs were to test the opcodes I was implementing.
+The goal was to have enough opcodes to run the program, Kill the Bit.
+
+A big issues was re-calculating the jump address after changing the number of program bytes.
+The other pain was editing byte arrays and then uploading the complete Processor program to run a test.
 
 Sample Method Programs
 + [Loop](#loop)
