@@ -4,17 +4,30 @@
 Tested:
 ````
 Program             Opcodes tested, and other tests.
-programs/pLoop.asm  JMP
-programs/opMvi.asm  MVI with immediate types: decimal, hex, character (eg. 'a'), and EQU value.
-                    Program length = 72 bytes.
-                    Because the serial read buffer is 64 bytes, I had to add "Thread.sleep(30);" in the Java program to slow the upload.
-programs/opMov.asm  MOV with all combination of registers: A,B,C,D,E,H,L.
-                    INR with all combination of registers: A,B,C,D,E,H,L.
-                    NOP
-programs/opOra.asm  ORA, OR with register A and registers: B,C,D,E,H,L and M.
-                    Test: out 3, to print messages.
-                    This program requires, LOG_MESSAGES not defined, because it outputs messages, eg. "+ Success: ORA".
-                    Program length = 255.
+programs/pLoop.asm      JMP
+programs/opMvi.asm      MVI with immediate types: decimal, hex, character (eg. 'a'), and EQU value.
+                        Program length = 72 bytes.
+                        Because the serial read buffer is 64 bytes, I had to add "Thread.sleep(30);" in the Java program to slow the upload.
+programs/opMov.asm      MOV with all combination of registers: A,B,C,D,E,H,L.
+                        INR with all combination of registers: A,B,C,D,E,H,L.
+                        NOP
+programs/opOra.asm      ORA, OR with register A and registers: B,C,D,E,H,L and M.
+                        Test: out 3, to print messages.
+                        This program requires, LOG_MESSAGES not defined, because it outputs messages, eg. "+ Success: ORA".
+                        Program length = 255.
+programs/opOut.asm
+programs/opRlcRrc.asm
+programs/opAdiSui.asm
+programs/opAni.asm
+programs/opCallRet.asm
+programs/opCmp.asm
+programs/opCpi.asm
+programs/opInOut.asm
+programs/opLdaSta.asm
+
+programs/pKillTheBit.asm
+programs/pSenseSwitchInput.asm
+programs/printDbString.asm
 ````
 The programs in this directory are used to test and demonstrate the use of each opcode.
 I'm also developing programs to demonstrate the Altair 101 abilities.
