@@ -23,6 +23,8 @@ public class asm {
     asmProcessor processFile = new asmProcessor();
     asmOpcodes theOpcodes = new asmOpcodes();
 
+    private static final String asmVersion = "0.91a";
+
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
     // -------------------------------------------------------------------------
@@ -157,7 +159,9 @@ public class asm {
                 }
                 case "help":
                     System.out.println("---------------------------------------");
-                    System.out.println("Help");
+                    System.out.println("Altair 101 8080/8085 assembler, version " + asmVersion);
+                    System.out.println("");
+                    System.out.println("Help document,");
                     System.out.println("+ file <filename>    : set the input file name to use in other commands.");
                     if (!inFilename.equals("")) {
                         System.out.println("++ Input file name: " + inFilename);
@@ -202,7 +206,7 @@ public class asm {
     }
 
     public static void main(String[] args) {
-        System.out.println("+++ Start 8080/8085 assembler, version 0.90.");
+        System.out.println("+++ Start 8080/8085 assembler, version " + asmVersion);
 
         asm asmProcess = new asm();    // none static data input
         asmProcess.run();
