@@ -207,10 +207,9 @@ public class asm {
 
     public static void main(String[] args) {
         System.out.println("+++ Start 8080/8085 assembler, version " + asmVersion);
-
-        asm asmProcess = new asm();    // none static data input
+        System.out.println("");
+        asm asmProcess = new asm();
         asmProcess.run();
-
         System.out.println("\n++ Exit.");
     }
 }

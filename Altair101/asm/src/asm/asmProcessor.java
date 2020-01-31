@@ -157,6 +157,8 @@ public class asmProcessor {
     // Program byte output: Listing and printing bytes.
     public void listProgramBytes() {
         System.out.println("\n+ List Program Bytes:");
+        System.out.println("++ Address:byte        datatype:name:value:parameters");
+        //                  ++       0:00000000 ++ opcode:jmp:11000011:Start
         programTop = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
@@ -166,7 +168,7 @@ public class asmProcessor {
             } else if (programTop < 100) {
                 programCounterPadding = " ";
             }
-            System.out.print("++     " + programCounterPadding + programTop + ":" + byteToString((byte)programTop) + " : ");
+            System.out.print("++     " + programCounterPadding + programTop + ":" + byteToString((byte)programTop) + " ");
             System.out.println("++ " + theValue);
             programTop++;
         }
