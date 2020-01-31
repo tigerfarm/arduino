@@ -639,7 +639,7 @@ void processOpcode() {
 #endif
       break;
     // ---------------------------------------------------------------------
-    // Compare register to A, then set Carry and Zero bit flags.
+    // CMP: Compare register to A, then set Carry and Zero bit flags.
     // If #=A, set Zero bit to 1. If #>A, Carry bit = 1. If #<A, Carry bit = 0.
     //    10111SSS
     case B10111000:

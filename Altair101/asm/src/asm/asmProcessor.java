@@ -342,7 +342,7 @@ public class asmProcessor {
 
     // ------------------------
     private int getLabelAddress(String findName) {
-        System.out.println("+ getLabelAddress, findName: " + findName);
+        // System.out.println("+ getLabelAddress, findName: " + findName);
         int returnValue = NAME_NOT_FOUND;
         Iterator<String> lName = labelName.iterator();
         Iterator<Integer> lAddress = labelAddress.iterator();
@@ -351,7 +351,7 @@ public class asmProcessor {
             int theAddress = lAddress.next();
             if (theName.toLowerCase().equals(findName.toLowerCase())) {
                 returnValue = theAddress;
-                System.out.println("+ Found theAddress: " + returnValue);
+                // System.out.println("+ Found theAddress: " + returnValue);
                 break;
             }
         }
@@ -410,12 +410,12 @@ public class asmProcessor {
                     // lb:
                     String labelAddress = Integer.toString(intAddress);
                     programBytes.set(i, theValue + SEPARATOR + labelAddress);
-                    System.out.println("++ Label, " + theValue + ":" + labelAddress);
+                    // System.out.println("++ Label, " + theValue + ":" + labelAddress);
                     // hb:
                     // Already set to default of 0.
                     theValue = it.next();
                     i++;
-                    System.out.println("++ Label, " + theValue);
+                    // System.out.println("++ Label, " + theValue);
                 } else {
                     // Need to also set hb (high byte).
                     // Address: 265, in binary hb=00000001(digital=1) lb=00001001(digital=9)
@@ -424,12 +424,12 @@ public class asmProcessor {
                     //-------------------
                     // lb:
                     programBytes.set(i, theValue + SEPARATOR + lb);
-                    System.out.println("++ Label, " + theValue + ":" + lb);
+                    // System.out.println("++ Label, " + theValue + ":" + lb);
                     // hb:
                     it.next();
                     i++;
                     programBytes.set(i, "hb:" + hb);
-                    System.out.println("++ Label, hb:" + hb);
+                    // System.out.println("++ Label, hb:" + hb);
                 }
             }
             i++;
