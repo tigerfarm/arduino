@@ -17,7 +17,7 @@ Test each opcode using various parameter types to study how to use the opcodes i
 Document the details to show what can be used in a program.
 
 The programs are ordered, where opcodes are tested and then used in later programs.
-For example, opMvi.asm is before opInrDcr.asm because MVI is used to initialize register values in opInrDcr.asm.
+For example, opMvi.asm is before opInrDcr.asm because MVI is used to initialize of opInrDcr.asm register values.
 ````
 Program                 Opcodes tested, and test details.
 -------                 -------------------------------------
@@ -33,15 +33,23 @@ opMvi.asm               MVI : Move immediate values to registers, using immediat
 opInrDcr.asm            INR : Increment value in the registers: A,B,C,D,E,H,L.
                         DCR : Decrement value in the registers: A,B,C,D,E,H,L.
 opMov.asm               MOV : Move values between the registers: A,B,C,D,E,H,L.
-opCpi.asm               CPI : Compare immediate decimal with register A.
+opCpi.asm               CPI : Compare immediate decimal, or an EQU value, with register A.
                         JZ
                         JNZ
                         JC
                         JNC
+opCmp.asm               CMP : Compare register A and registers: B,C,D,E,H,L, and M. Register M, is memory data, H:L.
+                            Register data == A, set Zero bit to 1. Carry bit = 0.
+                            Register data != A, set Zero bit to 0.
+                            Register > A, Carry bit = 1.
+                            Register < A, Carry bit = 0.
+                        JZ  Jump to a, if zero bit equals 1, flag is set.
+                        JNZ Jump to a, if Zero bit equals 0, flag is not set.
+                        JC  Jump to a, if Carry bit equals 1, flag is set.
+                        JNC Jump to a, if Carry bit equals 0, flag is not set.
+                        + Program has over 256 bytes, and works fine.
 
-opCmp.asm               CMP with register A and registers: B,C,D,E.
-
-opOra.asm               ORA, OR with register A and registers: B,C,D,E,H,L and M.
+opOra.asm               ORA, OR with register A and registers: B,C,D,E,H,L, and M.
                         This program requires, LOG_MESSAGES not defined, because it outputs messages, example: "+ Success: ORA".
                         Program length = 255.
 

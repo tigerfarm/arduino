@@ -189,6 +189,7 @@ public class asm {
                     System.out.println("+ exit               : Exit this program.");
                     System.out.println("");
                     System.out.println("> list <file|bytes|opcodes|ports>");
+                    System.out.println("");
                     break;
                 case "exit":
                     System.out.println("+ -------------------------------------");

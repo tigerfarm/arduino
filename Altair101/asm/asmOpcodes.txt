@@ -9,6 +9,7 @@ cmpd:10111010:
 cmpe:10111011:
 cmph:10111100:
 cmpl:10111101:
+cmpm:10111110:
 cpi:11111110:CPI #    11 111 110  2  Compare # to A. Store true or false into flagZeroBit.
 dad:00RP1001:DAD RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L, into H:L. And set carry bit.
 dadb:00001001:

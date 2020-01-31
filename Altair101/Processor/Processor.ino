@@ -701,10 +701,12 @@ void processOpcode() {
 #endif
       break;
     // ------------------------
-    //    10111SSS  Stacy, need to get memory data to compare.
+    //    10111SSS  Register M, is memory data, H:L.
     case B10111110:
-      flagZeroBit = regB == regA;
-      flagCarryBit = regB > regA;
+      hlValue = regH * 256 + regL;
+      dataByte = memoryData[hlValue];
+      flagZeroBit = dataByte == regA;
+      flagCarryBit = dataByte > regA;
 #ifdef LOG_MESSAGES
       displayCmp("M", regB);
 #endif
@@ -1063,7 +1065,7 @@ void processOpcode() {
 #endif
       break;
     // ---------------------------------------------------------------------
-    // inr d : increment a register. To do: update the flags.
+    // inr d : increment a register. Stacy, to do: update the flags. See CMP for example.
     //    00DDD100    Flags:ZSPA
     case B00111100:
 #ifdef LOG_MESSAGES
