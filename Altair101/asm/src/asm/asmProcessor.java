@@ -154,28 +154,10 @@ public class asmProcessor {
 
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
-    // Program byte output: Listing and printing bytes.
-    public void listProgramBytes() {
-        System.out.println("\n+ List Program Bytes:");
-        System.out.println("++ Address:byte        datatype:name:value:parameters");
-        //                  ++       0:00000000 ++ opcode:jmp:11000011:Start
-        programTop = 0;
-        for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
-            String theValue = it.next();
-            String programCounterPadding = "";
-            if (programTop < 10) {
-                programCounterPadding = "  ";
-            } else if (programTop < 100) {
-                programCounterPadding = " ";
-            }
-            System.out.print("++     " + programCounterPadding + programTop + ":" + byteToString((byte)programTop) + " ");
-            System.out.println("++ " + theValue);
-            programTop++;
-        }
-        System.out.println("+ End of list.");
-    }
-
-    public void printProgramBytesToFile(String theFileNameTo) {
+    // Program byte output: Listing byte information to screen
+    //  and writing bytes to a file.
+    //
+    public void programListWrite(String theFileNameTo) {
         byte[] fileBytes = new byte[1024];    // Hold the bytes to be written.
         System.out.println("\n+ Print Program Bytes and description.");
         // ++ <count>: binary   :hex > description.
@@ -268,11 +250,12 @@ public class asmProcessor {
         }
         System.out.println("+ End of list.");
         if (!theFileNameTo.equals("")) {
-            System.out.println("+ Write the bytes to the file:  " + theFileNameTo);
+            // System.out.println("+ Write the bytes to the file:  " + theFileNameTo);
             File dirTo = new File(theFileNameTo);
             try {
                 try (OutputStream out = new FileOutputStream(dirTo)) {
                     out.write(fileBytes, 0, programTop);   // programTop is the number of bytes to write.
+                    System.out.println("+ Machine code file created:  " + theFileNameTo);
                 }
             } catch (IOException e) {
                 System.out.println("-- Error, writing to file: " + e);
@@ -280,198 +263,6 @@ public class asmProcessor {
             }
         }
 
-    }
-
-    public void printProgramBytesArray() {
-        System.out.println("\n+ Print a program array from the program data:");
-        programCounter = 0;
-        programTop = 0;
-        for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
-            String opcodeStatement = "";
-            String opcodeComment = "";
-            String[] byteValues;
-            //
-            String theValue = it.next();
-            programTop++;
-            String[] opcodeValues = theValue.split(SEPARATOR);
-            opcode = opcodeValues[1];
-            if (opcodeValues[0].equals("opcode")) {
-                opcodeStatement = "B" + opcodeValues[2] + ",";    // B11000011,
-            } else {
-                opcode = opcodeValues[0];
-            }
-            // System.out.println("++ printProgramBytesArray, opcode|" + opcode + "| theValue |" + theValue + "|");
-            switch (opcode) {
-                // -------------------------------------------------------------
-                // Assembler directives.
-                case "databyte":
-                    // ++ printProgramBytesArray, opcode|databyte| theValue |databyte:hello:H|
-                    if (opcodeValues[2].equals(SEPARATOR_TEMP)) {
-                        // '^^',                //  16: databyte: msgsuccess
-                        opcodeStatement = "'" + SEPARATOR + "'" + ",";
-                    } else {
-                        opcodeStatement = "'" + opcodeValues[2] + "'" + ",";
-                    }
-                    opcodeComment = opcode + ": " + opcodeValues[1];
-                    break;
-
-                case "dbterm":
-                    // ++ printProgramBytesArray, opcode|dbterm| theValue|dbterm:hello:255|
-                    opcodeStatement = opcodeValues[2] + ",";
-                    opcodeComment = opcode + ": " + opcodeValues[1];
-                    break;
-                case "dsname":
-                    // ++ printProgramBytesArray, opcode|dsname| theValue|dsname:scorer:1|
-                    opcodeStatement = opcodeValues[2] + ",";
-                    opcodeComment = opcode + ": " + opcodeValues[1];
-                    break;
-                // -------------------------------------------------------------
-                // Opcodes
-                case "hlt":
-                case "nop":
-                case "ret":
-                case "rlc":
-                case "rrc":
-                    // opcode (no parameters)
-                    // ++ opcode:nop:00000000:
-                    opcodeComment = opcode;
-                    break;
-                // -----------------------------
-                case "cmp":
-                case "dad":
-                case "dcr":
-                case "inr":
-                case "inx":
-                case "ldax":
-                case "ora":
-                case "xra":
-                    // opcode <register|RegisterPair>
-                    // ++ opcode:inr:00111101:a:
-                    opcodeComment = opcode + " " + opcodeValues[3];
-                    break;
-                // -----------------------------
-                case "adi":
-                case "ani":
-                case "cpi":
-                case "in":
-                case "out":
-                case "sui":
-                    // opcode <immediate>
-                    // out 39
-                    // ++ opcode:out:11100011:39
-                    // ++ immediate:39:39
-                    // ++ immediate:TERMB:255
-                    theValue = it.next();   // ++ immediate:39:39
-                    programTop++;
-                    byteValues = theValue.split(SEPARATOR);
-                    opcodeStatement += " " + byteValues[2] + ",";
-                    if (byteValues[1].equals(byteValues[2])) {
-                        opcodeComment = opcode + " " + byteValues[1];
-                    } else {
-                        opcodeComment = opcode + " " + byteValues[2] + " (" + byteValues[1] + ")";
-                    }
-                    break;
-                // -----------------------------
-                case "call":
-                case "jmp":
-                case "jnz":
-                case "jz":
-                case "jnc":
-                case "jc":
-                case "lda":
-                case "shld":
-                case "sta":
-                    // opcode <address label>
-                    // ++ opcode:jmp:11000011:There:
-                    // ++ lb:Loop:2
-                    // ++ hb:0
-                    //------------------------------------------------
-                    theValue = it.next();   // ++ lb:Loop:2
-                    programTop++;
-                    byteValues = theValue.split(SEPARATOR);
-                    opcodeStatement += " " + byteValues[2] + ",";
-                    //------------
-                    theValue = it.next();   // ++ hb:x
-                    programTop++;
-                    byteValues = theValue.split(SEPARATOR);
-                    opcodeStatement += " " + byteValues[1] + ",";
-                    //------------------------------------------------
-                    //
-                    opcodeComment = opcode + " " + opcodeValues[3];
-                    break;
-                // -----------------------------
-                case "lxi":
-                    // opcode <register>,<address>
-                    // lxi b,5
-                    // ++ opcode:lxi:00000001:b:5
-                    // ++ lb:5:
-                    // ++ hb:0
-                    //------------------------------------------------
-                    theValue = it.next();   // ++ lb:Loop:2
-                    programTop++;
-                    byteValues = theValue.split(SEPARATOR);
-                    opcodeStatement += " " + byteValues[2] + ",";
-                    //------------
-                    theValue = it.next();   // ++ hb:x
-                    programTop++;
-                    byteValues = theValue.split(SEPARATOR);
-                    opcodeStatement += " " + byteValues[1] + ",";
-                    //------------------------------------------------
-                    opcodeComment = opcode + " " + opcodeValues[3] + "," + opcodeValues[4];
-                    break;
-                // -----------------------------
-                case "mvi":
-                    // opcode <register>,<immediate>
-                    // mvi a,1
-                    // ++ opcode:mvi:00111110:a:1
-                    // ++ immediate:1:1
-                    // ++ immediate:TERMB:255
-                    theValue = it.next();   // ++ immediate:1:1
-                    programTop++;
-                    byteValues = theValue.split(SEPARATOR);
-                    opcodeStatement += " " + byteValues[2] + ",";
-                    if (byteValues[1].equals(byteValues[2])) {
-                        opcodeComment = opcode + " " + opcodeValues[3] + "," + byteValues[1];
-                    } else {
-                        opcodeComment = opcode + " " + opcodeValues[3] + "," + byteValues[1];
-                    }
-                    break;
-                // -----------------------------
-                case "mov":
-                    // opcode <register>,<register>
-                    // mov a,b
-                    // ++ opcode:mov:00111110:a:b
-                    opcodeComment = opcode + " " + opcodeValues[3] + "," + opcodeValues[4];
-                    break;
-                // -----------------------------
-                default:
-                    break;
-            }
-            printProgramBytesArrayLine(opcodeStatement, opcodeComment);
-        }
-        printProgramBytesArrayLine("0", "End of program");
-        System.out.println("\n+ End of array.");
-        if (errorCount > 0) {
-            System.out.println("-- Number of errors: " + errorCount);
-        }
-    }
-
-    private void printProgramBytesArrayLine(String opcodeStatement, String opcodeComment) {
-        String marginPadding = "  ";
-        opcodeStatement += marginPadding;
-        for (int i = opcodeStatement.length(); i < 21; i++) {
-            // 12345678901234567890123456789
-            //   B00111110, 73,    // mvi a,73
-            opcodeStatement += " ";
-        }
-        String programCounterPadding = "";
-        if (programCounter < 10) {
-            programCounterPadding = "  ";
-        } else if (programCounter < 100) {
-            programCounterPadding = " ";
-        }
-        System.out.println(marginPadding + opcodeStatement + "// " + programCounterPadding + programCounter + ": " + opcodeComment);
-        programCounter = programTop;
     }
 
     // -------------------------------------------------------------------------
@@ -1374,17 +1165,9 @@ public class asmProcessor {
         //
         // Required, sets actual values:
         //
-        // Option: for debugging.
-        thisProcess.listProgramBytes();
-        //
-        // Option: create a binary file of the program. And has a nice listing.
-        // thisProcess.printProgramBytesToFile("10000000.bin");
+        // Option: create a binary file of the program, which has a nice listing.
+        // thisProcess.programListWrite("10000000.bin");
         // thisProcess.showFile("10000000.bin");
-        // C3 00 6B 79 20 65 3F E3 76 1C 78 0E 6E 77 E3 4A 00 00 00 00 00 00 00 C3 00
-        //
-        // Option: print array format for use in Processor.ino.
-        // thisProcess.printProgramBytesArray();
-        //
         //
         if (thisProcess.errorCount > 0) {
             System.out.println("\n-- Number of errors: " + thisProcess.errorCount + "\n");

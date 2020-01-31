@@ -59,11 +59,6 @@ public class asm {
             //
             // System.out.println("+ cmd : " + cmd + ":" + theRest + ".");
             switch (cmd) {
-                case "listbytes":
-                    System.out.println("+ -------------------------------------");
-                    System.out.println("+ List the parsed byte array to screen.");
-                    processFile.listProgramBytes();
-                    break;
                 case "asm":
                     System.out.println("+ -------------------------------------");
                     System.out.println("+ Print and parse the program: " + inFilename + ":");
@@ -73,34 +68,29 @@ public class asm {
                         break;
                     }
                     System.out.println("+ Write the program byte array to the file: " + outFilename + ":");
-                    processFile.printProgramBytesToFile(outFilename);
+                    processFile.programListWrite(outFilename);
                     break;
-                case "parsefile":
+                case "parse":
                     System.out.println("+ -------------------------------------");
-                    System.out.println("+ Print and parse the program: " + inFilename + ":");
+                    System.out.println("+ Parse the program file: " + inFilename + ":");
                     processFile.parseFile(inFilename);
                     break;
-                case "writebytes":
+                case "write":
                     System.out.println("+ -------------------------------------");
                     System.out.println("+ Write the program byte array to the file: " + outFilename + ":");
-                    processFile.printProgramBytesToFile(outFilename);
+                    processFile.programListWrite(outFilename);
                     break;
-                case "showfile":
+                case "show":
                     System.out.println("+ -------------------------------------");
                     System.out.println("+ Print binary file bytes to screen: " + outFilename + ":");
                     processFile.showFile(outFilename);
-                    break;
-                case "printarray":
-                    System.out.println("+ -------------------------------------");
-                    System.out.println("+ Print the byte array for the program: " + inFilename + ":");
-                    processFile.printProgramBytesArray();
                     break;
                 case "file":
                     // > file this.asm
                     if (theRest.length() > 0) {
                         inFilename = theRest;
                     }
-                    System.out.println("+ File name to use for input: " + inFilename + ".");
+                    System.out.println("+ Program source file name: " + inFilename + ".");
                     break;
                 case "fileout":
                     // > fileout this.bin
@@ -112,10 +102,25 @@ public class asm {
                 case "list":
                     switch (theRest) {
                         case "":
+                            System.out.println("+ -------------------------------------");
+                            System.out.println("> list <file|bytes|opcode|ports>");
+                            System.out.println("");
                         case "file":
                             System.out.println("+ -------------------------------------");
-                            System.out.println("+ List file: " + inFilename + ":");
+                            System.out.println("+ List program source file: " + inFilename + ":");
                             processFile.listFile(inFilename);
+                            break;
+                        case "bytes":
+                            System.out.println("+ -------------------------------------");
+                            System.out.println("+ List the parsed byte array to screen.");
+                            processFile.programListWrite("");
+                            break;
+                        case "opcodes":
+                            System.out.println("+ -------------------------------------");
+                            theOpcodes.opcodesList();
+                            break;
+                        case "ports":
+                            listSerialPorts();
                             break;
                         default:
                             System.out.println("- Invalid list option." + theRest);
@@ -127,10 +132,6 @@ public class asm {
                     break;
                 case "opcodes":
                     theOpcodes.opcodeInfoList();
-                    break;
-                case "opcodelist":
-                    System.out.println("+ -------------------------------------");
-                    theOpcodes.opcodesList();
                     break;
                 case "opcodebytes":
                     System.out.println("+ -------------------------------------");
@@ -153,44 +154,41 @@ public class asm {
                         setSerialPortName(theRest);
                     }
                     break;
-                case "listports": {
-                    listSerialPorts();
-                    break;
-                }
                 case "help":
                     System.out.println("---------------------------------------");
                     System.out.println("Altair 101 8080/8085 assembler, version " + asmVersion);
                     System.out.println("");
                     System.out.println("Help document,");
-                    System.out.println("+ file <filename>    : set the input file name to use in other commands.");
+                    System.out.println("+ file <source>      : Set the input file name to use in other commands.");
                     if (!inFilename.equals("")) {
-                        System.out.println("++ Input file name: " + inFilename);
+                        System.out.println("++ Source file   : " + inFilename);
                     }
-                    System.out.println("+ fileout <filename> : set the output file name to use in other commands.");
+                    System.out.println("+ fileout <filename> : Set the machine code file name.");
                     if (!inFilename.equals("")) {
-                        System.out.println("++ Output file name: " + outFilename);
+                        System.out.println("++ Machine code file: " + outFilename);
                     }
                     System.out.println("");
-                    System.out.println("+ list [file]        : list the input file to the screen.");
-                    System.out.println("+ parsefile          : Parse the input file.");
-                    System.out.println("+ listbytes          : List the parsed bytes to screen.");
-                    System.out.println("+ printarray         : Print the program bytes as a C-language array.");
-                    System.out.println("+ writebytes         : Write bytes to a binary file, and output info to screen.");
-                    System.out.println("+ showfile           : Print binary file bytes to screen.");
                     System.out.println("+ asm                : Parse the input file and write the bytes to a file.");
+                    System.out.println("+ parse              : Parse the input file.");
+                    System.out.println("+ write              : Write bytes to a binary file, and output info to screen.");
+                    System.out.println("+ list [file]        : List the program source file.");
+                    System.out.println("+ list bytes         : List the parsed bytes to screen.");
+                    System.out.println("+ show               : Print machine code file bytes to screen.");
                     System.out.println("");
+                    System.out.println("+ list opcodes       : list the opcode data, ordered the same as in the file.");
                     System.out.println("+ opcode <opcode>    : list an opcode's information.");
                     System.out.println("+ opcodes            : list opcode information.");
-                    System.out.println("+ opcodelist         : list the opcode data, ordered the same as in the file.");
                     System.out.println("+ opcodebytes        : list the opcode data, sorted by value.");
                     System.out.println("+ opcodenames        : list the opcode data, sorted by name.");
                     System.out.println("");
                     System.out.println("+ upload             : Serial upload the program bytes to the Arduino.");
                     System.out.println("++ Serial port name: " + getSerialPortName());
-                    System.out.println("+ listports          : List available serial ports.");
+                    System.out.println("+ list ports         : List available serial ports.");
                     System.out.println("+ uploadset          : Set serial port to use for uploading.");
                     System.out.println("");
                     System.out.println("+ exit               : Exit this program.");
+                    System.out.println("");
+                    System.out.println("> list <file|bytes|opcodes|ports>");
                     break;
                 case "exit":
                     System.out.println("+ -------------------------------------");
