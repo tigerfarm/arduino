@@ -57,15 +57,26 @@ public class asm {
             //
             // System.out.println("+ cmd : " + cmd + ":" + theRest + ".");
             switch (cmd) {
-                case "parsefile":
-                    System.out.println("+ -------------------------------------");
-                    System.out.println("+ Print and parse the program: " + inFilename + ":");
-                    processFile.parseFile(inFilename);
-                    break;
                 case "listbytes":
                     System.out.println("+ -------------------------------------");
                     System.out.println("+ List the parsed byte array to screen.");
                     processFile.listProgramBytes();
+                    break;
+                case "asm":
+                    System.out.println("+ -------------------------------------");
+                    System.out.println("+ Print and parse the program: " + inFilename + ":");
+                    processFile.parseFile(inFilename);
+                    System.out.println("+ -------------------------------------");
+                    if (processFile.getErrorCount() > 0) {
+                        break;
+                    }
+                    System.out.println("+ Write the program byte array to the file: " + outFilename + ":");
+                    processFile.printProgramBytesToFile(outFilename);
+                    break;
+                case "parsefile":
+                    System.out.println("+ -------------------------------------");
+                    System.out.println("+ Print and parse the program: " + inFilename + ":");
+                    processFile.parseFile(inFilename);
                     break;
                 case "writebytes":
                     System.out.println("+ -------------------------------------");
@@ -162,6 +173,7 @@ public class asm {
                     System.out.println("+ printarray         : Print the program bytes as a C-language array.");
                     System.out.println("+ writebytes         : Write bytes to a binary file, and output info to screen.");
                     System.out.println("+ showfile           : Print binary file bytes to screen.");
+                    System.out.println("+ asm                : Parse the input file and write the bytes to a file.");
                     System.out.println("");
                     System.out.println("+ opcode <opcode>    : list an opcode's information.");
                     System.out.println("+ opcodes            : list opcode information.");
@@ -190,7 +202,7 @@ public class asm {
     }
 
     public static void main(String[] args) {
-        System.out.println("+++ Start 8080/8085 assembler.");
+        System.out.println("+++ Start 8080/8085 assembler, version 0.90.");
 
         asm asmProcess = new asm();    // none static data input
         asmProcess.run();

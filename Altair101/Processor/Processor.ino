@@ -10,6 +10,8 @@
   ---------------------------------------------
   Current/Next Work
 
+  Don't write to SD card when toggles = 11111111.
+
   Get opLadSta.asm to work.
   + STA a: Store register A content to an address (a).
   + LDA a: Load register A from an address (a).

@@ -3,16 +3,13 @@
     Altair 101 Assembler Program
 
     The basic assembler works:
-    + It can assemble programs from a set of tested Intl 8080/8085 opcodes and assembler directives.
-    + The assembled, Kill the Bit program, run on the Altair 101 dev machine.
+    + It can convert assembly language opcodes and assembler directives into executable machine code.
+    + It is designed for Intel 8080/8085 opcodes.
+    + The converted, Kill the Bit program, run on the Altair 101 dev machine.
 
 > file programs/opMvi.asm
 > parsefile
 > writebytes
-
-    ---------------------------------------------
-    +++ Program testing.
--- Error, programTop: 15, line: mvi a,' '++ parseLine, Opcode|mvi| p1|a| p2|' '|
 
     ---------------------------------------------
     + Pong program work notes.
@@ -138,6 +135,24 @@ public class asmProcessor {
     private final static List<Integer> variableValue = new ArrayList<>();
 
     // -------------------------------------------------------------------------
+    public static String byteToString(byte aByte) {
+        return toBinary(aByte, 8);
+    }
+
+    private static String toBinary(byte a, int bits) {
+        if (--bits > 0) {
+            return toBinary((byte) (a >> 1), bits) + ((a & 0x1) == 0 ? "0" : "1");
+        } else {
+            return (a & 0x1) == 0 ? "0" : "1";
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    public int getErrorCount() {
+        return this.errorCount;
+    }
+
+    // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
     // Program byte output: Listing and printing bytes.
     public void listProgramBytes() {
@@ -151,7 +166,7 @@ public class asmProcessor {
             } else if (programTop < 100) {
                 programCounterPadding = " ";
             }
-            System.out.print("++     " + programCounterPadding + programTop + ": ");
+            System.out.print("++     " + programCounterPadding + programTop + ":" + byteToString((byte)programTop) + " : ");
             System.out.println("++ " + theValue);
             programTop++;
         }
@@ -162,8 +177,8 @@ public class asmProcessor {
         byte[] fileBytes = new byte[1024];    // Hold the bytes to be written.
         System.out.println("\n+ Print Program Bytes and description.");
         // ++ <count>: binary   :hex > description.
-        // ++       0: 11000011 : C3 > opcode: jmp Start
-        System.out.println("++ Address: byte     :hex > description");
+        System.out.println("++ Address:byte      databyte :hex > description");
+        //                  ++       0:00000000: 11000011 : C3 > opcode: jmp Test
         programTop = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
@@ -175,7 +190,7 @@ public class asmProcessor {
             } else if (programTop < 100) {
                 programCounterPadding = " ";
             }
-            System.out.print("++     " + programCounterPadding + programTop + ": ");
+            System.out.print("++     " + programCounterPadding + programTop + ":" + byteToString((byte)programTop) + ": ");
             String[] opcodeValues = theValue.split(SEPARATOR);
             String keyword = opcodeValues[0];
             switch (keyword) {
@@ -1224,11 +1239,19 @@ public class asmProcessor {
         }
         System.out.println("");
         if (errorCount > 0) {
-            System.out.println("-- parseFile, Number of errors: " + errorCount);
+            System.out.println("\n-- parseFile, Number of errors: " + errorCount);
             return;
         }
         setProgramByteAddresses();
+        if (errorCount > 0) {
+            System.out.println("\n-- parseFile, Number of errors: " + errorCount);
+            return;
+        }
         setProgramByteImmediates();
+        if (errorCount > 0) {
+            System.out.println("\n-- parseFile, Number of errors: " + errorCount);
+            return;
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -1261,18 +1284,6 @@ public class asmProcessor {
     public void uploadFile(String theReadFilename) {
         System.out.println("++ Upload the binary file through the serial port: " + theReadFilename);
         System.out.println("++ Not available, yet.");
-    }
-
-    public static String byteToString(byte aByte) {
-        return toBinary(aByte, 8);
-    }
-
-    private static String toBinary(byte a, int bits) {
-        if (--bits > 0) {
-            return toBinary((byte) (a >> 1), bits) + ((a & 0x1) == 0 ? "0" : "1");
-        } else {
-            return (a & 0x1) == 0 ? "0" : "1";
-        }
     }
 
     public void showFile(String theReadFilename) {

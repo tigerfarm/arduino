@@ -23,29 +23,25 @@ Program                 Opcodes tested, and test details.
 -------                 -------------------------------------
 pLoop.asm               JMP : Jump to a label. The first program tested.
                         NOP : Used as a spacer.
-
 opJmp.asm               JMP : Jump to label or to a decimal or hex address.
-
+                        Test: out 3, to print register A to the Arduino serial port.
 opMvi.asm               MVI : Move immediate values to registers, using immediate types: decimal, hex, character (eg. 'a'), and EQU value.
                         HLT : Halt and restart.
                         EQU : Used to set an immediate value.
                         Program length = 72 bytes.
                         Because the serial read buffer is 64 bytes, I had to add "Thread.sleep(30);" in the Java program to slow the upload.
-
 opInrDcr.asm            INR : Increment value in the registers: A,B,C,D,E,H,L.
                         DCR : Decrement value in the registers: A,B,C,D,E,H,L.
-
+opMov.asm               MOV : Move values between the registers: A,B,C,D,E,H,L.
 opCpi.asm               CPI : Compare immediate decimal with register A.
                         JZ
                         JNZ
                         JC
                         JNC
+
 opCmp.asm               CMP with register A and registers: B,C,D,E.
 
-opMov.asm               MOV : Move values between the registers: A,B,C,D,E,H,L.
-
 opOra.asm               ORA, OR with register A and registers: B,C,D,E,H,L and M.
-                        Test: out 3, to print messages.
                         This program requires, LOG_MESSAGES not defined, because it outputs messages, example: "+ Success: ORA".
                         Program length = 255.
 
@@ -54,9 +50,10 @@ opRlcRrc.asm
 opAdiSui.asm
 
 opCallRet.asm
+opLdaSta.asm
+
 opOut.asm
 opInOut.asm
-opLdaSta.asm
 
 pKillTheBit.asm
 pSenseSwitchInput.asm
