@@ -1,6 +1,6 @@
                             ; --------------------------------------
                             ; Test SHLD.
-                            ; SHLD adr   (adr) <-L; (adr+1)<-H
+                            ; SHLD adr : L -> (adr); H -> (adr+1)
                             ; Store data value from memory location: register L to a(address hb:lb).
                             ; Store data value from memory location: register H to a+1.
                             ;
