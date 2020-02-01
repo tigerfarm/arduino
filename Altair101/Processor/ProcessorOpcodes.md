@@ -200,7 +200,7 @@ Register pair identifiers:
   b = B:C, 00=B:C
   d = D:E, 01=D:E
   m = H:L, 10=H:L
-  m = H:L, 11=SP, Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP.
+  ? = SP,  11=SP, Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP.
 ````
 Register identifiers (binary value=R):
 ````
@@ -226,7 +226,7 @@ Register identifiers (binary value=R):
 
   #     = 8 or 16 bit immediate operand, example:
           ani 01h ;get A8 alone
-  RP    = Register pair (16 bit): B:C(b), D:E(d), H:L(m). For example:
+  RP    = Register pair (16 bit): B:C(b), D:E(d), H:L(h or m). For example:
           ldax d ;display bit pattern on upper 8 address lights
   RRR (or R) = Register binary value, example: 010, for register D.
   DDD (or D) = Destination register binary value, example: 011, for register E.

@@ -8,34 +8,33 @@
     Start:
             LXI H,0     ; Move the lb hb data values into the register pair H(hb):L(lb). Initialize counter
             mvi D,080h  ; Move db to register D. Set initial display bit.  080h = 0200 = regD = 10 000 000
-                        ; Fix: Change 080h to 0x80 with is decimal 128.
-            LXI B,500h  ; Load a(lb:hb) into register B:C. Higher value = faster. Default: 0016 = B:C  = 00 010 000
-                        ; Fix: B00000001, 0, 5,     //   5: lxi b,500h
-                        ;  My default: 0005 = B:C  = 00 000 101
+                        ;
+                        ; ---------
+                        ; Bit speed: Higher value = faster.
+            LXI B,500h  ; Load a(lb:hb) into register B:C. 
+                        ;  My default: 0005 = B:C  = 00 000 101 : 00 000 000
                         ;     Default: 0014 = B:C  = 00 010 000
                         ;     Slow:    0020 = B:C  = 00 010 000
                         ;     Nice:    0040 = B:C  = 00 100 000 Similar to the video speed. They use: 016h, I use
                         ;     Fast:    0100 = B:C  = 01 000 000
                         ; Too fast:    0100 = B:C  = 01 001 000
+                        ;
                         ; ------------------------------------------------
                         ; Display bit pattern on upper 8 address lights.
     Begin:
-            ; hlt         ; For testing.
             LDAX D      ; Move data from address D:E, to register A.
             LDAX D      ; Move data from address D:E, to register A.
             LDAX D      ; Move data from address D:E, to register A.
             LDAX D      ; Move data from address D:E, to register A.
                         ; ------------------------------------------------
             DAD B       ; Add B:C to H:L. Set carry bit. Increments the display counter
-            JNC Begin   ; If carry bit false, jump to lb hb, LDAX instruction start.
-
+            JNC Begin   ; If carry bit false, jump to address label.
+                        ;
             IN 0ffh     ; Check for toggled input, at port 0377 (toggle sense switches), that can kill the bit.
-                        ; Fix: Change 0ffh to 0xff which is 255.
-            XRA D       ; Exclusive OR register with A
-            RRC         ; Rotate A right (shift byte right 1 bit). Set carry bit. Rotate display right one bit
-            MOV D,A     ; Move register A to register D. Move data to display reg
-
-            JMP Begin   ; Jump to BEG, LDAX instruction start.
+            XRA D       ; Exclusive OR register with A, to either remove or add a bit.
+                        ;
+            RRC         ; Rotate right register A (shift byte right 1 bit). Set carry bit.
+            MOV D,A     ; Register D, is used by LDAX to display the moving bit(s).
+            JMP Begin   ; Jump to address label.
                         ; ------------------------------------------------
-                        ; End of program.
-                        ; ------------------------------------------------
+            end
