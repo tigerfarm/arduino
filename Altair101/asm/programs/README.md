@@ -2,9 +2,10 @@
 # Writing Altair 101 Assembler Programs
 
 I have moved into the program development stage.
-I have, wrote, an assembler program that runs my laptop, that assembles programs into byte code.
+I wrote an assembler program that runs my laptop, that assembles programs into byte code.
 The assembler can also upload the code to the dev machine over a serial port.
-The dev machine can run the programs with, or without, detail step logging messages that are displayed on my laptop over a serial port.
+The dev machine can run the programs with, or without,
+detail step logging messages that are displayed on my laptop over a serial port.
 
 My first programs are to test, study, and demonstrate the implemented Intel 8080/8085 opcodes.
 I have also started to develop programs to demonstrate the Altair 101 abilities.
