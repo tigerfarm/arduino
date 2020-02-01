@@ -30,7 +30,7 @@
 0x1e  2           MVI E,D8   E <- byte 2
 0x1f  1  CY       RAR        A = A >> 1; bit 7 = prev bit 7; CY = prev bit 0
 0x20  1           RIM        special    
-0x21  3           LXI H,D16  H <- byte 3, L  <- byte 2
+0x21  3           LXI H,D16  H <- byte 3, L <- byte 2
 0x22  3           SHLD adr   (adr) <-L; (adr+1)<-H
 0x23  1           INX H      HL <- HL + 1
 0x24  1  Z,S,P,AC INR H      H <- H+1   

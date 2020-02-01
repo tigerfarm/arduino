@@ -57,6 +57,11 @@ opAni.asm
 opRlcRrc.asm
 opAdiSui.asm
 
+opDad.asm
+opInx.asm
+opLdax.asm
+opShld.asm
+
 opCallRet.asm
 opLdaSta.asm
 

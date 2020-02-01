@@ -386,7 +386,7 @@ byte theProgram[] = {
   B00111010, 4, 0,  // lda 4      ; Load register A from the address(hb:lb).
   0343, 37,         // out 37     ; Print register A.
   //
-  0343, 38,         // out 38     ; Print the Intialized register values.
+  0343, 38,         // out 38     ; Print the Initialized register values.
   0166,             // hlt
   //
   // -----------------------------------------------------------------------------
@@ -431,7 +431,7 @@ byte theProgram[] = {
   B00011001,        // dad d      ; Add register pair D:E to H:L.
   0343, 36,         // out 36     ; Print register pair, H:L.
   //
-  0343, 38,         // out 38     ; Print the Intialized register values.
+  0343, 38,         // out 38     ; Print the results.
   0166,             // hlt
   //
   // -----------------------------------------------------------------------------
