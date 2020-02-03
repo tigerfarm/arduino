@@ -11,6 +11,8 @@
 > parsefile
 > writebytes
 
+    +++ Handle error response for the function: getImmediateValue.
+
     ---------------------------------------------
     + Pong program work notes.
 
@@ -117,9 +119,7 @@ public class asmProcessor {
     private String p2;
     private final String SEPARATOR = ":";
     private final String SEPARATOR_TEMP = "^^";
-    private final int NAME_NOT_FOUND = -1;
     private final int DB_STRING_TERMINATOR = 255;   // ffh = B11111111
-    private int errorCount = 0;
     private final static int ignoreFirstCharacters = 0;
     //
     // Use for storing program bytes and calculating label addresses.
@@ -148,8 +148,25 @@ public class asmProcessor {
     }
 
     // -------------------------------------------------------------------------
+    private final int NAME_NOT_FOUND = -1;
+    private final String NAME_NOT_FOUND_STR = "-1";
+    private boolean debugMessage = false;
+    private int errorCount = 0;
+
     public int getErrorCount() {
         return this.errorCount;
+    }
+
+    private void printDebug(String theMessage) {
+        if (debugMessage) {
+            System.out.print(theMessage);
+        }
+    }
+
+    private void printlnDebug(String theMessage) {
+        if (debugMessage) {
+            System.out.print(theMessage + "\n");
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -157,7 +174,7 @@ public class asmProcessor {
     // Program byte output: Listing byte information to screen
     //  and writing bytes to a file.
     //
-    public void programListWrite(String theFileNameTo) {
+    public void programBytesListAndWrite(String theFileNameTo) {
         byte[] fileBytes = new byte[1024];    // Hold the bytes to be written.
         System.out.println("\n+ Print Program Bytes and description.");
         // ++ <count>: binary   :hex > description.
@@ -174,7 +191,7 @@ public class asmProcessor {
             } else if (programTop < 100) {
                 programCounterPadding = " ";
             }
-            System.out.print("++     " + programCounterPadding + programTop + ":" + byteToString((byte)programTop) + ": ");
+            System.out.print("++     " + programCounterPadding + programTop + ":" + byteToString((byte) programTop) + ": ");
             // Only works up to 255 byte address. Example:
             // ++     255:11111111: 00000001 : 01 > hb: 1
             // ++     256:00000000: 11000011 : C3 > opcode: ...
@@ -346,7 +363,7 @@ public class asmProcessor {
 
     // ------------------------
     private int getLabelAddress(String findName) {
-        // System.out.println("+ getLabelAddress, findName: " + findName);
+        printlnDebug("+ getLabelAddress, findName: " + findName);
         int returnValue = NAME_NOT_FOUND;
         Iterator<String> lName = labelName.iterator();
         Iterator<Integer> lAddress = labelAddress.iterator();
@@ -355,7 +372,7 @@ public class asmProcessor {
             int theAddress = lAddress.next();
             if (theName.toLowerCase().equals(findName.toLowerCase())) {
                 returnValue = theAddress;
-                // System.out.println("+ Found theAddress: " + returnValue);
+                printlnDebug("+ Found theAddress: " + returnValue);
                 break;
             }
         }
@@ -410,7 +427,9 @@ public class asmProcessor {
                 // ++ Label: lb:okaym1:265
                 // B11001010, 9, 1,   // 259: jz okaym1  265 in binary hb=00000001 lb=00001001
                 //
-                if (intAddress < 256) {
+                if (intAddress == NAME_NOT_FOUND) {
+                    System.out.println("- Label address not found for program byte: " + theValue);
+                } else if (intAddress < 256) {
                     // lb:
                     String labelAddress = Integer.toString(intAddress);
                     programBytes.set(i, theValue + SEPARATOR + labelAddress);
@@ -496,36 +515,9 @@ public class asmProcessor {
 
     // ------------------------
     private String getImmediateValue(String findName) {
-        // System.out.println("\n+ getImmediateValue, findName: " + findName);
-        if (findName.equals("'^^'")) {
-            return Integer.toString(SEPARATOR.charAt(0));
-        }
-        if (findName.startsWith("'") && findName.endsWith("'")) {
-            // Need to handle characters, example: ":" return 58 (colon ascii value), or "\n" return 10.
-            // Reference: https://en.wikipedia.org/wiki/ASCII
-            if (findName.charAt(1) == '\\') {
-                switch (findName.charAt(2)) {
-                    case 'n':
-                        // Line feed
-                        return "10";
-                    case 'b':
-                        // Backspace
-                        return "7";
-                    case 'a':
-                        // Bell
-                        return "7";
-                    case 't':
-                        // Tab
-                        return "9";
-                    default:
-                        errorCount++;
-                        System.out.println("\n- Error, programTop: " + programTop + ", unhandled escape character: " + findName + ".\n");
-                        return "0";
-                }
-            }
-            return Integer.toString(findName.charAt(1));
-        }
-        String returnString = findName;
+        // Return either a numeric value as a string,
+        //  or NAME_NOT_FOUND_STR.
+        printlnDebug("\n+ getImmediateValue, findName: " + findName);
         int returnValue = NAME_NOT_FOUND;
         Iterator<String> lName = variableName.iterator();
         Iterator<Integer> lValue = variableValue.iterator();
@@ -534,64 +526,131 @@ public class asmProcessor {
             int theValue = lValue.next();
             if (theName.toLowerCase().equals(findName.toLowerCase())) {
                 returnValue = theValue;
-                // System.out.println("+ Found theValue: " + returnValue);
+                printlnDebug("+ Found: " + returnValue);
                 break;
             }
         }
+        /*
         if (returnValue == NAME_NOT_FOUND) {
-            //System.out.println("+ getImmediateValue, not found: " + findName + ".");
+            printlnDebug("+ Not found: " + findName + ".");
             returnString = findName;
             try {
+                // Confirm that it's a valid integer.
                 Integer.parseInt(returnString);
             } catch (NumberFormatException e) {
                 errorCount++;
+                returnString = NAME_NOT_FOUND_STR;
                 System.out.println("\n- Error, programTop: " + programTop + ", immediate label not found: " + findName + ".\n");
             }
         } else {
             returnString = Integer.toString(returnValue);
         }
-        // System.out.println("+ getImmediateValue, returnString: " + returnString);
+         */
+        String returnString = Integer.toString(returnValue);
+        printlnDebug("+ getImmediateValue, returnString: " + returnString);
         return returnString;
     }
 
     private void setProgramByteImmediates() {
         System.out.println("\n+ Set program immediate values...");
-        // --------------
-        // Set immediate values.
-        // Program byte:
-        // ++ immediate:TERMB
-        // Variable name and value data:
-        // ++ termb: 255
-        // Set to:
-        // ++ immediate:TERMB:255
-        // --------------
         int i = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
             if (theValue.startsWith("immediate" + SEPARATOR)) {
                 String sImmediate = theValue.substring("immediate:".length());
-                // ++ immediate:TERMB
-                // ++ immediate:42
-                // ++ immediate:080h
-                if (sImmediate.endsWith("h")) {
-                    // Hex number. For example, change 0ffh or ffh to integer.
-                    // Samples: 0ffh, 0eh
+                //
+                // Immediate type   Sample source       With value
+                // --------------   ----------------    -------------
+                // Label            immediate:Final     immediate:Final:42
+                // Unknown label    immediate:Fianl     immediate:Fianl:*** Error message
+                // Escape character immediate:'\n'      immediate:'\n':10
+                // Character        immediate:'a'       immediate:'a':97
+                // Decimal          immediate:42        immediate:42:42
+                // Hex              immediate:080h      immediate:080h:128
+                //
+                if (sImmediate.equals("'^^'")) {
+                    // For example, if SEPARATOR is ":", set to 58 (colon ascii value).
+                    sImmediate = Integer.toString(SEPARATOR.charAt(0));
+                } else if (sImmediate.startsWith("'") && sImmediate.endsWith("'")) {
+                    // Note, the character is automatically converted to an integer, if non-escape character.
+                    //
+                    // Handle escape characters, example: "\n" return 10.
+                    // Reference: https://en.wikipedia.org/wiki/ASCII
+                    if (sImmediate.charAt(1) == '\\') {
+                        switch (sImmediate.charAt(2)) {
+                            case 'n':
+                                // Line feed
+                                sImmediate = "10";
+                                break;
+                            case 'b':
+                                // Backspace
+                                sImmediate = "7";
+                                break;
+                            case 'a':
+                                // Bell
+                                sImmediate = "7";
+                                break;
+                            case 't':
+                                // Tab
+                                sImmediate = "9";
+                                break;
+                            default:
+                                errorCount++;
+                                System.out.println("\n- getImmediateValue, Error, programTop: " + programTop + ", unhandled escape character: " + sImmediate + ".\n");
+                                sImmediate = NAME_NOT_FOUND_STR;
+                        }
+                    } else {
+                        sImmediate = Integer.toString(sImmediate.charAt(1));
+                    }
+                } else if (sImmediate.endsWith("h")) {
+                    // Hex number. For example, change 0ffh or ffh to an integer.
+                    // Other samples: 0ffh, 0eh
                     int si = 0;
                     if (sImmediate.startsWith("0") && sImmediate.length() > 3) {
                         si = 1;
                     }
                     sImmediate = sImmediate.substring(si, sImmediate.length() - 1);   // Hex string to integer. Remove the "h".
                     sImmediate = Integer.toString(Integer.parseInt(sImmediate, 16));
+                } else {
+                    // --------------
+                    // Get immediate label value.
+                    // For example, a immediate program byte has a is a variable name (label), "Final":
+                    //      ++ immediate:Final
+                    // EQU is a program source variable name definiation:
+                    //      Final   equ     42
+                    // Which is converted into a lavel name-value pair:
+                    //      ++ final: 42
+                    // Following is the immediate program byte with variable name and value:
+                    //      ++ immediate:Final:42
+                    // --------------
+                    String rImmediate = getImmediateValue(sImmediate);
+                    printlnDebug("+ getImmediateValue returned, sImmediate=" + sImmediate + " rImmediate=" + rImmediate);
+                    //
+                    if (rImmediate.equals(NAME_NOT_FOUND_STR)) {
+                        // Since it's not a label, check if it's a valid integer.
+                        printlnDebug("+ Not found: " + sImmediate + ".");
+                        try {
+                            Integer.parseInt(sImmediate);
+                        } catch (NumberFormatException e) {
+                            // sImmediate = "*** Error, label not found.";
+                            errorCount++;
+                            System.out.println("");
+                            System.out.println("- Error, immediate label not found: " + sImmediate + ".");
+                            System.out.println("- Error, programTop byte# " + programTop + " : " + theValue + ".");
+                            System.out.println("");
+                        }
+                    } else {
+                        sImmediate = rImmediate;
+                    }
                 }
-                sImmediate = getImmediateValue(sImmediate);
                 programBytes.set(i, theValue + SEPARATOR + sImmediate);
-                System.out.println("++ " + theValue + SEPARATOR + sImmediate);
-                // ++ immediate:TERMB:255
+                printlnDebug("++ " + theValue + SEPARATOR + sImmediate);
+                // ++ immediate:Final:42
                 // ++ immediate:42:42
             }
             i++;
         }
-        System.out.println("+ Program immediate values, set.");
+        System.out.println("+ Finished setting immediate values.");
     }
 
     // -------------------------------------------------------------------------
@@ -1155,9 +1214,9 @@ public class asmProcessor {
         // Or other programs.
         // Required, starts the process:
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opJmp.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opJmp.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pKillTheBit.asm");
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
         if (thisProcess.errorCount > 0) {
             System.out.println("\n-- Number of errors: " + thisProcess.errorCount + "\n");
             return;
@@ -1165,12 +1224,13 @@ public class asmProcessor {
         //
         // Option: for debugging:
         // thisProcess.listLabelAddresses();
-        // thisProcess.listImmediateValues();
+        thisProcess.listImmediateValues();
+        thisProcess.programBytesListAndWrite("");
         //
         // Required, sets actual values:
         //
         // Option: create a binary file of the program, which has a nice listing.
-        // thisProcess.programListWrite("10000000.bin");
+        // thisProcess.programBytesListAndWrite("10000000.bin");
         // thisProcess.showFile("10000000.bin");
         //
         if (thisProcess.errorCount > 0) {

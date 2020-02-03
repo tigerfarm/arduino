@@ -7,6 +7,14 @@
                                     ; --------------------------------------
                                     ; Data declarations
         abc     db     'okay, yes?'
+                mvi a,080h
+                mvi a,80h
+                mvi a,'a'
+                mvi a,'\n'
+                mvi a,'a'
+                mvi a,Final
+                ; mvi a,Fianl
+                out 3
                                     ; --------------------------------------
     Halt:
                 out 30

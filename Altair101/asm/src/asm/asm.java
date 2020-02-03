@@ -68,7 +68,7 @@ public class asm {
                         break;
                     }
                     System.out.println("+ Write the program byte array to the file: " + outFilename + ":");
-                    processFile.programListWrite(outFilename);
+                    processFile.programBytesListAndWrite(outFilename);
                     break;
                 case "parse":
                     System.out.println("+ -------------------------------------");
@@ -78,7 +78,7 @@ public class asm {
                 case "write":
                     System.out.println("+ -------------------------------------");
                     System.out.println("+ Write the program byte array to the file: " + outFilename + ":");
-                    processFile.programListWrite(outFilename);
+                    processFile.programBytesListAndWrite(outFilename);
                     break;
                 case "show":
                     System.out.println("+ -------------------------------------");
@@ -113,7 +113,7 @@ public class asm {
                         case "bytes":
                             System.out.println("+ -------------------------------------");
                             System.out.println("+ List the parsed byte array to screen.");
-                            processFile.programListWrite("");
+                            processFile.programBytesListAndWrite("");
                             break;
                         case "opcodes":
                             System.out.println("+ -------------------------------------");
