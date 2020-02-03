@@ -518,35 +518,18 @@ public class asmProcessor {
         // Return either a numeric value as a string,
         //  or NAME_NOT_FOUND_STR.
         printlnDebug("\n+ getImmediateValue, findName: " + findName);
-        int returnValue = NAME_NOT_FOUND;
+        String returnString = NAME_NOT_FOUND_STR;
         Iterator<String> lName = variableName.iterator();
         Iterator<Integer> lValue = variableValue.iterator();
         while (lName.hasNext()) {
             String theName = lName.next();
             int theValue = lValue.next();
             if (theName.toLowerCase().equals(findName.toLowerCase())) {
-                returnValue = theValue;
-                printlnDebug("+ Found: " + returnValue);
+                returnString = Integer.toString(theValue);
+                printlnDebug("+ Found: " + returnString);
                 break;
             }
         }
-        /*
-        if (returnValue == NAME_NOT_FOUND) {
-            printlnDebug("+ Not found: " + findName + ".");
-            returnString = findName;
-            try {
-                // Confirm that it's a valid integer.
-                Integer.parseInt(returnString);
-            } catch (NumberFormatException e) {
-                errorCount++;
-                returnString = NAME_NOT_FOUND_STR;
-                System.out.println("\n- Error, programTop: " + programTop + ", immediate label not found: " + findName + ".\n");
-            }
-        } else {
-            returnString = Integer.toString(returnValue);
-        }
-         */
-        String returnString = Integer.toString(returnValue);
         printlnDebug("+ getImmediateValue, returnString: " + returnString);
         return returnString;
     }
@@ -559,24 +542,23 @@ public class asmProcessor {
             if (theValue.startsWith("immediate" + SEPARATOR)) {
                 String sImmediate = theValue.substring("immediate:".length());
                 //
-                // Immediate type   Sample source       With value
-                // --------------   ----------------    -------------
-                // Label            immediate:Final     immediate:Final:42
-                // Unknown label    immediate:Fianl     immediate:Fianl:*** Error message
-                // Escape character immediate:'\n'      immediate:'\n':10
-                // Character        immediate:'a'       immediate:'a':97
-                // Decimal          immediate:42        immediate:42:42
-                // Hex              immediate:080h      immediate:080h:128
+                // Immediate type       Sample source       With value
+                // --------------       ----------------    -------------
+                // Separator character  immediate:'^^'      immediate:'^^':58 (Example, ":")
+                // Escape character     immediate:'\n'      immediate:'\n':10
+                // Character            immediate:'a'       immediate:'a':97
+                // Label                immediate:Final     immediate:Final:42
+                // Unknown label        immediate:Fianl     immediate:Fianl:-1
+                // Hex                  immediate:080h      immediate:080h:128
+                // Decimal              immediate:42        immediate:42:42
                 //
                 if (sImmediate.equals("'^^'")) {
-                    // For example, if SEPARATOR is ":", set to 58 (colon ascii value).
+                    // If SEPARATOR is ":", set to 58 (colon ascii value).
                     sImmediate = Integer.toString(SEPARATOR.charAt(0));
                 } else if (sImmediate.startsWith("'") && sImmediate.endsWith("'")) {
-                    // Note, the character is automatically converted to an integer, if non-escape character.
-                    //
-                    // Handle escape characters, example: "\n" return 10.
                     // Reference: https://en.wikipedia.org/wiki/ASCII
                     if (sImmediate.charAt(1) == '\\') {
+                        // Handle escape characters, example: "\n" return 10.
                         switch (sImmediate.charAt(2)) {
                             case 'n':
                                 // Line feed
@@ -600,17 +582,29 @@ public class asmProcessor {
                                 sImmediate = NAME_NOT_FOUND_STR;
                         }
                     } else {
+                        // Non-escape character converted to an integer, then to a string.
                         sImmediate = Integer.toString(sImmediate.charAt(1));
                     }
                 } else if (sImmediate.endsWith("h")) {
+                    // Stacy, needs to come after lable lookup, to handle the case that label ends in "h".
                     // Hex number. For example, change 0ffh or ffh to an integer.
                     // Other samples: 0ffh, 0eh
                     int si = 0;
                     if (sImmediate.startsWith("0") && sImmediate.length() > 3) {
                         si = 1;
                     }
-                    sImmediate = sImmediate.substring(si, sImmediate.length() - 1);   // Hex string to integer. Remove the "h".
-                    sImmediate = Integer.toString(Integer.parseInt(sImmediate, 16));
+                    sImmediate = sImmediate.substring(si, sImmediate.length() - 1);     // Hex string to integer. Remove the "h".
+                    try {
+                        Integer.parseInt(sImmediate);
+                        sImmediate = Integer.toString(Integer.parseInt(sImmediate, 16));
+                    } catch (NumberFormatException e) {
+                        // sImmediate = "*** Error, label not found.";
+                        errorCount++;
+                        System.out.println("");
+                        System.out.println("- Error, invalid hex number: " + sImmediate + ".");
+                        System.out.println("- Error, programTop byte# " + programTop + " : " + theValue + ".");
+                        System.out.println("");
+                    }
                 } else {
                     // --------------
                     // Get immediate label value.
@@ -1223,7 +1217,7 @@ public class asmProcessor {
         }
         //
         // Option: for debugging:
-        // thisProcess.listLabelAddresses();
+        thisProcess.listLabelAddresses();
         thisProcess.listImmediateValues();
         thisProcess.programBytesListAndWrite("");
         //

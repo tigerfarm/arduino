@@ -13,6 +13,7 @@
                 mvi a,'\n'
                 mvi a,'a'
                 mvi a,Final
+                mvi a,addr1         ; The addr1 value is over 255, which makes it too high for a byte. No error checking for this.
                 ; mvi a,Fianl
                 out 3
                                     ; --------------------------------------
@@ -37,6 +38,8 @@
         scoreL  ds      1           ;score for left paddle 
         scoreR  ds      1           ;score for right paddle
         Final   equ     42
+        ; Finalh  equ     43
+        addr1   equ     422
                 jmp Final
                                     ; ------------------------------------------
                 End
