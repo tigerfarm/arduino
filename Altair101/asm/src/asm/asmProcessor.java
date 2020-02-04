@@ -438,7 +438,6 @@ public class asmProcessor {
             try {
                 returnValue = Integer.parseInt(findName, 16);
             } catch (NumberFormatException e) {
-                // sImmediate = "*** Error, label not found.";
                 errorCount++;
                 System.out.println("");
                 System.out.println("- Error, invalid hex number: " + findName + ".");
@@ -481,32 +480,31 @@ public class asmProcessor {
                 int intAddress = getLabelAddress(theValue.substring(3));
                 // ++ Label: lb:okaym1:265
                 if (intAddress == NAME_NOT_FOUND) {
-                    System.out.println("- Label address not found for program byte: " + theValue);
+                    printlnDebug("- Label address not found for program byte: " + theValue);
                 } else if (intAddress < 256) {
                     // lb:
                     String theLabelAddress = Integer.toString(intAddress);
                     programBytes.set(i, theValue + SEPARATOR + theLabelAddress);
-                    // System.out.println("++ Label, " + theValue + ":" + theLabelAddress);
+                    printlnDebug("++ Label, " + theValue + ":" + theLabelAddress);
                     // hb:
                     // Already set to default of 0.
                     it.next();
-                    // theValue = it.next();
-                    // System.out.println("++ Label, " + theValue);
+                    printlnDebug("++ Label, " + theValue);
                     i++;
                 } else {
-                    // Need to also set hb (high byte).
+                    // Need to also set high byte(hb).
                     // Address: 265, in binary hb=00000001(digital=1) lb=00001001(digital=9)
                     int hb = intAddress / 256;
                     int lb = intAddress - (hb * 256);
                     //-------------------
                     // lb:
                     programBytes.set(i, theValue + SEPARATOR + lb);
-                    // System.out.println("++ Label, " + theValue + ":" + lb);
+                    printlnDebug("++ Label, " + theValue + ":" + lb);
                     // hb:
                     it.next();
                     i++;
                     programBytes.set(i, "hb:" + hb);
-                    // System.out.println("++ Label, hb:" + hb);
+                    printlnDebug("++ Label, hb:" + hb);
                 }
             }
             i++;
