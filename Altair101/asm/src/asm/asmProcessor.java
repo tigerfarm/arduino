@@ -8,10 +8,10 @@
     + The converted, Kill the Bit program, run on the Altair 101 dev machine.
 
 > file programs/opMvi.asm
-> parsefile
-> writebytes
 
-    +++ Handle error response for the function: getImmediateValue.
+    +++ getLabelAddress() needs to be updated in a similar fashion to getImmediateValue.
+
+    +++ Handle hex/label names properly in: getImmediateValue.
 
     ---------------------------------------------
     + Pong program work notes.
@@ -85,10 +85,7 @@
     Standardize use of hex numbers.
     Improve error handling.
 
-    Be consistent with label and name case sensitivity.
-    + Currently, not case sensitive.
-    + Match, getLabelAddress() with how the address names being added.
-    + Match, getImmediateValue() with how the immediates being added.
+    Labels and immediate names are not case sensitive.
 
     https://en.wikipedia.org/wiki/ASCII
     Space = 32
@@ -123,7 +120,6 @@ public class asmProcessor {
     private final static int ignoreFirstCharacters = 0;
     //
     // Use for storing program bytes and calculating label addresses.
-    private int programCounter = 0;
     private int programTop = 0;
     private final static List<String> programBytes = new ArrayList<>();
 
@@ -294,7 +290,7 @@ public class asmProcessor {
         // Address label
         labelName.add(label);
         labelAddress.add(programTop);
-        System.out.println("++ Label Name: " + label + ", Address: " + programTop);
+        System.out.println("++ parseLabel, Label Name: " + label + ", Address: " + programTop);
     }
 
     private void parseLabelValue(String theName, String theValue) {
@@ -315,7 +311,7 @@ public class asmProcessor {
             intValue = Integer.parseInt(theValue);
         }
         labelAddress.add(intValue);
-        System.out.println("++ Label Name: " + label + ", Address: " + programTop);
+        System.out.println("++ parseLabelValue, Label Name: " + theName + ", label: " + label + ", Address: " + programTop);
     }
 
     private void parseOrg(String theValue) {
@@ -349,118 +345,6 @@ public class asmProcessor {
         }
     }
 
-    public void listLabelAddresses() {
-        System.out.println("\n+ List label Addresses:");
-        Iterator<String> lName = labelName.iterator();
-        Iterator<Integer> lAddress = labelAddress.iterator();
-        while (lName.hasNext()) {
-            String theName = lName.next();
-            int theAddress = lAddress.next();
-            System.out.println("++ " + theName + ": " + theAddress);
-        }
-        System.out.println("+ End of list.");
-    }
-
-    // ------------------------
-    private int getLabelAddress(String findName) {
-        printlnDebug("+ getLabelAddress, findName: " + findName);
-        int returnValue = NAME_NOT_FOUND;
-        Iterator<String> lName = labelName.iterator();
-        Iterator<Integer> lAddress = labelAddress.iterator();
-        while (lName.hasNext()) {
-            String theName = lName.next();
-            int theAddress = lAddress.next();
-            if (theName.toLowerCase().equals(findName.toLowerCase())) {
-                returnValue = theAddress;
-                printlnDebug("+ Found theAddress: " + returnValue);
-                break;
-            }
-        }
-        if (returnValue == NAME_NOT_FOUND && findName.endsWith("h")) {
-            // Hex number. For example, change 0ffh or ffh to integer: 255.
-            // Samples: 0ffh, 0eh, 500h(00000101 00000000)
-            int si = 0;
-            if (findName.startsWith("0") && findName.length() > 3) {
-                si = 1;
-            }
-            findName = findName.substring(si, findName.length() - 1);   // Hex string to integer. Remove the "h".
-            returnValue = Integer.parseInt(findName, 16);
-        } else if (returnValue == NAME_NOT_FOUND) {
-            try {
-                returnValue = Integer.parseInt(findName);
-            } catch (NumberFormatException e) {
-                errorCount++;
-                System.out.println("\n- Error, programTop: " + programTop + ", invalid address value for: " + findName + ".\n");
-                returnValue = NAME_NOT_FOUND;
-            }
-        }
-        return returnValue;
-    }
-
-    private void setProgramByteAddresses() {
-        System.out.println("\n+ Set Program Label address values...");
-        // --------------
-        // Set label address values, whether assembler labels or assembler directive labels.
-        // ++ opcode:lxi:00100001:h:scoreL
-        // ++ lb:scoreL:0
-        // ++ hb:0
-        // Variable name and address value:
-        // ++ scorel: 40
-        // Program bytes become:
-        // ++ lb:scoreL:40
-        // ++ hb:0
-        // --------------
-        // Similar to a label:
-        // ++ opcode:call:11001101:PrintLoop
-        // ++ lb:PrintLoop:19
-        // ++ hb:0
-        // Label data:
-        // ++ Label, lb:PrintLoop:19
-        // ++ Label, hb:0
-        // --------------
-        int i = 0;
-        for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
-            String theValue = it.next();
-            if (theValue.startsWith("lb:")) {
-                //
-                int intAddress = getLabelAddress(theValue.substring(3));
-                // ++ Label: lb:okaym1:265
-                // B11001010, 9, 1,   // 259: jz okaym1  265 in binary hb=00000001 lb=00001001
-                //
-                if (intAddress == NAME_NOT_FOUND) {
-                    System.out.println("- Label address not found for program byte: " + theValue);
-                } else if (intAddress < 256) {
-                    // lb:
-                    String labelAddress = Integer.toString(intAddress);
-                    programBytes.set(i, theValue + SEPARATOR + labelAddress);
-                    // System.out.println("++ Label, " + theValue + ":" + labelAddress);
-                    // hb:
-                    // Already set to default of 0.
-                    theValue = it.next();
-                    i++;
-                    // System.out.println("++ Label, " + theValue);
-                } else {
-                    // Need to also set hb (high byte).
-                    // Address: 265, in binary hb=00000001(digital=1) lb=00001001(digital=9)
-                    int hb = intAddress / 256;
-                    int lb = intAddress - (hb * 256);
-                    //-------------------
-                    // lb:
-                    programBytes.set(i, theValue + SEPARATOR + lb);
-                    // System.out.println("++ Label, " + theValue + ":" + lb);
-                    // hb:
-                    it.next();
-                    i++;
-                    programBytes.set(i, "hb:" + hb);
-                    // System.out.println("++ Label, hb:" + hb);
-                }
-            }
-            i++;
-        }
-        System.out.println("+ Label address values, set.");
-    }
-
-    // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
     // Immediate variable name and value management.
     // Assembler directive: DB and DS Variable name management:
@@ -500,7 +384,132 @@ public class asmProcessor {
 
     }
 
+    // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    public void listLabelAddresses() {
+        System.out.println("\n+ List label Addresses:");
+        Iterator<String> lName = labelName.iterator();
+        Iterator<Integer> lAddress = labelAddress.iterator();
+        while (lName.hasNext()) {
+            String theName = lName.next();
+            int theAddress = lAddress.next();
+            System.out.println("++ " + theName + ": " + theAddress);
+        }
+        System.out.println("+ End of list.");
+    }
+
     // ------------------------
+    private int getLabelAddress(String findName) {
+        printlnDebug("+ getLabelAddress, findName: " + findName);
+        int returnValue = NAME_NOT_FOUND;
+        Iterator<String> lName = labelName.iterator();
+        Iterator<Integer> lAddress = labelAddress.iterator();
+        while (lName.hasNext()) {
+            String theName = lName.next();
+            int theAddress = lAddress.next();
+            if (theName.toLowerCase().equals(findName.toLowerCase())) {
+                returnValue = theAddress;
+                printlnDebug("+ Found theAddress: " + returnValue);
+                break;
+            }
+        }
+        if (returnValue == NAME_NOT_FOUND && findName.endsWith("h")) {
+            // Hex number. For example, change 0ffh or ffh to integer: 255.
+            // Samples: 0ffh, 0eh, 500h(00000101 00000000)
+            int si = 0;
+            if (findName.startsWith("0") && findName.length() > 3) {
+                si = 1;
+            }
+            findName = findName.substring(si, findName.length() - 1);   // Hex string to integer. Remove the "h".
+            try {
+                returnValue = Integer.parseInt(findName, 16);
+            } catch (NumberFormatException e) {
+                // sImmediate = "*** Error, label not found.";
+                errorCount++;
+                System.out.println("");
+                System.out.println("- Error, invalid hex number: " + findName + ".");
+                System.out.println("- Error, programTop byte# " + programTop + " : " + findName + ".");
+                System.out.println("");
+            }
+        } else if (returnValue == NAME_NOT_FOUND) {
+            try {
+                returnValue = Integer.parseInt(findName);
+            } catch (NumberFormatException e) {
+                errorCount++;
+                System.out.println("");
+                System.out.println("- Error, address label not found: " + findName + ".");
+                System.out.println("- Error, programTop byte# " + programTop + " : " + findName + ".");
+                System.out.println("");
+            }
+        }
+        return returnValue;
+    }
+
+    // ------------------------
+    private void setProgramByteAddresses() {
+        System.out.println("\n+ Set Program Label address values...");
+        // --------------
+        // Set label address values, whether assembler labels or assembler directive labels.
+        // ++ opcode:lxi:00100001:h:scoreL
+        // ++ lb:scoreL:0
+        // ++ hb:0
+        // Variable name and address value:
+        // ++ scorel: 40
+        // Program bytes become:
+        // ++ lb:scoreL:40
+        // ++ hb:0
+        // --------------
+        // Similar to a label:
+        // ++ opcode:call:11001101:PrintLoop
+        // ++ lb:PrintLoop:19
+        // ++ hb:0
+        // Label data:
+        // ++ Label, lb:PrintLoop:19
+        // ++ Label, hb:0
+        // --------------
+        int i = 0;
+        for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
+            String theValue = it.next();
+            if (theValue.startsWith("lb:")) {
+                //
+                int intAddress = getLabelAddress(theValue.substring(3));
+                // ++ Label: lb:okaym1:265
+                //
+                if (intAddress == NAME_NOT_FOUND) {
+                    System.out.println("- Label address not found for program byte: " + theValue);
+                } else if (intAddress < 256) {
+                    // lb:
+                    String labelAddress = Integer.toString(intAddress);
+                    programBytes.set(i, theValue + SEPARATOR + labelAddress);
+                    // System.out.println("++ Label, " + theValue + ":" + labelAddress);
+                    // hb:
+                    // Already set to default of 0.
+                    it.next();
+                    // theValue = it.next();
+                    // System.out.println("++ Label, " + theValue);
+                    i++;
+                } else {
+                    // Need to also set hb (high byte).
+                    // Address: 265, in binary hb=00000001(digital=1) lb=00001001(digital=9)
+                    int hb = intAddress / 256;
+                    int lb = intAddress - (hb * 256);
+                    //-------------------
+                    // lb:
+                    programBytes.set(i, theValue + SEPARATOR + lb);
+                    // System.out.println("++ Label, " + theValue + ":" + lb);
+                    // hb:
+                    it.next();
+                    i++;
+                    programBytes.set(i, "hb:" + hb);
+                    // System.out.println("++ Label, hb:" + hb);
+                }
+            }
+            i++;
+        }
+        System.out.println("+ Label address values, set.");
+    }
+
+    // -------------------------------------------------------------------------
     public void listImmediateValues() {
         System.out.println("\n+ List immediate values...");
         Iterator<String> lName = variableName.iterator();
@@ -586,7 +595,7 @@ public class asmProcessor {
                         sImmediate = Integer.toString(sImmediate.charAt(1));
                     }
                 } else if (sImmediate.endsWith("h")) {
-                    // Stacy, needs to come after lable lookup, to handle the case that label ends in "h".
+                    // Stacy, needs to come after label lookup, to handle the case that a label ends in "h".
                     // Hex number. For example, change 0ffh or ffh to an integer.
                     // Other samples: 0ffh, 0eh
                     int si = 0;
@@ -793,56 +802,62 @@ public class asmProcessor {
     // Parse program lines.
     //
     // ---------------------------------------------------------------------
+    // Lines with comments:
+    //                      ; Comment line
+    //      jmp Next        ; Comment after an assembler statement.
+    //
+    // Address label lines:
+    //      Start:
+    //      Start:          ; with a comment
+    //      Start: jmp Next ; Assembler statement after a label.
+    //
+    // -----------------------------------------------------
+    // Opcode lines. Opcodes can have 0, 1, or 2 parameters. For example:
+    //      nop
+    //      jmp Next
+    //      cpi 73
+    //      mvi a,var1
+    //
     // Types of opcode lines:
     //      opcode                                          ret
     //      opcode <immediate>                              out 30
     //      opcode <address label>                          call print
-    //      opcode <register>,<address label|16-bit number> 
-    //      opcode <register|RegisterPair>                  inr m
-    //      opcode <RegisterPair>,<address label>           lxi h,prompt
     //      opcode <register>,<immediate>                   mvi a,73
     //      opcode <register>,<register>                    mov b,a
+    //      opcode <register|RegisterPair>                  inr b
+    //      opcode <RegisterPair>,<address label>           lxi h,prompt
+    //      opcode <register>,<address label|16-bit number> 
     //
-    // Others:
-    //      
-    // Types of directive lines:
+    // -----------------------------------------------------
+    // Assembler directives line samples:
+    //                org     0
+    //                ds      2
+    //       Final    equ     42
+    //       Hello    db      'Hello, there: yes, there.'
+    //       scoreR   ds      1
+    //       scoreS   ds      2
+    //
+    // Types of assembler directive lines:
     //                          org     <number>
-    //                          ds      2
-    //      <variable name>     equ     <immediate>
-    //      <address label>     equ     <immediate>
+    //                          ds      <number>
+    //      <address label>     ds      <number>
     //      <address label>     db      '<characters>'
-    //      <address label>     ds      1
+    //      <address label>     equ     <number|$>
+    //      <variable name>     equ     <immediate>
+    //
+    ////                    Sample  Sample source
+    // Immediate type       source  Byte data           With value
+    // --------------       ------  ----------------    -------------
+    // Separator character  ':'     immediate:'^^'      immediate:'^^':58
+    // Escape character     '\n'    immediate:'\n'      immediate:'\n':10
+    // Character            'a'     immediate:'a'       immediate:'a':97
+    // Label                Final   immediate:Final     immediate:Final:42
+    // Unknown label        Fianl   immediate:Fianl     immediate:Fianl:-1
+    // Hex                  80h     immediate:80h       immediate:80h:128
+    // Hex                  080h    immediate:080h      immediate:080h:128
+    // Decimal              42      immediate:42        immediate:42:42
     //
     // ---------------------------------------------------------------------
-    // Lines with comments:
-    //                      ; Comment line
-    //      jmp Next        ; Comment after an assembler statement.
-    // Labels:
-    //      Start:          ; Label line
-    //      Start: jmp Next ; Assembler statement after a label.
-    // Number types:
-    //      80
-    //      80h
-    //      080h
-    // Immediate types:
-    //      80
-    //      80h
-    //      080h
-    //      'a'
-    //      '\n'
-    // Opcode lines. Opcodes can have 0, 1, or 2 parameters. For example:
-    //      0)          nop
-    //      1)          jmp Next
-    //      1)          jmp <number>
-    //      1)          cpi <immediate>
-    //      2)          mvi a,<immediate>
-    // Or assembler directives:
-    //      4)          org     <number>
-    //      4)          ds      2
-    //      5) var1     equ     <immediate>
-    //      6) Hello    db      'Hello, there: yes, there.'
-    //      7) scoreR   ds      1
-    //      7) scoreS   ds      2
     //
     private void parseLine(String orgLine) {
         String theLine;
@@ -1058,7 +1073,6 @@ public class asmProcessor {
         DataInputStream pin;
 
         errorCount = 0;
-        programCounter = 0;
         programTop = 0;
         programBytes.clear();
         labelName.clear();
