@@ -400,6 +400,20 @@ public class asmProcessor {
 
     // ------------------------
     private int getLabelAddress(String findName) {
+        //
+        // Label Address byte:
+        //      ++ lb:Final:42
+        //      ++ lb:<address>:<value>
+        // Label address types:
+        //                          Sample  Sample source
+        //      Immediate type      source  Byte data           With value
+        //      --------------      ------  ----------------    -------------
+        //      Label               Final   lb:Final:           lb:Final:42
+        //      Hex                 80h     lb:80h:             lb:80h:128
+        //      Hex                 080h    lb:080h:            lb:080h:128
+        //      Decimal             42      lb:42:              lb:42:42
+        //      Unknown label       Fianl   lb:Fianl:           lb:Fianl:-1
+        //
         printlnDebug("+ getLabelAddress, findName: " + findName);
         int returnValue = NAME_NOT_FOUND;
         Iterator<String> lName = labelName.iterator();
@@ -459,14 +473,6 @@ public class asmProcessor {
         // ++ lb:scoreL:40
         // ++ hb:0
         // --------------
-        // Similar to a label:
-        // ++ opcode:call:11001101:PrintLoop
-        // ++ lb:PrintLoop:19
-        // ++ hb:0
-        // Label data:
-        // ++ Label, lb:PrintLoop:19
-        // ++ Label, hb:0
-        // --------------
         int i = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
@@ -474,14 +480,13 @@ public class asmProcessor {
                 //
                 int intAddress = getLabelAddress(theValue.substring(3));
                 // ++ Label: lb:okaym1:265
-                //
                 if (intAddress == NAME_NOT_FOUND) {
                     System.out.println("- Label address not found for program byte: " + theValue);
                 } else if (intAddress < 256) {
                     // lb:
-                    String labelAddress = Integer.toString(intAddress);
-                    programBytes.set(i, theValue + SEPARATOR + labelAddress);
-                    // System.out.println("++ Label, " + theValue + ":" + labelAddress);
+                    String theLabelAddress = Integer.toString(intAddress);
+                    programBytes.set(i, theValue + SEPARATOR + theLabelAddress);
+                    // System.out.println("++ Label, " + theValue + ":" + theLabelAddress);
                     // hb:
                     // Already set to default of 0.
                     it.next();
@@ -506,7 +511,7 @@ public class asmProcessor {
             }
             i++;
         }
-        System.out.println("+ Label address values, set.");
+        System.out.println("+ Finished setting label address values.");
     }
 
     // -------------------------------------------------------------------------
@@ -811,6 +816,19 @@ public class asmProcessor {
     //      Start:          ; with a comment
     //      Start: jmp Next ; Assembler statement after a label.
     //
+    // Label Address byte:
+    //      ++ lb:Final:42
+    //      ++ lb:<address>:<value>
+    // Label address types:
+    //                          Sample  Sample source
+    //      Immediate type      source  Byte data           With value
+    //      --------------      ------  ----------------    -------------
+    //      Label               Final   lb:Final:           lb:Final:42
+    //      Hex                 80h     lb:80h:             lb:80h:128
+    //      Hex                 080h    lb:080h:            lb:080h:128
+    //      Decimal             42      lb:42:              lb:42:42
+    //      Unknown label       Fianl   lb:Fianl:           lb:Fianl:-1
+    //
     // -----------------------------------------------------
     // Opcode lines. Opcodes can have 0, 1, or 2 parameters. For example:
     //      nop
@@ -845,7 +863,7 @@ public class asmProcessor {
     //      <address label>     equ     <number|$>
     //      <variable name>     equ     <immediate>
     //
-    ////                    Sample  Sample source
+    //                      Sample  Sample source
     // Immediate type       source  Byte data           With value
     // --------------       ------  ----------------    -------------
     // Separator character  ':'     immediate:'^^'      immediate:'^^':58
