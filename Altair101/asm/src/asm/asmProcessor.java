@@ -955,15 +955,6 @@ public class asmProcessor {
         System.out.println("++ parseLine, part1|" + part1 + "| theRest|" + theRest + "|");
         //
         // ---------------------------------------------------------------------
-        //
-        // stacy
-        // Works:
-        //  mvi a,3
-        // Error:
-        //  abc     db     'okay, yes?'
-        //      ++ parseLine, Opcode|abc| p1|db     'okay| p2|yes?'|
-        //      -- Error, ++ Opcode: INVALID: abc 11000011 p1|db     'okay| p2|yes?'|
-        //
         // Check for opcode with 2 parameters, example: mvi a,1
         c1 = theRest.indexOf("'");
         if (c1 > 0) {
