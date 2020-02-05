@@ -8,14 +8,18 @@
     + The converted, Kill the Bit program, run on the Altair 101 dev machine.
 
     ---------------------------------------------
-    Next assembler updates and issues,
+    +++ Next assembler updates and issues,
+
+    + Make label and immediate names case sensitive.
+
+    + Cleanup parseLine() code.
+
+    Improve error handling by adding source line number to the error message.
+
+    + Test, incorrect: ++ Label Name: 0eh, Address: 0
 
     + Use TERMB EQU value, as this program's DB_STRING_TERMINATOR, and keep the default.
     ++ This allows an override.
-
-    Improve error handling.
-
-    Labels and immediate names are not case sensitive.
 
     ----------------------------------------------------------------------------
     Program sections:
@@ -360,7 +364,6 @@ public class asmProcessor {
                 returnString = Integer.toString(sValue.charAt(1));
             }
         } else if (sValue.endsWith("h")) {
-            // Stacy, needs to come after label lookup, to handle the case that a label ends in "h".
             // Hex number. For example, change 0ffh or ffh to an integer.
             // Other samples: 0ffh, 0eh
             int si = 0;
@@ -987,9 +990,7 @@ public class asmProcessor {
                 part3 = Integer.toString(programTop);
             }
             System.out.println("++ parseLine, equ directive: part1|" + part1 + "| part3|" + part3 + "|");
-            // Stacy, incorrect: ++ Label Name: 0eh, Address: 0
             parseEquLabelValue(part1, part3);
-            // ++ Variable name: speed, value: 0e
             parseEquNameValue(part1, part3);
             return;
         }
