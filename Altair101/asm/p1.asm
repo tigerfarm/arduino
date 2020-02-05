@@ -2,11 +2,15 @@
                                     ; Test asm parsing. Not meant as a valid program.
                                     ; --------------------------------------
                 org 0
-                jmp Start           ; Jump to Start to bypass declarations halt.
+                                    ; --------------------------------------
+                                    ; Address sample testing
+                jmp Start
+    Start:
+                call PrintOut
+                jmp Halt
                                     ;
                                     ; --------------------------------------
-                                    ; Data declarations
-        abc     db     'okay, yes?'
+                                    ; Immediate sample testing
                 mvi a,080h
                 mvi a,80h
                 mvi a,'a'
@@ -17,13 +21,10 @@
                 ; mvi a,Fianl
                 out 3
                                     ; --------------------------------------
+                                    ; Other tests
+        abc     db     'okay, yes?'
     Halt:
-                out 30
                 hlt
-    Start:
-                call PrintOut
-                mov a,b
-                jmp Halt
                                     ; ------------------------------------------
         def     db     'now'
         PrintOut:

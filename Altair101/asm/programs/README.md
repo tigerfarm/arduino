@@ -50,6 +50,8 @@ opCmp.asm               CMP : Compare register A and registers: B,C,D,E,H,L, and
                         JNC Jump to a, if Carry bit equals 0, flag is not set.
                         + Program has over 256 bytes, and works fine.
 
+opCallRet.asm
+
 opOra.asm               ORA, OR with register A and registers: B,C,D,E,H,L, and M.
                         This program requires, LOG_MESSAGES not defined, because it outputs messages, example: "+ Success: ORA".
                         Program length = 255.
@@ -63,7 +65,6 @@ opInx.asm
 opLdax.asm
 opShld.asm
 
-opCallRet.asm
 opLdaSta.asm
 
 opOut.asm

@@ -1230,4 +1230,34 @@ https://easyeda.com/
 https://pcbshopper.com/elecrow-reviews/
 
 --------------------------------------------------------------------------------
+##### Rotary Dialer code
+
+https://www.youtube.com/watch?v=x6QlOP-AZII
+
+uint8_t accum;
+void handle_dial_activity(uint32_t clock,
+                          bool last_dial, bool dial,
+                          bool last_click, bool click) {
+  if (dial && ! last_dial) {         // Dial just started moving
+    accum = 0;
+  } else if (!dial && last_dial) {   // Dial just stopped moving
+    if (accum > 0 && accum <= 10) {
+      int digit = accum == 10 ? 0 : accum;
+      Serial.print("Dialed ");
+      Serial.println(digit, DEC);
+    }
+  } else if (click && !last_click) { // "click" switch just closed
+    click_on_time = clock;
+  } else if (!click && last_click) { // "click" switch just opened
+    uint32_t click_was_on_for = clock - click_on_time;
+    if (click_was_on_for < 5) {
+       Serial.print("Ignoring click bounce of time=");
+       Serial.println(click_was_on_for, DEC);
+    } else {
+      accum++;
+    }
+  }
+}
+
+--------------------------------------------------------------------------------
 eof
