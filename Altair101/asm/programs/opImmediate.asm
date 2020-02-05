@@ -1,5 +1,5 @@
                                     ; --------------------------------------
-                                    ; Test CALL and RET.
+                                    ; Test using immediate value in opcodes.
                                     ; --------------------------------------
                                     ; Definition section.
                                     ;
@@ -25,12 +25,18 @@
                                     ;
                                     ; --------------------------------------
     Test:                           ; Immediate sample testing
-                mvi a,080h
-                sui 08h             ; Subtract immediate number from register A.
                 adi 3               ; Add immediate number to register A. 
+                adi p2
+                adi 08h
+                ani 248             ; AND # with register A.
+                ani p2
+                in p2
+                sui 08h             ; Subtract immediate number from register A.
                 sui 3
                 sui Final
-                cmp p2
+                                    ;
+                mvi a,p2            ; Move # to register A.
+                cpi p2              ; 73 = A. Zero bit flag is true. Carry bit is false.
                                     ;
                 mvi a,080h
                 out 3
@@ -51,7 +57,7 @@
                                     ; 00000011 : 503 > immediate: addr1 : 1283 ... The low byte value.
                 out 3
                                     ;
-                mvi a,Fianl         ; Test an assembler error, "Label not found."
+                ; mvi a,Fianl         ; Test an assembler error, "Label not found."
                                     ;
                                     ; --------------------------------------
     Success:
