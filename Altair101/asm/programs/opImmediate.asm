@@ -2,7 +2,8 @@
                                     ; Test CALL and RET.
                                     ; --------------------------------------
                                     ; Definition section.
-        A       equ     'a'
+        ; A       equ     'A'         ; Labels need to be case sensitive.
+        a       equ     'a'
         NL      equ     '\n'
         Final   equ     42
         addr1   equ     500h        ; Test using an address greater than 255 (byte size max).
@@ -37,8 +38,10 @@
                 mvi a,Final
                 out 3
                 mvi a,addr1         ; The addr1 value is over 255, which makes it too high for a byte. No error checking for this.
+                out 3
+                                    ;
                 ; mvi a,Fianl         ; Test an assembler error, "Label not found."
-                ; out 3
+                                    ;
                                     ; --------------------------------------
     Success:
                 mvi a,'+'
@@ -47,4 +50,4 @@
                 jmp Halt            ; Jump back to the early halt command.
                                     ;
                                     ; --------------------------------------
-                end.
+                end

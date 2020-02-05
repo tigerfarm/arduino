@@ -9,8 +9,23 @@
 
 > file programs/opMvi.asm
 
-    +++ getLabelAddress() needs to be updated in a similar fashion to getImmediateValue.
+    ---------------------------------------------
+    +++ Handle characters in an EQU.
+                ...
+        Final   equ     42
+                ...
+                mvi a,Final
 
+++ parseLine, part1|final| theRest|equ     42|
+++ parseLine, Directive|final| part2|equ| part3|42|
+++ parseLine, equ directive: part1|final| part3|42|
+++ parseLabelValue, Label Name: final, Value: -1
+++ parseName, Variable Name: final, Value: -1
+
+- Error, immediate label not found: Final.
+- Error, programTop byte# 51 : immediate:Final.
+
+    ---------------------------------------------
     +++ Handle hex/label names properly in: getImmediateValue.
 
     ---------------------------------------------
@@ -293,25 +308,95 @@ public class asmProcessor {
         System.out.println("++ parseLabel, Label Name: " + label + ", Address: " + programTop);
     }
 
+    private String convertValueToInt(String sImmediate) {
+        String returnString = NAME_NOT_FOUND_STR;
+        //
+        // Immediate type       Sample source       With value
+        // --------------       ----------------    -------------
+        // Separator character  immediate:'^^'      immediate:'^^':58 (Example, ":")
+        // Escape character     immediate:'\n'      immediate:'\n':10
+        // Character            immediate:'a'       immediate:'a':97
+        // Label                immediate:Final     immediate:Final:42
+        // Unknown label        immediate:Fianl     immediate:Fianl:-1
+        // Hex                  immediate:080h      immediate:080h:128
+        // Decimal              immediate:42        immediate:42:42
+        //
+        if (sImmediate.equals("'^^'")) {
+            // If SEPARATOR is ":", set to 58 (colon ascii value).
+            returnString = Integer.toString(SEPARATOR.charAt(0));
+        } else if (sImmediate.startsWith("'") && sImmediate.endsWith("'")) {
+            // Reference: https://en.wikipedia.org/wiki/ASCII
+            if (sImmediate.charAt(1) == '\\') {
+                // Handle escape characters, example: "\n" return 10.
+                switch (sImmediate.charAt(2)) {
+                    case 'n':
+                        // Line feed
+                        returnString = "10";
+                        break;
+                    case 'b':
+                        // Backspace
+                        returnString = "7";
+                        break;
+                    case 'a':
+                        // Bell
+                        returnString = "7";
+                        break;
+                    case 't':
+                        // Tab
+                        returnString = "9";
+                        break;
+                    default:
+                        errorCount++;
+                        System.out.println("\n- getImmediateValue, Error, programTop: " + programTop + ", unhandled escape character: " + sImmediate + ".\n");
+                        returnString = NAME_NOT_FOUND_STR;
+                }
+            } else {
+                // Non-escape character converted to an integer, then to a string.
+                returnString = Integer.toString(sImmediate.charAt(1));
+            }
+        } else if (sImmediate.endsWith("h")) {
+            // Stacy, needs to come after label lookup, to handle the case that a label ends in "h".
+            // Hex number. For example, change 0ffh or ffh to an integer.
+            // Other samples: 0ffh, 0eh
+            int si = 0;
+            if (sImmediate.startsWith("0") && sImmediate.length() > 3) {
+                si = 1;
+            }
+            returnString = sImmediate.substring(si, sImmediate.length() - 1);     // Hex string to integer. Remove the "h".
+            try {
+                Integer.parseInt(returnString);
+                returnString = Integer.toString(Integer.parseInt(returnString, 16));
+            } catch (NumberFormatException e) {
+                errorCount++;
+                System.out.println("");
+                System.out.println("- Error, invalid value: " + sImmediate + ".");
+                System.out.println("");
+            }
+        } else {
+            // --------------
+            // Since it's not a label, check if it's a valid integer.
+            printlnDebug("+ Not found: " + sImmediate + ".");
+            try {
+                Integer.parseInt(sImmediate);
+                returnString = sImmediate;
+            } catch (NumberFormatException e) {
+                // sImmediate = "*** Error, label not found.";
+                errorCount++;
+                System.out.println("");
+                System.out.println("- Error, immediate label not found: " + sImmediate + ".");
+                System.out.println("");
+            }
+        }
+        return returnString;
+    }
+
     private void parseLabelValue(String theName, String theValue) {
         // Address label and value.
         // ++ Variable name: speed, value: 0e
         labelName.add(theName);
-        int intValue;
-        if (theValue.endsWith("h")) {
-            // Hex number. For example, change 0ffh or ffh to integer.
-            // Samples: 0ffh, 0eh
-            int si = 0;
-            if (theValue.startsWith("0") && theValue.length() > 3) {
-                si = 1;
-            }
-            theValue = theValue.substring(si, theValue.length() - 1);   // Hex string to integer. Remove the "h".
-            intValue = Integer.parseInt(theValue, 16);
-        } else {
-            intValue = Integer.parseInt(theValue);
-        }
+        int intValue = Integer.parseInt(convertValueToInt(theValue));
         labelAddress.add(intValue);
-        System.out.println("++ parseLabelValue, Label Name: " + theName + ", label: " + label + ", Address: " + programTop);
+        System.out.println("++ parseLabelValue, Label Name: " + theName + ", Value: " + intValue);
     }
 
     private void parseOrg(String theValue) {
@@ -351,19 +436,9 @@ public class asmProcessor {
     // + Parsing, listing, and setting label program byte values.
     private void parseName(String theName, String theValue) {
         variableName.add(theName);
-        if (theValue.endsWith("h")) {
-            // Hex number. For example, change 0ffh or ffh to integer.
-            // Samples: 0ffh, 0eh
-            int si = 0;
-            if (theValue.startsWith("0") && theValue.length() > 3) {
-                si = 1;
-            }
-            theValue = theValue.substring(si, theValue.length() - 1);   // Hex string to integer. Remove the "h".
-            variableValue.add(Integer.parseInt(theValue, 16));
-        } else {
-            variableValue.add(Integer.parseInt(theValue));
-        }
-        System.out.println("++ Variable name: " + theName + ", value: " + theValue);
+        int intValue = Integer.parseInt(convertValueToInt(theValue));
+        variableValue.add(intValue);
+        System.out.println("++ parseName, Variable Name: " + theName + ", Value: " + intValue);
     }
 
     private void parseDb(String theName, String theValue) {
@@ -973,7 +1048,7 @@ public class asmProcessor {
                     System.out.println("++ parseLine, db directive: part1|" + part1 + "| part3|" + part3 + "|");
                     parseDb(part1, part3);
                     return;
-                } else if (theDirective.endsWith("'")) {
+                } else if (theDirective.endsWith("'") || theDirective.equals("equ")) {
                     //
                     // Case: mvi a,' '
                     // ++ parseLine, DB string contains ','. theDirective = a,'.
@@ -981,7 +1056,7 @@ public class asmProcessor {
                     //
                 } else {
                     errorCount++;
-                    System.out.print("-- Error, programTop: " + programTop + ", line: " + theLine);
+                    System.out.println("-- Error, programTop: " + programTop + ", line: " + theLine);
                 }
             }
         }
@@ -1038,6 +1113,7 @@ public class asmProcessor {
         // ++ parseLine, ds directive: part1|scorer| part3|1|
         // ------------------------------------------
         if (part2.equals("equ")) {
+            // Stacy, make work for other types, such as, "A equ 'A'".
             // EQU variable names and values, can either be an immediate byte, or an 2 byte address.
             // So, add both, an address label and a immediate name-value pair.
             // 5.1) TERMB   equ     0ffh
@@ -1229,9 +1305,9 @@ public class asmProcessor {
         // Or other programs.
         // Required, starts the process:
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opJmp.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opImmediate.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pKillTheBit.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
         if (thisProcess.errorCount > 0) {
             System.out.println("\n-- Number of errors: " + thisProcess.errorCount + "\n");
             return;
