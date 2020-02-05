@@ -10,23 +10,12 @@
 > file programs/opMvi.asm
 
     ---------------------------------------------
-    +++ Handle characters in an EQU.
-                ...
-        Final   equ     42
-                ...
-                mvi a,Final
-
-++ parseLine, part1|final| theRest|equ     42|
-++ parseLine, Directive|final| part2|equ| part3|42|
-++ parseLine, equ directive: part1|final| part3|42|
-++ parseLabelValue, Label Name: final, Value: -1
-++ parseName, Variable Name: final, Value: -1
-
-- Error, immediate label not found: Final.
-- Error, programTop byte# 51 : immediate:Final.
+    +++ Nice to show the actual line, but not required because I can search for the label, "Fianl".
+- Error, immediate label not found: Fianl.
+- Error, programTop byte# 53 : immediate:Fianl.
 
     ---------------------------------------------
-    +++ Handle hex/label names properly in: getImmediateValue.
+    +++ In: getImmediateValue, re-order hex after label names.
 
     ---------------------------------------------
     + Pong program work notes.
@@ -146,19 +135,8 @@ public class asmProcessor {
     private final static List<Integer> variableValue = new ArrayList<>();
 
     // -------------------------------------------------------------------------
-    public static String byteToString(byte aByte) {
-        return toBinary(aByte, 8);
-    }
-
-    private static String toBinary(byte a, int bits) {
-        if (--bits > 0) {
-            return toBinary((byte) (a >> 1), bits) + ((a & 0x1) == 0 ? "0" : "1");
-        } else {
-            return (a & 0x1) == 0 ? "0" : "1";
-        }
-    }
-
-    // -------------------------------------------------------------------------
+    // Error handling
+    //
     private final int NAME_NOT_FOUND = -1;
     private final String NAME_NOT_FOUND_STR = "-1";
     private boolean debugMessage = false;
@@ -177,6 +155,19 @@ public class asmProcessor {
     private void printlnDebug(String theMessage) {
         if (debugMessage) {
             System.out.print(theMessage + "\n");
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    public static String byteToString(byte aByte) {
+        return toBinary(aByte, 8);
+    }
+
+    private static String toBinary(byte a, int bits) {
+        if (--bits > 0) {
+            return toBinary((byte) (a >> 1), bits) + ((a & 0x1) == 0 ? "0" : "1");
+        } else {
+            return (a & 0x1) == 0 ? "0" : "1";
         }
     }
 
@@ -299,27 +290,16 @@ public class asmProcessor {
 
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
-    // Address label name and value management.
-    //  Parsing, listing, and setting address program byte values.
-    private void parseLabel(String label) {
-        // Address label
-        labelName.add(label);
-        labelAddress.add(programTop);
-        System.out.println("++ parseLabel, Label Name: " + label + ", Address: " + programTop);
-    }
-
     private String convertValueToInt(String sImmediate) {
         String returnString = NAME_NOT_FOUND_STR;
         //
-        // Immediate type       Sample source       With value
-        // --------------       ----------------    -------------
-        // Separator character  immediate:'^^'      immediate:'^^':58 (Example, ":")
-        // Escape character     immediate:'\n'      immediate:'\n':10
-        // Character            immediate:'a'       immediate:'a':97
-        // Label                immediate:Final     immediate:Final:42
-        // Unknown label        immediate:Fianl     immediate:Fianl:-1
-        // Hex                  immediate:080h      immediate:080h:128
-        // Decimal              immediate:42        immediate:42:42
+        // Immediate type       Source Value    To integer value
+        // --------------       ------------    ----------------
+        // Separator character  '^^'            58 (Example, ":")
+        // Escape character     '\n'            10
+        // Character            'a'             97
+        // Hex                  080h            128
+        // Decimal              42              42
         //
         if (sImmediate.equals("'^^'")) {
             // If SEPARATOR is ":", set to 58 (colon ascii value).
@@ -390,77 +370,10 @@ public class asmProcessor {
         return returnString;
     }
 
-    private void parseLabelValue(String theName, String theValue) {
-        // Address label and value.
-        // ++ Variable name: speed, value: 0e
-        labelName.add(theName);
-        int intValue = Integer.parseInt(convertValueToInt(theValue));
-        labelAddress.add(intValue);
-        System.out.println("++ parseLabelValue, Label Name: " + theName + ", Value: " + intValue);
-    }
-
-    private void parseOrg(String theValue) {
-        String theName = "org";
-        System.out.println("++ Org address value: " + theValue);
-        int intValue;
-        if (theValue.endsWith("h")) {
-            // Hex number. For example, change 0ffh or ffh to integer.
-            // Samples: 0ffh, 0eh
-            int si = 0;
-            if (theValue.startsWith("0") && theValue.length() > 3) {
-                si = 1;
-            }
-            theValue = theValue.substring(si, theValue.length() - 1);   // Hex string to integer. Remove the "h".
-            intValue = Integer.parseInt(theValue, 16);
-        } else {
-            intValue = Integer.parseInt(theValue);
-        }
-        for (int i = programTop; programTop < intValue; programTop++) {
-            programBytes.add("dsname:" + theName + SEPARATOR + 0);  // default value.
-        }
-    }
-
-    private void parseDs(String theName, String theValue) {
-        System.out.println("++ DS variable name: " + theName + ", number of bytes: " + theValue);
-        labelName.add(theName);
-        labelAddress.add(programTop);        // Address to the bytes.
-        for (int i = 0; i < Integer.parseInt(theValue); i++) {
-            programBytes.add("dsname:" + theName + SEPARATOR + 0);  // default value.
-            programTop++;
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // Immediate variable name and value management.
-    // Assembler directive: DB and DS Variable name management:
-    // + Parsing, listing, and setting label program byte values.
-    private void parseName(String theName, String theValue) {
-        variableName.add(theName);
-        int intValue = Integer.parseInt(convertValueToInt(theValue));
-        variableValue.add(intValue);
-        System.out.println("++ parseName, Variable Name: " + theName + ", Value: " + intValue);
-    }
-
-    private void parseDb(String theName, String theValue) {
-        System.out.println("++ DB variable name: " + theName + ", string of bytes: " + theValue);
-        labelName.add(theName);
-        labelAddress.add(programTop);        // Address to the string of bytes.
-        for (int i = 1; i < theValue.length() - 1; i++) {
-            // Only use what is contained within the quotes, 'Hello' -> Hello
-            if (theValue.substring(i, i + 1).equals(SEPARATOR)) {
-                programBytes.add("databyte:" + theName + SEPARATOR + SEPARATOR_TEMP);
-            } else {
-                programBytes.add("databyte:" + theName + SEPARATOR + theValue.substring(i, i + 1));
-            }
-            programTop++;
-        }
-        programBytes.add("dbterm:" + theName + SEPARATOR + DB_STRING_TERMINATOR);
-        programTop++;
-
-    }
-
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
+    // Label address name value pair management.
+    //
     public void listLabelAddresses() {
         System.out.println("\n+ List label Addresses:");
         Iterator<String> lName = labelName.iterator();
@@ -588,6 +501,9 @@ public class asmProcessor {
     }
 
     // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Immediate name value pair management.
+    //
     public void listImmediateValues() {
         System.out.println("\n+ List immediate values...");
         Iterator<String> lName = variableName.iterator();
@@ -736,7 +652,97 @@ public class asmProcessor {
 
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
+    // Assembler directives
+    //
+    //      org
+    //      ds
+    //      db
+    //      equ
+    //
+    private void parseOrg(String theValue) {
+        String theName = "org";
+        System.out.println("++ Org address value: " + theValue);
+        int intValue;
+        if (theValue.endsWith("h")) {
+            // Hex number. For example, change 0ffh or ffh to integer.
+            // Samples: 0ffh, 0eh
+            int si = 0;
+            if (theValue.startsWith("0") && theValue.length() > 3) {
+                si = 1;
+            }
+            theValue = theValue.substring(si, theValue.length() - 1);   // Hex string to integer. Remove the "h".
+            intValue = Integer.parseInt(theValue, 16);
+        } else {
+            intValue = Integer.parseInt(theValue);
+        }
+        for (int i = programTop; programTop < intValue; programTop++) {
+            programBytes.add("dsname:" + theName + SEPARATOR + 0);  // default value.
+        }
+    }
+
+    private void parseDs(String theName, String theValue) {
+        System.out.println("++ DS variable name: " + theName + ", number of bytes: " + theValue);
+        labelName.add(theName);
+        labelAddress.add(programTop);        // Address to the bytes.
+        for (int i = 0; i < Integer.parseInt(theValue); i++) {
+            programBytes.add("dsname:" + theName + SEPARATOR + 0);  // default value.
+            programTop++;
+        }
+    }
+
+    private void parseDb(String theName, String theValue) {
+        System.out.println("++ DB variable name: " + theName + ", string of bytes: " + theValue);
+        labelName.add(theName);
+        labelAddress.add(programTop);        // Address to the string of bytes.
+        for (int i = 1; i < theValue.length() - 1; i++) {
+            // Only use what is contained within the quotes, 'Hello' -> Hello
+            if (theValue.substring(i, i + 1).equals(SEPARATOR)) {
+                programBytes.add("databyte:" + theName + SEPARATOR + SEPARATOR_TEMP);
+            } else {
+                programBytes.add("databyte:" + theName + SEPARATOR + theValue.substring(i, i + 1));
+            }
+            programTop++;
+        }
+        programBytes.add("dbterm:" + theName + SEPARATOR + DB_STRING_TERMINATOR);
+        programTop++;
+
+    }
+
+    // -----------
+    // EQU can be an address value or an immediate value.
+    private void parseEquLabelValue(String theName, String theValue) {
+        // Address label value pair.
+        labelName.add(theName);
+        int intValue = Integer.parseInt(convertValueToInt(theValue));
+        labelAddress.add(intValue);
+        System.out.println("++ parseEquLabelValue, Name: " + theName + ", Value: " + intValue);
+    }
+
+    private void parseEquNameValue(String theName, String theValue) {
+        // Name value pair
+        variableName.add(theName);
+        int intValue = Integer.parseInt(convertValueToInt(theValue));
+        variableValue.add(intValue);
+        System.out.println("++ parseEquNameValue, Name: " + theName + ", Value: " + intValue);
+    }
+
+    // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Address label name and value management.
+    //  For example,
+    //      Start:
+    //
+    private void parseLabel(String label) {
+        // Address label
+        labelName.add(label);
+        labelAddress.add(programTop);
+        System.out.println("++ parseLabel, Name: " + label + ", Address: " + programTop);
+    }
+
+    // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // Parse opcodes into program bytes.
+    //
     private String getOpcodeBinary(String opcode) {
         opcodeBinary = theOpcodes.getOpcode(opcode);
         if (opcodeBinary == theOpcodes.OpcodeNotFound) {
@@ -750,8 +756,9 @@ public class asmProcessor {
 
     private void parseOpcode(String opcode) {
         // opcode (no parameters)
-        // hlt
-        // nop
+        //  For example,
+        //      hlt
+        //      nop
         sOpcodeBinary = getOpcodeBinary(opcode);
         programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary);
         programTop++;
@@ -1113,20 +1120,19 @@ public class asmProcessor {
         // ++ parseLine, ds directive: part1|scorer| part3|1|
         // ------------------------------------------
         if (part2.equals("equ")) {
-            // Stacy, make work for other types, such as, "A equ 'A'".
-            // EQU variable names and values, can either be an immediate byte, or an 2 byte address.
+            // EQU variable names and values, can either be an immediate byte, or a 2 byte address.
             // So, add both, an address label and a immediate name-value pair.
-            // 5.1) TERMB   equ     0ffh
-            // 5.2) stack   equ     $
+            //      TERMB   equ     0ffh
+            //      stack   equ     $
             if (part3.equals("$")) {
                 // stack   equ $    ; "$" is current address.
                 part3 = Integer.toString(programTop);
             }
             System.out.println("++ parseLine, equ directive: part1|" + part1 + "| part3|" + part3 + "|");
             // Stacy, incorrect: ++ Label Name: 0eh, Address: 0
-            parseLabelValue(part1, part3);
+            parseEquLabelValue(part1, part3);
             // ++ Variable name: speed, value: 0e
-            parseName(part1, part3);
+            parseEquNameValue(part1, part3);
             return;
         }
         if (part2.equals("db")) {

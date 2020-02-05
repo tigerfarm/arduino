@@ -2,11 +2,14 @@
                                     ; Test CALL and RET.
                                     ; --------------------------------------
                                     ; Definition section.
-        ; A       equ     'A'         ; Labels need to be case sensitive.
+                                    ;
+        ; A       equ     'A'         ; Labels need to be case sensitive for this case.
+                                    ;
         a       equ     'a'
         NL      equ     '\n'
+        p2      equ     3           ; Variable for the out port address.
         Final   equ     42
-        addr1   equ     500h        ; Test using an address greater than 255 (byte size max).
+        addr1   equ     503h        ; Test using an address greater than 255 (byte size max).
                                     ;
                                     ; --------------------------------------
                 jmp Test            ; Jump to the test section.
@@ -14,15 +17,21 @@
                                     ; --------------------------------------
     Error:
                 mvi a,'-'
-                out 3
+                out p2
     Halt:
                 mvi a,'\n'
-                out 3
+                out p2
                 hlt                 ; The program will halt at each iteration, after the first.
                                     ;
                                     ; --------------------------------------
-    Test:
-                                    ; Immediate sample testing
+    Test:                           ; Immediate sample testing
+                mvi a,080h
+                sui 08h             ; Subtract immediate number from register A.
+                adi 3               ; Add immediate number to register A. 
+                sui 3
+                sui Final
+                cmp p2
+                                    ;
                 mvi a,080h
                 out 3
                 mvi a,80h
@@ -37,10 +46,12 @@
                 out 3
                 mvi a,Final
                 out 3
+                                    ;
                 mvi a,addr1         ; The addr1 value is over 255, which makes it too high for a byte. No error checking for this.
+                                    ; 00000011 : 503 > immediate: addr1 : 1283 ... The low byte value.
                 out 3
                                     ;
-                ; mvi a,Fianl         ; Test an assembler error, "Label not found."
+                mvi a,Fianl         ; Test an assembler error, "Label not found."
                                     ;
                                     ; --------------------------------------
     Success:
