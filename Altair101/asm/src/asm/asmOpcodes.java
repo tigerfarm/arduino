@@ -1,41 +1,8 @@
 /*
-    Retrieves opcode data from a text.
+    Retrieve and list opcode data from a text file.
     Can sort the data before printing.
 
 --------------------------------------------------------------------------------
-Opcodes implemented by this assembler, and implemented in Processor.ino.
-Opcode   Binary   Cycles Description
--------------------------------------
-adi #    11 000 110     Add immediate number to register A, and set ZSCPA.
-ani #    11 100 110  2  AND # (immediate db) with register A.
-call a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.
-cmp S    10 111 SSS     Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.
-cpi #    11 111 110  2  Compare # to A. Store true or false into flagZeroBit.
-dad RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L. And set carry bit.
-dcr D    00 DDD 101  1  Decrement a register. To do, set flags: ZSPA.
-hlt      01 110 110  1  Halt processor.
-in pa    11 011 011  2  Read port a data into the accumulator. Example, a=0377 is the sense switches.
-inx RP   00 RP0 011  1  Increment a register pair(16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
-inr D    00 DDD 100  1  Increment a register. To do, set flags: ZSPA.
-jnc a    11 010 010  3  Jump if not carry bit, i.e. if carry bit value is 0, false, not set.
-jmp a    11 000 011  3  Unconditional jump.
-jz  a    11 001 010  3  If flagZeroBit is true, jump to address (a = lb hb).
-lxi RP,a 00 RP0 001  3  Move the data at the address, a(lb hb), into address of the register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.
-ldax RP  00 RP1 010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.
-lda a    00 111 010  3  Load register A with data from the address, a(hb:lb).
-mov D,S  01 DDD SSS  1  Move source register data, to the destination register.
-mvi D,#  00 DDD 110  2  Move a number (#/db) to a register.
-nop      00 000 000  1  No operation. I added a delay: delay(100).
-ora S    10 110 SSS  1  OR register S, with register A.
-out pa   11 010 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
-rlc      00 000 111  1  Rotate accumulator left by shift left 1 bit, and wrapping the first bit to the last position. Need to handle carry bit (CY = prev bit 7).
-rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit (CY = prev bit 0).
-ret      11 001 001  1  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.
-shld a   00 100 010  3  Store data value from memory location: a(address hb:lb), to register L. Store value at: a + 1, to register H.
-sta a    00 110 010  3  Store register A to the address, a(hb:lb).
-sui #    11 010 110     ZSCPA Subtract immedite number from register A.
-xra S    10 101 SSS  1  Exclusive OR, the register(R) with register A.
-
 Opcodes implemented in Processor.ino, but not yet in this assembler,
 Opcode   Binary   Cycles Description
 -------------------------------------
@@ -113,10 +80,10 @@ class SortbyName implements Comparator<asmOpcode> {
 // Opcode processing.
 public class asmOpcodes {
 
-    private static String opcodeFilename = "asmOpcodes.txt";
+    private static final String opcodeFilename = "asmOpcodes.txt";
     static int opcodeCount = 3;
     static asmOpcode[] opcodeArray = new asmOpcode[opcodeCount];
-    private int errorCount = 0;
+    // private int errorCount = 0;
     public final byte OpcodeNotFound = (byte) 255;
 
     // -------------------------------------------------------------------------
