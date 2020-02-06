@@ -18,8 +18,11 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -86,6 +89,11 @@ public class asmOpcodes {
     // private int errorCount = 0;
     public final byte OpcodeNotFound = (byte) 255;
 
+    // Keep the file lines in memory for listing.
+    private static final String SEPARATOR = ":";
+    private int programTop = 0;
+    private final static List<String> opcodeDoc = new ArrayList<>();
+
     // -------------------------------------------------------------------------
     public String getOpcodeFilename() {
         return this.opcodeFilename;
@@ -107,8 +115,60 @@ public class asmOpcodes {
     }
 
     // -------------------------------------------------------------------------
+    public void opcodesList() {
+        // Stacy,
+        // Improve this listing by listing from the file, and include the comments.
+        System.out.println("+ Opcodes ordered as is.");
+        /*
+        System.out.println("Binary             Opcode   Binary   Cycles Description");
+        System.out.println("-------------------------------------");
+        //                  11100110 : ani   : ANI #    11 100 110  2  AND # (immediate db) with register A.
+        for (int i = 0; i < opcodeCount; i++) {
+            if (!opcodeArray[i].info.equals("")) {
+                System.out.println(opcodeArray[i]);
+            }
+        }
+        System.out.println("+ End list.");
+        */
+        for (Iterator<String> it = opcodeDoc.iterator(); it.hasNext();) {
+            String theLine = it.next();
+            if ((theLine.startsWith("//") || theLine.equals(""))) {
+                // Print comment and blank lines.
+                System.out.println(theLine);
+            } else {
+                int c1 = theLine.indexOf(SEPARATOR);
+                if (c1 > 0) {
+                    String opcode = theLine.substring(0, c1);
+                    int c2 = theLine.substring(c1 + 1).indexOf(SEPARATOR);
+                    if (c2 > 0) {
+                        String value = theLine.substring(c1 + 1, c1 + 8 + 1);
+                        String info = theLine.substring(c1 + 8 + 1 + 1, theLine.length());
+                        // System.out.println("+ opcode:" + opcode + ":" + value + ":" + info);
+                        if (!info.equals("")) {
+                            String thePadding = "";
+                            switch (opcode.length()) {
+                                case 2:
+                                    thePadding = "   ";
+                                    break;
+                                case 3:
+                                    thePadding = "  ";
+                                    break;
+                                case 4:
+                                    thePadding = " ";
+                                    break;
+                                default:
+                                    break;
+                            }
+                            System.out.println("   " + value + " : " + opcode + thePadding + " : " + info);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------
     private static void fileLoadOpcodes(String theReadFilename) {
-        String SEPARATOR = ":";
         File readFile;
         FileInputStream fin;
         DataInputStream pin;
@@ -126,7 +186,8 @@ public class asmOpcodes {
             opcodeCount = 0;
             while (theLine != null) {
                 // System.out.println("+ " + theLine);
-                if ( !(theLine.startsWith("//") || theLine.equals("")) ) {
+                opcodeDoc.add(theLine);
+                if (!(theLine.startsWith("//") || theLine.equals(""))) {
                     int c1 = theLine.indexOf(SEPARATOR);
                     if (c1 > 0) {
                         String opcode = theLine.substring(0, c1);
@@ -148,8 +209,8 @@ public class asmOpcodes {
         }
     }
 
+    // -------------------------------------------------------------------------
     private int getOpcodeCount(String theReadFilename) {
-        String SEPARATOR = ":";
         File readFile;
         FileInputStream fin;
         DataInputStream pin;
@@ -233,20 +294,6 @@ public class asmOpcodes {
         if (returnValue == OpcodeNotFound) {
             System.out.println("++ Opcode Not Found: " + theName);
         }
-    }
-
-    // -------------------------------------------------------------------------
-    public void opcodesList() {
-        System.out.println("+ Opcodes ordered as is.");
-        System.out.println("Binary             Opcode   Binary   Cycles Description");
-        System.out.println("-------------------------------------");
-        //                  11100110 : ani   : ANI #    11 100 110  2  AND # (immediate db) with register A.
-        for (int i = 0; i < opcodeCount; i++) {
-            if (!opcodeArray[i].info.equals("")) {
-                System.out.println(opcodeArray[i]);
-            }
-        }
-        System.out.println("+ End list.");
     }
 
     // -------------------------------------------------------------------------

@@ -1,9 +1,14 @@
 // Opcode table of information
 // Opcode:Byte-Description
-// Note, a comment with a second ":" will cause an error in the sort classes.
+// Note, a comment with a second ":" will cause an error in the sort classes. Even though, the sorted listings work fine.
+
+// Opcodes ordered as is.
+// Binary             Opcode   Binary   Cycles Description
+// -------------------------------------------------------
 
 // -----------------------------------------------------------------------------
 // Operation codes
+
 nop:00000000:NOP      00 000 000  1  No operation. I added a delay: delay(100).
 hlt:01110110:HLT      01 110 110  1  Halt processor.
 call:11001101:CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.
@@ -14,6 +19,7 @@ out:11100011:OUT pa   11 010 011  2  Write the accumulator data out to port a. I
 
 // -----------------------------------------------------------------------------
 // Compare and branching
+
 cmp:10111SSS:CMP S    10 111 SSS  1  Compare register(S: B,C,D,E,H,L, or M) with register A, then set flags. If S==A, ZeroBit=1 & CarryBit=0. If S!=A, ZeroBit=0. If S>A, CarryBit=1. If S<A, CarryBit=0.
 cmpa:10111111:
 cmpb:10111000:
@@ -97,7 +103,6 @@ movdm:01010110:
 movem:01011110:
 movhm:01100110:
 movlm:01101110:
-
 mvi:00RRR110:MVI R,#  00 RRR 110  2  Move #(immediate value) to a register (R).
 mvia:00111110:
 mvib:00000110:
@@ -143,7 +148,6 @@ dadd:00101001:
 // Bit and logic applied to a register or byte.
 
 ani:11100110:ANI #    11 100 110  2  AND # (immediate value) with register A.
-
 ora:10110SSS:ORA S    10 110 SSS  1  OR register S, with register A.
 oraa:10110111:
 orab:10110000:
@@ -153,7 +157,6 @@ orae:10110011:
 orah:10110100:
 oral:10110101:
 oram:10110110:
-
 xra:10101SSS:XRA R    10 101 SSS  1  Exclusive OR, the register(R) with register A.
 xrab:10101000:
 xrac:10101001:
