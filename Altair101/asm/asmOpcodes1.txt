@@ -1,6 +1,5 @@
 // Opcode table of information
-// Opcode:Byte-Description
-// Note, a comment with a second ":" will cause an error in the sort classes.
+// Opcode:Byte:Description
 
 // -----------------------------------------------------------------------------
 // Operation codes
@@ -24,7 +23,6 @@ cmph:10111100:
 cmpl:10111101:
 cmpm:10111110:
 cpi:11111110:CPI #    11 111 110  2  Compare # (immediate value) to A. If #==A, ZeroBit=1 & CarryBit=0. If #!=A, ZeroBit=0. If #>A, CarryBit=1. If #<A, CarryBit=0.
-
 jnz:11000010:JNZ a    11 000 010  3  Jump to a, if Zero bit flag is not set (equals 0).
 jz:11001010:JZ a     11 001 010  3  Jump to a, if zero bit flag is set (equals 1).
 jnc:11010010:JNC a    11 010 010  3  Jump to a, if Carry bit flag is not set (equals 0).
@@ -143,7 +141,6 @@ dadd:00101001:
 // Bit and logic applied to a register or byte.
 
 ani:11100110:ANI #    11 100 110  2  AND # (immediate value) with register A.
-
 ora:10110SSS:ORA S    10 110 SSS  1  OR register S, with register A.
 oraa:10110111:
 orab:10110000:
@@ -154,6 +151,9 @@ orah:10110100:
 oral:10110101:
 oram:10110110:
 
+rlc:00000111:RLC      00 000 111  1  Rotate accumulator left by shift left 1 bit, and wrapping the first bit to the last position. Need to handle carry bit (CY = prev bit 7).
+rrc:00001111:RRC      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit (CY = prev bit 0).
+
 xra:10101SSS:XRA R    10 101 SSS  1  Exclusive OR, the register(R) with register A.
 xrab:10101000:
 xrac:10101001:
@@ -161,9 +161,6 @@ xrad:10101010:
 xrae:10101011:
 xrah:10101100:
 xral:10101101:
-
-rlc:00000111:RLC      00 000 111  1  Rotate accumulator left by shift left 1 bit, and wrapping the first bit to the last position. Need to handle carry bit (CY = prev bit 7).
-rrc:00001111:RRC      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit (CY = prev bit 0).
 
 // -----------------------------------------------------------------------------
 // eof

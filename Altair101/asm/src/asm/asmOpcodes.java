@@ -80,11 +80,21 @@ class SortbyName implements Comparator<asmOpcode> {
 // Opcode processing.
 public class asmOpcodes {
 
-    private static final String opcodeFilename = "asmOpcodes.txt";
+    private static String opcodeFilename = "asmOpcodes.txt";
     static int opcodeCount = 3;
     static asmOpcode[] opcodeArray = new asmOpcode[opcodeCount];
     // private int errorCount = 0;
     public final byte OpcodeNotFound = (byte) 255;
+
+    // -------------------------------------------------------------------------
+    public String getOpcodeFilename() {
+        return this.opcodeFilename;
+    }
+
+    public void setOpcodeFilename(String theOpcodeFilename) {
+        // Stacy, should validate that the file exists.
+        opcodeFilename = theOpcodeFilename;
+    }
 
     // -------------------------------------------------------------------------
     // Constructor to initialize the opcode data.
@@ -116,15 +126,17 @@ public class asmOpcodes {
             opcodeCount = 0;
             while (theLine != null) {
                 // System.out.println("+ " + theLine);
-                int c1 = theLine.indexOf(SEPARATOR);
-                if (c1 > 0) {
-                    String opcode = theLine.substring(0, c1);
-                    int c2 = theLine.substring(c1 + 1).indexOf(SEPARATOR);
-                    if (c2 > 0) {
-                        String value = theLine.substring(c1 + 1, c1 + 8 + 1);
-                        String info = theLine.substring(c1 + 8 + 1 + 1, theLine.length());
-                        // System.out.println("+ opcode:" + opcode + ":" + value + ":" + info);
-                        opcodeArray[opcodeCount++] = new asmOpcode(value, opcode, info);
+                if ( !(theLine.startsWith("//") || theLine.equals("")) ) {
+                    int c1 = theLine.indexOf(SEPARATOR);
+                    if (c1 > 0) {
+                        String opcode = theLine.substring(0, c1);
+                        int c2 = theLine.substring(c1 + 1).indexOf(SEPARATOR);
+                        if (c2 > 0) {
+                            String value = theLine.substring(c1 + 1, c1 + 8 + 1);
+                            String info = theLine.substring(c1 + 8 + 1 + 1, theLine.length());
+                            // System.out.println("+ opcode:" + opcode + ":" + value + ":" + info);
+                            opcodeArray[opcodeCount++] = new asmOpcode(value, opcode, info);
+                        }
                     }
                 }
                 theLine = pin.readLine();
@@ -191,6 +203,7 @@ public class asmOpcodes {
 
     // -------------------------------------------------------------------------
     public byte getOpcode(String theName) {
+        // Given an opcode, return the byte code.
         byte returnValue = OpcodeNotFound;
         for (int i = 0; i < opcodeCount; i++) {
             // System.out.println("++ " + i + ": " + name[i] + " " + value[i]);
@@ -203,6 +216,7 @@ public class asmOpcodes {
     }
 
     public void printOpcodeInfo(String theName) {
+        // Print a single opcode's info.
         byte returnValue = OpcodeNotFound;
         for (int i = 0; i < opcodeCount; i++) {
             if (opcodeArray[i].name.equals(theName)) {
@@ -222,9 +236,8 @@ public class asmOpcodes {
     }
 
     // -------------------------------------------------------------------------
-    public void opcodeInfoList() {
-        Arrays.sort(opcodeArray, new SortbyName());
-        System.out.println("+ List opcode info ordered by opcode name.");
+    public void opcodesList() {
+        System.out.println("+ Opcodes ordered as is.");
         System.out.println("Binary             Opcode   Binary   Cycles Description");
         System.out.println("-------------------------------------");
         //                  11100110 : ani   : ANI #    11 100 110  2  AND # (immediate db) with register A.
@@ -237,42 +250,16 @@ public class asmOpcodes {
     }
 
     // -------------------------------------------------------------------------
-    public void opcodesList() {
-        System.out.println("+ List opcode data.");
-        System.out.println("        Name: Value");
-        //                  ++   1: adi   11000110
+    public void opcodeInfoList() {
+        Arrays.sort(opcodeArray, new SortbyName());
+        System.out.println("+ List opcode info ordered by opcode name.");
+        System.out.println("Binary             Opcode   Binary   Cycles Description");
         System.out.println("-------------------------------------");
-        int iCounter = 0;
-        String counterPadding;
+        //                  11100110 : ani   : ANI #    11 100 110  2  AND # (immediate db) with register A.
         for (int i = 0; i < opcodeCount; i++) {
-            iCounter++;
-            counterPadding = "";
-            if (iCounter < 10) {
-                counterPadding = "  ";
-            } else if (iCounter < 100) {
-                counterPadding = " ";
+            if (!opcodeArray[i].info.equals("")) {
+                System.out.println(opcodeArray[i]);
             }
-            String thePadding = " ";
-            switch (opcodeArray[i].name.length()) {
-                case 2:
-                    thePadding = "    ";
-                    break;
-                case 3:
-                    thePadding = "   ";
-                    break;
-                case 4:
-                    thePadding = "  ";
-                    break;
-                default:
-                    break;
-            }
-
-            System.out.println(
-                    "++ " + counterPadding + iCounter
-                    + ": " + opcodeArray[i].name
-                    + thePadding + opcodeArray[i].value
-                    + " " + opcodeArray[i].info
-            );
         }
         System.out.println("+ End list.");
     }
@@ -355,7 +342,7 @@ public class asmOpcodes {
                     "++ " + counterPadding + iCounter
                     + ": " + opcodeArray[i].value
                     + " " + opcodeArray[i].name
-                    + thePadding+ " " + opcodeArray[i].info
+                    + thePadding + " " + opcodeArray[i].info
             );
         }
         System.out.println("+ End list.");
