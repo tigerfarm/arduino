@@ -11,7 +11,20 @@ pop  RP  11 RP0 001  1  POP register pair from the stack.
 
 + Hex, Octal, Binary, Decimal conversion calculator
 https://coderstoolbox.net/number/
- */
+
+// -----------------------------------------------------------------------------
+// Opcode General Information (should be another file, then listed using: opcodes info)
+// --------------------------
+
+// Register identifiers (binary value=R):
+//  000=B
+//  001=C
+//  010=D
+//  011=E
+//  100=H
+//  101=L
+
+*/
 package asm;
 
 import java.io.DataInputStream;
@@ -116,20 +129,8 @@ public class asmOpcodes {
 
     // -------------------------------------------------------------------------
     public void opcodesList() {
-        // Stacy,
-        // Improve this listing by listing from the file, and include the comments.
-        System.out.println("+ Opcodes ordered as is.");
-        /*
-        System.out.println("Binary             Opcode   Binary   Cycles Description");
-        System.out.println("-------------------------------------");
-        //                  11100110 : ani   : ANI #    11 100 110  2  AND # (immediate db) with register A.
-        for (int i = 0; i < opcodeCount; i++) {
-            if (!opcodeArray[i].info.equals("")) {
-                System.out.println(opcodeArray[i]);
-            }
-        }
-        System.out.println("+ End list.");
-        */
+        System.out.println("+ Opcodes ordered as is, including comments.");
+        System.out.println("");
         for (Iterator<String> it = opcodeDoc.iterator(); it.hasNext();) {
             String theLine = it.next();
             if ((theLine.startsWith("//") || theLine.equals(""))) {
