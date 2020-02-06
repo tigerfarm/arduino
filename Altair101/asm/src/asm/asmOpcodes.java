@@ -2,6 +2,12 @@
     Retrieve and list opcode data from a text file.
     Can sort the data before printing.
 
++ Binary short description option:
+    ...
+    dad:00RP1001:DAD RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L, into H:L. And set carry bit.
+    dadb:00001001[HL = HL + BC]
+    ...
+
 --------------------------------------------------------------------------------
 Opcodes implemented in Processor.ino, but not yet in this assembler,
 Opcode   Binary   Cycles Description
@@ -24,7 +30,7 @@ https://coderstoolbox.net/number/
 //  100=H
 //  101=L
 
-*/
+ */
 package asm;
 
 import java.io.DataInputStream;
@@ -45,12 +51,14 @@ class asmOpcode {
     String value;
     String name;
     String info;
+    String logic;
 
     // Constructor 
-    public asmOpcode(String value, String name, String info) {
+    public asmOpcode(String value, String name, String info, String logic) {
         this.value = value;
         this.name = name;
         this.info = info;
+        this.logic = logic;
     }
 
     // Used to print the data.
@@ -70,7 +78,11 @@ class asmOpcode {
             default:
                 break;
         }
-        return this.value + " : " + this.name + thePadding + " : " + this.info;
+        String returnString = this.value + " : " + this.name + thePadding + " : " + this.info;
+        if (!this.logic.equals("")) {
+            returnString = this.value + " : " + this.name + thePadding + " : " + this.logic;
+        }
+        return returnString;
     }
 
 }
@@ -173,6 +185,9 @@ public class asmOpcodes {
         File readFile;
         FileInputStream fin;
         DataInputStream pin;
+        String value;
+        String info;
+        String logic;
         try {
             // Get a count of the number of opcodes.
             readFile = new File(theReadFilename);
@@ -186,6 +201,13 @@ public class asmOpcodes {
             String theLine = pin.readLine();
             opcodeCount = 0;
             while (theLine != null) {
+                // Line types:
+                //  Ignore blank lines and comment lines,
+                //      // Comment line
+                //  Opcode information line,
+                //      dad:00RP1001:DAD RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L, into H:L. And set carry bit.
+                //  Opcode logic short info line,
+                //      dadb:00001001:|HL = HL + BC
                 // System.out.println("+ " + theLine);
                 opcodeDoc.add(theLine);
                 if (!(theLine.startsWith("//") || theLine.equals(""))) {
@@ -194,10 +216,15 @@ public class asmOpcodes {
                         String opcode = theLine.substring(0, c1);
                         int c2 = theLine.substring(c1 + 1).indexOf(SEPARATOR);
                         if (c2 > 0) {
-                            String value = theLine.substring(c1 + 1, c1 + 8 + 1);
-                            String info = theLine.substring(c1 + 8 + 1 + 1, theLine.length());
-                            // System.out.println("+ opcode:" + opcode + ":" + value + ":" + info);
-                            opcodeArray[opcodeCount++] = new asmOpcode(value, opcode, info);
+                            value = theLine.substring(c1 + 1, c1 + 8 + 1);
+                            info = theLine.substring(c1 + 8 + 1 + 1, theLine.length());
+                            logic = "";
+                            if (info.startsWith("|")) {
+                                logic = info.substring(1, info.length());
+                                info = "";
+                            }
+                            // System.out.println("+ opcode:" + opcode + ":" + value + ":" + info + ":" + logic);
+                            opcodeArray[opcodeCount++] = new asmOpcode(value, opcode, info, logic);
                         }
                     }
                 }
@@ -235,8 +262,8 @@ public class asmOpcodes {
                     int c2 = theLine.substring(c1 + 1).indexOf(SEPARATOR);
                     if (c2 > 0) {
                         opcodeCount++;
-                        String value = theLine.substring(c1 + 1, c1 + 8 + 1);
-                        String info = theLine.substring(c1 + 8 + 1 + 1, theLine.length());
+                        // String value = theLine.substring(c1 + 1, c1 + 8 + 1);
+                        // String info = theLine.substring(c1 + 8 + 1 + 1, theLine.length());
                         // System.out.println("+ opcode:" + opcode + ":" + value + ":" + info);
                     }
                 }
@@ -282,11 +309,30 @@ public class asmOpcodes {
         byte returnValue = OpcodeNotFound;
         for (int i = 0; i < opcodeCount; i++) {
             if (opcodeArray[i].name.equals(theName)) {
-                // System.out.println("++ "+ name[i] + " " + byteToString(value[i]));
+                // System.out.println("++ " + opcodeArray[i].name + ":" + opcodeArray[i].value + ":" + opcodeArray[i].logic + ":" + opcodeArray[i].info);
                 if (!opcodeArray[i].info.equals("")) {
                     System.out.println("Opcode   Binary   Cycles Description");
                     System.out.println("-------------------------------------");
                     System.out.println(opcodeArray[i].info);
+                    returnValue = 1;
+                } else if (!opcodeArray[i].logic.equals("")) {
+                    String thePadding = "";
+                    switch (opcodeArray[i].name.length()) {
+                        case 2:
+                            thePadding = "   ";
+                            break;
+                        case 3:
+                            thePadding = "  ";
+                            break;
+                        case 4:
+                            thePadding = " ";
+                            break;
+                        default:
+                            break;
+                    }
+                    System.out.println("Opcode  Binary    Short logic description");
+                    System.out.println("-----------------------------------------");
+                    System.out.println(opcodeArray[i].name + thePadding + "   " + opcodeArray[i].value + "  " + opcodeArray[i].logic);
                     returnValue = 1;
                 }
                 break;
@@ -343,12 +389,17 @@ public class asmOpcodes {
                 default:
                     break;
             }
-
+            String description;
+            if (!opcodeArray[i].logic.equals("")) {
+                description = opcodeArray[i].logic;
+            } else {
+                description = opcodeArray[i].info;
+            }
             System.out.println(
                     "++ " + counterPadding + iCounter
-                    + ": " + opcodeArray[i].name
-                    + thePadding + opcodeArray[i].value
-                    + " " + opcodeArray[i].info
+                    + ": " + opcodeArray[i].value
+                    + " " + opcodeArray[i].name
+                    + thePadding + " " + description
             );
         }
         System.out.println("+ End list.");
@@ -385,12 +436,17 @@ public class asmOpcodes {
                 default:
                     break;
             }
-
+            String description;
+            if (!opcodeArray[i].logic.equals("")) {
+                description = opcodeArray[i].logic;
+            } else {
+                description = opcodeArray[i].info;
+            }
             System.out.println(
                     "++ " + counterPadding + iCounter
                     + ": " + opcodeArray[i].value
                     + " " + opcodeArray[i].name
-                    + thePadding + " " + opcodeArray[i].info
+                    + thePadding + " " + description
             );
         }
         System.out.println("+ End list.");
@@ -438,15 +494,29 @@ public class asmOpcodes {
             System.out.println("+ Opcode, " + sOpcode + " value: " + theOpcodes.byteToString(bOpcode));
         }
 
+        sOpcode = "dadb";
+        bOpcode = theOpcodes.getOpcode(sOpcode);
+        if (bOpcode == theOpcodes.OpcodeNotFound) {
+            System.out.println("- Opcode, Not found: " + sOpcode + ".");
+        } else {
+            System.out.println("+ Opcode, " + sOpcode + " value: " + theOpcodes.byteToString(bOpcode));
+        }
         System.out.println("\n-----------------------------------------------");
+        theOpcodes.printOpcodeInfo("dad");
+        System.out.println("");
+        theOpcodes.printOpcodeInfo("dadb");
+
+        System.out.println("\n-----------------------------------------------");
+        /*
         System.out.println("");
         theOpcodes.opcodeInfoList();
         System.out.println("");
         theOpcodes.opcodesList();
+         */
         System.out.println("");
         theOpcodes.opcodesListByName();
-        System.out.println("");
-        theOpcodes.opcodesListByValue();
+        // System.out.println("");
+        // theOpcodes.opcodesListByValue();
 
         System.out.println("\n+++ Exit.\n");
     }

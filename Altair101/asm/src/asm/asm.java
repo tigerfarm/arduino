@@ -23,7 +23,7 @@ public class asm {
     asmProcessor processFile = new asmProcessor();
     asmOpcodes theOpcodes = new asmOpcodes();
 
-    private static final String asmVersion = "0.91b";
+    private static final String asmVersion = "0.91c";
 
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
