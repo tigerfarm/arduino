@@ -157,7 +157,7 @@ public class asmOpcodes {
                         String value = theLine.substring(c1 + 1, c1 + 8 + 1);
                         String info = theLine.substring(c1 + 8 + 1 + 1, theLine.length());
                         // System.out.println("+ opcode:" + opcode + ":" + value + ":" + info);
-                        if (!info.equals("")) {
+                        if (!info.equals("") && !info.startsWith("|")) {
                             String thePadding = "";
                             switch (opcode.length()) {
                                 case 2:
@@ -507,14 +507,12 @@ public class asmOpcodes {
         theOpcodes.printOpcodeInfo("dadb");
 
         System.out.println("\n-----------------------------------------------");
-        /*
-        System.out.println("");
-        theOpcodes.opcodeInfoList();
         System.out.println("");
         theOpcodes.opcodesList();
-         */
-        System.out.println("");
-        theOpcodes.opcodesListByName();
+        // System.out.println("");
+        // theOpcodes.opcodeInfoList();
+        // System.out.println("");
+        // theOpcodes.opcodesListByName();
         // System.out.println("");
         // theOpcodes.opcodesListByValue();
 

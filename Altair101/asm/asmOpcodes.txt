@@ -131,12 +131,11 @@ inre:00011100:|E+1 -> E
 inrh:00100100:|H+1 -> H
 inrl:00101100:|L+1 -> L
 inrm:00101100:|(HL)+1 -> (HL)
-
-inx:00RP0011:INX RP   00 RP0 011  1  Increment a register pair(16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
+inx:00RP0011:INX RP   00 RP0 011  1  Increment a register pair value(16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
 inxb:00000011:|BC = BC+1
 inxd:00010011:|DE = DE+1
 inxh:00100011:|HL = HL+1
-dcx:00RP1011:DCX RP   00 RP1 011  1  Decrement a register pair(16 bit value): B:C, D:E, H:L.
+dcx:00RP1011:DCX RP   00 RP1 011  1  Decrement a register pair value(16 bit value): B:C, D:E, H:L.
 dcxb:00001011:|BC = BC-1
 dcxd:00011011:|DE = DE-1
 dcxh:00101011:|HL = HL-1
