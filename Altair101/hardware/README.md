@@ -31,15 +31,15 @@ My hardware design centers around my [Altair 8800 clone front panel](https://www
 --------------------------------------------------------------------------------
 ## The Altair 101 Steampunk Tablet
 
-The processor software runs on an Arduino Mega.
-I moved to the Mega when I started to run out memory (RAM) on Nano.
+Components mounted on a clipboard.
 
 <img width="330px"  src="../hardware/Altair101dev5.jpg"/>
 
 Top left is USB hub:
 + Plugs into my laptop.
-+ Plugs into the Mega for uploading programs and serial monitoring.
-+ Serial port module for downloading byte code to the Mega where the code goes into the emulator's memory.
++ Serial port module for downloading byte code from the laptop to the Mega, where the code goes into the emulator's memory.
++ Right blue cable plugs into the Mega for downloading Arduino programs such as the processor program,
+    and for serial monitoring, receiving log messages to display on the laptop.
 
 Top breadboard, in the following photo of the current development machine:
 + Cables connecting 3 shift registers(SN74HC595N) to the LED lights in the center board.
@@ -135,6 +135,7 @@ PIN_TX = 11;  // Arduino transmit is not used, and therefore not connected to RX
 ## Older Altair 101 Development Machines
 
 First version mounted on a clipboard.
+I moved to the Arduino Mega when I started to run out memory (RAM) on Nano.
 
 <img width="360px"  src="../hardware/Altair101dev4.jpg"/>
 
