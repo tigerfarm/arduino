@@ -1,0 +1,101 @@
+--------------------------------------------------------------------------------
+Conventions used when describing Opcodes
+--------------------------------------------------------------------------------
+Instruction encoding parameter index:
+
+  a     = A 16 bit address value, often stated in hexadecimal format, example:
+          ani 80h
+  lb    = Low byte of 16 bit value
+  hb    = High byte of 16 bit value
+  lb:hb = A 16 bit address which is 2 bytes, low order byte first, high order byte second.
+          Example: LDA a, encoded as three 3 bytes.
+          1 byte for the opcode, 1 byte lb, 1 byte hb: "00111010 00000010 00000000".
+  p     = 1 byte(8 bits) for port address, example:
+          in 0ffh ; A=front panel switches
+        Encoding, 0ffh = 00000000:11111111(binary) = 255(decimal):
+          11011011:11111111(in:lb:hb)
+  #     = 8 or 16 bit immediate operand, example:
+          ani 01h ;get A8 alone
+  RP    = Register pair (16 bit): B:C(b), D:E(d), H:L(h or m). For example:
+          ldax d ;display bit pattern on upper 8 address lights
+  RRR (or R) = Register binary value, example: 010, for register D.
+  DDD (or D) = Destination register binary value, example: 011, for register E.
+  SSS (or S) = Source register binary value, example: 011, for register E.
+  ccc   = Conditional
+  db    = Data byte (8 bit) value
+  pa    = Port address (8 bit) value
+  $     = Current location counter value. For example, jmp $+6
+
+Condition code 'CCC' fields: (FLAGS: S Z x A x P x C)
+    000=NZ  ('Z'ero flag not set)
+    001=Z   ('Z'ero flag set)
+    010=NC  ('C'arry flag not set)
+    011=C   ('C'arry flag set)
+    100=PO  ('P'arity flag not set - ODD)
+    101=PE  ('P'arity flag set - EVEN)
+    110=P   ('S'ign flag not set - POSITIVE)
+    111=M   ('S'ign flag set - MINUS)
+
+"indirect", the data value at a given address.
+    Example: LDAX RP - Load indirect through BC or DE into register A.
+    Detail explanation: Load data value
+            at the register pair (BC(RP=00) or DE(RP=01)) address location,
+            into register A (accumulator).
+"immediate", the immediate byte value.
+    Example: ANI # - AND immediate with A.
+
+--------------------------------------------------------------------------------
+Destination and Source registers and register pairs.
+
+byte regA = 0;   111=A  a  register A, or Accumulator
+                           --------------------------------
+                           Register pair 'RP' fields:
+byte regB = 0;   000=B  b  00=BC   (B:C is 16 bits, B is hb, C is lb)
+byte regC = 0;   001=C  c
+byte regD = 0;   010=D  d  01=DE   (D:E is 16 bits, D is hb, E is lb)
+byte regE = 0;   011=E  e
+byte regH = 0;   100=H  h  10=HL   (H:L is 16 bits, H is hb, L is lb)
+byte regL = 0;   101=L  l
+                           11=SP   (Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP)
+byte regM = 0;   110=M  m  Memory reference for a memory address in H:L
+
+Register pair identifiers:
+  b = B:C, 00=B:C (B:C is 16 bits, B is hb, C is lb)
+  d = D:E, 01=D:E (D:E is 16 bits, D is hb, E is lb)
+  m = H:L, 10=H:L (H:L is 16 bits, H is hb, L is lb)
+  ? = SP,  11=SP, Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP.
+
+Register identifiers (binary value=R):
+  000=B
+  001=C
+  010=D
+  011=E
+  100=H
+  101=L
+
+-----------------------------------------------------------------------------
+Reference Links
+
+Altair 8800 Operator's Manual.pdf has a description of each opcode.
+    https://altairclone.com/downloads/manuals/Altair%208800%20Operator's%20Manual.pdf
+
+From original Altair Manuals:
+    https://altairclone.com/altair_manuals.htm
+
+Reference document:
+    http://www.nj7p.org/Manuals/PDFs/Intel/9800301D.pdf
+
+Reference document, Intel 8080 Assembly Language Programming Manual:
+    https://altairclone.com/downloads/manuals/8080%20Programmers%20Manual.pdf
+
+This section is base on section 26: 8080 Instruction Set
+    https://www.altairduino.com/wp-content/uploads/2017/10/Documentation.pdf
+
+Text listing of 8080 opcodes:
+    http://www.classiccmp.org/dunfield/r/8080.txt
+
+Binary calculator:
+    https://www.calculator.net/binary-calculator.html
+
+-----------------------------------------------------------------------------
+eof

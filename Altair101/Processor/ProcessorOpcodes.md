@@ -20,7 +20,7 @@ void processOpcodeData() {
 }
 ````
 
-Click [here](https://github.com/tigerfarm/arduino/blob/master/Altair101/documents/8080opcodesBinaryList.txt)
+Click [here](ProcessorOpcodesBinary.txt)
 to view a binary opcode list with the opcode number of cycles.
 
 #### Functionally ordered list of implemented opcodes:
@@ -186,20 +186,20 @@ http://www.nj7p.org/Manuals/PDFs/Intel/9800301D.pdf
 byte regA = 0;   111=A  a  register A, or Accumulator
                            --------------------------------
                            Register pair 'RP' fields:
-byte regB = 0;   000=B  b  00=BC   (B:C as 16 bit register)
+byte regB = 0;   000=B  b  00=BC   (B:C is 16 bits, B is hb, C is lb)
 byte regC = 0;   001=C  c
-byte regD = 0;   010=D  d  01=DE   (D:E as 16 bit register)
+byte regD = 0;   010=D  d  01=DE   (D:E is 16 bits, D is hb, E is lb)
 byte regE = 0;   011=E  e
-byte regH = 0;   100=H  h  10=HL   (H:L as 16 bit register)
+byte regH = 0;   100=H  h  10=HL   (H:L is 16 bits, H is hb, L is lb)
 byte regL = 0;   101=L  l
                            11=SP   (Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP)
 byte regM = 0;   110=M  m  Memory reference for a memory address in H:L
 ````
 Register pair identifiers:
 ````
-  b = B:C, 00=B:C
-  d = D:E, 01=D:E
-  m = H:L, 10=H:L
+  b = B:C, 00=B:C (B:C is 16 bits, B is hb, C is lb)
+  d = D:E, 01=D:E (D:E is 16 bits, D is hb, E is lb)
+  m = H:L, 10=H:L (H:L is 16 bits, H is hb, L is lb)
   ? = SP,  11=SP, Stack pointer, refers to PSW (FLAGS:A) for PUSH/POP.
 ````
 Register identifiers (binary value=R):
