@@ -121,6 +121,36 @@ I did use buttons, but later found that infrared remote control was quicker for 
 <img width="360px"  src="../hardware/Altair101dev1.jpg"/>
 
 --------------------------------------------------------------------------------
+### Altair 101 Parts List
+
++ Front panel, sticker, case, and shipping = $18.00 + $5 + $35 + $16 = $74
++ Nano + on/off/on momentary toggles + on/off toggles + red LEDs = $3 + $7 + $2 + $2
++ 20pcs 74HC595 + diodes for input = $2 + $1
++ Breadboards + cables = $6 + $4
++ Total = $101 = $74 + $3 + $7 + $2 + $2 + $2 + $1 + $6 + $4
+
++ Ordered Altair 8800 Front panel with sticker, pro case, and shipping: $74
+https://www.adwaterandstir.com/product/front-panel/
+
+Parts bought on eBay,
++ Nano: V3, ATmega328P, CH340G
++ SPDT On/Off/On 3 Position Momentary toggles, Diameter: 6mm (0.2inch), Micro mini, 10pcs for $6.79
++ SPDT On/On 2 Position Mini Toggle Switch, Diameter: 6mm (0.2inch), 10Pcs for $2.68
++ Red LED 5mm, 100pcs for $1.50
++ 5k resistors for LED lights.
++ 10k resistors for Nano digital pin pull down.
++ Switching Diodes: 40PCS for $1, 1N4148 IN4148
++ Shift Register SN74HC595N, 20pcs on sale for $2
++ Suggested, not used: 10uf capacitor across positive and ground when using chips: SN74HC595N.
+
+Cables on order,
++ 1 x 40pcs/pack 10cm Male to Female Ribbon Breadboard Cable
++ 1 x 40pcs/pack 10cm Female to Female Ribbon Breadboard Cable
+
+For reference, I used the following parts list from a simulator:
+https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
+
+--------------------------------------------------------------------------------
 ### Toggle Console Keyboard
 
 ````
@@ -250,36 +280,6 @@ Microcontroller  Processor   CPU Speed Analog In  Digital IO/PWM  SRAM  Flash  P
 Nano             ATmega328P  16 MHz     8         14/6            2K     32K    32 - 2 =  30K
 Mega 2560        ATmega2560  16 MHz    16         54/15           8K    256K   256 - 8 = 248K
 ````
-
---------------------------------------------------------------------------------
-### Altair 101 Parts List
-
-For reference, I used the following parts list from a simulator:
-https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
-
-+ Front panel, sticker, case, and shipping = $18.00 + $5 + $35 + $16 = $74
-+ Nano + on/off/on momentary toggles + on/off toggles + red LEDs = $3 + $7 + $2 + $2
-+ 20pcs 74HC595 + diodes for input = $2 + $1
-+ Breadboards + cables = $6 + $4
-+ Total = $101 = $74 + $3 + $7 + $2 + $2 + $2 + $1 + $6 + $4
-
-+ Ordered Altair 8800 Front panel with sticker, pro case, and shipping: $74
-https://www.adwaterandstir.com/product/front-panel/
-
-Parts bought on eBay,
-+ Nano: V3, ATmega328P, CH340G
-+ SPDT On/Off/On 3 Position Momentary toggles, Diameter: 6mm (0.2inch), Micro mini, 10pcs for $6.79
-+ SPDT On/On 2 Position Mini Toggle Switch, Diameter: 6mm (0.2inch), 10Pcs for $2.68
-+ Red LED 5mm, 100pcs for $1.50
-+ 5k resistors for LED lights.
-+ 10k resistors for Nano digital pin pull down.
-+ Switching Diodes: 40PCS for $1, 1N4148 IN4148
-+ Shift Register SN74HC595N, 20pcs on sale for $2
-+ Suggested, not used: 10uf capacitor across positive and ground when using chips: SN74HC595N.
-
-Cables on order,
-+ 1 x 40pcs/pack 10cm Male to Female Ribbon Breadboard Cable
-+ 1 x 40pcs/pack 10cm Female to Female Ribbon Breadboard Cable
 
 --------------------------------------------------------------------------------
 ### Hardware Inventory
