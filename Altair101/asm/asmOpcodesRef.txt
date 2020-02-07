@@ -11,9 +11,8 @@ Instruction encoding parameter index:
           Example: LDA a, encoded as three 3 bytes.
           1 byte for the opcode, 1 byte lb, 1 byte hb: "00111010 00000010 00000000".
   p     = 1 byte(8 bits) for port address, example:
-          in 0ffh ; A=front panel switches
-        Encoding, 0ffh = 00000000:11111111(binary) = 255(decimal):
-          11011011:11111111(in:lb:hb)
+          in 0ffh ; A=front panel switches, Encoding, 0ffh = 11111111(binary) = 255(decimal):
+          11011011:11111111(in opcode:p)
   #     = 8 or 16 bit immediate operand, example:
           ani 01h ;get A8 alone
   RP    = Register pair (16 bit): B:C(b), D:E(d), H:L(h or m). For example:
