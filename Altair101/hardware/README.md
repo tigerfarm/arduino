@@ -29,6 +29,70 @@ My hardware design centers around my [Altair 8800 clone front panel](https://www
 [<img width="360px"  src="../FrontPanel01a.jpg"/>](https://www.adwaterandstir.com/product/front-panel/)
 
 --------------------------------------------------------------------------------
+## The Altair 101 Development Machines
+
+The processor software runs on an Arduino Mega.
+I moved to the Mega when I started to run out memory (RAM) on Nano.
+
+Top breadboard, in the following photo of the current development machine:
++ Cables connecting 3 shift registers(SN74HC595N) to the LED lights in the center board.
++ In the middle of the cables is the infrared receiver.
+    It was used in the early development phase, in place of toggle switches such as stop, run, examine, deposit.
++ MP3 player module. Not yet connected.
+
+Center breadboard:
++ DS3231 clock module (left above the LED lights).
++ Display LED lights: 16 address and 8 data lights.
+
+Bottom breadboard:
++ Shift register(SN74HC595N) to the status LED lights.
++ The I2C pins from the Mega are connected here, to allow multiple devices to connect.
+    Currently, the input toggles are I2C connected.
+
+Right of the breadboards:
++ Micro SD Card module for reading and writing program memory.
+
+Below the breadboards:
++ Arduino Mega board which is the Altair 101's CPU and RAM.
++ Input toggles for entering address and data.
+    The toggle board is from a 1970's mainframe computer.
++ Control toggles arranged on the 70's toggle board, in the fashion of a game console.
+
+##### Current development machine:
+
+<img width="360px"  src="../hardware/Altair101dev5.jpg"/>
+
+--------------------------------------------------------------------------------
+### Altair 101 Steampunk Tablet Parts List
+
++ Front panel, sticker, case, and shipping = $18.00 + $5 + $35 + $16 = $74
++ Nano + on/off/on momentary toggles + on/off toggles + red LEDs = $3 + $7 + $2 + $2
++ 20pcs 74HC595 + diodes for input = $2 + $1
++ Breadboards + cables = $6 + $4
++ Total = $101 = $74 + $3 + $7 + $2 + $2 + $2 + $1 + $6 + $4
+
++ Ordered Altair 8800 Front panel with sticker, pro case, and shipping: $74
+https://www.adwaterandstir.com/product/front-panel/
+
+Parts bought on eBay,
++ Nano: V3, ATmega328P, CH340G
++ SPDT On/Off/On 3 Position Momentary toggles, Diameter: 6mm (0.2inch), Micro mini, 10pcs for $6.79
++ SPDT On/On 2 Position Mini Toggle Switch, Diameter: 6mm (0.2inch), 10Pcs for $2.68
++ Red LED 5mm, 100pcs for $1.50
++ 5k resistors for LED lights.
++ 10k resistors for Nano digital pin pull down.
++ Switching Diodes: 40PCS for $1, 1N4148 IN4148
++ Shift Register SN74HC595N, 20pcs on sale for $2
++ Suggested, not used: 10uf capacitor across positive and ground when using chips: SN74HC595N.
+
+Cables on order,
++ 1 x 40pcs/pack 10cm Male to Female Ribbon Breadboard Cable
++ 1 x 40pcs/pack 10cm Female to Female Ribbon Breadboard Cable
+
+For reference, I used the following parts list from a simulator:
+https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
+
+--------------------------------------------------------------------------------
 ## Mega 2560 Board Pin Usage
 
 The original Intel 8080 cpu was a 40 pin chip.
@@ -65,41 +129,9 @@ PIN_TX = 11;  // Arduino transmit is not used, and therefore not connected to RX
 // Pin GND  - GND  : ground
 ````
 --------------------------------------------------------------------------------
-## The Altair 101 Development Machines
+## Older Altair 101 Development Machines
 
-The processor software runs on an Arduino Mega.
-I moved to the Mega when I started to run out memory (RAM) on Nano.
-
-Top breadboard, in the following photo of the current development machine:
-+ Cables connecting 3 shift registers(SN74HC595N) to the LED lights in the center board.
-+ In the middle of the cables is the infrared receiver.
-    It was used in the early development phase, in place of toggle switches such as stop, run, examine, deposit.
-+ MP3 player module. Not yet connected.
-
-Center breadboard:
-+ DS3231 clock module (left above the LED lights).
-+ Display LED lights: 16 address and 8 data lights.
-
-Bottom breadboard:
-+ Shift register(SN74HC595N) to the status LED lights.
-+ The I2C pins from the Mega are connected here, to allow multiple devices to connect.
-    Currently, the input toggles are I2C connected.
-
-Right of the breadboards:
-+ Micro SD Card module for reading and writing program memory.
-
-Below the breadboards:
-+ Arduino Mega board which is the Altair 101's CPU and RAM.
-+ Input toggles for entering address and data.
-    The toggle board is from a 1970's mainframe computer.
-+ Control toggles arranged on the 70's toggle board, in the fashion of a game console.
-
-##### Current development machine:
-
-<img width="360px"  src="../hardware/Altair101dev5.jpg"/>
-
---------------------
-First version mounted on a clipboard, making it my steampunk tablet.
+First version mounted on a clipboard.
 
 <img width="360px"  src="../hardware/Altair101dev4.jpg"/>
 
