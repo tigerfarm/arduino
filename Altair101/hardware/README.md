@@ -65,6 +65,95 @@ PIN_TX = 11;  // Arduino transmit is not used, and therefore not connected to RX
 // Pin GND  - GND  : ground
 ````
 --------------------------------------------------------------------------------
+## The Altair 101 Development Machines
+
+The processor software runs on an Arduino Mega.
+I moved to the Mega when I started to run out memory (RAM) on Nano.
+
+Top breadboard, in the following photo of the current development machine:
++ Cables connecting 3 shift registers(SN74HC595N) to the LED lights in the center board.
++ In the middle of the cables is the infrared receiver.
+    It was used in the early development phase, in place of toggle switches such as stop, run, examine, deposit.
++ MP3 player module. Not yet connected.
+
+Center breadboard:
++ DS3231 clock module (left above the LED lights).
++ Display LED lights: 16 address and 8 data lights.
+
+Bottom breadboard:
++ Shift register(SN74HC595N) to the status LED lights.
++ The I2C pins from the Mega are connected here, to allow multiple devices to connect.
+    Currently, the input toggles are I2C connected.
+
+Right of the breadboards:
++ Micro SD Card module for reading and writing program memory.
+
+Below the breadboards:
++ Arduino Mega board which is the Altair 101's CPU and RAM.
++ Input toggles for entering address and data.
+    The toggle board is from a 1970's mainframe computer.
++ Control toggles arranged on the 70's toggle board, in the fashion of a game console.
+
+##### Current development machine:
+
+<img width="360px"  src="../hardware/Altair101dev5.jpg"/>
+
+--------------------
+First version mounted on a clipboard, making it my steampunk tablet.
+
+<img width="360px"  src="../hardware/Altair101dev4.jpg"/>
+
+In the following, the previous version used a Nano on the bottom breadboard.
+It also used buttons for control that were joined to the Nano using Shift registers(SN74HC595N).
+
+<img width="360px"  src="../hardware/Altair101dev3.jpg"/>
+
+The early development machine had only infrared remote control instead of toggle switches.
+I was also testing with a 1602 LCD. Including an LCD was shelved for the time
+because I'm using serial log messages while developing.
+
+<img width="360px"  src="../hardware/Altair101dev2.jpg"/>
+
+With the first machine, I thought I could use an SD card module for saving and storing programs.
+I soon realized that functionality was a long way off.
+I did use buttons, but later found that infrared remote control was quicker for early development.
+
+<img width="360px"  src="../hardware/Altair101dev1.jpg"/>
+
+--------------------------------------------------------------------------------
+### Toggle Console Keyboard
+
+````
+The toggle keyboard will replace the current breadboard buttons,
+and will continue to use the current toggles.
++ Current 8 toggles are for address and data entry. Also used as sense switches for input.
+++ Only 8 are required because of the limited 256 bytes of memory.
++ Added 7 x on/off/on toggles for controls,
+++ 1. STOP and RUN
+++ 2. SINGLE STEP. Maybe add: Examine previous
+++ 3. EXAMINE and EXAMINE NEXT
+++ 4. DEPOSIT and DEPOSIT NEXT
+++ 5. RESET. Not implemented: CLR, clear external I/O equipment.
+++ 6. AUX 1, maybe to switch from computer processing to clock display on the LED lights.
+              Or switch to MP3 player.
+++ 7. AUX 2, for save and load from SD card.
+
+Keyboard layout, where 'O' is the bolt to connect the keyboard to the clipboard.
+   ------------------------------------
+  |  1      2       O        3      4  |
+  |                                    |
+  |   A7  A6  A5  A4  A3  A2  A1  A0   |
+  |                                    |
+  |  5                       6      7  |
+   ------------------------------------
+````
+The console on/off/on switches are connected to an I2C PCF8574 module.
+The PCF8574 simplifies the wiring.
+The current dev machine has another PCF8574 for the A0...A7 toggles.
+
+<img width="300px"  src="Altair101toggleConsole.jpg"/>
+
+--------------------------------------------------------------------------------
 ## Nano Board Pin Usage
 
 The original Intel 8080 cpu was a 40 pin chip.
@@ -161,90 +250,6 @@ Microcontroller  Processor   CPU Speed Analog In  Digital IO/PWM  SRAM  Flash  P
 Nano             ATmega328P  16 MHz     8         14/6            2K     32K    32 - 2 =  30K
 Mega 2560        ATmega2560  16 MHz    16         54/15           8K    256K   256 - 8 = 248K
 ````
-
---------------------------------------------------------------------------------
-### Toggle Console Keyboard
-
-````
-The toggle keyboard will replace the current breadboard buttons,
-and will continue to use the current toggles.
-+ Current 8 toggles are for address and data entry. Also used as sense switches for input.
-++ Only 8 are required because of the limited 256 bytes of memory.
-+ Added 7 x on/off/on toggles for controls,
-++ 1. STOP and RUN
-++ 2. SINGLE STEP. Maybe add: Examine previous
-++ 3. EXAMINE and EXAMINE NEXT
-++ 4. DEPOSIT and DEPOSIT NEXT
-++ 5. RESET. Not implemented: CLR, clear external I/O equipment.
-++ 6. AUX 1, maybe to switch from computer processing to clock display on the LED lights.
-              Or switch to MP3 player.
-++ 7. AUX 2, for save and load from SD card.
-
-Keyboard layout, where 'O' is the bolt to connect the keyboard to the clipboard.
-   ------------------------------------
-  |  1      2       O        3      4  |
-  |                                    |
-  |   A7  A6  A5  A4  A3  A2  A1  A0   |
-  |                                    |
-  |  5                       6      7  |
-   ------------------------------------
-````
-The console on/off/on switches are connected to an I2C PCF8574 module.
-The PCF8574 simplifies the wiring.
-The current dev machine has another PCF8574 for the A0...A7 toggles.
-
-<img width="300px"  src="Altair101toggleConsole.jpg"/>
-
---------------------------------------------------------------------------------
-## The Altair 101 Development Machines
-
-The processor software runs on an Arduino Mega.
-I moved to the Mega when I started to run out memory (RAM) on Nano.
-
-Top breadboard, in the following photo of the current development machine:
-+ Cables connecting 3 shift registers(SN74HC595N) to the LED lights in the center board.
-+ In the middle of the cables is the infrared receiver.
-    The receiver is used to send control commands such as stop, run, examine, deposit.
-
-Center breadboard:
-+ Display LED lights: 16 address and 8 data lights.
-
-Bottom breadboard:
-+ Shift register(SN74HC595N) to the status LED lights.
-+ The I2C pins from the Mega are connected here, to allow multiple devices to connect.
-    Currently, the input toggles are I2C connected.
-
-Below the breadboards:
-+ Arduino Mega board which is the Altair 101's CPU and RAM.
-+ Input toggles for entering address and data.
-    The toggle board is from a 1970's mainframe computer.
-+ Control toggles arranged on the 70's toggle board, in the fashion of a game console.
-
-##### Current development machine:
-
-<img width="360px"  src="../hardware/Altair101dev5.jpg"/>
-
---------------------
-First version mounted on a clipboard, making it my steampunk tablet.
-
-<img width="360px"  src="../hardware/Altair101dev4.jpg"/>
-
-In the following, the previous version used a Nano on the bottom breadboard.
-It also used buttons for control that were joined to the Nano using Shift registers(SN74HC595N).
-
-<img width="360px"  src="../hardware/Altair101dev3.jpg"/>
-
-The early development machine had only infrared remote control instead of toggle switches.
-I was also testing with a 1602 LCD. Including an LCD was shelved for the time
-because I'm using serial log messages while developing.
-
-<img width="360px"  src="../hardware/Altair101dev2.jpg"/>
-
-With the first machine, I thought I could use an SD card module for saving and storing programs.
-I soon realized that functionality was a long way off.
-I did use buttons, but later found that infrared remote control was quicker for early development.
-
-<img width="360px"  src="../hardware/Altair101dev1.jpg"/>
 
 --------------------------------------------------------------------------------
 ### Altair 101 Parts List
