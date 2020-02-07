@@ -29,10 +29,17 @@ My hardware design centers around my [Altair 8800 clone front panel](https://www
 [<img width="360px"  src="../FrontPanel01a.jpg"/>](https://www.adwaterandstir.com/product/front-panel/)
 
 --------------------------------------------------------------------------------
-## The Altair 101 Development Machines
+## The Altair 101 Steampunk Tablet
 
 The processor software runs on an Arduino Mega.
 I moved to the Mega when I started to run out memory (RAM) on Nano.
+
+<img width="330px"  src="../hardware/Altair101dev5.jpg"/>
+
+Top left is USB hub:
++ Plugs into my laptop.
++ Plugs into the Mega for uploading programs and serial monitoring.
++ Serial port module for downloading byte code to the Mega where the code goes into the emulator's memory.
 
 Top breadboard, in the following photo of the current development machine:
 + Cables connecting 3 shift registers(SN74HC595N) to the LED lights in the center board.
@@ -57,10 +64,6 @@ Below the breadboards:
 + Input toggles for entering address and data.
     The toggle board is from a 1970's mainframe computer.
 + Control toggles arranged on the 70's toggle board, in the fashion of a game console.
-
-##### Current development machine:
-
-<img width="360px"  src="../hardware/Altair101dev5.jpg"/>
 
 --------------------------------------------------------------------------------
 ### Altair 101 Steampunk Tablet Parts List
