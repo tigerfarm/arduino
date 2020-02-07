@@ -108,7 +108,7 @@ int programState = PROGRAM_WAIT;  // Intial, default.
 
 #include <IRremote.h>
 
-//          Nano pin
+//          Mega pin
 int IR_PIN = A1;
 
 IRrecv irrecv(IR_PIN);
@@ -121,7 +121,7 @@ decode_results results;
 PCF8574 pcf20(0x020);
 PCF8574 pcf21(0x021);
 
-//                Nano pin for control toggle interrupt.
+//                Mega pin for control toggle interrupt.
 const int INTERRUPT_PIN = 2;
 
 // Interrupt setup: interrupt pin to use, interrupt handler routine.
