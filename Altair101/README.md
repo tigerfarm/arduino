@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
-# Coming out of the Computer Dark Ages
+# Computer Enlightenment
 
 A long time ago in a high school far, far away, a teenager read a magazine front cover headline, "World's First Minicomputer...Altair 8800."
 It was a monumental event in the history of computer toys, and business work computers.
@@ -39,7 +39,7 @@ And I couldn't afford the $10,000 (2019 dollars) for a floppy drive. So no compu
 --------------------------------------------------------------------------------
 [Link](https://www.in2013dollars.com/us/inflation/1975?amount=621) to the inflation calculator used in this article.
 For example, my calculator cost me $30 in 1975, which is $140 in 2019 dollars.
-Besides the basic four functions, it also calculated percentages.
+Not only does it have the basic four functions, it also calculated percentages.
 
 <img width="600px"  src="hardware/SlideRulerCalculator.jpg"/>
 
@@ -48,7 +48,8 @@ In the above photo, the slide ruler is set to calculated answer of, 2 x 4.
 --------------------------------------------------------------------------------
 ## My 2019 Altair 8800 Emulator
 
-I'm in the final stage of designing and building my basic Altair 8800 emulator.
+I'm in the final stage of designing and building my basic Altair 8800 emulator,
+which I'm calling the Altair 101.
 
 Instead of a smartphone's touch screen display, the Altair 8800 had toggles and LED lights.
 The following photo is my Altair 8800 replica front panel. Retro, very retro.
@@ -57,10 +58,17 @@ The following photo is my Altair 8800 replica front panel. Retro, very retro.
 
 Mine will replicate the 8800's user experience.
 I can enter programs by flipping toggles, and then have the enjoyment of watching flashing LED lights as the program runs.
-As an upgrade from the basic 8800, my Altair, which I'm calling the Altair 101, will also have the ability to save and load programs.
+
+Over and above the base 8800, the 101 has:
++ The ability to save and load programs.
++ It has more memory, currently set to 1K (1024 bytes) whereas the base 8800 had 256 bytes.
+The extra memory is nice when printing messages to the Arduino IDE serial monitor.
++ I added a serial port for uploading byte code from my laptop into the 101's memory.
+I wrote an assembler to compile byte code from source files.
 
 --------------------------------------------------------------------------------
-The project started late October, 2019.
+#### The project started late October, 2019.
+
 I began with a study of the Altair clone videos
 The [first video](https://www.youtube.com/watch?v=suyiMfzmZKs) was a great intro.
 From the [second video](https://www.youtube.com/watch?v=EV1ki6LiEmg), I learned how to write an Altair 8800 program.
@@ -70,16 +78,20 @@ For a learning experience, I wrote out the steps the presenter went through to e
 I wanted to try it on a real Altair computer. I seen one on eBay for $5,000.
 Too much for me. Also, I didn't want to get into maintaining an old machine.
 My first computer was a 1983 machine based on the 8086 processor. Cost over $8,000 (adjusted to 2019 dollar value).
-It had 384K of memory. I didn't want that again. I only wanted the fun side of running retro.
+It had 384K of memory. I don't want that again. I only want the fun side of running retro.
 
+The 4004 was an 4 bit microprocessor produced by Intel, released in 1971.
+The 8008 was an 8 bit microprocessor produced by Intel, released in 1972.
 The 8080 was an 8 bit microprocessor produced by Intel, released in 1974.
 The 8085 was an 8 bit microprocessor produced by Intel, released in 1976.
-They have the same opcodes. The 8085 has few enhancements that made it easier to work with.
-The 8086 was a 16 bit microprocessor produced by Intel, released in 1978.
-The Intel 8088, released July 1, 1979. It was in the IBM PC, the first computer I had a job working on.
+The 8080 and 8085 have the same opcodes.
+The 8085 has a couple more opcodes and a few enhancements that make it easier to work with.
+The 8086 was a 16 bit microprocessor produced by Intel, released in 1978, based on the 8085.
+The 8086 is the base design for Windows and Linux computer CPUs of today.
+The 8088, released July 1, 1979, was in the original IBM PC, the first computer I had a job working on.
 The 8088 was an 8 bit microprocessor produced by Intel. It's allowed the building of cheaper computer.
 
-8085 Java assembler
+8085 Java assembler simulator:
 https://sourceforge.net/projects/j8085sim/
 
 --------------------------------------------------------------------------------

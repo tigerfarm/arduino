@@ -32,6 +32,7 @@ When turned on, the various components are initialized:
 The program simulates the toggle functions of the Altair 8800,
 and displays results the same, on the LED lights.
 
+To upload byte code ...
 
 Once the program is on the machine, I flip the reset toggle and run the program by flipping the run toggle.
 The emulator has the ability to view the program bytes in the LED display, using the Examine toggles.
