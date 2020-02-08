@@ -12,7 +12,8 @@
 
   Don't write to SD card when toggles = 11111111.
 
-  Get opLadSta.asm to work.
+  Get status lights to work properly.
+  + Test program: pLdaSta.asm. I can follow the video.
 
   ---------------------------------------------
   SD card module options,
@@ -327,9 +328,9 @@ void readyLcd() {
 //
 // Info: page 33 of the Altair 8800 oprator's manaul.
 // Not in use:
-// INTE : On, interrupts enabled.
-// INT : An interrupt request has been acknowledged.
-// PROT : Useful only if RAM has page protection impliemented. I'm not implementing PROT.
+//  INTE : On, interrupts enabled.
+//  INT : An interrupt request has been acknowledged.
+//  PROT : Useful only if RAM has page protection impliemented. I'm not implementing PROT.
 
 // Ready to wire and test the Standalone LED,
 // HLDA : 8080 processor go into a hold state because of other hardware such as the clock.
@@ -360,6 +361,13 @@ const byte HLTA_OFF =   B11110111;
 const byte STACK_OFF =  B11111011;
 const byte WO_OFF =     B11111101;
 const byte WAIT_OFF =   B11111110;
+
+// MEMR - Bar LED #1
+// M1   - Bar LED #3
+// HLTA - Bar LED #5
+// WO   - Bar LED #7
+// WAIT - Green LED
+// HLDA - Red LED
 
 // Video demonstrating status lights:
 //    https://www.youtube.com/watch?v=3_73NwB6toY

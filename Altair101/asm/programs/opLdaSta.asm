@@ -63,7 +63,7 @@
             mvi a,9         ; Move # to register A.
             sta Addr1       ; Store register A's content to the address(hb:lb).
             out 38          ; Print the register values.
-            lxi h,Addr1     ; Load an address into H:L.
+            lxi h,Addr1     ; Load an address (value of Addr1) into H:L.
             out 36          ; Print the register values for H:L, and the content at that address.
             hlt
                             ;
@@ -79,6 +79,7 @@
             sta Addr2       ; Store register A's content to the address at label: Addr2.
             mvi a,0         ; Move # to register A.
             lda 60          ; Load register A from the address(hb:lb).
+                            ; ++ Byte array number:  60, Byte: 00111010 Octal:072 Decimal58
             out 37          ; Print register A.
             hlt
                             ; --------------------------------------
