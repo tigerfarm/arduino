@@ -10,17 +10,18 @@
   ---------------------------------------------
   Current/Next Work
 
-  Don't write to SD card when toggles = 11111111.
-
   Get status lights to work properly.
-  + Test program: pLdaSta.asm. I can follow the video.
+  + Test program: pLdaSta.asm. I can confirm using the video:
+  ++ https://www.youtube.com/watch?v=3_73NwB6toY
 
+  WHen the status lights display correctly, I can show my steampunk tablet to the world.
+  
   ---------------------------------------------
   SD card module options,
-  + When rebooting the Mega: if 00000000.bin exists, read it and run it.
   + Confirm saving or reading a file,
   ++ Fast flash HLDA for 1 second.
   ++ If read or write switch repeated, then run, else return to program wait status.
+  + When rebooting the Mega: if 00000000.bin exists, read it and run it.
 
   ----------
   Add 1602 LED display,
@@ -538,7 +539,10 @@ void processData() {
     // Instruction cycle 1 (M1 cycle), fetch the opcode.
     // Machine cycle 1, get an opcode.
     // Stacy, confirm status lights.
-    statusByte = MEMR_ON | M1_ON | WO_ON;
+    // statusByte = MEMR_ON | M1_ON | WO_ON;
+    statusByte = statusByte | MEMR_ON;
+    statusByte = statusByte | M1_ON;
+    statusByte = statusByte | WO_ON;
     instructionCycle = 1;
     // If no parameter bytes (immediate data byte or address bytes), process the opcode.
     // Else, the opcode variable is set to the opcode byte value.
@@ -3193,11 +3197,15 @@ void controlResetLogic() {
   stackPointer = 0;
   opcode = 0;  // For the case when the processing cycle 2 or more.
   dataByte = memoryData[programCounter];
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
   if (programState == CLOCK_RUN || programState == SERIAL_DOWNLOAD) {
     programState = PROGRAM_WAIT;
     statusByte = statusByte | WAIT_ON;
   }
+  statusByte = 0;
+  statusByte = statusByte | MEMR_ON;
+  statusByte = statusByte | M1_ON;
+  statusByte = statusByte | WO_ON;
+  lightsStatusAddressData(statusByte, programCounter, dataByte);
 }
 
 void controlStopLogic() {
@@ -3462,9 +3470,13 @@ void checkUploadSwitch() {
       // Switch logic ...
 #ifdef INCLUDE_SDCARD
       String theFilename = getSenseSwitchValue() + ".bin";
-      Serial.print(F("+ Write memory to filename: "));
-      Serial.println(theFilename);
-      writeProgramMemoryToFile(theFilename);
+      if (theFilename != "11111111.bin") {
+        Serial.print(F("+ Write memory to filename: "));
+        Serial.println(theFilename);
+        writeProgramMemoryToFile(theFilename);
+      } else {
+        Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
+      }
 #endif
     }
     uploadSwitchState = true;

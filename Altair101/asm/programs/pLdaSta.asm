@@ -36,10 +36,19 @@
                             ;                                       + Data value of 6 is not displayed.
                             ; Shows the data value (at 40Q) on the data LED lights.
                             ;
+                            ; MEMR - Bar LED #1
+                            ; M1   - Bar LED #3
+                            ; HLTA - Bar LED #5
+                            ; WO   - Bar LED #7
+                            ; WAIT - Green LED
+                            ; HLDA - Red LED
+
                             ; --------------------------------------
     Start:
             mvi a,6         ; Move # to register A.
             sta 64          ; Store register A's content to the address(hb:lb).
+            mvi h,0         ; Set H:L address value to 64.
+            mvi l,64
             out 36          ; Print the register values for H:L and the content at that address.
             mvi a,0         ; Move # to register A.
             lda 64          ; Load register A from the address(hb:lb).

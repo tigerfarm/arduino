@@ -49,12 +49,20 @@ opCmp.asm               CMP : Compare register A and registers: B,C,D,E,H,L, and
                         JC  Jump to a, if Carry bit equals 1, flag is set.
                         JNC Jump to a, if Carry bit equals 0, flag is not set.
                         + Program has over 256 bytes, and works fine.
+opCallRetShort.asm      CALL words with label or a number.
+                        RET, returns properly.
+opCallRet.asm           CALL and RET work fine.
+opLdaSta.asm            LDA works with an address number and label.
+                        STA works with an address number and label.
+                        LXI loaded an address (value of Addr1) into H:L.
 
-opCallRet.asm
+pLdaSta.asm             LDA and STA testing with STEP, do debug the status lights.
 
 opOra.asm               ORA, OR with register A and registers: B,C,D,E,H,L, and M.
                         This program requires, LOG_MESSAGES not defined, because it outputs messages, example: "+ Success: ORA".
                         Program length = 255.
+
+opIxi.asm               LXI test to load H:L with an address from a number or label.
 
 opAni.asm
 opRlcRrc.asm

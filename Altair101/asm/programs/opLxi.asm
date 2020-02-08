@@ -12,6 +12,8 @@
                             ; --------------------------------------
             jmp Test        ; Jump to start of the test.
                             ;
+    Addr1   equ     128
+    Addr2   ds      2
                             ; --------------------------------------
     Halt:
             hlt             ; The program will halt at each iteration, after the first.
@@ -29,7 +31,9 @@
                             ;
                             ; --------------------------------------
                             ;
-                            ; Stacy, to do, write the test.
+            lxi h,Addr1     ; Load an address (value of Addr1) into H:L.
+            out 36          ; Print the register values for H:L, and the content at that address.
+            hlt
                             ;
                             ; --------------------------------------
             jmp Halt        ; Jump back to the early halt command.

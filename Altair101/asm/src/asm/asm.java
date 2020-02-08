@@ -4,6 +4,10 @@
     From a command prompt, call various Altair 101 assembly functions.    
     To run:
         $ java -jar asm.jar
+
+    Next,
+    + Add directory variable.
+    + Add directory file listing.
  */
 package asm;
 
@@ -12,7 +16,10 @@ import static asm.asmUpload.listSerialPorts;
 import static asm.asmUpload.sendFile;
 import static asm.asmUpload.setSerialPortName;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 // Looks like I need to add the new serial port module to get this to work.
 // It maybe possible to disable the USB serial port reset using to following link.
@@ -23,9 +30,58 @@ public class asm {
     asmProcessor processFile = new asmProcessor();
     asmOpcodes theOpcodes = new asmOpcodes();
 
-    private static final String asmVersion = "0.91c";
+    private static final String asmVersion = "0.92a";
 
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+    // -------------------------------------------------------------------------
+    public static void directoryListing(String subdirectoyName) {
+        System.out.println("+ Directory listing for: " + subdirectoyName);
+        //
+        // Need to use the full directory name.
+        String currentDirectory = System.getProperty("user.dir");
+        // Subdirectory to the current directory.
+        String theDirectoryName = currentDirectory + "/" + subdirectoyName;
+        System.out.println("+ Program Directory = " + theDirectoryName);
+        File dir = new File(theDirectoryName);
+        if (!dir.isDirectory()) {
+            System.out.println("-- Error: " + theDirectoryName + " is not a directory...");
+            return;
+        }
+        if (!dir.exists()) {
+            System.out.println("-- Error: " + theDirectoryName + ", directory does not exist...");
+            return;
+        }
+        // Get directory & file info into a list
+        String[] children = dir.list();
+        List fileDirList = new ArrayList();
+        for (int i = 0; i < children.length; i++) {
+            String filename = children[i];
+            // System.out.println("++ filename: " + filename);
+            File theName = new File(theDirectoryName + "/" + filename);
+            if (!theName.isFile()) {
+                // Process directories
+                fileDirList.add(i, "+ Subdirectory: " + filename);
+            } else {
+                // fileDirList.add(i, "+ File: " + filename + " " + formatter.format(new Date(theName.lastModified())) + ", size: " + theName.length() + " bytes");
+                fileDirList.add(i, "++ " + filename);
+            }
+        }
+        // Print List: directories then files
+        for (int i = 0; i < fileDirList.size(); i++) {
+            String item = (String) fileDirList.get(i);
+            if (item.startsWith("+")) {
+                System.out.println(item);
+            }
+        }
+        for (int i = 0; i < fileDirList.size(); i++) {
+            String item = (String) fileDirList.get(i);
+            if (item.startsWith("*")) {
+                System.out.println("    " + item);
+            }
+        }
+        // System.out.println("+ End of list.");
+    }
 
     // -------------------------------------------------------------------------
     public void run() {
@@ -84,6 +140,12 @@ public class asm {
                     System.out.println("+ -------------------------------------");
                     System.out.println("+ Print binary file bytes to screen: " + outFilename + ":");
                     processFile.showFile(outFilename);
+                    break;
+                case "dir":
+                case "ls":
+                    System.out.println("+ -------------------------------------");
+                    String subdirectoyName = "programs";
+                    directoryListing(subdirectoyName);
                     break;
                 case "file":
                     // > file this.asm
