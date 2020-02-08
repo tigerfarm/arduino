@@ -35,9 +35,10 @@ Components mounted on a clipboard.
 
 <img width="330px"  src="../hardware/Altair101dev5.jpg"/>
 
-Top left is USB hub:
+Top left is a USB hub:
 + Plugs into my laptop.
-+ Serial port module for downloading byte code from the laptop to the Mega, where the code goes into the emulator's memory.
++ Ribbon cable to the serial port module that used to download byte code from the laptop to the Mega,
+    where the code goes into the emulator's memory to be run.
 + Right blue cable plugs into the Mega for downloading Arduino programs such as the processor program,
     and for serial monitoring, receiving log messages to display on the laptop.
 

@@ -1,15 +1,32 @@
                             ; --------------------------------------
-                            ; Test LDA and STA to the serial monitor.
+                            ; Test LDA and STA. Moving data from addresses to registers and back.
                             ;
-                            ; lda a Load register A with data from the address, a(hb:lb).
-                            ; sta a Store register A to the address, a(hb:lb).
-                            ;
-                            ; Need to figure out more about addressing.
-                            ; For example,
-                            ;   Moving from addresses to registers and back.
+                            ; STA a: Store register A data to an address a(hb:lb).
+                            ; LDA a: Load register A with the data at the address a(hb:lb).
                             ;
                             ; 8085 program to add two 8 bit numbers
                             ; https://www.geeksforgeeks.org/assembly-language-program-8085-microprocessor-add-two-8-bit-numbers/
+                            ;
+                            ; --------------------------------------
+                            ; Video demonstrating status lights:
+                            ;    https://www.youtube.com/watch?v=3_73NwB6toY
+                            ; ---
+                            ; Process instruction: lda 40Q
+                            ; First: Opcode fetch, on: MEMR MI WO
+                            ; Second, Fetch lb, on: MEMR WO
+                            ; Third, Fetch hb, on: MEMR WO
+                            ; Forth, Fetching the data from memory, on: MEMR WO
+                            ; Fetching the data, shows the address (40Q) on the address LED lights.
+                            ;    And the data (at 40Q) on the data LED lights.
+                            ; ---
+                            ; Process instruction: sta 41Q
+                            ; First: Opcode fetch, on: MEMR MI WO
+                            ; Second, Fetch lb, on: MEMR WO
+                            ; Third, Fetch hb, on: MEMR WO
+                            ; Forth, writting data to memory, all status lights are off. Write output, and WO is reverse logic, WO is off.
+                            ; Address LED lights: 41Q.
+                            ; Data LED lights are all on because the lights are tied to the data input bus, which is floating.
+                            ; Since I'm emulating with a poetic license, I'll set the data lights to the data value.
                             ;
                             ; --------------------------------------
             jmp Start       ; Jump to start of the test program.

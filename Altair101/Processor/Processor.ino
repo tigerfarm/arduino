@@ -13,12 +13,8 @@
   Don't write to SD card when toggles = 11111111.
 
   Get opLadSta.asm to work.
-  + STA a: Store register A content to an address (a).
-  + LDA a: Load register A from an address (a).
-  + Use an immediate value for the address.
-  + Use an address label for the address.
 
-  ----------
+  ---------------------------------------------
   SD card module options,
   + When rebooting the Mega: if 00000000.bin exists, read it and run it.
   + Confirm saving or reading a file,
@@ -385,40 +381,6 @@ const byte WAIT_OFF =   B11111110;
 // INTE is on when interrupts are enabled.
 // INTE is off when interrupts are disabled.
 
-// For STA and LDA,
-// See the video: https://www.youtube.com/watch?v=3_73NwB6toY : 1:30 to 6:05 time.
-// ---
-// Process instruction: lda 40Q
-// First:
-// Opcode fetch: on: MEMR MI WO
-// MEMR : Memory instruction
-// MI : opcode fetch.
-// WO : inverse logic for write output.
-// Next
-// Memory read: on: MEMR WO
-// Fetch lb.
-// Next
-// Memory read: on: MEMR WO
-// Fetch hb.
-// Next, loading from memory.
-// Memory read: on: MEMR WO
-// Fetching the data, shows the address (40Q) and the data (at 40Q) on the LED lights.
-// ---
-// Next, to process next instruction: sta 41Q
-// Opcode fetch: on: MEMR MI WO
-// MI : opcode fetch.
-// WO : inverse logic for write output.
-// Next
-// Memory read: on: MEMR WO
-// Fetch lb.
-// Next
-// Memory read: on: MEMR WO
-// Fetch hb.
-// Next, writting to memory.
-// Memory read: all status lights are off. Since it is a write output, and WO is reverse logic, WO is off.
-// Address LED lights: 41Q.
-// Data LED lights are all on because the data lights are tied to the data input bus, which is floating.
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Definitions: Instruction Set, Opcodes, Registers
@@ -566,7 +528,9 @@ void displayStatusAddressData() {
 void processData() {
   if (opcode == 0) {
     // Instruction cycle 1 (M1 cycle), fetch the opcode.
-    statusByte = statusByte | M1_ON;  // Machine cycle 1, get an opcode.
+    // Machine cycle 1, get an opcode.
+    // Stacy, confirm status lights.
+    statusByte = MEMR_ON | M1_ON | WO_ON;
     instructionCycle = 1;
     // If no parameter bytes (immediate data byte or address bytes), process the opcode.
     // Else, the opcode variable is set to the opcode byte value.
@@ -585,11 +549,11 @@ void processData() {
       }
     }
   } else {
-    // Machine cycles 2 and/or 3,
-    //  Getting opcode data: an immediate data byte or an address of 2 bytes,
-    //  Processing the opcode data.
+    // Machine cycles 2, 3, or 4.
     instructionCycle++;
     statusByte = statusByte & M1_OFF;
+    //  Getting opcode data: an immediate data byte or an address of 2 bytes,
+    //  Processing the opcode data.
     //
 #ifdef LOG_MESSAGES
     Serial.print("+ ");
@@ -2716,12 +2680,15 @@ void processOpcodeData() {
       // instructionCycle == 4
       hlValue = highOrder * 256 + lowOrder;
       memoryData[hlValue] = regA;
-      statusByte = 0;
+      //
       // Turn all the status lights off, during this step.
+      statusByte = 0;
+      // The write status light is inverse logic, hence, it is turned off.
+      // Turn status light MEMR and WO are on, MI is off, during this step.
+      statusByte = MEMR_ON | WO_ON;
+      //
+      // Set address lights to hb:lb. Set data lights to regA.
       lightsStatusAddressData(statusByte, hlValue, regA);
-      // Stacy, to do:
-      //  Set address lights to hb:lb. Set data lights to regA.
-      //  Turn status light MEMR and WO are no, MI is off, during this step.
 #ifdef LOG_MESSAGES
       Serial.print(F(" > sta, register A data: "));
       Serial.print(regA);
@@ -2753,7 +2720,7 @@ void processOpcodeData() {
       }
       // instructionCycle == 4
       //  Status lights, MEMR and WO are on, MI is off, during this step.
-      statusByte = statusByte & M1_OFF;
+      statusByte = (MEMR_ON | WO_ON) & M1_OFF;
       //
       hlValue = highOrder * 256 + lowOrder;
       regA = memoryData[hlValue];
