@@ -1863,8 +1863,8 @@ void processOpcode() {
 #endif
       break;
     // ------------------------------------------------------------------------------------------
-    case out:
-      opcode = out;
+    case B11100011:
+      opcode = B11100011;
       statusByte = statusByte & WO_OFF;  // Inverse logic: off writing out. On when not.
 #ifdef LOG_MESSAGES
       Serial.print(F(" > OUT, Write output to the port address(following db)."));
@@ -2554,7 +2554,7 @@ void processOpcodeData() {
       programCounter++;
       break;
     // -------------------------------------------------------------------------------------------
-    case out:
+    case B11100011:
       // instructionCycle == 2
 #ifdef LOG_MESSAGES
       Serial.print(F("< OUT, input port: "));
@@ -2647,10 +2647,8 @@ void processOpcodeData() {
           Serial.print(F("------------"));
           break;
         default:
-          regA = 0;
-#ifdef LOG_MESSAGES
-          Serial.print(F(". OUT not implemented on this port."));
-#endif
+          Serial.print(F(". - Error, OUT not implemented on this port address: "));
+          Serial.println(regA);
       }
       statusByte = statusByte | WO_ON;  // Inverse logic: off writing out. On when not.
       programCounter++;

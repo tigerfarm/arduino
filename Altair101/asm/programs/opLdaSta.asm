@@ -10,6 +10,7 @@
                             ; --------------------------------------
                             ; Video demonstrating status lights:
                             ;    https://www.youtube.com/watch?v=3_73NwB6toY
+                            ; Following, is using STEP to step through the program and view the LED lights.
                             ; ---
                             ; Process instruction: lda 40Q
                             ; First: Opcode fetch, on: MEMR MI WO
@@ -17,7 +18,7 @@
                             ; Third, Fetch hb, on: MEMR WO
                             ; Forth, Fetching the data from memory, on: MEMR WO
                             ; Fetching the data, shows the address (40Q) on the address LED lights.
-                            ;    And the data (at 40Q) on the data LED lights.
+                            ; Shows the data value (at 40Q) on the data LED lights.
                             ; ---
                             ; Process instruction: sta 41Q
                             ; First: Opcode fetch, on: MEMR MI WO
