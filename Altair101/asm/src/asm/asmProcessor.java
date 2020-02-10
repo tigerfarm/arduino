@@ -372,12 +372,11 @@ public class asmProcessor {
             }
             returnString = sValue.substring(si, sValue.length() - 1);     // Hex string to integer. Remove the "h".
             try {
-                Integer.parseInt(returnString);
                 returnString = Integer.toString(Integer.parseInt(returnString, 16));
             } catch (NumberFormatException e) {
                 errorCount++;
                 System.out.println("");
-                System.out.println("- Error, invalid value: " + sValue + ".");
+                System.out.println("- Error, invalid value: " + sValue + ":" + returnString + ", " + e.getMessage());
                 System.out.println("");
             }
         } else {
@@ -385,7 +384,7 @@ public class asmProcessor {
             // Since it's not a label, check if it's a valid integer.
             printlnDebug("+ Not found: " + sValue + ".");
             try {
-                Integer.parseInt(sValue);
+                Integer.parseInt(sValue);   // If not a valid integer, this will fail.
                 returnString = sValue;
             } catch (NumberFormatException e) {
                 // sImmediate = "*** Error, label not found.";

@@ -6,8 +6,11 @@
         $ java -jar asm.jar
 
     Next,
-    + Add directory variable.
-    + Add directory file listing.
+    + Directory listing, 3 across.
+    + Improve parse constructes.
+    ++ set : show set values.
+    ++ set <subdirectory|filein|fileout|serial-port>
+    ++ list <file|bytes|opcodes|ports>
  */
 package asm;
 
@@ -17,25 +20,23 @@ import static asm.asmUpload.sendFile;
 import static asm.asmUpload.setSerialPortName;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-// Looks like I need to add the new serial port module to get this to work.
-// It maybe possible to disable the USB serial port reset using to following link.
-//  https://playground.arduino.cc/Main/DisablingAutoResetOnSerialConnection/
-//  Stick a 120 ohm resistor in the headers between 5v and reset
 public class asm {
 
     asmProcessor processFile = new asmProcessor();
     asmOpcodes theOpcodes = new asmOpcodes();
 
-    private static final String asmVersion = "0.92a";
+    private static final String asmVersion = "0.92e";
 
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    private static String subdirectoyName = "programs";
 
     // -------------------------------------------------------------------------
-    public static void directoryListing(String subdirectoyName) {
+    public static void directoryListing() {
         System.out.println("+ Directory listing for: " + subdirectoyName);
         //
         // Need to use the full directory name.
@@ -88,6 +89,7 @@ public class asm {
         // asmProcessor doList = new asmProcessor();
         String inFilename = "p1.asm";
         String outFilename = "p1.bin";
+        String fullFilename = subdirectoyName + "/" + inFilename;
         String cmd;
         String theRest;
         int si = 0;
@@ -101,7 +103,7 @@ public class asm {
             System.out.print(thePrompt);
             try {
                 consoleInLine = this.br.readLine().trim();
-            } catch (Exception e) {
+            } catch (IOException e) {
                 System.out.print("--- Error exception." + e.getMessage());
             }
             int c1 = consoleInLine.indexOf(" ", si);
@@ -118,7 +120,7 @@ public class asm {
                 case "asm":
                     System.out.println("+ -------------------------------------");
                     System.out.println("+ Print and parse the program: " + inFilename + ":");
-                    processFile.parseFile(inFilename);
+                    processFile.parseFile(fullFilename);
                     System.out.println("+ -------------------------------------");
                     if (processFile.getErrorCount() > 0) {
                         break;
@@ -129,7 +131,7 @@ public class asm {
                 case "parse":
                     System.out.println("+ -------------------------------------");
                     System.out.println("+ Parse the program file: " + inFilename + ":");
-                    processFile.parseFile(inFilename);
+                    processFile.parseFile(fullFilename);
                     break;
                 case "write":
                     System.out.println("+ -------------------------------------");
@@ -142,24 +144,41 @@ public class asm {
                     processFile.showFile(outFilename);
                     break;
                 case "dir":
+                    if (theRest.length() > 0) {
+                        if (theRest.equals("\"\"")) {
+                            subdirectoyName = "";
+                        } else {
+                            subdirectoyName = theRest;
+                        }
+                    }
+                    if (subdirectoyName.equals("")) {
+                        System.out.println("+ Subdirectoy name not set.");
+                    } else {
+                        System.out.println("+ Subdirectoy name: " + subdirectoyName + ".");
+                    }
+                    break;
                 case "ls":
                     System.out.println("+ -------------------------------------");
-                    String subdirectoyName = "programs";
-                    directoryListing(subdirectoyName);
+                    directoryListing();
                     break;
                 case "file":
                     // > file this.asm
                     if (theRest.length() > 0) {
                         inFilename = theRest;
+                        if (!subdirectoyName.equals("")) {
+                            fullFilename = subdirectoyName + "/" + inFilename;
+                        }
                     }
                     System.out.println("+ Program source file name: " + inFilename + ".");
+                    System.out.println("+ Program full file name: " + fullFilename + ".");
+                    System.out.println("+ Machine code file name: " + outFilename + ".");
                     break;
                 case "fileout":
                     // > fileout this.bin
                     if (theRest.length() > 0) {
                         outFilename = theRest;
                     }
-                    System.out.println("+ File name to use for output: " + outFilename + ".");
+                    System.out.println("+ Machine code file name: " + outFilename + ".");
                     break;
                 // -------------------------------------------------------------
                 case "list":
@@ -171,7 +190,7 @@ public class asm {
                         case "file":
                             System.out.println("+ -------------------------------------");
                             System.out.println("+ List program source file: " + inFilename + ":");
-                            processFile.listFile(inFilename);
+                            processFile.listFile(fullFilename);
                             break;
                         case "bytes":
                             System.out.println("+ -------------------------------------");
@@ -220,6 +239,12 @@ public class asm {
                     }
                     break;
                 // -------------------------------------------------------------
+                case "clear":
+                    // Works from UNIX console.
+                    System.out.print("\033[H\033[2J");
+                    System.out.flush();
+                    System.out.println("Altair 101 8080/8085 assembler, version " + asmVersion);
+                    break;
                 case "exit":
                     System.out.println("+ -------------------------------------");
                     System.out.println("+++ Exit.");
@@ -234,11 +259,17 @@ public class asm {
                     System.out.println("----------------------");
                     System.out.println("+ file <source>      : Set the input file name to use in other commands.");
                     if (!inFilename.equals("")) {
-                        System.out.println("++ Source file   : " + inFilename);
+                        System.out.println("+ Program source file name: " + inFilename + ".");
+                        System.out.println("+ Program full file name: " + fullFilename + ".");
+                    }
+                    if (subdirectoyName.equals("")) {
+                        System.out.println("+ Subdirectoy name not set.");
+                    } else {
+                        System.out.println("+ Subdirectoy name: " + subdirectoyName + ".");
                     }
                     System.out.println("+ fileout <filename> : Set the machine code file name.");
                     if (!inFilename.equals("")) {
-                        System.out.println("++ Machine code file: " + outFilename);
+                        System.out.println("++ Machine code file name: " + outFilename);
                     }
                     System.out.println("");
                     System.out.println("----------------------");
@@ -246,8 +277,11 @@ public class asm {
                     System.out.println("+ parse              : Parse the input file.");
                     System.out.println("+ write              : Write the bytes to a binary file.");
                     System.out.println("+ list bytes         : List the parsed bytes and info.");
-                    System.out.println("+ list [file]        : List the program source file.");
+                    System.out.println("+ list               : List the program source file.");
                     System.out.println("+ show               : Print machine code file bytes to screen.");
+                    System.out.println("");
+                    System.out.println("+ dir <subdiretory>  : Set file process subdirectory name.");
+                    System.out.println("+ ls                 : List files in the set directory.");
                     System.out.println("");
                     System.out.println("+ list opcodes       : list the opcode information, ordered by the name.");
                     System.out.println("+ opcodes            : list the opcode information, ordered the same as in the file.");
@@ -261,6 +295,7 @@ public class asm {
                     System.out.println("+ uploadset          : Set serial port to use for uploading.");
                     System.out.println("----------------------");
                     System.out.println("");
+                    System.out.println("+ clear              : Clear screen. Should work on UNIX based consoles, not Windows.");
                     System.out.println("+ exit               : Exit this program.");
                     System.out.println("");
                     System.out.println("> list <file|bytes|opcodes|ports>");
