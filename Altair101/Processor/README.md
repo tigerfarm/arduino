@@ -23,6 +23,134 @@ While doing so, I'm tuning the assembler and processor program.
 On the hardware side, I'm bolting down the component modules and adjusting the wiring.
 2 more components to add: 1602 LCD and the MP3 player.
 
+--------------------------------------------------------------------------------
+#### Current work, fix the display of the status LED lights when stepping through a program.
+
+Need to handle the following cases:
++ 1 cycle opcodes.
++ 2+ cycle opcodes where,
+++ databyte is from memory.
+++ databyte is not from memory, example LDA and STA, the databyte value should be the register A value.
+
+````
+...
+void processData() {
+  if (opcode == 0) {
+    ...
+    statusByte = statusByte | MEMR_ON;
+    statusByte = statusByte | M1_ON;
+    statusByte = statusByte | WO_ON;
+    instructionCycle = 1;
+    ...
+    displayStatusAddressData();       // Sets the dataByte.
+    processOpcode();
+    programCounter++;
+    if (programState == PROGRAM_WAIT) {
+      // Either HLT opcode was just processed, or using STEP to step through the program.
+      if (dataByte == hlt) {
+        // HLT opcode was just processed.
+        displayStatusAddressData();
+      }
+    }
+  } else {
+    // Machine cycles 2, 3, or 4.
+    instructionCycle++;
+    statusByte = statusByte & M1_OFF;
+    //  Getting opcode data: an immediate data byte or an address of 2 bytes,
+    //  Processing the opcode data.
+    //
+    displayStatusAddressData();
+    //
+    processOpcodeData(); // programCounter incremented if not a jump.
+  }
+}
+
+void processOpcode() {
+    ...
+    Unfortunately, I used dataByte as function variable.
+    ++ Change this, so that dataByte is not used in processOpcode().
+    ...
+    Either sets, opcode to the binary opcode value, example:
+            ...
+        case B11100110:
+            opcode = B11100110;
+            break;
+            ...
+    Or process the opcode if the opcode has only one cycle, example:
+            ...
+        case B10111000:
+            dataByte = regB;
+            flagZeroBit = dataByte == regA;
+            flagCarryBit = dataByte > regA;
+            break;
+    ...
+    3 opcodes change the statusByte.
+            ...
+        case B11011011:
+            opcode = B11011011;
+            // INP status light is on when reading from an input port.
+            statusByte = statusByte | INP_ON;
+            Serial.print(F(" > IN, If input value is available, get the input byte."));
+            break;
+            ...
+        case B11100011:
+            opcode = B11100011;
+            statusByte = statusByte & WO_OFF;  // Inverse logic: off writing out. On when not.
+            Serial.print(F(" > OUT, Write output to the port address(following db)."));
+            break;
+            ...
+        case hlt:
+            Serial.print(F("+ HLT opcode, program halted."));
+            controlStopLogic(); // Sets statusByte to HLT light and wait light on.
+            break;
+    ...
+    Only the HLT opcode changes the statusByte.
+}
+void processOpcodeData() {
+    ...
+    Opcodes that displays the moved value (lightsStatusAddressData):
+        LDAX, LDA, and STA
+    ...
+    ++ 2nd cycle ldax (B:C and D:E), 
+    case B00001010:
+      bValue = regB;
+      cValue = regC;
+      bcValue = bValue * 256 + cValue;
+      if (deValue < memoryBytes) {
+        regA = memoryData[bcValue];
+      } else {
+        regA = 0;
+      }
+      lightsStatusAddressData(statusByte, deValue, regA);
+      Serial.print(F("< ldax, the data moved into Accumulator is "));
+      printData(regA);
+
+    ... LDA and STA
+      statusByte = 0;
+      statusByte = MEMR_ON | WO_ON;
+      lightsStatusAddressData(statusByte, hlValue, regA);
+    ...
+    Opcodes OUT and IN, reset their statusByte light, after completing the opcode process.
+        statusByte = statusByte | WO_ON;  // Inverse logic: off writing out. On when not.
+    ...
+}
+...
+// -------------------------
+void checkControlButtons() {
+    ...
+    case pinStep:
+        ... { ...
+          // Switch logic...
+          statusByte = statusByte & HLTA_OFF;
+          processData();
+          dataByte = memoryData[programCounter];
+          lightsStatusAddressData(statusByte, programCounter, dataByte);
+        }
+    ...
+}
+...
+````
+--------------------------------------------------------------------------------
 #### Altair 101 Features
 
 The emulator program, [Processor.ino](Processor.ino)

@@ -546,7 +546,6 @@ void processData() {
     instructionCycle = 1;
     // If no parameter bytes (immediate data byte or address bytes), process the opcode.
     // Else, the opcode variable is set to the opcode byte value.
-    opcode = 0;
 #ifdef LOG_MESSAGES
     Serial.print(" > ");
 #endif
