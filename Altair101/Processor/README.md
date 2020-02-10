@@ -69,6 +69,7 @@ void processOpcode() {
     ...
     // dataByte is not used in this procedure.
     // statusByte is set for opcodes: IN, OUT, and HLT.
+    // programCounter is used by RET, and in the switch default case, in the error message.
     ...
     Either sets, opcode to the binary opcode value, example:
             ...
@@ -107,6 +108,8 @@ void processOpcode() {
     Only the HLT opcode changes the statusByte.
 }
 void processOpcodeData() {
+    // if not jumping, increment programCounter.
+    // if jumping, programCounter is set to an address, don't increment it.
     // dataByte is used through the opcode processes.
     ...
     dataByte = memoryData[programCounter];
@@ -133,7 +136,10 @@ void processOpcodeData() {
       statusByte = MEMR_ON | WO_ON;
       lightsStatusAddressData(statusByte, hlValue, regA);
     ...
-    Opcodes OUT and IN, reset their statusByte light, after completing the opcode process.
+    Opcodes IN and OUT, reset their statusByte light, after completing the opcode process.
+        ...
+        statusByte = statusByte & INP_OFF;
+        ...
         statusByte = statusByte | WO_ON;  // Inverse logic: off writing out. On when not.
     ...
 }

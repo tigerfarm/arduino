@@ -2066,16 +2066,17 @@ void processOpcodeData() {
 
   // Process data types:
   // 1) Immediate data byte:
-  // + Instruction cycle 1 (M1), get the opcode in processOpcode().
+  // + Instruction cycle 1 (M1 above), get the opcode in processOpcode().
   // + Instruction cycle 2, get the immediate data byte and process it.
   // 2) Address bytes:
-  // + Instruction cycle 1 (M1), get the opcode in processOpcode().
+  // + Instruction cycle 1 (M1 above), get the opcode in processOpcode().
   // + Instruction cycle 2, get the lower data byte (lb: lowByte).
   // + Instruction cycle 3, get the higher data byte (hb: lowByte), and process the address, hb:lb.
+  // + Instruction cycle 4, read/write the data and display the byte in the data LED lights.
 
   // Note,
   //    if not jumping, increment programCounter.
-  //    if jumping, don't increment programCounter.
+  //    if jumping, programCounter is set to an address, don't increment it.
 
   dataByte = memoryData[programCounter];
 
@@ -2732,6 +2733,7 @@ void processOpcodeData() {
       }
       // instructionCycle == 4
       //  Status lights, MEMR and WO are on, MI is off, during this step.
+      statusByte = 0;
       statusByte = (MEMR_ON | WO_ON) & M1_OFF;
       //
       hlValue = highOrder * 256 + lowOrder;
