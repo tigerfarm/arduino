@@ -15,7 +15,7 @@
   ++ https://www.youtube.com/watch?v=3_73NwB6toY
 
   WHen the status lights display correctly, I can show my steampunk tablet to the world.
-  
+
   ---------------------------------------------
   SD card module options,
   + Confirm saving or reading a file,
@@ -3817,13 +3817,6 @@ void setup() {
 #endif
 
   // ----------------------------------------------------
-  serial2.begin(9600);
-  if (serial2.isListening()) {
-    Serial.println("+ serial2 is listening.");
-    Serial.println("+ Ready to use the second serial port for receiving program bytes.");
-  }
-
-  // ----------------------------------------------------
   // Options to Load/Read/Run a initialization program
   //
   // ---------------------------
@@ -3902,6 +3895,12 @@ void loop() {
 #ifdef INCLUDE_AUX
     case SERIAL_DOWNLOAD:
       Serial.println(F("+ State: SERIAL_DOWNLOAD"));
+      // ----------------------------------------------------
+      serial2.begin(9600);
+      if (serial2.isListening()) {
+        Serial.println("+ serial2 is listening.");
+        Serial.println("+ Ready to use the second serial port for receiving program bytes.");
+      }
       //
       // Set status lights:
       // HLDA on when in this mode. Later, HLDA off (LOW), then on (HIGH) when bytes downloading (Serial.available).
