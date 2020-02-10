@@ -553,9 +553,9 @@ void processData() {
     processOpcode();
     programCounter++;
     if (programState == PROGRAM_WAIT) {
-      // Either HLT opcode was just processed, or using STEP to step through .
+      // Either HLT opcode was just processed, or using STEP to step through the program.
       if (dataByte == hlt) {
-        // HLT opcode was just processed. Try the following, display the opcode after HLT.
+        // HLT opcode was just processed.
         displayStatusAddressData();
       }
     }
@@ -585,6 +585,8 @@ void processData() {
 // ------------------------------------------------------------------------------------------
 void processOpcode() {
 
+  // Working variables.
+  byte workingByte = 0;
   unsigned int anAddress = 0;
 
   switch (dataByte) {
@@ -618,9 +620,9 @@ void processOpcode() {
     // If #=A, set Zero bit to 1. If #>A, Carry bit = 1. If #<A, Carry bit = 0.
     //    10111SSS
     case B10111000:
-      dataByte = regB;
-      flagZeroBit = dataByte == regA;
-      flagCarryBit = dataByte > regA;
+      workingByte = regB;
+      flagZeroBit = workingByte == regA;
+      flagCarryBit = workingByte > regA;
 #ifdef LOG_MESSAGES
       displayCmp("B", regB);
 #endif
@@ -628,9 +630,9 @@ void processOpcode() {
     // ------------------------
     //    10111SSS
     case B10111001:
-      dataByte = regC;
-      flagZeroBit = dataByte == regA;
-      flagCarryBit = dataByte > regA;
+      workingByte = regC;
+      flagZeroBit = workingByte == regA;
+      flagCarryBit = workingByte > regA;
 #ifdef LOG_MESSAGES
       displayCmp("C", regC);
 #endif
@@ -638,9 +640,9 @@ void processOpcode() {
     // ------------------------
     //    10111SSS
     case B10111010:
-      dataByte = regD;
-      flagZeroBit = dataByte == regA;
-      flagCarryBit = dataByte > regA;
+      workingByte = regD;
+      flagZeroBit = workingByte == regA;
+      flagCarryBit = workingByte > regA;
 #ifdef LOG_MESSAGES
       displayCmp("D", regD);
 #endif
@@ -648,9 +650,9 @@ void processOpcode() {
     // ------------------------
     //    10111SSS
     case B10111011:
-      dataByte = regE;
-      flagZeroBit = dataByte == regA;
-      flagCarryBit = dataByte > regA;
+      workingByte = regE;
+      flagZeroBit = workingByte == regA;
+      flagCarryBit = workingByte > regA;
 #ifdef LOG_MESSAGES
       displayCmp("E", regE);
 #endif
@@ -658,9 +660,9 @@ void processOpcode() {
     // ------------------------
     //    10111SSS
     case B10111100:
-      dataByte = regH;
-      flagZeroBit = dataByte == regA;
-      flagCarryBit = dataByte > regA;
+      workingByte = regH;
+      flagZeroBit = workingByte == regA;
+      flagCarryBit = workingByte > regA;
 #ifdef LOG_MESSAGES
       displayCmp("H", regH);
 #endif
@@ -668,9 +670,9 @@ void processOpcode() {
     // ------------------------
     //    10111SSS
     case B10111101:
-      dataByte = regL;
-      flagZeroBit = dataByte == regA;
-      flagCarryBit = dataByte > regA;
+      workingByte = regL;
+      flagZeroBit = workingByte == regA;
+      flagCarryBit = workingByte > regA;
 #ifdef LOG_MESSAGES
       displayCmp("L", regH);
 #endif
@@ -679,9 +681,9 @@ void processOpcode() {
     //    10111SSS  Register M, is memory data, H:L.
     case B10111110:
       hlValue = regH * 256 + regL;
-      dataByte = memoryData[hlValue];
-      flagZeroBit = dataByte == regA;
-      flagCarryBit = dataByte > regA;
+      workingByte = memoryData[hlValue];
+      flagZeroBit = workingByte == regA;
+      flagCarryBit = workingByte > regA;
 #ifdef LOG_MESSAGES
       displayCmp("M", regB);
 #endif
@@ -1029,7 +1031,7 @@ void processOpcode() {
 #else
       Serial.println(F("\n+ HLT opcode, program halted."));
 #endif
-      controlStopLogic();
+      controlStopLogic(); // Sets statusByte.
       break;
     case B11011011:
       opcode = B11011011;
@@ -1860,15 +1862,15 @@ void processOpcode() {
     // ORA10110SSS
     case B10110110:
       hlValue = regH * 256 + regL;
-      dataByte = memoryData[hlValue];
+      workingByte = memoryData[hlValue];
 #ifdef LOG_MESSAGES
       Serial.print(F(" > ora, OR data from address register M(H:L): "));
-      printByte(dataByte);
+      printByte(workingByte);
       Serial.print(F(", with register A: "));
       printByte(regA);
       Serial.print(F(" = "));
 #endif
-      regA = regA | dataByte;
+      regA = regA | workingByte;
 #ifdef LOG_MESSAGES
       printByte(regA);
 #endif
@@ -2048,7 +2050,7 @@ void processOpcode() {
       Serial.print(F(" - Error, unknown opcode instruction."));
 #else
       Serial.print(F("- Error, unknown opcode instruction: "));
-      printData(dataByte);
+      printData(workingByte);
       Serial.println(F(""));
       Serial.print(F("- Error, at programCounter: "));
       printData(programCounter);
@@ -2229,6 +2231,7 @@ void processOpcodeData() {
       printByte(regA);
       Serial.print(F("."));
 #endif
+      statusByte = statusByte & INP_OFF;
       programCounter++;
       break;
     // ---------------------------------------------------------------------

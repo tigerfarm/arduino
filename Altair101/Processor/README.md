@@ -67,8 +67,8 @@ void processData() {
 
 void processOpcode() {
     ...
-    Unfortunately, I used dataByte as function variable.
-    ++ Change this, so that dataByte is not used in processOpcode().
+    // dataByte is not used in this procedure.
+    // statusByte is set for opcodes: IN, OUT, and HLT.
     ...
     Either sets, opcode to the binary opcode value, example:
             ...
@@ -79,9 +79,9 @@ void processOpcode() {
     Or process the opcode if the opcode has only one cycle, example:
             ...
         case B10111000:
-            dataByte = regB;
-            flagZeroBit = dataByte == regA;
-            flagCarryBit = dataByte > regA;
+            workingByte = regB;
+            flagZeroBit = workingByte == regA;
+            flagCarryBit = workingByte > regA;
             break;
     ...
     3 opcodes change the statusByte.
@@ -101,12 +101,15 @@ void processOpcode() {
             ...
         case hlt:
             Serial.print(F("+ HLT opcode, program halted."));
-            controlStopLogic(); // Sets statusByte to HLT light and wait light on.
+            controlStopLogic(); // Sets statusByte.
             break;
     ...
     Only the HLT opcode changes the statusByte.
 }
 void processOpcodeData() {
+    // dataByte is used through the opcode processes.
+    ...
+    dataByte = memoryData[programCounter];
     ...
     Opcodes that displays the moved value (lightsStatusAddressData):
         LDAX, LDA, and STA
@@ -125,7 +128,7 @@ void processOpcodeData() {
       Serial.print(F("< ldax, the data moved into Accumulator is "));
       printData(regA);
 
-    ... LDA and STA
+    ... LDA and STA (Stacy, recheck LDA and STA).
       statusByte = 0;
       statusByte = MEMR_ON | WO_ON;
       lightsStatusAddressData(statusByte, hlValue, regA);
