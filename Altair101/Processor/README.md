@@ -34,6 +34,12 @@ Need to handle the following cases:
 
 ````
 ...
+void displayStatusAddressData() {
+  dataByte = memoryData[programCounter];
+  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  ...
+}
+...
 void processData() {
   if (opcode == 0) {
     ...
@@ -42,7 +48,7 @@ void processData() {
     statusByte = statusByte | WO_ON;
     instructionCycle = 1;
     ...
-    displayStatusAddressData();       // Sets the dataByte.
+    displayStatusAddressData();     // Sets the dataByte.
     processOpcode();
     programCounter++;
     if (programState == PROGRAM_WAIT) {
@@ -56,11 +62,10 @@ void processData() {
     // Machine cycles 2, 3, or 4.
     instructionCycle++;
     statusByte = statusByte & M1_OFF;
+    displayStatusAddressData();     // Sets dataByte.
+    //
     //  Getting opcode data: an immediate data byte or an address of 2 bytes,
     //  Processing the opcode data.
-    //
-    displayStatusAddressData();
-    //
     processOpcodeData(); // programCounter incremented if not a jump.
   }
 }
@@ -111,6 +116,7 @@ void processOpcodeData() {
     // if not jumping, increment programCounter.
     // if jumping, programCounter is set to an address, don't increment it.
     // dataByte is used through the opcode processes.
+    // dataByte is not changed.
     ...
     dataByte = memoryData[programCounter];
     ...
