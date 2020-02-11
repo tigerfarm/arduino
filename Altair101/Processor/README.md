@@ -31,8 +31,9 @@ Need to handle the following cases without change the program flow (which alread
 ++ Updated to proper initialization: controlResetLogic()
 ++ Updated processData() for machine cycle M1.
 + 2+ cycle opcodes where,
-++ databyte is from memory: immediate or address (lb,hb) value, or,
-++ databyte is reading/writing to/from memory,
+++ databyte is a memory value,
++++ An immediate or address (lb,hb) value, or,
+++ databyte is the read/write to/from memory value,
 +++ Example LDA and STA, the databyte value should be the register A value.
 
 ````
@@ -200,11 +201,8 @@ void controlResetLogic() {
     programState = PROGRAM_WAIT;
     statusByte = statusByte | WAIT_ON;
   }
-  statusByte = statusByte | MEMR_ON;
-  statusByte = statusByte | M1_ON;
-  statusByte = statusByte | WO_ON;
-  dataByte = memoryData[programCounter];
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  // Fetch the first opcode.
+  processData();
 }
 
 void controlStopLogic() {

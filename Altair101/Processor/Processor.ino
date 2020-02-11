@@ -516,6 +516,8 @@ void processData() {
     lightsStatusAddressData(statusByte, programCounter, dataByte);
     programCounter++;
     // Now, programCounter holds the address of the next address to process.
+    // Serial.print(F(" > M1, programCounter"));
+    // Serial.print(programCounter);
   } else {
     // Machine cycles 2, 3, or 4.
     instructionCycle++;
@@ -3220,8 +3222,6 @@ void checkControlButtons() {
           // Switch logic...
           statusByte = statusByte & HLTA_OFF;
           processData();
-          dataByte = memoryData[programCounter];
-          lightsStatusAddressData(statusByte, programCounter, dataByte);
         }
         break;
       // -------------------
