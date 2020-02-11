@@ -7,10 +7,9 @@
   It has more than enough opcodes to run the classic programs, Kill the Bit and Pong.
   ---------------------------------------------
   Current/Next Work
-  Get status lights to work properly.
-  + Test program: pLdaSta.asm. I can confirm using the video:
-  ++ https://www.youtube.com/watch?v=3_73NwB6toY
-  WHen the status lights display correctly, I can show my steampunk tablet to the world.
+  
+  Status lights display correctly. I can show my steampunk tablet to the world.
+
   ---------------------------------------------
   SD card module options,
   + Confirm saving or reading a file,
@@ -22,11 +21,12 @@
   + Add OUT opcode to out characters to the LED display.
   + Add 1602 LED display clock time and to set the time.
   In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
+  
   -----------------------------------------------------------------------------
   Processor program sections,
-    Sample machine code program in a memory array.
-    Definitions: machine memory and stack memory.
-    Memory Functions.
+    Code compilation options.
+    Arduino pin definitions.
+    Definitions: machine memory, stack memory, and a sample machine code program in a memory array.
     Output: 1602 LCD
     Front Panel Status LEDs.
     Output: Front Panel LED lights.
@@ -186,6 +186,17 @@ SoftwareSerial serial2(PIN_RX, PIN_TX);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+// Memory definitions
+
+const int memoryBytes = 1024;  // When using Mega: 1024, for Nano: 256
+byte memoryData[memoryBytes];
+unsigned int programCounter = 0;     // Program address value
+
+const int stackBytes = 32;
+int stackData[memoryBytes];
+unsigned int stackPointer = stackBytes;
+
+// Sample byte code program array.
 const byte theProgram[] = {
   //                //            ; --------------------------------------
   //                //            ; Test programs.
@@ -196,17 +207,6 @@ const byte theProgram[] = {
   B11000011, 0, 0,     //   6: jmp Start
   0                    //   9: End of program
 };
-
-// -----------------------------------------------------------------------------
-// Memory definitions
-
-const int memoryBytes = 1024;  // When using Mega: 1024, for Nano: 256
-byte memoryData[memoryBytes];
-unsigned int programCounter = 0;     // Program address value
-
-const int stackBytes = 32;
-int stackData[memoryBytes];
-unsigned int stackPointer = stackBytes;
 
 // -----------------------------------------------------------------------------
 // Memory Functions
@@ -3909,10 +3909,9 @@ void loop() {
       statusByte = statusByte & INP_OFF;
       statusByte = statusByte | WAIT_ON;
       if (readByteCount > 0) {
-        // Program bytes were loaded. Reset and display the statusByte.
-        programCounter = 0;
-        dataByte = memoryData[programCounter];
-        lightsStatusAddressData(statusByte, programCounter, dataByte);
+        // Program bytes were loaded.
+        // Reset the program. This takes care of the case that STOP was used to end the download.
+        controlResetLogic();
       }
       digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;
