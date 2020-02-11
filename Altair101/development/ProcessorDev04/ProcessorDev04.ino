@@ -1,35 +1,27 @@
 // -----------------------------------------------------------------------------
 /*
   Altair 101 Processor program
-
   This is an Altair 8800 emulator program that is being developed on an Arduino Nano or Mega microprocessor.
   It emulates the basic Altair 8800 hardware--from 1975--which was built around the Intel 8080 CPU chip.
   This program includes many of the 8080 microprocessor machine instructions (opcodes).
   It has more than enough opcodes to run the classic programs, Kill the Bit and Pong.
-
   ---------------------------------------------
   Current/Next Work
-
   Get status lights to work properly.
   + Test program: pLdaSta.asm. I can confirm using the video:
   ++ https://www.youtube.com/watch?v=3_73NwB6toY
-
   WHen the status lights display correctly, I can show my steampunk tablet to the world.
-
   ---------------------------------------------
   SD card module options,
   + Confirm saving or reading a file,
   ++ Fast flash HLDA for 1 second.
   ++ If read or write switch repeated, then run, else return to program wait status.
   + When rebooting the Mega: if 00000000.bin exists, read it and run it.
-
   ----------
   Add 1602 LED display,
   + Add OUT opcode to out characters to the LED display.
   + Add 1602 LED display clock time and to set the time.
-
   In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
-
   -----------------------------------------------------------------------------
   Processor program sections,
     Sample machine code program in a memory array.
@@ -54,16 +46,12 @@
     setup() : Computer initialization.
     loop()  : Clock cycling through memory.
     ----------------------------
-
   ---------------------------------------------
   Altair 8800 Operator's Manual.pdf has a description of each opcode.
-
   Binary calculator:
     https://www.calculator.net/binary-calculator.html
-
   Bitwise operators:
     https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitwiseand/
-
   ---------------------------------------------
     9 + -   - Nano connections
     | | |   - Infrared receiver pins
@@ -87,7 +75,7 @@
 // #define RUN_DELAY 1
 // #define INFRARED_MESSAGES 1    // For a simple setup: Mega + infrared, with serial messages.
 //
-#define LOG_MESSAGES 1         // Has large memory requirements.
+// #define LOG_MESSAGES 1         // Has large memory requirements.
 #define SWITCH_MESSAGES 1
 // #define RUN_NOW 1
 
@@ -540,19 +528,25 @@ void processData() {
     // Machine cycle 1, get an opcode.
     // Stacy, confirm status lights.
     // statusByte = MEMR_ON | M1_ON | WO_ON;
-    // statusByte = statusByte | MEMR_ON;
-    // statusByte = statusByte | M1_ON;
-    // statusByte = statusByte | WO_ON;
-    // instructionCycle = 1;
+    statusByte = statusByte | MEMR_ON;
+    statusByte = statusByte | M1_ON;
+    statusByte = statusByte | WO_ON;
+    instructionCycle = 1;
     // If no parameter bytes (immediate data byte or address bytes), process the opcode.
     // Else, the opcode variable is set to the opcode byte value.
 #ifdef LOG_MESSAGES
     Serial.print(" > ");
 #endif
-    dataByte = memoryData[programCounter];
+    displayStatusAddressData();       // Sets the dataByte.
     processOpcode();
-    displayStatusAddressData();
     programCounter++;
+    if (programState == PROGRAM_WAIT) {
+      // Either HLT opcode was just processed, or using STEP to step through the program.
+      if (dataByte == hlt) {
+        // HLT opcode was just processed.
+        displayStatusAddressData();
+      }
+    }
   } else {
     // Machine cycles 2, 3, or 4.
     instructionCycle++;
@@ -2244,21 +2238,18 @@ void processOpcodeData() {
         programCounter++;
         return;
       }
-      if (instructionCycle == 3) {
-        // instructionCycle == 3
-        highOrder = dataByte;
-        programCounter = word(highOrder, lowOrder);
+      // instructionCycle == 3
+      highOrder = dataByte;
+      programCounter = word(highOrder, lowOrder);
 #ifdef LOG_MESSAGES
-        Serial.print(F(" > jmp, hb:"));
-        sprintf(charBuffer, "%4d:", highOrder);
-        Serial.print(charBuffer);
-        Serial.print(F(", jmp, jump to:"));
-        sprintf(charBuffer, "%4d = ", programCounter);
-        Serial.print(charBuffer);
-        printByte((byte)programCounter);
+      Serial.print(F(" > jmp, hb:"));
+      sprintf(charBuffer, "%4d:", highOrder);
+      Serial.print(charBuffer);
+      Serial.print(F(", jmp, jump to:"));
+      sprintf(charBuffer, "%4d = ", programCounter);
+      Serial.print(charBuffer);
+      printByte((byte)programCounter);
 #endif
-        return;
-      }
       break;
     //-----------------------------------------
     case B11000010:
@@ -2785,14 +2776,7 @@ void processOpcodeData() {
       controlStopLogic();
   }
   // The opcode cycles are complete.
-  // Set to fetch a new opcode.
   opcode = 0;
-  instructionCycle = 1;
-  statusByte = statusByte | MEMR_ON;
-  statusByte = statusByte | M1_ON;
-  statusByte = statusByte | WO_ON;
-  dataByte = memoryData[programCounter];
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
 }
 
 // -----------------------------------------------------------------------------
@@ -3201,22 +3185,19 @@ boolean switchReset = false;
 
 // -------------------------
 void controlResetLogic() {
-  Serial.println("");
   programCounter = 0;
   stackPointer = 0;
   opcode = 0;  // For the case when the processing cycle 2 or more.
-  statusByte = 0;
+  dataByte = memoryData[programCounter];
   if (programState == CLOCK_RUN || programState == SERIAL_DOWNLOAD) {
     programState = PROGRAM_WAIT;
     statusByte = statusByte | WAIT_ON;
   }
+  statusByte = 0;
   statusByte = statusByte | MEMR_ON;
   statusByte = statusByte | M1_ON;
   statusByte = statusByte | WO_ON;
-  instructionCycle = 1;
-  // dataByte = memoryData[programCounter];
-  // lightsStatusAddressData(statusByte, programCounter, dataByte);
-  processData();
+  lightsStatusAddressData(statusByte, programCounter, dataByte);
 }
 
 void controlStopLogic() {
@@ -3265,8 +3246,8 @@ void checkControlButtons() {
           // Switch logic...
           statusByte = statusByte & HLTA_OFF;
           processData();
-          // dataByte = memoryData[programCounter];
-          // lightsStatusAddressData(statusByte, programCounter, dataByte);
+          dataByte = memoryData[programCounter];
+          lightsStatusAddressData(statusByte, programCounter, dataByte);
         }
         break;
       // -------------------

@@ -33,6 +33,23 @@ Need to handle the following cases:
 ++ databyte is not from memory, example LDA and STA, the databyte value should be the register A value.
 
 ````
+Sequence:
++ Reset
+++ Status LED lights on: MEMR_ON, M1_ON, WO_ON;
++ Click STEP,
+++ Calls, processData().
+++ Memory read: lb.
+++ Status LED lights on: MEMR_ON, WO_ON;
+
++ Click STEP, memory read: hb.
+++ Status LED lights on: MEMR_ON, WO_ON;
+++ Jumps to next JMP opcode.
+++ Status LED lights on: MEMR_ON, M1_ON, WO_ON;
++ Click STEP, memory read: lb.
+++ Calls, processData().
+++ Status LED lights on: MEMR_ON, WO_ON;
++ Click STEP, memory read: hb.
+
 ...
 void displayStatusAddressData() {
   dataByte = memoryData[programCounter];
@@ -48,7 +65,7 @@ void processData() {
     statusByte = statusByte | WO_ON;
     instructionCycle = 1;
     ...
-    displayStatusAddressData();     // Sets the dataByte.
+    dataByte = memoryData[programCounter];
     processOpcode();
     programCounter++;
     if (programState == PROGRAM_WAIT) {
@@ -58,6 +75,7 @@ void processData() {
         displayStatusAddressData();
       }
     }
+    displayStatusAddressData();
   } else {
     // Machine cycles 2, 3, or 4.
     instructionCycle++;
@@ -72,9 +90,12 @@ void processData() {
 
 void processOpcode() {
     ...
-    // dataByte is not used in this procedure.
+    // dataByte is used as the main switch.
+    // dataByte is not otherwise used in this procedure.
     // statusByte is set for opcodes: IN, OUT, and HLT.
     // programCounter is used by RET, and in the switch default case, in the error message.
+    ...
+    switch (dataByte) {
     ...
     Either sets, opcode to the binary opcode value, example:
             ...
@@ -113,12 +134,13 @@ void processOpcode() {
     Only the HLT opcode changes the statusByte.
 }
 void processOpcodeData() {
-    // if not jumping, increment programCounter.
-    // if jumping, programCounter is set to an address, don't increment it.
-    // dataByte is used through the opcode processes.
-    // dataByte is not changed.
-    ...
-    dataByte = memoryData[programCounter];
+  // if not jumping, increment programCounter.
+  // if jumping, programCounter is set to an address, don't increment it.
+  // dataByte is used through the opcode processes.
+  // dataByte is not changed.
+  ...
+  dataByte = memoryData[programCounter];
+  switch (opcode) {
     ...
     Opcodes that displays the moved value (lightsStatusAddressData):
         LDAX, LDA, and STA
@@ -148,6 +170,42 @@ void processOpcodeData() {
         ...
         statusByte = statusByte | WO_ON;  // Inverse logic: off writing out. On when not.
     ...
+  }
+  // The opcode cycles are complete.
+  // Set to fetch a new opcode.
+  opcode = 0;
+  instructionCycle = 1;
+  statusByte = statusByte | MEMR_ON;
+  statusByte = statusByte | M1_ON;
+  statusByte = statusByte | WO_ON;
+  dataByte = memoryData[programCounter];
+  lightsStatusAddressData(statusByte, programCounter, dataByte);
+}
+...
+// -------------------------
+void controlResetLogic() {
+  programCounter = 0;
+  stackPointer = 0;
+  opcode = 0;  // For the case when the processing cycle 2 or more.
+  statusByte = 0;
+  if (programState == CLOCK_RUN || programState == SERIAL_DOWNLOAD) {
+    programState = PROGRAM_WAIT;
+    statusByte = statusByte | WAIT_ON;
+  }
+  statusByte = statusByte | MEMR_ON;
+  statusByte = statusByte | M1_ON;
+  statusByte = statusByte | WO_ON;
+  dataByte = memoryData[programCounter];
+  lightsStatusAddressData(statusByte, programCounter, dataByte);
+}
+
+void controlStopLogic() {
+  programState = PROGRAM_WAIT;
+  statusByte = 0;
+  statusByte = statusByte | WAIT_ON;
+  statusByte = statusByte | HLTA_ON;
+  dataByte = memoryData[programCounter];
+  lightsStatusAddressData(statusByte, programCounter, dataByte);
 }
 ...
 // -------------------------
