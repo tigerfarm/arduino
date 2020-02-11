@@ -26,30 +26,38 @@ On the hardware side, I'm bolting down the component modules and adjusting the w
 --------------------------------------------------------------------------------
 #### Current work, fix the display of the status LED lights when stepping through a program.
 
-Need to handle the following cases:
+Need to handle the following cases without change the program flow (which already works):
 + 1 cycle opcodes.
+++ Updated to proper initialization: controlResetLogic()
+++ Updated processData() for machine cycle M1.
 + 2+ cycle opcodes where,
-++ databyte is from memory.
-++ databyte is not from memory, example LDA and STA, the databyte value should be the register A value.
+++ databyte is from memory: immediate or address (lb,hb) value, or,
+++ databyte is reading/writing to/from memory,
++++ Example LDA and STA, the databyte value should be the register A value.
 
 ````
-Sequence:
+----------------------------------
+Sequence to step through pLoop.asm:
 + Reset
-++ Status LED lights on: MEMR_ON, M1_ON, WO_ON;
-+ Click STEP,
 ++ Calls, processData().
-++ Memory read: lb.
-++ Status LED lights on: MEMR_ON, WO_ON;
++++ Status LED lights on: MEMR_ON, M1_ON, WO_ON.
++++ Fetch first opcode.
++++ lightsStatusAddressData(statusByte, programCounter(value=0), dataByte);
+
++ Click STEP, Memory read: lb.
+++ Calls, processData().
++++ Status LED lights on: MEMR_ON, WO_ON. M1_ON is off.
++++ lightsStatusAddressData(statusByte, programCounter(value=1), dataByte);
 
 + Click STEP, memory read: hb.
-++ Status LED lights on: MEMR_ON, WO_ON;
-++ Jumps to next JMP opcode.
-++ Status LED lights on: MEMR_ON, M1_ON, WO_ON;
-+ Click STEP, memory read: lb.
 ++ Calls, processData().
-++ Status LED lights on: MEMR_ON, WO_ON;
-+ Click STEP, memory read: hb.
++++ Status LED lights on: MEMR_ON, WO_ON.
++++ lightsStatusAddressData(statusByte, programCounter(value=2), dataByte);
++++ programCounter set to jump-to address (hb:lb).
 
+...
+
+----------------------------------
 ...
 void displayStatusAddressData() {
   dataByte = memoryData[programCounter];

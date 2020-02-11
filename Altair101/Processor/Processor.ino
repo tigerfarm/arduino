@@ -1,35 +1,27 @@
 // -----------------------------------------------------------------------------
 /*
   Altair 101 Processor program
-
   This is an Altair 8800 emulator program that is being developed on an Arduino Nano or Mega microprocessor.
   It emulates the basic Altair 8800 hardware--from 1975--which was built around the Intel 8080 CPU chip.
   This program includes many of the 8080 microprocessor machine instructions (opcodes).
   It has more than enough opcodes to run the classic programs, Kill the Bit and Pong.
-
   ---------------------------------------------
   Current/Next Work
-
   Get status lights to work properly.
   + Test program: pLdaSta.asm. I can confirm using the video:
   ++ https://www.youtube.com/watch?v=3_73NwB6toY
-
   WHen the status lights display correctly, I can show my steampunk tablet to the world.
-
   ---------------------------------------------
   SD card module options,
   + Confirm saving or reading a file,
   ++ Fast flash HLDA for 1 second.
   ++ If read or write switch repeated, then run, else return to program wait status.
   + When rebooting the Mega: if 00000000.bin exists, read it and run it.
-
   ----------
   Add 1602 LED display,
   + Add OUT opcode to out characters to the LED display.
   + Add 1602 LED display clock time and to set the time.
-
   In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
-
   -----------------------------------------------------------------------------
   Processor program sections,
     Sample machine code program in a memory array.
@@ -54,16 +46,12 @@
     setup() : Computer initialization.
     loop()  : Clock cycling through memory.
     ----------------------------
-
   ---------------------------------------------
   Altair 8800 Operator's Manual.pdf has a description of each opcode.
-
   Binary calculator:
     https://www.calculator.net/binary-calculator.html
-
   Bitwise operators:
     https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitwiseand/
-
   ---------------------------------------------
     9 + -   - Nano connections
     | | |   - Infrared receiver pins
@@ -87,7 +75,7 @@
 // #define RUN_DELAY 1
 // #define INFRARED_MESSAGES 1    // For a simple setup: Mega + infrared, with serial messages.
 //
-#define LOG_MESSAGES 1         // Has large memory requirements.
+// #define LOG_MESSAGES 1         // Has large memory requirements.
 #define SWITCH_MESSAGES 1
 // #define RUN_NOW 1
 
@@ -207,30 +195,6 @@ const byte theProgram[] = {
   B00000000,           //   5: nop
   B11000011, 0, 0,     //   6: jmp Start
   0                    //   9: End of program
-};
-
-// -----------------------------------------------------------------------------
-// Kill the Bit program.
-
-const byte theProgramKtb[] = {
-  // ------------------------------------------------------------------
-  // Kill the Bit program.
-  // Before starting, make sure all the sense switches are in the down position.
-  B00100001, 0, 0,     //   0: lxi h,0
-  B00010110, 128,      //   3: mvi 00010110 (080h)
-  B00000001, 0, 5,     //   5: lxi b,500h
-  B00011010,           //   8: ldax d
-  B00011010,           //   9: ldax d
-  B00011010,           //  10: ldax d
-  B00011010,           //  11: ldax d
-  B00001001,           //  12: dad b
-  B11010010, 8, 0,     //  13: jnc Begin
-  B11011011, 255,      //  16: in 255 (0ffh)
-  B10101010,           //  18: xra d
-  B00001111,           //  19: rrc
-  B01010111,           //  20: mov d,a
-  B11000011, 8, 0,     //  21: jmp Begin
-  0                    //  24: End of program
 };
 
 // -----------------------------------------------------------------------------
@@ -536,14 +500,12 @@ void displayStatusAddressData() {
 
 void processData() {
   if (opcode == 0) {
-    // Instruction cycle 1 (M1 cycle), fetch the opcode.
-    // Machine cycle 1, get an opcode.
-    // Stacy, confirm status lights.
+    // Instruction machine cycle 1 (M1 cycle), fetch the opcode.
+    instructionCycle = 1;
     // statusByte = MEMR_ON | M1_ON | WO_ON;
-    // statusByte = statusByte | MEMR_ON;
-    // statusByte = statusByte | M1_ON;
-    // statusByte = statusByte | WO_ON;
-    // instructionCycle = 1;
+    statusByte = statusByte | MEMR_ON;
+    statusByte = statusByte | M1_ON;
+    statusByte = statusByte | WO_ON;
     // If no parameter bytes (immediate data byte or address bytes), process the opcode.
     // Else, the opcode variable is set to the opcode byte value.
 #ifdef LOG_MESSAGES
@@ -551,24 +513,31 @@ void processData() {
 #endif
     dataByte = memoryData[programCounter];
     processOpcode();
-    displayStatusAddressData();
+    lightsStatusAddressData(statusByte, programCounter, dataByte);
     programCounter++;
+    // Now, programCounter holds the address of the next address to process.
   } else {
     // Machine cycles 2, 3, or 4.
     instructionCycle++;
     statusByte = statusByte & M1_OFF;
-    //  Getting opcode data: an immediate data byte or an address of 2 bytes,
-    //  Processing the opcode data.
     //
+    //  Getting opcode data
+    dataByte = memoryData[programCounter];
+    int preProgramCounter = programCounter;
+    //
+    // Processing opcode data: an immediate data byte or an address(2 bytes: lb,hb).
+    // If not a jump, programCounter incremented.
+    // Else, programCounter is the jump-to address.
+    // dataByte maybe changed in the case of displaying the read/write value.
+    // statusByte maybe updated
+    processOpcodeData();
+    // Now, programCounter holds the address of the next address to process.
+    //
+    // Display the data processed.
 #ifdef LOG_MESSAGES
     Serial.print("+ ");
 #endif
-    displayStatusAddressData();
-#ifdef LOG_MESSAGES
-    Serial.print(" ");
-#endif
-    //
-    processOpcodeData(); // programCounter incremented if not a jump.
+    lightsStatusAddressData(statusByte, preProgramCounter, dataByte);
   }
 #ifdef LOG_MESSAGES
   Serial.println("");
@@ -2072,8 +2041,6 @@ void processOpcodeData() {
   //    if not jumping, increment programCounter.
   //    if jumping, programCounter is set to an address, don't increment it.
 
-  dataByte = memoryData[programCounter];
-
   switch (opcode) {
 
     // ---------------------------------------------------------------------
@@ -2244,21 +2211,18 @@ void processOpcodeData() {
         programCounter++;
         return;
       }
-      if (instructionCycle == 3) {
-        // instructionCycle == 3
-        highOrder = dataByte;
-        programCounter = word(highOrder, lowOrder);
+      // instructionCycle == 3
+      highOrder = dataByte;
+      programCounter = word(highOrder, lowOrder);
 #ifdef LOG_MESSAGES
-        Serial.print(F(" > jmp, hb:"));
-        sprintf(charBuffer, "%4d:", highOrder);
-        Serial.print(charBuffer);
-        Serial.print(F(", jmp, jump to:"));
-        sprintf(charBuffer, "%4d = ", programCounter);
-        Serial.print(charBuffer);
-        printByte((byte)programCounter);
+      Serial.print(F(" > jmp, hb:"));
+      sprintf(charBuffer, "%4d:", highOrder);
+      Serial.print(charBuffer);
+      Serial.print(F(", jmp, jump to:"));
+      sprintf(charBuffer, "%4d = ", programCounter);
+      Serial.print(charBuffer);
+      printByte((byte)programCounter);
 #endif
-        return;
-      }
       break;
     //-----------------------------------------
     case B11000010:
@@ -2685,9 +2649,10 @@ void processOpcodeData() {
         sprintf(charBuffer, "%4d:", highOrder);
         Serial.print(charBuffer);
 #endif
+        // programCounter increments during the next cycle.
         return;
       }
-      // instructionCycle == 4
+      // instructionCycle == 4, an action display cycle.
       hlValue = highOrder * 256 + lowOrder;
       memoryData[hlValue] = regA;
       //
@@ -2698,7 +2663,8 @@ void processOpcodeData() {
       statusByte = MEMR_ON | WO_ON;
       //
       // Set address lights to hb:lb. Set data lights to regA.
-      lightsStatusAddressData(statusByte, hlValue, regA);
+      dataByte = regA;
+      // lightsStatusAddressData(statusByte, hlValue, regA);
 #ifdef LOG_MESSAGES
       Serial.print(F(" > sta, register A data: "));
       Serial.print(regA);
@@ -2726,6 +2692,7 @@ void processOpcodeData() {
         sprintf(charBuffer, "%4d:", highOrder);
         Serial.print(charBuffer);
 #endif
+        // programCounter increments during the next cycle.
         return;
       }
       // instructionCycle == 4
@@ -2735,7 +2702,8 @@ void processOpcodeData() {
       //
       hlValue = highOrder * 256 + lowOrder;
       regA = memoryData[hlValue];
-      lightsStatusAddressData(statusByte, hlValue, regA);
+      dataByte = regA;
+      // lightsStatusAddressData(statusByte, hlValue, regA);
 #ifdef LOG_MESSAGES
       Serial.print(F(" > lda, load data at hb:lb address, into register A: "));
       Serial.print(regA);
@@ -2785,14 +2753,7 @@ void processOpcodeData() {
       controlStopLogic();
   }
   // The opcode cycles are complete.
-  // Set to fetch a new opcode.
   opcode = 0;
-  instructionCycle = 1;
-  statusByte = statusByte | MEMR_ON;
-  statusByte = statusByte | M1_ON;
-  statusByte = statusByte | WO_ON;
-  dataByte = memoryData[programCounter];
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
 }
 
 // -----------------------------------------------------------------------------
@@ -3201,7 +3162,6 @@ boolean switchReset = false;
 
 // -------------------------
 void controlResetLogic() {
-  Serial.println("");
   programCounter = 0;
   stackPointer = 0;
   opcode = 0;  // For the case when the processing cycle 2 or more.
@@ -3210,12 +3170,7 @@ void controlResetLogic() {
     programState = PROGRAM_WAIT;
     statusByte = statusByte | WAIT_ON;
   }
-  statusByte = statusByte | MEMR_ON;
-  statusByte = statusByte | M1_ON;
-  statusByte = statusByte | WO_ON;
-  instructionCycle = 1;
-  // dataByte = memoryData[programCounter];
-  // lightsStatusAddressData(statusByte, programCounter, dataByte);
+  // Fetch the first opcode.
   processData();
 }
 
@@ -3265,8 +3220,8 @@ void checkControlButtons() {
           // Switch logic...
           statusByte = statusByte & HLTA_OFF;
           processData();
-          // dataByte = memoryData[programCounter];
-          // lightsStatusAddressData(statusByte, programCounter, dataByte);
+          dataByte = memoryData[programCounter];
+          lightsStatusAddressData(statusByte, programCounter, dataByte);
         }
         break;
       // -------------------
@@ -3845,10 +3800,9 @@ void setup() {
     Serial.println(F(" It will start automatically."));
 #endif
   }
-  controlResetLogic();
-
   // ----------------------------------------------------
-  Serial.println(F("\n+++ Start the processor loop."));
+  Serial.println(F("\n+++ Do a program reset, and then start the processor loop."));
+  controlResetLogic();
 }
 
 // -----------------------------------------------------------------------------
