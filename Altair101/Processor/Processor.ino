@@ -3219,7 +3219,7 @@ void checkControlButtons() {
           programState = PROGRAM_RUN;
           statusByte = statusByte & WAIT_OFF;
           statusByte = statusByte & HLTA_OFF;
-          processData();
+          // processData();
         }
         break;
       // -------------------
@@ -3271,6 +3271,7 @@ void checkControlButtons() {
           Serial.println("+ Control, Deposit.");
 #endif
           // Switch logic...
+          // Stacy, if flipped after a RESET, programCounter should be curProgramCounter
           dataByte = toggleSenseByte();
           memoryData[programCounter] = dataByte;
           lightsStatusAddressData(statusByte, programCounter, dataByte);

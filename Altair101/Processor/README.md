@@ -27,28 +27,30 @@ On the hardware side, I'm bolting down the component modules and adjusting the w
 #### Current work, fix the display of the status LED lights when stepping through a program.
 
 ----------------------------------
-Fix issue with EXAMINE-NEXT, and DEPOSIT-NEXT, where
-+ Should use curProgramCounter for the first click.
-+ Then use programCounter there after.
+Fix issue with DEPOSIT, EXAMINE-NEXT, and DEPOSIT-NEXT:
++ On first click, programCounter is the next address, when it should be curProgramCounter.
+++ Should curProgramCounter and programCounter be synched when using STATE_WAIT toggle controls?
+++ Or, when using STATE_WAIT toggle controls should be using curProgramCounter, instead of programCounter?
 
-programCounter is the next address to be processed.
+Note,
++ programCounter is the next address to be processed.
++ curProgramCounter is the currently processed program counter.
+++ It is used to display the panel LED lights: status, counter, and databyte.
 
-curProgramCounter is the currently processed program counter.
-Used to display status, counter, and databyte on the LED lights.
+Replace lightsStatusAddressData, with processDataLights(), in program cases.
 
 ````
-programCounter is changed in the following:
+programCounter needs updating in the following:
+...
+case pinDeposit:
+    programCounter is next(Incorrect) when used after a STEP or STOP.
 ...
 case pinExamineNext:
     programCounter++;
 ...
 case pinDepositNext:
     programCounter++;
-
-programCounter is used in the following:
-case pinDepositNext:
-    + Incorrect when used after a STEP or STOP.
-
+...
 ````
 ----------------------------------
 Need to handle the following cases without change the program flow (which already works):
