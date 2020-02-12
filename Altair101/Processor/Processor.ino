@@ -1,14 +1,19 @@
 // -----------------------------------------------------------------------------
 /*
   Altair 101 Processor program
-  This is an Altair 8800 emulator program that is being developed on an Arduino Nano or Mega microprocessor.
-  It emulates the basic Altair 8800 hardware--from 1975--which was built around the Intel 8080 CPU chip.
-  This program includes many of the 8080 microprocessor machine instructions (opcodes).
-  It has more than enough opcodes to run the classic programs, Kill the Bit and Pong.
+  
+  This is an Altair 8800 emulator program that runs on an Arduino Mega microcontroller.
+  It emulates the basic Altair 8800 hardware processes--from 1975.
+  It was built around the Intel 8080 CPU chip. The 8080's opcodes are the same for the 8085.
+  This program implements many of the 8080 microprocessor machine instructions (opcodes).
+  It has more than enough opcodes to run the classic program, Kill the Bitg.
+  
   ---------------------------------------------
   Current/Next Work
   
-  Status lights display correctly. I can show my steampunk tablet to the world.
+  Status lights now display correctly.
+  I can show my steampunk tablet to the world.
+  + Time to generate videos.
 
   ---------------------------------------------
   SD card module options,
@@ -28,10 +33,10 @@
     Arduino pin definitions.
     Definitions: machine memory, stack memory, and a sample machine code program in a memory array.
     Output: 1602 LCD
-    Front Panel Status LEDs.
+    Definitions: Front Panel Status LEDs.
     Output: Front Panel LED lights.
     ----------------------------
-    Process a subset of the Intel 8080 opcode instructions:
+    Process a subset of the Intel 8080/8085 opcode instructions:
     + Control of the instruction set of opcodes.
     + Process opcode instruction machine cycle one (M1): fetch opcode and process it.
     + Process opcode instruction machine cycles greater than 1: address and immediate bytes.
@@ -44,7 +49,7 @@
     Input: Infrared switch events
     ----------------------------
     setup() : Computer initialization.
-    loop()  : Clock cycling through memory.
+    loop()  : Based on state, clock cycling through memory, show the time, or other state processing.
     ----------------------------
   ---------------------------------------------
   Altair 8800 Operator's Manual.pdf has a description of each opcode.
@@ -292,12 +297,12 @@ void readyLcd() {
 // Status LEDs
 //
 // Info: page 33 of the Altair 8800 oprator's manaul.
+// ------------
 // Not in use:
 //  INTE : On, interrupts enabled.
 //  INT : An interrupt request has been acknowledged.
 //  PROT : Useful only if RAM has page protection impliemented. I'm not implementing PROT.
-
-// Ready to wire and test the Standalone LED,
+// ------------
 // HLDA : 8080 processor go into a hold state because of other hardware such as the clock.
 
 // ------------
@@ -356,14 +361,7 @@ const byte WAIT_OFF =   B11111110;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// Definitions: Instruction Set, Opcodes, Registers
-
-// -----------------------------------------------------------------------------
-//        Code   Octal       Inst Param  Encoding Flags  Description
-const byte hlt    = 0166; // hlt         01110110        Halt processor
-const byte nop    = 0000; // nop         00000000        No operation
-const byte out    = 0343; // out pa      11010011        Write a to output port
-const byte IN     = 0333;
+// Process Definitions
 
 // -----------------------------------------------------------
 // Source registers, Destination registers, and register pairs.
@@ -990,11 +988,11 @@ void processOpcode() {
 #endif
       break;
     // ---------------------------------------------------------------------
-    case hlt:
+    case B01110110:
 #ifdef LOG_MESSAGES
-      Serial.print(F("+ HLT opcode, program halted."));
+      Serial.print(F("+ HLT, program halted."));
 #else
-      Serial.println(F("\n+ HLT opcode, program halted."));
+      Serial.println(F("\n+ HLT, program halted."));
 #endif
       controlStopLogic(); // Sets statusByte.
       break;
@@ -1727,7 +1725,7 @@ void processOpcode() {
 #endif
       break;
     // ------------------------------------------------------------------------------------------
-    case nop:
+    case B00000000:
 #ifdef LOG_MESSAGES
       Serial.print(F(" > nop ---------------------------"));
 #endif

@@ -2,20 +2,23 @@
 # Writing Altair 101 Assembler Programs
 
 I have moved into the program development stage.
-I wrote an assembler program that runs my laptop. It assembles source programs into byte code.
-The assembler can also upload the code to the dev machine over a serial port.
-The dev machine can run the programs with, or without,
-detail step logging messages which are displayed on my laptop over a serial port.
+I wrote an assembler program that runs my laptop. It assembles source programs into machine byte code.
+Then, I use the assembler to upload the code to the dev machine over a serial port.
+The dev machine receives the code and loads it into the emulator's memory where it can run.
+The emulator program can display program output messages on my laptop in the Arduino IDE serial monitor.
 
-My first programs are to test, study, and demonstrate my implemented Intel 8080/8085 opcodes.
+My first programs are to test, study, and demonstrate the implemented Intel 8080/8085 opcodes.
 I have also started to develop programs to demonstrate the Altair 101 abilities.
 To prove that Altair 101 is a true emulator, I can assemble and run the classic program, Kill the Bit.
 That was a celebrated accomplishment after months of work.
 
-### Opcode Test Program Development
+Altair-Duino forum:
+https://groups.google.com/forum/#!forum/altair-duino
 
-Test each opcode using various parameter types to study how to use the opcodes in a program.
-Document the details to show what can be used in a program.
+### Opcode Test Programs
+
+Test each opcode using various parameter types to study how to use the opcodes in future programs.
+Document the details to show what options work.
 
 The programs are ordered, where opcodes are tested and then used in later programs.
 For example, opMvi.asm is before opInrDcr.asm because MVI is used to initialize of opInrDcr.asm register values.
@@ -55,32 +58,41 @@ opCallRet.asm           CALL and RET work fine.
 opLdaSta.asm            LDA works with an address number and label.
                         STA works with an address number and label.
                         LXI loaded an address (value of Addr1) into H:L.
+pLdaSta.asm             LDA and STA testing with STEP.
+                        The status lights are testing and working correctly.
 
-pLdaSta.asm             LDA and STA testing with STEP, do debug the status lights.
+opLdax.asm              LDAX, Load register A with data value from address B:C or D:E.
 
-opOra.asm               ORA, OR with register A and registers: B,C,D,E,H,L, and M.
+opAdiSui.asm            ADI, Add immediate number to register A.
+                        SUI, Subtract immediate number from register A.
+
+opOra.asm               ORA, Register A, OR'ed with registers: B,C,D,E,H,L, and M.
                         This program requires, LOG_MESSAGES not defined, because it outputs messages, example: "+ Success: ORA".
                         Program length = 255.
+opAni.asm               ANI, AND and immediate value with register A.
+opXra.asm               XRA, Register A, Exclusive OR'ed with registers: B,C,D,E,H, and L.
 
 opIxi.asm               LXI test to load H:L with an address from a number or label.
 
-opAni.asm
-opRlcRrc.asm
-opAdiSui.asm
+opRlcRrc.asm            RLC, Rotate (shift) register A left. Wrap the left most, to the first.
+                        RRC, Rotate (shift) register A right. Wrap the right most, to the last.
 
-opDad.asm
-opInx.asm
-opLdax.asm
-opShld.asm
+opDad.asm               DAD, Add register pair(RP: B:C or D:E) to H:L. Set carry bit.
+opInx.asm               INX, Increment a register pair: B:C, D:E, H:L.
 
-opLdaSta.asm
+opShld.asm              SHLD a, L -> (address a); H -> (address a+1)
 
-opOut.asm
-opInOut.asm
+opOut.asm               OUT pa, Demonstrate the various output options.
+opInSwitches.asm        IN, Get and process a data byte from sense switches.
+                        HLT is used to stop the process and wait for the switches to be set.
+                        The RUN switch is used to continue the process.
+                        Basically, the process stops. Sense switches are set.
+                        Flip the RUN switch (similar return key) to continue.
+printString.asm         OUT, Subroutine using OUT to print DB variable strings to the serial monitor.
+
+opImmediate.asm         Using various types of immediate values, with various opcodes.
 
 pKillTheBit.asm
-pSenseSwitchInput.asm
-printDbString.asm
 ````
 
 ## Background Development
