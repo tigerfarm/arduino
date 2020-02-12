@@ -1,19 +1,25 @@
 // -----------------------------------------------------------------------------
 /*
   Altair 101 Processor program
-  
+
   This is an Altair 8800 emulator program that runs on an Arduino Mega microcontroller.
   It emulates the basic Altair 8800 hardware processes--from 1975.
   It was built around the Intel 8080 CPU chip. The 8080's opcodes are the same for the 8085.
   This program implements many of the 8080 microprocessor machine instructions (opcodes).
   It has more than enough opcodes to run the classic program, Kill the Bitg.
-  
+
   ---------------------------------------------
   Current/Next Work
-  
+
+  After a STEP or HLT, EXAMINE-NEXT and DEPOSIT are applied to programcounter which is curProgramcounter+1.
+  + Fix to use curProgramcounter.
+
+  With the updates to handle EXAMINE-NEXT and DEPOSIT, after a STEP or HLT. retest RET statement,
+
   Status lights now display correctly.
   I can show my steampunk tablet to the world.
   + Time to generate videos.
+
   ---------------------------------------------
   SD card module options,
   + Confirm saving or reading a file,
@@ -25,7 +31,7 @@
   + Add OUT opcode to out characters to the LED display.
   + Add 1602 LED display clock time and to set the time.
   In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
-  
+
   -----------------------------------------------------------------------------
   Processor program sections,
     Code compilation options.
@@ -454,6 +460,7 @@ void displayCmp(String theRegister, byte theRegValue) {
 // Data LED lights displayed using shift registers.
 
 void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) {
+  // This allows for custom panel display.
   digitalWrite(latchPinLed, LOW);
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(address16bits));
@@ -475,9 +482,11 @@ byte lowOrder = 0;           // lb: Low order byte of 16 bit value.
 byte highOrder = 0;          // hb: High order byte of 16 bit value.
 
 void displayStatusAddressData() {
+  // Only used in infrared actions.
+  // Infrared actions will need to updated to match the toggle changes.
   //
   dataByte = memoryData[programCounter];
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  processDataLights();
   //
 #ifdef INFRARED_MESSAGES
   Serial.print(F("Addr: "));
@@ -534,9 +543,6 @@ void processData() {
     // Machine cycles 2, 3, or 4.
     instructionCycle++;
     statusByte = statusByte & M1_OFF;
-    //
-    //  Getting opcode data
-    dataByte = memoryData[programCounter];
     //
     // Processing opcode data: an immediate data byte or an address(2 bytes: lb,hb).
     // If not a jump, programCounter incremented.
@@ -2045,17 +2051,17 @@ void processOpcodeData() {
 
   // Process data types:
   // 1) Immediate data byte:
-  // + Instruction cycle 1 (M1 above), get the opcode in processOpcode().
+  // + Instruction cycle 1 (M1 above), got the opcode in processOpcode().
   // + Instruction cycle 2, get the immediate data byte and process it.
   // 2) Address bytes:
-  // + Instruction cycle 1 (M1 above), get the opcode in processOpcode().
+  // + Instruction cycle 1 (M1 above), got the opcode in processOpcode().
   // + Instruction cycle 2, get the lower data byte (lb: lowByte).
   // + Instruction cycle 3, get the higher data byte (hb: lowByte), and process the address, hb:lb.
-  // + Instruction cycle 4, read/write the data and display the byte in the data LED lights.
+  // + Instruction cycle 4, Sometimes, read/write the data and display the byte in the data LED lights.
 
   // Note,
   //    if not jumping, increment programCounter.
-  //    if jumping, programCounter is set to an address, don't increment it.
+  //    if jumping or CALL opcode, programCounter is set to an address, don't increment it.
 
   switch (opcode) {
 
@@ -2114,7 +2120,6 @@ void processOpcodeData() {
       break;
     // ---------------------------------------------------------------------
     // CALL a    11001101 lb hb   Unconditional subroutine call. 3 cycles.
-    // stacy
     case B11001101:
       if (instructionCycle == 2) {
         lowOrder = dataByte;
@@ -2380,7 +2385,8 @@ void processOpcodeData() {
       } else {
         regA = 0;
       }
-      lightsStatusAddressData(statusByte, deValue, regA);
+      dataByte = regA;
+      // lightsStatusAddressData(statusByte, deValue, regA);
 #ifdef LOG_MESSAGES
       Serial.print(F("< ldax, the data moved into Accumulator is "));
       printData(regA);
@@ -2396,7 +2402,8 @@ void processOpcodeData() {
       } else {
         regA = 0;
       }
-      lightsStatusAddressData(statusByte, deValue, regA);
+      dataByte = regA;
+      // lightsStatusAddressData(statusByte, deValue, regA);
 #ifdef LOG_MESSAGES
       Serial.print(F("< ldax, the data moved into Accumulator is "));
       printData(regA);
@@ -2665,7 +2672,7 @@ void processOpcodeData() {
         sprintf(charBuffer, "%4d:", highOrder);
         Serial.print(charBuffer);
 #endif
-        // programCounter increments during the next cycle.
+        // programCounter increments during the next cycle, the display cycle.
         return;
       }
       // instructionCycle == 4, an action display cycle.
@@ -2708,7 +2715,7 @@ void processOpcodeData() {
         sprintf(charBuffer, "%4d:", highOrder);
         Serial.print(charBuffer);
 #endif
-        // programCounter increments during the next cycle.
+        // programCounter increments during the next cycle, the display cycle.
         return;
       }
       // instructionCycle == 4
@@ -2845,8 +2852,8 @@ void ledFlashSuccess() {
       delay(delayTime);
     }
   }
-  // Reset to original.
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  // Reset to original panel light display.
+  processDataLights();
 }
 void ledFlashError() {
   int delayTime = 300;
@@ -2856,8 +2863,8 @@ void ledFlashError() {
     lightsStatusAddressData(0, 0, B00000000);
     delay(delayTime);
   }
-  // Reset to original.
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  // Reset to original panel light display.
+  processDataLights();
 }
 
 // -------------------------------------
@@ -2918,9 +2925,6 @@ void readProgramFileIntoMemory(String theFilename) {
     digitalWrite(HLDA_PIN, LOW);
     return;
   }
-  statusByte = statusByte | INP_ON;
-  statusByte = statusByte & M1_OFF;
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
   myFile = SD.open(theFilename);
   if (!myFile) {
     Serial.print(F("- Read ERROR, cannot open file: "));
@@ -2950,9 +2954,9 @@ void readProgramFileIntoMemory(String theFilename) {
   }
   myFile.close();
   Serial.println(F("+ Read completed, file closed."));
+  //
   ledFlashSuccess();
   digitalWrite(HLDA_PIN, LOW);
-  statusByte = statusByte & INP_OFF;
   controlResetLogic();
 }
 
@@ -3179,6 +3183,7 @@ boolean switchReset = false;
 // -------------------------
 void controlResetLogic() {
   programCounter = 0;
+  curProgramCounter = programCounter;
   stackPointer = 0;
   opcode = 0;  // For the case when the processing cycle 2 or more.
   statusByte = 0;
@@ -3195,8 +3200,7 @@ void controlStopLogic() {
   statusByte = 0;
   statusByte = statusByte | WAIT_ON;
   statusByte = statusByte | HLTA_ON;
-  dataByte = memoryData[programCounter];
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  // Already displayed, the current status, Program Counter, and dataByte.
 }
 
 // -------------------------
@@ -3219,7 +3223,7 @@ void checkControlButtons() {
           programState = PROGRAM_RUN;
           statusByte = statusByte & WAIT_OFF;
           statusByte = statusByte & HLTA_OFF;
-          processData();
+          // processData();
         }
         break;
       // -------------------
@@ -3247,9 +3251,11 @@ void checkControlButtons() {
         } else if (switchExamine) {
           switchExamine = false;
           // Switch logic...
-          programCounter = toggleSenseByte();
+          // Stacy, maybe EXAMINE and DEPOSIT should have the statusByte set to read/write.
+          curProgramCounter = toggleSenseByte();
+          programCounter = curProgramCounter;
           dataByte = memoryData[programCounter];
-          lightsStatusAddressData(statusByte, programCounter, dataByte);
+          processDataLights();
 #ifdef SWITCH_MESSAGES
           Serial.print(F("+ Control, Examine: "));
           printByte(dataByte);
@@ -3271,9 +3277,13 @@ void checkControlButtons() {
           Serial.println("+ Control, Deposit.");
 #endif
           // Switch logic...
+          if (curProgramCounter != programCounter) {
+            // This handles the first switch...Next, after a STEP or HLT.
+            programCounter = curProgramCounter;
+          }
           dataByte = toggleSenseByte();
           memoryData[programCounter] = dataByte;
-          lightsStatusAddressData(statusByte, programCounter, dataByte);
+          processDataLights();
         }
         break;
       // -------------------
@@ -3285,9 +3295,14 @@ void checkControlButtons() {
         } else if (switchExamineNext) {
           switchExamineNext = false;
           // Switch logic...
+          if (curProgramCounter != programCounter) {
+            // This handles the first switch...Next, after a STEP or HLT.
+            programCounter = curProgramCounter;
+          }
           programCounter++;
+          curProgramCounter++;
           dataByte = memoryData[programCounter];
-          lightsStatusAddressData(statusByte, programCounter, dataByte);
+          processDataLights();
 #ifdef SWITCH_MESSAGES
           Serial.print(F("+ Control, Examine Next: "));
           printByte(dataByte);
@@ -3309,10 +3324,15 @@ void checkControlButtons() {
           Serial.println(F("+ Control, Deposit Next."));
 #endif
           // Switch logic...
+          if (curProgramCounter != programCounter) {
+            // This handles the first switch...Next, after a STEP or HLT.
+            programCounter = curProgramCounter;
+          }
           programCounter++;
+          curProgramCounter++;
           dataByte = toggleSenseByte();
           memoryData[programCounter] = dataByte;
-          lightsStatusAddressData(statusByte, programCounter, dataByte);
+          processDataLights();
         }
         break;
       // -------------------
@@ -3771,7 +3791,7 @@ void setup() {
   pinMode(clockPinLed, OUTPUT);
   pinMode(dataPinLed, OUTPUT);
   delay(300);
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  processDataLights();
   Serial.println(F("+ Front panel LED lights are initialized."));
 
   // ----------------------------------------------------
@@ -3888,7 +3908,7 @@ void loop() {
       statusByte = statusByte | INP_ON;
       statusByte = statusByte & M1_OFF;
       statusByte = statusByte & WAIT_OFF;
-      lightsStatusAddressData(statusByte, programCounter, dataByte);
+      lightsStatusAddressData(statusByte, 0, 0);
       //
       readByteCount = 0;  // Counter where the downloaded bytes are entered into memory.
       while (programState == SERIAL_DOWNLOAD) {
@@ -3926,6 +3946,9 @@ void loop() {
         // Program bytes were loaded.
         // Reset the program. This takes care of the case that STOP was used to end the download.
         controlResetLogic();
+      } else {
+        // Reset the panel lights, to the status before flipping the Download switch.
+        processDataLights();
       }
       digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;

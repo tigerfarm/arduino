@@ -26,6 +26,31 @@ On the hardware side, I'm bolting down the component modules and adjusting the w
 --------------------------------------------------------------------------------
 #### Current work, fix the display of the status LED lights when stepping through a program.
 
+----------------------------------
+Fix issue with EXAMINE-NEXT, and DEPOSIT-NEXT, where
++ Should use curProgramCounter for the first click.
++ Then use programCounter there after.
+
+programCounter is the next address to be processed.
+
+curProgramCounter is the currently processed program counter.
+Used to display status, counter, and databyte on the LED lights.
+
+````
+programCounter is changed in the following:
+...
+case pinExamineNext:
+    programCounter++;
+...
+case pinDepositNext:
+    programCounter++;
+
+programCounter is used in the following:
+case pinDepositNext:
+    + Incorrect when used after a STEP or STOP.
+
+````
+----------------------------------
 Need to handle the following cases without change the program flow (which already works):
 + 1 cycle opcodes.
 ++ Updated to proper initialization: controlResetLogic()
