@@ -1,42 +1,122 @@
 --------------------------------------------------------------------------------
 # Altair 101 Software
 
-The Altair 101 software has 2 components:
-the the [machine code processor](Processor.ino) program,
-and the [assembler program](../asm/src/asm/asm.java).
+The Altair 101 software consists of 2 applications:
++ The [machine code processor](Processor.ino) emulator program, and
++ The [assembler program](../asm/src/asm/asm.java).
 
 The processor is contained in a single program file.
 It interprets and processes a subset of the Altair 8800 operational instructions which are Intel 8080 chip opcodes.
-The program also manages the turning the on and off of the LED lights, and makes use of the toggle switches for input.
-The program is written in C, using the Arduino IDE, and is tested on an Arduino Nano microcontroller.
-The program is able to run 8080 machine code programs because I have programmed opcodes into the Processor program.
+The program also manages the turning the on and off of the front panel LED lights, and makes use of the toggle switches for input.
+The program is written in C++, using the Arduino IDE, and is tested on an Arduino microcontroller.
 
 The assembler is a Java SE application that parses source code and generates machine code.
 It has debugging features: parse listing, program byte listings, and error messages.
-When ready, the assembler has the option to upload the machine code to an Altair 101 machine.
-I write the assembler program, and assembler source programs, using the NetBeans IDE.
+Once machine code is generated, the assembler can upload the machine code to an Altair 101 machine.
+I wrote the assembler program, and assembler source programs, using my NetBeans IDE.
 
 With the assembler and processor programs working well, I've entered the program development stage.
 I'm writing programs to test, study, and demonstrate the implemented opcodes.
 While doing so, I'm tuning the assembler and processor program.
 
-On the hardware side, I'm bolting down the component modules and adjusting the wiring.
-2 more components to add: 1602 LCD and the MP3 player.
+On the hardware side, I've added a number of modules.
+I'm bolt them down and adjust the wiring.
+Once added, wired, and programmed, the module are part of the machine.
+For example, by flipping the AUX1 toggle up, the time is displayed using the LED address and data lights.
+The HLDA LED blinks at one second intervals.
+Clicking the AUX1 up a second time, returns control to the program emulator.
+I have 2 more components to include: 1602 LCD and an MP3 player.
 
 --------------------------------------------------------------------------------
-#### Altair 101 Features
+#### Assembling and Running a Program on the Altair 101
 
 The emulator program, [Processor.ino](Processor.ino)
 has a number of Intel 8080/8085 opcodes implemented (see list below).
 When turned on, the various components are initialized:
-    toggles, LED lights, serial port, clock, and SD card modules.
+    toggle modules, LED light 595 chips, serial port, clock, and micro SD card modules.
 The program simulates the toggle functions of the Altair 8800,
-and displays results the same, on the LED lights.
+and displays results on the front panel LED lights.
 
-To upload byte code ...
+Following is how I generate a machine code file and upload it to the Arduino processor program.
 
-Once the program is on the machine, I flip the reset toggle and run the program by flipping the run toggle.
-The emulator has the ability to view the program bytes in the LED display, using the Examine toggles.
+On the Altair 101,
+````
+I set the sense switches all on.
++ The machine is ready to receive bytes through the serial port module.
+````
+On my laptop, I generate the machine code file.
+````
+$ java -jar asm.jar 
++++ Start 8080/8085 assembler, version 0.92e
+...
+> ls
++ -------------------------------------
++ Directory listing for: programs
++ Program Directory = /Users/dthurston/Projects/arduino/Altair101/asm/programs
+++ opAdd.asm
+++ opAdiSui.asm
+...
+++ pKillTheBit.asm
+...
+> file pKillTheBit.asm
++ Program source file name: pKillTheBit.asm.
++ Program full file name: programs/pKillTheBit.asm.
++ Machine code file name: p1.bin.
+> asm
++ -------------------------------------
++ Print and parse the program: pKillTheBit.asm:
+++ parseLine, part1|org| theRest|0|
+...
+++ Opcode: jmp 11000011 p1|Begin|
+++ parseLine, Opcode|end|
++ pin.close() 
+
++ Set Program Label address values...
++ Finished setting label address values.
+
++ Set program immediate values...
++ Finished setting immediate values.
++ -------------------------------------
++ Write the program byte array to the file: p1.bin:
+
++ Print Program Bytes and description.
+++ Address:byte      databyte :hex > description
+++       0:00000000: 00100001 : 21 > opcode: lxi h,0
+++       1:00000001: 00000000 : 00 > lb: 0
+++       2:00000010: 00000000 : 00 > hb: 0
+...
+++      21:00010101: 11000011 : C3 > opcode: jmp Begin
+++      22:00010110: 00001000 : 08 > lb: 8
+++      23:00010111: 00000000 : 00 > hb: 0
++ End of list.
++ Machine code file created:  p1.bin
+````
+The machine code file is created. Next I upload the file.
+````
+> upload
++ -------------------------------------
++ Write to the serail port, the program file: p1.bin:
++ Serial port is open.
++ Write to serial port. Number of bytes: 24 in the file: p1.bin
+00100001 00000000 00000000 00010110 10000000 00000001 00000000 00000101 00011010 00011010 
+00011010 00011010 00001001 11010010 00001000 00000000 11011011 11111111 10101010 00001111 
+01010111 11000011 00001000 00000000 
++ Serial port is closed.
+
++ Write completed.
+> exit
++ -------------------------------------
++++ Exit.
+$
+````
+On the Altair 101,
+````
+I flip the RESET switch and the machine returns to program mode.
+````
+The machine code program is in the emulator's memory and ready to use.
+For example, I flip the run toggle to run the program.
+
+I can use the examine and examine next toggles to view the program bytes in the front panel LED lights.
 I can change the program bytes using the Deposit toggles.
 The Step toggle works to step through the program machine cycles
 with results showing on the LED lights: address lights, data lights, and status lights.
@@ -44,18 +124,16 @@ with results showing on the LED lights: address lights, data lights, and status 
 Flipping the AUX2 toggle up, the emulator's memory,
 which includes the program and memory data, is saved to the micro SD card.
 Flipping the AUX2 toggle down, the file bytes are reloaded into memory from the micro SD card.
-The SD card filenames are set using the address toggles.
+
+The micro SD card filenames are set using the address toggles.
 For example, set the toggles to 00000101, flip AUX2 toggle up,
 and the emulator's memory is stored (uploaded) to file: 00000101.bin.
 At any other time, the program can be reloaded into memory by
 setting the toggles to 00000101, and flipping AUX2 down,
 to download the file, 00000101.bin, back into the emulator's memory.
 
-By flipping the AUX1 toggle up, the time is displayed using the LED address and data lights.
-The HLDA LED blinks a one second intervals.
-Clicking the AUX1 up a second time, return control to the program emulator.
-
-#### Implemented Opcodes
+--------------------------------------------------------------------------------
+## Implemented Opcodes
 
 The following list was generated from the [opcode data file](../asmOpcodes.txt).
 ````
@@ -93,6 +171,9 @@ Binary             Opcode   Binary   Cycles Description
 11010110 : sui   : SUI #    11 010 110  3  Subtract immediate number from register A, set ZSCPA.
 10101SSS : xra   : XRA R    10 101 SSS  1  Exclusive OR, the register(R) with register A.
 ````
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 #### The Altair 101 Development Machine
 
 The processor software runs on an Arduino Nano that is on the breadboard development computer.
