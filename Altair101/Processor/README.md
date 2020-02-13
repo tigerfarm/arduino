@@ -28,7 +28,7 @@ Clicking the AUX1 up a second time, returns control to the program emulator.
 I have 2 more components to include: 1602 LCD and an MP3 player.
 
 --------------------------------------------------------------------------------
-#### Assembling and Running a Program on the Altair 101
+#### Assemble and Run Programs on the Altair 101
 
 The emulator program, [Processor.ino](Processor.ino)
 has a number of Intel 8080/8085 opcodes implemented (see list below).
