@@ -390,12 +390,20 @@ void printWord(int theValue) {
   Serial.print(sValue);
 }
 
-void printOctal(byte b) {
-  String sOctal = String(b, OCT);
-  for (int i = 1; i <= 3 - sOctal.length(); i++) {
+void printHex(byte b) {
+  String sValue = String(b, HEX);
+  for (int i = 1; i <= 3 - sValue.length(); i++) {
     Serial.print("0");
   }
-  Serial.print(sOctal);
+  Serial.print(sValue);
+}
+
+void printOctal(byte b) {
+  String sValue = String(b, OCT);
+  for (int i = 1; i <= 3 - sValue.length(); i++) {
+    Serial.print("0");
+  }
+  Serial.print(sValue);
 }
 
 void printData(byte theByte) {
@@ -3855,6 +3863,9 @@ void loop() {
       if (serial2.isListening()) {
         Serial.println("+ serial2 is listening.");
         Serial.println("+ Ready to use the second serial port for receiving program bytes.");
+        Serial.println("+                 Address  Data  Binary   Hex Octal Decimal");
+        //              ++ Byte array number:   0, Byte: 00000110 06  006   6
+        //              ++ Byte array number:   0, Byte: 00000110 Octal:006 Decimal6
       }
       //
       // Set status lights:
@@ -3884,9 +3895,11 @@ void loop() {
           readByteCount++;
           Serial.print(", Byte: ");
           printByte(readByte);
-          Serial.print(" Octal:");
+          Serial.print(" ");
+          printHex(readByte);
+          Serial.print(" ");
           printOctal(readByte);
-          Serial.print(" Decimal");
+          Serial.print("   ");
           Serial.print(readByte, DEC);
           Serial.println("");
         }

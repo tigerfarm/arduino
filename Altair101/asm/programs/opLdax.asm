@@ -4,15 +4,15 @@
                             ;
                             ; --------------------------------------
     Test1:
-            mvi b,0         ; Load B:C with the address of 0, which is the JMP code.
+            mvi b,0         ; Load B:C with the address of 0, which is the MVI(b) ocode.
             mvi c,0
-            ldax b          ; Load register A with data value from address B:C. B:C data = octal 0303
-            out 37          ; Print register A = 195 = 0303 = B11000011
+            ldax b          ; Load register A with data value from address B:C.
+            out 37          ; Print > Register A =   6 = 006 = 00000110
     Test2:
-            mvi d,0         ; Load D:E with the address of 3, which is the HLT code.
-            mvi e,3
-            ldax b          ; Load register A with data value from address D:E. D:E data = octal 0166
-            out 37          ; Print register A = 118 = 0166 = B01110110
+            mvi d,0         ; Load D:E with an address, which is the LDAX opcode.
+            mvi e,4
+            ldax d          ; Load register A with data value from address D:E.
+            out 37          ; Print > Register A =  10 = 012 = 00001010
                             ;
                             ; --------------------------------------
             hlt             ; The program will halt before another iteration.

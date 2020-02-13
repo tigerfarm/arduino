@@ -5,9 +5,9 @@ Major milestone version.
 + Processor.ino emulates the basic interactivity of the Altair 8800.
 + The toggles and LED lights work as expected.
 + The test program, Kill the Bit, runs great!
-+ The Java assembler program works to generate and upload machine code to the Altair 101 dev machine.
 + The emulator's memory can be write to the micro SD card, and then later, read back into memory.
-+ The opcode programs I tested work.
++ The Java assembler program works to generate and upload machine code to the Altair 101 dev machine.
++ The opcode programs I wrote and ran, work fine.
 
 In this version:
 + I cleaned up the data processing function: processData(), and the functions it calls.
@@ -18,7 +18,7 @@ In this version:
 + The control switch functions were updated to work as expected:
 ++ STOP, RUN, STEP, EXAMINE, EXAMINE-NEXT, DEPOSIT, DEPOSIT-NEXT.
 ++ Can STOP a program. Then flip RUN and the program will continue.
-++ EXAMINE, EXAMINE-NEXT, DEPOSIT, DEPOSIT-NEXT, all set the program counter.
+++ EXAMINE, EXAMINE-NEXT, DEPOSIT, DEPOSIT-NEXT, all use and set the program counter properly.
 
 --------------------------------------------------------------------------------
 Cheers

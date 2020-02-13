@@ -60,11 +60,13 @@ opLdaSta.asm            LDA works with an address number and label.
                         LXI loaded an address (value of Addr1) into H:L.
 pLdaSta.asm             LDA and STA testing with STEP.
                         The status lights are testing and working correctly.
-
 opLdax.asm              LDAX, Load register A with data value from address B:C or D:E.
 
-opAdiSui.asm            ADI, Add immediate number to register A.
+opAdiSui.asm            ADI, Add immediate number to register A. Tested with decimal and EQU values.
                         SUI, Subtract immediate number from register A.
+                        Retain register A calculated value using push and pop.
+                        PUSH, Push register A on the stack before OUT characters.
+                        POP, Pop register A off the stack after OUT characters.
 
 opOra.asm               ORA, Register A, OR'ed with registers: B,C,D,E,H,L, and M.
                         This program requires, LOG_MESSAGES not defined, because it outputs messages, example: "+ Success: ORA".
