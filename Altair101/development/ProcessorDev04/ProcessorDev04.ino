@@ -1,16 +1,19 @@
 // -----------------------------------------------------------------------------
 /*
   Altair 101 Processor program
-  This is an Altair 8800 emulator program that is being developed on an Arduino Nano or Mega microprocessor.
-  It emulates the basic Altair 8800 hardware--from 1975--which was built around the Intel 8080 CPU chip.
-  This program includes many of the 8080 microprocessor machine instructions (opcodes).
-  It has more than enough opcodes to run the classic programs, Kill the Bit and Pong.
+  
+  This is an Altair 8800 emulator program that runs on an Arduino Mega microcontroller.
+  It emulates the basic Altair 8800 hardware processes--from 1975.
+  It was built around the Intel 8080 CPU chip. The 8080's opcodes are the same for the 8085.
+  This program implements many of the 8080 microprocessor machine instructions (opcodes).
+  It has more than enough opcodes to run the classic program, Kill the Bitg.
+  
   ---------------------------------------------
   Current/Next Work
-  Get status lights to work properly.
-  + Test program: pLdaSta.asm. I can confirm using the video:
-  ++ https://www.youtube.com/watch?v=3_73NwB6toY
-  WHen the status lights display correctly, I can show my steampunk tablet to the world.
+  
+  Status lights now display correctly.
+  I can show my steampunk tablet to the world.
+  + Time to generate videos.
   ---------------------------------------------
   SD card module options,
   + Confirm saving or reading a file,
@@ -22,16 +25,17 @@
   + Add OUT opcode to out characters to the LED display.
   + Add 1602 LED display clock time and to set the time.
   In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
+  
   -----------------------------------------------------------------------------
   Processor program sections,
-    Sample machine code program in a memory array.
-    Definitions: machine memory and stack memory.
-    Memory Functions.
+    Code compilation options.
+    Arduino pin definitions.
+    Definitions: machine memory, stack memory, and a sample machine code program in a memory array.
     Output: 1602 LCD
-    Front Panel Status LEDs.
+    Definitions: Front Panel Status LEDs.
     Output: Front Panel LED lights.
     ----------------------------
-    Process a subset of the Intel 8080 opcode instructions:
+    Process a subset of the Intel 8080/8085 opcode instructions:
     + Control of the instruction set of opcodes.
     + Process opcode instruction machine cycle one (M1): fetch opcode and process it.
     + Process opcode instruction machine cycles greater than 1: address and immediate bytes.
@@ -44,7 +48,7 @@
     Input: Infrared switch events
     ----------------------------
     setup() : Computer initialization.
-    loop()  : Clock cycling through memory.
+    loop()  : Based on state, clock cycling through memory, show the time, or other state processing.
     ----------------------------
   ---------------------------------------------
   Altair 8800 Operator's Manual.pdf has a description of each opcode.
@@ -186,6 +190,18 @@ SoftwareSerial serial2(PIN_RX, PIN_TX);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+// Memory definitions
+
+const int memoryBytes = 1024;  // When using Mega: 1024, for Nano: 256
+byte memoryData[memoryBytes];
+unsigned int curProgramCounter = 0;     // Current program address value
+unsigned int programCounter = 0;        // When processing opcodes, the next program address value.
+
+const int stackBytes = 32;
+int stackData[memoryBytes];
+unsigned int stackPointer = stackBytes;
+
+// Sample byte code program array.
 const byte theProgram[] = {
   //                //            ; --------------------------------------
   //                //            ; Test programs.
@@ -196,41 +212,6 @@ const byte theProgram[] = {
   B11000011, 0, 0,     //   6: jmp Start
   0                    //   9: End of program
 };
-
-// -----------------------------------------------------------------------------
-// Kill the Bit program.
-
-const byte theProgramKtb[] = {
-  // ------------------------------------------------------------------
-  // Kill the Bit program.
-  // Before starting, make sure all the sense switches are in the down position.
-  B00100001, 0, 0,     //   0: lxi h,0
-  B00010110, 128,      //   3: mvi 00010110 (080h)
-  B00000001, 0, 5,     //   5: lxi b,500h
-  B00011010,           //   8: ldax d
-  B00011010,           //   9: ldax d
-  B00011010,           //  10: ldax d
-  B00011010,           //  11: ldax d
-  B00001001,           //  12: dad b
-  B11010010, 8, 0,     //  13: jnc Begin
-  B11011011, 255,      //  16: in 255 (0ffh)
-  B10101010,           //  18: xra d
-  B00001111,           //  19: rrc
-  B01010111,           //  20: mov d,a
-  B11000011, 8, 0,     //  21: jmp Begin
-  0                    //  24: End of program
-};
-
-// -----------------------------------------------------------------------------
-// Memory definitions
-
-const int memoryBytes = 1024;  // When using Mega: 1024, for Nano: 256
-byte memoryData[memoryBytes];
-unsigned int programCounter = 0;     // Program address value
-
-const int stackBytes = 32;
-int stackData[memoryBytes];
-unsigned int stackPointer = stackBytes;
 
 // -----------------------------------------------------------------------------
 // Memory Functions
@@ -316,12 +297,12 @@ void readyLcd() {
 // Status LEDs
 //
 // Info: page 33 of the Altair 8800 oprator's manaul.
+// ------------
 // Not in use:
 //  INTE : On, interrupts enabled.
 //  INT : An interrupt request has been acknowledged.
 //  PROT : Useful only if RAM has page protection impliemented. I'm not implementing PROT.
-
-// Ready to wire and test the Standalone LED,
+// ------------
 // HLDA : 8080 processor go into a hold state because of other hardware such as the clock.
 
 // ------------
@@ -380,14 +361,7 @@ const byte WAIT_OFF =   B11111110;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// Definitions: Instruction Set, Opcodes, Registers
-
-// -----------------------------------------------------------------------------
-//        Code   Octal       Inst Param  Encoding Flags  Description
-const byte hlt    = 0166; // hlt         01110110        Halt processor
-const byte nop    = 0000; // nop         00000000        No operation
-const byte out    = 0343; // out pa      11010011        Write a to output port
-const byte IN     = 0333;
+// Process Definitions
 
 // -----------------------------------------------------------
 // Source registers, Destination registers, and register pairs.
@@ -522,51 +496,68 @@ void displayStatusAddressData() {
 #endif
 }
 
+void processDataLights() {
+  // Use the current program values: statusByte, curProgramCounter, and dataByte.
+  digitalWrite(latchPinLed, LOW);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, dataByte);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(curProgramCounter));
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(curProgramCounter));
+  shiftOut(dataPinLed, clockPinLed, MSBFIRST, statusByte); // MSBFIRST matches the bit to LED mapping.
+  digitalWrite(latchPinLed, HIGH);
+}
+
 void processData() {
+  //
+  // Get the next opcode data to be processed.
+  dataByte = memoryData[programCounter];
+  // Update curProgramCounter to the address being processed.
+  curProgramCounter = programCounter;
+  //
   if (opcode == 0) {
-    // Instruction cycle 1 (M1 cycle), fetch the opcode.
-    // Machine cycle 1, get an opcode.
-    // Stacy, confirm status lights.
+    // Instruction machine cycle 1 (M1 cycle), fetch the opcode.
+    instructionCycle = 1;
     // statusByte = MEMR_ON | M1_ON | WO_ON;
     statusByte = statusByte | MEMR_ON;
     statusByte = statusByte | M1_ON;
     statusByte = statusByte | WO_ON;
-    instructionCycle = 1;
     // If no parameter bytes (immediate data byte or address bytes), process the opcode.
     // Else, the opcode variable is set to the opcode byte value.
 #ifdef LOG_MESSAGES
     Serial.print(" > ");
 #endif
-    displayStatusAddressData();       // Sets the dataByte.
     processOpcode();
+    // If not a RET opcode, programCounter remains the same.
+    // If a RET opcode processed, programCounter is set(from the stack) to the call-from address.
+    //    Then set to the address after the call-from address, by this statement:
     programCounter++;
-    if (programState == PROGRAM_WAIT) {
-      // Either HLT opcode was just processed, or using STEP to step through the program.
-      if (dataByte == hlt) {
-        // HLT opcode was just processed.
-        displayStatusAddressData();
-      }
-    }
   } else {
     // Machine cycles 2, 3, or 4.
     instructionCycle++;
     statusByte = statusByte & M1_OFF;
-    //  Getting opcode data: an immediate data byte or an address of 2 bytes,
-    //  Processing the opcode data.
     //
-#ifdef LOG_MESSAGES
-    Serial.print("+ ");
-#endif
-    displayStatusAddressData();
-#ifdef LOG_MESSAGES
-    Serial.print(" ");
-#endif
+    //  Getting opcode data
+    dataByte = memoryData[programCounter];
     //
-    processOpcodeData(); // programCounter incremented if not a jump.
+    // Processing opcode data: an immediate data byte or an address(2 bytes: lb,hb).
+    // If not a jump, programCounter incremented.
+    // Else, programCounter is the jump-to address.
+    // dataByte maybe changed in the case of displaying the read/write value.
+    // statusByte maybe updated, example for IN or OUT.
+    processOpcodeData();
   }
+  // Now, programCounter holds the next address to process.
+  // curProgramCounter holds the currently processed address.
+  //
+  // -------------
+  // Display the currently processed: status, program counter, and data byte.
+#ifdef LOG_MESSAGES
+  Serial.print("+ ");
+#endif
+  processDataLights();  // Uses: statusByte, curProgramCounter, dataByte.
 #ifdef LOG_MESSAGES
   Serial.println("");
 #endif
+  // -------------
 }
 
 // ------------------------------------------------------------------------------------------
@@ -1013,11 +1004,11 @@ void processOpcode() {
 #endif
       break;
     // ---------------------------------------------------------------------
-    case hlt:
+    case B01110110:
 #ifdef LOG_MESSAGES
-      Serial.print(F("+ HLT opcode, program halted."));
+      Serial.print(F("+ HLT, program halted."));
 #else
-      Serial.println(F("\n+ HLT opcode, program halted."));
+      Serial.println(F("\n+ HLT, program halted."));
 #endif
       controlStopLogic(); // Sets statusByte.
       break;
@@ -1750,7 +1741,7 @@ void processOpcode() {
 #endif
       break;
     // ------------------------------------------------------------------------------------------
-    case nop:
+    case B00000000:
 #ifdef LOG_MESSAGES
       Serial.print(F(" > nop ---------------------------"));
 #endif
@@ -2044,6 +2035,7 @@ void processOpcode() {
       printData(programCounter);
       Serial.println(F(""));
 #endif
+      ledFlashError();
       controlStopLogic();
   }
 }
@@ -2065,8 +2057,6 @@ void processOpcodeData() {
   // Note,
   //    if not jumping, increment programCounter.
   //    if jumping, programCounter is set to an address, don't increment it.
-
-  dataByte = memoryData[programCounter];
 
   switch (opcode) {
 
@@ -2676,9 +2666,10 @@ void processOpcodeData() {
         sprintf(charBuffer, "%4d:", highOrder);
         Serial.print(charBuffer);
 #endif
+        // programCounter increments during the next cycle.
         return;
       }
-      // instructionCycle == 4
+      // instructionCycle == 4, an action display cycle.
       hlValue = highOrder * 256 + lowOrder;
       memoryData[hlValue] = regA;
       //
@@ -2689,7 +2680,8 @@ void processOpcodeData() {
       statusByte = MEMR_ON | WO_ON;
       //
       // Set address lights to hb:lb. Set data lights to regA.
-      lightsStatusAddressData(statusByte, hlValue, regA);
+      dataByte = regA;
+      // lightsStatusAddressData(statusByte, hlValue, regA);
 #ifdef LOG_MESSAGES
       Serial.print(F(" > sta, register A data: "));
       Serial.print(regA);
@@ -2717,6 +2709,7 @@ void processOpcodeData() {
         sprintf(charBuffer, "%4d:", highOrder);
         Serial.print(charBuffer);
 #endif
+        // programCounter increments during the next cycle.
         return;
       }
       // instructionCycle == 4
@@ -2726,7 +2719,8 @@ void processOpcodeData() {
       //
       hlValue = highOrder * 256 + lowOrder;
       regA = memoryData[hlValue];
-      lightsStatusAddressData(statusByte, hlValue, regA);
+      dataByte = regA;
+      // lightsStatusAddressData(statusByte, hlValue, regA);
 #ifdef LOG_MESSAGES
       Serial.print(F(" > lda, load data at hb:lb address, into register A: "));
       Serial.print(regA);
@@ -2838,7 +2832,7 @@ void ledFlashSuccess() {
   int delayTime = 60;
   lightsStatusAddressData(0, 0, B00000000);
   delay(delayTime);
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < 1; i++) {
     byte flashByte = B10000000;
     for (int i = 0; i < 8; i++) {
       lightsStatusAddressData(0, 0, flashByte);
@@ -2852,8 +2846,8 @@ void ledFlashSuccess() {
       delay(delayTime);
     }
   }
-  // Reset to original.
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  // Reset the panel lights to program values.
+  processDataLights();
 }
 void ledFlashError() {
   int delayTime = 300;
@@ -2863,8 +2857,8 @@ void ledFlashError() {
     lightsStatusAddressData(0, 0, B00000000);
     delay(delayTime);
   }
-  // Reset to original.
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  // Reset the panel lights to program values.
+  processDataLights();
 }
 
 // -------------------------------------
@@ -2915,9 +2909,7 @@ void readProgramFileIntoMemory(String theFilename) {
   // Serial.println("+ Read a file into program memory, file named: ");
   // Serial.print(theFilename);
   // Serial.println("+ Check if file exists. ");
-  if (SD.exists(theFilename)) {
-    // Serial.println("++ Exists, so it can be read.");
-  } else {
+  if (!SD.exists(theFilename)) {
     Serial.print(F("- Read ERROR, file doesn't exist: "));
     Serial.println(theFilename);
     ledFlashError();
@@ -2925,9 +2917,6 @@ void readProgramFileIntoMemory(String theFilename) {
     digitalWrite(HLDA_PIN, LOW);
     return;
   }
-  statusByte = statusByte | INP_ON;
-  statusByte = statusByte & M1_OFF;
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
   myFile = SD.open(theFilename);
   if (!myFile) {
     Serial.print(F("- Read ERROR, cannot open file: "));
@@ -2959,7 +2948,6 @@ void readProgramFileIntoMemory(String theFilename) {
   Serial.println(F("+ Read completed, file closed."));
   ledFlashSuccess();
   digitalWrite(HLDA_PIN, LOW);
-  statusByte = statusByte & INP_OFF;
   controlResetLogic();
 }
 
@@ -3186,18 +3174,16 @@ boolean switchReset = false;
 // -------------------------
 void controlResetLogic() {
   programCounter = 0;
+  curProgramCounter = 0;
   stackPointer = 0;
   opcode = 0;  // For the case when the processing cycle 2 or more.
-  dataByte = memoryData[programCounter];
+  statusByte = 0;
   if (programState == CLOCK_RUN || programState == SERIAL_DOWNLOAD) {
     programState = PROGRAM_WAIT;
     statusByte = statusByte | WAIT_ON;
   }
-  statusByte = 0;
-  statusByte = statusByte | MEMR_ON;
-  statusByte = statusByte | M1_ON;
-  statusByte = statusByte | WO_ON;
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  // Fetch the first opcode.
+  processData();
 }
 
 void controlStopLogic() {
@@ -3205,8 +3191,7 @@ void controlStopLogic() {
   statusByte = 0;
   statusByte = statusByte | WAIT_ON;
   statusByte = statusByte | HLTA_ON;
-  dataByte = memoryData[programCounter];
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  // Panel light values are set to the latest byte processed.
 }
 
 // -------------------------
@@ -3229,7 +3214,7 @@ void checkControlButtons() {
           programState = PROGRAM_RUN;
           statusByte = statusByte & WAIT_OFF;
           statusByte = statusByte & HLTA_OFF;
-          processData();
+          // processData();
         }
         break;
       // -------------------
@@ -3246,8 +3231,6 @@ void checkControlButtons() {
           // Switch logic...
           statusByte = statusByte & HLTA_OFF;
           processData();
-          dataByte = memoryData[programCounter];
-          lightsStatusAddressData(statusByte, programCounter, dataByte);
         }
         break;
       // -------------------
@@ -3260,31 +3243,12 @@ void checkControlButtons() {
           switchExamine = false;
           // Switch logic...
           programCounter = toggleSenseByte();
+          curProgramCounter = programCounter;     // Synch for control switches.
           dataByte = memoryData[programCounter];
-          lightsStatusAddressData(statusByte, programCounter, dataByte);
+          processDataLights();
+          // lightsStatusAddressData(statusByte, programCounter, dataByte);
 #ifdef SWITCH_MESSAGES
           Serial.print(F("+ Control, Examine: "));
-          printByte(dataByte);
-          Serial.print(" = ");
-          Serial.print(dataByte);
-          Serial.println("");
-#endif
-        }
-        break;
-      // -------------------
-      case pinExamineNext:
-        if (pinValue == 0) {
-          if (!switchExamineNext) {
-            switchExamineNext = true;
-          }
-        } else if (switchExamineNext) {
-          switchExamineNext = false;
-          // Switch logic...
-          programCounter++;
-          dataByte = memoryData[programCounter];
-          lightsStatusAddressData(statusByte, programCounter, dataByte);
-#ifdef SWITCH_MESSAGES
-          Serial.print(F("+ Control, Examine Next: "));
           printByte(dataByte);
           Serial.print(" = ");
           Serial.print(dataByte);
@@ -3304,9 +3268,43 @@ void checkControlButtons() {
           Serial.println("+ Control, Deposit.");
 #endif
           // Switch logic...
+          if (curProgramCounter != programCounter) {
+            // Synch for control switches: programCounter and curProgramCounter.
+            // This handles the first switch, after a STEP or HLT.
+            programCounter = curProgramCounter;
+          }
           dataByte = toggleSenseByte();
           memoryData[programCounter] = dataByte;
-          lightsStatusAddressData(statusByte, programCounter, dataByte);
+          processDataLights();
+          // lightsStatusAddressData(statusByte, programCounter, dataByte);
+        }
+        break;
+      // -------------------
+      case pinExamineNext:
+        if (pinValue == 0) {
+          if (!switchExamineNext) {
+            switchExamineNext = true;
+          }
+        } else if (switchExamineNext) {
+          switchExamineNext = false;
+          // Switch logic...
+          if (curProgramCounter != programCounter) {
+            // Synch for control switches: programCounter and curProgramCounter.
+            // This handles the first switch...Next, after a STEP or HLT.
+            programCounter = curProgramCounter;
+          }
+          curProgramCounter++;
+          programCounter++;
+          dataByte = memoryData[programCounter];
+          processDataLights();
+          // lightsStatusAddressData(statusByte, programCounter, dataByte);
+#ifdef SWITCH_MESSAGES
+          Serial.print(F("+ Control, Examine Next: "));
+          printByte(dataByte);
+          Serial.print(" = ");
+          Serial.print(dataByte);
+          Serial.println("");
+#endif
         }
         break;
       // -------------------
@@ -3321,10 +3319,17 @@ void checkControlButtons() {
           Serial.println(F("+ Control, Deposit Next."));
 #endif
           // Switch logic...
+          if (curProgramCounter != programCounter) {
+            // Synch for control switches: programCounter and curProgramCounter.
+            // This handles the first switch...Next, after a STEP or HLT.
+            programCounter = curProgramCounter;
+          }
+          curProgramCounter++;
           programCounter++;
           dataByte = toggleSenseByte();
           memoryData[programCounter] = dataByte;
-          lightsStatusAddressData(statusByte, programCounter, dataByte);
+          processDataLights();
+          // lightsStatusAddressData(statusByte, programCounter, dataByte);
         }
         break;
       // -------------------
@@ -3770,20 +3775,20 @@ void setup() {
   Serial.println(F("+ All front panel toggle switches are configured for input."));
 
   // ----------------------------------------------------
-  // Status lights are off by default.
+  // Status lights are off (statusByte=0) by default.
+  // programCounter and curProgramCounter are 0 by default.
   statusByte = statusByte | WAIT_ON;
   statusByte = statusByte | MEMR_ON;
   statusByte = statusByte | M1_ON;
   statusByte = statusByte | WO_ON;  // WO: on, Inverse logic: off when writing out. On when not.
-  programCounter = 0;
-  dataByte = memoryData[programCounter];
-  Serial.println(F("+ Initialized: statusByte, programCounter, dataByte."));
+  dataByte = memoryData[curProgramCounter];
+  Serial.println(F("+ Initialized: statusByte, programCounter & curProgramCounter, dataByte."));
   //
   pinMode(latchPinLed, OUTPUT);
   pinMode(clockPinLed, OUTPUT);
   pinMode(dataPinLed, OUTPUT);
   delay(300);
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  processDataLights(); // Uses: statusByte, curProgramCounter, dataByte
   Serial.println(F("+ Front panel LED lights are initialized."));
 
   // ----------------------------------------------------
@@ -3826,10 +3831,9 @@ void setup() {
     Serial.println(F(" It will start automatically."));
 #endif
   }
-  controlResetLogic();
-
   // ----------------------------------------------------
-  Serial.println(F("\n+++ Start the processor loop."));
+  Serial.println(F("\n+++ Do a program reset, and then start the processor loop."));
+  controlResetLogic();
 }
 
 // -----------------------------------------------------------------------------
@@ -3898,10 +3902,10 @@ void loop() {
       // HLDA on when in this mode. Later, HLDA off (LOW), then on (HIGH) when bytes downloading (Serial.available).
       digitalWrite(HLDA_PIN, HIGH);
       // INP on
-      statusByte = statusByte | INP_ON;
-      statusByte = statusByte & M1_OFF;
-      statusByte = statusByte & WAIT_OFF;
-      lightsStatusAddressData(statusByte, programCounter, dataByte);
+      byte readStatusByte = INP_ON;
+      readStatusByte = readStatusByte & M1_OFF;
+      readStatusByte = readStatusByte & WAIT_OFF;
+      lightsStatusAddressData(readStatusByte, 0, 0);
       //
       readByteCount = 0;  // Counter where the downloaded bytes are entered into memory.
       while (programState == SERIAL_DOWNLOAD) {
@@ -3936,10 +3940,12 @@ void loop() {
       statusByte = statusByte & INP_OFF;
       statusByte = statusByte | WAIT_ON;
       if (readByteCount > 0) {
-        // Program bytes were loaded. Reset and display the statusByte.
-        programCounter = 0;
-        dataByte = memoryData[programCounter];
-        lightsStatusAddressData(statusByte, programCounter, dataByte);
+        // Program bytes were loaded.
+        // Reset the program. This takes care of the case that STOP was used to end the download.
+        controlResetLogic();
+      } else {
+        // Reset to original panel light values.
+        processDataLights();
       }
       digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;

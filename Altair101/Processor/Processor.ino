@@ -2035,6 +2035,7 @@ void processOpcode() {
       printData(programCounter);
       Serial.println(F(""));
 #endif
+      ledFlashError();
       controlStopLogic();
   }
 }
@@ -2845,8 +2846,8 @@ void ledFlashSuccess() {
       delay(delayTime);
     }
   }
-  // Reset to original.
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  // Reset the panel lights to program values.
+  processDataLights();
 }
 void ledFlashError() {
   int delayTime = 300;
@@ -2856,8 +2857,8 @@ void ledFlashError() {
     lightsStatusAddressData(0, 0, B00000000);
     delay(delayTime);
   }
-  // Reset to original.
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  // Reset the panel lights to program values.
+  processDataLights();
 }
 
 // -------------------------------------
@@ -2908,9 +2909,7 @@ void readProgramFileIntoMemory(String theFilename) {
   // Serial.println("+ Read a file into program memory, file named: ");
   // Serial.print(theFilename);
   // Serial.println("+ Check if file exists. ");
-  if (SD.exists(theFilename)) {
-    // Serial.println("++ Exists, so it can be read.");
-  } else {
+  if (!SD.exists(theFilename)) {
     Serial.print(F("- Read ERROR, file doesn't exist: "));
     Serial.println(theFilename);
     ledFlashError();
@@ -2918,9 +2917,6 @@ void readProgramFileIntoMemory(String theFilename) {
     digitalWrite(HLDA_PIN, LOW);
     return;
   }
-  statusByte = statusByte | INP_ON;
-  statusByte = statusByte & M1_OFF;
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
   myFile = SD.open(theFilename);
   if (!myFile) {
     Serial.print(F("- Read ERROR, cannot open file: "));
@@ -2952,7 +2948,6 @@ void readProgramFileIntoMemory(String theFilename) {
   Serial.println(F("+ Read completed, file closed."));
   ledFlashSuccess();
   digitalWrite(HLDA_PIN, LOW);
-  statusByte = statusByte & INP_OFF;
   controlResetLogic();
 }
 
@@ -3179,6 +3174,7 @@ boolean switchReset = false;
 // -------------------------
 void controlResetLogic() {
   programCounter = 0;
+  curProgramCounter = 0;
   stackPointer = 0;
   opcode = 0;  // For the case when the processing cycle 2 or more.
   statusByte = 0;
@@ -3195,8 +3191,7 @@ void controlStopLogic() {
   statusByte = 0;
   statusByte = statusByte | WAIT_ON;
   statusByte = statusByte | HLTA_ON;
-  dataByte = memoryData[programCounter];
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  // Panel light values are set to the latest byte processed.
 }
 
 // -------------------------
@@ -3248,8 +3243,10 @@ void checkControlButtons() {
           switchExamine = false;
           // Switch logic...
           programCounter = toggleSenseByte();
+          curProgramCounter = programCounter;     // Synch for control switches.
           dataByte = memoryData[programCounter];
-          lightsStatusAddressData(statusByte, programCounter, dataByte);
+          processDataLights();
+          // lightsStatusAddressData(statusByte, programCounter, dataByte);
 #ifdef SWITCH_MESSAGES
           Serial.print(F("+ Control, Examine: "));
           printByte(dataByte);
@@ -3271,10 +3268,15 @@ void checkControlButtons() {
           Serial.println("+ Control, Deposit.");
 #endif
           // Switch logic...
-          // Stacy, if flipped after a RESET, programCounter should be curProgramCounter
+          if (curProgramCounter != programCounter) {
+            // Synch for control switches: programCounter and curProgramCounter.
+            // This handles the first switch, after a STEP or HLT.
+            programCounter = curProgramCounter;
+          }
           dataByte = toggleSenseByte();
           memoryData[programCounter] = dataByte;
-          lightsStatusAddressData(statusByte, programCounter, dataByte);
+          processDataLights();
+          // lightsStatusAddressData(statusByte, programCounter, dataByte);
         }
         break;
       // -------------------
@@ -3286,9 +3288,16 @@ void checkControlButtons() {
         } else if (switchExamineNext) {
           switchExamineNext = false;
           // Switch logic...
+          if (curProgramCounter != programCounter) {
+            // Synch for control switches: programCounter and curProgramCounter.
+            // This handles the first switch...Next, after a STEP or HLT.
+            programCounter = curProgramCounter;
+          }
+          curProgramCounter++;
           programCounter++;
           dataByte = memoryData[programCounter];
-          lightsStatusAddressData(statusByte, programCounter, dataByte);
+          processDataLights();
+          // lightsStatusAddressData(statusByte, programCounter, dataByte);
 #ifdef SWITCH_MESSAGES
           Serial.print(F("+ Control, Examine Next: "));
           printByte(dataByte);
@@ -3310,10 +3319,17 @@ void checkControlButtons() {
           Serial.println(F("+ Control, Deposit Next."));
 #endif
           // Switch logic...
+          if (curProgramCounter != programCounter) {
+            // Synch for control switches: programCounter and curProgramCounter.
+            // This handles the first switch...Next, after a STEP or HLT.
+            programCounter = curProgramCounter;
+          }
+          curProgramCounter++;
           programCounter++;
           dataByte = toggleSenseByte();
           memoryData[programCounter] = dataByte;
-          lightsStatusAddressData(statusByte, programCounter, dataByte);
+          processDataLights();
+          // lightsStatusAddressData(statusByte, programCounter, dataByte);
         }
         break;
       // -------------------
@@ -3759,20 +3775,20 @@ void setup() {
   Serial.println(F("+ All front panel toggle switches are configured for input."));
 
   // ----------------------------------------------------
-  // Status lights are off by default.
+  // Status lights are off (statusByte=0) by default.
+  // programCounter and curProgramCounter are 0 by default.
   statusByte = statusByte | WAIT_ON;
   statusByte = statusByte | MEMR_ON;
   statusByte = statusByte | M1_ON;
   statusByte = statusByte | WO_ON;  // WO: on, Inverse logic: off when writing out. On when not.
-  programCounter = 0;
-  dataByte = memoryData[programCounter];
-  Serial.println(F("+ Initialized: statusByte, programCounter, dataByte."));
+  dataByte = memoryData[curProgramCounter];
+  Serial.println(F("+ Initialized: statusByte, programCounter & curProgramCounter, dataByte."));
   //
   pinMode(latchPinLed, OUTPUT);
   pinMode(clockPinLed, OUTPUT);
   pinMode(dataPinLed, OUTPUT);
   delay(300);
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  processDataLights(); // Uses: statusByte, curProgramCounter, dataByte
   Serial.println(F("+ Front panel LED lights are initialized."));
 
   // ----------------------------------------------------
@@ -3886,10 +3902,10 @@ void loop() {
       // HLDA on when in this mode. Later, HLDA off (LOW), then on (HIGH) when bytes downloading (Serial.available).
       digitalWrite(HLDA_PIN, HIGH);
       // INP on
-      statusByte = statusByte | INP_ON;
-      statusByte = statusByte & M1_OFF;
-      statusByte = statusByte & WAIT_OFF;
-      lightsStatusAddressData(statusByte, programCounter, dataByte);
+      byte readStatusByte = INP_ON;
+      readStatusByte = readStatusByte & M1_OFF;
+      readStatusByte = readStatusByte & WAIT_OFF;
+      lightsStatusAddressData(readStatusByte, 0, 0);
       //
       readByteCount = 0;  // Counter where the downloaded bytes are entered into memory.
       while (programState == SERIAL_DOWNLOAD) {
@@ -3927,6 +3943,9 @@ void loop() {
         // Program bytes were loaded.
         // Reset the program. This takes care of the case that STOP was used to end the download.
         controlResetLogic();
+      } else {
+        // Reset to original panel light values.
+        processDataLights();
       }
       digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;
