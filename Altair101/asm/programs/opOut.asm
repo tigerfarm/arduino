@@ -67,8 +67,9 @@
             mvi a,'\n'
             out 3
                         ; --------------------------------------
-                        ; - Error, OUT not implemented on this port address: <pa>.
-            out 13
+            out 13      ; Flash the LED light error sequence.
+            out 42      ; Flash the LED light success sequence.
+
                         ; --------------------------------------
             jmp Halt    ; Jump back to the early halt command.
                         ; End.

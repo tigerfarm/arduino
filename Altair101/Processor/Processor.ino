@@ -15,6 +15,11 @@
   I can show my steampunk tablet to the world.
   + Time to generate videos.
 
+  +++ Ready to test using: opOut.asm.
+  LED display method to show a programs success or fail:
+  + Add OUT 42, to flash success. ledFlashSuccess();
+  + Add OUT 13, to flash fail. ledFlashError();
+  
   Note, when running with memory all zeros,
     error happens at: 00000100 00011001 = 1049,
     - Error, at programCounter:  25 = 031 = 00011001
@@ -2558,12 +2563,14 @@ void processOpcodeData() {
       Serial.println("");
 #endif
       switch (dataByte) {
+          // ---------------------------------------
         case 1:
           Serial.print(F(", terminal output to be implemented on LCD."));
           break;
         case 3:
           // Handled before this switch statement.
           break;
+          // ---------------------------------------
         case 30:
           Serial.print(F(" > Register B = "));
           printData(regB);
@@ -2618,6 +2625,16 @@ void processOpcodeData() {
           printOther();
           Serial.print(F("------------"));
           break;
+          // ---------------------------------------
+        case 13:
+          ledFlashError();
+          Serial.print(F(" > Error happened, flash the LED light error sequence."));
+          break;
+        case 42:
+          ledFlashSuccess();
+          Serial.print(F(" > Success happened, flash the LED light success sequence."));
+          break;
+          // ---------------------------------------
         default:
           Serial.print(F(". - Error, OUT not implemented on this port address: "));
           Serial.println(regA);
