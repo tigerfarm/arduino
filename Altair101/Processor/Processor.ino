@@ -14,6 +14,7 @@
   Status lights now display correctly.
   I can show my steampunk tablet to the world.
   + Time to generate videos.
+
   ---------------------------------------------
   SD card module options,
   + Confirm saving or reading a file,
