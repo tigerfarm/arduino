@@ -15,6 +15,14 @@
   I can show my steampunk tablet to the world.
   + Time to generate videos.
 
+  Note, when running with memory all zeros,
+    error happens at: 00000100 00011001 = 1049,
+    - Error, at programCounter:  25 = 031 = 00011001
+    when memoryBytes = 1024.
+  ---------------------------------------------
+  // Future option to Read and Run an initialization program.
+  // Requires a new function:
+  // + The ability to delete 00000000.bin, which is the option not to read and run.
   ---------------------------------------------
   SD card module options,
   + Confirm saving or reading a file,
@@ -82,7 +90,6 @@
 //
 // #define LOG_MESSAGES 1         // Has large memory requirements.
 #define SWITCH_MESSAGES 1
-// #define RUN_NOW 1
 
 // -----------------------------------------------------------------------------
 // Program states
@@ -202,50 +209,18 @@ const int stackBytes = 32;
 int stackData[memoryBytes];
 unsigned int stackPointer = stackBytes;
 
-// Sample byte code program array.
-const byte theProgram[] = {
-  //                //            ; --------------------------------------
-  //                //            ; Test programs.
-  B11000011, 6, 0,     //   0: jmp There
-  B00000000,           //   3: nop
-  B00000000,           //   4: nop
-  B00000000,           //   5: nop
-  B11000011, 0, 0,     //   6: jmp Start
-  0                    //   9: End of program
-};
-
 // -----------------------------------------------------------------------------
 // Memory Functions
 
 char charBuffer[17];
 
 void initMemoryToZero() {
+  // Future clear memory option.
+  // Example, clear memory before loading a new program.
   Serial.println(F("+ Initialize all memory bytes to zero."));
   for (int i = 0; i < memoryBytes; i++) {
     memoryData[i] = 0;
   }
-}
-
-void copyByteArrayToMemory(byte btyeArray[], int arraySize) {
-  Serial.println(F("+ Copy the program into the computer's memory array."));
-  for (int i = 0; i < arraySize; i++) {
-    memoryData[i] = btyeArray[i];
-  }
-  Serial.println(F("+ Copied."));
-}
-
-void listByteArray(byte btyeArray[], int arraySize) {
-  Serial.println(F("+ List the program."));
-  Serial.println(F("++   Address:       Data value"));
-  for (int i = 0; i < arraySize; i++) {
-    Serial.print(F("+ Addr: "));
-    sprintf(charBuffer, "%4d:", i);
-    Serial.print(charBuffer);
-    Serial.print(F(" Data: "));
-    printData(btyeArray[i]);
-    Serial.println("");
-  }
-  Serial.println(F("+ End of listing."));
 }
 
 // -----------------------------------------------------------------------------
@@ -488,13 +463,6 @@ void displayStatusAddressData() {
   printData(dataByte);
   Serial.println("");
 #endif
-#ifdef LOG_MESSAGES || INFRARED_MESSAGES
-  Serial.print(F("Addr: "));
-  sprintf(charBuffer, "%4d:", programCounter);
-  Serial.print(charBuffer);
-  Serial.print(F(" Data: "));
-  printData(dataByte);
-#endif
 }
 
 void processDataLights() {
@@ -514,6 +482,14 @@ void processData() {
   // Update curProgramCounter to the address being processed.
   curProgramCounter = programCounter;
   //
+#ifdef LOG_MESSAGES || INFRARED_MESSAGES
+  Serial.print(F("Addr: "));
+  sprintf(charBuffer, "%4d:", programCounter);
+  Serial.print(charBuffer);
+  Serial.print(F(" Data: "));
+  printData(dataByte);
+  Serial.print(" > ");
+#endif
   if (opcode == 0) {
     // Instruction machine cycle 1 (M1 cycle), fetch the opcode.
     instructionCycle = 1;
@@ -523,9 +499,6 @@ void processData() {
     statusByte = statusByte | WO_ON;
     // If no parameter bytes (immediate data byte or address bytes), process the opcode.
     // Else, the opcode variable is set to the opcode byte value.
-#ifdef LOG_MESSAGES
-    Serial.print(" > ");
-#endif
     processOpcode();
     // If not a RET opcode, programCounter remains the same.
     // If a RET opcode processed, programCounter is set(from the stack) to the call-from address.
@@ -535,9 +508,6 @@ void processData() {
     // Machine cycles 2, 3, or 4.
     instructionCycle++;
     statusByte = statusByte & M1_OFF;
-    //
-    //  Getting opcode data
-    dataByte = memoryData[programCounter];
     //
     // Processing opcode data: an immediate data byte or an address(2 bytes: lb,hb).
     // If not a jump, programCounter incremented.
@@ -3247,12 +3217,11 @@ void checkControlButtons() {
           curProgramCounter = programCounter;     // Synch for control switches.
           dataByte = memoryData[programCounter];
           processDataLights();
-          // lightsStatusAddressData(statusByte, programCounter, dataByte);
 #ifdef SWITCH_MESSAGES
           Serial.print(F("+ Control, Examine: "));
           printByte(dataByte);
           Serial.print(" = ");
-          Serial.print(dataByte);
+          printData(dataByte);
           Serial.println("");
 #endif
         }
@@ -3277,7 +3246,6 @@ void checkControlButtons() {
           dataByte = toggleSenseByte();
           memoryData[programCounter] = dataByte;
           processDataLights();
-          // lightsStatusAddressData(statusByte, programCounter, dataByte);
         }
         break;
       // -------------------
@@ -3298,12 +3266,11 @@ void checkControlButtons() {
           programCounter++;
           dataByte = memoryData[programCounter];
           processDataLights();
-          // lightsStatusAddressData(statusByte, programCounter, dataByte);
 #ifdef SWITCH_MESSAGES
           Serial.print(F("+ Control, Examine Next: "));
           printByte(dataByte);
           Serial.print(" = ");
-          Serial.print(dataByte);
+          printData(dataByte);
           Serial.println("");
 #endif
         }
@@ -3330,7 +3297,6 @@ void checkControlButtons() {
           dataByte = toggleSenseByte();
           memoryData[programCounter] = dataByte;
           processDataLights();
-          // lightsStatusAddressData(statusByte, programCounter, dataByte);
         }
         break;
       // -------------------
@@ -3815,26 +3781,18 @@ void setup() {
 #endif
 
   // ----------------------------------------------------
-  // Options to Load/Read/Run a initialization program
-  //
+  // Future option to Read and Run an initialization program.
+  // Requires a new function:
+  // + The ability to delete 00000000.bin, which is the option not to read and run.
   // ---------------------------
-  // + If 00000000.bin exists, read it in, and run it.
-  // ---------------------------
-  // + If 00000000.bin not exists, load the memory array program.
-  int programSize = sizeof(theProgram);
-  if (programSize > 0) {
-    // List the program array.
-    listByteArray(theProgram, programSize);
-    copyByteArrayToMemory(theProgram, programSize);
-    Serial.print(F("+ Program loaded from memory array."));
-#ifdef RUN_NOW
-    programState = PROGRAM_RUN;
-    Serial.println(F(" It will start automatically."));
-#endif
-  }
+  // + If 00000000.bin exists, read it and run it.
+  // Serial.print(F("+ Program loaded from memory array."));
+  // Serial.println(F(" It will run automatically."));
+  
   // ----------------------------------------------------
-  Serial.println(F("\n+++ Do a program reset, and then start the processor loop."));
   controlResetLogic();
+  Serial.println(F("+++ Program system reset."));
+  Serial.println(F("+ Starting the processor loop."));
 }
 
 // -----------------------------------------------------------------------------
@@ -3938,8 +3896,6 @@ void loop() {
         }
       }
       Serial.print(F("+ Exit serial download state."));
-      statusByte = statusByte & INP_OFF;
-      statusByte = statusByte | WAIT_ON;
       if (readByteCount > 0) {
         // Program bytes were loaded.
         // Reset the program. This takes care of the case that STOP was used to end the download.
