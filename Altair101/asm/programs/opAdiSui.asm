@@ -35,8 +35,6 @@
                         ; --------------------------------------
                         ; Test with EQU value.
             adi i3      ; Add immediate number to register A.
-                        ; Note, i3 fails: > Register A =  54 = 066 = 00110110
-                        ; Which implies, i3 = -?.
             out 37      ; > Register A =  76 = 114 = 01001100
             mvi b,76    ; Answer should be 76. Move # to register B.
             cmp b       ; B = A. Zero bit flag is true.
@@ -54,13 +52,13 @@
     okays1:
                         ; --------------------------------------
                         ; Test with EQU value.
-            sui 6       ; Subtract immediate number from register A.
+            sui i6      ; Subtract immediate number from register A.
             out 37      ; > Register A =  70 = 106 = 01000110
-            mvi c,70    ; Move # to register C.
+            mvi c,64    ; Move # to register C.
             cmp c       ; C = A.
-            jz okays1
+            jz okays2
             jmp Error
-    okays1:
+    okays2:
                         ; --------------------------------------
             jmp Halt    ; Jump back to the early halt start command.
             end
@@ -73,6 +71,19 @@
             mvi a,'+'
             out 3
             mvi a,c3
+            out 3
+            mvi a,'='
+            out 3
+            pop a
+
+            push a      ; Retain register A value.
+            mvi a,'\n'
+            out 3
+            mvi a,'A'
+            out 3
+            mvi a,'-'
+            out 3
+            mvi a,c6
             out 3
             mvi a,'='
             out 3
