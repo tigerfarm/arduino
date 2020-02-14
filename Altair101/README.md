@@ -1,11 +1,12 @@
 --------------------------------------------------------------------------------
 # Altair 101 Computer
   
-I have designed and built an Altair 8800 emulator that runs on an Arduino Mega microcontroller.
-It emulates the basic Altair 8800 hardware processes--from 1975.
+I have designed and built an Altair 8800 emulator.
+The mother board CPU and RAM, is an Arduino Mega microcontroller.
+It emulates the basic Altair 8800 hardware from 1975.
 The 8800 was built around the Intel 8080 CPU chip. The 8080's opcodes are the same for the 8085.
-This program implements many of the 8080/8085 microprocessor machine instructions (opcodes).
-It has more than enough opcodes to run the classic program, Kill the Bit.
+This emulator implements more than enough of the 8080/8085 microprocessor machine instructions (opcodes),
+to run the classic program, Kill the Bit.
 
 ---------------------------------------------
 ### Current/Next Tasks
