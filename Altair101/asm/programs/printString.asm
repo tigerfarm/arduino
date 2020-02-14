@@ -43,26 +43,36 @@
                 out 3
                                     ; Init the address and call routine to print the string.
                 lxi h,Hello         ; Copy string address, Hello, to H:L. Byte 1 is lxi. Byte 2 move to L. Byte 3 move to H.
-                call PrintString
+                call sPrint
                 mvi a,SPACE
                 out 3
                 lxi h,there
-                call PrintString
+                call sPrint
                 mvi a,NL
                 out 3
                                     ; ------------------------------------------
                 jmp Halt            ; Stop to confirm the correct addresses and data.
                                     ;
                                     ; ------------------------------------------
-                                    ; Routine loop to print a DB string which starts a address, M.
-        PrintString:
+                                    ; Routines to print a DB strings.
+        sPrint:
                 mov a,m             ; Move the data from H:L address to register A. (HL) -> A. 
                 cpi TERMB           ; Compare to see if it's the string terminate byte.
-                jz Done
+                jz sPrintDone
                 out 3               ; Out register A to the serial terminal port.
                 inr m               ; Increment H:L register pair.
-                jmp PrintString
-        Done:
+                jmp sPrint
+        sPrintDone:
+                ret
+                                    ;
+        sPrintln:
+                mov a,m             ; Move the data from H:L address to register A. (HL) -> A. 
+                cpi TERMB           ; Compare to see if it's the string terminate byte.
+                jz sPrintlnDone
+                out 3               ; Out register A to the serial terminal port.
+                inr m               ; Increment H:L register pair.
+                jmp sPrint
+        sPrintlnDone:
                 ret
                                     ; ------------------------------------------
                                     ; End

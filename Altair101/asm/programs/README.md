@@ -61,22 +61,20 @@ opLdaSta.asm            LDA works with an address number and label.
 pLdaSta.asm             LDA and STA testing with STEP.
                         The status lights are testing and working correctly.
 opLdax.asm              LDAX, Load register A with data value from address B:C or D:E.
-
+opPushPop.asm           PUSH RP, Push a register pair (RP) onto the stack: B:C, D:E, H:L. To do, push flags.
+                        Pop a register pair (RP) from the stack: B:C, D:E, H:L. To do, pop flags.
 opOut.asm               OUT pa, Demonstrate the various output options.
-                        Prints a character string.
+                        Prints a DB character string.
+
+printString.asm         OUT, Subroutine using OUT to print DB variable strings to the serial monitor.
 opInSwitches.asm        IN, Get and process a data byte from sense switches.
                         HLT is used to stop the process and wait for the switches to be set.
                         The RUN switch is used to continue the process.
                         Basically, the process stops. Sense switches are set.
                         Flip the RUN switch (similar return key) to continue.
-printString.asm         OUT, Subroutine using OUT to print DB variable strings to the serial monitor.
-
 
 opAdiSui.asm            ADI, Add immediate number to register A. Tested with decimal and EQU values.
                         SUI, Subtract immediate number from register A.
-                        Retain register A calculated value using push and pop.
-                        PUSH, Push register A on the stack before OUT characters.
-                        POP, Pop register A off the stack after OUT characters.
 
 opOra.asm               ORA, Register A, OR'ed with registers: B,C,D,E,H,L, and M.
                         This program requires, LOG_MESSAGES not defined, because it outputs messages, example: "+ Success: ORA".

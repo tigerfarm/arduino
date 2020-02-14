@@ -15,11 +15,6 @@
   I can show my steampunk tablet to the world.
   + Time to generate videos.
 
-  +++ Ready to test using: opOut.asm.
-  LED display method to show a programs success or fail:
-  + Add OUT 42, to flash success. ledFlashSuccess();
-  + Add OUT 13, to flash fail. ledFlashError();
-  
   Note, when running with memory all zeros,
     error happens at: 00000100 00011001 = 1049,
     - Error, at programCounter:  25 = 031 = 00011001
