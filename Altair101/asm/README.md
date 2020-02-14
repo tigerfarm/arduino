@@ -22,7 +22,7 @@ Assembler components:
 
 #### My Altair 101 development machine:
 
-<img width="360px"  src="../Altair101a.jpg"/>
+<img width="600px"  src="../Altair101a.jpg"/>
 
 --------------------------------------------------------------------------------
 #### How to Assemble and Run Programs on the Altair 101
