@@ -181,7 +181,7 @@ The processor program is written and compiled on my laptop.
 Then, the program is uploaded to the Nano through a USB cable.
 Program log messages are displayed in the Arduino IDE serial monitor that runs on the laptop.
 
-<img width="360px"  src="../hardware/Altair101dev3.jpg"/>
+<img width="360px"  src="../hardware/Altair101dev6.jpg"/>
 
 There are a number of online videos showing how an Altair 8800 works.
 I coded the Altair 101 processor program to react the same way.

@@ -20,6 +20,10 @@ Assembler components:
 + Program to convert source programs into machine code: [src/asm/asmProcessor.java](src/asm/asmProcessor.java).
 + Program to upload machine code to the Altair 101, over a serial port: [src/asm/asmUpload.java](src/asm/asmUpload.java).
 
+#### My Altair 101 development machine:
+
+<img width="360px"  src="../hardware/Altair101dev6.jpg"/>
+
 --------------------------------------------------------------------------------
 #### How to Assemble and Run Programs on the Altair 101
 
