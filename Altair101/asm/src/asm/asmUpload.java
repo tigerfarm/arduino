@@ -163,7 +163,7 @@ public class asmUpload {
         // upload.setSerialPortName("abc");
 
         String outFilename = "10000000.bin";
-        System.out.println("+ Write to the serail port, the program file: " + outFilename + ":");
+        System.out.println("+ Write to the serial port, the program file: " + outFilename + ":");
         sendFile(outFilename);
 
         System.out.println("\n+++ Exit.\n");
