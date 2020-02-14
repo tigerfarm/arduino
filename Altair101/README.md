@@ -66,7 +66,7 @@ Not only does it have the basic four functions, it also calculated percentages.
 
 <img width="400px"  src="hardware/SlideRulerCalculator.jpg"/>
 
-In the above photo, the slide ruler is set to calculated answer of, 2 x 4.
+In the above photo, the slide ruler is set to calculated the answer for, 2 x 4.
 
 --------------------------------------------------------------------------------
 ## My 2019 Altair 8800 Emulator

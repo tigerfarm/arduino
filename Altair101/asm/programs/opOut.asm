@@ -1,11 +1,20 @@
                             ; --------------------------------------
                             ; Test the various OUT options.
                             ; --------------------------------------
-            jmp Start       ; Jump to bypass the halt.
+                            ;
+            jmp Start               ; Jump to bypass the halt.
     Halt:
             hlt             ; The program will halt at each iteration, after the first.
                             ; --------------------------------------
     Start:
+            mvi a,NL
+            out 3
+            lxi h,StartMsg
+            call PrintString
+            mvi a,NL
+            out 3
+            out 42          ; Flash the LED light success sequence.
+                            ;
                             ; --------------------------------------
             mvi a,1         ; Move an immediate number to each register.
             mvi b,2
@@ -69,7 +78,33 @@
                         ; --------------------------------------
             out 13      ; Flash the LED light error sequence.
             out 42      ; Flash the LED light success sequence.
-
+            mvi a,NL
+            out 3
+            lxi h,Again
+            mvi a,NL
+            out 3
+            call PrintString
+            out 42      ; Flash the LED light success sequence.
                         ; --------------------------------------
             jmp Halt    ; Jump back to the early halt command.
-                        ; End.
+                        ;
+                        ; --------------------------------------
+        PrintString:
+                mov a,m             ; Move the data from H:L address to register A. (HL) -> A. 
+                cpi TERMB           ; Compare to see if it's the string terminate byte.
+                jz PrintStringDone
+                out 3               ; Out register A to the serial terminal port.
+                inr m               ; Increment H:L register pair.
+                jmp PrintString
+        PrintStringDone:
+                ret
+                        ;
+                        ; --------------------------------------
+                                    ;
+    StartMsg    db      'Start...'    ; Strings to print out.
+    Again       db      'Again.'      ; Strings to print out.
+    TERMB       equ     0ffh            ; String terminator.
+    NL          equ     10              ; 10 is new line, '\n'.
+                                    ;
+                        ; --------------------------------------
+                end

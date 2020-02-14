@@ -10,6 +10,11 @@
     ---------------------------------------------
     +++ Next assembler updates and issues,
 
+    + Handle '\n' in character string.
+        Start   db      'Start...\n'
+    + DB statements before a label, causes an incorrect label address.
+    ++ Likely, DB needs to be processed before labels.
+
     + test newly implement push and pop opcodes.
 
     + Make label and immediate names case sensitive.

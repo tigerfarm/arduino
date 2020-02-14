@@ -62,6 +62,16 @@ pLdaSta.asm             LDA and STA testing with STEP.
                         The status lights are testing and working correctly.
 opLdax.asm              LDAX, Load register A with data value from address B:C or D:E.
 
+opOut.asm               OUT pa, Demonstrate the various output options.
+                        Prints a character string.
+opInSwitches.asm        IN, Get and process a data byte from sense switches.
+                        HLT is used to stop the process and wait for the switches to be set.
+                        The RUN switch is used to continue the process.
+                        Basically, the process stops. Sense switches are set.
+                        Flip the RUN switch (similar return key) to continue.
+printString.asm         OUT, Subroutine using OUT to print DB variable strings to the serial monitor.
+
+
 opAdiSui.asm            ADI, Add immediate number to register A. Tested with decimal and EQU values.
                         SUI, Subtract immediate number from register A.
                         Retain register A calculated value using push and pop.
@@ -83,14 +93,6 @@ opDad.asm               DAD, Add register pair(RP: B:C or D:E) to H:L. Set carry
 opInx.asm               INX, Increment a register pair: B:C, D:E, H:L.
 
 opShld.asm              SHLD a, L -> (address a); H -> (address a+1)
-
-opOut.asm               OUT pa, Demonstrate the various output options.
-opInSwitches.asm        IN, Get and process a data byte from sense switches.
-                        HLT is used to stop the process and wait for the switches to be set.
-                        The RUN switch is used to continue the process.
-                        Basically, the process stops. Sense switches are set.
-                        Flip the RUN switch (similar return key) to continue.
-printString.asm         OUT, Subroutine using OUT to print DB variable strings to the serial monitor.
 
 opImmediate.asm         Using various types of immediate values, with various opcodes.
 
