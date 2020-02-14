@@ -15,7 +15,7 @@ Once machine code is generated, the assembler can upload the machine code to an 
 
 Assembler components:
 + Command line parsing program: [src/asm/asm.java](src/asm/asm.java).
-+ Opcode table of information: [asmOpcodes.txt](src/asm/asmOpcodes.txt).
++ Opcode table of information: [asmOpcodes.txt](asmOpcodes.txt).
 + Program to load, and use, the opcode table of information: [src/asm/asmOcodes.java](src/asm/asmOpcodes.java).
 + Program to convert source programs into machine code: [src/asm/asmProcessor.java](src/asm/asmProcessor.java).
 + Program to upload machine code to the Altair 101, over a serial port: [src/asm/asmUpload.java](src/asm/asmUpload.java).
@@ -105,7 +105,7 @@ to download the file, 00000101.bin, back into the emulator's memory.
 --------------------------------------------------------------------------------
 ## Implemented Opcodes
 
-The following list was generated from the [opcode data file](src/asm/asmOpcodes.txt).
+The following list was generated from the [opcode data file](asmOpcodes.txt).
 ````
 Binary             Opcode   Binary   Cycles Description
 -------------------------------------
