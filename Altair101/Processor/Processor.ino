@@ -686,7 +686,7 @@ void processOpcode() {
       Serial.print(stackPointer);
 #endif
       break;
-    // ----------------------------------
+    // --------------------------------------------------------------------
     //    11RP0101 Push    register pair B onto the stack. 1 cycles.
     case B11000101:
 #ifdef LOG_MESSAGES
@@ -695,7 +695,31 @@ void processOpcode() {
       stackData[stackPointer--] = regC;
       stackData[stackPointer--] = regB;
       break;
-    // -----------------
+    case B11010101:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > push, Push register pair D:E onto the stack."));
+#endif
+      stackData[stackPointer--] = regE;
+      stackData[stackPointer--] = regD;
+      break;
+    case B11100101:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > push, Push register pair H:L onto the stack."));
+#endif
+      stackData[stackPointer--] = regL;
+      stackData[stackPointer--] = regH;
+      break;
+    case B11110101:
+      Serial.print(F(" > push, Push flags is not implemented. Push the flags onto the stack."));
+      printData(workingByte);
+      Serial.println(F(""));
+      Serial.print(F("- Error, at programCounter: "));
+      printData(programCounter);
+      Serial.println(F(""));
+      ledFlashError();
+      controlStopLogic();
+      break;
+    // --------------------------------------------------------------------
     //    11RP0001 Pop    register pair B from the stack. 1 cycles.
     case B11000001:
 #ifdef LOG_MESSAGES
@@ -713,16 +737,7 @@ void processOpcode() {
 #endif
       break;
     // ----------------------------------
-    //    11RP0101 Push    register pair D:E onto the stack. 1 cycles.
-    case B11010101:
-#ifdef LOG_MESSAGES
-      Serial.print(F(" > push, Push register pair D:E onto the stack."));
-#endif
-      stackData[stackPointer--] = regE;
-      stackData[stackPointer--] = regD;
-      break;
-    // -----------------
-    //    11RP0001 Pop    register pair D:E from the stack. 1 cycles.
+    //    11RP0001
     case B11010001:
 #ifdef LOG_MESSAGES
       Serial.print(F(" > pop, Pop register pair D:E from the stack."));
@@ -737,18 +752,8 @@ void processOpcode() {
       Serial.print(F(":"));
       Serial.print(regE);
 #endif
-      break;
-    // ----------------------------------
-    //    11RP0101 Push    register pair H:L onto the stack. 1 cycles.
-    case B11100101:
-#ifdef LOG_MESSAGES
-      Serial.print(F(" > push, Push register pair H:L onto the stack."));
-#endif
-      stackData[stackPointer--] = regL;
-      stackData[stackPointer--] = regH;
-      break;
     // -----------------
-    //    11RP0001 Pop    register pair H:L from the stack. 1 cycles.
+    //    11RP0001
     case B11100001:
 #ifdef LOG_MESSAGES
       Serial.print(F(" > pop, Pop register pair H:L from the stack."));
@@ -763,6 +768,16 @@ void processOpcode() {
       Serial.print(F(":"));
       Serial.print(regL);
 #endif
+      break;
+    case B11110001:
+      Serial.print(F(" > pop, Pop flags is not implemented. Pop the flags from the stack."));
+      printData(workingByte);
+      Serial.println(F(""));
+      Serial.print(F("- Error, at programCounter: "));
+      printData(programCounter);
+      Serial.println(F(""));
+      ledFlashError();
+      controlStopLogic();
       break;
     // ---------------------------------------------------------------------
     // dad RP   00RP1001  Add register pair(RP) to H:L (16 bit add). And set carry bit.

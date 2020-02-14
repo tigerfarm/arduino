@@ -10,6 +10,8 @@
     ---------------------------------------------
     +++ Next assembler updates and issues,
 
+    + test newly implement push and pop opcodes.
+
     + Make label and immediate names case sensitive.
 
     + Cleanup parseLine() code.
@@ -694,6 +696,8 @@ public class asmProcessor {
             case "inx":
             case "ldax":
             case "ora":
+            case "pop":
+            case "push":
             case "xra":
                 // opcode <register|RegisterPair>
                 // cmp c

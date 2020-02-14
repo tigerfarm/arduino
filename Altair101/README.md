@@ -1,8 +1,27 @@
 --------------------------------------------------------------------------------
+# Altair 101 Computer
+  
+I have designed and built an Altair 8800 emulator that runs on an Arduino Mega microcontroller.
+It emulates the basic Altair 8800 hardware processes--from 1975.
+The 8800 was built around the Intel 8080 CPU chip. The 8080's opcodes are the same for the 8085.
+This program implements many of the 8080/8085 microprocessor machine instructions (opcodes).
+It has more than enough opcodes to run the classic program, Kill the Bit.
+
+---------------------------------------------
+### Current/Next Tasks
+  
+Since my Altair 101 development machine is working properly, I can show my steampunk tablet to the world.
+Time to generate videos.
+
+
+<img width="600px"  src="hardware/Altair101dev6.jpg"/>
+
+--------------------------------------------------------------------------------
 # Computer Enlightenment
 
-A long time ago in a high school far, far away, a teenager read a magazine front cover headline, "World's First Minicomputer...Altair 8800."
-It was a monumental event in the history of computer toys, and business work computers.
+A long time ago in a high school far, far away, a teenager read a magazine front cover headline,
+"World's First Minicomputer...Altair 8800."
+It was a monumental event in the history of computers, for home or office.
 ````
 It was a period of technology darkness.
 Students were taught slide rulers in
@@ -11,7 +30,7 @@ rebels against the evil technophobes
 had bought their own calculators,
 the lightsabers of the age.
 ````
-And now there was the Altair 8800, the first home computer that a regular person like me, could buy.
+Then, there was the Altair 8800, the first computer that a regular person like me, could buy.
 
 I lived in the country side.
 Yeah, it was rural, a village of 500 people. When I finally left, there was a guy out changing the sign to 499.
@@ -21,20 +40,23 @@ In science fiction terms, it was a steampunk computer, tall metal body parts rea
 Where as the Altair 8800 was a modern electronic wonder.
 And I could buy one for $600, which is $3,000 adjusted to 2019 dollars.
 The Altair 8800 was the Model-T of computers.
-Or, as I prefer to call it, the Chevy Corvette of home computers, the first American affordable, popular, sports car, computer.
+Or, as I prefer to call it, the Chevy Corvette of home computers, the first American affordable, popular, sports car computer.
 
 I had worked all summer on a golf course making over a dollar an hour, I could afford the basic computer.
 Yeah, I was working full time. And yeah, I was under 16 years old.
 But we didn't call it child slave labor work, our parents called it, "Get your lazy ass up and do something" work.
 
-It was exciting it could change my life, it could get me out that one horse town.
+It was exciting, a device that could change my life. It could get me out that one horse town.
 I read that Popular Electronics article over and over.
 Alas, I realized it didn't come with the ability to save and load programs.
 The basic computer was a CPU with 256 bytes of memory, less the length of a tweet. 
-It had toggle switches to enter programs and data, and a 36 LED lights for the display.
-Functional, however, no permanent storage. Which meant, when I entered a program, it would be lost when I powered down.
+It had toggle switches to enter programs and data, and 36 LED lights for the display.
+No permanent storage  meant that when I entered a program, it would be lost when the computer was powered down.
 I was short on funds to buy a component to save and load programs.
-And I couldn't afford the $10,000 (2019 dollars) for a floppy drive. So no computer for me while I was in high school.
+And I couldn't afford the $10,000 (2019 dollars) for a floppy drive.
+So no computer for me while I was in high school.
+It would be 8 years later, during my second year of university that I would buy my first computer.
+And yes, it did change my life.
 
 --------------------------------------------------------------------------------
 [Link](https://www.in2013dollars.com/us/inflation/1975?amount=621) to the inflation calculator used in this article.
@@ -79,17 +101,23 @@ I wanted to try it on a real Altair computer. I seen one on eBay for $5,000.
 Too much for me. Also, I didn't want to get into maintaining an old machine.
 My first computer was a 1983 machine based on the 8086 processor. Cost over $8,000 (adjusted to 2019 dollar value).
 It had 384K of memory. I don't want that again. I only want the fun side of running retro.
-
+````
 The 4004 was an 4 bit microprocessor produced by Intel, released in 1971.
 The 8008 was an 8 bit microprocessor produced by Intel, released in 1972.
 The 8080 was an 8 bit microprocessor produced by Intel, released in 1974.
 The 8085 was an 8 bit microprocessor produced by Intel, released in 1976.
 The 8080 and 8085 have the same opcodes.
 The 8085 has a couple more opcodes and a few enhancements that make it easier to work with.
-The 8086 was a 16 bit microprocessor produced by Intel, released in 1978, based on the 8085.
-The 8086 is the base design for Windows and Linux computer CPUs of today.
-The 8088, released July 1, 1979, was in the original IBM PC, the first computer I had a job working on.
-The 8088 was an 8 bit microprocessor produced by Intel. It's allowed the building of cheaper computer.
+The 8086 was a 16 bit microprocessor produced by Intel, released in 1978.
+I was based on the 8085.
+The 8086 is the base CPU design for the Windows and Linux computer of today.
+The 8088 was an 8 bit microprocessor produced by Intel, released 1979.
+It allowed the building of cheaper computer, then using the 8086.
+The 8088, was in the original IBM PC, the first computer I had a job working on.
+My first business computer was a Columbia VP portable, with an 8088 CPU, 4.77 MHz, 256K RAM, 2 x 360K 5.25" floppy drives, MS-DOS 1.2.
+````
+The Columbia cost me $3,200, over $8,000 in 2019 dollars.
+Imagine spending $8 grand for a computer. I did, at the start of second year of university, 1983.
 
 8085 Java assembler simulator:
 https://sourceforge.net/projects/j8085sim/
