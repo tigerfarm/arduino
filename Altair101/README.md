@@ -64,7 +64,7 @@ And yes, it did change my life.
 For example, my calculator cost me $30 in 1975, which is $140 in 2019 dollars.
 Not only does it have the basic four functions, it also calculated percentages.
 
-<img width="600px"  src="hardware/SlideRulerCalculator.jpg"/>
+<img width="400px"  src="hardware/SlideRulerCalculator.jpg"/>
 
 In the above photo, the slide ruler is set to calculated answer of, 2 x 4.
 
