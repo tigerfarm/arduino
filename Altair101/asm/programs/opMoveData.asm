@@ -1,6 +1,5 @@
                                     ; --------------------------------------
-                                    ; Test address values and variables and strings.
-                                    ; Sample routine to print DB strings.
+                                    ; Test moving data around.
                                     ;
                                     ; --------------------------------------
                 jmp Start           ; Jump to Start test section.
@@ -24,23 +23,28 @@
                                     ; --------------------------------------
     Start:
                 lxi h,Test1
-                call sPrint
+                call sPrintln
+                                    ;
+                lxi h,Hello         ; Copy string address, Hello, to H:L. Byte 1 is lxi. Byte 2 move to L. Byte 3 move to H.
+                out 36              ; Print the register values for H:L, and the content at that address.
+                                    ; 'H' is ascii 72.
+                                    ; ------------------------------------------
                 mvi a,NL
                 out 3
-                                    ;
-                                    ; ------------------------------------------
                 lxi h,Test2
                 call sPrintln
                                     ;
+                lda Hello           ; Load the data from Hello address to register A.
+                out 37              ; Echo the register A.
+                mov a,m             ; Move the data from H:L address to register A. (HL) -> A. 
+                out 37              ; Echo the register A.
                 mvi a,NL
-                out 3
-                                    ; Init the address and call routine to print the string.
-                lxi h,Hello         ; Copy string address, Hello, to H:L. Byte 1 is lxi. Byte 2 move to L. Byte 3 move to H.
-                call sPrint
-                mvi a,SPACE
-                out 3
-                lxi h,there
-                call sPrintln
+                out 3               ; Out register A to the serial terminal port.
+                                    ; ------------------------------------------
+                                    ; Print the next character.
+                inr m               ; Increment M, H:L address. (HL)+1 -> (HL).
+                mov a,m             ; Move the data from H:L address to register A. (HL) -> A. 
+                out 3 
                                     ; ------------------------------------------
                 jmp Halt            ; Stop to confirm the correct addresses and data.
                                     ;

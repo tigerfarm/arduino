@@ -65,16 +65,21 @@ opPushPop.asm           PUSH RP, Push a register pair (RP) onto the stack: B:C, 
                         Pop a register pair (RP) from the stack: B:C, D:E, H:L. To do, pop flags.
 opOut.asm               OUT pa, Demonstrate the various output options.
                         Prints a DB character string.
-
 printString.asm         OUT, Subroutine using OUT to print DB variable strings to the serial monitor.
+                        sPrint, Subroutine to print a string.
+                        sPrintln, Subroutine to print a string and finish with a new line character.
+opAdiSui.asm            ADI, Add immediate number to register A. Tested with decimal and EQU values.
+                        SUI, Subtract immediate number from register A.
+opAdi.asm               ADI, Add immediate number to register A. Tested with decimal and EQU values.
+                        Simple program to demo adding to numbers.
+                        Numbers can be easily changed using the Examine and Deposit.
+                        Addition result can viewed using the Examine.
+
 opInSwitches.asm        IN, Get and process a data byte from sense switches.
                         HLT is used to stop the process and wait for the switches to be set.
                         The RUN switch is used to continue the process.
                         Basically, the process stops. Sense switches are set.
                         Flip the RUN switch (similar return key) to continue.
-
-opAdiSui.asm            ADI, Add immediate number to register A. Tested with decimal and EQU values.
-                        SUI, Subtract immediate number from register A.
 
 opOra.asm               ORA, Register A, OR'ed with registers: B,C,D,E,H,L, and M.
                         This program requires, LOG_MESSAGES not defined, because it outputs messages, example: "+ Success: ORA".
