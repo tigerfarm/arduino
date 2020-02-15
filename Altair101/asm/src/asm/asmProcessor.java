@@ -10,6 +10,9 @@
     ---------------------------------------------
     +++ Next assembler updates and issues,
 
+    + Program Byte listing with octal vales so that I can toggle in the program.
+    ++ Test with opAdi.asm
+
     + Make label and immediate names case sensitive.
 
     + Cleanup parseLine() code.
