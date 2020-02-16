@@ -14,35 +14,16 @@
             hlt             ; The program will halt at each iteration, after the first.
                             ; --------------------------------------
     Start:
+            LDA 2050 	    ; A<-[2050]
+            MOV H, A        ; H<-A
+            LDA 2051        ; A<-[2051]
+            ADD H           ; A<-A+H
+            MOV L, A        ; L<-A
+            MVI A,0         ; A<-0
+            ADC A           ; A<-A+A+carry
+            MOV H, A        ; H<-A
+            SHLD 3050       ; H->3051, L->3050
                             ; --------------------------------------
-            mvi a,7         ; Initialize values to add.
-            mvi b,1
-            mvi c,2
-            mvi d,3
-            mvi e,4
-            mvi h,5
-            mvi l,6
-            out 38          ; Print the register values.
-                            ; --------------------------------------
-                            ; Test register adding.
-            add b           ; Add source register to A.
-            mov b,a         ; Move the result back to the source register, checking later.
-            add c
-            mov c,a
-            add d
-            mov d,a
-            add e
-            mov e,a
-            add h
-            mov h,a
-            add l
-            mov l,a
-
-            out 38          ; Print the register results.
-                            ; --------------------------------------
-                            ; Add content at address H:L, to register A.
-            add m
-            out 36          ; Print the register results.
                             ; --------------------------------------
             jmp Halt        ; Jump back to the early halt command.
                             ; --------------------------------------

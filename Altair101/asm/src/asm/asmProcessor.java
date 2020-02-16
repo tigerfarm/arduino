@@ -690,6 +690,7 @@ public class asmProcessor {
         // Opcode, single parameter, example: jmp Next
         switch (opcode) {
             // -----------------------------
+            case "add":
             case "cmp":
             case "dad":
             case "dcr":
