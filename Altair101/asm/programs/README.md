@@ -28,21 +28,17 @@ Program                 Opcodes tested, and test details.
 pLoop.asm               JMP : Jump to a label. The first program tested.
                         NOP : Used as a spacer.
 opJmp.asm               JMP : Jump to label or to a decimal or hex address.
-                        Test: out 3, to print register A to the Arduino serial port.
+                        OUT 3 : Print register A to the Arduino serial port.
 opMvi.asm               MVI : Move immediate values to registers, using immediate types: decimal, hex, character (eg. 'a'), and EQU value.
                         HLT : Halt and restart.
                         EQU : Used to set an immediate value.
                         Program length = 72 bytes.
-                        Because the serial read buffer is 64 bytes, I had to add "Thread.sleep(30);" in the Java program to slow the upload.
+                        Because the serial read buffer is 64 bytes,
+                            I had to add "Thread.sleep(30);" in the Java program to slow the upload.
 opInrDcr.asm            INR : Increment value in the registers: A,B,C,D,E,H,L.
                         DCR : Decrement value in the registers: A,B,C,D,E,H,L.
 opMov.asm               MOV : Move values between the registers: A,B,C,D,E,H,L.
 opCpi.asm               CPI : Compare immediate decimal, or an EQU value, with register A.
-                        JZ
-                        JNZ
-                        JC
-                        JNC
-opCmp.asm               CMP : Compare register A and registers: B,C,D,E,H,L, and M. Register M, is memory data, H:L.
                             Register data == A, set Zero bit to 1. Carry bit = 0.
                             Register data != A, set Zero bit to 0.
                             Register > A, Carry bit = 1.
@@ -51,51 +47,56 @@ opCmp.asm               CMP : Compare register A and registers: B,C,D,E,H,L, and
                         JNZ Jump to a, if Zero bit equals 0, flag is not set.
                         JC  Jump to a, if Carry bit equals 1, flag is set.
                         JNC Jump to a, if Carry bit equals 0, flag is not set.
+opCmp.asm               CMP : Compare register A and registers: B,C,D,E,H,L, and M. Register M, is memory data, H:L.
+                        JZ
+                        JNZ
+                        JC
+                        JNC
                         + Program has over 256 bytes, and works fine.
-opCallRetShort.asm      CALL words with label or a number.
-                        RET, returns properly.
-opCallRet.asm           CALL and RET work fine.
-opLdaSta.asm            LDA works with an address number and label.
-                        STA works with an address number and label.
-                        LXI loaded an address (value of Addr1) into H:L.
-pLdaSta.asm             LDA and STA testing with STEP.
+opCallRetShort.asm      CALL : words with label or a number.
+                        RET : returns properly.
+opCallRet.asm           CALL and RET : work fine.
+opLdaSta.asm            LDA : works with an address number and label.
+                        STA : works with an address number and label.
+                        LXI : loaded an address (value of Addr1) into H:L.
+pLdaSta.asm             LDA and STA : testing with STEP.
                         The status lights are testing and working correctly.
-opLdax.asm              LDAX, Load register A with data value from address B:C or D:E.
-opPushPop.asm           PUSH RP, Push a register pair (RP) onto the stack: B:C, D:E, H:L. To do, push flags.
-                        Pop a register pair (RP) from the stack: B:C, D:E, H:L. To do, pop flags.
-opOut.asm               OUT pa, Demonstrate the various output options.
-                        Prints a DB character string.
-printString.asm         OUT, Subroutine using OUT to print DB variable strings to the serial monitor.
-                        sPrint, Subroutine to print a string.
-                        sPrintln, Subroutine to print a string and finish with a new line character.
-opAdiSui.asm            ADI, Add immediate number to register A. Tested with decimal and EQU values.
-                        SUI, Subtract immediate number from register A.
-opAdi.asm               ADI, Add immediate number to register A. Tested with decimal and EQU values.
+opLdax.asm              LDAX : Load register A with data value from address B:C or D:E.
+opPushPop.asm           PUSH RP : Push a register pair (RP) onto the stack: B:C, D:E, H:L. To do, push flags.
+                        Pop : Pop a register pair (RP) from the stack: B:C, D:E, H:L. To do, pop flags.
+opOut.asm               OUT pa : Demonstrate the various output options.
+                        DB character string declaration, then print it.
+printString.asm         OUT : Subroutine using OUT to print DB variable strings to the serial monitor.
+                        sPrint : Subroutine to print a string.
+                        sPrintln : Subroutine to print a string and finish with a new line character.
+opAdiSui.asm            ADI : Add immediate number to register A. Tested with decimal and EQU values.
+                        SUI : Subtract immediate number from register A.
+opAdi.asm               ADI : Add immediate number to register A. Tested with decimal and EQU values.
                         Simple program to demo adding to numbers.
                         Numbers can be easily changed using the Examine and Deposit.
                         Addition result can viewed using the Examine.
 
-opInSwitches.asm        IN, Get and process a data byte from sense switches.
-                        HLT is used to stop the process and wait for the switches to be set.
-                        The RUN switch is used to continue the process.
+opInSwitches.asm        IN : Get and process a data byte from sense switches.
+                        HLT : is used to stop the process and wait for the switches to be set.
+                        RUN switch : used to continue the process.
                         Basically, the process stops. Sense switches are set.
                         Flip the RUN switch (similar return key) to continue.
 
-opOra.asm               ORA, Register A, OR'ed with registers: B,C,D,E,H,L, and M.
+opOra.asm               ORA : Register A, OR'ed with registers: B,C,D,E,H,L, and M.
                         This program requires, LOG_MESSAGES not defined, because it outputs messages, example: "+ Success: ORA".
                         Program length = 255.
-opAni.asm               ANI, AND and immediate value with register A.
-opXra.asm               XRA, Register A, Exclusive OR'ed with registers: B,C,D,E,H, and L.
+opAni.asm               ANI : AND and immediate value with register A.
+opXra.asm               XRA : Register A, Exclusive OR'ed with registers: B,C,D,E,H, and L.
 
-opIxi.asm               LXI test to load H:L with an address from a number or label.
+opIxi.asm               LXI : test to load H:L with an address from a number or label.
 
-opRlcRrc.asm            RLC, Rotate (shift) register A left. Wrap the left most, to the first.
-                        RRC, Rotate (shift) register A right. Wrap the right most, to the last.
+opRlcRrc.asm            RLC : Rotate (shift) register A left. Wrap the left most, to the first.
+                        RRC : Rotate (shift) register A right. Wrap the right most, to the last.
 
-opDad.asm               DAD, Add register pair(RP: B:C or D:E) to H:L. Set carry bit.
-opInx.asm               INX, Increment a register pair: B:C, D:E, H:L.
+opDad.asm               DAD : Add register pair(RP: B:C or D:E) to H:L. Set carry bit.
+opInx.asm               INX : Increment a register pair: B:C, D:E, H:L.
 
-opShld.asm              SHLD a, L -> (address a); H -> (address a+1)
+opShld.asm              SHLD a : L -> (address a); H -> (address a+1)
 
 opImmediate.asm         Using various types of immediate values, with various opcodes.
 

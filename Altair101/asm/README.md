@@ -139,7 +139,7 @@ Binary             Opcode   Binary   Cycles Description
 00000000 : nop   : NOP      00 000 000  1  No operation. I added a delay: delay(100).
 10110SSS : ora   : ORA S    10 110 SSS  1  OR register S, with register A.
 11100011 : out   : OUT pa   11 010 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
-11RP0001 : pop   : POP RP  11 RP0 001  1  Pop a register pair (RP) from the stack: B:C, D:E, H:L. To do, pop flags.
+11RP0001 : pop   : POP RP   11 RP0 001  1  Pop a register pair (RP) from the stack: B:C, D:E, H:L. To do, pop flags.
 11RP0101 : push  : PUSH RP  11 RP0 101  1  Push a register pair (RP) onto the stack: B:C, D:E, H:L. To do, push flags.
 11001001 : ret   : RET      11 001 001  1  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.
 00000111 : rlc   : RLC      00 000 111  1  Rotate accumulator left by shift left 1 bit, and wrapping the first bit to the last position. Need to handle carry bit (CY = prev bit 7).
