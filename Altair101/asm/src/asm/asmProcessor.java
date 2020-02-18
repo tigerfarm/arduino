@@ -220,11 +220,9 @@ public class asmProcessor {
     public void programBytesListAndWrite(String theFileNameTo) {
         byte[] fileBytes = new byte[1024];    // Hold the bytes to be written.
         System.out.println("\n+ Print Program Bytes and description.");
-        // ++ <count>: binary   :hex > description.
-        System.out.println("++ Address:byte      databyte :hex > description");
-        //                  ++       0:00000000: 11000011 : C3 > opcode: jmp Test
-        // System.out.println("++ Address:byte      databyte :hex:Oct > description");
-        //                     ++       0:00000000: 11000011 : C3:303 > opcode: jmp Test
+        System.out.println("++ Address:byte      databyte :hex:oct > description");
+        //                  ++       0:00000000: 11000011 : C3:303 > opcode: jmp Start
+        //                  ++ <count>:binary    binary   :hex:oct > description
         programTop = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
@@ -252,6 +250,7 @@ public class asmProcessor {
                     // System.out.print(opcodeValues[2] + " " + theValue + " > opcode: " + opcodeValues[1]);
                     System.out.print(opcodeValues[2] + " : ");
                     System.out.print(String.format("%02X", Integer.parseInt(opcodeValues[2], 2)));
+                    System.out.print(String.format(":%03o", Integer.parseInt(opcodeValues[2], 2)));    // Octal
                     System.out.print(" > opcode: " + opcodeValues[1]);
                     if (opcodeValues.length > 3) {
                         System.out.print(" " + opcodeValues[3]);
@@ -267,6 +266,7 @@ public class asmProcessor {
                     // ++ lb:Start:14
                     System.out.print(byteToString((byte) Integer.parseInt(opcodeValues[2])) + " : ");
                     System.out.print(String.format("%02X", Integer.parseInt(opcodeValues[2])));
+                    System.out.print(String.format(":%03o", Integer.parseInt(opcodeValues[2])));    // Octal
                     System.out.println(" > lb: " + opcodeValues[2]); // byteToString(value[i])
                     fileBytes[programTop] = (byte) Integer.parseInt(opcodeValues[2]);
                     break;
@@ -274,6 +274,7 @@ public class asmProcessor {
                     // ++ hb:0
                     System.out.print(byteToString((byte) Integer.parseInt(opcodeValues[1])) + " : ");
                     System.out.print(String.format("%02X", Integer.parseInt(opcodeValues[1])));
+                    System.out.print(String.format(":%03o", Integer.parseInt(opcodeValues[1])));    // Octal
                     System.out.println(" > hb: " + opcodeValues[1]);
                     fileBytes[programTop] = (byte) Integer.parseInt(opcodeValues[1]);
                     break;
@@ -281,25 +282,38 @@ public class asmProcessor {
                     // ++ immediate:'l':108
                     System.out.print(byteToString((byte) Integer.parseInt(opcodeValues[2])) + " : ");
                     System.out.print(String.format("%02X", Integer.parseInt(opcodeValues[2])));
+                    System.out.print(String.format(":%03o", Integer.parseInt(opcodeValues[2])));    // Octal
                     System.out.println(" > immediate: " + opcodeValues[1] + " : " + opcodeValues[2]);
                     fileBytes[programTop] = (byte) Integer.parseInt(opcodeValues[2]);
                     break;
                 case "databyte":
                     // ++ databyte:abc:k
-                    // ++       6:00000110: 01110100 : 74 > databyte: t : 116
-                    // "39" should be "10".
-                    // ++       7:00000111: 00100111 : 27 > databyte: '10' : 39
-                    char[] ch = new char[1];
-                    ch[0] = opcodeValues[2].charAt(0);
-                    System.out.print(byteToString((byte) (int) ch[0]) + " : ");
-                    System.out.print(String.format("%02X", (int) ch[0]));
-                    System.out.println(" > databyte: " + opcodeValues[2] + " : " + (int) ch[0]);
-                    fileBytes[programTop] = (byte) (int) ch[0];
+                    // ++       6:00000110: 01110100 : 74 > databyte: testnl : t : 116
+                    // ++       7:00000111: 00100111 : 27 > databyte: testnl : '\n' : 10
+                    // System.out.println(" > databyte: " + opcodeValues[1] + " : " + opcodeValues[2]);
+                    if (opcodeValues[2].charAt(0) == '\'') {
+                        // Case, escape character.
+                        String eChar = convertValueToInt(opcodeValues[2]);
+                        System.out.print(byteToString((byte) Integer.parseInt(eChar)) + " : ");
+                        System.out.print(String.format("%02X", Integer.parseInt(eChar)));
+                        System.out.print(String.format(":%03o", Integer.parseInt(eChar)));    // Octal
+                        System.out.println(" > databyte: " + opcodeValues[1] + " : " + opcodeValues[2] + " : " + eChar);
+                    } else {
+                        // Case, non-escape character.
+                        char[] ch = new char[1];
+                        ch[0] = opcodeValues[2].charAt(0);
+                        System.out.print(byteToString((byte) (int) ch[0]) + " : ");
+                        System.out.print(String.format("%02X", (int) ch[0]));
+                        System.out.print(String.format(":%03o", (int) ch[0]));    // Octal
+                        System.out.println(" > databyte: " + opcodeValues[1] + " : " + opcodeValues[2] + " : " + (int) ch[0]);
+                        fileBytes[programTop] = (byte) (int) ch[0];
+                    }
                     break;
                 case "dbterm":
                     // dbterm:def:255
                     System.out.print(byteToString((byte) Integer.parseInt(opcodeValues[2])) + " : ");
                     System.out.print(String.format("%02X", Integer.parseInt(opcodeValues[2])));
+                    System.out.print(String.format(":%03o", Integer.parseInt(opcodeValues[2])));    // Octal
                     System.out.println(" > dbterm: " + opcodeValues[2]);
                     fileBytes[programTop] = (byte) Integer.parseInt(opcodeValues[2]);
                     break;
@@ -308,6 +322,7 @@ public class asmProcessor {
                     // ++ dsname:org:0
                     System.out.print(byteToString((byte) Integer.parseInt(opcodeValues[2])) + " : ");
                     System.out.print(String.format("%02X", Integer.parseInt(opcodeValues[2])));
+                    System.out.print(String.format(":%03o", Integer.parseInt(opcodeValues[2])));    // Octal
                     System.out.println(" > dsname: " + opcodeValues[1] + " : " + opcodeValues[2]);
                     fileBytes[programTop] = (byte) Integer.parseInt(opcodeValues[2]);
                     break;
@@ -649,13 +664,16 @@ public class asmProcessor {
             } else if (theValue.charAt(i) == '\\') {
                 // theValue.substring(i, i + 1).equals("\\")
                 // Handle escape characters such as '\n'.
+                // String sValue = "'" + theValue.substring(i, i + 2) + "'";
                 String sValue = theValue.substring(i, i + 2);
                 i++;    // Increment because of processing 2 characters instead of one.
-                sValue = convertValueToInt("'"+sValue+"'");
-                // System.out.println("++ parseDb sValue: " + sValue);
+                // sValue = convertValueToInt("'" + sValue + "'");
+                System.out.println("++ parseDb sValue: " + sValue);
                 // '\n' -> ++ parseDb sValue: 10
                 // programBytes.add("databyte:" + theName + SEPARATOR + Integer.parseInt(sValue));
-                programBytes.add("databyte:" + theName + SEPARATOR + "'"+sValue+"'");
+                // "39" should be "10".
+                // ++       7:00000111: 00100111 : 27 > databyte: '10' : 39
+                programBytes.add("databyte:" + theName + SEPARATOR + "'" + sValue + "'");
             } else {
                 programBytes.add("databyte:" + theName + SEPARATOR + theValue.substring(i, i + 1));
             }
