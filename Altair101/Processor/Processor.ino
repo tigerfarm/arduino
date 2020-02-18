@@ -12,8 +12,10 @@
   Current/Next Work
 
   Fix clock display. Currently, flipping the clock switch locks the machine.
+
+  Test opcode ADD.
   
-  Status lights now display correctly.
+  Status lights now display correctly. After fixing the clock display,
   I can show my steampunk tablet to the world.
   + Time to generate videos.
 

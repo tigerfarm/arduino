@@ -7,7 +7,7 @@
                             ; --------------------------------------
             jmp Start       ; Jump to start of the test program.
                             ;
-    Addr1   equ     128
+    Addr1   equ     64
     Addr2   ds      2
                             ;
     Halt:
@@ -26,7 +26,7 @@
                             ; --------------------------------------
                             ; Test register adding.
             add b           ; Add source register to A.
-            mov b,a         ; Move the result back to the source register, checking later.
+            mov b,a         ; Move the result back to the source register, to print the sum, later.
             add c
             mov c,a
             add d
@@ -42,8 +42,18 @@
             out 38          ; Print the register results.
                             ; --------------------------------------
                             ; Add content at address H:L, to register A.
-            add m
+                            ;
+            mvi a,6         ; Move # to register A.
+            out 37          ; Print register A.
+            sta Addr1       ; Store register A's content to the address(hb:lb).
+            lxi h,Addr1     ; Load an address (value of Addr1) into H:L.
+            out 36          ; Print the register values for H:L and the content at that address.
+                            ;
+            mvi a,3         ; Move # to register A.
+            out 37          ; Print register A.
+            add m           ; ADD: Content at address H:L(M) + Register A = 6 + 3 = 9
             out 36          ; Print the register results.
+                            ;
                             ; --------------------------------------
             jmp Halt        ; Jump back to the early halt command.
                             ; --------------------------------------
