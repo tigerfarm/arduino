@@ -7,9 +7,6 @@
                             ; --------------------------------------
             jmp Start       ; Jump to start of the test program.
                             ;
-    Addr1   equ     128
-    Addr2   ds      2
-                            ;
     Halt:
             hlt             ; The program will halt at each iteration, after the first.
                             ; --------------------------------------

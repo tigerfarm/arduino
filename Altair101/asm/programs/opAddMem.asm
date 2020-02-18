@@ -8,7 +8,7 @@
             jmp Start       ; Jump to start of the test program.
                             ;
     Addr1   equ     32
-    Addr2   equ     64
+    Addr2   equ     33
                             ;
     Halt:
             hlt             ; The program will halt at each iteration, after the first.
@@ -16,8 +16,7 @@
     Start:
             LDA Addr1       ; A<-(Addr1)
             MOV H, A        ; H<-A
-            inc Addr1       ; Addr1 <- Addr1 + 1
-            LDA Addr1       ; A<-(Addr1)
+            LDA Addr2       ; A<-(Addr1)
             ADD H           ; A<-A+H
             MOV L, A        ; L<-A
             MVI A,0         ; A<-0

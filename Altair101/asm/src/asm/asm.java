@@ -239,6 +239,9 @@ public class asm {
                     }
                     break;
                 // -------------------------------------------------------------
+                case "char":
+                    System.out.println("Character, " + theRest + " ascii value: " + (int) theRest.charAt(0));
+                    break;
                 case "clear":
                     // Works from UNIX console.
                     System.out.print("\033[H\033[2J");
