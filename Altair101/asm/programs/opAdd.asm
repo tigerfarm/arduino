@@ -37,7 +37,8 @@
             mov h,a
             add l
             mov l,a
-
+            add a
+                            ;
             out 38          ; Print the register results.
                             ; --------------------------------------
                             ; Add content at address H:L, to register A.

@@ -7,23 +7,23 @@
                             ; --------------------------------------
             jmp Start       ; Jump to start of the test program.
                             ;
-    Addr1   equ     32
-    Addr2   equ     64
+    Addr1   equ     128
+    Addr2   ds      2
                             ;
     Halt:
             hlt             ; The program will halt at each iteration, after the first.
                             ; --------------------------------------
     Start:
-            LDA Addr1       ; A<-(Addr1)
+            LDA 2050        ; A<-[2050]
             MOV H, A        ; H<-A
-            inc Addr1       ; Addr1 <- Addr1 + 1
-            LDA Addr1       ; A<-(Addr1)
+            LDA 2051        ; A<-[2051]
             ADD H           ; A<-A+H
             MOV L, A        ; L<-A
             MVI A,0         ; A<-0
             ADC A           ; A<-A+A+carry
             MOV H, A        ; H<-A
-            SHLD Addr2      ; H->Addr2+1, L->Addr2
+            SHLD 3050       ; H->3051, L->3050
+                            ; --------------------------------------
                             ; --------------------------------------
             jmp Halt        ; Jump back to the early halt command.
                             ; --------------------------------------

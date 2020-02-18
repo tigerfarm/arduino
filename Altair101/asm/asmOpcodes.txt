@@ -152,7 +152,7 @@ dcxh:00101011:|HL = HL-1
 
 adi:11000110:ADI #    11 000 110  3  Add #(immediate value) to register A, set: ZSCPA.
 sui:11010110:SUI #    11 010 110  3  Subtract #(immediate value) from register A, set ZSCPA.
-add:10000SSS:ADD SSS  11 000 110  3  Add source register to register A, set: ZSCPA.
+add:10000SSS:ADD SSS  10 000 SSS  1  Add source register to register A, set: ZSCPA.
 addb:10000000:|B+A -> A
 addc:10000001:|C+A -> A
 addd:10000010:|D+A -> A

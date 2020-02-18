@@ -552,6 +552,115 @@ void processOpcode() {
   switch (dataByte) {
 
     // ---------------------------------------------------------------------
+    // ++ ADD SSS  10 000 SSS  1  Add source register to register A. To do, set: ZSCPA.
+    //    10000SSS
+    case B10000000:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > add, Add register B:"));
+      printByte(dataByte);
+      Serial.print(F(" to register A:"));
+      printByte(regB);
+#endif
+      regA = regA + regB;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      printByte(regA);
+#endif
+      break;
+    case B10000001:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > add, Add register C:"));
+      printByte(regC);
+      Serial.print(F(" to register A:"));
+      printByte(regA);
+#endif
+      regA = regA + regC;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      printByte(regA);
+#endif
+      break;
+    case B10000010:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > add, Add register D:"));
+      printByte(regD);
+      Serial.print(F(" to register A:"));
+      printByte(regA);
+#endif
+      regA = regA + regD;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      printByte(regA);
+#endif
+      break;
+    case B10000011:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > add, Add register E:"));
+      printByte(regE);
+      Serial.print(F(" to register A:"));
+      printByte(regA);
+#endif
+      regA = regA + regE;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      printByte(regA);
+#endif
+      break;
+    case B10000100:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > add, Add register H:"));
+      printByte(regH);
+      Serial.print(F(" to register A:"));
+      printByte(regA);
+#endif
+      regA = regA + regH;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      printByte(regA);
+#endif
+      break;
+    case B10000101:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > add, Add register L:"));
+      printByte(regL);
+      Serial.print(F(" to register A:"));
+      printByte(regA);
+#endif
+      regA = regA + regL;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      printByte(regA);
+#endif
+      break;
+    case B10000110:
+      hlValue = regH * 256 + regL;
+      workingByte = memoryData[hlValue];
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > add, Add content at address H:L(M):"));
+      printByte(workingByte);
+      Serial.print(F(" to register A:"));
+      printByte(regA);
+#endif
+      regA = regA + workingByte;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      printByte(regA);
+#endif
+      break;
+    case B10000111:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > add, Add register A:"));
+      printByte(regA);
+      Serial.print(F(" to register A:"));
+      printByte(regA);
+#endif
+      regA = regA + regA;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      printByte(regA);
+#endif
+      break;
+    // ---------------------------------------------------------------------
     // ++ ADI #     11000110 db       ZSCPA   Add immediate to A
     case B11000110:
       opcode = B11000110;
