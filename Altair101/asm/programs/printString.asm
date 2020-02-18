@@ -9,6 +9,7 @@
                                     ; Data declarations.
                                     ;
                                     ; Strings to print out.
+        TestNL  db      'Test\n'
         Test1   db      'Test1'
         Test2   db      'Test2'
         Hello   db      'Hello'
@@ -23,6 +24,11 @@
     Halt:       hlt                 ; The program will halt at each iteration, after the first.
                                     ; --------------------------------------
     Start:
+                lxi h,TestNL
+                call sPrint
+                mvi a,NL
+                out 3
+                                    ;
                 lxi h,Test1
                 call sPrint
                 mvi a,NL

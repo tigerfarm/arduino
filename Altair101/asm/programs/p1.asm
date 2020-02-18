@@ -5,6 +5,11 @@
                                     ; --------------------------------------
                                     ; Address sample testing
                 jmp Start
+        nl1     db      'nl\n'
+        NL      equ     '\n'
+                mvi a,'\n'
+                mvi a,NL
+                                    ;
     Start:
                 call PrintOut
                 jmp Halt

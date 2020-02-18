@@ -10,6 +10,8 @@
   
   ---------------------------------------------
   Current/Next Work
+
+  Fix clock display. Currently, flipping the clock switch locks the machine.
   
   Status lights now display correctly.
   I can show my steampunk tablet to the world.
@@ -3125,7 +3127,6 @@ void displayTheTime(byte theMinute, byte theHour) {
 
 // ------------------------
 void clockRun() {
-  // theCounterSeconds = 99;  // 99 will cause the immediate display of time.
   syncCountWithClock();
   displayTheTime( theCounterMinutes, theCounterHours );
   while (programState == CLOCK_RUN) {

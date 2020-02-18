@@ -2,19 +2,6 @@
     Retrieve and list opcode data from a text file.
     Can sort the data before printing.
 
-+ Binary short description option:
-    ...
-    dad:00RP1001:DAD RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L, into H:L. And set carry bit.
-    dadb:00001001[HL = HL + BC]
-    ...
-
---------------------------------------------------------------------------------
-Opcodes implemented in Processor.ino, but not yet in this assembler,
-Opcode   Binary   Cycles Description
--------------------------------------
-push RP  11 RP0 101  1  Push register pair on the stack.
-pop  RP  11 RP0 001  1  POP register pair from the stack.
-
 + Hex, Octal, Binary, Decimal conversion calculator
 https://coderstoolbox.net/number/
 

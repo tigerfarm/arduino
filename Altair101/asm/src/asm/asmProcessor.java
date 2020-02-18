@@ -10,8 +10,17 @@
     ---------------------------------------------
     +++ Next assembler updates and issues,
 
-    + Program Byte listing with octal vales so that I can toggle in the program.
+    + Print octals in the listing: programBytesListAndWrite();
+    ++ So that I can toggle in the program byte.
     ++ Test with opAdi.asm
+
+    + Handle databyte escape values, for example: 
+    ++  TestNL  db      'Test\n'
+
+    + Display ASCII values for a character on command line:
+        > char a
+        'a' = 97
+        >
 
     + Make label and immediate names case sensitive.
 
@@ -214,6 +223,8 @@ public class asmProcessor {
         // ++ <count>: binary   :hex > description.
         System.out.println("++ Address:byte      databyte :hex > description");
         //                  ++       0:00000000: 11000011 : C3 > opcode: jmp Test
+        // System.out.println("++ Address:byte      databyte :hex:Oct > description");
+        //                     ++       0:00000000: 11000011 : C3:303 > opcode: jmp Test
         programTop = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
@@ -275,6 +286,9 @@ public class asmProcessor {
                     break;
                 case "databyte":
                     // ++ databyte:abc:k
+                    // ++       6:00000110: 01110100 : 74 > databyte: t : 116
+                    // "39" should be "10".
+                    // ++       7:00000111: 00100111 : 27 > databyte: '10' : 39
                     char[] ch = new char[1];
                     ch[0] = opcodeValues[2].charAt(0);
                     System.out.print(byteToString((byte) (int) ch[0]) + " : ");
@@ -632,6 +646,16 @@ public class asmProcessor {
             // Only use what is contained within the quotes, 'Hello' -> Hello
             if (theValue.substring(i, i + 1).equals(SEPARATOR)) {
                 programBytes.add("databyte:" + theName + SEPARATOR + SEPARATOR_TEMP);
+            } else if (theValue.charAt(i) == '\\') {
+                // theValue.substring(i, i + 1).equals("\\")
+                // Handle escape characters such as '\n'.
+                String sValue = theValue.substring(i, i + 2);
+                i++;    // Increment because of processing 2 characters instead of one.
+                sValue = convertValueToInt("'"+sValue+"'");
+                // System.out.println("++ parseDb sValue: " + sValue);
+                // '\n' -> ++ parseDb sValue: 10
+                // programBytes.add("databyte:" + theName + SEPARATOR + Integer.parseInt(sValue));
+                programBytes.add("databyte:" + theName + SEPARATOR + "'"+sValue+"'");
             } else {
                 programBytes.add("databyte:" + theName + SEPARATOR + theValue.substring(i, i + 1));
             }
@@ -918,7 +942,7 @@ public class asmProcessor {
                     // String of bytes.
                     // 6) Hello   db       "Hello"
                     String part3 = theRest.substring(c1, theRest.length());
-                    System.out.println("++ parseLine, db directive: part1|" + part1 + "| part3|" + part3 + "|");
+                    System.out.println("++ parseLine1, db directive: part1|" + part1 + "| part3|" + part3 + "|");
                     parseDb(part1, part3);
                     return;
                 } else if (theDirective.endsWith("'") || theDirective.equals("equ")) {
@@ -1002,7 +1026,7 @@ public class asmProcessor {
         if (part2.equals("db")) {
             // String of bytes.
             // 6) Hello   db       "Hello"
-            System.out.println("++ parseLine, db directive: part1|" + part1 + "| part3|" + part3 + "|");
+            System.out.println("++ parseLine2, db directive: part1|" + part1 + "| part3|" + part3 + "|");
             parseDb(part1, part3);
             return;
         }
@@ -1177,7 +1201,7 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opImmediate.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pKillTheBit.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/p1.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/printString.asm");
         if (thisProcess.errorCount > 0) {
             System.out.println("\n-- Number of errors: " + thisProcess.errorCount + "\n");
             return;
