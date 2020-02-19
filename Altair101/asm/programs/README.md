@@ -56,47 +56,45 @@ opCmp.asm               CMP : Compare register A and registers: B,C,D,E,H,L, and
 opCallRetShort.asm      CALL : words with label or a number.
                         RET : returns properly.
 opCallRet.asm           CALL and RET : work fine.
-opLdaSta.asm            LDA : works with an address number and label.
-                        STA : works with an address number and label.
-                        LXI : loaded an address (value of Addr1) into H:L.
-pLdaSta.asm             LDA and STA : testing with STEP.
-                        The status lights are testing and working correctly.
-opLdax.asm              LDAX : Load register A with data value from address B:C or D:E.
 opPushPop.asm           PUSH RP : Push a register pair (RP) onto the stack: B:C, D:E, H:L. To do, push flags.
                         Pop : Pop a register pair (RP) from the stack: B:C, D:E, H:L. To do, pop flags.
+opLdaSta.asm            LDA : works with an address number and label.
+                        STA : works with an address number and label.
+                        LXI : load an address (value of Addr1) into H:L.
+pLdaSta.asm             STEP control light testing of LDA and STA.
+                        Status lights are tested and working correctly.
+opLdax.asm              LDAX : Load register A with data value from address B:C or D:E.
 opOut.asm               OUT pa : Demonstrate the various output options.
                         DB character string declaration, then print it.
 printString.asm         OUT : Subroutine using OUT to print DB variable strings to the serial monitor.
                         sPrint : Subroutine to print a string.
                         sPrintln : Subroutine to print a string and finish with a new line character.
-opAdiSui.asm            ADI : Add immediate number to register A. Tested with decimal and EQU values.
-                        SUI : Subtract immediate number from register A.
-opAdi.asm               ADI : Add immediate number to register A. Tested with decimal and EQU values.
-                        Simple program to demo adding to numbers.
-                        Numbers can be easily changed using the Examine and Deposit.
-                        Addition result can viewed using the Examine.
-
 opInSwitches.asm        IN : Get and process a data byte from sense switches.
                         HLT : is used to stop the process and wait for the switches to be set.
                         RUN switch : used to continue the process.
                         Basically, the process stops. Sense switches are set.
                         Flip the RUN switch (similar return key) to continue.
+opAdiSui.asm            ADI : Add immediate number to register A. Tested with decimal and EQU values.
+                        SUI : Subtract immediate number from register A.
+opAdi.asm               ADI : Add immediate number to register A. Tested with decimal and EQU values.
+                        Simple program to demo adding 2 numbers.
+                        Numbers can be easily changed using the Examine and Deposit.
+                        Sum can viewed using Examine.
+opAdd.asm               ADD : Add register data: B,C,D,E,H,L, and M(H:L); to register A.
+
+opIxi.asm               LXI : test to load H:L with an address from a number or label.
+opShld.asm              SHLD a : L -> (address a); H -> (address a+1)
 
 opOra.asm               ORA : Register A, OR'ed with registers: B,C,D,E,H,L, and M.
                         This program requires, LOG_MESSAGES not defined, because it outputs messages, example: "+ Success: ORA".
                         Program length = 255.
 opAni.asm               ANI : AND and immediate value with register A.
 opXra.asm               XRA : Register A, Exclusive OR'ed with registers: B,C,D,E,H, and L.
-
-opIxi.asm               LXI : test to load H:L with an address from a number or label.
-
 opRlcRrc.asm            RLC : Rotate (shift) register A left. Wrap the left most, to the first.
                         RRC : Rotate (shift) register A right. Wrap the right most, to the last.
 
 opDad.asm               DAD : Add register pair(RP: B:C or D:E) to H:L. Set carry bit.
 opInx.asm               INX : Increment a register pair: B:C, D:E, H:L.
-
-opShld.asm              SHLD a : L -> (address a); H -> (address a+1)
 
 opImmediate.asm         Using various types of immediate values, with various opcodes.
 

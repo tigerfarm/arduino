@@ -52,7 +52,9 @@
             mvi a,3         ; Move # to register A.
             out 37          ; Print register A.
             add m           ; ADD: Content at address H:L(M) + Register A = 6 + 3 = 9
-            out 36          ; Print the register results.
+            out 37          ; Print register A == 9.
+                            ;
+            sta Addr2       ; Store register A's content to the address(hb:lb).
                             ;
                             ; --------------------------------------
             jmp Halt        ; Jump back to the early halt command.

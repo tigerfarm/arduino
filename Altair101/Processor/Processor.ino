@@ -11,8 +11,6 @@
   ---------------------------------------------
   Current/Next Work
 
-  Fix clock display. Currently, flipping the clock switch locks the machine and requires a hardware reset.
-
   Test opcode ADD.
 
   Status lights now display correctly. After fixing the clock display,

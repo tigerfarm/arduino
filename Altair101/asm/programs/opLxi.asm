@@ -1,13 +1,15 @@
                             ; --------------------------------------
                             ; Test LXI.
-                            ; Load register pair with immediate address value.
-                            ;   LXI B,D16-bit  B <- byte 3, C <- byte 2
-                            ;   LXI D,D16-bit  D <- byte 3, E <- byte 2
-                            ;   LXI H,D16-bit  H <- byte 3, L <- byte 2
-                            ;   Move a(hb:lb) data into the register pair RP address.
-                            ;   Move the lb hb data, into register pair B:C = hb:lb.
-                            ;   Move the lb hb data, into register pair D:E = hb:lb.
-                            ;   Move the lb hb data, into register pair H:L = hb:lb.
+                            ; Load register pair with 16-bit immediate address value.
+                            ;   LXI B, byte 2 -> C, byte 3 -> B.
+                            ;   LXI D, byte 2 -> E, byte 3 -> D.
+                            ;   LXI H, byte 2 -> L, byte 3 -> H.
+                            ; If moving a 16-bit address:
+                            ;   LXI a
+                            ; Move a(lb:hb) data into the register pair RP address.
+                            ; Move the lb data into C and hb data into B -> Register pair B:C = hb:lb.
+                            ; Move the lb data into E and hb data into D -> Register pair D:E = hb:lb.
+                            ; Move the lb data into L and hb data into H -> Register pair H:L = hb:lb.
                             ;
                             ; --------------------------------------
             jmp Test        ; Jump to start of the test.
