@@ -3304,20 +3304,23 @@ void controlResetLogic() {
   stackPointer = 0;
   opcode = 0;  // For the case when the processing cycle 2 or more.
   statusByte = 0;
-  if (programState == CLOCK_RUN || programState == PLAYER_RUN || programState == SERIAL_DOWNLOAD) {
+  if (programState != PROGRAM_RUN) {
     programState = PROGRAM_WAIT;
     statusByte = statusByte | WAIT_ON;
   }
-  // Fetch the first opcode.
+  // Fetch the first opcode, which display values to the panel.
   processData();
 }
 
 void controlStopLogic() {
   programState = PROGRAM_WAIT;
+  // Set statusByte for STOP.
   statusByte = 0;
   statusByte = statusByte | WAIT_ON;
   statusByte = statusByte | HLTA_ON;
-  // Panel light values are set to the latest byte processed.
+  printByte(statusByte);
+  // Display values to the panel lights.
+  processDataLights();
 }
 
 // -------------------------
@@ -3492,7 +3495,6 @@ void checkRunningButtons() {
           // Switch logic...
 #ifdef SWITCH_MESSAGES
           Serial.println(F("+ Control, Stop > stop running the program."));
-          Serial.println(F(" > Program halted."));
 #endif
           controlStopLogic();
         }
