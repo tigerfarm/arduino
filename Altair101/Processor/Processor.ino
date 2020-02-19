@@ -11,7 +11,7 @@
   ---------------------------------------------
   Current/Next Work
 
-  Test opcode ADD.
+  After a STOP, the first STEP has no status lights set.
 
   Status lights now display correctly. After fixing the clock display,
   I can show my steampunk tablet to the world.
