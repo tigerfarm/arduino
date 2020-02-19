@@ -10,12 +10,14 @@ https://coderstoolbox.net/number/
 // --------------------------
 
 // Register identifiers (binary value=R):
+//  111=A
 //  000=B
 //  001=C
 //  010=D
 //  011=E
 //  100=H
 //  101=L
+//  110=M   Uses H:L content as an address. The content at that address, is useable data.
 
  */
 package asm;

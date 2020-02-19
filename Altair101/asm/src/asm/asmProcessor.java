@@ -10,18 +10,6 @@
     ---------------------------------------------
     +++ Next assembler updates and issues,
 
-    + Print octals in the listing: programBytesListAndWrite();
-    ++ So that I can toggle in the program byte.
-    ++ Test with opAdi.asm
-
-    + Handle databyte escape values, for example: 
-    ++  TestNL  db      'Test\n'
-
-    + Display ASCII values for a character on command line:
-        > char a
-        'a' = 97
-        >
-
     + Make label and immediate names case sensitive.
 
     + Cleanup parseLine() code.

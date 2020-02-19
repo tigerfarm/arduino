@@ -1,20 +1,20 @@
 // -----------------------------------------------------------------------------
 /*
   Altair 101 Processor program
-  
+
   This is an Altair 8800 emulator program that runs on an Arduino Mega microcontroller.
   It emulates the basic Altair 8800 hardware processes--from 1975.
   It was built around the Intel 8080 CPU chip. The 8080's opcodes are the same for the 8085.
   This program implements many of the 8080 microprocessor machine instructions (opcodes).
   It has more than enough opcodes to run the classic program, Kill the Bitg.
-  
+
   ---------------------------------------------
   Current/Next Work
 
-  Fix clock display. Currently, flipping the clock switch locks the machine.
+  Fix clock display. Currently, flipping the clock switch locks the machine and requires a hardware reset.
 
   Test opcode ADD.
-  
+
   Status lights now display correctly. After fixing the clock display,
   I can show my steampunk tablet to the world.
   + Time to generate videos.
@@ -26,7 +26,7 @@
   ---------------------------------------------
   // Future option to Read and Run an initialization program.
   // Requires a new function:
-  // + The ability to delete 00000000.bin, which is the option not to read and run.
+  // + The ability to delete 00000000.bin, which is the option not to read and run at startup.
   ---------------------------------------------
   SD card module options,
   + Confirm saving or reading a file,
@@ -38,7 +38,7 @@
   + Add OUT opcode to out characters to the LED display.
   + Add 1602 LED display clock time and to set the time.
   In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
-  
+
   -----------------------------------------------------------------------------
   Processor program sections,
     Code compilation options.
@@ -2686,14 +2686,14 @@ void processOpcodeData() {
       Serial.println("");
 #endif
       switch (dataByte) {
-          // ---------------------------------------
+        // ---------------------------------------
         case 1:
           Serial.print(F(", terminal output to be implemented on LCD."));
           break;
         case 3:
           // Handled before this switch statement.
           break;
-          // ---------------------------------------
+        // ---------------------------------------
         case 30:
           Serial.print(F(" > Register B = "));
           printData(regB);
@@ -2748,7 +2748,7 @@ void processOpcodeData() {
           printOther();
           Serial.print(F("------------"));
           break;
-          // ---------------------------------------
+        // ---------------------------------------
         case 13:
           ledFlashError();
           Serial.print(F(" > Error happened, flash the LED light error sequence."));
@@ -2757,7 +2757,7 @@ void processOpcodeData() {
           ledFlashSuccess();
           Serial.print(F(" > Success happened, flash the LED light success sequence."));
           break;
-          // ---------------------------------------
+        // ---------------------------------------
         default:
           Serial.print(F(". - Error, OUT not implemented on this port address: "));
           Serial.println(regA);
@@ -3238,6 +3238,7 @@ void displayTheTime(byte theMinute, byte theHour) {
 
 // ------------------------
 void clockRun() {
+  Serial.println(F("+ clockRun()"));
   syncCountWithClock();
   displayTheTime( theCounterMinutes, theCounterHours );
   while (programState == CLOCK_RUN) {
@@ -3249,6 +3250,15 @@ void clockRun() {
 }
 #endif
 
+// ------------------------
+void playerRun() {
+  Serial.println(F("+ playerRun()"));
+  while (programState == PLAYER_RUN) {
+    // processPlayer();
+    checkRunningButtons();
+    delay(100);
+  }
+}
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Front Panel Switches
@@ -3296,7 +3306,7 @@ void controlResetLogic() {
   stackPointer = 0;
   opcode = 0;  // For the case when the processing cycle 2 or more.
   statusByte = 0;
-  if (programState == CLOCK_RUN || programState == SERIAL_DOWNLOAD) {
+  if (programState == CLOCK_RUN || programState == PLAYER_RUN || programState == SERIAL_DOWNLOAD) {
     programState = PROGRAM_WAIT;
     statusByte = statusByte | WAIT_ON;
   }
@@ -3524,19 +3534,19 @@ boolean downloadSwitchState = true;
 void checkClockSwitch() {
   if (digitalRead(CLOCK_SWITCH_PIN) == HIGH) {
     if (!clockSwitchState) {
-      // Serial.println(F("+ Clock switch released."));
+      Serial.println(F("+ Clock switch released."));
       clockSwitchState = false;
       // Switch logic ...
       if (programState == CLOCK_RUN) {
-#ifdef SWITCH_MESSAGES
         Serial.println(F("+ Stop running the clock, return to the 8080 emulator."));
-#endif
         controlStopLogic();   // Changes programState to wait.
         digitalWrite(HLDA_PIN, LOW);
       } else {
         programState = CLOCK_RUN;
         digitalWrite(HLDA_PIN, HIGH);
         statusByte = statusByte & WAIT_OFF;
+        Serial.print("+ Clock programState: ");
+        Serial.println(programState);
       }
     }
     clockSwitchState = true;
@@ -3554,6 +3564,17 @@ void checkPlayerSwitch() {
       Serial.println(F("+ Player switch released."));
       playerSwitchState = false;
       // Switch logic ...
+      if (programState == PLAYER_RUN) {
+        Serial.println(F("+ Stop running the MP3 player, return to the 8080 emulator."));
+        controlStopLogic();
+        digitalWrite(HLDA_PIN, LOW);
+      } else {
+        programState = PLAYER_RUN;
+        digitalWrite(HLDA_PIN, HIGH);
+        statusByte = statusByte & WAIT_OFF;
+        Serial.print("+ MP3 player programState: ");
+        Serial.println(programState);
+      }
     }
     playerSwitchState = true;
   } else {
@@ -3847,6 +3868,62 @@ void infraredRunning() {
 }
 
 // -----------------------------------------------------------------------------
+void DownloadProgram() {
+      byte readByte = 0;
+      int readByteCount = 0;
+      // Set status lights:
+      // HLDA on when in this mode. Later, HLDA off (LOW), then on (HIGH) when bytes downloading (Serial.available).
+      digitalWrite(HLDA_PIN, HIGH);
+      // INP on
+      byte readStatusByte = INP_ON;
+      readStatusByte = readStatusByte & M1_OFF;
+      readStatusByte = readStatusByte & WAIT_OFF;
+      lightsStatusAddressData(readStatusByte, 0, 0);
+      //
+      readByteCount = 0;  // Counter where the downloaded bytes are entered into memory.
+      while (programState == SERIAL_DOWNLOAD) {
+        if (serial2.available() > 0) {
+          // Input on the external serial port module.
+          // Read and process an incoming byte.
+          Serial.print("++ Byte array number: ");
+          if (readByteCount < 10) {
+            Serial.print(" ");
+          }
+          if (readByteCount < 100) {
+            Serial.print(" ");
+          }
+          Serial.print(readByteCount);
+          readByte = serial2.read();
+          memoryData[readByteCount] = readByte;
+          readByteCount++;
+          Serial.print(", Byte: ");
+          printByte(readByte);
+          Serial.print(" ");
+          printHex(readByte);
+          Serial.print(" ");
+          printOctal(readByte);
+          Serial.print("   ");
+          Serial.print(readByte, DEC);
+          Serial.println("");
+        }
+        if (pcf20interrupted) {
+          checkRunningButtons();
+          pcf20interrupted = false; // Reset for next interrupt.
+        }
+      }
+      Serial.print(F("+ Exit serial download state."));
+      if (readByteCount > 0) {
+        // Program bytes were loaded.
+        // Reset the program. This takes care of the case that STOP was used to end the download.
+        controlResetLogic();
+      } else {
+        // Reset to original panel light values.
+        processDataLights();
+      }
+      digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200); // 115200 or 9600
@@ -3935,7 +4012,7 @@ void setup() {
   // + If 00000000.bin exists, read it and run it.
   // Serial.print(F("+ Program loaded from memory array."));
   // Serial.println(F(" It will run automatically."));
-  
+
   // ----------------------------------------------------
   controlResetLogic();
   Serial.println(F("+++ Program system reset."));
@@ -3948,23 +4025,23 @@ void setup() {
 #ifdef RUN_DELAY
 static unsigned long timer = millis();
 #endif
-byte readByte = 0;
-int readByteCount = 0;
+
 void loop() {
+
+#ifdef RUN_DELAY
+  // For testing, clock process timing is controlled by the timer.
+  // Example, 500 : once every 1/2 second.
+  if (millis() - timer >= 1000) {
+    Serial.print(F("+ programState: "));
+    Serial.println(programState);
+    timer = millis();
+  }
+#endif
 
   switch (programState) {
     // ----------------------------
     case PROGRAM_RUN:
-#ifdef RUN_DELAY
-      // For testing, clock process timing is controlled by the timer.
-      // Example, 500 : once every 1/2 second.
-      if (millis() - timer >= 500) {
-#endif
-        processData();
-#ifdef RUN_DELAY
-        timer = millis();
-      }
-#endif
+      processData();
       // Program control: STOP or RESET.
       if (irrecv.decode(&results)) {
         // Future: use the keypress value(1-8) as input into the running program via IN opcode.
@@ -3985,16 +4062,13 @@ void loop() {
         checkControlButtons();
         pcf20interrupted = false; // Reset for next interrupt.
       }
-#ifdef INCLUDE_AUX
       checkClockSwitch();
       checkPlayerSwitch();
       checkUploadSwitch();
       checkDownloadSwitch();
-#endif
       delay(60);
       break;
-      // ----------------------------
-#ifdef INCLUDE_AUX
+    // ----------------------------
     case SERIAL_DOWNLOAD:
       Serial.println(F("+ State: SERIAL_DOWNLOAD"));
       // ----------------------------------------------------
@@ -4005,58 +4079,8 @@ void loop() {
         Serial.println("+                 Address  Data  Binary   Hex Octal Decimal");
         //              ++ Byte array number:   0, Byte: 00000110 06  006   6
         //              ++ Byte array number:   0, Byte: 00000110 Octal:006 Decimal6
+        DownloadProgram();
       }
-      //
-      // Set status lights:
-      // HLDA on when in this mode. Later, HLDA off (LOW), then on (HIGH) when bytes downloading (Serial.available).
-      digitalWrite(HLDA_PIN, HIGH);
-      // INP on
-      byte readStatusByte = INP_ON;
-      readStatusByte = readStatusByte & M1_OFF;
-      readStatusByte = readStatusByte & WAIT_OFF;
-      lightsStatusAddressData(readStatusByte, 0, 0);
-      //
-      readByteCount = 0;  // Counter where the downloaded bytes are entered into memory.
-      while (programState == SERIAL_DOWNLOAD) {
-        if (serial2.available() > 0) {
-          // Input on the external serial port module.
-          // Read and process an incoming byte.
-          Serial.print("++ Byte array number: ");
-          if (readByteCount < 10) {
-            Serial.print(" ");
-          }
-          if (readByteCount < 100) {
-            Serial.print(" ");
-          }
-          Serial.print(readByteCount);
-          readByte = serial2.read();
-          memoryData[readByteCount] = readByte;
-          readByteCount++;
-          Serial.print(", Byte: ");
-          printByte(readByte);
-          Serial.print(" ");
-          printHex(readByte);
-          Serial.print(" ");
-          printOctal(readByte);
-          Serial.print("   ");
-          Serial.print(readByte, DEC);
-          Serial.println("");
-        }
-        if (pcf20interrupted) {
-          checkRunningButtons();
-          pcf20interrupted = false; // Reset for next interrupt.
-        }
-      }
-      Serial.print(F("+ Exit serial download state."));
-      if (readByteCount > 0) {
-        // Program bytes were loaded.
-        // Reset the program. This takes care of the case that STOP was used to end the download.
-        controlResetLogic();
-      } else {
-        // Reset to original panel light values.
-        processDataLights();
-      }
-      digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;
     case CLOCK_RUN:
       Serial.println(F("+ State: CLOCK_RUN"));
@@ -4065,11 +4089,15 @@ void loop() {
       clockRun();
       digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;
-    // ----------------------------
+      // ----------------------------
     case PLAYER_RUN:
-      Serial.println(F("+ State: PLAYER_RUN. Not implemented, yet."));
+      // Serial.println(F("+ State: PLAYER_RUN. Not implemented, yet."));
+      // playerRun();
+      if (pcf20interrupted) {
+        checkRunningButtons();
+        pcf20interrupted = false; // Reset for next interrupt.
+      }
       break;
-#endif
   }
 
 }
