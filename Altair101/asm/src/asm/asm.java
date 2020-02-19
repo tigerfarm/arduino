@@ -31,10 +31,12 @@ public class asm {
     asmProcessor processFile = new asmProcessor();
     asmOpcodes theOpcodes = new asmOpcodes();
 
-    private static final String asmVersion = "0.92f";
+    private static final String ASMVERSION = "0.92g";
 
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     private static String subdirectoyName = "programs";
+
+    private static final String listOptions = "<file|bytes|opcode|ignore|ports>";
 
     // -------------------------------------------------------------------------
     public static void directoryListing() {
@@ -92,6 +94,8 @@ public class asm {
         String outFilename = "p1.bin";
         String fullFilename = subdirectoyName + "/" + inFilename;
         String cmd;
+        String cmdP1;
+        String cmdP2;
         String theRest;
         int si = 0;
         int ei = 0;
@@ -108,14 +112,30 @@ public class asm {
                 System.out.print("--- Error exception." + e.getMessage());
             }
             int c1 = consoleInLine.indexOf(" ", si);
-            if (c1 > 0) {
-                cmd = consoleInLine.substring(si, c1).toLowerCase();
-                theRest = consoleInLine.substring(c1 + 1).trim();
-            } else {
+            int c2 = 0;
+            cmdP1 = "";
+            cmdP2 = "";
+            if (c1 < 0) {
+                // Get the command word, for example: list,
+                //      list
                 cmd = consoleInLine.toLowerCase();
                 theRest = "";
+            } else {
+                cmd = consoleInLine.substring(si, c1).toLowerCase();
+                theRest = consoleInLine.substring(c1 + 1).trim();
+                c2 = theRest.indexOf(" ", si);
+                if (c2 < 0) {
+                    // Get the first parameter, for example: file,
+                    //      list file
+                    cmdP1 = theRest.toLowerCase();
+                } else {
+                    cmdP1 = theRest.substring(0, c2).toLowerCase();
+                    // Get the second parameter, for example: 6,
+                    //      set ignore 6
+                    cmdP2 = theRest.substring(c2 + 1).toLowerCase();
+                }
             }
-            //
+            // System.out.println("+ Parse, cmd:" + cmd + ":" + cmdP1 + ":" + cmdP2 + ":");
             // System.out.println("+ cmd : " + cmd + ":" + theRest + ".");
             switch (cmd) {
                 case "asm":
@@ -145,11 +165,11 @@ public class asm {
                     processFile.showFile(outFilename);
                     break;
                 case "dir":
-                    if (theRest.length() > 0) {
-                        if (theRest.equals("\"\"")) {
+                    if (cmdP1.length() > 0) {
+                        if (cmdP1.equals("\"\"")) {
                             subdirectoyName = "";
                         } else {
-                            subdirectoyName = theRest;
+                            subdirectoyName = cmdP1;
                         }
                     }
                     if (subdirectoyName.equals("")) {
@@ -164,8 +184,8 @@ public class asm {
                     break;
                 case "file":
                     // > file this.asm
-                    if (theRest.length() > 0) {
-                        inFilename = theRest;
+                    if (cmdP1.length() > 0) {
+                        inFilename = cmdP1;
                         if (!subdirectoyName.equals("")) {
                             fullFilename = subdirectoyName + "/" + inFilename;
                         }
@@ -176,17 +196,17 @@ public class asm {
                     break;
                 case "fileout":
                     // > fileout this.bin
-                    if (theRest.length() > 0) {
-                        outFilename = theRest;
+                    if (cmdP1.length() > 0) {
+                        outFilename = cmdP1;
                     }
                     System.out.println("+ Machine code file name: " + outFilename + ".");
                     break;
                 // -------------------------------------------------------------
                 case "list":
-                    switch (theRest) {
+                    switch (cmdP1) {
                         case "":
                             System.out.println("+ -------------------------------------");
-                            System.out.println("> list <file|bytes|opcode|ports>");
+                            System.out.println("> list " + listOptions);
                             System.out.println("");
                         case "file":
                             System.out.println("+ -------------------------------------");
@@ -205,8 +225,27 @@ public class asm {
                         case "ports":
                             listSerialPorts();
                             break;
+                        case "ignore":
+                            System.out.println("+ Number of characters to ignore on a source line: " + asmProcessor.getIgnoreFirstCharacters());
+                            break;
                         default:
-                            System.out.println("- Invalid list option." + theRest);
+                            System.out.println("- Invalid list option." + cmdP1);
+                            break;
+                    }
+                    break;
+                // -------------------------------------------------------------
+                case "set":
+                    switch (cmdP1) {
+                        case "ignore":
+                            // Needs options, set ignore 6.
+                            if (!cmdP2.equals("")) {
+                                asmProcessor.setIgnoreFirstCharacters(cmdP2);
+                            } else {
+                                System.out.println("- Invalid set option: " + theRest);
+                            }
+                            break;
+                        default:
+                            System.out.println("- Invalid set option: " + theRest);
                             break;
                     }
                     break;
@@ -232,22 +271,22 @@ public class asm {
                     sendFile(outFilename);
                     break;
                 case "uploadset":
-                    if (theRest.length() == 0) {
+                    if (cmdP1.length() == 0) {
                         System.out.println("+ Serial port name set to: uploadset: " + getSerialPortName());
                     } else {
-                        System.out.println("+ Set the serial port name: " + theRest);
-                        setSerialPortName(theRest);
+                        System.out.println("+ Set the serial port name: " + cmdP1);
+                        setSerialPortName(cmdP1);
                     }
                     break;
                 // -------------------------------------------------------------
                 case "char":
-                    System.out.println("Character, " + theRest + " ascii value: " + (int) theRest.charAt(0));
+                    System.out.println("Character, " + cmdP1 + " ascii value: " + (int) cmdP1.charAt(0));
                     break;
                 case "clear":
                     // Works from UNIX console.
                     System.out.print("\033[H\033[2J");
                     System.out.flush();
-                    System.out.println("Altair 101 8080/8085 assembler, version " + asmVersion);
+                    System.out.println("Altair 101 8080/8085 assembler, version " + ASMVERSION);
                     break;
                 case "exit":
                     System.out.println("+ -------------------------------------");
@@ -257,7 +296,7 @@ public class asm {
                 // -------------------------------------------------------------
                 case "help":
                     System.out.println("---------------------------------------");
-                    System.out.println("Altair 101 8080/8085 assembler, version " + asmVersion);
+                    System.out.println("Altair 101 8080/8085 assembler, version " + ASMVERSION);
                     System.out.println("");
                     System.out.println("Help document,");
                     System.out.println("----------------------");
@@ -293,6 +332,8 @@ public class asm {
                     System.out.println("+ opcodebytes        : list the opcode data, sorted by value.");
                     System.out.println("+ opcodenames        : list the opcode data, sorted by name.");
                     System.out.println("");
+                    System.out.println("+ set ignore <Number of characters to ignore on a source line>");
+                    System.out.println("");
                     System.out.println("+ upload             : Serial upload the program bytes to the Arduino.");
                     System.out.println("++ Serial port name: " + getSerialPortName());
                     System.out.println("+ list ports         : List available serial ports.");
@@ -302,7 +343,7 @@ public class asm {
                     System.out.println("+ clear              : Clear screen. Should work on UNIX based consoles, not Windows.");
                     System.out.println("+ exit               : Exit this program.");
                     System.out.println("");
-                    System.out.println("> list <file|bytes|opcodes|ports>");
+                    System.out.println("> list " + listOptions);
                     System.out.println("");
                     break;
                 default:
@@ -315,7 +356,7 @@ public class asm {
     }
 
     public static void main(String[] args) {
-        System.out.println("+++ Start 8080/8085 assembler, version " + asmVersion);
+        System.out.println("+++ Start 8080/8085 assembler, version " + ASMVERSION);
         System.out.println("");
         asm asmProcess = new asm();
         asmProcess.run();

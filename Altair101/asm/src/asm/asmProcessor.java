@@ -150,7 +150,7 @@ public class asmProcessor {
     private final String SEPARATOR = ":";
     private final String SEPARATOR_TEMP = "^^";
     private final int DB_STRING_TERMINATOR = 255;   // ffh = B11111111
-    private final static int ignoreFirstCharacters = 0;
+    private static Integer ignoreFirstCharacters = 0;
     //
     // Use for storing program bytes and calculating label addresses.
     private int programTop = 0;
@@ -185,6 +185,21 @@ public class asmProcessor {
         if (debugMessage) {
             System.out.print(theMessage + "\n");
         }
+    }
+
+    public static Integer getIgnoreFirstCharacters() {
+        return ignoreFirstCharacters;
+    }
+
+    public static void setIgnoreFirstCharacters(String ignoreFirstCharactersNum) {
+        try {
+            ignoreFirstCharacters = Integer.parseInt(ignoreFirstCharactersNum);
+        } catch (NumberFormatException e) {
+            System.out.println("");
+            System.out.println("- Error, invalid value: " + ignoreFirstCharactersNum + ", needs to be an integer.");
+            System.out.println("");
+        }
+//        ignoreFirstCharacters = ignoreFirstCharactersNum;
     }
 
     // -------------------------------------------------------------------------
