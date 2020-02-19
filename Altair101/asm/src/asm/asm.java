@@ -6,8 +6,9 @@
         $ java -jar asm.jar
 
     Next,
+    + Add the ability to set: ignoreFirstCharacters.
     + Directory listing, 3 across.
-    + Improve parse constructes.
+    + Improve parse constructs.
     ++ set : show set values.
     ++ set <subdirectory|filein|fileout|serial-port>
     ++ list <file|bytes|opcodes|ports>

@@ -5,7 +5,7 @@
     The basic assembler works:
     + It can convert assembly language opcodes and assembler directives into executable machine code.
     + It is designed for Intel 8080/8085 opcodes.
-    + The converted, Kill the Bit program, run on the Altair 101 dev machine.
+    + The converted, Kill the Bit program, runs on the Altair 101 dev machine.
 
     ---------------------------------------------
     +++ Next assembler updates and issues,
@@ -706,10 +706,7 @@ public class asmProcessor {
     }
 
     private void parseOpcode(String opcode) {
-        // opcode (no parameters)
-        //  For example,
-        //      hlt
-        //      nop
+        // opcode (no parameters), examples: hlt or nop.
         sOpcodeBinary = getOpcodeBinary(opcode);
         programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary);
         programTop++;
@@ -717,8 +714,41 @@ public class asmProcessor {
     }
 
     private void parseOpcode(String opcode, String p1) {
-        // Opcode, single parameter, example: jmp Next
+        // Opcode, single parameter
         switch (opcode) {
+            // -----------------------------
+            case "call":
+            case "jmp":
+            case "jnz":
+            case "jz":
+            case "jnc":
+            case "jc":
+            case "lda":
+            case "shld":
+            case "sta":
+                // opcode <address label>, example: jmp There
+                sOpcodeBinary = getOpcodeBinary(opcode);
+                programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1);
+                programTop++;
+                programBytes.add("lb:" + p1);
+                programTop++;
+                programBytes.add("hb:" + 0);
+                programTop++;
+                break;
+            // -----------------------------
+            case "adi":
+            case "ani":
+            case "cpi":
+            case "in":
+            case "out":
+            case "sui":
+                // opcode <immediate>, example: out 39
+                sOpcodeBinary = getOpcodeBinary(opcode);
+                programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1);
+                programTop++;
+                programBytes.add("immediate:" + p1);
+                programTop++;
+                break;
             // -----------------------------
             case "add":
             case "cmp":
@@ -731,46 +761,10 @@ public class asmProcessor {
             case "pop":
             case "push":
             case "xra":
-                // opcode <register|RegisterPair>
-                // cmp c
+                // opcode <register|RegisterPair>, example: cmp c
                 p1 = p1.toLowerCase();
                 sOpcodeBinary = getOpcodeBinary(opcode + p1);
                 programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1);
-                programTop++;
-                break;
-            // -----------------------------
-            case "adi":
-            case "ani":
-            case "cpi":
-            case "in":
-            case "out":
-            case "sui":
-                // opcode <immediate>
-                // out 39
-                sOpcodeBinary = getOpcodeBinary(opcode);
-                programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1);
-                programTop++;
-                programBytes.add("immediate:" + p1);
-                programTop++;
-                break;
-            // -----------------------------
-            case "call":
-            case "jmp":
-            case "jnz":
-            case "jz":
-            case "jnc":
-            case "jc":
-            case "lda":
-            case "shld":
-            case "sta":
-                // opcode <address label>
-                // jmp There
-                sOpcodeBinary = getOpcodeBinary(opcode);
-                programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1);
-                programTop++;
-                programBytes.add("lb:" + p1);
-                programTop++;
-                programBytes.add("hb:" + 0);
                 programTop++;
                 break;
             // -----------------------------
@@ -788,21 +782,8 @@ public class asmProcessor {
     private void parseOpcode(String opcode, String p1, String p2) {
         // Opcode with 2 parameters, example: mvi a,1
         switch (opcode) {
-            case "lxi":
-                // opcode <register>,<address label|number>
-                // lxi b,5
-                p1 = p1.toLowerCase();
-                sOpcodeBinary = getOpcodeBinary(opcode + p1);
-                programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1 + SEPARATOR + p2);
-                programTop++;
-                programBytes.add("lb:" + p2);
-                programTop++;
-                programBytes.add("hb:" + 0);
-                programTop++;
-                break;
             case "mvi":
-                // opcode <register>,<immediate>
-                // mvi a,1
+                // opcode <register>,<immediate>, example: mvi a,1
                 p1 = p1.toLowerCase();
                 //
                 // Case of the immediate equaling the separator.
@@ -817,12 +798,22 @@ public class asmProcessor {
                 programTop++;
                 break;
             case "mov":
-                // opcode <register>,<register>
-                // mov a,b
+                // opcode <register>,<register>, example: mov a,b
                 p1 = p1.toLowerCase();
                 p2 = p2.toLowerCase();
                 sOpcodeBinary = getOpcodeBinary(opcode + p1 + p2);
                 programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1 + SEPARATOR + p2);
+                programTop++;
+                break;
+            case "lxi":
+                // opcode <register>,<address label|address number>, example: lxi b,5
+                p1 = p1.toLowerCase();
+                sOpcodeBinary = getOpcodeBinary(opcode + p1);
+                programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1 + SEPARATOR + p2);
+                programTop++;
+                programBytes.add("lb:" + p2);
+                programTop++;
+                programBytes.add("hb:" + 0);
                 programTop++;
                 break;
             default:

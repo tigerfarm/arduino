@@ -1,13 +1,25 @@
 /*
     Retrieve and list opcode data from a text file.
-    Can sort the data before printing.
+    Can sort and select data before printing.
 
 + Hex, Octal, Binary, Decimal conversion calculator
 https://coderstoolbox.net/number/
 
-// -----------------------------------------------------------------------------
-// Opcode General Information (should be another file, then listed using: opcodes info)
-// --------------------------
+------------------------------------
+Steps to add opcodes:
+
++ Add into asmOpcodes.txt.
+-------
++ Add opcode into asmProcessor.java: parseOpcode(...), based on opcode parameters:
+++ opcode (no parameters)                           example: nop
+++ opcode <address label>                           example: jmp There
+++ opcode <immediate>                               example: out 39
+++ opcode <register|RegisterPair>                   example: cmp c
+++ opcode <register>,<immediate>                    example: mvi a,1 or mvi a,aValue
+++ opcode <register>,<register>                     example: mov a,b
+++ opcode <register>,<address label|address number> example: lxi b,5 or lxi b,aValue
+-------
++ Implement into Processor.ino. Binary values match the values in asmOpcodes.txt.
 
 // Register identifiers (binary value=R):
 //  111=A
@@ -18,6 +30,50 @@ https://coderstoolbox.net/number/
 //  100=H
 //  101=L
 //  110=M   Uses H:L content as an address. The content at that address, is useable data.
+
+------------------------------------
+8080 Opcodes Not added to Altair 101
+
+Inst      Encoding          Flags   Description
+----------------------------------------------------------------------
+
+DCX RP    00RP1011          -       Decrement register pair
+LHLD a    00101010 lb hb    -       Load H:L with address value. 
+ORI #     11110110          ZSPCA   OR  immediate with A
+ANA S     10100SSS          ZSCPA   AND register with A
+XRI #     11101110 db       ZSPCA   ExclusiveOR immediate with A
+PCHL      11101001          -       Jump to address in H:L
+STAX RP   00RP0010 *1       -       Store indirect through BC or DE
+XCHG      11101011          -       Exchange DE and HL content
+
+ADC S     10001SSS          ZSCPA   Add register to A with carry
+ACI #     11001110 db       ZSCPA   Add immediate to A with carry
+SUB S     10010SSS          ZSCPA   Subtract register from A
+SBB S     10011SSS          ZSCPA   Subtract register from A with borrow
+SBI #     11011110 db       ZSCPA   Subtract immediate from A with borrow
+
+DAA       00100111          ZSPCA   Decimal Adjust accumulator
+
+RLC       00000111          C       Rotate A left
+RAL       00010111          C       Rotate A left through carry
+RAR       00011111          C       Rotate A right through carry
+CMA       00101111          -       Compliment A
+CMC       00111111          C       Compliment Carry flag
+STC       00110111          C       Set Carry flag
+Cccc a    11CCC100 lb hb    -       Conditional subroutine call
+Rccc      11CCC000          -       Conditional return from subroutine
+RST n     11NNN111          -       Restart (Call n*8)
+
+Other jumps:
+JM a      11 100 010 lb hb          Jump if minus.
+JP a      11 101 010 lb hb          Jump if positive.
+JPE a     11 110 010 lb hb          Jump if parity even.
+JPO a     11 111 010 lb hb          Jump if parity odd.
+
+XTHL      11100011          -       Swap H:L with top word on stack
+SPHL      11111001          -       Set SP to content of H:L
+EI        11111011          -       Enable interrupts
+DI        11110011          -       Disable interrupts
 
  */
 package asm;

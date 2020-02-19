@@ -1,6 +1,10 @@
 /*
  Reference,
     https://github.com/Fazecast/jSerialComm/wiki/Blocking-and-Semiblocking-Reading-Usage-Example
+
+    https://xtermjs.org/
+    https://www.electricimp.com/secure-web-based-serial-terminal/
+
  */
 package serialjread;
 

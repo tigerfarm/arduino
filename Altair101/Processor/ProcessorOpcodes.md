@@ -23,56 +23,11 @@ void processOpcodeData() {
 Click [here](ProcessorOpcodesBinary.txt)
 to view a binary opcode list with the opcode number of cycles.
 
-#### Functionally ordered list of implemented opcodes:
-````
-Opcode   Binary   Cycles Description
--------------------------------------
-Initialize and store values:
-mvi R,#  00 DDD 110  2  Move a number (#/db) to a register.
-mov D,S  01 DDD SSS  1  Move source register data, to the destination register. If source(S) is M(110), move data from address H:L, to D.
-lxi RP,a 00 RP0 001  3  Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.
-sta a    00 110 010  3  Store register A to the address, a(hb:lb).
-lda a    00 110 010  3  Load register A with data from the address, a(hb:lb).
-ldax RP  00 RP1 010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.
-shld a   00 100 010  3  Store data value from memory location: a(hb:lb), to register L. Store value at: a + 1, to register H.
-
-Jumping and conditions:
-jmp a    11 000 011  3  Unconditional jump.
-Set condition:
-cmp S    10 111 SSS  1  ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.
-cpi #    11 111 110  2  Compare # to A, then set flags. If #=A, set Zero bit to 1. If #>A, Carry bit = 1. If #<A, Carry bit = 0.
-Conditional jumps:
-jz a     11 001 010  1  Jump to a, if zero bit flag is set (equals 1).
-jnz a    11 000 010  1  Jump to a, if Zero bit flag is not set (equals 0).
-jc a     11 011 010  1  Jump to a, if Carry bit flag is set (equals 1).
-jnc a    11 010 010  1  Jump to a, if Carry bit flag is not set (equals 0).
-
-Logical and bitwise:
-ani #    11 100 110  2  AND # (immediate db) with register A.
-ora S    10 110 SSS  1  OR register S, with register A.
-xra S    10 101 SSS  1  Exclusive OR, the register(S) with register A.
-rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
-
-Arithmetic:
-dad RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L, into H:L. And set carry bit.
-inr D    00 DDD 100  1  Increment register DDD. To do, set flags: ZSPA.
-dcr D    00 DDD 101  1  Decrement register DDD. To do, set flags: ZSPA.
-inx RP   00 RP0 011  1  Increment a register pair (a 16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
-
-Process:
-call a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.
-ret      11 001 001  1  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.
-push RP  11 RP0 101  1  Push register pair on the stack.
-pop  RP  11 RP0 001  1  Push register pair on the stack.
-hlt      01 110 110  1  Halt processor.
-nop      00 000 000  1  No operation. I added a delay: delay(100).
-out pa   11 010 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
-in pa    11 011 011  2  Read port a data into the accumulator. Example, a=0377 is the sense switches.
-````
 #### Alphabetically order list of implemented opcodes:
 ````
 Opcode   Binary   Cycles Description
 -------------------------------------
+ADD S     10000SSS          ZSPCA   Add register to A
 ani #    11 100 110  2  AND # (immediate db) with register A.
 call a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.
 cmp S    10 111 SSS  1  ZSPCA   Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.
@@ -104,6 +59,7 @@ ret      11 001 001  1  Unconditional return from subroutine. Pop the call addre
 rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
 shld a   00 100 010  3  Store data value from memory location: a(hb:lb), to register L. Store value at: a + 1, to register H.
 sta a    00 110 010  3  Store register A to the address, a(hb:lb).
+SUI #     11010110 db       ZSCPA   Subtract immediate from A
 xra S    10 101 SSS  1  Exclusive OR, the register(S) with register A.
 ````
 --------------------------------------------------------------------------------
@@ -127,12 +83,9 @@ PCHL      11101001          -       Jump to address in H:L
 STAX RP   00RP0010 *1       -       Store indirect through BC or DE
 XCHG      11101011          -       Exchange DE and HL content
 
-ADD S     10000SSS          ZSPCA   Add register to A
-ADI #     11000110 db       ZSCPA   Add immediate to A
 ADC S     10001SSS          ZSCPA   Add register to A with carry
 ACI #     11001110 db       ZSCPA   Add immediate to A with carry
 SUB S     10010SSS          ZSCPA   Subtract register from A
-SUI #     11010110 db       ZSCPA   Subtract immediate from A
 SBB S     10011SSS          ZSCPA   Subtract register from A with borrow
 SBI #     11011110 db       ZSCPA   Subtract immediate from A with borrow
 
