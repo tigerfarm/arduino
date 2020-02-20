@@ -68,7 +68,7 @@ public class asmUpload {
     }
 
     public static void listSerialPorts() {
-        System.out.println("+ List of serial ports:");
+        System.out.println("+ List of available serial ports:");
         SerialPort serials[] = SerialPort.getCommPorts();
         for (SerialPort serial : serials) {
             System.out.println(

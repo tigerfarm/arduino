@@ -170,23 +170,23 @@ dadd:00101001:|HL = HL + DE
 
 ani:11100110:ANI #    11 100 110  2  AND #(immediate value) with register A.
 ora:10110SSS:ORA S    10 110 SSS  1  OR register S, with register A.
-oraa:10110111:A | A -> A
-orab:10110000:B | A -> A
-orac:10110001:C | A -> A
-orad:10110010:D | A -> A
-orae:10110011:E | A -> A
-orah:10110100:H | A -> A
-oral:10110101:L | A -> A
+oraa:10110111:|A | A -> A
+orab:10110000:|B | A -> A
+orac:10110001:|C | A -> A
+orad:10110010:|D | A -> A
+orae:10110011:|E | A -> A
+orah:10110100:|H | A -> A
+oral:10110101:|L | A -> A
 oram:10110110:(HL) | A -> A
 xra:10101SSS:XRA R    10 101 SSS  1  Exclusive OR, the register(R) with register A.
-xrab:10101111:A ^ A -> A: Not implemented.
-xrab:10101000:B ^ A -> A
-xrac:10101001:C ^ A -> A
-xrad:10101010:D ^ A -> A
-xrae:10101011:E ^ A -> A
-xrah:10101100:H ^ A -> A
-xral:10101101:L ^ A -> A
-xram:10101101:(HL) ^ A -> A : Not implemented.
+xrab:10101111:|A ^ A -> A: Not implemented.
+xrab:10101000:|B ^ A -> A
+xrac:10101001:|C ^ A -> A
+xrad:10101010:|D ^ A -> A
+xrae:10101011:|E ^ A -> A
+xrah:10101100:|H ^ A -> A
+xral:10101101:|L ^ A -> A
+xram:10101101:|(HL) ^ A -> A : Not implemented.
 
 rlc:00000111:RLC      00 000 111  1  Rotate accumulator left by shift left 1 bit, and wrapping the first bit to the last position. Need to handle carry bit (CY = prev bit 7).
 rrc:00001111:RRC      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit (CY = prev bit 0).
