@@ -6,7 +6,8 @@
   It emulates the basic Altair 8800 hardware processes--from 1975.
   It was built around the Intel 8080 CPU chip. The 8080's opcodes are the same for the 8085.
   This program implements many of the 8080 microprocessor machine instructions (opcodes).
-  It has more than enough opcodes to run the classic program, Kill the Bitg.
+  It has more than half of the opcodes implemented,
+  which more than enough to run the classic program, Kill the Bit.
 
   ---------------------------------------------
   Current/Next Work
