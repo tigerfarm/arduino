@@ -11,16 +11,14 @@
   ---------------------------------------------
   Current/Next Work
 
-  After a STOP, the first STEP has no status lights set.
-
-  Status lights now display correctly. After fixing the clock display,
+  Panal LED lights all display correctly.
   I can show my steampunk tablet to the world.
   + Time to generate videos.
 
   Note, when running with memory all zeros,
-    error happens at: 00000100 00011001 = 1049,
+    with memoryBytes = 1024,
+    an error happens at: 00000100 00011001 = 1049,
     - Error, at programCounter:  25 = 031 = 00011001
-    when memoryBytes = 1024.
   ---------------------------------------------
   // Future option to Read and Run an initialization program.
   // Requires a new function:
@@ -3314,13 +3312,11 @@ void controlResetLogic() {
 
 void controlStopLogic() {
   programState = PROGRAM_WAIT;
-  // Set statusByte for STOP.
-  statusByte = 0;
-  statusByte = statusByte | WAIT_ON;
-  statusByte = statusByte | HLTA_ON;
-  printByte(statusByte);
+  // Create a STOP statusByte, to display on stopping.
+  // The program continues, the orginal statusByte should be used.
+  int stopStatusByte = WAIT_ON | HLTA_ON;
   // Display values to the panel lights.
-  processDataLights();
+  lightsStatusAddressData(stopStatusByte, programCounter, dataByte);
 }
 
 // -------------------------
