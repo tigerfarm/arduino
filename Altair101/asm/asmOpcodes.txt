@@ -218,25 +218,24 @@ sphl:11111001:SPHL #   11 100 011  ?  Not implemented, Set SP to content of H:L.
 ei:11111011:EI #     11 100 011  ?  Not implemented, Enable interrupts.
 di:11110011:DI #     11 100 011  ?  Not implemented, Disable interrupts.
 
+jm:11100010:JM a     11 100 010  ?  Not implemented, Jump to address, if minus.
+jp:11101010:JP a     11 101 010  ?  Not implemented, Jump to address, if positive.
+jpe:11110010:JPE a    11 110 010  ?  Not implemented, Jump to address, if parity even.
+jpo:11111010:JPO a    11 111 010  ?  Not implemented, Jump to address, if parity odd.
+
+ana:10100SSS:ANA S    10 100 SSS  1  Not implemented, AND register with A (with ZSPCA).
+stax:00RP0010:STAX RP  00 RP0 010  1  Not implemented, Store indirect through BC or DE.
+
+adc:10001SSS:ADC S    10 001 SSS  1  Not implemented, Add register to A with carry (with ZSPCA).
+sub:10010SSS:SUB S    10 010 SSS  1  Not implemented, Subtract register from A (with ZSPCA).
+sbb:10011SSS:SBB S    10 011 SSS  1  Not implemented, Subtract register from A with borrow (with ZSPCA).
+
 // Inst      Encoding          Flags   Description
 // ----------------------------------------------------------------------
-
-// ANA S     10100SSS          ZSCPA   AND register with A
-// STAX RP   00RP0010 *1       -       Store indirect through BC or DE
-
-// ADC S     10001SSS          ZSCPA   Add register to A with carry
-// SUB S     10010SSS          ZSCPA   Subtract register from A
-// SBB S     10011SSS          ZSCPA   Subtract register from A with borrow
 
 // Cccc a    11CCC100 lb hb    -       Conditional subroutine call
 // Rccc      11CCC000          -       Conditional return from subroutine
 // RST n     11NNN111          -       Restart (Call n*8)
-
-// Other jumps:
-// JM a      11 100 010 lb hb          Jump if minus.
-// JP a      11 101 010 lb hb          Jump if positive.
-// JPE a     11 110 010 lb hb          Jump if parity even.
-// JPO a     11 111 010 lb hb          Jump if parity odd.
 
 // -----------------------------------------------------------------------------
 // eof
