@@ -2,9 +2,11 @@
 // Opcode:Byte-Description
 // Note, a comment with a second ":" will cause an error in the sort classes. Even though, the sorted listings work fine.
 
-// Opcodes ordered as is.
-// Binary             Opcode   Binary   Cycles Description
-// -------------------------------------------------------
+// ------------------------------------
+// Steps to add opcodes:
+// + Add into here (asmOpcodes.txt).
+// + Add opcode into asmProcessor.java: parseOpcode(...), based on opcode parameters:
+// + Implement into Processor.ino. Binary values match the values in here (asmOpcodes.txt).
 
 // -------------------------
 // Operation codes
@@ -177,7 +179,7 @@ orad:10110010:|D | A -> A
 orae:10110011:|E | A -> A
 orah:10110100:|H | A -> A
 oral:10110101:|L | A -> A
-oram:10110110:(HL) | A -> A
+oram:10110110:|(HL) | A -> A
 xra:10101SSS:XRA R    10 101 SSS  1  Exclusive OR, the register(R) with register A.
 xrab:10101111:|A ^ A -> A: Not implemented.
 xrab:10101000:|B ^ A -> A
@@ -190,6 +192,51 @@ xram:10101101:|(HL) ^ A -> A : Not implemented.
 
 rlc:00000111:RLC      00 000 111  1  Rotate accumulator left by shift left 1 bit, and wrapping the first bit to the last position. Need to handle carry bit (CY = prev bit 7).
 rrc:00001111:RRC      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit (CY = prev bit 0).
+
+// -----------------------------------------------------------------------------
+// 8080/8085 Opcodes Not implemented in the Altair 101 processor or assembler.
+
+aci:11001110:ACI #    11 001 110  ?  Not implemented, Add #(immediate value) to register A with carry (with ZSPCA).
+aci:11011110:SBI #    11 011 110  ?  Not implemented, Subtract #(immediate value) from register A with borrow (with ZSPCA).
+xri:11101110:XRI #    11 101 110  ?  Not implemented, ExclusiveOR #(immediate value) with register A (with ZSPCA).
+ori:11110110:ORI #    11 110 110  ?  Not implemented, OR #(immediate value) with register A (with ZSPCA).
+
+pchl:11101001:PCHL #   11 101 001  ?  Not implemented, Jump to address in H:L.
+xchg:11101011:XCHG #   11 101 011  ?  Not implemented, Exchange DE and HL content.
+
+daa:00100111:DAA #    00 100 111  ?  Not implemented, Decimal Adjust accumulator (with ZSPCA).
+
+rlc:00000111:RLC #    00 000 111  ?  Not implemented, Rotate A left, cycle carry bit.
+ral:00010111:RAL #    00 010 111  ?  Not implemented, Rotate A right through carry.
+rar:00011111:RAR #    00 011 111  ?  Not implemented, Rotate A right through carry.
+cma:00101111:CMA #    00 101 111  ?  Not implemented, Compliment A.
+stc:00110111:STC #    00 110 111  ?  Not implemented, Set Carry flag.
+cmc:00111111:CMC #    00 111 111  ?  Not implemented, Compliment Carry flag.
+
+xthl:11100011:XTHL #   11 100 011  ?  Not implemented, Swap H:L with top word on stack.
+sphl:11111001:SPHL #   11 100 011  ?  Not implemented, Set SP to content of H:L.
+ei:11111011:EI #     11 100 011  ?  Not implemented, Enable interrupts.
+di:11110011:DI #     11 100 011  ?  Not implemented, Disable interrupts.
+
+// Inst      Encoding          Flags   Description
+// ----------------------------------------------------------------------
+
+// ANA S     10100SSS          ZSCPA   AND register with A
+// STAX RP   00RP0010 *1       -       Store indirect through BC or DE
+
+// ADC S     10001SSS          ZSCPA   Add register to A with carry
+// SUB S     10010SSS          ZSCPA   Subtract register from A
+// SBB S     10011SSS          ZSCPA   Subtract register from A with borrow
+
+// Cccc a    11CCC100 lb hb    -       Conditional subroutine call
+// Rccc      11CCC000          -       Conditional return from subroutine
+// RST n     11NNN111          -       Restart (Call n*8)
+
+// Other jumps:
+// JM a      11 100 010 lb hb          Jump if minus.
+// JP a      11 101 010 lb hb          Jump if positive.
+// JPE a     11 110 010 lb hb          Jump if parity even.
+// JPO a     11 111 010 lb hb          Jump if parity odd.
 
 // -----------------------------------------------------------------------------
 // eof
