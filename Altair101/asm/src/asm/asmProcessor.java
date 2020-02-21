@@ -7,6 +7,19 @@
     + It is designed for Intel 8080/8085 opcodes.
     + The converted, Kill the Bit program, runs on the Altair 101 dev machine.
 
+    Binary files:
+    https://www.autometer.de/unix4fun/z80pack/
+    https://www.autometer.de/unix4fun/z80pack/ftp/
+
+    Run CPM: 
+    https://schorn.ch/altair.html
+    For the ladder.com game, but how to get them on the disk?
+    http://www.classiccmp.org/cpmarchives/cpm/Software/rlee/C/COMPUPRO/GAMES/
+
+    The PCGET program uploads one file at a time. Is there a way to upload multiple files, or to create a .dsk file on the PC itself?
+    sim> attach dsk0 cpm48.dsk
+    sim> boot dsk
+
     ---------------------------------------------
     +++ Next assembler updates and issues,
 

@@ -3,11 +3,27 @@
  * When syncing with a clock, start 8 seconds before the top,
  *  i.e. turn the power on at 52 seconds.
 
-  Connect LCD to Nano:
-    SCL - A5
-    SDA - A4
-    VCC - 5V
-    GND - GND
+-----------------------------------------------------------------------------
+  1602 LCD serial connections pins,
+    LCD - Nano - Mega - Mega optional
+    SCL - A5   - SCL  - 21
+    SDA - A4   - SDA  - 20
+    VCC - 5V   - 5V
+    GND - GND  - GND
+
+-----------------------------------------------------------------------------
+  Reference,
+    https://www.makerguides.com/character-i2c-lcd-arduino-tutorial/
+  Each character output to the display pushs the previous characters over by one space.
+    lcd.autoscroll();
+  Turns off automatic scrolling of the LCD.
+    noAutoscroll()
+  Displays the LCD cursor: an underscore (line) at the position of the next character to be printed.
+    cursor()
+  Hides the LCD cursor.
+    noCursor()
+    
+-----------------------------------------------------------------------------
 */
 #include<Wire.h>
 
@@ -103,4 +119,3 @@ void loop() {
   displayOneSecondCount();
 }
 // -----------------------------------------------------------------------------
-

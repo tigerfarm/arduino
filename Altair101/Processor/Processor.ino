@@ -16,10 +16,15 @@
   I can show my steampunk tablet to the world.
   + Time to generate videos.
 
-  Note, when running with memory all zeros,
-    with memoryBytes = 1024,
-    an error happens at: 00000100 00011001 = 1049,
-    - Error, at programCounter:  25 = 031 = 00011001
+  ----------
+  1602 LED display,
+  + Add 1602 LED display clock time and to set the time.
+  + Add OUT opcode to out characters to the LED display.
+  ++ Clear display.
+  ++ Print character.
+  ++ Print new line character which causes next line, and then scrolling.
+
+  In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
   ---------------------------------------------
   // Future option to Read and Run an initialization program.
   // Requires a new function:
@@ -30,11 +35,6 @@
   ++ Fast flash HLDA for 1 second.
   ++ If read or write switch repeated, then run, else return to program wait status.
   + When rebooting the Mega: if 00000000.bin exists, read it and run it.
-  ----------
-  Add 1602 LED display,
-  + Add OUT opcode to out characters to the LED display.
-  + Add 1602 LED display clock time and to set the time.
-  In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
 
   -----------------------------------------------------------------------------
   Processor program sections,
@@ -85,7 +85,7 @@
 #define INCLUDE_AUX 1
 #define INCLUDE_CLOCK 1
 #define INCLUDE_SDCARD 1
-// #define INCLUDE_LCD 1
+#define INCLUDE_LCD 1
 // #define RUN_DELAY 1
 // #define INFRARED_MESSAGES 1    // For a simple setup: Mega + infrared, with serial messages.
 //
@@ -227,6 +227,25 @@ void initMemoryToZero() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // 1602 LCD
+/*
+  1602 LCD serial connections pins,
+    LCD - Nano - Mega - Mega optional
+    SCL - A5   - SCL  - 21
+    SDA - A4   - SDA  - 20
+    VCC - 5V   - 5V
+    GND - GND  - GND
+
+  Reference,
+    https://www.makerguides.com/character-i2c-lcd-arduino-tutorial/
+  This causes each character output to the display to push previous characters over by one space. If the current text direction is left-to-right (the default), the display scrolls to the left.
+    lcd.autoscroll();
+  Turns off automatic scrolling of the LCD.
+    noAutoscroll()
+  Displays the LCD cursor: an underscore (line) at the position of the next character to be printed.
+    cursor()
+  Hides the LCD cursor.
+    noCursor()
+ */ 
 #ifdef INCLUDE_LCD
 
 #include<Wire.h>
@@ -252,6 +271,40 @@ void displayPrintln(int theRow, String theString) {
   }
   lcd.setCursor(0, theRow);
   lcd.print(printString);
+}
+
+int lcdColumn = 0;
+int lcdRow = 0;
+String lcdRow0 = "";
+String lcdRow1 = "";
+void printLcdChar(String theChar) {
+  if (theChar == "0") {
+    lcd.clear();
+    lcd.home();     // Set cursor home (0,0).
+    lcdColumn = 0;
+    lcdRow = 0;
+    return;
+  }
+  if (theChar == "\n") {
+    if (lcdRow == 0) {
+      lcdRow = 1;
+      lcdColumn = 0;
+      lcd.setCursor(lcdColumn, lcdRow);
+      return;
+    }
+    // Move row 1 to row 0.
+    // displayPrintln(0, lcdRow1);
+    // Clear row 1.
+    lcdRow1 = "";
+    displayPrintln(1, lcdRow1);
+    // Place cursor at new line position, 0.
+    lcdColumn = 0;
+    lcd.setCursor(lcdColumn, lcdRow);
+    return;
+  }
+  lcd.setCursor(lcdColumn, lcdRow);
+  lcd.print(theChar);
+  lcdColumn++;
 }
 
 void readyLcd() {
@@ -2685,7 +2738,7 @@ void processOpcodeData() {
       switch (dataByte) {
         // ---------------------------------------
         case 1:
-          Serial.print(F(", terminal output to be implemented on LCD."));
+          Serial.print(F(", Not implemented, terminal output to LCD."));
           break;
         case 3:
           // Handled before this switch statement.
