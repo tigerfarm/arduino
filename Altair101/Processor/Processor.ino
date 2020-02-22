@@ -134,10 +134,14 @@ void pcf20interrupt() {
 
 #ifdef INCLUDE_AUX
 //                              Mega pins
-const int CLOCK_SWITCH_PIN =    A11;  // Tested pins, works: 4, A11. Doesn't work: 24, 33.
-const int PLAYER_SWITCH_PIN =   A12;
-const int UPLOAD_SWITCH_PIN =   A13;
-const int DOWNLOAD_SWITCH_PIN = A14;
+const int CLOCK_SWITCH_PIN =    8;  // Tested pins, works: 4, A11. Doesn't work: 24, 33.
+const int PLAYER_SWITCH_PIN =   9;
+const int UPLOAD_SWITCH_PIN =   10;
+const int DOWNLOAD_SWITCH_PIN = 11;
+// const int CLOCK_SWITCH_PIN =    A11;  // Previous pins.
+// const int PLAYER_SWITCH_PIN =   A12;
+// const int UPLOAD_SWITCH_PIN =   A13;
+// const int DOWNLOAD_SWITCH_PIN = A14;
 #endif
 
 // -----------------------------------------------------------------------------
@@ -145,9 +149,12 @@ const int DOWNLOAD_SWITCH_PIN = A14;
 // Output LED light shift register(SN74HC595N) pins
 
 //                Nano pin               74HC595 Pins
-const int dataPinLed = 7;     // pin 14 Data pin.
-const int latchPinLed = 8;    // pin 12 Latch pin.
-const int clockPinLed = 9;    // pin 11 Clock pin.
+const int dataPinLed = A13;     // pin 14 Data pin.
+const int latchPinLed = A14;    // pin 12 Latch pin.
+const int clockPinLed = A15;    // pin 11 Clock pin.
+// const int dataPinLed = 7;    // Previous pins
+// const int latchPinLed = 8;
+// const int clockPinLed = 9;
 
 #ifdef INCLUDE_AUX
 // Status LED light,

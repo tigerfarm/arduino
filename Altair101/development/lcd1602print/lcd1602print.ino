@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------------
 /*
- * Test displaying characters to a 1602 LCD.
+   Test displaying characters to a 1602 LCD.
 
   1602 LCD serial connections,
     LCD - Nano - Mega
@@ -51,21 +51,29 @@ void printLcdChar(String theChar) {
     return;
   }
   if (theChar == "\n") {
+    // Place cursor at start of the second line.
+    lcdColumn = 0;
+    lcd.setCursor(0, 1);
     if (lcdRow == 0) {
       lcdRow = 1;
-      lcdColumn = 0;
-      lcd.setCursor(lcdColumn, lcdRow);
       return;
     }
+    // Scroll row 1 to row 0, and clear row 1.
     // Move row 1 to row 0.
     // displayPrintln(0, lcdRow1);
     // Clear row 1.
     lcdRow1 = "";
     displayPrintln(1, clearLineString);
-    // Place cursor at new line position, 0.
-    lcdColumn = 0;
-    lcd.setCursor(lcdColumn, lcdRow);
     return;
+  }
+  lcdColumn++;
+  if (lcdColumn >= displayColumns) {
+    return;
+  }
+  if (lcdRow == 0) {
+    lcdRow0 = lcdRow0 + theChar;
+  } else {
+    lcdRow1 = lcdRow1 + theChar;
   }
   lcd.setCursor(lcdColumn, lcdRow);
   lcd.print(theChar);
@@ -102,6 +110,9 @@ void setup() {
 
 void loop() {
   Serial.print(F("+ Looping."));
+  printLcdChar("A");
+  printLcdChar("b");
+  printLcdChar("c");
   delay(1000);
 }
 // -----------------------------------------------------------------------------
