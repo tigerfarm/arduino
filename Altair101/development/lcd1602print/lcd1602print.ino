@@ -43,12 +43,12 @@ String clearLineString = "                ";
 void lcdSetup() {
   lcd.init();
   lcd.backlight();
-  //             1234567890123456
-  lcdPrintln(0, "Altair 101");
-  //             0123456789012345
-  lcdPrintln(1, "LCD ready...");
+  //         1234567890123456
   lcdRow0 = "Altair 101";
+  //         0123456789012345
   lcdRow1 = "LCD ready...";
+  lcdPrintln(0, lcdRow0);
+  lcdPrintln(1, lcdRow1);
   lcd.setCursor(1, 12);
   lcd.cursor();
 }

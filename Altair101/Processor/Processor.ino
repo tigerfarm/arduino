@@ -249,9 +249,61 @@ void initMemoryToZero() {
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
-String theLine = "";
-const int displayColumns = 16;
-void displayPrintln(int theRow, String theString) {
+// -----------------------------------------------------------------------------
+// 1602 LCD print functions.
+
+const int displayColumns = 16;  // LCD has 16 columns for printing to.
+
+int lcdColumn = 0;    // Current print column position.
+int lcdRow = 0;       // Current print row/line.
+String lcdRow0 = "";  // Buffer for row 0.
+String lcdRow1 = "";  // Buffer for row 1.
+
+//                        1234567890123456
+String clearLineString = "                ";
+
+// ------------------------------------------------
+void lcdSetup() {
+  lcd.init();
+  lcd.backlight();
+  //         1234567890123456
+  lcdRow0 = "Altair 101";
+  //         0123456789012345
+  lcdRow1 = "LCD ready...";
+  lcdPrintln(0, lcdRow0);
+  lcdPrintln(1, lcdRow1);
+  lcd.setCursor(1, 12);
+  lcd.cursor();
+}
+
+void lcdClear() {
+  Serial.println(F("++ Clear screen."));
+  lcd.clear();
+  lcd.home();     // Set cursor home (0,0).
+  lcdColumn = 0;
+  lcdRow = 0;
+  lcdRow0 = "";
+  lcdRow1 = "";
+}
+
+void lcdBacklight(int theChar) {
+  // ----------------------------------------------
+  if (theChar == 0) {
+    Serial.println(F("++ Backlight off."));
+    lcd.noBacklight();
+    return;
+  }
+  if (theChar == 1) {
+    Serial.println(F("++ Backlight on."));
+    lcd.backlight();
+    return;
+  }
+}
+
+// ----------------------------------------------
+// Print line.
+
+void lcdPrintln(int theRow, String theString) {
   // To overwrite anything on the current line.
   String printString = theString;
   int theRest = displayColumns - theString.length();
@@ -269,51 +321,64 @@ void displayPrintln(int theRow, String theString) {
   lcd.print(printString);
 }
 
-int lcdColumn = 0;
-int lcdRow = 0;
-String lcdRow0 = "";
-String lcdRow1 = "";
-void printLcdChar(String theChar) {
-  if (theChar == "0") {
-    lcd.clear();
-    lcd.home();     // Set cursor home (0,0).
-    lcdColumn = 0;
-    lcdRow = 0;
+// ----------------------------------------------
+void lcdScroll() {
+  //Serial.println(F("+ lcdScroll()"));
+  // -----------------------
+  // Place cursor at start of the second line.
+  lcdColumn = 0;
+  if (lcdRow == 0) {
+    // If the first time printing to the second row, no need to scroll the data.
+    lcd.setCursor(0, 1);
+    lcdRow = 1;
     return;
   }
-  if (theChar == "\n") {
-    if (lcdRow == 0) {
-      lcdRow = 1;
-      lcdColumn = 0;
-      lcd.setCursor(lcdColumn, lcdRow);
-      return;
-    }
-    // Move row 1 to row 0.
-    // displayPrintln(0, lcdRow1);
-    // Clear row 1.
-    lcdRow1 = "";
-    displayPrintln(1, lcdRow1);
-    // Place cursor at new line position, 0.
-    lcdColumn = 0;
-    lcd.setCursor(lcdColumn, lcdRow);
-    return;
-  }
-  lcd.setCursor(lcdColumn, lcdRow);
-  lcd.print(theChar);
-  lcdColumn++;
+  // -----------------------
+  // Scroll the data.
+  //
+  // Clear the screen befor moving row 1 to 0, and row 1 needs to be clear.
+  lcd.clear();
+  // Screen buffers: scroll row 1, up to row 0.
+  lcdRow0 = lcdRow1;
+  lcdPrintln(0, lcdRow0);
+  lcdRow1 = "";  // Clear row 1 buffer.
+  lcd.setCursor(0, 1);
 }
 
-void readyLcd() {
-  lcd.init();
-  lcd.backlight();
-  //                1234567890123456
-  displayPrintln(0, "Altair 101");
-  theLine = "LCD ready...";
-  displayPrintln(1, theLine);
-  // delay(3000);
-  // lcd.clear();
+// ----------------------------------------------
+// Print character.
+
+void lcdPrintChar(String theChar) {
+  Serial.print(F("+ lcdPrintChar :"));
+  Serial.print(theChar);
+  Serial.println(F(":"));
+  // ----------------------------------------------
+  // New line character
+  if (theChar == "\n") {
+    lcdScroll();
+    delay(1000);
+    return;
+  }
+  // ----------------------------------------------
+  // Print character to the display.
+  //
+  // Characters are dropped, if print past the 16 characters in a line.
+  if (lcdColumn >= displayColumns) {
+    return;
+  }
+  //
+  if (lcdRow == 0) {
+    lcdRow0 = lcdRow0 + theChar;
+  } else {
+    lcdRow1 = lcdRow1 + theChar;
+  }
+  lcd.print(theChar);
+  lcdColumn++;
+  if (lcdColumn < displayColumns) {
+    // Move the cursor forward.
+    lcd.setCursor(lcdColumn, lcdRow);
+  }
 }
-#endif
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -2734,7 +2799,8 @@ void processOpcodeData() {
       switch (dataByte) {
         // ---------------------------------------
         case 1:
-          Serial.print(F(", Not implemented, terminal output to LCD."));
+          Serial.print(F(", print register A to the LCD screen."));
+          lcdPrintChar(regA);
           break;
         case 3:
           // Handled before this switch statement.
@@ -3979,7 +4045,7 @@ void setup() {
 
   // ----------------------------------------------------
 #ifdef INCLUDE_LCD
-  readyLcd();
+  lcdSetup();
   Serial.println(F("+ LCD ready for output."));
 #endif
 
