@@ -228,12 +228,13 @@ void setup() {
   Serial.println(F("++ Print to end of line."));
   lcdPrintChar("\n");
   int pI;
-  for (int i = 1; i < displayColumns; i++) {
+  for (int i = 1; i <= displayColumns; i++) {
     pI = i;
     if (i>9) {
       pI = i-10;
     }
     lcdPrintChar(String(pI));
+    delay(500);
   }
   delay(2000);
   Serial.println(F("++ Print new line character, EOL."));
