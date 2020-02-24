@@ -105,7 +105,7 @@ void lcdScroll() {
   // Place cursor at start of the second line.
   lcdColumn = 0;
   if (lcdRow == 0) {
-    // If the first time printing to a clear screen, no need to scroll the data.
+    // If the first time printing to the second row, no need to scroll the data.
     lcd.setCursor(0, 1);
     lcdRow = 1;
     return;
@@ -118,8 +118,7 @@ void lcdScroll() {
   // Screen buffers: scroll row 1, up to row 0.
   lcdRow0 = lcdRow1;
   lcdPrintln(0, lcdRow0);
-  // Clear row 1 buffer.
-  lcdRow1 = "";
+  lcdRow1 = "";  // Clear row 1 buffer.
   lcd.setCursor(0, 1);
 }
 
@@ -139,10 +138,12 @@ void lcdPrintChar(String theChar) {
   }
   // ----------------------------------------------
   // Print character to the display.
-  // Stacy, update for print past end of line (16 characters in a line).
+  //
+  // Characters are dropped, if print past the 16 characters in a line.
   if (lcdColumn >= displayColumns) {
     return;
   }
+  //
   if (lcdRow == 0) {
     lcdRow0 = lcdRow0 + theChar;
   } else {
@@ -182,10 +183,10 @@ void setup() {
   delay(2000);
   Serial.println(F("++ Print 'a b c.'"));
   lcdPrintChar("a");
-  delay(300);
+  delay(500);
   lcdPrintChar(" ");
   lcdPrintChar("b");
-  delay(300);
+  delay(500);
   lcdPrintChar(" ");
   lcdPrintChar("c");
   lcdPrintChar(".");
@@ -228,7 +229,7 @@ void setup() {
   Serial.println(F("++ Print to end of line."));
   lcdPrintChar("\n");
   int pI;
-  for (int i = 1; i <= displayColumns; i++) {
+  for (int i = 1; i <= displayColumns+1; i++) {
     pI = i;
     if (i>9) {
       pI = i-10;
@@ -253,6 +254,6 @@ void setup() {
 
 void loop() {
   Serial.println(F("+ Looping."));
-  delay(3000);
+  delay(6000);
 }
 // -----------------------------------------------------------------------------
