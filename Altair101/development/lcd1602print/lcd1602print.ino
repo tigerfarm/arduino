@@ -8,6 +8,17 @@
     SDA - A4   - SDA
     VCC - 5V   - 5V
     GND - GND  - GND
+
+  Reference,
+    https://www.makerguides.com/character-i2c-lcd-arduino-tutorial/
+  This causes each character output to the display to push previous characters over by one space. If the current text direction is left-to-right (the default), the display scrolls to the left.
+    lcd.autoscroll();
+  Turns off automatic scrolling of the LCD.
+    noAutoscroll()
+  Displays the LCD cursor: an underscore (line) at the position of the next character to be printed.
+    cursor()
+  Hides the LCD cursor.
+    noCursor()
 */
 #include<Wire.h>
 
@@ -112,6 +123,7 @@ void printLcdChar(String theChar) {
 void readyLcd() {
   lcd.init();
   lcd.backlight();
+  lcd.cursor();
   //                 1234567890123456
   displayPrintln(0, "Altair 101");
   displayPrintln(1, "LCD ready...");
