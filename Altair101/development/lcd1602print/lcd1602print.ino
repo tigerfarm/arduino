@@ -53,7 +53,8 @@ void lcdSetup() {
   lcd.cursor();
 }
 
-void lcdClear() {
+void lcdClearScreen() {
+  // -----------------------------
   Serial.println(F("++ Clear screen."));
   lcd.clear();
   lcd.home();     // Set cursor home (0,0).
@@ -64,7 +65,7 @@ void lcdClear() {
 }
 
 void lcdBacklight(int theChar) {
-  // ----------------------------------------------
+  // -----------------------------
   if (theChar == 0) {
     Serial.println(F("++ Backlight off."));
     lcd.noBacklight();
@@ -179,7 +180,7 @@ void setup() {
   lcdBacklight(1);
   */
   delay(2000);
-  lcdClear();
+  lcdClearScreen();
   delay(2000);
   Serial.println(F("++ Print 'a b c.'"));
   lcdPrintChar("a");

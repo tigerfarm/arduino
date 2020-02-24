@@ -18,11 +18,14 @@
 
   ----------
   1602 LED display,
+  
   + Add 1602 LED display clock time and to set the time.
+  
   + Add OUT opcode to out characters to the LED display.
-  ++ Clear display.
-  ++ Print character.
-  ++ Print new line character which causes next line, and then scrolling.
+  ++ out 1, regA = 0: lcdBacklight( off ).
+  ++ out 1, regA = 1: lcdBacklight( on ).
+  ++ out 1, regA = 2: Clear display, lcdClearScreen().
+  ++ out 1, print register A to the LCD: lcdPrintChar(regA);
 
   In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
   ---------------------------------------------
@@ -276,7 +279,7 @@ void lcdSetup() {
   lcd.cursor();
 }
 
-void lcdClear() {
+void lcdClearScreen() {
   Serial.println(F("++ Clear screen."));
   lcd.clear();
   lcd.home();     // Set cursor home (0,0).
@@ -379,6 +382,8 @@ void lcdPrintChar(String theChar) {
     lcd.setCursor(lcdColumn, lcdRow);
   }
 }
+
+#endif
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -2800,7 +2805,15 @@ void processOpcodeData() {
         // ---------------------------------------
         case 1:
           Serial.print(F(", print register A to the LCD screen."));
-          lcdPrintChar(regA);
+          if (regA == 0) {
+            lcdBacklight( 0 );      // LCD back light off.
+          } else if (regA == 1) {
+            lcdBacklight( 1 );      // LCD back light on.
+          } else if (regA == 2) {
+            lcdClearScreen();
+          } else {
+            lcdPrintChar((String)regA);
+          }
           break;
         case 3:
           // Handled before this switch statement.
