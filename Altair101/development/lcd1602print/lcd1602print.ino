@@ -15,11 +15,21 @@
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 // -----------------------------------------------------------------------------
+// 1602 LCD print functions.
+
+int lcdColumn = 0;    // Current print column position.
+int lcdRow = 0;       // Current print row/line.
+String lcdRow0 = "";  // Buffer for row 0.
+String lcdRow1 = "";  // Buffer for row 1.
+
+// ----------------------------------------------
+// Print line.
+
 //                        1234567890123456
 String clearLineString = "                ";
-
 String theLine = "";
 const int displayColumns = 16;
+
 void displayPrintln(int theRow, String theString) {
   // To overwrite anything on the current line.
   String printString = theString;
@@ -38,18 +48,35 @@ void displayPrintln(int theRow, String theString) {
   lcd.print(printString);
 }
 
-int lcdColumn = 0;
-int lcdRow = 0;
-String lcdRow0 = "";
-String lcdRow1 = "";
-void printLcdChar(String theChar) {
-  if (theChar == "0") {
+void lcdControl(int theChar) {
+  // ----------------------------------------------
+  if (theChar == 0) {
+    Serial.println(F("++ Backlight off."));
+    lcd.noBacklight();
+    return;
+  }
+  if (theChar == 1) {
+    Serial.println(F("++ Backlight on."));
+    lcd.backlight();
+    return;
+  }
+  // ----------------
+  if (theChar == 2) {
+    Serial.println(F("++ Clear screen."));
     lcd.clear();
     lcd.home();     // Set cursor home (0,0).
     lcdColumn = 0;
     lcdRow = 0;
     return;
   }
+}
+
+// ----------------------------------------------
+// Print character.
+
+void printLcdChar(String theChar) {
+  // ----------------------------------------------
+  // New line character
   if (theChar == "\n") {
     // Place cursor at start of the second line.
     lcdColumn = 0;
@@ -66,7 +93,8 @@ void printLcdChar(String theChar) {
     displayPrintln(1, clearLineString);
     return;
   }
-  lcdColumn++;
+  // ----------------------------------------------
+  // Print character to the display.
   if (lcdColumn >= displayColumns) {
     return;
   }
@@ -80,6 +108,7 @@ void printLcdChar(String theChar) {
   lcdColumn++;
 }
 
+  // ----------------------------------------------
 void readyLcd() {
   lcd.init();
   lcd.backlight();
@@ -102,6 +131,61 @@ void setup() {
   Serial.println(F("+ LCD ready for output."));
 
   // ----------------------------------------------------
+  delay(2000);
+  Serial.println(F("+ LCD test."));
+  lcdControl(0);
+  delay(2000);
+  lcdControl(1);
+  delay(2000);
+  lcdControl(2);
+  delay(2000);
+  Serial.println(F("++ Print 'a b c.'"));
+  printLcdChar("a");
+  delay(300);
+  printLcdChar(" ");
+  printLcdChar("b");
+  delay(300);
+  printLcdChar(" ");
+  printLcdChar("c");
+  printLcdChar(".");
+  delay(300);
+  Serial.println(F("++ Print new line, '/n'"));
+  printLcdChar("\n");
+  delay(2000);
+  Serial.println(F("++ Print 'd e f.'"));
+  printLcdChar("d");
+  printLcdChar(" ");
+  printLcdChar("e");
+  printLcdChar(" ");
+  printLcdChar("f");
+  printLcdChar(".");
+  delay(2000);
+  Serial.println(F("++ Print new line character, causing scrolling #1."));
+  printLcdChar("\n");
+  printLcdChar("N");
+  printLcdChar("L");
+  printLcdChar(" ");
+  printLcdChar("#");
+  printLcdChar("1");
+  delay(2000);
+  Serial.println(F("++ Print new line character, causing scrolling #2."));
+  printLcdChar("\n");
+  printLcdChar("N");
+  printLcdChar("L");
+  printLcdChar(" ");
+  printLcdChar("#");
+  printLcdChar("2");
+  delay(2000);
+  Serial.println(F("++ Print new line character, causing scrolling #3."));
+  printLcdChar("\n");
+  printLcdChar("N");
+  printLcdChar("L");
+  printLcdChar(" ");
+  printLcdChar("#");
+  printLcdChar("3");
+  delay(2000);
+
+  // ----------------------------------------------------
   Serial.println(F("+ Starting the processor loop."));
 }
 
@@ -109,10 +193,7 @@ void setup() {
 // Device Loop
 
 void loop() {
-  Serial.print(F("+ Looping."));
-  printLcdChar("A");
-  printLcdChar("b");
-  printLcdChar("c");
-  delay(1000);
+  Serial.println(F("+ Looping."));
+  delay(3000);
 }
 // -----------------------------------------------------------------------------
