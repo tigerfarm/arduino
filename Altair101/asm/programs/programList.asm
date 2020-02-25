@@ -1,8 +1,6 @@
                                     ; ------------------------------------------
-                                    ; Get and process a data byte from sense switches.
-                                    ; 
+                                        ; List program information to the LCD.
                                     ; ------------------------------------------
-                                    ; First byte needs to be an opcode to run.
                 jmp GetByte
                                     ; ------------------------------------------
                                     ; Data declarations
@@ -14,7 +12,7 @@
     SENSE_SW    equ     255         ; Input port address: toggle sense switch byte, into register A.
     PRINT_PORT  equ     3           ; Output port: print to the serial port.
                                     ; -------------------
-    ECHO        db      '+ Input data: '
+    ECHO        db      '+ Input data, '
     NO_INPUT    db      '+ No input, value = 0.'
                                     ; -------------------
                                     ; Special characters:
@@ -81,3 +79,4 @@
                 ret
 
                 end
+

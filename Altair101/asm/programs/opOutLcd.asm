@@ -26,11 +26,15 @@
             hlt
                                         ;
                                         ; --------------------------------------
-                                        ; Print "Hello" to the Arduino IDE serial monitor.
                                         ; Clear screen.
             mvi a,2
             out LCD
             hlt
+            mvi a,'a'
+            out LCD
+            hlt
+            mvi a,2
+            out LCD
                                         ;
                                         ; --------------------------------------
                                         ; Print "Hello" to the Arduino IDE serial monitor.

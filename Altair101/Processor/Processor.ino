@@ -12,6 +12,13 @@
   ---------------------------------------------
   Current/Next Work
 
+  Halt is nolonger turning WAIT_ON.
+
+  Not printing the value, programList.asm. Need to convert byte to string.
+  + Input data, .
+  If the value is 97 (01100001), then it prints the ascii character:
+  + Input data, a.
+
   Panal LED lights all display correctly.
   I can show my steampunk tablet to the world.
   + Time to generate videos.
@@ -936,6 +943,7 @@ void processOpcode() {
       Serial.println(F(""));
       ledFlashError();
       controlStopLogic();
+      statusByte = WAIT_ON | HLTA_ON;
       break;
     // --------------------------------------------------------------------
     //    11RP0001 Pop    register pair B from the stack. 1 cycles.
@@ -996,6 +1004,7 @@ void processOpcode() {
       Serial.println(F(""));
       ledFlashError();
       controlStopLogic();
+      statusByte = WAIT_ON | HLTA_ON;
       break;
     // ---------------------------------------------------------------------
     // dad RP   00RP1001  Add register pair(RP) to H:L (16 bit add). And set carry bit.
@@ -1227,7 +1236,8 @@ void processOpcode() {
 #else
       Serial.println(F("\n+ HLT, program halted."));
 #endif
-      controlStopLogic(); // Sets statusByte.
+      controlStopLogic();
+      statusByte = WAIT_ON | HLTA_ON;
       break;
     case B11011011:
       opcode = B11011011;
@@ -1508,7 +1518,9 @@ void processOpcode() {
       Serial.print(F(" > lxi, Stacy, to do: move the lb hb data, to the stack pointer address."));
 #endif
       Serial.print(F(" - Error, unhandled instruction."));
+      ledFlashError();
       controlStopLogic();
+      statusByte = WAIT_ON | HLTA_ON;
       break;
     // ------------------------------------------------------------------------------------------
     /*
@@ -2254,6 +2266,7 @@ void processOpcode() {
 #endif
       ledFlashError();
       controlStopLogic();
+      statusByte = WAIT_ON | HLTA_ON;
   }
 }
 
@@ -3006,7 +3019,9 @@ void processOpcodeData() {
     // ------------------------------------------------------------------------------------------
     default:
       Serial.print(F(" -- Error, unknow instruction."));
+      ledFlashError();
       controlStopLogic();
+      statusByte = WAIT_ON | HLTA_ON;
   }
   // The opcode cycles are complete.
   opcode = 0;
@@ -3437,7 +3452,7 @@ void controlResetLogic() {
 void controlStopLogic() {
   programState = PROGRAM_WAIT;
   // Create a STOP statusByte, to display on stopping.
-  // The program continues, the orginal statusByte should be used.
+  // When the program continues, the orginal statusByte should be used.
   int stopStatusByte = WAIT_ON | HLTA_ON;
   // Display values to the panel lights.
   lightsStatusAddressData(stopStatusByte, programCounter, dataByte);
