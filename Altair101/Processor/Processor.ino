@@ -21,12 +21,6 @@
   
   + Add 1602 LED display clock time and to set the time.
   
-  + Add OUT opcode to out characters to the LED display.
-  ++ out 1, regA = 0: lcdBacklight( off ).
-  ++ out 1, regA = 1: lcdBacklight( on ).
-  ++ out 1, regA = 2: Clear display, lcdClearScreen().
-  ++ out 1, print register A to the LCD: lcdPrintChar(regA);
-
   In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
   ---------------------------------------------
   // Future option to Read and Run an initialization program.

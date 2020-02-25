@@ -66,6 +66,8 @@ pLdaSta.asm             STEP control light testing of LDA and STA.
 opLdax.asm              LDAX : Load register A with data value from address B:C or D:E.
 opOut.asm               OUT pa : Demonstrate the various output options.
                         DB character string declaration, then print it.
+opOutLcd.asm            OUT 1 : Output characters to LCD screen, and output screen options: backlight on/off and clear screen.
+opOutLcdOffOn.asm       OUT 1 : Backlight on, Backlight off.
 printString.asm         OUT : Subroutine using OUT to print DB variable strings to the serial monitor.
                         sPrint : Subroutine to print a string.
                         sPrintln : Subroutine to print a string and finish with a new line character.

@@ -17,7 +17,7 @@ call:11001101:CALL a   11 001 101  3  Unconditional subroutine call. Push curren
 ret:11001001:RET      11 001 001  1  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.
 
 in:11011011:IN pa    11 011 011  2  Read port a data into the accumulator. Example, a=0377 is the sense switches.
-out:11100011:OUT pa   11 010 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
+out:11100011:OUT pa   11 100 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
 
 // -------------------------
 // Compare and branching
