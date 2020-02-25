@@ -66,8 +66,6 @@ pLdaSta.asm             STEP control light testing of LDA and STA.
 opLdax.asm              LDAX : Load register A with data value from address B:C or D:E.
 opOut.asm               OUT pa : Demonstrate the various output options.
                         DB character string declaration, then print it.
-opOutLcd.asm            OUT 1 : Output characters to LCD screen, and output screen options: backlight on/off and clear screen.
-opOutLcdOffOn.asm       OUT 1 : Backlight on, Backlight off.
 printString.asm         OUT : Subroutine using OUT to print DB variable strings to the serial monitor.
                         sPrint : Subroutine to print a string.
                         sPrintln : Subroutine to print a string and finish with a new line character.
@@ -84,6 +82,14 @@ opAdi.asm               ADI : Add immediate number to register A. Tested with de
                         Sum can viewed using Examine.
 opAdd.asm               ADD : Add register data: B,C,D,E,H,L, and M(H:L); to register A.
 
+opOutLcd.asm            OUT 1 : Output characters to LCD screen, and output screen options: backlight on/off and clear screen.
+opOutLcdOffOn.asm       LCD backlight on, or backlight off.
+
+pKillTheBit.asm
+
+-------------------------------
+Untested programs
+
 opIxi.asm               LXI : test to load H:L with an address from a number or label.
 opShld.asm              SHLD a : L -> (address a); H -> (address a+1)
 
@@ -99,8 +105,6 @@ opDad.asm               DAD : Add register pair(RP: B:C or D:E) to H:L. Set carr
 opInx.asm               INX : Increment a register pair: B:C, D:E, H:L.
 
 opImmediate.asm         Using various types of immediate values, with various opcodes.
-
-pKillTheBit.asm
 ````
 
 ## Background Development
