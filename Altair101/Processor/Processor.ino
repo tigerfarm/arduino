@@ -2812,7 +2812,8 @@ void processOpcodeData() {
           } else if (regA == 2) {
             lcdClearScreen();
           } else {
-            lcdPrintChar((String)regA);
+            asciiChar = regA;
+            lcdPrintChar((String)asciiChar);
           }
           break;
         case 3:

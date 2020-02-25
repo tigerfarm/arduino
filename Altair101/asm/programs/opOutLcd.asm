@@ -6,7 +6,7 @@
                                         ;
                                         ; --------------------------------------
                                         ;
-    LCD         db      1
+    LCD         equ     1
     StartMsg    db      'Start...'      ; Strings to print out.
     Again       db      'Again.'        ; Strings to print out.
     TERMB       equ     0ffh            ; String terminator.
