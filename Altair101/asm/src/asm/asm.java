@@ -28,7 +28,7 @@ public class asm {
     asmProcessor processFile = new asmProcessor();
     asmOpcodes theOpcodes = new asmOpcodes();
 
-    private static final String ASMVERSION = "0.92h";
+    private static final String ASMVERSION = "0.92s";
 
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     private static String sourcedirectoy = "programs";

@@ -314,6 +314,17 @@ public class asmProcessor {
                         System.out.print(String.format("%02X", Integer.parseInt(eChar)));
                         System.out.print(String.format(":%03o", Integer.parseInt(eChar)));    // Octal
                         System.out.println(" > databyte: " + opcodeValues[1] + " : " + opcodeValues[2] + " : " + eChar);
+                    } else if (opcodeValues[2].equals(SEPARATOR_TEMP)) {
+                        // Case, separator character, i.e. separator temp character string which maps to the separator character.
+                        // ++ databyte:echo:^^
+                        // ++      31:00011111: 00111010 : 3A:072 > databyte: echo : : : 58
+                        char[] ch = new char[1];
+                        ch[0] = SEPARATOR.charAt(0);
+                        System.out.print(byteToString((byte) (int) ch[0]) + " : ");
+                        System.out.print(String.format("%02X", (int) ch[0]));
+                        System.out.print(String.format(":%03o", (int) ch[0]));    // Octal
+                        System.out.println(" > databyte: " + opcodeValues[1] + " : " + SEPARATOR + " : " + (int) ch[0]);
+                        fileBytes[programTop] = (byte) (int) ch[0];
                     } else {
                         // Case, non-escape character.
                         char[] ch = new char[1];
@@ -1226,7 +1237,7 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opImmediate.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pKillTheBit.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/printString.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/programList.asm");
         if (thisProcess.errorCount > 0) {
             System.out.println("\n-- Number of errors: " + thisProcess.errorCount + "\n");
             return;

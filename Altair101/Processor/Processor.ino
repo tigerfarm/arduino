@@ -12,12 +12,9 @@
   ---------------------------------------------
   Current/Next Work
 
-  Halt is nolonger turning WAIT_ON.
-
-  Not printing the value, programList.asm. Need to convert byte to string.
-  + Input data, .
-  If the value is 97 (01100001), then it prints the ascii character:
-  + Input data, a.
+  + Fix error: '\n' (ascii 10) is interpreted as: ++ Backlight off
++ Print register A to the LCD screen.+ lcdPrintChar :>:
++ Print register A to the LCD screen.++ Backlight off.
 
   Panal LED lights all display correctly.
   I can show my steampunk tablet to the world.
@@ -355,7 +352,7 @@ void lcdScroll() {
 void lcdPrintChar(String theChar) {
   Serial.print(F("+ lcdPrintChar :"));
   Serial.print(theChar);
-  Serial.println(F(":"));
+  Serial.print(F(":"));
   // ----------------------------------------------
   // New line character
   if (theChar == "\n") {
@@ -2811,7 +2808,7 @@ void processOpcodeData() {
       switch (dataByte) {
         // ---------------------------------------
         case 1:
-          Serial.print(F(", print register A to the LCD screen."));
+          Serial.print(F("+ Print register A to the LCD screen."));
           if (regA == 0) {
             lcdBacklight( 0 );      // LCD back light off.
           } else if (regA == 1) {
