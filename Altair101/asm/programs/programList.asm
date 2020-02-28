@@ -21,6 +21,7 @@
     p00000001   db  '+ LCD on/off'
     p00000010   db  '+ Jump loop'
     p00000011   db  '+ Kill the Bit'
+    p00000100   db  '+ Program List'
                                         ; -------------------
                                         ; Special characters:
     NL          equ     10              ; New line, '\n'.
@@ -61,6 +62,8 @@
                 jz s00000010
                 cpi 3
                 jz s00000011
+                cpi 4
+                jz s00000100
                                         ; Else, unknown.
                 mvi a,'?'
                 out LCD_PORT
@@ -90,6 +93,9 @@
                 lxi h,p00000011
                 call print
                 call printNL
+                jmp GetByte
+    s00000100:
+                ; call printNL          ; Causes printPrompt to no longer print the prompt.
                 jmp GetByte
                                         ; ------------------------------------------
                                         ; Print the prompt.

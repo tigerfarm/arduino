@@ -28,6 +28,115 @@ Clicking the AUX1 up a second time, returns control to the program emulator.
 I have 2 more components to include: 1602 LCD and an MP3 player.
 
 --------------------------------------------------------------------------------
+#### Videos to create
+
+1. Intro video of memory management basics.
+````
++ Turn the unit on using the battery switch.
++ Demo memory management using deposit, examine, and reset switches, for example:
+++ On startup, all the memory values are zero.
++++ 0:0 1:0 2:0 3:0 4:0 5:0 6:0 7:0 8:0
++++ Flip reset switch to return to 0 address.
+++ Deposit values:
++++ 3:6 4:8
+++ Examine values:
++++ 0:0 1:0 2:0 3:6 4:8 5:0 6:0 7:0 8:0
+------------
++ Reset the unit using the Mega reset button.
+------------
++ Enter the data where each increase in address, moves the data, LED on, one position left,
+++ (address:data) 0:0 1:1 2:2 3:4 4:8 5:16 6:32 7:64 8:128
+++ Use deposit and deposit next.
+++ Use examine and examine next.
+------------
+++ Saving and retrieving memory to/from the micro SD card.
+++ Show the time of day.
+````
+
+2. Running, stopping, and stepping through a program.
+````
+Manually enter the pLoop.asm program.
+++ Address:byte      databyte :hex:oct > description
+++       0:00000000: 11000011 : C3:303 > opcode: jmp There
+++       1:00000001: 00000110 : 06:006 > lb: 6
+++       2:00000010: 00000000 : 00:000 > hb: 0
+++       6:00000110: 11000011 : C3:303 > opcode: jmp Start
+++       7:00000111: 00000000 : 00:000 > lb: 0
+++       8:00001000: 00000000 : 00:000 > hb: 0
+
++ Write the program to: 01000000.bin
++ Step through it.
++ Run and stop it.
++ Step through it.
++ Run and stop it.
+
+Change (examine and deposit):, 7:64, to jump to address 64.
++ Deposit the following, starting at address 64.
+++      64:01000000: 11000011 : C3:303 > opcode: jmp Start
+++      65:01000001: 00000000 : 00:000 > lb: 0
+++      66:01000010: 00000000 : 00:000 > hb: 0
+
++ Step through it.
++ Run and stop it.
+
++ Write the program to: 01000000.bin
+
+------------
+Enter the following program to add to numbers (2+3).
+++ Address:byte      databyte :hex > description
+++       0:00000000: 00111110 : 3E:076 > opcode: mvi a,2
+++       1:00000001: 00000010 : 02:002 > immediate: 2 : 2
+++       2:00000010: 11000110 : C6:306 > opcode: adi 3
+++       3:00000011: 00000011 : 03:003 > immediate: 3 : 3
+++       4:00000100: 00110010 : 32:062 > opcode: sta 64
+++       5:00000101: 01000000 : 40:100 > lb: 64
+++       6:00000110: 00000000 : 00:000 > hb: 0
+++       7:00000111: 01110110 : 76:166 > opcode: hlt
+
++ Write the program to: 01100000.bin
+
++ Run the program, which runs until it halts.
++ Examine memory address 64 to view the result, 2+3 = 5.
++ View and deposit and new number value.
+++ View address 1 which is 2.
+++ Deposit value 6.
++ Flip reset switch.
++ Run the program.
++ Examine memory address 64 to view the result, 6+3 = 9.
+
++ Load program: 01000000.bin
++ Step through it.
++ Load program: 01100000.bin
++ Step through it, and run it.
++ Examine memory address 64 to view the result, 2+3 = 5.
+````
+
+3. Demo the steps to create an assembler program, upload it, and run it.
+Note, this requires videos from the laptop, and from the Altair 101.
+The videos will need to be joined into a single video.
+````
+On the laptop,
++ View pLoop.asm in NetBeans.
++ Start the assembler.
++ Load the program, pLoop.asm.
++ Assemble it and look at the bytes.
++ Upload it.
+
+On the Altair 101,
++ View it.
++ Run it.
+
+On the laptop,
++ Edit pLoop.asm in NetBeans.
++ Use the assembler to re-assemble it and look at the bytes.
++ Upload it.
+
+On the Altair 101,
++ View it.
++ Run it.
+````
+
+--------------------------------------------------------------------------------
 #### Assemble and Run Programs on the Altair 101
 
 The emulator program, [Processor.ino](Processor.ino)

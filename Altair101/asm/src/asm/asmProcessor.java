@@ -251,7 +251,7 @@ public class asmProcessor {
                 programCounterPadding = " ";
             }
             System.out.print("++     " + programCounterPadding + programTop + ":" + byteToString((byte) programTop) + ": ");
-            // Only works up to 255 byte address. Example:
+            // Print of the address only works up to 255 byte address. Example:
             // ++     255:11111111: 00000001 : 01 > hb: 1
             // ++     256:00000000: 11000011 : C3 > opcode: ...
             //

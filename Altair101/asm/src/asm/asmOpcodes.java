@@ -259,7 +259,7 @@ public class asmOpcodes {
                 // System.out.println("+ " + theLine);
                 int c1 = theLine.indexOf(SEPARATOR);
                 if (c1 > 0) {
-                    String opcode = theLine.substring(0, c1);
+                    // String opcode = theLine.substring(0, c1);
                     int c2 = theLine.substring(c1 + 1).indexOf(SEPARATOR);
                     if (c2 > 0) {
                         opcodeCount++;

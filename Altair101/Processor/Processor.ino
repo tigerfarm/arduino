@@ -12,20 +12,26 @@
   ---------------------------------------------
   Current/Next Work
 
-  + Fix error: '\n' (ascii 10) is interpreted as: ++ Backlight off
-+ Print register A to the LCD screen.+ lcdPrintChar :>:
-+ Print register A to the LCD screen.++ Backlight off.
+  When flipping the download switch, if toogles are 0, then
+  + Set the memory to zeros, don't read from the SD card.
 
   Panal LED lights all display correctly.
   I can show my steampunk tablet to the world.
   + Time to generate videos.
+
+  + Scan I2C to confirm no conflicts.
 
   ----------
   1602 LED display,
   
   + Add 1602 LED display clock time and to set the time.
   
+  + Fix error: '\n' (ascii 10) is interpreted as: ++ Backlight off
++ Print register A to the LCD screen.+ lcdPrintChar :>:
++ Print register A to the LCD screen.++ Backlight off.
+
   In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
+  
   ---------------------------------------------
   // Future option to Read and Run an initialization program.
   // Requires a new function:
