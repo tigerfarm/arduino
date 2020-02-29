@@ -13,15 +13,13 @@
     LCD_PORT    equ     1               ; Output port: print to the serial port.
     CLEAR_SCR   equ     2               ; Clear screen.
                                         ; -------------------
-    ; ECHO        db      '+ Input data: '
-    ; NO_INPUT    db      '+ No input.'
-                                        ; -------------------
                     ;1234567890123456
     p00000000   db  '+ All NOPs'
     p00000001   db  '+ LCD on/off'
     p00000010   db  '+ Jump loop'
     p00000011   db  '+ Kill the Bit'
     p00000100   db  '+ Program List'
+    p00000101   db  '+ Add 2 numbers'
                                         ; -------------------
                                         ; Special characters:
     NL          equ     10              ; New line, '\n'.
@@ -31,17 +29,6 @@
     Start:
                 mvi a,1                 ; Turn LCD backlight on.
                 out LCD_PORT
-                mvi a,CLEAR_SCR
-                out LCD_PORT
-                mvi a,'a'
-                out LCD_PORT
-                call printNL
-                mvi a,'b'
-                out LCD_PORT
-                call printNL
-                mvi a,'c'
-                out LCD_PORT
-                call printNL
                 mvi a,CLEAR_SCR
                 out LCD_PORT
                                         ; ------------------------------------------
@@ -64,6 +51,8 @@
                 jz s00000011
                 cpi 4
                 jz s00000100
+                cpi 5
+                jz s00000101
                                         ; Else, unknown.
                 mvi a,'?'
                 out LCD_PORT
@@ -95,8 +84,14 @@
                 call printNL
                 jmp GetByte
     s00000100:
-                call printNL          ; Causes printPrompt to no longer print the prompt.
+                call printNL
                 lxi h,p00000100
+                call print
+                call printNL
+                jmp GetByte
+    s00000101:
+                call printNL
+                lxi h,p00000101
                 call print
                 call printNL
                 jmp GetByte
@@ -106,19 +101,19 @@
                 lxi h,prompt
                 call print
                 ret
-                                    ; ------------------------------------------
-                                    ; Print a DB string which starts at address, M.
+                                        ; ------------------------------------------
+                                        ; Print a DB string which starts at address, M.
     print:
-                mov a,m             ; Move the data from H:L address to register A. (HL) -> A. 
-                cpi TERMB           ; Compare to see if it's the string terminate byte.
+                mov a,m                 ; Move the data from H:L address to register A. (HL) -> A. 
+                cpi TERMB               ; Compare to see if it's the string terminate byte.
                 jz printed
-                out LCD_PORT        ; Out register A to the print port.
-                inr m               ; Increment H:L register pair.
+                out LCD_PORT            ; Out register A to the print port.
+                inr m                   ; Increment H:L register pair.
                 jmp print
     printed:
                 ret
-                                    ; ------------------------------------------
-                                    ; Print a newline.
+                                        ; ------------------------------------------
+                                        ; Print a newline.
     printNL:
                 mvi a,NL
                 out LCD_PORT

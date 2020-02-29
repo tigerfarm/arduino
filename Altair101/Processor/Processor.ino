@@ -12,9 +12,6 @@
   ---------------------------------------------
   Current/Next Work
 
-  When flipping the download switch, if toogles are 0, then
-  + Set the memory to zeros, don't read from the SD card.
-
   Panal LED lights all display correctly.
   I can show my steampunk tablet to the world.
   + Time to generate videos.
@@ -24,7 +21,8 @@
   
   + Add 1602 LED display clock time and to set the time.
 
-  + If byte count over 270 to 286, an error happens.
+  + Test write memory issue,
+  ++ If byte count over 270 to 286, an error happens.
   
   + Fix error: '\n' (ascii 10) is interpreted as: ++ Backlight off
 + Print register A to the LCD screen.+ lcdPrintChar :>:
@@ -215,7 +213,7 @@ SoftwareSerial serial2(PIN_RX, PIN_TX);
 // -----------------------------------------------------------------------------
 // Memory definitions
 
-const int memoryBytes = 1024;  // When using Mega: 1024, for Nano: 256
+const int memoryBytes = 1512;  // When using Mega: 1024, for Nano: 256
 byte memoryData[memoryBytes];
 unsigned int curProgramCounter = 0;     // Current program address value
 unsigned int programCounter = 0;        // When processing opcodes, the next program address value.
@@ -229,8 +227,8 @@ unsigned int stackPointer = stackBytes;
 
 char charBuffer[17];
 
-void initMemoryToZero() {
-  // Future clear memory option.
+void zeroOutMemory() {
+  // Clear memory option.
   // Example, clear memory before loading a new program.
   Serial.println(F("+ Initialize all memory bytes to zero."));
   for (int i = 0; i < memoryBytes; i++) {
@@ -273,14 +271,20 @@ String clearLineString = "                ";
 void lcdSetup() {
   lcd.init();
   lcd.backlight();
+  lcd.cursor();
+  lcdSplash();
+}
+void lcdSplash() {
+  lcd.clear();
   //         1234567890123456
   lcdRow0 = "Altair 101";
   //         0123456789012345
   lcdRow1 = "LCD ready...";
   lcdPrintln(0, lcdRow0);
   lcdPrintln(1, lcdRow1);
-  lcd.setCursor(1, 12);
-  lcd.cursor();
+  lcdRow = 1;
+  lcdColumn = 12;
+  lcd.setCursor(lcdRow, lcdColumn);
 }
 
 void lcdClearScreen() {
@@ -2821,6 +2825,8 @@ void processOpcodeData() {
             lcdBacklight( 1 );      // LCD back light on.
           } else if (regA == 2) {
             lcdClearScreen();
+          } else if (regA == 3) {
+            lcdSplash();
           } else {
             char charA = regA;
             lcdPrintChar((String)charA);
@@ -3769,6 +3775,9 @@ void checkDownloadSwitch() {
       if (theFilename == "11111111.bin") {
         Serial.println(F("+ Set to download over the serial port."));
         programState = SERIAL_DOWNLOAD;
+      } else if (theFilename == "00000000.bin") {
+        zeroOutMemory();
+        controlResetLogic();
       } else {
         Serial.print(F("+ Read the filename into memory: "));
         Serial.println(theFilename);

@@ -49,7 +49,9 @@ void lcdSetup() {
   lcdRow1 = "LCD ready...";
   lcdPrintln(0, lcdRow0);
   lcdPrintln(1, lcdRow1);
-  lcd.setCursor(1, 12);
+  lcdRow = 1;
+  lcdColumn = 12;
+  lcd.setCursor(lcdRow, lcdColumn);
   lcd.cursor();
 }
 
