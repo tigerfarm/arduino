@@ -134,7 +134,7 @@ void lcdPrintChar(String theChar) {
   // New line character
   if (theChar == "\n") {
     lcdScroll();
-    delay(1000);
+    // delay(1000);
     return;
   }
   // ----------------------------------------------
@@ -159,29 +159,7 @@ void lcdPrintChar(String theChar) {
 }
 
 // -----------------------------------------------------------------------------
-// Device Setup
-
-void setup() {
-  Serial.begin(115200); // 115200 or 9600
-  delay(1000);        // Give the serial connection time to start before the first print.
-  Serial.println(""); // Newline after garbage characters.
-  Serial.println(F("+++ Setup."));
-
-  // ----------------------------------------------------
-  lcdSetup();
-  Serial.println(F("+ LCD ready for output."));
-
-  // ----------------------------------------------------
-  delay(2000);
-  Serial.println(F("+ LCD test."));
-  /*
-  lcdBacklight(0);
-  delay(2000);
-  lcdBacklight(1);
-  */
-  delay(2000);
-  lcdClearScreen();
-  delay(2000);
+void stringTest() {
   Serial.println(F("++ Print 'a b c.'"));
   lcdPrintChar("a");
   delay(500);
@@ -227,13 +205,35 @@ void setup() {
   lcdPrintChar("#");
   lcdPrintChar("3");
   delay(2000);
+  Serial.println(F("++ Print new line character, causing scrolling #4."));
+  lcdPrintChar("\n");
+  lcdPrintChar("N");
+  lcdPrintChar("L");
+  lcdPrintChar(" ");
+  lcdPrintChar("#");
+  lcdPrintChar("4");
+  Serial.println(F("++ Print new line character, causing scrolling #5."));
+  lcdPrintChar("\n");
+  lcdPrintChar("N");
+  lcdPrintChar("L");
+  lcdPrintChar(" ");
+  lcdPrintChar("#");
+  lcdPrintChar("5");
+  Serial.println(F("++ Print new line character, causing scrolling #6."));
+  lcdPrintChar("\n");
+  lcdPrintChar("N");
+  lcdPrintChar("L");
+  lcdPrintChar(" ");
+  lcdPrintChar("#");
+  lcdPrintChar("6");
+  delay(2000);
   Serial.println(F("++ Print to end of line."));
   lcdPrintChar("\n");
   int pI;
-  for (int i = 1; i <= displayColumns+1; i++) {
+  for (int i = 1; i <= displayColumns + 1; i++) {
     pI = i;
-    if (i>9) {
-      pI = i-10;
+    if (i > 9) {
+      pI = i - 10;
     }
     lcdPrintChar(String(pI));
     delay(500);
@@ -245,6 +245,81 @@ void setup() {
   lcdPrintChar("O");
   lcdPrintChar("L");
   delay(2000);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Test char printing.
+
+void printChar1(byte aByte) {
+  char asciiChar;
+  asciiChar = aByte;
+  lcdPrintChar((String)asciiChar);
+}
+void printChar(char aByte) {
+  // String aString = (String)aByte;
+  lcdPrintChar((String)aByte);
+}
+
+void charTest() {
+  byte regA = 0;
+
+  Serial.println(F("++ Print new line character, EOL."));
+  regA = 97;
+  char charA = regA;
+  lcdPrintChar((String)charA);
+  lcdPrintChar((String)charA);
+  lcdPrintChar((String)charA);
+  lcdPrintChar((String)charA);
+  lcdPrintChar((String)charA);
+  lcdPrintChar((String)charA);
+  regA = 10;
+  charA = regA;
+  lcdPrintChar((String)charA);
+  delay(2000);
+  lcdPrintChar((String)charA);
+  printChar(98);
+  printChar(99);
+  printChar(100);
+  printChar(101);
+  printChar(102);
+  printChar(103);
+  printChar(10);
+  delay(2000);
+  printChar('a');
+  printChar('b');
+  printChar('c');
+  delay(2000);
+  printChar(10);
+}
+
+// -----------------------------------------------------------------------------
+// Device Setup
+
+void setup() {
+  Serial.begin(115200); // 115200 or 9600
+  delay(1000);        // Give the serial connection time to start before the first print.
+  Serial.println(""); // Newline after garbage characters.
+  Serial.println(F("+++ Setup."));
+
+  // ----------------------------------------------------
+  lcdSetup();
+  Serial.println(F("+ LCD ready for output."));
+
+  // ----------------------------------------------------
+  delay(2000);
+  Serial.println(F("+ LCD test."));
+  /*
+    lcdBacklight(0);
+    delay(2000);
+    lcdBacklight(1);
+  */
+  delay(2000);
+  lcdClearScreen();
+  delay(2000);
+
+  // stringTest();
+  charTest();
 
   // ----------------------------------------------------
   Serial.println(F("+ Starting the processor loop."));

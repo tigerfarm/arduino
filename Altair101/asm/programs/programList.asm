@@ -13,8 +13,8 @@
     LCD_PORT    equ     1               ; Output port: print to the serial port.
     CLEAR_SCR   equ     2               ; Clear screen.
                                         ; -------------------
-    ECHO        db      '+ Input data: '
-    NO_INPUT    db      '+ No input.'
+    ; ECHO        db      '+ Input data: '
+    ; NO_INPUT    db      '+ No input.'
                                         ; -------------------
                     ;1234567890123456
     p00000000   db  '+ All NOPs'
@@ -95,7 +95,10 @@
                 call printNL
                 jmp GetByte
     s00000100:
-                ; call printNL          ; Causes printPrompt to no longer print the prompt.
+                call printNL          ; Causes printPrompt to no longer print the prompt.
+                lxi h,p00000100
+                call print
+                call printNL
                 jmp GetByte
                                         ; ------------------------------------------
                                         ; Print the prompt.

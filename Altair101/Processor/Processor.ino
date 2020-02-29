@@ -19,12 +19,12 @@
   I can show my steampunk tablet to the world.
   + Time to generate videos.
 
-  + Scan I2C to confirm no conflicts.
-
   ----------
   1602 LED display,
   
   + Add 1602 LED display clock time and to set the time.
+
+  + If byte count over 270 to 286, an error happens.
   
   + Fix error: '\n' (ascii 10) is interpreted as: ++ Backlight off
 + Print register A to the LCD screen.+ lcdPrintChar :>:
@@ -363,7 +363,7 @@ void lcdPrintChar(String theChar) {
   // New line character
   if (theChar == "\n") {
     lcdScroll();
-    delay(1000);
+    // delay(1000);
     return;
   }
   // ----------------------------------------------
@@ -2822,8 +2822,8 @@ void processOpcodeData() {
           } else if (regA == 2) {
             lcdClearScreen();
           } else {
-            asciiChar = regA;
-            lcdPrintChar((String)asciiChar);
+            char charA = regA;
+            lcdPrintChar((String)charA);
           }
           break;
         case 3:
