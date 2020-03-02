@@ -19,7 +19,7 @@
   ----------
   1602 LED display,
   
-  + Add 1602 LED display clock time and to set the time.
+  + Add 1602 LED display clock time, and to set the time.
 
   + Test write memory issue,
   ++ If byte count over 270 to 286, an error happens.

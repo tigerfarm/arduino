@@ -96,6 +96,13 @@
                 call printNL
                 jmp GetByte
                                         ; ------------------------------------------
+                                        ; Print a description string.
+    printName:
+                call printNL
+                call print
+                call printNL
+                jmp GetByte
+                                        ; ------------------------------------------
                                         ; Print the prompt.
     printPrompt:
                 lxi h,prompt

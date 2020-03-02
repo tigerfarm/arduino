@@ -746,9 +746,23 @@ public class asmProcessor {
 
     private void parseOpcode(String opcode) {
         // opcode (no parameters), examples: hlt or nop.
-        sOpcodeBinary = getOpcodeBinary(opcode);
-        programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary);
-        programTop++;
+        switch (opcode) {
+            // -----------------------------
+            case "hlt":
+            case "nop":
+            case "ret":
+                sOpcodeBinary = getOpcodeBinary(opcode);
+                programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary);
+                programTop++;
+                System.out.println("++ Opcode: " + opcode + " " + sOpcodeBinary);
+                break;
+            // -----------------------------
+            default:
+                opcode = "INVALID: " + opcode;
+                System.out.print("-- Error, programTop: " + programTop + " ");
+                errorCount++;
+                break;
+        }
         System.out.println("++ Opcode: " + opcode + " " + sOpcodeBinary);
     }
 
@@ -765,6 +779,11 @@ public class asmProcessor {
             case "lda":
             case "shld":
             case "sta":
+            // -----------------------------
+            case "jm":
+            case "jp":
+            case "jpe":
+            case "jpo":
                 // opcode <address label>, example: jmp There
                 sOpcodeBinary = getOpcodeBinary(opcode);
                 programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1);
@@ -781,6 +800,24 @@ public class asmProcessor {
             case "in":
             case "out":
             case "sui":
+            // -----------------------------
+            case "aci":
+            case "sbi":
+            case "xri":
+            case "ori":
+            case "pchl":
+            case "xchg":
+            case "daa":
+            case "rlc":
+            case "ral":
+            case "rar":
+            case "cma":
+            case "stc":
+            case "cmc":
+            case "xthl":
+            case "sphl":
+            case "ei":
+            case "di":
                 // opcode <immediate>, example: out 39
                 sOpcodeBinary = getOpcodeBinary(opcode);
                 programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1);
@@ -789,7 +826,6 @@ public class asmProcessor {
                 programTop++;
                 break;
             // -----------------------------
-            case "add":
             case "cmp":
             case "dad":
             case "dcr":
@@ -800,6 +836,13 @@ public class asmProcessor {
             case "pop":
             case "push":
             case "xra":
+            // --------
+            case "add":
+            case "adc":
+            case "sub":
+            case "sbb":
+            case "ana":
+            case "stax":
                 // opcode <register|RegisterPair>, example: cmp c
                 p1 = p1.toLowerCase();
                 sOpcodeBinary = getOpcodeBinary(opcode + p1);

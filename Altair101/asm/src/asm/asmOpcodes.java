@@ -211,17 +211,17 @@ public class asmOpcodes {
                 //      dadb:00001001:|HL = HL + BC
                 // System.out.println("+ " + theLine);
                 opcodeDoc.add(theLine);
-                if (!(theLine.startsWith("//") || theLine.equals(""))) {
+                if (!theLine.startsWith("//") && !theLine.equals("")) {
                     int c1 = theLine.indexOf(SEPARATOR);
                     if (c1 > 0) {
-                        String opcode = theLine.substring(0, c1);
+                        String opcode = theLine.substring(0, c1).trim();
                         int c2 = theLine.substring(c1 + 1).indexOf(SEPARATOR);
                         if (c2 > 0) {
-                            value = theLine.substring(c1 + 1, c1 + 8 + 1);
-                            info = theLine.substring(c1 + 8 + 1 + 1, theLine.length());
+                            value = theLine.substring(c1 + 1, c1 + 8 + 1).trim();
+                            info = theLine.substring(c1 + 8 + 1 + 1, theLine.length()).trim();
                             logic = "";
                             if (info.startsWith("|")) {
-                                logic = info.substring(1, info.length());
+                                logic = info.substring(1, info.length()).trim();
                                 info = "";
                             }
                             // System.out.println("+ opcode:" + opcode + ":" + value + ":" + info + ":" + logic);
