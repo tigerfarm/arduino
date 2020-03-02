@@ -23,6 +23,8 @@
     ---------------------------------------------
     +++ Next assembler updates and issues,
 
+    + Test '\n' is a DB.
+
     + Make label and immediate names case sensitive.
 
     + Cleanup parseLine() code.
@@ -304,8 +306,9 @@ public class asmProcessor {
                     break;
                 case "databyte":
                     // ++ databyte:abc:k
-                    // ++       6:00000110: 01110100 : 74 > databyte: testnl : t : 116
-                    // ++       7:00000111: 00100111 : 27 > databyte: testnl : '\n' : 10
+                    // ++       6:00000110: 01110100 : 74     > databyte: testnl : t : 116
+                    // ++       7:00000111: 00100111 : 27     > databyte: testnl : '\n' : 10
+                    // ++      18:00010010: 00001010 : 0A:012 > databyte: p00000000 : '\n' : 10
                     // System.out.println(" > databyte: " + opcodeValues[1] + " : " + opcodeValues[2]);
                     if (opcodeValues[2].charAt(0) == '\'') {
                         // Case, escape character.
@@ -314,6 +317,7 @@ public class asmProcessor {
                         System.out.print(String.format("%02X", Integer.parseInt(eChar)));
                         System.out.print(String.format(":%03o", Integer.parseInt(eChar)));    // Octal
                         System.out.println(" > databyte: " + opcodeValues[1] + " : " + opcodeValues[2] + " : " + eChar);
+                        fileBytes[programTop] = (byte) Integer.parseInt(eChar);
                     } else if (opcodeValues[2].equals(SEPARATOR_TEMP)) {
                         // Case, separator character, i.e. separator temp character string which maps to the separator character.
                         // ++ databyte:echo:^^

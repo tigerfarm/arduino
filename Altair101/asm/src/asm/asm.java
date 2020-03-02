@@ -28,7 +28,7 @@ public class asm {
     asmProcessor processFile = new asmProcessor();
     asmOpcodes theOpcodes = new asmOpcodes();
 
-    private static final String ASMVERSION = "0.92s";
+    private static final String ASMVERSION = "0.92t";
 
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     private static String sourcedirectoy = "programs";
@@ -264,6 +264,7 @@ public class asm {
                     break;
                 // -------------------------------------------------------------
 
+                case "o":
                 case "opcode":
                     theOpcodes.printOpcodeInfo(theRest);
                     break;
@@ -285,6 +286,7 @@ public class asm {
                     sendFile(byteFile);
                     break;
                 // -------------------------------------------------------------
+                case "c":
                 case "char":
                     System.out.println("Character, " + cmdP1 + " ascii value: " + (int) cmdP1.charAt(0));
                     break;

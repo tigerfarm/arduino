@@ -6,6 +6,7 @@
                                     ; Address sample testing
                 jmp Start
         nl1     db      'nl\n'
+        nl2     db      '\nnl\n'
         NL      equ     '\n'
                 mvi a,'\n'
                 mvi a,NL

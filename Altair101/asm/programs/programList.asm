@@ -14,7 +14,7 @@
     CLEAR_SCR   equ     2               ; Clear screen.
                                         ; -------------------
                     ;1234567890123456
-    p00000000   db  '+ All NOPs'
+    p00000000   db  '\n+ All NOPs\n'
     p00000001   db  '+ LCD on/off'
     p00000010   db  '+ Jump loop'
     p00000011   db  '+ Kill the Bit'
@@ -60,10 +60,8 @@
                 jmp GetByte
                                         ; ------------------------------------------
     s00000000:
-                call printNL
                 lxi h,p00000000
                 call print
-                call printNL
                 jmp GetByte
     s00000001:
                 call printNL
@@ -92,13 +90,6 @@
     s00000101:
                 call printNL
                 lxi h,p00000101
-                call print
-                call printNL
-                jmp GetByte
-                                        ; ------------------------------------------
-                                        ; Print a description string.
-    printName:
-                call printNL
                 call print
                 call printNL
                 jmp GetByte

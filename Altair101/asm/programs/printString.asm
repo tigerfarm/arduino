@@ -9,7 +9,7 @@
                                     ; Data declarations.
                                     ;
                                     ; Strings to print out.
-        TestNL  db      'Test\n'
+        TestNL  db      '\nTest\n'
         Test1   db      'Test1'
         Test2   db      'Test2'
         Hello   db      'Hello'
