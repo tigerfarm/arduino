@@ -13,13 +13,14 @@
     LCD_PORT    equ     1               ; Output port: print to the serial port.
     CLEAR_SCR   equ     2               ; Clear screen.
                                         ; -------------------
-                    ;1234567890123456
+                      ;1234567890123456 Note, the newline characters don't count.
     p00000000   db  '\n+ All NOPs\n'
-    p00000001   db  '+ LCD on/off'
-    p00000010   db  '+ Jump loop'
-    p00000011   db  '+ Kill the Bit'
-    p00000100   db  '+ Program List'
-    p00000101   db  '+ Add 2 numbers'
+    p00000001   db  '\n+ LCD on/off\n'
+    p00000010   db  '\n+ Jump loop\n'
+    p00000011   db  '\n+ Kill the Bit\n'
+    p00000100   db  '\n+ Program List\n'
+    p00000101   db  '\n+ Add 2 numbers\n'
+                      ;1234567890123456
                                         ; -------------------
                                         ; Special characters:
     NL          equ     10              ; New line, '\n'.
@@ -64,34 +65,24 @@
                 call print
                 jmp GetByte
     s00000001:
-                call printNL
                 lxi h,p00000001
                 call print
-                call printNL
                 jmp GetByte
     s00000010:
-                call printNL
                 lxi h,p00000010
                 call print
-                call printNL
                 jmp GetByte
     s00000011:
-                call printNL
                 lxi h,p00000011
                 call print
-                call printNL
                 jmp GetByte
     s00000100:
-                call printNL
                 lxi h,p00000100
                 call print
-                call printNL
                 jmp GetByte
     s00000101:
-                call printNL
                 lxi h,p00000101
                 call print
-                call printNL
                 jmp GetByte
                                         ; ------------------------------------------
                                         ; Print the prompt.
