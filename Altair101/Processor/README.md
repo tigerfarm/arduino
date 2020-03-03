@@ -49,8 +49,15 @@ I have 2 more components to include: 1602 LCD and an MP3 player.
 ++ Use deposit and deposit next.
 ++ Use examine and examine next.
 ------------
-++ Saving and retrieving memory to/from the micro SD card.
-++ Show the time of day.
++ Saving and retrieving memory to/from the micro SD card.
+++ Set sense switches to: 01000000.
+++ Flip write switch.
+++ Set sense switches to: 00000000.
+++ Flip read switch.
+++ Use examine and examine next to show all zeros.
+++ Set sense switches to: 01000000.
+++ Flip read switch.
+++ Use examine and examine next to show the previously deposited bytes.
 ````
 
 2. Running, stopping, and stepping through a program.
@@ -60,6 +67,7 @@ Manually enter the pLoop.asm program.
 ++       0:00000000: 11000011 : C3:303 > opcode: jmp There
 ++       1:00000001: 00000110 : 06:006 > lb: 6
 ++       2:00000010: 00000000 : 00:000 > hb: 0
+...
 ++       6:00000110: 11000011 : C3:303 > opcode: jmp Start
 ++       7:00000111: 00000000 : 00:000 > lb: 0
 ++       8:00001000: 00000000 : 00:000 > hb: 0
@@ -111,7 +119,7 @@ Enter the following program to add to numbers (2+3).
 + Examine memory address 64 to view the result, 2+3 = 5.
 ````
 
-3. Demo the steps to create an assembler program, upload it, and run it.
+3. Steps to assemble source program into a machine code file, upload the machine code, and run it.
 Note, this requires videos from the laptop, and from the Altair 101.
 The videos will need to be joined into a single video.
 ````
@@ -135,6 +143,7 @@ On the Altair 101,
 + View it.
 + Run it.
 ````
+4. Demo the assembly and running of, Kill the Bit.
 
 --------------------------------------------------------------------------------
 #### Assemble and Run Programs on the Altair 101

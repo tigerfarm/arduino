@@ -96,6 +96,7 @@ Parts,
 + 9V battery case with on/off switch
 + Felt padding
 ------
+
 Cables,
 
 + 1 x 40pcs/pack 20cm Female to Female Ribbon Breadboard Cable
@@ -120,18 +121,19 @@ Cables,
 ------
 + 1 x 40pcs/pack 10cm Male to Male Ribbon Breadboard Cable
 ++ 12x, for various breadboard connections, such as 5V and ground between Mega and breadboards.
+
 + Box of breadboard wires.
 
 ------------------------------------
 #### Costs
 
 Tablet module,
++ Clipboard, $5
 + Arduino Mega, $15
 + Toggles: on/off/on momentary toggles + on/off toggles + PCF8574 I2C module = $5 + 5 + $6 = $11
 + LED light display: Red LEDs + 20pcs 74HC595 + 5K resisters = $1 + $3 + $2 = $7
 + Modules: USB serial, SD card, 1602 LED, clock + battery, USB mini hub = 5 x $3 = $15
 + Breadboards + cables + battery case + battery + tape + felt = $6 + $8 + $2 + $2 + $6 = $24
-+ Clipboard, $5
 + Total, about  $75 =  $5 + $70, $70 = $15 + $11 + $7 + $15 + $22
 
 Desktop model,

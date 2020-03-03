@@ -16,18 +16,13 @@
   I can show my steampunk tablet to the world.
   + Time to generate videos.
 
-  ----------
-  1602 LED display is integrated and tested.
-  
-  + Add 1602 LED display clock time, and to set the time.
-
   + Test write memory issue,
+  ++ Seems to be a CALL opcode issue.
   ++ If byte count over 276, characters no longer are displayed.
   ++ Fails at the address: 00010100 (276)
 i  
-  + Fix error: '\n' (ascii 10) is interpreted as: ++ Backlight off
-+ Print register A to the LCD screen.+ lcdPrintChar :>:
-+ Print register A to the LCD screen.++ Backlight off.
+  1602 LED and Clock integration,
+  + Use the 1602 LED to display and set the clock time.
 
   In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
   
