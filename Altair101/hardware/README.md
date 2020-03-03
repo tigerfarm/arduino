@@ -69,17 +69,6 @@ Below the breadboards:
 --------------------------------------------------------------------------------
 ### Altair 101 Steampunk Tablet Parts List
 
-+ Front panel, sticker, case, and shipping = $18.00 + $5 + $35 + $16 = $74
-+ Arduino Mega, $15
-+ Toggles: on/off/on momentary toggles + on/off toggles + PCF8574 I2C module = $5 + 5 + $6 = $11
-+ LED light display: Red LEDs + 20pcs 74HC595 + 5K resisters = $1 + $3 + $2 = $7
-+ Modules: USB serial, SD card, 1602 LED, clock + battery, USB mini hub = 5 x $3 = $15
-+ Breadboards + cables + battery case + battery + tape + felt = $6 + $8 + $2 + $2 + $6 = $24
-+ Total, about $150 = $74 + $15 + $11 + $7 + $15 + $22
-
-+ Ordered Altair 8800 Front panel with sticker, pro case, and shipping: $74
-https://www.adwaterandstir.com/product/front-panel/
-
 Parts,
 ------
 + Arduino Mega 2560, CH340G
@@ -133,9 +122,27 @@ Cables,
 ++ 12x, for various breadboard connections, such as 5V and ground between Mega and breadboards.
 + Box of breadboard wires.
 
-------
+------------------------------------
+#### Costs
 
+Tablet module,
++ Arduino Mega, $15
++ Toggles: on/off/on momentary toggles + on/off toggles + PCF8574 I2C module = $5 + 5 + $6 = $11
++ LED light display: Red LEDs + 20pcs 74HC595 + 5K resisters = $1 + $3 + $2 = $7
++ Modules: USB serial, SD card, 1602 LED, clock + battery, USB mini hub = 5 x $3 = $15
++ Breadboards + cables + battery case + battery + tape + felt = $6 + $8 + $2 + $2 + $6 = $24
++ Clipboard, $5
++ Total, about  $75 =  $5 + $70, $70 = $15 + $11 + $7 + $15 + $22
+
+Desktop model,
++ Front panel, sticker, case, and shipping = $18.00 + $5 + $35 + $16 = $74
++ Total, about $144 = $74 + $70, $70 = $15 + $11 + $7 + $15 + $22
+
+------------------------------------
 + Suggested, not used: 10uf capacitor across positive and ground when using chips: SN74HC595N.
+
++ Ordered Altair 8800 Front panel with sticker, pro case, and shipping: $74
+https://www.adwaterandstir.com/product/front-panel/
 
 For reference, I used the following parts list from a simulator:
 https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
