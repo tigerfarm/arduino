@@ -71,7 +71,7 @@ Below the breadboards:
 
 Parts,
 ------
-+ Arduino Mega 2560, CH340G
++ Arduino Mega ATmega2560, CH340G
 + 3 x breadboards.
 ------
 + 4 x Shift Register SN74HC595N, 20pcs on sale for $2
@@ -207,39 +207,6 @@ I soon realized that functionality was a long way off.
 I did use buttons, but later found that infrared remote control was quicker for early development.
 
 <img width="360px"  src="../hardware/Altair101dev1.jpg"/>
-
---------------------------------------------------------------------------------
-### Altair 101 Parts List
-
-+ Front panel, sticker, case, and shipping = $18.00 + $5 + $35 + $16 = $74
-+ Nano + on/off/on momentary toggles + on/off toggles + red LEDs = $3 + $7 + $2 + $2
-+ 20pcs 74HC595 + diodes for input = $2 + $1
-+ Breadboards + cables = $6 + $4
-+ Total = $101 = $74 + $3 + $7 + $2 + $2 + $2 + $1 + $6 + $4
-
-+ Ordered Altair 8800 Front panel with sticker, pro case, and shipping: $74
-https://www.adwaterandstir.com/product/front-panel/
-
-Parts list,
-+ Mega
-
-Parts list during early development,
-+ Nano: V3, ATmega328P, CH340G
-+ SPDT On/Off/On 3 Position Momentary toggles, Diameter: 6mm (0.2inch), Micro mini, 10pcs for $6.79
-+ SPDT On/On 2 Position Mini Toggle Switch, Diameter: 6mm (0.2inch), 10Pcs for $2.68
-+ Red LED 5mm, 100pcs for $1.50
-+ 5k resistors for LED lights.
-+ 10k resistors for Nano digital pin pull down.
-+ Switching Diodes: 40PCS for $1, 1N4148 IN4148
-+ Shift Register SN74HC595N, 20pcs on sale for $2
-+ Suggested, not used: 10uf capacitor across positive and ground when using chips: SN74HC595N.
-
-Cables on order,
-+ 1 x 40pcs/pack 10cm Male to Female Ribbon Breadboard Cable
-+ 1 x 40pcs/pack 10cm Female to Female Ribbon Breadboard Cable
-
-For reference, I used the following parts list from a simulator:
-https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
 
 --------------------------------------------------------------------------------
 ### Toggle Console Keyboard
@@ -638,50 +605,6 @@ Altair 101 board for 25 toggles (1+16 toggles + 8 momentary toggles):
 
 https://www.ebay.com/itm/5-x-74HC165-74165-IC-8-BIT-SHIFT-REGISTER-FREE-SHIPPING/251118499363
 https://www.ebay.com/itm/10pcs-74HC165-SN74HC165N-8-Bit-Parallel-Load-Shift-Registers-DIP-16/181847051341
-
---------------------------------------------------------------------------------
-### Front Panel Cables Required for My Build
-
-Male to Male Ribbon Cables
-+ 1 power toggle:
-    2 x 20cm Male to Male Ribbon
-+ 16 address toggles:
-    16 x 20cm Male to Male Ribbon for control + 1 x 20cm Male to Male Ribbon for input into 74HC595
-    15 x 10cm Male to Male Ribbon for ground connection from one toggle to the next + 1 x 20cm Male to Male Ribbon to ground
-+ 8 control (16 on/off) on/off/on momentary toggles: 
-    16 x 20cm Male to Male Ribbon for control + 1 x 20cm Male to Male Ribbon for input into 74HC595
-     7 x 10cm Male to Male Ribbon for ground connection from one toggle to the next + 1 x 20cm Male to Male Ribbon to ground
-+ LEDs: 8 data + 16 address:
-    24 x 20cm Female to Male Ribbon for control + 1 x 20cm Female to Male Ribbon for input into 74HC595
-    23 x 10cm Female to Female Ribbon for ground connection from one LED to the next + 1 x 20cm Female to Male Ribbon to ground
-+ LEDs: 2 state + 8 status:
-    10 x 20cm Female to Male Ribbon for control + 1 x 20cm Female to Male Ribbon for input into 74HC595
-     9 x 10cm Female to Female Ribbon for ground connection from one LED to the next + 1 x 20cm Female to Male Ribbon to ground
-+ LED: 2 x on/off (WAIT + HLDA):
-     4 x 20cm Female to Male Ribbon for control + 1 x 20cm Female to Male Ribbon for input into 74HC595
-
-Totals:
-+ Toggles: 20cm Male to Male Ribbon:
-    2 + 18 + 18
-+ Toggles: 10cm Male to Male Ribbon:
-    0 + 15 +  7
-+ LEDs: 20cm Female to Male Ribbon:
-    26 + 12 + 4
-+ LEDs: 10cm Female to Female Ribbon:
-    23 +  9 + 0
-+ 20cm Male to Male Ribbon: 38
-+ 10cm Male to Male Ribbon: 22
-+ 20cm Female to Male Ribbon: 42
-+ 10cm Female to Female Ribbon: 32
-
-----------------
-#### Parts to test
-
-+ GPIO Port Extenders chip: PCF8574 should work for toggles.
-
-+ An option to consider, is addressable LEDs that come on strips.
-+ Arduino – Controlling a WS2812 LED strand with NeoPixel or FastLED
-https://www.tweaking4all.com/hardware/arduino/arduino-ws2812-led/
 
 --------------------------------------------------------------------------------
 ### Reference Links
