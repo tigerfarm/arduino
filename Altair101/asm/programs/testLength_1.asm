@@ -6,13 +6,13 @@
                                         ; Data declarations
                                         ;
                                         ; ------------------------------------------
+                    ;1234567890123456   ; At most, 16 characters which is the max line length.
+    prompt      db  'Program num > '
                                         ;
     SENSE_SW    equ     255             ; Input port address: toggle sense switch byte, into register A.
     LCD_PORT    equ     1               ; Output port: print to the serial port.
     CLEAR_SCR   equ     2               ; Clear screen.
                                         ; -------------------
-                    ;1234567890123456   ; At most, 16 characters which is the max line length.
-    prompt      db  'Program num > '
                       ;1234567890123456 Note, the newline characters don't count.
     p00000000   db  '\n+ All NOPs\n'
     p00000001   db  '\n+ LCD on/off\n'
@@ -21,7 +21,7 @@
     p00000100   db  '\n+ Program List\n'
     p00000101   db  '\n+ Add 2 numbers\n'
     p10000001   db  '\n+ Test 1 abcdefg\n'
-    p10000010   db  '\n+ Test 2 abcdefg\n'
+    p10000010   db  '\n+ Test 2\n'
     ;p10000011   db  '\n+ Test 3 abcdefg\n'
     ;p10000100   db  '\n+ Test 4 abcdefg\n'
     ;p10000101   db  '\n+ Test 5 abcdefg\n'
@@ -40,9 +40,7 @@
                                         ; ------------------------------------------
                                         ; Get the sense switch data byte.
     GetByte:
-                ; call printPrompt        ; Print prompt.
-                lxi h,prompt
-                call print
+                call printPrompt        ; Print prompt.
                 hlt                     ; Halt to get the data byte.
                                         ; Use RUN to restart the program.
                 in SENSE_SW             ; Get toggle sense switch byte value into register A.

@@ -17,13 +17,14 @@
   + Time to generate videos.
 
   ----------
-  1602 LED display,
+  1602 LED display is integrated and tested.
   
   + Add 1602 LED display clock time, and to set the time.
 
   + Test write memory issue,
-  ++ If byte count over 270 to 286, an error happens.
-  
+  ++ If byte count over 276, characters no longer are displayed.
+  ++ Fails at the address: 00010100 (276)
+i  
   + Fix error: '\n' (ascii 10) is interpreted as: ++ Backlight off
 + Print register A to the LCD screen.+ lcdPrintChar :>:
 + Print register A to the LCD screen.++ Backlight off.

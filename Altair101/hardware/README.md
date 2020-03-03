@@ -70,28 +70,72 @@ Below the breadboards:
 ### Altair 101 Steampunk Tablet Parts List
 
 + Front panel, sticker, case, and shipping = $18.00 + $5 + $35 + $16 = $74
-+ Nano + on/off/on momentary toggles + on/off toggles + red LEDs = $3 + $7 + $2 + $2
-+ 20pcs 74HC595 + diodes for input = $2 + $1
-+ Breadboards + cables = $6 + $4
-+ Total = $101 = $74 + $3 + $7 + $2 + $2 + $2 + $1 + $6 + $4
++ Arduino Mega, $15
++ Toggles: on/off/on momentary toggles + on/off toggles + PCF8574 I2C module = $5 + 5 + $6 = $11
++ LED light display: Red LEDs + 20pcs 74HC595 + 5K resisters = $1 + $3 + $2 = $7
++ Modules: USB serial, SD card, 1602 LED, clock + battery, USB mini hub = 5 x $3 = $15
++ Breadboards + cables + battery case + battery + tape + felt = $6 + $8 + $2 + $2 + $6 = $24
++ Total, about $150 = $74 + $15 + $11 + $7 + $15 + $22
 
 + Ordered Altair 8800 Front panel with sticker, pro case, and shipping: $74
 https://www.adwaterandstir.com/product/front-panel/
 
-Parts bought on eBay,
-+ Nano: V3, ATmega328P, CH340G
-+ SPDT On/Off/On 3 Position Momentary toggles, Diameter: 6mm (0.2inch), Micro mini, 10pcs for $6.79
-+ SPDT On/On 2 Position Mini Toggle Switch, Diameter: 6mm (0.2inch), 10Pcs for $2.68
-+ Red LED 5mm, 100pcs for $1.50
-+ 5k resistors for LED lights.
-+ 10k resistors for Nano digital pin pull down.
-+ Switching Diodes: 40PCS for $1, 1N4148 IN4148
-+ Shift Register SN74HC595N, 20pcs on sale for $2
-+ Suggested, not used: 10uf capacitor across positive and ground when using chips: SN74HC595N.
+Parts,
+------
++ Arduino Mega 2560, CH340G
++ 3 x breadboards.
+------
++ 4 x Shift Register SN74HC595N, 20pcs on sale for $2
++ 26 x Red LED 5mm, 100pcs for $1.50
++ 26 x 5k resistors for LED lights.
++ 1 x LED bar display
+------
++ 2 x PCF8574 I2C module for parallel (switches) to serial.
++ 7 x SPDT On/Off/On 3 Position Momentary toggles, Diameter: 6mm (0.2inch), Micro mini, 10pcs for $6.79
++ 8 x SPDT On/On 2 Position Mini Toggle Switch, Diameter: 6mm (0.2inch), 10Pcs for $2.68.
+------
++ Micro SD Card SPI module
++ USB serial module
++ USB mini hub
++ 1602 LED with serial module
++ DS3231 clock module
+------
++ Clip board
++ Small panel board to hold the toggles.
++ 10 x Machine screws and 13 x nuts, size #4 x 3/4".
++ Mounting tape, 2 sided.
++ 9V battery case with on/off switch
++ Felt padding
+------
+Cables,
 
-Cables on order,
-+ 1 x 40pcs/pack 10cm Male to Female Ribbon Breadboard Cable
++ 1 x 40pcs/pack 20cm Female to Female Ribbon Breadboard Cable
+++ 8x, Between PCF8574 and toggles.
+------
++ 1 x 40pcs/pack 20cm Male to Female Ribbon Breadboard Cable
+++ 4x, Between USB serial module and breadboard.
+++ 4x, Between 1602 LED serial module and breadboard.
+------
++ 1 x 40pcs/pack 20cm Male to Male Ribbon Breadboard Cable
+++ 16x, Between SN74HC595N chips and breadboard (to LED lights).
+++ 2x, Between breadboard to breadboard (to clock module).
+++ 2x, Between breadboard to breadboard (I2C on the Mega).
+++ 2x, Between breadboard to breadboard (USB to Mega).
+------
 + 1 x 40pcs/pack 10cm Female to Female Ribbon Breadboard Cable
+++ 8x, Between PCF8574 and toggles.
+------
++ 1 x 40pcs/pack 10cm Male to Female Ribbon Breadboard Cable
+++ 6 for SD card module
+++ 4x, Between PCF8574 and breadboard.
+------
++ 1 x 40pcs/pack 10cm Male to Male Ribbon Breadboard Cable
+++ 12x, for various breadboard connections, such as 5V and ground between Mega and breadboards.
++ Box of breadboard wires.
+
+------
+
++ Suggested, not used: 10uf capacitor across positive and ground when using chips: SN74HC595N.
 
 For reference, I used the following parts list from a simulator:
 https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6
@@ -169,7 +213,10 @@ I did use buttons, but later found that infrared remote control was quicker for 
 + Ordered Altair 8800 Front panel with sticker, pro case, and shipping: $74
 https://www.adwaterandstir.com/product/front-panel/
 
-Parts bought on eBay,
+Parts list,
++ Mega
+
+Parts list during early development,
 + Nano: V3, ATmega328P, CH340G
 + SPDT On/Off/On 3 Position Momentary toggles, Diameter: 6mm (0.2inch), Micro mini, 10pcs for $6.79
 + SPDT On/On 2 Position Mini Toggle Switch, Diameter: 6mm (0.2inch), 10Pcs for $2.68
