@@ -308,6 +308,20 @@ void lcdBacklight(int theChar) {
   }
 }
 
+// Toggle the LCD backlight on/off.
+boolean theLcdBacklightOn = true;
+void toggleLcdBacklight() {
+  if (theLcdBacklightOn) {
+    theLcdBacklightOn = false;
+    // Serial.println("+ Toggle: off.");
+    lcd.noBacklight();
+  } else {
+    theLcdBacklightOn = true;
+    // Serial.println("+ Toggle: on.");
+    lcd.backlight();
+  }
+}
+
 // ----------------------------------------------
 // Print line.
 
@@ -3517,6 +3531,21 @@ void displayTheTime(byte theMinute, byte theHour) {
 // -----------------------------------------------------------------------
 // Menu items to set the clock date and time values.
 
+int theSetRow = 1;
+int theSetCol = 0;
+int theSetMin = 0;
+int theSetMax = 59;
+int setValue = 0;
+
+int setClockValue = 0;
+void cancelSet() {
+  if (setClockValue) {
+    // Serial.println("Cancel set.");
+    lcdPrintln(theSetRow, "");
+    setClockValue = false;
+  }
+}
+
 void setClockMenuItems() {
   if (!theLcdBacklightOn) {
     // Don't make clock setting changes when the LCD is off.
@@ -3525,11 +3554,11 @@ void setClockMenuItems() {
   switch (setClockValue) {
     case 0:
       // Serial.print("Cancel set");
-      displayPrintln(theSetRow, "");
+      lcdPrintln(theSetRow, "");
       break;
     case 1:
       // Serial.print("seconds");
-      displayPrintln(theSetRow, "Set:");
+      lcdPrintln(theSetRow, "Set:");
       theSetMax = 59;
       theSetMin = 0;
       theSetCol = thePrintColSec;
@@ -3538,7 +3567,7 @@ void setClockMenuItems() {
       break;
     case 2:
       // Serial.print("minutes");
-      displayPrintln(theSetRow, "Set:");
+      lcdPrintln(theSetRow, "Set:");
       theSetMax = 59;
       theSetMin = 0;
       theSetCol = thePrintColMin;
@@ -3547,7 +3576,7 @@ void setClockMenuItems() {
       break;
     case 3:
       // Serial.print("hours");
-      displayPrintln(theSetRow, "Set:");
+      lcdPrintln(theSetRow, "Set:");
       theSetMax = 24;
       theSetMin = 0;
       theSetCol = thePrintColHour;
@@ -3556,7 +3585,7 @@ void setClockMenuItems() {
       break;
     case 4:
       // Serial.print("day");
-      displayPrintln(theSetRow, "Set day:");
+      lcdPrintln(theSetRow, "Set day:");
       theSetMax = 31;
       theSetMin = 1;
       theSetCol = thePrintColMin;
@@ -3565,7 +3594,7 @@ void setClockMenuItems() {
       break;
     case 5:
       // Serial.print("month");
-      displayPrintln(theSetRow, "Set month:");
+      lcdPrintln(theSetRow, "Set month:");
       theSetMax = 12;
       theSetMin = 1;
       theSetCol = thePrintColMin;
@@ -3574,7 +3603,7 @@ void setClockMenuItems() {
       break;
     case 6:
       // Serial.print("year");
-      displayPrintln(theSetRow, "Set year:");
+      lcdPrintln(theSetRow, "Set year:");
       theSetMax = 2525; // In the year 2525, If man is still alive, If woman can survive...
       theSetMin = 1795; // Year John Keats the poet was born.
       theSetCol = thePrintColMin;
@@ -3654,7 +3683,7 @@ void setClockMenuItems() {
         delay(100);
         //
         rtc.adjust(DateTime(theCounterYear, theCounterMonth, theCounterDay, theCounterHours, theCounterMinutes, theCounterSeconds));
-        displayPrintln(theSetRow, "Value is set.");
+        lcdPrintln(theSetRow, "Value is set.");
         printClockDate();
         delay(2000);
         displayPrintln(theSetRow, "");
@@ -3680,6 +3709,8 @@ void clockRun() {
     processClockNow();
     checkRunningButtons();
     checkClockSwitch();
+    // Need to check other buttons for setting the time.
+    // This will take some thought to implement.
     delay(100);
   }
   //
@@ -3704,6 +3735,7 @@ void playerRun() {
     delay(100);
   }
 }
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Front Panel Switches

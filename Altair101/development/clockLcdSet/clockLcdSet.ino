@@ -65,7 +65,7 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 // To overwrite anything on the current line.
 
 int displayColumns = 16;  // LCD display column length
-void displayPrintln(int theRow, String theString) {
+void lcdPrintln(int theRow, String theString) {
   String printString = theString;
   int theRest = displayColumns - theString.length();
   if (theRest < 0) {
@@ -263,7 +263,7 @@ int setClockValue = 0;
 void cancelSet() {
   if (setClockValue) {
     // Serial.println("Cancel set.");
-    displayPrintln(theSetRow, "");
+    lcdPrintln(theSetRow, "");
     setClockValue = false;
   }
 }
@@ -279,11 +279,11 @@ void setClockMenuItems() {
   switch (setClockValue) {
     case 0:
       // Serial.print("Cancel set");
-      displayPrintln(theSetRow, "");
+      lcdPrintln(theSetRow, "");
       break;
     case 1:
       // Serial.print("seconds");
-      displayPrintln(theSetRow, "Set:");
+      lcdPrintln(theSetRow, "Set:");
       theSetMax = 59;
       theSetMin = 0;
       theSetCol = thePrintColSec;
@@ -292,7 +292,7 @@ void setClockMenuItems() {
       break;
     case 2:
       // Serial.print("minutes");
-      displayPrintln(theSetRow, "Set:");
+      lcdPrintln(theSetRow, "Set:");
       theSetMax = 59;
       theSetMin = 0;
       theSetCol = thePrintColMin;
@@ -301,7 +301,7 @@ void setClockMenuItems() {
       break;
     case 3:
       // Serial.print("hours");
-      displayPrintln(theSetRow, "Set:");
+      lcdPrintln(theSetRow, "Set:");
       theSetMax = 24;
       theSetMin = 0;
       theSetCol = thePrintColHour;
@@ -310,7 +310,7 @@ void setClockMenuItems() {
       break;
     case 4:
       // Serial.print("day");
-      displayPrintln(theSetRow, "Set day:");
+      lcdPrintln(theSetRow, "Set day:");
       theSetMax = 31;
       theSetMin = 1;
       theSetCol = thePrintColMin;
@@ -319,7 +319,7 @@ void setClockMenuItems() {
       break;
     case 5:
       // Serial.print("month");
-      displayPrintln(theSetRow, "Set month:");
+      lcdPrintln(theSetRow, "Set month:");
       theSetMax = 12;
       theSetMin = 1;
       theSetCol = thePrintColMin;
@@ -328,7 +328,7 @@ void setClockMenuItems() {
       break;
     case 6:
       // Serial.print("year");
-      displayPrintln(theSetRow, "Set year:");
+      lcdPrintln(theSetRow, "Set year:");
       theSetMax = 2525; // In the year 2525, If man is still alive, If woman can survive...
       theSetMin = 1795; // Year John Keats the poet was born.
       theSetCol = thePrintColMin;
@@ -432,10 +432,10 @@ void infraredSwitch() {
         delay(100);
         //
         rtc.adjust(DateTime(theCounterYear, theCounterMonth, theCounterDay, theCounterHours, theCounterMinutes, theCounterSeconds));
-        displayPrintln(theSetRow, "Value is set.");
+        lcdPrintln(theSetRow, "Value is set.");
         printClockDate();
         delay(2000);
-        displayPrintln(theSetRow, "");
+        lcdPrintln(theSetRow, "");
       }
       // Serial.println(".");
       //
@@ -521,7 +521,7 @@ void setup() {
   lcd.init();
   lcd.backlight();
   //                 1234567890123456
-  displayPrintln(0, "Starting up...");
+  lcdPrintln(0, "Starting up...");
   delay(2000);
   lcd.clear();
   Serial.println("+ LCD set.");
