@@ -3613,83 +3613,6 @@ void setClockMenuItems() {
   }
 }
 
-/*
-// ------------------------------------
-      // Serial.print("+ Key > - next");
-      // Serial.print(", set clock menu option");
-      setClockValue--;
-      if (setClockValue < 0) {
-        setClockValue = 6;
-      }
-      setClockMenuItems();
-
-// ------------------------------------
-      // Serial.print("+ Key up");
-      if (setClockValue) {
-        // Serial.print(", increment");
-        setValue++;
-        if (setValue > theSetMax) {
-          setValue = theSetMin;
-        }
-        printClockInt(theSetCol, theSetRow, setValue);
-      }
-
-      // Serial.print("+ Key down");
-      if (setClockValue) {
-        // Serial.print(", decrement");
-        setValue--;
-        if (setValue < theSetMin) {
-          setValue = theSetMax;
-        }
-        printClockInt(theSetCol, theSetRow, setValue);
-      }
-
-// ------------------------------------
-      // Serial.print("+ Key OK");
-      if (setClockValue) {
-        // Serial.print(", set ");
-        switch (setClockValue) {
-          case 1:
-            // Serial.print("seconds");
-            theCounterSeconds = setValue;
-            printClockInt(theSetCol, printRowClockPulse, setValue);
-            break;
-          case 2:
-            // Serial.print("minutes");
-            theCounterMinutes = setValue;
-            printClockInt(theSetCol, printRowClockPulse, setValue);
-            break;
-          case 3:
-            // Serial.print("hours");
-            theCounterHours = setValue;
-            printClockInt(theSetCol, printRowClockPulse, setValue);
-            break;
-          case 4:
-            // Serial.print("day");
-            theCounterDay = setValue;
-            break;
-          case 5:
-            // Serial.print("month");
-            theCounterMonth = setValue;
-            break;
-          case 6:
-            // Serial.print("year");
-            theCounterYear = setValue;
-            break;
-        }
-        // The following offsets the time to make the change.
-        // Else, the clock looses about second each time a setting is made.
-        theCounterSeconds ++;
-        delay(100);
-        //
-        rtc.adjust(DateTime(theCounterYear, theCounterMonth, theCounterDay, theCounterHours, theCounterMinutes, theCounterSeconds));
-        lcdPrintln(theSetRow, "Value is set.");
-        printClockDate();
-        delay(2000);
-        displayPrintln(theSetRow, "");
-      }
-
-*/
 
 // ------------------------
 void clockRun() {
@@ -3709,8 +3632,8 @@ void clockRun() {
     processClockNow();
     checkRunningButtons();
     checkClockSwitch();
-    // Need to check other buttons for setting the time.
-    // This will take some thought to implement.
+    // Check control buttons for setting the time.
+    checkExamineNextButton();
     delay(100);
   }
   //
@@ -3800,8 +3723,131 @@ void controlStopLogic() {
   lightsStatusAddressData(stopStatusByte, programCounter, dataByte);
 }
 
+// --------------------------------------------------
+// Toggle switch functions
+
+void checkExamineNextButton() {
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinExamineNext) == 0) {
+    if (!switchExamineNext) {
+      switchExamineNext = true;
+    }
+  } else if (switchExamineNext) {
+    switchExamineNext = false;
+    //
+    // Switch logic, based on programState.
+    //
+    switch (programState) {
+      // -------------------
+      case PROGRAM_WAIT:
+        if (curProgramCounter != programCounter) {
+          // Synch for control switches: programCounter and curProgramCounter.
+          // This handles the first switch...Next, after a STEP or HLT.
+          programCounter = curProgramCounter;
+        }
+        curProgramCounter++;
+        programCounter++;
+        dataByte = memoryData[programCounter];
+        processDataLights();
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ Control, Examine Next, programCounter: "));
+        printByte(programCounter);
+        Serial.print(", byte = ");
+        printByte(dataByte);
+        Serial.print(" = ");
+        printData(dataByte);
+        Serial.println("");
+#endif
+        break;
+      case CLOCK_RUN:
+        // Serial.print("+ Key > next, set clock menu option");
+        setClockValue--;
+        if (setClockValue < 0) {
+          setClockValue = 6;
+        }
+        setClockMenuItems();
+#ifdef SWITCH_MESSAGES
+        Serial.println(F("+ Control, Examine Next, set clock."));
+#endif
+        break;
+    }
+  }
+}
+
+  /*
+  // ------------------------------------
+      // Serial.print("+ Key up");
+      if (setClockValue) {
+        // Serial.print(", increment");
+        setValue++;
+        if (setValue > theSetMax) {
+          setValue = theSetMin;
+        }
+        printClockInt(theSetCol, theSetRow, setValue);
+      }
+
+      // Serial.print("+ Key down");
+      if (setClockValue) {
+        // Serial.print(", decrement");
+        setValue--;
+        if (setValue < theSetMin) {
+          setValue = theSetMax;
+        }
+        printClockInt(theSetCol, theSetRow, setValue);
+      }
+
+  // ------------------------------------
+      // Serial.print("+ Key OK");
+      if (setClockValue) {
+        // Serial.print(", set ");
+        switch (setClockValue) {
+          case 1:
+            // Serial.print("seconds");
+            theCounterSeconds = setValue;
+            printClockInt(theSetCol, printRowClockPulse, setValue);
+            break;
+          case 2:
+            // Serial.print("minutes");
+            theCounterMinutes = setValue;
+            printClockInt(theSetCol, printRowClockPulse, setValue);
+            break;
+          case 3:
+            // Serial.print("hours");
+            theCounterHours = setValue;
+            printClockInt(theSetCol, printRowClockPulse, setValue);
+            break;
+          case 4:
+            // Serial.print("day");
+            theCounterDay = setValue;
+            break;
+          case 5:
+            // Serial.print("month");
+            theCounterMonth = setValue;
+            break;
+          case 6:
+            // Serial.print("year");
+            theCounterYear = setValue;
+            break;
+        }
+        // The following offsets the time to make the change.
+        // Else, the clock looses about second each time a setting is made.
+        theCounterSeconds ++;
+        delay(100);
+        //
+        rtc.adjust(DateTime(theCounterYear, theCounterMonth, theCounterDay, theCounterHours, theCounterMinutes, theCounterSeconds));
+        lcdPrintln(theSetRow, "Value is set.");
+        printClockDate();
+        delay(2000);
+        displayPrintln(theSetRow, "");
+      }
+
+*/
+
 // -------------------------
 void checkControlButtons() {
+
+  checkExamineNextButton();
+
   for (int pinGet = 7; pinGet >= 0; pinGet--) {
     int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
     switch (pinGet) {
@@ -3885,30 +3931,6 @@ void checkControlButtons() {
         break;
       // -------------------
       case pinExamineNext:
-        if (pinValue == 0) {
-          if (!switchExamineNext) {
-            switchExamineNext = true;
-          }
-        } else if (switchExamineNext) {
-          switchExamineNext = false;
-          // Switch logic...
-          if (curProgramCounter != programCounter) {
-            // Synch for control switches: programCounter and curProgramCounter.
-            // This handles the first switch...Next, after a STEP or HLT.
-            programCounter = curProgramCounter;
-          }
-          curProgramCounter++;
-          programCounter++;
-          dataByte = memoryData[programCounter];
-          processDataLights();
-#ifdef SWITCH_MESSAGES
-          Serial.print(F("+ Control, Examine Next: "));
-          printByte(dataByte);
-          Serial.print(" = ");
-          printData(dataByte);
-          Serial.println("");
-#endif
-        }
         break;
       // -------------------
       case pinDepositNext:
