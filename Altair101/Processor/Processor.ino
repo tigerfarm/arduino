@@ -20,9 +20,10 @@
   ++ Seems to be a CALL opcode issue.
   ++ If byte count over 276, characters no longer are displayed.
   ++ Fails at the address: 00010100 (276)
-  i
+
   1602 LED and Clock integration,
-  + Use the 1602 LED to display and set the clock time.
+  + 1602 LED to displays time.
+  + Use the 1602 LED and toggles to set the clock time.
 
   In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
 
@@ -3512,6 +3513,154 @@ void displayTheTime(byte theMinute, byte theHour) {
   unsigned int hourWord = theBinaryHour2 * 256 + theBinaryHour1;
   lightsStatusAddressData(statusByte, hourWord, theBinaryMinute);
 }
+
+// -----------------------------------------------------------------------
+// Menu items to set the clock date and time values.
+
+void setClockMenuItems() {
+  if (!theLcdBacklightOn) {
+    // Don't make clock setting changes when the LCD is off.
+    return;
+  }
+  switch (setClockValue) {
+    case 0:
+      // Serial.print("Cancel set");
+      displayPrintln(theSetRow, "");
+      break;
+    case 1:
+      // Serial.print("seconds");
+      displayPrintln(theSetRow, "Set:");
+      theSetMax = 59;
+      theSetMin = 0;
+      theSetCol = thePrintColSec;
+      setValue = theCounterSeconds;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 2:
+      // Serial.print("minutes");
+      displayPrintln(theSetRow, "Set:");
+      theSetMax = 59;
+      theSetMin = 0;
+      theSetCol = thePrintColMin;
+      setValue = theCounterMinutes;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 3:
+      // Serial.print("hours");
+      displayPrintln(theSetRow, "Set:");
+      theSetMax = 24;
+      theSetMin = 0;
+      theSetCol = thePrintColHour;
+      setValue = theCounterHours;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 4:
+      // Serial.print("day");
+      displayPrintln(theSetRow, "Set day:");
+      theSetMax = 31;
+      theSetMin = 1;
+      theSetCol = thePrintColMin;
+      setValue = theCounterDay;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 5:
+      // Serial.print("month");
+      displayPrintln(theSetRow, "Set month:");
+      theSetMax = 12;
+      theSetMin = 1;
+      theSetCol = thePrintColMin;
+      setValue = theCounterMonth;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 6:
+      // Serial.print("year");
+      displayPrintln(theSetRow, "Set year:");
+      theSetMax = 2525; // In the year 2525, If man is still alive, If woman can survive...
+      theSetMin = 1795; // Year John Keats the poet was born.
+      theSetCol = thePrintColMin;
+      setValue = theCounterYear;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+  }
+}
+
+/*
+// ------------------------------------
+      // Serial.print("+ Key > - next");
+      // Serial.print(", set clock menu option");
+      setClockValue--;
+      if (setClockValue < 0) {
+        setClockValue = 6;
+      }
+      setClockMenuItems();
+
+// ------------------------------------
+      // Serial.print("+ Key up");
+      if (setClockValue) {
+        // Serial.print(", increment");
+        setValue++;
+        if (setValue > theSetMax) {
+          setValue = theSetMin;
+        }
+        printClockInt(theSetCol, theSetRow, setValue);
+      }
+
+      // Serial.print("+ Key down");
+      if (setClockValue) {
+        // Serial.print(", decrement");
+        setValue--;
+        if (setValue < theSetMin) {
+          setValue = theSetMax;
+        }
+        printClockInt(theSetCol, theSetRow, setValue);
+      }
+
+// ------------------------------------
+      // Serial.print("+ Key OK");
+      if (setClockValue) {
+        // Serial.print(", set ");
+        switch (setClockValue) {
+          case 1:
+            // Serial.print("seconds");
+            theCounterSeconds = setValue;
+            printClockInt(theSetCol, printRowClockPulse, setValue);
+            break;
+          case 2:
+            // Serial.print("minutes");
+            theCounterMinutes = setValue;
+            printClockInt(theSetCol, printRowClockPulse, setValue);
+            break;
+          case 3:
+            // Serial.print("hours");
+            theCounterHours = setValue;
+            printClockInt(theSetCol, printRowClockPulse, setValue);
+            break;
+          case 4:
+            // Serial.print("day");
+            theCounterDay = setValue;
+            break;
+          case 5:
+            // Serial.print("month");
+            theCounterMonth = setValue;
+            break;
+          case 6:
+            // Serial.print("year");
+            theCounterYear = setValue;
+            break;
+        }
+        // The following offsets the time to make the change.
+        // Else, the clock looses about second each time a setting is made.
+        theCounterSeconds ++;
+        delay(100);
+        //
+        rtc.adjust(DateTime(theCounterYear, theCounterMonth, theCounterDay, theCounterHours, theCounterMinutes, theCounterSeconds));
+        displayPrintln(theSetRow, "Value is set.");
+        printClockDate();
+        delay(2000);
+        displayPrintln(theSetRow, "");
+      }
+
+*/
 
 // ------------------------
 void clockRun() {
