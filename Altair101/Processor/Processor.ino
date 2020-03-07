@@ -334,9 +334,9 @@ void lcdPrintln(int theRow, String theString) {
     printString = theString.substring(0, displayColumns);
   } else {
     // Buffer with spaces to the end of line.
-    while (theRest < displayColumns) {
+    while (theRest > 0) {
       printString = printString + " ";
-      theRest++;
+      theRest--;
     }
   }
   lcd.setCursor(0, theRow);
@@ -3558,6 +3558,7 @@ void setClockMenuItems() {
       break;
     case 1:
       // Serial.print("seconds");
+      // Stacy, need to clear minute.
       lcdPrintln(theSetRow, "Set:");
       theSetMax = 59;
       theSetMin = 0;
@@ -3567,6 +3568,7 @@ void setClockMenuItems() {
       break;
     case 2:
       // Serial.print("minutes");
+      // Stacy, need to clear hour.
       lcdPrintln(theSetRow, "Set:");
       theSetMax = 59;
       theSetMin = 0;
@@ -3576,6 +3578,8 @@ void setClockMenuItems() {
       break;
     case 3:
       // Serial.print("hours");
+      // Stacy, need to clear month.
+      //                     1234567890123456
       lcdPrintln(theSetRow, "Set:");
       theSetMax = 24;
       theSetMin = 0;
