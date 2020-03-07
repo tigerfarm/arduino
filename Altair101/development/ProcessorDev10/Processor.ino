@@ -20,12 +20,12 @@
   ++ Seems to be a CALL opcode issue.
   ++ If byte count over 276, characters no longer are displayed.
   ++ Fails at the address: 00010100 (276)
-  i
+i  
   1602 LED and Clock integration,
   + Use the 1602 LED to display and set the clock time.
 
   In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
-
+  
   ---------------------------------------------
   // Future option to Read and Run an initialization program.
   // Requires a new function:
@@ -209,7 +209,7 @@ SoftwareSerial serial2(PIN_RX, PIN_TX);
 // -----------------------------------------------------------------------------
 // Memory definitions
 
-const int memoryBytes = 1256;  // When using Mega: 1024, for Nano: 256
+const int memoryBytes = 1512;  // When using Mega: 1024, for Nano: 256
 byte memoryData[memoryBytes];
 unsigned int curProgramCounter = 0;     // Current program address value
 unsigned int programCounter = 0;        // When processing opcodes, the next program address value.
@@ -242,7 +242,7 @@ void zeroOutMemory() {
     SDA - A4   - SDA  - 20
     VCC - 5V   - 5V
     GND - GND  - GND
-*/
+ */ 
 #ifdef INCLUDE_LCD
 
 #include<Wire.h>
@@ -280,7 +280,7 @@ void lcdSplash() {
   lcdPrintln(1, lcdRow1);
   lcdRow = 1;
   lcdColumn = 12;
-  lcd.setCursor(lcdColumn, lcdRow);
+  lcd.setCursor(lcdRow, lcdColumn);
 }
 
 void lcdClearScreen() {
@@ -3223,29 +3223,6 @@ void readProgramFileIntoMemory(String theFilename) {
 RTC_DS3231 rtc;
 DateTime now;
 
-void printClockInt(int theColumn, int theRow, int theInt) {
-  lcd.setCursor(theColumn, theRow);    // Column, Row
-  if (theInt < 10) {
-    lcd.print("0");
-    lcd.setCursor(theColumn + 1, theRow);
-  }
-  lcd.print(theInt);
-}
-
-int theCursor;
-const int printRowClockDate = 0;
-const int printColClockDate = 0;
-const int printRowClockPulse = 0;
-const int thePrintColMonth = 5;
-const int thePrintColDay = 5;
-const int thePrintColHour = thePrintColDay + 3;
-const int thePrintColMin = thePrintColHour + 3;
-const int thePrintColSec = thePrintColMin + 3;
-
-// rtc.adjust(DateTime(2019, 10, 9, 16, 22, 3));   // year, month, day, hour, minute, seconds
-int theCounterYear = 0;
-int theCounterMonth = 0;
-int theCounterDay = 0;
 int theCounterHours = 0;
 int theCounterMinutes = 0;
 int theCounterSeconds = 0;
@@ -3256,15 +3233,6 @@ void syncCountWithClock() {
   theCounterMinutes = now.minute();
   theCounterSeconds = now.second();
   //
-  theCursor = thePrintColHour;
-  printClockInt(theCursor, printRowClockPulse, theCounterHours);  // Column, Row
-  theCursor = theCursor + 3;
-  lcd.print(":");
-  printClockInt(theCursor, printRowClockPulse, theCounterMinutes);
-  theCursor = theCursor + 3;
-  lcd.print(":");
-  printClockInt(theCursor, printRowClockPulse, theCounterSeconds);
-  //
   Serial.print("+ syncCountWithClock,");
   Serial.print(" theCounterHours=");
   Serial.print(theCounterHours);
@@ -3272,30 +3240,6 @@ void syncCountWithClock() {
   Serial.print(theCounterMinutes);
   Serial.print(" theCounterSeconds=");
   Serial.println(theCounterSeconds);
-  //
-  printClockDate();
-}
-
-// -----------------------------------------------------------------------------
-char dayOfTheWeek[7][1] = {"S", "M", "T", "W", "T", "F", "S"};
-
-void printClockDate() {
-  now = rtc.now();
-  theCounterYear = now.year();
-  theCounterMonth = now.month();
-  theCounterDay = now.day();
-  //
-  theCursor = printColClockDate;
-  lcd.setCursor(theCursor, printRowClockDate);    // Column, Row
-  lcd.print(dayOfTheWeek[now.dayOfTheWeek()]);
-  // ---
-  lcd.setCursor(++theCursor, printRowClockDate);    // Column, Row
-  lcd.print(":");
-  printClockInt(++theCursor, printRowClockDate, theCounterMonth);
-  // ---
-  theCursor = theCursor + 2;
-  lcd.print("/");
-  printClockInt(++theCursor, printRowClockDate, theCounterDay);
 }
 
 // -----------------------------------------------------------------------------
@@ -3305,39 +3249,6 @@ void processClockNow() {
   now = rtc.now();
   //
   if (now.second() != theCounterSeconds) {
-    // When the clock second value changes, that's a clock second pulse.
-    theCounterSeconds = now.second();
-    clockPulseSecond();
-    if (theCounterSeconds == 0) {
-      // When the clock second value changes to zero, that's a clock minute pulse.
-      theCounterMinutes = now.minute();
-      clockPulseMinute();
-      if (theCounterMinutes == 0) {
-        // When the clock minute value changes to zero, that's a clock hour pulse.
-        theCounterHours = now.hour();
-        clockPulseHour();
-
-        // -------------------------
-        // Date pulses.
-        if (now.hour() == 0) {
-          // When the clock hour value changes to zero, that's a clock day pulse.
-          printClockDate(); // Prints and sets the values for day, month, and year.
-          clockPulseDay();
-          if (theCounterDay == 1) {
-            // When the clock day value changes to one, that's a clock month pulse.
-            clockPulseMonth();
-            if (theCounterMonth == 1) {
-              // When the clock Month value changes to one, that's a clock year pulse.
-              clockPulseYear();
-            }
-          }
-        }
-        // -------------------------
-      }
-    }
-  }
-  /*
-    if (now.second() != theCounterSeconds) {
     // When the clock second value changes, that's a second pulse.
     theCounterSeconds = now.second();
     // clockPulseSecond();
@@ -3367,55 +3278,7 @@ void processClockNow() {
         displayTheTime( theCounterMinutes, theCounterHours );
       }
     }
-    }
-  */
-}
-
-void clockPulseYear() {
-  Serial.print("+++++ clockPulseYear(), theCounterYear= ");
-  Serial.println(theCounterYear);
-}
-void clockPulseMonth() {
-  Serial.print("++++ clockPulseMonth(), theCounterMonth= ");
-  Serial.println(theCounterMonth);
-}
-void clockPulseDay() {
-  Serial.print("+++ clockPulseDay(), theCounterDay= ");
-  Serial.println(theCounterDay);
-}
-int theHour = 0;
-void clockPulseHour() {
-  Serial.print("++ clockPulseHour(), theCounterHours= ");
-  Serial.println(theCounterHours);
-  Serial.println(theCounterHours);
-  // Use AM/PM rather than 24 hours.
-  if (theCounterHours > 12) {
-    theHour = theCounterHours - 12;
-  } else if (theCounterHours == 0) {
-    theHour = 12; // 12 midnight, 12am
-  } else {
-    theHour = theCounterHours;
   }
-  displayTheTime( theCounterMinutes, theCounterHours );
-  printClockInt(thePrintColHour, printRowClockPulse, theHour);
-}
-void clockPulseMinute() {
-  Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
-  Serial.println(theCounterMinutes);
-  displayTheTime( theCounterMinutes, theCounterHours );
-  printClockInt(thePrintColMin, printRowClockPulse, theCounterMinutes);
-}
-void clockPulseSecond() {
-  if (HLDA_ON) {
-    digitalWrite(HLDA_PIN, LOW);
-    HLDA_ON = false;
-  } else {
-    digitalWrite(HLDA_PIN, HIGH);
-    HLDA_ON = true;
-  }
-  // Serial.print("+ theCounterSeconds = ");
-  // Serial.println(theCounterSeconds);
-  printClockInt(thePrintColSec, printRowClockPulse, theCounterSeconds);  // Column, Row
 }
 
 // ------------------------------------------------------------------------
@@ -3516,15 +3379,6 @@ void displayTheTime(byte theMinute, byte theHour) {
 // ------------------------
 void clockRun() {
   Serial.println(F("+ clockRun()"));
-  //
-  // Save the current LCD screen information.
-  String currentLcdRow0 = lcdRow0;
-  String currentLcdRow1 = lcdRow1;
-  int currentLcdRow = lcdRow;
-  int currentLcdColumn = lcdColumn;
-  lcdClearScreen();
-  lcd.noCursor();
-  //
   syncCountWithClock();
   displayTheTime( theCounterMinutes, theCounterHours );
   while (programState == CLOCK_RUN) {
@@ -3533,16 +3387,6 @@ void clockRun() {
     checkClockSwitch();
     delay(100);
   }
-  //
-  // Restore the LCD screen.
-  lcdRow0 = currentLcdRow0;
-  lcdRow1 = currentLcdRow1;
-  lcdPrintln(0, lcdRow0);
-  lcdPrintln(1, lcdRow1);
-  lcdRow = currentLcdRow;
-  lcdColumn = currentLcdColumn;
-  lcd.cursor();
-  lcd.setCursor(lcdColumn, lcdRow);
 }
 #endif
 
@@ -4168,58 +4012,58 @@ void infraredRunning() {
 
 // -----------------------------------------------------------------------------
 void DownloadProgram() {
-  byte readByte = 0;
-  int readByteCount = 0;
-  // Set status lights:
-  // HLDA on when in this mode. Later, HLDA off (LOW), then on (HIGH) when bytes downloading (Serial.available).
-  digitalWrite(HLDA_PIN, HIGH);
-  // INP on
-  byte readStatusByte = INP_ON;
-  readStatusByte = readStatusByte & M1_OFF;
-  readStatusByte = readStatusByte & WAIT_OFF;
-  lightsStatusAddressData(readStatusByte, 0, 0);
-  //
-  readByteCount = 0;  // Counter where the downloaded bytes are entered into memory.
-  while (programState == SERIAL_DOWNLOAD) {
-    if (serial2.available() > 0) {
-      // Input on the external serial port module.
-      // Read and process an incoming byte.
-      Serial.print("++ Byte array number: ");
-      if (readByteCount < 10) {
-        Serial.print(" ");
+      byte readByte = 0;
+      int readByteCount = 0;
+      // Set status lights:
+      // HLDA on when in this mode. Later, HLDA off (LOW), then on (HIGH) when bytes downloading (Serial.available).
+      digitalWrite(HLDA_PIN, HIGH);
+      // INP on
+      byte readStatusByte = INP_ON;
+      readStatusByte = readStatusByte & M1_OFF;
+      readStatusByte = readStatusByte & WAIT_OFF;
+      lightsStatusAddressData(readStatusByte, 0, 0);
+      //
+      readByteCount = 0;  // Counter where the downloaded bytes are entered into memory.
+      while (programState == SERIAL_DOWNLOAD) {
+        if (serial2.available() > 0) {
+          // Input on the external serial port module.
+          // Read and process an incoming byte.
+          Serial.print("++ Byte array number: ");
+          if (readByteCount < 10) {
+            Serial.print(" ");
+          }
+          if (readByteCount < 100) {
+            Serial.print(" ");
+          }
+          Serial.print(readByteCount);
+          readByte = serial2.read();
+          memoryData[readByteCount] = readByte;
+          readByteCount++;
+          Serial.print(", Byte: ");
+          printByte(readByte);
+          Serial.print(" ");
+          printHex(readByte);
+          Serial.print(" ");
+          printOctal(readByte);
+          Serial.print("   ");
+          Serial.print(readByte, DEC);
+          Serial.println("");
+        }
+        if (pcf20interrupted) {
+          checkRunningButtons();
+          pcf20interrupted = false; // Reset for next interrupt.
+        }
       }
-      if (readByteCount < 100) {
-        Serial.print(" ");
+      Serial.print(F("+ Exit serial download state."));
+      if (readByteCount > 0) {
+        // Program bytes were loaded.
+        // Reset the program. This takes care of the case that STOP was used to end the download.
+        controlResetLogic();
+      } else {
+        // Reset to original panel light values.
+        processDataLights();
       }
-      Serial.print(readByteCount);
-      readByte = serial2.read();
-      memoryData[readByteCount] = readByte;
-      readByteCount++;
-      Serial.print(", Byte: ");
-      printByte(readByte);
-      Serial.print(" ");
-      printHex(readByte);
-      Serial.print(" ");
-      printOctal(readByte);
-      Serial.print("   ");
-      Serial.print(readByte, DEC);
-      Serial.println("");
-    }
-    if (pcf20interrupted) {
-      checkRunningButtons();
-      pcf20interrupted = false; // Reset for next interrupt.
-    }
-  }
-  Serial.print(F("+ Exit serial download state."));
-  if (readByteCount > 0) {
-    // Program bytes were loaded.
-    // Reset the program. This takes care of the case that STOP was used to end the download.
-    controlResetLogic();
-  } else {
-    // Reset to original panel light values.
-    processDataLights();
-  }
-  digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
+      digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
 }
 
 // -----------------------------------------------------------------------------
@@ -4388,7 +4232,7 @@ void loop() {
       clockRun();
       digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;
-    // ----------------------------
+      // ----------------------------
     case PLAYER_RUN:
       // Serial.println(F("+ State: PLAYER_RUN. Not implemented, yet."));
       // playerRun();
