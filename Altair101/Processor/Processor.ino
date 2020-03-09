@@ -12,7 +12,7 @@
   ---------------------------------------------
   Current/Next Work
 
-  Panal LED lights all display correctly.
+  Panel LED lights all display correctly.
   I can show my steampunk tablet to the world.
   + Time to generate videos.
 

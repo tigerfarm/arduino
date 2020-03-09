@@ -12,20 +12,20 @@
   ---------------------------------------------
   Current/Next Work
 
-  Panal LED lights all display correctly.
+  Panel LED lights all display correctly.
   I can show my steampunk tablet to the world.
   + Time to generate videos.
+
+  1602 LCD prompt to confirm writing memory to a file.
+  + Prompt for 1 second. If not confirmed, don't write and return to original state.
+  + Control LCD backlight on/off status.
+  ++ This will allow making sure that the LCD backlight is on when prompting, and reset after.
 
   + Test write memory issue,
   ++ Seems to be a CALL opcode issue.
   ++ If byte count over 276, characters no longer are displayed.
   ++ Fails at the address: 00010100 (276)
-i  
-  1602 LED and Clock integration,
-  + Use the 1602 LED to display and set the clock time.
 
-  In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
-  
   ---------------------------------------------
   // Future option to Read and Run an initialization program.
   // Requires a new function:
@@ -131,8 +131,188 @@ void pcf20interrupt() {
 }
 
 // -----------------------------------------------------------------------------
-// Front Panel AUX Switches
+// 1602 LCD
+/*
+  1602 LCD serial connections pins,
+    LCD - Nano - Mega - Mega optional
+    SCL - A5   - SCL  - 21
+    SDA - A4   - SDA  - 20
+    VCC - 5V   - 5V
+    GND - GND  - GND
+*/
+#ifdef INCLUDE_LCD
 
+#include<Wire.h>
+#include<LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 20, 4);
+
+// -----------------------------------------------------------------------------
+// Clock setting values using in toggle switch functions.
+
+#ifdef INCLUDE_CLOCK
+
+// For the clock board.
+#include "RTClib.h"
+RTC_DS3231 rtc;
+DateTime now;
+
+int setClockValue = 0;
+// rtc.adjust(DateTime(2019, 10, 9, 16, 22, 3));   // year, month, day, hour, minute, seconds
+int theCounterYear = 0;
+int theCounterMonth = 0;
+int theCounterDay = 0;
+int theCounterHours = 0;
+int theCounterMinutes = 0;
+int theCounterSeconds = 0;
+
+int theSetRow = 1;
+int theSetCol = 0;
+int theSetMin = 0;
+int theSetMax = 59;
+int setValue = 0;
+
+int theCursor;
+const int printRowClockDate = 0;
+const int printColClockDate = 0;
+const int printRowClockPulse = 0;
+const int thePrintColMonth = 5;
+const int thePrintColDay = 5;
+const int thePrintColHour = thePrintColDay + 3;
+const int thePrintColMin = thePrintColHour + 3;
+const int thePrintColSec = thePrintColMin + 3;
+
+void lcdBacklight(int theChar) {
+  // ----------------------------------------------
+  if (theChar == 0) {
+    Serial.println(F("++ Backlight off."));
+    lcd.noBacklight();
+    return;
+  }
+  if (theChar == 1) {
+    Serial.println(F("++ Backlight on."));
+    lcd.backlight();
+    return;
+  }
+}
+
+// Toggle the LCD backlight on/off.
+boolean theLcdBacklightOn = true;
+void toggleLcdBacklight() {
+  if (theLcdBacklightOn) {
+    theLcdBacklightOn = false;
+    // Serial.println("+ Toggle: off.");
+    lcd.noBacklight();
+  } else {
+    theLcdBacklightOn = true;
+    // Serial.println("+ Toggle: on.");
+    lcd.backlight();
+  }
+}
+
+void printClockInt(int theColumn, int theRow, int theInt) {
+  lcd.setCursor(theColumn, theRow);    // Column, Row
+  if (theInt < 10) {
+    lcd.print("0");
+    lcd.setCursor(theColumn + 1, theRow);
+  }
+  lcd.print(theInt);
+}
+
+// -------------------------
+char dayOfTheWeek[7][1] = {"S", "M", "T", "W", "T", "F", "S"};
+
+void printClockDate() {
+  now = rtc.now();
+  theCounterYear = now.year();
+  theCounterMonth = now.month();
+  theCounterDay = now.day();
+  //
+  theCursor = printColClockDate;
+  lcd.setCursor(theCursor, printRowClockDate);    // Column, Row
+  lcd.print(dayOfTheWeek[now.dayOfTheWeek()]);
+  // ---
+  lcd.setCursor(++theCursor, printRowClockDate);    // Column, Row
+  lcd.print(":");
+  printClockInt(++theCursor, printRowClockDate, theCounterMonth);
+  // ---
+  theCursor = theCursor + 2;
+  lcd.print("/");
+  printClockInt(++theCursor, printRowClockDate, theCounterDay);
+}
+
+void setClockMenuItems() {
+  if (!theLcdBacklightOn) {
+    // Don't make clock setting changes when the LCD is off.
+    return;
+  }
+  switch (setClockValue) {
+    case 0:
+      // Serial.print("Cancel set");
+      lcdPrintln(theSetRow, "");
+      break;
+    case 1:
+      // Serial.print("seconds");
+      // Stacy, need to clear minute.
+      lcdPrintln(theSetRow, "Set:");
+      theSetMax = 59;
+      theSetMin = 0;
+      theSetCol = thePrintColSec;
+      setValue = theCounterSeconds;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 2:
+      // Serial.print("minutes");
+      // Stacy, need to clear hour.
+      lcdPrintln(theSetRow, "Set:");
+      theSetMax = 59;
+      theSetMin = 0;
+      theSetCol = thePrintColMin;
+      setValue = theCounterMinutes;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 3:
+      // Serial.print("hours");
+      // Stacy, need to clear month.
+      //                     1234567890123456
+      lcdPrintln(theSetRow, "Set:");
+      theSetMax = 24;
+      theSetMin = 0;
+      theSetCol = thePrintColHour;
+      setValue = theCounterHours;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 4:
+      // Serial.print("day");
+      lcdPrintln(theSetRow, "Set day:");
+      theSetMax = 31;
+      theSetMin = 1;
+      theSetCol = thePrintColMin;
+      setValue = theCounterDay;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 5:
+      // Serial.print("month");
+      lcdPrintln(theSetRow, "Set month:");
+      theSetMax = 12;
+      theSetMin = 1;
+      theSetCol = thePrintColMin;
+      setValue = theCounterMonth;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 6:
+      // Serial.print("year");
+      lcdPrintln(theSetRow, "Set year:");
+      theSetMax = 2525; // In the year 2525, If man is still alive, If woman can survive...
+      theSetMin = 1795; // Year John Keats the poet was born.
+      theSetCol = thePrintColMin;
+      setValue = theCounterYear;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+  }
+}
+
+// -----------------------------------------------------------------------------
 #ifdef INCLUDE_AUX
 //                              Mega pins
 const int CLOCK_SWITCH_PIN =    8;  // Tested pins, works: 4, A11. Doesn't work: 24, 33.
@@ -209,7 +389,7 @@ SoftwareSerial serial2(PIN_RX, PIN_TX);
 // -----------------------------------------------------------------------------
 // Memory definitions
 
-const int memoryBytes = 1512;  // When using Mega: 1024, for Nano: 256
+const int memoryBytes = 1256;  // When using Mega: 1024, for Nano: 256
 byte memoryData[memoryBytes];
 unsigned int curProgramCounter = 0;     // Current program address value
 unsigned int programCounter = 0;        // When processing opcodes, the next program address value.
@@ -233,23 +413,6 @@ void zeroOutMemory() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// 1602 LCD
-/*
-  1602 LCD serial connections pins,
-    LCD - Nano - Mega - Mega optional
-    SCL - A5   - SCL  - 21
-    SDA - A4   - SDA  - 20
-    VCC - 5V   - 5V
-    GND - GND  - GND
- */ 
-#ifdef INCLUDE_LCD
-
-#include<Wire.h>
-#include<LiquidCrystal_I2C.h>
-
-LiquidCrystal_I2C lcd(0x27, 20, 4);
-
 // -----------------------------------------------------------------------------
 // 1602 LCD print functions.
 
@@ -280,7 +443,7 @@ void lcdSplash() {
   lcdPrintln(1, lcdRow1);
   lcdRow = 1;
   lcdColumn = 12;
-  lcd.setCursor(lcdRow, lcdColumn);
+  lcd.setCursor(lcdColumn, lcdRow);
 }
 
 void lcdClearScreen() {
@@ -291,20 +454,6 @@ void lcdClearScreen() {
   lcdRow = 0;
   lcdRow0 = "";
   lcdRow1 = "";
-}
-
-void lcdBacklight(int theChar) {
-  // ----------------------------------------------
-  if (theChar == 0) {
-    Serial.println(F("++ Backlight off."));
-    lcd.noBacklight();
-    return;
-  }
-  if (theChar == 1) {
-    Serial.println(F("++ Backlight on."));
-    lcd.backlight();
-    return;
-  }
 }
 
 // ----------------------------------------------
@@ -319,9 +468,9 @@ void lcdPrintln(int theRow, String theString) {
     printString = theString.substring(0, displayColumns);
   } else {
     // Buffer with spaces to the end of line.
-    while (theRest < displayColumns) {
+    while (theRest > 0) {
       printString = printString + " ";
-      theRest++;
+      theRest--;
     }
   }
   lcd.setCursor(0, theRow);
@@ -3214,24 +3363,389 @@ void readProgramFileIntoMemory(String theFilename) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+// Front Panel Switches
+
+// -------------------------
+// Get Front Panel Toggles value, the sense switches.
+
+int toggleSenseByte() {
+  // Invert byte bits using bitwise not operator: "~";
+  // Bitwise "not" operator to invert bits:
+  //  int a = 103;  // binary:  0000000001100111
+  //  int b = ~a;   // binary:  1111111110011000 = -104
+  byte toggleByte = ~pcf21.read8();
+  return toggleByte;
+}
+
+// -------------------------
+// Front Panel Control Switches, when a program is not running.
+
+// Only do the action once, don't repeat if the button is held down.
+// Don't repeat action if the button is not pressed.
+
+const int pinStop = 0;
+const int pinRun = 1;
+const int pinStep = 2;
+const int pinExamine = 3;
+const int pinExamineNext = 4;
+const int pinDeposit = 5;
+const int pinDepositNext = 6;
+const int pinReset = 7;
+
+boolean switchStop = false;
+boolean switchRun = false;
+boolean switchStep = false;
+boolean switchExamine = false;
+boolean switchExamineNext = false;
+boolean switchDeposit = false;;
+boolean switchDepositNext = false;;
+boolean switchReset = false;
+
+// -------------------------
+void controlResetLogic() {
+  programCounter = 0;
+  curProgramCounter = 0;
+  stackPointer = 0;
+  opcode = 0;  // For the case when the processing cycle 2 or more.
+  statusByte = 0;
+  if (programState != PROGRAM_RUN) {
+    programState = PROGRAM_WAIT;
+    statusByte = statusByte | WAIT_ON;
+  }
+  // Fetch the first opcode, which display values to the panel.
+  processData();
+}
+
+void controlStopLogic() {
+  programState = PROGRAM_WAIT;
+  // Create a STOP statusByte, to display on stopping.
+  // When the program continues, the orginal statusByte should be used.
+  int stopStatusByte = WAIT_ON | HLTA_ON;
+  // Display values to the panel lights.
+  lightsStatusAddressData(stopStatusByte, programCounter, dataByte);
+}
+
+// --------------------------------------------------
+// Toggle switch functions
+
+void checkExamineButton() {
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinExamine) == 0) {
+    if (!switchExamine) {
+      switchExamine = true;
+    }
+  } else if (switchExamine) {
+    switchExamine = false;
+    //
+    // Switch logic, based on programState.
+    //
+    switch (programState) {
+      // -------------------
+      case PROGRAM_WAIT:
+        programCounter = toggleSenseByte();
+        curProgramCounter = programCounter;     // Synch for control switches.
+        dataByte = memoryData[programCounter];
+        processDataLights();
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ Control, Examine: "));
+        printByte(dataByte);
+        Serial.print(" = ");
+        printData(dataByte);
+        Serial.println("");
+#endif
+        break;
+      case CLOCK_RUN:
+#ifdef SWITCH_MESSAGES
+        Serial.println(F("+ Clock, Examine, set clock value."));
+#endif
+        // Serial.print("+ Key OK");
+        if (setClockValue) {
+          // Serial.print(" ");
+          switch (setClockValue) {
+            case 1:
+              // Serial.print("seconds");
+              theCounterSeconds = setValue;
+              printClockInt(theSetCol, printRowClockPulse, setValue);
+              break;
+            case 2:
+              // Serial.print("minutes");
+              theCounterMinutes = setValue;
+              printClockInt(theSetCol, printRowClockPulse, setValue);
+              break;
+            case 3:
+              // Serial.print("hours");
+              theCounterHours = setValue;
+              printClockInt(theSetCol, printRowClockPulse, setValue);
+              break;
+            case 4:
+              // Serial.print("day");
+              theCounterDay = setValue;
+              break;
+            case 5:
+              // Serial.print("month");
+              theCounterMonth = setValue;
+              break;
+            case 6:
+              // Serial.print("year");
+              theCounterYear = setValue;
+              break;
+          }
+          // The following offsets the time to make the change.
+          // Else, the clock looses about second each time a setting is made.
+          theCounterSeconds ++;
+          delay(100);
+          //
+          rtc.adjust(DateTime(theCounterYear, theCounterMonth, theCounterDay, theCounterHours, theCounterMinutes, theCounterSeconds));
+          lcdPrintln(theSetRow, "Value is set.");
+          printClockDate();
+          delay(2000);
+          lcdPrintln(theSetRow, "");
+        }
+        break;
+    }
+  }
+}
+void checkExamineNextButton() {
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinExamineNext) == 0) {
+    if (!switchExamineNext) {
+      switchExamineNext = true;
+    }
+  } else if (switchExamineNext) {
+    switchExamineNext = false;
+    //
+    // Switch logic, based on programState.
+    //
+    switch (programState) {
+      // -------------------
+      case PROGRAM_WAIT:
+        if (curProgramCounter != programCounter) {
+          // Synch for control switches: programCounter and curProgramCounter.
+          // This handles the first switch...Next, after a STEP or HLT.
+          programCounter = curProgramCounter;
+        }
+        curProgramCounter++;
+        programCounter++;
+        dataByte = memoryData[programCounter];
+        processDataLights();
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ Control, Examine Next, programCounter: "));
+        printByte(programCounter);
+        Serial.print(", byte = ");
+        printByte(dataByte);
+        Serial.print(" = ");
+        printData(dataByte);
+        Serial.println("");
+#endif
+        break;
+      case CLOCK_RUN:
+#ifdef SWITCH_MESSAGES
+        Serial.println(F("+ Clock, Examine Next."));
+#endif
+        setClockValue--;
+        if (setClockValue < 0) {
+          setClockValue = 6;
+        }
+        setClockMenuItems();
+        break;
+    }
+  }
+}
+
+void checkDepositButton() {
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinDeposit) == 0) {
+    if (!switchDeposit) {
+      switchDeposit = true;
+    }
+  } else if (switchDeposit) {
+    switchDeposit = false;
+    //
+    // Switch logic, based on programState.
+    //
+    switch (programState) {
+      // -------------------
+      case PROGRAM_WAIT:
+#ifdef SWITCH_MESSAGES
+        Serial.println(F("+ Control, Deposit."));
+#endif
+        if (curProgramCounter != programCounter) {
+          // Synch for control switches: programCounter and curProgramCounter.
+          // This handles the first switch, after a STEP or HLT.
+          programCounter = curProgramCounter;
+        }
+        dataByte = toggleSenseByte();
+        memoryData[programCounter] = dataByte;
+        processDataLights();
+        break;
+      case CLOCK_RUN:
+#ifdef SWITCH_MESSAGES
+        Serial.println(F("+ Clock, Deposit, increment."));
+#endif
+        setValue++;
+        if (setValue > theSetMax) {
+          setValue = theSetMin;
+        }
+        printClockInt(theSetCol, theSetRow, setValue);
+        break;
+    }
+  }
+}
+void checkDepositNextButton() {
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinDepositNext) == 0) {
+    if (!switchDepositNext) {
+      switchDepositNext = true;
+    }
+  } else if (switchDepositNext) {
+    switchDepositNext = false;
+    //
+    // Switch logic, based on programState.
+    //
+    switch (programState) {
+      // -------------------
+      case PROGRAM_WAIT:
+#ifdef SWITCH_MESSAGES
+        Serial.println(F("+ Control, Deposit Next."));
+#endif
+        // Switch logic...
+        if (curProgramCounter != programCounter) {
+          // Synch for control switches: programCounter and curProgramCounter.
+          // This handles the first switch...Next, after a STEP or HLT.
+          programCounter = curProgramCounter;
+        }
+        curProgramCounter++;
+        programCounter++;
+        dataByte = toggleSenseByte();
+        memoryData[programCounter] = dataByte;
+        processDataLights();
+        break;
+      case CLOCK_RUN:
+#ifdef SWITCH_MESSAGES
+        Serial.println(F("+ Clock, Deposit Next, decrement."));
+#endif
+        setValue--;
+        if (setValue < theSetMin) {
+          setValue = theSetMax;
+        }
+        printClockInt(theSetCol, theSetRow, setValue);
+        break;
+    }
+  }
+}
+
+// --------------------------------------------------------
+// Front Panel Control Switches, when a program is running.
+// Switches: STOP and RESET.
+void checkRunningButtons() {
+  // -------------------
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinStop) == 0) {
+    if (!switchStop) {
+      switchStop = true;
+    }
+  } else if (switchStop) {
+    switchStop = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Running, Stop."));
+#endif
+    controlStopLogic();
+  }
+  // -------------------
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinReset) == 0) {
+    if (!switchReset) {
+      switchReset = true;
+    }
+  } else if (switchReset) {
+    switchReset = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Running, Reset."));
+#endif
+    controlResetLogic();
+  }
+  // -------------------
+}
+
+// -------------------------------------------------------------------
+// Front Panel Control Switches, when a program is not running (WAIT).
+// Switches: RUN, RESET, STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT,
+void checkControlButtons() {
+  // -------------------
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinRun) == 0) {
+    if (!switchRun) {
+      switchRun = true;
+    }
+  } else if (switchRun) {
+    switchRun = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Control, Run."));
+#endif
+    // Switch logic...
+    programState = PROGRAM_RUN;
+    statusByte = statusByte & WAIT_OFF;
+    statusByte = statusByte & HLTA_OFF;
+  }
+  // -------------------
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinReset) == 0) {
+    if (!switchReset) {
+      switchReset = true;
+    }
+  } else if (switchReset) {
+    switchReset = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Control, Reset."));
+#endif
+    controlResetLogic();
+  }
+  // -------------------
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinStep) == 0) {
+    if (!switchStep) {
+      switchStep = true;
+    }
+  } else if (switchStep) {
+    switchStep = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println("+ Control, Step.");
+#endif
+    // Switch logic...
+    statusByte = statusByte & HLTA_OFF;
+    processData();
+  }
+  // -------------------
+  checkExamineButton();
+  checkExamineNextButton();
+  checkDepositButton();
+  checkDepositNextButton();
+  // -------------------
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Clock
-
-#ifdef INCLUDE_CLOCK
-
-// For the clock board.
-#include "RTClib.h"
-RTC_DS3231 rtc;
-DateTime now;
-
-int theCounterHours = 0;
-int theCounterMinutes = 0;
-int theCounterSeconds = 0;
 
 void syncCountWithClock() {
   now = rtc.now();
   theCounterHours = now.hour();
   theCounterMinutes = now.minute();
   theCounterSeconds = now.second();
+  //
+  theCursor = thePrintColHour;
+  printClockInt(theCursor, printRowClockPulse, theCounterHours);  // Column, Row
+  theCursor = theCursor + 3;
+  lcd.print(":");
+  printClockInt(theCursor, printRowClockPulse, theCounterMinutes);
+  theCursor = theCursor + 3;
+  lcd.print(":");
+  printClockInt(theCursor, printRowClockPulse, theCounterSeconds);
   //
   Serial.print("+ syncCountWithClock,");
   Serial.print(" theCounterHours=");
@@ -3240,6 +3754,8 @@ void syncCountWithClock() {
   Serial.print(theCounterMinutes);
   Serial.print(" theCounterSeconds=");
   Serial.println(theCounterSeconds);
+  //
+  printClockDate();
 }
 
 // -----------------------------------------------------------------------------
@@ -3249,6 +3765,39 @@ void processClockNow() {
   now = rtc.now();
   //
   if (now.second() != theCounterSeconds) {
+    // When the clock second value changes, that's a clock second pulse.
+    theCounterSeconds = now.second();
+    clockPulseSecond();
+    if (theCounterSeconds == 0) {
+      // When the clock second value changes to zero, that's a clock minute pulse.
+      theCounterMinutes = now.minute();
+      clockPulseMinute();
+      if (theCounterMinutes == 0) {
+        // When the clock minute value changes to zero, that's a clock hour pulse.
+        theCounterHours = now.hour();
+        clockPulseHour();
+
+        // -------------------------
+        // Date pulses.
+        if (now.hour() == 0) {
+          // When the clock hour value changes to zero, that's a clock day pulse.
+          printClockDate(); // Prints and sets the values for day, month, and year.
+          clockPulseDay();
+          if (theCounterDay == 1) {
+            // When the clock day value changes to one, that's a clock month pulse.
+            clockPulseMonth();
+            if (theCounterMonth == 1) {
+              // When the clock Month value changes to one, that's a clock year pulse.
+              clockPulseYear();
+            }
+          }
+        }
+        // -------------------------
+      }
+    }
+  }
+  /*
+    if (now.second() != theCounterSeconds) {
     // When the clock second value changes, that's a second pulse.
     theCounterSeconds = now.second();
     // clockPulseSecond();
@@ -3278,7 +3827,55 @@ void processClockNow() {
         displayTheTime( theCounterMinutes, theCounterHours );
       }
     }
+    }
+  */
+}
+
+void clockPulseYear() {
+  Serial.print("+++++ clockPulseYear(), theCounterYear= ");
+  Serial.println(theCounterYear);
+}
+void clockPulseMonth() {
+  Serial.print("++++ clockPulseMonth(), theCounterMonth= ");
+  Serial.println(theCounterMonth);
+}
+void clockPulseDay() {
+  Serial.print("+++ clockPulseDay(), theCounterDay= ");
+  Serial.println(theCounterDay);
+}
+int theHour = 0;
+void clockPulseHour() {
+  Serial.print("++ clockPulseHour(), theCounterHours= ");
+  Serial.println(theCounterHours);
+  Serial.println(theCounterHours);
+  // Use AM/PM rather than 24 hours.
+  if (theCounterHours > 12) {
+    theHour = theCounterHours - 12;
+  } else if (theCounterHours == 0) {
+    theHour = 12; // 12 midnight, 12am
+  } else {
+    theHour = theCounterHours;
   }
+  displayTheTime( theCounterMinutes, theCounterHours );
+  printClockInt(thePrintColHour, printRowClockPulse, theHour);
+}
+void clockPulseMinute() {
+  Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
+  Serial.println(theCounterMinutes);
+  displayTheTime( theCounterMinutes, theCounterHours );
+  printClockInt(thePrintColMin, printRowClockPulse, theCounterMinutes);
+}
+void clockPulseSecond() {
+  if (HLDA_ON) {
+    digitalWrite(HLDA_PIN, LOW);
+    HLDA_ON = false;
+  } else {
+    digitalWrite(HLDA_PIN, HIGH);
+    HLDA_ON = true;
+  }
+  // Serial.print("+ theCounterSeconds = ");
+  // Serial.println(theCounterSeconds);
+  printClockInt(thePrintColSec, printRowClockPulse, theCounterSeconds);  // Column, Row
 }
 
 // ------------------------------------------------------------------------
@@ -3376,286 +3973,65 @@ void displayTheTime(byte theMinute, byte theHour) {
   lightsStatusAddressData(statusByte, hourWord, theBinaryMinute);
 }
 
+// -----------------------------------------------------------------------
+// Menu items to set the clock date and time values.
+
+void cancelSet() {
+  if (setClockValue) {
+    // Serial.println("Cancel set.");
+    lcdPrintln(theSetRow, "");
+    setClockValue = false;
+  }
+}
+
 // ------------------------
 void clockRun() {
   Serial.println(F("+ clockRun()"));
+  //
+  // Save the current LCD screen information.
+  String currentLcdRow0 = lcdRow0;
+  String currentLcdRow1 = lcdRow1;
+  int currentLcdRow = lcdRow;
+  int currentLcdColumn = lcdColumn;
+  lcdClearScreen();
+  lcd.noCursor();
+  //
   syncCountWithClock();
   displayTheTime( theCounterMinutes, theCounterHours );
   while (programState == CLOCK_RUN) {
+    // Clock process to display the time.
     processClockNow();
+    // Switches to exit clock mode.
     checkRunningButtons();
     checkClockSwitch();
+    // Check control buttons for setting the time.
+    checkExamineButton();
+    checkExamineNextButton();
+    checkDepositButton();
+    checkDepositNextButton();
     delay(100);
   }
+  //
+  // Restore the LCD screen.
+  lcdRow0 = currentLcdRow0;
+  lcdRow1 = currentLcdRow1;
+  lcdPrintln(0, lcdRow0);
+  lcdPrintln(1, lcdRow1);
+  lcdRow = currentLcdRow;
+  lcdColumn = currentLcdColumn;
+  lcd.cursor();
+  lcd.setCursor(lcdColumn, lcdRow);
 }
 #endif
 
-// ------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void playerRun() {
   Serial.println(F("+ playerRun()"));
   while (programState == PLAYER_RUN) {
     // processPlayer();
     checkRunningButtons();
     delay(100);
-  }
-}
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// Front Panel Switches
-
-// -------------------------
-// Get Front Panel Toggles value, the sense switches.
-
-int toggleSenseByte() {
-  // Invert byte bits using bitwise not operator: "~";
-  // Bitwise "not" operator to invert bits:
-  //  int a = 103;  // binary:  0000000001100111
-  //  int b = ~a;   // binary:  1111111110011000 = -104
-  byte toggleByte = ~pcf21.read8();
-  return toggleByte;
-}
-
-// -------------------------
-// Front Panel Control Switches, when a program is not running.
-
-// Only do the action once, don't repeat if the button is held down.
-// Don't repeat action if the button is not pressed.
-
-const int pinStop = 0;
-const int pinRun = 1;
-const int pinStep = 2;
-const int pinExamine = 3;
-const int pinExamineNext = 4;
-const int pinDeposit = 5;
-const int pinDepositNext = 6;
-const int pinReset = 7;
-
-boolean switchStop = false;
-boolean switchRun = false;
-boolean switchStep = false;
-boolean switchExamine = false;
-boolean switchExamineNext = false;
-boolean switchDeposit = false;;
-boolean switchDepositNext = false;;
-boolean switchReset = false;
-
-// -------------------------
-void controlResetLogic() {
-  programCounter = 0;
-  curProgramCounter = 0;
-  stackPointer = 0;
-  opcode = 0;  // For the case when the processing cycle 2 or more.
-  statusByte = 0;
-  if (programState != PROGRAM_RUN) {
-    programState = PROGRAM_WAIT;
-    statusByte = statusByte | WAIT_ON;
-  }
-  // Fetch the first opcode, which display values to the panel.
-  processData();
-}
-
-void controlStopLogic() {
-  programState = PROGRAM_WAIT;
-  // Create a STOP statusByte, to display on stopping.
-  // When the program continues, the orginal statusByte should be used.
-  int stopStatusByte = WAIT_ON | HLTA_ON;
-  // Display values to the panel lights.
-  lightsStatusAddressData(stopStatusByte, programCounter, dataByte);
-}
-
-// -------------------------
-void checkControlButtons() {
-  for (int pinGet = 7; pinGet >= 0; pinGet--) {
-    int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
-    switch (pinGet) {
-      // -------------------
-      case pinRun:
-        if (pinValue == 0) {    // 0 : switch is on.
-          if (!switchRun) {
-            switchRun = true;
-          }
-        } else if (switchRun) {
-          switchRun = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println(F("+ Control, Run > run the program."));
-#endif
-          // Switch logic...
-          programState = PROGRAM_RUN;
-          statusByte = statusByte & WAIT_OFF;
-          statusByte = statusByte & HLTA_OFF;
-          // processData();
-        }
-        break;
-      // -------------------
-      case pinStep:
-        if (pinValue == 0) {
-          if (!switchStep) {
-            switchStep = true;
-          }
-        } else if (switchStep) {
-          switchStep = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println("+ Control, Step.");
-#endif
-          // Switch logic...
-          statusByte = statusByte & HLTA_OFF;
-          processData();
-        }
-        break;
-      // -------------------
-      case pinExamine:
-        if (pinValue == 0) {
-          if (!switchExamine) {
-            switchExamine = true;
-          }
-        } else if (switchExamine) {
-          switchExamine = false;
-          // Switch logic...
-          programCounter = toggleSenseByte();
-          curProgramCounter = programCounter;     // Synch for control switches.
-          dataByte = memoryData[programCounter];
-          processDataLights();
-#ifdef SWITCH_MESSAGES
-          Serial.print(F("+ Control, Examine: "));
-          printByte(dataByte);
-          Serial.print(" = ");
-          printData(dataByte);
-          Serial.println("");
-#endif
-        }
-        break;
-      // -------------------
-      case pinDeposit:
-        if (pinValue == 0) {
-          if (!switchDeposit) {
-            switchDeposit = true;
-          }
-        } else if (switchDeposit) {
-          switchDeposit = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println("+ Control, Deposit.");
-#endif
-          // Switch logic...
-          if (curProgramCounter != programCounter) {
-            // Synch for control switches: programCounter and curProgramCounter.
-            // This handles the first switch, after a STEP or HLT.
-            programCounter = curProgramCounter;
-          }
-          dataByte = toggleSenseByte();
-          memoryData[programCounter] = dataByte;
-          processDataLights();
-        }
-        break;
-      // -------------------
-      case pinExamineNext:
-        if (pinValue == 0) {
-          if (!switchExamineNext) {
-            switchExamineNext = true;
-          }
-        } else if (switchExamineNext) {
-          switchExamineNext = false;
-          // Switch logic...
-          if (curProgramCounter != programCounter) {
-            // Synch for control switches: programCounter and curProgramCounter.
-            // This handles the first switch...Next, after a STEP or HLT.
-            programCounter = curProgramCounter;
-          }
-          curProgramCounter++;
-          programCounter++;
-          dataByte = memoryData[programCounter];
-          processDataLights();
-#ifdef SWITCH_MESSAGES
-          Serial.print(F("+ Control, Examine Next: "));
-          printByte(dataByte);
-          Serial.print(" = ");
-          printData(dataByte);
-          Serial.println("");
-#endif
-        }
-        break;
-      // -------------------
-      case pinDepositNext:
-        if (pinValue == 0) {
-          if (!switchDepositNext) {
-            switchDepositNext = true;
-          }
-        } else if (switchDepositNext) {
-          switchDepositNext = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println(F("+ Control, Deposit Next."));
-#endif
-          // Switch logic...
-          if (curProgramCounter != programCounter) {
-            // Synch for control switches: programCounter and curProgramCounter.
-            // This handles the first switch...Next, after a STEP or HLT.
-            programCounter = curProgramCounter;
-          }
-          curProgramCounter++;
-          programCounter++;
-          dataByte = toggleSenseByte();
-          memoryData[programCounter] = dataByte;
-          processDataLights();
-        }
-        break;
-      // -------------------
-      case pinReset:
-        if (pinValue == 0) {
-          if (!switchReset) {
-            switchReset = true;
-          }
-        } else if (switchReset) {
-          switchReset = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println(F("+ Control, Reset."));
-#endif
-          // Switch logic...
-          controlResetLogic();
-          break;
-        }
-        // -------------------
-    }
-  }
-}
-
-// -------------------------
-// Front Panel Control Switches, when a program is running.
-
-void checkRunningButtons() {
-  for (int pinGet = 7; pinGet >= 0; pinGet--) {
-    int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
-    switch (pinGet) {
-      // -------------------
-      case pinStop:
-        if (pinValue == 0) {    // 0 : switch is on.
-          if (!switchStop) {
-            switchStop = true;
-          }
-        } else if (switchStop) {
-          switchStop = false;
-          // Switch logic...
-#ifdef SWITCH_MESSAGES
-          Serial.println(F("+ Control, Stop > stop running the program."));
-#endif
-          controlStopLogic();
-        }
-        break;
-      // -------------------
-      case pinReset:
-        if (pinValue == 0) {
-          if (!switchReset) {
-            switchReset = true;
-          }
-        } else if (switchReset) {
-          switchReset = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println(F("+ Control, Reset."));
-#endif
-          // Switch logic...
-          controlResetLogic();
-        }
-        break;
-    }
-    // -------------------
   }
 }
 
@@ -4012,58 +4388,58 @@ void infraredRunning() {
 
 // -----------------------------------------------------------------------------
 void DownloadProgram() {
-      byte readByte = 0;
-      int readByteCount = 0;
-      // Set status lights:
-      // HLDA on when in this mode. Later, HLDA off (LOW), then on (HIGH) when bytes downloading (Serial.available).
-      digitalWrite(HLDA_PIN, HIGH);
-      // INP on
-      byte readStatusByte = INP_ON;
-      readStatusByte = readStatusByte & M1_OFF;
-      readStatusByte = readStatusByte & WAIT_OFF;
-      lightsStatusAddressData(readStatusByte, 0, 0);
-      //
-      readByteCount = 0;  // Counter where the downloaded bytes are entered into memory.
-      while (programState == SERIAL_DOWNLOAD) {
-        if (serial2.available() > 0) {
-          // Input on the external serial port module.
-          // Read and process an incoming byte.
-          Serial.print("++ Byte array number: ");
-          if (readByteCount < 10) {
-            Serial.print(" ");
-          }
-          if (readByteCount < 100) {
-            Serial.print(" ");
-          }
-          Serial.print(readByteCount);
-          readByte = serial2.read();
-          memoryData[readByteCount] = readByte;
-          readByteCount++;
-          Serial.print(", Byte: ");
-          printByte(readByte);
-          Serial.print(" ");
-          printHex(readByte);
-          Serial.print(" ");
-          printOctal(readByte);
-          Serial.print("   ");
-          Serial.print(readByte, DEC);
-          Serial.println("");
-        }
-        if (pcf20interrupted) {
-          checkRunningButtons();
-          pcf20interrupted = false; // Reset for next interrupt.
-        }
+  byte readByte = 0;
+  int readByteCount = 0;
+  // Set status lights:
+  // HLDA on when in this mode. Later, HLDA off (LOW), then on (HIGH) when bytes downloading (Serial.available).
+  digitalWrite(HLDA_PIN, HIGH);
+  // INP on
+  byte readStatusByte = INP_ON;
+  readStatusByte = readStatusByte & M1_OFF;
+  readStatusByte = readStatusByte & WAIT_OFF;
+  lightsStatusAddressData(readStatusByte, 0, 0);
+  //
+  readByteCount = 0;  // Counter where the downloaded bytes are entered into memory.
+  while (programState == SERIAL_DOWNLOAD) {
+    if (serial2.available() > 0) {
+      // Input on the external serial port module.
+      // Read and process an incoming byte.
+      Serial.print("++ Byte array number: ");
+      if (readByteCount < 10) {
+        Serial.print(" ");
       }
-      Serial.print(F("+ Exit serial download state."));
-      if (readByteCount > 0) {
-        // Program bytes were loaded.
-        // Reset the program. This takes care of the case that STOP was used to end the download.
-        controlResetLogic();
-      } else {
-        // Reset to original panel light values.
-        processDataLights();
+      if (readByteCount < 100) {
+        Serial.print(" ");
       }
-      digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
+      Serial.print(readByteCount);
+      readByte = serial2.read();
+      memoryData[readByteCount] = readByte;
+      readByteCount++;
+      Serial.print(", Byte: ");
+      printByte(readByte);
+      Serial.print(" ");
+      printHex(readByte);
+      Serial.print(" ");
+      printOctal(readByte);
+      Serial.print("   ");
+      Serial.print(readByte, DEC);
+      Serial.println("");
+    }
+    if (pcf20interrupted) {
+      checkRunningButtons();
+      pcf20interrupted = false; // Reset for next interrupt.
+    }
+  }
+  Serial.print(F("+ Exit serial download state."));
+  if (readByteCount > 0) {
+    // Program bytes were loaded.
+    // Reset the program. This takes care of the case that STOP was used to end the download.
+    controlResetLogic();
+  } else {
+    // Reset to original panel light values.
+    processDataLights();
+  }
+  digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
 }
 
 // -----------------------------------------------------------------------------
@@ -4232,7 +4608,7 @@ void loop() {
       clockRun();
       digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;
-      // ----------------------------
+    // ----------------------------
     case PLAYER_RUN:
       // Serial.println(F("+ State: PLAYER_RUN. Not implemented, yet."));
       // playerRun();
