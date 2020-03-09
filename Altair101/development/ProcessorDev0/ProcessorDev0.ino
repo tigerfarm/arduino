@@ -1,31 +1,43 @@
 // -----------------------------------------------------------------------------
 /*
   Altair 101 Processor program
-  
+
   This is an Altair 8800 emulator program that runs on an Arduino Mega microcontroller.
   It emulates the basic Altair 8800 hardware processes--from 1975.
   It was built around the Intel 8080 CPU chip. The 8080's opcodes are the same for the 8085.
   This program implements many of the 8080 microprocessor machine instructions (opcodes).
-  It has more than enough opcodes to run the classic program, Kill the Bitg.
-  
+  It has more than half of the opcodes implemented,
+  which more than enough to run the classic program, Kill the Bit.
+
   ---------------------------------------------
   Current/Next Work
-  
-  Status lights now display correctly.
+
+  Panal LED lights all display correctly.
   I can show my steampunk tablet to the world.
   + Time to generate videos.
+
+  + Test write memory issue,
+  ++ Seems to be a CALL opcode issue.
+  ++ If byte count over 276, characters no longer are displayed.
+  ++ Fails at the address: 00010100 (276)
+
+  1602 LED and Clock integration,
+  + 1602 LED to displays time.
+  + Use the 1602 LED and toggles to set the clock time.
+
+  In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
+
+  ---------------------------------------------
+  // Future option to Read and Run an initialization program.
+  // Requires a new function:
+  // + The ability to delete 00000000.bin, which is the option not to read and run at startup.
   ---------------------------------------------
   SD card module options,
   + Confirm saving or reading a file,
   ++ Fast flash HLDA for 1 second.
   ++ If read or write switch repeated, then run, else return to program wait status.
   + When rebooting the Mega: if 00000000.bin exists, read it and run it.
-  ----------
-  Add 1602 LED display,
-  + Add OUT opcode to out characters to the LED display.
-  + Add 1602 LED display clock time and to set the time.
-  In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
-  
+
   -----------------------------------------------------------------------------
   Processor program sections,
     Code compilation options.
@@ -75,13 +87,12 @@
 #define INCLUDE_AUX 1
 #define INCLUDE_CLOCK 1
 #define INCLUDE_SDCARD 1
-// #define INCLUDE_LCD 1
+#define INCLUDE_LCD 1
 // #define RUN_DELAY 1
 // #define INFRARED_MESSAGES 1    // For a simple setup: Mega + infrared, with serial messages.
 //
 // #define LOG_MESSAGES 1         // Has large memory requirements.
 #define SWITCH_MESSAGES 1
-// #define RUN_NOW 1
 
 // -----------------------------------------------------------------------------
 // Program states
@@ -125,10 +136,14 @@ void pcf20interrupt() {
 
 #ifdef INCLUDE_AUX
 //                              Mega pins
-const int CLOCK_SWITCH_PIN =    A11;  // Tested pins, works: 4, A11. Doesn't work: 24, 33.
-const int PLAYER_SWITCH_PIN =   A12;
-const int UPLOAD_SWITCH_PIN =   A13;
-const int DOWNLOAD_SWITCH_PIN = A14;
+const int CLOCK_SWITCH_PIN =    8;  // Tested pins, works: 4, A11. Doesn't work: 24, 33.
+const int PLAYER_SWITCH_PIN =   9;
+const int UPLOAD_SWITCH_PIN =   10;
+const int DOWNLOAD_SWITCH_PIN = 11;
+// const int CLOCK_SWITCH_PIN =    A11;  // Previous pins.
+// const int PLAYER_SWITCH_PIN =   A12;
+// const int UPLOAD_SWITCH_PIN =   A13;
+// const int DOWNLOAD_SWITCH_PIN = A14;
 #endif
 
 // -----------------------------------------------------------------------------
@@ -136,9 +151,12 @@ const int DOWNLOAD_SWITCH_PIN = A14;
 // Output LED light shift register(SN74HC595N) pins
 
 //                Nano pin               74HC595 Pins
-const int dataPinLed = 7;     // pin 14 Data pin.
-const int latchPinLed = 8;    // pin 12 Latch pin.
-const int clockPinLed = 9;    // pin 11 Clock pin.
+const int dataPinLed = A13;     // pin 14 Data pin.
+const int latchPinLed = A14;    // pin 12 Latch pin.
+const int clockPinLed = A15;    // pin 11 Clock pin.
+// const int dataPinLed = 7;    // Previous pins
+// const int latchPinLed = 8;
+// const int clockPinLed = 9;
 
 #ifdef INCLUDE_AUX
 // Status LED light,
@@ -192,7 +210,7 @@ SoftwareSerial serial2(PIN_RX, PIN_TX);
 // -----------------------------------------------------------------------------
 // Memory definitions
 
-const int memoryBytes = 1024;  // When using Mega: 1024, for Nano: 256
+const int memoryBytes = 1256;  // When using Mega: 1024, for Nano: 256
 byte memoryData[memoryBytes];
 unsigned int curProgramCounter = 0;     // Current program address value
 unsigned int programCounter = 0;        // When processing opcodes, the next program address value.
@@ -201,55 +219,31 @@ const int stackBytes = 32;
 int stackData[memoryBytes];
 unsigned int stackPointer = stackBytes;
 
-// Sample byte code program array.
-const byte theProgram[] = {
-  //                //            ; --------------------------------------
-  //                //            ; Test programs.
-  B11000011, 6, 0,     //   0: jmp There
-  B00000000,           //   3: nop
-  B00000000,           //   4: nop
-  B00000000,           //   5: nop
-  B11000011, 0, 0,     //   6: jmp Start
-  0                    //   9: End of program
-};
-
 // -----------------------------------------------------------------------------
 // Memory Functions
 
 char charBuffer[17];
 
-void initMemoryToZero() {
+void zeroOutMemory() {
+  // Clear memory option.
+  // Example, clear memory before loading a new program.
   Serial.println(F("+ Initialize all memory bytes to zero."));
   for (int i = 0; i < memoryBytes; i++) {
     memoryData[i] = 0;
   }
 }
 
-void copyByteArrayToMemory(byte btyeArray[], int arraySize) {
-  Serial.println(F("+ Copy the program into the computer's memory array."));
-  for (int i = 0; i < arraySize; i++) {
-    memoryData[i] = btyeArray[i];
-  }
-  Serial.println(F("+ Copied."));
-}
-
-void listByteArray(byte btyeArray[], int arraySize) {
-  Serial.println(F("+ List the program."));
-  Serial.println(F("++   Address:       Data value"));
-  for (int i = 0; i < arraySize; i++) {
-    Serial.print(F("+ Addr: "));
-    sprintf(charBuffer, "%4d:", i);
-    Serial.print(charBuffer);
-    Serial.print(F(" Data: "));
-    printData(btyeArray[i]);
-    Serial.println("");
-  }
-  Serial.println(F("+ End of listing."));
-}
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // 1602 LCD
+/*
+  1602 LCD serial connections pins,
+    LCD - Nano - Mega - Mega optional
+    SCL - A5   - SCL  - 21
+    SDA - A4   - SDA  - 20
+    VCC - 5V   - 5V
+    GND - GND  - GND
+*/
 #ifdef INCLUDE_LCD
 
 #include<Wire.h>
@@ -257,9 +251,81 @@ void listByteArray(byte btyeArray[], int arraySize) {
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
-String theLine = "";
-const int displayColumns = 16;
-void displayPrintln(int theRow, String theString) {
+// -----------------------------------------------------------------------------
+// 1602 LCD print functions.
+
+const int displayColumns = 16;  // LCD has 16 columns for printing to.
+
+int lcdColumn = 0;    // Current print column position.
+int lcdRow = 0;       // Current print row/line.
+String lcdRow0 = "";  // Buffer for row 0.
+String lcdRow1 = "";  // Buffer for row 1.
+
+//                        1234567890123456
+String clearLineString = "                ";
+
+// ------------------------------------------------
+void lcdSetup() {
+  lcd.init();
+  lcd.backlight();
+  lcd.cursor();
+  lcdSplash();
+}
+void lcdSplash() {
+  lcd.clear();
+  //         1234567890123456
+  lcdRow0 = "Altair 101";
+  //         0123456789012345
+  lcdRow1 = "LCD ready...";
+  lcdPrintln(0, lcdRow0);
+  lcdPrintln(1, lcdRow1);
+  lcdRow = 1;
+  lcdColumn = 12;
+  lcd.setCursor(lcdColumn, lcdRow);
+}
+
+void lcdClearScreen() {
+  Serial.println(F("++ Clear screen."));
+  lcd.clear();
+  lcd.home();     // Set cursor home (0,0).
+  lcdColumn = 0;
+  lcdRow = 0;
+  lcdRow0 = "";
+  lcdRow1 = "";
+}
+
+void lcdBacklight(int theChar) {
+  // ----------------------------------------------
+  if (theChar == 0) {
+    Serial.println(F("++ Backlight off."));
+    lcd.noBacklight();
+    return;
+  }
+  if (theChar == 1) {
+    Serial.println(F("++ Backlight on."));
+    lcd.backlight();
+    return;
+  }
+}
+
+// Toggle the LCD backlight on/off.
+boolean theLcdBacklightOn = true;
+void toggleLcdBacklight() {
+  if (theLcdBacklightOn) {
+    theLcdBacklightOn = false;
+    // Serial.println("+ Toggle: off.");
+    lcd.noBacklight();
+  } else {
+    theLcdBacklightOn = true;
+    // Serial.println("+ Toggle: on.");
+    lcd.backlight();
+  }
+}
+
+// ----------------------------------------------
+// Print line.
+
+void lcdPrintln(int theRow, String theString) {
   // To overwrite anything on the current line.
   String printString = theString;
   int theRest = displayColumns - theString.length();
@@ -268,25 +334,74 @@ void displayPrintln(int theRow, String theString) {
     printString = theString.substring(0, displayColumns);
   } else {
     // Buffer with spaces to the end of line.
-    while (theRest < displayColumns) {
+    while (theRest > 0) {
       printString = printString + " ";
-      theRest++;
+      theRest--;
     }
   }
   lcd.setCursor(0, theRow);
   lcd.print(printString);
 }
 
-void readyLcd() {
-  lcd.init();
-  lcd.backlight();
-  //                1234567890123456
-  displayPrintln(0, "Altair 101");
-  theLine = "LCD ready...";
-  displayPrintln(1, theLine);
-  // delay(3000);
-  // lcd.clear();
+// ----------------------------------------------
+void lcdScroll() {
+  //Serial.println(F("+ lcdScroll()"));
+  // -----------------------
+  // Place cursor at start of the second line.
+  lcdColumn = 0;
+  if (lcdRow == 0) {
+    // If the first time printing to the second row, no need to scroll the data.
+    lcd.setCursor(0, 1);
+    lcdRow = 1;
+    return;
+  }
+  // -----------------------
+  // Scroll the data.
+  //
+  // Clear the screen befor moving row 1 to 0, and row 1 needs to be clear.
+  lcd.clear();
+  // Screen buffers: scroll row 1, up to row 0.
+  lcdRow0 = lcdRow1;
+  lcdPrintln(0, lcdRow0);
+  lcdRow1 = "";  // Clear row 1 buffer.
+  lcd.setCursor(0, 1);
 }
+
+// ----------------------------------------------
+// Print character.
+
+void lcdPrintChar(String theChar) {
+  Serial.print(F("+ lcdPrintChar :"));
+  Serial.print(theChar);
+  Serial.print(F(":"));
+  // ----------------------------------------------
+  // New line character
+  if (theChar == "\n") {
+    lcdScroll();
+    // delay(1000);
+    return;
+  }
+  // ----------------------------------------------
+  // Print character to the display.
+  //
+  // Characters are dropped, if print past the 16 characters in a line.
+  if (lcdColumn >= displayColumns) {
+    return;
+  }
+  //
+  if (lcdRow == 0) {
+    lcdRow0 = lcdRow0 + theChar;
+  } else {
+    lcdRow1 = lcdRow1 + theChar;
+  }
+  lcd.print(theChar);
+  lcdColumn++;
+  if (lcdColumn < displayColumns) {
+    // Move the cursor forward.
+    lcd.setCursor(lcdColumn, lcdRow);
+  }
+}
+
 #endif
 
 // -----------------------------------------------------------------------------
@@ -414,12 +529,20 @@ void printWord(int theValue) {
   Serial.print(sValue);
 }
 
-void printOctal(byte b) {
-  String sOctal = String(b, OCT);
-  for (int i = 1; i <= 3 - sOctal.length(); i++) {
+void printHex(byte b) {
+  String sValue = String(b, HEX);
+  for (int i = 1; i <= 3 - sValue.length(); i++) {
     Serial.print("0");
   }
-  Serial.print(sOctal);
+  Serial.print(sValue);
+}
+
+void printOctal(byte b) {
+  String sValue = String(b, OCT);
+  for (int i = 1; i <= 3 - sValue.length(); i++) {
+    Serial.print("0");
+  }
+  Serial.print(sValue);
 }
 
 void printData(byte theByte) {
@@ -487,13 +610,6 @@ void displayStatusAddressData() {
   printData(dataByte);
   Serial.println("");
 #endif
-#ifdef LOG_MESSAGES || INFRARED_MESSAGES
-  Serial.print(F("Addr: "));
-  sprintf(charBuffer, "%4d:", programCounter);
-  Serial.print(charBuffer);
-  Serial.print(F(" Data: "));
-  printData(dataByte);
-#endif
 }
 
 void processDataLights() {
@@ -513,6 +629,14 @@ void processData() {
   // Update curProgramCounter to the address being processed.
   curProgramCounter = programCounter;
   //
+#ifdef LOG_MESSAGES || INFRARED_MESSAGES
+  Serial.print(F("Addr: "));
+  sprintf(charBuffer, "%4d:", programCounter);
+  Serial.print(charBuffer);
+  Serial.print(F(" Data: "));
+  printData(dataByte);
+  Serial.print(" > ");
+#endif
   if (opcode == 0) {
     // Instruction machine cycle 1 (M1 cycle), fetch the opcode.
     instructionCycle = 1;
@@ -522,9 +646,6 @@ void processData() {
     statusByte = statusByte | WO_ON;
     // If no parameter bytes (immediate data byte or address bytes), process the opcode.
     // Else, the opcode variable is set to the opcode byte value.
-#ifdef LOG_MESSAGES
-    Serial.print(" > ");
-#endif
     processOpcode();
     // If not a RET opcode, programCounter remains the same.
     // If a RET opcode processed, programCounter is set(from the stack) to the call-from address.
@@ -534,9 +655,6 @@ void processData() {
     // Machine cycles 2, 3, or 4.
     instructionCycle++;
     statusByte = statusByte & M1_OFF;
-    //
-    //  Getting opcode data
-    dataByte = memoryData[programCounter];
     //
     // Processing opcode data: an immediate data byte or an address(2 bytes: lb,hb).
     // If not a jump, programCounter incremented.
@@ -570,6 +688,115 @@ void processOpcode() {
 
   switch (dataByte) {
 
+    // ---------------------------------------------------------------------
+    // ++ ADD SSS  10 000 SSS  1  Add source register to register A. To do, set: ZSCPA.
+    //    10000SSS
+    case B10000000:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > add, Add register B:"));
+      printByte(dataByte);
+      Serial.print(F(" to register A:"));
+      printByte(regB);
+#endif
+      regA = regA + regB;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      printByte(regA);
+#endif
+      break;
+    case B10000001:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > add, Add register C:"));
+      printByte(regC);
+      Serial.print(F(" to register A:"));
+      printByte(regA);
+#endif
+      regA = regA + regC;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      printByte(regA);
+#endif
+      break;
+    case B10000010:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > add, Add register D:"));
+      printByte(regD);
+      Serial.print(F(" to register A:"));
+      printByte(regA);
+#endif
+      regA = regA + regD;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      printByte(regA);
+#endif
+      break;
+    case B10000011:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > add, Add register E:"));
+      printByte(regE);
+      Serial.print(F(" to register A:"));
+      printByte(regA);
+#endif
+      regA = regA + regE;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      printByte(regA);
+#endif
+      break;
+    case B10000100:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > add, Add register H:"));
+      printByte(regH);
+      Serial.print(F(" to register A:"));
+      printByte(regA);
+#endif
+      regA = regA + regH;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      printByte(regA);
+#endif
+      break;
+    case B10000101:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > add, Add register L:"));
+      printByte(regL);
+      Serial.print(F(" to register A:"));
+      printByte(regA);
+#endif
+      regA = regA + regL;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      printByte(regA);
+#endif
+      break;
+    case B10000110:
+      hlValue = regH * 256 + regL;
+      workingByte = memoryData[hlValue];
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > add, Add content at address H:L(M):"));
+      printByte(workingByte);
+      Serial.print(F(" to register A:"));
+      printByte(regA);
+#endif
+      regA = regA + workingByte;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      printByte(regA);
+#endif
+      break;
+    case B10000111:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > add, Add register A:"));
+      printByte(regA);
+      Serial.print(F(" to register A:"));
+      printByte(regA);
+#endif
+      regA = regA + regA;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      printByte(regA);
+#endif
+      break;
     // ---------------------------------------------------------------------
     // ++ ADI #     11000110 db       ZSCPA   Add immediate to A
     case B11000110:
@@ -702,7 +929,7 @@ void processOpcode() {
       Serial.print(stackPointer);
 #endif
       break;
-    // ----------------------------------
+    // --------------------------------------------------------------------
     //    11RP0101 Push    register pair B onto the stack. 1 cycles.
     case B11000101:
 #ifdef LOG_MESSAGES
@@ -711,7 +938,32 @@ void processOpcode() {
       stackData[stackPointer--] = regC;
       stackData[stackPointer--] = regB;
       break;
-    // -----------------
+    case B11010101:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > push, Push register pair D:E onto the stack."));
+#endif
+      stackData[stackPointer--] = regE;
+      stackData[stackPointer--] = regD;
+      break;
+    case B11100101:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > push, Push register pair H:L onto the stack."));
+#endif
+      stackData[stackPointer--] = regL;
+      stackData[stackPointer--] = regH;
+      break;
+    case B11110101:
+      Serial.print(F(" > push, Push flags is not implemented. Push the flags onto the stack."));
+      printData(workingByte);
+      Serial.println(F(""));
+      Serial.print(F("- Error, at programCounter: "));
+      printData(programCounter);
+      Serial.println(F(""));
+      ledFlashError();
+      controlStopLogic();
+      statusByte = WAIT_ON | HLTA_ON;
+      break;
+    // --------------------------------------------------------------------
     //    11RP0001 Pop    register pair B from the stack. 1 cycles.
     case B11000001:
 #ifdef LOG_MESSAGES
@@ -729,16 +981,7 @@ void processOpcode() {
 #endif
       break;
     // ----------------------------------
-    //    11RP0101 Push    register pair D:E onto the stack. 1 cycles.
-    case B11010101:
-#ifdef LOG_MESSAGES
-      Serial.print(F(" > push, Push register pair D:E onto the stack."));
-#endif
-      stackData[stackPointer--] = regE;
-      stackData[stackPointer--] = regD;
-      break;
-    // -----------------
-    //    11RP0001 Pop    register pair D:E from the stack. 1 cycles.
+    //    11RP0001
     case B11010001:
 #ifdef LOG_MESSAGES
       Serial.print(F(" > pop, Pop register pair D:E from the stack."));
@@ -753,18 +996,8 @@ void processOpcode() {
       Serial.print(F(":"));
       Serial.print(regE);
 #endif
-      break;
-    // ----------------------------------
-    //    11RP0101 Push    register pair H:L onto the stack. 1 cycles.
-    case B11100101:
-#ifdef LOG_MESSAGES
-      Serial.print(F(" > push, Push register pair H:L onto the stack."));
-#endif
-      stackData[stackPointer--] = regL;
-      stackData[stackPointer--] = regH;
-      break;
     // -----------------
-    //    11RP0001 Pop    register pair H:L from the stack. 1 cycles.
+    //    11RP0001
     case B11100001:
 #ifdef LOG_MESSAGES
       Serial.print(F(" > pop, Pop register pair H:L from the stack."));
@@ -779,6 +1012,17 @@ void processOpcode() {
       Serial.print(F(":"));
       Serial.print(regL);
 #endif
+      break;
+    case B11110001:
+      Serial.print(F(" > pop, Pop flags is not implemented. Pop the flags from the stack."));
+      printData(workingByte);
+      Serial.println(F(""));
+      Serial.print(F("- Error, at programCounter: "));
+      printData(programCounter);
+      Serial.println(F(""));
+      ledFlashError();
+      controlStopLogic();
+      statusByte = WAIT_ON | HLTA_ON;
       break;
     // ---------------------------------------------------------------------
     // dad RP   00RP1001  Add register pair(RP) to H:L (16 bit add). And set carry bit.
@@ -1010,7 +1254,8 @@ void processOpcode() {
 #else
       Serial.println(F("\n+ HLT, program halted."));
 #endif
-      controlStopLogic(); // Sets statusByte.
+      controlStopLogic();
+      statusByte = WAIT_ON | HLTA_ON;
       break;
     case B11011011:
       opcode = B11011011;
@@ -1291,7 +1536,9 @@ void processOpcode() {
       Serial.print(F(" > lxi, Stacy, to do: move the lb hb data, to the stack pointer address."));
 #endif
       Serial.print(F(" - Error, unhandled instruction."));
+      ledFlashError();
       controlStopLogic();
+      statusByte = WAIT_ON | HLTA_ON;
       break;
     // ------------------------------------------------------------------------------------------
     /*
@@ -2037,6 +2284,7 @@ void processOpcode() {
 #endif
       ledFlashError();
       controlStopLogic();
+      statusByte = WAIT_ON | HLTA_ON;
   }
 }
 
@@ -2579,12 +2827,26 @@ void processOpcodeData() {
       Serial.println("");
 #endif
       switch (dataByte) {
+        // ---------------------------------------
         case 1:
-          Serial.print(F(", terminal output to be implemented on LCD."));
+          Serial.print(F("+ Print register A to the LCD screen."));
+          if (regA == 0) {
+            lcdBacklight( 0 );      // LCD back light off.
+          } else if (regA == 1) {
+            lcdBacklight( 1 );      // LCD back light on.
+          } else if (regA == 2) {
+            lcdClearScreen();
+          } else if (regA == 3) {
+            lcdSplash();
+          } else {
+            char charA = regA;
+            lcdPrintChar((String)charA);
+          }
           break;
         case 3:
           // Handled before this switch statement.
           break;
+        // ---------------------------------------
         case 30:
           Serial.print(F(" > Register B = "));
           printData(regB);
@@ -2639,6 +2901,16 @@ void processOpcodeData() {
           printOther();
           Serial.print(F("------------"));
           break;
+        // ---------------------------------------
+        case 13:
+          ledFlashError();
+          Serial.print(F(" > Error happened, flash the LED light error sequence."));
+          break;
+        case 42:
+          ledFlashSuccess();
+          Serial.print(F(" > Success happened, flash the LED light success sequence."));
+          break;
+        // ---------------------------------------
         default:
           Serial.print(F(". - Error, OUT not implemented on this port address: "));
           Serial.println(regA);
@@ -2767,7 +3039,9 @@ void processOpcodeData() {
     // ------------------------------------------------------------------------------------------
     default:
       Serial.print(F(" -- Error, unknow instruction."));
+      ledFlashError();
       controlStopLogic();
+      statusByte = WAIT_ON | HLTA_ON;
   }
   // The opcode cycles are complete.
   opcode = 0;
@@ -2964,6 +3238,29 @@ void readProgramFileIntoMemory(String theFilename) {
 RTC_DS3231 rtc;
 DateTime now;
 
+void printClockInt(int theColumn, int theRow, int theInt) {
+  lcd.setCursor(theColumn, theRow);    // Column, Row
+  if (theInt < 10) {
+    lcd.print("0");
+    lcd.setCursor(theColumn + 1, theRow);
+  }
+  lcd.print(theInt);
+}
+
+int theCursor;
+const int printRowClockDate = 0;
+const int printColClockDate = 0;
+const int printRowClockPulse = 0;
+const int thePrintColMonth = 5;
+const int thePrintColDay = 5;
+const int thePrintColHour = thePrintColDay + 3;
+const int thePrintColMin = thePrintColHour + 3;
+const int thePrintColSec = thePrintColMin + 3;
+
+// rtc.adjust(DateTime(2019, 10, 9, 16, 22, 3));   // year, month, day, hour, minute, seconds
+int theCounterYear = 0;
+int theCounterMonth = 0;
+int theCounterDay = 0;
 int theCounterHours = 0;
 int theCounterMinutes = 0;
 int theCounterSeconds = 0;
@@ -2974,6 +3271,15 @@ void syncCountWithClock() {
   theCounterMinutes = now.minute();
   theCounterSeconds = now.second();
   //
+  theCursor = thePrintColHour;
+  printClockInt(theCursor, printRowClockPulse, theCounterHours);  // Column, Row
+  theCursor = theCursor + 3;
+  lcd.print(":");
+  printClockInt(theCursor, printRowClockPulse, theCounterMinutes);
+  theCursor = theCursor + 3;
+  lcd.print(":");
+  printClockInt(theCursor, printRowClockPulse, theCounterSeconds);
+  //
   Serial.print("+ syncCountWithClock,");
   Serial.print(" theCounterHours=");
   Serial.print(theCounterHours);
@@ -2981,6 +3287,30 @@ void syncCountWithClock() {
   Serial.print(theCounterMinutes);
   Serial.print(" theCounterSeconds=");
   Serial.println(theCounterSeconds);
+  //
+  printClockDate();
+}
+
+// -----------------------------------------------------------------------------
+char dayOfTheWeek[7][1] = {"S", "M", "T", "W", "T", "F", "S"};
+
+void printClockDate() {
+  now = rtc.now();
+  theCounterYear = now.year();
+  theCounterMonth = now.month();
+  theCounterDay = now.day();
+  //
+  theCursor = printColClockDate;
+  lcd.setCursor(theCursor, printRowClockDate);    // Column, Row
+  lcd.print(dayOfTheWeek[now.dayOfTheWeek()]);
+  // ---
+  lcd.setCursor(++theCursor, printRowClockDate);    // Column, Row
+  lcd.print(":");
+  printClockInt(++theCursor, printRowClockDate, theCounterMonth);
+  // ---
+  theCursor = theCursor + 2;
+  lcd.print("/");
+  printClockInt(++theCursor, printRowClockDate, theCounterDay);
 }
 
 // -----------------------------------------------------------------------------
@@ -2990,6 +3320,39 @@ void processClockNow() {
   now = rtc.now();
   //
   if (now.second() != theCounterSeconds) {
+    // When the clock second value changes, that's a clock second pulse.
+    theCounterSeconds = now.second();
+    clockPulseSecond();
+    if (theCounterSeconds == 0) {
+      // When the clock second value changes to zero, that's a clock minute pulse.
+      theCounterMinutes = now.minute();
+      clockPulseMinute();
+      if (theCounterMinutes == 0) {
+        // When the clock minute value changes to zero, that's a clock hour pulse.
+        theCounterHours = now.hour();
+        clockPulseHour();
+
+        // -------------------------
+        // Date pulses.
+        if (now.hour() == 0) {
+          // When the clock hour value changes to zero, that's a clock day pulse.
+          printClockDate(); // Prints and sets the values for day, month, and year.
+          clockPulseDay();
+          if (theCounterDay == 1) {
+            // When the clock day value changes to one, that's a clock month pulse.
+            clockPulseMonth();
+            if (theCounterMonth == 1) {
+              // When the clock Month value changes to one, that's a clock year pulse.
+              clockPulseYear();
+            }
+          }
+        }
+        // -------------------------
+      }
+    }
+  }
+  /*
+    if (now.second() != theCounterSeconds) {
     // When the clock second value changes, that's a second pulse.
     theCounterSeconds = now.second();
     // clockPulseSecond();
@@ -3019,7 +3382,55 @@ void processClockNow() {
         displayTheTime( theCounterMinutes, theCounterHours );
       }
     }
+    }
+  */
+}
+
+void clockPulseYear() {
+  Serial.print("+++++ clockPulseYear(), theCounterYear= ");
+  Serial.println(theCounterYear);
+}
+void clockPulseMonth() {
+  Serial.print("++++ clockPulseMonth(), theCounterMonth= ");
+  Serial.println(theCounterMonth);
+}
+void clockPulseDay() {
+  Serial.print("+++ clockPulseDay(), theCounterDay= ");
+  Serial.println(theCounterDay);
+}
+int theHour = 0;
+void clockPulseHour() {
+  Serial.print("++ clockPulseHour(), theCounterHours= ");
+  Serial.println(theCounterHours);
+  Serial.println(theCounterHours);
+  // Use AM/PM rather than 24 hours.
+  if (theCounterHours > 12) {
+    theHour = theCounterHours - 12;
+  } else if (theCounterHours == 0) {
+    theHour = 12; // 12 midnight, 12am
+  } else {
+    theHour = theCounterHours;
   }
+  displayTheTime( theCounterMinutes, theCounterHours );
+  printClockInt(thePrintColHour, printRowClockPulse, theHour);
+}
+void clockPulseMinute() {
+  Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
+  Serial.println(theCounterMinutes);
+  displayTheTime( theCounterMinutes, theCounterHours );
+  printClockInt(thePrintColMin, printRowClockPulse, theCounterMinutes);
+}
+void clockPulseSecond() {
+  if (HLDA_ON) {
+    digitalWrite(HLDA_PIN, LOW);
+    HLDA_ON = false;
+  } else {
+    digitalWrite(HLDA_PIN, HIGH);
+    HLDA_ON = true;
+  }
+  // Serial.print("+ theCounterSeconds = ");
+  // Serial.println(theCounterSeconds);
+  printClockInt(thePrintColSec, printRowClockPulse, theCounterSeconds);  // Column, Row
 }
 
 // ------------------------------------------------------------------------
@@ -3117,19 +3528,140 @@ void displayTheTime(byte theMinute, byte theHour) {
   lightsStatusAddressData(statusByte, hourWord, theBinaryMinute);
 }
 
+// -----------------------------------------------------------------------
+// Menu items to set the clock date and time values.
+
+int theSetRow = 1;
+int theSetCol = 0;
+int theSetMin = 0;
+int theSetMax = 59;
+int setValue = 0;
+
+int setClockValue = 0;
+void cancelSet() {
+  if (setClockValue) {
+    // Serial.println("Cancel set.");
+    lcdPrintln(theSetRow, "");
+    setClockValue = false;
+  }
+}
+
+void setClockMenuItems() {
+  if (!theLcdBacklightOn) {
+    // Don't make clock setting changes when the LCD is off.
+    return;
+  }
+  switch (setClockValue) {
+    case 0:
+      // Serial.print("Cancel set");
+      lcdPrintln(theSetRow, "");
+      break;
+    case 1:
+      // Serial.print("seconds");
+      // Stacy, need to clear minute.
+      lcdPrintln(theSetRow, "Set:");
+      theSetMax = 59;
+      theSetMin = 0;
+      theSetCol = thePrintColSec;
+      setValue = theCounterSeconds;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 2:
+      // Serial.print("minutes");
+      // Stacy, need to clear hour.
+      lcdPrintln(theSetRow, "Set:");
+      theSetMax = 59;
+      theSetMin = 0;
+      theSetCol = thePrintColMin;
+      setValue = theCounterMinutes;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 3:
+      // Serial.print("hours");
+      // Stacy, need to clear month.
+      //                     1234567890123456
+      lcdPrintln(theSetRow, "Set:");
+      theSetMax = 24;
+      theSetMin = 0;
+      theSetCol = thePrintColHour;
+      setValue = theCounterHours;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 4:
+      // Serial.print("day");
+      lcdPrintln(theSetRow, "Set day:");
+      theSetMax = 31;
+      theSetMin = 1;
+      theSetCol = thePrintColMin;
+      setValue = theCounterDay;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 5:
+      // Serial.print("month");
+      lcdPrintln(theSetRow, "Set month:");
+      theSetMax = 12;
+      theSetMin = 1;
+      theSetCol = thePrintColMin;
+      setValue = theCounterMonth;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+    case 6:
+      // Serial.print("year");
+      lcdPrintln(theSetRow, "Set year:");
+      theSetMax = 2525; // In the year 2525, If man is still alive, If woman can survive...
+      theSetMin = 1795; // Year John Keats the poet was born.
+      theSetCol = thePrintColMin;
+      setValue = theCounterYear;
+      printClockInt(theSetCol, theSetRow, setValue);
+      break;
+  }
+}
+
+
 // ------------------------
 void clockRun() {
-  // theCounterSeconds = 99;  // 99 will cause the immediate display of time.
+  Serial.println(F("+ clockRun()"));
+  //
+  // Save the current LCD screen information.
+  String currentLcdRow0 = lcdRow0;
+  String currentLcdRow1 = lcdRow1;
+  int currentLcdRow = lcdRow;
+  int currentLcdColumn = lcdColumn;
+  lcdClearScreen();
+  lcd.noCursor();
+  //
   syncCountWithClock();
   displayTheTime( theCounterMinutes, theCounterHours );
   while (programState == CLOCK_RUN) {
     processClockNow();
     checkRunningButtons();
     checkClockSwitch();
+    // Check control buttons for setting the time.
+    checkExamineNextButton();
+    delay(100);
+  }
+  //
+  // Restore the LCD screen.
+  lcdRow0 = currentLcdRow0;
+  lcdRow1 = currentLcdRow1;
+  lcdPrintln(0, lcdRow0);
+  lcdPrintln(1, lcdRow1);
+  lcdRow = currentLcdRow;
+  lcdColumn = currentLcdColumn;
+  lcd.cursor();
+  lcd.setCursor(lcdColumn, lcdRow);
+}
+#endif
+
+// ------------------------
+void playerRun() {
+  Serial.println(F("+ playerRun()"));
+  while (programState == PLAYER_RUN) {
+    // processPlayer();
+    checkRunningButtons();
     delay(100);
   }
 }
-#endif
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -3178,24 +3710,190 @@ void controlResetLogic() {
   stackPointer = 0;
   opcode = 0;  // For the case when the processing cycle 2 or more.
   statusByte = 0;
-  if (programState == CLOCK_RUN || programState == SERIAL_DOWNLOAD) {
+  if (programState != PROGRAM_RUN) {
     programState = PROGRAM_WAIT;
     statusByte = statusByte | WAIT_ON;
   }
-  // Fetch the first opcode.
+  // Fetch the first opcode, which display values to the panel.
   processData();
 }
 
 void controlStopLogic() {
   programState = PROGRAM_WAIT;
-  statusByte = 0;
-  statusByte = statusByte | WAIT_ON;
-  statusByte = statusByte | HLTA_ON;
-  // Panel light values are set to the latest byte processed.
+  // Create a STOP statusByte, to display on stopping.
+  // When the program continues, the orginal statusByte should be used.
+  int stopStatusByte = WAIT_ON | HLTA_ON;
+  // Display values to the panel lights.
+  lightsStatusAddressData(stopStatusByte, programCounter, dataByte);
 }
+
+// --------------------------------------------------
+// Toggle switch functions
+
+void checkDepositButton() {
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinDeposit) == 0) {
+    if (!switchDeposit) {
+      switchDeposit = true;
+    }
+  } else if (switchDeposit) {
+    switchDeposit = false;
+    //
+    // Switch logic, based on programState.
+    //
+    switch (programState) {
+      // -------------------
+      case PROGRAM_WAIT:
+        break;
+      case CLOCK_RUN:
+        break;
+    }
+  }
+}
+
+void checkDepositNextButton() {
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinDepositNext) == 0) {
+    if (!switchDepositNext) {
+      switchDepositNext = true;
+    }
+  } else if (switchDepositNext) {
+    switchDepositNext = false;
+    //
+    // Switch logic, based on programState.
+    //
+    switch (programState) {
+      // -------------------
+      case PROGRAM_WAIT:
+        break;
+      case CLOCK_RUN:
+        break;
+    }
+  }
+}
+
+void checkExamineNextButton() {
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinExamineNext) == 0) {
+    if (!switchExamineNext) {
+      switchExamineNext = true;
+    }
+  } else if (switchExamineNext) {
+    switchExamineNext = false;
+    //
+    // Switch logic, based on programState.
+    //
+    switch (programState) {
+      // -------------------
+      case PROGRAM_WAIT:
+        if (curProgramCounter != programCounter) {
+          // Synch for control switches: programCounter and curProgramCounter.
+          // This handles the first switch...Next, after a STEP or HLT.
+          programCounter = curProgramCounter;
+        }
+        curProgramCounter++;
+        programCounter++;
+        dataByte = memoryData[programCounter];
+        processDataLights();
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ Control, Examine Next, programCounter: "));
+        printByte(programCounter);
+        Serial.print(", byte = ");
+        printByte(dataByte);
+        Serial.print(" = ");
+        printData(dataByte);
+        Serial.println("");
+#endif
+        break;
+      case CLOCK_RUN:
+        // Serial.print("+ Key > next, set clock menu option");
+        setClockValue--;
+        if (setClockValue < 0) {
+          setClockValue = 6;
+        }
+        setClockMenuItems();
+#ifdef SWITCH_MESSAGES
+        Serial.println(F("+ Control, Examine Next, set clock."));
+#endif
+        break;
+    }
+  }
+}
+
+/*
+  // ------------------------------------
+    // Serial.print("+ Key up");
+    if (setClockValue) {
+      // Serial.print(", increment");
+      setValue++;
+      if (setValue > theSetMax) {
+        setValue = theSetMin;
+      }
+      printClockInt(theSetCol, theSetRow, setValue);
+    }
+
+    // Serial.print("+ Key down");
+    if (setClockValue) {
+      // Serial.print(", decrement");
+      setValue--;
+      if (setValue < theSetMin) {
+        setValue = theSetMax;
+      }
+      printClockInt(theSetCol, theSetRow, setValue);
+    }
+
+  // ------------------------------------
+    // Serial.print("+ Key OK");
+    if (setClockValue) {
+      // Serial.print(", set ");
+      switch (setClockValue) {
+        case 1:
+          // Serial.print("seconds");
+          theCounterSeconds = setValue;
+          printClockInt(theSetCol, printRowClockPulse, setValue);
+          break;
+        case 2:
+          // Serial.print("minutes");
+          theCounterMinutes = setValue;
+          printClockInt(theSetCol, printRowClockPulse, setValue);
+          break;
+        case 3:
+          // Serial.print("hours");
+          theCounterHours = setValue;
+          printClockInt(theSetCol, printRowClockPulse, setValue);
+          break;
+        case 4:
+          // Serial.print("day");
+          theCounterDay = setValue;
+          break;
+        case 5:
+          // Serial.print("month");
+          theCounterMonth = setValue;
+          break;
+        case 6:
+          // Serial.print("year");
+          theCounterYear = setValue;
+          break;
+      }
+      // The following offsets the time to make the change.
+      // Else, the clock looses about second each time a setting is made.
+      theCounterSeconds ++;
+      delay(100);
+      //
+      rtc.adjust(DateTime(theCounterYear, theCounterMonth, theCounterDay, theCounterHours, theCounterMinutes, theCounterSeconds));
+      lcdPrintln(theSetRow, "Value is set.");
+      printClockDate();
+      delay(2000);
+      displayPrintln(theSetRow, "");
+    }
+
+*/
 
 // -------------------------
 void checkControlButtons() {
+
+  checkExamineNextButton();
+
   for (int pinGet = 7; pinGet >= 0; pinGet--) {
     int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
     switch (pinGet) {
@@ -3246,12 +3944,11 @@ void checkControlButtons() {
           curProgramCounter = programCounter;     // Synch for control switches.
           dataByte = memoryData[programCounter];
           processDataLights();
-          // lightsStatusAddressData(statusByte, programCounter, dataByte);
 #ifdef SWITCH_MESSAGES
           Serial.print(F("+ Control, Examine: "));
           printByte(dataByte);
           Serial.print(" = ");
-          Serial.print(dataByte);
+          printData(dataByte);
           Serial.println("");
 #endif
         }
@@ -3276,36 +3973,10 @@ void checkControlButtons() {
           dataByte = toggleSenseByte();
           memoryData[programCounter] = dataByte;
           processDataLights();
-          // lightsStatusAddressData(statusByte, programCounter, dataByte);
         }
         break;
       // -------------------
       case pinExamineNext:
-        if (pinValue == 0) {
-          if (!switchExamineNext) {
-            switchExamineNext = true;
-          }
-        } else if (switchExamineNext) {
-          switchExamineNext = false;
-          // Switch logic...
-          if (curProgramCounter != programCounter) {
-            // Synch for control switches: programCounter and curProgramCounter.
-            // This handles the first switch...Next, after a STEP or HLT.
-            programCounter = curProgramCounter;
-          }
-          curProgramCounter++;
-          programCounter++;
-          dataByte = memoryData[programCounter];
-          processDataLights();
-          // lightsStatusAddressData(statusByte, programCounter, dataByte);
-#ifdef SWITCH_MESSAGES
-          Serial.print(F("+ Control, Examine Next: "));
-          printByte(dataByte);
-          Serial.print(" = ");
-          Serial.print(dataByte);
-          Serial.println("");
-#endif
-        }
         break;
       // -------------------
       case pinDepositNext:
@@ -3329,7 +4000,6 @@ void checkControlButtons() {
           dataByte = toggleSenseByte();
           memoryData[programCounter] = dataByte;
           processDataLights();
-          // lightsStatusAddressData(statusByte, programCounter, dataByte);
         }
         break;
       // -------------------
@@ -3370,7 +4040,6 @@ void checkRunningButtons() {
           // Switch logic...
 #ifdef SWITCH_MESSAGES
           Serial.println(F("+ Control, Stop > stop running the program."));
-          Serial.println(F(" > Program halted."));
 #endif
           controlStopLogic();
         }
@@ -3410,19 +4079,19 @@ boolean downloadSwitchState = true;
 void checkClockSwitch() {
   if (digitalRead(CLOCK_SWITCH_PIN) == HIGH) {
     if (!clockSwitchState) {
-      // Serial.println(F("+ Clock switch released."));
+      Serial.println(F("+ Clock switch released."));
       clockSwitchState = false;
       // Switch logic ...
       if (programState == CLOCK_RUN) {
-#ifdef SWITCH_MESSAGES
         Serial.println(F("+ Stop running the clock, return to the 8080 emulator."));
-#endif
         controlStopLogic();   // Changes programState to wait.
         digitalWrite(HLDA_PIN, LOW);
       } else {
         programState = CLOCK_RUN;
         digitalWrite(HLDA_PIN, HIGH);
         statusByte = statusByte & WAIT_OFF;
+        Serial.print("+ Clock programState: ");
+        Serial.println(programState);
       }
     }
     clockSwitchState = true;
@@ -3440,6 +4109,17 @@ void checkPlayerSwitch() {
       Serial.println(F("+ Player switch released."));
       playerSwitchState = false;
       // Switch logic ...
+      if (programState == PLAYER_RUN) {
+        Serial.println(F("+ Stop running the MP3 player, return to the 8080 emulator."));
+        controlStopLogic();
+        digitalWrite(HLDA_PIN, LOW);
+      } else {
+        programState = PLAYER_RUN;
+        digitalWrite(HLDA_PIN, HIGH);
+        statusByte = statusByte & WAIT_OFF;
+        Serial.print("+ MP3 player programState: ");
+        Serial.println(programState);
+      }
     }
     playerSwitchState = true;
   } else {
@@ -3496,6 +4176,9 @@ void checkDownloadSwitch() {
       if (theFilename == "11111111.bin") {
         Serial.println(F("+ Set to download over the serial port."));
         programState = SERIAL_DOWNLOAD;
+      } else if (theFilename == "00000000.bin") {
+        zeroOutMemory();
+        controlResetLogic();
       } else {
         Serial.print(F("+ Read the filename into memory: "));
         Serial.println(theFilename);
@@ -3733,6 +4416,62 @@ void infraredRunning() {
 }
 
 // -----------------------------------------------------------------------------
+void DownloadProgram() {
+  byte readByte = 0;
+  int readByteCount = 0;
+  // Set status lights:
+  // HLDA on when in this mode. Later, HLDA off (LOW), then on (HIGH) when bytes downloading (Serial.available).
+  digitalWrite(HLDA_PIN, HIGH);
+  // INP on
+  byte readStatusByte = INP_ON;
+  readStatusByte = readStatusByte & M1_OFF;
+  readStatusByte = readStatusByte & WAIT_OFF;
+  lightsStatusAddressData(readStatusByte, 0, 0);
+  //
+  readByteCount = 0;  // Counter where the downloaded bytes are entered into memory.
+  while (programState == SERIAL_DOWNLOAD) {
+    if (serial2.available() > 0) {
+      // Input on the external serial port module.
+      // Read and process an incoming byte.
+      Serial.print("++ Byte array number: ");
+      if (readByteCount < 10) {
+        Serial.print(" ");
+      }
+      if (readByteCount < 100) {
+        Serial.print(" ");
+      }
+      Serial.print(readByteCount);
+      readByte = serial2.read();
+      memoryData[readByteCount] = readByte;
+      readByteCount++;
+      Serial.print(", Byte: ");
+      printByte(readByte);
+      Serial.print(" ");
+      printHex(readByte);
+      Serial.print(" ");
+      printOctal(readByte);
+      Serial.print("   ");
+      Serial.print(readByte, DEC);
+      Serial.println("");
+    }
+    if (pcf20interrupted) {
+      checkRunningButtons();
+      pcf20interrupted = false; // Reset for next interrupt.
+    }
+  }
+  Serial.print(F("+ Exit serial download state."));
+  if (readByteCount > 0) {
+    // Program bytes were loaded.
+    // Reset the program. This takes care of the case that STOP was used to end the download.
+    controlResetLogic();
+  } else {
+    // Reset to original panel light values.
+    processDataLights();
+  }
+  digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200); // 115200 or 9600
@@ -3742,7 +4481,7 @@ void setup() {
 
   // ----------------------------------------------------
 #ifdef INCLUDE_LCD
-  readyLcd();
+  lcdSetup();
   Serial.println(F("+ LCD ready for output."));
 #endif
 
@@ -3814,26 +4553,18 @@ void setup() {
 #endif
 
   // ----------------------------------------------------
-  // Options to Load/Read/Run a initialization program
-  //
+  // Future option to Read and Run an initialization program.
+  // Requires a new function:
+  // + The ability to delete 00000000.bin, which is the option not to read and run.
   // ---------------------------
-  // + If 00000000.bin exists, read it in, and run it.
-  // ---------------------------
-  // + If 00000000.bin not exists, load the memory array program.
-  int programSize = sizeof(theProgram);
-  if (programSize > 0) {
-    // List the program array.
-    listByteArray(theProgram, programSize);
-    copyByteArrayToMemory(theProgram, programSize);
-    Serial.print(F("+ Program loaded from memory array."));
-#ifdef RUN_NOW
-    programState = PROGRAM_RUN;
-    Serial.println(F(" It will start automatically."));
-#endif
-  }
+  // + If 00000000.bin exists, read it and run it.
+  // Serial.print(F("+ Program loaded from memory array."));
+  // Serial.println(F(" It will run automatically."));
+
   // ----------------------------------------------------
-  Serial.println(F("\n+++ Do a program reset, and then start the processor loop."));
   controlResetLogic();
+  Serial.println(F("+++ Program system reset."));
+  Serial.println(F("+ Starting the processor loop."));
 }
 
 // -----------------------------------------------------------------------------
@@ -3842,23 +4573,23 @@ void setup() {
 #ifdef RUN_DELAY
 static unsigned long timer = millis();
 #endif
-byte readByte = 0;
-int readByteCount = 0;
+
 void loop() {
+
+#ifdef RUN_DELAY
+  // For testing, clock process timing is controlled by the timer.
+  // Example, 500 : once every 1/2 second.
+  if (millis() - timer >= 1000) {
+    Serial.print(F("+ programState: "));
+    Serial.println(programState);
+    timer = millis();
+  }
+#endif
 
   switch (programState) {
     // ----------------------------
     case PROGRAM_RUN:
-#ifdef RUN_DELAY
-      // For testing, clock process timing is controlled by the timer.
-      // Example, 500 : once every 1/2 second.
-      if (millis() - timer >= 500) {
-#endif
-        processData();
-#ifdef RUN_DELAY
-        timer = millis();
-      }
-#endif
+      processData();
       // Program control: STOP or RESET.
       if (irrecv.decode(&results)) {
         // Future: use the keypress value(1-8) as input into the running program via IN opcode.
@@ -3879,16 +4610,13 @@ void loop() {
         checkControlButtons();
         pcf20interrupted = false; // Reset for next interrupt.
       }
-#ifdef INCLUDE_AUX
       checkClockSwitch();
       checkPlayerSwitch();
       checkUploadSwitch();
       checkDownloadSwitch();
-#endif
       delay(60);
       break;
-      // ----------------------------
-#ifdef INCLUDE_AUX
+    // ----------------------------
     case SERIAL_DOWNLOAD:
       Serial.println(F("+ State: SERIAL_DOWNLOAD"));
       // ----------------------------------------------------
@@ -3896,58 +4624,11 @@ void loop() {
       if (serial2.isListening()) {
         Serial.println("+ serial2 is listening.");
         Serial.println("+ Ready to use the second serial port for receiving program bytes.");
+        Serial.println("+                 Address  Data  Binary   Hex Octal Decimal");
+        //              ++ Byte array number:   0, Byte: 00000110 06  006   6
+        //              ++ Byte array number:   0, Byte: 00000110 Octal:006 Decimal6
+        DownloadProgram();
       }
-      //
-      // Set status lights:
-      // HLDA on when in this mode. Later, HLDA off (LOW), then on (HIGH) when bytes downloading (Serial.available).
-      digitalWrite(HLDA_PIN, HIGH);
-      // INP on
-      byte readStatusByte = INP_ON;
-      readStatusByte = readStatusByte & M1_OFF;
-      readStatusByte = readStatusByte & WAIT_OFF;
-      lightsStatusAddressData(readStatusByte, 0, 0);
-      //
-      readByteCount = 0;  // Counter where the downloaded bytes are entered into memory.
-      while (programState == SERIAL_DOWNLOAD) {
-        if (serial2.available() > 0) {
-          // Input on the external serial port module.
-          // Read and process an incoming byte.
-          Serial.print("++ Byte array number: ");
-          if (readByteCount < 10) {
-            Serial.print(" ");
-          }
-          if (readByteCount < 100) {
-            Serial.print(" ");
-          }
-          Serial.print(readByteCount);
-          readByte = serial2.read();
-          memoryData[readByteCount] = readByte;
-          readByteCount++;
-          Serial.print(", Byte: ");
-          printByte(readByte);
-          Serial.print(" Octal:");
-          printOctal(readByte);
-          Serial.print(" Decimal");
-          Serial.print(readByte, DEC);
-          Serial.println("");
-        }
-        if (pcf20interrupted) {
-          checkRunningButtons();
-          pcf20interrupted = false; // Reset for next interrupt.
-        }
-      }
-      Serial.print(F("+ Exit serial download state."));
-      statusByte = statusByte & INP_OFF;
-      statusByte = statusByte | WAIT_ON;
-      if (readByteCount > 0) {
-        // Program bytes were loaded.
-        // Reset the program. This takes care of the case that STOP was used to end the download.
-        controlResetLogic();
-      } else {
-        // Reset to original panel light values.
-        processDataLights();
-      }
-      digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;
     case CLOCK_RUN:
       Serial.println(F("+ State: CLOCK_RUN"));
@@ -3958,9 +4639,13 @@ void loop() {
       break;
     // ----------------------------
     case PLAYER_RUN:
-      Serial.println(F("+ State: PLAYER_RUN. Not implemented, yet."));
+      // Serial.println(F("+ State: PLAYER_RUN. Not implemented, yet."));
+      // playerRun();
+      if (pcf20interrupted) {
+        checkRunningButtons();
+        pcf20interrupted = false; // Reset for next interrupt.
+      }
       break;
-#endif
   }
 
 }

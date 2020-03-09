@@ -16,16 +16,21 @@
   I can show my steampunk tablet to the world.
   + Time to generate videos.
 
+  1602 LCD prompt to confirm writing memory to a file.
+  + Prompt for 1 second. If not confirmed, don't write and return to original state.
+  + Control LCD backlight on/off status.
+  ++ This will allow making sure that the LCD backlight is on when prompting, and reset after.
+
+  1602 LCD and Clock integration,
+  + 1602 LCD to displays time.
+  + Use the 1602 LCD and toggles to set the clock time.
+
+  In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
+
   + Test write memory issue,
   ++ Seems to be a CALL opcode issue.
   ++ If byte count over 276, characters no longer are displayed.
   ++ Fails at the address: 00010100 (276)
-
-  1602 LED and Clock integration,
-  + 1602 LED to displays time.
-  + Use the 1602 LED and toggles to set the clock time.
-
-  In checkRunningButtons(), replace for-loop with 2 if statements: reset and stop.
 
   ---------------------------------------------
   // Future option to Read and Run an initialization program.
@@ -3633,11 +3638,16 @@ void clockRun() {
   syncCountWithClock();
   displayTheTime( theCounterMinutes, theCounterHours );
   while (programState == CLOCK_RUN) {
+    // Clock process to display the time.
     processClockNow();
+    // Switches to exit clock mode.
     checkRunningButtons();
     checkClockSwitch();
     // Check control buttons for setting the time.
+    checkExamineButton();
     checkExamineNextButton();
+    checkDepositButton();
+    checkDepositNextButton();
     delay(100);
   }
   //
@@ -3730,6 +3740,83 @@ void controlStopLogic() {
 // --------------------------------------------------
 // Toggle switch functions
 
+void checkExamineButton() {
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinExamine) == 0) {
+    if (!switchExamine) {
+      switchExamine = true;
+    }
+  } else if (switchExamine) {
+    switchExamine = false;
+    //
+    // Switch logic, based on programState.
+    //
+    switch (programState) {
+      // -------------------
+      case PROGRAM_WAIT:
+        programCounter = toggleSenseByte();
+        curProgramCounter = programCounter;     // Synch for control switches.
+        dataByte = memoryData[programCounter];
+        processDataLights();
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ Control, Examine: "));
+        printByte(dataByte);
+        Serial.print(" = ");
+        printData(dataByte);
+        Serial.println("");
+#endif
+        break;
+      case CLOCK_RUN:
+#ifdef SWITCH_MESSAGES
+        Serial.println(F("+ Clock, Examine, set clock value."));
+#endif
+        // Serial.print("+ Key OK");
+        if (setClockValue) {
+          // Serial.print(" ");
+          switch (setClockValue) {
+            case 1:
+              // Serial.print("seconds");
+              theCounterSeconds = setValue;
+              printClockInt(theSetCol, printRowClockPulse, setValue);
+              break;
+            case 2:
+              // Serial.print("minutes");
+              theCounterMinutes = setValue;
+              printClockInt(theSetCol, printRowClockPulse, setValue);
+              break;
+            case 3:
+              // Serial.print("hours");
+              theCounterHours = setValue;
+              printClockInt(theSetCol, printRowClockPulse, setValue);
+              break;
+            case 4:
+              // Serial.print("day");
+              theCounterDay = setValue;
+              break;
+            case 5:
+              // Serial.print("month");
+              theCounterMonth = setValue;
+              break;
+            case 6:
+              // Serial.print("year");
+              theCounterYear = setValue;
+              break;
+          }
+          // The following offsets the time to make the change.
+          // Else, the clock looses about second each time a setting is made.
+          theCounterSeconds ++;
+          delay(100);
+          //
+          rtc.adjust(DateTime(theCounterYear, theCounterMonth, theCounterDay, theCounterHours, theCounterMinutes, theCounterSeconds));
+          lcdPrintln(theSetRow, "Value is set.");
+          printClockDate();
+          delay(2000);
+          displayPrintln(theSetRow, "");
+        }
+        break;
+    }
+  }
+}
 void checkExamineNextButton() {
   // Read PCF8574 input for this switch.
   if (pcf20.readButton(pinExamineNext) == 0) {
@@ -3764,262 +3851,194 @@ void checkExamineNextButton() {
 #endif
         break;
       case CLOCK_RUN:
-        // Serial.print("+ Key > next, set clock menu option");
+#ifdef SWITCH_MESSAGES
+        Serial.println(F("+ Clock, Examine Next."));
+#endif
         setClockValue--;
         if (setClockValue < 0) {
           setClockValue = 6;
         }
         setClockMenuItems();
-#ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Control, Examine Next, set clock."));
-#endif
         break;
     }
   }
 }
 
-  /*
-  // ------------------------------------
-      // Serial.print("+ Key up");
-      if (setClockValue) {
-        // Serial.print(", increment");
+void checkDepositButton() {
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinDeposit) == 0) {
+    if (!switchDeposit) {
+      switchDeposit = true;
+    }
+  } else if (switchDeposit) {
+    switchDeposit = false;
+    //
+    // Switch logic, based on programState.
+    //
+    switch (programState) {
+      // -------------------
+      case PROGRAM_WAIT:
+#ifdef SWITCH_MESSAGES
+        Serial.println(F("+ Control, Deposit."));
+#endif
+        if (curProgramCounter != programCounter) {
+          // Synch for control switches: programCounter and curProgramCounter.
+          // This handles the first switch, after a STEP or HLT.
+          programCounter = curProgramCounter;
+        }
+        dataByte = toggleSenseByte();
+        memoryData[programCounter] = dataByte;
+        processDataLights();
+        break;
+      case CLOCK_RUN:
+#ifdef SWITCH_MESSAGES
+        Serial.println(F("+ Clock, Deposit, increment."));
+#endif
         setValue++;
         if (setValue > theSetMax) {
           setValue = theSetMin;
         }
         printClockInt(theSetCol, theSetRow, setValue);
-      }
-
-      // Serial.print("+ Key down");
-      if (setClockValue) {
-        // Serial.print(", decrement");
-        setValue--;
-        if (setValue < theSetMin) {
-          setValue = theSetMax;
-        }
-        printClockInt(theSetCol, theSetRow, setValue);
-      }
-
-  // ------------------------------------
-      // Serial.print("+ Key OK");
-      if (setClockValue) {
-        // Serial.print(", set ");
-        switch (setClockValue) {
-          case 1:
-            // Serial.print("seconds");
-            theCounterSeconds = setValue;
-            printClockInt(theSetCol, printRowClockPulse, setValue);
-            break;
-          case 2:
-            // Serial.print("minutes");
-            theCounterMinutes = setValue;
-            printClockInt(theSetCol, printRowClockPulse, setValue);
-            break;
-          case 3:
-            // Serial.print("hours");
-            theCounterHours = setValue;
-            printClockInt(theSetCol, printRowClockPulse, setValue);
-            break;
-          case 4:
-            // Serial.print("day");
-            theCounterDay = setValue;
-            break;
-          case 5:
-            // Serial.print("month");
-            theCounterMonth = setValue;
-            break;
-          case 6:
-            // Serial.print("year");
-            theCounterYear = setValue;
-            break;
-        }
-        // The following offsets the time to make the change.
-        // Else, the clock looses about second each time a setting is made.
-        theCounterSeconds ++;
-        delay(100);
-        //
-        rtc.adjust(DateTime(theCounterYear, theCounterMonth, theCounterDay, theCounterHours, theCounterMinutes, theCounterSeconds));
-        lcdPrintln(theSetRow, "Value is set.");
-        printClockDate();
-        delay(2000);
-        displayPrintln(theSetRow, "");
-      }
-
-*/
-
-// -------------------------
-void checkControlButtons() {
-
-  checkExamineNextButton();
-
-  for (int pinGet = 7; pinGet >= 0; pinGet--) {
-    int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
-    switch (pinGet) {
-      // -------------------
-      case pinRun:
-        if (pinValue == 0) {    // 0 : switch is on.
-          if (!switchRun) {
-            switchRun = true;
-          }
-        } else if (switchRun) {
-          switchRun = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println(F("+ Control, Run > run the program."));
-#endif
-          // Switch logic...
-          programState = PROGRAM_RUN;
-          statusByte = statusByte & WAIT_OFF;
-          statusByte = statusByte & HLTA_OFF;
-          // processData();
-        }
         break;
-      // -------------------
-      case pinStep:
-        if (pinValue == 0) {
-          if (!switchStep) {
-            switchStep = true;
-          }
-        } else if (switchStep) {
-          switchStep = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println("+ Control, Step.");
-#endif
-          // Switch logic...
-          statusByte = statusByte & HLTA_OFF;
-          processData();
-        }
-        break;
-      // -------------------
-      case pinExamine:
-        if (pinValue == 0) {
-          if (!switchExamine) {
-            switchExamine = true;
-          }
-        } else if (switchExamine) {
-          switchExamine = false;
-          // Switch logic...
-          programCounter = toggleSenseByte();
-          curProgramCounter = programCounter;     // Synch for control switches.
-          dataByte = memoryData[programCounter];
-          processDataLights();
-#ifdef SWITCH_MESSAGES
-          Serial.print(F("+ Control, Examine: "));
-          printByte(dataByte);
-          Serial.print(" = ");
-          printData(dataByte);
-          Serial.println("");
-#endif
-        }
-        break;
-      // -------------------
-      case pinDeposit:
-        if (pinValue == 0) {
-          if (!switchDeposit) {
-            switchDeposit = true;
-          }
-        } else if (switchDeposit) {
-          switchDeposit = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println("+ Control, Deposit.");
-#endif
-          // Switch logic...
-          if (curProgramCounter != programCounter) {
-            // Synch for control switches: programCounter and curProgramCounter.
-            // This handles the first switch, after a STEP or HLT.
-            programCounter = curProgramCounter;
-          }
-          dataByte = toggleSenseByte();
-          memoryData[programCounter] = dataByte;
-          processDataLights();
-        }
-        break;
-      // -------------------
-      case pinExamineNext:
-        break;
-      // -------------------
-      case pinDepositNext:
-        if (pinValue == 0) {
-          if (!switchDepositNext) {
-            switchDepositNext = true;
-          }
-        } else if (switchDepositNext) {
-          switchDepositNext = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println(F("+ Control, Deposit Next."));
-#endif
-          // Switch logic...
-          if (curProgramCounter != programCounter) {
-            // Synch for control switches: programCounter and curProgramCounter.
-            // This handles the first switch...Next, after a STEP or HLT.
-            programCounter = curProgramCounter;
-          }
-          curProgramCounter++;
-          programCounter++;
-          dataByte = toggleSenseByte();
-          memoryData[programCounter] = dataByte;
-          processDataLights();
-        }
-        break;
-      // -------------------
-      case pinReset:
-        if (pinValue == 0) {
-          if (!switchReset) {
-            switchReset = true;
-          }
-        } else if (switchReset) {
-          switchReset = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println(F("+ Control, Reset."));
-#endif
-          // Switch logic...
-          controlResetLogic();
-          break;
-        }
-        // -------------------
     }
   }
 }
-
-// -------------------------
-// Front Panel Control Switches, when a program is running.
-
-void checkRunningButtons() {
-  for (int pinGet = 7; pinGet >= 0; pinGet--) {
-    int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
-    switch (pinGet) {
-      // -------------------
-      case pinStop:
-        if (pinValue == 0) {    // 0 : switch is on.
-          if (!switchStop) {
-            switchStop = true;
-          }
-        } else if (switchStop) {
-          switchStop = false;
-          // Switch logic...
-#ifdef SWITCH_MESSAGES
-          Serial.println(F("+ Control, Stop > stop running the program."));
-#endif
-          controlStopLogic();
-        }
-        break;
-      // -------------------
-      case pinReset:
-        if (pinValue == 0) {
-          if (!switchReset) {
-            switchReset = true;
-          }
-        } else if (switchReset) {
-          switchReset = false;
-#ifdef SWITCH_MESSAGES
-          Serial.println(F("+ Control, Reset."));
-#endif
-          // Switch logic...
-          controlResetLogic();
-        }
-        break;
+void checkDepositNextButton() {
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinDepositNext) == 0) {
+    if (!switchDepositNext) {
+      switchDepositNext = true;
     }
-    // -------------------
+  } else if (switchDepositNext) {
+    switchDepositNext = false;
+    //
+    // Switch logic, based on programState.
+    //
+    switch (programState) {
+      // -------------------
+      case PROGRAM_WAIT:
+#ifdef SWITCH_MESSAGES
+        Serial.println(F("+ Control, Deposit Next."));
+#endif
+        // Switch logic...
+        if (curProgramCounter != programCounter) {
+          // Synch for control switches: programCounter and curProgramCounter.
+          // This handles the first switch...Next, after a STEP or HLT.
+          programCounter = curProgramCounter;
+        }
+        curProgramCounter++;
+        programCounter++;
+        dataByte = toggleSenseByte();
+        memoryData[programCounter] = dataByte;
+        processDataLights();
+    }
+    break;
+  case CLOCK_RUN:
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Clock, Deposit Next, decrement."));
+#endif
+    setValue--;
+    if (setValue < theSetMin) {
+      setValue = theSetMax;
+    }
+    printClockInt(theSetCol, theSetRow, setValue);
+    break;
   }
+}
+}
+
+// -------------------------------------------------------------------
+// Front Panel Control Switches, when a program is not running (WAIT).
+// Switches: RUN, RESET, STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT,
+void checkControlButtons() {
+  // -------------------
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinRun) == 0) {
+    if (!switchRun) {
+      switchRun = true;
+    }
+  } else if (switchRun) {
+    switchRun = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Control, Run."));
+#endif
+    // Switch logic...
+    programState = PROGRAM_RUN;
+    statusByte = statusByte & WAIT_OFF;
+    statusByte = statusByte & HLTA_OFF;
+  }
+  // -------------------
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinReset) == 0) {
+    if (!switchReset) {
+      switchReset = true;
+    }
+  } else if (switchReset) {
+    switchReset = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Control, Reset."));
+#endif
+    controlResetLogic();
+  }
+  // -------------------
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinStep) == 0) {
+    if (!switchStep) {
+      switchStep = true;
+    }
+  } else if (switchStep) {
+    switchStep = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println("+ Control, Step.");
+#endif
+    // Switch logic...
+    statusByte = statusByte & HLTA_OFF;
+    processData();
+  }
+  // -------------------
+  checkExamineButton();
+  checkExamineNextButton();
+  checkDepositButton();
+  checkDepositNextButton();
+  // -------------------
+}
+
+// --------------------------------------------------------
+// Front Panel Control Switches, when a program is running.
+// Switches: STOP and RESET.
+void checkRunningButtons() {
+  // -------------------
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinStop) == 0) {
+    if (!switchStop) {
+      switchStop = true;
+    }
+  } else if (switchStop) {
+    switchStop = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Running, Stop."));
+#endif
+    controlStopLogic();
+  }
+  // -------------------
+  // Read PCF8574 input for this switch.
+  if (pcf20.readButton(pinReset) == 0) {
+    if (!switchReset) {
+      switchReset = true;
+    }
+  } else if (switchReset) {
+    switchReset = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Running, Reset."));
+#endif
+    controlResetLogic();
+  }
+  // -------------------
 }
 
 // -----------------------------------------------------------------------------
