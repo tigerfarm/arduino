@@ -4574,6 +4574,8 @@ void setup() {
   // ----------------------------------------------------
 #ifdef INCLUDE_SDCARD
   // The csPin pin is connected to the SD card module select pin (CS).
+  //            1234567890123456
+  lcdPrintln(0,"Init SD card mod");
   if (!SD.begin(csPin)) {
     Serial.println("- Error initializing SD card module.");
     ledFlashError();
@@ -4581,16 +4583,22 @@ void setup() {
     Serial.println("+ SD card module is initialized.");
     ledFlashSuccess();
   }
+  delay(2000);
 #endif
 
   // ----------------------------------------------------
   // Initialize the Real Time Clock (RTC).
 #ifdef INCLUDE_CLOCK
+  //            1234567890123456
+  lcdPrintln(0,"Init Clock");
   if (!rtc.begin()) {
-    Serial.println("- Error: RTC not found, not set.");
+    Serial.println("- Error: Real time clock not found, not set.");
     ledFlashError();
+  } else {
+    ledFlashSuccess();
+    Serial.println("+ Real time clock is initialized.");
   }
-  Serial.println("+ Real time clock is initialized.");
+  delay(2000);
 #endif
 
   // ----------------------------------------------------
@@ -4602,7 +4610,6 @@ void setup() {
   // Serial.print(F("+ Program loaded from memory array."));
   // Serial.println(F(" It will run automatically."));
   // + Else, display the splash screen.
-  delay(2000);
   lcdSplash();
   // ----------------------------------------------------
   controlResetLogic();
