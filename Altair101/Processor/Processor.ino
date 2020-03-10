@@ -428,18 +428,25 @@ void lcdSetup() {
   lcd.init();
   lcd.backlight();
   lcd.cursor();
-  lcdSplash();
+  // lcdSplash();
+  lcd.clear();
+  //         1234567890123456
+  lcdRow0 = "Altair 101";
+  lcdPrintln(0, lcdRow0);
+  lcdRow = 1;
+  lcdColumn = 0;
+  lcd.setCursor(lcdColumn, lcdRow);
 }
 void lcdSplash() {
   lcd.clear();
   //         1234567890123456
   lcdRow0 = "Altair 101";
   //         0123456789012345
-  lcdRow1 = "Ready to run...";
+  lcdRow1 = "Ready...";
   lcdPrintln(0, lcdRow0);
   lcdPrintln(1, lcdRow1);
   lcdRow = 1;
-  lcdColumn = 15;
+  lcdColumn = 8;
   lcd.setCursor(lcdColumn, lcdRow);
 }
 
@@ -4151,11 +4158,11 @@ void checkUploadSwitch() {
         saveClearLcdScreenData();
         lcdPrintln(0, "Confirm write> ");
         //             1234567890123456
-        lcdPrintln(1, "Name:" + senseSwitchValue);
+        lcdPrintln(1, "Name: " + senseSwitchValue);
         //
         confirmWrite = false;
         // -------------------------------------------------------
-        // Must confirm within 2 second, 2000 milliseconds.
+        // Must confirm within X seconds (milliseconds).
         unsigned long timer = millis();
         /*/
         Serial.print(F("+ millis() = "));
@@ -4167,7 +4174,7 @@ void checkUploadSwitch() {
         Serial.println(sub);
         // */
         uploadSwitchState = true; // Required to reset the switch state for confirmation.
-        while (!confirmWrite && (millis() - timer < 2000)) {
+        while (!confirmWrite && (millis() - timer < 3000)) {
           checkConfirmUploadSwitch();
           delay(100);
         }
@@ -4183,7 +4190,7 @@ void checkUploadSwitch() {
           //             1234567890123456
         }
         confirmWrite = 0;   // Reset for next time.
-        delay(1000); // Give to read the resulting message.
+        delay(2000); // Give to read the resulting message.
         restoreLcdScreenData();
       } else {
         Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
@@ -4212,6 +4219,8 @@ void checkDownloadSwitch() {
         Serial.println(F("+ Set to download over the serial port."));
         programState = SERIAL_DOWNLOAD;
       } else if (theFilename == "00000000.bin") {
+        //             1234567890123456
+        lcdPrintln(1, "Zero out memory");
         zeroOutMemory();
         controlResetLogic();
       } else {
@@ -4514,6 +4523,7 @@ void setup() {
 #ifdef INCLUDE_LCD
   lcdSetup();
   Serial.println(F("+ LCD ready for output."));
+  delay(1000);
 #endif
 
   // ----------------------------------------------------
