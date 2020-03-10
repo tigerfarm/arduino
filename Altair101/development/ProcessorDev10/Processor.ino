@@ -17,7 +17,6 @@
   + Time to generate videos.
 
   1602 LCD prompt to confirm writing memory to a file.
-  + Prompt for 1 second. If not confirmed, don't write and return to original state.
   + Control LCD backlight on/off status.
   ++ This will allow making sure that the LCD backlight is on when prompting, and reset after.
 
@@ -325,6 +324,10 @@ const int DOWNLOAD_SWITCH_PIN = 11;
 // const int DOWNLOAD_SWITCH_PIN = A14;
 #endif
 
+// Status LED light,
+// HLDA : 8080 processor go into a hold state because of other hardware.
+const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock processing (on/HIGH).
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Output LED light shift register(SN74HC595N) pins
@@ -336,12 +339,6 @@ const int clockPinLed = A15;    // pin 11 Clock pin.
 // const int dataPinLed = 7;    // Previous pins
 // const int latchPinLed = 8;
 // const int clockPinLed = 9;
-
-#ifdef INCLUDE_AUX
-// Status LED light,
-// HLDA : 8080 processor go into a hold state because of other hardware.
-const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock processing (on/HIGH).
-#endif
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -431,18 +428,25 @@ void lcdSetup() {
   lcd.init();
   lcd.backlight();
   lcd.cursor();
-  lcdSplash();
+  // lcdSplash();
+  lcd.clear();
+  //         1234567890123456
+  lcdRow0 = "Altair 101";
+  lcdPrintln(0, lcdRow0);
+  lcdRow = 1;
+  lcdColumn = 0;
+  lcd.setCursor(lcdColumn, lcdRow);
 }
 void lcdSplash() {
   lcd.clear();
   //         1234567890123456
   lcdRow0 = "Altair 101";
   //         0123456789012345
-  lcdRow1 = "LCD ready...";
+  lcdRow1 = "Ready...";
   lcdPrintln(0, lcdRow0);
   lcdPrintln(1, lcdRow1);
   lcdRow = 1;
-  lcdColumn = 12;
+  lcdColumn = 8;
   lcd.setCursor(lcdColumn, lcdRow);
 }
 
@@ -3237,6 +3241,7 @@ void initSdcard() {
 }
 
 void ledFlashSuccess() {
+  lcdPrintln(1, "+ Success");
   int delayTime = 60;
   lightsStatusAddressData(0, 0, B00000000);
   delay(delayTime);
@@ -3258,6 +3263,7 @@ void ledFlashSuccess() {
   processDataLights();
 }
 void ledFlashError() {
+  lcdPrintln(1, "- Error");
   int delayTime = 300;
   for (int i = 0; i < 3; i++) {
     lightsStatusAddressData(0, 0, B11111111);
@@ -3985,17 +3991,34 @@ void cancelSet() {
 }
 
 // ------------------------
+String currentLcdRow0;
+String currentLcdRow1;
+int currentLcdRow;
+int currentLcdColumn;
+void saveClearLcdScreenData() {
+  // Save the current LCD screen information.
+  currentLcdRow0 = lcdRow0;
+  currentLcdRow1 = lcdRow1;
+  currentLcdRow = lcdRow;
+  currentLcdColumn = lcdColumn;
+  lcdClearScreen();
+}
+void restoreLcdScreenData() {
+  // Restore the LCD screen.
+  lcdRow0 = currentLcdRow0;
+  lcdRow1 = currentLcdRow1;
+  lcdPrintln(0, lcdRow0);
+  lcdPrintln(1, lcdRow1);
+  lcdRow = currentLcdRow;
+  lcdColumn = currentLcdColumn;
+  lcd.cursor();
+  lcd.setCursor(lcdColumn, lcdRow);
+}
+
 void clockRun() {
   Serial.println(F("+ clockRun()"));
-  //
-  // Save the current LCD screen information.
-  String currentLcdRow0 = lcdRow0;
-  String currentLcdRow1 = lcdRow1;
-  int currentLcdRow = lcdRow;
-  int currentLcdColumn = lcdColumn;
-  lcdClearScreen();
+  saveClearLcdScreenData();
   lcd.noCursor();
-  //
   syncCountWithClock();
   displayTheTime( theCounterMinutes, theCounterHours );
   while (programState == CLOCK_RUN) {
@@ -4011,16 +4034,7 @@ void clockRun() {
     checkDepositNextButton();
     delay(100);
   }
-  //
-  // Restore the LCD screen.
-  lcdRow0 = currentLcdRow0;
-  lcdRow1 = currentLcdRow1;
-  lcdPrintln(0, lcdRow0);
-  lcdPrintln(1, lcdRow1);
-  lcdRow = currentLcdRow;
-  lcdColumn = currentLcdColumn;
-  lcd.cursor();
-  lcd.setCursor(lcdColumn, lcdRow);
+  restoreLcdScreenData();
 }
 #endif
 
@@ -4101,6 +4115,7 @@ void checkPlayerSwitch() {
     }
   }
 }
+
 String getSenseSwitchValue() {
   byte bValue = toggleSenseByte();
   String sValue = String(bValue, BIN);
@@ -4110,22 +4125,16 @@ String getSenseSwitchValue() {
   }
   return sValue;
 }
-void checkUploadSwitch() {
+
+// -----------------------------------------------------
+boolean confirmWrite = false;
+void checkConfirmUploadSwitch() {
   if (digitalRead(UPLOAD_SWITCH_PIN) == HIGH) {
     if (!uploadSwitchState) {
       // Serial.println(F("+ Upload switch released."));
       uploadSwitchState = false;
       // Switch logic ...
-#ifdef INCLUDE_SDCARD
-      String theFilename = getSenseSwitchValue() + ".bin";
-      if (theFilename != "11111111.bin") {
-        Serial.print(F("+ Write memory to filename: "));
-        Serial.println(theFilename);
-        writeProgramMemoryToFile(theFilename);
-      } else {
-        Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
-      }
-#endif
+      confirmWrite = true;
     }
     uploadSwitchState = true;
   } else {
@@ -4136,6 +4145,68 @@ void checkUploadSwitch() {
     }
   }
 }
+void checkUploadSwitch() {
+  if (digitalRead(UPLOAD_SWITCH_PIN) == HIGH) {
+    if (!uploadSwitchState) {
+      // Serial.println(F("+ Upload switch released."));
+      uploadSwitchState = false;
+      // Switch logic ...
+#ifdef INCLUDE_SDCARD
+      String senseSwitchValue = getSenseSwitchValue();
+      String theFilename = senseSwitchValue + ".bin";
+      if (theFilename != "11111111.bin") {
+        saveClearLcdScreenData();
+        lcdPrintln(0, "Confirm write> ");
+        //             1234567890123456
+        lcdPrintln(1, "Name: " + senseSwitchValue);
+        //
+        confirmWrite = false;
+        // -------------------------------------------------------
+        // Must confirm within X seconds (milliseconds).
+        unsigned long timer = millis();
+        /*/
+        Serial.print(F("+ millis() = "));
+        Serial.print(millis());
+        Serial.print(F(", timer = "));
+        Serial.print(timer);
+        Serial.print(F(", millis()-timer = "));
+        unsigned long sub = millis()-timer;
+        Serial.println(sub);
+        // */
+        uploadSwitchState = true; // Required to reset the switch state for confirmation.
+        while (!confirmWrite && (millis() - timer < 3000)) {
+          checkConfirmUploadSwitch();
+          delay(100);
+        }
+        // -------------------------------------------------------
+        //
+        if (confirmWrite) {
+          Serial.print(F("+ Write memory to filename: "));
+          Serial.println(theFilename);
+          writeProgramMemoryToFile(theFilename);
+        } else {
+          // Serial.print(F("+ Write cancelled."));
+          lcdPrintln(1, "Write cancelled.");
+          //             1234567890123456
+        }
+        confirmWrite = 0;   // Reset for next time.
+        delay(2000); // Give to read the resulting message.
+        restoreLcdScreenData();
+      } else {
+        Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
+        ledFlashError();
+      }
+#endif
+    }
+  } else {
+    if (uploadSwitchState) {
+      // Serial.println(F("+ Upload switch pressed."));
+      uploadSwitchState = false;
+      // Switch logic ...
+    }
+  }
+}
+// -----------------------------------------------------
 void checkDownloadSwitch() {
   if (digitalRead(DOWNLOAD_SWITCH_PIN) == HIGH) {
     if (!downloadSwitchState) {
@@ -4148,6 +4219,8 @@ void checkDownloadSwitch() {
         Serial.println(F("+ Set to download over the serial port."));
         programState = SERIAL_DOWNLOAD;
       } else if (theFilename == "00000000.bin") {
+        //             1234567890123456
+        lcdPrintln(1, "Zero out memory");
         zeroOutMemory();
         controlResetLogic();
       } else {
@@ -4167,10 +4240,6 @@ void checkDownloadSwitch() {
   }
 }
 #endif
-
-void downloadSerialBytes() {
-  Serial.println(F("+ Download Bytes from the serial port into memory."));
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------
@@ -4454,6 +4523,7 @@ void setup() {
 #ifdef INCLUDE_LCD
   lcdSetup();
   Serial.println(F("+ LCD ready for output."));
+  delay(1000);
 #endif
 
   // ----------------------------------------------------
@@ -4504,6 +4574,8 @@ void setup() {
   // ----------------------------------------------------
 #ifdef INCLUDE_SDCARD
   // The csPin pin is connected to the SD card module select pin (CS).
+  //            1234567890123456
+  lcdPrintln(0,"Init SD card mod");
   if (!SD.begin(csPin)) {
     Serial.println("- Error initializing SD card module.");
     ledFlashError();
@@ -4511,16 +4583,22 @@ void setup() {
     Serial.println("+ SD card module is initialized.");
     ledFlashSuccess();
   }
+  delay(2000);
 #endif
 
   // ----------------------------------------------------
   // Initialize the Real Time Clock (RTC).
 #ifdef INCLUDE_CLOCK
+  //            1234567890123456
+  lcdPrintln(0,"Init Clock");
   if (!rtc.begin()) {
-    Serial.println("- Error: RTC not found, not set.");
+    Serial.println("- Error: Real time clock not found, not set.");
     ledFlashError();
+  } else {
+    ledFlashSuccess();
+    Serial.println("+ Real time clock is initialized.");
   }
-  Serial.println("+ Read time clock is initialized.");
+  delay(2000);
 #endif
 
   // ----------------------------------------------------
@@ -4531,7 +4609,8 @@ void setup() {
   // + If 00000000.bin exists, read it and run it.
   // Serial.print(F("+ Program loaded from memory array."));
   // Serial.println(F(" It will run automatically."));
-
+  // + Else, display the splash screen.
+  lcdSplash();
   // ----------------------------------------------------
   controlResetLogic();
   Serial.println(F("+++ Program system reset."));
