@@ -17,9 +17,6 @@
   + Time to generate videos.
 
   1602 LCD prompt to confirm writing memory to a file.
-  + Prompt for 1 second.
-  ++ If not confirmed, don't write and return to original state.
-  ++ Else write to file.
   + Control LCD backlight on/off status.
   ++ This will allow making sure that the LCD backlight is on when prompting, and reset after.
 
@@ -438,11 +435,11 @@ void lcdSplash() {
   //         1234567890123456
   lcdRow0 = "Altair 101";
   //         0123456789012345
-  lcdRow1 = "LCD ready...";
+  lcdRow1 = "Ready to run...";
   lcdPrintln(0, lcdRow0);
   lcdPrintln(1, lcdRow1);
   lcdRow = 1;
-  lcdColumn = 12;
+  lcdColumn = 15;
   lcd.setCursor(lcdColumn, lcdRow);
 }
 
@@ -3237,6 +3234,7 @@ void initSdcard() {
 }
 
 void ledFlashSuccess() {
+  lcdPrintln(1, "+ Success");
   int delayTime = 60;
   lightsStatusAddressData(0, 0, B00000000);
   delay(delayTime);
@@ -3258,6 +3256,7 @@ void ledFlashSuccess() {
   processDataLights();
 }
 void ledFlashError() {
+  lcdPrintln(1, "- Error");
   int delayTime = 300;
   for (int i = 0; i < 3; i++) {
     lightsStatusAddressData(0, 0, B11111111);
@@ -4120,43 +4119,15 @@ String getSenseSwitchValue() {
   return sValue;
 }
 
-int confirmWrite = 0; // 0 = Not confirmed, 1 = Check for confirmation, 2 = Confirmed.
-void checkUploadSwitch() {
+// -----------------------------------------------------
+boolean confirmWrite = false;
+void checkConfirmUploadSwitch() {
   if (digitalRead(UPLOAD_SWITCH_PIN) == HIGH) {
     if (!uploadSwitchState) {
       // Serial.println(F("+ Upload switch released."));
       uploadSwitchState = false;
       // Switch logic ...
-#ifdef INCLUDE_SDCARD
-      String theFilename = getSenseSwitchValue() + ".bin";
-      if (theFilename != "11111111.bin") {
-        saveClearLcdScreenData();
-        lcdPrintln(0, "Confirm write> ");
-        //             1234567890123456
-        lcdPrintln(1, "Name: " + theFilename);
-        //
-        confirmWrite = 1;   // 1 = Check for confirmation.
-        // -------------------------------------------------------
-        // Need to add logic to this switch, to confirm a choice.
-        // checkUploadConfirmSwitch();  // Must confirm within 1 second.
-        delay(1000);        // For now, wait, and then assume confirmed.
-        confirmWrite = 2;   // 2 = Confirmed.
-        // -------------------------------------------------------
-        //
-        if (confirmWrite == 2) {
-          Serial.print(F("+ Write memory to filename: "));
-          Serial.println(theFilename);
-          writeProgramMemoryToFile(theFilename);
-        } else {
-          Serial.print(F("+ Write cancelled."));
-        }
-        confirmWrite = 0;   // Reset for next time.
-        restoreLcdScreenData();
-      } else {
-        Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
-        ledFlashError();
-      }
-#endif
+      confirmWrite = true;
     }
     uploadSwitchState = true;
   } else {
@@ -4167,6 +4138,68 @@ void checkUploadSwitch() {
     }
   }
 }
+void checkUploadSwitch() {
+  if (digitalRead(UPLOAD_SWITCH_PIN) == HIGH) {
+    if (!uploadSwitchState) {
+      // Serial.println(F("+ Upload switch released."));
+      uploadSwitchState = false;
+      // Switch logic ...
+#ifdef INCLUDE_SDCARD
+      String senseSwitchValue = getSenseSwitchValue();
+      String theFilename = senseSwitchValue + ".bin";
+      if (theFilename != "11111111.bin") {
+        saveClearLcdScreenData();
+        lcdPrintln(0, "Confirm write> ");
+        //             1234567890123456
+        lcdPrintln(1, "Name:" + senseSwitchValue);
+        //
+        confirmWrite = false;
+        // -------------------------------------------------------
+        // Must confirm within 2 second, 2000 milliseconds.
+        unsigned long timer = millis();
+        /*/
+        Serial.print(F("+ millis() = "));
+        Serial.print(millis());
+        Serial.print(F(", timer = "));
+        Serial.print(timer);
+        Serial.print(F(", millis()-timer = "));
+        unsigned long sub = millis()-timer;
+        Serial.println(sub);
+        // */
+        uploadSwitchState = true; // Required to reset the switch state for confirmation.
+        while (!confirmWrite && (millis() - timer < 2000)) {
+          checkConfirmUploadSwitch();
+          delay(100);
+        }
+        // -------------------------------------------------------
+        //
+        if (confirmWrite) {
+          Serial.print(F("+ Write memory to filename: "));
+          Serial.println(theFilename);
+          writeProgramMemoryToFile(theFilename);
+        } else {
+          // Serial.print(F("+ Write cancelled."));
+          lcdPrintln(1, "Write cancelled.");
+          //             1234567890123456
+        }
+        confirmWrite = 0;   // Reset for next time.
+        delay(1000); // Give to read the resulting message.
+        restoreLcdScreenData();
+      } else {
+        Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
+        ledFlashError();
+      }
+#endif
+    }
+  } else {
+    if (uploadSwitchState) {
+      // Serial.println(F("+ Upload switch pressed."));
+      uploadSwitchState = false;
+      // Switch logic ...
+    }
+  }
+}
+// -----------------------------------------------------
 void checkDownloadSwitch() {
   if (digitalRead(DOWNLOAD_SWITCH_PIN) == HIGH) {
     if (!downloadSwitchState) {
@@ -4198,10 +4231,6 @@ void checkDownloadSwitch() {
   }
 }
 #endif
-
-void downloadSerialBytes() {
-  Serial.println(F("+ Download Bytes from the serial port into memory."));
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------
@@ -4551,7 +4580,7 @@ void setup() {
     Serial.println("- Error: RTC not found, not set.");
     ledFlashError();
   }
-  Serial.println("+ Read time clock is initialized.");
+  Serial.println("+ Real time clock is initialized.");
 #endif
 
   // ----------------------------------------------------
@@ -4562,7 +4591,9 @@ void setup() {
   // + If 00000000.bin exists, read it and run it.
   // Serial.print(F("+ Program loaded from memory array."));
   // Serial.println(F(" It will run automatically."));
-
+  // + Else, display the splash screen.
+  delay(2000);
+  lcdSplash();
   // ----------------------------------------------------
   controlResetLogic();
   Serial.println(F("+++ Program system reset."));
