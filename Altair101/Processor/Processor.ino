@@ -17,7 +17,9 @@
   + Time to generate videos.
 
   1602 LCD prompt to confirm writing memory to a file.
-  + Prompt for 1 second. If not confirmed, don't write and return to original state.
+  + Prompt for 1 second.
+  ++ If not confirmed, don't write and return to original state.
+  ++ Else write to file.
   + Control LCD backlight on/off status.
   ++ This will allow making sure that the LCD backlight is on when prompting, and reset after.
 
@@ -325,6 +327,10 @@ const int DOWNLOAD_SWITCH_PIN = 11;
 // const int DOWNLOAD_SWITCH_PIN = A14;
 #endif
 
+// Status LED light,
+// HLDA : 8080 processor go into a hold state because of other hardware.
+const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock processing (on/HIGH).
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Output LED light shift register(SN74HC595N) pins
@@ -336,12 +342,6 @@ const int clockPinLed = A15;    // pin 11 Clock pin.
 // const int dataPinLed = 7;    // Previous pins
 // const int latchPinLed = 8;
 // const int clockPinLed = 9;
-
-#ifdef INCLUDE_AUX
-// Status LED light,
-// HLDA : 8080 processor go into a hold state because of other hardware.
-const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock processing (on/HIGH).
-#endif
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -3985,17 +3985,34 @@ void cancelSet() {
 }
 
 // ------------------------
+String currentLcdRow0;
+String currentLcdRow1;
+int currentLcdRow;
+int currentLcdColumn;
+void saveClearLcdScreenData() {
+  // Save the current LCD screen information.
+  currentLcdRow0 = lcdRow0;
+  currentLcdRow1 = lcdRow1;
+  currentLcdRow = lcdRow;
+  currentLcdColumn = lcdColumn;
+  lcdClearScreen();
+}
+void restoreLcdScreenData() {
+  // Restore the LCD screen.
+  lcdRow0 = currentLcdRow0;
+  lcdRow1 = currentLcdRow1;
+  lcdPrintln(0, lcdRow0);
+  lcdPrintln(1, lcdRow1);
+  lcdRow = currentLcdRow;
+  lcdColumn = currentLcdColumn;
+  lcd.cursor();
+  lcd.setCursor(lcdColumn, lcdRow);
+}
+
 void clockRun() {
   Serial.println(F("+ clockRun()"));
-  //
-  // Save the current LCD screen information.
-  String currentLcdRow0 = lcdRow0;
-  String currentLcdRow1 = lcdRow1;
-  int currentLcdRow = lcdRow;
-  int currentLcdColumn = lcdColumn;
-  lcdClearScreen();
+  saveClearLcdScreenData();
   lcd.noCursor();
-  //
   syncCountWithClock();
   displayTheTime( theCounterMinutes, theCounterHours );
   while (programState == CLOCK_RUN) {
@@ -4011,16 +4028,7 @@ void clockRun() {
     checkDepositNextButton();
     delay(100);
   }
-  //
-  // Restore the LCD screen.
-  lcdRow0 = currentLcdRow0;
-  lcdRow1 = currentLcdRow1;
-  lcdPrintln(0, lcdRow0);
-  lcdPrintln(1, lcdRow1);
-  lcdRow = currentLcdRow;
-  lcdColumn = currentLcdColumn;
-  lcd.cursor();
-  lcd.setCursor(lcdColumn, lcdRow);
+  restoreLcdScreenData();
 }
 #endif
 
@@ -4101,6 +4109,7 @@ void checkPlayerSwitch() {
     }
   }
 }
+
 String getSenseSwitchValue() {
   byte bValue = toggleSenseByte();
   String sValue = String(bValue, BIN);
@@ -4110,6 +4119,8 @@ String getSenseSwitchValue() {
   }
   return sValue;
 }
+
+int confirmWrite = 0; // 0 = Not confirmed, 1 = Check for confirmation, 2 = Confirmed.
 void checkUploadSwitch() {
   if (digitalRead(UPLOAD_SWITCH_PIN) == HIGH) {
     if (!uploadSwitchState) {
@@ -4119,11 +4130,31 @@ void checkUploadSwitch() {
 #ifdef INCLUDE_SDCARD
       String theFilename = getSenseSwitchValue() + ".bin";
       if (theFilename != "11111111.bin") {
-        Serial.print(F("+ Write memory to filename: "));
-        Serial.println(theFilename);
-        writeProgramMemoryToFile(theFilename);
+        saveClearLcdScreenData();
+        lcdPrintln(0, "Confirm write> ");
+        //             1234567890123456
+        lcdPrintln(1, "Name: " + theFilename);
+        //
+        confirmWrite = 1;   // 1 = Check for confirmation.
+        // -------------------------------------------------------
+        // Need to add logic to this switch, to confirm a choice.
+        // checkUploadConfirmSwitch();  // Must confirm within 1 second.
+        delay(1000);        // For now, wait, and then assume confirmed.
+        confirmWrite = 2;   // 2 = Confirmed.
+        // -------------------------------------------------------
+        //
+        if (confirmWrite == 2) {
+          Serial.print(F("+ Write memory to filename: "));
+          Serial.println(theFilename);
+          writeProgramMemoryToFile(theFilename);
+        } else {
+          Serial.print(F("+ Write cancelled."));
+        }
+        confirmWrite = 0;   // Reset for next time.
+        restoreLcdScreenData();
       } else {
         Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
+        ledFlashError();
       }
 #endif
     }
