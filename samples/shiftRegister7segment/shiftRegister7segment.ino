@@ -1,12 +1,11 @@
 // -----------------------------------------------------------------------------
 /*
   Using a 7 segment digit display, to display numbers from 0-9.
+  Using a SN74HC595N Shift Register for serial to multiple pin outs.
 
-  Using a 74HC595 Shift Register for serial to multiple pin outs.
-
-  74HC595 is a SIPO (Serial-In-Parallel-Out) shift registers, example: Texas Instruments SN74HC595N.
+  74HC595 is a SIPO (Serial-In-Parallel-Out) shift registers,
   + 74HC595 pin 16: 5V+
-  + 74HC595 pin 15: LED 0
+  + 74HC595 pin 15: LED 0   DP "."
   + 74HC595 pin 14: Data    pin (SRCLK) to Nano pin 4, data transfer from Nano to 595.
   + 74HC595 pin 13: Ground (-)
   + 74HC595 pin 12: Latch   pin (RCLK) to Nano pin 5, which does the Parallel-Out task to the 8 output pins.
@@ -14,15 +13,18 @@
   + 74HC595 pin 10: 5V+
   + 74HC595 pin 09: Daisy chain to next 74HC595, pin 14 (data). Not used in single 74HC595.
   + 74HC595 pin 08: Ground (-)
-  + 74HC595 pin 07: LED 7.
-  + 74HC595 pin 06: LED 6.
-  + 74HC595 pin 05: LED 5.
-  + 74HC595 pin 04: LED 4.
-  + 74HC595 pin 03: LED 3.
-  + 74HC595 pin 02: LED 2.
-  + 74HC595 pin 01: LED 1.
+  ------------------------ Segment
+  + 74HC595 pin 07: LED 7.  G
+  + 74HC595 pin 06: LED 6.  F
+  + 74HC595 pin 05: LED 5.  E
+  + 74HC595 pin 04: LED 4.  D
+  + 74HC595 pin 03: LED 3.  C
+  + 74HC595 pin 02: LED 2.  B
+  + 74HC595 pin 01: LED 1.  A
+  + 74HC595 pin 15: LED 0   DP "."
 
   Segment pins for common cathode display (-).
+    1 2 3 4 5 (Pin 5 is top right when facing the display)
     G F - A B : middle pin goes to resister, to ground.
         A
        ---
@@ -32,6 +34,7 @@
        --- .
         D
     E D - C DP
+    1 2 3 4 5
 
 */
 // -----------------------------------------------------------------------------
@@ -113,7 +116,7 @@ void setup() {
   delay(300);
   Serial.println("+ Connection to the 595 is set, v2b.");
 
-  // ---------------
+  // ------------------------------------------------------------
   Serial.println("+++ Start program loop.");
 }
 
