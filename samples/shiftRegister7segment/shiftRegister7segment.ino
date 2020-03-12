@@ -1,7 +1,13 @@
 // -----------------------------------------------------------------------------
 /*
   Using a 7 segment digit display, to display numbers from 0-9.
-  Using a SN74HC595N Shift Register for serial to multiple pin outs.
+  Using a SN74HC595N shift register for serial to multiple pin outs.
+  For a 1 digit display, numbers from 0-9,
+  + Only requires 3 digital Arduino pins to control the 8 digital display pins.
+  This technic will work for multiple displays, using 1 shift register per display.
+  + The shift registers are daisy chained together.
+  For a 2 digit display, numbers from 00-99,
+  + Only requires 3 digital Arduino pins to control the 16 digital display pins.
 
   74HC595 is a SIPO (Serial-In-Parallel-Out) shift registers,
   + 74HC595 pin 16: 5V+
@@ -51,7 +57,7 @@ void updateShiftRegister(byte dataByte) {
   digitalWrite(latchPin, HIGH);
 }
 
-void displayDigit(int theNumber) {
+void displayDigit(int theDigit) {
   /*
     Segment pins for common cathode display (-).
       G F - A B : middle pin goes to resister, to ground.
@@ -64,7 +70,7 @@ void displayDigit(int theNumber) {
           D
       E D - C DP
   */
-  switch (theNumber) {
+  switch (theDigit) {
     case 0:
       //                  0:ABCDEFG
       updateShiftRegister(B01111110);
@@ -124,10 +130,10 @@ void setup() {
 // Device Loop.
 
 void loop() {
-  for (int numberToDisplay = 0; numberToDisplay < 11; numberToDisplay++) {
-    Serial.print("+ numberToDisplay = ");
-    Serial.println(numberToDisplay);
-    displayDigit(numberToDisplay);
+  for (int digitToDisplay = 0; digitToDisplay < 11; digitToDisplay++) {
+    Serial.print("+ digitToDisplay = ");
+    Serial.println(digitToDisplay);
+    displayDigit(digitToDisplay);
     delay(1000);
   }
 }
