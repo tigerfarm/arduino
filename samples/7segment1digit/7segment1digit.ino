@@ -2,8 +2,8 @@
 /*
   Connect a 7 segment display to a Nano.
   Needs to match: segmentPins as defined below.
-  + Segment + to 1K resister, to Nano 5V. If common anode display.
-  + Segment - to 1K resister, to Nano ground. If common cathode display.
+  + Segment - to 1K resister, to Nano ground. If common cathode display. Most common.
+  + Segment + to 1K resister, to Nano 5V. If common anode display. Less common.
   + Segment A to Nano pin 6.
   + Segment B to Nano pin 5.
   + Segment C to Nano pin 2.
@@ -13,13 +13,15 @@
   + Segment G to Nano pin 8.
   + Segment DP to Nano pin 9.
 
-  Segment pins for common cathode display (-):
-    G F - A B
+  Segment pins for common cathode display (-).
+    G F - A B : middle pin goes to resister, to ground.
+        A
        ---
-      |   |
-       ---
-      |   |
+     F|   |B
+       ---   G is the middle bar.
+     E|   |C
        --- .
+        D
     E D - C DP
 
   Code base from:
