@@ -162,6 +162,7 @@ void setup() {
   //           12345678
   byte regA = B00000000;
   updateShiftRegister(regA);
+  updateShiftRegister(regA);  // Add a second, to shift to the second segment display
   int i = 0;
   while (i<3) {
     delay(1000);
@@ -171,6 +172,7 @@ void setup() {
       regA = B10000000;
     }
     updateShiftRegister(regA);
+    updateShiftRegister(regA);  // Add a second, to shift to the second segment display
   }
 
   // ------------------------------------------------------------
@@ -185,6 +187,7 @@ void loop() {
     Serial.print("+ digitToDisplay = ");
     Serial.println(digitToDisplay);
     displayDigit(digitToDisplay);
+    displayDigit(digitToDisplay);  // Add a second, to shift to the second segment display
     delay(1000);
   }
 }
