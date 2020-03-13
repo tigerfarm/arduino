@@ -264,7 +264,7 @@ void displayTheTime(byte theMinute, byte theHour) {
     theMinuteOnes = theMinute - theMinuteTens * 10;
     theBinaryMinute = 16 * theMinuteTens + theMinuteOnes;
     displayDigit(theMinuteTens);
-    displayDigit(theMinute);
+    displayDigit(theMinuteOnes);
   }
 
   // ----------------------------------------------
