@@ -59,13 +59,6 @@ void updateShiftRegister(byte dataByte) {
   digitalWrite(latchPin, HIGH);
 }
 
-void updateShiftRegister2(byte dataByte1, byte dataByte2) {
-  digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, LSBFIRST, dataByte1);
-  shiftOut(dataPin, clockPin, LSBFIRST, dataByte2);
-  digitalWrite(latchPin, HIGH);
-}
-
 void displayDigit(int theDigit) {
   /*
     Segment pins for common cathode display (-).

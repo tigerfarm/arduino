@@ -7,7 +7,7 @@
   4 lights for the ones part of the minutes.
   Example, 23 minutes is: 010 0011.
   + 2, binary 010, for the tens.
-  + 3, binary 0011, for the ones. 
+  + 3, binary 0011, for the ones.
 
   Using a 7 segment digit display, to display numbers from 0-9.
   Using a SN74HC595N shift register for serial to multiple pin outs.
@@ -67,13 +67,6 @@ byte dataByte = B01010101;
 void updateShiftRegister(byte dataByte) {
   digitalWrite(latchPin, LOW);
   shiftOut(dataPin, clockPin, LSBFIRST, dataByte);
-  digitalWrite(latchPin, HIGH);
-}
-
-void updateShiftRegister2(byte dataByte1, byte dataByte2) {
-  digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, LSBFIRST, dataByte1);
-  shiftOut(dataPin, clockPin, LSBFIRST, dataByte2);
   digitalWrite(latchPin, HIGH);
 }
 
@@ -219,7 +212,9 @@ void displayTheTime(byte theMinute, byte theHour) {
   // Convert the minute into binary for display.
   if (theMinute < 10) {
     theBinaryMinute = theMinute;
-    displayDigit(0);
+    // Don't display the leading 0. For example, display 6, instead of 06.
+    // displayDigit(0);
+    updateShiftRegister(0);
     displayDigit(theMinute);
   } else {
     // There are 3 bits for the tens: 0 ... 5 (00, 10, 20, 30, 40, or 50).
@@ -311,9 +306,9 @@ void setup() {
   pinMode(dataPin, OUTPUT);
   delay(300);
   Serial.println("+ Segment display shift registers ready to use.");
-
-  displayDigit(1);
-  displayDigit(2);
+  // Clear the digits.
+  updateShiftRegister(0);
+  updateShiftRegister(0);
   delay(1000);
 
   // ------------------------------------------------------------
