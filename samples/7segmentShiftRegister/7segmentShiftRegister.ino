@@ -44,32 +44,6 @@
     E D - C DP
     1 2 3 4 5
 
-  ----------------------------------------------------------------------
-  Cable wire mapping from clock segment display pins to the shift register pins.
-
-  + Pins from the back.
-  12345 67890
-  12345 12345
-  BA-FG BA-FG
-  PC-DE PC-DE
-
-  BA-FG BA-FG
-  12345 12345 - Segment display top pins
-  12345 67890 - Cable wires
-  21-67 21-67 - Shift register pins
-  + Examples,
-  ++ Cable wire 1, goes from segment #1 top pin 1, to shift register #1 pin 2.
-  ++ Cable wire 2, goes from segment #1 top pin 2, to shift register #1 pin 1.
-  ...
-  ++ Cable wire 6, goes from segment #2 top pin 1, to shift register #2 pin 2.
-  ++ Cable wire 7, goes from segment #2 top pin 2, to shift register #2 pin 1.
-  ...
-
-  P  C-DE P  C-DE
-  1  2345 1  2345 - Segment display bottom pins
-  1  2345 6  7890 - Cable wires
-  15 3-45 15 3-45 - Shift register pins
-
 */
 // -----------------------------------------------------------------------------
 // Shift Register

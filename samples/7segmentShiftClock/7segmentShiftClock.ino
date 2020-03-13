@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------------
 /*
-  Clock with LED lights for diplay.
+  Clock with LED lights and two 7 segment digit displays.
 
   12 lights, one for each hour.
   3 lights for the tens part of the minutes.
@@ -9,56 +9,11 @@
   + 2, binary 010, for the tens.
   + 3, binary 0011, for the ones. 
 
-  Connect the DS3231 Clock and the 1602 LCD display, to the Nano:
-  + VCC to Nano 5v, note, also works with 3.3v, example: NodeMCU.
-  + GND to Nano ground.
-  + SDA to Nano D4 (pin 4), same on Uno.
-  + SCL to Nano D5 (pin 5), same on Uno.
-*/
-/*
   Using a 7 segment digit display, to display numbers from 0-9.
   Using a SN74HC595N shift register for serial to multiple pin outs.
 
   For a 1 digit display, numbers from 0-9,
   + Only requires 3 digital Arduino pins to control the 8 digital display pins.
-
-  This technic will work for multiple displays, using 1 shift register per display.
-  + The shift registers are daisy chained together.
-  For a 2 digit display, numbers from 00-99,
-  + Only requires 3 digital Arduino pins to control the 16 digital display pins.
-
-  74HC595 is a SIPO (Serial-In-Parallel-Out) shift registers,
-  + 74HC595 pin 16: 5V+
-  + 74HC595 pin 15: LED 0   DP "."
-  + 74HC595 pin 14: Data    pin (SRCLK) to Nano pin 4, data transfer from Nano to 595.
-  + 74HC595 pin 13: Ground (-)
-  + 74HC595 pin 12: Latch   pin (RCLK) to Nano pin 5, which does the Parallel-Out task to the 8 output pins.
-  + 74HC595 pin 11: Clock   pin (SER)  to Nano pin 6, clock signal to say that the data is ready.
-  + 74HC595 pin 10: 5V+
-  + 74HC595 pin 09: Daisy chain to next 74HC595, pin 14 (data). Not used in single 74HC595.
-  + 74HC595 pin 08: Ground (-)
-  ------------------------ Segment
-  + 74HC595 pin 07: LED 7.  G
-  + 74HC595 pin 06: LED 6.  F
-  + 74HC595 pin 05: LED 5.  E
-  + 74HC595 pin 04: LED 4.  D
-  + 74HC595 pin 03: LED 3.  C
-  + 74HC595 pin 02: LED 2.  B
-  + 74HC595 pin 01: LED 1.  A
-  + 74HC595 pin 15: LED 0   DP "."
-
-  Segment pins for common cathode display (-).
-    1 2 3 4 5 (Pin 5 is top right when facing the display)
-    G F - A B : middle pin goes to resister, to ground.
-        A
-       ---
-     F|   |B
-       ---   G is the middle bar.
-     E|   |C
-       --- .
-        D
-    E D - C DP
-    1 2 3 4 5
 
   ----------------------------------------------------------------------
   Cable wire mapping from clock segment display pins to the shift register pins.
@@ -86,10 +41,23 @@
   1  2345 6  7890 - Cable wires
   15 3-45 15 3-45 - Shift register pins
 
+  Segment pins for common cathode display (-).
+    1 2 3 4 5 (Pin 5 is top right when facing the display)
+    G F - A B : middle pin goes to resister, to ground.
+        A
+       ---
+     F|   |B
+       ---   G is the middle bar.
+     E|   |C
+       --- .
+        D
+    E D - C DP
+    1 2 3 4 5
 */
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// Shift Register
+// Shift Register for 7 segment display.
+
 const int dataPin = 4;      // Connected to 74HC595 Data  pin 14.
 const int latchPin = 5;     // Connected to 74HC595 Latch pin 12.
 const int clockPin = 6;     // Connected to 74HC595 Clock pin 11.
@@ -180,7 +148,8 @@ void lightsStatusAddressData( byte status8bits, byte address16bits, byte data8bi
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// For the clock board.
+// For the clock module.
+
 #include "RTClib.h"
 RTC_DS3231 rtc;
 DateTime now;
@@ -337,31 +306,25 @@ void setup() {
   Serial.println("+++ Setup.");
 
   // ------------------------------------------------------------
-  // ------------------------------------------------------------
-  // Segment configurations
-  
   pinMode(latchPin, OUTPUT);
   pinMode(clockPin, OUTPUT);
   pinMode(dataPin, OUTPUT);
   delay(300);
-  Serial.println("+ Connection to the 595 is set, v2b.");
+  Serial.println("+ Segment display shift registers ready to use.");
 
   displayDigit(1);
   displayDigit(2);
+  delay(1000);
 
   // ------------------------------------------------------------
-  // ----------------------------------------------------
-  // LED lights
-  
   pinMode(latchPinLed, OUTPUT);
   pinMode(clockPinLed, OUTPUT);
   pinMode(dataPinLed, OUTPUT);
   delay(300);
   lightsStatusAddressData(0, 0, 0);
-  Serial.println(F("+ Front panel LED shift registers ready."));
+  Serial.println(F("+ LED shift registers ready to use."));
 
   // ----------------------------------------------------
-  // Initialize the Real Time Clock (RTC).
   if (!rtc.begin()) {
     Serial.println("--- Error: RTC not found.");
     while (1);
