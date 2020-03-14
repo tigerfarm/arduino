@@ -131,6 +131,10 @@ const int latchPinLed = 8;    // pin 12 Latch pin.
 const int clockPinLed = 9;    // pin 11 Clock pin.
 
 void lightsStatusAddressData( byte status8bits, byte address16bits, byte data8bits) {
+  // lightsStatusAddressData(theBinaryMinute, theBinaryHour1, theBinaryHour2);
+  // theBinaryMinute: Minute LED lights
+  // theBinaryHour1:  hours, 1-6 LED lights
+  // theBinaryHour2:  hours, 7-12 LED lights
   digitalWrite(latchPinLed, LOW);
   // Use LSBFIRST or MSBFIRST to map the bits to LED lights.
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
@@ -293,6 +297,55 @@ void displayTheTime(byte theMinute, byte theHour) {
   lightsStatusAddressData(theBinaryMinute, theBinaryHour1, theBinaryHour2);
 }
 
+// ------------------------------------------------------------------------
+void runDisplayTest() {
+  // lightsStatusAddressData(theBinaryMinute, theBinaryHour1, theBinaryHour2);
+  // theBinaryMinute: Minute LED lights
+  // theBinaryHour1:  hours, 1-6 LED lights
+  // theBinaryHour2:  hours, 7-12 LED lights
+  byte testByte1 = B00000000;
+  // ----------------------------
+  Serial.println(F("+ Run LED minute test."));
+  delay(1000);
+  for (int digitToDisplay = 0; digitToDisplay < 128; digitToDisplay++) {
+    lightsStatusAddressData(digitToDisplay, 0 , 0);
+    delay(100);
+  }
+  delay(3000);
+  // ----------------------------
+  // Cycle through the hours.
+  for (int i = 0; i < 6; i++) {
+    testByte1 = B00000001;
+    for (int digitToDisplay = 0; digitToDisplay < 6; digitToDisplay++) {
+      testByte1 = testByte1 << 1;
+      lightsStatusAddressData(0, testByte1, 0);
+      delay(100);
+    }
+    testByte1 = B00000001;
+    for (int digitToDisplay = 0; digitToDisplay < 6; digitToDisplay++) {
+      testByte1 = testByte1 << 1;
+      lightsStatusAddressData(0, 0, testByte1);
+      delay(100);
+    }
+  }
+  for (int i = 0; i < 6; i++) {
+    // All on.
+    lightsStatusAddressData(0, B01111110, B01111110);
+    delay(500);
+    // All off.
+    lightsStatusAddressData(0, 0, 0);
+    delay(500);
+  }
+  // ----------------------------
+  // Print digit test.
+  for (int digitToDisplay = 0; digitToDisplay < 10; digitToDisplay++) {
+    displayDigit(digitToDisplay);
+    displayDigit(digitToDisplay);  // Add a second, to shift to the second segment display
+    delay(1000);
+  }
+  delay(2000);
+}
+
 // -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
@@ -318,6 +371,28 @@ void setup() {
   delay(300);
   lightsStatusAddressData(0, 0, 0);
   Serial.println(F("+ LED shift registers ready to use."));
+
+  // ----------------------------------------------------
+  // ----------------------------
+  // Cycle around the hours on startup.
+  byte testByte1 = B01000000;
+  lightsStatusAddressData(0, 0, testByte1); // Start with the 12th hour lit.
+  delay(2000);
+  for (int i = 0; i < 3; i++) {
+    testByte1 = B00000001;
+    for (int digitToDisplay = 0; digitToDisplay < 6; digitToDisplay++) {
+      testByte1 = testByte1 << 1;
+      lightsStatusAddressData(0, testByte1, 0);
+      delay(100);
+    }
+    testByte1 = B00000001;
+    for (int digitToDisplay = 0; digitToDisplay < 6; digitToDisplay++) {
+      testByte1 = testByte1 << 1;
+      lightsStatusAddressData(0, 0, testByte1);
+      delay(100);
+    }
+  }
+  delay(1000);
 
   // ----------------------------------------------------
   if (!rtc.begin()) {

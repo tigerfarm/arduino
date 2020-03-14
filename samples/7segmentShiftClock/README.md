@@ -24,5 +24,7 @@ I had to build a number of test circuits before building my clock,
 + Circuit to count from 0-9 on a 7 segment digit display.
 + Clock circuit to display using two 7 segment digit displays, and shift registers and LED lights.
 
+
+
 --------------------------------------------------------------------------------
 Cheers
