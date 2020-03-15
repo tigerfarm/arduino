@@ -16,7 +16,7 @@
   I can show my steampunk tablet to the world.
   + Time to generate videos.
 
-  Allow making sure that the LCD backlight is on when prompting, and reset after.
+  Can set the LCD backlight is on when prompting, and reset after to what it was.
   + LCD backlight on/off status is controlled: LcdBacklight.
 
   If 00000000.bin exists when starting up,
@@ -252,25 +252,25 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 // ----------------------------------------------
 // Toggle the LCD backlight on/off.
-boolean theLcdBacklightOn = true;
+boolean lcdBacklightIsOn = true;
 void lcdBacklight(boolean setOn) {
   if (setOn) {
     Serial.println(F("++ Backlight on."));
     lcd.backlight();
-    theLcdBacklightOn = true;
+    lcdBacklightIsOn = true;
     return;
   }
   Serial.println(F("++ Backlight off."));
   lcd.noBacklight();
-  theLcdBacklightOn = false;
+  lcdBacklightIsOn = false;
 }
 void toggleLcdBacklight() {
-  if (theLcdBacklightOn) {
-    theLcdBacklightOn = false;
+  if (lcdBacklightIsOn) {
+    lcdBacklightIsOn = false;
     // Serial.println("+ Toggle: off.");
     lcd.noBacklight();
   } else {
-    theLcdBacklightOn = true;
+    lcdBacklightIsOn = true;
     // Serial.println("+ Toggle: on.");
     lcd.backlight();
   }
@@ -308,7 +308,7 @@ void printClockDate() {
 }
 
 void setClockMenuItems() {
-  if (!theLcdBacklightOn) {
+  if (!lcdBacklightIsOn) {
     // Don't make clock setting changes when the LCD is off.
     return;
   }

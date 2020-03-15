@@ -2,18 +2,18 @@
 /*
   Clock with LED lights and two 7 segment digit displays.
 
+  Uses a DS3231 real time clock module for timing and keeping numeric time values.
+
   12 lights, one for each hour.
-  3 lights for the tens part of the minutes.
-  4 lights for the ones part of the minutes.
+  3 lights (left)  for the tens part of the minutes.
+  4 lights (right) for the ones part of the minutes.
   Example, 23 minutes is: 010 0011.
   + 2, binary 010, for the tens.
   + 3, binary 0011, for the ones.
 
-  Using a 7 segment digit display, to display numbers from 0-9.
-  Using a SN74HC595N shift register for serial to multiple pin outs.
-
-  For a 1 digit display, numbers from 0-9,
-  + Only requires 3 digital Arduino pins to control the 8 digital display pins.
+  Using two 7 segment digit displays, to display hours from 0-12.
+  Using one SN74HC595N shift register for each 7 segment digit display.
+  The two SN74HC595N shift registers, only requires 3 digital pins to control the 7 segment digit displays.
 
   ----------------------------------------------------------------------
   Cable wire mapping from clock segment display pins to the shift register pins.
@@ -64,7 +64,7 @@ const int clockPin = 6;     // Connected to 74HC595 Clock pin 11.
 
 byte dataByte = B01010101;
 
-void updateShiftRegister(byte dataByte) {
+void writeDigitShiftRegister(byte dataByte) {
   digitalWrite(latchPin, LOW);
   shiftOut(dataPin, clockPin, LSBFIRST, dataByte);
   digitalWrite(latchPin, HIGH);
@@ -86,38 +86,38 @@ void displayDigit(int theDigit) {
   switch (theDigit) {
     case 0:
       //                  0:ABCDEFG
-      updateShiftRegister(B01111110);
+      writeDigitShiftRegister(B01111110);
       break;
     case 1:
-      updateShiftRegister(B00110000);
+      writeDigitShiftRegister(B00110000);
       break;
     case 2:
-      updateShiftRegister(B01101101);
+      writeDigitShiftRegister(B01101101);
       break;
     case 3:
-      updateShiftRegister(B01111001);
+      writeDigitShiftRegister(B01111001);
       break;
     case 4:
-      updateShiftRegister(B00110011);
+      writeDigitShiftRegister(B00110011);
       break;
     case 5:
-      updateShiftRegister(B01011011);
+      writeDigitShiftRegister(B01011011);
       break;
     case 6:
-      updateShiftRegister(B00011111);
+      writeDigitShiftRegister(B00011111);
       break;
     case 7:
-      updateShiftRegister(B01110000);
+      writeDigitShiftRegister(B01110000);
       break;
     case 8:
-      updateShiftRegister(B01111111);
+      writeDigitShiftRegister(B01111111);
       break;
     case 9:
-      updateShiftRegister(B01111011);
+      writeDigitShiftRegister(B01111011);
       break;
     default:
       // Display "E." for error.
-      updateShiftRegister(B11001111);
+      writeDigitShiftRegister(B11001111);
   }
 }
 
@@ -130,22 +130,21 @@ const int dataPinLed = 7;     // pin 14 Data pin.
 const int latchPinLed = 8;    // pin 12 Latch pin.
 const int clockPinLed = 9;    // pin 11 Clock pin.
 
-void lightsStatusAddressData( byte status8bits, byte address16bits, byte data8bits) {
-  // lightsStatusAddressData(theBinaryMinute, theBinaryHour1, theBinaryHour2);
+void writeMinuteHourShiftRegisters( byte theBinaryMinute, byte theBinaryHour1, byte theBinaryHour2) {
   // theBinaryMinute: Minute LED lights
   // theBinaryHour1:  hours, 1-6 LED lights
   // theBinaryHour2:  hours, 7-12 LED lights
   digitalWrite(latchPinLed, LOW);
   // Use LSBFIRST or MSBFIRST to map the bits to LED lights.
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, address16bits);
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, status8bits);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, theBinaryHour2);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, theBinaryHour1);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, theBinaryMinute);
   digitalWrite(latchPinLed, HIGH);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// For the clock module.
+// For the DS3231 real time clock module.
 
 #include "RTClib.h"
 RTC_DS3231 rtc;
@@ -218,8 +217,12 @@ void displayTheTime(byte theMinute, byte theHour) {
     theBinaryMinute = theMinute;
     // Don't display the leading 0. For example, display 6, instead of 06.
     // displayDigit(0);
-    updateShiftRegister(0);
-    displayDigit(theMinute);
+    writeDigitShiftRegister(0);
+    if (theMinute == 0) {
+      writeDigitShiftRegister(0);
+    } else {
+      displayDigit(theMinute);
+    }
   } else {
     // There are 3 bits for the tens: 0 ... 5 (00, 10, 20, 30, 40, or 50).
     // There are 4 bits for the ones: 0 ... 9.
@@ -244,6 +247,11 @@ void displayTheTime(byte theMinute, byte theHour) {
     theHour = 12; // 12 midnight, 12am
   }
   switch (theHour) {
+    case 0:
+      // Turn the hour LED lights off.
+      theBinaryHour1 = 0;
+      theBinaryHour2 = 0;
+      break;
     case 1:
       theBinaryHour1 = B00000010; // Note, on the shift register, B00000001 is not wired, not used.
       theBinaryHour2 = 0;
@@ -294,56 +302,83 @@ void displayTheTime(byte theMinute, byte theHour) {
       break;
   }
   // ----------------------------------------------
-  lightsStatusAddressData(theBinaryMinute, theBinaryHour1, theBinaryHour2);
+  writeMinuteHourShiftRegisters(theBinaryMinute, theBinaryHour1, theBinaryHour2);
 }
 
 // ------------------------------------------------------------------------
 void runDisplayTest() {
-  // lightsStatusAddressData(theBinaryMinute, theBinaryHour1, theBinaryHour2);
+  // writeMinuteHourShiftRegisters(theBinaryMinute, theBinaryHour1, theBinaryHour2);
   // theBinaryMinute: Minute LED lights
   // theBinaryHour1:  hours, 1-6 LED lights
   // theBinaryHour2:  hours, 7-12 LED lights
   byte testByte1 = B00000000;
+  delay(3000);
   // ----------------------------
-  Serial.println(F("+ Run LED minute test."));
-  delay(1000);
+  Serial.println(F("+ LED all on/off using writeMinuteHourShiftRegisters()."));
+  for (int i = 0; i < 6; i++) {
+    // All on.
+    writeMinuteHourShiftRegisters(0, B01111110, B01111110);
+    delay(500);
+    // All off.
+    writeMinuteHourShiftRegisters(0, 0, 0);
+    delay(500);
+  }
+  delay(2000);
+  Serial.println(F("+ Run LED counter test using writeMinuteHourShiftRegisters()."));
   for (int digitToDisplay = 0; digitToDisplay < 128; digitToDisplay++) {
-    lightsStatusAddressData(digitToDisplay, 0 , 0);
+    writeMinuteHourShiftRegisters(digitToDisplay, 0 , 0);
     delay(100);
   }
   delay(3000);
   // ----------------------------
-  // Cycle through the hours.
+  Serial.println(F("+ Run LED hour test using writeMinuteHourShiftRegisters()."));
   for (int i = 0; i < 6; i++) {
     testByte1 = B00000001;
     for (int digitToDisplay = 0; digitToDisplay < 6; digitToDisplay++) {
       testByte1 = testByte1 << 1;
-      lightsStatusAddressData(0, testByte1, 0);
+      writeMinuteHourShiftRegisters(0, testByte1, 0);
       delay(100);
     }
     testByte1 = B00000001;
     for (int digitToDisplay = 0; digitToDisplay < 6; digitToDisplay++) {
       testByte1 = testByte1 << 1;
-      lightsStatusAddressData(0, 0, testByte1);
+      writeMinuteHourShiftRegisters(0, 0, testByte1);
       delay(100);
     }
-  }
-  for (int i = 0; i < 6; i++) {
-    // All on.
-    lightsStatusAddressData(0, B01111110, B01111110);
-    delay(500);
-    // All off.
-    lightsStatusAddressData(0, 0, 0);
-    delay(500);
   }
   // ----------------------------
-  // Print digit test.
-  for (int digitToDisplay = 0; digitToDisplay < 10; digitToDisplay++) {
-    displayDigit(digitToDisplay);
-    displayDigit(digitToDisplay);  // Add a second, to shift to the second segment display
-    delay(1000);
+  Serial.println(F("+ Run LED minute test using displayTheTime()."));
+  // displayTheTime(byte theMinute, byte theHour)
+  for (int digitToDisplay = 0; digitToDisplay < 60; digitToDisplay++) {
+    displayTheTime(digitToDisplay, 0);
+    delay(100);
   }
-  delay(2000);
+  delay(3000);
+  Serial.println(F("+ Run LED hour test using displayTheTime()."));
+  for (int digitToDisplay = 0; digitToDisplay < 13; digitToDisplay++) {
+    displayTheTime(0, digitToDisplay);
+    delay(100);
+  }
+  delay(3000);
+  // ----------------------------
+  // Print digit test, from 0-99.
+  Serial.println(F("+ Print digit test using displayDigit()."));
+  for (int digit1 = 0; digit1 < 10; digit1++) {
+    for (int digit2 = 0; digit2 < 10; digit2++) {
+      displayDigit(digit1);
+      displayDigit(digit2);
+      delay(100);
+    }
+  }
+  delay(3000);
+  Serial.println(F("+ Count down from 12 using displayDigit()."));
+  for (int digit1 = 12; digit1 > 0; digit1--) {
+    displayTheTime(0, digit1);
+    delay(100);
+  }
+  writeDigitShiftRegister(0);
+  displayDigit(0);
+  delay(3000);
 }
 
 // -----------------------------------------------------------------------------
@@ -360,8 +395,8 @@ void setup() {
   delay(300);
   Serial.println("+ Segment display shift registers ready to use.");
   // Clear the digits.
-  updateShiftRegister(0);
-  updateShiftRegister(0);
+  writeDigitShiftRegister(0);
+  writeDigitShiftRegister(0);
   delay(1000);
 
   // ------------------------------------------------------------
@@ -369,30 +404,31 @@ void setup() {
   pinMode(clockPinLed, OUTPUT);
   pinMode(dataPinLed, OUTPUT);
   delay(300);
-  lightsStatusAddressData(0, 0, 0);
+  writeMinuteHourShiftRegisters(0, 0, 0);
   Serial.println(F("+ LED shift registers ready to use."));
 
   // ----------------------------------------------------
-  // ----------------------------
   // Cycle around the hours on startup.
   byte testByte1 = B01000000;
-  lightsStatusAddressData(0, 0, testByte1); // Start with the 12th hour lit.
+  writeMinuteHourShiftRegisters(0, 0, testByte1); // Start with the 12th hour lit.
   delay(2000);
   for (int i = 0; i < 3; i++) {
     testByte1 = B00000001;
     for (int digitToDisplay = 0; digitToDisplay < 6; digitToDisplay++) {
       testByte1 = testByte1 << 1;
-      lightsStatusAddressData(0, testByte1, 0);
+      writeMinuteHourShiftRegisters(0, testByte1, 0);
       delay(100);
     }
     testByte1 = B00000001;
     for (int digitToDisplay = 0; digitToDisplay < 6; digitToDisplay++) {
       testByte1 = testByte1 << 1;
-      lightsStatusAddressData(0, 0, testByte1);
+      writeMinuteHourShiftRegisters(0, 0, testByte1);
       delay(100);
     }
   }
   delay(1000);
+
+  runDisplayTest();
 
   // ----------------------------------------------------
   if (!rtc.begin()) {
