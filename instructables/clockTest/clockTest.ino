@@ -4,6 +4,13 @@
 
   + Post clock data messages to the serial port, which can be displayed using the Arduino Tools/Serial Monitor.
 
+  -----------------------------------------------------------------------------
+  Connect the DS3231 Clock and the 1602 LCD display, to the Nano:
+  + VCC to Nano 5v, note, also works with 3.3v, example: NodeMCU.
+  + GND to Nano ground.
+  + SDA to Nano D4 (pin 4), same on Uno.
+  + SCL to Nano D5 (pin 5), same on Uno.
+
   ------------------------------------------------------------------------------
   DS3231 Clock Library:
     Filter your search by typing ‘rtclib’.
