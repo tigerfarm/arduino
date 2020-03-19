@@ -9,6 +9,13 @@
   It has more than half of the opcodes implemented,
   which more than enough to run the classic program, Kill the Bit.
 
+  + Clocks Contest
+  https://www.instructables.com/contest/clocks2020/
+  Create a new Instructable that fits the guidelines outlined in the contest description above. 
+  To be eligible, Instructables must be published between Mar 2, 2020 and Apr 27, 2020 (11:59pm PT).
+  + Sample using NTP server to set the time:
+  https://www.instructables.com/id/NO-MORE-SPRING-FORWARD/
+  
   ---------------------------------------------
   Current/Next Work
 
@@ -23,7 +30,7 @@
   + If 00000000.bin is not all zeros (NOPs), run it.
   + Else, don't run it, boot to wait state.
 
-  Confirm when reading into memory from a file,
+  Confirm before reading a file into memory,
   + Fast flash HLDA for 1 second.
   + If read or write switch repeated, then run, else return to program wait status.
 

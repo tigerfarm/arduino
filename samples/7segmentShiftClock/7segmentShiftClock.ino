@@ -85,7 +85,7 @@ void displayDigit(int theDigit) {
   */
   switch (theDigit) {
     case 0:
-      //                  0:ABCDEFG
+      //                     0:.ABCDEFG
       writeDigitShiftRegister(B01111110);
       break;
     case 1:
@@ -118,6 +118,22 @@ void displayDigit(int theDigit) {
     default:
       // Display "E." for error.
       writeDigitShiftRegister(B11001111);
+  }
+}
+
+void displayDigitMinute(int theMinute) {
+  if (theMinute < 10) {
+    writeDigitShiftRegister(0);   // Don't display the leading 0. For example, display 6, instead of 06.
+    if (theMinute == 0) {
+      writeDigitShiftRegister(0); // Both digit display segments are off for 0 minutes.
+    } else {
+      displayDigit(theMinute);
+    }
+  } else {
+    int theMinuteTens = theMinute / 10;
+    int theMinuteOnes = theMinute - theMinuteTens * 10;
+    displayDigit(theMinuteTens);
+    displayDigit(theMinuteOnes);
   }
 }
 
@@ -169,42 +185,10 @@ void syncCountWithClock() {
   Serial.println(theCounterSeconds);
 }
 
-// -----------------------------------------------------------------------------
-void processClockNow() {
-  // Serial.println("+ Call processClockNow");
-  //
-  now = rtc.now();
-  //
-  if (now.second() != theCounterSeconds) {
-    // When the clock second value changes, that's a second pulse.
-    theCounterSeconds = now.second();
-    // clockPulseSecond();
-    if (theCounterSeconds == 0) {
-      // When the clock second value changes to zero, that's a minute pulse.
-      theCounterMinutes = now.minute();
-      if (theCounterMinutes != 0) {
-        // clockPulseMinute();
-        Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
-        Serial.println(theCounterMinutes);
-        // ----------------------------------------------
-        displayTheTime( theCounterMinutes, theCounterHours );
-      } else {
-        // When the clock minute value changes to zero, that's an hour pulse.
-        // clockPulseHour();
-        theCounterHours = now.hour();
-        Serial.print("++ clockPulseHour(), theCounterHours= ");
-        Serial.println(theCounterHours);
-        // ----------------------------------------------
-        displayTheTime( theCounterMinutes, theCounterHours );
-      }
-    }
-  }
-}
-
 // ------------------------------------------------------------------------
 // Display hours and minutes on LED lights.
 
-void displayTheTime(byte theMinute, byte theHour) {
+void displayMinutesHours(byte theMinute, byte theHour) {
   byte theMinuteOnes = 0;
   byte theMinuteTens = 0;
   byte theBinaryMinute = 0;
@@ -215,11 +199,9 @@ void displayTheTime(byte theMinute, byte theHour) {
   // Convert the minute into binary for display.
   if (theMinute < 10) {
     theBinaryMinute = theMinute;
-    // Don't display the leading 0. For example, display 6, instead of 06.
-    // displayDigit(0);
-    writeDigitShiftRegister(0);
+    writeDigitShiftRegister(0);   // Don't display the leading 0. For example, display 6, instead of 06.
     if (theMinute == 0) {
-      writeDigitShiftRegister(0);
+      writeDigitShiftRegister(0); // Both digit display segments are off for 0 minutes.
     } else {
       displayDigit(theMinute);
     }
@@ -241,17 +223,13 @@ void displayTheTime(byte theMinute, byte theHour) {
   // ----------------------------------------------
   // Convert the hour into binary for display.
   // Use a 12 hour clock value rather than 24 value.
+  // Hour 0, is 12 midnight.
   if (theHour > 12) {
     theHour = theHour - 12;
   } else if (theHour == 0) {
-    theHour = 12; // 12 midnight, 12am
+    theHour = 12;           // 12 midnight, 12am
   }
   switch (theHour) {
-    case 0:
-      // Turn the hour LED lights off.
-      theBinaryHour1 = 0;
-      theBinaryHour2 = 0;
-      break;
     case 1:
       theBinaryHour1 = B00000010; // Note, on the shift register, B00000001 is not wired, not used.
       theBinaryHour2 = 0;
@@ -305,6 +283,38 @@ void displayTheTime(byte theMinute, byte theHour) {
   writeMinuteHourShiftRegisters(theBinaryMinute, theBinaryHour1, theBinaryHour2);
 }
 
+// -----------------------------------------------------------------------------
+void processClockNow() {
+  // Serial.println("+ Call processClockNow");
+  //
+  now = rtc.now();
+  //
+  if (now.second() != theCounterSeconds) {
+    // When the clock second value changes, that's a second pulse.
+    theCounterSeconds = now.second();
+    // clockPulseSecond();
+    if (theCounterSeconds == 0) {
+      // When the clock second value changes to zero, that's a minute pulse.
+      theCounterMinutes = now.minute();
+      if (theCounterMinutes != 0) {
+        // clockPulseMinute();
+        Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
+        Serial.println(theCounterMinutes);
+        // ----------------------------------------------
+        displayMinutesHours( theCounterMinutes, theCounterHours );
+      } else {
+        // When the clock minute value changes to zero, that's an hour pulse.
+        // clockPulseHour();
+        theCounterHours = now.hour();
+        Serial.print("++ clockPulseHour(), theCounterHours= ");
+        Serial.println(theCounterHours);
+        // ----------------------------------------------
+        displayMinutesHours( theCounterMinutes, theCounterHours );
+      }
+    }
+  }
+}
+
 // ------------------------------------------------------------------------
 void runDisplayTest() {
   // writeMinuteHourShiftRegisters(theBinaryMinute, theBinaryHour1, theBinaryHour2);
@@ -312,10 +322,10 @@ void runDisplayTest() {
   // theBinaryHour1:  hours, 1-6 LED lights
   // theBinaryHour2:  hours, 7-12 LED lights
   byte testByte1 = B00000000;
-  delay(3000);
   // ----------------------------
-  Serial.println(F("+ LED all on/off using writeMinuteHourShiftRegisters()."));
-  for (int i = 0; i < 6; i++) {
+  Serial.println(F("+ LED lights all on, then all off using writeMinuteHourShiftRegisters()."));
+  delay(3000);
+  for (int i = 0; i < 3; i++) {
     // All on.
     writeMinuteHourShiftRegisters(0, B01111110, B01111110);
     delay(500);
@@ -323,16 +333,31 @@ void runDisplayTest() {
     writeMinuteHourShiftRegisters(0, 0, 0);
     delay(500);
   }
-  delay(2000);
-  Serial.println(F("+ Run LED counter test using writeMinuteHourShiftRegisters()."));
-  for (int digitToDisplay = 0; digitToDisplay < 128; digitToDisplay++) {
+  // ----------------------------
+  Serial.println(F("+ All digit LED light segments on, then all off using writeDigitShiftRegister()."));
+  delay(3000);
+  for (int i = 0; i < 3; i++) {
+    // All on.
+    writeDigitShiftRegister(B11111111);
+    writeDigitShiftRegister(B11111111);
+    delay(500);
+    // All off.
+    writeDigitShiftRegister(0);
+    writeDigitShiftRegister(0);
+    delay(500);
+  }
+  /*
+    Serial.println(F("+ Run LED counter test using writeMinuteHourShiftRegisters()."));
+    for (int digitToDisplay = 0; digitToDisplay < 128; digitToDisplay++) {
     writeMinuteHourShiftRegisters(digitToDisplay, 0 , 0);
     delay(100);
-  }
-  delay(3000);
+    }
+    delay(3000);
+  */
   // ----------------------------
-  Serial.println(F("+ Run LED hour test using writeMinuteHourShiftRegisters()."));
-  for (int i = 0; i < 6; i++) {
+  Serial.println(F("+ Run LED hour test, 1...12, using writeMinuteHourShiftRegisters()."));
+  delay(3000);
+  for (int i = 0; i < 3; i++) {
     testByte1 = B00000001;
     for (int digitToDisplay = 0; digitToDisplay < 6; digitToDisplay++) {
       testByte1 = testByte1 << 1;
@@ -347,22 +372,83 @@ void runDisplayTest() {
     }
   }
   // ----------------------------
-  Serial.println(F("+ Run LED minute test using displayTheTime()."));
-  // displayTheTime(byte theMinute, byte theHour)
-  for (int digitToDisplay = 0; digitToDisplay < 60; digitToDisplay++) {
-    displayTheTime(digitToDisplay, 0);
-    delay(100);
-  }
+  Serial.println(F("+ Run LED hour test, 1...12, using displayMinutesHours()."));
   delay(3000);
-  Serial.println(F("+ Run LED hour test using displayTheTime()."));
-  for (int digitToDisplay = 0; digitToDisplay < 13; digitToDisplay++) {
-    displayTheTime(0, digitToDisplay);
-    delay(100);
+  for (int i = 0; i < 3; i++) {
+    for (int digitToDisplay = 0; digitToDisplay < 12; digitToDisplay++) {
+      displayMinutesHours(0, digitToDisplay);
+      delay(100);
+    }
   }
-  delay(3000);
   // ----------------------------
-  // Print digit test, from 0-99.
-  Serial.println(F("+ Print digit test using displayDigit()."));
+  Serial.println(F("+ Run LED hour test, 1...12, using displayMinutesHours() and displayDigitMinute()."));
+  delay(3000);
+  writeMinuteHourShiftRegisters(0, 0, 0); // Clear the LED lights.
+  for (int i = 0; i < 2; i++) {
+    for (int digitToDisplay = 0; digitToDisplay < 13; digitToDisplay++) {
+      displayMinutesHours(0, digitToDisplay);
+      displayDigitMinute(digitToDisplay);
+      /*
+      switch (digitToDisplay) {
+        case 10:
+          displayDigit(1);
+          displayDigit(0);
+          break;
+        case 11:
+          displayDigit(1);
+          displayDigit(1);
+          break;
+        case 12:
+          displayDigit(1);
+          displayDigit(2);
+          break;
+        default:
+          displayDigit(digitToDisplay);
+      }
+      */
+      delay(1000);
+    }
+  }
+  // ----------------------------
+  Serial.println(F("+ Run LED minute test, 0...59, using displayMinutesHours()."));
+  writeMinuteHourShiftRegisters(0, 0, 0);
+  delay(3000);
+  // displayMinutesHours(byte theMinute, byte theHour)
+  for (int digitToDisplay = 0; digitToDisplay < 60; digitToDisplay++) {
+    displayMinutesHours(digitToDisplay, 0);
+    delay(300);
+  }
+  // ----------------------------
+  Serial.println(F("+ Run LED minute test, 0...59, using displayDigitMinute()."));
+  writeMinuteHourShiftRegisters(0, 0, 0);
+  delay(3000);
+  // displayMinutesHours(byte theMinute, byte theHour)
+  for (int digitToDisplay = 0; digitToDisplay < 60; digitToDisplay++) {
+    displayDigitMinute(digitToDisplay);
+    delay(300);
+  }
+  // ----------------------------
+  Serial.println(F("+ Run LED minute light test using writeMinuteHourShiftRegisters()."));
+  writeMinuteHourShiftRegisters(0, 0, 0);
+  testByte1 = B00000000;
+  for (int i = 0; i < 3; i++) {
+    testByte1 = B00000001;
+    for (int digitToDisplay = 0; digitToDisplay < 7; digitToDisplay++) {
+      writeMinuteHourShiftRegisters(testByte1, 0, 0);
+      testByte1 = testByte1 << 1;
+      delay(100);
+    }
+    testByte1 = B01000000;
+    for (int digitToDisplay = 6; digitToDisplay >= 0; digitToDisplay--) {
+      writeMinuteHourShiftRegisters(0, 0, testByte1);
+      testByte1 = testByte1 << 1;
+      delay(100);
+    }
+  }
+  // ----------------------------
+  Serial.println(F("+ Print digit test using displayDigit(), from 0-99."));
+  writeMinuteHourShiftRegisters(0, 0, 0);
+  delay(3000);
   for (int digit1 = 0; digit1 < 10; digit1++) {
     for (int digit2 = 0; digit2 < 10; digit2++) {
       displayDigit(digit1);
@@ -370,12 +456,34 @@ void runDisplayTest() {
       delay(100);
     }
   }
-  delay(3000);
   Serial.println(F("+ Count down from 12 using displayDigit()."));
-  for (int digit1 = 12; digit1 > 0; digit1--) {
-    displayTheTime(0, digit1);
+  // displayMinutesHours(0, 0); lights the 12th. hour LED.
+  delay(3000);
+  for (int digit1 = 0; digit1 < 13; digit1++) {
+    displayMinutesHours(0, digit1);
     delay(100);
   }
+  for (int digit1 = 12; digit1 > 0; digit1--) {
+    displayMinutesHours(0, digit1);
+    delay(100);
+  }
+  for (int digit1 = 0; digit1 < 13; digit1++) {
+    displayMinutesHours(0, digit1);
+    delay(100);
+  }
+  for (int digit1 = 12; digit1 > 0; digit1--) {
+    displayMinutesHours(0, digit1);
+    delay(100);
+  }
+  for (int digit1 = 0; digit1 < 13; digit1++) {
+    displayMinutesHours(0, digit1);
+    delay(100);
+  }
+  for (int digit1 = 12; digit1 > 0; digit1--) {
+    displayMinutesHours(0, digit1);
+    delay(100);
+  }
+  delay(3000);
   writeDigitShiftRegister(0);
   displayDigit(0);
   delay(3000);
@@ -392,43 +500,32 @@ void setup() {
   pinMode(latchPin, OUTPUT);
   pinMode(clockPin, OUTPUT);
   pinMode(dataPin, OUTPUT);
-  delay(300);
   Serial.println("+ Segment display shift registers ready to use.");
-  // Clear the digits.
-  writeDigitShiftRegister(0);
-  writeDigitShiftRegister(0);
-  delay(1000);
-
+  delay(300);
   // ------------------------------------------------------------
   pinMode(latchPinLed, OUTPUT);
   pinMode(clockPinLed, OUTPUT);
   pinMode(dataPinLed, OUTPUT);
-  delay(300);
-  writeMinuteHourShiftRegisters(0, 0, 0);
   Serial.println(F("+ LED shift registers ready to use."));
+  delay(300);
 
   // ----------------------------------------------------
-  // Cycle around the hours on startup.
-  byte testByte1 = B01000000;
-  writeMinuteHourShiftRegisters(0, 0, testByte1); // Start with the 12th hour lit.
-  delay(2000);
+  // Clear the digits.
+  writeDigitShiftRegister(0);
+  writeDigitShiftRegister(0);
+  writeMinuteHourShiftRegisters(0, 0, 0);
+  Serial.println(F("+ ALL LED lights and digit segments are off."));
+  delay(1000);
+  Serial.println(F("+ Cycle around the LED light hours."));
   for (int i = 0; i < 3; i++) {
-    testByte1 = B00000001;
-    for (int digitToDisplay = 0; digitToDisplay < 6; digitToDisplay++) {
-      testByte1 = testByte1 << 1;
-      writeMinuteHourShiftRegisters(0, testByte1, 0);
-      delay(100);
-    }
-    testByte1 = B00000001;
-    for (int digitToDisplay = 0; digitToDisplay < 6; digitToDisplay++) {
-      testByte1 = testByte1 << 1;
-      writeMinuteHourShiftRegisters(0, 0, testByte1);
+    for (int digitToDisplay = 0; digitToDisplay < 13; digitToDisplay++) {
+      displayMinutesHours(0, digitToDisplay);
       delay(100);
     }
   }
   delay(1000);
 
-  runDisplayTest();
+  // runDisplayTest();
 
   // ----------------------------------------------------
   if (!rtc.begin()) {
@@ -436,7 +533,7 @@ void setup() {
     while (1);
   }
   syncCountWithClock();
-  displayTheTime( theCounterMinutes, theCounterHours );
+  displayMinutesHours( theCounterMinutes, theCounterHours );
   Serial.println("+ Clock set and synched with program variables.");
 
   // ------------------------------------------------------------
