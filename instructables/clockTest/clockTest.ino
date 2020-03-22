@@ -28,7 +28,6 @@ char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursd
 
 void printClockData() {
   DateTime now = rtc.now();
-  Serial.println("----------------------------------------");
   Serial.print("+ Current Date & Time: ");
   Serial.print(now.year(), DEC);
   Serial.print('/');
@@ -48,9 +47,10 @@ void printClockData() {
 
 // -----------------------------------------------------------------------------
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(115200); // 9600 or 115200
   // Give the serial connection time to start before the first print.
   delay(1000);
+  Serial.println(""); // Newline after garbage characters.
   Serial.println("+++ Setup.");
 
   // Initialize the Real Time Clock (RTC).
@@ -66,6 +66,7 @@ void setup() {
   Serial.println("+ Clock set.");
 
   Serial.println("++ Go to loop.");
+  Serial.println("----------------------------------------");
 }
 
 // -----------------------------------------------------------------------------

@@ -6,13 +6,15 @@
     + Post messages to the serial port, which can be displayed using the Arduino Tools/Serial Monitor.
 */
 // -----------------------------------------------------------------------------
-
 // Built in, on board LED: GPI13 which is D13 on Nano and Uno. LED is red on Nano.
 // Built in, on board LED: GPIO2 which is D04 on NodeMCU.
 #define LED_PIN 13
 
+boolean ledOn = false;
+
+// -----------------------------------------------------------------------------
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   // Give the serial connection time to start before the first print.
   delay(1000);
   Serial.println("+++ Setup.");
@@ -28,15 +30,17 @@ void setup() {
 // Device Loop
 
 int counter = 0;
-boolean ledOn = false;
 void loop() {
   delay(1000);
+  counter++;
   Serial.print("+ Loop counter = ");
   Serial.println(counter);
   if (ledOn) {
     digitalWrite(LED_PIN, LOW);   // Off
+    ledOn = false;
   } else {
     digitalWrite(LED_PIN, HIGH);    // On
+    ledOn = true;
   }
 }
 // -----------------------------------------------------------------------------

@@ -9,13 +9,6 @@
   It has more than half of the opcodes implemented,
   which more than enough to run the classic program, Kill the Bit.
 
-  + Clocks Contest
-  https://www.instructables.com/contest/clocks2020/
-  Create a new Instructable that fits the guidelines outlined in the contest description above. 
-  To be eligible, Instructables must be published between Mar 2, 2020 and Apr 27, 2020 (11:59pm PT).
-  + Sample using NTP server to set the time:
-  https://www.instructables.com/id/NO-MORE-SPRING-FORWARD/
-  
   ---------------------------------------------
   Current/Next Work
 
@@ -71,17 +64,6 @@
     https://www.calculator.net/binary-calculator.html
   Bitwise operators:
     https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitwiseand/
-  ---------------------------------------------
-    9 + -   - Nano connections
-    | | |   - Infrared receiver pins
-  ---------
-  |S      |
-  |       |
-  |  ---  |
-  |  | |  |
-  |  ---  |
-  |       |
-  ---------
 */
 // -----------------------------------------------------------------------------
 // Code compilation options.
