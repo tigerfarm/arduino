@@ -122,6 +122,7 @@ void setup() {
   Serial.begin(115200);
   // Give the serial connection time to start before the first print.
   delay(1000);
+  Serial.println(""); // Newline after garbage characters.
   Serial.println("+++ Setup.");
 
   irrecv.enableIRIn();

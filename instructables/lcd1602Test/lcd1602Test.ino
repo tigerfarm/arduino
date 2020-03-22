@@ -56,15 +56,18 @@ void displayCount() {
   theCounter++;
   lcd.setCursor(10, 1);    // Column, Row
   lcd.print(theCounter);
+  Serial.print("+ theCounter = ");
+  Serial.println(theCounter);
 }
 
 // -----------------------------------------------------------------------------
 // Device Setup
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   // Give the serial connection time to start before the first print.
   delay(1000);
+  Serial.println(""); // Newline after garbage characters.
   Serial.println("+++ Setup.");
   //
   lcd.init();

@@ -14,7 +14,7 @@ boolean ledOn = false;
 
 // -----------------------------------------------------------------------------
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200); // 9600 or 115200
   // Give the serial connection time to start before the first print.
   delay(1000);
   Serial.println("+++ Setup.");

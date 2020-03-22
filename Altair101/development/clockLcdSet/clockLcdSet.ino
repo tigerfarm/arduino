@@ -521,7 +521,7 @@ void setup() {
   lcd.init();
   lcd.backlight();
   //             1234567890123456
-  lcdPrintln(0, "TigerFarmPress");
+  lcdPrintln(0, "Tiger Farm Press");
   delay(1000);
   lcdPrintln(1, "Clock starting");
   delay(3000);
