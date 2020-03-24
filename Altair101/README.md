@@ -15,7 +15,7 @@ Since my Altair 101 development machine is working properly, I can show my steam
 Time to generate videos.
 
 
-<img width="300px"  src="hardware/Altair101dev6.jpg"/>
+<img width="300px"  src="hardware/Altair101dev7.jpg"/>
 
 --------------------------------------------------------------------------------
 # Computer Enlightenment
