@@ -5,11 +5,11 @@
   + Post messages to the serial port, which can be displayed using the Arduino Tools/Serial Monitor.
 
   Connect infrared receiver, pins from top left to right:
-    Left most (next to the X) - Nano pin 9
+    Left most (next to the X) - Nano pin A1
     Center - 5V
     Right  - ground
 
-    9 + -   - Nano pin connections
+   A1 + -   - Nano pin connections
     | | |   - Infrared receiver pins
   ---------
   |S      |
