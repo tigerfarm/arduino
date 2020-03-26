@@ -38,8 +38,8 @@ Completed steps:
 Next steps:
 + Modify the case top for easy removal.
 + Cover the case with a paper finish.
-+ Solder 56 wire connections on the toggle switches. 24 ground wires to all 24 toggles.
-    Plus 16 wires for the control switches and 16 wires for the address toggles.
++ Solder 56 wire connections on the toggle switches: ground wires to all 24 toggles,
+    16 wires for the control switches, and 16 wires for the address toggles.
 + Use silicon glue to mount the 36 LED lights.
 + Solder a ground wire to all the lights. The power side, uses cable connectors.
 
