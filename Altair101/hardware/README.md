@@ -48,7 +48,7 @@ Next steps:
 
 Components mounted on a clipboard.
 
-<img width="460px"  src="Altair101a.jpg"/>
+<img width="560px"  src="Altair101a.jpg"/>
 
 ### Altair 101 Steampunk Tablet Parts List
 
