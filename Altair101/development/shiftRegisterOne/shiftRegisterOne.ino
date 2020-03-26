@@ -27,8 +27,8 @@
   https://www.arduino.cc/reference/tr/language/functions/advanced-io/shiftout/
   + Shifts out a byte of data one bit at a time.
   + Shifts out a byte of data one bit at a time.
-  + MSBFIRST: Most signifigent first.
-  + LSBFIRST: Lest signifigent first.
+  + MSBFIRST: Most significant first.
+  + LSBFIRST: Lest significant first.
 
   Documentation:
   https://www.arduino.cc/en/Tutorial/ShiftOut

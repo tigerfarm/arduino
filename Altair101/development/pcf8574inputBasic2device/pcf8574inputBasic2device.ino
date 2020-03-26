@@ -14,7 +14,7 @@
   | 0  1  0      |  = 0x22
   | 1  1  0      |  = 0x23
   | 0  0  1      |  = 0x24
-  | 1  0  1      |  = 0x25
+  | 1  0  1   P0 |  = 0x25
   | 0  1  1   P1 |  = 0x26
   | 1  1  1   P2 |  = 0x27
   |           P3 |
@@ -96,30 +96,31 @@ void loop() {
 
   if (switchSetOn) {
     Serial.println("+ Interrupt call, switchSetOn is true.");
-    //
-    dataByte = pcf20.read8();
+    // ------------------------------
+    dataByte = pcf20.read8();                   // Read all PCF8574 #20 inputs
     Serial.print("+ PCF8574 0x20 byte, read8      = ");
     printByte(dataByte);
     Serial.println("");
     Serial.print("+ PCF8574 0x20 byte, readButton = ");
     for (int pinGet = 7; pinGet >= 0; pinGet--) {
-      int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input pin
+      int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 #20 input pin
       Serial.print(pinValue);
     }
     Serial.println("");
-    //
-    dataByte = pcf21.read8();
+    // ------------------------------
+    dataByte = pcf21.read8();                   // Read all PCF8574 #21 inputs
     Serial.print("+ PCF8574 0x21 byte, read8      = ");
     printByte(dataByte);
     Serial.println("");
     Serial.print("+ PCF8574 0x21 byte, readButton = ");
     for (int pinGet = 7; pinGet >= 0; pinGet--) {
-      int pinValue = pcf21.readButton(pinGet);  // Read each PCF8574 input pin
+      int pinValue = pcf21.readButton(pinGet);  // Read each PCF8574 #21 input pin
       Serial.print(pinValue);
     }
+    // ------------------------------
     Serial.println("");
     //
-    switchSetOn = false;    // Set ready for next switch event.
+    switchSetOn = false;                        // Reset for the next switch event.
   }
 
   delay (60);

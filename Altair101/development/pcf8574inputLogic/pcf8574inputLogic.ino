@@ -42,7 +42,7 @@
     Digital pin 2-13 can be used as PWM output with analogWrite().
     Digital pin 20 SDA and 21 for SCK, for I2C.
     Pin 22 - SS, Pin 23 - SCK, Pin 24 - MOSI, Pin 25 – MISO
-  USART Pins :
+  UART Pins :
     Pin 00 – RXD0, pin 01 – TXD0
     Pin 19 – RXD1, pin 18 – TXD1
     Pin 17 – RXD2, pin 16 – TXD2
