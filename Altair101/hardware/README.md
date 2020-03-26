@@ -46,7 +46,7 @@ Next steps:
 --------------------------------------------------------------------------------
 ## The Altair 101 Steampunk Tablet
 
-Components mounted on a clipboard.
+Components mounted on a clipboard using nuts and screws, felt pads, and 2 sided mounting tape.
 
 <img width="560px"  src="Altair101a.jpg"/>
 
