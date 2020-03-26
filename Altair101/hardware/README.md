@@ -32,7 +32,7 @@ The major difference between the machines, is that the tablet model has 8 addres
 
 Completed steps:
 + Ordered and received parts.
-+ Put together the case to see where the parts will fit in and if any changes need to be made.
++ Put the case together to see where the parts will fit in and if any changes need to be made.
 + 24 toggle switches screwed onto the front panel. Plus one for power.
 
 Next steps:
