@@ -50,60 +50,58 @@ Components mounted on a clipboard using nuts and screws, felt pads, and 2 sided 
 
 <img width="560px"  src="Altair101a.jpg"/>
 
-### Altair 101 Steampunk Tablet Parts List
+### Tablet Parts List
 
-Parts,
-------
++ Clip board
++ 3 x breadboards
 + Arduino Mega ATmega2560, CH340G
-+ 3 x breadboards.
-------
+
 + 4 x Shift Register SN74HC595N, 20pcs on sale for $2
 + 26 x Red LED 5mm, 100pcs for $1.50
 + 26 x 5k resistors for LED lights.
-+ 1 x LED bar display
-------
-+ 2 x PCF8574 I2C module for parallel (switches) to serial.
++ 1 x LED bar graph display
+
++ 2 x PCF8574 I2C module for the switches, parallel input to serial output.
 + 7 x SPDT On/Off/On 3 Position Momentary toggles, Diameter: 6mm (0.2inch), Micro mini, 10pcs for $6.79
 + 8 x SPDT On/On 2 Position Mini Toggle Switch, Diameter: 6mm (0.2inch), 10Pcs for $2.68.
-------
-+ Micro SD Card SPI module
-+ USB serial module
-+ USB mini hub
-+ 1602 LED with serial module
-+ DS3231 clock module
-------
-+ Clip board
 + Small panel board to hold the toggles.
+
++ DS3231 clock module
++ 1602 LCD with serial module
++ Micro SD Card SPI module
++ USB serial component
++ USB mini hub
+
++ 9V battery case with on/off switch
 + 10 x Machine screws and 13 x nuts, size #4 x 3/4".
 + Mounting tape, 2 sided.
-+ 9V battery case with on/off switch
 + Felt padding
 ------
 
 Cables,
 
-+ 1 x 40pcs/pack 20cm Female to Female Ribbon Breadboard Cable
-++ 8x, Between PCF8574 and toggles.
-------
-+ 1 x 40pcs/pack 20cm Male to Female Ribbon Breadboard Cable
-++ 4x, Between USB serial module and breadboard.
-++ 4x, Between 1602 LED serial module and breadboard.
-------
-+ 1 x 40pcs/pack 20cm Male to Male Ribbon Breadboard Cable
-++ 16x, Between SN74HC595N chips and breadboard (to LED lights).
-++ 2x, Between breadboard to breadboard (to clock module).
-++ 2x, Between breadboard to breadboard (I2C on the Mega).
-++ 2x, Between breadboard to breadboard (USB to Mega).
-------
-+ 1 x 40pcs/pack 10cm Female to Female Ribbon Breadboard Cable
-++ 8x, Between PCF8574 and toggles.
-------
-+ 1 x 40pcs/pack 10cm Male to Female Ribbon Breadboard Cable
-++ 6 for SD card module
-++ 4x, Between PCF8574 and breadboard.
-------
-+ 1 x 40pcs/pack 10cm Male to Male Ribbon Breadboard Cable
-++ 12x, for various breadboard connections, such as 5V and ground between Mega and breadboards.
+1 x 40pcs/pack 20cm Female to Female Ribbon Breadboard Cable
++ 8x, Between PCF8574 and toggles.
+
+1 x 40pcs/pack 20cm Male to Female Ribbon Breadboard Cable
++ 4x, Between USB serial module and breadboard.
++ 4x, Between 1602 LED serial module and breadboard.
+
+1 x 40pcs/pack 20cm Male to Male Ribbon Breadboard Cable
++ 16x, Between SN74HC595N chips and breadboard (to LED lights).
++ 2x, Between breadboard to breadboard (to clock module).
++ 2x, Between breadboard to breadboard (I2C on the Mega).
++ 2x, Between breadboard to breadboard (USB to Mega).
+
+1 x 40pcs/pack 10cm Female to Female Ribbon Breadboard Cable
++ 8x, Between PCF8574 and toggles.
+
+1 x 40pcs/pack 10cm Male to Female Ribbon Breadboard Cable
++ 6 for SD card module
++ 4x, Between PCF8574 and breadboard.
+
+1 x 40pcs/pack 10cm Male to Male Ribbon Breadboard Cable
++ 12x, for various breadboard connections, such as 5V and ground between Mega and breadboards.
 
 + Box of breadboard wires.
 
