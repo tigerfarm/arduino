@@ -8,7 +8,7 @@ I wanted one, I want one, so I designed the Altair 101 to have the same front pa
 
 My hardware design centers around my [Altair 8800 clone front panel](https://www.adwaterandstir.com/product/front-panel/).
 
-[<img width="360px"  src="../FrontPanel01a.jpg"/>](https://www.adwaterandstir.com/product/front-panel/)
+[<img width="460px"  src="../FrontPanel01a.jpg"/>](https://www.adwaterandstir.com/product/front-panel/)
 
 My goal was to design and build a machine to emulate the base Altair 8800 machine.
 The emulator will also have modern components such as a micro SD card module for storage and a real time clock.
