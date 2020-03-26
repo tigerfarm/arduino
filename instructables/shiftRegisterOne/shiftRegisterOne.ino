@@ -6,7 +6,7 @@
   Using a 74HC595 Shift Register for serial to multiple pin outs.
 
   74HC595 is a SIPO (Serial-In-Parallel-Out) shift registers, example: Texas Instruments SN74HC595N.
-        ---------
+         ---------
   LED 1 |01 | | 16| 5V+
   LED 2 |02  -  15| LED 0
   LED 3 |03     14| Data pin (SRCLK) to Nano pin 4, data transfer from Nano to 595.

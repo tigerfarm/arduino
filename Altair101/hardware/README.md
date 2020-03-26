@@ -1,73 +1,55 @@
 --------------------------------------------------------------------------------
 # Altair 101 Build Plan
 
-Your mobile phone has a touch screen display. Your computer has a keyboard and monitor.
-In 1975, the first available popular computer only had toggles and lights.
-It was the Altair 8800 which launch the home computer revolution.
-As I want a similar computer, I designed my Altair 101 to have a front panel of toggles and LED lights.
-
-My goal is to design and build an Altair 8800 emulator, to emulate the base Altair 8800 machine.
-The emulator machine will also have modern components such as a micro SD card module and a real time clock.
-I will keep the cost low. My original target was $99, but the final machine will closer to $129.
-
-Most clones, replicas, use an Arduino Due.
-I started with an Arduino Nano, which was only $3 each.
-However, due to increasing memory requirements, I moved to the Mega 2560 (ATmega2560), about $12 each.
-
-As I want to keep soldering to minimum, and a simplistic build.
-Where others designed and printed a PCB board, I'm using breadboards.
-I got the idea of building a computer on breadboards from Dan Eater's videos on 
-[how to Build an 8-bit computer from scratch](https://www.youtube.com/watch?v=HyznrdDSSGM&list=PLLlz7OhtlfKYk8nkyF1u-cDwzE_S0vcJs&index=14)
-
-I have completed a dev machine. I'm refining, tuning, and testing it.
-The components are mounted on a clipboard which makes it a steampunk tablet.
-The desktop model design will be based on the tablet machine.
-The major difference between the machines, is that the tablet model has 8 address toggles where the desktop model will have 16 address toggles.
+Your mobile phone has a touch screen display. Your computer has a keyboard(input) and monitor(output).
+In 1975, the Altair 8800, the first available popular computer only had toggles(input) and lights(output).
+It launched the home computer revolution.
+I wanted one, I want one, so I designed the Altair 101 to have the same front panel of toggles and LED lights.
 
 My hardware design centers around my [Altair 8800 clone front panel](https://www.adwaterandstir.com/product/front-panel/).
 
 [<img width="360px"  src="../FrontPanel01a.jpg"/>](https://www.adwaterandstir.com/product/front-panel/)
+
+My goal was to design and build a machine to emulate the base Altair 8800 machine.
+The emulator will also have modern components such as a micro SD card module for storage and a real time clock.
+I will keep the cost low, and soldering to a minimum. The final machine cost is about $149.
+The only soldering is wire connectors for the toggle switches and LED lights which is basic soldering.
+
+I watched Dan Eater's videos on
+[how to Build an 8-bit computer from scratch](https://www.youtube.com/watch?v=HyznrdDSSGM&list=PLLlz7OhtlfKYk8nkyF1u-cDwzE_S0vcJs&index=14)
+And so, where other emulator designs used a printed PCB board, I used breadboards.
+
+Most clones, replicas, use an Arduino Due.
+I started with an Arduino Nano, but due to increasing memory requirements, I moved to the Mega 2560 (ATmega2560).
+
+I have completed a development machine, it's refined, tuned, and tested.
+The components are mounted on a clipboard which makes it a steampunk tablet.
+The desktop model design will be based on the tablet machine.
+The major difference between the machines, is that the tablet model has 8 address toggles where the desktop model will have 16 address toggles.
+
+--------------------------------------------------------------------------------
+## Building the Desktop Altair 101
+
+Completed steps:
++ Ordered and received parts.
++ Put together the case to see where the parts will fit in and if any changes need to be made.
++ 24 toggle switches screwed onto the front panel. Plus one for power.
+
+Next steps:
++ Modify the case top for easy removal.
++ Cover the case with a paper finish.
++ Solder 56 wire connections on the toggle switches. 24 ground wires to all 24 toggles.
+    Plus 16 wires for the control switches and 16 wires for the address toggles.
++ Use silicon glue to mount the 36 LED lights.
++ Solder a ground wire to all the lights. The power side, uses cable connectors.
 
 --------------------------------------------------------------------------------
 ## The Altair 101 Steampunk Tablet
 
 Components mounted on a clipboard.
 
-<img width="330px"  src="../hardware/Altair101dev6.jpg"/>
+<img width="330px"  src="Altair101a.jpg"/>
 
-Top right is the onboard USB hub:
-+ The hub plugs connect to the laptop.
-+ Ribbon cable to the serial port module that used to download byte code from the laptop to the Mega,
-    where the code goes into the emulator's memory to be run.
-+ Blue cable plugs into the Mega for downloading Arduino programs such as the processor program,
-    and for serial monitor display of log messages on the laptop.
-
-Top breadboard, in the following photo of the current development machine:
-+ Cables connecting 3 shift registers(SN74HC595N) to the LED lights in the center board.
-+ In the middle of the cables is the infrared receiver.
-    It was used in the early development phase, in place of toggle switches such as stop, run, examine, deposit.
-+ Future: MP3 player module.
-
-Center breadboard:
-+ DS3231 clock module (left above the LED lights).
-+ Display LED lights: 16 address and 8 data lights.
-
-Bottom breadboard:
-+ Shift register(SN74HC595N) to the status LED lights.
-+ The I2C pins from the Mega are connected here, to allow multiple devices to connect.
-    Currently, the input toggles are I2C connected.
-+ 1602 LCD.
-
-Right of the breadboards:
-+ Micro SD Card module for reading and writing program memory.
-
-Below the breadboards:
-+ Arduino Mega board which is the Altair 101's CPU and RAM.
-+ Input toggles for entering address and data.
-    The toggle board is from a 1970's mainframe computer.
-+ Control toggles arranged on the 70's toggle board, in the fashion of a game console.
-
---------------------------------------------------------------------------------
 ### Altair 101 Steampunk Tablet Parts List
 
 Parts,

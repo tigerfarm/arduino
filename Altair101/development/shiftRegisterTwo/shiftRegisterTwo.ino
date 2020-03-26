@@ -5,22 +5,16 @@
   Using a 74HC595 Shift Register for serial to multiple pin outs.
 
   First 74HC595:
-  + 74HC595 pin 16: to 5V+.
-  + 74HC595 pin 15: LED 0.
-  + 74HC595 pin 14: Latch pin (RCLK) to Nano pin 5, which does the Parallel-Out task to the 8 output pins.
-  + 74HC595 pin 13: to ground (-).
-  + 74HC595 pin 12: Data-in pin (SRCLK) to Nano pin 4(data out), data transfer from Nano to 595.
-  + 74HC595 pin 11: Clock pin (SER)  to Nano pin 6, clock signal to say that the data is ready.
-  + 74HC595 pin 10: to 5V+.
-  + 74HC595 pin 09: Not used in single 74HC595. Used to daisy chain to next 74HC595, pin 14 (data).
-  + 74HC595 pin 08: to ground (-).
-  + 74HC595 pin 07: LED 7.
-  + 74HC595 pin 06: LED 6.
-  + 74HC595 pin 05: LED 5.
-  + 74HC595 pin 04: LED 4.
-  + 74HC595 pin 03: LED 3.
-  + 74HC595 pin 02: LED 2.
-  + 74HC595 pin 01: LED 1.
+        ---------
+  LED 1 |01 | | 16| 5V+
+  LED 2 |02  -  15| LED 0
+  LED 3 |03     14| Data pin (SRCLK) to Nano pin 4, data transfer from Nano to 595.
+  LED 4 |04     13| Ground (-)
+  LED 5 |05     12| Latch pin (RCLK) to Nano pin 5, which does the Parallel-Out task to the 8 output pins.
+  LED 6 |06     11| Clock pin (SER)  to Nano pin 6, clock signal to say that the data is ready.
+  LED 7 |07     10| 5V+
+  GND(-)|08     09| Daisy chain to next 74HC595, pin 14 (data). Not used in single 74HC595.
+         ---------
 
   Second 74HC595 pins are the same as above, except:
   + First 74HC595 pin 09 is connected to second 74HC595 pin 14 (data).
