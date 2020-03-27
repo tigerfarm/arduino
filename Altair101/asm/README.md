@@ -97,8 +97,8 @@ I flip the RESET switch and the machine returns to program mode.
 ````
 If I flip the run switch, the program will start running.
 
-I can use the examine and examine next toggles to view the program bytes in the front panel LED lights.
-I can change the program bytes using the Deposit toggles.
+I can use the examine and examine next toggle to view the program bytes in the front panel LED lights.
+I can change the program bytes using the Deposit toggle.
 The Step toggle works to step through the program machine cycles
 with results showing on the LED lights: address lights, data lights, and status lights.
 
