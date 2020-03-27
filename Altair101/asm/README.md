@@ -29,12 +29,7 @@ Assembler components:
 
 Following is how I generate a machine code file and upload it to the Arduino processor program.
 
-On the Altair 101,
-````
-I set the sense switches all on.
-+ Now, the machine is ready to receive bytes through the serial port module.
-````
-On my laptop, I generate the machine code file.
+1. On my laptop, I generate the machine code file.
 ````
 $ java -jar asm.jar 
 +++ Start 8080/8085 assembler, version 0.92e
@@ -65,7 +60,18 @@ $ java -jar asm.jar
 + End of list.
 + Machine code file created:  p1.bin
 ````
-The machine code file is created. Next I upload the file.
+The machine code file is created.
+
+2. I upload the file to the 101.
+
+On the Altair 101,
+````
+I set the sense switches all on.
++ I flip the AUX2 switch down, for download.
++ Now, the machine is ready to receive bytes downloaded through the serial port module.
+````
+
+On the laptop, I enter the command to upload the machine code file.
 ````
 > upload
 + -------------------------------------
@@ -83,12 +89,13 @@ The machine code file is created. Next I upload the file.
 +++ Exit.
 $
 ````
+The machine code is now in the 101's program memory.
+
 On the Altair 101,
 ````
 I flip the RESET switch and the machine returns to program mode.
 ````
-The machine code program is in the emulator's memory and ready to use.
-For example, I flip the run toggle to run the program.
+If I flip the run switch, the program will start running.
 
 I can use the examine and examine next toggles to view the program bytes in the front panel LED lights.
 I can change the program bytes using the Deposit toggles.
