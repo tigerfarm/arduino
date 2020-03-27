@@ -14,7 +14,6 @@ to run the classic program, Kill the Bit.
 Since my Altair 101 development machine is working properly, I can show my steampunk tablet to the world.
 Time to generate videos.
 
-
 <img width="300px"  src="AltairSteampunk.jpg"/>
 
 --------------------------------------------------------------------------------

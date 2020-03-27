@@ -46,9 +46,15 @@ Next steps:
 --------------------------------------------------------------------------------
 ## The Altair 101 Steampunk Tablet
 
-Components mounted on a clipboard using nuts and screws, felt pads, and 2 sided mounting tape.
+The tablet emulates the basic Altair 8800 computer hardware from 1975.
+It has more than enough Intel 8080/8085 microprocessor machine code instructions (opcodes)
+to run the classic program, [Kill the Bit](https://www.youtube.com/watch?v=dcsFnjTbJew).
+Assembler programs are assembled using the [assembler program](../asm/README.md) I wrote, and then
+uploaded to the 101 through a USB serial connection.
 
 <img width="560px"  src="Altair101a.jpg"/>
+
+Components are mounted on a clipboard using nuts and screws, felt pads, and 2 sided mounting tape.
 
 ### Tablet Parts List
 
