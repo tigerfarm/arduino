@@ -10,10 +10,11 @@ My hardware design centers around my [Altair 8800 clone front panel](https://www
 
 [<img width="360px"  src="../FrontPanel01a.jpg"/>](https://www.adwaterandstir.com/product/front-panel/)
 
-My goal was to design and build a machine to emulate the base Altair 8800 machine.
-The emulator will also have modern components such as a micro SD card module for storage and a real time clock.
-I will keep the cost low, and soldering to a minimum. The final machine cost is about $149.
-The only soldering is wire connectors for the toggle switches and LED lights which is basic soldering.
+I completed my goal was to design and build a machine to emulate the base Altair 8800 machine.
+The emulator also has modern components such as a micro SD card module for storage and a 32 character LCD.
+I kept the cost low, the final machine cost is about $149.
+I kept soldering to a minimum. The only soldering is wire connectors for the toggle switches.
+The desktop version will require basic soldering of the LED lights to ground.
 
 I watched Dan Eater's videos on
 [how to Build an 8-bit computer from scratch](https://www.youtube.com/watch?v=HyznrdDSSGM&list=PLLlz7OhtlfKYk8nkyF1u-cDwzE_S0vcJs&index=14)
