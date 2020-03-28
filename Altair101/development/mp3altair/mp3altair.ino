@@ -6,6 +6,20 @@
   To compile this version, use the library manager to load the
     DFRobot mini player library. For my implementation, I loaded version 1.05.
 
+  Features:
+  + Volume up
+  + Volume down
+  + Pause
+  + Play
+  + Play next
+  + Play previous
+  + Play next directory songs
+  + Play previous directory songs
+  + Loop single song: on
+  + Loop single song: off
+  + Select various equalizer settings:
+  ++ DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
+  
   ------------------------------------------------------------------------------
   DFPlayer Mini pins
          ----------
@@ -59,9 +73,6 @@ void printDetail(uint8_t type, int value) {
     case TimeOut:
       Serial.println(F("Time Out!"));
       break;
-    case WrongStack:
-      Serial.println(F("Stack Wrong!"));
-      break;
     case DFPlayerCardInserted:
       Serial.println(F("Card Inserted!"));
       break;
@@ -70,12 +81,6 @@ void printDetail(uint8_t type, int value) {
       break;
     case DFPlayerCardOnline:
       Serial.println(F("Card Online!"));
-      break;
-    case DFPlayerUSBInserted:
-      Serial.println("USB Inserted!");
-      break;
-    case DFPlayerUSBRemoved:
-      Serial.println("USB Removed!");
       break;
     case DFPlayerPlayFinished:
       Serial.print(F("Number:"));
@@ -91,12 +96,6 @@ void printDetail(uint8_t type, int value) {
         case Sleeping:
           Serial.println(F("Sleeping"));
           break;
-        case SerialWrongStack:
-          Serial.println(F("Get Wrong Stack"));
-          break;
-        case CheckSumNotMatch:
-          Serial.println(F("Check Sum Not Match"));
-          break;
         case FileIndexOut:
           Serial.println(F("File Index Out of Bound"));
           break;
@@ -110,9 +109,6 @@ void printDetail(uint8_t type, int value) {
           }
           Serial.println(currentDirectory);
           mp3player.loopFolder(currentDirectory);
-          break;
-        case Advertise:
-          Serial.println(F("In Advertise"));
           break;
         default:
           break;
@@ -130,18 +126,18 @@ void playMp3() {
     int theType = mp3player.readType();
     // ------------------------------
     if (theType == DFPlayerPlayFinished) {
-      Serial.print("+ MP3 file play has completed. ");
+      // Serial.print("+ MP3 file play has completed. ");
       if (loopSingle) {
-        Serial.println("Loop/play the same MP3.");
+        // Serial.println("Loop/play the same MP3.");
         mp3player.start();
-        Serial.println("+ mp3player.read() " + mp3player.read());
+        // Serial.println("+ mp3player.read() " + mp3player.read());
       } else {
-        Serial.println("Play next MP3.");
+        // Serial.println("Play next MP3.");
         mp3player.next();
       }
       // ------------------------------
     } else if (theType == DFPlayerCardInserted ) {
-      Serial.println(F("+ SD mini card inserted. Start playing"));
+      // Serial.println(F("+ SD mini card inserted. Start playing"));
       mp3player.start();
     } else {
       // Print the detail message from DFPlayer to handle different errors and states,
@@ -152,8 +148,8 @@ void playMp3() {
 }
 
 // -----------------------------------------------------------------------
-void infraredSwitch() {
-  // Serial.println("+ infraredSwitch");
+void playerInfraredSwitch() {
+  // Serial.println("+ playerInfraredSwitch");
   //
   // Should check if pause. If pause, then only allow unpause, i.e OK key.
   //
@@ -338,10 +334,10 @@ void setup() {
 // -----------------------------------------------------------------------------
 void loop() {
 
-  delay(50);
+  delay(60);
   // Process infrared key presses.
   if (irrecv.decode(&results)) {
-    infraredSwitch();
+    playerInfraredSwitch();
     irrecv.resume();
   }
   playMp3();
