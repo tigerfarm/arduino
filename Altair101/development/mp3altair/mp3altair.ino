@@ -312,7 +312,7 @@ void setup() {
   //
   mp3player.setTimeOut(300);   // Set serial communictaion time out
   delay(300);
-  mp3player.volume(18);        // Set speaker volume from 0 to 30. Doesn't effect DAC output.
+  mp3player.volume(16);        // Set speaker volume from 0 to 30. Doesn't effect DAC output.
   //
   // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
   mp3player.outputDevice(DFPLAYER_DEVICE_SD);
