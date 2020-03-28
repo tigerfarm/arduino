@@ -8,6 +8,28 @@
   To compile this version, use the library manager to load the
     DFRobot mini player library. For my implementation, I loaded version 1.05.
 
+  ------------------------------------------------------------------------------
+  DFPlayer Mini pins
+         ----------
+    VCC |   |  |   | BUSY, low:playing, high:not playing
+     RX |    __    | USB -
+     TX | DFPlayer | USB +
+  DAC_R |          | ADKEY_2
+  DAC_L |  ------  | ADKEY_1
+  SPK - | |      | | IO_2
+    GND | |      | | GND
+  SPK + | Micro SD | IO_2
+         ----------
+  Connections:
+    RX to resister to pin 11.
+    TX to pin 10.
+    DAC_R to right output (+)
+    DAC_L to left output  (+)
+    GND   to output ground.
+  For a single speaker:
+    SPK - to the speaker pin.
+    SPK + to the other speaker pin.
+
   // ----------------------------------------------------------
   DFPlayer - A Mini MP3 Player For Arduino
 
@@ -50,7 +72,7 @@ int currentDirectory = 1;   // File directory name on the SD card. Example 1 is 
 boolean playPause = false;  // For toggling pause.
 boolean loopSingle = false; // For toggling single song.
 
-// For controling button presses: handle a quick click or a click and hold.
+// For controlling button presses: handle a quick click or a click and hold.
 boolean buttonLoop = false;
 boolean buttonPause = false;
 boolean buttonNext = false;
