@@ -28,19 +28,25 @@
      TX | DFPlayer | USB port + (DP, data)
   DAC_R |          | ADKEY_2 Play fifth segment.
   DAC_L |  ------  | ADKEY_1 Play first segment.
-  SPK - | |      | | IO_2 short press, play previous. Long press, decrease volume.
+  SPK - | |      | | IO_2 short press, play next. Long press, increase volume.
     GND | |      | | GND
-  SPK + | Micro SD | IO_2 short press, play next. Long press, increase volume.
+  SPK + | Micro SD | IO_1 short press, play previous. Long press, decrease volume.
          ----------
 
   ---------------------------------
   Connections used with an Arduino,
 
-  UART serial:
+  UART serial,
     RX: input
     TX: output
+    
+  Optional connections, use a completely different power source:
+    VCC to +5V. Also works with +3.3V
+    GND to ground(-). Need to test if ground need to be connected to the Arduino, or not.
+    Another option, from the Arduino, have a 7805 with capacitors and diode to the DFPlayer VCC pin.
+
   Connections:
-    VCC to +5V.
+    VCC to +5V. Also works with +3.3V
     GND to ground(-).
     RX to resister to pin 11.
     TX to pin 10.
