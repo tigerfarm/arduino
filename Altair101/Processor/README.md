@@ -103,6 +103,12 @@ Enter the following program to add to numbers (2+3).
 
 + Write the program to: 01100000.bin
 
+Following is the assembler program listing of the above.
+            mvi a,2         ; Set register A = 2.
+            adi 3           ; Add immediate number to register A.
+            sta 64          ; Move result (register A) to address 64.
+            hlt
+
 + Run the program, which runs until it halts.
 + Examine memory address 64 to view the result, 2+3 = 5.
 + View and deposit and new number value.

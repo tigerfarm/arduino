@@ -32,7 +32,7 @@
   + SCL to Nano A5.
   + GND to Nano GND
   + VCC to Nano 5V
-  + INT to Nano interrupt pin, pin 2 in this sample program.
+  + INT to interrupt pin, pin 2 on Nano, in this sample program.
   + P0 ... O7 to switches. Other side of the switch to ground.
 
   Library:
@@ -47,6 +47,11 @@
   Example statements:
     uint8_t value = pcf20.read8();
     Serial.println(pcf20.read8(), BIN);
+
+  Note, uint8_t is the same as a byte. it's shorthand for an unsigned integer of length 8 bits.
+    byte aByteBit;
+    --- or ---
+    uint8_t aByteBit;
 */
 // -----------------------------------------------------------------------------
 #define SWITCH_MESSAGES 1
@@ -64,6 +69,7 @@ void printByte(byte b) {
 PCF8574 pcf20(0x020);
 
 // Interrupt setup: interrupt pin to use, interrupt handler routine.
+//                   Mega pin for control toggle interrupt. Same pin for Nano.
 const int INTERRUPT_PIN = 2;
 boolean switchSetOn = false;
 void pcfinterrupt() {

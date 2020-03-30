@@ -107,7 +107,7 @@ decode_results results;
 PCF8574 pcf20(0x020);
 PCF8574 pcf21(0x021);
 
-//                Mega pin for control toggle interrupt.
+//                   Mega pin for control toggle interrupt. Same pin for Nano.
 const int INTERRUPT_PIN = 2;
 
 // Interrupt setup: interrupt pin to use, interrupt handler routine.
@@ -574,7 +574,7 @@ const byte WAIT_OFF =   B11111110;
 // -----------------------------------------------------------------------------
 // Memory definitions
 
-const int memoryBytes = 1256;  // When using Mega: 1024, for Nano: 256
+const int memoryBytes = 1024;  // When using Mega: 1024, for Nano: 256
 byte memoryData[memoryBytes];
 unsigned int curProgramCounter = 0;     // Current program address value
 unsigned int programCounter = 0;        // When processing opcodes, the next program address value.

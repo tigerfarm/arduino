@@ -8,6 +8,36 @@ https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
 Reference: https://forum.arduino.cc/index.php?topic=477214.0
 
 --------------------------------------------------------------------------------
+USB cable pin outs.
+When looking into a female USB plug, plastic block to the top, pin1 is on the left.
++ pin1, red: +5V
++ pin2, white: Data(-)
++ pin3, green: Data(+)
++ pin4, black: ground(-)
++ Shielding.
+
+When looking into a male USB plug, plastic block to the bottom, pin1 is on the right.
++ pin1, red: +5V
++ pin2, white: Data(-), or data for a USB keyboard
++ pin3, green: Data(+), or clock
++ pin4, black: ground(-)
+
+For a USB keyboard,
++ pin1, red: +5V
++ pin2, white: data 
++ pin3, green: clock
++ pin4, black: ground(-)
+
+Connect a USB keyboard to an Arduino,
+https://www.instructables.com/id/Connect-Arduino-UNO-to-USB-Keyboard/
+
+Keyboard library,
+https://www.arduino.cc/reference/en/language/functions/usb/keyboard/
+
+Keyboard library, example,
+https://github.com/PaulStoffregen/PS2Keyboard/blob/master/examples/TypeToDisplay/TypeToDisplay.ino
+
+--------------------------------------------------------------------------------
 ### General info
 
 A microcontroller unit (MCU) is a processor on a single chip that is focused on input/output (I/O).

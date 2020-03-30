@@ -6,48 +6,74 @@
   To compile this version, use the library manager to load the
     DFRobot mini player library. For my implementation, I loaded version 1.05.
 
-  Features:
-  + Volume up
-  + Volume down
-  + Pause
-  + Play
-  + Play next
-  + Play previous
-  + Play next directory songs
-  + Play previous directory songs
-  + Loop single song: on
-  + Loop single song: off
-  + Select various equalizer settings:
+  Program functionality:
+  + 01: Volume down
+  + 03: Volume up
+  + OK: Pause
+  + OK: Play
+  + >>: Play next
+  + <<: Play previous
+  + Up: Play next directory songs
+  + Dn: Play previous directory songs
+  + *|Return: Loop single song: on
+  + #|Exit: Loop single song: off
+  + 4...9: Select various equalizer settings:
   ++ DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
   
   ------------------------------------------------------------------------------
   DFPlayer Mini pins
          ----------
     VCC |   |  |   | BUSY, low:playing, high:not playing
-     RX |    __    | USB -
-     TX | DFPlayer | USB +
-  DAC_R |          | ADKEY_2
-  DAC_L |  ------  | ADKEY_1
-  SPK - | |      | | IO_2
+     RX |    __    | USB port - (DM, clock)
+     TX | DFPlayer | USB port + (DP, data)
+  DAC_R |          | ADKEY_2 Play fifth segment.
+  DAC_L |  ------  | ADKEY_1 Play first segment.
+  SPK - | |      | | IO_2 short press, play previous. Long press, decrease volume.
     GND | |      | | GND
-  SPK + | Micro SD | IO_2
+  SPK + | Micro SD | IO_2 short press, play next. Long press, increase volume.
          ----------
+
+  ---------------------------------
+  Connections used with an Arduino,
+
+  UART serial:
+    RX: input
+    TX: output
   Connections:
+    VCC to +5V.
+    GND to ground(-).
     RX to resister to pin 11.
     TX to pin 10.
-    DAC_R to right output (+)
-    DAC_L to left output  (+)
-    GND   to output ground.
-  For a single speaker:
+  For a single speaker, less than 3W:
     SPK - to the speaker pin.
     SPK + to the other speaker pin.
+  For output to a stearo amp or ear phnones:
+    DAC_R to output right (+)
+    DAC_L to output left  (+)
+    GND   to output ground.
+    
+  ------------------------------------------------------------------------------
+  Infrared receiver pins
+
+   A0 + -   - Nano connections
+    | | |   - Infrared receiver pins
+  ---------
+  |S      |
+  |       |
+  |  ---  |
+  |  | |  |
+  |  ---  |
+  |       |
+  ---------
+  
 */
 // -----------------------------------------------------------------------
 // Infrared:
 #include <IRremote.h>
-
+ 
 // Infrared receiver
-int IR_PIN = 9;
+// int IR_PIN = 9;
+int IR_PIN = A0;
 IRrecv irrecv(IR_PIN);
 decode_results results;
 
@@ -58,7 +84,8 @@ DFRobotDFPlayerMini mp3player;
 
 // For communicating with the DFPlayer
 #include "SoftwareSerial.h"
-SoftwareSerial playerSerial(10, 11);      // DFPlayer pins RX and TX, connected to Arduino pins: 10 and 11.
+// SoftwareSerial playerSerial(10, 11);      // DFPlayer pins TX and RX, connected to Arduino pins: 10 and 11.
+SoftwareSerial playerSerial(46, 47);      // DFPlayer pins 3(TX) and 2(RX), connected to Arduino pins: 46 and 47.
 
 int currentSingle = 1;      // First song played when player starts up. Then incremented when next is played.
 int currentDirectory = 1;   // File directory name on the SD card. Example 1 is directory name: /01.

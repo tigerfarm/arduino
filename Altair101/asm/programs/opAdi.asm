@@ -15,7 +15,7 @@
                             ; Add two numbers together:
                             ; Register A contents + ADI immediate value.
                             ;
-            mvi a,2         ; Register A = 2.
+            mvi a,2         ; Set register A = 2.
             adi 3           ; Add immediate number to register A.
                             ;
             sta 64          ; Move result (register A) to address 64.
