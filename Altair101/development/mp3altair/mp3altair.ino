@@ -4,12 +4,18 @@
   MP3 player with: play next, previous, loop single, and pause.
 
   To compile this version, use the library manager to load the
-    DFRobot mini player library. For my implementation, I loaded version 1.05.
+    DFRobotDFPlayerMini by DFRobot mini player library.
+    For my implementation, I loaded version 1.0.5.
+    https://github.com/DFRobot/DFRobotDFPlayerMini
 
   Program functionality:
   + Key: Function
   +  01: Volume down
+  +  02: Set to directory #2.
   +  03: Volume up
+  + 4...9: Select the following equalizer settings:
+  ++ (4)DFPLAYER_EQ_POP (5)DFPLAYER_EQ_CLASSIC (6)DFPLAYER_EQ_NORMAL
+  ++ (7)DFPLAYER_EQ_ROCK (8)DFPLAYER_EQ_JAZZ (9)DFPLAYER_EQ_BASS
   +  OK: Pause
   +  OK: Play
   +  >>: Play next
@@ -18,8 +24,6 @@
   +  Dn: Play previous directory songs
   + *|Return: Loop single song: on
   + #|Exit: Loop single song: off
-  + 4...9: Select various equalizer settings:
-  ++ DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
   
   ------------------------------------------------------------------------------
   DFPlayer Mini pins
@@ -37,11 +41,8 @@
   ---------------------------------
   Connections used with an Arduino,
 
-  UART serial,
-    RX: input
-    TX: output
-    
-  Power options, connect from the Arduino directly to the DFPlayer:
+  1. Power options.
+   Connect from the Arduino directly to the DFPlayer:
     VCC to +5V. Note, also works with +3.3V in the case of an NodeMCU.
     GND to ground(-).
   Use a completely different power source:
@@ -52,16 +53,23 @@
     From the Arduino +5V, use a 7805 with capacitors and diode to the DFPlayer VCC pin.
     GND to ground(-).
 
+  2. UART serial,
+    RX for receiving control instructions the DFPlayer.
+    RX: input connects to TX on Mega/Nano/Uno.
+    TX for sending state information.
+    TX: output connects to RX on Mega/Nano/Uno.
   Connections for Nano or Uno:
-    RX to resister to pin 11.
-    TX to pin 10.
+    RX to resister to serial software pin 11(TX).
+    TX to serial software pin 10(RX).
   Connections for Mega:
-    RX to resister to pin 18.
-    TX to pin 19.
+    RX2 to resister to Serial1 pin 18(TX).
+    TX3 to Serial1 pin 19(RX).
+    
+  3. Speaker output.
   For a single speaker, less than 3W:
     SPK - to the speaker pin.
     SPK + to the other speaker pin.
-  For output to a stearo amp or ear phnones:
+  For output to a stearo amp or ear phones:
     DAC_R to output right (+)
     DAC_L to output left  (+)
     GND   to output ground.
@@ -82,24 +90,27 @@
   
 */
 // -----------------------------------------------------------------------
-// Infrared:
+// Infrared Receiver
+
 #include <IRremote.h>
  
 // Infrared receiver
-// int IR_PIN = 9;
-int IR_PIN = A0;
+int IR_PIN = A0;      // Digital and analog pins work. Tested with A0 and 9.
 IRrecv irrecv(IR_PIN);
 decode_results results;
 
 // -----------------------------------------------------------------------
+// DFPlayer Mini
+
 #include "Arduino.h"
 #include "DFRobotDFPlayerMini.h"
 DFRobotDFPlayerMini mp3player;
 
-// For communicating from a Nano or Uno with the DFPlayer
-// Not needed for Mega because it has it's own hardware RX and TX pins.
+// The following is not needed for Mega because it has it's own hardware RX and TX pins.
+// For communicating a Nano or Uno with the DFPlayer
 // #include "SoftwareSerial.h"
-// SoftwareSerial playerSerial(10, 11);  // DFPlayer pins 3(TX) and 2(RX), connected to Arduino pins: 10 and 11.
+// DFPlayer pins 3(TX) and 2(RX), connected to Arduino pins: 10(RX) and 11(TX).
+// SoftwareSerial playerSerial(10, 11); // Software serial, playerSerial(RX, TX)
 
 int currentSingle = 1;      // First song played when player starts up. Then incremented when next is played.
 int currentDirectory = 1;   // File directory name on the SD card. Example 1 is directory name: /01.
@@ -107,9 +118,10 @@ boolean playPause = false;  // For toggling pause.
 boolean loopSingle = false; // For toggling single song.
 
 // -----------------------------------------------------------------------
-// mp3player configuration and error messages.
-void printDetail(uint8_t type, int value);
-void printDetail(uint8_t type, int value) {
+// DFPlayer configuration and error messages.
+
+void printDFPlayerMessage(uint8_t type, int value);
+void printDFPlayerMessage(uint8_t type, int value) {
   switch (type) {
     case TimeOut:
       Serial.println(F("Time Out!"));
@@ -161,8 +173,9 @@ void printDetail(uint8_t type, int value) {
 }
 
 // -----------------------------------------------------------------------------
+// Handle continuous playing, and play errors such as: SD card not inserted.
+
 void playMp3() {
-  // Handle continuous playing, and play errors such as: memory card not inserted.
   if (mp3player.available()) {
     int theType = mp3player.readType();
     // ------------------------------
@@ -183,16 +196,19 @@ void playMp3() {
     } else {
       // Print the detail message from DFPlayer to handle different errors and states,
       //   such as memory card not inserted.
-      printDetail(theType, mp3player.read());
+      printDFPlayerMessage(theType, mp3player.read());
     }
   }
 }
 
 // -----------------------------------------------------------------------
+// Infrared DFPlayer controls
+
 void playerInfraredSwitch() {
   // Serial.println("+ playerInfraredSwitch");
   //
-  // Should check if pause. If pause, then only allow unpause, i.e OK key.
+  // Consider controls based on state.
+  //  For example, if pause, then only allow unpause (OK key).
   //
   switch (results.value) {
     case 0xFFFFFFFF:
@@ -213,7 +229,7 @@ void playerInfraredSwitch() {
       break;
     case 0xFF38C7:
     case 0xE0E016E9:
-      // Serial.println("+ Key OK - Toggle: pause the song or start the song.");
+      // Serial.println("+ Key OK - Toggle: pause and start the song.");
       if (playPause) {
         mp3player.start();
         playPause = false;
@@ -229,7 +245,7 @@ void playerInfraredSwitch() {
       playPause = true;
       break;
     // -----------------------------------
-    // Single song loop
+    // Loop a single song: on/off
     case 0xFF6897:
     case 0xE0E01AE5:
       // Serial.println("+ Key * (Return) - Loop on: loop this single MP3.");
@@ -335,14 +351,15 @@ void setup() {
   // ----------------------------------------------------
   // DFPlayer serial connection.
   //
+  // --------
   // For communicating from a Nano or Uno with the DFPlayer, use a software serial port.
   // playerSerial.begin(9600);
   // if (!mp3player.begin(playerSerial)) {
-  //
+  // --------
   // Since Mega has its own hardware RX and TX pins.
   // Serial1 is Mega pins 18 and 19.
-  // Pin 18 to resister to pin 2 (RX).
-  // Pin 19 to pin 3 (RX).
+  // Pin 18(TX) to resister to pin 2(RX).
+  // Pin 19(RX) to pin 3(TX).
   Serial1.begin(9600);
   if (!mp3player.begin(Serial1)) {
     //
@@ -386,6 +403,7 @@ void setup() {
 void loop() {
 
   delay(60);
+  
   // Process infrared key presses.
   if (irrecv.decode(&results)) {
     playerInfraredSwitch();
