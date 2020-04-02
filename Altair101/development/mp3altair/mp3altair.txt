@@ -52,12 +52,9 @@
     From the Arduino +5V, use a 7805 with capacitors and diode to the DFPlayer VCC pin.
     GND to ground(-).
 
-  Connections for Nano or Uno:
+  Connections:
     RX to resister to pin 11.
     TX to pin 10.
-  Connections for Mega:
-    RX to resister to pin 18.
-    TX to pin 19.
   For a single speaker, less than 3W:
     SPK - to the speaker pin.
     SPK + to the other speaker pin.
@@ -96,10 +93,10 @@ decode_results results;
 #include "DFRobotDFPlayerMini.h"
 DFRobotDFPlayerMini mp3player;
 
-// For communicating from a Nano or Uno with the DFPlayer
-// Not needed for Mega because it has it's own hardware RX and TX pins.
-// #include "SoftwareSerial.h"
-// SoftwareSerial playerSerial(10, 11);  // DFPlayer pins 3(TX) and 2(RX), connected to Arduino pins: 10 and 11.
+// For communicating with the DFPlayer
+#include "SoftwareSerial.h"
+SoftwareSerial playerSerial(10, 11);      // DFPlayer pins TX and RX, connected to Arduino pins: 10 and 11.
+// SoftwareSerial playerSerial(5, 4);      // DFPlayer pins 3(TX) and 2(RX), connected to Arduino pins: 46 and 47.
 
 int currentSingle = 1;      // First song played when player starts up. Then incremented when next is played.
 int currentDirectory = 1;   // File directory name on the SD card. Example 1 is directory name: /01.
@@ -334,18 +331,8 @@ void setup() {
 
   // ----------------------------------------------------
   // DFPlayer serial connection.
-  //
-  // For communicating from a Nano or Uno with the DFPlayer, use a software serial port.
-  // playerSerial.begin(9600);
-  // if (!mp3player.begin(playerSerial)) {
-  //
-  // Since Mega has its own hardware RX and TX pins.
-  // Serial1 is Mega pins 18 and 19.
-  // Pin 18 to resister to pin 2 (RX).
-  // Pin 19 to pin 3 (RX).
-  Serial1.begin(9600);
-  if (!mp3player.begin(Serial1)) {
-    //
+  playerSerial.begin(9600);
+  if (!mp3player.begin(playerSerial)) {
     // Use softwareSerial to communicate with mp3.
     Serial.println(F("Unable to begin:"));
     Serial.println(F("1.Please recheck the connection!"));
