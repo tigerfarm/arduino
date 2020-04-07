@@ -8,6 +8,11 @@ https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
 Reference: https://forum.arduino.cc/index.php?topic=477214.0
 
 --------------------------------------------------------------------------------
++++ Hardware case component mounting tips.
+
+https://www.youtube.com/watch?v=PG7lqaCJ6yA
+
+--------------------------------------------------------------------------------
 USB cable pin outs.
 When looking into a female USB plug, plastic block to the top, pin1 is on the left.
 + pin1, red: +5V
@@ -992,6 +997,9 @@ https://www.instructables.com/id/Build-Your-FM-transmission-Station-with-Arduino
 + Or $19.95
 https://www.youtube.com/watch?v=6HArlDIf-NI
 https://www.adafruit.com/product/1958?gclid=EAIaIQobChMIo6-txJz63gIVilmGCh0rjwVgEAkYByABEgKZw_D_BwE
+
++ MP3 file player. 10 MP3 files loaded into memory for playback.
+https://www.youtube.com/watch?v=2gKd2tWIF-E
 
 --------------------------------------------------------------------------------
 ## Fritzing for creating Network Diagrams
