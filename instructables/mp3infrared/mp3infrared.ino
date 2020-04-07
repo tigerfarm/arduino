@@ -76,7 +76,7 @@
   ------------------------------------------------------------------------------
   Infrared receiver pins
 
-   A0 + -   - Nano connections
+   A1 + -   - Nano connections
     | | |   - Infrared receiver pins
   ---------
   |S      |
