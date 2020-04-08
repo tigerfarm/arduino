@@ -24,7 +24,7 @@
   +  Dn: Play previous directory songs
   + *|Return: Loop single song: on
   + #|Exit: Loop single song: off
-  
+
   ------------------------------------------------------------------------------
   DFPlayer Mini pins
          ----------
@@ -41,18 +41,7 @@
   ---------------------------------
   Connections used with an Arduino,
 
-  1. Power options.
-   Connect from the Arduino directly to the DFPlayer:
-    VCC to +5V. Note, also works with +3.3V in the case of an NodeMCU.
-    GND to ground(-).
-  Use a completely different power source:
-    VCC to +5V of the other power source.
-    GND to ground(-) of the other power source.
-  I seen another power option:
-    From the Arduino +5V, use a 7805 with capacitors and diode to the DFPlayer VCC pin.
-    GND to ground(-).
-
-  2. UART serial,
+  1. UART serial,
     RX for receiving control instructions the DFPlayer.
     RX: input connects to TX on Mega/Nano/Uno.
     TX for sending state information.
@@ -63,7 +52,18 @@
   Connections for Mega:
     RX(2) to resister to Serial1 pin 18(TX).
     TX(3) to Serial1 pin 19(RX).
-    
+
+  2. Power options.
+   Connect from the Arduino directly to the DFPlayer:
+    VCC to +5V. Note, also works with +3.3V in the case of an NodeMCU.
+    GND to ground(-).
+  Use a completely different power source:
+    VCC to +5V of the other power source.
+    GND to ground(-) of the other power source.
+  I seen another power option:
+    From the Arduino +5V, use a 7805 with capacitors and diode to the DFPlayer VCC pin.
+    GND to ground(-).
+
   3. Speaker output.
   For a single speaker, less than 3W:
     SPK - to the speaker pin.
@@ -72,7 +72,7 @@
     DAC_R to output right (+)
     DAC_L to output left  (+)
     GND   to output ground.
-    
+
   ------------------------------------------------------------------------------
   Infrared receiver pins
 
@@ -86,15 +86,15 @@
   |  ---  |
   |       |
   ---------
-  
+
 */
 // -----------------------------------------------------------------------
 // Infrared Receiver
 
 #include <IRremote.h>
- 
+
 // Infrared receiver
-int IR_PIN = A1;      // Digital and analog pins work. Tested with A0 and 9.
+int IR_PIN = A1;      // Digital and analog pins work. Also tested with A0 and 9.
 IRrecv irrecv(IR_PIN);
 decode_results results;
 
@@ -163,10 +163,16 @@ void printDFPlayerMessage(uint8_t type, int value) {
           mp3player.loopFolder(currentDirectory);
           break;
         default:
+          Serial.println(F("Unknown DFPlayer error message value:"));
+          Serial.print(value);
           break;
       }
       break;
     default:
+          Serial.println(F("Unknown DFPlayer message type: "));
+          Serial.print(type);
+          Serial.print(F(", value:"));
+          Serial.print(value);
       break;
   }
 }
@@ -402,7 +408,7 @@ void setup() {
 void loop() {
 
   delay(60);
-  
+
   // Process infrared key presses.
   if (irrecv.decode(&results)) {
     playerInfraredSwitch();
