@@ -16,6 +16,36 @@
   I can show my steampunk tablet to the world.
   + Time to generate videos.
 
+  ---------------------------------------------
+  Tablet to Desktop module work
+
+  Tablet module, for Tablet and Desktop module,
+  + WAIT and HLDA need to be digital pin controlled.
+  ++ Change WAIT_ON/OFF to be digital pin controlled.
+  ++ HLDA is already controlled by a digital pin: HLDA_PIN = A10.
+
+  Tablet module,
+  + Toggle inputs, 2 PCF modules:
+  ++ pcf20: controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
+  ++ pcf20 has interupt enabled.
+  ++ pcf21: low address byte, sense switches
+  + Digital pin: AUX 1 up, clock
+  + Digital pin: AUX 1 down, MP3 player
+  + Digital pin: AUX 2 up, write/upload to the SD card
+  + Digital pin: AUX 2 down, read/download from the SD card
+  
+  Desktop module,
+  + Toggle inputs: Add 2 more PCF modules to bring the total to 4:
+  ++ pcf20: controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
+  +++ pcf20 has interupt enabled.
+  ++ pcf21: low address byte
+  ++ pcf22: high address byte, sense switches
+  ++ pcf23: AUX 1, AUX 2, PROTECT, UNPROTECT, CLR, and switch below STEP.
+  ++ Implement: pcf23 with interupt enabled. Likely use the same Mega pin, pin 2.
+
+  ---------------------------------------------
+  Other Work
+
   Can set the LCD backlight is on when prompting, and reset after to what it was.
   + LCD backlight on/off status is controlled: LcdBacklight.
 
