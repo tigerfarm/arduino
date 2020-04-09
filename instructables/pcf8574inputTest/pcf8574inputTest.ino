@@ -35,24 +35,6 @@
   + INT to interrupt pin, pin 2 on Nano, in this sample program.
   + P0 ... O7 to switches. Other side of the switch to ground.
 
-  Library:
-    https://github.com/RobTillaart/Arduino/tree/master/libraries/PCF8574
-  Sample switch/button program:
-    https://github.com/RobTillaart/Arduino/blob/master/libraries/PCF8574/examples/buttonRead/buttonRead.ino
-  Reference:
-    https://forum.arduino.cc/index.php?topic=204596.msg1506639#msg1506639
-  Information and code sample:
-    https://protosupplies.com/product/pcf8574-i2c-i-o-expansion-module/
-
-  Example statements:
-    uint8_t value = pcf20.read8();
-    Serial.println(pcf20.read8(), BIN);
-
-  Note, uint8_t is the same as a byte. it's shorthand for an unsigned integer of length 8 bits.
-    byte aByteBit;
-    --- or ---
-    uint8_t aByteBit;
-
 */
 // -----------------------------------------------------------------------------
 #define SWITCH_MESSAGES 1
@@ -87,12 +69,7 @@ void printData(byte theByte) {
 
 /*
   Desktop module,
-  + Toggle inputs: Add 2 more PCF modules to bring the total to 4:
-  ++ pcf20: controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
   +++ pcf20 has interupt enabled.
-  ++ pcf21: low address byte
-  ++ pcf22: high address byte, sense switches
-  ++ pcf23: AUX 1, AUX 2, PROTECT, UNPROTECT, CLR, and switch below STEP.
   ++ Implement: pcf23 with interupt enabled. Likely use the same Mega pin, pin 2.
  */
 PCF8574 pcf20(0x020); // Controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
