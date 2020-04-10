@@ -1171,42 +1171,42 @@ My first order.
 ````
 1 x ($3.21) SODIAL Nano V3.0 ATmega328P CH340G 5V 16M MINI USB Nano V3.0 Compatible to Arduino Blue $19.26
 1 x ($6.40) SODIAL UNO R3 Development Board microcontroller MEGA328P ATMEGA16U2 Compat for Arduino blue $6.40
---------------------
+
 1 x ($1.02) SODIAL Breakout Humidity/Digital Temperature/Barometric Pressure Sensor Module BME280 $1.02
 1 x ($1.00) SPI Reader Micro SD Memory Card TF Memory Card Shield Module for Arduino $1.00
 1 x ($1.00) 4 x 4 16 Key Matrix Membrane Switch Keypad $1.00
 1 x ($1.29) DC 3.3-5.5V DS3231 High Precision Real-Time Clock Module for MCU $1.29
 2 x ($1.06) SODIAL 5V 1 channel H / L Level Trigger Relay Optocoupler Module for Arduino $2.12
 1 x ($1.00) DC 5V Coil Relay Module for SCM Development $1.00
---------------------
+
 1 x ($1.08) SODIAL Infrared Wireless Remote Control Kit for Arduino DIY Project $1.08
 1 x ($1.00) SODIAL For Arduino Bluetooth Module Serial Board Transceiver Transmitter Receiver $1.00
 1 x ($1.00) New HC-SR04 Distance Measuring Transducer Sensor Ultrasonic Module for Arduino $1.00
---------------------
+
 1 x ($6.86) SODIAL 3pcs MB-102 Breadboard 830 Point Solderless Prototype PCB Board Kit for Arduino Proto Shield Distribution Connecting Blocks $6.86
 1 x ($4.00) SODIAL 3X Mini 400 Points Prototype PCB Solderless Breadboard Protoboard $4.00
 1 x ($2.00) SODIAL 3X MB102 Breadboard Power Supply Module 3.3V 5V for Arduino Bread Board $2.00
 1 x ($1.30) SODIAL DC 9V PP3 Battery Holder Box Case Wire Lead ON/OFF Switch Cover + 2.1mm Plug $1.30
---------------------
+
 1 x ($2.00) 1602 16x2 Character LCD Display Module Blue Blacklight $2.00
 1 x ($2.26) SODIAL 10 Segment LED Bargraph Light Display (5PCS RED) $2.26
 1 x ($2.00) MAX7219 Red Dot Matrix Module MCU Control LED Display DIY w Cable $2.00
 1 x ($1.30) 100 Pcs 5mm Red Green White Blue LED Light Emitting Diodes DC 2.5V-3V $1.30
 1 x ($1.12) 5 pcs Common Cathode 10 Pin 2 Bit 7 Segment 0.4" Red LED Display Digital Tube $1.12
 1 x ($1.22) 10 Pcs 10 Pin 1 Bit 7 Segment 0.5" Red LED Display Digital Tube $1.22
---------------------
+
 2 x ($1.39) SODIAL DFPlayer Mini MP3 Player Module For Arduino Black $2.78
 1 x ($0.87) SODIAL PAM8403 mini 5V digital power amplifier board with switch potentiometer can USB power supply $0.87
 1 x ($2.59) SODIAL YDA138-E YAMAHA 12W+12W Dual Channel Digital Audio Amplifier Board DC 12V $2.59
 2 x ($1.81) SODIAL 2 Pcs 5W 8 Ohm Magnetic Speaker Loudspeaker 70mm x 30mm for TV Player $3.62
---------------------
+
 1 x ($0.36) 10 Pcs 4 Pins Tactile Round Push Button Switch Momentary Tact $0.36
 1 x ($1.00) 2Pcs Single Linear Knurled Shaft Volume Rotary Potentiometers 1K Ohm $1.00
 4 x ($0.42) SODIAL Potentiometer Single Linear Potentiometer Resistance:10K $1.68
 2 x ($0.77) SODIAL Replacement 1.41 inchcap top diameter 6mm shaft hole non-slip potentiometer knob $1.54
 1 x ($3.00) SODIAL 1% Precision 1 / 4W 30 Values ??Metal Resistor Resistance Kit, Set of 600 pcs $3.00
 1 x ($2.00) New 5 Pcs AC 250V/3A 120V/6A On-Off 2 Position Spdt Self Locking Toggle Switch $2.00
---------------------
+
 2 x ($1.00) 40 x 10 male - female jumper plug / socket jumpers jumper wires $2.00
 1 x ($1.43) SODIAL 65 x Jumper Wires Asked Jumpers Breadboard $1.43
 1 x ($1.29) 65PCS Male to Male Solderless Breadboard Jumper Cable $1.29
