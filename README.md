@@ -1172,7 +1172,7 @@ Sales Order Date:              10/4/2018 10:36:09 PM
 Shipping Method:               Ship from Overseas(8-15 bus. days)
 Estimated to Ship Out On:   10/5/2018 by End of Day
 
-6 x ($3.21) SODIAL Nano V3.0 ATmega328P CH340G 5V 16M MINI USB Nano V3.0 Compatible to Arduino Blue $19.26
+1 x ($3.21) SODIAL Nano V3.0 ATmega328P CH340G 5V 16M MINI USB Nano V3.0 Compatible to Arduino Blue $19.26
 1 x ($6.40) SODIAL UNO R3 Development Board microcontroller MEGA328P ATMEGA16U2 Compat for Arduino blue $6.40
 --------------------
 1 x ($1.02) SODIAL Breakout Humidity/Digital Temperature/Barometric Pressure Sensor Module BME280 $1.02
