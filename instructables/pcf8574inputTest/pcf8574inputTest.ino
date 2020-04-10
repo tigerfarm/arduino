@@ -48,6 +48,13 @@ void printByte(byte b) {
   for (int i = 7; i >= 0; i--)
     Serial.print(bitRead(b, i));
 }
+void printWord(unsigned int theValue) {
+  String sValue = String(theValue, BIN);
+  for (int i = 1; i <= 16 - sValue.length(); i++) {
+    Serial.print("0");
+  }
+  Serial.print(sValue);
+}
 void printOctal(byte b) {
   String sValue = String(b, OCT);
   for (int i = 1; i <= 3 - sValue.length(); i++) {
@@ -251,10 +258,13 @@ void checkControlButtons() {
   } else if (switchExamine) {
     switchExamine = false;
     // Switch logic.
-    Serial.print(F("+ Control, Examine: "));
-    printByte(dataByte);
-    Serial.print(" = ");
-    printData(dataByte);
+    Serial.println(F("+ Control, Examine: "));
+    Serial.print(" Togle address = ");
+    printWord(toggleAddress());
+    Serial.print(", data=");
+    printByte(toggleDataByte());
+    Serial.print(", sense=");
+    printByte(toggleSenseByte());
     Serial.println("");
   }
   // -------------------
@@ -350,6 +360,13 @@ void checkAuxButtons() {
     switchAux1down = false;
     // Switch logic.
     Serial.println(F("+ Control, pinAux2down."));
+  }
+  // -------------------
+  if (pcfAux.readButton(pinProtect) == 0) {
+    Serial.println(F("+ Control, pinProtect."));
+  }
+  if (pcfAux.readButton(pinUnProtect) == 0) {
+    Serial.println(F("+ Control, pinUnProtect."));
   }
 }
 

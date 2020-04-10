@@ -35,12 +35,13 @@ How to run the command:
 https://apple.stackexchange.com/questions/256138/trying-to-set-boot-args-with-nvram-gets-general-error-on-sierra
 
 ++ Add and remove an arg:
+````
 # nvram boot-args="serverperfmode=1 $(nvram boot-args 2>/dev/null | cut -f 2-)"
 # nvram boot-args
 	serverperfmode=1  
 # sudo nvram boot-args="$(nvram boot-args 2>/dev/null | sed -e $'s/boot-args\t//;s/serverperfmode=1//')"
 # nvram boot-args
-
+````
 4. Restart the Mac.
 
 5. Replace the text -P{serial.port} to "-P{serial.port}" in 2 files:
