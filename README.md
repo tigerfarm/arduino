@@ -1164,7 +1164,9 @@ https://www.amazon.com/SODIAL-Solderless-Flexible-Breadboard-Jumper/dp/B00U8MK14
 https://www.amazon.com/SODIAL-140pcs-Solderless-Breadboard-Arduino/dp/B00K67XXSI/ref=sr_1_10?keywords=SODIAL+jumper+cable+breadboard&qid=1554232815&s=gateway&sr=8-10
 
 --------------------------------------------------------------------------------
-### My first order:
+### Purchased Items
+
+My first order:
 
 ````
 1 x ($3.21) SODIAL Nano V3.0 ATmega328P CH340G 5V 16M MINI USB Nano V3.0 Compatible to Arduino Blue $19.26
