@@ -502,7 +502,7 @@ Wire.beginTransmission(0x027);
 Wire.write(0b11111101);
 Wire.endTransmission();
 }
-```
+````
 + Using the PCF8574.h library.
 https://www.instructables.com/id/PCF8574-GPIO-Extender-With-Arduino-and-NodeMCU/
 + Supporting video:
