@@ -1165,13 +1165,8 @@ https://www.amazon.com/SODIAL-140pcs-Solderless-Breadboard-Arduino/dp/B00K67XXSI
 
 --------------------------------------------------------------------------------
 ### My first order:
-````
-Sales Order Number:       292111684
-Sold by SODIAL
-Sales Order Date:              10/4/2018 10:36:09 PM
-Shipping Method:               Ship from Overseas(8-15 bus. days)
-Estimated to Ship Out On:   10/5/2018 by End of Day
 
+````
 1 x ($3.21) SODIAL Nano V3.0 ATmega328P CH340G 5V 16M MINI USB Nano V3.0 Compatible to Arduino Blue $19.26
 1 x ($6.40) SODIAL UNO R3 Development Board microcontroller MEGA328P ATMEGA16U2 Compat for Arduino blue $6.40
 --------------------
@@ -1215,13 +1210,6 @@ Estimated to Ship Out On:   10/5/2018 by End of Day
 1 x ($1.29) 65PCS Male to Male Solderless Breadboard Jumper Cable $1.29
 1 x ($1.19) SODIAL 9v Battery Clip Snap Accessories with 2.1 X 5.5mm Male Dc Plug for Arduino(5 Pack) $1.19
 1 x ($0.77) SODIAL 1pcs MINI USB Cable for Arduino NANO Controller Board $0.77
-
-1 x (-$4.32) DISCOUNT FOR PROMOTION CODE
--$4.32
-Subtotal:	$82.03
-Tax:	$6.36
-Shipping and Handling:	$0.00
-Total Amount:	$88.39
 
 Other parts
 + LM317 DC-DC 1.5A 1.2-37V Adjustable Power Supply Board DC Converter Buck Step Down Module Adjustable Linear
