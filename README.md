@@ -1166,7 +1166,7 @@ https://www.amazon.com/SODIAL-140pcs-Solderless-Breadboard-Arduino/dp/B00K67XXSI
 --------------------------------------------------------------------------------
 ### Purchased Items
 
-My first order:
+My first order.
 
 ````
 1 x ($3.21) SODIAL Nano V3.0 ATmega328P CH340G 5V 16M MINI USB Nano V3.0 Compatible to Arduino Blue $19.26
