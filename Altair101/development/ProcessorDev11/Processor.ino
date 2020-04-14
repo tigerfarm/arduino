@@ -162,12 +162,10 @@ const int DOWNLOAD_SWITCH_PIN = 11;
 // ----------------
 // Status LED lights
 
-// Program wait status.
-const int WAIT_PIN = A9;      // Program wait state: off/LOW or wait state on/HIGH.
-
-// HLDA : 8080 processor goes into a hold state because of other hardware running.
+// HLDA : 8080 processor go into a hold state because of other hardware.
 const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock processing (on/HIGH).
 
+const int WAIT_PIN = A9;      // Program wait state: off/LOW or wait state on/HIGH.
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -566,7 +564,7 @@ const byte OUT_ON =     B00010000;  // OUT    The address contains the address o
 const byte HLTA_ON =    B00001000;  // HLTA   Machine opcode hlt, has halted the machine.
 const byte STACK_ON =   B00000100;  // STACK  Stack process
 const byte WO_ON =      B00000010;  // WO     Write out (inverse logic)
-// const byte WAIT_ON =    B00000001;  // WAIT   Changed to a digital pin control.
+const byte WAIT_ON =    B00000001;  // WAIT   For now, use this one for WAIT light status
 
 // Use AND to turn OFF. Example:
 //  statusByte = statusByte & M1_OFF;
@@ -577,13 +575,13 @@ const byte OUT_OFF =    B11101111;
 const byte HLTA_OFF =   B11110111;
 const byte STACK_OFF =  B11111011;
 const byte WO_OFF =     B11111101;
-// const byte WAIT_OFF =   B11111110;   // WAIT   Changed to a digital pin control.
+const byte WAIT_OFF =   B11111110;
 
 // MEMR - Bar LED #1
 // M1   - Bar LED #3
 // HLTA - Bar LED #5
 // WO   - Bar LED #7
-// WAIT - Green LED on the tablet
+// WAIT - Green LED
 // HLDA - Red LED
 
 // Video demonstrating status lights:
@@ -4118,7 +4116,7 @@ void checkPlayerSwitch() {
         programState = PLAYER_RUN;
         digitalWrite(HLDA_PIN, HIGH);
         digitalWrite(WAIT_PIN, LOW);
-        // statusByte = statusByte & WAIT_OFF;
+        statusByte = statusByte & WAIT_OFF;
         Serial.print("+ MP3 player programState: ");
         Serial.println(programState);
       }
@@ -4498,11 +4496,10 @@ void DownloadProgram() {
   // Set status lights:
   // HLDA on when in this mode. Later, HLDA off (LOW), then on (HIGH) when bytes downloading (Serial.available).
   digitalWrite(HLDA_PIN, HIGH);
-  digitalWrite(WAIT_PIN, LOW);
   // INP on
   byte readStatusByte = INP_ON;
   readStatusByte = readStatusByte & M1_OFF;
-  // readStatusByte = readStatusByte & WAIT_OFF;
+  readStatusByte = readStatusByte & WAIT_OFF;
   lightsStatusAddressData(readStatusByte, 0, 0);
   //
   readByteCount = 0;  // Counter where the downloaded bytes are entered into memory.
@@ -4594,8 +4591,7 @@ void setup() {
   // ----------------------------------------------------
   // Status lights are off (statusByte=0) by default.
   // programCounter and curProgramCounter are 0 by default.
-  digitalWrite(WAIT_PIN, HIGH);
-  // statusByte = statusByte | WAIT_ON;
+  statusByte = statusByte | WAIT_ON;
   statusByte = statusByte | MEMR_ON;
   statusByte = statusByte | M1_ON;
   statusByte = statusByte | WO_ON;  // WO: on, Inverse logic: off when writing out. On when not.

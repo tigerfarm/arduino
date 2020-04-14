@@ -1,9 +1,10 @@
 // -----------------------------------------------------------------------------
 /*
-  PCF8574 I2C Module
+  PCF8574 I2C Module, I2C to 8-bit Parallel-Port Expander
 
-  I2C to 8-bit Parallel-Port Expander
+  Program to test switch controls for PCF8574 module.
 
+  
   Module adjustable pin address settings:
    --------------
   |              |
@@ -37,9 +38,7 @@
 
 */
 // -----------------------------------------------------------------------------
-#define SWITCH_MESSAGES 1
-
-char charBuffer[17];
+// Nicely formated print of a byte.
 
 // Instruction parameters:
 byte dataByte = 0;           // db = Data byte (8 bit)
@@ -47,27 +46,6 @@ byte dataByte = 0;           // db = Data byte (8 bit)
 void printByte(byte b) {
   for (int i = 7; i >= 0; i--)
     Serial.print(bitRead(b, i));
-}
-void printWord(unsigned int theValue) {
-  String sValue = String(theValue, BIN);
-  for (int i = 1; i <= 16 - sValue.length(); i++) {
-    Serial.print("0");
-  }
-  Serial.print(sValue);
-}
-void printOctal(byte b) {
-  String sValue = String(b, OCT);
-  for (int i = 1; i <= 3 - sValue.length(); i++) {
-    Serial.print("0");
-  }
-  Serial.print(sValue);
-}
-void printData(byte theByte) {
-  sprintf(charBuffer, "%3d = ", theByte);
-  Serial.print(charBuffer);
-  printOctal(theByte);
-  Serial.print(F(" = "));
-  printByte(theByte);
 }
 
 // -----------------------------------------------------------------------------
@@ -79,294 +57,107 @@ void printData(byte theByte) {
 //                   Mega pin for control toggle interrupt. Same pin for Nano.
 const int INTERRUPT_PIN = 2;
 
-boolean pcfControlinterrupted = false;
-void pcfControlinterrupt() {
-  pcfControlinterrupted = true;
+boolean pcfSwitchesinterrupted = false;
+void pcfSwitchesinterrupt() {
+  pcfSwitchesinterrupted = true;
 }
 
 // Test with a diode for having 2 modules use the same Arduino interrupt pin.
-// pcfControl has interupt enabled.
-// Implement: pcfAux interupt handling. Likely use the same pin, pin 2.
+// pcfSwitches has interupt enabled.
+// Implement: pcfSwitches interupt handling. Likely use the same pin, pin 2.
 
-/*
-  Desktop version.
- */
-PCF8574 pcfControl(0x020);  // Controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
-PCF8574 pcfAux(0x023);      // AUX 1, AUX 2, PROTECT, UNPROTECT, CLR, and switch below STEP
-PCF8574 pcfData(0x021);     // low address byte, data byte
-PCF8574 pcfSense(0x022);    // high address byte, sense switch byte
+// Address for the PCF8574 module being tested.
+
+// -------------------------
+PCF8574 pcfSwitches(0x020);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Front Panel Switches
 
 // -------------------------
-// Get Front Panel address/data/sense toggle values.
+// Getting a byte of toggle values.
 
 int toggleDataByte() {
   // Invert byte bits using bitwise not operator: "~";
   // Bitwise "not" operator to invert bits:
   //  int a = 103;  // binary:  0000000001100111
   //  int b = ~a;   // binary:  1111111110011000 = -104
-  byte toggleByte = ~pcfData.read8();
-  return toggleByte;
-}
-int toggleSenseByte() {
-  byte toggleByte = ~pcfSense.read8();
-  return toggleByte;
-}
-unsigned int toggleAddress() {
-  byte byteLow = ~pcfData.read8();
-  byte byteHigh = ~pcfSense.read8();
-  return byteHigh*256 + byteLow;
-}
-
-// -------------------------------------------------------------------
-// Front Panel Control Switches, when a program is not running.
-// Switches: STOP and RESET.
-
-const int pinStop = 0;
-const int pinReset = 7;
-
-boolean switchStop = false;
-boolean switchReset = false;
-
-void checkRunningButtons() {
-  if (pcfControl.readButton(pinStop) == 0) {
-    if (!switchStop) {
-      switchStop = true;
-    }
-  } else if (switchStop) {
-    switchStop = false;
-    // Switch logic.
-    Serial.println(F("+ Running, Stop."));
-  }
-  // -------------------
-  // Read PCF8574 input for this switch.
-  if (pcfControl.readButton(pinReset) == 0) {
-    if (!switchReset) {
-      switchReset = true;
-    }
-  } else if (switchReset) {
-    switchReset = false;
-    // Switch logic.
-    Serial.println(F("+ Running, Reset."));
-  }
-}
-
-// -------------------------------------------------------------------
-// Front Panel Control Switches, when a program is not running (WAIT).
-
-// Switches: RESET.
-// Switches: RUN, STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT,
-
-// Only do the action once, don't repeat if the button is held down.
-// Don't repeat action if the button is not pressed.
-
-const int pinRun = 1;
-const int pinStep = 2;
-const int pinExamine = 3;
-const int pinExamineNext = 4;
-const int pinDeposit = 5;
-const int pinDepositNext = 6;
-
-boolean switchRun = false;
-boolean switchStep = false;
-boolean switchExamine = false;
-boolean switchExamineNext = false;
-boolean switchDeposit = false;;
-boolean switchDepositNext = false;;
-
-void checkExamineButton() {
-  // Read PCF8574 input for this switch.
-  if (pcfControl.readButton(pinExamine) == 0) {
-    if (!switchExamine) {
-      switchExamine = true;
-    }
-  } else if (switchExamine) {
-    switchExamine = false;
-    //
-    // Switch logic, based on programState.
-    //
-    // --------------------------
-    dataByte = toggleSenseByte();
-    // programCounter = toggleSenseByte();
-    // curProgramCounter = programCounter;     // Synch for control switches.
-    // dataByte = memoryData[programCounter];
-    // processDataLights();
-    // --------------------------
-    //
-#ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Control, Examine: "));
-    printByte(dataByte);
-    Serial.print(" = ");
-    printData(dataByte);
-    Serial.println("");
-#endif
-  }
-
-}
-
-void checkControlButtons() {
-  // -------------------
-  // Read PCF8574 input for this switch.
-  if (pcfControl.readButton(pinStop) == 0) {
-    if (!switchStop) {
-      switchStop = true;
-    }
-  } else if (switchStop) {
-    switchStop = false;
-    // Switch logic.
-    Serial.println(F("+ Running, Stop."));
-  }
-  // -------------------
-  // Read PCF8574 input for this switch.
-  if (pcfControl.readButton(pinReset) == 0) {
-    if (!switchReset) {
-      switchReset = true;
-    }
-  } else if (switchReset) {
-    switchReset = false;
-    // Switch logic.
-    Serial.println(F("+ Running, Reset."));
-  }
-  // -------------------
-  if (pcfControl.readButton(pinRun) == 0) {
-    if (!switchRun) {
-      switchRun = true;
-    }
-  } else if (switchRun) {
-    switchRun = false;
-    // Switch logic.
-    Serial.println(F("+ Control, pinRun."));
-  }
-  // -------------------
-  if (pcfControl.readButton(pinStep) == 0) {
-    if (!switchStep) {
-      switchStep = true;
-    }
-  } else if (switchStep) {
-    switchStep = false;
-    // Switch logic.
-    Serial.println(F("+ Control, pinStep."));
-  }
-  // -------------------
-  if (pcfControl.readButton(pinExamine) == 0) {
-    if (!switchExamine) {
-      switchExamine = true;
-    }
-  } else if (switchExamine) {
-    switchExamine = false;
-    // Switch logic.
-    Serial.println(F("+ Control, Examine: "));
-    Serial.print(" Togle address = ");
-    printWord(toggleAddress());
-    Serial.print(", data=");
-    printByte(toggleDataByte());
-    Serial.print(", sense=");
-    printByte(toggleSenseByte());
-    Serial.println("");
-  }
-  // -------------------
-  if (pcfControl.readButton(pinExamineNext) == 0) {
-    if (!switchExamineNext) {
-      switchExamineNext = true;
-    }
-  } else if (switchExamineNext) {
-    switchExamineNext = false;
-    // Switch logic.
-    Serial.println(F("+ Control, pinExamineNext."));
-  }
-  // -------------------
-  if (pcfControl.readButton(pinDeposit) == 0) {
-    if (!switchDeposit) {
-      switchDeposit = true;
-    }
-  } else if (switchDeposit) {
-    switchDeposit = false;
-    // Switch logic.
-    unsigned int theToggleAddress = toggleAddress();
-    Serial.print(F("+ Control, pinDeposit."));
-    Serial.print(F(", address: "));
-    Serial.println(theToggleAddress);
-  }
-  // -------------------
-  if (pcfControl.readButton(pinDepositNext) == 0) {
-    if (!switchDepositNext) {
-      switchDepositNext = true;
-    }
-  } else if (switchDepositNext) {
-    switchDepositNext = false;
-    // Switch logic.
-    Serial.println(F("+ Control, pinDepositNext."));
-  }
+  // byte toggleByte = ~pcfSwitches.read8();
+  return ~pcfSwitches.read8();
 }
 
 // --------------------------------------------------------
 // Front Panel Control Switches, when a program is not running.
 // Switches: AUX 1, AUX 1, PROTECT, UNPROTECT, CLR, and down STEP.
 
-const int pinAux1up = 0;
-const int pinAux1down = 1;
-const int pinAux2up = 2;
-const int pinAux2down = 3;
-const int pinProtect = 4;
-const int pinUnProtect = 5;
-const int pinClr = 6;
-const int pinStepDown = 7;
+const int pcfSwitch0 = 0;
+const int pcfSwitch1 = 1;
+const int pcfSwitch2 = 2;
+const int pcfSwitch3 = 3;
+const int pcfSwitch4 = 4;
+const int pcfSwitch5 = 5;
+const int pcfSwitch6 = 6;
+const int pcfSwitch7 = 7;
 
-boolean switchAux1up = false;
-boolean switchAux1down = false;
-boolean switchAux2up = false;
-boolean switchAux2down = false;
+boolean switchLogic0 = false;
+boolean switchLogic1 = false;
+boolean switchLogic3 = false;
+boolean switchLogic4 = false;
 
-void checkAuxButtons() {
+void checkSwitches() {
   // -------------------
-  if (pcfAux.readButton(pinAux1up) == 0) {
-    if (!switchAux1up) {
-      switchAux1up = true;
+  if (pcfSwitches.readButton(pcfSwitch0) == 0) {
+    if (!switchLogic0) {
+      switchLogic0 = true;
     }
-  } else if (switchAux1up) {
-    switchAux1up = false;
+  } else if (switchLogic0) {
+    switchLogic0 = false;
     // Switch logic.
-    Serial.println(F("+ Control, pinAux1up."));
+    Serial.println(F("+ Control, pcfSwitch0."));
   }
   // -------------------
-  if (pcfAux.readButton(pinAux1down) == 0) {
-    if (!switchAux1down) {
-      switchAux1down = true;
+  if (pcfSwitches.readButton(pcfSwitch1) == 0) {
+    if (!switchLogic1) {
+      switchLogic1 = true;
     }
-  } else if (switchAux1down) {
-    switchAux1down = false;
+  } else if (switchLogic1) {
+    switchLogic1 = false;
     // Switch logic.
-    Serial.println(F("+ Control, pinAux1down."));
+    Serial.println(F("+ Control, pcfSwitch1."));
   }
   // -------------------
-  if (pcfAux.readButton(pinAux2up) == 0) {
-    if (!switchAux2up) {
-      switchAux2up = true;
+  if (pcfSwitches.readButton(pcfSwitch2) == 0) {
+    if (!switchLogic3) {
+      switchLogic3 = true;
     }
-  } else if (switchAux2up) {
-    switchAux2up = false;
+  } else if (switchLogic3) {
+    switchLogic3 = false;
     // Switch logic.
-    Serial.println(F("+ Control, pinAux2up."));
+    Serial.println(F("+ Control, pcfSwitch2."));
   }
   // -------------------
-  if (pcfAux.readButton(pinAux2down) == 0) {
-    if (!switchAux1down) {
-      switchAux1down = true;
+  if (pcfSwitches.readButton(pcfSwitch3) == 0) {
+    if (!switchLogic1) {
+      switchLogic1 = true;
     }
-  } else if (switchAux1down) {
-    switchAux1down = false;
+  } else if (switchLogic1) {
+    switchLogic1 = false;
     // Switch logic.
-    Serial.println(F("+ Control, pinAux2down."));
+    Serial.println(F("+ Control, pcfSwitch3."));
   }
   // -------------------
-  if (pcfAux.readButton(pinProtect) == 0) {
-    Serial.println(F("+ Control, pinProtect."));
+  if (pcfSwitches.readButton(pcfSwitch4) == 0) {
+    Serial.println(F("+ Control, pcfSwitch4."));
   }
-  if (pcfAux.readButton(pinUnProtect) == 0) {
-    Serial.println(F("+ Control, pinUnProtect."));
+  if (pcfSwitches.readButton(pcfSwitch5) == 0) {
+    Serial.println(F("+ Control, pcfSwitch5."));
+  }
+  if (pcfSwitches.readButton(pcfSwitch6) == 0) {
+    Serial.println(F("+ Control, pcfSwitch6."));
+  }
+  if (pcfSwitches.readButton(pcfSwitch7) == 0) {
+    Serial.println(F("+ Control, pcfSwitch7."));
   }
 }
 
@@ -380,9 +171,9 @@ void setup() {
 
   // ------------------------------
   // I2C Two Wire + interrupt initialization
-  pcfControl.begin();
+  pcfSwitches.begin();
   pinMode(INTERRUPT_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcfControlinterrupt, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcfSwitchesinterrupt, CHANGE);
   Serial.println("+ PCF module initialized.");
 
   // ------------------------------
@@ -393,26 +184,25 @@ void setup() {
 // Device Loop
 void loop() {
 
-  if (pcfControlinterrupted) {
+  if (pcfSwitchesinterrupted) {
     // ----------------------
     Serial.println("+ Interrupt call, switchSetOn is true.");
-    dataByte = pcfControl.read8();                   // Read all PCF8574 inputs
-    Serial.print("+ PCF8574 0x20 byte, read8      = ");
+    dataByte = pcfSwitches.read8();                   // Read all PCF8574 inputs
+    Serial.print("+ PCF8574 byte, read8      = ");
     printByte(dataByte);
     Serial.println("");
     // ----------------------
-    Serial.print("+ PCF8574 0x20 byte, readButton = ");
+    Serial.print("+ PCF8574 byte, readSwitvh = ");
     for (int pinGet = 7; pinGet >= 0; pinGet--) {
-      int pinValue = pcfControl.readButton(pinGet);  // Read each PCF8574 input
+      int pinValue = pcfSwitches.readButton(pinGet);  // Read each PCF8574 input
       Serial.print(pinValue);
     }
     // ----------------------
     Serial.println("");
     // ----------------------
-    checkRunningButtons();
-    checkControlButtons();
+    checkSwitches();
     //
-    pcfControlinterrupted = false; // Reset for next interrupt.
+    pcfSwitchesinterrupted = false; // Reset for next interrupt.
   }
 
   delay (60);
