@@ -4,7 +4,7 @@
 
   Program to test switch controls for PCF8574 module.
 
-  
+
   Module adjustable pin address settings:
    --------------
   |              |
@@ -66,10 +66,12 @@ void pcfSwitchesinterrupt() {
 // pcfSwitches has interupt enabled.
 // Implement: pcfSwitches interupt handling. Likely use the same pin, pin 2.
 
-// Address for the PCF8574 module being tested.
-
 // -------------------------
-PCF8574 pcfSwitches(0x020);
+// Address for the PCF8574 module being tested.
+// PCF8574 pcfSwitches(0x020);
+PCF8574 pcfSwitches(0x021);
+// PCF8574 pcfSwitches(0x022);
+// PCF8574 pcfSwitches(0x023);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -162,6 +164,24 @@ void checkSwitches() {
 }
 
 // -----------------------------------------------------------------------------
+void echoSwitchData() {
+  // ----------------------
+  Serial.println("+ Interrupt call, switchSetOn is true.");
+  dataByte = pcfSwitches.read8();                   // Read all PCF8574 inputs
+  Serial.print("+ PCF8574 byte, read8      = ");
+  printByte(dataByte);
+  Serial.println("");
+  // ----------------------
+  Serial.print("+ PCF8574 byte, readSwitch = ");
+  for (int pinGet = 7; pinGet >= 0; pinGet--) {
+    int pinValue = pcfSwitches.readButton(pinGet);  // Read each PCF8574 input
+    Serial.print(pinValue);
+  }
+  // ----------------------
+  Serial.println("");
+}
+
+// -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
   // Give the serial connection time to start before the first print.
@@ -182,29 +202,22 @@ void setup() {
 
 // -----------------------------------------------------------------------------
 // Device Loop
+
+int counter = 0;
 void loop() {
 
   if (pcfSwitchesinterrupted) {
-    // ----------------------
-    Serial.println("+ Interrupt call, switchSetOn is true.");
-    dataByte = pcfSwitches.read8();                   // Read all PCF8574 inputs
-    Serial.print("+ PCF8574 byte, read8      = ");
-    printByte(dataByte);
-    Serial.println("");
-    // ----------------------
-    Serial.print("+ PCF8574 byte, readSwitvh = ");
-    for (int pinGet = 7; pinGet >= 0; pinGet--) {
-      int pinValue = pcfSwitches.readButton(pinGet);  // Read each PCF8574 input
-      Serial.print(pinValue);
-    }
-    // ----------------------
-    Serial.println("");
-    // ----------------------
+    echoSwitchData();
     checkSwitches();
-    //
     pcfSwitchesinterrupted = false; // Reset for next interrupt.
   }
 
-  delay (60);
+  delay (50);
+  counter++;
+  // 20 is 1 second (20 x 50 = 1000). 60 is every 3 seconds.
+  if (counter == 60) {
+    echoSwitchData();
+  }
+
 }
 // -----------------------------------------------------------------------------
