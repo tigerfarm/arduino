@@ -17,6 +17,29 @@
   + Time to generate videos.
 
   ---------------------------------------------
+  Connect the Mega to the desktop front panel:
+
+  12 Mega pins.
+
+  4 Mega pins to PCF8574 daisy chain, toggle inputs:
+  I2C SDA to Mega SDA
+  I2C SCL to Mega SCL
+  I2C +5V
+  I2C Ground
+
+  1 Mega pin to the Control PCF8574 module, Control toggle inputs:
+  I2C interrupt to Mega pin 2. Control PCF8574 modules.
+
+  3 Mega pins to 74HC595 daisy chain, LED output:
+//           Mega/Nano pins            74HC595 Pins
+const int dataPinLed = A13;     // pin 14 Data pin.
+const int latchPinLed = A14;    // pin 12 Latch pin.
+const int clockPinLed = A15;    // pin 11 Clock pin.
+
+const int WAIT_PIN = A9;
+const int HLDA_PIN = A10;
+
+  ---------------------------------------------
   Tablet to Desktop module work
 
   Tablet module, for Tablet and Desktop module,

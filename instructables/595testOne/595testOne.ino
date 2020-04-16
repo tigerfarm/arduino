@@ -37,9 +37,11 @@
 */
 // -----------------------------------------------------------------------------
 // Shift Register
-const int dataPin = 7;      // Connected to 74HC595 Data  pin 14.
-const int latchPin = 8;     // Connected to 74HC595 Latch pin 12.
-const int clockPin = 9;     // Connected to 74HC595 Clock pin 11.
+
+//           Mega/Nano pins            74HC595 Pins
+const int dataPinLed = A13;     // pin 14 Data pin.
+const int latchPinLed = A14;    // pin 12 Latch pin.
+const int clockPinLed = A15;    // pin 11 Clock pin.
 
 byte dataByte = B01010101;
 

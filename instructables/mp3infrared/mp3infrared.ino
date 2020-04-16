@@ -169,10 +169,10 @@ void printDFPlayerMessage(uint8_t type, int value) {
       }
       break;
     default:
-          Serial.println(F("Unknown DFPlayer message type: "));
-          Serial.print(type);
-          Serial.print(F(", value:"));
-          Serial.print(value);
+      Serial.println(F("Unknown DFPlayer message type: "));
+      Serial.print(type);
+      Serial.print(F(", value:"));
+      Serial.print(value);
       break;
   }
 }
@@ -185,18 +185,19 @@ void playMp3() {
     int theType = mp3player.readType();
     // ------------------------------
     if (theType == DFPlayerPlayFinished) {
-      // Serial.print("+ MP3 file play has completed. ");
+      Serial.println("+ MP3 file play has completed. ");
       if (loopSingle) {
-        // Serial.println("Loop/play the same MP3.");
+        Serial.println("Loop/play the same MP3.");
         mp3player.start();
         // Serial.println("+ mp3player.read() " + mp3player.read());
       } else {
-        // Serial.println("Play next MP3.");
+        Serial.println("Play next MP3.");
+        delay(300);
         mp3player.next();
       }
       // ------------------------------
     } else if (theType == DFPlayerCardInserted ) {
-      // Serial.println(F("+ SD mini card inserted. Start playing"));
+      Serial.println(F("+ SD mini card inserted. Start playing"));
       mp3player.start();
     } else {
       // Print the detail message from DFPlayer to handle different errors and states,

@@ -4,25 +4,30 @@
 
   I2C to 8-bit Parallel-Port Expander
 
-  Module adjustable pin address settings:
+  Module with adjustable pin address settings:
    --------------
-  |              |
+  |  V G S S     | Above are female pins
+  |  C N D C     |
+  |  C D A L     |
   |              | 0 is up   (-)
-  | A2 A1 A0     | 1 is down (+)
-  | 0  0  0      |  = 0x20
-  | 1  0  0      |  = 0x21, A2 is connected down, the others up.
-  | 0  1  0      |  = 0x22
-  | 1  1  0      |  = 0x23
-  | 0  0  1      |  = 0x24
-  | 1  0  1   P0 |  = 0x25
-  | 0  1  1   P1 |  = 0x26
-  | 1  1  1   P2 |  = 0x27
-  |           P3 |
-  |           P4 |
-  |           P5 |
-  |           P6 |
-  |  V G S S  P7 |
-  |  C N D C INT | For multiple, I used a diode to each.
+  |     A2 A1 A0 | 1 is down (+), toward the male pins at the bottom.
+  |     0  0  0  |  = 0x20
+  |     0  0  1  |  = 0x21, A0 is connected down, the others up.
+  |     0  1  0  |  = 0x22
+  |     0  1  1  |  = 0x23
+  |     1  0  0  |  = 0x24
+  | P0  1  0  1  |  = 0x25
+  | P1  1  1  0  |  = 0x26
+  | P2  1  1  1  |  = 0x27
+  | P3           |
+  | P4           |
+  | P5           |
+  | P6           |
+  | P7           |
+  | INT          | For multiple, test using a diode to the Arduino interrupt pin.
+  |              |
+  |  V G S S     | Below are male pins
+  |  C N D C     |
   |  C D A L     |
    --------------
      | | | |

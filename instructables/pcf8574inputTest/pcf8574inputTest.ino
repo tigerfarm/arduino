@@ -4,37 +4,44 @@
 
   Program to test switch controls for PCF8574 module.
 
-
-  Module adjustable pin address settings:
+  Module with adjustable pin address settings:
    --------------
-  |              |
+  |  V G S S     | Above are female pins
+  |  C N D C     |
+  |  C D A L     |
   |              | 0 is up   (-)
-  | A2 A1 A0     | 1 is down (+)
-  | 0  0  0      |  = 0x20
-  | 1  0  0      |  = 0x21, A2 is connected down, the others up.
-  | 0  1  0      |  = 0x22
-  | 1  1  0      |  = 0x23
-  | 0  0  1      |  = 0x24
-  | 1  0  1   P0 |  = 0x25
-  | 0  1  1   P1 |  = 0x26
-  | 1  1  1   P2 |  = 0x27
-  |           P3 |
-  |           P4 |
-  |           P5 |
-  |           P6 |
-  |  V G S S  P7 |
-  |  C N D C INT | For multiple, I used a diode to each.
+  |     A2 A1 A0 | 1 is down (+), toward the male pins at the bottom.
+  |     0  0  0  |  = 0x20
+  |     0  0  1  |  = 0x21, A0 is connected down, the others up.
+  |     0  1  0  |  = 0x22
+  |     0  1  1  |  = 0x23
+  |     1  0  0  |  = 0x24
+  | P0  1  0  1  |  = 0x25
+  | P1  1  1  0  |  = 0x26
+  | P2  1  1  1  |  = 0x27
+  | P3           |
+  | P4           |
+  | P5           |
+  | P6           |
+  | P7           |
+  | INT          | For multiple, test using a diode to the Arduino interrupt pin.
+  |              |
+  |  V G S S     | Below are male pins
+  |  C N D C     |
   |  C D A L     |
    --------------
      | | | |
 
-  Wiring:
-  + SDA to Nano A4.
-  + SCL to Nano A5.
-  + GND to Nano GND
-  + VCC to Nano 5V
-  + INT to interrupt pin, pin 2 on Nano, in this sample program.
+  Wiring to an Arduino such as a Nano or Mega:
+  + SDA to Arduino A4.
+  + SCL to Arduino A5.
+  + GND to Arduino GND
+  + VCC to Arduino 5V
+  + INT to Arduino interrupt pin such as pin 2 in this sample program.
   + P0 ... O7 to switches. Other side of the switch to ground.
+
+  When using multiple modules to the same Arduino interrupt pin,
+  + Test with a diode from the modules to the Arduino interrupt pin.
 
 */
 // -----------------------------------------------------------------------------
@@ -62,16 +69,15 @@ void pcfSwitchesinterrupt() {
   pcfSwitchesinterrupted = true;
 }
 
-// Test with a diode for having 2 modules use the same Arduino interrupt pin.
 // pcfSwitches has interupt enabled.
 // Implement: pcfSwitches interupt handling. Likely use the same pin, pin 2.
 
 // -------------------------
 // Address for the PCF8574 module being tested.
-// PCF8574 pcfSwitches(0x020);
-PCF8574 pcfSwitches(0x021);
-// PCF8574 pcfSwitches(0x022);
-// PCF8574 pcfSwitches(0x023);
+// PCF8574 pcfSwitches(0x020);    // Control: STOP, ...
+// PCF8574 pcfSwitches(0x021);    // Low bytes
+PCF8574 pcfSwitches(0x022);   // High bytes
+// PCF8574 pcfSwitches(0x023);    // AUX switches and others
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -166,7 +172,6 @@ void checkSwitches() {
 // -----------------------------------------------------------------------------
 void echoSwitchData() {
   // ----------------------
-  Serial.println("+ Interrupt call, switchSetOn is true.");
   dataByte = pcfSwitches.read8();                   // Read all PCF8574 inputs
   Serial.print("+ PCF8574 byte, read8      = ");
   printByte(dataByte);
@@ -177,6 +182,12 @@ void echoSwitchData() {
     int pinValue = pcfSwitches.readButton(pinGet);  // Read each PCF8574 input
     Serial.print(pinValue);
   }
+  // ----------------------
+  dataByte = toggleDataByte();                      // Read all PCF8574 inputs using toggleDataByte
+  Serial.print("+ Toggle Data Byte         = ");
+  printByte(dataByte);
+  Serial.println("");
+  
   // ----------------------
   Serial.println("");
 }
@@ -207,6 +218,8 @@ int counter = 0;
 void loop() {
 
   if (pcfSwitchesinterrupted) {
+    Serial.println("---------------------------");
+    Serial.println("+ Interrupt call, switchSetOn is true.");
     echoSwitchData();
     checkSwitches();
     pcfSwitchesinterrupted = false; // Reset for next interrupt.
@@ -216,8 +229,10 @@ void loop() {
   counter++;
   // 20 is 1 second (20 x 50 = 1000). 60 is every 3 seconds.
   if (counter == 60) {
+    Serial.println("---------------------------");
+    Serial.println("+ 3 second echo.");
     echoSwitchData();
+    counter = 0;
   }
-
 }
 // -----------------------------------------------------------------------------
