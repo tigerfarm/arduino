@@ -81,15 +81,28 @@
     Can add characters after the number, for example, "0001hello.mp3".
 
   List to find the card.
-    $sudo diskutil list
+    $ sudo diskutil list
+    ...
+    $ diskutil mountDisk /dev/disk3
+    Volume(s) mounted successfully
+
+  $ mount
+  ...
+  /dev/disk3s1 on /Volumes/EVERYWHERE (msdos, local, nodev, nosuid, noowners)
+  $ ls /Volumes/EVERYWHERE
+  01  02
+  $ dot_clean /Volumes/EVERYWHERE
+
   Format the card.
     $sudo diskutil eraseDisk FAT32 MUSIC MBRFormat /dev/disk2
   Copy files in order.
     The DFPlayer seems to use some sort of creation timestamp when the files are index.
     So don’t copy 0003.mp3 and then 0001.mp3, otherwise wacky things will happen.
+
   Clean hidden files which can cause issues.
-    $dot_clean /Volumes/Music
-  
+    $ dot_clean /Volumes/Music
+    https://ss64.com/osx/dot_clean.html
+
   ------------------------------------------------------------------------------
   DFPlayer Mini pins
          ----------
@@ -107,6 +120,11 @@
     "SPK -" to speaker #1 +
     "SPK +" to speaker #2 +
     GND to ground of speaker #1 and speaker #2.
+
+   3.5mm headphone jack pin out:
+   + Tip: left channel
+   + Middle: right channel
+   + Closest to the cable: ground.
 
   ---------------------------------
   Connections used with an Arduino,
@@ -247,6 +265,32 @@ void printDFPlayerMessage(uint8_t type, int value) {
   }
 }
 
+void echoCurrentInfo() {
+  Serial.println("+ --------------------------------------");
+  Serial.print("+ readCurrentFileNumber: ");
+  Serial.println(mp3player.readCurrentFileNumber());   // current play file number
+  Serial.print("+ readState: ");
+  Serial.println(mp3player.readState());               // mp3 state
+  Serial.print("+ readEQ: ");
+  Serial.println(mp3player.readEQ());                  // EQ setting
+  Serial.print("+ readFileCounts: ");
+  Serial.println(mp3player.readFileCounts());          // all file counts in SD card
+  Serial.print("+ readFileCountsInFolder 01: ");
+  Serial.println(mp3player.readFileCountsInFolder(1)); // fill counts in folder SD:/01
+  Serial.print("+ readVolume: ");
+  Serial.println(mp3player.readVolume());              // current sound volume
+  /*
+     Sample output:
+    + readCurrentFileNumber: 1
+    + readState: 514
+    + readEQ: 4
+    + readFileCounts: 486
+    + readFileCountsInFolder 01: 8
+    + readVolume: 12
+
+  */
+}
+
 // -----------------------------------------------------------------------------
 // Handle continuous playing, and play errors such as: SD card not inserted.
 
@@ -255,9 +299,8 @@ void playMp3() {
     int theType = mp3player.readType();
     // ------------------------------
     if (theType == DFPlayerPlayFinished) {
-      Serial.print(F("+ MP3 file play has completed, Number:"));
-      Serial.print(value);
-      Serial.println(F(" Play Finished!"));
+      Serial.print(F("+ Play Finished, Current FileNumber: "));
+      Serial.println(mp3player.readCurrentFileNumber());
       if (loopSingle) {
         Serial.println("Loop/play the same MP3.");
         mp3player.start();
@@ -283,20 +326,20 @@ void playMp3() {
 //    This may fix my issue where it skips to the next track until it finds a file that plays.
 //    From: https://reprage.com/post/dfplayer-mini-cheat-sheet
 void playTrack(uint8_t track) {
-   MP3Player.stop();
-   delay(200);
-   MP3Player.play(track);
-   delay(200);
-   int file = MP3Player.readCurrentFileNumber();
-   Serial.print("Track:");
-   Serial.println(track);
-   Serial.print("File:");
-   Serial.println(file);
-   while (file != track) {
-     MP3Player.play(track);
-     delay(200);
-     file = MP3Player.readCurrentFileNumber();
-   }
+  mp3player.stop();
+  delay(200);
+  mp3player.play(track);
+  delay(200);
+  int file = mp3player.readCurrentFileNumber();
+  Serial.print("Track:");
+  Serial.println(track);
+  Serial.print("File:");
+  Serial.println(file);
+  while (file != track) {
+    mp3player.play(track);
+    delay(200);
+    file = mp3player.readCurrentFileNumber();
+  }
 }
 
 // -----------------------------------------------------------------------
@@ -319,15 +362,24 @@ void playerInfraredSwitch() {
       // Serial.println("+ Key < - previous");
       // Stacy, don't previous before the first song.
       mp3player.previous();
+      delay(300);
+      Serial.print(F("+ Previous, Current FileNumber: "));
+      Serial.println(mp3player.readCurrentFileNumber());
       break;
     case 0xFF5AA5:
     case 0xE0E046B9:
       // Serial.println("+ Key > - next");
       mp3player.next();
+      delay(300);
+      Serial.print(F("+ Next, Current FileNumber: "));
+      Serial.println(mp3player.readCurrentFileNumber());
       break;
     case 0xFF38C7:
     case 0xE0E016E9:
       // Serial.println("+ Key OK - Toggle: pause and start the song.");
+      // echoCurrentInfo();
+      Serial.print(F("+ Current FileNumber: "));
+      Serial.println(mp3player.readCurrentFileNumber());
       if (playPause) {
         mp3player.start();
         playPause = false;

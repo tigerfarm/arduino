@@ -420,25 +420,6 @@ void setup() {
   playPause = true;
   //
   // ---------------------
-  /*
-    // The following should work, but doesn't work for me:
-    //
-    int theState = myDFPlayer.readState();
-    Serial.print("+ mp3 state: ");
-    Serial.println(theState);
-    //
-    Serial.print("+ mp3 state: ");
-    Serial.println(myDFPlayer.readState());
-    Serial.print("+ current volume: ");
-    Serial.println(myDFPlayer.readVolume());
-    Serial.print("+ readEQ: ");
-    Serial.println(myDFPlayer.readEQ());
-    Serial.print("+ readFileCounts: ");
-    Serial.println(myDFPlayer.readFileCounts()); //read all file counts in SD card
-    Serial.print("+ readCurrentFileNumber: ");
-    Serial.println(myDFPlayer.readCurrentFileNumber());
-  */
-
   irrecv.enableIRIn();
   Serial.println(F("+ Initialized the infrared receiver."));
 
