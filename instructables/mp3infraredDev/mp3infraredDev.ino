@@ -80,6 +80,16 @@
     File Names: 0001.mp3 to 0255.mp3. Or, 001.mp3 to 255.mp3?
     Can add characters after the number, for example, "0001hello.mp3".
 
+  List to find the card.
+    $sudo diskutil list
+  Format the card.
+    $sudo diskutil eraseDisk FAT32 MUSIC MBRFormat /dev/disk2
+  Copy files in order.
+    The DFPlayer seems to use some sort of creation timestamp when the files are index.
+    So don’t copy 0003.mp3 and then 0001.mp3, otherwise wacky things will happen.
+  Clean hidden files which can cause issues.
+    $dot_clean /Volumes/Music
+  
   ------------------------------------------------------------------------------
   DFPlayer Mini pins
          ----------
@@ -92,6 +102,11 @@
     GND | |      | | GND
   SPK + | Micro SD | IO_1 short press, play previous. Long press, decrease volume.
          ----------
+
+  Can try:
+    "SPK -" to speaker #1 +
+    "SPK +" to speaker #2 +
+    GND to ground of speaker #1 and speaker #2.
 
   ---------------------------------
   Connections used with an Arduino,
@@ -240,15 +255,15 @@ void playMp3() {
     int theType = mp3player.readType();
     // ------------------------------
     if (theType == DFPlayerPlayFinished) {
-      // Serial.print(F("+ MP3 file play has completed, Number:"));
-      // Serial.print(value);
-      // Serial.println(F(" Play Finished!"));
+      Serial.print(F("+ MP3 file play has completed, Number:"));
+      Serial.print(value);
+      Serial.println(F(" Play Finished!"));
       if (loopSingle) {
-        // Serial.println("Loop/play the same MP3.");
+        Serial.println("Loop/play the same MP3.");
         mp3player.start();
         // Serial.println("+ mp3player.read() " + mp3player.read());
       } else {
-        // Serial.println("Play next MP3.");
+        Serial.println("Play next MP3.");
         delay(300);
         mp3player.next();
       }
@@ -262,6 +277,26 @@ void playMp3() {
       printDFPlayerMessage(theType, mp3player.read());
     }
   }
+}
+
+// Play track#, with retry.
+//    This may fix my issue where it skips to the next track until it finds a file that plays.
+//    From: https://reprage.com/post/dfplayer-mini-cheat-sheet
+void playTrack(uint8_t track) {
+   MP3Player.stop();
+   delay(200);
+   MP3Player.play(track);
+   delay(200);
+   int file = MP3Player.readCurrentFileNumber();
+   Serial.print("Track:");
+   Serial.println(track);
+   Serial.print("File:");
+   Serial.println(file);
+   while (file != track) {
+     MP3Player.play(track);
+     delay(200);
+     file = MP3Player.readCurrentFileNumber();
+   }
 }
 
 // -----------------------------------------------------------------------
