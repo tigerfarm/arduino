@@ -80,28 +80,30 @@
     File Names: 0001.mp3 to 0255.mp3. Or, 001.mp3 to 255.mp3?
     Can add characters after the number, for example, "0001hello.mp3".
 
+  Prepare an SD card for use.
+  
+  On Mac, use the disk utility to format the disk:
+    Applications > Utilities > open Disk Utility.
+    Click on the SD card, example: APPLE SD Card Reader Media/MUSICSD.
+    Click menu item, Erase.
+    Set name, example: MUSICSD.
+    Select: MS-DOS (Fat).
+    Click Erase. The disk is cleaned and formated.
+
   List to find the card.
-    $ sudo diskutil list
-    ...
-    $ diskutil mountDisk /dev/disk3
-    Volume(s) mounted successfully
-
-  $ mount
-  ...
-  /dev/disk3s1 on /Volumes/EVERYWHERE (msdos, local, nodev, nosuid, noowners)
-  $ ls /Volumes/EVERYWHERE
-  01  02
-  $ dot_clean /Volumes/EVERYWHERE
-
-  Format the card.
-    $sudo diskutil eraseDisk FAT32 MUSIC MBRFormat /dev/disk2
-  Copy files in order.
+    $ diskutil list
+    /dev/disk3 (internal, physical):
+      #:                       TYPE NAME                    SIZE       IDENTIFIER
+      0:     FDisk_partition_scheme                        *4.0 GB     disk3
+      1:                 DOS_FAT_32 MUSICSD                 4.0 GB     disk3s1
+    $ ls /Volumes/MUSICSD
+  Copy files in order onto the SD card.
     The DFPlayer seems to use some sort of creation timestamp when the files are index.
     So don’t copy 0003.mp3 and then 0001.mp3, otherwise wacky things will happen.
-
-  Clean hidden files which can cause issues.
-    $ dot_clean /Volumes/Music
-    https://ss64.com/osx/dot_clean.html
+    $ ls /Volumes/MUSICSD
+    01  02
+  Clean hidden files which can cause issues: https://ss64.com/osx/dot_clean.html
+    $ dot_clean /Volumes/MUSICSD
 
   ------------------------------------------------------------------------------
   DFPlayer Mini pins
@@ -193,11 +195,13 @@ decode_results results;
 #include "DFRobotDFPlayerMini.h"
 DFRobotDFPlayerMini mp3player;
 
+// ------------------------------------
 // The following is not needed for Mega because it has it's own hardware RX and TX pins.
 // For communicating a Nano or Uno with the DFPlayer
 #include "SoftwareSerial.h"
 // DFPlayer pins 3(TX) and 2(RX), connected to Arduino pins: 10(RX) and 11(TX).
 SoftwareSerial playerSerial(10, 11); // Software serial, playerSerial(RX, TX)
+// ------------------------------------
 
 int currentSingle = 1;      // First song played when player starts up. Then incremented when next is played.
 int currentDirectory = 1;   // File directory name on the SD card. Example 1 is directory name: /01.
@@ -501,9 +505,9 @@ void setup() {
   // ----------------------------------------------------
   // DFPlayer serial connection.
   //
-  // --------
-  // Since Mega has its own hardware RX and TX pins.
-  // Serial1 is Mega pins 18 and 19.
+  // ------------------------------------
+  // Since Mega has its own hardware RX and TX pins, 
+  //    use pins 18 and 19, which has the label: Serial1.
   // Pin 18(TX) to resister to pin 2(RX).
   // Pin 19(RX) to pin 3(TX).
   // Serial1.begin(9600);
@@ -512,7 +516,7 @@ void setup() {
   // For communicating from a Nano or Uno with the DFPlayer, use a software serial port.
   playerSerial.begin(9600);
   if (!mp3player.begin(playerSerial)) {
-    //
+    // --------
     // Use softwareSerial to communicate with mp3.
     Serial.println(F("Unable to begin:"));
     Serial.println(F("1.Please recheck the connection!"));

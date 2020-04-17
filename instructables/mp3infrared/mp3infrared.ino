@@ -80,6 +80,31 @@
     File Names: 0001.mp3 to 0255.mp3. Or, 001.mp3 to 255.mp3?
     Can add characters after the number, for example, "0001hello.mp3".
 
+  Prepare an SD card for use.
+  
+  On Mac, use the disk utility to format the disk:
+    Applications > Utilities > open Disk Utility.
+    Click on the SD card, example: APPLE SD Card Reader Media/MUSICSD.
+    Click menu item, Erase.
+    Set name, example: MUSICSD.
+    Select: MS-DOS (Fat).
+    Click Erase. The disk is cleaned and formated.
+
+  List to find the card.
+    $ diskutil list
+    /dev/disk3 (internal, physical):
+      #:                       TYPE NAME                    SIZE       IDENTIFIER
+      0:     FDisk_partition_scheme                        *4.0 GB     disk3
+      1:                 DOS_FAT_32 MUSICSD                 4.0 GB     disk3s1
+    $ ls /Volumes/MUSICSD
+  Copy files in order onto the SD card.
+    The DFPlayer seems to use some sort of creation timestamp when the files are index.
+    So don’t copy 0003.mp3 and then 0001.mp3, otherwise wacky things will happen.
+    $ ls /Volumes/MUSICSD
+    01  02
+  Clean hidden files which can cause issues: https://ss64.com/osx/dot_clean.html
+    $ dot_clean /Volumes/MUSICSD
+
   ------------------------------------------------------------------------------
   DFPlayer Mini pins
          ----------
@@ -92,6 +117,16 @@
     GND | |      | | GND
   SPK + | Micro SD | IO_1 short press, play previous. Long press, decrease volume.
          ----------
+
+  Can try:
+    "SPK -" to speaker #1 +
+    "SPK +" to speaker #2 +
+    GND to ground of speaker #1 and speaker #2.
+
+   3.5mm headphone jack pin out:
+   + Tip: left channel
+   + Middle: right channel
+   + Closest to the cable: ground.
 
   ---------------------------------
   Connections used with an Arduino,
@@ -160,11 +195,13 @@ decode_results results;
 #include "DFRobotDFPlayerMini.h"
 DFRobotDFPlayerMini mp3player;
 
+// ------------------------------------
 // The following is not needed for Mega because it has it's own hardware RX and TX pins.
 // For communicating a Nano or Uno with the DFPlayer
 #include "SoftwareSerial.h"
 // DFPlayer pins 3(TX) and 2(RX), connected to Arduino pins: 10(RX) and 11(TX).
 SoftwareSerial playerSerial(10, 11); // Software serial, playerSerial(RX, TX)
+// ------------------------------------
 
 int currentSingle = 1;      // First song played when player starts up. Then incremented when next is played.
 int currentDirectory = 1;   // File directory name on the SD card. Example 1 is directory name: /01.
@@ -232,6 +269,32 @@ void printDFPlayerMessage(uint8_t type, int value) {
   }
 }
 
+void echoCurrentInfo() {
+  Serial.println("+ --------------------------------------");
+  Serial.print("+ readCurrentFileNumber: ");
+  Serial.println(mp3player.readCurrentFileNumber());   // current play file number
+  Serial.print("+ readState: ");
+  Serial.println(mp3player.readState());               // mp3 state
+  Serial.print("+ readEQ: ");
+  Serial.println(mp3player.readEQ());                  // EQ setting
+  Serial.print("+ readFileCounts: ");
+  Serial.println(mp3player.readFileCounts());          // all file counts in SD card
+  Serial.print("+ readFileCountsInFolder 01: ");
+  Serial.println(mp3player.readFileCountsInFolder(1)); // fill counts in folder SD:/01
+  Serial.print("+ readVolume: ");
+  Serial.println(mp3player.readVolume());              // current sound volume
+  /*
+     Sample output:
+    + readCurrentFileNumber: 1
+    + readState: 514
+    + readEQ: 4
+    + readFileCounts: 486
+    + readFileCountsInFolder 01: 8
+    + readVolume: 12
+
+  */
+}
+
 // -----------------------------------------------------------------------------
 // Handle continuous playing, and play errors such as: SD card not inserted.
 
@@ -240,15 +303,14 @@ void playMp3() {
     int theType = mp3player.readType();
     // ------------------------------
     if (theType == DFPlayerPlayFinished) {
-      // Serial.print(F("+ MP3 file play has completed, Number:"));
-      // Serial.print(value);
-      // Serial.println(F(" Play Finished!"));
+      Serial.print(F("+ Play Finished, Current FileNumber: "));
+      Serial.println(mp3player.readCurrentFileNumber());
       if (loopSingle) {
-        // Serial.println("Loop/play the same MP3.");
+        Serial.println("Loop/play the same MP3.");
         mp3player.start();
         // Serial.println("+ mp3player.read() " + mp3player.read());
       } else {
-        // Serial.println("Play next MP3.");
+        Serial.println("Play next MP3.");
         delay(300);
         mp3player.next();
       }
@@ -261,6 +323,26 @@ void playMp3() {
       //   such as memory card not inserted.
       printDFPlayerMessage(theType, mp3player.read());
     }
+  }
+}
+
+// Play track#, with retry.
+//    This may fix my issue where it skips to the next track until it finds a file that plays.
+//    From: https://reprage.com/post/dfplayer-mini-cheat-sheet
+void playTrack(uint8_t track) {
+  mp3player.stop();
+  delay(200);
+  mp3player.play(track);
+  delay(200);
+  int file = mp3player.readCurrentFileNumber();
+  Serial.print("Track:");
+  Serial.println(track);
+  Serial.print("File:");
+  Serial.println(file);
+  while (file != track) {
+    mp3player.play(track);
+    delay(200);
+    file = mp3player.readCurrentFileNumber();
   }
 }
 
@@ -284,15 +366,24 @@ void playerInfraredSwitch() {
       // Serial.println("+ Key < - previous");
       // Stacy, don't previous before the first song.
       mp3player.previous();
+      delay(300);
+      Serial.print(F("+ Previous, Current FileNumber: "));
+      Serial.println(mp3player.readCurrentFileNumber());
       break;
     case 0xFF5AA5:
     case 0xE0E046B9:
       // Serial.println("+ Key > - next");
       mp3player.next();
+      delay(300);
+      Serial.print(F("+ Next, Current FileNumber: "));
+      Serial.println(mp3player.readCurrentFileNumber());
       break;
     case 0xFF38C7:
     case 0xE0E016E9:
       // Serial.println("+ Key OK - Toggle: pause and start the song.");
+      // echoCurrentInfo();
+      Serial.print(F("+ Current FileNumber: "));
+      Serial.println(mp3player.readCurrentFileNumber());
       if (playPause) {
         mp3player.start();
         playPause = false;
@@ -414,9 +505,9 @@ void setup() {
   // ----------------------------------------------------
   // DFPlayer serial connection.
   //
-  // --------
-  // Since Mega has its own hardware RX and TX pins.
-  // Serial1 is Mega pins 18 and 19.
+  // ------------------------------------
+  // Since Mega has its own hardware RX and TX pins, 
+  //    use pins 18 and 19, which has the label: Serial1.
   // Pin 18(TX) to resister to pin 2(RX).
   // Pin 19(RX) to pin 3(TX).
   // Serial1.begin(9600);
@@ -425,7 +516,7 @@ void setup() {
   // For communicating from a Nano or Uno with the DFPlayer, use a software serial port.
   playerSerial.begin(9600);
   if (!mp3player.begin(playerSerial)) {
-    //
+    // --------
     // Use softwareSerial to communicate with mp3.
     Serial.println(F("Unable to begin:"));
     Serial.println(F("1.Please recheck the connection!"));
