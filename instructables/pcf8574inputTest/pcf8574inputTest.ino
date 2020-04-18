@@ -59,6 +59,16 @@ void printByte(byte b) {
 #include <PCF8574.h>
 #include <Wire.h>
 
+// pcfSwitches has interupt enabled.
+// Implement: pcfSwitches interupt handling. Likely use the same pin, pin 2.
+
+// -------------------------
+// Address for the PCF8574 module being tested.
+// PCF8574 pcfSwitches(0x020);    // Control: STOP, RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT, REST
+// PCF8574 pcfSwitches(0x021);    // Low bytes
+// PCF8574 pcfSwitches(0x022);   // High bytes
+PCF8574 pcfSwitches(0x023);    // AUX switches and others: Step down, CLR, Protect, Unprotect, AUX1 up, AUX1 down,  AUX2 up, AUX2 down
+
 // -------------------------
 // Interrupt handler routine.
 //                   Mega pin for control toggle interrupt. Same pin for Nano.
@@ -69,31 +79,9 @@ void pcfSwitchesinterrupt() {
   pcfSwitchesinterrupted = true;
 }
 
-// pcfSwitches has interupt enabled.
-// Implement: pcfSwitches interupt handling. Likely use the same pin, pin 2.
-
-// -------------------------
-// Address for the PCF8574 module being tested.
-// PCF8574 pcfSwitches(0x020);    // Control: STOP, ...
-// PCF8574 pcfSwitches(0x021);    // Low bytes
-PCF8574 pcfSwitches(0x022);   // High bytes
-// PCF8574 pcfSwitches(0x023);    // AUX switches and others
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Front Panel Switches
-
-// -------------------------
-// Getting a byte of toggle values.
-
-int toggleDataByte() {
-  // Invert byte bits using bitwise not operator: "~";
-  // Bitwise "not" operator to invert bits:
-  //  int a = 103;  // binary:  0000000001100111
-  //  int b = ~a;   // binary:  1111111110011000 = -104
-  // byte toggleByte = ~pcfSwitches.read8();
-  return ~pcfSwitches.read8();
-}
 
 // --------------------------------------------------------
 // Front Panel Control Switches, when a program is not running.
@@ -169,11 +157,23 @@ void checkSwitches() {
   }
 }
 
+// -------------------------
+// Getting a byte of toggle values.
+
+int toggleDataByte() {
+  // Invert byte bits using bitwise not operator: "~";
+  // Bitwise "not" operator to invert bits:
+  //  int a = 103;  // binary:  0000000001100111
+  //  int b = ~a;   // binary:  1111111110011000 = -104
+  // byte toggleByte = ~pcfSwitches.read8();
+  return ~pcfSwitches.read8();
+}
+
 // -----------------------------------------------------------------------------
 void echoSwitchData() {
   // ----------------------
-  dataByte = pcfSwitches.read8();                   // Read all PCF8574 inputs
   Serial.print("+ PCF8574 byte, read8      = ");
+  dataByte = pcfSwitches.read8();                   // Read all PCF8574 inputs
   printByte(dataByte);
   Serial.println("");
   // ----------------------
@@ -182,14 +182,13 @@ void echoSwitchData() {
     int pinValue = pcfSwitches.readButton(pinGet);  // Read each PCF8574 input
     Serial.print(pinValue);
   }
+  Serial.println("");
   // ----------------------
-  dataByte = toggleDataByte();                      // Read all PCF8574 inputs using toggleDataByte
   Serial.print("+ Toggle Data Byte         = ");
+  dataByte = toggleDataByte();                      // Read all PCF8574 inputs using toggleDataByte
   printByte(dataByte);
   Serial.println("");
-  
-  // ----------------------
-  Serial.println("");
+    // ----------------------
 }
 
 // -----------------------------------------------------------------------------
@@ -227,10 +226,9 @@ void loop() {
 
   delay (50);
   counter++;
-  // 20 is 1 second (20 x 50 = 1000). 60 is every 3 seconds.
-  if (counter == 60) {
+  // 20 is 1 second (20 x 50 = 1000). 40 is every 2 seconds.
+  if (counter == 40) {
     Serial.println("---------------------------");
-    Serial.println("+ 3 second echo.");
     echoSwitchData();
     counter = 0;
   }
