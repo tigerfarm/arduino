@@ -39,16 +39,27 @@
 // Shift Register
 
 //           Mega/Nano pins            74HC595 Pins
-const int dataPinLed = A13;     // pin 14 Data pin.
-const int latchPinLed = A14;    // pin 12 Latch pin.
-const int clockPinLed = A15;    // pin 11 Clock pin.
+const int dataPinLed = A14;     // pin 14 Data pin.
+const int latchPinLed = A12;    // pin 12 Latch pin.
+const int clockPinLed = A11;    // pin 11 Clock pin.
 
 byte dataByte = B01010101;
+unsigned int addressWord;
 
 void updateShiftRegister(byte dataByte) {
-  digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, LSBFIRST, dataByte);
-  digitalWrite(latchPin, HIGH);
+  digitalWrite(latchPinLed, LOW);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, dataByte);  // MSBFIRST or LSBFIRST
+  digitalWrite(latchPinLed, HIGH);
+}
+
+void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) {
+  // Status, data, lower address byte, higher address byte.
+  digitalWrite(latchPinLed, LOW);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, status8bits);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(address16bits));
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(address16bits));
+  digitalWrite(latchPinLed, HIGH);
 }
 
 // -----------------------------------------------------------------------------
@@ -58,15 +69,37 @@ void setup() {
   Serial.println(""); // Newline after garbage characters.
   Serial.println("+++ Setup.");
 
-  pinMode(latchPin, OUTPUT);
-  pinMode(clockPin, OUTPUT);
-  pinMode(dataPin, OUTPUT);
+  pinMode(latchPinLed, OUTPUT);
+  pinMode(clockPinLed, OUTPUT);
+  pinMode(dataPinLed, OUTPUT);
   delay(300);
   Serial.println("+ Connection to the 595 is set.");
 
-  digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, MSBFIRST, B01010101);  // MSBFIRST or LSBFIRST
-  digitalWrite(latchPin, HIGH);
+  // Turns all the LEDs off.
+  lightsStatusAddressData(0, 0, 0);
+  delay(3000);
+  //
+  // Turns all the LEDs on.
+  addressWord = B11111111 + B11111111 * 256;
+  lightsStatusAddressData(B11111111, addressWord, B11111111);
+  delay(3000);
+  // Turns all the LEDs off.
+  lightsStatusAddressData(0, 0, 0);
+  delay(1000);
+  //
+  // Every other LED.
+  digitalWrite(latchPinLed, LOW);
+  shiftOut(dataPinLed, clockPinLed, MSBFIRST, B01010101);  // MSBFIRST or LSBFIRST
+  shiftOut(dataPinLed, clockPinLed, MSBFIRST, B01010101);  // MSBFIRST or LSBFIRST
+  shiftOut(dataPinLed, clockPinLed, MSBFIRST, B01010101);  // MSBFIRST or LSBFIRST
+  shiftOut(dataPinLed, clockPinLed, MSBFIRST, B01010101);  // MSBFIRST or LSBFIRST
+  digitalWrite(latchPinLed, HIGH);
+  delay(3000);
+
+  // 1, 2, 3, 4.
+  addressWord = 3 +  4 * 256;
+  lightsStatusAddressData(1, addressWord, 2);
+  delay(3000);
 
   Serial.println("+++ Start program loop.");
 }
@@ -77,10 +110,13 @@ void setup() {
 void loop() {
   Serial.println("+ Looping");
   delay(500);
-  // updateShiftRegister(0); // Turns all the LEDs off.
+  lightsStatusAddressData(0, 0, 0); // Turns all the LEDs off.
   delay(500);
   for (int numberToDisplay = 0; numberToDisplay < 256; numberToDisplay++) {
-    // updateShiftRegister(numberToDisplay);
+    updateShiftRegister(numberToDisplay);   // Status lights
+    updateShiftRegister(numberToDisplay);   // Data lights
+    updateShiftRegister(numberToDisplay);   // Address lower byte
+    updateShiftRegister(numberToDisplay);   // Address higher byte
     delay(60);
   }
 }
