@@ -105,6 +105,24 @@ PCF8574 pcfAux(0x023);      // AUX switches and others: Step down, CLR, Protect,
 // -----------------------------------------------------------------------------
 // Front Panel Switches
 
+const int pinStop = 7;
+const int pinReset = 0;
+const int pinRun = 6;
+const int pinStep = 5;
+const int pinExamine = 4;
+const int pinExamineNext = 3;
+const int pinDeposit = 2;
+const int pinDepositNext = 1;
+
+const int pinAux1up = 3;
+const int pinAux1down = 2;
+const int pinAux2up = 1;
+const int pinAux2down = 0;
+const int pinProtect = 5;
+const int pinUnProtect = 4;
+const int pinClr = 6;
+const int pinStepDown = 7;
+
 // -------------------------
 // Get Front Panel address/data/sense toggle values.
 
@@ -129,9 +147,6 @@ unsigned int toggleAddress() {
 // -------------------------------------------------------------------
 // Front Panel Control Switches, when a program is not running.
 // Switches: STOP and RESET.
-
-const int pinStop = 0;
-const int pinReset = 7;
 
 boolean switchStop = false;
 boolean switchReset = false;
@@ -168,13 +183,6 @@ void checkRunningButtons() {
 // Only do the action once, don't repeat if the button is held down.
 // Don't repeat action if the button is not pressed.
 
-const int pinRun = 1;
-const int pinStep = 2;
-const int pinExamine = 3;
-const int pinExamineNext = 4;
-const int pinDeposit = 5;
-const int pinDepositNext = 6;
-
 boolean switchRun = false;
 boolean switchStep = false;
 boolean switchExamine = false;
@@ -192,7 +200,7 @@ void checkControlButtons() {
   } else if (switchStop) {
     switchStop = false;
     // Switch logic.
-    Serial.println(F("+ Running, Stop."));
+    Serial.println(F("+ Control, Stop."));
   }
   // -------------------
   // Read PCF8574 input for this switch.
@@ -203,7 +211,7 @@ void checkControlButtons() {
   } else if (switchReset) {
     switchReset = false;
     // Switch logic.
-    Serial.println(F("+ Running, Reset."));
+    Serial.println(F("+ Control, Reset."));
   }
   // -------------------
   if (pcfControl.readButton(pinRun) == 0) {
@@ -261,9 +269,14 @@ void checkControlButtons() {
     switchDeposit = false;
     // Switch logic.
     unsigned int theToggleAddress = toggleAddress();
-    Serial.print(F("+ Control, pinDeposit."));
-    Serial.print(F(", address: "));
-    Serial.println(theToggleAddress);
+    Serial.println(F("+ Control, pinDeposit."));
+    Serial.print(" Togle address = ");
+    printWord(toggleAddress());
+    Serial.print(", data=");
+    printByte(toggleDataByte());
+    Serial.print(", sense=");
+    printByte(toggleSenseByte());
+    Serial.println("");
   }
   // -------------------
   if (pcfControl.readButton(pinDepositNext) == 0) {
@@ -280,15 +293,6 @@ void checkControlButtons() {
 // --------------------------------------------------------
 // Front Panel Control Switches, when a program is not running.
 // Switches: AUX 1, AUX 1, PROTECT, UNPROTECT, CLR, and down STEP.
-
-const int pinAux1up = 0;
-const int pinAux1down = 1;
-const int pinAux2up = 2;
-const int pinAux2down = 3;
-const int pinProtect = 4;
-const int pinUnProtect = 5;
-const int pinClr = 6;
-const int pinStepDown = 7;
 
 boolean switchAux1up = false;
 boolean switchAux1down = false;
@@ -381,23 +385,9 @@ void setup() {
 void loop() {
 
   if (pcfControlinterrupted) {
-    // ----------------------
-    Serial.println("+ Interrupt call, switchSetOn is true.");
-    dataByte = pcfControl.read8();                   // Read all PCF8574 inputs
-    Serial.print("+ PCF8574 0x20 byte, read8      = ");
-    printByte(dataByte);
-    Serial.println("");
-    // ----------------------
-    Serial.print("+ PCF8574 0x20 byte, readButton = ");
-    for (int pinGet = 7; pinGet >= 0; pinGet--) {
-      int pinValue = pcfControl.readButton(pinGet);  // Read each PCF8574 input
-      Serial.print(pinValue);
-    }
-    // ----------------------
-    Serial.println("");
-    // ----------------------
     checkRunningButtons();
     checkControlButtons();
+    checkAuxButtons();
     //
     pcfControlinterrupted = false; // Reset for next interrupt.
   }
