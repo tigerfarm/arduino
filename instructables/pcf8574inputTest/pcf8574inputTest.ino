@@ -3,6 +3,7 @@
   PCF8574 I2C Module, I2C to 8-bit Parallel-Port Expander
 
   Program to test switch controls for PCF8574 module.
+  Not testing with interrupt option.
 
   Module with adjustable pin address settings:
    --------------
@@ -60,10 +61,10 @@ void printByte(byte b) {
 
 // -------------------------
 // Address for the PCF8574 module being tested.
-// PCF8574 pcfSwitches(0x020);    // Control: STOP, RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT, REST
+PCF8574 pcfSwitches(0x020);    // Control: STOP, RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT, REST
 // PCF8574 pcfSwitches(0x021);    // Low bytes
-// PCF8574 pcfSwitches(0x022);   // High bytes
-PCF8574 pcfSwitches(0x023);    // AUX switches and others: Step down, CLR, Protect, Unprotect, AUX1 up, AUX1 down,  AUX2 up, AUX2 down
+// PCF8574 pcfSwitches(0x022);    // High bytes
+// PCF8574 pcfSwitches(0x023);    // AUX switches and others: Step down, CLR, Protect, Unprotect, AUX1 up, AUX1 down,  AUX2 up, AUX2 down
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -100,7 +101,7 @@ void echoSwitchData() {
   dataByte = toggleDataByte();                      // Read all PCF8574 inputs using toggleDataByte
   printByte(dataByte);
   Serial.println("");
-    // ----------------------
+  // ----------------------
 }
 
 // -----------------------------------------------------------------------------

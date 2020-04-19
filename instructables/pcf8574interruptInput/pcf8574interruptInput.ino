@@ -3,7 +3,8 @@
   PCF8574 I2C Module, I2C to 8-bit Parallel-Port Expander
 
   Program to test switch controls for PCF8574 module.
-
+  Test interrupt aware option.
+  
   Module with adjustable pin address settings:
    --------------
   |  V G S S     | Above are female pins
@@ -64,10 +65,10 @@ void printByte(byte b) {
 
 // -------------------------
 // Address for the PCF8574 module being tested.
-// PCF8574 pcfSwitches(0x020);    // Control: STOP, RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT, REST
+PCF8574 pcfSwitches(0x020);    // Control: STOP, RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT, REST
 // PCF8574 pcfSwitches(0x021);    // Low bytes
 // PCF8574 pcfSwitches(0x022);   // High bytes
-PCF8574 pcfSwitches(0x023);    // AUX switches and others: Step down, CLR, Protect, Unprotect, AUX1 up, AUX1 down,  AUX2 up, AUX2 down
+// PCF8574 pcfSwitches(0x023);    // AUX switches and others: Step down, CLR, Protect, Unprotect, AUX1 up, AUX1 down,  AUX2 up, AUX2 down
 
 // -------------------------
 // Interrupt handler routine.
@@ -77,84 +78,6 @@ const int INTERRUPT_PIN = 2;
 boolean pcfSwitchesinterrupted = false;
 void pcfSwitchesinterrupt() {
   pcfSwitchesinterrupted = true;
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// Front Panel Switches
-
-// --------------------------------------------------------
-// Front Panel Control Switches, when a program is not running.
-// Switches: AUX 1, AUX 1, PROTECT, UNPROTECT, CLR, and down STEP.
-
-const int pcfSwitch0 = 0;
-const int pcfSwitch1 = 1;
-const int pcfSwitch2 = 2;
-const int pcfSwitch3 = 3;
-const int pcfSwitch4 = 4;
-const int pcfSwitch5 = 5;
-const int pcfSwitch6 = 6;
-const int pcfSwitch7 = 7;
-
-boolean switchLogic0 = false;
-boolean switchLogic1 = false;
-boolean switchLogic3 = false;
-boolean switchLogic4 = false;
-
-void checkSwitches() {
-  // -------------------
-  if (pcfSwitches.readButton(pcfSwitch0) == 0) {
-    if (!switchLogic0) {
-      switchLogic0 = true;
-    }
-  } else if (switchLogic0) {
-    switchLogic0 = false;
-    // Switch logic.
-    Serial.println(F("+ Control, pcfSwitch0."));
-  }
-  // -------------------
-  if (pcfSwitches.readButton(pcfSwitch1) == 0) {
-    if (!switchLogic1) {
-      switchLogic1 = true;
-    }
-  } else if (switchLogic1) {
-    switchLogic1 = false;
-    // Switch logic.
-    Serial.println(F("+ Control, pcfSwitch1."));
-  }
-  // -------------------
-  if (pcfSwitches.readButton(pcfSwitch2) == 0) {
-    if (!switchLogic3) {
-      switchLogic3 = true;
-    }
-  } else if (switchLogic3) {
-    switchLogic3 = false;
-    // Switch logic.
-    Serial.println(F("+ Control, pcfSwitch2."));
-  }
-  // -------------------
-  if (pcfSwitches.readButton(pcfSwitch3) == 0) {
-    if (!switchLogic1) {
-      switchLogic1 = true;
-    }
-  } else if (switchLogic1) {
-    switchLogic1 = false;
-    // Switch logic.
-    Serial.println(F("+ Control, pcfSwitch3."));
-  }
-  // -------------------
-  if (pcfSwitches.readButton(pcfSwitch4) == 0) {
-    Serial.println(F("+ Control, pcfSwitch4."));
-  }
-  if (pcfSwitches.readButton(pcfSwitch5) == 0) {
-    Serial.println(F("+ Control, pcfSwitch5."));
-  }
-  if (pcfSwitches.readButton(pcfSwitch6) == 0) {
-    Serial.println(F("+ Control, pcfSwitch6."));
-  }
-  if (pcfSwitches.readButton(pcfSwitch7) == 0) {
-    Serial.println(F("+ Control, pcfSwitch7."));
-  }
 }
 
 // -------------------------
@@ -170,25 +93,98 @@ int toggleDataByte() {
 }
 
 // -----------------------------------------------------------------------------
-void echoSwitchData() {
-  // ----------------------
-  Serial.print("+ PCF8574 byte, read8      = ");
-  dataByte = pcfSwitches.read8();                   // Read all PCF8574 inputs
-  printByte(dataByte);
-  Serial.println("");
-  // ----------------------
-  Serial.print("+ PCF8574 byte, readSwitch = ");
-  for (int pinGet = 7; pinGet >= 0; pinGet--) {
-    int pinValue = pcfSwitches.readButton(pinGet);  // Read each PCF8574 input
-    Serial.print(pinValue);
+// -----------------------------------------------------------------------------
+// Front Panel Switches
+
+// --------------------------------------------------------
+// Front Panel Control Switches, when a program is not running.
+// Control:   STOP, RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT, REST
+// Switches:  AUX switches and others: Step down, CLR, Protect, Unprotect, AUX1 up, AUX1 down,  AUX2 up, AUX2 down
+
+const int pcfSwitch0 = 0; // RESET            AUX2 down
+const int pcfSwitch1 = 1; // DEPOSIT NEXT     AUX2 up
+const int pcfSwitch2 = 2; // DEPOSIT          AUX1 down
+const int pcfSwitch3 = 3; // EXAMINE NEXT     AUX1 up
+const int pcfSwitch4 = 4; // EXAMINE          UNPROTECT
+const int pcfSwitch5 = 5; // SINGLE STEP UP   PROTECT
+const int pcfSwitch6 = 6; // RUN              CLR
+const int pcfSwitch7 = 7; // STOP             SINGLE STEP down
+
+boolean switchLogic0 = false;
+boolean switchLogic1 = false;
+boolean switchLogic2 = false;
+boolean switchLogic3 = false;
+
+void checkSwitches() {
+  // -------------------
+  if (pcfSwitches.readButton(pcfSwitch0) == 0) {
+    if (!switchLogic0) {
+      switchLogic0 = true;
+      Serial.print(F("+ Control, pcfSwitch0: "));
+      printByte(toggleDataByte());
+    }
+  } else if (switchLogic0) {
+    switchLogic0 = false;
+    // Switch logic.
+    Serial.println(F(", released."));
   }
-  Serial.println("");
-  // ----------------------
-  Serial.print("+ Toggle Data Byte         = ");
-  dataByte = toggleDataByte();                      // Read all PCF8574 inputs using toggleDataByte
-  printByte(dataByte);
-  Serial.println("");
-    // ----------------------
+  // -------------------
+  if (pcfSwitches.readButton(pcfSwitch1) == 0) {
+    if (!switchLogic1) {
+      switchLogic1 = true;
+      Serial.print(F("+ Control, pcfSwitch1: "));
+      printByte(toggleDataByte());
+    }
+  } else if (switchLogic1) {
+    switchLogic1 = false;
+    // Switch logic.
+    Serial.println(F(", released."));
+  }
+  // -------------------
+  if (pcfSwitches.readButton(pcfSwitch2) == 0) {
+    if (!switchLogic2) {
+      switchLogic2 = true;
+      Serial.print(F("+ Control, pcfSwitch2: "));
+      printByte(toggleDataByte());
+    }
+  } else if (switchLogic2) {
+    switchLogic2 = false;
+    // Switch logic.
+    Serial.println(F(", released."));
+  }
+  // -------------------
+  if (pcfSwitches.readButton(pcfSwitch3) == 0) {
+    if (!switchLogic3) {
+      switchLogic3 = true;
+      Serial.print(F("+ Control, pcfSwitch3: "));
+      printByte(toggleDataByte());
+    }
+  } else if (switchLogic3) {
+    switchLogic3 = false;
+    // Switch logic.
+    Serial.println(F(", released."));
+  }
+  // -------------------
+  if (pcfSwitches.readButton(pcfSwitch4) == 0) {
+    Serial.print(F("+ Control, pcfSwitch4: "));
+    printByte(toggleDataByte());
+    Serial.println("");
+  }
+  if (pcfSwitches.readButton(pcfSwitch5) == 0) {
+    Serial.print(F("+ Control, pcfSwitch5: "));
+    printByte(toggleDataByte());
+    Serial.println("");
+  }
+  if (pcfSwitches.readButton(pcfSwitch6) == 0) {
+    Serial.print(F("+ Control, pcfSwitch6: "));
+    printByte(toggleDataByte());
+    Serial.println("");
+  }
+  if (pcfSwitches.readButton(pcfSwitch7) == 0) {
+    Serial.print(F("+ Control, pcfSwitch7: "));
+    printByte(toggleDataByte());
+    Serial.println("");
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -213,24 +209,13 @@ void setup() {
 // -----------------------------------------------------------------------------
 // Device Loop
 
-int counter = 0;
 void loop() {
-
   if (pcfSwitchesinterrupted) {
-    Serial.println("---------------------------");
-    Serial.println("+ Interrupt call, switchSetOn is true.");
-    echoSwitchData();
+    // Serial.println("---------------------------");
+    // Serial.println("+ Interrupt call, switchSetOn is true.");
     checkSwitches();
     pcfSwitchesinterrupted = false; // Reset for next interrupt.
   }
-
   delay (50);
-  counter++;
-  // 20 is 1 second (20 x 50 = 1000). 40 is every 2 seconds.
-  if (counter == 40) {
-    Serial.println("---------------------------");
-    echoSwitchData();
-    counter = 0;
-  }
 }
 // -----------------------------------------------------------------------------

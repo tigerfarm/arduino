@@ -93,13 +93,13 @@ void pcfControlinterrupt() {
 // pcfControl has interupt enabled.
 // Implement: pcfAux interupt handling. Likely use the same pin, pin 2.
 
-/*
-  Desktop version.
- */
-PCF8574 pcfControl(0x020);  // Controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
-PCF8574 pcfAux(0x023);      // AUX 1, AUX 2, PROTECT, UNPROTECT, CLR, and switch below STEP
-PCF8574 pcfData(0x021);     // low address byte, data byte
-PCF8574 pcfSense(0x022);    // high address byte, sense switch byte
+// -------------------------------------------
+// Desktop version.
+// Address for the PCF8574 module being tested.
+PCF8574 pcfControl(0x020);  // Control: STOP, RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT, REST
+PCF8574 pcfData(0x021);     // Low bytes, data byte
+PCF8574 pcfSense(0x022);    // High bytes, sense switch byte
+PCF8574 pcfAux(0x023);      // AUX switches and others: Step down, CLR, Protect, Unprotect, AUX1 up, AUX1 down,  AUX2 up, AUX2 down
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
