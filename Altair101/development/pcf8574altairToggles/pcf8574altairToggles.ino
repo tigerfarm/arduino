@@ -44,6 +44,13 @@
 // -----------------------------------------------------------------------------
 // Utility functions from Processor.ino
 
+#define PROGRAM_WAIT 0
+#define PROGRAM_RUN 1
+#define CLOCK_RUN 2
+#define PLAYER_RUN 3
+#define SERIAL_DOWNLOAD 4
+int programState = PROGRAM_WAIT;  // Intial, default.
+
 // Instruction parameters:
 byte dataByte = 0;           // db = Data byte (8 bit)
 
@@ -141,7 +148,7 @@ int toggleSenseByte() {
 unsigned int toggleAddress() {
   byte byteLow = ~pcfData.read8();
   byte byteHigh = ~pcfSense.read8();
-  return byteHigh*256 + byteLow;
+  return byteHigh * 256 + byteLow;
 }
 
 // -------------------------------------------------------------------
@@ -160,6 +167,7 @@ void checkRunningButtons() {
     switchStop = false;
     // Switch logic.
     Serial.println(F("+ Running, Stop."));
+    programState = PROGRAM_WAIT;
   }
   // -------------------
   // Read PCF8574 input for this switch.
@@ -222,6 +230,7 @@ void checkControlButtons() {
     switchRun = false;
     // Switch logic.
     Serial.println(F("+ Control, pinRun."));
+    programState = PROGRAM_RUN;
   }
   // -------------------
   if (pcfControl.readButton(pinStep) == 0) {
@@ -369,11 +378,11 @@ void setup() {
   pcfAux.begin();
   pcfData.begin();
   pcfSense.begin();
-  
+
   // PCF module interrupt initialization
   pinMode(INTERRUPT_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcfControlinterrupt, CHANGE);
-  
+
   Serial.println("+ Toggle PCF8574 input modules initialized.");
 
   // ------------------------------
@@ -385,9 +394,12 @@ void setup() {
 void loop() {
 
   if (pcfControlinterrupted) {
-    checkRunningButtons();
-    checkControlButtons();
-    checkAuxButtons();
+    if (programState == PROGRAM_RUN) {
+      checkRunningButtons();
+    } else {
+      checkControlButtons();
+      checkAuxButtons();
+    }
     //
     pcfControlinterrupted = false; // Reset for next interrupt.
   }
