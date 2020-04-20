@@ -20,7 +20,6 @@
   Documentation, shiftOut():
   https://www.arduino.cc/reference/tr/language/functions/advanced-io/shiftout/
   + Shifts out a byte of data one bit at a time.
-  + Shifts out a byte of data one bit at a time.
   + MSBFIRST: Most significant first.
   + LSBFIRST: Lest significant first.
 
@@ -31,9 +30,6 @@
   + Video
   https://www.youtube.com/watch?v=N7CAboD1jU0
 
-  + Binary, Digital calculator
-  https://www.calculator.net/binary-calculator.html
-  
 */
 // -----------------------------------------------------------------------------
 // Shift Register
@@ -73,7 +69,7 @@ void setup() {
   pinMode(clockPinLed, OUTPUT);
   pinMode(dataPinLed, OUTPUT);
   delay(300);
-  Serial.println("+ Connection to the 595 is set.");
+  Serial.println("+ 74HC595 chip control pins are set.");
 
   // Turns all the LEDs off.
   lightsStatusAddressData(0, 0, 0);
@@ -83,6 +79,7 @@ void setup() {
   addressWord = B11111111 + B11111111 * 256;
   lightsStatusAddressData(B11111111, addressWord, B11111111);
   delay(3000);
+  //
   // Turns all the LEDs off.
   lightsStatusAddressData(0, 0, 0);
   delay(1000);

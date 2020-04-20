@@ -12,59 +12,89 @@
   ---------------------------------------------
   Current/Next Work
 
-  Panel LED lights all display correctly. Toggle functions all work. Programs run.
+  Panel LED lights all display correctly. Toggle functions all work.
   I can show my steampunk tablet to the world.
   + Time to generate videos.
 
   ---------------------------------------------
+  Tablet to Desktop module work: Output LED lights
+
+  The 3 Mega pins to 74HC595, match, no change.
+  
+  WAIT and HLDA need to be digital pin controlled.
+  + WAIT_PIN = A9,  Test code change of WAIT_ON/OFF to digital pin control.
+  + HLDA_PIN = A10, HLDA is already controlled by a digital pin.
+
+  Need compile options for shiftOut statements in processDataLights and lightsStatusAddressData.
+  --- Tablet
+  digitalWrite(latchPinLed, LOW);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(address16bits));
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(address16bits));
+  shiftOut(dataPinLed, clockPinLed, MSBFIRST, status8bits);
+  digitalWrite(latchPinLed, HIGH);
+  --- Desktop
+  digitalWrite(latchPinLed, LOW);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, status8bits);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(address16bits));
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(address16bits));
+  digitalWrite(latchPinLed, HIGH);
+  ---
+
+  ---------------------------------------------
+  Tablet to Desktop module work: Input toggles
+
+  Need compile options for PCF module statements.
+
+  Tablet module: Toggle inputs, 2 PCF modules,
+  ++ pcf20: controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
+  ++ pcf20 has interupt enabled.
+  -------
+  ++ pcf21: low address byte, sense switches
+  -------
+  + Digital pin: AUX 1 up, clock
+  + Digital pin: AUX 1 down, MP3 player
+  + Digital pin: AUX 2 up, write/upload to the SD card
+  + Digital pin: AUX 2 down, read/download from the SD card
+  
+  Desktop module toggle inputs: Added 2 more PCF modules to bring the total to 4,
+  -------
+  ++ pcf20: controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
+  +++ pcf20 has interupt enabled, Mega pin 2.
+  -------
+  ++ pcf21: low address byte
+  -------
+  ++ pcf22: high address byte, sense switches
+  -------
+  ++ pcf23: AUX 1, AUX 2, PROTECT, UNPROTECT, CLR, and switch below STEP.
+  +++ pcf23 has interupt enabled, same Mega pin as pcf20, pin 2.
+  -------
+
+  ---------------------------------------------
   Connect the Mega to the desktop front panel:
 
-  12 Mega pins.
+  12 Mega pins total.
 
   4 Mega pins to PCF8574 daisy chain, toggle inputs:
   I2C SDA to Mega SDA
   I2C SCL to Mega SCL
   I2C +5V
   I2C Ground
-
-  1 Mega pin to the Control PCF8574 module, Control toggle inputs:
-  I2C interrupt to Mega pin 2. Control PCF8574 modules.
+  --- Plus ---
+  1 Mega pin, pin 2, for Control and AUX PCF8574 module interrupts.
 
   3 Mega pins to 74HC595 daisy chain, LED output:
 //           Mega/Nano pins            74HC595 Pins
 const int dataPinLed = A13;     // pin 14 Data pin.
 const int latchPinLed = A14;    // pin 12 Latch pin.
 const int clockPinLed = A15;    // pin 11 Clock pin.
+  --- Plus ---
+  2 wires for +5V and Ground.
 
+  2 pins for the WAIT and HLDA LED lights.
 const int WAIT_PIN = A9;
 const int HLDA_PIN = A10;
-
-  ---------------------------------------------
-  Tablet to Desktop module work
-
-  Tablet module, for Tablet and Desktop module,
-  + WAIT and HLDA need to be digital pin controlled.
-  ++ Change WAIT_ON/OFF to be digital pin controlled.
-  ++ HLDA is already controlled by a digital pin: HLDA_PIN = A10.
-
-  Tablet module,
-  + Toggle inputs, 2 PCF modules:
-  ++ pcf20: controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
-  ++ pcf20 has interupt enabled.
-  ++ pcf21: low address byte, sense switches
-  + Digital pin: AUX 1 up, clock
-  + Digital pin: AUX 1 down, MP3 player
-  + Digital pin: AUX 2 up, write/upload to the SD card
-  + Digital pin: AUX 2 down, read/download from the SD card
-  
-  Desktop module,
-  + Toggle inputs: Add 2 more PCF modules to bring the total to 4:
-  ++ pcf20: controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
-  +++ pcf20 has interupt enabled.
-  ++ pcf21: low address byte
-  ++ pcf22: high address byte, sense switches
-  ++ pcf23: AUX 1, AUX 2, PROTECT, UNPROTECT, CLR, and switch below STEP.
-  ++ Implement: pcf23 with interupt enabled. Likely use the same Mega pin, pin 2.
 
   ---------------------------------------------
   Other Work
