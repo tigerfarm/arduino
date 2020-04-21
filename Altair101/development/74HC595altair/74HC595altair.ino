@@ -86,14 +86,23 @@ void setup() {
   addressWord = B11111111 + B11111111 * 256;
   lightsStatusAddressData(B11111111, addressWord, B11111111);
   delay(3000);
+  Serial.print("+ Value to turn all Address LED lights on: ");
+  Serial.println(addressWord);
   //
   // Turns all the LEDs off.
-  lightsStatusAddressData(0, 0, 0);
+  // lightsStatusAddressData(0, 0, 0);
+  statusByte = 0;
+  dataByte = 0;
+  curProgramCounter = 0;
+  processDataLights();
   delay(1000);
   //
   // Every other LED.
-  addressWord = B01010101 + B01010101 * 256;
-  lightsStatusAddressData(B01010101, addressWord, B01010101);
+  // lightsStatusAddressData(B01010101, addressWord, B01010101);
+  statusByte = B01010101;
+  dataByte = B01010101;
+  curProgramCounter = B01010101 + B01010101 * 256;
+  processDataLights();
   delay(3000);
 
   // 1, 2, 3, 4.
