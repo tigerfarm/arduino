@@ -17,15 +17,21 @@
   + Time to generate videos.
 
   ---------------------------------------------
+  ---------------------------------------------
   Tablet to Desktop module work: Output LED lights
 
   The 3 Mega pins to 74HC595, match, no change.
-  
-  WAIT and HLDA need to be digital pin controlled.
-  + WAIT_PIN = A9,  Test code change of WAIT_ON/OFF to digital pin control.
-  + HLDA_PIN = A10, HLDA is already controlled by a digital pin.
 
-  Need compile options for shiftOut statements in processDataLights and lightsStatusAddressData.
+  WAIT and HLDA need to be digital pin controlled.
+  + HLDA_PIN = A10, HLDA is already controlled by a digital pin.
+  + WAIT_PIN = A9,  Test code change of WAIT_ON/OFF to digital pin control.
+
+  Align status light shift pins or use compile options.
+  + I think they are the same, just need to test.
+
+  Need compile options for shiftOut statements in functions:
+  + processDataLights, and
+  + lightsStatusAddressData.
   --- Tablet
   digitalWrite(latchPinLed, LOW);
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
@@ -47,27 +53,30 @@
 
   Need compile options for PCF module statements.
 
-  Tablet module: Toggle inputs, 2 PCF modules,
+  -------------------------------------------
+  Tablet module toggle inputs, 2 PCF modules,
   ++ pcf20: controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
-  ++ pcf20 has interupt enabled.
+  ++ pcf20 has interupt enabled, Mega pin 2.
   -------
-  ++ pcf21: low address byte, sense switches
+  ++ pcf21: low address byte, and sense switches
   -------
   + Digital pin: AUX 1 up, clock
   + Digital pin: AUX 1 down, MP3 player
   + Digital pin: AUX 2 up, write/upload to the SD card
   + Digital pin: AUX 2 down, read/download from the SD card
-  
-  Desktop module toggle inputs: Added 2 more PCF modules to bring the total to 4,
+  -------
+
+  -------------------------------------------
+  Desktop module toggle inputs: 4 PCF modules,
   -------
   ++ pcf20: controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
   +++ pcf20 has interupt enabled, Mega pin 2.
   -------
   ++ pcf21: low address byte
   -------
-  ++ pcf22: high address byte, sense switches
+  ++ pcf22: high address byte, and sense switches
   -------
-  ++ pcf23: AUX 1, AUX 2, PROTECT, UNPROTECT, CLR, and switch below STEP.
+  ++ pcf23: AUX1 up and down, AUX2 up and down, PROTECT, UNPROTECT, CLR, and switch below STEP.
   +++ pcf23 has interupt enabled, same Mega pin as pcf20, pin 2.
   -------
 
@@ -85,17 +94,18 @@
   1 Mega pin, pin 2, for Control and AUX PCF8574 module interrupts.
 
   3 Mega pins to 74HC595 daisy chain, LED output:
-//           Mega/Nano pins            74HC595 Pins
-const int dataPinLed = A13;     // pin 14 Data pin.
-const int latchPinLed = A14;    // pin 12 Latch pin.
-const int clockPinLed = A15;    // pin 11 Clock pin.
+  //           Mega/Nano pins            74HC595 Pins
+  const int dataPinLed = A13;     // pin 14 Data pin.
+  const int latchPinLed = A14;    // pin 12 Latch pin.
+  const int clockPinLed = A15;    // pin 11 Clock pin.
   --- Plus ---
   2 wires for +5V and Ground.
 
   2 pins for the WAIT and HLDA LED lights.
-const int WAIT_PIN = A9;
-const int HLDA_PIN = A10;
+  const int WAIT_PIN = A9;
+  const int HLDA_PIN = A10;
 
+  ---------------------------------------------
   ---------------------------------------------
   Other Work
 
@@ -151,6 +161,8 @@ const int HLDA_PIN = A10;
 // -----------------------------------------------------------------------------
 // Code compilation options.
 
+// #define DESKTOP_MODULE 1
+
 // #define FOR_MEGA 1
 #define INCLUDE_AUX 1
 #define INCLUDE_CLOCK 1
@@ -189,6 +201,14 @@ decode_results results;
 
 PCF8574 pcf20(0x020);
 PCF8574 pcf21(0x021);
+
+// -------------------------------------------
+// Desktop version.
+// Address for the PCF8574 module being tested.
+PCF8574 pcfControl(0x020);  // Control: STOP, RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT, REST
+PCF8574 pcfData(0x021);     // Low bytes, data byte
+PCF8574 pcfSense(0x022);    // High bytes, sense switch byte
+PCF8574 pcfAux(0x023);      // AUX switches and others: Step down, CLR, Protect, Unprotect, AUX1 up, AUX1 down,  AUX2 up, AUX2 down
 
 //                   Mega pin for control toggle interrupt. Same pin for Nano.
 const int INTERRUPT_PIN = 2;
@@ -610,6 +630,20 @@ void lcdPrintChar(String theChar) {
 
 byte statusByte = B00000000;        // By default, all are OFF.
 
+// ------------
+// Order on the desktop module, seems to match the tablet module.
+// Desktop module,
+// Status lights: INT(B000000001), WO, STACK, HLTA, OUT, MI, INP, MEMR(B10000000)
+// ------------
+// Tablet module:
+// MEMR - Bar LED #1
+// M1   - Bar LED #3
+// HLTA - Bar LED #5
+// WO   - Bar LED #7
+// WAIT - Green LED on the tablet
+// HLDA - Red LED
+// ------------
+
 // Use OR to turn ON. Example:
 //  statusByte = statusByte | MEMR_ON;
 const byte MEMR_ON =    B10000000;  // MEMR   The memory bus will be used for memory read data.
@@ -619,6 +653,7 @@ const byte OUT_ON =     B00010000;  // OUT    The address contains the address o
 const byte HLTA_ON =    B00001000;  // HLTA   Machine opcode hlt, has halted the machine.
 const byte STACK_ON =   B00000100;  // STACK  Stack process
 const byte WO_ON =      B00000010;  // WO     Write out (inverse logic)
+const byte INT_ON =     B00000001;  // INT    Interrupt
 // const byte WAIT_ON =    B00000001;  // WAIT   Changed to a digital pin control.
 
 // Use AND to turn OFF. Example:
@@ -630,14 +665,8 @@ const byte OUT_OFF =    B11101111;
 const byte HLTA_OFF =   B11110111;
 const byte STACK_OFF =  B11111011;
 const byte WO_OFF =     B11111101;
+const byte INT_OFF =    B11111110;
 // const byte WAIT_OFF =   B11111110;   // WAIT   Changed to a digital pin control.
-
-// MEMR - Bar LED #1
-// M1   - Bar LED #3
-// HLTA - Bar LED #5
-// WO   - Bar LED #7
-// WAIT - Green LED on the tablet
-// HLDA - Red LED
 
 // Video demonstrating status lights:
 //    https://www.youtube.com/watch?v=3_73NwB6toY
@@ -3436,24 +3465,61 @@ void readProgramFileIntoMemory(String theFilename) {
 // -----------------------------------------------------------------------------
 // Front Panel Switches
 
-// -------------------------
-// Get Front Panel Toggles value, the sense switches.
+// Notes regarding switch logic,
+// + Only do the action once, don't repeat if the button is held down.
+// + Don't repeat action if the button is not pressed.
 
-int toggleSenseByte() {
+// -------------------------
+// Get Front Panel address/data/sense toggle values.
+
+int toggleDataByte() {
   // Invert byte bits using bitwise not operator: "~";
   // Bitwise "not" operator to invert bits:
   //  int a = 103;  // binary:  0000000001100111
   //  int b = ~a;   // binary:  1111111110011000 = -104
+  byte toggleByte = ~pcfData.read8();
+  return toggleByte;
+}
+// --------------------------
+/*
+  int toggleSenseByte() {
+  byte toggleByte = ~pcfSense.read8();
+  return toggleByte;
+  }
+*/
+int toggleSenseByte() {
   byte toggleByte = ~pcf21.read8();
   return toggleByte;
 }
+// --------------------------
+unsigned int toggleAddress() {
+  byte byteLow = ~pcfData.read8();
+  byte byteHigh = ~pcfSense.read8();
+  return byteHigh * 256 + byteLow;
+}
 
-// -------------------------
-// Front Panel Control Switches, when a program is not running.
+// --------------------------------------------------
 
-// Only do the action once, don't repeat if the button is held down.
-// Don't repeat action if the button is not pressed.
+#ifdef DESKTOP_MODULE
+const int pinStop = 7;
+const int pinRun = 6;
+const int pinStep = 5;
+const int pinExamine = 4;
+const int pinExamineNext = 3;
+const int pinDeposit = 2;
+const int pinDepositNext = 1;
+const int pinReset = 0;
 
+const int pinAux1up = 3;
+const int pinAux1down = 2;
+const int pinAux2up = 1;
+const int pinAux2down = 0;
+const int pinProtect = 5;
+const int pinUnProtect = 4;
+const int pinClr = 6;
+const int pinStepDown = 7;
+#else
+// TABLET_MODULE
 const int pinStop = 0;
 const int pinRun = 1;
 const int pinStep = 2;
@@ -3462,6 +3528,7 @@ const int pinExamineNext = 4;
 const int pinDeposit = 5;
 const int pinDepositNext = 6;
 const int pinReset = 7;
+#endif
 
 boolean switchStop = false;
 boolean switchRun = false;
@@ -4623,10 +4690,12 @@ void setup() {
   // ----------------------------------------------------
   // Front panel toggle switches.
 
+  digitalWrite(WAIT_PIN, HIGH);
+  digitalWrite(HLDA_PIN, LOW);  // Default to emulator.
+
   // AUX device switches.
 #ifdef INCLUDE_AUX
   pinMode(HLDA_PIN, OUTPUT);    // Indicator: clock process (LED on) or emulator (LED off).
-  digitalWrite(HLDA_PIN, LOW);  // Default to emulator.
   pinMode(CLOCK_SWITCH_PIN, INPUT_PULLUP);
   pinMode(PLAYER_SWITCH_PIN, INPUT_PULLUP);
   pinMode(UPLOAD_SWITCH_PIN, INPUT_PULLUP);
@@ -4647,7 +4716,6 @@ void setup() {
   // ----------------------------------------------------
   // Status lights are off (statusByte=0) by default.
   // programCounter and curProgramCounter are 0 by default.
-  digitalWrite(WAIT_PIN, HIGH);
   // statusByte = statusByte | WAIT_ON;
   statusByte = statusByte | MEMR_ON;
   statusByte = statusByte | M1_ON;

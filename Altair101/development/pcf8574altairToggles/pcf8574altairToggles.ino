@@ -83,6 +83,15 @@ void printData(byte theByte) {
 }
 
 // -----------------------------------------------------------------------------
+// Status LED lights
+
+// Program wait status.
+const int WAIT_PIN = A9;      // Program wait state: off/LOW or wait state on/HIGH.
+
+// HLDA : 8080 processor goes into a hold state because of other hardware running.
+const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock processing (on/HIGH).
+
+// -----------------------------------------------------------------------------
 #include <PCF8574.h>
 #include <Wire.h>
 
@@ -120,6 +129,7 @@ const int pinExamine = 4;
 const int pinExamineNext = 3;
 const int pinDeposit = 2;
 const int pinDepositNext = 1;
+const int pinReset = 0;
 
 const int pinAux1up = 3;
 const int pinAux1down = 2;
@@ -168,6 +178,8 @@ void checkRunningButtons() {
     // Switch logic.
     Serial.println(F("+ Running, Stop."));
     programState = PROGRAM_WAIT;
+    digitalWrite(WAIT_PIN, HIGH);
+    digitalWrite(HLDA_PIN, LOW);
   }
   // -------------------
   // Read PCF8574 input for this switch.
@@ -231,6 +243,8 @@ void checkControlButtons() {
     // Switch logic.
     Serial.println(F("+ Control, pinRun."));
     programState = PROGRAM_RUN;
+    digitalWrite(WAIT_PIN, LOW);
+    digitalWrite(HLDA_PIN, LOW);
   }
   // -------------------
   if (pcfControl.readButton(pinStep) == 0) {
@@ -318,6 +332,8 @@ void checkAuxButtons() {
     switchAux1up = false;
     // Switch logic.
     Serial.println(F("+ Control, pinAux1up."));
+    digitalWrite(WAIT_PIN, HIGH);
+    digitalWrite(HLDA_PIN, HIGH);
   }
   // -------------------
   if (pcfAux.readButton(pinAux1down) == 0) {
@@ -328,6 +344,8 @@ void checkAuxButtons() {
     switchAux1down = false;
     // Switch logic.
     Serial.println(F("+ Control, pinAux1down."));
+    digitalWrite(WAIT_PIN, LOW);
+    digitalWrite(HLDA_PIN, LOW);
   }
   // -------------------
   if (pcfAux.readButton(pinAux2up) == 0) {
@@ -338,6 +356,8 @@ void checkAuxButtons() {
     switchAux2up = false;
     // Switch logic.
     Serial.println(F("+ Control, pinAux2up."));
+    digitalWrite(WAIT_PIN, HIGH);
+    digitalWrite(HLDA_PIN, HIGH);
   }
   // -------------------
   if (pcfAux.readButton(pinAux2down) == 0) {
@@ -348,6 +368,8 @@ void checkAuxButtons() {
     switchAux1down = false;
     // Switch logic.
     Serial.println(F("+ Control, pinAux2down."));
+    digitalWrite(WAIT_PIN, LOW);
+    digitalWrite(HLDA_PIN, LOW);
   }
   // -------------------
   if (pcfAux.readButton(pinProtect) == 0) {
@@ -371,6 +393,12 @@ void setup() {
   delay(1000);
   Serial.println(""); // Newline after garbage characters.
   Serial.println("+++ Setup.");
+
+  // ------------------------------
+  // System application status LED lights
+  
+  digitalWrite(WAIT_PIN, HIGH);
+  digitalWrite(HLDA_PIN, LOW);  // Default to emulator.
 
   // ------------------------------
   // I2C Two Wire PCF module initialization

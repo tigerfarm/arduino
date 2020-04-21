@@ -1,4 +1,3 @@
-\
 // -----------------------------------------------------------------------------
 /*
   Shifting 8 bits to Expand I/O.
@@ -34,8 +33,8 @@
 // -----------------------------------------------------------------------------
 // Shift Register
 
-//           Mega/Nano pins            74HC595 Pins
-const int dataPinLed = A14;     // pin 14 Data pin.
+//           Mega/Nano pins        74HC595 Pins
+const int dataPinLed  = A14;    // pin 14 Data pin.
 const int latchPinLed = A12;    // pin 12 Latch pin.
 const int clockPinLed = A11;    // pin 11 Clock pin.
 
@@ -110,7 +109,8 @@ void loop() {
   lightsStatusAddressData(0, 0, 0); // Turns all the LEDs off.
   delay(500);
   for (int numberToDisplay = 0; numberToDisplay < 256; numberToDisplay++) {
-    updateShiftRegister(numberToDisplay);   // Status lights
+    // Counts up: 0, 1, 2, 3, ..., 255
+    updateShiftRegister(numberToDisplay);   // Status lights: INT, WO, STACK, HLTA, OUT, MI, INP, MEMR
     updateShiftRegister(numberToDisplay);   // Data lights
     updateShiftRegister(numberToDisplay);   // Address lower byte
     updateShiftRegister(numberToDisplay);   // Address higher byte
