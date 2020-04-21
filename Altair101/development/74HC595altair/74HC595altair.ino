@@ -3,6 +3,8 @@
   Testing front panel LED light implementations for both the Tablet and the Desktop modules.
   + Status, data, and address lights.
   + Does not include WAIT and HLDA, thoses are tested in the PCF toggle program.
+
+  For a better test on the Tablet, I should wire up the other status lights, even if they're not used.
 */
 // -----------------------------------------------------------------------------
 // If defined, Desktop module. Else Tablet module.
@@ -137,6 +139,7 @@ void setup() {
 
   // -------------------------
   // To test, status lights.
+  Serial.println("+ Turn on status LED lights one at a time, from MEMR to INT.");
   statusByte = 0;
   dataByte = 0;
   curProgramCounter = 0;
@@ -183,6 +186,7 @@ void setup() {
   delay(3000);
   // -------------------------
 
+  Serial.println("+ Turn on status LED lights: MEMR M1 WO.");
   statusByte = 0;
   statusByte = statusByte | MEMR_ON;
   statusByte = statusByte | M1_ON;
@@ -190,26 +194,32 @@ void setup() {
   processDataLights();
   delay(6000);
   //
+  Serial.println("+ Turn M1 status LED light off, leaving the following on: MEMR WO.");
   statusByte = statusByte & M1_OFF;
   processDataLights();
   delay(6000);
   //
+  Serial.println("+ Turn on status LED lights: MEMR WO.");
+  statusByte = 0;
   statusByte = MEMR_ON | WO_ON;
   processDataLights();
   delay(6000);
   //
-  statusByte = 0;
+  Serial.println("+ Turn M1 status LED light off, leaving the following on: MEMR WO.");
   statusByte = (MEMR_ON | WO_ON) & M1_OFF;
   processDataLights();
   delay(6000);
 
   // -------------------------------------------------------------
-  // Move LED on light, from left to right.
+  Serial.println("+ Turn every other LED light on.");
   statusByte = B01010101;
   dataByte = B01010101;
   curProgramCounter = B01010101 + B01010101 * 256;
   lightsStatusAddressData(0, 0, 0); // Turns all the LEDs off.
   delay(500);
+
+  // -------------------------------------------------------------
+  Serial.println("+ Turn each LED on light, from right to left to.");
   statusByte = 1;
   dataByte = 1;
   curProgramCounter = 1 + 1 * 256;
