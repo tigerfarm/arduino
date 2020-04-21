@@ -325,6 +325,78 @@ boolean switchAux1down = false;
 boolean switchAux2up = false;
 boolean switchAux2down = false;
 
+void checkClockSwitch() {
+
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux1down) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(PLAYER_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux1down) {
+      switchAux1down = true;
+      Serial.print(F("+ AUX1 down switch pressed..."));
+    }
+  } else if (switchAux1down) {
+    switchAux1down = false;
+    // Switch logic.
+    Serial.println(F(" Released."));
+    digitalWrite(WAIT_PIN, LOW);
+    digitalWrite(HLDA_PIN, LOW);
+  }
+
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux1up) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(CLOCK_SWITCH_PIN) == HIGH) {
+#endif
+    /*
+      if (!switchAux1up) {
+      switchAux1up = true;
+      Serial.print(F("+ pinAux1up switch pressed..."));
+      }
+      } else if (switchAux1up) {
+      switchAux1up = false;
+      // Switch logic.
+      Serial.println(F(" Released."));
+      if (programState == CLOCK_RUN) {
+      programState = PROGRAM_WAIT;
+      digitalWrite(HLDA_PIN, LOW);
+      digitalWrite(WAIT_PIN, HIGH);
+      } else {
+      programState = CLOCK_RUN;
+      digitalWrite(HLDA_PIN, HIGH);
+      digitalWrite(WAIT_PIN, LOW);
+      }
+    */
+    if (!switchAux1up) {
+      switchAux1up = false;
+      // Switch logic ...
+      Serial.println(F(" Released."));
+      if (programState == CLOCK_RUN) {
+        programState = PROGRAM_WAIT;
+        digitalWrite(HLDA_PIN, LOW);
+        digitalWrite(WAIT_PIN, HIGH);
+      } else {
+        programState = CLOCK_RUN;
+        digitalWrite(HLDA_PIN, HIGH);
+        digitalWrite(WAIT_PIN, LOW);
+      }
+    }
+    switchAux1up = true;
+  } else {
+    if (switchAux1up) {
+      switchAux1up = false;
+      // Switch logic ...
+      Serial.print(F("+ AUX1 up, switch pressed..."));
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Currently, only the Desktop Module
+
 void checkAuxButtons() {
   // -------------------
   // Tablet:
@@ -393,60 +465,6 @@ void checkAuxButtons() {
     Serial.println(F("+ Control, pinStepDown."));
   }
 #endif
-}
-
-// -----------------------------------------------------------------------------
-// Tablet Module
-
-void checkClockSwitch() {
-
-#ifdef DESKTOP_MODULE
-  if (pcfAux.readButton(pinAux1up) == 0) {
-#else
-  // Tablet:
-  if (digitalRead(CLOCK_SWITCH_PIN) == HIGH) {
-#endif
-    /*
-      if (!switchAux1up) {
-      switchAux1up = true;
-      Serial.print(F("+ pinAux1up switch pressed..."));
-      }
-      } else if (switchAux1up) {
-      switchAux1up = false;
-      // Switch logic.
-      Serial.println(F(" Released."));
-      if (programState == CLOCK_RUN) {
-      programState = PROGRAM_WAIT;
-      digitalWrite(HLDA_PIN, LOW);
-      digitalWrite(WAIT_PIN, HIGH);
-      } else {
-      programState = CLOCK_RUN;
-      digitalWrite(HLDA_PIN, HIGH);
-      digitalWrite(WAIT_PIN, LOW);
-      }
-    */
-    if (!switchAux1up) {
-      switchAux1up = false;
-      // Switch logic ...
-      Serial.println(F(" Released."));
-      if (programState == CLOCK_RUN) {
-        programState = PROGRAM_WAIT;
-        digitalWrite(HLDA_PIN, LOW);
-        digitalWrite(WAIT_PIN, HIGH);
-      } else {
-        programState = CLOCK_RUN;
-        digitalWrite(HLDA_PIN, HIGH);
-        digitalWrite(WAIT_PIN, LOW);
-      }
-    }
-    switchAux1up = true;
-  } else {
-    if (switchAux1up) {
-      switchAux1up = false;
-      // Switch logic ...
-      Serial.print(F("+ AUX1 up, switch pressed..."));
-    }
-  }
 }
 
 // -----------------------------------------------------------------------------
