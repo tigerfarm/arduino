@@ -325,8 +325,35 @@ boolean switchAux1down = false;
 boolean switchAux2up = false;
 boolean switchAux2down = false;
 
-void checkClockSwitch() {
+void checkAuxButtons() {
 
+  // -------------------
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux1up) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(CLOCK_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux1up) {
+      switchAux1up = true;
+      Serial.print(F("+ pinAux1up switch pressed..."));
+    }
+  } else if (switchAux1up) {
+    switchAux1up = false;
+    // Switch logic.
+    Serial.println(F(" Released."));
+    if (programState == CLOCK_RUN) {
+      programState = PROGRAM_WAIT;
+      digitalWrite(HLDA_PIN, LOW);
+      digitalWrite(WAIT_PIN, HIGH);
+    } else {
+      programState = CLOCK_RUN;
+      digitalWrite(HLDA_PIN, HIGH);
+      digitalWrite(WAIT_PIN, LOW);
+    }
+  }
+
+  // -------------------
 #ifdef DESKTOP_MODULE
   if (pcfAux.readButton(pinAux1down) == 0) {
 #else
@@ -345,89 +372,14 @@ void checkClockSwitch() {
     digitalWrite(HLDA_PIN, LOW);
   }
 
+
+  // -------------------
 #ifdef DESKTOP_MODULE
-  if (pcfAux.readButton(pinAux1up) == 0) {
+  if (pcfAux.readButton(pinAux2up) == 0) {
 #else
   // Tablet:
-  if (digitalRead(CLOCK_SWITCH_PIN) == HIGH) {
+  if (digitalRead(UPLOAD_SWITCH_PIN) == LOW) {
 #endif
-    /*
-      if (!switchAux1up) {
-      switchAux1up = true;
-      Serial.print(F("+ pinAux1up switch pressed..."));
-      }
-      } else if (switchAux1up) {
-      switchAux1up = false;
-      // Switch logic.
-      Serial.println(F(" Released."));
-      if (programState == CLOCK_RUN) {
-      programState = PROGRAM_WAIT;
-      digitalWrite(HLDA_PIN, LOW);
-      digitalWrite(WAIT_PIN, HIGH);
-      } else {
-      programState = CLOCK_RUN;
-      digitalWrite(HLDA_PIN, HIGH);
-      digitalWrite(WAIT_PIN, LOW);
-      }
-    */
-    if (!switchAux1up) {
-      switchAux1up = false;
-      // Switch logic ...
-      Serial.println(F(" Released."));
-      if (programState == CLOCK_RUN) {
-        programState = PROGRAM_WAIT;
-        digitalWrite(HLDA_PIN, LOW);
-        digitalWrite(WAIT_PIN, HIGH);
-      } else {
-        programState = CLOCK_RUN;
-        digitalWrite(HLDA_PIN, HIGH);
-        digitalWrite(WAIT_PIN, LOW);
-      }
-    }
-    switchAux1up = true;
-  } else {
-    if (switchAux1up) {
-      switchAux1up = false;
-      // Switch logic ...
-      Serial.print(F("+ AUX1 up, switch pressed..."));
-    }
-  }
-}
-
-// -----------------------------------------------------------------------------
-// Currently, only the Desktop Module
-
-void checkAuxButtons() {
-  // -------------------
-  // Tablet:
-  // if (digitalRead(CLOCK_SWITCH_PIN) == HIGH) {
-  // Desktop:
-  if (pcfAux.readButton(pinAux1up) == 0) {
-    //
-    if (!switchAux1up) {
-      switchAux1up = true;
-    }
-  } else if (switchAux1up) {
-    switchAux1up = false;
-    // Switch logic.
-    Serial.println(F("+ Control, pinAux1up."));
-    digitalWrite(WAIT_PIN, HIGH);
-    digitalWrite(HLDA_PIN, HIGH);
-  }
-  // -------------------
-  if (pcfAux.readButton(pinAux1down) == 0) {
-    if (!switchAux1down) {
-      switchAux1down = true;
-    }
-  } else if (switchAux1down) {
-    switchAux1down = false;
-    // Switch logic.
-    Serial.println(F("+ Control, pinAux1down."));
-    digitalWrite(WAIT_PIN, LOW);
-    digitalWrite(HLDA_PIN, LOW);
-  }
-  // -------------------
-  if (pcfAux.readButton(pinAux2up) == 0) {
     if (!switchAux2up) {
       switchAux2up = true;
     }
@@ -439,7 +391,12 @@ void checkAuxButtons() {
     digitalWrite(HLDA_PIN, HIGH);
   }
   // -------------------
+#ifdef DESKTOP_MODULE
   if (pcfAux.readButton(pinAux2down) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
+#endif
     if (!switchAux1down) {
       switchAux1down = true;
     }
@@ -450,6 +407,7 @@ void checkAuxButtons() {
     digitalWrite(WAIT_PIN, LOW);
     digitalWrite(HLDA_PIN, LOW);
   }
+
 #ifdef DESKTOP_MODULE
   // -------------------
   if (pcfAux.readButton(pinProtect) == 0) {
@@ -515,19 +473,20 @@ void loop() {
     } else {
       checkControlButtons();
       //
-      // Get the following (AUX controls) to work for Tablet and Desktop configurations.
-      // Once checkClockSwitch() is tested, use the same method on checkAuxButtons().
-      // checkAuxButtons();
-      checkClockSwitch();
+      // AUX controls are interrupt controlled on the Tablet and Desktop configurations.
+#ifdef DESKTOP_MODULE
+      checkAuxButtons();
+#endif
     }
     //
     pcfControlinterrupted = false; // Reset for next interrupt.
   }
 
-  // Get the following (AUX controls) to work for Tablet and Desktop configurations.
-  // Once checkClockSwitch() is tested, use the same method on checkAuxButtons().
-  // checkAuxButtons();
-  checkClockSwitch();     // Not an interrupt switch on the tablet.
+  // AUX controls are not interrupt controlled on the Tablet and Desktop configurations.
+#ifdef DESKTOP_MODULE
+#else
+  checkAuxButtons();     // Not an interrupt switch on the tablet.
+#endif
 
   delay (60);
 }
