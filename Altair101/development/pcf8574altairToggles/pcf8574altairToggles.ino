@@ -44,6 +44,10 @@
 // -----------------------------------------------------------------------------
 // Utility functions from Processor.ino
 
+// --------------------------
+// #define DESKTOP_MODULE 1
+
+// --------------------------
 #define PROGRAM_WAIT 0
 #define PROGRAM_RUN 1
 #define CLOCK_RUN 2
@@ -51,6 +55,7 @@
 #define SERIAL_DOWNLOAD 4
 int programState = PROGRAM_WAIT;  // Intial, default.
 
+// --------------------------
 // Instruction parameters:
 byte dataByte = 0;           // db = Data byte (8 bit)
 
@@ -87,9 +92,11 @@ void printData(byte theByte) {
 
 // Program wait status.
 const int WAIT_PIN = A9;      // Program wait state: off/LOW or wait state on/HIGH.
+// const int WAIT_PIN = 6;      // Program wait state: off/LOW or wait state on/HIGH.
 
 // HLDA : 8080 processor goes into a hold state because of other hardware running.
 const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock processing (on/HIGH).
+// const int HLDA_PIN = 7;     // Emulator processing (off/LOW) or clock processing (on/HIGH).
 
 // -----------------------------------------------------------------------------
 #include <PCF8574.h>
@@ -121,6 +128,7 @@ PCF8574 pcfAux(0x023);      // AUX switches and others: Step down, CLR, Protect,
 // -----------------------------------------------------------------------------
 // Front Panel Switches
 
+#ifdef DESKTOP_MODULE
 const int pinStop = 7;
 const int pinReset = 0;
 const int pinRun = 6;
@@ -130,6 +138,17 @@ const int pinExamineNext = 3;
 const int pinDeposit = 2;
 const int pinDepositNext = 1;
 const int pinReset = 0;
+#else
+// TABLET_MODULE
+const int pinStop = 0;
+const int pinRun = 1;
+const int pinStep = 2;
+const int pinExamine = 3;
+const int pinExamineNext = 4;
+const int pinDeposit = 5;
+const int pinDepositNext = 6;
+const int pinReset = 7;
+#endif
 
 const int pinAux1up = 3;
 const int pinAux1down = 2;
@@ -300,6 +319,8 @@ void checkControlButtons() {
     Serial.print(", sense=");
     printByte(toggleSenseByte());
     Serial.println("");
+    digitalWrite(WAIT_PIN, HIGH);
+    digitalWrite(HLDA_PIN, HIGH);
   }
   // -------------------
   if (pcfControl.readButton(pinDepositNext) == 0) {
@@ -310,6 +331,8 @@ void checkControlButtons() {
     switchDepositNext = false;
     // Switch logic.
     Serial.println(F("+ Control, pinDepositNext."));
+    digitalWrite(WAIT_PIN, LOW);
+    digitalWrite(HLDA_PIN, LOW);
   }
 }
 
@@ -426,7 +449,9 @@ void loop() {
       checkRunningButtons();
     } else {
       checkControlButtons();
+#ifdef DESKTOP_MODULE
       checkAuxButtons();
+#endif
     }
     //
     pcfControlinterrupted = false; // Reset for next interrupt.
