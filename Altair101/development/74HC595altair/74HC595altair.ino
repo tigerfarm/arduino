@@ -103,33 +103,34 @@ void setup() {
   delay(300);
   Serial.println("+ 74HC595 chip control pins are set.");
 
-  // Turns all the LEDs off.
+  Serial.println("+ Turns all the LEDs OFF.");
   lightsStatusAddressData(0, 0, 0);
   delay(3000);
   //
-  // Turns all the LEDs on.
+  Serial.println("+ Turns all the LEDs ON.");
   curProgramCounter = B11111111 + B11111111 * 256;
   lightsStatusAddressData(B11111111, curProgramCounter, B11111111);
-  delay(3000);
   Serial.print("+ Value to turn all Address LED lights on: ");
   Serial.println(curProgramCounter);
+  delay(3000);
 
-  // A counter in each section: 1) Status lights, 2) lower byte address, 3) Higher byte address, 4) Data byte
+  Serial.println("+ A counter in each section:");
+  Serial.println("++ 1) Status lights, 2) lower byte address, 3) Higher byte address, 4) Data byte");
   lightsStatusAddressData(0, 0, 0);
   // 1, 2, 3, 4.
   curProgramCounter = 3 +  4 * 256;
   lightsStatusAddressData(1, curProgramCounter, 2);
   delay(6000);
 
-  // Turns all the LEDs off.
+  Serial.println("+ Turns all the LEDs off.");
   // lightsStatusAddressData(0, 0, 0);
   statusByte = 0;
   dataByte = 0;
   curProgramCounter = 0;
   processDataLights();
   delay(1000);
-  //
-  // Every other LED.
+
+  Serial.println("+ Turns every other LED on.");
   // lightsStatusAddressData(B01010101, curProgramCounter, B01010101);
   statusByte = B01010101;
   dataByte = B01010101;
@@ -139,7 +140,7 @@ void setup() {
 
   // -------------------------
   // To test, status lights.
-  Serial.println("+ Turn on status LED lights one at a time, from MEMR to INT.");
+  Serial.println("+ Turn the status LED lights on, one at a time, from left to right, from MEMR to INT.");
   statusByte = 0;
   dataByte = 0;
   curProgramCounter = 0;
