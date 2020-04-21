@@ -1,51 +1,20 @@
 // -----------------------------------------------------------------------------
 /*
-  PCF8574 I2C Module
-
-  I2C to 8-bit Parallel-Port Expander
-
-  Module with adjustable pin address settings:
-   --------------
-  |  V G S S     | Above are female pins
-  |  C N D C     |
-  |  C D A L     |
-  |              | 0 is up   (-)
-  |     A2 A1 A0 | 1 is down (+), toward the male pins at the bottom.
-  |     0  0  0  |  = 0x20
-  |     0  0  1  |  = 0x21, A0 is connected down, the others up.
-  |     0  1  0  |  = 0x22
-  |     0  1  1  |  = 0x23
-  |     1  0  0  |  = 0x24
-  | P0  1  0  1  |  = 0x25
-  | P1  1  1  0  |  = 0x26
-  | P2  1  1  1  |  = 0x27
-  | P3           |
-  | P4           |
-  | P5           |
-  | P6           |
-  | P7           |
-  | INT          | For multiple, test using a diode to the Arduino interrupt pin.
-  |              |
-  |  V G S S     | Below are male pins
-  |  C N D C     |
-  |  C D A L     |
-   --------------
-     | | | |
-
-  Wiring:
-  + SDA to Nano A4 or Mega pin SDA 20.
-  + SCL to Nano A5 or Mega pin SCL 21.
-  + GND to Arduino GND
-  + VCC to Arduino 5V
-  + INT to interrupt pin, pin 2 on Nano, in this sample program.
-  + P0 ... O7 to switches. Other side of the switch to ground.
+  Testing toggle implementations for both the Tablet and the Desktop modules.
 
 */
 // -----------------------------------------------------------------------------
-// Utility functions from Processor.ino
-
-// --------------------------
+// If defined, Desktop module. Else Tablet module.
 // #define DESKTOP_MODULE 1
+//
+// #ifdef DESKTOP_MODULE
+//    ... Desktop module code ...
+// #else
+//    ... Tablet module code ...
+// #endif
+
+// -----------------------------------------------------------------------------
+// Utility functions from Processor.ino
 
 // --------------------------
 #define PROGRAM_WAIT 0
@@ -54,6 +23,14 @@
 #define PLAYER_RUN 3
 #define SERIAL_DOWNLOAD 4
 int programState = PROGRAM_WAIT;  // Intial, default.
+
+// -----------------------------------------------------------------------------
+// Tablet module
+//                              Mega pins
+const int CLOCK_SWITCH_PIN =    8;  // Tested pins: 8..11. Doesn't work: 24, 33.
+const int PLAYER_SWITCH_PIN =   9;
+const int UPLOAD_SWITCH_PIN =   10;
+const int DOWNLOAD_SWITCH_PIN = 11;
 
 // --------------------------
 // Instruction parameters:
@@ -347,7 +324,11 @@ boolean switchAux2down = false;
 
 void checkAuxButtons() {
   // -------------------
+  // Tablet:
+  // if (digitalRead(CLOCK_SWITCH_PIN) == HIGH) {
+  // Desktop:
   if (pcfAux.readButton(pinAux1up) == 0) {
+    //
     if (!switchAux1up) {
       switchAux1up = true;
     }
@@ -394,6 +375,7 @@ void checkAuxButtons() {
     digitalWrite(WAIT_PIN, LOW);
     digitalWrite(HLDA_PIN, LOW);
   }
+#ifdef DESKTOP_MODULE
   // -------------------
   if (pcfAux.readButton(pinProtect) == 0) {
     Serial.println(F("+ Control, pinProtect."));
@@ -407,6 +389,49 @@ void checkAuxButtons() {
   if (pcfAux.readButton(pinStepDown) == 0) {
     Serial.println(F("+ Control, pinStepDown."));
   }
+#endif
+}
+
+// -----------------------------------------------------------------------------
+// Tablet Module
+
+boolean clockSwitchState = true;
+boolean playerSwitchState = true;
+boolean uploadSwitchState = true;
+boolean downloadSwitchState = true;
+
+void checkClockSwitch() {
+
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux1up) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(CLOCK_SWITCH_PIN) == HIGH) {
+#endif
+    if (!clockSwitchState) {
+      Serial.println(F("+ Clock switch released."));
+      clockSwitchState = false;
+      // Switch logic ...
+      if (programState == CLOCK_RUN) {
+        Serial.println(F("+ Stop running the clock, return to the 8080 emulator."));
+        // controlStopLogic();   // Changes programState to wait.
+        digitalWrite(HLDA_PIN, LOW);
+      } else {
+        programState = CLOCK_RUN;
+        digitalWrite(HLDA_PIN, HIGH);
+        digitalWrite(WAIT_PIN, LOW);
+        Serial.print("+ Clock programState: ");
+        Serial.println(programState);
+      }
+    }
+    clockSwitchState = true;
+  } else {
+    if (clockSwitchState) {
+      // Serial.println(F("+ Clock switch pressed."));
+      clockSwitchState = false;
+      // Switch logic ...
+    }
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -419,21 +444,28 @@ void setup() {
 
   // ------------------------------
   // System application status LED lights
-  
-  digitalWrite(WAIT_PIN, HIGH);
+  pinMode(WAIT_PIN, OUTPUT);    // Indicator: program wait state: LED on or LED off.
+  pinMode(HLDA_PIN, OUTPUT);    // Indicator: emulator (LED off)v or other devices (LED on) such as clock or MP3 player.
+  digitalWrite(WAIT_PIN, HIGH); // Default to wait state.
   digitalWrite(HLDA_PIN, LOW);  // Default to emulator.
 
   // ------------------------------
   // I2C Two Wire PCF module initialization
   pcfControl.begin();
-  pcfAux.begin();
   pcfData.begin();
+#ifdef DESKTOP_MODULE
   pcfSense.begin();
-
+  pcfAux.begin();
+#else
+  pinMode(CLOCK_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(PLAYER_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(UPLOAD_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(DOWNLOAD_SWITCH_PIN, INPUT_PULLUP);
+  Serial.println(F("+ Tablet AUX device toggle switches are configured for input."));
+#endif
   // PCF module interrupt initialization
   pinMode(INTERRUPT_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcfControlinterrupt, CHANGE);
-
   Serial.println("+ Toggle PCF8574 input modules initialized.");
 
   // ------------------------------
@@ -449,9 +481,11 @@ void loop() {
       checkRunningButtons();
     } else {
       checkControlButtons();
-#ifdef DESKTOP_MODULE
-      checkAuxButtons();
-#endif
+      //
+      // Get the following (AUX controls) to work for Tablet and Desktop configurations.
+      // Once checkClockSwitch() is tested, use the same method on checkAuxButtons().
+      // checkAuxButtons();
+      checkClockSwitch();
     }
     //
     pcfControlinterrupted = false; // Reset for next interrupt.

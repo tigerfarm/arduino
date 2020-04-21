@@ -4690,12 +4690,15 @@ void setup() {
   // ----------------------------------------------------
   // Front panel toggle switches.
 
-  digitalWrite(WAIT_PIN, HIGH);
+  // ------------------------------
+  // System application status LED lights
+  pinMode(WAIT_PIN, OUTPUT);    // Indicator: program wait state: LED on or LED off.
+  pinMode(HLDA_PIN, OUTPUT);    // Indicator: clock process (LED on) or emulator (LED off).
+  digitalWrite(WAIT_PIN, HIGH); // Default to wait state.
   digitalWrite(HLDA_PIN, LOW);  // Default to emulator.
 
   // AUX device switches.
 #ifdef INCLUDE_AUX
-  pinMode(HLDA_PIN, OUTPUT);    // Indicator: clock process (LED on) or emulator (LED off).
   pinMode(CLOCK_SWITCH_PIN, INPUT_PULLUP);
   pinMode(PLAYER_SWITCH_PIN, INPUT_PULLUP);
   pinMode(UPLOAD_SWITCH_PIN, INPUT_PULLUP);
