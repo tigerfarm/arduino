@@ -246,11 +246,12 @@ void checkControlButtons() {
   if (pcfControl.readButton(pinStep) == 0) {
     if (!switchStep) {
       switchStep = true;
+      Serial.print(F("+ pinStep switch pressed..."));
     }
   } else if (switchStep) {
     switchStep = false;
     // Switch logic.
-    Serial.println(F("+ Control, pinStep."));
+    Serial.println(F(" Released."));
   }
   // -------------------
   if (pcfControl.readButton(pinExamine) == 0) {
@@ -273,11 +274,12 @@ void checkControlButtons() {
   if (pcfControl.readButton(pinExamineNext) == 0) {
     if (!switchExamineNext) {
       switchExamineNext = true;
+      Serial.print(F("+ pinExamineNext switch pressed..."));
     }
   } else if (switchExamineNext) {
     switchExamineNext = false;
     // Switch logic.
-    Serial.println(F("+ Control, pinExamineNext."));
+    Serial.println(F(" Released."));
   }
   // -------------------
   if (pcfControl.readButton(pinDeposit) == 0) {
@@ -303,11 +305,12 @@ void checkControlButtons() {
   if (pcfControl.readButton(pinDepositNext) == 0) {
     if (!switchDepositNext) {
       switchDepositNext = true;
+      Serial.print(F("+ pinDepositNext switch pressed..."));
     }
   } else if (switchDepositNext) {
     switchDepositNext = false;
     // Switch logic.
-    Serial.println(F("+ Control, pinDepositNext."));
+    Serial.println(F(" Released."));
     digitalWrite(WAIT_PIN, LOW);
     digitalWrite(HLDA_PIN, LOW);
   }
@@ -395,11 +398,6 @@ void checkAuxButtons() {
 // -----------------------------------------------------------------------------
 // Tablet Module
 
-boolean clockSwitchState = true;
-boolean playerSwitchState = true;
-boolean uploadSwitchState = true;
-boolean downloadSwitchState = true;
-
 void checkClockSwitch() {
 
 #ifdef DESKTOP_MODULE
@@ -408,28 +406,45 @@ void checkClockSwitch() {
   // Tablet:
   if (digitalRead(CLOCK_SWITCH_PIN) == HIGH) {
 #endif
-    if (!clockSwitchState) {
-      Serial.println(F("+ Clock switch released."));
-      clockSwitchState = false;
-      // Switch logic ...
+    /*
+      if (!switchAux1up) {
+      switchAux1up = true;
+      Serial.print(F("+ pinAux1up switch pressed..."));
+      }
+      } else if (switchAux1up) {
+      switchAux1up = false;
+      // Switch logic.
+      Serial.println(F(" Released."));
       if (programState == CLOCK_RUN) {
-        Serial.println(F("+ Stop running the clock, return to the 8080 emulator."));
-        // controlStopLogic();   // Changes programState to wait.
+      programState = PROGRAM_WAIT;
+      digitalWrite(HLDA_PIN, LOW);
+      digitalWrite(WAIT_PIN, HIGH);
+      } else {
+      programState = CLOCK_RUN;
+      digitalWrite(HLDA_PIN, HIGH);
+      digitalWrite(WAIT_PIN, LOW);
+      }
+    */
+    if (!switchAux1up) {
+      switchAux1up = false;
+      // Switch logic ...
+      Serial.println(F(" Released."));
+      if (programState == CLOCK_RUN) {
+        programState = PROGRAM_WAIT;
         digitalWrite(HLDA_PIN, LOW);
+        digitalWrite(WAIT_PIN, HIGH);
       } else {
         programState = CLOCK_RUN;
         digitalWrite(HLDA_PIN, HIGH);
         digitalWrite(WAIT_PIN, LOW);
-        Serial.print("+ Clock programState: ");
-        Serial.println(programState);
       }
     }
-    clockSwitchState = true;
+    switchAux1up = true;
   } else {
-    if (clockSwitchState) {
-      // Serial.println(F("+ Clock switch pressed."));
-      clockSwitchState = false;
+    if (switchAux1up) {
+      switchAux1up = false;
       // Switch logic ...
+      Serial.print(F("+ AUX1 up, switch pressed..."));
     }
   }
 }
@@ -490,6 +505,11 @@ void loop() {
     //
     pcfControlinterrupted = false; // Reset for next interrupt.
   }
+
+  // Get the following (AUX controls) to work for Tablet and Desktop configurations.
+  // Once checkClockSwitch() is tested, use the same method on checkAuxButtons().
+  // checkAuxButtons();
+  checkClockSwitch();     // Not an interrupt switch on the tablet.
 
   delay (60);
 }
