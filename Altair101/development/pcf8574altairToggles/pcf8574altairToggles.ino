@@ -148,12 +148,20 @@ int toggleDataByte() {
   return toggleByte;
 }
 int toggleSenseByte() {
+#ifdef DESKTOP_MODULE
   byte toggleByte = ~pcfSense.read8();
+#else
+  byte toggleByte = ~pcfData.read8();
+#endif
   return toggleByte;
 }
 unsigned int toggleAddress() {
   byte byteLow = ~pcfData.read8();
+#ifdef DESKTOP_MODULE
   byte byteHigh = ~pcfSense.read8();
+#else
+  byte byteHigh = 0;
+#endif
   return byteHigh * 256 + byteLow;
 }
 
@@ -262,7 +270,7 @@ void checkControlButtons() {
     switchExamine = false;
     // Switch logic.
     Serial.println(F("+ Control, Examine: "));
-    Serial.print(" Togle address = ");
+    Serial.print(" Toggle address = ");
     printWord(toggleAddress());
     Serial.print(", data=");
     printByte(toggleDataByte());
@@ -291,7 +299,7 @@ void checkControlButtons() {
     // Switch logic.
     unsigned int theToggleAddress = toggleAddress();
     Serial.println(F("+ Control, pinDeposit."));
-    Serial.print(" Togle address = ");
+    Serial.print(" Toggle address = ");
     printWord(toggleAddress());
     Serial.print(", data=");
     printByte(toggleDataByte());
@@ -372,7 +380,6 @@ void checkAuxButtons() {
     digitalWrite(HLDA_PIN, LOW);
   }
 
-
   // -------------------
 #ifdef DESKTOP_MODULE
   if (pcfAux.readButton(pinAux2up) == 0) {
@@ -397,11 +404,11 @@ void checkAuxButtons() {
   // Tablet:
   if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
 #endif
-    if (!switchAux1down) {
-      switchAux1down = true;
+    if (!switchAux2down) {
+      switchAux2down = true;
     }
-  } else if (switchAux1down) {
-    switchAux1down = false;
+  } else if (switchAux2down) {
+    switchAux2down = false;
     // Switch logic.
     Serial.println(F("+ Control, pinAux2down."));
     digitalWrite(WAIT_PIN, LOW);

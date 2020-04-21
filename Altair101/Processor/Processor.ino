@@ -48,36 +48,37 @@
   digitalWrite(latchPinLed, HIGH);
   ---
 
-  ---------------------------------------------
+  ----------------------------------------------------------------------
   Tablet to Desktop module work: Input toggles
-
-  Need compile options for PCF module statements.
 
   -------------------------------------------
   Tablet module toggle inputs, 2 PCF modules,
-  ++ pcf20: controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
+  + pcfControl(0x020): controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
   ++ pcf20 has interupt enabled, Mega pin 2.
+  ++ In Processor.ino, change "pcf20" to "pcfControl".
   -------
-  ++ pcf21: low address byte, and sense switches
+  + pcfData(0x021): low address byte, and sense switches
+  ++ In Processor.ino, change "pcf21" to "pcfData". Check data and sense switch calls.
+  ++ Toggle address = 0000000000000111, data=00000111, sense=00000111
   -------
-  + Digital pin: AUX 1 up, clock
-  + Digital pin: AUX 1 down, MP3 player
-  + Digital pin: AUX 2 up, write/upload to the SD card
-  + Digital pin: AUX 2 down, read/download from the SD card
+  + Digital pin  8: AUX 1 up, clock
+  + Digital pin  9: AUX 1 down, MP3 player
+  + Digital pin 10: AUX 2 up, write/upload to the SD card
+  + Digital pin 11: AUX 2 down, read/download from the SD card
   -------
 
   -------------------------------------------
   Desktop module toggle inputs: 4 PCF modules,
   -------
-  ++ pcf20: controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
-  +++ pcf20 has interupt enabled, Mega pin 2.
+  ++ pcfControl(0x020): controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
+  +++ pcfControl has interrupt enabled, Mega pin 2.
   -------
-  ++ pcf21: low address byte
+  ++ pcfData(0x021): low address byte
   -------
-  ++ pcf22: high address byte, and sense switches
+  ++ pcfSense(0x022): high address byte, and sense switches
   -------
-  ++ pcf23: AUX1 up and down, AUX2 up and down, PROTECT, UNPROTECT, CLR, and switch below STEP.
-  +++ pcf23 has interupt enabled, same Mega pin as pcf20, pin 2.
+  ++ pcfAux(0x023): AUX1 up and down, AUX2 up and down, PROTECT, UNPROTECT, CLR, and switch below STEP.
+  +++ pcfAux has interrupt enabled, same Mega pin as pcfControl, pin 2.
   -------
 
   ---------------------------------------------
