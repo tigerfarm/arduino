@@ -112,11 +112,10 @@ void setup() {
   lightsStatusAddressData(B11111111, curProgramCounter, B11111111);
   Serial.print("+ Value to turn all Address LED lights on: ");
   Serial.println(curProgramCounter);
-  delay(3000);
+  delay(6000);
 
   Serial.println("+ A counter in each section:");
-  Serial.println("++ 1) Status lights, 2) lower byte address, 3) Higher byte address, 4) Data byte");
-  lightsStatusAddressData(0, 0, 0);
+  Serial.println("++ 1) Status lights, 2) Data byte 3) lower byte address, 4) Higher byte address) ");
   // 1, 2, 3, 4.
   curProgramCounter = 3 +  4 * 256;
   lightsStatusAddressData(1, curProgramCounter, 2);
@@ -145,42 +144,51 @@ void setup() {
   dataByte = 0;
   curProgramCounter = 0;
   processDataLights();
+  delay(3000);
   // -------------------------
+  Serial.println("+ MEMR_ON");
   statusByte = 0;
   statusByte = MEMR_ON;
   processDataLights();
   delay(3000);
   // -------------------------
+  Serial.println("+ INP_ON");
   statusByte = 0;
   statusByte = INP_ON;
   processDataLights();
   delay(3000);
   // -------------------------
+  Serial.println("+ M1_ON");
   statusByte = 0;
   statusByte = M1_ON;
   processDataLights();
   delay(3000);
   // -------------------------
+  Serial.println("+ OUT_ON");
   statusByte = 0;
   statusByte = OUT_ON;
   processDataLights();
   delay(3000);
   // -------------------------
+  Serial.println("+ HLTA_ON");
   statusByte = 0;
   statusByte = HLTA_ON;
   processDataLights();
   delay(3000);
   // -------------------------
+  Serial.println("+ STACK_ON");
   statusByte = 0;
   statusByte = STACK_ON;
   processDataLights();
   delay(3000);
   // -------------------------
+  Serial.println("+ WO_ON");
   statusByte = 0;
   statusByte = WO_ON;
   processDataLights();
   delay(3000);
   // -------------------------
+  Serial.println("+ INT_ON");
   statusByte = 0;
   statusByte = INT_ON;
   processDataLights();
