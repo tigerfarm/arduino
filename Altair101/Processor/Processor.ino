@@ -289,10 +289,10 @@ SoftwareSerial serial2(PIN_RX, PIN_TX);
 // -----------------------------------------------------------------------------
 // Output LED lights shift register(SN74HC595N) pins
 
-//           Mega/Nano pins            74HC595 Pins
-const int dataPinLed = A13;     // pin 14 Data pin.
-const int latchPinLed = A14;    // pin 12 Latch pin.
-const int clockPinLed = A15;    // pin 11 Clock pin.
+//           Mega/Nano pins        74HC595 Pins
+const int dataPinLed  = A14;    // pin 14 Data pin.
+const int latchPinLed = A12;    // pin 12 Latch pin.
+const int clockPinLed = A11;    // pin 11 Clock pin.
 // const int dataPinLed = 7;    // Previous pins
 // const int latchPinLed = 8;
 // const int clockPinLed = 9;
@@ -833,19 +833,33 @@ byte highOrder = 0;          // hb: High order byte of 16 bit value.
 void processDataLights() {
   // Use the current program values: statusByte, curProgramCounter, and dataByte.
   digitalWrite(latchPinLed, LOW);
+#ifdef DESKTOP_MODULE
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, statusByte);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, dataByte);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(curProgramCounter));
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(curProgramCounter));
+#else
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, dataByte);
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(curProgramCounter));
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(curProgramCounter));
   shiftOut(dataPinLed, clockPinLed, MSBFIRST, statusByte); // MSBFIRST matches the bit to LED mapping.
+#endif
   digitalWrite(latchPinLed, HIGH);
 }
 
 void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) {
   digitalWrite(latchPinLed, LOW);
+#ifdef DESKTOP_MODULE
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, status8bits);
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(address16bits));
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(address16bits));
-  shiftOut(dataPinLed, clockPinLed, MSBFIRST, status8bits); // MSBFIRST matches the bit to LED mapping.
+#else
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(address16bits));
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(address16bits));
+  shiftOut(dataPinLed, clockPinLed, MSBFIRST, status8bits);
+#endif
   digitalWrite(latchPinLed, HIGH);
 }
 

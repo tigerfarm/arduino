@@ -1,10 +1,9 @@
 // -----------------------------------------------------------------------------
 /*
   Testing front panel LED light implementations for both the Tablet and the Desktop modules.
-  + Status, data, and address lights.
-  + Does not include WAIT and HLDA, thoses are tested in the PCF toggle program.
-
-  For a better test on the Tablet, I should wire up the other status lights, even if they're not used.
+  + Test display functions: processDataLights and lightsStatusAddressData: Status, data, and address lights
+  + Confirmed that the status bits matching both Tablet and Desktop front panels
+  + This program does not test WAIT and HLDA, thoses are tested in the PCF toggle program.
 */
 // -----------------------------------------------------------------------------
 // If defined, Desktop module. Else Tablet module.

@@ -31,8 +31,7 @@
 
   Notes,
     Only one file can be open at a time.
-    The card must be formatted FAT16 or FAT32. Optional formatting utility:
-      https://www.sdcard.org/downloads/formatter_4/index.html
+    The card must be formatted FAT16 or FAT32.
     Can open files in a directory. For example, SD.open("/myfiles/example.txt").
     The SD card library uses short (8.3, example a2345678.txt) filenames.
     File names do not have ‘case’ sensitivity.
@@ -48,11 +47,14 @@
       then use the following open each next files and get the name:
       openNextFile() and Serial.print( name() ).
       See example: listfiles.
+
+Arduino Mega,R3 ATmega2560-16AU board with CH340G for communications to my computer.
 */
 // -----------------------------------------------------------------------------
 // Used with the SD Card module.
 // SPI reference: https://www.arduino.cc/en/Reference/SPI
 // SD card library reference: https://www.arduino.cc/en/reference/SD
+// I have SD library by Arduiono, SparkFun version 1.2.3.
 
 #include <SPI.h>
 #include <SD.h>
