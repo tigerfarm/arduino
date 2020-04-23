@@ -7,7 +7,7 @@
 */
 // -----------------------------------------------------------------------------
 // If defined, Desktop module. Else Tablet module.
-// #define DESKTOP_MODULE 1
+#define DESKTOP_MODULE 1
 //
 // #ifdef DESKTOP_MODULE
 //    ... Desktop module code ...
@@ -227,14 +227,36 @@ void setup() {
   delay(500);
 
   // -------------------------------------------------------------
-  Serial.println("+ Turn each LED on light, from right to left to.");
-  statusByte = 1;
+  Serial.println("+ Turn each Status LED light on, from right to left to.");
   dataByte = 1;
-  curProgramCounter = 1 + 1 * 256;
   for (int numberToDisplay = 0; numberToDisplay < 7; numberToDisplay++) {
     dataByte = dataByte << 1;
-    curProgramCounter = dataByte +  dataByte * 256;
-    lightsStatusAddressData(dataByte, curProgramCounter, dataByte);
+    lightsStatusAddressData(dataByte, 0, 0);
+    delay(500);
+  }
+  Serial.println("+ Turn each Data LED light on, from right to left to.");
+  dataByte = 1;
+  for (int numberToDisplay = 0; numberToDisplay < 7; numberToDisplay++) {
+    dataByte = dataByte << 1;
+    lightsStatusAddressData(0, 0, dataByte);
+    delay(500);
+  }
+  Serial.println("+ Turn each Address lower byte LED light on, from right to left to.");
+  dataByte = 1;
+  for (int numberToDisplay = 0; numberToDisplay < 7; numberToDisplay++) {
+    // Address lower byte LED lights
+    dataByte = dataByte << 1;
+    curProgramCounter = dataByte;
+    lightsStatusAddressData(0, curProgramCounter, 0);
+    delay(500);
+  }
+  Serial.println("+ Turn each Address higher byte LED light on, from right to left to.");
+  dataByte = 1;
+  for (int numberToDisplay = 0; numberToDisplay < 7; numberToDisplay++) {
+    // Address lower byte LED lights
+    dataByte = dataByte << 1;
+    curProgramCounter = dataByte * 256;
+    lightsStatusAddressData(0, curProgramCounter, 0);
     delay(500);
   }
 
