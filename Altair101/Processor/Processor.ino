@@ -169,7 +169,6 @@
 #define INCLUDE_CLOCK 1
 #define INCLUDE_SDCARD 1
 #define INCLUDE_LCD 1
-// #define RUN_DELAY 1
 // #define INFRARED_MESSAGES 1    // For a simple setup: Mega + infrared, with serial messages.
 //
 // #define LOG_MESSAGES 1         // Has large memory requirements.
@@ -4797,21 +4796,7 @@ void setup() {
 // -----------------------------------------------------------------------------
 // Device Loop for processing each byte of machine code.
 
-#ifdef RUN_DELAY
-static unsigned long timer = millis();
-#endif
-
 void loop() {
-
-#ifdef RUN_DELAY
-  // For testing, clock process timing is controlled by the timer.
-  // Example, 500 : once every 1/2 second.
-  if (millis() - timer >= 1000) {
-    Serial.print(F("+ programState: "));
-    Serial.println(programState);
-    timer = millis();
-  }
-#endif
 
   switch (programState) {
     // ----------------------------
