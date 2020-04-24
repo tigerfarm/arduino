@@ -12,6 +12,10 @@
   ---------------------------------------------
   Current/Next Work
 
+  User guide,
+  + How to load a and run a program.
+  + How to use the clock.
+
   Panel LED lights all display correctly. Toggle functions all work.
   I can show my steampunk tablet to the world.
   + Time to generate videos.
@@ -20,16 +24,16 @@
   ---------------------------------------------
   Tablet to Desktop module work: Output LED lights
 
-  The 3 Mega pins to 74HC595, match, no change.
+  Done and Tested: The 3 Mega pins to 74HC595, updated and matched.
 
-  WAIT and HLDA need to be digital pin controlled.
+  Done and Tested: WAIT and HLDA need to be digital pin controlled.
   + HLDA_PIN = A10, HLDA is already controlled by a digital pin.
   + WAIT_PIN = A9,  Test code change of WAIT_ON/OFF to digital pin control.
 
-  Align status light shift pins or use compile options.
-  + I think they are the same, just need to test.
+  Done and Tested: Align status light shift pins or use compile options.
+  + They are the same, just need to test.
 
-  Need compile options for shiftOut statements in functions:
+  Done and Tested: Need compile options for shiftOut statements in functions:
   + processDataLights, and
   + lightsStatusAddressData.
   --- Tablet
@@ -54,11 +58,11 @@
   -------------------------------------------
   Tablet module toggle inputs, 2 PCF modules,
   + pcfControl(0x020): controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
-  ++ pcf20 has interupt enabled, Mega pin 2.
-  ++ In Processor.ino, change "pcf20" to "pcfControl".
+  ++ pcfControl has interupt enabled, Mega pin 2.
+  ++ In Processor.ino, changed "pcf20" to "pcfControl".
   -------
   + pcfData(0x021): low address byte, and sense switches
-  ++ In Processor.ino, change "pcf21" to "pcfData". Check data and sense switch calls.
+  ++ In Processor.ino, changed "pcf21" to "pcfData". Check data and sense switch calls.
   ++ Toggle address = 0000000000000111, data=00000111, sense=00000111
   -------
   + Digital pin  8: AUX 1 up, clock
@@ -84,33 +88,32 @@
   ---------------------------------------------
   Connect the Mega to the desktop front panel:
 
-  12 Mega pins total.
+  Total = 12 Mega pin wire connects to the front panel, 4 of which are for power (+ and -).
 
   4 Mega pins to PCF8574 daisy chain, toggle inputs:
-  I2C SDA to Mega SDA
-  I2C SCL to Mega SCL
-  I2C +5V
-  I2C Ground
+  + I2C SDA to Mega SDA
+  + I2C SCL to Mega SCL
+  + I2C +5V
+  + I2C Ground
   --- Plus ---
-  1 Mega pin, pin 2, for Control and AUX PCF8574 module interrupts.
+  1 Mega pin 2 to the front panel. Then 2 wires to PCF8574 module interrupts for Control and AUX.
 
   3 Mega pins to 74HC595 daisy chain, LED output:
-  //           Mega/Nano pins            74HC595 Pins
-  const int dataPinLed = A13;     // pin 14 Data pin.
-  const int latchPinLed = A14;    // pin 12 Latch pin.
-  const int clockPinLed = A15;    // pin 11 Clock pin.
+  + Mega pin A14 to 74HC595 14 Data pin.
+  + Mega pin A12 to 74HC595 12 Latch pin.
+  + Mega pin A11 to 74HC595 11 Clock pin.
   --- Plus ---
   2 wires for +5V and Ground.
 
   2 pins for the WAIT and HLDA LED lights.
-  const int WAIT_PIN = A9;
-  const int HLDA_PIN = A10;
+  + const int WAIT_PIN = A9;
+  + const int HLDA_PIN = A10;
 
   ---------------------------------------------
   ---------------------------------------------
   Other Work
 
-  Can set the LCD backlight is on when prompting, and reset after to what it was.
+  Now, can set the LCD backlight as on when prompting, and reset after.
   + LCD backlight on/off status is controlled: LcdBacklight.
 
   If 00000000.bin exists when starting up,
@@ -199,9 +202,6 @@ decode_results results;
 #include <PCF8574.h>
 #include <Wire.h>
 
-PCF8574 pcf20(0x020);
-PCF8574 pcf21(0x021);
-
 // -------------------------------------------
 // Desktop version.
 // Address for the PCF8574 module being tested.
@@ -214,22 +214,18 @@ PCF8574 pcfAux(0x023);      // AUX switches and others: Step down, CLR, Protect,
 const int INTERRUPT_PIN = 2;
 
 // Interrupt setup: interrupt pin to use, interrupt handler routine.
-boolean pcf20interrupted = false;
-void pcf20interrupt() {
-  pcf20interrupted = true;
+boolean pcfControlinterrupted = false;
+void pcfControlinterrupt() {
+  pcfControlinterrupted = true;
 }
 
 // -----------------------------------------------------------------------------
 #ifdef INCLUDE_AUX
 //                              Mega pins
-const int CLOCK_SWITCH_PIN =    8;  // Tested pins, works: 4, A11. Doesn't work: 24, 33.
+const int CLOCK_SWITCH_PIN =    8;  // Also works pins 4 and A11. Doesn't work: 24, 33.
 const int PLAYER_SWITCH_PIN =   9;
 const int UPLOAD_SWITCH_PIN =   10;
 const int DOWNLOAD_SWITCH_PIN = 11;
-// const int CLOCK_SWITCH_PIN =    A11;  // Previous pins.
-// const int PLAYER_SWITCH_PIN =   A12;
-// const int UPLOAD_SWITCH_PIN =   A13;
-// const int DOWNLOAD_SWITCH_PIN = A14;
 #endif
 
 // ----------------
@@ -289,12 +285,9 @@ SoftwareSerial serial2(PIN_RX, PIN_TX);
 // Output LED lights shift register(SN74HC595N) pins
 
 //           Mega/Nano pins        74HC595 Pins
-const int dataPinLed  = A14;    // pin 14 Data pin.
+const int dataPinLed  = A14;    // pin 14 Data pin. Also tested with pin 7.
 const int latchPinLed = A12;    // pin 12 Latch pin.
 const int clockPinLed = A11;    // pin 11 Clock pin.
-// const int dataPinLed = 7;    // Previous pins
-// const int latchPinLed = 8;
-// const int clockPinLed = 9;
 
 // -----------------------------------------------------------------------------
 // Clock setting values using in toggle switch functions.
@@ -3483,33 +3476,36 @@ void readProgramFileIntoMemory(String theFilename) {
 // + Only do the action once, don't repeat if the button is held down.
 // + Don't repeat action if the button is not pressed.
 
-// -------------------------
+// --------------------------------------------------
 // Get Front Panel address/data/sense toggle values.
 
+// Invert byte bits using bitwise not operator: "~";
+// Bitwise "not" operator to invert bits:
+//  int a = 103;  // binary:  0000000001100111
+//  int b = ~a;   // binary:  1111111110011000 = -104
+
 int toggleDataByte() {
-  // Invert byte bits using bitwise not operator: "~";
-  // Bitwise "not" operator to invert bits:
-  //  int a = 103;  // binary:  0000000001100111
-  //  int b = ~a;   // binary:  1111111110011000 = -104
   byte toggleByte = ~pcfData.read8();
   return toggleByte;
 }
 // --------------------------
-/*
-  int toggleSenseByte() {
-  byte toggleByte = ~pcfSense.read8();
-  return toggleByte;
-  }
-*/
 int toggleSenseByte() {
-  byte toggleByte = ~pcf21.read8();
+#ifdef DESKTOP_MODULE
+  byte toggleByte = ~pcfSense.read8();
+#else
+  byte toggleByte = ~pcfData.read8();     // Only 8 toggle bits on the tablet, so Sense and Data are shared.
+#endif
   return toggleByte;
 }
 // --------------------------
 unsigned int toggleAddress() {
   byte byteLow = ~pcfData.read8();
-  byte byteHigh = ~pcfSense.read8();
-  return byteHigh * 256 + byteLow;
+#ifdef DESKTOP_MODULE
+  byte byteHigh = ~pcfSense.read8() * 256;
+#else
+  byte byteHigh = 0;                    // No high byte toggles on the tablet.
+#endif
+  return byteHigh + byteLow;
 }
 
 // --------------------------------------------------
@@ -3584,7 +3580,7 @@ void controlStopLogic() {
 
 void checkExamineButton() {
   // Read PCF8574 input for this switch.
-  if (pcf20.readButton(pinExamine) == 0) {
+  if (pcfControl.readButton(pinExamine) == 0) {
     if (!switchExamine) {
       switchExamine = true;
     }
@@ -3661,7 +3657,7 @@ void checkExamineButton() {
 }
 void checkExamineNextButton() {
   // Read PCF8574 input for this switch.
-  if (pcf20.readButton(pinExamineNext) == 0) {
+  if (pcfControl.readButton(pinExamineNext) == 0) {
     if (!switchExamineNext) {
       switchExamineNext = true;
     }
@@ -3708,7 +3704,7 @@ void checkExamineNextButton() {
 
 void checkDepositButton() {
   // Read PCF8574 input for this switch.
-  if (pcf20.readButton(pinDeposit) == 0) {
+  if (pcfControl.readButton(pinDeposit) == 0) {
     if (!switchDeposit) {
       switchDeposit = true;
     }
@@ -3747,7 +3743,7 @@ void checkDepositButton() {
 }
 void checkDepositNextButton() {
   // Read PCF8574 input for this switch.
-  if (pcf20.readButton(pinDepositNext) == 0) {
+  if (pcfControl.readButton(pinDepositNext) == 0) {
     if (!switchDepositNext) {
       switchDepositNext = true;
     }
@@ -3794,7 +3790,7 @@ void checkDepositNextButton() {
 void checkRunningButtons() {
   // -------------------
   // Read PCF8574 input for this switch.
-  if (pcf20.readButton(pinStop) == 0) {
+  if (pcfControl.readButton(pinStop) == 0) {
     if (!switchStop) {
       switchStop = true;
     }
@@ -3808,7 +3804,7 @@ void checkRunningButtons() {
   }
   // -------------------
   // Read PCF8574 input for this switch.
-  if (pcf20.readButton(pinReset) == 0) {
+  if (pcfControl.readButton(pinReset) == 0) {
     if (!switchReset) {
       switchReset = true;
     }
@@ -3829,7 +3825,7 @@ void checkRunningButtons() {
 void checkControlButtons() {
   // -------------------
   // Read PCF8574 input for this switch.
-  if (pcf20.readButton(pinRun) == 0) {
+  if (pcfControl.readButton(pinRun) == 0) {
     if (!switchRun) {
       switchRun = true;
     }
@@ -3847,7 +3843,7 @@ void checkControlButtons() {
   }
   // -------------------
   // Read PCF8574 input for this switch.
-  if (pcf20.readButton(pinReset) == 0) {
+  if (pcfControl.readButton(pinReset) == 0) {
     if (!switchReset) {
       switchReset = true;
     }
@@ -3861,7 +3857,7 @@ void checkControlButtons() {
   }
   // -------------------
   // Read PCF8574 input for this switch.
-  if (pcf20.readButton(pinStep) == 0) {
+  if (pcfControl.readButton(pinStep) == 0) {
     if (!switchStep) {
       switchStep = true;
     }
@@ -4210,59 +4206,65 @@ boolean playerSwitchState = true;
 boolean uploadSwitchState = true;
 boolean downloadSwitchState = true;
 
+boolean switchAux1up = false;
+boolean switchAux1down = false;
+boolean switchAux2up = false;
+boolean switchAux2down = false;
+
 void checkClockSwitch() {
-  if (digitalRead(CLOCK_SWITCH_PIN) == HIGH) {
-    if (!clockSwitchState) {
-      Serial.println(F("+ Clock switch released."));
-      clockSwitchState = false;
-      // Switch logic ...
-      if (programState == CLOCK_RUN) {
-        Serial.println(F("+ Stop running the clock, return to the 8080 emulator."));
-        controlStopLogic();   // Changes programState to wait.
-        digitalWrite(HLDA_PIN, LOW);
-      } else {
-        programState = CLOCK_RUN;
-        digitalWrite(HLDA_PIN, HIGH);
-        digitalWrite(WAIT_PIN, LOW);
-        // statusByte = statusByte & WAIT_OFF;
-        Serial.print("+ Clock programState: ");
-        Serial.println(programState);
-      }
+
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux1up) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(CLOCK_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux1up) {
+      switchAux1up = true;
+      // Serial.print(F("+ pinAux1up switch pressed..."));
     }
-    clockSwitchState = true;
-  } else {
-    if (clockSwitchState) {
-      // Serial.println(F("+ Clock switch pressed."));
-      clockSwitchState = false;
-      // Switch logic ...
+  } else if (switchAux1up) {
+    switchAux1up = false;
+    // Switch logic.
+    if (programState == CLOCK_RUN) {
+      Serial.println(F("+ Stop running the clock, return to the 8080 emulator."));
+      controlStopLogic();   // Changes programState to wait.
+      digitalWrite(HLDA_PIN, LOW);
+    } else {
+      programState = CLOCK_RUN;
+      digitalWrite(HLDA_PIN, HIGH);
+      digitalWrite(WAIT_PIN, LOW);
+      // statusByte = statusByte & WAIT_OFF;
+      Serial.print("+ Clock programState: ");
+      Serial.println(programState);
     }
   }
 }
 void checkPlayerSwitch() {
-  if (digitalRead(PLAYER_SWITCH_PIN) == HIGH) {
-    if (!playerSwitchState) {
-      Serial.println(F("+ Player switch released."));
-      playerSwitchState = false;
-      // Switch logic ...
-      if (programState == PLAYER_RUN) {
-        Serial.println(F("+ Stop running the MP3 player, return to the 8080 emulator."));
-        controlStopLogic();
-        digitalWrite(HLDA_PIN, LOW);
-      } else {
-        programState = PLAYER_RUN;
-        digitalWrite(HLDA_PIN, HIGH);
-        digitalWrite(WAIT_PIN, LOW);
-        // statusByte = statusByte & WAIT_OFF;
-        Serial.print("+ MP3 player programState: ");
-        Serial.println(programState);
-      }
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux1down) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(PLAYER_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux1down) {
+      switchAux1down = true;
+      // Serial.print(F("+ AUX1 down switch pressed..."));
     }
-    playerSwitchState = true;
-  } else {
-    if (playerSwitchState) {
-      Serial.println(F("+ Player switch pressed."));
-      playerSwitchState = false;
-      // Switch logic ...
+  } else if (switchAux1down) {
+    switchAux1down = false;
+    // Switch logic.
+    if (programState == PLAYER_RUN) {
+      Serial.println(F("+ Stop running the MP3 player, return to the 8080 emulator."));
+      controlStopLogic();
+      digitalWrite(HLDA_PIN, LOW);
+    } else {
+      programState = PLAYER_RUN;
+      digitalWrite(HLDA_PIN, HIGH);
+      digitalWrite(WAIT_PIN, LOW);
+      // statusByte = statusByte & WAIT_OFF;
+      Serial.print("+ MP3 player programState: ");
+      Serial.println(programState);
     }
   }
 }
@@ -4280,28 +4282,35 @@ String getSenseSwitchValue() {
 // -----------------------------------------------------
 boolean confirmWrite = false;
 void checkConfirmUploadSwitch() {
-  if (digitalRead(UPLOAD_SWITCH_PIN) == HIGH) {
-    if (!uploadSwitchState) {
-      // Serial.println(F("+ Upload switch released."));
-      uploadSwitchState = false;
-      // Switch logic ...
-      confirmWrite = true;
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux2up) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(UPLOAD_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux2up) {
+      switchAux2up = true;
     }
-    uploadSwitchState = true;
-  } else {
-    if (uploadSwitchState) {
-      // Serial.println(F("+ Upload switch pressed."));
-      uploadSwitchState = false;
-      // Switch logic ...
-    }
+  } else if (switchAux2up) {
+    switchAux2up = false;
+    // Switch logic.
+    confirmWrite = true;
   }
 }
 void checkUploadSwitch() {
-  if (digitalRead(UPLOAD_SWITCH_PIN) == HIGH) {
-    if (!uploadSwitchState) {
-      // Serial.println(F("+ Upload switch released."));
-      uploadSwitchState = false;
-      // Switch logic ...
+
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux2up) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(UPLOAD_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux2up) {
+      switchAux2up = true;
+    }
+  } else if (switchAux2up) {
+    switchAux2up = false;
+    // Switch logic.
 #ifdef INCLUDE_SDCARD
       String senseSwitchValue = getSenseSwitchValue();
       String theFilename = senseSwitchValue + ".bin";
@@ -4315,15 +4324,6 @@ void checkUploadSwitch() {
         // -------------------------------------------------------
         // Must confirm within X seconds (milliseconds).
         unsigned long timer = millis();
-        /*/
-          Serial.print(F("+ millis() = "));
-          Serial.print(millis());
-          Serial.print(F(", timer = "));
-          Serial.print(timer);
-          Serial.print(F(", millis()-timer = "));
-          unsigned long sub = millis()-timer;
-          Serial.println(sub);
-          // */
         uploadSwitchState = true; // Required to reset the switch state for confirmation.
         while (!confirmWrite && (millis() - timer < 3000)) {
           checkConfirmUploadSwitch();
@@ -4348,22 +4348,23 @@ void checkUploadSwitch() {
         ledFlashError();
       }
 #endif
-    }
-  } else {
-    if (uploadSwitchState) {
-      // Serial.println(F("+ Upload switch pressed."));
-      uploadSwitchState = false;
-      // Switch logic ...
-    }
   }
 }
 // -----------------------------------------------------
 void checkDownloadSwitch() {
-  if (digitalRead(DOWNLOAD_SWITCH_PIN) == HIGH) {
-    if (!downloadSwitchState) {
-      // Serial.println(F("+ Download switch released."));
-      downloadSwitchState = false;
-      // Switch logic ...
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux1down) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(PLAYER_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux1down) {
+      switchAux1down = true;
+      // Serial.print(F("+ AUX1 down switch pressed..."));
+    }
+  } else if (switchAux1down) {
+    switchAux1down = false;
+    // Switch logic.
 #ifdef INCLUDE_SDCARD
       String theFilename = getSenseSwitchValue() + ".bin";
       if (theFilename == "11111111.bin") {
@@ -4380,14 +4381,6 @@ void checkDownloadSwitch() {
         readProgramFileIntoMemory(theFilename);
       }
 #endif
-    }
-    downloadSwitchState = true;
-  } else {
-    if (downloadSwitchState) {
-      // Serial.println(F("+ Download switch pressed."));
-      downloadSwitchState = false;
-      // Switch logic ...
-    }
   }
 }
 #endif
@@ -4665,9 +4658,9 @@ void DownloadProgram() {
       Serial.print(readByte, DEC);
       Serial.println("");
     }
-    if (pcf20interrupted) {
+    if (pcfControlinterrupted) {
       checkRunningButtons();
-      pcf20interrupted = false; // Reset for next interrupt.
+      pcfControlinterrupted = false; // Reset for next interrupt.
     }
   }
   Serial.print(F("+ Exit serial download state."));
@@ -4720,15 +4713,24 @@ void setup() {
   Serial.println(F("+ AUX device toggle switches are configured for input."));
 #endif
 
-  // PCF8574 device initialization
-  // Control switches
-  pcf20.begin();
-  // Address/Sense switches
-  pcf21.begin();
-  // PCF8574 device Interrupt initialization
+  // ------------------------------
+  // I2C Two Wire PCF module initialization
+  pcfControl.begin();   // Control switches
+  pcfData.begin();      // Tablet: Address/Sense switches
+#ifdef DESKTOP_MODULE
+  pcfSense.begin();
+  pcfAux.begin();
+#else
+  pinMode(CLOCK_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(PLAYER_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(UPLOAD_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(DOWNLOAD_SWITCH_PIN, INPUT_PULLUP);
+  Serial.println(F("+ Tablet AUX device toggle switches are configured for input."));
+#endif
+  // PCF8574 device interrupt initialization
   pinMode(INTERRUPT_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf20interrupt, CHANGE);
-  Serial.println(F("+ All front panel toggle switches are configured for input."));
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcfControlinterrupt, CHANGE);
+  Serial.println(F("+ Front panel toggle switches are configured for input."));
 
   // ----------------------------------------------------
   // Status lights are off (statusByte=0) by default.
@@ -4807,9 +4809,9 @@ void loop() {
         // Future: use the keypress value(1-8) as input into the running program via IN opcode.
         infraredRunning();
       }
-      if (pcf20interrupted) {
+      if (pcfControlinterrupted) {
         checkRunningButtons();
-        pcf20interrupted = false; // Reset for next interrupt.
+        pcfControlinterrupted = false; // Reset for next interrupt.
       }
       break;
     // ----------------------------
@@ -4818,9 +4820,9 @@ void loop() {
       if (irrecv.decode(&results)) {
         infraredControl();
       }
-      if (pcf20interrupted) {
+      if (pcfControlinterrupted) {
         checkControlButtons();
-        pcf20interrupted = false; // Reset for next interrupt.
+        pcfControlinterrupted = false; // Reset for next interrupt.
       }
       checkClockSwitch();
       checkPlayerSwitch();
@@ -4853,9 +4855,9 @@ void loop() {
     case PLAYER_RUN:
       // Serial.println(F("+ State: PLAYER_RUN. Not implemented, yet."));
       // playerRun();
-      if (pcf20interrupted) {
+      if (pcfControlinterrupted) {
         checkRunningButtons();
-        pcf20interrupted = false; // Reset for next interrupt.
+        pcfControlinterrupted = false; // Reset for next interrupt.
       }
       break;
   }

@@ -200,64 +200,63 @@ void setup() {
   statusByte = statusByte | M1_ON;
   statusByte = statusByte | WO_ON;
   processDataLights();
-  delay(6000);
+  delay(3000);
   //
   Serial.println("+ Turn M1 status LED light off, leaving the following on: MEMR WO.");
   statusByte = statusByte & M1_OFF;
   processDataLights();
-  delay(6000);
+  delay(3000);
   //
   Serial.println("+ Turn on status LED lights: MEMR WO.");
   statusByte = 0;
   statusByte = MEMR_ON | WO_ON;
   processDataLights();
-  delay(6000);
+  delay(3000);
   //
   Serial.println("+ Turn M1 status LED light off, leaving the following on: MEMR WO.");
   statusByte = (MEMR_ON | WO_ON) & M1_OFF;
   processDataLights();
-  delay(6000);
+  delay(3000);
 
   // -------------------------------------------------------------
   Serial.println("+ Turn every other LED light on.");
-  statusByte = B01010101;
   dataByte = B01010101;
-  curProgramCounter = B01010101 + B01010101 * 256;
-  lightsStatusAddressData(0, 0, 0); // Turns all the LEDs off.
-  delay(500);
+  curProgramCounter = dataByte + dataByte * 256;
+  lightsStatusAddressData(dataByte, curProgramCounter, dataByte); // Turns all the LEDs off.
+  delay(3000);
 
   // -------------------------------------------------------------
   Serial.println("+ Turn each Status LED light on, from right to left to.");
   dataByte = 1;
-  for (int numberToDisplay = 0; numberToDisplay < 7; numberToDisplay++) {
-    dataByte = dataByte << 1;
+  for (int numberToDisplay = 0; numberToDisplay < 8; numberToDisplay++) {
     lightsStatusAddressData(dataByte, 0, 0);
-    delay(500);
+    dataByte = dataByte << 1;
+    delay(1000);
   }
   Serial.println("+ Turn each Data LED light on, from right to left to.");
   dataByte = 1;
-  for (int numberToDisplay = 0; numberToDisplay < 7; numberToDisplay++) {
-    dataByte = dataByte << 1;
+  for (int numberToDisplay = 0; numberToDisplay < 8; numberToDisplay++) {
     lightsStatusAddressData(0, 0, dataByte);
-    delay(500);
+    dataByte = dataByte << 1;
+    delay(1000);
   }
   Serial.println("+ Turn each Address lower byte LED light on, from right to left to.");
   dataByte = 1;
-  for (int numberToDisplay = 0; numberToDisplay < 7; numberToDisplay++) {
+  for (int numberToDisplay = 0; numberToDisplay < 8; numberToDisplay++) {
     // Address lower byte LED lights
-    dataByte = dataByte << 1;
     curProgramCounter = dataByte;
     lightsStatusAddressData(0, curProgramCounter, 0);
-    delay(500);
+    dataByte = dataByte << 1;
+    delay(1000);
   }
   Serial.println("+ Turn each Address higher byte LED light on, from right to left to.");
   dataByte = 1;
-  for (int numberToDisplay = 0; numberToDisplay < 7; numberToDisplay++) {
+  for (int numberToDisplay = 0; numberToDisplay < 8; numberToDisplay++) {
     // Address lower byte LED lights
-    dataByte = dataByte << 1;
     curProgramCounter = dataByte * 256;
     lightsStatusAddressData(0, curProgramCounter, 0);
-    delay(500);
+    dataByte = dataByte << 1;
+    delay(1000);
   }
 
   Serial.println("+++ Start program loop.");

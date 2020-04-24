@@ -5,7 +5,7 @@
 */
 // -----------------------------------------------------------------------------
 // If defined, Desktop module. Else Tablet module.
-// #define DESKTOP_MODULE 1
+#define DESKTOP_MODULE 1
 //
 // #ifdef DESKTOP_MODULE
 //    ... Desktop module code ...
@@ -107,7 +107,6 @@ PCF8574 pcfAux(0x023);      // AUX switches and others: Step down, CLR, Protect,
 
 #ifdef DESKTOP_MODULE
 const int pinStop = 7;
-const int pinReset = 0;
 const int pinRun = 6;
 const int pinStep = 5;
 const int pinExamine = 4;
@@ -115,6 +114,15 @@ const int pinExamineNext = 3;
 const int pinDeposit = 2;
 const int pinDepositNext = 1;
 const int pinReset = 0;
+
+const int pinAux1up = 3;
+const int pinAux1down = 2;
+const int pinAux2up = 1;
+const int pinAux2down = 0;
+const int pinProtect = 5;
+const int pinUnProtect = 4;
+const int pinClr = 6;
+const int pinStepDown = 7;
 #else
 // TABLET_MODULE
 const int pinStop = 0;
@@ -126,15 +134,6 @@ const int pinDeposit = 5;
 const int pinDepositNext = 6;
 const int pinReset = 7;
 #endif
-
-const int pinAux1up = 3;
-const int pinAux1down = 2;
-const int pinAux2up = 1;
-const int pinAux2down = 0;
-const int pinProtect = 5;
-const int pinUnProtect = 4;
-const int pinClr = 6;
-const int pinStepDown = 7;
 
 // -------------------------
 // Get Front Panel address/data/sense toggle values.
@@ -158,11 +157,11 @@ int toggleSenseByte() {
 unsigned int toggleAddress() {
   byte byteLow = ~pcfData.read8();
 #ifdef DESKTOP_MODULE
-  byte byteHigh = ~pcfSense.read8();
+  byte byteHigh = ~pcfSense.read8() * 256;
 #else
   byte byteHigh = 0;
 #endif
-  return byteHigh * 256 + byteLow;
+  return byteHigh + byteLow;
 }
 
 // -------------------------------------------------------------------
