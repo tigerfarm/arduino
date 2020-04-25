@@ -20,15 +20,12 @@
   + This program was tested successfully with a Mega and a Nano.
   + Pins are declared in the SPI library for SCK, MOSI, and MISO.
 
-  CS notes:
-  + You can use any Nano digital pin to connect to the SD card adapter select pin (CS).
-  + The Nano CS pin (pin 10) must be set as OUTPUT for the SD library functions to work.
-  + The default is the hardware SS line (pin 10) of the SPI bus.
-  ++ If using a pin other than 10, add: pinMode(otherPin, OUTPUT);
-  + When a device's Slave Select (CS) pin is low, it communicates with the master.
-  + When it's high, it ignores the master.
-  + Selectability allows you to have multiple SPI devices sharing the same MISO, MOSI, and CLK lines.
-  + The library supports only the Arduino device as the master.
+  SPI Master/Slave notes with relationship to the SD adapter CS pin and the SD library:
+  + The Ardunio pin, that connects to the SD adapter CS pin, is called the slave select(SS) pin. The SD library uses pin 10 as the default SS pin.The library supports only the Arduino device as the master.
+  + You can use any Arduino digital pin, to connect to the SD card adapter select pin (CS). If you do use a pin other than 10, make that pin an output pin by adding: pinMode(otherPin, OUTPUT);.
+  + When the Arduino's slave select (SS) pin is set low for the SD adapter, the apdapter will communicate with the master which is the Arduino.
+  + When it's set high, the SD adapter ignores the master (the Arduino).
+  + Selectivity allows you to have multiple SPI devices sharing the same Ardunio bus lines(pins): MISO, MOSI, and CLK.
 
   Sample programs from the Arduino IDE menu: File/Examples/SD/ReadWrite.
 
@@ -223,10 +220,22 @@ void printDirectory(File dir, int numTabs) {
 // --------------------------------------------------------------------------
 // Write Program memory to a file.
 
-const int memoryBytes = 1024;  // When using Mega: 1024, for Nano: 256
+int HLDA_PIN = 13;  // For testing, use onboard LED light.
+
+const int memoryBytes = 256;
 byte memoryData[memoryBytes];
 
-int HLDA_PIN = 13;  // For testing, use onboard LED light.
+// Handle the case if the card is not inserted. Once inserted, the module will be re-initialized.
+boolean sdcardFailed = false;
+void initSdcard() {
+  sdcardFailed = false;
+  if (!SD.begin(csPin)) {
+    sdcardFailed = true;
+    Serial.println("- Error initializing SD card.");
+    return;
+  }
+  Serial.println("+ SD card initialized.");
+}
 
 void ledFlashSuccess() {
   int delayTime = 200;
@@ -245,18 +254,6 @@ void ledFlashError() {
     digitalWrite(HLDA_PIN, LOW);
     delay(delayTime);
   }
-}
-
-// Handle the case if the card is not inserted. Once inserted, the module will be re-initialized.
-boolean sdcardFailed = false;
-void initSdcard() {
-  sdcardFailed = false;
-  if (!SD.begin(csPin)) {
-    sdcardFailed = true;
-    Serial.println("- Error initializing SD card.");
-    return;
-  }
-  Serial.println("+ SD card initialized.");
 }
 
 void writeProgramMemoryToFile(String theFilename) {

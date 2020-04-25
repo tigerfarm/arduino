@@ -165,17 +165,23 @@
 // -----------------------------------------------------------------------------
 // Code compilation options.
 
+// Define for desktop module.
+// Comment out for tablet model.
 // #define DESKTOP_MODULE 1
 
-// #define FOR_MEGA 1
+#define SETUP_SDCARD 1
+#define SETUP_CLOCK 1
+#define SETUP_LCD 1
+
 #define INCLUDE_AUX 1
 #define INCLUDE_CLOCK 1
 #define INCLUDE_SDCARD 1
 #define INCLUDE_LCD 1
-// #define INFRARED_MESSAGES 1    // For a simple setup: Mega + infrared, with serial messages.
-//
+
+// -----------------------------------
 // #define LOG_MESSAGES 1         // Has large memory requirements.
 #define SWITCH_MESSAGES 1
+// #define INFRARED_MESSAGES 1    // For a simple setup: Mega + infrared, with serial messages.
 
 // -----------------------------------------------------------------------------
 // Program states
@@ -3519,15 +3525,6 @@ const int pinExamineNext = 3;
 const int pinDeposit = 2;
 const int pinDepositNext = 1;
 const int pinReset = 0;
-
-const int pinAux1up = 3;
-const int pinAux1down = 2;
-const int pinAux2up = 1;
-const int pinAux2down = 0;
-const int pinProtect = 5;
-const int pinUnProtect = 4;
-const int pinClr = 6;
-const int pinStepDown = 7;
 #else
 // TABLET_MODULE
 const int pinStop = 0;
@@ -3539,6 +3536,15 @@ const int pinDeposit = 5;
 const int pinDepositNext = 6;
 const int pinReset = 7;
 #endif
+
+const int pinAux1up = 3;
+const int pinAux1down = 2;
+const int pinAux2up = 1;
+const int pinAux2down = 0;
+const int pinProtect = 5;
+const int pinUnProtect = 4;
+const int pinClr = 6;
+const int pinStepDown = 7;
 
 boolean switchStop = false;
 boolean switchRun = false;
@@ -3592,7 +3598,7 @@ void checkExamineButton() {
     switch (programState) {
       // -------------------
       case PROGRAM_WAIT:
-        programCounter = toggleSenseByte();
+        programCounter = toggleAddress();
         curProgramCounter = programCounter;     // Synch for control switches.
         dataByte = memoryData[programCounter];
         processDataLights();
@@ -3724,7 +3730,7 @@ void checkDepositButton() {
           // This handles the first switch, after a STEP or HLT.
           programCounter = curProgramCounter;
         }
-        dataByte = toggleSenseByte();
+        dataByte = toggleDataByte();
         memoryData[programCounter] = dataByte;
         processDataLights();
         break;
@@ -3766,7 +3772,7 @@ void checkDepositNextButton() {
         }
         curProgramCounter++;
         programCounter++;
-        dataByte = toggleSenseByte();
+        dataByte = toggleDataByte();
         memoryData[programCounter] = dataByte;
         processDataLights();
         break;
@@ -4169,7 +4175,7 @@ void clockRun() {
   while (programState == CLOCK_RUN) {
     // Clock process to display the time.
     processClockNow();
-    // Switches to exit clock mode.
+    // Switches to exit this mode.
     checkRunningButtons();
     checkClockSwitch();
     // Check control buttons for setting the time.
@@ -4177,6 +4183,7 @@ void clockRun() {
     checkExamineNextButton();
     checkDepositButton();
     checkDepositNextButton();
+    //
     delay(100);
   }
   restoreLcdScreenData();
@@ -4187,11 +4194,20 @@ void clockRun() {
 // -----------------------------------------------------------------------------
 void playerRun() {
   Serial.println(F("+ playerRun()"));
+  saveClearLcdScreenData();
+  lcd.noCursor();
+  lcdPrintln(0, "MP3 Player mode,");
+  //             1234567890123456
+  lcdPrintln(1, "Not implemented.");
   while (programState == PLAYER_RUN) {
     // processPlayer();
+    // Switches to exit this mode.
     checkRunningButtons();
+    checkPlayerSwitch();
+    //
     delay(100);
   }
+  restoreLcdScreenData();
 }
 
 // -----------------------------------------------------------------------------
@@ -4201,10 +4217,6 @@ void playerRun() {
 #ifdef INCLUDE_AUX
 // Only do the action once, don't repeat if the switch is held down.
 // Don't repeat action if the switch is not pressed.
-boolean clockSwitchState = true;
-boolean playerSwitchState = true;
-boolean uploadSwitchState = true;
-boolean downloadSwitchState = true;
 
 boolean switchAux1up = false;
 boolean switchAux1down = false;
@@ -4212,7 +4224,6 @@ boolean switchAux2up = false;
 boolean switchAux2down = false;
 
 void checkClockSwitch() {
-
 #ifdef DESKTOP_MODULE
   if (pcfAux.readButton(pinAux1up) == 0) {
 #else
@@ -4227,16 +4238,15 @@ void checkClockSwitch() {
     switchAux1up = false;
     // Switch logic.
     if (programState == CLOCK_RUN) {
-      Serial.println(F("+ Stop running the clock, return to the 8080 emulator."));
-      controlStopLogic();   // Changes programState to wait.
+      Serial.println(F("+ Stop clock mode, return to the Altair 8800 emulator."));
+      // programState = PROGRAM_WAIT;    // controlStopLogic changes programState to wait.
+      controlStopLogic();
       digitalWrite(HLDA_PIN, LOW);
     } else {
+      Serial.println(F("+ Clock mode."));
       programState = CLOCK_RUN;
       digitalWrite(HLDA_PIN, HIGH);
       digitalWrite(WAIT_PIN, LOW);
-      // statusByte = statusByte & WAIT_OFF;
-      Serial.print("+ Clock programState: ");
-      Serial.println(programState);
     }
   }
 }
@@ -4254,17 +4264,19 @@ void checkPlayerSwitch() {
   } else if (switchAux1down) {
     switchAux1down = false;
     // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ AUX1 down, Upload Switched."));
+#endif
     if (programState == PLAYER_RUN) {
-      Serial.println(F("+ Stop running the MP3 player, return to the 8080 emulator."));
+      Serial.println(F("+ Stop MP3 player mode, return to the Altair 8800 emulator."));
+      // programState = PROGRAM_WAIT;    // controlStopLogic changes programState to wait.
       controlStopLogic();
       digitalWrite(HLDA_PIN, LOW);
     } else {
+      Serial.println(F("+ MP3 player mode."));
       programState = PLAYER_RUN;
       digitalWrite(HLDA_PIN, HIGH);
       digitalWrite(WAIT_PIN, LOW);
-      // statusByte = statusByte & WAIT_OFF;
-      Serial.print("+ MP3 player programState: ");
-      Serial.println(programState);
     }
   }
 }
@@ -4294,11 +4306,13 @@ void checkConfirmUploadSwitch() {
   } else if (switchAux2up) {
     switchAux2up = false;
     // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ AUX1 up, Upload Switched for confirming write."));
+#endif
     confirmWrite = true;
   }
 }
 void checkUploadSwitch() {
-
 #ifdef DESKTOP_MODULE
   if (pcfAux.readButton(pinAux2up) == 0) {
 #else
@@ -4311,75 +4325,81 @@ void checkUploadSwitch() {
   } else if (switchAux2up) {
     switchAux2up = false;
     // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ AUX2 up, Upload Switched."));
+#endif
 #ifdef INCLUDE_SDCARD
-      String senseSwitchValue = getSenseSwitchValue();
-      String theFilename = senseSwitchValue + ".bin";
-      if (theFilename != "11111111.bin") {
-        saveClearLcdScreenData();
-        lcdPrintln(0, "Confirm write> ");
-        //             1234567890123456
-        lcdPrintln(1, "Name: " + senseSwitchValue);
-        //
-        confirmWrite = false;
-        // -------------------------------------------------------
-        // Must confirm within X seconds (milliseconds).
-        unsigned long timer = millis();
-        uploadSwitchState = true; // Required to reset the switch state for confirmation.
-        while (!confirmWrite && (millis() - timer < 3000)) {
-          checkConfirmUploadSwitch();
-          delay(100);
-        }
-        // -------------------------------------------------------
-        //
-        if (confirmWrite) {
-          Serial.print(F("+ Write memory to filename: "));
-          Serial.println(theFilename);
-          writeProgramMemoryToFile(theFilename);
-        } else {
-          // Serial.print(F("+ Write cancelled."));
-          lcdPrintln(1, "Write cancelled.");
-          //             1234567890123456
-        }
-        confirmWrite = 0;   // Reset for next time.
-        delay(2000); // Give to read the resulting message.
-        restoreLcdScreenData();
-      } else {
-        Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
-        ledFlashError();
+    String senseSwitchValue = getSenseSwitchValue();
+    String theFilename = senseSwitchValue + ".bin";
+    if (theFilename != "11111111.bin") {
+      saveClearLcdScreenData();
+      lcdPrintln(0, "Confirm write> ");
+      //             1234567890123456
+      lcdPrintln(1, "File: " + senseSwitchValue);
+      //
+      confirmWrite = false;
+      // -------------------------------------------------------
+      // Must confirm within X seconds (milliseconds).
+      unsigned long timer = millis();
+      switchAux2up = false; // Required to reset the switch state for confirmation.
+      while (!confirmWrite && (millis() - timer < 3000)) {
+        checkConfirmUploadSwitch();
+        delay(100);
       }
+      // -------------------------------------------------------
+      //
+      if (confirmWrite) {
+        Serial.print(F("+ Write memory to filename: "));
+        Serial.println(theFilename);
+        writeProgramMemoryToFile(theFilename);
+      } else {
+        // Serial.print(F("+ Write cancelled."));
+        lcdPrintln(1, "Write cancelled.");
+        //             1234567890123456
+      }
+      confirmWrite = 0;   // Reset for next time.
+      delay(2000); // Give to read the resulting message.
+      restoreLcdScreenData();
+    } else {
+      Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
+      ledFlashError();
+    }
 #endif
   }
 }
 // -----------------------------------------------------
 void checkDownloadSwitch() {
 #ifdef DESKTOP_MODULE
-  if (pcfAux.readButton(pinAux1down) == 0) {
+  if (pcfAux.readButton(pinAux2down) == 0) {
 #else
   // Tablet:
-  if (digitalRead(PLAYER_SWITCH_PIN) == LOW) {
+  if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
 #endif
-    if (!switchAux1down) {
-      switchAux1down = true;
-      // Serial.print(F("+ AUX1 down switch pressed..."));
+    if (!switchAux2down) {
+      switchAux2down = true;
+      // Serial.print(F("+ AUX2 down switch pressed..."));
     }
-  } else if (switchAux1down) {
-    switchAux1down = false;
+  } else if (switchAux2down) {
+    switchAux2down = false;
     // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ AUX2 down, Download Switched."));
+#endif
 #ifdef INCLUDE_SDCARD
-      String theFilename = getSenseSwitchValue() + ".bin";
-      if (theFilename == "11111111.bin") {
-        Serial.println(F("+ Set to download over the serial port."));
-        programState = SERIAL_DOWNLOAD;
-      } else if (theFilename == "00000000.bin") {
-        //             1234567890123456
-        lcdPrintln(1, "Zero out memory");
-        zeroOutMemory();
-        controlResetLogic();
-      } else {
-        Serial.print(F("+ Read the filename into memory: "));
-        Serial.println(theFilename);
-        readProgramFileIntoMemory(theFilename);
-      }
+    String theFilename = getSenseSwitchValue() + ".bin";
+    if (theFilename == "11111111.bin") {
+      Serial.println(F("+ Set to download over the serial port."));
+      programState = SERIAL_DOWNLOAD;
+    } else if (theFilename == "00000000.bin") {
+      //             1234567890123456
+      lcdPrintln(1, "Zero out memory");
+      zeroOutMemory();
+      controlResetLogic();
+    } else {
+      Serial.print(F("+ Read the filename into memory: "));
+      Serial.println(theFilename);
+      readProgramFileIntoMemory(theFilename);
+    }
 #endif
   }
 }
@@ -4684,7 +4704,7 @@ void setup() {
   Serial.println(F("+++ Setup."));
 
   // ----------------------------------------------------
-#ifdef INCLUDE_LCD
+#ifdef SETUP_LCD
   lcdSetup();
   Serial.println(F("+ LCD ready for output."));
   delay(1000);
@@ -4750,7 +4770,7 @@ void setup() {
   Serial.println(F("+ Front panel LED lights are initialized."));
 
   // ----------------------------------------------------
-#ifdef INCLUDE_SDCARD
+#ifdef SETUP_SDCARD
   // The csPin pin is connected to the SD card module select pin (CS).
   //            1234567890123456
   lcdPrintln(0, "Init SD card mod");
@@ -4766,7 +4786,7 @@ void setup() {
 
   // ----------------------------------------------------
   // Initialize the Real Time Clock (RTC).
-#ifdef INCLUDE_CLOCK
+#ifdef SETUP_CLOCK
   //            1234567890123456
   lcdPrintln(0, "Init Clock");
   if (!rtc.begin()) {
@@ -4853,12 +4873,11 @@ void loop() {
       break;
     // ----------------------------
     case PLAYER_RUN:
-      // Serial.println(F("+ State: PLAYER_RUN. Not implemented, yet."));
-      // playerRun();
-      if (pcfControlinterrupted) {
-        checkRunningButtons();
-        pcfControlinterrupted = false; // Reset for next interrupt.
-      }
+      Serial.println(F("+ State: PLAYER_RUN"));
+      // HLDA on when in this mode.
+      digitalWrite(HLDA_PIN, HIGH);
+      playerRun();
+      digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;
   }
 
