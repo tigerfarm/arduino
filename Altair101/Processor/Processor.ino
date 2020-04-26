@@ -12,6 +12,12 @@
   ---------------------------------------------
   Current/Next Work
 
+  When clicking clock or player switches,
+  + Save front panel lights.
+  + Set status lights off.
+  When returning from clock or player mode by clicking clock or player switch,
+  + Restore front panel lights.
+  
   User guide,
   + How to load a and run a program.
   + How to use the clock.
@@ -19,6 +25,8 @@
   Panel LED lights all display correctly. Toggle functions all work.
   I can show my steampunk tablet to the world.
   + Time to generate videos.
+
+  Processor.ino works for both the tablet and desktop versions.
 
   ---------------------------------------------
   ---------------------------------------------
@@ -167,11 +175,11 @@
 
 // Define for desktop module.
 // Comment out for tablet model.
-// #define DESKTOP_MODULE 1
+#define DESKTOP_MODULE 1
 
 #define SETUP_SDCARD 1
-#define SETUP_CLOCK 1
-#define SETUP_LCD 1
+// #define SETUP_CLOCK 1
+// #define SETUP_LCD 1
 
 #define INCLUDE_AUX 1
 #define INCLUDE_CLOCK 1
@@ -3887,7 +3895,7 @@ void checkControlButtons() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// Clock
+// Clock Section
 
 void syncCountWithClock() {
   now = rtc.now();
@@ -4074,52 +4082,52 @@ void displayTheTime(byte theMinute, byte theHour) {
   }
   switch (theHour) {
     case 1:
-      theBinaryHour1 = B00000001; // Note, on the shift register, B00000001 is not wired, not used.
+      theBinaryHour1 = B00000010;   // Use A1 as 1 o'clock.
       theBinaryHour2 = 0;
       break;
     case 2:
-      theBinaryHour1 = B00000010;
-      theBinaryHour2 = 0;
-      break;
-    case 3:
       theBinaryHour1 = B00000100;
       theBinaryHour2 = 0;
       break;
-    case 4:
+    case 3:
       theBinaryHour1 = B00001000;
       theBinaryHour2 = 0;
       break;
-    case 5:
+    case 4:
       theBinaryHour1 = B00010000;
       theBinaryHour2 = 0;
       break;
-    case 6:
+    case 5:
       theBinaryHour1 = B00100000;
       theBinaryHour2 = 0;
       break;
-    case 7:
+    case 6:
       theBinaryHour1 = B01000000;
       theBinaryHour2 = 0;
       break;
-    case 8:
+    case 7:
       theBinaryHour1 = B10000000;
+      theBinaryHour2 = 0;
+      break;
+    case 8:
+      theBinaryHour1 = B00000001;
       theBinaryHour2 = 0;
       break;
     case 9:
       theBinaryHour1 = 0;
-      theBinaryHour2 = B00000001;
+      theBinaryHour2 = B00000010;
       break;
     case 10:
       theBinaryHour1 = 0;
-      theBinaryHour2 = B00000010;
+      theBinaryHour2 = B00000100;
       break;
     case 11:
       theBinaryHour1 = 0;
-      theBinaryHour2 = B00000100;
+      theBinaryHour2 = B00001000;
       break;
     case 12:
       theBinaryHour1 = 0;
-      theBinaryHour2 = B00001000;
+      theBinaryHour2 = B00010000;
       break;
   }
   // ----------------------------------------------
@@ -4196,8 +4204,8 @@ void playerRun() {
   Serial.println(F("+ playerRun()"));
   saveClearLcdScreenData();
   lcd.noCursor();
-  lcdPrintln(0, "MP3 Player mode,");
   //             1234567890123456
+  lcdPrintln(0, "MP3 Player mode,");
   lcdPrintln(1, "Not implemented.");
   while (programState == PLAYER_RUN) {
     // processPlayer();
