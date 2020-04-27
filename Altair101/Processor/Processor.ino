@@ -31,8 +31,7 @@
   + MP3 player
 
   When clicking clock or player switches,
-  + Save front panel lights.
-  + Set status lights off.
+  + Set status lights off?
   When returning from clock or player mode by clicking clock or player switch,
   + Restore front panel lights.
   
@@ -4254,15 +4253,17 @@ void checkClockSwitch() {
     switchAux1up = false;
     // Switch logic.
     if (programState == CLOCK_RUN) {
-      Serial.println(F("+ Stop clock mode, return to the Altair 8800 emulator."));
-      // programState = PROGRAM_WAIT;    // controlStopLogic changes programState to wait.
-      controlStopLogic();
+      Serial.println(F("+ Return to the Altair 8800 emulator."));
+      programState = PROGRAM_WAIT; 
       digitalWrite(HLDA_PIN, LOW);
+      digitalWrite(WAIT_PIN, HIGH);
+      processDataLights();                // Restore the front panel lights.
     } else {
       Serial.println(F("+ Clock mode."));
       programState = CLOCK_RUN;
       digitalWrite(HLDA_PIN, HIGH);
       digitalWrite(WAIT_PIN, LOW);
+      lightsStatusAddressData(0, 0, 0);  // Clear the front panel lights.
     }
   }
 }
@@ -4284,15 +4285,17 @@ void checkPlayerSwitch() {
     Serial.println(F("+ AUX1 down, Upload Switched."));
 #endif
     if (programState == PLAYER_RUN) {
-      Serial.println(F("+ Stop MP3 player mode, return to the Altair 8800 emulator."));
-      // programState = PROGRAM_WAIT;    // controlStopLogic changes programState to wait.
-      controlStopLogic();
+      Serial.println(F("+ Return to the Altair 8800 emulator."));
+      programState = PROGRAM_WAIT; 
       digitalWrite(HLDA_PIN, LOW);
+      digitalWrite(WAIT_PIN, HIGH);
+      processDataLights();                // Restore the front panel lights.
     } else {
       Serial.println(F("+ MP3 player mode."));
       programState = PLAYER_RUN;
       digitalWrite(HLDA_PIN, HIGH);
       digitalWrite(WAIT_PIN, LOW);
+      lightsStatusAddressData(0, 0, 0);  // Clear the front panel lights.
     }
   }
 }
