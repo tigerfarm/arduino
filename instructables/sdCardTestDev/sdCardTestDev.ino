@@ -123,33 +123,11 @@ String theFilename = "f1.txt";  // Files are created using uppercase: F1.TXT.
 
 // Set to match your SD module to the Nano pin.
 // The CS pin is the only one that is not really fixed as any of the Arduino digital pin.
-const int csPin = 10;  // SD Card module is connected to Nano pin 10.
-// const int csPin = 53;  // SD Card module is connected to Mega pin 53.
+// const int csPin = 10;  // SD Card module is connected to Nano pin 10.
+const int csPin = 53;  // SD Card module is connected to Mega pin 53.
 
 File myFile;
 File root;
-
-// -----------------------------------------------------------------------------
-int HLDA_PIN = 13;  // For testing, flash the onboard LED light.
-
-void ledFlashSuccess() {
-  int delayTime = 200;
-  for (int i = 0; i < 3; i++) {
-    digitalWrite(HLDA_PIN, HIGH);
-    delay(delayTime);
-    digitalWrite(HLDA_PIN, LOW);
-    delay(delayTime);
-  }
-}
-void ledFlashError() {
-  int delayTime = 500;
-  for (int i = 0; i < 6; i++) {
-    digitalWrite(HLDA_PIN, HIGH);
-    delay(delayTime);
-    digitalWrite(HLDA_PIN, LOW);
-    delay(delayTime);
-  }
-}
 
 // -----------------------------------------------------------------------------
 // Open and write a file.
@@ -159,7 +137,6 @@ void openWriteFile() {
   if (!myFile) {
     Serial.print("- Error opening file: ");
     Serial.println(theFilename);
-    ledFlashError();
     return;
   }
   if (SD.exists(theFilename)) {
@@ -175,7 +152,6 @@ void openWriteFile() {
   myFile.println("Last line.");
   myFile.close();
   Serial.println("+ File closed.");
-  ledFlashSuccess();
 }
 
 // -----------------------------------------------------------------------------
@@ -187,8 +163,7 @@ void openReadFile() {
   if (!myFile) {
     Serial.print("- Error opening file: ");
     Serial.println(theFilename);
-    ledFlashError();
-    return;
+    return; // When used in setup(), causes jump to loop().
   }
   while (myFile.available()) {
     // Reads one character at a time.
@@ -199,7 +174,6 @@ void openReadFile() {
   }
   myFile.close();
   Serial.println("+ File closed.");
-  ledFlashSuccess();
 }
 
 // -----------------------------------------------------------------------------
@@ -213,10 +187,8 @@ void deleteFileAndConfirm() {
   Serial.println("+ Confirm file was deleted.");
   if (SD.exists(theFilename)) {
     Serial.print("++ File exists, it was not deleted: ");
-    ledFlashError();
   } else {
     Serial.print("++ File was deleted: ");
-    ledFlashSuccess();
   }
   Serial.println(theFilename);
 }
@@ -248,6 +220,11 @@ void printDirectory(File dir, int numTabs) {
 // --------------------------------------------------------------------------
 // Write Program memory to a file.
 
+int HLDA_PIN = 13;  // For testing, use onboard LED light.
+
+const int memoryBytes = 256;
+byte memoryData[memoryBytes];
+
 // Handle the case if the card is not inserted. Once inserted, the module will be re-initialized.
 boolean sdcardFailed = false;
 void initSdcard() {
@@ -258,6 +235,112 @@ void initSdcard() {
     return;
   }
   Serial.println("+ SD card initialized.");
+}
+
+void ledFlashSuccess() {
+  int delayTime = 200;
+  for (int i = 0; i < 3; i++) {
+    digitalWrite(HLDA_PIN, HIGH);
+    delay(delayTime);
+    digitalWrite(HLDA_PIN, LOW);
+    delay(delayTime);
+  }
+}
+void ledFlashError() {
+  int delayTime = 500;
+  for (int i = 0; i < 6; i++) {
+    digitalWrite(HLDA_PIN, HIGH);
+    delay(delayTime);
+    digitalWrite(HLDA_PIN, LOW);
+    delay(delayTime);
+  }
+}
+
+void writeProgramMemoryToFile(String theFilename) {
+  digitalWrite(HLDA_PIN, HIGH);
+  if (sdcardFailed) {
+    initSdcard();
+  }
+  Serial.print(F("+ Write program memory to a new file named: "));
+  Serial.println(theFilename);
+  Serial.println("+ Check if file exists. ");
+  if (SD.exists(theFilename)) {
+    SD.remove(theFilename);
+    Serial.println("++ Exists, so it was deleted to write to an empty file.");
+  } else {
+    Serial.println("++ Doesn't exist.");
+  }
+  myFile = SD.open(theFilename, FILE_WRITE);
+  if (!myFile) {
+    Serial.print(F("- Error opening file: "));
+    Serial.println(theFilename);
+    ledFlashError();
+    sdcardFailed = true;
+    digitalWrite(HLDA_PIN, LOW);
+    return; // When used in setup(), causes jump to loop().
+  }
+  // Serial.println("++ New file opened.");
+  // Serial.println("++ Write binary memory to the file.");
+  for (int i = 0; i < memoryBytes; i++) {
+    myFile.write(memoryData[i]);
+  }
+  myFile.close();
+  Serial.println(F("+ Write completed, file closed."));
+  ledFlashSuccess();
+  digitalWrite(HLDA_PIN, LOW);
+}
+
+// -------------------------------------
+// Read program memory from a file.
+
+void readProgramFileIntoMemory(String theFilename) {
+  digitalWrite(HLDA_PIN, HIGH);
+  if (sdcardFailed) {
+    initSdcard();
+  }
+  // Serial.println("+ Read a file into program memory, file named: ");
+  // Serial.print(theFilename);
+  // Serial.println("+ Check if file exists. ");
+  if (!SD.exists(theFilename)) {
+    Serial.print(F("- Read ERROR, file doesn't exist: "));
+    Serial.println(theFilename);
+    ledFlashError();
+    sdcardFailed = true;
+    digitalWrite(HLDA_PIN, LOW);
+    return;
+  }
+  myFile = SD.open(theFilename);
+  if (!myFile) {
+    Serial.print(F("- Read ERROR, cannot open file: "));
+    Serial.println(theFilename);
+    ledFlashError();
+    sdcardFailed = true;
+    digitalWrite(HLDA_PIN, LOW);
+    return;
+  }
+  int i = 0;
+  while (myFile.available()) {
+    // Reads one character at a time.
+    memoryData[i] = myFile.read();
+#ifdef LOG_MESSAGES
+    // Print Binary:Octal:Decimal values.
+    Serial.print("B");
+    printByte(memoryData[i]);
+    Serial.print(":");
+    printOctal(memoryData[i]);
+    Serial.print(":");
+    Serial.println(memoryData[i], DEC);
+#endif
+    i++;
+    if (i > memoryBytes) {
+      Serial.println(F("-+ Warning, file contains more data bytes than available memory."));
+    }
+  }
+  myFile.close();
+  Serial.println(F("+ Read completed, file closed."));
+  ledFlashSuccess();
+  digitalWrite(HLDA_PIN, LOW);
+  // controlResetLogic();
 }
 
 // -----------------------------------------------------------------------------
@@ -287,15 +370,9 @@ void setup() {
     delay(500);
   }
   Serial.println("+ SD card initialized.");
-  ledFlashSuccess();
 
-  Serial.println("");
-  Serial.println("---------------------------------------------");
-  Serial.println("+ SD card directory listing,");
   root = SD.open("/");
   printDirectory(root, 0);
-  Serial.println("+ End listing.");
-  Serial.println("");
 
   // Start by ensuring that the test files do not exist.
   deleteFileAndConfirm();
