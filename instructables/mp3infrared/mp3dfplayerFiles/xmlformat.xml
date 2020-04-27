@@ -1,0 +1,88 @@
+#<?xml version="1.0" encoding="UTF-8"?>#
+#<MultipleBillerXpert><BillXpertDoc><BillerId>California Telecom</BillerId><CompanyId>phobos</CompanyId><Operation>UPDATE</Operation><EndHeader/><BXBillerCustomerAccount><BcaAccType>BUSINESS</BcaAccType><BcaCusType>REGULAR</BcaCusType><BcaAcctNum>650 937 6181 778 N20</BcaAcctNum><BcaDesc>Residence Flat Rate Service</BcaDesc><BcaTaxId>123-12-1234</BcaTaxId><BcaSince>0</BcaSince><BcaServOpt>BcaServOpt</BcaServOpt><BcaProfile>BcaProfile</BcaProfile><BcaAcctStat>ACTIVE</BcaAcctStat><BcaUnPaidBil>0</BcaUnPaidBil><BcaUnPaidBal>0</BcaUnPaidBal><BcaAcctBal>0</BcaAcctBal><BcaAcctBalDate>2000-08-01 00:00:00</BcaAcctBalDate><BcaExt>Dummy BCA extension data</BcaExt><BcaDisStat>NODISPUTE</BcaDisStat><BcaBillAddr>BcaBillAddr</BcaBillAddr><BcaServAddr>BcaServAddr</BcaServAddr><BXContainer><BXDocument><BillType>TELCO</BillType><DocType>TELCO</DocType><DocCDate>2000-12-21 00:00:00</DocCDate><DocBDate>2001-7-24 16:57:0</DocBDate><DocDesc>Invoice for PO# p2345</DocDesc><DocStatus>ACTIVE</DocStatus><DocCpType>ORIGINAL</DocCpType><DocExt>DocExt</DocExt><DocInvoiceNum>inv12345</DocInvoiceNum><DocPONum>p2345</DocPONum><DocDeptNum/><BXSummary><StDate>2001-12-21 00:00:00</StDate><EndDate>2001-01-20 00:00:00</EndDate><OrigAmt>62158.69</OrigAmt><CurBal>62158.69</CurBal><CurChg>62158.69</CurChg><PrevBal>0</PrevBal><PrevPmt>0</PrevPmt><BalDate>2001-01-15 00:00:00</BalDate><DueDate>2001-8-23 16:57:0</DueDate><LateAfterDate>2001-03-15 00:00:00</LateAfterDate><PenaltyType>FIXED</PenaltyType><PenaltyRate>5</PenaltyRate><MinPayAmt>500</MinPayAmt><PayAmt>2364</PayAmt><LastPayDate>2000-12-27 00:00:00</LastPayDate><PayStatus>FULLY_PAID</PayStatus><SumStatus>ACTIVE</SumStatus><PayTermCode>2/10 net 30</PayTermCode><DiscntBeforeDate>2001-01-27 00:00:00</DiscntBeforeDate><DiscntType>FIXED</DiscntType><DiscntRate>0</DiscntRate><SumExt>Dummy extension.</SumExt><OrderedBy>Tom Jerry</OrderedBy><ContactNum>PO p2345</ContactNum><SalesOrderNum>1290</SalesOrderNum><ShippedVia>DHL</ShippedVia><ShipDate>2001-01-13 00:00:00</ShipDate><ShipToStreetAddr>shipto-add1</ShipToStreetAddr><ShipToCity>shipto-city</ShipToCity><ShipToState>CA</ShipToState><ShipToPostalCode>ship-post</ShipToPostalCode><ShipToCountry>US</ShipToCountry><FreightCharge>2758.69</FreightCharge><WayBillNum>678-098-7654</WayBillNum><CurrencyCode>USD</CurrencyCode><SalesTax>4400.00</SalesTax></BXSummary><BXLineItem><LineNumber>0001</LineNumber><SKUNumber>lineitem-buyernum</SKUNumber><Description>lineitem-desc</Description><QtyOrdered>3</QtyOrdered><QtyShipped>2</QtyShipped><UnitPrice>4.00</UnitPrice><TotalAmount>1</TotalAmount><Taxable>Y</Taxable><DeptNum>pur</DeptNum><CostCode>MRD</CostCode><PONum>p2345</PONum><PayStatus>NOT_PAID</PayStatus><Extension1>Test extension</Extension1></BXLineItem></BXDocument></BXContainer></BXBillerCustomerAccount></BillXpertDoc></MultipleBillerXpert>#
+<?xml version="1.0" encoding="UTF-8"?><MultipleBillerXpert><BillXpertDoc><BillerId>California Telecom</BillerId>
+<CompanyId>phobos</CompanyId>
+<Operation>UPDATE</Operation>
+<EndHeader/><BXBillerCustomerAccount><BcaAccType>BUSINESS</BcaAccType>
+<BcaCusType>REGULAR</BcaCusType>
+<BcaAcctNum>650 937 6181 778 N20</BcaAcctNum>
+<BcaDesc>Residence Flat Rate Service</BcaDesc>
+<BcaTaxId>123-12-1234</BcaTaxId>
+<BcaSince>0</BcaSince>
+<BcaServOpt>BcaServOpt</BcaServOpt>
+<BcaProfile>BcaProfile</BcaProfile>
+<BcaAcctStat>ACTIVE</BcaAcctStat>
+<BcaUnPaidBil>0</BcaUnPaidBil>
+<BcaUnPaidBal>0</BcaUnPaidBal>
+<BcaAcctBal>0</BcaAcctBal>
+<BcaAcctBalDate>2000-08-01 00:00:00</BcaAcctBalDate>
+<BcaExt>Dummy BCA extension data</BcaExt>
+<BcaDisStat>NODISPUTE</BcaDisStat>
+<BcaBillAddr>BcaBillAddr</BcaBillAddr>
+<BcaServAddr>BcaServAddr</BcaServAddr>
+<BXContainer><BXDocument><BillType>TELCO</BillType>
+<DocType>TELCO</DocType>
+<DocCDate>2000-12-21 00:00:00</DocCDate>
+<DocBDate>2001-7-24 16:57:0</DocBDate>
+<DocDesc>Invoice for PO# p2345</DocDesc>
+<DocStatus>ACTIVE</DocStatus>
+<DocCpType>ORIGINAL</DocCpType>
+<DocExt>DocExt</DocExt>
+<DocInvoiceNum>inv12345</DocInvoiceNum>
+<DocPONum>p2345</DocPONum>
+<DocDeptNum/><BXSummary><StDate>2001-12-21 00:00:00</StDate>
+<EndDate>2001-01-20 00:00:00</EndDate>
+<OrigAmt>62158.69</OrigAmt>
+<CurBal>62158.69</CurBal>
+<CurChg>62158.69</CurChg>
+<PrevBal>0</PrevBal>
+<PrevPmt>0</PrevPmt>
+<BalDate>2001-01-15 00:00:00</BalDate>
+<DueDate>2001-8-23 16:57:0</DueDate>
+<LateAfterDate>2001-03-15 00:00:00</LateAfterDate>
+<PenaltyType>FIXED</PenaltyType>
+<PenaltyRate>5</PenaltyRate>
+<MinPayAmt>500</MinPayAmt>
+<PayAmt>2364</PayAmt>
+<LastPayDate>2000-12-27 00:00:00</LastPayDate>
+<PayStatus>FULLY_PAID</PayStatus>
+<SumStatus>ACTIVE</SumStatus>
+<PayTermCode>2/10 net 30</PayTermCode>
+<DiscntBeforeDate>2001-01-27 00:00:00</DiscntBeforeDate>
+<DiscntType>FIXED</DiscntType>
+<DiscntRate>0</DiscntRate>
+<SumExt>Dummy extension.</SumExt>
+<OrderedBy>Tom Jerry</OrderedBy>
+<ContactNum>PO p2345</ContactNum>
+<SalesOrderNum>1290</SalesOrderNum>
+<ShippedVia>DHL</ShippedVia>
+<ShipDate>2001-01-13 00:00:00</ShipDate>
+<ShipToStreetAddr>shipto-add1</ShipToStreetAddr>
+<ShipToCity>shipto-city</ShipToCity>
+<ShipToState>CA</ShipToState>
+<ShipToPostalCode>ship-post</ShipToPostalCode>
+<ShipToCountry>US</ShipToCountry>
+<FreightCharge>2758.69</FreightCharge>
+<WayBillNum>678-098-7654</WayBillNum>
+<CurrencyCode>USD</CurrencyCode>
+<SalesTax>4400.00</SalesTax>
+</BXSummary>
+<BXLineItem><LineNumber>0001</LineNumber>
+<SKUNumber>lineitem-buyernum</SKUNumber>
+<Description>lineitem-desc</Description>
+<QtyOrdered>3</QtyOrdered>
+<QtyShipped>2</QtyShipped>
+<UnitPrice>4.00</UnitPrice>
+<TotalAmount>1</TotalAmount>
+<Taxable>Y</Taxable>
+<DeptNum>pur</DeptNum>
+<CostCode>MRD</CostCode>
+<PONum>p2345</PONum>
+<PayStatus>NOT_PAID</PayStatus>
+<Extension1>Test extension</Extension1>
+</BXLineItem>
+</BXDocument>
+</BXContainer>
+</BXBillerCustomerAccount>
+</BillXpertDoc>
+</MultipleBillerXpert>

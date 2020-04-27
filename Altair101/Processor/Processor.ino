@@ -12,12 +12,6 @@
   ---------------------------------------------
   Current/Next Work
 
-  When clicking clock or player switches,
-  + Save front panel lights.
-  + Set status lights off.
-  When returning from clock or player mode by clicking clock or player switch,
-  + Restore front panel lights.
-  
   User guide,
   + How to load a and run a program.
   + How to use the clock.
@@ -27,7 +21,21 @@
   + Time to generate videos.
 
   Processor.ino works for both the tablet and desktop versions.
+  + LED lights
+  + Toggle switches
+  + SD card adapter
+  + Clock
+  Next to do,
+  + Serial port module
+  Yet to do,
+  + MP3 player
 
+  When clicking clock or player switches,
+  + Save front panel lights.
+  + Set status lights off.
+  When returning from clock or player mode by clicking clock or player switch,
+  + Restore front panel lights.
+  
   ---------------------------------------------
   ---------------------------------------------
   Tablet to Desktop module work: Output LED lights
