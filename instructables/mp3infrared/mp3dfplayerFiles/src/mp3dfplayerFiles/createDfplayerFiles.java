@@ -18,7 +18,6 @@ import java.util.Date;
 //  Linklist processing classes
 import java.util.List;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import static mp3dfplayerFiles.DirSynchCopy.countCopies;
 
 public class createDfplayerFiles {
@@ -39,20 +38,25 @@ public class createDfplayerFiles {
 
         // Get directory & file info into a list
         String[] children = dirFrom.list();
-        List fileDirList = new LinkedList();
-        fileDirList = new ArrayList();
+        List fileDirList = new ArrayList();
         for (int i = 0; i < children.length; i++) {
             String filename = children[i];
             File theName = new File(theDirectoryNameFrom + "/" + filename);
             if (!theName.isFile()) {
                 // Process directories
                 fileDirList.add(i, "+ Subdirectory: " + filename + " " + formatter.format(new Date(theName.lastModified())));
+                // 
                 // Use recursion to list subdirectories.
-                directoryListing(theDirectoryNameFrom + "/" + filename, theName, theDirectoryNameTo + "/" + filename, theName);
-            } else // Process files, ignore the system file: Thumbs.db
-            if (filename.compareTo("Thumbs.db") != 0) {
+                File theNameTo = new File(theDirectoryNameTo + "/" + filename);
+                // Create to-directory.
+                System.out.println("++ Create to-directory: " + theDirectoryNameTo);
+                theNameTo.mkdir();
+                directoryListing(theDirectoryNameFrom + "/" + filename, theName, theDirectoryNameTo + "/" + filename, theNameTo);
+            } else if (filename.compareTo("Thumbs.db") != 0) {
+                // Process files, ignore the system file: Thumbs.db
                 // fileDirList.add(i, "+ File: " + filename + " " + formatter.format(new Date(theName.lastModified())) + ", size: " + theName.length() + " bytes");
                 fileDirList.add(i, "+ File: " + filename);
+                // + File: Rush - Xanadu.mp3
                 /*
                  */
                 File theFullPathNameTo = new File(theDirectoryNameTo + "/" + filename);
@@ -62,11 +66,13 @@ public class createDfplayerFiles {
         }
 
         System.out.println("++ Directory listing for: " + dirFrom);
+        // ++ Directory listing for: /Users/dthurston/2020m/musicTop/mp3dfplayerSongs1/00-new
         // Print List: directories then files
         for (int i = 0; i < fileDirList.size(); i++) {
             String item = (String) fileDirList.get(i);
             if (item.startsWith("+")) {
                 System.out.println("    " + item);
+                // "    + File: Rush - Xanadu.mp3"
             }
         }
         for (int i = 0; i < fileDirList.size(); i++) {

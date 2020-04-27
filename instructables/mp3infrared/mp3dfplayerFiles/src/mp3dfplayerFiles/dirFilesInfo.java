@@ -14,7 +14,6 @@ import java.util.Date;
 //  Linklist processing classes
 import java.util.List;
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 public class dirFilesInfo {
 
@@ -24,8 +23,8 @@ public class dirFilesInfo {
 
         // Get directory & file info into a list
         String[] children = theDirectory.list();
-        List fileDirList = new LinkedList();
-        fileDirList = new ArrayList();
+        // List fileDirList = new LinkedList();
+        List fileDirList = new ArrayList();
         for (int i = 0; i < children.length; i++) {
             String filename = children[i];
             File theName = new File(theDirectoryName + "/" + filename);
@@ -34,8 +33,8 @@ public class dirFilesInfo {
                 fileDirList.add(i, "+ Subdirectory: " + filename + " " + formatter.format(new Date(theName.lastModified())));
                 // Use recursion to list subdirectories.
                 directoryListing(theDirectoryName + "/" + filename, theName);
-            } else // Process files, ignore the system file: Thumbs.db
-            if (filename.compareTo("Thumbs.db") != 0) {
+            } else if (filename.compareTo("Thumbs.db") != 0) {
+                // Process files, ignore the system file: Thumbs.db
                 // fileDirList.add(i, "+ File: " + filename + " " + formatter.format(new Date(theName.lastModified())) + ", size: " + theName.length() + " bytes");
                 fileDirList.add(i, "+ File: " + filename);
             }
@@ -74,7 +73,7 @@ public class dirFilesInfo {
         }
         String theDirectoryName = args[0];
 */
-        String theDirectoryName = "/Users/dthurston/2020m/musicTop/mp3dfplayerSongs";
+        String theDirectoryName = "/Users/dthurston/2020m/musicTop/mp3dfplayerSongs1";
 
         File dir = new File(theDirectoryName);
         if (!dir.isDirectory()) {
