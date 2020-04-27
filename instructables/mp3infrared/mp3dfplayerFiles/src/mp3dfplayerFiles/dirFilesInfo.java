@@ -1,8 +1,5 @@
 /*
- * filedirInfo.java
- * Created on January 23, 2006, 9:30 AM
- * Author: Stacy David Thurston
- * Sample file directory information.
+ * List file directory information.
  */
 package mp3dfplayerFiles;
 
@@ -10,20 +7,15 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.text.Format;
 import java.util.Date;
-
-//  Linklist processing classes
 import java.util.List;
 import java.util.ArrayList;
 
 public class dirFilesInfo {
 
     public static void directoryListing(String theDirectoryName, File theDirectory) {
-
-        Format formatter = new SimpleDateFormat("dd-MMM-yy HH:mm:ss EEEE");
-
+        Format formatter = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss EEEE");
         // Get directory & file info into a list
         String[] children = theDirectory.list();
-        // List fileDirList = new LinkedList();
         List fileDirList = new ArrayList();
         for (int i = 0; i < children.length; i++) {
             String filename = children[i];
@@ -33,15 +25,12 @@ public class dirFilesInfo {
                 fileDirList.add(i, "+ Subdirectory: " + filename + " " + formatter.format(new Date(theName.lastModified())));
                 // Use recursion to list subdirectories.
                 directoryListing(theDirectoryName + "/" + filename, theName);
-            } else if (filename.compareTo("Thumbs.db") != 0) {
-                // Process files, ignore the system file: Thumbs.db
-                // fileDirList.add(i, "+ File: " + filename + " " + formatter.format(new Date(theName.lastModified())) + ", size: " + theName.length() + " bytes");
+            } else {
+                // Process Files
                 fileDirList.add(i, "+ File: " + filename);
             }
         }
-
         System.out.println("++ Directory listing for: " + theDirectory);
-        // Print List: directories then files
         for (int i = 0; i < fileDirList.size(); i++) {
             String item = (String) fileDirList.get(i);
             if (item.startsWith("+")) {
@@ -55,17 +44,10 @@ public class dirFilesInfo {
             }
         }
         System.out.println("eol...");
-
     }
 
     public static void main(String[] args) {
-
-        String theClassName = "dirFilesInfo";
-        System.out.println("+++ Start class: " + theClassName);
-
-        Format formatter = new SimpleDateFormat("EEEE dd-MMM-yy HH:mm");
-        Date date = new Date();
-        System.out.println("+ Today's date: " + formatter.format(date));
+        System.out.println("+++ Start.");
         /*
         if (args.length != 1) {
             System.out.println("+ Syntax: dirFilesInfo <directory name>");
@@ -92,10 +74,9 @@ public class dirFilesInfo {
         } else {
             System.out.println("+ Parent: " + theParent);
         }
-        
         directoryListing(theDirectoryName, dir);
 
-        System.out.println("\n+++ Exit class: " + theClassName + ".");
+        System.out.println("\n+++ Exit.");
     }
 
 }
