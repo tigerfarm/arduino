@@ -246,8 +246,6 @@ void printDirectory(File dir, int numTabs) {
 }
 
 // --------------------------------------------------------------------------
-// Write Program memory to a file.
-
 // Handle the case if the card is not inserted. Once inserted, the module will be re-initialized.
 boolean sdcardFailed = false;
 void initSdcard() {

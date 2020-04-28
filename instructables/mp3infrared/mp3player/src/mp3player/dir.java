@@ -1,7 +1,7 @@
 /*
  * List file directory information.
  */
-package mp3dfplayerFiles;
+package mp3player;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
 
-public class dirFilesInfo {
+public class dir {
 
     public static void directoryListing(String theDirectoryName, File theDirectory) {
         Format formatter = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss EEEE");
@@ -50,7 +50,7 @@ public class dirFilesInfo {
         System.out.println("+++ Start.");
         /*
         if (args.length != 1) {
-            System.out.println("+ Syntax: dirFilesInfo <directory name>");
+            System.out.println("+ Syntax: dir <directory name>");
             return;
         }
         String theDirectoryName = args[0];

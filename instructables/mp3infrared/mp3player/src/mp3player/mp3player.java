@@ -18,7 +18,7 @@
     Program is courtesy of Tiger Farm Press.
     License: GPL.
  */
-package mp3dfplayerFiles;
+package mp3player;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,12 +26,12 @@ import java.nio.file.Files;
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
-public class mp3dfplayerFiles {
+public class mp3player {
 
     static private int countFiles = 0;
     static private int countDirs = 0;
 
-    public static void directoryProcess(String theDirectoryNameFrom, File dirFrom, String theDirectoryNameTo, File dirTo) {
+    public static void dfPlayerCopy(String theDirectoryNameFrom, File dirFrom, String theDirectoryNameTo, File dirTo) {
         // Get directory & file info into a list
         String[] children = dirFrom.list();
         for (int i = 0; i < children.length; i++) {
@@ -51,7 +51,7 @@ public class mp3dfplayerFiles {
                 theNameTo.mkdir();
                 //
                 // Use recursion to process subdirectories.
-                directoryProcess(theDirectoryNameFrom + "/" + filename, theName, theDirectoryNameTo + "/" + countDirName, theNameTo);
+                dfPlayerCopy(theDirectoryNameFrom + "/" + filename, theName, theDirectoryNameTo + "/" + countDirName, theNameTo);
                 //
             } else if (filename.toLowerCase().endsWith(".mp3")) {
                 // Process MP3 files.
@@ -82,14 +82,51 @@ public class mp3dfplayerFiles {
 
     public static void main(String[] args) {
         System.out.println("+++ Start...");
-        String theDirectoryNameFrom = "/Users/dthurston/2020m/musicTop/mp3dfplayerSongs1";
+        if (args.length == 0) {
+            System.out.println("Before running this program:");
+            System.out.println("+ Create your directory with your MP3 files.");
+            System.out.println("+ Create your destination directory");
+            System.out.println("++ where the MP3 files will be copied to,");
+            System.out.println("++ using digit number directory and file names.");
+            System.out.println("+ Your destination directory should be empty.");
+            System.out.println("+ If there are files in it, delete the files and directories.");
+            System.out.println("+ Run this program.");
+            System.out.println("----------------------");
+            System.out.println("+ Syntax:");
+            System.out.println("copy <IN: MP3 directory>  <OUT: DFPlayer formatted MP3 directory>");
+            System.out.println("copy");
+            System.out.println("+ Default directory names: mp3player1 and mp3player2.");
+            System.out.println("+ Same as: copy mp3player1 mp3player2.");
+            System.out.println("----------------------");
+            System.out.println("+ Insert the SD card into your computer.");
+            System.out.println("+ Delete the directories and files from the SD card.");
+            System.out.println("+ Empty trash because the files are still on the SD card and the DFPlayer module may play them.");
+            System.out.println("+ Copy the new directories and files to the SD card.");
+            System.out.println("+ Eject the card from the computer.");
+            System.out.println("----------------------");
+            System.out.println("+ Insert the card into the DFPlayer module.");
+            System.out.println("+ The card is ready to play.");
+            return;
+        }
+        String theDirectoryNameFrom = "mp3player1";
+        String theDirectoryNameTo = "mp3player2";
+        if (args[0].compareToIgnoreCase("copy") == 0) {
+            if (args.length == 3) {
+                theDirectoryNameFrom = args[1];
+                theDirectoryNameTo = args[2];
+            }
+            if (args.length == 2) {
+                System.out.println("copy <IN: MP3 directory>  <OUT: DFPlayer formatted MP3 directory>");
+                return;
+            }
+        }
+        //
         File dirFrom = new File(theDirectoryNameFrom);
         if (!dirFrom.isDirectory()) {
-            System.out.println("--- datasynch, Error: the <from directory> is NOT a directory:" + theDirectoryNameFrom);
+            System.out.println("- Error: the <IN: directory> is NOT a directory:" + theDirectoryNameFrom);
             System.out.println("\n+++ Exit.");
             return;
         }
-        String theDirectoryNameTo = "/Users/dthurston/2020m/musicTop/mp3dfplayerSongs2";
         if (theDirectoryNameTo.endsWith("/")) {
             // System.out.print("\n+ theDirectoryNameTo :"+theDirectoryNameTo);
             theDirectoryNameTo = theDirectoryNameTo.substring(0, theDirectoryNameTo.length() - 1);
@@ -97,14 +134,14 @@ public class mp3dfplayerFiles {
         }
         File dirTo = new File(theDirectoryNameTo);
         if (!dirTo.isDirectory()) {
-            System.out.println("--- datasynch, Error: the <to directory> is NOT a directory:" + theDirectoryNameTo);
+            System.out.println("- Error: the <OUT: directory> is NOT a directory:" + theDirectoryNameTo);
             System.out.println("\n+++ Exit.");
             return;
         }
-        System.out.print("++ Make:");
-        System.out.print(" the <to directory> (" + theDirectoryNameTo + ")");
-        System.out.println(" the same as the <from directory> (" + theDirectoryNameFrom + ").\n");
-        directoryProcess(theDirectoryNameFrom, dirFrom, theDirectoryNameTo, dirTo);
+        System.out.print("++ Copy into DFPlayer formatted file and directory names,");
+        System.out.print(" the <IN: directory> (" + theDirectoryNameTo + ")");
+        System.out.println(" to the <OUT: directory> (" + theDirectoryNameFrom + ").\n");
+        dfPlayerCopy(theDirectoryNameFrom, dirFrom, theDirectoryNameTo, dirTo);
 
         System.out.println("\n+++ Exit.");
     }
