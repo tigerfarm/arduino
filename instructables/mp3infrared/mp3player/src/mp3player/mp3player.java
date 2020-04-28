@@ -68,15 +68,19 @@ public class mp3player {
     }
 
     public static void main(String[] args) {
-        System.out.println("+++ Start...");
+        System.out.println("+++ Start, DFPlayer module copy program.");
         if (args.length == 0) {
+            System.out.println("Syntax:");
+            System.out.println("   java -jar mp3player.jar copy [<IN: MP3 directory>  <OUT: DFPlayer formatted MP3 directory>]");
+            System.out.println("");
+            System.out.println("----------------------");
             System.out.println("This program copies a directory of MP3 files");
             System.out.println("   to create another directory of MP3 files");
             System.out.println("   using using directory and file names that work with a DFPlayer module.");
             System.out.println("");
             System.out.println("Before running this program,");
-            System.out.println("+ Create your directory with your MP3 files.");
-            System.out.println("+ Create your destination directory.");
+            System.out.println("+ Create a directory of your MP3 files.");
+            System.out.println("+ Create a destination directory.");
             System.out.println("+ The destination directory is where the MP3 files will be copied to,");
             System.out.println("++ using digit number directory and file names.");
             System.out.println("+ Your destination directory should be empty.");
@@ -84,11 +88,12 @@ public class mp3player {
             System.out.println("----------------------");
             System.out.println("+ Run this program.");
             System.out.println("+ Syntax:");
-            System.out.println("java -jar mp3player.jar copy [<IN: MP3 directory>  <OUT: DFPlayer formatted MP3 directory>]");
+            System.out.println("   java -jar mp3player.jar copy [<IN: MP3 directory>  <OUT: DFPlayer formatted MP3 directory>]");
             System.out.println("+ Syntax using defaults:");
-            System.out.println("java -jar mp3player.jar copy");
+            System.out.println("   java -jar mp3player.jar copy");
             System.out.println("+ Default directory names: mp3player1 and mp3player2.");
-            System.out.println("+ Same as: java -jar mp3player.jar copy mp3player1 mp3player2.");
+            System.out.println("+ Same as:");
+            System.out.println("   java -jar mp3player.jar copy mp3player1 mp3player2.");
             System.out.println("----------------------");
             System.out.println("+ Insert the SD card into your computer.");
             System.out.println("+ Delete the directories and files from the SD card.");
@@ -98,6 +103,7 @@ public class mp3player {
             System.out.println("----------------------");
             System.out.println("+ Insert the card into the DFPlayer module.");
             System.out.println("+ The card is ready to play.");
+            System.out.println("");
             return;
         }
         String theDirectoryNameFrom = "mp3player1";

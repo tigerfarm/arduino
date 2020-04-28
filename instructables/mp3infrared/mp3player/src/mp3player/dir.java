@@ -48,15 +48,7 @@ public class dir {
 
     public static void main(String[] args) {
         System.out.println("+++ Start.");
-        /*
-        if (args.length != 1) {
-            System.out.println("+ Syntax: dir <directory name>");
-            return;
-        }
-        String theDirectoryName = args[0];
-*/
-        String theDirectoryName = "/Users/dthurston/2020m/musicTop/mp3dfplayerSongs1";
-
+        String theDirectoryName = "../../../../../2020m/musicTop/mp3player1";
         File dir = new File(theDirectoryName);
         if (!dir.isDirectory()) {
             System.out.println("-- Error: " + theDirectoryName + " is not a directory...");
@@ -66,7 +58,6 @@ public class dir {
             System.out.println("-- Error: " + theDirectoryName + ", directory does not exist...");
             return;
         }
-        
         System.out.println("+ Get information for the directory: "+theDirectoryName);
         String theParent = new File(theDirectoryName).getParent();
         if (theParent == null) {
@@ -75,7 +66,6 @@ public class dir {
             System.out.println("+ Parent: " + theParent);
         }
         directoryListing(theDirectoryName, dir);
-
         System.out.println("\n+++ Exit.");
     }
 
