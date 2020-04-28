@@ -47,7 +47,7 @@
   Other functions:
     SD.exists("filename.txt")   File exists.
     SD.remove("unwanted.txt")   Delete a file.
-    file.size()                  unsigned long
+    file.size()                 Returns an unsigned long
     isDirectory()               Determine if a file is a directory.
     mkdir("/mynewdir")          Create a subdirectory.
     rmdir()                     Delete a directory.
