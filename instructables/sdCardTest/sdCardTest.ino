@@ -79,7 +79,7 @@ void ledFlashError() {
 }
 
 // -----------------------------------------------------------------------------
-// --------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Handle the case if the card is not inserted. Once inserted, the module will be re-initialized.
 boolean sdcardFailed = false;
 void initSdcard() {
