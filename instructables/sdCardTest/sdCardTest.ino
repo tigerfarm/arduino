@@ -96,15 +96,16 @@ void initSdcard() {
 // Open and write a file.
 
 void openWriteFile() {
+  if (sdcardFailed) {
+    initSdcard();
+  }
   myFile = SD.open(theFilename, FILE_WRITE);
   if (!myFile) {
     Serial.print(F("- Error opening file: "));
     Serial.println(theFilename);
     ledFlashError();
+    sdcardFailed = true;
     return;
-  }
-  if (sdcardFailed) {
-    initSdcard();
   }
   if (SD.exists(theFilename)) {
     Serial.print(F("+ File exists, append text to file: "));
@@ -126,12 +127,16 @@ void openWriteFile() {
 // Open and read a file.
 
 void openReadFile() {
+  if (sdcardFailed) {
+    initSdcard();
+  }
   Serial.println(F("+ Open read from the file."));
   myFile = SD.open(theFilename);
   if (!myFile) {
     Serial.print(F("- Error opening file: "));
     Serial.println(theFilename);
     ledFlashError();
+    sdcardFailed = true;
     return;
   }
   while (myFile.available()) {
