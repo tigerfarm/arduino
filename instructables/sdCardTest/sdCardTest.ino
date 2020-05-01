@@ -52,42 +52,43 @@ String theFilename = "f1.txt";  // Files are created using uppercase: F1.TXT.
 // The CS pin is the only one that is not really fixed as any of the Arduino digital pin.
 const int csPin = 10;  // SD Card module is connected to Nano pin 10.
 // const int csPin = 53;  // SD Card module is connected to Mega pin 53.
+// Notes,
+// + The default is the hardware SS line (pin 10 or 53) of the SPI bus.
+// + The SS pin is connected to the chip select pin (CS) of the SD card adapter.
+// + If using a pin other than the default, add: pinMode(csPin, OUTPUT);
 
 File myFile;
 File root;
 
 // -----------------------------------------------------------------------------
-int HLDA_PIN = 13;  // For testing, flash the onboard LED light.
-
-void ledFlashSuccess() {
-  int delayTime = 200;
-  for (int i = 0; i < 3; i++) {
-    digitalWrite(HLDA_PIN, HIGH);
-    delay(delayTime);
-    digitalWrite(HLDA_PIN, LOW);
-    delay(delayTime);
-  }
-}
-void ledFlashError() {
-  int delayTime = 500;
-  for (int i = 0; i < 6; i++) {
-    digitalWrite(HLDA_PIN, HIGH);
-    delay(delayTime);
-    digitalWrite(HLDA_PIN, LOW);
-    delay(delayTime);
-  }
-}
-
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// Handle the case if the card is not inserted. Once inserted, the module will be re-initialized.
-boolean sdcardFailed = false;
+
+// Handle the case if the card is not inserted.
+// Once inserted, the module will be re-initialized, and program continues.
+boolean sdcardInitiated = false;
 void initSdcard() {
-  sdcardFailed = false;
-  if (!SD.begin(csPin)) {
-    sdcardFailed = true;
-    Serial.println(F("- Error initializing SD card."));
+  if (SD.begin(csPin)) {
+    Serial.println(F("+ SD card initialized."));
+    sdcardInitiated = true;
     return;
+  }
+  sdcardInitiated = false;
+  Serial.println(F("- Error initializing SD card."));
+  Serial.println(F("-- Check that SD card is inserted"));
+  Serial.println(F("-- Check that SD card adapter is wired properly."));
+  //
+  // Retry until the card is ready for use.
+  // For example,
+  //  + Eject the card, you will get the above error messages.
+  //  + Insert the card, and the initialization succeeds and the program continues.
+  int counter = 0;
+  while (!SD.begin(csPin)) {
+    Serial.print(".");
+    if (counter == 30) {
+      Serial.println("");
+      counter = 0;
+    }
+    delay(500);
   }
   Serial.println(F("+ SD card initialized."));
 }
@@ -96,15 +97,14 @@ void initSdcard() {
 // Open and write a file.
 
 void openWriteFile() {
-  if (sdcardFailed) {
+  if (!sdcardInitiated) {
     initSdcard();
   }
   myFile = SD.open(theFilename, FILE_WRITE);
   if (!myFile) {
     Serial.print(F("- Error opening file: "));
     Serial.println(theFilename);
-    ledFlashError();
-    sdcardFailed = true;
+    sdcardInitiated = false;
     return;
   }
   if (SD.exists(theFilename)) {
@@ -120,14 +120,13 @@ void openWriteFile() {
   myFile.println(F("Last line."));
   myFile.close();
   Serial.println(F("+ File closed."));
-  ledFlashSuccess();
 }
 
 // -----------------------------------------------------------------------------
 // Open and read a file.
 
 void openReadFile() {
-  if (sdcardFailed) {
+  if (!sdcardInitiated) {
     initSdcard();
   }
   Serial.println(F("+ Open read from the file."));
@@ -135,8 +134,7 @@ void openReadFile() {
   if (!myFile) {
     Serial.print(F("- Error opening file: "));
     Serial.println(theFilename);
-    ledFlashError();
-    sdcardFailed = true;
+    sdcardInitiated = false;
     return;
   }
   while (myFile.available()) {
@@ -148,7 +146,6 @@ void openReadFile() {
   }
   myFile.close();
   Serial.println(F("+ File closed."));
-  ledFlashSuccess();
 }
 
 // -----------------------------------------------------------------------------
@@ -162,10 +159,8 @@ void deleteFileAndConfirm() {
   Serial.println(F("+ Confirm file was deleted."));
   if (SD.exists(theFilename)) {
     Serial.print(F("++ File exists, it was not deleted: "));
-    ledFlashError();
   } else {
     Serial.print(F("++ File was deleted: "));
-    ledFlashSuccess();
   }
   Serial.println(theFilename);
 }
@@ -179,6 +174,7 @@ void printSpacing(String theString) {
 
 int numTabs;
 void listDirectories(File dir, int numTabs) {
+  // Use recursion to list all files and directories.
   String tabString = "   ";
   File entry =  dir.openNextFile();
   while (entry) {
@@ -201,6 +197,7 @@ void listDirectories(File dir, int numTabs) {
 }
 
 void listDirectory(File dir) {
+  // List files for a single directory.
   String tabString = "   ";
   File entry = dir.openNextFile();
   while (entry) {
@@ -227,28 +224,11 @@ void setup() {
   Serial.println(""); // Newline after garbage characters.
   Serial.println(F("+++ Setup."));
 
-  // Note, csPin is optional. The default is the hardware SS line (pin 10) of the SPI bus.
-  // If using pin, other than 10, add: pinMode(otherPin, OUTPUT);
-  // The pin connected to the chip select pin (CS) of the SD card.
-  // Consider using: initSdcard();
-  if (!SD.begin(csPin)) {
-    Serial.println(F("- Error initializing SD card."));
-    Serial.print(F("-- Check that SD card is inserted"));
-    Serial.println(F(", and that SD card adapter is wired properly."));
-  }
-  int counter = 0;
-  while (!SD.begin(csPin)) {
-    Serial.print(".");
-    if (counter == 30) {
-      Serial.println("");
-      counter = 0;
-    }
-    delay(500);
-  }
-  Serial.println("+ SD card initialized.");
-  ledFlashSuccess();
+  initSdcard();
 
   // -----------------------------------------------------------------------------
+  // Test directory functions.
+
   Serial.println("");
   Serial.println(F("---------------------------------------------"));
   Serial.println(F("+ List SD card directories and files,"));
@@ -281,7 +261,7 @@ void setup() {
   Serial.println("");
 
   // -----------------------------------------------------------------------------
-  // Start by ensuring that the test files do not exist.
+  // Start by ensuring that the test file does not exist.
   deleteFileAndConfirm();
 
   Serial.println(F("+++ Go to loop."));
@@ -292,8 +272,7 @@ void setup() {
 void loop() {
   Serial.println("");
   Serial.println(F("---------------------------------------------"));
-  Serial.println(F("+ Loop: do a number of reads and writes."));
-  Serial.println(F("---------------------------------------------"));
+  Serial.println(F("+ Loop: do file reads, writes, and a delete."));
   Serial.println("");
   openWriteFile();
   openReadFile();
@@ -306,7 +285,6 @@ void loop() {
   //
   Serial.println(F("---------------------------------------------"));
   deleteFileAndConfirm();
-  delay(10000);
-
+  delay(3000);
 }
 // -----------------------------------------------------------------------------

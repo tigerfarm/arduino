@@ -29,7 +29,7 @@
     In the popup, Select SimpleSDAudio_V1.03.zip, and click Choose.
   Install, optional method:
     Download from: https://github.com/isramos/mico-shield
-    Copy the "SimpleSDAudio" folder into: C:\Program Files (x86)\Arduino\libraries 
+    Copy the "SimpleSDAudio" folder into: C:\Program Files (x86)\Arduino\libraries
 
   Program plays,
     WAV files that are 8-bit 32000 Hz in stereo or mono (PCM).
@@ -58,7 +58,7 @@
     For full rate use -r 62500 @ 16MHz, -r 31250 @ 8 MHz
     For half rate use -r 31250 @ 16MHz, -r 15625 @ 8 MHz
     The option --norm=-1 is used to avoid bad sounding clipping effects.
-    
+
   SdPlay.play();
     If audio is not playing, playing will be started. If it is already playing, it will start playing from zero again.
   stop()
@@ -82,31 +82,66 @@
 
 // -----------------------------------------------------------------------------
 void setup() {
-    // Enable the SPI SD card CS-Pin.
-    SdPlay.setSDCSPin(10);
-    /*
-     Sample rate setting flags
-        SSDA_MODE_FULLRATE - 62.500 kHz @ 16 MHz, 31.250 kHz @ 8 MHz
-        SSDA_MODE_HALFRATE - 31.250 kHz @ 16 MHz, 15.625 kHz @ 8 MHz
-     Output channel configuration flags
-        SSDA_MODE_MONO        - Use only 1st PWM pin
-        SSDA_MODE_STEREO      - Use both PWM pins for stereo output or mono 16 bit
-     Other
-        SSDA_MODE_AUTOWORKER - Add this flag and you don't need to call worker for playback.
-     */
-    if (!SdPlay.init(SSDA_MODE_FULLRATE | SSDA_MODE_MONO | SSDA_MODE_AUTOWORKER))
-        { while(1); }
-    //
-    // Select audio file by providing the filename.
-    if(!SdPlay.setFile("EXAMPLE.AFM")) // File name such as: ST01.WAV.
-        { while(1);}
+  Serial.begin(115200);
+  // Give the serial connection time to start before the first print.
+  delay(1000);
+  Serial.println(""); // Newline after garbage characters.
+  Serial.println(F("+++ Setup."));
+
+  // Enable the SPI SD card CS-Pin.
+  SdPlay.setSDCSPin(10);
+  /*
+    Sample rate setting flags
+      SSDA_MODE_FULLRATE - 62.500 kHz @ 16 MHz, 31.250 kHz @ 8 MHz
+      SSDA_MODE_HALFRATE - 31.250 kHz @ 16 MHz, 15.625 kHz @ 8 MHz
+    Output channel configuration flags
+      SSDA_MODE_MONO        - Use only 1st PWM pin
+      SSDA_MODE_STEREO      - Use both PWM pins for stereo output or mono 16 bit
+    Other
+      SSDA_MODE_AUTOWORKER - Add this flag and you don't need to call worker for playback.
+  */
+  // SSDA_MODE_FULLRATE : For the EXMAMPLE.AFM
+  // SSDA_MODE_HALFRATE : For WAV files converted using: 8 Bit, 32000 HZ, mono.
+  if (!SdPlay.init(SSDA_MODE_HALFRATE | SSDA_MODE_MONO | SSDA_MODE_AUTOWORKER)) {
+    while (1);
+  }
+
+  Serial.println(F("+++ Go to loop."));
 }
 // -----------------------------------------------------------------------------
 void loop(void) {
-    Serial.println("+ Start play.");
-    SdPlay.play(); // play the file
-    while(!SdPlay.isStopped()) { ; }
-    Serial.println("+ End play. Wait 3 seconds before playing again.");
-    delay("3000");
+  // Set to play the audio file, such as: ST01.WAV or EXAMPLE.AFM.
+  if (!SdPlay.setFile("ST01.WAV")) {
+    while (1);
+  }
+  Serial.println("+ Start play.");
+  SdPlay.play(); // play the file
+  while (!SdPlay.isStopped()) {
+    ;
+  }
+  //
+  Serial.println("+ End play. Wait 3 seconds before playing next.");
+  delay(3000);
+  //
+  if (!SdPlay.setFile("LEAVESB.WAV")) {
+    while (1);
+  }
+  Serial.println("+ Start play.");
+  SdPlay.play();
+  while (!SdPlay.isStopped()) {
+    ;
+  }
+  //
+  Serial.println("+ End play. Wait 3 seconds before playing next.");
+  delay(3000);
+  //
+  if (!SdPlay.setFile("MVILLE.WAV")) {
+    while (1);
+  }
+  Serial.println("+ Start play.");
+  SdPlay.play();
+  while (!SdPlay.isStopped()) {
+    ;
+  }
 }
 // -----------------------------------------------------------------------------
