@@ -22,26 +22,30 @@
     https://github.com/isramos/mico-shield/blob/master/libraries/SimpleSDAudio/examples/BareMinimum/BareMinimum.ino
   Library,
     http://www.hackerspace-ffm.de/wiki/index.php?title=SimpleSDAudio
+  Install:
     Download the zip file and place it in you Arduino zip file library directory.
     I downloaded: SimpleSDAudio_V1.03.zip.
     From the IDE menu: Sketch/Include Library/Add Zip library.
     In the popup, Select SimpleSDAudio_V1.03.zip, and click Choose.
-    Optional install:
-      Download from: https://github.com/isramos/mico-shield
-      Copy the "SimpleSDAudio" folder into: C:\Program Files (x86)\Arduino\libraries 
+  Install, optional method:
+    Download from: https://github.com/isramos/mico-shield
+    Copy the "SimpleSDAudio" folder into: C:\Program Files (x86)\Arduino\libraries 
 
-  Program plays WAV files that are 8-bit 32000 Hz in stereo or mono (PCM).
-  Audio file must be converted prior use
-  Audio files must reside in root directory of card
-  File name of audio file must be in 8.3-format
-
+  Program plays,
+    WAV files that are 8-bit 32000 Hz in stereo or mono (PCM).
+    Audio files in root directory of card
+    8.3-formatted file names.
   Online convertion URL: https://audio.online-convert.com/convert-to-wav
     8 Bit
     32000 HZ
     mono, could use stereo
   SdPlay.init flags for the above,
     SSDA_MODE_HALFRATE | SSDA_MODE_MONO
-  Sox, SoX, the Swiss Army knife of sound processing programs.
+  Commandline coversion program,
+    Sox, SoX, the Swiss Army knife of sound processing programs.
+    http://sox.sourceforge.net/
+  I downloaded,
+    https://github.com/macports/macports-base/releases/tag/v2.6.2
 
   SoX is a cross-platform (Windows, Linux, MacOS X, etc.) command line utility.
   Can convert various formats of computer audio files in to other formats.
@@ -63,6 +67,15 @@
     Pauses playing if not playing, resumes playing if was paused.
   Status,
     isStopped(), isPlaying(), isPaused()
+
+  Other libraries
+  + Instructions:
+  https://maker.pro/arduino/projects/arduino-audio-player
+  + Instructions, another:
+  https://www.youtube.com/watch?v=uSUZbLlRi1g, code: https://github.com/abhijitbrain/creative-research/blob/master/_1mp3.ino
+  + Instructions, another:
+  https://www.c-sharpcorner.com/article/audio-play-using-sd-card-module-and-arduino/
+
 */
 // -----------------------------------------------------------------------------
 #include <SimpleSDAudio.h>
