@@ -4,13 +4,16 @@
     Use an SD-Card connected to an Arduino SPI pins.
     Play /EXAMPLE.AFM (Fullrate, mono, root directory) from an SD card.
 
+  This works. But the volume is low, non-adjustable, which would work if I was using an amp.
+  However, there is a hiss noice.
+
   Instructable,
     https://www.instructables.com/id/Audio-Playback-From-SD-Card-With-Arduino/
 
   Arduino Audio pin for signal output,
     Arduino Nano or Uno: Audio-Pin 9
     Arduino Mega2560:    Audio-Pin 44
-  Using passive speaker:
+  Using a single passive speaker:
     Arduino                            Speaker
     Audio-Pin --- 100 Ohm resistor --- Positive
     GND ------------------------------ Ground
