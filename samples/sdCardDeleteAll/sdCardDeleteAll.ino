@@ -1,6 +1,8 @@
 // -----------------------------------------------------------------------------
 /*
-  Micro SD Card Module
+  Delete all files and directories from a Micro SD Card Module.
+
+  +++ Needs work, not complete
 
   Connections,
       Mega Nano - SPI module pins
@@ -14,8 +16,6 @@
   + This program was tested successfully with a Mega and a Nano.
   + Pins are declared in the SPI library for SCK, MOSI, and MISO.
 
-  Other sample programs from the Arduino IDE menu: File/Examples/SD/ReadWrite.
-
   Reference documentation,
     https://www.arduino.cc/en/reference/SD
   Get SD card information,
@@ -24,19 +24,6 @@
     https://www.arduino.cc/en/Tutorial/listfiles
   SPI reference:
     https://www.arduino.cc/en/Reference/SPI
-
-  Notes,
-    Uses short filenames: 8 character plus 3 for the filename extension, for example a2345678.txt.
-    File names are not case sensitive.
-    Only one file can be open at a time.
-    The card must be formatted FAT16 or FAT32.
-    Can open files in a directory. For example, SD.open("/myfiles/example.txt").
-    Input voltage: from 3.3V – 5V.
-
-  Other related links,
-  https://www.instructables.com/id/Micro-SD-Card-Tutorial/
-  https://www.youtube.com/watch?v=8MvRRNYxy9c
-  https://lastminuteengineers.com/arduino-micro-sd-card-module-tutorial/
 
 */
 // -----------------------------------------------------------------------------
