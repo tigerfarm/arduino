@@ -28,8 +28,74 @@
     https://www.brainy-bits.com/arduino-input-pullup-tutorial/
 */
 // -----------------------------------------------------------------------------
+// Button Controls
+
+// Built in LED on NodeMCU, LOW is LED on.
+// Built in LED on NodeMCU, HIGH is LED off.
+//
+// PIN X set to LOW (0) will turn the LED on.
+// PIN X set to HIGH (1) will turn the LED off.
+
+// Built in, on board LED: GPIO2 which is D04 on NodeMCU.
+// Built in, on board LED: GPI13 which is D13 on Nano and Uno.
+
+#define LED_ONBOARD_PIN 13
+#define LED_PIN LED_ONBOARD_PIN
+
+const int SWITCH_PIN = 4;
+
 int inPinUp = 5;
 int inPinDown = 6;
+
+// -----------------------------------------------------------------------------
+// Toggle light on and off each time the button is pressed.
+
+boolean theToggle = true;
+boolean buttonAction = true;  // Case the button is pressed and held, only toggle once.
+void toggleButton() {
+  // If the button is pressed (circuit closed), the button status is HIGH.  
+  if (digitalRead(BUTTON_PIN) == HIGH) {
+    if (buttonAction) {
+      if (theToggle) {
+        theToggle = false;
+        Serial.println("+ toggleButton(), turn off.");
+        digitalWrite(LED_PIN, LOW);
+      } else {
+        theToggle = true;
+        Serial.println("+ toggleButton(), turn on.");
+        digitalWrite(LED_PIN, HIGH);
+      }
+    }
+    buttonAction = false;
+  } else {
+    buttonAction = true;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Turn light on when the button is pressed.
+
+// Only do the action once, don't repeat if the button is held down.
+// Don't repeat action if the button is not pressed.
+boolean setButtonState = true;
+
+void checkButton() {
+  // If the button is pressed (circuit closed), the button status is HIGH.
+  if (digitalRead(BUTTON_PIN) == HIGH) {
+    if (!setButtonState) {
+      digitalWrite(LED_PIN, HIGH);
+      Serial.println("+ checkButton(), turn LED on.");
+      setButtonState = false;
+    }
+    setButtonState = true;
+  } else {
+    if (setButtonState) {
+      digitalWrite(LED_PIN, LOW);
+      Serial.println("+ checkButton(), turn LED off.");
+      setButtonState = false;
+    }
+  }
+}
 
 // -----------------------------------------------------------------------------
 void setup() {
@@ -40,25 +106,21 @@ void setup() {
   Serial.println("+++ Setup.");
 
   // ------------------------------
-  pcfSwitches.begin();
-  Serial.println("+ PCF PCF8574 I2C Two Wire module initialized.");
+  // Initialize the LED pin.
+  pinMode(LED_PIN, OUTPUT);
+  // Initialize the button pin.
+  pinMode(SWITCH_PIN, INPUT);
 
   // ------------------------------
-  Serial.println("+++ Go to loop.");
+  Serial.println("+++ Go to loop and check for switch, switched.");
 }
 
 // -----------------------------------------------------------------------------
 // Device Loop
 
-int counter = 0;
 void loop() {
   delay (50);
+  checkButton();
   counter++;
-  // 20 is 1 second (20 x 50 = 1000). 40 is every 2 seconds.
-  if (counter == 40) {
-    Serial.println("---------------------------");
-    echoSwitchData();
-    counter = 0;
-  }
 }
 // -----------------------------------------------------------------------------

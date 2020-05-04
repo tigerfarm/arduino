@@ -1,4 +1,4 @@
-initSdcard// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 /*
   Altair 101 Processor program
 
@@ -20,61 +20,38 @@ initSdcard// -------------------------------------------------------------------
   I can show my steampunk tablet to the world.
   + Time to generate videos.
 
-  Processor.ino works for both the tablet and desktop versions.
-  + LED lights
-  + Toggle switches
-  + SD card adapter
-  + Clock
-  Next to do,
-  + Serial port module
-  Yet to do,
-  + MP3 player
+  Box:
+  + Cut a glue Spider-Man paper to panels: 2 sides, bar top, and top panel.
+  + Cut separation on the top for easy viewing access.
+  + Install and wire front panel. And test.
+  + Wire up MP3 player with separate power supply. Test will multiple USB hubs.
+  + Test new serial module usin the tablet. Then install it in the box.
 
-  When clicking clock or player switches,
-  + Set status lights off?
-  When returning from clock or player mode by clicking clock or player switch,
-  + Restore front panel lights.
-  
   ---------------------------------------------
   ---------------------------------------------
-  Tablet to Desktop module work: Output LED lights
+  Tablet to Desktop module work
 
-  Done and Tested: The 3 Mega pins to 74HC595, updated and matched.
+  Processor.ino works for both the tablet and desktop versions. The following are tested.
+  + Front panel LED lights
+  + Front panel Toggle switches
+  + SD card adapter for read and write
+  + Clock, with display time using the front panel LED lights
+  + When clicking clock or player switches, set front panel lights off.
+  + On second click, restore front panel lights and return to the emulator.
 
-  Done and Tested: WAIT and HLDA need to be digital pin controlled.
-  + HLDA_PIN = A10, HLDA is already controlled by a digital pin.
-  + WAIT_PIN = A9,  Test code change of WAIT_ON/OFF to digital pin control.
+  Output LED lights
+  -----------------
+  WAIT(WAIT_PIN = A9) and HLDA(HLDA_PIN = A10) are now digital pin controlled.
+  Status lights aligned for the Tablet and Desktop.
+  Uses 3 Mega digital pins to connect to, and control, the 74HC595 chips.
+  Updated and Testedthe front panel light shiftOut statement functions:
+  + processDataLights, and lightsStatusAddressData.
 
-  Done and Tested: Align status light shift pins or use compile options.
-  + They are the same, just need to test.
-
-  Done and Tested: Need compile options for shiftOut statements in functions:
-  + processDataLights, and
-  + lightsStatusAddressData.
-  --- Tablet
-  digitalWrite(latchPinLed, LOW);
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(address16bits));
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(address16bits));
-  shiftOut(dataPinLed, clockPinLed, MSBFIRST, status8bits);
-  digitalWrite(latchPinLed, HIGH);
-  --- Desktop
-  digitalWrite(latchPinLed, LOW);
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, status8bits);
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(address16bits));
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(address16bits));
-  digitalWrite(latchPinLed, HIGH);
-  ---
-
-  ----------------------------------------------------------------------
-  Tablet to Desktop module work: Input toggles
-
+  Input Toggles
   -------------------------------------------
   Tablet module toggle inputs, 2 PCF modules,
   + pcfControl(0x020): controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
   ++ pcfControl has interupt enabled, Mega pin 2.
-  ++ In Processor.ino, changed "pcf20" to "pcfControl".
   -------
   + pcfData(0x021): low address byte, and sense switches
   ++ In Processor.ino, changed "pcf21" to "pcfData". Check data and sense switch calls.
@@ -84,22 +61,16 @@ initSdcard// -------------------------------------------------------------------
   + Digital pin  9: AUX 1 down, MP3 player
   + Digital pin 10: AUX 2 up, write/upload to the SD card
   + Digital pin 11: AUX 2 down, read/download from the SD card
-  -------
-
   -------------------------------------------
   Desktop module toggle inputs: 4 PCF modules,
-  -------
   ++ pcfControl(0x020): controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
   +++ pcfControl has interrupt enabled, Mega pin 2.
-  -------
   ++ pcfData(0x021): low address byte
-  -------
   ++ pcfSense(0x022): high address byte, and sense switches
-  -------
   ++ pcfAux(0x023): AUX1 up and down, AUX2 up and down, PROTECT, UNPROTECT, CLR, and switch below STEP.
   +++ pcfAux has interrupt enabled, same Mega pin as pcfControl, pin 2.
-  -------
 
+  ---------------------------------------------
   ---------------------------------------------
   Connect the Mega to the desktop front panel:
 
@@ -144,6 +115,7 @@ initSdcard// -------------------------------------------------------------------
   ++ If byte count over 276, characters no longer are displayed.
   ++ Fails at the address: 00010100 (276)
 
+  -----------------------------------------------------------------------------
   -----------------------------------------------------------------------------
   Processor program sections,
     Code compilation options.
