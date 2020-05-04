@@ -21,11 +21,15 @@
   + Time to generate videos.
 
   Desktop Box:
+  ------------
   + Cut a glue Spider-Man paper to panels: 2 sides, bar top, and top panel.
   + Cut separation on the top for easy viewing access.
   + Install, wire, and test the front panel.
+  ------------
   + Test new serial module using the tablet. Then install it in the box.
+  + Mount, connect and test a 1602 LCD.
   + Wire up the MP3 player. Use a separate power supply by testing with multiple USB hubs.
+  + And 120AC and stearo amp. On/off using a Mega controlled relay switch.
 
   ---------------------------------------------
   ---------------------------------------------
@@ -98,6 +102,8 @@
   ---------------------------------------------
   ---------------------------------------------
   Other Work
+
+  Update the SD card logic: initSdcard()
 
   Now, can set the LCD backlight as on when prompting, and reset after.
   + LCD backlight on/off status is controlled: LcdBacklight.
@@ -3323,15 +3329,19 @@ void printRegisters() {
 #ifdef INCLUDE_SDCARD
 
 // Handle the case if the card is not inserted. Once inserted, the module will be re-initialized.
-boolean sdcardFailed = false;
+boolean sdcardInitiated; false;
 void initSdcard() {
-  sdcardFailed = false;
-  if (!SD.begin(csPin)) {
-    sdcardFailed = true;
-    Serial.println("- Error initializing SD card.");
-    return; // When used in setup(), causes jump to loop().
+  if (SD.begin(csPin)) {
+    Serial.println(F("+ SD card initialized."));
+    sdcardInitiated = true;
+    return;
   }
-  Serial.println("+ SD card initialized.");
+  sdcardInitiated = false;
+  Serial.println(F("- Error initializing SD card."));
+  Serial.println(F("-- Check that SD card is inserted"));
+  Serial.println(F("-- Check that SD card adapter is wired properly."));
+  //
+  // Optionally, retry for a period of time.
 }
 
 void ledFlashSuccess() {
@@ -3374,7 +3384,7 @@ void ledFlashError() {
 
 void writeProgramMemoryToFile(String theFilename) {
   digitalWrite(HLDA_PIN, HIGH);
-  if (sdcardFailed) {
+  if (!sdcardInitiated) {
     initSdcard();
   }
   // Serial.print(F("+ Write program memory to a new file named: "));
@@ -3391,7 +3401,7 @@ void writeProgramMemoryToFile(String theFilename) {
     Serial.print(F("- Error opening file: "));
     Serial.println(theFilename);
     ledFlashError();
-    sdcardFailed = true;
+    sdcardInitiated = false;
     digitalWrite(HLDA_PIN, LOW);
     return; // When used in setup(), causes jump to loop().
   }
@@ -3411,7 +3421,7 @@ void writeProgramMemoryToFile(String theFilename) {
 
 void readProgramFileIntoMemory(String theFilename) {
   digitalWrite(HLDA_PIN, HIGH);
-  if (sdcardFailed) {
+  if (!sdcardInitiated) {
     initSdcard();
   }
   // Serial.println("+ Read a file into program memory, file named: ");
@@ -3421,7 +3431,7 @@ void readProgramFileIntoMemory(String theFilename) {
     Serial.print(F("- Read ERROR, file doesn't exist: "));
     Serial.println(theFilename);
     ledFlashError();
-    sdcardFailed = true;
+    sdcardInitiated = false;
     digitalWrite(HLDA_PIN, LOW);
     return;
   }
@@ -3430,7 +3440,7 @@ void readProgramFileIntoMemory(String theFilename) {
     Serial.print(F("- Read ERROR, cannot open file: "));
     Serial.println(theFilename);
     ledFlashError();
-    sdcardFailed = true;
+    sdcardInitiated = false;
     digitalWrite(HLDA_PIN, LOW);
     return;
   }

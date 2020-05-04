@@ -65,7 +65,7 @@ File root;
 
 // Handle the case if the card is not inserted.
 // Once inserted, the module will be re-initialized, and program continues.
-boolean sdcardInitiated = false;
+boolean sdcardInitiated;
 void initSdcard() {
   if (SD.begin(csPin)) {
     Serial.println(F("+ SD card initialized."));

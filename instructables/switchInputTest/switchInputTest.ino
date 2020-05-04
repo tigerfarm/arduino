@@ -42,33 +42,32 @@
 #define LED_ONBOARD_PIN 13
 #define LED_PIN LED_ONBOARD_PIN
 
-const int SWITCH_PIN = 4;
-
-int inPinUp = 5;
-int inPinDown = 6;
+#define PIN_PULL_DOWN 4
+#define PIN_PULL_UP   5
+#define PIN_PULL_UP6  6
 
 // -----------------------------------------------------------------------------
 // Toggle light on and off each time the button is pressed.
 
 boolean theToggle = true;
-boolean buttonAction = true;  // Case the button is pressed and held, only toggle once.
+boolean switchAction = true;  // Case the button is pressed and held, only toggle once.
 void toggleButton() {
   // If the button is pressed (circuit closed), the button status is HIGH.  
-  if (digitalRead(BUTTON_PIN) == HIGH) {
-    if (buttonAction) {
+  if (digitalRead(PIN_PULL_UP) == HIGH) {
+    if (switchAction) {
       if (theToggle) {
         theToggle = false;
-        Serial.println("+ toggleButton(), turn off.");
+        Serial.println("+ toggleSwitch(), turn off.");
         digitalWrite(LED_PIN, LOW);
       } else {
         theToggle = true;
-        Serial.println("+ toggleButton(), turn on.");
+        Serial.println("+ toggleSwitch(), turn on.");
         digitalWrite(LED_PIN, HIGH);
       }
     }
-    buttonAction = false;
+    switchAction = false;
   } else {
-    buttonAction = true;
+    switchAction = true;
   }
 }
 
@@ -77,22 +76,58 @@ void toggleButton() {
 
 // Only do the action once, don't repeat if the button is held down.
 // Don't repeat action if the button is not pressed.
-boolean setButtonState = true;
-
-void checkButton() {
-  // If the button is pressed (circuit closed), the button status is HIGH.
-  if (digitalRead(BUTTON_PIN) == HIGH) {
-    if (!setButtonState) {
+boolean setPullUpState = false;
+void checkButtonPullUp() {
+  // When using the PULLUP option, HIGH is not switched, LOW is switched.
+  if (digitalRead(PIN_PULL_UP) == LOW) {
+    if (!setPullUpState) {
       digitalWrite(LED_PIN, HIGH);
-      Serial.println("+ checkButton(), turn LED on.");
-      setButtonState = false;
+      Serial.println("+ Pull up pin switch, turn LED on.");
+      setPullUpState = false;
     }
-    setButtonState = true;
+    setPullUpState = true;
   } else {
-    if (setButtonState) {
+    if (setPullUpState) {
       digitalWrite(LED_PIN, LOW);
-      Serial.println("+ checkButton(), turn LED off.");
-      setButtonState = false;
+      Serial.println("+ Pull up pin switch, turn LED off.");
+      setPullUpState = false;
+    }
+  }
+}
+boolean setPullUpState6 = false;
+void checkButtonPullUp6() {
+  // When using the PULLUP option, HIGH is not switched, LOW is switched.
+  if (digitalRead(PIN_PULL_UP6) == LOW) {
+    if (!setPullUpState6) {
+      digitalWrite(LED_PIN, HIGH);
+      Serial.println("+ Pull up pin switch 6, turn LED on.");
+      setPullUpState6 = false;
+    }
+    setPullUpState6 = true;
+  } else {
+    if (setPullUpState6) {
+      digitalWrite(LED_PIN, LOW);
+      Serial.println("+ Pull up pin switch 6, turn LED off.");
+      setPullUpState6 = false;
+    }
+  }
+}
+
+boolean setPullDownState = false;
+void checkButtonPullDown() {
+  // When using a pull down resister, LOW is not switched, HIGH is switched.
+  if (digitalRead(PIN_PULL_DOWN) == HIGH) {
+    if (!setPullDownState) {
+      digitalWrite(LED_PIN, HIGH);
+      Serial.println("+ Pull down pin switch, turn LED on.");
+      setPullDownState = false;
+    }
+    setPullDownState = true;
+  } else {
+    if (setPullDownState) {
+      digitalWrite(LED_PIN, LOW);
+      Serial.println("+ Pull down pin switch, turn LED off.");
+      setPullDownState = false;
     }
   }
 }
@@ -108,8 +143,11 @@ void setup() {
   // ------------------------------
   // Initialize the LED pin.
   pinMode(LED_PIN, OUTPUT);
+  
   // Initialize the button pin.
-  pinMode(SWITCH_PIN, INPUT);
+  pinMode(PIN_PULL_DOWN, INPUT);        // Requires a 10K resister.
+  pinMode(PIN_PULL_UP, INPUT_PULLUP);   // Doesn't require a resister.
+  pinMode(PIN_PULL_UP6, INPUT_PULLUP);  // Doesn't require a resister.
 
   // ------------------------------
   Serial.println("+++ Go to loop and check for switch, switched.");
@@ -118,9 +156,12 @@ void setup() {
 // -----------------------------------------------------------------------------
 // Device Loop
 
+int counter = 0;
 void loop() {
-  delay (50);
-  checkButton();
-  counter++;
+  delay (100);
+  checkButtonPullDown();
+  checkButtonPullUp();
+  checkButtonPullUp6();
+  // counter++;
 }
 // -----------------------------------------------------------------------------
