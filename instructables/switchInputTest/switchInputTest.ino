@@ -53,7 +53,7 @@ boolean theToggle = true;
 boolean switchAction = true;  // Case the button is pressed and held, only toggle once.
 void toggleButton() {
   // If the button is pressed (circuit closed), the button status is HIGH.  
-  if (digitalRead(PIN_PULL_UP) == HIGH) {
+  if (digitalRead(PIN_PULL_UP6) == HIGH) {
     if (switchAction) {
       if (theToggle) {
         theToggle = false;
@@ -71,6 +71,27 @@ void toggleButton() {
   }
 }
 
+boolean theToggle6 = true;
+boolean switchAction6 = false;  // Case the button is pressed and held, only toggle once.
+void toggleButton6() {
+  // If the button is pressed (circuit closed), the button status is HIGH.  
+  if (digitalRead(PIN_PULL_UP6) == LOW) {
+    if (switchAction6) {
+      if (theToggle) {
+        theToggle = false;
+        Serial.println("+ toggleSwitch(), turn off.");
+        digitalWrite(LED_PIN, LOW);
+      } else {
+        theToggle = true;
+        Serial.println("+ toggleSwitch(), turn on.");
+        digitalWrite(LED_PIN, HIGH);
+      }
+    }
+    switchAction6 = false;
+  } else {
+    switchAction6 = true;
+  }
+}
 // -----------------------------------------------------------------------------
 // Turn light on when the button is pressed.
 
@@ -91,24 +112,6 @@ void checkButtonPullUp() {
       digitalWrite(LED_PIN, LOW);
       Serial.println("+ Pull up pin switch, turn LED off.");
       setPullUpState = false;
-    }
-  }
-}
-boolean setPullUpState6 = false;
-void checkButtonPullUp6() {
-  // When using the PULLUP option, HIGH is not switched, LOW is switched.
-  if (digitalRead(PIN_PULL_UP6) == LOW) {
-    if (!setPullUpState6) {
-      digitalWrite(LED_PIN, HIGH);
-      Serial.println("+ Pull up pin switch 6, turn LED on.");
-      setPullUpState6 = false;
-    }
-    setPullUpState6 = true;
-  } else {
-    if (setPullUpState6) {
-      digitalWrite(LED_PIN, LOW);
-      Serial.println("+ Pull up pin switch 6, turn LED off.");
-      setPullUpState6 = false;
     }
   }
 }
@@ -161,7 +164,7 @@ void loop() {
   delay (100);
   checkButtonPullDown();
   checkButtonPullUp();
-  checkButtonPullUp6();
+  toggleButton6();
   // counter++;
 }
 // -----------------------------------------------------------------------------
