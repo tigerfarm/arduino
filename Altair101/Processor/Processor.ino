@@ -20,12 +20,12 @@
   I can show my steampunk tablet to the world.
   + Time to generate videos.
 
-  Box:
+  Desktop Box:
   + Cut a glue Spider-Man paper to panels: 2 sides, bar top, and top panel.
   + Cut separation on the top for easy viewing access.
-  + Install and wire front panel. And test.
-  + Wire up MP3 player with separate power supply. Test will multiple USB hubs.
-  + Test new serial module usin the tablet. Then install it in the box.
+  + Install, wire, and test the front panel.
+  + Test new serial module using the tablet. Then install it in the box.
+  + Wire up the MP3 player. Use a separate power supply by testing with multiple USB hubs.
 
   ---------------------------------------------
   ---------------------------------------------
