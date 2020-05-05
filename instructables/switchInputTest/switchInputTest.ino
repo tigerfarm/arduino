@@ -12,8 +12,7 @@
     When the switch is closed (button pushed), the Arduino reads LOW from the digital pin.
 
   Pull down circuit. Connections,
-    Arduino        Switch
-    Digital pin to one side of the switch or button.
+    Arduino digital pin to one side of the switch or button.
     Ground to 10K ohm resister, to the same side of the switch.
     5V+            to the other side of the switch.
   Where as,
@@ -42,96 +41,100 @@
 #define LED_ONBOARD_PIN 13
 #define LED_PIN LED_ONBOARD_PIN
 
-#define PIN_PULL_DOWN 4
-#define PIN_PULL_UP   5
-#define PIN_PULL_UP6  6
+#define LED_TOGGLE_PIN1 A1
+#define LED_TOGGLE_PIN2 A2
 
-// -----------------------------------------------------------------------------
-// Toggle light on and off each time the button is pressed.
+#define PIN_PULL_DOWN1  6
+#define PIN_PULL_DOWN2  7
+#define PIN_PULL_UP1    8
+#define PIN_PULL_UP2    9
 
-boolean theToggle = true;
-boolean switchAction = true;  // Case the button is pressed and held, only toggle once.
-void toggleButton() {
-  // If the button is pressed (circuit closed), the button status is HIGH.  
-  if (digitalRead(PIN_PULL_UP6) == HIGH) {
-    if (switchAction) {
-      if (theToggle) {
-        theToggle = false;
-        Serial.println("+ toggleSwitch(), turn off.");
-        digitalWrite(LED_PIN, LOW);
-      } else {
-        theToggle = true;
-        Serial.println("+ toggleSwitch(), turn on.");
-        digitalWrite(LED_PIN, HIGH);
-      }
-    }
-    switchAction = false;
-  } else {
-    switchAction = true;
-  }
-}
-
-boolean theToggle6 = true;
-boolean switchAction6 = false;  // Case the button is pressed and held, only toggle once.
-void toggleButton6() {
-  // If the button is pressed (circuit closed), the button status is HIGH.  
-  if (digitalRead(PIN_PULL_UP6) == LOW) {
-    if (switchAction6) {
-      if (theToggle) {
-        theToggle = false;
-        Serial.println("+ toggleSwitch(), turn off.");
-        digitalWrite(LED_PIN, LOW);
-      } else {
-        theToggle = true;
-        Serial.println("+ toggleSwitch(), turn on.");
-        digitalWrite(LED_PIN, HIGH);
-      }
-    }
-    switchAction6 = false;
-  } else {
-    switchAction6 = true;
-  }
-}
 // -----------------------------------------------------------------------------
 // Turn light on when the button is pressed.
 
 // Only do the action once, don't repeat if the button is held down.
 // Don't repeat action if the button is not pressed.
-boolean setPullUpState = false;
-void checkButtonPullUp() {
+boolean setPullUpState1 = false;
+void checkPullUp1() {
   // When using the PULLUP option, HIGH is not switched, LOW is switched.
-  if (digitalRead(PIN_PULL_UP) == LOW) {
-    if (!setPullUpState) {
+  if (digitalRead(PIN_PULL_UP1) == LOW) {
+    if (!setPullUpState1) {
       digitalWrite(LED_PIN, HIGH);
-      Serial.println("+ Pull up pin switch, turn LED on.");
-      setPullUpState = false;
+      Serial.println("+ Pull up pin switch 1, LED on.");
+      setPullUpState1 = false;
     }
-    setPullUpState = true;
+    setPullUpState1 = true;
   } else {
-    if (setPullUpState) {
+    if (setPullUpState1) {
       digitalWrite(LED_PIN, LOW);
-      Serial.println("+ Pull up pin switch, turn LED off.");
-      setPullUpState = false;
+      Serial.println("+ Pull up pin switch 1, LED off.");
+      setPullUpState1 = false;
     }
   }
 }
 
-boolean setPullDownState = false;
-void checkButtonPullDown() {
-  // When using a pull down resister, LOW is not switched, HIGH is switched.
-  if (digitalRead(PIN_PULL_DOWN) == HIGH) {
-    if (!setPullDownState) {
-      digitalWrite(LED_PIN, HIGH);
-      Serial.println("+ Pull down pin switch, turn LED on.");
-      setPullDownState = false;
+// Toggle light on and off each time the button is pressed.
+boolean theTogglePullUp = false;
+boolean setPullUpState2 = false;  // Case the button is pressed and held, only toggle once.
+void checkPullUp2() {
+  // If the button is pressed (circuit closed), the button status is HIGH.
+  if (digitalRead(PIN_PULL_UP2) == LOW) {
+    if (setPullUpState2) {
+      if (theTogglePullUp) {
+        theTogglePullUp = false;
+        Serial.println("+ Pull up pin switch 2, toggle off.");
+        digitalWrite(LED_TOGGLE_PIN1, LOW);
+      } else {
+        theTogglePullUp = true;
+        Serial.println("+ Pull up pin switch 2, toggle on.");
+        digitalWrite(LED_TOGGLE_PIN1, HIGH);
+      }
     }
-    setPullDownState = true;
+    setPullUpState2 = false;
   } else {
-    if (setPullDownState) {
-      digitalWrite(LED_PIN, LOW);
-      Serial.println("+ Pull down pin switch, turn LED off.");
-      setPullDownState = false;
+    setPullUpState2 = true;
+  }
+}
+
+// -----------------------------------------------------------------------------
+boolean setPullDownState1 = false;
+void checkPullDown1() {
+  // When using a pull down resister, LOW is not switched, HIGH is switched.
+  if (digitalRead(PIN_PULL_DOWN1) == HIGH) {
+    if (!setPullDownState1) {
+      digitalWrite(LED_PIN, HIGH);
+      Serial.println("+ Pull down pin switch 1, LED on.");
+      setPullDownState1 = false;
     }
+    setPullDownState1 = true;
+  } else {
+    if (setPullDownState1) {
+      digitalWrite(LED_PIN, LOW);
+      Serial.println("+ Pull down pin switch 1, LED off.");
+      setPullDownState1 = false;
+    }
+  }
+}
+
+boolean theTogglePullDown = false;
+boolean setPullDownState2 = false;  // Case the button is pressed and held, only toggle once.
+void checkPullDown2() {
+  // If the button is pressed (circuit closed), the button status is HIGH.
+  if (digitalRead(PIN_PULL_DOWN2) == HIGH) {
+    if (setPullDownState2) {
+      if (theTogglePullDown) {
+        theTogglePullDown = false;
+        Serial.println("+ Pull down pin switch 2, toggle off.");
+        digitalWrite(LED_TOGGLE_PIN2, LOW);
+      } else {
+        theTogglePullDown = true;
+        Serial.println("+ Pull down pin switch 2, toggle on.");
+        digitalWrite(LED_TOGGLE_PIN2, HIGH);
+      }
+    }
+    setPullDownState2 = false;
+  } else {
+    setPullDownState2 = true;
   }
 }
 
@@ -144,13 +147,17 @@ void setup() {
   Serial.println("+++ Setup.");
 
   // ------------------------------
-  // Initialize the LED pin.
   pinMode(LED_PIN, OUTPUT);
-  
+  pinMode(LED_TOGGLE_PIN1, OUTPUT);
+  pinMode(LED_TOGGLE_PIN2, OUTPUT);
+  Serial.println("+ LED output pins initialized.");
+
   // Initialize the button pin.
-  pinMode(PIN_PULL_DOWN, INPUT);        // Requires a 10K resister.
-  pinMode(PIN_PULL_UP, INPUT_PULLUP);   // Doesn't require a resister.
-  pinMode(PIN_PULL_UP6, INPUT_PULLUP);  // Doesn't require a resister.
+  pinMode(PIN_PULL_DOWN1, INPUT);         // Requires a 10K resister.
+  pinMode(PIN_PULL_DOWN2, INPUT);         // Requires a 10K resister.
+  pinMode(PIN_PULL_UP1, INPUT_PULLUP);    // Doesn't require a resister.
+  pinMode(PIN_PULL_UP2, INPUT_PULLUP);    // Doesn't require a resister.
+  Serial.println("+ Input pins initialized.");
 
   // ------------------------------
   Serial.println("+++ Go to loop and check for switch, switched.");
@@ -159,12 +166,11 @@ void setup() {
 // -----------------------------------------------------------------------------
 // Device Loop
 
-int counter = 0;
 void loop() {
+  checkPullUp1();
+  checkPullUp2();
+  checkPullDown1();
+  checkPullDown2();
   delay (100);
-  checkButtonPullDown();
-  checkButtonPullUp();
-  toggleButton6();
-  // counter++;
 }
 // -----------------------------------------------------------------------------
