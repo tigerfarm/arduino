@@ -23,7 +23,7 @@
     Arduino digital pin to the positive(+) side of the LED light.
     1K resister to the ground(-) side of the LED light. Can use various sizes of resisters: 1K to 5K.
     Other side of the resister to ground.
-    
+
   References,
   Digital Input Pull-Up resistor
     https://www.arduino.cc/en/Tutorial/DigitalInputPullup
@@ -38,12 +38,12 @@
 #define PIN_PULL_UP1    8
 #define PIN_PULL_UP2    9
 
-// Arduino Nano and Mega,
+// Arduino Nano, Uno, and Mega,
 // + PIN X set to LOW (0) will turn the LED off.
 // + PIN X set to HIGH (1) will turn the LED on.
 // Built in LED on NodeMCU: LOW is LED on and HIGH is LED off.
 // ------
-// Onboard LED: GPI13 which is D13 on Nano and Uno.
+// Onboard LED: GPI13 which is D13 on Mega, Nano and Uno.
 // Onboard LED: GPIO2 which is D04 on NodeMCU.
 
 #define LED_ONBOARD_PIN 13
@@ -63,16 +63,18 @@ boolean setPullUpState1 = false;
 void checkPullUpSwitch() {
   if (digitalRead(PIN_PULL_UP1) == LOW) {
     if (!setPullUpState1) {
-      digitalWrite(LED_PIN, HIGH);
-      Serial.println("+ Pull up pin switch 1, LED on.");
+      Serial.println("+ Flipped, pull up pin switch 1, LED on.");
       setPullUpState1 = false;
+      // Logic: switch flipped, circuit closed.
+      digitalWrite(LED_PIN, HIGH);
     }
     setPullUpState1 = true;
   } else {
     if (setPullUpState1) {
-      digitalWrite(LED_PIN, LOW);
-      Serial.println("+ Pull up pin switch 1, LED off.");
+      Serial.println("+ Released, pull up pin switch 1, LED off.");
       setPullUpState1 = false;
+      // Logic: switch released.
+      digitalWrite(LED_PIN, LOW);
     }
   }
 }
@@ -85,12 +87,14 @@ void checkPullUpToggle() {
   if (digitalRead(PIN_PULL_UP2) == LOW) {
     if (setPullUpState2) {
       if (theTogglePullUp) {
+        Serial.println("+ Flipped, pull up pin switch 2, toggle off.");
         theTogglePullUp = false;
-        Serial.println("+ Pull up pin switch 2, toggle off.");
+        // Logic: switch flipped, circuit closed.
         digitalWrite(LED_TOGGLE_PIN1, LOW);
       } else {
+        Serial.println("+ Released, pull up pin switch 2, toggle on.");
         theTogglePullUp = true;
-        Serial.println("+ Pull up pin switch 2, toggle on.");
+        // Logic: switch released.
         digitalWrite(LED_TOGGLE_PIN1, HIGH);
       }
     }
@@ -101,7 +105,7 @@ void checkPullUpToggle() {
 }
 
 // -----------------------------------------------------------------------------
-// INPUT Push buttons, external 10K resister required.
+// INPUT Push buttons, external pull down 10K resister required.
 
 // Turn light on when the button is pressed.
 boolean setPullDownState1 = false;
@@ -109,16 +113,18 @@ void checkPullDownSwitch() {
   // When using a pull down resister, LOW is not switched, HIGH is switched.
   if (digitalRead(PIN_PULL_DOWN1) == HIGH) {
     if (!setPullDownState1) {
-      digitalWrite(LED_PIN, HIGH);
-      Serial.println("+ Pull down pin switch 1, LED on.");
+      Serial.println("+ Pushed, pull down pin switch 1, LED on.");
       setPullDownState1 = false;
+      // Logic: button pushed down.
+      digitalWrite(LED_PIN, HIGH);
     }
     setPullDownState1 = true;
   } else {
     if (setPullDownState1) {
-      digitalWrite(LED_PIN, LOW);
-      Serial.println("+ Pull down pin switch 1, LED off.");
+      Serial.println("+ Released, pull down pin switch 1, LED off.");
       setPullDownState1 = false;
+      // Logic: button released.
+      digitalWrite(LED_PIN, LOW);
     }
   }
 }
@@ -131,12 +137,14 @@ void checkPullDownToggle() {
   if (digitalRead(PIN_PULL_DOWN2) == HIGH) {
     if (setPullDownState2) {
       if (theTogglePullDown) {
+        Serial.println("+ Pushed, pull down pin switch 2, toggle off.");
         theTogglePullDown = false;
-        Serial.println("+ Pull down pin switch 2, toggle off.");
+        // Logic: button pushed down.
         digitalWrite(LED_TOGGLE_PIN2, LOW);
       } else {
+        Serial.println("+ Released, pull down pin switch 2, toggle on.");
         theTogglePullDown = true;
-        Serial.println("+ Pull down pin switch 2, toggle on.");
+        // Logic: button released.
         digitalWrite(LED_TOGGLE_PIN2, HIGH);
       }
     }
@@ -155,7 +163,7 @@ void setup() {
   Serial.println("+++ Setup.");
 
   // ------------------------------
-  pinMode(LED_PIN, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);           // Onboard LED light
   pinMode(LED_TOGGLE_PIN1, OUTPUT);
   pinMode(LED_TOGGLE_PIN2, OUTPUT);
   Serial.println("+ LED output pins initialized.");
