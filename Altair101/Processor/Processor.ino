@@ -3,33 +3,36 @@
   Altair 101 Processor program
 
   This is an Altair 8800 emulator program that runs on an Arduino Mega microcontroller.
-  It emulates the basic Altair 8800 hardware processes--from 1975.
-  It was built around the Intel 8080 CPU chip. The 8080's opcodes are the same for the 8085.
-  This program implements many of the 8080 microprocessor machine instructions (opcodes).
-  It has more than half of the opcodes implemented,
-  which more than enough to run the classic program, Kill the Bit.
+  It emulates the basic Altair 8800 computer processes--from 1975.
+  The Altair 8800 was built around the Intel 8080 CPU chip.
+  The 8080's machine instructions(opcodes) are the same for the 8085.
+  This program implements more than enough 8080 opcodes to run the classic program, Kill the Bit.
 
   ---------------------------------------------
   Current/Next Work
 
   User guide,
-  + How to load a and run a program.
-  + How to use the clock.
-
-  Panel LED lights all display correctly. Toggle functions all work.
-  I can show my steampunk tablet to the world.
-  + Time to generate videos.
+  + How to save a program to the SD card.
+  ++ Requires a second flip to confirm write.
+  + How to load and run a program from the SD card.
+  + How to assemble, upload, and run an assembler program: Altari101/asm/README.md.
+  + How to use the clock. Clock currently requires an LCD to set the time.
+  ++ I should add inc/dec hours and minutes using toggles. This would work for my other clock.
 
   Desktop Box:
   ------------
   + Done: Cut a glue Spider-Man paper to panels: 2 sides, bar top, and top panel.
-  + Almost done:Cut separation on the top for easy viewing access.
+  + Done: Cut separation on the top for easy internal access.
   + Install, wire, and test the front panel.
   ------------
   + Test new serial module using the tablet. Then install it in the box.
   + Mount, connect, and test a 1602 LCD.
   + Wire up the MP3 player. Use a separate power supply. Test using multiple USB hubs.
   + Later, add the stearo amp. Use the Mega to control an On/off relay switch for the amp's 120AC adapter.
+
+  Panel LED lights all display correctly. Toggle functions all work.
+  I can show my steampunk tablet to the world.
+  + Time to generate videos.
 
   ---------------------------------------------
   ---------------------------------------------
@@ -366,7 +369,7 @@ void toggleLcdBacklight() {
   }
 }
 
-void printClockInt(int theColumn, int theRow, int theInt) {
+void printLcdClockValue(int theColumn, int theRow, int theInt) {
   lcd.setCursor(theColumn, theRow);    // Column, Row
   if (theInt < 10) {
     lcd.print("0");
@@ -390,11 +393,11 @@ void printClockDate() {
   // ---
   lcd.setCursor(++theCursor, printRowClockDate);    // Column, Row
   lcd.print(":");
-  printClockInt(++theCursor, printRowClockDate, theCounterMonth);
+  printLcdClockValue(++theCursor, printRowClockDate, theCounterMonth);
   // ---
   theCursor = theCursor + 2;
   lcd.print("/");
-  printClockInt(++theCursor, printRowClockDate, theCounterDay);
+  printLcdClockValue(++theCursor, printRowClockDate, theCounterDay);
 }
 
 void setClockMenuItems() {
@@ -415,7 +418,7 @@ void setClockMenuItems() {
       theSetMin = 0;
       theSetCol = thePrintColSec;
       setValue = theCounterSeconds;
-      printClockInt(theSetCol, theSetRow, setValue);
+      printLcdClockValue(theSetCol, theSetRow, setValue);
       break;
     case 2:
       // Serial.print("minutes");
@@ -425,7 +428,7 @@ void setClockMenuItems() {
       theSetMin = 0;
       theSetCol = thePrintColMin;
       setValue = theCounterMinutes;
-      printClockInt(theSetCol, theSetRow, setValue);
+      printLcdClockValue(theSetCol, theSetRow, setValue);
       break;
     case 3:
       // Serial.print("hours");
@@ -436,7 +439,7 @@ void setClockMenuItems() {
       theSetMin = 0;
       theSetCol = thePrintColHour;
       setValue = theCounterHours;
-      printClockInt(theSetCol, theSetRow, setValue);
+      printLcdClockValue(theSetCol, theSetRow, setValue);
       break;
     case 4:
       // Serial.print("day");
@@ -445,7 +448,7 @@ void setClockMenuItems() {
       theSetMin = 1;
       theSetCol = thePrintColMin;
       setValue = theCounterDay;
-      printClockInt(theSetCol, theSetRow, setValue);
+      printLcdClockValue(theSetCol, theSetRow, setValue);
       break;
     case 5:
       // Serial.print("month");
@@ -454,7 +457,7 @@ void setClockMenuItems() {
       theSetMin = 1;
       theSetCol = thePrintColMin;
       setValue = theCounterMonth;
-      printClockInt(theSetCol, theSetRow, setValue);
+      printLcdClockValue(theSetCol, theSetRow, setValue);
       break;
     case 6:
       // Serial.print("year");
@@ -463,7 +466,7 @@ void setClockMenuItems() {
       theSetMin = 1795; // Year John Keats the poet was born.
       theSetCol = thePrintColMin;
       setValue = theCounterYear;
-      printClockInt(theSetCol, theSetRow, setValue);
+      printLcdClockValue(theSetCol, theSetRow, setValue);
       break;
   }
 }
@@ -3613,23 +3616,24 @@ void checkExamineButton() {
         Serial.println(F("one at a time: year, month, day, hour, minutes, seconds."));
 #endif
         // Serial.print("+ Key OK");
+        // setClockValue is indicator of which clock value is being processed, to be set.
         if (setClockValue) {
           // Serial.print(" ");
           switch (setClockValue) {
             case 1:
               // Serial.print("seconds");
               theCounterSeconds = setValue;
-              printClockInt(theSetCol, printRowClockPulse, setValue);
+              printLcdClockValue(theSetCol, printRowClockPulse, setValue);
               break;
             case 2:
               // Serial.print("minutes");
               theCounterMinutes = setValue;
-              printClockInt(theSetCol, printRowClockPulse, setValue);
+              printLcdClockValue(theSetCol, printRowClockPulse, setValue);
               break;
             case 3:
               // Serial.print("hours");
               theCounterHours = setValue;
-              printClockInt(theSetCol, printRowClockPulse, setValue);
+              printLcdClockValue(theSetCol, printRowClockPulse, setValue);
               break;
             case 4:
               // Serial.print("day");
@@ -3740,7 +3744,7 @@ void checkDepositButton() {
         if (setValue > theSetMax) {
           setValue = theSetMin;
         }
-        printClockInt(theSetCol, theSetRow, setValue);
+        printLcdClockValue(theSetCol, theSetRow, setValue);
         break;
     }
   }
@@ -3782,7 +3786,7 @@ void checkDepositNextButton() {
         if (setValue < theSetMin) {
           setValue = theSetMax;
         }
-        printClockInt(theSetCol, theSetRow, setValue);
+        printLcdClockValue(theSetCol, theSetRow, setValue);
         break;
     }
   }
@@ -3894,13 +3898,13 @@ void syncCountWithClock() {
   theCounterSeconds = now.second();
   //
   theCursor = thePrintColHour;
-  printClockInt(theCursor, printRowClockPulse, theCounterHours);  // Column, Row
+  printLcdClockValue(theCursor, printRowClockPulse, theCounterHours);  // Column, Row
   theCursor = theCursor + 3;
   lcd.print(":");
-  printClockInt(theCursor, printRowClockPulse, theCounterMinutes);
+  printLcdClockValue(theCursor, printRowClockPulse, theCounterMinutes);
   theCursor = theCursor + 3;
   lcd.print(":");
-  printClockInt(theCursor, printRowClockPulse, theCounterSeconds);
+  printLcdClockValue(theCursor, printRowClockPulse, theCounterSeconds);
   //
   Serial.print("+ syncCountWithClock,");
   Serial.print(" theCounterHours=");
@@ -4012,13 +4016,13 @@ void clockPulseHour() {
     theHour = theCounterHours;
   }
   displayTheTime( theCounterMinutes, theCounterHours );
-  printClockInt(thePrintColHour, printRowClockPulse, theHour);
+  printLcdClockValue(thePrintColHour, printRowClockPulse, theHour);
 }
 void clockPulseMinute() {
   Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
   Serial.println(theCounterMinutes);
   displayTheTime( theCounterMinutes, theCounterHours );
-  printClockInt(thePrintColMin, printRowClockPulse, theCounterMinutes);
+  printLcdClockValue(thePrintColMin, printRowClockPulse, theCounterMinutes);
 }
 void clockPulseSecond() {
   if (HLDA_ON) {
@@ -4030,7 +4034,7 @@ void clockPulseSecond() {
   }
   // Serial.print("+ theCounterSeconds = ");
   // Serial.println(theCounterSeconds);
-  printClockInt(thePrintColSec, printRowClockPulse, theCounterSeconds);  // Column, Row
+  printLcdClockValue(thePrintColSec, printRowClockPulse, theCounterSeconds);  // Column, Row
 }
 
 // ------------------------------------------------------------------------
@@ -4174,7 +4178,7 @@ void clockRun() {
     // Clock process to display the time.
     processClockNow();
     // Switches to exit this mode.
-    checkRunningButtons();
+    // checkRunningButtons();   // Test with only using the clock AUX switch.
     checkClockSwitch();
     // Check control buttons for setting the time.
     checkExamineButton();
@@ -4199,9 +4203,10 @@ void playerRun() {
   lcdPrintln(1, "Not implemented.");
   while (programState == PLAYER_RUN) {
     // processPlayer();
-    // Switches to exit this mode.
-    checkRunningButtons();
+    // checkRunningButtons();   // Test with only using the player AUX switch.
     checkPlayerSwitch();
+    // Check control buttons for controling the playing of MP3 files.
+    // Not yet implemented.
     //
     delay(100);
   }
@@ -4828,6 +4833,7 @@ void loop() {
       processData();
       // Program control: STOP or RESET.
       if (irrecv.decode(&results)) {
+        // Infrared can be used for testing without a front panel.
         // Future: use the keypress value(1-8) as input into the running program via IN opcode.
         infraredRunning();
       }
@@ -4840,6 +4846,7 @@ void loop() {
     case PROGRAM_WAIT:
       // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
       if (irrecv.decode(&results)) {
+        // Infrared can be used for testing without a front panel.
         infraredControl();
       }
       if (pcfControlinterrupted) {
@@ -4855,7 +4862,6 @@ void loop() {
     // ----------------------------
     case SERIAL_DOWNLOAD:
       Serial.println(F("+ State: SERIAL_DOWNLOAD"));
-      // ----------------------------------------------------
       serial2.begin(9600);
       if (serial2.isListening()) {
         Serial.println("+ serial2 is listening.");
@@ -4866,6 +4872,7 @@ void loop() {
         DownloadProgram();
       }
       break;
+    // ----------------------------
     case CLOCK_RUN:
       Serial.println(F("+ State: CLOCK_RUN"));
       // HLDA on when in this mode.

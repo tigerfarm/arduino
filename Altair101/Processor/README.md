@@ -257,44 +257,7 @@ setting the toggles to 00000101, and flipping AUX2 down,
 to download the file, 00000101.bin, back into the emulator's memory.
 
 --------------------------------------------------------------------------------
-## Implemented Opcodes
-
-The following list was generated from the [opcode data file](../asmOpcodes.txt).
-````
-Binary             Opcode   Binary   Cycles Description
--------------------------------------
-11000110 : adi   : ADI #    11 000 110  3  Add immediate number to register A, set: ZSCPA.
-11100110 : ani   : ANI #    11 100 110  2  AND # (immediate db) with register A.
-11001101 : call  : CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.
-10111SSS : cmp   : CMP S    10 111 SSS  1  Compare register(S) with register A, then set flags. If S=A, set Zero bit to 1. If S>A, Carry bit = 1. If S<A, Carry bit = 0.
-11111110 : cpi   : CPI #    11 111 110  2  Compare # to A. Store true or false into flagZeroBit.
-00RP1001 : dad   : DAD RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L, into H:L. And set carry bit.
-00DDD101 : dcr   : DCR D    00 DDD 101  1  Decrement a register. To do, set flags: ZSPA.
-01110110 : hlt   : HLT      01 110 110  1  Halt processor.
-11011011 : in    : IN pa    11 011 011  2  Read port a data into the accumulator. Example, a=0377 is the sense switches.
-00DDD100 : inr   : INR D    00 DDD 100  1  Increment register DDD. To do, set flags: ZSPA.
-00RP0011 : inx   : INX RP   00 RP0 011  1  Increment a register pair(16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
-11011010 : jc    : JC a     11 011 010  3  Jump to a, if Carry bit flag is set (equals 1).
-11000011 : jmp   : JMP a    11 000 011  3  Unconditional jump.
-11010010 : jnc   : JNC a    11 010 010  3  Jump to a, if Carry bit flag is not set (equals 0).
-11000010 : jnz   : JNZ a    11 000 010  3  Jump to a, if Zero bit flag is not set (equals 0).
-11001010 : jz    : JZ a     11 001 010  3  Jump to a, if zero bit flag is set (equals 1).
-00111010 : lda   : LDA a    00 111 010  3  Load register A with data from the address, a(hb:lb).
-00RP1010 : ldax  : LDAX RP  00 RP1 010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.
-00RP0001 : lxi   : LXI RP,a 00 RP0 001  3  Move the data at the address, a(lb hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.
-01DDDSSS : mov   : MOV D,S  01 DDD SSS  1  Move source register data, to the destination register. If source(S) is M(110), move data from address H:L, to D.
-00RRR110 : mvi   : MVI R,#  00 RRR 110  2  Move a number (#, db) to a register.
-00000000 : nop   : NOP      00 000 000  1  No operation. I added a delay: delay(100).
-10110SSS : ora   : ORA S    10 110 SSS  1  OR register S, with register A.
-11100011 : out   : OUT pa   11 010 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
-11001001 : ret   : RET      11 001 001  1  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.
-00000111 : rlc   : RLC      00 000 111  1  Rotate accumulator left by shift left 1 bit, and wrapping the first bit to the last position. Need to handle carry bit (CY = prev bit 7).
-00001111 : rrc   : RRC      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit (CY = prev bit 0).
-00100010 : shld  : SHLD a   00 100 010  3  Store data value from memory location: a(address hb:lb), to register L. Store value at: a + 1, to register H.
-00110010 : sta   : STA a    00 110 010  3  Store register A to the address, a(hb:lb).
-11010110 : sui   : SUI #    11 010 110  3  Subtract immediate number from register A, set ZSCPA.
-10101SSS : xra   : XRA R    10 101 SSS  1  Exclusive OR, the register(R) with register A.
-````
+For a list of implemented opcodes, see the document [../asmOpcodes.txt].
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

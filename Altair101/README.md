@@ -20,10 +20,11 @@ AUX 2 down, Read/download from the SD card
 
 Clock
 ````
-Flip AUX 1 up, toggle clock state on/off.
-
-Examine: Put the clock into Set Clock state: display set values on the 1602 LCD.
-Examine Next: Move through the clock values: year, month, day, hour, minutes, seconds.
+AUX 1: flip up to toggle clock state on/off.
+Examine: if in clock state, set the value, which is set using the following switches.
+Examine Next: Move through the clock values to be set: year, month, day, hour, minutes, seconds.
++ First flip, displays the year for setting.
++ Continue flipping the switch to select the other values.
 Deposit: increment the clock value being set(Y,M,D,H,M, or S).
 Deposit Next: decrement the clock value being set(Y,M,D,H,M, or S).
 ````
