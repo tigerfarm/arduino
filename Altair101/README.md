@@ -2,12 +2,11 @@
 # Altair 101 Computer
   
 I have designed and built an Altair 8800 emulator.
-The mother board CPU and RAM, is an Arduino Mega microcontroller.
+The mother board, CPU, and RAM, is an Arduino Mega microcontroller.
 It emulates the basic Altair 8800 hardware from 1975.
 The 8800 was built around the Intel 8080 CPU chip. The 8080's opcodes are the same for the 8085.
 This emulator implements more than enough of the 8080/8085 microprocessor machine instructions (opcodes),
 to run the classic program, Kill the Bit.
-
 
 ---------------------------------------------
 ### User Guide
@@ -51,21 +50,22 @@ rebels against the evil technophobes
 had bought their own calculators,
 the lightsabers of the age.
 ````
-Then, there was the Altair 8800, the first computer that a regular person like me, could buy.
+The Altair 8800 was the first computer that a regular person like me, could buy.
 
 I lived in the country side.
 Yeah, it was rural, a village of 500 people. When I finally left, there was a guy out changing the sign to 499.
 I had only seen a computer once before on a school trip.
-It was a mechanical monster filling a small room.
-In science fiction terms, it was a steampunk computer, tall metal body parts reaching to the ceiling, parts buzzing and moving around.
-Where as the Altair 8800 was a modern electronic wonder.
+It was a mechanical monster filling a small room, the size of a bedroom.
+In science fiction terms, it was a steampunk computer, tall metal body reaching to the ceiling, parts buzzing and moving around.
+
+The Altair 8800 was a modern electronic wonder, a sleek box the size of a small suit case.
 And I could buy one for $600, which is $3,000 adjusted to 2019 dollars.
-The Altair 8800 was the Model-T of computers.
+The Altair 8800 was the Model-T of home computers, the first available for the masses.
 Or, as I prefer to call it, the Chevy Corvette of home computers, the first American affordable, popular, sports car computer.
 
-I had worked all summer on a golf course making over a dollar an hour, I could afford the basic computer.
+I had worked the summer on a golf course making over a dollar an hour, I could afford the basic computer.
 Yeah, I was working full time. And yeah, I was under 16 years old.
-But we didn't call it child slave labor work, our parents called it, "Get your lazy ass up and do something" work.
+But we didn't call it child slave labor, our parents called it, "Get your lazy ass up and do something" work.
 
 It was exciting, a device that could change my life. It could get me out that one horse town.
 I read that Popular Electronics article over and over.
@@ -76,6 +76,7 @@ No permanent storage  meant that when I entered a program, it would be lost when
 I was short on funds to buy a component to save and load programs.
 And I couldn't afford the $10,000 (2019 dollars) for a floppy drive.
 So no computer for me while I was in high school.
+
 It would be 8 years later, during my second year of university that I would buy my first computer.
 And yes, it did change my life.
 
@@ -378,6 +379,51 @@ is that I haven't implemented all the 8080 opcodes implemented.
 
 ````
 
+````
+  ---------------------------------------------
+  ---------------------------------------------
+  Tablet to Desktop module work
+
+  Processor.ino works for both the tablet and desktop versions. The following are tested.
+  + Front panel LED lights
+  + Front panel Toggle switches
+  + SD card adapter for read and write
+  + Clock, with display time using the front panel LED lights
+  + When clicking clock or player switches, set front panel lights off.
+  + On second click, restore front panel lights and return to the emulator.
+
+  Output LED lights
+  -----------------
+  WAIT(WAIT_PIN = A9) and HLDA(HLDA_PIN = A10) are now digital pin controlled.
+  Status lights aligned for the Tablet and Desktop.
+  Uses 3 Mega digital pins to connect to, and control, the 74HC595 chips.
+  Updated and Testedthe front panel light shiftOut statement functions:
+  + processDataLights, and lightsStatusAddressData.
+
+  Input Toggles
+  -------------------------------------------
+  Tablet module toggle inputs, 2 PCF modules,
+  + pcfControl(0x020): controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
+  ++ pcfControl has interupt enabled, Mega pin 2.
+  -------
+  + pcfData(0x021): low address byte, and sense switches
+  ++ In Processor.ino, changed "pcf21" to "pcfData". Check data and sense switch calls.
+  ++ Toggle address = 0000000000000111, data=00000111, sense=00000111
+  -------
+  + Digital pin  8: AUX 1 up, clock
+  + Digital pin  9: AUX 1 down, MP3 player
+  + Digital pin 10: AUX 2 up, write/upload to the SD card
+  + Digital pin 11: AUX 2 down, read/download from the SD card
+  -------------------------------------------
+  Desktop module toggle inputs: 4 PCF modules,
+  ++ pcfControl(0x020): controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
+  +++ pcfControl has interrupt enabled, Mega pin 2.
+  ++ pcfData(0x021): low address byte
+  ++ pcfSense(0x022): high address byte, and sense switches
+  ++ pcfAux(0x023): AUX1 up and down, AUX2 up and down, PROTECT, UNPROTECT, CLR, and switch below STEP.
+  +++ pcfAux has interrupt enabled, same Mega pin as pcfControl, pin 2.
+
+````
 --------------------------------------------------------------------------------
 #### Reference links
 

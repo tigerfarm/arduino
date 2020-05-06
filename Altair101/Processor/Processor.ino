@@ -34,69 +34,25 @@
   I can show my steampunk tablet to the world.
   + Time to generate videos.
 
-  ---------------------------------------------
-  ---------------------------------------------
-  Tablet to Desktop module work
-
-  Processor.ino works for both the tablet and desktop versions. The following are tested.
-  + Front panel LED lights
-  + Front panel Toggle switches
-  + SD card adapter for read and write
-  + Clock, with display time using the front panel LED lights
-  + When clicking clock or player switches, set front panel lights off.
-  + On second click, restore front panel lights and return to the emulator.
-
-  Output LED lights
-  -----------------
-  WAIT(WAIT_PIN = A9) and HLDA(HLDA_PIN = A10) are now digital pin controlled.
-  Status lights aligned for the Tablet and Desktop.
-  Uses 3 Mega digital pins to connect to, and control, the 74HC595 chips.
-  Updated and Testedthe front panel light shiftOut statement functions:
-  + processDataLights, and lightsStatusAddressData.
-
-  Input Toggles
-  -------------------------------------------
-  Tablet module toggle inputs, 2 PCF modules,
-  + pcfControl(0x020): controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
-  ++ pcfControl has interupt enabled, Mega pin 2.
-  -------
-  + pcfData(0x021): low address byte, and sense switches
-  ++ In Processor.ino, changed "pcf21" to "pcfData". Check data and sense switch calls.
-  ++ Toggle address = 0000000000000111, data=00000111, sense=00000111
-  -------
-  + Digital pin  8: AUX 1 up, clock
-  + Digital pin  9: AUX 1 down, MP3 player
-  + Digital pin 10: AUX 2 up, write/upload to the SD card
-  + Digital pin 11: AUX 2 down, read/download from the SD card
-  -------------------------------------------
-  Desktop module toggle inputs: 4 PCF modules,
-  ++ pcfControl(0x020): controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
-  +++ pcfControl has interrupt enabled, Mega pin 2.
-  ++ pcfData(0x021): low address byte
-  ++ pcfSense(0x022): high address byte, and sense switches
-  ++ pcfAux(0x023): AUX1 up and down, AUX2 up and down, PROTECT, UNPROTECT, CLR, and switch below STEP.
-  +++ pcfAux has interrupt enabled, same Mega pin as pcfControl, pin 2.
-
-  ---------------------------------------------
+---------------------------------------------
   ---------------------------------------------
   Connect the Mega to the desktop front panel:
 
-  Total = 12 Mega pin wire connects to the front panel, 4 of which are for power (+ and -).
+  Total = 12 Mega pin wire connections to the front panel, 4 of which are for power (+ and -).
 
-  4 Mega pins to PCF8574 daisy chain, toggle inputs:
+  5 Mega pins to PCF8574 daisy chain, toggle inputs:
   + I2C SDA to Mega SDA
   + I2C SCL to Mega SCL
   + I2C +5V
   + I2C Ground
-  --- Plus ---
-  1 Mega pin 2 to the front panel. Then 2 wires to PCF8574 module interrupts for Control and AUX.
+  + 1 wrie from the Mega pin 2 to the front panel breadboard. Then 2 wires to PCF8574 module interrupts for Control and AUX.
 
-  3 Mega pins to 74HC595 daisy chain, LED output:
+  5 Mega pins to 74HC595 daisy chain, LED output:
   + Mega pin A14 to 74HC595 14 Data pin.
   + Mega pin A12 to 74HC595 12 Latch pin.
   + Mega pin A11 to 74HC595 11 Clock pin.
   --- Plus ---
-  2 wires for +5V and Ground.
+  + 2 wires for +5V and Ground to the front panel breadboard.
 
   2 pins for the WAIT and HLDA LED lights.
   + const int WAIT_PIN = A9;
@@ -109,7 +65,7 @@
   Update the SD card logic: initSdcard()
 
   Now, can set the LCD backlight as on when prompting, and reset after.
-  + LCD backlight on/off status is controlled: LcdBacklight.
+  + LCD backlight on/off status boolean: LcdBacklight.
 
   If 00000000.bin exists when starting up,
   + If 00000000.bin is not all zeros (NOPs), run it.
@@ -118,11 +74,14 @@
   Confirm before reading a file into memory,
   + Fast flash HLDA for 1 second.
   + If read or write switch repeated, then run, else return to program wait status.
+  Confirm before writting a file into memory,
+  + Done: Confirm by flipping the switch twice.
+  + Add:  Fast flash HLDA for 1 second.
 
-  + Test write memory issue,
-  ++ Seems to be a CALL opcode issue.
-  ++ If byte count over 276, characters no longer are displayed.
-  ++ Fails at the address: 00010100 (276)
+  Test write memory issue,
+  + Seems to be a CALL opcode issue.
+  + If byte count over 276, characters no longer are displayed.
+  + Fails at the address: 00010100 (276)
 
   -----------------------------------------------------------------------------
   -----------------------------------------------------------------------------

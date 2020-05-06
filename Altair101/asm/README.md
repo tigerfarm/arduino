@@ -94,8 +94,8 @@ The machine code is now in the 101's program memory.
 On the Altair 101,
 ````
 I flip the RESET switch and the machine returns to program mode.
-````
-If I flip the run switch, the program will start running.
+
+If I flip the run switch, the program starts running.
 
 I can use the examine and examine next toggle to view the program bytes in the front panel LED lights.
 I can change the program bytes using the Deposit toggle.
@@ -112,6 +112,7 @@ and the emulator's memory is stored (uploaded) to file: 00000101.bin.
 At any other time, the program can be reloaded into memory by
 setting the toggles to 00000101, and flipping AUX2 down,
 to download the file, 00000101.bin, back into the emulator's memory.
+````
 
 --------------------------------------------------------------------------------
 Cheers
