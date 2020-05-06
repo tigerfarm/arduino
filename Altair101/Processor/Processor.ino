@@ -22,14 +22,14 @@
 
   Desktop Box:
   ------------
-  + Cut a glue Spider-Man paper to panels: 2 sides, bar top, and top panel.
-  + Cut separation on the top for easy viewing access.
+  + Done: Cut a glue Spider-Man paper to panels: 2 sides, bar top, and top panel.
+  + Almost done:Cut separation on the top for easy viewing access.
   + Install, wire, and test the front panel.
   ------------
   + Test new serial module using the tablet. Then install it in the box.
-  + Mount, connect and test a 1602 LCD.
-  + Wire up the MP3 player. Use a separate power supply by testing with multiple USB hubs.
-  + And 120AC and stearo amp. On/off using a Mega controlled relay switch.
+  + Mount, connect, and test a 1602 LCD.
+  + Wire up the MP3 player. Use a separate power supply. Test using multiple USB hubs.
+  + Later, add the stearo amp. Use the Mega to control an On/off relay switch for the amp's 120AC adapter.
 
   ---------------------------------------------
   ---------------------------------------------
@@ -3329,7 +3329,7 @@ void printRegisters() {
 #ifdef INCLUDE_SDCARD
 
 // Handle the case if the card is not inserted. Once inserted, the module will be re-initialized.
-boolean sdcardInitiated; false;
+boolean sdcardInitiated = false;
 void initSdcard() {
   if (SD.begin(csPin)) {
     Serial.println(F("+ SD card initialized."));
@@ -3609,7 +3609,8 @@ void checkExamineButton() {
         break;
       case CLOCK_RUN:
 #ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Clock, Examine, set clock value."));
+        Serial.print(F("+ Clock, Examine, set clock values, "));
+        Serial.println(F("one at a time: year, month, day, hour, minutes, seconds."));
 #endif
         // Serial.print("+ Key OK");
         if (setClockValue) {
@@ -3693,7 +3694,7 @@ void checkExamineNextButton() {
         break;
       case CLOCK_RUN:
 #ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Clock, Examine Next."));
+        Serial.println(F("+ Clock, Examine Next clock value: year, month, day, hour, minutes, seconds."));
 #endif
         setClockValue--;
         if (setClockValue < 0) {
@@ -3733,7 +3734,7 @@ void checkDepositButton() {
         break;
       case CLOCK_RUN:
 #ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Clock, Deposit, increment."));
+        Serial.println(F("+ Clock, Deposit, increment the clock value being set(Y,M,D,H,M, or S)."));
 #endif
         setValue++;
         if (setValue > theSetMax) {
@@ -3775,7 +3776,7 @@ void checkDepositNextButton() {
         break;
       case CLOCK_RUN:
 #ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Clock, Deposit Next, decrement."));
+        Serial.println(F("+ Clock, Deposit Next: decrement the clock value being set(Y,M,D,H,M, or S)."));
 #endif
         setValue--;
         if (setValue < theSetMin) {

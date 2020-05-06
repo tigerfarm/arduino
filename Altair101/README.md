@@ -8,6 +8,26 @@ The 8800 was built around the Intel 8080 CPU chip. The 8080's opcodes are the sa
 This emulator implements more than enough of the 8080/8085 microprocessor machine instructions (opcodes),
 to run the classic program, Kill the Bit.
 
+
+---------------------------------------------
+### User Guide
+````
+AUX 1 up,   Toggle clock state on/off.
+AUX 1 down, Toggle MP3 player state on/off.
+AUX 2 up,   Write/upload to the SD card. Requires confirmation.
+AUX 2 down, Read/download from the SD card
+````
+
+Clock
+````
+Flip AUX 1 up, toggle clock state on/off.
+
+Examine: Put the clock into Set Clock state: display set values on the 1602 LCD.
+Examine Next: Move through the clock values: year, month, day, hour, minutes, seconds.
+Deposit: increment the clock value being set(Y,M,D,H,M, or S).
+Deposit Next: decrement the clock value being set(Y,M,D,H,M, or S).
+````
+
 ---------------------------------------------
 ### Current/Next Tasks
   
