@@ -163,7 +163,7 @@ void setup() {
   Serial.println("+++ Setup.");
 
   // ------------------------------
-  pinMode(LED_PIN, OUTPUT);           // Onboard LED light
+  pinMode(LED_PIN, OUTPUT);               // Onboard LED light
   pinMode(LED_TOGGLE_PIN1, OUTPUT);
   pinMode(LED_TOGGLE_PIN2, OUTPUT);
   Serial.println("+ LED output pins initialized.");
@@ -176,7 +176,7 @@ void setup() {
   Serial.println("+ Input pins initialized.");
 
   // ------------------------------
-  Serial.println("+++ Go to loop and check for switch, switched.");
+  Serial.println("+++ Go to loop and check if the switches are switched.");
 }
 
 // -----------------------------------------------------------------------------

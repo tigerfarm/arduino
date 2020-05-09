@@ -34,7 +34,7 @@
   I can show my steampunk tablet to the world.
   + Time to generate videos.
 
----------------------------------------------
+-----------------------------------------------
   ---------------------------------------------
   Connect the Mega to the desktop front panel:
 
