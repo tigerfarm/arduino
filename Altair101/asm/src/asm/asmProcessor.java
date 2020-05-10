@@ -755,6 +755,8 @@ public class asmProcessor {
             case "hlt":
             case "nop":
             case "ret":
+            case "rlc":
+            case "rrc":
                 sOpcodeBinary = getOpcodeBinary(opcode);
                 programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary);
                 programTop++;
@@ -812,7 +814,6 @@ public class asmProcessor {
             case "pchl":
             case "xchg":
             case "daa":
-            case "rlc":
             case "ral":
             case "rar":
             case "cma":
