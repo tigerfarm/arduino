@@ -52,7 +52,7 @@ public class asmUpload {
         boolean IsFound = false;
         String theSystemPortName = "";
         for (SerialPort serial : serials) {
-            if (theSerialPortName.startsWith(serial.getPortDescription())) {
+            if (theSerialPortName.startsWith(serial.getSystemPortName().toLowerCase())) {
                 // System.out.println("++ Found: " + theSerialPortName);
                 IsFound = true;
                 theSystemPortName = serial.getSystemPortName();

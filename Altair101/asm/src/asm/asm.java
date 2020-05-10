@@ -204,6 +204,11 @@ public class asm {
                             System.out.println("+ -------------------------------------");
                             theOpcodes.opcodeInfoList();
                             break;
+                        case "ports":
+                            System.out.println("+ -------------------------------------");
+                            System.out.println("+ Serial port name set to: " + getSerialPortName());
+                            listSerialPorts();
+                            break;
                         default:
                             System.out.println("- Invalid list option." + cmdP1);
                             break;
