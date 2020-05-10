@@ -4088,7 +4088,7 @@ void displayTheTime(byte theMinute, byte theHour) {
   // Data byte LED lights: theBinaryMinute.
   // Address word LED lights: theBinaryHour2 & theBinaryHour1.
   unsigned int hourWord = theBinaryHour2 * 256 + theBinaryHour1;
-  lightsStatusAddressData(statusByte, hourWord, theBinaryMinute);
+  lightsStatusAddressData(0, hourWord, theBinaryMinute);
 }
 
 // -----------------------------------------------------------------------
