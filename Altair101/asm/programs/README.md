@@ -17,7 +17,22 @@ https://groups.google.com/forum/#!forum/altair-duino
 
 ### Opcode Test Programs
 
-Test each opcode using various parameter types to study how to use the opcodes in future programs.
+Demonstration programs.
+````
+Program                 Filename#  Opcodes tested, and test details.
+-------                 ---------  --------------------------
+                        00000000   NOPs
+opOutLcdOffOn.asm       00000001   LCD backlight on, or backlight off.
+                        00000010   Jump program
+pKillTheBit.asm         00000011   Famous demo game program. Address 7 is the speed,
+                                        00 000 101 : default.
+                                        00 010 000 : Faster.
+programList.asm         00000100   List programs on the LCD.
+opAddDemo.asm           00000101   ADD : Add content of address 1 and 3, and store the answer in address 64.
+                        00001000   Jump program that turns on all data byte lights.
+````
+
+Test each opcode using various parameter types to study how to use the opcodes.
 Document the details to show what options work.
 
 The programs are ordered, where opcodes are tested and then used in later programs.
@@ -81,12 +96,8 @@ opAdi.asm               ADI : Add immediate number to register A. Tested with de
                         Numbers can be easily changed using the Examine and Deposit.
                         Sum can viewed using Examine.
 opAdd.asm               ADD : Add register data: B,C,D,E,H,L, and M(H:L); to register A.
-opAdd.asm               ADD : Add register data: B,C,D,E,H,L, and M(H:L); to register A.
 
 opOutLcd.asm            OUT 1 : Output characters to LCD screen, and output screen options: backlight on/off and clear screen.
-opOutLcdOffOn.asm       LCD backlight on, or backlight off.
-
-pKillTheBit.asm
 
 -------------------------------
 Untested programs

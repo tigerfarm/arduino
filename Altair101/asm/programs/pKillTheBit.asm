@@ -11,11 +11,14 @@
                         ;
                         ; ---------
                         ; Bit speed: Higher value = faster.
-            LXI B,500h  ; Load a(lb:hb) into register B:C. 
+                        ; Change address 7 to change the speed. Default is 5: 00 000 101.
+            LXI B,500h  ; Load a(lb:hb) into register B:C.
+                        ;                            Register B : C
+                        ;                            Address  7 : 6
                         ;  My default: 0005 = B:C  = 00 000 101 : 00 000 000
-                        ;     Default: 0014 = B:C  = 00 010 000
-                        ;     Slow:    0020 = B:C  = 00 010 000
-                        ;     Nice:    0040 = B:C  = 00 100 000 Similar to the video speed. They use: 016h, I use
+                        ;     Faster:  0014 = B:C  = 00 001 000
+                        ;     Nice:    0020 = B:C  = 00 010 000
+                        ; Quite fast:  0040 = B:C  = 00 100 000 Similar to the video speed. They use: 016h.
                         ;     Fast:    0100 = B:C  = 01 000 000
                         ; Too fast:    0100 = B:C  = 01 001 000
                         ;
@@ -38,3 +41,31 @@
             JMP Begin   ; Jump to address label.
                         ; ------------------------------------------------
             end
+
++ Print Program Bytes and description.
+++ Address:byte      databyte :hex:oct > description
+++       0:00000000: 00100001 : 21:041 > opcode: lxi h,0
+++       1:00000001: 00000000 : 00:000 > lb: 0
+++       2:00000010: 00000000 : 00:000 > hb: 0
+++       3:00000011: 00010110 : 16:026 > opcode: mvi d,080h
+++       4:00000100: 10000000 : 80:200 > immediate: 080h : 128
+++       5:00000101: 00000001 : 01:001 > opcode: lxi b,500h
+++       6:00000110: 00000000 : 00:000 > lb: 0
+++       7:00000111: 00000101 : 05:005 > hb: 5
+++       8:00001000: 00011010 : 1A:032 > opcode: ldax d
+++       9:00001001: 00011010 : 1A:032 > opcode: ldax d
+++      10:00001010: 00011010 : 1A:032 > opcode: ldax d
+++      11:00001011: 00011010 : 1A:032 > opcode: ldax d
+++      12:00001100: 00001001 : 09:011 > opcode: dad b
+++      13:00001101: 11010010 : D2:322 > opcode: jnc Begin
+++      14:00001110: 00001000 : 08:010 > lb: 8
+++      15:00001111: 00000000 : 00:000 > hb: 0
+++      16:00010000: 11011011 : DB:333 > opcode: in 0ffh
+++      17:00010001: 11111111 : FF:377 > immediate: 0ffh : 255
+++      18:00010010: 10101010 : AA:252 > opcode: xra d
+++      19:00010011: 00001111 : 0F:017 > opcode: rrc
+++      20:00010100: 01010111 : 57:127 > opcode: mov d,a
+++      21:00010101: 11000011 : C3:303 > opcode: jmp Begin
+++      22:00010110: 00001000 : 08:010 > lb: 8
+++      23:00010111: 00000000 : 00:000 > hb: 0
++ End of list.

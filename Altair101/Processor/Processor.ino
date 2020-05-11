@@ -3984,6 +3984,7 @@ void clockPulseMinute() {
   printLcdClockValue(thePrintColMin, printRowClockPulse, theCounterMinutes);
 }
 void clockPulseSecond() {
+  /* Don't blink every second.
   if (HLDA_ON) {
     digitalWrite(HLDA_PIN, LOW);
     HLDA_ON = false;
@@ -3991,6 +3992,7 @@ void clockPulseSecond() {
     digitalWrite(HLDA_PIN, HIGH);
     HLDA_ON = true;
   }
+  */
   // Serial.print("+ theCounterSeconds = ");
   // Serial.println(theCounterSeconds);
   printLcdClockValue(thePrintColSec, printRowClockPulse, theCounterSeconds);  // Column, Row
@@ -4084,11 +4086,13 @@ void displayTheTime(byte theMinute, byte theHour) {
       break;
   }
   // ----------------------------------------------
+  // Front panel clock time display, stacy
+  //
   // Need enter: theBinaryMinute, theBinaryHour1, theBinaryHour2, into the following:
   // Data byte LED lights: theBinaryMinute.
   // Address word LED lights: theBinaryHour2 & theBinaryHour1.
   unsigned int hourWord = theBinaryHour2 * 256 + theBinaryHour1;
-  lightsStatusAddressData(0, hourWord, theBinaryMinute);
+  lightsStatusAddressData(OUT_ON, hourWord, theBinaryMinute);
 }
 
 // -----------------------------------------------------------------------
