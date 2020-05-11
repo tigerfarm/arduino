@@ -227,7 +227,7 @@ ana :10100SSS:ANA S    10 100 SSS  1  Not implemented, AND register with A (with
 stax:00RP0010:STAX RP  00 RP0 010  1  Not implemented, Store indirect through BC or DE.
 
 adc :10001SSS:ADC S    10 001 SSS  1  Not implemented, S+A+CY->A: Add register S, to A, plus the carry bit (with ZSPCA).
-adcm:10001111:|A+A+CY->A: Not implemented.
+adca:10001111:|A+A+CY->A: Not implemented.
 adcb:10001000:|B+A+CY->A: Not implemented.
 adcc:10001001:|C+A+CY->A: Not implemented.
 adcd:10001010:|D+A+CY->A: Not implemented.

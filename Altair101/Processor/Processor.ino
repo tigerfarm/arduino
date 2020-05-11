@@ -4791,11 +4791,13 @@ void loop() {
     case PROGRAM_RUN:
       processData();
       // Program control: STOP or RESET.
+      /*
       if (irrecv.decode(&results)) {
         // Infrared can be used for testing without a front panel.
         // Future: use the keypress value(1-8) as input into the running program via IN opcode.
         infraredRunning();
       }
+      */
       if (pcfControlinterrupted) {
         checkRunningButtons();
         pcfControlinterrupted = false; // Reset for next interrupt.
@@ -4804,10 +4806,12 @@ void loop() {
     // ----------------------------
     case PROGRAM_WAIT:
       // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
+      /*
       if (irrecv.decode(&results)) {
         // Infrared can be used for testing without a front panel.
         infraredControl();
       }
+      */
       if (pcfControlinterrupted) {
         checkControlButtons();
         pcfControlinterrupted = false; // Reset for next interrupt.

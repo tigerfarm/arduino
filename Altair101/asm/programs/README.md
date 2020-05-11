@@ -81,6 +81,7 @@ opAdi.asm               ADI : Add immediate number to register A. Tested with de
                         Numbers can be easily changed using the Examine and Deposit.
                         Sum can viewed using Examine.
 opAdd.asm               ADD : Add register data: B,C,D,E,H,L, and M(H:L); to register A.
+opAdd.asm               ADD : Add register data: B,C,D,E,H,L, and M(H:L); to register A.
 
 opOutLcd.asm            OUT 1 : Output characters to LCD screen, and output screen options: backlight on/off and clear screen.
 opOutLcdOffOn.asm       LCD backlight on, or backlight off.
