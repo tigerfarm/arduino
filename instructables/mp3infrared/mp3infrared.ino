@@ -137,10 +137,10 @@
     TX for sending state information.
     TX: output connects to RX on Mega/Nano/Uno.
   Connections for Nano or Uno:
-    RX(2) to resister to serial software pin 11(TX).
+    RX(2) to resister (1K-5K) to serial software pin 11(TX).
     TX(3) to serial software pin 10(RX).
   Connections for Mega:
-    RX(2) to resister to Serial1 pin 18(TX).
+    RX(2) to resister (1K-5K) to Serial1 pin 18(TX).
     TX(3) to Serial1 pin 19(RX).
 
   2. Power options.
@@ -189,7 +189,7 @@ IRrecv irrecv(IR_PIN);
 decode_results results;
 
 // -----------------------------------------------------------------------
-// DFPlayer Mini
+// DFPlayer Mini MP3 play
 
 #include "Arduino.h"
 #include "DFRobotDFPlayerMini.h"
@@ -197,8 +197,9 @@ DFRobotDFPlayerMini mp3player;
 
 // ------------------------------------
 // The following is not needed for Mega because it has it's own hardware RX and TX pins.
-// For communicating a Nano or Uno with the DFPlayer
-#include "SoftwareSerial.h"
+//
+// For communicating a Nano or Uno with the DFPlayer, use SoftwareSerial:
+// #include "SoftwareSerial.h"
 // DFPlayer pins 3(TX) and 2(RX), connected to Arduino pins: 10(RX) and 11(TX).
 // SoftwareSerial playerSerial(10, 11); // Software serial, playerSerial(RX, TX)
 // ------------------------------------
