@@ -200,7 +200,7 @@ DFRobotDFPlayerMini mp3player;
 // For communicating a Nano or Uno with the DFPlayer
 #include "SoftwareSerial.h"
 // DFPlayer pins 3(TX) and 2(RX), connected to Arduino pins: 10(RX) and 11(TX).
-SoftwareSerial playerSerial(10, 11); // Software serial, playerSerial(RX, TX)
+// SoftwareSerial playerSerial(10, 11); // Software serial, playerSerial(RX, TX)
 // ------------------------------------
 
 int currentSingle = 1;      // First song played when player starts up. Then incremented when next is played.
@@ -510,12 +510,12 @@ void setup() {
   //    use pins 18 and 19, which has the label: Serial1.
   // Pin 18(TX) to resister to pin 2(RX).
   // Pin 19(RX) to pin 3(TX).
-  // Serial1.begin(9600);
-  // if (!mp3player.begin(Serial1)) {
+  Serial1.begin(9600);
+  if (!mp3player.begin(Serial1)) {
   // --------
   // For communicating from a Nano or Uno with the DFPlayer, use a software serial port.
-  playerSerial.begin(9600);
-  if (!mp3player.begin(playerSerial)) {
+  // playerSerial.begin(9600);
+  // if (!mp3player.begin(playerSerial)) {
     // --------
     // Use softwareSerial to communicate with mp3.
     Serial.println(F("Unable to begin:"));

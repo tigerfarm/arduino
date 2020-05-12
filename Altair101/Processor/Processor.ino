@@ -4065,8 +4065,8 @@ void displayTheTime(byte theMinute, byte theHour) {
       theBinaryHour2 = 0;
       break;
     case 8:
-      theBinaryHour1 = B00000001;
-      theBinaryHour2 = 0;
+      theBinaryHour1 = 0;
+      theBinaryHour2 = B00000001;
       break;
     case 9:
       theBinaryHour1 = 0;
@@ -4092,7 +4092,10 @@ void displayTheTime(byte theMinute, byte theHour) {
   // Data byte LED lights: theBinaryMinute.
   // Address word LED lights: theBinaryHour2 & theBinaryHour1.
   unsigned int hourWord = theBinaryHour2 * 256 + theBinaryHour1;
-  lightsStatusAddressData(OUT_ON, hourWord, theBinaryMinute);
+  //
+  // lightsStatusAddressData(OUT_ON, hourWord, theBinaryMinute);
+  // This option is easier to read on the desktop module:
+  lightsStatusAddressData(theMinuteTens, hourWord, theMinuteOnes);
 }
 
 // -----------------------------------------------------------------------
