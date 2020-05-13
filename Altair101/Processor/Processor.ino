@@ -167,9 +167,10 @@ decode_results results;
 DFRobotDFPlayerMini mp3player;
 
 uint8_t currentSingle = 1;      // First song played when player starts up. Then incremented when next is played.
-int currentDirectory = 1;   // File directory name on the SD card. Example 1 is directory name: /01.
+uint8_t currentDirectory = 1;   // File directory name on the SD card. Example 1 is directory name: /01.
 boolean playPause = false;  // For toggling pause.
 boolean loopSingle = false; // For toggling single song.
+uint8_t playerStatus = 0;
 
 // -----------------------------------------------------------------------------
 #include <PCF8574.h>
@@ -3636,7 +3637,7 @@ void checkExamineButton() {
         Serial.println(F("+ Player, Examine: play previous song."));
 #endif
         mp3player.previous();
-        delay(100);
+        delay(200);
         currentSingle = mp3player.readCurrentFileNumber();
         lightsStatusAddressData(0, currentSingle, 0);
 #ifdef SWITCH_MESSAGES
@@ -3694,7 +3695,7 @@ void checkExamineNextButton() {
         break;
       case PLAYER_RUN:
         mp3player.next();
-        delay(100);
+        delay(200);
         currentSingle = mp3player.readCurrentFileNumber();
         lightsStatusAddressData(0, currentSingle, 0);
 #ifdef SWITCH_MESSAGES
@@ -3893,13 +3894,35 @@ void checkControlButtons() {
     }
   } else if (switchStep) {
     switchStep = false;
-    // Switch logic.
+    //
+    // Switch logic, based on programState.
+    //
+    switch (programState) {
+      case PLAYER_RUN:
+        // -----------------------------------
+        // Loop a single song: on/off
+        if (loopSingle) {
+          loopSingle = false;
+          playerStatus = playerStatus && M1_OFF;
+        } else {
+          loopSingle = true;
+          playerStatus = playerStatus || M1_ON;
+        }
+        lightsStatusAddressData(playerStatus, currentSingle, 0);
 #ifdef SWITCH_MESSAGES
-    Serial.println("+ Control, Step.");
+        Serial.print(F("+ Player, Single Step: Loop a single song: on/off."));
+        Serial.print(currentSingle);
+        Serial.print(" : ");
+        Serial.println(mp3player.readCurrentFileNumber());
 #endif
-    // Switch logic...
-    statusByte = statusByte & HLTA_OFF;
-    processData();
+        break;
+      default:
+#ifdef SWITCH_MESSAGES
+        Serial.println("+ Control, Step.");
+#endif
+        statusByte = statusByte & HLTA_OFF;
+        processData();
+    }
   }
   // -------------------
   checkExamineButton();
@@ -4188,6 +4211,9 @@ void playerRun() {
   //             1234567890123456
   lcdPrintln(0, "MP3 Player mode,");
   lcdPrintln(1, "Not implemented.");
+  //
+  lightsStatusAddressData(0, currentSingle, 0);
+  //
   while (programState == PLAYER_RUN) {
     checkRunningButtons();    // STOP: pause playing.
     checkControlButtons();    // RUN:  start playing.
@@ -4255,6 +4281,8 @@ void printDFPlayerMessage(uint8_t type, int value) {
       Serial.print(type);
       Serial.print(F(", value:"));
       Serial.print(value);
+      currentSingle = value;
+      lightsStatusAddressData(0, currentSingle, 0);
       break;
   }
 }
@@ -4276,7 +4304,7 @@ void playMp3() {
         delay(300);
         mp3player.next();
       }
-      delay(100);
+      delay(300);
       currentSingle = mp3player.readCurrentFileNumber();
       lightsStatusAddressData(0, currentSingle, 0);
 #ifdef SWITCH_MESSAGES
