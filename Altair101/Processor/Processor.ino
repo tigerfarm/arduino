@@ -18,6 +18,26 @@
   + How to assemble, upload, and run an assembler program: Altari101/asm/README.md.
   + How to use the clock. Clock currently requires an LCD to set the time.
   ++ I should add inc/dec hours and minutes using toggles. This would work for my other clock.
+  ----------------------------------------
+  MP3 Player,
+  -----------
+  + Aux1 Down Toolge MP3 player controls
+  + Address displays the song number that is playing.
+  + Status    OUT : MP3 player control.
+  + Status    M1  : Loop single song is on.
+  -----------
+  + Stop      Pause play
+  + RUn       Play song
+  + Single up Loop single song
+  + Single dn Stop loop single song
+  + Examine   Play previous song
+  + Examine N Play next song
+  + Deposit   Play previous folder
+  + Deposit N Play next folder
+  + Reset     Play first song
+  + Protect   Increase volume
+  + Unprotect Decrease volume
+  -----------
 
   Desktop Box:
   ------------
