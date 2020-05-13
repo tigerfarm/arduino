@@ -3633,9 +3633,6 @@ void checkExamineButton() {
         }
         break;
       case PLAYER_RUN:
-#ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Player, Examine: play previous song."));
-#endif
         mp3player.previous();
         delay(300);
         currentSingle = mp3player.readCurrentFileNumber();
@@ -3745,6 +3742,16 @@ void checkDepositButton() {
         }
         printLcdClockValue(theSetCol, theSetRow, setValue);
         break;
+      case PLAYER_RUN:
+        if (currentDirectory > 1) {
+          currentDirectory --;
+        }
+        mp3player.loopFolder(currentDirectory);
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ Player, Deposit: play previous folder: "));
+        Serial.println(currentDirectory);
+#endif
+        break;
     }
   }
 }
@@ -3786,6 +3793,15 @@ void checkDepositNextButton() {
           setValue = theSetMax;
         }
         printLcdClockValue(theSetCol, theSetRow, setValue);
+        break;
+      case PLAYER_RUN:
+        currentDirectory ++;
+        mp3player.loopFolder(currentDirectory);
+        // Note, if no directory, get the error message: DFPlayerError:Cannot Find File
+#ifdef SWITCH_MESSAGES
+        Serial.println(F("+ Player, Deposit Next: play next folder."));
+        Serial.println(currentDirectory);
+#endif
         break;
     }
   }
@@ -3899,21 +3915,31 @@ void checkControlButtons() {
     //
     switch (programState) {
       case PLAYER_RUN:
-        // -----------------------------------
-        // Loop a single song: on/off
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ Player, Single Step, "));
+#endif
         if (loopSingle) {
+#ifdef SWITCH_MESSAGES
+          Serial.print(F("Toggle loop a single song: off, song# "));
+#endif
           loopSingle = false;
           playerStatus = playerStatus & M1_OFF;
+          mp3player.disableLoop();
+          // delay(300);
+          // mp3player.start();
+          // mp3player.play(currentSingle);
         } else {
+#ifdef SWITCH_MESSAGES
+          Serial.print(F("Toggle loop a single song: on, song# "));
+#endif
           loopSingle = true;
           playerStatus = playerStatus | M1_ON;
+          mp3player.loop(currentSingle);
+          // mp3player.start();
         }
         lightsStatusAddressData(playerStatus, currentSingle, 0);
 #ifdef SWITCH_MESSAGES
-        Serial.print(F("+ Player, Single Step: Loop a single song: on/off."));
-        Serial.print(currentSingle);
-        Serial.print(" : ");
-        Serial.println(mp3player.readCurrentFileNumber());
+        Serial.println(currentSingle);
 #endif
         break;
       default:
@@ -4048,14 +4074,15 @@ void clockPulseSecond() {
 void displayTheTime(byte theMinute, byte theHour) {
   byte theMinuteOnes = 0;
   byte theMinuteTens = 0;
-  byte theBinaryMinute = 0;
+  // byte theBinaryMinute = 0;  // not used anymore.
   byte theBinaryHour1 = 0;
   byte theBinaryHour2 = 0;
 
   // ----------------------------------------------
   // Convert the minute into binary for display.
   if (theMinute < 10) {
-    theBinaryMinute = theMinute;
+    // theBinaryMinute = theMinute;
+    theMinuteOnes = theMinute;
   } else {
     // There are 3 bits for the tens: 0 ... 5 (00, 10, 20, 30, 40, or 50).
     // There are 4 bits for the ones: 0 ... 9.
@@ -4068,7 +4095,7 @@ void displayTheTime(byte theMinute, byte theHour) {
     // theMinute = 10, theBinaryMinute =  00100000
     theMinuteTens = theMinute / 10;
     theMinuteOnes = theMinute - theMinuteTens * 10;
-    theBinaryMinute = 32 * theMinuteTens + theMinuteOnes;
+    // theBinaryMinute = 32 * theMinuteTens + theMinuteOnes;
   }
 
   // ----------------------------------------------
@@ -4248,7 +4275,7 @@ void printDFPlayerMessage(uint8_t type, int value) {
       Serial.println(F(" Play Finished!"));
       break;
     case DFPlayerError:
-      Serial.print(F("DFPlayerError:"));
+      Serial.print(F("DFPlayerError: "));
       switch (value) {
         case Busy:
           Serial.println(F("Card not found"));
@@ -4257,7 +4284,14 @@ void printDFPlayerMessage(uint8_t type, int value) {
           Serial.println(F("Sleeping"));
           break;
         case FileIndexOut:
-          Serial.println(F("File Index Out of Bound"));
+          if (loopSingle) {
+            // For some reason, turning on single looping (mp3player.loop(currentSingle);)
+            //    on the last song causes this error.
+            //    This is ignore the error and get the song player.
+            mp3player.start();
+          } else {
+            Serial.println(F("File Index Out of Bound"));
+          }
           break;
         case FileMismatch:
           Serial.println(F("Cannot Find File"));
@@ -4277,12 +4311,18 @@ void printDFPlayerMessage(uint8_t type, int value) {
       }
       break;
     default:
-      Serial.println(F("Unknown DFPlayer message type: "));
-      Serial.print(type);
-      Serial.print(F(", value:"));
-      Serial.print(value);
-      currentSingle = value;
-      lightsStatusAddressData(playerStatus, currentSingle, 0);
+      if (currentSingle == 65535) {
+        // Assume auto next. This can be an error because looping from the last song, to the first song had happened.
+        currentSingle = value;  // The next song to be played.
+        lightsStatusAddressData(playerStatus, currentSingle, 0);
+        Serial.print(F("Play next song: "));
+        Serial.println(currentSingle);
+      } else {
+        Serial.print(F("Unknown DFPlayer message type: "));
+        Serial.print(type);
+        Serial.print(F(", value:"));
+        Serial.println(value);
+      }
       break;
   }
 }
@@ -4293,23 +4333,27 @@ void playMp3() {
     // ------------------------------
     if (theType == DFPlayerPlayFinished) {
 #ifdef SWITCH_MESSAGES
-      Serial.print(F("+ Play Finished, Current FileNumber: "));
+      Serial.print(F("+ Play Finished, "));
 #endif
       if (loopSingle) {
-        Serial.println("Loop/play the same MP3.");
+#ifdef SWITCH_MESSAGES
+        Serial.println(F("Loop/play the same MP3."));
+#endif
         mp3player.start();
-        // Serial.println("+ mp3player.read() " + mp3player.read());
       } else {
-        Serial.println("Play next MP3.");
         delay(300);
         mp3player.next();
-      }
-      delay(300);
-      currentSingle = mp3player.readCurrentFileNumber();
-      lightsStatusAddressData(playerStatus, currentSingle, 0);
+        delay(300);
+        currentSingle = mp3player.readCurrentFileNumber();
+        if (currentSingle != 65535) {
 #ifdef SWITCH_MESSAGES
-      Serial.println(currentSingle);
+          lightsStatusAddressData(playerStatus, currentSingle, 0);
+          // End of song, time to loop to first song.
+          Serial.print(F("Play next MP3: "));
+          Serial.println(currentSingle);
 #endif
+        }
+      }
       // ------------------------------
     } else if (theType == DFPlayerCardInserted ) {
       Serial.println(F("+ SD mini card inserted. Start playing"));
