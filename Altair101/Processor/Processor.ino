@@ -166,7 +166,7 @@ decode_results results;
 #include "DFRobotDFPlayerMini.h"
 DFRobotDFPlayerMini mp3player;
 
-int currentSingle = 1;      // First song played when player starts up. Then incremented when next is played.
+uint8_t currentSingle = 1;      // First song played when player starts up. Then incremented when next is played.
 int currentDirectory = 1;   // File directory name on the SD card. Example 1 is directory name: /01.
 boolean playPause = false;  // For toggling pause.
 boolean loopSingle = false; // For toggling single song.
@@ -3636,6 +3636,15 @@ void checkExamineButton() {
         Serial.println(F("+ Player, Examine: play previous song."));
 #endif
         mp3player.previous();
+        delay(100);
+        currentSingle = mp3player.readCurrentFileNumber();
+        lightsStatusAddressData(0, currentSingle, 0);
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ Player, Examine: play previous song: "));
+        Serial.print(currentSingle);
+        Serial.print(" : ");
+        Serial.println(mp3player.readCurrentFileNumber());
+#endif
         break;
     }
   }
@@ -3684,10 +3693,16 @@ void checkExamineNextButton() {
         setClockMenuItems();
         break;
       case PLAYER_RUN:
-#ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Player, Examine Next: play next song."));
-#endif
         mp3player.next();
+        delay(100);
+        currentSingle = mp3player.readCurrentFileNumber();
+        lightsStatusAddressData(0, currentSingle, 0);
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ Player, Examine Next: play next song: "));
+        Serial.print(currentSingle);
+        Serial.print(" : ");
+        Serial.println(mp3player.readCurrentFileNumber());
+#endif
         break;
     }
   }
@@ -4178,8 +4193,105 @@ void playerRun() {
     checkControlButtons();    // RUN:  start playing.
     checkPlayerSwitch();      // Toggle player mode.
     delay(100);
+    playMp3();
   }
   restoreLcdScreenData();
+}
+
+// -----------------------------------------------------------------------
+// DFPlayer configuration and error messages.
+
+void printDFPlayerMessage(uint8_t type, int value);
+void printDFPlayerMessage(uint8_t type, int value) {
+  switch (type) {
+    case TimeOut:
+      Serial.println(F("Time Out!"));
+      break;
+    case DFPlayerCardInserted:
+      Serial.println(F("Card Inserted!"));
+      break;
+    case DFPlayerCardRemoved:
+      Serial.println(F("Card Removed!"));
+      break;
+    case DFPlayerCardOnline:
+      Serial.println(F("Card Online!"));
+      break;
+    case DFPlayerPlayFinished:
+      Serial.print(F("Number:"));
+      Serial.print(value);
+      Serial.println(F(" Play Finished!"));
+      break;
+    case DFPlayerError:
+      Serial.print(F("DFPlayerError:"));
+      switch (value) {
+        case Busy:
+          Serial.println(F("Card not found"));
+          break;
+        case Sleeping:
+          Serial.println(F("Sleeping"));
+          break;
+        case FileIndexOut:
+          Serial.println(F("File Index Out of Bound"));
+          break;
+        case FileMismatch:
+          Serial.println(F("Cannot Find File"));
+          Serial.print("+ Assume the directory number was incremented too high, play previous directory: ");
+          if (currentDirectory > 1) {
+            currentDirectory --;
+          } else {
+            currentDirectory = 1;
+          }
+          Serial.println(currentDirectory);
+          mp3player.loopFolder(currentDirectory);
+          break;
+        default:
+          Serial.println(F("Unknown DFPlayer error message value:"));
+          Serial.print(value);
+          break;
+      }
+      break;
+    default:
+      Serial.println(F("Unknown DFPlayer message type: "));
+      Serial.print(type);
+      Serial.print(F(", value:"));
+      Serial.print(value);
+      break;
+  }
+}
+
+void playMp3() {
+  if (mp3player.available()) {
+    int theType = mp3player.readType();
+    // ------------------------------
+    if (theType == DFPlayerPlayFinished) {
+#ifdef SWITCH_MESSAGES
+      Serial.print(F("+ Play Finished, Current FileNumber: "));
+#endif
+      if (loopSingle) {
+        Serial.println("Loop/play the same MP3.");
+        mp3player.start();
+        // Serial.println("+ mp3player.read() " + mp3player.read());
+      } else {
+        Serial.println("Play next MP3.");
+        delay(300);
+        mp3player.next();
+      }
+      delay(100);
+      currentSingle = mp3player.readCurrentFileNumber();
+      lightsStatusAddressData(0, currentSingle, 0);
+#ifdef SWITCH_MESSAGES
+      Serial.println(currentSingle);
+#endif
+      // ------------------------------
+    } else if (theType == DFPlayerCardInserted ) {
+      Serial.println(F("+ SD mini card inserted. Start playing"));
+      mp3player.start();
+    } else {
+      // Print the detail message from DFPlayer to handle different errors and states,
+      //   such as memory card not inserted.
+      printDFPlayerMessage(theType, mp3player.read());
+    }
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -4708,7 +4820,7 @@ void setup() {
   //
   mp3player.setTimeOut(500);   // Set serial communications time out
   delay(300);
-  mp3player.volume(12);        // Set speaker volume from 0 to 30. Doesn't effect DAC output.
+  mp3player.volume(20);        // Set speaker volume from 0 to 30. Doesn't effect DAC output.
   //
   // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
   mp3player.outputDevice(DFPLAYER_DEVICE_SD);
