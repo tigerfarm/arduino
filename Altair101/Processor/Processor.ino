@@ -166,7 +166,7 @@ decode_results results;
 #include "DFRobotDFPlayerMini.h"
 DFRobotDFPlayerMini mp3player;
 
-uint8_t currentSingle = 1;      // First song played when player starts up. Then incremented when next is played.
+uint16_t currentSingle = 1;      // First song played when player starts up. Then incremented when next is played.
 uint8_t currentDirectory = 1;   // File directory name on the SD card. Example 1 is directory name: /01.
 boolean playPause = false;  // For toggling pause.
 boolean loopSingle = false; // For toggling single song.
@@ -3637,9 +3637,9 @@ void checkExamineButton() {
         Serial.println(F("+ Player, Examine: play previous song."));
 #endif
         mp3player.previous();
-        delay(200);
+        delay(300);
         currentSingle = mp3player.readCurrentFileNumber();
-        lightsStatusAddressData(0, currentSingle, 0);
+        lightsStatusAddressData(playerStatus, currentSingle, 0);
 #ifdef SWITCH_MESSAGES
         Serial.print(F("+ Player, Examine: play previous song: "));
         Serial.print(currentSingle);
@@ -3695,9 +3695,9 @@ void checkExamineNextButton() {
         break;
       case PLAYER_RUN:
         mp3player.next();
-        delay(200);
+        delay(300);
         currentSingle = mp3player.readCurrentFileNumber();
-        lightsStatusAddressData(0, currentSingle, 0);
+        lightsStatusAddressData(playerStatus, currentSingle, 0);
 #ifdef SWITCH_MESSAGES
         Serial.print(F("+ Player, Examine Next: play next song: "));
         Serial.print(currentSingle);
@@ -4212,7 +4212,7 @@ void playerRun() {
   lcdPrintln(0, "MP3 Player mode,");
   lcdPrintln(1, "Not implemented.");
   //
-  lightsStatusAddressData(0, currentSingle, 0);
+  lightsStatusAddressData(playerStatus, currentSingle, 0);
   //
   while (programState == PLAYER_RUN) {
     checkRunningButtons();    // STOP: pause playing.
@@ -4282,7 +4282,7 @@ void printDFPlayerMessage(uint8_t type, int value) {
       Serial.print(F(", value:"));
       Serial.print(value);
       currentSingle = value;
-      lightsStatusAddressData(0, currentSingle, 0);
+      lightsStatusAddressData(playerStatus, currentSingle, 0);
       break;
   }
 }
@@ -4306,7 +4306,7 @@ void playMp3() {
       }
       delay(300);
       currentSingle = mp3player.readCurrentFileNumber();
-      lightsStatusAddressData(0, currentSingle, 0);
+      lightsStatusAddressData(playerStatus, currentSingle, 0);
 #ifdef SWITCH_MESSAGES
       Serial.println(currentSingle);
 #endif
