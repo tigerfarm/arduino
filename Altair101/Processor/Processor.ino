@@ -171,6 +171,7 @@ uint8_t currentDirectory = 1;   // File directory name on the SD card. Example 1
 boolean playPause = false;  // For toggling pause.
 boolean loopSingle = false; // For toggling single song.
 uint8_t playerStatus = 0;
+uint8_t playerVolume = 0;
 
 // -----------------------------------------------------------------------------
 #include <PCF8574.h>
@@ -3526,6 +3527,10 @@ boolean switchExamineNext = false;
 boolean switchDeposit = false;;
 boolean switchDepositNext = false;;
 boolean switchReset = false;
+boolean switchProtect = false;
+boolean switchUnProtect = false;
+boolean switchClr = false;
+boolean switchStepDown = false;
 
 // -------------------------
 void controlResetLogic() {
@@ -3696,7 +3701,7 @@ void checkExamineNextButton() {
         currentSingle = mp3player.readCurrentFileNumber();
         lightsStatusAddressData(playerStatus, currentSingle, 0);
 #ifdef SWITCH_MESSAGES
-        Serial.print(F("+ Player, Examine Next: play next song: "));
+        Serial.print(F("+ Player, Examine Next: play next song# "));
         Serial.print(currentSingle);
         Serial.print(" : ");
         Serial.println(mp3player.readCurrentFileNumber());
@@ -3747,8 +3752,11 @@ void checkDepositButton() {
           currentDirectory --;
         }
         mp3player.loopFolder(currentDirectory);
+        delay(300);
+        currentSingle = mp3player.readCurrentFileNumber();
+        lightsStatusAddressData(playerStatus, currentSingle, 0);
 #ifdef SWITCH_MESSAGES
-        Serial.print(F("+ Player, Deposit: play previous folder: "));
+        Serial.print(F("+ Player, Deposit: play previous folder# "));
         Serial.println(currentDirectory);
 #endif
         break;
@@ -3798,8 +3806,11 @@ void checkDepositNextButton() {
         currentDirectory ++;
         mp3player.loopFolder(currentDirectory);
         // Note, if no directory, get the error message: DFPlayerError:Cannot Find File
+        delay(300);
+        currentSingle = mp3player.readCurrentFileNumber();
+        lightsStatusAddressData(playerStatus, currentSingle, 0);
 #ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Player, Deposit Next: play next folder."));
+        Serial.print(F("+ Player, Deposit Next: play next folder# "));
         Serial.println(currentDirectory);
 #endif
         break;
@@ -3845,11 +3856,25 @@ void checkRunningButtons() {
     }
   } else if (switchReset) {
     switchReset = false;
-    // Switch logic.
+    //
+    // Switch logic, based on programState.
+    //
+    switch (programState) {
+      // -------------------
+      case PLAYER_RUN:
 #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Running, Reset."));
+        Serial.println(F("+ Player, RESET: play first song."));
 #endif
-    controlResetLogic();
+        currentSingle = 1;
+        mp3player.play(currentSingle);
+        lightsStatusAddressData(playerStatus, currentSingle, 0);
+        break;
+      default:
+#ifdef SWITCH_MESSAGES
+        Serial.println(F("+ Running, Reset."));
+#endif
+        controlResetLogic();
+    }
   }
   // -------------------
 }
@@ -3955,6 +3980,89 @@ void checkControlButtons() {
   checkExamineNextButton();
   checkDepositButton();
   checkDepositNextButton();
+  // -------------------
+}
+
+// --------------------------------------------------------
+// Front Panel Control Switches, when a program is running.
+// Switches: STOP and RESET.
+void checkAuxButtons() {
+  // -------------------
+  if (pcfAux.readButton(pinProtect) == 0) {
+    if (!switchProtect) {
+      switchProtect = true;
+    }
+  } else if (switchProtect) {
+    switchProtect = false;
+    //
+    // Switch logic, based on programState.
+    //
+    switch (programState) {
+      // -------------------
+      case PLAYER_RUN:
+        playerVolume = mp3player.readVolume();
+        if (playerVolume < 30) {
+          mp3player.volumeUp();
+          playerVolume++;
+        }
+        delay(300);
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ Player, increase volume to "));
+        Serial.println(playerVolume);
+#endif
+        break;
+    }
+  }
+  // -------------------
+  if (pcfAux.readButton(pinUnProtect) == 0) {
+    if (!switchUnProtect) {
+      switchUnProtect = true;
+    }
+  } else if (switchUnProtect) {
+    switchUnProtect = false;
+    //
+    // Switch logic, based on programState.
+    //
+    switch (programState) {
+      // -------------------
+      case PLAYER_RUN:
+        playerVolume = mp3player.readVolume();
+        if (playerVolume > 1) {
+          mp3player.volumeDown();
+          playerVolume--;
+        }
+        delay(300);
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ Player, decrease volume to "));
+        Serial.println(playerVolume);
+#endif
+        break;
+    }
+  }
+  // -------------------
+  if (pcfAux.readButton(pinStepDown) == 0) {
+    if (!switchStepDown) {
+      switchStepDown = true;
+    }
+  } else if (switchStepDown) {
+    switchStepDown = false;
+    //
+    // Switch logic, based on programState.
+    //
+    switch (programState) {
+      // -------------------
+      case PLAYER_RUN:
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ Toggle loop a single song: off, song# "));
+        Serial.println(currentSingle);
+#endif
+        loopSingle = false;
+        mp3player.disableLoop();
+        playerStatus = playerStatus & M1_OFF;
+        lightsStatusAddressData(playerStatus, currentSingle, 0);
+        break;
+    }
+  }
   // -------------------
 }
 
@@ -4239,15 +4347,18 @@ void playerRun() {
   lcdPrintln(0, "MP3 Player mode,");
   lcdPrintln(1, "Not implemented.");
   //
+  playerStatus = playerStatus | OUT_ON;
   lightsStatusAddressData(playerStatus, currentSingle, 0);
   //
   while (programState == PLAYER_RUN) {
     checkRunningButtons();    // STOP: pause playing.
     checkControlButtons();    // RUN:  start playing.
+    checkAuxButtons();        // Player volume increase and decrease.
     checkPlayerSwitch();      // Toggle player mode.
     delay(100);
     playMp3();
   }
+  playerStatus = playerStatus & OUT_OFF;
   restoreLcdScreenData();
 }
 
@@ -4892,7 +5003,7 @@ void setup() {
   //
   mp3player.setTimeOut(500);   // Set serial communications time out
   delay(300);
-  mp3player.volume(20);        // Set speaker volume from 0 to 30. Doesn't effect DAC output.
+  mp3player.volume(16);        // Set speaker volume from 0 to 30. Doesn't effect DAC output.
   //
   // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
   mp3player.outputDevice(DFPLAYER_DEVICE_SD);
@@ -4906,6 +5017,7 @@ void setup() {
   delay(300); // need a delay after the previous mp3player function call, before the next call.
   mp3player.pause();
   playPause = true;
+  // mp3player.enableLoopAll();  // This seems to be on by default. This option keeps the music playing.
   // delay(1000);
   // mp3player.start();
   Serial.println(F("+ DFPlayer is initialized."));
