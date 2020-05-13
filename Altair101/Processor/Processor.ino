@@ -3903,10 +3903,10 @@ void checkControlButtons() {
         // Loop a single song: on/off
         if (loopSingle) {
           loopSingle = false;
-          playerStatus = playerStatus && M1_OFF;
+          playerStatus = playerStatus & M1_OFF;
         } else {
           loopSingle = true;
-          playerStatus = playerStatus || M1_ON;
+          playerStatus = playerStatus | M1_ON;
         }
         lightsStatusAddressData(playerStatus, currentSingle, 0);
 #ifdef SWITCH_MESSAGES
