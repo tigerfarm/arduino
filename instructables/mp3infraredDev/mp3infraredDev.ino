@@ -137,10 +137,10 @@
     TX for sending state information.
     TX: output connects to RX on Mega/Nano/Uno.
   Connections for Nano or Uno:
-    RX(2) to resister to serial software pin 11(TX).
+    RX(2) to resister (1K-5K) to serial software pin 11(TX).
     TX(3) to serial software pin 10(RX).
   Connections for Mega:
-    RX(2) to resister to Serial1 pin 18(TX).
+    RX(2) to resister (1K-5K) to Serial1 pin 18(TX).
     TX(3) to Serial1 pin 19(RX).
 
   2. Power options.
@@ -189,7 +189,7 @@ IRrecv irrecv(IR_PIN);
 decode_results results;
 
 // -----------------------------------------------------------------------
-// DFPlayer Mini
+// DFPlayer Mini MP3 play
 
 #include "Arduino.h"
 #include "DFRobotDFPlayerMini.h"
@@ -197,10 +197,11 @@ DFRobotDFPlayerMini mp3player;
 
 // ------------------------------------
 // The following is not needed for Mega because it has it's own hardware RX and TX pins.
-// For communicating a Nano or Uno with the DFPlayer
-#include "SoftwareSerial.h"
+//
+// For communicating a Nano or Uno with the DFPlayer, use SoftwareSerial:
+// #include "SoftwareSerial.h"
 // DFPlayer pins 3(TX) and 2(RX), connected to Arduino pins: 10(RX) and 11(TX).
-SoftwareSerial playerSerial(10, 11); // Software serial, playerSerial(RX, TX)
+// SoftwareSerial playerSerial(10, 11); // Software serial, playerSerial(RX, TX)
 // ------------------------------------
 
 int currentSingle = 1;      // First song played when player starts up. Then incremented when next is played.
@@ -510,12 +511,12 @@ void setup() {
   //    use pins 18 and 19, which has the label: Serial1.
   // Pin 18(TX) to resister to pin 2(RX).
   // Pin 19(RX) to pin 3(TX).
-  // Serial1.begin(9600);
-  // if (!mp3player.begin(Serial1)) {
+  Serial1.begin(9600);
+  if (!mp3player.begin(Serial1)) {
   // --------
   // For communicating from a Nano or Uno with the DFPlayer, use a software serial port.
-  playerSerial.begin(9600);
-  if (!mp3player.begin(playerSerial)) {
+  // playerSerial.begin(9600);
+  // if (!mp3player.begin(playerSerial)) {
     // --------
     // Use softwareSerial to communicate with mp3.
     Serial.println(F("Unable to begin:"));
@@ -563,7 +564,7 @@ void loop() {
     playerInfraredSwitch();
     irrecv.resume();
   }
-  playMp3();
+  // playMp3(); Use hard continuance.
 
 }
 // -----------------------------------------------------------------------------

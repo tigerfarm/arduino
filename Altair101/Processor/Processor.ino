@@ -4369,6 +4369,31 @@ void clockRun() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+void playSong() {
+  if (loopSingle) {
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("Loop/play the same MP3."));
+#endif
+    mp3player.start();
+  } else {
+    delay(300);
+    mp3player.next();
+    delay(300);
+    playerCounter = mp3player.readCurrentFileNumber();
+    if (playerCounter != 65535) {
+#ifdef SWITCH_MESSAGES
+      lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+      // End of song, time to loop to first song.
+      Serial.print(F("Play next MP3: "));
+      Serial.println(playerCounter);
+#endif
+    }
+    delay(300);
+    playerCounter = mp3player.readCurrentFileNumber();
+    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+  }
+}
+
 void playerRun() {
   Serial.println(F("+ playerRun()"));
   saveClearLcdScreenData();
@@ -4478,7 +4503,8 @@ void playMp3() {
 #ifdef SWITCH_MESSAGES
         Serial.println(F("Loop/play the same MP3."));
 #endif
-        mp3player.start();
+        // mp3player.start();
+        mp3player.loop(playerCounter);
       } else {
         delay(300);
         mp3player.next();
@@ -5053,6 +5079,7 @@ void setup() {
   // mp3player.enableLoopAll();  // This seems to be on by default. This option keeps the music playing.
   // delay(1000);
   // mp3player.start();
+  // myDFPlayer.playFolder(6, 4); // play a specific mp3 from SD: in folder 6, file 0004.mp3.
   Serial.println(F("+ DFPlayer is initialized."));
 
   // ----------------------------------------------------
