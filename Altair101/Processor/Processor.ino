@@ -210,6 +210,10 @@ uint8_t playerDirectory = 1;   // File directory name on the SD card. Example 1 
 boolean playPause = false;  // For toggling pause.
 boolean loopSingle = false; // For toggling single song.
 
+void playerLights() {
+  lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+}
+
 // -----------------------------------------------------------------------------
 #include <PCF8574.h>
 #include <Wire.h>
@@ -834,7 +838,7 @@ byte highOrder = 0;          // hb: High order byte of 16 bit value.
 // ------------------------------------------------
 // Data LED lights displayed using shift registers.
 
-void processDataLights() {
+void programLights() {
   // Use the current program values: statusByte, curProgramCounter, and dataByte.
   digitalWrite(latchPinLed, LOW);
 #ifdef DESKTOP_MODULE
@@ -916,7 +920,7 @@ void processData() {
 #ifdef LOG_MESSAGES
   Serial.print("+ ");
 #endif
-  processDataLights();  // Uses: statusByte, curProgramCounter, dataByte.
+  programLights();  // Uses: statusByte, curProgramCounter, dataByte.
 #ifdef LOG_MESSAGES
   Serial.println("");
 #endif
@@ -3375,9 +3379,17 @@ void ledFlashSuccess() {
       flashByte = flashByte << 1;
       delay(delayTime);
     }
+    // Reset the panel lights to program values.
+    switch (programState) {
+      case CLOCK_RUN:
+      case PLAYER_RUN:
+        playerLights();
+        break;
+      default:
+        programLights();
+        break;
+    }
   }
-  // Reset the panel lights to program values.
-  processDataLights();
 }
 void ledFlashError() {
   lcdPrintln(1, "- Error");
@@ -3389,7 +3401,15 @@ void ledFlashError() {
     delay(delayTime);
   }
   // Reset the panel lights to program values.
-  processDataLights();
+  switch (programState) {
+    case CLOCK_RUN:
+    case PLAYER_RUN:
+      playerLights();
+      break;
+    default:
+      programLights();
+      break;
+  }
 }
 
 // -------------------------------------
@@ -3615,7 +3635,7 @@ void checkExamineButton() {
         programCounter = toggleAddress();
         curProgramCounter = programCounter;     // Synch for control switches.
         dataByte = memoryData[programCounter];
-        processDataLights();
+        programLights();
 #ifdef SWITCH_MESSAGES
         Serial.print(F("+ Control, Examine: "));
         printByte(dataByte);
@@ -3711,7 +3731,7 @@ void checkExamineNextButton() {
         curProgramCounter++;
         programCounter++;
         dataByte = memoryData[programCounter];
-        processDataLights();
+        programLights();
 #ifdef SWITCH_MESSAGES
         Serial.print(F("+ Control, Examine Next, programCounter: "));
         printByte(programCounter);
@@ -3778,7 +3798,7 @@ void checkDepositButton() {
         }
         dataByte = toggleDataByte();
         memoryData[programCounter] = dataByte;
-        processDataLights();
+        programLights();
         break;
       case CLOCK_RUN:
 #ifdef SWITCH_MESSAGES
@@ -3833,7 +3853,7 @@ void checkDepositNextButton() {
         programCounter++;
         dataByte = toggleDataByte();
         memoryData[programCounter] = dataByte;
-        processDataLights();
+        programLights();
         break;
       case CLOCK_RUN:
 #ifdef SWITCH_MESSAGES
@@ -4109,6 +4129,46 @@ void checkAuxButtons() {
     }
   }
   // -------------------
+  if (pcfAux.readButton(pinClr) == 0) {
+    if (!switchClr) {
+      switchClr = true;
+    }
+  } else if (switchClr) {
+    switchClr = false;
+    //
+    // Switch logic, based on programState.
+    //
+    switch (programState) {
+      // -------------------
+      case PLAYER_RUN:
+        int addressToggles = toggleAddress();
+        int playerFileCounts = mp3player.readFileCounts();
+        if (addressToggles > 0 && addressToggles <= playerFileCounts) {
+          playerCounter = addressToggles;
+          if (loopSingle) {
+            mp3player.loop(playerCounter);
+            lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+          } else {
+            mp3player.play(playerCounter);
+            lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+          }
+#ifdef SWITCH_MESSAGES
+          Serial.print(F("+ CLR, player, play a specific song number."));
+          Serial.println(playerCounter);
+#endif
+        } else {
+          ledFlashError();
+#ifdef SWITCH_MESSAGES
+          Serial.print(F("+ CLR, player, toggle address out of player file counts range: "));
+          Serial.print(addressToggles);
+          Serial.print(F(", player file counts: "));
+          Serial.println(playerFileCounts);
+#endif
+        }
+        break;
+    }
+  }
+  // -------------------
 }
 
 // -----------------------------------------------------------------------------
@@ -4207,8 +4267,9 @@ void clockPulseHour() {
     theHour = theCounterHours;
   }
   displayTheTime( theCounterMinutes, theCounterHours );
-  printLcdClockValue(thePrintColHour, printRowClockPulse, theHour);
   ledFlashSuccess();
+  displayTheTime( theCounterMinutes, theCounterHours );
+  printLcdClockValue(thePrintColHour, printRowClockPulse, theHour);
 }
 void clockPulseMinute() {
   Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
@@ -4547,7 +4608,7 @@ void checkClockSwitch() {
       programState = PROGRAM_WAIT;
       digitalWrite(HLDA_PIN, LOW);
       digitalWrite(WAIT_PIN, HIGH);
-      processDataLights();                // Restore the front panel lights.
+      programLights();                // Restore the front panel lights.
     } else {
       Serial.println(F("+ Clock mode."));
       programState = CLOCK_RUN;
@@ -4579,7 +4640,7 @@ void checkPlayerSwitch() {
       programState = PROGRAM_WAIT;
       digitalWrite(HLDA_PIN, LOW);
       digitalWrite(WAIT_PIN, HIGH);
-      processDataLights();                // Restore the front panel lights.
+      programLights();                // Restore the front panel lights.
     } else {
       Serial.println(F("+ MP3 player mode."));
       programState = PLAYER_RUN;
@@ -5071,7 +5132,7 @@ void DownloadProgram() {
     controlResetLogic();
   } else {
     // Reset to original panel light values.
-    processDataLights();
+    programLights();
   }
   digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
   if (readByteCount > 0) {
@@ -5198,7 +5259,7 @@ void setup() {
   pinMode(clockPinLed, OUTPUT);
   pinMode(dataPinLed, OUTPUT);
   delay(300);
-  processDataLights(); // Uses: statusByte, curProgramCounter, dataByte
+  programLights(); // Uses: statusByte, curProgramCounter, dataByte
   Serial.println(F("+ Front panel LED lights are initialized."));
 
   // ----------------------------------------------------
