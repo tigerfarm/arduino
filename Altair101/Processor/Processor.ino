@@ -19,38 +19,53 @@
   + How to use the clock. Clock currently requires an LCD to set the time.
   ++ I should add inc/dec hours and minutes using toggles. This would work for my other clock.
   ----------------------------------------
+
+  Clock, clockRun():
+  + Done: Aux1 Up Toolge clock controls, show time of day.
+  + Done: SINGLE STEP: show 1. month/day/day of week, 2. year, 3. Time of day: hour and minutes.
+  + Examine: move through options to set date and time. Invert on/off lights to indicate set mode.
+  + PROTECT/UNPROTECT: inc/dec set value.
+  + Deposit: to set/change the set value.
+  + RESET: Show time of day.
+
   MP3 Player,
   -----------
-  + Aux1 Down Toolge MP3 player controls
+  + Aux1 Down Toolge MP3 player controls, show song number, volume level, OUT status is on.
   + Address displays the song number that is playing.
   + Status    OUT : MP3 player control.
   + Status    M1  : Loop single song is on.
   -----------
-  + Stop      Pause play
-  + RUn       Play song
-  + Single up Loop single song
+  + Stop      Pause play            *** Change the status lights, OUT to off, HLTA to on. HLDA indicates player mode.
+  + RUn       Play song             *** Change the status lights, HLTA to off, OUT to on.
+  + Single up Loop single song      *** Need to maintain loop: mp3player.loop(playerCounter);
   + Single dn Stop loop single song
-  + Examine   Play previous song
-  + Examine N Play next song
+  + Examine   Play previous song    *** Need to maintain loop
+  + Examine N Play next song        *** Need to maintain loop
   + Deposit   Play previous folder  *** If toogle address!=0, play that song number.
-  + Deposit N Play next folder
-  + Reset     Play first song
+  + Deposit N Play next folder      *** Need to maintain loop. Need to fix the light display.
+  + Reset     Play first song       *** Need to maintain loop
   + Protect   Increase volume
   + Unprotect Decrease volume
+
+  103 & 104: old computer sounds
+  117 Transfer of data is complete.
   -----------
 
   Desktop Box:
   ------------
+  + Add RCA female plugs for L/R external output to an amp.
+  ------------
   + Done: Cut a glue Spider-Man paper to panels: 2 sides, bar top, and top panel.
   + Done: Cut separation on the top for easy internal access.
-  + Install, wire, and test the front panel.
+  + Done: Install, wire, and test the front panel.
+  + Done: Panel LED lights all display correctly.
+  + Done: Toggle functions all work for Altair 8800 emulation.
   ------------
-  + Test new serial module using the tablet. Then install it in the box.
+  + Done: Test new serial module using the tablet. Then install it in the box.
+  + Done: Wire up the MP3 player. Use a separate power supply. Test using multiple USB hubs.
   + Mount, connect, and test a 1602 LCD.
-  + Wire up the MP3 player. Use a separate power supply. Test using multiple USB hubs.
   + Later, add the stearo amp. Use the Mega to control an On/off relay switch for the amp's 120AC adapter.
 
-  Panel LED lights all display correctly. Toggle functions all work.
   I can show my steampunk tablet to the world.
   + Time to generate videos.
 
@@ -4193,6 +4208,7 @@ void clockPulseHour() {
   }
   displayTheTime( theCounterMinutes, theCounterHours );
   printLcdClockValue(thePrintColHour, printRowClockPulse, theHour);
+  ledFlashSuccess();
 }
 void clockPulseMinute() {
   Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
@@ -4342,78 +4358,7 @@ void restoreLcdScreenData() {
   lcd.cursor();
   lcd.setCursor(lcdColumn, lcdRow);
 }
-
-void clockRun() {
-  Serial.println(F("+ clockRun()"));
-  saveClearLcdScreenData();
-  lcd.noCursor();
-  syncCountWithClock();
-  displayTheTime( theCounterMinutes, theCounterHours );
-  while (programState == CLOCK_RUN) {
-    // Clock process to display the time.
-    processClockNow();
-    // Switches to exit this mode.
-    // checkRunningButtons();   // Test with only using the clock AUX switch.
-    checkClockSwitch();
-    // Check control buttons for setting the time.
-    checkExamineButton();
-    checkExamineNextButton();
-    checkDepositButton();
-    checkDepositNextButton();
-    //
-    delay(100);
-  }
-  restoreLcdScreenData();
-}
 #endif
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void playSong() {
-  if (loopSingle) {
-#ifdef SWITCH_MESSAGES
-    Serial.println(F("Loop/play the same MP3."));
-#endif
-    mp3player.start();
-  } else {
-    delay(300);
-    mp3player.next();
-    delay(300);
-    playerCounter = mp3player.readCurrentFileNumber();
-    if (playerCounter != 65535) {
-#ifdef SWITCH_MESSAGES
-      lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-      // End of song, time to loop to first song.
-      Serial.print(F("Play next MP3: "));
-      Serial.println(playerCounter);
-#endif
-    }
-    delay(300);
-    playerCounter = mp3player.readCurrentFileNumber();
-    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-  }
-}
-
-void playerRun() {
-  Serial.println(F("+ playerRun()"));
-  saveClearLcdScreenData();
-  lcd.noCursor();
-  //             1234567890123456
-  lcdPrintln(0, "MP3 Player mode,");
-  lcdPrintln(1, "Not implemented.");
-  //
-  lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-  //
-  while (programState == PLAYER_RUN) {
-    checkRunningButtons();    // STOP: pause playing.
-    checkControlButtons();    // RUN:  start playing.
-    checkAuxButtons();        // Player volume increase and decrease.
-    checkPlayerSwitch();      // Toggle player mode.
-    delay(100);
-    playMp3();
-  }
-  restoreLcdScreenData();
-}
 
 // -----------------------------------------------------------------------
 // DFPlayer configuration and error messages.
@@ -4534,6 +4479,45 @@ void playMp3() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Front Panel AUX Switches
+
+/*
+  int theCounterYear = 0;
+  int theCounterMonth = 0;
+  int theCounterDay = 0;
+  int theCounterHours = 0;
+  int theCounterMinutes = 0;
+  int theCounterSeconds = 0;
+*/
+int clockData = 0;
+void checkClockControls() {
+  if (pcfControl.readButton(pinStep) == 0) {
+    if (!switchStep) {
+      switchStep = true;
+    }
+  } else if (switchStep) {
+    switchStep = false;
+    // Switch logic.
+    Serial.print(F("+ STEP, clock, "));
+    if (clockData == 0) {
+      clockData = 1;
+      Serial.println(F("Show month and day."));
+      displayTheTime(theCounterDay, theCounterMonth);
+      // lightsStatusAddressData(0, convert12(theCounterMonth), theCounterDay);
+    } else if (clockData == 1) {
+      clockData = 2;
+      Serial.println(F("Show year."));
+      int theCentury = theCounterYear / 100;
+      int theYear = theCounterYear - theCentury * 100;
+      int theYearTens = theYear / 10;
+      int theYearOnes = theYear - theYearTens * 10;
+      lightsStatusAddressData(theYearTens, theCentury, theYearOnes);
+    } else if (clockData == 2) {
+      clockData = 0;
+      Serial.println(F("Show minutes and hours."));
+      displayTheTime(theCounterMinutes, theCounterHours);
+    }
+  }
+}
 
 #ifdef INCLUDE_AUX
 // Only do the action once, don't repeat if the switch is held down.
@@ -4729,6 +4713,78 @@ void checkDownloadSwitch() {
   }
 }
 #endif
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void playSong() {
+  if (loopSingle) {
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("Loop/play the same MP3."));
+#endif
+    mp3player.start();
+  } else {
+    delay(300);
+    mp3player.next();
+    delay(300);
+    playerCounter = mp3player.readCurrentFileNumber();
+    if (playerCounter != 65535) {
+#ifdef SWITCH_MESSAGES
+      lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+      // End of song, time to loop to first song.
+      Serial.print(F("Play next MP3: "));
+      Serial.println(playerCounter);
+#endif
+    }
+    delay(300);
+    playerCounter = mp3player.readCurrentFileNumber();
+    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+  }
+}
+
+void playerRun() {
+  Serial.println(F("+ playerRun()"));
+  saveClearLcdScreenData();
+  lcd.noCursor();
+  //             1234567890123456
+  lcdPrintln(0, "MP3 Player mode,");
+  lcdPrintln(1, "Not implemented.");
+  //
+  lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+  //
+  while (programState == PLAYER_RUN) {
+    checkRunningButtons();    // STOP: pause playing.
+    checkControlButtons();    // RUN:  start playing.
+    checkAuxButtons();        // Player volume increase and decrease.
+    checkPlayerSwitch();      // Toggle player mode.
+    delay(100);
+    playMp3();
+  }
+  restoreLcdScreenData();
+}
+
+void clockRun() {
+  Serial.println(F("+ clockRun()"));
+  saveClearLcdScreenData();
+  lcd.noCursor();
+  syncCountWithClock();
+  displayTheTime(theCounterMinutes, theCounterHours);
+  while (programState == CLOCK_RUN) {
+    // Clock process to display the time.
+    processClockNow();
+    // Switches to exit this mode.
+    // checkRunningButtons();   // Test with only using the clock AUX switch.
+    checkClockSwitch();
+    checkClockControls();
+    // Check control buttons for setting the time.
+    checkExamineButton();
+    checkExamineNextButton();
+    checkDepositButton();
+    checkDepositNextButton();
+    //
+    delay(100);
+  }
+  restoreLcdScreenData();
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------
@@ -5018,6 +5074,9 @@ void DownloadProgram() {
     processDataLights();
   }
   digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
+  if (readByteCount > 0) {
+    mp3player.play(117);        // Transfer of data is complete.
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -5074,12 +5133,13 @@ void setup() {
   // mp3player.play(playerCounter);
   //
   delay(300); // need a delay after the previous mp3player function call, before the next call.
-  mp3player.pause();
-  playPause = true;
+  // playPause = true;
   // mp3player.enableLoopAll();  // This seems to be on by default. This option keeps the music playing.
-  // delay(1000);
   // mp3player.start();
-  // myDFPlayer.playFolder(6, 4); // play a specific mp3 from SD: in folder 6, file 0004.mp3.
+  // mp3player.play(87);
+  mp3player.play(playerCounter);  // Play first song. Future, save current song to SD file, then start back to current song.
+  playPause = true;
+  mp3player.pause();
   Serial.println(F("+ DFPlayer is initialized."));
 
   // ----------------------------------------------------
