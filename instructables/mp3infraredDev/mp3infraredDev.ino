@@ -140,8 +140,8 @@
     RX(2) to resister (1K-5K) to serial software pin 11(TX).
     TX(3) to serial software pin 10(RX).
   Connections for Mega:
-    RX(2) to resister (1K-5K) to Serial1 pin 18(TX).
-    TX(3) to Serial1 pin 19(RX).
+    RX(2) to resister (1K-5K) to Mega Serial1 pin 18(TX).
+    TX(3) to Mega Serial1 pin 19(RX).
 
   2. Power options.
    Connect from the Arduino directly to the DFPlayer:

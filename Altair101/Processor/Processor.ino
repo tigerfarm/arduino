@@ -3,11 +3,12 @@
   Altair 101 Processor program
 
   This is an Altair 8800 emulator program that runs on an Arduino Mega microcontroller.
-  It emulates the basic Altair 8800 computer processes--from 1975.
+  It emulates the basic Altair 8800 computer processes from 1975.
   The Altair 8800 was built around the Intel 8080 CPU chip.
   The 8080's machine instructions(opcodes) are the same for the 8085.
   This program implements more than enough 8080 opcodes to run the classic program, Kill the Bit.
 
+  ---------------------------------------------
   ---------------------------------------------
   Current/Next Work
 
@@ -20,37 +21,41 @@
   ++ I should add inc/dec hours and minutes using toggles. This would work for my other clock.
   ----------------------------------------
 
-  Clock, clockRun():
-  + Done: Aux1 Up Toolge clock controls, show time of day.
-  + Done: SINGLE STEP: show 1. month/day/day of week, 2. year, 3. Time of day: hour and minutes.
-  + Examine: move through options to set date and time. Invert on/off lights to indicate set mode.
-  + PROTECT/UNPROTECT: inc/dec set value.
-  + Deposit: to set/change the set value.
-  + RESET: Show time of day.
-
-  MP3 Player,
+  Clock, clockRun(),
+  + AUX1 Up toolge clock controls, shows the time of day.
+  + Address displays the hour: A1 ... A12,      month,      or century
+  + Data    displays the minutes single digit,  day single, or year single
+  + Status  displays the minutes tens digit,    day tens,   or year tens
   -----------
-  + Aux1 Down Toolge MP3 player controls, show song number, volume level, OUT status is on.
+  + SINGLE STEP: 1) Show time of day: hour and minutes, 2) month and day, 3) year.
+  + To do: RESET: Show time of day.
+  + To do: Examine: move through options to set date and time. Invert on/off lights to indicate set mode.
+  + To do: PROTECT/UNPROTECT: inc/dec set value.
+  + To do: Deposit: to set/change the set value.
+
+  MP3 Player, playerRun(),
+  -----------
+  + AUX1 Down toolge MP3 player controls, show song number and volume level.
   + Address displays the song number that is playing.
-  + Status    OUT : MP3 player control.
-  + Status    M1  : Loop single song is on.
+  + Data    displays the volume.
+  + Status    M1   : Loop single song is on.
+  + Status    OUT  : MP3 player control.
+  + Status    HLTA : pause, light is on, else off.
   -----------
-  + Stop      Pause play            *** Change the status lights, OUT to off, HLTA to on. HLDA indicates player mode.
-  + RUn       Play song             *** Change the status lights, HLTA to off, OUT to on.
-  + Single up Loop single song      *** Need to maintain loop: mp3player.loop(playerCounter);
-  + Single dn Stop loop single song
-  + Examine   Play previous song    *** Need to maintain loop
-  + Examine N Play next song        *** Need to maintain loop
-  + Deposit   Play previous folder  *** If toogle address!=0, play that song number.
-  + Deposit N Play next folder      *** Need to maintain loop. Need to fix the light display.
-  + Reset     Play first song       *** Need to maintain loop
-  + Protect   Increase volume
-  + Unprotect Decrease volume
+  + STOP      Pause play            *** Change the status lights, HLTA to on.
+  + RUN       Play song             *** Change the status lights, HLTA to off, OUT to on.
+  + SINGLE up Loop single song
+  + SINGLE dn Stop loop single song
+  + EXAMINE   Play previous song    *** Need to maintain loop.
+  + EXAMINE N Play next song        *** Need to maintain loop.
+  + DEPOSIT   Play previous folder  *** Need to maintain loop. Play previous directory.
+  + DEPOSIT N Play next folder      *** Need to maintain loop. If directory not found, go to directory #1.
+  + RESET     Play first song       *** Need to maintain loop.
+  + CLR       Play toggle address value song
+  + PROTECT   Increase volume
+  + UNPROTECT Decrease volume
 
-  103 & 104: old computer sounds
-  117 Transfer of data is complete.
-  -----------
-
+  ---------------------------------------------
   Desktop Box:
   ------------
   + Add RCA female plugs for L/R external output to an amp.
@@ -69,7 +74,7 @@
   I can show my steampunk tablet to the world.
   + Time to generate videos.
 
-  -----------------------------------------------
+  ---------------------------------------------
   ---------------------------------------------
   Connect the Mega to the desktop front panel:
 
@@ -93,6 +98,11 @@
   + const int WAIT_PIN = A9;
   + const int HLDA_PIN = A10;
 
+  ---------------------------------------------
+  Connect the Mega to the MP3 player:
+  + Mega pin 18(RX) to player pin 3(TX)
+  + Mega pin 19(TX) to external resister to player pin 2(RX)
+  
   ---------------------------------------------
   ---------------------------------------------
   Other Work
@@ -144,7 +154,8 @@
     ----------------------------
     setup() : Computer initialization.
     loop()  : Based on state, clock cycling through memory, show the time, or other state processing.
-    ----------------------------
+
+  ---------------------------------------------
   ---------------------------------------------
   Altair 8800 Operator's Manual.pdf has a description of each opcode.
   Binary calculator:
