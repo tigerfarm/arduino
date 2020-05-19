@@ -34,7 +34,7 @@
   + To do: Deposit: to set/change the set value.
 
   MP3 Player, playerRun(),
-  pinStepDown is not working.
+  pinStepDown is not working. Check the physical switch.
   -----------
   + AUX1 Down toolge MP3 player controls, show song number and volume level.
   + Address displays the song number that is playing.
@@ -43,8 +43,8 @@
   + Status    OUT  : MP3 player control.
   + Status    HLTA : pause, light is on, else off.
   -----------
-  + STOP      Pause play            *** Change, HLTA to on.
-  + RUN       Play song             *** Change, HLTA to off. the following, HLTA to off.
+  + STOP      Pause play
+  + RUN       Play song
   + SINGLE up Loop single song
   + SINGLE dn Stop loop single song
   + EXAMINE   Play previous song    *** Set loop or no loop.
@@ -151,7 +151,6 @@
     ----------------------------
     Input: Front Panel toggle switch control and data entry events
     Input: Front Panel toggle switch AUX events for devices: clock and SD card module.
-    Input: Infrared switch events
     ----------------------------
     setup() : Computer initialization.
     loop()  : Based on state, clock cycling through memory, show the time, or other state processing.
@@ -183,7 +182,6 @@
 // -----------------------------------
 // #define LOG_MESSAGES 1         // Has large memory requirements.
 #define SWITCH_MESSAGES 1
-// #define INFRARED_MESSAGES 1    // For a simple setup: Mega + infrared, with serial messages.
 
 // -----------------------------------------------------------------------------
 // Program states
@@ -194,17 +192,6 @@
 #define PLAYER_RUN 3
 #define SERIAL_DOWNLOAD 4
 int programState = PROGRAM_WAIT;  // Intial, default.
-
-// -----------------------------------------------------------------------------
-// Infrared Receiver
-
-#include <IRremote.h>
-
-//          Mega pin
-int IR_PIN = A1;
-
-IRrecv irrecv(IR_PIN);
-decode_results results;
 
 // -----------------------------------------------------------------------
 // DFPlayer Mini MP3 play
@@ -218,6 +205,7 @@ uint16_t playerCounter = 1;      // First song played when player starts up. The
 uint8_t playerStatus = 0;
 uint8_t playerVolume = 0;
 //
+uint16_t playerFileCounts = 0;
 uint8_t playerDirectory = 1;   // File directory name on the SD card. Example 1 is directory name: /01.
 boolean playPause = false;  // For toggling pause.
 boolean loopSingle = false; // For toggling single song.
@@ -890,7 +878,7 @@ void processData() {
   // Update curProgramCounter to the address being processed.
   curProgramCounter = programCounter;
   //
-#ifdef LOG_MESSAGES || INFRARED_MESSAGES
+#ifdef LOG_MESSAGES
   Serial.print(F("Addr: "));
   sprintf(charBuffer, "%4d:", programCounter);
   Serial.print(charBuffer);
@@ -3070,11 +3058,6 @@ void processOpcodeData() {
       // -----------------------------------------
       // Special case of output to serial monitor.
       if (dataByte == 3) {
-#ifdef INFRARED_MESSAGES
-        Serial.print(F("Serial terminal output of the contents of register A :"));
-        Serial.print(regA);
-        Serial.print(":");
-#endif
 #ifdef LOG_MESSAGES
         Serial.print(F(", Serial terminal output of the contents of register A :"));
         Serial.print(regA);
@@ -3082,10 +3065,6 @@ void processOpcodeData() {
 #endif
         asciiChar = regA;
         Serial.print(asciiChar);
-#ifdef INFRARED_MESSAGES
-        Serial.print(":");
-        Serial.println("");
-#endif
         opcode = 0;
         return;
       }
@@ -3706,18 +3685,6 @@ void checkExamineButton() {
           lcdPrintln(theSetRow, "");
         }
         break;
-      case PLAYER_RUN:
-        mp3player.previous();
-        delay(300);
-        playerCounter = mp3player.readCurrentFileNumber();
-        lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-#ifdef SWITCH_MESSAGES
-        Serial.print(F("+ Player, Examine: play previous song: "));
-        Serial.print(playerCounter);
-        Serial.print(" : ");
-        Serial.println(mp3player.readCurrentFileNumber());
-#endif
-        break;
     }
   }
 }
@@ -3764,24 +3731,6 @@ void checkExamineNextButton() {
         }
         setClockMenuItems();
         break;
-      case PLAYER_RUN:
-        mp3player.next();
-        //
-        // Stacy, need to have a function for the following to handle playerCounter=65535.
-        delay(300);
-        playerCounter = mp3player.readCurrentFileNumber();
-        if (playerCounter < 6000) {
-          // This covers the case of, "play next song# 65535 : 2".
-          lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-        }
-        //
-#ifdef SWITCH_MESSAGES
-        Serial.print(F("+ Player, Examine Next: play next song# "));
-        Serial.print(playerCounter);
-        Serial.print(" : ");
-        Serial.println(mp3player.readCurrentFileNumber());
-#endif
-        break;
     }
   }
 }
@@ -3821,19 +3770,6 @@ void checkDepositButton() {
           setValue = theSetMin;
         }
         printLcdClockValue(theSetCol, theSetRow, setValue);
-        break;
-      case PLAYER_RUN:
-        if (playerDirectory > 1) {
-          playerDirectory --;
-        }
-        mp3player.loopFolder(playerDirectory);
-        delay(300);
-        playerCounter = mp3player.readCurrentFileNumber();
-        lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-#ifdef SWITCH_MESSAGES
-        Serial.print(F("+ Player, Deposit: play previous folder# "));
-        Serial.println(playerDirectory);
-#endif
         break;
     }
   }
@@ -3877,18 +3813,6 @@ void checkDepositNextButton() {
         }
         printLcdClockValue(theSetCol, theSetRow, setValue);
         break;
-      case PLAYER_RUN:
-        playerDirectory ++;
-        mp3player.loopFolder(playerDirectory);
-        // Note, if no directory, get the error message: DFPlayerError:Cannot Find File
-        delay(300);
-        playerCounter = mp3player.readCurrentFileNumber();
-        lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-#ifdef SWITCH_MESSAGES
-        Serial.print(F("+ Player, Deposit Next: play next folder# "));
-        Serial.println(playerDirectory);
-#endif
-        break;
     }
   }
 }
@@ -3905,23 +3829,11 @@ void checkRunningButtons() {
     }
   } else if (switchStop) {
     switchStop = false;
-    //
-    // Switch logic, based on programState.
-    //
-    switch (programState) {
-      // -------------------
-      case PLAYER_RUN:
+    // Switch logic
 #ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Player, STOP: start playing."));
+    Serial.println(F("+ Running, Stop."));
 #endif
-        mp3player.pause();
-        break;
-      default:
-#ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Running, Stop."));
-#endif
-        controlStopLogic();
-    }
+    controlStopLogic();
   }
   // -------------------
   // Read PCF8574 input for this switch.
@@ -3931,25 +3843,11 @@ void checkRunningButtons() {
     }
   } else if (switchReset) {
     switchReset = false;
-    //
-    // Switch logic, based on programState.
-    //
-    switch (programState) {
-      // -------------------
-      case PLAYER_RUN:
+    // Switch logic
 #ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Player, RESET: play first song."));
+    Serial.println(F("+ Running, Reset."));
 #endif
-        playerCounter = 1;
-        mp3player.play(playerCounter);
-        lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-        break;
-      default:
-#ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Running, Reset."));
-#endif
-        controlResetLogic();
-    }
+    controlResetLogic();
   }
   // -------------------
 }
@@ -4472,6 +4370,7 @@ void checkDownloadSwitch() {
 // --------------------------------------------------------
 // Check Front Panel Control Switches, when in Player mode.
 void checkPlayerControls() {
+  // -------------------
   if (pcfControl.readButton(pinStop) == 0) {
     if (!switchStop) {
       switchStop = true;
@@ -4483,6 +4382,8 @@ void checkPlayerControls() {
     Serial.println(F("+ Player, STOP: start playing."));
 #endif
     mp3player.pause();
+    playerStatus = playerStatus | HLTA_ON;
+    playerLights();
   }
   // -------------------
   if (pcfControl.readButton(pinRun) == 0) {
@@ -4496,6 +4397,8 @@ void checkPlayerControls() {
     Serial.println(F("+ Player, RUN: start playing."));
 #endif
     mp3player.start();
+    playerStatus = playerStatus & HLTA_OFF;
+    playerLights();
   }
   // -------------------
   // Read PCF8574 input for this switch.
@@ -4514,7 +4417,6 @@ void checkPlayerControls() {
       Serial.print(F("Toggle loop a single song: off, song# "));
 #endif
       loopSingle = false;
-      playerStatus = playerStatus & M1_OFF;
       mp3player.disableLoop();
       // delay(300);
       // mp3player.start();
@@ -4524,8 +4426,8 @@ void checkPlayerControls() {
       Serial.print(F("Toggle loop a single song: on, song# "));
 #endif
       loopSingle = true;
-      playerStatus = playerStatus | M1_ON;
       mp3player.loop(playerCounter);
+      playerStatus = playerStatus & HLTA_OFF;
       // mp3player.start();
     }
     lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
@@ -4547,6 +4449,7 @@ void checkPlayerControls() {
 #endif
     playerCounter = 1;
     mp3player.play(playerCounter);
+    playerStatus = playerStatus & HLTA_OFF;
     lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
   }
   // -------------------
@@ -4577,9 +4480,7 @@ void checkPlayerControls() {
     }
   } else if (switchUnProtect) {
     switchUnProtect = false;
-    //
-    // Switch logic, based on programState.
-    //
+    // Switch logic
     playerVolume = mp3player.readVolume();
     if (playerVolume > 1) {
       mp3player.volumeDown();
@@ -4599,8 +4500,7 @@ void checkPlayerControls() {
     }
   } else if (switchStepDown) {
     switchStepDown = false;
-    //
-    // Switch logic, based on programState.
+    // Switch logic
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Toggle loop a single song: off, song# "));
     Serial.println(playerCounter);
@@ -4617,12 +4517,10 @@ void checkPlayerControls() {
     }
   } else if (switchClr) {
     switchClr = false;
-    //
-    // Switch logic, based on programState.
-    //
+    // Switch logic
     int addressToggles = toggleAddress();
-    int playerFileCounts = mp3player.readFileCounts();
     if (addressToggles > 0 && addressToggles <= playerFileCounts) {
+      playerStatus = playerStatus & HLTA_OFF;
       playerCounter = addressToggles;
       if (loopSingle) {
         mp3player.loop(playerCounter);
@@ -4646,13 +4544,96 @@ void checkPlayerControls() {
     }
   }
   // -------------------
-  checkExamineButton();
-  checkExamineNextButton();
-  checkDepositButton();
-  checkDepositNextButton();
+  if (pcfControl.readButton(pinExamine) == 0) {
+    if (!switchExamine) {
+      switchExamine = true;
+    }
+  } else if (switchExamine) {
+    switchExamine = false;
+    // Switch logic
+    mp3player.previous();
+    delay(300);
+    playerCounter = mp3player.readCurrentFileNumber();
+    playerStatus = playerStatus & HLTA_OFF;
+    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, Examine: play previous song: "));
+    Serial.print(playerCounter);
+    Serial.print(" : ");
+    Serial.println(mp3player.readCurrentFileNumber());
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinExamineNext) == 0) {
+    if (!switchExamineNext) {
+      switchExamineNext = true;
+    }
+  } else if (switchExamineNext) {
+    switchExamineNext = false;
+    // Switch logic
+    playerStatus = playerStatus & HLTA_OFF;
+    mp3player.next();
+    //
+    // Stacy, need to have a function for the following to handle playerCounter=65535.
+    delay(300);
+    playerCounter = mp3player.readCurrentFileNumber();
+    if (playerCounter < 6000) {
+      // This covers the case of, "play next song# 65535 : 2".
+      lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+    }
+    //
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, Examine Next: play next song# "));
+    Serial.print(playerCounter);
+    Serial.print(" : ");
+    Serial.println(mp3player.readCurrentFileNumber());
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinDeposit) == 0) {
+    if (!switchDeposit) {
+      switchDeposit = true;
+    }
+  } else if (switchDeposit) {
+    switchDeposit = false;
+    // Switch logic
+    playerStatus = playerStatus & HLTA_OFF;
+    if (playerDirectory > 1) {
+      playerDirectory --;
+    }
+    mp3player.loopFolder(playerDirectory);
+    delay(300);
+    playerCounter = mp3player.readCurrentFileNumber();
+    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, Deposit: play previous folder# "));
+    Serial.println(playerDirectory);
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinDepositNext) == 0) {
+    if (!switchDepositNext) {
+      switchDepositNext = true;
+    }
+  } else if (switchDepositNext) {
+    switchDepositNext = false;
+    // Switch logic
+    playerStatus = playerStatus & HLTA_OFF;
+    playerDirectory ++;
+    mp3player.loopFolder(playerDirectory);
+    // Note, if no directory, get the error message: DFPlayerError:Cannot Find File
+    delay(300);
+    playerCounter = mp3player.readCurrentFileNumber();
+    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, Deposit Next: play next folder# "));
+    Serial.println(playerDirectory);
+#endif
+  }
   // -------------------
 }
 
+// -----------------------------------------------------------------------
 void checkPlayerSwitch() {
 #ifdef DESKTOP_MODULE
   if (pcfAux.readButton(pinAux1down) == 0) {
@@ -4686,7 +4667,6 @@ void checkPlayerSwitch() {
   }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------
 // DFPlayer configuration and error messages.
 
@@ -4848,7 +4828,7 @@ void playerRun() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void clockRun() {
   Serial.println(F("+ clockRun()"));
   saveClearLcdScreenData();
@@ -4874,7 +4854,7 @@ void clockRun() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Infrared options when a program is NOT running.
 
 void displayStatusAddressData() {
@@ -4890,220 +4870,6 @@ void displayStatusAddressData() {
   printData(dataByte);
   Serial.println("");
 #endif
-}
-
-void infraredControl() {
-  // Serial.print(F("+ infraredControl: "));
-  // Serial.println(results.value);
-  switch (results.value) {
-    case 0xFFFFFFFF:
-      // Ignore. This is from holding the key down.
-      break;
-    // -----------------------------------
-    case 0xFF10EF:
-    case 0xE0E0A659:
-      Serial.println(F("+ Key <"));
-      break;
-    case 16734885:
-    // case 0xFF5AA5:
-    case 0xE0E046B9:
-      Serial.println(F("+ Key > - next: SINGLE STEP toggle/button switch."));
-      statusByte = statusByte & HLTA_OFF;
-      processData();
-      break;
-    case 0xFF18E7:
-    case 0xE0E006F9:
-      // Serial.println(F("+ Key up"));
-      Serial.println(F("+ Key ^ - Run process."));
-      programState = PROGRAM_RUN;
-      digitalWrite(WAIT_PIN, LOW);
-      // statusByte = statusByte & WAIT_OFF;
-      statusByte = statusByte & HLTA_OFF;
-      break;
-    case 0xFF4AB5:
-    case 0xE0E08679:
-      Serial.println(F("+ Key down"));
-      break;
-    case 0xFF38C7:
-    case 0xE0E016E9:
-      // Serial.println(F("+ Key OK - Toggle RUN and STOP."));
-      Serial.println(F("+ Run process."));
-      programState = PROGRAM_RUN;
-      digitalWrite(WAIT_PIN, LOW);
-      // statusByte = statusByte & WAIT_OFF;
-      statusByte = statusByte & HLTA_OFF;
-      break;
-    // -----------------------------------
-    case 0xFF9867:
-    case 0xE0E08877:
-      Serial.print(F("+ Key 0:"));
-      Serial.println("");
-      break;
-    case 16753245:
-      // Serial.println(F("+ Key 1: "));
-      Serial.println("+ Examine Previous.");
-      programCounter--;
-      displayStatusAddressData();
-      break;
-    case 16736925:
-      // case 0xFF629D:
-      // Serial.println(F("+ Key 2: "));
-      Serial.println(F("+ Examine."));
-      displayStatusAddressData();
-      break;
-    case 0xFFE21D:
-      // Serial.println(F("+ Key 3: "));
-      Serial.println("+ Examine Next.");
-      programCounter++;
-      displayStatusAddressData();
-      break;
-    case 0xFF22DD:
-      Serial.print(F("+ Key 4: "));
-      Serial.println("");
-      break;
-    case 0xFF02FD:
-      Serial.print(F("+ Key 5: "));
-      Serial.println("");
-      break;
-    case 0xFFC23D:
-      Serial.print(F("+ Key 6: "));
-      Serial.println("");
-      break;
-    case 0xFFE01F:
-      Serial.print(F("+ Key 7: "));
-      Serial.println("");
-      break;
-    case 0xFFA857:
-      Serial.print(F("+ Key 8: "));
-      Serial.println("");
-      break;
-    case 0xFF906F:
-      Serial.print(F("+ Key 9: "));
-      Serial.println("");
-      break;
-    // -----------------------------------
-    case 0xFF6897:
-    case 0xE0E01AE5:
-      Serial.println(F("+ Key * (Return) - Reset"));
-      // Use as Reset when running.
-      controlResetLogic();
-      displayStatusAddressData();
-      break;
-    case 0xFFB04F:
-    case 0xE0E0B44B:
-      Serial.println(F("+ Key # (Exit)"));
-      break;
-    // -----------------------------------
-    default:
-      /*
-        Serial.print("+ Result value: ");
-        Serial.print(results.value);
-        Serial.print(" HEX:");
-        Serial.println(results.value, HEX);
-      */
-      break;
-      // -----------------------------------
-  } // end switch
-
-  irrecv.resume();
-
-}
-
-// -----------------------------------------------------------------------------
-// Infrared options while a program is running.
-
-void infraredRunning() {
-  // Serial.println(F("+ infraredSwitch"));
-  switch (results.value) {
-    case 0xFFFFFFFF:
-      // Ignore. This is from holding the key down.
-      break;
-    // -----------------------------------
-    case 0xFF10EF:
-    case 0xE0E0A659:
-      // Serial.println(F("+ Key < - previous"));
-      break;
-    case 0xFF5AA5:
-    case 0xE0E046B9:
-      // Serial.println(F("+ Key > - next."));
-      break;
-    case 0xFF18E7:
-    case 0xE0E006F9:
-      // Serial.println(F("+ Key up"));
-      break;
-    case 0xFF4AB5:
-    case 0xE0E08679:
-      // Serial.println(F("+ Key down"));
-      Serial.println(F("+ Stop process."));
-      programState = PROGRAM_WAIT;
-      digitalWrite(WAIT_PIN, HIGH);
-      // statusByte = statusByte | WAIT_ON;
-      statusByte = statusByte & HLTA_OFF;
-      displayStatusAddressData();
-      break;
-    case 0xFF38C7:
-    case 0xE0E016E9:
-      // Serial.println(F("+ Key OK - Toggle RUN and STOP."));
-      Serial.println(F("+ Stop process."));
-      programState = PROGRAM_WAIT;
-      digitalWrite(WAIT_PIN, HIGH);
-      // statusByte = statusByte | WAIT_ON;
-      statusByte = statusByte & HLTA_OFF;
-      displayStatusAddressData();
-      break;
-    // -----------------------------------
-    case 0xFF9867:
-    case 0xE0E08877:
-      // Serial.println(F("+ Key 0:"));
-      break;
-    case 0xFFA25D:
-      // Serial.println(F("+ Key 1: "));
-      break;
-    case 0xFF629D:
-      // Serial.println(F("+ Key 2: "));
-      break;
-    case 0xFFE21D:
-      // Serial.println(F("+ Key 3: "));
-      break;
-    case 0xFF22DD:
-      // Serial.println(F("+ Key 4: "));
-      break;
-    case 0xFF02FD:
-      // Serial.println(F("+ Key 5: "));
-      break;
-    case 0xFFC23D:
-      // Serial.println(F("+ Key 6: "));
-      break;
-    case 0xFFE01F:
-      // Serial.println(F("+ Key 7: "));
-      break;
-    case 0xFFA857:
-      // Serial.println(F("+ Key 8: "));
-      break;
-    case 0xFF906F:
-      // Serial.println(F("+ Key 9: "));
-      break;
-    // -----------------------------------
-    case 0xFF6897:
-    case 0xE0E01AE5:
-      // Serial.println(F("+ Key * (Return)"));
-      // Use as Reset when running.
-      controlResetLogic();
-      break;
-    case 0xFFB04F:
-    case 0xE0E0B44B:
-      // Serial.println(F("+ Key # (Exit)"));
-      break;
-    // -----------------------------------
-    default:
-      // Serial.print("+ Result value: ");
-      // Serial.println(results.value, HEX);
-      break;
-      // -----------------------------------
-  } // end switch
-
-  irrecv.resume();
-
 }
 
 // -----------------------------------------------------------------------------
@@ -5220,18 +4986,18 @@ void setup() {
   // mp3player.play(playerCounter);
   //
   delay(300); // need a delay after the previous mp3player function call, before the next call.
-  // playPause = true;
   // mp3player.enableLoopAll();  // This seems to be on by default. This option keeps the music playing.
   // mp3player.start();
+  // playPause = true;
+  // mp3player.play(playerCounter);  // Play first song. Future, save current song to SD file, then start back to current song.
   // mp3player.play(87);
-  mp3player.play(playerCounter);  // Play first song. Future, save current song to SD file, then start back to current song.
   playPause = true;
   mp3player.pause();
-  Serial.println(F("+ DFPlayer is initialized."));
-
-  // ----------------------------------------------------
-  irrecv.enableIRIn();
-  Serial.println(F("+ Infrared receiver ready for input."));
+  playerStatus = playerStatus | HLTA_ON;  // Paused.
+  delay(300);
+  playerFileCounts = mp3player.readFileCounts();
+  Serial.print(F("+ DFPlayer is initialized. Number of MP3 files = "));
+  Serial.println(playerFileCounts);
 
   // ----------------------------------------------------
   // Front panel toggle switches.
@@ -5344,13 +5110,6 @@ void loop() {
     case PROGRAM_RUN:
       processData();
       // Program control: STOP or RESET.
-      /*
-        if (irrecv.decode(&results)) {
-        // Infrared can be used for testing without a front panel.
-        // Future: use the keypress value(1-8) as input into the running program via IN opcode.
-        infraredRunning();
-        }
-      */
       if (pcfControlinterrupted) {
         checkRunningButtons();
         pcfControlinterrupted = false; // Reset for next interrupt.
@@ -5359,12 +5118,6 @@ void loop() {
     // ----------------------------
     case PROGRAM_WAIT:
       // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
-      /*
-        if (irrecv.decode(&results)) {
-        // Infrared can be used for testing without a front panel.
-        infraredControl();
-        }
-      */
       if (pcfControlinterrupted) {
         checkControlButtons();
         pcfControlinterrupted = false; // Reset for next interrupt.
