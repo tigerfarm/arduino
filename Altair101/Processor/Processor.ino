@@ -46,9 +46,9 @@
   + STOP      Pause play
   + RUN       Play song
   + SINGLE up Loop single song
-  + SINGLE dn Stop loop single song
-  + EXAMINE   Play previous song    *** Set loop or no loop.
-  + EXAMINE N Play next song        *** Set loop or no loop.
+  + SINGLE dn Stop loop single song                          Need to maintain playerCounter: ++ and --
+  + EXAMINE   Play previous song    *** Set loop or no loop. Consider using: mp3player.play(playerCounter);
+  + EXAMINE N Play next song        *** Set loop or no loop.            and: mp3player.loop(playerCounter);
   + DEPOSIT   Play previous folder  *** Set loop or no loop. Play previous directory.
   + DEPOSIT N Play next folder      *** Set loop or no loop. If directory not found, go to directory #1.
   + RESET     Play first song       *** Set loop or no loop.
@@ -4417,23 +4417,38 @@ void checkPlayerControls() {
       Serial.print(F("Toggle loop a single song: off, song# "));
 #endif
       loopSingle = false;
+      playerStatus = playerStatus & M1_OFF;
       mp3player.disableLoop();
-      // delay(300);
-      // mp3player.start();
-      // mp3player.play(playerCounter);
     } else {
 #ifdef SWITCH_MESSAGES
       Serial.print(F("Toggle loop a single song: on, song# "));
 #endif
       loopSingle = true;
       mp3player.loop(playerCounter);
+      playerStatus = playerStatus | M1_ON;
       playerStatus = playerStatus & HLTA_OFF;
-      // mp3player.start();
     }
     lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
 #ifdef SWITCH_MESSAGES
     Serial.println(playerCounter);
 #endif
+  }
+  // -------------------
+  if (pcfAux.readButton(pinStepDown) == 0) {
+    if (!switchStepDown) {
+      switchStepDown = true;
+    }
+  } else if (switchStepDown) {
+    switchStepDown = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Toggle loop a single song: off, song# "));
+    Serial.println(playerCounter);
+#endif
+    loopSingle = false;
+    mp3player.disableLoop();
+    playerStatus = playerStatus & M1_OFF;
+    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
   }
   // -------------------
   // Read PCF8574 input for this switch.
@@ -4492,23 +4507,6 @@ void checkPlayerControls() {
     Serial.print(F("+ Player, decrease volume to "));
     Serial.println(playerVolume);
 #endif
-  }
-  // -------------------
-  if (pcfAux.readButton(pinStepDown) == 0) {
-    if (!switchStepDown) {
-      switchStepDown = true;
-    }
-  } else if (switchStepDown) {
-    switchStepDown = false;
-    // Switch logic
-#ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Toggle loop a single song: off, song# "));
-    Serial.println(playerCounter);
-#endif
-    loopSingle = false;
-    mp3player.disableLoop();
-    playerStatus = playerStatus & M1_OFF;
-    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
   }
   // -------------------
   if (pcfAux.readButton(pinClr) == 0) {
