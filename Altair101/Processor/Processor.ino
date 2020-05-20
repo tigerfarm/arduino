@@ -35,6 +35,8 @@
 
   MP3 Player, playerRun(),
   pinStepDown is not working. Check the physical switch.
+  $ sudo diskutil eraseDisk FAT32 MUSIC MBRFormat /dev/disk2
+  $ dot_clean /Volumes/Music
   -----------
   + AUX1 Down toolge MP3 player controls, show song number and volume level.
   + Address displays the song number that is playing.
@@ -200,15 +202,16 @@ int programState = PROGRAM_WAIT;  // Intial, default.
 #include "DFRobotDFPlayerMini.h"
 DFRobotDFPlayerMini mp3player;
 
-// Values display in lights:
-uint16_t playerCounter = 1;      // First song played when player starts up. Then incremented when next is played.
+// Front panel display light values:
+uint16_t playerCounter = 1;       // First song played when player starts up. Then incremented when next is played.
 uint8_t playerStatus = 0;
 uint8_t playerVolume = 0;
 //
 uint16_t playerCounterTop = 0;
-uint8_t playerDirectory = 1;   // File directory name on the SD card. Example 1 is directory name: /01.
-boolean playPause = false;  // For toggling pause.
-boolean loopSingle = false; // For toggling single song.
+uint16_t playerDirectoryTop = 0;
+uint8_t playerDirectory = 1;      // File directory name on the SD card. Example 1 is directory name: /01.
+boolean playPause = false;        // For toggling pause.
+boolean loopSingle = false;       // For toggling single song.
 
 void playerLights() {
   lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
@@ -4608,6 +4611,9 @@ void checkPlayerControls() {
     playerStatus = playerStatus & HLTA_OFF;
     if (playerDirectory > 1) {
       playerDirectory --;
+    } else if (playerDirectoryTop > 0) {
+      // If playerDirectoryTop is set, then loop to the last directory.
+      playerDirectory = playerDirectoryTop;
     }
     mp3player.loopFolder(playerDirectory);
     delay(300);
@@ -4626,15 +4632,42 @@ void checkPlayerControls() {
   } else if (switchDepositNext) {
     switchDepositNext = false;
     // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, Deposit Next: "));
+#endif
     playerStatus = playerStatus & HLTA_OFF;
     playerDirectory ++;
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("playerCounter,pre="));
+    Serial.print(playerCounter);
+#endif
     mp3player.loopFolder(playerDirectory);
     // Note, if no directory, get the error message: DFPlayerError:Cannot Find File
     delay(300);
     playerCounter = mp3player.readCurrentFileNumber();
+#ifdef SWITCH_MESSAGES
+    Serial.print(F(",post="));
+    Serial.print(playerCounter);
+#endif
+    if (playerCounter > playerCounterTop) {
+      playerDirectory--;
+      playerDirectoryTop = playerDirectory;
+      playerDirectory = 1;
+      mp3player.loopFolder(playerDirectory);
+      // Note, if no directory, get the error message: DFPlayerError:Cannot Find File
+      delay(300);
+      // playerCounter = 1;
+      playerCounter = mp3player.readCurrentFileNumber();
+#ifdef SWITCH_MESSAGES
+      Serial.print(F(",playerDirectoryTop="));
+      Serial.print(playerDirectoryTop);
+      Serial.print(F(",playerCounter="));
+      Serial.print(playerCounter);
+#endif
+    }
     lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Player, Deposit Next: play next folder# "));
+    Serial.print(F(" play next folder# "));
     Serial.println(playerDirectory);
 #endif
   }
@@ -4677,35 +4710,6 @@ void checkPlayerSwitch() {
 
 // -----------------------------------------------------------------------
 // DFPlayer configuration and error messages.
-
-// Play track#, with retry.
-//    This may fix my issue where it skips to the next track until it finds a file that plays.
-//    From: https://reprage.com/post/dfplayer-mini-cheat-sheet
-void playTrack(uint8_t track) {
-  mp3player.stop();
-  delay(300);
-  mp3player.play(track);
-  delay(300);
-  int file = mp3player.readCurrentFileNumber();
-  int i = 0;
-  while (file != track) {
-    i++;
-    if (i == 3) {
-      mp3player.reset();
-      i = 0;
-    }
-    Serial.print("+ Track:");
-    Serial.print(track);
-    Serial.print(" File:");
-    Serial.println(file);
-    delay(300);
-    mp3player.stop();
-    delay(300);
-    mp3player.play(track);
-    delay(300);
-    file = mp3player.readCurrentFileNumber();
-  }
-}
 
 void printDFPlayerMessage(uint8_t type, int value);
 void printDFPlayerMessage(uint8_t type, int value) {
@@ -4751,7 +4755,7 @@ void printDFPlayerMessage(uint8_t type, int value) {
           Serial.println(F("Cannot Find File"));
           Serial.print("+ Assume the directory number was incremented too high, play previous directory: ");
           if (playerDirectory > 1) {
-            playerDirectory --;
+            playerDirectory = 1;
           } else {
             playerDirectory = 1;
           }
@@ -4777,7 +4781,7 @@ void printDFPlayerMessage(uint8_t type, int value) {
         Serial.print(F(", value:"));
         Serial.println(value);
         playerCounter = value;  // The song to play.
-        playTrack(value);
+        // playTrack(value);
         lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
       }
       break;
