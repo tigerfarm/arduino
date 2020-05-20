@@ -7,9 +7,6 @@
   The Altair 8800 was built around the Intel 8080 CPU chip.
   The 8080's machine instructions(opcodes) are the same for the 8085.
   This program implements more than enough 8080 opcodes to run the classic program, Kill the Bit.
-  The other goal is hardware and program enhancements: MP3 player and a clock.
-  The MP3 player is fully functional, controlled by the front panel toogles.
-  The clock displays the current hours and minutes on the front panel LED lights, and optionally shows the month, day, and year.
 
   ---------------------------------------------
   ---------------------------------------------
