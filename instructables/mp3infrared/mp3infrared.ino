@@ -104,6 +104,8 @@
     01  02
   Clean hidden files which can cause issues: https://ss64.com/osx/dot_clean.html
     $ dot_clean /Volumes/MUSICSD
+  Format,
+    $ sudo diskutil eraseDisk FAT32 MUSICSD MBRFormat /dev/disk3
 
   ------------------------------------------------------------------------------
   DFPlayer Mini pins

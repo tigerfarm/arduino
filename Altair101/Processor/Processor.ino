@@ -34,9 +34,6 @@
   + To do: Deposit: to set/change the set value.
 
   MP3 Player, playerRun(),
-  pinStepDown is not working. Check the physical switch.
-  $ sudo diskutil eraseDisk FAT32 MUSIC MBRFormat /dev/disk2
-  $ dot_clean /Volumes/Music
   -----------
   + AUX1 Down toolge MP3 player controls, show song number and volume level.
   + Address displays the song number that is playing.
@@ -45,18 +42,18 @@
   + Status    OUT  : MP3 player control.
   + Status    HLTA : pause, light is on, else off.
   -----------
-  + STOP      Pause play
-  + RUN       Play song
-  + SINGLE up Loop single song
-  + SINGLE dn Stop loop single song                          Need to maintain playerCounter: ++ and --
-  + EXAMINE   Play previous song    *** Set loop or no loop. Consider using: mp3player.play(playerCounter);
-  + EXAMINE N Play next song        *** Set loop or no loop.            and: mp3player.loop(playerCounter);
-  + DEPOSIT   Play previous folder  *** Set loop or no loop. Play previous directory.
-  + DEPOSIT N Play next folder      *** Set loop or no loop. If directory not found, go to directory #1.
-  + RESET     Play first song       *** Set loop or no loop.
-  + CLR       Play toggle address value song
-  + PROTECT   Increase volume
-  + UNPROTECT Decrease volume
+  + STOP          Pause play
+  + RUN           Play song
+  + SINGLE up     Loop single song
+  + SINGLE dn     Stop loop single song   *** Switch is not working. Check the physical switch.
+  + EXAMINE       Play previous song
+  + EXAMINE NEXT  Play next song
+  + DEPOSIT       Play previous folder
+  + DEPOSIT NEXT  Play next folder
+  + RESET         Play first song
+  + CLR           Play toggle address value song
+  + PROTECT       Increase volume
+  + UNPROTECT     Decrease volume
 
   ---------------------------------------------
   Desktop Box:
@@ -195,6 +192,9 @@
 #define SERIAL_DOWNLOAD 4
 int programState = PROGRAM_WAIT;  // Intial, default.
 
+int theCounterHours = 0;
+int theCounterMinutes = 0;
+
 // -----------------------------------------------------------------------
 // DFPlayer Mini MP3 play
 
@@ -215,6 +215,55 @@ boolean loopSingle = false;       // For toggling single song.
 
 void playerLights() {
   lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+}
+
+// -----------------------------------------------------------------------------
+void ledFlashKnightRider() {
+  int delayTime = 60;
+  unsigned int riderByte;
+  byte flashByte;
+  lightsStatusAddressData(0, 0, 0);
+  delay(delayTime);
+  for (int i = 0; i < 3; i++) {
+    flashByte = B10000000;
+    for (int i = 0; i < 8; i++) {
+      riderByte = flashByte * 256;
+      lightsStatusAddressData(0, riderByte, 0);
+      flashByte = flashByte >> 1;
+      delay(delayTime);
+    }
+    flashByte = B10000000;
+    for (int i = 0; i < 8; i++) {
+      lightsStatusAddressData(0, flashByte, 0);
+      flashByte = flashByte >> 1;
+      delay(delayTime);
+    }
+    flashByte = B00000001;
+    for (int i = 0; i < 8; i++) {
+      lightsStatusAddressData(0, flashByte, 0);
+      flashByte = flashByte << 1;
+      delay(delayTime);
+    }
+    flashByte = B00000001;
+    for (int i = 0; i < 8; i++) {
+      riderByte = flashByte * 256;
+      lightsStatusAddressData(0, riderByte, 0);
+      flashByte = flashByte << 1;
+      delay(delayTime);
+    }
+  }
+  // Reset the panel lights to program values.
+  switch (programState) {
+    case CLOCK_RUN:
+      displayTheTime( theCounterMinutes, theCounterHours );
+      break;
+    case PLAYER_RUN:
+      playerLights();
+      break;
+    default:
+      programLights();
+      break;
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -323,8 +372,8 @@ int setClockValue = 0;
 int theCounterYear = 0;
 int theCounterMonth = 0;
 int theCounterDay = 0;
-int theCounterHours = 0;
-int theCounterMinutes = 0;
+// int theCounterHours = 0;     // Declared above.
+// int theCounterMinutes = 0;
 int theCounterSeconds = 0;
 
 int theSetRow = 1;
@@ -3373,16 +3422,16 @@ void ledFlashSuccess() {
       flashByte = flashByte << 1;
       delay(delayTime);
     }
-    // Reset the panel lights to program values.
-    switch (programState) {
-      case CLOCK_RUN:
-      case PLAYER_RUN:
-        playerLights();
-        break;
-      default:
-        programLights();
-        break;
-    }
+  }
+  // Reset the panel lights to program values.
+  switch (programState) {
+    case CLOCK_RUN:
+    case PLAYER_RUN:
+      playerLights();
+      break;
+    default:
+      programLights();
+      break;
   }
 }
 void ledFlashError() {
@@ -4009,8 +4058,7 @@ void clockPulseHour() {
   } else {
     theHour = theCounterHours;
   }
-  displayTheTime( theCounterMinutes, theCounterHours );
-  ledFlashSuccess();
+  ledFlashKnightRider();
   displayTheTime( theCounterMinutes, theCounterHours );
   printLcdClockValue(thePrintColHour, printRowClockPulse, theHour);
 }
@@ -4204,6 +4252,21 @@ void checkClockControls() {
       Serial.println(F("Show minutes and hours."));
       displayTheTime(theCounterMinutes, theCounterHours);
     }
+  }
+  if (pcfControl.readButton(pinReset) == 0) {
+    if (!switchReset) {
+      switchReset = true;
+    }
+  } else if (switchReset) {
+    switchReset = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Control, clock Reset."));
+#endif
+    ledFlashKnightRider();
+    clockData = 0;
+    Serial.println(F("Show minutes and hours."));
+    displayTheTime(theCounterMinutes, theCounterHours);
   }
 }
 
@@ -5087,14 +5150,14 @@ void setup() {
     Serial.println("+ SD card module is initialized.");
     ledFlashSuccess();
   }
-  delay(2000);
+  // delay(2000);
 #endif
 
   // ----------------------------------------------------
   // Initialize the Real Time Clock (RTC).
 #ifdef SETUP_CLOCK
   //            1234567890123456
-  lcdPrintln(0, "Init Clock");
+  lcdPrintln(1, "Init Clock");
   if (!rtc.begin()) {
     Serial.println("- Error: Real time clock not found, not set.");
     ledFlashError();
