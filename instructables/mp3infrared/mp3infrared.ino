@@ -37,40 +37,40 @@
     Serial sending of commands: 9600 bps, Data bits:1, Checkout:none, Flow Control:none
 
   Sample library commands:
-    myDFPlayer.play(1);           // Play the first mp3
-    myDFPlayer.pause();           // pause the mp3
-    myDFPlayer.start();           // start the mp3 from the pause
+    mp3player.play(1);           // Play the first mp3
+    mp3player.pause();           // pause the mp3
+    mp3player.start();           // start the mp3 from the pause
     ------------------------------
-    myDFPlayer.next();            // Play next mp3
-    myDFPlayer.previous();        // Play previous mp3
+    mp3player.next();            // Play next mp3
+    mp3player.previous();        // Play previous mp3
     ------------------------------
-    myDFPlayer.playMp3Folder(4);  // play specific mp3 in SD:/MP3/0004.mp3; File Name(0~65535)
-    myDFPlayer.playFolder(15, 4); // play specific mp3 in SD:/15/004.mp3; Folder Name(1~99); File Name(1~255)
-    myDFPlayer.playLargeFolder(2, 999); //play specific mp3 in SD:/02/004.mp3; Folder Name(1~10); File Name(1~1000)
+    mp3player.playMp3Folder(4);  // play specific mp3 in SD:/MP3/0004.mp3; File Name(0~65535)
+    mp3player.playFolder(15, 4); // play specific mp3 in SD:/15/004.mp3; Folder Name(1~99); File Name(1~255)
+    mp3player.playLargeFolder(2, 999); //play specific mp3 in SD:/02/004.mp3; Folder Name(1~10); File Name(1~1000)
     ------------------------------
-    myDFPlayer.loop(1);           // Loop the first mp3
-    myDFPlayer.enableLoop();      // enable loop.
-    myDFPlayer.disableLoop();     // disable loop.
-    myDFPlayer.loopFolder(5);     // loop all mp3 files in folder SD:/05.
-    myDFPlayer.enableLoopAll();   // loop all mp3 files.
-    myDFPlayer.disableLoopAll();  // stop loop all mp3 files.
+    mp3player.loop(1);           // Loop the first mp3
+    mp3player.enableLoop();      // enable loop.
+    mp3player.disableLoop();     // disable loop.
+    mp3player.loopFolder(5);     // loop all mp3 files in folder SD:/05.
+    mp3player.enableLoopAll();   // loop all mp3 files.
+    mp3player.disableLoopAll();  // stop loop all mp3 files.
     ------------------------------
-    myDFPlayer.volume(10);        // Set volume value. From 0 to 30
-    myDFPlayer.volumeUp();        // Volume Up
-    myDFPlayer.volumeDown();      // Volume Down
+    mp3player.volume(10);        // Set volume value. From 0 to 30
+    mp3player.volumeUp();        // Volume Up
+    mp3player.volumeDown();      // Volume Down
     ------------------------------
-    myDFPlayer.setTimeOut(500);   //Set serial communictaion time out 500ms
-    myDFPlayer.reset();           //Reset the module
+    mp3player.setTimeOut(500);   //Set serial communictaion time out 500ms
+    mp3player.reset();           //Reset the module
     ------------------------------
-    Serial.println(myDFPlayer.readState());               //read mp3 state
-    Serial.println(myDFPlayer.readVolume());              //read current volume
-    Serial.println(myDFPlayer.readEQ());                  //read EQ setting
-    Serial.println(myDFPlayer.readFileCounts());          //read all file counts in SD card
-    Serial.println(myDFPlayer.readCurrentFileNumber());   //read current play file number
-    Serial.println(myDFPlayer.readFileCountsInFolder(3)); //read fill counts in folder SD:/03
+    Serial.println(mp3player.readState());               //read mp3 state
+    Serial.println(mp3player.readVolume());              //read current volume
+    Serial.println(mp3player.readEQ());                  //read EQ setting
+    Serial.println(mp3player.readFileCounts());          //read all file counts in SD card
+    Serial.println(mp3player.readCurrentFileNumber());   //read current play file number
+    Serial.println(mp3player.readFileCountsInFolder(3)); //read fill counts in folder SD:/03
     ------------------------------
-    myDFPlayer.available()
-    printDetail(myDFPlayer.readType(), myDFPlayer.read()); //Print the detail message from DFPlayer to handle different errors and states.
+    mp3player.available()
+    printDetail(mp3player.readType(), mp3player.read()); //Print the detail message from DFPlayer to handle different errors and states.
     ------------------------------
 
   Filenames and folder directory names:
@@ -539,10 +539,8 @@ void setup() {
   // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
   mp3player.EQ(DFPLAYER_EQ_CLASSIC);
   //
-  mp3player.loopFolder(currentDirectory);
-  // mp3player.play(currentSingle);
-  //
   delay(300); // need a delay after the previous mp3player function call, before the next call.
+  // mp3player.play(currentSingle); // Option to start playing a file.
   mp3player.pause();
   playPause = true;
   Serial.println(F("+ DFPlayer is initialized."));

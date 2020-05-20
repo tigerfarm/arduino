@@ -205,7 +205,7 @@ uint16_t playerCounter = 1;      // First song played when player starts up. The
 uint8_t playerStatus = 0;
 uint8_t playerVolume = 0;
 //
-uint16_t playerFileCounts = 0;
+uint16_t playerCounterTop = 0;
 uint8_t playerDirectory = 1;   // File directory name on the SD card. Example 1 is directory name: /01.
 boolean playPause = false;  // For toggling pause.
 boolean loopSingle = false; // For toggling single song.
@@ -4369,6 +4369,18 @@ void checkDownloadSwitch() {
 // --------------------------------------------------------
 // --------------------------------------------------------
 // Check Front Panel Control Switches, when in Player mode.
+
+void playSong() {
+  // delay(500);
+  if (loopSingle) {
+    mp3player.loop(playerCounter);
+  } else {
+    mp3player.play(playerCounter);
+  }
+  playerStatus = playerStatus & HLTA_OFF;
+  lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+}
+
 void checkPlayerControls() {
   // -------------------
   if (pcfControl.readButton(pinStop) == 0) {
@@ -4401,7 +4413,58 @@ void checkPlayerControls() {
     playerLights();
   }
   // -------------------
-  // Read PCF8574 input for this switch.
+  if (pcfControl.readButton(pinExamine) == 0) {
+    if (!switchExamine) {
+      switchExamine = true;
+    }
+  } else if (switchExamine) {
+    switchExamine = false;
+    // Switch logic
+    mp3player.previous();
+    delay(300);
+    playerCounter = mp3player.readCurrentFileNumber();
+    int i = 0;
+    while (i++ < 3 && playerCounter >= playerCounterTop) {
+      delay(300);
+      playerCounter = mp3player.readCurrentFileNumber();
+    }
+    if (playerCounter < playerCounterTop) {
+      playerStatus = playerStatus & HLTA_OFF;
+      // This covers the case of, "play next song# 65535 : 2".
+      lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+    }
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, Examine: play previous song: "));
+    Serial.println(playerCounter);
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinExamineNext) == 0) {
+    if (!switchExamineNext) {
+      switchExamineNext = true;
+    }
+  } else if (switchExamineNext) {
+    switchExamineNext = false;
+    // Switch logic
+    mp3player.next();
+    delay(300);
+    playerCounter = mp3player.readCurrentFileNumber();
+    int i = 0;
+    while (i++ < 3 && playerCounter >= playerCounterTop) {
+      delay(300);
+      playerCounter = mp3player.readCurrentFileNumber();
+    }
+    if (playerCounter < playerCounterTop) {
+      playerStatus = playerStatus & HLTA_OFF;
+      // This covers the case of, "play next song# 65535 : 2".
+      lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+    }
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, Examine Next: play next song# "));
+    Serial.println(playerCounter);
+#endif
+  }
+  // -------------------
   if (pcfControl.readButton(pinStep) == 0) {
     if (!switchStep) {
       switchStep = true;
@@ -4463,9 +4526,7 @@ void checkPlayerControls() {
     Serial.println(F("+ Player, RESET: play first song."));
 #endif
     playerCounter = 1;
-    mp3player.play(playerCounter);
-    playerStatus = playerStatus & HLTA_OFF;
-    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+    playSong();
   }
   // -------------------
   if (pcfAux.readButton(pinProtect) == 0) {
@@ -4517,16 +4578,10 @@ void checkPlayerControls() {
     switchClr = false;
     // Switch logic
     int addressToggles = toggleAddress();
-    if (addressToggles > 0 && addressToggles <= playerFileCounts) {
+    if (addressToggles > 0 && addressToggles <= playerCounterTop) {
       playerStatus = playerStatus & HLTA_OFF;
       playerCounter = addressToggles;
-      if (loopSingle) {
-        mp3player.loop(playerCounter);
-        lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-      } else {
-        mp3player.play(playerCounter);
-        lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-      }
+      playSong();
 #ifdef SWITCH_MESSAGES
       Serial.print(F("+ CLR, player, play a specific song number."));
       Serial.println(playerCounter);
@@ -4537,56 +4592,11 @@ void checkPlayerControls() {
       Serial.print(F("+ CLR, player, toggle address out of player file counts range: "));
       Serial.print(addressToggles);
       Serial.print(F(", player file counts: "));
-      Serial.println(playerFileCounts);
+      Serial.println(playerCounterTop);
 #endif
     }
   }
-  // -------------------
-  if (pcfControl.readButton(pinExamine) == 0) {
-    if (!switchExamine) {
-      switchExamine = true;
-    }
-  } else if (switchExamine) {
-    switchExamine = false;
-    // Switch logic
-    mp3player.previous();
-    delay(300);
-    playerCounter = mp3player.readCurrentFileNumber();
-    playerStatus = playerStatus & HLTA_OFF;
-    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-#ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Player, Examine: play previous song: "));
-    Serial.print(playerCounter);
-    Serial.print(" : ");
-    Serial.println(mp3player.readCurrentFileNumber());
-#endif
-  }
-  // -------------------
-  if (pcfControl.readButton(pinExamineNext) == 0) {
-    if (!switchExamineNext) {
-      switchExamineNext = true;
-    }
-  } else if (switchExamineNext) {
-    switchExamineNext = false;
-    // Switch logic
-    playerStatus = playerStatus & HLTA_OFF;
-    mp3player.next();
-    //
-    // Stacy, need to have a function for the following to handle playerCounter=65535.
-    delay(300);
-    playerCounter = mp3player.readCurrentFileNumber();
-    if (playerCounter < 6000) {
-      // This covers the case of, "play next song# 65535 : 2".
-      lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-    }
-    //
-#ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Player, Examine Next: play next song# "));
-    Serial.print(playerCounter);
-    Serial.print(" : ");
-    Serial.println(mp3player.readCurrentFileNumber());
-#endif
-  }
+
   // -------------------
   if (pcfControl.readButton(pinDeposit) == 0) {
     if (!switchDeposit) {
@@ -4668,11 +4678,41 @@ void checkPlayerSwitch() {
 // -----------------------------------------------------------------------
 // DFPlayer configuration and error messages.
 
+// Play track#, with retry.
+//    This may fix my issue where it skips to the next track until it finds a file that plays.
+//    From: https://reprage.com/post/dfplayer-mini-cheat-sheet
+void playTrack(uint8_t track) {
+  mp3player.stop();
+  delay(300);
+  mp3player.play(track);
+  delay(300);
+  int file = mp3player.readCurrentFileNumber();
+  int i = 0;
+  while (file != track) {
+    i++;
+    if (i == 3) {
+      mp3player.reset();
+      i = 0;
+    }
+    Serial.print("+ Track:");
+    Serial.print(track);
+    Serial.print(" File:");
+    Serial.println(file);
+    delay(300);
+    mp3player.stop();
+    delay(300);
+    mp3player.play(track);
+    delay(300);
+    file = mp3player.readCurrentFileNumber();
+  }
+}
+
 void printDFPlayerMessage(uint8_t type, int value);
 void printDFPlayerMessage(uint8_t type, int value) {
   switch (type) {
     case TimeOut:
       Serial.println(F("Time Out!"));
+      playSong();
       break;
     case DFPlayerCardInserted:
       Serial.println(F("Card Inserted!"));
@@ -4727,15 +4767,18 @@ void printDFPlayerMessage(uint8_t type, int value) {
     default:
       if (playerCounter == 65535) {
         // Assume auto next. This can be an error because looping from the last song, to the first song had happened.
-        playerCounter = value;  // The next song to be played.
+        playerCounter = value;  // The song to play.
         lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-        Serial.print(F("Play next song: "));
+        Serial.print(F("Play song: "));
         Serial.println(playerCounter);
       } else {
         Serial.print(F("Unknown DFPlayer message type: "));
         Serial.print(type);
         Serial.print(F(", value:"));
         Serial.println(value);
+        playerCounter = value;  // The song to play.
+        playTrack(value);
+        lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
       }
       break;
   }
@@ -4751,20 +4794,21 @@ void playMp3() {
 #endif
       if (loopSingle) {
 #ifdef SWITCH_MESSAGES
-        Serial.println(F("Loop/play the same MP3."));
+        Serial.print(F("Loop/play the same MP3: "));
+        Serial.println(playerCounter);
 #endif
-        // mp3player.start();
-        mp3player.loop(playerCounter);
+        playSong();
       } else {
-        delay(300);
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("Play next MP3: "));
+#endif
         mp3player.next();
         delay(300);
         playerCounter = mp3player.readCurrentFileNumber();
-        if (playerCounter != 65535) {
-#ifdef SWITCH_MESSAGES
-          lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+        if (playerCounter < playerCounterTop) {
           // End of song, time to loop to first song.
-          Serial.print(F("Play next MP3: "));
+          lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+#ifdef SWITCH_MESSAGES
           Serial.println(playerCounter);
 #endif
         }
@@ -4778,31 +4822,6 @@ void playMp3() {
       //   such as memory card not inserted.
       printDFPlayerMessage(theType, mp3player.read());
     }
-  }
-}
-
-void playSong() {
-  if (loopSingle) {
-#ifdef SWITCH_MESSAGES
-    Serial.println(F("Loop/play the same MP3."));
-#endif
-    mp3player.start();
-  } else {
-    delay(300);
-    mp3player.next();
-    delay(300);
-    playerCounter = mp3player.readCurrentFileNumber();
-    if (playerCounter != 65535) {
-#ifdef SWITCH_MESSAGES
-      lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-      // End of song, time to loop to first song.
-      Serial.print(F("Play next MP3: "));
-      Serial.println(playerCounter);
-#endif
-    }
-    delay(300);
-    playerCounter = mp3player.readCurrentFileNumber();
-    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
   }
 }
 
@@ -4820,7 +4839,7 @@ void playerRun() {
     checkPlayerControls();    // Player control functions from STOP to UNPROTECT.
     checkPlayerSwitch();      // Toggle player mode: AUX1 down.
     delay(100);
-    playMp3();                // The above, playSong() isn't used. Need only have one: playMp3().
+    playMp3();
   }
   restoreLcdScreenData();
 }
@@ -4970,7 +4989,10 @@ void setup() {
   playerCounter = 1;                // For now, default to song/file 1.
   playerVolume = 16;
   //
-  mp3player.setTimeOut(500);        // Set serial communications time out
+  playPause = true;
+  playerStatus = playerStatus | HLTA_ON;  // Paused.
+  //
+  // mp3player.setTimeOut(500);        // Set serial communications time out
   delay(300);
   mp3player.volume(playerVolume);   // Set speaker volume from 0 to 30. Doesn't effect DAC output.
   //
@@ -4980,22 +5002,19 @@ void setup() {
   // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
   mp3player.EQ(DFPLAYER_EQ_CLASSIC);
   //
-  mp3player.loopFolder(playerDirectory);
+  // mp3player.loopFolder(playerDirectory);
   // mp3player.play(playerCounter);
-  //
-  delay(300); // need a delay after the previous mp3player function call, before the next call.
   // mp3player.enableLoopAll();  // This seems to be on by default. This option keeps the music playing.
   // mp3player.start();
   // playPause = true;
   // mp3player.play(playerCounter);  // Play first song. Future, save current song to SD file, then start back to current song.
   // mp3player.play(87);
-  playPause = true;
-  mp3player.pause();
-  playerStatus = playerStatus | HLTA_ON;  // Paused.
+  // mp3player.pause();
+  //
   delay(300);
-  playerFileCounts = mp3player.readFileCounts();
+  playerCounterTop = mp3player.readFileCounts();
   Serial.print(F("+ DFPlayer is initialized. Number of MP3 files = "));
-  Serial.println(playerFileCounts);
+  Serial.println(playerCounterTop);
 
   // ----------------------------------------------------
   // Front panel toggle switches.
