@@ -21,11 +21,6 @@
   + Then, when returning to playerRun(), need to reset to the song previously played.
   ++ Currently, when returning, playMp3() plays the song after the playSound() file.
   +++ Maybe, mp3player.play(playerCounter); mp3player.pause();
-  ++ Need a function call, playSound(85);
-  if (playerStatus != playerStatusEffectOK) {
-    // Works, but effects the status of the file count and pause status.
-    // mp3player.play(85);
-  }
 
   User guide,
   + How to save a program to the SD card.
@@ -222,9 +217,6 @@ DFRobotDFPlayerMini mp3player;
 uint16_t playerCounter = 1;       // First song played when player starts up. Then incremented when next is played.
 uint8_t playerStatus = 0;
 uint8_t playerVolume = 0;
-// const byte M1_ON =      B00100000;  // M1     Machine cycle 1, fetch opcode.
-// const byte OUT_ON =     B00010000;  // OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
-uint8_t playerStatusEffectOK = B00110000; // if (playerStatus != playerStatusEffectOK) then play sounds.
 //
 uint16_t playerCounterTop = 0;
 uint16_t playerDirectoryTop = 0;
@@ -4911,19 +4903,42 @@ void playMp3() {
   }
 }
 
+// const byte M1_ON =      B00100000;  // M1     Machine cycle 1, fetch opcode.
+// const byte OUT_ON =     B00010000;  // OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
+// uint8_t playerStatusM1OUT = B00110000;
+uint8_t playerStatusM1OUT = M1_ON | OUT_ON;
+void playerPlaySound(int theFileNumber) {
+  if (playerStatus != playerStatusM1OUT) {
+    mp3player.play(85);
+  }
+}
+
+uint8_t playerStatusHLTA = 0;
 void playerRun() {
-  Serial.println(F("+ playerRun()"));
   saveClearLcdScreenData();
   lcd.noCursor();
   //             1234567890123456
   lcdPrintln(0, "MP3 Player mode,");
   lcdPrintln(1, "Not implemented.");
   //
+  Serial.print(F("+ playerRun()"));
   lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-  if (playerStatus != playerStatusEffectOK) {
+  if (playerStatus == playerStatusM1OUT) {
+    Serial.print(F(", playerStatusM1OUT"));
     mp3player.play(playerCounter);
     mp3player.pause();
   }
+  playerStatusHLTA = playerStatus & HLTA_ON;
+  if (playerStatusHLTA > 0) {
+    Serial.print(F(", playerStatusHLTA"));
+    mp3player.play(playerCounter);
+    mp3player.pause();
+  }
+  Serial.print(" playerStatusM1OUT=");
+  printByte(playerStatusM1OUT);
+  Serial.print(" playerStatusHLTA=");
+  printByte(playerStatusHLTA);
+  Serial.println("");
   //
   while (programState == PLAYER_RUN) {
     checkPlayerControls();    // Player control functions from STOP to UNPROTECT.
@@ -4938,11 +4953,7 @@ void playerRun() {
 // -----------------------------------------------------------------------------
 void clockRun() {
   Serial.println(F("+ clockRun()"));
-  //
-  if (playerStatus != playerStatusEffectOK) {
-    mp3player.play(85);
-  }
-  //
+  playerPlaySound(85);
   saveClearLcdScreenData();
   lcd.noCursor();
   syncCountWithClock();
@@ -4962,9 +4973,7 @@ void clockRun() {
     //
     delay(100);
   }
-  if (playerStatus != playerStatusEffectOK) {
-    mp3player.play(85);
-  }
+  playerPlaySound(85);
   restoreLcdScreenData();
 }
 
