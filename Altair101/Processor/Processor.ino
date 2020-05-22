@@ -18,6 +18,14 @@
   Allow switch sounds, if no file is playing at the time.
   + If playerStatus is MI_ON and OUT_ON, then a song is playing and looping.
   + Else, I can have sounds play.
+  + Then, when returning to playerRun(), need to reset to the song previously played.
+  ++ Currently, when returning, playMp3() plays the song after the playSound() file.
+  +++ Maybe, mp3player.play(playerCounter); mp3player.pause();
+  ++ Need a function call, playSound(85);
+  if (playerStatus != playerStatusEffectOK) {
+    // Works, but effects the status of the file count and pause status.
+    // mp3player.play(85);
+  }
 
   User guide,
   + How to save a program to the SD card.
@@ -4912,6 +4920,10 @@ void playerRun() {
   lcdPrintln(1, "Not implemented.");
   //
   lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+  if (playerStatus != playerStatusEffectOK) {
+    mp3player.play(playerCounter);
+    mp3player.pause();
+  }
   //
   while (programState == PLAYER_RUN) {
     checkPlayerControls();    // Player control functions from STOP to UNPROTECT.
@@ -4927,11 +4939,8 @@ void playerRun() {
 void clockRun() {
   Serial.println(F("+ clockRun()"));
   //
-  byte notPlaying = playerStatus && HLTA_ON;
-  Serial.println(notPlaying);
   if (playerStatus != playerStatusEffectOK) {
-    // Works, but effects the status of the file count and pause status.
-    // mp3player.play(85);
+    mp3player.play(85);
   }
   //
   saveClearLcdScreenData();
@@ -4952,6 +4961,9 @@ void clockRun() {
     checkDepositNextButton();
     //
     delay(100);
+  }
+  if (playerStatus != playerStatusEffectOK) {
+    mp3player.play(85);
   }
   restoreLcdScreenData();
 }
