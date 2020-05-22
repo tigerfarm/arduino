@@ -7,13 +7,17 @@
   The Altair 8800 was built around the Intel 8080 CPU chip.
   The 8080's machine instructions(opcodes) are the same for the 8085.
   This program implements more than enough 8080 opcodes to run the classic program, Kill the Bit.
-  The other goal is hardware and program enhancements: MP3 player and a clock.
-  The MP3 player is fully functional, controlled by the front panel toogles.
-  The clock displays the current hours and minutes on the front panel LED lights, and optionally shows the month, day, and year.
+  Feature enhancements:
+  + A fully functional MP3 player controlled by using the front panel toogles with the lights displaying status.
+  + The clock displays the current hours, minutes, month, day, and year, on the front panel lights.
 
   ---------------------------------------------
   ---------------------------------------------
   Current/Next Work
+
+  Allow switch sounds, if no file is playing at the time.
+  + If playerStatus is MI_ON and OUT_ON, then a song is playing and looping.
+  + Else, I can have sounds play.
 
   User guide,
   + How to save a program to the SD card.
@@ -47,7 +51,7 @@
   -----------
   + STOP          Pause play
   + RUN           Play song
-  + SINGLE up     Loop single song
+  + SINGLE up     Toogle the playing of a single song, on and off.
   + SINGLE dn     Stop loop single song   *** Switch is not working. Check the physical switch.
   + EXAMINE       Play previous song
   + EXAMINE NEXT  Play next song
@@ -55,8 +59,8 @@
   + DEPOSIT NEXT  Play next folder
   + RESET         Play first song
   + CLR           Play toggle address value song
-  + PROTECT       Increase volume
-  + UNPROTECT     Decrease volume
+  + PROTECT       Decrease volume
+  + UNPROTECT     Increase volume
 
   ---------------------------------------------
   Desktop Box:
@@ -72,7 +76,8 @@
   + Done: Test new serial module using the tablet. Then install it in the box.
   + Done: Wire up the MP3 player. Use a separate power supply. Test using multiple USB hubs.
   + Mount, connect, and test a 1602 LCD.
-  + Later, add the stearo amp. Use the Mega to control an On/off relay switch for the amp's 120AC adapter.
+  + Later, add the stearo amp inside the case.
+  ++ Use the Mega to control an On/off relay switch for the amp's 120AC adapter.
 
   I can show my steampunk tablet to the world.
   + Time to generate videos.
@@ -209,6 +214,9 @@ DFRobotDFPlayerMini mp3player;
 uint16_t playerCounter = 1;       // First song played when player starts up. Then incremented when next is played.
 uint8_t playerStatus = 0;
 uint8_t playerVolume = 0;
+// const byte M1_ON =      B00100000;  // M1     Machine cycle 1, fetch opcode.
+// const byte OUT_ON =     B00010000;  // OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
+uint8_t playerStatusEffectOK = B00110000; // if (playerStatus != playerStatusEffectOK) then play sounds.
 //
 uint16_t playerCounterTop = 0;
 uint16_t playerDirectoryTop = 0;
@@ -221,13 +229,13 @@ void playerLights() {
 }
 
 // -----------------------------------------------------------------------------
-void ledFlashKnightRider() {
+void ledFlashKnightRider(int times) {
   int delayTime = 60;
   unsigned int riderByte;
   byte flashByte;
   lightsStatusAddressData(0, 0, 0);
   delay(delayTime);
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < times; i++) {
     flashByte = B10000000;
     for (int i = 0; i < 8; i++) {
       riderByte = flashByte * 256;
@@ -4061,7 +4069,7 @@ void clockPulseHour() {
   } else {
     theHour = theCounterHours;
   }
-  ledFlashKnightRider();
+  ledFlashKnightRider(3);
   displayTheTime( theCounterMinutes, theCounterHours );
   printLcdClockValue(thePrintColHour, printRowClockPulse, theHour);
 }
@@ -4266,7 +4274,7 @@ void checkClockControls() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ Control, clock Reset."));
 #endif
-    ledFlashKnightRider();
+    ledFlashKnightRider(1);
     clockData = 0;
     Serial.println(F("Show minutes and hours."));
     displayTheTime(theCounterMinutes, theCounterHours);
@@ -4607,14 +4615,14 @@ void checkPlayerControls() {
     //
     // Switch logic, based on programState.
     playerVolume = mp3player.readVolume();
-    if (playerVolume < 30) {
-      mp3player.volumeUp();
-      playerVolume++;
+    if (playerVolume > 1) {
+      mp3player.volumeDown();
+      playerVolume--;
     }
     lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
     // delay(300);
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Player, increase volume to "));
+    Serial.print(F("+ Player, decrease volume to "));
     Serial.println(playerVolume);
 #endif
   }
@@ -4627,14 +4635,14 @@ void checkPlayerControls() {
     switchUnProtect = false;
     // Switch logic
     playerVolume = mp3player.readVolume();
-    if (playerVolume > 1) {
-      mp3player.volumeDown();
-      playerVolume--;
+    if (playerVolume < 30) {
+      mp3player.volumeUp();
+      playerVolume++;
     }
     lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
     // delay(300);
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Player, decrease volume to "));
+    Serial.print(F("+ Player, increase volume to "));
     Serial.println(playerVolume);
 #endif
   }
@@ -4918,6 +4926,14 @@ void playerRun() {
 // -----------------------------------------------------------------------------
 void clockRun() {
   Serial.println(F("+ clockRun()"));
+  //
+  byte notPlaying = playerStatus && HLTA_ON;
+  Serial.println(notPlaying);
+  if (playerStatus != playerStatusEffectOK) {
+    // Works, but effects the status of the file count and pause status.
+    // mp3player.play(85);
+  }
+  //
   saveClearLcdScreenData();
   lcd.noCursor();
   syncCountWithClock();
@@ -5055,12 +5071,11 @@ void setup() {
   //  When starting, set to the previous state.
   //
   // Set player front panel values.
-  playerStatus = OUT_ON;            // Use OUT LED status light as an indicator for the Player.
   playerCounter = 1;                // For now, default to song/file 1.
   playerVolume = 16;
+  playerStatus = OUT_ON | HLTA_ON;  // OUT_ON  LED status light to indicate the Player.
+  playPause = true;                 // HLTA_ON implies that the player is Paused.
   //
-  playPause = true;
-  playerStatus = playerStatus | HLTA_ON;  // Paused.
   //
   // mp3player.setTimeOut(500);        // Set serial communications time out
   delay(300);
@@ -5078,7 +5093,6 @@ void setup() {
   // mp3player.start();
   // playPause = true;
   // mp3player.play(playerCounter);  // Play first song. Future, save current song to SD file, then start back to current song.
-  // mp3player.play(87);
   // mp3player.pause();
   //
   delay(300);
@@ -5184,6 +5198,11 @@ void setup() {
   // ----------------------------------------------------
   controlResetLogic();
   Serial.println(F("+++ Program system reset."));
+  mp3player.play(5);
+  delay(500);
+  ledFlashKnightRider(2);
+  delay(200);
+  mp3player.pause();
   Serial.println(F("+ Starting the processor loop."));
 }
 
