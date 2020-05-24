@@ -4233,6 +4233,12 @@ void restoreLcdScreenData() {
 // -----------------------------------------------------------------------------
 // Front Panel AUX Switches
 
+void playerPlaySound(int theFileNumber) {
+  if (playerStatus & HLTA_ON) {
+    mp3player.play(theFileNumber);
+  }
+}
+
 /*
   int theCounterYear = 0;
   int theCounterMonth = 0;
@@ -4280,6 +4286,7 @@ void checkClockControls() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ Control, clock Reset."));
 #endif
+    playerPlaySound(170);
     ledFlashKnightRider(1);
     clockData = 0;
     Serial.println(F("Show minutes and hours."));
@@ -4909,16 +4916,6 @@ void playMp3() {
   }
 }
 
-// const byte M1_ON =      B00100000;  // M1     Machine cycle 1, fetch opcode.
-// const byte OUT_ON =     B00010000;  // OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
-// uint8_t playerStatusM1OUT = B00110000;
-uint8_t playerStatusM1OUT = M1_ON | OUT_ON;
-void playerPlaySound(int theFileNumber) {
-  if (playerStatus & HLTA_ON) {
-    mp3player.play(theFileNumber);
-  }
-}
-
 void playerRun() {
   saveClearLcdScreenData();
   lcd.noCursor();
@@ -4933,7 +4930,6 @@ void playerRun() {
     mp3player.play(playerCounter);
     mp3player.pause();
   }
-  // printByte(playerStatusM1OUT);
   Serial.println("");
   //
   while (programState == PLAYER_RUN) {
