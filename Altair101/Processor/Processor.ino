@@ -3897,6 +3897,9 @@ void checkRunningButtons() {
     Serial.println(F("+ Running, Stop."));
 #endif
     controlStopLogic();
+    // -------------------
+    mp3player.pause();
+    playerStatus = playerStatus | HLTA_ON;
   }
   // -------------------
   // Read PCF8574 input for this switch.
@@ -3936,6 +3939,9 @@ void checkControlButtons() {
     digitalWrite(WAIT_PIN, LOW);
     // statusByte = statusByte & WAIT_OFF;
     statusByte = statusByte & HLTA_OFF;
+    // -------------------
+    mp3player.start();
+    playerStatus = playerStatus & HLTA_OFF;
   }
   // -------------------
   // Read PCF8574 input for this switch.
@@ -4777,7 +4783,7 @@ void checkPlayerSwitch() {
       programState = PLAYER_RUN;
       digitalWrite(HLDA_PIN, HIGH);
       digitalWrite(WAIT_PIN, LOW);
-      lightsStatusAddressData(0, 0, 0);  // Clear the front panel lights.
+      // lightsStatusAddressData(0, 0, 0);  // Clear the front panel lights.
     }
   }
 }
@@ -4908,12 +4914,11 @@ void playMp3() {
 // uint8_t playerStatusM1OUT = B00110000;
 uint8_t playerStatusM1OUT = M1_ON | OUT_ON;
 void playerPlaySound(int theFileNumber) {
-  if (playerStatus != playerStatusM1OUT) {
-    mp3player.play(85);
+  if (playerStatus & HLTA_ON) {
+    mp3player.play(theFileNumber);
   }
 }
 
-uint8_t playerStatusHLTA = 0;
 void playerRun() {
   saveClearLcdScreenData();
   lcd.noCursor();
@@ -4921,30 +4926,23 @@ void playerRun() {
   lcdPrintln(0, "MP3 Player mode,");
   lcdPrintln(1, "Not implemented.");
   //
-  Serial.print(F("+ playerRun()"));
+  Serial.print(F("+ playerRun() "));
   lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-  if (playerStatus == playerStatusM1OUT) {
-    Serial.print(F(", playerStatusM1OUT"));
+  if (playerStatus & HLTA_ON) {
+    Serial.print(F(", playerStatus:HLTA_ON"));
     mp3player.play(playerCounter);
     mp3player.pause();
   }
-  playerStatusHLTA = playerStatus & HLTA_ON;
-  if (playerStatusHLTA > 0) {
-    Serial.print(F(", playerStatusHLTA"));
-    mp3player.play(playerCounter);
-    mp3player.pause();
-  }
-  Serial.print(" playerStatusM1OUT=");
-  printByte(playerStatusM1OUT);
-  Serial.print(" playerStatusHLTA=");
-  printByte(playerStatusHLTA);
+  // printByte(playerStatusM1OUT);
   Serial.println("");
   //
   while (programState == PLAYER_RUN) {
+    delay(60);
+    if (!(playerStatus & HLTA_ON)) {
+      playMp3();
+    }
     checkPlayerControls();    // Player control functions from STOP to UNPROTECT.
     checkPlayerSwitch();      // Toggle player mode: AUX1 down.
-    delay(100);
-    playMp3();
   }
   restoreLcdScreenData();
 }
@@ -5219,11 +5217,14 @@ void setup() {
   // ----------------------------------------------------
   controlResetLogic();
   Serial.println(F("+++ Program system reset."));
+  // ----------------------------------------------------
   mp3player.play(5);
   delay(500);
   ledFlashKnightRider(2);
   delay(200);
+  mp3player.play(playerCounter);
   mp3player.pause();
+  // ----------------------------------------------------
   Serial.println(F("+ Starting the processor loop."));
 }
 
