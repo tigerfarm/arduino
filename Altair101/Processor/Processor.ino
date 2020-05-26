@@ -3551,6 +3551,7 @@ void readProgramFileIntoMemory(String theFilename) {
   }
   myFile.close();
   Serial.println(F("+ Read completed, file closed."));
+  playerPlaySound(131);
   ledFlashSuccess();
   digitalWrite(HLDA_PIN, LOW);
   controlResetLogic();
@@ -3940,8 +3941,11 @@ void checkControlButtons() {
     // statusByte = statusByte & WAIT_OFF;
     statusByte = statusByte & HLTA_OFF;
     // -------------------
-    mp3player.start();
-    playerStatus = playerStatus & HLTA_OFF;
+    if (playerStatus & M1_ON) {
+      // mp3player.start();
+      mp3player.loop(playerCounter);
+      playerStatus = playerStatus & HLTA_OFF;
+    }
   }
   // -------------------
   // Read PCF8574 input for this switch.
@@ -4286,7 +4290,7 @@ void checkClockControls() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ Control, clock Reset."));
 #endif
-    playerPlaySound(170);
+    playerPlaySound(104);
     ledFlashKnightRider(1);
     clockData = 0;
     Serial.println(F("Show minutes and hours."));
