@@ -15,7 +15,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class mp3player {
 
-    static private int countFiles = 0;
+    static private int countFiles = 1;
     static private int countDirs = 0;
 
     public static void dfPlayerCopy(String theDirectoryNameFrom, File dirFrom, String theDirectoryNameTo, File dirTo) {

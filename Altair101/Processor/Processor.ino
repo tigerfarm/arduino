@@ -228,6 +228,34 @@ void playerLights() {
   lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
 }
 
+// ---------------------------
+int READ_FILE   = 1;
+int CLOCK_RESET = 2;
+int CLOCK_ON    = 3;
+int CLOCK_OFF   = 4;
+const int maxSoundEffects = 32;
+int soundEffects[maxSoundEffects] = {
+  1,        // setup() completed.
+  5,       // Read file into memory.
+  4,       // Flipped clock RESET switch.
+  2,       // AUX1 flipped up, enter clock mode.
+  3        // AUX1 flipped up, exit clock mode.
+};
+void playerPlaySound(int theFileNumber) {
+  // HLTA_ON = B00001000
+  Serial.print(F("+ playerPlaySound("));
+  Serial.print(theFileNumber);
+  Serial.print(F(") "));
+  if (playerStatus & B00001000) {
+    mp3player.play(soundEffects[theFileNumber]);
+    // mp3player.play(soundEffects[0]);
+    Serial.print(F("mp3player.play("));
+    Serial.print(soundEffects[theFileNumber]);
+    Serial.print(F(")"));
+  }
+  Serial.println("");
+}
+
 // -----------------------------------------------------------------------------
 void ledFlashKnightRider(int times) {
   int delayTime = 60;
@@ -770,7 +798,7 @@ unsigned int curProgramCounter = 0;     // Current program address value
 unsigned int programCounter = 0;        // When processing opcodes, the next program address value.
 
 const int stackBytes = 32;
-int stackData[memoryBytes];
+int stackData[stackBytes];
 unsigned int stackPointer = stackBytes;
 
 // -----------------------------------------------------------------------------
@@ -3551,7 +3579,7 @@ void readProgramFileIntoMemory(String theFilename) {
   }
   myFile.close();
   Serial.println(F("+ Read completed, file closed."));
-  playerPlaySound(131);
+  playerPlaySound(READ_FILE);
   ledFlashSuccess();
   digitalWrite(HLDA_PIN, LOW);
   controlResetLogic();
@@ -4237,12 +4265,6 @@ void restoreLcdScreenData() {
 // -----------------------------------------------------------------------------
 // Front Panel AUX Switches
 
-void playerPlaySound(int theFileNumber) {
-  if (playerStatus & HLTA_ON) {
-    mp3player.play(theFileNumber);
-  }
-}
-
 /*
   int theCounterYear = 0;
   int theCounterMonth = 0;
@@ -4290,7 +4312,7 @@ void checkClockControls() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ Control, clock Reset."));
 #endif
-    playerPlaySound(104);
+    playerPlaySound(CLOCK_RESET);
     ledFlashKnightRider(1);
     clockData = 0;
     Serial.println(F("Show minutes and hours."));
@@ -4951,7 +4973,7 @@ void playerRun() {
 // -----------------------------------------------------------------------------
 void clockRun() {
   Serial.println(F("+ clockRun()"));
-  playerPlaySound(85);
+  playerPlaySound(CLOCK_ON);
   saveClearLcdScreenData();
   lcd.noCursor();
   syncCountWithClock();
@@ -4971,7 +4993,7 @@ void clockRun() {
     //
     delay(100);
   }
-  playerPlaySound(85);
+  playerPlaySound(CLOCK_OFF);
   restoreLcdScreenData();
 }
 
@@ -5096,7 +5118,7 @@ void setup() {
   playPause = true;                 // HLTA_ON implies that the player is Paused.
   //
   //
-  // mp3player.setTimeOut(500);        // Set serial communications time out
+  mp3player.setTimeOut(60);        // Set serial communications time out
   delay(300);
   mp3player.volume(playerVolume);   // Set speaker volume from 0 to 30. Doesn't effect DAC output.
   //
@@ -5218,7 +5240,7 @@ void setup() {
   controlResetLogic();
   Serial.println(F("+++ Program system reset."));
   // ----------------------------------------------------
-  mp3player.play(5);
+  mp3player.play(soundEffects[0]);
   delay(500);
   ledFlashKnightRider(2);
   delay(200);
