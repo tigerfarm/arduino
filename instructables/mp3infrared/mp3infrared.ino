@@ -109,16 +109,16 @@
 
   ------------------------------------------------------------------------------
   DFPlayer Mini pins
-         ----------
-    VCC |   |  |   | BUSY, low:playing, high:not playing
-     RX |    __    | USB port - (DM, clock)
-     TX | DFPlayer | USB port + (DP, data)
-  DAC_R |          | ADKEY_2 Play fifth segment.
-  DAC_L |  ------  | ADKEY_1 Play first segment.
-  SPK - | |      | | IO_2 short press, play next. Long press, increase volume.
-    GND | |      | | GND
-  SPK + | Micro SD | IO_1 short press, play previous. Long press, decrease volume.
-         ----------
+         --------------
+    VCC |01   |  |   16| BUSY, low:playing, high:not playing
+     RX |02    __    15| USB port - (DM, clock)
+     TX |03 DFPlayer 14| USB port + (DP, data)
+  DAC_R |04          13| ADKEY_2 Play fifth segment.
+  DAC_L |05  ------  12| ADKEY_1 Play first segment.
+  SPK - |06 |      | 11| IO_2 short press, play next. Long press, increase volume.
+    GND |07 |      | 10| GND
+  SPK + |08 Micro SD 09| IO_1 short press, play previous. Long press, decrease volume.
+         --------------
 
   Can try:
     "SPK -" to speaker #1 +
@@ -146,12 +146,15 @@
     TX(3) to Serial1 pin 19(RX).
 
   2. Power options.
-   Connect from the Arduino directly to the DFPlayer:
+  Connect from the Arduino directly to the DFPlayer:
     VCC to +5V. Note, also works with +3.3V in the case of an NodeMCU.
     GND to ground(-).
-  Use a completely different power source:
+  Or, to eliminate a static noise that I had, I did the following.
+  2.1 I use a completely different power source, a separate USB wall plug:
     VCC to +5V of the other power source.
-    GND to ground(-) of the other power source.
+    Connected GND to ground(-), between the Arduino power and the USB wall plug.
+  2.2 I connect a short wire between the DFPlayer ground pins: pins 7 to 10.
+  
   I seen another power option:
     From the Arduino +5V, use a 7805 with capacitors and diode to the DFPlayer VCC pin.
     GND to ground(-).
