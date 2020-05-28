@@ -171,7 +171,7 @@
   ------------------------------------------------------------------------------
   Infrared receiver pins
 
-   A1 + -   - Nano connections
+   A1 + -   - Arduino pin connections
     | | |   - Infrared receiver pins
   ---------
   |S      |
