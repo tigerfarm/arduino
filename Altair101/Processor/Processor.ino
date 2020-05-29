@@ -16,11 +16,8 @@
   Current/Next Work
 
   Test to reduce player noice.
-  https://arduino.stackexchange.com/questions/49807/dfplayer-noise-researched-tried-and-bep-bep-bep-bep-bep
-  + Ground BOTH GND pins
   + Force the serial transmit pin LOW, immediately after sending the Play command.
   + 1k resister to the serial pin that doesn't already have one.
-  + Power Arduino with a 9v 2A supply. Switching to USB power (5v) caused the noise to return.
   + Power player using a 3.3V regulator.
 
   Allow switch sounds, if no file is playing at the time.
@@ -4537,9 +4534,11 @@ void checkPlayerControls() {
     Serial.print(F("+ Player, RUN: start playing, playerCounter="));
     Serial.println(playerCounter);
 #endif
+    // mp3player.play(playerCounter);
     mp3player.start();
     playerStatus = playerStatus & HLTA_OFF;
-    playerLights();
+    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+    // playSong();
   }
   // -------------------
   if (pcfControl.readButton(pinExamine) == 0) {
@@ -4549,25 +4548,13 @@ void checkPlayerControls() {
   } else if (switchExamine) {
     switchExamine = false;
     // Switch logic
-    int currentPlayerCounter = playerCounter;
-    mp3player.previous();
-    delay(300);
-    playerCounter = mp3player.readCurrentFileNumber();
-    int i = 0;
-    while (i++ < 3 && playerCounter >= playerCounterTop) {
-      delay(300);
-      playerCounter = mp3player.readCurrentFileNumber();
+    if (playerCounter > 1) {
+      playerCounter--;
+    } else {
+      playerCounter = playerCounterTop;
     }
-    if (playerCounter < playerCounterTop) {
-      playerStatus = playerStatus & HLTA_OFF;
-      // This covers the case of, "play next song# 65535 : 2".
-      if (currentPlayerCounter > 0) {
-        playerCounter = currentPlayerCounter - 1;
-      } else {
-        playerCounter = playerCounterTop;
-      }
-      lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-    }
+    mp3player.play(playerCounter);
+    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Player, Examine: play previous song, playerCounter="));
     Serial.println(playerCounter);
@@ -4581,25 +4568,13 @@ void checkPlayerControls() {
   } else if (switchExamineNext) {
     switchExamineNext = false;
     // Switch logic
-    int currentPlayerCounter = playerCounter;
-    mp3player.next();
-    delay(300);
-    playerCounter = mp3player.readCurrentFileNumber();
-    int i = 0;
-    while (i++ < 3 && playerCounter >= playerCounterTop) {
-      delay(300);
-      playerCounter = mp3player.readCurrentFileNumber();
-    }
     if (playerCounter < playerCounterTop) {
-      playerStatus = playerStatus & HLTA_OFF;
-      // This covers the case of, "play next song# 65535 : 2".
-      if (currentPlayerCounter < playerCounterTop) {
-        playerCounter = currentPlayerCounter + 1;
-      } else {
-        playerCounter = 1;
-      }
-      lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+      playerCounter++;
+    } else {
+      playerCounter = 1;
     }
+    mp3player.play(playerCounter);
+    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Player, Examine Next: play next song, playerCounter="));
     Serial.println(playerCounter);
@@ -4621,14 +4596,14 @@ void checkPlayerControls() {
       Serial.print(F("Toggle loop a single song: off, song# "));
 #endif
       loopSingle = false;
+      // mp3player.disableLoop();
       playerStatus = playerStatus & M1_OFF;
-      mp3player.disableLoop();
     } else {
 #ifdef SWITCH_MESSAGES
       Serial.print(F("Toggle loop a single song: on, song# "));
 #endif
       loopSingle = true;
-      mp3player.loop(playerCounter);
+      // mp3player.loop(playerCounter);
       playerStatus = playerStatus | M1_ON;
       playerStatus = playerStatus & HLTA_OFF;
     }
@@ -4665,7 +4640,10 @@ void checkPlayerControls() {
     // Switch logic
     playerDirectory = 1;
     playerCounter = 1;
-    playSong();
+    mp3player.play(playerCounter);
+    playerStatus = playerStatus & HLTA_OFF;
+    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+    // playSong();
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Player, RESET: play first song, playerCounter="));
     Serial.println(playerCounter);
@@ -4680,11 +4658,12 @@ void checkPlayerControls() {
     switchProtect = false;
     //
     // Switch logic, based on programState.
-    playerVolume = mp3player.readVolume();
+    // playerVolume = mp3player.readVolume();
     if (playerVolume > 1) {
-      mp3player.volumeDown();
+      // mp3player.volumeDown();
       playerVolume--;
     }
+    mp3player.volume(playerVolume);
     lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
     // delay(300);
 #ifdef SWITCH_MESSAGES
@@ -4700,11 +4679,12 @@ void checkPlayerControls() {
   } else if (switchUnProtect) {
     switchUnProtect = false;
     // Switch logic
-    playerVolume = mp3player.readVolume();
+    // playerVolume = mp3player.readVolume();
     if (playerVolume < 30) {
-      mp3player.volumeUp();
+      // mp3player.volumeUp();
       playerVolume++;
     }
+    mp3player.volume(playerVolume);
     lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
     // delay(300);
 #ifdef SWITCH_MESSAGES
@@ -4722,9 +4702,11 @@ void checkPlayerControls() {
     // Switch logic
     int addressToggles = toggleAddress();
     if (addressToggles > 0 && addressToggles <= playerCounterTop) {
-      playerStatus = playerStatus & HLTA_OFF;
       playerCounter = addressToggles;
-      playSong();
+      mp3player.play(playerCounter);
+      playerStatus = playerStatus & HLTA_OFF;
+      lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+      // playSong();
 #ifdef SWITCH_MESSAGES
       Serial.print(F("+ Player, CLR: play a specific song number, playerCounter="));
       Serial.println(playerCounter);
@@ -4794,18 +4776,17 @@ void checkPlayerControls() {
     while ((i++ < 3) && ((playerCounter >= playerCounterTop) || playerCounter == currentPlayerCounter)) {
       delay(300);
       playerCounter = mp3player.readCurrentFileNumber();
-    }
-    /*
-      if (playerCounter <= currentPlayerCounter) {
-      playerDirectory--;
-      playerDirectoryTop = playerDirectory;
-      playerDirectory = 1;
-      playerCounter = 1;
-      mp3player.loopFolder(playerDirectory);
-      // Note, if no directory, get the error message: DFPlayerError:Cannot Find File
-      delay(300);
+      if ((currentPlayerCounter + 1) >= playerCounter) {
+        // + Player, Deposit Next play next folder# 8, playerCounter,pre=59,post=84
+        // + Player, Deposit Next play next folder# 9, playerCounter,pre=84,post=86
+        playerDirectory--;
+        playerDirectoryTop = playerDirectory;
+        playerDirectory = 1;
+        playerCounter = 1;
+        mp3player.loopFolder(playerDirectory);
+        delay(300);
       }
-    */
+    }
 #ifdef SWITCH_MESSAGES
     Serial.print(F(" play next folder# "));
     Serial.print(playerDirectory);
@@ -4818,11 +4799,11 @@ void checkPlayerControls() {
   }
   // -------------------
   if (pcfAux.readButton(pinAux2up) == 0) {
-    if (!switchStop) {
-      switchStop = true;
+    if (!switchAux2up) {
+      switchAux2up = true;
     }
-  } else if (switchStop) {
-    switchStop = false;
+  } else if (switchAux2up) {
+    switchAux2up = false;
     // Switch logic
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ Player, AUX2 up: ..."));
@@ -4830,35 +4811,39 @@ void checkPlayerControls() {
   }
   // -------------------
   if (pcfAux.readButton(pinAux2down) == 0) {
-    if (!switchStop) {
-      switchStop = true;
+    if (!switchAux2down) {
+      switchAux2down = true;
     }
-  } else if (switchStop) {
-    switchStop = false;
+  } else if (switchAux2down) {
+    switchAux2down = false;
     // Switch logic
 #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Player, AUX2 down: echo info."));
+    Serial.print(F("+ "));
+    Serial.print(F(" playerStatus="));
+    printByte(playerStatus);
+    Serial.print(F(" playerVolume="));
+    Serial.print(playerVolume);
     Serial.print(F(" playerCounterTop="));
     Serial.print(playerCounterTop);
-    Serial.print(F(" play folder# "));
+    Serial.print(F(" playerDirectory="));
     Serial.print(playerDirectory);
-    Serial.print(F(", playerCounter="));
+    Serial.print(F(" playerCounter="));
     Serial.print(playerCounter);
+    Serial.print(F(", mp3player.read()="));
+    Serial.print(mp3player.read());
     if (mp3player.available()) {
-      Serial.print(F(", mp3player available, "));
+      Serial.print(F(", mp3player available"));
       int theType = mp3player.readType();
       if (theType == DFPlayerPlayFinished) {
         Serial.print(F(", Play Finished."));
       } else {
-        // Print the detail message from DFPlayer which handles different errors and states.
         // printDFPlayerMessage(theType, mp3player.read());
         Serial.print(F(", theType="));
         Serial.print(theType);
-        Serial.print(F(", mp3player.read()="));
-        Serial.print(mp3player.read());
       }
     } else {
-      Serial.print(F("+ mp3player not available."));
+      // Song is playing or paused.
+      Serial.print(F(", mp3player not available."));
     }
     Serial.println();
 #endif
@@ -4908,7 +4893,10 @@ void printDFPlayerMessage(uint8_t type, int value) {
   switch (type) {
     case TimeOut:
       Serial.println(F("Time Out!"));
-      playSong();
+      mp3player.play(playerCounter);
+      playerStatus = playerStatus & HLTA_OFF;
+      lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+      // playSong();
       break;
     case DFPlayerCardInserted:
       Serial.println(F("Card Inserted!"));
@@ -4995,28 +4983,21 @@ void playMp3() {
         Serial.print(F("Loop/play the same MP3: "));
         Serial.println(playerCounter);
 #endif
-        playSong();
+        mp3player.play(playerCounter);
+        playerStatus = playerStatus & HLTA_OFF;
+        lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+        // playSong();
       } else {
 #ifdef SWITCH_MESSAGES
         Serial.print(F("Play next MP3: "));
 #endif
-        mp3player.next();
-        delay(300);
-        //
-        Serial.print(F(", current playerCounter="));
-        Serial.print(playerCounter);
-        playerCounter = mp3player.readCurrentFileNumber();
-        Serial.print(F(", playerCounter="));
-        Serial.print(playerCounter);
-        Serial.print(F(" "));
-        //
         if (playerCounter < playerCounterTop) {
-          // End of song, time to loop to first song.
-          lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-#ifdef SWITCH_MESSAGES
-          Serial.println(playerCounter);
-#endif
+          playerCounter++;
+        } else {
+          playerCounter = 1;
         }
+        mp3player.play(playerCounter);
+        lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
       }
       // ------------------------------
     } else if (theType == DFPlayerCardInserted ) {
@@ -5052,21 +5033,7 @@ void playerRun() {
   while (programState == PLAYER_RUN) {
     delay(60);
     if (!(playerStatus & HLTA_ON)) {
-      /*
-        Serial.println(F("+ Not HLTA_ON"));
-        if (playerCounter == 1) {
-        Serial.println(F("+ wasHLTA_ON"));
-        // Check if should play or start.
-        mp3player.play(playerCounter);
-        delay(300);
-        mp3player.start();
-        delay(300);
-        playerCounter++;
-        } else {
-        playMp3();
-        }
-        // wasHLTA_ON = false;
-      */
+      playMp3();
     }
     checkPlayerControls();    // Player control functions from STOP to UNPROTECT.
     checkPlayerSwitch();      // Toggle player mode: AUX1 down.
@@ -5222,7 +5189,6 @@ void setup() {
   playerVolume = 16;
   playerStatus = OUT_ON | HLTA_ON;  // OUT_ON  LED status light to indicate the Player.
   playPause = true;                 // HLTA_ON implies that the player is Paused.
-  //
   //
   mp3player.setTimeOut(60);        // Set serial communications time out
   delay(300);
