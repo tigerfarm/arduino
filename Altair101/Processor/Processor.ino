@@ -4784,6 +4784,7 @@ void checkPlayerControls() {
         playerDirectory = 1;
         playerCounter = 1;
         mp3player.loopFolder(playerDirectory);
+        // mp3player.play(playerCounter);
         delay(300);
       }
     }
@@ -4975,30 +4976,27 @@ void playMp3() {
     int theType = mp3player.readType();
     // ------------------------------
     if (theType == DFPlayerPlayFinished) {
-#ifdef SWITCH_MESSAGES
-      Serial.print(F("+ Play Finished, "));
-#endif
       if (loopSingle) {
 #ifdef SWITCH_MESSAGES
-        Serial.print(F("Loop/play the same MP3: "));
+        Serial.print(F("+ Loop/play the same MP3: "));
         Serial.println(playerCounter);
 #endif
-        mp3player.play(playerCounter);
-        playerStatus = playerStatus & HLTA_OFF;
-        lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-        // playSong();
       } else {
 #ifdef SWITCH_MESSAGES
-        Serial.print(F("Play next MP3: "));
+        Serial.print(F("+ Play the next MP3: "));
 #endif
         if (playerCounter < playerCounterTop) {
           playerCounter++;
         } else {
           playerCounter = 1;
         }
-        mp3player.play(playerCounter);
-        lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
       }
+      mp3player.play(playerCounter);
+      playerStatus = playerStatus & HLTA_OFF;
+      lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+#ifdef SWITCH_MESSAGES
+      Serial.println(playerCounter);
+#endif
       // ------------------------------
     } else if (theType == DFPlayerCardInserted ) {
       Serial.println(F("+ SD mini card inserted. Start playing"));
