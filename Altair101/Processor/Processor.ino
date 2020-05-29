@@ -4747,6 +4747,10 @@ void checkPlayerControls() {
       playerCounter = mp3player.readCurrentFileNumber();
     }
     lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+    //
+    // Disable the loop function so that playerCounter will be used for next MP3.
+    // mp3player.disableLoop();
+    //
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Player, Deposit: play previous folder# "));
     Serial.print(playerDirectory);
@@ -4788,6 +4792,11 @@ void checkPlayerControls() {
         delay(300);
       }
     }
+    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+    //
+    // Disable the loop function so that playerCounter will be used for next MP3.
+    // mp3player.disableLoop();
+    //
 #ifdef SWITCH_MESSAGES
     Serial.print(F(" play next folder# "));
     Serial.print(playerDirectory);
@@ -4796,7 +4805,6 @@ void checkPlayerControls() {
     Serial.print(F(",post="));
     Serial.println(playerCounter);
 #endif
-    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
   }
   // -------------------
   if (pcfAux.readButton(pinAux2up) == 0) {
@@ -4944,8 +4952,8 @@ void printDFPlayerMessage(uint8_t type, int value) {
           mp3player.loopFolder(playerDirectory);
           break;
         default:
-          Serial.println(F("Unknown DFPlayer error message value:"));
-          Serial.print(value);
+          Serial.print(F("Unknown DFPlayer error message value:"));
+          Serial.println (value);
           break;
       }
       break;
@@ -4964,7 +4972,6 @@ void printDFPlayerMessage(uint8_t type, int value) {
         Serial.print(F(", value:"));
         Serial.println(value);
         playerCounter = value;  // The song to play.
-        // playTrack(value);
         lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
       }
       break;
@@ -5019,15 +5026,7 @@ void playerRun() {
   Serial.print(F("+ playerRun()"));
   playerPlaySound(PLAYER_ON);
   lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-  /*
-    if (playerStatus & HLTA_ON) {
-    Serial.print(F(", playerStatus:HLTA_ON"));
-    mp3player.play(playerCounter);
-    mp3player.pause();
-    }
-  */
   Serial.println("");
-  //
   while (programState == PLAYER_RUN) {
     delay(60);
     if (!(playerStatus & HLTA_ON)) {
