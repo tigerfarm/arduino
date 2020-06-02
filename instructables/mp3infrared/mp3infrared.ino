@@ -332,26 +332,6 @@ void playMp3() {
   }
 }
 
-// Play track#, with retry.
-//    This may fix my issue where it skips to the next track until it finds a file that plays.
-//    From: https://reprage.com/post/dfplayer-mini-cheat-sheet
-void playTrack(uint8_t track) {
-  mp3player.stop();
-  delay(200);
-  mp3player.play(track);
-  delay(200);
-  int file = mp3player.readCurrentFileNumber();
-  Serial.print("Track:");
-  Serial.println(track);
-  Serial.print("File:");
-  Serial.println(file);
-  while (file != track) {
-    mp3player.play(track);
-    delay(200);
-    file = mp3player.readCurrentFileNumber();
-  }
-}
-
 // -----------------------------------------------------------------------
 // Infrared DFPlayer controls
 

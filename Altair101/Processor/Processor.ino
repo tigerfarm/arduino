@@ -15,16 +15,8 @@
   ---------------------------------------------
   Current/Next Work
 
-  Test to reduce player noice.
-  + Force the serial transmit pin LOW, immediately after sending the Play command.
-  + 1k resister to the serial pin that doesn't already have one.
-  + Power player using a 3.3V regulator.
-
-  Allow switch sounds, if no file is playing at the time.
+  Switch sounds,
   + If playerStatus is HLTA_ON, a sound file can play.
-  + Then, when returning to playerRun(), need to reset to the song previously played.
-  ++ Currently, when returning, playMp3() plays the song after the playSound() file.
-  +++ Maybe, mp3player.play(playerCounter); mp3player.pause();
 
   User guide,
   + How to save a program to the SD card.
@@ -68,6 +60,7 @@
   + CLR           Play toggle address value song
   + PROTECT       Decrease volume
   + UNPROTECT     Increase volume
+  + AUX2 down     Send log message of player values such as currrent song number.
 
   ---------------------------------------------
   Desktop Box:
@@ -233,20 +226,27 @@ void playerLights() {
 }
 
 // ---------------------------
+// Function call number
+// Example: playerPlaySound(READ_FILE) plays 05-transfercomplete.mp3
 int READ_FILE   = 1;
 int CLOCK_RESET = 2;
 int CLOCK_ON    = 3;
 int CLOCK_OFF   = 4;
 int PLAYER_ON   = 3;
 int PLAYER_OFF  = 4;
+int KR5         = 5;
+// Arrary matching the above value, to the soundEffects array, file number.
+// Example: READ_FILE=1 which is array value = 5, soundEffects[READ_FILE]=5 or soundEffects[1]=5.
 const int maxSoundEffects = 32;
 int soundEffects[maxSoundEffects] = {
   1,       // setup() completed.
   5,       // Read file into memory.
   4,       // Flipped clock RESET switch.
   2,       // AUX1 flipped up, enter clock mode.
-  3        // AUX1 flipped up, exit clock mode.
+  3,       // AUX1 flipped up, exit clock mode.
+  6        // Knight Rider sound effect.
 };
+// Function to play a sound file using the above mapping.
 void playerPlaySound(int theFileNumber) {
   // HLTA_ON = B00001000
   // Serial.print(F("+ playerPlaySound("));
@@ -264,39 +264,57 @@ void playerPlaySound(int theFileNumber) {
 
 // -----------------------------------------------------------------------------
 void ledFlashKnightRider(int times) {
-  int delayTime = 60;
+  int delayTime = 66;
+  int theDelayTime = 0;
   unsigned int riderByte;
   byte flashByte;
+  int iStart = 0;
   lightsStatusAddressData(0, 0, 0);
   delay(delayTime);
-  for (int i = 0; i < times; i++) {
+  for (int j = 0; j < times; j++) {
     flashByte = B10000000;
-    for (int i = 0; i < 8; i++) {
+    for (int i = iStart; i < 8; i++) {
+      // A15 to A8.
       riderByte = flashByte * 256;
       lightsStatusAddressData(0, riderByte, 0);
       flashByte = flashByte >> 1;
-      delay(delayTime);
+      if (j > 0 && i == 0) {
+        theDelayTime = delayTime/2;
+      } else {
+        theDelayTime = delayTime;
+      }
+      delay(theDelayTime);
     }
     flashByte = B10000000;
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 7; i++) {
+      // A7 to A0.
       lightsStatusAddressData(0, flashByte, 0);
       flashByte = flashByte >> 1;
       delay(delayTime);
     }
     flashByte = B00000001;
     for (int i = 0; i < 8; i++) {
+      // A0 to A7.
       lightsStatusAddressData(0, flashByte, 0);
       flashByte = flashByte << 1;
       delay(delayTime);
     }
     flashByte = B00000001;
     for (int i = 0; i < 8; i++) {
+      // A8 to A14.
+      // Only 7, as not to repeat flashing the LED twice.
       riderByte = flashByte * 256;
       lightsStatusAddressData(0, riderByte, 0);
       flashByte = flashByte << 1;
-      delay(delayTime);
+      if (j < times && i == 0) {
+        theDelayTime = delayTime/2;
+      } else {
+        theDelayTime = delayTime;
+      }
+      delay(theDelayTime);
     }
   }
+  //
   // Reset the panel lights to program values.
   switch (programState) {
     case CLOCK_RUN:
@@ -4113,7 +4131,15 @@ void clockPulseHour() {
   } else {
     theHour = theCounterHours;
   }
-  ledFlashKnightRider(3);
+  // Knight Rider scanner lights and sound.
+  // playerPlaySound(KR5);
+  mp3player.play(6);
+  ledFlashKnightRider(1, true);
+  mp3player.play(6);
+  ledFlashKnightRider(1, false);
+  mp3player.play(6);
+  ledFlashKnightRider(1, false);
+  //
   displayTheTime( theCounterMinutes, theCounterHours );
   printLcdClockValue(thePrintColHour, printRowClockPulse, theHour);
 }
@@ -4122,6 +4148,10 @@ void clockPulseMinute() {
   Serial.println(theCounterMinutes);
   displayTheTime( theCounterMinutes, theCounterHours );
   printLcdClockValue(thePrintColMin, printRowClockPulse, theCounterMinutes);
+  if (theCounterMinutes == 15 || theCounterMinutes == 30 || theCounterMinutes == 45) {
+    // playerPlaySound(CLOCK_RESET);
+    mp3player.play(14); // Knight Rider scan.
+  }
 }
 void clockPulseSecond() {
   // Serial.print("+ theCounterSeconds = ");
@@ -4318,8 +4348,14 @@ void checkClockControls() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ Control, clock Reset."));
 #endif
-    playerPlaySound(CLOCK_RESET);
-    ledFlashKnightRider(1);
+    // playerPlaySound(CLOCK_RESET);
+    mp3player.play(6);
+    // playerPlaySound(KR5);
+    ledFlashKnightRider(1, true);
+    mp3player.play(6);
+    ledFlashKnightRider(1, false);
+    mp3player.play(6);
+    ledFlashKnightRider(1, false);
     clockData = 0;
     Serial.println(F("Show minutes and hours."));
     displayTheTime(theCounterMinutes, theCounterHours);
@@ -5311,7 +5347,7 @@ void setup() {
   // ----------------------------------------------------
   mp3player.play(soundEffects[0]);
   delay(500);
-  ledFlashKnightRider(2);
+  ledFlashKnightRider(2, true);
   delay(200);
   mp3player.play(playerCounter);
   mp3player.pause();

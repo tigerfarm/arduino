@@ -3,6 +3,8 @@
   DFPlayer - A Mini MP3 Player For Arduino
   MP3 player with: play next, previous, loop single, and pause.
 
+  This version controls the currently played MP3 rather than using various library functions.
+
   -------------------------------------------------------------------------
   Program functionality:
   + Key: Function
@@ -20,164 +22,11 @@
   +  Dn: Play previous directory songs
   + *|Return: Loop single song: on
   + #|Exit: Loop single song: off
-
-  -------------------------------------------------------------------------
-  To compile this version, use the library manager to load the
-    DFRobotDFPlayerMini by DFRobot mini player library.
-    For my implementation, I loaded version 1.0.5.
-    https://github.com/DFRobot/DFRobotDFPlayerMini
-
-  -------------------------------------------------------------------------
-  DFPlayer specifications with sample programs.
-    https://wiki.dfrobot.com/DFPlayer_Mini_SKU_DFR0299
-    supports FAT16 , FAT32 file system, maximum support 32G
-    supported sampling rates (kHz): 8/11.025/12/16/22.05/24/32/44.1/48
-    supports up to 100 folders, every folder can hold up to 255 songs
-    30 level adjustable volume, 6 -level EQ adjustable
-    Serial sending of commands: 9600 bps, Data bits:1, Checkout:none, Flow Control:none
-
-  Sample library commands:
-    mp3player.play(1);           // Play the first mp3
-    mp3player.pause();           // pause the mp3
-    mp3player.start();           // start the mp3 from the pause
-    ------------------------------
-    mp3player.next();            // Play next mp3
-    mp3player.previous();        // Play previous mp3
-    ------------------------------
-    mp3player.playMp3Folder(4);  // play specific mp3 in SD:/MP3/0004.mp3; File Name(0~65535)
-    mp3player.playFolder(15, 4); // play specific mp3 in SD:/15/004.mp3; Folder Name(1~99); File Name(1~255)
-    mp3player.playLargeFolder(2, 999); //play specific mp3 in SD:/02/004.mp3; Folder Name(1~10); File Name(1~1000)
-    ------------------------------
-    mp3player.loop(1);           // Loop the first mp3
-    mp3player.enableLoop();      // enable loop.
-    mp3player.disableLoop();     // disable loop.
-    mp3player.loopFolder(5);     // loop all mp3 files in folder SD:/05.
-    mp3player.enableLoopAll();   // loop all mp3 files.
-    mp3player.disableLoopAll();  // stop loop all mp3 files.
-    ------------------------------
-    mp3player.volume(10);        // Set volume value. From 0 to 30
-    mp3player.volumeUp();        // Volume Up
-    mp3player.volumeDown();      // Volume Down
-    ------------------------------
-    mp3player.setTimeOut(500);   //Set serial communictaion time out 500ms
-    mp3player.reset();           //Reset the module
-    ------------------------------
-    Serial.println(mp3player.readState());               //read mp3 state
-    Serial.println(mp3player.readVolume());              //read current volume
-    Serial.println(mp3player.readEQ());                  //read EQ setting
-    Serial.println(mp3player.readFileCounts());          //read all file counts in SD card
-    Serial.println(mp3player.readCurrentFileNumber());   //read current play file number
-    Serial.println(mp3player.readFileCountsInFolder(3)); //read fill counts in folder SD:/03
-    ------------------------------
-    mp3player.available()
-    printDetail(mp3player.readType(), mp3player.read()); //Print the detail message from DFPlayer to handle different errors and states.
-    ------------------------------
-
-  Filenames and folder directory names:
-    The default folder name needs to be mp3, placed under the SD card root directory: SD:/MP3.
-    Other Folder Names: 01 ... 99.
-    The mp3 file name needs to be 4 digits, for example, "0001.mp3", placed under the mp3 folder.
-    File Names: 0001.mp3 to 0255.mp3. Or, 001.mp3 to 255.mp3?
-    Can add characters after the number, for example, "0001hello.mp3".
-
-  Prepare an SD card for use.
-  
-  On Mac, use the disk utility to format the disk:
-    Applications > Utilities > open Disk Utility.
-    Click on the SD card, example: APPLE SD Card Reader Media/MUSICSD.
-    Click menu item, Erase.
-    Set name, example: MUSICSD.
-    Select: MS-DOS (Fat).
-    Click Erase. The disk is cleaned and formated.
-
-  List to find the card.
-    $ diskutil list
-    /dev/disk3 (internal, physical):
-      #:                       TYPE NAME                    SIZE       IDENTIFIER
-      0:     FDisk_partition_scheme                        *4.0 GB     disk3
-      1:                 DOS_FAT_32 MUSICSD                 4.0 GB     disk3s1
-    $ ls /Volumes/MUSICSD
-  Copy files in order onto the SD card.
-    The DFPlayer seems to use some sort of creation timestamp when the files are index.
-    So don’t copy 0003.mp3 and then 0001.mp3, otherwise wacky things will happen.
-    $ ls /Volumes/MUSICSD
-    01  02
-  Clean hidden files which can cause issues: https://ss64.com/osx/dot_clean.html
-    $ dot_clean /Volumes/MUSICSD
-
-  ------------------------------------------------------------------------------
-  DFPlayer Mini pins
-         ----------
-    VCC |   |  |   | BUSY, low:playing, high:not playing
-     RX |    __    | USB port - (DM, clock)
-     TX | DFPlayer | USB port + (DP, data)
-  DAC_R |          | ADKEY_2 Play fifth segment.
-  DAC_L |  ------  | ADKEY_1 Play first segment.
-  SPK - | |      | | IO_2 short press, play next. Long press, increase volume.
-    GND | |      | | GND
-  SPK + | Micro SD | IO_1 short press, play previous. Long press, decrease volume.
-         ----------
-
-  Can try:
-    "SPK -" to speaker #1 +
-    "SPK +" to speaker #2 +
-    GND to ground of speaker #1 and speaker #2.
-
-   3.5mm headphone jack pin out:
-   + Tip: left channel
-   + Middle: right channel
-   + Closest to the cable: ground.
-
-  ---------------------------------
-  Connections used with an Arduino,
-
-  1. UART serial,
-    RX for receiving control instructions the DFPlayer.
-    RX: input connects to TX on Mega/Nano/Uno.
-    TX for sending state information.
-    TX: output connects to RX on Mega/Nano/Uno.
-  Connections for Nano or Uno:
-    RX(2) to resister (1K-5K) to serial software pin 11(TX).
-    TX(3) to serial software pin 10(RX).
-  Connections for Mega:
-    RX(2) to resister (1K-5K) to Mega Serial1 pin 18(TX).
-    TX(3) to Mega Serial1 pin 19(RX).
-
-  2. Power options.
-   Connect from the Arduino directly to the DFPlayer:
-    VCC to +5V. Note, also works with +3.3V in the case of an NodeMCU.
-    GND to ground(-).
-  Use a completely different power source:
-    VCC to +5V of the other power source.
-    GND to ground(-) of the other power source.
-  I seen another power option:
-    From the Arduino +5V, use a 7805 with capacitors and diode to the DFPlayer VCC pin.
-    GND to ground(-).
-
-  3. Speaker output.
-  For a single speaker, less than 3W:
-    SPK - to the speaker pin.
-    SPK + to the other speaker pin.
-  For output to a stearo amp or ear phones:
-    DAC_R to output right (+)
-    DAC_L to output left  (+)
-    GND   to output ground.
-
-  ------------------------------------------------------------------------------
-  Infrared receiver pins
-
-   A1 + -   - Nano connections
-    | | |   - Infrared receiver pins
-  ---------
-  |S      |
-  |       |
-  |  ---  |
-  |  | |  |
-  |  ---  |
-  |       |
-  ---------
-
 */
+// -----------------------------------------------------------------------
+
+#define SWITCH_MESSAGES 1
+
 // -----------------------------------------------------------------------
 // Infrared Receiver
 
@@ -304,17 +153,27 @@ void playMp3() {
     int theType = mp3player.readType();
     // ------------------------------
     if (theType == DFPlayerPlayFinished) {
-      Serial.print(F("+ Play Finished, Current FileNumber: "));
-      Serial.println(mp3player.readCurrentFileNumber());
       if (loopSingle) {
-        Serial.println("Loop/play the same MP3.");
-        mp3player.start();
-        // Serial.println("+ mp3player.read() " + mp3player.read());
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ Loop/play the same MP3: "));
+        Serial.println(playerCounter);
+#endif
       } else {
-        Serial.println("Play next MP3.");
-        delay(300);
-        mp3player.next();
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ Play the next MP3: "));
+#endif
+        if (playerCounter < playerCounterTop) {
+          playerCounter++;
+        } else {
+          playerCounter = 1;
+        }
       }
+      mp3player.play(playerCounter);
+      playerStatus = playerStatus & HLTA_OFF;
+      lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+#ifdef SWITCH_MESSAGES
+      Serial.println(playerCounter);
+#endif
       // ------------------------------
     } else if (theType == DFPlayerCardInserted ) {
       Serial.println(F("+ SD mini card inserted. Start playing"));
@@ -324,26 +183,6 @@ void playMp3() {
       //   such as memory card not inserted.
       printDFPlayerMessage(theType, mp3player.read());
     }
-  }
-}
-
-// Play track#, with retry.
-//    This may fix my issue where it skips to the next track until it finds a file that plays.
-//    From: https://reprage.com/post/dfplayer-mini-cheat-sheet
-void playTrack(uint8_t track) {
-  mp3player.stop();
-  delay(200);
-  mp3player.play(track);
-  delay(200);
-  int file = mp3player.readCurrentFileNumber();
-  Serial.print("Track:");
-  Serial.println(track);
-  Serial.print("File:");
-  Serial.println(file);
-  while (file != track) {
-    mp3player.play(track);
-    delay(200);
-    file = mp3player.readCurrentFileNumber();
   }
 }
 
@@ -364,20 +203,34 @@ void playerInfraredSwitch() {
     // Song control
     case 0xFF10EF:
     case 0xE0E0A659:
-      // Serial.println("+ Key < - previous");
-      // Stacy, don't previous before the first song.
-      mp3player.previous();
-      delay(300);
-      Serial.print(F("+ Previous, Current FileNumber: "));
-      Serial.println(mp3player.readCurrentFileNumber());
+    // Switch logic
+    if (playerCounter > 1) {
+      playerCounter--;
+    } else {
+      playerCounter = playerCounterTop;
+    }
+    mp3player.play(playerCounter);
+    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, Examine: play previous song, playerCounter="));
+    Serial.println(playerCounter);
+#endif
       break;
     case 0xFF5AA5:
     case 0xE0E046B9:
-      // Serial.println("+ Key > - next");
-      mp3player.next();
-      delay(300);
-      Serial.print(F("+ Next, Current FileNumber: "));
-      Serial.println(mp3player.readCurrentFileNumber());
+    // Switch logic
+    if (playerCounter < playerCounterTop) {
+      playerCounter++;
+    } else {
+      playerCounter = 1;
+    }
+    mp3player.play(playerCounter);
+    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+#ifdef SWITCH_MESSAGES
+    Serial.println("+ Key > - next");
+    Serial.print(F("+ Player, Examine Next: play next song, playerCounter="));
+    Serial.println(playerCounter);
+#endif
       break;
     case 0xFF38C7:
     case 0xE0E016E9:
@@ -526,12 +379,15 @@ void setup() {
   // ----------------------------------------------------
   // Initial player settings.
   //
-  // If I add an SD card, I could save the state.
-  //  When starting, set to the previous state.
+  // Set player front panel values.
+  playerCounter = 1;                // For now, default to song/file 1.
+  playerVolume = 16;
+  playerStatus = OUT_ON | HLTA_ON;  // OUT_ON  LED status light to indicate the Player.
+  playPause = true;                 // HLTA_ON implies that the player is Paused.
   //
-  mp3player.setTimeOut(500);   // Set serial communictaion time out
+  mp3player.setTimeOut(60);        // Set serial communications time out
   delay(300);
-  mp3player.volume(12);        // Set speaker volume from 0 to 30. Doesn't effect DAC output.
+  mp3player.volume(playerVolume);   // Set speaker volume from 0 to 30. Doesn't effect DAC output.
   //
   // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
   mp3player.outputDevice(DFPLAYER_DEVICE_SD);
@@ -539,13 +395,11 @@ void setup() {
   // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
   mp3player.EQ(DFPLAYER_EQ_CLASSIC);
   //
-  mp3player.loopFolder(currentDirectory);
-  // mp3player.play(currentSingle);
-  //
-  delay(300); // need a delay after the previous mp3player function call, before the next call.
+  delay(300);
+  playerCounterTop = mp3player.readFileCounts();
   mp3player.pause();
-  playPause = true;
-  Serial.println(F("+ DFPlayer is initialized."));
+  Serial.print(F("+ DFPlayer is initialized. Number of MP3 files = "));
+  Serial.println(playerCounterTop);
 
   // ---------------------
   irrecv.enableIRIn();
@@ -556,15 +410,14 @@ void setup() {
 
 // -----------------------------------------------------------------------------
 void loop() {
-
-  delay(60);
-
+    delay(60);
+    if (!(playerStatus & HLTA_ON)) {
+      playMp3();
+    }
   // Process infrared key presses.
   if (irrecv.decode(&results)) {
     playerInfraredSwitch();
     irrecv.resume();
   }
-  // playMp3(); Use hard continuance.
-
 }
 // -----------------------------------------------------------------------------
