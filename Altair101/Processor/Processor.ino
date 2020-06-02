@@ -178,7 +178,7 @@
 #define DESKTOP_MODULE 1
 
 #define SETUP_SDCARD 1
-// #define SETUP_CLOCK 1
+#define SETUP_CLOCK 1
 // #define SETUP_LCD 1
 
 #define INCLUDE_AUX 1
@@ -263,7 +263,7 @@ void playerPlaySound(int theFileNumber) {
 }
 
 // -----------------------------------------------------------------------------
-void ledFlashKnightRider(int times) {
+void ledFlashKnightRider(int times, boolean NotUsed) {
   int delayTime = 66;
   int theDelayTime = 0;
   unsigned int riderByte;
@@ -279,7 +279,7 @@ void ledFlashKnightRider(int times) {
       lightsStatusAddressData(0, riderByte, 0);
       flashByte = flashByte >> 1;
       if (j > 0 && i == 0) {
-        theDelayTime = delayTime/2;
+        theDelayTime = delayTime / 2;
       } else {
         theDelayTime = delayTime;
       }
@@ -307,7 +307,7 @@ void ledFlashKnightRider(int times) {
       lightsStatusAddressData(0, riderByte, 0);
       flashByte = flashByte << 1;
       if (j < times && i == 0) {
-        theDelayTime = delayTime/2;
+        theDelayTime = delayTime / 2;
       } else {
         theDelayTime = delayTime;
       }
@@ -316,7 +316,8 @@ void ledFlashKnightRider(int times) {
   }
   //
   // Reset the panel lights to program values.
-  switch (programState) {
+  /*
+    switch (programState) {
     case CLOCK_RUN:
       displayTheTime( theCounterMinutes, theCounterHours );
       break;
@@ -326,7 +327,8 @@ void ledFlashKnightRider(int times) {
     default:
       programLights();
       break;
-  }
+    }
+  */
 }
 
 // -----------------------------------------------------------------------------
@@ -5185,6 +5187,9 @@ void DownloadProgram() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void setup() {
+
+  boolean workingPerfectly = true;
+
   Serial.begin(115200); // 115200 or 9600
   delay(1000);        // Give the serial connection time to start before the first print.
   Serial.println(""); // Newline after garbage characters.
@@ -5210,6 +5215,7 @@ void setup() {
     Serial.println(F("Unable to begin:"));
     Serial.println(F("1.Please recheck the connection!"));
     Serial.println(F("2.Please insert the SD card!"));
+    workingPerfectly = false;
   }
   // ----------------------------------------------------
   // Initial player settings.
@@ -5305,29 +5311,38 @@ void setup() {
 #ifdef SETUP_SDCARD
   // The csPin pin is connected to the SD card module select pin (CS).
   //            1234567890123456
+#ifdef SETUP_LCD
   lcdPrintln(0, "Init SD card mod");
+#endif
   if (!SD.begin(csPin)) {
     Serial.println("- Error initializing SD card module.");
     ledFlashError();
+    workingPerfectly = false;
   } else {
     Serial.println("+ SD card module is initialized.");
     ledFlashSuccess();
   }
-  // delay(2000);
+  delay(300);
 #endif
 
   // ----------------------------------------------------
   // Initialize the Real Time Clock (RTC).
 #ifdef SETUP_CLOCK
   //            1234567890123456
+#ifdef SETUP_LCD
   lcdPrintln(1, "Init Clock");
+#endif
   if (!rtc.begin()) {
     Serial.println("- Error: Real time clock not found, not set.");
     ledFlashError();
+    workingPerfectly = false;
   } else {
     ledFlashSuccess();
     Serial.println("+ Real time clock is initialized.");
   }
+  delay(300);
+#endif
+#ifdef SETUP_LCD
   delay(2000);
 #endif
 
@@ -5345,12 +5360,16 @@ void setup() {
   controlResetLogic();
   Serial.println(F("+++ Program system reset."));
   // ----------------------------------------------------
-  mp3player.play(soundEffects[0]);
-  delay(500);
-  ledFlashKnightRider(2, true);
-  delay(200);
-  mp3player.play(playerCounter);
-  mp3player.pause();
+
+  if (workingPerfectly) {
+    mp3player.play(soundEffects[0]);
+    delay(500);
+    ledFlashKnightRider(2, true);
+    programLights();
+    delay(200);
+  } else {
+    ledFlashError();
+  }
   // ----------------------------------------------------
   Serial.println(F("+ Starting the processor loop."));
 }

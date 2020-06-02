@@ -145,47 +145,6 @@ void echoCurrentInfo() {
   */
 }
 
-// -----------------------------------------------------------------------------
-// Handle continuous playing, and play errors such as: SD card not inserted.
-
-void playMp3() {
-  if (mp3player.available()) {
-    int theType = mp3player.readType();
-    // ------------------------------
-    if (theType == DFPlayerPlayFinished) {
-      if (loopSingle) {
-#ifdef SWITCH_MESSAGES
-        Serial.print(F("+ Loop/play the same MP3: "));
-        Serial.println(playerCounter);
-#endif
-      } else {
-#ifdef SWITCH_MESSAGES
-        Serial.print(F("+ Play the next MP3: "));
-#endif
-        if (playerCounter < playerCounterTop) {
-          playerCounter++;
-        } else {
-          playerCounter = 1;
-        }
-      }
-      mp3player.play(playerCounter);
-      playerStatus = playerStatus & HLTA_OFF;
-      lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-#ifdef SWITCH_MESSAGES
-      Serial.println(playerCounter);
-#endif
-      // ------------------------------
-    } else if (theType == DFPlayerCardInserted ) {
-      Serial.println(F("+ SD mini card inserted. Start playing"));
-      mp3player.start();
-    } else {
-      // Print the detail message from DFPlayer to handle different errors and states,
-      //   such as memory card not inserted.
-      printDFPlayerMessage(theType, mp3player.read());
-    }
-  }
-}
-
 // -----------------------------------------------------------------------
 // Infrared DFPlayer controls
 
@@ -346,6 +305,47 @@ void playerInfraredSwitch() {
       Serial.println(results.value, HEX);
       // -----------------------------------
   } // end switch
+}
+
+// -----------------------------------------------------------------------------
+// Handle continuous playing, and play errors such as: SD card not inserted.
+
+void playMp3() {
+  if (mp3player.available()) {
+    int theType = mp3player.readType();
+    // ------------------------------
+    if (theType == DFPlayerPlayFinished) {
+      if (loopSingle) {
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ Loop/play the same MP3: "));
+        Serial.println(playerCounter);
+#endif
+      } else {
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ Play the next MP3: "));
+#endif
+        if (playerCounter < playerCounterTop) {
+          playerCounter++;
+        } else {
+          playerCounter = 1;
+        }
+      }
+      mp3player.play(playerCounter);
+      playerStatus = playerStatus & HLTA_OFF;
+      lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+#ifdef SWITCH_MESSAGES
+      Serial.println(playerCounter);
+#endif
+      // ------------------------------
+    } else if (theType == DFPlayerCardInserted ) {
+      Serial.println(F("+ SD mini card inserted. Start playing"));
+      mp3player.start();
+    } else {
+      // Print the detail message from DFPlayer to handle different errors and states,
+      //   such as memory card not inserted.
+      printDFPlayerMessage(theType, mp3player.read());
+    }
+  }
 }
 
 // -----------------------------------------------------------------------------
