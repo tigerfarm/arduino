@@ -16,8 +16,10 @@
   Current/Next Work
 
   Time to generate videos.
-  + I can show my steampunk tablet to the world.
-  + Emulate Star Trek computer using Kill the Bit to flash the lights.
+  + Done: Steampunk tablet running Kill the Bit.
+  + Emulate Star Trek computer using
+  ++ Kill the Bit to flash the lights, and
+  ++ The player, playing a Star Trek computer sound bit.
   + Run NOP program without and with a sound bit.
   + Demo entering and running the following program:
     ; Add content of address 1 and 3, and store the answer in address 64.
@@ -58,10 +60,11 @@
   ----------------------------------------
 
   Clock, clockRun(),
-  + AUX1 Up toolge clock controls, shows the time of day.
+  + AUX1 Up toogle clock controls, shows the time of day.
   + Address displays the hour: A1 ... A12,      month,      or century
   + Data    displays the minutes single digit,  day single, or year single
   + Status  displays the minutes tens digit,    day tens,   or year tens
+  + Indicator  HLDA : On to indicate controlled by other than the program emulator.
   -----------
   + SINGLE STEP: 1) Show time of day: hour and minutes, 2) month and day, 3) year.
   + To do: RESET: Show time of day.
@@ -74,23 +77,24 @@
   + AUX1 Down toolge MP3 player controls, show song number and volume level.
   + Address displays the song number that is playing.
   + Data    displays the volume.
-  + Status    M1   : Loop single song is on.
-  + Status    OUT  : MP3 player control.
-  + Status    HLTA : pause, light is on, else off.
+  + Status     M1   : Loop single MP3 is on.
+  + Status     OUT  : MP3 player control indicator, since HLDA is on as well.
+  + Status     HLTA : pause, light is on, else off.
+  + Indicator  HLDA : On to indicate controlled by other than the program emulator.
   -----------
   + STOP          Pause play
-  + RUN           Play song
-  + SINGLE up     Toogle the playing of a single song, on and off.
-  + SINGLE dn     Stop loop single song   *** Switch is not working. Check the physical switch.
-  + EXAMINE       Play previous song
-  + EXAMINE NEXT  Play next song
-  + DEPOSIT       Play previous folder
-  + DEPOSIT NEXT  Play next folder
-  + RESET         Play first song
-  + CLR           Play toggle address value song
+  + RUN           Play MP3. And loop all.
+  + SINGLE up     Toogle the playing of a single MP3, on and off.
+  + SINGLE dn     Stop loop single MP3   *** Switch is not working. Check the physical switch.
+  + EXAMINE       Play previous MP3. And loop all.
+  + EXAMINE NEXT  Play next MP3. And loop all.
+  + DEPOSIT       Play previous folder. And loop all.
+  + DEPOSIT NEXT  Play next folder. And loop all.
+  + RESET         Play first MP3. And loop all.
+  + CLR           Play toggle address value MP3. If HLTA is on, only play once, then pause.
   + PROTECT       Decrease volume
   + UNPROTECT     Increase volume
-  + AUX2 down     Send log message of player values such as currrent song number.
+  + AUX2 down     Send log message to serial port, of player values such as currrent MP3 number.
 
   ---------------------------------------------
   Desktop Box:
@@ -4777,7 +4781,7 @@ void checkPlayerControls() {
     if (addressToggles > 0 && addressToggles <= playerCounterTop) {
       playerCounter = addressToggles;
       mp3player.play(playerCounter);
-      playerStatus = playerStatus & HLTA_OFF;
+      // playerStatus = playerStatus & HLTA_OFF;  // Commented out, only play once, if HLTA is ON.
       lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
       // playSong();
 #ifdef SWITCH_MESSAGES
