@@ -19,6 +19,21 @@
   + I can show my steampunk tablet to the world.
   + Emulate Star Trek computer using Kill the Bit to flash the lights.
   + Run NOP program without and with a sound bit.
+  + Demo entering and running the following program:
+    ; Add content of address 1 and 3, and store the answer in address 64.
+  ++ Address:byte      databyte :hex:oct > description
+  ++       0:00000000: 00111110 : 3E:076 > opcode: mvi a,2
+  ++       1:00000001: 00000010 : 02:002 > immediate: 2 : 2
+  ++       2:00000010: 11000110 : C6:306 > opcode: adi 3
+  ++       3:00000011: 00000011 : 03:003 > immediate: 3 : 3
+  ++       4:00000100: 00110010 : 32:062 > opcode: sta 64
+  ++       5:00000101: 01000000 : 40:100 > lb: 64
+  ++       6:00000110: 00000000 : 00:000 > hb: 0
+  ++       7:00000111: 01110110 : 76:166 > opcode: hlt
+  ++       8:00001000: 11000011 : C3:303 > opcode: jmp Start
+  ++       9:00001001: 00000000 : 00:000 > lb: 0
+  ++      10:00001010: 00000000 : 00:000 > hb: 0
+  + End of list.
 
   Sample programs:
   + 0000 NOP
@@ -3726,6 +3741,13 @@ void controlResetLogic() {
   processData();
 }
 
+void pausePlayer() {
+  // Twice because sometimes, once doesn't work.
+  mp3player.pause();
+  delay(100);
+  mp3player.pause();
+  playerStatus = playerStatus | HLTA_ON;
+}
 void controlStopLogic() {
   programState = PROGRAM_WAIT;
   // Create a STOP statusByte, to display on stopping.
@@ -3734,6 +3756,7 @@ void controlStopLogic() {
   digitalWrite(WAIT_PIN, HIGH);
   // Display values to the panel lights.
   lightsStatusAddressData(stopStatusByte, programCounter, dataByte);
+  pausePlayer();
 }
 
 // --------------------------------------------------
@@ -3965,11 +3988,7 @@ void checkRunningButtons() {
 #endif
     controlStopLogic();
     // -------------------
-    // Twice because sometimes, once doesn't work.
-    mp3player.pause();
-    delay(100);
-    mp3player.pause();
-    playerStatus = playerStatus | HLTA_ON;
+    pausePlayer();
   }
   // -------------------
   // Read PCF8574 input for this switch.
