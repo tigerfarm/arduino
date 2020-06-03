@@ -15,6 +15,21 @@
   ---------------------------------------------
   Current/Next Work
 
+  Time to generate videos.
+  + I can show my steampunk tablet to the world.
+  + Emulate Star Trek computer using Kill the Bit to flash the lights.
+  + Run NOP program without and with a sound bit.
+
+  Sample programs:
+  + 0000 NOP
+  + 0001 Simple jump
+  + 0010 More lights, jump program
+  + 0011 Kill the Bit
+  + 0100 Program list, requires LCD
+  + 0101 Add program, x + y: x in address 1, y in address 3, and answer in A6(64).
+  + 0000 NOP
+  + 0000 NOP
+
   Switch sounds,
   + If playerStatus is HLTA_ON, a sound file can play.
 
@@ -76,11 +91,8 @@
   + Done: Test new serial module using the tablet. Then install it in the box.
   + Done: Wire up the MP3 player. Use a separate power supply. Test using multiple USB hubs.
   + Mount, connect, and test a 1602 LCD.
-  + Later, add the stearo amp inside the case.
+  + Later, add the stearo amp power supply inside the case.
   ++ Use the Mega to control an On/off relay switch for the amp's 120AC adapter.
-
-  I can show my steampunk tablet to the world.
-  + Time to generate videos.
 
   ---------------------------------------------
   ---------------------------------------------
@@ -3953,6 +3965,9 @@ void checkRunningButtons() {
 #endif
     controlStopLogic();
     // -------------------
+    // Twice because sometimes, once doesn't work.
+    mp3player.pause();
+    delay(100);
     mp3player.pause();
     playerStatus = playerStatus | HLTA_ON;
   }
@@ -4002,7 +4017,6 @@ void checkControlButtons() {
     }
   }
   // -------------------
-  // Read PCF8574 input for this switch.
   if (pcfControl.readButton(pinReset) == 0) {
     if (!switchReset) {
       switchReset = true;
@@ -4016,7 +4030,6 @@ void checkControlButtons() {
     controlResetLogic();
   }
   // -------------------
-  // Read PCF8574 input for this switch.
   if (pcfControl.readButton(pinStep) == 0) {
     if (!switchStep) {
       switchStep = true;
@@ -4313,6 +4326,7 @@ void restoreLcdScreenData() {
 */
 int clockData = 0;
 void checkClockControls() {
+  // ------------------------
   if (pcfControl.readButton(pinStep) == 0) {
     if (!switchStep) {
       switchStep = true;
@@ -4340,6 +4354,7 @@ void checkClockControls() {
       displayTheTime(theCounterMinutes, theCounterHours);
     }
   }
+  // ------------------------
   if (pcfControl.readButton(pinReset) == 0) {
     if (!switchReset) {
       switchReset = true;
@@ -4592,6 +4607,7 @@ void checkPlayerControls() {
       playerCounter = playerCounterTop;
     }
     mp3player.play(playerCounter);
+    playerStatus = playerStatus & HLTA_OFF;
     lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Player, Examine: play previous song, playerCounter="));
@@ -4612,6 +4628,7 @@ void checkPlayerControls() {
       playerCounter = 1;
     }
     mp3player.play(playerCounter);
+    playerStatus = playerStatus & HLTA_OFF;
     lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Player, Examine Next: play next song, playerCounter="));
@@ -4668,7 +4685,6 @@ void checkPlayerControls() {
     lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
   }
   // -------------------
-  // Read PCF8574 input for this switch.
   if (pcfControl.readButton(pinReset) == 0) {
     if (!switchReset) {
       switchReset = true;
