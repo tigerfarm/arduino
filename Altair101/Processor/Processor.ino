@@ -64,6 +64,7 @@
   + Address displays the hour: A1 ... A12,      month,      or century
   + Data    displays the minutes single digit,  day single, or year single
   + Status  displays the minutes tens digit,    day tens,   or year tens
+  + Status     OUT  : Off indicates clock mode, since HLDA is on as well.
   + Indicator  HLDA : On to indicate controlled by other than the program emulator.
   -----------
   + SINGLE STEP: 1) Show time of day: hour and minutes, 2) month and day, 3) year.
@@ -78,7 +79,7 @@
   + Address displays the song number that is playing.
   + Data    displays the volume.
   + Status     M1   : Loop single MP3 is on.
-  + Status     OUT  : MP3 player control indicator, since HLDA is on as well.
+  + Status     OUT  : On indicates player mode, since HLDA is on as well.
   + Status     HLTA : pause, light is on, else off.
   + Indicator  HLDA : On to indicate controlled by other than the program emulator.
   -----------
@@ -88,8 +89,8 @@
   + SINGLE dn     Stop loop single MP3   *** Switch is not working. Check the physical switch.
   + EXAMINE       Play previous MP3. And loop all.
   + EXAMINE NEXT  Play next MP3. And loop all.
-  + DEPOSIT       Play previous folder. And loop all.
-  + DEPOSIT NEXT  Play next folder. And loop all.
+  + DEPOSIT       Play previous folder. During first MP3, loop directory. After first song, will loop all.
+  + DEPOSIT NEXT  Play next folder.     During first MP3, loop directory. After first song, will loop all.
   + RESET         Play first MP3. And loop all.
   + CLR           Play toggle address value MP3. If HLTA is on, only play once, then pause.
   + PROTECT       Decrease volume
@@ -4171,12 +4172,14 @@ void clockPulseHour() {
   }
   // Knight Rider scanner lights and sound.
   // playerPlaySound(KR5);
-  mp3player.play(6);
-  ledFlashKnightRider(1, true);
-  mp3player.play(6);
-  ledFlashKnightRider(1, false);
-  mp3player.play(6);
-  ledFlashKnightRider(1, false);
+  if (playerStatus & HLTA_ON) {
+    mp3player.play(6);
+    ledFlashKnightRider(1, true);
+    mp3player.play(6);
+    ledFlashKnightRider(1, false);
+    mp3player.play(6);
+    ledFlashKnightRider(1, false);
+  }
   //
   displayTheTime( theCounterMinutes, theCounterHours );
   printLcdClockValue(thePrintColHour, printRowClockPulse, theHour);
@@ -4188,7 +4191,9 @@ void clockPulseMinute() {
   printLcdClockValue(thePrintColMin, printRowClockPulse, theCounterMinutes);
   if (theCounterMinutes == 15 || theCounterMinutes == 30 || theCounterMinutes == 45) {
     // playerPlaySound(CLOCK_RESET);
-    mp3player.play(14); // Knight Rider scan.
+    if (playerStatus & HLTA_ON) {
+      mp3player.play(14); // Knight Rider scan.
+    }
   }
 }
 void clockPulseSecond() {
