@@ -3,41 +3,17 @@
   Altair 101 Processor program
 
   This is an Altair 8800 emulator program that runs on an Arduino Mega microcontroller.
-  It emulates the basic Altair 8800 computer processes from 1975.
-  The Altair 8800 was built around the Intel 8080 CPU chip.
-  The 8080's machine instructions(opcodes) are the same for the 8085.
-  This program implements more than enough 8080 opcodes to run the classic program, Kill the Bit.
-  Feature enhancements:
-  + A fully functional MP3 player controlled by using the front panel toogles with the lights displaying status.
+  Component additions to the emulator:
+  + An MP3 player controlled by using the front panel toogles with the lights displaying status.
   + The clock displays the current hours, minutes, month, day, and year, on the front panel lights.
 
-  ---------------------------------------------
-  ---------------------------------------------
-  Current/Next Work
+  An Altair 8800 emulator program,
+  + Emulates the basic Altair 8800 computer processes from 1975.
+  + The Altair 8800 was built around the Intel 8080 CPU chip.
+  + The 8080's machine instructions(opcodes) are the same for the 8085.
+  + This program implements more than enough opcodes to run the classic program, Kill the Bit.
 
-  Time to generate videos.
-  + Done: Steampunk tablet running Kill the Bit.
-  + Emulate Star Trek computer using
-  ++ Kill the Bit to flash the lights, and
-  ++ The player, playing a Star Trek computer sound bit.
-  + Run NOP program without and with a sound bit.
-  + Demo entering and running the following program:
-    ; Add content of address 1 and 3, and store the answer in address 64.
-  ++ Address:byte      databyte :hex:oct > description
-  ++       0:00000000: 00111110 : 3E:076 > opcode: mvi a,2
-  ++       1:00000001: 00000010 : 02:002 > immediate: 2 : 2
-  ++       2:00000010: 11000110 : C6:306 > opcode: adi 3
-  ++       3:00000011: 00000011 : 03:003 > immediate: 3 : 3
-  ++       4:00000100: 00110010 : 32:062 > opcode: sta 64
-  ++       5:00000101: 01000000 : 40:100 > lb: 64
-  ++       6:00000110: 00000000 : 00:000 > hb: 0
-  ++       7:00000111: 01110110 : 76:166 > opcode: hlt
-  ++       8:00001000: 11000011 : C3:303 > opcode: jmp Start
-  ++       9:00001001: 00000000 : 00:000 > lb: 0
-  ++      10:00001010: 00000000 : 00:000 > hb: 0
-  + End of list.
-
-  Sample programs:
+  SD card programs:
   + 0000 NOP
   + 0001 Simple jump
   + 0010 More lights, jump program
@@ -47,8 +23,41 @@
   + 0000 NOP
   + 0000 NOP
 
-  Switch sounds,
-  + If playerStatus is HLTA_ON, a sound file can play.
+  ---------------------------------------------
+  ---------------------------------------------
+  Current/Next Work
+
+  Sound effects,
+  + Note, if playerStatus is HLTA_ON, a sound file can play.
+  + Add a sound when there is a program error.
+  + Done: Add an OUT opcode option to play an MP3 file.
+          // mvi a, <file#>
+          // out 10 : 10 for single play, 11 for looping.
+          //  ++ Address:oct > description
+          //  ++       0:076 > opcode: mvi a,2
+          //  ++       1:002 > immediate: 2 : 2 or 027
+          //  ++       2:343 > opcode: out 10
+          //  ++       3:013 > immediate: 10
+
+  Time to generate videos.
+  + Done: Steampunk tablet running Kill the Bit.
+  + Emulate Star Trek computer using, Kill the Bit flashing lights and playing a Star Trek computer sound bite.
+  + Run NOP program without and with a sound bite.
+  + Demo entering and running the following program:
+   ; Add content of address 1 and 3, and store the answer in address 64.
+  ++ Address:oct > description
+  ++       0:076 > opcode: mvi a,2
+  ++       1:002 > immediate: 2 : 2
+  ++       2:306 > opcode: adi 3
+  ++       3:003 > immediate: 3 : 3
+  ++       4:062 > opcode: sta 64
+  ++       5:100 > lb: 64
+  ++       6:000 > hb: 0
+  ++       7:166 > opcode: hlt
+  ++       8:303 > opcode: jmp Start
+  ++       9:000 > lb: 0
+  ++      10:000 > hb: 0
+  + End of list.
 
   User guide,
   + How to save a program to the SD card.
@@ -57,9 +66,10 @@
   + How to assemble, upload, and run an assembler program: Altari101/asm/README.md.
   + How to use the clock. Clock currently requires an LCD to set the time.
   ++ I should add inc/dec hours and minutes using toggles. This would work for my other clock.
+  
   ----------------------------------------
-
   Clock, clockRun(),
+  -----------
   + AUX1 Up toogle clock controls, shows the time of day.
   + Address displays the hour: A1 ... A12,      month,      or century
   + Data    displays the minutes single digit,  day single, or year single
@@ -73,6 +83,7 @@
   + To do: PROTECT/UNPROTECT: inc/dec set value.
   + To do: Deposit: to set/change the set value.
 
+  ----------------------------------------
   MP3 Player, playerRun(),
   -----------
   + AUX1 Down toolge MP3 player controls, show song number and volume level.
@@ -100,16 +111,17 @@
   ---------------------------------------------
   Desktop Box:
   ------------
-  + Add RCA female plugs for L/R external output to an amp.
-  ------------
   + Done: Cut a glue Spider-Man paper to panels: 2 sides, bar top, and top panel.
   + Done: Cut separation on the top for easy internal access.
   + Done: Install, wire, and test the front panel.
   + Done: Panel LED lights all display correctly.
   + Done: Toggle functions all work for Altair 8800 emulation.
-  ------------
   + Done: Test new serial module using the tablet. Then install it in the box.
-  + Done: Wire up the MP3 player. Use a separate power supply. Test using multiple USB hubs.
+  + Done: Panel LED lights and toggle functions all work for the clock.
+  + Done: Panel LED lights and toggle functions all work for the MP3 player.
+  + Done: Wire up the MP3 player using multiple USB wall plugs to reduce static noise.
+  + Done: Add RCA female plugs for L/R external output to an amp.
+  ------------
   + Mount, connect, and test a 1602 LCD.
   + Later, add the stearo amp power supply inside the case.
   ++ Use the Mega to control an On/off relay switch for the amp's 120AC adapter.
@@ -170,7 +182,7 @@
 
   -----------------------------------------------------------------------------
   -----------------------------------------------------------------------------
-  Processor program sections,
+  Program sections,
     Code compilation options.
     Arduino pin definitions.
     Output: 1602 LCD
@@ -180,13 +192,14 @@
     Definitions: Front Panel Status LEDs.
     Output: Front Panel LED lights.
     ----------------------------
-    Process a subset of the Intel 8080/8085 opcode instructions:
+    Subset of the Intel 8080/8085 opcode instructions:
     + Control of the instruction set of opcodes.
     + Process opcode instruction machine cycle one (M1): fetch opcode and process it.
     + Process opcode instruction machine cycles greater than 1: address and immediate bytes.
     ----------------------------
     I/O: SD Card reader: save and load machine memory.
     I/O: Clock functions.
+    I/O: Player functions.
     ----------------------------
     Input: Front Panel toggle switch control and data entry events
     Input: Front Panel toggle switch AUX events for devices: clock and SD card module.
@@ -3239,6 +3252,23 @@ void processOpcodeData() {
           break;
         case 3:
           // Handled before this switch statement.
+          break;
+        // ---------------------------------------
+        case 10:
+          Serial.print(F(" > Play once, the MP3 file named in register A."));
+          // mp3Playstacy
+          // mvi a, <file#>
+          // out 10
+          //  ++ Address:oct > description
+          //  ++       0:076 > opcode: mvi a,2
+          //  ++       1:002 > immediate: 2 : 2 or 027
+          //  ++       2:343 > opcode: out 10
+          //  ++       3:013 > immediate: 10
+          mp3player.play(regA);
+          break;
+        case 11:
+          Serial.print(F(" > Play in a loop, the MP3 file named in register A."));
+          mp3player.loop(regA);
           break;
         // ---------------------------------------
         case 30:
