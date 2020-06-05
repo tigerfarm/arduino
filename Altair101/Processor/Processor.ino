@@ -20,7 +20,7 @@
   + 0011 Kill the Bit
   + 0100 Program list, requires LCD
   + 0101 Add program, x + y: x in address 1, y in address 3, and answer in A6(64).
-  + 0000 NOP
+  + 0110 Loop play a sound bite, then NOPs
   + 0000 NOP
 
   ---------------------------------------------
@@ -3256,12 +3256,11 @@ void processOpcodeData() {
         // ---------------------------------------
         case 10:
           Serial.print(F(" > Play once, the MP3 file named in register A."));
-          // mp3Playstacy
           // mvi a, <file#>
-          // out 10
+          // out 10   ; Use out 11, to have the sound looped.
           //  ++ Address:oct > description
           //  ++       0:076 > opcode: mvi a,2
-          //  ++       1:002 > immediate: 2 : 2 or 027
+          //  ++       1:002 > immediate: 2 ; use other sounds such as 027.
           //  ++       2:343 > opcode: out 10
           //  ++       3:013 > immediate: 10
           mp3player.play(regA);
@@ -3269,6 +3268,10 @@ void processOpcodeData() {
         case 11:
           Serial.print(F(" > Play in a loop, the MP3 file named in register A."));
           mp3player.loop(regA);
+          // The following will allow looping after a STOP and RUN.
+          playerStatus = playerStatus | M1_ON;
+          playerCounter = regA;
+          //
           break;
         // ---------------------------------------
         case 30:
