@@ -32,12 +32,13 @@
   + Add a sound when there is a program error.
   + Done: Add an OUT opcode option to play an MP3 file.
           // mvi a, <file#>
-          // out 10 : 10 for single play, 11 for looping.
+          // out 11   ; Use out 11 is for looping. 10 is for single play.
           //  ++ Address:oct > description
           //  ++       0:076 > opcode: mvi a,2
-          //  ++       1:002 > immediate: 2 : 2 or 027
-          //  ++       2:343 > opcode: out 10
-          //  ++       3:013 > immediate: 10
+          //  ++       1:002 > immediate: 2 ; Or use another sound bite such as 027.
+          //  ++       2:343 > opcode: out 11 ; 11 is for looping. 10 is for single play.
+          //  ++       3:013 > immediate: 11
+          //  ++       ... NOPs ...
 
   Time to generate videos.
   + Done: Steampunk tablet running Kill the Bit.
