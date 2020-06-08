@@ -13,6 +13,7 @@
   + The 8080's machine instructions(opcodes) are the same for the 8085.
   + This program implements more than enough opcodes to run the classic program, Kill the Bit.
 
+  --------------
   SD card programs:
   + 0000 NOP
   + 0001 Simple jump
@@ -23,9 +24,55 @@
   + 0110 Loop play a sound bite, then NOPs
   + 0000 NOP
 
+  --------------
+  Inputs:
+  + dataByte == 000, regA = 0;  // Input is not implemented on this port.
+  + dataByte == 001, regA = workingPerfectly;
+  + dataByte == 255, regA = toggleSenseByte();
+  + Else, error.
+
+  --------------
+  Outputs:
+  + dataByte == 3, Serial terminal output of the contents of register A :"));
+  ++ asciiChar = regA; Serial.print(asciiChar);
+  --------------
+  + dataByte == 1, Serial.print(F("+ Print register A to the LCD screen."));
+  ++ regA == 0, lcdBacklight( false );     // LCD back light off.
+  ++ regA == 1, lcdBacklight( true );      // LCD back light on.
+  ++ regA == 2, lcdClearScreen();
+  ++ regA == 3, lcdSplash();
+  ++ else, char charA = regA; lcdPrintChar((String)charA);
+  --------------
+  + dataByte == 10, mp3player.play(regA); // Play once, the MP3 file named in register A.
+  + dataByte == 11, mp3player.loop(regA); // Play in a loop, the MP3 file named in register A.
+  --------------
+  + dataByte == 30, printData(regB);
+  + dataByte == 31, printData(regC);
+  + dataByte == 32, printData(regD);
+  + dataByte == 33, printData(regE);
+  + dataByte == 34, printData(regH);
+  + dataByte == 35, printData(regL);
+  + dataByte == 36, hlValue = regH * 256 + regL; Serial.print(memoryData[hlValue]);
+  + dataByte == 37, printData(regA);
+  + dataByte == 38, printRegisters();
+  + dataByte == 39, printRegisters(); printOther();
+  --------------
+  + dataByte == 13, Error happened, flash the LED light error sequence.
+  + dataByte == 42, Success happened, flash the LED light success sequence.
+  --------------
+
   ---------------------------------------------
   ---------------------------------------------
   Current/Next Work
+
+  + Implement a processor error function, such as:
+#ifdef LOG_MESSAGES
+        Serial.print(F(" Error, IN not implemented on this port."));
+#endif
+        ledFlashError();
+        controlStopLogic();
+        statusByte = HLTA_ON;
+        digitalWrite(WAIT_PIN, HIGH);
 
   Sound effects,
   + Note, if playerStatus is HLTA_ON, a sound file can play.
@@ -67,7 +114,7 @@
   + How to assemble, upload, and run an assembler program: Altari101/asm/README.md.
   + How to use the clock. Clock currently requires an LCD to set the time.
   ++ I should add inc/dec hours and minutes using toggles. This would work for my other clock.
-  
+
   ----------------------------------------
   Clock, clockRun(),
   -----------
@@ -784,6 +831,12 @@ void lcdPrintChar(String theChar) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Front Panel Status LEDs
+
+// ------------------------------
+// Added this to identify hardware status.
+// if hardware has an error, or is not initialized, workingPerfectly = false.
+// Else workingPerfectly = true.
+boolean workingPerfectly = true;
 
 // ------------------------------
 // Status LEDs
@@ -2862,11 +2915,19 @@ void processOpcodeData() {
 #endif
       if (dataByte == 255) {
         regA = toggleSenseByte();
+      } else if (dataByte == 1) {
+        regA = workingPerfectly;
+      } else if (dataByte == 0) {
+        regA = 0; // Input not implemented on this port.
       } else {
-        regA = 0;
+        // stacy1
 #ifdef LOG_MESSAGES
-        Serial.print(F(" IN not implemented on this port."));
+        Serial.print(F(" Error, IN not implemented on this port."));
 #endif
+        ledFlashError();
+        controlStopLogic();
+        statusByte = HLTA_ON;
+        digitalWrite(WAIT_PIN, HIGH);
       }
 #ifdef LOG_MESSAGES
       Serial.print(F(" Register A = "));
@@ -5265,8 +5326,6 @@ void DownloadProgram() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void setup() {
-
-  boolean workingPerfectly = true;
 
   Serial.begin(115200); // 115200 or 9600
   delay(1000);        // Give the serial connection time to start before the first print.

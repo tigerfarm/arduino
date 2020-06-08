@@ -46,8 +46,8 @@
     https://protosupplies.com/product/pcf8574-i2c-i-o-expansion-module/
 
   Example statements:
-    uint8_t value = pcf20.read8();
-    Serial.println(pcf20.read8(), BIN);
+    uint8_t value = pcfModule.read8();
+    Serial.println(pcfModule.read8(), BIN);
 */
 // -----------------------------------------------------------------------------
 #define SWITCH_MESSAGES 1
@@ -62,7 +62,12 @@ void printByte(byte b) {
 #include <PCF8574.h>
 #include <Wire.h>
 
-PCF8574 pcf20(0x020);
+PCF8574 pcfControl(0x020);  // Control: STOP, RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT, REST
+PCF8574 pcfData(0x021);     // Low bytes, data byte
+PCF8574 pcfSense(0x022);    // High bytes, sense switch byte
+PCF8574 pcfAux(0x023);      // AUX switches and others: Step down, CLR, Protect, Unprotect, AUX1 up, AUX1 down,  AUX2 up, AUX2 down
+
+PCF8574 pcfModule(0x023);
 
 // Interrupt setup: interrupt pin to use, interrupt handler routine.
 const int INTERRUPT_PIN = 2;
@@ -81,7 +86,7 @@ void setup() {
 
   // ------------------------------
   // I2C Two Wire + interrupt initialization
-  pcf20.begin();
+  pcfModule.begin();
   pinMode(INTERRUPT_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcfinterrupt, CHANGE);
   Serial.println("+ PCF module initialized.");
@@ -97,14 +102,14 @@ void loop() {
   if (switchSetOn) {
     // ----------------------
     Serial.println("+ Interrupt call, switchSetOn is true.");
-    dataByte = pcf20.read8();                   // Read all PCF8574 inputs
+    dataByte = pcfModule.read8();                   // Read all PCF8574 inputs
     Serial.print("+ PCF8574 0x20 byte, read8      = ");
     printByte(dataByte);
     Serial.println("");
     // ----------------------
     Serial.print("+ PCF8574 0x20 byte, readButton = ");
     for (int pinGet = 7; pinGet >= 0; pinGet--) {
-      int pinValue = pcf20.readButton(pinGet);  // Read each PCF8574 input
+      int pinValue = pcfModule.readButton(pinGet);  // Read each PCF8574 input
       Serial.print(pinValue);
     }
     // ----------------------
