@@ -61,14 +61,20 @@
   + dataByte == 42, Success happened, flash the LED light success sequence.
   --------------
 
+  Common opcodes:
+  + B01110110 HLT
+  + B11000011 JMP
+
   ---------------------------------------------
   ---------------------------------------------
   Current/Next Work
 
+  + toggleAddress, Examine, max based on memoryBytes = 2048.
+
   + Implement a processor error function, such as:
-#ifdef LOG_MESSAGES
+  #ifdef LOG_MESSAGES
         Serial.print(F(" Error, IN not implemented on this port."));
-#endif
+  #endif
         ledFlashError();
         controlStopLogic();
         statusByte = HLTA_ON;
@@ -917,7 +923,7 @@ const byte INT_OFF =    B11111110;
 // -----------------------------------------------------------------------------
 // Memory definitions
 
-const int memoryBytes = 1024;  // When using Mega: 1024, for Nano: 256
+const int memoryBytes = 2048;  // When using Mega: 1024, for Nano: 256
 byte memoryData[memoryBytes];
 unsigned int curProgramCounter = 0;     // Current program address value
 unsigned int programCounter = 0;        // When processing opcodes, the next program address value.
@@ -983,6 +989,13 @@ unsigned int hlValueNew = 0;
 // -----------------------------------------------------------------------------
 // Output: log messages and Front Panel LED data lights.
 
+void printAddress(unsigned int theAddress) {
+  byte aByte = theAddress / 256;
+  printByte(aByte);
+  aByte = theAddress - theAddress * 256;
+  Serial.print(":");
+  printByte(aByte);
+}
 void printByte(byte b) {
   for (int i = 7; i >= 0; i--)
     Serial.print(bitRead(b, i));
@@ -3773,11 +3786,11 @@ int toggleSenseByte() {
 unsigned int toggleAddress() {
   byte byteLow = ~pcfData.read8();
 #ifdef DESKTOP_MODULE
-  byte byteHigh = ~pcfSense.read8() * 256;
+  byte byteHigh = ~pcfSense.read8();
 #else
   byte byteHigh = 0;                    // No high byte toggles on the tablet.
 #endif
-  return byteHigh + byteLow;
+  return byteHigh * 256 + byteLow;
 }
 
 // --------------------------------------------------
@@ -3881,9 +3894,14 @@ void checkExamineButton() {
         dataByte = memoryData[programCounter];
         programLights();
 #ifdef SWITCH_MESSAGES
-        Serial.print(F("+ Control, Examine: "));
-        printByte(dataByte);
-        Serial.print(" = ");
+        Serial.print(F("+ Control, Examine address: "));
+        sprintf(charBuffer, "%5d", programCounter); // A10 = 1024, A11 = 2048, ..., A14 = 16K, A15 = 32K (32768).
+        Serial.print(charBuffer);
+        Serial.print("=");
+        printAddress(programCounter);
+        Serial.print(", data byte value = ");
+        // printByte(dataByte);
+        // Serial.print(" = ");
         printData(dataByte);
         Serial.println("");
 #endif
@@ -4877,7 +4895,7 @@ void checkPlayerControls() {
   } else if (switchClr) {
     switchClr = false;
     // Switch logic
-    int addressToggles = toggleAddress();
+    unsigned int addressToggles = toggleAddress();
     if (addressToggles > 0 && addressToggles <= playerCounterTop) {
       playerCounter = addressToggles;
       mp3player.play(playerCounter);
@@ -5484,29 +5502,37 @@ void setup() {
 #endif
 
   // ----------------------------------------------------
-  // Future option to Read and Run an initialization program.
-  // Requires a new function:
-  // + The ability to delete 00000000.bin, which is the option not to read and run.
+  // Read and Run an initialization program.
+  // Can manually set 00000000.bin, to all zeros.
+  // + The ability to set 00000000.bin, to all zeros.
   // ---------------------------
-  // + If 00000000.bin exists, read it and run it.
+  // + If 00000000.bin exists, read it.
   // Serial.print(F("+ Program loaded from memory array."));
-  // Serial.println(F(" It will run automatically."));
-  // + Else, display the splash screen.
-  lcdSplash();
-  // ----------------------------------------------------
-  controlResetLogic();
-  Serial.println(F("+++ Program system reset."));
+  int sumBytes = 0;
+  for (int i = 0; i < 32; i++) {
+    sumBytes = + memoryData[i];
+  }
+  if (sumBytes > 0) {
+    // Serial.print(F("+ Since the loaded program, has non-zero bytes."));
+    // Serial.println(F(" Run it."));
+  } else {
+    // + Else, display the splash screen.
+    // lcdSplash();
+    controlResetLogic();
+    Serial.println(F("+++ Program system reset."));
+    // ----------------------------------------------------
+    if (workingPerfectly) {
+      mp3player.play(soundEffects[0]);
+      delay(500);
+      ledFlashKnightRider(2, true);
+      programLights();
+      delay(200);
+    } else {
+      ledFlashError();
+    }
+  }
   // ----------------------------------------------------
 
-  if (workingPerfectly) {
-    mp3player.play(soundEffects[0]);
-    delay(500);
-    ledFlashKnightRider(2, true);
-    programLights();
-    delay(200);
-  } else {
-    ledFlashError();
-  }
   // ----------------------------------------------------
   Serial.println(F("+ Starting the processor loop."));
 }
