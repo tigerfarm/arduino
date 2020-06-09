@@ -24,11 +24,18 @@
   + 0110 Loop playing a sound bite, then NOPs. Address 1 is the MP3 file number.
   + 0111 Loop playing a sound bite, then NOPs until a HLT, which is followed by a JMP back to address 0.
   + 1000 NOP, HLT, JMP program
+  + 1111 Play start up MP3, then HLT.
 
   Common opcodes:
   + B00000000 NOP, my NOP instruction has a delay: delay(100).
   + B01110110 HLT
   + B11000011 JMP
+  +       076 MVI A
+  +       343 OUT
+
+  + 10 = 012
+  + 11 = 013
+  + 42 = 052
 
   + Example to add an OUT opcode option to play an MP3 file.
           // mvi a, <file#>
@@ -249,8 +256,8 @@
   + dataByte == 11, mp3player.loop(regA); // Play in a loop, the MP3 file named in register A.
   --------------
   Flash light messages
-  + dataByte == 13, Error happened, flash the LED light error sequence.
-  + dataByte == 42, Success happened, flash the LED light success sequence.
+  + dataByte == 13, 015oct Error happened, flash the LED light error sequence.
+  + dataByte == 42, 052oct Success happened, flash the LED light success sequence.
   --------------
   Debug messages
   + dataByte == 30, printData(regB);
@@ -3763,7 +3770,7 @@ void writeProgramMemoryToFile(String theFilename) {
 // -------------------------------------
 // Read program memory from a file.
 
-void readProgramFileIntoMemory(String theFilename) {
+boolean readProgramFileIntoMemory(String theFilename) {
   digitalWrite(HLDA_PIN, HIGH);
   if (!sdcardInitiated) {
     initSdcard();
@@ -3777,7 +3784,7 @@ void readProgramFileIntoMemory(String theFilename) {
     ledFlashError();
     sdcardInitiated = false;
     digitalWrite(HLDA_PIN, LOW);
-    return;
+    return (false);
   }
   myFile = SD.open(theFilename);
   if (!myFile) {
@@ -3786,7 +3793,7 @@ void readProgramFileIntoMemory(String theFilename) {
     ledFlashError();
     sdcardInitiated = false;
     digitalWrite(HLDA_PIN, LOW);
-    return;
+    return (false);
   }
   int i = 0;
   while (myFile.available()) {
@@ -3808,11 +3815,9 @@ void readProgramFileIntoMemory(String theFilename) {
   }
   myFile.close();
   Serial.println(F("+ Read completed, file closed."));
-  playerPlaySound(READ_FILE);
-  ledFlashSuccess();
-  delay(1500);                // Delay depends on the time length of the MP3 play time.
   digitalWrite(HLDA_PIN, LOW);
   controlResetLogic();
+  return (true);
 }
 
 #endif
@@ -4769,7 +4774,11 @@ void checkDownloadSwitch() {
     } else {
       Serial.print(F("+ Read the filename into memory: "));
       Serial.println(theFilename);
-      readProgramFileIntoMemory(theFilename);
+      if (readProgramFileIntoMemory(theFilename)) {
+        playerPlaySound(READ_FILE);
+        ledFlashSuccess();
+        delay(1500);                // Delay depends on the time length of the MP3 play time.
+      }
     }
 #endif
   }
@@ -5599,18 +5608,18 @@ void setup() {
     controlResetLogic();
     Serial.println(F("++ Program system reset."));
     // ----------------------------------------------------
-    if (hwStatus == 0) {
+    /*
+      if (hwStatus == 0) {
       mp3player.play(soundEffects[0]);
       delay(500);
       ledFlashKnightRider(2, true);
       programLights();
       delay(200);
-    } else {
+      } else {
       ledFlashError();
-    }
+      }
+    */
   }
-  // ----------------------------------------------------
-
   // ----------------------------------------------------
   Serial.println(F("+ Starting the processor loop."));
 }
