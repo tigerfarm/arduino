@@ -21,8 +21,8 @@
   + 0011 Kill the Bit
   + 0100 Program list, requires LCD
   + 0101 Add program, x + y: x in address 1, y in address 3, and answer in A6(64).
-  + 0110 Loop playing a sound bite, then NOPs
-  + 0111 Loop playing a sound bite, then NOPs untila HLT, which is followed by a JMP back to address 0.
+  + 0110 Loop playing a sound bite, then NOPs. Address 1 is the MP3 file number.
+  + 0111 Loop playing a sound bite, then NOPs until a HLT, which is followed by a JMP back to address 0.
   + 1000 NOP, HLT, JMP program
 
   Common opcodes:
@@ -40,6 +40,177 @@
           //  ++       3:013 > immediate: 11
           //  ++       ... NOPs ...
 
+  ------------------------------------------------------------------------------
+  Processor,
+  -----------
+  + Address displays the current programCounter value.
+  + Data    displays the data byte at the programCounter address.
+  + Status lights display the current instruction cycle status.
+  -----------
+  + STOP          Pause run
+  + RUN           Run the program from the programCounter address.
+  + SINGLE up     Run one opcode instruction cycle at a time.
+  + SINGLE dn     EXAMINE the previous address data byte: programCounter - 1.
+  + EXAMINE       Set the programCounter to switch address, and display the data byte at that address.
+  + EXAMINE NEXT  EXAMINE the next address data byte: programCounter + 1.
+  + DEPOSIT       Deposit Data switch values into the current address.
+  + DEPOSIT NEXT  Deposit Data switch values into the next address.
+  + RESET         Set the programCounter to zero, and display the zero address and data byte.
+  + CLR           Not implemented.
+  + PROTECT       Not implemented.
+  + UNPROTECT     Not implemented.
+  + AUX1 up       Clock mode
+  + AUX1 down     MP3 player mode
+  + AUX2 up       Write memory to SD drive file, using the sense switches for the filename.
+  + AUX2 down     Read from SD drive file into processor memory, using the sense switches for the filename.
+
+  ----------------------------------------
+  Clock, clockRun(),
+  -----------
+  + AUX1 Up toogle clock controls, shows the time of day.
+  + Address displays the hour: A1 ... A12,      month,      or century
+  + Data    displays the minutes single digit,  day single, or year single
+  + Status  displays the minutes tens digit,    day tens,   or year tens
+  + Status     OUT  : Off indicates clock mode, since HLDA is on as well.
+  + Indicator  HLDA : On to indicate controlled by other than the program emulator.
+  -----------
+  + SINGLE STEP: 1) Show time of day: hour and minutes, 2) month and day, 3) year.
+  + To do: RESET: Show time of day.
+  + To do: Examine: move through options to set date and time. Invert on/off lights to indicate set mode.
+  + To do: PROTECT/UNPROTECT: inc/dec set value.
+  + To do: Deposit: to set/change the set value.
+
+  ----------------------------------------
+  MP3 Player, playerRun(),
+  -----------
+  + AUX1 Down toolge MP3 player controls, show song number and volume level.
+  + Address displays the song number that is playing.
+  + Data    displays the volume.
+  + Status     M1   : Loop single MP3 is on.
+  + Status     OUT  : On indicates player mode, since HLDA is on as well.
+  + Status     HLTA : pause, light is on, else off.
+  + Indicator  HLDA : On to indicate controlled by other than the program emulator.
+  -----------
+  + STOP          Pause play
+  + RUN           Play MP3. And loop all.
+  + SINGLE up     Toogle the playing of a single MP3, on and off.
+  + SINGLE dn     Stop loop single MP3   *** Switch is not working. Check the physical switch.
+  + EXAMINE       Play previous MP3. And loop all.
+  + EXAMINE NEXT  Play next MP3. And loop all.
+  + DEPOSIT       Play previous folder. During first MP3, loop directory. After first song, will loop all.
+  + DEPOSIT NEXT  Play next folder.     During first MP3, loop directory. After first song, will loop all.
+  + RESET         Play first MP3. And loop all.
+  + CLR           Play toggle address value MP3. If HLTA is on, only play once, then pause.
+  + PROTECT       Decrease volume
+  + UNPROTECT     Increase volume
+  + AUX2 down     Send log message to serial port, of player values such as currrent MP3 number.
+
+  ------------------------------------------------------------------------------
+  ------------------------------------------------------------------------------
+  Current/Next Work
+
+  Timer
+  + Set the minutes using address.
+  + Toggle DEPOSIT. Then flip RUN.
+
+  If 00000000.bin exists when starting up,
+  + If 00000000.bin is not all zeros (NOPs), run it.
+  + Else, don't run it, boot to wait state.
+
+  --------------
+  + Have the program sound bite numbers store in files.
+  ++ Use AUX2 up to store the value.
+  ++ Use AUX2 down to play the value for confirmation.
+  ++ Use Data switches to set MP3 file number.
+  ++ Use Sense switches to set the sound bite number.
+  ++ Once Data and Sense switches are set, use AUX2 up to store the Data value to the sound bite number file.
+  --------------
+  + toggleAddress, Examine, max based on memoryBytes = 2048.
+  --------------
+  + Implement a processor error function, such as:
+  #ifdef LOG_MESSAGES
+        Serial.print(F(" Error, IN not implemented on this port."));
+  #endif
+        ledFlashError();
+        controlStopLogic();
+        statusByte = HLTA_ON;
+        digitalWrite(WAIT_PIN, HIGH);
+  --------------
+  + hwStatus should have status, like processor statuses.
+             Hardware  OK or Not Online.
+  // hwStatus = 1;  // SD_OK, SD_NO, SD card
+  // hwStatus = 2;  // CL_OK, CL_NO, Clock module
+  // hwStatus = 3;  // PL_OK, PL_NO, MP3 Player
+
+  Sound effects,
+  + Note, if playerStatus is HLTA_ON, a sound file can play.
+  + Add a sound when there is a program error.
+
+  Update the SD card logic: initSdcard()
+
+  Now, can set the LCD backlight as on when prompting, and reset after.
+  + LCD backlight on/off status boolean: LcdBacklight.
+
+  Confirm before reading a file into memory,
+  + Fast flash HLDA for 1 second.
+  + If read or write switch repeated, then run, else return to program wait status.
+  Confirm before writting a file into memory,
+  + Done: Confirm by flipping the switch twice.
+  + Add:  Fast flash HLDA for 1 second.
+
+  Test write memory issue,
+  + Seems to be a CALL opcode issue.
+  + If byte count over 276, characters no longer are displayed.
+  + Fails at the address: 00010100 (276)
+
+  Time to generate videos.
+  + Done: Steampunk tablet running Kill the Bit.
+  + Emulate Star Trek computer using, Kill the Bit flashing lights and playing a Star Trek computer sound bite.
+  + Run NOP program without and with a sound bite.
+  + Demo entering and running the following program:
+   ; Add content of address 1 and 3, and store the answer in address 64.
+  ++ Address:oct > description
+  ++       0:076 > opcode: mvi a,2
+  ++       1:002 > immediate: 2 : 2
+  ++       2:306 > opcode: adi 3
+  ++       3:003 > immediate: 3 : 3
+  ++       4:062 > opcode: sta 64
+  ++       5:100 > lb: 64
+  ++       6:000 > hb: 0
+  ++       7:166 > opcode: hlt
+  ++       8:303 > opcode: jmp Start
+  ++       9:000 > lb: 0
+  ++      10:000 > hb: 0
+  + End of list.
+
+  User guide,
+  + How to save a program to the SD card.
+  ++ Requires a second flip to confirm write.
+  + How to load and run a program from the SD card.
+  + How to assemble, upload, and run an assembler program: Altari101/asm/README.md.
+  + How to use the clock. Clock currently requires an LCD to set the time.
+  ++ I should add inc/dec hours and minutes using toggles. This would work for my other clock.
+
+  ---------------------------------------------
+  Desktop Box:
+  ------------
+  + Done: Cut a glue Spider-Man paper to panels: 2 sides, bar top, and top panel.
+  + Done: Cut separation on the top for easy internal access.
+  + Done: Install, wire, and test the front panel.
+  + Done: Panel LED lights all display correctly.
+  + Done: Toggle functions all work for Altair 8800 emulation.
+  + Done: Test new serial module using the tablet. Then install it in the box.
+  + Done: Panel LED lights and toggle functions all work for the clock.
+  + Done: Panel LED lights and toggle functions all work for the MP3 player.
+  + Done: Wire up the MP3 player using multiple USB wall plugs to reduce static noise.
+  + Done: Add RCA female plugs for L/R external output to an amp.
+  ------------
+  + Mount, connect, and test a 1602 LCD.
+  + Later, add the stearo amp power supply inside the case.
+  ++ Use the Mega to control an On/off relay switch for the amp's 120AC adapter.
+
+  ------------------------------------------------------------------------------
+  Processor
   --------------
   Inputs:
   + dataByte == 000, regA = 0;  // Input is not implemented on this port.
@@ -83,142 +254,6 @@
   + dataByte == 39, printRegisters(); printOther();
   --------------
 
-  ----------------------------------------
-  Processor,
-  -----------
-  + Address displays the current programCounter value.
-  + Data    displays the data byte at the programCounter address.
-  + Status lights display the current instruction cycle status.
-  -----------
-  + STOP          Pause run
-  + RUN           Run the program from the programCounter address.
-  + SINGLE up     Run one opcode instruction cycle at a time.
-  + SINGLE dn     EXAMINE the previous address data byte: programCounter - 1.
-  + EXAMINE       Set the programCounter to switch address, and display the data byte at that address.
-  + EXAMINE NEXT  EXAMINE the next address data byte: programCounter + 1.
-  + DEPOSIT       Deposit Data switch values into the current address.
-  + DEPOSIT NEXT  Deposit Data switch values into the next address.
-  + RESET         Set the programCounter to zero, and display the zero address and data byte.
-  + CLR           Not implemented.
-  + PROTECT       Not implemented.
-  + UNPROTECT     Not implemented.
-  + AUX1 up       Clock mode
-  + AUX1 down     MP3 player mode
-  + AUX2 up       Write memory to SD drive file, using the sense switches for the filename.
-  + AUX2 down     Read from SD drive file into processor memory, using the sense switches for the filename.
-
-  ---------------------------------------------
-  ---------------------------------------------
-  Current/Next Work
-
-  + toggleAddress, Examine, max based on memoryBytes = 2048.
-  --------------
-  + Implement a processor error function, such as:
-  #ifdef LOG_MESSAGES
-        Serial.print(F(" Error, IN not implemented on this port."));
-  #endif
-        ledFlashError();
-        controlStopLogic();
-        statusByte = HLTA_ON;
-        digitalWrite(WAIT_PIN, HIGH);
-  --------------
-  + hwStatus should have status, like processor statuses.
-             Hardware  OK or Not Online.
-  // hwStatus = 1;  // SD_OK, SD_NO, SD card
-  // hwStatus = 2;  // CL_OK, CL_NO, Clock module
-  // hwStatus = 3;  // PL_OK, PL_NO, MP3 Player
-
-  Sound effects,
-  + Note, if playerStatus is HLTA_ON, a sound file can play.
-  + Add a sound when there is a program error.
-
-  Time to generate videos.
-  + Done: Steampunk tablet running Kill the Bit.
-  + Emulate Star Trek computer using, Kill the Bit flashing lights and playing a Star Trek computer sound bite.
-  + Run NOP program without and with a sound bite.
-  + Demo entering and running the following program:
-   ; Add content of address 1 and 3, and store the answer in address 64.
-  ++ Address:oct > description
-  ++       0:076 > opcode: mvi a,2
-  ++       1:002 > immediate: 2 : 2
-  ++       2:306 > opcode: adi 3
-  ++       3:003 > immediate: 3 : 3
-  ++       4:062 > opcode: sta 64
-  ++       5:100 > lb: 64
-  ++       6:000 > hb: 0
-  ++       7:166 > opcode: hlt
-  ++       8:303 > opcode: jmp Start
-  ++       9:000 > lb: 0
-  ++      10:000 > hb: 0
-  + End of list.
-
-  User guide,
-  + How to save a program to the SD card.
-  ++ Requires a second flip to confirm write.
-  + How to load and run a program from the SD card.
-  + How to assemble, upload, and run an assembler program: Altari101/asm/README.md.
-  + How to use the clock. Clock currently requires an LCD to set the time.
-  ++ I should add inc/dec hours and minutes using toggles. This would work for my other clock.
-
-  ----------------------------------------
-  Clock, clockRun(),
-  -----------
-  + AUX1 Up toogle clock controls, shows the time of day.
-  + Address displays the hour: A1 ... A12,      month,      or century
-  + Data    displays the minutes single digit,  day single, or year single
-  + Status  displays the minutes tens digit,    day tens,   or year tens
-  + Status     OUT  : Off indicates clock mode, since HLDA is on as well.
-  + Indicator  HLDA : On to indicate controlled by other than the program emulator.
-  -----------
-  + SINGLE STEP: 1) Show time of day: hour and minutes, 2) month and day, 3) year.
-  + To do: RESET: Show time of day.
-  + To do: Examine: move through options to set date and time. Invert on/off lights to indicate set mode.
-  + To do: PROTECT/UNPROTECT: inc/dec set value.
-  + To do: Deposit: to set/change the set value.
-
-  ----------------------------------------
-  MP3 Player, playerRun(),
-  -----------
-  + AUX1 Down toolge MP3 player controls, show song number and volume level.
-  + Address displays the song number that is playing.
-  + Data    displays the volume.
-  + Status     M1   : Loop single MP3 is on.
-  + Status     OUT  : On indicates player mode, since HLDA is on as well.
-  + Status     HLTA : pause, light is on, else off.
-  + Indicator  HLDA : On to indicate controlled by other than the program emulator.
-  -----------
-  + STOP          Pause play
-  + RUN           Play MP3. And loop all.
-  + SINGLE up     Toogle the playing of a single MP3, on and off.
-  + SINGLE dn     Stop loop single MP3   *** Switch is not working. Check the physical switch.
-  + EXAMINE       Play previous MP3. And loop all.
-  + EXAMINE NEXT  Play next MP3. And loop all.
-  + DEPOSIT       Play previous folder. During first MP3, loop directory. After first song, will loop all.
-  + DEPOSIT NEXT  Play next folder.     During first MP3, loop directory. After first song, will loop all.
-  + RESET         Play first MP3. And loop all.
-  + CLR           Play toggle address value MP3. If HLTA is on, only play once, then pause.
-  + PROTECT       Decrease volume
-  + UNPROTECT     Increase volume
-  + AUX2 down     Send log message to serial port, of player values such as currrent MP3 number.
-
-  ---------------------------------------------
-  Desktop Box:
-  ------------
-  + Done: Cut a glue Spider-Man paper to panels: 2 sides, bar top, and top panel.
-  + Done: Cut separation on the top for easy internal access.
-  + Done: Install, wire, and test the front panel.
-  + Done: Panel LED lights all display correctly.
-  + Done: Toggle functions all work for Altair 8800 emulation.
-  + Done: Test new serial module using the tablet. Then install it in the box.
-  + Done: Panel LED lights and toggle functions all work for the clock.
-  + Done: Panel LED lights and toggle functions all work for the MP3 player.
-  + Done: Wire up the MP3 player using multiple USB wall plugs to reduce static noise.
-  + Done: Add RCA female plugs for L/R external output to an amp.
-  ------------
-  + Mount, connect, and test a 1602 LCD.
-  + Later, add the stearo amp power supply inside the case.
-  ++ Use the Mega to control an On/off relay switch for the amp's 120AC adapter.
-
   ---------------------------------------------
   ---------------------------------------------
   Connect the Mega to the desktop front panel:
@@ -247,31 +282,6 @@
   Connect the Mega to the MP3 player:
   + Mega pin 18(RX) to player pin 3(TX)
   + Mega pin 19(TX) to external resister to player pin 2(RX)
-
-  ---------------------------------------------
-  ---------------------------------------------
-  Other Work
-
-  Update the SD card logic: initSdcard()
-
-  Now, can set the LCD backlight as on when prompting, and reset after.
-  + LCD backlight on/off status boolean: LcdBacklight.
-
-  If 00000000.bin exists when starting up,
-  + If 00000000.bin is not all zeros (NOPs), run it.
-  + Else, don't run it, boot to wait state.
-
-  Confirm before reading a file into memory,
-  + Fast flash HLDA for 1 second.
-  + If read or write switch repeated, then run, else return to program wait status.
-  Confirm before writting a file into memory,
-  + Done: Confirm by flipping the switch twice.
-  + Add:  Fast flash HLDA for 1 second.
-
-  Test write memory issue,
-  + Seems to be a CALL opcode issue.
-  + If byte count over 276, characters no longer are displayed.
-  + Fails at the address: 00010100 (276)
 
   -----------------------------------------------------------------------------
   -----------------------------------------------------------------------------
@@ -3789,6 +3799,7 @@ void readProgramFileIntoMemory(String theFilename) {
   Serial.println(F("+ Read completed, file closed."));
   playerPlaySound(READ_FILE);
   ledFlashSuccess();
+  delay(1500);
   digitalWrite(HLDA_PIN, LOW);
   controlResetLogic();
 }
@@ -4758,8 +4769,6 @@ void checkDownloadSwitch() {
 // --------------------------------------------------------
 // Check Front Panel Control Switches, when in Player mode.
 
-boolean wasHLTA_ON = true;
-
 void playSong() {
   // delay(500);
   if (loopSingle) {
@@ -4768,7 +4777,7 @@ void playSong() {
     mp3player.play(playerCounter);
   }
   playerStatus = playerStatus & HLTA_OFF;
-  lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+  playerLights();
 }
 
 void checkPlayerControls() {
@@ -4785,7 +4794,6 @@ void checkPlayerControls() {
 #endif
     mp3player.pause();
     playerStatus = playerStatus | HLTA_ON;
-    wasHLTA_ON = true;
     playerLights();
   }
   // -------------------
@@ -4803,7 +4811,7 @@ void checkPlayerControls() {
     // mp3player.play(playerCounter);
     mp3player.start();
     playerStatus = playerStatus & HLTA_OFF;
-    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+    playerLights();
     // playSong();
   }
   // -------------------
@@ -4821,7 +4829,7 @@ void checkPlayerControls() {
     }
     mp3player.play(playerCounter);
     playerStatus = playerStatus & HLTA_OFF;
-    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+    playerLights();
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Player, Examine: play previous song, playerCounter="));
     Serial.println(playerCounter);
@@ -4842,7 +4850,7 @@ void checkPlayerControls() {
     }
     mp3player.play(playerCounter);
     playerStatus = playerStatus & HLTA_OFF;
-    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+    playerLights();
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Player, Examine Next: play next song, playerCounter="));
     Serial.println(playerCounter);
@@ -4875,7 +4883,7 @@ void checkPlayerControls() {
       playerStatus = playerStatus | M1_ON;
       playerStatus = playerStatus & HLTA_OFF;
     }
-    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+    playerLights();
 #ifdef SWITCH_MESSAGES
     Serial.println(playerCounter);
 #endif
@@ -4895,7 +4903,7 @@ void checkPlayerControls() {
     loopSingle = false;
     mp3player.disableLoop();
     playerStatus = playerStatus & M1_OFF;
-    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+    playerLights();
   }
   // -------------------
   if (pcfControl.readButton(pinReset) == 0) {
@@ -4909,7 +4917,7 @@ void checkPlayerControls() {
     playerCounter = 1;
     mp3player.play(playerCounter);
     playerStatus = playerStatus & HLTA_OFF;
-    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+    playerLights();
     // playSong();
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Player, RESET: play first song, playerCounter="));
@@ -4925,13 +4933,11 @@ void checkPlayerControls() {
     switchProtect = false;
     //
     // Switch logic, based on programState.
-    // playerVolume = mp3player.readVolume();
     if (playerVolume > 1) {
-      // mp3player.volumeDown();
       playerVolume--;
     }
     mp3player.volume(playerVolume);
-    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+    playerLights();
     // delay(300);
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Player, decrease volume to "));
@@ -4946,14 +4952,11 @@ void checkPlayerControls() {
   } else if (switchUnProtect) {
     switchUnProtect = false;
     // Switch logic
-    // playerVolume = mp3player.readVolume();
     if (playerVolume < 30) {
-      // mp3player.volumeUp();
       playerVolume++;
     }
     mp3player.volume(playerVolume);
-    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-    // delay(300);
+    playerLights();
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Player, increase volume to "));
     Serial.println(playerVolume);
@@ -4972,8 +4975,7 @@ void checkPlayerControls() {
       playerCounter = addressToggles;
       mp3player.play(playerCounter);
       // playerStatus = playerStatus & HLTA_OFF;  // Commented out, only play once, if HLTA is ON.
-      lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-      // playSong();
+      playerLights();
 #ifdef SWITCH_MESSAGES
       Serial.print(F("+ Player, CLR: play a specific song number, playerCounter="));
       Serial.println(playerCounter);
@@ -5013,7 +5015,7 @@ void checkPlayerControls() {
       delay(300);
       playerCounter = mp3player.readCurrentFileNumber();
     }
-    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+    playerLights();
     //
     // Disable the loop function so that playerCounter will be used for next MP3.
     // mp3player.disableLoop();
@@ -5059,7 +5061,7 @@ void checkPlayerControls() {
         delay(300);
       }
     }
-    lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+    playerLights();
     //
     // Disable the loop function so that playerCounter will be used for next MP3.
     // mp3player.disableLoop();
@@ -5171,7 +5173,7 @@ void printDFPlayerMessage(uint8_t type, int value) {
       Serial.println(F("Time Out!"));
       mp3player.play(playerCounter);
       playerStatus = playerStatus & HLTA_OFF;
-      lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+      playerLights();
       // playSong();
       break;
     case DFPlayerCardInserted:
@@ -5225,22 +5227,12 @@ void printDFPlayerMessage(uint8_t type, int value) {
       }
       break;
     default:
-      if (playerCounter == 65535) {
-        // Assume auto next. This can be an error because looping from the last song, to the first song had happened.
-        if (playerCounter + 1 != value) {
-          playerCounter = value;  // The song to play.
-        }
-        lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-        Serial.print(F("Play song: "));
-        Serial.println(playerCounter);
-      } else {
-        Serial.print(F("Unknown DFPlayer message type: "));
-        Serial.print(type);
-        Serial.print(F(", value:"));
-        Serial.println(value);
-        playerCounter = value;  // The song to play.
-        lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-      }
+      Serial.print(F("Unknown DFPlayer message type: "));
+      Serial.print(type);
+      Serial.print(F(", value:"));
+      Serial.println(value);
+      playerCounter = value;  // The song to play.
+      playerLights();
       break;
   }
 }
@@ -5267,7 +5259,7 @@ void playMp3() {
       }
       mp3player.play(playerCounter);
       playerStatus = playerStatus & HLTA_OFF;
-      lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+      playerLights();
 #ifdef SWITCH_MESSAGES
       Serial.println(playerCounter);
 #endif
@@ -5292,7 +5284,7 @@ void playerRun() {
   //
   Serial.print(F("+ playerRun()"));
   playerPlaySound(PLAYER_ON);
-  lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+  playerLights();
   Serial.println("");
   while (programState == PLAYER_RUN) {
     delay(60);
@@ -5456,9 +5448,10 @@ void setup() {
   playerStatus = OUT_ON | HLTA_ON;  // OUT_ON  LED status light to indicate the Player.
   playPause = true;                 // HLTA_ON implies that the player is Paused.
   //
+  mp3player.volume(playerVolume);   // Set speaker volume from 0 to 30. Doesn't effect DAC output.
+  delay(300);
   mp3player.setTimeOut(60);        // Set serial communications time out
   delay(300);
-  mp3player.volume(playerVolume);   // Set speaker volume from 0 to 30. Doesn't effect DAC output.
   //
   // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
   mp3player.outputDevice(DFPLAYER_DEVICE_SD);
@@ -5580,18 +5573,20 @@ void setup() {
   // ---------------------------
   // + If 00000000.bin exists, read it.
   // Serial.print(F("+ Program loaded from memory array."));
+  readProgramFileIntoMemory("00000000.bin");
   int sumBytes = 0;
   for (int i = 0; i < 32; i++) {
-    sumBytes = + memoryData[i];
+    sumBytes = sumBytes + memoryData[i];
   }
   if (sumBytes > 0) {
-    // Serial.print(F("+ Since the loaded program, has non-zero bytes."));
-    // Serial.println(F(" Run it."));
+    Serial.println(F("++ Since 00000000.bin, has non-zero bytes in the first 32 bytes, run it."));
+    programState = PROGRAM_RUN;
+    ledFlashSuccess();
   } else {
     // + Else, display the splash screen.
     // lcdSplash();
     controlResetLogic();
-    Serial.println(F("+++ Program system reset."));
+    Serial.println(F("++ Program system reset."));
     // ----------------------------------------------------
     if (hwStatus == 0) {
       mp3player.play(soundEffects[0]);
