@@ -88,16 +88,17 @@
   -----------
   + Address displays the current programCounter value.
   + Data    displays the data byte at the programCounter address.
+  + Status lights display the current instruction cycle status.
   -----------
   + STOP          Pause run
   + RUN           Run the program from the programCounter address.
   + SINGLE up     Run one opcode instruction cycle at a time.
   + SINGLE dn     EXAMINE the previous address data byte: programCounter - 1.
-  + EXAMINE       EXAMINE address data byte: programCounter.
+  + EXAMINE       Set the programCounter to switch address, and display the data byte at that address.
   + EXAMINE NEXT  EXAMINE the next address data byte: programCounter + 1.
   + DEPOSIT       Deposit Data switch values into the current address.
   + DEPOSIT NEXT  Deposit Data switch values into the next address.
-  + RESET         Set the current address to zero.
+  + RESET         Set the programCounter to zero, and display the zero address and data byte.
   + CLR           Not implemented.
   + PROTECT       Not implemented.
   + UNPROTECT     Not implemented.
