@@ -41,7 +41,22 @@
           //  ++       ... NOPs ...
 
   ------------------------------------------------------------------------------
-  Processor,
+  Startup initialization, setup()
+  -----------
+  Init and check:
+  + Serial1 for receiving programs, for download mode.
+  + MP3 player module for playing MP3 files.
+  + Front panel toggle settings.
+  + Clock module, used when in clock mode.
+  + SD card module, used for read and write.
+  -----------
+  If 00000000.bin exists and any of the first 32 bytes are not zero,
+  + Set, programState = PROGRAM_RUN, which runs 00000000.bin when loop() starts.
+  Else,
+  + programState = PROGRAM_WAIT (default start state), don't run 00000000.bin when loop() starts.
+  + Play a startup MP3.
+
+  Processor
   -----------
   + Address displays the current programCounter value.
   + Data    displays the data byte at the programCounter address.
@@ -112,10 +127,6 @@
   Timer
   + Set the minutes using address.
   + Toggle DEPOSIT. Then flip RUN.
-
-  If 00000000.bin exists when starting up,
-  + If 00000000.bin is not all zeros (NOPs), run it.
-  + Else, don't run it, boot to wait state.
 
   --------------
   + Have the program sound bite numbers store in files.
@@ -3799,7 +3810,7 @@ void readProgramFileIntoMemory(String theFilename) {
   Serial.println(F("+ Read completed, file closed."));
   playerPlaySound(READ_FILE);
   ledFlashSuccess();
-  delay(1500);
+  delay(1500);                // Delay depends on the time length of the MP3 play time.
   digitalWrite(HLDA_PIN, LOW);
   controlResetLogic();
 }
