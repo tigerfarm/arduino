@@ -15,62 +15,103 @@
 
   --------------
   SD card programs:
-  + 0000 NOP
+  + 0000 NOPs.
   + 0001 Simple jump
   + 0010 More lights, jump program
   + 0011 Kill the Bit
   + 0100 Program list, requires LCD
   + 0101 Add program, x + y: x in address 1, y in address 3, and answer in A6(64).
-  + 0110 Loop play a sound bite, then NOPs
-  + 0000 NOP
+  + 0110 Loop playing a sound bite, then NOPs
+  + 0111 Loop playing a sound bite, then NOPs untila HLT, which is followed by a JMP back to address 0.
+  + 1000 NOP, HLT, JMP program
+
+  Common opcodes:
+  + B00000000 NOP, my NOP instruction has a delay: delay(100).
+  + B01110110 HLT
+  + B11000011 JMP
+
+  + Example to add an OUT opcode option to play an MP3 file.
+          // mvi a, <file#>
+          // out 11   ; Use out 11 is for looping. 10 is for single play.
+          //  ++ Address:oct > description
+          //  ++       0:076 > opcode: mvi a,2  : Set to play sound bite file, 0002.mp3.
+          //  ++       1:002 > immediate: 2
+          //  ++       2:343 > opcode: out 11   : 11 is for looping. 10 is for single play.
+          //  ++       3:013 > immediate: 11
+          //  ++       ... NOPs ...
 
   --------------
   Inputs:
   + dataByte == 000, regA = 0;  // Input is not implemented on this port.
-  + dataByte == 001, regA = workingPerfectly;
+  + dataByte == 001, regA = hwStatus;   // hwStatus = 0, a number to indicate a hardware issue.
   + dataByte == 255, regA = toggleSenseByte();
   + Else, error.
 
   --------------
   Outputs:
+  --------------
+  Terminal
   + dataByte == 3, Serial terminal output of the contents of register A :"));
   ++ asciiChar = regA; Serial.print(asciiChar);
   --------------
-  + dataByte == 1, Serial.print(F("+ Print register A to the LCD screen."));
+  LCD
+  + dataByte == 1, Print register A value to the LCD module.
   ++ regA == 0, lcdBacklight( false );     // LCD back light off.
   ++ regA == 1, lcdBacklight( true );      // LCD back light on.
   ++ regA == 2, lcdClearScreen();
   ++ regA == 3, lcdSplash();
   ++ else, char charA = regA; lcdPrintChar((String)charA);
   --------------
+  MP3 Player
   + dataByte == 10, mp3player.play(regA); // Play once, the MP3 file named in register A.
   + dataByte == 11, mp3player.loop(regA); // Play in a loop, the MP3 file named in register A.
   --------------
+  Flash light messages
+  + dataByte == 13, Error happened, flash the LED light error sequence.
+  + dataByte == 42, Success happened, flash the LED light success sequence.
+  --------------
+  Debug messages
   + dataByte == 30, printData(regB);
   + dataByte == 31, printData(regC);
   + dataByte == 32, printData(regD);
   + dataByte == 33, printData(regE);
   + dataByte == 34, printData(regH);
   + dataByte == 35, printData(regL);
-  + dataByte == 36, hlValue = regH * 256 + regL; Serial.print(memoryData[hlValue]);
+  + dataByte == 36, Print data at H:L address: Serial.print(memoryData[regH * 256 + regL]);
   + dataByte == 37, printData(regA);
   + dataByte == 38, printRegisters();
   + dataByte == 39, printRegisters(); printOther();
   --------------
-  + dataByte == 13, Error happened, flash the LED light error sequence.
-  + dataByte == 42, Success happened, flash the LED light success sequence.
-  --------------
 
-  Common opcodes:
-  + B01110110 HLT
-  + B11000011 JMP
+  ----------------------------------------
+  Processor,
+  -----------
+  + Address displays the current programCounter value.
+  + Data    displays the data byte at the programCounter address.
+  -----------
+  + STOP          Pause run
+  + RUN           Run the program from the programCounter address.
+  + SINGLE up     Run one opcode instruction cycle at a time.
+  + SINGLE dn     EXAMINE the previous address data byte: programCounter - 1.
+  + EXAMINE       EXAMINE address data byte: programCounter.
+  + EXAMINE NEXT  EXAMINE the next address data byte: programCounter + 1.
+  + DEPOSIT       Deposit Data switch values into the current address.
+  + DEPOSIT NEXT  Deposit Data switch values into the next address.
+  + RESET         Set the current address to zero.
+  + CLR           Not implemented.
+  + PROTECT       Not implemented.
+  + UNPROTECT     Not implemented.
+  + AUX1 up       Clock mode
+  + AUX1 down     MP3 player mode
+  + AUX2 up       Write memory to SD drive file, using the sense switches for the filename.
+  + AUX2 down     Read from SD drive file into processor memory, using the sense switches for the filename.
 
   ---------------------------------------------
   ---------------------------------------------
   Current/Next Work
 
   + toggleAddress, Examine, max based on memoryBytes = 2048.
-
+  --------------
   + Implement a processor error function, such as:
   #ifdef LOG_MESSAGES
         Serial.print(F(" Error, IN not implemented on this port."));
@@ -79,19 +120,16 @@
         controlStopLogic();
         statusByte = HLTA_ON;
         digitalWrite(WAIT_PIN, HIGH);
+  --------------
+  + hwStatus should have status, like processor statuses.
+             Hardware  OK or Not Online.
+  // hwStatus = 1;  // SD_OK, SD_NO, SD card
+  // hwStatus = 2;  // CL_OK, CL_NO, Clock module
+  // hwStatus = 3;  // PL_OK, PL_NO, MP3 Player
 
   Sound effects,
   + Note, if playerStatus is HLTA_ON, a sound file can play.
   + Add a sound when there is a program error.
-  + Done: Add an OUT opcode option to play an MP3 file.
-          // mvi a, <file#>
-          // out 11   ; Use out 11 is for looping. 10 is for single play.
-          //  ++ Address:oct > description
-          //  ++       0:076 > opcode: mvi a,2
-          //  ++       1:002 > immediate: 2 ; Or use another sound bite such as 027.
-          //  ++       2:343 > opcode: out 11 ; 11 is for looping. 10 is for single play.
-          //  ++       3:013 > immediate: 11
-          //  ++       ... NOPs ...
 
   Time to generate videos.
   + Done: Steampunk tablet running Kill the Bit.
@@ -840,9 +878,12 @@ void lcdPrintChar(String theChar) {
 
 // ------------------------------
 // Added this to identify hardware status.
-// if hardware has an error, or is not initialized, workingPerfectly = false.
-// Else workingPerfectly = true.
-boolean workingPerfectly = true;
+// if hardware has an error, or hardware is not initialized, hwStatus > 0.
+// Else hwStatus = 0.
+byte hwStatus = 0;
+// hwStatus = 1;  // SD card
+// hwStatus = 2;  // Clock module
+// hwStatus = 3;  // MP3 Player
 
 // ------------------------------
 // Status LEDs
@@ -923,7 +964,7 @@ const byte INT_OFF =    B11111110;
 // -----------------------------------------------------------------------------
 // Memory definitions
 
-const int memoryBytes = 2048;  // When using Mega: 1024, for Nano: 256
+const int memoryBytes = 1024;  // When using Mega: 1024 or 2048, for Nano: 256
 byte memoryData[memoryBytes];
 unsigned int curProgramCounter = 0;     // Current program address value
 unsigned int programCounter = 0;        // When processing opcodes, the next program address value.
@@ -2929,7 +2970,7 @@ void processOpcodeData() {
       if (dataByte == 255) {
         regA = toggleSenseByte();
       } else if (dataByte == 1) {
-        regA = workingPerfectly;
+        regA = hwStatus;
       } else if (dataByte == 0) {
         regA = 0; // Input not implemented on this port.
       } else {
@@ -4186,6 +4227,36 @@ void checkControlButtons() {
   checkDepositButton();
   checkDepositNextButton();
   // -------------------
+  if (pcfAux.readButton(pinStepDown) == 0) {
+    if (!switchStepDown) {
+      switchStepDown = true;
+    }
+  } else if (switchStepDown) {
+    switchStepDown = false;
+    // Switch logic
+    if (curProgramCounter != programCounter) {
+      // Synch for control switches: programCounter and curProgramCounter.
+      // This handles the first switch...Next, after a STEP or HLT.
+      programCounter = curProgramCounter;
+    }
+    if (programCounter > 0) {
+      curProgramCounter--;
+      programCounter--;
+      dataByte = memoryData[programCounter];
+      programLights();
+#ifdef SWITCH_MESSAGES
+      Serial.print(F("+ Control, Examine Next, programCounter: "));
+      printByte(programCounter);
+      Serial.print(", byte = ");
+      printByte(dataByte);
+      Serial.print(" = ");
+      printData(dataByte);
+      Serial.println("");
+#endif
+    }
+  }
+  // -------------------
+
 }
 
 // -----------------------------------------------------------------------------
@@ -5367,10 +5438,10 @@ void setup() {
   // Pin 19(RX) to pin 3(TX).
   Serial1.begin(9600);
   if (!mp3player.begin(Serial1)) {
-    Serial.println(F("Unable to begin:"));
+    Serial.println(F("MP3 Player, unable to begin:"));
     Serial.println(F("1.Please recheck the connection!"));
     Serial.println(F("2.Please insert the SD card!"));
-    workingPerfectly = false;
+    hwStatus = 3;
   }
   // ----------------------------------------------------
   // Initial player settings.
@@ -5472,7 +5543,7 @@ void setup() {
   if (!SD.begin(csPin)) {
     Serial.println("- Error initializing SD card module.");
     ledFlashError();
-    workingPerfectly = false;
+    hwStatus = 1;
   } else {
     Serial.println("+ SD card module is initialized.");
     ledFlashSuccess();
@@ -5490,7 +5561,7 @@ void setup() {
   if (!rtc.begin()) {
     Serial.println("- Error: Real time clock not found, not set.");
     ledFlashError();
-    workingPerfectly = false;
+    hwStatus = 2;
   } else {
     ledFlashSuccess();
     Serial.println("+ Real time clock is initialized.");
@@ -5521,7 +5592,7 @@ void setup() {
     controlResetLogic();
     Serial.println(F("+++ Program system reset."));
     // ----------------------------------------------------
-    if (workingPerfectly) {
+    if (hwStatus == 0) {
       mp3player.play(soundEffects[0]);
       delay(500);
       ledFlashKnightRider(2, true);
