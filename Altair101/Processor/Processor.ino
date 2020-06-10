@@ -16,6 +16,19 @@
   I had a lock up when reading a file, flipping AUX2 down. But not sure how to reproduce the issue.
   + I added a break statement in the while loop, which may have fixed the lock up: readProgramFileIntoMemory()
 
+  Add AUX2up and AUX2down to checkClockControls().
+  + They can be used for setting sound bite filenames.
+  + Similar approach can be used for a timer.
+  If AUX2up is flipped,
+  ++ Read the toggle sense switch value.
+  ++ Read the toggle data switch value.
+  ++ Write the data switch value byte to the sense switch value filename.
+  If AUX2down is flipped,
+  ++ Read the toggle sense switch value.
+  ++ Read the file named by the value.
+  ++ Display the value in the data lights.
+  + As a test, after a write (AUX2up), do a read (AUX2down) to display the wrote value.
+
   -----------------
   SD card programs:
   -----------------
@@ -136,9 +149,26 @@
   ------------------------------------------------------------------------------
   Current/Next Work
 
-  Timer
-  + Set the minutes using address.
-  + Toggle DEPOSIT. Then flip RUN.
+  Require a second flip to confirm read.
+  + Double flip to confirm and read from file into processor memory.
+
+  Clock Timer,
+  + Must be in clock mode.
+  + Set the minutes by toggling a single address switch. For example A10 is for 10 minutes.
+  + Flip DEPOSIT to set the timer minute value.
+  + Flip RUN.
+  ++ Flash HLDA on/off each second.
+  ++ Light each address LED as each minute passes.
+  ++ Sound and flash when time is reached.
+
+  Clock currently requires an LCD to set the time.
+  + I should add inc/dec hours and minutes using toggles. This would also work for my other clock.
+
+  User guide,
+  + How to save a program to the SD card.
+  ++ Double flip to confirm and write processor memory to file.
+  + How to load and run a program from the SD card.
+  + How to assemble, upload, and run an assembler program: Altari101/asm/README.md.
 
   --------------
   + Have the program sound bite numbers store in files.
@@ -148,7 +178,7 @@
   ++ Use Sense switches to set the sound bite number.
   ++ Once Data and Sense switches are set, use AUX2 up to store the Data value to the sound bite number file.
   --------------
-  + toggleAddress, Examine, max based on memoryBytes = 2048.
+  + With Examine, check if toggleAddress > max memoryBytes.
   --------------
   + Implement a processor error function, such as:
   #ifdef LOG_MESSAGES
@@ -166,13 +196,10 @@
   // hwStatus = 3;  // PL_OK, PL_NO, MP3 Player
 
   Sound effects,
-  + Note, if playerStatus is HLTA_ON, a sound file can play.
   + Add a sound when there is a program error.
+  + Note, if playerStatus is HLTA_ON, a sound file can play.
 
   Update the SD card logic: initSdcard()
-
-  Now, can set the LCD backlight as on when prompting, and reset after.
-  + LCD backlight on/off status boolean: LcdBacklight.
 
   Confirm before reading a file into memory,
   + Fast flash HLDA for 1 second.
@@ -206,16 +233,17 @@
   ++      10:000 > hb: 0
   + End of list.
 
-  User guide,
-  + How to save a program to the SD card.
-  ++ Requires a second flip to confirm write.
-  + How to load and run a program from the SD card.
-  + How to assemble, upload, and run an assembler program: Altari101/asm/README.md.
-  + How to use the clock. Clock currently requires an LCD to set the time.
-  ++ I should add inc/dec hours and minutes using toggles. This would work for my other clock.
+  Now, can set the LCD backlight as on when prompting, and reset after.
+  + LCD backlight on/off status boolean: LcdBacklight.
 
   ---------------------------------------------
   Desktop Box:
+  ------------
+  + Mount, connect, and test an LCD, such as a 1602 LCD.
+  + Add internal 120AC socket for 3 devices: 1) Mega 5V wall adapter, 2) MP3 5V wall adapter, 3) stearo amp plug, 
+  + Use the Mega to control an On/off relay switch for 120AC socket.
+  + Use the Mega to control an On/off relay switch for the stearo amp's 120AC adapter.
+  + Later, add the stearo amp power supply inside the case.
   ------------
   + Done: Cut a glue Spider-Man paper to panels: 2 sides, bar top, and top panel.
   + Done: Cut separation on the top for easy internal access.
@@ -227,10 +255,6 @@
   + Done: Panel LED lights and toggle functions all work for the MP3 player.
   + Done: Wire up the MP3 player using multiple USB wall plugs to reduce static noise.
   + Done: Add RCA female plugs for L/R external output to an amp.
-  ------------
-  + Mount, connect, and test a 1602 LCD.
-  + Later, add the stearo amp power supply inside the case.
-  ++ Use the Mega to control an On/off relay switch for the amp's 120AC adapter.
 
   ------------------------------------------------------------------------------
   Processor
@@ -406,6 +430,7 @@ int CLOCK_OFF   = 4;
 int PLAYER_ON   = 3;
 int PLAYER_OFF  = 4;
 int KR5         = 5;
+int CLOCK_SOUND_CUCKOO = 6;
 // Arrary matching the above value, to the soundEffects array, file number.
 // Example: READ_FILE=1 which is array value = 5, soundEffects[READ_FILE]=5 or soundEffects[1]=5.
 const int maxSoundEffects = 32;
@@ -3666,7 +3691,7 @@ void printRegisters() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-#ifdef INCLUDE_SDCARD
+// SD card module functions
 
 // Handle the case if the card is not inserted. Once inserted, the module will be re-initialized.
 boolean sdcardInitiated = false;
@@ -3826,7 +3851,65 @@ boolean readProgramFileIntoMemory(String theFilename) {
   return (true);
 }
 
+// -------------------------------------
+
+boolean writeFileByte(String theFilename, byte theByte) {
+  if (!sdcardInitiated) {
+    initSdcard();
+  }
+  if (SD.exists(theFilename)) {
+    SD.remove(theFilename);
+  }
+  myFile = SD.open(theFilename, FILE_WRITE);
+  if (!myFile) {
+    Serial.print(F("- Error opening file: "));
+    Serial.println(theFilename);
+    ledFlashError();
+    sdcardInitiated = false;
+    return(false);
+  }
+  myFile.write(theByte);
+  myFile.close();
+  Serial.println(F("+ Byte write completed, file closed."));
+  ledFlashSuccess();
+  return(true);
+}
+
+// Read a byte from a file.
+int readFileByte(String theFilename) {
+  if (!sdcardInitiated) {
+    initSdcard();
+  }
+  if (!SD.exists(theFilename)) {
+    Serial.print(F("- Read ERROR, file doesn't exist: "));
+    Serial.println(theFilename);
+    ledFlashError();
+    sdcardInitiated = false;
+    return (0);
+  }
+  myFile = SD.open(theFilename);
+  if (!myFile) {
+    Serial.print(F("- Read ERROR, cannot open file: "));
+    Serial.println(theFilename);
+    ledFlashError();
+    sdcardInitiated = false;
+    return (0);
+  }
+  int returnByte = 0;
+  if (myFile.available()) {
+    returnByte = myFile.read();
+#ifdef LOG_MESSAGES
+    // Print Binary:Octal:Decimal values.
+    Serial.print("+ Byte read = ");
+    Serial.println(returnByte, DEC);
+    Serial.print(":B");
+    printByte(returnByte);
 #endif
+  }
+  myFile.close();
+  Serial.println(F("+ Read byte completed, file closed."));
+  return (returnByte);
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -4390,11 +4473,11 @@ void clockPulseHour() {
   // Knight Rider scanner lights and sound.
   // playerPlaySound(KR5);
   if (playerStatus & HLTA_ON) {
-    mp3player.play(6);
+    mp3player.play(CLOCK_SOUND_CUCKOO);
     ledFlashKnightRider(1, true);
-    mp3player.play(6);
+    mp3player.play(CLOCK_SOUND_CUCKOO);
     ledFlashKnightRider(1, false);
-    mp3player.play(6);
+    mp3player.play(CLOCK_SOUND_CUCKOO);
     ledFlashKnightRider(1, false);
   }
   //
@@ -4409,7 +4492,7 @@ void clockPulseMinute() {
   if (theCounterMinutes == 15 || theCounterMinutes == 30 || theCounterMinutes == 45) {
     // playerPlaySound(CLOCK_RESET);
     if (playerStatus & HLTA_ON) {
-      mp3player.play(14); // Knight Rider scan.
+      mp3player.play(CLOCK_SOUND_CUCKOO); // Knight Rider scan.
     }
   }
 }
@@ -4688,7 +4771,7 @@ void checkConfirmUploadSwitch() {
     switchAux2up = false;
     // Switch logic.
 #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ AUX1 up, Upload Switched for confirming write."));
+    Serial.println(F("+ AUX2 up, Upload Switched for confirming write."));
 #endif
     confirmWrite = true;
   }
@@ -5590,6 +5673,19 @@ void setup() {
 #ifdef SETUP_LCD
   delay(2000);
 #endif
+
+  // ----------------------------------------------------
+  // Testing before implementing.
+  // Read sound byte information.
+  String sfbFilename = "0001.sfb";
+  if (writeFileByte(sfbFilename, 6)) {
+    byte sfbFilenameNumber = readFileByte(sfbFilename);
+    Serial.print("+ Sound file byte = ");
+    Serial.println(sfbFilenameNumber, DEC);
+  } else {
+    Serial.print("- Failed to write sound file: ");
+    Serial.println(sfbFilename);
+  }
 
   // ----------------------------------------------------
   // Read and Run an initialization program.
