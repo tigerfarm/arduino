@@ -13,17 +13,23 @@
   + The 8080's machine instructions(opcodes) are the same for the 8085.
   + This program implements more than enough opcodes to run the classic program, Kill the Bit.
 
-  --------------
+  I had a lock up when reading a file, flipping AUX2 down. But not sure how to reproduce the issue.
+  + I added a break statement in the while loop, which may have fixed the lock up: readProgramFileIntoMemory()
+
+  -----------------
   SD card programs:
-  + 0000 NOPs.
+  -----------------
+  + 0000 NOPs. When AUX2 is flipped down, with sense switches all down, memory is all set to zeros (NOPs).
   + 0001 Simple jump
   + 0010 More lights, jump program
   + 0011 Kill the Bit
   + 0100 Program list, requires LCD
   + 0101 Add program, x + y: x in address 1, y in address 3, and answer in A6(64).
+  -----------------
   + 0110 Loop playing a sound bite, then NOPs. Address 1 is the MP3 file number.
   + 0111 Loop playing a sound bite, then NOPs until a HLT, which is followed by a JMP back to address 0.
   + 1000 NOP, HLT, JMP program
+  -----------------
   + 1111 Play start up MP3, then HLT.
 
   Common opcodes:
@@ -61,7 +67,6 @@
   + Set, programState = PROGRAM_RUN, which runs 00000000.bin when loop() starts.
   Else,
   + programState = PROGRAM_WAIT (default start state), don't run 00000000.bin when loop() starts.
-  + Play a startup MP3.
 
   Processor
   -----------
@@ -83,8 +88,8 @@
   + UNPROTECT     Not implemented.
   + AUX1 up       Clock mode
   + AUX1 down     MP3 player mode
-  + AUX2 up       Write memory to SD drive file, using the sense switches for the filename.
-  + AUX2 down     Read from SD drive file into processor memory, using the sense switches for the filename.
+  + AUX2 up       Double switch to write processor memory to SD drive file. Sense switches for the filename.
+  + AUX2 down     Read from SD drive file into processor memory. The sense switches used for the filename.
 
   ----------------------------------------
   Clock, clockRun(),
@@ -3811,6 +3816,7 @@ boolean readProgramFileIntoMemory(String theFilename) {
     i++;
     if (i > memoryBytes) {
       Serial.println(F("-+ Warning, file contains more data bytes than available memory."));
+      break;
     }
   }
   myFile.close();
@@ -4318,7 +4324,6 @@ void syncCountWithClock() {
 }
 
 // -----------------------------------------------------------------------------
-boolean HLDA_ON = false;
 void processClockNow() {
   //
   now = rtc.now();
