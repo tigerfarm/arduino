@@ -21,7 +21,9 @@
   + Similar approach can be used for a timer.
   If AUX2up is flipped,
   ++ Read the toggle sense switch value.
+  +++ byte fileByte = toggleSenseByte();
   ++ Read the toggle data switch value.
+  +++ byte valueByte = toggleDataByte();
   ++ Write the data switch value byte to the sense switch value filename.
   If AUX2down is flipped,
   ++ Read the toggle sense switch value.
@@ -240,7 +242,7 @@
   Desktop Box:
   ------------
   + Mount, connect, and test an LCD, such as a 1602 LCD.
-  + Add internal 120AC socket for 3 devices: 1) Mega 5V wall adapter, 2) MP3 5V wall adapter, 3) stearo amp plug, 
+  + Add internal 120AC socket for 3 devices: 1) Mega 5V wall adapter, 2) MP3 5V wall adapter, 3) stearo amp plug,
   + Use the Mega to control an On/off relay switch for 120AC socket.
   + Use the Mega to control an On/off relay switch for the stearo amp's 120AC adapter.
   + Later, add the stearo amp power supply inside the case.
@@ -3866,13 +3868,13 @@ boolean writeFileByte(String theFilename, byte theByte) {
     Serial.println(theFilename);
     ledFlashError();
     sdcardInitiated = false;
-    return(false);
+    return (false);
   }
   myFile.write(theByte);
   myFile.close();
   Serial.println(F("+ Byte write completed, file closed."));
   ledFlashSuccess();
-  return(true);
+  return (true);
 }
 
 // Read a byte from a file.
@@ -3881,16 +3883,16 @@ int readFileByte(String theFilename) {
     initSdcard();
   }
   if (!SD.exists(theFilename)) {
-    Serial.print(F("- Read ERROR, file doesn't exist: "));
-    Serial.println(theFilename);
+    // Serial.print(F("- Read ERROR, file doesn't exist: "));
+    // Serial.println(theFilename);
     ledFlashError();
     sdcardInitiated = false;
     return (0);
   }
   myFile = SD.open(theFilename);
   if (!myFile) {
-    Serial.print(F("- Read ERROR, cannot open file: "));
-    Serial.println(theFilename);
+    // Serial.print(F("- Read ERROR, cannot open file: "));
+    // Serial.println(theFilename);
     ledFlashError();
     sdcardInitiated = false;
     return (0);
@@ -3899,7 +3901,6 @@ int readFileByte(String theFilename) {
   if (myFile.available()) {
     returnByte = myFile.read();
 #ifdef LOG_MESSAGES
-    // Print Binary:Octal:Decimal values.
     Serial.print("+ Byte read = ");
     Serial.println(returnByte, DEC);
     Serial.print(":B");
@@ -4644,6 +4645,14 @@ void restoreLcdScreenData() {
 // -----------------------------------------------------------------------------
 // Front Panel AUX Switches
 
+// Only do the action once, don't repeat if the switch is held down.
+// Don't repeat action if the switch is not pressed.
+
+boolean switchAux1up = false;
+boolean switchAux1down = false;
+boolean switchAux2up = false;
+boolean switchAux2down = false;
+
 /*
   int theCounterYear = 0;
   int theCounterMonth = 0;
@@ -4653,6 +4662,21 @@ void restoreLcdScreenData() {
   int theCounterSeconds = 0;
 */
 int clockData = 0;
+
+String getSenseFilename() {
+  byte fileByte = toggleSenseByte();
+  String sfbFilename = ".sfb";
+  for (int i = 0; i <= 3; i++) {
+    // Serial.print(bitRead(fileByte, i));
+    if (bitRead(fileByte, i) == 1) {
+      sfbFilename = "1" + sfbFilename;
+    } else {
+      sfbFilename = "0" + sfbFilename;
+    }
+  }
+  return sfbFilename;
+}
+
 void checkClockControls() {
   // ------------------------
   if (pcfControl.readButton(pinStep) == 0) {
@@ -4705,16 +4729,45 @@ void checkClockControls() {
     Serial.println(F("Show minutes and hours."));
     displayTheTime(theCounterMinutes, theCounterHours);
   }
+  // ------------------------
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux2up) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(UPLOAD_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux2up) {
+      switchAux2up = true;
+      // Serial.print(F("+ AUX2 up switch pressed..."));
+    }
+  } else if (switchAux2up) {
+    switchAux2up = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ AUX2 up, switched."));
+    Serial.println("");
+#endif
+  }
+  // ------------------------
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux2down) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux2down) {
+      switchAux2down = true;
+      // Serial.print(F("+ AUX2 down switch pressed..."));
+    }
+  } else if (switchAux2down) {
+    switchAux2down = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ AUX2 down, switched."));
+    Serial.println("");
+#endif
+  }
 }
-
-#ifdef INCLUDE_AUX
-// Only do the action once, don't repeat if the switch is held down.
-// Don't repeat action if the switch is not pressed.
-
-boolean switchAux1up = false;
-boolean switchAux1down = false;
-boolean switchAux2up = false;
-boolean switchAux2down = false;
 
 void checkClockSwitch() {
 #ifdef DESKTOP_MODULE
@@ -4871,7 +4924,6 @@ void checkDownloadSwitch() {
 #endif
   }
 }
-#endif
 
 // --------------------------------------------------------
 // --------------------------------------------------------
@@ -5183,27 +5235,70 @@ void checkPlayerControls() {
     Serial.println(playerCounter);
 #endif
   }
-  // -------------------
+  // ------------------------
+#ifdef DESKTOP_MODULE
   if (pcfAux.readButton(pinAux2up) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(UPLOAD_SWITCH_PIN) == LOW) {
+#endif
     if (!switchAux2up) {
       switchAux2up = true;
+      // Serial.print(F("+ AUX2 up switch pressed..."));
     }
   } else if (switchAux2up) {
     switchAux2up = false;
-    // Switch logic
+    // Switch logic.
+    byte fileByte = toggleSenseByte();
+    byte valueByte = toggleDataByte();
+    if (fileByte > 0 && valueByte > 0) {
+      String sfbFilename = getSenseFilename();
+      if (writeFileByte(sfbFilename, valueByte)) {
+        Serial.print("+ Sound filename = ");
+        Serial.println(sfbFilename);
+      } else {
+        Serial.print("- Failed to write sound file: ");
+        Serial.println(sfbFilename);
+      }
+    }
 #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Player, AUX2 up: ..."));
+    Serial.print(F("+ AUX2 up, switched. Sense value=B"));
+    printByte(fileByte);
+    Serial.print(F(" Data value="));
+    printByte(valueByte);
+    Serial.println("");
 #endif
   }
-  // -------------------
+  // ------------------------
+#ifdef DESKTOP_MODULE
   if (pcfAux.readButton(pinAux2down) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
+#endif
     if (!switchAux2down) {
       switchAux2down = true;
+      // Serial.print(F("+ AUX2 down switch pressed..."));
     }
   } else if (switchAux2down) {
     switchAux2down = false;
-    // Switch logic
+    // Switch logic.
+    String sfbFilename = getSenseFilename();
+    byte fileByte = readFileByte(sfbFilename);
+    if (fileByte > 0) {
+      // This is where program values can be set, and then used.
+    }
 #ifdef SWITCH_MESSAGES
+    Serial.print(F("+ AUX2 down, switched. Sense filename = "));
+    Serial.print(sfbFilename);
+    Serial.print(F(", file byte="));
+    Serial.print(fileByte);
+    Serial.println("");
+#endif
+#ifdef SWITCH_MESSAGES
+  // -------------------
+  // For debugging player issues.
+  /*
     Serial.print(F("+ "));
     Serial.print(F(" playerStatus="));
     printByte(playerStatus);
@@ -5232,6 +5327,7 @@ void checkPlayerControls() {
       Serial.print(F(", mp3player not available."));
     }
     Serial.println();
+    */
 #endif
   }
   // -------------------
@@ -5677,6 +5773,7 @@ void setup() {
   // ----------------------------------------------------
   // Testing before implementing.
   // Read sound byte information.
+  /*
   String sfbFilename = "0001.sfb";
   if (writeFileByte(sfbFilename, 6)) {
     byte sfbFilenameNumber = readFileByte(sfbFilename);
@@ -5686,7 +5783,16 @@ void setup() {
     Serial.print("- Failed to write sound file: ");
     Serial.println(sfbFilename);
   }
-
+  sfbFilename = "0101.sfb";
+  if (writeFileByte(sfbFilename, 5)) {
+    byte sfbFilenameNumber = readFileByte(sfbFilename);
+    Serial.print("+ Sound file byte = ");
+    Serial.println(sfbFilenameNumber, DEC);
+  } else {
+    Serial.print("- Failed to write sound file: ");
+    Serial.println(sfbFilename);
+  }
+  */
   // ----------------------------------------------------
   // Read and Run an initialization program.
   // Can manually set 00000000.bin, to all zeros.
