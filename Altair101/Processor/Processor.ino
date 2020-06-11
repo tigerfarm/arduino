@@ -4695,7 +4695,47 @@ String getSenseFilename() {
   return getSfbFilename(fileByte);
 }
 
+boolean ClockTimerMode = false;
 void checkClockControls() {
+  // -------------------
+  if (pcfControl.readButton(pinStop) == 0) {
+    if (!switchStop) {
+      switchStop = true;
+    }
+  } else if (switchStop) {
+    switchStop = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock, STOP. Toggle timer. "));
+#endif
+    if (ClockTimerMode) {
+#ifdef SWITCH_MESSAGES
+      Serial.print(F(" Off."));
+#endif
+      ClockTimerMode = false;
+      displayTheTime(theCounterMinutes, theCounterHours);
+    } else {
+#ifdef SWITCH_MESSAGES
+      Serial.print(F(" On."));
+#endif
+      ClockTimerMode = true;
+      byte timerStatus = MEMR_ON | INP_ON;
+      lightsStatusAddressData(timerStatus, 0, 0);
+    }
+
+  }
+  // -------------------
+  if (pcfControl.readButton(pinRun) == 0) {
+    if (!switchRun) {
+      switchRun = true;
+    }
+  } else if (switchRun) {
+    switchRun = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Clock, RUN. Run timer"));
+#endif
+  }
   // ------------------------
   if (pcfControl.readButton(pinStep) == 0) {
     if (!switchStep) {
@@ -4709,7 +4749,6 @@ void checkClockControls() {
       clockData = 1;
       Serial.println(F("Show month and day."));
       displayTheTime(theCounterDay, theCounterMonth);
-      // lightsStatusAddressData(0, convert12(theCounterMonth), theCounterDay);
     } else if (clockData == 1) {
       clockData = 2;
       Serial.println(F("Show year."));
@@ -5541,13 +5580,15 @@ void clockRun() {
   syncCountWithClock();
   displayTheTime(theCounterMinutes, theCounterHours);
   while (programState == CLOCK_RUN) {
+    //
     // Clock process to display the time.
-    processClockNow();
-    // Switches to exit this mode.
-    // checkRunningButtons();   // Test with only using the clock AUX switch.
-    checkClockSwitch();
+    if (!ClockTimerMode) {
+      processClockNow();
+    }
+    checkClockSwitch();   // Option to exit clock mode.
     checkClockControls();
-    // Check control buttons for setting the time.
+    //
+    // Control buttons for setting the time.
     checkExamineButton();
     checkExamineNextButton();
     checkDepositButton();
