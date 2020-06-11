@@ -116,14 +116,20 @@
   + Status     OUT  : Off indicates clock mode, since HLDA is on as well.
   + Indicator  HLDA : On to indicate controlled by other than the program emulator.
   -----------
+  + STOP          Put clock into timer mode.
+  + RUN           Get the timer minutes from the address toggles and start the timer.
   + SINGLE up     1) month and day, 2) year, 3) Return to show time of day: hour and minutes
+  + DEPOSIT       Set the timer minutes from the address toggles: A1 is 1 minute, A2 is 2 minutes, ... 15 minutes.
   + RESET         Knight Rider effect, then Show time of day.
   -----------
-  + To do:
-  ++ Add a timer
-  ++ Examine: move through options to set date and time. Invert on/off lights to indicate set mode.
-  ++ PROTECT/UNPROTECT: inc/dec set value.
-  ++ Deposit: to set/change the set value.
+  To do:
+  + Add a timer
+  ++ Switch controls are in place.
+  ++ Write the timer function.
+  + Set the date and time:
+  ++ Examine: move through options to set date and time. Blink lights to indicate set mode.
+  ++ PROTECT/UNPROTECT: inc/dec value to set.
+  ++ Deposit: set the value using the inc/dec value.
 
   ----------------------------------------
   MP3 Player, playerRun(),
@@ -4737,16 +4743,17 @@ void checkClockControls() {
   } else if (switchDeposit) {
     switchDeposit = false;
     // Switch logic
-    ClockTimerMode = true;
-    timerStatus = MEMR_ON | INP_ON; // timerMinute is in memory (MEMR_ON).
-    timerMinute = toggleAddress();
-    timerStep = 2; // Step 2
-    lightsStatusAddressData(timerStatus, timerMinute, timerStep);
+    if (ClockTimerMode) {
+      timerStatus = MEMR_ON | INP_ON; // timerMinute is in memory (MEMR_ON).
+      timerMinute = toggleAddress();
+      timerStep = 2; // Step 2
+      lightsStatusAddressData(timerStatus, timerMinute, timerStep);
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Clock, Deposit. timerMinute="));
-    Serial.print(timerMinute);
-    Serial.println("");
+      Serial.print(F("+ Clock, Deposit. timerMinute="));
+      Serial.print(timerMinute);
+      Serial.println("");
 #endif
+    }
   }
   // -------------------
   if (pcfControl.readButton(pinRun) == 0) {
