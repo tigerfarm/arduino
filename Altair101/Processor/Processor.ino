@@ -3872,7 +3872,7 @@ boolean writeFileByte(String theFilename, byte theByte) {
   }
   myFile.write(theByte);
   myFile.close();
-  Serial.println(F("+ Byte write completed, file closed."));
+  // Serial.println(F("+ Byte write completed, file closed."));
   ledFlashSuccess();
   return (true);
 }
@@ -3908,7 +3908,7 @@ int readFileByte(String theFilename) {
 #endif
   }
   myFile.close();
-  Serial.println(F("+ Read byte completed, file closed."));
+  // Serial.println(F("+ Read byte completed, file closed."));
   return (returnByte);
 }
 
@@ -5286,6 +5286,13 @@ void checkPlayerControls() {
     byte fileByte = toggleSenseByte();
     String sfbFilename = getSenseFilename();
     byte valueByte = readFileByte(sfbFilename);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ AUX2 down, switched. Sense filename = "));
+    Serial.print(sfbFilename);
+    Serial.print(F(", file byte="));
+    Serial.print(fileByte);
+    Serial.println("");
+#endif
     if (fileByte > 0) {
       // For 3 seconds,
       //  Display the content value in the Data LED lights .
@@ -5299,13 +5306,6 @@ void checkPlayerControls() {
       // Return to normal.
       playerLights();
     }
-#ifdef SWITCH_MESSAGES
-    Serial.print(F("+ AUX2 down, switched. Sense filename = "));
-    Serial.print(sfbFilename);
-    Serial.print(F(", file byte="));
-    Serial.print(fileByte);
-    Serial.println("");
-#endif
 #ifdef SWITCH_MESSAGES
     // -------------------
     // For debugging player issues.
