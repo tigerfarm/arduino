@@ -425,6 +425,7 @@ void playerLights() {
 // ---------------------------
 // Function call number
 // Example: playerPlaySound(READ_FILE) plays 05-transfercomplete.mp3
+//  Variable      soundEffects[] Array value
 int READ_FILE     = 1;
 int CLOCK_RESET   = 2;  // Not used.
 int CLOCK_ON      = 3;
@@ -439,11 +440,12 @@ const int maxSoundEffects = 32;
 int soundEffects[maxSoundEffects];
 /*
 int soundEffects[maxSoundEffects] = {
+File#      soundEffects[] Array value
   1,       // 0: setup() completed.
   5,       // 1: Read file into memory.
   4,       // 2: Flipped clock RESET switch.
-  2,       // 3: AUX1 flipped up, enter clock mode.
-  3,       // 4: AUX1 flipped up, exit clock mode.
+  2,       // 3: AUX flipped up, enter clock/player mode.
+  3,       // 4: AUX flipped up, exit  clock/player mode.
   6        // 5: Knight Rider sound effect.
 };
 */
