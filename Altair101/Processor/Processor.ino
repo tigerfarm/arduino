@@ -103,8 +103,8 @@
   + UNPROTECT     Not implemented.
   + AUX1 up       Clock mode
   + AUX1 down     MP3 player mode
-  + AUX2 up       Double switch to write processor memory to SD drive file. Sense switches for the filename.
-  + AUX2 down     Read from SD drive file into processor memory. The sense switches used for the filename.
+  + AUX2 up       Double click switch to write processor memory to SD drive Sense switches filename.
+  + AUX2 down     Read from SD drive Sense switches filename into processor memory.
 
   ----------------------------------------
   Clock, clockRun(),
@@ -116,11 +116,14 @@
   + Status     OUT  : Off indicates clock mode, since HLDA is on as well.
   + Indicator  HLDA : On to indicate controlled by other than the program emulator.
   -----------
-  + SINGLE STEP: 1) Show time of day: hour and minutes, 2) month and day, 3) year.
-  + To do: RESET: Show time of day.
-  + To do: Examine: move through options to set date and time. Invert on/off lights to indicate set mode.
-  + To do: PROTECT/UNPROTECT: inc/dec set value.
-  + To do: Deposit: to set/change the set value.
+  + SINGLE up     1) month and day, 2) year, 3) Return to show time of day: hour and minutes
+  + RESET         Knight Rider effect, then Show time of day.
+  -----------
+  + To do:
+  ++ Add a timer
+  ++ Examine: move through options to set date and time. Invert on/off lights to indicate set mode.
+  ++ PROTECT/UNPROTECT: inc/dec set value.
+  ++ Deposit: to set/change the set value.
 
   ----------------------------------------
   MP3 Player, playerRun(),
@@ -145,7 +148,19 @@
   + CLR           Play toggle address value MP3. If HLTA is on, only play once, then pause.
   + PROTECT       Decrease volume
   + UNPROTECT     Increase volume
-  + AUX2 down     Send log message to serial port, of player values such as currrent MP3 number.
+  + AUX2 up       Write data byte into sense switch file number.
+  + AUX2 down     Read sense switch file number: data byte displayed in Data LED lights.
+
+  // Sound effects using the AUX2 data.
+  int soundEffects[maxSoundEffects] = {
+  File#      soundEffects[] Array value
+    1,       // 0: setup() completed.
+    5,       // 1: Read file into memory.
+    4,       // 2: Flipped clock RESET switch.
+    2,       // 3: AUX flipped up, enter clock/player mode.
+    3,       // 4: AUX flipped up, exit  clock/player mode.
+    6        // 5: Knight Rider sound effect (KR5).
+  };
 
   ------------------------------------------------------------------------------
   ------------------------------------------------------------------------------
@@ -156,9 +171,11 @@
 
   Clock Timer,
   + Must be in clock mode.
+  + Flip STOP to enter clock timer mode.
+  + If in clock timer mode, Flip STOP to exit clock timer mode.
   + Set the minutes by toggling a single address switch. For example A10 is for 10 minutes.
   + Flip DEPOSIT to set the timer minute value.
-  + Flip RUN.
+  + Flip RUN to start the timer.
   ++ Flash HLDA on/off each second.
   ++ Light each address LED as each minute passes.
   ++ Sound and flash when time is reached.
@@ -423,8 +440,13 @@ void playerLights() {
 }
 
 // ---------------------------
-// Function call number
+// Sound bites for sound effects
+
 // Example: playerPlaySound(READ_FILE) plays 05-transfercomplete.mp3
+// Arrary matching the above value, to the soundEffects array, file number.
+// Example: READ_FILE=1 which is array value = 5, soundEffects[READ_FILE]=5 or soundEffects[1]=5.
+const int maxSoundEffects = 32;
+int soundEffects[maxSoundEffects];
 //  Variable      soundEffects[] Array value
 int READ_FILE     = 1;
 int CLOCK_RESET   = 2;  // Not used.
@@ -434,36 +456,108 @@ int PLAYER_ON     = 3;
 int PLAYER_OFF    = 4;
 int KR5           = 5;
 int CLOCK_CUCKOO  = 6;
-// Arrary matching the above value, to the soundEffects array, file number.
-// Example: READ_FILE=1 which is array value = 5, soundEffects[READ_FILE]=5 or soundEffects[1]=5.
-const int maxSoundEffects = 32;
-int soundEffects[maxSoundEffects];
-/*
-int soundEffects[maxSoundEffects] = {
-File#      soundEffects[] Array value
-  1,       // 0: setup() completed.
-  5,       // 1: Read file into memory.
-  4,       // 2: Flipped clock RESET switch.
-  2,       // 3: AUX flipped up, enter clock/player mode.
-  3,       // 4: AUX flipped up, exit  clock/player mode.
-  6        // 5: Knight Rider sound effect.
-};
-*/
+//
 // Function to play a sound file using the above mapping.
 void playerPlaySound(int theFileNumber) {
-  // HLTA_ON = B00001000
   // Serial.print(F("+ playerPlaySound("));
   // Serial.print(theFileNumber);
   // Serial.print(F(") "));
   if (playerStatus & B00001000) {
     mp3player.play(soundEffects[theFileNumber]);
-    // mp3player.play(soundEffects[0]);
     // Serial.print(F("mp3player.play("));
     // Serial.print(soundEffects[theFileNumber]);
     // Serial.print(F(")"));
   }
   // Serial.println("");
 }
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Front Panel Status LEDs
+
+// ------------------------------
+// Added this to identify hardware status.
+// if hardware has an error, or hardware is not initialized, hwStatus > 0.
+// Else hwStatus = 0.
+byte hwStatus = 0;
+// hwStatus = 1;  // SD card
+// hwStatus = 2;  // Clock module
+// hwStatus = 3;  // MP3 Player
+
+// ------------------------------
+// Status LEDs
+//
+// Info: page 33 of the Altair 8800 oprator's manaul.
+// ------------
+// Not in use:
+//  INTE : On, interrupts enabled.
+//  INT : An interrupt request has been acknowledged.
+//  PROT : Useful only if RAM has page protection impliemented. I'm not implementing PROT.
+// ------------
+// HLDA : 8080 processor go into a hold state because of other hardware such as the clock.
+
+// ------------
+// Bit patterns for the status shift register (SN74HC595N):
+
+byte statusByte = B00000000;        // By default, all are OFF.
+
+// ------------
+// Order on the desktop module, seems to match the tablet module.
+// Desktop module,
+// Status lights: INT(B000000001), WO, STACK, HLTA, OUT, MI, INP, MEMR(B10000000)
+// ------------
+// Tablet module:
+// MEMR - Bar LED #1
+// M1   - Bar LED #3
+// HLTA - Bar LED #5
+// WO   - Bar LED #7
+// WAIT - Green LED on the tablet
+// HLDA - Red LED
+// ------------
+
+// Use OR to turn ON. Example:
+//  statusByte = statusByte | MEMR_ON;
+const byte MEMR_ON =    B10000000;  // MEMR   The memory bus will be used for memory read data.
+const byte INP_ON =     B01000000;  // INP    The address bus containing the address of an input device. The input data should be placed on the data bus when the data bus is in the input mode
+const byte M1_ON =      B00100000;  // M1     Machine cycle 1, fetch opcode.
+const byte OUT_ON =     B00010000;  // OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
+const byte HLTA_ON =    B00001000;  // HLTA   Machine opcode hlt, has halted the machine.
+const byte STACK_ON =   B00000100;  // STACK  Stack process
+const byte WO_ON =      B00000010;  // WO     Write out (inverse logic)
+const byte INT_ON =     B00000001;  // INT    Interrupt
+// const byte WAIT_ON =    B00000001;  // WAIT   Changed to a digital pin control.
+
+// Use AND to turn OFF. Example:
+//  statusByte = statusByte & M1_OFF;
+const byte MEMR_OFF =   B01111111;
+const byte INP_OFF =    B10111111;
+const byte M1_OFF =     B11011111;
+const byte OUT_OFF =    B11101111;
+const byte HLTA_OFF =   B11110111;
+const byte STACK_OFF =  B11111011;
+const byte WO_OFF =     B11111101;
+const byte INT_OFF =    B11111110;
+// const byte WAIT_OFF =   B11111110;   // WAIT   Changed to a digital pin control.
+
+// Video demonstrating status lights:
+//    https://www.youtube.com/watch?v=3_73NwB6toY
+// MEMR & M1 & WO are on when fetching an op code, example: jmp(303) or lda(072).
+// MEMR & WO are on when fetching a low or high byte of an address.
+// MEMR & WO are on when fetching data from an address.
+// All status LEDs are off when storing a value to a memory address.
+// When doing a data write, data LEDs are all on.
+//
+// Halt: MEMR & hltA & WO are on. All address and data lights are on.
+//  System is locked. To get going again, hard reset: flip stop and reset same time.
+//
+// STACK is the only status LED on when making a stack push (write to the stack).
+// MEMR & STACK & WO are on when reading from the stack.
+//
+// INP & WO are on when reading from an input port.
+// out is on when send an output to a port.
+//
+// INTE is on when interrupts are enabled.
+// INTE is off when interrupts are disabled.
 
 // -----------------------------------------------------------------------------
 void ledFlashKnightRider(int times, boolean NotUsed) {
@@ -532,6 +626,18 @@ void ledFlashKnightRider(int times, boolean NotUsed) {
       break;
     }
   */
+}
+
+void KnightRiderScanner() {
+  // Knight Rider scanner lights and sound.
+  if (playerStatus & HLTA_ON) {
+    mp3player.play(CLOCK_CUCKOO);
+    ledFlashKnightRider(1, true);
+    mp3player.play(CLOCK_CUCKOO);
+    ledFlashKnightRider(1, false);
+    mp3player.play(CLOCK_CUCKOO);
+    ledFlashKnightRider(1, false);
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -937,94 +1043,6 @@ void lcdPrintChar(String theChar) {
 }
 
 #endif
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// Front Panel Status LEDs
-
-// ------------------------------
-// Added this to identify hardware status.
-// if hardware has an error, or hardware is not initialized, hwStatus > 0.
-// Else hwStatus = 0.
-byte hwStatus = 0;
-// hwStatus = 1;  // SD card
-// hwStatus = 2;  // Clock module
-// hwStatus = 3;  // MP3 Player
-
-// ------------------------------
-// Status LEDs
-//
-// Info: page 33 of the Altair 8800 oprator's manaul.
-// ------------
-// Not in use:
-//  INTE : On, interrupts enabled.
-//  INT : An interrupt request has been acknowledged.
-//  PROT : Useful only if RAM has page protection impliemented. I'm not implementing PROT.
-// ------------
-// HLDA : 8080 processor go into a hold state because of other hardware such as the clock.
-
-// ------------
-// Bit patterns for the status shift register (SN74HC595N):
-
-byte statusByte = B00000000;        // By default, all are OFF.
-
-// ------------
-// Order on the desktop module, seems to match the tablet module.
-// Desktop module,
-// Status lights: INT(B000000001), WO, STACK, HLTA, OUT, MI, INP, MEMR(B10000000)
-// ------------
-// Tablet module:
-// MEMR - Bar LED #1
-// M1   - Bar LED #3
-// HLTA - Bar LED #5
-// WO   - Bar LED #7
-// WAIT - Green LED on the tablet
-// HLDA - Red LED
-// ------------
-
-// Use OR to turn ON. Example:
-//  statusByte = statusByte | MEMR_ON;
-const byte MEMR_ON =    B10000000;  // MEMR   The memory bus will be used for memory read data.
-const byte INP_ON =     B01000000;  // INP    The address bus containing the address of an input device. The input data should be placed on the data bus when the data bus is in the input mode
-const byte M1_ON =      B00100000;  // M1     Machine cycle 1, fetch opcode.
-const byte OUT_ON =     B00010000;  // OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
-const byte HLTA_ON =    B00001000;  // HLTA   Machine opcode hlt, has halted the machine.
-const byte STACK_ON =   B00000100;  // STACK  Stack process
-const byte WO_ON =      B00000010;  // WO     Write out (inverse logic)
-const byte INT_ON =     B00000001;  // INT    Interrupt
-// const byte WAIT_ON =    B00000001;  // WAIT   Changed to a digital pin control.
-
-// Use AND to turn OFF. Example:
-//  statusByte = statusByte & M1_OFF;
-const byte MEMR_OFF =   B01111111;
-const byte INP_OFF =    B10111111;
-const byte M1_OFF =     B11011111;
-const byte OUT_OFF =    B11101111;
-const byte HLTA_OFF =   B11110111;
-const byte STACK_OFF =  B11111011;
-const byte WO_OFF =     B11111101;
-const byte INT_OFF =    B11111110;
-// const byte WAIT_OFF =   B11111110;   // WAIT   Changed to a digital pin control.
-
-// Video demonstrating status lights:
-//    https://www.youtube.com/watch?v=3_73NwB6toY
-// MEMR & M1 & WO are on when fetching an op code, example: jmp(303) or lda(072).
-// MEMR & WO are on when fetching a low or high byte of an address.
-// MEMR & WO are on when fetching data from an address.
-// All status LEDs are off when storing a value to a memory address.
-// When doing a data write, data LEDs are all on.
-//
-// Halt: MEMR & hltA & WO are on. All address and data lights are on.
-//  System is locked. To get going again, hard reset: flip stop and reset same time.
-//
-// STACK is the only status LED on when making a stack push (write to the stack).
-// MEMR & STACK & WO are on when reading from the stack.
-//
-// INP & WO are on when reading from an input port.
-// out is on when send an output to a port.
-//
-// INTE is on when interrupts are enabled.
-// INTE is off when interrupts are disabled.
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -4476,16 +4494,7 @@ void clockPulseHour() {
   } else {
     theHour = theCounterHours;
   }
-  // Knight Rider scanner lights and sound.
-  // playerPlaySound(KR5);
-  if (playerStatus & HLTA_ON) {
-    mp3player.play(CLOCK_CUCKOO);
-    ledFlashKnightRider(1, true);
-    mp3player.play(CLOCK_CUCKOO);
-    ledFlashKnightRider(1, false);
-    mp3player.play(CLOCK_CUCKOO);
-    ledFlashKnightRider(1, false);
-  }
+  KnightRiderScanner();
   //
   displayTheTime( theCounterMinutes, theCounterHours );
   printLcdClockValue(thePrintColHour, printRowClockPulse, theHour);
@@ -4726,14 +4735,9 @@ void checkClockControls() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ Control, clock Reset."));
 #endif
-    // playerPlaySound(CLOCK_RESET);
-    mp3player.play(6);
-    // playerPlaySound(KR5);
-    ledFlashKnightRider(1, true);
-    mp3player.play(6);
-    ledFlashKnightRider(1, false);
-    mp3player.play(6);
-    ledFlashKnightRider(1, false);
+    //
+    KnightRiderScanner();
+    //
     clockData = 0;
     Serial.println(F("Show minutes and hours."));
     displayTheTime(theCounterMinutes, theCounterHours);
@@ -4863,17 +4867,17 @@ void checkUploadSwitch() {
       //             1234567890123456
       lcdPrintln(1, "File: " + senseSwitchValue);
       //
-      confirmWrite = false;
       // -------------------------------------------------------
+      // Double click switch to write.
       // Must confirm within X seconds (milliseconds).
-      unsigned long timer = millis();
+      confirmWrite = false;
       switchAux2up = false; // Required to reset the switch state for confirmation.
-      while (!confirmWrite && (millis() - timer < 3000)) {
+      unsigned long timer = millis();
+      while (!confirmWrite && (millis() - timer < 2000)) {
         checkConfirmUploadSwitch();
         delay(100);
       }
       // -------------------------------------------------------
-      //
       if (confirmWrite) {
         Serial.print(F("+ Write memory to filename: "));
         Serial.println(theFilename);
