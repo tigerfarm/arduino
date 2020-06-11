@@ -4696,6 +4696,8 @@ String getSenseFilename() {
 }
 
 boolean ClockTimerMode = false;
+byte timerStatus = 0;
+unsigned int timerMinute = 0;
 void checkClockControls() {
   // -------------------
   if (pcfControl.readButton(pinStop) == 0) {
@@ -4719,10 +4721,25 @@ void checkClockControls() {
       Serial.print(F(" On."));
 #endif
       ClockTimerMode = true;
-      byte timerStatus = MEMR_ON | INP_ON;
-      lightsStatusAddressData(timerStatus, 0, 0);
+      timerStatus = MEMR_ON | INP_ON;
+      lightsStatusAddressData(timerStatus, 0, 1);
     }
-
+  }
+  // -------------------
+  if (pcfControl.readButton(pinDeposit) == 0) {
+    if (!switchDeposit) {
+      switchDeposit = true;
+    }
+  } else if (switchDeposit) {
+    switchDeposit = false;
+    // Switch logic
+    timerMinute = toggleAddress();
+    lightsStatusAddressData(timerStatus, timerMinute, 2);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock, Deposit. timerMinute="));
+    Serial.print(timerMinute);
+    Serial.println("");
+#endif
   }
   // -------------------
   if (pcfControl.readButton(pinRun) == 0) {
@@ -5584,16 +5601,14 @@ void clockRun() {
     // Clock process to display the time.
     if (!ClockTimerMode) {
       processClockNow();
+      // Control buttons for setting the time.
+      checkExamineButton();
+      checkExamineNextButton();
+      checkDepositButton();
+      checkDepositNextButton();
     }
     checkClockSwitch();   // Option to exit clock mode.
     checkClockControls();
-    //
-    // Control buttons for setting the time.
-    checkExamineButton();
-    checkExamineNextButton();
-    checkDepositButton();
-    checkDepositNextButton();
-    //
     delay(100);
   }
   playerPlaySound(CLOCK_OFF);
