@@ -4699,7 +4699,8 @@ boolean ClockTimerMode = false;
 byte timerStatus = 0;
 unsigned int timerMinute = 0;
 void checkClockControls() {
-  // -------------------
+  // ---------------------------------------------------------
+  // Timer options
   if (pcfControl.readButton(pinStop) == 0) {
     if (!switchStop) {
       switchStop = true;
@@ -4722,7 +4723,7 @@ void checkClockControls() {
 #endif
       ClockTimerMode = true;
       timerStatus = MEMR_ON | INP_ON;
-      lightsStatusAddressData(timerStatus, 0, 1);
+      lightsStatusAddressData(timerStatus, 0, 1); // Step 1
     }
   }
   // -------------------
@@ -4734,7 +4735,10 @@ void checkClockControls() {
     switchDeposit = false;
     // Switch logic
     timerMinute = toggleAddress();
-    lightsStatusAddressData(timerStatus, timerMinute, 2);
+    //
+    ClockTimerMode = true;
+    timerStatus = MEMR_ON | INP_ON;
+    lightsStatusAddressData(timerStatus, timerMinute, 2); // Step 2
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Clock, Deposit. timerMinute="));
     Serial.print(timerMinute);
@@ -4752,8 +4756,13 @@ void checkClockControls() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ Clock, RUN. Run timer"));
 #endif
+    timerMinute = toggleAddress();
+    //
+    ClockTimerMode = true;
+    timerStatus = MEMR_ON | INP_ON | M1_ON;
+    lightsStatusAddressData(timerStatus, timerMinute, 4); // Step 3
   }
-  // ------------------------
+  // ---------------------------------------------------------
   if (pcfControl.readButton(pinStep) == 0) {
     if (!switchStep) {
       switchStep = true;
