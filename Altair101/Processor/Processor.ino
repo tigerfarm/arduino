@@ -4697,6 +4697,7 @@ String getSenseFilename() {
 
 boolean ClockTimerMode = false;
 byte timerStatus = 0;
+byte timerStep = 0;
 unsigned int timerMinute = 0;
 void checkClockControls() {
   // ---------------------------------------------------------
@@ -4722,8 +4723,10 @@ void checkClockControls() {
       Serial.print(F(" On."));
 #endif
       ClockTimerMode = true;
-      timerStatus = MEMR_ON | INP_ON;
-      lightsStatusAddressData(timerStatus, 0, 1); // Step 1
+      timerStatus = INP_ON;         // timer is ready for timerMinute input.
+      timerMinute = 0;
+      timerStep = 1; // Step 1
+      lightsStatusAddressData(timerStatus, timerMinute, timerStep);
     }
   }
   // -------------------
@@ -4734,11 +4737,11 @@ void checkClockControls() {
   } else if (switchDeposit) {
     switchDeposit = false;
     // Switch logic
-    timerMinute = toggleAddress();
-    //
     ClockTimerMode = true;
-    timerStatus = MEMR_ON | INP_ON;
-    lightsStatusAddressData(timerStatus, timerMinute, 2); // Step 2
+    timerStatus = MEMR_ON | INP_ON; // timerMinute is in memory (MEMR_ON).
+    timerMinute = toggleAddress();
+    timerStep = 2; // Step 2
+    lightsStatusAddressData(timerStatus, timerMinute, timerStep);
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Clock, Deposit. timerMinute="));
     Serial.print(timerMinute);
@@ -4756,11 +4759,11 @@ void checkClockControls() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ Clock, RUN. Run timer"));
 #endif
-    timerMinute = toggleAddress();
-    //
     ClockTimerMode = true;
-    timerStatus = MEMR_ON | INP_ON | M1_ON;
-    lightsStatusAddressData(timerStatus, timerMinute, 4); // Step 3
+    timerStatus = MEMR_ON | INP_ON | M1_ON; // Timer is running (M1_ON).
+    timerMinute = toggleAddress();
+    timerStep = 4; // Step 3
+    lightsStatusAddressData(timerStatus, timerMinute, timerStep);
   }
   // ---------------------------------------------------------
   if (pcfControl.readButton(pinStep) == 0) {
@@ -5611,13 +5614,13 @@ void clockRun() {
     if (!ClockTimerMode) {
       processClockNow();
       // Control buttons for setting the time.
-      checkExamineButton();
-      checkExamineNextButton();
-      checkDepositButton();
-      checkDepositNextButton();
+      // checkExamineButton();
+      // checkExamineNextButton();
+      // checkDepositButton();
+      // checkDepositNextButton();
     }
     checkClockSwitch();   // Option to exit clock mode.
-    checkClockControls();
+    checkClockControls(); // Clock and timer controls.
     delay(100);
   }
   playerPlaySound(CLOCK_OFF);
