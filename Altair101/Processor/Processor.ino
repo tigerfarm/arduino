@@ -425,25 +425,28 @@ void playerLights() {
 // ---------------------------
 // Function call number
 // Example: playerPlaySound(READ_FILE) plays 05-transfercomplete.mp3
-int READ_FILE   = 1;
-int CLOCK_RESET = 2;
-int CLOCK_ON    = 3;
-int CLOCK_OFF   = 4;
-int PLAYER_ON   = 3;
-int PLAYER_OFF  = 4;
-int KR5         = 5;
-int CLOCK_SOUND_CUCKOO = 6;
+int READ_FILE     = 1;
+int CLOCK_RESET   = 2;  // Not used.
+int CLOCK_ON      = 3;
+int CLOCK_OFF     = 4;
+int PLAYER_ON     = 3;
+int PLAYER_OFF    = 4;
+int KR5           = 5;
+int CLOCK_CUCKOO  = 6;
 // Arrary matching the above value, to the soundEffects array, file number.
 // Example: READ_FILE=1 which is array value = 5, soundEffects[READ_FILE]=5 or soundEffects[1]=5.
 const int maxSoundEffects = 32;
+int soundEffects[maxSoundEffects];
+/*
 int soundEffects[maxSoundEffects] = {
-  1,       // setup() completed.
-  5,       // Read file into memory.
-  4,       // Flipped clock RESET switch.
-  2,       // AUX1 flipped up, enter clock mode.
-  3,       // AUX1 flipped up, exit clock mode.
-  6        // Knight Rider sound effect.
+  1,       // 0: setup() completed.
+  5,       // 1: Read file into memory.
+  4,       // 2: Flipped clock RESET switch.
+  2,       // 3: AUX1 flipped up, enter clock mode.
+  3,       // 4: AUX1 flipped up, exit clock mode.
+  6        // 5: Knight Rider sound effect.
 };
+*/
 // Function to play a sound file using the above mapping.
 void playerPlaySound(int theFileNumber) {
   // HLTA_ON = B00001000
@@ -3699,7 +3702,7 @@ void printRegisters() {
 boolean sdcardInitiated = false;
 void initSdcard() {
   if (SD.begin(csPin)) {
-    Serial.println(F("+ SD card initialized."));
+    // Serial.println(F("+ SD card initialized."));
     sdcardInitiated = true;
     return;
   }
@@ -3885,7 +3888,7 @@ int readFileByte(String theFilename) {
   if (!SD.exists(theFilename)) {
     // Serial.print(F("- Read ERROR, file doesn't exist: "));
     // Serial.println(theFilename);
-    ledFlashError();
+    // ledFlashError();
     sdcardInitiated = false;
     return (0);
   }
@@ -3893,7 +3896,7 @@ int readFileByte(String theFilename) {
   if (!myFile) {
     // Serial.print(F("- Read ERROR, cannot open file: "));
     // Serial.println(theFilename);
-    ledFlashError();
+    // ledFlashError();
     sdcardInitiated = false;
     return (0);
   }
@@ -4474,11 +4477,11 @@ void clockPulseHour() {
   // Knight Rider scanner lights and sound.
   // playerPlaySound(KR5);
   if (playerStatus & HLTA_ON) {
-    mp3player.play(CLOCK_SOUND_CUCKOO);
+    mp3player.play(CLOCK_CUCKOO);
     ledFlashKnightRider(1, true);
-    mp3player.play(CLOCK_SOUND_CUCKOO);
+    mp3player.play(CLOCK_CUCKOO);
     ledFlashKnightRider(1, false);
-    mp3player.play(CLOCK_SOUND_CUCKOO);
+    mp3player.play(CLOCK_CUCKOO);
     ledFlashKnightRider(1, false);
   }
   //
@@ -4493,7 +4496,7 @@ void clockPulseMinute() {
   if (theCounterMinutes == 15 || theCounterMinutes == 30 || theCounterMinutes == 45) {
     // playerPlaySound(CLOCK_RESET);
     if (playerStatus & HLTA_ON) {
-      mp3player.play(CLOCK_SOUND_CUCKOO); // Knight Rider scan.
+      mp3player.play(CLOCK_CUCKOO); // Knight Rider scan.
     }
   }
 }
@@ -4663,18 +4666,22 @@ boolean switchAux2down = false;
 */
 int clockData = 0;
 
-String getSenseFilename() {
-  byte fileByte = toggleSenseByte();
+String getSfbFilename(byte fileByte) {
   String sfbFilename = ".sfb";
-  for (int i = 0; i <= 3; i++) {
-    // Serial.print(bitRead(fileByte, i));
-    if (bitRead(fileByte, i) == 1) {
-      sfbFilename = "1" + sfbFilename;
-    } else {
-      sfbFilename = "0" + sfbFilename;
-    }
+  if (fileByte < 10) {
+    sfbFilename = "000" + String(fileByte) + sfbFilename;
+  } else if (fileByte < 100) {
+    sfbFilename = "00" + String(fileByte) + sfbFilename;
+  } else if (fileByte < 1000) {
+    sfbFilename = "0" + String(fileByte) + sfbFilename;
+  } else {
+    sfbFilename = String(fileByte) + sfbFilename;
   }
   return sfbFilename;
+}
+String getSenseFilename() {
+  byte fileByte = toggleSenseByte();
+  return getSfbFilename(fileByte);
 }
 
 void checkClockControls() {
@@ -5251,23 +5258,28 @@ void checkPlayerControls() {
     // Switch logic.
     byte fileByte = toggleSenseByte();
     byte valueByte = toggleDataByte();
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ AUX2 up, switched. Sense value=B"));
+    printByte(fileByte);
+    Serial.print(F(" Data value=B"));
+    printByte(valueByte);
+    Serial.println("");
+#endif
     if (fileByte > 0 && valueByte > 0) {
       String sfbFilename = getSenseFilename();
       if (writeFileByte(sfbFilename, valueByte)) {
+#ifdef SWITCH_MESSAGES
         Serial.print("+ Sound filename = ");
-        Serial.println(sfbFilename);
+        Serial.print(sfbFilename);
+        Serial.print(", value = ");
+        Serial.print(valueByte);
+        Serial.println("");
+#endif
       } else {
         Serial.print("- Failed to write sound file: ");
         Serial.println(sfbFilename);
       }
     }
-#ifdef SWITCH_MESSAGES
-    Serial.print(F("+ AUX2 up, switched. Sense value=B"));
-    printByte(fileByte);
-    Serial.print(F(" Data value="));
-    printByte(valueByte);
-    Serial.println("");
-#endif
   }
   // ------------------------
 #ifdef DESKTOP_MODULE
@@ -5290,7 +5302,7 @@ void checkPlayerControls() {
     Serial.print(F("+ AUX2 down, switched. Sense filename = "));
     Serial.print(sfbFilename);
     Serial.print(F(", file byte="));
-    Serial.print(fileByte);
+    Serial.print(valueByte);
     Serial.println("");
 #endif
     if (fileByte > 0) {
@@ -5782,28 +5794,20 @@ void setup() {
 #endif
 
   // ----------------------------------------------------
-  // Testing before implementing.
   // Read sound byte information.
-  /*
-    String sfbFilename = "0001.sfb";
-    if (writeFileByte(sfbFilename, 6)) {
-    byte sfbFilenameNumber = readFileByte(sfbFilename);
-    Serial.print("+ Sound file byte = ");
-    Serial.println(sfbFilenameNumber, DEC);
-    } else {
-    Serial.print("- Failed to write sound file: ");
-    Serial.println(sfbFilename);
-    }
-    sfbFilename = "0101.sfb";
-    if (writeFileByte(sfbFilename, 5)) {
-    byte sfbFilenameNumber = readFileByte(sfbFilename);
-    Serial.print("+ Sound file byte = ");
-    Serial.println(sfbFilenameNumber, DEC);
-    } else {
-    Serial.print("- Failed to write sound file: ");
-    Serial.println(sfbFilename);
-    }
-  */
+  // soundEffects[]
+  Serial.println(F("+ Load sound bite index array."));
+  for (int i = 0; i < 10; i++) {
+    soundEffects[i] = readFileByte(getSfbFilename(i));
+  }
+  Serial.println(F("+ List sound bite index array."));
+  for (int i = 0; i < 10; i++) {
+    Serial.print(F("++ "));
+    Serial.print(i);
+    Serial.print(F(" "));
+    Serial.println(soundEffects[i]);
+  }
+  Serial.println(F(""));
   // ----------------------------------------------------
   // Read and Run an initialization program.
   // Can manually set 00000000.bin, to all zeros.
