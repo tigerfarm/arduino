@@ -5286,7 +5286,15 @@ void checkPlayerControls() {
     String sfbFilename = getSenseFilename();
     byte fileByte = readFileByte(sfbFilename);
     if (fileByte > 0) {
-      // This is where program values can be set, and then used.
+      // Display the value in the Data LED lights for 3 seconds.
+      // Should display the sense switch value.
+      lightsStatusAddressData(playerStatus, playerCounter, fileByte);
+      unsigned long timer = millis();
+      while (!confirmWrite && (millis() - timer < 3000)) {
+
+      }
+      // Return to normal.
+      playerLights();
     }
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ AUX2 down, switched. Sense filename = "));
@@ -5296,37 +5304,37 @@ void checkPlayerControls() {
     Serial.println("");
 #endif
 #ifdef SWITCH_MESSAGES
-  // -------------------
-  // For debugging player issues.
-  /*
-    Serial.print(F("+ "));
-    Serial.print(F(" playerStatus="));
-    printByte(playerStatus);
-    Serial.print(F(" playerVolume="));
-    Serial.print(playerVolume);
-    Serial.print(F(" playerCounterTop="));
-    Serial.print(playerCounterTop);
-    Serial.print(F(" playerDirectory="));
-    Serial.print(playerDirectory);
-    Serial.print(F(" playerCounter="));
-    Serial.print(playerCounter);
-    Serial.print(F(", mp3player.read()="));
-    Serial.print(mp3player.read());
-    if (mp3player.available()) {
-      Serial.print(F(", mp3player available"));
-      int theType = mp3player.readType();
-      if (theType == DFPlayerPlayFinished) {
-        Serial.print(F(", Play Finished."));
+    // -------------------
+    // For debugging player issues.
+    /*
+      Serial.print(F("+ "));
+      Serial.print(F(" playerStatus="));
+      printByte(playerStatus);
+      Serial.print(F(" playerVolume="));
+      Serial.print(playerVolume);
+      Serial.print(F(" playerCounterTop="));
+      Serial.print(playerCounterTop);
+      Serial.print(F(" playerDirectory="));
+      Serial.print(playerDirectory);
+      Serial.print(F(" playerCounter="));
+      Serial.print(playerCounter);
+      Serial.print(F(", mp3player.read()="));
+      Serial.print(mp3player.read());
+      if (mp3player.available()) {
+        Serial.print(F(", mp3player available"));
+        int theType = mp3player.readType();
+        if (theType == DFPlayerPlayFinished) {
+          Serial.print(F(", Play Finished."));
+        } else {
+          // printDFPlayerMessage(theType, mp3player.read());
+          Serial.print(F(", theType="));
+          Serial.print(theType);
+        }
       } else {
-        // printDFPlayerMessage(theType, mp3player.read());
-        Serial.print(F(", theType="));
-        Serial.print(theType);
+        // Song is playing or paused.
+        Serial.print(F(", mp3player not available."));
       }
-    } else {
-      // Song is playing or paused.
-      Serial.print(F(", mp3player not available."));
-    }
-    Serial.println();
+      Serial.println();
     */
 #endif
   }
@@ -5774,24 +5782,24 @@ void setup() {
   // Testing before implementing.
   // Read sound byte information.
   /*
-  String sfbFilename = "0001.sfb";
-  if (writeFileByte(sfbFilename, 6)) {
+    String sfbFilename = "0001.sfb";
+    if (writeFileByte(sfbFilename, 6)) {
     byte sfbFilenameNumber = readFileByte(sfbFilename);
     Serial.print("+ Sound file byte = ");
     Serial.println(sfbFilenameNumber, DEC);
-  } else {
+    } else {
     Serial.print("- Failed to write sound file: ");
     Serial.println(sfbFilename);
-  }
-  sfbFilename = "0101.sfb";
-  if (writeFileByte(sfbFilename, 5)) {
+    }
+    sfbFilename = "0101.sfb";
+    if (writeFileByte(sfbFilename, 5)) {
     byte sfbFilenameNumber = readFileByte(sfbFilename);
     Serial.print("+ Sound file byte = ");
     Serial.println(sfbFilenameNumber, DEC);
-  } else {
+    } else {
     Serial.print("- Failed to write sound file: ");
     Serial.println(sfbFilename);
-  }
+    }
   */
   // ----------------------------------------------------
   // Read and Run an initialization program.
