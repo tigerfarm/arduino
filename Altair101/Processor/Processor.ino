@@ -5283,12 +5283,15 @@ void checkPlayerControls() {
   } else if (switchAux2down) {
     switchAux2down = false;
     // Switch logic.
+    byte fileByte = toggleSenseByte();
     String sfbFilename = getSenseFilename();
-    byte fileByte = readFileByte(sfbFilename);
+    byte valueByte = readFileByte(sfbFilename);
     if (fileByte > 0) {
-      // Display the value in the Data LED lights for 3 seconds.
-      // Should display the sense switch value.
-      lightsStatusAddressData(playerStatus, playerCounter, fileByte);
+      // For 3 seconds,
+      //  Display the content value in the Data LED lights .
+      //  Display the Sense switch file value in the address LED lights.
+      unsigned int displayValue = fileByte * 256;
+      lightsStatusAddressData(playerStatus, displayValue, valueByte);
       unsigned long timer = millis();
       while (!confirmWrite && (millis() - timer < 3000)) {
 
