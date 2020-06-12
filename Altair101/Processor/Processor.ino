@@ -85,8 +85,10 @@
   + UNPROTECT     Not implemented.
   + AUX1 up       Clock mode
   + AUX1 down     MP3 player mode
-  + AUX2 up       Double click switch to write processor memory to SD drive Sense switches filename.
-  + AUX2 down     Read from SD drive Sense switches filename into processor memory.
+  + AUX2 up       1. Set the Sense switches to the SD drive program filename.
+                  2. Double click/flip the switch to write processor memory to SD drive Sense switches filename.
+  + AUX2 down     1. Set the Sense switches to the SD drive program filename.
+                  2. Flip to read the file bytes into processor memory.
 
   ----------------------------------------
   Clock, clockRun(),
@@ -103,7 +105,8 @@
   + Data          Displays the time step 1) Set timer mode, 2) Set timer minute, 3. Run the timer
   -----------
   + STOP          Put clock into timer mode.
-  + RUN           Get the timer minutes from the address toggles and start the timer.
+  + RUN           1. Set the timer minutes using the address toggles.
+                  2. To do: Start the timer using the timer minutes value.
   + SINGLE up     1) month and day, 2) year, 3) Return to show time of day: hour and minutes
   + DEPOSIT       Set the timer minutes from the address toggles: A1 is 1 minute, A2 is 2 minutes, ... 15 minutes.
   + RESET         Knight Rider sounds and lights, then Show time of day.
@@ -130,19 +133,22 @@
   -----------
   + STOP          Pause play
   + RUN           Play MP3. And loop all.
-  + SINGLE up     Toogle the playing of a single MP3, on and off.
-  + SINGLE dn     Stop loop single MP3   *** Switch is not working. Check the physical switch.
+  + SINGLE up     Toogle on and off, of the playing/looping of a single MP3.
+  + SINGLE dn     Toogle off the looping a single MP3
   + EXAMINE       Play previous MP3. And loop all.
   + EXAMINE NEXT  Play next MP3. And loop all.
   + DEPOSIT       Play previous folder. During first MP3, loop directory. After first song, will loop all.
   + DEPOSIT NEXT  Play next folder.     During first MP3, loop directory. After first song, will loop all.
   + RESET         Play first MP3. And loop all.
-  + CLR           Play toggle address value MP3. If HLTA is on, only play once, then pause.
+  + CLR           1. Set address toggles to the value an MP3 file.
+                  2. Play toggle address value MP3 file. If HLTA is on, only play once, then pause.
   + PROTECT       Decrease volume
   + UNPROTECT     Increase volume
   + AUX1 Down     Toggles MP3 player mode. Show song number and volume level.
-  + AUX2 up       Write data byte into sense switch file number.
-  + AUX2 down     Read sense switch file number: data byte displayed in Data LED lights.
+  + AUX2 up       1. Set sense switch to a file number. Set data byte to an MP3 file number.
+                  2. Flip AUX2 up, which writes the data byte to the sense switch file.
+  + AUX2 down     1. Set sense switch to the MP3 data file number.
+                  2. Flip AUX2 down, which reads the data byte into playerCounter, which is displayed.
 
   // Sound effects using the AUX2 data.
   int soundEffects[maxSoundEffects] = {
@@ -4695,10 +4701,24 @@ String getSenseFilename() {
   return getSfbFilename(fileByte);
 }
 
+int getMinuteValue(unsigned int theWord) {
+  int theMinute = 0;
+  for (int i = 15; i >= 0; i--) {
+    if (bitRead(theWord, i) > 0) {
+      theMinute = i;
+      // Serial.print("\n+ Minute = ");
+      // Serial.println(theMinute);
+    }
+  }
+  return (theMinute);
+}
+
 boolean ClockTimerMode = false;
 byte timerStatus = 0;
 byte timerStep = 0;
 unsigned int timerMinute = 0;
+unsigned long clockTimer;
+int clockTimerCount = 0;
 void checkClockControls() {
   // ---------------------------------------------------------
   // Timer options
@@ -4739,11 +4759,12 @@ void checkClockControls() {
     // Switch logic
     if (ClockTimerMode) {
       timerStatus = MEMR_ON | INP_ON; // timerMinute is in memory (MEMR_ON).
-      timerMinute = toggleAddress();
+      // timerMinute = toggleAddress();
+      timerMinute = getMinuteValue(toggleAddress());
       timerStep = 2; // Step 2
       lightsStatusAddressData(timerStatus, timerMinute, timerStep);
 #ifdef SWITCH_MESSAGES
-      Serial.print(F("+ Clock, Deposit. timerMinute="));
+      Serial.print(F("+ Clock, Deposit. Timer minutes="));
       Serial.print(timerMinute);
       Serial.println("");
 #endif
@@ -4757,14 +4778,19 @@ void checkClockControls() {
   } else if (switchRun) {
     switchRun = false;
     // Switch logic
-#ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Clock, RUN. Run timer"));
-#endif
     ClockTimerMode = true;
     timerStatus = MEMR_ON | INP_ON | M1_ON; // Timer is running (M1_ON).
-    timerMinute = toggleAddress();
+    timerMinute = getMinuteValue(toggleAddress());
     timerStep = 4; // Step 3
     lightsStatusAddressData(timerStatus, timerMinute, timerStep);
+    // Start the timer and count.
+    clockTimer = millis();
+    clockTimerCount = 0;
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Clock, RUN. Timer minutes="));
+    Serial.print(timerMinute);
+    Serial.println("");
+#endif
   }
   // ---------------------------------------------------------
   if (pcfControl.readButton(pinStep) == 0) {
@@ -5643,6 +5669,32 @@ void clockRun() {
       // checkExamineNextButton();
       // checkDepositButton();
       // checkDepositNextButton();
+    } else {
+      // ClockTimerMode = true;
+      // timerStatus = MEMR_ON | INP_ON | M1_ON; // Timer is running (M1_ON).
+      if (ClockTimerMode && (timerStatus & M1_ON)) {
+        // Timer run status.
+        // 60 x 1000 = 60000, which is one minute.
+        if ((millis() - clockTimer >= 60000)) {
+          clockTimer = millis();
+          clockTimerCount++;
+          if (clockTimerCount >= timerMinute ) {
+            Serial.print(F("+ clockTimerCount="));
+            Serial.print(clockTimerCount);
+            Serial.print(F(" timerMinute="));
+            Serial.print(clockTimerCount);
+            Serial.println(F(" Timer timed."));
+            ClockTimerMode = false;
+            KnightRiderScanner();
+            displayTheTime(theCounterMinutes, theCounterHours);
+          } else {
+            Serial.print(F("+ clockTimerCount="));
+            Serial.print(clockTimerCount);
+            Serial.print(F(" timerMinute="));
+            Serial.println(clockTimerCount);
+          }
+        }
+      }
     }
     checkClockSwitch();   // Option to exit clock mode.
     checkClockControls(); // Clock and timer controls.
@@ -5899,14 +5951,16 @@ void setup() {
   for (int i = 0; i < 10; i++) {
     soundEffects[i] = readFileByte(getSfbFilename(i));
   }
-  Serial.println(F("+ List sound bite index array."));
-  for (int i = 0; i < 10; i++) {
+  /*
+    Serial.println(F("+ List sound bite index array."));
+    for (int i = 0; i < 10; i++) {
     Serial.print(F("++ "));
     Serial.print(i);
     Serial.print(F(" "));
     Serial.println(soundEffects[i]);
-  }
-  Serial.println(F(""));
+    }
+    Serial.println(F(""));
+  */
   // ----------------------------------------------------
   // Read and Run an initialization program.
   // Can manually set 00000000.bin, to all zeros.
