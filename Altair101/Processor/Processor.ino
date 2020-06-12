@@ -13,24 +13,6 @@
   + The 8080's machine instructions(opcodes) are the same for the 8085.
   + This program implements more than enough opcodes to run the classic program, Kill the Bit.
 
-  I had a lock up when reading a file, flipping AUX2 down. But not sure how to reproduce the issue.
-  + I added a break statement in the while loop, which may have fixed the lock up: readProgramFileIntoMemory()
-
-  Add AUX2up and AUX2down to checkClockControls().
-  + They can be used for setting sound bite filenames.
-  + Similar approach can be used for a timer.
-  If AUX2up is flipped,
-  ++ Read the toggle sense switch value.
-  +++ byte fileByte = toggleSenseByte();
-  ++ Read the toggle data switch value.
-  +++ byte valueByte = toggleDataByte();
-  ++ Write the data switch value byte to the sense switch value filename.
-  If AUX2down is flipped,
-  ++ Read the toggle sense switch value.
-  ++ Read the file named by the value.
-  ++ Display the value in the data lights.
-  + As a test, after a write (AUX2up), do a read (AUX2down) to display the wrote value.
-
   -----------------
   SD card programs:
   -----------------
@@ -45,7 +27,7 @@
   + 0111 Loop playing a sound bite, then NOPs until a HLT, which is followed by a JMP back to address 0.
   + 1000 NOP, HLT, JMP program
   -----------------
-  + 1111 Play start up MP3, then HLT.
+  + 1111 Start up program. Play MP3 while NOPs are processing,then HLT when the MP3 is finished.
 
   Common opcodes:
   + B00000000 NOP, my NOP instruction has a delay: delay(100).
@@ -85,9 +67,9 @@
 
   Processor
   -----------
-  + Address displays the current programCounter value.
-  + Data    displays the data byte at the programCounter address.
-  + Status lights display the current instruction cycle status.
+  + Address       Displays the current programCounter value.
+  + Data          Displays the data byte at the programCounter address.
+  + Status        Displays the current instruction cycle status.
   -----------
   + STOP          Pause run
   + RUN           Run the program from the programCounter address.
@@ -109,18 +91,23 @@
   ----------------------------------------
   Clock, clockRun(),
   -----------
-  + AUX1 Up toogle clock controls, shows the time of day.
-  + Address displays the hour: A1 ... A12,      month,      or century
-  + Data    displays the minutes single digit,  day single, or year single
-  + Status  displays the minutes tens digit,    day tens,   or year tens
-  + Status     OUT  : Off indicates clock mode, since HLDA is on as well.
-  + Indicator  HLDA : On to indicate controlled by other than the program emulator.
+  + Address       Display the hour: A1 ... A12,      month,      or century
+  + Data          Display the minutes single digit,  day single, or year single
+  + Status        Display the minutes tens digit,    day tens,   or year tens
+  + Indicator     HLDA : On to indicate controlled by other than the program emulator.
+  -----------
+  + Status        MEMR : Timer timer minute set.
+  + Status        M1   : Timer running.
+  + Status        INP  : Ready for timer minute input during steps 2 and 3.
+  + Address       Displays the timer minite: A1 ... A12.
+  + Data          Displays the time step 1) Set timer mode, 2) Set timer minute, 3. Run the timer
   -----------
   + STOP          Put clock into timer mode.
   + RUN           Get the timer minutes from the address toggles and start the timer.
   + SINGLE up     1) month and day, 2) year, 3) Return to show time of day: hour and minutes
   + DEPOSIT       Set the timer minutes from the address toggles: A1 is 1 minute, A2 is 2 minutes, ... 15 minutes.
-  + RESET         Knight Rider effect, then Show time of day.
+  + RESET         Knight Rider sounds and lights, then Show time of day.
+  + AUX1 Up       Toogle clock mode. When toggle on, shows the time of day.
   -----------
   To do:
   + Add a timer
@@ -134,13 +121,12 @@
   ----------------------------------------
   MP3 Player, playerRun(),
   -----------
-  + AUX1 Down toolge MP3 player controls, show song number and volume level.
-  + Address displays the song number that is playing.
-  + Data    displays the volume.
-  + Status     M1   : Loop single MP3 is on.
-  + Status     OUT  : On indicates player mode, since HLDA is on as well.
-  + Status     HLTA : pause, light is on, else off.
-  + Indicator  HLDA : On to indicate controlled by other than the program emulator.
+  + Address       Displays the song number that is playing.
+  + Data          Displays the volume.
+  + Status        M1   : Loop single MP3 is on.
+  + Status        OUT  : On indicates player mode, since HLDA is on as well.
+  + Status        HLTA : pause, light is on, else off.
+  + Indicator     HLDA : On to indicate controlled by other than the program emulator.
   -----------
   + STOP          Pause play
   + RUN           Play MP3. And loop all.
@@ -154,6 +140,7 @@
   + CLR           Play toggle address value MP3. If HLTA is on, only play once, then pause.
   + PROTECT       Decrease volume
   + UNPROTECT     Increase volume
+  + AUX1 Down     Toggles MP3 player mode. Show song number and volume level.
   + AUX2 up       Write data byte into sense switch file number.
   + AUX2 down     Read sense switch file number: data byte displayed in Data LED lights.
 
@@ -172,8 +159,15 @@
   ------------------------------------------------------------------------------
   Current/Next Work
 
+  Change to display in Data address lights, and set playerCounter to the value.
+  + AUX2 down     Read sense switch file number: data byte displayed in Data LED lights.
+  ++ Once displayed and set, can flip CLR to play the file.
+
   Require a second flip to confirm read.
   + Double flip to confirm and read from file into processor memory.
+
+  Re-initialize the sound bite array.
+  + In player mode, double flip AUX2 down. Single reads one byte.
 
   Clock Timer,
   + Must be in clock mode.
@@ -5360,6 +5354,26 @@ void checkPlayerControls() {
         Serial.print("- Failed to write sound file: ");
         Serial.println(sfbFilename);
       }
+      // --------------------
+      // Display the same as read.
+      if (fileByte > 0) {
+        // Wait while,
+        //  Displaying the content value in the Data LED lights .
+        //  Displaying the Sense switch file value in the address LED lights.
+        unsigned int displayValue = fileByte * 256 + valueByte;
+        lightsStatusAddressData(playerStatus, displayValue, playerVolume);
+        unsigned long timer = millis();
+        while (!confirmWrite && (millis() - timer < 2000)) {
+          // Wait
+        }
+        if (valueByte > 0) {
+          // This will allow the playing of the MP3.
+          playerCounter = valueByte;
+        }
+        // Return to normal.
+        playerLights();
+      }
+      // --------------------
     }
   }
   // ------------------------
@@ -5387,14 +5401,18 @@ void checkPlayerControls() {
     Serial.println("");
 #endif
     if (fileByte > 0) {
-      // For 3 seconds,
-      //  Display the content value in the Data LED lights .
-      //  Display the Sense switch file value in the address LED lights.
-      unsigned int displayValue = fileByte * 256;
-      lightsStatusAddressData(playerStatus, displayValue, valueByte);
+      // Wait while,
+      //  Displaying the content value in the Data LED lights .
+      //  Displaying the Sense switch file value in the address LED lights.
+      unsigned int displayValue = fileByte * 256 + valueByte;
+      lightsStatusAddressData(playerStatus, displayValue, playerVolume);
       unsigned long timer = millis();
-      while (!confirmWrite && (millis() - timer < 3000)) {
-
+      while (!confirmWrite && (millis() - timer < 2000)) {
+        // Wait
+      }
+      if (valueByte > 0) {
+        // This will allow the playing of the MP3.
+        playerCounter = valueByte;
       }
       // Return to normal.
       playerLights();
