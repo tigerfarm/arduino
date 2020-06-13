@@ -166,7 +166,26 @@
                   2.1 Flip AUX2 down, which reads the data byte into playerCounter, which is displayed.
                   2.2 If senseToggles == 0 && dataToggles == 0, re-load sound effect index array.
   -----------
-  Search for "soundEffects", to get the list of sound effect constants and MP3 file values.
+  Actions that have sound effects,
+  + Constant          Array index value.
+int READ_FILE       = 1;
+int TIMER_COMPLETE  = 2;
+int CLOCK_ON        = 3;
+int CLOCK_OFF       = 4;
+int PLAYER_ON       = 3;
+int PLAYER_OFF      = 4;
+int KR5             = 5;
+int CLOCK_CUCKOO    = 6;
+int TIMER_MINUTE    = 7;
+  To hear which sound effect matches action, do the following.
+  + Put the computer in player mode.
+  + Flip the sense switches to match the number. For example, flip to 2, to hear the TIMER_COMPLETE sound.
+  + Flip AUX2 down. The Data LED lights now display the MP3 file number for that action.
+  + Set the data switches to match the displayed Data LED lights.
+  + Flip CLR, to hear the sound file.
+  Notes,
+  + If data byte is zero, no sound file assigned.
+  + Search for "soundEffects", to get the above action list of sound effect constants and array index values.
 
   ------------------------------------------------------------------------------
   ------------------------------------------------------------------------------
@@ -5708,11 +5727,13 @@ void clockRun() {
           clockTimer = millis();
           clockTimerCount++;
           if (clockTimerCount >= timerMinute ) {
+#ifdef SWITCH_MESSAGES
             Serial.print(F("+ clockTimerCount="));
             Serial.print(clockTimerCount);
             Serial.print(F(" timerMinute="));
             Serial.print(clockTimerCount);
             Serial.println(F(" Timer timed."));
+#endif
             ClockTimerMode = false;
             playerPlaySound(TIMER_COMPLETE);
             delay(1200);  // Delay time for the sound to play.
@@ -5720,16 +5741,18 @@ void clockRun() {
             syncCountWithClock();
             displayTheTime(theCounterMinutes, theCounterHours);
           } else {
+#ifdef SWITCH_MESSAGES
             Serial.print(F("+ clockTimerCount="));
             Serial.print(clockTimerCount);
             Serial.print(F(" timerMinute="));
             Serial.println(clockTimerCount);
-            playerPlaySound(TIMER_MINUTE);
-            delay(1200);  // Delay time for the sound to play.
+#endif
             timerMinuteBit = 0;
             timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
             timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, 1);
             lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
+            playerPlaySound(TIMER_MINUTE);
+            delay(1200);  // Delay time for the sound to play.
           }
         }
       }
