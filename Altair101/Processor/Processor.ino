@@ -136,6 +136,7 @@
 
   ----------------------------------------
   MP3 Player, playerRun(),
+  + MP3 addressable files is 255.
   -----------
   + Address       Displays the song number that is playing.
   + Data          Displays the volume.
@@ -162,7 +163,8 @@
   + AUX2 up       1. Set sense switch to a file number. Set data byte to an MP3 file number.
                   2. Flip AUX2 up, which writes the data byte to the sense switch file.
   + AUX2 down     1. Set sense switch to the MP3 data file number.
-                  2. Flip AUX2 down, which reads the data byte into playerCounter, which is displayed.
+                  2.1 Flip AUX2 down, which reads the data byte into playerCounter, which is displayed.
+                  2.2 If senseToggles == 0 && dataToggles == 0, re-load sound effect index array.
   -----------
   Search for "soundEffects", to get the list of sound effect constants and MP3 file values.
 
@@ -456,7 +458,7 @@ void playerLights() {
 // Example: playerPlaySound(READ_FILE) plays 05-transfercomplete.mp3
 // Arrary matching the above value, to the soundEffects array, file number.
 // Example: READ_FILE=1 which is array value = 5, soundEffects[READ_FILE]=5 or soundEffects[1]=5.
-const int maxSoundEffects = 32;
+const int maxSoundEffects = 16;
 int soundEffects[maxSoundEffects];
 //  Variable      soundEffects[] Array value
 int READ_FILE       = 1;
@@ -5250,13 +5252,13 @@ void checkPlayerControls() {
     // Switch logic
     //
     // unsigned int addressToggles = toggleAddress();
-    unsigned int addressToggles = toggleData();       // This limits the number of MP3 addressable files to 255.
+    byte dataToggles = toggleData();       // This limits the number of MP3 addressable files to 255.
     byte senseToggles = toggleSense();
     //
-    if (addressToggles > 0 && addressToggles <= playerCounterTop) {
-      playerCounter = senseToggles * 256 + addressToggles;
-      mp3player.play(playerCounter);
+    if (dataToggles > 0 && dataToggles <= playerCounterTop) {
+      mp3player.play(dataToggles);
       // playerStatus = playerStatus & HLTA_OFF;  // Commented out, only play once, if HLTA is ON.
+      playerCounter = senseToggles * 256 + dataToggles;
       playerLights();
 #ifdef SWITCH_MESSAGES
       Serial.print(F("+ Player, CLR: play a specific song number, playerCounter="));
@@ -5266,7 +5268,7 @@ void checkPlayerControls() {
       ledFlashError();
 #ifdef SWITCH_MESSAGES
       Serial.print(F("+ Player, CLR: toggle address out of player file counts range: "));
-      Serial.print(addressToggles);
+      Serial.print(dataToggles);
       Serial.print(F(", player file counts: "));
       Serial.println(playerCounterTop);
 #endif
@@ -5426,22 +5428,30 @@ void checkPlayerControls() {
   } else if (switchAux2down) {
     switchAux2down = false;
     // Switch logic.
-    byte fileByte = toggleSense();
+    byte dataToggles = toggleData();
+    byte senseToggles = toggleSense();
     String sfbFilename = getSenseFilename();
     byte valueByte = readFileByte(sfbFilename);
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ AUX2 down, switched. Sense filename = "));
     Serial.print(sfbFilename);
     Serial.print(F(", file byte="));
-    Serial.print(valueByte);
+    Serial.print(senseToggles);
     Serial.println("");
 #endif
-    if (fileByte > 0) {
+    if (senseToggles > 0) {
       // Display the content value in the Data LED lights .
       // Display the Sense switch file value in the address LED lights.
-      unsigned int displayValue = fileByte * 256 + valueByte;
+      unsigned int displayValue = senseToggles * 256 + valueByte;
       lightsStatusAddressData(playerStatus, displayValue, playerVolume);
       playerCounter = valueByte;
+    } else if (senseToggles == 0 && dataToggles == 0) {
+      Serial.println(F("+ Load sound bite index array."));
+      for (int i = 0; i < maxSoundEffects; i++) {
+        soundEffects[i] = readFileByte(getSfbFilename(i));
+      }
+      ledFlashSuccess();
+      playerLights();
     }
 #ifdef SWITCH_MESSAGES
     // -------------------
@@ -5974,9 +5984,8 @@ void setup() {
 
   // ----------------------------------------------------
   // Read sound byte information.
-  // soundEffects[]
   Serial.println(F("+ Load sound bite index array."));
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < maxSoundEffects; i++) {
     soundEffects[i] = readFileByte(getSfbFilename(i));
   }
   /*
