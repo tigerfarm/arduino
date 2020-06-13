@@ -24,10 +24,13 @@
   + 0101 Add program, x + y: x in address 1, y in address 3, and answer in A6(64).
   -----------------
   + 0110 Loop playing a sound bite, then NOPs. Address 1 is the MP3 file number.
-  + 0111 Loop playing a sound bite, then NOPs until a HLT, which is followed by a JMP back to address 0.
+  + 0111 Loop a sound bite with NOPs. HLT at A8. RUN and JMP back to address 0.
+  + 1001 NOP, HLT, JMP program
   + 1000 NOP, HLT, JMP program
   -----------------
   + 1111 Start up program. Play MP3 while NOPs are processing,then HLT when the MP3 is finished.
+  -----------------
+  + 10000 Current test program.
 
   Common opcodes:
   + B00000000 NOP, my NOP instruction has a delay: delay(100).
@@ -51,6 +54,9 @@
           //  ++       ... NOPs ...
 
   ------------------------------------------------------------------------------
+  Front Panel Documentation
+
+  ----------------------------------------
   Startup initialization, setup()
   -----------
   Init and check:
@@ -65,39 +71,49 @@
   Else,
   + programState = PROGRAM_WAIT (default start state), don't run 00000000.bin when loop() starts.
 
+  ----------------------------------------
   Processor
   -----------
-  + Address       Displays the current programCounter value.
-  + Data          Displays the data byte at the programCounter address.
-  + Status        Displays the current instruction cycle status.
+  + Status        Current instruction cycle status.
+  + Data          Data byte at the programCounter address.
+  + Address       ProgramCounter value.
+  + Indicator     WAIT : On when program is not running. Off when program is running.
+  + Indicator     HLDA : Off.
   -----------
-  + STOP          Pause run
-  + RUN           Run the program from the programCounter address.
-  + SINGLE up     Run one opcode instruction cycle at a time.
-  + SINGLE dn     EXAMINE the previous address data byte: programCounter - 1.
+  + STOP          Pause running of a program.
+  + RUN           Run the program in processor memory, from the programCounter address.
+  + SINGLE up     Run one machine instruction cycle at a time.
+  + SINGLE dn     Display the previous address data byte, programCounter - 1.
   + EXAMINE       Set the programCounter to switch address, and display the data byte at that address.
-  + EXAMINE NEXT  EXAMINE the next address data byte: programCounter + 1.
+  + EXAMINE NEXT  Display the next address data byte: programCounter + 1.
   + DEPOSIT       Deposit Data switch values into the current address.
   + DEPOSIT NEXT  Deposit Data switch values into the next address.
   + RESET         Set the programCounter to zero, and display the zero address and data byte.
-  + CLR           Not implemented.
+  + CLR           Set processor memory to zeros, and program counter to 0.
   + PROTECT       Not implemented.
   + UNPROTECT     Not implemented.
-  + AUX1 up       Clock mode
+  + AUX1 up       Clock mode: show hour and mintues time.
   + AUX1 down     MP3 player mode
-  + AUX2 up       1. Set the Sense switches to the SD drive program filename.
-                  2. Double click/flip the switch to write processor memory to SD drive Sense switches filename.
-  + AUX2 down     1. Set the Sense switches to the SD drive program filename.
-                  2. Flip to read the file bytes into processor memory.
+  + AUX2 up       1. Double click/flip the switch.
+                  2. Use the Sense switches to set an SD drive program filename.
+                  3. Write processor memory to SD drive.
+  + AUX2 down     1. Flip the switch.
+                  2. Use the Sense switches to set an SD drive program filename.
+                  3. Read the file bytes into processor memory.
 
   ----------------------------------------
   Clock, clockRun(),
+  + Start by showing the time of day hours and minutes.
+  + To do: If clock timer mode was set, return to timer mode or reset timer mode values.
   -----------
+  Clock mode,
+  + Status        Display the minutes tens digit,    day tens,   or year tens
   + Address       Display the hour: A1 ... A12,      month,      or century
   + Data          Display the minutes single digit,  day single, or year single
-  + Status        Display the minutes tens digit,    day tens,   or year tens
   + Indicator     HLDA : On to indicate controlled by other than the program emulator.
+  + Indicator     WAIT : Off.
   -----------
+  Clock Timer mode,
   + Status        MEMR : Timer timer minute set.
   + Status        M1   : Timer running.
   + Status        INP  : Ready for timer minute input during steps 2 and 3.
@@ -105,21 +121,18 @@
   + Data          Displays the time step 1) Set timer mode, 2) Set timer minute, 3. Run the timer
   -----------
   + STOP          Put clock into timer mode.
-  + RUN           1. Set the timer minutes using the address toggles.
+  + RUN           1. Set the timer minutes using the address toggles: A1 is 1 minute, A2 is 2 minutes, ... 15 minutes.
                   2. To do: Start the timer using the timer minutes value.
   + SINGLE up     1) month and day, 2) year, 3) Return to show time of day: hour and minutes
-  + DEPOSIT       Set the timer minutes from the address toggles: A1 is 1 minute, A2 is 2 minutes, ... 15 minutes.
-  + RESET         Knight Rider sounds and lights, then Show time of day.
-  + AUX1 Up       Toogle clock mode. When toggle on, shows the time of day.
+  + EXAMINE       To do: Select the flashing date or time value.
+  + EXAMINE NEXT  To do: Move through date and time values, making it flash.
+  + DEPOSIT       To do: After selecting and inc/dec a value, set the value.
+  + DEPOSIT NEXT
+  + RESET         Knight Rider sounds and lights, then show time of day.
+  + PROTECT       To do: Decrement value to set.
+  + UNPROTECT     To do: Increment value to set.
+  + AUX1 Up       Toogle clock mode on and off. In clock mode, show the time of day.
   -----------
-  To do:
-  + Add a timer
-  ++ Switch controls are in place.
-  ++ Write the timer function.
-  + Set the date and time:
-  ++ Examine: move through options to set date and time. Blink lights to indicate set mode.
-  ++ PROTECT/UNPROTECT: inc/dec value to set.
-  ++ Deposit: set the value using the inc/dec value.
 
   ----------------------------------------
   MP3 Player, playerRun(),
@@ -130,6 +143,7 @@
   + Status        OUT  : On indicates player mode, since HLDA is on as well.
   + Status        HLTA : pause, light is on, else off.
   + Indicator     HLDA : On to indicate controlled by other than the program emulator.
+  + Indicator     WAIT : Off.
   -----------
   + STOP          Pause play
   + RUN           Play MP3. And loop all.
@@ -454,21 +468,22 @@ void playerLights() {
 const int maxSoundEffects = 32;
 int soundEffects[maxSoundEffects];
 //  Variable      soundEffects[] Array value
-int READ_FILE     = 1;
-int CLOCK_RESET   = 2;  // Not used.
-int CLOCK_ON      = 3;
-int CLOCK_OFF     = 4;
-int PLAYER_ON     = 3;
-int PLAYER_OFF    = 4;
-int KR5           = 5;
-int CLOCK_CUCKOO  = 6;
+int READ_FILE       = 1;
+int TIMER_COMPLETE  = 2;
+int CLOCK_ON        = 3;
+int CLOCK_OFF       = 4;
+int PLAYER_ON       = 3;
+int PLAYER_OFF      = 4;
+int KR5             = 5;
+int CLOCK_CUCKOO    = 6;
+int TIMER_MINUTE    = 7;
 //
 // Function to play a sound file using the above mapping.
 void playerPlaySound(int theFileNumber) {
   // Serial.print(F("+ playerPlaySound("));
   // Serial.print(theFileNumber);
   // Serial.print(F(") "));
-  if (playerStatus & B00001000) {
+  if ((playerStatus & B00001000) && (theFileNumber > 0)) {
     mp3player.play(soundEffects[theFileNumber]);
     // Serial.print(F("mp3player.play("));
     // Serial.print(soundEffects[theFileNumber]);
@@ -4403,7 +4418,17 @@ void checkControlButtons() {
     }
   }
   // -------------------
-
+  if (pcfAux.readButton(pinClr) == 0) {
+    if (!switchClr) {
+      switchClr = true;
+    }
+  } else if (switchClr) {
+    switchClr = false;
+    // Switch logic
+    zeroOutMemory();
+    controlResetLogic();
+  }
+  // -------------------
 }
 
 // -----------------------------------------------------------------------------
@@ -4511,9 +4536,8 @@ void clockPulseMinute() {
   displayTheTime( theCounterMinutes, theCounterHours );
   printLcdClockValue(thePrintColMin, printRowClockPulse, theCounterMinutes);
   if (theCounterMinutes == 15 || theCounterMinutes == 30 || theCounterMinutes == 45) {
-    // playerPlaySound(CLOCK_RESET);
     if (playerStatus & HLTA_ON) {
-      mp3player.play(CLOCK_CUCKOO); // Knight Rider scan.
+      mp3player.play(CLOCK_CUCKOO);
     }
   }
 }
@@ -4744,9 +4768,9 @@ void checkClockControls() {
       Serial.print(F(" On."));
 #endif
       ClockTimerMode = true;
+      timerStep = 1;                // Step 1, Timer mode on.
       timerStatus = INP_ON;         // timer is ready for timerMinute input.
       timerMinute = 0;
-      timerStep = 1; // Step 1
       lightsStatusAddressData(timerStatus, timerMinute, timerStep);
     }
   }
@@ -4758,19 +4782,10 @@ void checkClockControls() {
   } else if (switchDeposit) {
     switchDeposit = false;
     // Switch logic
-    if (ClockTimerMode) {
-      timerStep = 2; // Step 2
-      timerStatus = MEMR_ON | INP_ON; // timerMinute is in memory (MEMR_ON).
-      timerMinute = getMinuteValue(toggleAddress());
-      timerMinuteBit = 1;
-      timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
-      lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
 #ifdef SWITCH_MESSAGES
-      Serial.print(F("+ Clock, Deposit. Timer minutes="));
-      Serial.print(timerMinute);
-      Serial.println("");
+    Serial.print(F("+ Clock, Deposit."));
+    Serial.println("");
 #endif
-    }
   }
   // -------------------
   if (pcfControl.readButton(pinRun) == 0) {
@@ -4780,8 +4795,8 @@ void checkClockControls() {
   } else if (switchRun) {
     switchRun = false;
     // Switch logic
-    timerStep = 4; // Step 3
     ClockTimerMode = true;
+    timerStep = 2;                // Step 2, run
     timerStatus = MEMR_ON | INP_ON | M1_ON; // Timer is running (M1_ON).
     timerMinute = getMinuteValue(toggleAddress());
     timerMinuteBit = 1;
@@ -5370,7 +5385,7 @@ void checkPlayerControls() {
     printByte(valueByte);
     Serial.println("");
 #endif
-    if (fileByte > 0 && valueByte > 0) {
+    if (fileByte > 0) {
       String sfbFilename = getSenseFilename();
       if (writeFileByte(sfbFilename, valueByte)) {
 #ifdef SWITCH_MESSAGES
@@ -5380,13 +5395,6 @@ void checkPlayerControls() {
         Serial.print(valueByte);
         Serial.println("");
 #endif
-      } else {
-        Serial.print("- Failed to write sound file: ");
-        Serial.println(sfbFilename);
-      }
-      // --------------------
-      // Display the same as read.
-      if (fileByte > 0) {
         // Wait while,
         //  Displaying the content value in the Data LED lights .
         //  Displaying the Sense switch file value in the address LED lights.
@@ -5402,6 +5410,9 @@ void checkPlayerControls() {
         }
         // Return to normal.
         playerLights();
+      } else {
+        Serial.print("- Failed to write sound file: ");
+        Serial.println(sfbFilename);
       }
       // --------------------
     }
@@ -5657,6 +5668,10 @@ void playerRun() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void clockRun() {
+  unsigned long clockTimerSeconds;
+  boolean clockTimerSecondsOn = false;
+  int clockTimerCountBit;
+
   Serial.println(F("+ clockRun()"));
   playerPlaySound(CLOCK_ON);
   saveClearLcdScreenData();
@@ -5675,11 +5690,26 @@ void clockRun() {
       // checkDepositNextButton();
     } else {
       // ClockTimerMode = true;
-      // timerStatus = MEMR_ON | INP_ON | M1_ON; // Timer is running (M1_ON).
-      if (ClockTimerMode && (timerStatus & M1_ON)) {
-        // Timer run status.
-        // 60 x 1000 = 60000, which is one minute.
+      // Timer is running: M1_ON.
+      if (timerStatus & M1_ON) {
+        if ((millis() - clockTimerSeconds >= 500)) {
+          clockTimerSeconds = millis();
+          // Flash the counter minute LED.
+          if (clockTimerSecondsOn) {
+            clockTimerSecondsOn = false;
+            clockTimerCountBit = 1;
+            timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, clockTimerCountBit);
+            lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
+          } else {
+            clockTimerSecondsOn = true;
+            clockTimerCountBit = 0;
+            timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, clockTimerCountBit);
+            lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
+          }
+        }
         if ((millis() - clockTimer >= 60000)) {
+          // Timer run status.
+          // 60 x 1000 = 60000, which is one minute.
           clockTimer = millis();
           clockTimerCount++;
           if (clockTimerCount >= timerMinute ) {
@@ -5689,6 +5719,8 @@ void clockRun() {
             Serial.print(clockTimerCount);
             Serial.println(F(" Timer timed."));
             ClockTimerMode = false;
+            playerPlaySound(TIMER_COMPLETE);
+            delay(1200);  // Delay time for the sound to play.
             KnightRiderScanner();
             syncCountWithClock();
             displayTheTime(theCounterMinutes, theCounterHours);
@@ -5697,6 +5729,8 @@ void clockRun() {
             Serial.print(clockTimerCount);
             Serial.print(F(" timerMinute="));
             Serial.println(clockTimerCount);
+            playerPlaySound(TIMER_MINUTE);
+            delay(1200);  // Delay time for the sound to play.
             timerMinuteBit = 0;
             timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
             timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, 1);
