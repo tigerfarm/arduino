@@ -4787,7 +4787,7 @@ void checkClockControls() {
     clockTimer = millis();
     clockTimerCount = 0;
 #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Clock, RUN. Timer minutes="));
+    Serial.print(F("+ Clock, RUN. Timer minutes="));
     Serial.print(timerMinute);
     Serial.println("");
 #endif
@@ -5686,6 +5686,7 @@ void clockRun() {
             Serial.println(F(" Timer timed."));
             ClockTimerMode = false;
             KnightRiderScanner();
+            syncCountWithClock();
             displayTheTime(theCounterMinutes, theCounterHours);
           } else {
             Serial.print(F("+ clockTimerCount="));
