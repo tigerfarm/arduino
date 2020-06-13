@@ -163,17 +163,8 @@
                   2. Flip AUX2 up, which writes the data byte to the sense switch file.
   + AUX2 down     1. Set sense switch to the MP3 data file number.
                   2. Flip AUX2 down, which reads the data byte into playerCounter, which is displayed.
-
-  // Sound effects using the AUX2 data.
-  int soundEffects[maxSoundEffects] = {
-  File#      soundEffects[] Array value
-    1,       // 0: setup() completed.
-    5,       // 1: Read file into memory.
-    4,       // 2: Flipped clock RESET switch.
-    2,       // 3: AUX flipped up, enter clock/player mode.
-    3,       // 4: AUX flipped up, exit  clock/player mode.
-    6        // 5: Knight Rider sound effect (KR5).
-  };
+  -----------
+  Search for "soundEffects", to get the list of sound effect constants and MP3 file values.
 
   ------------------------------------------------------------------------------
   ------------------------------------------------------------------------------
@@ -301,7 +292,7 @@
   Inputs:
   + dataByte == 000, regA = 0;  // Input is not implemented on this port.
   + dataByte == 001, regA = hwStatus;   // hwStatus = 0, a number to indicate a hardware issue.
-  + dataByte == 255, regA = toggleSenseByte();
+  + dataByte == 255, regA = toggleSense();
   + Else, error.
 
   --------------
@@ -3073,7 +3064,7 @@ void processOpcodeData() {
       Serial.print(F("."));
 #endif
       if (dataByte == 255) {
-        regA = toggleSenseByte();
+        regA = toggleSense();
       } else if (dataByte == 1) {
         regA = hwStatus;
       } else if (dataByte == 0) {
@@ -3972,12 +3963,12 @@ int readFileByte(String theFilename) {
 //  int a = 103;  // binary:  0000000001100111
 //  int b = ~a;   // binary:  1111111110011000 = -104
 
-int toggleDataByte() {
+int toggleData() {
   byte toggleByte = ~pcfData.read8();
   return toggleByte;
 }
 // --------------------------
-int toggleSenseByte() {
+int toggleSense() {
 #ifdef DESKTOP_MODULE
   byte toggleByte = ~pcfSense.read8();
 #else
@@ -4231,7 +4222,7 @@ void checkDepositButton() {
           // This handles the first switch, after a STEP or HLT.
           programCounter = curProgramCounter;
         }
-        dataByte = toggleDataByte();
+        dataByte = toggleData();
         memoryData[programCounter] = dataByte;
         programLights();
         break;
@@ -4273,7 +4264,7 @@ void checkDepositNextButton() {
         }
         curProgramCounter++;
         programCounter++;
-        dataByte = toggleDataByte();
+        dataByte = toggleData();
         memoryData[programCounter] = dataByte;
         programLights();
         break;
@@ -4721,7 +4712,7 @@ String getSfbFilename(byte fileByte) {
   return sfbFilename;
 }
 String getSenseFilename() {
-  byte fileByte = toggleSenseByte();
+  byte fileByte = toggleSense();
   return getSfbFilename(fileByte);
 }
 
@@ -4926,7 +4917,7 @@ void checkClockSwitch() {
   }
 }
 String getSenseSwitchValue() {
-  byte bValue = toggleSenseByte();
+  byte bValue = toggleSense();
   String sValue = String(bValue, BIN);
   int addZeros = 8 - sValue.length();
   for (int i = 0; i < addZeros; i++) {
@@ -5257,9 +5248,13 @@ void checkPlayerControls() {
   } else if (switchClr) {
     switchClr = false;
     // Switch logic
-    unsigned int addressToggles = toggleAddress();
+    //
+    // unsigned int addressToggles = toggleAddress();
+    unsigned int addressToggles = toggleData();       // This limits the number of MP3 addressable files to 255.
+    byte senseToggles = toggleSense();
+    //
     if (addressToggles > 0 && addressToggles <= playerCounterTop) {
-      playerCounter = addressToggles;
+      playerCounter = senseToggles * 256 + addressToggles;
       mp3player.play(playerCounter);
       // playerStatus = playerStatus & HLTA_OFF;  // Commented out, only play once, if HLTA is ON.
       playerLights();
@@ -5376,8 +5371,8 @@ void checkPlayerControls() {
   } else if (switchAux2up) {
     switchAux2up = false;
     // Switch logic.
-    byte fileByte = toggleSenseByte();
-    byte valueByte = toggleDataByte();
+    byte fileByte = toggleSense();
+    byte valueByte = toggleData();
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ AUX2 up, switched. Sense value=B"));
     printByte(fileByte);
@@ -5431,7 +5426,7 @@ void checkPlayerControls() {
   } else if (switchAux2down) {
     switchAux2down = false;
     // Switch logic.
-    byte fileByte = toggleSenseByte();
+    byte fileByte = toggleSense();
     String sfbFilename = getSenseFilename();
     byte valueByte = readFileByte(sfbFilename);
 #ifdef SWITCH_MESSAGES
@@ -5442,21 +5437,11 @@ void checkPlayerControls() {
     Serial.println("");
 #endif
     if (fileByte > 0) {
-      // Wait while,
-      //  Displaying the content value in the Data LED lights .
-      //  Displaying the Sense switch file value in the address LED lights.
+      // Display the content value in the Data LED lights .
+      // Display the Sense switch file value in the address LED lights.
       unsigned int displayValue = fileByte * 256 + valueByte;
       lightsStatusAddressData(playerStatus, displayValue, playerVolume);
-      unsigned long timer = millis();
-      while (!confirmWrite && (millis() - timer < 2000)) {
-        // Wait
-      }
-      if (valueByte > 0) {
-        // This will allow the playing of the MP3.
-        playerCounter = valueByte;
-      }
-      // Return to normal.
-      playerLights();
+      playerCounter = valueByte;
     }
 #ifdef SWITCH_MESSAGES
     // -------------------
