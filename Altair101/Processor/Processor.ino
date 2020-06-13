@@ -4717,6 +4717,7 @@ boolean ClockTimerMode = false;
 byte timerStatus = 0;
 byte timerStep = 0;
 unsigned int timerMinute = 0;
+unsigned int timerMinuteBit = 0;
 unsigned long clockTimer;
 int clockTimerCount = 0;
 void checkClockControls() {
@@ -4758,11 +4759,12 @@ void checkClockControls() {
     switchDeposit = false;
     // Switch logic
     if (ClockTimerMode) {
-      timerStatus = MEMR_ON | INP_ON; // timerMinute is in memory (MEMR_ON).
-      // timerMinute = toggleAddress();
-      timerMinute = getMinuteValue(toggleAddress());
       timerStep = 2; // Step 2
-      lightsStatusAddressData(timerStatus, timerMinute, timerStep);
+      timerStatus = MEMR_ON | INP_ON; // timerMinute is in memory (MEMR_ON).
+      timerMinute = getMinuteValue(toggleAddress());
+      timerMinuteBit = 1;
+      timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
+      lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
 #ifdef SWITCH_MESSAGES
       Serial.print(F("+ Clock, Deposit. Timer minutes="));
       Serial.print(timerMinute);
@@ -4778,11 +4780,13 @@ void checkClockControls() {
   } else if (switchRun) {
     switchRun = false;
     // Switch logic
+    timerStep = 4; // Step 3
     ClockTimerMode = true;
     timerStatus = MEMR_ON | INP_ON | M1_ON; // Timer is running (M1_ON).
     timerMinute = getMinuteValue(toggleAddress());
-    timerStep = 4; // Step 3
-    lightsStatusAddressData(timerStatus, timerMinute, timerStep);
+    timerMinuteBit = 1;
+    timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
+    lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
     // Start the timer and count.
     clockTimer = millis();
     clockTimerCount = 0;
@@ -5693,6 +5697,10 @@ void clockRun() {
             Serial.print(clockTimerCount);
             Serial.print(F(" timerMinute="));
             Serial.println(clockTimerCount);
+            timerMinuteBit = 0;
+            timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
+            timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, 1);
+            lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
           }
         }
       }
