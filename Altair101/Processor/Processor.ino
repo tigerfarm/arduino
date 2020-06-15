@@ -66,8 +66,12 @@
   + AUX2 Down   read file into processor memory.
   When in clock mode,
   + STOP        toggle timer mode.
-  When in player mode,
-  + To do: Altair 8800 EXAMINE/DEPOSIT functions to read/write sound effect array byte data.
+  To do: when in player mode,
+  + AUX2 Down    Enter player file mode to manage sound effect array values.
+  + To do: EXAMINE      Get address toggle value, set counter, read counter file byte into Data LED lights.
+  + To do: EXAMINENEXT  Increment counter, display counter in Address lights, and read sound effect array byte into Data LED lights.
+  + To do: DEPOSIT      Write sound effect array byte data to file, using the counter filename.
+  + To do: DEPOSIT      Increment counter, display counter in Address lights, write sound effect array byte data.
   + To do: Altair 8800 STOP/RUN functions to pause/play sound effect array byte data.
 
   ----------------------------------------
@@ -149,7 +153,7 @@
   -----------
 
   ----------------------------------------
-  MP3 Player, playerRun(),
+  MP3 Player mode, playerRun(),
   + MP3 addressable files is 255.
   -----------
   + Address       Displays the song number that is playing.
@@ -174,23 +178,28 @@
   + PROTECT       Decrease volume
   + UNPROTECT     Increase volume
   + AUX1 Down     Toggles MP3 player mode. Show song number and volume level.
-  + AUX2 up       1. Set sense switch to a file number. Set data byte to an MP3 file number.
-                  2. Flip AUX2 up, which writes the data byte to the sense switch file.
-  + AUX2 down     1. Set sense switch to the MP3 data file number.
+  + AUX2 up       Not implemented.
+  + AUX2 down     Player file mode.
+  -----------
+  Player file mode,
+  + EXAMINE       1. Set sense switch to the MP3 data file number.
                   2.1 Flip AUX2 down, which reads the data byte into playerCounter, which is displayed.
                   2.2 If senseToggles == 0 && dataToggles == 0, re-load sound effect index array.
+  + DEPOSIT       1. Set sense switch to a file number. Set data byte to an MP3 file number.
+                  2. Flip AUX2 up, which writes the data byte to the sense switch file.
+  + AUX2 down     Exit player file mode, return to player MP3 mode.
   -----------
   Actions that have sound effects,
   + Constant          Array index value.
-int READ_FILE       = 1;
-int TIMER_COMPLETE  = 2;
-int CLOCK_ON        = 3;
-int CLOCK_OFF       = 4;
-int PLAYER_ON       = 3;
-int PLAYER_OFF      = 4;
-int KR5             = 5;
-int CLOCK_CUCKOO    = 6;
-int TIMER_MINUTE    = 7;
+  int READ_FILE       = 1;
+  int TIMER_COMPLETE  = 2;
+  int CLOCK_ON        = 3;
+  int CLOCK_OFF       = 4;
+  int PLAYER_ON       = 3;
+  int PLAYER_OFF      = 4;
+  int KR5             = 5;
+  int CLOCK_CUCKOO    = 6;
+  int TIMER_MINUTE    = 7;
   To hear which sound effect matches action, do the following.
   + Put the computer in player mode.
   + Flip the sense switches to match the number. For example, flip to 2, to hear the TIMER_COMPLETE sound.
@@ -209,8 +218,7 @@ int TIMER_MINUTE    = 7;
   + AUX2 down     Read sense switch file number: data byte displayed in Data LED lights.
   ++ Once displayed and set, can flip CLR to play the file.
 
-  Require a second flip to confirm read.
-  + Double flip to confirm and read from file into processor memory.
+  Double click/flip to confirm and read from file into processor memory.
 
   Re-initialize the sound bite array.
   + In player mode, double flip AUX2 down. Single reads one byte.
@@ -460,6 +468,11 @@ int TIMER_MINUTE    = 7;
 #define SERIAL_DOWNLOAD 4
 int programState = PROGRAM_WAIT;  // Intial, default.
 
+// MP3 player has a sub-state for managing sound effect byte values in files.
+#define PLAYER_FILE 0
+#define PLAYER_MP3 1
+int playerState = PLAYER_MP3;     // Intial, default.
+
 int theCounterHours = 0;
 int theCounterMinutes = 0;
 
@@ -483,6 +496,14 @@ boolean loopSingle = false;       // For toggling single song.
 
 void playerLights() {
   lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+}
+
+// Front panel display light values:
+uint16_t playerFileCounter = 1;       // First song played when player starts up. Then incremented when next is played.
+uint8_t playerFileStatus = 0;
+
+void playerFileLights() {
+  lightsStatusAddressData(playerFileStatus, playerFileCounter, playerVolume);
 }
 
 // ---------------------------
@@ -4884,13 +4905,13 @@ void checkClockControls() {
 #endif
     if (!switchAux2up) {
       switchAux2up = true;
-      // Serial.print(F("+ AUX2 up switch pressed..."));
+      // Serial.print(F("+ Clock AUX2 up switch pressed..."));
     }
   } else if (switchAux2up) {
     switchAux2up = false;
     // Switch logic.
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ AUX2 up, switched."));
+    Serial.print(F("+ Clock AUX2 up, switched."));
     Serial.println("");
 #endif
   }
@@ -4903,13 +4924,13 @@ void checkClockControls() {
 #endif
     if (!switchAux2down) {
       switchAux2down = true;
-      // Serial.print(F("+ AUX2 down switch pressed..."));
+      // Serial.print(F("+ Clock AUX2 down switch pressed..."));
     }
   } else if (switchAux2down) {
     switchAux2down = false;
     // Switch logic.
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ AUX2 down, switched."));
+    Serial.print(F("+ Clock AUX2 down, switched."));
     Serial.println("");
 #endif
   }
@@ -5394,51 +5415,15 @@ void checkPlayerControls() {
 #endif
     if (!switchAux2up) {
       switchAux2up = true;
-      // Serial.print(F("+ AUX2 up switch pressed..."));
+      // Serial.print(F("+ Player AUX2 up switch pressed..."));
     }
   } else if (switchAux2up) {
     switchAux2up = false;
     // Switch logic.
-    byte fileByte = toggleSense();
-    byte valueByte = toggleData();
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ AUX2 up, switched. Sense value=B"));
-    printByte(fileByte);
-    Serial.print(F(" Data value=B"));
-    printByte(valueByte);
+    Serial.print(F("+ Player AUX2 up, switched."));
     Serial.println("");
 #endif
-    if (fileByte > 0) {
-      String sfbFilename = getSenseFilename();
-      if (writeFileByte(sfbFilename, valueByte)) {
-#ifdef SWITCH_MESSAGES
-        Serial.print("+ Sound filename = ");
-        Serial.print(sfbFilename);
-        Serial.print(", value = ");
-        Serial.print(valueByte);
-        Serial.println("");
-#endif
-        // Wait while,
-        //  Displaying the content value in the Data LED lights .
-        //  Displaying the Sense switch file value in the address LED lights.
-        unsigned int displayValue = fileByte * 256 + valueByte;
-        lightsStatusAddressData(playerStatus, displayValue, playerVolume);
-        unsigned long timer = millis();
-        while (!confirmWrite && (millis() - timer < 2000)) {
-          // Wait
-        }
-        if (valueByte > 0) {
-          // This will allow the playing of the MP3.
-          playerCounter = valueByte;
-        }
-        // Return to normal.
-        playerLights();
-      } else {
-        Serial.print("- Failed to write sound file: ");
-        Serial.println(sfbFilename);
-      }
-      // --------------------
-    }
   }
   // ------------------------
 #ifdef DESKTOP_MODULE
@@ -5449,17 +5434,36 @@ void checkPlayerControls() {
 #endif
     if (!switchAux2down) {
       switchAux2down = true;
-      // Serial.print(F("+ AUX2 down switch pressed..."));
+      // Serial.print(F("+ Player, AUX2 down switch pressed..."));
     }
   } else if (switchAux2down) {
     switchAux2down = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, AUX2 down, switched. Go into player file mode."));
+    Serial.println("");
+#endif
+    playerState = PLAYER_FILE;
+    digitalWrite(WAIT_PIN, HIGH);
+  }
+  // -------------------
+}
+
+void checkPlayerFileControls() {
+  // -------------------
+  if (pcfControl.readButton(pinExamine) == 0) {
+    if (!switchExamine) {
+      switchExamine = true;
+    }
+  } else if (switchExamine) {
+    switchExamine = false;
     // Switch logic.
     byte dataToggles = toggleData();
     byte senseToggles = toggleSense();
     String sfbFilename = getSenseFilename();
     byte valueByte = readFileByte(sfbFilename);
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ AUX2 down, switched. Sense filename = "));
+    Serial.print(F("+ Player file, DEPOSIT, switched. Sense filename = "));
     Serial.print(sfbFilename);
     Serial.print(F(", file byte="));
     Serial.print(senseToggles);
@@ -5515,6 +5519,75 @@ void checkPlayerControls() {
 #endif
   }
   // -------------------
+  if (pcfControl.readButton(pinDeposit) == 0) {
+    if (!switchDeposit) {
+      switchDeposit = true;
+    }
+  } else if (switchDeposit) {
+    switchDeposit = false;
+    // Switch logic.
+    byte fileByte = toggleSense();
+    byte valueByte = toggleData();
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player AUX2 up, switched. Sense value=B"));
+    printByte(fileByte);
+    Serial.print(F(" Data value=B"));
+    printByte(valueByte);
+    Serial.println("");
+#endif
+    if (fileByte > 0) {
+      String sfbFilename = getSenseFilename();
+      if (writeFileByte(sfbFilename, valueByte)) {
+#ifdef SWITCH_MESSAGES
+        Serial.print("+ Sound filename = ");
+        Serial.print(sfbFilename);
+        Serial.print(", value = ");
+        Serial.print(valueByte);
+        Serial.println("");
+#endif
+        // Wait while,
+        //  Displaying the content value in the Data LED lights .
+        //  Displaying the Sense switch file value in the address LED lights.
+        unsigned int displayValue = fileByte * 256 + valueByte;
+        lightsStatusAddressData(playerStatus, displayValue, playerVolume);
+        unsigned long timer = millis();
+        while (!confirmWrite && (millis() - timer < 2000)) {
+          // Wait
+        }
+        if (valueByte > 0) {
+          // This will allow the playing of the MP3.
+          playerCounter = valueByte;
+        }
+        // Return to normal.
+        playerLights();
+      } else {
+        Serial.print("- Failed to write sound file: ");
+        Serial.println(sfbFilename);
+      }
+      // --------------------
+    }
+  }
+  // ------------------------
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux2down) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux2down) {
+      switchAux2down = true;
+      // Serial.print(F("+ AUX2 down switch pressed..."));
+    }
+  } else if (switchAux2down) {
+    switchAux2down = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player file, AUX2 down, switched. Exit player file mode."));
+    Serial.println("");
+#endif
+    playerState = PLAYER_MP3;
+    digitalWrite(WAIT_PIN, LOW);
+  }
 }
 
 // -----------------------------------------------------------------------
@@ -5676,15 +5749,29 @@ void playerRun() {
   Serial.println("");
   while (programState == PLAYER_RUN) {
     delay(60);
-    if (!(playerStatus & HLTA_ON)) {
-      playMp3();
+    switch (playerState) {
+      // ----------------------------
+      case PLAYER_MP3:
+        // Play MP3 files
+        if (!(playerStatus & HLTA_ON)) {
+          playMp3();
+        }
+        checkPlayerControls();    // Player control functions from STOP to UNPROTECT.
+        checkPlayerSwitch();      // Toggle player mode: AUX1 down.
+        break;
+      case PLAYER_FILE:
+        checkPlayerFileControls();    // Player control functions from STOP to UNPROTECT.
+        break;
     }
-    checkPlayerControls();    // Player control functions from STOP to UNPROTECT.
-    checkPlayerSwitch();      // Toggle player mode: AUX1 down.
   }
   playerPlaySound(PLAYER_OFF);
   restoreLcdScreenData();
 }
+/*
+  #define PLAYER_WAIT 0
+  #define PLAYER_RUN 1
+  int playerState = PLAYER_RUN;
+*/
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
