@@ -7,7 +7,7 @@
   + An MP3 player controlled by using the front panel toogles with the lights displaying status.
   + The clock displays the current hours, minutes, month, day, and year, on the front panel lights.
 
-  An Altair 8800 emulator program,
+  The Altair 8800 emulator program,
   + Emulates the basic Altair 8800 computer processes from 1975.
   + The Altair 8800 was built around the Intel 8080 CPU chip.
   + The 8080's machine instructions(opcodes) are the same for the 8085.
@@ -38,11 +38,9 @@
   + B11000011 JMP
   +       076 MVI A
   +       343 OUT
-
-  + 10 = 012
-  + 11 = 013
-  + 42 = 052
-
+  +       012 10  10 is for single play.
+  +       013 11  11 is for looping.
+  +       052 42  42 Flash success lights
   + Example to add an OUT opcode option to play an MP3 file.
           // mvi a, <file#>
           // out 11   ; Use out 11 is for looping. 10 is for single play.
@@ -55,6 +53,22 @@
 
   ------------------------------------------------------------------------------
   Front Panel Documentation
+
+  ----------------------------------------
+  Modes
+  --------------
+  AUX switches for modes:
+  + Default mode is the Altair 8800 emulator processor.
+  + AUX1 up     toggle clock mode.
+  + AUX1 Down   toggle MP3 player mode.
+  When in processor mode,
+  + AUX2 up     write processor memory to file.
+  + AUX2 Down   read file into processor memory.
+  When in clock mode,
+  + STOP        toggle timer mode.
+  When in player mode,
+  + To do: Altair 8800 EXAMINE/DEPOSIT functions to read/write sound effect array byte data.
+  + To do: Altair 8800 STOP/RUN functions to pause/play sound effect array byte data.
 
   ----------------------------------------
   Startup initialization, setup()
@@ -110,8 +124,8 @@
   + Status        Display the minutes tens digit,    day tens,   or year tens
   + Address       Display the hour: A1 ... A12,      month,      or century
   + Data          Display the minutes single digit,  day single, or year single
-  + Indicator     HLDA : On to indicate controlled by other than the program emulator.
   + Indicator     WAIT : Off.
+  + Indicator     HLDA : On to indicate controlled by other than the program emulator.
   -----------
   Clock Timer mode,
   + Status        MEMR : Timer timer minute set.
@@ -125,7 +139,7 @@
                   2. To do: Start the timer using the timer minutes value.
   + SINGLE up     1) month and day, 2) year, 3) Return to show time of day: hour and minutes
   + EXAMINE       To do: Select the flashing date or time value.
-  + EXAMINE NEXT  To do: Move through date and time values, making it flash.
+  + EXAMINE NEXT  To do: Move through time and date values, making the selected value flash.
   + DEPOSIT       To do: After selecting and inc/dec a value, set the value.
   + DEPOSIT NEXT
   + RESET         Knight Rider sounds and lights, then show time of day.
@@ -244,7 +258,7 @@ int TIMER_MINUTE    = 7;
              Hardware  OK or Not Online.
   // hwStatus = 1;  // SD_OK, SD_NO, SD card
   // hwStatus = 2;  // CL_OK, CL_NO, Clock module
-  // hwStatus = 3;  // PL_OK, PL_NO, MP3 Player
+  // hwStatus = 4;  // PL_OK, PL_NO, MP3 Player
 
   Sound effects,
   + Add a sound when there is a program error.
@@ -311,8 +325,8 @@ int TIMER_MINUTE    = 7;
   Processor
   --------------
   Inputs:
-  + dataByte == 000, regA = 0;  // Input is not implemented on this port.
-  + dataByte == 001, regA = hwStatus;   // hwStatus = 0, a number to indicate a hardware issue.
+  + dataByte == 000, regA = 0;              // Input is not implemented on this port.
+  + dataByte == 001, regA = hwStatus;       // hwStatus = 0, a number to indicate a hardware issue.
   + dataByte == 255, regA = toggleSense();
   + Else, error.
 
@@ -509,13 +523,28 @@ void playerPlaySound(int theFileNumber) {
 // Front Panel Status LEDs
 
 // ------------------------------
+// Status Indicator LED lights
+
+// Program wait status.
+const int WAIT_PIN = A9;      // Processor program wait state: off/LOW or wait state on/HIGH.
+
+// HLDA : 8080 processor goes into a hold state because of other hardware running.
+const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock/player processing (on/HIGH).
+
+// ------------------------------
 // Added this to identify hardware status.
 // if hardware has an error, or hardware is not initialized, hwStatus > 0.
 // Else hwStatus = 0.
 byte hwStatus = 0;
-// hwStatus = 1;  // SD card
-// hwStatus = 2;  // Clock module
-// hwStatus = 3;  // MP3 Player
+// hwStatus = 1;  // 0001 SD card
+// hwStatus = 2;  // 0010 Clock module
+// hwStatus = 4;  // 0100 MP3 Player
+const byte SD_ON  =    B00000001;
+const byte CL_ON  =    B00000010;
+const byte PL_ON  =    B00000100;
+const byte SD_OFF =    B11111110;
+const byte CL_OFF =    B11111101;
+const byte PL_OFF =    B11111011;
 
 // ------------------------------
 // Status LEDs
@@ -558,7 +587,6 @@ const byte HLTA_ON =    B00001000;  // HLTA   Machine opcode hlt, has halted the
 const byte STACK_ON =   B00000100;  // STACK  Stack process
 const byte WO_ON =      B00000010;  // WO     Write out (inverse logic)
 const byte INT_ON =     B00000001;  // INT    Interrupt
-// const byte WAIT_ON =    B00000001;  // WAIT   Changed to a digital pin control.
 
 // Use AND to turn OFF. Example:
 //  statusByte = statusByte & M1_OFF;
@@ -646,19 +674,6 @@ void ledFlashKnightRider(int times, boolean NotUsed) {
   }
   //
   // Reset the panel lights to program values.
-  /*
-    switch (programState) {
-    case CLOCK_RUN:
-      displayTheTime( theCounterMinutes, theCounterHours );
-      break;
-    case PLAYER_RUN:
-      playerLights();
-      break;
-    default:
-      programLights();
-      break;
-    }
-  */
 }
 
 void KnightRiderScanner() {
@@ -674,6 +689,9 @@ void KnightRiderScanner() {
 }
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Switch definitions
+
 #include <PCF8574.h>
 #include <Wire.h>
 
@@ -695,23 +713,13 @@ void pcfControlinterrupt() {
 }
 
 // -----------------------------------------------------------------------------
-#ifdef INCLUDE_AUX
+// Tablet version pin definitions.
+// Desktop uses a PCF8574 controller.
 //                              Mega pins
-const int CLOCK_SWITCH_PIN =    8;  // Also works pins 4 and A11. Doesn't work: 24, 33.
+const int CLOCK_SWITCH_PIN =    8;  // Also works: pins 4 and A11. Doesn't work: 24, 33.
 const int PLAYER_SWITCH_PIN =   9;
 const int UPLOAD_SWITCH_PIN =   10;
 const int DOWNLOAD_SWITCH_PIN = 11;
-#endif
-
-// ----------------
-// Status LED lights
-
-// Program wait status.
-const int WAIT_PIN = A9;      // Program wait state: off/LOW or wait state on/HIGH.
-
-// HLDA : 8080 processor goes into a hold state because of other hardware running.
-const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock processing (on/HIGH).
-
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -4062,7 +4070,6 @@ void controlResetLogic() {
   statusByte = 0;
   if (programState != PROGRAM_RUN) {
     programState = PROGRAM_WAIT;
-    // statusByte = statusByte | WAIT_ON;
     digitalWrite(WAIT_PIN, HIGH);
   }
   // Fetch the first opcode, which display values to the panel.
@@ -5736,7 +5743,7 @@ void clockRun() {
 #endif
             ClockTimerMode = false;
             playerPlaySound(TIMER_COMPLETE);
-            delay(1200);  // Delay time for the sound to play.
+            delay(900);  // Delay time for the sound to play.
             KnightRiderScanner();
             syncCountWithClock();
             displayTheTime(theCounterMinutes, theCounterHours);
@@ -5873,7 +5880,7 @@ void setup() {
     Serial.println(F("MP3 Player, unable to begin:"));
     Serial.println(F("1.Please recheck the connection!"));
     Serial.println(F("2.Please insert the SD card!"));
-    hwStatus = 3;
+    hwStatus = 4;
   }
   // ----------------------------------------------------
   // Initial player settings.
@@ -5897,14 +5904,6 @@ void setup() {
   //
   // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
   mp3player.EQ(DFPLAYER_EQ_CLASSIC);
-  //
-  // mp3player.loopFolder(playerDirectory);
-  // mp3player.play(playerCounter);
-  // mp3player.enableLoopAll();  // This seems to be on by default. This option keeps the music playing.
-  // mp3player.start();
-  // playPause = true;
-  // mp3player.play(playerCounter);  // Play first song. Future, save current song to SD file, then start back to current song.
-  // mp3player.pause();
   //
   delay(300);
   playerCounterTop = mp3player.readFileCounts();
@@ -5952,7 +5951,6 @@ void setup() {
   // ----------------------------------------------------
   // Status lights are off (statusByte=0) by default.
   // programCounter and curProgramCounter are 0 by default.
-  // statusByte = statusByte | WAIT_ON;
   statusByte = statusByte | MEMR_ON;
   statusByte = statusByte | M1_ON;
   statusByte = statusByte | WO_ON;  // WO: on, Inverse logic: off when writing out. On when not.
@@ -6042,18 +6040,6 @@ void setup() {
     // lcdSplash();
     controlResetLogic();
     Serial.println(F("++ Program system reset."));
-    // ----------------------------------------------------
-    /*
-      if (hwStatus == 0) {
-      mp3player.play(soundEffects[0]);
-      delay(500);
-      ledFlashKnightRider(2, true);
-      programLights();
-      delay(200);
-      } else {
-      ledFlashError();
-      }
-    */
   }
   // ----------------------------------------------------
   Serial.println(F("+ Starting the processor loop."));
