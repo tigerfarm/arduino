@@ -181,12 +181,13 @@
   + AUX2 up       Not implemented.
   + AUX2 down     Player file mode.
   -----------
-  Player file mode,
-  + EXAMINE       1. Set sense switch to the MP3 data file number.
-                  2.1 Flip AUX2 down, which reads the data byte into playerCounter, which is displayed.
-                  2.2 If senseToggles == 0 && dataToggles == 0, re-load sound effect index array.
+  Player file mode, checkPlayerFileControls()
+  + EXAMINE       1. Set address toggles (Data toggles) to the MP3 data file number.
+                  2 Flip EXAMINE, which reads the address toggle (Data toggle) value into playerFileAddress, which is displayed.
+  + EXAMINE NEXT  Increment playerFileAddress, get the file data and display it.
   + DEPOSIT       1. Set sense switch to a file number. Set data byte to an MP3 file number.
                   2. Flip AUX2 up, which writes the data byte to the sense switch file.
+  + RESET         Load sound effect index array from files.
   + AUX2 down     Exit player file mode, return to player MP3 mode.
   -----------
   Actions that have sound effects,
@@ -499,11 +500,12 @@ void playerLights() {
 }
 
 // Front panel display light values:
-uint16_t playerFileCounter = 1;       // First song played when player starts up. Then incremented when next is played.
-uint8_t playerFileStatus = 0;
+uint8_t playerFileStatus = B10000000;   // MEMR_ON
+uint8_t playerFileData = 0;
+uint16_t playerFileAddress = 1;       // First song played when player starts up. Then incremented when next is played.
 
 void playerFileLights() {
-  lightsStatusAddressData(playerFileStatus, playerFileCounter, playerVolume);
+  lightsStatusAddressData(playerFileStatus, playerFileAddress, playerFileData);
 }
 
 // ---------------------------
@@ -3958,7 +3960,7 @@ boolean writeFileByte(String theFilename, byte theByte) {
   myFile.write(theByte);
   myFile.close();
   // Serial.println(F("+ Byte write completed, file closed."));
-  ledFlashSuccess();
+  // ledFlashSuccess();
   return (true);
 }
 
@@ -4352,7 +4354,6 @@ void checkRunningButtons() {
     pausePlayer();
   }
   // -------------------
-  // Read PCF8574 input for this switch.
   if (pcfControl.readButton(pinReset) == 0) {
     if (!switchReset) {
       switchReset = true;
@@ -4748,6 +4749,7 @@ boolean switchAux2down = false;
 int clockData = 0;
 
 String getSfbFilename(byte fileByte) {
+  // SFB: Sound File Byte.
   String sfbFilename = ".sfb";
   if (fileByte < 10) {
     sfbFilename = "000" + String(fileByte) + sfbFilename;
@@ -4760,9 +4762,9 @@ String getSfbFilename(byte fileByte) {
   }
   return sfbFilename;
 }
-String getSenseFilename() {
-  byte fileByte = toggleSense();
-  return getSfbFilename(fileByte);
+String getDataFilename() {
+  // byte fileByte = toggleData();
+  return getSfbFilename(toggleData());
 }
 
 int getMinuteValue(unsigned int theWord) {
@@ -5445,11 +5447,44 @@ void checkPlayerControls() {
 #endif
     playerState = PLAYER_FILE;
     digitalWrite(WAIT_PIN, HIGH);
+    playerFileLights();
   }
   // -------------------
 }
 
 void checkPlayerFileControls() {
+  // -------------------
+  if (pcfControl.readButton(pinStop) == 0) {
+    if (!switchStop) {
+      switchStop = true;
+    }
+  } else if (switchStop) {
+    switchStop = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Player, STOP: stop playing."));
+#endif
+    mp3player.pause();
+    playerFileStatus = playerFileStatus | HLTA_ON;
+    playerFileLights();
+  }
+  // -------------------
+  if (pcfControl.readButton(pinRun) == 0) {
+    if (!switchRun) {
+      switchRun = true;
+    }
+  } else if (switchRun) {
+    switchRun = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, RUN: start playing, playerFileData="));
+    Serial.println(playerFileData);
+#endif
+    mp3player.play(playerFileData);
+    playerFileStatus = playerFileStatus & HLTA_OFF;
+    playerFileLights();
+    // playSong();
+  }
   // -------------------
   if (pcfControl.readButton(pinExamine) == 0) {
     if (!switchExamine) {
@@ -5458,31 +5493,19 @@ void checkPlayerFileControls() {
   } else if (switchExamine) {
     switchExamine = false;
     // Switch logic.
-    byte dataToggles = toggleData();
-    byte senseToggles = toggleSense();
-    String sfbFilename = getSenseFilename();
-    byte valueByte = readFileByte(sfbFilename);
+    playerFileAddress = toggleData();
+    String sfbFilename = getSfbFilename(playerFileAddress);
+    playerFileData = readFileByte(sfbFilename);
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Player file, DEPOSIT, switched. Sense filename = "));
+    Serial.print(F("+ Player file, EXAMINE, switched. Data filename = "));
     Serial.print(sfbFilename);
-    Serial.print(F(", file byte="));
-    Serial.print(senseToggles);
+    Serial.print(F(", file data byte="));
+    printByte(playerFileData);
+    Serial.print(F("="));
+    Serial.print(playerFileData);
     Serial.println("");
 #endif
-    if (senseToggles > 0) {
-      // Display the content value in the Data LED lights .
-      // Display the Sense switch file value in the address LED lights.
-      unsigned int displayValue = senseToggles * 256 + valueByte;
-      lightsStatusAddressData(playerStatus, displayValue, playerVolume);
-      playerCounter = valueByte;
-    } else if (senseToggles == 0 && dataToggles == 0) {
-      Serial.println(F("+ Load sound bite index array."));
-      for (int i = 0; i < maxSoundEffects; i++) {
-        soundEffects[i] = readFileByte(getSfbFilename(i));
-      }
-      ledFlashSuccess();
-      playerLights();
-    }
+    playerFileLights();
 #ifdef SWITCH_MESSAGES
     // -------------------
     // For debugging player issues.
@@ -5519,6 +5542,28 @@ void checkPlayerFileControls() {
 #endif
   }
   // -------------------
+  if (pcfControl.readButton(pinExamineNext) == 0) {
+    if (!switchExamineNext) {
+      switchExamineNext = true;
+    }
+  } else if (switchExamineNext) {
+    switchExamineNext = false;
+    // Switch logic
+    playerFileAddress ++;
+    String sfbFilename = getSfbFilename(playerFileAddress);
+    playerFileData = readFileByte(sfbFilename);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player file, EXAMINE, switched. Data filename = "));
+    Serial.print(sfbFilename);
+    Serial.print(F(", file data byte="));
+    printByte(playerFileData);
+    Serial.print(F("="));
+    Serial.print(playerFileData);
+    Serial.println("");
+#endif
+    playerFileLights();
+  }
+  // -------------------
   if (pcfControl.readButton(pinDeposit) == 0) {
     if (!switchDeposit) {
       switchDeposit = true;
@@ -5526,46 +5571,62 @@ void checkPlayerFileControls() {
   } else if (switchDeposit) {
     switchDeposit = false;
     // Switch logic.
-    byte fileByte = toggleSense();
-    byte valueByte = toggleData();
+    playerFileData = toggleData();
+    String sfbFilename = getSfbFilename(playerFileAddress);
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Player AUX2 up, switched. Sense value=B"));
-    printByte(fileByte);
-    Serial.print(F(" Data value=B"));
-    printByte(valueByte);
+    Serial.print(F("+ Player file, DEPOSIT, switched. Data filename = "));
+    Serial.print(sfbFilename);
+    Serial.print(F(", file data byte="));
+    printByte(playerFileData);
+    Serial.print(F("="));
+    Serial.print(playerFileData);
     Serial.println("");
 #endif
-    if (fileByte > 0) {
-      String sfbFilename = getSenseFilename();
-      if (writeFileByte(sfbFilename, valueByte)) {
-#ifdef SWITCH_MESSAGES
-        Serial.print("+ Sound filename = ");
-        Serial.print(sfbFilename);
-        Serial.print(", value = ");
-        Serial.print(valueByte);
-        Serial.println("");
-#endif
-        // Wait while,
-        //  Displaying the content value in the Data LED lights .
-        //  Displaying the Sense switch file value in the address LED lights.
-        unsigned int displayValue = fileByte * 256 + valueByte;
-        lightsStatusAddressData(playerStatus, displayValue, playerVolume);
-        unsigned long timer = millis();
-        while (!confirmWrite && (millis() - timer < 2000)) {
-          // Wait
-        }
-        if (valueByte > 0) {
-          // This will allow the playing of the MP3.
-          playerCounter = valueByte;
-        }
-        // Return to normal.
-        playerLights();
-      } else {
-        Serial.print("- Failed to write sound file: ");
-        Serial.println(sfbFilename);
-      }
-      // --------------------
+    if (!writeFileByte(sfbFilename, playerFileData)) {
+      Serial.println("- Failed to write sound file: ");
     }
+    playerFileLights();
+  }
+  // -------------------
+  if (pcfControl.readButton(pinDepositNext) == 0) {
+    if (!switchDepositNext) {
+      switchDepositNext = true;
+    }
+  } else if (switchDepositNext) {
+    switchDepositNext = false;
+    // Switch logic
+    playerFileData = toggleData();
+    playerFileAddress++;
+    String sfbFilename = getSfbFilename(playerFileAddress);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player file, DEPOSIT NEXT, switched. Data filename = "));
+    Serial.print(sfbFilename);
+    Serial.print(F(", file data byte="));
+    printByte(playerFileData);
+    Serial.print(F("="));
+    Serial.print(playerFileData);
+    Serial.println("");
+#endif
+    if (!writeFileByte(sfbFilename, playerFileData)) {
+      Serial.println("- Failed to write sound file: ");
+    }
+    playerFileLights();
+  }
+  // -------------------
+  if (pcfControl.readButton(pinReset) == 0) {
+    if (!switchReset) {
+      switchReset = true;
+    }
+  } else if (switchReset) {
+    switchReset = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Player file, Reset. Load sound bite index array."));
+#endif
+    for (int i = 0; i < maxSoundEffects; i++) {
+      soundEffects[i] = readFileByte(getSfbFilename(i));
+    }
+    ledFlashSuccess();
   }
   // ------------------------
 #ifdef DESKTOP_MODULE
@@ -5576,7 +5637,7 @@ void checkPlayerFileControls() {
 #endif
     if (!switchAux2down) {
       switchAux2down = true;
-      // Serial.print(F("+ AUX2 down switch pressed..."));
+      // Serial.print(F("+ Player file, UX2 down switch pressed..."));
     }
   } else if (switchAux2down) {
     switchAux2down = false;
@@ -5587,6 +5648,7 @@ void checkPlayerFileControls() {
 #endif
     playerState = PLAYER_MP3;
     digitalWrite(WAIT_PIN, LOW);
+    playerLights();
   }
 }
 
