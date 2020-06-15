@@ -184,9 +184,11 @@
   Player file mode, checkPlayerFileControls()
   + EXAMINE       1. Set address toggles (Data toggles) to the MP3 data file number.
                   2 Flip EXAMINE, which reads the address toggle (Data toggle) value into playerFileAddress, which is displayed.
-  + EXAMINE NEXT  Increment playerFileAddress, get the file data and display it.
-  + DEPOSIT       1. Set sense switch to a file number. Set data byte to an MP3 file number.
-                  2. Flip AUX2 up, which writes the data byte to the sense switch file.
+  + EXAMINE NEXT  Increment playerFileAddress, get the file data byte and display it in the Data lights.
+  + DEPOSIT       1. Set Data switches to an MP3 file number.
+                  2. Flip DEPOSIT will write the data byte to the playerFileAddress file.
+  + DEPOSIT NEXT  1. Set Data switches to an MP3 file number.
+                  2. Flip DEPOSIT NEXT will increment playerFileAddress, and write the data byte to the playerFileAddress file.
   + RESET         Load sound effect index array from files.
   + AUX2 down     Exit player file mode, return to player MP3 mode.
   -----------
@@ -202,8 +204,9 @@
   int CLOCK_CUCKOO    = 6;
   int TIMER_MINUTE    = 7;
   To hear which sound effect matches action, do the following.
-  + Put the computer in player mode.
-  + Flip the sense switches to match the number. For example, flip to 2, to hear the TIMER_COMPLETE sound.
+  + Flip AUX1 down to put the computer in player mode.
+  + Flip AUX2 down to put the computer in player file mode.
+  + Flip the data switches to match the number. For example, flip to 2, to hear the TIMER_COMPLETE sound.
   + Flip AUX2 down. The Data LED lights now display the MP3 file number for that action.
   + Set the data switches to match the displayed Data LED lights.
   + Flip CLR, to hear the sound file.
@@ -5465,7 +5468,7 @@ void checkPlayerFileControls() {
     Serial.println(F("+ Player, STOP: stop playing."));
 #endif
     mp3player.pause();
-    playerFileStatus = playerFileStatus | HLTA_ON;
+    playerFileStatus = MEMR_ON | HLTA_ON;
     playerFileLights();
   }
   // -------------------
@@ -5481,9 +5484,8 @@ void checkPlayerFileControls() {
     Serial.println(playerFileData);
 #endif
     mp3player.play(playerFileData);
-    playerFileStatus = playerFileStatus & HLTA_OFF;
+    playerFileStatus = MEMR_ON & HLTA_OFF;
     playerFileLights();
-    // playSong();
   }
   // -------------------
   if (pcfControl.readButton(pinExamine) == 0) {
@@ -5505,6 +5507,7 @@ void checkPlayerFileControls() {
     Serial.print(playerFileData);
     Serial.println("");
 #endif
+    playerFileStatus = MEMR_ON | INP_ON | HLTA_ON;
     playerFileLights();
 #ifdef SWITCH_MESSAGES
     // -------------------
@@ -5561,6 +5564,7 @@ void checkPlayerFileControls() {
     Serial.print(playerFileData);
     Serial.println("");
 #endif
+    playerFileStatus = MEMR_ON | INP_ON | HLTA_ON;
     playerFileLights();
   }
   // -------------------
@@ -5585,6 +5589,7 @@ void checkPlayerFileControls() {
     if (!writeFileByte(sfbFilename, playerFileData)) {
       Serial.println("- Failed to write sound file: ");
     }
+    playerFileStatus = MEMR_ON | INP_ON | WO_ON | HLTA_ON;
     playerFileLights();
   }
   // -------------------
@@ -5610,6 +5615,7 @@ void checkPlayerFileControls() {
     if (!writeFileByte(sfbFilename, playerFileData)) {
       Serial.println("- Failed to write sound file: ");
     }
+    playerFileStatus = MEMR_ON | INP_ON | WO_ON | HLTA_ON;
     playerFileLights();
   }
   // -------------------
@@ -5627,6 +5633,8 @@ void checkPlayerFileControls() {
       soundEffects[i] = readFileByte(getSfbFilename(i));
     }
     ledFlashSuccess();
+    playerFileStatus = MEMR_ON | WO_ON | HLTA_ON;
+    playerFileLights();
   }
   // ------------------------
 #ifdef DESKTOP_MODULE
@@ -5892,7 +5900,7 @@ void clockRun() {
 #endif
             ClockTimerMode = false;
             playerPlaySound(TIMER_COMPLETE);
-            delay(900);  // Delay time for the sound to play.
+            delay(1200);  // Delay time for the sound to play.
             KnightRiderScanner();
             syncCountWithClock();
             displayTheTime(theCounterMinutes, theCounterHours);
