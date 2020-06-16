@@ -20,14 +20,14 @@
   + 0001 Simple jump
   + 0010 More lights, jump program
   + 0011 Kill the Bit
-  + 0100 Program list, requires LCD
+  + 0100 Kill the Bit with an MP3 playing.
   + 0101 Add program, x + y: x in address 1, y in address 3, and answer in A6(64).
   -----------------
   + 0110 Loop playing a sound bite, then NOPs. Address 1 is the MP3 file number.
   + 0111 Loop a sound bite with NOPs. HLT at A8. RUN and JMP back to address 0.
   + 1001 NOP, HLT, JMP program
-  + 1000 NOP, HLT, JMP program
   -----------------
+  + 1110 Program list, requires LCD
   + 1111 Start up program. Play MP3 while NOPs are processing,then HLT when the MP3 is finished.
   -----------------
   + 10000 Current test program.
@@ -42,8 +42,8 @@
   +       013 11  11 is for looping.
   +       052 42  42 Flash success lights
   + Example to add an OUT opcode option to play an MP3 file.
-          // mvi a, <file#>
-          // out 11   ; Use out 11 is for looping. 10 is for single play.
+          // MVI A, <file#>
+          // OUT 11   ; Use out 11 is for looping. 10 is for single play.
           //  ++ Address:oct > description
           //  ++       0:076 > opcode: mvi a,2  : Set to play sound bite file, 0002.mp3.
           //  ++       1:002 > immediate: 2
@@ -59,20 +59,13 @@
   --------------
   AUX switches for modes:
   + Default mode is the Altair 8800 emulator processor.
-  + AUX1 up     toggle clock mode.
-  + AUX1 Down   toggle MP3 player mode.
   When in processor mode,
-  + AUX2 up     write processor memory to file.
-  + AUX2 Down   read file into processor memory.
-  When in clock mode,
-  + STOP        toggle timer mode.
-  To do: when in player mode,
-  + AUX2 Down    Enter player file mode to manage sound effect array values.
-  + To do: EXAMINE      Get address toggle value, set counter, read counter file byte into Data LED lights.
-  + To do: EXAMINENEXT  Increment counter, display counter in Address lights, and read sound effect array byte into Data LED lights.
-  + To do: DEPOSIT      Write sound effect array byte data to file, using the counter filename.
-  + To do: DEPOSIT      Increment counter, display counter in Address lights, write sound effect array byte data.
-  + To do: Altair 8800 STOP/RUN functions to pause/play sound effect array byte data.
+  + AUX1 up     Toggle clock mode.
+  + AUX1 Down   Toggle MP3 player mode.
+  + AUX2 up     Write processor memory to file.
+  + AUX2 Down   Read file into processor memory.
+  When in player mode,
+  + AUX2 Down   Toggle player file mode to manage sound effect array values.
 
   ----------------------------------------
   Startup initialization, setup()
@@ -119,6 +112,21 @@
                   2. Use the Sense switches to set an SD drive program filename.
                   3. Read the file bytes into processor memory.
 
+  --------------
+  User guide,
+  
+  How to save a program to the SD card.
+  + Set the Sense switches to the file number value.
+  + Double flip AUX2 up to confirm and write processor memory to file.
+  
+  How to load and run a program from the SD card.
+  + Set the Sense switches to the file number value.
+  + Flip AUX2 down. File bytes are read into processor memory. LED ligts flash success with a sound bite message.
+  + Flip RUN, to start the program running from program counter 0.
+  
+  How to assemble, upload, and run an assembler program.
+  ++ See Project: Altair101/asm/README.md
+
   ----------------------------------------
   Clock, clockRun(),
   + Start by showing the time of day hours and minutes.
@@ -151,6 +159,15 @@
   + UNPROTECT     To do: Increment value to set.
   + AUX1 Up       Toogle clock mode on and off. In clock mode, show the time of day.
   -----------
+
+  User guide, Clock Timer,
+  + Must be in clock mode.
+  + Flip STOP to toggle clock timer status.
+  + Set the minutes by toggling a single address switch. For example A10 is for 10 minutes.
+  + Flip RUN to start the timer.
+  ++ Flash HLDA on/off each second, for the current minute, starting with A0.
+  ++ Light each address LED and play a sound bite as each minute passes.
+  ++ Sound and flash when time is reached, and return to displaying the time of day hours and minutes.
 
   ----------------------------------------
   MP3 Player mode, playerRun(),
@@ -191,8 +208,9 @@
                   2. Flip DEPOSIT NEXT will increment playerFileAddress, and write the data byte to the playerFileAddress file.
   + RESET         Load sound effect index array from files.
   + AUX2 down     Exit player file mode, return to player MP3 mode.
+
   -----------
-  Actions that have sound effects,
+  User guide, Actions that have sound effects,
   + Constant          Array index value.
   int READ_FILE       = 1;
   int TIMER_COMPLETE  = 2;
@@ -206,10 +224,14 @@
   To hear which sound effect matches action, do the following.
   + Flip AUX1 down to put the computer in player mode.
   + Flip AUX2 down to put the computer in player file mode.
-  + Flip the data switches to match the number. For example, flip to 2, to hear the TIMER_COMPLETE sound.
-  + Flip AUX2 down. The Data LED lights now display the MP3 file number for that action.
-  + Set the data switches to match the displayed Data LED lights.
-  + Flip CLR, to hear the sound file.
+  + Flip the address switches to match the above number of the array index.
+  ++ For example, flip to 2, to hear the TIMER_COMPLETE sound.
+  + Flip EXAMINE.
+  ++ The Address LED lights now display the array index value, for example, 2.
+  ++ The Data LED lights now display tge MP3 file number for that action.
+  + Flip RUN, to hear the sound file.
+  + Flip EXAMINE NEXT to increment the Address, and display the next file number in the Data lights.
+  + Flip RUN, to hear the sound file.
   Notes,
   + If data byte is zero, no sound file assigned.
   + Search for "soundEffects", to get the above action list of sound effect constants and array index values.
@@ -218,44 +240,11 @@
   ------------------------------------------------------------------------------
   Current/Next Work
 
-  Change to display in Data address lights, and set playerCounter to the value.
-  + AUX2 down     Read sense switch file number: data byte displayed in Data LED lights.
-  ++ Once displayed and set, can flip CLR to play the file.
-
   Double click/flip to confirm and read from file into processor memory.
-
-  Re-initialize the sound bite array.
-  + In player mode, double flip AUX2 down. Single reads one byte.
-
-  Clock Timer,
-  + Must be in clock mode.
-  + Flip STOP to enter clock timer mode.
-  + If in clock timer mode, Flip STOP to exit clock timer mode.
-  + Set the minutes by toggling a single address switch. For example A10 is for 10 minutes.
-  + Flip DEPOSIT to set the timer minute value.
-  + Flip RUN to start the timer.
-  ++ Flash HLDA on/off each second.
-  ++ Light each address LED as each minute passes.
-  ++ Sound and flash when time is reached.
 
   Clock currently requires an LCD to set the time.
   + I should add inc/dec hours and minutes using toggles. This would also work for my other clock.
 
-  User guide,
-  + How to save a program to the SD card.
-  ++ Double flip to confirm and write processor memory to file.
-  + How to load and run a program from the SD card.
-  + How to assemble, upload, and run an assembler program: Altari101/asm/README.md.
-
-  --------------
-  + Have the program sound bite numbers store in files.
-  ++ Use AUX2 up to store the value.
-  ++ Use AUX2 down to play the value for confirmation.
-  ++ Use Data switches to set MP3 file number.
-  ++ Use Sense switches to set the sound bite number.
-  ++ Once Data and Sense switches are set, use AUX2 up to store the Data value to the sound bite number file.
-  --------------
-  + With Examine, check if toggleAddress > max memoryBytes.
   --------------
   + Implement a processor error function, such as:
   #ifdef LOG_MESSAGES
@@ -505,7 +494,7 @@ void playerLights() {
 // Front panel display light values:
 uint8_t playerFileStatus = B10000000;   // MEMR_ON
 uint8_t playerFileData = 0;
-uint16_t playerFileAddress = 1;       // First song played when player starts up. Then incremented when next is played.
+uint16_t playerFileAddress = 0;       // First song played when player starts up. Then incremented when next is played.
 
 void playerFileLights() {
   lightsStatusAddressData(playerFileStatus, playerFileAddress, playerFileData);
@@ -5776,7 +5765,6 @@ void playMp3() {
       if (loopSingle) {
 #ifdef SWITCH_MESSAGES
         Serial.print(F("+ Loop/play the same MP3: "));
-        Serial.println(playerCounter);
 #endif
       } else {
 #ifdef SWITCH_MESSAGES

@@ -1062,7 +1062,7 @@ public class asmProcessor {
         //      4.2) ds      2
         c1 = theRest.indexOf(" ");
         if (c1 < 1) {
-            if (theLine.startsWith("org")) {
+            if (theLine.toLowerCase().startsWith("org")) {
                 // Assembler directives:
                 //  4.1) org     0
                 System.out.println("++ parseLine, org directive, theRest: " + theRest);

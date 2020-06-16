@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 # Assembler program for my Altair 8800 Emulator
 
-My emulator, the Altair 101, as 2 software components:
+The Altair 101 has 2 software components:
 + The [machine code processor](../Processor/Processor.ino) emulator program, and
 + This [assembler application](src/asm/).
 
@@ -27,7 +27,7 @@ Assembler components:
 --------------------------------------------------------------------------------
 #### How to Assemble and Run Programs on the Altair 101
 
-Following is how I generate a machine code file and upload it to the Arduino processor program.
+Following is how to generate a machine code file and upload it to run on the Arduino processor program.
 
 1. On my laptop, I generate the machine code file.
 ````
@@ -66,12 +66,22 @@ The machine code file is created.
 
 On the Altair 101,
 ````
-I set the sense switches all on.
-+ I flip the AUX2 switch down, for download.
+I set the sense switches all on/up.
++ I flip the AUX2 switch down, for download mode.
 + Now, the machine is ready to receive bytes downloaded through the serial port module.
 ````
-
-On the laptop, I enter the command to upload the machine code file.
+On the laptop, set the port, if port is not the default port.
+````
+> list ports
+...
+++ cu.wchusbserial141230 : USB2.0-Serial BaudRate:9600 Data Bits:8 Stop Bits:1 Parity:0
+...
+> set port cu.wchusbserial141230
++ Set the serial port name: cu.wchusbserial141230
++ Serial port set to: cu.wchusbserial141230
++ Serial port set to system name: /dev/cu.wchusbserial141230
+````
+Enter the command to upload the machine code file.
 ````
 > upload
 + -------------------------------------
@@ -93,12 +103,12 @@ The machine code is now in the 101's program memory.
 
 On the Altair 101,
 ````
-I flip the RESET switch and the machine returns to program mode.
+Flip RESET, and the machine returns to program mode.
 
-If I flip the run switch, the program starts running.
+Flip RUN to run the program.
 
-I can use the examine and examine next toggle to view the program bytes in the front panel LED lights.
-I can change the program bytes using the Deposit toggle.
+Use the EXAMINE and EXAMINE NEXT toggles to view the program bytes in the front panel LED lights.
+To change the program bytes, use DEPOSIT and DEPOSIT NEXT.
 The Step toggle works to step through the program machine cycles
 with results showing on the LED lights: address lights, data lights, and status lights.
 
