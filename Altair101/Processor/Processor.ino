@@ -114,16 +114,16 @@
 
   --------------
   User guide,
-  
+
   How to save a program to the SD card.
   + Set the Sense switches to the file number value.
   + Double flip AUX2 up to confirm and write processor memory to file.
-  
+
   How to load and run a program from the SD card.
   + Set the Sense switches to the file number value.
   + Flip AUX2 down. File bytes are read into processor memory. LED ligts flash success with a sound bite message.
   + Flip RUN, to start the program running from program counter 0.
-  
+
   How to assemble, upload, and run an assembler program.
   ++ See Project: Altair101/asm/README.md
 
@@ -184,7 +184,7 @@
   + STOP          Pause play
   + RUN           Play MP3. And loop all.
   + SINGLE up     Toogle on and off, of the playing/looping of a single MP3.
-  + SINGLE dn     Toogle off the looping a single MP3
+  + SINGLE dn     Flip to loop a single MP3. Song plays when in other modes such as clock timer.
   + EXAMINE       Play previous MP3. And loop all.
   + EXAMINE NEXT  Play next MP3. And loop all.
   + DEPOSIT       Play previous folder. During first MP3, loop directory. After first song, will loop all.
@@ -796,6 +796,12 @@ const int clockPinLed = A11;    // pin 11 Clock pin.
 #include "RTClib.h"
 RTC_DS3231 rtc;
 DateTime now;
+
+// MP3 player has a sub-state for managing sound effect byte values in files.
+#define CLOCK_SET 0
+#define CLOCK_TIME 1
+#define CLOCK_TIMER 2
+int clockState = CLOCK_TIME;     // Intial, default.
 
 int setClockValue = 0;
 // rtc.adjust(DateTime(2019, 10, 9, 16, 22, 3));   // year, month, day, hour, minute, seconds
@@ -4718,6 +4724,72 @@ void restoreLcdScreenData() {
 }
 #endif
 
+// -----------------------------------------------------------------------
+// Clock Timer
+
+byte timerStatus = 0;
+byte timerStep = 0;
+unsigned int timerMinute = 0;
+unsigned int timerMinuteBit = 0;
+unsigned long clockTimer;
+int clockTimerCount = 0;
+
+unsigned long clockTimerSeconds;
+boolean clockTimerSecondsOn = false;
+int clockTimerCountBit;
+
+void clockRunTimer() {
+  if ((millis() - clockTimerSeconds >= 500)) {
+    clockTimerSeconds = millis();
+    // Flash the counter minute LED.
+    if (clockTimerSecondsOn) {
+      clockTimerSecondsOn = false;
+      clockTimerCountBit = 1;
+      timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, clockTimerCountBit);
+      lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
+    } else {
+      clockTimerSecondsOn = true;
+      clockTimerCountBit = 0;
+      timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, clockTimerCountBit);
+      lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
+    }
+  }
+  if ((millis() - clockTimer >= 60000)) {
+    // Timer run status.
+    // 60 x 1000 = 60000, which is one minute.
+    clockTimer = millis();
+    clockTimerCount++;
+    if (clockTimerCount >= timerMinute ) {
+#ifdef SWITCH_MESSAGES
+      Serial.print(F("+ clockTimerCount="));
+      Serial.print(clockTimerCount);
+      Serial.print(F(" timerMinute="));
+      Serial.print(clockTimerCount);
+      Serial.println(F(" Timer timed."));
+#endif
+      clockState = CLOCK_TIME;
+      playerPlaySound(TIMER_COMPLETE);
+      delay(1200);  // Delay time for the sound to play.
+      KnightRiderScanner();
+      syncCountWithClock();
+      displayTheTime(theCounterMinutes, theCounterHours);
+    } else {
+#ifdef SWITCH_MESSAGES
+      Serial.print(F("+ clockTimerCount="));
+      Serial.print(clockTimerCount);
+      Serial.print(F(" timerMinute="));
+      Serial.println(clockTimerCount);
+#endif
+      timerMinuteBit = 0;
+      timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
+      timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, 1);
+      lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
+      playerPlaySound(TIMER_MINUTE);
+      delay(1200);  // Delay time for the sound to play.
+    }
+  }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Front Panel AUX Switches
@@ -4771,13 +4843,6 @@ int getMinuteValue(unsigned int theWord) {
   return (theMinute);
 }
 
-boolean ClockTimerMode = false;
-byte timerStatus = 0;
-byte timerStep = 0;
-unsigned int timerMinute = 0;
-unsigned int timerMinuteBit = 0;
-unsigned long clockTimer;
-int clockTimerCount = 0;
 void checkClockControls() {
   // ---------------------------------------------------------
   // Timer options
@@ -4791,17 +4856,17 @@ void checkClockControls() {
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Clock, STOP. Toggle timer. "));
 #endif
-    if (ClockTimerMode) {
+    if (clockState == CLOCK_TIMER) {
 #ifdef SWITCH_MESSAGES
       Serial.print(F(" Off."));
 #endif
-      ClockTimerMode = false;
+      clockState = CLOCK_TIME;
       displayTheTime(theCounterMinutes, theCounterHours);
     } else {
 #ifdef SWITCH_MESSAGES
       Serial.print(F(" On."));
 #endif
-      ClockTimerMode = true;
+      clockState = CLOCK_TIMER;
       timerStep = 1;                // Step 1, Timer mode on.
       timerStatus = INP_ON;         // timer is ready for timerMinute input.
       timerMinute = 0;
@@ -4829,7 +4894,7 @@ void checkClockControls() {
   } else if (switchRun) {
     switchRun = false;
     // Switch logic
-    ClockTimerMode = true;
+    clockState = CLOCK_TIMER;
     timerStep = 2;                // Step 2, run
     timerStatus = MEMR_ON | INP_ON | M1_ON; // Timer is running (M1_ON).
     timerMinute = getMinuteValue(toggleAddress());
@@ -5218,11 +5283,12 @@ void checkPlayerControls() {
     switchStepDown = false;
     // Switch logic
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Toggle loop a single song: off, song# "));
-    Serial.println(playerCounter);
+    Serial.print(F("+ Toggle loop a single song using mp3player.loop("));
+    Serial.print(playerCounter);
+    Serial.println(F(")"));
 #endif
     loopSingle = false;
-    mp3player.disableLoop();
+    mp3player.loop(playerCounter);
     playerStatus = playerStatus & M1_OFF;
     playerLights();
   }
@@ -5834,10 +5900,6 @@ void playerRun() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void clockRun() {
-  unsigned long clockTimerSeconds;
-  boolean clockTimerSecondsOn = false;
-  int clockTimerCountBit;
-
   Serial.println(F("+ clockRun()"));
   playerPlaySound(CLOCK_ON);
   saveClearLcdScreenData();
@@ -5845,69 +5907,24 @@ void clockRun() {
   syncCountWithClock();
   displayTheTime(theCounterMinutes, theCounterHours);
   while (programState == CLOCK_RUN) {
-    //
-    // Clock process to display the time.
-    if (!ClockTimerMode) {
-      processClockNow();
-      // Control buttons for setting the time.
-      // checkExamineButton();
-      // checkExamineNextButton();
-      // checkDepositButton();
-      // checkDepositNextButton();
-    } else {
-      // ClockTimerMode = true;
-      // Timer is running: M1_ON.
-      if (timerStatus & M1_ON) {
-        if ((millis() - clockTimerSeconds >= 500)) {
-          clockTimerSeconds = millis();
-          // Flash the counter minute LED.
-          if (clockTimerSecondsOn) {
-            clockTimerSecondsOn = false;
-            clockTimerCountBit = 1;
-            timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, clockTimerCountBit);
-            lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
-          } else {
-            clockTimerSecondsOn = true;
-            clockTimerCountBit = 0;
-            timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, clockTimerCountBit);
-            lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
-          }
+    switch (clockState) {
+      // ----------------------------
+      case CLOCK_TIME:
+        processClockNow();
+        // Control buttons for setting the time.
+        // checkExamineButton();
+        // checkExamineNextButton();
+        // checkDepositButton();
+        // checkDepositNextButton();
+        break;
+      case CLOCK_TIMER:
+        // Timer is running when timerStatus has M1_ON.
+        if (timerStatus & M1_ON) {
+          clockRunTimer();
         }
-        if ((millis() - clockTimer >= 60000)) {
-          // Timer run status.
-          // 60 x 1000 = 60000, which is one minute.
-          clockTimer = millis();
-          clockTimerCount++;
-          if (clockTimerCount >= timerMinute ) {
-#ifdef SWITCH_MESSAGES
-            Serial.print(F("+ clockTimerCount="));
-            Serial.print(clockTimerCount);
-            Serial.print(F(" timerMinute="));
-            Serial.print(clockTimerCount);
-            Serial.println(F(" Timer timed."));
-#endif
-            ClockTimerMode = false;
-            playerPlaySound(TIMER_COMPLETE);
-            delay(1200);  // Delay time for the sound to play.
-            KnightRiderScanner();
-            syncCountWithClock();
-            displayTheTime(theCounterMinutes, theCounterHours);
-          } else {
-#ifdef SWITCH_MESSAGES
-            Serial.print(F("+ clockTimerCount="));
-            Serial.print(clockTimerCount);
-            Serial.print(F(" timerMinute="));
-            Serial.println(clockTimerCount);
-#endif
-            timerMinuteBit = 0;
-            timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
-            timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, 1);
-            lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
-            playerPlaySound(TIMER_MINUTE);
-            delay(1200);  // Delay time for the sound to play.
-          }
-        }
-      }
+        break;
+      case CLOCK_SET:
+        break;
     }
     checkClockSwitch();   // Option to exit clock mode.
     checkClockControls(); // Clock and timer controls.
