@@ -41,7 +41,8 @@
   +       343 OUT <port#>
   +       012 10  Port number 10 is for single play.
   +       013 11  Port number 11 is for looping.
-  +       052 42  42 Flash success lights
+  +       015 13  Flash error light sequence.
+  +       052 42  Flash success light sequence.
   -----------------
   + Example to add an OUT opcode option to play an MP3 file.
           // MVI A, <file#>
@@ -60,13 +61,18 @@
   Modes
   --------------
   AUX switches for modes:
-  + Default mode is the Altair 8800 emulator processor.
+  + Default mode is the Altair 8800 emulator processor mode.
   When in processor mode,
-  + AUX1 up     Toggle clock mode.
-  + AUX1 Down   Toggle MP3 player mode.
-  + AUX2 up     Write processor memory to file.
+  + AUX1 up     Toggle clock mode on.
+  + AUX1 Down   Toggle MP3 player mode on.
+  + AUX2 up     Double flip to write processor memory to file.
   + AUX2 Down   Read file into processor memory.
+  When in clock mode,
+  + AUX1 up     Toggle clock mode off, return to processor mode.
+  + AUX1 Down   Toggle MP3 player mode on.
   When in player mode,
+  + AUX1 up     Toggle clock mode on.
+  + AUX1 Down   Toggle MP3 player mode off, return to processor mode.
   + AUX2 Down   Toggle player file mode to manage sound effect array values.
 
   ----------------------------------------
@@ -102,17 +108,21 @@
   + DEPOSIT       Deposit Data switch values into the current address.
   + DEPOSIT NEXT  Deposit Data switch values into the next address.
   + RESET         Set the programCounter to zero, and display the zero address and address data byte.
-  + CLR           Set processor memory to zeros, and program counter to 0.
+  + CLR           Double flip to set processor memory to zeros, and program counter to 0.
   + PROTECT       Decrease MP3 player volume.
   + UNPROTECT     Increase MP3 player volume.
   + AUX1 up       Clock mode: show hour and mintues time.
   + AUX1 down     MP3 player mode
-  + AUX2 up       1. Double click/flip the switch.
-                  2. Use the Sense switches to set an SD drive program filename.
+  + AUX2 up       1. Use the Sense switches to set an SD drive program filename.
+                  2. Double flip the switch.
                   3. Write processor memory to SD drive.
-  + AUX2 down     1. Flip the switch.
-                  2. Use the Sense switches to set an SD drive program filename.
-                  3. Read the file bytes into processor memory.
+  + AUX2 down     1.1 Use the Sense switches to set an SD drive program filename.
+                  1.2 Set the Sense switches all up (on).
+                  2. Flip the switch.
+                  3.1 Read the file bytes into processor memory.
+                  3.2.1 If Sense switches all up, wait to receive bytes from the serial port.
+                  3.2.2 When received, the bytes are loaded into the processor memory.
+                  3.2.3 Flip RESET to exit receive mode.
 
   --------------
   User guide,
