@@ -35,12 +35,14 @@
   Common opcodes:
   + B00000000 NOP, my NOP instruction has a delay: delay(100).
   + B01110110 HLT
-  + B11000011 JMP
-  +       076 MVI A
-  +       343 OUT
-  +       012 10  10 is for single play.
-  +       013 11  11 is for looping.
+  + B11000011 JMP <address, low byte followed by high byte>
+  +       076 MVI A,<immediate value>
+  -----------------
+  +       343 OUT <port#>
+  +       012 10  Port number 10 is for single play.
+  +       013 11  Port number 11 is for looping.
   +       052 42  42 Flash success lights
+  -----------------
   + Example to add an OUT opcode option to play an MP3 file.
           // MVI A, <file#>
           // OUT 11   ; Use out 11 is for looping. 10 is for single play.
@@ -94,15 +96,15 @@
   + STOP          Pause running of a program.
   + RUN           Run the program in processor memory, from the programCounter address.
   + SINGLE up     Run one machine instruction cycle at a time.
-  + SINGLE dn     Display the previous address data byte, programCounter - 1.
-  + EXAMINE       Set the programCounter to switch address, and display the data byte at that address.
-  + EXAMINE NEXT  Display the next address data byte: programCounter + 1.
+  + SINGLE dn     Display the previous address and address data byte, programCounter - 1.
+  + EXAMINE       Set the programCounter using address toggles, and display the data byte at that address.
+  + EXAMINE NEXT  Display the next address and address data byte: programCounter + 1.
   + DEPOSIT       Deposit Data switch values into the current address.
   + DEPOSIT NEXT  Deposit Data switch values into the next address.
-  + RESET         Set the programCounter to zero, and display the zero address and data byte.
+  + RESET         Set the programCounter to zero, and display the zero address and address data byte.
   + CLR           Set processor memory to zeros, and program counter to 0.
-  + PROTECT       Not implemented.
-  + UNPROTECT     Not implemented.
+  + PROTECT       Decrease MP3 player volume.
+  + UNPROTECT     Increase MP3 player volume.
   + AUX1 up       Clock mode: show hour and mintues time.
   + AUX1 down     MP3 player mode
   + AUX2 up       1. Double click/flip the switch.
@@ -155,9 +157,10 @@
   + DEPOSIT       To do: After selecting and inc/dec a value, set the value.
   + DEPOSIT NEXT
   + RESET         Knight Rider sounds and lights, then show time of day.
-  + PROTECT       To do: Decrement value to set.
-  + UNPROTECT     To do: Increment value to set.
-  + AUX1 Up       Toogle clock mode on and off. In clock mode, show the time of day.
+  + PROTECT       Decrease MP3 player volume. To do: Decrement value to set.
+  + UNPROTECT     Increase MP3 player volume. To do: Increment value to set.
+  + AUX1 Up       Toogle clock mode off, return to processor mode.
+  + AUX1 down     MP3 player mode
   -----------
 
   User guide, Clock Timer,
@@ -194,7 +197,8 @@
                   2. Play toggle address value MP3 file. If HLTA is on, only play once, then pause.
   + PROTECT       Decrease volume
   + UNPROTECT     Increase volume
-  + AUX1 Down     Toggles MP3 player mode. Show song number and volume level.
+  + AUX1 up       Clock mode: show hour and mintues time.
+  + AUX1 Down     Toggle MP3 player mode off, return to processor mode.
   + AUX2 up       Not implemented.
   + AUX2 down     Player file mode.
   -----------
@@ -207,6 +211,7 @@
   + DEPOSIT NEXT  1. Set Data switches to an MP3 file number.
                   2. Flip DEPOSIT NEXT will increment playerFileAddress, and write the data byte to the playerFileAddress file.
   + RESET         Load sound effect index array from files.
+  + AUX1 up       Clock mode: show hour and mintues time.
   + AUX2 down     Exit player file mode, return to player MP3 mode.
 
   -----------
@@ -4368,6 +4373,23 @@ void checkRunningButtons() {
 }
 
 // -------------------------------------------------------------------
+boolean confirmChoice = false;
+void checkConfirmClr() {
+  if (pcfAux.readButton(pinClr) == 0) {
+    if (!switchClr) {
+      switchClr = true;
+    }
+  } else if (switchClr) {
+    switchClr = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Choice confirmed."));
+#endif
+    confirmChoice = true;
+  }
+}
+
+// -------------------------------------------------------------------
 // Front Panel Control Switches, when a program is not running (WAIT).
 // Switches: RUN, RESET, STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT,
 void checkControlButtons() {
@@ -4464,6 +4486,31 @@ void checkControlButtons() {
   } else if (switchClr) {
     switchClr = false;
     // Switch logic
+    // -------------------------------------------------------
+    // Double flip switch confirmation.
+    switchClr = false;      // Required to reset the switch state for confirmation.
+    confirmChoice = false;
+    unsigned long timer = millis();
+    while (!confirmChoice && (millis() - timer < 1000)) {
+      // checkConfirmClr();
+      if (pcfAux.readButton(pinClr) == 0) {
+        if (!switchClr) {
+          switchClr = true;
+        }
+      } else if (switchClr) {
+        switchClr = false;
+        // Switch logic.
+        confirmChoice = true;
+      }
+      delay(100);
+    }
+    if (!confirmChoice) {
+      return;
+    }
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Choice confirmed."));
+#endif
+    // -------------------------------------------------------
     zeroOutMemory();
     controlResetLogic();
   }
@@ -5166,6 +5213,48 @@ void playSong() {
   playerLights();
 }
 
+void checkProtectSetVolume() {
+  // When not in player mode, used to change the volume.
+  // -------------------
+  if (pcfAux.readButton(pinProtect) == 0) {
+    if (!switchProtect) {
+      switchProtect = true;
+    }
+  } else if (switchProtect) {
+    switchProtect = false;
+    //
+    // Switch logic, based on programState.
+    if (playerVolume > 1) {
+      playerVolume--;
+    }
+    mp3player.volume(playerVolume);
+    // playerLights();
+    // delay(300);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, decrease volume to "));
+    Serial.println(playerVolume);
+#endif
+  }
+  // -------------------
+  if (pcfAux.readButton(pinUnProtect) == 0) {
+    if (!switchUnProtect) {
+      switchUnProtect = true;
+    }
+  } else if (switchUnProtect) {
+    switchUnProtect = false;
+    // Switch logic
+    if (playerVolume < 30) {
+      playerVolume++;
+    }
+    mp3player.volume(playerVolume);
+    // playerLights();
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, increase volume to "));
+    Serial.println(playerVolume);
+#endif
+  }
+}
+
 void checkPlayerControls() {
   // -------------------
   if (pcfControl.readButton(pinStop) == 0) {
@@ -5744,7 +5833,7 @@ void checkPlayerSwitch() {
       programState = PLAYER_RUN;
       digitalWrite(HLDA_PIN, HIGH);
       digitalWrite(WAIT_PIN, LOW);
-      // lightsStatusAddressData(0, 0, 0);  // Clear the front panel lights.
+      playerState = PLAYER_MP3;       // Default to MP3 player state.
     }
   }
 }
@@ -5880,13 +5969,14 @@ void playerRun() {
         if (!(playerStatus & HLTA_ON)) {
           playMp3();
         }
-        checkPlayerControls();    // Player control functions from STOP to UNPROTECT.
-        checkPlayerSwitch();      // Toggle player mode: AUX1 down.
+        checkPlayerControls();      // Player control functions from STOP to UNPROTECT.
+        checkPlayerSwitch();        // Toggle player mode: AUX1 down.
         break;
       case PLAYER_FILE:
-        checkPlayerFileControls();    // Player control functions from STOP to UNPROTECT.
+        checkPlayerFileControls();  // Player control functions from STOP to UNPROTECT.
         break;
     }
+    checkClockSwitch();             // If AUX1 is flipped up, change to clock mode.
   }
   playerPlaySound(PLAYER_OFF);
   restoreLcdScreenData();
@@ -5926,8 +6016,10 @@ void clockRun() {
       case CLOCK_SET:
         break;
     }
-    checkClockSwitch();   // Option to exit clock mode.
-    checkClockControls(); // Clock and timer controls.
+    checkClockSwitch();       // Option to exit clock mode.
+    checkClockControls();     // Clock and timer controls.
+    checkPlayerSwitch();      // If AUX1 is flipped down, switch to player mode.
+    checkProtectSetVolume();
     delay(100);
   }
   playerPlaySound(CLOCK_OFF);
@@ -6233,6 +6325,7 @@ void loop() {
       checkPlayerSwitch();
       checkUploadSwitch();
       checkDownloadSwitch();
+      checkProtectSetVolume();
       delay(60);
       break;
     // ----------------------------
