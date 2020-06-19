@@ -13,24 +13,62 @@
   + The 8080's machine instructions(opcodes) are the same for the 8085.
   + This program implements more than enough opcodes to run the classic program, Kill the Bit.
 
-  -----------------
+  -----------------------------------------------------------------------------
+  Work to do,
+
+  WAIT and HLDA indicators on when in wait for serial port bytes.
+  + AUX2 down     1. Set the Sense switches to read type, or to an SD drive program filename value.
+                  2.1 Flip the switch. WAIT and HLDA indicators are on.
+  Should auto exit after bytes are downloaded.
+                  
+  -----------------------------------------------------------------------------
+  -----------------------------------------------------------------------------
+  Program sections,
+
+  ----------------------------
+  Application definitions
+  #define                     Defines and variable definitions
+  byte statusByte             Front Panel Status LEDs definitions
+  #include                    Includes and Arduino pin definitions.
+  printClockDate()            DS3231 Clock definitions and functions
+  lcdSetup()                  1602 LCD definitions and functions
+  ----------------------------
+  Processor Definitions and Functions:
+  memoryData[memoryBytes]     Memory and process definitions
+  Process a subset of the Intel 8080/8085 opcode instructions:
+  processData()               Control processing instruction set of opcodes.
+  processOpcode()             Process opcode instruction machine cycle one (M1): fetch opcode and process it.
+  processOpcodeData()         Process opcode machine cycles greater than 1: immediate byte or address.
+  ----------------------------
+  Front Panel toggle switch controls and data entry events
+  initSdcard()                SD card module functions
+  controlResetLogic()         Processor Switch Functions
+  checkClockControls()        Clock Front Panel Switch Functions.
+  checkConfirmUploadSwitch()  SD card processor memory read/write from/into a file.
+  checkPlayerControls()       Player Front Panel Control Switch Functions.
+  ----------------------------
+  DownloadProgram()           Receive bytes through serial port. The bytes are loaded into processorr memory.
+  setup()                     Computer initialization.
+  loop()                      Based on state, clock cycling through memory, show the time, or other state processing.
+
+  -----------------------------------------------------------------------------
   SD card programs:
   -----------------
-  + 0000 NOPs. When AUX2 is flipped down, with sense switches all down, memory is all set to zeros (NOPs).
-  + 0001 Simple jump
-  + 0010 More lights, jump program
-  + 0011 Kill the Bit
-  + 0100 Kill the Bit with an MP3 playing.
-  + 0101 Add program, x + y: x in address 1, y in address 3, and answer in A6(64).
+  + 0000    NOPs. When AUX2 is flipped down, with sense switches all down, memory is all set to zeros (NOPs).
+  + 0001    Simple jump
+  + 0010    More lights, jump program
+  + 0011    Kill the Bit
+  + 0100    Kill the Bit with an MP3 playing.
+  + 0101    Add program, x + y: x in address 1, y in address 3, and answer in A6(64).
   -----------------
-  + 0110 Loop playing a sound bite, then NOPs. Address 1 is the MP3 file number.
-  + 0111 Loop a sound bite with NOPs. HLT at A8. RUN and JMP back to address 0.
-  + 1001 NOP, HLT, JMP program
+  + 0110    Loop a sound bite with NOPs. NOPs.
+            Address 1 is the MP3 file number.
+  + 0111    Loop a sound bite with NOPs. HLT at A8. RUN and JMP back to address 0 to start all over.
   -----------------
-  + 1110 Program list, requires LCD
-  + 1111 Start up program. Play MP3 while NOPs are processing,then HLT when the MP3 is finished.
+  + 1110    Program list, requires LCD
+  + 1111    Start up program. Play MP3 while NOPs are processing,then HLT when the MP3 is finished.
   -----------------
-  + 10000 Current test program.
+  + 10000   (A12 switch) Current test program.
 
   Common opcodes:
   + B00000000 NOP, my NOP instruction has a delay: delay(100).
@@ -39,10 +77,12 @@
   +       076 MVI A,<immediate value>
   -----------------
   +       343 OUT <port#>
-  +       012 10  Port number 10 is for single play.
-  +       013 11  Port number 11 is for looping.
-  +       015 13  Flash error light sequence.
-  +       052 42  Flash success light sequence.
+  +       012 10  Port# to play the MP3 file# in register A.
+  ++              If regA==0, pause the player
+  +       013 11  Port# to continuously (loop) play the MP3 file# in register A.
+  ++              If regA==0, pause the player
+  +       015 13  Port# to flash error light sequence.
+  +       052 42  Port# to flash success light sequence.
   -----------------
   + Example to add an OUT opcode option to play an MP3 file.
           // MVI A, <file#>
@@ -55,25 +95,9 @@
           //  ++       ... NOPs ...
 
   ------------------------------------------------------------------------------
-  Front Panel Documentation
-
-  ----------------------------------------
-  Modes
-  --------------
-  AUX switches for modes:
-  + Default mode is the Altair 8800 emulator processor mode.
-  When in processor mode,
-  + AUX1 up     Toggle clock mode on.
-  + AUX1 Down   Toggle MP3 player mode on.
-  + AUX2 up     Double flip to write processor memory to file.
-  + AUX2 Down   Read file into processor memory.
-  When in clock mode,
-  + AUX1 up     Toggle clock mode off, return to processor mode.
-  + AUX1 Down   Toggle MP3 player mode on.
-  When in player mode,
-  + AUX1 up     Toggle clock mode on.
-  + AUX1 Down   Toggle MP3 player mode off, return to processor mode.
-  + AUX2 Down   Toggle player file mode to manage sound effect array values.
+  ------------------------------------------------------------------------------
+  Processor
+  Application Documentation and User Guide
 
   ----------------------------------------
   Startup initialization, setup()
@@ -91,6 +115,30 @@
   + programState = PROGRAM_WAIT (default start state), don't run 00000000.bin when loop() starts.
 
   ----------------------------------------
+  Modes: AUX switches for setting program modes,
+  + Default mode is the Altair 8800 emulator processor mode.
+  When in processor mode,
+  + AUX1 up     Toggle clock mode on.
+  + AUX1 Down   Toggle MP3 player mode on.
+  + AUX2 up     Double flip to write processor memory to file.
+  + AUX2 Down   Read file into processor memory.
+  When in clock mode,
+  + AUX1 up     Toggle clock mode off, return to processor mode.
+  + AUX1 Down   Toggle MP3 player mode on.
+  + AUX2 up     Not implemented.
+  + AUX2 Down   Not implemented.
+  When in player mode,
+  + AUX1 up     Toggle clock mode on.
+  + AUX1 Down   Toggle MP3 player mode off, return to processor mode.
+  + AUX2 up     Not implemented.
+  + AUX2 Down   Toggle player file mode to manage sound effect array values.
+  When in player file mode,
+  + AUX1 up     Toggle clock mode on.
+  + AUX1 Down   Not implemented.
+  + AUX2 up     Not implemented.
+  + AUX2 Down   Toggle player file mode off, return to player mode.
+
+  ------------------------------------------------------------------------------
   Processor
   -----------
   + Status        Current instruction cycle status.
@@ -99,33 +147,42 @@
   + Indicator     WAIT : On when program is not running. Off when program is running.
   + Indicator     HLDA : Off.
   -----------
-  + STOP          Pause running of a program.
-  + RUN           Run the program in processor memory, from the programCounter address.
+  + STOP          Pause running of a program, exist run mode and enter wait mode.
+  + RUN           Run the program in processor memory, from the programCounter address. Enter run mode.
   + SINGLE up     Run one machine instruction cycle at a time.
   + SINGLE dn     Display the previous address and address data byte, programCounter - 1.
-  + EXAMINE       Set the programCounter using address toggles, and display the data byte at that address.
+  + EXAMINE       1. Use the Address switches to set the adderess.
+                  2.1 Flip EXAMINE sets the programCounter to address toggles.
+                  2.2 Display the address in the address lights.
+                  2.3 Display the address data byte in the data lights.
   + EXAMINE NEXT  Display the next address and address data byte: programCounter + 1.
   + DEPOSIT       Deposit Data switch values into the current address.
   + DEPOSIT NEXT  Deposit Data switch values into the next address.
   + RESET         Set the programCounter to zero, and display the zero address and address data byte.
   + CLR           Double flip to set processor memory to zeros, and program counter to 0.
-  + PROTECT       Decrease MP3 player volume.
-  + UNPROTECT     Increase MP3 player volume.
+  + PROTECT       If wait mode, decrease MP3 player volume.
+  + UNPROTECT     If wait mode, increase MP3 player volume.
   + AUX1 up       Clock mode: show hour and mintues time.
   + AUX1 down     MP3 player mode
-  + AUX2 up       1. Use the Sense switches to set an SD drive program filename.
-                  2. Double flip the switch.
+  + AUX2 up       1. Write to file: Use the Sense switches to set an SD drive program filename.
+                  2. Double flip the switch. WAIT and HLDA indicators are on.
                   3. Write processor memory to SD drive.
-  + AUX2 down     1.1 Use the Sense switches to set an SD drive program filename.
-                  1.2 Set the Sense switches all up (on).
-                  2. Flip the switch.
-                  3.1 Read the file bytes into processor memory.
-                  3.2.1 If Sense switches all up, wait to receive bytes from the serial port.
-                  3.2.2 When received, the bytes are loaded into the processor memory.
-                  3.2.3 Flip RESET to exit receive mode.
+  + AUX2 down     1. Set the Sense switches to read type, or to an SD drive program filename value.
+                  2.1 Flip the switch. WAIT and HLDA indicators are on.
+                  2.1.1 If Sense switches all up, enter receive mode. Wait to receive bytes from the serial port.
+                  2.1.2 When received, the bytes are loaded into the processor memory.
+                  2.1.3 Flip RESET to exit receive mode.
+                  2.2 Double flip the switch.
+                  2.2.1 If Sense switches are all down (off), reset memory to zeros.
+                  2.2.2 Else, read the file bytes into processor memory.
 
   --------------
   User guide,
+
+  For the processor, option to set MP3 play off.
+  + When OUT 10 or 11 with regA=0, pause the player.
+  + Set playerCounter=0, and don't play MP3 files when playerCounter=0.
+  + Maybe have processerPlay value instead of using playerCounter.
 
   How to save a program to the SD card.
   + Set the Sense switches to the file number value.
@@ -139,7 +196,50 @@
   How to assemble, upload, and run an assembler program.
   ++ See Project: Altair101/asm/README.md
 
-  ----------------------------------------
+  --------------
+  Inputs:
+  + dataByte == 000, regA = 0;              // Input is not implemented on this port.
+  + dataByte == 001, regA = hwStatus;       // hwStatus = 0, a number to indicate a hardware issue.
+  + dataByte == 255, regA = toggleSense();
+  + Else, input port not implimented: error.
+
+  --------------
+  Outputs:
+  --------------
+  Terminal
+  + dataByte == 3, Serial terminal output of the contents of register A :"));
+  ++ asciiChar = regA; Serial.print(asciiChar);
+  --------------
+  LCD
+  + dataByte == 1, Print register A value to the LCD module.
+  ++ regA == 0, lcdBacklight( false );     // LCD back light off.
+  ++ regA == 1, lcdBacklight( true );      // LCD back light on.
+  ++ regA == 2, lcdClearScreen();
+  ++ regA == 3, lcdSplash();
+  ++ else, char charA = regA; lcdPrintChar((String)charA);
+  --------------
+  MP3 Player
+  + dataByte == 10, mp3player.play(regA); // Play once, the MP3 file named in register A.
+  + dataByte == 11, mp3player.loop(regA); // Play in a loop, the MP3 file named in register A.
+  --------------
+  Flash light messages
+  + dataByte == 13, 015oct Error happened, flash the LED light error sequence.
+  + dataByte == 42, 052oct Success happened, flash the LED light success sequence.
+  --------------
+  Debug messages
+  + dataByte == 30, printData(regB);
+  + dataByte == 31, printData(regC);
+  + dataByte == 32, printData(regD);
+  + dataByte == 33, printData(regE);
+  + dataByte == 34, printData(regH);
+  + dataByte == 35, printData(regL);
+  + dataByte == 36, Print data at H:L address: Serial.print(memoryData[regH * 256 + regL]);
+  + dataByte == 37, printData(regA);
+  + dataByte == 38, printRegisters();
+  + dataByte == 39, printRegisters(); printOther();
+  --------------
+
+  ------------------------------------------------------------------------------
   Clock, clockRun(),
   + Start by showing the time of day hours and minutes.
   + To do: If clock timer mode was set, return to timer mode or reset timer mode values.
@@ -162,6 +262,7 @@
   + RUN           1. Set the timer minutes using the address toggles: A1 is 1 minute, A2 is 2 minutes, ... 15 minutes.
                   2. To do: Start the timer using the timer minutes value.
   + SINGLE up     1) month and day, 2) year, 3) Return to show time of day: hour and minutes
+  + SINGLE dn     Not implemented.
   + EXAMINE       To do: Select the flashing date or time value.
   + EXAMINE NEXT  To do: Move through time and date values, making the selected value flash.
   + DEPOSIT       To do: After selecting and inc/dec a value, set the value.
@@ -171,6 +272,8 @@
   + UNPROTECT     Increase MP3 player volume. To do: Increment value to set.
   + AUX1 Up       Toogle clock mode off, return to processor mode.
   + AUX1 down     MP3 player mode
+  + AUX2 up       Not implemented.
+  + AUX2 Down     Not implemented.
   -----------
 
   User guide, Clock Timer,
@@ -182,7 +285,7 @@
   ++ Light each address LED and play a sound bite as each minute passes.
   ++ Sound and flash when time is reached, and return to displaying the time of day hours and minutes.
 
-  ----------------------------------------
+  ------------------------------------------------------------------------------
   MP3 Player mode, playerRun(),
   + MP3 addressable files is 255.
   -----------
@@ -203,7 +306,7 @@
   + DEPOSIT       Play previous folder. During first MP3, loop directory. After first song, will loop all.
   + DEPOSIT NEXT  Play next folder.     During first MP3, loop directory. After first song, will loop all.
   + RESET         Play first MP3. And loop all.
-  + CLR           1. Set address toggles to the value an MP3 file.
+  + CLR           1. Set address toggles to the value of an MP3 file.
                   2. Play toggle address value MP3 file. If HLTA is on, only play once, then pause.
   + PROTECT       Decrease volume
   + UNPROTECT     Increase volume
@@ -213,6 +316,10 @@
   + AUX2 down     Player file mode.
   -----------
   Player file mode, checkPlayerFileControls()
+  + STOP          Pause play
+  + RUN           Play MP3 file based on the Data value filename.
+  + SINGLE up     Not implemented.
+  + SINGLE dn     Not implemented.
   + EXAMINE       1. Set address toggles (Data toggles) to the MP3 data file number.
                   2 Flip EXAMINE, which reads the address toggle (Data toggle) value into playerFileAddress, which is displayed.
   + EXAMINE NEXT  Increment playerFileAddress, get the file data byte and display it in the Data lights.
@@ -221,8 +328,18 @@
   + DEPOSIT NEXT  1. Set Data switches to an MP3 file number.
                   2. Flip DEPOSIT NEXT will increment playerFileAddress, and write the data byte to the playerFileAddress file.
   + RESET         Load sound effect index array from files.
+  + CLR           Not implemented.
+  + PROTECT       To do: Decrease volume
+  + UNPROTECT     To do: Increase volume
   + AUX1 up       Clock mode: show hour and mintues time.
+  + AUX1 down     Not implemented.
+  + AUX2 up       Not implemented.
   + AUX2 down     Exit player file mode, return to player MP3 mode.
+
+  -----------
+  Player consistancy with processor.
+  + If HLTA_ON, don't start playing for EXAMINE, or other switches.
+  + If HLTA_OFF, continue playing when flipping EXAMINE, or other switches.
 
   -----------
   User guide, Actions that have sound effects,
@@ -255,8 +372,6 @@
   ------------------------------------------------------------------------------
   Current/Next Work
 
-  Double click/flip to confirm and read from file into processor memory.
-
   Clock currently requires an LCD to set the time.
   + I should add inc/dec hours and minutes using toggles. This would also work for my other clock.
 
@@ -269,6 +384,8 @@
         controlStopLogic();
         statusByte = HLTA_ON;
         digitalWrite(WAIT_PIN, HIGH);
+  + Add a sound when there is a program error.
+
   --------------
   + hwStatus should have status, like processor statuses.
              Hardware  OK or Not Online.
@@ -276,18 +393,7 @@
   // hwStatus = 2;  // CL_OK, CL_NO, Clock module
   // hwStatus = 4;  // PL_OK, PL_NO, MP3 Player
 
-  Sound effects,
-  + Add a sound when there is a program error.
-  + Note, if playerStatus is HLTA_ON, a sound file can play.
-
   Update the SD card logic: initSdcard()
-
-  Confirm before reading a file into memory,
-  + Fast flash HLDA for 1 second.
-  + If read or write switch repeated, then run, else return to program wait status.
-  Confirm before writting a file into memory,
-  + Done: Confirm by flipping the switch twice.
-  + Add:  Fast flash HLDA for 1 second.
 
   Test write memory issue,
   + Seems to be a CALL opcode issue.
@@ -337,51 +443,6 @@
   + Done: Wire up the MP3 player using multiple USB wall plugs to reduce static noise.
   + Done: Add RCA female plugs for L/R external output to an amp.
 
-  ------------------------------------------------------------------------------
-  Processor
-  --------------
-  Inputs:
-  + dataByte == 000, regA = 0;              // Input is not implemented on this port.
-  + dataByte == 001, regA = hwStatus;       // hwStatus = 0, a number to indicate a hardware issue.
-  + dataByte == 255, regA = toggleSense();
-  + Else, error.
-
-  --------------
-  Outputs:
-  --------------
-  Terminal
-  + dataByte == 3, Serial terminal output of the contents of register A :"));
-  ++ asciiChar = regA; Serial.print(asciiChar);
-  --------------
-  LCD
-  + dataByte == 1, Print register A value to the LCD module.
-  ++ regA == 0, lcdBacklight( false );     // LCD back light off.
-  ++ regA == 1, lcdBacklight( true );      // LCD back light on.
-  ++ regA == 2, lcdClearScreen();
-  ++ regA == 3, lcdSplash();
-  ++ else, char charA = regA; lcdPrintChar((String)charA);
-  --------------
-  MP3 Player
-  + dataByte == 10, mp3player.play(regA); // Play once, the MP3 file named in register A.
-  + dataByte == 11, mp3player.loop(regA); // Play in a loop, the MP3 file named in register A.
-  --------------
-  Flash light messages
-  + dataByte == 13, 015oct Error happened, flash the LED light error sequence.
-  + dataByte == 42, 052oct Success happened, flash the LED light success sequence.
-  --------------
-  Debug messages
-  + dataByte == 30, printData(regB);
-  + dataByte == 31, printData(regC);
-  + dataByte == 32, printData(regD);
-  + dataByte == 33, printData(regE);
-  + dataByte == 34, printData(regH);
-  + dataByte == 35, printData(regL);
-  + dataByte == 36, Print data at H:L address: Serial.print(memoryData[regH * 256 + regL]);
-  + dataByte == 37, printData(regA);
-  + dataByte == 38, printRegisters();
-  + dataByte == 39, printRegisters(); printOther();
-  --------------
-
   ---------------------------------------------
   ---------------------------------------------
   Connect the Mega to the desktop front panel:
@@ -411,40 +472,6 @@
   + Mega pin 18(RX) to player pin 3(TX)
   + Mega pin 19(TX) to external resister to player pin 2(RX)
 
-  -----------------------------------------------------------------------------
-  -----------------------------------------------------------------------------
-  Program sections,
-    Code compilation options.
-    Arduino pin definitions.
-    Output: 1602 LCD
-    Output: Clock definitions.
-    ----------------------------
-    Definitions: machine memory, stack memory, and a sample machine code program in a memory array.
-    Definitions: Front Panel Status LEDs.
-    Output: Front Panel LED lights.
-    ----------------------------
-    Subset of the Intel 8080/8085 opcode instructions:
-    + Control of the instruction set of opcodes.
-    + Process opcode instruction machine cycle one (M1): fetch opcode and process it.
-    + Process opcode instruction machine cycles greater than 1: address and immediate bytes.
-    ----------------------------
-    I/O: SD Card reader: save and load machine memory.
-    I/O: Clock functions.
-    I/O: Player functions.
-    ----------------------------
-    Input: Front Panel toggle switch control and data entry events
-    Input: Front Panel toggle switch AUX events for devices: clock and SD card module.
-    ----------------------------
-    setup() : Computer initialization.
-    loop()  : Based on state, clock cycling through memory, show the time, or other state processing.
-
-  ---------------------------------------------
-  ---------------------------------------------
-  Altair 8800 Operator's Manual.pdf has a description of each opcode.
-  Binary calculator:
-    https://www.calculator.net/binary-calculator.html
-  Bitwise operators:
-    https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitwiseand/
 */
 // -----------------------------------------------------------------------------
 // Code compilation options.
@@ -495,6 +522,8 @@ DFRobotDFPlayerMini mp3player;
 uint16_t playerCounter = 1;       // First song played when player starts up. Then incremented when next is played.
 uint8_t playerStatus = 0;
 uint8_t playerVolume = 0;
+//
+uint16_t playerCounterProcessor = 0; // Indicator for the processor to play an MP3, or not (if zero).
 //
 uint16_t playerCounterTop = 0;
 uint16_t playerDirectoryTop = 0;
@@ -3540,15 +3569,28 @@ void processOpcodeData() {
           //  ++       1:002 > immediate: 2 ; use other sounds such as 027.
           //  ++       2:343 > opcode: out 10
           //  ++       3:013 > immediate: 10
-          mp3player.play(regA);
+          if (regA > 0) {
+            mp3player.play(regA);
+            playerCounterProcessor = regA;
+          } else {
+            // If an MP3 was playing, this is how to stop it.
+            mp3player.pause();
+            playerCounterProcessor = 0;
+          }
           break;
         case 11:
           Serial.print(F(" > Play in a loop, the MP3 file named in register A."));
-          mp3player.loop(regA);
-          // The following will allow looping after a STOP and RUN.
-          playerStatus = playerStatus | M1_ON;
-          playerCounter = regA;
-          //
+          if (regA > 0) {
+            mp3player.loop(regA);
+            playerCounterProcessor = regA;
+            // The following will allow looping after a STOP and RUN.
+            playerStatus = playerStatus | M1_ON;
+            playerCounter = regA;
+          } else {
+            // If an MP3 was playing, this is how to stop it.
+            mp3player.pause();
+            playerCounterProcessor = 0;
+          }
           break;
         // ---------------------------------------
         case 30:
@@ -4097,7 +4139,15 @@ boolean switchUnProtect = false;
 boolean switchClr = false;
 boolean switchStepDown = false;
 
-// -------------------------
+boolean switchAux1up = false;
+boolean switchAux1down = false;
+boolean switchAux2up = false;
+boolean switchAux2down = false;
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Processor Switch Functions
+
 void controlResetLogic() {
   programCounter = 0;
   curProgramCounter = 0;
@@ -4383,23 +4433,6 @@ void checkRunningButtons() {
 }
 
 // -------------------------------------------------------------------
-boolean confirmChoice = false;
-void checkConfirmClr() {
-  if (pcfAux.readButton(pinClr) == 0) {
-    if (!switchClr) {
-      switchClr = true;
-    }
-  } else if (switchClr) {
-    switchClr = false;
-    // Switch logic.
-#ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Choice confirmed."));
-#endif
-    confirmChoice = true;
-  }
-}
-
-// -------------------------------------------------------------------
 // Front Panel Control Switches, when a program is not running (WAIT).
 // Switches: RUN, RESET, STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT,
 void checkControlButtons() {
@@ -4422,9 +4455,11 @@ void checkControlButtons() {
     statusByte = statusByte & HLTA_OFF;
     // -------------------
     if (playerStatus & M1_ON) {
-      // mp3player.start();
-      mp3player.loop(playerCounter);
-      playerStatus = playerStatus & HLTA_OFF;
+      if (playerCounterProcessor > 0) {
+        // mp3player.start();
+        mp3player.loop(playerCounter);
+        playerStatus = playerStatus & HLTA_OFF;
+      }
     }
   }
   // -------------------
@@ -4497,12 +4532,11 @@ void checkControlButtons() {
     switchClr = false;
     // Switch logic
     // -------------------------------------------------------
-    // Double flip switch confirmation.
+    // Double flip confirmation.
     switchClr = false;      // Required to reset the switch state for confirmation.
-    confirmChoice = false;
+    boolean confirmChoice = false;
     unsigned long timer = millis();
     while (!confirmChoice && (millis() - timer < 1000)) {
-      // checkConfirmClr();
       if (pcfAux.readButton(pinClr) == 0) {
         if (!switchClr) {
           switchClr = true;
@@ -4825,8 +4859,11 @@ void clockRunTimer() {
       Serial.println(F(" Timer timed."));
 #endif
       clockState = CLOCK_TIME;
-      playerPlaySound(TIMER_COMPLETE);
+      //
+      // Force playing the sound. If a song was playing, it doesn't restart.
+      mp3player.play(soundEffects[TIMER_COMPLETE]);
       delay(1200);  // Delay time for the sound to play.
+      //
       KnightRiderScanner();
       syncCountWithClock();
       displayTheTime(theCounterMinutes, theCounterHours);
@@ -4848,25 +4885,8 @@ void clockRunTimer() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// Front Panel AUX Switches
+// Clock Front Panel Switch Functions.
 
-// Only do the action once, don't repeat if the switch is held down.
-// Don't repeat action if the switch is not pressed.
-
-boolean switchAux1up = false;
-boolean switchAux1down = false;
-boolean switchAux2up = false;
-boolean switchAux2down = false;
-
-/*
-  int theCounterYear = 0;
-  int theCounterMonth = 0;
-  int theCounterDay = 0;
-  int theCounterHours = 0;
-  int theCounterMinutes = 0;
-  int theCounterSeconds = 0;
-*/
 int clockData = 0;
 
 String getSfbFilename(byte fileByte) {
@@ -5092,26 +5112,49 @@ String getSenseSwitchValue() {
 }
 
 // -----------------------------------------------------
-boolean confirmWrite = false;
-void checkConfirmUploadSwitch() {
-#ifdef DESKTOP_MODULE
-  if (pcfAux.readButton(pinAux2up) == 0) {
-#else
-  // Tablet:
-  if (digitalRead(UPLOAD_SWITCH_PIN) == LOW) {
-#endif
-    if (!switchAux2up) {
-      switchAux2up = true;
+void clockRun() {
+  Serial.println(F("+ clockRun()"));
+  playerPlaySound(CLOCK_ON);
+  saveClearLcdScreenData();
+  lcd.noCursor();
+  syncCountWithClock();
+  displayTheTime(theCounterMinutes, theCounterHours);
+  while (programState == CLOCK_RUN) {
+    switch (clockState) {
+      // ----------------------------
+      case CLOCK_TIME:
+        processClockNow();
+        // Control buttons for setting the time.
+        // checkExamineButton();
+        // checkExamineNextButton();
+        // checkDepositButton();
+        // checkDepositNextButton();
+        break;
+      case CLOCK_TIMER:
+        // Timer is running when timerStatus has M1_ON.
+        if (timerStatus & M1_ON) {
+          clockRunTimer();
+        }
+        break;
+      case CLOCK_SET:
+        break;
     }
-  } else if (switchAux2up) {
-    switchAux2up = false;
-    // Switch logic.
-#ifdef SWITCH_MESSAGES
-    Serial.println(F("+ AUX2 up, Upload Switched for confirming write."));
-#endif
-    confirmWrite = true;
+    checkClockSwitch();       // Option to exit clock mode.
+    checkClockControls();     // Clock and timer controls.
+    checkPlayerSwitch();      // If AUX1 is flipped down, switch to player mode.
+    checkProtectSetVolume();
+    delay(100);
   }
+  playerPlaySound(CLOCK_OFF);
+  restoreLcdScreenData();
 }
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// SD card processor memory read/write from/into a file.
+
+// Write processor memory to an SD card file.
+boolean confirmWrite = false;
 void checkUploadSwitch() {
 #ifdef DESKTOP_MODULE
   if (pcfAux.readButton(pinAux2up) == 0) {
@@ -5128,45 +5171,58 @@ void checkUploadSwitch() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ AUX2 up, Upload Switched."));
 #endif
-#ifdef INCLUDE_SDCARD
     String senseSwitchValue = getSenseSwitchValue();
     String theFilename = senseSwitchValue + ".bin";
-    if (theFilename != "11111111.bin") {
-      saveClearLcdScreenData();
-      lcdPrintln(0, "Confirm write> ");
-      //             1234567890123456
-      lcdPrintln(1, "File: " + senseSwitchValue);
-      //
-      // -------------------------------------------------------
-      // Double click switch to write.
-      // Must confirm within X seconds (milliseconds).
-      confirmWrite = false;
-      switchAux2up = false; // Required to reset the switch state for confirmation.
-      unsigned long timer = millis();
-      while (!confirmWrite && (millis() - timer < 2000)) {
-        checkConfirmUploadSwitch();
-        delay(100);
-      }
-      // -------------------------------------------------------
-      if (confirmWrite) {
-        Serial.print(F("+ Write memory to filename: "));
-        Serial.println(theFilename);
-        writeProgramMemoryToFile(theFilename);
-      } else {
-        // Serial.print(F("+ Write cancelled."));
-        lcdPrintln(1, "Write cancelled.");
-        //             1234567890123456
-      }
-      confirmWrite = 0;   // Reset for next time.
-      delay(2000); // Give to read the resulting message.
-      restoreLcdScreenData();
-    } else {
+    if (theFilename == "11111111.bin") {
       Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
       ledFlashError();
+      return;
     }
+    digitalWrite(HLDA_PIN, HIGH);
+    saveClearLcdScreenData();
+    lcdPrintln(0, "Confirm write> ");
+    //             1234567890123456
+    lcdPrintln(1, "File: " + senseSwitchValue);
+    //
+    // -------------------------------------------------------
+    // Double flip to write.
+    confirmWrite = false;
+    switchAux2up = false; // Required to reset the switch state for confirmation.
+    unsigned long timer = millis();
+    while (!confirmWrite && (millis() - timer < 1200)) {
+      // checkConfirmUploadSwitch();
+#ifdef DESKTOP_MODULE
+      if (pcfAux.readButton(pinAux2up) == 0) {
+#else
+      // Tablet:
+      if (digitalRead(UPLOAD_SWITCH_PIN) == LOW) {
 #endif
+        if (!switchAux2up) {
+          switchAux2up = true;
+        }
+      } else if (switchAux2up) {
+        switchAux2up = false;
+        confirmWrite = true;
+      }
+      delay(100);
+    }
+    if (!confirmWrite) {
+      // Serial.print(F("+ Write cancelled."));
+      lcdPrintln(1, "Write cancelled.");
+      //             1234567890123456
+      digitalWrite(HLDA_PIN, LOW);
+      return;
+    }
+    // -------------------------------------------------------
+    Serial.print(F("+ Write memory to filename: "));
+    Serial.println(theFilename);
+    writeProgramMemoryToFile(theFilename);
+    // delay(2000); // Give to read the resulting message.
+    restoreLcdScreenData();
   }
+  digitalWrite(HLDA_PIN, LOW);
 }
+
 // -----------------------------------------------------
 void checkDownloadSwitch() {
 #ifdef DESKTOP_MODULE
@@ -5185,43 +5241,70 @@ void checkDownloadSwitch() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ AUX2 down, Download Switched."));
 #endif
-#ifdef INCLUDE_SDCARD
     String theFilename = getSenseSwitchValue() + ".bin";
     if (theFilename == "11111111.bin") {
       Serial.println(F("+ Set to download over the serial port."));
       programState = SERIAL_DOWNLOAD;
-    } else if (theFilename == "00000000.bin") {
+      return;
+    }
+    digitalWrite(HLDA_PIN, HIGH);
+    // -------------------------------------------------------
+    // Double flip confirmation.
+    switchAux2down = false;      // Required to reset the switch state for confirmation.
+    boolean confirmChoice = false;
+    unsigned long timer = millis();
+    while (!confirmChoice && (millis() - timer < 1200)) {
+#ifdef DESKTOP_MODULE
+      if (pcfAux.readButton(pinAux2down) == 0) {
+#else
+      // Tablet:
+      if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
+#endif
+        if (!switchAux2down) {
+          switchAux2down = true;
+        }
+      } else if (switchAux2down) {
+        switchAux2down = false;
+        // Switch logic.
+        confirmChoice = true;
+      }
+      delay(100);
+    }
+    if (!confirmChoice) {
+      digitalWrite(HLDA_PIN, LOW);
+      return;
+    }
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Choice confirmed."));
+#endif
+    // -------------------------------------------------------
+    if (theFilename == "00000000.bin") {
+#ifdef SWITCH_MESSAGES
+      Serial.println(F("+ Zero out memory."));
+#endif
       //             1234567890123456
       lcdPrintln(1, "Zero out memory");
       zeroOutMemory();
       controlResetLogic();
-    } else {
-      Serial.print(F("+ Read the filename into memory: "));
-      Serial.println(theFilename);
-      if (readProgramFileIntoMemory(theFilename)) {
-        playerPlaySound(READ_FILE);
-        ledFlashSuccess();
-        delay(1500);                // Delay depends on the time length of the MP3 play time.
-      }
+      digitalWrite(HLDA_PIN, LOW);
+      return;
     }
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Read the filename into memory: "));
+    Serial.println(theFilename);
 #endif
+    if (readProgramFileIntoMemory(theFilename)) {
+      playerPlaySound(READ_FILE);
+      ledFlashSuccess();
+      delay(1500);                // Delay depends on the time length of the MP3 play time.
+    }
+    digitalWrite(HLDA_PIN, LOW);
   }
 }
 
 // --------------------------------------------------------
 // --------------------------------------------------------
 // Check Front Panel Control Switches, when in Player mode.
-
-void playSong() {
-  // delay(500);
-  if (loopSingle) {
-    mp3player.loop(playerCounter);
-  } else {
-    mp3player.play(playerCounter);
-  }
-  playerStatus = playerStatus & HLTA_OFF;
-  playerLights();
-}
 
 void checkProtectSetVolume() {
   // When not in player mode, used to change the volume.
@@ -5297,7 +5380,6 @@ void checkPlayerControls() {
     mp3player.start();
     playerStatus = playerStatus & HLTA_OFF;
     playerLights();
-    // playSong();
   }
   // -------------------
   if (pcfControl.readButton(pinExamine) == 0) {
@@ -5312,8 +5394,9 @@ void checkPlayerControls() {
     } else {
       playerCounter = playerCounterTop;
     }
-    mp3player.play(playerCounter);
-    playerStatus = playerStatus & HLTA_OFF;
+    if (!(playerStatus & HLTA_ON)) {
+      mp3player.play(playerCounter);
+    }
     playerLights();
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Player, Examine: play previous song, playerCounter="));
@@ -5333,8 +5416,9 @@ void checkPlayerControls() {
     } else {
       playerCounter = 1;
     }
-    mp3player.play(playerCounter);
-    playerStatus = playerStatus & HLTA_OFF;
+    if (!(playerStatus & HLTA_ON)) {
+      mp3player.play(playerCounter);
+    }
     playerLights();
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Player, Examine Next: play next song, playerCounter="));
@@ -5365,8 +5449,8 @@ void checkPlayerControls() {
 #endif
       loopSingle = true;
       // mp3player.loop(playerCounter);
+      // playerStatus = playerStatus & HLTA_OFF;
       playerStatus = playerStatus | M1_ON;
-      playerStatus = playerStatus & HLTA_OFF;
     }
     playerLights();
 #ifdef SWITCH_MESSAGES
@@ -5401,10 +5485,10 @@ void checkPlayerControls() {
     // Switch logic
     playerDirectory = 1;
     playerCounter = 1;
-    mp3player.play(playerCounter);
-    playerStatus = playerStatus & HLTA_OFF;
+    if (!(playerStatus & HLTA_ON)) {
+      mp3player.play(playerCounter);
+    }
     playerLights();
-    // playSong();
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Player, RESET: play first song, playerCounter="));
     Serial.println(playerCounter);
@@ -5456,15 +5540,12 @@ void checkPlayerControls() {
   } else if (switchClr) {
     switchClr = false;
     // Switch logic
-    //
-    // unsigned int addressToggles = toggleAddress();
-    byte dataToggles = toggleData();       // This limits the number of MP3 addressable files to 255.
-    byte senseToggles = toggleSense();
-    //
-    if (dataToggles > 0 && dataToggles <= playerCounterTop) {
-      mp3player.play(dataToggles);
-      // playerStatus = playerStatus & HLTA_OFF;  // Commented out, only play once, if HLTA is ON.
-      playerCounter = senseToggles * 256 + dataToggles;
+    unsigned int addressToggles = toggleAddress();
+    if (addressToggles > 0 && addressToggles <= playerCounterTop) {
+      playerCounter = addressToggles;
+      if (!(playerStatus & HLTA_ON)) {
+        mp3player.play(playerCounter);
+      }
       playerLights();
 #ifdef SWITCH_MESSAGES
       Serial.print(F("+ Player, CLR: play a specific song number, playerCounter="));
@@ -5474,7 +5555,7 @@ void checkPlayerControls() {
       ledFlashError();
 #ifdef SWITCH_MESSAGES
       Serial.print(F("+ Player, CLR: toggle address out of player file counts range: "));
-      Serial.print(dataToggles);
+      Serial.print(addressToggles);
       Serial.print(F(", player file counts: "));
       Serial.println(playerCounterTop);
 #endif
@@ -5814,7 +5895,7 @@ void checkPlayerFileControls() {
   }
 }
 
-// -----------------------------------------------------------------------
+// -----------------------
 void checkPlayerSwitch() {
 #ifdef DESKTOP_MODULE
   if (pcfAux.readButton(pinAux1down) == 0) {
@@ -5848,7 +5929,7 @@ void checkPlayerSwitch() {
   }
 }
 
-// -----------------------------------------------------------------------
+// -----------------------------------------
 // DFPlayer configuration and error messages.
 
 void printDFPlayerMessage(uint8_t type, int value);
@@ -5859,7 +5940,6 @@ void printDFPlayerMessage(uint8_t type, int value) {
       mp3player.play(playerCounter);
       playerStatus = playerStatus & HLTA_OFF;
       playerLights();
-      // playSong();
       break;
     case DFPlayerCardInserted:
       Serial.println(F("Card Inserted!"));
@@ -5984,6 +6064,7 @@ void playerRun() {
         break;
       case PLAYER_FILE:
         checkPlayerFileControls();  // Player control functions from STOP to UNPROTECT.
+        checkProtectSetVolume();
         break;
     }
     checkClockSwitch();             // If AUX1 is flipped up, change to clock mode.
@@ -5991,71 +6072,12 @@ void playerRun() {
   playerPlaySound(PLAYER_OFF);
   restoreLcdScreenData();
 }
-/*
-  #define PLAYER_WAIT 0
-  #define PLAYER_RUN 1
-  int playerState = PLAYER_RUN;
-*/
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void clockRun() {
-  Serial.println(F("+ clockRun()"));
-  playerPlaySound(CLOCK_ON);
-  saveClearLcdScreenData();
-  lcd.noCursor();
-  syncCountWithClock();
-  displayTheTime(theCounterMinutes, theCounterHours);
-  while (programState == CLOCK_RUN) {
-    switch (clockState) {
-      // ----------------------------
-      case CLOCK_TIME:
-        processClockNow();
-        // Control buttons for setting the time.
-        // checkExamineButton();
-        // checkExamineNextButton();
-        // checkDepositButton();
-        // checkDepositNextButton();
-        break;
-      case CLOCK_TIMER:
-        // Timer is running when timerStatus has M1_ON.
-        if (timerStatus & M1_ON) {
-          clockRunTimer();
-        }
-        break;
-      case CLOCK_SET:
-        break;
-    }
-    checkClockSwitch();       // Option to exit clock mode.
-    checkClockControls();     // Clock and timer controls.
-    checkPlayerSwitch();      // If AUX1 is flipped down, switch to player mode.
-    checkProtectSetVolume();
-    delay(100);
-  }
-  playerPlaySound(CLOCK_OFF);
-  restoreLcdScreenData();
-}
+// Receive bytes through serial port.
+// The bytes are loaded into processorr memory.
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// Infrared options when a program is NOT running.
-
-void displayStatusAddressData() {
-  //
-  dataByte = memoryData[programCounter];
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
-  //
-#ifdef INFRARED_MESSAGES
-  Serial.print(F("Addr: "));
-  sprintf(charBuffer, "%4d:", programCounter);
-  Serial.print(charBuffer);
-  Serial.print(F(" Data: "));
-  printData(dataByte);
-  Serial.println("");
-#endif
-}
-
-// -----------------------------------------------------------------------------
 void DownloadProgram() {
   byte readByte = 0;
   int readByteCount = 0;
@@ -6066,7 +6088,6 @@ void DownloadProgram() {
   // INP on
   byte readStatusByte = INP_ON;
   readStatusByte = readStatusByte & M1_OFF;
-  // readStatusByte = readStatusByte & WAIT_OFF;
   lightsStatusAddressData(readStatusByte, 0, 0);
   //
   readByteCount = 0;  // Counter where the downloaded bytes are entered into memory.
