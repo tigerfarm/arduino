@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 # Altair 101 Software
 
-This version works only tested on the desktop model.
+This version's updates were only tested on the desktop model.
 
 Processor.ino.
 + Documented all the modes.
@@ -14,9 +14,12 @@ Processor.ino.
 + Improved AUX1 switching to go between clock and player.
 + Can use PROTECT/UNPROTECT to decrease/increase player volume in all modes.
 + Now requires double flip for some options: CLR, read/write program file.
-
 Yet to do,
 + Set clock date and time using toggles.
+
+Hardware,
++ Fix player noise by using separate power supply for the DFPlayer and adding ground to ground jumper.
++ Added RCA plugs to the back for connection the DFPlayer to the amp.
 
 --------------------------------------------------------------------------------
 Cheers
