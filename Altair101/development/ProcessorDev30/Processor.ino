@@ -4,7 +4,7 @@
 
   This is an Altair 8800 emulator program that runs on an Arduino Mega microcontroller.
   Component additions to the emulator:
-  + An MP3 player controlled by using the front panel toogles with the lights displaying status.
+  + An MP3 player controlled by using the front panel toggles with the lights displaying status.
   + The clock displays the current hours, minutes, month, day, and year, on the front panel lights.
 
   The Altair 8800 emulator program,
@@ -16,14 +16,7 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  When in clock timer mode,
-  + Use the timer array when running the timer.
-  + When first timer is complete, move to the next array timer.
-
-  WAIT and HLDA indicators on when in wait for serial port bytes.
-  + AUX2 down     1. Set the Sense switches to read type, or to an SD drive program filename value.
-                  2.1 Flip the switch. WAIT and HLDA indicators are on.
-  Should auto exit after bytes are downloaded.
+  Should auto exit after bytes are downloaded from the serial port.
 
   -----------------------------------------------------------------------------
   -----------------------------------------------------------------------------
@@ -319,12 +312,39 @@
 
   User guide, Clock Timer,
   + Must be in clock mode.
-  + Flip STOP to toggle clock timer status.
+  + Flip AUX2 toggle Down to enter clock timer mode.
   + Set the minutes by toggling a single address switch. For example A10 is for 10 minutes.
   + Flip RUN to start the timer.
-  ++ Flash HLDA on/off each second, for the current minute, starting with A0.
-  ++ Light each address LED and play a sound bite as each minute passes.
+  ++ Flash counter minute LED on/off each second.
+  ++ Increment counter minute, each minute, starting with A0.
+  ++ Play a sound bite as each minute passes.
   ++ Sound and flash when time is reached, and return to displaying the time of day hours and minutes.
+
+  Enter a sequence of timer values,
+  + Must be in clock mode.
+  + Flip AUX2 toggle Down to enter clock timer mode.
+  + Set Data buttons to one (A0).
+  + Flip EXAMINE, to set the timer array value. 
+  ++ Timer array index is displayed in the Data lights (D0 is on, value of 1).
+  ++ Timer array value is displayed in the Address lights. No lights are lit because the value is zero.
+  + Set Address Set Address toggles to the first timer value, for example 3.
+  + Flip DEPOSIT.
+  ++ Timer array index is displayed in the Data lights (D0 is on).
+  ++ Timer array value is displayed in the Address lights(A3, for 3 minutes).
+  + Set Address lights to the next timer array value, for example, A5, for 5 minutes.
+  + Flip DEPOSIT NEXT.
+  ++ Timer array index is displayed in the Data lights (D1 is on, value of 2).
+  ++ Timer array value is displayed in the Address lights (A5:5 minutes).
+  + Set Address lights to the next timer array value, for example, A7, for 7 minutes.
+  + Flip DEPOSIT NEXT.
+  ++ Timer array index is displayed in the Data lights (D0 and D1 are on, value of 3).
+  ++ Timer array value is displayed in the Address lights (A7:7 minutes).
+
+  Run a sequence of timer values,
+  + Flip RESET. Or Set Address toggle A0:1 up(on). Flip EXAMINE.
+  ++ Timer array index is displayed in the Data lights (D0 is on).
+  ++ Timer array value is displayed in the Address lights(A3:3 minutes).
+  + Flip RUN, and the timer starts.
 
   ------------------------------------------------------------------------------
   MP3 Player mode, playerRun(),
@@ -4860,9 +4880,9 @@ void restoreLcdScreenData() {
 // Clock Timer
 
 const int timerTop = 8;
-byte timerData[timerTop];
+unsigned int timerData[timerTop];
 unsigned int timerCounter = 0;
-byte timerDataAddress = 0;
+unsigned int timerDataAddress = 0;
 
 byte timerStatus = INP_ON;         // Clock timer is ready for timer value input.
 byte timerStep = 0;
