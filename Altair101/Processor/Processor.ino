@@ -4858,8 +4858,8 @@ void restoreLcdScreenData() {
 // -----------------------------------------------------------------------
 // Clock Timer
 
-const int timerBytes = 8;
-byte timerData[timerBytes];
+const int timerTop = 8;
+byte timerData[timerTop];
 unsigned int timerCounter = 0;
 byte timerDataAddress = 0;
 
@@ -5061,10 +5061,21 @@ void clockTimerControls() {
   } else if (switchRun) {
     switchRun = false;
     // Switch logic
-    clockState = CLOCK_TIMER;
-    timerStep = 2;                // Step 2, run
-    timerStatus = MEMR_ON | INP_ON | M1_ON; // Timer is running (M1_ON).
-    timerMinute = getMinuteValue(toggleAddress());
+    // Check if there are any timer array values set.
+    int timerDataTotal = 0;
+    for (int i = 1; i < timerTop; i++) {
+      timerDataTotal = timerDataTotal + timerData[i];
+    }
+    if (timerDataTotal == 0) {
+      // Since no timer array values set, use quick timer option.
+      timerMinute = getMinuteValue(toggleAddress());
+      timerStep = 0;
+    } else {
+      timerMinute = getMinuteValue(timerData[timerCounter]);
+      timerStep = timerCounter;
+    }
+    // timerStep = 2;                // Step 2, run
+    timerStatus = timerStatus | M1_ON; // Timer is running (M1_ON).
     timerMinuteBit = 1;
     timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
     lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
@@ -5163,6 +5174,54 @@ void clockTimerControls() {
     lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Clock Timer, RESET: timerCounter="));
+    Serial.print(timerCounter);
+    Serial.print(F(", timerDataAddress="));
+    Serial.println(timerDataAddress);
+#endif
+  }
+  // -------------------
+  if (pcfAux.readButton(pinClr) == 0) {
+    if (!switchClr) {
+      switchClr = true;
+    }
+  } else if (switchClr) {
+    switchClr = false;
+    // Switch logic
+    // -------------------------------------------------------
+    // Double flip confirmation.
+    switchClr = false;      // Required to reset the switch state for confirmation.
+    boolean confirmChoice = false;
+    unsigned long timer = millis();
+    while (!confirmChoice && (millis() - timer < 1000)) {
+      if (pcfAux.readButton(pinClr) == 0) {
+        if (!switchClr) {
+          switchClr = true;
+        }
+      } else if (switchClr) {
+        switchClr = false;
+        // Switch logic.
+        confirmChoice = true;
+      }
+      delay(100);
+    }
+    if (!confirmChoice) {
+      return;
+    }
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Choice confirmed."));
+#endif
+    // -------------------------------------------------------
+    // Zero out timer array.
+    int timerDataTotal = 0;
+    for (int i = 1; i < timerTop; i++) {
+      timerData[i] = 0;
+    }
+    // Reset
+    timerCounter = 1;                                 // Timer array index counter.
+    timerDataAddress = timerData[timerCounter];       // Timer array index data.
+    lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Timer, CLR: timerCounter="));
     Serial.print(timerCounter);
     Serial.print(F(", timerDataAddress="));
     Serial.println(timerDataAddress);
