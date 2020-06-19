@@ -4876,27 +4876,36 @@ boolean clockTimerSecondsOn = false;
 int clockTimerCountBit;
 
 void clockRunTimer() {
+  // -----------------------------------------
   if ((millis() - clockTimerSeconds >= 500)) {
+    //
+    // Each half second, toggle the tracking minute counter LED on/off.
+    //
     clockTimerSeconds = millis();
-    // Flash the counter minute LED.
     if (clockTimerSecondsOn) {
       clockTimerSecondsOn = false;
       clockTimerCountBit = 1;
       timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, clockTimerCountBit);
-      lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
+      // lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
     } else {
       clockTimerSecondsOn = true;
       clockTimerCountBit = 0;
       timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, clockTimerCountBit);
-      lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
+      // lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
     }
   }
+  // -----------------------------------------
   if ((millis() - clockTimer >= 60000)) {
-    // Timer run status.
+    //
+    // Minute process.
+    //
     // 60 x 1000 = 60000, which is one minute.
     clockTimer = millis();
     clockTimerCount++;
     if (clockTimerCount >= timerMinute ) {
+      // -----------------------------------------
+      // When the timer is complete, play a sound, flash some lights and return to clock mode.
+      //
 #ifdef SWITCH_MESSAGES
       Serial.print(F("+ clockTimerCount="));
       Serial.print(clockTimerCount);
@@ -4904,16 +4913,42 @@ void clockRunTimer() {
       Serial.print(clockTimerCount);
       Serial.println(F(" Timer timed."));
 #endif
-      clockState = CLOCK_TIME;
-      //
       // Force playing the sound. If a song was playing, it doesn't restart.
       mp3player.play(soundEffects[TIMER_COMPLETE]);
       delay(1200);  // Delay time for the sound to play.
-      //
       KnightRiderScanner();
-      syncCountWithClock();
-      displayTheTime(theCounterMinutes, theCounterHours);
+      //
+      if (timerCounter < timerTop && timerCounter > 0) {
+        // Check if another timer time needs to happen.
+        timerCounter++;
+        timerMinute = getMinuteValue(timerData[timerCounter]);
+        if (timerMinute > 0) {
+#ifdef SWITCH_MESSAGES
+          Serial.print(F("+ Run next timer event. timerCounter="));
+          Serial.print(timerCounter);
+          Serial.print(F(" timerData[timerCounter]="));
+          Serial.println(timerData[timerCounter]);
+#endif
+          timerMinuteBit = 1;
+          timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
+          // lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
+          // Start the timer and count.
+          clockTimer = millis();
+          clockTimerCount = 0;
+        } else {
+          // End the timer run state, stay in clock timer mode.
+          timerStatus = timerStatus & M1_OFF;
+          timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
+        }
+      } else {
+        // End the timer run state, stay in clock timer mode.
+        timerStatus = timerStatus & M1_OFF;
+        timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
+      }
     } else {
+      // -----------------------------------------
+      // Each minute, increment the minute counter and LED light, and play a cuckoo sound.
+      //
 #ifdef SWITCH_MESSAGES
       Serial.print(F("+ clockTimerCount="));
       Serial.print(clockTimerCount);
@@ -4923,11 +4958,13 @@ void clockRunTimer() {
       timerMinuteBit = 0;
       timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
       timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, 1);
-      lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
+      // lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
       playerPlaySound(TIMER_MINUTE);
       delay(1200);  // Delay time for the sound to play.
     }
   }
+  // pinrun
+  lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
 }
 
 // -----------------------------------------------------------------------------
@@ -5074,7 +5111,6 @@ void clockTimerControls() {
     } else {
       timerMinute = getMinuteValue(timerData[timerCounter]);
     }
-    // timerStep = 2;                // Step 2, run
     timerStatus = timerStatus | M1_ON; // Timer is running (M1_ON).
     timerMinuteBit = 1;
     timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
@@ -5189,6 +5225,7 @@ void clockTimerControls() {
     // Switch logic
     // -------------------------------------------------------
     // Double flip confirmation.
+    digitalWrite(WAIT_PIN, HIGH);
     switchClr = false;      // Required to reset the switch state for confirmation.
     boolean confirmChoice = false;
     unsigned long timer = millis();
@@ -5205,11 +5242,13 @@ void clockTimerControls() {
       delay(100);
     }
     if (!confirmChoice) {
+      digitalWrite(WAIT_PIN, LOW);
       return;
     }
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ Choice confirmed."));
 #endif
+    digitalWrite(WAIT_PIN, LOW);
     // -------------------------------------------------------
     // Zero out timer array.
     int timerDataTotal = 0;
