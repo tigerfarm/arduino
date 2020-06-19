@@ -16,11 +16,14 @@
   -----------------------------------------------------------------------------
   Work to do,
 
+  When in clock timer mode,
+  + Use the timer array when running the timer.
+
   WAIT and HLDA indicators on when in wait for serial port bytes.
   + AUX2 down     1. Set the Sense switches to read type, or to an SD drive program filename value.
                   2.1 Flip the switch. WAIT and HLDA indicators are on.
   Should auto exit after bytes are downloaded.
-                  
+
   -----------------------------------------------------------------------------
   -----------------------------------------------------------------------------
   Program sections,
@@ -126,7 +129,12 @@
   + AUX1 up     Toggle clock mode off, return to processor mode.
   + AUX1 Down   Toggle MP3 player mode on.
   + AUX2 up     Not implemented.
-  + AUX2 Down   Not implemented.
+  + AUX2 Down   Toggle clock timer mode on.
+  When in clock timer mode,
+  + AUX1 up     Toggle clock mode off, return to processor mode.
+  + AUX1 Down   Toggle MP3 player mode on.
+  + AUX2 up     Not implemented.
+  + AUX2 Down   Toggle clock timer mode off, return to clock mode.
   When in player mode,
   + AUX1 up     Toggle clock mode on.
   + AUX1 Down   Toggle MP3 player mode off, return to processor mode.
@@ -251,29 +259,61 @@
   + Indicator     WAIT : Off.
   + Indicator     HLDA : On to indicate controlled by other than the program emulator.
   -----------
-  Clock Timer mode,
-  + Status        MEMR : Timer timer minute set.
-  + Status        M1   : Timer running.
-  + Status        INP  : Ready for timer minute input during steps 2 and 3.
-  + Address       Displays the timer minite: A1 ... A12.
-  + Data          Displays the time step 1) Set timer mode, 2) Set timer minute, 3. Run the timer
-  -----------
-  + STOP          Put clock into timer mode.
-  + RUN           1. Set the timer minutes using the address toggles: A1 is 1 minute, A2 is 2 minutes, ... 15 minutes.
-                  2. To do: Start the timer using the timer minutes value.
+  + STOP          Not implemented.
+  + RUN           Not implemented.
   + SINGLE up     1) month and day, 2) year, 3) Return to show time of day: hour and minutes
   + SINGLE dn     Not implemented.
   + EXAMINE       To do: Select the flashing date or time value.
   + EXAMINE NEXT  To do: Move through time and date values, making the selected value flash.
   + DEPOSIT       To do: After selecting and inc/dec a value, set the value.
-  + DEPOSIT NEXT
+  + DEPOSIT NEXT  Not implemented.
   + RESET         Knight Rider sounds and lights, then show time of day.
   + PROTECT       Decrease MP3 player volume. To do: Decrement value to set.
   + UNPROTECT     Increase MP3 player volume. To do: Increment value to set.
   + AUX1 Up       Toogle clock mode off, return to processor mode.
   + AUX1 down     MP3 player mode
   + AUX2 up       Not implemented.
-  + AUX2 Down     Not implemented.
+  + AUX2 Down     Toggle clock timer mode on.
+  -----------
+  Clock Timer mode,
+  + Status        MEMR : Timer values set.
+  + Status        INP  : Ready for timer value inputs.
+  + Status        M1   : Timer running.
+  + Address       Displays the timer minite: A1 ... A15.
+  + Data          Displays the time step 1) Set timer mode, 2) Set timer minute, 3. Run the timer
+  -----------
+  + STOP          Stop clock timer.
+  + RUN           1. Set the timer minutes using the address toggles: A1 is 1 minute, A2 is 2 minutes, ... 15 minutes.
+                  2. To do: Start the timer using the timer minutes value.
+  + SINGLE up     Not implemented.
+  + SINGLE dn     Not implemented.
+  + EXAMINE       1. Set Address toggles to timer array value.
+                  2. Flip EXAMINE.
+                  3. Timer array index is displayed in the Data lights.
+                  4. Timer array value is displayed in the Address lights: A1:1 minute, ..., A15:15 minutes.
+  + EXAMINE NEXT  1. Timer array index is incremented.
+                  2. Timer array index is displayed in the Data lights.
+                  3. Timer array value is displayed in the Address lights: A1:1 minute, ..., A15:15 minutes.
+  + DEPOSIT       1. Set Address lights to timer array value: A1:1 minute, ..., A15:15 minutes.
+                  2. Flip DEPOSIT.
+                  3. Timer value is displayed in the Address lights.
+                  4. Timer array counter value is displayed in the Data lights.
+                  5. Timer array value is stored into the timer array at the array counter value.
+  + DEPOSIT NEXT  1. Set Address lights to timer array value: A1:1 minute, ..., A15:15 minutes.
+                  2. Flip DEPOSIT NEXT.
+                  3. Timer array index is incremented.
+                  4. Timer array index is displayed in the Data lights.
+                  5. Timer array value is displayed in the Address lights.
+                  6. Timer time value is stored into the memory array, at the incremented array index value.
+  + RESET         1. Set timer array index to 1.
+                  2. Timer array index is displayed in the Data lights.
+                  3. Timer array value is displayed in the Address lights.
+  + PROTECT       Decrease MP3 player volume. To do: Decrement value to set.
+  + UNPROTECT     Increase MP3 player volume. To do: Increment value to set.
+  + AUX1 Up       Toogle clock mode off, return to processor mode.
+  + AUX1 down     MP3 player mode
+  + AUX2 up       Not implemented.
+  + AUX2 Down     Toggle clock timer mode off, return to clock mode.
   -----------
 
   User guide, Clock Timer,
@@ -841,7 +881,7 @@ const int clockPinLed = A11;    // pin 11 Clock pin.
 RTC_DS3231 rtc;
 DateTime now;
 
-// MP3 player has a sub-state for managing sound effect byte values in files.
+// Clock has a sub-state for managing the clock timer.
 #define CLOCK_SET 0
 #define CLOCK_TIME 1
 #define CLOCK_TIMER 2
@@ -4818,7 +4858,12 @@ void restoreLcdScreenData() {
 // -----------------------------------------------------------------------
 // Clock Timer
 
-byte timerStatus = 0;
+const int timerBytes = 8;
+byte timerData[timerBytes];
+unsigned int timerCounter = 0;
+byte timerDataAddress = 0;
+
+byte timerStatus = INP_ON;         // Clock timer is ready for timer value input.
 byte timerStep = 0;
 unsigned int timerMinute = 0;
 unsigned int timerMinuteBit = 0;
@@ -4922,72 +4967,6 @@ int getMinuteValue(unsigned int theWord) {
 
 void checkClockControls() {
   // ---------------------------------------------------------
-  // Timer options
-  if (pcfControl.readButton(pinStop) == 0) {
-    if (!switchStop) {
-      switchStop = true;
-    }
-  } else if (switchStop) {
-    switchStop = false;
-    // Switch logic
-#ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Clock, STOP. Toggle timer. "));
-#endif
-    if (clockState == CLOCK_TIMER) {
-#ifdef SWITCH_MESSAGES
-      Serial.print(F(" Off."));
-#endif
-      clockState = CLOCK_TIME;
-      displayTheTime(theCounterMinutes, theCounterHours);
-    } else {
-#ifdef SWITCH_MESSAGES
-      Serial.print(F(" On."));
-#endif
-      clockState = CLOCK_TIMER;
-      timerStep = 1;                // Step 1, Timer mode on.
-      timerStatus = INP_ON;         // timer is ready for timerMinute input.
-      timerMinute = 0;
-      lightsStatusAddressData(timerStatus, timerMinute, timerStep);
-    }
-  }
-  // -------------------
-  if (pcfControl.readButton(pinDeposit) == 0) {
-    if (!switchDeposit) {
-      switchDeposit = true;
-    }
-  } else if (switchDeposit) {
-    switchDeposit = false;
-    // Switch logic
-#ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Clock, Deposit."));
-    Serial.println("");
-#endif
-  }
-  // -------------------
-  if (pcfControl.readButton(pinRun) == 0) {
-    if (!switchRun) {
-      switchRun = true;
-    }
-  } else if (switchRun) {
-    switchRun = false;
-    // Switch logic
-    clockState = CLOCK_TIMER;
-    timerStep = 2;                // Step 2, run
-    timerStatus = MEMR_ON | INP_ON | M1_ON; // Timer is running (M1_ON).
-    timerMinute = getMinuteValue(toggleAddress());
-    timerMinuteBit = 1;
-    timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
-    lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
-    // Start the timer and count.
-    clockTimer = millis();
-    clockTimerCount = 0;
-#ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Clock, RUN. Timer minutes="));
-    Serial.print(timerMinute);
-    Serial.println("");
-#endif
-  }
-  // ---------------------------------------------------------
   if (pcfControl.readButton(pinStep) == 0) {
     if (!switchStep) {
       switchStep = true;
@@ -5034,6 +5013,163 @@ void checkClockControls() {
   }
   // ------------------------
 #ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux2down) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux2down) {
+      switchAux2down = true;
+      // Serial.print(F("+ Clock, AUX2 down switch pressed..."));
+    }
+  } else if (switchAux2down) {
+    switchAux2down = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock, AUX2 up, switched. Enter clock timer mode."));
+    Serial.println("");
+#endif
+    clockState = CLOCK_TIMER;
+    // timerStep = 1;                // Step 1, Timer mode on.
+    // timerMinute = 0;
+    timerStatus = timerStatus & M1_OFF;
+    lightsStatusAddressData(timerStatus, timerMinute, timerStep);
+  }
+}
+
+// ---------------------------------------------------------
+void clockTimerControls() {
+  // Timer options
+  // -------------------
+  if (pcfControl.readButton(pinStop) == 0) {
+    if (!switchStop) {
+      switchStop = true;
+    }
+  } else if (switchStop) {
+    switchStop = false;
+    // Switch logic
+    timerStatus = timerStatus & M1_OFF;
+    // Set the timer bit to on so that it is displayed.
+    timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, 1);
+    lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
+  }
+  // -------------------
+  if (pcfControl.readButton(pinRun) == 0) {
+    if (!switchRun) {
+      switchRun = true;
+    }
+  } else if (switchRun) {
+    switchRun = false;
+    // Switch logic
+    clockState = CLOCK_TIMER;
+    timerStep = 2;                // Step 2, run
+    timerStatus = MEMR_ON | INP_ON | M1_ON; // Timer is running (M1_ON).
+    timerMinute = getMinuteValue(toggleAddress());
+    timerMinuteBit = 1;
+    timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
+    lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
+    // Start the timer and count.
+    clockTimer = millis();
+    clockTimerCount = 0;
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Timer, RUN. Timer minutes="));
+    Serial.print(timerMinute);
+    Serial.println("");
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinExamine) == 0) {
+    if (!switchExamine) {
+      switchExamine = true;
+    }
+  } else if (switchExamine) {
+    switchExamine = false;
+    // Switch logic
+    timerCounter = toggleData();                      // Timer array index counter.
+    timerDataAddress = timerData[timerCounter];       // Timer array index data.
+    lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Timer, Examine: timerCounter="));
+    Serial.print(timerCounter);
+    Serial.print(F(", timerDataAddress="));
+    Serial.println(timerDataAddress);
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinExamineNext) == 0) {
+    if (!switchExamineNext) {
+      switchExamineNext = true;
+    }
+  } else if (switchExamineNext) {
+    switchExamineNext = false;
+    // Switch logic
+    timerCounter++;                                   // Timer array index counter.
+    timerDataAddress = timerData[timerCounter];       // Timer array index data.
+    lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Timer, Examine Next: timerCounter="));
+    Serial.print(timerCounter);
+    Serial.print(F(", timerDataAddress="));
+    Serial.println(timerDataAddress);
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinDeposit) == 0) {
+    if (!switchDeposit) {
+      switchDeposit = true;
+    }
+  } else if (switchDeposit) {
+    switchDeposit = false;
+    // Switch logic
+    timerDataAddress = toggleAddress();               // Timer array index data value.
+    timerData[timerCounter] = timerDataAddress;       // Set data value into the Timer array.
+    lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Timer, Deposit: timerCounter="));
+    Serial.print(timerCounter);
+    Serial.print(F(", timerDataAddress="));
+    Serial.println(timerDataAddress);
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinDepositNext) == 0) {
+    if (!switchDepositNext) {
+      switchDepositNext = true;
+    }
+  } else if (switchDepositNext) {
+    switchDepositNext = false;
+    // Switch logic
+    timerCounter++;                                   // Timer array index counter.
+    timerDataAddress = toggleAddress();               // Timer array index data value.
+    timerData[timerCounter] = timerDataAddress;       // Set data value into the Timer array.
+    lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Timer, Deposit Next: timerCounter="));
+    Serial.print(timerCounter);
+    Serial.print(F(", timerDataAddress="));
+    Serial.println(timerDataAddress);
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinReset) == 0) {
+    if (!switchReset) {
+      switchReset = true;
+    }
+  } else if (switchReset) {
+    switchReset = false;
+    // Switch logic
+    timerCounter = 1;                                 // Timer array index counter.
+    timerDataAddress = timerData[timerCounter];       // Timer array index data.
+    lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Timer, RESET: timerCounter="));
+    Serial.print(timerCounter);
+    Serial.print(F(", timerDataAddress="));
+    Serial.println(timerDataAddress);
+#endif
+  }
+  // ------------------------
+#ifdef DESKTOP_MODULE
   if (pcfAux.readButton(pinAux2up) == 0) {
 #else
   // Tablet:
@@ -5041,13 +5177,13 @@ void checkClockControls() {
 #endif
     if (!switchAux2up) {
       switchAux2up = true;
-      // Serial.print(F("+ Clock AUX2 up switch pressed..."));
+      // Serial.print(F("+ Clock Timer, AUX2 up switch pressed..."));
     }
   } else if (switchAux2up) {
     switchAux2up = false;
     // Switch logic.
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Clock AUX2 up, switched."));
+    Serial.print(F("+ Clock Timer, AUX2 up, switched."));
     Serial.println("");
 #endif
   }
@@ -5060,18 +5196,21 @@ void checkClockControls() {
 #endif
     if (!switchAux2down) {
       switchAux2down = true;
-      // Serial.print(F("+ Clock AUX2 down switch pressed..."));
+      // Serial.print(F("+ Clock Timer, AUX2 down switch pressed..."));
     }
   } else if (switchAux2down) {
     switchAux2down = false;
     // Switch logic.
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Clock AUX2 down, switched."));
+    Serial.print(F("+ Clock Timer, AUX2 up, switched. Exit clock timer mode, back to clock mode."));
     Serial.println("");
 #endif
+    clockState = CLOCK_TIME;
+    displayTheTime(theCounterMinutes, theCounterHours);
   }
 }
 
+// ------------------------------------------------
 void checkClockSwitch() {
 #ifdef DESKTOP_MODULE
   if (pcfAux.readButton(pinAux1up) == 0) {
@@ -5124,6 +5263,7 @@ void clockRun() {
       // ----------------------------
       case CLOCK_TIME:
         processClockNow();
+        checkClockControls();     // Clock and timer controls.
         // Control buttons for setting the time.
         // checkExamineButton();
         // checkExamineNextButton();
@@ -5131,8 +5271,9 @@ void clockRun() {
         // checkDepositNextButton();
         break;
       case CLOCK_TIMER:
-        // Timer is running when timerStatus has M1_ON.
+        clockTimerControls();     // Clock and timer controls.
         if (timerStatus & M1_ON) {
+          // Timer is running when timerStatus has M1_ON.
           clockRunTimer();
         }
         break;
@@ -5140,7 +5281,6 @@ void clockRun() {
         break;
     }
     checkClockSwitch();       // Option to exit clock mode.
-    checkClockControls();     // Clock and timer controls.
     checkPlayerSwitch();      // If AUX1 is flipped down, switch to player mode.
     checkProtectSetVolume();
     delay(100);
