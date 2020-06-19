@@ -18,6 +18,7 @@
 
   When in clock timer mode,
   + Use the timer array when running the timer.
+  + When first timer is complete, move to the next array timer.
 
   WAIT and HLDA indicators on when in wait for serial port bytes.
   + AUX2 down     1. Set the Sense switches to read type, or to an SD drive program filename value.
@@ -4882,12 +4883,12 @@ void clockRunTimer() {
       clockTimerSecondsOn = false;
       clockTimerCountBit = 1;
       timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, clockTimerCountBit);
-      lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
+      lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
     } else {
       clockTimerSecondsOn = true;
       clockTimerCountBit = 0;
       timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, clockTimerCountBit);
-      lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
+      lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
     }
   }
   if ((millis() - clockTimer >= 60000)) {
@@ -4922,7 +4923,7 @@ void clockRunTimer() {
       timerMinuteBit = 0;
       timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
       timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, 1);
-      lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
+      lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
       playerPlaySound(TIMER_MINUTE);
       delay(1200);  // Delay time for the sound to play.
     }
@@ -5033,7 +5034,7 @@ void checkClockControls() {
     // timerStep = 1;                // Step 1, Timer mode on.
     // timerMinute = 0;
     timerStatus = timerStatus & M1_OFF;
-    lightsStatusAddressData(timerStatus, timerMinute, timerStep);
+    lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
   }
 }
 
@@ -5051,7 +5052,7 @@ void clockTimerControls() {
     timerStatus = timerStatus & M1_OFF;
     // Set the timer bit to on so that it is displayed.
     timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, 1);
-    lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
+    lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
   }
   // -------------------
   if (pcfControl.readButton(pinRun) == 0) {
@@ -5069,16 +5070,15 @@ void clockTimerControls() {
     if (timerDataTotal == 0) {
       // Since no timer array values set, use quick timer option.
       timerMinute = getMinuteValue(toggleAddress());
-      timerStep = 0;
+      timerCounter = 0;
     } else {
       timerMinute = getMinuteValue(timerData[timerCounter]);
-      timerStep = timerCounter;
     }
     // timerStep = 2;                // Step 2, run
     timerStatus = timerStatus | M1_ON; // Timer is running (M1_ON).
     timerMinuteBit = 1;
     timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
-    lightsStatusAddressData(timerStatus, timerMinuteBit, timerStep);
+    lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
     // Start the timer and count.
     clockTimer = millis();
     clockTimerCount = 0;
