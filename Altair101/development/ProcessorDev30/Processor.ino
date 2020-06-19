@@ -319,12 +319,11 @@
 
   User guide, Clock Timer,
   + Must be in clock mode.
-  + Flip AUX2 toggle Down to enter clock timer mode.
+  + Flip STOP to toggle clock timer status.
   + Set the minutes by toggling a single address switch. For example A10 is for 10 minutes.
   + Flip RUN to start the timer.
-  ++ Flash counter minute LED on/off each second.
-  ++ Increment counter minute, each minute, starting with A0.
-  ++ Play a sound bite as each minute passes.
+  ++ Flash HLDA on/off each second, for the current minute, starting with A0.
+  ++ Light each address LED and play a sound bite as each minute passes.
   ++ Sound and flash when time is reached, and return to displaying the time of day hours and minutes.
 
   ------------------------------------------------------------------------------
