@@ -324,7 +324,7 @@
   + Must be in clock mode.
   + Flip AUX2 toggle Down to enter clock timer mode.
   + Set Data buttons to one (A0).
-  + Flip EXAMINE, to set the timer array value. 
+  + Flip EXAMINE, to set the timer array value.
   ++ Timer array index is displayed in the Data lights (D0 is on, value of 1).
   ++ Timer array value is displayed in the Address lights. No lights are lit because the value is zero.
   + Set Address Set Address toggles to the first timer value, for example 3.
@@ -4887,7 +4887,7 @@ unsigned int timerDataAddress = 0;
 byte timerStatus = INP_ON;         // Clock timer is ready for timer value input.
 byte timerStep = 0;
 unsigned int timerMinute = 0;
-unsigned int timerMinuteBit = 0;
+unsigned int clockTimerAddress = 0;
 unsigned long clockTimer;
 int clockTimerCount = 0;
 
@@ -4895,6 +4895,18 @@ unsigned long clockTimerSeconds;
 boolean clockTimerSecondsOn = false;
 int clockTimerCountBit;
 
+void clockSetTimer(int timerMinute) {
+  //
+  // Set parameters before starting the timere.
+  //    timerMinute is the amount of minutes to be timed.
+  //
+  timerStatus = timerStatus | M1_ON;  // Timer is running (M1_ON).
+  clockTimer = millis();              // Initialize the clock timer milliseconds.
+  clockTimerCount = 0;                // Start counting from 0. Timer is done when it equals timerMinute.
+  clockTimerAddress = 0;              // Used to display Address lights: timerMinute and clockTimerCount.
+  // Put the timerMinute into the display value: clockTimerAddress.
+  clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
+}
 void clockRunTimer() {
   // -----------------------------------------
   if ((millis() - clockTimerSeconds >= 500)) {
@@ -4905,13 +4917,11 @@ void clockRunTimer() {
     if (clockTimerSecondsOn) {
       clockTimerSecondsOn = false;
       clockTimerCountBit = 1;
-      timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, clockTimerCountBit);
-      // lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
+      clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, clockTimerCountBit);
     } else {
       clockTimerSecondsOn = true;
       clockTimerCountBit = 0;
-      timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, clockTimerCountBit);
-      // lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
+      clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, clockTimerCountBit);
     }
   }
   // -----------------------------------------
@@ -4936,7 +4946,7 @@ void clockRunTimer() {
       // Force playing the sound. If a song was playing, it doesn't restart.
       mp3player.play(soundEffects[TIMER_COMPLETE]);
       delay(1200);  // Delay time for the sound to play.
-      KnightRiderScanner();
+      // KnightRiderScanner();
       //
       if (timerCounter < timerTop && timerCounter > 0) {
         // Check if another timer time needs to happen.
@@ -4949,21 +4959,20 @@ void clockRunTimer() {
           Serial.print(F(" timerData[timerCounter]="));
           Serial.println(timerData[timerCounter]);
 #endif
-          timerMinuteBit = 1;
-          timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
-          // lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
+          clockTimerAddress = 1;
+          clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
           // Start the timer and count.
           clockTimer = millis();
           clockTimerCount = 0;
         } else {
           // End the timer run state, stay in clock timer mode.
           timerStatus = timerStatus & M1_OFF;
-          timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
+          clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
         }
       } else {
         // End the timer run state, stay in clock timer mode.
         timerStatus = timerStatus & M1_OFF;
-        timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
+        clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
       }
     } else {
       // -----------------------------------------
@@ -4975,16 +4984,14 @@ void clockRunTimer() {
       Serial.print(F(" timerMinute="));
       Serial.println(clockTimerCount);
 #endif
-      timerMinuteBit = 0;
-      timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
-      timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, 1);
-      // lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
+      clockTimerAddress = 0;
+      clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
+      clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, 1);
       playerPlaySound(TIMER_MINUTE);
       delay(1200);  // Delay time for the sound to play.
     }
   }
-  // pinrun
-  lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
+  lightsStatusAddressData(timerStatus, clockTimerAddress, timerCounter);
 }
 
 // -----------------------------------------------------------------------------
@@ -5088,8 +5095,6 @@ void checkClockControls() {
     Serial.println("");
 #endif
     clockState = CLOCK_TIMER;
-    // timerStep = 1;                // Step 1, Timer mode on.
-    // timerMinute = 0;
     timerStatus = timerStatus & M1_OFF;
     lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
   }
@@ -5107,9 +5112,9 @@ void clockTimerControls() {
     switchStop = false;
     // Switch logic
     timerStatus = timerStatus & M1_OFF;
-    // Set the timer bit to on so that it is displayed.
-    timerMinuteBit = bitWrite(timerMinuteBit, clockTimerCount, 1);
-    lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
+    // Set the timer bit on, so that it is displayed.
+    clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, 1);
+    lightsStatusAddressData(timerStatus, clockTimerAddress, timerCounter);
   }
   // -------------------
   if (pcfControl.readButton(pinRun) == 0) {
@@ -5119,6 +5124,7 @@ void clockTimerControls() {
   } else if (switchRun) {
     switchRun = false;
     // Switch logic
+    //
     // Check if there are any timer array values set.
     int timerDataTotal = 0;
     for (int i = 1; i < timerTop; i++) {
@@ -5131,13 +5137,8 @@ void clockTimerControls() {
     } else {
       timerMinute = getMinuteValue(timerData[timerCounter]);
     }
-    timerStatus = timerStatus | M1_ON; // Timer is running (M1_ON).
-    timerMinuteBit = 1;
-    timerMinuteBit = bitWrite(timerMinuteBit, timerMinute, 1);
-    lightsStatusAddressData(timerStatus, timerMinuteBit, timerCounter);
-    // Start the timer and count.
-    clockTimer = millis();
-    clockTimerCount = 0;
+    clockSetTimer(timerMinute);
+    //
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Clock Timer, RUN. Timer minutes="));
     Serial.print(timerMinute);
@@ -5391,7 +5392,7 @@ void clockRun() {
       case CLOCK_TIMER:
         clockTimerControls();     // Clock and timer controls.
         if (timerStatus & M1_ON) {
-          // Timer is running when timerStatus has M1_ON.
+          // Timer is running when timerStatus: M1_ON.
           clockRunTimer();
         }
         break;
