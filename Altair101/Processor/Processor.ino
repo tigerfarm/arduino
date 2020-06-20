@@ -90,6 +90,20 @@
           //  ++       2:343 > opcode: out 11   : 11 is for looping. 10 is for single play.
           //  ++       3:013 > immediate: 11
           //  ++       ... NOPs ...
+  -----------------
+  Timer program.
+  0       076 MVI A,<immediate value>
+  1       003        Immediate value of 3, for 3 minutes.
+  2       343 OUT <port#>
+  3       024 20  Port# to run a time for the number of minutes in register A.
+  4       076 MVI A,<immediate value>
+  5       004  4  Communicator sound.
+  6       343 OUT <port#>
+  7       012 10  Port# to play the MP3 file# in register A.
+  8       343 OUT <port#>
+  9       052 42  Port# to flash success light sequence.
+  ...     000 NOP NOPs to allow the sound to complete.
+  24      166 HLT
 
   ------------------------------------------------------------------------------
   ------------------------------------------------------------------------------
@@ -3654,6 +3668,11 @@ void processOpcodeData() {
           }
           break;
         // ---------------------------------------
+        case 20:
+          Serial.print(F(" > Run a timer for the number of minutes in register A."));
+          clockTimerRun(regA);
+          break;
+        // ---------------------------------------
         case 30:
           Serial.print(F(" > Register B = "));
           printData(regB);
@@ -4895,6 +4914,37 @@ unsigned long clockTimerSeconds;
 boolean clockTimerSecondsOn = false;
 int clockTimerCountBit;
 
+void clockTimerRun(int timerMinute) {
+  clockSetTimer(timerMinute);
+  while (timerStatus & M1_ON) {
+    clockRunTimer();
+    clockRunTimerControls();     // Clock and timer controls
+  }
+}
+void clockRunTimerControls() {
+  // Timer options
+  // -------------------
+  if (pcfControl.readButton(pinStop) == 0) {
+    if (!switchStop) {
+      switchStop = true;
+    }
+  } else if (switchStop) {
+    switchStop = false;
+    // Switch logic
+    timerStatus = timerStatus & M1_OFF;
+  }
+  // -------------------
+  if (pcfControl.readButton(pinReset) == 0) {
+    if (!switchReset) {
+      switchReset = true;
+    }
+  } else if (switchReset) {
+    switchReset = false;
+    // Switch logic
+    clockSetTimer(timerMinute);
+  }
+  // -------------------
+}
 void clockSetTimer(int timerMinute) {
   //
   // Set parameters before starting the timere.
@@ -4940,7 +4990,7 @@ void clockRunTimer() {
       Serial.print(F("+ clockTimerCount="));
       Serial.print(clockTimerCount);
       Serial.print(F(" timerMinute="));
-      Serial.print(clockTimerCount);
+      Serial.print(timerMinute);
       Serial.println(F(" Timer timed."));
 #endif
       // Force playing the sound. If a song was playing, it doesn't restart.
