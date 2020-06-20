@@ -61,6 +61,9 @@
   + 0110    Loop a sound bite with NOPs. NOPs.
             Address 1 is the MP3 file number.
   + 0111    Loop a sound bite with NOPs. HLT at A8. RUN and JMP back to address 0 to start all over.
+  + 1000    Run timer followed by playing a sound file.
+            Address 1 is timer number of minutes.
+            Address 5 is the MP3 file number, that plays after the timer.
   -----------------
   + 1110    Program list, requires LCD
   + 1111    Start up program. Play MP3 while NOPs are processing,then HLT when the MP3 is finished.
@@ -4914,12 +4917,15 @@ unsigned long clockTimerSeconds;
 boolean clockTimerSecondsOn = false;
 int clockTimerCountBit;
 
-void clockTimerRun(int timerMinute) {
+void clockTimerRun(int theTimerMinute) {
+  digitalWrite(HLDA_PIN, HIGH);
+  timerMinute = theTimerMinute;
   clockSetTimer(timerMinute);
   while (timerStatus & M1_ON) {
     clockRunTimer();
     clockRunTimerControls();     // Clock and timer controls
   }
+  digitalWrite(HLDA_PIN, LOW);
 }
 void clockRunTimerControls() {
   // Timer options
