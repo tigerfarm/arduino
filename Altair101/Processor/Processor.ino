@@ -924,6 +924,7 @@ DateTime now;
 #define CLOCK_SET 0
 #define CLOCK_TIME 1
 #define CLOCK_TIMER 2
+#define CLOCK_COUNTER 3
 int clockState = CLOCK_TIME;     // Intial, default.
 
 int setClockValue = 0;
@@ -4917,7 +4918,6 @@ const int timerTop = 8;
 unsigned int timerData[timerTop];
 unsigned int timerCounter = 0;
 unsigned int timerDataAddress = 0;
-
 byte timerStatus = INP_ON;         // Clock timer is ready for timer value input.
 byte timerStep = 0;
 unsigned int timerMinute = 0;
@@ -5081,10 +5081,6 @@ String getSfbFilename(byte fileByte) {
   }
   return sfbFilename;
 }
-String getDataFilename() {
-  // byte fileByte = toggleData();
-  return getSfbFilename(toggleData());
-}
 
 int getMinuteValue(unsigned int theWord) {
   int theMinute = 0;
@@ -5143,6 +5139,28 @@ void checkClockControls() {
     clockData = 0;
     Serial.println(F("Show minutes and hours."));
     displayTheTime(theCounterMinutes, theCounterHours);
+  }
+  // ------------------------
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux2up) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(UPLOAD_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux2up) {
+      switchAux2up = true;
+      // Serial.print(F("+ Clock, AUX2 up switch pressed..."));
+    }
+  } else if (switchAux2up) {
+    switchAux2up = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock, AUX2 up, switched. Enter clock timer mode."));
+    Serial.println("");
+#endif
+    clockState = CLOCK_COUNTER;
+    digitalWrite(WAIT_PIN, HIGH);
+    counterLights();
   }
   // ------------------------
 #ifdef DESKTOP_MODULE
@@ -5214,6 +5232,26 @@ void clockTimerControls() {
 #endif
   }
   // -------------------
+  if (pcfAux.readButton(pinStepDown) == 0) {
+    if (!switchStepDown) {
+      switchStepDown = true;
+    }
+  } else if (switchStepDown) {
+    switchStepDown = false;
+    // Switch logic
+    if (timerCounter > 0) {
+      timerCounter--;                                   // Timer array index counter.
+      timerDataAddress = timerData[timerCounter];       // Timer array index data.
+      lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+    }
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Step Down, Examine: timerCounter="));
+    Serial.print(timerCounter);
+    Serial.print(F(", timerDataAddress="));
+    Serial.println(timerDataAddress);
+#endif
+  }
+  // -------------------
   if (pcfControl.readButton(pinExamine) == 0) {
     if (!switchExamine) {
       switchExamine = true;
@@ -5221,9 +5259,11 @@ void clockTimerControls() {
   } else if (switchExamine) {
     switchExamine = false;
     // Switch logic
-    timerCounter = toggleData();                      // Timer array index counter.
-    timerDataAddress = timerData[timerCounter];       // Timer array index data.
-    lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+    if (timerCounter < timerTop) {
+      timerCounter = toggleData();                      // Timer array index counter.
+      timerDataAddress = timerData[timerCounter];       // Timer array index data.
+      lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+    }
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Clock Timer, Examine: timerCounter="));
     Serial.print(timerCounter);
@@ -5239,9 +5279,11 @@ void clockTimerControls() {
   } else if (switchExamineNext) {
     switchExamineNext = false;
     // Switch logic
-    timerCounter++;                                   // Timer array index counter.
-    timerDataAddress = timerData[timerCounter];       // Timer array index data.
-    lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+    if (timerCounter < timerTop) {
+      timerCounter++;                                   // Timer array index counter.
+      timerDataAddress = timerData[timerCounter];       // Timer array index data.
+      lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+    }
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Clock Timer, Examine Next: timerCounter="));
     Serial.print(timerCounter);
@@ -5397,6 +5439,240 @@ void clockTimerControls() {
   }
 }
 
+
+// ---------------------------------------------------------
+// For managing file counters.
+
+uint8_t counterAddresstus = B10000000;   // MEMR_ON
+uint8_t counterData = 0;
+uint16_t counterAddress = 0;
+void counterLights() {
+  lightsStatusAddressData(counterAddresstus, counterAddress, counterData);
+}
+String getCfbFilename(byte fileByte) {
+  // CFB: Count File Byte.
+  String theFilename = ".cfb";
+  if (fileByte < 10) {
+    theFilename = "000" + String(fileByte) + theFilename;
+  } else if (fileByte < 100) {
+    theFilename = "00" + String(fileByte) + theFilename;
+  } else if (fileByte < 1000) {
+    theFilename = "0" + String(fileByte) + theFilename;
+  } else {
+    theFilename = String(fileByte) + theFilename;
+  }
+  return theFilename;
+}
+
+void clockCounterControls() {
+  // -------------------
+  if (pcfControl.readButton(pinStop) == 0) {
+    if (!switchStop) {
+      switchStop = true;
+    }
+  } else if (switchStop) {
+    switchStop = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Counter, STOP."));
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinRun) == 0) {
+    if (!switchRun) {
+      switchRun = true;
+    }
+  } else if (switchRun) {
+    switchRun = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Counter, RUN."));
+#endif
+  }
+  // -------------------
+  if (pcfAux.readButton(pinStepDown) == 0) {
+    if (!switchStepDown) {
+      switchStepDown = true;
+    }
+  } else if (switchStepDown) {
+    switchStepDown = false;
+    // Switch logic
+    if (counterAddress > 0) {
+      counterAddress --;
+      String sfbFilename = getCfbFilename(counterAddress);
+      counterData = readFileByte(sfbFilename);
+      counterAddresstus = MEMR_ON | INP_ON | HLTA_ON;
+      counterLights();
+#ifdef SWITCH_MESSAGES
+      Serial.print(F("+ Counter, STEP Down, switched. Data filename = "));
+      Serial.print(sfbFilename);
+      Serial.print(F(", file data byte="));
+      printByte(counterData);
+      Serial.print(F("="));
+      Serial.print(counterData);
+      Serial.println("");
+#endif
+    }
+  }
+  // -------------------
+  if (pcfControl.readButton(pinExamine) == 0) {
+    if (!switchExamine) {
+      switchExamine = true;
+    }
+  } else if (switchExamine) {
+    switchExamine = false;
+    // Switch logic.
+    counterAddress = toggleData();
+    String sfbFilename = getCfbFilename(counterAddress);
+    counterData = readFileByte(sfbFilename);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Counter, EXAMINE, switched. Data filename = "));
+    Serial.print(sfbFilename);
+    Serial.print(F(", file data byte="));
+    printByte(counterData);
+    Serial.print(F("="));
+    Serial.print(counterData);
+    Serial.println("");
+#endif
+    counterAddresstus = MEMR_ON | INP_ON | HLTA_ON;
+    counterLights();
+  }
+  // -------------------
+  if (pcfControl.readButton(pinExamineNext) == 0) {
+    if (!switchExamineNext) {
+      switchExamineNext = true;
+    }
+  } else if (switchExamineNext) {
+    switchExamineNext = false;
+    // Switch logic
+    counterAddress ++;
+    String sfbFilename = getCfbFilename(counterAddress);
+    counterData = readFileByte(sfbFilename);
+    counterAddresstus = MEMR_ON | INP_ON | HLTA_ON;
+    counterLights();
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Counter, EXAMINE NEXT, switched. Data filename = "));
+    Serial.print(sfbFilename);
+    Serial.print(F(", file data byte="));
+    printByte(counterData);
+    Serial.print(F("="));
+    Serial.print(counterData);
+    Serial.println("");
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinDeposit) == 0) {
+    if (!switchDeposit) {
+      switchDeposit = true;
+    }
+  } else if (switchDeposit) {
+    switchDeposit = false;
+    // Switch logic.
+    counterData = toggleData();
+    String sfbFilename = getCfbFilename(counterAddress);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Counter, DEPOSIT, switched. Data filename = "));
+    Serial.print(sfbFilename);
+    Serial.print(F(", file data byte="));
+    printByte(counterData);
+    Serial.print(F("="));
+    Serial.print(counterData);
+    Serial.println("");
+#endif
+    if (!writeFileByte(sfbFilename, counterData)) {
+      Serial.println("- Failed to write sound file: ");
+    }
+    counterAddresstus = MEMR_ON | INP_ON | WO_ON | HLTA_ON;
+    counterLights();
+  }
+  // -------------------
+  if (pcfControl.readButton(pinDepositNext) == 0) {
+    if (!switchDepositNext) {
+      switchDepositNext = true;
+    }
+  } else if (switchDepositNext) {
+    switchDepositNext = false;
+    // Switch logic
+    counterData = toggleData();
+    counterAddress++;
+    String sfbFilename = getCfbFilename(counterAddress);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Counter, DEPOSIT NEXT, switched. Data filename = "));
+    Serial.print(sfbFilename);
+    Serial.print(F(", file data byte="));
+    printByte(counterData);
+    Serial.print(F("="));
+    Serial.print(counterData);
+    Serial.println("");
+#endif
+    if (!writeFileByte(sfbFilename, counterData)) {
+      Serial.println("- Failed to write sound file: ");
+    }
+    counterAddresstus = MEMR_ON | INP_ON | WO_ON | HLTA_ON;
+    counterLights();
+  }
+  // -------------------
+  if (pcfControl.readButton(pinReset) == 0) {
+    if (!switchReset) {
+      switchReset = true;
+    }
+  } else if (switchReset) {
+    switchReset = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Counter, Reset. Load sound bite index array."));
+#endif
+    for (int i = 0; i < maxSoundEffects; i++) {
+      soundEffects[i] = readFileByte(getCfbFilename(i));
+    }
+    ledFlashSuccess();
+    counterAddresstus = MEMR_ON | WO_ON | HLTA_ON;
+    counterLights();
+  }
+  // ------------------------
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux2up) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(UPLOAD_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux2up) {
+      switchAux2up = true;
+      // Serial.print(F("+ Counter, AUX2 up switch pressed..."));
+    }
+  } else if (switchAux2up) {
+    switchAux2up = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Counter, AUX2 up, switched."));
+    Serial.println("");
+#endif
+    clockState = CLOCK_TIME;
+    displayTheTime(theCounterMinutes, theCounterHours);
+  }
+  // ------------------------
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux2down) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux2down) {
+      switchAux2down = true;
+      // Serial.print(F("+ Counter, AUX2 down switch pressed..."));
+    }
+  } else if (switchAux2down) {
+    switchAux2down = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Counter, AUX2 down, switched. Exit player file mode."));
+    Serial.println("");
+#endif
+    clockState = CLOCK_TIME;
+    displayTheTime(theCounterMinutes, theCounterHours);
+  }
+}
+
 // ------------------------------------------------
 void checkClockSwitch() {
 #ifdef DESKTOP_MODULE
@@ -5465,6 +5741,9 @@ void clockRun() {
         }
         break;
       case CLOCK_SET:
+        break;
+      case CLOCK_COUNTER:
+        clockCounterControls();
         break;
     }
     checkClockSwitch();       // Option to exit clock mode.
@@ -6050,6 +6329,31 @@ void checkPlayerFileControls() {
     playerFileLights();
   }
   // -------------------
+  if (pcfAux.readButton(pinStepDown) == 0) {
+    if (!switchStepDown) {
+      switchStepDown = true;
+    }
+  } else if (switchStepDown) {
+    switchStepDown = false;
+    // Switch logic
+    if (playerFileAddress > 0) {
+      playerFileAddress --;
+      String sfbFilename = getSfbFilename(playerFileAddress);
+      playerFileData = readFileByte(sfbFilename);
+      playerFileStatus = MEMR_ON | INP_ON | HLTA_ON;
+      playerFileLights();
+#ifdef SWITCH_MESSAGES
+      Serial.print(F("+ Player file, STEP Down, switched. Data filename = "));
+      Serial.print(sfbFilename);
+      Serial.print(F(", file data byte="));
+      printByte(playerFileData);
+      Serial.print(F("="));
+      Serial.print(playerFileData);
+      Serial.println("");
+#endif
+    }
+  }
+  // -------------------
   if (pcfControl.readButton(pinExamine) == 0) {
     if (!switchExamine) {
       switchExamine = true;
@@ -6117,8 +6421,10 @@ void checkPlayerFileControls() {
     playerFileAddress ++;
     String sfbFilename = getSfbFilename(playerFileAddress);
     playerFileData = readFileByte(sfbFilename);
+    playerFileStatus = MEMR_ON | INP_ON | HLTA_ON;
+    playerFileLights();
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Player file, EXAMINE, switched. Data filename = "));
+    Serial.print(F("+ Player file, EXAMINE NEXT, switched. Data filename = "));
     Serial.print(sfbFilename);
     Serial.print(F(", file data byte="));
     printByte(playerFileData);
@@ -6126,8 +6432,6 @@ void checkPlayerFileControls() {
     Serial.print(playerFileData);
     Serial.println("");
 #endif
-    playerFileStatus = MEMR_ON | INP_ON | HLTA_ON;
-    playerFileLights();
   }
   // -------------------
   if (pcfControl.readButton(pinDeposit) == 0) {
