@@ -15,6 +15,8 @@
 
   -----------------------------------------------------------------------------
   Work to do,
+  
+  In program, after loading a program, set back to program counter 0 (reset).
 
   Should auto exit after bytes are downloaded from the serial port.
 
@@ -58,12 +60,13 @@
   + 0100    Kill the Bit with an MP3 playing.
   + 0101    Add program, x + y: x in address 1, y in address 3, and answer in A6(64).
   -----------------
-  + 0110    Loop a sound bite with NOPs. NOPs.
+  + 0110    Loop a sound bite while running NOPs.
             Address 1 is the MP3 file number.
-  + 0111    Loop a sound bite with NOPs. HLT at A8. RUN and JMP back to address 0 to start all over.
+  + 0111    Run NOPs. HLT at A8. Flip RUN and JMP back to address 0 to start all over.
   + 1000    Run timer followed by playing a sound file.
             Address 1 is timer number of minutes.
             Address 5 is the MP3 file number, that plays after the timer.
+  + 1001    Run to turn off the program playing of a MP3 file.
   -----------------
   + 1110    Program list, requires LCD
   + 1111    Start up program. Play MP3 while NOPs are processing,then HLT when the MP3 is finished.
@@ -93,6 +96,12 @@
           //  ++       2:343 > opcode: out 11   : 11 is for looping. 10 is for single play.
           //  ++       3:013 > immediate: 11
           //  ++       ... NOPs ...
+  -----------------
+  + Turn off the program playing of a MP3 file.
+  0       076 MVI A,<immediate value>
+  1       000        Immediate value of 3, for 3 minutes.
+  2       343 OUT <port#>
+  3       012 10 is for single play.
   -----------------
   Timer program.
   0       076 MVI A,<immediate value>
