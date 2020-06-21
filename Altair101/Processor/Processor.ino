@@ -574,12 +574,13 @@
 // -----------------------------------------------------------------------------
 // Program states
 
-#define PROGRAM_WAIT 0
-#define PROGRAM_RUN 1
-#define CLOCK_RUN 2
-#define PLAYER_RUN 3
-#define SERIAL_DOWNLOAD 4
-int programState = PROGRAM_WAIT;  // Intial, default.
+#define LIGHTS_OFF 0
+#define PROGRAM_WAIT 1
+#define PROGRAM_RUN 2
+#define CLOCK_RUN 3
+#define PLAYER_RUN 4
+#define SERIAL_DOWNLOAD 5
+int programState = LIGHTS_OFF;  // Intial, default.
 
 // MP3 player has a sub-state for managing sound effect byte values in files.
 #define PLAYER_FILE 0
@@ -3936,6 +3937,7 @@ void initSdcard() {
   // Optionally, retry for a period of time.
 }
 
+byte statusSetup = B00000000;       // Used during setup().
 void ledFlashSuccess() {
   lcdPrintln(1, "+ Success");
   int delayTime = 60;
@@ -3957,6 +3959,11 @@ void ledFlashSuccess() {
   }
   // Reset the panel lights to program values.
   switch (programState) {
+    case LIGHTS_OFF:
+      byte statusDisplay = bitWrite(statusDisplay, statusSetup, 1);
+      lightsStatusAddressData(statusDisplay, 0, 0);
+      statusSetup++;
+      break;
     case CLOCK_RUN:
     case PLAYER_RUN:
       playerLights();
@@ -3977,6 +3984,11 @@ void ledFlashError() {
   }
   // Reset the panel lights to program values.
   switch (programState) {
+    case LIGHTS_OFF:
+      byte statusDisplay = bitWrite(statusDisplay, statusSetup, 1);
+      lightsStatusAddressData(statusDisplay, 0, 0);
+      statusSetup++;
+      break;
     case CLOCK_RUN:
     case PLAYER_RUN:
       playerLights();
@@ -6460,68 +6472,20 @@ void setup() {
   Serial.println(""); // Newline after garbage characters.
   Serial.println(F("+++ Setup."));
 
-  // ----------------------------------------------------
 #ifdef SETUP_LCD
+  // ----------------------------------------------------
+  // ----------------------------------------------------
   lcdSetup();
   Serial.println(F("+ LCD ready for output."));
   delay(1000);
 #endif
 
   // ----------------------------------------------------
-  // DFPlayer serial connection.
-  //
-  // ------------------------------------
-  // Since Mega has its own hardware RX and TX pins,
-  //    use pins 18 and 19, which has the label: Serial1.
-  // Pin 18(TX) to resister to pin 2(RX).
-  // Pin 19(RX) to pin 3(TX).
-  Serial1.begin(9600);
-  if (!mp3player.begin(Serial1)) {
-    Serial.println(F("MP3 Player, unable to begin:"));
-    Serial.println(F("1.Please recheck the connection!"));
-    Serial.println(F("2.Please insert the SD card!"));
-    hwStatus = 4;
-  }
-  // ----------------------------------------------------
-  // Initial player settings.
-  //
-  // If I add an SD card, I could save the state.
-  //  When starting, set to the previous state.
-  //
-  // Set player front panel values.
-  playerCounter = 1;                // For now, default to song/file 1.
-  playerVolume = 16;
-  playerStatus = OUT_ON | HLTA_ON;  // OUT_ON  LED status light to indicate the Player.
-  playPause = true;                 // HLTA_ON implies that the player is Paused.
-  //
-  mp3player.volume(playerVolume);   // Set speaker volume from 0 to 30. Doesn't effect DAC output.
-  delay(300);
-  mp3player.setTimeOut(60);        // Set serial communications time out
-  delay(300);
-  //
-  // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
-  mp3player.outputDevice(DFPLAYER_DEVICE_SD);
-  //
-  // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
-  mp3player.EQ(DFPLAYER_EQ_CLASSIC);
-  //
-  delay(300);
-  playerCounterTop = mp3player.readFileCounts();
-  Serial.print(F("+ DFPlayer is initialized. Number of MP3 files = "));
-  Serial.println(playerCounterTop);
-
   // ----------------------------------------------------
   // Front panel toggle switches.
 
-  // ------------------------------
-  // System application status LED lights
-  pinMode(WAIT_PIN, OUTPUT);    // Indicator: program wait state: LED on or LED off.
-  pinMode(HLDA_PIN, OUTPUT);    // Indicator: clock process (LED on) or emulator (LED off).
-  digitalWrite(WAIT_PIN, HIGH); // Default to wait state.
-  digitalWrite(HLDA_PIN, LOW);  // Default to emulator.
-
-  // AUX device switches.
 #ifdef INCLUDE_AUX
+  // AUX device switches.
   pinMode(CLOCK_SWITCH_PIN, INPUT_PULLUP);
   pinMode(PLAYER_SWITCH_PIN, INPUT_PULLUP);
   pinMode(UPLOAD_SWITCH_PIN, INPUT_PULLUP);
@@ -6549,11 +6513,19 @@ void setup() {
   Serial.println(F("+ Front panel toggle switches are configured for input."));
 
   // ----------------------------------------------------
-  // Status lights are off (statusByte=0) by default.
+  // ----------------------------------------------------
+  // Front panel LED lights.
+
+  // System application status LED lights
+  pinMode(WAIT_PIN, OUTPUT);    // Indicator: program wait state: LED on or LED off.
+  pinMode(HLDA_PIN, OUTPUT);    // Indicator: clock process (LED on) or emulator (LED off).
+  digitalWrite(WAIT_PIN, HIGH); // Default to wait state.
+  digitalWrite(HLDA_PIN, HIGH); // Default to emulator.
+
+  // ------------------------------
+  // Set status lights.
+  statusByte = MEMR_ON | M1_ON | WO_ON; // WO: on, Inverse logic: off when writing out. On when not.
   // programCounter and curProgramCounter are 0 by default.
-  statusByte = statusByte | MEMR_ON;
-  statusByte = statusByte | M1_ON;
-  statusByte = statusByte | WO_ON;  // WO: on, Inverse logic: off when writing out. On when not.
   dataByte = memoryData[curProgramCounter];
   Serial.println(F("+ Initialized: statusByte, programCounter & curProgramCounter, dataByte."));
   //
@@ -6561,9 +6533,55 @@ void setup() {
   pinMode(clockPinLed, OUTPUT);
   pinMode(dataPinLed, OUTPUT);
   delay(300);
-  programLights(); // Uses: statusByte, curProgramCounter, dataByte
+  //
+  ledFlashSuccess();
   Serial.println(F("+ Front panel LED lights are initialized."));
 
+  // ----------------------------------------------------
+  // ----------------------------------------------------
+  // DFPlayer which uses a serial connection.
+  //
+  // -------------------------
+  // Initial player settings.
+  //
+  // Set player front panel values.
+  playerCounter = 1;                // For now, default to song/file 1.
+  playerVolume = 16;
+  playerStatus = OUT_ON | HLTA_ON;  // OUT_ON  LED status light to indicate the Player.
+  playPause = true;                 // HLTA_ON implies that the player is Paused.
+  //
+  // -------------------------
+  // Since Mega has its own hardware RX and TX pins,
+  //    use pins 18 and 19, which has the label: Serial1.
+  // Pin 18(TX) to resister to pin 2(RX).
+  // Pin 19(RX) to pin 3(TX).
+  Serial1.begin(9600);
+  if (!mp3player.begin(Serial1)) {
+    ledFlashError();
+    Serial.println(F("MP3 Player, unable to begin:"));
+    Serial.println(F("1.Please recheck the connection!"));
+    Serial.println(F("2.Please insert the SD card!"));
+    hwStatus = 4;
+  } else {
+    ledFlashSuccess();
+    mp3player.volume(playerVolume);   // Set speaker volume from 0 to 30.
+    delay(300);
+    mp3player.setTimeOut(60);         // Set serial communications time out.
+    delay(300);
+    //
+    // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
+    mp3player.outputDevice(DFPLAYER_DEVICE_SD);
+    //
+    // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
+    mp3player.EQ(DFPLAYER_EQ_CLASSIC);
+    //
+    delay(300);
+    playerCounterTop = mp3player.readFileCounts();
+    Serial.print(F("+ DFPlayer is initialized. Number of MP3 files = "));
+    Serial.println(playerCounterTop);
+  }
+
+  // ----------------------------------------------------
   // ----------------------------------------------------
 #ifdef SETUP_SDCARD
   // The csPin pin is connected to the SD card module select pin (CS).
@@ -6583,6 +6601,7 @@ void setup() {
 #endif
 
   // ----------------------------------------------------
+  // ----------------------------------------------------
   // Initialize the Real Time Clock (RTC).
 #ifdef SETUP_CLOCK
   //            1234567890123456
@@ -6594,8 +6613,8 @@ void setup() {
     ledFlashError();
     hwStatus = 2;
   } else {
-    ledFlashSuccess();
     Serial.println("+ Real time clock is initialized.");
+    ledFlashSuccess();
   }
   delay(300);
 #endif
@@ -6604,7 +6623,7 @@ void setup() {
 #endif
 
   // ----------------------------------------------------
-  // Read sound byte information.
+  // Read sound effect file information.
   Serial.println(F("+ Load sound bite index array."));
   for (int i = 0; i < maxSoundEffects; i++) {
     soundEffects[i] = readFileByte(getSfbFilename(i));
@@ -6634,14 +6653,15 @@ void setup() {
   if (sumBytes > 0) {
     Serial.println(F("++ Since 00000000.bin, has non-zero bytes in the first 32 bytes, run it."));
     programState = PROGRAM_RUN;
-    ledFlashSuccess();
   } else {
+    programState = PROGRAM_WAIT;
     // + Else, display the splash screen.
     // lcdSplash();
     controlResetLogic();
     Serial.println(F("++ Program system reset."));
   }
   // ----------------------------------------------------
+  // programLights();    // Uses: statusByte, curProgramCounter, dataByte
   Serial.println(F("+ Starting the processor loop."));
 }
 
