@@ -336,7 +336,7 @@
   + UNPROTECT     Increase MP3 player volume. To do: Increment value to set.
   + AUX1 Up       Toogle clock mode off, return to processor mode.
   + AUX1 down     MP3 player mode
-  + AUX2 up       Not implemented.
+  + AUX2 up       Toggle clock counter mode.
   + AUX2 Down     Toggle clock timer mode on.
   -----------
   Clock Counter mode, clockCounterControls()
@@ -5522,7 +5522,7 @@ void clockTimerControls() {
 
 
 // ---------------------------------------------------------
-// For managing file counters.
+// Manage file counters.
 
 uint8_t counterStatus = MEMR_ON | STACK_ON;   // MEMR_ON
 uint8_t counterData = 0;
@@ -5844,8 +5844,8 @@ void clockRun() {
         clockCounterControls();
         break;
     }
-    checkClockSwitch();       // Option to exit clock mode.
-    checkPlayerSwitch();      // If AUX1 is flipped down, switch to player mode.
+    checkClockSwitch();           // Option to exit clock mode.
+    checkPlayerSwitch();          // If AUX1 is flipped down, switch to player mode.
     checkProtectSetVolume();
     delay(100);
   }
