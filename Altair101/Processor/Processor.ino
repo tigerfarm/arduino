@@ -15,8 +15,9 @@
 
   -----------------------------------------------------------------------------
   Work to do,
-  
-  In program, after loading a program, set back to program counter 0 (reset).
+
+  readProgramFileIntoMemory: Reset to 0 after reading bytes into processor memory.
+  + In program, after loading a program, set back to program counter 0 (reset).
 
   Should auto exit after bytes are downloaded from the serial port.
 
@@ -45,11 +46,54 @@
   checkClockControls()        Clock Front Panel Switch Functions.
   checkConfirmUploadSwitch()  SD card processor memory read/write from/into a file.
   checkPlayerControls()       Player Front Panel Control Switch Functions.
+  ------------------------
+  //  Output Functions
+  printOther()
+  printRegisters()
+  ------------------------
+  ledFlashSuccess()
+  ledFlashError()
+  ------------------------
+  // SD card write and read functions
+  initSdcard()
+  writeProgramMemoryToFile(theFilename)
+  readProgramFileIntoMemory(theFilename)
+  writeFileByte(String theFilename, byte theByte)
+  readFileByte(String theFilename)
+  ------------------------
+  // Front Panel Switches: definitions and functions.
+  // Processor Switch Functions
+  controlResetLogic()
+  checkRunningButtons()
+  checkControlButtons()
+  ------------------------
+  // Clock Front Panel Switch Functions.
+  syncCountWithClock()
+  clockTimerRun(theTimerMinute)
+  checkClockControls()
+  clockTimerControls()
+  clockCounterControls()
+  checkClockSwitch()
+  clockRun()
+  ------------------------
+  // SD card processor memory read/write from/into a file.
+  checkUploadSwitch()
+  checkDownloadSwitch()
+  ------------------------
+  // Check Front Panel Control Switches, when in Player mode.
+  checkProtectSetVolume()
+  checkPlayerControls()
+  checkPlayerFileControls()
+  checkPlayerSwitch()
+  printDFPlayerMessage(uint8_t type, int value)
+  playMp3()
+  playerRun()
   ----------------------------
   DownloadProgram()           Receive bytes through serial port. The bytes are loaded into processorr memory.
+  ----------------------------
   setup()                     Computer initialization.
   loop()                      Based on state, clock cycling through memory, show the time, or other state processing.
-
+  ------------------------
   -----------------------------------------------------------------------------
   SD card programs:
   -----------------
@@ -3930,24 +3974,6 @@ void printRegisters() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// SD card module functions
-
-// Handle the case if the card is not inserted. Once inserted, the module will be re-initialized.
-boolean sdcardInitiated = false;
-void initSdcard() {
-  if (SD.begin(csPin)) {
-    // Serial.println(F("+ SD card initialized."));
-    sdcardInitiated = true;
-    return;
-  }
-  sdcardInitiated = false;
-  Serial.println(F("- Error initializing SD card."));
-  Serial.println(F("-- Check that SD card is inserted"));
-  Serial.println(F("-- Check that SD card adapter is wired properly."));
-  //
-  // Optionally, retry for a period of time.
-}
-
 byte statusSetup = B00000000;       // Used during setup().
 void ledFlashSuccess() {
   lcdPrintln(1, "+ Success");
@@ -4010,7 +4036,26 @@ void ledFlashError() {
   }
 }
 
-// -------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// SD card module functions
+
+// Handle the case if the card is not inserted. Once inserted, the module will be re-initialized.
+boolean sdcardInitiated = false;
+void initSdcard() {
+  if (SD.begin(csPin)) {
+    // Serial.println(F("+ SD card initialized."));
+    sdcardInitiated = true;
+    return;
+  }
+  sdcardInitiated = false;
+  Serial.println(F("- Error initializing SD card."));
+  Serial.println(F("-- Check that SD card is inserted"));
+  Serial.println(F("-- Check that SD card adapter is wired properly."));
+  //
+  // Optionally, retry for a period of time.
+}
+
 // Write Program memory to a file.
 
 void writeProgramMemoryToFile(String theFilename) {
@@ -4922,6 +4967,7 @@ void restoreLcdScreenData() {
 #endif
 
 // -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 // Clock Timer
 
 const int timerTop = 8;
@@ -5073,37 +5119,10 @@ void clockRunTimer() {
 }
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Clock Front Panel Switch Functions.
 
 int clockData = 0;
-
-String getSfbFilename(byte fileByte) {
-  // SFB: Sound File Byte.
-  String sfbFilename = ".sfb";
-  if (fileByte < 10) {
-    sfbFilename = "000" + String(fileByte) + sfbFilename;
-  } else if (fileByte < 100) {
-    sfbFilename = "00" + String(fileByte) + sfbFilename;
-  } else if (fileByte < 1000) {
-    sfbFilename = "0" + String(fileByte) + sfbFilename;
-  } else {
-    sfbFilename = String(fileByte) + sfbFilename;
-  }
-  return sfbFilename;
-}
-
-int getMinuteValue(unsigned int theWord) {
-  int theMinute = 0;
-  for (int i = 15; i >= 0; i--) {
-    if (bitRead(theWord, i) > 0) {
-      theMinute = i;
-      // Serial.print("\n+ Minute = ");
-      // Serial.println(theMinute);
-    }
-  }
-  return (theMinute);
-}
-
 void checkClockControls() {
   // ---------------------------------------------------------
   if (pcfControl.readButton(pinStep) == 0) {
@@ -5197,6 +5216,34 @@ void checkClockControls() {
 }
 
 // ---------------------------------------------------------
+// Clock Timer Controls
+
+String getSfbFilename(byte fileByte) {
+  // SFB: Sound File Byte.
+  String sfbFilename = ".sfb";
+  if (fileByte < 10) {
+    sfbFilename = "000" + String(fileByte) + sfbFilename;
+  } else if (fileByte < 100) {
+    sfbFilename = "00" + String(fileByte) + sfbFilename;
+  } else if (fileByte < 1000) {
+    sfbFilename = "0" + String(fileByte) + sfbFilename;
+  } else {
+    sfbFilename = String(fileByte) + sfbFilename;
+  }
+  return sfbFilename;
+}
+int getMinuteValue(unsigned int theWord) {
+  int theMinute = 0;
+  for (int i = 15; i >= 0; i--) {
+    if (bitRead(theWord, i) > 0) {
+      theMinute = i;
+      // Serial.print("\n+ Minute = ");
+      // Serial.println(theMinute);
+    }
+  }
+  return (theMinute);
+}
+
 void clockTimerControls() {
   // Timer options
   // -------------------
@@ -5716,15 +5763,6 @@ void checkClockSwitch() {
     }
   }
 }
-String getSenseSwitchValue() {
-  byte bValue = toggleSense();
-  String sValue = String(bValue, BIN);
-  int addZeros = 8 - sValue.length();
-  for (int i = 0; i < addZeros; i++) {
-    sValue = "0" + sValue;
-  }
-  return sValue;
-}
 
 // -----------------------------------------------------
 void clockRun() {
@@ -5771,6 +5809,16 @@ void clockRun() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // SD card processor memory read/write from/into a file.
+
+String getSenseSwitchValue() {
+  byte bValue = toggleSense();
+  String sValue = String(bValue, BIN);
+  int addZeros = 8 - sValue.length();
+  for (int i = 0; i < addZeros; i++) {
+    sValue = "0" + sValue;
+  }
+  return sValue;
+}
 
 // Write processor memory to an SD card file.
 boolean confirmWrite = false;
