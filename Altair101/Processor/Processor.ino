@@ -339,6 +339,27 @@
   + AUX2 up       Not implemented.
   + AUX2 Down     Toggle clock timer mode on.
   -----------
+  Clock Counter mode, clockCounterControls()
+  + STOP          Decrement counter at current address.
+  + RUN           Increment counter at current address.
+  + SINGLE up     Not implemented.
+  + SINGLE dn     Decrement counter address, get the file data byte and display it in the Data lights.
+  + EXAMINE       1. Set address toggles (Data toggles) to the counter file number.
+                  2 Flip EXAMINE, which reads the address toggle (Data toggle) value into Data lights.
+  + EXAMINE NEXT  Increment counter address, get the file data byte and display it in the Data lights.
+  + DEPOSIT       1. Set Data switches to a counter file number.
+                  2. Flip DEPOSIT writes the data byte to the counter address file.
+  + DEPOSIT NEXT  1. Set Data switches to an MP3 file number.
+                  2. Flip DEPOSIT NEXT increments counter address, and writes the data byte to the counter address file.
+  + RESET         Reset counter address to 0, get the file data byte and display it in the Data lights.
+  + CLR           Not implemented.
+  + PROTECT       To do: Decrease volume
+  + UNPROTECT     To do: Increase volume
+  + AUX1 up       Clock mode: show hour and mintues time.
+  + AUX1 down     MP3 player mode
+  + AUX2 up       Not implemented.
+  + AUX2 Down     Toggle clock timer mode off, return to clock mode.
+  -----------
   Clock Timer mode, clockRunTimer()
   + Status        MEMR : Timer values set.
   + Status        INP  : Ready for timer value inputs.
@@ -5524,6 +5545,41 @@ String getCfbFilename(byte fileByte) {
   return theFilename;
 }
 
+void clockCounterRead(int counterAddress) {
+  String sfbFilename = getCfbFilename(counterAddress);
+  counterData = readFileByte(sfbFilename);
+#ifdef SWITCH_MESSAGES
+  Serial.print(F("+ Counter, EXAMINE, switched. Data filename = "));
+  Serial.print(sfbFilename);
+  Serial.print(F(", file data byte="));
+  printByte(counterData);
+  Serial.print(F("="));
+  Serial.print(counterData);
+  Serial.println("");
+#endif
+  counterStatus = MEMR_ON | STACK_ON | INP_ON | HLTA_ON;
+  counterLights();
+}
+void clockCounterWrite(int counterAddress, byte counterData) {
+  String sfbFilename = getCfbFilename(counterAddress);
+#ifdef SWITCH_MESSAGES
+  Serial.print(F(" Data filename = "));
+  Serial.print(sfbFilename);
+  Serial.print(F(", file data byte="));
+  printByte(counterData);
+  Serial.print(F("="));
+  Serial.print(counterData);
+  Serial.println("");
+#endif
+  if (!writeFileByte(sfbFilename, counterData)) {
+    Serial.println("- Failed to write sound file: ");
+    ledFlashError();
+    counterStatus = MEMR_ON | STACK_ON | INP_ON | HLTA_ON;
+  } else {
+    counterStatus = MEMR_ON | STACK_ON | INP_ON | WO_ON | HLTA_ON;
+  }
+  counterLights();
+}
 void clockCounterControls() {
   // -------------------
   if (pcfControl.readButton(pinStop) == 0) {
@@ -5534,8 +5590,21 @@ void clockCounterControls() {
     switchStop = false;
     // Switch logic
 #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Counter, STOP."));
+    Serial.print(F("+ Counter, STOP."));
 #endif
+    // Get current value.
+    String sfbFilename = getCfbFilename(counterAddress);
+    counterData = readFileByte(sfbFilename);
+    if (counterData > 0) {
+      // Decrement value and write.
+      counterData--;
+      clockCounterWrite(counterAddress, counterData);
+    } else {
+#ifdef SWITCH_MESSAGES
+      Serial.println(F(" counterData is 0, not decremented."));
+#endif
+      ledFlashError();
+    }
   }
   // -------------------
   if (pcfControl.readButton(pinRun) == 0) {
@@ -5546,7 +5615,32 @@ void clockCounterControls() {
     switchRun = false;
     // Switch logic
 #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Counter, RUN."));
+    Serial.print(F("+ Counter, RUN."));
+#endif
+    // Get current value.
+    String sfbFilename = getCfbFilename(counterAddress);
+    counterData = readFileByte(sfbFilename);
+    if (counterData < 256) {
+      // Increment value and write.
+      counterData++;
+      clockCounterWrite(counterAddress, counterData);
+    } else {
+#ifdef SWITCH_MESSAGES
+      Serial.println(F(" counterData is 256, not incremented."));
+#endif
+      ledFlashError();
+    }
+  }
+  // -------------------
+  if (pcfControl.readButton(pinStep) == 0) {
+    if (!switchStep) {
+      switchStep = true;
+    }
+  } else if (switchStep) {
+    switchStep = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println("+ Counter, Step.");
 #endif
   }
   // -------------------
@@ -5557,21 +5651,17 @@ void clockCounterControls() {
   } else if (switchStepDown) {
     switchStepDown = false;
     // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Counter, STEP Down, switched."));
+#endif
     if (counterAddress > 0) {
       counterAddress --;
-      String sfbFilename = getCfbFilename(counterAddress);
-      counterData = readFileByte(sfbFilename);
-      counterStatus = MEMR_ON | STACK_ON | INP_ON | HLTA_ON;
-      counterLights();
+      clockCounterRead(counterAddress);
+    } else {
 #ifdef SWITCH_MESSAGES
-      Serial.print(F("+ Counter, STEP Down, switched. Data filename = "));
-      Serial.print(sfbFilename);
-      Serial.print(F(", file data byte="));
-      printByte(counterData);
-      Serial.print(F("="));
-      Serial.print(counterData);
-      Serial.println("");
+      Serial.println(F(" counterData is 0, not decremented."));
 #endif
+      ledFlashError();
     }
   }
   // -------------------
@@ -5582,20 +5672,11 @@ void clockCounterControls() {
   } else if (switchExamine) {
     switchExamine = false;
     // Switch logic.
-    counterAddress = toggleData();
-    String sfbFilename = getCfbFilename(counterAddress);
-    counterData = readFileByte(sfbFilename);
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Counter, EXAMINE, switched. Data filename = "));
-    Serial.print(sfbFilename);
-    Serial.print(F(", file data byte="));
-    printByte(counterData);
-    Serial.print(F("="));
-    Serial.print(counterData);
-    Serial.println("");
+    Serial.print(F("+ Counter, EXAMINE NEXT, switched."));
 #endif
-    counterStatus = MEMR_ON | STACK_ON | INP_ON | HLTA_ON;
-    counterLights();
+    counterAddress = toggleData();
+    clockCounterRead(counterAddress);
   }
   // -------------------
   if (pcfControl.readButton(pinExamineNext) == 0) {
@@ -5605,20 +5686,11 @@ void clockCounterControls() {
   } else if (switchExamineNext) {
     switchExamineNext = false;
     // Switch logic
-    counterAddress ++;
-    String sfbFilename = getCfbFilename(counterAddress);
-    counterData = readFileByte(sfbFilename);
-    counterStatus = MEMR_ON | STACK_ON | INP_ON | HLTA_ON;
-    counterLights();
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Counter, EXAMINE NEXT, switched. Data filename = "));
-    Serial.print(sfbFilename);
-    Serial.print(F(", file data byte="));
-    printByte(counterData);
-    Serial.print(F("="));
-    Serial.print(counterData);
-    Serial.println("");
+    Serial.print(F("+ Counter, EXAMINE NEXT, switched."));
 #endif
+    counterAddress ++;
+    clockCounterRead(counterAddress);
   }
   // -------------------
   if (pcfControl.readButton(pinDeposit) == 0) {
@@ -5628,22 +5700,11 @@ void clockCounterControls() {
   } else if (switchDeposit) {
     switchDeposit = false;
     // Switch logic.
-    counterData = toggleData();
-    String sfbFilename = getCfbFilename(counterAddress);
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Counter, DEPOSIT, switched. Data filename = "));
-    Serial.print(sfbFilename);
-    Serial.print(F(", file data byte="));
-    printByte(counterData);
-    Serial.print(F("="));
-    Serial.print(counterData);
-    Serial.println("");
+    Serial.print(F("+ Counter, DEPOSIT, switched."));
 #endif
-    if (!writeFileByte(sfbFilename, counterData)) {
-      Serial.println("- Failed to write sound file: ");
-    }
-    counterStatus = MEMR_ON | STACK_ON | INP_ON | WO_ON | HLTA_ON;
-    counterLights();
+    counterData = toggleData();
+    clockCounterWrite(counterAddress, counterData);
   }
   // -------------------
   if (pcfControl.readButton(pinDepositNext) == 0) {
@@ -5653,23 +5714,12 @@ void clockCounterControls() {
   } else if (switchDepositNext) {
     switchDepositNext = false;
     // Switch logic
-    counterData = toggleData();
-    counterAddress++;
-    String sfbFilename = getCfbFilename(counterAddress);
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Counter, DEPOSIT NEXT, switched. Data filename = "));
-    Serial.print(sfbFilename);
-    Serial.print(F(", file data byte="));
-    printByte(counterData);
-    Serial.print(F("="));
-    Serial.print(counterData);
-    Serial.println("");
+    Serial.print(F("+ Counter, DEPOSIT NEXT, switched."));
 #endif
-    if (!writeFileByte(sfbFilename, counterData)) {
-      Serial.println("- Failed to write sound file: ");
-    }
-    counterStatus = MEMR_ON | STACK_ON | INP_ON | WO_ON | HLTA_ON;
-    counterLights();
+    counterAddress++;
+    counterData = toggleData();
+    clockCounterWrite(counterAddress, counterData);
   }
   // -------------------
   if (pcfControl.readButton(pinReset) == 0) {
@@ -5683,10 +5733,7 @@ void clockCounterControls() {
     Serial.println(F("+ Counter, Reset counter to 0 and Load byte value."));
 #endif
     counterAddress = 0;
-    String sfbFilename = getCfbFilename(counterAddress);
-    counterData = readFileByte(sfbFilename);
-    counterStatus = MEMR_ON | STACK_ON | INP_ON | HLTA_ON;
-    counterLights();
+    clockCounterRead(counterAddress);
   }
   // ------------------------
 #ifdef DESKTOP_MODULE
