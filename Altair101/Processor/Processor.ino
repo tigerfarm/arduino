@@ -5422,9 +5422,12 @@ void clockTimerControls() {
     switchAux2up = false;
     // Switch logic.
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Clock Timer, AUX2 up, switched."));
+    Serial.print(F("+ Clock Timer, AUX2 up, switched. Enter counter mode."));
     Serial.println("");
 #endif
+    clockState = CLOCK_COUNTER;
+    digitalWrite(WAIT_PIN, HIGH);
+    counterLights();
   }
   // ------------------------
 #ifdef DESKTOP_MODULE
