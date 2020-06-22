@@ -295,7 +295,7 @@
   + AUX2 up       Not implemented.
   + AUX2 Down     Toggle clock timer mode on.
   -----------
-  Clock Timer mode,
+  Clock Timer mode, clockRunTimer()
   + Status        MEMR : Timer values set.
   + Status        INP  : Ready for timer value inputs.
   + Status        M1   : Timer running.
@@ -335,6 +335,7 @@
   + AUX2 up       Not implemented.
   + AUX2 Down     Toggle clock timer mode off, return to clock mode.
   -----------
+  Clock Counter mode, clockCounterControls()
 
   User guide, Clock Timer,
   + Must be in clock mode.
@@ -5164,7 +5165,7 @@ void checkClockControls() {
     switchAux2up = false;
     // Switch logic.
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Clock, AUX2 up, switched. Enter clock timer mode."));
+    Serial.print(F("+ Clock, AUX2 up, switched. Enter counter mode."));
     Serial.println("");
 #endif
     clockState = CLOCK_COUNTER;
@@ -5452,11 +5453,11 @@ void clockTimerControls() {
 // ---------------------------------------------------------
 // For managing file counters.
 
-uint8_t counterAddresstus = B10000000;   // MEMR_ON
+uint8_t counterStatus = B10000000;   // MEMR_ON
 uint8_t counterData = 0;
 uint16_t counterAddress = 0;
 void counterLights() {
-  lightsStatusAddressData(counterAddresstus, counterAddress, counterData);
+  lightsStatusAddressData(counterStatus, counterAddress, counterData);
 }
 String getCfbFilename(byte fileByte) {
   // CFB: Count File Byte.
@@ -5510,7 +5511,7 @@ void clockCounterControls() {
       counterAddress --;
       String sfbFilename = getCfbFilename(counterAddress);
       counterData = readFileByte(sfbFilename);
-      counterAddresstus = MEMR_ON | INP_ON | HLTA_ON;
+      counterStatus = STACK_ON | INP_ON | HLTA_ON;
       counterLights();
 #ifdef SWITCH_MESSAGES
       Serial.print(F("+ Counter, STEP Down, switched. Data filename = "));
@@ -5543,7 +5544,7 @@ void clockCounterControls() {
     Serial.print(counterData);
     Serial.println("");
 #endif
-    counterAddresstus = MEMR_ON | INP_ON | HLTA_ON;
+    counterStatus = STACK_ON | INP_ON | HLTA_ON;
     counterLights();
   }
   // -------------------
@@ -5557,7 +5558,7 @@ void clockCounterControls() {
     counterAddress ++;
     String sfbFilename = getCfbFilename(counterAddress);
     counterData = readFileByte(sfbFilename);
-    counterAddresstus = MEMR_ON | INP_ON | HLTA_ON;
+    counterStatus = STACK_ON | INP_ON | HLTA_ON;
     counterLights();
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Counter, EXAMINE NEXT, switched. Data filename = "));
@@ -5591,7 +5592,7 @@ void clockCounterControls() {
     if (!writeFileByte(sfbFilename, counterData)) {
       Serial.println("- Failed to write sound file: ");
     }
-    counterAddresstus = MEMR_ON | INP_ON | WO_ON | HLTA_ON;
+    counterStatus = STACK_ON | INP_ON | WO_ON | HLTA_ON;
     counterLights();
   }
   // -------------------
@@ -5617,7 +5618,7 @@ void clockCounterControls() {
     if (!writeFileByte(sfbFilename, counterData)) {
       Serial.println("- Failed to write sound file: ");
     }
-    counterAddresstus = MEMR_ON | INP_ON | WO_ON | HLTA_ON;
+    counterStatus = STACK_ON | INP_ON | WO_ON | HLTA_ON;
     counterLights();
   }
   // -------------------
@@ -5631,11 +5632,10 @@ void clockCounterControls() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ Counter, Reset. Load sound bite index array."));
 #endif
-    for (int i = 0; i < maxSoundEffects; i++) {
-      soundEffects[i] = readFileByte(getCfbFilename(i));
-    }
-    ledFlashSuccess();
-    counterAddresstus = MEMR_ON | WO_ON | HLTA_ON;
+    counterData = 0;
+    String sfbFilename = getCfbFilename(counterAddress);
+    counterData = readFileByte(sfbFilename);
+    counterStatus = STACK_ON | INP_ON | HLTA_ON;
     counterLights();
   }
   // ------------------------
