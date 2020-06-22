@@ -5453,7 +5453,8 @@ void clockTimerControls() {
 // ---------------------------------------------------------
 // For managing file counters.
 
-uint8_t counterStatus = B10000000;   // MEMR_ON
+// uint8_t counterStatus = B00000000;   // MEMR_ON
+uint8_t counterStatus = STACK_ON;   // MEMR_ON
 uint8_t counterData = 0;
 uint16_t counterAddress = 0;
 void counterLights() {
@@ -5630,9 +5631,9 @@ void clockCounterControls() {
     switchReset = false;
     // Switch logic
 #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Counter, Reset. Load sound bite index array."));
+    Serial.println(F("+ Counter, Reset counter to 0 and Load byte value."));
 #endif
-    counterData = 0;
+    counterAddress = 0;
     String sfbFilename = getCfbFilename(counterAddress);
     counterData = readFileByte(sfbFilename);
     counterStatus = STACK_ON | INP_ON | HLTA_ON;
@@ -5674,11 +5675,12 @@ void clockCounterControls() {
     switchAux2down = false;
     // Switch logic.
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Counter, AUX2 down, switched. Exit player file mode."));
+    Serial.print(F("+ Counter, AUX2 down, switched. Enter clock timer mode."));
     Serial.println("");
 #endif
-    clockState = CLOCK_TIME;
-    displayTheTime(theCounterMinutes, theCounterHours);
+    clockState = CLOCK_TIMER;
+    timerStatus = timerStatus & M1_OFF;
+    lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
   }
 }
 
