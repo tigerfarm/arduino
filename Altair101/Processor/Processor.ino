@@ -39,6 +39,8 @@
   processData()               Control processing instruction set of opcodes.
   processOpcode()             Process opcode instruction machine cycle one (M1): fetch opcode and process it.
   processOpcodeData()         Process opcode machine cycles greater than 1: immediate byte or address.
+  B11011011                   IN opcode
+  B11100011                   OUT opcode
   ----------------------------
   Front Panel toggle switch controls and data entry events
   initSdcard()                SD card module functions
@@ -71,7 +73,9 @@
   syncCountWithClock()
   clockTimerRun(theTimerMinute)
   checkClockControls()
+  clockTimerRun(theTimerMinute)               Call from OUT opcde.
   clockTimerControls()
+  clockCounterControlsOut(theCounterIndex)    Call from OUT opcde.
   clockCounterControls()
   checkClockSwitch()
   clockRun()
@@ -110,7 +114,9 @@
   + 1000    Run timer followed by playing a sound file.
             Address 1 is timer number of minutes.
             Address 5 is the MP3 file number, that plays after the timer.
-  + 1001    Run to turn off the program playing of a MP3 file.
+  + 1001    Turn off program playing an MP3 file.
+  + 1010    Increment a counter.
+  + 1011    Enter counter mode and display counter value for counter index in register A.
   -----------------
   + 1110    Program list, requires LCD
   + 1111    Start up program. Play MP3 while NOPs are processing,then HLT when the MP3 is finished.
@@ -118,9 +124,10 @@
   + 10000   (A12 switch) Current test program.
 
   Common opcodes:
-  + B00000000 NOP, my NOP instruction has a delay: delay(100).
-  + B01110110 HLT
+  + B00000000 000 NOP, my NOP instruction has a delay: delay(100).
+  + B01110110 166 HLT
   + B11000011 JMP <address, low byte followed by high byte>
+  + B11100011 343 OUT
   +       076 MVI A,<immediate value>
   -----------------
   +       343 OUT <port#>
@@ -131,7 +138,19 @@
   +       015 13  Port# to flash error light sequence.
   +       052 42  Port# to flash success light sequence.
   -----------------
-  + Example to add an OUT opcode option to play an MP3 file.
+  + Enter counter mode and display counter value for counter index in register A.
+  +       076 MVI A,<immediate value>
+  +       006  6  Counter# 6 into register A.
+  +       343 OUT <port#>
+  +       031 25  Port# to increment a counter.
+  -----------------
+  + Increment a counter.
+  +       076 MVI A,<immediate value>
+  +       006  6  Counter# 6 into register A.
+  +       343 OUT <port#>
+  +       025 21  Port# to increment a counter.
+  -----------------
+  + Add an OUT opcode option to play an MP3 file.
           // MVI A, <file#>
           // OUT 11   ; Use out 11 is for looping. 10 is for single play.
           //  ++ Address:oct > description
@@ -730,6 +749,15 @@ void playerPlaySound(int theFileNumber) {
   }
   // Serial.println("");
 }
+
+// -----------------------
+// File counter variables.
+
+// uint8_t counterStatus = MEMR_ON | STACK_ON;   // MEMR_ON
+// uint8_t counterData = 0;
+uint8_t counterStatus = B10000000 | B10000100;   // MEMR_ON | STACK_ON
+uint8_t counterData = 0;
+uint16_t counterAddress = 0;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -3316,6 +3344,9 @@ void processOpcodeData() {
         regA = toggleSense();
       } else if (dataByte == 1) {
         regA = hwStatus;
+      } else if (dataByte == 21) {
+        clockCounterRead(counterAddress);
+        regA = counterData;
       } else if (dataByte == 0) {
         regA = 0; // Input not implemented on this port.
       } else {
@@ -3751,6 +3782,16 @@ void processOpcodeData() {
         case 20:
           Serial.print(F(" > Run a timer for the number of minutes in register A."));
           clockTimerRun(regA);
+          break;
+        case 21:
+          Serial.print(F(" > Increment register A file counter."));
+          clockCounterRead(regA);
+          counterData++;
+          clockCounterWrite(regA, counterData);
+          break;
+        case 25:
+          Serial.print(F(" > Enter counter mode and display counter value for counter index in register A."));
+          clockCounterControlsOut(regA);
           break;
         // ---------------------------------------
         case 30:
@@ -5007,6 +5048,7 @@ boolean clockTimerSecondsOn = false;
 int clockTimerCountBit;
 
 void clockTimerRun(int theTimerMinute) {
+  // Can be called from processor OUT opcode.
   digitalWrite(HLDA_PIN, HIGH);
   timerMinute = theTimerMinute;
   clockSetTimer(timerMinute);
@@ -5017,17 +5059,7 @@ void clockTimerRun(int theTimerMinute) {
   digitalWrite(HLDA_PIN, LOW);
 }
 void clockRunTimerControls() {
-  // Timer options
-  // -------------------
-  if (pcfControl.readButton(pinStop) == 0) {
-    if (!switchStop) {
-      switchStop = true;
-    }
-  } else if (switchStop) {
-    switchStop = false;
-    // Switch logic
-    timerStatus = timerStatus & M1_OFF;
-  }
+  // Timer options when started from OUT opcode call.
   // -------------------
   if (pcfControl.readButton(pinReset) == 0) {
     if (!switchReset) {
@@ -5037,6 +5069,22 @@ void clockRunTimerControls() {
     switchReset = false;
     // Switch logic
     clockSetTimer(timerMinute);
+  }
+  // ------------------------
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux2down) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux2down) {
+      switchAux2down = true;
+      // Serial.print(F("+ Clock, AUX2 down switch pressed..."));
+    }
+  } else if (switchAux2down) {
+    switchAux2down = false;
+    // Switch logic.
+    timerStatus = timerStatus & M1_OFF;
   }
   // -------------------
 }
@@ -5524,9 +5572,9 @@ void clockTimerControls() {
 // ---------------------------------------------------------
 // Manage file counters.
 
-uint8_t counterStatus = MEMR_ON | STACK_ON;   // MEMR_ON
-uint8_t counterData = 0;
-uint16_t counterAddress = 0;
+// uint8_t counterStatus = MEMR_ON | STACK_ON;   // MEMR_ON
+// uint8_t counterData = 0;
+// uint16_t counterAddress = 0;
 void counterLights() {
   lightsStatusAddressData(counterStatus, counterAddress, counterData);
 }
@@ -5579,6 +5627,32 @@ void clockCounterWrite(int counterAddress, byte counterData) {
     counterStatus = MEMR_ON | STACK_ON | INP_ON | WO_ON | HLTA_ON;
   }
   counterLights();
+}
+boolean counterControlDisplay = true;
+void clockCounterControlsOut(int theCounterAddress) {
+  // Can be called from processor OUT opcode.
+  digitalWrite(HLDA_PIN, HIGH);
+  counterControlDisplay = true;
+  counterAddress = theCounterAddress;
+  clockCounterRead(theCounterAddress);
+  while (counterControlDisplay) {
+    /*
+      }
+      // -------------------
+      if (pcfAux.readButton(pinAux2up) == 0) {
+      if (!switchAux2up) {
+        switchAux2up = true;
+      }
+      } else if (switchAux2up) {
+      switchAux2up = false;
+      // Switch logic
+      counterControlDisplay = false;
+      }
+      // -------------------
+    */
+    clockCounterControls();
+  }
+  digitalWrite(HLDA_PIN, LOW);
 }
 void clockCounterControls() {
   // -------------------
@@ -5753,8 +5827,12 @@ void clockCounterControls() {
     Serial.print(F("+ Counter, AUX2 up, switched."));
     Serial.println("");
 #endif
-    clockState = CLOCK_TIME;
-    displayTheTime(theCounterMinutes, theCounterHours);
+    if (programState=PROGRAM_RUN) {
+      counterControlDisplay = false;
+    } else {
+      clockState = CLOCK_TIME;
+      displayTheTime(theCounterMinutes, theCounterHours);
+    }
   }
   // ------------------------
 #ifdef DESKTOP_MODULE
