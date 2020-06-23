@@ -16,6 +16,8 @@
   -----------------------------------------------------------------------------
   Work to do,
 
+  Cleanup AUX for player and clock modes.
+
   readProgramFileIntoMemory: Reset to 0 after reading bytes into processor memory.
   + In program, after loading a program, set back to program counter 0 (reset).
 
@@ -71,9 +73,8 @@
   ------------------------
   // Clock Front Panel Switch Functions.
   syncCountWithClock()
-  clockTimerRun(theTimerMinute)
   checkClockControls()
-  clockTimerRun(theTimerMinute)               Call from OUT opcde.
+  clockRunTimerControlsOut(theTimerMinute)               Call from OUT opcde.
   clockTimerControls()
   clockCounterControlsOut(theCounterIndex)    Call from OUT opcde.
   clockCounterControls()
@@ -3781,7 +3782,7 @@ void processOpcodeData() {
         // ---------------------------------------
         case 20:
           Serial.print(F(" > Run a timer for the number of minutes in register A."));
-          clockTimerRun(regA);
+          clockRunTimerControlsOut(regA);
           break;
         case 21:
           Serial.print(F(" > Increment register A file counter."));
@@ -5047,47 +5048,30 @@ unsigned long clockTimerSeconds;
 boolean clockTimerSecondsOn = false;
 int clockTimerCountBit;
 
-void clockTimerRun(int theTimerMinute) {
+void clockRunTimerControlsOut(int theTimerMinute) {
   // Can be called from processor OUT opcode.
   digitalWrite(HLDA_PIN, HIGH);
   timerMinute = theTimerMinute;
   clockSetTimer(timerMinute);
-  while (timerStatus & M1_ON) {
+  boolean thisMode = true;
+  while (thisMode) {
     clockRunTimer();
-    clockRunTimerControls();     // Clock and timer controls
+    clockTimerControls();         // Clock and timer controls, No AUX controls.
+    // ------------------------
+    // AUX option to exit counter mode.
+    if (pcfAux.readButton(pinAux2down) == 0) {
+      if (!switchAux2down) {
+        switchAux2down = true;
+      }
+    } else if (switchAux2down) {
+      switchAux2down = false;
+      thisMode = false;
+    }
+    // ------------------------
   }
   digitalWrite(HLDA_PIN, LOW);
 }
-void clockRunTimerControls() {
-  // Timer options when started from OUT opcode call.
-  // -------------------
-  if (pcfControl.readButton(pinReset) == 0) {
-    if (!switchReset) {
-      switchReset = true;
-    }
-  } else if (switchReset) {
-    switchReset = false;
-    // Switch logic
-    clockSetTimer(timerMinute);
-  }
-  // ------------------------
-#ifdef DESKTOP_MODULE
-  if (pcfAux.readButton(pinAux2down) == 0) {
-#else
-  // Tablet:
-  if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
-#endif
-    if (!switchAux2down) {
-      switchAux2down = true;
-      // Serial.print(F("+ Clock, AUX2 down switch pressed..."));
-    }
-  } else if (switchAux2down) {
-    switchAux2down = false;
-    // Switch logic.
-    timerStatus = timerStatus & M1_OFF;
-  }
-  // -------------------
-}
+
 void clockSetTimer(int timerMinute) {
   //
   // Set parameters before starting the timere.
@@ -5523,6 +5507,9 @@ void clockTimerControls() {
     Serial.println(timerDataAddress);
 #endif
   }
+}
+
+void clockTimerAux() {
   // ------------------------
 #ifdef DESKTOP_MODULE
   if (pcfAux.readButton(pinAux2up) == 0) {
@@ -5572,9 +5559,6 @@ void clockTimerControls() {
 // ---------------------------------------------------------
 // Manage file counters.
 
-// uint8_t counterStatus = MEMR_ON | STACK_ON;   // MEMR_ON
-// uint8_t counterData = 0;
-// uint16_t counterAddress = 0;
 void counterLights() {
   lightsStatusAddressData(counterStatus, counterAddress, counterData);
 }
@@ -5592,7 +5576,6 @@ String getCfbFilename(byte fileByte) {
   }
   return theFilename;
 }
-
 void clockCounterRead(int counterAddress) {
   String sfbFilename = getCfbFilename(counterAddress);
   counterData = readFileByte(sfbFilename);
@@ -5628,32 +5611,30 @@ void clockCounterWrite(int counterAddress, byte counterData) {
   }
   counterLights();
 }
-boolean counterControlDisplay = true;
+
 void clockCounterControlsOut(int theCounterAddress) {
   // Can be called from processor OUT opcode.
   digitalWrite(HLDA_PIN, HIGH);
-  counterControlDisplay = true;
   counterAddress = theCounterAddress;
   clockCounterRead(theCounterAddress);
-  while (counterControlDisplay) {
-    /*
-      }
-      // -------------------
-      if (pcfAux.readButton(pinAux2up) == 0) {
+  boolean thisMode = true;
+  while (thisMode) {
+    clockCounterControls();         // No AUX controls.
+    // ------------------------
+    // AUX option to exit this mode.
+    if (pcfAux.readButton(pinAux2up) == 0) {
       if (!switchAux2up) {
         switchAux2up = true;
       }
-      } else if (switchAux2up) {
+    } else if (switchAux2up) {
       switchAux2up = false;
-      // Switch logic
-      counterControlDisplay = false;
-      }
-      // -------------------
-    */
-    clockCounterControls();
+      thisMode = false;
+    }
+    // ------------------------
   }
   digitalWrite(HLDA_PIN, LOW);
 }
+
 void clockCounterControls() {
   // -------------------
   if (pcfControl.readButton(pinStop) == 0) {
@@ -5809,6 +5790,9 @@ void clockCounterControls() {
     counterAddress = 0;
     clockCounterRead(counterAddress);
   }
+}
+
+void clockCounterAux() {
   // ------------------------
 #ifdef DESKTOP_MODULE
   if (pcfAux.readButton(pinAux2up) == 0) {
@@ -5827,12 +5811,8 @@ void clockCounterControls() {
     Serial.print(F("+ Counter, AUX2 up, switched."));
     Serial.println("");
 #endif
-    if (programState=PROGRAM_RUN) {
-      counterControlDisplay = false;
-    } else {
-      clockState = CLOCK_TIME;
-      displayTheTime(theCounterMinutes, theCounterHours);
-    }
+    clockState = CLOCK_TIME;
+    displayTheTime(theCounterMinutes, theCounterHours);
   }
   // ------------------------
 #ifdef DESKTOP_MODULE
@@ -5902,24 +5882,26 @@ void clockRun() {
       // ----------------------------
       case CLOCK_TIME:
         processClockNow();
-        checkClockControls();     // Clock and timer controls.
-        // Control buttons for setting the time.
-        // checkExamineButton();
-        // checkExamineNextButton();
-        // checkDepositButton();
-        // checkDepositNextButton();
+        checkClockControls();
         break;
       case CLOCK_TIMER:
-        clockTimerControls();     // Clock and timer controls.
+        clockTimerControls();
+        clockTimerAux();
         if (timerStatus & M1_ON) {
           // Timer is running when timerStatus: M1_ON.
           clockRunTimer();
         }
         break;
       case CLOCK_SET:
+        // Control buttons for setting the time.
+        // checkExamineButton();
+        // checkExamineNextButton();
+        // checkDepositButton();
+        // checkDepositNextButton();
         break;
       case CLOCK_COUNTER:
         clockCounterControls();
+        clockCounterAux();
         break;
     }
     checkClockSwitch();           // Option to exit clock mode.
