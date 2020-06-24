@@ -16,10 +16,7 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  Cleanup AUX for player and clock modes.
-
-  readProgramFileIntoMemory: Reset to 0 after reading bytes into processor memory.
-  + In program, after loading a program, set back to program counter 0 (reset).
+  Cleanup AUX logic for player and clock modes.
 
   Should auto exit after bytes are downloaded from the serial port.
 
@@ -70,6 +67,7 @@
   controlResetLogic()
   checkRunningButtons()
   checkControlButtons()
+  checkAux1();                Toggle between processor, clock, and player modess.
   ------------------------
   // Clock Front Panel Switch Functions.
   syncCountWithClock()
@@ -89,7 +87,6 @@
   checkProtectSetVolume()
   checkPlayerControls()
   checkPlayerFileControls()
-  checkPlayerSwitch()
   printDFPlayerMessage(uint8_t type, int value)
   playMp3()
   playerRun()
@@ -210,15 +207,15 @@
   + AUX2 up     Double flip to write processor memory to file.
   + AUX2 Down   Read file into processor memory.
   When in clock mode,
-  + AUX1 up     Toggle clock mode off, return to processor mode.
+  + AUX1 up     Enter processor mode.
   + AUX1 Down   Toggle MP3 player mode on.
-  + AUX2 up     Not implemented.
-  + AUX2 Down   Toggle clock timer mode on.
+  + AUX2 up     Enter timer mode.
+  + AUX2 Down   Enter counter mode.
   When in clock timer mode,
-  + AUX1 up     Toggle clock mode off, return to processor mode.
+  + AUX1 up     Enter processor mode.
   + AUX1 Down   Toggle MP3 player mode on.
-  + AUX2 up     Not implemented.
-  + AUX2 Down   Toggle clock timer mode off, return to clock mode.
+  + AUX2 up     Enter clock mode.
+  + AUX2 Down   Enter counter mode.
   When in player mode,
   + AUX1 up     Toggle clock mode on.
   + AUX1 Down   Toggle MP3 player mode off, return to processor mode.
@@ -4777,6 +4774,69 @@ void checkControlButtons() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+void checkAux1() {
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux1up) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(CLOCK_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux1up) {
+      switchAux1up = true;
+      // Serial.print(F("+ pinAux1up switch pressed..."));
+    }
+  } else if (switchAux1up) {
+    switchAux1up = false;
+    // Switch logic.
+    if (programState == CLOCK_RUN) {
+      Serial.println(F("+ Exit clock mode, return to the Altair 8800 emulator."));
+      programState = PROGRAM_WAIT;
+      digitalWrite(HLDA_PIN, LOW);
+      digitalWrite(WAIT_PIN, HIGH);
+      programLights();                // Restore the front panel lights.
+    } else {
+      Serial.println(F("+ Clock mode."));
+      programState = CLOCK_RUN;
+      digitalWrite(HLDA_PIN, HIGH);
+      digitalWrite(WAIT_PIN, LOW);
+      lightsStatusAddressData(0, 0, 0);  // Clear the front panel lights.
+    }
+  }
+  // -----------------------
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux1down) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(PLAYER_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux1down) {
+      switchAux1down = true;
+      // Serial.print(F("+ AUX1 down switch pressed..."));
+    }
+  } else if (switchAux1down) {
+    switchAux1down = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ AUX1 down, Upload Switched."));
+#endif
+    if (programState == PLAYER_RUN) {
+      Serial.println(F("+ Exit player mode, return to processor mode."));
+      programState = PROGRAM_WAIT;
+      digitalWrite(HLDA_PIN, LOW);
+      digitalWrite(WAIT_PIN, HIGH);
+      programLights();                // Restore the front panel lights.
+    } else {
+      Serial.println(F("+ MP3 player mode."));
+      programState = PLAYER_RUN;
+      digitalWrite(HLDA_PIN, HIGH);
+      digitalWrite(WAIT_PIN, LOW);
+      playerState = PLAYER_MP3;       // Default to MP3 player state.
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Clock Section
 
 void syncCountWithClock() {
@@ -5059,12 +5119,12 @@ void clockRunTimerControlsOut(int theTimerMinute) {
     clockTimerControls();         // Clock and timer controls, No AUX controls.
     // ------------------------
     // AUX option to exit counter mode.
-    if (pcfAux.readButton(pinAux2down) == 0) {
-      if (!switchAux2down) {
-        switchAux2down = true;
+    if (pcfAux.readButton(pinAux2up) == 0) {
+      if (!switchAux2up) {
+        switchAux2up = true;
       }
-    } else if (switchAux2down) {
-      switchAux2down = false;
+    } else if (switchAux2up) {
+      switchAux2up = false;
       thisMode = false;
     }
     // ------------------------
@@ -5223,48 +5283,67 @@ void checkClockControls() {
     displayTheTime(theCounterMinutes, theCounterHours);
   }
   // ------------------------
+}
+
+// -----------------------------------------------------------------------------
+void checkAux2clock() {
 #ifdef DESKTOP_MODULE
   if (pcfAux.readButton(pinAux2up) == 0) {
 #else
   // Tablet:
-  if (digitalRead(UPLOAD_SWITCH_PIN) == LOW) {
+  if (digitalRead(CLOCK_SWITCH_PIN) == LOW) {
 #endif
     if (!switchAux2up) {
       switchAux2up = true;
-      // Serial.print(F("+ Clock, AUX2 up switch pressed..."));
     }
   } else if (switchAux2up) {
     switchAux2up = false;
     // Switch logic.
+    if (clockState == CLOCK_TIME) {
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Clock, AUX2 up, switched. Enter counter mode."));
-    Serial.println("");
+      Serial.println(F("+ AUX2 up. Enter clock timer mode."));
 #endif
-    clockState = CLOCK_COUNTER;
-    digitalWrite(WAIT_PIN, HIGH);
-    counterLights();
+      clockState = CLOCK_TIMER;
+      digitalWrite(WAIT_PIN, HIGH);
+      timerStatus = timerStatus & M1_OFF;
+      lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+    } else {
+#ifdef SWITCH_MESSAGES
+      Serial.println(F("+ AUX2 down. Enter clock mode."));
+#endif
+      clockState = CLOCK_TIME;
+      digitalWrite(WAIT_PIN, LOW);
+      displayTheTime(theCounterMinutes, theCounterHours);
+    }
   }
-  // ------------------------
+  // -----------------------
 #ifdef DESKTOP_MODULE
   if (pcfAux.readButton(pinAux2down) == 0) {
 #else
   // Tablet:
-  if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
+  if (digitalRead(PLAYER_SWITCH_PIN) == LOW) {
 #endif
     if (!switchAux2down) {
       switchAux2down = true;
-      // Serial.print(F("+ Clock, AUX2 down switch pressed..."));
     }
   } else if (switchAux2down) {
     switchAux2down = false;
     // Switch logic.
+    if (clockState == CLOCK_TIME) {
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Clock, AUX2 up, switched. Enter clock timer mode."));
-    Serial.println("");
+      Serial.println(F("+ AUX2 down. Enter clock counter mode."));
 #endif
-    clockState = CLOCK_TIMER;
-    timerStatus = timerStatus & M1_OFF;
-    lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+      clockState = CLOCK_COUNTER;
+      digitalWrite(WAIT_PIN, HIGH);
+      counterLights();
+    } else {
+#ifdef SWITCH_MESSAGES
+      Serial.println(F("+ AUX2 down. Enter clock mode."));
+#endif
+      clockState = CLOCK_TIME;
+      digitalWrite(WAIT_PIN, LOW);
+      displayTheTime(theCounterMinutes, theCounterHours);
+    }
   }
 }
 
@@ -5509,53 +5588,6 @@ void clockTimerControls() {
   }
 }
 
-void clockTimerAux() {
-  // ------------------------
-#ifdef DESKTOP_MODULE
-  if (pcfAux.readButton(pinAux2up) == 0) {
-#else
-  // Tablet:
-  if (digitalRead(UPLOAD_SWITCH_PIN) == LOW) {
-#endif
-    if (!switchAux2up) {
-      switchAux2up = true;
-      // Serial.print(F("+ Clock Timer, AUX2 up switch pressed..."));
-    }
-  } else if (switchAux2up) {
-    switchAux2up = false;
-    // Switch logic.
-#ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Clock Timer, AUX2 up, switched. Enter counter mode."));
-    Serial.println("");
-#endif
-    clockState = CLOCK_COUNTER;
-    digitalWrite(WAIT_PIN, HIGH);
-    counterLights();
-  }
-  // ------------------------
-#ifdef DESKTOP_MODULE
-  if (pcfAux.readButton(pinAux2down) == 0) {
-#else
-  // Tablet:
-  if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
-#endif
-    if (!switchAux2down) {
-      switchAux2down = true;
-      // Serial.print(F("+ Clock Timer, AUX2 down switch pressed..."));
-    }
-  } else if (switchAux2down) {
-    switchAux2down = false;
-    // Switch logic.
-#ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Clock Timer, AUX2 up, switched. Exit clock timer mode, back to clock mode."));
-    Serial.println("");
-#endif
-    clockState = CLOCK_TIME;
-    displayTheTime(theCounterMinutes, theCounterHours);
-  }
-}
-
-
 // ---------------------------------------------------------
 // Manage file counters.
 
@@ -5622,12 +5654,12 @@ void clockCounterControlsOut(int theCounterAddress) {
     clockCounterControls();         // No AUX controls.
     // ------------------------
     // AUX option to exit this mode.
-    if (pcfAux.readButton(pinAux2up) == 0) {
-      if (!switchAux2up) {
-        switchAux2up = true;
+    if (pcfAux.readButton(pinAux2down) == 0) {
+      if (!switchAux2down) {
+        switchAux2down = true;
       }
-    } else if (switchAux2up) {
-      switchAux2up = false;
+    } else if (switchAux2down) {
+      switchAux2down = false;
       thisMode = false;
     }
     // ------------------------
@@ -5792,83 +5824,6 @@ void clockCounterControls() {
   }
 }
 
-void clockCounterAux() {
-  // ------------------------
-#ifdef DESKTOP_MODULE
-  if (pcfAux.readButton(pinAux2up) == 0) {
-#else
-  // Tablet:
-  if (digitalRead(UPLOAD_SWITCH_PIN) == LOW) {
-#endif
-    if (!switchAux2up) {
-      switchAux2up = true;
-      // Serial.print(F("+ Counter, AUX2 up switch pressed..."));
-    }
-  } else if (switchAux2up) {
-    switchAux2up = false;
-    // Switch logic.
-#ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Counter, AUX2 up, switched."));
-    Serial.println("");
-#endif
-    clockState = CLOCK_TIME;
-    displayTheTime(theCounterMinutes, theCounterHours);
-  }
-  // ------------------------
-#ifdef DESKTOP_MODULE
-  if (pcfAux.readButton(pinAux2down) == 0) {
-#else
-  // Tablet:
-  if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
-#endif
-    if (!switchAux2down) {
-      switchAux2down = true;
-      // Serial.print(F("+ Counter, AUX2 down switch pressed..."));
-    }
-  } else if (switchAux2down) {
-    switchAux2down = false;
-    // Switch logic.
-#ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Counter, AUX2 down, switched. Enter clock timer mode."));
-    Serial.println("");
-#endif
-    clockState = CLOCK_TIMER;
-    timerStatus = timerStatus & M1_OFF;
-    lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
-  }
-}
-
-// ------------------------------------------------
-void checkClockSwitch() {
-#ifdef DESKTOP_MODULE
-  if (pcfAux.readButton(pinAux1up) == 0) {
-#else
-  // Tablet:
-  if (digitalRead(CLOCK_SWITCH_PIN) == LOW) {
-#endif
-    if (!switchAux1up) {
-      switchAux1up = true;
-      // Serial.print(F("+ pinAux1up switch pressed..."));
-    }
-  } else if (switchAux1up) {
-    switchAux1up = false;
-    // Switch logic.
-    if (programState == CLOCK_RUN) {
-      Serial.println(F("+ Return to the Altair 8800 emulator."));
-      programState = PROGRAM_WAIT;
-      digitalWrite(HLDA_PIN, LOW);
-      digitalWrite(WAIT_PIN, HIGH);
-      programLights();                // Restore the front panel lights.
-    } else {
-      Serial.println(F("+ Clock mode."));
-      programState = CLOCK_RUN;
-      digitalWrite(HLDA_PIN, HIGH);
-      digitalWrite(WAIT_PIN, LOW);
-      lightsStatusAddressData(0, 0, 0);  // Clear the front panel lights.
-    }
-  }
-}
-
 // -----------------------------------------------------
 void clockRun() {
   Serial.println(F("+ clockRun()"));
@@ -5886,7 +5841,6 @@ void clockRun() {
         break;
       case CLOCK_TIMER:
         clockTimerControls();
-        clockTimerAux();
         if (timerStatus & M1_ON) {
           // Timer is running when timerStatus: M1_ON.
           clockRunTimer();
@@ -5900,12 +5854,11 @@ void clockRun() {
         // checkDepositNextButton();
         break;
       case CLOCK_COUNTER:
-        clockCounterControls();
-        clockCounterAux();
+        clockCounterControls();        
         break;
     }
-    checkClockSwitch();           // Option to exit clock mode.
-    checkPlayerSwitch();          // If AUX1 is flipped down, switch to player mode.
+    checkAux1();          // Toggle between processor, clock, and player modes.
+    checkAux2clock();     // Toggle between processor, clock, timer, and counter modes.
     checkProtectSetVolume();
     delay(100);
   }
@@ -6071,6 +6024,7 @@ void checkDownloadSwitch() {
       playerPlaySound(READ_FILE);
       ledFlashSuccess();
       delay(1500);                // Delay depends on the time length of the MP3 play time.
+      controlResetLogic();
     }
     digitalWrite(HLDA_PIN, LOW);
   }
@@ -6454,7 +6408,7 @@ void checkPlayerControls() {
     switchAux2down = false;
     // Switch logic.
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Player, AUX2 down, switched. Go into player file mode."));
+    Serial.print(F("+ Player, AUX2 down, switched. Enter player file mode."));
     Serial.println("");
 #endif
     playerState = PLAYER_FILE;
@@ -6694,40 +6648,6 @@ void checkPlayerFileControls() {
   }
 }
 
-// -----------------------
-void checkPlayerSwitch() {
-#ifdef DESKTOP_MODULE
-  if (pcfAux.readButton(pinAux1down) == 0) {
-#else
-  // Tablet:
-  if (digitalRead(PLAYER_SWITCH_PIN) == LOW) {
-#endif
-    if (!switchAux1down) {
-      switchAux1down = true;
-      // Serial.print(F("+ AUX1 down switch pressed..."));
-    }
-  } else if (switchAux1down) {
-    switchAux1down = false;
-    // Switch logic.
-#ifdef SWITCH_MESSAGES
-    Serial.println(F("+ AUX1 down, Upload Switched."));
-#endif
-    if (programState == PLAYER_RUN) {
-      Serial.println(F("+ Return to the Altair 8800 emulator."));
-      programState = PROGRAM_WAIT;
-      digitalWrite(HLDA_PIN, LOW);
-      digitalWrite(WAIT_PIN, HIGH);
-      programLights();                // Restore the front panel lights.
-    } else {
-      Serial.println(F("+ MP3 player mode."));
-      programState = PLAYER_RUN;
-      digitalWrite(HLDA_PIN, HIGH);
-      digitalWrite(WAIT_PIN, LOW);
-      playerState = PLAYER_MP3;       // Default to MP3 player state.
-    }
-  }
-}
-
 // -----------------------------------------
 // DFPlayer configuration and error messages.
 
@@ -6859,14 +6779,13 @@ void playerRun() {
           playMp3();
         }
         checkPlayerControls();      // Player control functions from STOP to UNPROTECT.
-        checkPlayerSwitch();        // Toggle player mode: AUX1 down.
         break;
       case PLAYER_FILE:
         checkPlayerFileControls();  // Player control functions from STOP to UNPROTECT.
         checkProtectSetVolume();
         break;
     }
-    checkClockSwitch();             // If AUX1 is flipped up, change to clock mode.
+    checkAux1();          // Toggle between processor, clock, and player modes.
   }
   playerPlaySound(PLAYER_OFF);
   restoreLcdScreenData();
@@ -7159,8 +7078,7 @@ void loop() {
         checkControlButtons();
         pcfControlinterrupted = false; // Reset for next interrupt.
       }
-      checkClockSwitch();
-      checkPlayerSwitch();
+      checkAux1();          // Toggle between processor, clock, and player modes.
       checkUploadSwitch();
       checkDownloadSwitch();
       checkProtectSetVolume();
