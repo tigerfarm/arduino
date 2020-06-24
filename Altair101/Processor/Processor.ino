@@ -16,10 +16,6 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  Tweek the clock modes status lights.
-  From startup, when counter mode first entered, display the current counter address (0) and data.
-  Done: Cleanup AUX logic for player and clock modes.
-
   Should auto exit after bytes are downloaded from the serial port.
   + Once bytes start to flow, start a timer.
   + If no bytes in 1 second, exit.
@@ -49,7 +45,7 @@
   initSdcard()                SD card module functions
   controlResetLogic()         Processor Switch Functions
   checkClockControls()        Clock Front Panel Switch Functions.
-  checkConfirmUploadSwitch()  SD card processor memory read/write from/into a file.
+  checkUploadSwitch()          SD card processor memory read/write from/into a file.
   checkPlayerControls()       Player Front Panel Control Switch Functions.
   ------------------------
   //  Output Functions
@@ -77,7 +73,7 @@
   syncCountWithClock()
   checkClockControls()
   clockRunTimerControlsOut(theTimerMinute)               Call from OUT opcde.
-  clockTimerControls()
+  checkTimerControls()
   clockCounterControlsOut(theCounterIndex)    Call from OUT opcde.
   clockCounterControls()
   checkClockSwitch()
@@ -342,7 +338,7 @@
   + Address       Display the hour: A1 ... A12,      month,      or century
   + Data          Display the minutes single digit,  day single, or year single
   + Indicator     WAIT : Off.
-  + Indicator     HLDA : On to indicate controlled by other than the program emulator.
+  + Indicator     HLDA : On to indicate controlled by another process, other than the program emulator.
   -----------
   + STOP          Not implemented.
   + RUN           Not implemented.
@@ -359,34 +355,16 @@
   + AUX1 down     MP3 player mode
   + AUX2 up       Toggle clock counter mode.
   + AUX2 Down     Toggle clock timer mode on.
-  -----------
-  Clock Counter mode, clockCounterControls()
-  + STOP          Decrement counter at current address.
-  + RUN           Increment counter at current address.
-  + SINGLE up     Not implemented.
-  + SINGLE dn     Decrement counter address, get the file data byte and display it in the Data lights.
-  + EXAMINE       1. Set address toggles (Data toggles) to the counter file number.
-                  2 Flip EXAMINE, which reads the address toggle (Data toggle) value into Data lights.
-  + EXAMINE NEXT  Increment counter address, get the file data byte and display it in the Data lights.
-  + DEPOSIT       1. Set Data switches to a counter file number.
-                  2. Flip DEPOSIT writes the data byte to the counter address file.
-  + DEPOSIT NEXT  1. Set Data switches to an MP3 file number.
-                  2. Flip DEPOSIT NEXT increments counter address, and writes the data byte to the counter address file.
-  + RESET         Reset counter address to 0, get the file data byte and display it in the Data lights.
-  + CLR           Not implemented.
-  + PROTECT       To do: Decrease volume
-  + UNPROTECT     To do: Increase volume
-  + AUX1 up       Clock mode: show hour and mintues time.
-  + AUX1 down     MP3 player mode
-  + AUX2 up       Not implemented.
-  + AUX2 Down     Toggle clock timer mode off, return to clock mode.
+
   -----------
   Clock Timer mode, clockRunTimer()
-  + Status        MEMR : Timer values set.
-  + Status        INP  : Ready for timer value inputs.
+  + Status        INP  : Timer indicator, ready for timer value input.
   + Status        M1   : Timer running.
-  + Address       Displays the timer minite: A1 ... A15.
-  + Data          Displays the time step 1) Set timer mode, 2) Set timer minute, 3. Run the timer
+  + Status        HLTA : Timer run is completed.
+  + Address       Displays the timer minite: A1 ... A15. And flashing counter minute when running.
+  + Data          If using an array of times, displays which array time is running.
+  + Indicator     WAIT : On.
+  + Indicator     HLDA : On, non-processor mode, clock timer mode.
   -----------
   + STOP          Stop clock timer.
   + RUN           1. Set the timer minutes using the address toggles: A1 is 1 minute, A2 is 2 minutes, ... 15 minutes.
@@ -459,6 +437,36 @@
   ++ Timer array value is displayed in the Address lights(A3:3 minutes).
   + Flip RUN, and the timer starts.
 
+  -----------
+  Clock Counter mode, clockCounterControls()
+  + Status        MEMR  : Counter indicator.
+  + Status        STACK : Counter indicator.
+  + Status        INP   : On after a read, for example, an EXAMINE flip. Else off.
+  + Status        WO    : On after a write, for example, a STOP, RUN, or DEPOSIT flip. Else off.
+  + Address       Counter index value.
+  + Data          Counter data value.
+  + Indicator     WAIT : On.
+  + Indicator     HLDA : On, non-processor mode, clock counter mode.
+  -----------
+  + STOP          Decrement counter value at current address, and update in display.
+  + RUN           Increment counter value at current address, and update in display.
+  + SINGLE up     Not implemented.
+  + SINGLE dn     Decrement counter address, and display counter address and file data byte.
+  + EXAMINE       1. Set address toggles (Data toggles) to the counter file number.
+                  2 Flip EXAMINE, read and display the address toggle (Data toggle) value into data value.
+  + EXAMINE NEXT  Increment counter address, get the file data byte and display it in the Data lights.
+  + DEPOSIT       1. Set Data switches to a counter file number.
+                  2. Flip DEPOSIT writes the data byte to the counter address file.
+  + DEPOSIT NEXT  1. Set Data switches to an MP3 file number.
+                  2. Flip DEPOSIT NEXT increments counter address, and writes the data byte to the counter address file.
+  + RESET         Reset counter address to 0, get the file data byte and display it in the Data lights.
+  + CLR           Not implemented.
+  + PROTECT       To do: Decrease volume
+  + UNPROTECT     To do: Increase volume
+  + AUX1 up       Clock mode: show hour and mintues time.
+  + AUX1 down     MP3 player mode
+  + AUX2 up       Not implemented.
+  + AUX2 Down     Toggle clock timer mode off, return to clock mode.
   ------------------------------------------------------------------------------
   MP3 Player mode, playerRun(),
   + MP3 addressable files is 255.
@@ -755,8 +763,7 @@ void playerPlaySound(int theFileNumber) {
 // -----------------------
 // File counter variables.
 
-// uint8_t counterStatus = MEMR_ON | STACK_ON;   // MEMR_ON
-// uint8_t counterData = 0;
+// uint8_t counterStatus = MEMR_ON | STACK_ON;
 uint8_t counterStatus = B10000000 | B10000100;   // MEMR_ON | STACK_ON
 uint8_t counterData = 0;
 uint16_t counterAddress = 0;
@@ -1534,10 +1541,11 @@ void processData() {
   if (opcode == 0) {
     // Instruction machine cycle 1 (M1 cycle), fetch the opcode.
     instructionCycle = 1;
-    // statusByte = MEMR_ON | M1_ON | WO_ON;
-    statusByte = statusByte | MEMR_ON;
-    statusByte = statusByte | M1_ON;
-    statusByte = statusByte | WO_ON;
+    statusByte = MEMR_ON | M1_ON | WO_ON;
+    // statusByte = statusByte | MEMR_ON;
+    // statusByte = statusByte | M1_ON;
+    // statusByte = statusByte | WO_ON;
+    //
     // If no parameter bytes (immediate data byte or address bytes), process the opcode.
     // Else, the opcode variable is set to the opcode byte value.
     processOpcode();
@@ -5120,7 +5128,7 @@ void clockRunTimerControlsOut(int theTimerMinute) {
   boolean thisMode = true;
   while (thisMode) {
     clockRunTimer();
-    clockTimerControls();         // Clock and timer controls, No AUX controls.
+    checkTimerControls();         // Clock and timer controls, No AUX controls.
     // ------------------------
     // AUX option to exit counter mode.
     if (pcfAux.readButton(pinAux2up) == 0) {
@@ -5174,8 +5182,10 @@ void clockRunTimer() {
     clockTimer = millis();
     clockTimerCount++;
     if (clockTimerCount >= timerMinute ) {
+      //
       // -----------------------------------------
-      // When the timer is complete, play a sound, flash some lights and return to clock mode.
+      // *** Timer Complete ***
+      // When the timer is complete, play a sound, and flash some lights.
       //
 #ifdef SWITCH_MESSAGES
       Serial.print(F("+ clockTimerCount="));
@@ -5184,13 +5194,13 @@ void clockRunTimer() {
       Serial.print(timerMinute);
       Serial.println(F(" Timer timed."));
 #endif
-      // Force playing the sound. If a song was playing, it doesn't restart.
+      // Force playing the sound.
       mp3player.play(soundEffects[TIMER_COMPLETE]);
       delay(1200);  // Delay time for the sound to play.
       // KnightRiderScanner();
       //
       if (timerCounter < timerTop && timerCounter > 0) {
-        // Check if another timer time needs to happen.
+        // Check if there is another timer setting in the timer array, that needs running.
         timerCounter++;
         timerMinute = getMinuteValue(timerData[timerCounter]);
         if (timerMinute > 0) {
@@ -5207,12 +5217,12 @@ void clockRunTimer() {
           clockTimerCount = 0;
         } else {
           // End the timer run state, stay in clock timer mode.
-          timerStatus = timerStatus & M1_OFF;
+          timerStatus = INP_ON | HLTA_ON;
           clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
         }
       } else {
         // End the timer run state, stay in clock timer mode.
-        timerStatus = timerStatus & M1_OFF;
+        timerStatus = INP_ON | HLTA_ON;
         clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
       }
     } else {
@@ -5309,7 +5319,6 @@ void checkAux2clock() {
 #endif
       clockState = CLOCK_TIMER;
       digitalWrite(WAIT_PIN, HIGH);
-      timerStatus = timerStatus & M1_OFF;
       lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
     } else {
 #ifdef SWITCH_MESSAGES
@@ -5339,6 +5348,9 @@ void checkAux2clock() {
 #endif
       clockState = CLOCK_COUNTER;
       digitalWrite(WAIT_PIN, HIGH);
+      if (counterAddress ==0 & counterData == 0) {
+        clockCounterRead(0);
+      }
       counterLights();
     } else {
 #ifdef SWITCH_MESSAGES
@@ -5380,7 +5392,7 @@ int getMinuteValue(unsigned int theWord) {
   return (theMinute);
 }
 
-void clockTimerControls() {
+void checkTimerControls() {
   // Timer options
   // -------------------
   if (pcfControl.readButton(pinStop) == 0) {
@@ -5390,7 +5402,7 @@ void clockTimerControls() {
   } else if (switchStop) {
     switchStop = false;
     // Switch logic
-    timerStatus = timerStatus & M1_OFF;
+    timerStatus = INP_ON;
     // Set the timer bit on, so that it is displayed.
     clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, 1);
     lightsStatusAddressData(timerStatus, clockTimerAddress, timerCounter);
@@ -5624,7 +5636,7 @@ void clockCounterRead(int counterAddress) {
   Serial.print(counterData);
   Serial.println("");
 #endif
-  counterStatus = MEMR_ON | STACK_ON | INP_ON | HLTA_ON;
+  counterStatus = MEMR_ON | STACK_ON | INP_ON;
   counterLights();
 }
 void clockCounterWrite(int counterAddress, byte counterData) {
@@ -5641,9 +5653,9 @@ void clockCounterWrite(int counterAddress, byte counterData) {
   if (!writeFileByte(sfbFilename, counterData)) {
     Serial.println("- Failed to write sound file: ");
     ledFlashError();
-    counterStatus = MEMR_ON | STACK_ON | INP_ON | HLTA_ON;
+    counterStatus = MEMR_ON | STACK_ON;
   } else {
-    counterStatus = MEMR_ON | STACK_ON | INP_ON | WO_ON | HLTA_ON;
+    counterStatus = MEMR_ON | STACK_ON | WO_ON;
   }
   counterLights();
 }
@@ -5844,7 +5856,7 @@ void clockRun() {
         checkClockControls();
         break;
       case CLOCK_TIMER:
-        clockTimerControls();
+        checkTimerControls();
         if (timerStatus & M1_ON) {
           // Timer is running when timerStatus: M1_ON.
           clockRunTimer();
@@ -5924,7 +5936,6 @@ void checkUploadSwitch() {
     switchAux2up = false; // Required to reset the switch state for confirmation.
     unsigned long timer = millis();
     while (!confirmWrite && (millis() - timer < 1200)) {
-      // checkConfirmUploadSwitch();
 #ifdef DESKTOP_MODULE
       if (pcfAux.readButton(pinAux2up) == 0) {
 #else
@@ -5953,6 +5964,7 @@ void checkUploadSwitch() {
     writeProgramMemoryToFile(theFilename);
     // delay(2000); // Give to read the resulting message.
     restoreLcdScreenData();
+    programLights();
   }
   digitalWrite(HLDA_PIN, LOW);
 }
