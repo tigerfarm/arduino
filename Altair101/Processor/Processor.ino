@@ -5299,7 +5299,7 @@ void checkAux2clock() {
   } else if (switchAux2up) {
     switchAux2up = false;
     // Switch logic.
-    if (clockState == CLOCK_TIME) {
+    if (clockState == CLOCK_TIME || clockState == CLOCK_COUNTER) {
 #ifdef SWITCH_MESSAGES
       Serial.println(F("+ AUX2 up. Enter clock timer mode."));
 #endif
@@ -5329,7 +5329,7 @@ void checkAux2clock() {
   } else if (switchAux2down) {
     switchAux2down = false;
     // Switch logic.
-    if (clockState == CLOCK_TIME) {
+    if (clockState == CLOCK_TIME || clockState == CLOCK_TIMER) {
 #ifdef SWITCH_MESSAGES
       Serial.println(F("+ AUX2 down. Enter clock counter mode."));
 #endif
