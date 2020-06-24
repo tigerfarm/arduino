@@ -16,9 +16,13 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  Cleanup AUX logic for player and clock modes.
+  Tweek the clock modes status lights.
+  From startup, when counter mode first entered, display the current counter address (0) and data.
+  Done: Cleanup AUX logic for player and clock modes.
 
   Should auto exit after bytes are downloaded from the serial port.
+  + Once bytes start to flow, start a timer.
+  + If no bytes in 1 second, exit.
 
   -----------------------------------------------------------------------------
   -----------------------------------------------------------------------------
@@ -5854,12 +5858,15 @@ void clockRun() {
         // checkDepositNextButton();
         break;
       case CLOCK_COUNTER:
-        clockCounterControls();        
+        clockCounterControls();
         break;
     }
-    checkAux1();          // Toggle between processor, clock, and player modes.
-    checkAux2clock();     // Toggle between processor, clock, timer, and counter modes.
-    checkProtectSetVolume();
+    checkAux1();                // Toggle between processor, clock, and player modes.
+    checkAux2clock();           // Toggle between processor, clock, timer, and counter modes.
+    checkProtectSetVolume();    // Player volume control.
+    if (!(playerStatus & HLTA_ON)) {
+      playMp3();                // Continue to play in clock mode.
+    }
     delay(100);
   }
   playerPlaySound(CLOCK_OFF);
@@ -6742,7 +6749,10 @@ void playMp3() {
       }
       mp3player.play(playerCounter);
       playerStatus = playerStatus & HLTA_OFF;
-      playerLights();
+      if (programState == PLAYER_RUN) {
+        // This "if", allows continuous playing in other modes (clock) without effecting their dislay lights.
+        playerLights();
+      }
 #ifdef SWITCH_MESSAGES
       Serial.println(playerCounter);
 #endif
@@ -6777,6 +6787,7 @@ void playerRun() {
         // Play MP3 files
         if (!(playerStatus & HLTA_ON)) {
           playMp3();
+          // playerLights();
         }
         checkPlayerControls();      // Player control functions from STOP to UNPROTECT.
         break;
