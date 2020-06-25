@@ -16,11 +16,9 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  Write and test an assembler program to run a timer, and set a counter. Then loop.
+  Check exit options when in serial download wait mode.
 
-  Should auto exit after bytes are downloaded from the serial port.
-  + Once bytes start to flow, start a timer.
-  + If no bytes in 1 second, exit.
+  Write and test an assembler program to run a timer, and set a counter. Then loop.
 
   -----------------------------------------------------------------------------
   -----------------------------------------------------------------------------
@@ -258,14 +256,13 @@
   + AUX2 up       1. Write to file: Use the Sense switches to set an SD drive program filename.
                   2. Double flip the switch. WAIT and HLDA indicators are on.
                   3. Write processor memory to SD drive.
-  + AUX2 down     1. Set the Sense switches to read type, or to an SD drive program filename value.
-                  2.1 Flip the switch. WAIT and HLDA indicators are on.
-                  2.1.1 If Sense switches all up, enter receive mode. Wait to receive bytes from the serial port.
-                  2.1.2 When received, the bytes are loaded into the processor memory.
-                  2.1.3 Flip RESET to exit receive mode.
-                  2.2 Double flip the switch.
-                  2.2.1 If Sense switches are all down (off), reset memory to zeros.
-                  2.2.2 Else, read the file bytes into processor memory.
+  + AUX2 down     1. Set the Sense switches to 0, or to an SD drive program filename value.
+                  2. Double flip the switch.
+                  2.1 If Sense switches are all down (off), enter receive mode. HLDA indicator is on.
+                  2.1.1 Wait to receive bytes from the serial port.
+                  2.1.2 Once downloaded, control returns back to the processor.
+                  2.1,3 If nothing to download, hit RESET to exit download mode.
+                  2.2 Else, read file bytes into processor memory.
 
   --------------
   User guide,
@@ -5990,7 +5987,7 @@ void checkDownloadSwitch() {
     Serial.println(F("+ AUX2 down, Download Switched."));
 #endif
     String theFilename = getSenseSwitchValue() + ".bin";
-    if (theFilename == "11111111.bin") {
+    if (theFilename == "00000000.bin") {
       Serial.println(F("+ Set to download over the serial port."));
       programState = SERIAL_DOWNLOAD;
       return;
