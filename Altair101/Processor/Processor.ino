@@ -16,6 +16,8 @@
   -----------------------------------------------------------------------------
   Work to do,
 
+  Write and test an assembler program to run a timer, and set a counter. Then loop.
+
   Should auto exit after bytes are downloaded from the serial port.
   + Once bytes start to flow, start a timer.
   + If no bytes in 1 second, exit.
@@ -5348,7 +5350,7 @@ void checkAux2clock() {
 #endif
       clockState = CLOCK_COUNTER;
       digitalWrite(WAIT_PIN, HIGH);
-      if (counterAddress ==0 & counterData == 0) {
+      if (counterAddress == 0 & counterData == 0) {
         clockCounterRead(0);
       }
       counterLights();
@@ -6832,8 +6834,12 @@ void DownloadProgram() {
   lightsStatusAddressData(readStatusByte, 0, 0);
   //
   readByteCount = 0;  // Counter where the downloaded bytes are entered into memory.
+  unsigned long timer;
+  boolean downloadStarted = false;
   while (programState == SERIAL_DOWNLOAD) {
     if (serial2.available() > 0) {
+      downloadStarted = true;
+      timer = millis();
       // Input on the external serial port module.
       // Read and process an incoming byte.
       Serial.print("++ Byte array number: ");
@@ -6856,6 +6862,12 @@ void DownloadProgram() {
       Serial.print("   ");
       Serial.print(readByte, DEC);
       Serial.println("");
+    }
+    if (downloadStarted && ((millis() - timer) > 1000)) {
+      // Exit download state, if the bytes were downloaded and then stop for 1 second.
+      //  This indicates that the download is complete.
+      programState = PROGRAM_WAIT;
+      Serial.println("+ Exit due to download complete.");
     }
     if (pcfControlinterrupted) {
       checkRunningButtons();
