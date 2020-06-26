@@ -474,6 +474,7 @@
 
   ------------------------------------------------------------------------------
   Clock Counter mode, clockCounterControls()
+  First time entering counter mode: display 0 Address and Data values in the lights.
   + Status        MEMR  : Counter indicator.
   + Status        STACK : Counter indicator.
   + Status        INP   : On after a read, for example, an EXAMINE flip. Else off.
@@ -565,14 +566,28 @@
   + AUX2 up       Not implemented.
   + AUX2 down     Return to player mode.
 
+  ---------------------------------
+  USER GUIDE
+  
+  ---------------------------------
+  Steps to update MP3 files into the Altair 101.
   -----------
-  Player consistancy with processor.
-  + If HLTA_ON, don't start playing for EXAMINE, or other switches.
-  + If HLTA_OFF, continue playing when flipping EXAMINE, or other switches.
+  Remove the Altair 101 SD MP3 card and put it into the MacBook.
+  Run Applications/Utilities/Disk Utility.app
+  Select the SD card, example: MUSICSD.
+  Select option, Erase.
+  Set, Name: MUSICSD, Format: MS-DOS (FAT).
+  Click Erase. Click Done. Close the Disk Utility.
+  Copy MP3 files into a working directory, for example: mp3player0.
+  Create an empty directory, for example: mp3player1.
+  Use mp3player.jar to copy files from the working directory into the empty directory,
+  $ java -jar mp3player.jar copy mp3player0 mp3player1
+  Copy the prepared file onto the clean SD card.
+  Put the card back into the Altair 101.
 
-  -----------
-  User guide, Actions that have sound effects,
-  + Constant          Array index value.
+  ---------------------------------
+  Actions that have sound effects,
+  + Constant          Array index value. Value is a file name. Value 1, is filename: 0001.mp3.
   int READ_FILE       = 1;
   int TIMER_COMPLETE  = 2;
   int CLOCK_ON        = 3;

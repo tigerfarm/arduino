@@ -2,6 +2,7 @@
 #include "Credentials.h"
 
 // Code from: https://forum.arduino.cc/index.php?topic=155218.0
+// ping 106.187.94.198
 
 Timer t;
 long lastUpdate=0;
