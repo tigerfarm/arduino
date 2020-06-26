@@ -16,14 +16,17 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  Sync player file status lights with counter mode status light values.
-  + Add MEMR on for player file status.
+  When going into timer mode, need to also display the timer minute, not just the timer counter minute.
 
   Change the DownloadProgram() completion MP3.
 
-  Need an exit from program staring counter mode.
-
   Write and test an assembler program to run a timer, and set a counter. Then loop.
+
+  Need an exit from program that goes into counter mode.
+  + Can exit counter mode, but without a HLT in the program, need to reboot to exit the program.
+  + Maybe a combination, STOP + AUX2.
+  + Flip AUX2 to exit counter mode, and continue running the program.
+  + Flip STOP + AUX2 to exit counter mode, and put the program in wait state.
 
   -----------------------------------------------------------------------------
   -----------------------------------------------------------------------------
@@ -169,6 +172,16 @@
   1       000        Immediate value of 3, for 3 minutes.
   2       343 OUT <port#>
   3       012 10 is for single play.
+  -----------------
+  Timer program.
+          333 IN SENSE_SW
+          377     immediate: SENSE_SW : 255
+          343 OUT <port#>
+          024 20  Port# to run a time for the number of minutes in register A.
+          166 HLT
+          303 JMP Jump to 0.
+          000
+          000
   -----------------
   Timer program.
   0       076 MVI A,<immediate value>
@@ -3825,7 +3838,7 @@ void processOpcodeData() {
         // ---------------------------------------
         case 20:
           Serial.print(F(" > Run a timer for the number of minutes in register A."));
-          clockRunTimerControlsOut(regA);
+          clockRunTimerControlsOut(getMinuteValue(regA));
           break;
         case 21:
           Serial.print(F(" > Increment register A file counter."));
