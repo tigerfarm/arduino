@@ -16,7 +16,12 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  Check exit options when in serial download wait mode.
+  Sync player file status lights with counter mode status light values.
+  + Add MEMR on for player file status.
+
+  Change the DownloadProgram() completion MP3.
+
+  Need an exit from program staring counter mode.
 
   Write and test an assembler program to run a timer, and set a counter. Then loop.
 
@@ -45,7 +50,7 @@
   initSdcard()                SD card module functions
   controlResetLogic()         Processor Switch Functions
   checkClockControls()        Clock Front Panel Switch Functions.
-  checkUploadSwitch()          SD card processor memory read/write from/into a file.
+  checkUploadSwitch()         SD card processor memory read/write from/into a file.
   checkPlayerControls()       Player Front Panel Control Switch Functions.
   ------------------------
   //  Output Functions
@@ -67,14 +72,15 @@
   controlResetLogic()
   checkRunningButtons()
   checkControlButtons()
-  checkAux1();                Toggle between processor, clock, and player modess.
+  checkAux1();                  Toggle between processor, clock, and player modes.
   ------------------------
-  // Clock Front Panel Switch Functions.
+  // Clock Front Panel Control Switch Functions.
   syncCountWithClock()
   checkClockControls()
-  clockRunTimerControlsOut(theTimerMinute)               Call from OUT opcde.
+  clockRunTimerControlsOut(theTimerMinute)    Called from OUT opcde.
+  checkAux2clock()              Toggle between processor, clock, timer, and counter modes.
   checkTimerControls()
-  clockCounterControlsOut(theCounterIndex)    Call from OUT opcde.
+  clockCounterControlsOut(theCounterIndex)    Called from OUT opcde.
   clockCounterControls()
   checkClockSwitch()
   clockRun()
@@ -83,7 +89,7 @@
   checkUploadSwitch()
   checkDownloadSwitch()
   ------------------------
-  // Check Front Panel Control Switches, when in Player mode.
+  // Player Front Panel Control Switch Functions.
   checkProtectSetVolume()
   checkPlayerControls()
   checkPlayerFileControls()
@@ -199,6 +205,15 @@
   + programState = PROGRAM_WAIT (default start state), don't run 00000000.bin when loop() starts.
 
   ----------------------------------------
+  Mode lights:
+  Processor:      WAIT:ON/OFF HLDA:OFF  MEMR, MI, WO
+  Clock:          WAIT:OFF    HLDA:ON   Displays the time of day minutes and hours
+  Clock Timer:    WAIT:ON     HLDA:ON
+  Clock Counter:  WAIT:ON     HLDA:ON
+  Player:         WAIT:OFF    HLDA:ON
+  Player files:   WAIT:ON     HLDA:ON
+
+  ----------------------------------------
   Modes: AUX switches for setting program modes,
   + Default mode is the Altair 8800 emulator processor mode.
   When in processor mode,
@@ -263,6 +278,17 @@
                   2.1.2 Once downloaded, control returns back to the processor.
                   2.1,3 If nothing to download, hit RESET to exit download mode.
                   2.2 Else, read file bytes into processor memory.
+  -----------
+  Download from serial port mode, DownloadProgram()
+  -----------
+  + Status        INP  : Timer indicator, ready for timer value input.
+  + Status        WO   : Processor logic is: WO on when not writing to memory.
+  + Data          Off.
+  + Address       Off.
+  + Indicator     WAIT : Off.
+  + Indicator     HLDA : On.
+  -----------
+  + RESET         Exit download mode.
 
   --------------
   User guide,
@@ -354,8 +380,7 @@
   + AUX1 down     MP3 player mode
   + AUX2 up       Toggle clock counter mode.
   + AUX2 Down     Toggle clock timer mode on.
-
-  -----------
+  ------------------------------------------------------------------------------
   Clock Timer mode, clockRunTimer()
   + Status        INP  : Timer indicator, ready for timer value input.
   + Status        M1   : Timer running.
@@ -397,8 +422,6 @@
   + AUX1 down     MP3 player mode
   + AUX2 up       Not implemented.
   + AUX2 Down     Toggle clock timer mode off, return to clock mode.
-  -----------
-  Clock Counter mode, clockCounterControls()
 
   User guide, Clock Timer,
   + Must be in clock mode.
@@ -436,7 +459,7 @@
   ++ Timer array value is displayed in the Address lights(A3:3 minutes).
   + Flip RUN, and the timer starts.
 
-  -----------
+  ------------------------------------------------------------------------------
   Clock Counter mode, clockCounterControls()
   + Status        MEMR  : Counter indicator.
   + Status        STACK : Counter indicator.
@@ -445,7 +468,7 @@
   + Address       Counter index value.
   + Data          Counter data value.
   + Indicator     WAIT : On.
-  + Indicator     HLDA : On, non-processor mode, clock counter mode.
+  + Indicator     HLDA : On.
   -----------
   + STOP          Decrement counter value at current address, and update in display.
   + RUN           Increment counter value at current address, and update in display.
@@ -466,6 +489,7 @@
   + AUX1 down     MP3 player mode
   + AUX2 up       Not implemented.
   + AUX2 Down     Toggle clock timer mode off, return to clock mode.
+
   ------------------------------------------------------------------------------
   MP3 Player mode, playerRun(),
   + MP3 addressable files is 255.
@@ -495,8 +519,19 @@
   + AUX1 Down     Toggle MP3 player mode off, return to processor mode.
   + AUX2 up       Not implemented.
   + AUX2 down     Player file mode.
-  -----------
+  ------------------------------------------------------------------------------
   Player file mode, checkPlayerFileControls()
+  -----------
+  + Status        MEMR : Player file mode indicator.
+  + Status        INP  : On after a read, for example, an EXAMINE flip. Else off.
+  + Status        OUT  : MP3 playing/played.
+  + Status        HLTA : pause, MP3 is not playing.
+  + Status        WO   : On after a write, for example, DEPOSIT flipped. Else off.
+  + Address       Displays the song number that is playing.
+  + Data          Displays the volume.
+  + Indicator     WAIT : On.
+  + Indicator     HLDA : On.
+  -----------
   + STOP          Pause play
   + RUN           Play MP3 file based on the Data value filename.
   + SINGLE up     Not implemented.
@@ -510,12 +545,12 @@
                   2. Flip DEPOSIT NEXT will increment playerFileAddress, and write the data byte to the playerFileAddress file.
   + RESET         Load sound effect index array from files.
   + CLR           Not implemented.
-  + PROTECT       To do: Decrease volume
-  + UNPROTECT     To do: Increase volume
+  + PROTECT       Decrease volume
+  + UNPROTECT     Increase volume
   + AUX1 up       Clock mode: show hour and mintues time.
-  + AUX1 down     Not implemented.
+  + AUX1 Down     Toggle MP3 player mode off, return to processor mode.
   + AUX2 up       Not implemented.
-  + AUX2 down     Exit player file mode, return to player MP3 mode.
+  + AUX2 down     Return to player mode.
 
   -----------
   Player consistancy with processor.
@@ -5197,6 +5232,10 @@ void clockRunTimer() {
       mp3player.play(soundEffects[TIMER_COMPLETE]);
       delay(1200);  // Delay time for the sound to play.
       // KnightRiderScanner();
+      if (!(playerStatus & HLTA_ON)) {
+        delay(2000);
+        mp3player.play(playerCounter);    // Continue to play in clock mode.
+      }
       //
       if (timerCounter < timerTop && timerCounter > 0) {
         // Check if there is another timer setting in the timer array, that needs running.
@@ -6465,7 +6504,7 @@ void checkPlayerFileControls() {
     Serial.println(playerFileData);
 #endif
     mp3player.play(playerFileData);
-    playerFileStatus = MEMR_ON & HLTA_OFF;
+    playerFileStatus = MEMR_ON | OUT_ON & HLTA_OFF;
     playerFileLights();
   }
   // -------------------
@@ -6595,7 +6634,7 @@ void checkPlayerFileControls() {
     if (!writeFileByte(sfbFilename, playerFileData)) {
       Serial.println("- Failed to write sound file: ");
     }
-    playerFileStatus = MEMR_ON | INP_ON | WO_ON | HLTA_ON;
+    playerFileStatus = MEMR_ON | WO_ON | HLTA_ON;
     playerFileLights();
   }
   // -------------------
@@ -6621,7 +6660,7 @@ void checkPlayerFileControls() {
     if (!writeFileByte(sfbFilename, playerFileData)) {
       Serial.println("- Failed to write sound file: ");
     }
-    playerFileStatus = MEMR_ON | INP_ON | WO_ON | HLTA_ON;
+    playerFileStatus = MEMR_ON | WO_ON | HLTA_ON;
     playerFileLights();
   }
   // -------------------
@@ -6819,26 +6858,23 @@ void playerRun() {
 // The bytes are loaded into processorr memory.
 
 void DownloadProgram() {
-  byte readByte = 0;
-  int readByteCount = 0;
-  // Set status lights:
-  // HLDA on when in this mode. Later, HLDA off (LOW), then on (HIGH) when bytes downloading (Serial.available).
-  digitalWrite(HLDA_PIN, HIGH);
-  digitalWrite(WAIT_PIN, LOW);
-  // INP on
-  byte readStatusByte = INP_ON;
+  // Status: ready for input and not yet writing to memory.
+  byte readStatusByte = INP_ON | WO_ON;
   readStatusByte = readStatusByte & M1_OFF;
   lightsStatusAddressData(readStatusByte, 0, 0);
   //
-  readByteCount = 0;  // Counter where the downloaded bytes are entered into memory.
-  unsigned long timer;
+  byte readByte = 0;
+  int readByteCount = 0;      // Count the downloaded bytes that are entered into processor memory.
+  unsigned long timer;        // Indicator used to identify when download has ended.
   boolean downloadStarted = false;
   while (programState == SERIAL_DOWNLOAD) {
     if (serial2.available() > 0) {
-      downloadStarted = true;
+      if (!downloadStarted) {
+        downloadStarted = true;
+        readStatusByte = readStatusByte & WO_OFF;   // Now writing to processor memory.
+      }
       timer = millis();
-      // Input on the external serial port module.
-      // Read and process an incoming byte.
+      //
       Serial.print("++ Byte array number: ");
       if (readByteCount < 10) {
         Serial.print(" ");
@@ -6847,6 +6883,9 @@ void DownloadProgram() {
         Serial.print(" ");
       }
       Serial.print(readByteCount);
+      //
+      // Input on the external serial port module.
+      // Read and process the incoming byte.
       readByte = serial2.read();
       memoryData[readByteCount] = readByte;
       readByteCount++;
@@ -6861,28 +6900,35 @@ void DownloadProgram() {
       Serial.println("");
     }
     if (downloadStarted && ((millis() - timer) > 1000)) {
-      // Exit download state, if the bytes were downloaded and then stop for 1 second.
+      // Exit download state, if the bytes were downloaded and then stopped for 1 second.
       //  This indicates that the download is complete.
       programState = PROGRAM_WAIT;
-      Serial.println("+ Exit due to download complete.");
+      Serial.println("+ Download complete.");
     }
     if (pcfControlinterrupted) {
-      checkRunningButtons();
+      // -------------------
+      // Reset to exit download mode, if decided not to wait for download.
+      if (pcfControl.readButton(pinReset) == 0) {
+        if (!switchReset) {
+          switchReset = true;
+        }
+      } else if (switchReset) {
+        switchReset = false;
+        // Switch logic
+        programState = PROGRAM_WAIT;
+      }
+      // -------------------
       pcfControlinterrupted = false; // Reset for next interrupt.
     }
   }
-  Serial.print(F("+ Exit serial download state."));
+  Serial.print(F("+ Exit serial download mode."));
   if (readByteCount > 0) {
     // Program bytes were loaded.
-    // Reset the program. This takes care of the case that STOP was used to end the download.
-    controlResetLogic();
+    controlResetLogic();              // Reset the program.
+    mp3player.play(soundEffects[READ_FILE]);        // Transfer of data is complete.
   } else {
     // Reset to original panel light values.
     programLights();
-  }
-  digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
-  if (readByteCount > 0) {
-    mp3player.play(117);        // Transfer of data is complete.
   }
 }
 
@@ -7097,8 +7143,8 @@ void loop() {
     // ----------------------------
     case PROGRAM_RUN:
       processData();
-      // Program control: STOP or RESET.
       if (pcfControlinterrupted) {
+        // Program control: STOP or RESET.
         checkRunningButtons();
         pcfControlinterrupted = false; // Reset for next interrupt.
       }
@@ -7124,9 +7170,13 @@ void loop() {
         Serial.println("+ serial2 is listening.");
         Serial.println("+ Ready to use the second serial port for receiving program bytes.");
         Serial.println("+                 Address  Data  Binary   Hex Octal Decimal");
-        //              ++ Byte array number:   0, Byte: 00000110 06  006   6
-        //              ++ Byte array number:   0, Byte: 00000110 Octal:006 Decimal6
+        // Set status lights:
+        // HLDA on when in this mode.
+        digitalWrite(HLDA_PIN, HIGH);
+        digitalWrite(WAIT_PIN, LOW);
         DownloadProgram();
+        digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
+        digitalWrite(WAIT_PIN, HIGH);
       }
       break;
     // ----------------------------
