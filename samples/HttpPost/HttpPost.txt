@@ -20,10 +20,8 @@ void setup() {
   } 
 }
 
-void post()
-{
+void post() {
   my_account_SID = "my_account_SID";
-
   Serial.println("connecting...");
   String PostData = "From=16505551111&To=16505552222&Body=Hello1."; 
   Serial.println(PostData);
@@ -40,9 +38,9 @@ void post()
     client.println(PostData.length());
     client.println();
     client.println(PostData);
-    } else {
-      Serial.println("connection failed");
-    }
+  } else {
+     Serial.println("connection failed");
+  }
 }
 
 void loop() {

@@ -16,17 +16,13 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  When going into timer mode, need to also display the timer minute, not just the timer counter minute.
+  From OUT opcode,
+  + When going into timer mode, need to also display the timer minute, not just the timer counter minute.
 
   Change the DownloadProgram() completion MP3.
 
   Write and test an assembler program to run a timer, and set a counter. Then loop.
-
-  Need an exit from program that goes into counter mode.
-  + Can exit counter mode, but without a HLT in the program, need to reboot to exit the program.
-  + Maybe a combination, STOP + AUX2.
-  + Flip AUX2 to exit counter mode, and continue running the program.
-  + Flip STOP + AUX2 to exit counter mode, and put the program in wait state.
+  + Must allow the playing of MP3 music.
 
   -----------------------------------------------------------------------------
   -----------------------------------------------------------------------------
@@ -616,8 +612,16 @@
   ------------------------------------------------------------------------------
   Current/Next Work
 
+  --------------
   Clock currently requires an LCD to set the time.
   + I should add inc/dec hours and minutes using toggles. This would also work for my other clock.
+
+  --------------
+  Need an exit from program that goes into counter mode.
+  + Can exit counter mode, but without a HLT in the program, need to reboot to exit the program.
+  + Maybe a combination, STOP + AUX2.
+  + Flip AUX2 to exit counter mode, and continue running the program.
+  + Flip STOP + AUX2 to exit counter mode, and put the program in wait state.
 
   --------------
   + Implement a processor error function, such as:
