@@ -16,6 +16,13 @@
   -----------------------------------------------------------------------------
   Work to do,
 
+  Have a player mode on/off when in processor mode.
+  + Use an OUT opcode toggle play on/off.
+  Rather than restart the MP3, use,
+  + STOP - pause()
+  + START - start()
+  +++ checkControlButtons(), START needs work because it meerly plays the previously played MP3.
+
   From OUT opcode,
   + When going into timer mode, need to also display the timer minute, not just the timer counter minute.
 
@@ -114,12 +121,15 @@
   + 0110    Loop a sound bite while running NOPs.
             Address 1 is the MP3 file number.
   + 0111    Run NOPs. HLT at A8. Flip RUN and JMP back to address 0 to start all over.
-  + 1000    Run timer followed by playing a sound file.
-            Address 1 is timer number of minutes.
-            Address 5 is the MP3 file number, that plays after the timer.
-  + 1001    Turn off program playing an MP3 file.
+  -----------------
+  + 1000    Turn off program playing an MP3 file.
+  + 1001    Turn on program playing an MP3 files, and play an MP3 file.
+  -----------------
   + 1010    Increment a counter.
   + 1011    Enter counter mode and display counter value for counter index in register A.
+  + 1100    Run timer followed by playing a sound file.
+            Address 1 is timer number of minutes.
+            Address 5 is the MP3 file number, that plays after the timer.
   -----------------
   + 1110    Program list, requires LCD
   + 1111    Start up program. Play MP3 while NOPs are processing,then HLT when the MP3 is finished.
@@ -153,21 +163,38 @@
   +       343 OUT <port#>
   +       025 21  Port# to increment a counter.
   -----------------
-  + Add an OUT opcode option to play an MP3 file.
+  + Turn off playing an MP3 file.
+  0       076 MVI A,<immediate value>
+  1       000       Value to pause any playing MP3.
+  2       343 OUT <port#>
+  3       012 10 is for single play.
+  4       166 HLT
+  -----------------
+  + Turn on playing MP3 files, and play an MP3 file.
+  0       076 MVI A,<immediate value>
+  1       377       Value to turn pause off, turn start on, of playing MP3 files.
+  2       343 OUT <port#>
+  3.1     012 10 is for single play.
+  3.2     013 11 is for looping.
+  4       076 MVI A,<immediate value>
+  5       015       MP3 file#
+  6       343 OUT <port#>
+  7       012 10 is for single play.
+  8       000 NOP
+  ...
+  35      000 NOP
+  36      166 HLT
+  -----------------
+  + Play an MP3 file.
           // MVI A, <file#>
           // OUT 11   ; Use out 11 is for looping. 10 is for single play.
           //  ++ Address:oct > description
           //  ++       0:076 > opcode: mvi a,2  : Set to play sound bite file, 0002.mp3.
           //  ++       1:002 > immediate: 2
           //  ++       2:343 > opcode: out 11   : 11 is for looping. 10 is for single play.
+          //  ++       3:012 > immediate: 10
           //  ++       3:013 > immediate: 11
           //  ++       ... NOPs ...
-  -----------------
-  + Turn off the program playing of a MP3 file.
-  0       076 MVI A,<immediate value>
-  1       000        Immediate value of 3, for 3 minutes.
-  2       343 OUT <port#>
-  3       012 10 is for single play.
   -----------------
   Timer program.
           333 IN SENSE_SW
@@ -302,10 +329,13 @@
   --------------
   User guide,
 
-  For the processor, option to set MP3 play off.
-  + When OUT 10 or 11 with regA=0, pause the player.
-  + Set playerCounter=0, and don't play MP3 files when playerCounter=0.
-  + Maybe have processerPlay value instead of using playerCounter.
+  MP3 player options,
+  + OUT 10 or 11 with regA=B00000000, pause the player. Don't start when RUN is flipped.
+  + OUT 10 or 11 with regA=B11111111, start the player. Also, start when RUN is flipped.
+  + OUT 10 or 11 with regA > 0,
+  ++ Set processorPlayerCounter=regA, play/loop the MP3. Also, start when RUN is flipped.
+  + STOP, mp3player.pause();
+  + RUN, if (processorPlayerStart) mp3player.start()
 
   How to save a program to the SD card.
   + Set the Sense switches to the file number value.
@@ -564,7 +594,7 @@
 
   ---------------------------------
   USER GUIDE
-  
+
   ---------------------------------
   Steps to update MP3 files into the Altair 101.
   -----------
@@ -772,7 +802,8 @@ uint16_t playerCounter = 1;       // First song played when player starts up. Th
 uint8_t playerStatus = 0;
 uint8_t playerVolume = 0;
 //
-uint16_t playerCounterProcessor = 0; // Indicator for the processor to play an MP3, or not (if zero).
+uint16_t processorPlayerCounter = 0;  // Indicator for the processor to play an MP3, if not zero.
+boolean processorPlayerStart = true; // Indicator for the processor to start playing an MP3 when flipping START.
 //
 uint16_t playerCounterTop = 0;
 uint16_t playerDirectoryTop = 0;
@@ -3823,35 +3854,43 @@ void processOpcodeData() {
           break;
         // ---------------------------------------
         case 10:
-          Serial.print(F(" > Play once, the MP3 file named in register A."));
-          // mvi a, <file#>
-          // out 10   ; Use out 11, to have the sound looped.
-          //  ++ Address:oct > description
-          //  ++       0:076 > opcode: mvi a,2
-          //  ++       1:002 > immediate: 2 ; use other sounds such as 027.
-          //  ++       2:343 > opcode: out 10
-          //  ++       3:013 > immediate: 10
-          if (regA > 0) {
-            mp3player.play(regA);
-            playerCounterProcessor = regA;
-          } else {
-            // If an MP3 was playing, this is how to stop it.
+          // MVI A, <file#>
+          // OUT 10   ; Use OUT 11, to have the MP3 looped.
+          if (regA == B11111111) {
+            Serial.println(F(" > Play once, set on."));
+            processorPlayerStart = true;
+            if (processorPlayerCounter > 0) {
+              mp3player.start();
+            }
+          } else if (regA == 0) {
+            Serial.println(F(" > Pause playing MP3 files."));
+            processorPlayerStart = false;
             mp3player.pause();
-            playerCounterProcessor = 0;
+          } else {
+            processorPlayerStart = true;
+            processorPlayerCounter = regA;
+            mp3player.play(processorPlayerCounter);
+            Serial.print(F(" > Play once, MP3 file# "));
+            Serial.println(processorPlayerCounter);
           }
           break;
         case 11:
-          Serial.print(F(" > Play in a loop, the MP3 file named in register A."));
-          if (regA > 0) {
-            mp3player.loop(regA);
-            playerCounterProcessor = regA;
-            // The following will allow looping after a STOP and RUN.
-            playerStatus = playerStatus | M1_ON;
-            playerCounter = regA;
-          } else {
-            // If an MP3 was playing, this is how to stop it.
+          if (regA == B11111111) {
+            Serial.println(F(" > Loop playing, set on."));
+            processorPlayerStart = true;
+            if (processorPlayerCounter > 0) {
+              mp3player.start();
+            }
+          } else if (regA == 0) {
+            Serial.println(F(" > Pause loop playing MP3 files."));
+            processorPlayerStart = false;
             mp3player.pause();
-            playerCounterProcessor = 0;
+          } else {
+            processorPlayerStart = true;
+            processorPlayerCounter = regA;
+            mp3player.loop(processorPlayerCounter);
+            Serial.print(F(" > Loop play once, MP3 file# "));
+            Serial.println(processorPlayerCounter);
           }
           break;
         // ---------------------------------------
@@ -4743,12 +4782,8 @@ void checkControlButtons() {
     // statusByte = statusByte & WAIT_OFF;
     statusByte = statusByte & HLTA_OFF;
     // -------------------
-    if (playerStatus & M1_ON) {
-      if (playerCounterProcessor > 0) {
-        // mp3player.start();
-        mp3player.loop(playerCounter);
-        playerStatus = playerStatus & HLTA_OFF;
-      }
+    if (processorPlayerStart) {
+      // mp3player.start();
     }
   }
   // -------------------
