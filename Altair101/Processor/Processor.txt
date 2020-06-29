@@ -3,165 +3,1071 @@
   Altair 101 Processor program
 
   This is an Altair 8800 emulator program that runs on an Arduino Mega microcontroller.
-  It emulates the basic Altair 8800 hardware processes--from 1975.
-  It was built around the Intel 8080 CPU chip. The 8080's opcodes are the same for the 8085.
-  This program implements many of the 8080 microprocessor machine instructions (opcodes).
-  It has more than half of the opcodes implemented,
-  which more than enough to run the classic program, Kill the Bit.
+  Component additions to the emulator:
+  + An MP3 player controlled by using the front panel toggles with the lights displaying status.
+  + The clock displays the current hours, minutes, month, day, and year, on the front panel lights.
 
-  ---------------------------------------------
-  Current/Next Work
-
-  Panel LED lights all display correctly. Toggle functions all work. Programs run.
-  I can show my steampunk tablet to the world.
-  + Time to generate videos.
-
-  ---------------------------------------------
-  Tablet to Desktop module work
-
-  Tablet module, for Tablet and Desktop module,
-  + WAIT and HLDA need to be digital pin controlled.
-  ++ Change WAIT_ON/OFF to be digital pin controlled.
-  ++ HLDA is already controlled by a digital pin: HLDA_PIN = A10.
-
-  Tablet module,
-  + Toggle inputs, 2 PCF modules:
-  ++ pcf20: controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
-  ++ pcf20 has interupt enabled.
-  ++ pcf21: low address byte, sense switches
-  + Digital pin: AUX 1 up, clock
-  + Digital pin: AUX 1 down, MP3 player
-  + Digital pin: AUX 2 up, write/upload to the SD card
-  + Digital pin: AUX 2 down, read/download from the SD card
-  
-  Desktop module,
-  + Toggle inputs: Add 2 more PCF modules to bring the total to 4:
-  ++ pcf20: controls: STOP, RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
-  +++ pcf20 has interupt enabled.
-  ++ pcf21: low address byte
-  ++ pcf22: high address byte, sense switches
-  ++ pcf23: AUX 1, AUX 2, PROTECT, UNPROTECT, CLR, and switch below STEP.
-  ++ Implement: pcf23 with interupt enabled. Likely use the same Mega pin, pin 2.
-
-  ---------------------------------------------
-  Other Work
-
-  Can set the LCD backlight is on when prompting, and reset after to what it was.
-  + LCD backlight on/off status is controlled: LcdBacklight.
-
-  If 00000000.bin exists when starting up,
-  + If 00000000.bin is not all zeros (NOPs), run it.
-  + Else, don't run it, boot to wait state.
-
-  Confirm before reading a file into memory,
-  + Fast flash HLDA for 1 second.
-  + If read or write switch repeated, then run, else return to program wait status.
-
-  + Test write memory issue,
-  ++ Seems to be a CALL opcode issue.
-  ++ If byte count over 276, characters no longer are displayed.
-  ++ Fails at the address: 00010100 (276)
+  The Altair 8800 emulator program,
+  + Emulates the basic Altair 8800 computer processes from 1975.
+  + The Altair 8800 was built around the Intel 8080 CPU chip.
+  + The 8080's machine instructions(opcodes) are the same for the 8085.
+  + This program implements more than enough opcodes to run the classic program, Kill the Bit.
 
   -----------------------------------------------------------------------------
-  Processor program sections,
-    Code compilation options.
-    Arduino pin definitions.
-    Output: 1602 LCD
-    Output: Clock definitions.
-    ----------------------------
-    Definitions: machine memory, stack memory, and a sample machine code program in a memory array.
-    Definitions: Front Panel Status LEDs.
-    Output: Front Panel LED lights.
-    ----------------------------
-    Process a subset of the Intel 8080/8085 opcode instructions:
-    + Control of the instruction set of opcodes.
-    + Process opcode instruction machine cycle one (M1): fetch opcode and process it.
-    + Process opcode instruction machine cycles greater than 1: address and immediate bytes.
-    ----------------------------
-    I/O: SD Card reader: save and load machine memory.
-    I/O: Clock functions.
-    ----------------------------
-    Input: Front Panel toggle switch control and data entry events
-    Input: Front Panel toggle switch AUX events for devices: clock and SD card module.
-    Input: Infrared switch events
-    ----------------------------
-    setup() : Computer initialization.
-    loop()  : Based on state, clock cycling through memory, show the time, or other state processing.
-    ----------------------------
+  Work to do,
+
+  Have a player mode on/off when in processor mode.
+  processorPlayerCounter = 0;
+  boolean processorPlayerStart
+  + Use an OUT opcode toggle play on/off. Possible? Rather than restart the MP3, use,
+  + STOP - pause()
+  + START - start()
+  +++ checkControlButtons(), START needs work because it meerly plays the previously played MP3.
+
+  From OUT opcode,
+  + When going into timer mode, need to also display the timer minute, not just the timer counter minute.
+
+  Change the DownloadProgram() completion MP3.
+
+  Write and test an assembler program to run a timer, and set a counter. Then loop.
+  + Must allow the playing of MP3 music.
+
+  -----------------------------------------------------------------------------
+  -----------------------------------------------------------------------------
+  Program sections,
+
+  ----------------------------
+  Application definitions
+  #define                     Defines and variable definitions
+  byte statusByte             Front Panel Status LEDs definitions
+  #include                    Includes and Arduino pin definitions.
+  printClockDate()            DS3231 Clock definitions and functions
+  lcdSetup()                  1602 LCD definitions and functions
+  ----------------------------
+  Processor Definitions and Functions:
+  memoryData[memoryBytes]     Memory and process definitions
+  Process a subset of the Intel 8080/8085 opcode instructions:
+  processData()               Control processing instruction set of opcodes.
+  processOpcode()             Process opcode instruction machine cycle one (M1): fetch opcode and process it.
+  processOpcodeData()         Process opcode machine cycles greater than 1: immediate byte or address.
+  B11011011                   IN opcode
+  B11100011                   OUT opcode
+  ----------------------------
+  Front Panel toggle switch controls and data entry events
+  initSdcard()                SD card module functions
+  controlResetLogic()         Processor Switch Functions
+  checkClockControls()        Clock Front Panel Switch Functions.
+  checkUploadSwitch()         SD card processor memory read/write from/into a file.
+  checkPlayerControls()       Player Front Panel Control Switch Functions.
+  ------------------------
+  //  Output Functions
+  printOther()
+  printRegisters()
+  ------------------------
+  ledFlashSuccess()
+  ledFlashError()
+  ------------------------
+  // SD card write and read functions
+  initSdcard()
+  writeProgramMemoryToFile(theFilename)
+  readProgramFileIntoMemory(theFilename)
+  writeFileByte(String theFilename, byte theByte)
+  readFileByte(String theFilename)
+  ------------------------
+  // Front Panel Switches: definitions and functions.
+  // Processor Switch Functions
+  controlResetLogic()
+  checkRunningButtons()
+  checkControlButtons()
+  checkAux1();                  Toggle between processor, clock, and player modes.
+  ------------------------
+  // Clock Front Panel Control Switch Functions.
+  syncCountWithClock()
+  checkClockControls()
+  clockRunTimerControlsOut(theTimerMinute)    Called from OUT opcde.
+  checkAux2clock()              Toggle between processor, clock, timer, and counter modes.
+  checkTimerControls()
+  clockCounterControlsOut(theCounterIndex)    Called from OUT opcde.
+  clockCounterControls()
+  checkClockSwitch()
+  clockRun()
+  ------------------------
+  // SD card processor memory read/write from/into a file.
+  checkUploadSwitch()
+  checkDownloadSwitch()
+  ------------------------
+  // Player Front Panel Control Switch Functions.
+  checkProtectSetVolume()
+  checkPlayerControls()
+  checkPlayerFileControls()
+  printDFPlayerMessage(uint8_t type, int value)
+  playMp3()
+  playerRun()
+  ----------------------------
+  DownloadProgram()           Receive bytes through serial port. The bytes are loaded into processorr memory.
+  ----------------------------
+  setup()                     Computer initialization.
+  loop()                      Based on state, clock cycling through memory, show the time, or other state processing.
+  ------------------------
+  -----------------------------------------------------------------------------
+  SD card programs:
+  -----------------
+  + 0000    NOPs. When AUX2 is flipped down, with sense switches all down, memory is all set to zeros (NOPs).
+  + 0001    Simple jump
+  + 0010    More lights, jump program
+  + 0011    Kill the Bit
+  + 0100    Kill the Bit with an MP3 playing.
+  + 0101    Add program, x + y: x in address 1, y in address 3, and answer in A6(64).
+  -----------------
+  + 0110    Loop a sound bite while running NOPs.
+            Address 1 is the MP3 file number.
+  + 0111    Run NOPs. HLT at A8. Flip RUN and JMP back to address 0 to start all over.
+  -----------------
+  + 1000    Turn off program playing an MP3 file.
+  + 1001    Turn on program playing an MP3 files, and play an MP3 file.
+  -----------------
+  + 1010    Increment a counter.
+  + 1011    Enter counter mode and display counter value for counter index in register A.
+  + 1100    Run timer followed by playing a sound file.
+            Address 1 is timer number of minutes.
+            Address 5 is the MP3 file number, that plays after the timer.
+  -----------------
+  + 1110    Program list, requires LCD
+  + 1111    Start up program. Play MP3 while NOPs are processing,then HLT when the MP3 is finished.
+  -----------------
+  + 10000   (A12 switch) Current test program.
+
+  Common opcodes:
+  + B00000000 000 NOP, my NOP instruction has a delay: delay(100).
+  + B01110110 166 HLT
+  + B11000011 JMP <address, low byte followed by high byte>
+  + B11100011 343 OUT
+  +       076 MVI A,<immediate value>
+  -----------------
+  +       343 OUT <port#>
+  +       012 10  Port# to play the MP3 file# in register A.
+  ++              If regA==0, pause the player
+  +       013 11  Port# to continuously (loop) play the MP3 file# in register A.
+  ++              If regA==0, pause the player
+  +       015 13  Port# to flash error light sequence.
+  +       052 42  Port# to flash success light sequence.
+  -----------------
+  + Enter counter mode and display counter value for counter index in register A.
+  +       076 MVI A,<immediate value>
+  +       006  6  Counter# 6 into register A.
+  +       343 OUT <port#>
+  +       031 25  Port# to increment a counter.
+  -----------------
+  + Increment a counter.
+  +       076 MVI A,<immediate value>
+  +       006  6  Counter# 6 into register A.
+  +       343 OUT <port#>
+  +       025 21  Port# to increment a counter.
+  -----------------
+  + Turn off playing an MP3 file.
+  0       076 MVI A,<immediate value>
+  1       000       Value to pause any playing MP3.
+  2       343 OUT <port#>
+  3       012 10 is for single play.
+  4       166 HLT
+  -----------------
+  + Turn on playing MP3 files, and play an MP3 file.
+  0       076 MVI A,<immediate value>
+  1       377       Value to turn pause off, turn start on, of playing MP3 files.
+  2       343 OUT <port#>
+  3.1     012 10 is for single play.
+  3.2     013 11 is for looping.
+  4       076 MVI A,<immediate value>
+  5       015       MP3 file#
+  6       343 OUT <port#>
+  7       012 10 is for single play.
+  8       000 NOP
+  ...
+  35      000 NOP
+  36      166 HLT
+  -----------------
+  + Play an MP3 file.
+          // MVI A, <file#>
+          // OUT 11   ; Use out 11 is for looping. 10 is for single play.
+          //  ++ Address:oct > description
+          //  ++       0:076 > opcode: mvi a,2  : Set to play sound bite file, 0002.mp3.
+          //  ++       1:002 > immediate: 2
+          //  ++       2:343 > opcode: out 11   : 11 is for looping. 10 is for single play.
+          //  ++       3:012 > immediate: 10
+          //  ++       3:013 > immediate: 11
+          //  ++       ... NOPs ...
+  -----------------
+  Timer program.
+          333 IN SENSE_SW
+          377     immediate: SENSE_SW : 255
+          343 OUT <port#>
+          024 20  Port# to run a time for the number of minutes in register A.
+          166 HLT
+          303 JMP Jump to 0.
+          000
+          000
+  -----------------
+  Timer program.
+  0       076 MVI A,<immediate value>
+  1       003        Immediate value of 3, for 3 minutes.
+  2       343 OUT <port#>
+  3       024 20  Port# to run a time for the number of minutes in register A.
+  4       076 MVI A,<immediate value>
+  5       004  4  Communicator sound.
+  6       343 OUT <port#>
+  7       012 10  Port# to play the MP3 file# in register A.
+  8       343 OUT <port#>
+  9       052 42  Port# to flash success light sequence.
+  ...     000 NOP NOPs to allow the sound to complete.
+  24      166 HLT
+
+  ------------------------------------------------------------------------------
+  ------------------------------------------------------------------------------
+  Processor
+  Application Documentation and User Guide
+
+  ----------------------------------------
+  Startup initialization, setup()
+  -----------
+  Init and check:
+  + Serial1 for receiving programs, for download mode.
+  + MP3 player module for playing MP3 files.
+  + Front panel toggle settings.
+  + Clock module, used when in clock mode.
+  + SD card module, used for read and write.
+  -----------
+  If 00000000.bin exists and any of the first 32 bytes are not zero,
+  + Set, programState = PROGRAM_RUN, which runs 00000000.bin when loop() starts.
+  Else,
+  + programState = PROGRAM_WAIT (default start state), don't run 00000000.bin when loop() starts.
+
+  ----------------------------------------
+  Mode lights:
+  Processor:      WAIT:ON/OFF HLDA:OFF  MEMR, MI, WO
+  Clock:          WAIT:OFF    HLDA:ON   Displays the time of day minutes and hours
+  Clock Timer:    WAIT:ON     HLDA:ON
+  Clock Counter:  WAIT:ON     HLDA:ON
+  Player:         WAIT:OFF    HLDA:ON
+  Player files:   WAIT:ON     HLDA:ON
+
+  ----------------------------------------
+  Modes: AUX switches for setting program modes,
+  + Default mode is the Altair 8800 emulator processor mode.
+  When in processor mode,
+  + AUX1 up     Toggle clock mode on.
+  + AUX1 Down   Toggle MP3 player mode on.
+  + AUX2 up     Double flip to write processor memory to file.
+  + AUX2 Down   Read file into processor memory.
+  When in clock mode,
+  + AUX1 up     Enter processor mode.
+  + AUX1 Down   Toggle MP3 player mode on.
+  + AUX2 up     Enter timer mode.
+  + AUX2 Down   Enter counter mode.
+  When in clock timer mode,
+  + AUX1 up     Enter processor mode.
+  + AUX1 Down   Toggle MP3 player mode on.
+  + AUX2 up     Enter clock mode.
+  + AUX2 Down   Enter counter mode.
+  When in player mode,
+  + AUX1 up     Toggle clock mode on.
+  + AUX1 Down   Toggle MP3 player mode off, return to processor mode.
+  + AUX2 up     Not implemented.
+  + AUX2 Down   Toggle player file mode to manage sound effect array values.
+  When in player file mode,
+  + AUX1 up     Toggle clock mode on.
+  + AUX1 Down   Not implemented.
+  + AUX2 up     Not implemented.
+  + AUX2 Down   Toggle player file mode off, return to player mode.
+
+  ------------------------------------------------------------------------------
+  Processor
+  -----------
+  + Status        Current instruction cycle status.
+  + Data          Data byte at the programCounter address.
+  + Address       ProgramCounter value.
+  + Indicator     WAIT : On when program is not running. Off when program is running.
+  + Indicator     HLDA : Off.
+  -----------
+  + STOP          Pause running of a program, exist run mode and enter wait mode.
+  + RUN           Run the program in processor memory, from the programCounter address. Enter run mode.
+  + SINGLE up     Run one machine instruction cycle at a time.
+  + SINGLE dn     Display the previous address and address data byte, programCounter - 1.
+  + EXAMINE       1. Use the Address switches to set the adderess.
+                  2.1 Flip EXAMINE sets the programCounter to address toggles.
+                  2.2 Display the address in the address lights.
+                  2.3 Display the address data byte in the data lights.
+  + EXAMINE NEXT  Display the next address and address data byte: programCounter + 1.
+  + DEPOSIT       Deposit Data switch values into the current address.
+  + DEPOSIT NEXT  Deposit Data switch values into the next address.
+  + RESET         Set the programCounter to zero, and display the zero address and address data byte.
+  + CLR           Double flip to set processor memory to zeros, and program counter to 0.
+  + PROTECT       If wait mode, decrease MP3 player volume.
+  + UNPROTECT     If wait mode, increase MP3 player volume.
+  + AUX1 up       Clock mode: show hour and mintues time.
+  + AUX1 down     MP3 player mode
+  + AUX2 up       1. Write to file: Use the Sense switches to set an SD drive program filename.
+                  2. Double flip the switch. WAIT and HLDA indicators are on.
+                  3. Write processor memory to SD drive.
+  + AUX2 down     1. Set the Sense switches to 0, or to an SD drive program filename value.
+                  2. Double flip the switch.
+                  2.1 If Sense switches are all down (off), enter receive mode. HLDA indicator is on.
+                  2.1.1 Wait to receive bytes from the serial port.
+                  2.1.2 Once downloaded, control returns back to the processor.
+                  2.1,3 If nothing to download, hit RESET to exit download mode.
+                  2.2 Else, read file bytes into processor memory.
+  -----------
+  Download from serial port mode, DownloadProgram()
+  -----------
+  + Status        INP  : Timer indicator, ready for timer value input.
+  + Status        WO   : Processor logic is: WO on when not writing to memory.
+  + Data          Off.
+  + Address       Off.
+  + Indicator     WAIT : Off.
+  + Indicator     HLDA : On.
+  -----------
+  + RESET         Exit download mode.
+
+  --------------
+  User guide,
+
+  MP3 player options,
+  + OUT 10 or 11 with regA=B00000000, pause the player. Don't start when RUN is flipped.
+  + OUT 10 or 11 with regA=B11111111, start the player. Also, start when RUN is flipped.
+  + OUT 10 or 11 with regA > 0,
+  ++ Set processorPlayerCounter=regA, play/loop the MP3. Also, start when RUN is flipped.
+  + STOP, mp3player.pause();
+  + RUN, if (processorPlayerStart) mp3player.start()
+
+  How to save a program to the SD card.
+  + Set the Sense switches to the file number value.
+  + Double flip AUX2 up to confirm and write processor memory to file.
+
+  How to load and run a program from the SD card.
+  + Set the Sense switches to the file number value.
+  + Flip AUX2 down. File bytes are read into processor memory. LED ligts flash success with a sound bite message.
+  + Flip RUN, to start the program running from program counter 0.
+
+  How to assemble, upload, and run an assembler program.
+  ++ See Project: Altair101/asm/README.md
+
+  --------------
+  Inputs:
+  + dataByte == 000, regA = 0;              // Input is not implemented on this port.
+  + dataByte == 001, regA = hwStatus;       // hwStatus = 0, a number to indicate a hardware issue.
+  + dataByte == 255, regA = toggleSense();
+  + Else, input port not implimented: error.
+
+  --------------
+  Outputs:
+  --------------
+  Terminal
+  + dataByte == 3, Serial terminal output of the contents of register A :"));
+  ++ asciiChar = regA; Serial.print(asciiChar);
+  --------------
+  LCD
+  + dataByte == 1, Print register A value to the LCD module.
+  ++ regA == 0, lcdBacklight( false );     // LCD back light off.
+  ++ regA == 1, lcdBacklight( true );      // LCD back light on.
+  ++ regA == 2, lcdClearScreen();
+  ++ regA == 3, lcdSplash();
+  ++ else, char charA = regA; lcdPrintChar((String)charA);
+  --------------
+  MP3 Player
+  + dataByte == 10, mp3player.play(regA); // Play once, the MP3 file named in register A.
+  + dataByte == 11, mp3player.loop(regA); // Play in a loop, the MP3 file named in register A.
+  --------------
+  Flash light messages
+  + dataByte == 13, 015oct Error happened, flash the LED light error sequence.
+  + dataByte == 42, 052oct Success happened, flash the LED light success sequence.
+  --------------
+  Debug messages
+  + dataByte == 30, printData(regB);
+  + dataByte == 31, printData(regC);
+  + dataByte == 32, printData(regD);
+  + dataByte == 33, printData(regE);
+  + dataByte == 34, printData(regH);
+  + dataByte == 35, printData(regL);
+  + dataByte == 36, Print data at H:L address: Serial.print(memoryData[regH * 256 + regL]);
+  + dataByte == 37, printData(regA);
+  + dataByte == 38, printRegisters();
+  + dataByte == 39, printRegisters(); printOther();
+  --------------
+
+  ------------------------------------------------------------------------------
+  Clock, clockRun(),
+  + Start by showing the time of day hours and minutes.
+  + To do: If clock timer mode was set, return to timer mode or reset timer mode values.
+  -----------
+  Clock mode,
+  + Status        Display the minutes tens digit,    day tens,   or year tens
+  + Address       Display the hour: A1 ... A12,      month,      or century
+  + Data          Display the minutes single digit,  day single, or year single
+  + Indicator     WAIT : Off.
+  + Indicator     HLDA : On to indicate controlled by another process, other than the program emulator.
+  -----------
+  + STOP          Not implemented.
+  + RUN           Not implemented.
+  + SINGLE up     1) month and day, 2) year, 3) Return to show time of day: hour and minutes
+  + SINGLE dn     Not implemented.
+  + EXAMINE       To do: Select the flashing date or time value.
+  + EXAMINE NEXT  To do: Move through time and date values, making the selected value flash.
+  + DEPOSIT       To do: After selecting and inc/dec a value, set the value.
+  + DEPOSIT NEXT  Not implemented.
+  + RESET         Knight Rider sounds and lights, then show time of day.
+  + PROTECT       Decrease MP3 player volume. To do: Decrement value to set.
+  + UNPROTECT     Increase MP3 player volume. To do: Increment value to set.
+  + AUX1 Up       Toogle clock mode off, return to processor mode.
+  + AUX1 down     MP3 player mode
+  + AUX2 up       Toggle clock counter mode.
+  + AUX2 Down     Toggle clock timer mode on.
+  ------------------------------------------------------------------------------
+  Clock Timer mode, clockRunTimer()
+  + Status        INP  : Timer indicator, ready for timer value input.
+  + Status        M1   : Timer running.
+  + Status        HLTA : Timer run is completed.
+  + Address       Displays the timer minite: A1 ... A15. And flashing counter minute when running.
+  + Data          If using an array of times, displays which array time is running.
+  + Indicator     WAIT : On.
+  + Indicator     HLDA : On, non-processor mode, clock timer mode.
+  -----------
+  + STOP          Stop clock timer.
+  + RUN           1. Set the timer minutes using the address toggles: A1 is 1 minute, A2 is 2 minutes, ... 15 minutes.
+                  2. To do: Start the timer using the timer minutes value.
+  + SINGLE up     Not implemented.
+  + SINGLE dn     Not implemented.
+  + EXAMINE       1. Set Address toggles to timer array value.
+                  2. Flip EXAMINE.
+                  3. Timer array index is displayed in the Data lights.
+                  4. Timer array value is displayed in the Address lights: A1:1 minute, ..., A15:15 minutes.
+  + EXAMINE NEXT  1. Timer array index is incremented.
+                  2. Timer array index is displayed in the Data lights.
+                  3. Timer array value is displayed in the Address lights: A1:1 minute, ..., A15:15 minutes.
+  + DEPOSIT       1. Set Address lights to timer array value: A1:1 minute, ..., A15:15 minutes.
+                  2. Flip DEPOSIT.
+                  3. Timer value is displayed in the Address lights.
+                  4. Timer array counter value is displayed in the Data lights.
+                  5. Timer array value is stored into the timer array at the array counter value.
+  + DEPOSIT NEXT  1. Set Address lights to timer array value: A1:1 minute, ..., A15:15 minutes.
+                  2. Flip DEPOSIT NEXT.
+                  3. Timer array index is incremented.
+                  4. Timer array index is displayed in the Data lights.
+                  5. Timer array value is displayed in the Address lights.
+                  6. Timer time value is stored into the memory array, at the incremented array index value.
+  + RESET         1. Set timer array index to 1.
+                  2. Timer array index is displayed in the Data lights.
+                  3. Timer array value is displayed in the Address lights.
+  + PROTECT       Decrease MP3 player volume. To do: Decrement value to set.
+  + UNPROTECT     Increase MP3 player volume. To do: Increment value to set.
+  + AUX1 Up       Toogle clock mode off, return to processor mode.
+  + AUX1 down     MP3 player mode
+  + AUX2 up       Not implemented.
+  + AUX2 Down     Toggle clock timer mode off, return to clock mode.
+
+  User guide, Clock Timer,
+  + Must be in clock mode.
+  + Flip AUX2 toggle Down to enter clock timer mode.
+  + Set the minutes by toggling a single address switch. For example A10 is for 10 minutes.
+  + Flip RUN to start the timer.
+  ++ Flash counter minute LED on/off each second.
+  ++ Increment counter minute, each minute, starting with A0.
+  ++ Play a sound bite as each minute passes.
+  ++ Sound and flash when time is reached, and return to displaying the time of day hours and minutes.
+
+  Enter a sequence of timer values,
+  + Must be in clock mode.
+  + Flip AUX2 toggle Down to enter clock timer mode.
+  + Set Data buttons to one (A0).
+  + Flip EXAMINE, to set the timer array value.
+  ++ Timer array index is displayed in the Data lights (D0 is on, value of 1).
+  ++ Timer array value is displayed in the Address lights. No lights are lit because the value is zero.
+  + Set Address Set Address toggles to the first timer value, for example 3.
+  + Flip DEPOSIT.
+  ++ Timer array index is displayed in the Data lights (D0 is on).
+  ++ Timer array value is displayed in the Address lights(A3, for 3 minutes).
+  + Set Address lights to the next timer array value, for example, A5, for 5 minutes.
+  + Flip DEPOSIT NEXT.
+  ++ Timer array index is displayed in the Data lights (D1 is on, value of 2).
+  ++ Timer array value is displayed in the Address lights (A5:5 minutes).
+  + Set Address lights to the next timer array value, for example, A7, for 7 minutes.
+  + Flip DEPOSIT NEXT.
+  ++ Timer array index is displayed in the Data lights (D0 and D1 are on, value of 3).
+  ++ Timer array value is displayed in the Address lights (A7:7 minutes).
+
+  Run a sequence of timer values,
+  + Flip RESET. Or Set Address toggle A0:1 up(on). Flip EXAMINE.
+  ++ Timer array index is displayed in the Data lights (D0 is on).
+  ++ Timer array value is displayed in the Address lights(A3:3 minutes).
+  + Flip RUN, and the timer starts.
+
+  ------------------------------------------------------------------------------
+  Clock Counter mode, clockCounterControls()
+  First time entering counter mode: display 0 Address and Data values in the lights.
+  + Status        MEMR  : Counter indicator.
+  + Status        STACK : Counter indicator.
+  + Status        INP   : On after a read, for example, an EXAMINE flip. Else off.
+  + Status        WO    : On after a write, for example, a STOP, RUN, or DEPOSIT flip. Else off.
+  + Address       Counter index value.
+  + Data          Counter data value.
+  + Indicator     WAIT : On.
+  + Indicator     HLDA : On.
+  -----------
+  + STOP          Decrement counter value at current address, and update in display.
+  + RUN           Increment counter value at current address, and update in display.
+  + SINGLE up     Not implemented.
+  + SINGLE dn     Decrement counter address, and display counter address and file data byte.
+  + EXAMINE       1. Set address toggles (Data toggles) to the counter file number.
+                  2 Flip EXAMINE, read and display the address toggle (Data toggle) value into data value.
+  + EXAMINE NEXT  Increment counter address, get the file data byte and display it in the Data lights.
+  + DEPOSIT       1. Set Data switches to a counter file number.
+                  2. Flip DEPOSIT writes the data byte to the counter address file.
+  + DEPOSIT NEXT  1. Set Data switches to an MP3 file number.
+                  2. Flip DEPOSIT NEXT increments counter address, and writes the data byte to the counter address file.
+  + RESET         Reset counter address to 0, get the file data byte and display it in the Data lights.
+  + CLR           Not implemented.
+  + PROTECT       To do: Decrease volume
+  + UNPROTECT     To do: Increase volume
+  + AUX1 up       Clock mode: show hour and mintues time.
+  + AUX1 down     MP3 player mode
+  + AUX2 up       Not implemented.
+  + AUX2 Down     Toggle clock timer mode off, return to clock mode.
+
+  ------------------------------------------------------------------------------
+  MP3 Player mode, playerRun(),
+  + MP3 addressable files is 255.
+  -----------
+  + Address       Displays the song number that is playing.
+  + Data          Displays the volume.
+  + Status        M1   : Loop single MP3 is on.
+  + Status        OUT  : On indicates player mode, since HLDA is on as well.
+  + Status        HLTA : pause, light is on, else off.
+  + Indicator     HLDA : On to indicate controlled by other than the program emulator.
+  + Indicator     WAIT : Off.
+  -----------
+  + STOP          Pause play
+  + RUN           Play MP3. And loop all.
+  + SINGLE up     Toogle on and off, of the playing/looping of a single MP3.
+  + SINGLE dn     Flip to loop a single MP3. Song plays when in other modes such as clock timer.
+  + EXAMINE       Play previous MP3. And loop all.
+  + EXAMINE NEXT  Play next MP3. And loop all.
+  + DEPOSIT       Play previous folder. During first MP3, loop directory. After first song, will loop all.
+  + DEPOSIT NEXT  Play next folder.     During first MP3, loop directory. After first song, will loop all.
+  + RESET         Play first MP3. And loop all.
+  + CLR           1. Set address toggles to the value of an MP3 file.
+                  2. Play toggle address value MP3 file. If HLTA is on, only play once, then pause.
+  + PROTECT       Decrease volume
+  + UNPROTECT     Increase volume
+  + AUX1 up       Clock mode: show hour and mintues time.
+  + AUX1 Down     Toggle MP3 player mode off, return to processor mode.
+  + AUX2 up       Not implemented.
+  + AUX2 down     Player file mode.
+  ------------------------------------------------------------------------------
+  Player file mode, checkPlayerFileControls()
+  -----------
+  + Status        MEMR : Player file mode indicator.
+  + Status        INP  : On after a read, for example, an EXAMINE flip. Else off.
+  + Status        OUT  : MP3 playing/played.
+  + Status        HLTA : pause, MP3 is not playing.
+  + Status        WO   : On after a write, for example, DEPOSIT flipped. Else off.
+  + Address       Displays the song number that is playing.
+  + Data          Displays the volume.
+  + Indicator     WAIT : On.
+  + Indicator     HLDA : On.
+  -----------
+  + STOP          Pause play
+  + RUN           Play MP3 file based on the Data value filename.
+  + SINGLE up     Not implemented.
+  + SINGLE dn     Not implemented.
+  + EXAMINE       1. Set address toggles (Data toggles) to the MP3 data file number.
+                  2 Flip EXAMINE, which reads the address toggle (Data toggle) value into playerFileAddress, which is displayed.
+  + EXAMINE NEXT  Increment playerFileAddress, get the file data byte and display it in the Data lights.
+  + DEPOSIT       1. Set Data switches to an MP3 file number.
+                  2. Flip DEPOSIT will write the data byte to the playerFileAddress file.
+  + DEPOSIT NEXT  1. Set Data switches to an MP3 file number.
+                  2. Flip DEPOSIT NEXT will increment playerFileAddress, and write the data byte to the playerFileAddress file.
+  + RESET         Load sound effect index array from files.
+  + CLR           Not implemented.
+  + PROTECT       Decrease volume
+  + UNPROTECT     Increase volume
+  + AUX1 up       Clock mode: show hour and mintues time.
+  + AUX1 Down     Toggle MP3 player mode off, return to processor mode.
+  + AUX2 up       Not implemented.
+  + AUX2 down     Return to player mode.
+
+  ---------------------------------
+  USER GUIDE
+
+  ---------------------------------
+  Steps to update MP3 files into the Altair 101.
+  -----------
+  Remove the Altair 101 SD MP3 card and put it into the MacBook.
+  Run Applications/Utilities/Disk Utility.app
+  Select the SD card, example: MUSICSD.
+  Select option, Erase.
+  Set, Name: MUSICSD, Format: MS-DOS (FAT).
+  Click Erase. Click Done. Close the Disk Utility.
+  Copy MP3 files into a working directory, for example: mp3player0.
+  Create an empty directory, for example: mp3player1.
+  Use mp3player.jar to copy files from the working directory into the empty directory,
+  $ java -jar mp3player.jar copy mp3player0 mp3player1
+  Copy the prepared file onto the clean SD card.
+  Put the card back into the Altair 101.
+
+  ---------------------------------
+  Actions that have sound effects,
+  + Constant          Array index value. Value is a file name. Value 1, is filename: 0001.mp3.
+  int READ_FILE       = 1;
+  int TIMER_COMPLETE  = 2;
+  int CLOCK_ON        = 3;
+  int CLOCK_OFF       = 4;
+  int PLAYER_ON       = 3;
+  int PLAYER_OFF      = 4;
+  int KR5             = 5;
+  int CLOCK_CUCKOO    = 6;
+  int TIMER_MINUTE    = 7;
+  To hear which sound effect matches action, do the following.
+  + Flip AUX1 down to put the computer in player mode.
+  + Flip AUX2 down to put the computer in player file mode.
+  + Flip the address switches to match the above number of the array index.
+  ++ For example, flip to 2, to hear the TIMER_COMPLETE sound.
+  + Flip EXAMINE.
+  ++ The Address LED lights now display the array index value, for example, 2.
+  ++ The Data LED lights now display tge MP3 file number for that action.
+  + Flip RUN, to hear the sound file.
+  + Flip EXAMINE NEXT to increment the Address, and display the next file number in the Data lights.
+  + Flip RUN, to hear the sound file.
+  Notes,
+  + If data byte is zero, no sound file assigned.
+  + Search for "soundEffects", to get the above action list of sound effect constants and array index values.
+
+  ------------------------------------------------------------------------------
+  ------------------------------------------------------------------------------
+  Current/Next Work
+
+  --------------
+  Clock currently requires an LCD to set the time.
+  + I should add inc/dec hours and minutes using toggles. This would also work for my other clock.
+
+  --------------
+  Need an exit from program that goes into counter mode.
+  + Can exit counter mode, but without a HLT in the program, need to reboot to exit the program.
+  + Maybe a combination, STOP + AUX2.
+  + Flip AUX2 to exit counter mode, and continue running the program.
+  + Flip STOP + AUX2 to exit counter mode, and put the program in wait state.
+
+  --------------
+  + Implement a processor error function, such as:
+  #ifdef LOG_MESSAGES
+        Serial.print(F(" Error, IN not implemented on this port."));
+  #endif
+        ledFlashError();
+        controlStopLogic();
+        statusByte = HLTA_ON;
+        digitalWrite(WAIT_PIN, HIGH);
+  + Add a sound when there is a program error.
+
+  --------------
+  + hwStatus should have status, like processor statuses.
+             Hardware  OK or Not Online.
+  // hwStatus = 1;  // SD_OK, SD_NO, SD card
+  // hwStatus = 2;  // CL_OK, CL_NO, Clock module
+  // hwStatus = 4;  // PL_OK, PL_NO, MP3 Player
+
+  Update the SD card logic: initSdcard()
+
+  Test write memory issue,
+  + Seems to be a CALL opcode issue.
+  + If byte count over 276, characters no longer are displayed.
+  + Fails at the address: 00010100 (276)
+
+  Time to generate videos.
+  + Done: Steampunk tablet running Kill the Bit.
+  + Emulate Star Trek computer using, Kill the Bit flashing lights and playing a Star Trek computer sound bite.
+  + Run NOP program without and with a sound bite.
+  + Demo entering and running the following program:
+   ; Add content of address 1 and 3, and store the answer in address 64.
+  ++ Address:oct > description
+  ++       0:076 > opcode: mvi a,2
+  ++       1:002 > immediate: 2 : 2
+  ++       2:306 > opcode: adi 3
+  ++       3:003 > immediate: 3 : 3
+  ++       4:062 > opcode: sta 64
+  ++       5:100 > lb: 64
+  ++       6:000 > hb: 0
+  ++       7:166 > opcode: hlt
+  ++       8:303 > opcode: jmp Start
+  ++       9:000 > lb: 0
+  ++      10:000 > hb: 0
+  + End of list.
+
+  Now, can set the LCD backlight as on when prompting, and reset after.
+  + LCD backlight on/off status boolean: LcdBacklight.
+
   ---------------------------------------------
-  Altair 8800 Operator's Manual.pdf has a description of each opcode.
-  Binary calculator:
-    https://www.calculator.net/binary-calculator.html
-  Bitwise operators:
-    https://www.arduino.cc/reference/en/language/structure/bitwise-operators/bitwiseand/
+  Desktop Box:
+  ------------
+  + Mount, connect, and test an LCD, such as a 1602 LCD.
+  + Add internal 120AC socket for 3 devices: 1) Mega 5V wall adapter, 2) MP3 5V wall adapter, 3) stearo amp plug,
+  + Use the Mega to control an On/off relay switch for 120AC socket.
+  + Use the Mega to control an On/off relay switch for the stearo amp's 120AC adapter.
+  + Later, add the stearo amp power supply inside the case.
+  ------------
+  + Done: Cut a glue Spider-Man paper to panels: 2 sides, bar top, and top panel.
+  + Done: Cut separation on the top for easy internal access.
+  + Done: Install, wire, and test the front panel.
+  + Done: Panel LED lights all display correctly.
+  + Done: Toggle functions all work for Altair 8800 emulation.
+  + Done: Test new serial module using the tablet. Then install it in the box.
+  + Done: Panel LED lights and toggle functions all work for the clock.
+  + Done: Panel LED lights and toggle functions all work for the MP3 player.
+  + Done: Wire up the MP3 player using multiple USB wall plugs to reduce static noise.
+  + Done: Add RCA female plugs for L/R external output to an amp.
+
+  ---------------------------------------------
+  ---------------------------------------------
+  Connect the Mega to the desktop front panel:
+
+  Total = 12 Mega pin wire connections to the front panel, 4 of which are for power (+ and -).
+
+  5 Mega pins to PCF8574 daisy chain, toggle inputs:
+  + I2C SDA to Mega SDA
+  + I2C SCL to Mega SCL
+  + I2C +5V
+  + I2C Ground
+  + 1 wrie from the Mega pin 2 to the front panel breadboard. Then 2 wires to PCF8574 module interrupts for Control and AUX.
+
+  5 Mega pins to 74HC595 daisy chain, LED output:
+  + Mega pin A14 to 74HC595 14 Data pin.
+  + Mega pin A12 to 74HC595 12 Latch pin.
+  + Mega pin A11 to 74HC595 11 Clock pin.
+  --- Plus ---
+  + 2 wires for +5V and Ground to the front panel breadboard.
+
+  2 pins for the WAIT and HLDA LED lights.
+  + const int WAIT_PIN = A9;
+  + const int HLDA_PIN = A10;
+
+  ---------------------------------------------
+  Connect the Mega to the MP3 player:
+  + Mega pin 18(RX) to player pin 3(TX)
+  + Mega pin 19(TX) to external resister to player pin 2(RX)
+
 */
 // -----------------------------------------------------------------------------
 // Code compilation options.
 
-// #define FOR_MEGA 1
+// Define for desktop module.
+// Comment out for tablet model.
+#define DESKTOP_MODULE 1
+
+#define SETUP_SDCARD 1
+#define SETUP_CLOCK 1
+// #define SETUP_LCD 1
+
 #define INCLUDE_AUX 1
 #define INCLUDE_CLOCK 1
 #define INCLUDE_SDCARD 1
 #define INCLUDE_LCD 1
-// #define RUN_DELAY 1
-// #define INFRARED_MESSAGES 1    // For a simple setup: Mega + infrared, with serial messages.
-//
+
+// -----------------------------------
 // #define LOG_MESSAGES 1         // Has large memory requirements.
 #define SWITCH_MESSAGES 1
 
 // -----------------------------------------------------------------------------
 // Program states
 
-#define PROGRAM_WAIT 0
-#define PROGRAM_RUN 1
-#define CLOCK_RUN 2
-#define PLAYER_RUN 3
-#define SERIAL_DOWNLOAD 4
-int programState = PROGRAM_WAIT;  // Intial, default.
+#define LIGHTS_OFF 0
+#define PROGRAM_WAIT 1
+#define PROGRAM_RUN 2
+#define CLOCK_RUN 3
+#define PLAYER_RUN 4
+#define SERIAL_DOWNLOAD 5
+int programState = LIGHTS_OFF;  // Intial, default.
+
+// MP3 player has a sub-state for managing sound effect byte values in files.
+#define PLAYER_FILE 0
+#define PLAYER_MP3 1
+int playerState = PLAYER_MP3;     // Intial, default.
+
+int theCounterHours = 0;
+int theCounterMinutes = 0;
+
+// -----------------------------------------------------------------------
+// DFPlayer Mini MP3 play
+
+#include "Arduino.h"
+#include "DFRobotDFPlayerMini.h"
+DFRobotDFPlayerMini mp3player;
+
+// Front panel display light values:
+uint16_t playerCounter = 1;       // First song played when player starts up. Then incremented when next is played.
+uint8_t playerStatus = 0;
+uint8_t playerVolume = 0;
+//
+uint16_t processorPlayerCounter = 0;  // Indicator for the processor to play an MP3, if not zero.
+boolean processorPlayerStart = true; // Indicator for the processor to start playing an MP3 when flipping START.
+//
+uint16_t playerCounterTop = 0;
+uint16_t playerDirectoryTop = 0;
+uint8_t playerDirectory = 1;      // File directory name on the SD card. Example 1 is directory name: /01.
+boolean playPause = false;        // For toggling pause.
+boolean loopSingle = false;       // For toggling single song.
+
+void playerLights() {
+  lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+}
+
+// Front panel display light values:
+uint8_t playerFileStatus = B10000000;   // MEMR_ON
+uint8_t playerFileData = 0;
+uint16_t playerFileAddress = 0;       // First song played when player starts up. Then incremented when next is played.
+
+void playerFileLights() {
+  lightsStatusAddressData(playerFileStatus, playerFileAddress, playerFileData);
+}
+
+// ---------------------------
+// Sound bites for sound effects
+
+// Example: playerPlaySound(READ_FILE) plays 05-transfercomplete.mp3
+// Arrary matching the above value, to the soundEffects array, file number.
+// Example: READ_FILE=1 which is array value = 5, soundEffects[READ_FILE]=5 or soundEffects[1]=5.
+const int maxSoundEffects = 16;
+int soundEffects[maxSoundEffects];
+//  Variable      soundEffects[] Array value
+int READ_FILE       = 1;
+int TIMER_COMPLETE  = 2;
+int CLOCK_ON        = 3;
+int CLOCK_OFF       = 4;
+int PLAYER_ON       = 3;
+int PLAYER_OFF      = 4;
+int KR5             = 5;
+int CLOCK_CUCKOO    = 6;
+int TIMER_MINUTE    = 7;
+//
+// Function to play a sound file using the above mapping.
+void playerPlaySound(int theFileNumber) {
+  // Serial.print(F("+ playerPlaySound("));
+  // Serial.print(theFileNumber);
+  // Serial.print(F(") "));
+  if ((playerStatus & B00001000) && (theFileNumber > 0)) {
+    mp3player.play(soundEffects[theFileNumber]);
+    // Serial.print(F("mp3player.play("));
+    // Serial.print(soundEffects[theFileNumber]);
+    // Serial.print(F(")"));
+  }
+  // Serial.println("");
+}
+
+// -----------------------
+// File counter variables.
+
+// uint8_t counterStatus = MEMR_ON | STACK_ON;
+uint8_t counterStatus = B10000000 | B10000100;   // MEMR_ON | STACK_ON
+uint8_t counterData = 0;
+uint16_t counterAddress = 0;
 
 // -----------------------------------------------------------------------------
-// Infrared Receiver
+// -----------------------------------------------------------------------------
+// Front Panel Status LEDs
 
-#include <IRremote.h>
+// ------------------------------
+// Status Indicator LED lights
 
-//          Mega pin
-int IR_PIN = A1;
+// Program wait status.
+const int WAIT_PIN = A9;      // Processor program wait state: off/LOW or wait state on/HIGH.
 
-IRrecv irrecv(IR_PIN);
-decode_results results;
+// HLDA : 8080 processor goes into a hold state because of other hardware running.
+const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock/player processing (on/HIGH).
+
+// ------------------------------
+// Added this to identify hardware status.
+// if hardware has an error, or hardware is not initialized, hwStatus > 0.
+// Else hwStatus = 0.
+byte hwStatus = 0;
+// hwStatus = 1;  // 0001 SD card
+// hwStatus = 2;  // 0010 Clock module
+// hwStatus = 4;  // 0100 MP3 Player
+const byte SD_ON  =    B00000001;
+const byte CL_ON  =    B00000010;
+const byte PL_ON  =    B00000100;
+const byte SD_OFF =    B11111110;
+const byte CL_OFF =    B11111101;
+const byte PL_OFF =    B11111011;
+
+// ------------------------------
+// Status LEDs
+//
+// Info: page 33 of the Altair 8800 oprator's manaul.
+// ------------
+// Not in use:
+//  INTE : On, interrupts enabled.
+//  INT : An interrupt request has been acknowledged.
+//  PROT : Useful only if RAM has page protection impliemented. I'm not implementing PROT.
+// ------------
+// HLDA : 8080 processor go into a hold state because of other hardware such as the clock.
+
+// ------------
+// Bit patterns for the status shift register (SN74HC595N):
+
+byte statusByte = B00000000;        // By default, all are OFF.
+
+// ------------
+// Order on the desktop module, seems to match the tablet module.
+// Desktop module,
+// Status lights: INT(B000000001), WO, STACK, HLTA, OUT, MI, INP, MEMR(B10000000)
+// ------------
+// Tablet module:
+// MEMR - Bar LED #1
+// M1   - Bar LED #3
+// HLTA - Bar LED #5
+// WO   - Bar LED #7
+// WAIT - Green LED on the tablet
+// HLDA - Red LED
+// ------------
+
+// Use OR to turn ON. Example:
+//  statusByte = statusByte | MEMR_ON;
+const byte MEMR_ON =    B10000000;  // MEMR   The memory bus will be used for memory read data.
+const byte INP_ON =     B01000000;  // INP    The address bus containing the address of an input device. The input data should be placed on the data bus when the data bus is in the input mode
+const byte M1_ON =      B00100000;  // M1     Machine cycle 1, fetch opcode.
+const byte OUT_ON =     B00010000;  // OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
+const byte HLTA_ON =    B00001000;  // HLTA   Machine opcode hlt, has halted the machine.
+const byte STACK_ON =   B00000100;  // STACK  Stack process
+const byte WO_ON =      B00000010;  // WO     Write out (inverse logic)
+const byte INT_ON =     B00000001;  // INT    Interrupt
+
+// Use AND to turn OFF. Example:
+//  statusByte = statusByte & M1_OFF;
+const byte MEMR_OFF =   B01111111;
+const byte INP_OFF =    B10111111;
+const byte M1_OFF =     B11011111;
+const byte OUT_OFF =    B11101111;
+const byte HLTA_OFF =   B11110111;
+const byte STACK_OFF =  B11111011;
+const byte WO_OFF =     B11111101;
+const byte INT_OFF =    B11111110;
+// const byte WAIT_OFF =   B11111110;   // WAIT   Changed to a digital pin control.
+
+// Video demonstrating status lights:
+//    https://www.youtube.com/watch?v=3_73NwB6toY
+// MEMR & M1 & WO are on when fetching an op code, example: jmp(303) or lda(072).
+// MEMR & WO are on when fetching a low or high byte of an address.
+// MEMR & WO are on when fetching data from an address.
+// All status LEDs are off when storing a value to a memory address.
+// When doing a data write, data LEDs are all on.
+//
+// Halt: MEMR & hltA & WO are on. All address and data lights are on.
+//  System is locked. To get going again, hard reset: flip stop and reset same time.
+//
+// STACK is the only status LED on when making a stack push (write to the stack).
+// MEMR & STACK & WO are on when reading from the stack.
+//
+// INP & WO are on when reading from an input port.
+// out is on when send an output to a port.
+//
+// INTE is on when interrupts are enabled.
+// INTE is off when interrupts are disabled.
 
 // -----------------------------------------------------------------------------
+void ledFlashKnightRider(int times, boolean NotUsed) {
+  int delayTime = 66;
+  int theDelayTime = 0;
+  unsigned int riderByte;
+  byte flashByte;
+  int iStart = 0;
+  lightsStatusAddressData(0, 0, 0);
+  delay(delayTime);
+  for (int j = 0; j < times; j++) {
+    flashByte = B10000000;
+    for (int i = iStart; i < 8; i++) {
+      // A15 to A8.
+      riderByte = flashByte * 256;
+      lightsStatusAddressData(0, riderByte, 0);
+      flashByte = flashByte >> 1;
+      if (j > 0 && i == 0) {
+        theDelayTime = delayTime / 2;
+      } else {
+        theDelayTime = delayTime;
+      }
+      delay(theDelayTime);
+    }
+    flashByte = B10000000;
+    for (int i = 0; i < 7; i++) {
+      // A7 to A0.
+      lightsStatusAddressData(0, flashByte, 0);
+      flashByte = flashByte >> 1;
+      delay(delayTime);
+    }
+    flashByte = B00000001;
+    for (int i = 0; i < 8; i++) {
+      // A0 to A7.
+      lightsStatusAddressData(0, flashByte, 0);
+      flashByte = flashByte << 1;
+      delay(delayTime);
+    }
+    flashByte = B00000001;
+    for (int i = 0; i < 8; i++) {
+      // A8 to A14.
+      // Only 7, as not to repeat flashing the LED twice.
+      riderByte = flashByte * 256;
+      lightsStatusAddressData(0, riderByte, 0);
+      flashByte = flashByte << 1;
+      if (j < times && i == 0) {
+        theDelayTime = delayTime / 2;
+      } else {
+        theDelayTime = delayTime;
+      }
+      delay(theDelayTime);
+    }
+  }
+  //
+  // Reset the panel lights to program values.
+}
+
+void KnightRiderScanner() {
+  // Knight Rider scanner lights and sound.
+  if (playerStatus & HLTA_ON) {
+    mp3player.play(CLOCK_CUCKOO);
+    ledFlashKnightRider(1, true);
+    mp3player.play(CLOCK_CUCKOO);
+    ledFlashKnightRider(1, false);
+    mp3player.play(CLOCK_CUCKOO);
+    ledFlashKnightRider(1, false);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Switch definitions
+
 #include <PCF8574.h>
 #include <Wire.h>
 
-PCF8574 pcf20(0x020);
-PCF8574 pcf21(0x021);
+// -------------------------------------------
+// Desktop version.
+// Address for the PCF8574 module being tested.
+PCF8574 pcfControl(0x020);  // Control: STOP, RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT, REST
+PCF8574 pcfData(0x021);     // Low bytes, data byte
+PCF8574 pcfSense(0x022);    // High bytes, sense switch byte
+PCF8574 pcfAux(0x023);      // AUX switches and others: Step down, CLR, Protect, Unprotect, AUX1 up, AUX1 down,  AUX2 up, AUX2 down
 
 //                   Mega pin for control toggle interrupt. Same pin for Nano.
 const int INTERRUPT_PIN = 2;
 
 // Interrupt setup: interrupt pin to use, interrupt handler routine.
-boolean pcf20interrupted = false;
-void pcf20interrupt() {
-  pcf20interrupted = true;
+boolean pcfControlinterrupted = false;
+void pcfControlinterrupt() {
+  pcfControlinterrupted = true;
 }
 
 // -----------------------------------------------------------------------------
-#ifdef INCLUDE_AUX
+// Tablet version pin definitions.
+// Desktop uses a PCF8574 controller.
 //                              Mega pins
-const int CLOCK_SWITCH_PIN =    8;  // Tested pins, works: 4, A11. Doesn't work: 24, 33.
+const int CLOCK_SWITCH_PIN =    8;  // Also works: pins 4 and A11. Doesn't work: 24, 33.
 const int PLAYER_SWITCH_PIN =   9;
 const int UPLOAD_SWITCH_PIN =   10;
 const int DOWNLOAD_SWITCH_PIN = 11;
-// const int CLOCK_SWITCH_PIN =    A11;  // Previous pins.
-// const int PLAYER_SWITCH_PIN =   A12;
-// const int UPLOAD_SWITCH_PIN =   A13;
-// const int DOWNLOAD_SWITCH_PIN = A14;
-#endif
-
-// Status LED light,
-// HLDA : 8080 processor go into a hold state because of other hardware.
-const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock processing (on/HIGH).
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -209,13 +1115,10 @@ SoftwareSerial serial2(PIN_RX, PIN_TX);
 // -----------------------------------------------------------------------------
 // Output LED lights shift register(SN74HC595N) pins
 
-//           Mega/Nano pins            74HC595 Pins
-const int dataPinLed = A13;     // pin 14 Data pin.
-const int latchPinLed = A14;    // pin 12 Latch pin.
-const int clockPinLed = A15;    // pin 11 Clock pin.
-// const int dataPinLed = 7;    // Previous pins
-// const int latchPinLed = 8;
-// const int clockPinLed = 9;
+//           Mega/Nano pins        74HC595 Pins
+const int dataPinLed  = A14;    // pin 14 Data pin. Also tested with pin 7.
+const int latchPinLed = A12;    // pin 12 Latch pin.
+const int clockPinLed = A11;    // pin 11 Clock pin.
 
 // -----------------------------------------------------------------------------
 // Clock setting values using in toggle switch functions.
@@ -227,13 +1130,20 @@ const int clockPinLed = A15;    // pin 11 Clock pin.
 RTC_DS3231 rtc;
 DateTime now;
 
+// Clock has a sub-state for managing the clock timer.
+#define CLOCK_SET 0
+#define CLOCK_TIME 1
+#define CLOCK_TIMER 2
+#define CLOCK_COUNTER 3
+int clockState = CLOCK_TIME;     // Intial, default.
+
 int setClockValue = 0;
 // rtc.adjust(DateTime(2019, 10, 9, 16, 22, 3));   // year, month, day, hour, minute, seconds
 int theCounterYear = 0;
 int theCounterMonth = 0;
 int theCounterDay = 0;
-int theCounterHours = 0;
-int theCounterMinutes = 0;
+// int theCounterHours = 0;     // Declared above.
+// int theCounterMinutes = 0;
 int theCounterSeconds = 0;
 
 int theSetRow = 1;
@@ -295,7 +1205,7 @@ void toggleLcdBacklight() {
   }
 }
 
-void printClockInt(int theColumn, int theRow, int theInt) {
+void printLcdClockValue(int theColumn, int theRow, int theInt) {
   lcd.setCursor(theColumn, theRow);    // Column, Row
   if (theInt < 10) {
     lcd.print("0");
@@ -319,11 +1229,11 @@ void printClockDate() {
   // ---
   lcd.setCursor(++theCursor, printRowClockDate);    // Column, Row
   lcd.print(":");
-  printClockInt(++theCursor, printRowClockDate, theCounterMonth);
+  printLcdClockValue(++theCursor, printRowClockDate, theCounterMonth);
   // ---
   theCursor = theCursor + 2;
   lcd.print("/");
-  printClockInt(++theCursor, printRowClockDate, theCounterDay);
+  printLcdClockValue(++theCursor, printRowClockDate, theCounterDay);
 }
 
 void setClockMenuItems() {
@@ -344,7 +1254,7 @@ void setClockMenuItems() {
       theSetMin = 0;
       theSetCol = thePrintColSec;
       setValue = theCounterSeconds;
-      printClockInt(theSetCol, theSetRow, setValue);
+      printLcdClockValue(theSetCol, theSetRow, setValue);
       break;
     case 2:
       // Serial.print("minutes");
@@ -354,7 +1264,7 @@ void setClockMenuItems() {
       theSetMin = 0;
       theSetCol = thePrintColMin;
       setValue = theCounterMinutes;
-      printClockInt(theSetCol, theSetRow, setValue);
+      printLcdClockValue(theSetCol, theSetRow, setValue);
       break;
     case 3:
       // Serial.print("hours");
@@ -365,7 +1275,7 @@ void setClockMenuItems() {
       theSetMin = 0;
       theSetCol = thePrintColHour;
       setValue = theCounterHours;
-      printClockInt(theSetCol, theSetRow, setValue);
+      printLcdClockValue(theSetCol, theSetRow, setValue);
       break;
     case 4:
       // Serial.print("day");
@@ -374,7 +1284,7 @@ void setClockMenuItems() {
       theSetMin = 1;
       theSetCol = thePrintColMin;
       setValue = theCounterDay;
-      printClockInt(theSetCol, theSetRow, setValue);
+      printLcdClockValue(theSetCol, theSetRow, setValue);
       break;
     case 5:
       // Serial.print("month");
@@ -383,7 +1293,7 @@ void setClockMenuItems() {
       theSetMin = 1;
       theSetCol = thePrintColMin;
       setValue = theCounterMonth;
-      printClockInt(theSetCol, theSetRow, setValue);
+      printLcdClockValue(theSetCol, theSetRow, setValue);
       break;
     case 6:
       // Serial.print("year");
@@ -392,7 +1302,7 @@ void setClockMenuItems() {
       theSetMin = 1795; // Year John Keats the poet was born.
       theSetCol = thePrintColMin;
       setValue = theCounterYear;
-      printClockInt(theSetCol, theSetRow, setValue);
+      printLcdClockValue(theSetCol, theSetRow, setValue);
       break;
   }
 }
@@ -532,85 +1442,15 @@ void lcdPrintChar(String theChar) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// Front Panel Status LEDs
-
-// ------------------------------
-// Status LEDs
-//
-// Info: page 33 of the Altair 8800 oprator's manaul.
-// ------------
-// Not in use:
-//  INTE : On, interrupts enabled.
-//  INT : An interrupt request has been acknowledged.
-//  PROT : Useful only if RAM has page protection impliemented. I'm not implementing PROT.
-// ------------
-// HLDA : 8080 processor go into a hold state because of other hardware such as the clock.
-
-// ------------
-// Bit patterns for the status shift register (SN74HC595N):
-
-byte statusByte = B00000000;        // By default, all are OFF.
-
-// Use OR to turn ON. Example:
-//  statusByte = statusByte | MEMR_ON;
-const byte MEMR_ON =    B10000000;  // MEMR   The memory bus will be used for memory read data.
-const byte INP_ON =     B01000000;  // INP    The address bus containing the address of an input device. The input data should be placed on the data bus when the data bus is in the input mode
-const byte M1_ON =      B00100000;  // M1     Machine cycle 1, fetch opcode.
-const byte OUT_ON =     B00010000;  // OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
-const byte HLTA_ON =    B00001000;  // HLTA   Machine opcode hlt, has halted the machine.
-const byte STACK_ON =   B00000100;  // STACK  Stack process
-const byte WO_ON =      B00000010;  // WO     Write out (inverse logic)
-const byte WAIT_ON =    B00000001;  // WAIT   For now, use this one for WAIT light status
-
-// Use AND to turn OFF. Example:
-//  statusByte = statusByte & M1_OFF;
-const byte MEMR_OFF =   B01111111;
-const byte INP_OFF =    B10111111;
-const byte M1_OFF =     B11011111;
-const byte OUT_OFF =    B11101111;
-const byte HLTA_OFF =   B11110111;
-const byte STACK_OFF =  B11111011;
-const byte WO_OFF =     B11111101;
-const byte WAIT_OFF =   B11111110;
-
-// MEMR - Bar LED #1
-// M1   - Bar LED #3
-// HLTA - Bar LED #5
-// WO   - Bar LED #7
-// WAIT - Green LED
-// HLDA - Red LED
-
-// Video demonstrating status lights:
-//    https://www.youtube.com/watch?v=3_73NwB6toY
-// MEMR & M1 & WO are on when fetching an op code, example: jmp(303) or lda(072).
-// MEMR & WO are on when fetching a low or high byte of an address.
-// MEMR & WO are on when fetching data from an address.
-// All status LEDs are off when storing a value to a memory address.
-// When doing a data write, data LEDs are all on.
-//
-// Halt: MEMR & hltA & WO are on. All address and data lights are on.
-//  System is locked. To get going again, hard reset: flip stop and reset same time.
-//
-// STACK is the only status LED on when making a stack push (write to the stack).
-// MEMR & STACK & WO are on when reading from the stack.
-//
-// INP & WO are on when reading from an input port.
-// out is on when send an output to a port.
-//
-// INTE is on when interrupts are enabled.
-// INTE is off when interrupts are disabled.
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Memory definitions
 
-const int memoryBytes = 1024;  // When using Mega: 1024, for Nano: 256
+const int memoryBytes = 1024;  // When using Mega: 1024 or 2048, for Nano: 256
 byte memoryData[memoryBytes];
 unsigned int curProgramCounter = 0;     // Current program address value
 unsigned int programCounter = 0;        // When processing opcodes, the next program address value.
 
 const int stackBytes = 32;
-int stackData[memoryBytes];
+int stackData[stackBytes];
 unsigned int stackPointer = stackBytes;
 
 // -----------------------------------------------------------------------------
@@ -670,6 +1510,13 @@ unsigned int hlValueNew = 0;
 // -----------------------------------------------------------------------------
 // Output: log messages and Front Panel LED data lights.
 
+void printAddress(unsigned int theAddress) {
+  byte aByte = theAddress / 256;
+  printByte(aByte);
+  aByte = theAddress - theAddress * 256;
+  Serial.print(":");
+  printByte(aByte);
+}
 void printByte(byte b) {
   for (int i = 7; i >= 0; i--)
     Serial.print(bitRead(b, i));
@@ -741,22 +1588,36 @@ byte highOrder = 0;          // hb: High order byte of 16 bit value.
 // ------------------------------------------------
 // Data LED lights displayed using shift registers.
 
-void processDataLights() {
+void programLights() {
   // Use the current program values: statusByte, curProgramCounter, and dataByte.
   digitalWrite(latchPinLed, LOW);
+#ifdef DESKTOP_MODULE
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, statusByte);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, dataByte);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(curProgramCounter));
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(curProgramCounter));
+#else
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, dataByte);
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(curProgramCounter));
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(curProgramCounter));
   shiftOut(dataPinLed, clockPinLed, MSBFIRST, statusByte); // MSBFIRST matches the bit to LED mapping.
+#endif
   digitalWrite(latchPinLed, HIGH);
 }
 
 void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) {
   digitalWrite(latchPinLed, LOW);
+#ifdef DESKTOP_MODULE
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, status8bits);
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(address16bits));
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(address16bits));
-  shiftOut(dataPinLed, clockPinLed, MSBFIRST, status8bits); // MSBFIRST matches the bit to LED mapping.
+#else
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(address16bits));
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(address16bits));
+  shiftOut(dataPinLed, clockPinLed, MSBFIRST, status8bits);
+#endif
   digitalWrite(latchPinLed, HIGH);
 }
 
@@ -767,7 +1628,7 @@ void processData() {
   // Update curProgramCounter to the address being processed.
   curProgramCounter = programCounter;
   //
-#ifdef LOG_MESSAGES || INFRARED_MESSAGES
+#ifdef LOG_MESSAGES
   Serial.print(F("Addr: "));
   sprintf(charBuffer, "%4d:", programCounter);
   Serial.print(charBuffer);
@@ -778,10 +1639,11 @@ void processData() {
   if (opcode == 0) {
     // Instruction machine cycle 1 (M1 cycle), fetch the opcode.
     instructionCycle = 1;
-    // statusByte = MEMR_ON | M1_ON | WO_ON;
-    statusByte = statusByte | MEMR_ON;
-    statusByte = statusByte | M1_ON;
-    statusByte = statusByte | WO_ON;
+    statusByte = MEMR_ON | M1_ON | WO_ON;
+    // statusByte = statusByte | MEMR_ON;
+    // statusByte = statusByte | M1_ON;
+    // statusByte = statusByte | WO_ON;
+    //
     // If no parameter bytes (immediate data byte or address bytes), process the opcode.
     // Else, the opcode variable is set to the opcode byte value.
     processOpcode();
@@ -809,7 +1671,7 @@ void processData() {
 #ifdef LOG_MESSAGES
   Serial.print("+ ");
 #endif
-  processDataLights();  // Uses: statusByte, curProgramCounter, dataByte.
+  programLights();  // Uses: statusByte, curProgramCounter, dataByte.
 #ifdef LOG_MESSAGES
   Serial.println("");
 #endif
@@ -1099,7 +1961,8 @@ void processOpcode() {
       Serial.println(F(""));
       ledFlashError();
       controlStopLogic();
-      statusByte = WAIT_ON | HLTA_ON;
+      statusByte = HLTA_ON;
+      digitalWrite(WAIT_PIN, HIGH);
       break;
     // --------------------------------------------------------------------
     //    11RP0001 Pop    register pair B from the stack. 1 cycles.
@@ -1160,7 +2023,8 @@ void processOpcode() {
       Serial.println(F(""));
       ledFlashError();
       controlStopLogic();
-      statusByte = WAIT_ON | HLTA_ON;
+      statusByte = HLTA_ON;
+      digitalWrite(WAIT_PIN, HIGH);
       break;
     // ---------------------------------------------------------------------
     // dad RP   00RP1001  Add register pair(RP) to H:L (16 bit add). And set carry bit.
@@ -1393,7 +2257,8 @@ void processOpcode() {
       Serial.println(F("\n+ HLT, program halted."));
 #endif
       controlStopLogic();
-      statusByte = WAIT_ON | HLTA_ON;
+      statusByte = HLTA_ON;
+      digitalWrite(WAIT_PIN, HIGH);
       break;
     case B11011011:
       opcode = B11011011;
@@ -1676,7 +2541,8 @@ void processOpcode() {
       Serial.print(F(" - Error, unhandled instruction."));
       ledFlashError();
       controlStopLogic();
-      statusByte = WAIT_ON | HLTA_ON;
+      statusByte = HLTA_ON;
+      digitalWrite(WAIT_PIN, HIGH);
       break;
     // ------------------------------------------------------------------------------------------
     /*
@@ -2422,7 +3288,8 @@ void processOpcode() {
 #endif
       ledFlashError();
       controlStopLogic();
-      statusByte = WAIT_ON | HLTA_ON;
+      statusByte = HLTA_ON;
+      digitalWrite(WAIT_PIN, HIGH);
   }
 }
 
@@ -2582,12 +3449,23 @@ void processOpcodeData() {
       Serial.print(F("."));
 #endif
       if (dataByte == 255) {
-        regA = toggleSenseByte();
+        regA = toggleSense();
+      } else if (dataByte == 1) {
+        regA = hwStatus;
+      } else if (dataByte == 21) {
+        clockCounterRead(counterAddress);
+        regA = counterData;
+      } else if (dataByte == 0) {
+        regA = 0; // Input not implemented on this port.
       } else {
-        regA = 0;
+        // stacy1
 #ifdef LOG_MESSAGES
-        Serial.print(F(" IN not implemented on this port."));
+        Serial.print(F(" Error, IN not implemented on this port."));
 #endif
+        ledFlashError();
+        controlStopLogic();
+        statusByte = HLTA_ON;
+        digitalWrite(WAIT_PIN, HIGH);
       }
 #ifdef LOG_MESSAGES
       Serial.print(F(" Register A = "));
@@ -2942,11 +3820,6 @@ void processOpcodeData() {
       // -----------------------------------------
       // Special case of output to serial monitor.
       if (dataByte == 3) {
-#ifdef INFRARED_MESSAGES
-        Serial.print(F("Serial terminal output of the contents of register A :"));
-        Serial.print(regA);
-        Serial.print(":");
-#endif
 #ifdef LOG_MESSAGES
         Serial.print(F(", Serial terminal output of the contents of register A :"));
         Serial.print(regA);
@@ -2954,10 +3827,6 @@ void processOpcodeData() {
 #endif
         asciiChar = regA;
         Serial.print(asciiChar);
-#ifdef INFRARED_MESSAGES
-        Serial.print(":");
-        Serial.println("");
-#endif
         opcode = 0;
         return;
       }
@@ -2983,6 +3852,62 @@ void processOpcodeData() {
           break;
         case 3:
           // Handled before this switch statement.
+          break;
+        // ---------------------------------------
+        case 10:
+          // MVI A, <file#>
+          // OUT 10   ; Use OUT 11, to have the MP3 looped.
+          if (regA == B11111111) {
+            Serial.println(F(" > Play once, set on."));
+            processorPlayerStart = false;
+            if (processorPlayerCounter > 0) {
+              mp3player.start();
+            }
+          } else if (regA == 0) {
+            Serial.println(F(" > Pause playing MP3 files."));
+            processorPlayerStart = false;
+            mp3player.pause();
+          } else {
+            processorPlayerStart = false;
+            processorPlayerCounter = regA;
+            mp3player.play(processorPlayerCounter);
+            Serial.print(F(" > Play once, MP3 file# "));
+            Serial.println(processorPlayerCounter);
+          }
+          break;
+        case 11:
+          if (regA == B11111111) {
+            Serial.println(F(" > Loop playing, set on."));
+            processorPlayerStart = true;
+            if (processorPlayerCounter > 0) {
+              mp3player.start();
+            }
+          } else if (regA == 0) {
+            Serial.println(F(" > Pause loop playing MP3 files."));
+            processorPlayerStart = false;
+            mp3player.pause();
+          } else {
+            processorPlayerStart = true;
+            processorPlayerCounter = regA;
+            mp3player.loop(processorPlayerCounter);
+            Serial.print(F(" > Loop play once, MP3 file# "));
+            Serial.println(processorPlayerCounter);
+          }
+          break;
+        // ---------------------------------------
+        case 20:
+          Serial.print(F(" > Run a timer for the number of minutes in register A."));
+          clockRunTimerControlsOut(getMinuteValue(regA));
+          break;
+        case 21:
+          Serial.print(F(" > Increment register A file counter."));
+          clockCounterRead(regA);
+          counterData++;
+          clockCounterWrite(regA, counterData);
+          break;
+        case 25:
+          Serial.print(F(" > Enter counter mode and display counter value for counter index in register A."));
+          clockCounterControlsOut(regA);
           break;
         // ---------------------------------------
         case 30:
@@ -3179,7 +4104,8 @@ void processOpcodeData() {
       Serial.print(F(" -- Error, unknow instruction."));
       ledFlashError();
       controlStopLogic();
-      statusByte = WAIT_ON | HLTA_ON;
+      statusByte = HLTA_ON;
+      digitalWrite(WAIT_PIN, HIGH);
   }
   // The opcode cycles are complete.
   opcode = 0;
@@ -3226,20 +4152,7 @@ void printRegisters() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-#ifdef INCLUDE_SDCARD
-
-// Handle the case if the card is not inserted. Once inserted, the module will be re-initialized.
-boolean sdcardFailed = false;
-void initSdcard() {
-  sdcardFailed = false;
-  if (!SD.begin(csPin)) {
-    sdcardFailed = true;
-    Serial.println("- Error initializing SD card.");
-    return; // When used in setup(), causes jump to loop().
-  }
-  Serial.println("+ SD card initialized.");
-}
-
+byte statusSetup = B00000000;       // Used during setup().
 void ledFlashSuccess() {
   lcdPrintln(1, "+ Success");
   int delayTime = 60;
@@ -3260,7 +4173,20 @@ void ledFlashSuccess() {
     }
   }
   // Reset the panel lights to program values.
-  processDataLights();
+  switch (programState) {
+    case LIGHTS_OFF:
+      byte statusDisplay = bitWrite(statusDisplay, statusSetup, 1);
+      lightsStatusAddressData(statusDisplay, 0, 0);
+      statusSetup++;
+      break;
+    case CLOCK_RUN:
+    case PLAYER_RUN:
+      playerLights();
+      break;
+    default:
+      programLights();
+      break;
+  }
 }
 void ledFlashError() {
   lcdPrintln(1, "- Error");
@@ -3272,15 +4198,47 @@ void ledFlashError() {
     delay(delayTime);
   }
   // Reset the panel lights to program values.
-  processDataLights();
+  switch (programState) {
+    case LIGHTS_OFF:
+      byte statusDisplay = bitWrite(statusDisplay, statusSetup, 1);
+      lightsStatusAddressData(statusDisplay, 0, 0);
+      statusSetup++;
+      break;
+    case CLOCK_RUN:
+    case PLAYER_RUN:
+      playerLights();
+      break;
+    default:
+      programLights();
+      break;
+  }
 }
 
-// -------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// SD card module functions
+
+// Handle the case if the card is not inserted. Once inserted, the module will be re-initialized.
+boolean sdcardInitiated = false;
+void initSdcard() {
+  if (SD.begin(csPin)) {
+    // Serial.println(F("+ SD card initialized."));
+    sdcardInitiated = true;
+    return;
+  }
+  sdcardInitiated = false;
+  Serial.println(F("- Error initializing SD card."));
+  Serial.println(F("-- Check that SD card is inserted"));
+  Serial.println(F("-- Check that SD card adapter is wired properly."));
+  //
+  // Optionally, retry for a period of time.
+}
+
 // Write Program memory to a file.
 
 void writeProgramMemoryToFile(String theFilename) {
   digitalWrite(HLDA_PIN, HIGH);
-  if (sdcardFailed) {
+  if (!sdcardInitiated) {
     initSdcard();
   }
   // Serial.print(F("+ Write program memory to a new file named: "));
@@ -3297,7 +4255,7 @@ void writeProgramMemoryToFile(String theFilename) {
     Serial.print(F("- Error opening file: "));
     Serial.println(theFilename);
     ledFlashError();
-    sdcardFailed = true;
+    sdcardInitiated = false;
     digitalWrite(HLDA_PIN, LOW);
     return; // When used in setup(), causes jump to loop().
   }
@@ -3315,9 +4273,9 @@ void writeProgramMemoryToFile(String theFilename) {
 // -------------------------------------
 // Read program memory from a file.
 
-void readProgramFileIntoMemory(String theFilename) {
+boolean readProgramFileIntoMemory(String theFilename) {
   digitalWrite(HLDA_PIN, HIGH);
-  if (sdcardFailed) {
+  if (!sdcardInitiated) {
     initSdcard();
   }
   // Serial.println("+ Read a file into program memory, file named: ");
@@ -3327,18 +4285,18 @@ void readProgramFileIntoMemory(String theFilename) {
     Serial.print(F("- Read ERROR, file doesn't exist: "));
     Serial.println(theFilename);
     ledFlashError();
-    sdcardFailed = true;
+    sdcardInitiated = false;
     digitalWrite(HLDA_PIN, LOW);
-    return;
+    return (false);
   }
   myFile = SD.open(theFilename);
   if (!myFile) {
     Serial.print(F("- Read ERROR, cannot open file: "));
     Serial.println(theFilename);
     ledFlashError();
-    sdcardFailed = true;
+    sdcardInitiated = false;
     digitalWrite(HLDA_PIN, LOW);
-    return;
+    return (false);
   }
   int i = 0;
   while (myFile.available()) {
@@ -3356,39 +4314,128 @@ void readProgramFileIntoMemory(String theFilename) {
     i++;
     if (i > memoryBytes) {
       Serial.println(F("-+ Warning, file contains more data bytes than available memory."));
+      break;
     }
   }
   myFile.close();
   Serial.println(F("+ Read completed, file closed."));
-  ledFlashSuccess();
   digitalWrite(HLDA_PIN, LOW);
   controlResetLogic();
+  return (true);
 }
 
+// -------------------------------------
+
+boolean writeFileByte(String theFilename, byte theByte) {
+  if (!sdcardInitiated) {
+    initSdcard();
+  }
+  if (SD.exists(theFilename)) {
+    SD.remove(theFilename);
+  }
+  myFile = SD.open(theFilename, FILE_WRITE);
+  if (!myFile) {
+    Serial.print(F("- Error opening file: "));
+    Serial.println(theFilename);
+    ledFlashError();
+    sdcardInitiated = false;
+    return (false);
+  }
+  myFile.write(theByte);
+  myFile.close();
+  // Serial.println(F("+ Byte write completed, file closed."));
+  // ledFlashSuccess();
+  return (true);
+}
+
+// Read a byte from a file.
+int readFileByte(String theFilename) {
+  if (!sdcardInitiated) {
+    initSdcard();
+  }
+  if (!SD.exists(theFilename)) {
+    // Serial.print(F("- Read ERROR, file doesn't exist: "));
+    // Serial.println(theFilename);
+    // ledFlashError();
+    sdcardInitiated = false;
+    return (0);
+  }
+  myFile = SD.open(theFilename);
+  if (!myFile) {
+    // Serial.print(F("- Read ERROR, cannot open file: "));
+    // Serial.println(theFilename);
+    // ledFlashError();
+    sdcardInitiated = false;
+    return (0);
+  }
+  int returnByte = 0;
+  if (myFile.available()) {
+    returnByte = myFile.read();
+#ifdef LOG_MESSAGES
+    Serial.print("+ Byte read = ");
+    Serial.println(returnByte, DEC);
+    Serial.print(":B");
+    printByte(returnByte);
 #endif
+  }
+  myFile.close();
+  // Serial.println(F("+ Read byte completed, file closed."));
+  return (returnByte);
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Front Panel Switches
 
-// -------------------------
-// Get Front Panel Toggles value, the sense switches.
+// Notes regarding switch logic,
+// + Only do the action once, don't repeat if the button is held down.
+// + Don't repeat action if the button is not pressed.
 
-int toggleSenseByte() {
-  // Invert byte bits using bitwise not operator: "~";
-  // Bitwise "not" operator to invert bits:
-  //  int a = 103;  // binary:  0000000001100111
-  //  int b = ~a;   // binary:  1111111110011000 = -104
-  byte toggleByte = ~pcf21.read8();
+// --------------------------------------------------
+// Get Front Panel address/data/sense toggle values.
+
+// Invert byte bits using bitwise not operator: "~";
+// Bitwise "not" operator to invert bits:
+//  int a = 103;  // binary:  0000000001100111
+//  int b = ~a;   // binary:  1111111110011000 = -104
+
+int toggleData() {
+  byte toggleByte = ~pcfData.read8();
   return toggleByte;
 }
+// --------------------------
+int toggleSense() {
+#ifdef DESKTOP_MODULE
+  byte toggleByte = ~pcfSense.read8();
+#else
+  byte toggleByte = ~pcfData.read8();     // Only 8 toggle bits on the tablet, so Sense and Data are shared.
+#endif
+  return toggleByte;
+}
+// --------------------------
+unsigned int toggleAddress() {
+  byte byteLow = ~pcfData.read8();
+#ifdef DESKTOP_MODULE
+  byte byteHigh = ~pcfSense.read8();
+#else
+  byte byteHigh = 0;                    // No high byte toggles on the tablet.
+#endif
+  return byteHigh * 256 + byteLow;
+}
 
-// -------------------------
-// Front Panel Control Switches, when a program is not running.
+// --------------------------------------------------
 
-// Only do the action once, don't repeat if the button is held down.
-// Don't repeat action if the button is not pressed.
-
+#ifdef DESKTOP_MODULE
+const int pinStop = 7;
+const int pinRun = 6;
+const int pinStep = 5;
+const int pinExamine = 4;
+const int pinExamineNext = 3;
+const int pinDeposit = 2;
+const int pinDepositNext = 1;
+const int pinReset = 0;
+#else
+// TABLET_MODULE
 const int pinStop = 0;
 const int pinRun = 1;
 const int pinStep = 2;
@@ -3397,6 +4444,16 @@ const int pinExamineNext = 4;
 const int pinDeposit = 5;
 const int pinDepositNext = 6;
 const int pinReset = 7;
+#endif
+
+const int pinAux1up = 3;
+const int pinAux1down = 2;
+const int pinAux2up = 1;
+const int pinAux2down = 0;
+const int pinProtect = 5;
+const int pinUnProtect = 4;
+const int pinClr = 6;
+const int pinStepDown = 7;
 
 boolean switchStop = false;
 boolean switchRun = false;
@@ -3406,8 +4463,20 @@ boolean switchExamineNext = false;
 boolean switchDeposit = false;;
 boolean switchDepositNext = false;;
 boolean switchReset = false;
+boolean switchProtect = false;
+boolean switchUnProtect = false;
+boolean switchClr = false;
+boolean switchStepDown = false;
 
-// -------------------------
+boolean switchAux1up = false;
+boolean switchAux1down = false;
+boolean switchAux2up = false;
+boolean switchAux2down = false;
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Processor Switch Functions
+
 void controlResetLogic() {
   programCounter = 0;
   curProgramCounter = 0;
@@ -3416,19 +4485,28 @@ void controlResetLogic() {
   statusByte = 0;
   if (programState != PROGRAM_RUN) {
     programState = PROGRAM_WAIT;
-    statusByte = statusByte | WAIT_ON;
+    digitalWrite(WAIT_PIN, HIGH);
   }
   // Fetch the first opcode, which display values to the panel.
   processData();
 }
 
+void pausePlayer() {
+  // Twice because sometimes, once doesn't work.
+  mp3player.pause();
+  delay(100);
+  mp3player.pause();
+  playerStatus = playerStatus | HLTA_ON;
+}
 void controlStopLogic() {
   programState = PROGRAM_WAIT;
   // Create a STOP statusByte, to display on stopping.
   // When the program continues, the orginal statusByte should be used.
-  int stopStatusByte = WAIT_ON | HLTA_ON;
+  int stopStatusByte = HLTA_ON;
+  digitalWrite(WAIT_PIN, HIGH);
   // Display values to the panel lights.
   lightsStatusAddressData(stopStatusByte, programCounter, dataByte);
+  pausePlayer();
 }
 
 // --------------------------------------------------
@@ -3436,7 +4514,7 @@ void controlStopLogic() {
 
 void checkExamineButton() {
   // Read PCF8574 input for this switch.
-  if (pcf20.readButton(pinExamine) == 0) {
+  if (pcfControl.readButton(pinExamine) == 0) {
     if (!switchExamine) {
       switchExamine = true;
     }
@@ -3448,40 +4526,47 @@ void checkExamineButton() {
     switch (programState) {
       // -------------------
       case PROGRAM_WAIT:
-        programCounter = toggleSenseByte();
+        programCounter = toggleAddress();
         curProgramCounter = programCounter;     // Synch for control switches.
         dataByte = memoryData[programCounter];
-        processDataLights();
+        programLights();
 #ifdef SWITCH_MESSAGES
-        Serial.print(F("+ Control, Examine: "));
-        printByte(dataByte);
-        Serial.print(" = ");
+        Serial.print(F("+ Control, Examine address: "));
+        sprintf(charBuffer, "%5d", programCounter); // A10 = 1024, A11 = 2048, ..., A14 = 16K, A15 = 32K (32768).
+        Serial.print(charBuffer);
+        Serial.print("=");
+        printAddress(programCounter);
+        Serial.print(", data byte value = ");
+        // printByte(dataByte);
+        // Serial.print(" = ");
         printData(dataByte);
         Serial.println("");
 #endif
         break;
       case CLOCK_RUN:
 #ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Clock, Examine, set clock value."));
+        Serial.print(F("+ Clock, Examine, set clock values, "));
+        Serial.println(F("one at a time: year, month, day, hour, minutes, seconds."));
 #endif
         // Serial.print("+ Key OK");
+        // setClockValue is indicator of which clock value is being processed, to be set.
         if (setClockValue) {
           // Serial.print(" ");
           switch (setClockValue) {
             case 1:
               // Serial.print("seconds");
               theCounterSeconds = setValue;
-              printClockInt(theSetCol, printRowClockPulse, setValue);
+              printLcdClockValue(theSetCol, printRowClockPulse, setValue);
               break;
             case 2:
               // Serial.print("minutes");
               theCounterMinutes = setValue;
-              printClockInt(theSetCol, printRowClockPulse, setValue);
+              printLcdClockValue(theSetCol, printRowClockPulse, setValue);
               break;
             case 3:
               // Serial.print("hours");
               theCounterHours = setValue;
-              printClockInt(theSetCol, printRowClockPulse, setValue);
+              printLcdClockValue(theSetCol, printRowClockPulse, setValue);
               break;
             case 4:
               // Serial.print("day");
@@ -3513,7 +4598,7 @@ void checkExamineButton() {
 }
 void checkExamineNextButton() {
   // Read PCF8574 input for this switch.
-  if (pcf20.readButton(pinExamineNext) == 0) {
+  if (pcfControl.readButton(pinExamineNext) == 0) {
     if (!switchExamineNext) {
       switchExamineNext = true;
     }
@@ -3533,7 +4618,7 @@ void checkExamineNextButton() {
         curProgramCounter++;
         programCounter++;
         dataByte = memoryData[programCounter];
-        processDataLights();
+        programLights();
 #ifdef SWITCH_MESSAGES
         Serial.print(F("+ Control, Examine Next, programCounter: "));
         printByte(programCounter);
@@ -3546,7 +4631,7 @@ void checkExamineNextButton() {
         break;
       case CLOCK_RUN:
 #ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Clock, Examine Next."));
+        Serial.println(F("+ Clock, Examine Next clock value: year, month, day, hour, minutes, seconds."));
 #endif
         setClockValue--;
         if (setClockValue < 0) {
@@ -3560,7 +4645,7 @@ void checkExamineNextButton() {
 
 void checkDepositButton() {
   // Read PCF8574 input for this switch.
-  if (pcf20.readButton(pinDeposit) == 0) {
+  if (pcfControl.readButton(pinDeposit) == 0) {
     if (!switchDeposit) {
       switchDeposit = true;
     }
@@ -3580,26 +4665,26 @@ void checkDepositButton() {
           // This handles the first switch, after a STEP or HLT.
           programCounter = curProgramCounter;
         }
-        dataByte = toggleSenseByte();
+        dataByte = toggleData();
         memoryData[programCounter] = dataByte;
-        processDataLights();
+        programLights();
         break;
       case CLOCK_RUN:
 #ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Clock, Deposit, increment."));
+        Serial.println(F("+ Clock, Deposit, increment the clock value being set(Y,M,D,H,M, or S)."));
 #endif
         setValue++;
         if (setValue > theSetMax) {
           setValue = theSetMin;
         }
-        printClockInt(theSetCol, theSetRow, setValue);
+        printLcdClockValue(theSetCol, theSetRow, setValue);
         break;
     }
   }
 }
 void checkDepositNextButton() {
   // Read PCF8574 input for this switch.
-  if (pcf20.readButton(pinDepositNext) == 0) {
+  if (pcfControl.readButton(pinDepositNext) == 0) {
     if (!switchDepositNext) {
       switchDepositNext = true;
     }
@@ -3622,19 +4707,19 @@ void checkDepositNextButton() {
         }
         curProgramCounter++;
         programCounter++;
-        dataByte = toggleSenseByte();
+        dataByte = toggleData();
         memoryData[programCounter] = dataByte;
-        processDataLights();
+        programLights();
         break;
       case CLOCK_RUN:
 #ifdef SWITCH_MESSAGES
-        Serial.println(F("+ Clock, Deposit Next, decrement."));
+        Serial.println(F("+ Clock, Deposit Next: decrement the clock value being set(Y,M,D,H,M, or S)."));
 #endif
         setValue--;
         if (setValue < theSetMin) {
           setValue = theSetMax;
         }
-        printClockInt(theSetCol, theSetRow, setValue);
+        printLcdClockValue(theSetCol, theSetRow, setValue);
         break;
     }
   }
@@ -3646,27 +4731,28 @@ void checkDepositNextButton() {
 void checkRunningButtons() {
   // -------------------
   // Read PCF8574 input for this switch.
-  if (pcf20.readButton(pinStop) == 0) {
+  if (pcfControl.readButton(pinStop) == 0) {
     if (!switchStop) {
       switchStop = true;
     }
   } else if (switchStop) {
     switchStop = false;
-    // Switch logic.
+    // Switch logic
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ Running, Stop."));
 #endif
     controlStopLogic();
+    // -------------------
+    pausePlayer();
   }
   // -------------------
-  // Read PCF8574 input for this switch.
-  if (pcf20.readButton(pinReset) == 0) {
+  if (pcfControl.readButton(pinReset) == 0) {
     if (!switchReset) {
       switchReset = true;
     }
   } else if (switchReset) {
     switchReset = false;
-    // Switch logic.
+    // Switch logic
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ Running, Reset."));
 #endif
@@ -3681,24 +4767,30 @@ void checkRunningButtons() {
 void checkControlButtons() {
   // -------------------
   // Read PCF8574 input for this switch.
-  if (pcf20.readButton(pinRun) == 0) {
+  if (pcfControl.readButton(pinRun) == 0) {
     if (!switchRun) {
       switchRun = true;
     }
   } else if (switchRun) {
     switchRun = false;
-    // Switch logic.
+    // Switch logic
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ Control, Run."));
 #endif
     // Switch logic...
     programState = PROGRAM_RUN;
-    statusByte = statusByte & WAIT_OFF;
+    digitalWrite(WAIT_PIN, LOW);
+    // statusByte = statusByte & WAIT_OFF;
     statusByte = statusByte & HLTA_OFF;
+    // -------------------
+    if (processorPlayerStart) {
+      if (processorPlayerCounter > 0) {
+        mp3player.play(processorPlayerCounter);
+      }
+    }
   }
   // -------------------
-  // Read PCF8574 input for this switch.
-  if (pcf20.readButton(pinReset) == 0) {
+  if (pcfControl.readButton(pinReset) == 0) {
     if (!switchReset) {
       switchReset = true;
     }
@@ -3711,18 +4803,16 @@ void checkControlButtons() {
     controlResetLogic();
   }
   // -------------------
-  // Read PCF8574 input for this switch.
-  if (pcf20.readButton(pinStep) == 0) {
+  if (pcfControl.readButton(pinStep) == 0) {
     if (!switchStep) {
       switchStep = true;
     }
   } else if (switchStep) {
     switchStep = false;
-    // Switch logic.
+    // Switch logic
 #ifdef SWITCH_MESSAGES
     Serial.println("+ Control, Step.");
 #endif
-    // Switch logic...
     statusByte = statusByte & HLTA_OFF;
     processData();
   }
@@ -3732,11 +4822,138 @@ void checkControlButtons() {
   checkDepositButton();
   checkDepositNextButton();
   // -------------------
+  if (pcfAux.readButton(pinStepDown) == 0) {
+    if (!switchStepDown) {
+      switchStepDown = true;
+    }
+  } else if (switchStepDown) {
+    switchStepDown = false;
+    // Switch logic
+    if (curProgramCounter != programCounter) {
+      // Synch for control switches: programCounter and curProgramCounter.
+      // This handles the first switch...Next, after a STEP or HLT.
+      programCounter = curProgramCounter;
+    }
+    if (programCounter > 0) {
+      curProgramCounter--;
+      programCounter--;
+      dataByte = memoryData[programCounter];
+      programLights();
+#ifdef SWITCH_MESSAGES
+      Serial.print(F("+ Control, Examine Next, programCounter: "));
+      printByte(programCounter);
+      Serial.print(", byte = ");
+      printByte(dataByte);
+      Serial.print(" = ");
+      printData(dataByte);
+      Serial.println("");
+#endif
+    }
+  }
+  // -------------------
+  if (pcfAux.readButton(pinClr) == 0) {
+    if (!switchClr) {
+      switchClr = true;
+    }
+  } else if (switchClr) {
+    switchClr = false;
+    // Switch logic
+    // -------------------------------------------------------
+    // Double flip confirmation.
+    switchClr = false;      // Required to reset the switch state for confirmation.
+    boolean confirmChoice = false;
+    unsigned long timer = millis();
+    while (!confirmChoice && (millis() - timer < 1000)) {
+      if (pcfAux.readButton(pinClr) == 0) {
+        if (!switchClr) {
+          switchClr = true;
+        }
+      } else if (switchClr) {
+        switchClr = false;
+        // Switch logic.
+        confirmChoice = true;
+      }
+      delay(100);
+    }
+    if (!confirmChoice) {
+      return;
+    }
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Choice confirmed."));
+#endif
+    // -------------------------------------------------------
+    zeroOutMemory();
+    controlResetLogic();
+  }
+  // -------------------
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// Clock
+void checkAux1() {
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux1up) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(CLOCK_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux1up) {
+      switchAux1up = true;
+      // Serial.print(F("+ pinAux1up switch pressed..."));
+    }
+  } else if (switchAux1up) {
+    switchAux1up = false;
+    // Switch logic.
+    if (programState == CLOCK_RUN) {
+      Serial.println(F("+ Exit clock mode, return to the Altair 8800 emulator."));
+      programState = PROGRAM_WAIT;
+      digitalWrite(HLDA_PIN, LOW);
+      digitalWrite(WAIT_PIN, HIGH);
+      programLights();                // Restore the front panel lights.
+    } else {
+      Serial.println(F("+ Clock mode."));
+      programState = CLOCK_RUN;
+      digitalWrite(HLDA_PIN, HIGH);
+      digitalWrite(WAIT_PIN, LOW);
+      lightsStatusAddressData(0, 0, 0);  // Clear the front panel lights.
+    }
+  }
+  // -----------------------
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux1down) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(PLAYER_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux1down) {
+      switchAux1down = true;
+      // Serial.print(F("+ AUX1 down switch pressed..."));
+    }
+  } else if (switchAux1down) {
+    switchAux1down = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ AUX1 down, Upload Switched."));
+#endif
+    if (programState == PLAYER_RUN) {
+      Serial.println(F("+ Exit player mode, return to processor mode."));
+      programState = PROGRAM_WAIT;
+      digitalWrite(HLDA_PIN, LOW);
+      digitalWrite(WAIT_PIN, HIGH);
+      programLights();                // Restore the front panel lights.
+    } else {
+      Serial.println(F("+ MP3 player mode."));
+      programState = PLAYER_RUN;
+      digitalWrite(HLDA_PIN, HIGH);
+      digitalWrite(WAIT_PIN, LOW);
+      playerState = PLAYER_MP3;       // Default to MP3 player state.
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Clock Section
 
 void syncCountWithClock() {
   now = rtc.now();
@@ -3745,13 +4962,13 @@ void syncCountWithClock() {
   theCounterSeconds = now.second();
   //
   theCursor = thePrintColHour;
-  printClockInt(theCursor, printRowClockPulse, theCounterHours);  // Column, Row
+  printLcdClockValue(theCursor, printRowClockPulse, theCounterHours);  // Column, Row
   theCursor = theCursor + 3;
   lcd.print(":");
-  printClockInt(theCursor, printRowClockPulse, theCounterMinutes);
+  printLcdClockValue(theCursor, printRowClockPulse, theCounterMinutes);
   theCursor = theCursor + 3;
   lcd.print(":");
-  printClockInt(theCursor, printRowClockPulse, theCounterSeconds);
+  printLcdClockValue(theCursor, printRowClockPulse, theCounterSeconds);
   //
   Serial.print("+ syncCountWithClock,");
   Serial.print(" theCounterHours=");
@@ -3765,7 +4982,6 @@ void syncCountWithClock() {
 }
 
 // -----------------------------------------------------------------------------
-boolean HLDA_ON = false;
 void processClockNow() {
   //
   now = rtc.now();
@@ -3802,39 +5018,6 @@ void processClockNow() {
       }
     }
   }
-  /*
-    if (now.second() != theCounterSeconds) {
-    // When the clock second value changes, that's a second pulse.
-    theCounterSeconds = now.second();
-    // clockPulseSecond();
-    if (HLDA_ON) {
-      digitalWrite(HLDA_PIN, LOW);
-      HLDA_ON = false;
-    } else {
-      digitalWrite(HLDA_PIN, HIGH);
-      HLDA_ON = true;
-    }
-    if (theCounterSeconds == 0) {
-      // When the clock second value changes to zero, that's a minute pulse.
-      theCounterMinutes = now.minute();
-      if (theCounterMinutes != 0) {
-        // clockPulseMinute();
-        Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
-        Serial.println(theCounterMinutes);
-        // ----------------------------------------------
-        displayTheTime( theCounterMinutes, theCounterHours );
-      } else {
-        // When the clock minute value changes to zero, that's an hour pulse.
-        // clockPulseHour();
-        theCounterHours = now.hour();
-        Serial.print("++ clockPulseHour(), theCounterHours= ");
-        Serial.println(theCounterHours);
-        // ----------------------------------------------
-        displayTheTime( theCounterMinutes, theCounterHours );
-      }
-    }
-    }
-  */
 }
 
 void clockPulseYear() {
@@ -3862,26 +5045,26 @@ void clockPulseHour() {
   } else {
     theHour = theCounterHours;
   }
+  KnightRiderScanner();
+  //
   displayTheTime( theCounterMinutes, theCounterHours );
-  printClockInt(thePrintColHour, printRowClockPulse, theHour);
+  printLcdClockValue(thePrintColHour, printRowClockPulse, theHour);
 }
 void clockPulseMinute() {
   Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
   Serial.println(theCounterMinutes);
   displayTheTime( theCounterMinutes, theCounterHours );
-  printClockInt(thePrintColMin, printRowClockPulse, theCounterMinutes);
+  printLcdClockValue(thePrintColMin, printRowClockPulse, theCounterMinutes);
+  if (theCounterMinutes == 15 || theCounterMinutes == 30 || theCounterMinutes == 45) {
+    if (playerStatus & HLTA_ON) {
+      mp3player.play(CLOCK_CUCKOO);
+    }
+  }
 }
 void clockPulseSecond() {
-  if (HLDA_ON) {
-    digitalWrite(HLDA_PIN, LOW);
-    HLDA_ON = false;
-  } else {
-    digitalWrite(HLDA_PIN, HIGH);
-    HLDA_ON = true;
-  }
   // Serial.print("+ theCounterSeconds = ");
   // Serial.println(theCounterSeconds);
-  printClockInt(thePrintColSec, printRowClockPulse, theCounterSeconds);  // Column, Row
+  printLcdClockValue(thePrintColSec, printRowClockPulse, theCounterSeconds);  // Column, Row
 }
 
 // ------------------------------------------------------------------------
@@ -3890,14 +5073,15 @@ void clockPulseSecond() {
 void displayTheTime(byte theMinute, byte theHour) {
   byte theMinuteOnes = 0;
   byte theMinuteTens = 0;
-  byte theBinaryMinute = 0;
+  // byte theBinaryMinute = 0;  // not used anymore.
   byte theBinaryHour1 = 0;
   byte theBinaryHour2 = 0;
 
   // ----------------------------------------------
   // Convert the minute into binary for display.
   if (theMinute < 10) {
-    theBinaryMinute = theMinute;
+    // theBinaryMinute = theMinute;
+    theMinuteOnes = theMinute;
   } else {
     // There are 3 bits for the tens: 0 ... 5 (00, 10, 20, 30, 40, or 50).
     // There are 4 bits for the ones: 0 ... 9.
@@ -3910,7 +5094,7 @@ void displayTheTime(byte theMinute, byte theHour) {
     // theMinute = 10, theBinaryMinute =  00100000
     theMinuteTens = theMinute / 10;
     theMinuteOnes = theMinute - theMinuteTens * 10;
-    theBinaryMinute = 32 * theMinuteTens + theMinuteOnes;
+    // theBinaryMinute = 32 * theMinuteTens + theMinuteOnes;
   }
 
   // ----------------------------------------------
@@ -3923,60 +5107,65 @@ void displayTheTime(byte theMinute, byte theHour) {
   }
   switch (theHour) {
     case 1:
-      theBinaryHour1 = B00000001; // Note, on the shift register, B00000001 is not wired, not used.
+      theBinaryHour1 = B00000010;   // Use A1 as 1 o'clock.
       theBinaryHour2 = 0;
       break;
     case 2:
-      theBinaryHour1 = B00000010;
-      theBinaryHour2 = 0;
-      break;
-    case 3:
       theBinaryHour1 = B00000100;
       theBinaryHour2 = 0;
       break;
-    case 4:
+    case 3:
       theBinaryHour1 = B00001000;
       theBinaryHour2 = 0;
       break;
-    case 5:
+    case 4:
       theBinaryHour1 = B00010000;
       theBinaryHour2 = 0;
       break;
-    case 6:
+    case 5:
       theBinaryHour1 = B00100000;
       theBinaryHour2 = 0;
       break;
-    case 7:
+    case 6:
       theBinaryHour1 = B01000000;
       theBinaryHour2 = 0;
       break;
-    case 8:
+    case 7:
       theBinaryHour1 = B10000000;
       theBinaryHour2 = 0;
       break;
-    case 9:
+    case 8:
       theBinaryHour1 = 0;
       theBinaryHour2 = B00000001;
       break;
-    case 10:
+    case 9:
       theBinaryHour1 = 0;
       theBinaryHour2 = B00000010;
       break;
-    case 11:
+    case 10:
       theBinaryHour1 = 0;
       theBinaryHour2 = B00000100;
       break;
-    case 12:
+    case 11:
       theBinaryHour1 = 0;
       theBinaryHour2 = B00001000;
       break;
+    case 12:
+      theBinaryHour1 = 0;
+      theBinaryHour2 = B00010000;
+      break;
   }
   // ----------------------------------------------
+  // Front panel clock time display, stacy
+  //
   // Need enter: theBinaryMinute, theBinaryHour1, theBinaryHour2, into the following:
   // Data byte LED lights: theBinaryMinute.
   // Address word LED lights: theBinaryHour2 & theBinaryHour1.
   unsigned int hourWord = theBinaryHour2 * 256 + theBinaryHour1;
-  lightsStatusAddressData(statusByte, hourWord, theBinaryMinute);
+  //
+  // lightsStatusAddressData(OUT_ON, hourWord, theBinaryMinute);
+  // This option is easier to read on the desktop module:
+  lightsStatusAddressData(theMinuteTens, hourWord, theMinuteOnes);
 }
 
 // -----------------------------------------------------------------------
@@ -4014,110 +5203,757 @@ void restoreLcdScreenData() {
   lcd.cursor();
   lcd.setCursor(lcdColumn, lcdRow);
 }
-
-void clockRun() {
-  Serial.println(F("+ clockRun()"));
-  saveClearLcdScreenData();
-  lcd.noCursor();
-  syncCountWithClock();
-  displayTheTime( theCounterMinutes, theCounterHours );
-  while (programState == CLOCK_RUN) {
-    // Clock process to display the time.
-    processClockNow();
-    // Switches to exit clock mode.
-    checkRunningButtons();
-    checkClockSwitch();
-    // Check control buttons for setting the time.
-    checkExamineButton();
-    checkExamineNextButton();
-    checkDepositButton();
-    checkDepositNextButton();
-    delay(100);
-  }
-  restoreLcdScreenData();
-}
 #endif
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void playerRun() {
-  Serial.println(F("+ playerRun()"));
-  while (programState == PLAYER_RUN) {
-    // processPlayer();
-    checkRunningButtons();
-    delay(100);
-  }
-}
+// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+// Clock Timer
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// Front Panel AUX Switches
+const int timerTop = 8;
+unsigned int timerData[timerTop];
+unsigned int timerCounter = 0;
+unsigned int timerDataAddress = 0;
+byte timerStatus = INP_ON;         // Clock timer is ready for timer value input.
+byte timerStep = 0;
+unsigned int timerMinute = 0;
+unsigned int clockTimerAddress = 0;
+unsigned long clockTimer;
+int clockTimerCount = 0;
 
-#ifdef INCLUDE_AUX
-// Only do the action once, don't repeat if the switch is held down.
-// Don't repeat action if the switch is not pressed.
-boolean clockSwitchState = true;
-boolean playerSwitchState = true;
-boolean uploadSwitchState = true;
-boolean downloadSwitchState = true;
+unsigned long clockTimerSeconds;
+boolean clockTimerSecondsOn = false;
+int clockTimerCountBit;
 
-void checkClockSwitch() {
-  if (digitalRead(CLOCK_SWITCH_PIN) == HIGH) {
-    if (!clockSwitchState) {
-      Serial.println(F("+ Clock switch released."));
-      clockSwitchState = false;
-      // Switch logic ...
-      if (programState == CLOCK_RUN) {
-        Serial.println(F("+ Stop running the clock, return to the 8080 emulator."));
-        controlStopLogic();   // Changes programState to wait.
-        digitalWrite(HLDA_PIN, LOW);
-      } else {
-        programState = CLOCK_RUN;
-        digitalWrite(HLDA_PIN, HIGH);
-        statusByte = statusByte & WAIT_OFF;
-        Serial.print("+ Clock programState: ");
-        Serial.println(programState);
+void clockRunTimerControlsOut(int theTimerMinute) {
+  // Can be called from processor OUT opcode.
+  digitalWrite(HLDA_PIN, HIGH);
+  timerMinute = theTimerMinute;
+  clockSetTimer(timerMinute);
+  boolean thisMode = true;
+  while (thisMode) {
+    clockRunTimer();
+    checkTimerControls();         // Clock and timer controls, No AUX controls.
+    // ------------------------
+    // AUX option to exit counter mode.
+    if (pcfAux.readButton(pinAux2up) == 0) {
+      if (!switchAux2up) {
+        switchAux2up = true;
       }
+    } else if (switchAux2up) {
+      switchAux2up = false;
+      thisMode = false;
     }
-    clockSwitchState = true;
-  } else {
-    if (clockSwitchState) {
-      // Serial.println(F("+ Clock switch pressed."));
-      clockSwitchState = false;
-      // Switch logic ...
+    // ------------------------
+  }
+  digitalWrite(HLDA_PIN, LOW);
+}
+
+void clockSetTimer(int timerMinute) {
+  //
+  // Set parameters before starting the timere.
+  //    timerMinute is the amount of minutes to be timed.
+  //
+  timerStatus = timerStatus | M1_ON;  // Timer is running (M1_ON).
+  clockTimer = millis();              // Initialize the clock timer milliseconds.
+  clockTimerCount = 0;                // Start counting from 0. Timer is done when it equals timerMinute.
+  clockTimerAddress = 0;              // Used to display Address lights: timerMinute and clockTimerCount.
+  // Put the timerMinute into the display value: clockTimerAddress.
+  clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
+}
+void clockRunTimer() {
+  // -----------------------------------------
+  if ((millis() - clockTimerSeconds >= 500)) {
+    //
+    // Each half second, toggle the tracking minute counter LED on/off.
+    //
+    clockTimerSeconds = millis();
+    if (clockTimerSecondsOn) {
+      clockTimerSecondsOn = false;
+      clockTimerCountBit = 1;
+      clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, clockTimerCountBit);
+    } else {
+      clockTimerSecondsOn = true;
+      clockTimerCountBit = 0;
+      clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, clockTimerCountBit);
     }
   }
-}
-void checkPlayerSwitch() {
-  if (digitalRead(PLAYER_SWITCH_PIN) == HIGH) {
-    if (!playerSwitchState) {
-      Serial.println(F("+ Player switch released."));
-      playerSwitchState = false;
-      // Switch logic ...
-      if (programState == PLAYER_RUN) {
-        Serial.println(F("+ Stop running the MP3 player, return to the 8080 emulator."));
-        controlStopLogic();
-        digitalWrite(HLDA_PIN, LOW);
-      } else {
-        programState = PLAYER_RUN;
-        digitalWrite(HLDA_PIN, HIGH);
-        statusByte = statusByte & WAIT_OFF;
-        Serial.print("+ MP3 player programState: ");
-        Serial.println(programState);
+  // -----------------------------------------
+  if ((millis() - clockTimer >= 60000)) {
+    //
+    // Minute process.
+    //
+    // 60 x 1000 = 60000, which is one minute.
+    clockTimer = millis();
+    clockTimerCount++;
+    if (clockTimerCount >= timerMinute ) {
+      //
+      // -----------------------------------------
+      // *** Timer Complete ***
+      // When the timer is complete, play a sound, and flash some lights.
+      //
+#ifdef SWITCH_MESSAGES
+      Serial.print(F("+ clockTimerCount="));
+      Serial.print(clockTimerCount);
+      Serial.print(F(" timerMinute="));
+      Serial.print(timerMinute);
+      Serial.println(F(" Timer timed."));
+#endif
+      // Force playing the sound.
+      mp3player.play(soundEffects[TIMER_COMPLETE]);
+      delay(1200);  // Delay time for the sound to play.
+      // KnightRiderScanner();
+      if (!(playerStatus & HLTA_ON)) {
+        delay(2000);
+        mp3player.play(playerCounter);    // Continue to play in clock mode.
       }
+      //
+      if (timerCounter < timerTop && timerCounter > 0) {
+        // Check if there is another timer setting in the timer array, that needs running.
+        timerCounter++;
+        timerMinute = getMinuteValue(timerData[timerCounter]);
+        if (timerMinute > 0) {
+#ifdef SWITCH_MESSAGES
+          Serial.print(F("+ Run next timer event. timerCounter="));
+          Serial.print(timerCounter);
+          Serial.print(F(" timerData[timerCounter]="));
+          Serial.println(timerData[timerCounter]);
+#endif
+          clockTimerAddress = 1;
+          clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
+          // Start the timer and count.
+          clockTimer = millis();
+          clockTimerCount = 0;
+        } else {
+          // End the timer run state, stay in clock timer mode.
+          timerStatus = INP_ON | HLTA_ON;
+          clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
+        }
+      } else {
+        // End the timer run state, stay in clock timer mode.
+        timerStatus = INP_ON | HLTA_ON;
+        clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
+      }
+    } else {
+      // -----------------------------------------
+      // Each minute, increment the minute counter and LED light, and play a cuckoo sound.
+      //
+#ifdef SWITCH_MESSAGES
+      Serial.print(F("+ clockTimerCount="));
+      Serial.print(clockTimerCount);
+      Serial.print(F(" timerMinute="));
+      Serial.println(clockTimerCount);
+#endif
+      clockTimerAddress = 0;
+      clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
+      clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, 1);
+      playerPlaySound(TIMER_MINUTE);
+      delay(1200);  // Delay time for the sound to play.
     }
-    playerSwitchState = true;
-  } else {
-    if (playerSwitchState) {
-      Serial.println(F("+ Player switch pressed."));
-      playerSwitchState = false;
-      // Switch logic ...
+  }
+  lightsStatusAddressData(timerStatus, clockTimerAddress, timerCounter);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Clock Front Panel Switch Functions.
+
+int clockData = 0;
+void checkClockControls() {
+  // ---------------------------------------------------------
+  if (pcfControl.readButton(pinStep) == 0) {
+    if (!switchStep) {
+      switchStep = true;
+    }
+  } else if (switchStep) {
+    switchStep = false;
+    // Switch logic.
+    Serial.print(F("+ STEP, clock, "));
+    if (clockData == 0) {
+      clockData = 1;
+      Serial.println(F("Show month and day."));
+      displayTheTime(theCounterDay, theCounterMonth);
+    } else if (clockData == 1) {
+      clockData = 2;
+      Serial.println(F("Show year."));
+      int theCentury = theCounterYear / 100;
+      int theYear = theCounterYear - theCentury * 100;
+      int theYearTens = theYear / 10;
+      int theYearOnes = theYear - theYearTens * 10;
+      lightsStatusAddressData(theYearTens, theCentury, theYearOnes);
+    } else if (clockData == 2) {
+      clockData = 0;
+      Serial.println(F("Show minutes and hours."));
+      displayTheTime(theCounterMinutes, theCounterHours);
+    }
+  }
+  // ------------------------
+  if (pcfControl.readButton(pinReset) == 0) {
+    if (!switchReset) {
+      switchReset = true;
+    }
+  } else if (switchReset) {
+    switchReset = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Control, clock Reset."));
+#endif
+    //
+    KnightRiderScanner();
+    //
+    clockData = 0;
+    Serial.println(F("Show minutes and hours."));
+    displayTheTime(theCounterMinutes, theCounterHours);
+  }
+  // ------------------------
+}
+
+// -----------------------------------------------------------------------------
+void checkAux2clock() {
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux2up) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(CLOCK_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux2up) {
+      switchAux2up = true;
+    }
+  } else if (switchAux2up) {
+    switchAux2up = false;
+    // Switch logic.
+    if (clockState == CLOCK_TIME || clockState == CLOCK_COUNTER) {
+#ifdef SWITCH_MESSAGES
+      Serial.println(F("+ AUX2 up. Enter clock timer mode."));
+#endif
+      clockState = CLOCK_TIMER;
+      digitalWrite(WAIT_PIN, HIGH);
+      lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+    } else {
+#ifdef SWITCH_MESSAGES
+      Serial.println(F("+ AUX2 down. Enter clock mode."));
+#endif
+      clockState = CLOCK_TIME;
+      digitalWrite(WAIT_PIN, LOW);
+      displayTheTime(theCounterMinutes, theCounterHours);
+    }
+  }
+  // -----------------------
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux2down) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(PLAYER_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux2down) {
+      switchAux2down = true;
+    }
+  } else if (switchAux2down) {
+    switchAux2down = false;
+    // Switch logic.
+    if (clockState == CLOCK_TIME || clockState == CLOCK_TIMER) {
+#ifdef SWITCH_MESSAGES
+      Serial.println(F("+ AUX2 down. Enter clock counter mode."));
+#endif
+      clockState = CLOCK_COUNTER;
+      digitalWrite(WAIT_PIN, HIGH);
+      if (counterAddress == 0 & counterData == 0) {
+        clockCounterRead(0);
+      }
+      counterLights();
+    } else {
+#ifdef SWITCH_MESSAGES
+      Serial.println(F("+ AUX2 down. Enter clock mode."));
+#endif
+      clockState = CLOCK_TIME;
+      digitalWrite(WAIT_PIN, LOW);
+      displayTheTime(theCounterMinutes, theCounterHours);
     }
   }
 }
+
+// ---------------------------------------------------------
+// Clock Timer Controls
+
+String getSfbFilename(byte fileByte) {
+  // SFB: Sound File Byte.
+  String sfbFilename = ".sfb";
+  if (fileByte < 10) {
+    sfbFilename = "000" + String(fileByte) + sfbFilename;
+  } else if (fileByte < 100) {
+    sfbFilename = "00" + String(fileByte) + sfbFilename;
+  } else if (fileByte < 1000) {
+    sfbFilename = "0" + String(fileByte) + sfbFilename;
+  } else {
+    sfbFilename = String(fileByte) + sfbFilename;
+  }
+  return sfbFilename;
+}
+int getMinuteValue(unsigned int theWord) {
+  int theMinute = 0;
+  for (int i = 15; i >= 0; i--) {
+    if (bitRead(theWord, i) > 0) {
+      theMinute = i;
+      // Serial.print("\n+ Minute = ");
+      // Serial.println(theMinute);
+    }
+  }
+  return (theMinute);
+}
+
+void checkTimerControls() {
+  // Timer options
+  // -------------------
+  if (pcfControl.readButton(pinStop) == 0) {
+    if (!switchStop) {
+      switchStop = true;
+    }
+  } else if (switchStop) {
+    switchStop = false;
+    // Switch logic
+    timerStatus = INP_ON;
+    // Set the timer bit on, so that it is displayed.
+    clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, 1);
+    lightsStatusAddressData(timerStatus, clockTimerAddress, timerCounter);
+  }
+  // -------------------
+  if (pcfControl.readButton(pinRun) == 0) {
+    if (!switchRun) {
+      switchRun = true;
+    }
+  } else if (switchRun) {
+    switchRun = false;
+    // Switch logic
+    //
+    // Check if there are any timer array values set.
+    int timerDataTotal = 0;
+    for (int i = 1; i < timerTop; i++) {
+      timerDataTotal = timerDataTotal + timerData[i];
+    }
+    if (timerDataTotal == 0) {
+      // Since no timer array values set, use quick timer option.
+      timerMinute = getMinuteValue(toggleAddress());
+      timerCounter = 0;
+    } else {
+      timerMinute = getMinuteValue(timerData[timerCounter]);
+    }
+    clockSetTimer(timerMinute);
+    //
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Timer, RUN. Timer minutes="));
+    Serial.print(timerMinute);
+    Serial.println("");
+#endif
+  }
+  // -------------------
+  if (pcfAux.readButton(pinStepDown) == 0) {
+    if (!switchStepDown) {
+      switchStepDown = true;
+    }
+  } else if (switchStepDown) {
+    switchStepDown = false;
+    // Switch logic
+    if (timerCounter > 0) {
+      timerCounter--;                                   // Timer array index counter.
+      timerDataAddress = timerData[timerCounter];       // Timer array index data.
+      lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+    }
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Step Down, Examine: timerCounter="));
+    Serial.print(timerCounter);
+    Serial.print(F(", timerDataAddress="));
+    Serial.println(timerDataAddress);
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinExamine) == 0) {
+    if (!switchExamine) {
+      switchExamine = true;
+    }
+  } else if (switchExamine) {
+    switchExamine = false;
+    // Switch logic
+    if (timerCounter < timerTop) {
+      timerCounter = toggleData();                      // Timer array index counter.
+      timerDataAddress = timerData[timerCounter];       // Timer array index data.
+      lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+    }
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Timer, Examine: timerCounter="));
+    Serial.print(timerCounter);
+    Serial.print(F(", timerDataAddress="));
+    Serial.println(timerDataAddress);
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinExamineNext) == 0) {
+    if (!switchExamineNext) {
+      switchExamineNext = true;
+    }
+  } else if (switchExamineNext) {
+    switchExamineNext = false;
+    // Switch logic
+    if (timerCounter < timerTop) {
+      timerCounter++;                                   // Timer array index counter.
+      timerDataAddress = timerData[timerCounter];       // Timer array index data.
+      lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+    }
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Timer, Examine Next: timerCounter="));
+    Serial.print(timerCounter);
+    Serial.print(F(", timerDataAddress="));
+    Serial.println(timerDataAddress);
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinDeposit) == 0) {
+    if (!switchDeposit) {
+      switchDeposit = true;
+    }
+  } else if (switchDeposit) {
+    switchDeposit = false;
+    // Switch logic
+    timerDataAddress = toggleAddress();               // Timer array index data value.
+    timerData[timerCounter] = timerDataAddress;       // Set data value into the Timer array.
+    lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Timer, Deposit: timerCounter="));
+    Serial.print(timerCounter);
+    Serial.print(F(", timerDataAddress="));
+    Serial.println(timerDataAddress);
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinDepositNext) == 0) {
+    if (!switchDepositNext) {
+      switchDepositNext = true;
+    }
+  } else if (switchDepositNext) {
+    switchDepositNext = false;
+    // Switch logic
+    timerCounter++;                                   // Timer array index counter.
+    timerDataAddress = toggleAddress();               // Timer array index data value.
+    timerData[timerCounter] = timerDataAddress;       // Set data value into the Timer array.
+    lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Timer, Deposit Next: timerCounter="));
+    Serial.print(timerCounter);
+    Serial.print(F(", timerDataAddress="));
+    Serial.println(timerDataAddress);
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinReset) == 0) {
+    if (!switchReset) {
+      switchReset = true;
+    }
+  } else if (switchReset) {
+    switchReset = false;
+    // Switch logic
+    timerCounter = 1;                                 // Timer array index counter.
+    timerDataAddress = timerData[timerCounter];       // Timer array index data.
+    lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Timer, RESET: timerCounter="));
+    Serial.print(timerCounter);
+    Serial.print(F(", timerDataAddress="));
+    Serial.println(timerDataAddress);
+#endif
+  }
+  // -------------------
+  if (pcfAux.readButton(pinClr) == 0) {
+    if (!switchClr) {
+      switchClr = true;
+    }
+  } else if (switchClr) {
+    switchClr = false;
+    // Switch logic
+    // -------------------------------------------------------
+    // Double flip confirmation.
+    digitalWrite(WAIT_PIN, HIGH);
+    switchClr = false;      // Required to reset the switch state for confirmation.
+    boolean confirmChoice = false;
+    unsigned long timer = millis();
+    while (!confirmChoice && (millis() - timer < 1000)) {
+      if (pcfAux.readButton(pinClr) == 0) {
+        if (!switchClr) {
+          switchClr = true;
+        }
+      } else if (switchClr) {
+        switchClr = false;
+        // Switch logic.
+        confirmChoice = true;
+      }
+      delay(100);
+    }
+    if (!confirmChoice) {
+      digitalWrite(WAIT_PIN, LOW);
+      return;
+    }
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Choice confirmed."));
+#endif
+    digitalWrite(WAIT_PIN, LOW);
+    // -------------------------------------------------------
+    // Zero out timer array.
+    int timerDataTotal = 0;
+    for (int i = 1; i < timerTop; i++) {
+      timerData[i] = 0;
+    }
+    // Reset
+    timerCounter = 1;                                 // Timer array index counter.
+    timerDataAddress = timerData[timerCounter];       // Timer array index data.
+    lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Timer, CLR: timerCounter="));
+    Serial.print(timerCounter);
+    Serial.print(F(", timerDataAddress="));
+    Serial.println(timerDataAddress);
+#endif
+  }
+}
+
+// ---------------------------------------------------------
+// Manage file counters.
+
+void counterLights() {
+  lightsStatusAddressData(counterStatus, counterAddress, counterData);
+}
+String getCfbFilename(byte fileByte) {
+  // CFB: Count File Byte.
+  String theFilename = ".cfb";
+  if (fileByte < 10) {
+    theFilename = "000" + String(fileByte) + theFilename;
+  } else if (fileByte < 100) {
+    theFilename = "00" + String(fileByte) + theFilename;
+  } else if (fileByte < 1000) {
+    theFilename = "0" + String(fileByte) + theFilename;
+  } else {
+    theFilename = String(fileByte) + theFilename;
+  }
+  return theFilename;
+}
+void clockCounterRead(int counterAddress) {
+  String sfbFilename = getCfbFilename(counterAddress);
+  counterData = readFileByte(sfbFilename);
+#ifdef SWITCH_MESSAGES
+  Serial.print(F("+ Counter, EXAMINE, switched. Data filename = "));
+  Serial.print(sfbFilename);
+  Serial.print(F(", file data byte="));
+  printByte(counterData);
+  Serial.print(F("="));
+  Serial.print(counterData);
+  Serial.println("");
+#endif
+  counterStatus = MEMR_ON | STACK_ON | INP_ON;
+  counterLights();
+}
+void clockCounterWrite(int counterAddress, byte counterData) {
+  String sfbFilename = getCfbFilename(counterAddress);
+#ifdef SWITCH_MESSAGES
+  Serial.print(F(" Data filename = "));
+  Serial.print(sfbFilename);
+  Serial.print(F(", file data byte="));
+  printByte(counterData);
+  Serial.print(F("="));
+  Serial.print(counterData);
+  Serial.println("");
+#endif
+  if (!writeFileByte(sfbFilename, counterData)) {
+    Serial.println("- Failed to write sound file: ");
+    ledFlashError();
+    counterStatus = MEMR_ON | STACK_ON;
+  } else {
+    counterStatus = MEMR_ON | STACK_ON | WO_ON;
+  }
+  counterLights();
+}
+
+void clockCounterControlsOut(int theCounterAddress) {
+  // Can be called from processor OUT opcode.
+  digitalWrite(HLDA_PIN, HIGH);
+  counterAddress = theCounterAddress;
+  clockCounterRead(theCounterAddress);
+  boolean thisMode = true;
+  while (thisMode) {
+    clockCounterControls();         // No AUX controls.
+    // ------------------------
+    // AUX option to exit this mode.
+    if (pcfAux.readButton(pinAux2down) == 0) {
+      if (!switchAux2down) {
+        switchAux2down = true;
+      }
+    } else if (switchAux2down) {
+      switchAux2down = false;
+      thisMode = false;
+    }
+    // ------------------------
+  }
+  digitalWrite(HLDA_PIN, LOW);
+}
+
+void clockCounterControls() {
+  // -------------------
+  if (pcfControl.readButton(pinStop) == 0) {
+    if (!switchStop) {
+      switchStop = true;
+    }
+  } else if (switchStop) {
+    switchStop = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Counter, STOP."));
+#endif
+    // Get current value.
+    String sfbFilename = getCfbFilename(counterAddress);
+    counterData = readFileByte(sfbFilename);
+    if (counterData > 0) {
+      // Decrement value and write.
+      counterData--;
+      clockCounterWrite(counterAddress, counterData);
+    } else {
+#ifdef SWITCH_MESSAGES
+      Serial.println(F(" counterData is 0, not decremented."));
+#endif
+      ledFlashError();
+    }
+  }
+  // -------------------
+  if (pcfControl.readButton(pinRun) == 0) {
+    if (!switchRun) {
+      switchRun = true;
+    }
+  } else if (switchRun) {
+    switchRun = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Counter, RUN."));
+#endif
+    // Get current value.
+    String sfbFilename = getCfbFilename(counterAddress);
+    counterData = readFileByte(sfbFilename);
+    if (counterData < 256) {
+      // Increment value and write.
+      counterData++;
+      clockCounterWrite(counterAddress, counterData);
+    } else {
+#ifdef SWITCH_MESSAGES
+      Serial.println(F(" counterData is 256, not incremented."));
+#endif
+      ledFlashError();
+    }
+  }
+  // -------------------
+  if (pcfControl.readButton(pinStep) == 0) {
+    if (!switchStep) {
+      switchStep = true;
+    }
+  } else if (switchStep) {
+    switchStep = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println("+ Counter, Step.");
+#endif
+  }
+  // -------------------
+  if (pcfAux.readButton(pinStepDown) == 0) {
+    if (!switchStepDown) {
+      switchStepDown = true;
+    }
+  } else if (switchStepDown) {
+    switchStepDown = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Counter, STEP Down, switched."));
+#endif
+    if (counterAddress > 0) {
+      counterAddress --;
+      clockCounterRead(counterAddress);
+    } else {
+#ifdef SWITCH_MESSAGES
+      Serial.println(F(" counterData is 0, not decremented."));
+#endif
+      ledFlashError();
+    }
+  }
+  // -------------------
+  if (pcfControl.readButton(pinExamine) == 0) {
+    if (!switchExamine) {
+      switchExamine = true;
+    }
+  } else if (switchExamine) {
+    switchExamine = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Counter, EXAMINE NEXT, switched."));
+#endif
+    counterAddress = toggleData();
+    clockCounterRead(counterAddress);
+  }
+  // -------------------
+  if (pcfControl.readButton(pinExamineNext) == 0) {
+    if (!switchExamineNext) {
+      switchExamineNext = true;
+    }
+  } else if (switchExamineNext) {
+    switchExamineNext = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Counter, EXAMINE NEXT, switched."));
+#endif
+    counterAddress ++;
+    clockCounterRead(counterAddress);
+  }
+  // -------------------
+  if (pcfControl.readButton(pinDeposit) == 0) {
+    if (!switchDeposit) {
+      switchDeposit = true;
+    }
+  } else if (switchDeposit) {
+    switchDeposit = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Counter, DEPOSIT, switched."));
+#endif
+    counterData = toggleData();
+    clockCounterWrite(counterAddress, counterData);
+  }
+  // -------------------
+  if (pcfControl.readButton(pinDepositNext) == 0) {
+    if (!switchDepositNext) {
+      switchDepositNext = true;
+    }
+  } else if (switchDepositNext) {
+    switchDepositNext = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Counter, DEPOSIT NEXT, switched."));
+#endif
+    counterAddress++;
+    counterData = toggleData();
+    clockCounterWrite(counterAddress, counterData);
+  }
+  // -------------------
+  if (pcfControl.readButton(pinReset) == 0) {
+    if (!switchReset) {
+      switchReset = true;
+    }
+  } else if (switchReset) {
+    switchReset = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Counter, Reset counter to 0 and Load byte value."));
+#endif
+    counterAddress = 0;
+    clockCounterRead(counterAddress);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// SD card processor memory read/write from/into a file.
 
 String getSenseSwitchValue() {
-  byte bValue = toggleSenseByte();
+  byte bValue = toggleSense();
   String sValue = String(bValue, BIN);
   int addZeros = 8 - sValue.length();
   for (int i = 0; i < addZeros; i++) {
@@ -4126,368 +5962,983 @@ String getSenseSwitchValue() {
   return sValue;
 }
 
-// -----------------------------------------------------
+// Write processor memory to an SD card file.
 boolean confirmWrite = false;
-void checkConfirmUploadSwitch() {
-  if (digitalRead(UPLOAD_SWITCH_PIN) == HIGH) {
-    if (!uploadSwitchState) {
-      // Serial.println(F("+ Upload switch released."));
-      uploadSwitchState = false;
-      // Switch logic ...
-      confirmWrite = true;
-    }
-    uploadSwitchState = true;
-  } else {
-    if (uploadSwitchState) {
-      // Serial.println(F("+ Upload switch pressed."));
-      uploadSwitchState = false;
-      // Switch logic ...
-    }
-  }
-}
 void checkUploadSwitch() {
-  if (digitalRead(UPLOAD_SWITCH_PIN) == HIGH) {
-    if (!uploadSwitchState) {
-      // Serial.println(F("+ Upload switch released."));
-      uploadSwitchState = false;
-      // Switch logic ...
-#ifdef INCLUDE_SDCARD
-      String senseSwitchValue = getSenseSwitchValue();
-      String theFilename = senseSwitchValue + ".bin";
-      if (theFilename != "11111111.bin") {
-        saveClearLcdScreenData();
-        lcdPrintln(0, "Confirm write> ");
-        //             1234567890123456
-        lcdPrintln(1, "Name: " + senseSwitchValue);
-        //
-        confirmWrite = false;
-        // -------------------------------------------------------
-        // Must confirm within X seconds (milliseconds).
-        unsigned long timer = millis();
-        /*/
-          Serial.print(F("+ millis() = "));
-          Serial.print(millis());
-          Serial.print(F(", timer = "));
-          Serial.print(timer);
-          Serial.print(F(", millis()-timer = "));
-          unsigned long sub = millis()-timer;
-          Serial.println(sub);
-          // */
-        uploadSwitchState = true; // Required to reset the switch state for confirmation.
-        while (!confirmWrite && (millis() - timer < 3000)) {
-          checkConfirmUploadSwitch();
-          delay(100);
-        }
-        // -------------------------------------------------------
-        //
-        if (confirmWrite) {
-          Serial.print(F("+ Write memory to filename: "));
-          Serial.println(theFilename);
-          writeProgramMemoryToFile(theFilename);
-        } else {
-          // Serial.print(F("+ Write cancelled."));
-          lcdPrintln(1, "Write cancelled.");
-          //             1234567890123456
-        }
-        confirmWrite = 0;   // Reset for next time.
-        delay(2000); // Give to read the resulting message.
-        restoreLcdScreenData();
-      } else {
-        Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
-        ledFlashError();
-      }
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux2up) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(UPLOAD_SWITCH_PIN) == LOW) {
 #endif
+    if (!switchAux2up) {
+      switchAux2up = true;
     }
-  } else {
-    if (uploadSwitchState) {
-      // Serial.println(F("+ Upload switch pressed."));
-      uploadSwitchState = false;
-      // Switch logic ...
+  } else if (switchAux2up) {
+    switchAux2up = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ AUX2 up, Upload Switched."));
+#endif
+    String senseSwitchValue = getSenseSwitchValue();
+    String theFilename = senseSwitchValue + ".bin";
+    if (theFilename == "11111111.bin") {
+      Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
+      ledFlashError();
+      return;
     }
+    digitalWrite(HLDA_PIN, HIGH);
+    saveClearLcdScreenData();
+    lcdPrintln(0, "Confirm write> ");
+    //             1234567890123456
+    lcdPrintln(1, "File: " + senseSwitchValue);
+    //
+    // -------------------------------------------------------
+    // Double flip to write.
+    confirmWrite = false;
+    switchAux2up = false; // Required to reset the switch state for confirmation.
+    unsigned long timer = millis();
+    while (!confirmWrite && (millis() - timer < 1200)) {
+#ifdef DESKTOP_MODULE
+      if (pcfAux.readButton(pinAux2up) == 0) {
+#else
+      // Tablet:
+      if (digitalRead(UPLOAD_SWITCH_PIN) == LOW) {
+#endif
+        if (!switchAux2up) {
+          switchAux2up = true;
+        }
+      } else if (switchAux2up) {
+        switchAux2up = false;
+        confirmWrite = true;
+      }
+      delay(100);
+    }
+    if (!confirmWrite) {
+      // Serial.print(F("+ Write cancelled."));
+      lcdPrintln(1, "Write cancelled.");
+      //             1234567890123456
+      digitalWrite(HLDA_PIN, LOW);
+      return;
+    }
+    // -------------------------------------------------------
+    Serial.print(F("+ Write memory to filename: "));
+    Serial.println(theFilename);
+    writeProgramMemoryToFile(theFilename);
+    // delay(2000); // Give to read the resulting message.
+    restoreLcdScreenData();
+    programLights();
   }
+  digitalWrite(HLDA_PIN, LOW);
 }
+
 // -----------------------------------------------------
 void checkDownloadSwitch() {
-  if (digitalRead(DOWNLOAD_SWITCH_PIN) == HIGH) {
-    if (!downloadSwitchState) {
-      // Serial.println(F("+ Download switch released."));
-      downloadSwitchState = false;
-      // Switch logic ...
-#ifdef INCLUDE_SDCARD
-      String theFilename = getSenseSwitchValue() + ".bin";
-      if (theFilename == "11111111.bin") {
-        Serial.println(F("+ Set to download over the serial port."));
-        programState = SERIAL_DOWNLOAD;
-      } else if (theFilename == "00000000.bin") {
-        //             1234567890123456
-        lcdPrintln(1, "Zero out memory");
-        zeroOutMemory();
-        controlResetLogic();
-      } else {
-        Serial.print(F("+ Read the filename into memory: "));
-        Serial.println(theFilename);
-        readProgramFileIntoMemory(theFilename);
-      }
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux2down) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
 #endif
+    if (!switchAux2down) {
+      switchAux2down = true;
+      // Serial.print(F("+ AUX2 down switch pressed..."));
     }
-    downloadSwitchState = true;
-  } else {
-    if (downloadSwitchState) {
-      // Serial.println(F("+ Download switch pressed."));
-      downloadSwitchState = false;
-      // Switch logic ...
+  } else if (switchAux2down) {
+    switchAux2down = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ AUX2 down, Download Switched."));
+#endif
+    String theFilename = getSenseSwitchValue() + ".bin";
+    if (theFilename == "00000000.bin") {
+      Serial.println(F("+ Set to download over the serial port."));
+      programState = SERIAL_DOWNLOAD;
+      return;
     }
+    digitalWrite(HLDA_PIN, HIGH);
+    // -------------------------------------------------------
+    // Double flip confirmation.
+    switchAux2down = false;      // Required to reset the switch state for confirmation.
+    boolean confirmChoice = false;
+    unsigned long timer = millis();
+    while (!confirmChoice && (millis() - timer < 1200)) {
+#ifdef DESKTOP_MODULE
+      if (pcfAux.readButton(pinAux2down) == 0) {
+#else
+      // Tablet:
+      if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
+#endif
+        if (!switchAux2down) {
+          switchAux2down = true;
+        }
+      } else if (switchAux2down) {
+        switchAux2down = false;
+        // Switch logic.
+        confirmChoice = true;
+      }
+      delay(100);
+    }
+    if (!confirmChoice) {
+      digitalWrite(HLDA_PIN, LOW);
+      return;
+    }
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Choice confirmed."));
+#endif
+    // -------------------------------------------------------
+    if (theFilename == "00000000.bin") {
+#ifdef SWITCH_MESSAGES
+      Serial.println(F("+ Zero out memory."));
+#endif
+      //             1234567890123456
+      lcdPrintln(1, "Zero out memory");
+      zeroOutMemory();
+      controlResetLogic();
+      digitalWrite(HLDA_PIN, LOW);
+      return;
+    }
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Read the filename into memory: "));
+    Serial.println(theFilename);
+#endif
+    if (readProgramFileIntoMemory(theFilename)) {
+      playerPlaySound(READ_FILE);
+      ledFlashSuccess();
+      delay(1500);                // Delay depends on the time length of the MP3 play time.
+      controlResetLogic();
+    }
+    digitalWrite(HLDA_PIN, LOW);
   }
 }
+
+// --------------------------------------------------------
+// --------------------------------------------------------
+// Check Front Panel Control Switches, when in Player mode.
+
+void checkProtectSetVolume() {
+  // When not in player mode, used to change the volume.
+  // -------------------
+  if (pcfAux.readButton(pinProtect) == 0) {
+    if (!switchProtect) {
+      switchProtect = true;
+    }
+  } else if (switchProtect) {
+    switchProtect = false;
+    //
+    // Switch logic, based on programState.
+    if (playerVolume > 1) {
+      playerVolume--;
+    }
+    mp3player.volume(playerVolume);
+    // playerLights();
+    // delay(300);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, decrease volume to "));
+    Serial.println(playerVolume);
 #endif
+  }
+  // -------------------
+  if (pcfAux.readButton(pinUnProtect) == 0) {
+    if (!switchUnProtect) {
+      switchUnProtect = true;
+    }
+  } else if (switchUnProtect) {
+    switchUnProtect = false;
+    // Switch logic
+    if (playerVolume < 30) {
+      playerVolume++;
+    }
+    mp3player.volume(playerVolume);
+    // playerLights();
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, increase volume to "));
+    Serial.println(playerVolume);
+#endif
+  }
+}
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------
-// Infrared options when a program is NOT running.
+void checkPlayerControls() {
+  // -------------------
+  if (pcfControl.readButton(pinStop) == 0) {
+    if (!switchStop) {
+      switchStop = true;
+    }
+  } else if (switchStop) {
+    switchStop = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Player, STOP: stop playing."));
+#endif
+    mp3player.pause();
+    playerStatus = playerStatus | HLTA_ON;
+    playerLights();
+  }
+  // -------------------
+  if (pcfControl.readButton(pinRun) == 0) {
+    if (!switchRun) {
+      switchRun = true;
+    }
+  } else if (switchRun) {
+    switchRun = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, RUN: start playing, playerCounter="));
+    Serial.println(playerCounter);
+#endif
+    mp3player.start();
+    playerStatus = playerStatus & HLTA_OFF;
+    playerLights();
+  }
+  // -------------------
+  if (pcfControl.readButton(pinExamine) == 0) {
+    if (!switchExamine) {
+      switchExamine = true;
+    }
+  } else if (switchExamine) {
+    switchExamine = false;
+    // Switch logic
+    unsigned int addressToggles = toggleAddress();
+    if (addressToggles > 0 && addressToggles <= playerCounterTop) {
+      playerCounter = addressToggles;
+      if (!(playerStatus & HLTA_ON)) {
+        mp3player.play(playerCounter);
+      }
+      playerLights();
+#ifdef SWITCH_MESSAGES
+      Serial.print(F("+ Player, EXAMINE: play a specific song number, playerCounter="));
+      Serial.println(playerCounter);
+#endif
+    } else {
+      ledFlashError();
+#ifdef SWITCH_MESSAGES
+      Serial.print(F("+ Player, EXAMINE: toggle address out of player file counts range: "));
+      Serial.print(addressToggles);
+      Serial.print(F(", player file counts: "));
+      Serial.println(playerCounterTop);
+#endif
+    }
+  }
+  // -------------------
+  if (pcfControl.readButton(pinExamineNext) == 0) {
+    if (!switchExamineNext) {
+      switchExamineNext = true;
+    }
+  } else if (switchExamineNext) {
+    switchExamineNext = false;
+    // Switch logic
+    if (playerCounter < playerCounterTop) {
+      playerCounter++;
+    } else {
+      playerCounter = 1;
+    }
+    if (!(playerStatus & HLTA_ON)) {
+      mp3player.play(playerCounter);
+    }
+    playerLights();
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, Examine Next: play next song, playerCounter="));
+    Serial.println(playerCounter);
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinStep) == 0) {
+    if (!switchStep) {
+      switchStep = true;
+    }
+  } else if (switchStep) {
+    switchStep = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, Single Step, "));
+#endif
+    if (loopSingle) {
+#ifdef SWITCH_MESSAGES
+      Serial.print(F("Toggle loop a single song: off, song# "));
+#endif
+      loopSingle = false;
+      // mp3player.disableLoop();
+      playerStatus = playerStatus & M1_OFF;
+    } else {
+#ifdef SWITCH_MESSAGES
+      Serial.print(F("Toggle loop a single song: on, song# "));
+#endif
+      loopSingle = true;
+      // mp3player.loop(playerCounter);
+      // playerStatus = playerStatus & HLTA_OFF;
+      playerStatus = playerStatus | M1_ON;
+    }
+    playerLights();
+#ifdef SWITCH_MESSAGES
+    Serial.println(playerCounter);
+#endif
+  }
+  // -------------------
+  if (pcfAux.readButton(pinStepDown) == 0) {
+    if (!switchStepDown) {
+      switchStepDown = true;
+    }
+  } else if (switchStepDown) {
+    switchStepDown = false;
+    // Switch logic
+    if (playerCounter > 1) {
+      playerCounter--;
+    } else {
+      playerCounter = playerCounterTop;
+    }
+    if (!(playerStatus & HLTA_ON)) {
+      mp3player.play(playerCounter);
+    }
+    playerLights();
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, Examine: play previous song, playerCounter="));
+    Serial.println(playerCounter);
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinReset) == 0) {
+    if (!switchReset) {
+      switchReset = true;
+    }
+  } else if (switchReset) {
+    switchReset = false;
+    // Switch logic
+    // delay(300);
+    playerCounterTop = mp3player.readFileCounts();
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player RESET, play first song. Number of MP3 files = "));
+    Serial.println(playerCounterTop);
+#endif
+    playerDirectory = 1;
+    playerCounter = 1;
+    if (!(playerStatus & HLTA_ON)) {
+      mp3player.play(playerCounter);
+    }
+    // reset player
+    playerLights();
+  }
+  // -------------------
+  if (pcfAux.readButton(pinProtect) == 0) {
+    if (!switchProtect) {
+      switchProtect = true;
+    }
+  } else if (switchProtect) {
+    switchProtect = false;
+    //
+    // Switch logic, based on programState.
+    if (playerVolume > 1) {
+      playerVolume--;
+    }
+    mp3player.volume(playerVolume);
+    playerLights();
+    // delay(300);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, decrease volume to "));
+    Serial.println(playerVolume);
+#endif
+  }
+  // -------------------
+  if (pcfAux.readButton(pinUnProtect) == 0) {
+    if (!switchUnProtect) {
+      switchUnProtect = true;
+    }
+  } else if (switchUnProtect) {
+    switchUnProtect = false;
+    // Switch logic
+    if (playerVolume < 30) {
+      playerVolume++;
+    }
+    mp3player.volume(playerVolume);
+    playerLights();
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, increase volume to "));
+    Serial.println(playerVolume);
+#endif
+  }
+  // -------------------
+  if (pcfAux.readButton(pinClr) == 0) {
+    if (!switchClr) {
+      switchClr = true;
+    }
+  } else if (switchClr) {
+    switchClr = false;
+    // Switch logic
+  }
+}
 
-void displayStatusAddressData() {
+// -------------------
+if (pcfControl.readButton(pinDeposit) == 0) {
+  if (!switchDeposit) {
+    switchDeposit = true;
+  }
+} else if (switchDeposit) {
+  switchDeposit = false;
+  // Switch logic
+  playerStatus = playerStatus & HLTA_OFF;
+  if (playerDirectory > 1) {
+    playerDirectory --;
+  } else if (playerDirectoryTop > 0) {
+    // If playerDirectoryTop is set, then loop to the last directory.
+    playerDirectory = playerDirectoryTop;
+  }
+  int currentPlayerCounter = playerCounter;
+  mp3player.loopFolder(playerDirectory);
+  delay(300);
+  playerCounter = mp3player.readCurrentFileNumber();
+  int i = 0;
+  while ((i++ < 3) && ((playerCounter >= playerCounterTop) || playerCounter == currentPlayerCounter)) {
+    delay(300);
+    playerCounter = mp3player.readCurrentFileNumber();
+  }
+  playerLights();
   //
-  dataByte = memoryData[programCounter];
-  lightsStatusAddressData(statusByte, programCounter, dataByte);
+  // Disable the loop function so that playerCounter will be used for next MP3.
+  // mp3player.disableLoop();
   //
-#ifdef INFRARED_MESSAGES
-  Serial.print(F("Addr: "));
-  sprintf(charBuffer, "%4d:", programCounter);
-  Serial.print(charBuffer);
-  Serial.print(F(" Data: "));
-  printData(dataByte);
+#ifdef SWITCH_MESSAGES
+  Serial.print(F("+ Player, Deposit: play previous folder# "));
+  Serial.print(playerDirectory);
+  Serial.print(F(", playerCounter="));
+  Serial.println(playerCounter);
+#endif
+}
+// -------------------
+if (pcfControl.readButton(pinDepositNext) == 0) {
+  if (!switchDepositNext) {
+    switchDepositNext = true;
+  }
+} else if (switchDepositNext) {
+  switchDepositNext = false;
+  // Switch logic
+#ifdef SWITCH_MESSAGES
+  Serial.print(F("+ Player, Deposit Next"));
+#endif
+  playerStatus = playerStatus & HLTA_OFF;
+  int currentPlayerCounter = playerCounter;
+  //
+  playerDirectory ++;
+  mp3player.loopFolder(playerDirectory);
+  delay(300);
+  playerCounter = mp3player.readCurrentFileNumber();
+  int i = 0;
+  while ((i++ < 3) && ((playerCounter >= playerCounterTop) || playerCounter == currentPlayerCounter)) {
+    delay(300);
+    playerCounter = mp3player.readCurrentFileNumber();
+    if ((currentPlayerCounter + 1) >= playerCounter) {
+      // + Player, Deposit Next play next folder# 8, playerCounter,pre=59,post=84
+      // + Player, Deposit Next play next folder# 9, playerCounter,pre=84,post=86
+      playerDirectory--;
+      playerDirectoryTop = playerDirectory;
+      playerDirectory = 1;
+      playerCounter = 1;
+      mp3player.loopFolder(playerDirectory);
+      // mp3player.play(playerCounter);
+      delay(300);
+    }
+  }
+  playerLights();
+  //
+  // Disable the loop function so that playerCounter will be used for next MP3.
+  // mp3player.disableLoop();
+  //
+#ifdef SWITCH_MESSAGES
+  Serial.print(F(" play next folder# "));
+  Serial.print(playerDirectory);
+  Serial.print(F(", playerCounter,pre="));
+  Serial.print(currentPlayerCounter);
+  Serial.print(F(",post="));
+  Serial.println(playerCounter);
+#endif
+}
+// ------------------------
+#ifdef DESKTOP_MODULE
+if (pcfAux.readButton(pinAux2up) == 0) {
+#else
+// Tablet:
+if (digitalRead(UPLOAD_SWITCH_PIN) == LOW) {
+#endif
+  if (!switchAux2up) {
+    switchAux2up = true;
+    // Serial.print(F("+ Player AUX2 up switch pressed..."));
+  }
+} else if (switchAux2up) {
+  switchAux2up = false;
+  // Switch logic.
+#ifdef SWITCH_MESSAGES
+  Serial.print(F("+ Player AUX2 up, switched."));
   Serial.println("");
 #endif
 }
+// ------------------------
+#ifdef DESKTOP_MODULE
+if (pcfAux.readButton(pinAux2down) == 0) {
+#else
+// Tablet:
+if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
+#endif
+  if (!switchAux2down) {
+    switchAux2down = true;
+    // Serial.print(F("+ Player, AUX2 down switch pressed..."));
+  }
+} else if (switchAux2down) {
+  switchAux2down = false;
+  // Switch logic.
+#ifdef SWITCH_MESSAGES
+  Serial.print(F("+ Player, AUX2 down, switched. Enter player file mode."));
+  Serial.println("");
+#endif
+  playerState = PLAYER_FILE;
+  digitalWrite(WAIT_PIN, HIGH);
+  playerFileLights();
+}
+// -------------------
+}
 
-void infraredControl() {
-  // Serial.print(F("+ infraredControl: "));
-  // Serial.println(results.value);
-  switch (results.value) {
-    case 0xFFFFFFFF:
-      // Ignore. This is from holding the key down.
-      break;
-    // -----------------------------------
-    case 0xFF10EF:
-    case 0xE0E0A659:
-      Serial.println(F("+ Key <"));
-      break;
-    case 16734885:
-    // case 0xFF5AA5:
-    case 0xE0E046B9:
-      Serial.println(F("+ Key > - next: SINGLE STEP toggle/button switch."));
-      statusByte = statusByte & HLTA_OFF;
-      processData();
-      break;
-    case 0xFF18E7:
-    case 0xE0E006F9:
-      // Serial.println(F("+ Key up"));
-      Serial.println(F("+ Key ^ - Run process."));
-      programState = PROGRAM_RUN;
-      statusByte = statusByte & WAIT_OFF;
-      statusByte = statusByte & HLTA_OFF;
-      break;
-    case 0xFF4AB5:
-    case 0xE0E08679:
-      Serial.println(F("+ Key down"));
-      break;
-    case 0xFF38C7:
-    case 0xE0E016E9:
-      // Serial.println(F("+ Key OK - Toggle RUN and STOP."));
-      Serial.println(F("+ Run process."));
-      programState = PROGRAM_RUN;
-      statusByte = statusByte & WAIT_OFF;
-      statusByte = statusByte & HLTA_OFF;
-      break;
-    // -----------------------------------
-    case 0xFF9867:
-    case 0xE0E08877:
-      Serial.print(F("+ Key 0:"));
+void checkPlayerFileControls() {
+  // -------------------
+  if (pcfControl.readButton(pinStop) == 0) {
+    if (!switchStop) {
+      switchStop = true;
+    }
+  } else if (switchStop) {
+    switchStop = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Player, STOP: stop playing."));
+#endif
+    mp3player.pause();
+    playerFileStatus = MEMR_ON | HLTA_ON;
+    playerFileLights();
+  }
+  // -------------------
+  if (pcfControl.readButton(pinRun) == 0) {
+    if (!switchRun) {
+      switchRun = true;
+    }
+  } else if (switchRun) {
+    switchRun = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, RUN: start playing, playerFileData="));
+    Serial.println(playerFileData);
+#endif
+    mp3player.play(playerFileData);
+    playerFileStatus = MEMR_ON | OUT_ON & HLTA_OFF;
+    playerFileLights();
+  }
+  // -------------------
+  if (pcfAux.readButton(pinStepDown) == 0) {
+    if (!switchStepDown) {
+      switchStepDown = true;
+    }
+  } else if (switchStepDown) {
+    switchStepDown = false;
+    // Switch logic
+    if (playerFileAddress > 0) {
+      playerFileAddress --;
+      String sfbFilename = getSfbFilename(playerFileAddress);
+      playerFileData = readFileByte(sfbFilename);
+      playerFileStatus = MEMR_ON | INP_ON | HLTA_ON;
+      playerFileLights();
+#ifdef SWITCH_MESSAGES
+      Serial.print(F("+ Player file, STEP Down, switched. Data filename = "));
+      Serial.print(sfbFilename);
+      Serial.print(F(", file data byte="));
+      printByte(playerFileData);
+      Serial.print(F("="));
+      Serial.print(playerFileData);
       Serial.println("");
+#endif
+    }
+  }
+  // -------------------
+  if (pcfControl.readButton(pinExamine) == 0) {
+    if (!switchExamine) {
+      switchExamine = true;
+    }
+  } else if (switchExamine) {
+    switchExamine = false;
+    // Switch logic.
+    playerFileAddress = toggleData();
+    String sfbFilename = getSfbFilename(playerFileAddress);
+    playerFileData = readFileByte(sfbFilename);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player file, EXAMINE, switched. Data filename = "));
+    Serial.print(sfbFilename);
+    Serial.print(F(", file data byte="));
+    printByte(playerFileData);
+    Serial.print(F("="));
+    Serial.print(playerFileData);
+    Serial.println("");
+#endif
+    playerFileStatus = MEMR_ON | INP_ON | HLTA_ON;
+    playerFileLights();
+#ifdef SWITCH_MESSAGES
+    // -------------------
+    // For debugging player issues.
+    /*
+      Serial.print(F("+ "));
+      Serial.print(F(" playerStatus="));
+      printByte(playerStatus);
+      Serial.print(F(" playerVolume="));
+      Serial.print(playerVolume);
+      Serial.print(F(" playerCounterTop="));
+      Serial.print(playerCounterTop);
+      Serial.print(F(" playerDirectory="));
+      Serial.print(playerDirectory);
+      Serial.print(F(" playerCounter="));
+      Serial.print(playerCounter);
+      Serial.print(F(", mp3player.read()="));
+      Serial.print(mp3player.read());
+      if (mp3player.available()) {
+        Serial.print(F(", mp3player available"));
+        int theType = mp3player.readType();
+        if (theType == DFPlayerPlayFinished) {
+          Serial.print(F(", Play Finished."));
+        } else {
+          // printDFPlayerMessage(theType, mp3player.read());
+          Serial.print(F(", theType="));
+          Serial.print(theType);
+        }
+      } else {
+        // Song is playing or paused.
+        Serial.print(F(", mp3player not available."));
+      }
+      Serial.println();
+    */
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinExamineNext) == 0) {
+    if (!switchExamineNext) {
+      switchExamineNext = true;
+    }
+  } else if (switchExamineNext) {
+    switchExamineNext = false;
+    // Switch logic
+    playerFileAddress ++;
+    String sfbFilename = getSfbFilename(playerFileAddress);
+    playerFileData = readFileByte(sfbFilename);
+    playerFileStatus = MEMR_ON | INP_ON | HLTA_ON;
+    playerFileLights();
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player file, EXAMINE NEXT, switched. Data filename = "));
+    Serial.print(sfbFilename);
+    Serial.print(F(", file data byte="));
+    printByte(playerFileData);
+    Serial.print(F("="));
+    Serial.print(playerFileData);
+    Serial.println("");
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinDeposit) == 0) {
+    if (!switchDeposit) {
+      switchDeposit = true;
+    }
+  } else if (switchDeposit) {
+    switchDeposit = false;
+    // Switch logic.
+    playerFileData = toggleData();
+    String sfbFilename = getSfbFilename(playerFileAddress);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player file, DEPOSIT, switched. Data filename = "));
+    Serial.print(sfbFilename);
+    Serial.print(F(", file data byte="));
+    printByte(playerFileData);
+    Serial.print(F("="));
+    Serial.print(playerFileData);
+    Serial.println("");
+#endif
+    if (!writeFileByte(sfbFilename, playerFileData)) {
+      Serial.println("- Failed to write sound file: ");
+    }
+    playerFileStatus = MEMR_ON | WO_ON | HLTA_ON;
+    playerFileLights();
+  }
+  // -------------------
+  if (pcfControl.readButton(pinDepositNext) == 0) {
+    if (!switchDepositNext) {
+      switchDepositNext = true;
+    }
+  } else if (switchDepositNext) {
+    switchDepositNext = false;
+    // Switch logic
+    playerFileData = toggleData();
+    playerFileAddress++;
+    String sfbFilename = getSfbFilename(playerFileAddress);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player file, DEPOSIT NEXT, switched. Data filename = "));
+    Serial.print(sfbFilename);
+    Serial.print(F(", file data byte="));
+    printByte(playerFileData);
+    Serial.print(F("="));
+    Serial.print(playerFileData);
+    Serial.println("");
+#endif
+    if (!writeFileByte(sfbFilename, playerFileData)) {
+      Serial.println("- Failed to write sound file: ");
+    }
+    playerFileStatus = MEMR_ON | WO_ON | HLTA_ON;
+    playerFileLights();
+  }
+  // -------------------
+  if (pcfControl.readButton(pinReset) == 0) {
+    if (!switchReset) {
+      switchReset = true;
+    }
+  } else if (switchReset) {
+    switchReset = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Player file, Reset. Load sound bite index array."));
+#endif
+    for (int i = 0; i < maxSoundEffects; i++) {
+      soundEffects[i] = readFileByte(getSfbFilename(i));
+    }
+    ledFlashSuccess();
+    playerFileStatus = MEMR_ON | WO_ON | HLTA_ON;
+    playerFileLights();
+  }
+  // ------------------------
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux2down) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux2down) {
+      switchAux2down = true;
+      // Serial.print(F("+ Player file, UX2 down switch pressed..."));
+    }
+  } else if (switchAux2down) {
+    switchAux2down = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player file, AUX2 down, switched. Exit player file mode."));
+    Serial.println("");
+#endif
+    playerState = PLAYER_MP3;
+    digitalWrite(WAIT_PIN, LOW);
+    playerLights();
+  }
+}
+
+// -----------------------------------------
+// DFPlayer configuration and error messages.
+
+void printDFPlayerMessage(uint8_t type, int value);
+void printDFPlayerMessage(uint8_t type, int value) {
+  switch (type) {
+    case TimeOut:
+      Serial.println(F("Time Out!"));
+      mp3player.play(playerCounter);
+      playerStatus = playerStatus & HLTA_OFF;
+      playerLights();
       break;
-    case 16753245:
-      // Serial.println(F("+ Key 1: "));
-      Serial.println("+ Examine Previous.");
-      programCounter--;
-      displayStatusAddressData();
+    case DFPlayerCardInserted:
+      Serial.println(F("Card Inserted!"));
       break;
-    case 16736925:
-      // case 0xFF629D:
-      // Serial.println(F("+ Key 2: "));
-      Serial.println(F("+ Examine."));
-      displayStatusAddressData();
+    case DFPlayerCardRemoved:
+      Serial.println(F("Card Removed!"));
       break;
-    case 0xFFE21D:
-      // Serial.println(F("+ Key 3: "));
-      Serial.println("+ Examine Next.");
-      programCounter++;
-      displayStatusAddressData();
+    case DFPlayerCardOnline:
+      Serial.println(F("Card Online!"));
       break;
-    case 0xFF22DD:
-      Serial.print(F("+ Key 4: "));
-      Serial.println("");
+    case DFPlayerPlayFinished:
+      Serial.print(F("Number:"));
+      Serial.print(value);
+      Serial.println(F(" Play Finished!"));
       break;
-    case 0xFF02FD:
-      Serial.print(F("+ Key 5: "));
-      Serial.println("");
+    case DFPlayerError:
+      Serial.print(F("DFPlayerError: "));
+      switch (value) {
+        case Busy:
+          Serial.println(F("Card not found"));
+          break;
+        case Sleeping:
+          Serial.println(F("Sleeping"));
+          break;
+        case FileIndexOut:
+          if (loopSingle) {
+            // For some reason, turning on single looping (mp3player.loop(playerCounter);)
+            //    on the last song causes this error.
+            //    This is ignore the error and get the song player.
+            mp3player.start();
+          } else {
+            Serial.println(F("File Index Out of Bound"));
+          }
+          break;
+        case FileMismatch:
+          Serial.println(F("Cannot Find File"));
+          Serial.print("+ Assume the directory number was incremented too high, play previous directory: ");
+          if (playerDirectory > 1) {
+            playerDirectory = 1;
+          } else {
+            playerDirectory = 1;
+          }
+          Serial.println(playerDirectory);
+          mp3player.loopFolder(playerDirectory);
+          break;
+        default:
+          Serial.print(F("Unknown DFPlayer error message value:"));
+          Serial.println (value);
+          break;
+      }
       break;
-    case 0xFFC23D:
-      Serial.print(F("+ Key 6: "));
-      Serial.println("");
-      break;
-    case 0xFFE01F:
-      Serial.print(F("+ Key 7: "));
-      Serial.println("");
-      break;
-    case 0xFFA857:
-      Serial.print(F("+ Key 8: "));
-      Serial.println("");
-      break;
-    case 0xFF906F:
-      Serial.print(F("+ Key 9: "));
-      Serial.println("");
-      break;
-    // -----------------------------------
-    case 0xFF6897:
-    case 0xE0E01AE5:
-      Serial.println(F("+ Key * (Return) - Reset"));
-      // Use as Reset when running.
-      controlResetLogic();
-      displayStatusAddressData();
-      break;
-    case 0xFFB04F:
-    case 0xE0E0B44B:
-      Serial.println(F("+ Key # (Exit)"));
-      break;
-    // -----------------------------------
     default:
-      /*
-        Serial.print("+ Result value: ");
-        Serial.print(results.value);
-        Serial.print(" HEX:");
-        Serial.println(results.value, HEX);
-      */
+      Serial.print(F("Unknown DFPlayer message type: "));
+      Serial.print(type);
+      Serial.print(F(", value:"));
+      Serial.println(value);
+      playerCounter = value;  // The song to play.
+      playerLights();
       break;
-      // -----------------------------------
-  } // end switch
+  }
+}
 
-  irrecv.resume();
+void playMp3() {
+  if (mp3player.available()) {
+    int theType = mp3player.readType();
+    // ------------------------------
+    if (theType == DFPlayerPlayFinished) {
+      if (loopSingle) {
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ Loop/play the same MP3: "));
+#endif
+      } else {
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ Play the next MP3: "));
+#endif
+        if (playerCounter < playerCounterTop) {
+          playerCounter++;
+        } else {
+          playerCounter = 1;
+        }
+      }
+      mp3player.play(playerCounter);
+      playerStatus = playerStatus & HLTA_OFF;
+      if (programState == PLAYER_RUN) {
+        // This "if", allows continuous playing in other modes (clock) without effecting their dislay lights.
+        playerLights();
+      }
+#ifdef SWITCH_MESSAGES
+      Serial.println(playerCounter);
+#endif
+      // ------------------------------
+    } else if (theType == DFPlayerCardInserted ) {
+      Serial.println(F("+ SD mini card inserted. Start playing"));
+      mp3player.start();
+    } else {
+      // Print the detail message from DFPlayer to handle different errors and states,
+      //   such as memory card not inserted.
+      printDFPlayerMessage(theType, mp3player.read());
+    }
+  }
+}
 
+void playerRun() {
+  saveClearLcdScreenData();
+  lcd.noCursor();
+  //             1234567890123456
+  lcdPrintln(0, "MP3 Player mode,");
+  lcdPrintln(1, "Not implemented.");
+  //
+  Serial.print(F("+ playerRun()"));
+  playerPlaySound(PLAYER_ON);
+  playerLights();
+  Serial.println("");
+  while (programState == PLAYER_RUN) {
+    delay(60);
+    switch (playerState) {
+      // ----------------------------
+      case PLAYER_MP3:
+        // Play MP3 files
+        if (!(playerStatus & HLTA_ON)) {
+          playMp3();
+          // playerLights();
+        }
+        checkPlayerControls();      // Player control functions from STOP to UNPROTECT.
+        break;
+      case PLAYER_FILE:
+        checkPlayerFileControls();  // Player control functions from STOP to UNPROTECT.
+        checkProtectSetVolume();
+        break;
+    }
+    checkAux1();          // Toggle between processor, clock, and player modes.
+  }
+  playerPlaySound(PLAYER_OFF);
+  restoreLcdScreenData();
+}
+
+// -----------------------------------------------------
+void clockRun() {
+  Serial.println(F("+ clockRun()"));
+  playerPlaySound(CLOCK_ON);
+  saveClearLcdScreenData();
+  lcd.noCursor();
+  syncCountWithClock();
+  displayTheTime(theCounterMinutes, theCounterHours);
+  while (programState == CLOCK_RUN) {
+    switch (clockState) {
+      // ----------------------------
+      case CLOCK_TIME:
+        processClockNow();
+        checkClockControls();
+        break;
+      case CLOCK_TIMER:
+        checkTimerControls();
+        if (timerStatus & M1_ON) {
+          // Timer is running when timerStatus: M1_ON.
+          clockRunTimer();
+        }
+        break;
+      case CLOCK_SET:
+        // Control buttons for setting the time.
+        // checkExamineButton();
+        // checkExamineNextButton();
+        // checkDepositButton();
+        // checkDepositNextButton();
+        break;
+      case CLOCK_COUNTER:
+        clockCounterControls();
+        break;
+    }
+    checkAux1();                // Toggle between processor, clock, and player modes.
+    checkAux2clock();           // Toggle between processor, clock, timer, and counter modes.
+    checkProtectSetVolume();    // Player volume control.
+    if (!(playerStatus & HLTA_ON)) {
+      playMp3();                // Continue to play in clock mode.
+    }
+    delay(100);
+  }
+  playerPlaySound(CLOCK_OFF);
+  restoreLcdScreenData();
 }
 
 // -----------------------------------------------------------------------------
-// Infrared options while a program is running.
-
-void infraredRunning() {
-  // Serial.println(F("+ infraredSwitch"));
-  switch (results.value) {
-    case 0xFFFFFFFF:
-      // Ignore. This is from holding the key down.
-      break;
-    // -----------------------------------
-    case 0xFF10EF:
-    case 0xE0E0A659:
-      // Serial.println(F("+ Key < - previous"));
-      break;
-    case 0xFF5AA5:
-    case 0xE0E046B9:
-      // Serial.println(F("+ Key > - next."));
-      break;
-    case 0xFF18E7:
-    case 0xE0E006F9:
-      // Serial.println(F("+ Key up"));
-      break;
-    case 0xFF4AB5:
-    case 0xE0E08679:
-      // Serial.println(F("+ Key down"));
-      Serial.println(F("+ Stop process."));
-      programState = PROGRAM_WAIT;
-      statusByte = statusByte | WAIT_ON;
-      statusByte = statusByte & HLTA_OFF;
-      displayStatusAddressData();
-      break;
-    case 0xFF38C7:
-    case 0xE0E016E9:
-      // Serial.println(F("+ Key OK - Toggle RUN and STOP."));
-      Serial.println(F("+ Stop process."));
-      programState = PROGRAM_WAIT;
-      statusByte = statusByte | WAIT_ON;
-      statusByte = statusByte & HLTA_OFF;
-      displayStatusAddressData();
-      break;
-    // -----------------------------------
-    case 0xFF9867:
-    case 0xE0E08877:
-      // Serial.println(F("+ Key 0:"));
-      break;
-    case 0xFFA25D:
-      // Serial.println(F("+ Key 1: "));
-      break;
-    case 0xFF629D:
-      // Serial.println(F("+ Key 2: "));
-      break;
-    case 0xFFE21D:
-      // Serial.println(F("+ Key 3: "));
-      break;
-    case 0xFF22DD:
-      // Serial.println(F("+ Key 4: "));
-      break;
-    case 0xFF02FD:
-      // Serial.println(F("+ Key 5: "));
-      break;
-    case 0xFFC23D:
-      // Serial.println(F("+ Key 6: "));
-      break;
-    case 0xFFE01F:
-      // Serial.println(F("+ Key 7: "));
-      break;
-    case 0xFFA857:
-      // Serial.println(F("+ Key 8: "));
-      break;
-    case 0xFF906F:
-      // Serial.println(F("+ Key 9: "));
-      break;
-    // -----------------------------------
-    case 0xFF6897:
-    case 0xE0E01AE5:
-      // Serial.println(F("+ Key * (Return)"));
-      // Use as Reset when running.
-      controlResetLogic();
-      break;
-    case 0xFFB04F:
-    case 0xE0E0B44B:
-      // Serial.println(F("+ Key # (Exit)"));
-      break;
-    // -----------------------------------
-    default:
-      // Serial.print("+ Result value: ");
-      // Serial.println(results.value, HEX);
-      break;
-      // -----------------------------------
-  } // end switch
-
-  irrecv.resume();
-
-}
-
 // -----------------------------------------------------------------------------
+// Receive bytes through serial port.
+// The bytes are loaded into processorr memory.
+
 void DownloadProgram() {
-  byte readByte = 0;
-  int readByteCount = 0;
-  // Set status lights:
-  // HLDA on when in this mode. Later, HLDA off (LOW), then on (HIGH) when bytes downloading (Serial.available).
-  digitalWrite(HLDA_PIN, HIGH);
-  // INP on
-  byte readStatusByte = INP_ON;
+  // Status: ready for input and not yet writing to memory.
+  byte readStatusByte = INP_ON | WO_ON;
   readStatusByte = readStatusByte & M1_OFF;
-  readStatusByte = readStatusByte & WAIT_OFF;
   lightsStatusAddressData(readStatusByte, 0, 0);
   //
-  readByteCount = 0;  // Counter where the downloaded bytes are entered into memory.
+  byte readByte = 0;
+  int readByteCount = 0;      // Count the downloaded bytes that are entered into processor memory.
+  unsigned long timer;        // Indicator used to identify when download has ended.
+  boolean downloadStarted = false;
   while (programState == SERIAL_DOWNLOAD) {
     if (serial2.available() > 0) {
-      // Input on the external serial port module.
-      // Read and process an incoming byte.
+      if (!downloadStarted) {
+        downloadStarted = true;
+        readStatusByte = readStatusByte & WO_OFF;   // Now writing to processor memory.
+      }
+      timer = millis();
+      //
       Serial.print("++ Byte array number: ");
       if (readByteCount < 10) {
         Serial.print(" ");
@@ -4496,6 +6947,9 @@ void DownloadProgram() {
         Serial.print(" ");
       }
       Serial.print(readByteCount);
+      //
+      // Input on the external serial port module.
+      // Read and process the incoming byte.
       readByte = serial2.read();
       memoryData[readByteCount] = readByte;
       readByteCount++;
@@ -4509,49 +6963,62 @@ void DownloadProgram() {
       Serial.print(readByte, DEC);
       Serial.println("");
     }
-    if (pcf20interrupted) {
-      checkRunningButtons();
-      pcf20interrupted = false; // Reset for next interrupt.
+    if (downloadStarted && ((millis() - timer) > 1000)) {
+      // Exit download state, if the bytes were downloaded and then stopped for 1 second.
+      //  This indicates that the download is complete.
+      programState = PROGRAM_WAIT;
+      Serial.println("+ Download complete.");
+    }
+    if (pcfControlinterrupted) {
+      // -------------------
+      // Reset to exit download mode, if decided not to wait for download.
+      if (pcfControl.readButton(pinReset) == 0) {
+        if (!switchReset) {
+          switchReset = true;
+        }
+      } else if (switchReset) {
+        switchReset = false;
+        // Switch logic
+        programState = PROGRAM_WAIT;
+      }
+      // -------------------
+      pcfControlinterrupted = false; // Reset for next interrupt.
     }
   }
-  Serial.print(F("+ Exit serial download state."));
+  Serial.print(F("+ Exit serial download mode."));
   if (readByteCount > 0) {
     // Program bytes were loaded.
-    // Reset the program. This takes care of the case that STOP was used to end the download.
-    controlResetLogic();
+    controlResetLogic();              // Reset the program.
+    mp3player.play(soundEffects[READ_FILE]);        // Transfer of data is complete.
   } else {
     // Reset to original panel light values.
-    processDataLights();
+    programLights();
   }
-  digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void setup() {
+
   Serial.begin(115200); // 115200 or 9600
   delay(1000);        // Give the serial connection time to start before the first print.
   Serial.println(""); // Newline after garbage characters.
   Serial.println(F("+++ Setup."));
 
+#ifdef SETUP_LCD
   // ----------------------------------------------------
-#ifdef INCLUDE_LCD
+  // ----------------------------------------------------
   lcdSetup();
   Serial.println(F("+ LCD ready for output."));
   delay(1000);
 #endif
 
   // ----------------------------------------------------
-  irrecv.enableIRIn();
-  Serial.println(F("+ Infrared receiver ready for input."));
-
   // ----------------------------------------------------
   // Front panel toggle switches.
 
-  // AUX device switches.
 #ifdef INCLUDE_AUX
-  pinMode(HLDA_PIN, OUTPUT);    // Indicator: clock process (LED on) or emulator (LED off).
-  digitalWrite(HLDA_PIN, LOW);  // Default to emulator.
+  // AUX device switches.
   pinMode(CLOCK_SWITCH_PIN, INPUT_PULLUP);
   pinMode(PLAYER_SWITCH_PIN, INPUT_PULLUP);
   pinMode(UPLOAD_SWITCH_PIN, INPUT_PULLUP);
@@ -4559,23 +7026,39 @@ void setup() {
   Serial.println(F("+ AUX device toggle switches are configured for input."));
 #endif
 
-  // PCF8574 device initialization
-  // Control switches
-  pcf20.begin();
-  // Address/Sense switches
-  pcf21.begin();
-  // PCF8574 device Interrupt initialization
+  // ------------------------------
+  // I2C Two Wire PCF module initialization
+  pcfControl.begin();   // Control switches
+  pcfData.begin();      // Tablet: Address/Sense switches
+#ifdef DESKTOP_MODULE
+  pcfSense.begin();
+  pcfAux.begin();
+#else
+  pinMode(CLOCK_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(PLAYER_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(UPLOAD_SWITCH_PIN, INPUT_PULLUP);
+  pinMode(DOWNLOAD_SWITCH_PIN, INPUT_PULLUP);
+  Serial.println(F("+ Tablet AUX device toggle switches are configured for input."));
+#endif
+  // PCF8574 device interrupt initialization
   pinMode(INTERRUPT_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcf20interrupt, CHANGE);
-  Serial.println(F("+ All front panel toggle switches are configured for input."));
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcfControlinterrupt, CHANGE);
+  Serial.println(F("+ Front panel toggle switches are configured for input."));
 
   // ----------------------------------------------------
-  // Status lights are off (statusByte=0) by default.
+  // ----------------------------------------------------
+  // Front panel LED lights.
+
+  // System application status LED lights
+  pinMode(WAIT_PIN, OUTPUT);    // Indicator: program wait state: LED on or LED off.
+  pinMode(HLDA_PIN, OUTPUT);    // Indicator: clock process (LED on) or emulator (LED off).
+  digitalWrite(WAIT_PIN, HIGH); // Default to wait state.
+  digitalWrite(HLDA_PIN, HIGH); // Default to emulator.
+
+  // ------------------------------
+  // Set status lights.
+  statusByte = MEMR_ON | M1_ON | WO_ON; // WO: on, Inverse logic: off when writing out. On when not.
   // programCounter and curProgramCounter are 0 by default.
-  statusByte = statusByte | WAIT_ON;
-  statusByte = statusByte | MEMR_ON;
-  statusByte = statusByte | M1_ON;
-  statusByte = statusByte | WO_ON;  // WO: on, Inverse logic: off when writing out. On when not.
   dataByte = memoryData[curProgramCounter];
   Serial.println(F("+ Initialized: statusByte, programCounter & curProgramCounter, dataByte."));
   //
@@ -4583,118 +7066,184 @@ void setup() {
   pinMode(clockPinLed, OUTPUT);
   pinMode(dataPinLed, OUTPUT);
   delay(300);
-  processDataLights(); // Uses: statusByte, curProgramCounter, dataByte
+  //
+  ledFlashSuccess();
   Serial.println(F("+ Front panel LED lights are initialized."));
 
   // ----------------------------------------------------
-#ifdef INCLUDE_SDCARD
+  // ----------------------------------------------------
+  // DFPlayer which uses a serial connection.
+  //
+  // -------------------------
+  // Initial player settings.
+  //
+  // Set player front panel values.
+  playerCounter = 1;                // For now, default to song/file 1.
+  playerVolume = 16;
+  playerStatus = OUT_ON | HLTA_ON;  // OUT_ON  LED status light to indicate the Player.
+  playPause = true;                 // HLTA_ON implies that the player is Paused.
+  //
+  // -------------------------
+  // Since Mega has its own hardware RX and TX pins,
+  //    use pins 18 and 19, which has the label: Serial1.
+  // Pin 18(TX) to resister to pin 2(RX).
+  // Pin 19(RX) to pin 3(TX).
+  Serial1.begin(9600);
+  if (!mp3player.begin(Serial1)) {
+    ledFlashError();
+    Serial.println(F("MP3 Player, unable to begin:"));
+    Serial.println(F("1.Please recheck the connection!"));
+    Serial.println(F("2.Please insert the SD card!"));
+    hwStatus = 4;
+  } else {
+    ledFlashSuccess();
+    mp3player.volume(playerVolume);   // Set speaker volume from 0 to 30.
+    delay(300);
+    mp3player.setTimeOut(60);         // Set serial communications time out.
+    delay(300);
+    //
+    // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
+    mp3player.outputDevice(DFPLAYER_DEVICE_SD);
+    //
+    // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
+    mp3player.EQ(DFPLAYER_EQ_CLASSIC);
+    //
+    delay(300);
+    playerCounterTop = mp3player.readFileCounts();
+    Serial.print(F("+ DFPlayer is initialized. Number of MP3 files = "));
+    Serial.println(playerCounterTop);
+  }
+
+  // ----------------------------------------------------
+  // ----------------------------------------------------
+#ifdef SETUP_SDCARD
   // The csPin pin is connected to the SD card module select pin (CS).
   //            1234567890123456
+#ifdef SETUP_LCD
   lcdPrintln(0, "Init SD card mod");
+#endif
   if (!SD.begin(csPin)) {
     Serial.println("- Error initializing SD card module.");
     ledFlashError();
+    hwStatus = 1;
   } else {
     Serial.println("+ SD card module is initialized.");
     ledFlashSuccess();
   }
-  delay(2000);
+  delay(300);
 #endif
 
   // ----------------------------------------------------
+  // ----------------------------------------------------
   // Initialize the Real Time Clock (RTC).
-#ifdef INCLUDE_CLOCK
+#ifdef SETUP_CLOCK
   //            1234567890123456
-  lcdPrintln(0, "Init Clock");
+#ifdef SETUP_LCD
+  lcdPrintln(1, "Init Clock");
+#endif
   if (!rtc.begin()) {
     Serial.println("- Error: Real time clock not found, not set.");
     ledFlashError();
+    hwStatus = 2;
   } else {
-    ledFlashSuccess();
     Serial.println("+ Real time clock is initialized.");
+    ledFlashSuccess();
   }
+  delay(300);
+#endif
+#ifdef SETUP_LCD
   delay(2000);
 #endif
 
   // ----------------------------------------------------
-  // Future option to Read and Run an initialization program.
-  // Requires a new function:
-  // + The ability to delete 00000000.bin, which is the option not to read and run.
-  // ---------------------------
-  // + If 00000000.bin exists, read it and run it.
-  // Serial.print(F("+ Program loaded from memory array."));
-  // Serial.println(F(" It will run automatically."));
-  // + Else, display the splash screen.
-  lcdSplash();
+  // Read sound effect file information.
+  Serial.println(F("+ Load sound bite index array."));
+  for (int i = 0; i < maxSoundEffects; i++) {
+    soundEffects[i] = readFileByte(getSfbFilename(i));
+  }
+  /*
+    Serial.println(F("+ List sound bite index array."));
+    for (int i = 0; i < 10; i++) {
+    Serial.print(F("++ "));
+    Serial.print(i);
+    Serial.print(F(" "));
+    Serial.println(soundEffects[i]);
+    }
+    Serial.println(F(""));
+  */
   // ----------------------------------------------------
-  controlResetLogic();
-  Serial.println(F("+++ Program system reset."));
+  // Read and Run an initialization program.
+  // Can manually set 00000000.bin, to all zeros.
+  // + The ability to set 00000000.bin, to all zeros.
+  // ---------------------------
+  // + If 00000000.bin exists, read it.
+  // Serial.print(F("+ Program loaded from memory array."));
+  readProgramFileIntoMemory("00000000.bin");
+  int sumBytes = 0;
+  for (int i = 0; i < 32; i++) {
+    sumBytes = sumBytes + memoryData[i];
+  }
+  if (sumBytes > 0) {
+    Serial.println(F("++ Since 00000000.bin, has non-zero bytes in the first 32 bytes, run it."));
+    programState = PROGRAM_RUN;
+  } else {
+    programState = PROGRAM_WAIT;
+    // + Else, display the splash screen.
+    // lcdSplash();
+    controlResetLogic();
+    Serial.println(F("++ Program system reset."));
+  }
+  // ----------------------------------------------------
+  // programLights();    // Uses: statusByte, curProgramCounter, dataByte
   Serial.println(F("+ Starting the processor loop."));
 }
 
 // -----------------------------------------------------------------------------
 // Device Loop for processing each byte of machine code.
 
-#ifdef RUN_DELAY
-static unsigned long timer = millis();
-#endif
-
 void loop() {
-
-#ifdef RUN_DELAY
-  // For testing, clock process timing is controlled by the timer.
-  // Example, 500 : once every 1/2 second.
-  if (millis() - timer >= 1000) {
-    Serial.print(F("+ programState: "));
-    Serial.println(programState);
-    timer = millis();
-  }
-#endif
 
   switch (programState) {
     // ----------------------------
     case PROGRAM_RUN:
       processData();
-      // Program control: STOP or RESET.
-      if (irrecv.decode(&results)) {
-        // Future: use the keypress value(1-8) as input into the running program via IN opcode.
-        infraredRunning();
-      }
-      if (pcf20interrupted) {
+      if (pcfControlinterrupted) {
+        // Program control: STOP or RESET.
         checkRunningButtons();
-        pcf20interrupted = false; // Reset for next interrupt.
+        pcfControlinterrupted = false; // Reset for next interrupt.
       }
       break;
     // ----------------------------
     case PROGRAM_WAIT:
       // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
-      if (irrecv.decode(&results)) {
-        infraredControl();
-      }
-      if (pcf20interrupted) {
+      if (pcfControlinterrupted) {
         checkControlButtons();
-        pcf20interrupted = false; // Reset for next interrupt.
+        pcfControlinterrupted = false; // Reset for next interrupt.
       }
-      checkClockSwitch();
-      checkPlayerSwitch();
+      checkAux1();          // Toggle between processor, clock, and player modes.
       checkUploadSwitch();
       checkDownloadSwitch();
+      checkProtectSetVolume();
       delay(60);
       break;
     // ----------------------------
     case SERIAL_DOWNLOAD:
       Serial.println(F("+ State: SERIAL_DOWNLOAD"));
-      // ----------------------------------------------------
       serial2.begin(9600);
       if (serial2.isListening()) {
         Serial.println("+ serial2 is listening.");
         Serial.println("+ Ready to use the second serial port for receiving program bytes.");
         Serial.println("+                 Address  Data  Binary   Hex Octal Decimal");
-        //              ++ Byte array number:   0, Byte: 00000110 06  006   6
-        //              ++ Byte array number:   0, Byte: 00000110 Octal:006 Decimal6
+        // Set status lights:
+        // HLDA on when in this mode.
+        digitalWrite(HLDA_PIN, HIGH);
+        digitalWrite(WAIT_PIN, LOW);
         DownloadProgram();
+        digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
+        digitalWrite(WAIT_PIN, HIGH);
       }
       break;
+    // ----------------------------
     case CLOCK_RUN:
       Serial.println(F("+ State: CLOCK_RUN"));
       // HLDA on when in this mode.
@@ -4704,12 +7253,11 @@ void loop() {
       break;
     // ----------------------------
     case PLAYER_RUN:
-      // Serial.println(F("+ State: PLAYER_RUN. Not implemented, yet."));
-      // playerRun();
-      if (pcf20interrupted) {
-        checkRunningButtons();
-        pcf20interrupted = false; // Reset for next interrupt.
-      }
+      Serial.println(F("+ State: PLAYER_RUN"));
+      // HLDA on when in this mode.
+      digitalWrite(HLDA_PIN, HIGH);
+      playerRun();
+      digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;
   }
 

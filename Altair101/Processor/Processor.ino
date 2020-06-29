@@ -17,8 +17,9 @@
   Work to do,
 
   Have a player mode on/off when in processor mode.
-  + Use an OUT opcode toggle play on/off.
-  Rather than restart the MP3, use,
+  processorPlayerCounter = 0;
+  boolean processorPlayerLoop
+  + Use an OUT opcode toggle play on/off. Possible? Rather than restart the MP3, use,
   + STOP - pause()
   + START - start()
   +++ checkControlButtons(), START needs work because it meerly plays the previously played MP3.
@@ -335,7 +336,7 @@
   + OUT 10 or 11 with regA > 0,
   ++ Set processorPlayerCounter=regA, play/loop the MP3. Also, start when RUN is flipped.
   + STOP, mp3player.pause();
-  + RUN, if (processorPlayerStart) mp3player.start()
+  + RUN, if (processorPlayerLoop) mp3player.start()
 
   How to save a program to the SD card.
   + Set the Sense switches to the file number value.
@@ -803,7 +804,7 @@ uint8_t playerStatus = 0;
 uint8_t playerVolume = 0;
 //
 uint16_t processorPlayerCounter = 0;  // Indicator for the processor to play an MP3, if not zero.
-boolean processorPlayerStart = true; // Indicator for the processor to start playing an MP3 when flipping START.
+boolean processorPlayerLoop = true; // Indicator for the processor to start playing an MP3 when flipping START.
 //
 uint16_t playerCounterTop = 0;
 uint16_t playerDirectoryTop = 0;
@@ -3858,16 +3859,16 @@ void processOpcodeData() {
           // OUT 10   ; Use OUT 11, to have the MP3 looped.
           if (regA == B11111111) {
             Serial.println(F(" > Play once, set on."));
-            processorPlayerStart = true;
+            processorPlayerLoop = false;
             if (processorPlayerCounter > 0) {
               mp3player.start();
             }
           } else if (regA == 0) {
             Serial.println(F(" > Pause playing MP3 files."));
-            processorPlayerStart = false;
+            processorPlayerLoop = false;
             mp3player.pause();
           } else {
-            processorPlayerStart = true;
+            processorPlayerLoop = false;
             processorPlayerCounter = regA;
             mp3player.play(processorPlayerCounter);
             Serial.print(F(" > Play once, MP3 file# "));
@@ -3877,16 +3878,16 @@ void processOpcodeData() {
         case 11:
           if (regA == B11111111) {
             Serial.println(F(" > Loop playing, set on."));
-            processorPlayerStart = true;
+            processorPlayerLoop = true;
             if (processorPlayerCounter > 0) {
               mp3player.start();
             }
           } else if (regA == 0) {
             Serial.println(F(" > Pause loop playing MP3 files."));
-            processorPlayerStart = false;
+            processorPlayerLoop = false;
             mp3player.pause();
           } else {
-            processorPlayerStart = true;
+            processorPlayerLoop = true;
             processorPlayerCounter = regA;
             mp3player.loop(processorPlayerCounter);
             Serial.print(F(" > Loop play once, MP3 file# "));
@@ -4782,8 +4783,8 @@ void checkControlButtons() {
     // statusByte = statusByte & WAIT_OFF;
     statusByte = statusByte & HLTA_OFF;
     // -------------------
-    if (processorPlayerStart) {
-      // mp3player.start();
+    if (processorPlayerLoop && processorPlayerCounter > 0) {
+      mp3player.loop(processorPlayerCounter);
     }
   }
   // -------------------
@@ -6241,19 +6242,26 @@ void checkPlayerControls() {
   } else if (switchExamine) {
     switchExamine = false;
     // Switch logic
-    if (playerCounter > 1) {
-      playerCounter--;
-    } else {
-      playerCounter = playerCounterTop;
-    }
-    if (!(playerStatus & HLTA_ON)) {
-      mp3player.play(playerCounter);
-    }
-    playerLights();
+    unsigned int addressToggles = toggleAddress();
+    if (addressToggles > 0 && addressToggles <= playerCounterTop) {
+      playerCounter = addressToggles;
+      if (!(playerStatus & HLTA_ON)) {
+        mp3player.play(playerCounter);
+      }
+      playerLights();
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Player, Examine: play previous song, playerCounter="));
-    Serial.println(playerCounter);
+      Serial.print(F("+ Player, EXAMINE: play a specific song number, playerCounter="));
+      Serial.println(playerCounter);
 #endif
+    } else {
+      ledFlashError();
+#ifdef SWITCH_MESSAGES
+      Serial.print(F("+ Player, EXAMINE: toggle address out of player file counts range: "));
+      Serial.print(addressToggles);
+      Serial.print(F(", player file counts: "));
+      Serial.println(playerCounterTop);
+#endif
+    }
   }
   // -------------------
   if (pcfControl.readButton(pinExamineNext) == 0) {
@@ -6317,15 +6325,19 @@ void checkPlayerControls() {
   } else if (switchStepDown) {
     switchStepDown = false;
     // Switch logic
-#ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Toggle loop a single song using mp3player.loop("));
-    Serial.print(playerCounter);
-    Serial.println(F(")"));
-#endif
-    loopSingle = false;
-    mp3player.loop(playerCounter);
-    playerStatus = playerStatus & M1_OFF;
+    if (playerCounter > 1) {
+      playerCounter--;
+    } else {
+      playerCounter = playerCounterTop;
+    }
+    if (!(playerStatus & HLTA_ON)) {
+      mp3player.play(playerCounter);
+    }
     playerLights();
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, STEP down: play previous song, playerCounter="));
+    Serial.println(playerCounter);
+#endif
   }
   // -------------------
   if (pcfControl.readButton(pinReset) == 0) {
@@ -6335,16 +6347,17 @@ void checkPlayerControls() {
   } else if (switchReset) {
     switchReset = false;
     // Switch logic
+    playerCounterTop = mp3player.readFileCounts();
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, RESET: play first song. Number of MP3 files = "));
+    Serial.println(playerCounterTop);
+#endif
     playerDirectory = 1;
     playerCounter = 1;
     if (!(playerStatus & HLTA_ON)) {
       mp3player.play(playerCounter);
     }
     playerLights();
-#ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Player, RESET: play first song, playerCounter="));
-    Serial.println(playerCounter);
-#endif
   }
   // -------------------
   if (pcfAux.readButton(pinProtect) == 0) {
@@ -6392,28 +6405,7 @@ void checkPlayerControls() {
   } else if (switchClr) {
     switchClr = false;
     // Switch logic
-    unsigned int addressToggles = toggleAddress();
-    if (addressToggles > 0 && addressToggles <= playerCounterTop) {
-      playerCounter = addressToggles;
-      if (!(playerStatus & HLTA_ON)) {
-        mp3player.play(playerCounter);
-      }
-      playerLights();
-#ifdef SWITCH_MESSAGES
-      Serial.print(F("+ Player, CLR: play a specific song number, playerCounter="));
-      Serial.println(playerCounter);
-#endif
-    } else {
-      ledFlashError();
-#ifdef SWITCH_MESSAGES
-      Serial.print(F("+ Player, CLR: toggle address out of player file counts range: "));
-      Serial.print(addressToggles);
-      Serial.print(F(", player file counts: "));
-      Serial.println(playerCounterTop);
-#endif
-    }
   }
-
   // -------------------
   if (pcfControl.readButton(pinDeposit) == 0) {
     if (!switchDeposit) {
