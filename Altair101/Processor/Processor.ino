@@ -16,19 +16,16 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  Have a player mode on/off when in processor mode.
-  processorPlayerCounter = 0;
-  boolean processorPlayerLoop
-  + Use an OUT opcode toggle play on/off. Possible? Rather than restart the MP3, use,
-  + STOP - pause()
-  + START - start()
-  +++ checkControlButtons(), START needs work because it meerly plays the previously played MP3.
+  Change the DownloadProgram() completion MP3.
+
+  Further testing of playing MP3 files from opcode OUT.
+  + Non-trival: START - start(), checkControlButtons(), START needs work because it meerly plays the previously played MP3.
+  if (processorPlayerLoop && processorPlayerCounter > 0) {
+      mp3player.loop(processorPlayerCounter);
+  }
 
   From OUT opcode,
   + When going into timer mode, need to also display the timer minute, not just the timer counter minute.
-
-  Change the DownloadProgram() completion MP3.
-
   Write and test an assembler program to run a timer, and set a counter. Then loop.
   + Must allow the playing of MP3 music.
 
@@ -177,14 +174,23 @@
   2       343 OUT <port#>
   3.1     012 10 is for single play.
   3.2     013 11 is for looping.
-  4       076 MVI A,<immediate value>
-  5       015       MP3 file#
+  4       076 MVI A,<MP3 file#>
+  5       015        MP3 file#
   6       343 OUT <port#>
   7       012 10 is for single play.
   8       000 NOP
   ...
   35      000 NOP
   36      166 HLT
+          076 MVI A,<MP3 file#>
+          003        MP3 file#
+          343 OUT <port#>
+          013 11 is for looping.
+          000 NOP
+  ...
+          000 NOP
+  128     166 HLT
+    
   -----------------
   + Play an MP3 file.
           // MVI A, <file#>
@@ -4799,6 +4805,8 @@ void checkControlButtons() {
     Serial.println(F("+ Control, Reset."));
 #endif
     controlResetLogic();
+    processorPlayerLoop = false;
+    processorPlayerCounter = 0;
   }
   // -------------------
   if (pcfControl.readButton(pinStep) == 0) {
