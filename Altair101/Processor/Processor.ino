@@ -5384,6 +5384,38 @@ void clockRunTimer() {
 int clockData = 0;
 void checkClockControls() {
   // ---------------------------------------------------------
+  if (pcfControl.readButton(pinStop) == 0) {
+    if (!switchStop) {
+      switchStop = true;
+    }
+  } else if (switchStop) {
+    switchStop = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Clock Player, STOP: stop playing."));
+#endif
+    mp3player.pause();
+    playerFileStatus = MEMR_ON | HLTA_ON;
+    // playerFileLights();
+  }
+  // -------------------
+  if (pcfControl.readButton(pinRun) == 0) {
+    if (!switchRun) {
+      switchRun = true;
+    }
+  } else if (switchRun) {
+    switchRun = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Player, RUN: start playing, playerFileData="));
+    Serial.println(playerFileData);
+#endif
+    // mp3player.play(playerFileData);
+    mp3player.start();
+    playerFileStatus = MEMR_ON | OUT_ON & HLTA_OFF;
+    // playerFileLights();
+  }
+  // ---------------------------------------------------------
   if (pcfControl.readButton(pinStep) == 0) {
     if (!switchStep) {
       switchStep = true;
