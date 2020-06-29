@@ -121,7 +121,7 @@
   + 0111    Run NOPs. HLT at A8. Flip RUN and JMP back to address 0 to start all over.
   -----------------
   + 1000    Turn off program playing an MP3 file.
-  + 1001    Turn on program playing an MP3 files, and play an MP3 file.
+  + 1001    Turn on, and play an MP3 files. Then test other on an off calls.
   -----------------
   + 1010    Increment a counter.
   + 1011    Enter counter mode and display counter value for counter index in register A.
@@ -168,7 +168,7 @@
   3       012 10 is for single play.
   4       166 HLT
   -----------------
-  + Turn on playing MP3 files, and play an MP3 file.
+  + Turn on, and play an MP3 files. Then test other on an off calls.
   0       076 MVI A,<immediate value>
   1       377       Value to turn pause off, turn start on, of playing MP3 files.
   2       343 OUT <port#>
@@ -180,7 +180,7 @@
   7       012 10 is for single play.
   8       000 NOP
   ...
-  35      000 NOP
+  35      000 NOP                               Loop a sound.
   36      166 HLT
           076 MVI A,<MP3 file#>
           003        MP3 file#
@@ -188,9 +188,23 @@
           013 11 is for looping.
           000 NOP
   ...
-          000 NOP
-  128     166 HLT
-    
+  64      000 NOP
+          166 HLT
+          000 NOP                              Loop sound continues.
+  ...
+  96      000 NOP
+          166 HLT
+          076 MVI A,0
+          000       Pause any playing MP3.
+          343 OUT <port#>
+          012 10 is for single play.
+          000 NOP                              Loop sound off.
+  ...
+  128     000 NOP
+          166 HLT
+          303 JMP                              Jump back to 0, the start.
+          000 
+          000 
   -----------------
   + Play an MP3 file.
           // MVI A, <file#>
@@ -4484,11 +4498,17 @@ boolean switchAux2down = false;
 // Processor Switch Functions
 
 void controlResetLogic() {
+  // Processor variables.
   programCounter = 0;
   curProgramCounter = 0;
   stackPointer = 0;
   opcode = 0;  // For the case when the processing cycle 2 or more.
   statusByte = 0;
+  //
+  // Processor player variables.
+  processorPlayerLoop = false;
+  processorPlayerCounter = 0;
+  //
   if (programState != PROGRAM_RUN) {
     programState = PROGRAM_WAIT;
     digitalWrite(WAIT_PIN, HIGH);
@@ -4805,8 +4825,6 @@ void checkControlButtons() {
     Serial.println(F("+ Control, Reset."));
 #endif
     controlResetLogic();
-    processorPlayerLoop = false;
-    processorPlayerCounter = 0;
   }
   // -------------------
   if (pcfControl.readButton(pinStep) == 0) {
