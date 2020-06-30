@@ -16,13 +16,12 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  Change the DownloadProgram() completion MP3.
+  5846 content type
+  mms troubleshootig handbook
 
-  Further testing of playing MP3 files from opcode OUT.
-  + Non-trival: START - start(), checkControlButtons(), START needs work because it meerly plays the previously played MP3.
-  if (processorPlayerLoop && processorPlayerCounter > 0) {
-      mp3player.loop(processorPlayerCounter);
-  }
+  After entering clock mode, takes 2 flips to get into timer mode.
+
+  asm, add Immediate type, octal. Currently, decimal, hex(example: 80h), and label.
 
   From OUT opcode,
   + When going into timer mode, need to also display the timer minute, not just the timer counter minute.
@@ -203,8 +202,8 @@
   128     000 NOP
           166 HLT
           303 JMP                              Jump back to 0, the start.
-          000 
-          000 
+          000
+          000
   -----------------
   + Play an MP3 file.
           // MVI A, <file#>
@@ -847,22 +846,31 @@ void playerFileLights() {
 
 // ---------------------------
 // Sound bites for sound effects
-
-// Example: playerPlaySound(READ_FILE) plays 05-transfercomplete.mp3
-// Arrary matching the above value, to the soundEffects array, file number.
-// Example: READ_FILE=1 which is array value = 5, soundEffects[READ_FILE]=5 or soundEffects[1]=5.
+/*
+   soundEffects is an arrary that matches index values to an MP3 file number.
+   Example: READ_FILE=1
+    where
+      The value of soundEffects[1], is stored in file: 0001.sbf
+      The value of soundEffects[2], is stored in file: 0002.sbf
+      ...
+    If the byte stored in 0001.sbf is 5, then,
+      soundEffects[READ_FILE]=5 or soundEffects[1]=5.
+    Then,
+      playerPlaySound(READ_FILE) plays file: 0005.mp3.
+*/
 const int maxSoundEffects = 16;
 int soundEffects[maxSoundEffects];
 //  Variable      soundEffects[] Array value
-int READ_FILE       = 1;
-int TIMER_COMPLETE  = 2;
-int CLOCK_ON        = 3;
-int CLOCK_OFF       = 4;
-int PLAYER_ON       = 3;
-int PLAYER_OFF      = 4;
-int KR5             = 5;
-int CLOCK_CUCKOO    = 6;
-int TIMER_MINUTE    = 7;
+int READ_FILE         = 1;
+int TIMER_COMPLETE    = 2;
+int CLOCK_ON          = 3;
+int CLOCK_OFF         = 4;
+int PLAYER_ON         = 3;
+int PLAYER_OFF        = 4;
+int KR5               = 5;
+int CLOCK_CUCKOO      = 6;
+int TIMER_MINUTE      = 7;
+int DOWNLOAD_COMPLETE = 8;
 //
 // Function to play a sound file using the above mapping.
 void playerPlaySound(int theFileNumber) {
@@ -5486,7 +5494,7 @@ void checkAux2clock() {
       lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
     } else {
 #ifdef SWITCH_MESSAGES
-      Serial.println(F("+ AUX2 down. Enter clock mode."));
+      Serial.println(F("+ AUX2 up. Enter clock mode."));
 #endif
       clockState = CLOCK_TIME;
       digitalWrite(WAIT_PIN, LOW);
@@ -6011,7 +6019,15 @@ void clockRun() {
   saveClearLcdScreenData();
   lcd.noCursor();
   syncCountWithClock();
-  displayTheTime(theCounterMinutes, theCounterHours);
+  //
+  // Intialize front panel lights.
+  if (clockState == CLOCK_TIME) {
+    displayTheTime(theCounterMinutes, theCounterHours);
+  } else if (clockState == CLOCK_TIMER) {
+    lightsStatusAddressData(timerStatus, clockTimerAddress, timerCounter);
+  } else if (clockState == CLOCK_COUNTER) {
+    counterLights();
+  }
   while (programState == CLOCK_RUN) {
     switch (clockState) {
       // ----------------------------
@@ -6026,15 +6042,15 @@ void clockRun() {
           clockRunTimer();
         }
         break;
+      case CLOCK_COUNTER:
+        clockCounterControls();
+        break;
       case CLOCK_SET:
         // Control buttons for setting the time.
         // checkExamineButton();
         // checkExamineNextButton();
         // checkDepositButton();
         // checkDepositNextButton();
-        break;
-      case CLOCK_COUNTER:
-        clockCounterControls();
         break;
     }
     checkAux1();                // Toggle between processor, clock, and player modes.
@@ -6794,6 +6810,14 @@ void checkPlayerFileControls() {
     for (int i = 0; i < maxSoundEffects; i++) {
       soundEffects[i] = readFileByte(getSfbFilename(i));
     }
+    Serial.println(F("+ List sound bite index array."));
+    for (int i = 0; i < maxSoundEffects; i++) {
+      Serial.print(F("++ "));
+      Serial.print(i);
+      Serial.print(F(" "));
+      Serial.println(soundEffects[i]);
+    }
+    Serial.println(F(""));
     ledFlashSuccess();
     playerFileStatus = MEMR_ON | WO_ON | HLTA_ON;
     playerFileLights();
@@ -7042,7 +7066,7 @@ void DownloadProgram() {
   if (readByteCount > 0) {
     // Program bytes were loaded.
     controlResetLogic();              // Reset the program.
-    mp3player.play(soundEffects[READ_FILE]);        // Transfer of data is complete.
+    mp3player.play(soundEffects[DOWNLOAD_COMPLETE]);        // Transfer of data is complete.
   } else {
     // Reset to original panel light values.
     programLights();
@@ -7214,16 +7238,6 @@ void setup() {
   for (int i = 0; i < maxSoundEffects; i++) {
     soundEffects[i] = readFileByte(getSfbFilename(i));
   }
-  /*
-    Serial.println(F("+ List sound bite index array."));
-    for (int i = 0; i < 10; i++) {
-    Serial.print(F("++ "));
-    Serial.print(i);
-    Serial.print(F(" "));
-    Serial.println(soundEffects[i]);
-    }
-    Serial.println(F(""));
-  */
   // ----------------------------------------------------
   // Read and Run an initialization program.
   // Can manually set 00000000.bin, to all zeros.
@@ -7281,7 +7295,7 @@ void loop() {
       break;
     // ----------------------------
     case SERIAL_DOWNLOAD:
-      Serial.println(F("+ State: SERIAL_DOWNLOAD"));
+      Serial.println(F("+ programState: SERIAL_DOWNLOAD"));
       serial2.begin(9600);
       if (serial2.isListening()) {
         Serial.println("+ serial2 is listening.");
@@ -7298,7 +7312,7 @@ void loop() {
       break;
     // ----------------------------
     case CLOCK_RUN:
-      Serial.println(F("+ State: CLOCK_RUN"));
+      Serial.println(F("+ programState: CLOCK_RUN"));
       // HLDA on when in this mode.
       digitalWrite(HLDA_PIN, HIGH);
       clockRun();
@@ -7306,7 +7320,7 @@ void loop() {
       break;
     // ----------------------------
     case PLAYER_RUN:
-      Serial.println(F("+ State: PLAYER_RUN"));
+      Serial.println(F("+ programState: PLAYER_RUN"));
       // HLDA on when in this mode.
       digitalWrite(HLDA_PIN, HIGH);
       playerRun();
