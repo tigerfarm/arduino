@@ -19,9 +19,8 @@
   5846 content type
   mms troubleshootig handbook
 
-  After entering clock mode, takes 2 flips to get into timer mode.
-
-  asm, add Immediate type, octal. Currently, decimal, hex(example: 80h), and label.
+  asm, add Immediate type, octal, for entering octal values.
+  ++ Currently, decimal, hex(example: 80h), and label.
 
   From OUT opcode,
   + When going into timer mode, need to also display the timer minute, not just the timer counter minute.
