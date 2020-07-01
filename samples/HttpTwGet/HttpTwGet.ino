@@ -1,12 +1,14 @@
 // Code from:
 //  https://github.com/TwilioDevEd/twilio_esp8266_arduino_example/blob/master/twilio_esp8266_arduino_example.ino
+// Documentation:
+//  https://www.twilio.com/docs/sms/tutorials/how-to-send-sms-messages-esp8266-cpp
 
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
 
 // Your network SSID and password
-const char* ssid = "";
-const char* password = "";
+const char* ssid = "b";
+const char* password = "5";
 
 // Find the api.twilio.com SHA1 fingerprint, this one was valid as
 // of August 2019.
