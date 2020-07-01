@@ -5,8 +5,8 @@
 #include <WiFiClientSecure.h>
 
 // Your network SSID and password
-const char* ssid = "The_Sailboat";
-const char* password = "club848!";
+const char* ssid = "";
+const char* password = "";
 
 // Find the api.twilio.com SHA1 fingerprint, this one was valid as
 // of August 2019.
@@ -22,48 +22,37 @@ void setup() {
   Serial.println(F("+++ Setup."));
 
   // ----------------------------------------------------
-  Serial.println("+ Connected to WiFi. ");
+  Serial.println("+ Connect to WiFi. ");
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.print(".");
   }
-  Serial.println("+ Connected to WiFi, IP address: ");
+  Serial.println("");
+  Serial.print("+ Connected to WiFi, IP address: ");
   Serial.println(WiFi.localIP());
 
   // ----------------------------------------------------
   // Use WiFiClientSecure class to create TLS 1.2 connection
   WiFiClientSecure client;
-  client.setFingerprint(fingerprint.c_str());
+  client.setFingerprint(fingerprint);
   const char* host = "api.twilio.com";
   const int   httpsPort = 443;
 
-  // Use WiFiClientSecure class to create TLS connection
+  // Use WiFiClientSecure class to create TLS 1.2 connection
   Serial.print("+ Connecting to ");
   Serial.println(host);
-  Serial.printf("+ Using fingerprint '%s'\n", fingerprint.c_str());
+  Serial.printf("+ Using fingerprint '%s'\n", fingerprint);
   if (!client.connect(host, httpsPort)) {
-    response += ("- Connection failed!\r\n");
-    return false;
+    Serial.println("- Connection failed.");
+    return;
   }
   Serial.print("+ Connected.");
-  // Check the SHA1 Fingerprint (We will watch for CA verification)
-  if (client.verify(fingerprint.c_str(), host)) {
-    Serial.println("Certificate fingerprints match.");
-  } else {
-    Serial.println("Certificate fingerprints don't match.");
-    return false;
-  }
-
-  // ----------------------------------------------------
-  // Serial.println(F("+ Make an HTTP request."));
-  // twilio = new Twilio(account_sid, auth_token, fingerprint);
 
   // ----------------------------------------------------
   Serial.println(F("+ Starting the loop."));
 }
 
 void loop() {
-  Serial.println(F("+ Looping."));
   delay(1000);
 }
