@@ -56,8 +56,8 @@ void setup() {
   }
 
   // ----------------------------------------------------
-  Serial.println(F("+ Make an HTTP request."));
-  twilio = new Twilio(account_sid, auth_token, fingerprint);
+  // Serial.println(F("+ Make an HTTP request."));
+  // twilio = new Twilio(account_sid, auth_token, fingerprint);
 
   // ----------------------------------------------------
   Serial.println(F("+ Starting the loop."));
