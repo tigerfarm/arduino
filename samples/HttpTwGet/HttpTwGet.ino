@@ -2,6 +2,12 @@
 //  https://github.com/TwilioDevEd/twilio_esp8266_arduino_example/blob/master/twilio_esp8266_arduino_example.ino
 // Documentation:
 //  https://www.twilio.com/docs/sms/tutorials/how-to-send-sms-messages-esp8266-cpp
+// Fingerprint note,
+//  https://github.com/TwilioDevEd/twilio_esp8266_arduino_example/issues/1
+//  echo | openssl s_client -connect api.twilio.com:443 | openssl x509 -fingerprint
+//  ...
+//  SHA1 Fingerprint=BC:B0:1A:32:80:5D:E6:E4:A2:29:66:2B:08:C8:E0:4C:45:29:3F:D0
+//  ...
 
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
@@ -10,9 +16,9 @@
 const char* ssid = "b";
 const char* password = "5";
 
-// Find the api.twilio.com SHA1 fingerprint, this one was valid as
-// of August 2019.
-const char fingerprint[] = "06 86 86 C0 A0 ED 02 20 7A 55 CC F0 75 BB CF 24 B1 D9 C0 49";
+// Find the api.twilio.com SHA1 fingerprint using,
+//  echo | openssl s_client -connect api.twilio.com:443 | openssl x509 -fingerprint
+const char fingerprint[] = "BC B0 1A 32 80 5D E6 E4 A2 29 66 2B 08 C8 E0 4C 45 29 3F D0";
 
 const char* account_sid = "ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 const char* auth_token = "Your AUTH TOKEN";
@@ -49,7 +55,7 @@ void setup() {
     Serial.println("- Connection failed.");
     return;
   }
-  Serial.print("+ Connected.");
+  Serial.println("+ Connected.");
 
   // ----------------------------------------------------
   Serial.println(F("+ Starting the loop."));
