@@ -64,6 +64,6 @@ void setup() {
 }
 
 void loop() {
-  post();
-  delay(500);
+  Serial.println(F("+ Looping."));
+  delay(1000);
 }
