@@ -16,9 +16,6 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  5846 content type
-  mms troubleshootig handbook
-
   asm, add Immediate type, octal, for entering octal values.
   ++ Currently, decimal, hex(example: 80h), and label.
 
@@ -481,9 +478,11 @@
   + AUX2 up       Not implemented.
   + AUX2 Down     Toggle clock timer mode off, return to clock mode.
 
-  User guide, Clock Timer,
+  User guide,
+
+  Set and run a clock Timer,
   + Must be in clock mode.
-  + Flip AUX2 toggle Down to enter clock timer mode.
+  + Flip AUX2 toggle up to enter clock timer mode.
   + Set the minutes by toggling a single address switch. For example A10 is for 10 minutes.
   + Flip RUN to start the timer.
   ++ Flash counter minute LED on/off each second.
@@ -549,6 +548,14 @@
   + AUX2 up       Not implemented.
   + AUX2 Down     Toggle clock timer mode off, return to clock mode.
 
+  View and set a counter file value,
+  + Must be in clock mode.
+  + Flip AUX2 toggle Down to enter clock counter mode.
+  + Set address toggles (Data toggles) to the counter file number.
+  + Flip EXAMINE to display the value.
+  + Set Data switches to a counter file number.
+  + Flip DEPOSIT writes the data byte to the counter address file.
+  
   ------------------------------------------------------------------------------
   MP3 Player mode, playerRun(),
   + MP3 addressable files is 255.
