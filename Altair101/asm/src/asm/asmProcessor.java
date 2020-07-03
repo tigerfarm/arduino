@@ -382,7 +382,7 @@ public class asmProcessor {
 
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
-    private String convertValueToInt(String sValue) {
+    public String convertValueToInt(String sValue) {
         String returnString = NAME_NOT_FOUND_STR;
         //
         // Immediate type       Source Value    To integer value
@@ -390,7 +390,8 @@ public class asmProcessor {
         // Separator character  '^^'            58 (Example, ":")
         // Escape character     '\n'            10
         // Character            'a'             97
-        // Hex                  080h            128
+        // Hex,   base 16       080h            128
+        // Octal, base 8        012h            10
         // Decimal              42              42
         //
         if (sValue.equals("'^^'")) {
@@ -436,6 +437,21 @@ public class asmProcessor {
             returnString = sValue.substring(si, sValue.length() - 1);     // Hex string to integer. Remove the "h".
             try {
                 returnString = Integer.toString(Integer.parseInt(returnString, 16));
+            } catch (NumberFormatException e) {
+                errorCount++;
+                System.out.println("");
+                System.out.println("- Error, invalid value: " + sValue + ":" + returnString + ", " + e.getMessage());
+                System.out.println("");
+            }
+        } else if (sValue.endsWith("o")) {
+            // Octal number. For example, change 012o or 12o to an integer.
+            int si = 0;
+            // if (sValue.startsWith("0") && sValue.length() > 3) {
+            //     si = 1;
+            // }
+            returnString = sValue.substring(si, sValue.length() - 1);     // Hex string to integer. Remove the "h".
+            try {
+                returnString = Integer.toString(Integer.parseInt(returnString, 8));
             } catch (NumberFormatException e) {
                 errorCount++;
                 System.out.println("");

@@ -1,3 +1,5 @@
+// *** In progress ***
+//
 // Code from:
 //  https://github.com/TwilioDevEd/twilio_esp8266_arduino_example/blob/master/twilio_esp8266_arduino_example.ino
 // Documentation:
@@ -83,36 +85,6 @@ void setup() {
   }
   Serial.println("+ Connected.");
   //
-  // The following compiles, but is not tested.
-  Serial.println("+ Send an SMS.");
-  String encoded_body = urlencode(message_body);
-  String post_data = "To=" + urlencode(to_number) + "&From=" + urlencode(from_number) + "&Body=" + encoded_body;
-  // Construct headers and post body manually
-  String auth_header = get_auth_header(account_sid, auth_token);
-  String http_request = "POST /2010-04-01/Accounts/"
-                        + String(account_sid) + "/Messages HTTP/1.1\r\n"
-                        + auth_header + "\r\n" + "Host: " + host + "\r\n"
-                        + "Cache-control: no-cache\r\n"
-                        + "User-Agent: ESP8266 Twilio Example\r\n"
-                        + "Content-Type: "
-                        + "application/x-www-form-urlencoded\r\n"
-                        + "Content-Length: " + post_data.length() + "\r\n"
-                        + "Connection: close\r\n"
-                        + "\r\n"
-                        + post_data
-                        + "\r\n";
-  client.println(http_request);
-  // Read the response into the 'response' string
-  String response = "";
-  while (client.connected()) {
-    String line = client.readStringUntil('\n');
-    response += (line);
-    response += ("\r\n");
-  }
-  Serial.println("+ Connection is closed.");
-  Serial.println("+ Response:");
-  Serial.println(response);
-
   // ----------------------------------------------------
   Serial.println(F("+ Starting the loop."));
 }

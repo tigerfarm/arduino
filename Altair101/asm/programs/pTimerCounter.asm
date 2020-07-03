@@ -6,7 +6,7 @@
     SENSE_SW    EQU     255         ; Input port address: toggle sense switch byte, into register A.
                                     ;
                                     ; ------------------------------------------------
-                MVI A,6             ; Counter index file number.
+                MVI A,             ; Counter index file number.
                 OUT 25              ; Enter counter mode, and display counter value for counter index in register A.
                                     ; Flip the counter switch (AUX2 down) to exit counter mode and continue the program.
                 OUT 21              ; Increment counter value for counter index in register A.

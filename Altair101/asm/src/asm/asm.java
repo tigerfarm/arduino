@@ -295,6 +295,9 @@ public class asm {
                 case "char":
                     System.out.println("Character, " + cmdP1 + " ascii value: " + (int) cmdP1.charAt(0));
                     break;
+                case "2int":
+                    System.out.println("Convert to immediate value: " + cmdP1 + " to integer value: " + processFile.convertValueToInt(cmdP1));
+                    break;
                 case "clear":
                     // Works from UNIX console.
                     System.out.print("\033[H\033[2J");
@@ -362,6 +365,9 @@ public class asm {
                     System.out.println("+ set port                  : List available serial ports.");
                     System.out.println("+ set port <serial-port>    : Set serial port to use for uploading.");
                     System.out.println("----------------------");
+                    System.out.println("+ 2int <string>             : String to integer value using: asmProcessor convertValueToInt(<string>).");
+                    System.out.println("                            : Example strings, hex: fh, octal: 12o, escape: '\\n', char: 'a', separator: '^^'.");
+                    System.out.println("+ char <character>          : Character to integer value");
                     System.out.println("");
                     System.out.println("+ clear     : Clear screen. Should work on UNIX based consoles, not Windows.");
                     System.out.println("+ exit      : Exit this program.");

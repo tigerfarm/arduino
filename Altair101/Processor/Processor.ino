@@ -16,13 +16,10 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  asm, add Immediate type, octal, for entering octal values.
-  ++ Currently, decimal, hex(example: 80h), and label.
-
-  From OUT opcode,
-  + When going into timer mode, need to also display the timer minute, not just the timer counter minute.
-  Write and test an assembler program to run a timer, and set a counter. Then loop.
-  + Must allow the playing of MP3 music.
+  From OUT opcode (B11100011),
+  + When timer is complete, what should happen?
+  ++ Currently, each minute I plays the timer complete MP3.
+  clockRunTimerControlsOut(getMinuteValue(regA));
 
   -----------------------------------------------------------------------------
   -----------------------------------------------------------------------------
@@ -3937,10 +3934,10 @@ void processOpcodeData() {
         // ---------------------------------------
         case 20:
           Serial.print(F(" > Run a timer for the number of minutes in register A."));
-          clockRunTimerControlsOut(getMinuteValue(regA));
+          clockRunTimerControlsOut(regA);
           break;
         case 21:
-          Serial.print(F(" > Increment register A file counter."));
+          Serial.print(F(" > Increment register A clock counter file value."));
           clockCounterRead(regA);
           counterData++;
           clockCounterWrite(regA, counterData);
@@ -5395,6 +5392,7 @@ void clockRunTimer() {
     }
   }
   lightsStatusAddressData(timerStatus, clockTimerAddress, timerCounter);
+  return;
 }
 
 // -----------------------------------------------------------------------------

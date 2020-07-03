@@ -26,9 +26,36 @@ String message_body     = "Hello.";
 //  echo | openssl s_client -connect api.twilio.com:443 | openssl x509 -fingerprint
 const char fingerprint[] = "BC B0 1A 32 80 5D E6 E4 A2 29 66 2B 08 C8 E0 4C 45 29 3F D0";
 
-String urlencode(String aString) {
-  // Need to actually add this.
-  return aString;
+String urlencode(String str) {
+  String encodedString = "";
+  char c;
+  char code0;
+  char code1;
+  char code2;
+  for (int i = 0; i < str.length(); i++) {
+    c = str.charAt(i);
+    if (c == ' ') {
+      encodedString += '+';
+    } else if (isalnum(c)) {
+      encodedString += c;
+    } else {
+      code1 = (c & 0xf) + '0';
+      if ((c & 0xf) > 9) {
+        code1 = (c & 0xf) - 10 + 'A';
+      }
+      c = (c >> 4) & 0xf;
+      code0 = c + '0';
+      if (c > 9) {
+        code0 = c - 10 + 'A';
+      }
+      code2 = '\0';
+      encodedString += '%';
+      encodedString += code0;
+      encodedString += code1;
+    }
+    yield();
+  }
+  return encodedString;
 }
 
 String get_auth_header(const String& user, const String& password) {
@@ -82,25 +109,24 @@ void setup() {
     return; // Skips to loop();
   }
   Serial.println("+ Connected.");
-  Serial.println("+ Send an SMS.");
+  Serial.println("+ Post an HTTP send SMS request.");
   String post_data = "To=" + urlencode(to_number)
                      + "&From=" + urlencode(from_number)
                      + "&Body=" + urlencode(message_body);
   String auth_header = get_auth_header(account_sid, auth_token);
-  String http_request = "POST /2010-04-01/Accounts/"
-                        + String(account_sid) + "/Messages HTTP/1.1\r\n"
-                        + auth_header + "\r\n" + "Host: " + host + "\r\n"
+  String http_request = "POST /2010-04-01/Accounts/" + String(account_sid) + "/Messages HTTP/1.1\r\n"
+                        + auth_header + "\r\n" 
+                        + "Host: " + host + "\r\n"
                         + "Cache-control: no-cache\r\n"
                         + "User-Agent: ESP8266 Twilio Example\r\n"
-                        + "Content-Type: "
-                        + "application/x-www-form-urlencoded\r\n"
+                        + "Content-Type: application/x-www-form-urlencoded\r\n"
                         + "Content-Length: " + post_data.length() + "\r\n"
                         + "Connection: close\r\n"
                         + "\r\n"
                         + post_data
                         + "\r\n";
   client.println(http_request);
-  // Read the response into the 'response' string
+  // Read the response.
   String response = "";
   while (client.connected()) {
     String line = client.readStringUntil('\n');
