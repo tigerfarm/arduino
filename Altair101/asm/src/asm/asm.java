@@ -296,7 +296,7 @@ public class asm {
                     System.out.println("Character, " + cmdP1 + " ascii value: " + (int) cmdP1.charAt(0));
                     break;
                 case "2int":
-                    System.out.println("Convert to immediate value: " + cmdP1 + " to integer value: " + processFile.convertValueToInt(cmdP1));
+                    System.out.println("Convert immediate value: " + cmdP1 + " to integer value: " + processFile.convertValueToInt(cmdP1));
                     break;
                 case "clear":
                     // Works from UNIX console.

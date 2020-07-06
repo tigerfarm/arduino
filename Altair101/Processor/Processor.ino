@@ -4,13 +4,13 @@
 
   This is an Altair 8800 emulator program that runs on an Arduino Mega microcontroller.
   Component additions to the emulator:
+  + Micro SD card module for reading and writting program and data files.
   + An MP3 player controlled by using the front panel toggles with the lights displaying status.
-  + The clock displays the current hours, minutes, month, day, and year, on the front panel lights.
+  + A clock module to display the current time and date on the front panel lights.
 
   The Altair 8800 emulator program,
   + Emulates the basic Altair 8800 computer processes from 1975.
-  + The Altair 8800 was built around the Intel 8080 CPU chip.
-  + The 8080's machine instructions(opcodes) are the same for the 8085.
+  + The Altair 8800 was built around the Intel 8080 CPU chip which as the same opcodes as the 8085.
   + This program implements more than enough opcodes to run the classic program, Kill the Bit.
 
   -----------------------------------------------------------------------------
@@ -18,7 +18,7 @@
 
   From OUT opcode (B11100011),
   + When timer is complete, what should happen?
-  ++ Currently, each minute I plays the timer complete MP3.
+  ++ Currently, each minute, it plays the timer completed MP3, which is a continuous reminder.
   clockRunTimerControlsOut(getMinuteValue(regA));
 
   -----------------------------------------------------------------------------
@@ -552,7 +552,7 @@
   + Flip EXAMINE to display the value.
   + Set Data switches to a counter file number.
   + Flip DEPOSIT writes the data byte to the counter address file.
-  
+
   ------------------------------------------------------------------------------
   MP3 Player mode, playerRun(),
   + MP3 addressable files is 255.
@@ -883,16 +883,9 @@ int DOWNLOAD_COMPLETE = 8;
 //
 // Function to play a sound file using the above mapping.
 void playerPlaySound(int theFileNumber) {
-  // Serial.print(F("+ playerPlaySound("));
-  // Serial.print(theFileNumber);
-  // Serial.print(F(") "));
   if ((playerStatus & B00001000) && (theFileNumber > 0)) {
     mp3playerPlay(soundEffects[theFileNumber]);
-    // Serial.print(F("mp3playerPlay("));
-    // Serial.print(soundEffects[theFileNumber]);
-    // Serial.print(F(")"));
   }
-  // Serial.println("");
 }
 
 // -----------------------
@@ -6328,7 +6321,13 @@ void checkPlayerControls() {
       mp3player.play(playerCounter);
       currentPlayerCounter = playerCounter;
     }
-    mp3player.start();
+    // This fixes an issue of skipping 2 songs when first run
+    //  because, else, playMp3() is called before player status changes to busy,
+    //  and it increments playerCounter.
+    while (mp3player.available()) {
+      mp3player.readType();
+    }
+    Serial.println("");
     //
     playerStatus = playerStatus & HLTA_OFF;
     playerLights();
@@ -6628,7 +6627,7 @@ void checkPlayerFileControls() {
     switchStop = false;
     // Switch logic
 #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Player, STOP: stop playing."));
+    Serial.println(F("+ Player file, STOP: stop playing."));
 #endif
     mp3player.pause();
     playerFileStatus = MEMR_ON | HLTA_ON;
@@ -6643,10 +6642,11 @@ void checkPlayerFileControls() {
     switchRun = false;
     // Switch logic
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Player, RUN: start playing, playerFileData="));
+    Serial.print(F("+ Player file, RUN: start playing, playerFileData="));
     Serial.println(playerFileData);
 #endif
     mp3playerPlay(playerFileData);
+    int theType = mp3player.readType();
     playerFileStatus = MEMR_ON | OUT_ON & HLTA_OFF;
     playerFileLights();
   }
@@ -6988,7 +6988,6 @@ void playerRun() {
         // Play MP3 files
         if (!(playerStatus & HLTA_ON)) {
           playMp3();
-          // playerLights();
         }
         checkPlayerControls();      // Player control functions from STOP to UNPROTECT.
         break;
