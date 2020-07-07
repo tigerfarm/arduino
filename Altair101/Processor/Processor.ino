@@ -808,6 +808,7 @@ int programState = LIGHTS_OFF;  // Intial, default.
 // MP3 player has a sub-state for managing sound effect byte values in files.
 #define PLAYER_FILE 0
 #define PLAYER_MP3 1
+#define PLAYER_VOLUME_SETUP 16
 int playerState = PLAYER_MP3;     // Intial, default.
 
 int theCounterHours = 0;
@@ -832,8 +833,22 @@ boolean processorPlayerLoop = true;             // Indicator for the processor t
 uint16_t playerCounterTop = 0;
 uint16_t playerDirectoryTop = 0;
 uint8_t playerDirectory = 1;      // File directory name on the SD card. Example 1 is directory name: /01.
-boolean playPause = false;        // For toggling pause.
 boolean loopSingle = false;       // For toggling single song.
+
+// ------------------------------
+// Added this to identify hardware status.
+// if hardware has an error, or hardware is not initialized, hwStatus > 0.
+// Else hwStatus = 0.
+byte hwStatus = B11111111;            // Initial state.
+// hwStatus = 1;  // 0001 SD card
+// hwStatus = 2;  // 0010 Clock module
+// hwStatus = 4;  // 0100 MP3 Player
+const byte SD_ON  =    B00000001;
+const byte CL_ON  =    B00000010;
+const byte PL_ON  =    B00000100;
+const byte SD_OFF =    B11111110;
+const byte CL_OFF =    B11111101;
+const byte PL_OFF =    B11111011;
 
 void playerLights() {
   lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
@@ -851,6 +866,57 @@ void playerFileLights() {
 void mp3playerPlay(int theCounter) {
   currentPlayerCounter = theCounter;
   mp3player.play(theCounter);
+}
+
+void playerSetup() {
+  // Initialize the player module.
+  // This allows it to be reset after the computer is restarted.
+  //
+  // Set player front panel values.
+  playerCounter = 1;                  // For now, default to song/file 1.
+  playerVolume = PLAYER_VOLUME_SETUP;
+  playerStatus = B00010000 | B00001000;    // OUT_ON | HLTA_ON,  LED status light to indicate the Player.
+  playerDirectory = 1;
+  //
+  // -------------------------
+  // Test: 
+  //    mp3player.reset(); //Reset the module
+  //    Serial.println(mp3player.readState()); // State: can tell if a song is playing?
+  if (hwStatus > 0) {
+    hwStatus = 0;
+    if (!mp3player.begin(Serial1)) {
+      delay(500);
+      if (!mp3player.begin(Serial1)) {
+        ledFlashError();
+        Serial.println(F("MP3 Player, unable to begin:"));
+        Serial.println(F("1.Please recheck the connection!"));
+        Serial.println(F("2.Please insert the SD card!"));
+        hwStatus = 4;
+      }
+    }
+  }
+  if (hwStatus == 0) {
+    ledFlashSuccess();
+    mp3player.volume(PLAYER_VOLUME_SETUP);   // Set speaker volume from 0 to 30.
+    // delay(300);
+    mp3player.setTimeOut(60);         // Set serial communications time out.
+    // delay(300);
+    //
+    // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
+    mp3player.outputDevice(DFPLAYER_DEVICE_SD);
+    //
+    // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
+    mp3player.EQ(DFPLAYER_EQ_CLASSIC);
+    //
+    // delay(300);
+    playerCounterTop = mp3player.readFileCounts();
+    if (playerCounterTop == 65535) {
+      delay(300);
+      playerCounterTop = mp3player.readFileCounts();
+    }
+    Serial.print(F("+ DFPlayer is initialized. Number of MP3 files = "));
+    Serial.println(playerCounterTop);
+  }
 }
 
 // ---------------------------
@@ -908,21 +974,6 @@ const int WAIT_PIN = A9;      // Processor program wait state: off/LOW or wait s
 
 // HLDA : 8080 processor goes into a hold state because of other hardware running.
 const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock/player processing (on/HIGH).
-
-// ------------------------------
-// Added this to identify hardware status.
-// if hardware has an error, or hardware is not initialized, hwStatus > 0.
-// Else hwStatus = 0.
-byte hwStatus = 0;
-// hwStatus = 1;  // 0001 SD card
-// hwStatus = 2;  // 0010 Clock module
-// hwStatus = 4;  // 0100 MP3 Player
-const byte SD_ON  =    B00000001;
-const byte CL_ON  =    B00000010;
-const byte PL_ON  =    B00000100;
-const byte SD_OFF =    B11111110;
-const byte CL_OFF =    B11111101;
-const byte PL_OFF =    B11111011;
 
 // ------------------------------
 // Status LEDs
@@ -6433,15 +6484,13 @@ void checkPlayerControls() {
     }
   } else if (switchReset) {
     switchReset = false;
-    // Switch logic
-    playerCounterTop = mp3player.readFileCounts();
+    // Switch logic david
+    playerSetup();
+    playCounterHlta();
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Player, RESET: play first song. Number of MP3 files = "));
     Serial.println(playerCounterTop);
 #endif
-    playerDirectory = 1;
-    playerCounter = 1;
-    playCounterHlta();
   }
   // -------------------
   if (pcfAux.readButton(pinProtect) == 0) {
@@ -7157,48 +7206,18 @@ void setup() {
 
   // ----------------------------------------------------
   // ----------------------------------------------------
-  // DFPlayer which uses a serial connection.
+  Serial.println(F("+ Initial player settings."));
   //
-  // -------------------------
-  // Initial player settings.
-  //
-  // Set player front panel values.
-  playerCounter = 1;                // For now, default to song/file 1.
-  playerVolume = 16;
-  playerStatus = OUT_ON | HLTA_ON;  // OUT_ON  LED status light to indicate the Player.
-  playPause = true;                 // HLTA_ON implies that the player is Paused.
-  //
-  // -------------------------
+  // DFPlayer uses a serial connection.
   // Since Mega has its own hardware RX and TX pins,
   //    use pins 18 and 19, which has the label: Serial1.
   // Pin 18(TX) to resister to pin 2(RX).
   // Pin 19(RX) to pin 3(TX).
+  // Serial1.begin(9600);
   Serial1.begin(9600);
-  if (!mp3player.begin(Serial1)) {
-    ledFlashError();
-    Serial.println(F("MP3 Player, unable to begin:"));
-    Serial.println(F("1.Please recheck the connection!"));
-    Serial.println(F("2.Please insert the SD card!"));
-    hwStatus = 4;
-  } else {
-    ledFlashSuccess();
-    mp3player.volume(playerVolume);   // Set speaker volume from 0 to 30.
-    // delay(300);
-    mp3player.setTimeOut(60);         // Set serial communications time out.
-    // delay(300);
-    //
-    // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
-    mp3player.outputDevice(DFPLAYER_DEVICE_SD);
-    //
-    // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
-    mp3player.EQ(DFPLAYER_EQ_CLASSIC);
-    //
-    // delay(300);
-    playerCounterTop = mp3player.readFileCounts();
-    Serial.print(F("+ DFPlayer is initialized. Number of MP3 files = "));
-    Serial.println(playerCounterTop);
-  }
-
+  //
+  playerSetup();
+  //
   // ----------------------------------------------------
   // ----------------------------------------------------
 #ifdef SETUP_SDCARD

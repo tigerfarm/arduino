@@ -26,7 +26,8 @@
     DFRobotDFPlayerMini by DFRobot mini player library.
     For my implementation, I loaded version 1.0.5.
     https://github.com/DFRobot/DFRobotDFPlayerMini
-
+  Sample program demoing many options:
+    https://github.com/DFRobot/DFRobotDFPlayerMini/issues/20
   -------------------------------------------------------------------------
   DFPlayer specifications with sample programs.
     https://wiki.dfrobot.com/DFPlayer_Mini_SKU_DFR0299
