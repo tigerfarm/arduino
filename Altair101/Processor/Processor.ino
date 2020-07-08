@@ -16,13 +16,31 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  Player EXAMINE, only use the data toggles.
+  If toogle addres is greater than memory top, flash error instead of random values.
+
+  When in program wait mode, if read file# error, flash error.
+  + After flash error, redisplay the panel lights, but address is value 1, should be 0.
 
   From OUT opcode (B11100011),
   + When timer is complete, what should happen?
   ++ Currently, each minute, it plays the timer completed MP3, which is a continuous reminder.
   clockRunTimerControlsOut(getMinuteValue(regA));
 
+  OUT port# where it waits until the MP3 file is played, then continues.
+  + Allow, flip STOP, to exit early.
+  + Need code to tell when the MP3 is completed. Maybe from playMp3():
+  -----------------
+  + Play an MP3 file to completion before returning control.
+  0       076 MVI A,<immediate value>
+  1       004        MP3 file#
+  2       343 OUT <port#>
+  3       014       Play an MP3 file to completion.
+  4       166 HLT
+  -----------------
+
+  Test counter IN opcode option, IN port# = 21.
+      if (port# == 21) {
+        regA = clockCounterRead(dataByte)
   -----------------------------------------------------------------------------
   -----------------------------------------------------------------------------
   Program sections,
@@ -908,15 +926,55 @@ const byte INT_OFF =    B11111110;
 // INTE is on when interrupts are enabled.
 // INTE is off when interrupts are disabled.
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// File counter variables.
+// --------------------------------------------------
 
-uint8_t counterStatus = MEMR_ON | STACK_ON;
+#ifdef DESKTOP_MODULE
+const int pinStop = 7;
+const int pinRun = 6;
+const int pinStep = 5;
+const int pinExamine = 4;
+const int pinExamineNext = 3;
+const int pinDeposit = 2;
+const int pinDepositNext = 1;
+const int pinReset = 0;
+#else
+// TABLET_MODULE
+const int pinStop = 0;
+const int pinRun = 1;
+const int pinStep = 2;
+const int pinExamine = 3;
+const int pinExamineNext = 4;
+const int pinDeposit = 5;
+const int pinDepositNext = 6;
+const int pinReset = 7;
+#endif
 
-// Used in opcode IN B11011011. Which seems odd, not correct the way it's used in the opcode.
-uint8_t counterData = 0;
-uint16_t counterAddress = 0;
+const int pinAux1up = 3;
+const int pinAux1down = 2;
+const int pinAux2up = 1;
+const int pinAux2down = 0;
+const int pinProtect = 5;
+const int pinUnProtect = 4;
+const int pinClr = 6;
+const int pinStepDown = 7;
+
+boolean switchStop = false;
+boolean switchRun = false;
+boolean switchStep = false;
+boolean switchExamine = false;
+boolean switchExamineNext = false;
+boolean switchDeposit = false;;
+boolean switchDepositNext = false;;
+boolean switchReset = false;
+boolean switchProtect = false;
+boolean switchUnProtect = false;
+boolean switchClr = false;
+boolean switchStepDown = false;
+
+boolean switchAux1up = false;
+boolean switchAux1down = false;
+boolean switchAux2up = false;
+boolean switchAux2down = false;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -980,7 +1038,7 @@ void playerSetup() {
   playerDirectory = 1;
   //
   // -------------------------
-  // Test: 
+  // Test:
   //    mp3player.reset(); //Reset the module
   //    Serial.println(mp3player.readState()); // State: can tell if a song is playing?
   if (hwStatus > 0) {
@@ -3541,8 +3599,7 @@ void processOpcodeData() {
       } else if (dataByte == 1) {
         regA = hwStatus;
       } else if (dataByte == 21) {
-        clockCounterRead(counterAddress);
-        regA = counterData;
+        regA = clockCounterRead(dataByte);
       } else if (dataByte == 0) {
         regA = 0; // Input not implemented on this port.
       } else {
@@ -3982,6 +4039,43 @@ void processOpcodeData() {
             Serial.println(processorPlayerCounter);
           }
           break;
+        case 12:
+          // david
+          Serial.print(F(" > Play MP3 and return when the playing is completed."));
+          //
+          // Start the MP3 and wait for the player to be available(started).
+          playerCounter = regA;
+          currentPlayerCounter = playerCounter;
+          mp3player.play(playerCounter);
+          while (mp3player.available()) {
+            mp3player.readType();
+          }
+          //
+          boolean playNotCompleted = true;
+          switchStop = false;
+          Serial.println(F(" Check when playing is completed."));
+          while (playNotCompleted) {
+            if (mp3player.available()) {
+              int theType = mp3player.readType();
+              if (theType == DFPlayerPlayFinished) {
+                playNotCompleted = false;
+                Serial.println(F(" > Playing is completed."));
+              }
+            }
+            // ------------------------
+            // Flip STOP to end at anytime.
+            if (pcfControl.readButton(pinStop) == 0) {
+              if (!switchStop) {
+                switchStop = true;
+              }
+            } else if (switchStop) {
+              switchStop = false;
+              playNotCompleted = false;
+              Serial.println(F(" > Exit playing, STOP flipped."));
+            }
+            // ------------------------
+          }
+          break;
         // ---------------------------------------
         case 20:
           Serial.print(F(" > Run a timer for the number of minutes in register A."));
@@ -3989,9 +4083,9 @@ void processOpcodeData() {
           break;
         case 21:
           Serial.print(F(" > Increment register A clock counter file value."));
-          clockCounterRead(regA);
-          counterData++;
-          clockCounterWrite(regA, counterData);
+          byte theCounterData = clockCounterRead(regA);
+          theCounterData++;
+          clockCounterWrite(regA, theCounterData);
           break;
         case 25:
           Serial.print(F(" > Enter counter mode and display counter value for counter index in register A."));
@@ -4285,7 +4379,11 @@ void ledFlashError() {
     lightsStatusAddressData(0, 0, B00000000);
     delay(delayTime);
   }
-  // Reset the panel lights to program values.
+  // Reset the panel lights based on state.
+  if (clockState == CLOCK_COUNTER) {
+    counterLights();
+    return;
+  }
   switch (programState) {
     case LIGHTS_OFF:
       byte statusDisplay = bitWrite(statusDisplay, statusSetup, 1);
@@ -4510,56 +4608,6 @@ unsigned int toggleAddress() {
 #endif
   return byteHigh * 256 + byteLow;
 }
-
-// --------------------------------------------------
-
-#ifdef DESKTOP_MODULE
-const int pinStop = 7;
-const int pinRun = 6;
-const int pinStep = 5;
-const int pinExamine = 4;
-const int pinExamineNext = 3;
-const int pinDeposit = 2;
-const int pinDepositNext = 1;
-const int pinReset = 0;
-#else
-// TABLET_MODULE
-const int pinStop = 0;
-const int pinRun = 1;
-const int pinStep = 2;
-const int pinExamine = 3;
-const int pinExamineNext = 4;
-const int pinDeposit = 5;
-const int pinDepositNext = 6;
-const int pinReset = 7;
-#endif
-
-const int pinAux1up = 3;
-const int pinAux1down = 2;
-const int pinAux2up = 1;
-const int pinAux2down = 0;
-const int pinProtect = 5;
-const int pinUnProtect = 4;
-const int pinClr = 6;
-const int pinStepDown = 7;
-
-boolean switchStop = false;
-boolean switchRun = false;
-boolean switchStep = false;
-boolean switchExamine = false;
-boolean switchExamineNext = false;
-boolean switchDeposit = false;;
-boolean switchDepositNext = false;;
-boolean switchReset = false;
-boolean switchProtect = false;
-boolean switchUnProtect = false;
-boolean switchClr = false;
-boolean switchStepDown = false;
-
-boolean switchAux1up = false;
-boolean switchAux1down = false;
-boolean switchAux2up = false;
-boolean switchAux2down = false;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -5532,70 +5580,6 @@ void checkClockControls() {
   // ------------------------
 }
 
-// -----------------------------------------------------------------------------
-void checkAux2clock() {
-#ifdef DESKTOP_MODULE
-  if (pcfAux.readButton(pinAux2up) == 0) {
-#else
-  // Tablet:
-  if (digitalRead(CLOCK_SWITCH_PIN) == LOW) {
-#endif
-    if (!switchAux2up) {
-      switchAux2up = true;
-    }
-  } else if (switchAux2up) {
-    switchAux2up = false;
-    // Switch logic.
-    if (clockState == CLOCK_TIME || clockState == CLOCK_COUNTER) {
-#ifdef SWITCH_MESSAGES
-      Serial.println(F("+ AUX2 up. Enter clock timer mode."));
-#endif
-      clockState = CLOCK_TIMER;
-      digitalWrite(WAIT_PIN, HIGH);
-      lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
-    } else {
-#ifdef SWITCH_MESSAGES
-      Serial.println(F("+ AUX2 up. Enter clock mode."));
-#endif
-      clockState = CLOCK_TIME;
-      digitalWrite(WAIT_PIN, LOW);
-      displayTheTime(theCounterMinutes, theCounterHours);
-    }
-  }
-  // -----------------------
-#ifdef DESKTOP_MODULE
-  if (pcfAux.readButton(pinAux2down) == 0) {
-#else
-  // Tablet:
-  if (digitalRead(PLAYER_SWITCH_PIN) == LOW) {
-#endif
-    if (!switchAux2down) {
-      switchAux2down = true;
-    }
-  } else if (switchAux2down) {
-    switchAux2down = false;
-    // Switch logic.
-    if (clockState == CLOCK_TIME || clockState == CLOCK_TIMER) {
-#ifdef SWITCH_MESSAGES
-      Serial.println(F("+ AUX2 down. Enter clock counter mode."));
-#endif
-      clockState = CLOCK_COUNTER;
-      digitalWrite(WAIT_PIN, HIGH);
-      if (counterAddress == 0 & counterData == 0) {
-        clockCounterRead(0);
-      }
-      counterLights();
-    } else {
-#ifdef SWITCH_MESSAGES
-      Serial.println(F("+ AUX2 down. Enter clock mode."));
-#endif
-      clockState = CLOCK_TIME;
-      digitalWrite(WAIT_PIN, LOW);
-      displayTheTime(theCounterMinutes, theCounterHours);
-    }
-  }
-}
-
 // ---------------------------------------------------------
 // Clock Timer Controls
 
@@ -5837,8 +5821,15 @@ void checkTimerControls() {
   }
 }
 
-// ---------------------------------------------------------
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Manage file counters.
+
+// File counter variables.
+
+uint8_t counterStatus = MEMR_ON | STACK_ON;
+uint8_t counterData = 0;
+uint16_t counterAddress = 0;
 
 void counterLights() {
   lightsStatusAddressData(counterStatus, counterAddress, counterData);
@@ -5857,7 +5848,7 @@ String getCfbFilename(byte fileByte) {
   }
   return theFilename;
 }
-void clockCounterRead(int counterAddress) {
+byte clockCounterRead(int counterAddress) {
   String sfbFilename = getCfbFilename(counterAddress);
   counterData = readFileByte(sfbFilename);
 #ifdef SWITCH_MESSAGES
@@ -5871,6 +5862,7 @@ void clockCounterRead(int counterAddress) {
 #endif
   counterStatus = MEMR_ON | STACK_ON | INP_ON;
   counterLights();
+  return counterData;
 }
 void clockCounterWrite(int counterAddress, byte counterData) {
   String sfbFilename = getCfbFilename(counterAddress);
@@ -6070,6 +6062,70 @@ void clockCounterControls() {
 #endif
     counterAddress = 0;
     clockCounterRead(counterAddress);
+  }
+}
+
+// -----------------------------------------------------------------------------
+void checkAux2clock() {
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux2up) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(CLOCK_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux2up) {
+      switchAux2up = true;
+    }
+  } else if (switchAux2up) {
+    switchAux2up = false;
+    // Switch logic.
+    if (clockState == CLOCK_TIME || clockState == CLOCK_COUNTER) {
+#ifdef SWITCH_MESSAGES
+      Serial.println(F("+ AUX2 up. Enter clock timer mode."));
+#endif
+      clockState = CLOCK_TIMER;
+      digitalWrite(WAIT_PIN, HIGH);
+      lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
+    } else {
+#ifdef SWITCH_MESSAGES
+      Serial.println(F("+ AUX2 up. Enter clock mode."));
+#endif
+      clockState = CLOCK_TIME;
+      digitalWrite(WAIT_PIN, LOW);
+      displayTheTime(theCounterMinutes, theCounterHours);
+    }
+  }
+  // -----------------------
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux2down) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(PLAYER_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux2down) {
+      switchAux2down = true;
+    }
+  } else if (switchAux2down) {
+    switchAux2down = false;
+    // Switch logic.
+    if (clockState == CLOCK_TIME || clockState == CLOCK_TIMER) {
+#ifdef SWITCH_MESSAGES
+      Serial.println(F("+ AUX2 down. Enter clock counter mode."));
+#endif
+      clockState = CLOCK_COUNTER;
+      digitalWrite(WAIT_PIN, HIGH);
+      if (counterAddress == 0 & counterData == 0) {
+        clockCounterRead(0);
+      }
+      counterLights();
+    } else {
+#ifdef SWITCH_MESSAGES
+      Serial.println(F("+ AUX2 down. Enter clock mode."));
+#endif
+      clockState = CLOCK_TIME;
+      digitalWrite(WAIT_PIN, LOW);
+      displayTheTime(theCounterMinutes, theCounterHours);
+    }
   }
 }
 
@@ -6398,9 +6454,9 @@ void checkPlayerControls() {
   } else if (switchExamine) {
     switchExamine = false;
     // Switch logic
-    unsigned int addressToggles = toggleAddress();
-    if (addressToggles > 0 && addressToggles <= playerCounterTop) {
-      playerCounter = addressToggles;
+    byte dataToggles = toggleData();   // Use data toggles instead of: unsigned int addressToggles = toggleAddress();
+    if (dataToggles > 0 && dataToggles <= playerCounterTop) {
+      playerCounter = dataToggles;
       playCounterHlta();
 #ifdef SWITCH_MESSAGES
       Serial.print(F("+ Player, EXAMINE: play a specific song number, playerCounter="));
@@ -6409,8 +6465,8 @@ void checkPlayerControls() {
     } else {
       ledFlashError();
 #ifdef SWITCH_MESSAGES
-      Serial.print(F("+ Player, EXAMINE: toggle address out of player file counts range: "));
-      Serial.print(addressToggles);
+      Serial.print(F("+ Player, EXAMINE: data toggles out of player file count range: "));
+      Serial.print(dataToggles);
       Serial.print(F(", player file counts: "));
       Serial.println(playerCounterTop);
 #endif
@@ -6491,7 +6547,7 @@ void checkPlayerControls() {
     }
   } else if (switchReset) {
     switchReset = false;
-    // Switch logic david
+    // Switch logic
     playerSetup();
     playCounterHlta();
 #ifdef SWITCH_MESSAGES
