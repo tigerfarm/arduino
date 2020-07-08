@@ -16,6 +16,8 @@
   -----------------------------------------------------------------------------
   Work to do,
 
+  Player EXAMINE, only use the data toggles.
+
   From OUT opcode (B11100011),
   + When timer is complete, what should happen?
   ++ Currently, each minute, it plays the timer completed MP3, which is a continuous reminder.
@@ -775,6 +777,7 @@
 
 */
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Code compilation options.
 
 // Define for desktop module.
@@ -794,6 +797,13 @@
 // #define LOG_MESSAGES 1         // Has large memory requirements.
 #define SWITCH_MESSAGES 1
 
+// -----------------------------------------------------------------------
+// DFPlayer Mini MP3 play
+
+#include "Arduino.h"
+#include "DFRobotDFPlayerMini.h"
+DFRobotDFPlayerMini mp3player;
+
 // -----------------------------------------------------------------------------
 // Program states
 
@@ -810,157 +820,6 @@ int programState = LIGHTS_OFF;  // Intial, default.
 #define PLAYER_MP3 1
 #define PLAYER_VOLUME_SETUP 16
 int playerState = PLAYER_MP3;     // Intial, default.
-
-int theCounterHours = 0;
-int theCounterMinutes = 0;
-
-// -----------------------------------------------------------------------
-// DFPlayer Mini MP3 play
-
-#include "Arduino.h"
-#include "DFRobotDFPlayerMini.h"
-DFRobotDFPlayerMini mp3player;
-
-// Front panel display light values:
-uint16_t playerCounter = 1;                     // First song played when player starts up. Then incremented when next is played.
-uint8_t playerStatus = 0;
-uint8_t playerVolume = 0;
-//
-uint16_t currentPlayerCounter = playerCounter;  // Current song playing.
-uint16_t processorPlayerCounter = 0;            // Indicator for the processor to play an MP3, if not zero.
-boolean processorPlayerLoop = true;             // Indicator for the processor to start playing an MP3 when flipping START.
-//
-uint16_t playerCounterTop = 0;
-uint16_t playerDirectoryTop = 0;
-uint8_t playerDirectory = 1;      // File directory name on the SD card. Example 1 is directory name: /01.
-boolean loopSingle = false;       // For toggling single song.
-
-// ------------------------------
-// Added this to identify hardware status.
-// if hardware has an error, or hardware is not initialized, hwStatus > 0.
-// Else hwStatus = 0.
-byte hwStatus = B11111111;            // Initial state.
-// hwStatus = 1;  // 0001 SD card
-// hwStatus = 2;  // 0010 Clock module
-// hwStatus = 4;  // 0100 MP3 Player
-const byte SD_ON  =    B00000001;
-const byte CL_ON  =    B00000010;
-const byte PL_ON  =    B00000100;
-const byte SD_OFF =    B11111110;
-const byte CL_OFF =    B11111101;
-const byte PL_OFF =    B11111011;
-
-void playerLights() {
-  lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
-}
-
-// Front panel display light values:
-uint8_t playerFileStatus = B10000000;   // MEMR_ON
-uint8_t playerFileData = 0;
-uint16_t playerFileAddress = 0;       // First song played when player starts up. Then incremented when next is played.
-
-void playerFileLights() {
-  lightsStatusAddressData(playerFileStatus, playerFileAddress, playerFileData);
-}
-
-void mp3playerPlay(int theCounter) {
-  currentPlayerCounter = theCounter;
-  mp3player.play(theCounter);
-}
-
-void playerSetup() {
-  // Initialize the player module.
-  // This allows it to be reset after the computer is restarted.
-  //
-  // Set player front panel values.
-  playerCounter = 1;                  // For now, default to song/file 1.
-  playerVolume = PLAYER_VOLUME_SETUP;
-  playerStatus = B00010000 | B00001000;    // OUT_ON | HLTA_ON,  LED status light to indicate the Player.
-  playerDirectory = 1;
-  //
-  // -------------------------
-  // Test: 
-  //    mp3player.reset(); //Reset the module
-  //    Serial.println(mp3player.readState()); // State: can tell if a song is playing?
-  if (hwStatus > 0) {
-    hwStatus = 0;
-    if (!mp3player.begin(Serial1)) {
-      delay(500);
-      if (!mp3player.begin(Serial1)) {
-        ledFlashError();
-        Serial.println(F("MP3 Player, unable to begin:"));
-        Serial.println(F("1.Please recheck the connection!"));
-        Serial.println(F("2.Please insert the SD card!"));
-        hwStatus = 4;
-      }
-    }
-  }
-  if (hwStatus == 0) {
-    ledFlashSuccess();
-    mp3player.volume(PLAYER_VOLUME_SETUP);   // Set speaker volume from 0 to 30.
-    // delay(300);
-    mp3player.setTimeOut(60);         // Set serial communications time out.
-    // delay(300);
-    //
-    // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
-    mp3player.outputDevice(DFPLAYER_DEVICE_SD);
-    //
-    // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
-    mp3player.EQ(DFPLAYER_EQ_CLASSIC);
-    //
-    // delay(300);
-    playerCounterTop = mp3player.readFileCounts();
-    if (playerCounterTop == 65535) {
-      delay(300);
-      playerCounterTop = mp3player.readFileCounts();
-    }
-    Serial.print(F("+ DFPlayer is initialized. Number of MP3 files = "));
-    Serial.println(playerCounterTop);
-  }
-}
-
-// ---------------------------
-// Sound bites for sound effects
-/*
-   soundEffects is an arrary that matches index values to an MP3 file number.
-   Example: READ_FILE=1
-    where
-      The value of soundEffects[1], is stored in file: 0001.sbf
-      The value of soundEffects[2], is stored in file: 0002.sbf
-      ...
-    If the byte stored in 0001.sbf is 5, then,
-      soundEffects[READ_FILE]=5 or soundEffects[1]=5.
-    Then,
-      playerPlaySound(READ_FILE) plays file: 0005.mp3.
-*/
-const int maxSoundEffects = 16;
-int soundEffects[maxSoundEffects];
-//  Variable      soundEffects[] Array value
-int READ_FILE         = 1;
-int TIMER_COMPLETE    = 2;
-int CLOCK_ON          = 3;
-int CLOCK_OFF         = 4;
-int PLAYER_ON         = 3;
-int PLAYER_OFF        = 4;
-int KR5               = 5;
-int CLOCK_CUCKOO      = 6;
-int TIMER_MINUTE      = 7;
-int DOWNLOAD_COMPLETE = 8;
-//
-// Function to play a sound file using the above mapping.
-void playerPlaySound(int theFileNumber) {
-  if ((playerStatus & B00001000) && (theFileNumber > 0)) {
-    mp3playerPlay(soundEffects[theFileNumber]);
-  }
-}
-
-// -----------------------
-// File counter variables.
-
-// uint8_t counterStatus = MEMR_ON | STACK_ON;
-uint8_t counterStatus = B10000000 | B10000100;   // MEMR_ON | STACK_ON
-uint8_t counterData = 0;
-uint16_t counterAddress = 0;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -1048,6 +907,153 @@ const byte INT_OFF =    B11111110;
 //
 // INTE is on when interrupts are enabled.
 // INTE is off when interrupts are disabled.
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// File counter variables.
+
+uint8_t counterStatus = MEMR_ON | STACK_ON;
+
+// Used in opcode IN B11011011. Which seems odd, not correct the way it's used in the opcode.
+uint8_t counterData = 0;
+uint16_t counterAddress = 0;
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// DFPlayer Mini MP3 player
+
+// Front panel display light values:
+uint16_t playerCounter = 1;                     // First song played when player starts up. Then incremented when next is played.
+uint8_t playerStatus = 0;
+uint8_t playerVolume = 0;
+//
+uint16_t currentPlayerCounter = playerCounter;  // Current song playing.
+uint16_t processorPlayerCounter = 0;            // Indicator for the processor to play an MP3, if not zero.
+boolean processorPlayerLoop = true;             // Indicator for the processor to start playing an MP3 when flipping START.
+//
+uint16_t playerCounterTop = 0;
+uint16_t playerDirectoryTop = 0;
+uint8_t playerDirectory = 1;      // File directory name on the SD card. Example 1 is directory name: /01.
+boolean loopSingle = false;       // For toggling single song.
+
+// ------------------------------
+// Added this to identify hardware status.
+// if hardware has an error, or hardware is not initialized, hwStatus > 0.
+// Else hwStatus = 0.
+byte hwStatus = B11111111;            // Initial state.
+// hwStatus = 1;  // 0001 SD card
+// hwStatus = 2;  // 0010 Clock module
+// hwStatus = 4;  // 0100 MP3 Player
+const byte SD_ON  =    B00000001;
+const byte CL_ON  =    B00000010;
+const byte PL_ON  =    B00000100;
+const byte SD_OFF =    B11111110;
+const byte CL_OFF =    B11111101;
+const byte PL_OFF =    B11111011;
+
+void playerLights() {
+  lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+}
+
+// Front panel display light values:
+uint8_t playerFileStatus = MEMR_ON;
+uint8_t playerFileData = 0;
+uint16_t playerFileAddress = 0;       // First song played when player starts up. Then incremented when next is played.
+
+void playerFileLights() {
+  lightsStatusAddressData(playerFileStatus, playerFileAddress, playerFileData);
+}
+
+void mp3playerPlay(int theCounter) {
+  currentPlayerCounter = theCounter;
+  mp3player.play(theCounter);
+}
+
+void playerSetup() {
+  // Initialize the player module.
+  // This allows it to be reset after the computer is restarted.
+  //
+  // Set player front panel values.
+  playerCounter = 1;                  // For now, default to song/file 1.
+  playerVolume = PLAYER_VOLUME_SETUP;
+  playerStatus = OUT_ON | HLTA_ON;    // ,  LED status light to indicate the Player.
+  playerDirectory = 1;
+  //
+  // -------------------------
+  // Test: 
+  //    mp3player.reset(); //Reset the module
+  //    Serial.println(mp3player.readState()); // State: can tell if a song is playing?
+  if (hwStatus > 0) {
+    hwStatus = 0;
+    if (!mp3player.begin(Serial1)) {
+      delay(500);
+      if (!mp3player.begin(Serial1)) {
+        ledFlashError();
+        Serial.println(F("MP3 Player, unable to begin:"));
+        Serial.println(F("1.Please recheck the connection!"));
+        Serial.println(F("2.Please insert the SD card!"));
+        hwStatus = 4;
+      }
+    }
+  }
+  if (hwStatus == 0) {
+    ledFlashSuccess();
+    mp3player.volume(PLAYER_VOLUME_SETUP);   // Set speaker volume from 0 to 30.
+    // delay(300);
+    mp3player.setTimeOut(60);         // Set serial communications time out.
+    // delay(300);
+    //
+    // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
+    mp3player.outputDevice(DFPLAYER_DEVICE_SD);
+    //
+    // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
+    mp3player.EQ(DFPLAYER_EQ_CLASSIC);
+    //
+    // delay(300);
+    playerCounterTop = mp3player.readFileCounts();
+    if (playerCounterTop == 65535) {
+      delay(300);
+      playerCounterTop = mp3player.readFileCounts();
+    }
+    Serial.print(F("+ DFPlayer is initialized. Number of MP3 files = "));
+    Serial.println(playerCounterTop);
+  }
+}
+
+// ---------------------------
+// Sound bites for sound effects
+/*
+   soundEffects is an arrary that matches index values to an MP3 file number.
+   Example: READ_FILE=1
+    where
+      The value of soundEffects[1], is stored in file: 0001.sbf
+      The value of soundEffects[2], is stored in file: 0002.sbf
+      ...
+    If the byte stored in 0001.sbf is 5, then,
+      soundEffects[READ_FILE]=5 or soundEffects[1]=5.
+    Then,
+      playerPlaySound(READ_FILE) plays file: 0005.mp3.
+*/
+const int maxSoundEffects = 16;
+int soundEffects[maxSoundEffects];
+//  Variable      soundEffects[] Array value
+int READ_FILE         = 1;
+int TIMER_COMPLETE    = 2;
+int CLOCK_ON          = 3;
+int CLOCK_OFF         = 4;
+int PLAYER_ON         = 3;
+int PLAYER_OFF        = 4;
+int KR5               = 5;
+int CLOCK_CUCKOO      = 6;
+int TIMER_MINUTE      = 7;
+int DOWNLOAD_COMPLETE = 8;
+//
+// Function to play a sound file using the above mapping.
+void playerPlaySound(int theFileNumber) {
+  if ((playerStatus & B00001000) && (theFileNumber > 0)) {
+    mp3playerPlay(soundEffects[theFileNumber]);
+  }
+}
 
 // -----------------------------------------------------------------------------
 void ledFlashKnightRider(int times, boolean NotUsed) {
@@ -1204,6 +1210,9 @@ const int clockPinLed = A11;    // pin 11 Clock pin.
 // -----------------------------------------------------------------------------
 // Clock setting values using in toggle switch functions.
 
+int theCounterHours = 0;
+int theCounterMinutes = 0;
+
 #ifdef INCLUDE_CLOCK
 
 // For the clock board.
@@ -1223,8 +1232,6 @@ int setClockValue = 0;
 int theCounterYear = 0;
 int theCounterMonth = 0;
 int theCounterDay = 0;
-// int theCounterHours = 0;     // Declared above.
-// int theCounterMinutes = 0;
 int theCounterSeconds = 0;
 
 int theSetRow = 1;
