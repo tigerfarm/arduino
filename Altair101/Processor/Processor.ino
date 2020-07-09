@@ -20,31 +20,18 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  Consider replace current playing of sound effect: playerPlaySound(value) with a delay(num),
-  + with mp3playerPlaywait(value) which doesn't require a delay.
-
-  If toogle addres is greater than memory top, flash error instead of random values.
+  Test counter IN opcode option, IN port# = 21.
+      if (port# == 21) {
+        regA = clockCounterRead(dataByte)
 
   From OUT opcode (B11100011),
   + When timer is complete, what should happen?
   ++ Currently, each minute, it plays the timer completed MP3, which is a continuous reminder.
   clockRunTimerControlsOut(getMinuteValue(regA));
 
-  OUT port# where it waits until the MP3 file is played, then continues.
-  + Allow, flip STOP, to exit early.
-  + Need code to tell when the MP3 is completed. Maybe from playMp3():
-  -----------------
-  + Play an MP3 file to completion before returning control.
-  0       076 MVI A,<immediate value>
-  1       004        MP3 file#
-  2       343 OUT <port#>
-  3       014       Play an MP3 file to completion.
-  4       166 HLT
-  -----------------
+  When flipping EXAMINE,
+  + If toogle address is greater than memory top (memoryTop), flash error instead of random values.
 
-  Test counter IN opcode option, IN port# = 21.
-      if (port# == 21) {
-        regA = clockCounterRead(dataByte)
   -----------------------------------------------------------------------------
   -----------------------------------------------------------------------------
   Program sections,
@@ -58,7 +45,7 @@
   lcdSetup()                  1602 LCD definitions and functions
   ----------------------------
   Processor Definitions and Functions:
-  memoryData[memoryBytes]     Memory and process definitions
+  memoryData[memoryTop]     Memory and process definitions
   Process a subset of the Intel 8080/8085 opcode instructions:
   processData()               Control processing instruction set of opcodes.
   processOpcode()             Process opcode instruction machine cycle one (M1): fetch opcode and process it.
@@ -113,7 +100,9 @@
   checkProtectSetVolume()
   checkPlayerControls()
   checkPlayerFileControls()
+  ----------------------------
   printDFPlayerMessage(uint8_t type, int value)
+  mp3playerPlaywait()
   playMp3()
   playerRun()
   ----------------------------
@@ -148,15 +137,18 @@
   + 1110    Program list, requires LCD
   + 1111    Start up program. Play MP3 while NOPs are processing,then HLT when the MP3 is finished.
   -----------------
-  + 10000   (A12 switch) Current test program.
+  + 10000   Play an MP3 until complete. Flip STOP to end the play early.
+  -----------------
+  + 10000000   (A15 switch) Current test program.
 
+  -----------------------------------------------------------------------------
   Common opcodes:
   + B00000000 000 NOP, my NOP instruction has a delay: delay(100).
   + B01110110 166 HLT
   + B11000011 JMP <address, low byte followed by high byte>
   + B11100011 343 OUT
   +       076 MVI A,<immediate value>
-  -----------------
+  ----------------------------------
   +       343 OUT <port#>
   +       012 10  Port# to play the MP3 file# in register A.
   ++              If regA==0, pause the player
@@ -164,32 +156,56 @@
   ++              If regA==0, pause the player
   +       015 13  Port# to flash error light sequence.
   +       052 42  Port# to flash success light sequence.
-  -----------------
+  ----------------------------------
   + Enter counter mode and display counter value for counter index in register A.
   +       076 MVI A,<immediate value>
-  +       006  6  Counter# 6 into register A.
+  +       006     Counter# 6 into register A.
   +       343 OUT <port#>
-  +       031 25  Port# to increment a counter.
-  -----------------
+  +       031     Port# 25, enter counter mode.
+  ----------------------------------
   + Increment a counter.
   +       076 MVI A,<immediate value>
-  +       006  6  Counter# 6 into register A.
+  +       006     Counter# 6 into register A.
   +       343 OUT <port#>
-  +       025 21  Port# to increment a counter.
-  -----------------
+  +       025     Port# 21, increment a counter.
+  ----------------------------------
+  + Play an MP3 file.
+  +       MVI A,<file#>
+  +       OUT 10   ; 10 is for single play.Use out 11 is for looping.
+  + Address:oct > description
+  +       0:076 > opcode: mvi a,2  : Set to play sound bite file, 0002.mp3.
+  +       1:002 > immediate: 2
+  +       2:343 > opcode: out 11   : 11 is for looping. 10 is for single play.
+  +       3:012 > immediate: 10
+  +       3:013 > immediate: 11
+  +       ... NOPs ...
+  ----------------------------------
+  + Play an MP3 file to completion before returning control.
+  + Allow, flip STOP, to exit early.
+  0       076 MVI A,<immediate value>
+  1       004         MP3 file#
+  2       343 OUT <port#>
+  3       014         Port# 12, play an MP3 file to completion.
+  4       166 HLT
+  5       303 JMP     Jump back to retry
+  6       000         LB:Address
+  7       000         HB:Address
+  ----------------------------------
   + Turn off playing an MP3 file.
   0       076 MVI A,<immediate value>
   1       000       Value to pause any playing MP3.
   2       343 OUT <port#>
-  3       012 10 is for single play.
+  3       012       Port# 10, single play.
   4       166 HLT
-  -----------------
-  + Turn on, and play an MP3 files. Then test other on an off calls.
+  ----------------------------------
+  + Test turn on and off the playing of MP3 files.
+          ------------
   0       076 MVI A,<immediate value>
   1       377       Value to turn pause off, turn start on, of playing MP3 files.
   2       343 OUT <port#>
   3.1     012 10 is for single play.
   3.2     013 11 is for looping.
+          ------------
   4       076 MVI A,<MP3 file#>
   5       015        MP3 file#
   6       343 OUT <port#>
@@ -198,6 +214,7 @@
   ...
   35      000 NOP                               Loop a sound.
   36      166 HLT
+          ------------
           076 MVI A,<MP3 file#>
           003        MP3 file#
           343 OUT <port#>
@@ -210,6 +227,7 @@
   ...
   96      000 NOP
           166 HLT
+          ------------
           076 MVI A,0
           000       Pause any playing MP3.
           343 OUT <port#>
@@ -217,44 +235,39 @@
           000 NOP                              Loop sound off.
   ...
   128     000 NOP
+          ------------
           166 HLT
           303 JMP                              Jump back to 0, the start.
           000
           000
-  -----------------
-  + Play an MP3 file.
-          // MVI A, <file#>
-          // OUT 11   ; Use out 11 is for looping. 10 is for single play.
-          //  ++ Address:oct > description
-          //  ++       0:076 > opcode: mvi a,2  : Set to play sound bite file, 0002.mp3.
-          //  ++       1:002 > immediate: 2
-          //  ++       2:343 > opcode: out 11   : 11 is for looping. 10 is for single play.
-          //  ++       3:012 > immediate: 10
-          //  ++       3:013 > immediate: 11
-          //  ++       ... NOPs ...
-  -----------------
+  ----------------------------------
   Timer program.
           333 IN SENSE_SW
           377     immediate: SENSE_SW : 255
           343 OUT <port#>
-          024 20  Port# to run a time for the number of minutes in register A.
+          024 20  Port# 20, run time, the number of minutes in register A.
+          ------------
           166 HLT
           303 JMP Jump to 0.
           000
           000
-  -----------------
+  ----------------------------------
   Timer program.
+          ------------
   0       076 MVI A,<immediate value>
-  1       003        Immediate value of 3, for 3 minutes.
+  1       003         Immediate value of 3, for 3 minutes.
   2       343 OUT <port#>
-  3       024 20  Port# to run a time for the number of minutes in register A.
+  3       024         Port# 20, run the timer, the number of minutes in register A.
+          ------------
   4       076 MVI A,<immediate value>
-  5       004  4  Communicator sound.
+  5       004  4      Communicator sound.
   6       343 OUT <port#>
-  7       012 10  Port# to play the MP3 file# in register A.
+  7       012 10      Port# to play the MP3 file# in register A.
+          ------------
   8       343 OUT <port#>
-  9       052 42  Port# to flash success light sequence.
-  ...     000 NOP NOPs to allow the sound to complete.
+  9       052 42      Port# to flash success light sequence.
+          ------------
+  ...     000 NOP     NOPs to allow the sound to complete.
   24      166 HLT
 
   ------------------------------------------------------------------------------
@@ -814,6 +827,7 @@
 #define INCLUDE_CLOCK 1
 #define INCLUDE_SDCARD 1
 #define INCLUDE_LCD 1
+
 
 // -----------------------------------
 // #define LOG_MESSAGES 1         // Has large memory requirements.
@@ -1599,8 +1613,15 @@ void lcdPrintChar(String theChar) {
 // -----------------------------------------------------------------------------
 // Memory definitions
 
-const int memoryBytes = 1024;  // When using Mega: 1024 or 2048, for Nano: 256
-byte memoryData[memoryBytes];
+//                                    A11
+// 0 1 2 3  4  5  6   7   8   9   10   11   12
+// 1 2 4 8 16 32 64 128 256 512 1024 2048 4096
+// When set to: 4096, get the message: Low memory available, stability problems may occur.
+//    Sketch uses 54946 bytes (21%) of program storage space. Maximum is 253952 bytes.
+//    Global variables use 6862 bytes (83%) of dynamic memory, leaving 1330 bytes for local variables. Maximum is 8192 bytes.
+//    Low memory available, stability problems may occur.
+const int memoryTop = 1024;  // When using Mega: 1024, 2048, 3072 or 4096. For Nano: 256
+byte memoryData[memoryTop];
 unsigned int curProgramCounter = 0;     // Current program address value
 unsigned int programCounter = 0;        // When processing opcodes, the next program address value.
 
@@ -1617,7 +1638,7 @@ void zeroOutMemory() {
   // Clear memory option.
   // Example, clear memory before loading a new program.
   Serial.println(F("+ Initialize all memory bytes to zero."));
-  for (int i = 0; i < memoryBytes; i++) {
+  for (int i = 0; i < memoryTop; i++) {
     memoryData[i] = 0;
   }
 }
@@ -3794,7 +3815,7 @@ void processOpcodeData() {
       bValue = regB;
       cValue = regC;
       bcValue = bValue * 256 + cValue;
-      if (deValue < memoryBytes) {
+      if (deValue < memoryTop) {
         regA = memoryData[bcValue];
       } else {
         regA = 0;
@@ -3810,7 +3831,7 @@ void processOpcodeData() {
       dValue = regD;
       eValue = regE;
       deValue = dValue * 256 + eValue;
-      if (deValue < memoryBytes) {
+      if (deValue < memoryTop) {
         regA = memoryData[deValue];
       } else {
         regA = 0;
@@ -4427,7 +4448,7 @@ void writeProgramMemoryToFile(String theFilename) {
   }
   // Serial.println("++ New file opened.");
   // Serial.println("++ Write binary memory to the file.");
-  for (int i = 0; i < memoryBytes; i++) {
+  for (int i = 0; i < memoryTop; i++) {
     myFile.write(memoryData[i]);
   }
   myFile.close();
@@ -4478,8 +4499,9 @@ boolean readProgramFileIntoMemory(String theFilename) {
     Serial.println(memoryData[i], DEC);
 #endif
     i++;
-    if (i > memoryBytes) {
+    if (i > memoryTop) {
       Serial.println(F("-+ Warning, file contains more data bytes than available memory."));
+      ledFlashError();
       break;
     }
   }
