@@ -13,13 +13,14 @@
   + The Altair 8800 was built around the Intel 8080 CPU chip which as the same opcodes as the 8085.
   + This program implements more than enough opcodes to run the classic program, Kill the Bit.
 
+  For reference, link to the Altair 8800c. Excellent moderinization of the original Altair 8800.
+    https://deramp.com/altair_8800c.html
+  The Altair 8800c is hardware re-build. I using programing emulation mostly.
+
   -----------------------------------------------------------------------------
   Work to do,
 
   If toogle addres is greater than memory top, flash error instead of random values.
-
-  When in program wait mode, if read file# error, flash error.
-  + After flash error, redisplay the panel lights, but address is value 1, should be 0.
 
   From OUT opcode (B11100011),
   + When timer is complete, what should happen?
@@ -4040,41 +4041,8 @@ void processOpcodeData() {
           }
           break;
         case 12:
-          // david
           Serial.print(F(" > Play MP3 and return when the playing is completed."));
-          //
-          // Start the MP3 and wait for the player to be available(started).
-          playerCounter = regA;
-          currentPlayerCounter = playerCounter;
-          mp3player.play(playerCounter);
-          while (mp3player.available()) {
-            mp3player.readType();
-          }
-          //
-          boolean playNotCompleted = true;
-          switchStop = false;
-          Serial.println(F(" Check when playing is completed."));
-          while (playNotCompleted) {
-            if (mp3player.available()) {
-              int theType = mp3player.readType();
-              if (theType == DFPlayerPlayFinished) {
-                playNotCompleted = false;
-                Serial.println(F(" > Playing is completed."));
-              }
-            }
-            // ------------------------
-            // Flip STOP to end at anytime.
-            if (pcfControl.readButton(pinStop) == 0) {
-              if (!switchStop) {
-                switchStop = true;
-              }
-            } else if (switchStop) {
-              switchStop = false;
-              playNotCompleted = false;
-              Serial.println(F(" > Exit playing, STOP flipped."));
-            }
-            // ------------------------
-          }
+          playMp3wait(regA);
           break;
         // ---------------------------------------
         case 20:
@@ -4355,6 +4323,10 @@ void ledFlashSuccess() {
     }
   }
   // Reset the panel lights to program values.
+  if (clockState == CLOCK_COUNTER) {
+    counterLights();
+    return;
+  }
   switch (programState) {
     case LIGHTS_OFF:
       byte statusDisplay = bitWrite(statusDisplay, statusSetup, 1);
@@ -6321,17 +6293,6 @@ void checkDownloadSwitch() {
     Serial.println(F("+ Choice confirmed."));
 #endif
     // -------------------------------------------------------
-    if (theFilename == "00000000.bin") {
-#ifdef SWITCH_MESSAGES
-      Serial.println(F("+ Zero out memory."));
-#endif
-      //             1234567890123456
-      lcdPrintln(1, "Zero out memory");
-      zeroOutMemory();
-      controlResetLogic();
-      digitalWrite(HLDA_PIN, LOW);
-      return;
-    }
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Read the filename into memory: "));
     Serial.println(theFilename);
@@ -6341,6 +6302,9 @@ void checkDownloadSwitch() {
       ledFlashSuccess();
       delay(1500);                // Delay depends on the time length of the MP3 play time.
       controlResetLogic();
+    } else {
+      // Redisplay the front panel lights.
+      programLights();
     }
     digitalWrite(HLDA_PIN, LOW);
   }
@@ -7038,6 +7002,43 @@ void printDFPlayerMessage(uint8_t type, int value) {
       playerCounter = value;  // The song to play.
       playerLights();
       break;
+  }
+}
+
+void playMp3wait(byte theFileNumber) {
+  Serial.print(F("+ Play MP3 until completed."));
+  //
+  // Start the MP3 and wait for the player to be available(started).
+  playerCounter = theFileNumber;
+  currentPlayerCounter = playerCounter;
+  mp3player.play(playerCounter);
+  while (mp3player.available()) {
+    mp3player.readType();
+  }
+  //
+  boolean playNotCompleted = true;
+  switchStop = false;
+  // Serial.println(F(" Check when playing is completed."));
+  while (playNotCompleted) {
+    if (mp3player.available()) {
+      int theType = mp3player.readType();
+      if (theType == DFPlayerPlayFinished) {
+        playNotCompleted = false;
+        Serial.println(F(" > Playing is completed."));
+      }
+    }
+    // ------------------------
+    // Flip STOP to end at anytime.
+    if (pcfControl.readButton(pinStop) == 0) {
+      if (!switchStop) {
+        switchStop = true;
+      }
+    } else if (switchStop) {
+      switchStop = false;
+      playNotCompleted = false;
+      Serial.println(F(" > Exit playing, STOP flipped."));
+    }
+    // ------------------------
   }
 }
 
