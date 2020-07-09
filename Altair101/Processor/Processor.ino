@@ -20,6 +20,9 @@
   -----------------------------------------------------------------------------
   Work to do,
 
+  Consider replace current playing of sound effect: playerPlaySound(value) with a delay(num),
+  + with mp3playerPlaywait(value) which doesn't require a delay.
+
   If toogle addres is greater than memory top, flash error instead of random values.
 
   From OUT opcode (B11100011),
@@ -1109,8 +1112,13 @@ int DOWNLOAD_COMPLETE = 8;
 //
 // Function to play a sound file using the above mapping.
 void playerPlaySound(int theFileNumber) {
-  if ((playerStatus & B00001000) && (theFileNumber > 0)) {
+  if ((playerStatus & HLTA_ON) && (theFileNumber > 0)) {
     mp3playerPlay(soundEffects[theFileNumber]);
+  }
+}
+void playerPlaySoundWait(int theFileNumber) {
+  if ((playerStatus & HLTA_ON) && (theFileNumber > 0)) {
+    mp3playerPlaywait(soundEffects[theFileNumber]);
   }
 }
 
@@ -4042,7 +4050,7 @@ void processOpcodeData() {
           break;
         case 12:
           Serial.print(F(" > Play MP3 and return when the playing is completed."));
-          playMp3wait(regA);
+          mp3playerPlaywait(regA);
           break;
         // ---------------------------------------
         case 20:
@@ -5458,8 +5466,8 @@ void clockRunTimer() {
       clockTimerAddress = 0;
       clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
       clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, 1);
-      playerPlaySound(TIMER_MINUTE);
-      delay(1200);  // Delay time for the sound to play.
+      playerPlaySoundWait(TIMER_MINUTE);
+      // delay(1200);  // Delay time for the sound to play.
     }
   }
   lightsStatusAddressData(timerStatus, clockTimerAddress, timerCounter);
@@ -6298,10 +6306,9 @@ void checkDownloadSwitch() {
     Serial.println(theFilename);
 #endif
     if (readProgramFileIntoMemory(theFilename)) {
-      playerPlaySound(READ_FILE);
       ledFlashSuccess();
-      delay(1500);                // Delay depends on the time length of the MP3 play time.
       controlResetLogic();
+      playerPlaySoundWait(READ_FILE);
     } else {
       // Redisplay the front panel lights.
       programLights();
@@ -7005,12 +7012,12 @@ void printDFPlayerMessage(uint8_t type, int value) {
   }
 }
 
-void playMp3wait(byte theFileNumber) {
+void mp3playerPlaywait(byte theFileNumber) {
   Serial.print(F("+ Play MP3 until completed."));
-  //
-  // Start the MP3 and wait for the player to be available(started).
   playerCounter = theFileNumber;
   currentPlayerCounter = playerCounter;
+  //
+  // Start the MP3 and wait for the player to be available(started).
   mp3player.play(playerCounter);
   while (mp3player.available()) {
     mp3player.readType();
