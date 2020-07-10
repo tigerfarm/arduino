@@ -35,7 +35,8 @@ import java.util.logging.Logger;
 public class asmUpload {
 
     // Uses the device name that can be found in the Arduino IDE, under the menu item Tools/Port.
-    private static String SerialPortName = "/dev/cu.SLAB_USBtoUART";   // Default name.
+    private static String SerialPortName = "/dev/cu.wchusbserial141230";   // Default name such as: cu.wchusbserial141230 or cu.SLAB_USBtoUART.
+    
 
     // -------------------------------------------------------------------------
     // Constructor to ...

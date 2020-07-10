@@ -5,8 +5,9 @@
 // ------------------------------------
 // Steps to add opcodes:
 // + Add into here (asmOpcodes.txt).
-// + Add opcode into asmProcessor.java: parseOpcode(...), based on opcode parameters:
-// + Implement into Processor.ino. Binary values match the values in here (asmOpcodes.txt).
+// + Add opcode into asmProcessor.java: parseOpcode(...), based on the number and type of opcode parameters.
+// + Implement the opcode into Processor.ino. Binary values match the values in here (asmOpcodes.txt).
+// + In Processor.ino, use the same number of machine cycles as was using the Altair 8800.
 
 // -------------------------
 // Operation codes

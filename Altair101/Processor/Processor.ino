@@ -20,6 +20,8 @@
   -----------------------------------------------------------------------------
   Work to do,
 
+  Continue writting opcode test programs, starting with an IN counter program.
+
   Test counter IN opcode option, IN port# = 21.
       if (port# == 21) {
         regA = clockCounterRead(dataByte)
@@ -825,13 +827,6 @@
 #define SETUP_CLOCK 1
 // #define SETUP_LCD 1
 
-#define INCLUDE_AUX 1
-#define INCLUDE_CLOCK 1
-#define INCLUDE_SDCARD 1
-#define INCLUDE_LCD 1
-
-
-// -----------------------------------
 // #define LOG_MESSAGES 1         // Has large memory requirements.
 #define SWITCH_MESSAGES 1
 
@@ -1242,8 +1237,6 @@ const int DOWNLOAD_SWITCH_PIN = 11;
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // SD Card module is an SPI bus slave device.
-#ifdef INCLUDE_SDCARD
-
 #include <SPI.h>
 #include <SD.h>
 
@@ -1261,8 +1254,6 @@ const int DOWNLOAD_SWITCH_PIN = 11;
 const int csPin = 53;  // SD Card module is connected to Mega pin 53.
 
 File myFile;
-
-#endif
 
 // -----------------------------------------------------------------------------
 // Add another serial port settings, to connect to the new serial hardware module.
@@ -1293,10 +1284,10 @@ const int clockPinLed = A11;    // pin 11 Clock pin.
 // -----------------------------------------------------------------------------
 // Clock setting values using in toggle switch functions.
 
+int processorCounterAddress = 0;
+
 int theCounterHours = 0;
 int theCounterMinutes = 0;
-
-#ifdef INCLUDE_CLOCK
 
 // For the clock board.
 #include "RTClib.h"
@@ -1343,8 +1334,6 @@ const int thePrintColSec = thePrintColMin + 3;
     VCC - 5V   - 5V
     GND - GND  - GND
 */
-#ifdef INCLUDE_LCD
-
 #include<Wire.h>
 #include<LiquidCrystal_I2C.h>
 
@@ -1608,8 +1597,6 @@ void lcdPrintChar(String theChar) {
     lcd.setCursor(lcdColumn, lcdRow);
   }
 }
-
-#endif
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -3614,7 +3601,7 @@ void processOpcodeData() {
       break;
     // ---------------------------------------------------------------------
     case B11011011:
-      // stacy
+      // david
       // instructionCycle == 2
       // INP & WO are on when reading from an input port.
       // IN p      11011011 pa       -       Read input for port a, into A
@@ -3631,7 +3618,7 @@ void processOpcodeData() {
       } else if (dataByte == 1) {
         regA = hwStatus;
       } else if (dataByte == 21) {
-        regA = clockCounterRead(dataByte);
+        regA = clockCounterRead(processorCounterAddress);
       } else if (dataByte == 0) {
         regA = 0; // Input not implemented on this port.
       } else {
@@ -3991,16 +3978,17 @@ void processOpcodeData() {
     case B11100011:
       // instructionCycle == 2
 #ifdef LOG_MESSAGES
-      Serial.print(F("< OUT, input port: "));
+      Serial.print(F("< OUT, port# "));
       Serial.print(dataByte);
-#else
+      Serial.print(". regA=");
+      Serial.print(regA);
+      Serial.print(".");
+#endif
       // -----------------------------------------
       // Special case of output to serial monitor.
       if (dataByte == 3) {
 #ifdef LOG_MESSAGES
-        Serial.print(F(", Serial terminal output of the contents of register A :"));
-        Serial.print(regA);
-        Serial.print(":");
+        Serial.print(F(", Serial terminal output of the contents of register A."));
 #endif
         asciiChar = regA;
         Serial.print(asciiChar);
@@ -4008,6 +3996,25 @@ void processOpcodeData() {
         return;
       }
       // -----------------------------------------
+      // Cases that don't work in the switch statement.
+      if (dataByte == 25) {
+#ifdef LOG_MESSAGES
+        Serial.print(F(", Enter counter mode and display counter value for counter index in register A."));
+#endif
+        clockCounterControlsOut(regA);
+        opcode = 0;
+        return;
+      }
+      if (dataByte == 26) {
+#ifdef LOG_MESSAGES
+        Serial.print(F(", Run a timer for the number of minutes in register A."));
+#endif
+        clockRunTimerControlsOut(regA);
+        opcode = 0;
+        return;
+      }
+      // -----------------------------------------
+#ifdef LOG_MESSAGES
       Serial.println("");
 #endif
       switch (dataByte) {
@@ -4076,9 +4083,10 @@ void processOpcodeData() {
           mp3playerPlaywait(regA);
           break;
         // ---------------------------------------
+        // Clock counter functions.
         case 20:
-          Serial.print(F(" > Run a timer for the number of minutes in register A."));
-          clockRunTimerControlsOut(regA);
+          // Set processer mode counter address.
+          processorCounterAddress = regA;
           break;
         case 21:
           Serial.print(F(" > Increment register A clock counter file value."));
@@ -4086,11 +4094,22 @@ void processOpcodeData() {
           theCounterData++;
           clockCounterWrite(regA, theCounterData);
           break;
+        case 22:
+          Serial.print(F(" > Decrement register A clock counter file value."));
+          theCounterData = clockCounterRead(regA);
+          theCounterData--;
+          clockCounterWrite(regA, theCounterData);
+          break;
         case 25:
-          Serial.print(F(" > Enter counter mode and display counter value for counter index in register A."));
-          clockCounterControlsOut(regA);
+          // See above: Enter counter mode and display counter value for counter index in register A.
           break;
         // ---------------------------------------
+        // Clock timer functions.
+        case 26:
+          // See above: Run a timer for the number of minutes in register A.
+          break;
+        // ---------------------------------------
+        // Echo processor values.
         case 30:
           Serial.print(F(" > Register B = "));
           printData(regB);
@@ -4628,6 +4647,9 @@ void controlResetLogic() {
   // Processor player variables.
   processorPlayerLoop = false;
   processorPlayerCounter = 0;
+  // Processor counter variable.
+  //
+  processorCounterAddress = 0;
   //
   if (programState != PROGRAM_RUN) {
     programState = PROGRAM_WAIT;
@@ -5347,7 +5369,6 @@ void restoreLcdScreenData() {
   lcd.cursor();
   lcd.setCursor(lcdColumn, lcdRow);
 }
-#endif
 
 // -----------------------------------------------------------------------
 // -----------------------------------------------------------------------
@@ -5891,6 +5912,10 @@ void clockCounterWrite(int counterAddress, byte counterData) {
 
 void clockCounterControlsOut(int theCounterAddress) {
   // Can be called from processor OUT opcode.
+#ifdef SWITCH_MESSAGES
+  Serial.print("+ clockCounterControlsOut, theCounterAddress=");
+  Serial.println(theCounterAddress);
+#endif
   digitalWrite(HLDA_PIN, HIGH);
   counterAddress = theCounterAddress;
   clockCounterRead(theCounterAddress);
@@ -6804,7 +6829,6 @@ void checkPlayerFileControls() {
 #endif
     playerFileStatus = MEMR_ON | INP_ON | HLTA_ON;
     playerFileLights();
-#ifdef SWITCH_MESSAGES
     // -------------------
     // For debugging player issues.
     /*
@@ -6837,7 +6861,6 @@ void checkPlayerFileControls() {
       }
       Serial.println();
     */
-#endif
   }
   // -------------------
   if (pcfControl.readButton(pinExamineNext) == 0) {
@@ -7247,14 +7270,12 @@ void setup() {
   // ----------------------------------------------------
   // Front panel toggle switches.
 
-#ifdef INCLUDE_AUX
   // AUX device switches.
   pinMode(CLOCK_SWITCH_PIN, INPUT_PULLUP);
   pinMode(PLAYER_SWITCH_PIN, INPUT_PULLUP);
   pinMode(UPLOAD_SWITCH_PIN, INPUT_PULLUP);
   pinMode(DOWNLOAD_SWITCH_PIN, INPUT_PULLUP);
   Serial.println(F("+ AUX device toggle switches are configured for input."));
-#endif
 
   // ------------------------------
   // I2C Two Wire PCF module initialization
@@ -7335,11 +7356,10 @@ void setup() {
   // ----------------------------------------------------
   // ----------------------------------------------------
   // Initialize the Real Time Clock (RTC).
-#ifdef SETUP_CLOCK
-  //            1234567890123456
 #ifdef SETUP_LCD
   lcdPrintln(1, "Init Clock");
 #endif
+#ifdef SETUP_CLOCK
   if (!rtc.begin()) {
     Serial.println("- Error: Real time clock not found, not set.");
     ledFlashError();
