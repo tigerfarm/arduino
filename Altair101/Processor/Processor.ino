@@ -827,7 +827,7 @@
 #define SETUP_CLOCK 1
 // #define SETUP_LCD 1
 
-// #define LOG_MESSAGES 1         // Has large memory requirements.
+#define LOG_MESSAGES 1         // Has large memory requirements.
 #define SWITCH_MESSAGES 1
 
 // -----------------------------------------------------------------------
@@ -3976,6 +3976,7 @@ void processOpcodeData() {
       break;
     // -------------------------------------------------------------------------------------------
     case B11100011:
+      // david
       // instructionCycle == 2
 #ifdef LOG_MESSAGES
       Serial.print(F("< OUT, port# "));
@@ -3993,16 +3994,40 @@ void processOpcodeData() {
         asciiChar = regA;
         Serial.print(asciiChar);
         opcode = 0;
+        programCounter++;
         return;
       }
       // -----------------------------------------
       // Cases that don't work in the switch statement.
+      if (dataByte == 21) {
+#ifdef LOG_MESSAGES
+        Serial.print(F(", Increment register A clock counter file value."));
+#endif
+        byte theCounterData = clockCounterRead(regA);
+        theCounterData++;
+        clockCounterWrite(regA, theCounterData);
+        opcode = 0;
+        programCounter++;
+        return;
+      }
+      if (dataByte == 22) {
+#ifdef LOG_MESSAGES
+        Serial.print(F(", Decrement register A clock counter file value."));
+#endif
+        byte theCounterData = clockCounterRead(regA);
+        theCounterData--;
+        clockCounterWrite(regA, theCounterData);
+        opcode = 0;
+        programCounter++;
+        return;
+      }
       if (dataByte == 25) {
 #ifdef LOG_MESSAGES
         Serial.print(F(", Enter counter mode and display counter value for counter index in register A."));
 #endif
         clockCounterControlsOut(regA);
         opcode = 0;
+        programCounter++;
         return;
       }
       if (dataByte == 26) {
@@ -4011,6 +4036,7 @@ void processOpcodeData() {
 #endif
         clockRunTimerControlsOut(regA);
         opcode = 0;
+        programCounter++;
         return;
       }
       // -----------------------------------------
@@ -4089,16 +4115,10 @@ void processOpcodeData() {
           processorCounterAddress = regA;
           break;
         case 21:
-          Serial.print(F(" > Increment register A clock counter file value."));
-          byte theCounterData = clockCounterRead(regA);
-          theCounterData++;
-          clockCounterWrite(regA, theCounterData);
+          // See above: Increment register A clock counter file value."));
           break;
         case 22:
-          Serial.print(F(" > Decrement register A clock counter file value."));
-          theCounterData = clockCounterRead(regA);
-          theCounterData--;
-          clockCounterWrite(regA, theCounterData);
+          // See above: Decrement register A clock counter file value."));
           break;
         case 25:
           // See above: Enter counter mode and display counter value for counter index in register A.
