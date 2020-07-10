@@ -23,6 +23,8 @@
   Test counter IN opcode option, IN port# = 21.
       if (port# == 21) {
         regA = clockCounterRead(dataByte)
+  Example, a program to IN the value from a counter, and move it into a memory location.
+  + Then, I can EXAMINE the memory location data value to see if it works.
 
   From OUT opcode (B11100011),
   + When timer is complete, what should happen?
