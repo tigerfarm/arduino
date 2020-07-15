@@ -20,13 +20,14 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  Continue writting opcode test programs, starting with an IN counter program.
+  Continue writing opcode test programs.
 
-  Test counter IN opcode option, IN port# = 21.
-      if (port# == 21) {
-        regA = clockCounterRead(dataByte)
-  Example, a program to IN the value from a counter, and move it into a memory location.
-  + Then, I can EXAMINE the memory location data value to see if it works.
+  Continue writing program and user documentation.
+  + Consider creating an Open office document using the documentation in this program.
+  + Or, create a GitHub Readme.cmd document file.
+
+  Consider, for player, using A0 to A15 as the volume level. Each flip is value 2 on the volume scale.
+  + The song value would be displayed in the Data lights.
 
   From OUT opcode (B11100011),
   + When timer is complete, what should happen?
@@ -35,6 +36,11 @@
 
   When flipping EXAMINE,
   + If toogle address is greater than memory top (memoryTop), flash error instead of random values.
+
+  +++ Quick go over of the opcodes and LOG_MESSAGES:
+    // ---------------------------------------------------------------------
+    // David, visual check of opcodes and LOG_MESSAGES.
+    // ---------------------------------------------------------------------
 
   -----------------------------------------------------------------------------
   -----------------------------------------------------------------------------
@@ -280,21 +286,28 @@
   Application Documentation and User Guide
 
   ----------------------------------------
-  Startup initialization, setup()
+  Startup initialization and system check, setup(),
   -----------
-  Init and check:
-  + Serial1 for receiving programs, for download mode.
+  + Init LCD, if using one.
+  + Front panel toggle switches and PCF modules settings initialized.
+  + Front panel LED lights: Wait and HLDA set on, and status light byte is set for processor mode.
+  ++ Flash LED Success. Status lights count the number of times flash success is called.
   + MP3 player module for playing MP3 files.
-  + Front panel toggle settings.
-  + Clock module, used when in clock mode.
+  ++ Flash LED Success or error.
   + SD card module, used for read and write.
+  ++ Flash LED Success or error.
+  + Clock module, used when in clock mode.
+  ++ Flash LED Success or error.
+  + Sound effects are initialized: read sound effect file information into an arrary.
   -----------
   If 00000000.bin exists and any of the first 32 bytes are not zero,
   + Set, programState = PROGRAM_RUN, which runs 00000000.bin when loop() starts.
   Else,
   + programState = PROGRAM_WAIT (default start state), don't run 00000000.bin when loop() starts.
-
-  ----------------------------------------
+  -----------
+  + programLights();    // Uses: statusByte, curProgramCounter, dataByte
+  
+  ------------------------------------------------------------------------------
   Mode lights:
   Processor:      WAIT:ON/OFF HLDA:OFF  MEMR, MI, WO
   Clock:          WAIT:OFF    HLDA:ON   Displays the time of day minutes and hours
@@ -827,7 +840,7 @@
 #define SETUP_CLOCK 1
 // #define SETUP_LCD 1
 
-#define LOG_MESSAGES 1         // Has large memory requirements.
+// #define LOG_MESSAGES 1         // Has large memory requirements. Causes issue for Kill the Bit.
 #define SWITCH_MESSAGES 1
 
 // -----------------------------------------------------------------------
@@ -1794,7 +1807,7 @@ void processData() {
   curProgramCounter = programCounter;
   //
 #ifdef LOG_MESSAGES
-  Serial.print(F("Addr: "));
+  Serial.print(F("+ Addr: "));
   sprintf(charBuffer, "%4d:", programCounter);
   Serial.print(charBuffer);
   Serial.print(F(" Data: "));
@@ -1805,9 +1818,6 @@ void processData() {
     // Instruction machine cycle 1 (M1 cycle), fetch the opcode.
     instructionCycle = 1;
     statusByte = MEMR_ON | M1_ON | WO_ON;
-    // statusByte = statusByte | MEMR_ON;
-    // statusByte = statusByte | M1_ON;
-    // statusByte = statusByte | WO_ON;
     //
     // If no parameter bytes (immediate data byte or address bytes), process the opcode.
     // Else, the opcode variable is set to the opcode byte value.
@@ -1833,14 +1843,11 @@ void processData() {
   //
   // -------------
   // Display the currently processed: status, program counter, and data byte.
-#ifdef LOG_MESSAGES
-  Serial.print("+ ");
-#endif
   programLights();  // Uses: statusByte, curProgramCounter, dataByte.
+  // -------------
 #ifdef LOG_MESSAGES
   Serial.println("");
 #endif
-  // -------------
 }
 
 // ------------------------------------------------------------------------------------------
@@ -1859,9 +1866,9 @@ void processOpcode() {
     case B10000000:
 #ifdef LOG_MESSAGES
       Serial.print(F(" > add, Add register B:"));
-      printByte(dataByte);
-      Serial.print(F(" to register A:"));
       printByte(regB);
+      Serial.print(F(" to register A:"));
+      printByte(regA);
 #endif
       regA = regA + regB;
 #ifdef LOG_MESSAGES
@@ -2080,15 +2087,13 @@ void processOpcode() {
     // -----------------
     // RET  11001001  Unconditional return from subroutine. 1 cycles.
     case B11001001:
-#ifdef LOG_MESSAGES
-      Serial.print(F(" > ret, Return from a subroutine to the original CALL address: "));
-#endif
       stackPointer++;
       highOrder = stackData[stackPointer];
       stackPointer++;
       lowOrder = stackData[stackPointer];
       programCounter = highOrder * 256 + lowOrder;
 #ifdef LOG_MESSAGES
+      Serial.print(F(" > ret, Return from a subroutine to the original CALL address: "));
       Serial.print(programCounter);
       Serial.print(F(". stackPointer = "));
       Serial.print(stackPointer);
@@ -2118,6 +2123,7 @@ void processOpcode() {
       stackData[stackPointer--] = regH;
       break;
     case B11110101:
+      // Stacy
       Serial.print(F(" > push, Push flags is not implemented. Push the flags onto the stack."));
       printData(workingByte);
       Serial.println(F(""));
@@ -2132,14 +2138,12 @@ void processOpcode() {
     // --------------------------------------------------------------------
     //    11RP0001 Pop    register pair B from the stack. 1 cycles.
     case B11000001:
-#ifdef LOG_MESSAGES
-      Serial.print(F(" > pop, Pop register pair B:C from the stack."));
-#endif
       stackPointer++;
       regB = stackData[stackPointer];
       stackPointer++;
       regC = stackData[stackPointer];
 #ifdef LOG_MESSAGES
+      Serial.print(F(" > pop, Pop register pair B:C from the stack."));
       Serial.print(F(" regB:regC "));
       Serial.print(regB);
       Serial.print(F(":"));
@@ -2149,14 +2153,12 @@ void processOpcode() {
     // ----------------------------------
     //    11RP0001
     case B11010001:
-#ifdef LOG_MESSAGES
-      Serial.print(F(" > pop, Pop register pair D:E from the stack."));
-#endif
       stackPointer++;
       regD = stackData[stackPointer];
       stackPointer++;
       regE = stackData[stackPointer];
 #ifdef LOG_MESSAGES
+      Serial.print(F(" > pop, Pop register pair D:E from the stack."));
       Serial.print(F(" regD:regE "));
       Serial.print(regD);
       Serial.print(F(":"));
@@ -2165,14 +2167,12 @@ void processOpcode() {
     // -----------------
     //    11RP0001
     case B11100001:
-#ifdef LOG_MESSAGES
-      Serial.print(F(" > pop, Pop register pair H:L from the stack."));
-#endif
       stackPointer++;
       regH = stackData[stackPointer];
       stackPointer++;
       regL = stackData[stackPointer];
 #ifdef LOG_MESSAGES
+      Serial.print(F(" > pop, Pop register pair H:L from the stack."));
       Serial.print(F(" regH:regL "));
       Serial.print(regH);
       Serial.print(F(":"));
@@ -2180,6 +2180,7 @@ void processOpcode() {
 #endif
       break;
     case B11110001:
+    // Stacy
       Serial.print(F(" > pop, Pop flags is not implemented. Pop the flags from the stack."));
       printData(workingByte);
       Serial.println(F(""));
@@ -2535,7 +2536,7 @@ void processOpcode() {
 #endif
       break;
     case B00110100:
-      // stacy
+      // Stacy
 #ifdef LOG_MESSAGES
       Serial.print(F(" > inr address M (H:L): "));
       Serial.print(regH);
@@ -2553,6 +2554,11 @@ void processOpcode() {
       Serial.print(regL);
 #endif
       break;
+      
+    // ---------------------------------------------------------------------
+    // David, visual check of opcodes and LOG_MESSAGES.
+    // ---------------------------------------------------------------------
+
     // ---------------------------------------------------------------------
     // inx : increment a register pair.
     // ------------
@@ -4061,7 +4067,7 @@ void processOpcodeData() {
           }
           break;
         case 3:
-          // Handled before this switch statement.
+          // See above: Serial terminal output of the contents of register A..
           break;
         // ---------------------------------------
         case 10:
@@ -4115,10 +4121,10 @@ void processOpcodeData() {
           processorCounterAddress = regA;
           break;
         case 21:
-          // See above: Increment register A clock counter file value."));
+          // See above: Increment register A clock counter file value.
           break;
         case 22:
-          // See above: Decrement register A clock counter file value."));
+          // See above: Decrement register A clock counter file value.
           break;
         case 25:
           // See above: Enter counter mode and display counter value for counter index in register A.
