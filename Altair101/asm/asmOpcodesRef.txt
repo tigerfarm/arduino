@@ -93,6 +93,9 @@ This section is base on section 26: 8080 Instruction Set
 Text listing of 8080 opcodes:
     http://www.classiccmp.org/dunfield/r/8080.txt
 
+Text listing of 8080 opcodes, by Hex value:
+http://www.emulator101.com/reference/8080-by-opcode.html
+
 Binary calculator:
     https://www.calculator.net/binary-calculator.html
 

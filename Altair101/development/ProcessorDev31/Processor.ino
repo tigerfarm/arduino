@@ -2806,6 +2806,10 @@ void processOpcode() {
       printData(regL);
 #endif
       break;
+    // ---------------------------------------------------------------------
+    // David, visual check of opcodes and LOG_MESSAGES.
+    // Add A to A, B to B, ...
+    // ---------------------------------------------------------------------
     case B01000111:
       regB = regA;
 #ifdef LOG_MESSAGES
@@ -2848,27 +2852,14 @@ void processOpcode() {
       printData(regL);
 #endif
       break;
-    case B01111111:
-#ifdef LOG_MESSAGES
-      Serial.print(F(" > mov register a to a = "));
-      printData(regA);
-#endif
-      break;
     // ---------------------------------------------------------------------
     case B01111000:
-      // B01DDDSSS
       regA = regB;
 #ifdef LOG_MESSAGES
       Serial.print(F(" > mov register b to a = "));
       printData(regL);
 #endif
       break;
-    case B01000000:
-      // B01DDDSSS
-#ifdef LOG_MESSAGES
-      Serial.print(F(" > mov register b to b = "));
-      printData(regB);
-#endif
     case B01001000:
       regC = regB;
 #ifdef LOG_MESSAGES
@@ -2917,13 +2908,6 @@ void processOpcode() {
 #ifdef LOG_MESSAGES
       Serial.print(F(" > mov register c to b = "));
       printData(regB);
-#endif
-      break;
-    case B01001001:
-      // B01DDDSSS
-#ifdef LOG_MESSAGES
-      Serial.print(F(" > mov register c to c = "));
-      printData(regC);
 #endif
       break;
     case B01010001:
@@ -2976,15 +2960,7 @@ void processOpcode() {
       printData(regC);
 #endif
       break;
-    case B01010010:
-      // B01DDDSSS
-#ifdef LOG_MESSAGES
-      Serial.print(F(" > mov register d to d = "));
-      printData(regD);
-#endif
-      break;
     case B01011010:
-      // B01DDDSSS
       regE = regD;
 #ifdef LOG_MESSAGES
       Serial.print(F(" > mov register d to e = "));
@@ -3028,18 +3004,10 @@ void processOpcode() {
 #endif
       break;
     case B01010011:
-      // B01DDDSSS
       regD = regE;
 #ifdef LOG_MESSAGES
       Serial.print(F(" > mov register e to d = "));
       printData(regD);
-#endif
-      break;
-    case B01011011:
-      // B01DDDSSS
-#ifdef LOG_MESSAGES
-      Serial.print(F(" > mov register e to e = "));
-      printData(regE);
 #endif
       break;
     case B01100011:
@@ -3092,15 +3060,7 @@ void processOpcode() {
       printData(regE);
 #endif
       break;
-    case B01100100:
-      // B01DDDSSS
-#ifdef LOG_MESSAGES
-      Serial.print(F(" > mov register h to h = "));
-      printData(regH);
-#endif
-      break;
     case B01101100:
-      // B01DDDSSS
       regL = regH;
 #ifdef LOG_MESSAGES
       Serial.print(F(" > mov register h to l = "));
@@ -3137,7 +3097,6 @@ void processOpcode() {
 #endif
       break;
     case B01011101:
-      // B01DDDSSS
       regE = regL;
 #ifdef LOG_MESSAGES
       Serial.print(F(" > mov register l to e = "));
@@ -3145,18 +3104,10 @@ void processOpcode() {
 #endif
       break;
     case B01100101:
-      // B01DDDSSS
       regH = regL;
 #ifdef LOG_MESSAGES
       Serial.print(F(" > mov register l to h = "));
       printData(regH);
-#endif
-      break;
-    case B01101101:
-      // B01DDDSSS
-#ifdef LOG_MESSAGES
-      Serial.print(F(" > mov register l to l = "));
-      printData(regL);
 #endif
       break;
     // ------------------------------------------------------------------------------------------
@@ -3210,10 +3161,6 @@ void processOpcode() {
       Serial.print(F(" > mvi, move db address into register L."));
 #endif
       break;
-    // ---------------------------------------------------------------------
-    // David, visual check of opcodes and LOG_MESSAGES.
-    // Add A to A, B to B, ...
-    // ---------------------------------------------------------------------
     // ------------------------------------------------------------------------------------------
     case B00000000:
 #ifdef LOG_MESSAGES
