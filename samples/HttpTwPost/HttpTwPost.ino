@@ -8,6 +8,41 @@
 //  ...
 //  SHA1 Fingerprint=BC:B0:1A:32:80:5D:E6:E4:A2:29:66:2B:08:C8:E0:4C:45:29:3F:D0
 //  ...
+/*
+ * Sample runtime output,
++++ Setup.
++ Connect to WiFi. 
+....
++ Connected to WiFi, IP address: 192.168.1.76
++ Using fingerprint 'BC B0 1A 32 80 5D E6 E4 A2 29 66 2B 08 C8 E0 4C 45 29 3F D0'
++ Connecting to api.twilio.com
++ Connected.
++ Post an HTTP send SMS request.
++ Connection is closed.
++ Response:
+HTTP/1.1 201 CREATED
+Date: Thu, 16 Jul 2020 20:39:49 GMT
+Content-Type: application/xml
+Content-Length: 878
+Connection: close
+Twilio-Concurrent-Requests: 1
+Twilio-Request-Id: RQe4fbdd142fca4b2fab24697e74006837
+Twilio-Request-Duration: 0.116
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Accept, Authorization, Content-Type, If-Match, If-Modified-Since, If-None-Match, If-Unmodified-Since
+Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS
+Access-Control-Expose-Headers: ETag
+Access-Control-Allow-Credentials: true
+X-Powered-By: AT-5000
+X-Shenanigans: none
+X-Home-Region: us1
+X-API-Domain: api.twilio.com
+Strict-Transport-Security: max-age=31536000
+
+<?xml version='1.0' encoding='UTF-8'?>
+<TwilioResponse><Message><Sid>SM8a...88237</Sid><DateCreated>Thu, 16 Jul 2020 20:39:49 +0000</DateCreated><DateUpdated>Thu, 16 Jul 2020 20:39:49 +0000</DateUpdated><DateSent/><AccountSid>ACa...3</AccountSid><To>+16504837603</To><From>+16505552222</From><MessagingServiceSid/><Body>Hello.</Body><Status>queued</Status><NumSegments>1</NumSegments><NumMedia>0</NumMedia><Direction>outbound-api</Direction><ApiVersion>2010-04-01</ApiVersion><Price/><PriceUnit>USD</PriceUnit><ErrorCode/><ErrorMessage/><Uri>/2010-04-01/Accounts/ACa...3/Messages/SM8a...237</Uri><SubresourceUris><Media>/2010-04-01/Accounts/ACa...3/Messages/SM8a...237/Media</Media></SubresourceUris></Message></TwilioResponse>
++ Starting the loop.
+ */
 
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>

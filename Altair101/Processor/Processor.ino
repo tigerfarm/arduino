@@ -3210,10 +3210,6 @@ void processOpcode() {
       Serial.print(F(" > mvi, move db address into register L."));
 #endif
       break;
-    // ---------------------------------------------------------------------
-    // David, visual check of opcodes and LOG_MESSAGES.
-    // Add A to A, B to B, ...
-    // ---------------------------------------------------------------------
     // ------------------------------------------------------------------------------------------
     case B00000000:
 #ifdef LOG_MESSAGES
@@ -3967,8 +3963,12 @@ void processOpcodeData() {
 #endif
       programCounter++;
       break;
+    // ---------------------------------------------------------------------
+    // David, visual check of opcodes and LOG_MESSAGES.
+    // Add A to A, B to B, ...
+    // ---------------------------------------------------------------------
     // ------------------------------------------------------------------------------------------
-    // mvi R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
+    // mvi R,#  00 RRR 110  Move a number (#), which is the next byte (db), to register RRR.
     // mvi a,#  00 111 110  0036
     // mvi b,#  00 000 110  0006
     // mvi c,#  00 001 110  0016
