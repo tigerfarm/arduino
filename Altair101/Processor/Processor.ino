@@ -21,11 +21,11 @@
   Work to do,
 
   Program consistancy,
-  + Create: runProcessor()  for PROGRAM_RUN and PROGRAM_WAIT.
+  + runProcessor()          for PROGRAM_RUN
   + runDownloadProgram()    for SERIAL_DOWNLOAD
   + runClock()              for CLOCK_RUN
   + runPlayer()             for PLAYER_RUN
-  
+
   Continue writing program and user documentation.
   + Consider creating an Open office document using the documentation in this program.
   + Or, create a GitHub Readme.cmd document file.
@@ -51,7 +51,7 @@
   #include                    Includes and Arduino pin definitions.
   printClockDate()            DS3231 Clock definitions and functions
   lcdSetup()                  1602 LCD definitions and functions
-  
+
   -----------------------------------------------------------------------------
   // Processor
   Processor Definitions
@@ -97,7 +97,7 @@
   // SD card processor memory read/write from/into a file.
   checkUploadSwitch()
   checkDownloadSwitch()
-  
+
   -----------------------------------------------------------------------------
   // Clock Front Panel Control Switch Functions.
   syncCountWithClock()
@@ -113,7 +113,7 @@
   checkClockSwitch()
   -----
   runClock()
-  
+
   -----------------------------------------------------------------------------
   // Player Front Panel Control Switch Functions.
   checkProtectSetVolume()
@@ -124,7 +124,7 @@
   mp3playerPlaywait()
   playMp3()
   runPlayer()
-  
+
   -----------------------------------------------------------------------------
   setup()                     Computer initialization sequence steps.
   loop()                      Based on state, clock cycling through memory.
@@ -315,7 +315,7 @@
   + programState = PROGRAM_WAIT (default start state), don't run 00000000.bin when loop() starts.
   -----------
   + programLights();    // Uses: statusByte, curProgramCounter, dataByte
-  
+
   ------------------------------------------------------------------------------
   Mode lights:
   Processor:      WAIT:ON/OFF HLDA:OFF  MEMR, MI, WO
@@ -894,7 +894,7 @@ int playerState = PLAYER_MP3;     // Intial, default.
 // Status Indicator LED lights
 
 // Program wait status.
- const int WAIT_PIN = A9;      // Processor program wait state: off/LOW or wait state on/HIGH.
+const int WAIT_PIN = A9;      // Processor program wait state: off/LOW or wait state on/HIGH.
 
 // HLDA : 8080 processor goes into a hold state because of other hardware running.
 const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock/player processing (on/HIGH).
@@ -2199,7 +2199,7 @@ void processOpcode() {
 #endif
       break;
     case B11110001:
-    // Stacy
+      // Stacy
       Serial.print(F(" > pop, Pop flags is not implemented. Pop the flags from the stack."));
       printData(workingByte);
       Serial.println(F(""));
@@ -5441,6 +5441,41 @@ void checkDownloadSwitch() {
   }
 }
 
+// -----------------------------------------------------
+void runProcessor() {
+#ifdef SWITCH_MESSAGES
+  Serial.println(F("+ runProcessor()"));
+#endif
+  while (programState == PROGRAM_RUN) {
+    processData();
+    if (pcfControlinterrupted) {
+      // Program control: STOP or RESET.
+      checkRunningButtons();
+      pcfControlinterrupted = false; // Reset for next interrupt.
+    }
+  }
+}
+
+void runProcessorWait() {
+#ifdef SWITCH_MESSAGES
+  Serial.println(F("+ runProcessorWait()"));
+#endif
+  // Intialize front panel lights.
+  // programLights(); // Likely done in processData().
+  while (programState == PROGRAM_WAIT) {
+    // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
+    if (pcfControlinterrupted) {
+      checkControlButtons();
+      pcfControlinterrupted = false; // Reset for next interrupt.
+    }
+    checkAux1();          // Toggle between processor, clock, and player modes.
+    checkUploadSwitch();
+    checkDownloadSwitch();
+    checkProtectSetVolume();
+    delay(60);
+  }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Clock Section
@@ -6486,7 +6521,9 @@ void checkAux2clock() {
 
 // -----------------------------------------------------
 void runClock() {
-  Serial.println(F("+ runClock()"));
+#ifdef SWITCH_MESSAGES
+  Serial.println(F("+ runClock(), programState: CLOCK_RUN."));
+#endif
   playerPlaySound(CLOCK_ON);
   saveClearLcdScreenData();
   lcd.noCursor();
@@ -7308,13 +7345,15 @@ void playMp3() {
 }
 
 void runPlayer() {
+#ifdef SWITCH_MESSAGES
+  Serial.println(F("+ runPlayer(), programState: PLAYER_RUN."));
+#endif
   saveClearLcdScreenData();
   lcd.noCursor();
   //             1234567890123456
   lcdPrintln(0, "MP3 Player mode,");
   lcdPrintln(1, "Not implemented.");
   //
-  Serial.print(F("+ runPlayer()"));
   playerPlaySound(PLAYER_ON);
   playerLights();
   Serial.println("");
@@ -7505,55 +7544,43 @@ void loop() {
   switch (programState) {
     // ----------------------------
     case PROGRAM_RUN:
-      processData();
-      if (pcfControlinterrupted) {
-        // Program control: STOP or RESET.
-        checkRunningButtons();
-        pcfControlinterrupted = false; // Reset for next interrupt.
-      }
+      runProcessor();
       break;
     // ----------------------------
     case PROGRAM_WAIT:
-      // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
-      if (pcfControlinterrupted) {
-        checkControlButtons();
-        pcfControlinterrupted = false; // Reset for next interrupt.
-      }
-      checkAux1();          // Toggle between processor, clock, and player modes.
-      checkUploadSwitch();
-      checkDownloadSwitch();
-      checkProtectSetVolume();
-      delay(60);
+      runProcessorWait();
       break;
     // ----------------------------
     case SERIAL_DOWNLOAD:
+#ifdef SWITCH_MESSAGES
       Serial.println(F("+ programState: SERIAL_DOWNLOAD"));
+#endif
       serial2.begin(9600);
       if (serial2.isListening()) {
+#ifdef SWITCH_MESSAGES
         Serial.println("+ serial2 is listening.");
         Serial.println("+ Ready to use the second serial port for receiving program bytes.");
         Serial.println("+                 Address  Data  Binary   Hex Octal Decimal");
+#endif
         // Set status lights:
-        // HLDA on when in this mode.
-        digitalWrite(HLDA_PIN, HIGH);
         digitalWrite(WAIT_PIN, LOW);
+        //
+        digitalWrite(HLDA_PIN, HIGH);
         runDownloadProgram();
-        digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
+        digitalWrite(HLDA_PIN, LOW);
+        //
+        // Returning to the emulator in WAIT mode (PROGRAM_WAIT).
         digitalWrite(WAIT_PIN, HIGH);
       }
       break;
     // ----------------------------
     case CLOCK_RUN:
-      Serial.println(F("+ programState: CLOCK_RUN"));
-      // HLDA on when in this mode.
       digitalWrite(HLDA_PIN, HIGH);
       runClock();
       digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;
     // ----------------------------
     case PLAYER_RUN:
-      Serial.println(F("+ programState: PLAYER_RUN"));
-      // HLDA on when in this mode.
       digitalWrite(HLDA_PIN, HIGH);
       runPlayer();
       digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
