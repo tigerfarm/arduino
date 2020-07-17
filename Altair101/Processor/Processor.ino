@@ -97,7 +97,10 @@
   // SD card processor memory read/write from/into a file.
   checkUploadSwitch()
   checkDownloadSwitch()
-
+  ----------------------------
+  runProcessor();
+  runProcessorWait();
+  
   -----------------------------------------------------------------------------
   // Clock Front Panel Control Switch Functions.
   syncCountWithClock()
