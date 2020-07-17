@@ -20,6 +20,12 @@
   -----------------------------------------------------------------------------
   Work to do,
 
+  Program consistancy,
+  + Create: runProcessor()  for PROGRAM_RUN and PROGRAM_WAIT.
+  + runDownloadProgram()    for SERIAL_DOWNLOAD
+  + runClock()              for CLOCK_RUN
+  + runPlayer()             for PLAYER_RUN
+  
   Continue writing program and user documentation.
   + Consider creating an Open office document using the documentation in this program.
   + Or, create a GitHub Readme.cmd document file.
@@ -45,7 +51,9 @@
   #include                    Includes and Arduino pin definitions.
   printClockDate()            DS3231 Clock definitions and functions
   lcdSetup()                  1602 LCD definitions and functions
-  ----------------------------
+  
+  -----------------------------------------------------------------------------
+  // Processor
   Processor Definitions
   memoryData[memoryTop]       Memory and process definitions
   ----------------------------
@@ -77,7 +85,7 @@
   initSdcard()
   ----------------------------
   // Receive bytes through serial port. The bytes are loaded into processor memory.
-  DownloadProgram()
+  runDownloadProgram()
   ----------------------------
   // Front Panel Switches: definitions and functions.
   // Processor Switch Functions
@@ -89,7 +97,8 @@
   // SD card processor memory read/write from/into a file.
   checkUploadSwitch()
   checkDownloadSwitch()
-  ----------------------------
+  
+  -----------------------------------------------------------------------------
   // Clock Front Panel Control Switch Functions.
   syncCountWithClock()
   checkClockControls()
@@ -103,8 +112,9 @@
   clockCounterControls()
   checkClockSwitch()
   -----
-  clockRun()
-  ----------------------------
+  runClock()
+  
+  -----------------------------------------------------------------------------
   // Player Front Panel Control Switch Functions.
   checkProtectSetVolume()
   checkPlayerControls()
@@ -113,8 +123,9 @@
   printDFPlayerMessage(uint8_t type, int value)
   mp3playerPlaywait()
   playMp3()
-  playerRun()
-  ----------------------------
+  runPlayer()
+  
+  -----------------------------------------------------------------------------
   setup()                     Computer initialization sequence steps.
   loop()                      Based on state, clock cycling through memory.
   ----------------------------
@@ -380,7 +391,7 @@
                   2.1,3 If nothing to download, hit RESET to exit download mode.
                   2.2 Else, read file bytes into processor memory.
   -----------
-  Download from serial port mode, DownloadProgram()
+  Download from serial port mode, runDownloadProgram()
   -----------
   + Status        INP  : Timer indicator, ready for timer value input.
   + Status        WO   : Processor logic is: WO on when not writing to memory.
@@ -458,7 +469,7 @@
   --------------
 
   ------------------------------------------------------------------------------
-  Clock, clockRun(),
+  Clock, runClock(),
   + Start by showing the time of day hours and minutes.
   + To do: If clock timer mode was set, return to timer mode or reset timer mode values.
   -----------
@@ -606,7 +617,7 @@
   + Flip DEPOSIT writes the data byte to the counter address file.
 
   ------------------------------------------------------------------------------
-  MP3 Player mode, playerRun(),
+  MP3 Player mode, runPlayer(),
   + MP3 addressable files is 255.
   -----------
   + Address       Displays the song number that is playing.
@@ -4675,7 +4686,7 @@ int readFileByte(String theFilename) {
 // Receive bytes through serial port.
 // The bytes are loaded into processorr memory.
 
-void DownloadProgram() {
+void runDownloadProgram() {
   // Status: ready for input and not yet writing to memory.
   byte readStatusByte = INP_ON | WO_ON;
   readStatusByte = readStatusByte & M1_OFF;
@@ -6474,8 +6485,8 @@ void checkAux2clock() {
 }
 
 // -----------------------------------------------------
-void clockRun() {
-  Serial.println(F("+ clockRun()"));
+void runClock() {
+  Serial.println(F("+ runClock()"));
   playerPlaySound(CLOCK_ON);
   saveClearLcdScreenData();
   lcd.noCursor();
@@ -7296,14 +7307,14 @@ void playMp3() {
   }
 }
 
-void playerRun() {
+void runPlayer() {
   saveClearLcdScreenData();
   lcd.noCursor();
   //             1234567890123456
   lcdPrintln(0, "MP3 Player mode,");
   lcdPrintln(1, "Not implemented.");
   //
-  Serial.print(F("+ playerRun()"));
+  Serial.print(F("+ runPlayer()"));
   playerPlaySound(PLAYER_ON);
   playerLights();
   Serial.println("");
@@ -7491,7 +7502,6 @@ void setup() {
 // Device Loop for processing each byte of machine code.
 
 void loop() {
-
   switch (programState) {
     // ----------------------------
     case PROGRAM_RUN:
@@ -7527,7 +7537,7 @@ void loop() {
         // HLDA on when in this mode.
         digitalWrite(HLDA_PIN, HIGH);
         digitalWrite(WAIT_PIN, LOW);
-        DownloadProgram();
+        runDownloadProgram();
         digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
         digitalWrite(WAIT_PIN, HIGH);
       }
@@ -7537,7 +7547,7 @@ void loop() {
       Serial.println(F("+ programState: CLOCK_RUN"));
       // HLDA on when in this mode.
       digitalWrite(HLDA_PIN, HIGH);
-      clockRun();
+      runClock();
       digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;
     // ----------------------------
@@ -7545,10 +7555,9 @@ void loop() {
       Serial.println(F("+ programState: PLAYER_RUN"));
       // HLDA on when in this mode.
       digitalWrite(HLDA_PIN, HIGH);
-      playerRun();
+      runPlayer();
       digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;
   }
-
 }
 // -----------------------------------------------------------------------------
