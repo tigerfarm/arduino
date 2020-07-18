@@ -100,7 +100,7 @@
   ----------------------------
   runProcessor();
   runProcessorWait();
-  
+
   -----------------------------------------------------------------------------
   // Clock Front Panel Control Switch Functions.
   syncCountWithClock()
@@ -4689,7 +4689,7 @@ int readFileByte(String theFilename) {
 // Receive bytes through serial port.
 // The bytes are loaded into processorr memory.
 
-void runDownloadProgram() {
+void doDownloadProgram() {
   // Status: ready for input and not yet writing to memory.
   byte readStatusByte = INP_ON | WO_ON;
   readStatusByte = readStatusByte & M1_OFF;
@@ -4704,10 +4704,9 @@ void runDownloadProgram() {
       if (!downloadStarted) {
         downloadStarted = true;
         readStatusByte = readStatusByte & WO_OFF;   // Now writing to processor memory.
+        Serial.println("+    Address  Data  Binary   Hex Octal Decimal");
       }
-      timer = millis();
-      //
-      Serial.print("++ Byte array number: ");
+      Serial.print("++ Byte# ");
       if (readByteCount < 10) {
         Serial.print(" ");
       }
@@ -4730,16 +4729,20 @@ void runDownloadProgram() {
       Serial.print("   ");
       Serial.print(readByte, DEC);
       Serial.println("");
+      //
+      timer = millis();
     }
     if (downloadStarted && ((millis() - timer) > 1000)) {
       // Exit download state, if the bytes were downloaded and then stopped for 1 second.
       //  This indicates that the download is complete.
       programState = PROGRAM_WAIT;
+      readStatusByte = readStatusByte | WO_ON;   // Done writing to processor memory.
       Serial.println("+ Download complete.");
     }
+    // -----------------------------------------------
+    // Flip RESET to exit download mode, if decided not to wait for download.
     if (pcfControlinterrupted) {
       // -------------------
-      // Reset to exit download mode, if decided not to wait for download.
       if (pcfControl.readButton(pinReset) == 0) {
         if (!switchReset) {
           switchReset = true;
@@ -4752,15 +4755,40 @@ void runDownloadProgram() {
       // -------------------
       pcfControlinterrupted = false; // Reset for next interrupt.
     }
+    // -----------------------------------------------
   }
+#ifdef SWITCH_MESSAGES
   Serial.print(F("+ Exit serial download mode."));
+#endif
   if (readByteCount > 0) {
-    // Program bytes were loaded.
-    controlResetLogic();              // Reset the program.
-    mp3playerPlay(soundEffects[DOWNLOAD_COMPLETE]);        // Transfer of data is complete.
+    // Program bytes were downloaded into memory.
+    controlResetLogic();                                  // Reset the program.
+    mp3playerPlaywait(soundEffects[DOWNLOAD_COMPLETE]);   // Transfer of data is complete.
   } else {
-    // Reset to original panel light values.
+    // No bytes downloaded, reset the panel light values.
     programLights();
+  }
+}
+
+void runDownloadProgram() {
+  serial2.begin(9600);
+  if (serial2.isListening()) {
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ programState: SERIAL_DOWNLOAD"));
+    Serial.println("+ serial2 is listening.");
+    Serial.println("+ Ready to use the second serial port for receiving program bytes.");
+#endif
+    // Set status lights:
+    digitalWrite(WAIT_PIN, LOW);
+    while (programState == SERIAL_DOWNLOAD) {
+      doDownloadProgram();
+    }
+    digitalWrite(WAIT_PIN, HIGH);
+  } else {
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Return to programState: PROGRAM_WAIT, serial2 is not available."));
+#endif
+    delay(300);
   }
 }
 
@@ -7555,26 +7583,9 @@ void loop() {
       break;
     // ----------------------------
     case SERIAL_DOWNLOAD:
-#ifdef SWITCH_MESSAGES
-      Serial.println(F("+ programState: SERIAL_DOWNLOAD"));
-#endif
-      serial2.begin(9600);
-      if (serial2.isListening()) {
-#ifdef SWITCH_MESSAGES
-        Serial.println("+ serial2 is listening.");
-        Serial.println("+ Ready to use the second serial port for receiving program bytes.");
-        Serial.println("+                 Address  Data  Binary   Hex Octal Decimal");
-#endif
-        // Set status lights:
-        digitalWrite(WAIT_PIN, LOW);
-        //
-        digitalWrite(HLDA_PIN, HIGH);
-        runDownloadProgram();
-        digitalWrite(HLDA_PIN, LOW);
-        //
-        // Returning to the emulator in WAIT mode (PROGRAM_WAIT).
-        digitalWrite(WAIT_PIN, HIGH);
-      }
+      digitalWrite(HLDA_PIN, HIGH);
+      runDownloadProgram();
+      digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;
     // ----------------------------
     case CLOCK_RUN:
