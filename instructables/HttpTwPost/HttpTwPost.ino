@@ -48,14 +48,14 @@ Strict-Transport-Security: max-age=31536000
 #include <WiFiClientSecure.h>
 
 // Your network SSID and password
-const char* ssid = "b";
-const char* password = "5";
+const char* ssid = "YourNetworkId";
+const char* password = "YourNetworkPassword";
 
-const char* account_sid = "ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-const char* auth_token = "Your AUTH TOKEN";
-String from_number      = "16505551111";  // After encoding is added, add "+".
-String to_number        = "16505552222";
-String message_body     = "Hello.";
+const char* account_sid = "YourTwilioAccountSID";
+const char* auth_token = "YourAuthToken";
+String from_number      = "+16505551111";  // After encoding is added, add "+".
+String to_number        = "+16505552222";
+String message_body     = "Hello from the NodeMCU.";
 
 // Find the api.twilio.com SHA1 fingerprint using,
 //  echo | openssl s_client -connect api.twilio.com:443 | openssl x509 -fingerprint
