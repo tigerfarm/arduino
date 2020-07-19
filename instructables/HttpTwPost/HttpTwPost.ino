@@ -53,7 +53,7 @@ const char* password = "YourNetworkPassword";
 
 const char* account_sid = "YourTwilioAccountSID";
 const char* auth_token = "YourAuthToken";
-String from_number      = "+16505551111";  // After encoding is added, add "+".
+String from_number      = "+16505551111";
 String to_number        = "+16505552222";
 String message_body     = "Hello from the NodeMCU.";
 
