@@ -20,22 +20,20 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  Continue writing opcode test programs.
+  Program consistancy,
+  + runProcessor()          for PROGRAM_RUN
+  + runDownloadProgram()    for SERIAL_DOWNLOAD
+  + runClock()              for CLOCK_RUN
+  + runPlayer()             for PLAYER_RUN
 
   Continue writing program and user documentation.
   + Consider creating an Open office document using the documentation in this program.
   + Or, create a GitHub Readme.cmd document file.
 
+  Continue writing opcode test programs.
+
   Consider, for player, using A0 to A15 as the volume level. Each flip is value 2 on the volume scale.
   + The song value would be displayed in the Data lights.
-
-  From OUT opcode (B11100011),
-  + When timer is complete, what should happen?
-  ++ Currently, each minute, it plays the timer completed MP3, which is a continuous reminder.
-  clockRunTimerControlsOut(getMinuteValue(regA));
-
-  When flipping EXAMINE,
-  + If toogle address is greater than memory top (memoryTop), flash error instead of random values.
 
   +++ Quick go over of the opcodes and LOG_MESSAGES:
     // ---------------------------------------------------------------------
@@ -47,15 +45,18 @@
   Program sections,
 
   ----------------------------
-  Application definitions
+  Application definitions and
   #define                     Defines and variable definitions
   byte statusByte             Front Panel Status LEDs definitions
   #include                    Includes and Arduino pin definitions.
   printClockDate()            DS3231 Clock definitions and functions
   lcdSetup()                  1602 LCD definitions and functions
+
+  -----------------------------------------------------------------------------
+  // Processor
+  Processor Definitions
+  memoryData[memoryTop]       Memory and process definitions
   ----------------------------
-  Processor Definitions and Functions:
-  memoryData[memoryTop]     Memory and process definitions
   Process a subset of the Intel 8080/8085 opcode instructions:
   processData()               Control processing instruction set of opcodes.
   processOpcode()             Process opcode instruction machine cycle one (M1): fetch opcode and process it.
@@ -64,48 +65,59 @@
   B11100011                   OUT opcode
   ----------------------------
   Front Panel toggle switch controls and data entry events
-  initSdcard()                SD card module functions
   controlResetLogic()         Processor Switch Functions
   checkClockControls()        Clock Front Panel Switch Functions.
   checkUploadSwitch()         SD card processor memory read/write from/into a file.
   checkPlayerControls()       Player Front Panel Control Switch Functions.
-  ------------------------
-  //  Output Functions
+  ----------------------------
+  //  Output Functions to print processor information
   printOther()
   printRegisters()
   ------------------------
   ledFlashSuccess()
   ledFlashError()
-  ------------------------
+  ----------------------------
   // SD card write and read functions
-  initSdcard()
   writeProgramMemoryToFile(theFilename)
   readProgramFileIntoMemory(theFilename)
   writeFileByte(String theFilename, byte theByte)
   readFileByte(String theFilename)
-  ------------------------
+  initSdcard()
+  ----------------------------
+  // Receive bytes through serial port. The bytes are loaded into processor memory.
+  runDownloadProgram()
+  ----------------------------
   // Front Panel Switches: definitions and functions.
   // Processor Switch Functions
   controlResetLogic()
   checkRunningButtons()
   checkControlButtons()
-  checkAux1();                  Toggle between processor, clock, and player modes.
-  ------------------------
-  // Clock Front Panel Control Switch Functions.
-  syncCountWithClock()
-  checkClockControls()
-  clockRunTimerControlsOut(theTimerMinute)    Called from OUT opcde.
-  checkAux2clock()              Toggle between processor, clock, timer, and counter modes.
-  checkTimerControls()
-  clockCounterControlsOut(theCounterIndex)    Called from OUT opcde.
-  clockCounterControls()
-  checkClockSwitch()
-  clockRun()
-  ------------------------
+  checkAux1();                Toggle between modes: processor, clock, and player.
+  ----------------------------
   // SD card processor memory read/write from/into a file.
   checkUploadSwitch()
   checkDownloadSwitch()
-  ------------------------
+  ----------------------------
+  runProcessor();
+  runProcessorWait();
+
+  -----------------------------------------------------------------------------
+  // Clock Front Panel Control Switch Functions.
+  syncCountWithClock()
+  checkClockControls()
+  -----
+  clockRunTimerControlsOut(theTimerMinute)    Called from OUT opcde.
+  checkTimerControls()
+  -----
+  checkAux2clock()            Toggle between modes: processor, clock, timer, and counter.
+  -----
+  clockCounterControlsOut(theCounterIndex)    Called from OUT opcde.
+  clockCounterControls()
+  checkClockSwitch()
+  -----
+  runClock()
+
+  -----------------------------------------------------------------------------
   // Player Front Panel Control Switch Functions.
   checkProtectSetVolume()
   checkPlayerControls()
@@ -114,13 +126,13 @@
   printDFPlayerMessage(uint8_t type, int value)
   mp3playerPlaywait()
   playMp3()
-  playerRun()
+  runPlayer()
+
+  -----------------------------------------------------------------------------
+  setup()                     Computer initialization sequence steps.
+  loop()                      Based on state, clock cycling through memory.
   ----------------------------
-  DownloadProgram()           Receive bytes through serial port. The bytes are loaded into processorr memory.
-  ----------------------------
-  setup()                     Computer initialization.
-  loop()                      Based on state, clock cycling through memory, show the time, or other state processing.
-  ------------------------
+
   -----------------------------------------------------------------------------
   SD card programs:
   -----------------
@@ -306,7 +318,7 @@
   + programState = PROGRAM_WAIT (default start state), don't run 00000000.bin when loop() starts.
   -----------
   + programLights();    // Uses: statusByte, curProgramCounter, dataByte
-  
+
   ------------------------------------------------------------------------------
   Mode lights:
   Processor:      WAIT:ON/OFF HLDA:OFF  MEMR, MI, WO
@@ -382,7 +394,7 @@
                   2.1,3 If nothing to download, hit RESET to exit download mode.
                   2.2 Else, read file bytes into processor memory.
   -----------
-  Download from serial port mode, DownloadProgram()
+  Download from serial port mode, runDownloadProgram()
   -----------
   + Status        INP  : Timer indicator, ready for timer value input.
   + Status        WO   : Processor logic is: WO on when not writing to memory.
@@ -460,7 +472,7 @@
   --------------
 
   ------------------------------------------------------------------------------
-  Clock, clockRun(),
+  Clock, runClock(),
   + Start by showing the time of day hours and minutes.
   + To do: If clock timer mode was set, return to timer mode or reset timer mode values.
   -----------
@@ -608,7 +620,7 @@
   + Flip DEPOSIT writes the data byte to the counter address file.
 
   ------------------------------------------------------------------------------
-  MP3 Player mode, playerRun(),
+  MP3 Player mode, runPlayer(),
   + MP3 addressable files is 255.
   -----------
   + Address       Displays the song number that is playing.
@@ -719,13 +731,23 @@
   ------------------------------------------------------------------------------
   Current/Next Work
 
+  From OUT opcode (B11100011),
+  + When timer is complete, what should happen?
+  ++ Currently, each minute, it plays the timer completed MP3, which is a continuous reminder.
+  clockRunTimerControlsOut(getMinuteValue(regA));
+
+  When flipping EXAMINE,
+  + If toogle address is greater than memory top (memoryTop), flash error instead of random values.
+
   --------------
   Clock currently requires an LCD to set the time.
   + I should add inc/dec hours and minutes using toggles. This would also work for my other clock.
 
   --------------
   Need an exit from program that goes into counter mode.
-  + Can exit counter mode, but without a HLT in the program, need to reboot to exit the program.
+  + Senario: program loop that makes a call to go into counter mode.
+  ++ Can exit counter mode, but without a HLT in the program, it goes right back into counter mode.
+  ++ Need to reboot to exit the program.
   + Maybe a combination, STOP + AUX2.
   + Flip AUX2 to exit counter mode, and continue running the program.
   + Flip STOP + AUX2 to exit counter mode, and put the program in wait state.
@@ -2180,7 +2202,7 @@ void processOpcode() {
 #endif
       break;
     case B11110001:
-    // Stacy
+      // Stacy
       Serial.print(F(" > pop, Pop flags is not implemented. Pop the flags from the stack."));
       printData(workingByte);
       Serial.println(F(""));
@@ -2806,10 +2828,6 @@ void processOpcode() {
       printData(regL);
 #endif
       break;
-    // ---------------------------------------------------------------------
-    // David, visual check of opcodes and LOG_MESSAGES.
-    // Add A to A, B to B, ...
-    // ---------------------------------------------------------------------
     case B01000111:
       regB = regA;
 #ifdef LOG_MESSAGES
@@ -2852,14 +2870,27 @@ void processOpcode() {
       printData(regL);
 #endif
       break;
+    case B01111111:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > mov register a to a = "));
+      printData(regA);
+#endif
+      break;
     // ---------------------------------------------------------------------
     case B01111000:
+      // B01DDDSSS
       regA = regB;
 #ifdef LOG_MESSAGES
       Serial.print(F(" > mov register b to a = "));
       printData(regL);
 #endif
       break;
+    case B01000000:
+      // B01DDDSSS
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > mov register b to b = "));
+      printData(regB);
+#endif
     case B01001000:
       regC = regB;
 #ifdef LOG_MESSAGES
@@ -2908,6 +2939,13 @@ void processOpcode() {
 #ifdef LOG_MESSAGES
       Serial.print(F(" > mov register c to b = "));
       printData(regB);
+#endif
+      break;
+    case B01001001:
+      // B01DDDSSS
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > mov register c to c = "));
+      printData(regC);
 #endif
       break;
     case B01010001:
@@ -2960,7 +2998,15 @@ void processOpcode() {
       printData(regC);
 #endif
       break;
+    case B01010010:
+      // B01DDDSSS
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > mov register d to d = "));
+      printData(regD);
+#endif
+      break;
     case B01011010:
+      // B01DDDSSS
       regE = regD;
 #ifdef LOG_MESSAGES
       Serial.print(F(" > mov register d to e = "));
@@ -3004,10 +3050,18 @@ void processOpcode() {
 #endif
       break;
     case B01010011:
+      // B01DDDSSS
       regD = regE;
 #ifdef LOG_MESSAGES
       Serial.print(F(" > mov register e to d = "));
       printData(regD);
+#endif
+      break;
+    case B01011011:
+      // B01DDDSSS
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > mov register e to e = "));
+      printData(regE);
 #endif
       break;
     case B01100011:
@@ -3060,7 +3114,15 @@ void processOpcode() {
       printData(regE);
 #endif
       break;
+    case B01100100:
+      // B01DDDSSS
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > mov register h to h = "));
+      printData(regH);
+#endif
+      break;
     case B01101100:
+      // B01DDDSSS
       regL = regH;
 #ifdef LOG_MESSAGES
       Serial.print(F(" > mov register h to l = "));
@@ -3097,6 +3159,7 @@ void processOpcode() {
 #endif
       break;
     case B01011101:
+      // B01DDDSSS
       regE = regL;
 #ifdef LOG_MESSAGES
       Serial.print(F(" > mov register l to e = "));
@@ -3104,10 +3167,18 @@ void processOpcode() {
 #endif
       break;
     case B01100101:
+      // B01DDDSSS
       regH = regL;
 #ifdef LOG_MESSAGES
       Serial.print(F(" > mov register l to h = "));
       printData(regH);
+#endif
+      break;
+    case B01101101:
+      // B01DDDSSS
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > mov register l to l = "));
+      printData(regL);
 #endif
       break;
     // ------------------------------------------------------------------------------------------
@@ -3606,7 +3677,6 @@ void processOpcodeData() {
       break;
     // ---------------------------------------------------------------------
     case B11011011:
-      // david
       // instructionCycle == 2
       // INP & WO are on when reading from an input port.
       // IN p      11011011 pa       -       Read input for port a, into A
@@ -3915,7 +3985,7 @@ void processOpcodeData() {
       programCounter++;
       break;
     // ------------------------------------------------------------------------------------------
-    // mvi R,#  00 RRR 110  Move a number (#), which is the next db, to register RRR.
+    // mvi R,#  00 RRR 110  Move a number (#), which is the next byte (db), to register RRR.
     // mvi a,#  00 111 110  0036
     // mvi b,#  00 000 110  0006
     // mvi c,#  00 001 110  0016
@@ -3981,7 +4051,6 @@ void processOpcodeData() {
       break;
     // -------------------------------------------------------------------------------------------
     case B11100011:
-      // david
       // instructionCycle == 2
 #ifdef LOG_MESSAGES
       Serial.print(F("< OUT, port# "));
@@ -4605,16 +4674,122 @@ int readFileByte(String theFilename) {
   int returnByte = 0;
   if (myFile.available()) {
     returnByte = myFile.read();
-#ifdef LOG_MESSAGES
-    Serial.print("+ Byte read = ");
-    Serial.println(returnByte, DEC);
-    Serial.print(":B");
+    // Serial.print("+ Byte read = ");
+    // Serial.println(returnByte, DEC);
+    // Serial.print(":B");
     printByte(returnByte);
-#endif
   }
   myFile.close();
   // Serial.println(F("+ Read byte completed, file closed."));
   return (returnByte);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Receive bytes through serial port.
+// The bytes are loaded into processorr memory.
+
+void doDownloadProgram() {
+  // Status: ready for input and not yet writing to memory.
+  byte readStatusByte = INP_ON | WO_ON;
+  readStatusByte = readStatusByte & M1_OFF;
+  lightsStatusAddressData(readStatusByte, 0, 0);
+  //
+  byte readByte = 0;
+  int readByteCount = 0;      // Count the downloaded bytes that are entered into processor memory.
+  unsigned long timer;        // Indicator used to identify when download has ended.
+  boolean downloadStarted = false;
+  while (programState == SERIAL_DOWNLOAD) {
+    if (serial2.available() > 0) {
+      if (!downloadStarted) {
+        downloadStarted = true;
+        readStatusByte = readStatusByte & WO_OFF;   // Now writing to processor memory.
+        Serial.println("+    Address  Data  Binary   Hex Octal Decimal");
+      }
+      Serial.print("++ Byte# ");
+      if (readByteCount < 10) {
+        Serial.print(" ");
+      }
+      if (readByteCount < 100) {
+        Serial.print(" ");
+      }
+      Serial.print(readByteCount);
+      //
+      // Input on the external serial port module.
+      // Read and process the incoming byte.
+      readByte = serial2.read();
+      memoryData[readByteCount] = readByte;
+      readByteCount++;
+      Serial.print(", Byte: ");
+      printByte(readByte);
+      Serial.print(" ");
+      printHex(readByte);
+      Serial.print(" ");
+      printOctal(readByte);
+      Serial.print("   ");
+      Serial.print(readByte, DEC);
+      Serial.println("");
+      //
+      timer = millis();
+    }
+    if (downloadStarted && ((millis() - timer) > 1000)) {
+      // Exit download state, if the bytes were downloaded and then stopped for 1 second.
+      //  This indicates that the download is complete.
+      programState = PROGRAM_WAIT;
+      readStatusByte = readStatusByte | WO_ON;   // Done writing to processor memory.
+      Serial.println("+ Download complete.");
+    }
+    // -----------------------------------------------
+    // Flip RESET to exit download mode, if decided not to wait for download.
+    if (pcfControlinterrupted) {
+      // -------------------
+      if (pcfControl.readButton(pinReset) == 0) {
+        if (!switchReset) {
+          switchReset = true;
+        }
+      } else if (switchReset) {
+        switchReset = false;
+        // Switch logic
+        programState = PROGRAM_WAIT;
+      }
+      // -------------------
+      pcfControlinterrupted = false; // Reset for next interrupt.
+    }
+    // -----------------------------------------------
+  }
+#ifdef SWITCH_MESSAGES
+  Serial.print(F("+ Exit serial download mode."));
+#endif
+  if (readByteCount > 0) {
+    // Program bytes were downloaded into memory.
+    controlResetLogic();                                  // Reset the program.
+    mp3playerPlaywait(soundEffects[DOWNLOAD_COMPLETE]);   // Transfer of data is complete.
+  } else {
+    // No bytes downloaded, reset the panel light values.
+    programLights();
+  }
+}
+
+void runDownloadProgram() {
+  serial2.begin(9600);
+  if (serial2.isListening()) {
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ programState: SERIAL_DOWNLOAD"));
+    Serial.println("+ serial2 is listening.");
+    Serial.println("+ Ready to use the second serial port for receiving program bytes.");
+#endif
+    // Set status lights:
+    digitalWrite(WAIT_PIN, LOW);
+    while (programState == SERIAL_DOWNLOAD) {
+      doDownloadProgram();
+    }
+    digitalWrite(WAIT_PIN, HIGH);
+  } else {
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Return to programState: PROGRAM_WAIT, serial2 is not available."));
+#endif
+    delay(300);
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -5139,6 +5314,196 @@ void checkAux1() {
       digitalWrite(WAIT_PIN, LOW);
       playerState = PLAYER_MP3;       // Default to MP3 player state.
     }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// SD card processor memory read/write from/into a file.
+
+String getSenseSwitchValue() {
+  byte bValue = toggleSense();
+  String sValue = String(bValue, BIN);
+  int addZeros = 8 - sValue.length();
+  for (int i = 0; i < addZeros; i++) {
+    sValue = "0" + sValue;
+  }
+  return sValue;
+}
+
+// Write processor memory to an SD card file.
+boolean confirmWrite = false;
+void checkUploadSwitch() {
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux2up) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(UPLOAD_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux2up) {
+      switchAux2up = true;
+    }
+  } else if (switchAux2up) {
+    switchAux2up = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ AUX2 up, Upload Switched."));
+#endif
+    String senseSwitchValue = getSenseSwitchValue();
+    String theFilename = senseSwitchValue + ".bin";
+    if (theFilename == "11111111.bin") {
+      Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
+      ledFlashError();
+      return;
+    }
+    digitalWrite(HLDA_PIN, HIGH);
+    saveClearLcdScreenData();
+    lcdPrintln(0, "Confirm write> ");
+    //             1234567890123456
+    lcdPrintln(1, "File: " + senseSwitchValue);
+    //
+    // -------------------------------------------------------
+    // Double flip to write.
+    confirmWrite = false;
+    switchAux2up = false; // Required to reset the switch state for confirmation.
+    unsigned long timer = millis();
+    while (!confirmWrite && (millis() - timer < 1200)) {
+#ifdef DESKTOP_MODULE
+      if (pcfAux.readButton(pinAux2up) == 0) {
+#else
+      // Tablet:
+      if (digitalRead(UPLOAD_SWITCH_PIN) == LOW) {
+#endif
+        if (!switchAux2up) {
+          switchAux2up = true;
+        }
+      } else if (switchAux2up) {
+        switchAux2up = false;
+        confirmWrite = true;
+      }
+      delay(100);
+    }
+    if (!confirmWrite) {
+      // Serial.print(F("+ Write cancelled."));
+      lcdPrintln(1, "Write cancelled.");
+      //             1234567890123456
+      digitalWrite(HLDA_PIN, LOW);
+      return;
+    }
+    // -------------------------------------------------------
+    Serial.print(F("+ Write memory to filename: "));
+    Serial.println(theFilename);
+    writeProgramMemoryToFile(theFilename);
+    // delay(2000); // Give to read the resulting message.
+    restoreLcdScreenData();
+    programLights();
+  }
+  digitalWrite(HLDA_PIN, LOW);
+}
+
+// -----------------------------------------------------
+void checkDownloadSwitch() {
+#ifdef DESKTOP_MODULE
+  if (pcfAux.readButton(pinAux2down) == 0) {
+#else
+  // Tablet:
+  if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
+#endif
+    if (!switchAux2down) {
+      switchAux2down = true;
+      // Serial.print(F("+ AUX2 down switch pressed..."));
+    }
+  } else if (switchAux2down) {
+    switchAux2down = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ AUX2 down, Download Switched."));
+#endif
+    String theFilename = getSenseSwitchValue() + ".bin";
+    if (theFilename == "00000000.bin") {
+      Serial.println(F("+ Set to download over the serial port."));
+      programState = SERIAL_DOWNLOAD;
+      return;
+    }
+    digitalWrite(HLDA_PIN, HIGH);
+    // -------------------------------------------------------
+    // Double flip confirmation.
+    switchAux2down = false;      // Required to reset the switch state for confirmation.
+    boolean confirmChoice = false;
+    unsigned long timer = millis();
+    while (!confirmChoice && (millis() - timer < 1200)) {
+#ifdef DESKTOP_MODULE
+      if (pcfAux.readButton(pinAux2down) == 0) {
+#else
+      // Tablet:
+      if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
+#endif
+        if (!switchAux2down) {
+          switchAux2down = true;
+        }
+      } else if (switchAux2down) {
+        switchAux2down = false;
+        // Switch logic.
+        confirmChoice = true;
+      }
+      delay(100);
+    }
+    if (!confirmChoice) {
+      digitalWrite(HLDA_PIN, LOW);
+      return;
+    }
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Choice confirmed."));
+#endif
+    // -------------------------------------------------------
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Read the filename into memory: "));
+    Serial.println(theFilename);
+#endif
+    if (readProgramFileIntoMemory(theFilename)) {
+      ledFlashSuccess();
+      controlResetLogic();
+      playerPlaySoundWait(READ_FILE);
+    } else {
+      // Redisplay the front panel lights.
+      programLights();
+    }
+    digitalWrite(HLDA_PIN, LOW);
+  }
+}
+
+// -----------------------------------------------------
+void runProcessor() {
+#ifdef SWITCH_MESSAGES
+  Serial.println(F("+ runProcessor()"));
+#endif
+  while (programState == PROGRAM_RUN) {
+    processData();
+    if (pcfControlinterrupted) {
+      // Program control: STOP or RESET.
+      checkRunningButtons();
+      pcfControlinterrupted = false; // Reset for next interrupt.
+    }
+  }
+}
+
+void runProcessorWait() {
+#ifdef SWITCH_MESSAGES
+  Serial.println(F("+ runProcessorWait()"));
+#endif
+  // Intialize front panel lights.
+  // programLights(); // Likely done in processData().
+  while (programState == PROGRAM_WAIT) {
+    // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
+    if (pcfControlinterrupted) {
+      checkControlButtons();
+      pcfControlinterrupted = false; // Reset for next interrupt.
+    }
+    checkAux1();          // Toggle between processor, clock, and player modes.
+    checkUploadSwitch();
+    checkDownloadSwitch();
+    checkProtectSetVolume();
+    delay(60);
   }
 }
 
@@ -5683,6 +6048,8 @@ void checkTimerControls() {
     switchRun = false;
     // Switch logic
     //
+    timerStatus = timerStatus & HLTA_OFF;
+    //
     // Check if there are any timer array values set.
     int timerDataTotal = 0;
     for (int i = 1; i < timerTop; i++) {
@@ -6184,8 +6551,10 @@ void checkAux2clock() {
 }
 
 // -----------------------------------------------------
-void clockRun() {
-  Serial.println(F("+ clockRun()"));
+void runClock() {
+#ifdef SWITCH_MESSAGES
+  Serial.println(F("+ runClock(), programState: CLOCK_RUN."));
+#endif
   playerPlaySound(CLOCK_ON);
   saveClearLcdScreenData();
   lcd.noCursor();
@@ -6234,161 +6603,6 @@ void clockRun() {
   }
   playerPlaySound(CLOCK_OFF);
   restoreLcdScreenData();
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// SD card processor memory read/write from/into a file.
-
-String getSenseSwitchValue() {
-  byte bValue = toggleSense();
-  String sValue = String(bValue, BIN);
-  int addZeros = 8 - sValue.length();
-  for (int i = 0; i < addZeros; i++) {
-    sValue = "0" + sValue;
-  }
-  return sValue;
-}
-
-// Write processor memory to an SD card file.
-boolean confirmWrite = false;
-void checkUploadSwitch() {
-#ifdef DESKTOP_MODULE
-  if (pcfAux.readButton(pinAux2up) == 0) {
-#else
-  // Tablet:
-  if (digitalRead(UPLOAD_SWITCH_PIN) == LOW) {
-#endif
-    if (!switchAux2up) {
-      switchAux2up = true;
-    }
-  } else if (switchAux2up) {
-    switchAux2up = false;
-    // Switch logic.
-#ifdef SWITCH_MESSAGES
-    Serial.println(F("+ AUX2 up, Upload Switched."));
-#endif
-    String senseSwitchValue = getSenseSwitchValue();
-    String theFilename = senseSwitchValue + ".bin";
-    if (theFilename == "11111111.bin") {
-      Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
-      ledFlashError();
-      return;
-    }
-    digitalWrite(HLDA_PIN, HIGH);
-    saveClearLcdScreenData();
-    lcdPrintln(0, "Confirm write> ");
-    //             1234567890123456
-    lcdPrintln(1, "File: " + senseSwitchValue);
-    //
-    // -------------------------------------------------------
-    // Double flip to write.
-    confirmWrite = false;
-    switchAux2up = false; // Required to reset the switch state for confirmation.
-    unsigned long timer = millis();
-    while (!confirmWrite && (millis() - timer < 1200)) {
-#ifdef DESKTOP_MODULE
-      if (pcfAux.readButton(pinAux2up) == 0) {
-#else
-      // Tablet:
-      if (digitalRead(UPLOAD_SWITCH_PIN) == LOW) {
-#endif
-        if (!switchAux2up) {
-          switchAux2up = true;
-        }
-      } else if (switchAux2up) {
-        switchAux2up = false;
-        confirmWrite = true;
-      }
-      delay(100);
-    }
-    if (!confirmWrite) {
-      // Serial.print(F("+ Write cancelled."));
-      lcdPrintln(1, "Write cancelled.");
-      //             1234567890123456
-      digitalWrite(HLDA_PIN, LOW);
-      return;
-    }
-    // -------------------------------------------------------
-    Serial.print(F("+ Write memory to filename: "));
-    Serial.println(theFilename);
-    writeProgramMemoryToFile(theFilename);
-    // delay(2000); // Give to read the resulting message.
-    restoreLcdScreenData();
-    programLights();
-  }
-  digitalWrite(HLDA_PIN, LOW);
-}
-
-// -----------------------------------------------------
-void checkDownloadSwitch() {
-#ifdef DESKTOP_MODULE
-  if (pcfAux.readButton(pinAux2down) == 0) {
-#else
-  // Tablet:
-  if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
-#endif
-    if (!switchAux2down) {
-      switchAux2down = true;
-      // Serial.print(F("+ AUX2 down switch pressed..."));
-    }
-  } else if (switchAux2down) {
-    switchAux2down = false;
-    // Switch logic.
-#ifdef SWITCH_MESSAGES
-    Serial.println(F("+ AUX2 down, Download Switched."));
-#endif
-    String theFilename = getSenseSwitchValue() + ".bin";
-    if (theFilename == "00000000.bin") {
-      Serial.println(F("+ Set to download over the serial port."));
-      programState = SERIAL_DOWNLOAD;
-      return;
-    }
-    digitalWrite(HLDA_PIN, HIGH);
-    // -------------------------------------------------------
-    // Double flip confirmation.
-    switchAux2down = false;      // Required to reset the switch state for confirmation.
-    boolean confirmChoice = false;
-    unsigned long timer = millis();
-    while (!confirmChoice && (millis() - timer < 1200)) {
-#ifdef DESKTOP_MODULE
-      if (pcfAux.readButton(pinAux2down) == 0) {
-#else
-      // Tablet:
-      if (digitalRead(DOWNLOAD_SWITCH_PIN) == LOW) {
-#endif
-        if (!switchAux2down) {
-          switchAux2down = true;
-        }
-      } else if (switchAux2down) {
-        switchAux2down = false;
-        // Switch logic.
-        confirmChoice = true;
-      }
-      delay(100);
-    }
-    if (!confirmChoice) {
-      digitalWrite(HLDA_PIN, LOW);
-      return;
-    }
-#ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Choice confirmed."));
-#endif
-    // -------------------------------------------------------
-#ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Read the filename into memory: "));
-    Serial.println(theFilename);
-#endif
-    if (readProgramFileIntoMemory(theFilename)) {
-      ledFlashSuccess();
-      controlResetLogic();
-      playerPlaySoundWait(READ_FILE);
-    } else {
-      // Redisplay the front panel lights.
-      programLights();
-    }
-    digitalWrite(HLDA_PIN, LOW);
-  }
 }
 
 // --------------------------------------------------------
@@ -7161,14 +7375,16 @@ void playMp3() {
   }
 }
 
-void playerRun() {
+void runPlayer() {
+#ifdef SWITCH_MESSAGES
+  Serial.println(F("+ runPlayer(), programState: PLAYER_RUN."));
+#endif
   saveClearLcdScreenData();
   lcd.noCursor();
   //             1234567890123456
   lcdPrintln(0, "MP3 Player mode,");
   lcdPrintln(1, "Not implemented.");
   //
-  Serial.print(F("+ playerRun()"));
   playerPlaySound(PLAYER_ON);
   playerLights();
   Serial.println("");
@@ -7192,86 +7408,6 @@ void playerRun() {
   }
   playerPlaySound(PLAYER_OFF);
   restoreLcdScreenData();
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// Receive bytes through serial port.
-// The bytes are loaded into processorr memory.
-
-void DownloadProgram() {
-  // Status: ready for input and not yet writing to memory.
-  byte readStatusByte = INP_ON | WO_ON;
-  readStatusByte = readStatusByte & M1_OFF;
-  lightsStatusAddressData(readStatusByte, 0, 0);
-  //
-  byte readByte = 0;
-  int readByteCount = 0;      // Count the downloaded bytes that are entered into processor memory.
-  unsigned long timer;        // Indicator used to identify when download has ended.
-  boolean downloadStarted = false;
-  while (programState == SERIAL_DOWNLOAD) {
-    if (serial2.available() > 0) {
-      if (!downloadStarted) {
-        downloadStarted = true;
-        readStatusByte = readStatusByte & WO_OFF;   // Now writing to processor memory.
-      }
-      timer = millis();
-      //
-      Serial.print("++ Byte array number: ");
-      if (readByteCount < 10) {
-        Serial.print(" ");
-      }
-      if (readByteCount < 100) {
-        Serial.print(" ");
-      }
-      Serial.print(readByteCount);
-      //
-      // Input on the external serial port module.
-      // Read and process the incoming byte.
-      readByte = serial2.read();
-      memoryData[readByteCount] = readByte;
-      readByteCount++;
-      Serial.print(", Byte: ");
-      printByte(readByte);
-      Serial.print(" ");
-      printHex(readByte);
-      Serial.print(" ");
-      printOctal(readByte);
-      Serial.print("   ");
-      Serial.print(readByte, DEC);
-      Serial.println("");
-    }
-    if (downloadStarted && ((millis() - timer) > 1000)) {
-      // Exit download state, if the bytes were downloaded and then stopped for 1 second.
-      //  This indicates that the download is complete.
-      programState = PROGRAM_WAIT;
-      Serial.println("+ Download complete.");
-    }
-    if (pcfControlinterrupted) {
-      // -------------------
-      // Reset to exit download mode, if decided not to wait for download.
-      if (pcfControl.readButton(pinReset) == 0) {
-        if (!switchReset) {
-          switchReset = true;
-        }
-      } else if (switchReset) {
-        switchReset = false;
-        // Switch logic
-        programState = PROGRAM_WAIT;
-      }
-      // -------------------
-      pcfControlinterrupted = false; // Reset for next interrupt.
-    }
-  }
-  Serial.print(F("+ Exit serial download mode."));
-  if (readByteCount > 0) {
-    // Program bytes were loaded.
-    controlResetLogic();              // Reset the program.
-    mp3playerPlay(soundEffects[DOWNLOAD_COMPLETE]);        // Transfer of data is complete.
-  } else {
-    // Reset to original panel light values.
-    programLights();
-  }
 }
 
 // -----------------------------------------------------------------------------
@@ -7436,64 +7572,33 @@ void setup() {
 // Device Loop for processing each byte of machine code.
 
 void loop() {
-
   switch (programState) {
     // ----------------------------
     case PROGRAM_RUN:
-      processData();
-      if (pcfControlinterrupted) {
-        // Program control: STOP or RESET.
-        checkRunningButtons();
-        pcfControlinterrupted = false; // Reset for next interrupt.
-      }
+      runProcessor();
       break;
     // ----------------------------
     case PROGRAM_WAIT:
-      // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
-      if (pcfControlinterrupted) {
-        checkControlButtons();
-        pcfControlinterrupted = false; // Reset for next interrupt.
-      }
-      checkAux1();          // Toggle between processor, clock, and player modes.
-      checkUploadSwitch();
-      checkDownloadSwitch();
-      checkProtectSetVolume();
-      delay(60);
+      runProcessorWait();
       break;
     // ----------------------------
     case SERIAL_DOWNLOAD:
-      Serial.println(F("+ programState: SERIAL_DOWNLOAD"));
-      serial2.begin(9600);
-      if (serial2.isListening()) {
-        Serial.println("+ serial2 is listening.");
-        Serial.println("+ Ready to use the second serial port for receiving program bytes.");
-        Serial.println("+                 Address  Data  Binary   Hex Octal Decimal");
-        // Set status lights:
-        // HLDA on when in this mode.
-        digitalWrite(HLDA_PIN, HIGH);
-        digitalWrite(WAIT_PIN, LOW);
-        DownloadProgram();
-        digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
-        digitalWrite(WAIT_PIN, HIGH);
-      }
+      digitalWrite(HLDA_PIN, HIGH);
+      runDownloadProgram();
+      digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;
     // ----------------------------
     case CLOCK_RUN:
-      Serial.println(F("+ programState: CLOCK_RUN"));
-      // HLDA on when in this mode.
       digitalWrite(HLDA_PIN, HIGH);
-      clockRun();
+      runClock();
       digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;
     // ----------------------------
     case PLAYER_RUN:
-      Serial.println(F("+ programState: PLAYER_RUN"));
-      // HLDA on when in this mode.
       digitalWrite(HLDA_PIN, HIGH);
-      playerRun();
+      runPlayer();
       digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;
   }
-
 }
 // -----------------------------------------------------------------------------

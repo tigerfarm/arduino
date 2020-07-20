@@ -5,7 +5,11 @@ This version's updates were only tested on the desktop model.
 
 Processor.ino, version 3.1,
 + Added clock counters.
-+ Added an OUT port to play an MP3 file to completion, before moving to the next instruction.
++ Added an OUT port address to play an MP3 file to completion, before moving to the next instruction.
++ Code cleanup and organization.
++ Setup uses status lights as initiation indicators with Knight Rider sequence showing success.
++ Standardized loop process calls to manage modes.
++ Fix a few opcode bugs.
 
 Version 3.0:
 + Documented all the modes.
