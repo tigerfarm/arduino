@@ -1,13 +1,19 @@
+// -----------------------------------------------------------------------------
 // WiFiPostTest - 20200719 
 // Connects to local WiFi network and sends SMS message via Twilio API
 // The author suggests that this program will not work with ESP8266.
 
+// -----------------------------------------------------------------------------
 #include <SPI.h>
 #include <WiFiNINA.h>
 #include <Base64.h>
+
+// Enter sensitive data into file: arduinoSecrets.h.
+// Method to declare variables outside a program.
+// Then, if using GitHub, add the file into the file ".gitingore".
 #include "arduino_secrets.h"
 
-// enter your sensitive data in the Secret tab/arduino_secrets.h
+// -----------------------------------------------------------------------------
 char ssid[] = "SECRET_SSID";    // your network SSID (name)
 char pass[] = "SECRET_PASS";    // your network password (for WPA)
 
@@ -16,6 +22,7 @@ int first=0;
 
 char server[] = "api.twilio.com";    // name address for twilio api (using DNS)
 
+// -----------------------------------------------------------------------------
 // Initialize the WiFiNINA client library
 WiFiSSLClient client;
 
@@ -34,6 +41,7 @@ void printWifiStatus() {
   Serial.println(" dBm");
 }
 
+// -----------------------------------------------------------------------------
 void setup() {
   Serial.begin(9600);
   while (!Serial) {
@@ -72,11 +80,11 @@ void setup() {
   String body = "From=%2B1408nnxnnnn&To=%2B1408nnxnnnn&Body=Here is a test alert from the irrigation monitor";
   int bodylen = body.length();
 
-  Serial.println("\nStarting connection to server...");
+  Serial.println("+ Make Twilio HTTP API SMS send request.");
   if (client.connectSSL(server, 443)) {
     Serial.println("connected to server");
-  // Make a Twilio api request
-   String(TWPOST)= "POST /2010-04-01/Accounts/" + Account_SID + "/Messages HTTP/1.1\r\n"
+    // Make a Twilio api request
+    String(TWPOST)= "POST /2010-04-01/Accounts/" + Account_SID + "/Messages HTTP/1.1\r\n"
                    + authstring + "\r\n"
                    + "Host: api.twilio.com\r\n"
                    + "Cache-control: no-cache\r\n"
@@ -90,13 +98,13 @@ void setup() {
      client.println(TWPOST);
      Serial.println(TWPOST);
   }
-   else {
-     Serial.println("connection failed");
-  }   
-}  // end setup
+  else {
+    Serial.println("connection failed");
+  }
+}
 
+// -----------------------------------------------------------------------------
 void loop() {
-
   if (first == 0 ){
     Serial.println("Waiting for Server Response");
     Serial.print("status = ");
@@ -109,14 +117,12 @@ void loop() {
     char c = client.read();
     Serial.write(c);
   }
-
   // if the server's disconnected, stop the client:
   if (!client.connected()) {
     Serial.println();
     Serial.println("disconnecting from server.");
     client.stop();
-
-    // do nothing forevermore:
-    while (true);
+    while (true);    // do nothing forevermore:
   }
-}  // end loop
+}
+// -----------------------------------------------------------------------------

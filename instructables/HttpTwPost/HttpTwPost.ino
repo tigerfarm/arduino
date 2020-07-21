@@ -172,7 +172,7 @@ void setup() {
   Serial.println("+ Response:");
   Serial.println(response);
 
-  // ----------------------------------------------------
+  // ---------------------------------------------------------------------------
   Serial.println(F("+ Starting the loop."));
 }
 
