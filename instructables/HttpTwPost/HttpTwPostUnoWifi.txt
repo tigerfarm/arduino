@@ -1,0 +1,122 @@
+// WiFiPostTest - 20200719 
+// Connects to local WiFi network and sends SMS message via Twilio API
+// The author suggests that this program will not work with ESP8266.
+
+#include <SPI.h>
+#include <WiFiNINA.h>
+#include <Base64.h>
+#include "arduino_secrets.h"
+
+// enter your sensitive data in the Secret tab/arduino_secrets.h
+char ssid[] = "SECRET_SSID";    // your network SSID (name)
+char pass[] = "SECRET_PASS";    // your network password (for WPA)
+
+int status = WL_IDLE_STATUS;
+int first=0;
+
+char server[] = "api.twilio.com";    // name address for twilio api (using DNS)
+
+// Initialize the WiFiNINA client library
+WiFiSSLClient client;
+
+void printWifiStatus() {
+  // print the SSID of the network you're attached to:
+  Serial.print("SSID: ");
+  Serial.println(WiFi.SSID());
+  // print your board's IP address:
+  IPAddress ip = WiFi.localIP();
+  Serial.print("IP Address: ");
+  Serial.println(ip);
+  // print the received signal strength:
+  long rssi = WiFi.RSSI();
+  Serial.print("signal strength (RSSI):");
+  Serial.print(rssi);
+  Serial.println(" dBm");
+}
+
+void setup() {
+  Serial.begin(9600);
+  while (!Serial) {
+    ; // wait for serial port to connect
+  }
+  // check for the WiFi module:
+  if (WiFi.status() == WL_NO_MODULE) {
+    Serial.println("Communication with WiFi module failed!");
+    while (true);   // don't continue
+  }
+  String fv = WiFi.firmwareVersion();
+  if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
+    Serial.println("Please upgrade the firmware");
+  }
+  WiFi.end();
+  Serial.print("Attempting to connect to SSID: ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, pass);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.print(".");
+  }
+  Serial.println("Connected to wifi");
+  printWifiStatus();
+
+  // set up post parameters
+  String Account_SID = "SECRET_Acct_SID";         // live acct
+  char toencode[] = "SECRET_User_Auth";           // live acct
+  int toencodeLength = sizeof(toencode);
+  int encodedLength = Base64.encodedLength(toencodeLength);
+  char encodedString[encodedLength];
+  Base64.encode(encodedString, toencode, toencodeLength-1);
+  String astring = "Authorization: Basic ";
+  String authstring = astring + encodedString;
+  Serial.println("authstring = "+authstring);
+  String body = "From=%2B1408nnxnnnn&To=%2B1408nnxnnnn&Body=Here is a test alert from the irrigation monitor";
+  int bodylen = body.length();
+
+  Serial.println("\nStarting connection to server...");
+  if (client.connectSSL(server, 443)) {
+    Serial.println("connected to server");
+  // Make a Twilio api request
+   String(TWPOST)= "POST /2010-04-01/Accounts/" + Account_SID + "/Messages HTTP/1.1\r\n"
+                   + authstring + "\r\n"
+                   + "Host: api.twilio.com\r\n"
+                   + "Cache-control: no-cache\r\n"
+                   + "User-Agent: Arduino/1.0\r\n"
+                   + "Content-Type: application/x-www-form-urlencoded\r\n" 
+                   + "Content-Length: " + bodylen + "\r\n"
+                   + "Connection: close\r\n"
+                   + "\r\n"
+                   + body
+                   + "\r\n";
+     client.println(TWPOST);
+     Serial.println(TWPOST);
+  }
+   else {
+     Serial.println("connection failed");
+  }   
+}  // end setup
+
+void loop() {
+
+  if (first == 0 ){
+    Serial.println("Waiting for Server Response");
+    Serial.print("status = ");
+    Serial.println(client.status());
+  }
+  first = 1;
+  // if there are incoming bytes available
+  // from the server, read them and print them:
+  while (client.available()) {
+    char c = client.read();
+    Serial.write(c);
+  }
+
+  // if the server's disconnected, stop the client:
+  if (!client.connected()) {
+    Serial.println();
+    Serial.println("disconnecting from server.");
+    client.stop();
+
+    // do nothing forevermore:
+    while (true);
+  }
+}  // end loop

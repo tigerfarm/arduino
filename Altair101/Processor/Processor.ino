@@ -29,10 +29,25 @@
   Consider, for player, using A0 to A15 as the volume level. Each flip is value 2 on the volume scale.
   + The song value would be displayed in the Data lights.
 
-  +++ Quick go over of the opcodes and LOG_MESSAGES:
-    // ---------------------------------------------------------------------
-    // David, visual check of opcodes and LOG_MESSAGES.
-    // ---------------------------------------------------------------------
+  Generate videos.
+  + Done: Steampunk tablet running Kill the Bit.
+  + Run NOP program without and with a sound bite.
+  + Emulate Star Trek computer using, Kill the Bit flashing lights and playing a Star Trek computer sound bite.
+  + Demo entering and running the following program:
+     ; Add content of address 1 and 3, and store the answer in address 64.
+  ++ Address:oct > description
+  ++       0:076 > opcode: mvi a,2
+  ++       1:002 > immediate: 2 : 2
+  ++       2:306 > opcode: adi 3
+  ++       3:003 > immediate: 3 : 3
+  ++       4:062 > opcode: sta 64
+  ++       5:100 > lb: 64
+  ++       6:000 > hb: 0
+  ++       7:166 > opcode: hlt
+  ++       8:303 > opcode: jmp Start
+  ++       9:000 > lb: 0
+  ++      10:000 > hb: 0
+  + End of list.
 
   -----------------------------------------------------------------------------
   -----------------------------------------------------------------------------
@@ -771,33 +786,17 @@
   + If byte count over 276, characters no longer are displayed.
   + Fails at the address: 00010100 (276)
 
-  Time to generate videos.
-  + Done: Steampunk tablet running Kill the Bit.
-  + Emulate Star Trek computer using, Kill the Bit flashing lights and playing a Star Trek computer sound bite.
-  + Run NOP program without and with a sound bite.
-  + Demo entering and running the following program:
-   ; Add content of address 1 and 3, and store the answer in address 64.
-  ++ Address:oct > description
-  ++       0:076 > opcode: mvi a,2
-  ++       1:002 > immediate: 2 : 2
-  ++       2:306 > opcode: adi 3
-  ++       3:003 > immediate: 3 : 3
-  ++       4:062 > opcode: sta 64
-  ++       5:100 > lb: 64
-  ++       6:000 > hb: 0
-  ++       7:166 > opcode: hlt
-  ++       8:303 > opcode: jmp Start
-  ++       9:000 > lb: 0
-  ++      10:000 > hb: 0
-  + End of list.
-
   Now, can set the LCD backlight as on when prompting, and reset after.
   + LCD backlight on/off status boolean: LcdBacklight.
 
   ---------------------------------------------
   Desktop Box:
   ------------
+  To do:
   + Mount, connect, and test an LCD, such as a 1602 LCD.
+  + Connect and test an ESP8266 NodeMCU for internet and SMS access.
+  ------------
+  Design and wire a central power source:
   + Add internal 120AC socket for 3 devices: 1) Mega 5V wall adapter, 2) MP3 5V wall adapter, 3) stearo amp plug,
   + Use the Mega to control an On/off relay switch for 120AC socket.
   + Use the Mega to control an On/off relay switch for the stearo amp's 120AC adapter.
@@ -805,105 +804,70 @@
   ------------
   + Done: Cut a glue Spider-Man paper to panels: 2 sides, bar top, and top panel.
   + Done: Cut separation on the top for easy internal access.
-  + Done: Install, wire, and test the front panel.
+  + Done: Install, wire, and test the front panel wit the Mega.
   + Done: Panel LED lights all display correctly.
   + Done: Toggle functions all work for Altair 8800 emulation.
   + Done: Test new serial module using the tablet. Then install it in the box.
   + Done: Panel LED lights and toggle functions all work for the clock.
   + Done: Panel LED lights and toggle functions all work for the MP3 player.
-  + Done: Wire up the MP3 player using multiple USB wall plugs to reduce static noise.
-  + Done: Add RCA female plugs for L/R external output to an amp.
+  + Done: Wire up the MP3 player using separate USB wall plug to reduce static noise.
+  + Done: Add RCA female plugs for L/R external MP3 player output to an amp.
 
   ---------------------------------------------
   ---------------------------------------------
   Connect the Mega to the desktop front panel:
 
-  Total = 18 Mega pin wire connections to the front panel, 6 of which are for power (+ and -).
+  Total = 14 Mega pin wire connections to the front panel, pluse 6 for power.
 
   Non-power pins:
   ---
-  + 3 74HC595 daisy chain, LED output
+  + 2 pins for the WAIT and HLDA LED lights.
+  + 3 74HC595 daisy chain, LED output: data, clock, and latch
+  ---
   + 2 I2C: PCF8574 daisy chain, toggle inputs
+  + 1 Interrupt pin for the PCF8574 modules
   ---
   + 3 SPI: SD Card module pins
-  + 1 Control pin for SPI SD Card module
+  + 1 Control pin (CS) for SPI SD Card module
   ---
   + 1 TX to MP3 player module
   + 1 RX to MP3 player module
   ---
-  + 2 pins for the WAIT and HLDA LED lights.
 
   ---------------------------------------------
-  Front Panel
+  Mega to Front Panel details
 
-  2 pins for the WAIT and HLDA LED lights.
-  + const int WAIT_PIN = A9;
-  + const int HLDA_PIN = A10;
-  --- Plus ---
-  + Not connected to the Mega, 1 wire to ground on breadboard.
+  2 Mega power pins to the front panel breadboard,
+  + 1 wire for +5V
+  + 1 wire for Ground
+
+  2 Mega pins for the WAIT and HLDA LED lights.
+  + Pin A9 for WAIT_PIN
+  + Pin A10 for HLDA_PIN
+
+  3 Mega pins to 74HC595 daisy chain, LED output,
+  + Mega pin A14 to 74HC595 14 Data pin.
+  + Mega pin A12 to 74HC595 12 Latch pin.
+  + Mega pin A11 to 74HC595 11 Clock pin.
 
   5 Mega pins to PCF8574 daisy chain, toggle inputs,
   + I2C SDA to Mega SDA
   + I2C SCL to Mega SCL
   --- Plus ---
+  + Pin 2 to the front panel breadboard for wires to Control and AUX interrupts.
+  --- Plus ---
   + I2C +5V
   + I2C Ground
-  --- Plus ---
-  + 1 wire from the Mega pin 2 to the front panel breadboard. Then 2 wires to PCF8574 module interrupts for Control and AUX.
-
-  5 Mega pins to 74HC595 daisy chain, LED output,
-  + Mega pin A14 to 74HC595 14 Data pin.
-  + Mega pin A12 to 74HC595 12 Latch pin.
-  + Mega pin A11 to 74HC595 11 Clock pin.
-  --- Plus ---
-  + 2 wires for +5V and Ground to the front panel breadboard.
-
-  --------------------------------------------------------------------------------
-  +++ Map to ESP8266 ESP-12E NodeMCU pins, if can replace a Mega.
-  + Since not enough GPIO pins.
-
-  Interrupt pins: D0-D8.
-
-  ----------------------------
-  Label   GPIO Pin#
-  D0      16          
-  D1      05          PCF8574 input module interrupt
-  D2      04          I2C:SCL, clock DS3231, PCF8574 input modules
-  D3      00          I2C:SDA
-  D4(TX)  02          
-  ----------
-  3V      3v output   
-  G       Ground
-  ----------
-  D5      14          SD card: SCK
-  D6      12          SD card: MISO
-  D7(RX)  13          SD card: MOSI
-  Dx      xx          SD card: CS, online samples show using pin D1, D2, and D8.
-  ----------
-  D7(RX)  13          RX to MP3 player module, Serial1?
-  D8(TX)  15          TX to MP3 player module, Serial1?
-  ----------
-  RX      03          System uplod
-  TX      01          System uplod
-  G       Ground
-  3V      3v output
-  ----------------------------
 
   ---------------------------------------------
-  SD Card, SPI module pins,
-  + Pin 52 - SCK  : serial clock, SPI: accepts clock pulses which synchronize data transmission generated by Arduino.
-  + Pin 51 - MOSI : master out slave in, SPI: input to the Micro SD Card Module.
-  + Pin 50 - MISO : master in slave Out, SPI: output from the Micro SD Card Module.
-  ------------
-  + Pin 53 - CS   : chip/slave select (SS pin). Can be any digital pin to enable/disable this device on the SPI bus.
-  --- Plus ---
-  + Pin 5V+  - VCC  : can use 3.3V or 5V
-  + Pin GND  - GND  : ground
-
-  ---------------------------------------------
-  Connect the Mega to the MP3 player:
+  2 Mega pins to connect to the MP3 player,
   + Mega pin 18(RX) to player pin 3(TX)
   + Mega pin 19(TX) to external resister to player pin 2(RX)
+  --- Plus ---
+  + Independent separate power supply: +5V and ground.
+  
+  --------------------------------------------------------------------------------
+  ESP8266 ESP-12E NodeMCU cannot replace a Mega because not enough GPIO pins.
 
 */
 // -----------------------------------------------------------------------------

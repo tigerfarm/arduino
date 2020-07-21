@@ -8,38 +8,37 @@
   https://en.wikipedia.org/wiki/NodeMCU
 
   ESP8266 NodeMCU Features,
-  + Clock Speed: 80 MHz
-  + Operating Voltage: 3.3V
-  + Storage Flash Memory: 4 MB
-  + SRAM: 64 KB
+  + 80 MHz clock speed
+  + Operating voltage: 3.3V
+  + Storage flash memory: 4 MB, SRAM: 64 KB
   + 9 usable digital GPIO pins labeled: D0 to D8.
-  + Of the 9, 4 pins can be used for SPI.
-  + Of the 9, 2 pins can be used for I2C.
+  + Of the 9, 4 pins can be used for SPI, 2 pins for I2C.
   + Interrupt GPIO pins D0-D8.
-  + UART1, Serial1: D7(RX) and D8(TX).
   + Do not use the 6 pins: CLK, SD0, CMD, SD1, SD2, SD3 (GPIO 6-11), because they are in use. 
   + Tested: button input using D0-D02.
+  + Tested: blink LED using D0-D08. Out to a resister, to an LED, to ground.
+  + Need to test, UART1 (TX = GPIO2), Serial1 object: D4 or D7 and D8.
 
   NodeMCU
-  Label   Pin:GPIO
+  Label   GPIO pin#
   D0      16          GPIO read/write, only. May not have interrupt feature.
-  D1      5           Blinks LED.
+  D1      5           Digital GPIO.
   --------------------
-  D2      4           Blinks LED. Out to a resister, to an LED, to ground.
-  D3      0           Blinks LED.
+  D2      4           Digital GPIO. 
+  D3      0           Digital GPIO.
   ----------
   D2      4           I2C:SCL, clock DS3231, PCF8574 input modules
   D3      0           I2C:SDA
   ----------
-  D4(TX)  2           Built in, on board LED. UART1 (TX = GPIO2), use the Serial1 object.
+  D4(TX)  2           Built in, on board LED.
   ----------
   3V      3v output
   G       Ground
   --------------------
-  D5      14          Blinks LED.
-  D6      12          Blinks LED.
-  D7(RX)  13          Blinks LED. Works for input, for example, infrared receive.
-  D8(TX)  15          Blinks LED. Doesn't work for input, for example, infrared receive.
+  D5      14          Digital GPIO.
+  D6      12          Digital GPIO.
+  D7(RX)  13          Works for input, for example, infrared receive.
+  D8(TX)  15          Doesn't work for input, for example, infrared receive.
   ----------
   D5      14          SD card: SPI SCK
   D6      12          SD card: SPI MISO
