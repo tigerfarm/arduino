@@ -73,7 +73,7 @@ void setup() {
   int toencodeLength = sizeof(toencode);
   int encodedLength = Base64.encodedLength(toencodeLength);
   char encodedString[encodedLength];
-  Base64.encode(encodedString, toencode, toencodeLength-1);
+  Base64.encode(encodedString, toencode, toencodeLength-1);     // Note, "-1" is required, else authentication will fail.
   String astring = "Authorization: Basic ";
   String authstring = astring + encodedString;
   Serial.println("authstring = "+authstring);

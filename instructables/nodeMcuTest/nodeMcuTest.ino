@@ -51,9 +51,9 @@
   3V      3v output
   ------------------
 
-  Libaries,
-  + I installed IRremoteESP8266 version 2.6.3.
-  + I also have Arduino WiFi libary installed.
+  Libraries installed:
+  + Arduino WiFi library version 1.2.7.
+  + I installed IRremoteESP8266 version 2.6.3. Not required for this project.
 
   Interrupt sample:
     https://www.electronicwings.com/nodemcu/nodemcu-gpio-interrupts-with-arduino-ide
