@@ -20,6 +20,8 @@
   -----------------------------------------------------------------------------
   Work to do,
 
+  Timer OUT port that auto returns when the time is complete.
+
   Continue writing program and user documentation.
   + Consider creating an Open office document using the documentation in this program.
   + Or, create a GitHub Readme.cmd document file.
@@ -115,7 +117,7 @@
   syncCountWithClock()
   checkClockControls()
   -----
-  clockRunTimerControlsOut(theTimerMinute)    Called from OUT opcde.
+  clockRunTimerControlsOut(theTimerMinute, <true|false>)    Called from OUT opcde.
   checkTimerControls()
   -----
   checkAux2clock()            Toggle between modes: processor, clock, timer, and counter.
@@ -193,12 +195,6 @@
   +       006     Counter# 6 into register A.
   +       343 OUT <port#>
   +       031     Port# 25, enter counter mode.
-  ----------------------------------
-  + Increment a counter.
-  +       076 MVI A,<immediate value>
-  +       006     Counter# 6 into register A.
-  +       343 OUT <port#>
-  +       025     Port# 21, increment a counter.
   ----------------------------------
   + Play an MP3 file.
   +       MVI A,<file#>
@@ -341,30 +337,30 @@
   Modes: AUX switches for setting program modes,
   + Default mode is the Altair 8800 emulator processor mode.
   When in processor mode,
-  + AUX1 up     Toggle clock mode on.
-  + AUX1 Down   Toggle MP3 player mode on.
+  + AUX1 up     Enter clock mode.
+  + AUX1 Down   Enter MP3 player mode.
   + AUX2 up     Double flip to write processor memory to file.
-  + AUX2 Down   Read file into processor memory.
+  + AUX2 Down   Double flip to read a file of bytes into processor memory.
   When in clock mode,
   + AUX1 up     Enter processor mode.
-  + AUX1 Down   Toggle MP3 player mode on.
+  + AUX1 Down   Enter MP3 player mode.
   + AUX2 up     Enter timer mode.
   + AUX2 Down   Enter counter mode.
   When in clock timer mode,
   + AUX1 up     Enter processor mode.
-  + AUX1 Down   Toggle MP3 player mode on.
+  + AUX1 Down   Enter MP3 player mode.
   + AUX2 up     Enter clock mode.
   + AUX2 Down   Enter counter mode.
   When in player mode,
-  + AUX1 up     Toggle clock mode on.
-  + AUX1 Down   Toggle MP3 player mode off, return to processor mode.
+  + AUX1 up     Enter clock mode.
+  + AUX1 Down   Enter processor mode.
   + AUX2 up     Not implemented.
-  + AUX2 Down   Toggle player file mode to manage sound effect array values.
+  + AUX2 Down   Enter player file mode to manage sound effect array values.
   When in player file mode,
-  + AUX1 up     Toggle clock mode on.
+  + AUX1 up     Enter clock mode.
   + AUX1 Down   Not implemented.
   + AUX2 up     Not implemented.
-  + AUX2 Down   Toggle player file mode off, return to player mode.
+  + AUX2 Down   Enter MP3 player mode.
 
   ------------------------------------------------------------------------------
   Processor
@@ -743,7 +739,7 @@
   From OUT opcode (B11100011),
   + When timer is complete, what should happen?
   ++ Currently, each minute, it plays the timer completed MP3, which is a continuous reminder.
-  clockRunTimerControlsOut(getMinuteValue(regA));
+  clockRunTimerControlsOut(getMinuteValue(regA), <true|false>);
 
   When flipping EXAMINE,
   + If toogle address is greater than memory top (memoryTop), flash error instead of random values.
@@ -4128,7 +4124,16 @@ void processOpcodeData() {
 #ifdef LOG_MESSAGES
         Serial.print(F(", Run a timer for the number of minutes in register A."));
 #endif
-        clockRunTimerControlsOut(regA);
+        clockRunTimerControlsOut(regA, false);
+        opcode = 0;
+        programCounter++;
+        return;
+      }
+      if (dataByte == 27) {
+#ifdef LOG_MESSAGES
+        Serial.print(F(", Run a timer for the number of minutes in register A. Return when completed."));
+#endif
+        clockRunTimerControlsOut(regA, true);
         opcode = 0;
         programCounter++;
         return;
@@ -5799,15 +5804,20 @@ unsigned long clockTimerSeconds;
 boolean clockTimerSecondsOn = false;
 int clockTimerCountBit;
 
-void clockRunTimerControlsOut(int theTimerMinute) {
+void clockRunTimerControlsOut(int theTimerMinute, boolean ExitOnComplete) {
   // Can be called from processor OUT opcode.
   digitalWrite(HLDA_PIN, HIGH);
   timerMinute = theTimerMinute;
+  timerStatus = INP_ON;
   clockSetTimer(timerMinute);
   boolean thisMode = true;
   while (thisMode) {
     clockRunTimer();
     checkTimerControls();         // Clock and timer controls, No AUX controls.
+    if ((timerStatus & HLTA_ON) && ExitOnComplete) {
+      // Return when the timer is complete.
+      return;
+    }
     // ------------------------
     // AUX option to exit counter mode.
     if (pcfAux.readButton(pinAux2up) == 0) {
@@ -5828,6 +5838,7 @@ void clockSetTimer(int timerMinute) {
   // Set parameters before starting the timere.
   //    timerMinute is the amount of minutes to be timed.
   //
+  timerStatus = timerStatus & HLTA_OFF;
   timerStatus = timerStatus | M1_ON;  // Timer is running (M1_ON).
   clockTimer = millis();              // Initialize the clock timer milliseconds.
   clockTimerCount = 0;                // Start counting from 0. Timer is done when it equals timerMinute.
@@ -6067,8 +6078,6 @@ void checkTimerControls() {
   } else if (switchRun) {
     switchRun = false;
     // Switch logic
-    //
-    timerStatus = timerStatus & HLTA_OFF;
     //
     // Check if there are any timer array values set.
     int timerDataTotal = 0;
