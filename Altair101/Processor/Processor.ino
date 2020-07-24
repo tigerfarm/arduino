@@ -171,6 +171,8 @@
   + 1111    Start up program. Play MP3 while NOPs are processing,then HLT when the MP3 is finished.
   -----------------
   + 10000   Play an MP3 until complete. Flip STOP to end the play early.
+  + 10001   Play an MP3, loop and MP3, pause playing, re-start playing, play an MP3 until complete.
+  + 10100   Run timer and stay in timer mode. Then run timer to complete. Then a HLT opcode.
   -----------------
   + 10000000   (A15 switch) Current test program.
 
@@ -182,41 +184,11 @@
   + B11100011 343 OUT
   +       076 MVI A,<immediate value>
   ----------------------------------
-  +       343 OUT <port#>
-  +       012 10  Port# to play the MP3 file# in register A.
-  ++              If regA==0, pause the player
-  +       013 11  Port# to continuously (loop) play the MP3 file# in register A.
-  ++              If regA==0, pause the player
-  +       015 13  Port# to flash error light sequence.
-  +       052 42  Port# to flash success light sequence.
-  ----------------------------------
   + Enter counter mode and display counter value for counter index in register A.
   +       076 MVI A,<immediate value>
   +       006     Counter# 6 into register A.
   +       343 OUT <port#>
   +       031     Port# 25, enter counter mode.
-  ----------------------------------
-  + Play an MP3 file.
-  +       MVI A,<file#>
-  +       OUT 10   ; 10 is for single play.Use out 11 is for looping.
-  + Address:oct > description
-  +       0:076 > opcode: mvi a,2  : Set to play sound bite file, 0002.mp3.
-  +       1:002 > immediate: 2
-  +       2:343 > opcode: out 11   : 11 is for looping. 10 is for single play.
-  +       3:012 > immediate: 10
-  +       3:013 > immediate: 11
-  +       ... NOPs ...
-  ----------------------------------
-  + Play an MP3 file to completion before returning control.
-  + Allow, flip STOP, to exit early.
-  0       076 MVI A,<immediate value>
-  1       004         MP3 file#
-  2       343 OUT <port#>
-  3       014         Port# 12, play an MP3 file to completion.
-  4       166 HLT
-  5       303 JMP     Jump back to retry
-  6       000         LB:Address
-  7       000         HB:Address
   ----------------------------------
   + Turn off playing an MP3 file.
   0       076 MVI A,<immediate value>
