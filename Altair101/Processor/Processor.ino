@@ -4204,7 +4204,7 @@ void processOpcodeData() {
           }
           break;
         case 12:
-          Serial.print(F(" > Play MP3 and return when the playing is completed."));
+          Serial.print(F(" > Play MP3 to completion before moving to the opcode."));
           mp3playerPlaywait(regA);
           break;
         // ---------------------------------------
