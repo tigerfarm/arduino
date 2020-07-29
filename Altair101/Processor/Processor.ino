@@ -20,6 +20,9 @@
   -----------------------------------------------------------------------------
   Work to do,
 
+  When flipping AUX2 down to exit counter mode and go to clock mode,
+  + the previous time is displayed, but the current time should be displayed.
+
   Continue writing user documentation.
   + Consider creating an OpenOffice document using the documentation in this program.
   + Or, create a GitHub Readme.cmd document file.
