@@ -20,10 +20,8 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  Timer OUT port that auto returns when the time is complete.
-
-  Continue writing program and user documentation.
-  + Consider creating an Open office document using the documentation in this program.
+  Continue writing user documentation.
+  + Consider creating an OpenOffice document using the documentation in this program.
   + Or, create a GitHub Readme.cmd document file.
 
   Continue writing opcode test programs.
@@ -31,6 +29,19 @@
   Consider, for player, using A0 to A15 as the volume level. Each flip is value 2 on the volume scale.
   + The song value would be displayed in the Data lights.
 
+  --------------
+  STOP+RESET to cause a halt similar to control-C to stop a program.
+  
+  Need an exit from program that goes into counter mode loop.
+  + Senario: program loop that makes a call to go into counter mode.
+  ++ Can exit counter mode, but without a HLT in the program, it goes right back into counter mode.
+  ++ Need to reboot to exit the program.
+  + Combination of STOP+RESET to cause a halt (HLT),
+  ++ If in counter mode, exit into program wait state. 
+  + Flip AUX2 to exit counter mode, and continue running the program.
+  + Flip STOP+RESET to exit counter mode, and put the program in wait state (HLT).
+
+  --------------
   Generate videos.
   + Done: Steampunk tablet running Kill the Bit.
   + Run NOP program without and with a sound bite.
@@ -196,60 +207,6 @@
   2       343 OUT <port#>
   3       012       Port# 10, single play.
   4       166 HLT
-  ----------------------------------
-  + Test turn on and off the playing of MP3 files.
-          ------------
-  0       076 MVI A,<immediate value>
-  1       377       Value to turn pause off, turn start on, of playing MP3 files.
-  2       343 OUT <port#>
-  3.1     012 10 is for single play.
-  3.2     013 11 is for looping.
-          ------------
-  4       076 MVI A,<MP3 file#>
-  5       015        MP3 file#
-  6       343 OUT <port#>
-  7       012 10 is for single play.
-  8       000 NOP
-  ...
-  35      000 NOP                               Loop a sound.
-  36      166 HLT
-          ------------
-          076 MVI A,<MP3 file#>
-          003        MP3 file#
-          343 OUT <port#>
-          013 11 is for looping.
-          000 NOP
-  ...
-  64      000 NOP
-          166 HLT
-          000 NOP                              Loop sound continues.
-  ...
-  96      000 NOP
-          166 HLT
-          ------------
-          076 MVI A,0
-          000       Pause any playing MP3.
-          343 OUT <port#>
-          012 10 is for single play.
-          000 NOP                              Loop sound off.
-  ...
-  128     000 NOP
-          ------------
-          166 HLT
-          303 JMP                              Jump back to 0, the start.
-          000
-          000
-  ----------------------------------
-  Timer program.
-          333 IN SENSE_SW
-          377     immediate: SENSE_SW : 255
-          343 OUT <port#>
-          024 20  Port# 20, run time, the number of minutes in register A.
-          ------------
-          166 HLT
-          303 JMP Jump to 0.
-          000
-          000
   ----------------------------------
   Timer program.
           ------------
@@ -719,15 +676,6 @@
   --------------
   Clock currently requires an LCD to set the time.
   + I should add inc/dec hours and minutes using toggles. This would also work for my other clock.
-
-  --------------
-  Need an exit from program that goes into counter mode.
-  + Senario: program loop that makes a call to go into counter mode.
-  ++ Can exit counter mode, but without a HLT in the program, it goes right back into counter mode.
-  ++ Need to reboot to exit the program.
-  + Maybe a combination, STOP + AUX2.
-  + Flip AUX2 to exit counter mode, and continue running the program.
-  + Flip STOP + AUX2 to exit counter mode, and put the program in wait state.
 
   --------------
   + Implement a processor error function, such as:

@@ -71,8 +71,9 @@ Name       Processor   Operating/Input  CPU   Analog  Digital  EEPROM  SRAM  Fla
                         Voltage        Speed  In/Out  IO/PWM    [kB]   [kB]  [kB]
 Uno        ATmega328P  5 V / 7-9 V     16 MHz   6/0   14/6        1      2    32   Regular  1
 Nano       ATmega328P  5 V / 7-9 V     16 MHz   8/0   14/6        1      2    32   Mini     1
-Mega 2560  ATmega2560  5 V / 7-12 V    16 MHz  16/0   54/15       4      8   256   Regular  4
+Mega 2560  ATmega2560  5 V / 7-12 V    16 MHz  16/0   54/15       4      8   256   Square   4
 Due        ATSAM3X8E   3.3 V / 7-12 V  84 MHz  12/2   54/12       -     96   512   Micro    4
+NodeMCU    ESP8266     3.3 V / 7-12 V  80 MHz   1/0    9/9      512     64     4   Mini     2
 Blue Pill  STM32L0 ARM® 2.6V ~ 3.6V    72 MHz                           20    64
 ````
 
