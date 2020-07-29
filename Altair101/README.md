@@ -18,7 +18,8 @@ and an MP3 player and external amp to play sounds and music.
 The project started late October 2019 after seeing an Altair 8800 as a background prop in the UK TV series, IT Crowd.
 It re-sparked my interest. Online, I found information on the Altair 8800 and that there were a number of clones.
 I began with a studying the videos.
-The [first video](https://www.youtube.com/watch?v=suyiMfzmZKs) was a great intro to using an Altair.
+The [first video](https://www.youtube.com/watch?v=suyiMfzmZKs) was a great intro to using the Altair front panel.
+I could follow what he was talking about. I wanted to try it.
 
 There was video of the 8-Bit Guy talking about what his dream computer machine would be.
 It had some great tips: keep what was enjoyable from the past and update with the modern components to avoid the difficulties of the past.

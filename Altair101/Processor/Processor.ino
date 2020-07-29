@@ -6465,7 +6465,8 @@ void checkAux2clock() {
 #endif
       clockState = CLOCK_TIME;
       digitalWrite(WAIT_PIN, LOW);
-      displayTheTime(theCounterMinutes, theCounterHours);
+      processClockNow();
+      // displayTheTime(theCounterMinutes, theCounterHours);
     }
   }
   // -----------------------
@@ -6497,7 +6498,8 @@ void checkAux2clock() {
 #endif
       clockState = CLOCK_TIME;
       digitalWrite(WAIT_PIN, LOW);
-      displayTheTime(theCounterMinutes, theCounterHours);
+      processClockNow();
+      // displayTheTime(theCounterMinutes, theCounterHours);
     }
   }
 }
