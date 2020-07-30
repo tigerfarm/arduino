@@ -26,10 +26,6 @@
 
   Continue writing opcode test programs.
 
-  Consider, for player, using A0 to A15 as the volume level.
-  + Each flip is value 2 on the volume scale.
-  + When odd, show 2 values.
-
   --------------
   STOP+RESET to cause a halt similar to control-C to stop a program.
 
@@ -558,8 +554,8 @@
   MP3 Player mode, runPlayer(),
   + MP3 addressable files is 255.
   -----------
-  + Address       Displays the song number that is playing.
-  + Data          Displays the volume.
+  + Data          Displays the song number that is playing.
+  + Address       Displays the volume using A0 to A15 as the volume level.
   + Status        M1   : Loop single MP3 is on.
   + Status        OUT  : On indicates player mode, since HLDA is on as well.
   + Status        HLTA : pause, light is on, else off.
@@ -1000,8 +996,18 @@ const byte PL_OFF =    B11111011;
 
 void playerLights() {
   // Convert playerVolume into A0 to A15 lights.
+  // If playerVolume is even
+  //  playerVolumeAddress = playerVolume/2
+  // Else odd, show both lower and upper.
+  //  5/2 = 2 Show 2 and 3.
+  //  6/2 = 3 Show only 3.
+  //  7/2 = 3 Show 3 and 4.
   unsigned int playerVolumeAddress = 0;
-  playerVolumeAddress = bitWrite(playerVolumeAddress, playerVolume/2, 1);
+  byte playerVolumePosition = playerVolume / 2;
+  if ((playerVolumePosition * 2) != playerVolume) {
+    playerVolumeAddress = bitWrite(playerVolumeAddress, playerVolumePosition + 1, 1);
+  }
+  playerVolumeAddress = bitWrite(playerVolumeAddress, playerVolumePosition, 1);
   lightsStatusAddressData(playerStatus, playerVolumeAddress, playerCounter);
 }
 
