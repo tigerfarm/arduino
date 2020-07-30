@@ -20,27 +20,25 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  When flipping AUX2 down to exit counter mode and go to clock mode,
-  + the previous time is displayed, but the current time should be displayed.
-
   Continue writing user documentation.
   + Consider creating an OpenOffice document using the documentation in this program.
   + Or, create a GitHub Readme.cmd document file.
 
   Continue writing opcode test programs.
 
-  Consider, for player, using A0 to A15 as the volume level. Each flip is value 2 on the volume scale.
-  + The song value would be displayed in the Data lights.
+  Consider, for player, using A0 to A15 as the volume level.
+  + Each flip is value 2 on the volume scale.
+  + When odd, show 2 values.
 
   --------------
   STOP+RESET to cause a halt similar to control-C to stop a program.
-  
+
   Need an exit from program that goes into counter mode loop.
   + Senario: program loop that makes a call to go into counter mode.
   ++ Can exit counter mode, but without a HLT in the program, it goes right back into counter mode.
   ++ Need to reboot to exit the program.
   + Combination of STOP+RESET to cause a halt (HLT),
-  ++ If in counter mode, exit into program wait state. 
+  ++ If in counter mode, exit into program wait state.
   + Flip AUX2 to exit counter mode, and continue running the program.
   + Flip STOP+RESET to exit counter mode, and put the program in wait state (HLT).
 
@@ -784,9 +782,11 @@
   + Mega pin 19(TX) to external resister to player pin 2(RX)
   --- Plus ---
   + Independent separate power supply: +5V and ground.
-  
+
   --------------------------------------------------------------------------------
   ESP8266 ESP-12E NodeMCU cannot replace a Mega because not enough GPIO pins.
+
+  bitWrite(write to, which bit to write, bit value to write)
 
 */
 // -----------------------------------------------------------------------------
@@ -999,7 +999,10 @@ const byte CL_OFF =    B11111101;
 const byte PL_OFF =    B11111011;
 
 void playerLights() {
-  lightsStatusAddressData(playerStatus, playerCounter, playerVolume);
+  // Convert playerVolume into A0 to A15 lights.
+  unsigned int playerVolumeAddress = 0;
+  playerVolumeAddress = bitWrite(playerVolumeAddress, playerVolume/2, 1);
+  lightsStatusAddressData(playerStatus, playerVolumeAddress, playerCounter);
 }
 
 // Front panel display light values:
@@ -6465,8 +6468,8 @@ void checkAux2clock() {
 #endif
       clockState = CLOCK_TIME;
       digitalWrite(WAIT_PIN, LOW);
-      processClockNow();
-      // displayTheTime(theCounterMinutes, theCounterHours);
+      syncCountWithClock();
+      displayTheTime(theCounterMinutes, theCounterHours);
     }
   }
   // -----------------------
@@ -6498,8 +6501,8 @@ void checkAux2clock() {
 #endif
       clockState = CLOCK_TIME;
       digitalWrite(WAIT_PIN, LOW);
-      processClockNow();
-      // displayTheTime(theCounterMinutes, theCounterHours);
+      syncCountWithClock();
+      displayTheTime(theCounterMinutes, theCounterHours);
     }
   }
 }

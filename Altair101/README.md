@@ -24,7 +24,7 @@ I could follow what he was talking about. I wanted to try it.
 There was video of the 8-Bit Guy talking about what his dream computer machine would be.
 It had some great tips: keep what was enjoyable from the past and update with the modern components to avoid the difficulties of the past.
 Not only is a great design concept, it's practical philosophy for everything.
-Building the 8-Bit Guy's dream computer [Part I](https://www.youtube.com/watch?v=ayh0qebfD2g) and
+Here are the videos about the 8-Bit Guy's dream computer [Part I](https://www.youtube.com/watch?v=ayh0qebfD2g) and
 [Part II](https://www.youtube.com/watch?v=sg-6Cjzzg8s)
 
 What I liked about the Altair 8800:
