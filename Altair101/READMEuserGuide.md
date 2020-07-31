@@ -27,9 +27,9 @@ This document is for users to run and manage an Altair 101 computer.
 ````
 + Manage the playing of MP3 files.
 ````
-[MP3 Player Files](#MP3-Player-Files):
+[MP3 Player Sound Effects](#MP3-Player-Sound-Effects):
 ````
-+ Manage the playing of MP3 files for sound effect such as flipping switches to change modes.
++ Manage the playing of MP3 files for sound effects such as a beep when flipping switches to change modes.
 ````
 
 ##### Mode Front Panel Indicator Lights
@@ -409,7 +409,7 @@ Mode function: runPlayer().
 + AUX2 down     Player file mode.
 ````
 ------------------------------------------------------------------------------
-MP3 Player File
+### MP3 Player Sound Effects
 
 #### Front Panel Lights and Toggles
 
@@ -446,26 +446,10 @@ Mode function: checkPlayerFileControls().
 + AUX2 up       Not implemented.
 + AUX2 down     Return to player mode.
 ````
-### USER GUIDE
+### User Guide for MP3 Player Sound Effect Files
 
-Steps to update MP3 files into the Altair 101.
+##### Actions that have sound effects,
 ````
------------
-Remove the Altair 101 SD MP3 card and put it into the MacBook.
-Run Applications/Utilities/Disk Utility.app
-Select the SD card, example: MUSICSD.
-Select option, Erase.
-Set, Name: MUSICSD, Format: MS-DOS (FAT).
-Click Erase. Click Done. Close the Disk Utility.
-Copy MP3 files into a working directory, for example: mp3player0.
-Create an empty directory, for example: mp3player1.
-Use mp3player.jar to copy files from the working directory into the empty directory,
-$ java -jar mp3player.jar copy mp3player0 mp3player1
-Copy the prepared file onto the clean SD card.
-Put the card back into the Altair 101.
-
----------------------------------
-Actions that have sound effects,
 + Constant          Array index value. Value is a file name. Value 1, is filename: 0001.mp3.
   int READ_FILE       = 1;
   int TIMER_COMPLETE  = 2;
@@ -476,7 +460,9 @@ Actions that have sound effects,
   int KR5             = 5;
   int CLOCK_CUCKOO    = 6;
   int TIMER_MINUTE    = 7;
-To hear which sound effect matches action, do the following.
+````
+##### Steps to hear which sound effect matches action:
+````
 + Flip AUX1 down to put the computer in player mode.
 + Flip AUX2 down to put the computer in player file mode.
 + Flip the address switches to match the above number of the array index.
@@ -490,6 +476,21 @@ To hear which sound effect matches action, do the following.
 Notes,
 + If data byte is zero, no sound file assigned.
 + Search for "soundEffects", to get the above action list of sound effect constants and array index values.
+````
+##### Steps to update MP3 files into the Altair 101.
+````
+Remove the Altair 101 SD MP3 card and put it into the MacBook.
+Run Applications/Utilities/Disk Utility.app
+Select the SD card, example: MUSICSD.
+Select option, Erase.
+Set, Name: MUSICSD, Format: MS-DOS (FAT).
+Click Erase. Click Done. Close the Disk Utility.
+Copy MP3 files into a working directory, for example: mp3player0.
+Create an empty directory, for example: mp3player1.
+Use mp3player.jar to copy files from the working directory into the empty directory,
+$ java -jar mp3player.jar copy mp3player0 mp3player1
+Copy the prepared file onto the clean SD card.
+Put the card back into the Altair 101.
 ````
 
 ------------------------------------------------------------------------------
