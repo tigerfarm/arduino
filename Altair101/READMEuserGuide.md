@@ -6,7 +6,7 @@ This document is for users to run and manage an Altair 101 computer.
 ------------------------------------------------------------------------------
 ## User Guide Sections
 
-[Startup Initialization](#Startup-Initialization): initialize components and show the status.
+[Startup Initialization](#Startup-Initialization): initialize components and show the status during reboot.
 
 [Processor](#Processor): Manage processor memory.
 Manage the running of programs.
@@ -23,6 +23,9 @@ Manage the running of programs.
 Manage which MP3 files are played for each sound effect, such as a beep when flipping switches to change modes.
 
 [Documentation](#Documentation): development documentation rather than user guide.
+
+[Assembly programing](asm/README.md#how-to-assemble-and-run-programs-on-the-altair-101):
+Steps to assemble, upload, and run an assembler program is in another document.
 
 ##### Front Panel Indicator Mode Lights
 ````
@@ -86,38 +89,43 @@ Else,
 ````
 -----------
 + Status        Current instruction cycle status.
-+ Data          Data byte at the programCounter address.
-+ Address       ProgramCounter value.
-+ Indicator     WAIT : On when program is not running. Off when program is running.
++ Data          Data byte at the current program counter address.
++ Address       Current program counter value.
++ Indicator     WAIT : On, when program is not running. Off, when program is running.
 + Indicator     HLDA : Off.
 -----------
-+ STOP          Pause running of a program, exist run mode and enter wait mode.
-+ RUN           Run the program in processor memory, from the programCounter address. Enter run mode.
++ STOP          Pause running of a program: exist run mode and enter wait mode.
++ RUN           Run the program in processor memory, from the program counter address. Enter run mode.
 + SINGLE up     Run one machine instruction cycle at a time.
-+ SINGLE dn     Display the previous address and address data byte, programCounter - 1.
-+ EXAMINE       1. Use the Address switches to set the address.
-                  2.1 Flip EXAMINE sets the programCounter to address toggles.
++ SINGLE down   Display the previous address and address data byte, program counter - 1.
++ EXAMINE       Examine a data byte at the specified address.
+                  1. Use the Address switches to set the address.
+                  2.1 Flip EXAMINE sets the program counter to address toggles.
                   2.2 Display the address in the address lights.
                   2.3 Display the address data byte in the data lights.
-+ EXAMINE NEXT  Display the next address and address data byte: programCounter + 1.
++ EXAMINE NEXT  Display the next address and address data byte: program counter + 1.
 + DEPOSIT       Deposit Data switch values into the current address.
 + DEPOSIT NEXT  Deposit Data switch values into the next address.
-+ RESET         Set the programCounter to zero, and display the zero address and address data byte.
++ RESET         Set the program counter to zero, and display the zero address and address data byte.
 + CLR           Double flip to set processor memory to zeros, and program counter to 0.
 + PROTECT       If wait mode, decrease MP3 player volume.
 + UNPROTECT     If wait mode, increase MP3 player volume.
-+ AUX1 up       Clock mode: show hour and mintues time.
++ AUX1 up       Clock mode: show hour and minutes time.
 + AUX1 down     MP3 player mode
-+ AUX2 up       1. Write to file: Use the Sense switches to set an SD drive program filename.
++ AUX2 up       Write processor memory to the SD card.
+                  1. Set the Sense switches to program filename.
                   2. Double flip the switch. WAIT and HLDA indicators are on.
-                  3. Write processor memory to SD drive.
-+ AUX2 down     1. Set the Sense switches to 0, or to an SD drive program filename value.
+                  3. Write processor memory to SD drive program filename.
++ AUX2 down     Read SD card file bytes into processor memory.
+                  1. Set the Sense switches to an SD drive program filename value.
                   2. Double flip the switch.
-                  2.1 If Sense switches are all down (off), enter receive mode. HLDA indicator is on.
-                  2.1.1 Wait to receive bytes from the serial port.
-                  2.1.2 Once downloaded, control returns back to the processor.
-                  2.1,3 If nothing to download, hit RESET to exit download mode.
-                  2.2 Else, read file bytes into processor memory.
+                  3. Read file bytes into processor memory.
++ AUX2 down     Enter receive mode to receive bytes into processor memory from the serial port.
+                  1. Set the Sense switches to 0, or to an SD drive program filename value.
+                  2. Double flip the switch.
+                  3. Enter receive mode. HLDA indicator light is on.
+                  4. Wait to receive bytes from the serial port. Flip RESET to exit receive mode.
+                  5. Once downloaded, control automatically returns back to the processor.
 ````
 -----------
 ### Download from the Serial Port
