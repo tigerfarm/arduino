@@ -51,7 +51,23 @@ Else,
 ````
 
 ------------------------------------------------------------------------------
-##### Mode Lights
+## Computer Component Modes
+
+Processor:
++ Manage processor memory.
++ Manage the running of programs.
+Clock:
++ Display time and date.
+Clock Timer:
++ Set and run timers.
+Clock Counter:
++ Manage counters that are stored on the SD card.
+Player:
++ Manage the playing of MP3 files.
+Player files:
++ Manage the playing of MP3 files for sound effect such as flipping switches to change modes.
+
+##### Mode Front Panel Indicator Lights
 ````
 Processor:      WAIT:ON/OFF HLDA:OFF  MEMR, MI, WO
 Clock:          WAIT:OFF    HLDA:ON   Displays the time of day minutes and hours
@@ -60,7 +76,7 @@ Clock Counter:  WAIT:ON     HLDA:ON
 Player:         WAIT:OFF    HLDA:ON
 Player files:   WAIT:ON     HLDA:ON
 ````
-#### Modes Selection
+#### Mode Selection
 
 AUX switches for setting program modes.
 ````
@@ -92,9 +108,9 @@ When in player file mode,
 + AUX2 Down   Enter MP3 player mode.
 ````
 ------------------------------------------------------------------------------
-### Processor
+## Processor
 
-#### Front Panel Lights and Toggles
+#### Front Panel Lights and Toggles Functions
 ````
 -----------
 + Status        Current instruction cycle status.
@@ -132,7 +148,7 @@ When in player file mode,
                   2.2 Else, read file bytes into processor memory.
 ````
 -----------
-#### Download from Serial Port
+### Download from the Serial Port
 
 #### Front Panel Lights and Toggles
 ````
@@ -152,14 +168,6 @@ Serial port mode function: runDownloadProgram().
 
 ### User Guide of Processor Tasks
 
-MP3 player options,
-+ OUT 10 or 11 with regA=B00000000, pause the player. Don't start when RUN is flipped.
-+ OUT 10 or 11 with regA=B11111111, start the player. Also, start when RUN is flipped.
-+ OUT 10 or 11 with regA > 0,
-++ Set processorPlayerCounter=regA, play/loop the MP3. Also, start when RUN is flipped.
-+ STOP, mp3player.pause();
-+ RUN, if (processorPlayerLoop) mp3player.start()
-
 How to save a program to the SD card.
 + Set the Sense switches to the file number value.
 + Double flip AUX2 up to confirm and write processor memory to file.
@@ -171,6 +179,15 @@ How to load and run a program from the SD card.
 
 How to assemble, upload, and run an assembler program.
 ++ See Project: Altair101/asm/README.md
+
+MP3 player options,
++ OUT 10 or 11 with regA=B00000000, pause the player. Don't start when RUN is flipped.
++ OUT 10 or 11 with regA=B11111111, start the player. Also, start when RUN is flipped.
++ OUT 10 or 11 with regA > 0,
+++ Set processorPlayerCounter=regA, play/loop the MP3. Also, start when RUN is flipped.
++ STOP, mp3player.pause();
++ RUN, if (processorPlayerLoop) mp3player.start()
+
 ````
 --------------
 Inputs:
