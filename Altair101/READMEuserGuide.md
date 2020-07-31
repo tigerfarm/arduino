@@ -6,12 +6,12 @@ This document is for users to run and manage an Altair 101 computer.
 ------------------------------------------------------------------------------
 ## Computer Component Modes
 
-[Processor](Processor):
+[Processor](#Processor):
 ````
 + Manage processor memory.
 + Manage the running of programs.
 ````
-[Clock](Clock):
+[Clock](#Clock):
 ````
 + Display time and date.
 
