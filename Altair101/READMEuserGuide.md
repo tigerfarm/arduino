@@ -5,18 +5,25 @@ This document is for users to run and manage an Altair 101 computer.
 
 ------------------------------------------------------------------------------
 ## Computer Component Modes
+
+[Processor](Processor):
 ````
-Processor:
 + Manage processor memory.
 + Manage the running of programs.
-Clock:
+````
+[Clock](Clock):
+````
 + Display time and date.
+
 Clock Timer:
 + Set and run timers.
+
 Clock Counter:
 + Manage counters that are stored on the SD card.
+
 Player:
 + Manage the playing of MP3 files.
+
 Player files:
 + Manage the playing of MP3 files for sound effect such as flipping switches to change modes.
 ````
@@ -199,11 +206,12 @@ Debug messages
 --------------
 ````
 ------------------------------------------------------------------------------
-### Clock, runClock()
+### Clock
 
 #### Front Panel Lights and Toggles
 + Start by showing the time of day hours and minutes.
 + To do: If clock timer mode was set, return to timer mode or reset timer mode values.
++ Function: runClock().
 ````
 -----------
 Clock mode,
