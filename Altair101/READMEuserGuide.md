@@ -4,7 +4,9 @@
 This document is for users to run and manage an Altair 101 computer.
 
 ------------------------------------------------------------------------------
-## Computer Component Modes
+## User Guide Sections
+
+[Startup Initialization](#Startup-Initialization): initialize components and show the status.
 
 [Processor](#Processor): Manage processor memory.
 Manage the running of programs.
@@ -20,33 +22,9 @@ Manage the running of programs.
 [MP3 Player Sound Effects](#MP3-Player-Sound-Effects): 
 Manage which MP3 files are played for each sound effect, such as a beep when flipping switches to change modes.
 
-[Processor](#Processor):
-````
-+ Manage processor memory.
-+ Manage the running of programs.
-````
-[Clock](#Clock):
-````
-+ Display time and date.
-````
-[Clock Timer](#Clock-Timer):
-````
-+ Set and run timers.
-````
-[Clock Counter](#Clock-Counter):
-````
-+ Manage counters that are stored on the SD card.
-````
-[MP3 Player](#MP3-Player):
-````
-+ Manage the playing of MP3 files.
-````
-[MP3 Player Sound Effects](#MP3-Player-Sound-Effects):
-````
-+ Manage which MP3 files are played for each sound effect, such as a beep when flipping switches to change modes.
-````
+[Documentation](#Documentation): development documentation rather than user guide.
 
-##### Mode Front Panel Indicator Lights
+##### Front Panel Indicator Mode Lights
 ````
 Processor:      WAIT:ON/OFF HLDA:OFF
 Clock:          WAIT:OFF    HLDA:ON
@@ -57,7 +35,9 @@ Player files:   WAIT:ON     HLDA:ON
 ````
 
 ------------------------------------------------------------------------------
-## Startup Initialization and System Check, setup()
+## Startup Initialization
+
+Initialization and system check function: setup().
 
 ### Initialization User Guide
 
