@@ -33,7 +33,7 @@ Else,
 ````
 ### Initialization User Guide
 
-To set a startup program to run on reboot:
+##### To set a startup program to run on reboot:
 ````
 + Enter your program into the processor's memory. Run and test.
 + Set all Data switches down.
@@ -41,7 +41,7 @@ To set a startup program to run on reboot:
 ````
 Now, 00000000.bin has your program. The program will run on reboot.
 
-To remove a startup program from running:
+##### To remove a startup program from running:
 ````
 + Flip CLR twice to clear the processor's memory.
 + Set all Data switches down.
