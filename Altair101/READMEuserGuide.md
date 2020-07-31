@@ -8,8 +8,9 @@ Component additions to the emulator:
 + A clock module to display the current time and date on the front panel lights.
 
 ------------------------------------------------------------------------------
-## Startup initialization and system check, setup()
+## Startup Initialization and System Check, setup()
 
+Initialization sequence during reboot.
 ````
 + Init LCD, if using one.
 + Front panel toggle switches and PCF modules settings initialized.
@@ -30,6 +31,24 @@ Else,
 -----------
 + programLights();// Uses: statusByte, curProgramCounter, dataByte
 ````
+### Initialization User Guide
+
+To set a startup program to run on reboot:
+````
++ Enter your program into the processor's memory. Run and test.
++ Set all Data switches down.
++ Flip AUX2 up twice to write the processor's memory to 00000000.bin.
+````
+Now, 00000000.bin has your program. The program will run on reboot.
+
+To remove a startup program from running:
+````
++ Flip CLR twice to clear the processor's memory.
++ Set all Data switches down.
++ Flip AUX2 up twice to write the processor's memory to 00000000.bin.
+````
+Now, 00000000.bin is all zeros. No program will run on reboot.
+
 ------------------------------------------------------------------------------
 ##### Mode Lights
 ````

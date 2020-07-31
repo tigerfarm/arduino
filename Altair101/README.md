@@ -15,6 +15,12 @@ an SD card module to save and load program memory,
 a real time clock which is used when displaying the time and date,
 and an MP3 player and external amp to play sounds and music.
 
+--------------------------------------------------------------------------------
+My [steps](READMEhistory.md) to build the machine.
+
+[User guide](READMEuserGuide.md) to use the machine.
+
+--------------------------------------------------------------------------------
 The project started late October 2019 after seeing an Altair 8800 as a background prop in the UK TV series, IT Crowd.
 It re-sparked my interest. Online, I found information on the Altair 8800 and that there were a number of clones.
 I began with a studying the videos.
@@ -62,11 +68,6 @@ I had started with a Nano for unit testing. Due to pin and memory requirements I
 + Then I started to use it. Debugging and software enhancement were a daily task.
 
 Now I have a desktop machine I use on a daily bases.
-
---------------------------------------------------------------------------------
-My [steps](READMEhistory.md) to build the machine.
-
-[User guide](READMEuserGuide.md) to use the machine.
 
 --------------------------------------------------------------------------------
 Since my Altair 101 development machine is working properly, I can show my steampunk tablet to the world.
