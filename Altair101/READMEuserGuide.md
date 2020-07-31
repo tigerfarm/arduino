@@ -291,7 +291,7 @@ Mode function: clockRunTimer().
 + AUX2 Down     Toggle clock timer mode off, return to clock mode.
 ````
 #### Clock Mode User Guide
-````
+
 Set and run a clock Timer,
 + Must be in clock mode.
 + Flip AUX2 toggle up to enter clock timer mode.
@@ -327,7 +327,7 @@ Run a sequence of timer values,
 ++ Timer array index is displayed in the Data lights (D0 is on).
 ++ Timer array value is displayed in the Address lights(A3:3 minutes).
 + Flip RUN, and the timer starts.
-````
+
 ------------------------------------------------------------------------------
 ### Clock Counter
 
@@ -447,8 +447,9 @@ Mode function: checkPlayerFileControls().
 + AUX2 down     Return to player mode.
 ````
 ### USER GUIDE
-````
+
 Steps to update MP3 files into the Altair 101.
+````
 -----------
 Remove the Altair 101 SD MP3 card and put it into the MacBook.
 Run Applications/Utilities/Disk Utility.app
