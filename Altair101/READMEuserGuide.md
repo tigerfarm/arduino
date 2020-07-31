@@ -19,7 +19,7 @@ This document is for users to run and manage an Altair 101 computer.
 ````
 + Set and run timers.
 ````
-[Clock Counter](#ClockCounter):
+[Clock Counter](#Clock-Counter):
 ````
 + Manage counters that are stored on the SD card.
 ````
@@ -291,7 +291,7 @@ Mode function: clockRunTimer().
 + AUX2 Down     Toggle clock timer mode off, return to clock mode.
 ````
 #### Clock Mode User Guide
-
+````
 Set and run a clock Timer,
 + Must be in clock mode.
 + Flip AUX2 toggle up to enter clock timer mode.
