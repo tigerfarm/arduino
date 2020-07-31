@@ -4,7 +4,7 @@
 
   This is an Altair 8800 emulator program that runs on an Arduino Mega microcontroller.
   Component additions to the emulator:
-  + Micro SD card module for reading and writting program and data files.
+  + Micro SD card module for reading and writing program and data files.
   + An MP3 player controlled by using the front panel toggles with the lights displaying status.
   + A clock module to display the current time and date on the front panel lights.
 
@@ -21,8 +21,7 @@
   Work to do,
 
   Continue writing user documentation.
-  + Consider creating an OpenOffice document using the documentation in this program.
-  + Or, create a GitHub Readme.cmd document file.
+  + Create a GitHub Readme.cmd document file.
 
   Continue writing opcode test programs.
 
