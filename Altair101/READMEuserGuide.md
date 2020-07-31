@@ -150,7 +150,7 @@ How to load and run a program from the SD card.
 + Flip RUN, to start the program running from program counter 0.
 
 How to assemble, upload, and run an assembler program.
-+ See Project: [Altair101/asm/README.md](asm/README.md)
++ See Project: [Altair101/asm/README.md](asm/README.md#how-to-assemble-and-run-programs-on-the-altair-101)
 
 MP3 player options,
 + OUT 10 or 11 with regA=B00000000, pause the player. Don't start when RUN is flipped.
