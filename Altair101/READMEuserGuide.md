@@ -15,7 +15,7 @@ This document is for users to run and manage an Altair 101 computer.
 ````
 + Display time and date.
 ````
-[Clock Timer](#ClockTimer):
+[Clock Timer](#Clock-Timer):
 ````
 + Set and run timers.
 ````
@@ -23,11 +23,11 @@ This document is for users to run and manage an Altair 101 computer.
 ````
 + Manage counters that are stored on the SD card.
 ````
-[MP3 Player](#MP3Player):
+[MP3 Player](#MP3-Player):
 ````
 + Manage the playing of MP3 files.
 ````
-[MP3 Player Files](#MP3PlayerFiles):
+[MP3 Player Files](#MP3-Player-Files):
 ````
 + Manage the playing of MP3 files for sound effect such as flipping switches to change modes.
 ````
