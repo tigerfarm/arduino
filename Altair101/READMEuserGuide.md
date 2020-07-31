@@ -94,24 +94,27 @@ Else,
 + Indicator     WAIT : On, when program is not running. Off, when program is running.
 + Indicator     HLDA : Off.
 -----------
-+ STOP          Pause running of a program: exist run mode and enter wait mode.
-+ RUN           Run the program in processor memory, from the program counter address. Enter run mode.
-+ SINGLE up     Run one machine instruction cycle at a time.
-+ SINGLE down   Display the previous address and address data byte, program counter - 1.
-+ EXAMINE       Examine a data byte at the specified address.
-                  1. Use the Address switches to set the address.
-                  2.1 Flip EXAMINE sets the program counter to address toggles.
-                  2.2 Display the address in the address lights.
-                  2.3 Display the address data byte in the data lights.
-+ EXAMINE NEXT  Display the next address and address data byte: program counter + 1.
-+ DEPOSIT       Deposit Data switch values into the current address.
-+ DEPOSIT NEXT  Deposit Data switch values into the next address.
++ STOP          Pause running of a program: exist RUN mode and enter WAIT mode.
++ RUN           Enter run mode and run the processor memory program from the program counter address.
++ RESET         If in RUN mode, set the program counter to zero and continue running from there.
+
+If in WAIT mode, do the following.
++ SINGLE up     Run one machine instruction cycle.
++ SINGLE down   Decrement the program counter and display the program counter address and the data byte at that address.
++ EXAMINE       Examine a data byte specified bye Address toggles.
+                  1. Use the Address toggles to set the address.
+                  2. Flip EXAMINE sets the program counter to Address toggles.
+                  3. Display the address in the Address lights.
+                  4. Display the address data byte in the Data lights.
++ EXAMINE NEXT  Increment the program counter and display the program counter address and the data byte at that address.
++ DEPOSIT       Deposit Data toggle values into the current address.
++ DEPOSIT NEXT  Increment the program counter and deposit Data toggle values into the program counter address.
 + RESET         Set the program counter to zero, and display the zero address and address data byte.
-+ CLR           Double flip to set processor memory to zeros, and program counter to 0.
-+ PROTECT       If wait mode, decrease MP3 player volume.
-+ UNPROTECT     If wait mode, increase MP3 player volume.
-+ AUX1 up       Clock mode: show hour and minutes time.
-+ AUX1 down     MP3 player mode
++ CLR           Double flip to set processor memory to zeros and set program counter to 0.
++ PROTECT       Decrease MP3 player volume.
++ UNPROTECT     Increase MP3 player volume.
++ AUX1 up       Enter Clock mode: show the time: hours and minutes.
++ AUX1 down     Enter MP3 player mode
 + AUX2 up       Write processor memory to the SD card.
                   1. Set the Sense switches to program filename.
                   2. Double flip the switch. WAIT and HLDA indicators are on.
