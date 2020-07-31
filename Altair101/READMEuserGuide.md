@@ -15,16 +15,16 @@ This document is for users to run and manage an Altair 101 computer.
 ````
 + Display time and date.
 
-Clock Timer:
+[Clock Timer](#ClockTimer):
 + Set and run timers.
 
-Clock Counter:
+[Clock Counter](#ClockCounter):
 + Manage counters that are stored on the SD card.
 
-Player:
+[MP3 Player](#MP3Player):
 + Manage the playing of MP3 files.
 
-Player files:
+[MP3 Player Files](#MP3PlayerFiles):
 + Manage the playing of MP3 files for sound effect such as flipping switches to change modes.
 ````
 ##### Mode Front Panel Indicator Lights
@@ -238,9 +238,11 @@ Clock mode,
 + AUX2 Down     Toggle clock timer mode on.
 ````
 ------------------------------------------------------------------------------
-### Clock Timer Mode, clockRunTimer()
+### Clock Timer
 
 #### Front Panel Lights and Toggles
+
+Mode function: clockRunTimer().
 ````
 + Status        INP  : Timer indicator, ready for timer value input.
 + Status        M1   : Timer running.
@@ -322,9 +324,11 @@ Run a sequence of timer values,
 + Flip RUN, and the timer starts.
 ````
 ------------------------------------------------------------------------------
-### Clock Counter mode, clockCounterControls()
+### Clock Counter
 
 #### Front Panel Lights and Toggles
+
+Mode function: clockCounterControls().
 ````
 First time entering counter mode: display 0 Address and Data values in the lights.
 + Status        MEMR  : Counter indicator.
@@ -365,9 +369,11 @@ View and set a counter file value,
 + Flip DEPOSIT writes the data byte to the counter address file.
 
 ------------------------------------------------------------------------------
-### MP3 Player mode, runPlayer(),
+### MP3 Player
 
 #### Front Panel Lights and Toggles
+
+Mode function: runPlayer().
 ````
 + MP3 addressable files is 255.
 -----------
@@ -398,9 +404,11 @@ View and set a counter file value,
 + AUX2 down     Player file mode.
 ````
 ------------------------------------------------------------------------------
-Player file mode, checkPlayerFileControls()
+MP3 Player File
 
 #### Front Panel Lights and Toggles
+
+Mode function: checkPlayerFileControls().
 ````
 -----------
 + Status        MEMR : Player file mode indicator.
