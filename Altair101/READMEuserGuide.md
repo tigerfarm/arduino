@@ -56,14 +56,19 @@ Else,
 Processor:
 + Manage processor memory.
 + Manage the running of programs.
+
 Clock:
 + Display time and date.
+
 Clock Timer:
 + Set and run timers.
+
 Clock Counter:
 + Manage counters that are stored on the SD card.
+
 Player:
 + Manage the playing of MP3 files.
+
 Player files:
 + Manage the playing of MP3 files for sound effect such as flipping switches to change modes.
 
