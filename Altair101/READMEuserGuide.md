@@ -52,66 +52,31 @@ Else,
 
 ------------------------------------------------------------------------------
 ## Computer Component Modes
-
+````
 Processor:
 + Manage processor memory.
 + Manage the running of programs.
-
 Clock:
 + Display time and date.
-
 Clock Timer:
 + Set and run timers.
-
 Clock Counter:
 + Manage counters that are stored on the SD card.
-
 Player:
 + Manage the playing of MP3 files.
-
 Player files:
 + Manage the playing of MP3 files for sound effect such as flipping switches to change modes.
-
+````
 ##### Mode Front Panel Indicator Lights
 ````
-Processor:      WAIT:ON/OFF HLDA:OFF  MEMR, MI, WO
-Clock:          WAIT:OFF    HLDA:ON   Displays the time of day minutes and hours
+Processor:      WAIT:ON/OFF HLDA:OFF
+Clock:          WAIT:OFF    HLDA:ON
 Clock Timer:    WAIT:ON     HLDA:ON
 Clock Counter:  WAIT:ON     HLDA:ON
 Player:         WAIT:OFF    HLDA:ON
 Player files:   WAIT:ON     HLDA:ON
 ````
-#### Mode Selection
 
-AUX switches for setting program modes.
-````
-+ Default mode is the Altair 8800 emulator processor mode.
-When in processor mode,
-+ AUX1 up     Enter clock mode.
-+ AUX1 Down   Enter MP3 player mode.
-+ AUX2 up     Double flip to write processor memory to file.
-+ AUX2 Down   Double flip to read a file of bytes into processor memory.
-When in clock mode,
-+ AUX1 up     Enter processor mode.
-+ AUX1 Down   Enter MP3 player mode.
-+ AUX2 up     Enter timer mode.
-+ AUX2 Down   Enter counter mode.
-When in clock timer mode,
-+ AUX1 up     Enter processor mode.
-+ AUX1 Down   Enter MP3 player mode.
-+ AUX2 up     Enter clock mode.
-+ AUX2 Down   Enter counter mode.
-When in player mode,
-+ AUX1 up     Enter clock mode.
-+ AUX1 Down   Enter processor mode.
-+ AUX2 up     Not implemented.
-+ AUX2 Down   Enter player file mode to manage sound effect array values.
-When in player file mode,
-+ AUX1 up     Enter clock mode.
-+ AUX1 Down   Not implemented.
-+ AUX2 up     Not implemented.
-+ AUX2 Down   Enter MP3 player mode.
-````
 ------------------------------------------------------------------------------
 ## Processor
 
@@ -507,9 +472,43 @@ To hear which sound effect matches action, do the following.
 Notes,
 + If data byte is zero, no sound file assigned.
 + Search for "soundEffects", to get the above action list of sound effect constants and array index values.
-
-------------------------------------------------------------------------------
 ````
 
+------------------------------------------------------------------------------
+## Documentation
+
+More for development rather than user guide.
+
+#### Mode Selection
+
+AUX switches for setting program modes.
+````
++ Default mode is the Altair 8800 emulator processor mode.
+When in processor mode,
++ AUX1 up     Enter clock mode.
++ AUX1 Down   Enter MP3 player mode.
++ AUX2 up     Double flip to write processor memory to file.
++ AUX2 Down   Double flip to read a file of bytes into processor memory.
+When in clock mode,
++ AUX1 up     Enter processor mode.
++ AUX1 Down   Enter MP3 player mode.
++ AUX2 up     Enter timer mode.
++ AUX2 Down   Enter counter mode.
+When in clock timer mode,
++ AUX1 up     Enter processor mode.
++ AUX1 Down   Enter MP3 player mode.
++ AUX2 up     Enter clock mode.
++ AUX2 Down   Enter counter mode.
+When in player mode,
++ AUX1 up     Enter clock mode.
++ AUX1 Down   Enter processor mode.
++ AUX2 up     Not implemented.
++ AUX2 Down   Enter player file mode to manage sound effect array values.
+When in player file mode,
++ AUX1 up     Enter clock mode.
++ AUX1 Down   Not implemented.
++ AUX2 up     Not implemented.
++ AUX2 Down   Enter MP3 player mode.
+````
 --------------------------------------------------------------------------------
 Cheers
