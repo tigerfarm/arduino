@@ -20,6 +20,8 @@
   -----------------------------------------------------------------------------
   Work to do,
 
+  WHen running a timer, D0 should be on, indicating default running of a timer.
+
   Continue writing user documentation.
   + Create a GitHub Readme.cmd document file.
 
@@ -226,17 +228,13 @@
   ------------------------------------------------------------------------------
   Current/Next Work
 
-  From OUT opcode (B11100011),
-  + When timer is complete, what should happen?
-  ++ Currently, each minute, it plays the timer completed MP3, which is a continuous reminder.
-  clockRunTimerControlsOut(getMinuteValue(regA), <true|false>);
-
   When flipping EXAMINE,
   + If toogle address is greater than memory top (memoryTop), flash error instead of random values.
 
   --------------
-  Clock currently requires an LCD to set the time.
-  + I should add inc/dec hours and minutes using toggles. This would also work for my other clock.
+  Add inc/dec hours and minutes using toggles to set the time and date.
+  + This would also work for my other clock.
+  + I have code that use an LCD to set the time and date.
 
   --------------
   + Implement a processor error function, such as:
@@ -262,9 +260,6 @@
   + Seems to be a CALL opcode issue.
   + If byte count over 276, characters no longer are displayed.
   + Fails at the address: 00010100 (276)
-
-  Now, can set the LCD backlight as on when prompting, and reset after.
-  + LCD backlight on/off status boolean: LcdBacklight.
 
   ---------------------------------------------
   Desktop Box:

@@ -3,6 +3,10 @@
 
 This document is for users to run and manage an Altair 101 computer.
 
+https://handler.twilio.com/twiml/EH484602f04d206773c5c1f0a49ac895ed
+
+https://handler.twilio.com/twiml/EH484602f04d206773c5c1f0a49ac895ed
+
 ------------------------------------------------------------------------------
 ## User Guide Sections
 
@@ -99,13 +103,14 @@ Else,
 + RESET         If in RUN mode, set the program counter to zero and continue running from there.
 
 If in WAIT mode, do the following.
+
 + SINGLE up     Run one machine instruction cycle.
-+ SINGLE down   Decrement the program counter and display the program counter address and the data byte at that address.
-+ EXAMINE       Examine a data byte specified bye Address toggles.
++ SINGLE down   Decrement the program counter and display the program counter address and data byte.
++ EXAMINE       Examine a data byte specified by the Address toggles.
                   1. Use the Address toggles to set the address.
                   2. Flip EXAMINE sets the program counter to Address toggles.
-                  3. Display the address in the Address lights.
-                  4. Display the address data byte in the Data lights.
+                  3. Displays the address in the Address lights.
+                  4. Displays the address data byte in the Data lights.
 + EXAMINE NEXT  Increment the program counter and display the program counter address and the data byte at that address.
 + DEPOSIT       Deposit Data toggle values into the current address.
 + DEPOSIT NEXT  Increment the program counter and deposit Data toggle values into the program counter address.
@@ -143,7 +148,7 @@ If in WAIT mode, do the following.
 + Indicator     WAIT : Off.
 + Indicator     HLDA : On.
 -----------
-+ RESET         Exit download mode.
++ RESET         Exit download mode, return to processor WAIT mode.
 
 --------------
 Serial port mode function: runDownloadProgram().
@@ -157,64 +162,12 @@ How to save a program to the SD card.
 
 How to load and run a program from the SD card.
 + Set the Sense switches to the file number value.
-+ Flip AUX2 down. File bytes are read into processor memory. LED ligts flash success with a sound bite message.
++ Flip AUX2 down. File bytes are read into processor memory. LED lights flash success with a sound bite message.
 + Flip RUN, to start the program running from program counter 0.
 
 How to assemble, upload, and run an assembler program.
 + See Project: [Altair101/asm/README.md](asm/README.md#how-to-assemble-and-run-programs-on-the-altair-101)
 
-MP3 player options,
-+ OUT 10 or 11 with regA=B00000000, pause the player. Don't start when RUN is flipped.
-+ OUT 10 or 11 with regA=B11111111, start the player. Also, start when RUN is flipped.
-+ OUT 10 or 11 with regA > 0,
-++ Set processorPlayerCounter=regA, play/loop the MP3. Also, start when RUN is flipped.
-+ STOP, mp3player.pause();
-+ RUN, if (processorPlayerLoop) mp3player.start()
-
-````
---------------
-Inputs:
-+ dataByte == 000, regA = 0;              // Input is not implemented on this port.
-+ dataByte == 001, regA = hwStatus;       // hwStatus = 0, a number to indicate a hardware issue.
-+ dataByte == 255, regA = toggleSense();
-+ Else, input port not implimented: error.
-
---------------
-Outputs:
---------------
-Terminal
-+ dataByte == 3, Serial terminal output of the contents of register A :"));
-++ asciiChar = regA; Serial.print(asciiChar);
---------------
-LCD
-+ dataByte == 1, Print register A value to the LCD module.
-++ regA == 0, lcdBacklight( false );     // LCD back light off.
-++ regA == 1, lcdBacklight( true );      // LCD back light on.
-++ regA == 2, lcdClearScreen();
-++ regA == 3, lcdSplash();
-++ else, char charA = regA; lcdPrintChar((String)charA);
---------------
-MP3 Player
-+ dataByte == 10, mp3player.play(regA); // Play once, the MP3 file named in register A.
-+ dataByte == 11, mp3player.loop(regA); // Play in a loop, the MP3 file named in register A.
---------------
-Flash light messages
-+ dataByte == 13, 015oct Error happened, flash the LED light error sequence.
-+ dataByte == 42, 052oct Success happened, flash the LED light success sequence.
---------------
-Debug messages
-+ dataByte == 30, printData(regB);
-+ dataByte == 31, printData(regC);
-+ dataByte == 32, printData(regD);
-+ dataByte == 33, printData(regE);
-+ dataByte == 34, printData(regH);
-+ dataByte == 35, printData(regL);
-+ dataByte == 36, Print data at H:L address: Serial.print(memoryData[regH * 256 + regL]);
-+ dataByte == 37, printData(regA);
-+ dataByte == 38, printRegisters();
-+ dataByte == 39, printRegisters(); printOther();
---------------
-````
 ------------------------------------------------------------------------------
 ### Clock
 
@@ -233,8 +186,10 @@ Clock mode,
 -----------
 + STOP          Not implemented.
 + RUN           Not implemented.
-+ SINGLE up     1) month and day, 2) year, 3) Return to show time of day: hour and minutes
-+ SINGLE dn     Not implemented.
++ SINGLE up     1) First flip, show month and day.
+                2) Next flip, show: year.
+                3) Next flip, return to show time of day: hour and minutes.
++ SINGLE down   Not implemented.
 + EXAMINE       To do: Select the flashing date or time value.
 + EXAMINE NEXT  To do: Move through time and date values, making the selected value flash.
 + DEPOSIT       To do: After selecting and inc/dec a value, set the value.
@@ -242,7 +197,7 @@ Clock mode,
 + RESET         Knight Rider sounds and lights, then show time of day.
 + PROTECT       Decrease MP3 player volume. To do: Decrement value to set.
 + UNPROTECT     Increase MP3 player volume. To do: Increment value to set.
-+ AUX1 Up       Toogle clock mode off, return to processor mode.
++ AUX1 Up       Toggle clock mode off, return to processor mode.
 + AUX1 down     MP3 player mode
 + AUX2 up       Toggle clock counter mode.
 + AUX2 Down     Toggle clock timer mode on.
@@ -254,46 +209,49 @@ Clock mode,
 
 Mode function: clockRunTimer().
 ````
-+ Status        INP  : Timer indicator, ready for timer value input.
+-----------
+Clock timer mode,
++ Status        INP  : Timer indicator, ready to input timer value.
 + Status        M1   : Timer running.
 + Status        HLTA : Timer run is completed.
-+ Address       Displays the timer minite: A1 ... A15. And flashing counter minute when running.
++ Address       Displays the timer minute: A1 ... A15. And flashing counter minute when running.
 + Data          If using an array of times, displays which array time is running.
 + Indicator     WAIT : On.
 + Indicator     HLDA : On, non-processor mode, clock timer mode.
 -----------
 + STOP          Stop clock timer.
-+ RUN           1. Set the timer minutes using the address toggles: A1 is 1 minute, A2 is 2 minutes, ... 15 minutes.
-                  2. To do: Start the timer using the timer minutes value.
++ RUN           Run a timer sequence.
+                1. Set the timer minutes using the address toggles: A1 is 1 minute, A2 is 2, ... A15 is 15.
+                2. To do: Start the timer using the timer minutes value.
 + SINGLE up     Not implemented.
-+ SINGLE dn     Not implemented.
++ SINGLE down   Not implemented.
 + EXAMINE       1. Set Address toggles to timer array value.
-                  2. Flip EXAMINE.
-                  3. Timer array index is displayed in the Data lights.
-                  4. Timer array value is displayed in the Address lights: A1:1 minute, ..., A15:15 minutes.
+                2. Flip EXAMINE.
+                3. Timer array index is displayed in the Data lights.
+                4. Timer array value is displayed in the Address lights: A1:1 minute, ..., A15:15 minutes.
 + EXAMINE NEXT  1. Timer array index is incremented.
-                  2. Timer array index is displayed in the Data lights.
-                  3. Timer array value is displayed in the Address lights: A1:1 minute, ..., A15:15 minutes.
+                2. Timer array index is displayed in the Data lights.
+                3. Timer array value is displayed in the Address lights: A1:1 minute, ..., A15:15 minutes.
 + DEPOSIT       1. Set Address lights to timer array value: A1:1 minute, ..., A15:15 minutes.
-                  2. Flip DEPOSIT.
-                  3. Timer value is displayed in the Address lights.
-                  4. Timer array counter value is displayed in the Data lights.
-                  5. Timer array value is stored into the timer array at the array counter value.
+                2. Flip DEPOSIT.
+                3. Timer value is displayed in the Address lights.
+                4. Timer array counter value is displayed in the Data lights.
+                5. Timer array value is stored into the timer array at the array counter value.
 + DEPOSIT NEXT  1. Set Address lights to timer array value: A1:1 minute, ..., A15:15 minutes.
-                  2. Flip DEPOSIT NEXT.
-                  3. Timer array index is incremented.
-                  4. Timer array index is displayed in the Data lights.
-                  5. Timer array value is displayed in the Address lights.
-                  6. Timer time value is stored into the memory array, at the incremented array index value.
+                2. Flip DEPOSIT NEXT.
+                3. Timer array index is incremented.
+                4. Timer array index is displayed in the Data lights.
+                5. Timer array value is displayed in the Address lights.
+                6. Timer time value is stored into the memory array, at the incremented array index value.
 + RESET         1. Set timer array index to 1.
-                  2. Timer array index is displayed in the Data lights.
-                  3. Timer array value is displayed in the Address lights.
-+ PROTECT       Decrease MP3 player volume. To do: Decrement value to set.
-+ UNPROTECT     Increase MP3 player volume. To do: Increment value to set.
-+ AUX1 Up       Toogle clock mode off, return to processor mode.
+                2. Timer array index is displayed in the Data lights.
+                3. Timer array value is displayed in the Address lights.
++ PROTECT       Decrease MP3 player volume.
++ UNPROTECT     Increase MP3 player volume.
++ AUX1 Up       Toggle clock mode off, return to processor mode.
 + AUX1 down     MP3 player mode
-+ AUX2 up       Not implemented.
-+ AUX2 Down     Toggle clock timer mode off, return to clock mode.
++ AUX2 up       Enter clock mode.
++ AUX2 Down     Enter clock counter mode.
 ````
 #### Clock Mode User Guide
 
@@ -340,6 +298,8 @@ Run a sequence of timer values,
 
 Mode function: clockCounterControls().
 ````
+-----------
+Clock counter mode,
 First time entering counter mode: display 0 Address and Data values in the lights.
 + Status        MEMR  : Counter indicator.
 + Status        STACK : Counter indicator.
@@ -502,6 +462,67 @@ Put the card back into the Altair 101.
 ## Documentation
 
 More for development rather than user guide.
+
+#### Processor program options.
+
+From OUT opcode (B11100011), when timer's time is complete,
+clockRunTimerControlsOut(getMinuteValue(regA), <true|false>);
++ Plays the timer completed MP3.
++ If true to return when completed, return to process the next opcode.
++ If false to return when completed, play the timer completed MP3 each minute as a continuous reminder.
+
+MP3 player options,
++ OUT 10 or 11 with regA=B00000000, pause the player. Don't start when RUN is flipped.
++ OUT 10 or 11 with regA=B11111111, start the player. Also, start when RUN is flipped.
++ OUT 10 or 11 with regA > 0,
+++ Set processorPlayerCounter=regA, play/loop the MP3. Also, start when RUN is flipped.
++ STOP, mp3player.pause();
++ RUN, if (processorPlayerLoop) mp3player.start()
+
+````
+--------------
+Inputs:
++ dataByte == 000, regA = 0;              // Input is not implemented on this port.
++ dataByte == 001, regA = hwStatus;       // hwStatus = 0, a number to indicate a hardware issue.
++ dataByte == 255, regA = toggleSense();
++ Else, input port not implimented: error.
+
+--------------
+Outputs:
+--------------
+Terminal
++ dataByte == 3, Serial terminal output of the contents of register A :"));
+++ asciiChar = regA; Serial.print(asciiChar);
+--------------
+LCD
++ dataByte == 1, Print register A value to the LCD module.
+++ regA == 0, lcdBacklight( false );     // LCD back light off.
+++ regA == 1, lcdBacklight( true );      // LCD back light on.
+++ regA == 2, lcdClearScreen();
+++ regA == 3, lcdSplash();
+++ else, char charA = regA; lcdPrintChar((String)charA);
+--------------
+MP3 Player
++ dataByte == 10, mp3player.play(regA); // Play once, the MP3 file named in register A.
++ dataByte == 11, mp3player.loop(regA); // Play in a loop, the MP3 file named in register A.
+--------------
+Flash light messages
++ dataByte == 13, 015oct Error happened, flash the LED light error sequence.
++ dataByte == 42, 052oct Success happened, flash the LED light success sequence.
+--------------
+Debug messages
++ dataByte == 30, printData(regB);
++ dataByte == 31, printData(regC);
++ dataByte == 32, printData(regD);
++ dataByte == 33, printData(regE);
++ dataByte == 34, printData(regH);
++ dataByte == 35, printData(regL);
++ dataByte == 36, Print data at H:L address: Serial.print(memoryData[regH * 256 + regL]);
++ dataByte == 37, printData(regA);
++ dataByte == 38, printRegisters();
++ dataByte == 39, printRegisters(); printOther();
+--------------
+````
 
 #### Mode Selection
 
