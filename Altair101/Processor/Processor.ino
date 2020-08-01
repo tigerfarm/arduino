@@ -20,7 +20,7 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  WHen running a timer, D0 should be on, indicating default running of a timer.
+  When running a timer, D0 should be on, indicating default running of a timer.
 
   Continue writing user documentation.
   + Create a GitHub Readme.cmd document file.
