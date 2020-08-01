@@ -14,6 +14,7 @@ https://handler.twilio.com/twiml/EH484602f04d206773c5c1f0a49ac895ed
 
 [Processor](#Processor): Manage processor memory.
 Manage the running of programs.
+[Download](#Download-from-the-Serial-Port) a program from the Serial Port.
 
 [Clock](#Clock): Display time and date.
 
@@ -27,7 +28,6 @@ Manage the running of programs.
 Manage which MP3 files are played for each sound effect, such as a beep when flipping switches to change modes.
 
 [Documentation](#Documentation): development documentation rather than user guide.
-
 [Assembly programing](asm/README.md#how-to-assemble-and-run-programs-on-the-altair-101):
 Steps to assemble, upload, and run an assembler program is in another document.
 
