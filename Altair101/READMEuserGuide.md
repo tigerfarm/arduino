@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 # Altair 101 Computer User Guide
 
-This document is for users to run and manage an Altair 101 computer.
+This document is a guide for users to run and manage an Altair 101 computer.
 
 ------------------------------------------------------------------------------
 ## User Guide Sections
