@@ -1,11 +1,9 @@
 --------------------------------------------------------------------------------
 # Writing Altair 101 Assembler Programs
 
-I have moved into the program development stage.
 I wrote an assembler program that runs my laptop. It assembles source programs into machine byte code.
-Then, I use the assembler to upload the code to the dev machine over a serial port.
-The dev machine receives the code and loads it into the emulator's memory where it can run.
-The emulator program can display program output messages on my laptop in the Arduino IDE serial monitor.
+Then, I use the assembler to upload the code to the Altair 101 machine over a serial port.
+The machine receives the code and loads it into the emulator's memory.
 
 My first programs are to test, study, and demonstrate the implemented Intel 8080/8085 opcodes.
 I have also started to develop programs to demonstrate the Altair 101 abilities.
@@ -119,26 +117,26 @@ opInx.asm               INX : Increment a register pair: B:C, D:E, H:L.
 opImmediate.asm         Using various types of immediate values, with various opcodes.
 ````
 
-## Background Development
+--------------------------------------------------------------------------------
+## Background Development Stages
 
-During the first early phase, programs were hard coded bytes in a memory array, in the processor program, Processor.ino.
+In the first phase, programs were hard coded bytes in a memory array of the processor program: Processor.ino.
 
 My first test program, a jump loop.
 ````
 // Define a jump loop program byte array.
 byte jumpLoopProgram[] = {
-                    // Memory address:
-  0303, 0006, 0000, // 0 1 2
-  0000, 0000, 0000, // 3 4 5
-  0303, 0000, 0000  // 6 7 8
+  // Program bytes: // Memory address:
+  0303, 0006, 0000, // 0 1 2 Jump to address 6.
+  0000, 0000, 0000, // 3 4 5 NOPs
+  0303, 0000, 0000  // 6 7 8 Jump to address 0.
 };
 ````
+The first program proved my basic program structure.
+I could next add more opcodes and improve the fundamental program.
 
-In the second phase, I began writing assembler commands beside the byte arrays.
-This sped up my program development.
-I also began using program labels, my first assembler directive.
-
-I complied sample programs into the file, ProcessorPrograms.md.
+I began writing assembler commands beside the byte array values.
+This sped up my program development and gave structure to my assembler programs as I was re-learner to write assembler programs.
 ````
 // Define a jump loop program byte array.
 byte jumpLoopProgram[] = {
@@ -149,32 +147,32 @@ byte jumpLoopProgram[] = {
 };
 ````
 
+I began storing sample programs into ProcessorPrograms.md.
+
 It was slow and difficult to write simple programs.
 Re-adjusting jumps was a major issue without labels.
 I needed an assembler program. But I couldn't find one online.
+I began writing an assembler program to convert assembler programs into byte arrays.
 
-In the third phase, this phase, I'm writing an assembler program to convert assembler programs into byte arrays.
-I then copy the assembler output, the byte arrays, into the Altair 101 process program, Processor.ino.
-I run the assembled program in the processor program where I further debug:
+I would copy the byte array output into the processor program, Processor.ino.
+The Arduino IDE would compile the Processor.ino program and upload it to the Arduino board.
+I ran the assembled array program where I further debugged:
 + The assembler program,
-+ How the processor program processes opcodes,
++ The running of the opcodes in the processor program,
 + And debug the assembler program itself.
 
-As the third phase ends, I'm enter the program development phase.
-The assembler program has become reliable and complete enough for me to write the programs I want to write.
-Rather than debugging the processor or assembler programs,
-I write programs to study and test the capabilities and uses of each opcode.
-This leads to the writing of programs to demonstrate the capabilities of the Altair 101.
+When the assembler program was reliable enough, I changed to output machine code bytes into a file, no longer into an array.
+I added a serial module to the Altair 101.
+I added an upload function to the assembler program and a download function to the processor program.
+This allows writing and assembling on the laptop.
+Then upload the bytes into the Altair 101 program memory.
+The Altair 101 would then run the program.
+Optionally I could store the program into an SD card file.
+Later, I could load the program from the card and run it.
 
-The program development phase will include the ability to upload byte programs to the 101.
-The new steps will be:
-+ Write assembler programs on my laptop.
-+ Assemble the programs into a byte code file; no longer using byte array output.
-+ Use a new serial program (in development) to upload the byte file to the processor.
-+ The Altair 101 processor can then run the program, and optionally, store the program into a file for future use.
-
---------------------------------------------------------------------------------
-## Program notes
+Now, I write programs to study and test the capabilities and uses of each opcode.
+And, I write programs to demonstrate the capabilities of the Altair 101.
+Today, I wrote a program to play MP3 files when the machine boots.
 
 --------------------------------------------------------------------------------
 Cheers

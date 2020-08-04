@@ -17,10 +17,21 @@
     https://deramp.com/altair_8800c.html
   The Altair 8800c is hardware re-build. I using programing emulation mostly.
 
+  Program philosophy goals:
+  + Funcational.
+  + Runs fast enough for satisfactory interactivity.
+  + Easy to read code.
+  + Program in a single file.
+  
   -----------------------------------------------------------------------------
   Work to do,
 
-  When running a timer, D0 should be on, indicating default running of a timer.
+  Flash an LED when receiving uploaded bytes.
+
+  When running a default one run timer, D0 should be on.
+  + When a default timer completes, it advances to D1.
+  ++ Default needs to stay at D0 when complete?
+  + Test/update for timer array, which should start at 2 which is D1?
 
   Continue writing user documentation.
   + Create a GitHub Readme.cmd document file.
@@ -28,7 +39,7 @@
   Continue writing opcode test programs.
 
   --------------
-  STOP+RESET to cause a halt similar to control-C to stop a program.
+  STOP+RESET to cause a halt similar to control-C to stop a UNIX program.
 
   Need an exit from program that goes into counter mode loop.
   + Senario: program loop that makes a call to go into counter mode.
@@ -42,10 +53,15 @@
   --------------
   Generate videos.
   + Done: Steampunk tablet running Kill the Bit.
-  + Run NOP program without and with a sound bite.
-  + Emulate Star Trek computer using, Kill the Bit flashing lights and playing a Star Trek computer sound bite.
+  + Emulate Star Trek computer
+  ++ Run NOP program without and with a sound bite.
+  ++ Run Kill the Bit flashing lights.
+  ++ Run Kill the Bit flashing lights and playing a Star Trek computer teletype sound bite.
+  + Demo toggle memory management.
+  ++ Processor
+  ++ Counter
   + Demo entering and running the following program:
-     ; Add content of address 1 and 3, and store the answer in address 64.
+  ++ ; Add content of address 1 and 3, and store the answer in address 64.
   ++ Address:oct > description
   ++       0:076 > opcode: mvi a,2
   ++       1:002 > immediate: 2 : 2
@@ -4214,9 +4230,17 @@ void doDownloadProgram() {
   byte readByte = 0;
   int readByteCount = 0;      // Count the downloaded bytes that are entered into processor memory.
   unsigned long timer;        // Indicator used to identify when download has ended.
+  boolean flashWaitOn = false;
   boolean downloadStarted = false;
   while (programState == SERIAL_DOWNLOAD) {
     if (serial2.available() > 0) {
+      if (flashWaitOn) {
+        digitalWrite(WAIT_PIN, HIGH);
+        flashWaitOn = false;
+      } else {
+        digitalWrite(WAIT_PIN, LOW);
+        flashWaitOn = true;
+      }
       if (!downloadStarted) {
         downloadStarted = true;
         readStatusByte = readStatusByte & WO_OFF;   // Now writing to processor memory.
@@ -4254,6 +4278,7 @@ void doDownloadProgram() {
       programState = PROGRAM_WAIT;
       readStatusByte = readStatusByte | WO_ON;   // Done writing to processor memory.
       Serial.println("+ Download complete.");
+      digitalWrite(WAIT_PIN, LOW);
     }
     // -----------------------------------------------
     // Flip RESET to exit download mode, if decided not to wait for download.
@@ -5282,9 +5307,9 @@ void restoreLcdScreenData() {
 
 const int timerTop = 8;
 unsigned int timerData[timerTop];
-unsigned int timerCounter = 0;
+unsigned int timerCounter = 1;      // Which is D0, default.
 unsigned int timerDataAddress = 0;
-byte timerStatus = INP_ON;         // Clock timer is ready for timer value input.
+byte timerStatus = INP_ON;          // Clock timer is ready for timer value input.
 byte timerStep = 0;
 unsigned int timerMinute = 0;
 unsigned int clockTimerAddress = 0;
@@ -5300,6 +5325,7 @@ void clockRunTimerControlsOut(int theTimerMinute, boolean ExitOnComplete) {
   digitalWrite(HLDA_PIN, HIGH);
   timerMinute = theTimerMinute;
   timerStatus = INP_ON;
+  timerCounter = 1;
   clockSetTimer(timerMinute);
   boolean thisMode = true;
   while (thisMode) {
@@ -5578,7 +5604,7 @@ void checkTimerControls() {
     if (timerDataTotal == 0) {
       // Since no timer array values set, use quick timer option.
       timerMinute = getMinuteValue(toggleAddress());
-      timerCounter = 0;
+      timerCounter = 1; // Which is D0, default.
     } else {
       timerMinute = getMinuteValue(timerData[timerCounter]);
     }
@@ -6025,6 +6051,9 @@ void checkAux2clock() {
       Serial.println(F("+ AUX2 up. Enter clock timer mode."));
 #endif
       clockState = CLOCK_TIMER;
+      if (timerCounter == 0) {
+        timerCounter = 1;
+      }
       digitalWrite(WAIT_PIN, HIGH);
       lightsStatusAddressData(timerStatus, timerDataAddress, timerCounter);
     } else {
