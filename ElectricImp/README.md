@@ -4,28 +4,16 @@
 --------------------------------------------------------------------------------
 ## Electric Imp Notes
 
-Twilio library, includes Send an SMS.
-https://developer.electricimp.com/libraries/webservices/twilio
+[Twilio library](https://developer.electricimp.com/libraries/webservices/twilio),
+includes Send an SMS.
 
 --------------------------------------------------------------------------------
-You saw Hugo's presentation at R&D All hands and you said I want to try that. 
-You clicked the link and now you're here asking to be sent one.
-
-Start here to learn more what the kit does here 
-https://developer.electricimp.com/hardware/resources/reference-designs/explorerkit
-
-Once you receive the hardware this is a good place to start for getting it connected to your account and your wifi network (Note: This kit uses the imp001 module which is restricted to 2.4GHz wi-fi only)
-https://developer.electricimp.com/gettingstarted
-
-Thanks!
-Your response has been recorded. We will contact you as soon as possible. You may always contact us directly at 213-746-7272 for faster service. 
 
 --------------------------------------------------------------------------------
 ### Links
 
 [Getting started guide](https://developer.electricimp.com/gettingstarted/generic),
 which I went through to initialize my device and developer environment.
-
 
 My device is an
 Electric Imp [impExplorer Kit](https://developer.electricimp.com/hardware/resources/reference-designs/explorerkit)
@@ -36,20 +24,17 @@ LPS22HB     Air pressure                0xB8        LPS22HB.class.nut
 LIS2DH12    Motion in three axes        0x32*       LIS3DH.class.nut
 ````
 
-Language intro:
-https://developer.electricimp.com/squirrel/squirrel-guide/introduction
+[API](https://developer.electricimp.com/api)
+[Libraries](https://developer.electricimp.com/integrations)
+[Language intro](https://developer.electricimp.com/squirrel/squirrel-guide/introduction)
 
-API:
-https://developer.electricimp.com/api
+[User Guide](https://developer.electricimp.com/tools/impcentral/impcentralintroduction)
 
-Libraries:
-https://developer.electricimp.com/integrations
+[Sample code](https://developer.electricimp.com/examples)
 
-User Guide:
-https://developer.electricimp.com/tools/impcentral/impcentralintroduction
+##### Documents
 
-Sample code:
-https://developer.electricimp.com/examples
+[I2C](https://developer.electricimp.com/api/hardware/i2c)
 
 --------------------------------------------------------------------------------
 ## Program Samples
