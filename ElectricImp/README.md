@@ -61,13 +61,14 @@ Sample output:
 2020-08-05T16:53:57.996 +00:00 	[Device] 	+ Humidity: 49.46
 2020-08-05T16:53:57.997 +00:00 	[Device] 	+ Air pressure: 1012.88
 ````
+Links I used when developing the program:
+[Reading A Sensor](https://developer.electricimp.com/examples/introduction-applications/reading-sensor),
+[Electric Imp impExplorer Kit](https://developer.electricimp.com/hardware/resources/reference-designs/explorerkit)(my hardware),
+and
+Air pressure Library: [LPS22HB](https://developer.electricimp.com/libraries/hardware/lps22hb).
+
 Program listing:
 
-https://developer.electricimp.com/examples/introduction-applications/reading-sensor
-
-https://developer.electricimp.com/hardware/resources/reference-designs/explorerkit
-
-https://developer.electricimp.com/libraries/hardware/lps22hb
 
 ````
 // From:
