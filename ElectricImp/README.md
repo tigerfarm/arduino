@@ -4,10 +4,10 @@
 My device is an
 Electric Imp [impExplorer Kit](https://developer.electricimp.com/hardware/resources/reference-designs/explorerkit)
 ````
-Sensor      Measured Quantity           I²C Address (8-bit) 	Library 
-HTS221      Temperature and humidity    0xBE        HTS221.device.lib.nut
-LPS22HB     Air pressure                0xB8        LPS22HB.class.nut
-LIS2DH12    Motion in three axes        0x32*       LIS3DH.class.nut
+Sensor      Measured Quantity           I²C Address (8-bit)  Library (sample program below)
+HTS221      Temperature and humidity    0xBE                 HTS221.device.lib.nut
+LPS22HB     Air pressure                0xB8                 LPS22HB.class.nut
+LIS2DH12    Motion in three axes        0x32*                LIS3DH.class.nut
 ````
 
 --------------------------------------------------------------------------------
