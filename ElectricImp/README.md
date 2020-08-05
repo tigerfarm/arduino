@@ -1,19 +1,5 @@
 --------------------------------------------------------------------------------
-# Arduino Notes
-
---------------------------------------------------------------------------------
-## Electric Imp Notes
-
-[Twilio library](https://developer.electricimp.com/libraries/webservices/twilio),
-includes Send an SMS.
-
---------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
-### Links
-
-[Getting started guide](https://developer.electricimp.com/gettingstarted/generic),
-which I went through to initialize my device and developer environment.
+# Electric Imp Notes
 
 My device is an
 Electric Imp [impExplorer Kit](https://developer.electricimp.com/hardware/resources/reference-designs/explorerkit)
@@ -24,15 +10,27 @@ LPS22HB     Air pressure                0xB8        LPS22HB.class.nut
 LIS2DH12    Motion in three axes        0x32*       LIS3DH.class.nut
 ````
 
-[API](https://developer.electricimp.com/api)
-[Libraries](https://developer.electricimp.com/integrations)
-[Language intro](https://developer.electricimp.com/squirrel/squirrel-guide/introduction)
+--------------------------------------------------------------------------------
+## Twilio Electric Imp
+
+[Twilio library](https://developer.electricimp.com/libraries/webservices/twilio),
+includes Send an SMS.
+
+--------------------------------------------------------------------------------
+### Links
+
+[Getting started guide](https://developer.electricimp.com/gettingstarted/generic),
+which I went through to initialize my device and developer environment.
 
 [User Guide](https://developer.electricimp.com/tools/impcentral/impcentralintroduction)
 
 [Sample code](https://developer.electricimp.com/examples)
 
 ##### Documents
+
+[API](https://developer.electricimp.com/api),
+[Libraries](https://developer.electricimp.com/integrations),
+[Language intro](https://developer.electricimp.com/squirrel/squirrel-guide/introduction)
 
 [I2C](https://developer.electricimp.com/api/hardware/i2c)
 
@@ -64,6 +62,13 @@ Sample output:
 2020-08-05T16:53:57.997 +00:00 	[Device] 	+ Air pressure: 1012.88
 ````
 Program listing:
+
+https://developer.electricimp.com/examples/introduction-applications/reading-sensor
+
+https://developer.electricimp.com/hardware/resources/reference-designs/explorerkit
+
+https://developer.electricimp.com/libraries/hardware/lps22hb
+
 ````
 // From:
 //  https://developer.electricimp.com/examples/introduction-applications/reading-sensor
