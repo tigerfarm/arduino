@@ -15,23 +15,26 @@
 
   For reference, link to the Altair 8800c. Excellent moderinization of the original Altair 8800.
     https://deramp.com/altair_8800c.html
-  The Altair 8800c is hardware re-build. I using programing emulation mostly.
+  The Altair 8800c is hardware build that works the same as the Altair 8800.
+  I'm using programming emulation with enhancements.
 
   Program philosophy goals:
-  + Funcational.
+  + Functional.
   + Runs fast enough for satisfactory interactivity.
   + Easy to read code.
-  + Program in a single file.
-  
+  + Program in a single file. This is simplier to find, and less complicated to compile.
+  + When switching switches and toggles, the emulator functions as expected with notifications.
+  ++ For example, I made the WAIT LED flash when receiving bytes.
+  ++ This lets me know the bytes were being received.
+
   -----------------------------------------------------------------------------
   Work to do,
 
-  Flash an LED when receiving uploaded bytes.
+  Re-test to timer array, ie. when there is more than 1 timer array value.
 
   When running a default one run timer, D0 should be on.
   + When a default timer completes, it advances to D1.
   ++ Default needs to stay at D0 when complete?
-  + Test/update for timer array, which should start at 2 which is D1?
 
   Continue writing user documentation.
   + Create a GitHub Readme.cmd document file.

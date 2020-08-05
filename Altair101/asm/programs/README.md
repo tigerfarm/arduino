@@ -20,14 +20,17 @@ Demonstration programs.
 Program                 Filename#  Opcodes tested, and test details.
 -------                 ---------  --------------------------
                         00000000   NOPs
-opOutLcdOffOn.asm       00000001   LCD backlight on, or backlight off.
-                        00000010   Jump program
+
 pKillTheBit.asm         00000011   Famous demo game program. Address 7 is the speed,
                                         00 000 101 : default.
                                         00 010 000 : Faster.
+pBootPlay.asm           00001111   Play MP3 files, halting between each. I sometimes use it when the machine boots.
+
 programList.asm         00000100   List programs on the LCD.
 opAddDemo.asm           00000101   ADD : Add content of address 1 and 3, and store the answer in address 64.
                         00001000   Jump program that turns on all data byte lights.
+opOutLcdOffOn.asm       00000001   LCD backlight on, or backlight off.
+                        00000010   Jump program
 ````
 
 Test each opcode using various parameter types to study how to use the opcodes.
