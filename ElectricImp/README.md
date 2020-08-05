@@ -9,6 +9,9 @@ HTS221      Temperature and humidity    0xBE                 HTS221.device.lib.n
 LPS22HB     Air pressure                0xB8                 LPS22HB.class.nut
 LIS2DH12    Motion in three axes        0x32*                LIS3DH.class.nut
 ````
+The impExplorer™ Developer Kit
+[store link](https://store.electricimp.com/collections/featured-products/products/impexplorer-developer-kit?variant=32325242585148),
+$25 for a single unit.
 
 ### Development Plan
 
