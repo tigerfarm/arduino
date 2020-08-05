@@ -10,6 +10,23 @@ LPS22HB     Air pressure                0xB8                 LPS22HB.class.nut
 LIS2DH12    Motion in three axes        0x32*                LIS3DH.class.nut
 ````
 
+### Development Plan
+
+Done:
+````
+Setup development environment.
+Initialize device and online environment.
+Program and run Hello world.
+Read and echo onboard sensor data.
+````
+Next:
+````
+Send sensor data to the Agent to make the data web browser accessible.
+Update Twilio colleagues on my progress, and include the sensor data link.
+Use NodeMCU to retrieve the sensor data.
+Use I2C to communications with Arduino devices.
+````
+
 --------------------------------------------------------------------------------
 ## Twilio Electric Imp
 
@@ -32,6 +49,7 @@ which I went through to initialize my device and developer environment.
 [Libraries](https://developer.electricimp.com/integrations),
 [Language intro](https://developer.electricimp.com/squirrel/squirrel-guide/introduction)
 
+[Introduction](https://developer.electricimp.com/resources/i2c)
 [I2C](https://developer.electricimp.com/api/hardware/i2c)
 
 --------------------------------------------------------------------------------
@@ -46,7 +64,7 @@ server.log("Hello from your imp development device");
 
 #### Reading A Sensor
 
-Program to read and echo the sensor data: temperature, humidity, and air pressure
+Program to read and echo the sensor data: temperature, humidity, and air pressure.
 
 Sample output:
 ````
@@ -62,7 +80,8 @@ Sample output:
 2020-08-05T16:53:57.997 +00:00 	[Device] 	+ Air pressure: 1012.88
 ````
 Links I used when developing the program:
-[Reading A Sensor](https://developer.electricimp.com/examples/introduction-applications/reading-sensor),
+
+[reading a sensor](https://developer.electricimp.com/examples/introduction-applications/reading-sensor),
 [Electric Imp impExplorer Kit](https://developer.electricimp.com/hardware/resources/reference-designs/explorerkit)(my hardware),
 and
 Air pressure Library: [LPS22HB](https://developer.electricimp.com/libraries/hardware/lps22hb).
