@@ -68,16 +68,17 @@ Program to read and echo the sensor data: temperature, humidity, and air pressur
 
 Sample output:
 ````
-2020-08-05T16:53:56.943 +00:00 	[Status] 	Device connected
-2020-08-05T16:53:56.981 +00:00 	[Device] 	+ Configure device I2C settings.
-2020-08-05T16:53:56.984 +00:00 	[Device] 	+ Configure device: temperature and humidity sensor.
-2020-08-05T16:53:56.990 +00:00 	[Device] 	+ Configure device: air pressure sensor.
-2020-08-05T16:53:56.991 +00:00 	[Device] 	+ Read temperature humidity sensor values.
-2020-08-05T16:53:56.887 +00:00 	[Status] 	Agent restarted: reload.
-2020-08-05T16:53:57.492 +00:00 	[Device] 	+ Read air pressure sensor values.
-2020-08-05T16:53:57.995 +00:00 	[Device] 	+ Temperature: 28.85 °C
-2020-08-05T16:53:57.996 +00:00 	[Device] 	+ Humidity: 49.46
-2020-08-05T16:53:57.997 +00:00 	[Device] 	+ Air pressure: 1012.88
+2020-08-05T17:41:33.627 +00:00 	[Status] 	Agent restarted: reload.
+2020-08-05T17:41:34.079 +00:00 	[Status] 	Downloading new code; 14.43% program storage used
+2020-08-05T17:41:34.491 +00:00 	[Device] 	+++ Read sensor data and send it to the Agent.
+2020-08-05T17:41:34.492 +00:00 	[Device] 	+ Configure device: I2C settings.
+2020-08-05T17:41:34.494 +00:00 	[Device] 	+ Configure device: temperature and humidity sensor.
+2020-08-05T17:41:34.498 +00:00 	[Device] 	+ Configure device: air pressure sensor.
+2020-08-05T17:41:34.500 +00:00 	[Device] 	+ Read temperature and humidity sensor values.
+2020-08-05T17:41:35.002 +00:00 	[Device] 	+ Read air pressure sensor values.
+2020-08-05T17:41:35.505 +00:00 	[Device] 	++ Temperature: 29.9 °C
+2020-08-05T17:41:35.506 +00:00 	[Device] 	++ Humidity: 48
+2020-08-05T17:41:35.507 +00:00 	[Device] 	++ Air pressure: 1013
 ````
 Links I used when developing the program:
 
