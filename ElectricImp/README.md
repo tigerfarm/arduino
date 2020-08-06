@@ -7,7 +7,7 @@ Development environment: [ImpCentral](https://impcentral.electricimp.com).
 
 Next:
 ````
-Use environment variables to his variables such as: STREAMING_ACCESS_KEY.
+Setup and use development environment such as: STREAMING_ACCESS_KEY.
 Update Twilio colleagues on my progress, and include the sensor data link.
 Send an SMS from my Imp device.
 Use NodeMCU to retrieve the sensor data.
@@ -16,7 +16,6 @@ Use I2C to communications with Arduino devices.
 
 Done:
 ````
-Setup development environment.
 Initialize device and online environment.
 Program and run Hello world.
 Read and echo onboard sensor data.
