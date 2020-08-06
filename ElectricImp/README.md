@@ -70,6 +70,8 @@ Registers a function to be executed on receipt of an incoming HTTP request
 
 [table.rawget(key)](https://developer.electricimp.com/squirrel/table/rawget)
 
+[System date()](https://developer.electricimp.com/squirrel/system/date)
+
 [Introduction](https://developer.electricimp.com/resources/i2c)
 [I2C](https://developer.electricimp.com/api/hardware/i2c)
 
@@ -335,11 +337,15 @@ server.log("+ Agent running, URL: " + http.agenturl());
 const STREAMING_ACCESS_KEY = "ist_gU4_IcVo-BFAbO_Etupk4cTFIMRiAvcl";
 local iState = InitialState(STREAMING_ACCESS_KEY);
 local sensorValues;
+local sensorTime;
+local sensorTimePtHour;
 // Open listener for "reading" messages from the device
 device.on("tempHumidity", function(tempHumidity) {
+    sensorTime = date();
+    sensorTimePtHour = sensorTime.hour - 7;
     sensorValues = tempHumidity;
     server.log(format("++ Agent, temperature:  %0.1f °C", sensorValues.temperature));
-    server.log(format("++ Agent, humidity:  %0.0f", tempHumidity.humidity));
+    server.log(format("++ Agent, humidity:  %0.0f", sensorValues.humidity));
 })
 local sensorAp;
 device.on("airPressure", function(airPressure) {
@@ -363,11 +369,13 @@ function requestHandler(request, response) {
         //
         // Response:
         local theResponse = 
-              format("++ Sensor, temperature:  %0.1fc", sensorValues.temperature)
+                     "Reading time:                 " + sensorTimePtHour + ":" + sensorTime.min
             + "\n"
-            + format("++ Sensor, humidity:     %0.0f", sensorValues.humidity)
+            + format("+ Sensor, temperature:  %0.1fc", sensorValues.temperature)
             + "\n"
-            + format("++ Sensor, air pressure: %0.0f", sensorAp.pressure);
+            + format("+ Sensor, humidity:     %0.0f", sensorValues.humidity)
+            + "\n"
+            + format("+ Sensor, air pressure: %0.0f", sensorAp.pressure);
         response.send(200, theResponse);
     } catch (exp) {
         response.send(500, "Error from here");
