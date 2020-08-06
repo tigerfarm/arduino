@@ -48,7 +48,7 @@ Program listing:
 
 Links I used when developing the program:
 
-[reading a sensor](https://developer.electricimp.com/examples/introduction-applications/reading-sensor),
+[Reading a sensor](https://developer.electricimp.com/examples/introduction-applications/reading-sensor),
 [Electric Imp impExplorer Kit](https://developer.electricimp.com/hardware/resources/reference-designs/explorerkit)(my hardware),
 and
 Air pressure Library: [LPS22HB](https://developer.electricimp.com/libraries/hardware/lps22hb).
@@ -130,4 +130,4 @@ Registers a function to be executed on receipt of an incoming HTTP request
 [I2C](https://developer.electricimp.com/api/hardware/i2c)
 
 --------------------------------------------------------------------------------
-eof
+Cheers
