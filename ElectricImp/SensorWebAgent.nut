@@ -7,7 +7,7 @@ server.log("+ Agent running, ID: " + agentID);
 server.log("+ Agent running, URL: " + http.agenturl());
 
 // --------------------------------------------------------------------
-const STREAMING_ACCESS_KEY = "ist_gU4_IcVo-BFAbO_Etupk4cTFIMRiAvcl";
+const STREAMING_ACCESS_KEY = "i..l";
 local iState = InitialState(STREAMING_ACCESS_KEY);
 local sensorValues;
 local sensorTime;
