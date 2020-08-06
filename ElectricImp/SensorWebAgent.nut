@@ -21,6 +21,9 @@ device.on("tempHumidity", function(tempHumidity) {
     if (sensorTimePtHour < 0) {
         sensorTimePtHour = sensorTimePtHour + 24;
     }
+    if (sensorTimePtHour < 10) {
+        sensorTimePtHour = "0" + sensorTimePtHour;
+    }
     if (sensorTime.min < 10) {
         sensorTimeMin = "0" + sensorTime.min;
         // sensorTimeMin = sensorTime.min;
@@ -56,7 +59,7 @@ function requestHandler(request, response) {
         //
         // Response:
         local theResponse = 
-                     "Reading time:           " + sensorTimePtHour + ":" + sensorTime.min
+                     "Reading time:           " + sensorTimePtHour + ":" + sensorTime.min + " Pacific time"
             + "\n"
             + format("+ Sensor, temperature:  %0.1fc", sensorValues.temperature)
             + "\n"
