@@ -7,7 +7,7 @@ server.log("+ Agent running, ID: " + agentID);
 server.log("+ Agent running, URL: " + http.agenturl());
 
 // --------------------------------------------------------------------
-const STREAMING_ACCESS_KEY = "i...l";
+const STREAMING_ACCESS_KEY = "ist_gU4_IcVo-BFAbO_Etupk4cTFIMRiAvcl";
 local iState = InitialState(STREAMING_ACCESS_KEY);
 local sensorValues;
 local sensorTime;
@@ -26,7 +26,6 @@ device.on("tempHumidity", function(tempHumidity) {
     }
     if (sensorTime.min < 10) {
         sensorTimeMin = "0" + sensorTime.min;
-        // sensorTimeMin = sensorTime.min;
     } else {
         sensorTimeMin = sensorTime.min;
     }
@@ -59,7 +58,7 @@ function requestHandler(request, response) {
         //
         // Response:
         local theResponse = 
-                     "Reading time:           " + sensorTimePtHour + ":" + sensorTime.min + " Pacific time"
+                     "Reading time:           " + sensorTimePtHour + ":" + sensorTimeMin + " Pacific time"
             + "\n"
             + format("+ Sensor, temperature:  %0.1fc", sensorValues.temperature)
             + "\n"

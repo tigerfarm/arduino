@@ -7,9 +7,10 @@ Development environment: [ImpCentral](https://impcentral.electricimp.com).
 
 Next:
 ````
-Setup and use development environment such as: STREAMING_ACCESS_KEY.
 Update Twilio colleagues on my progress, and include the sensor data link.
+Setup and use development environment such as: STREAMING_ACCESS_KEY.
 Send an SMS from my Imp device.
+Low battery use. Example, have my Imp outside to get outside sensor values.
 Use NodeMCU to retrieve the sensor data.
 Use I2C to communications with Arduino devices.
 ````
