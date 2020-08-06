@@ -2,17 +2,19 @@
 # Electric Imp Notes
 
 My device is an
-Electric Imp [impExplorer Kit](https://developer.electricimp.com/hardware/resources/reference-designs/explorerkit)
+Electric Imp [impExplorer Kit](https://developer.electricimp.com/hardware/resources/reference-designs/explorerkit).
+
+The impExplorer™ Developer Kit
+[store link](https://store.electricimp.com/collections/featured-products/products/impexplorer-developer-kit?variant=32325242585148),
+$25 for a single unit.
+
+Onboard:
 ````
 Sensor      Measured Quantity           I²C Address (8-bit)  Library (sample program below)
 HTS221      Temperature and humidity    0xBE                 HTS221.device.lib.nut
 LPS22HB     Air pressure                0xB8                 LPS22HB.class.nut
 LIS2DH12    Motion in three axes        0x32*                LIS3DH.class.nut
 ````
-The impExplorer™ Developer Kit
-[store link](https://store.electricimp.com/collections/featured-products/products/impexplorer-developer-kit?variant=32325242585148),
-$25 for a single unit.
-
 ### Development Plan
 
 Done:
@@ -51,6 +53,16 @@ which I went through to initialize my device and developer environment.
 [API](https://developer.electricimp.com/api),
 [Libraries](https://developer.electricimp.com/integrations),
 [Language intro](https://developer.electricimp.com/squirrel/squirrel-guide/introduction)
+
+[format()](https://developer.electricimp.com/squirrel/string/format) for printing out variables.
+
+[http.onrequest(callback)](https://developer.electricimp.com/api/http/onrequest)
+Registers a function to be executed on receipt of an incoming HTTP request
+
+[httpresponse.send(statusCode, responseBody)](https://developer.electricimp.com/api/httpresponse/send)
+[httpresponse.header(headerName, headerValue)](https://developer.electricimp.com/api/httpresponse/header)
+[http.get(url, headers)](https://developer.electricimp.com/api/http/get)
+[http.onrequest(callback)](https://developer.electricimp.com/api/http/onrequest)
 
 [Introduction](https://developer.electricimp.com/resources/i2c)
 [I2C](https://developer.electricimp.com/api/hardware/i2c)
@@ -145,6 +157,45 @@ if ("error" in resultAp) {
     // agent.send("+ Current Humidity: %0.2f", result.humidity);
 
 // --------------------------------------------------------------------
+````
+
+Web server functions.
+````
+// Initial State Library
+#require "InitialState.class.nut:1.0.0"
+
+local agentID = split(http.agenturl(), "/").top();
+server.log("+ Agent running, ID: " + agentID);
+server.log("+ Agent running, URL: " + http.agenturl());
+
+// -------------------------------------------
+function requestHandler(request, response) {
+    try {
+        local url = http.agenturl();
+        local urlParts = split(url, "/");
+        server.log("+ Incoming request 0:" + urlParts[0]
+            + " 1:" + urlParts[1]
+            + " 2:" + urlParts[2]);
+        //
+        // https://agent.electricimp.com/.../abc/def?ghi=123
+        // query:(table : 0x7f8ba80a3fb0)
+        server.log("+ Incoming request method:" + request.method);
+        server.log("+ Incoming request query:" + request.query);
+        // path:/abc/def
+        server.log("+ Incoming request path:" + request.path);
+        if ("ghi" in request.query) {
+            server.log("++ Contains: ghi.");
+        }
+        //
+        // Response:
+        response.send(200, "OK from here.");
+    } catch (exp) {
+        response.send(500, "Error from here");
+    }
+}
+http.onrequest(requestHandler);
+
+// -------------------------------------------
 ````
 --------------------------------------------------------------------------------
 eof
