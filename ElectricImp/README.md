@@ -8,7 +8,6 @@ Development environment: [ImpCentral](https://impcentral.electricimp.com).
 Next:
 ````
 Update Twilio colleagues on my progress, and include the sensor data link.
-Setup and use development environment such as: STREAMING_ACCESS_KEY.
 Send an SMS from my Imp device.
 Low battery use. Example, have my Imp outside to get outside sensor values.
 Use NodeMCU to retrieve the sensor data.
@@ -24,6 +23,7 @@ Send sensor data to the Agent.
 Basic webserver processing of a request and making a response.
 Basic webserver processing of a GET request when the parameter names are known.
 Post sensor data on a webserver.
+Setup and use development environment such as: STREAMING_ACCESS_KEY.
 ````
 --------------------------------------------------------------------------------
 ## Program Samples
@@ -76,6 +76,13 @@ Sample output:
 
 [SensorWebAgent.nut](SensorWebAgent.nut)
 
+Sample output
+````
+Reading date time:      2020:07:06 12:40 Pacific time
++ Sensor, temperature:  30.8c
++ Sensor, humidity:     47
++ Sensor, air pressure: 1012
+````
 --------------------------------------------------------------------------------
 ### Twilio Electric Imp
 
@@ -126,6 +133,8 @@ Registers a function to be executed on receipt of an incoming HTTP request
 [table.rawget(key)](https://developer.electricimp.com/squirrel/table/rawget)
 
 [System date()](https://developer.electricimp.com/squirrel/system/date)
+
+[Environment variables](https://developer.electricimp.com/tools/impcentral/environmentvariables#user-defined-environment-variables)
 
 [Introduction](https://developer.electricimp.com/resources/i2c)
 [I2C](https://developer.electricimp.com/api/hardware/i2c)

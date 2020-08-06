@@ -4,15 +4,13 @@
 // Create an account on the following and create an access key.
 // https://iot.app.initialstate.com/#/account
 //  Account email address/password.
-const STREAMING_ACCESS_KEY = "i...l";
+// Add the key as user defined environment variable.
+local STREAMING_ACCESS_KEY = __VARS.STREAMING_ACCESS_KEY_1;  // Environment variable
+local iState = InitialState(STREAMING_ACCESS_KEY); 
 
 local iState = InitialState(STREAMING_ACCESS_KEY);
 local agentID = split(http.agenturl(), "/").top();
 server.log("+ Agent running, ID: " + agentID);
-
-device.on("show", function(show) {
-    server.log("+ show.");
-});
 
 // Open listener for "reading" messages from the device
 device.on("reading", function(reading) {

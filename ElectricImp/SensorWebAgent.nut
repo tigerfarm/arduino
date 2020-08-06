@@ -7,16 +7,30 @@ server.log("+ Agent running, ID: " + agentID);
 server.log("+ Agent running, URL: " + http.agenturl());
 
 // --------------------------------------------------------------------
-const STREAMING_ACCESS_KEY = "i..l";
-local iState = InitialState(STREAMING_ACCESS_KEY);
+local STREAMING_ACCESS_KEY = __VARS.STREAMING_ACCESS_KEY_1;  // Environment variable
+local iState = InitialState(STREAMING_ACCESS_KEY); 
 local sensorValues;
 local sensorTime;
 local sensorTimePtHour;
 local sensorTimeMin;
+local sensorDateYmd;
+local sensorDateM;
+local sensorDateD;
 // Open listener for "reading" messages from the device
 device.on("tempHumidity", function(tempHumidity) {
     //
     sensorTime = date();
+    if (sensorTime.month < 10) {
+        sensorDateM = "0" + sensorTime.month
+    } else {
+        sensorDateM = sensorTime.month
+    }
+    if (sensorTime.day < 10) {
+        sensorDateD = "0" + sensorTime.day
+    } else {
+        sensorDateD = sensorTime.day
+    }
+    sensorDateYmd = sensorTime.year + ":" + sensorDateM + ":" + sensorDateD;
     sensorTimePtHour = sensorTime.hour - 7;
     if (sensorTimePtHour < 0) {
         sensorTimePtHour = sensorTimePtHour + 24;
@@ -58,7 +72,7 @@ function requestHandler(request, response) {
         //
         // Response:
         local theResponse = 
-                     "Reading time:           " + sensorTimePtHour + ":" + sensorTimeMin + " Pacific time"
+                     "Reading date time:      " + sensorDateYmd + " " + sensorTimePtHour + ":" + sensorTimeMin + " Pacific time"
             + "\n"
             + format("+ Sensor, temperature:  %0.1fc", sensorValues.temperature)
             + "\n"
