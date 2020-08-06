@@ -85,6 +85,8 @@ Hello World server log message program that goes in the Device Code section:
 server.log("Hello from your imp development device");
 ````
 
+[SensorWebDevice.nut](SensorWebDevice.nut)
+
 #### Reading A Sensor
 
 Program to read and echo the sensor data: temperature, humidity, and air pressure.
