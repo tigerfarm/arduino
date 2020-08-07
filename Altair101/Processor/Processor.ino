@@ -18,14 +18,19 @@
   The Altair 8800c is hardware build that works the same as the Altair 8800.
   I'm using programming emulation with enhancements.
 
-  Program philosophy goals:
+  Program goals and general approach:
   + Functional.
   + Runs fast enough for satisfactory interactivity.
   + Easy to read code.
-  + Program in a single file. This is simplier to find, and less complicated to compile.
-  + When switching switches and toggles, the emulator functions as expected with notifications.
-  ++ For example, I made the WAIT LED flash when receiving bytes.
-  ++ This lets me know the bytes were being received.
+  + Program in a single file is simplier to find specific code and less complicated to compile.
+  + In processor mode, front panel works the same as an Altair 8800. Exceptions:
+  ++ STOP pauses which allows RUN to continue.
+  ++ PROTECT and UNPROTECT are used for player volume.
+  ++ AUX switchs to switch modes: processor, clock, timer, counter, and player.
+  + Switches and toggles function as expected with notifications.
+  ++ Example notification: I made the WAIT LED flash when receiving bytes.
+  + Status lights work as expected in processor mode, and used as indicators in other modes.
+  + Switches in other modes to work similar to processor mode where possible.
 
   -----------------------------------------------------------------------------
   Work to do,
@@ -36,18 +41,6 @@
   + Create a GitHub Readme.cmd document file.
 
   Continue writing opcode test programs.
-
-  --------------
-  STOP+RESET to cause a halt similar to control-C to stop a UNIX program.
-
-  Need an exit from program that goes into counter mode loop.
-  + Senario: program loop that makes a call to go into counter mode.
-  ++ Can exit counter mode, but without a HLT in the program, it goes right back into counter mode.
-  ++ Need to reboot to exit the program.
-  + Combination of STOP+RESET to cause a halt (HLT),
-  ++ If in counter mode, exit into program wait state.
-  + Flip AUX2 to exit counter mode, and continue running the program.
-  + Flip STOP+RESET to exit counter mode, and put the program in wait state (HLT).
 
   --------------
   Generate videos.
@@ -241,10 +234,22 @@
 
   ------------------------------------------------------------------------------
   ------------------------------------------------------------------------------
-  Current/Next Work
+  Known Issues to do List
 
   When flipping EXAMINE,
   + If toogle address is greater than memory top (memoryTop), flash error instead of random values.
+
+  --------------
+  STOP+RESET to cause a halt similar to control-C to stop a UNIX program.
+
+  Need an exit from program that goes into counter mode loop.
+  + Senario: program loop that makes a call to go into counter mode.
+  ++ Can exit counter mode, but without a HLT in the program, it goes right back into counter mode.
+  ++ Need to reboot to exit the program.
+  + Combination of STOP+RESET to cause a halt (HLT),
+  ++ If in counter mode, exit into program wait state.
+  + Flip AUX2 to exit counter mode, and continue running the program.
+  + Flip STOP+RESET to exit counter mode, and put the program in wait state (HLT).
 
   --------------
   Add inc/dec hours and minutes using toggles to set the time and date.
@@ -276,85 +281,7 @@
   + If byte count over 276, characters no longer are displayed.
   + Fails at the address: 00010100 (276)
 
-  ---------------------------------------------
-  Desktop Box:
-  ------------
-  To do:
-  + Mount, connect, and test an LCD, such as a 1602 LCD.
-  + Connect and test an ESP8266 NodeMCU for internet and SMS access.
-  ------------
-  Design and wire a central power source:
-  + Add internal 120AC socket for 3 devices: 1) Mega 5V wall adapter, 2) MP3 5V wall adapter, 3) stearo amp plug,
-  + Use the Mega to control an On/off relay switch for 120AC socket.
-  + Use the Mega to control an On/off relay switch for the stearo amp's 120AC adapter.
-  + Later, add the stearo amp power supply inside the case.
-  ------------
-  + Done: Cut a glue Spider-Man paper to panels: 2 sides, bar top, and top panel.
-  + Done: Cut separation on the top for easy internal access.
-  + Done: Install, wire, and test the front panel wit the Mega.
-  + Done: Panel LED lights all display correctly.
-  + Done: Toggle functions all work for Altair 8800 emulation.
-  + Done: Test new serial module using the tablet. Then install it in the box.
-  + Done: Panel LED lights and toggle functions all work for the clock.
-  + Done: Panel LED lights and toggle functions all work for the MP3 player.
-  + Done: Wire up the MP3 player using separate USB wall plug to reduce static noise.
-  + Done: Add RCA female plugs for L/R external MP3 player output to an amp.
-
-  ---------------------------------------------
-  ---------------------------------------------
-  Connect the Mega to the desktop front panel:
-
-  Total = 14 Mega pin wire connections to the front panel, pluse 6 for power.
-
-  Non-power pins:
-  ---
-  + 2 pins for the WAIT and HLDA LED lights.
-  + 3 74HC595 daisy chain, LED output: data, clock, and latch
-  ---
-  + 2 I2C: PCF8574 daisy chain, toggle inputs
-  + 1 Interrupt pin for the PCF8574 modules
-  ---
-  + 3 SPI: SD Card module pins
-  + 1 Control pin (CS) for SPI SD Card module
-  ---
-  + 1 TX to MP3 player module
-  + 1 RX to MP3 player module
-  ---
-
-  ---------------------------------------------
-  Mega to Front Panel details
-
-  2 Mega power pins to the front panel breadboard,
-  + 1 wire for +5V
-  + 1 wire for Ground
-
-  2 Mega pins for the WAIT and HLDA LED lights.
-  + Pin A9 for WAIT_PIN
-  + Pin A10 for HLDA_PIN
-
-  3 Mega pins to 74HC595 daisy chain, LED output,
-  + Mega pin A14 to 74HC595 14 Data pin.
-  + Mega pin A12 to 74HC595 12 Latch pin.
-  + Mega pin A11 to 74HC595 11 Clock pin.
-
-  5 Mega pins to PCF8574 daisy chain, toggle inputs,
-  + I2C SDA to Mega SDA
-  + I2C SCL to Mega SCL
-  --- Plus ---
-  + Pin 2 to the front panel breadboard for wires to Control and AUX interrupts.
-  --- Plus ---
-  + I2C +5V
-  + I2C Ground
-
-  ---------------------------------------------
-  2 Mega pins to connect to the MP3 player,
-  + Mega pin 18(RX) to player pin 3(TX)
-  + Mega pin 19(TX) to external resister to player pin 2(RX)
-  --- Plus ---
-  + Independent separate power supply: +5V and ground.
-
   --------------------------------------------------------------------------------
-  ESP8266 ESP-12E NodeMCU cannot replace a Mega because not enough GPIO pins.
 
   bitWrite(write to, which bit to write, bit value to write)
 
