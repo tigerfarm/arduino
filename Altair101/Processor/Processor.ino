@@ -30,16 +30,7 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  Player REST needs to set to play the first song, when already playing.
-  + If playing, reset, resets the lights and counter, but the song playing doesn't reset.
-  res
-  Re-test to timer array, ie. when there is more than 1 timer array value.
-
   On/off switch to control the power to the motherboard.
-
-  When running a default one run timer, D0 should be on.
-  + When a default timer completes, it advances to D1.
-  ++ Default needs to stay at D0 when complete?
 
   Continue writing user documentation.
   + Create a GitHub Readme.cmd document file.
