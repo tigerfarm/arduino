@@ -30,7 +30,12 @@
   -----------------------------------------------------------------------------
   Work to do,
 
+  Player REST needs to set to play the first song, when already playing.
+  + If playing, reset, resets the lights and counter, but the song playing doesn't reset.
+  res
   Re-test to timer array, ie. when there is more than 1 timer array value.
+
+  On/off switch to control the power to the motherboard.
 
   When running a default one run timer, D0 should be on.
   + When a default timer completes, it advances to D1.
@@ -4156,7 +4161,7 @@ boolean readProgramFileIntoMemory(String theFilename) {
     }
   }
   myFile.close();
-  Serial.println(F("+ Read completed, file closed."));
+  Serial.println(F("\n+ Read completed, file closed."));
   digitalWrite(HLDA_PIN, LOW);
   controlResetLogic();
   return (true);
@@ -6361,12 +6366,15 @@ void checkPlayerControls() {
   } else if (switchReset) {
     switchReset = false;
     // Switch logic
+    mp3player.stop();   // Required.
     playerSetup();
-    playCounterHlta();
+    mp3player.play(playerCounter);
+    mp3player.stop();
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Player, RESET: play first song. Number of MP3 files = "));
+    Serial.print(F("+ Player, RESET: set to play first song. Number of MP3 files = "));
     Serial.println(playerCounterTop);
 #endif
+    playerLights();
   }
   // -------------------
   if (pcfAux.readButton(pinProtect) == 0) {

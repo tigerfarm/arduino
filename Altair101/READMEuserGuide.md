@@ -241,7 +241,7 @@ Clock timer mode,
                 4. Timer array index is displayed in the Data lights.
                 5. Timer array value is displayed in the Address lights.
                 6. Timer time value is stored into the memory array, at the incremented array index value.
-+ RESET         1. Set timer array index to 1.
++ RESET         1. Set timer array index to 1 (D0).
                 2. Timer array index is displayed in the Data lights.
                 3. Timer array value is displayed in the Address lights.
 + PROTECT       Decrease MP3 player volume.
