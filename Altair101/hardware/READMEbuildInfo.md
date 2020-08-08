@@ -84,7 +84,7 @@ Desktop:
 
 + DS3231 clock module
 + 1602 LCD with serial module
-+ Micro SD Card SPI module
++ Micro SD Card SPI module: Support Micro SD card, Micro SDHC card, 4.5V ~ 5.5V, 3.3V voltage regulator
 + USB serial component
 + USB mini hub
 + DFPlayer module

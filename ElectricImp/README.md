@@ -97,6 +97,12 @@ Reading date time:      2020:07:07 11:19 Pacific time
 [Twilio library](https://developer.electricimp.com/libraries/webservices/twilio),
 includes Send an SMS.
 
+{
+    "ACCOUNT_SID": "your_account_sid",
+    "ACCOUNT_AUTH_TOKEN": "your_account_auth_token",
+    "ACCOUNT_PHONE_NUMBER": "your_account_phone_number"
+}
+
 My device is an
 Electric Imp [impExplorer Kit](https://developer.electricimp.com/hardware/resources/reference-designs/explorerkit).
 
