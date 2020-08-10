@@ -35,6 +35,12 @@
   -----------------------------------------------------------------------------
   Work to do,
 
+  Make this program compile and run on an Ardunio Due.
+  + Change A11-A14 pins to lower values pins because the high pins are not available on a Due.
+  ++ LED lights shift register(SN74HC595N) pins: A11, A12, and A14
+  + Get the steampunk tablet working again. This can be used to test the Due.
+  + Done: Remove LCD references: // #define SETUP_LCD 1
+
   On/off switch to control the power to the motherboard.
 
   Continue writing user documentation.
@@ -297,6 +303,7 @@
 #define SETUP_SDCARD 1
 #define SETUP_CLOCK 1
 // #define SETUP_LCD 1
+// #define INCLUDE_LCD 1
 
 // #define LOG_MESSAGES 1         // Has large memory requirements. Causes issue for Kill the Bit.
 #define SWITCH_MESSAGES 1
@@ -741,7 +748,7 @@ File myFile;
 
 // -----------------------------------------------------------------------------
 // Add another serial port settings, to connect to the new serial hardware module.
-// #include <SoftwareSerial.h>
+#include <SoftwareSerial.h>
 
 // Connections:
 // Since not transmiting, the second parameter pin doesn't need to be connected.
@@ -749,9 +756,9 @@ File myFile;
 // Receive needs to be an interrupt pin.
 // Computer USB >> serial2 module TXD >> RX pin for the Arduino to receive the bytes.
 //                                TXD transmits received bytes to the Arduino receive (RX) pin.
-// const int PIN_RX = 12;  // Arduino receive is connected to TXD on the serial module.
-// const int PIN_TX = 11;  // Arduino transmit is not used, and therefore notconnected to RXD pin on the serial module.
-// SoftwareSerial serial2(PIN_RX, PIN_TX);
+const int PIN_RX = 12;  // Arduino receive is connected to TXD on the serial module.
+const int PIN_TX = 11;  // Arduino transmit is not used, and therefore notconnected to RXD pin on the serial module.
+SoftwareSerial serial2(PIN_RX, PIN_TX);
 // Then, to read from the new serial port, use:
 //    serial2.begin(9600);
 //    serial2.available()
@@ -819,15 +826,16 @@ const int thePrintColSec = thePrintColMin + 3;
     VCC - 5V   - 5V
     GND - GND  - GND
 */
+#ifdef INCLUDE_LCD
 #include<Wire.h>
 #include<LiquidCrystal_I2C.h>
-
 LiquidCrystal_I2C lcd(0x27, 20, 4);
-
+#endif
 // ----------------------------------------------
 // Toggle the LCD backlight on/off.
 boolean lcdBacklightIsOn = true;
 void lcdBacklight(boolean setOn) {
+#ifdef INCLUDE_LCD
   if (setOn) {
     Serial.println(F("++ Backlight on."));
     lcd.backlight();
@@ -837,8 +845,10 @@ void lcdBacklight(boolean setOn) {
   Serial.println(F("++ Backlight off."));
   lcd.noBacklight();
   lcdBacklightIsOn = false;
+#endif
 }
 void toggleLcdBacklight() {
+#ifdef INCLUDE_LCD
   if (lcdBacklightIsOn) {
     lcdBacklightIsOn = false;
     // Serial.println("+ Toggle: off.");
@@ -848,15 +858,18 @@ void toggleLcdBacklight() {
     // Serial.println("+ Toggle: on.");
     lcd.backlight();
   }
+#endif
 }
 
 void printLcdClockValue(int theColumn, int theRow, int theInt) {
+#ifdef INCLUDE_LCD
   lcd.setCursor(theColumn, theRow);    // Column, Row
   if (theInt < 10) {
     lcd.print("0");
     lcd.setCursor(theColumn + 1, theRow);
   }
   lcd.print(theInt);
+#endif
 }
 
 // -------------------------
@@ -868,6 +881,7 @@ void printClockDate() {
   theCounterMonth = now.month();
   theCounterDay = now.day();
   //
+#ifdef INCLUDE_LCD
   theCursor = printColClockDate;
   lcd.setCursor(theCursor, printRowClockDate);    // Column, Row
   lcd.print(dayOfTheWeek[now.dayOfTheWeek()]);
@@ -879,6 +893,7 @@ void printClockDate() {
   theCursor = theCursor + 2;
   lcd.print("/");
   printLcdClockValue(++theCursor, printRowClockDate, theCounterDay);
+#endif
 }
 
 void setClockMenuItems() {
@@ -968,6 +983,7 @@ String clearLineString = "                ";
 
 // ------------------------------------------------
 void lcdSetup() {
+#ifdef INCLUDE_LCD
   lcd.init();
   lcdBacklight(true);  // LCD Backlight on.
   lcd.cursor();
@@ -979,8 +995,10 @@ void lcdSetup() {
   lcdRow = 1;
   lcdColumn = 0;
   lcd.setCursor(lcdColumn, lcdRow);
+#endif
 }
 void lcdSplash() {
+#ifdef INCLUDE_LCD
   lcd.clear();
   //         1234567890123456
   lcdRow0 = "Altair 101";
@@ -991,9 +1009,11 @@ void lcdSplash() {
   lcdRow = 1;
   lcdColumn = 8;
   lcd.setCursor(lcdColumn, lcdRow);
+#endif
 }
 
 void lcdClearScreen() {
+#ifdef INCLUDE_LCD
   Serial.println(F("++ Clear screen."));
   lcd.clear();
   lcd.home();     // Set cursor home (0,0).
@@ -1001,12 +1021,14 @@ void lcdClearScreen() {
   lcdRow = 0;
   lcdRow0 = "";
   lcdRow1 = "";
+#endif
 }
 
 // ----------------------------------------------
 // Print line.
 
 void lcdPrintln(int theRow, String theString) {
+#ifdef INCLUDE_LCD
   // To overwrite anything on the current line.
   String printString = theString;
   int theRest = displayColumns - theString.length();
@@ -1022,10 +1044,12 @@ void lcdPrintln(int theRow, String theString) {
   }
   lcd.setCursor(0, theRow);
   lcd.print(printString);
+#endif
 }
 
 // ----------------------------------------------
 void lcdScroll() {
+#ifdef INCLUDE_LCD
   //Serial.println(F("+ lcdScroll()"));
   // -----------------------
   // Place cursor at start of the second line.
@@ -1046,12 +1070,14 @@ void lcdScroll() {
   lcdPrintln(0, lcdRow0);
   lcdRow1 = "";  // Clear row 1 buffer.
   lcd.setCursor(0, 1);
+#endif
 }
 
 // ----------------------------------------------
 // Print character.
 
 void lcdPrintChar(String theChar) {
+#ifdef INCLUDE_LCD
   Serial.print(F("+ lcdPrintChar :"));
   Serial.print(theChar);
   Serial.print(F(":"));
@@ -1081,6 +1107,7 @@ void lcdPrintChar(String theChar) {
     // Move the cursor forward.
     lcd.setCursor(lcdColumn, lcdRow);
   }
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -4985,6 +5012,7 @@ void syncCountWithClock() {
   theCounterMinutes = now.minute();
   theCounterSeconds = now.second();
   //
+#ifdef INCLUDE_LCD
   theCursor = thePrintColHour;
   printLcdClockValue(theCursor, printRowClockPulse, theCounterHours);  // Column, Row
   theCursor = theCursor + 3;
@@ -4993,6 +5021,7 @@ void syncCountWithClock() {
   theCursor = theCursor + 3;
   lcd.print(":");
   printLcdClockValue(theCursor, printRowClockPulse, theCounterSeconds);
+#endif
   //
   Serial.print("+ syncCountWithClock,");
   Serial.print(" theCounterHours=");
@@ -5209,14 +5238,17 @@ String currentLcdRow1;
 int currentLcdRow;
 int currentLcdColumn;
 void saveClearLcdScreenData() {
+#ifdef INCLUDE_LCD
   // Save the current LCD screen information.
   currentLcdRow0 = lcdRow0;
   currentLcdRow1 = lcdRow1;
   currentLcdRow = lcdRow;
   currentLcdColumn = lcdColumn;
   lcdClearScreen();
+#endif
 }
 void restoreLcdScreenData() {
+#ifdef INCLUDE_LCD
   // Restore the LCD screen.
   lcdRow0 = currentLcdRow0;
   lcdRow1 = currentLcdRow1;
@@ -5226,6 +5258,7 @@ void restoreLcdScreenData() {
   lcdColumn = currentLcdColumn;
   lcd.cursor();
   lcd.setCursor(lcdColumn, lcdRow);
+#endif
 }
 
 // -----------------------------------------------------------------------
@@ -6033,9 +6066,11 @@ void runClock() {
 #ifdef SWITCH_MESSAGES
   Serial.println(F("+ runClock(), programState: CLOCK_RUN."));
 #endif
-  playerPlaySound(CLOCK_ON);
+#ifdef INCLUDE_LCD
   saveClearLcdScreenData();
   lcd.noCursor();
+#endif
+  playerPlaySound(CLOCK_ON);
   syncCountWithClock();
   //
   // Intialize front panel lights.
@@ -6860,8 +6895,10 @@ void runPlayer() {
 #ifdef SWITCH_MESSAGES
   Serial.println(F("+ runPlayer(), programState: PLAYER_RUN."));
 #endif
+#ifdef INCLUDE_LCD
   saveClearLcdScreenData();
   lcd.noCursor();
+#endif
   //             1234567890123456
   lcdPrintln(0, "MP3 Player mode,");
   lcdPrintln(1, "Not implemented.");
@@ -7082,4 +7119,3 @@ void loop() {
       break;
   }
 }
-// -----------------------------------------------------------------------------
