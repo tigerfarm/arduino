@@ -36,21 +36,10 @@
   Work to do,
 
   Make this program compile and run on an Ardunio Due.
-  + Get the steampunk tablet working again to use to test the Due.
   + Change A11-A14 pins to lower values pins because the high pins are not available on a Due.
   ++ LED lights shift register(SN74HC595N) pins: A11, A12, and A14
-  + Instead of using, SoftwareSerial and Serial2, uses Mega/Due hardware serial pins/objects.
-  ++ The Arduino Mega has three serial ports:
-  +++ Serial1 on pins 19 (RX) and 18 (TX), used for communications to the MP3 player
-  +++ Serial2 on pins 17 (RX) and 16 (TX), *** try it.
-  +++ Serial3 on pins 15 (RX) and 14 (TX).
-  ++ https://www.arduino.cc/en/pmwiki.php?n=Reference/serial
-  + Done: Add "{}" in case statements. Not required for Mega, but required for Due. Should work with both.
+  + Get the steampunk tablet working again. This can be used to test the Due.
   + Done: Remove LCD references: // #define SETUP_LCD 1
-  // Pin 18(TX) to resister to pin 2(RX).
-  // Pin 19(RX) to pin 3(TX).
-  Serial1.begin(9600);
-
 
   On/off switch to control the power to the motherboard.
 
@@ -759,33 +748,30 @@ File myFile;
 
 // -----------------------------------------------------------------------------
 // Add another serial port settings, to connect to the new serial hardware module.
-const int PIN_RX = 17;  // Currently, pin 12: Arduino receive is connected to TXD on the serial module.
-const int PIN_TX = 16;  // Currently, pin 11: Arduino transmit is not used, and therefore notconnected to RXD pin on the serial module.
-
 // #include <SoftwareSerial.h>
+
 // Connections:
 // Since not transmiting, the second parameter pin doesn't need to be connected.
 // Parameters: (receive, transmit).
 // Receive needs to be an interrupt pin.
 // Computer USB >> serial2 module TXD >> RX pin for the Arduino to receive the bytes.
 //                                TXD transmits received bytes to the Arduino receive (RX) pin.
-// const int PIN_RX = 12;  // Arduino receive is connected to TXD on the serial module.
-// const int PIN_TX = 11;  // Arduino transmit is not used, and therefore notconnected to RXD pin on the serial module.
+const int PIN_RX = 17;  // Currently, pin 12: Arduino receive is connected to TXD on the serial module.
+const int PIN_TX = 16;  // Currently, pin 11: Arduino transmit is not used, and therefore notconnected to RXD pin on the serial module.
 // SoftwareSerial serial2(PIN_RX, PIN_TX);
 // Then, to read from the new serial port, use:
-//    Serial2.begin(9600);
-//    Serial2.available()
-//    Serial2.read();
-// Update program references from serial2 to Serial2.
+// Serial2.begin(9600);
+// Serial2.available()
+// Serial2.read();
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Output LED lights shift register(SN74HC595N) pins
 
-//           Mega/Nano pins        74HC595 Pins
-const int dataPinLed  = A14;    // pin 14 Data pin. Also tested with pin 7.
-const int latchPinLed = A12;    // pin 12 Latch pin.
-const int clockPinLed = A11;    // pin 11 Clock pin.
+//                Due pins        74HC595 Pins
+const int dataPinLed  = A5;    // pin 14 Data pin. Also tested with pin 7.
+const int latchPinLed = A6;    // pin 12 Latch pin.
+const int clockPinLed = A7;    // pin 11 Clock pin.
 
 // -----------------------------------------------------------------------------
 // Clock setting values using in toggle switch functions.
@@ -887,8 +873,7 @@ void printLcdClockValue(int theColumn, int theRow, int theInt) {
 }
 
 // -------------------------
-// For Due, change [1] to [2]. The extra byte is for the NULL character.
-char dayOfTheWeek[7][2] = {"S", "M", "T", "W", "T", "F", "S"};
+char dayOfTheWeek[7][2] = {"S", "M", "T", "W", "T", "F", "S"};  // For Due, [1] to [2]
 
 void printClockDate() {
   now = rtc.now();
@@ -3972,6 +3957,7 @@ void ledFlashSuccess() {
     counterLights();
     return;
   }
+  // Due, added "{}" in case statements.
   switch (programState) {
     case LIGHTS_OFF:
       {
@@ -4286,23 +4272,25 @@ void doDownloadProgram() {
 
 void runDownloadProgram() {
   Serial2.begin(9600);
-  // Set status lights:
-  digitalWrite(WAIT_PIN, LOW);
-  while (programState == SERIAL_DOWNLOAD) {
-    doDownloadProgram();
-  }
-  digitalWrite(WAIT_PIN, HIGH);
-  /*
-    // How to check if Serial2 is available?
-    } else {
-    #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Return to programState: PROGRAM_WAIT, Serial2 is not available."));
-    #endif
-    delay(300);
-    ledFlashError();
-    controlResetLogic();  // Reset the program.
+  // if (Serial2.isListening()) { // Mega
+  if (Serial2.available()) {      // Due
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ programState: SERIAL_DOWNLOAD"));
+    Serial.println("+ serial2 is listening.");
+    Serial.println("+ Ready to use the second serial port for receiving program bytes.");
+#endif
+    // Set status lights:
+    digitalWrite(WAIT_PIN, LOW);
+    while (programState == SERIAL_DOWNLOAD) {
+      doDownloadProgram();
     }
-  */
+    digitalWrite(WAIT_PIN, HIGH);
+  } else {
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Return to programState: PROGRAM_WAIT, Serial2 is not available."));
+#endif
+    delay(300);
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -4425,55 +4413,57 @@ void checkExamineButton() {
 #endif
         break;
       case CLOCK_RUN:
+        {
 #ifdef SWITCH_MESSAGES
-        Serial.print(F("+ Clock, Examine, set clock values, "));
-        Serial.println(F("one at a time: year, month, day, hour, minutes, seconds."));
+          Serial.print(F("+ Clock, Examine, set clock values, "));
+          Serial.println(F("one at a time: year, month, day, hour, minutes, seconds."));
 #endif
-        // Serial.print("+ Key OK");
-        // setClockValue is indicator of which clock value is being processed, to be set.
-        if (setClockValue) {
-          // Serial.print(" ");
-          switch (setClockValue) {
-            case 1:
-              // Serial.print("seconds");
-              theCounterSeconds = setValue;
-              printLcdClockValue(theSetCol, printRowClockPulse, setValue);
-              break;
-            case 2:
-              // Serial.print("minutes");
-              theCounterMinutes = setValue;
-              printLcdClockValue(theSetCol, printRowClockPulse, setValue);
-              break;
-            case 3:
-              // Serial.print("hours");
-              theCounterHours = setValue;
-              printLcdClockValue(theSetCol, printRowClockPulse, setValue);
-              break;
-            case 4:
-              // Serial.print("day");
-              theCounterDay = setValue;
-              break;
-            case 5:
-              // Serial.print("month");
-              theCounterMonth = setValue;
-              break;
-            case 6:
-              // Serial.print("year");
-              theCounterYear = setValue;
-              break;
+          // Serial.print("+ Key OK");
+          // setClockValue is indicator of which clock value is being processed, to be set.
+          if (setClockValue) {
+            // Serial.print(" ");
+            switch (setClockValue) {
+              case 1:
+                // Serial.print("seconds");
+                theCounterSeconds = setValue;
+                printLcdClockValue(theSetCol, printRowClockPulse, setValue);
+                break;
+              case 2:
+                // Serial.print("minutes");
+                theCounterMinutes = setValue;
+                printLcdClockValue(theSetCol, printRowClockPulse, setValue);
+                break;
+              case 3:
+                // Serial.print("hours");
+                theCounterHours = setValue;
+                printLcdClockValue(theSetCol, printRowClockPulse, setValue);
+                break;
+              case 4:
+                // Serial.print("day");
+                theCounterDay = setValue;
+                break;
+              case 5:
+                // Serial.print("month");
+                theCounterMonth = setValue;
+                break;
+              case 6:
+                // Serial.print("year");
+                theCounterYear = setValue;
+                break;
+            }
+            // The following offsets the time to make the change.
+            // Else, the clock looses about second each time a setting is made.
+            theCounterSeconds ++;
+            delay(100);
+            //
+            rtc.adjust(DateTime(theCounterYear, theCounterMonth, theCounterDay, theCounterHours, theCounterMinutes, theCounterSeconds));
+            lcdPrintln(theSetRow, "Value is set.");
+            printClockDate();
+            delay(2000);
+            lcdPrintln(theSetRow, "");
           }
-          // The following offsets the time to make the change.
-          // Else, the clock looses about second each time a setting is made.
-          theCounterSeconds ++;
-          delay(100);
-          //
-          rtc.adjust(DateTime(theCounterYear, theCounterMonth, theCounterDay, theCounterHours, theCounterMinutes, theCounterSeconds));
-          lcdPrintln(theSetRow, "Value is set.");
-          printClockDate();
-          delay(2000);
-          lcdPrintln(theSetRow, "");
+          break;
         }
-        break;
     }
   }
 }
@@ -7026,6 +7016,7 @@ void setup() {
   //    use pins 18 and 19, which has the label: Serial1.
   // Pin 18(TX) to resister to pin 2(RX).
   // Pin 19(RX) to pin 3(TX).
+  // Serial1.begin(9600);
   Serial1.begin(9600);
   //
   playerSetup();
