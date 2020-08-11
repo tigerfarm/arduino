@@ -39,6 +39,19 @@
   + Get the steampunk tablet working again to use to test the Due.
   + Change A11-A14 pins to lower values pins because the high pins are not available on a Due.
   ++ LED lights shift register(SN74HC595N) pins: A11, A12, and A14
+  + Done: Instead of using, SoftwareSerial and Serial2, uses Mega/Due hardware serial pins/objects.
+  + Done: Add "{}" in case statements. Not required for Mega, but required for Due. Should work with both.
+  + Done: Remove LCD references: // #define SETUP_LCD 1
+
+  ++ The Arduino Mega has three serial ports:
+  +++ Serial1 on pins 19 (RX) and 18 (TX), used for communications to the MP3 player
+  +++ Serial2 on pins 17 (RX) and 16 (TX), *** try it.
+  +++ Serial3 on pins 15 (RX) and 14 (TX).
+  ++ https://www.arduino.cc/en/pmwiki.php?n=Reference/serial
+// Pin 18(TX) to resister to pin 2(RX).
+  // Pin 19(RX) to pin 3(TX).
+  Serial1.begin(9600);
+
 
   On/off switch to control the power to the motherboard.
 
@@ -747,14 +760,8 @@ File myFile;
 
 // -----------------------------------------------------------------------------
 // Add another serial port settings, to connect to the new serial hardware module.
-
-// pin 12: Arduino receive pin 12 is connected to TXD on the serial module.
-// pin 11: Arduino transmit pin 11 is not used, and therefore not connected to RXD pin on the serial module.
-// Use object: Serial2.
-// Then, to read from the new serial port, use:
-//    Serial2.begin(9600);
-//    Serial2.available()
-//    Serial2.read();
+const int PIN_RX = 17;  // Currently, pin 12: Arduino receive is connected to TXD on the serial module.
+const int PIN_TX = 16;  // Currently, pin 11: Arduino transmit is not used, and therefore notconnected to RXD pin on the serial module.
 
 // #include <SoftwareSerial.h>
 // Connections:
@@ -766,6 +773,11 @@ File myFile;
 // const int PIN_RX = 12;  // Arduino receive is connected to TXD on the serial module.
 // const int PIN_TX = 11;  // Arduino transmit is not used, and therefore notconnected to RXD pin on the serial module.
 // SoftwareSerial serial2(PIN_RX, PIN_TX);
+// Then, to read from the new serial port, use:
+//    Serial2.begin(9600);
+//    Serial2.available()
+//    Serial2.read();
+// Update program references from serial2 to Serial2.
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

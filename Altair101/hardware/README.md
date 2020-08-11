@@ -50,10 +50,10 @@ Arduino Due [pinouts graphic](https://components101.com/sites/default/files/comp
   + Mount, connect, and test an LCD, such as a 1602 LCD.
   ------------
   Design and wire a central power source:
-  + Add internal 120AC socket for 3 devices: 1) Mega 5V wall adapter, 2) MP3 5V wall adapter, 3) stearo amp plug,
+  + Add internal 120AC socket for 3 devices: 1) Mega 5V wall adapter, 2) MP3 5V wall adapter, 3) stereo amp plug,
   + Use the Mega to control an On/off relay switch for 120AC socket.
-  + Use the Mega to control an On/off relay switch for the stearo amp's 120AC adapter.
-  + Later, add the stearo amp power supply inside the case.
+  + Use the Mega to control an On/off relay switch for the stereo amp's 120AC adapter.
+  + Later, add the stereo amp power supply inside the case.
   ------------
   + Done: Cut a glue Spider-Man paper to panels: 2 sides, bar top, and top panel.
   + Done: Cut separation on the top for easy internal access.
@@ -67,7 +67,9 @@ Arduino Due [pinouts graphic](https://components101.com/sites/default/files/comp
   + Done: Add RCA female plugs for L/R external MP3 player output to an amp.
 ````
 --------------------------------------------------------------------------------
-### Connect the Mega to the Desktop Front Panel
+### Connect the Mega to the Desktop Front Panel and Other Components.
+
+#### Desktop Front Panel
 ````
   Total = 14 Mega pin wire connections to the front panel, pluse 6 for power.
 
@@ -121,6 +123,29 @@ Arduino Due [pinouts graphic](https://components101.com/sites/default/files/comp
   ESP8266 ESP-12E NodeMCU cannot replace a Mega because not enough GPIO pins.
 ````
 
+#### DFPlayer
+Connect DFPlayer to the motherboard using a serial connection.
+````
+Arduino serial object: Serial1.
+Arduino transmit pin 18(RX1) is connected to a resister which connects to pin 2(RX) on the DFPlayer.
+Arduino receive pin 19(TX1) is connected to pin 3(TX) on the DFPlayer.
+````
+
+#### Serial Module
+Connect serial module to the motherboard using a serial connection.
+````
+Arduino serial object: Serial2.
+Use pins 16 and 17, which has the label: Serial1.
+Arduino receive pin 17(RX2) is connected to TXD on the serial module.
+Arduino transmit pin 16(TX2) is connected to RXD pin on the serial module.
+````
+
+Arduino Mega and Due have [three serial ports](https://www.arduino.cc/en/pmwiki.php?n=Reference/serial):
+````
++ Serial1 on pins 19 (RX) and 18 (TX), used for communications with the MP3 player
++ Serial2 on pins 17 (RX) and 16 (TX), used for communications with the serial module.
++ Serial3 on pins 15 (RX) and 14 (TX).
+````
 --------------------------------------------------------------------------------
 ### Parts List
 
