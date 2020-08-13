@@ -16,21 +16,22 @@
   For reference, link to the Altair 8800c. Excellent moderinization of the original Altair 8800.
     https://deramp.com/altair_8800c.html
   The Altair 8800c is hardware build that works the same as the Altair 8800.
-  I'm using programming emulation with enhancements.
+  I'm using programming emulation with enhancements
+    such as EXAMINE PREVIOUS, to examine the data byte in the previous address.
 
   Program goals and general approach:
   + Functional.
   + Runs fast enough for satisfactory interactivity.
-  + Easy to read code.
-  + Program in a single file is simplier to find specific code and less complicated to compile.
+  + Easy to read code that is in a single file.
   + In processor mode, front panel works the same as an Altair 8800. Exceptions:
   ++ STOP pauses which allows RUN to continue.
   ++ PROTECT and UNPROTECT are used for player volume.
-  ++ AUX switchs to switch modes: processor, clock, timer, counter, and player.
+  ++ AUX switchs to control modes: processor, clock, timer, counter, player, and sound effects.
   + Switches and toggles function as expected with notifications.
   ++ Example notification: I made the WAIT LED flash when receiving bytes.
   + Status lights work as expected in processor mode, and used as indicators in other modes.
-  + Switches in other modes to work similar to processor mode where possible.
+  + Switches in other modes, work similar to processor mode where possible.
+  ++ Example, EXAMINE NEXT advances to the next MP3 file.
 
   -----------------------------------------------------------------------------
   Work to do,

@@ -441,6 +441,7 @@ Notes,
 + Search for "soundEffects", to get the above action list of sound effect constants and array index values.
 ````
 ##### Steps to update MP3 files into the Altair 101.
+Prepare the SD card for files.
 ````
 Remove the Altair 101 SD MP3 card and put it into the MacBook.
 Run Applications/Utilities/Disk Utility.app
@@ -448,11 +449,33 @@ Select the SD card, example: MUSICSD.
 Select option, Erase.
 Set, Name: MUSICSD, Format: MS-DOS (FAT).
 Click Erase. Click Done. Close the Disk Utility.
+````
+Prepare MP3 files to be copied to the SD card.
+````
 Copy MP3 files into a working directory, for example: mp3player0.
+Notes,
++ You can organize the files into subdirectories. The subdirectories allow file play separations.
++ The file order, is the play order: 
+++ Play each file in the first subdirectory, in the name order in the directory.
+````
+Copy the prepared MP3 files to the SD card in a format that the DFPlayer can use.
+````
 Create an empty directory, for example: mp3player1.
 Use mp3player.jar to copy files from the working directory into the empty directory,
+
 $ java -jar mp3player.jar copy mp3player0 mp3player1
-Copy the prepared file onto the clean SD card.
++++ Start, DFPlayer module copy program.
+++ Copy into DFPlayer formatted file and directory names, the <IN: directory> (mp3player1) to the <OUT: directory> (mp3player0).
+++ From directory: mp3player1, Create to-directory: 01
++ doCopyFile, copied from: mp3player0/00-computer/01-operational.mp3 to mp3player1/01/0001.mp3
++ doCopyFile, copied from: mp3player0/00-computer/02-chirpChrip.mp3 to mp3player1/01/0002.mp3
++ doCopyFile, copied from: mp3player0/00-computer/03-computerbeep_17.mp3 to mp3player1/01/0003.mp3
+...
+++ From directory: mp3player1, Create to-directory: 02
++ doCopyFile, copied from: mp3player0/02-top/Jimmy Buffet - Margaritaville.mp3 to mp3player1/02/0034.mp3
+...
+
+Copy the prepared directories of files onto the clean SD card.
 Put the card back into the Altair 101.
 ````
 
