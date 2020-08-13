@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
 
-public class dir {
+public class mp3player {
 
     public static void directoryListing(String theDirectoryName, File theDirectory) {
         Format formatter = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss EEEE");
