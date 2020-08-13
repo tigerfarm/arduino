@@ -36,8 +36,8 @@
   Work to do,
 
   Make this program compile and run on an Ardunio Due.
-  + Get the steampunk tablet working again to use to test the Due.
   + Hardware change, shift register pins A11-A14 to pins 7-5.
+  + To do: Get the steampunk tablet working again to use to test the Due.
 
   On/off switch to control the power to the motherboard.
 

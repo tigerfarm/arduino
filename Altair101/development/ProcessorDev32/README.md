@@ -4,10 +4,10 @@
 This version's updates were only tested on the desktop model.
 
 Processor.ino, version 3.2, compile for the Arduino Due.
-+ To do: change shift register(SN74HC595N) A11-A14 pins to lower values pins because the high pins are not available on a Due.
-+ Instead of using SoftwareSerial, use Serial2 hardware serial pins/object. This will work on both the Mega and Due.
-+ Add "{}" in case statements. Not required for Mega, but required for Due.
-+ Since the LCD library doesn't work with Due, remove LCD references using: // #define SETUP_LCD 1
++ Hardware change, shift register pins from A11-A14 to pins 7-5 because the high A pins are not available on a Due.
++ Changed using SoftwareSerial to use Serial2 hardware serial pins/object. This works on both the Mega and Due.
++ Added "{}" in case statements. Not required for Mega, but required for Due.
++ Since the LCD library doesn't work with Due, I removed LCD references using: // #define SETUP_LCD 1
 
 Processor.ino, version 3.1,
 + Added clock counters.
