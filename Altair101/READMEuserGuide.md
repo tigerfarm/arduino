@@ -440,7 +440,7 @@ Notes,
 + If data byte is zero, no sound file assigned.
 + Search for "soundEffects", to get the above action list of sound effect constants and array index values.
 ````
-##### Steps to update MP3 files into the Altair 101.
+##### Steps to Update Altair 101 SD Card MP3 Files
 Prepare the SD card for files.
 ````
 Remove the Altair 101 SD MP3 card and put it into the MacBook.
