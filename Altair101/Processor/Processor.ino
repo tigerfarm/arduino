@@ -37,8 +37,7 @@
 
   Make this program compile and run on an Ardunio Due.
   + Get the steampunk tablet working again to use to test the Due.
-  + Change A11-A14 pins to lower values pins because the high pins are not available on a Due.
-  ++ LED lights shift register(SN74HC595N) pins: A11, A12, and A14
+  + Hardware change, shift register pins A11-A14 to pins 7-5.
 
   On/off switch to control the power to the motherboard.
 
@@ -772,9 +771,9 @@ File myFile;
 // Output LED lights shift register(SN74HC595N) pins
 
 //           Mega/Nano pins        74HC595 Pins
-const int dataPinLed  = A14;    // pin 14 Data pin. Also tested with pin 7.
-const int latchPinLed = A12;    // pin 12 Latch pin.
-const int clockPinLed = A11;    // pin 11 Clock pin.
+const int dataPinLed  = 5;    // pin 5 (was pin A14) Data pin.
+const int latchPinLed = 6;    // pin 6 (was pin A12) Latch pin.
+const int clockPinLed = 7;    // pin 7 (was pin A11) Clock pin.
 
 // -----------------------------------------------------------------------------
 // Clock setting values using in toggle switch functions.
