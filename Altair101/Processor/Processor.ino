@@ -38,14 +38,14 @@
   + Switches in other modes, work similar to the processor mode where possible.
   ++ Example, EXAMINE NEXT advances to the next MP3 file when in player mode.
 
-  *** mp3playerPlaywait(): Flip STOP to end at anytime.
-
   -----------------------------------------------------------------------------
   Work to do,
 
   On/off switch to control the power to the motherboard.
 
-  When running a timer, if player is not working, timer halts when playing a sound effect.
+  Timer sound effect issues:
+  + Need to use STOP sometimes, i.e. mp3playerPlaywait(): Flip STOP to end at anytime.
+  + When running a timer, if player is not working, timer halts when playing a sound effect.
 
   This program now compiles to run on an Ardunio Due.
   + Hardware change, shift register pins A11-A14 to pins 7-5. A11>7, A12>6, A14>5.
