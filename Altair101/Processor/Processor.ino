@@ -5376,8 +5376,7 @@ void clockRunTimer() {
       Serial.println(F(" Timer timed."));
 #endif
       // Force playing the sound.
-      playerPlaySoundWait(soundEffects[TIMER_COMPLETE]);
-      // delay(1200);  // Delay time for the sound to play.
+      playerPlaySoundWait(TIMER_COMPLETE);
       // KnightRiderScanner();
       if (!(playerStatus & HLTA_ON)) {
         delay(2000);
