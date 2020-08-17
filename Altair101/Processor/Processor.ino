@@ -21,31 +21,49 @@
 
   Program goals and general approach:
   + Functional.
+  + Reliable. The program has been running reliably for months. I have debugged small issue.
   + Runs fast enough for satisfactory interactivity.
   + Easy to read code that is in a single file.
-  + In processor mode, front panel works the same as an Altair 8800. Exceptions:
+  + In processor mode, front panel works the same as an Altair 8800:
+  ++ Status, data, and address LED lights
+  ++ RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT, and RESET.
+  + Exceptions:
   ++ STOP pauses which allows RUN to continue.
+  ++ CLR sets the memory bytes to zero.
   ++ PROTECT and UNPROTECT are used for player volume.
-  ++ AUX switchs to control modes: processor, clock, timer, counter, player, and sound effects.
+  ++ AUX switchs control the modes: processor, clock, timer, counter, player, and sound effects.
   + Switches and toggles function as expected with notifications.
   ++ Example notification: I made the WAIT LED flash when receiving bytes.
   + Status lights work as expected in processor mode, and used as indicators in other modes.
-  + Switches in other modes, work similar to processor mode where possible.
-  ++ Example, EXAMINE NEXT advances to the next MP3 file.
+  + Switches in other modes, work similar to the processor mode where possible.
+  ++ Example, EXAMINE NEXT advances to the next MP3 file when in player mode.
+
+  *** mp3playerPlaywait(): Flip STOP to end at anytime.
 
   -----------------------------------------------------------------------------
   Work to do,
 
-  Make this program compile and run on an Ardunio Due.
-  + Hardware change, shift register pins A11-A14 to pins 7-5.
-  + To do: Get the steampunk tablet working again to use to test the Due.
-
   On/off switch to control the power to the motherboard.
+
+  When running a timer, if player is not working, timer halts when playing a sound effect.
+
+  This program now compiles to run on an Ardunio Due.
+  + Hardware change, shift register pins A11-A14 to pins 7-5. A11>7, A12>6, A14>5.
+  + To do: Get the steampunk tablet working again to use to test the Due.
 
   Continue writing user documentation.
   + Create a GitHub Readme.cmd document file.
 
   Continue writing opcode test programs.
+
+  --------------
+  STOP+RESET to cause a halt similar to control-C to stop a UNIX program.
+  + Part of the requirements to match the Altair 8800.
+  + Combination of STOP+RESET to cause a halt (HLT),
+  + Senario: program loop that makes a call to go into counter mode.
+  ++ Can exit counter mode, but without a HLT in the program, it goes right back into counter mode.
+  ++ If in counter mode, exit into program wait state.
+  + Flip STOP+RESET to exit counter mode, and put the program in wait state (HLT).
 
   --------------
   Generate videos.
@@ -243,18 +261,6 @@
 
   When flipping EXAMINE,
   + If toogle address is greater than memory top (memoryTop), flash error instead of random values.
-
-  --------------
-  STOP+RESET to cause a halt similar to control-C to stop a UNIX program.
-
-  Need an exit from program that goes into counter mode loop.
-  + Senario: program loop that makes a call to go into counter mode.
-  ++ Can exit counter mode, but without a HLT in the program, it goes right back into counter mode.
-  ++ Need to reboot to exit the program.
-  + Combination of STOP+RESET to cause a halt (HLT),
-  ++ If in counter mode, exit into program wait state.
-  + Flip AUX2 to exit counter mode, and continue running the program.
-  + Flip STOP+RESET to exit counter mode, and put the program in wait state (HLT).
 
   --------------
   Add inc/dec hours and minutes using toggles to set the time and date.
@@ -5359,8 +5365,9 @@ void clockRunTimer() {
       //
       // -----------------------------------------
       // *** Timer Complete ***
-      // When the timer is complete, play a sound, and flash some lights.
+      // When the timer is complete, play a sound, and set the front panel lights.
       //
+      int currentTimerMinute = timerMinute;
 #ifdef SWITCH_MESSAGES
       Serial.print(F("+ clockTimerCount="));
       Serial.print(clockTimerCount);
@@ -5369,8 +5376,8 @@ void clockRunTimer() {
       Serial.println(F(" Timer timed."));
 #endif
       // Force playing the sound.
-      mp3playerPlay(soundEffects[TIMER_COMPLETE]);
-      delay(1200);  // Delay time for the sound to play.
+      playerPlaySoundWait(soundEffects[TIMER_COMPLETE]);
+      // delay(1200);  // Delay time for the sound to play.
       // KnightRiderScanner();
       if (!(playerStatus & HLTA_ON)) {
         delay(2000);
@@ -5394,14 +5401,26 @@ void clockRunTimer() {
           clockTimer = millis();
           clockTimerCount = 0;
         } else {
-          // End the timer run state, stay in clock timer mode.
+#ifdef SWITCH_MESSAGES
+          Serial.print(F("+ End the timer run state, stay in clock timer mode (1)."));
+          Serial.print(F(" timerMinute="));
+          Serial.print(timerMinute);
+          Serial.print(F(" currentTimerMinute="));
+          Serial.print(currentTimerMinute);
+#endif
           timerStatus = INP_ON | HLTA_ON;
-          clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
+          clockTimerAddress = 0;
+          clockTimerAddress = bitWrite(clockTimerAddress, currentTimerMinute, 1);
         }
       } else {
-        // End the timer run state, stay in clock timer mode.
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ End the timer run state, stay in clock timer mode (2)."));
+        Serial.print(F(" timerMinute="));
+        Serial.print(timerMinute);
+#endif
         timerStatus = INP_ON | HLTA_ON;
-        clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
+        clockTimerAddress = 0;
+        clockTimerAddress = bitWrite(clockTimerAddress, currentTimerMinute, 1);
       }
     } else {
       // -----------------------------------------
@@ -6834,7 +6853,9 @@ void mp3playerPlaywait(byte theFileNumber) {
   //
   boolean playNotCompleted = true;
   switchStop = false;
-  // Serial.println(F(" Check when playing is completed."));
+#ifdef SWITCH_MESSAGES
+  Serial.print(F("+ Check when playing is completed."));
+#endif
   while (playNotCompleted) {
     if (mp3player.available()) {
       int theType = mp3player.readType();
