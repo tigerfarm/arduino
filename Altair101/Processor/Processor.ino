@@ -43,10 +43,6 @@
 
   On/off switch to control the power to the motherboard.
 
-  Timer sound effect issues:
-  + Need to use STOP sometimes, i.e. mp3playerPlaywait(): Flip STOP to end at anytime.
-  + When running a timer, if player is not working, timer halts when playing a sound effect.
-
   This program now compiles to run on an Ardunio Due.
   + Hardware change, shift register pins A11-A14 to pins 7-5. A11>7, A12>6, A14>5.
   + To do: Get the steampunk tablet working again to use to test the Due.
@@ -277,6 +273,12 @@
         statusByte = HLTA_ON;
         digitalWrite(WAIT_PIN, HIGH);
   + Add a sound when there is a program error.
+
+  --------------
+  Timer sound effect issues:
+  + When running a timer, if player is not working, timer halts when playing a sound effect.
+  + May need to check, playerPlaySoundWait(invalidValue) for null.
+  + Feature: mp3playerPlaywait(): Flip STOP to end at anytime.
 
   --------------
   + hwStatus should have status, like processor statuses.
@@ -616,8 +618,10 @@ int KR5               = 5;
 int CLOCK_CUCKOO      = 6;
 int TIMER_MINUTE      = 7;
 int DOWNLOAD_COMPLETE = 8;
+int RESET_COMPLETE    = 2;
 //
-// Function to play a sound file using the above mapping.
+// Functions to play a sound file using the above mapping.
+//
 void playerPlaySound(int theFileNumber) {
   if ((playerStatus & HLTA_ON) && (theFileNumber > 0)) {
     mp3playerPlay(soundEffects[theFileNumber]);
@@ -626,6 +630,14 @@ void playerPlaySound(int theFileNumber) {
 void playerPlaySoundWait(int theFileNumber) {
   if ((playerStatus & HLTA_ON) && (theFileNumber > 0)) {
     mp3playerPlaywait(soundEffects[theFileNumber]);
+  }
+}
+void playerPlaySoundEffectWait(int theFileNumber) {
+  // Force the playing without changing the current playerCounter.
+  if (theFileNumber > 0) {
+    int currentPlayerCounter = playerCounter;
+    mp3playerPlaywait(soundEffects[theFileNumber]);
+    playerCounter = currentPlayerCounter;
   }
 }
 
@@ -6345,14 +6357,14 @@ void checkPlayerControls() {
   } else if (switchReset) {
     switchReset = false;
     // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Player, RESET: set to play first song."));
+#endif
     mp3player.stop();   // Required.
     playerSetup();
+    playerPlaySoundEffectWait(RESET_COMPLETE);  // Doesn't change the current MP3 file.
     mp3player.play(playerCounter);
     mp3player.stop();
-#ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Player, RESET: set to play first song. Number of MP3 files = "));
-    Serial.println(playerCounterTop);
-#endif
     playerLights();
   }
   // -------------------

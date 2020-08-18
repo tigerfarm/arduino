@@ -76,7 +76,7 @@ Sample output:
 
 [SensorWebAgent.nut](SensorWebAgent.nut)
 
-Sample readings,
+Inside, home office,
 ````
 Reading date time:      2020:07:06 12:40 Pacific time
 + Sensor, temperature:  30.8c
@@ -94,6 +94,13 @@ Reading date time:      2020:07:10 10:21 Pacific time
 + Sensor, temperature:  27.8c
 + Sensor, humidity:     45
 + Sensor, air pressure: 1011
+````
+Outside,
+````
+Reading date time:      2020:07:17 13:30 Pacific time
++ Sensor, temperature:  37.1c
++ Sensor, humidity:     37
++ Sensor, air pressure: 1014
 ````
 --------------------------------------------------------------------------------
 ### Twilio Electric Imp
