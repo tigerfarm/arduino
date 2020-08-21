@@ -13,12 +13,6 @@
   + The Altair 8800 was built around the Intel 8080 CPU chip which as the same opcodes as the 8085.
   + This program implements more than enough opcodes to run the classic program, Kill the Bit.
 
-  For reference, link to the Altair 8800c. Excellent moderinization of the original Altair 8800.
-    https://deramp.com/altair_8800c.html
-  The Altair 8800c is hardware build that works the same as the Altair 8800.
-  I'm using programming emulation with enhancements
-    such as EXAMINE PREVIOUS, to examine the data byte in the previous address.
-
   Program goals and general approach:
   + Functional.
   + Reliable. The program has been running reliably for months. I have debugged small issue.
@@ -27,14 +21,14 @@
   + In processor mode, front panel works the same as an Altair 8800:
   ++ Status, data, and address LED lights
   ++ RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT, and RESET.
-  + Exceptions:
+  + Exceptions, enhancements:
   ++ STOP pauses which allows RUN to continue.
-  ++ CLR sets the memory bytes to zero.
+  ++ CLR sets the processor memory bytes to zero.
   ++ PROTECT and UNPROTECT are used for player volume.
   ++ AUX switchs control the modes: processor, clock, timer, counter, player, and sound effects.
+  + Status lights work as expected in processor mode, and used as indicators in other modes.
   + Switches and toggles function as expected with notifications.
   ++ Example notification: I made the WAIT LED flash when receiving bytes.
-  + Status lights work as expected in processor mode, and used as indicators in other modes.
   + Switches in other modes, work similar to the processor mode where possible.
   ++ Example, EXAMINE NEXT advances to the next MP3 file when in player mode.
 

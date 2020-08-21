@@ -28,37 +28,45 @@ Clicking the AUX1 up a second time, returns control to the program emulator.
 I have 2 more components to include: 1602 LCD and an MP3 player.
 
 --------------------------------------------------------------------------------
-#### Videos to create
+## Videos
+
+#### Front Panel Memory Management
 
 1. Intro video of memory management basics.
 ````
 + Turn the unit on using the battery switch.
 + Demo memory management using deposit, examine, and reset switches, for example:
 ++ On startup, all the memory values are zero.
-+++ 0:0 1:0 2:0 3:0 4:0 5:0 6:0 7:0 8:0
-+++ Flip reset switch to return to 0 address.
-++ Deposit values:
-+++ 3:6 4:8
 ++ Examine values:
-+++ 0:0 1:0 2:0 3:6 4:8 5:0 6:0 7:0 8:0
++++ (address:data value) 0:0 1:0 2:0 3:0 4:0 5:0 6:0 7:0 8:0
++++ Flip RESET to return to 0 address.
+++ Deposit values:
++++ 1:1(D0) 2:4(D2) 3:6(D2+D1) 4:8(D3)
+++ Examine values:
++++ 0:0 1:1 2:4 3:6 4:8 5:0 6:0 7:0 8:0
 ------------
-+ Reset the unit using the Mega reset button.
++ Flip CLR twice to reset the memory to zero.
+++ Examine values:
++++ 0:0 1:0 2:0 3:0
 ------------
 + Enter the data where each increase in address, moves the data, LED on, one position left,
-++ (address:data) 0:0 1:1 2:2 3:4 4:8 5:16 6:32 7:64 8:128
+++ 0:0 1:1 2:2 3:4 4:8 5:16 6:32 7:64 8:128
 ++ Use deposit and deposit next.
-++ Use examine and examine next.
+++ Examine values using examine and examine next.
+++ 0:0 1:1 2:2 3:4 4:8 5:16 6:32 7:64 8:128
 ------------
 + Saving and retrieving memory to/from the micro SD card.
 ++ Set sense switches to: 01000000.
-++ Flip write switch.
-++ Set sense switches to: 00000000.
-++ Flip read switch.
++ Flip CLR twice to reset the memory to zero.
 ++ Use examine and examine next to show all zeros.
-++ Set sense switches to: 01000000.
-++ Flip read switch.
++++ 0:0 1:0 2:0 3:0 4:0 5:0 6:0 7:0 8:0
+++ Flip read switch twice to read from the SD card.
 ++ Use examine and examine next to show the previously deposited bytes.
+++ 0:0 1:1 2:2 3:4 4:8 5:16 6:32 7:64 8:128
 ````
+
+--------------------------------------------------------------------------------
+#### Entering and Running Programs
 
 2. Running, stopping, and stepping through a program.
 ````
@@ -100,6 +108,9 @@ Enter the following program to add to numbers (2+3).
 ++       5:00000101: 01000000 : 40:100 > lb: 64
 ++       6:00000110: 00000000 : 00:000 > hb: 0
 ++       7:00000111: 01110110 : 76:166 > opcode: hlt
+++       8:00001000: 11000011 : 08:303 > opcode: jmp 0
+++       9:00001001: 00000000 : 00:000 > lb: 0
+++      10:00001010: 00000000 : 00:000 > hb: 0
 
 + Write the program to: 01100000.bin
 
@@ -108,6 +119,7 @@ Following is the assembler program listing of the above.
             adi 3           ; Add immediate number to register A.
             sta 64          ; Move result (register A) to address 64.
             hlt
+            jmp 0
 
 + Run the program, which runs until it halts.
 + Examine memory address 64 to view the result, 2+3 = 5.
@@ -124,6 +136,9 @@ Following is the assembler program listing of the above.
 + Step through it, and run it.
 + Examine memory address 64 to view the result, 2+3 = 5.
 ````
+
+--------------------------------------------------------------------------------
+#### Write and Run an Assembler Program
 
 3. Steps to assemble source program into a machine code file, upload the machine code, and run it.
 Note, this requires videos from the laptop, and from the Altair 101.

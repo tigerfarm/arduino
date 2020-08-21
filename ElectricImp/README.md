@@ -101,6 +101,10 @@ Reading date time:      2020:07:17 13:30 Pacific time
 + Sensor, temperature:  37.1c
 + Sensor, humidity:     37
 + Sensor, air pressure: 1014
+Reading date time:      2020:07:19 17:25 Pacific time
++ Sensor, temperature:  40.2c
++ Sensor, humidity:     32
++ Sensor, air pressure: 1011
 ````
 --------------------------------------------------------------------------------
 ### Twilio Electric Imp

@@ -1,6 +1,18 @@
 --------------------------------------------------------------------------------
 # Altair 101 Hardware Notes
 
+This is an Altair 8800 emulator with an emulator program that runs on an Arduino Mega microcontroller.
+Component additions to the original Altair 8800:
++ Micro SD card module for reading and writing program and data files.
++ An MP3 player controlled by using the front panel toggles with the lights displaying status.
++ A clock module to display the current time and date on the front panel lights.
+
+For reference, link to the [Altair 8800c](https://deramp.com/altair_8800c.html).
+Excellent modernization of the original Altair 8800.
+The Altair 8800c is hardware build that works the same as the Altair 8800.
+I'm using programming emulation with enhancements
+such as EXAMINE PREVIOUS, to examine the data byte in the previous address.
+
 --------------------------------------------------------------------------------
 #### Arduino Due
 
