@@ -35,6 +35,8 @@
   -----------------------------------------------------------------------------
   Work to do,
 
+  Sound byte for successful write completion.
+
   On/off switch to control the power to the motherboard.
 
   This program now compiles to run on an Ardunio Due.
@@ -5522,10 +5524,10 @@ void checkClockControls() {
     switchReset = false;
     // Switch logic.
 #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Control, clock Reset."));
+    Serial.println(F("+ Clock: Reset."));
 #endif
     //
-    KnightRiderScanner();
+    clockState = CLOCK_SET; 
     //
     clockData = 0;
     Serial.println(F("Show minutes and hours."));
@@ -6092,6 +6094,47 @@ void checkAux2clock() {
   }
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Clock Set: Front Panel Switch Functions.
+
+void checkClockSet() {
+  // -----------------------------------------
+  if ((millis() - clockTimerSeconds >= 500)) {
+    //
+    // Each half second, toggle LEDs on/off.
+    //
+    clockTimerSeconds = millis();
+    if (clockTimerSecondsOn) {
+      clockTimerSecondsOn = false;
+      lightsStatusAddressData( 0, 0, 0);
+      // clockTimerCountBit = 1;
+      // clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, clockTimerCountBit);
+    } else {
+      clockTimerSecondsOn = true;
+      displayTheTime(theCounterMinutes, theCounterHours);
+      // clockTimerCountBit = 0;
+      // clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, clockTimerCountBit);
+    }
+  }
+  // -----------------------------------------
+  if (pcfControl.readButton(pinReset) == 0) {
+    if (!switchReset) {
+      switchReset = true;
+    }
+  } else if (switchReset) {
+    switchReset = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Clock set: Reset."));
+#endif
+    //
+    clockState = CLOCK_TIME;
+    displayTheTime(theCounterMinutes, theCounterHours);
+  }
+  // -----------------------------------------
+}
+
 // -----------------------------------------------------
 void runClock() {
 #ifdef SWITCH_MESSAGES
@@ -6131,10 +6174,7 @@ void runClock() {
         break;
       case CLOCK_SET:
         // Control buttons for setting the time.
-        // checkExamineButton();
-        // checkExamineNextButton();
-        // checkDepositButton();
-        // checkDepositNextButton();
+        checkClockSet();
         break;
     }
     checkAux1();                // Toggle between processor, clock, and player modes.
@@ -7043,7 +7083,7 @@ void setup() {
   // Pin 19(RX) to pin 3(TX).
   Serial1.begin(9600);
   //
-  playerSetup();
+  playerSetup();    // If successful, ledFlashSuccess();
   //
   // ----------------------------------------------------
   // ----------------------------------------------------
@@ -7106,6 +7146,7 @@ void setup() {
   if (sumBytes > 0) {
     Serial.println(F("++ Since 00000000.bin, has non-zero bytes in the first 32 bytes, run it."));
     programState = PROGRAM_RUN;
+    digitalWrite(WAIT_PIN, LOW);
   } else {
     programState = PROGRAM_WAIT;
     // + Else, display the splash screen.

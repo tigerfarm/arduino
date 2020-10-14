@@ -169,6 +169,13 @@ void sendSms(int theValue) {
   Serial.println(host);
   if (!client.connect(host, httpsPort)) {
     Serial.println("- Connection failed.");
+    char buf[200];
+    int err = client.getLastSSLError(buf, 199);
+    buf[199] = '\0';
+    Serial.print("- Error code: ");
+    Serial.print(err);
+    Serial.print(", ");
+    Serial.println(buf);
     return; // Skips to loop();
   }
   Serial.println("+ Connected.");

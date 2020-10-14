@@ -67,13 +67,13 @@ Now, 00000000.bin is all zeros. No program will run on reboot.
 + Init LCD, if using one.
 + Front panel toggle switches and PCF modules settings initialized.
 + Front panel LED lights: Wait and HLDA set on, and status light byte is set for processor mode.
-++ Flash LED Success. Status lights count the number of times flash success is called.
+++ Flash LED Success(1). Status lights count the number of times flash success is called.
 + MP3 player module for playing MP3 files.
 ++ Flash LED Success or error.
 + SD card module, used for read and write.
-++ Flash LED Success or error.
+++ Flash LED Success(2) or error.
 + Clock module, used when in clock mode.
-++ Flash LED Success or error.
+++ Flash LED Success(3) or error.
 + Sound effects are initialized: read sound effect file information into an arrary.
 -----------
 If 00000000.bin exists and any of the first 32 bytes are not zero,
@@ -126,12 +126,13 @@ If in WAIT mode, do the following.
                   1. Set the Sense switches to an SD drive program filename value.
                   2. Double flip the switch.
                   3. Read file bytes into processor memory.
+                  4. Automatically return to WAIT mode once download is complete.
 + AUX2 down     Enter receive mode to receive bytes into processor memory from the serial port.
-                  1. Set the Sense switches to 0, or to an SD drive program filename value.
+                  1. Set the Sense switches to 0.
                   2. Double flip the switch.
                   3. Enter receive mode. HLDA indicator light is on.
-                  4. Wait to receive bytes from the serial port. Flip RESET to exit receive mode.
-                  5. Once downloaded, control automatically returns back to the processor.
+                  4. Wait to receive bytes from the serial port. Optional: flip RESET to return to WAIT mode.
+                  5. Automatically return to WAIT mode once download is complete.
 ````
 -----------
 ### Download from the Serial Port

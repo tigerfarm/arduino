@@ -293,7 +293,11 @@ public class asm {
                 // -------------------------------------------------------------
                 case "c":
                 case "char":
-                    System.out.println("Character, " + cmdP1 + " ascii value: " + (int) cmdP1.charAt(0));
+                    if (!cmdP1.contentEquals("")) {
+                        System.out.println("Character, " + cmdP1 + " ascii value: " + (int) cmdP1.charAt(0));
+                    } else {
+                        System.out.println("No character.");
+                    }
                     break;
                 case "2int":
                     System.out.println("Convert immediate value: " + cmdP1 + " to integer value: " + processFile.convertValueToInt(cmdP1));
