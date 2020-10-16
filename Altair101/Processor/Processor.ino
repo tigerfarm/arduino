@@ -5180,6 +5180,7 @@ void displayTheTime(byte theMinute, byte theHour) {
   // ----------------------------------------------
   // Convert the hour into binary for display.
   // Use a 12 hour clock value rather than 24 value.
+  // Stacy AM/PM
   if (theHour > 12) {
     theHour = theHour - 12;
   } else if (theHour == 0) {
@@ -5245,6 +5246,7 @@ void displayTheTime(byte theMinute, byte theHour) {
   //
   // lightsStatusAddressData(OUT_ON, hourWord, theBinaryMinute);
   // This option is easier to read on the desktop module:
+  // Set AM/PM in theMinuteTens.
   lightsStatusAddressData(theMinuteTens, hourWord, theMinuteOnes);
 }
 
@@ -6126,14 +6128,15 @@ void checkClockSet() {
     }
   }
   // -------------------
-  if (pcfControl.readButton(pinDeposit) == 0) {
-    if (!switchDeposit) {
-      switchDeposit = true;
+  // Increment the time by a minute.
+  if (pcfControl.readButton(pinExamine) == 0) {
+    if (!switchExamine) {
+      switchExamine = true;
     }
-  } else if (switchDeposit) {
-    switchDeposit = false;
+  } else if (switchExamine) {
+    switchExamine = false;
     // Switch logic
-    if (setCounterMinutes > 1) {
+    if (setCounterMinutes > 0) {
       setCounterMinutes--;
     } else {
       setCounterMinutes = 59;
@@ -6143,36 +6146,64 @@ void checkClockSet() {
         setCounterHours = 24;
       }
     }
-    // displayTheTime(setCounterMinutes, setCounterHours);
+    displayTheTime(setCounterMinutes, setCounterHours);
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Clock Set, Deposit"));
+    Serial.print(F("+ Clock Set, Examine"));
 #endif
   }
   // -------------------
-  if (pcfControl.readButton(pinDepositNext) == 0) {
-    if (!switchDepositNext) {
-      switchDepositNext = true;
+  // Decrement the time by a minute.
+  if (pcfControl.readButton(pinExamineNext) == 0) {
+    if (!switchExamineNext) {
+      switchExamineNext = true;
     }
-  } else if (switchDepositNext) {
-    switchDepositNext = false;
+  } else if (switchExamineNext) {
+    switchExamineNext = false;
     // Switch logic
     if (setCounterMinutes < 59) {
       setCounterMinutes++;
     } else {
-      setCounterMinutes = 1;
+      setCounterMinutes = 0;
       if (setCounterHours < 24) {
         setCounterHours++;
       } else {
         setCounterHours = 1;
       }
     }
-    // displayTheTime(setCounterMinutes, setCounterHours);
+    displayTheTime(setCounterMinutes, setCounterHours);
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Clock Set, Deposit Next"));
+    Serial.print(F("+ Clock Set, Examine Next"));
 #endif
   }
-
+  // -------------------
+  // Set the time using the set minutes and hours.
+  if (pcfControl.readButton(pinDeposit) == 0) {
+    if (!switchDeposit) {
+      switchDeposit = true;
+    }
+  } else if (switchDeposit) {
+    switchDeposit = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Set, Deposit"));
+#endif
+    // Flip the DEPOSIT switch at the zero second.
+    // Since it takes about second to set the clock, set to 1.
+    theCounterSeconds = 1;
+    theCounterMinutes = setCounterMinutes;
+    theCounterHours = setCounterHours;
+    rtc.adjust(
+      DateTime(
+        theCounterYear, theCounterMonth, theCounterDay,
+        theCounterHours, theCounterMinutes, theCounterSeconds
+      )
+    );
+    delay(200);
+    displayTheTime(theCounterMinutes, theCounterHours);
+    clockState = CLOCK_TIME;
+  }
   // -----------------------------------------
+  // Exit set mode without changing the time.
   if (pcfControl.readButton(pinReset) == 0) {
     if (!switchReset) {
       switchReset = true;
@@ -6183,9 +6214,9 @@ void checkClockSet() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ Clock set: Reset."));
 #endif
-    //
-    clockState = CLOCK_TIME;
+    syncCountWithClock();
     displayTheTime(theCounterMinutes, theCounterHours);
+    clockState = CLOCK_TIME;
   }
   // -----------------------------------------
 }
