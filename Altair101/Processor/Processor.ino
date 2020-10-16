@@ -35,6 +35,10 @@
   -----------------------------------------------------------------------------
   Work to do,
 
+  Use the front panel to set the time:
+  + void checkClockSet() { ... }
+  + Need an AM/PM indicator.
+
   Sound byte for successful write completion.
 
   On/off switch to control the power to the motherboard.
@@ -797,6 +801,8 @@ int processorCounterAddress = 0;
 
 int theCounterHours = 0;
 int theCounterMinutes = 0;
+int setCounterHours = 0;
+int setCounterMinutes = 0;
 
 // For the clock board.
 #include "RTClib.h"
@@ -5527,7 +5533,9 @@ void checkClockControls() {
     Serial.println(F("+ Clock: Reset."));
 #endif
     //
-    clockState = CLOCK_SET; 
+    clockState = CLOCK_SET;
+    setCounterHours = theCounterHours;
+    setCounterMinutes = theCounterMinutes;
     //
     clockData = 0;
     Serial.println(F("Show minutes and hours."));
@@ -6112,11 +6120,58 @@ void checkClockSet() {
       // clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, clockTimerCountBit);
     } else {
       clockTimerSecondsOn = true;
-      displayTheTime(theCounterMinutes, theCounterHours);
+      displayTheTime(setCounterMinutes, setCounterHours);
       // clockTimerCountBit = 0;
       // clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, clockTimerCountBit);
     }
   }
+  // -------------------
+  if (pcfControl.readButton(pinDeposit) == 0) {
+    if (!switchDeposit) {
+      switchDeposit = true;
+    }
+  } else if (switchDeposit) {
+    switchDeposit = false;
+    // Switch logic
+    if (setCounterMinutes > 1) {
+      setCounterMinutes--;
+    } else {
+      setCounterMinutes = 59;
+      if (setCounterHours > 1) {
+        setCounterHours--;
+      } else {
+        setCounterHours = 24;
+      }
+    }
+    // displayTheTime(setCounterMinutes, setCounterHours);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Set, Deposit"));
+#endif
+  }
+  // -------------------
+  if (pcfControl.readButton(pinDepositNext) == 0) {
+    if (!switchDepositNext) {
+      switchDepositNext = true;
+    }
+  } else if (switchDepositNext) {
+    switchDepositNext = false;
+    // Switch logic
+    if (setCounterMinutes < 59) {
+      setCounterMinutes++;
+    } else {
+      setCounterMinutes = 1;
+      if (setCounterHours < 24) {
+        setCounterHours++;
+      } else {
+        setCounterHours = 1;
+      }
+    }
+    // displayTheTime(setCounterMinutes, setCounterHours);
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Clock Set, Deposit Next"));
+#endif
+  }
+
   // -----------------------------------------
   if (pcfControl.readButton(pinReset) == 0) {
     if (!switchReset) {
