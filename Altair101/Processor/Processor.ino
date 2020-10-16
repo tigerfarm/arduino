@@ -35,10 +35,8 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  Use the front panel to set the time:
-  + void checkClockSet() { ... }
-  + Need an AM/PM indicator.
-
+  Add an AM/PM indicator: MEMR:AM, INP:PM.
+  
   Sound byte for successful write completion.
 
   On/off switch to control the power to the motherboard.

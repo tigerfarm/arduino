@@ -189,17 +189,29 @@ Clock mode,
                 2) Next flip, show: year.
                 3) Next flip, return to show time of day: hour and minutes.
 + SINGLE down   Not implemented.
-+ EXAMINE       To do: Select the flashing date or time value.
-+ EXAMINE NEXT  To do: Move through time and date values, making the selected value flash.
-+ DEPOSIT       To do: After selecting and inc/dec a value, set the value.
++ EXAMINE       Set mode: flip EXAMINE to decrement the minutes.
++ EXAMINE NEXT  Set mode: flip EXAMINE NEXT to increment the minutes.
++ DEPOSIT       Toggle from clock set mode to clock mode. Set the time based on the display.
 + DEPOSIT NEXT  Not implemented.
-+ RESET         Knight Rider sounds and lights, then show time of day.
++ RESET         Toggle from clock mode to clock set mode, to change the hours and minutes.
+                   In clock set mode, the time flashes.
+                Toggle from clock set mode to clock mode. Don't change the time.
 + PROTECT       Decrease MP3 player volume. To do: Decrement value to set.
 + UNPROTECT     Increase MP3 player volume. To do: Increment value to set.
 + AUX1 Up       Toggle clock mode off, return to processor mode.
 + AUX1 down     MP3 player mode
 + AUX2 up       Toggle clock counter mode.
 + AUX2 Down     Toggle clock timer mode on.
+````
+
+Steps to set the time hours and minutes using the front panel.
+````
++ In clock mode, flip RESET. Time flashes once a second.
++ Flip EXAMINE to decrement the minutes.
++ Flip EXAMINE NEXT to increment the minutes.
++ Flip RESET to return to clock mode, time not changed.
++ Flip DEPOSIT to return to clock mode, time is set based on the displayed hours and minutes.
+++ Seconds are set to zero, so flip DEPOSIT when the second hand hits 12 and the minute changes.
 ````
 ------------------------------------------------------------------------------
 ### Clock Timer
