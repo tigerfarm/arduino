@@ -5,19 +5,20 @@
   This is an Altair 8800 emulator program that runs on an Arduino Mega microcontroller.
   Component additions to the emulator:
   + Micro SD card module for reading and writing program and data files.
-  + An MP3 player controlled by using the front panel toggles with the lights displaying status.
   + A clock module to display the current time and date on the front panel lights.
+  + An MP3 player controlled by using the front panel toggles with the lights displaying status.
+  + Timer and counter modes.
 
   The Altair 8800 emulator program,
   + Emulates the basic Altair 8800 computer processes from 1975.
-  + The Altair 8800 was built around the Intel 8080 CPU chip which as the same opcodes as the 8085.
+  + The Altair 8800 was built around the Intel 8080 CPU chip which has the same opcodes as the 8085.
   + This program implements more than enough opcodes to run the classic program, Kill the Bit.
 
   Program goals and general approach:
   + Functional.
-  + Reliable. The program has been running reliably for months. I have debugged small issue.
+  + Reliable. The program has been running reliably for months. I have debugged small issues.
   + Runs fast enough for satisfactory interactivity.
-  + Easy to read code that is in a single file.
+  + Easy to read program code that is in a single file.
   + In processor mode, front panel works the same as an Altair 8800:
   ++ Status, data, and address LED lights
   ++ RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT, and RESET.
@@ -27,7 +28,7 @@
   ++ PROTECT and UNPROTECT are used for player volume.
   ++ AUX switchs control the modes: processor, clock, timer, counter, player, and sound effects.
   + Status lights work as expected in processor mode, and used as indicators in other modes.
-  + Switches and toggles function as expected with notifications.
+  + Switches and toggles function as expected with LED notifications.
   ++ Example notification: I made the WAIT LED flash when receiving bytes.
   + Switches in other modes, work similar to the processor mode where possible.
   ++ Example, EXAMINE NEXT advances to the next MP3 file when in player mode.
@@ -35,18 +36,13 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  Add an AM/PM indicator: MEMR:AM, INP:PM.
-  
   Sound byte for successful write completion.
 
-  On/off switch to control the power to the motherboard.
+  On/off motherboard power switch: on and off.
 
   This program now compiles to run on an Ardunio Due.
-  + Hardware change, shift register pins A11-A14 to pins 7-5. A11>7, A12>6, A14>5.
   + To do: Get the steampunk tablet working again to use to test the Due.
-
-  Continue writing user documentation.
-  + Create a GitHub Readme.cmd document file.
+  + Hardware changes for Due: shift register pins A11-A14 to pins 7-5. A11>7, A12>6, A14>5.
 
   Continue writing opcode test programs.
 
@@ -5149,6 +5145,7 @@ void clockPulseSecond() {
 // Display hours and minutes on LED lights.
 
 void displayTheTime(byte theMinute, byte theHour) {
+  boolean amTime;
   byte theMinuteOnes = 0;
   byte theMinuteTens = 0;
   // byte theBinaryMinute = 0;  // not used anymore.
@@ -5180,8 +5177,10 @@ void displayTheTime(byte theMinute, byte theHour) {
   // Use a 12 hour clock value rather than 24 value.
   // Stacy AM/PM
   if (theHour > 12) {
+    amTime = false;
     theHour = theHour - 12;
   } else if (theHour == 0) {
+    amTime = true;
     theHour = 12; // 12 midnight, 12am
   }
   switch (theHour) {
@@ -5245,6 +5244,11 @@ void displayTheTime(byte theMinute, byte theHour) {
   // lightsStatusAddressData(OUT_ON, hourWord, theBinaryMinute);
   // This option is easier to read on the desktop module:
   // Set AM/PM in theMinuteTens.
+  if (amTime) {
+    bitWrite(theMinuteTens, 7, 1);  // Set AM indicator on.
+  } else {
+    bitWrite(theMinuteTens, 6, 1);  // Set PM indicator on.
+  }
   lightsStatusAddressData(theMinuteTens, hourWord, theMinuteOnes);
 }
 
