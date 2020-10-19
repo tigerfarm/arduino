@@ -5177,22 +5177,22 @@ void displayTheTime(byte theMinute, byte theHour) {
   // Stacy AM/PM
   // + displayTheTime, hour=11, minute=59 PM
   /*
-  Serial.print(F("+ displayTheTime"));
-  Serial.print(F(", hour="));
-  Serial.print(theHour);
-  Serial.print(F(", minute="));
-  Serial.print(theMinute);
+    Serial.print(F("+ displayTheTime"));
+    Serial.print(F(", hour="));
+    Serial.print(theHour);
+    Serial.print(F(", minute="));
+    Serial.print(theMinute);
   */
-  amTime = true;
-  if (theHour > 11) {
-    amTime = false;
-    theHour = theHour - 12;
-    // Serial.println(F(" PM"));
-  } else if (theHour == 0) {
-    theHour = 12; // 12 midnight, 12am
+  if (theHour < 12) {
+    amTime = true;
     // Serial.println(F(" AM"));
   } else {
-    // Serial.println(F(" AM"));
+    amTime = false;
+    // Serial.println(F(" PM"));
+    if (theHour > 12) {
+      // 12 is for 12 noon, 12pm
+      theHour = theHour - 12;
+    }
   }
   switch (theHour) {
     case 1:
