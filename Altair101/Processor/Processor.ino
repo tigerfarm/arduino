@@ -5110,8 +5110,10 @@ int theHour = 0;
 void clockPulseHour() {
   Serial.print("++ clockPulseHour(), theCounterHours= ");
   Serial.println(theCounterHours);
-  Serial.println(theCounterHours);
-  // Use AM/PM rather than 24 hours.
+  KnightRiderScanner();
+  displayTheTime( theCounterMinutes, theCounterHours );
+  //
+  // For the LCD use AM/PM rather than 24 hours.
   if (theCounterHours > 12) {
     theHour = theCounterHours - 12;
   } else if (theCounterHours == 0) {
@@ -5119,9 +5121,6 @@ void clockPulseHour() {
   } else {
     theHour = theCounterHours;
   }
-  KnightRiderScanner();
-  //
-  displayTheTime( theCounterMinutes, theCounterHours );
   printLcdClockValue(thePrintColHour, printRowClockPulse, theHour);
 }
 void clockPulseMinute() {
@@ -5176,12 +5175,24 @@ void displayTheTime(byte theMinute, byte theHour) {
   // Convert the hour into binary for display.
   // Use a 12 hour clock value rather than 24 value.
   // Stacy AM/PM
-  if (theHour > 12) {
+  // + displayTheTime, hour=11, minute=59 PM
+  /*
+  Serial.print(F("+ displayTheTime"));
+  Serial.print(F(", hour="));
+  Serial.print(theHour);
+  Serial.print(F(", minute="));
+  Serial.print(theMinute);
+  */
+  amTime = true;
+  if (theHour > 11) {
     amTime = false;
     theHour = theHour - 12;
+    // Serial.println(F(" PM"));
   } else if (theHour == 0) {
-    amTime = true;
     theHour = 12; // 12 midnight, 12am
+    // Serial.println(F(" AM"));
+  } else {
+    // Serial.println(F(" AM"));
   }
   switch (theHour) {
     case 1:
@@ -5245,8 +5256,10 @@ void displayTheTime(byte theMinute, byte theHour) {
   // This option is easier to read on the desktop module:
   // Set AM/PM in theMinuteTens.
   if (amTime) {
+    // 12:00 AM, midnight
     bitWrite(theMinuteTens, 7, 1);  // Set AM indicator on.
   } else {
+    // 12:00 PM, noon
     bitWrite(theMinuteTens, 6, 1);  // Set PM indicator on.
   }
   lightsStatusAddressData(theMinuteTens, hourWord, theMinuteOnes);
@@ -6147,10 +6160,23 @@ void checkClockSet() {
       } else {
         setCounterHours = 24;
       }
+      /*
+        if (setCounterHours < 12) {
+        // 12:00 AM, midnight, setCounterHours = 0
+        bitWrite(theMinuteTens, 7, 1);  // Set AM indicator on.
+        } else {
+        // 12:00 PM, noon, setCounterHours = 12
+        bitWrite(theMinuteTens, 6, 1);  // Set PM indicator on.
+        }
+      */
     }
     displayTheTime(setCounterMinutes, setCounterHours);
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Clock Set, Examine"));
+    Serial.print(F(", hour="));
+    Serial.print(setCounterHours);
+    Serial.print(F(", minute="));
+    Serial.println(setCounterMinutes);
 #endif
   }
   // -------------------
@@ -6169,12 +6195,16 @@ void checkClockSet() {
       if (setCounterHours < 24) {
         setCounterHours++;
       } else {
-        setCounterHours = 1;
+        setCounterHours = 0;
       }
     }
     displayTheTime(setCounterMinutes, setCounterHours);
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Clock Set, Examine Next"));
+    Serial.print(F(", hour="));
+    Serial.print(setCounterHours);
+    Serial.print(F(", minute="));
+    Serial.println(setCounterMinutes);
 #endif
   }
   // -------------------
@@ -6188,6 +6218,10 @@ void checkClockSet() {
     // Switch logic
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Clock Set, Deposit"));
+    Serial.print(F(", hour="));
+    Serial.print(setCounterHours);
+    Serial.print(F(", minute="));
+    Serial.println(setCounterMinutes);
 #endif
     // Flip the DEPOSIT switch at the zero second.
     // Since it takes about second to set the clock, set to 1.
