@@ -50,7 +50,7 @@ Program listing:
 Links I used when developing the program:
 
 [Reading a sensor](https://developer.electricimp.com/examples/introduction-applications/reading-sensor),
-[Electric Imp impExplorer Kit](https://developer.electricimp.com/hardware/resources/reference-designs/explorerkit)(my hardware),
+[Electric Imp imp001 Explorer Kit](https://developer.electricimp.com/hardware/resources/reference-designs/explorerkit)(my hardware),
 and
 Air pressure Library: [LPS22HB](https://developer.electricimp.com/libraries/hardware/lps22hb).
 

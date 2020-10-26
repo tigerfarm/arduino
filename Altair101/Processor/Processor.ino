@@ -22,11 +22,11 @@
   + In processor mode, front panel works the same as an Altair 8800:
   ++ Status, data, and address LED lights
   ++ RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT, and RESET.
-  + Exceptions, enhancements:
-  ++ STOP pauses which allows RUN to continue.
-  ++ CLR sets the processor memory bytes to zero.
-  ++ PROTECT and UNPROTECT are used for player volume.
-  ++ AUX switchs control the modes: processor, clock, timer, counter, player, and sound effects.
+  +++ Exceptions, enhancements:
+  ++++ STOP pauses which allows RUN to continue.
+  ++++ CLR (double flip) sets the processor memory bytes to zero.
+  ++++ PROTECT and UNPROTECT are used for player volume.
+  ++++ AUX switchs control the modes: processor, clock, timer, counter, player, and sound effects.
   + Status lights work as expected in processor mode, and used as indicators in other modes.
   + Switches and toggles function as expected with LED notifications.
   ++ Example notification: I made the WAIT LED flash when receiving bytes.
@@ -36,15 +36,15 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  Sound byte for successful write completion.
+  When first enter Timer mode, INP is on. HLTA should be on.
+
+  Continue writing opcode test programs.
 
   On/off motherboard power switch: on and off.
 
   This program now compiles to run on an Ardunio Due.
   + To do: Get the steampunk tablet working again to use to test the Due.
   + Hardware changes for Due: shift register pins A11-A14 to pins 7-5. A11>7, A12>6, A14>5.
-
-  Continue writing opcode test programs.
 
   --------------
   STOP+RESET to cause a halt similar to control-C to stop a UNIX program.
@@ -604,6 +604,7 @@ int soundEffects[maxSoundEffects];
 //  Variable      soundEffects[] Array value
 int READ_FILE         = 1;
 int TIMER_COMPLETE    = 2;
+int RESET_COMPLETE    = 2;
 int CLOCK_ON          = 3;
 int CLOCK_OFF         = 4;
 int PLAYER_ON         = 3;
@@ -612,7 +613,7 @@ int KR5               = 5;
 int CLOCK_CUCKOO      = 6;
 int TIMER_MINUTE      = 7;
 int DOWNLOAD_COMPLETE = 8;
-int RESET_COMPLETE    = 2;
+int WRITE_FILE        = 9;
 //
 // Functions to play a sound file using the above mapping.
 //
@@ -4077,6 +4078,7 @@ void writeProgramMemoryToFile(String theFilename) {
   myFile.close();
   Serial.println(F("+ Write completed, file closed."));
   ledFlashSuccess();
+  playerPlaySoundWait(WRITE_FILE);
   digitalWrite(HLDA_PIN, LOW);
 }
 
