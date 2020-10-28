@@ -36,8 +36,6 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  When first enter Timer mode, INP is on. HLTA should be on.
-
   Continue writing opcode test programs.
 
   On/off motherboard power switch: on and off.
@@ -5315,7 +5313,7 @@ const int timerTop = 8;
 unsigned int timerData[timerTop];
 unsigned int timerCounter = 1;      // Which is D0, default.
 unsigned int timerDataAddress = 0;
-byte timerStatus = INP_ON;          // Clock timer is ready for timer value input.
+byte timerStatus = INP_ON | HLTA_ON;          // Clock timer is ready for timer value input.
 byte timerStep = 0;
 unsigned int timerMinute = 0;
 unsigned int clockTimerAddress = 0;
@@ -5358,7 +5356,7 @@ void clockRunTimerControlsOut(int theTimerMinute, boolean ExitOnComplete) {
 
 void clockSetTimer(int timerMinute) {
   //
-  // Set parameters before starting the timere.
+  // Set parameters before starting the timer.
   //    timerMinute is the amount of minutes to be timed.
   //
   timerStatus = timerStatus & HLTA_OFF;
