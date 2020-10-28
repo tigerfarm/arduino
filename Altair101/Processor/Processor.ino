@@ -5600,7 +5600,7 @@ void checkTimerControls() {
   } else if (switchStop) {
     switchStop = false;
     // Switch logic
-    timerStatus = INP_ON;
+    timerStatus = INP_ON | HLTA_ON;
     // Set the timer bit on, so that it is displayed.
     clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, 1);
     lightsStatusAddressData(timerStatus, clockTimerAddress, timerCounter);
