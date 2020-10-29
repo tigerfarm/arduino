@@ -13,7 +13,9 @@ That was a celebrated accomplishment after months of work.
 Altair-Duino forum:
 https://groups.google.com/forum/#!forum/altair-duino
 
-How to test a program:
+## Setup to Develop and Run Programs
+
+Steps:
 ````
 On the laptop, go to the assembler program directory.
 cd /Users/<userid>/Projects/arduino/Altair101/asm
@@ -45,14 +47,22 @@ Select the program to work on and assemble it into byte code.
 > 
 
 Power on the Altair 101.
-Put the machine in download, ready to receive the byte code.
-+ Set Sense switches to zero and double flipping AUX2 down.
-+ Double flip AUX2 down.
+Start the Arduino IDE. This is used to monitor the output from the machine.
+From the IDE menu, select Tools/Serial Monitor. The machine will reboot.
+The monitor displays the machine log messages.
++++ Setup.
++ AUX device toggle switches are configured for input.
+...
++ HLT, program halted.
++ runProcessorWait()
 
-Upload from the laptop to the Altair.
+Put the machine in download mode, ready to receive the assembled byte code.
++ Set the Sense switches to zero and double flip AUX2 down.
+
+Upload from the laptop to the machine.
 > upload
 + -------------------------------------
-+ Write to the serail port, the program file: p1.bin:
++ Write to the serial port, the program file: p1.bin:
 + Serial port is open.
 + Write to serial port. Number of bytes: 62 in the file: p1.bin
 11000011 0000011 ...
@@ -61,7 +71,7 @@ Upload from the laptop to the Altair.
 + Serial port is closed.
 >
 
-The Altair will automatically return to the processor mode and is ready to run the program.
+The machine will automatically return to the processor mode and is ready to run the program.
 EXAMINE bytes, if you like.
 Flip RUN to run the program.
 ````

@@ -287,7 +287,7 @@ public class asm {
                 // -------------------------------------------------------------
                 case "upload":
                     System.out.println("+ -------------------------------------");
-                    System.out.println("+ Write to the serail port, the program file: " + byteFile + ":");
+                    System.out.println("+ Write to the serial port, the program file: " + byteFile + ":");
                     sendFile(byteFile);
                     break;
                 // -------------------------------------------------------------

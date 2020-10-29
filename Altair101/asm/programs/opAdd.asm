@@ -17,8 +17,8 @@
                             ; --------------------------------------
             jmp Start       ; Jump to start of the test program.
                             ;
-    Addr1   equ     64
-    Addr2   ds      2
+    Addr1   equ     64      ; This program is less than 64 bytes.
+    Addr2   ds      2       ; 2 bytes at this location, address 3. The address of Addr2, is 3.
                             ;
     Halt:
             hlt             ; The program will halt at each iteration, after the first.
@@ -64,17 +64,17 @@
                             ;
             mvi a,6         ; Move # to register A.
             out 37          ; Print register A.
+                            ; > Register A =   6 = 006 = 00000110
             sta Addr1       ; Store register A's content to the address(hb:lb).
             lxi h,Addr1     ; Load an address (value of Addr1) into H:L.
             out 36          ; Print the register values for H:L and the content at that address.
-                            ; > Register A =   6 = 006 = 00000110
                             ; > Register H:L = 0:64, Data: 6
                             ;
             mvi a,3         ; Move # to register A.
             out 37          ; Print register A.
+                            ; > Register A =   3 = 003 = 00000011
             add m           ; ADD: Content at address H:L(M) + Register A = 6 + 3 = 9
             out 37          ; Print register A == 9.
-                            ; > Register A =   3 = 003 = 00000011
                             ; > Register A =   9 = 011 = 00001001
                             ;
             sta Addr2       ; Store register A's content to the address(hb:lb).
