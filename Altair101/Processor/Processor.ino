@@ -3708,30 +3708,37 @@ void processOpcodeData() {
         // ---------------------------------------
         // Echo processor values.
         case 30:
+          Serial.println("");
           Serial.print(F(" > Register B = "));
           printData(regB);
           break;
         case 31:
+          Serial.println("");
           Serial.print(F(" > Register C = "));
           printData(regC);
           break;
         case 32:
+          Serial.println("");
           Serial.print(F(" > Register D = "));
           printData(regD);
           break;
         case 33:
+          Serial.println("");
           Serial.print(F(" > Register E = "));
           printData(regE);
           break;
         case 34:
+          Serial.println("");
           Serial.print(F(" > Register H = "));
           printData(regH);
           break;
         case 35:
+          Serial.println("");
           Serial.print(F(" > Register L = "));
           printData(regL);
           break;
         case 36:
+          Serial.println("");
           Serial.print(F(" > Register H:L = "));
           Serial.print(regH);
           Serial.print(F(":"));
@@ -3741,6 +3748,7 @@ void processOpcodeData() {
           Serial.print(memoryData[hlValue]);
           break;
         case 37:
+          Serial.println("");
           Serial.print(F(" > Register A = "));
           printData(regA);
           break;

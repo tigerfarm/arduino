@@ -2,7 +2,7 @@
 # Writing Altair 101 Assembler Programs
 
 I wrote an assembler program that runs my laptop. It assembles source programs into machine byte code.
-Then, I use the assembler to upload the code to the Altair 101 machine over a serial port.
+Then, I use the assembler program to upload the code to the Altair 101 machine over a serial port.
 The machine receives the code and loads it into the emulator's memory.
 
 My first programs are to test, study, and demonstrate the implemented Intel 8080/8085 opcodes.
@@ -12,6 +12,59 @@ That was a celebrated accomplishment after months of work.
 
 Altair-Duino forum:
 https://groups.google.com/forum/#!forum/altair-duino
+
+How to test a program:
+````
+On the laptop, go to the assembler program directory.
+cd /Users/<userid>/Projects/arduino/Altair101/asm
+
+Run assembler program and list programs.
+$ java -jar asm.jar 
+> ls
++ -------------------------------------
++ Directory listing for: programs
++ Program Directory = /Users/dthurston/Projects/arduino/Altair101/asm/programs
+++ opAdd.asm
+++ opAddDemo.asm
+>
+
+Select the program to work on and assemble it into byte code.
+> file opAdd.asm
++ Program source file name: opadd.asm
++ Program full file name: programs/opadd.asm
++ Machine byte code file name: p1.bin
+> asm
++ -------------------------------------
++ Print and parse the program: opadd.asm:
+++ parseLine, part1|jmp| theRest|Start|
+...
+++      60:00111100: 00000101 : 05:005 > lb: 5
+++      61:00111101: 00000000 : 00:000 > hb: 0
++ End of list.
++ Machine code file created:  p1.bin
+> 
+
+Power on the Altair 101.
+Put the machine in download, ready to receive the byte code.
++ Set Sense switches to zero and double flipping AUX2 down.
++ Double flip AUX2 down.
+
+Upload from the laptop to the Altair.
+> upload
++ -------------------------------------
++ Write to the serail port, the program file: p1.bin:
++ Serial port is open.
++ Write to serial port. Number of bytes: 62 in the file: p1.bin
+11000011 0000011 ...
+...
+00000101 00000000 
++ Serial port is closed.
+>
+
+The Altair will automatically return to the processor mode and is ready to run the program.
+EXAMINE bytes, if you like.
+Flip RUN to run the program.
+````
 
 ### Opcode Test Programs
 
