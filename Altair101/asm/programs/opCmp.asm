@@ -7,12 +7,15 @@
                         ; Note, register A (regA) remains the same after the compare.
                         ; Also, compare M, data value at address H:L, to register A.
                         ; 
-                        ; Following is a sample successful run:
+                        ; Following is a sample successful run.
+                        ; "=" tests compare when registers are equal.
+                        ; ">" tests compare when registers are greater than regA.
+                        ; "<" tests compare when registers are less than regA.
                         ; + Control, Run.
                         ; + runProcessor()
                         ; =BCDEHLMS
                         ; >BCDEHLMS
-                        ; <LS
+                        ; <BCDEHLMS
                         ; + HLT, program halted.
                         ; + runProcessorWait()
                         ; 
@@ -255,20 +258,106 @@
             mvi a,'<'
             out 3
                         ; --------------------------------------
-                        ; Do an error test where the register data < A.
-            mvi a,'L'
+            mvi a,'B'
             out 3
             mvi a,73    ; Initialize register A for comparison.
-            mvi l,70    ; Register data != A, set Zero bit to 0.
-            cmp l       ; Register < A, Carry bit = 0.
+            mvi b,70    ; Register data != A, set Zero bit to 0.
+            cmp b       ; Register < A, Carry bit = 0.
             jz Error    ; Jump to a, if zero bit equals 1, flag is set.
             jc Error    ; Jump to a, if Carry bit equals 1, flag is set.
-            jnz okaye1b ; Jump to a, if Zero bit equals 0, flag is not set.
+            jnz okayb1l ; Jump to a, if Zero bit equals 0, flag is not set.
             jmp Error
-    okaye1b:
-            jnc okaye2b ; Jump to a, if Carry bit equals 0, flag is not set.
+    okayb1l:
+            jnc okayb2l ; Jump to a, if Carry bit equals 0, flag is not set.
             jmp Error
-    okaye2b:
+    okayb2l:
+                        ; --------------------------------------
+            mvi a,'C'
+            out 3
+            mvi a,73
+            mvi c,70
+            cmp c       ; regC < A, Carry bit = 0.
+            jz Error
+            jc Error
+            jnz okayc1l
+            jmp Error
+    okayc1l:
+            jnc okayc2l
+            jmp Error
+    okayc2l:
+                        ; --------------------------------------
+            mvi a,'D'
+            out 3
+            mvi a,73
+            mvi d,70
+            cmp d       ; regD < A, Carry bit = 0.
+            jz Error
+            jc Error
+            jnz okayd1l
+            jmp Error
+    okayd1l:
+            jnc okayd2l
+            jmp Error
+    okayd2l:
+                        ; --------------------------------------
+            mvi a,'E'
+            out 3
+            mvi a,73
+            mvi e,70
+            cmp e       ; regE < A, Carry bit = 0.
+            jz Error
+            jc Error
+            jnz okaye1l
+            jmp Error
+    okaye1l:
+            jnc okaye2l
+            jmp Error
+    okaye2l:
+                        ; --------------------------------------
+            mvi a,'H'
+            out 3
+            mvi a,73
+            mvi h,70
+            cmp h       ; regH < A, Carry bit = 0.
+            jz Error
+            jc Error
+            jnz okayh1l
+            jmp Error
+    okayh1l:
+            jnc okayh2l
+            jmp Error
+    okayh2l:
+                         ; --------------------------------------
+            mvi a,'L'
+            out 3
+            mvi a,73
+            mvi l,70
+            cmp l       ; regL < A, Carry bit = 0.
+            jz Error
+            jc Error
+            jnz okayl1l
+            jmp Error
+    okayl1l:
+            jnc okayl2l
+            jmp Error
+    okayl2l:
+                        ; --------------------------------------
+                        ; Test where the compare value, is the data value at memory location M(H:L).
+            mvi a,'M'
+            out 3
+            mvi a,c6h   ; Initialize register A for comparison to c3h, which is 
+            mvi h,0     ; hlValue = regH * 256 + regL;
+            mvi l,0     ; Register M address data (opcode jmp) = 11 000 011 = c3h = 195
+            cmp m       ; L < A. Zero bit flag is true. Carry bit is false.
+            jz Error
+            jc Error
+            jnz okaym1l
+            jmp Error
+    okaym1l:
+            jnc okaym2l
+            jmp Error
+    okaym2l:
+                        ; --------------------------------------
             mvi a,'S'
             out 3
                         ; --------------------------------------

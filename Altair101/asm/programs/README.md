@@ -126,13 +126,12 @@ opCpi.asm               CPI : Compare immediate decimal, or an EQU value, with r
                         JNZ Jump to a, if Zero bit equals 0, flag is not set.
                         JC  Jump to a, if Carry bit equals 1, flag is set.
                         JNC Jump to a, if Carry bit equals 0, flag is not set.
-
-opCmp.asm               CMP : Compare register A and registers: B,C,D,E,H,L, and M. Register M, is memory data, H:L.
+opCmp.asm               CMP : Compare register A with the other registers: B,C,D,E,H,L, and M. Register M, is memory data, H:L.
                         JZ
                         JNZ
                         JC
                         JNC
-                        + Program has 400+ bytes which is over 256 bytes, and works fine.
+                        + Program has 600+ bytes (16 bit address) which is well over 256 bytes (8 bit address), and works fine.
 
 opCallRetShort.asm      CALL : words with label or a number.
                         RET : returns properly.
