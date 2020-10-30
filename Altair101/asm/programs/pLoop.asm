@@ -1,4 +1,13 @@
                         ; Basic first program
+                        ;
+                        ; As there is no log output, 
+                        ;   The way to test this program is to use SINGLE STEP.
+                        ;   Flip RESET to insure to be at the start of the program.
+                        ;   Flip SINGLE STEP and watch the program go through the byte code:
+                        ; Byte address: 0 (opcode), 1 then 2 (address)
+                        ; Jump to 6 (opcode), 7 then 8 (address)
+                        ; Jump back to 0 where the cycle continues.
+                        ;
     Start:
             jmp There
             nop

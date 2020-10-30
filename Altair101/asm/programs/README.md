@@ -108,6 +108,7 @@ pLoop.asm               JMP : Jump to a label. The first program tested.
                         NOP : Used as a spacer.
 opJmp.asm               JMP : Jump to label or to a decimal or hex address.
                         OUT 3 : Print register A to the Arduino serial port.
+
 opMvi.asm               MVI : Move immediate values to registers, using immediate types: decimal, hex, character (eg. 'a'), and EQU value.
                         HLT : Halt and restart.
                         EQU : Used to set an immediate value.

@@ -1,6 +1,9 @@
                             ; --------------------------------------
                             ; Test JMP using types of addresses.
                             ;
+                            ; If the output is, 123S, then the jumps were a success.
+                            ; If the jumps failed, then the output would include an "e", for error.
+                            ;
                             ; --------------------------------------
                             ; Test with an immediate hex value.
             mvi a,'1'       ; '1' first jump.
