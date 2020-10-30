@@ -3,6 +3,14 @@
                         ; Compare a register to A, and then set Carry and Zero bit flags.
                         ; If Register data=A, set Zero bit to 1, Carry bit to 0. If Register>A, Carry bit = 1. If Register<A, Carry bit = 0.
                         ; Note, register A remain the same after the compare.
+                        ; 
+                        ; Following is a sample succussful run:
+                        ; + Control, Run.
+                        ; + runProcessor()
+                        ; BCDEHLM12S
+                        ; + HLT, program halted.
+                        ; + runProcessorWait()
+                        ; 
                         ; --------------------------------------
                         ;
             jmp Test    ; Jump to start of the test.

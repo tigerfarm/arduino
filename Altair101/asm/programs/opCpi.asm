@@ -3,6 +3,17 @@
                             ; Compare an number (immediate) to A, and then set Carry and Zero bit flags.
                             ; If #=A, set Zero bit to 1, Carry bit to 0. If #>A, Carry bit = 1. If #<A, Carry bit = 0.
                             ; Note, register A remain the same after the compare.
+                            ; 
+                            ; Successful run indicator: 1S2S.
+                            ;   "1S": Test 1 was success
+                            ;   "2S": Test 2 was success
+                            ; + Control, Run.
+                            ; + runProcessor()
+                            ; 1S2S
+                            ; ++ Success: CPI
+                            ; + HLT, program halted.
+                            ; + runProcessorWait()
+                            ; 
                             ; --------------------------------------
             jmp Test        ; Jump to start of the test.
                             ; --------------------------------------
@@ -43,6 +54,8 @@
             jz okay1        ; Zero bit flag is set, jump.
             jmp Error       ; The above should have jumped passed this.
     okay1:
+            mvi a,'S'
+            out 3
             jnc Test2       ; Carry bit flag is not set, jump to the next test.
             jmp Error       ; The above should have jumped passed this.
                             ;
@@ -69,6 +82,8 @@
             out 3
             mvi a,'+'       ; Move the byte value of "+" to register A.
             out 3           ; Output register A content to the serial port (serial monitor).
+            mvi a,'+'
+            out 3
             mvi a,' '
             out 3
             mvi a,'S'
