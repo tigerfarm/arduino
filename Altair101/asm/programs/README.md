@@ -132,7 +132,7 @@ opCmp.asm               CMP : Compare register A and registers: B,C,D,E,H,L, and
                         JNZ
                         JC
                         JNC
-                        + Program has over 256 bytes, and works fine.
+                        + Program has 400+ bytes which is over 256 bytes, and works fine.
 
 opCallRetShort.asm      CALL : words with label or a number.
                         RET : returns properly.
