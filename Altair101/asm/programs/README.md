@@ -108,7 +108,6 @@ pLoop.asm               JMP : Jump to a label. The first program tested.
                         NOP : Used as a spacer.
 opJmp.asm               JMP : Jump to label or to a decimal or hex address.
                         OUT 3 : Print register A to the Arduino serial port.
-
 opMvi.asm               MVI : Move immediate values to registers, using immediate types: decimal, hex, character (eg. 'a'), and EQU value.
                         HLT : Halt and restart.
                         EQU : Used to set an immediate value.
@@ -118,6 +117,7 @@ opMvi.asm               MVI : Move immediate values to registers, using immediat
 opInrDcr.asm            INR : Increment value in the registers: A,B,C,D,E,H,L.
                         DCR : Decrement value in the registers: A,B,C,D,E,H,L.
 opMov.asm               MOV : Move values between the registers: A,B,C,D,E,H,L.
+
 opCpi.asm               CPI : Compare immediate decimal, or an EQU value, with register A.
                             Register data == A, set Zero bit to 1. Carry bit = 0.
                             Register data != A, set Zero bit to 0.

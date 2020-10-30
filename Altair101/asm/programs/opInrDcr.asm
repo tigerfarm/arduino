@@ -15,6 +15,11 @@
             mvi h,6
             mvi l,7
             out 38          ; Print the register values.
+                            ; + regA:   1 = 001 = 00000001
+                            ; + regB:   2 = 002 = 00000010  regC:   3 = 003 = 00000011
+                            ; + regD:   4 = 004 = 00000100  regE:   5 = 005 = 00000101
+                            ; + regH:   6 = 006 = 00000110  regL:   7 = 007 = 00000111
+                            ; 
                             ; --------------------------------------
                             ; Test by incrementing the registers up.
             inr a           ; Increment register A.
@@ -24,7 +29,12 @@
             inr e
             inr h
             inr l
-            out 38
+            out 38          ; Print the register values.
+                            ; + regA:   2 = 002 = 00000010
+                            ; + regB:   3 = 003 = 00000011  regC:   4 = 004 = 00000100
+                            ; + regD:   5 = 005 = 00000101  regE:   6 = 006 = 00000110
+                            ; + regH:   7 = 007 = 00000111  regL:   8 = 010 = 00001000
+                            ; 
                             ; --------------------------------------
                             ; Test by decrementing the registers down.
             dcr a           ; Decrement register A.
@@ -34,8 +44,13 @@
             dcr e
             dcr h
             dcr l
-            out 38
-                        ; --------------------------------------
+            out 38          ; Print the register values.
+                            ; + regA:   1 = 001 = 00000001
+                            ; + regB:   2 = 002 = 00000010  regC:   3 = 003 = 00000011
+                            ; + regD:   4 = 004 = 00000100  regE:   5 = 005 = 00000101
+                            ; + regH:   6 = 006 = 00000110  regL:   7 = 007 = 00000111
+                            ; 
+                            ; --------------------------------------
             NOP
-            jmp Halt    ; Jump back to the early halt command.
+            jmp Halt        ; Jump back to the early halt command.
             end
