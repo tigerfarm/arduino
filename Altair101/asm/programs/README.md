@@ -132,12 +132,17 @@ opCmp.asm               CMP : Compare register A with the other registers: B,C,D
                         JC
                         JNC
                         + Program has 600+ bytes (16 bit address) which is well over 256 bytes (8 bit address), and works fine.
-
-opCallRetShort.asm      CALL : words with label or a number.
+opCallRetShort.asm      CALL : words with label or an immediate number address.
                         RET : returns properly.
 opCallRet.asm           CALL and RET : work fine.
+                        Single call and return.
+opCallRet.asm           CALL and RET : work fine.
+                        Single call and return.
+opCallMultiple.asm      Multiple call and returns, call with calls in the call. I.E. stacked calls.
+
 opPushPop.asm           PUSH RP : Push a register pair (RP) onto the stack: B:C, D:E, H:L. To do, push flags.
                         Pop : Pop a register pair (RP) from the stack: B:C, D:E, H:L. To do, pop flags.
+
 opLdaSta.asm            LDA : works with an address number and label.
                         STA : works with an address number and label.
                         LXI : load an address (value of Addr1) into H:L.

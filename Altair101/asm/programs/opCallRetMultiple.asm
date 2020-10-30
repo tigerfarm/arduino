@@ -4,12 +4,11 @@
                         ; Successful run:
                         ; + Control, Run.
                         ; + runProcessor()
-                        ; 
-                        ; ++ 1, Called: Hello #1
-                        ; ++ 2, Called: Hello #2
-                        ; ++ 3, Called: Hello #3
-                        ; + Success.
-                        ; 
+                        ; ++ *
+                        ; ++ 1, Called: Hello #1...
+                        ; ++ 2, Called: Hello #2...
+                        ; ++ 3, Called: Hello #3...
+                        ; + Success
                         ; + HLT, program halted.
                         ; 
                         ; --------------------------------------
@@ -39,6 +38,15 @@
                         ;
                         ; --------------------------------------
     Test:
+            mvi a,'+'
+            out 3
+            mvi a,'+'
+            out 3
+            mvi a,' '
+            out 3
+            mvi a,'*'
+            out 3
+                        ;
             mvi a,'\n'
             out 3
             mvi a,'+'
@@ -114,8 +122,6 @@
             out 3
             mvi a,'.'
             out 3
-            mvi a,'\n'
-            out 3
                         ; --------------------------------------
             NOP
             jmp Halt    ; Jump back to the early halt command.
@@ -142,7 +148,7 @@
             ret
             NOP
             jmp Error   ; Failed to return.
-    Hello1:
+    Hello:
             mvi a,'H'
             out 3
             mvi a,'e'
@@ -153,55 +159,55 @@
             out 3
             mvi a,'o'
             out 3
+            ret
+            NOP
+            jmp Error
+                        ; --------------------------------------
+    Hello1:
+            call Hello
             mvi a,' '
             out 3
             mvi a,'#'
             out 3
             mvi a,'1'
             out 3
+            call dots
             ret
             NOP
-            jmp Error   ; Failed to return.
+            jmp Error
     Hello2:
-            mvi a,'H'
-            out 3
-            mvi a,'e'
-            out 3
-            mvi a,'l'
-            out 3
-            mvi a,'l'
-            out 3
-            mvi a,'o'
-            out 3
+            call Hello
             mvi a,' '
             out 3
             mvi a,'#'
             out 3
             mvi a,'2'
             out 3
+            call dots
             ret
             NOP
-            jmp Error   ; Failed to return.
+            jmp Error
     Hello3:
-            mvi a,'H'
-            out 3
-            mvi a,'e'
-            out 3
-            mvi a,'l'
-            out 3
-            mvi a,'l'
-            out 3
-            mvi a,'o'
-            out 3
+            call Hello
             mvi a,' '
             out 3
             mvi a,'#'
             out 3
             mvi a,'3'
             out 3
+            call dots
             ret
-                        ; --------------------------------------
             NOP
-            jmp Error   ; Failed to return.
+            jmp Error
+    dots:
+            mvi a,'.'
+            out 3
+            mvi a,'.'
+            out 3
+            mvi a,'.'
+            out 3
+            ret
+            NOP
+            jmp Error
                         ; --------------------------------------
             end

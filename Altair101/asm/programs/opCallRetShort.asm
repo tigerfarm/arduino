@@ -1,13 +1,21 @@
                         ; --------------------------------------
                         ; Test CALL and RET.
+                        ; 
+                        ; Successful run:
+                        ; + Control, Run.
+                        ; + runProcessor()
+                        ; ++ 1>:1<
+                        ; ++ 2>:2<
+                        ; ++ 3>:3<
+                        ; ++ S
+                        ; + HLT, program halted.
+                        ; 
                         ; --------------------------------------
             jmp Test    ; Jump to the test section.
     Error:
             mvi a,'-'
             out 3
     Halt:
-            mvi a,'\n'
-            out 3
             hlt         ; The program will halt at each iteration, after the first.
                         ;
                         ; --------------------------------------
@@ -32,7 +40,7 @@
             out 3
             mvi a,' '
             out 3
-            mvi a,2
+            mvi a,'2'
             out 3
             mvi a,'>'
             out 3
@@ -46,7 +54,7 @@
             out 3
             mvi a,' '
             out 3
-            mvi a,3
+            mvi a,'3'
             out 3
             mvi a,'>'
             out 3
@@ -59,6 +67,8 @@
             mvi a,'+'
             out 3
             mvi a,'+'
+            out 3
+            mvi a,' '
             out 3
             mvi a,'S'
             out 3
