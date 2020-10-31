@@ -13,7 +13,7 @@
     Start:
                             ; --------------------------------------
                             ; Test B:C push and pop.
-            call StartLine
+            call NewTest
             mvi a,'B'
             out 3
             mvi a,':'
@@ -43,7 +43,7 @@
                             ; 
                             ; --------------------------------------
                             ; Test D:E push and pop.
-            call StartLine
+            call NewTest
             mvi a,'D'
             out 3
             mvi a,':'
@@ -73,7 +73,7 @@
                             ;
                             ; --------------------------------------
                             ; Test H:L push and pop.
-            call StartLine
+            call NewTest
             mvi a,'H'
             out 3
             mvi a,':'
@@ -102,7 +102,7 @@
                             ; > Register L =   3 = 003 = 00000011
                             ;
                             ; --------------------------------------
-            call StartLine
+            call NewTest
             mvi a,'B'
             out 3
             mvi a,':'
@@ -146,19 +146,28 @@
             pop b
             out 30          ; Register B.
             out 31          ; Register C.
-                            ; B:C
+                            ; ++ B:C *
                             ; > Register B =   2 = 002 = 00000010
                             ; > Register C =   3 = 003 = 00000011
+                            ; > Register B =   4 = 004 = 00000100
+                            ; > Register C =   5 = 005 = 00000101
+                            ; > Register B =   6 = 006 = 00000110
+                            ; > Register C =   7 = 007 = 00000111
                             ; > Register B =   0 = 000 = 00000000
                             ; > Register C =   0 = 000 = 00000000
+                            ; > Register B =   6 = 006 = 00000110
+                            ; > Register C =   7 = 007 = 00000111
+                            ; > Register B =   4 = 004 = 00000100
+                            ; > Register C =   5 = 005 = 00000101
                             ; > Register B =   2 = 002 = 00000010
                             ; > Register C =   3 = 003 = 00000011
                             ; 
                             ; --------------------------------------
             jmp Halt        ; Jump back to the early halt command.
+                            ; 
                             ; --------------------------------------
                             ; Routines
-    StartLine:
+    NewTest:
             mvi a,'\n'
             out 3
             mvi a,'+'
@@ -168,4 +177,6 @@
             mvi a,' '
             out 3
             ret
+                            ; 
+                            ; --------------------------------------
             end

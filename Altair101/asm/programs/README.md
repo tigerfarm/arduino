@@ -139,18 +139,20 @@ opCallRet.asm           CALL and RET : work fine.
 opCallRet.asm           CALL and RET : work fine.
                         Single call and return.
 opCallMultiple.asm      Multiple call and returns, call with calls in the call. I.E. stacked calls.
+opPushPop.asm           PUSH RP : Push a register pair (RP) onto the stack: B:C, D:E, H:L. To do, push flags.
+                        Pop : Pop a register pair (RP) from the stack: B:C, D:E, H:L. To do, pop flags.
+pPrintDigit.asm         CALL procedure to print a digit that is in register A.
+opLdaSta.asm            STA a: Store register A data to an address a(hb:lb).
+                        LDA a: Load register A with the data at the address a(hb:lb).
+                        STA and LDA : work with an address number and label.
+                        LXI : load an address (value of Addr1) into H:L.
 
 -------------------------------
 Re-testing:
 
-opPushPop.asm           PUSH RP : Push a register pair (RP) onto the stack: B:C, D:E, H:L. To do, push flags.
-                        Pop : Pop a register pair (RP) from the stack: B:C, D:E, H:L. To do, pop flags.
-
-opLdaSta.asm            LDA : works with an address number and label.
-                        STA : works with an address number and label.
-                        LXI : load an address (value of Addr1) into H:L.
 pLdaSta.asm             STEP control light testing of LDA and STA.
                         Status lights are tested and working correctly.
+
 opLdax.asm              LDAX : Load register A with data value from address B:C or D:E.
 opOut.asm               OUT pa : Demonstrate the various output options.
                         DB character string declaration, then print it.
