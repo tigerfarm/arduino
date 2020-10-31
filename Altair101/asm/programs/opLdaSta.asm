@@ -8,28 +8,6 @@
                             ; https://www.geeksforgeeks.org/assembly-language-program-8085-microprocessor-add-two-8-bit-numbers/
                             ;
                             ; --------------------------------------
-                            ; Video demonstrating status lights:
-                            ;    https://www.youtube.com/watch?v=3_73NwB6toY
-                            ; Following, is using STEP to step through the program and view the LED lights.
-                            ; ---
-                            ; Process instruction: lda 40Q
-                            ; First: Opcode fetch, on: MEMR MI WO
-                            ; Second, Fetch lb, on: MEMR WO
-                            ; Third, Fetch hb, on: MEMR WO
-                            ; Forth, Fetching the data from memory, on: MEMR WO
-                            ; Fetching the data, shows the address (40Q) on the address LED lights.
-                            ; Shows the data value (at 40Q) on the data LED lights.
-                            ; ---
-                            ; Process instruction: sta 41Q
-                            ; First: Opcode fetch, on: MEMR MI WO
-                            ; Second, Fetch lb, on: MEMR WO
-                            ; Third, Fetch hb, on: MEMR WO
-                            ; Forth, writting data to memory, all status lights are off. Write output, and WO is reverse logic, WO is off.
-                            ; Address LED lights: 41Q.
-                            ; Data LED lights are all on because the lights are tied to the data input bus, which is floating.
-                            ; Since I'm emulating with a poetic license, I'll set the data lights to the data value.
-                            ;
-                            ; --------------------------------------
             jmp Start       ; Jump to start of the test program.
                             ;
     Addr1   equ     128
