@@ -147,6 +147,8 @@ opLdaSta.asm            STA a: Store register A data to an address a(hb:lb).
                         STA and LDA : work with an address number and label.
                         LXI : load an address (value of Addr1) into H:L.
 
+pPlaySoundEffects.asm   Play sound effects: on(regA=1) or off(regA=0). OUT 69
+
 -------------------------------
 Re-testing:
 

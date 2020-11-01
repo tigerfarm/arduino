@@ -207,6 +207,7 @@
   -----------------------------------------------------------------------------
   Common opcodes:
   + B00000000 000 NOP, my NOP instruction has a delay: delay(100).
+  + B00111110 076 MVI
   + B01110110 166 HLT
   + B11000011 JMP <address, low byte followed by high byte>
   + B11100011 343 OUT
@@ -217,6 +218,15 @@
   +       006     Counter# 6 into register A.
   +       343 OUT <port#>
   +       031     Port# 25, enter counter mode.
+  ----------------------------------
+  1 000 101
+  + Turn on/off playing sound effects.
+  0       076 MVI A,<immediate value>
+  1       105       Value to Turn on.
+  1       104       Value to Turn off.
+  2       343 OUT <port#>
+  3       012       Port# 10, single play.
+  4       166 HLT
   ----------------------------------
   + Turn off playing an MP3 file.
   0       076 MVI A,<immediate value>
@@ -527,11 +537,16 @@ void playerFileLights() {
   lightsStatusAddressData(playerFileStatus, playerFileAddress, playerFileData);
 }
 
+boolean NOT_PLAY_SOUND = false;  // Sometimes, nice not to hear sounds over and again when testing.
+//
 void mp3playerPlay(int theCounter) {
+  if (NOT_PLAY_SOUND) {
+    return;
+  }
   currentPlayerCounter = theCounter;
   mp3player.play(theCounter);
 }
-
+//
 void playerSetup() {
   // Initialize the player module.
   // This allows it to be reset after the computer is restarted.
@@ -552,6 +567,7 @@ void playerSetup() {
       delay(500);
       if (!mp3player.begin(Serial1)) {
         ledFlashError();
+        NOT_PLAY_SOUND = true;  // Set to not play sound effects.
         Serial.println(F("MP3 Player, unable to begin:"));
         Serial.println(F("1.Please recheck the connection!"));
         Serial.println(F("2.Please insert the SD card!"));
@@ -561,6 +577,7 @@ void playerSetup() {
   }
   if (hwStatus == 0) {
     ledFlashSuccess();
+    NOT_PLAY_SOUND = false;  // Set to play sound effects.
     mp3player.volume(PLAYER_VOLUME_SETUP);   // Set speaker volume from 0 to 30.
     // delay(300);
     mp3player.setTimeOut(60);         // Set serial communications time out.
@@ -616,16 +633,25 @@ int WRITE_FILE        = 9;
 // Functions to play a sound file using the above mapping.
 //
 void playerPlaySound(int theFileNumber) {
+  if (NOT_PLAY_SOUND) {
+    return;
+  }
   if ((playerStatus & HLTA_ON) && (theFileNumber > 0)) {
     mp3playerPlay(soundEffects[theFileNumber]);
   }
 }
 void playerPlaySoundWait(int theFileNumber) {
+  if (NOT_PLAY_SOUND) {
+    return;
+  }
   if ((playerStatus & HLTA_ON) && (theFileNumber > 0)) {
     mp3playerPlaywait(soundEffects[theFileNumber]);
   }
 }
 void playerPlaySoundEffectWait(int theFileNumber) {
+  if (NOT_PLAY_SOUND) {
+    return;
+  }
   // Force the playing without changing the current playerCounter.
   if (theFileNumber > 0) {
     int currentPlayerCounter = playerCounter;
@@ -3779,6 +3805,18 @@ void processOpcodeData() {
           Serial.print(F(" > Success happened, flash the LED light success sequence."));
           break;
         // ---------------------------------------
+        case 69:
+          if (regA==1) {
+            NOT_PLAY_SOUND = false;
+            Serial.print(F(" > Play sound effects."));
+            playerPlaySoundWait(TIMER_COMPLETE);
+          } else {
+            NOT_PLAY_SOUND = true;
+            Serial.print(F(" > Don't play sound effects."));
+            break;
+          }
+          break;
+        // ---------------------------------------
         default:
           Serial.print(F(". - Error, OUT not implemented on this port address: "));
           Serial.println(regA);
@@ -4283,11 +4321,13 @@ void doDownloadProgram() {
     // -----------------------------------------------
   }
 #ifdef SWITCH_MESSAGES
-  Serial.print(F("+ Exit serial download mode."));
+  Serial.println(F("+ Exit serial download mode."));
 #endif
   if (readByteCount > 0) {
     // Program bytes were downloaded into memory.
     controlResetLogic();                                  // Reset the program.
+    // Serial.print("+ Program bytes were downloaded into memory, NOT_PLAY_SOUND = ");
+    // Serial.println(NOT_PLAY_SOUND);
     mp3playerPlaywait(soundEffects[DOWNLOAD_COMPLETE]);   // Transfer of data is complete.
   } else {
     // No bytes downloaded, reset the panel light values.
@@ -4367,6 +4407,17 @@ void controlResetLogic() {
   stackPointer = 0;
   opcode = 0;  // For the case when the processing cycle 2 or more.
   statusByte = 0;
+  //
+  regA = 0;
+  regB = 0;
+  regC = 0;
+  regD = 0;
+  regE = 0;
+  regH = 0;
+  regL = 0;
+  regM = 0;
+  flagCarryBit = false;
+  flagZeroBit = true;
   //
   // Processor player variables.
   processorPlayerLoop = false;
@@ -7016,6 +7067,9 @@ void printDFPlayerMessage(uint8_t type, int value) {
 }
 
 void mp3playerPlaywait(byte theFileNumber) {
+  if (NOT_PLAY_SOUND) {
+    return;
+  }
   Serial.print(F("+ Play MP3 until completed."));
   playerCounter = theFileNumber;
   currentPlayerCounter = playerCounter;
@@ -7040,15 +7094,15 @@ void mp3playerPlaywait(byte theFileNumber) {
       }
     }
     // ------------------------
-    // Flip STOP to end at anytime.
-    if (pcfControl.readButton(pinStop) == 0) {
-      if (!switchStop) {
-        switchStop = true;
+    // Flip STOP to end at anytime. stacy
+    if (pcfControl.readButton(pinReset) == 0) {
+      if (!switchReset) {
+        switchReset = true;
       }
-    } else if (switchStop) {
-      switchStop = false;
+    } else if (switchReset) {
+      switchReset = false;
       playNotCompleted = false;
-      Serial.println(F(" > Exit playing, STOP flipped."));
+      Serial.println(F(" > Exit playing, RESET flipped."));
     }
     // ------------------------
   }

@@ -56,7 +56,7 @@ Now, 00000000.bin has your program. The program will run on reboot.
 
 ##### To remove a startup program from running:
 ````
-+ Flip CLR twice to clear the processor's memory.
++ Flip CLR twice to clear the processor's memory and registers to zero.
 + Set all Data switches down.
 + Flip AUX2 up twice to write the processor's memory to 00000000.bin.
 ````
@@ -522,7 +522,7 @@ Inputs:
 + Else, input port not implimented: error.
 
 --------------
-Outputs:
+Outputs, opcode OUT B11100011: OUT port#(dataByte)
 --------------
 Terminal
 + dataByte == 3, Serial terminal output of the contents of register A :"));
@@ -539,6 +539,7 @@ LCD
 MP3 Player
 + dataByte == 10, mp3player.play(regA); // Play once, the MP3 file named in register A.
 + dataByte == 11, mp3player.loop(regA); // Play in a loop, the MP3 file named in register A.
++ dataByte == 69, Play sound effects: on(regA=1) or off(regA=0). OUT 69. See sample program: pPlaySoundEffects.asm.
 --------------
 Flash light messages
 + dataByte == 13, 015oct Error happened, flash the LED light error sequence.
