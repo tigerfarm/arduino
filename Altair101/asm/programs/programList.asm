@@ -20,6 +20,7 @@
     p00000011   db  '\n+ Kill the Bit\n'
     p00000100   db  '\n+ Program List\n'
     p00000101   db  '\n+ Add 2 numbers\n'
+    p01000000   db  '\n+ Sound On/Off\n'
     p10000000   db  '\nCurrent test 1a\n'
     p10000001   db  '\nCurrent test 1b\n'
                       ;1234567890123456

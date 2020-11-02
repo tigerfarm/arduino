@@ -509,6 +509,7 @@ MP3 player options,
 + OUT 10 or 11 with regA=B00000000, pause the player. Don't start when RUN is flipped.
 + OUT 10 or 11 with regA=B11111111, start the player. Also, start when RUN is flipped.
 + OUT 10 or 11 with regA > 0,
++ OUT 69 regA=1 Play sound effects, regA=0 Don't play sound effects.
 ++ Set processorPlayerCounter=regA, play/loop the MP3. Also, start when RUN is flipped.
 + STOP, mp3player.pause();
 + RUN, if (processorPlayerLoop) mp3player.start()
@@ -590,5 +591,10 @@ When in player file mode,
 + AUX2 up     Not implemented.
 + AUX2 Down   Enter MP3 player mode.
 ````
+------------------------------------------------------------------------------
+## Sample Programs Stored on the SD Card
+
+
+
 --------------------------------------------------------------------------------
 Cheers
