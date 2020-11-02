@@ -1,6 +1,7 @@
                         ; --------------------------------------
                         ; Test CMP and conditional jumps.
                         ; Compare each register to register A, and then set Carry bit and Zero bit flags.
+                        ;
                         ; If Register data = regA, Zero bit = 1, Carry bit = 0.
                         ; If Register data > regA, Zero bit = 0, Carry bit = 1.
                         ; If Register data < regA, Zero bit = 0, Carry bit = 0.
@@ -8,9 +9,6 @@
                         ; Also, compare M, data value at address H:L, to register A.
                         ; 
                         ; Following is a sample successful run.
-                        ; "=" tests compare when registers are equal.
-                        ; ">" tests compare when registers are greater than regA.
-                        ; "<" tests compare when registers are less than regA.
                         ; + Control, Run.
                         ; + runProcessor()
                         ; =BCDEHLMS
@@ -19,6 +17,10 @@
                         ; + HLT, program halted.
                         ; + runProcessorWait()
                         ; 
+                        ; "=" tests compare when registers are equal.
+                        ; ">" tests compare when registers are greater than regA.
+                        ; "<" tests compare when registers are less than regA.
+                        ;
                         ; --------------------------------------
                         ;
             jmp Test    ; Jump to start of the test.

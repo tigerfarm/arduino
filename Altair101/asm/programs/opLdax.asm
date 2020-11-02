@@ -16,8 +16,8 @@
             out 37                  ; Print > Register A =  10 = 012 = 00001010
                                     ;
                                     ; --------------------------------------
-            call PrintTestCounter
                                     ; Before running, DEPOSIT byte: 01010101, into address: 1024.
+            call PrintTestCounter
             mvi d,2                 ; Load D:E with the address: 1024 (0000 0010 0000 0000).
             mvi e,0
             ldax d                  ; Load register A with data value from address D:E.

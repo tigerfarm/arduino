@@ -1,5 +1,6 @@
                             ; --------------------------------------
-                            ; Test LDA and STA. Moving data from addresses to registers and back.
+                            ; Test LDA and STA.
+                            ; Moving data from an address to a register, and back from a register to an address.
                             ;
                             ; STA a: Store register A data to an address a(hb:lb).
                             ; LDA a: Load register A with the data at the address a(hb:lb).
@@ -10,6 +11,8 @@
                             ; --------------------------------------
             jmp Start       ; Jump to start of the test program.
                             ;
+                            ; --------------------------------------
+                            ; Program variables
     Addr1   equ     128
     Addr2   ds      2
                             ; --------------------------------------
@@ -67,6 +70,12 @@
             mvi a,0         ; Move # to register A.
             lda Addr2       ; Load register A from the address(hb:lb).
                             ; ++ Byte array number:  60, Byte: 00111010 Octal:072 Decimal58
+            out 37          ; Print register A.
+                            ;
+            inr a
+            sta Addr2       ; Store the incremented value to: Addr2.
+            mvi a,0         ; Move # to register A.
+            lda Addr2       ; Load Addr2 into register A.
             out 37          ; Print register A.
             hlt
                             ; > Register A =  12 = 014 = 00001100

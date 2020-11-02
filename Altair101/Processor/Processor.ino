@@ -36,6 +36,8 @@
   -----------------------------------------------------------------------------
   Work to do,
 
+  asm : should not allow duplicate labels.
+  
   Continue writing opcode test programs.
 
   On/off motherboard power switch: on and off.
