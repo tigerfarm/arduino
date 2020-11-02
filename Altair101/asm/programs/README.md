@@ -136,8 +136,6 @@ opCallRetShort.asm      CALL : words with label or an immediate number address.
                         RET : returns properly.
 opCallRet.asm           CALL and RET : work fine.
                         Single call and return.
-opCallRet.asm           CALL and RET : work fine.
-                        Single call and return.
 opCallMultiple.asm      Multiple call and returns, call with calls in the call. I.E. stacked calls.
 opPushPop.asm           PUSH RP : Push a register pair (RP) onto the stack: B:C, D:E, H:L. To do, push flags.
                         Pop : Pop a register pair (RP) from the stack: B:C, D:E, H:L. To do, pop flags.
@@ -146,7 +144,6 @@ opLdaSta.asm            STA a: Store register A data to an address a(hb:lb).
                         LDA a: Load register A with the data at the address a(hb:lb).
                         STA and LDA : work with an address number and label.
                         LXI : load an address (value of Addr1) into H:L.
-
 pPlaySoundEffects.asm   Play sound effects: on(regA=1) or off(regA=0). OUT 69
 
 -------------------------------
@@ -156,6 +153,7 @@ pLdaSta.asm             STEP control light testing of LDA and STA.
                         Status lights are tested and working correctly.
 
 opLdax.asm              LDAX : Load register A with data value from address B:C or D:E.
+
 opOut.asm               OUT pa : Demonstrate the various output options.
                         DB character string declaration, then print it.
 printString.asm         OUT : Subroutine using OUT to print DB variable strings to the serial monitor.
