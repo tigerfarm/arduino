@@ -152,7 +152,7 @@ Re-testing:
 opLdax.asm              LDAX : Load register A with data value from address B:C or D:E.
                         Procedures: PrintTestCounter and PrintDigit.
                         Increment a counter variable (DB).
-                        Uses: LDAX, MVI, MOV, LDA, STA, OUT, HLT, CALL and RET.
+                        Uses opcodes: LDAX, MVI, MOV, LDA, STA, OUT, HLT, CALL and RET.
 
 pLdaSta.asm             STEP control light testing of LDA and STA.
                         Status lights are tested and working correctly.

@@ -17,8 +17,8 @@
                                     ;
                                     ; --------------------------------------
             call PrintTestCounter
-                                    ; Manually DEPOSIT a byte value int 1024.
-            mvi d,2                 ; Load D:E with an address, which is the LDAX opcode.
+                                    ; Before running, DEPOSIT byte: 01010101, into address: 1024.
+            mvi d,2                 ; Load D:E with the address: 1024 (0000 0010 0000 0000).
             mvi e,0
             ldax d                  ; Load register A with data value from address D:E.
             out 37                  ; Print the DEPOSITed value > Register A =  85 = 125 = 01010101
