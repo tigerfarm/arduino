@@ -118,19 +118,16 @@ opInrDcr.asm            INR : Increment value in the registers: A,B,C,D,E,H,L.
                         DCR : Decrement value in the registers: A,B,C,D,E,H,L.
 opMov.asm               MOV : Move values between the registers: A,B,C,D,E,H,L.
 opCpi.asm               CPI #: Compare immediate number(#) and an EQU value, with register A.
-                            # == A, set Zero bit to 1, Carry bit = 0.
-                            # != A, set Zero bit to 0.
-                            # > A, Zero bit to 0, Carry bit = 1.
-                            # < A, Zero bit to 0, Carry bit = 0.
+                            # = A: Zero bit = 1. Carry bit = 0.
+                            #!= A: Zero bit = 0.
+                            # > A: Zero bit = 0, Carry bit = 1.
+                            # < A: Zero bit = 0, Carry bit = 0.
                         JZ  Jump to a, if zero  bit equals 1, flag is set.
                         JNZ Jump to a, if Zero  bit equals 0, flag is not set.
                         JC  Jump to a, if Carry bit equals 1, flag is set.
                         JNC Jump to a, if Carry bit equals 0, flag is not set.
 opCmp.asm               CMP : Compare register A with the other registers: B,C,D,E,H,L, and M. Register M, is memory data, H:L.
-                        JZ
-                        JNZ
-                        JC
-                        JNC
+                        JZ, JNZ, JC, JNC: same as CPI.
                         + Program has 600+ bytes (16 bit address) which is well over 256 bytes (8 bit address), and works fine.
 opCallRetShort.asm      CALL : words with label or an immediate number address.
                         RET : returns properly.

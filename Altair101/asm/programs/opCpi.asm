@@ -8,6 +8,11 @@
                             ; If # < A, set Zero bit to 0. Carry bit = 0.
                             ;
                             ; Note, register A remain the same after the compare.
+                            ;
+                            ; regA equal to, then the Zero flag is set.
+                            ; regA lesser than the 8-bit immediate data, then the Carry flag is set.
+                            ; regA greater than the 8-bit immediate data, then both the Carry flag and Zero flag are reset.
+                            ;   https://technobyte.org/logical-operations-8085-with-examples/
                             ; 
                             ; Successful run indicator: 1S2S.
                             ;   "1S": Test 1 was success
@@ -23,6 +28,7 @@
             jmp Start       ; Jump to start of the test.
                             ; --------------------------------------
     iValue  equ     42      ; Label immediate to test with.
+    Ten     equ     10      ; For comparing.
                             ; --------------------------------------
     Error:
             mvi a,'\n'
@@ -82,12 +88,12 @@
             mvi a,'3'       ; Test 3, immediate number > register A.
             out 3
             mvi a,73        ; Move # to register A.
-            cpi 76          ; 73 = A. Zero bit flag is true. Carry bit is false.
+            cpi 76          ; 76 > A. Zero bit flag is not set. Carry bit is set.
             jz Error        ; Zero bit flag is set.
-            jnz okayg1b     ; Zero bit flag not set.
+            jnz okayg1a     ; Zero bit flag not set.
             jmp Error
     okayg1a:
-            jc okayg1a      ; Carry bit flag is set.
+            jc okayg1b      ; Carry bit flag is set.
             jmp Error
     okayg1b:
             jnc Error       ; Carry bit flag not set.
@@ -107,6 +113,45 @@
             jmp Error
     okayl1b:
             mvi a,'S'
+            out 3
+                            ; --------------------------------------
+            mvi a,' '
+            out 3
+                            ; --------------------------------------
+            mvi a,'5'       ; Test 5, immediate number = register A.
+            out 3
+            mvi a,10
+            cpi Ten         ; Compare Ten(10) to regA(10).
+            jz EqualTen     ; If A == 10, Zero bit flag is set.
+            jmp Error
+    EqualTen:
+            mvi a,'S'       ; True if JNZ and JNC.
+            out 3
+                            ; --------------------------------------
+                            ; If # = A, set Zero bit to 1. Carry bit to 0.
+                            ; If # !=A, set Zero bit to 0.
+                            ; If # > A, set Zero bit to 0. Carry bit = 1.
+                            ; If # < A, set Zero bit to 0. Carry bit = 0.
+            mvi a,'6'       ; Test 6, immediate number > register A.
+            out 3
+            mvi a,6
+            cpi Ten         ; Compare Ten(10) to regA(16).
+            jc TenGreaterA  ; If A > 10, Carry bit flag not set.
+            jmp Error
+    TenGreaterA:
+            mvi a,'S'       ; True if JNZ and JC.
+            out 3
+                            ; --------------------------------------
+            mvi a,'7'       ; Test 7, immediate number < register A.
+            out 3
+            mvi a,16
+            cpi Ten         ; Compare Ten(10) to regA(6).
+            jc EqualTen3    ; If A== 10, Zero bit flag is set.
+            jnc TenLessA    ; If A < 10, Carry bit flag not set.
+    EqualTen3:
+            jmp Error
+    TenLessA:
+            mvi a,'S'       ; True if JNZ and JNC.
             out 3
                             ; --------------------------------------
             mvi a,'\n'
@@ -144,5 +189,13 @@
                             ; --------------------------------------
             hlt
             jmp Start
+                            ; --------------------------------------
+                            ; Print from 0-9.
+    PrintDigit:
+            mvi b,'0'
+            add b
+            out 3
+            ret
+                            ; 
                             ; --------------------------------------
             end

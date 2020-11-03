@@ -93,12 +93,19 @@
                             ; 
                             ; Print 10's. 09 = 0000 1001
                             ; 
-            cpi a,10        ; Print the 1's.
-                            ; If #<A, Carry bit = 0.
-
-            call PrintDigits
+            cpi 10          ; Print the 1's.
+            jz Greater09    ; If A == 10, Zero bit flag is set.
+            jnc PrintOnes   ; If A == 10, Carry bit flag not set.
+    Greater09:
+            mov b,a
+            mvi a,'*'
+            out 3
+            mov a,b
             ret
                             ; 
+    PrintOnes:
+            call PrintDigit
+            ret
                             ; --------------------------------------
                             ; Print from 0-9.
     PrintDigit:
