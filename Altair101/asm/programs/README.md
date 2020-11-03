@@ -136,34 +136,35 @@ opCallRet.asm           CALL and RET : work fine.
 opCallMultiple.asm      Multiple call and returns, call with calls in the call. I.E. stacked calls.
 opPushPop.asm           PUSH RP : Push a register pair (RP) onto the stack: B:C, D:E, H:L. To do, push flags.
                         Pop : Pop a register pair (RP) from the stack: B:C, D:E, H:L. To do, pop flags.
-pPrintDigit.asm         CALL procedure to print a digit that is in register A.
 opLdaSta.asm            STA a: Store register A data to an address a(hb:lb).
                         LDA a: Load register A with the data at the address a(hb:lb).
                         STA and LDA : work with an address number and label.
                         LXI : load an address (value of Addr1) into H:L.
-pPlaySoundEffects.asm   Play sound effects: on(regA=1) or off(regA=0). OUT 69
-
--------------------------------
-Re-testing:
-
 opLdax.asm              LDAX : Load register A with data value from address B:C or D:E.
                         Procedures: PrintTestCounter and PrintDigit.
                         Increment a counter variable (DB).
                         Uses opcodes: LDAX, MVI, MOV, LDA, STA, OUT, HLT, CALL and RET.
+opInSwitches.asm        IN : Get and process a data byte from sense switches.
+                        HLT : is used to stop the process and wait for the switches to be set.
+                        RUN switch : used to continue the process.
+                        Basically, the process stops. Sense switches are set.
+                        Flip the RUN switch (similar return key) to continue.
+
+pPrintDigit.asm         CALL procedure to print a digit that is in register A.
+pPlaySoundEffects.asm   Play sound effects: on(regA=1) or off(regA=0). OUT 69
+printString.asm         OUT : Subroutine using OUT to print DB variable strings to the serial monitor.
+                        sPrint : Subroutine to print a string.
+                        sPrintln : Subroutine to print a string and finish with a new line character.
+
+-------------------------------
+Re-testing:
 
 pLdaSta.asm             STEP control light testing of LDA and STA.
                         Status lights are tested and working correctly.
 
 opOut.asm               OUT pa : Demonstrate the various output options.
                         DB character string declaration, then print it.
-printString.asm         OUT : Subroutine using OUT to print DB variable strings to the serial monitor.
-                        sPrint : Subroutine to print a string.
-                        sPrintln : Subroutine to print a string and finish with a new line character.
-opInSwitches.asm        IN : Get and process a data byte from sense switches.
-                        HLT : is used to stop the process and wait for the switches to be set.
-                        RUN switch : used to continue the process.
-                        Basically, the process stops. Sense switches are set.
-                        Flip the RUN switch (similar return key) to continue.
+
 opAdiSui.asm            ADI : Add immediate number to register A. Tested with decimal and EQU values.
                         SUI : Subtract immediate number from register A.
 opAdi.asm               ADI : Add immediate number to register A. Tested with decimal and EQU values.

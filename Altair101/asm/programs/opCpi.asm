@@ -110,6 +110,10 @@
             mvi a,'S'
             out 3
                             ; --------------------------------------
+                            ; If # = A, set Zero bit to 1. Carry bit to 0.
+                            ; If # !=A, set Zero bit to 0.
+                            ; If # > A, set Zero bit to 0. Carry bit = 1.
+                            ; If # < A, set Zero bit to 0. Carry bit = 0.
             mvi a,' '
             out 3
                             ; --------------------------------------
@@ -123,10 +127,6 @@
             mvi a,'S'       ; True if JNZ and JNC.
             out 3
                             ; --------------------------------------
-                            ; If # = A, set Zero bit to 1. Carry bit to 0.
-                            ; If # !=A, set Zero bit to 0.
-                            ; If # > A, set Zero bit to 0. Carry bit = 1.
-                            ; If # < A, set Zero bit to 0. Carry bit = 0.
             mvi a,'6'       ; Test 6, immediate number > register A.
             out 3
             mvi a,6

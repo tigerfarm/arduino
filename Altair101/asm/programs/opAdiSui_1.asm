@@ -14,28 +14,41 @@
                         ;  > Register A =  67 = 103 = 01000011
                         ; 
                         ; --------------------------------------
-            jmp Start   ; Jump to start the test.
+            jmp Test    ; Jump to start the test.
                         ; --------------------------------------
     c3      equ     '3'
     i3      equ     3
     c6      equ     '6'
     i6      equ     6
-                        ; 
                         ; --------------------------------------
-    Start:
+    Error:
+            out 39      ; Print the registers and other system values.
+                        ; Print first, else register A will be changed.
+            mvi a,'\n'
+            out 3
+            mvi a,'-'
+            out 3
+            mvi a,'E'
+            out 3
+            mvi a,'r'
+            out 3
+            mvi a,'r'
+            out 3
+            mvi a,'o'
+            out 3
+            mvi a,'r'
+            out 3
+    Halt:
+            hlt         ; The program will halt at each iteration, after the first.
+                        ; --------------------------------------
+    Test:
+            mvi a,73    ; Move # to register A.
+            out 37      ; > Register A =  73 = 111 = 01001001
                         ; --------------------------------------
                         ; Test with decimal value.
                         ;
-            mvi a,2     ; Move # to register A.
-            sta regA    ; Retain register A value.
-            call NewTest
-            mvi a,'A'
-            out 3
-            mvi a,'='
-            out 3
-            lda regA    ; Restore register A value.
-            call PrintDigit
-            mvi a,' '
+            mov b,a     ; Retain register A value.
+            mvi a,'\n'
             out 3
             mvi a,'A'
             out 3
@@ -47,11 +60,9 @@
             out 3
             mov a,b
                         ;
-            lda regA    ; Restore register A value.
             adi i3      ; Add immediate number to register A.
-            sta regA    ; Retain register A value.
-            call PrintDigit
-            mvi b,5     ; Answer should be 5.
+            out 37      ; > Register A =  76 = 114 = 01001100
+            mvi b,76    ; Answer should be 76. Move # to register B.
             cmp b       ; B = A. Zero bit flag is true.
             jz okaya1   ; Zero bit flag is set, jump.
             jmp Error   ; The above should have jumped passed this.
@@ -59,14 +70,8 @@
                         ; --------------------------------------
                         ; Test with EQU value.
                         ;
-            call NewTest
-            mvi a,'A'
-            out 3
-            mvi a,'='
-            out 3
-            lda regA    ; Restore register A value.
-            call PrintDigit
-            mvi a,' '
+            mov b,a     ; Retain register A value.
+            mvi a,'\n'
             out 3
             mvi a,'A'
             out 3
@@ -78,18 +83,15 @@
             out 3
             mov a,b
                         ;
-            lda regA    ; Restore register A value.
             adi i3      ; Add immediate number to register A.
-            sta regA    ; Retain register A value.
-            call PrintDigit
-            mvi b,8     ; Answer should be 8.
+            out 37
+            mvi b,79    ; Answer should be 79. Move # to register B.
             cmp b       ; B = A. Zero bit flag is true.
             jz okaya2   ; Zero bit flag is set, jump.
             jmp Error   ; The above should have jumped passed this.
     okaya2:
                         ; --------------------------------------
                         ; Test with decimal value.
-            call NewTest
             mov b,a 
             mvi a,'\n'
             out 3
@@ -112,7 +114,6 @@
     okays1:
                         ; --------------------------------------
                         ; Test with EQU value.
-            call NewTest
             mov b,a 
             mvi a,'\n'
             out 3
@@ -134,10 +135,8 @@
             jmp Error
     okays2:
                                     ; --------------------------------------
-                hlt
-                jmp Start
+                jmp Halt            ; Jump back to the early halt start command.
                                     ;
-                                    ; ------------------------------------------
                                     ; ------------------------------------------
                                     ; Routines
                                     ;
@@ -145,16 +144,13 @@
         TestStr  db      '\n++ '
         NewTest:
                 lxi h,TestStr
-                call PrintStr
+                call PrintStrln
                 ret
                                     ; -------------------
-        PrintDigitA    db 0         ; A variable for storing register A's value.
         PrintDigit:                 ; Print the digit (0-9) in register A.
-                sta PrintDigitA     ; Retain register A value.
                 mvi b,'0'
                 add b
                 out 3
-                lda PrintDigitA     ; Restore register A value.
                 ret
                                     ; -------------------
                                     ; Routines to print a DB strings.
@@ -185,22 +181,5 @@
                 mvi a,NL            ; Finish by printing a new line character.
                 out 3
                 ret
-                                    ; --------------------------------------
-                                    ; Error handling.
-                                    ;
-        ErrorStr  db      '\n- Error\n'
-        Error:
-                lxi h,ErrorStr
-                call PrintStrln
-                out 39              ; Print the registers and other system values.
-                                    ; Print first, else register A will be changed.
-                hlt
-                jmp Start
-                                    ; --------------------------------------
-                                    ; Variables
-                                    ;
-        regA    db 0                ; A variable for storing register A's value.
-        counter db 0                ; Initialize test counter which is used in PrintTestCounter.
-                                    ;
                                     ; ------------------------------------------
                 end

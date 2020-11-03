@@ -24,6 +24,8 @@
                                     ; ------------------------------------------
                                     ; Get the sense switch data byte.
     GetByte:
+                mvi A,13            ; Play sound bite once and wait for completion: Enter when ready.
+                out 12
                 call printPrompt    ; Print prompt.
                 hlt                 ; Halt to get the data byte.
                                     ; Use RUN to restart the program.
