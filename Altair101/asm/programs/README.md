@@ -149,6 +149,9 @@ opInSwitches.asm        IN : Get and process a data byte from sense switches.
                         RUN switch : used to continue the process.
                         Basically, the process stops. Sense switches are set.
                         Flip the RUN switch (similar return key) to continue.
+opAdiSui.asm            ADI : Add immediate number to register A. Tested with decimal and EQU values.
+                        SUI : Subtract immediate number from register A.
+                        Subroutines: NewTest, PrintDigit, PrintStr, PrintStrln, and Error
 
 pPrintDigit.asm         CALL procedure to print a digit that is in register A.
 pPlaySoundEffects.asm   Play sound effects: on(regA=1) or off(regA=0). OUT 69
@@ -165,8 +168,6 @@ pLdaSta.asm             STEP control light testing of LDA and STA.
 opOut.asm               OUT pa : Demonstrate the various output options.
                         DB character string declaration, then print it.
 
-opAdiSui.asm            ADI : Add immediate number to register A. Tested with decimal and EQU values.
-                        SUI : Subtract immediate number from register A.
 opAdi.asm               ADI : Add immediate number to register A. Tested with decimal and EQU values.
                         Simple program to demo adding 2 numbers.
                         Numbers can be easily changed using the Examine and Deposit.
