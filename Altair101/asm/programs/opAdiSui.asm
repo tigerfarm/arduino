@@ -1,89 +1,80 @@
-                        ; --------------------------------------
-                        ; Test ADI and SUI.
-                        ; Add immediate number to register A.
-                        ; Subtract immediate number from register A.
-                        ; 
-                        ;  > Register A =  73 = 111 = 01001001
-                        ; A+3=
-                        ;  > Register A =  76 = 114 = 01001100
-                        ; A+3=
-                        ;  > Register A =  79 = 117 = 01001111
-                        ; A-6=
-                        ;  > Register A =  73 = 111 = 01001001
-                        ; A-6=
-                        ;  > Register A =  67 = 103 = 01000011
-                        ; 
-                        ; --------------------------------------
-            jmp Start   ; Jump to start the test.
-                        ; --------------------------------------
-    i3      equ     3
-    i2      equ     2
-                        ; 
-                        ; --------------------------------------
-    Start:
-                        ; --------------------------------------
-                        ; Test with decimal value.
-                        ;
-            mvi a,2     ; Move # to register A.
-            sta regA    ; Retain register A value.
-            call NewTest
-            mvi a,'A'
-            out 3
-            mvi a,'='
-            out 3
-            lda regA    ; Restore register A value.
-            call PrintDigit
-            mvi a,' '
-            out 3
-            mvi a,'A'
-            out 3
-            mvi a,'+'
-            out 3
-            mvi a,i3
-            call PrintDigit
-            mvi a,'='
-            out 3
-            mov a,b
-                        ;
-            lda regA    ; Restore register A value.
-            adi i3      ; Add immediate number to register A.
-            sta regA    ; Retain register A value.
-            call PrintDigit
-            mvi b,5     ; Answer should be 5.
-            cmp b       ; B = A. Zero bit flag is true.
-            jz okaya1   ; Zero bit flag is set, jump.
-            jmp Error   ; The above should have jumped passed this.
+                                    ; --------------------------------------
+                                    ; Test ADI and SUI.
+                                    ; Add immediate number to register A.
+                                    ; Subtract immediate number from register A.
+                                    ; 
+                                    ; 
+                                    ; --------------------------------------
+                jmp Start           ; Jump to start the test.
+                                    ; --------------------------------------
+        i3      equ     3
+        i2      equ     2
+                                    ; 
+                                    ; --------------------------------------
+        Start:
+                                    ; --------------------------------------
+                                    ; Test ADI with decimal value.
+                                    ;
+                mvi a,2             ; Move # to register A.
+                sta regA            ; Retain register A value.
+                call NewTest
+                mvi a,'A'
+                out 3
+                mvi a,'='
+                out 3
+                lda regA            ; Restore register A value.
+                call PrintDigit
+                mvi a,' '
+                out 3
+                mvi a,'A'
+                out 3
+                mvi a,'+'
+                out 3
+                mvi a,3
+                call PrintDigit
+                mvi a,'='
+                out 3
+                mov a,b
+                                    ;
+                lda regA            ; Restore register A value.
+                adi 3               ; Add immediate number to register A.
+                sta regA            ; Retain register A value.
+                call PrintDigit
+                mvi b,5             ; Answer should be 5.
+                cmp b               ; B = A. Zero bit flag is true.
+                jz okaya1           ; Zero bit flag is set, jump.
+                jmp Error           ; The above should have jumped passed this.
     okaya1:
-                        ; --------------------------------------
-                        ; Test with EQU value.
-                        ;
-            call NewTest
-            mvi a,'A'
-            out 3
-            mvi a,'='
-            out 3
-            lda regA    ; Restore register A value.
-            call PrintDigit
-            mvi a,' '
-            out 3
-            mvi a,'A'
-            out 3
-            mvi a,'+'
-            out 3
-            mvi a,i3
-            call PrintDigit
-            mvi a,'='
-            out 3
-            mov a,b
-                        ;
-            lda regA    ; Restore register A value.
-            adi i3      ; Add immediate number to register A.
-            sta regA    ; Retain register A value.
-            call PrintDigit
-            mvi b,8     ; Answer should be 8.
-            cmp b       ; B = A. Zero bit flag is true.
-            jz okaya2   ; Zero bit flag is set, jump.
-            jmp Error   ; The above should have jumped passed this.
+                                    ; --------------------------------------
+                                    ; Test ADI with EQU value.
+                                    ;
+                call NewTest
+                mvi a,'A'
+                out 3
+                mvi a,'='
+                out 3
+                lda regA            ; Restore register A value.
+                call PrintDigit
+                mvi a,' '
+                out 3
+                mvi a,'A'
+                out 3
+                mvi a,'+'
+                out 3
+                mvi a,i3
+                call PrintDigit
+                mvi a,'='
+                out 3
+                mov a,b
+                                    ;
+                lda regA            ; Restore register A value.
+                adi i3              ; Add immediate number to register A.
+                sta regA            ; Retain register A value.
+                call PrintDigit
+                mvi b,8             ; Answer should be 8.
+                cmp b               ; B = A. Zero bit flag is true.
+                jz okaya2           ; Zero bit flag is set, jump.
+            j   mp Error            ; The above should have jumped passed this.
     okaya2:
                         ; --------------------------------------
                         ; Test with decimal value.
@@ -109,7 +100,7 @@
             jmp Error
     okays1:
                         ; --------------------------------------
-                        ; Test with EQU value.
+                        ; Test SUI with EQU value.
             call NewTest
             mov b,a 
             mvi a,'\n'
@@ -189,7 +180,7 @@
         ErrorStr  db      '\n- Error\n'
         Error:
                 lxi h,ErrorStr
-                call PrintStrln
+                call PrintStr
                 out 39              ; Print the registers and other system values.
                                     ; Print first, else register A will be changed.
                 hlt

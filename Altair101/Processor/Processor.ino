@@ -36,6 +36,8 @@
   -----------------------------------------------------------------------------
   Work to do,
 
+  Implement: Push flags and register A onto the stack
+  
   asm : should not allow duplicate labels.
   
   Continue writing opcode test programs.
@@ -1668,7 +1670,7 @@ void processOpcode() {
       break;
     case B11110101:
       // Stacy
-      Serial.print(F(" > push, Push flags is not implemented. Push the flags onto the stack."));
+      Serial.print(F(" > push, Push flags and register A onto the stack: not implemented."));
       printData(workingByte);
       Serial.println(F(""));
       Serial.print(F("- Error, at programCounter: "));
