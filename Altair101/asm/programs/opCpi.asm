@@ -9,11 +9,6 @@
                             ;
                             ; Note, register A remain the same after the compare.
                             ;
-                            ; regA equal to, then the Zero flag is set.
-                            ; regA lesser than the 8-bit immediate data, then the Carry flag is set.
-                            ; regA greater than the 8-bit immediate data, then both the Carry flag and Zero flag are reset.
-                            ;   https://technobyte.org/logical-operations-8085-with-examples/
-                            ; 
                             ; Successful run indicator: 1S2S.
                             ;   "1S": Test 1 was success
                             ;   "2S": Test 2 was success
