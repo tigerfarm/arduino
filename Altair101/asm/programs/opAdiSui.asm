@@ -16,10 +16,8 @@
                         ; --------------------------------------
             jmp Start   ; Jump to start the test.
                         ; --------------------------------------
-    c3      equ     '3'
     i3      equ     3
-    c6      equ     '6'
-    i6      equ     6
+    i2      equ     2
                         ; 
                         ; --------------------------------------
     Start:
@@ -41,8 +39,8 @@
             out 3
             mvi a,'+'
             out 3
-            mvi a,c3
-            out 3
+            mvi a,i3
+            call PrintDigit
             mvi a,'='
             out 3
             mov a,b
@@ -72,8 +70,8 @@
             out 3
             mvi a,'+'
             out 3
-            mvi a,c3
-            out 3
+            mvi a,i3
+            call PrintDigit
             mvi a,'='
             out 3
             mov a,b
@@ -97,8 +95,8 @@
             out 3
             mvi a,'-'
             out 3
-            mvi a,c6
-            out 3
+            mvi a,i2
+            call PrintDigit
             mvi a,'='
             out 3
             mov a,b
@@ -120,13 +118,13 @@
             out 3
             mvi a,'-'
             out 3
-            mvi a,c6
-            out 3
+            mvi a,i2
+            call PrintDigit
             mvi a,'='
             out 3
             mov a,b
                         ;
-            sui i6      ; Subtract immediate number from register A.
+            sui i2      ; Subtract immediate number from register A.
             out 37      ; > Register A =  67
             mvi c,67    ; Move # to register C.
             cmp c       ; C = A.
