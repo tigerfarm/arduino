@@ -1,11 +1,11 @@
                             ; --------------------------------------
                             ; Test CPI and conditional jumps.
-                            ; Compare an number (immediate) to A, and then set Carry and Zero bit flags.
+                            ; Compare an immediate number (#) to register A, and then set Carry and Zero bit flags.
                             ;
-                            ; If # = A, set Zero bit to 1. Carry bit to 0.
+                            ; If # = A, set Zero bit to 1. Carry bit to 0. Use jz: jump if zero bit set.
                             ; If # !=A, set Zero bit to 0.
-                            ; If # > A, set Zero bit to 0. Carry bit = 1.
-                            ; If # < A, set Zero bit to 0. Carry bit = 0.
+                            ; If # > A, set Zero bit to 0. Carry bit = 1. Use jc: jump if carry bit set.
+                            ; If # < A, set Zero bit to 0. Carry bit = 0. Use jc(which does jump) followed by jnc: jump if carry bit not set.
                             ;
                             ; Note, register A remain the same after the compare.
                             ;
