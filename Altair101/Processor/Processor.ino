@@ -1981,7 +1981,7 @@ void processOpcode() {
 #endif
       break;
     // ---------------------------------------------------------------------
-    // inr d : increment a register. Stacy, to do: update the flags. See CMP for example.
+    // inr r : increment a register. Stacy, to do: update the flags. See CMP for example.
     //    00DDD100    Flags:ZSPA
     case B00111100:
 #ifdef LOG_MESSAGES

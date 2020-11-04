@@ -4,6 +4,9 @@
                                     ;
                                     ; --------------------------------------
     Start:
+                mvi a,0             ; Initialize the test counter.
+                sta counter
+                                    ; --------------------------------------
             mvi c,0                 ; Initialize test counter which is used in PrintTestCounter.
             call PrintTestCounter
             mvi b,0                 ; Load B:C with the address of 0, which is the MVI(b) opcode.

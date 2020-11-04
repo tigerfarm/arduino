@@ -151,13 +151,14 @@ opInSwitches.asm        IN : Get and process a data byte from sense switches.
                         Flip the RUN switch (similar return key) to continue.
 opAdiSui.asm            ADI : Add immediate number to register A. Tested with decimal and EQU values.
                         SUI : Subtract immediate number from register A.
-                        Subroutines: NewTest, PrintDigit, PrintStr, PrintStrln, and Error
+                        Subroutines: NewTest, PrintDigit, PrintStr, PrintStrln, and Error.
+                        Counter to display the test number.
 
 pPrintDigit.asm         CALL procedure to print a digit that is in register A.
 pPlaySoundEffects.asm   Play sound effects: on(regA=1) or off(regA=0). OUT 69
 printString.asm         OUT : Subroutine using OUT to print DB variable strings to the serial monitor.
-                        sPrint : Subroutine to print a string.
-                        sPrintln : Subroutine to print a string and finish with a new line character.
+                        PrintStr : Subroutine to print a string.
+                        PrintStrln : Subroutine to print a string and finish with a new line character.
 
 -------------------------------
 Re-testing:

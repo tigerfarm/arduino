@@ -1,4 +1,4 @@
-                                    ; --------------------------------------
+                                    ; ------------------------------------------
                                     ; Test ADI and SUI.
                                     ; Add immediate number to register A.
                                     ; Subtract immediate number from register A.
@@ -9,9 +9,11 @@
                                     ; ++ A=8 A-2=6
                                     ; ++ A=6 A-2=4
                                     ; 
-                                    ; --------------------------------------
+                                    ; ------------------------------------------
     Start:
-                                    ; --------------------------------------
+                mvi a,0             ; Initialize the test counter.
+                sta testCounter
+                                    ; ------------------------------------------
                                     ; Test ADI with decimal value.
                                     ;
                 mvi a,2             ; Move # to register A.
@@ -44,7 +46,7 @@
                 jz okaya1           ; Zero bit flag is set, jump.
                 jmp Error           ; The above should have jumped passed this.
         okaya1:
-                                    ; --------------------------------------
+                                    ; ------------------------------------------
                                     ; Test ADI with EQU value.
                                     ;
                 call NewTest
@@ -75,7 +77,7 @@
                 jz okaya2           ; Zero bit flag is set, jump.
                 jmp Error           ; The above should have jumped passed this.
         okaya2:
-                                    ; --------------------------------------
+                                    ; ------------------------------------------
                                     ; Test SUI with decimal value.
                                     ;
                 call NewTest
@@ -106,7 +108,7 @@
                 jz okays1           ; Zero bit flag is set, jump.
                 jmp Error           ; The above should have jumped passed this.
         okays1:
-                                    ; --------------------------------------
+                                    ; ------------------------------------------
                                      ; Test SUI with decimal value.
                                     ;
                 call NewTest
@@ -137,7 +139,7 @@
                 jz okays2           ; Zero bit flag is set, jump.
                 jmp Error           ; The above should have jumped passed this.
         okays2:
-                                    ; --------------------------------------
+                                    ; ------------------------------------------
                 hlt
                 jmp Start
                                     ;
@@ -146,10 +148,20 @@
                                     ; Subroutines
                                     ;
                                     ; -------------------
-        TestStr  db      '\n++ '
+        TestStr     db  '\n++ '
+        testCounter db  0           ; Initialize test counter.
     NewTest:
+                sta PrintDigitA     ; Retain register A value.
                 lxi h,TestStr
                 call PrintStr
+                lda testCounter     ; Increment and print the counter
+                inr a
+                sta testCounter
+                call PrintDigit
+                mvi a,':'
+                out 3
+                mvi a,' '
+                out 3
                 ret
                                     ; -------------------
         PrintDigitA    db 0         ; A variable for storing register A's value.
@@ -163,14 +175,10 @@
                                     ; -------------------
                                     ; Routines to print a DB strings.
                                     ;
-                                    ; Special characters.
-        SPACE   equ     32          ; 32 is space, ' '.
-        NL      equ     10          ; 10 is new line, '\n'.
         STRTERM equ     0ffh        ; String terminator.
-                                    ;
     PrintStr:
                 mov a,m             ; Move the data from H:L address to register A. (HL) -> A. 
-                cpi STRTERM           ; Compare to see if it's the string terminate byte.
+                cpi STRTERM         ; Compare to see if it's the string terminate byte.
                 jz PrintStrDone
                 out 3               ; Out register A to the serial terminal port.
                 inr m               ; Increment H:L register pair.
@@ -180,16 +188,16 @@
                                     ;
     PrintStrln:
                 mov a,m             ; Move the data from H:L address to register A. (HL) -> A. 
-                cpi STRTERM           ; Compare to see if it's the string terminate byte.
+                cpi STRTERM         ; Compare to see if it's the string terminate byte.
                 jz PrintStrlnDone
                 out 3               ; Out register A to the serial terminal port.
                 inr m               ; Increment H:L register pair.
                 jmp PrintStrln
         PrintStrlnDone:
-                mvi a,NL            ; Finish by printing a new line character.
+                mvi a,'\n'          ; Finish by printing a new line character.
                 out 3
                 ret
-                                    ; --------------------------------------
+                                    ; -------------------
                                     ; Error handling.
                                     ;
         ErrorStr  db      '\n- Error\n'
@@ -200,13 +208,12 @@
                                     ; Print first, else register A will be changed.
                 hlt
                 jmp Start
-                                    ; --------------------------------------
+                                    ; ------------------------------------------
                                     ; Variables
                                     ;
     i3          equ     3
     i2          equ     2
     regA        db      0           ; A variable for storing register A's value.
-    counter     db      0           ; Initialize test counter which is used in PrintTestCounter.
                                     ;
                                     ; ------------------------------------------
                 end
