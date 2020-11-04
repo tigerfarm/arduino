@@ -2,11 +2,11 @@
 # Writing Altair 101 Assembler Programs
 
 I wrote an assembler program that runs my laptop. It assembles source programs into machine byte code.
-Then, I use the assembler program to upload the code to the Altair 101 machine over a serial port.
-The machine receives the code and loads it into the emulator's memory.
+The assembler program has the option to upload the byte code to the Altair 101 machine over a USB serial port.
+The machine receives the bytes and loads them into the emulator's memory.
 
 My first programs are to test, study, and demonstrate the implemented Intel 8080/8085 opcodes.
-I have also started to develop programs to demonstrate the Altair 101 abilities.
+I have also wrote programs to demonstrate the Altair 101 abilities.
 To prove that Altair 101 is a true emulator, I can assemble and run the classic program, Kill the Bit.
 That was a celebrated accomplishment after months of work.
 
@@ -27,7 +27,7 @@ $ java -jar asm.jar
 + Directory listing for: programs
 + Program Directory = /Users/dthurston/Projects/arduino/Altair101/asm/programs
 ++ opAdd.asm
-++ opAddDemo.asm
+++ pAdiAddDemo.asm
 >
 
 Select the program to work on and assemble it into byte code.
@@ -76,9 +76,8 @@ EXAMINE bytes, if you like.
 Flip RUN to run the program.
 ````
 
-### Opcode Test Programs
+### Demonstration Programs Stored on the SD Card
 
-Demonstration programs.
 ````
 Program                 Filename#  Opcodes tested, and test details.
 -------                 ---------  --------------------------
@@ -90,11 +89,13 @@ pKillTheBit.asm         00000011   Famous demo game program. Address 7 is the sp
 pBootPlay.asm           00001111   Play MP3 files, halting between each. I sometimes use it when the machine boots.
 
 programList.asm         00000100   List programs on the LCD.
-opAddDemo.asm           00000101   ADD : Add content of address 1 and 3, and store the answer in address 64.
+pAdiAddDemo.asm         00000101   ADD : Add content of address 1 and 3, and store the answer in address 64.
                         00001000   Jump program that turns on all data byte lights.
 opOutLcdOffOn.asm       00000001   LCD backlight on, or backlight off.
                         00000010   Jump program
 ````
+
+### Opcode Test Programs
 
 Test each opcode using various parameter types to study how to use the opcodes.
 Document the details to show what options work.
@@ -149,6 +150,9 @@ opInSwitches.asm        IN : Get and process a data byte from sense switches.
                         RUN switch : used to continue the process.
                         Basically, the process stops. Sense switches are set.
                         Flip the RUN switch (similar return key) to continue.
+-------------------------------
+I now have a rich enough opcode set, and samples, to add subroutines into the programs.
+
 opAdiSui.asm            ADI : Add immediate number to register A. Tested with decimal and EQU values.
                         SUI : Subtract immediate number from register A.
                         Subroutines: NewTest, PrintDigit, PrintStr, PrintStrln, and Error.
@@ -232,7 +236,7 @@ I began storing sample programs into ProcessorPrograms.md.
 It was slow and difficult to write simple programs.
 Re-adjusting jumps was a major issue without labels.
 I needed an assembler program. But I couldn't find one online.
-I began writing an assembler program to convert assembler programs into byte arrays.
+I began writing an assembler program to convert assembler instructions into byte arrays.
 
 I would copy the byte array output into the processor program, Processor.ino.
 The Arduino IDE would compile the Processor.ino program and upload it to the Arduino board.

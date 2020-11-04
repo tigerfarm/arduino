@@ -4,10 +4,10 @@
                                     ; Subtract immediate number from register A.
                                     ; 
                                     ; Successful run:
-                                    ; ++ A=2 A+3=5
-                                    ; ++ A=5 A+3=8
-                                    ; ++ A=8 A-2=6
-                                    ; ++ A=6 A-2=4
+                                    ; ++ 1: A=2 A+3=5
+                                    ; ++ 2: A=5 A+3=8
+                                    ; ++ 3: A=8 A-2=6
+                                    ; ++ 4: A=6 A-2=4
                                     ; 
                                     ; ------------------------------------------
     Start:
@@ -175,7 +175,7 @@
                                     ; -------------------
                                     ; Routines to print a DB strings.
                                     ;
-        STRTERM equ     0ffh        ; String terminator.
+        STRTERM equ     0ffh        ; String terminator. ASM appends 0ffh at the end of db strings.
     PrintStr:
                 mov a,m             ; Move the data from H:L address to register A. (HL) -> A. 
                 cpi STRTERM         ; Compare to see if it's the string terminate byte.
