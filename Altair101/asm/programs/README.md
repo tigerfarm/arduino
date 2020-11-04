@@ -5,17 +5,13 @@ I wrote an assembler program that runs my laptop. It assembles source programs i
 The assembler program has the option to upload the byte code to the Altair 101 machine over a USB serial port.
 The machine receives the bytes and loads them into the emulator's memory.
 
-My first programs are to test, study, and demonstrate the implemented Intel 8080/8085 opcodes.
+My first programs were to test, study, and demonstrate the implemented Intel 8080/8085 opcodes.
 I have also wrote programs to demonstrate the Altair 101 abilities.
-To prove that Altair 101 is a true emulator, I can assemble and run the classic program, Kill the Bit.
+To prove that Altair 101 is a true emulator, I assembled and ran the classic Altair 8800 program, Kill the Bit.
 That was a celebrated accomplishment after months of work.
 
-Altair-Duino forum:
-https://groups.google.com/forum/#!forum/altair-duino
+## Steps to Develop and Run Programs
 
-## Setup to Develop and Run Programs
-
-Steps:
 ````
 On the laptop, go to the assembler program directory.
 cd /Users/<userid>/Projects/arduino/Altair101/asm
@@ -28,6 +24,7 @@ $ java -jar asm.jar
 + Program Directory = /Users/dthurston/Projects/arduino/Altair101/asm/programs
 ++ opAdd.asm
 ++ pAdiAddDemo.asm
+...
 >
 
 Select the program to work on and assemble it into byte code.
@@ -48,7 +45,7 @@ Select the program to work on and assemble it into byte code.
 
 Power on the Altair 101.
 Start the Arduino IDE. This is used to monitor the output from the machine.
-From the IDE menu, select Tools/Serial Monitor. The machine will reboot.
+From the IDE menu, select Tools/Serial Monitor. The Altair 101 machine will reboot.
 The monitor displays the machine log messages.
 +++ Setup.
 + AUX device toggle switches are configured for input.
@@ -78,6 +75,7 @@ Flip RUN to run the program.
 
 ### Demonstration Programs Stored on the SD Card
 
+List:
 ````
 Program                 Filename#  Opcodes tested, and test details.
 -------                 ---------  --------------------------
@@ -151,7 +149,7 @@ opInSwitches.asm        IN : Get and process a data byte from sense switches.
                         Basically, the process stops. Sense switches are set.
                         Flip the RUN switch (similar return key) to continue.
 -------------------------------
-I now have a rich enough opcode set, and samples, to add subroutines into the programs.
+I now have a rich enough opcode set and samples, to add subroutines to the programs.
 
 opAdiSui.asm            ADI : Add immediate number to register A. Tested with decimal and EQU values.
                         SUI : Subtract immediate number from register A.
@@ -204,7 +202,7 @@ opImmediate.asm         Using various types of immediate values, with various op
 --------------------------------------------------------------------------------
 ## Background Development Stages
 
-In the first phase, programs were hard coded bytes in a memory array of the processor program: Processor.ino.
+In the first phase programs were hard coded bytes in a memory array of the processor program: Processor.ino.
 
 My first test program, a jump loop.
 ````
@@ -217,21 +215,22 @@ byte jumpLoopProgram[] = {
 };
 ````
 The first program proved my basic program structure.
-I could next add more opcodes and improve the fundamental program.
+I could next add more opcodes and improve Processor.ino.
 
 I began writing assembler commands beside the byte array values.
-This sped up my program development and gave structure to my assembler programs as I was re-learner to write assembler programs.
+This sped up my program development and gave structure to my assembler programs as I was re-learning how to write assembler programs.
 ````
 // Define a jump loop program byte array.
 byte jumpLoopProgram[] = {
                     // Start:
-  0303, 6, 0,       // jmp 4
-  0000,             // nop
-  0303, 0, 0        // jmp Start
+  0303, 6, 0,       //      jmp 6
+  0000,             //      nop
+  0303, 0, 0        //      jmp Start
 };
 ````
 
-I began storing sample programs into ProcessorPrograms.md.
+I began storing sample program arrays into ProcessorPrograms.md.
+The samples could copied back into Process.ino and run.
 
 It was slow and difficult to write simple programs.
 Re-adjusting jumps was a major issue without labels.
@@ -248,15 +247,19 @@ I ran the assembled array program where I further debugged:
 When the assembler program was reliable enough, I changed to output machine code bytes into a file, no longer into an array.
 I added a serial module to the Altair 101.
 I added an upload function to the assembler program and a download function to the processor program.
-This allows writing and assembling on the laptop.
-Then upload the bytes into the Altair 101 program memory.
+This allows writing and assembling on the laptop, then uploading the bytes into the Altair 101 program memory.
 The Altair 101 would then run the program.
-Optionally I could store the program into an SD card file.
-Later, I could load the program from the card and run it.
+Next, was to store the byte code into an SD card file.
+Then, load the program from the card into emulator memory, and run it.
+
+I had achieved my goal of being able to write assembler programs, run them, and save them to loaded and run later.
 
 Now, I write programs to study and test the capabilities and uses of each opcode.
-And, I write programs to demonstrate the capabilities of the Altair 101.
-Today, I wrote a program to play MP3 files when the machine boots.
+I write programs to demonstrate the capabilities of the Altair 101.
+I write a program to play MP3 files, for example to play HAL sound bytes when the machine boots.
+
+Altair-Duino forum:
+https://groups.google.com/forum/#!forum/altair-duino
 
 --------------------------------------------------------------------------------
 Cheers
