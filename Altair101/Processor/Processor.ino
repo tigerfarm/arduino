@@ -37,9 +37,9 @@
   Work to do,
 
   Implement: Push flags and register A onto the stack
-  
+
   asm : should not allow duplicate labels.
-  
+
   Continue writing opcode test programs.
 
   On/off motherboard power switch: on and off.
@@ -3767,15 +3767,43 @@ void processOpcodeData() {
           Serial.print(F(" > Register L = "));
           printData(regL);
           break;
+        case 40: // dave
+          Serial.println("");
+          Serial.print(F(" > Register B:C = "));
+          sprintf(charBuffer, "%3d", regB);
+          Serial.print(charBuffer);
+          Serial.print(F(":"));
+          sprintf(charBuffer, "%3d", regC);
+          Serial.print(charBuffer);
+          Serial.print(F(", Data: "));
+          hlValue = regB * 256 + regC;
+          printData(memoryData[hlValue]);
+          // printOctal(theByte);
+          // printByte(theByte);
+          break;
+        case 41:
+          Serial.println("");
+          Serial.print(F(" > Register D:E = "));
+          sprintf(charBuffer, "%3d", regD);
+          Serial.print(charBuffer);
+          Serial.print(F(":"));
+          sprintf(charBuffer, "%3d", regE);
+          Serial.print(charBuffer);
+          Serial.print(F(", Data: "));
+          hlValue = regD * 256 + regE;
+          printData(memoryData[hlValue]);
+          break;
         case 36:
           Serial.println("");
           Serial.print(F(" > Register H:L = "));
-          Serial.print(regH);
+          sprintf(charBuffer, "%3d", regH);
+          Serial.print(charBuffer);
           Serial.print(F(":"));
-          Serial.print(regL);
+          sprintf(charBuffer, "%3d", regL);
+          Serial.print(charBuffer);
           Serial.print(F(", Data: "));
           hlValue = regH * 256 + regL;
-          Serial.print(memoryData[hlValue]);
+          printData(memoryData[hlValue]);
           break;
         case 37:
           Serial.println("");
@@ -3810,7 +3838,7 @@ void processOpcodeData() {
           break;
         // ---------------------------------------
         case 69:
-          if (regA==1) {
+          if (regA == 1) {
             NOT_PLAY_SOUND = false;
             Serial.print(F(" > Play sound effects."));
             playerPlaySoundWait(TIMER_COMPLETE);

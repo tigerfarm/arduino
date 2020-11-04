@@ -155,6 +155,8 @@ opAdiSui.asm            ADI : Add immediate number to register A. Tested with de
                         SUI : Subtract immediate number from register A.
                         Subroutines: NewTest, PrintDigit, PrintStr, PrintStrln, and Error.
                         Counter to display the test number.
+opLxi.asm               LXI : load address values from a number or label into register pairs: B:C, D:E, and H:L.
+                        Echo the register pair address and the data at that 16 bit address.
 
 pPrintDigit.asm         CALL procedure to print a digit that is in register A.
 pPlaySoundEffects.asm   Play sound effects: on(regA=1) or off(regA=0). OUT 69
@@ -163,7 +165,19 @@ printString.asm         OUT : Subroutine using OUT to print DB variable strings 
                         PrintStrln : Subroutine to print a string and finish with a new line character.
 
 -------------------------------
-Re-testing:
+Untested programs for pong.asm
+
+opShld.asm              SHLD a : L -> (address a); H -> (address a+1)
+opAni.asm               ANI : AND and immediate value with register A.
+opDad.asm               DAD : Add register pair(RP: B:C or D:E) to H:L. Set carry bit.
+opRlcRrc.asm            RLC : Rotate (shift) register A left. Wrap the left most, to the first.
+                        RRC : Rotate (shift) register A right. Wrap the right most, to the last.
+opOra.asm               ORA : Register A, OR'ed with registers: B,C,D,E,H,L, and M.
+                        This program requires, LOG_MESSAGES not defined, because it outputs messages, example: "+ Success: ORA".
+                        Program length = 255.
+
+-------------------------------
+Needs testing:
 
 pLdaSta.asm             STEP control light testing of LDA and STA.
                         Status lights are tested and working correctly.
@@ -179,23 +193,8 @@ opAdd.asm               ADD : Add register data: B,C,D,E,H,L, and M(H:L); to reg
 
 opOutLcd.asm            OUT 1 : Output characters to LCD screen, and output screen options: backlight on/off and clear screen.
 
--------------------------------
-Untested programs
-
-opIxi.asm               LXI : test to load H:L with an address from a number or label.
-opShld.asm              SHLD a : L -> (address a); H -> (address a+1)
-
-opOra.asm               ORA : Register A, OR'ed with registers: B,C,D,E,H,L, and M.
-                        This program requires, LOG_MESSAGES not defined, because it outputs messages, example: "+ Success: ORA".
-                        Program length = 255.
-opAni.asm               ANI : AND and immediate value with register A.
 opXra.asm               XRA : Register A, Exclusive OR'ed with registers: B,C,D,E,H, and L.
-opRlcRrc.asm            RLC : Rotate (shift) register A left. Wrap the left most, to the first.
-                        RRC : Rotate (shift) register A right. Wrap the right most, to the last.
-
-opDad.asm               DAD : Add register pair(RP: B:C or D:E) to H:L. Set carry bit.
 opInx.asm               INX : Increment a register pair: B:C, D:E, H:L.
-
 opImmediate.asm         Using various types of immediate values, with various opcodes.
 ````
 
