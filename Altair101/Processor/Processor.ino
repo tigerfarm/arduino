@@ -3767,7 +3767,7 @@ void processOpcodeData() {
           Serial.print(F(" > Register L = "));
           printData(regL);
           break;
-        case 40: // dave
+        case 40:
           Serial.println("");
           Serial.print(F(" > Register B:C = "));
           sprintf(charBuffer, "%3d", regB);
