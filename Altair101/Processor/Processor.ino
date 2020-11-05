@@ -36,13 +36,11 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  Implement: Push flags and register A onto the stack
+  Implement: Push flags and register A onto the stack.
 
   asm : should not allow duplicate labels.
 
   Continue writing opcode test programs.
-
-  On/off motherboard power switch: on and off.
 
   This program now compiles to run on an Ardunio Due.
   + To do: Get the steampunk tablet working again to use to test the Due.

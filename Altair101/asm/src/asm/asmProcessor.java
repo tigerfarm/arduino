@@ -47,6 +47,17 @@
     + Parse program lines.
     + File level process: read files, and parse or list the file lines.
 
+    Assembler directives:
+    + org :
+    //                org     0
+    + ds  :  
+    //                ds      2
+    //       scoreR   ds      1
+    + db  :
+    //       Hello    db      'Hello, there: yes, there.'
+    + equ :
+    //       Final    equ     42
+
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
     // Parse program lines.
@@ -108,6 +119,8 @@
     //      <address label>     equ     <number|$>
     //      <variable name>     equ     <immediate>
     //
+    //                          ds      <number>, where number is the number of bytes.
+
     //                      Sample  Sample source
     // Immediate type       source  Byte data           With value
     // --------------       ------  ----------------    -------------
