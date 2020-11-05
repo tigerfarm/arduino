@@ -16,7 +16,7 @@
                 mvi l,0
                 out 36              ; Print the register values for H:L, and the content at that address.
                                     ;
-                sta byteL           ; Initialize the address values to zero.
+                sta byteL           ; Initialize variables. Set the address values to zero (regsiter A value).
                 sta byteH
                 lda byteL           ; Load and print the address values.
                 out 37
@@ -90,15 +90,16 @@
         PrintStrA ds    1
         STRTERM equ     0ffh        ; String terminator. ASM appends 0ffh at the end of db strings.
     PrintStr:
-                sta PrintDigitA     ; Retain register A value.
+                sta PrintStrA       ; Retain register A value.
+    PrintStrContinue:
                 mov a,m             ; Move the data from H:L address to register A. (HL) -> A. 
                 cpi STRTERM         ; Compare to see if it's the string terminate byte.
                 jz PrintStrDone
                 out 3               ; Out register A to the serial terminal port.
                 inr m               ; Increment H:L register pair.
-                jmp PrintStr
+                jmp PrintStrContinue
         PrintStrDone:
-                lda PrintDigitA     ; Restore register A value.
+                lda PrintStrA       ; Restore register A value.
                 ret
                                     ;
                                     ; --------------------------------------

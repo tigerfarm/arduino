@@ -157,6 +157,7 @@ opAdiSui.asm            ADI : Add immediate number to register A. Tested with de
                         Counter to display the test number.
 opLxi.asm               LXI : load address values from a number or label into register pairs: B:C, D:E, and H:L.
                         Echo the register pair address and the data at that 16 bit address.
+opShld.asm              SHLD a : L -> (address a); H -> (address a+1)
 
 pPrintDigit.asm         CALL procedure to print a digit that is in register A.
 pPlaySoundEffects.asm   Play sound effects: on(regA=1) or off(regA=0). OUT 69
@@ -167,15 +168,14 @@ printString.asm         OUT : Subroutine using OUT to print DB variable strings 
 -------------------------------
 Untested programs for pong.asm
 
-opShld.asm              SHLD a : L -> (address a); H -> (address a+1)
-
 opAni.asm               ANI : AND and immediate value with register A.
-opDad.asm               DAD : Add register pair(RP: B:C or D:E) to H:L. Set carry bit.
+
 opRlcRrc.asm            RLC : Rotate (shift) register A left. Wrap the left most, to the first.
                         RRC : Rotate (shift) register A right. Wrap the right most, to the last.
 opOra.asm               ORA : Register A, OR'ed with registers: B,C,D,E,H,L, and M.
                         This program requires, LOG_MESSAGES not defined, because it outputs messages, example: "+ Success: ORA".
                         Program length = 255.
+opDad.asm               DAD : Add register pair(RP: B:C or D:E) to H:L. Set carry bit.
 
 -------------------------------
 Needs testing:

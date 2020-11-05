@@ -23,6 +23,10 @@
     ---------------------------------------------
     +++ Next assembler updates and issues,
 
+    + Add immediate type, binary. Example: B10101010
+
+    + CPI, ANI, and others should be able to also use DB. Currently EQU works.
+
     + Test '\n' is a DB.
 
     + Make label and immediate names case sensitive.

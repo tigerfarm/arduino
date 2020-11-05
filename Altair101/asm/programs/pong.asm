@@ -38,7 +38,7 @@
 0000 010E00             lxi     b,SPEED     ;BC=adder for speed 
 0003 317D00             lxi     sp,stack    ;init stack pointer 
 0006 210000             lxi     h,0         ;zero the score 
-0009 228000             shld    scoreL 
+0009 228000             shld    scoreL
 000C 110080             lxi     d,8000h     ;D=ball bit, E=switch status 
 000F C31E00             jmp     rLoop       ;begin moving right
 

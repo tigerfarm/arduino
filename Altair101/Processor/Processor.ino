@@ -4358,7 +4358,8 @@ void doDownloadProgram() {
     controlResetLogic();                                  // Reset the program.
     // Serial.print("+ Program bytes were downloaded into memory, NOT_PLAY_SOUND = ");
     // Serial.println(NOT_PLAY_SOUND);
-    mp3playerPlaywait(soundEffects[DOWNLOAD_COMPLETE]);   // Transfer of data is complete.
+    // mp3playerPlaywait(soundEffects[DOWNLOAD_COMPLETE]);   // Transfer of data is complete.
+    playerPlaySoundWait(READ_FILE);
   } else {
     // No bytes downloaded, reset the panel light values.
     programLights();
