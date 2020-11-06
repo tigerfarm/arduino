@@ -163,6 +163,8 @@ opAni.asm               ANI : AND an immediate value with register A.
 opOra.asm               ORA : Register A, OR'ed with registers: B,C,D,E,H,L, and M. Result each time is stored in register A.
 opRlcRrc.asm            RLC : Rotate (shift) register A left. Wrap the left most, to the first.
                         RRC : Rotate (shift) register A right. Wrap the right most, to the last.
+opDad.asm               DAD : Add register pair(RP: B:C or D:E or H:L) to H:L. Set carry bit.
+                        SP + H:L not implemented.
 
 pPrintDigit.asm         CALL procedure to print a digit that is in register A.
 pPlaySoundEffects.asm   Play sound effects: on(regA=1) or off(regA=0). OUT 69
@@ -171,18 +173,13 @@ printString.asm         OUT : Subroutine using OUT to print DB variable strings 
                         PrintStrln : Subroutine to print a string and finish with a new line character.
 
 -------------------------------
-Untested programs for pong.asm
-
-opDad.asm               DAD : Add register pair(RP: B:C or D:E) to H:L. Set carry bit.
-
--------------------------------
 Needs testing:
-
-pLdaSta.asm             STEP control light testing of LDA and STA.
-                        Status lights are tested and working correctly.
 
 opOut.asm               OUT pa : Demonstrate the various output options.
                         DB character string declaration, then print it.
+
+pLdaSta.asm             STEP control light testing of LDA and STA.
+                        Status lights are tested and working correctly.
 
 opAdi.asm               ADI : Add immediate number to register A. Tested with decimal and EQU values.
                         Simple program to demo adding 2 numbers.
@@ -190,11 +187,11 @@ opAdi.asm               ADI : Add immediate number to register A. Tested with de
                         Sum can viewed using Examine.
 opAdd.asm               ADD : Add register data: B,C,D,E,H,L, and M(H:L); to register A.
 
-opOutLcd.asm            OUT 1 : Output characters to LCD screen, and output screen options: backlight on/off and clear screen.
-
 opXra.asm               XRA : Register A, Exclusive OR'ed with registers: B,C,D,E,H, and L.
 opInx.asm               INX : Increment a register pair: B:C, D:E, H:L.
 opImmediate.asm         Using various types of immediate values, with various opcodes.
+
+opOutLcd.asm            OUT 1 : Output characters to LCD screen, and output screen options: backlight on/off and clear screen.
 ````
 
 --------------------------------------------------------------------------------
