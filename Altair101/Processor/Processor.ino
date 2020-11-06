@@ -1750,7 +1750,7 @@ void processOpcode() {
       break;
     // ---------------------------------------------------------------------
     // dad RP   00RP1001  Add register pair(RP) to H:L (16 bit add). And set carry bit.
-    // ----------
+    // ---------- dave
     //    00RP1001
     case B00001001:
       // dad b  : Add B:C to H:L (16 bit add). Set carry bit.
@@ -1800,7 +1800,7 @@ void processOpcode() {
       }
 #endif
       break;
-    // ----------
+    // ---------- dave
     //    00RP1001
     case B00011001:
       // dad d  : Add D:E to H:L (16 bit add). Set carry bit.
@@ -1810,6 +1810,57 @@ void processOpcode() {
       lValue = regL;
 #ifdef LOG_MESSAGES
       Serial.print(F(" > dad, 16 bit add: D:E"));
+      Serial.print("(");
+      Serial.print(dValue);
+      Serial.print(":");
+      Serial.print(eValue);
+      Serial.print(")");
+      Serial.print(F(" + H:L "));
+      Serial.print("(");
+      Serial.print(hValue);
+      Serial.print(":");
+      Serial.print(lValue);
+      Serial.print(")");
+#endif
+      deValue = dValue * 256 + eValue;
+      hlValue = hValue * 256 + lValue;
+      hlValueNew = deValue + hlValue;
+      if (hlValueNew < deValue || hlValueNew < hlValue) {
+        flagCarryBit = true;
+      } else {
+        flagCarryBit = false;
+      }
+      regH = highByte(hlValueNew);
+      regL = lowByte(hlValueNew);
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      Serial.print(deValue);
+      Serial.print(F(" + "));
+      Serial.print(hlValue);
+      Serial.print(F(" = "));
+      Serial.print(hlValueNew);
+      Serial.print("(");
+      Serial.print(regH);
+      Serial.print(":");
+      Serial.print(regL);
+      Serial.print(")");
+      if (flagCarryBit) {
+        Serial.print(F("true. Sum over: 65535."));
+      } else {
+        Serial.print(F("false. Sum <= 65535."));
+      }
+#endif
+      break;
+    // ---------- dave
+    //    00RP1001
+    case B00101001:
+      // dad d  : Add H:L to H:L (16 bit add). Set carry bit.
+      dValue = regH;
+      eValue = regL;
+      hValue = regH;
+      lValue = regL;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > dad, 16 bit add: H:L"));
       Serial.print("(");
       Serial.print(dValue);
       Serial.print(":");
@@ -2079,7 +2130,7 @@ void processOpcode() {
       break;
     case B00101100:
 #ifdef LOG_MESSAGES
-      Serial.print(F(" > inr register L: ")); // dave
+      Serial.print(F(" > inr register L: "));
       Serial.print(regL);
 #endif
       regL++;
@@ -2094,7 +2145,7 @@ void processOpcode() {
     case B00110100:
       // Stacy
 #ifdef LOG_MESSAGES
-      Serial.print(F(" > inr address M (H:L): "));  // dave
+      Serial.print(F(" > inr address M (H:L): "));
       Serial.print(regH);
       Serial.print(":");
       Serial.print(regL);
@@ -2273,7 +2324,7 @@ void processOpcode() {
     // ---------------------------------------------------------------------
     case B01111110:
       // B01DDDSSS
-      anAddress = word(regH, regL);   // dave
+      anAddress = word(regH, regL);
       regA = memoryData[anAddress];
 #ifdef LOG_MESSAGES
       Serial.print(F(" > mov"));
@@ -3056,9 +3107,9 @@ void processOpcode() {
     // -------------------------------------------------------------------------------------
     default:
 #ifdef LOG_MESSAGES
-      Serial.print(F(" - Error, unknown opcode instruction."));
+      Serial.print(F("\n- Error, unknown opcode instruction."));
 #else
-      Serial.print(F("- Error, unknown opcode instruction: "));
+      Serial.print(F("\n- Error, unknown opcode instruction: "));
       printData(workingByte);
       Serial.println(F(""));
       Serial.print(F("- Error, at programCounter: "));

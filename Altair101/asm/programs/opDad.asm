@@ -7,19 +7,22 @@
                             ; --------------------------------------
     Start:
                             ; --------------------------------------
-            mvi a,6         ; Initialize register values for testing.
-            mvi b,0
-            mvi c,1
-            mvi d,2
-            mvi e,3
-            mvi h,4
-            mvi l,5
+            mvi a,0         ; Initialize register values for testing.
+            mvi b,1
+            mvi c,2
+            mvi d,3
+            mvi e,5
+            mvi h,0
+            mvi l,0
             out 38          ; Print the register values.
                             ;
                             ; --------------------------------------
+            out 36          ; Print register pair, H:L.
             dad b           ; Add register pair B:C to H:L.
             out 36          ; Print register pair, H:L.
             dad d           ; Add register pair D:E to H:L.
+            out 36          ; Print register pair, H:L.
+            dad h           ; Add register pair H:L to H:L.
             out 36          ; Print register pair, H:L.
                             ;
                             ; --------------------------------------
@@ -32,16 +35,14 @@
                                     ; UnSuccessful run:
                                     ;
 --------------------------------------
-
-+ regA:   6 = 006 = 00000110
-+ regB:   0 = 000 = 00000000  regC:   1 = 001 = 00000001
-+ regD:   2 = 002 = 00000010  regE:   3 = 003 = 00000011
-+ regH:   4 = 004 = 00000100  regL:   5 = 005 = 00000101
++ regA:   0 = 000 = 00000000
++ regB:   1 = 001 = 00000001  regC:   2 = 002 = 00000010
++ regD:   3 = 003 = 00000011  regE:   5 = 005 = 00000101
++ regH:   0 = 000 = 00000000  regL:   0 = 000 = 00000000
 ------------
- > Register H:L =   4:  6, Data:   0 = 000 = 00000000
-- Error, unknown opcode instruction:   0 = 000 = 00000000
-- Error, at programCounter:  23 = 027 = 00010111
-++      23:00000000 00010111: 00101001 : 29:051 > opcode: dad d
-
+ > Register H:L =   0:  0, Data:  62 = 076 = 00111110
+ > Register H:L =   1:  2, Data:  10 = 012 = 00001010
+ > Register H:L =   4:  7, Data:   0 = 000 = 00000000
+ > Register H:L =   8: 14, Data: 197 = 305 = 11000101
                                     ;
                                     ; --------------------------------------
