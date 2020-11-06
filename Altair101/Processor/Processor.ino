@@ -1169,9 +1169,11 @@ byte memoryData[memoryTop];
 unsigned int curProgramCounter = 0;     // Current program address value
 unsigned int programCounter = 0;        // When processing opcodes, the next program address value.
 
-const int stackBytes = 32;
-int stackData[stackBytes];
-unsigned int stackPointer = stackBytes;
+// Stacy, integrate the stack into the memoryData bytes.
+//  Else instructions such as "dad sp" will not work as expected.
+const unsigned int stackBytes = 64;
+unsigned int stackPointer = stackBytes; // Start pointing at the top.
+unsigned int stackData[stackBytes];     // The stack is a separate set of bytes.
 
 // -----------------------------------------------------------------------------
 // Memory Functions
@@ -1750,7 +1752,7 @@ void processOpcode() {
       break;
     // ---------------------------------------------------------------------
     // dad RP   00RP1001  Add register pair(RP) to H:L (16 bit add). And set carry bit.
-    // ---------- dave
+    // ----------
     //    00RP1001
     case B00001001:
       // dad b  : Add B:C to H:L (16 bit add). Set carry bit.
@@ -1800,7 +1802,7 @@ void processOpcode() {
       }
 #endif
       break;
-    // ---------- dave
+    // ----------
     //    00RP1001
     case B00011001:
       // dad d  : Add D:E to H:L (16 bit add). Set carry bit.
@@ -1851,7 +1853,7 @@ void processOpcode() {
       }
 #endif
       break;
-    // ---------- dave
+    // ----------
     //    00RP1001
     case B00101001:
       // dad d  : Add H:L to H:L (16 bit add). Set carry bit.
@@ -3942,9 +3944,7 @@ void processOpcodeData() {
           Serial.print(F("------------"));
           break;
         case 39:
-#ifdef LOG_MESSAGES
           Serial.println("");
-#endif
           Serial.println(F("------------"));
           printRegisters();
           printOther();
@@ -4560,8 +4560,8 @@ void controlResetLogic() {
   // Processor variables.
   programCounter = 0;
   curProgramCounter = 0;
-  stackPointer = 0;
-  opcode = 0;  // For the case when the processing cycle 2 or more.
+  stackPointer = stackBytes;  // Stack pointer starts at the top.
+  opcode = 0;                 // For the case when the processing cycle is 2 or more.
   statusByte = 0;
   //
   regA = 0;

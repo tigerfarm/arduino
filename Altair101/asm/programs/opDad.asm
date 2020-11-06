@@ -26,20 +26,21 @@
             out 36          ; Print register pair, H:L.
                             ;
                             ; --------------------------------------
-                            ; SP needs work.
-                            ; Stack pointer values need work.
+                            ; After making Processor.ino updates, DAD SP works.
+                            ; However, I should implement the stack to Altair 8800 specifications.
                             ;
-            dad sp          ; Add register pair H:L to H:L.
+            dad sp          ; Add the stack pointer address value to H:L.
             out 36          ; Print register pair, H:L.
             out 39          ; Print data which includes the stack pointer.
+                            ;
+            push b          ; Change the stack pointer value.
             push b
-            push b
-            dad sp          ; Add register pair H:L to H:L.
-            out 36          ; Print register pair, H:L.
-            out 39          ; Print data which includes the stack pointer.
+            dad sp          ; Add the stack pointer address value to H:L.
+            out 36
+            out 39
             pop b
             pop b
-            out 39          ; Print data which includes the stack pointer.
+            out 39
                             ;
                             ; --------------------------------------
             hlt
@@ -48,17 +49,43 @@
                             ; --------------------------------------
             end
                                     ; --------------------------------------
-                                    ; UnSuccessful run:
+                                    ; Successful run:
                                     ;
---------------------------------------
+------------
 + regA:   0 = 000 = 00000000
 + regB:   1 = 001 = 00000001  regC:   2 = 002 = 00000010
 + regD:   3 = 003 = 00000011  regE:   5 = 005 = 00000101
 + regH:   0 = 000 = 00000000  regL:   0 = 000 = 00000000
 ------------
  > Register H:L =   0:  0, Data:  62 = 076 = 00111110
- > Register H:L =   1:  2, Data:  10 = 012 = 00001010
+ > Register H:L =   1:  2, Data:   0 = 000 = 00000000
  > Register H:L =   4:  7, Data:   0 = 000 = 00000000
  > Register H:L =   8: 14, Data: 197 = 305 = 11000101
+ > Register H:L =   8: 78, Data:   0 = 000 = 00000000
+------------
++ regA:   0 = 000 = 00000000
++ regB:   1 = 001 = 00000001  regC:   2 = 002 = 00000010
++ regD:   3 = 003 = 00000011  regE:   5 = 005 = 00000101
++ regH:   8 = 010 = 00001000  regL:  78 = 116 = 01001110
++ Zero bit flag: 1, Carry bit flag: 0
++ Stack pointer: 64
+------------
+ > Register H:L =   8:138, Data: 116 = 164 = 01110100
+------------
++ regA:   0 = 000 = 00000000
++ regB:   1 = 001 = 00000001  regC:   2 = 002 = 00000010
++ regD:   3 = 003 = 00000011  regE:   5 = 005 = 00000101
++ regH:   8 = 010 = 00001000  regL: 138 = 212 = 10001010
++ Zero bit flag: 1, Carry bit flag: 0
++ Stack pointer: 60
+------------
+------------
++ regA:   0 = 000 = 00000000
++ regB:   1 = 001 = 00000001  regC:   2 = 002 = 00000010
++ regD:   3 = 003 = 00000011  regE:   5 = 005 = 00000101
++ regH:   8 = 010 = 00001000  regL: 138 = 212 = 10001010
++ Zero bit flag: 1, Carry bit flag: 0
++ Stack pointer: 64
+------------
                                     ;
                                     ; --------------------------------------
