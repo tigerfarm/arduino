@@ -5,13 +5,7 @@
                             ;          01=DE   (D:E as 16 bit register)
                             ;
                             ; --------------------------------------
-            jmp Test        ; Jump to start of the test.
-                            ;
-                            ; --------------------------------------
-    Halt:
-            hlt             ; The program will halt at each iteration, after the first.
-                            ; --------------------------------------
-    Test:
+    Start:
                             ; --------------------------------------
             mvi a,6         ; Initialize register values for testing.
             mvi b,0
@@ -29,7 +23,25 @@
             out 36          ; Print register pair, H:L.
                             ;
                             ; --------------------------------------
-            jmp Halt        ; Jump back to the early halt command.
+            hlt
+            jmp Start
                             ;
                             ; --------------------------------------
             end
+                                    ; --------------------------------------
+                                    ; UnSuccessful run:
+                                    ;
+--------------------------------------
+
++ regA:   6 = 006 = 00000110
++ regB:   0 = 000 = 00000000  regC:   1 = 001 = 00000001
++ regD:   2 = 002 = 00000010  regE:   3 = 003 = 00000011
++ regH:   4 = 004 = 00000100  regL:   5 = 005 = 00000101
+------------
+ > Register H:L =   4:  6, Data:   0 = 000 = 00000000
+- Error, unknown opcode instruction:   0 = 000 = 00000000
+- Error, at programCounter:  23 = 027 = 00010111
+++      23:00000000 00010111: 00101001 : 29:051 > opcode: dad d
+
+                                    ;
+                                    ; --------------------------------------
