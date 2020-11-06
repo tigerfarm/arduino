@@ -1,6 +1,6 @@
                         ; --------------------------------------
                         ; Test CMP and conditional jumps.
-                        ; Compare each register to register A, and then set Carry bit and Zero bit flags.
+                        ; Compare register A to another register, and then set Carry bit and Zero bit flags.
                         ;
                         ; If Register data = regA, Zero bit = 1, Carry bit = 0.
                         ; If Register data > regA, Zero bit = 0, Carry bit = 1.

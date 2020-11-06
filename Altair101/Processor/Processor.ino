@@ -36,8 +36,6 @@
   -----------------------------------------------------------------------------
   Work to do,
 
-  Implement: Push flags and register A onto the stack.
-
   asm : should not allow duplicate labels.
 
   Continue writing opcode test programs.
@@ -1667,17 +1665,14 @@ void processOpcode() {
       stackData[stackPointer--] = regH;
       break;
     case B11110101:
-      // Stacy
-      Serial.print(F(" > push, Push flags and register A onto the stack: not implemented."));
-      printData(workingByte);
-      Serial.println(F(""));
-      Serial.print(F("- Error, at programCounter: "));
-      printData(programCounter);
-      Serial.println(F(""));
-      ledFlashError();
-      controlStopLogic();
-      statusByte = HLTA_ON;
-      digitalWrite(WAIT_PIN, HIGH);
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > push, Push flags and register A onto the stack. Flags not implemented."));
+#endif
+      hValue = 0;
+      hValue = bitWrite(hValue, 0, flagZeroBit);
+      hValue = bitWrite(hValue, 1, flagCarryBit);
+      stackData[stackPointer--] = hValue; // Flags: flagZeroBit and flagCarryBit are 1 or 0.
+      stackData[stackPointer--] = regA;
       break;
     // --------------------------------------------------------------------
     //    11RP0001 Pop    register pair B from the stack. 1 cycles.
@@ -1724,17 +1719,34 @@ void processOpcode() {
 #endif
       break;
     case B11110001:
-      // Stacy
-      Serial.print(F(" > pop, Pop flags is not implemented. Pop the flags from the stack."));
-      printData(workingByte);
-      Serial.println(F(""));
-      Serial.print(F("- Error, at programCounter: "));
-      printData(programCounter);
-      Serial.println(F(""));
-      ledFlashError();
-      controlStopLogic();
-      statusByte = HLTA_ON;
-      digitalWrite(WAIT_PIN, HIGH);
+      stackPointer++;
+      regA = stackData[stackPointer];
+      stackPointer++;
+      hValue = stackData[stackPointer]; // Flags: flagZeroBit and flagCarryBit are 1 or 0.
+      flagZeroBit = bitRead(hValue, 0);
+      flagCarryBit = bitRead(hValue, 1);
+      /*
+      if (hValue == 0) {
+        flagZeroBit = 0;
+        flagCarryBit = 0;
+      } else if (hValue == 1) {
+        flagZeroBit = 1;
+        flagCarryBit = 0;
+      } else if (hValue == 2) {
+        flagZeroBit = 0;
+        flagCarryBit = 1;
+      } else if (hValue == 3) {
+        flagZeroBit = 1;
+        flagCarryBit = 1;
+      }
+      */
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > pop, Pop flags and register A from the stack."));
+      Serial.print(F(" regA:flags "));
+      Serial.print(regA);
+      Serial.print(F(":"));
+      Serial.print(hValue);
+#endif
       break;
     // ---------------------------------------------------------------------
     // dad RP   00RP1001  Add register pair(RP) to H:L (16 bit add). And set carry bit.

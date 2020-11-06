@@ -24,10 +24,7 @@
     +++ Next assembler updates and issues,
 
     + Add immediate type, binary. Example: B10101010
-
-    + CPI, ANI, and others should be able to also use DB. Currently EQU works.
-
-    + Test '\n' is a DB.
+    ++ Note, this is not standard for assemblers.
 
     + Make label and immediate names case sensitive.
 
@@ -119,6 +116,7 @@
     //                          org     <number>
     //                          ds      <number>
     //      <address label>     ds      <number>
+    //      <address label>     db      <number>
     //      <address label>     db      '<characters>'
     //      <address label>     equ     <number|$>
     //      <variable name>     equ     <immediate>
@@ -138,7 +136,8 @@
     // Decimal              42      immediate:42        immediate:42:42
     //
     // ---------------------------------------------------------------------
-    //
+    // The EQU directive is used for defining constants.
+
     ---------------------------------------------
     +++ Nice to show the actual line, but not required because I can search for the label, "Fianl".
 - Error, immediate label not found: Fianl.
@@ -258,6 +257,18 @@ public class asmProcessor {
         System.out.println("++ Address:byte      databyte :hex:oct > description");
         //                  ++       0:00000000: 11000011 : C3:303 > opcode: jmp Start
         //                  ++ <count>:binary    binary   :hex:oct > description
+        //
+        //                  ++     254:11111110: 00101101 : 2D:055 > databyte: orstr : - : 45
+        //                  ++     255:11111111: 00101101 : 2D:055 > databyte: orstr : - : 45
+        //                  ++     256:00000000: 00100000 : 20:040 > databyte: orstr :   : 32
+        //                  ++     257:00000001: 01001111 : 4F:117 > databyte: orstr : O : 79
+        //
+        System.out.println("++ Address:16-bit bytes       databyte :hex:oct > description");
+        //                  ++       0:00000000 00000000: 11000011 : C3:303 > opcode: jmp Start
+        //                  ...
+        //                  ++     256:00000001 00000000: 00100000 : 20:040 > databyte: orstr :   : 32
+        //                  ++     257:00000001 00000001: 01001111 : 4F:117 > databyte: orstr : O : 79
+        //
         programTop = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
@@ -265,11 +276,21 @@ public class asmProcessor {
             //
             String programCounterPadding = "";
             if (programTop < 10) {
-                programCounterPadding = "  ";
+                programCounterPadding = "   ";
             } else if (programTop < 100) {
+                programCounterPadding = "  ";
+            } else if (programTop < 1000) {
                 programCounterPadding = " ";
             }
-            System.out.print("++     " + programCounterPadding + programTop + ":" + byteToString((byte) programTop) + ": ");
+            if (programTop < 256) {
+                // 8-bit address
+                System.out.print("++    " + programCounterPadding + programTop + ":" + "00000000" + " " + byteToString((byte) programTop) + ": ");
+            } else {
+                // 16-bit address dave
+                int lb = programTop - 256;
+                int hb = programTop / 256;   // Example: 257 
+                System.out.print("++    " + programCounterPadding + programTop + ":" + byteToString((byte) hb) + " "  + byteToString((byte) lb) + ": ");
+            }
             // Print of the address only works up to 255 byte address. Example:
             // ++     255:11111111: 00000001 : 01 > hb: 1
             // ++     256:00000000: 11000011 : C3 > opcode: ...
@@ -1318,7 +1339,8 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSenseSwitchInput.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opImmediate.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pKillTheBit.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/programList.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/programList.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/operr.asm");
         if (thisProcess.errorCount > 0) {
             System.out.println("\n-- Number of errors: " + thisProcess.errorCount + "\n");
             return;

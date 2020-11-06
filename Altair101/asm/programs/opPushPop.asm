@@ -12,6 +12,44 @@
                             ; --------------------------------------
     Start:
                             ; --------------------------------------
+                            ; Test A:F push and pop.
+            call NewTest
+            mvi a,'A'
+            out 3
+            mvi a,':'
+            out 3
+            mvi a,'F'
+            out 3
+            mvi a,'\n'
+            out 3
+                            ;
+            mvi a,3
+            cpi 3           ; Set zero flag on/1, carry bit off/0;
+            out 39          ; Print all the register values and the flags.
+            push f
+            mvi a,0
+            out 37          ; Register A.
+            pop f
+            out 39
+                            ;
+            mvi a,1
+            cpi 3           ; Set zero flag off/0, carry bit on/1;
+            out 39          ; Print all the register values and the flags.
+            push f
+            mvi a,0
+            out 37
+            pop f
+            out 39
+                            ;
+            mvi a,6
+            cpi 3           ; Set zero flag off/0, carry bit off/0;
+            out 39          ; Print all the register values and the flags.
+            push f
+            mvi a,0
+            out 37
+            pop f
+            out 39
+                            ; --------------------------------------
                             ; Test B:C push and pop.
             call NewTest
             mvi a,'B'
@@ -20,7 +58,7 @@
             out 3
             mvi a,'C'
             out 3
-                            ; --------------------------------------
+                            ;
             mvi b,2
             mvi c,3
             push b

@@ -133,7 +133,7 @@ opCallRetShort.asm      CALL : words with label or an immediate number address.
 opCallRet.asm           CALL and RET : work fine.
                         Single call and return.
 opCallMultiple.asm      Multiple call and returns, call with calls in the call. I.E. stacked calls.
-opPushPop.asm           PUSH RP : Push a register pair (RP) onto the stack: B:C, D:E, H:L. To do, push flags.
+opPushPop.asm           PUSH RP : Push a register pair (RP) onto the stack: B:C, D:E, H:L. Push register A and flags.
                         Pop : Pop a register pair (RP) from the stack: B:C, D:E, H:L. To do, pop flags.
 opLdaSta.asm            STA a: Store register A data to an address a(hb:lb).
                         LDA a: Load register A with the data at the address a(hb:lb).
@@ -158,6 +158,13 @@ opAdiSui.asm            ADI : Add immediate number to register A. Tested with de
 opLxi.asm               LXI : load address values from a number or label into register pairs: B:C, D:E, and H:L.
                         Echo the register pair address and the data at that 16 bit address.
 opShld.asm              SHLD a : L -> (address a); H -> (address a+1)
+opAni.asm               ANI : AND an immediate value with register A.
+                        Example: 11101101 AND 10110000 = 10100000
+opOra.asm               ORA : Register A, OR'ed with registers: B,C,D,E,H,L, and M. Result each time is stored in register A.
+
++++ Assembler issue when the 2 are one after the other, and the program is over 255 bytes:
+        OrStr       db  '\n--- OR ---'
+        EqualStr    db  '\n=========='
 
 pPrintDigit.asm         CALL procedure to print a digit that is in register A.
 pPlaySoundEffects.asm   Play sound effects: on(regA=1) or off(regA=0). OUT 69
@@ -168,13 +175,8 @@ printString.asm         OUT : Subroutine using OUT to print DB variable strings 
 -------------------------------
 Untested programs for pong.asm
 
-opAni.asm               ANI : AND and immediate value with register A.
-
 opRlcRrc.asm            RLC : Rotate (shift) register A left. Wrap the left most, to the first.
                         RRC : Rotate (shift) register A right. Wrap the right most, to the last.
-opOra.asm               ORA : Register A, OR'ed with registers: B,C,D,E,H,L, and M.
-                        This program requires, LOG_MESSAGES not defined, because it outputs messages, example: "+ Success: ORA".
-                        Program length = 255.
 opDad.asm               DAD : Add register pair(RP: B:C or D:E) to H:L. Set carry bit.
 
 -------------------------------

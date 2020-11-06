@@ -4,7 +4,6 @@
                                     ; ORA S     10110SSS          ZSPCA   OR source register with A
                                     ; --------------------------------------
                 jmp Start
-        OrStr       db  '\n--- OR ---'
     Start:
                 mvi a,0             ; Initialize the test counter.
                 sta testCounter
@@ -57,77 +56,224 @@
                 jmp Error
     okayd1:
                                     ; --------------------------------------
-                call NewTest
-                mvi a,73
-                out 37
-                lxi h,OrStr
-                call PrintStr
-                mvi e,70
-                out 33
-                lxi h,EqualStr
-                call PrintStr
-                ora e               ; OR with register A.
-                out 37
-                cpi 79
-                jz okaye1
-                jmp Error
-    okaye1:
-                                    ; --------------------------------------
-                call NewTest
-                mvi a,73
-                out 37
-                lxi h,OrStr
-                call PrintStr
-                mvi h,70
-                out 34
-                push h
-                lxi h,EqualStr
-                call PrintStr
-                pop h
-                ora h               ; OR with register A.
-                out 37
-                cpi 79
-                jz okayh1
-                jmp Error
-    okayh1:
-                                    ; --------------------------------------
-                call NewTest
-                mvi a,73
-                out 37
-                lxi h,OrStr
-                call PrintStr
-                mvi l,70
-                out 35
-                push h
-                lxi h,EqualStr
-                call PrintStr
-                pop h
-                ora l               ; OR with register A.
-                out 37
-                cpi 79
-                jz okayl1
-                jmp Error
-    okayl1:
-                                    ; --------------------------------------
-                call NewTest
-                mvi a,73
-                out 37
-                                    ;
-                mvi h,0
-                mvi l,0             ; Register M address data (opcode jmp) =                 11 000 011
-                out 36
-                                    ;
-                ora m               ; OR data a register M address, with register A. Answer: 11 001 011 = ?
-                out 37
-                cpi 203
-                jz okaym1
-                jmp Error
-    okaym1:
-                                    ; --------------------------------------
                 lxi h,SeparatorStr
                 call PrintStr
                 hlt
                 jmp Start
+                                    ; ------------------------------------------
+                                    ; ------------------------------------------
+                                    ; ------------------------------------------
+                                    ; ------------------------------------------
+                call NewTest
+                mvi a,73
+                out 37
+                lxi h,OrStr
+                call PrintStr
+                mvi d,70
+                out 32
+                lxi h,EqualStr
+                call PrintStr
+                ora d               ; OR with register A.
+                out 37
+                cpi 79
+                jz okayd1
+                jmp Error
+                call NewTest
+                mvi a,73
+                out 37
+                lxi h,OrStr
+                call PrintStr
+                mvi d,70
+                out 32
+                lxi h,EqualStr
+                call PrintStr
+                ora d               ; OR with register A.
+                out 37
+                cpi 79
+                jz okayd1
+                jmp Error
+                call NewTest
+                mvi a,73
+                out 37
+                lxi h,OrStr
+                call PrintStr
+                mvi d,70
+                out 32
+                lxi h,EqualStr
+                call PrintStr
+                ora d               ; OR with register A.
+                out 37
+                cpi 79
+                jz okayd1
+                jmp Error
+                call NewTest
+                mvi a,73
+                out 37
+                lxi h,OrStr
+                call PrintStr
+                mvi d,70
+                out 32
+                lxi h,EqualStr
+                call PrintStr
+                ora d               ; OR with register A.
+                out 37
+                cpi 79
+                jz okayd1
+                jmp Error
+                call NewTest
+                mvi a,73
+                out 37
+                lxi h,OrStr
+                call PrintStr
+                mvi d,70
+                out 32
+                lxi h,EqualStr
+                call PrintStr
+                ora d               ; OR with register A.
+                out 37
+                cpi 79
+                jz okayd1
+                jmp Error
+                call NewTest
+                mvi a,73
+                out 37
+                lxi h,OrStr
+                call PrintStr
+                mvi d,70
+                out 32
+                lxi h,EqualStr
+                call PrintStr
+                ora d               ; OR with register A.
+                out 37
+                cpi 79
+                jz okayd1
+                jmp Error
+                call NewTest
+                mvi a,73
+                out 37
+                lxi h,OrStr
+                call PrintStr
+                mvi d,70
+                out 32
+                lxi h,EqualStr
+                call PrintStr
+                ora d               ; OR with register A.
+                out 37
+                cpi 79
+                jz okayd1
+                jmp Error
+                call NewTest
+                mvi a,73
+                out 37
+                lxi h,OrStr
+                call PrintStr
+                mvi d,70
+                out 32
+                lxi h,EqualStr
+                call PrintStr
+                ora d               ; OR with register A.
+                out 37
+                cpi 79
+                jz okayd1
+                jmp Error
+                call NewTest
+                mvi a,73
+                out 37
+                lxi h,OrStr
+                call PrintStr
+                mvi d,70
+                out 32
+                lxi h,EqualStr
+                call PrintStr
+                ora d               ; OR with register A.
+                out 37
+                cpi 79
+                jz okayd1
+                jmp Error
+                call NewTest
+                mvi a,73
+                out 37
+                lxi h,OrStr
+                call PrintStr
+                mvi d,70
+                out 32
+                lxi h,EqualStr
+                call PrintStr
+                ora d               ; OR with register A.
+                out 37
+                cpi 79
+                jz okayd1
+                jmp Error
+                call NewTest
+                mvi a,73
+                out 37
+                lxi h,OrStr
+                call PrintStr
+                mvi d,70
+                out 32
+                lxi h,EqualStr
+                call PrintStr
+                ora d               ; OR with register A.
+                out 37
+                cpi 79
+                jz okayd1
+                jmp Error
+                call NewTest
+                mvi a,73
+                out 37
+                lxi h,OrStr
+                call PrintStr
+                mvi d,70
+                out 32
+                lxi h,EqualStr
+                call PrintStr
+                ora d               ; OR with register A.
+                out 37
+                cpi 79
+                jz okayd1
+                jmp Error
+                call NewTest
+                mvi a,73
+                out 37
+                lxi h,OrStr
+                call PrintStr
+                mvi d,70
+                out 32
+                lxi h,EqualStr
+                call PrintStr
+                ora d               ; OR with register A.
+                out 37
+                cpi 79
+                jz okayd1
+                jmp Error
+                call NewTest
+                mvi a,73
+                out 37
+                lxi h,OrStr
+                call PrintStr
+                mvi d,70
+                out 32
+                lxi h,EqualStr
+                call PrintStr
+                ora d               ; OR with register A.
+                out 37
+                cpi 79
+                jz okayd1
+                jmp Error
+                call NewTest
+                mvi a,73
+                out 37
+                lxi h,OrStr
+                call PrintStr
+                mvi d,70
+                out 32
+                lxi h,EqualStr
+                call PrintStr
+                ora d               ; OR with register A.
+                out 37
+                cpi 79
+                jz okayd1
+                jmp Error
                                     ; ------------------------------------------
                                     ; ------------------------------------------
                                     ; Subroutines
@@ -195,61 +341,9 @@
                                     ; --------------------------------------
                                     ; Variables
                                     ;
+        OrStr       db  '\n--- OR ---'
         EqualStr    db  '\n=========='
-        aNumber     equ  237        ; Test number.
+        aNumber     equ  237         ; Test number.
                                     ; --------------------------------------
                 end
-                                    ; --------------------------------------
-                                    ; Successful run:
-                                    ;
---------------------------------------
-++ 1: 
- > Register A =  73 = 111 = 01001001
---- OR ---
- > Register B =  70 = 106 = 01000110
-==========
- > Register A =  79 = 117 = 01001111
---------------------------------------
-++ 2: 
- > Register A =  73 = 111 = 01001001
---- OR ---
- > Register C =  70 = 106 = 01000110
-==========
- > Register A =  79 = 117 = 01001111
---------------------------------------
-++ 3: 
- > Register A =  73 = 111 = 01001001
---- OR ---
- > Register D =  70 = 106 = 01000110
-==========
- > Register A =  79 = 117 = 01001111
---------------------------------------
-++ 4: 
- > Register A =  73 = 111 = 01001001
---- OR ---
- > Register E =  70 = 106 = 01000110
-==========
- > Register A =  79 = 117 = 01001111
---------------------------------------
-++ 5: 
- > Register A =  73 = 111 = 01001001
---- OR ---
- > Register H =  70 = 106 = 01000110
-==========
- > Register A =  79 = 117 = 01001111
---------------------------------------
-++ 6: 
- > Register A =  73 = 111 = 01001001
---- OR ---
- > Register L =  70 = 106 = 01000110
-==========
- > Register A =  79 = 117 = 01001111
---------------------------------------
-++ 7: 
- > Register A =  73 = 111 = 01001001
- > Register H:L =   0:  0, Data: 195 = 303 = 11000011
- > Register A = 203 = 313 = 11001011
---------------------------------------
-+ HLT, program halted.
-                                    ;
                                     ; --------------------------------------

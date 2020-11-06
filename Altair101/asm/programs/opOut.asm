@@ -47,6 +47,7 @@
             mvi h,0                     ; High byte (hb)
             mvi l,0                     ; Low byte (lb)
             out 36                      ; Data is the value of the JMP opcode = 11000011.
+                                        ; Register H:L =   0:  0, Data: 195 = 303 = 11000011
                                         ;
             mvi h,0                     ; High byte (hb)
             mvi l,1                     ; Low byte (lb)
