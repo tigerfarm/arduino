@@ -1902,6 +1902,64 @@ void processOpcode() {
       }
 #endif
       break;
+    // ---------- dave
+    //    00RP1001
+    case B00111001:
+      // dad d  : Add Stack pointer address to H:L (16 bit add). Set carry bit.
+      //
+      // Calculate stackPointer address into 2 bytes.
+      if (stackPointer < 256) {
+        dValue = 0;  
+        eValue = stackPointer;
+      } else {
+        dValue = stackPointer/256;
+        eValue = stackPointer - dValue * 256;
+      }
+      hValue = regH;
+      lValue = regL;
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > dad, 16 bit add, stackPointer address,"));
+      Serial.print("(");
+      Serial.print(dValue);
+      Serial.print(":");
+      Serial.print(eValue);
+      Serial.print(")");
+      Serial.print(F(" + H:L "));
+      Serial.print("(");
+      Serial.print(hValue);
+      Serial.print(":");
+      Serial.print(lValue);
+      Serial.print(")");
+#endif
+      deValue = dValue * 256 + eValue;
+      hlValue = hValue * 256 + lValue;
+      hlValueNew = deValue + hlValue;
+      if (hlValueNew < deValue || hlValueNew < hlValue) {
+        flagCarryBit = true;
+      } else {
+        flagCarryBit = false;
+      }
+      regH = highByte(hlValueNew);
+      regL = lowByte(hlValueNew);
+#ifdef LOG_MESSAGES
+      Serial.print(F(" = "));
+      Serial.print(deValue);
+      Serial.print(F(" + "));
+      Serial.print(hlValue);
+      Serial.print(F(" = "));
+      Serial.print(hlValueNew);
+      Serial.print("(");
+      Serial.print(regH);
+      Serial.print(":");
+      Serial.print(regL);
+      Serial.print(")");
+      if (flagCarryBit) {
+        Serial.print(F("true. Sum over: 65535."));
+      } else {
+        Serial.print(F("false. Sum <= 65535."));
+      }
+#endif
+      break;
     // ---------------------------------------------------------------------
     // dcr d : decrement a register. To do: update the flags.
     //    00DDD101    Flags:ZSPA

@@ -26,6 +26,22 @@
             out 36          ; Print register pair, H:L.
                             ;
                             ; --------------------------------------
+                            ; SP needs work.
+                            ; Stack pointer values need work.
+                            ;
+            dad sp          ; Add register pair H:L to H:L.
+            out 36          ; Print register pair, H:L.
+            out 39          ; Print data which includes the stack pointer.
+            push b
+            push b
+            dad sp          ; Add register pair H:L to H:L.
+            out 36          ; Print register pair, H:L.
+            out 39          ; Print data which includes the stack pointer.
+            pop b
+            pop b
+            out 39          ; Print data which includes the stack pointer.
+                            ;
+                            ; --------------------------------------
             hlt
             jmp Start
                             ;

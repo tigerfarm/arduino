@@ -79,18 +79,18 @@ List:
 ````
 Program                 Filename#  Opcodes tested, and test details.
 -------                 ---------  --------------------------
-                        00000000   NOPs
+                        00000000   Boot program. If all NOPs, then don't run the 00000000 program.
 
 pKillTheBit.asm         00000011   Famous demo game program. Address 7 is the speed,
                                         00 000 101 : default.
                                         00 010 000 : Faster.
 pBootPlay.asm           00001111   Play MP3 files, halting between each. I sometimes use it when the machine boots.
-
 programList.asm         00000100   List programs on the LCD.
 pAdiAddDemo.asm         00000101   ADD : Add content of address 1 and 3, and store the answer in address 64.
                         00001000   Jump program that turns on all data byte lights.
 opOutLcdOffOn.asm       00000001   LCD backlight on, or backlight off.
                         00000010   Jump program
+pPlaySoundEffects.asm              Play sound effects: on(regA=1) or off(regA=0). OUT 69
 ````
 
 ### Opcode Test Programs
@@ -149,7 +149,7 @@ opInSwitches.asm        IN : Get and process a data byte from sense switches.
                         Basically, the process stops. Sense switches are set.
                         Flip the RUN switch (similar return key) to continue.
 -------------------------------
-I now have a rich enough opcode set and samples, to add subroutines to the programs.
+I now have a rich enough opcode set and samples, to add subroutines to programs.
 
 opAdiSui.asm            ADI : Add immediate number to register A. Tested with decimal and EQU values.
                         SUI : Subtract immediate number from register A.
@@ -167,7 +167,6 @@ opDad.asm               DAD : Add register pair(RP: B:C or D:E or H:L) to H:L. S
                         SP + H:L not implemented.
 
 pPrintDigit.asm         CALL procedure to print a digit that is in register A.
-pPlaySoundEffects.asm   Play sound effects: on(regA=1) or off(regA=0). OUT 69
 printString.asm         OUT : Subroutine using OUT to print DB variable strings to the serial monitor.
                         PrintStr : Subroutine to print a string.
                         PrintStrln : Subroutine to print a string and finish with a new line character.

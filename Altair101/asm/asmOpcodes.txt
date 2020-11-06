@@ -168,7 +168,7 @@ dad :00RP1001:DAD RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D
 dadb:00001001:|HL = HL + BC
 dadd:00011001:|HL = HL + DE
 dadh:00101001:|HL = HL + HL
-dads:00111001:|HL = HL + SP Not implemented.
+dadsp:00111001:|HL = HL + SP Not implemented.
 //0x09H  1  CY       DAD B      HL = HL + BC
 //0x19H  1  CY       DAD D      HL = HL + DE
 
