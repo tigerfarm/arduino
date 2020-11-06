@@ -2079,7 +2079,7 @@ void processOpcode() {
       break;
     case B00101100:
 #ifdef LOG_MESSAGES
-      Serial.print(F(" > inr register L: "));
+      Serial.print(F(" > inr register L: ")); // dave
       Serial.print(regL);
 #endif
       regL++;
@@ -2094,7 +2094,7 @@ void processOpcode() {
     case B00110100:
       // Stacy
 #ifdef LOG_MESSAGES
-      Serial.print(F(" > inr address M (H:L): "));
+      Serial.print(F(" > inr address M (H:L): "));  // dave
       Serial.print(regH);
       Serial.print(":");
       Serial.print(regL);
@@ -2268,12 +2268,12 @@ void processOpcode() {
       break;
     // ------------------------------------------------------------------------------------------
     /*
-      B01DDDSSS         // mov d,S  ; Move from one register to another.
+      B01DDDSSS         // mov d,m  ; Move memory data (address H:L) to a register (d).
     */
     // ---------------------------------------------------------------------
     case B01111110:
       // B01DDDSSS
-      anAddress = word(regH, regL);
+      anAddress = word(regH, regL);   // dave
       regA = memoryData[anAddress];
 #ifdef LOG_MESSAGES
       Serial.print(F(" > mov"));
@@ -2362,6 +2362,10 @@ void processOpcode() {
       printData(regL);
 #endif
       break;
+    // ------------------------------------------------------------------------------------------
+    /*
+      B01DDDSSS         // mov d,S  ; Move from one register to another.
+    */
     case B01000111:
       regB = regA;
 #ifdef LOG_MESSAGES

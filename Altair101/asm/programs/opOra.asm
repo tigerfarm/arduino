@@ -3,8 +3,7 @@
                                     ; OR register S, with register A, storing the result in register A.
                                     ; ORA S     10110SSS          ZSPCA   OR source register with A
                                     ; --------------------------------------
-                jmp Start
-        OrStr       db  '\n--- OR ---'
+                jmp Start           ; Jump opcode byte value is used later in this program.
     Start:
                 mvi a,0             ; Initialize the test counter.
                 sta testCounter
@@ -195,6 +194,7 @@
                                     ; --------------------------------------
                                     ; Variables
                                     ;
+        OrStr       db  '\n--- OR ---'
         EqualStr    db  '\n=========='
         aNumber     equ  237        ; Test number.
                                     ; --------------------------------------

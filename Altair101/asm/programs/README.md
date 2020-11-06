@@ -179,6 +179,40 @@ It looks like the issue is with Processor.ino processing the db string which goe
 ++      26:00000000 00011010: 00001000 : 08:010 > lb: 8
 ++      27:00000000 00011011: 00000001 : 01:001 > hb: 1 ... 1 x 256 + 8 = 264.
 
++ Addr:  238: Data: 126 = 176 = 01111110 >  > mov, Move data from Address:  255:, to Accumulator =  45 = 055 = 00101101
++ Addr:  239: Data: 254 = 376 = 11111110 >  > cpi, compare next data byte to A, and set Zero bit and Carry bit flags.
++ Addr:  240: Data: 255 = 377 = 11111111 >  > cpi, compare the result db: 255 >  A: 45
++ Addr:  241: Data: 202 = 312 = 11001010 >  > jz, Jump if Zero bit flag is set(true).
++ Addr:  242: Data: 250 = 372 = 11111010 > < jz, lb:  250:
++ Addr:  243: Data:   0 = 000 = 00000000 > < jz, hb:    0: - Zero bit flag is false, don't jump.
++ Addr:  244: Data: 227 = 343 = 11100011 >  > OUT, Write output to the port address(following db).
++ Addr:  245: Data:   3 = 003 = 00000011 > < OUT, port# 3. regA=45., Serial terminal output of the contents of register A.-
++ Addr:  246: Data:  44 = 054 = 00101100 >  > inr register L: 255++ = 0
++ Addr:  247: Data: 195 = 303 = 11000011 >  > jmp, get address low and high order bytes.
++ Addr:  248: Data: 238 = 356 = 11101110 >  > jmp, lb: 238:
++ Addr:  249: Data:   0 = 000 = 00000000 >  > jmp, hb:   0:, jmp, jump to: 238 = 11101110
++ Addr:  238: Data: 126 = 176 = 01111110 >  > mov, Move data from Address:    0:, to Accumulator = 195 = 303 = 11000011
+++     238:00000000 11101110: 01111110 : 7E:176 > opcode: mov a,m
+++     239:00000000 11101111: 11111110 : FE:376 > opcode: cpi STRTERM
+++     240:00000000 11110000: 11111111 : FF:377 > immediate: STRTERM : 255
+++     241:00000000 11110001: 11001010 : CA:312 > opcode: jz PrintStrDone
+++     242:00000000 11110010: 11111010 : FA:372 > lb: 250
+++     243:00000000 11110011: 00000000 : 00:000 > hb: 0
+++     244:00000000 11110100: 11100011 : E3:343 > opcode: out 3
+++     245:00000000 11110101: 00000011 : 03:003 > immediate: 3 : 3
+++     246:00000000 11110110: 00101100 : 2C:054 > opcode: inr m
+++     247:00000000 11110111: 11000011 : C3:303 > opcode: jmp PrintStrContinue
+++     248:00000000 11111000: 11101110 : EE:356 > lb: 238
+++     249:00000000 11111001: 00000000 : 00:000 > hb: 0
+
+    PrintStrContinue:
+                mov a,m             ; Move the data from H:L address to register A. (HL) -> A. 
+                cpi STRTERM         ; Compare to see if it's the string terminate byte.
+                jz PrintStrDone
+                out 3               ; Out register A to the serial terminal port.
+                inr m               ; Increment H:L register pair.
+                jmp PrintStrContinue
+
 pPrintDigit.asm         CALL procedure to print a digit that is in register A.
 pPlaySoundEffects.asm   Play sound effects: on(regA=1) or off(regA=0). OUT 69
 printString.asm         OUT : Subroutine using OUT to print DB variable strings to the serial monitor.
