@@ -282,15 +282,19 @@ public class asmProcessor {
             } else if (programTop < 1000) {
                 programCounterPadding = " ";
             }
+            // dave 16-bit address listing.
+            int lb;
+            int hb = 0;
             if (programTop < 256) {
                 // 8-bit address
-                System.out.print("++    " + programCounterPadding + programTop + ":" + "00000000" + " " + byteToString((byte) programTop) + ": ");
+                lb = programTop;
             } else {
                 // 16-bit address dave
-                int lb = programTop - 256;
-                int hb = programTop / 256;   // Example: 257 
-                System.out.print("++    " + programCounterPadding + programTop + ":" + byteToString((byte) hb) + " "  + byteToString((byte) lb) + ": ");
+                lb = programTop - 256;
+                hb = programTop / 256;
             }
+            System.out.print("++    " + programCounterPadding + programTop + ":" + byteToString((byte) hb) + " " + byteToString((byte) lb) + ": ");
+            //
             // Print of the address only works up to 255 byte address. Example:
             // ++     255:11111111: 00000001 : 01 > hb: 1
             // ++     256:00000000: 11000011 : C3 > opcode: ...

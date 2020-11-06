@@ -162,9 +162,22 @@ opAni.asm               ANI : AND an immediate value with register A.
                         Example: 11101101 AND 10110000 = 10100000
 opOra.asm               ORA : Register A, OR'ed with registers: B,C,D,E,H,L, and M. Result each time is stored in register A.
 
-+++ Assembler issue when the 2 are one after the other, and the program is over 255 bytes:
++++ The Assembler is correct.
+It looks like the issue is with Processor.ino processing the db string which goes from 252 to over 256, from 8-bit to 16-bit.
         OrStr       db  '\n--- OR ---'
         EqualStr    db  '\n=========='
+        aNumber     equ  237
+++ orstr: 252
+++ equalstr: 264
+++ anumber: 237
+
+++      15:00000000 00001111: 00100001 : 21:041 > opcode: lxi h,OrStr
+++      16:00000000 00010000: 11111100 : FC:374 > lb: 252
+++      17:00000000 00010001: 00000000 : 00:000 > hb: 0
+
+++      25:00000000 00011001: 00100001 : 21:041 > opcode: lxi h,EqualStr
+++      26:00000000 00011010: 00001000 : 08:010 > lb: 8
+++      27:00000000 00011011: 00000001 : 01:001 > hb: 1 ... 1 x 256 + 8 = 264.
 
 pPrintDigit.asm         CALL procedure to print a digit that is in register A.
 pPlaySoundEffects.asm   Play sound effects: on(regA=1) or off(regA=0). OUT 69
