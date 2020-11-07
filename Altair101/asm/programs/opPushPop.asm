@@ -6,10 +6,6 @@
                             ; POP registers to values. Check the push values are restored.
                             ;
                             ; --------------------------------------
-            jmp Start       ; Jump to bypass the halt.
-    Halt:
-            hlt             ; The program will halt at each iteration, after the first.
-                            ; --------------------------------------
     Start:
                             ; --------------------------------------
                             ; Test A:F push and pop.
@@ -201,7 +197,8 @@
                             ; > Register C =   3 = 003 = 00000011
                             ; 
                             ; --------------------------------------
-            jmp Halt        ; Jump back to the early halt command.
+            hlt
+            jmp Start
                             ; 
                             ; --------------------------------------
                             ; Routines
@@ -218,3 +215,22 @@
                             ; 
                             ; --------------------------------------
             end
+++ Address:16-bit bytes       databyte :hex:oct > description
+++       0:00000000 00000000: 11001101 : CD:315 > opcode: call NewTest
+++       1:00000000 00000001: 11111001 : F9:371 > lb: 249
+++       2:00000000 00000010: 00000000 : 00:000 > hb: 0
+++       3:00000000 00000011: 00111110 : 3E:076 > opcode: mvi a,'A'
+...
+++     246:00000000 11110110: 11000011 : C3:303 > opcode: jmp Start
+++     247:00000000 11110111: 00000000 : 00:000 > lb: 0
+++     248:00000000 11111000: 00000000 : 00:000 > hb: 0
+++     249:00000000 11111001: 00111110 : 3E:076 > opcode: mvi a,'\n'
+++     250:00000000 11111010: 00001010 : 0A:012 > immediate: '\n' : 10
+
++ runProcessor()
++ Addr:    1: Data: 249 = 371 = 11111001 > < call, lb:  249:
++ Addr:    2: Data:   0 = 000 = 00000000 > < call, hb:    0: 
+                                           > call, jumping from address: 2, to the subroutine address: 512. stackPointer = 62
++ Addr:  512: Data:   0 = 000 = 00000000 >  > nop ---------------------------
++ Addr:  513: Data:   0 = 000 = 00000000 >  > nop ---------------------------
+

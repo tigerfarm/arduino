@@ -1,16 +1,19 @@
 // -----------------------------------------------------------------------------
 /*
   Altair 101 Processor program
+
   This is an Altair 8800 emulator program that runs on an Arduino Mega microcontroller.
   Component additions to the emulator:
   + Micro SD card module for reading and writing program and data files.
   + A clock module to display the current time and date on the front panel lights.
   + An MP3 player controlled by using the front panel toggles with the lights displaying status.
   + Timer and counter modes.
+
   The Altair 8800 emulator program,
   + Emulates the basic Altair 8800 computer processes from 1975.
   + The Altair 8800 was built around the Intel 8080 CPU chip which has the same opcodes as the 8085.
   + This program implements more than enough opcodes to run the classic program, Kill the Bit.
+
   Program goals and general approach:
   + Functional.
   + Reliable. The program has been running reliably for months. I have debugged small issues.
@@ -29,13 +32,18 @@
   ++ Example notification: I made the WAIT LED flash when receiving bytes.
   + Switches in other modes, work similar to the processor mode where possible.
   ++ Example, EXAMINE NEXT advances to the next MP3 file when in player mode.
+
   -----------------------------------------------------------------------------
   Work to do,
+
   asm : should not allow duplicate labels.
+
   Continue writing opcode test programs.
+
   This program now compiles to run on an Ardunio Due.
   + To do: Get the steampunk tablet working again to use to test the Due.
   + Hardware changes for Due: shift register pins A11-A14 to pins 7-5. A11>7, A12>6, A14>5.
+
   --------------
   STOP+RESET to cause a halt similar to control-C to stop a UNIX program.
   + Part of the requirements to match the Altair 8800.
@@ -44,6 +52,7 @@
   ++ Can exit counter mode, but without a HLT in the program, it goes right back into counter mode.
   ++ If in counter mode, exit into program wait state.
   + Flip STOP+RESET to exit counter mode, and put the program in wait state (HLT).
+
   --------------
   Generate videos.
   + Done: Steampunk tablet running Kill the Bit.
@@ -69,9 +78,11 @@
   ++       9:000 > lb: 0
   ++      10:000 > hb: 0
   + End of list.
+
   -----------------------------------------------------------------------------
   -----------------------------------------------------------------------------
   Program sections,
+
   ----------------------------
   Application definitions and
   #define                     Defines and variable definitions
@@ -79,6 +90,7 @@
   #include                    Includes and Arduino pin definitions.
   printClockDate()            DS3231 Clock definitions and functions
   lcdSetup()                  1602 LCD definitions and functions
+
   -----------------------------------------------------------------------------
   // Processor
   Processor Definitions
@@ -127,6 +139,7 @@
   ----------------------------
   runProcessor();
   runProcessorWait();
+
   -----------------------------------------------------------------------------
   // Clock Front Panel Control Switch Functions.
   syncCountWithClock()
@@ -142,6 +155,7 @@
   checkClockSwitch()
   -----
   runClock()
+
   -----------------------------------------------------------------------------
   // Player Front Panel Control Switch Functions.
   checkProtectSetVolume()
@@ -152,10 +166,12 @@
   mp3playerPlaywait()
   playMp3()
   runPlayer()
+
   -----------------------------------------------------------------------------
   setup()                     Computer initialization sequence steps.
   loop()                      Based on state, clock cycling through memory.
   ----------------------------
+
   -----------------------------------------------------------------------------
   SD card programs:
   -----------------
@@ -187,6 +203,7 @@
   + 10100   Run timer and stay in timer mode. Then run timer to complete. Then a HLT opcode.
   -----------------
   + 10000000   (A15 switch) Current test program.
+
   -----------------------------------------------------------------------------
   Common opcodes:
   + B00000000 000 NOP, my NOP instruction has a delay: delay(100).
@@ -235,15 +252,19 @@
           ------------
   ...     000 NOP     NOPs to allow the sound to complete.
   24      166 HLT
+
   ------------------------------------------------------------------------------
   ------------------------------------------------------------------------------
   Known Issues to do List
+
   When flipping EXAMINE,
   + If toogle address is greater than memory top (memoryTop), flash error instead of random values.
+
   --------------
   Add inc/dec hours and minutes using toggles to set the time and date.
   + This would also work for my other clock.
   + I have code that use an LCD to set the time and date.
+
   --------------
   + Implement a processor error function, such as:
   #ifdef LOG_MESSAGES
@@ -254,24 +275,31 @@
         statusByte = HLTA_ON;
         digitalWrite(WAIT_PIN, HIGH);
   + Add a sound when there is a program error.
+
   --------------
   Timer sound effect issues:
   + When running a timer, if player is not working, timer halts when playing a sound effect.
   + May need to check, playerPlaySoundWait(invalidValue) for null.
   + Feature: mp3playerPlaywait(): Flip STOP to end at anytime.
+
   --------------
   + hwStatus should have status, like processor statuses.
              Hardware  OK or Not Online.
   // hwStatus = 1;  // SD_OK, SD_NO, SD card
   // hwStatus = 2;  // CL_OK, CL_NO, Clock module
   // hwStatus = 4;  // PL_OK, PL_NO, MP3 Player
+
   Update the SD card logic: initSdcard()
+
   Test write memory issue,
   + Seems to be a CALL opcode issue.
   + If byte count over 276, characters no longer are displayed.
   + Fails at the address: 00010100 (276)
+
   --------------------------------------------------------------------------------
+
   bitWrite(write to, which bit to write, bit value to write)
+
 */
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -1141,9 +1169,11 @@ byte memoryData[memoryTop];
 unsigned int curProgramCounter = 0;     // Current program address value
 unsigned int programCounter = 0;        // When processing opcodes, the next program address value.
 
-const int stackBytes = 32;
-int stackData[stackBytes];
-unsigned int stackPointer = stackBytes;
+// Stacy, integrate the stack into the memoryData bytes.
+//  Else instructions such as "dad sp" will not work as expected.
+const int stackBytes = 64;
+unsigned int stackPointer = stackBytes; // Start pointing at the top.
+int stackData[stackBytes];     // The stack is a separate set of bytes.
 
 // -----------------------------------------------------------------------------
 // Memory Functions
@@ -1722,7 +1752,7 @@ void processOpcode() {
       break;
     // ---------------------------------------------------------------------
     // dad RP   00RP1001  Add register pair(RP) to H:L (16 bit add). And set carry bit.
-    // ---------- dave
+    // ----------
     //    00RP1001
     case B00001001:
       // dad b  : Add B:C to H:L (16 bit add). Set carry bit.
@@ -1772,7 +1802,7 @@ void processOpcode() {
       }
 #endif
       break;
-    // ---------- dave
+    // ----------
     //    00RP1001
     case B00011001:
       // dad d  : Add D:E to H:L (16 bit add). Set carry bit.
@@ -1823,7 +1853,7 @@ void processOpcode() {
       }
 #endif
       break;
-    // ---------- dave
+    // ----------
     //    00RP1001
     case B00101001:
       // dad d  : Add H:L to H:L (16 bit add). Set carry bit.
@@ -1931,6 +1961,7 @@ void processOpcode() {
         Serial.print(F("false. Sum <= 65535."));
       }
 #endif
+      break;
     // ---------------------------------------------------------------------
     // dcr d : decrement a register. To do: update the flags.
     //    00DDD101    Flags:ZSPA
@@ -3229,33 +3260,35 @@ void processOpcodeData() {
     // CALL a    11001101 lb hb   Unconditional subroutine call. 3 cycles.
     // stacy
     case B11001101:
+      int unsigned iLowOrder;
+      int unsigned iHighOrder;
       if (instructionCycle == 2) {
-        lowOrder = dataByte;
+        iLowOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< call, lb: "));
-        sprintf(charBuffer, "%4d:", lowOrder);
+        sprintf(charBuffer, "%4d:", iLowOrder);
         Serial.print(charBuffer);
 #endif
         programCounter++;
         return;
       }
       // instructionCycle == 3
-      highOrder = dataByte;
+      iHighOrder = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< call, hb: "));
-      sprintf(charBuffer, "%4d:", highOrder);
+      sprintf(charBuffer, "%4d:", iHighOrder);
       Serial.print(charBuffer);
 #endif
       // instructionCycle == 3
 #ifdef LOG_MESSAGES
-      Serial.print(F(" > call, jumping from address: "));
+      Serial.print(F(" > call, jumping from address: ")); //  dave
       Serial.print(programCounter);
 #endif
       // Push the next memory location onto the stack. This will be used by the RET opcode.
       stackData[stackPointer--] = lowByte(programCounter);
       stackData[stackPointer--] = highByte(programCounter);
       // Jump to the subroutine.
-      programCounter = highOrder * 256 + lowOrder;
+      programCounter = iHighOrder * 256 + iLowOrder;
 #ifdef LOG_MESSAGES
       Serial.print(F(", to the subroutine address: "));
       Serial.print(programCounter);
@@ -3913,9 +3946,7 @@ void processOpcodeData() {
           Serial.print(F("------------"));
           break;
         case 39:
-#ifdef LOG_MESSAGES
           Serial.println("");
-#endif
           Serial.println(F("------------"));
           printRegisters();
           printOther();
@@ -4531,9 +4562,8 @@ void controlResetLogic() {
   // Processor variables.
   programCounter = 0;
   curProgramCounter = 0;
-//  stackPointer = stackBytes;
-  stackPointer = 0;
-  opcode = 0;  // For the case when the processing cycle 2 or more.
+  stackPointer = stackBytes;  // Stack pointer starts at the top.
+  opcode = 0;                 // For the case when the processing cycle is 2 or more.
   statusByte = 0;
   //
   regA = 0;

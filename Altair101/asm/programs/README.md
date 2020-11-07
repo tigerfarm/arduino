@@ -157,7 +157,7 @@ opAdiSui.asm            ADI : Add immediate number to register A. Tested with de
                         Counter to display the test number.
 opLxi.asm               LXI : load address values from a number or label into register pairs: B:C, D:E, and H:L.
                         Echo the register pair address and the data at that 16 bit address.
-opShld.asm              SHLD a : L -> (address a); H -> (address a+1)
+opShld.asm              SHLD a : move register L -> (address a, low address byte); move register H -> (address a+1, high address byte)
 opAni.asm               ANI : AND an immediate value with register A.
                         Example: 11101101 AND 10110000 = 10100000
 opOra.asm               ORA : Register A, OR'ed with registers: B,C,D,E,H,L, and M. Result each time is stored in register A.
