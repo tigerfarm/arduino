@@ -2,15 +2,18 @@
 /*
   Altair 101 Processor program
   This is an Altair 8800 emulator program that runs on an Arduino Mega microcontroller.
+  
   Component additions to the emulator:
   + Micro SD card module for reading and writing program and data files.
   + A clock module to display the current time and date on the front panel lights.
   + An MP3 player controlled by using the front panel toggles with the lights displaying status.
   + Timer and counter modes.
+  
   The Altair 8800 emulator program,
   + Emulates the basic Altair 8800 computer processes from 1975.
   + The Altair 8800 was built around the Intel 8080 CPU chip which has the same opcodes as the 8085.
   + This program implements more than enough opcodes to run the classic program, Kill the Bit.
+  
   Program goals and general approach:
   + Functional.
   + Reliable. The program has been running reliably for months. I have debugged small issues.
@@ -29,13 +32,18 @@
   ++ Example notification: I made the WAIT LED flash when receiving bytes.
   + Switches in other modes, work similar to the processor mode where possible.
   ++ Example, EXAMINE NEXT advances to the next MP3 file when in player mode.
+  
   -----------------------------------------------------------------------------
   Work to do,
+  
   asm : should not allow duplicate labels.
+  
   Continue writing opcode test programs.
+  
   This program now compiles to run on an Ardunio Due.
   + To do: Get the steampunk tablet working again to use to test the Due.
   + Hardware changes for Due: shift register pins A11-A14 to pins 7-5. A11>7, A12>6, A14>5.
+  
   --------------
   STOP+RESET to cause a halt similar to control-C to stop a UNIX program.
   + Part of the requirements to match the Altair 8800.
@@ -44,8 +52,10 @@
   ++ Can exit counter mode, but without a HLT in the program, it goes right back into counter mode.
   ++ If in counter mode, exit into program wait state.
   + Flip STOP+RESET to exit counter mode, and put the program in wait state (HLT).
+  
   --------------
   Generate videos.
+
   + Done: Steampunk tablet running Kill the Bit.
   + Emulate Star Trek computer
   ++ Run NOP program without and with a sound bite.
@@ -238,12 +248,15 @@
   ------------------------------------------------------------------------------
   ------------------------------------------------------------------------------
   Known Issues to do List
+  
   When flipping EXAMINE,
   + If toogle address is greater than memory top (memoryTop), flash error instead of random values.
+
   --------------
   Add inc/dec hours and minutes using toggles to set the time and date.
   + This would also work for my other clock.
   + I have code that use an LCD to set the time and date.
+
   --------------
   + Implement a processor error function, such as:
   #ifdef LOG_MESSAGES
@@ -1276,6 +1289,8 @@ byte dataByte = 0;           // db = Data byte (8 bit)
 
 byte lowOrder = 0;           // lb: Low order byte of 16 bit value.
 byte highOrder = 0;          // hb: High order byte of 16 bit value.
+byte callLowOrder = 0;           // lb: Low order byte of 16 bit value.
+byte callHighOrder = 0;          // hb: High order byte of 16 bit value.
 
 // ------------------------------------------------
 // Data LED lights displayed using shift registers.
@@ -1722,7 +1737,7 @@ void processOpcode() {
       break;
     // ---------------------------------------------------------------------
     // dad RP   00RP1001  Add register pair(RP) to H:L (16 bit add). And set carry bit.
-    // ---------- dave
+    // ----------
     //    00RP1001
     case B00001001:
       // dad b  : Add B:C to H:L (16 bit add). Set carry bit.
@@ -1772,7 +1787,7 @@ void processOpcode() {
       }
 #endif
       break;
-    // ---------- dave
+    // ----------
     //    00RP1001
     case B00011001:
       // dad d  : Add D:E to H:L (16 bit add). Set carry bit.
@@ -1823,7 +1838,7 @@ void processOpcode() {
       }
 #endif
       break;
-    // ---------- dave
+    // ----------
     //    00RP1001
     case B00101001:
       // dad d  : Add H:L to H:L (16 bit add). Set carry bit.
@@ -3227,23 +3242,23 @@ void processOpcodeData() {
       break;
     // ---------------------------------------------------------------------
     // CALL a    11001101 lb hb   Unconditional subroutine call. 3 cycles.
-    // stacy
+    // dave
     case B11001101:
       if (instructionCycle == 2) {
-        lowOrder = dataByte;
+        callLowOrder = dataByte;
 #ifdef LOG_MESSAGES
         Serial.print(F("< call, lb: "));
-        sprintf(charBuffer, "%4d:", lowOrder);
+        sprintf(charBuffer, "%4d:", callLowOrder);
         Serial.print(charBuffer);
 #endif
         programCounter++;
         return;
       }
       // instructionCycle == 3
-      highOrder = dataByte;
+      callHighOrder = dataByte;
 #ifdef LOG_MESSAGES
       Serial.print(F("< call, hb: "));
-      sprintf(charBuffer, "%4d:", highOrder);
+      sprintf(charBuffer, "%4d:", callHighOrder);
       Serial.print(charBuffer);
 #endif
       // instructionCycle == 3
@@ -3255,7 +3270,7 @@ void processOpcodeData() {
       stackData[stackPointer--] = lowByte(programCounter);
       stackData[stackPointer--] = highByte(programCounter);
       // Jump to the subroutine.
-      programCounter = highOrder * 256 + lowOrder;
+      programCounter = callHighOrder * 256 + callLowOrder;
 #ifdef LOG_MESSAGES
       Serial.print(F(", to the subroutine address: "));
       Serial.print(programCounter);
@@ -3921,6 +3936,10 @@ void processOpcodeData() {
           printOther();
           Serial.print(F("------------"));
           break;
+        case 43:
+          Serial.println("");
+          printOther();
+          break;
         // ---------------------------------------
         case 13:
           ledFlashError();
@@ -4084,13 +4103,12 @@ void processOpcodeData() {
 //  Output Functions
 
 void printOther() {
-  Serial.print(F("+ Zero bit flag: "));
+  Serial.print(F("+ Stack pointer: "));
+  Serial.print(stackPointer);
+  Serial.print(F(", Zero bit flag: "));
   Serial.print(flagZeroBit);
   Serial.print(F(", Carry bit flag: "));
   Serial.print(flagCarryBit);
-  Serial.println("");
-  Serial.print(F("+ Stack pointer: "));
-  Serial.print(stackPointer);
   Serial.println("");
 }
 
@@ -4531,7 +4549,6 @@ void controlResetLogic() {
   // Processor variables.
   programCounter = 0;
   curProgramCounter = 0;
-//  stackPointer = stackBytes;
   stackPointer = 0;
   opcode = 0;  // For the case when the processing cycle 2 or more.
   statusByte = 0;

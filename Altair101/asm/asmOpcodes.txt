@@ -9,6 +9,28 @@
 // + Implement the opcode into Processor.ino. Binary values match the values in here (asmOpcodes.txt).
 // + In Processor.ino, use the same number of machine cycles as was using the Altair 8800.
 
+// The stack on an 8080/8085 can be located anywhere in RAM memory, pointed to by the stack pointer SP.
+// Every time something is pushed on to the stack, the SP pointer is decremented, so the stack is growing down in memory. 
+// Push
+//  Decrement SP by 1
+//  Save most significant byte of register pair
+//  Decrement SP by 1
+//  Save least significant byte of register pair
+// POP
+//  Load least significant byte of register pair
+//  Increment SP by 1
+//  Load most significant byte of register pair
+//  Increment SP by 1
+// Program Status Word(PSW) contains 5 system flags:
+//  Bit 7	S	Sign Flag
+//  Bit 6	Z	Zero Flag
+//  Bit 5	0	Always 0
+//  Bit 4	ACY	Auxiliary Carry Flag
+//  Bit 3	0	Always 0
+//  Bit 2	P	Parity Flag
+//  Bit 1	1	Always 1
+//  Bit 0	C	Carry Flag
+
 // -------------------------
 // Operation codes
 
