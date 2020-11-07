@@ -17,8 +17,6 @@
             out 3
             mvi a,'F'
             out 3
-            mvi a,'\n'
-            out 3
                             ;
             mvi a,3
             cpi 3           ; Set zero flag on/1, carry bit off/0;
@@ -27,6 +25,7 @@
             push f
             mvi a,0
             out 37          ; Register A.
+            out 43
             pop f
             out 37
             out 43
@@ -38,6 +37,7 @@
             push f
             mvi a,0
             out 37
+            out 43
             pop f
             out 37
             out 43
@@ -49,6 +49,7 @@
             push f
             mvi a,0
             out 37
+            out 43
             pop f
             out 37
             out 43
@@ -74,6 +75,7 @@
             pop b
             out 30          ; Register B.
             out 31          ; Register C.
+            out 43
                             ; 
                             ; --------------------------------------
                             ; Test D:E push and pop.
@@ -97,6 +99,7 @@
             pop d
             out 32          ; Register D.
             out 33          ; Register E.
+            out 43
                             ;
                             ; --------------------------------------
                             ; Test H:L push and pop.
@@ -120,6 +123,7 @@
             pop h
             out 34          ; Register H.
             out 35          ; Register L.
+            out 43
                             ;
                             ; --------------------------------------
             call NewTest
@@ -139,33 +143,40 @@
             push b
             out 30          ; Register B.
             out 31          ; Register C.
+            out 43          ; Stack pointer
                             ;
             mvi b,4
             mvi c,5
             push b
             out 30          ; Register B.
             out 31          ; Register C.
+            out 43          ; Stack pointer
                             ;
             mvi b,6
             mvi c,7
             push b
             out 30          ; Register B.
             out 31          ; Register C.
+            out 43          ; Stack pointer
                             ;
             mvi b,0
             mvi c,0
             out 30          ; Register B.
             out 31          ; Register C.
+            out 43          ; Stack pointer
                             ;
             pop b
             out 30          ; Register B.
             out 31          ; Register C.
+            out 43          ; Stack pointer
             pop b
             out 30          ; Register B.
             out 31          ; Register C.
+            out 43          ; Stack pointer
             pop b
             out 30          ; Register B.
             out 31          ; Register C.
+            out 43          ; Stack pointer
                             ; 
                             ; --------------------------------------
             hlt
@@ -190,52 +201,24 @@
                             ; Successful run:
                             ;
 ++ A:F
-------------
-+ regA:   3 = 003 = 00000011
-+ regB:   0 = 000 = 00000000  regC:   0 = 000 = 00000000
-+ regD:   0 = 000 = 00000000  regE:   0 = 000 = 00000000
-+ regH:   0 = 000 = 00000000  regL:   0 = 000 = 00000000
-+ Zero bit flag: 1, Carry bit flag: 0
-+ Stack pointer: 0
-------------
- > Register A =   0 = 000 = 00000000------------
-+ regA:   3 = 003 = 00000011
-+ regB:   0 = 000 = 00000000  regC:   0 = 000 = 00000000
-+ regD:   0 = 000 = 00000000  regE:   0 = 000 = 00000000
-+ regH:   0 = 000 = 00000000  regL:   0 = 000 = 00000000
-+ Zero bit flag: 1, Carry bit flag: 0
-+ Stack pointer: 0
-------------------------
-+ regA:   1 = 001 = 00000001
-+ regB:   0 = 000 = 00000000  regC:   0 = 000 = 00000000
-+ regD:   0 = 000 = 00000000  regE:   0 = 000 = 00000000
-+ regH:   0 = 000 = 00000000  regL:   0 = 000 = 00000000
-+ Zero bit flag: 0, Carry bit flag: 1
-+ Stack pointer: 0
-------------
- > Register A =   0 = 000 = 00000000------------
-+ regA:   1 = 001 = 00000001
-+ regB:   0 = 000 = 00000000  regC:   0 = 000 = 00000000
-+ regD:   0 = 000 = 00000000  regE:   0 = 000 = 00000000
-+ regH:   0 = 000 = 00000000  regL:   0 = 000 = 00000000
-+ Zero bit flag: 0, Carry bit flag: 1
-+ Stack pointer: 0
-------------------------
-+ regA:   6 = 006 = 00000110
-+ regB:   0 = 000 = 00000000  regC:   0 = 000 = 00000000
-+ regD:   0 = 000 = 00000000  regE:   0 = 000 = 00000000
-+ regH:   0 = 000 = 00000000  regL:   0 = 000 = 00000000
-+ Zero bit flag: 0, Carry bit flag: 0
-+ Stack pointer: 0
-------------
- > Register A =   0 = 000 = 00000000------------
-+ regA:   6 = 006 = 00000110
-+ regB:   0 = 000 = 00000000  regC:   0 = 000 = 00000000
-+ regD:   0 = 000 = 00000000  regE:   0 = 000 = 00000000
-+ regH:   0 = 000 = 00000000  regL:   0 = 000 = 00000000
-+ Zero bit flag: 0, Carry bit flag: 0
-+ Stack pointer: 0
-------------
+ > Register A =   3 = 003 = 00000011
+ > Stack pointer:    24, Zero bit flag: 1, Carry bit flag: 0
+ > Register A =   0 = 000 = 00000000
+ > Stack pointer:    22, Zero bit flag: 1, Carry bit flag: 0
+ > Register A =   3 = 003 = 00000011
+ > Stack pointer:    24, Zero bit flag: 1, Carry bit flag: 0
+ > Register A =   1 = 001 = 00000001
+ > Stack pointer:    24, Zero bit flag: 0, Carry bit flag: 1
+ > Register A =   0 = 000 = 00000000
+ > Stack pointer:    22, Zero bit flag: 0, Carry bit flag: 1
+ > Register A =   1 = 001 = 00000001
+ > Stack pointer:    24, Zero bit flag: 0, Carry bit flag: 1
+ > Register A =   6 = 006 = 00000110
+ > Stack pointer:    24, Zero bit flag: 0, Carry bit flag: 0
+ > Register A =   0 = 000 = 00000000
+ > Stack pointer:    22, Zero bit flag: 0, Carry bit flag: 0
+ > Register A =   6 = 006 = 00000110
+ > Stack pointer:    24, Zero bit flag: 0, Carry bit flag: 0
 ++ B:C
  > Register B =   2 = 002 = 00000010
  > Register C =   3 = 003 = 00000011
@@ -243,6 +226,7 @@
  > Register C =   0 = 000 = 00000000
  > Register B =   2 = 002 = 00000010
  > Register C =   3 = 003 = 00000011
+ > Stack pointer:    24, Zero bit flag: 0, Carry bit flag: 0
 ++ D:E
  > Register D =   2 = 002 = 00000010
  > Register E =   3 = 003 = 00000011
@@ -250,6 +234,7 @@
  > Register E =   0 = 000 = 00000000
  > Register D =   2 = 002 = 00000010
  > Register E =   3 = 003 = 00000011
+ > Stack pointer:    24, Zero bit flag: 0, Carry bit flag: 0
 ++ H:L
  > Register H =   2 = 002 = 00000010
  > Register L =   3 = 003 = 00000011
@@ -257,21 +242,29 @@
  > Register L =   0 = 000 = 00000000
  > Register H =   2 = 002 = 00000010
  > Register L =   3 = 003 = 00000011
+ > Stack pointer:    24, Zero bit flag: 0, Carry bit flag: 0
 ++ B:C *
  > Register B =   2 = 002 = 00000010
  > Register C =   3 = 003 = 00000011
+ > Stack pointer:    22, Zero bit flag: 0, Carry bit flag: 0
  > Register B =   4 = 004 = 00000100
  > Register C =   5 = 005 = 00000101
+ > Stack pointer:    20, Zero bit flag: 0, Carry bit flag: 0
  > Register B =   6 = 006 = 00000110
  > Register C =   7 = 007 = 00000111
+ > Stack pointer:    18, Zero bit flag: 0, Carry bit flag: 0
  > Register B =   0 = 000 = 00000000
  > Register C =   0 = 000 = 00000000
+ > Stack pointer:    18, Zero bit flag: 0, Carry bit flag: 0
  > Register B =   6 = 006 = 00000110
  > Register C =   7 = 007 = 00000111
+ > Stack pointer:    20, Zero bit flag: 0, Carry bit flag: 0
  > Register B =   4 = 004 = 00000100
  > Register C =   5 = 005 = 00000101
+ > Stack pointer:    22, Zero bit flag: 0, Carry bit flag: 0
  > Register B =   2 = 002 = 00000010
  > Register C =   3 = 003 = 00000011
+ > Stack pointer:    24, Zero bit flag: 0, Carry bit flag: 0
 + HLT, program halted.
                             ;
                             ; --------------------------------------

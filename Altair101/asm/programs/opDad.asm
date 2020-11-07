@@ -5,6 +5,7 @@
                             ;          01=DE   (D:E as 16 bit register)
                             ;
                             ; --------------------------------------
+            lxi sp,24       ; Stack pointer address
     Start:
                             ; --------------------------------------
             mvi a,0         ; Initialize register values for testing.
@@ -29,18 +30,20 @@
                             ; After making Processor.ino updates, DAD SP works.
                             ; However, I should implement the stack to Altair 8800 specifications.
                             ;
+            out 43          ; Print data which includes the stack pointer.
             dad sp          ; Add the stack pointer address value to H:L.
             out 36          ; Print register pair, H:L.
-            out 39          ; Print data which includes the stack pointer.
+            out 43          ; Print data which includes the stack pointer.
                             ;
             push b          ; Change the stack pointer value.
             push b
+            out 43          ; Print data which includes the stack pointer.
             dad sp          ; Add the stack pointer address value to H:L.
             out 36
-            out 39
+            out 43
             pop b
             pop b
-            out 39
+            out 43
                             ;
                             ; --------------------------------------
             hlt

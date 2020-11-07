@@ -36,6 +36,8 @@
   -----------------------------------------------------------------------------
   Work to do,
 
+  Integrate stack into the regular memory as originally designed for the Altair 8800.
+  
   asm : should not allow duplicate labels.
 
   Continue writing opcode test programs.
@@ -1690,6 +1692,7 @@ void processOpcode() {
       Serial.print(F(":"));
       Serial.print(regE);
 #endif
+      break;
     // -----------------
     //    11RP0001
     case B11100001:
@@ -4128,7 +4131,7 @@ void processOpcodeData() {
 //  Output Functions
 
 void printOther() {
-  Serial.print(F("+ Stack pointer: "));
+  Serial.print(F(" > Stack pointer: "));
   sprintf(charBuffer, "%5d", stackPointer);
   Serial.print(charBuffer);
   Serial.print(F(", Zero bit flag: "));
