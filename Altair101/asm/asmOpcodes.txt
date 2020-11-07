@@ -76,7 +76,7 @@ lxi  :00RP0001:LXI RP,a 00 RP0 001  3  byte3(hb)->R,byte2(lb)->P:Move the addres
 lxib :00000001:|byte 3 -> B, byte 2 -> C (hb->B,lb->C)
 lxid :00010001:|byte 3 -> D, byte 2 -> E (hb->D,lb->E)
 lxih :00100001:|byte 3 -> H, byte 2 -> L (hb->H,lb->L)
-lxisp:00110001:|Not implemented.
+lxisp:00110001:|stackpointer = 256 * regH + regL: byte 3 -> H, byte 2 -> L (hb->H,lb->L)
 mov  :01DDDSSS:MOV D,S  01 DDD SSS  1  Move source register(SSS) data, to the destination(DDD) register(A,B,C,D,E,H, or L). If source(S) is M(110), move data from address H:L(H is hb,L is lb), to destination(D).
 movab:01111000:|B -> A
 movac:01111001:|C -> A

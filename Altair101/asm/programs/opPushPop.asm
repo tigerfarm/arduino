@@ -6,6 +6,7 @@
                             ; POP registers to values. Check the push values are restored.
                             ;
                             ; --------------------------------------
+            lxi sp,24       ; Stack pointer address
     Start:
                             ; --------------------------------------
                             ; Test A:F push and pop.

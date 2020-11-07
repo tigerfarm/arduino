@@ -2,18 +2,18 @@
 /*
   Altair 101 Processor program
   This is an Altair 8800 emulator program that runs on an Arduino Mega microcontroller.
-  
+
   Component additions to the emulator:
   + Micro SD card module for reading and writing program and data files.
   + A clock module to display the current time and date on the front panel lights.
   + An MP3 player controlled by using the front panel toggles with the lights displaying status.
   + Timer and counter modes.
-  
+
   The Altair 8800 emulator program,
   + Emulates the basic Altair 8800 computer processes from 1975.
   + The Altair 8800 was built around the Intel 8080 CPU chip which has the same opcodes as the 8085.
   + This program implements more than enough opcodes to run the classic program, Kill the Bit.
-  
+
   Program goals and general approach:
   + Functional.
   + Reliable. The program has been running reliably for months. I have debugged small issues.
@@ -32,18 +32,18 @@
   ++ Example notification: I made the WAIT LED flash when receiving bytes.
   + Switches in other modes, work similar to the processor mode where possible.
   ++ Example, EXAMINE NEXT advances to the next MP3 file when in player mode.
-  
+
   -----------------------------------------------------------------------------
   Work to do,
-  
+
   asm : should not allow duplicate labels.
-  
+
   Continue writing opcode test programs.
-  
+
   This program now compiles to run on an Ardunio Due.
   + To do: Get the steampunk tablet working again to use to test the Due.
   + Hardware changes for Due: shift register pins A11-A14 to pins 7-5. A11>7, A12>6, A14>5.
-  
+
   --------------
   STOP+RESET to cause a halt similar to control-C to stop a UNIX program.
   + Part of the requirements to match the Altair 8800.
@@ -52,7 +52,7 @@
   ++ Can exit counter mode, but without a HLT in the program, it goes right back into counter mode.
   ++ If in counter mode, exit into program wait state.
   + Flip STOP+RESET to exit counter mode, and put the program in wait state (HLT).
-  
+
   --------------
   Generate videos.
 
@@ -248,7 +248,7 @@
   ------------------------------------------------------------------------------
   ------------------------------------------------------------------------------
   Known Issues to do List
-  
+
   When flipping EXAMINE,
   + If toogle address is greater than memory top (memoryTop), flash error instead of random values.
 
@@ -1713,19 +1713,19 @@ void processOpcode() {
       flagZeroBit = bitRead(hValue, 0);
       flagCarryBit = bitRead(hValue, 1);
       /*
-      if (hValue == 0) {
+        if (hValue == 0) {
         flagZeroBit = 0;
         flagCarryBit = 0;
-      } else if (hValue == 1) {
+        } else if (hValue == 1) {
         flagZeroBit = 1;
         flagCarryBit = 0;
-      } else if (hValue == 2) {
+        } else if (hValue == 2) {
         flagZeroBit = 0;
         flagCarryBit = 1;
-      } else if (hValue == 3) {
+        } else if (hValue == 3) {
         flagZeroBit = 1;
         flagCarryBit = 1;
-      }
+        }
       */
 #ifdef LOG_MESSAGES
       Serial.print(F(" > pop, Pop flags and register A from the stack."));
@@ -1896,10 +1896,10 @@ void processOpcode() {
       //
       // Calculate stackPointer address into 2 bytes.
       if (stackPointer < 256) {
-        dValue = 0;  
+        dValue = 0;
         eValue = stackPointer;
       } else {
-        dValue = stackPointer/256;
+        dValue = stackPointer / 256;
         eValue = stackPointer - dValue * 256;
       }
       hValue = regH;
@@ -2350,16 +2350,11 @@ void processOpcode() {
 #endif
       break;
     case B00110001:
-      // stacy
-      // opcode = B00110001;
+      // dave
+      opcode = B00110001;
 #ifdef LOG_MESSAGES
-      Serial.print(F(" > lxi, Stacy, to do: move the lb hb data, to the stack pointer address."));
+      Serial.print(F(" > lxi, Move the lb hb data, to the stack pointer address."));
 #endif
-      Serial.print(F(" - Error, unhandled instruction."));
-      ledFlashError();
-      controlStopLogic();
-      statusByte = HLTA_ON;
-      digitalWrite(WAIT_PIN, HIGH);
       break;
     // ------------------------------------------------------------------------------------------
     /*
@@ -3617,6 +3612,36 @@ void processOpcodeData() {
 #endif
       programCounter++;
       break;
+    // -------------------
+    case B00110001:
+      // lxi sp,16-bit-address
+      // LXI SP,0FFFFh
+      if (instructionCycle == 2) {
+        lValue = dataByte;
+#ifdef LOG_MESSAGES
+        Serial.print(F("< lxi, lb data: "));
+        sprintf(charBuffer, "%4d:", lValue);
+        Serial.print(charBuffer);
+#endif
+        programCounter++;
+        return;
+      }
+      // instructionCycle == 3
+      hValue = dataByte;
+      stackPointer = 256 * hValue + lValue;
+#ifdef LOG_MESSAGES
+      Serial.print(F("< lxi, hb data: "));
+      sprintf(charBuffer, "%4d:", hValue);
+      Serial.print(charBuffer);
+      Serial.print(F(" > H:L = "));
+      printOctal(hValue);
+      Serial.print(F(":"));
+      printOctal(lValue);
+      Serial.print(F(", stackpointer="));
+      Serial.print(stackpointer);
+#endif
+      programCounter++;
+      break;
     // ------------------------------------------------------------------------------------------
     // mvi R,#  00 RRR 110  Move a number (#), which is the next byte (db), to register RRR.
     // mvi a,#  00 111 110  0036
@@ -4104,12 +4129,13 @@ void processOpcodeData() {
 
 void printOther() {
   Serial.print(F("+ Stack pointer: "));
-  Serial.print(stackPointer);
+  sprintf(charBuffer, "%5d", stackPointer);
+  Serial.print(charBuffer);
   Serial.print(F(", Zero bit flag: "));
   Serial.print(flagZeroBit);
   Serial.print(F(", Carry bit flag: "));
   Serial.print(flagCarryBit);
-  Serial.println("");
+  // Serial.println("");
 }
 
 void printRegisters() {

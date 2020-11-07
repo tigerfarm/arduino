@@ -67,6 +67,16 @@
                 out 36
                                     ;
                                     ; --------------------------------------
+                call NewTest
+                out 43              ; Print the stack pointer value.
+                lxi sp,64           ; Stack pointer address
+                out 43
+                lxi sp,1000         ; Stack pointer address
+                out 43
+                lxi sp,32000        ; Stack pointer address
+                out 43
+                                    ;
+                                    ; --------------------------------------
                 hlt
                 jmp Start
                                     ; ------------------------------------------
@@ -151,5 +161,10 @@ I deposited values into address: 512(16) and 786(255).
  > Register B:C =   0: 42, Data:  17 = 021 = 00010001
  > Register D:E =   2:  0, Data:  16 = 020 = 00010000
  > Register H:L =   3: 18, Data: 255 = 377 = 11111111
+++ 5: 
++ Stack pointer:     0, Zero bit flag: 1, Carry bit flag: 0
++ Stack pointer:    64, Zero bit flag: 1, Carry bit flag: 0
++ Stack pointer:  1000, Zero bit flag: 1, Carry bit flag: 0
++ Stack pointer: 32000, Zero bit flag: 1, Carry bit flag: 0
                                     ;
                                     ; --------------------------------------
