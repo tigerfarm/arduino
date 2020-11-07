@@ -173,6 +173,9 @@ printString.asm         OUT : Subroutine using OUT to print DB variable strings 
 -------------------------------
 Needs testing:
 
+pstatuslights.asm       Status lights to match video: https://www.youtube.com/watch?v=3_73NwB6toY
+                        Processor.ini needs work.
+
 opOut.asm               OUT pa : Demonstrate the various output options.
                         DB character string declaration, then print it.
 
