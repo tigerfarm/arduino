@@ -1631,6 +1631,8 @@ void processOpcode() {
 #endif
       break;
     // --------------------------------------------------------------------
+    // dave: PUSH is 3 machine cycles: opcode read, write first register value, then write second register value.
+    // The following is effect, but doesn't follow the machine cycles of the Altair 8800
     //    11RP0101 Push    register pair B onto the stack. 1 cycles.
     case B11000101:
 #ifdef LOG_MESSAGES
@@ -1664,6 +1666,8 @@ void processOpcode() {
       stackData[stackPointer--] = regA;
       break;
     // --------------------------------------------------------------------
+    // dave: POP is 3 machine cycles: opcode read, read first register value, then read second register value.
+    // The following is effect, but doesn't follow the machine cycles of the Altair 8800
     //    11RP0001 Pop    register pair B from the stack. 1 cycles.
     case B11000001:
       stackPointer++;

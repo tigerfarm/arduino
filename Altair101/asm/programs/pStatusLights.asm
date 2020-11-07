@@ -15,6 +15,11 @@
             lxi sp,32       ; opcode fetch, mem read x 2
             push a
             pop a
+        ;    in      20Q     ;opcode fetch, mem read, I/O input
+        ;    out     20Q     ;opcode fetch, mem read, I/O output
+        ;    ei              ;interrupts enabled
+        ;    di              ;interrupts disabled
+
             hlt
                             ; --------------------------------------
                             ; Before running load their random data into memory.
