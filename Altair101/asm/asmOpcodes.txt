@@ -139,11 +139,13 @@ push :11RP0101:PUSH RP  11 RP0 101  1  Push a register pair (RP) onto the stack:
 pushb:11000101:|(sp-2)<-C; (sp-1)<-B; sp <- sp - 2
 pushd:11010101:|(sp-2)<-E; (sp-1)<-D; sp <- sp - 2
 pushh:11100101:|(sp-2)<-L; (sp-1)<-H; sp <- sp - 2
+pusha:11110101:|(sp-2)<-flags; (sp-1)<-A; sp <- sp - 2
 pushf:11110101:|(sp-2)<-flags; (sp-1)<-A; sp <- sp - 2
 pop  :11RP0001:POP RP   11 RP0 001  1  Pop a register pair (RP) from the stack: B:C, D:E, H:L. To do, pop flags.
 popb :11000001:|C <- (sp); B <- (sp+1); sp <- sp+2
 popd :11010001:|E <- (sp); D <- (sp+1); sp <- sp+2
 poph :11100001:|L <- (sp); H <- (sp+1); sp <- sp+2
+popa :11110001:|flags <- (sp); A <- (sp+1); sp <- sp+2
 popf :11110001:|flags <- (sp); A <- (sp+1); sp <- sp+2
 
 // -------------------------

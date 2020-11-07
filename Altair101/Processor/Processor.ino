@@ -4071,7 +4071,7 @@ void processOpcodeData() {
       hlValue = highOrder * 256 + lowOrder;
       regA = memoryData[hlValue];
       dataByte = regA;
-      // lightsStatusAddressData(statusByte, hlValue, regA);
+      // dave Should be: lightsStatusAddressData(statusByte, hlValue, regA);
 #ifdef LOG_MESSAGES
       Serial.print(F(" > lda, load data at hb:lb address, into register A: "));
       Serial.print(regA);

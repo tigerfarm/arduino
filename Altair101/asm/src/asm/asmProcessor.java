@@ -254,15 +254,6 @@ public class asmProcessor {
     public void programBytesListAndWrite(String theFileNameTo) {
         byte[] fileBytes = new byte[1024];    // Hold the bytes to be written.
         System.out.println("\n+ Print Program Bytes and description.");
-        System.out.println("++ Address:byte      databyte :hex:oct > description");
-        //                  ++       0:00000000: 11000011 : C3:303 > opcode: jmp Start
-        //                  ++ <count>:binary    binary   :hex:oct > description
-        //
-        //                  ++     254:11111110: 00101101 : 2D:055 > databyte: orstr : - : 45
-        //                  ++     255:11111111: 00101101 : 2D:055 > databyte: orstr : - : 45
-        //                  ++     256:00000000: 00100000 : 20:040 > databyte: orstr :   : 32
-        //                  ++     257:00000001: 01001111 : 4F:117 > databyte: orstr : O : 79
-        //
         System.out.println("++ Address:16-bit bytes       databyte :hex:oct > description");
         //                  ++       0:00000000 00000000: 11000011 : C3:303 > opcode: jmp Start
         //                  ...
