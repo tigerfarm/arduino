@@ -40,6 +40,17 @@ On MacWise, select: Settings/Serial Port, for the Arduino.
 It connects and starts.
 ````
 
+Sample program:
+````
+Address Byte        Comment
+000     11 000 11   jmp 3
+001     00 000 11   lb = 3
+002     00 000 00   hb
+003     11 000 11   jmp 0
+004     00 000 00   lb
+005     00 000 00   hb
+
+````
 --------------------------------------------------------------------------------
 ### 3. Command Line Simulator
 
