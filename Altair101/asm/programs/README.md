@@ -10,6 +10,7 @@ I have also wrote programs to demonstrate the Altair 101 abilities.
 To prove that Altair 101 is a true emulator, I assembled and ran the classic Altair 8800 program, Kill the Bit.
 That was a celebrated accomplishment after months of work.
 
+--------------------------------------------------------------------------------
 ## Steps to Develop and Run Programs
 
 ````
