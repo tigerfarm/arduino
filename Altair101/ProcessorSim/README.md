@@ -97,6 +97,8 @@ On MacWise, select: Settings/Serial Port, for the Arduino.
 It connects and starts.
 ````
 
+Note, after restarting MacWise, hit the enter key once started. That will get the responses from the Arduino.
+
 Sample program:
 ````
 Address Byte        Comment
@@ -197,7 +199,21 @@ To run the game:
 2. Set SW15-8 switches to 0 Activate RUN
 3. Activate RUN
 ````
+To save the game to Arduino storage:
+````
+1. Set SW15-8 to 0 (selects memory page 0)
+2. Set SW7 to 1 (selects memory page operation)
+3. Set SW6 to 1 (selects memory page save)
+4. Set SW5-0 to 0 (selects file number 0)
+5. Activate AUX1 down
+````
+To load the game from Arduino storage:
+````
+1. Set SW15-0 as above, except SW6 to 0 (selects memory page load)
+2. Activate AUX1 down
+````
 
+--------------------------------------------------------------------------------
 Exercise steps:
 ````
 Enter a program to load a byte into an address and then halt.
@@ -209,7 +225,7 @@ Program listing:
 Address(lb):databyte :hex:oct > description
 00000000:   00111110 : 3E:076 > opcode: mvi a,6
 00000001:   00000110 : 06:006 > immediate: 6 : 6
-00000010:   00111010 : 3A:072 > opcode: lda 96
+00000010:   00110010 : 32:062 > opcode: sta 96
 00000011:   01100000 : 60:140 > lb: 96
 00000100:   00000000 : 00:000 > hb: 0
 00000101:   01110110 : 76:166 > opcode: hlt
@@ -221,7 +237,7 @@ R       RESET to memory address to zero.
         The following assumes all address switches are in the down position (v).
         ---
         Toggle switches to enter the MVI opcode: 00 111 110
-1       Up switch A1.
+1       Up switch A1 (^).
 2       Up switch A2.
 3       Up switch A3.
 4       Up switch A4.
@@ -229,21 +245,19 @@ R       RESET to memory address to zero.
 P       DEPOSIT the opcode into memory address 0.
         ---
         Toggle switches to enter the MVI immediate value, 6: 00 000 110
-3       Down switch A3.
+3       Down switch A3 (v).
 4       Down switch A4.
 5       Down switch A5.
 p       DEPOSIT NEXT the immediate value into memory address 1.
         ---
-        Toggle switches to enter the LDA opcode: 00 111 010
+        Toggle switches to enter the STA opcode: 00 110 010
 2       Down switch A2.
-3       Up switch A3.
 4       Up switch A4.
 5       Up switch A5.
 p       DEPOSIT NEXT the opcode into memory address 2.
         ---
         Toggle switches to enter low address byte 96: 01 100 000
-2       Down switch A2.
-3       Down switch A3.
+1       Down switch A1.
 4       Down switch A4.
 6       Up switch A6.
 p       DEPOSIT NEXT to deposit the address low byte into memory address 3.
@@ -265,7 +279,7 @@ Run the program which will halt after loading the byte into a memory address.
 ````
 Enter   Action
 R       RESET to memory address to zero.
-r       Run the program
+r       Run the program. Runs to memory address 5, and halts.
 ````
 View the address where the byte was loaded.
 ````
