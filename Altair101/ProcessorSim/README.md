@@ -20,6 +20,25 @@ Modify the minimum code base to work with Altair 101:
 Chris Davis of Altairduino.com has set up a Google Group for discussion of Altair-Duino related questions:
 https://groups.google.com/forum/#!forum/altair-duino 
 
+
+Arduino IDE Tools settings for Mega:
+````
+Board: "Arduino Mega or Mega 2560"
+Processor: "ATMega2560 (Mega2560)"
+Port: ...14110
+````
+Arduino IDE Tools settings for Due:
+````
+Connect to the programming USB port which is the one closest to the power plug.
+Board: "Arduino Due" (Programming port)
+Port: ...14210
+
+From: https://www.adwaterandstir.com/install/
+Click Sketch > Include Library > Manage Libraries…
+Search and install SdFat by Bill Greiman.
+Search and install, “DueFlashStorage” by Sebastian Nilsson.
+````
+
 --------------------------------------------------------------------------------
 ### 1. Get the simulator to run on Mega
 
@@ -214,6 +233,8 @@ To load the game from Arduino storage:
 ````
 
 --------------------------------------------------------------------------------
+### 4. Enter and Run Simple Programs
+
 Exercise steps:
 ````
 Enter a program to load a byte into an address and then halt.
