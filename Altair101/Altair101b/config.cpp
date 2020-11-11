@@ -21,19 +21,19 @@
 #include "config.h"
 #include "mem.h"
 #include "serial.h"
-// #include "printer.h"
-#include "filesys.h"
 #include "numsys.h"
-#include "drive.h"
-#include "cdrive.h"
-#include "tdrive.h"
-#include "hdsk.h"
-// #include "prog.h"
-// #include "dazzler.h"
-#include "sdmanager.h"
-#include "vdm1.h"
 #include "cpucore.h"
 #include "io.h"
+// #include "printer.h"
+// #include "filesys.h"
+// #include "drive.h"
+// #include "cdrive.h"
+// #include "tdrive.h"
+// #include "hdsk.h"
+// #include "prog.h"
+// #include "dazzler.h"
+// #include "sdmanager.h"
+// #include "vdm1.h"
 
 #define CONFIG_FILE_VERSION 10
 
@@ -858,98 +858,45 @@ static void print_aux1_program(byte row=0, byte col=0)
 
 static void print_drive_mounted()
 {
-  byte n = 0;
-  for(byte i=0; i<NUM_DRIVES; i++)
-    if( drive_get_mounted_image(i)>0 ) n++;
-
-  Serial.print(n); Serial.print(F(" mounted"));
 }
 
 
 static void print_cdrive_mounted()
 {
-  byte n = 0;
-  for(byte i=0; i<NUM_CDRIVES; i++)
-    if( cdrive_get_mounted_image(i)>0 ) n++;
-
-  Serial.print(n); Serial.print(F(" mounted"));
 }
 
 
 static void print_tdrive_mounted()
 {
-  byte n = 0;
-  for(byte i=0; i<NUM_TDRIVES; i++)
-    if( tdrive_get_mounted_image(i)>0 ) n++;
-
-  Serial.print(n); Serial.print(F(" mounted"));
 }
 
 
 static void print_drive_mounted_image(byte d)
 {
-  if( d==0 )
-    Serial.print(F("none"));
-  else if( drive_get_image_filename(d)==NULL )
-    { Serial.print(F("empty disk #")); numsys_print_byte(d); }
-  else
-    Serial.print(drive_get_image_description(d));
 }
 
 
 static void print_cdrive_mounted_image(byte d)
 {
-  if( d==0 )
-    Serial.print(F("none"));
-  else if( cdrive_get_image_filename(d)==NULL )
-    { Serial.print(F("empty disk #")); numsys_print_byte(d); }
-  else
-    Serial.print(cdrive_get_image_description(d));
 }
 
 
 static void print_tdrive_mounted_image(byte d)
 {
-  if( d==0 )
-    Serial.print(F("none"));
-  else if( tdrive_get_image_filename(d)==NULL )
-    { Serial.print(F("empty disk #")); numsys_print_byte(d); }
-  else
-    Serial.print(tdrive_get_image_description(d));
 }
 
 
 static void print_hdsk_mounted()
 {
-  byte n = 0;
-  for(byte i=0; i<NUM_HDSK_UNITS; i++)
-    for(byte j=0; j<4; j++)
-      if( hdsk_get_mounted_image(i, j)>0 ) n++;
-
-  Serial.print(n); Serial.print(F(" mounted"));
 }
 
 
 static void print_hdsk_mounted_image(byte d)
 {
-  if( d==0 )
-    Serial.print(F("none"));
-  else if( hdsk_get_image_filename(d)==NULL )
-    { Serial.print(F("empty disk #")); numsys_print_byte(d); }
-  else
-    Serial.print(hdsk_get_image_description(d));
 }
-
 
 static void print_printer_type()
 {
-  switch( config_printer_type() )
-    {
-    case 0: Serial.print(F("None")); break;
-    case 1: Serial.print(F("Okidata/88-LPC")); break;
-    case 2: Serial.print(F("C700")); break;
-    case 3: Serial.print(F("Generic")); break;
-    }
 }
 
 
@@ -1125,178 +1072,36 @@ static uint32_t toggle_serial_flag_backspace(uint32_t settings)
 
 static byte find_floppy_image(byte n, bool up, byte max = 0xff)
 {
-  int i=n;
-
-  do
-    {
-      if( drive_get_image_filename(i)!=NULL ) return i;
-      if( up ) i++; else i--;
-    }
-  while( i>=0 && i<=max );
-
   return 0;
 }
 
-
 static byte find_cfloppy_image(byte n, bool up, byte max = 0xff)
 {
-  int i=n;
-  do
-    {
-      if( cdrive_get_image_filename(i)!=NULL ) return i;
-      if( up ) i++; else i--;
-    }
-  while( i>=0 && i<=max );
-
   return 0;
 }
 
 
 static byte find_tfloppy_image(byte n, bool up, byte max = 0xff)
 {
-  int i=n;
-  do
-    {
-      if( tdrive_get_image_filename(i)!=NULL ) return i;
-      if( up ) i++; else i--;
-    }
-  while( i>=0 && i<=max );
-
   return 0;
 }
 
 
 static byte find_hdsk_image(byte n, bool up, byte max = 0xff)
 {
-  int i=n;
-  do
-    {
-      if( hdsk_get_image_filename(i)!=NULL ) return i;
-      if( up ) i++; else i--;
-    }
-  while( i>=0 && i<=max );
-
   return 0;
 }
 
 
 static void toggle_aux1_program_up(byte row, byte col)
 {
-  byte b = config_aux1_prog;
-  bool found = false;
 
-  // Stacy, not used/
-  /*
-  while( !found )
-    {
-      b++;
-      if( !found && (b & 0xC0)==0x00 )
-        {
-          // look for next integrated program
-          if( b>0 && prog_get_name(b) )
-            found = true;
-          else if( b==0x3F )
-            b = 0x41;
-        }
-
-      if( !found && (b & 0xC0)==0x40 )
-        {
-#if NUM_TDRIVES>0
-          // look for next tarbell floppy image
-          b = find_tfloppy_image(b & 0x3f, true, 0x3f) | 0x40;
-          if( b>0x40 ) 
-            found = true;
-          else
-#endif
-            b = 0x81;
-        }
-
-      if( !found && (b & 0xC0)==0x80 )
-        {
-#if NUM_DRIVES>0
-          // look for next floppy disk image
-          b = find_floppy_image(b & 0x3f, true, 0x3f) | 0x80;
-          if( b>0x80 ) 
-            found = true;
-          else
-#endif
-            b = 0xC1;
-        }
-      
-      if( !found && (b & 0xC0)==0xC0 )
-        {
-#if NUM_HDSK_UNITS>0
-          // look for next hard disk image
-          b = find_hdsk_image(b & 0x3f, true, 0x3f) | 0xC0;
-          if( b>0xC0 ) 
-            found = true;
-          else
-#endif
-            b = 0x00;
-        }
-    }
-  */
-  config_aux1_prog = b;
-  print_aux1_program(row, col);
 }
 
 
 static void toggle_aux1_program_down(byte row, byte col)
 {
-  byte b = config_aux1_prog;
-  bool found = false;
-  
-  // Stacy, not use.
-  /*
-  while( !found )
-    {
-      b--;
-	  if( !found && (b & 0xC0)==0xC0 )
-        {
-          // look for previous hard disk image
-#if NUM_HDSK_UNITS>0
-          b = find_hdsk_image(b & 0x3f, false, 0x3f) | 0xC0;
-          if( b>0xC0 ) 
-            found = true;
-          else
-#endif
-            b = 0xBF;
-        }
 
-      if( !found && (b & 0xC0)==0x80 )
-        {
-          // look for previous floppy disk image
-#if NUM_DRIVES>0
-          b = find_floppy_image(b & 0x3f, false, 0x3f) | 0x80;
-          if( b>0x80 ) 
-            found = true;
-          else
-#endif
-            b = 0x7F;
-        }
-
-      if( !found && (b & 0xC0)==0x40 )
-        {
-          // look for previous tarbell floppy disk image
-#if NUM_TDRIVES>0
-          b = find_tfloppy_image(b & 0x3f, false, 0x3f) | 0x40;
-          if( b>0x40 ) 
-            found = true;
-          else
-#endif
-            b = 0x3F;
-        }
-
-      if( !found && (b & 0xC0)==0x00 )
-        {
-          // look for previous integrated program
-          if( b>0 && prog_get_name(b) )
-            found = true;
-        }
-    }
-  */
-  config_aux1_prog = b;
-  print_aux1_program(row, col);
 }
 
 bool config_use_z80()
@@ -1402,7 +1207,7 @@ static bool apply_host_serial_settings()
 {
   char c;
   // byte old_dazzler_interface = dazzler_get_iface();
-  byte old_vdm1_interface = vdm1_get_iface();
+  // byte old_vdm1_interface = vdm1_get_iface();
   uint32_t old_config_serial_settings = config_serial_settings;
   uint32_t old_config_serial_settings2 = config_serial_settings2;
 
@@ -1424,7 +1229,7 @@ static bool apply_host_serial_settings()
     }
 
   // dazzler_set_iface(config_dazzler_interface());
-  vdm1_set_iface(config_vdm1_interface());
+  // vdm1_set_iface(config_vdm1_interface());
   apply_host_serial_settings(new_config_serial_settings, new_config_serial_settings2);
 
   if( must_confirm ) 
@@ -1448,7 +1253,7 @@ static bool apply_host_serial_settings()
       if( c!='y' )
         { 
           // dazzler_set_iface(old_dazzler_interface);
-          vdm1_set_iface(old_vdm1_interface);
+          // vdm1_set_iface(old_vdm1_interface);
           apply_host_serial_settings(old_config_serial_settings, old_config_serial_settings2);
           if( c!='n' ) 
             {
@@ -1473,6 +1278,7 @@ static bool apply_host_serial_settings()
 static bool save_config(byte fileno)
 {
   bool res = false;
+  /*
   byte s = sizeof(uint32_t);
   byte data[4*4+(1+NUM_SERIAL_DEVICES*4)+9*4+1+(1+NUM_DRIVES)+(2+NUM_CDRIVES)+(1+NUM_TDRIVES)+(1+NUM_HDSK_UNITS*4)+1+1+2];
 
@@ -1570,7 +1376,7 @@ static bool save_config(byte fileno)
         }
     }
 #endif
-
+*/
   return res;
 }
 
@@ -1578,233 +1384,10 @@ static bool save_config(byte fileno)
 static bool load_config(byte fileno)
 {
   bool ok = false;
-  byte i, j, n, d, fid = filesys_open_read('C', fileno);
-  if( fid )
-    {
-      // initialize all settings with defaults so configuration settings
-      // missing at the end of the file will just be at their defaults
-      // (helpful when reading an old config file after adding new settings)
-      config_defaults(false);
-
-      byte s = sizeof(uint32_t);
-      filesys_read_data(fid, &config_flags, s);
-
-      // highest 8 bits are file version
-      byte v = config_flags >> 24;
-
-      if( v>=5 )
-        {
-          unsigned long vv;
-
-          // config file before version 5 does not have config_flags2
-          filesys_read_data(fid, &vv, s);
-
-          // config file version 5 does not have VDM-1 settings
-          if( v==5 ) 
-            config_flags2 = (vv & 7) | (config_flags2 & ~7);
-          else
-            config_flags2 = vv;
-        }
-      
-      filesys_read_data(fid, &new_config_serial_settings, s);
-
-      if( v<3 )
-        {
-          // config file before version 3 does not include serial port configuration
-          // => default to 8N1
-          new_config_serial_settings2 = 0;
-          for(i=0; i<HOST_NUM_SERIAL_PORTS; i++) 
-            new_config_serial_settings2 |= 0x18 << (i*5);
-        }
-      else
-        filesys_read_data(fid, &new_config_serial_settings2, s);
-
-      n = 4;
-      // in config file version 2, the number of serial devices is in the file, 
-      // before it was fixed at 4
-      if( v>=2 ) filesys_read_data(fid, &n, 1);
-      filesys_read_data(fid, config_serial_device_settings, min(NUM_SERIAL_DEVICES, n)*s);
-
-      // skip extra serial device data in config
-      if( NUM_SERIAL_DEVICES<n )
-        for(i=NUM_SERIAL_DEVICES*s; i<n*s; i++)
-          filesys_read_data(fid, &d, 1);
-
-      if( v<4 )
-        {
-          // version 4 introduces SIO revision, rev1 should be the default
-          for(i=0; i<NUM_SERIAL_DEVICES; i++)
-            config_serial_device_settings[i] = (config_serial_device_settings[i] & ~0x300) | 0x100;
-        }
-
-      if( v==0 )
-        {
-          // in config file version 0 the interrupt masks are 8 bits
-          byte b[9];
-          filesys_read_data(fid, b, 9);
-          for(i=0; i<8; i++) config_interrupt_vi_mask[i] = b[i];
-          config_interrupt_mask = b[8];
-        }
-      else
-        {
-          // in config file version 1 and later the interrupt masks are 32 bits
-          filesys_read_data(fid, config_interrupt_vi_mask, 8*s);
-          filesys_read_data(fid, &config_interrupt_mask, s);
-        }
-
-      // AUX1 UP shortcut program
-      filesys_read_data(fid, &config_aux1_prog, 1);
-      
-      // disk drive settings
-      if( filesys_read_data(fid, &n, 1)!=1 ) n = 0;
-      for(i=0; i<n; i++) 
-        if( filesys_read_data(fid, &d, 1)==1 && i<NUM_DRIVES )
-          {
-            if( d>0 )
-              drive_mount(i, d);
-            else
-              drive_unmount(i);
-          }
-      drive_set_realtime((config_flags & CF_DRIVE_RT)!=0);
-
-      if( v >= 10 )
-        {
-          // cromemco disk drive settings (version 10 and up)
-          if( filesys_read_data(fid, &n, 1)!=1 ) n = 0;
-          for(i=0; i<n; i++) 
-            if( filesys_read_data(fid, &d, 1)==1 && i<NUM_CDRIVES )
-              {
-                if( d>0 )
-                  cdrive_mount(i, d);
-                else
-                  cdrive_unmount(i);
-              }
-
-          if( filesys_read_data(fid, &d, 1)==1 )
-            cdrive_set_switches(d);
-        }
-
-      if( v >= 8 )
-        {
-          // tarbell disk drive settings (version 8 and up)
-          if( filesys_read_data(fid, &n, 1)!=1 ) n = 0;
-          for(i=0; i<n; i++) 
-            if( filesys_read_data(fid, &d, 1)==1 && i<NUM_TDRIVES )
-              {
-                if( d>0 )
-                  tdrive_mount(i, d);
-                else
-                  tdrive_unmount(i);
-              }
-        }
-
-      // hard disk settings
-      if( filesys_read_data(fid, &n, 1)!=1 ) n = 0;
-      for(i=0; i<n; i++) 
-        for(j=0; j<4; j++) 
-          if( filesys_read_data(fid, &d, 1)==1 && i<NUM_HDSK_UNITS )
-            {
-              if( d>0 )
-                hdsk_mount(i, j, d);
-              else
-                hdsk_unmount(i, j);
-            }
-      hdsk_set_realtime((config_flags & CF_HDSK_RT)!=0);
-
-      if( v >= 9 )
-        {
-          // generic printer settings (version 9 and up)
-          filesys_read_data(fid, &config_printer_generic_status_busy, 1);
-          filesys_read_data(fid, &config_printer_generic_status_ready, 1);
-        }
-
-      // memory (RAM) size
-      if( filesys_read_data(fid, &d, 1) )
-        config_mem_size = (d==0) ? 0x10000 : (d*256);
-      else
-        config_mem_size = MEMSIZE;
-
-      // ROMs
-      if( filesys_read_data(fid, &n, 1)!=1 ) n = 0;
-      mem_clear_roms();
-      for(i=0; i<n; i++)
-        {
-          char name[9];
-          uint16_t start, length, flags;
-          name[8] = 0;
-          if( filesys_read_data(fid, &start, 2)==2 )
-            if( filesys_read_data(fid, &length, 2)==2 )
-              if( filesys_read_data(fid, &flags, 2)==2 )
-                if( filesys_read_data(fid, name, 8)==8 )
-                  {
-                    if( mem_add_rom(start, length, name, flags, filesys_getpos(fid)) )
-                      filesys_read_data(fid, Mem+start, length);
-                    else
-                      for(uint16_t j=0; j<length; j++)
-                        filesys_read_data(fid, name, 1);
-                  }
-        }
-
-      filesys_close(fid);
-
-#if defined(__AVR_ATmega2560__)
-      if( v==0 )
-        {
-          // on MEGA, early versions accidentally set bits 16-31 on serial settings
-          for(byte dev=0; dev<4; dev++)
-            if( (config_serial_device_settings[dev] & 0xFFFF0000)==0xFFFF0000 )
-              config_serial_device_settings[dev] &= 0x0000FFFF;
-        }
-#endif
-
-      if( v<2 )
-        {
-          // in version 2, serial device to host serial mapping changed:
-          // previous: bits  8- 9 (00=NONE, 01=primary, 02=secondary)
-          // now:      bits 17-19 (000=NONE, 001=first, 010=second, 011=third, 100=fourth, 101=fifth, 111=primary)
-          for(i=0; i<4; i++)
-            {
-              byte map = get_bits(config_serial_device_settings[i], 8, 2);
-              config_serial_device_settings[i] = set_bits(config_serial_device_settings[i],  8, 2, 0);
-              config_serial_device_settings[i] = set_bits(config_serial_device_settings[i], 17, 3, map==1 && HOST_NUM_SERIAL_PORTS>1 ? 7 : map);
-            }
-
-          // in version 2, printer to host serial mapping changed:
-          // previous: bits 17-18 (realtime mode flags bits 21-22)
-          // now     : bits 21-23 (realtime mode flags bits 17-18)
-          byte map   = get_bits(config_flags, 17, 2);
-          byte flags = get_bits(config_flags, 21, 2);
-          config_flags = set_bits(config_flags, 17, 2, flags);
-          config_flags = set_bits(config_flags, 21, 3, map==1 ? 7 : map);
-          
-          // version 2 introduces more host serial interfaces: set them all to 9600 baud
-          for(i=2; i<HOST_NUM_SERIAL_PORTS; i++) new_config_serial_settings |= (BAUD_9600 << (config_baud_rate_bits(i)));
-        }
-      else
-        {
-          // make sure nothing is mapped to an illegal host serial port
-          for(i=0; i<NUM_SERIAL_DEVICES; i++) 
-            if( config_map_device_to_host_interface(get_bits(config_serial_device_settings[i], 17, 3)) >= HOST_NUM_SERIAL_PORTS )
-              config_serial_device_settings[i] = set_bits(config_serial_device_settings[i], 17, 3, 0);              
-        }
-
-      for(byte dev=0; dev<NUM_SERIAL_DEVICES; dev++)
-        config_serial_sim_to_host[dev] = config_map_device_to_host_interface(get_bits(config_serial_device_settings[dev], 17, 3));
-
-#if STANDALONE>0
-      config_flags |= CF_SERIAL_INPUT;      
-#endif
-      ok = true;
-      config_current = fileno;
-    }
-
+  byte i, j, n, d, fid = 0;
   // note: registered ports for drives are controlled by mount/unmount functions
   serial_register_ports();
-  // printer_register_ports();
-  altair_vi_register_ports();
-  // dazzler_register_ports();
-  vdm1_register_ports();
-  
+  altair_vi_register_ports();  
   return ok;
 }
 
@@ -3250,44 +2833,13 @@ void config_edit()
             break;
           }
           
-#if USE_HOST_FILESYS==0
-        case 'M': filesys_manage(); break;
-#endif
-
 #if (NUM_DRIVES>0 || NUM_HDSK_UNITS>0 || USE_HOST_FILESYS>0) && defined(HOST_HAS_FILESYS)
         case 'F': if( host_filesys_ok() ) sd_manager(); break;
 #endif
-
         case 'S': 
           {
             if( check_video_interface_settings() )
               {
-                byte i;
-                Serial.print(F("\r\nSave as config # (0=default): "));
-                if( numsys_read_byte(&i) )
-                  {
-                    bool ok = true;
-                    Serial.println();
-                    if( filesys_exists('C', i) )
-                      {
-                        char c;
-                        Serial.print(F("Configuration #")); numsys_print_byte(i);
-                        Serial.print(F(" exists. Overwrite (y/n)? "));
-                        do { delay(50); c = serial_read(); } while( c!='y' && c!='n' );
-                        Serial.println(c);
-                        ok = (c=='y');
-                      }
-
-                    if( ok && !save_config(i) )
-                      {
-#if USE_HOST_FILESYS>0
-                        Serial.println(F("Saving failed.?"));
-#else
-                        Serial.println(F("Saving failed. Capture/replay in progress?"));
-#endif
-                        delay(2000);
-                      }
-                  }
               }
 
             break;
@@ -3332,7 +2884,7 @@ void config_edit()
                 else 
                   {
                     // dazzler_set_iface(config_dazzler_interface());
-                    vdm1_set_iface(config_vdm1_interface());
+                    // vdm1_set_iface(config_vdm1_interface());
                     exit = true;
                   }
               }
@@ -3430,18 +2982,6 @@ void config_defaults(bool apply)
 
   config_interrupt_mask = INT_SIO | INT_2SIO1;
   
-  // config_aux1_prog = prog_find("16k ROM Basic");
-
-  drive_set_realtime((config_flags & CF_DRIVE_RT)!=0);
-  hdsk_set_realtime((config_flags & CF_DRIVE_RT)!=0);
-  cdrive_set_switches(CDRIVE_SWITCH_ROM_DISABLE_AFTER_BOOT);
-  for(i=0; i<NUM_DRIVES; i++) drive_unmount(i);
-  for(i=0; i<NUM_CDRIVES; i++) cdrive_unmount(i);
-  for(i=0; i<NUM_TDRIVES; i++) tdrive_unmount(i);
-  for(i=0; i<NUM_HDSK_UNITS; i++) 
-    for(j=0; j<4; j++)
-      hdsk_unmount(i, j);
-
   // maximum amount of RAM supported by host
   config_mem_size = MEMSIZE; 
   mem_clear_roms();

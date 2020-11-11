@@ -21,7 +21,7 @@
 #include "timer.h"
 #include "mem.h"
 #include "numsys.h"
-#include "disassembler.h"
+// #include "disassembler.h"
 #include "Altair8800.h"
 
 #if USE_Z80 != 0

@@ -19,7 +19,7 @@
 
 #include <Arduino.h>
 #include "profile.h"
-#include "disassembler.h"
+// #include "disassembler.h"
 #include "timer.h"
 #include "config.h"
 #include "host.h"

@@ -21,7 +21,7 @@
 #include "timer.h"
 #include "mem.h"
 #include "numsys.h"
-#include "disassembler.h"
+// #include "disassembler.h"
 #include "Altair8800.h"
 
 #if USE_Z80 != 1
@@ -1308,7 +1308,7 @@ void cpucore_i8080_print_registers()
 {
   Serial.print(F("\r\n PC   = "));   numsys_print_word(regPC);
   Serial.print(F(" = ")); numsys_print_mem(regPC, 3, true); 
-  Serial.print(F(" = ")); disassemble(Mem, regPC, false);
+  // Serial.print(F(" = ")); disassemble(Mem, regPC, false);
   Serial.print(F("\r\n SP   = ")); numsys_print_word(regSP);
   Serial.print(F(" = ")); numsys_print_mem(regSP, 8, true); 
   Serial.print(F("\r\n regA = ")); numsys_print_byte(regA);

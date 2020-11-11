@@ -21,7 +21,7 @@
 #include "config.h"
 #include "host.h"
 #include "serial.h"
-#include "filesys.h"
+// #include "filesys.h"
 // #include "prog_examples.h"
 #include "cpucore.h"
 // #include "prog_ps2.h"
@@ -162,65 +162,25 @@ void serial_update_hlda_led()
 
 void serial_replay_start(byte dev, bool example, byte filenum)
 {
-  // Stacy, not used.
-  /*
-  serial_acr_check_cload_timeout();
 
-  if( example )
-    {
-      // load example
-      if( prog_examples_read_start(filenum) )
-        {
-          serial_fid[dev] = 0xff;
-          DBG_FILEOPS4(3, F("loading example #"), b2s(filenum), F(" via "), devname(dev));
-        }
-      else
-        DBG_FILEOPS3(2, F("example #"), b2s(filenum), F(" does not exist"));
-    }
-  else
-    {
-      // load from file
-      serial_fid[dev] = filesys_open_read('D', filenum);
-      if( serial_fid[dev]>0 )
-	DBG_FILEOPS4(3, F("loading data file #"), b2s(filenum), F(" via "), devname(dev));
-      else
-	DBG_FILEOPS3(2, F("data file #"), b2s(filenum), F(" not found"));
-    }
-
-  // either start interrupt timer or prepare first byte for replay
-  if( serial_ctrl[dev] & (SSC_INTRX|SSC_REALTIME) )
-    serial_timer_interrupt_check_enable(dev);
-  else
-    serial_replay(dev);
-  
-  serial_update_hlda_led();
-  */
 }
 
 
 void serial_capture_start(byte dev, byte filenum)
 {
-  serial_acr_check_cload_timeout();
 
-  serial_fid[dev] = filesys_open_write('D', filenum);
-  if( serial_fid[dev] )
-    DBG_FILEOPS4(3, F("capturing from "), devname(dev), F(" to data file #"), b2s(filenum));
-  else
-    DBG_FILEOPS(1, F("unable to start capturing (storage full?)"));
-  
-  serial_update_hlda_led();
 }
     
 
 bool serial_replay_running(byte dev)
 {
-  return serial_fid[dev]>=0xfe || serial_fid[dev]>0 && filesys_is_read(serial_fid[dev]);
+  return serial_fid[dev]>=0xfe || serial_fid[dev]>0 ;
 }
 
 
 bool serial_capture_running(byte dev)
 {
-  return serial_fid[dev]<0xfe && serial_fid[dev]>0 && filesys_is_write(serial_fid[dev]);
+  return serial_fid[dev]<0xfe && serial_fid[dev]>0 ;
 }
 
 
@@ -238,13 +198,6 @@ void serial_stop(byte dev)
    }
   else if( serial_fid[dev]>0 )
     {
-      if( filesys_is_read(serial_fid[dev]) )
-	DBG_FILEOPS(3, F("stopping data replay"));
-      else if( filesys_is_write(serial_fid[dev]) )
-	DBG_FILEOPS(3, F("ending capture"));
-
-      filesys_close(serial_fid[dev]);
-      serial_fid[dev] = 0;
      }
 
   serial_update_hlda_led();
@@ -253,14 +206,7 @@ void serial_stop(byte dev)
 
 void serial_close_files()
 {
-  for(byte dev=0; dev<NUM_SERIAL_DEVICES; dev++)
-    if( serial_fid[dev]>0 ) serial_stop(dev);
 
-  if( acr_cload_fid>0 ) filesys_close(acr_cload_fid);
-  acr_cload_fid = 0;
-
-  serial_timer_interrupt_check_enable();
-  serial_update_hlda_led();
 }
 
 
@@ -379,43 +325,7 @@ void serial_receive_host_data(byte host_interface, byte b)
 
 static void serial_replay(byte dev)
 {
-  // Stacy, not used.
-  /*
-  byte fid = serial_fid[dev];
 
-  if( fid>0 && (fid==0xff || filesys_is_read(fid)) )
-    {
-      byte data;
-      if( fid==0xff )
-        {
-          // 0xff is special fid for example replay
-          if( prog_examples_read_next(dev, &data) )
-            serial_receive_data(dev, data);
-          else
-            {
-              DBG_FILEOPS(4, F("done loading"));
-              serial_fid[dev] = 0;
-              serial_update_hlda_led();
-            }
-        }
-      else
-        {
-          // play back captured data
-          if( filesys_read_char(fid, &data) )
-            {
-              DBG_FILEOPS2(5, F("replay data: "), int(data));
-              serial_receive_data(dev, data);
-            }
-          else
-            {
-              DBG_FILEOPS(4, F("no more data for replay"));
-              filesys_close(fid);
-              serial_fid[dev] = 0;
-              serial_update_hlda_led();
-            }
-        }
-    }
-    */
 }
 
 bool serial_available()
@@ -507,17 +417,8 @@ void serial_write(byte dev, byte data)
         last_active_primary_device = dev;
     }
 
-  if( !host_read_status_led_WAIT() && serial_fid[dev]>0 && filesys_is_write(serial_fid[dev]) )
+  if( !host_read_status_led_WAIT() && serial_fid[dev]>0 )
     {
-      if( !filesys_write_char(serial_fid[dev], data) )
-        {
-          DBG_FILEOPS(1, F("capture storage exhausted"));
-          //filesys_close(capture_fid);
-          //capture_fid  = 0;
-          //serial_update_hlda_led();
-        }
-      else
-        DBG_FILEOPS2(5, F("writing captured data: "), b2s(data));
     }
 }
 
@@ -526,7 +427,7 @@ void serial_timer_interrupt_check_enable(byte dev)
 {
   if( dev<0xff )
     {
-      bool enable  = ((serial_ctrl[dev] & (SSC_INTRX|SSC_REALTIME)) && serial_fid[dev]>0 && (serial_fid[dev]==0xff || filesys_is_read(serial_fid[dev]))
+      bool enable  = ((serial_ctrl[dev] & (SSC_INTRX|SSC_REALTIME)) && serial_fid[dev]>0 && (serial_fid[dev]==0xff)
                       ||
                       (serial_ctrl[dev] & (SSC_INTTX|SSC_REALTIME)) && !(serial_status[dev] & SST_TDRE));
       
@@ -663,11 +564,8 @@ byte serial_2sio_in_ctrl(byte port)
   // (the RDRF flag is handled separately in serial_receive_data)
   if( !(serial_ctrl[dev] & (SSC_INTTX|SSC_REALTIME)) )
     {
-      if( fid>0 && fid<0xff && filesys_is_write(fid) )
+      if( fid>0 && fid<0xff )
         {
-          if( !filesys_eof(fid) )
-            data |= SST_TDRE;
-          else
             data &= ~SST_TDRE;
         }
       else if( host_serial_available_for_write(config_serial_map_sim_to_host(dev)) )
@@ -783,8 +681,8 @@ byte serial_sio_in_ctrl(byte port)
       byte fid = serial_fid[CSM_SIO];
 
       bool can_send = true;
-      if( fid>0 && fid<0xff && filesys_is_write(fid) )
-        { if( filesys_eof(fid) ) can_send = false; }
+      if( fid>0 && fid<0xff )
+        {  }
       else
         { if( !host_serial_available_for_write(config_serial_map_sim_to_host(CSM_SIO)) ) can_send = false; }
 
@@ -921,23 +819,6 @@ bool serial_acr_mount_ps2()
 
 bool serial_acr_check_cload_timeout()
 {
-  // timeout is 0.1 (simulated) seconds, i.e. 200000 cycles (at 2MHz)
-  if( acr_cload_timeout>0 && (timer_get_cycles()-acr_cload_timeout)>200000 )
-    {
-      // if the last write or read from BASIC was more than 0.1 seconds ago
-      // then this is a new read/write operation => close the previous file
-      if( acr_cload_fid>0 )
-        {
-          filesys_close(acr_cload_fid);
-          acr_cload_fid = 0;
-          DBG_FILEOPS(4, F("closing tape file due to timeout"));
-        }
-
-      set_serial_status(CSM_ACR, 0);
-      acr_cload_timeout = 0;
-      return true;
-    }
-
   return false;
 }  
 
@@ -945,111 +826,14 @@ bool serial_acr_check_cload_timeout()
 // ALTAIR Extended BASIC loading from tape via CLOAD
 static void acr_read_next_cload_byte()
 {
-  static byte tape_fname = 0;
-  bool go = true;
-  byte data;
 
-  // check for timeout from previous operation
-  serial_acr_check_cload_timeout();
-  
-  // if we were writing before, close the file now
-  if( acr_cload_fid>0 && !filesys_is_read(acr_cload_fid) )
-    {
-      filesys_close(acr_cload_fid);
-      acr_cload_fid = 0;
-    }
-
-  // no file is open: either we closed it due to timeout or
-  // there was a FILE NOT FOUND error earlier. In either case,
-  // we need to start searching from the first file again.
-  if( acr_cload_fid==0 )
-    tape_fname = 0;
-
-  while( go )
-    {
-      if( acr_cload_fid>0 )
-        {
-          if( filesys_read_char(acr_cload_fid, &data) )
-            {
-              serial_receive_data(CSM_ACR, data);
-              go = false;
-            }
-          else
-            {
-              filesys_close(acr_cload_fid);
-              acr_cload_fid = 0;
-            }
-        }
-
-      if( go )
-        {
-          while( acr_cload_fid==0 && tape_fname<96 )
-            {
-              acr_cload_fid = filesys_open_read('B', 32+tape_fname);
-              if( acr_cload_fid ) DBG_FILEOPS2(4, F("reading BASIC CSAVE file: "), char(32+tape_fname));
-              tape_fname++;
-            }
-              
-          if( acr_cload_fid==0 )
-            {
-              serial_status[CSM_ACR] |= SST_FNF;
-              break;
-            }
-        }
-    }
-
-  acr_cload_timeout = timer_get_cycles();
 }
 
 
 // This is ALTAIR Extended BASIC saving to ACR via CSAVE
 static void acr_write_next_csave_byte(byte data)
 {
-  static byte leadchar = 0, leadcount = 0, endcount = 0;
 
-  // if we were reading before, close the file now
-  if( acr_cload_fid>0 && !filesys_is_write(acr_cload_fid) )
-    {
-      filesys_close(acr_cload_fid);
-      acr_cload_fid = 0;
-    }
-  
-  if( acr_cload_fid==0 )
-    {
-      if( leadcount==0 && data==0xd3 )
-        leadcount = 1;
-      else if( data == 0xd3 ) 
-        leadcount++;
-      else 
-        {
-          if( leadcount>3 )
-            {
-              acr_cload_fid = filesys_open_write('B', data);
-              if( acr_cload_fid ) DBG_FILEOPS2(4, F("writing BASIC CSAVE file: "), char(data));
-              for(byte i=0; i<leadcount; i++) filesys_write_char(acr_cload_fid, 0xd3);
-              filesys_write_char(acr_cload_fid, data);
-            }
-          leadcount = 0;
-        }
-    }
-  else
-    {
-      filesys_write_char(acr_cload_fid, data);
-      
-      if( data == 0x00 )
-        endcount++;
-      else
-        endcount = 0;
-          
-      if( endcount==10 )
-        {
-          filesys_close(acr_cload_fid);
-          acr_cload_fid = 0;
-          endcount = 0;
-        }
-    }
-
-  acr_cload_timeout = timer_get_cycles();
 }
 
 
@@ -1085,8 +869,8 @@ byte serial_acr_in_ctrl(byte port)
       byte fid = serial_fid[CSM_ACR];
       
       data &= ~0x80;
-      if( fid>0 && fid<0xff && filesys_is_write(fid) )
-        { if( filesys_eof(fid) ) data |= 0x80; }
+      if( fid>0 && fid<0xff)
+        {  }
       else
         { if( !host_serial_available_for_write(config_serial_map_sim_to_host(CSM_ACR)) ) data |= 0x80; }
     }
@@ -1182,7 +966,7 @@ void serial_acr_out_data(byte port, byte data)
   serial_acr_check_cload_timeout();
 
   if( regPC == 0xE2AF && config_serial_trap_CLOAD() && 
-      (serial_fid[CSM_ACR]==0 || !filesys_is_write(serial_fid[CSM_ACR])) )
+      (serial_fid[CSM_ACR]==0 ) )
     acr_write_next_csave_byte(data);
   else
     serial_write(CSM_ACR, data);
