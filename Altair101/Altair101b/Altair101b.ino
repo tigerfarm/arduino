@@ -17,7 +17,6 @@
 // Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 // -----------------------------------------------------------------------------
 
-
 #include "Altair8800.h"
 #include "config.h"
 #include "cpucore.h"
@@ -128,16 +127,6 @@ void altair_wait_reset()
 }
 
 
-void read_inputs()
-{
-  cswitch = 0;
-  read_inputs_panel();
-  read_inputs_serial();
-  print_panel_serial();
-  process_inputs();
-}
-
-
 byte get_device(byte switches)
 {
   byte dev;
@@ -150,6 +139,17 @@ byte get_device(byte switches)
 }
 
 
+// -----------------------------------------------------------------------------
+void read_inputs()
+{
+  cswitch = 0;
+  read_inputs_panel();
+  read_inputs_serial();
+  print_panel_serial();
+  process_inputs();
+}
+
+// -----------------------------------------------------------------------------
 void process_inputs()
 {
   if ( cswitch & BIT(SW_DEPOSIT) )
@@ -174,304 +174,6 @@ void process_inputs()
   {
     regPC = regPC + 1;
     altair_set_outputs(regPC, MREAD(regPC));
-  }
-
-  if ( cswitch & BIT(SW_AUX1DOWN) )
-  {
-    /* Stacy
-    serial_acr_check_cload_timeout();
-
-    if ( dswitch & 0x80 )
-    {
-      // SW7 is up => memory page operation
-      host_set_status_led_HLDA();
-
-      uint16_t page = dswitch & 0xff00;
-      byte filenum  = dswitch & 0x003f;
-      if ( dswitch & 0x40 )
-      {
-        // SW6 is up => save memory page
-        if ( filesys_write_file('M', filenum, Mem + page, 256) )
-          DBG_FILEOPS4(3, F("saved memory page "), b2s(page >> 8), F(" to file #"), b2s(filenum));
-        else
-          DBG_FILEOPS4(2, F("unable to save memory page "), b2s(page >> 8), F(" to file #"), b2s(filenum));
-      }
-      else
-      {
-        // SW6 is down => load memory page
-        if ( !MEM_IS_WRITABLE(page) )
-          DBG_FILEOPS3(2, F("memory page "), b2s(page >> 8), F(" is not writable"));
-        else if ( filesys_read_file('M', filenum, Mem + page, 256) == 256 )
-        {
-          DBG_FILEOPS4(3, F("loaded memory page "), b2s(page >> 8), F(" from file #"), b2s(filenum));
-          regPC = page;
-        }
-        else
-          DBG_FILEOPS4(2, F("file not found loading memory page "), b2s(page >> 8), F(" from file #"), b2s(filenum));
-
-        altair_set_outputs(regPC, MREAD(regPC));
-      }
-
-      serial_update_hlda_led();
-    }
-    else if (dswitch & 0x40 )
-    {
-      Serial.println(F("\r\nReceiving Intel HEX data..."));
-      if ( altair_read_intel_hex() )
-        Serial.println(F("Success."));
-      else
-        Serial.println(F("Error!"));
-
-      // skip any remaining input
-      empty_input_buffer();
-    }
-    else
-    {
-      // SW7 is down => load program
-      // Stacy: if ( prog_load(dswitch & 0xff, &regPC) )
-      if ( false )
-      {
-        // program exists and is supposed to run immediately
-        host_set_data_leds(MREAD(regPC));
-        host_clr_status_led_WAIT();
-        host_clr_status_led_PROT();
-      }
-      else
-      {
-        // either program does not exist or is not supposed to run immediately
-        p_regPC = regPC;
-        altair_set_outputs(regPC, MREAD(regPC));
-      }
-    }
-    */
-  }
-  else if ( cswitch & BIT(SW_AUX1UP) )
-  {
-    /* Stacy
-    if ( (cswitch & BIT(SW_STOP)) || host_read_function_switch_debounced(SW_STOP) )
-    {
-      // STOP is up => edit configuration
-      config_edit();
-      if ( config_serial_panel_enabled() )
-      {
-        // Stacy Serial.print(F("\033[14B"));
-        print_panel_serial(true);
-      }
-
-      p_regPC = ~regPC;
-      altair_set_outputs(regPC, MREAD(regPC));
-      rtc_setup();
-    }
-    else
-    {
-      byte p = config_aux1_program();
-      if ( p < 0x40 )
-      {
-        if ( prog_get_name(p) != NULL )
-        {
-          // run program
-          dswitch = (dswitch & 0xff00) | p;
-          cswitch = BIT(SW_AUX1DOWN);
-          process_inputs();
-        }
-      }
-      else if ( p < 0x80 )
-      {
-        // run tarbell disk (first mount disk then install and run tarbell disk boot ROM)
-        tdrive_reset();
-        if ( tdrive_mount(0, p & 0x3f) )
-        {
-          dswitch = (dswitch & 0xff00) | 16;
-          cswitch = BIT(SW_AUX1DOWN);
-          process_inputs();
-        }
-      }
-      else if ( p < 0xC0 )
-      {
-        // run disk (first mount disk then install and run disk boot ROM)
-        if ( drive_mount(0, p & 0x3f) )
-        {
-          dswitch = (dswitch & 0xff00) | 8;
-          cswitch = BIT(SW_AUX1DOWN);
-          process_inputs();
-        }
-      }
-      else
-      {
-        // run hard disk (first mount disk then install and run hard disk boot ROM)
-        if ( hdsk_mount(0, 0, p & 0x3f) )
-        {
-          dswitch = (dswitch & 0xff00) | 14;
-          cswitch = BIT(SW_AUX1DOWN);
-          process_inputs();
-        }
-      }
-      
-    }
-    */
-  }
-
-  if ( cswitch & BIT(SW_AUX2DOWN) )
-  {
-    /* Stacy
-    if ( false )
-    {}
-#if NUM_DRIVES>0
-    else if ( (dswitch & 0xF000) == 0x1000 )
-    {
-      if ( (dswitch & 0xff) == 0 )
-        drive_dir();
-      else
-      {
-        const char *desc = drive_get_image_description(dswitch & 0xff);
-        if ( drive_mount((dswitch >> 8) & 0x0f, dswitch & 0xff) )
-        {
-          if ( desc == NULL )
-            DBG_FILEOPS4(2, F("mounted new disk image "), drive_get_image_filename(dswitch & 0xff, false), F(" in drive "), (dswitch >> 8) & 0x0f);
-          else
-            DBG_FILEOPS4(2, F("mounted disk image '"), desc, F("' in drive "), (dswitch >> 8) & 0x0f);
-        }
-        else
-          DBG_FILEOPS4(1, F("error mounting disk image "), drive_get_image_filename(dswitch & 0xff, false), F(" in drive "), (dswitch >> 8) & 0x0f);
-      }
-    }
-#endif
-#if NUM_CDRIVES>0
-    else if ( (dswitch & 0xF000) == 0x7000 )
-    {
-      if ( (dswitch & 0xff) == 0 )
-        cdrive_dir();
-      else
-      {
-        const char *desc = cdrive_get_image_description(dswitch & 0xff);
-        if ( cdrive_mount((dswitch >> 8) & 0x03, dswitch & 0xff) )
-        {
-          if ( desc == NULL )
-            DBG_FILEOPS4(2, F("mounted new disk image "), cdrive_get_image_filename(dswitch & 0xff, false), F(" in cromemco drive "), (dswitch >> 8) & 0x0f);
-          else
-            DBG_FILEOPS4(2, F("mounted disk image '"), desc, F("' in cromemco drive "), (dswitch >> 8) & 0x0f);
-        }
-        else
-          DBG_FILEOPS4(1, F("error mounting disk image "), cdrive_get_image_filename(dswitch & 0xff, false), F(" in cromemco drive "), (dswitch >> 8) & 0x0f);
-      }
-    }
-#endif
-#if NUM_TDRIVES>0
-    else if ( (dswitch & 0xF000) == 0x5000 )
-    {
-      if ( (dswitch & 0xff) == 0 )
-        tdrive_dir();
-      else
-      {
-        const char *desc = tdrive_get_image_description(dswitch & 0xff);
-        if ( tdrive_mount((dswitch >> 8) & 0x03, dswitch & 0xff) )
-        {
-          if ( desc == NULL )
-            DBG_FILEOPS4(2, F("mounted new disk image "), drive_get_image_filename(dswitch & 0xff, false), F(" in tarbell drive "), (dswitch >> 8) & 0x0f);
-          else
-            DBG_FILEOPS4(2, F("mounted disk image '"), desc, F("' in tarbell drive "), (dswitch >> 8) & 0x0f);
-        }
-        else
-          DBG_FILEOPS4(1, F("error mounting disk image "), drive_get_image_filename(dswitch & 0xff, false), F(" in tarbell drive "), (dswitch >> 8) & 0x0f);
-      }
-    }
-#endif
-#if NUM_HDSK_UNITS>0
-    else if ( (dswitch & 0xF000) == 0x3000 )
-    {
-      if ( (dswitch & 0xff) == 0 )
-        hdsk_dir();
-      else
-      {
-        char buf[50];
-        byte unit    = (dswitch >> 10) & 0x03;
-        byte platter = (dswitch >>  8) & 0x03;
-        sprintf(buf, "' in platter %i of unit %i", platter, unit + 1);
-
-        const char *desc = hdsk_get_image_description(dswitch & 0xff);
-        if ( hdsk_mount(unit, platter, dswitch & 0xff) )
-        {
-          if ( desc == NULL )
-            DBG_FILEOPS3(2, F("mounted new hard disk image '"), hdsk_get_image_filename(dswitch & 0xff, false), buf);
-          else
-            DBG_FILEOPS3(2, F("mounted hard disk image '"), desc, buf);
-        }
-        else
-          DBG_FILEOPS3(1, F("error mounting hard disk image '"), hdsk_get_image_filename(dswitch & 0xff, false), buf);
-      }
-    }
-#endif
-    else
-    {
-      print_panel_serial();
-      byte dev = get_device(dswitch >> 8);
-      if ( serial_capture_running(dev) )
-        DBG_FILEOPS(1, F("unable to replay data (capture operation in progress)"));
-      else if ( serial_replay_running(dev) )
-        serial_stop(dev);
-      else
-        serial_replay_start(dev, (dswitch & 0x100) == 0, dswitch & 0xff);
-    }
-    */
-  }
-  else if ( cswitch & BIT(SW_AUX2UP) )
-  {
-    /* Stacy
-    if ( false )
-    {}
-#if NUM_DRIVES>0
-    else if ( (dswitch & 0xF000) == 0x1000 )
-    {
-      if ( drive_unmount((dswitch >> 8) & 0x0f) )
-        DBG_FILEOPS2(2, F("unmounted drive "), (dswitch >> 8) & 0x0f);
-      else
-        DBG_FILEOPS2(1, F("error unmounting drive "), (dswitch >> 8) & 0x0f);
-    }
-#endif
-#if NUM_CDRIVES>0
-    else if ( (dswitch & 0xF000) == 0x7000 )
-    {
-      if ( cdrive_unmount((dswitch >> 8) & 0x03) )
-        DBG_FILEOPS2(2, F("unmounted cromemco drive "), (dswitch >> 8) & 0x0f);
-      else
-        DBG_FILEOPS2(1, F("error unmounting cromemco drive "), (dswitch >> 8) & 0x0f);
-    }
-#endif
-#if NUM_TDRIVES>0
-    else if ( (dswitch & 0xF000) == 0x5000 )
-    {
-      if ( tdrive_unmount((dswitch >> 8) & 0x03) )
-        DBG_FILEOPS2(2, F("unmounted tarbell drive "), (dswitch >> 8) & 0x0f);
-      else
-        DBG_FILEOPS2(1, F("error unmounting tarbell drive "), (dswitch >> 8) & 0x0f);
-    }
-#endif
-#if NUM_HDSK_UNITS>0
-    else if ( (dswitch & 0xF000) == 0x3000 )
-    {
-      char buf[50];
-      byte unit    = (dswitch >> 10) & 0x03;
-      byte platter = (dswitch >>  8) & 0x03;
-      sprintf(buf, "platter %i of unit %i", platter, unit + 1);
-
-      if ( hdsk_unmount(unit, platter) )
-        DBG_FILEOPS2(1, F("unmounted "), buf);
-      else
-        DBG_FILEOPS2(1, F("error unmounting "), buf);
-    }
-#endif
-    else
-    {
-      print_panel_serial();
-      byte dev = get_device(dswitch >> 8);
-      if ( serial_replay_running(dev) )
-        DBG_FILEOPS(1, F("cannot start capture (replay operation in progress)"));
-      else if ( serial_capture_running(dev) )
-        serial_stop(dev);
-      else
-        serial_capture_start(dev, dswitch & 0xff);
-    }
-    */
   }
 
   if ( cswitch & BIT(SW_RESET) )
@@ -503,7 +205,7 @@ void process_inputs()
   }
 }
 
-
+// -----------------------------------------------------------------------------
 void altair_wait_step()
 {
   cswitch &= BIT(SW_RESET); // clear everything but RESET status
@@ -516,15 +218,13 @@ void altair_wait_step()
   if ( cswitch & BIT(SW_SLOW) ) delay(500);
 }
 
-
+// -----------------------------------------------------------------------------
 void read_inputs_panel()
 {
   // we react on positive edges on the function switches...
   cswitch = host_read_function_switches_edge();
-
   // ...except for the SLOW switch which is active as long as it is held down
   if ( host_read_function_switch_debounced(SW_SLOW) ) cswitch |= BIT(SW_SLOW);
-
 #if STANDALONE==0
   // address switches on Mega are connected to analog inputs which are free
   // floating and therefore random when not connected
@@ -721,7 +421,7 @@ void empty_input_buffer()
   }
 }
 
-
+// -----------------------------------------------------------------------------
 void read_inputs_serial()
 {
   if ( !config_serial_input_enabled() )
@@ -788,7 +488,7 @@ void read_inputs_serial()
   }
 }
 
-
+// -----------------------------------------------------------------------------
 void print_panel_serial(bool force)
 {
   byte dbus;
@@ -871,7 +571,7 @@ void print_panel_serial(bool force)
   }
 }
 
-
+// -----------------------------------------------------------------------------
 void print_dbg_info()
 {
   if ( config_serial_debug_enabled() && host_read_status_led_WAIT() && regPC != p_regPC )
@@ -879,7 +579,7 @@ void print_dbg_info()
 }
 
 
-
+// -----------------------------------------------------------------------------
 void reset(bool resetPC)
 {
   host_clr_status_led_INT();
@@ -926,6 +626,7 @@ void reset(bool resetPC)
 }
 
 
+// -----------------------------------------------------------------------------
 void switch_interrupt_handler()
 {
   if ( altair_interrupts & INT_SW_STOP )
@@ -976,7 +677,7 @@ void altair_rtc_interrupt()
   altair_interrupt(INT_RTC);
 }
 
-
+// -----------------------------------------------------------------------------
 void rtc_setup()
 {
   float rate = config_rtc_rate();
@@ -1147,70 +848,24 @@ static byte altair_interrupt_handler()
   return opcode;
 }
 
-
+// -----------------------------------------------------------------------------
 bool altair_isreset()
 {
   return (cswitch & BIT(SW_RESET)) == 0;
 }
 
-
+// -----------------------------------------------------------------------------
 void altair_hlt()
 {
   host_set_status_led_HLTA();
-
-#if STANDALONE>0
   // in standalone mode it is hard to interact with the panel so for a HLT
   // instruction we just stop the CPU to avoid confusion
   regPC--;
   altair_interrupt(INT_SW_STOP);
-#else
-  if ( !host_read_status_led_WAIT() )
-  {
-    host_set_addr_leds(0xffff);
-    host_set_data_leds(0xff);
-    host_set_status_led_MEMR();
-    host_set_status_led_WAIT();
-    altair_interrupts = 0;
-    while ( (altair_interrupts & (~INT_SWITCH | INT_SW_RESET)) == 0 )
-    {
-      // check host interrupts (e.g. switches on Mega)
-      host_check_interrupts();
-
-      // advance simulation time (so timers can expire)
-      TIMER_ADD_CYCLES(2);
-    }
-
-    if ( altair_interrupts & INT_SW_RESET )
-    {
-      cswitch = 0;
-      while ( !(cswitch & BIT(SW_RESET)) ) read_inputs_panel();
-    }
-    else if ( altair_interrupts & INT_DEVICE )
-    {
-      host_clr_status_led_WAIT();
-      host_clr_status_led_PROT();
-    }
-  }
-  else
-  {
-    host_set_status_led_MEMR();
-    altair_set_outputs(0xffff, 0xff);
-
-    altair_interrupts = 0;
-    while ( (altair_interrupts & (~INT_SWITCH | INT_SW_RESET)) == 0 )
-    {
-      read_inputs_panel();
-      print_panel_serial();
-      host_check_interrupts();
-
-      // advance simulation time (so timers can expire)
-      TIMER_ADD_CYCLES(1);
-    }
-  }
-#endif
 }
 
 
+// -----------------------------------------------------------------------------
 byte altair_read_sense_switches(byte port)
 {
   byte data;
@@ -1234,57 +889,31 @@ byte altair_read_sense_switches(byte port)
   return data;
 }
 
-
+// -----------------------------------------------------------------------------
 void altair_out(byte port, byte data)
 {
   host_set_addr_leds(port | port * 256);
-
-#if USE_IO_BUS>0
-  // When using the I/O bus we must put the output data
-  // onto the data LED outputs so devices attached to
-  // the bus can read it
   host_set_data_leds(data);
-#else
-  // The S-100 bus on the real Altair has separate data
-  // buses for data in (to CPU) and data out (from CPU).
-  // The data LEDs on the front panel are connected to
-  // the "data in" lines. For output operations those
-  // lines are in high-Z state and therefore the LEDs
-  // are all on regardless of the data.
-  // We simulate the original behavior here even though
-  // we could just as well show the proper data.
-  host_set_data_leds(0xff);
-#endif
-
   host_set_status_led_OUT();
   host_set_status_led_WO();
-
   io_out(port, data);
-
   if ( host_read_status_led_WAIT() )
   {
-#if USE_IO_BUS>0
-    altair_set_outputs(port | port * 256, data);
-#else
     altair_set_outputs(port | port * 256, 0xff);
-#endif
     altair_wait_step();
   }
 
   host_clr_status_led_OUT();
 }
 
-
+// -----------------------------------------------------------------------------
 byte altair_in(byte port)
 {
   byte data = 0;
-
   host_set_addr_leds(port | port * 256);
-
   if ( host_read_status_led_WAIT() )
   {
     cswitch &= BIT(SW_RESET); // clear everything but RESET status
-
     // keep reading input data while we are waiting
     while ( host_read_status_led_WAIT() && (cswitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 )
     {
@@ -1292,13 +921,10 @@ byte altair_in(byte port)
       data = io_inp(port);
       altair_set_outputs(port | port * 256, data);
       host_clr_status_led_INP();
-
       read_inputs();
-
       // advance simulation time (so timers can expire)
       TIMER_ADD_CYCLES(50);
     }
-
     if ( cswitch & BIT(SW_SLOW) ) delay(500);
   }
   else
@@ -1308,28 +934,20 @@ byte altair_in(byte port)
     host_set_data_leds(data);
     host_clr_status_led_INP();
   }
-
   return data;
 }
 
-void setup()
-{
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void setup() {
   cswitch = 0;
   dswitch = 0;
-
-  // drive_get_image_filename(0x99, true);
-
   Serial.begin(115200);
 
   timer_setup();
   mem_setup();
   io_setup();
   host_setup();
-  // filesys_setup();
-  // drive_setup();
-  // tdrive_setup();
-  // cdrive_setup();
-  // hdsk_setup();
   if ( host_read_function_switch(SW_RESET) )
     config_setup(-1);
   else if ( host_read_function_switch(SW_DEPOSIT) )
@@ -1340,42 +958,24 @@ void setup()
   serial_setup();
   profile_setup();
   rtc_setup();
-  // printer_setup();
-  // dazzler_setup();
-  // vdm1_setup();
 
   altair_vi_register_ports();
   io_register_port_inp(0xff, altair_read_sense_switches);
 
-  // if RESET switch is held up during powerup then use default configuration settings
-  if ( host_read_function_switch(SW_RESET) )
-  {
-    // temporarily reset configuration (also calls host_serial_setup)
-    config_defaults(true);
-    Serial.println(F("Configuration temporarily reset to defaults"));
-    Serial.println(F("Raise and hold STOP and then raise AUX1 to enter configuration menu"));
-    while ( host_read_function_switch(SW_RESET) );
-    delay(100);
-    host_reset_function_switch_state();
-  }
-  else
-  {
-    // set up serial connection on the host
-    for (byte i = 0 ; i < HOST_NUM_SERIAL_PORTS; i++)
-      host_serial_setup(i, config_host_serial_baud_rate(i), config_host_serial_config(i),
-                        config_host_serial_primary() == i);
-  }
-
-  // if EXAMINE switch is held up during powerup then show host system info
-  if ( host_read_function_switch(SW_EXAMINE) )
-    host_system_info();
+  // set up serial connection on the host
+  for (byte i = 0 ; i < HOST_NUM_SERIAL_PORTS; i++)
+    host_serial_setup(i, config_host_serial_baud_rate(i), config_host_serial_config(i),
+                      config_host_serial_primary() == i);
 
   // emulator extra: holding down CLR at powerup will keep all registers
   // and memory content initialized with 0. Otherwise (as would be normal
   // with the Altair), everything is random.
   mem_ram_init(0, MEMSIZE - 1);
-  if ( !host_read_function_switch(SW_CLR) && !config_clear_memory() )
-  {
+
+  config_clear_memory();  // Stacy, confirm sets to memory bytes to zero.
+  /*
+    if ( !host_read_function_switch(SW_CLR) && !config_clear_memory() )
+    {
     regPC = host_get_random();
     regSP = host_get_random();
     regA  = host_get_random();
@@ -1386,12 +986,11 @@ void setup()
     regE  = host_get_random();
     regH  = host_get_random();
     regL  = host_get_random();
-  }
+    }
+  */
 
   host_set_status_led_WAIT();
   reset(false);
-
-  // Stacy: if( config_serial_panel_enabled() ) Serial.print(F("\033[2J\033[14B\r\n"));
 
   uint16_t a = mem_get_rom_autostart_address();
   if ( a != 0xFFFF )
@@ -1407,6 +1006,7 @@ void loop()
 {
   byte opcode;
 
+  // --------------------------------------------------------------------------------
   // if we are NOT in WAIT mode then enter the main simulation loop
   if ( !host_read_status_led_WAIT() )
   {
@@ -1469,10 +1069,6 @@ void loop()
         host_set_data_leds(opcode);
 #endif
         regPC++;
-#if USE_Z80!=0
-        // when emulating Z80 we need to increment the R register at each instruction fetch
-        regRL++;
-#endif
         host_clr_status_led_M1();
       }
 
@@ -1499,6 +1095,9 @@ void loop()
     if ( config_serial_input_enabled() ) empty_input_buffer();
   }
 
+  // --------------------------------------------------------------------------------
+  // Wait mode.
+
   if ( cswitch & BIT(SW_RESET) )
   {
     reset(true);
@@ -1524,11 +1123,6 @@ void loop()
     regPC++;
   }
 
-#if USE_Z80!=0
-  // when emulating Z80 we need to increment the R register at each instruction fetch
-  regRL++;
-#endif
-
   host_clr_status_led_M1();
   if ( !(cswitch & BIT(SW_RESET)) )
   {
@@ -1544,6 +1138,8 @@ void loop()
     if ( altair_interrupts & INT_SW_STOP ) switch_interrupt_handler();
 #endif
   }
+
+  // --------------------------------------------------------------------------------
 }
 
 // --------------------------------------------------------------------------------

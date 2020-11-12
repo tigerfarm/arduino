@@ -180,25 +180,7 @@ R Reset
 ! Hard reset (STOP+RESET)
 X/x Examine/examine next
 P/p Deposit/deposit next
-U AUX1 up
-u AUX1 down
-s STANDALONE only: Capture serial data (AUX2 up)
-l STANDALONE only: Play back captured serial data or BASIC example (AUX2 down)
-m STANDALONE only: Mount (hard) disk image (AUX2 down)
-Q Protect
-q Unprotect
 > Run from address
-B Add breakpoint (only if breakpoints enabled in setup.h)
-V Delete last breakpoint
-D Disassemble (will prompt for start address, space bar continues, any other key exits) M Dump memory (will prompt for start address, space bar continues, any other key exits) n change number system (hexadecimal/octal/decimal)
-C Enter configuration menu
-L Load a program or data through serial input into simulated memory
-  First value is start address, second value is length, followed by data bytes
-  (all values separated by spaces). Easier to enter data this way than using the switches. 
-H Load a program in Intel HEX format through serial input.
-  https://en.wikipedia.org/wiki/Intel_HEX
-  Useful to deposit programs and/or data directly into the simulated memory.
-h Dump memory in Intel HEX format through serial output.
 ````
 
 Enter and run a program.
