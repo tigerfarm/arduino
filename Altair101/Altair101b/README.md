@@ -11,10 +11,11 @@ Create a minimum code base to run machine code:
 + 5. Remove programs not require to run a machine code programs, such as: dazzler.*, disassembler.*, and others.
 
 Modify the minimum code base to work with Altair 101:
-+ 6. Use Altair 101 memory array.
-+ 7. Run on the Altair 101 desktop machine.
-+ 8. Output to Altair 101 panel LED.
-+ 9. Input from Altair 101 panel switches.
++ 6. Manage Altair 101 memory size.
++ 7. Use Altair 101 memory array: read and write.
++ 8. Run on the Altair 101 desktop machine.
++ 9. Output to Altair 101 panel LED.
++ 10. Input from Altair 101 panel switches.
 
 ##### Links
 
@@ -39,6 +40,19 @@ Click Sketch > Include Library > Manage Libraries…
 Search and install SdFat by Bill Greiman.
 Search and install, “DueFlashStorage” by Sebastian Nilsson.
 ````
+--------------------------------------------------------------------------------
+### Other Notes
+
+From
+[Documentation](https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6).
+
+Before uploading the sketch to the Arduino Due, 
+be sure to switch the Arduino compiler's optimization setting to "performance". 
+By default it is set to "size" (not sure why since the Due has 512k flash memory). To do so, load file
+c:\Users\[user]\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.9\platform.txt
+into a text editor and change any occurrence of "-Os" to "-O3". 
+You can skip this step but then the simulator will run significantly slower.
+
 
 --------------------------------------------------------------------------------
 ### 1. Get the simulator to run on Mega
@@ -358,32 +372,133 @@ Jump-loop program is entered and ready to run.
 --------------------------------------------------------------------------------
 ### 5. Remove programs not require to run a machine code programs
 
-Removed: dazzler.*, disassembler.*, and others.
+Removed the following, and other files.
+````
+// #include "breakpoint.h"
+// #include "disassembler.h"
+// #include "filesys.h"
+// #include "drive.h"
+// #include "tdrive.h"
+// #include "cdrive.h"
+// #include "hdsk.h"
+// #include "printer.h"
+// #include "prog.h"
+// #include "dazzler.h"
+// #include "vdm1.h"
+````
 
 Removed all SD card and EEPROM file functions and programs.
 
-
 --------------------------------------------------------------------------------
-### 6. Convert to use Altair 101 memory array.
+### 6. Manage Altair 101 memory size.
 
 Need to reduce current memory usage.
 ````
 Sketch uses 63164 bytes (24%) of program storage space. Maximum is 253952 bytes.
 Global variables use 7709 bytes (94%) of dynamic memory, leaving 483 bytes for local variables. Maximum is 8192 bytes.
 ````
+Memory size definition: MEMSIZE in host_mega.h or host_due.h.
+
+After reducing MEMSIZE in host_mega.h, Global variables use dropped from 7709 to 2589 bytes
+````
+Sketch uses 63072 bytes (24%) of program storage space. Maximum is 253952 bytes.
+Global variables use 2589 bytes (31%) of dynamic memory, leaving 5603 bytes for local variables. Maximum is 8192 bytes.
+````
+
+From host_mega.h
+````
+// Mega2650: 8k SRAM, use 6k for emulated RAM
+// NOTE: Using too much emulated RAM can cause stability issues when
+//       running the emulator. Modify settings in config.h and the MEMSIZE
+//       setting here to make sure Arduino IDE says (after compiling) that
+//       AT LEAST 310 bytes of RAM are left for local variables!
+//       If you run into weird emulation issues, consider (temporarily)
+//       using only 5K MEMSIZE here to see if that resolves the problem.
+// #define MEMSIZE (4096+2048)
+#define MEMSIZE (1024)
+````
+From host_due.h
+````
+#define MEMSIZE 0x10000         // 16K
+````
+
+From mem.h
+````
+extern byte Mem[MEMSIZE];
+````
 
 --------------------------------------------------------------------------------
-### Other Notes
+### 7. Convert to use Altair 101 memory array.
 
-From
-[Documentation](https://www.hackster.io/david-hansel/arduino-altair-8800-simulator-3594a6).
+From Altair101b.ino
+````
+opcode = MREAD(regPC);              // defined: mem.h. Used in:  mem.cpp, cpucore_i8080.cpp and numsys.cpp.
+````
 
-Before uploading the sketch to the Arduino Due, 
-be sure to switch the Arduino compiler's optimization setting to "performance". 
-By default it is set to "size" (not sure why since the Due has 512k flash memory). To do so, load file
-c:\Users\[user]\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.9\platform.txt
-into a text editor and change any occurrence of "-Os" to "-O3". 
-You can skip this step but then the simulator will run significantly slower.
+I may be able to simply replace "MREAD(regPC)" with "memory[regPC]".
+
+The Altair 8800 Simulator has memory protection in place which has a lot of code overhead which I'm not going to implement.
+
+From mem.h
+````
+extern byte Mem[MEMSIZE];
+#if MEMSIZE < 0x10000
+// if we have less than 64k of RAM then always map ROM basic to 0xC000-0xFFFF
+// Stacy: #define MREAD(a)    ((a)>=0xC000 ? prog_basic_read_16k(a) : ((a) < MEMSIZE ? Mem[a] : 0xFF))
+#define MREAD(a)    ((a)>=0xC000 ? 0xC000 : ((a) < MEMSIZE ? Mem[a] : 0xFF))
+#define MWRITE(a,v) {if( MEM_IS_WRITABLE(a) ) Mem[a]=v;}
+#else
+// If we have 64k of RAM then we just copy ROM basic to the upper 16k and write-protect
+// that area.  Faster to check the address on writing than reading since there are far more
+// reads than writes. Also we can skip memory bounds checking because addresses are 16 bit.
+#define MREAD(a)    (Mem[a])
+````
+From mem.cpp
+````
+byte Mem[MEMSIZE];
+
+byte v = MREAD(a);
+````
+
+cpucore_i8080.cpp
+````
+inline uint16_t MEM_READ_WORD(uint16_t addr)
+{
+  if( host_read_status_led_WAIT() )
+    {
+      byte l, h;
+      l = MEM_READ_STEP(addr);
+      addr++;
+      h = MEM_READ_STEP(addr);
+      return l | (h * 256);
+    }
+  else
+    {
+      byte l, h;
+      host_set_status_leds_READMEM();
+      host_set_addr_leds(addr);
+      l = MREAD(addr);
+      host_set_data_leds(l);
+      for(uint8_t i=0; i<5; i++) asm("NOP");
+      addr++;
+      host_set_addr_leds(addr);
+      h = MREAD(addr);
+      host_set_data_leds(h);
+      return l | (h * 256);
+    }
+}
+````
+numsys.cpp
+````
+void numsys_print_mem(uint16_t addr, byte num, bool printBrackets)
+{
+  byte i;
+  if( printBrackets ) Serial.print('['); 
+  for(i=0; i<num; i++)
+    { numsys_print_byte(MREAD(addr+i)); if(i+1<num) Serial.print(' '); }
+  if( printBrackets ) Serial.print(']'); 
+}
+````
 
 --------------------------------------------------------------------------------
 Cheers

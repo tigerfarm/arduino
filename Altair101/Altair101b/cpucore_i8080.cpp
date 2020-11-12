@@ -71,12 +71,6 @@ inline uint16_t MEM_READ_WORD(uint16_t addr)
   else
     {
       byte l, h;
-#if USE_REAL_MREAD_TIMING>0
-      l = MEM_READ(addr);
-      for(uint8_t i=0; i<5; i++) asm("NOP");
-      addr++;
-      h = MEM_READ(addr);
-#else
       host_set_status_leds_READMEM();
       host_set_addr_leds(addr);
       l = MREAD(addr);
@@ -85,7 +79,6 @@ inline uint16_t MEM_READ_WORD(uint16_t addr)
       addr++;
       host_set_addr_leds(addr);
       h = MREAD(addr);
-#endif
       host_set_data_leds(h);
       return l | (h * 256);
     }

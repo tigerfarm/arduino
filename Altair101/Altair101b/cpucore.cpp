@@ -19,7 +19,7 @@
 
 #include "cpucore.h"
 #include "Altair8800.h"
-#include "cpucore_z80.h"
+// #include "cpucore_z80.h"
 #include "cpucore_i8080.h"
 
 // registers shared between i8080 and z80 implementation

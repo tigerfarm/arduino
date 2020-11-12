@@ -23,10 +23,10 @@
 #include "host.h"
 #include "mem.h"
 #include "serial.h"
-#include "profile.h"
 #include "numsys.h"
 #include "timer.h"
 #include "io.h"
+#include "profile.h"
 // #include "breakpoint.h"
 // #include "disassembler.h"
 // #include "filesys.h"
@@ -1043,14 +1043,16 @@ void loop()
         // See config.h performance notes: #if USE_REAL_MREAD_TIMING>0
         host_set_status_leds_READMEM_M1();  // Performance slow down: host_set_status_led_M1(); See config.h: USE_REAL_MREAD_TIMING
         host_set_addr_leds(regPC);
-        opcode = MREAD(regPC);
+
+        opcode = MREAD(regPC);              // defined: mem.h. Used in:  mem.cpp, cpucore_i8080.cpp and numsys.cpp.
+
         host_set_data_leds(opcode);
         regPC++;
         host_clr_status_led_M1();
       }
       // take a CPU step
       PROFILE_COUNT_OPCODE(opcode);
-      CPU_EXEC(opcode);
+      CPU_EXEC(opcode);                     // defined: cpucore.h
     }
   }
 

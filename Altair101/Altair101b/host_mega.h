@@ -16,7 +16,8 @@
 //       AT LEAST 310 bytes of RAM are left for local variables!
 //       If you run into weird emulation issues, consider (temporarily)
 //       using only 5K MEMSIZE here to see if that resolves the problem.
-#define MEMSIZE (4096+2048)
+// #define MEMSIZE (4096+2048)
+#define MEMSIZE (1024)
 
 #define HOST_STORAGESIZE 4096 // have 4k EEPROM
 #define HOST_BUFFERSIZE  0    // have little SRAM so don't buffer
