@@ -11,9 +11,10 @@ Create a minimum code base to run machine code:
 + 5. Remove programs not require to run a machine code programs, such as: dazzler.*, disassembler.*, and others.
 
 Modify the minimum code base to work with Altair 101:
-+ Use Altair 101 memory array.
-+ Output to Altair 101 panel LED.
-+ Input from Altair 101 panel switches.
++ 6. Use Altair 101 memory array.
++ 7. Run on the Altair 101 desktop machine.
++ 8. Output to Altair 101 panel LED.
++ 9. Input from Altair 101 panel switches.
 
 ##### Links
 
@@ -354,6 +355,22 @@ Address(lb):databyte :hex:oct > description
 ````
 Jump-loop program is entered and ready to run.
 
+--------------------------------------------------------------------------------
+### 5. Remove programs not require to run a machine code programs
+
+Removed: dazzler.*, disassembler.*, and others.
+
+Removed all SD card and EEPROM file functions and programs.
+
+
+--------------------------------------------------------------------------------
+### 6. Convert to use Altair 101 memory array.
+
+Need to reduce current memory usage.
+````
+Sketch uses 63164 bytes (24%) of program storage space. Maximum is 253952 bytes.
+Global variables use 7709 bytes (94%) of dynamic memory, leaving 483 bytes for local variables. Maximum is 8192 bytes.
+````
 
 --------------------------------------------------------------------------------
 ### Other Notes

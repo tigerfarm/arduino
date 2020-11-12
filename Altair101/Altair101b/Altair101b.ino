@@ -593,21 +593,14 @@ void reset(bool resetPC)
   host_clr_status_led_PROT();
   serial_update_hlda_led();
   altair_interrupt_disable();
-
   if ( resetPC )
   {
     uint16_t a = mem_get_rom_autostart_address();
     regPC      = (a == 0xffff) ? 0x0000 : a;
     p_regPC    = ~regPC;
   }
-
   serial_reset();
-
-#if STANDALONE>0
   if ( cswitch & BIT(SW_STOP) )
-#else
-  if ( host_read_function_switch(SW_STOP) )
-#endif
   {
     have_ps2 = false;
 
@@ -948,12 +941,17 @@ void setup() {
   mem_setup();
   io_setup();
   host_setup();
+
+  config_setup(0);
+  /* Stacy
   if ( host_read_function_switch(SW_RESET) )
     config_setup(-1);
   else if ( host_read_function_switch(SW_DEPOSIT) )
     config_setup(host_read_addr_switches());
   else
     config_setup(0);
+  */
+  
   cpu_setup();
   serial_setup();
   profile_setup();
@@ -972,7 +970,7 @@ void setup() {
   // with the Altair), everything is random.
   mem_ram_init(0, MEMSIZE - 1);
 
-  config_clear_memory();  // Stacy, confirm sets to memory bytes to zero.
+  // config_clear_memory();  // Stacy, confirm sets to memory bytes to zero.
   /*
     if ( !host_read_function_switch(SW_CLR) && !config_clear_memory() )
     {
@@ -998,6 +996,9 @@ void setup() {
     regPC = a;
     host_clr_status_led_WAIT();
   }
+  
+  // Stacy: Print host info.
+  host_system_info();
 }
 
 
@@ -1005,31 +1006,16 @@ void setup() {
 void loop()
 {
   byte opcode;
-
   // --------------------------------------------------------------------------------
-  // if we are NOT in WAIT mode then enter the main simulation loop
-  if ( !host_read_status_led_WAIT() )
-  {
+  // RUN mode, the main simulation loop
+  if ( !host_read_status_led_WAIT() ) {
     // clear all switch-related interrupts before starting loop
     altair_interrupts &= ~INT_SWITCH;
 
     // enable/disable profiling
     profile_enable(config_profiling_enabled());
 
-#if USE_THROTTLE>0
-    if ( config_throttle() < 0 )
-    {
-      timer_setup(TIMER_THROTTLE, 0, update_throttle);
-      timer_start(TIMER_THROTTLE, THROTTLE_TIMER_PERIOD, true);
-      throttle_delay  = (uint16_t) (10.0 * HOST_PERFORMANCE_FACTOR);
-      throttle_micros = micros();
-    }
-    else
-      throttle_delay = (uint16_t) (config_throttle() * HOST_PERFORMANCE_FACTOR);
-#endif
-
-    while ( true )
-    {
+    while ( true ) {
       // put PC on address bus LEDs
       host_set_addr_leds(regPC);
 
@@ -1037,11 +1023,9 @@ void loop()
       // on the host (e.g. serial input on Mega)
       host_check_interrupts();
 
-      if ( altair_interrupts )
-      {
+      if ( altair_interrupts ) {
         // interrupt detected
-        if ( altair_interrupts & INT_SWITCH )
-        {
+        if ( altair_interrupts & INT_SWITCH ) {
           // switch-related interrupt (simulation handling)
           p_regPC = ~regPC;
           switch_interrupt_handler();
@@ -1049,57 +1033,31 @@ void loop()
             break;    // exit simulation loop
           else
             continue; // start over
-        }
-        else
-        {
+        } else {
           // ALTAIR interrupt
           opcode = altair_interrupt_handler();
         }
       }
-      else
-      {
+      else {
         // no interrupt => read opcode, put it on data bus LEDs and advance PC
-#if USE_REAL_MREAD_TIMING>0
-        host_set_status_led_M1();
-        opcode = MEM_READ(regPC);
-#else
-        host_set_status_leds_READMEM_M1();
+        // See config.h performance notes: #if USE_REAL_MREAD_TIMING>0
+        host_set_status_leds_READMEM_M1();  // Performance slow down: host_set_status_led_M1(); See config.h: USE_REAL_MREAD_TIMING
         host_set_addr_leds(regPC);
         opcode = MREAD(regPC);
         host_set_data_leds(opcode);
-#endif
         regPC++;
         host_clr_status_led_M1();
       }
-
       // take a CPU step
       PROFILE_COUNT_OPCODE(opcode);
       CPU_EXEC(opcode);
-
-      // check for breakpoint hit
-      // breakpoint_check(regPC);
-
-#if USE_THROTTLE>0
-      // delay execution according to current delay
-      // (need the NOP, otherwise the compiler will optimize the loop away)
-      for (uint32_t i = 0; i < throttle_delay; i++) asm("NOP");
-#endif
     }
-
-#if USE_THROTTLE>0
-    timer_stop(TIMER_THROTTLE);
-#endif
-
-    // flush any characters stuck in the serial buffer
-    // (so we don't accidentally execute commands after stopping)
-    if ( config_serial_input_enabled() ) empty_input_buffer();
   }
 
   // --------------------------------------------------------------------------------
-  // Wait mode.
+  // WAIT mode.
 
-  if ( cswitch & BIT(SW_RESET) )
-  {
+  if ( cswitch & BIT(SW_RESET) ) {
     reset(true);
     read_inputs();
   }
@@ -1112,31 +1070,22 @@ void loop()
   // check for events that can't be handled by real interrupts
   // on the host (e.g. serial input on Mega)
   host_check_interrupts();
-
-  if ( altair_interrupts & INT_DEVICE )
-  {
+  if ( altair_interrupts & INT_DEVICE ) {
     opcode = altair_interrupt_handler();
-  }
-  else
-  {
+  } else {
     opcode = MEM_READ(regPC);
     regPC++;
   }
-
   host_clr_status_led_M1();
-  if ( !(cswitch & BIT(SW_RESET)) )
-  {
+  if ( !(cswitch & BIT(SW_RESET)) ) {
     PROFILE_COUNT_OPCODE(opcode);
     CPU_EXEC(opcode);
-
+    
     // if the PC has not changed (e.g. jump to the same address) then modify p_regPC
     // to force debugger display (otherwise there would be no feedback)
     if ( regPC == p_regPC ) p_regPC = ~regPC;
-
-#if STANDALONE>0
     // handle STOP interrupts generated by HLT opcodes in standalone mode
     if ( altair_interrupts & INT_SW_STOP ) switch_interrupt_handler();
-#endif
   }
 
   // --------------------------------------------------------------------------------

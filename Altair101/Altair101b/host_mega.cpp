@@ -16,52 +16,6 @@
 // along with this program; if not, write to the Free Software Foundation,
 // Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 // -----------------------------------------------------------------------------
-
-#ifdef __AVR_ATmega2560__
-
-#include <Arduino.h>
-#include "Altair8800.h"
-#include "config.h"
-#include "mem.h"
-#include "host_mega.h"
-
-
-#if NUM_DRIVES>0 || NUM_TDRIVES>0 || NUM_CDRIVES>0
-#error Arduino MEGA port does not support disk drives. Set NUM_DRIVES, NUM_TDRIVES and NUM_CDRIVES to 0 in config.h
-#endif
-
-#if NUM_HDSK_UNITS>0
-#error Arduino MEGA port does not support hard disks. Set NUM_HDSK_UNITS to 0 in config.h
-#endif
-
-#if USE_THROTTLE>0
-#error Throttling neither supported nor necessary for Arduino MEGA. Set USE_THROTTLE to 0 in config.h
-#endif
-
-#if USE_HOST_FILESYS>0
-#error Arduino MEGA does not supply a filesystem. Set USE_HOST_FILESYS to 0 in config.h
-#endif
-
-#if USE_PRINTER>0 && MEMSIZE>(4096+1024)
-#error Either set USE_PRINTER to 0 in config.h or reduce MEMSIZE in host_mega.h to 4096+1024, otherwise stability problems may occur
-#endif
-
-#if USE_DAZZLER>0
-#error Arduino MEGA does not support DAZZLER emulation
-#endif
-
-#if USE_VDM1>0
-#error Arduino MEGA does not support VDM-1 emulation
-#endif
-
-#if MAX_NUM_ROMS>1
-#error MAX_NUM_ROMS>1 is NOT recommended due to memory constraints. See comment in host_mega.h
-#endif
-
-#if USE_Z80==2
-#error Arduino MEGA does not support dynamic processor switching
-#endif
-
 /*
   Runs emulation at about 0.5 Mhz clock speed (about 1/4 speed of original Altair8800)
 
@@ -105,6 +59,18 @@
 
 */
 
+#ifdef __AVR_ATmega2560__
+
+#include <Arduino.h>
+#include "Altair8800.h"
+#include "config.h"
+#include "mem.h"
+#include "host_mega.h"
+
+
+#if MAX_NUM_ROMS>1
+#error MAX_NUM_ROMS>1 is NOT recommended due to memory constraints. See comment in host_mega.h
+#endif
 
 uint16_t host_read_status_leds()
 {
@@ -116,15 +82,11 @@ uint16_t host_read_status_leds()
   return res;
 }
 
-
 //------------------------------------------------------------------------------------------------------
-
-
 bool host_storage_init(bool write)
 {
   return true;
 }
-
 
 void host_storage_close()
 {}
@@ -136,29 +98,16 @@ void host_storage_invalidate()
 
 void host_storage_write(const void *data, uint32_t addr, uint32_t len)
 {
-  byte *b = (byte *) data;
-  for(uint32_t i=0; i<len; i++) EEPROM.write(addr+i, b[i]);
 }
 
 
 void host_storage_read(void *data, uint32_t addr, uint32_t len)
 {
-  byte *b = (byte *) data;
-  for(uint32_t i=0; i<len; i++) b[i] = EEPROM.read(addr+i);
 }
 
 
 void host_storage_move(uint32_t to, uint32_t from, uint32_t len)
 {
-  uint32_t i;
-  if( from<to )
-    {
-      for(i=0; i<len; i++) EEPROM.write(to+len-i-1, EEPROM.read(from+len-i-1));
-    }
-  else
-    {
-      for(i=0; i<len; i++) EEPROM.write(to+i, EEPROM.read(from+i));
-    }
 }
 
 
@@ -342,11 +291,7 @@ bool host_serial_port_baud_limits(byte i, uint32_t *min, uint32_t *max)
 
 bool host_serial_port_has_configs(byte i)
 {
-#if USE_SERIAL_CONFIGS>0
-  return i==0;
-#else
   return false;
-#endif
 }
 
 
