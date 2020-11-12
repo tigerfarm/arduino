@@ -1,6 +1,11 @@
 --------------------------------------------------------------------------------
 # Altair 8800 Simulator Software used in the Altair-Duino
 
+My goal is to use the Altair-Duino code to process machine byte code
+in my Altair 101 Processor.ino program.
+This will save me finishing the writing and testing of my byte code interpreter.
+And, I will know that the interpreter works properly for all the opcodes.
+
 Steps to use the code for running opcode instructions.
 
 Create a minimum code base to run machine code:
@@ -9,6 +14,9 @@ Create a minimum code base to run machine code:
 + 3. I found the documentation. I can interact with the Simulator over serial command line.
 + 4. I can enter and run simple programs. Load and run CPM?
 + 5. Remove programs not require to run a machine code programs, such as: dazzler.*, disassembler.*, and others.
+
+After the above, I chose to modify Altair101b to not use VT100 emulation
+but to simply output text to the serial port which works well in the Arduino IDE monitor.
 
 Modify the minimum code base to work with Altair 101:
 + 6. Manage Altair 101 memory size.
@@ -428,7 +436,7 @@ extern byte Mem[MEMSIZE];
 ````
 
 --------------------------------------------------------------------------------
-### 7. Convert to use Altair 101 memory array.
+### 7. Convert to use Altair 101 memory array: Read and Write.
 
 From Altair101b.ino
 ````
@@ -442,6 +450,7 @@ The Altair 8800 Simulator has memory protection in place which has a lot of code
 From mem.h
 ````
 extern byte Mem[MEMSIZE];
+
 #if MEMSIZE < 0x10000
 // if we have less than 64k of RAM then always map ROM basic to 0xC000-0xFFFF
 // Stacy: #define MREAD(a)    ((a)>=0xC000 ? prog_basic_read_16k(a) : ((a) < MEMSIZE ? Mem[a] : 0xFF))
@@ -469,6 +478,16 @@ void numsys_print_mem(uint16_t addr, byte num, bool printBrackets)
   for(i=0; i<num; i++)
     { numsys_print_byte(MREAD(addr+i)); if(i+1<num) Serial.print(' '); }
   if( printBrackets ) Serial.print(']'); 
+}
+````
+cpucore_i8080.cpp
+````
+void cpucore_i8080_print_registers() {
+  Serial.print(F("\r\n PC   = ")); numsys_print_word(regPC);
+  Serial.print(F(" = ")); numsys_print_mem(regPC, 3, true); 
+  Serial.print(F("\r\n SP   = ")); numsys_print_word(regSP);
+  Serial.print(F(" = ")); numsys_print_mem(regSP, 8, true); 
+...
 }
 ````
 
@@ -535,6 +554,8 @@ inline void MEM_WRITE_WORD(uint16_t addr, uint16_t v)
     }
 }
 ````
+
+##### Interesting Options
 
 config.h
 ````

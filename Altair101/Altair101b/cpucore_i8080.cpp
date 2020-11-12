@@ -21,7 +21,6 @@
 #include "timer.h"
 #include "mem.h"
 #include "numsys.h"
-// #include "disassembler.h"
 #include "Altair8800.h"
 
 #if USE_Z80 != 1
@@ -1296,18 +1295,14 @@ static void cpu_print_status_register(byte s)
   if( s & PS_CARRY )    Serial.print('C'); else Serial.print('.');
 }
 
-
-void cpucore_i8080_print_registers()
-{
-  Serial.print(F("\r\n PC   = "));   numsys_print_word(regPC);
+void cpucore_i8080_print_registers() {
+  Serial.print(F("\r\n PC   = ")); numsys_print_word(regPC);
   Serial.print(F(" = ")); numsys_print_mem(regPC, 3, true); 
-  // Serial.print(F(" = ")); disassemble(Mem, regPC, false);
   Serial.print(F("\r\n SP   = ")); numsys_print_word(regSP);
-  Serial.print(F(" = ")); numsys_print_mem(regSP, 8, true); 
+  Serial.print(F(" = ")); numsys_print_mem(regSP, 8, true);
   Serial.print(F("\r\n regA = ")); numsys_print_byte(regA);
   Serial.print(F(" regS = "));   numsys_print_byte(regS);
   Serial.print(F(" = ")); cpu_print_status_register(regS);
-  
   Serial.print(F("\r\n regB = ")); numsys_print_byte(regB);
   Serial.print(F(" regC = "));   numsys_print_byte(regC);
   Serial.print(F(" regD = "));   numsys_print_byte(regD);
@@ -1316,7 +1311,6 @@ void cpucore_i8080_print_registers()
   Serial.print(F(" regL = "));   numsys_print_byte(regL);
   Serial.println();
 }
-
 
 CPUFUN cpucore_i8080_opcodes[256] = {
   cpu_NOP,   cpu_LXIBC, cpu_STXBC, cpu_INXBC, cpu_INRB,  cpu_DCRB,  cpu_MVBI,  cpu_RLC,		// 000-007 (0x00-0x07)
