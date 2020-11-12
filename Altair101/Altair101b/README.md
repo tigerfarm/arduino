@@ -460,7 +460,19 @@ byte Mem[MEMSIZE];
 byte v = MREAD(a);
 ````
 
-cpucore_i8080.cpp
+numsys.cpp
+````
+void numsys_print_mem(uint16_t addr, byte num, bool printBrackets)
+{
+  byte i;
+  if( printBrackets ) Serial.print('['); 
+  for(i=0; i<num; i++)
+    { numsys_print_byte(MREAD(addr+i)); if(i+1<num) Serial.print(' '); }
+  if( printBrackets ) Serial.print(']'); 
+}
+````
+
+cpucore_i8080.cpp, note, also has stack read (POP) and writes.
 ````
 inline uint16_t MEM_READ_WORD(uint16_t addr)
 {
@@ -488,16 +500,66 @@ inline uint16_t MEM_READ_WORD(uint16_t addr)
     }
 }
 ````
-numsys.cpp
+cpucore_i8080.cpp, MEM_WRITE(addr, b), note, also has stack writes(PUSH).
 ````
-void numsys_print_mem(uint16_t addr, byte num, bool printBrackets)
+inline void MEM_WRITE_WORD(uint16_t addr, uint16_t v)
 {
-  byte i;
-  if( printBrackets ) Serial.print('['); 
-  for(i=0; i<num; i++)
-    { numsys_print_byte(MREAD(addr+i)); if(i+1<num) Serial.print(' '); }
-  if( printBrackets ) Serial.print(']'); 
+  if( host_read_status_led_WAIT() )
+    {
+      MEM_WRITE_STEP(addr, v & 255);
+      addr++;
+      MEM_WRITE_STEP(addr, v / 256);
+    }
+  else
+    {
+      byte b;
+#if SHOW_MWRITE_OUTPUT>0
+      b = v & 255;
+      MEM_WRITE(addr, b);
+      for(uint8_t i=0; i<5; i++) asm("NOP");
+      b = v / 256;
+      addr++;
+      MEM_WRITE(addr, b);
+#else
+      host_set_status_leds_WRITEMEM();
+      host_set_data_leds(0xff);
+      host_set_addr_leds(addr);
+      b = v & 255;
+      MWRITE(addr, b);
+      for(uint8_t i=0; i<5; i++) asm("NOP");
+      addr++;
+      host_set_addr_leds(addr);
+      b = v / 256;
+      MWRITE(addr, b);
+#endif
+    }
 }
+````
+
+config.h
+````
+// To improve performance, the MEMR LED handling is a bit lazy while a program is
+// running. Memory reads are by far the most common bus action and any tiny
+// bit of time that can be cut here makes a significant performance difference.
+// Setting USE_REAL_MREAD_TIMING to 1 will improve the accuracy of MREAD at the
+// cost of performace. Leaving this at 0 has virtually no visible consequences
+// apart from a slight difference in brightness of the MEMR LED while running.
+// Setting it to 1 significantly reduces performance.
+// Most users should keep this at 0
+#define USE_REAL_MREAD_TIMING 0
+
+// If enabled, the D0-7 LEDs will show values being output to the data bus
+// during memory write operations). This is different from the original
+// Altair behavior where the D0-7 LEDs were all on for write operations
+// because the LEDs are wired to the DIN bus lines which are floating during
+// CPU write). Additionally, enabling this makes sure that the "WO" LED will
+// go out (negative logic) AFTER the address and data buses have been set to
+// the proper values. It also changes timing of the "WO" LED similar to
+// the USE_REAL_MREAD_TIMING setting above.
+// Enable this if you want to connect external hardware that needs to see
+// data during memory write instructions or if you want to see the data
+// during writes and do not care that this behavior does not match the original.
+#define SHOW_MWRITE_OUTPUT 0
 ````
 
 --------------------------------------------------------------------------------
