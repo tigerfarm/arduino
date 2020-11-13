@@ -59,7 +59,7 @@ void printOctal(byte b) {
 void setup() {
   
   // Speed for serial read, which matches the sending program.
-  Serial.begin(9600);
+  Serial.begin(115200);   // 115200
   delay(1000);
   Serial.println(""); // Newline after garbage characters.
   Serial.println("+++ Setup.");
@@ -85,6 +85,9 @@ void loop() {
       Serial.println("");
     } else {
       Serial.write(readByte);
+      if (readByte == 'r') {
+        Serial.print("+ r: RUN");
+      }
     }
     /*  When displaying only binary data.
       Serial.print("++ Byte: ");

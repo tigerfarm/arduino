@@ -24,21 +24,21 @@
 #include "host.h"
 #include "mem.h"
 #include "serial.h"
-#include "printer.h"
 #include "profile.h"
-#include "breakpoint.h"
-#include "disassembler.h"
 #include "numsys.h"
-#include "filesys.h"
-#include "drive.h"
-#include "tdrive.h"
-#include "cdrive.h"
-#include "hdsk.h"
 #include "timer.h"
-#include "prog.h"
-#include "dazzler.h"
-#include "vdm1.h"
 #include "io.h"
+// #include "breakpoint.h"
+// #include "disassembler.h"
+// #include "filesys.h"
+// #include "drive.h"
+// #include "tdrive.h"
+// #include "cdrive.h"
+// #include "hdsk.h"
+// #include "printer.h"
+// #include "prog.h"
+// #include "dazzler.h"
+// #include "vdm1.h"
 
 #define BIT(n) (1<<(n))
 #define b2s numsys_byte2string
@@ -178,6 +178,7 @@ void process_inputs()
 
   if ( cswitch & BIT(SW_AUX1DOWN) )
   {
+    /* Stacy
     serial_acr_check_cload_timeout();
 
     if ( dswitch & 0x80 )
@@ -227,7 +228,8 @@ void process_inputs()
     else
     {
       // SW7 is down => load program
-      if ( prog_load(dswitch & 0xff, &regPC) )
+      // Stacy: if ( prog_load(dswitch & 0xff, &regPC) )
+      if ( false )
       {
         // program exists and is supposed to run immediately
         host_set_data_leds(MREAD(regPC));
@@ -241,9 +243,11 @@ void process_inputs()
         altair_set_outputs(regPC, MREAD(regPC));
       }
     }
+    */
   }
   else if ( cswitch & BIT(SW_AUX1UP) )
   {
+    /* Stacy
     if ( (cswitch & BIT(SW_STOP)) || host_read_function_switch_debounced(SW_STOP) )
     {
       // STOP is up => edit configuration
@@ -260,7 +264,6 @@ void process_inputs()
     }
     else
     {
-      // program shortcut
       byte p = config_aux1_program();
       if ( p < 0x40 )
       {
@@ -303,11 +306,14 @@ void process_inputs()
           process_inputs();
         }
       }
+      
     }
+    */
   }
 
   if ( cswitch & BIT(SW_AUX2DOWN) )
   {
+    /* Stacy
     if ( false )
     {}
 #if NUM_DRIVES>0
@@ -406,9 +412,11 @@ void process_inputs()
       else
         serial_replay_start(dev, (dswitch & 0x100) == 0, dswitch & 0xff);
     }
+    */
   }
   else if ( cswitch & BIT(SW_AUX2UP) )
   {
+    /* Stacy
     if ( false )
     {}
 #if NUM_DRIVES>0
@@ -463,6 +471,7 @@ void process_inputs()
       else
         serial_capture_start(dev, dswitch & 0xff);
     }
+    */
   }
 
   if ( cswitch & BIT(SW_RESET) )
@@ -473,12 +482,6 @@ void process_inputs()
   if ( cswitch & BIT(SW_CLR) )
   {
     serial_close_files();
-#if USE_DAZZLER>0
-    // turn off Dazzler and reset it
-    byte i = dazzler_get_iface();
-    dazzler_set_iface(0xff);
-    dazzler_set_iface(i);
-#endif
   }
 
   if ( cswitch & BIT(SW_RUN) )
@@ -777,312 +780,12 @@ void read_inputs_serial()
     else
       Serial.println();
   }
-  else if ( data == 's' )
-  {
-    Serial.print(F("\r\nCapture from "));
-    byte dev = read_device();
-    if ( dev < 0xff )
-    {
-      cswitch |= BIT(SW_AUX2UP);
-      dswitch = dev == 0x80 ? 0 : 0x8000 | (dev << 13);
-      if ( !serial_capture_running(dev) )
-      {
-        Serial.print(F(" File #: "));
-        if ( numsys_read_byte(&dev) )
-          dswitch |= dev;
-        else
-          cswitch = 0;
-      }
-    }
-    Serial.println();
-  }
-  else if ( data == 'l' )
-  {
-    Serial.print(F("\r\nReplay to "));
-    byte dev = read_device();
-    if ( dev < 0xff )
-    {
-      cswitch |= BIT(SW_AUX2DOWN);
-
-      // if the replay device is mapped to the primary host console
-      // then we must run immediately because otherwise the debugging
-      // console will consume the replayed characters
-      if ( dev == 0x80 || config_serial_map_sim_to_host(dev) == config_host_serial_primary() )
-        cswitch |= BIT(SW_RUN);
-
-      dswitch = dev == 0x80 ? 0 : 0x8000 | (dev << 13);
-      if ( !serial_replay_running(dev) )
-      {
-        char c;
-        Serial.print(F(" (e)xample/(f)ile: "));
-        do {
-          c = serial_read();
-        } while (c != 'e' && c != 'f');
-        if ( c == 'f' ) dswitch |= 0x100;
-        Serial.print(c);
-        Serial.print(c == 'f' ? F(" File #: ") : F(" Example #: "));
-        if ( numsys_read_byte(&dev) )
-          dswitch |= dev;
-        else
-          cswitch = 0;
-      }
-    }
-    Serial.println();
-  }
-#if NUM_DRIVES>0 || NUM_CDRIVES>0 || NUM_TDRIVES>0 || NUM_HDSK_UNITS>0
-  else if ( data == 'm' )
-  {
-    char c = 0;
-#if NUM_DRIVES==0 && NUM_TDRIVES==0 && NUM_CDRIVES==0
-    c = 'h';
-#elif NUM_DRIVES==0 && NUM_HDSK_UNITS==0 && NUM_CDRIVES==0
-    c = 't';
-#elif NUM_TDRIVES==0 && NUM_HDSK_UNITS==0 && NUM_CDRIVES==0
-    c = 'f';
-#elif NUM_DRIVES==0 && NUM_HDSK_UNITS==0 && NUM_TDRIVES==0
-    c = 'c';
-#else
-    Serial.print(F("\r\nMount "));
-#if NUM_DRIVES>0
-    Serial.print(F("(f)loppy "));
-#endif
-#if NUM_CDRIVES>0
-    Serial.print(F("(c)romemco floppy "));
-#endif
-#if NUM_TDRIVES>0
-    Serial.print(F("(t)arbell floppy "));
-#endif
-#if NUM_HDSK_UNITS>0
-    Serial.print(F("(h)ard disk "));
-#endif
-    Serial.print(F("? "));
-#endif
-    if ( c == 0 )
-    {
-      do {
-        c = serial_read();
-      } while (c != 'f' && c != 'F' && c != 'h' && c != 'H' && c != 't' && c != 'T' && c != 'c' && c != 'C' && c != 27);
-      if ( c != 27 ) {
-        Serial.print(c);
-        Serial.println(' ');
-      }
-    }
-
-    if ( c == 27 )
-      Serial.println();
-    else
-    {
-      bool ok = false;
-#if NUM_DRIVES>0
-      if ( (c == 'f' || c == 'F') )
-      {
-        byte b;
-        Serial.print(F("Floppy drive number (0-"));
-        Serial.print(NUM_DRIVES - 1);
-        Serial.print(F("): "));
-        if ( numsys_read_byte(&b) && b < NUM_DRIVES )
-        {
-          dswitch = 0x1000 | (b << 8);
-          ok = true;
-        }
-      }
-#endif
-#if NUM_CDRIVES>0
-      if ( (c == 'c' || c == 'C') )
-      {
-        byte b;
-        Serial.print(F("Cromemco floppy drive number (0-"));
-        Serial.print(NUM_CDRIVES - 1);
-        Serial.print(F("): "));
-        if ( numsys_read_byte(&b) && b < 4 )
-        {
-          dswitch = 0x7000 | (b << 8);
-          ok = true;
-        }
-      }
-#endif
-#if NUM_TDRIVES>0
-      if ( (c == 't' || c == 'T') )
-      {
-        byte b;
-        Serial.print(F("Tarbell floppy drive number (0-"));
-        Serial.print(NUM_TDRIVES - 1);
-        Serial.print(F("): "));
-        if ( numsys_read_byte(&b) && b < 4 )
-        {
-          dswitch = 0x5000 | (b << 8);
-          ok = true;
-        }
-      }
-#endif
-#if NUM_HDSK_UNITS>0
-      if ( (c == 'h' || c == 'H') )
-      {
-#if NUM_HDSK_UNITS==1
-        c = '1';
-#else
-        Serial.print(F("Hard disk unit number (1-"));
-        Serial.print(NUM_HDSK_UNITS);
-        Serial.print(F("): "));
-        do {
-          c = serial_read();
-        } while ( (c < '1' || c > '0' + NUM_HDSK_UNITS) && c != 27);
-        if ( c != 27 ) {
-          Serial.print(c);
-          Serial.print(' ');
-        }
-#endif
-        if ( c != 27 )
-        {
-          dswitch = 0x3000 | ((c - '1') << 10);
-
-          Serial.print(F("Platter number (0-3): "));
-          do {
-            c = serial_read();
-          } while ( (c < '0' || c > '3') && c != 27);
-          if ( c != 27 )
-          {
-            Serial.print(c);
-            dswitch |= (c - '0') << 8;
-            ok = true;
-          }
-        }
-      }
-#endif
-
-      if ( ok )
-      {
-        byte b;
-        Serial.print(F(" Image number: "));
-        if ( numsys_read_byte(&b) )
-        {
-          dswitch |= b;
-          cswitch |= BIT(SW_AUX2DOWN);
-        }
-        else
-          dswitch = 0;
-      }
-      else
-        dswitch = 0;
-
-      Serial.println();
-    }
-  }
-#endif
-  else if ( data == 'Q' )
-    cswitch |= BIT(SW_PROTECT);
-  else if ( data == 'q' )
-    cswitch |= BIT(SW_UNPROTECT);
-  else if ( data == 'D' )
-  {
-    bool go;
-    uint16_t addr;
-    Serial.print(F("Start address: "));
-    go = numsys_read_word(&addr);
-    Serial.println();
-    while ( go )
-    {
-      numsys_print_word(addr);
-      Serial.print(F(": "));
-      addr += disassemble(Mem, addr, true);
-      Serial.println();
-      while ( !serial_available() ) delay(100);
-      go = (serial_read() == 0x20);
-    }
-    p_regPC = ~regPC;
-    print_dbg_info();
-  }
-  else if ( data == 'M' )
-  {
-    bool go;
-    uint16_t addr;
-    Serial.print(F("Start address: "));
-    go = numsys_read_word(&addr);
-    Serial.println();
-    while ( go )
-    {
-      numsys_print_word(addr);
-      Serial.print(F(": "));
-      numsys_print_mem(addr, 8, false);
-      Serial.print(F("  "));
-      numsys_print_mem(addr + 8, 8, false);
-      Serial.print(F("   "));
-      for (int i = 0; i < 16; i++)
-      {
-        if (i == 8) Serial.print(' ');
-        Serial.write(MREAD(addr + i) < 32 || MREAD(addr + i) > 126 ? '.' : MREAD(addr + i));
-      }
-      Serial.println();
-      while ( !serial_available() ) delay(100);
-      addr += 16;
-      go = (serial_read() == 0x20);
-    }
-    p_regPC = ~regPC;
-    print_dbg_info();
-  }
-  else if ( data == 'H' )
-  {
-    dswitch = 0x40;
-    cswitch = BIT(SW_AUX1DOWN);
-  }
-  else if ( data == 'h' )
-  {
-    uint16_t start, end;
-    Serial.print(F("Start address: "));
-    if ( numsys_read_word(&start) )
-    {
-      Serial.print(F("\r\nEnd address: "));
-      if ( numsys_read_word(&end) )
-      {
-        Serial.println();
-        altair_dump_intel_hex(start, end);
-      }
-    }
-    Serial.println();
-    p_regPC = ~regPC;
-    print_dbg_info();
-  }
-  else if ( data == 'L' )
-  {
-    read_data();
-    empty_input_buffer();
-    p_regPC = ~regPC;
-    print_dbg_info();
-  }
   else if ( data == 'n' )
   {
     numsys_toggle();
     p_regPC = ~regPC;
     print_dbg_info();
   }
-  else if ( data == 'Y' )
-    mem_print_layout();
-  else if ( data == 'C' )
-  {
-    cswitch = BIT(SW_STOP) | BIT(SW_AUX1UP);
-  }
-#if MAX_BREAKPOINTS>0
-  else if ( data == 'B' || data == 'V' )
-  {
-    if ( data == 'B' )
-    {
-      if ( numBreakpoints < MAX_BREAKPOINTS )
-      {
-        uint16_t a;
-        Serial.print(F("\r\nAdd breakpoint at: "));
-        if ( numsys_read_word(&a) ) breakpoint_add(a);
-      }
-      else
-        Serial.print(F("\r\nToo many breakpoints!"));
-    }
-    else if ( numBreakpoints > 0 )
-      breakpoint_remove_last();
-
-    Serial.print(F("\r\nBreakpoints at: "));
-    breakpoint_print();
-    Serial.println('\n');
-  }
-#endif
 }
 
 
@@ -1234,8 +937,8 @@ void reset(bool resetPC)
 
   altair_interrupts     = 0;
   altair_interrupts_buf = 0;
-  tdrive_reset();
-  cdrive_reset();
+  // tdrive_reset();
+  // cdrive_reset();
 }
 
 
@@ -1630,7 +1333,7 @@ void setup()
   cswitch = 0;
   dswitch = 0;
 
-  drive_get_image_filename(0x99, true);
+  // drive_get_image_filename(0x99, true);
 
   Serial.begin(115200);
 
@@ -1638,11 +1341,6 @@ void setup()
   mem_setup();
   io_setup();
   host_setup();
-  filesys_setup();
-  drive_setup();
-  tdrive_setup();
-  cdrive_setup();
-  hdsk_setup();
   if ( host_read_function_switch(SW_RESET) )
     config_setup(-1);
   else if ( host_read_function_switch(SW_DEPOSIT) )
@@ -1653,9 +1351,6 @@ void setup()
   serial_setup();
   profile_setup();
   rtc_setup();
-  printer_setup();
-  dazzler_setup();
-  vdm1_setup();
 
   altair_vi_register_ports();
   io_register_port_inp(0xff, altair_read_sense_switches);
@@ -1812,6 +1507,9 @@ void loop()
     if ( config_serial_input_enabled() ) empty_input_buffer();
   }
 
+  // --------------------------------------------------------------------------------
+  // WAIT mode.
+
   if ( cswitch & BIT(SW_RESET) )
   {
     reset(true);
@@ -1836,11 +1534,6 @@ void loop()
     opcode = MEM_READ(regPC);
     regPC++;
   }
-
-#if USE_Z80!=0
-  // when emulating Z80 we need to increment the R register at each instruction fetch
-  regRL++;
-#endif
 
   host_clr_status_led_M1();
   if ( !(cswitch & BIT(SW_RESET)) )

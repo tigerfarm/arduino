@@ -26,7 +26,7 @@
 #include "numsys.h"
 #include "timer.h"
 #include "io.h"
-#include "profile.h"
+// #include "profile.h"
 // #include "breakpoint.h"
 // #include "disassembler.h"
 // #include "filesys.h"
@@ -937,24 +937,13 @@ void setup() {
   dswitch = 0;
   Serial.begin(115200);
 
-  timer_setup();
+  // timer_setup();
   mem_setup();
   io_setup();
   host_setup();
-
-  config_setup(0);
-  /* Stacy
-  if ( host_read_function_switch(SW_RESET) )
-    config_setup(-1);
-  else if ( host_read_function_switch(SW_DEPOSIT) )
-    config_setup(host_read_addr_switches());
-  else
-    config_setup(0);
-  */
-  
+  config_setup(0);  
   cpu_setup();
   serial_setup();
-  profile_setup();
   rtc_setup();
 
   altair_vi_register_ports();
@@ -968,37 +957,11 @@ void setup() {
   // emulator extra: holding down CLR at powerup will keep all registers
   // and memory content initialized with 0. Otherwise (as would be normal
   // with the Altair), everything is random.
-  mem_ram_init(0, MEMSIZE - 1);
-
-  // config_clear_memory();  // Stacy, confirm sets to memory bytes to zero.
-  /*
-    if ( !host_read_function_switch(SW_CLR) && !config_clear_memory() )
-    {
-    regPC = host_get_random();
-    regSP = host_get_random();
-    regA  = host_get_random();
-    regS  = host_get_random() & (PS_CARRY | PS_PARITY | PS_HALFCARRY | PS_ZERO | PS_SIGN);
-    regB  = host_get_random();
-    regC  = host_get_random();
-    regD  = host_get_random();
-    regE  = host_get_random();
-    regH  = host_get_random();
-    regL  = host_get_random();
-    }
-  */
+  // mem_ram_init(0, MEMSIZE - 1);
 
   host_set_status_led_WAIT();
   reset(false);
-
-  uint16_t a = mem_get_rom_autostart_address();
-  if ( a != 0xFFFF )
-  {
-    regPC = a;
-    host_clr_status_led_WAIT();
-  }
-  
-  // Stacy: Print host info.
-  host_system_info();
+  host_system_info();  // Stacy: Print host info.
 }
 
 
@@ -1010,10 +973,10 @@ void loop()
   // RUN mode, the main simulation loop
   if ( !host_read_status_led_WAIT() ) {
     // clear all switch-related interrupts before starting loop
-    altair_interrupts &= ~INT_SWITCH;
+    // altair_interrupts &= ~INT_SWITCH;
 
     // enable/disable profiling
-    profile_enable(config_profiling_enabled());
+    // profile_enable(config_profiling_enabled());
 
     while ( true ) {
       // put PC on address bus LEDs
@@ -1040,8 +1003,7 @@ void loop()
       }
       else {
         // no interrupt => read opcode, put it on data bus LEDs and advance PC
-        // See config.h performance notes: #if USE_REAL_MREAD_TIMING>0
-        host_set_status_leds_READMEM_M1();  // Performance slow down: host_set_status_led_M1(); See config.h: USE_REAL_MREAD_TIMING
+        host_set_status_leds_READMEM_M1();
         host_set_addr_leds(regPC);
 
         opcode = MREAD(regPC);              // defined: mem.h. Used in:  mem.cpp, cpucore_i8080.cpp and numsys.cpp.
@@ -1051,7 +1013,7 @@ void loop()
         host_clr_status_led_M1();
       }
       // take a CPU step
-      PROFILE_COUNT_OPCODE(opcode);
+      // PROFILE_COUNT_OPCODE(opcode);
       CPU_EXEC(opcode);                     // defined: cpucore.h
     }
   }
@@ -1059,12 +1021,15 @@ void loop()
   // --------------------------------------------------------------------------------
   // WAIT mode.
 
+  Serial.print(F("\n+ WAIT mode\n"));
+  
   if ( cswitch & BIT(SW_RESET) ) {
+    Serial.print(F("\r\n+ cswitch & BIT(SW_RESET)\n"));
     reset(true);
     read_inputs();
   }
 
-  print_dbg_info();
+  // print_dbg_info();
   p_regPC = regPC;
 
   host_set_status_led_M1();
@@ -1080,7 +1045,8 @@ void loop()
   }
   host_clr_status_led_M1();
   if ( !(cswitch & BIT(SW_RESET)) ) {
-    PROFILE_COUNT_OPCODE(opcode);
+    Serial.print(F("\r\n+ !(cswitch & BIT(SW_RESET))\n"));
+    // PROFILE_COUNT_OPCODE(opcode);
     CPU_EXEC(opcode);
     
     // if the PC has not changed (e.g. jump to the same address) then modify p_regPC

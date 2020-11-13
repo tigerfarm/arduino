@@ -8,10 +8,8 @@
 
 #include "config.h"
 #include "host.h"
-#include "prog_basic.h"
-#include "breakpoint.h"
 #include "cpucore.h"
-#include "Altair8800.h"
+#include "Altair101a.h"
 
 extern byte Mem[MEMSIZE];
 extern word mem_protected_limit;
@@ -28,7 +26,8 @@ void mem_print_layout();
 
 #if MEMSIZE < 0x10000
 // if we have less than 64k of RAM then always map ROM basic to 0xC000-0xFFFF
-#define MREAD(a)    ((a)>=0xC000 ? prog_basic_read_16k(a) : ((a) < MEMSIZE ? Mem[a] : 0xFF))
+// Stacy: #define MREAD(a)    ((a)>=0xC000 ? prog_basic_read_16k(a) : ((a) < MEMSIZE ? Mem[a] : 0xFF))
+#define MREAD(a)    ((a)>=0xC000 ? 0xC000 : ((a) < MEMSIZE ? Mem[a] : 0xFF))
 #define MWRITE(a,v) {if( MEM_IS_WRITABLE(a) ) Mem[a]=v;}
 #else
 // If we have 64k of RAM then we just copy ROM basic to the upper 16k and write-protect
