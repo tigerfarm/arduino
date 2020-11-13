@@ -97,73 +97,73 @@ void print_panel_serial(bool force)
 
   // Even if n change, print anyway.
   // if ( force || p_cswitch != cswitch || p_dswitch != dswitch || p_abus != abus || p_dbus != dbus || p_status != status ) {
-    
-    Serial.print(F("INTE PROT MEMR INP M1 OUT HLTA STACK WO INT  D7  D6  D5  D4  D3  D2  D1  D0\r\n"));
 
-    if ( status & ST_INTE  ) Serial.print(F(" *  "));    else Serial.print(F(" .  "));
-    if ( status & ST_PROT  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
-    if ( status & ST_MEMR  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
-    if ( status & ST_INP   ) Serial.print(F("  * "));    else Serial.print(F("  . "));
-    if ( status & ST_M1    ) Serial.print(F(" * "));     else Serial.print(F(" . "));
-    if ( status & ST_OUT   ) Serial.print(F("  * "));    else Serial.print(F("  . "));
-    if ( status & ST_HLTA  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
-    if ( status & ST_STACK ) Serial.print(F("   *  "));  else Serial.print(F("   .  "));
-    if ( status & ST_WO    ) Serial.print(F(" * "));     else Serial.print(F(" . "));
-    if ( status & ST_INT   ) Serial.print(F("  *"));    else Serial.print(F("  ."));
+  Serial.print(F("INTE PROT MEMR INP M1 OUT HLTA STACK WO INT  D7  D6  D5  D4  D3  D2  D1  D0\r\n"));
 
-    if ( dbus & 0x80 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( dbus & 0x40 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( dbus & 0x20 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( dbus & 0x10 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( dbus & 0x08 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( dbus & 0x04 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( dbus & 0x02 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( dbus & 0x01 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-    Serial.print(("\r\nWAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8  A7  A6  A5  A4  A3  A2  A1  A0\r\n"));
-    if ( status & ST_WAIT ) Serial.print(F(" *  "));   else Serial.print(F(" .  "));
-    if ( status & ST_HLDA ) Serial.print(F("  *   ")); else Serial.print(F("  .   "));
-    if ( abus & 0x8000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( abus & 0x4000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( abus & 0x2000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( abus & 0x1000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( abus & 0x0800 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( abus & 0x0400 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( abus & 0x0200 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( abus & 0x0100 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( abus & 0x0080 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( abus & 0x0040 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( abus & 0x0020 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( abus & 0x0010 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( abus & 0x0008 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( abus & 0x0004 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( abus & 0x0002 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( abus & 0x0001 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    Serial.print(F("\r\n            S15 S14 S13 S12 S11 S10  S9  S8  S7  S6  S5  S4  S3  S2  S1  S0\r\n"));
-    Serial.print(F("          "));
-    if ( dswitch & 0x8000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( dswitch & 0x4000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( dswitch & 0x2000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( dswitch & 0x1000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( dswitch & 0x0800 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( dswitch & 0x0400 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( dswitch & 0x0200 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( dswitch & 0x0100 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( dswitch & 0x0080 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( dswitch & 0x0040 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( dswitch & 0x0020 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( dswitch & 0x0010 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( dswitch & 0x0008 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( dswitch & 0x0004 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( dswitch & 0x0002 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( dswitch & 0x0001 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    Serial.print(F("\r\n ------ \r\n"));
-    p_cswitch = cswitch;
-    p_dswitch = dswitch;
-    p_abus = abus;
-    p_dbus = dbus;
-    p_status = status;
+  if ( status & ST_INTE  ) Serial.print(F(" *  "));    else Serial.print(F(" .  "));
+  if ( status & ST_PROT  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
+  if ( status & ST_MEMR  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
+  if ( status & ST_INP   ) Serial.print(F("  * "));    else Serial.print(F("  . "));
+  if ( status & ST_M1    ) Serial.print(F(" * "));     else Serial.print(F(" . "));
+  if ( status & ST_OUT   ) Serial.print(F("  * "));    else Serial.print(F("  . "));
+  if ( status & ST_HLTA  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
+  if ( status & ST_STACK ) Serial.print(F("   *  "));  else Serial.print(F("   .  "));
+  if ( status & ST_WO    ) Serial.print(F(" * "));     else Serial.print(F(" . "));
+  if ( status & ST_INT   ) Serial.print(F("  *"));    else Serial.print(F("  ."));
+
+  if ( dbus & 0x80 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( dbus & 0x40 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( dbus & 0x20 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( dbus & 0x10 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( dbus & 0x08 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( dbus & 0x04 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( dbus & 0x02 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( dbus & 0x01 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+  Serial.print(("\r\nWAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8  A7  A6  A5  A4  A3  A2  A1  A0\r\n"));
+  if ( status & ST_WAIT ) Serial.print(F(" *  "));   else Serial.print(F(" .  "));
+  if ( status & ST_HLDA ) Serial.print(F("  *   ")); else Serial.print(F("  .   "));
+  if ( abus & 0x8000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( abus & 0x4000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( abus & 0x2000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( abus & 0x1000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( abus & 0x0800 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( abus & 0x0400 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( abus & 0x0200 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( abus & 0x0100 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( abus & 0x0080 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( abus & 0x0040 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( abus & 0x0020 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( abus & 0x0010 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( abus & 0x0008 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( abus & 0x0004 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( abus & 0x0002 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( abus & 0x0001 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  Serial.print(F("\r\n            S15 S14 S13 S12 S11 S10  S9  S8  S7  S6  S5  S4  S3  S2  S1  S0\r\n"));
+  Serial.print(F("          "));
+  if ( dswitch & 0x8000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  if ( dswitch & 0x4000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  if ( dswitch & 0x2000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  if ( dswitch & 0x1000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  if ( dswitch & 0x0800 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  if ( dswitch & 0x0400 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  if ( dswitch & 0x0200 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  if ( dswitch & 0x0100 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  if ( dswitch & 0x0080 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  if ( dswitch & 0x0040 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  if ( dswitch & 0x0020 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  if ( dswitch & 0x0010 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  if ( dswitch & 0x0008 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  if ( dswitch & 0x0004 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  if ( dswitch & 0x0002 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  if ( dswitch & 0x0001 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  Serial.print(F("\r\n ------ \r\n"));
+  p_cswitch = cswitch;
+  p_dswitch = dswitch;
+  p_abus = abus;
+  p_dbus = dbus;
+  p_status = status;
   // }
-    Serial.println("+ Send command.");
+  Serial.println("+ Send command.");
 }
 
 // -----------------------------------------------------------------------------
@@ -214,6 +214,7 @@ void loop() {
     memoryData[readByteCount];
     readByteCount++;
     //
+    // Set Address/Data toggles
     int data = readByte;
     if ( data >= '0' && data <= '9' ) {
       dswitch = dswitch ^ (1 << (data - '0'));
@@ -222,14 +223,8 @@ void loop() {
     else if ( data >= 'a' && data <= 'f' ) {
       dswitch = dswitch ^ (1 << (data - 'a' + 10));
       print_panel_serial();
-    } else if ( cswitch & BIT(SW_RESET) ) {
-      altair_wait_reset();
-    } else if ( cswitch & BIT(SW_RUN) ) {
-      if ( config_serial_debug_enabled() && config_serial_input_enabled() )
-        Serial.print(F("\r\n\n--- RUNNING (press ESC twice to stop) ---\r\n\n"));
-      host_clr_status_led_WAIT();
-      host_clr_status_led_PROT();
     } else {
+      // Process command switches. Tested: EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
       switch (readByte) {
         case 'x':
           regPC = dswitch;
@@ -264,9 +259,16 @@ void loop() {
           altair_set_outputs(regPC, MREAD(regPC));
           // print_panel_serial();
           break;
+        case 'R':
+          Serial.println("+ R, RESET.");
+          altair_wait_reset();
+          print_panel_serial();
+          break;
         case 'r':
           Serial.println("+ r, RUN.");
-          print_panel_serial();
+          host_clr_status_led_WAIT();
+          // Need to create a RUN function.
+          // print_panel_serial();
           break;
         case 'z':
           Serial.print("+ Print panel.");
@@ -308,6 +310,6 @@ void loop() {
       Serial.write(readByte);
     */
   }
-  delay(30); // Arduino sample code, doesn't use a delay.
+  // delay(30); // Arduino sample code, doesn't use a delay.
 }
 // -----------------------------------------------------------------------------
