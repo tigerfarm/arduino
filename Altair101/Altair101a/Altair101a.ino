@@ -6,6 +6,20 @@
 #include "Altair101a.h"
 #include "host_mega.h"
 #include "mem.h"
+#include "cpucore.h"
+#include "config.h"
+
+#define BIT(n) (1<<(n))
+
+// -----------------------------------------------------------------------------
+void print_panel_serial(bool force = false);
+
+uint16_t cswitch = 0;
+uint16_t dswitch = 0;
+
+static uint16_t p_regPC = 0xFFFF;
+
+word status_wait = false;
 
 // -----------------------------------------------------------------------------
 uint16_t host_read_status_leds()
@@ -19,11 +33,58 @@ uint16_t host_read_status_leds()
 }
 
 // -----------------------------------------------------------------------------
-void print_panel_serial(bool force = false);
+void altair_wait_reset()
+{
+  // prevent printing processor status now (will print after reset)
+  p_regPC = regPC;
+  // set bus/data LEDs on, status LEDs off
+  altair_set_outputs(0xffff, 0xff);
+  host_clr_status_led_INT();
+  host_set_status_led_WO();
+  host_clr_status_led_STACK();
+  host_clr_status_led_HLTA();
+  host_clr_status_led_OUT();
+  host_clr_status_led_M1();
+  host_clr_status_led_INP();
+  host_clr_status_led_MEMR();
+  host_clr_status_led_PROT();
+  altair_interrupt_disable();
 
-uint16_t cswitch = 0;
-uint16_t dswitch = 0;
+  // wait while RESET switch is held
+  // while ( host_read_function_switch_debounced(SW_RESET) );
 
+  // if in single-step mode we need to set a flag so we know
+  // to exit out of the currently executing instruction
+  if ( host_read_status_led_WAIT() ) cswitch |= BIT(SW_RESET);
+}
+
+void altair_set_outputs(uint16_t a, byte v)
+{
+  host_set_addr_leds(a);
+  host_set_data_leds(v);
+  if ( mem_is_protected(a) )
+    host_set_status_led_PROT();
+  else
+    host_clr_status_led_PROT();
+
+  if ( host_read_status_led_M1() ) print_dbg_info();
+  print_panel_serial();
+}
+
+void print_dbg_info()
+{
+  // if ( config_serial_debug_enabled() && host_read_status_led_WAIT() && regPC != p_regPC )
+  cpu_print_registers();
+}
+
+void altair_interrupt_disable()
+{
+  host_clr_status_led_INTE();
+  // altair_interrupts_enabled = false;
+  // altair_interrupts &= ~INT_DEVICE;
+}
+
+// -----------------------------------------------------------------------------
 void print_panel_serial(bool force)
 {
   byte dbus;
@@ -34,8 +95,9 @@ void print_panel_serial(bool force)
   abus   = host_read_addr_leds();
   dbus   = host_read_data_leds();
 
-  if ( force || p_cswitch != cswitch || p_dswitch != dswitch || p_abus != abus || p_dbus != dbus || p_status != status )
-  {
+  // Even if n change, print anyway.
+  // if ( force || p_cswitch != cswitch || p_dswitch != dswitch || p_abus != abus || p_dbus != dbus || p_status != status ) {
+    
     Serial.print(F("INTE PROT MEMR INP M1 OUT HLTA STACK WO INT  D7  D6  D5  D4  D3  D2  D1  D0\r\n"));
 
     if ( status & ST_INTE  ) Serial.print(F(" *  "));    else Serial.print(F(" .  "));
@@ -100,7 +162,8 @@ void print_panel_serial(bool force)
     p_abus = abus;
     p_dbus = dbus;
     p_status = status;
-  }
+  // }
+    Serial.println("+ Send command.");
 }
 
 // -----------------------------------------------------------------------------
@@ -125,16 +188,18 @@ void printOctal(byte b) {
 }
 
 // -----------------------------------------------------------------------------
+void checkWaitButtons() {
+}
+// -----------------------------------------------------------------------------
 void setup() {
 
   // Speed for serial read, which matches the sending program.
-  Serial.begin(115200);   // 115200
-  delay(1000);
+  Serial.begin(9600);   // 115200 19200
+  delay(2000);
   Serial.println(""); // Newline after garbage characters.
   Serial.println("+++ Setup.");
-  Serial.println("+ Ready for serial communications.");
-
-  Serial.println("+++ Go to loop.");
+  Serial.println("+++ Altair 101a initialized.");
+  print_panel_serial();
 }
 
 // -----------------------------------------------------------------------------
@@ -149,33 +214,88 @@ void loop() {
     memoryData[readByteCount];
     readByteCount++;
     //
-    switch (readByte) {
-      case 'r':
-        Serial.println("+ r: RUN.");
-        print_panel_serial();
-        break;
-      case '1':
-        Serial.println("+ 1: Toggle data switch 1.");
-        print_panel_serial();
-        break;
-      case '2':
-        Serial.println("+ 2: Toggle data switch 2.");
-        print_panel_serial();
-        break;
-      case '3':
-        Serial.println("+ 3: Toggle data switch 3.");
-        print_panel_serial();
-        break;
-      // -------------------------------------
-      case 10:
-        // Ignore new line character.
-        // Serial.println("");
-        break;
-      // -------------------------------------
-      default:
-        Serial.print("- Invalid character ignored: ");
-        Serial.write(readByte);
-        Serial.println("");
+    int data = readByte;
+    if ( data >= '0' && data <= '9' ) {
+      dswitch = dswitch ^ (1 << (data - '0'));
+      print_panel_serial();
+    }
+    else if ( data >= 'a' && data <= 'f' ) {
+      dswitch = dswitch ^ (1 << (data - 'a' + 10));
+      print_panel_serial();
+    } else if ( cswitch & BIT(SW_RESET) ) {
+      altair_wait_reset();
+    } else if ( cswitch & BIT(SW_RUN) ) {
+      if ( config_serial_debug_enabled() && config_serial_input_enabled() )
+        Serial.print(F("\r\n\n--- RUNNING (press ESC twice to stop) ---\r\n\n"));
+      host_clr_status_led_WAIT();
+      host_clr_status_led_PROT();
+    } else {
+      switch (readByte) {
+        case 'x':
+          regPC = dswitch;
+          Serial.print("+ x, EXAMINE: ");
+          Serial.println(regPC);
+          // cswitch |= BIT(SW_EXAMINE);
+          p_regPC = ~regPC;
+          altair_set_outputs(regPC, MREAD(regPC));
+          // print_panel_serial();
+          break;
+        case 'X':
+          regPC = regPC + 1;
+          Serial.print("+ x, EXAMINE NEXT: ");
+          Serial.println(regPC);
+          altair_set_outputs(regPC, MREAD(regPC));
+          // print_panel_serial();
+          break;
+        case 'p':
+          Serial.print("+ p, DEPOSIT to: ");
+          Serial.println(regPC);
+          // cswitch |= BIT(SW_DEPOSIT);
+          MWRITE(regPC, dswitch & 0xff);
+          altair_set_outputs(regPC, MREAD(regPC));
+          // print_panel_serial();
+          break;
+        case 'P':
+          regPC++;
+          Serial.print("+ P, DEPOSIT NEXT to: ");
+          Serial.println(regPC);
+          // cswitch |= BIT(SW_DEPNEXT);
+          MWRITE(regPC, dswitch & 0xff);
+          altair_set_outputs(regPC, MREAD(regPC));
+          // print_panel_serial();
+          break;
+        case 'r':
+          Serial.println("+ r, RUN.");
+          print_panel_serial();
+          break;
+        case 'z':
+          Serial.print("+ Print panel.");
+          print_panel_serial();
+          break;
+        // -------------------------------------
+        case '/':
+          Serial.print(F("\r\nSet Addr switches to: "));
+          // numsys_read_word(&dswitch);
+          Serial.println('\n');
+          break;
+        case 'i':
+          Serial.println("+ i: Information.");
+          // numsys_toggle();
+          // p_regPC = ~regPC;
+          // print_dbg_info();
+          // cpu_print_registers();
+          break;
+        // -------------------------------------
+        case 10:
+          // Ignore new line character.
+          // Serial.println("");
+          break;
+        // -------------------------------------
+        default:
+          Serial.print("- Invalid character ignored: ");
+          Serial.write(readByte);
+          Serial.println("");
+      }
     }
     /*  When displaying only binary data.
       Serial.print("++ Byte: ");
@@ -188,6 +308,6 @@ void loop() {
       Serial.write(readByte);
     */
   }
-  // delay(30); // Arduino sample code, doesn't use a delay.
+  delay(30); // Arduino sample code, doesn't use a delay.
 }
 // -----------------------------------------------------------------------------

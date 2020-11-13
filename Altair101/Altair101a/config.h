@@ -199,26 +199,4 @@ uint32_t config_host_serial_baud_rate(byte iface);
 uint32_t config_host_serial_config(byte iface);
 byte     config_host_serial_primary();
 
-#define  config_serial_map_sim_to_host(dev) config_serial_sim_to_host[dev]
-bool     config_serial_realtime(byte dev);
-uint32_t config_serial_playback_baud_rate(byte dev);
-byte     config_serial_playback_example_nuls(byte dev);
-byte     config_serial_backspace(byte dev, uint16_t PC);
-bool     config_serial_7bit(byte dev, uint16_t PC);
-bool     config_serial_ucase(byte dev, uint16_t PC);
-bool     config_serial_trap_CLOAD();
-byte     config_serial_siorev();
-
-byte     config_dazzler_interface();
-
-byte     config_vdm1_interface();
-uint16_t config_vdm1_address();
-byte     config_vdm1_dip();
-byte     config_vdm1_keyboard_device();
-
-byte        config_printer_type();
-byte        config_printer_map_to_host_serial();
-inline byte config_printer_realtime() { return (config_flags & CF_PRINTER_RT)!=0; }
-byte        config_printer_generic_get_status(bool busy);
-
 #endif
