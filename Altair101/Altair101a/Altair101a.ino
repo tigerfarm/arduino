@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------
 /*
   Serial Communications:
- */
+*/
 
 #include "Altair101a.h"
 #include "host_mega.h"
@@ -19,6 +19,7 @@ uint16_t host_read_status_leds()
 }
 
 // -----------------------------------------------------------------------------
+void print_panel_serial(bool force = false);
 
 uint16_t cswitch = 0;
 uint16_t dswitch = 0;
@@ -125,7 +126,7 @@ void printOctal(byte b) {
 
 // -----------------------------------------------------------------------------
 void setup() {
-  
+
   // Speed for serial read, which matches the sending program.
   Serial.begin(115200);   // 115200
   delay(1000);
@@ -148,14 +149,33 @@ void loop() {
     memoryData[readByteCount];
     readByteCount++;
     //
-    if (readByte == 10) {
-      // New line character.
-      Serial.println("");
-    } else {
-      Serial.write(readByte);
-      if (readByte == 'r') {
-        Serial.print("+ r: RUN");
-      }
+    switch (readByte) {
+      case 'r':
+        Serial.println("+ r: RUN.");
+        print_panel_serial();
+        break;
+      case '1':
+        Serial.println("+ 1: Toggle data switch 1.");
+        print_panel_serial();
+        break;
+      case '2':
+        Serial.println("+ 2: Toggle data switch 2.");
+        print_panel_serial();
+        break;
+      case '3':
+        Serial.println("+ 3: Toggle data switch 3.");
+        print_panel_serial();
+        break;
+      // -------------------------------------
+      case 10:
+        // Ignore new line character.
+        // Serial.println("");
+        break;
+      // -------------------------------------
+      default:
+        Serial.print("- Invalid character ignored: ");
+        Serial.write(readByte);
+        Serial.println("");
     }
     /*  When displaying only binary data.
       Serial.print("++ Byte: ");
