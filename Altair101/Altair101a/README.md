@@ -20,10 +20,12 @@ but to simply output text to the serial port which works well in the Arduino IDE
 
 Modify the minimum code base to work with Altair 101:
 + 6. Manage Altair 101 memory size.
-+ 7. Use Altair 101 memory array: read and write.
-+ 8. Run on the Altair 101 desktop machine.
-+ 9. Output to Altair 101 panel LED.
-+ 10. Input from Altair 101 panel switches.
++ 7. Starting with a simple Serial control program, Add Altair 880 Simulator functions.
+        Get memory manage to work (EXAMINE and DEPOSIT).
++ 8. Get a Program to Run and Add monitor/debug functions.
++ 9. Run on the Altair 101 desktop machine.
++ 10. Output to Altair 101 panel LED.
++ 11. Input from Altair 101 panel switches.
 
 ##### Links
 
@@ -436,7 +438,25 @@ extern byte Mem[MEMSIZE];
 ````
 
 --------------------------------------------------------------------------------
-### 7. Convert to use Altair 101 memory array: Read and Write.
+### 7. Starting with a simple Serial control program, Add Altair 880 Simulator functions.
+
+````
+Start with serialRead.ino.
+Add function to display the text version of the front panel: print_panel_serial().
+Create switch case statement to handle serial commands to toggle the address/data switches.
+Sending a serial character from 0-9 and a-f, toggles the address/data switches and are displayed.
+Create switch case statement to handle serial commands such as EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
+Add functionality to manage memory.
+````
+--------------------------------------------------------------------------------
+### 8. Get a Program to Run.
+````
+Add a serial command option to load a basic program into memory.
+Use EXAMINE and EXAMINE NEXT to view the program.
+Run the program.
+````
+--------------------------------------------------------------------------------
+### 8. Convert to use Altair 101 memory array: Read and Write.
 
 From Altair101b.ino
 ````

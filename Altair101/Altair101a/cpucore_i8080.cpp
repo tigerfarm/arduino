@@ -22,6 +22,7 @@
 #include "mem.h"
 #include "numsys.h"
 #include "Altair101a.h"
+#include "timer.h"
 
 #if USE_Z80 != 1
 
@@ -682,13 +683,13 @@ static void cpu_DCXSP()
 
 static void cpu_DI()
 {
-  altair_interrupt_disable();
+  // altair_interrupt_disable();
   TIMER_ADD_CYCLES(4);
 }
 
 static void cpu_EI()
 {
-  altair_interrupt_enable();
+  // altair_interrupt_enable();
   TIMER_ADD_CYCLES(4);
 }
 

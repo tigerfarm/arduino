@@ -12,7 +12,22 @@
 #define BIT(n) (1<<(n))
 
 // -----------------------------------------------------------------------------
+
+byte readByte = 0;
+
+// Program states
+#define LIGHTS_OFF 0
+#define PROGRAM_WAIT 1
+#define PROGRAM_RUN 2
+#define CLOCK_RUN 3
+#define PLAYER_RUN 4
+#define SERIAL_DOWNLOAD 5
+int programState = LIGHTS_OFF;  // Intial, default.
+
+// -----------------------------------------------------------------------------
 void print_panel_serial(bool force = false);
+
+byte opcode = 0xff;
 
 uint16_t cswitch = 0;
 uint16_t dswitch = 0;
@@ -48,7 +63,7 @@ void altair_wait_reset()
   host_clr_status_led_INP();
   host_clr_status_led_MEMR();
   host_clr_status_led_PROT();
-  altair_interrupt_disable();
+  // stacy altair_interrupt_disable();
 
   // wait while RESET switch is held
   // while ( host_read_function_switch_debounced(SW_RESET) );
@@ -71,6 +86,23 @@ void altair_set_outputs(uint16_t a, byte v)
   print_panel_serial();
 }
 
+bool altair_isreset()
+{
+  return (cswitch & BIT(SW_RESET)) == 0;
+}
+
+void altair_wait_step()
+{
+  cswitch &= BIT(SW_RESET); // clear everything but RESET status
+  while ( host_read_status_led_WAIT() && (cswitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 )
+  {
+    // read_inputs();
+    delay(10);
+  }
+
+  if ( cswitch & BIT(SW_SLOW) ) delay(500);
+}
+
 void print_dbg_info()
 {
   // if ( config_serial_debug_enabled() && host_read_status_led_WAIT() && regPC != p_regPC )
@@ -82,6 +114,85 @@ void altair_interrupt_disable()
   host_clr_status_led_INTE();
   // altair_interrupts_enabled = false;
   // altair_interrupts &= ~INT_DEVICE;
+}
+
+void altair_interrupt(uint32_t i, bool set)
+{
+  /*
+  if ( i & INT_DEVICE )
+  {
+    if ( set )
+      altair_interrupts_buf |=  (i & INT_DEVICE);
+    else
+      altair_interrupts_buf &= ~(i & INT_DEVICE);
+
+    if ( !altair_interrupts_enabled )
+      altair_interrupts &= ~INT_DEVICE;
+    else if ( config_have_vi() )
+      altair_vi_check_interrupt();
+    else
+      altair_interrupts = (altair_interrupts & ~INT_DEVICE) | (altair_interrupts_buf & config_interrupt_mask);
+  }
+
+  if ( i & INT_SWITCH )
+    altair_interrupts |= (i & INT_SWITCH);
+    */
+}
+
+// -----------------------------------------------------------------------------
+void altair_hlt()
+{
+  host_set_status_led_HLTA();
+  // in standalone mode it is hard to interact with the panel so for a HLT
+  // instruction we just stop the CPU to avoid confusion
+  regPC--;
+  altair_interrupt(INT_SW_STOP);
+}
+
+void altair_out(byte port, byte data)
+{
+  host_set_addr_leds(port | port * 256);
+  host_set_data_leds(data);
+  host_set_status_led_OUT();
+  host_set_status_led_WO();
+  // stacy io_out(port, data);
+  if ( host_read_status_led_WAIT() )
+  {
+    altair_set_outputs(port | port * 256, 0xff);
+    altair_wait_step();
+  }
+
+  host_clr_status_led_OUT();
+}
+
+byte altair_in(byte port)
+{
+  byte data = 0;
+  host_set_addr_leds(port | port * 256);
+  if ( host_read_status_led_WAIT() )
+  {
+    cswitch &= BIT(SW_RESET); // clear everything but RESET status
+    // keep reading input data while we are waiting
+    while ( host_read_status_led_WAIT() && (cswitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 )
+    {
+      host_set_status_led_INP();
+      // stacy data = io_inp(port);
+      altair_set_outputs(port | port * 256, data);
+      host_clr_status_led_INP();
+      // stacy read_inputs();
+      // advance simulation time (so timers can expire)
+      // stacy TIMER_ADD_CYCLES(50);
+    }
+    if ( cswitch & BIT(SW_SLOW) ) delay(500);
+  }
+  else
+  {
+    host_set_status_led_INP();
+    // stacy data = io_inp(port);
+    host_set_data_leds(data);
+    host_clr_status_led_INP();
+  }
+  return data;
 }
 
 // -----------------------------------------------------------------------------
@@ -163,7 +274,7 @@ void print_panel_serial(bool force)
   p_dbus = dbus;
   p_status = status;
   // }
-  Serial.println("+ Send command.");
+  Serial.println("+ Ready to receive command.");
 }
 
 // -----------------------------------------------------------------------------
@@ -191,6 +302,38 @@ void printOctal(byte b) {
 void checkWaitButtons() {
 }
 // -----------------------------------------------------------------------------
+void runProcessor() {
+  Serial.println(F("+ runProcessor()"));
+  //
+  // put PC on address bus LEDs
+  host_set_addr_leds(regPC);
+  //
+  programState = PROGRAM_RUN;
+  while (programState == PROGRAM_RUN) {
+    //
+    // processData();
+      host_set_status_leds_READMEM_M1();
+      host_set_addr_leds(regPC);
+      opcode = MREAD(regPC);
+      host_set_data_leds(opcode);
+      regPC++;
+      host_clr_status_led_M1();
+      CPU_EXEC(opcode);           // defined: cpucore.h
+    //
+    if (Serial.available() > 0) {
+      // Read and process an incoming byte.
+      readByte = Serial.read();
+      // Program control: STOP or RESET.
+      switch (readByte) {
+        case 's':
+          Serial.println(F("+ STOP"));
+          programState = PROGRAM_WAIT;
+          break;
+      }
+    }
+  }
+}
+// -----------------------------------------------------------------------------
 void setup() {
 
   // Speed for serial read, which matches the sending program.
@@ -204,7 +347,6 @@ void setup() {
 
 // -----------------------------------------------------------------------------
 // Device Loop
-byte readByte = 0;
 int readByteCount = 0;
 void loop() {
 
@@ -230,45 +372,63 @@ void loop() {
           regPC = dswitch;
           Serial.print("+ x, EXAMINE: ");
           Serial.println(regPC);
-          // cswitch |= BIT(SW_EXAMINE);
           p_regPC = ~regPC;
           altair_set_outputs(regPC, MREAD(regPC));
-          // print_panel_serial();
           break;
         case 'X':
           regPC = regPC + 1;
           Serial.print("+ x, EXAMINE NEXT: ");
           Serial.println(regPC);
           altair_set_outputs(regPC, MREAD(regPC));
-          // print_panel_serial();
           break;
         case 'p':
           Serial.print("+ p, DEPOSIT to: ");
           Serial.println(regPC);
-          // cswitch |= BIT(SW_DEPOSIT);
           MWRITE(regPC, dswitch & 0xff);
           altair_set_outputs(regPC, MREAD(regPC));
-          // print_panel_serial();
           break;
         case 'P':
           regPC++;
           Serial.print("+ P, DEPOSIT NEXT to: ");
           Serial.println(regPC);
-          // cswitch |= BIT(SW_DEPNEXT);
           MWRITE(regPC, dswitch & 0xff);
           altair_set_outputs(regPC, MREAD(regPC));
-          // print_panel_serial();
           break;
         case 'R':
           Serial.println("+ R, RESET.");
-          altair_wait_reset();
-          print_panel_serial();
+          // altair_wait_reset();
+          // For now, do EXAMINE 0 to reset to the first memory address.
+          regPC = 0;
+          p_regPC = ~regPC;
+          altair_set_outputs(regPC, MREAD(regPC));
+          break;
+        case 'l':
+          MWRITE(0, B00111110 & 0xff);
+          MWRITE(1, B00000110 & 0xff);
+          MWRITE(2, B00110010 & 0xff);
+          MWRITE(3, B01100000 & 0xff);
+          MWRITE(4, B00000000 & 0xff);
+          MWRITE(5, B01110110 & 0xff);
+          /*
+            Program listing:
+            Address(lb):databyte :hex:oct > description
+            00000000:   00111110 : 3E:076 > opcode: mvi a,6
+            00000001:   00000110 : 06:006 > immediate: 6 : 6
+            00000010:   00110010 : 32:062 > opcode: sta 96
+            00000011:   01100000 : 60:140 > lb: 96
+            00000100:   00000000 : 00:000 > hb: 0
+            00000101:   01110110 : 76:166 > opcode: hlt
+          */
+          Serial.println("+ l, loaded a basic program.");
+          // Do EXAMINE 0 after the load;
+          regPC = 0;
+          p_regPC = ~regPC;
+          altair_set_outputs(regPC, MREAD(regPC));
           break;
         case 'r':
           Serial.println("+ r, RUN.");
           host_clr_status_led_WAIT();
-          // Need to create a RUN function.
-          // print_panel_serial();
+          runProcessor();
           break;
         case 'z':
           Serial.print("+ Print panel.");
