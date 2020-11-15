@@ -20,7 +20,6 @@
 #include <Arduino.h>
 #include "numsys.h"
 #include "mem.h"
-// #include "serial.h"
 
 static byte numsys = NUMSYS_HEX;
 

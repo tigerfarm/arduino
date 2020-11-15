@@ -82,7 +82,9 @@ inline void host_set_addr_leds(uint16_t v) { PORTA=(v & 0xff); PORTC=(v / 256); 
 #define host_clr_status_led_OUT()     PORTB &= ~0x10
 #endif
 
+
 uint16_t host_read_status_leds();
+
 
 inline byte host_mega_read_switches(byte highlow)
 {

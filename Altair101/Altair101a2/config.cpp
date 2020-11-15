@@ -20,10 +20,8 @@
 #include "Altair101a.h"
 #include "config.h"
 #include "mem.h"
-// #include "serial.h"
-#include "numsys.h"
-#include "cpucore.h"
-// #include "io.h"
+// #include "cpucore.h"
+// #include "numsys.h"
 
 #define CONFIG_FILE_VERSION 10
 
@@ -33,7 +31,6 @@ uint32_t config_flags;
 uint32_t config_flags2;
 uint32_t config_serial_settings, new_config_serial_settings;
 
-
 // cofig_serial_settings2:
 // xxxxxxxB BPPSBBPP SBBPPSBB PPSBBPPS
 // for all 5 host interfaces:
@@ -41,7 +38,6 @@ uint32_t config_serial_settings, new_config_serial_settings;
 // PP = parity         (0=none, 1=even, 2=odd)
 // S  = stop bits      (0=1, 1=2)
 uint32_t config_serial_settings2, new_config_serial_settings2;
-
 
 // config_serial_device_settings[0-5]
 // xxxxxxxx xxxxMMMR TT77UUVV CNNNBBBB
@@ -62,67 +58,24 @@ byte config_serial_sim_to_host[NUM_SERIAL_DEVICES];
 // masks defining which interrupts (INT_*) are at which vector interrupt levels
 uint32_t config_interrupt_vi_mask[8];
 
-
 // mask defining whch interrupts (INT_*) are connected if VI board is not installed
 uint32_t config_interrupt_mask;
 
-
-// program to be run when AUX1 is raised
-byte config_aux1_prog;
-
-
 // amount of RAM installed
 uint32_t config_mem_size;
-
-// status bytes for generic printer emulation
-byte config_printer_generic_status_busy;
-byte config_printer_generic_status_ready;
-
 
 // --------------------------------------------------------------------------------
 
 
 static bool config_read_string(char *buf, byte bufsize)
 {
-  int l = 0;
-  /*
-  while( true )
-    {
-      int c = serial_read();
-      if( c>=32 && c<127 )
-        {
-          if( l < bufsize-1 ) { buf[l++] = c; Serial.write(c); }
-        }
-      else if( c==8 || c==127 )
-        {
-          if( l>0 )
-            {
-              l--;
-              Serial.print(F("\010 \010"));
-            }
-        }
-      else if( c==13 )
-        {
-          Serial.println();
-          buf[l]=0;
-          return true;
-        }
-      else if( c==27 )
-        {
-          Serial.println();
-          return false;
-        }
-    }
-*/
   return true;
 }
-
 
 inline uint32_t get_bits(uint32_t v, byte i, byte n)
 {
   return (v >> ((uint32_t) i)) & ((1ul<<n)-1);
 }
-
 
 inline uint32_t set_bits(uint32_t v, byte i, byte n, uint32_t nv)
 {
@@ -130,41 +83,10 @@ inline uint32_t set_bits(uint32_t v, byte i, byte n, uint32_t nv)
   return (v & ~mask) | ((nv << i) & mask);
 }
 
-
 static uint32_t toggle_bits(uint32_t v, byte i, byte n, byte min = 0x00, byte max = 0xff)
 {
   byte b = get_bits(v, i, n) + 1;
   return set_bits(v, i, n, b>max ? min : (b<min ? min : b));
-}
-
-
-static uint32_t toggle_vdm1_dip(uint32_t v, byte i, bool allowBoth)
-{
-  switch( get_bits(v, i, 2) )
-    {
-    case 0: return set_bits(v, i, 2, 2);
-    case 2: return set_bits(v, i, 2, 1);
-    case 1: return set_bits(v, i, 2, allowBoth ? 3 : 0);
-    case 3: return set_bits(v, i, 2, 0);
-    }
-
-  return v;
-}
-
-
-static byte config_baud_rate_bits(byte iface)
-{
-  byte n = 0;
-  switch( iface )
-    {
-    case 0: n = 0;  break;
-    case 1: n = 4;  break;
-    case 2: n = 12; break;
-    case 3: n = 16; break;
-    case 4: n = 20; break;
-    }
-
-  return n;
 }
 
 #if USE_THROTTLE>0
@@ -183,14 +105,7 @@ int config_throttle()
 }
 #endif
 
-byte config_aux1_program()
-{
-  return config_aux1_prog;
-}
-
-
 // --------------------------------------------------------------------------------
-
 
 static void set_cursor(byte row, byte col)
 {
@@ -201,7 +116,6 @@ static void set_cursor(byte row, byte col)
   Serial.print(F("H\033[K"));
 }
 
-
 static void print_cpu()
 {
   if( config_use_z80() )
@@ -209,7 +123,6 @@ static void print_cpu()
   else
     Serial.print(F("Intel 8080"));
 }
-
 
 static void print_mem_size(uint32_t s, byte row=0, byte col=0)
 {
@@ -226,7 +139,6 @@ static void print_mem_size(uint32_t s, byte row=0, byte col=0)
       Serial.print(F(" bytes"));
     }
 }
-
 
 static void print_flag(uint32_t data, uint32_t value, byte row=0, byte col=0)
 {
@@ -263,32 +175,19 @@ static void print_throttle(byte row = 0, byte col = 0)
   else            Serial.print(i);
 }
 
-
-
 // --------------------------------------------------------------------------------
-
 
 static bool save_config(byte fileno)
 {
-  bool res = false;
- 
-  return res;
+  return false;
 }
-
 
 static bool load_config(byte fileno)
 {
-  bool ok = false;
-  byte i, j, n, d, fid = 0;
-  // note: registered ports for drives are controlled by mount/unmount functions
-  altair_vi_register_ports();  
-  return ok;
+  return false;
 }
 
-
 // --------------------------------------------------------------------------------
-
-
 void config_defaults(bool apply)
 {
   byte i, j;
@@ -324,12 +223,10 @@ void config_defaults(bool apply)
 
 }
 
-
 byte config_get_current()
 {
   return config_current;
 }
-
 
 void config_setup(int n)
 {

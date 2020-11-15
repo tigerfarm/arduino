@@ -5,7 +5,9 @@
 
 #include "Altair101a.h"
 #include "host_mega.h"
-#include "cpucore_i8080.h"
+#include "mem.h"
+#include "cpucore.h"
+#include "config.h"
 
 #define BIT(n) (1<<(n))
 
@@ -75,7 +77,11 @@ void altair_set_outputs(uint16_t a, byte v)
 {
   host_set_addr_leds(a);
   host_set_data_leds(v);
-  host_clr_status_led_PROT();
+  if ( mem_is_protected(a) )
+    host_set_status_led_PROT();
+  else
+    host_clr_status_led_PROT();
+
   if ( host_read_status_led_M1() ) print_dbg_info();
   print_panel_serial();
 }
@@ -253,6 +259,27 @@ void print_panel_serial(bool force)
 }
 
 // -----------------------------------------------------------------------------
+// Memory definitions
+
+const int memoryBytes = 1024;  // When using Mega: 1024, for Nano: 256
+byte memoryData[memoryBytes];
+unsigned int programCounter = 0;     // Program address value
+
+// -----------------------------------------------------------------------------
+void printByte(byte b) {
+  for (int i = 7; i >= 0; i--)
+    Serial.print(bitRead(b, i));
+}
+
+void printOctal(byte b) {
+  String sOctal = String(b, OCT);
+  for (int i = 1; i <= 3 - sOctal.length(); i++) {
+    Serial.print("0");
+  }
+  Serial.print(sOctal);
+}
+
+// -----------------------------------------------------------------------------
 void checkWaitButtons() {
 }
 void processData() {
@@ -273,7 +300,7 @@ void runProcessor() {
   processData();
   programState = PROGRAM_RUN;
   while (programState == PROGRAM_RUN) {
-    processData();
+    // processData();
     if (Serial.available() > 0) {
       // For now, require a serial character between instructions.
       // Read and process an incoming byte.
@@ -308,6 +335,7 @@ void loop() {
   if (Serial.available() > 0) {
     // Read and process an incoming byte.
     readByte = Serial.read();
+    memoryData[readByteCount];
     readByteCount++;
     //
     // Set Address/Data toggles
@@ -385,7 +413,7 @@ void loop() {
           runProcessor();
           break;
         case 'z':
-          Serial.println("+ Print panel.");
+          Serial.print("+ Print panel.");
           print_panel_serial();
           break;
         // -------------------------------------
@@ -413,6 +441,16 @@ void loop() {
           Serial.println("");
       }
     }
+    /*  When displaying only binary data.
+      Serial.print("++ Byte: ");
+      printByte(readByte);
+      Serial.print(" = ");
+      printOctal(readByte);
+      Serial.print(" = ");
+      Serial.print(readByte, DEC);
+      Serial.print(", Character: ");
+      Serial.write(readByte);
+    */
   }
   // delay(30); // Arduino sample code, doesn't use a delay.
 }
