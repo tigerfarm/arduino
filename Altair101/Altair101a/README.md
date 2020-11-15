@@ -464,8 +464,12 @@ Run one opcode at a time, with a serial input requirement between instructions.
 ````
 --------------------------------------------------------------------------------
 ### 9. Consolidate the program files (*.h and *.cpp).
-
-
-
+````
+Altair101a.h
+Altair101a.ino
+cpucore_i8080.cpp
+cpucore_i8080.h         Clear extern and duplicate definitions
+host_mega.h
+````
 --------------------------------------------------------------------------------
 Cheers
