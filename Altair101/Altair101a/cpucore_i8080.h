@@ -3,12 +3,11 @@
 // Copyright (C) 2017 David Hansel
 // -----------------------------------------------------------------------------
 
+#include <Arduino.h>
 #include "Altair101a.h"
 
 #ifndef CPUCORE_I8080_H
 #define CPUCORE_I8080_H
-
-#include <Arduino.h>
 
 // extern CPUFUN cpucore_i8080_opcodes[256];
 void cpucore_i8080_print_registers();
@@ -21,8 +20,6 @@ void cpucore_i8080_print_registers();
 
 #ifndef HOST_H
 #define HOST_H
-
-#include <Arduino.h>
 
 #if defined(__AVR_ATmega2560__)
 #include "host_mega.h"
@@ -175,8 +172,6 @@ void host_setup();
 
 // ------------------------------------------------------------------------------
 
-#include "Arduino.h"
-
 #define CF_THROTTLE     0x01
 #define CF_PROFILE      0x02
 #define CF_SERIAL_PANEL 0x04
@@ -253,8 +248,6 @@ byte     config_host_serial_primary();
 
 #ifndef CPUCORE_H
 #define CPUCORE_H
-
-#include <Arduino.h>
 
 #define PS_CARRY       0x01
 #define PS_PARITY      0x04
