@@ -223,9 +223,6 @@ void print_panel_serial(bool force)
   Serial.println("+ Ready to receive command.");
 }
 
-// -----------------------------------------------------------------------------
-void checkWaitButtons() {
-}
 void processData() {
   host_set_status_leds_READMEM_M1();
   host_set_addr_leds(regPC);
@@ -235,6 +232,7 @@ void processData() {
   host_clr_status_led_M1();
   CPU_EXEC(opcode);           // defined: cpucore.h
 }
+
 // -----------------------------------------------------------------------------
 void runProcessor() {
   Serial.println(F("+ runProcessor()"));
@@ -271,6 +269,29 @@ void runProcessor() {
 }
 
 // -----------------------------------------------------------------------------
+void checkWaitButtons() {
+}
+void runProcessorWait() {
+  Serial.println(F("+ runProcessorWait()"));
+  // Intialize front panel lights.
+  // programLights(); // Likely done in processData().
+  while (programState == PROGRAM_WAIT) {
+    // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
+    /*
+    if (pcfControlinterrupted) {
+      checkControlButtons();
+      pcfControlinterrupted = false; // Reset for next interrupt.
+    }
+    checkAux1();          // Toggle between processor, clock, and player modes.
+    checkUploadSwitch();
+    checkDownloadSwitch();
+    checkProtectSetVolume();
+    */
+    delay(60);
+  }
+}
+
+// -----------------------------------------------------------------------------
 void setup() {
   // Speed for serial read, which matches the sending program.
   Serial.begin(9600);   // 115200 19200
@@ -295,11 +316,9 @@ void loop() {
       break;
     // ----------------------------
   }
-
   if (Serial.available() > 0) {
     // Read and process an incoming byte.
     readByte = Serial.read();
-    readByteCount++;
     //
     // Set Address/Data toggles
     int data = readByte;
