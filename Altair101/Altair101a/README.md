@@ -472,4 +472,18 @@ cpucore_i8080.h         Clear extern and duplicate definitions
 host_mega.h
 ````
 --------------------------------------------------------------------------------
+### 10. Prepare the program files to be used in Processor.ino.
+
+Confirm front panel LED functions.
+
+Confirm front panel switch and toggle functions.
+
+````
+Altair101a.h
+Altair101a.ino
+cpucore_i8080.cpp
+cpucore_i8080.h         Clear extern and duplicate definitions
+host_mega.h
+````
+--------------------------------------------------------------------------------
 Cheers

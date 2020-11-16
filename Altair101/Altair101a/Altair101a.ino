@@ -20,19 +20,18 @@ byte readByte = 0;
 #define CLOCK_RUN 3
 #define PLAYER_RUN 4
 #define SERIAL_DOWNLOAD 5
+
 int programState = LIGHTS_OFF;  // Intial, default.
 
 // -----------------------------------------------------------------------------
 void print_panel_serial(bool force = false);
 
 byte opcode = 0xff;
-
-uint16_t cswitch = 0;
-uint16_t dswitch = 0;
+word status_wait = false;
 
 static uint16_t p_regPC = 0xFFFF;
-
-word status_wait = false;
+uint16_t cswitch = 0;
+uint16_t dswitch = 0;
 
 // -----------------------------------------------------------------------------
 uint16_t host_read_status_leds()
@@ -46,82 +45,13 @@ uint16_t host_read_status_leds()
 }
 
 // -----------------------------------------------------------------------------
-void altair_wait_reset()
-{
-  // prevent printing processor status now (will print after reset)
-  p_regPC = regPC;
-  // set bus/data LEDs on, status LEDs off
-  altair_set_outputs(0xffff, 0xff);
-  host_clr_status_led_INT();
-  host_set_status_led_WO();
-  host_clr_status_led_STACK();
-  host_clr_status_led_HLTA();
-  host_clr_status_led_OUT();
-  host_clr_status_led_M1();
-  host_clr_status_led_INP();
-  host_clr_status_led_MEMR();
-  host_clr_status_led_PROT();
-  // stacy altair_interrupt_disable();
-
-  // wait while RESET switch is held
-  // while ( host_read_function_switch_debounced(SW_RESET) );
-
-  // if in single-step mode we need to set a flag so we know
-  // to exit out of the currently executing instruction
-  if ( host_read_status_led_WAIT() ) cswitch |= BIT(SW_RESET);
-}
-
 void altair_set_outputs(uint16_t a, byte v)
 {
   host_set_addr_leds(a);
   host_set_data_leds(v);
-  host_clr_status_led_PROT();
+  // host_clr_status_led_PROT();
   if ( host_read_status_led_M1() ) print_dbg_info();
   print_panel_serial();
-}
-
-bool altair_isreset()
-{
-  return (cswitch & BIT(SW_RESET)) == 0;
-}
-
-void altair_wait_step()
-{
-  cswitch &= BIT(SW_RESET); // clear everything but RESET status
-  while ( host_read_status_led_WAIT() && (cswitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 )
-  {
-    // read_inputs();
-    delay(10);
-  }
-
-  if ( cswitch & BIT(SW_SLOW) ) delay(500);
-}
-
-void print_dbg_info()
-{
-  // if ( config_serial_debug_enabled() && host_read_status_led_WAIT() && regPC != p_regPC )
-  cpu_print_registers();
-}
-
-void altair_interrupt_disable()
-{
-  host_clr_status_led_INTE();
-  // altair_interrupts_enabled = false;
-  // altair_interrupts &= ~INT_DEVICE;
-}
-
-void altair_interrupt(uint32_t i, bool set)
-{
-}
-
-// -----------------------------------------------------------------------------
-void altair_hlt()
-{
-  host_set_status_led_HLTA();
-  // in standalone mode it is hard to interact with the panel so for a HLT
-  // instruction we just stop the CPU to avoid confusion
-  regPC--;
-  altair_interrupt(INT_SW_STOP);
 }
 
 void altair_out(byte port, byte data)
@@ -140,16 +70,19 @@ void altair_out(byte port, byte data)
   host_clr_status_led_OUT();
 }
 
-byte altair_in(byte port)
-{
+void print_dbg_info() {
+  // if ( config_serial_debug_enabled() && host_read_status_led_WAIT() && regPC != p_regPC )
+  cpu_print_registers();
+}
+
+// -----------------------------------------------------------------------------
+byte altair_in(byte port) {
   byte data = 0;
   host_set_addr_leds(port | port * 256);
-  if ( host_read_status_led_WAIT() )
-  {
+  if ( host_read_status_led_WAIT() ) {
     cswitch &= BIT(SW_RESET); // clear everything but RESET status
     // keep reading input data while we are waiting
-    while ( host_read_status_led_WAIT() && (cswitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 )
-    {
+    while ( host_read_status_led_WAIT() && (cswitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 ) {
       host_set_status_led_INP();
       // stacy data = io_inp(port);
       altair_set_outputs(port | port * 256, data);
@@ -158,10 +91,9 @@ byte altair_in(byte port)
       // advance simulation time (so timers can expire)
       // stacy TIMER_ADD_CYCLES(50);
     }
-    if ( cswitch & BIT(SW_SLOW) ) delay(500);
+    // if ( cswitch & BIT(SW_SLOW) ) delay(500);
   }
-  else
-  {
+  else {
     host_set_status_led_INP();
     // stacy data = io_inp(port);
     host_set_data_leds(data);
@@ -170,6 +102,45 @@ byte altair_in(byte port)
   return data;
 }
 
+// -----------------------------------------------------------------------------
+void altair_wait_reset() {
+  // prevent printing processor status now (will print after reset)
+  p_regPC = regPC;
+  // set bus/data LEDs on, status LEDs off
+  altair_set_outputs(0xffff, 0xff);
+  host_clr_status_led_INT();
+  host_set_status_led_WO();
+  host_clr_status_led_STACK();
+  host_clr_status_led_HLTA();
+  host_clr_status_led_OUT();
+  host_clr_status_led_M1();
+  host_clr_status_led_INP();
+  host_clr_status_led_MEMR();
+  // host_clr_status_led_PROT();
+  // stacy altair_interrupt_disable();
+
+  // wait while RESET switch is held
+  // while ( host_read_function_switch_debounced(SW_RESET) );
+
+  // if in single-step mode we need to set a flag so we know
+  // to exit out of the currently executing instruction
+  if ( host_read_status_led_WAIT() ) cswitch |= BIT(SW_RESET);
+}
+
+bool altair_isreset() {
+  return (cswitch & BIT(SW_RESET)) == 0;
+}
+
+void altair_wait_step() {
+  cswitch &= BIT(SW_RESET); // clear everything but RESET status
+  while ( host_read_status_led_WAIT() && (cswitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 ) {
+    // read_inputs();
+    delay(10);
+  }
+  if ( cswitch & BIT(SW_SLOW) ) delay(500);
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void print_panel_serial(bool force)
 {
@@ -273,9 +244,12 @@ void runProcessor() {
   processData();
   programState = PROGRAM_RUN;
   while (programState == PROGRAM_RUN) {
-    processData();
     if (Serial.available() > 0) {
+      //
       // For now, require a serial character between instructions.
+      // processData();
+      //
+      // programState = PROGRAM_WAIT;
       // Read and process an incoming byte.
       readByte = Serial.read();
       // Program control: STOP or RESET.
@@ -284,13 +258,20 @@ void runProcessor() {
           Serial.println(F("+ STOP"));
           programState = PROGRAM_WAIT;
           break;
+        case 'r':
+          Serial.println(F("+ RESET"));
+          // Stacy need to implement.
+          break;
+        default:
+          // For now, require a serial character between instructions.
+          processData();
       }
     }
   }
 }
+
 // -----------------------------------------------------------------------------
 void setup() {
-
   // Speed for serial read, which matches the sending program.
   Serial.begin(9600);   // 115200 19200
   delay(2000);
@@ -302,8 +283,18 @@ void setup() {
 
 // -----------------------------------------------------------------------------
 // Device Loop
-int readByteCount = 0;
 void loop() {
+  switch (programState) {
+    // ----------------------------
+    case PROGRAM_RUN:
+      runProcessor();
+      break;
+    // ----------------------------
+    case PROGRAM_WAIT:
+      runProcessorWait();
+      break;
+    // ----------------------------
+  }
 
   if (Serial.available() > 0) {
     // Read and process an incoming byte.

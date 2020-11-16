@@ -62,15 +62,34 @@ extern bool have_ps2;
 byte altair_in(byte addr);
 void altair_out(byte addr, byte val);
 void altair_hlt();
-void altair_interrupt(uint32_t i, bool set = true);
-bool altair_interrupt_active(uint32_t i);
-void altair_interrupt_enable();
-void altair_interrupt_disable();
-bool altair_interrupt_enabled();
 bool altair_isreset();
 void altair_wait_step();
 void altair_set_outputs(uint16_t a, byte v);
 bool altair_read_intel_hex(uint16_t *start = NULL, uint16_t *end = NULL);
 void altair_vi_register_ports();
+
+// -----------------------------------------------------------------------------
+// From host_mega.h
+
+// Mega2650: 8k SRAM, use 6k for emulated RAM
+// NOTE: Using too much emulated RAM can cause stability issues when
+//       running the emulator. Modify settings in config.h and the MEMSIZE
+//       setting here to make sure Arduino IDE says (after compiling) that
+//       AT LEAST 310 bytes of RAM are left for local variables!
+//       If you run into weird emulation issues, consider (temporarily)
+//       using only 5K MEMSIZE here to see if that resolves the problem.
+// #define MEMSIZE (4096+2048)
+// #define MEMSIZE (1024)
+
+// #define host_read_addr_leds(v) (PORTA | (PORTC * 256))
+// #define host_set_data_leds(v)  PORTL=(v)
+// #define host_read_data_leds()  PORTL
+
+// -----------------------------------------------------------------------------
+// From mem.h
+
+// extern byte Mem[MEMSIZE];
+
+// #define MREAD(a)    (Mem[a])
 
 // -----------------------------------------------------------------------------

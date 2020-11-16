@@ -22,6 +22,37 @@
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+// Altair8800.ino
+
+void altair_interrupt(uint32_t i, bool set = true);
+bool altair_interrupt_active(uint32_t i);
+void altair_interrupt_enable();
+void altair_interrupt_disable();
+bool altair_interrupt_enabled();
+
+void altair_hlt()
+{
+  host_set_status_led_HLTA();
+  // in standalone mode it is hard to interact with the panel so for a HLT
+  // instruction we just stop the CPU to avoid confusion
+  regPC--;
+  altair_interrupt(INT_SW_STOP);
+}
+
+void altair_interrupt_disable()
+{
+  host_clr_status_led_INTE();
+  // altair_interrupts_enabled = false;
+  // altair_interrupts &= ~INT_DEVICE;
+}
+
+void altair_interrupt(uint32_t i, bool set)
+{
+}
+
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // config.cpp
 
 #define CONFIG_FILE_VERSION 10
@@ -2293,5 +2324,3 @@ CPUFUN cpucore_i8080_opcodes[256] = {
   cpu_RP,    cpu_POPAS, cpu_JP,    cpu_DI,    cpu_CP,    cpu_PSHAS, cpu_ORI,   cpu_RST30,	// 360-367 (0xF0-0xF7)
   cpu_RM,    cpu_SPHL,  cpu_JM,    cpu_EI,    cpu_CM,    cpu_CALL,  cpu_CPI,   cpu_RST38	// 370-377 (0xF8-0xFF)
 };
-
-// -----------------------------------------------------------------------------
