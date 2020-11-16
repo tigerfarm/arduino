@@ -4,7 +4,6 @@
 */
 
 #include "Altair101a.h"
-#include "host_mega.h"
 #include "cpucore_i8080.h"
 
 #define BIT(n) (1<<(n))
@@ -20,8 +19,28 @@ byte readByte = 0;
 #define CLOCK_RUN 3
 #define PLAYER_RUN 4
 #define SERIAL_DOWNLOAD 5
-
 int programState = LIGHTS_OFF;  // Intial, default.
+
+char charBuffer[17];
+
+void printByte(byte b) {
+  for (int i = 7; i >= 0; i--)
+    Serial.print(bitRead(b, i));
+}
+void printOctal(byte b) {
+  String sValue = String(b, OCT);
+  for (int i = 1; i <= 3 - sValue.length(); i++) {
+    Serial.print("0");
+  }
+  Serial.print(sValue);
+}
+void printData(byte theByte) {
+  sprintf(charBuffer, "%3d = ", theByte);
+  Serial.print(charBuffer);
+  printOctal(theByte);
+  Serial.print(F(" = "));
+  printByte(theByte);
+}
 
 // -----------------------------------------------------------------------------
 void print_panel_serial(bool force = false);
@@ -223,6 +242,17 @@ void print_panel_serial(bool force)
   Serial.println("+ Ready to receive command.");
 }
 
+// -----------------------------------------------------------------------------
+void altair_hlt() {
+  host_set_status_led_HLTA();
+  // in standalone mode it is hard to interact with the panel so for a HLT
+  // instruction we just stop the CPU to avoid confusion
+  regPC--;
+  // altair_interrupt(INT_SW_STOP);
+  programState = PROGRAM_WAIT;
+  print_panel_serial();
+}
+
 void processData() {
   host_set_status_leds_READMEM_M1();
   host_set_addr_leds(regPC);
@@ -233,60 +263,163 @@ void processData() {
   CPU_EXEC(opcode);           // defined: cpucore.h
 }
 
-// -----------------------------------------------------------------------------
-void runProcessor() {
-  Serial.println(F("+ runProcessor()"));
-  //
-  // put PC on address bus LEDs
-  host_set_addr_leds(regPC);
-  processData();
-  programState = PROGRAM_RUN;
-  while (programState == PROGRAM_RUN) {
-    if (Serial.available() > 0) {
-      //
+void processRunByte(byte readByte) {
+  switch (readByte) {
+    case 's':
+      Serial.println(F("+ STOP"));
+      programState = PROGRAM_WAIT;
+      break;
+    case 'r':
+      Serial.println(F("+ RESET"));
+      // Stacy need to implement.
+      break;
+      // default:
       // For now, require a serial character between instructions.
       // processData();
-      //
-      // programState = PROGRAM_WAIT;
-      // Read and process an incoming byte.
-      readByte = Serial.read();
-      // Program control: STOP or RESET.
-      switch (readByte) {
-        case 's':
-          Serial.println(F("+ STOP"));
-          programState = PROGRAM_WAIT;
-          break;
-        case 'r':
-          Serial.println(F("+ RESET"));
-          // Stacy need to implement.
-          break;
-        default:
-          // For now, require a serial character between instructions.
-          processData();
-      }
+  }
+}
+
+void runProcessor() {
+  Serial.println(F("+ runProcessor()"));
+  // put PC on address bus LEDs
+  host_set_addr_leds(regPC);
+  // Serial.println(F("+ Send serial character, example hit enter key, to process first opcode. Send 's' to STOP running."));
+  programState = PROGRAM_RUN;
+  while (programState == PROGRAM_RUN) {
+    Serial.print(F("++ regPC:"));
+    Serial.print(regPC);
+    Serial.print(F(": data:"));
+    printData(MREAD(regPC));
+    Serial.println("");
+    processData(); // For now, require an serial character to process each opcode.
+    if (Serial.available() > 0) {
+      readByte = Serial.read();    // Read and process an incoming byte.
+      processRunByte(readByte);
     }
   }
 }
 
 // -----------------------------------------------------------------------------
-void checkWaitButtons() {
+void processWaitByte(byte readByte) {
+  //
+  // Process an address/data toggle.
+  //
+  int data = readByte;
+  if ( data >= '0' && data <= '9' ) {
+    dswitch = dswitch ^ (1 << (data - '0'));
+    print_panel_serial();
+  }
+  else if ( data >= 'a' && data <= 'f' ) {
+    dswitch = dswitch ^ (1 << (data - 'a' + 10));
+    print_panel_serial();
+  } else {
+    //
+    // Process command switches. Tested: EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
+    //
+    switch (readByte) {
+      case 'x':
+        regPC = dswitch;
+        Serial.print("+ x, EXAMINE: ");
+        Serial.println(regPC);
+        p_regPC = ~regPC;
+        altair_set_outputs(regPC, MREAD(regPC));
+        break;
+      case 'X':
+        regPC = regPC + 1;
+        Serial.print("+ x, EXAMINE NEXT: ");
+        Serial.println(regPC);
+        altair_set_outputs(regPC, MREAD(regPC));
+        break;
+      case 'p':
+        Serial.print("+ p, DEPOSIT to: ");
+        Serial.println(regPC);
+        MWRITE(regPC, dswitch & 0xff);
+        altair_set_outputs(regPC, MREAD(regPC));
+        break;
+      case 'P':
+        regPC++;
+        Serial.print("+ P, DEPOSIT NEXT to: ");
+        Serial.println(regPC);
+        MWRITE(regPC, dswitch & 0xff);
+        altair_set_outputs(regPC, MREAD(regPC));
+        break;
+      case 'R':
+        Serial.println("+ R, RESET.");
+        // altair_wait_reset();
+        // For now, do EXAMINE 0 to reset to the first memory address.
+        regPC = 0;
+        p_regPC = ~regPC;
+        altair_set_outputs(regPC, MREAD(regPC));
+        break;
+      case 'l':
+        MWRITE(0, B00111110 & 0xff);
+        MWRITE(1, B00000110 & 0xff);
+        MWRITE(2, B00110010 & 0xff);
+        MWRITE(3, B01100000 & 0xff);
+        MWRITE(4, B00000000 & 0xff);
+        MWRITE(5, B01110110 & 0xff);
+        /*
+          Program listing:
+          Address(lb):databyte :hex:oct > description
+          00000000:   00111110 : 3E:076 > opcode: mvi a,6
+          00000001:   00000110 : 06:006 > immediate: 6 : 6
+          00000010:   00110010 : 32:062 > opcode: sta 96
+          00000011:   01100000 : 60:140 > lb: 96
+          00000100:   00000000 : 00:000 > hb: 0
+          00000101:   01110110 : 76:166 > opcode: hlt
+        */
+        Serial.println("+ l, loaded a simple program.");
+        // Do EXAMINE 0 after the load;
+        regPC = 0;
+        p_regPC = ~regPC;
+        altair_set_outputs(regPC, MREAD(regPC));
+        break;
+      case 'r':
+        Serial.println("+ r, RUN.");
+        host_clr_status_led_WAIT();
+        runProcessor();
+        break;
+      case 'z':
+        Serial.println("+ Print panel.");
+        print_panel_serial();
+        break;
+      // -------------------------------------
+      case '/':
+        Serial.print(F("\r\nSet Addr switches to: "));
+        // numsys_read_word(&dswitch);
+        Serial.println('\n');
+        break;
+      case 'i':
+        Serial.println("+ i: Information.");
+        // numsys_toggle();
+        // p_regPC = ~regPC;
+        // print_dbg_info();
+        // cpu_print_registers();
+        break;
+      // -------------------------------------
+      case 10:
+        // Ignore new line character.
+        // Serial.println("");
+        break;
+      // -------------------------------------
+      default:
+        Serial.print("- Invalid character ignored: ");
+        Serial.write(readByte);
+        Serial.println("");
+    }
+  }
 }
+
 void runProcessorWait() {
   Serial.println(F("+ runProcessorWait()"));
   // Intialize front panel lights.
   // programLights(); // Likely done in processData().
   while (programState == PROGRAM_WAIT) {
     // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
-    /*
-    if (pcfControlinterrupted) {
-      checkControlButtons();
-      pcfControlinterrupted = false; // Reset for next interrupt.
+    if (Serial.available() > 0) {
+      readByte = Serial.read();    // Read and process an incoming byte.
+      processWaitByte(readByte);
     }
-    checkAux1();          // Toggle between processor, clock, and player modes.
-    checkUploadSwitch();
-    checkDownloadSwitch();
-    checkProtectSetVolume();
-    */
     delay(60);
   }
 }
@@ -297,8 +430,12 @@ void setup() {
   Serial.begin(9600);   // 115200 19200
   delay(2000);
   Serial.println(""); // Newline after garbage characters.
+  //
   Serial.println("+++ Setup.");
   Serial.println("+++ Altair 101a initialized.");
+  //
+  programState = PROGRAM_WAIT;
+  host_read_status_led_WAIT();
   print_panel_serial();
 }
 
@@ -314,115 +451,7 @@ void loop() {
     case PROGRAM_WAIT:
       runProcessorWait();
       break;
-    // ----------------------------
-  }
-  if (Serial.available() > 0) {
-    // Read and process an incoming byte.
-    readByte = Serial.read();
-    //
-    // Set Address/Data toggles
-    int data = readByte;
-    if ( data >= '0' && data <= '9' ) {
-      dswitch = dswitch ^ (1 << (data - '0'));
-      print_panel_serial();
-    }
-    else if ( data >= 'a' && data <= 'f' ) {
-      dswitch = dswitch ^ (1 << (data - 'a' + 10));
-      print_panel_serial();
-    } else {
-      // Process command switches. Tested: EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
-      switch (readByte) {
-        case 'x':
-          regPC = dswitch;
-          Serial.print("+ x, EXAMINE: ");
-          Serial.println(regPC);
-          p_regPC = ~regPC;
-          altair_set_outputs(regPC, MREAD(regPC));
-          break;
-        case 'X':
-          regPC = regPC + 1;
-          Serial.print("+ x, EXAMINE NEXT: ");
-          Serial.println(regPC);
-          altair_set_outputs(regPC, MREAD(regPC));
-          break;
-        case 'p':
-          Serial.print("+ p, DEPOSIT to: ");
-          Serial.println(regPC);
-          MWRITE(regPC, dswitch & 0xff);
-          altair_set_outputs(regPC, MREAD(regPC));
-          break;
-        case 'P':
-          regPC++;
-          Serial.print("+ P, DEPOSIT NEXT to: ");
-          Serial.println(regPC);
-          MWRITE(regPC, dswitch & 0xff);
-          altair_set_outputs(regPC, MREAD(regPC));
-          break;
-        case 'R':
-          Serial.println("+ R, RESET.");
-          // altair_wait_reset();
-          // For now, do EXAMINE 0 to reset to the first memory address.
-          regPC = 0;
-          p_regPC = ~regPC;
-          altair_set_outputs(regPC, MREAD(regPC));
-          break;
-        case 'l':
-          MWRITE(0, B00111110 & 0xff);
-          MWRITE(1, B00000110 & 0xff);
-          MWRITE(2, B00110010 & 0xff);
-          MWRITE(3, B01100000 & 0xff);
-          MWRITE(4, B00000000 & 0xff);
-          MWRITE(5, B01110110 & 0xff);
-          /*
-            Program listing:
-            Address(lb):databyte :hex:oct > description
-            00000000:   00111110 : 3E:076 > opcode: mvi a,6
-            00000001:   00000110 : 06:006 > immediate: 6 : 6
-            00000010:   00110010 : 32:062 > opcode: sta 96
-            00000011:   01100000 : 60:140 > lb: 96
-            00000100:   00000000 : 00:000 > hb: 0
-            00000101:   01110110 : 76:166 > opcode: hlt
-          */
-          Serial.println("+ l, loaded a simple program.");
-          // Do EXAMINE 0 after the load;
-          regPC = 0;
-          p_regPC = ~regPC;
-          altair_set_outputs(regPC, MREAD(regPC));
-          break;
-        case 'r':
-          Serial.println("+ r, RUN.");
-          host_clr_status_led_WAIT();
-          runProcessor();
-          break;
-        case 'z':
-          Serial.println("+ Print panel.");
-          print_panel_serial();
-          break;
-        // -------------------------------------
-        case '/':
-          Serial.print(F("\r\nSet Addr switches to: "));
-          // numsys_read_word(&dswitch);
-          Serial.println('\n');
-          break;
-        case 'i':
-          Serial.println("+ i: Information.");
-          // numsys_toggle();
-          // p_regPC = ~regPC;
-          // print_dbg_info();
-          // cpu_print_registers();
-          break;
-        // -------------------------------------
-        case 10:
-          // Ignore new line character.
-          // Serial.println("");
-          break;
-        // -------------------------------------
-        default:
-          Serial.print("- Invalid character ignored: ");
-          Serial.write(readByte);
-          Serial.println("");
-      }
-    }
+      // ----------------------------
   }
   // delay(30); // Arduino sample code, doesn't use a delay.
 }

@@ -30,15 +30,6 @@ void altair_interrupt_enable();
 void altair_interrupt_disable();
 bool altair_interrupt_enabled();
 
-void altair_hlt()
-{
-  host_set_status_led_HLTA();
-  // in standalone mode it is hard to interact with the panel so for a HLT
-  // instruction we just stop the CPU to avoid confusion
-  regPC--;
-  altair_interrupt(INT_SW_STOP);
-}
-
 void altair_interrupt_disable()
 {
   host_clr_status_led_INTE();
