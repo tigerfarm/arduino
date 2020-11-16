@@ -9,6 +9,9 @@
 #define BIT(n) (1<<(n))
 
 // -----------------------------------------------------------------------------
+// From Porcessor.ino
+
+#define LOG_MESSAGES 1
 
 byte readByte = 0;
 
@@ -245,11 +248,10 @@ void print_panel_serial(bool force)
 // -----------------------------------------------------------------------------
 void altair_hlt() {
   host_set_status_led_HLTA();
-  // in standalone mode it is hard to interact with the panel so for a HLT
-  // instruction we just stop the CPU to avoid confusion
   regPC--;
   // altair_interrupt(INT_SW_STOP);
   programState = PROGRAM_WAIT;
+  Serial.println(F("++ HALT"));
   print_panel_serial();
 }
 
@@ -286,11 +288,13 @@ void runProcessor() {
   // Serial.println(F("+ Send serial character, example hit enter key, to process first opcode. Send 's' to STOP running."));
   programState = PROGRAM_RUN;
   while (programState == PROGRAM_RUN) {
+#ifdef LOG_MESSAGES
     Serial.print(F("++ regPC:"));
     Serial.print(regPC);
     Serial.print(F(": data:"));
     printData(MREAD(regPC));
     Serial.println("");
+#endif
     processData(); // For now, require an serial character to process each opcode.
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
@@ -435,6 +439,7 @@ void setup() {
   Serial.println("+++ Altair 101a initialized.");
   //
   programState = PROGRAM_WAIT;
+  status_wait = true;
   host_read_status_led_WAIT();
   print_panel_serial();
 }

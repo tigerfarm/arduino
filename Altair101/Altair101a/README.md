@@ -474,16 +474,19 @@ host_mega.h
 --------------------------------------------------------------------------------
 ### 10. Prepare the program files to be used in Processor.ino.
 
+````
+Use Processor.ino Loop flow.
+Initialize front panel status lights.
+Get SINGLE STEP to work.
 Confirm front panel LED functions.
-
 Confirm front panel switch and toggle functions.
-
+````
+File list:
 ````
 Altair101a.h
 Altair101a.ino
 cpucore_i8080.cpp
 cpucore_i8080.h         Clear extern and duplicate definitions
-host_mega.h
 ````
 --------------------------------------------------------------------------------
 Cheers

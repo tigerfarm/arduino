@@ -1024,19 +1024,15 @@ inline void setStatusBits(byte value)
   regS = b;
 }
 
-
-inline uint16_t MEM_READ_WORD(uint16_t addr)
-{
-  if( host_read_status_led_WAIT() )
-    {
+inline uint16_t MEM_READ_WORD(uint16_t addr) {
+  if( host_read_status_led_WAIT() ) {
       byte l, h;
       l = MEM_READ_STEP(addr);
       addr++;
       h = MEM_READ_STEP(addr);
       return l | (h * 256);
     }
-  else
-    {
+  else {
       byte l, h;
       host_set_status_leds_READMEM();
       host_set_addr_leds(addr);
