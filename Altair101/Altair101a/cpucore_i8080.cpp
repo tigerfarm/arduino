@@ -17,7 +17,7 @@
 // Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 // -----------------------------------------------------------------------------
 
-#include <Arduino.h>        // numsys.cpp
+#include <Arduino.h>
 #include "cpucore_i8080.h"
 
 // -----------------------------------------------------------------------------

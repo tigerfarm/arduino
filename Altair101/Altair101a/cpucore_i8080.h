@@ -8,11 +8,71 @@
 
 #ifndef CPUCORE_I8080_H
 #define CPUCORE_I8080_H
-
-// extern CPUFUN cpucore_i8080_opcodes[256];
 void cpucore_i8080_print_registers();
-
 #endif
+
+// -----------------------------------------------------------------------------
+// mem.h
+// Memory read and write definitions
+// -----------------------------------------------------------------------------
+
+#ifndef MEM_H
+#define MEM_H
+
+// Mega2650: 8k SRAM, use 6k for emulated RAM
+// Make sure Arduino IDE says (after compiling) that AT LEAST 310 bytes of RAM are left for local variables!
+// #define MEMSIZE (4096+2048)
+#define MEMSIZE (1024)              // Mega testing.
+// #define MEMSIZE (128)            // For Nano test: Global variables use 1935 bytes (23%) of dynamic memory
+
+extern byte Mem[MEMSIZE];
+
+// ----------------------------------------
+#define MREAD(a)    (Mem[a])
+// WARNING: arguments to MEM_READ and MEM_WRITE macros should not have side effects
+// (e.g. MEM_READ(addr++)) => any side effects will be executed multiple times!
+
+byte MEM_READ_STEP(uint16_t a);
+void MEM_WRITE_STEP(uint16_t a, byte v);
+#if USE_REAL_MREAD_TIMING>0
+inline byte MEM_READ(uint16_t a) {
+  byte res;
+  if( host_read_status_led_WAIT() )
+    res = MEM_READ_STEP(a);
+  else
+    {
+      host_set_addr_leds(a);
+      host_set_status_leds_READMEM();
+      res = host_set_data_leds(MREAD(a));
+      host_clr_status_led_MEMR();
+    }
+  return res;
+}
+#else
+#define MEM_READ(a) ( host_read_status_led_WAIT() ? MEM_READ_STEP(a) : (host_set_status_leds_READMEM(),  host_set_addr_leds(a), host_set_data_leds(MREAD(a)) ))
+#endif
+
+// ----------------------------------------
+#define MWRITE(a,v) { Mem[a]=v; }
+
+#if SHOW_MWRITE_OUTPUT>0
+inline void MEM_WRITE(uint16_t a, byte v) {
+  if( host_read_status_led_WAIT() )
+    MEM_WRITE_STEP(a,v );
+  else
+    {
+      host_set_addr_leds(a);
+      host_set_data_leds(v);
+      host_set_status_leds_WRITEMEM();
+      MWRITE(a, v);
+      host_clr_status_led_WO();
+    }
+}
+#else
+#define MEM_WRITE(a, v) if( host_read_status_led_WAIT() ) MEM_WRITE_STEP(a, v); else { host_set_status_leds_WRITEMEM(); host_set_addr_leds(a); host_set_data_leds(0xff); MWRITE(a, v); }
+#endif
+
+#endif    // #ifndef
 
 // -----------------------------------------------------------------------------
 // host.h
@@ -322,74 +382,6 @@ extern CPUFUN cpu_opcodes[256];
 void cpu_setup();
 
 #endif
-
-// -----------------------------------------------------------------------------
-// mem.h
-// Memory read and write definitions
-// -----------------------------------------------------------------------------
-
-#ifndef MEM_H
-#define MEM_H
-
-// Mega2650: 8k SRAM, use 6k for emulated RAM
-// NOTE: Using too much emulated RAM can cause stability issues when
-//       running the emulator. Modify settings in config.h and the MEMSIZE
-//       setting here to make sure Arduino IDE says (after compiling) that
-//       AT LEAST 310 bytes of RAM are left for local variables!
-//       If you run into weird emulation issues, consider (temporarily)
-//       using only 5K MEMSIZE here to see if that resolves the problem.
-// #define MEMSIZE (4096+2048)
-#define MEMSIZE (1024)
-// #define MEMSIZE (128)           // For Nano test: Global variables use 1935 bytes (23%) of dynamic memory
-
-extern byte Mem[MEMSIZE];
-
-// ----------------------------------------
-#define MREAD(a)    (Mem[a])
-// WARNING: arguments to MEM_READ and MEM_WRITE macros should not have side effects
-// (e.g. MEM_READ(addr++)) => any side effects will be executed multiple times!
-
-byte MEM_READ_STEP(uint16_t a);
-void MEM_WRITE_STEP(uint16_t a, byte v);
-#if USE_REAL_MREAD_TIMING>0
-inline byte MEM_READ(uint16_t a) {
-  byte res;
-  if( host_read_status_led_WAIT() )
-    res = MEM_READ_STEP(a);
-  else
-    {
-      host_set_addr_leds(a);
-      host_set_status_leds_READMEM();
-      res = host_set_data_leds(MREAD(a));
-      host_clr_status_led_MEMR();
-    }
-  return res;
-}
-#else
-#define MEM_READ(a) ( host_read_status_led_WAIT() ? MEM_READ_STEP(a) : (host_set_status_leds_READMEM(),  host_set_addr_leds(a), host_set_data_leds(MREAD(a)) ))
-#endif
-
-// ----------------------------------------
-#define MWRITE(a,v) { Mem[a]=v; }
-
-#if SHOW_MWRITE_OUTPUT>0
-inline void MEM_WRITE(uint16_t a, byte v) {
-  if( host_read_status_led_WAIT() )
-    MEM_WRITE_STEP(a,v );
-  else
-    {
-      host_set_addr_leds(a);
-      host_set_data_leds(v);
-      host_set_status_leds_WRITEMEM();
-      MWRITE(a, v);
-      host_clr_status_led_WO();
-    }
-}
-#else
-#define MEM_WRITE(a, v) if( host_read_status_led_WAIT() ) MEM_WRITE_STEP(a, v); else { host_set_status_leds_WRITEMEM(); host_set_addr_leds(a); host_set_data_leds(0xff); MWRITE(a, v); }
-#endif
-
-#endif    // #ifndef
 
 // -----------------------------------------------------------------------------
 // numsys.h
