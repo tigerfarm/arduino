@@ -32,16 +32,6 @@ void cpucore_i8080_print_registers();
 #include <EEPROM.h>
 #include <avr/pgmspace.h>
 
-// Mega2650: 8k SRAM, use 6k for emulated RAM
-// NOTE: Using too much emulated RAM can cause stability issues when
-//       running the emulator. Modify settings in config.h and the MEMSIZE
-//       setting here to make sure Arduino IDE says (after compiling) that
-//       AT LEAST 310 bytes of RAM are left for local variables!
-//       If you run into weird emulation issues, consider (temporarily)
-//       using only 5K MEMSIZE here to see if that resolves the problem.
-// #define MEMSIZE (4096+2048)
-#define MEMSIZE (1024)
-
 #define HOST_STORAGESIZE 4096 // have 4k EEPROM
 #define HOST_BUFFERSIZE  0    // have little SRAM so don't buffer
 
@@ -88,22 +78,10 @@ inline void host_set_addr_leds(uint16_t v) { PORTA=(v & 0xff); PORTC=(v / 256); 
 #define host_set_status_leds_READMEM_STACK() PORTB |=  0x86; 
 #define host_set_status_leds_WRITEMEM()      PORTB &= ~0x82
 
-#if USE_IO_BUS>0
-// switch WAIT and DATA LEDs to inputs and turn on INP LED
-#define host_set_status_led_INP()   { DDRL = 0x00; DDRG &= ~0x02; PORTB |= 0x40; }
-#define host_clr_status_led_INP()   { PORTB &= ~0x40; DDRG |= 0x02; DDRL = 0xFF; }
-// switch WAIT LED to input and turn on OUT LED
-#define host_set_status_led_OUT()   { DDRG &= 0xFE; PORTB |=  0x10; }
-#define host_clr_status_led_OUT()   { PORTB &= ~0x10; DDRG |= 0x01; }
-// read input from pins connected to DATA and WAIT LEDs
-#define host_read_data_bus()        PINL
-#define host_read_status_WAIT()     (PING & 0x02)
-#else
 #define host_set_status_led_INP()     PORTB |=  0x40
 #define host_clr_status_led_INP()     PORTB &= ~0x40
 #define host_set_status_led_OUT()     PORTB |=  0x10
 #define host_clr_status_led_OUT()     PORTB &= ~0x10
-#endif
 
 uint16_t host_read_status_leds();
 inline byte host_mega_read_switches(byte highlow) {
@@ -352,6 +330,17 @@ void cpu_setup();
 
 #ifndef MEM_H
 #define MEM_H
+
+// Mega2650: 8k SRAM, use 6k for emulated RAM
+// NOTE: Using too much emulated RAM can cause stability issues when
+//       running the emulator. Modify settings in config.h and the MEMSIZE
+//       setting here to make sure Arduino IDE says (after compiling) that
+//       AT LEAST 310 bytes of RAM are left for local variables!
+//       If you run into weird emulation issues, consider (temporarily)
+//       using only 5K MEMSIZE here to see if that resolves the problem.
+// #define MEMSIZE (4096+2048)
+#define MEMSIZE (1024)
+// #define MEMSIZE (128)           // For Nano test: Global variables use 1935 bytes (23%) of dynamic memory
 
 extern byte Mem[MEMSIZE];
 

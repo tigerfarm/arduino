@@ -1,16 +1,19 @@
 // -----------------------------------------------------------------------------
 /*
-   Processor using David Hansel's Altair 8800 Simulator.
-   Interactivity is over the main USB serial connection using Arduino IDE monitor.
+   Processor
+   + Using David Hansel's Altair 8800 Simulator to process machine code instructions.
+   + Interactivity is over the main USB serial connection using Arduino IDE monitor.
 
   Next:
   + WAIT mode, WAIT light,
   ?- altair_wait_step();
   ?- altair_wait_reset();
   ?- altair_isreset();
+  + Interesting to test on a Nano.
+  ++ #define MEMSIZE (128)
 
 */
-
+// -----------------------------------------------------------------------------
 #include "Altair101a.h"
 #include "cpucore_i8080.h"
 

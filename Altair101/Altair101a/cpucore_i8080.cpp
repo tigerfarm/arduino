@@ -89,7 +89,6 @@ uint32_t config_mem_size;
 
 // --------------------------------------------------------------------------------
 
-
 static bool config_read_string(char *buf, byte bufsize)
 {
   return true;
