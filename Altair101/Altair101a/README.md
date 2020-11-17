@@ -488,5 +488,47 @@ Altair101a.ino
 cpucore_i8080.cpp
 cpucore_i8080.h         Clear extern and duplicate definitions
 ````
+Load and run a program.
+````
+ ------ 
++ Ready to receive command.
++ l, loaded a simple program.
+...
++++ Setup.
++++ Altair 101a initialized.
+INTE PROT MEMR INP M1 OUT HLTA STACK WO INT  D7  D6  D5  D4  D3  D2  D1  D0
+ .    .    *    .  *   .   .     .   *   .   .   .   .   .   .   .   .   .
+WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8  A7  A6  A5  A4  A3  A2  A1  A0
+ .    .      .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
+            S15 S14 S13 S12 S11 S10  S9  S8  S7  S6  S5  S4  S3  S2  S1  S0
+             v   v   v   v   v   v   v   v   v   v   v   v   v   v   v   v
+ ------ 
++ Ready to receive command.
++ runProcessorWait()
++ h, Help.
+-------------
++ r, RUN.
++ x, EXAMINE switch address.
++ x, EXAMINE NEXT address, current address + 1.
++ p, DEPOSIT at current address
++ P, DEPOSIT NEXT address, current address + 1
++ R, RESET, set address to zero.
+-------------
+
++ Ready to receive command.
++ r, RUN.
++ runProcessor()
+++ regPC:0: data: 62 = 076 = 00111110
+++ regPC:2: data: 50 = 062 = 00110010
+++ regPC:5: data:118 = 166 = 01110110
+INTE PROT MEMR INP M1 OUT HLTA STACK WO INT  D7  D6  D5  D4  D3  D2  D1  D0
+ .    .    *    .  .   .   *     .   *   .   .   *   *   *   .   *   *   .
+WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8  A7  A6  A5  A4  A3  A2  A1  A0
+ .    .      .   .   .   .   .   .   .   .   .   .   .   .   .   *   .   *
+            S15 S14 S13 S12 S11 S10  S9  S8  S7  S6  S5  S4  S3  S2  S1  S0
+             v   v   v   v   v   v   v   v   v   ^   ^   v   v   v   v   v
+ ------ 
++ Ready to receive command.
+````
 --------------------------------------------------------------------------------
 Cheers

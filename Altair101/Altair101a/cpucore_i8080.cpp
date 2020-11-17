@@ -311,18 +311,6 @@ void MEM_WRITE_STEP(uint16_t a, byte v)
 
 static bool mem_is_rom(uint16_t a)
 {
-  for (int i = 0; i < mem_get_num_roms(); i++)
-  {
-    uint16_t pa, pl, pe;
-    mem_get_rom_info(i, NULL, &pa, &pl);
-    pa &= ~0xFF;
-    pe  = ((pa + pl - 1) | 0xFF);
-    if ( pa > a )
-      return false;
-    else if ( a >= pa && a <= pe )
-      return true;
-  }
-
   return false;
 }
 
@@ -376,16 +364,6 @@ void mem_ram_init(uint16_t from, uint16_t to, bool force_clear)
   uint16_t pa, pl;
 
   // initialize RAM before and between ROMs
-  for (i = 0; i < mem_get_num_roms() && a <= to; i++)
-  {
-    mem_get_rom_info(i, NULL, &pa, &pl);
-    if ( (uint32_t) pa + pl > a )
-    {
-      if ( pa > a ) mem_ram_init_section(a, min(pa - 1, to), force_clear || config_clear_memory());
-      a = pa + pl;
-    }
-  }
-
   // initialize RAM after last ROM
   if ( a <= to ) mem_ram_init_section(a, to, force_clear || config_clear_memory());
 }
@@ -393,27 +371,7 @@ void mem_ram_init(uint16_t from, uint16_t to, bool force_clear)
 
 void mem_set_ram_limit_usr(uint16_t a)
 {
-  uint16_t prev_limit = mem_ram_limit;
-  mem_ram_limit = min(a, MEMSIZE - 1);
-  if ( prev_limit < mem_ram_limit )
-  {
-    mem_ram_init(prev_limit + 1, mem_ram_limit);
-
-    // restore protection for ROMs
-    for (byte i = 0; i < mem_get_num_roms(); i++)
-    {
-      uint16_t pa, pl;
-      mem_get_rom_info(i, NULL, &pa, &pl);
-      if ( pa > mem_ram_limit )
-        break;
-    }
-  }
-  else if ( mem_ram_limit < prev_limit )
-  {
-    mem_ram_init(mem_ram_limit + 1, prev_limit);
-  }
 }
-
 
 uint16_t mem_get_ram_limit_usr()
 {
