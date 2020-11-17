@@ -1,10 +1,55 @@
 // -----------------------------------------------------------------------------
 /*
-  Serial Communications:
+   Processor using David Hansel's Altair 8800 Simulator.
+   Interactivity is over the main USB serial connection using Arduino IDE monitor.
+
+  Next:
+  + WAIT mode, WAIT light,
+  ?- altair_wait_step();
+  ?- altair_wait_reset();
+  ?- altair_isreset();
+
 */
 
 #include "Altair101a.h"
 #include "cpucore_i8080.h"
+
+#define SW_RUN        0
+#define SW_STOP       1
+#define SW_STEP       2
+#define SW_SLOW       3
+#define SW_EXAMINE    4
+#define SW_EXNEXT     5
+#define SW_DEPOSIT    6
+#define SW_DEPNEXT    7
+#define SW_RESET      8
+#define SW_CLR        9
+#define SW_PROTECT   10
+#define SW_UNPROTECT 11
+#define SW_AUX1UP    12
+#define SW_AUX1DOWN  13
+#define SW_AUX2UP    14
+#define SW_AUX2DOWN  15
+
+#define ST_INT     0x0001
+#define ST_WO      0x0002
+#define ST_STACK   0x0004
+#define ST_HLTA    0x0008
+#define ST_OUT     0x0010
+#define ST_M1      0x0020
+#define ST_INP     0x0040
+#define ST_MEMR    0x0080
+#define ST_PROT    0x0100
+#define ST_INTE    0x0200
+#define ST_HLDA    0x0400
+#define ST_WAIT    0x0800
+
+#define INT_SW_STOP     0x80000000
+#define INT_SW_RESET    0x40000000
+#define INT_SW_CLR      0x20000000
+#define INT_SW_AUX2UP   0x10000000
+#define INT_SW_AUX2DOWN 0x08000000
+#define INT_SWITCH      0xff000000
 
 #define BIT(n) (1<<(n))
 
@@ -69,17 +114,21 @@ uint16_t host_read_status_leds() {
 void altair_set_outputs(uint16_t a, byte v) {
   host_set_addr_leds(a);
   host_set_data_leds(v);
-  // host_clr_status_led_PROT();
-  // if ( host_read_status_led_M1() ) print_dbg_info();
   // print_panel_serial();
+  // Stacy, When not using serial, maybe need to display on front panel lights?
 }
 
 void altair_out(byte port, byte data) {
+  // Opcode: out <port>
+  // cpu_OUT()
   host_set_addr_leds(port | port * 256);
   host_set_data_leds(data);
   host_set_status_led_OUT();
   host_set_status_led_WO();
   // stacy io_out(port, data);
+  //
+  // Actual output of bytes. Example output to the serial port.
+  //
   if ( host_read_status_led_WAIT() ) {
     altair_set_outputs(port | port * 256, 0xff);
     altair_wait_step();
@@ -87,13 +136,24 @@ void altair_out(byte port, byte data) {
   host_clr_status_led_OUT();
 }
 
-void print_dbg_info() {
-  // if ( config_serial_debug_enabled() && host_read_status_led_WAIT() && regPC != p_regPC )
-  cpu_print_registers();
+void altair_wait_step() {
+  //
+  // Stacy, If WAIT mode, return to WAIT loop?
+  // Also used in: MEM_READ_STEP(...) and MEM_WRITE_STEP(...).
+  //
+  cswitch &= BIT(SW_RESET); // clear everything but RESET status
+  while ( host_read_status_led_WAIT() && (cswitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 ) {
+    // read_inputs();
+    delay(10);
+  }
+  if ( cswitch & BIT(SW_SLOW) ) delay(500);
 }
+
 
 // -----------------------------------------------------------------------------
 byte altair_in(byte port) {
+  // Opcode: out <port>
+  // cpu_OUT()
   byte data = 0;
   host_set_addr_leds(port | port * 256);
   if ( host_read_status_led_WAIT() ) {
@@ -120,6 +180,10 @@ byte altair_in(byte port) {
 }
 
 // -----------------------------------------------------------------------------
+bool altair_isreset() {
+  return (cswitch & BIT(SW_RESET)) == 0;
+}
+
 void altair_wait_reset() {
   // prevent printing processor status now (will print after reset)
   p_regPC = regPC;
@@ -142,19 +206,6 @@ void altair_wait_reset() {
   // if in single-step mode we need to set a flag so we know
   // to exit out of the currently executing instruction
   if ( host_read_status_led_WAIT() ) cswitch |= BIT(SW_RESET);
-}
-
-bool altair_isreset() {
-  return (cswitch & BIT(SW_RESET)) == 0;
-}
-
-void altair_wait_step() {
-  cswitch &= BIT(SW_RESET); // clear everything but RESET status
-  while ( host_read_status_led_WAIT() && (cswitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 ) {
-    // read_inputs();
-    delay(10);
-  }
-  if ( cswitch & BIT(SW_SLOW) ) delay(500);
 }
 
 // -----------------------------------------------------------------------------
@@ -264,10 +315,10 @@ void processData() {
   host_set_data_leds(opcode);
   regPC++;
   host_clr_status_led_M1();
-  CPU_EXEC(opcode);           // defined: cpucore.h
+  CPU_EXEC(opcode);
 }
 
-void processRunRunSwitch(byte readByte) {
+void processRunSwitch(byte readByte) {
   switch (readByte) {
     case 's':
       Serial.println(F("+ STOP"));
@@ -275,11 +326,16 @@ void processRunRunSwitch(byte readByte) {
       break;
     case 'r':
       Serial.println(F("+ RESET"));
-      // Stacy need to implement.
+    // Stacy need to implement.
+    // -------------------------------------
+    case 10:
+      // New line character.
+      // For testing, require enter key from serial to run the next opcode. This is like a step operation.
+      // processRunSwitch(readByte);
       break;
-      // default:
-      // For now, require a serial character between instructions.
-      // processData();
+    default:
+      // Serial.println(F("+ Default"));
+      break;
   }
 }
 
@@ -293,13 +349,13 @@ void runProcessor() {
     processData(); // For now, require an serial character to process each opcode.
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
-      processRunRunSwitch(readByte);
+      processRunSwitch(readByte);
     }
   }
 }
 
 // -----------------------------------------------------------------------------
-void processWaitByte(byte readByte) {
+void processWaitSwitch(byte readByte) {
   //
   // Process an address/data toggle.
   //
@@ -383,6 +439,9 @@ void processWaitByte(byte readByte) {
         MWRITE(3, B01100000 & 0xff);
         MWRITE(4, B00000000 & 0xff);
         MWRITE(5, B01110110 & 0xff);
+        MWRITE(6, B11000011 & 0xff);  // JMP back to start.
+        MWRITE(7, B00000000 & 0xff);
+        MWRITE(8, B00000000 & 0xff);
         /*
           Program listing:
           Address(lb):databyte :hex:oct > description
@@ -406,9 +465,7 @@ void processWaitByte(byte readByte) {
         break;
       case 'i':
         Serial.println("+ i: Information.");
-        // numsys_toggle();
-        // p_regPC = ~regPC;
-        cpu_print_registers();
+        cpucore_i8080_print_registers();
         break;
       // -------------------------------------
       case 10:
@@ -426,13 +483,11 @@ void processWaitByte(byte readByte) {
 
 void runProcessorWait() {
   Serial.println(F("+ runProcessorWait()"));
-  // Intialize front panel lights.
-  // programLights(); // Likely done in processData().
   while (programState == PROGRAM_WAIT) {
     // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
-      processWaitByte(readByte);
+      processWaitSwitch(readByte);
     }
     delay(60);
   }

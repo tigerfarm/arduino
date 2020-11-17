@@ -164,84 +164,11 @@ void host_setup();
 #ifndef CONFIG_H
 #define CONFIG_H
 
-
-// If this is set to 1 and the host provides a file system (i.e. an SD card is connected)
-// then store configurations and other data directly on the hosts' file system,
-// Otherwise those items are stored in a persistent memory block using our own mini-filesystem
-#define USE_HOST_FILESYS 0
-
-
-// Allowing breakpoints significantly reduces performance but is helpful
-// for debugging.  Also uses 2*MAX_BREAKPOINTS+1 bytes of RAM
-#define MAX_BREAKPOINTS 0
-
-
-// Setting USE_PROFILING_DETAIL to 1 will (every 10 seconds) show a 
-// list of which opcodes were executed how many times (if profiling is enabled).
-// Reduces performance and uses 1k of RAM
-#define USE_PROFILING_DETAIL 0
-
-
 // Enables throttling of CPU speed. This only makes sense to enable
 // on the Due since the Mega is too slow anyways and the throttling 
 // checks would only reduce performance further.
 // #define USE_THROTTLE 1
 #define USE_THROTTLE 0        // Stacy, for standalone test.
-
-// Maximum number of ROMs that can be added. 
-// Uses 13+(15*MAX_NUM_ROMS) bytes of RAM for organizational data. The actual 
-// ROM content is stored in the emulated RAM and therefore does not occupy any 
-// additional memory on the host. Set to 0 to completely disable ROM support.
-// #define MAX_NUM_ROMS 8
-#define MAX_NUM_ROMS 0    // Stacy, for standalone test.
-
-// Enables support for MITS disk drives (maximum 16). Each drive uses about
-// 160 bytes of RAM. Set to 0 to completely disable drive support.
-// #define NUM_DRIVES 4
-#define NUM_DRIVES 0  // Stacy, for standalone test.
-
-// Enables support for Cromemco disk drives (maximum 4).
-// Set to 0 to disable Cromemco drive support.
-#define NUM_CDRIVES 0
-
-
-// Enables support for Tarbell disk drives (maximum 4).
-// Set to 0 to completely disable Tarbell drive support.
-#define NUM_TDRIVES 0
-
-
-// Enables support for hard disk (88-HDSK). Hard disk support uses
-// about 1100 bytes of RAM plus 56 bytes for each unit.
-// Set to 0 to completely disable hard disk support
-// #define NUM_HDSK_UNITS 1
-#define NUM_HDSK_UNITS 0    // Stacy, for standalone test.
-
-// Enables printer emulation which uses about 140 bytes of RAM.
-// #define USE_PRINTER 1
-#define USE_PRINTER 0    // Stacy, for standalone test.
-
-// Enable two 88-2SIO devices (instead of one).
-#define USE_SECOND_2SIO 0
-
-
-// Enables support for Cromemco Dazzler. Note that to actually see the
-// Dazzler picture you need to connect a client. See:
-// https://www.hackster.io/david-hansel/dazzler-display-for-altair-simulator-3febc6
-#define USE_DAZZLER 0
-
-
-// Enables support for Processor Technology VDM-1. Note that to actually see the
-// VDM-1 picture you need to connect to a client. See:
-// https://github.com/dhansel/VDM1
-#define USE_VDM1 0
-
-
-// Enables support for the external I/O bus described in the documentation.
-// Enabling this slightly changes the LED behavior during input/output operations
-// to facilitate I/O through the Arduino pins connected to the D0-7 LEDs.
-// See the "Interfacing external hardware" section in the documentation for details.
-#define USE_IO_BUS 0
-
 
 // To improve performance, the MEMR LED handling is a bit lazy while a program is
 // running. Memory reads are by far the most common bus action and any tiny
@@ -252,7 +179,6 @@ void host_setup();
 // Setting it to 1 significantly reduces performance.
 // Most users should keep this at 0
 #define USE_REAL_MREAD_TIMING 0
-
 
 // If enabled, the D0-7 LEDs will show values being output to the data bus
 // during memory write operations). This is different from the original
@@ -266,7 +192,6 @@ void host_setup();
 // data during memory write instructions or if you want to see the data
 // during writes and do not care that this behavior does not match the original.
 #define SHOW_MWRITE_OUTPUT 0
-
 
 // If enabled, Address switch state will be set by issuing the '/'
 // serial command.  Actual switches will be ignored.
@@ -417,7 +342,6 @@ extern CPUFUN cpu_opcodes[256];
 #define CPU_EXEC(opcode) (cpu_opcodes[opcode])();
 
 void cpu_setup();
-void cpu_print_registers();
 
 #endif
 
@@ -430,7 +354,6 @@ void cpu_print_registers();
 #define MEM_H
 
 extern byte Mem[MEMSIZE];
-// void mem_print_layout();
 
 // ----------------------------------------
 #define MREAD(a)    (Mem[a])

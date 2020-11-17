@@ -266,7 +266,7 @@ union unionPC regPCU;
 uint16_t regSP;
 
 void cpu_setup() {}
-void cpu_print_registers() { cpucore_i8080_print_registers(); }
+// void cpu_print_registers() { cpucore_i8080_print_registers(); }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -277,10 +277,8 @@ byte mem_protected_flags[32];
 
 byte Mem[MEMSIZE];
 
-byte MEM_READ_STEP(uint16_t a)
-{
-  if ( altair_isreset() )
-  {
+byte MEM_READ_STEP(uint16_t a) {
+  if ( altair_isreset() ) {
     byte v = MREAD(a);
     host_set_status_leds_READMEM();
     altair_set_outputs(a, v);
@@ -293,10 +291,8 @@ byte MEM_READ_STEP(uint16_t a)
     return 0x00;
 }
 
-void MEM_WRITE_STEP(uint16_t a, byte v)
-{
-  if ( altair_isreset() )
-  {
+void MEM_WRITE_STEP(uint16_t a, byte v) {
+  if ( altair_isreset() ) {
     MWRITE(a, v);
     host_set_status_leds_WRITEMEM();
 #if SHOW_MWRITE_OUTPUT>0
