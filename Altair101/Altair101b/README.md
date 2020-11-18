@@ -20,10 +20,13 @@ but to simply output text to the serial port which works well in the Arduino IDE
 
 Modify the minimum code base to work with Altair 101:
 + 6. Manage Altair 101 memory size.
-+ 7. Use Altair 101 memory array: read and write.
-+ 8. Run on the Altair 101 desktop machine.
-+ 9. Output to Altair 101 panel LED.
-+ 10. Input from Altair 101 panel switches.
++ 7. Starting with a simple Serial control program, Add Altair 880 Simulator functions.
+        Get memory manage to work (EXAMINE and DEPOSIT).
++ 8. Get a Program to Run and Add monitor/debug functions.
++ 9. Consolidate the program files (*.h and *.cpp).
++ 10. Run on the Altair 101 desktop machine.
++ 11. Output to Altair 101 panel LED.
++ 12. Input from Altair 101 panel switches.
 
 ##### Links
 
@@ -436,75 +439,170 @@ extern byte Mem[MEMSIZE];
 ````
 
 --------------------------------------------------------------------------------
-### 7. Convert to use Altair 101 memory array: Read and Write.
+### 7. Starting with a simple Serial control program, Add Altair 880 Simulator functions.
 
-From Altair101b.ino
 ````
-opcode = MREAD(regPC);              // defined: mem.h. Used in:  mem.cpp, cpucore_i8080.cpp and numsys.cpp.
+Start with my program, serialRead.ino.
+Add function to display the text version of the front panel: print_panel_serial().
+Create switch case statement to handle serial commands to toggle the address/data switches.
+Sending a serial character from 0-9 and a-f, toggles the address/data switches and are displayed.
+Create switch case statement to handle serial commands such as EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
+Add functionality to manage memory.
 ````
+--------------------------------------------------------------------------------
+### 8. Get a Program to Run.
 
-I may be able to simply replace "MREAD(regPC)" with "memory[regPC]".
-
-The Altair 8800 Simulator has memory protection in place which has a lot of code overhead which I'm not going to implement.
-
-From mem.h
+Implement a method to run sample programs.
 ````
-extern byte Mem[MEMSIZE];
-
-#if MEMSIZE < 0x10000
-// if we have less than 64k of RAM then always map ROM basic to 0xC000-0xFFFF
-// Stacy: #define MREAD(a)    ((a)>=0xC000 ? prog_basic_read_16k(a) : ((a) < MEMSIZE ? Mem[a] : 0xFF))
-#define MREAD(a)    ((a)>=0xC000 ? 0xC000 : ((a) < MEMSIZE ? Mem[a] : 0xFF))
-#define MWRITE(a,v) {if( MEM_IS_WRITABLE(a) ) Mem[a]=v;}
-#else
-// If we have 64k of RAM then we just copy ROM basic to the upper 16k and write-protect
-// that area.  Faster to check the address on writing than reading since there are far more
-// reads than writes. Also we can skip memory bounds checking because addresses are 16 bit.
-#define MREAD(a)    (Mem[a])
+Add a serial command option to load a simple program into memory.
+Use EXAMINE and EXAMINE NEXT to view the program.
+Run the program.
 ````
-From mem.cpp
+Add monitor/debug functions.
 ````
-byte Mem[MEMSIZE];
-
-byte v = MREAD(a);
+Run one opcode at a time, with a serial input requirement between instructions.
 ````
-
-numsys.cpp
+--------------------------------------------------------------------------------
+### 9. Consolidate the program files (*.h and *.cpp).
 ````
-void numsys_print_mem(uint16_t addr, byte num, bool printBrackets)
-{
-  byte i;
-  if( printBrackets ) Serial.print('['); 
-  for(i=0; i<num; i++)
-    { numsys_print_byte(MREAD(addr+i)); if(i+1<num) Serial.print(' '); }
-  if( printBrackets ) Serial.print(']'); 
-}
-````
+Altair101a.h
+Altair101a.ino
 cpucore_i8080.cpp
+cpucore_i8080.h         Clear extern and duplicate definitions
+host_mega.h
 ````
-void cpucore_i8080_print_registers() {
-  Serial.print(F("\r\n PC   = ")); numsys_print_word(regPC);
-  Serial.print(F(" = ")); numsys_print_mem(regPC, 3, true); 
-  Serial.print(F("\r\n SP   = ")); numsys_print_word(regSP);
-  Serial.print(F(" = ")); numsys_print_mem(regSP, 8, true); 
+--------------------------------------------------------------------------------
+### 10. Prepare the program files to be used in Processor.ino.
+
+````
+Use Processor.ino Loop flow.
+Initialize front panel status lights.
+Get SINGLE STEP to work.
+Confirm front panel LED functions.
+Confirm front panel switch and toggle functions.
+````
+File list:
+````
+Altair101a.h
+Altair101a.ino
+cpucore_i8080.cpp
+cpucore_i8080.h         Clear extern and duplicate definitions
+````
+Load and run a program.
+````
+ ------ 
++ Ready to receive command.
++ l, loaded a simple program.
 ...
++++ Setup.
++++ Altair 101a initialized.
+INTE PROT MEMR INP M1 OUT HLTA STACK WO INT  D7  D6  D5  D4  D3  D2  D1  D0
+ .    .    *    .  *   .   .     .   *   .   .   .   .   .   .   .   .   .
+WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8  A7  A6  A5  A4  A3  A2  A1  A0
+ .    .      .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .
+            S15 S14 S13 S12 S11 S10  S9  S8  S7  S6  S5  S4  S3  S2  S1  S0
+             v   v   v   v   v   v   v   v   v   v   v   v   v   v   v   v
+ ------ 
++ Ready to receive command.
++ runProcessorWait()
++ h, Help.
+-------------
++ r, RUN.
++ x, EXAMINE switch address.
++ x, EXAMINE NEXT address, current address + 1.
++ p, DEPOSIT at current address
++ P, DEPOSIT NEXT address, current address + 1
++ R, RESET, set address to zero.
+-------------
+
++ Ready to receive command.
++ r, RUN.
++ runProcessor()
+++ regPC:0: data: 62 = 076 = 00111110
+++ regPC:2: data: 50 = 062 = 00110010
+++ regPC:5: data:118 = 166 = 01110110
+INTE PROT MEMR INP M1 OUT HLTA STACK WO INT  D7  D6  D5  D4  D3  D2  D1  D0
+ .    .    *    .  .   .   *     .   *   .   .   *   *   *   .   *   *   .
+WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8  A7  A6  A5  A4  A3  A2  A1  A0
+ .    .      .   .   .   .   .   .   .   .   .   .   .   .   .   *   .   *
+            S15 S14 S13 S12 S11 S10  S9  S8  S7  S6  S5  S4  S3  S2  S1  S0
+             v   v   v   v   v   v   v   v   v   ^   ^   v   v   v   v   v
+ ------ 
++ Ready to receive command.
+````
+
+--------------------------------------------------------------------------------
+##### Program Runtime Call Flow
+
+Altair101a.ino, sample opcode of LDA.
+````
+void runProcessor() {
+  Serial.println(F("+ runProcessor()"));
+  // put PC on address bus LEDs
+  host_set_addr_leds(regPC);
+  // Serial.println(F("+ Send serial character, example hit enter key, to process first opcode. Send 's' to STOP running."));
+  programState = PROGRAM_RUN;
+  while (programState == PROGRAM_RUN) {
+    processDataOpcode(); // For now, require an serial character to process each opcode.
+    if (Serial.available() > 0) {
+      readByte = Serial.read();    // Read and process an incoming byte.
+      processRunSwitch(readByte);
+    }
+  }
+}
+--- or ---
+Serial.println("+ s, SINGLE STEP: ");
+processDataOpcode();
+
+void processDataOpcode() {
+#ifdef LOG_MESSAGES
+  Serial.print(F("++ regPC:"));
+  Serial.print(regPC);
+  Serial.print(F(": data:"));
+  printData(MREAD(regPC));
+  Serial.println("");
+#endif
+  host_set_status_leds_READMEM_M1();
+  host_set_addr_leds(regPC);
+  opcode = MREAD(regPC);
+  host_set_data_leds(opcode);
+  regPC++;
+  host_clr_status_led_M1();
+  CPU_EXEC(opcode);         // Run an opcode function.
 }
 ````
 
-cpucore_i8080.cpp, note, also has stack read (POP) and writes.
+cpucore_i8080.h, map opcode to the opcode function: cpu_<opcode>().
 ````
-inline uint16_t MEM_READ_WORD(uint16_t addr)
-{
-  if( host_read_status_led_WAIT() )
-    {
+typedef void (*CPUFUN)();
+extern CPUFUN cpu_opcodes[256];
+#define CPU_EXEC(opcode) (cpu_opcodes[opcode])();
+````
+
+cpucore_i8080.cpp, sample opcode functions.
+````
+static void cpu_LDA() {
+  uint16_t addr = MEM_READ_WORD(regPC);
+  regA = MEM_READ(addr);
+  regPC += 2;
+  TIMER_ADD_CYCLES(13);
+}
+static void cpu_STA() {
+  uint16_t addr = MEM_READ_WORD(regPC);
+  MEM_WRITE(addr, regA);
+  regPC += 2;
+  TIMER_ADD_CYCLES(13);
+}
+
+inline uint16_t MEM_READ_WORD(uint16_t addr) {
+  if( host_read_status_led_WAIT() ) {
       byte l, h;
       l = MEM_READ_STEP(addr);
       addr++;
       h = MEM_READ_STEP(addr);
       return l | (h * 256);
     }
-  else
-    {
+  else {
       byte l, h;
       host_set_status_leds_READMEM();
       host_set_addr_leds(addr);
@@ -519,69 +617,106 @@ inline uint16_t MEM_READ_WORD(uint16_t addr)
     }
 }
 ````
-cpucore_i8080.cpp, MEM_WRITE(addr, b), note, also has stack writes(PUSH).
+cpucore_i8008.h
 ````
-inline void MEM_WRITE_WORD(uint16_t addr, uint16_t v)
-{
-  if( host_read_status_led_WAIT() )
-    {
-      MEM_WRITE_STEP(addr, v & 255);
-      addr++;
-      MEM_WRITE_STEP(addr, v / 256);
-    }
+byte MEM_READ_STEP(uint16_t a);
+void MEM_WRITE_STEP(uint16_t a, byte v);
+#define USE_REAL_MREAD_TIMING 0
+#if USE_REAL_MREAD_TIMING>0
+inline byte MEM_READ(uint16_t a) {
+  byte res;
+  if ( host_read_status_led_WAIT() )
+    res = MEM_READ_STEP(a);
   else
-    {
-      byte b;
-#if SHOW_MWRITE_OUTPUT>0
-      b = v & 255;
-      MEM_WRITE(addr, b);
-      for(uint8_t i=0; i<5; i++) asm("NOP");
-      b = v / 256;
-      addr++;
-      MEM_WRITE(addr, b);
+  {
+    host_set_addr_leds(a);
+    host_set_status_leds_READMEM();
+    res = host_set_data_leds(MREAD(a));
+    host_clr_status_led_MEMR();
+  }
+  return res;
+}
 #else
-      host_set_status_leds_WRITEMEM();
-      host_set_data_leds(0xff);
-      host_set_addr_leds(addr);
-      b = v & 255;
-      MWRITE(addr, b);
-      for(uint8_t i=0; i<5; i++) asm("NOP");
-      addr++;
-      host_set_addr_leds(addr);
-      b = v / 256;
-      MWRITE(addr, b);
+#define MEM_READ(a) ( host_read_status_led_WAIT() ? MEM_READ_STEP(a) : (host_set_status_leds_READMEM(),  host_set_addr_leds(a), host_set_data_leds(MREAD(a)) ))
 #endif
-    }
+
+#define host_read_status_led_WAIT() status_wait
+#define host_set_status_led_WAIT()  { digitalWrite(40, HIGH); status_wait = true; }
+#define host_clr_status_led_WAIT()  { digitalWrite(40, LOW); status_wait = false; }
+
+#define host_set_data_leds(v)  PORTL=(v)
+
+````
+
+-------------------------------------
+cpucore_i8008.h
+````
+byte MEM_READ_STEP(uint16_t a);
+void MEM_WRITE_STEP(uint16_t a, byte v);
+````
+cpucore_i8008.cpp
+````
+byte MEM_READ_STEP(uint16_t a) {
+  if ( altair_isreset() ) {
+    byte v = MREAD(a);
+    host_set_status_leds_READMEM();
+    altair_set_outputs(a, v);
+    altair_wait_step();
+    v = host_read_data_leds(); // CPU reads whatever is on the data bus at this point
+    host_clr_status_led_MEMR();
+    return v;
+  }
+  else {
+    return 0x00;
+  }
+}
+
+static void cpu_OUT() {
+  altair_out(MEM_READ(regPC), regA);
+  TIMER_ADD_CYCLES(10);
+  regPC++;
+}
+
+static void cpu_IN() {
+  regA = altair_in(MEM_READ(regPC));
+  TIMER_ADD_CYCLES(10);
+  regPC++;
 }
 ````
 
-##### Interesting Options
-
-config.h
+Altair101a.ino
 ````
-// To improve performance, the MEMR LED handling is a bit lazy while a program is
-// running. Memory reads are by far the most common bus action and any tiny
-// bit of time that can be cut here makes a significant performance difference.
-// Setting USE_REAL_MREAD_TIMING to 1 will improve the accuracy of MREAD at the
-// cost of performace. Leaving this at 0 has virtually no visible consequences
-// apart from a slight difference in brightness of the MEMR LED while running.
-// Setting it to 1 significantly reduces performance.
-// Most users should keep this at 0
-#define USE_REAL_MREAD_TIMING 0
+void altair_out(byte port, byte data) {
+  host_set_addr_leds(port | port * 256);
+  host_set_data_leds(data);
+  host_set_status_led_OUT();
+  host_set_status_led_WO();
+  //
+  // stacy io_out(port, data);
+  //
+  // Actual output of bytes. Example:
+  // + output to the serial port.
+  //
+  if ( host_read_status_led_WAIT() ) {
+    altair_set_outputs(port | port * 256, 0xff);
+    altair_wait_step();
+  }
+  host_clr_status_led_OUT();
+}
 
-// If enabled, the D0-7 LEDs will show values being output to the data bus
-// during memory write operations). This is different from the original
-// Altair behavior where the D0-7 LEDs were all on for write operations
-// because the LEDs are wired to the DIN bus lines which are floating during
-// CPU write). Additionally, enabling this makes sure that the "WO" LED will
-// go out (negative logic) AFTER the address and data buses have been set to
-// the proper values. It also changes timing of the "WO" LED similar to
-// the USE_REAL_MREAD_TIMING setting above.
-// Enable this if you want to connect external hardware that needs to see
-// data during memory write instructions or if you want to see the data
-// during writes and do not care that this behavior does not match the original.
-#define SHOW_MWRITE_OUTPUT 0
+void altair_wait_step() {
+  //
+  // Stacy, If WAIT mode, return to WAIT loop?
+  // Also used in: MEM_READ_STEP(...) and MEM_WRITE_STEP(...).
+  //
+  cswitch &= BIT(SW_RESET); // clear everything but RESET status
+  while ( host_read_status_led_WAIT() && (cswitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 ) {
+    // read_inputs();
+    delay(10);
+  }
+  if ( cswitch & BIT(SW_SLOW) ) delay(500);
+}
+
 ````
-
 --------------------------------------------------------------------------------
 Cheers

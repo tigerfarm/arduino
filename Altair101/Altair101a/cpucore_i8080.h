@@ -6,24 +6,18 @@
 #include <Arduino.h>
 #include "Altair101a.h"
 
-#ifndef CPUCORE_I8080_H
-#define CPUCORE_I8080_H
 void cpucore_i8080_print_registers();
-#endif
 
 // -----------------------------------------------------------------------------
 // mem.h
-// Memory read and write definitions
+// Declare memory and memory read and write functions
 // -----------------------------------------------------------------------------
-
-#ifndef MEM_H
-#define MEM_H
 
 // Mega2650: 8k SRAM, use 6k for emulated RAM
 // Make sure Arduino IDE says (after compiling) that AT LEAST 310 bytes of RAM are left for local variables!
+// #define MEMSIZE (64)            // For Nano or Uno test: Global variables use 1935 bytes (23%) of dynamic memory
 // #define MEMSIZE (4096+2048)
-#define MEMSIZE (1024)              // Mega testing.
-// #define MEMSIZE (128)            // For Nano test: Global variables use 1935 bytes (23%) of dynamic memory
+#define MEMSIZE (2048)              // Mega testing.
 
 extern byte Mem[MEMSIZE];
 
@@ -95,14 +89,9 @@ inline void MEM_WRITE(uint16_t a, byte v) {
 #define MEM_WRITE(a, v) if( host_read_status_led_WAIT() ) MEM_WRITE_STEP(a, v); else { host_set_status_leds_WRITEMEM(); host_set_addr_leds(a); host_set_data_leds(0xff); MWRITE(a, v); }
 #endif
 
-#endif    // #ifndef
-
 // -----------------------------------------------------------------------------
 // cpucore.h
 // -----------------------------------------------------------------------------
-
-#ifndef CPUCORE_H
-#define CPUCORE_H
 
 #define PS_CARRY       0x01
 #define PS_PARITY      0x04
@@ -168,37 +157,15 @@ typedef void (*CPUFUN)();
 extern CPUFUN cpu_opcodes[256];
 #define CPU_EXEC(opcode) (cpu_opcodes[opcode])();
 
-void cpu_setup();
-
-#endif
-
 // -----------------------------------------------------------------------------
 // host.h
 // -----------------------------------------------------------------------------
 
-#ifndef HOST_H
-#define HOST_H
-
 #if defined(__AVR_ATmega2560__)
-// #include "host_mega.h"
+#define THIS_CPU "Mega 2560"
 // -----------------------------------------------------------------------------
 // host_mega.h included here rather than another file.
 // -----------------------------------------------------------------------------
-#ifndef HOST_MEGA_H
-#define HOST_MEGA_H
-
-#include <EEPROM.h>
-#include <avr/pgmspace.h>
-
-#define HOST_STORAGESIZE 4096 // have 4k EEPROM
-#define HOST_BUFFERSIZE  0    // have little SRAM so don't buffer
-
-#define HOST_PERFORMANCE_FACTOR 0.25
-
-#define HOST_NUM_SERIAL_PORTS   1
-
-#define PROF_DISPLAY_INTERVAL 100000
-
 inline void host_set_addr_leds(uint16_t v) {
   PORTA = (v & 0xff);
   PORTC = (v / 256);
@@ -263,15 +230,148 @@ inline byte host_mega_read_switches(byte highlow) {
 bool host_read_function_switch(byte inputNum);
 #define host_check_interrupts() { if( Serial.available() ) serial_receive_host_data(0, Serial.read()); }
 
-#endif
 // -----------------------------------------------------------------------------
 #elif defined(__SAM3X8E__)
-#include "host_due.h"
+#define THIS_CPU "Due"
+// -----------------------------------------------------------------------------
+// host_due.h included here rather than another file.
+// -----------------------------------------------------------------------------
+inline byte host_read_sense_switches() {
+  // SW8...15  => PIOA, bits 12-15,17-20 (negative logic)
+  word w = ~REG_PIOA_PDSR;
+  return ((w & 0xF000) / (1<<12)) | ((w & 0x1E0000) / (1<<13));
+}
+uint16_t host_read_addr_switches();
+
+#define host_set_status_led_INT()     REG_PIOB_SODR = 1<<25
+#define host_set_status_led_WO()      REG_PIOC_CODR = 1<<28
+#define host_set_status_led_STACK()   REG_PIOC_SODR = 1<<26
+#define host_set_status_led_HLTA()    REG_PIOC_SODR = 1<<25
+#define host_set_status_led_M1()      REG_PIOC_SODR = 1<<23
+#define host_set_status_led_MEMR()    REG_PIOC_SODR = 1<<21
+#define host_set_status_led_INTE()    REG_PIOD_SODR = 1<<8;
+#define host_set_status_led_PROT()    REG_PIOB_SODR = 1<<27
+#define host_set_status_led_WAIT()  { REG_PIOC_SODR = 1<<29; status_wait = true; }
+#define host_set_status_led_HLDA()    REG_PIOB_SODR = 1<<26
+
+#define host_clr_status_led_INT()     REG_PIOB_CODR = 1<<25
+#define host_clr_status_led_WO()      REG_PIOC_SODR = 1<<28
+#define host_clr_status_led_STACK()   REG_PIOC_CODR = 1<<26
+#define host_clr_status_led_HLTA()    REG_PIOC_CODR = 1<<25
+#define host_clr_status_led_M1()      REG_PIOC_CODR = 1<<23
+#define host_clr_status_led_MEMR()    REG_PIOC_CODR = 1<<21
+#define host_clr_status_led_INTE()    REG_PIOD_CODR = 1<<8;
+#define host_clr_status_led_PROT()    REG_PIOB_CODR = 1<<27
+#define host_clr_status_led_WAIT()  { REG_PIOC_CODR = 1<<29; status_wait = false; }
+#define host_clr_status_led_HLDA()    REG_PIOB_CODR = 1<<26
+
+#define host_read_status_led_WAIT()   status_wait
+#define host_read_status_led_M1()     (REG_PIOC_PDSR & (1<<23))
+#define host_read_status_led_HLTA()   (REG_PIOC_PDSR & (1<<25))
+#define host_read_status_led_INTE()   status_inte
+#define host_set_status_led_INP()     REG_PIOC_SODR = 1<<22;
+#define host_clr_status_led_INP()     REG_PIOC_CODR = 1<<22;
+#define host_set_status_led_OUT()     REG_PIOC_SODR = 1<<24
+#define host_clr_status_led_OUT()     REG_PIOC_CODR = 1<<24
+#define host_set_status_leds_READMEM()        REG_PIOC_SODR = 0x10200000
+#define host_set_status_leds_READMEM_M1()     REG_PIOC_SODR = 0x10A00000
+#define host_set_status_leds_READMEM_STACK()  REG_PIOC_SODR = 0x14200000
+#define host_set_status_leds_WRITEMEM()       REG_PIOC_CODR = 0x10200000
+uint16_t host_read_status_leds();
+
+// ----------------------------------------------------- address bus
+inline void host_set_addr_leds(uint16_t v) {
+  // A0..7  => 34, 35, ..., 41 (PIOC, bits 2-9)
+  // A8..15 => 51, 50, ..., 44 (PIOC, bits 12-19)
+  REG_PIOC_ODSR = (v & 0x00ff) * 4 + (v & 0xff00) * 16;
+}
+uint16_t host_read_addr_leds();
+// ---------------------------------------------------- data bus
+#define host_set_data_leds(v) REG_PIOD_ODSR = v
+byte host_read_data_leds();
+// ---------------------------------------------------- interrupts
+// On the Due we are using real interrupts so nothing needs o be done here
+#define host_check_interrupts() while(0)
+void host_serial_interrupts_pause();
+void host_serial_interrupts_resume();
+
 // -----------------------------------------------------------------------------
 #else
-#error requires Arduino Mega2560, Arduino Due
-#endif
+#define THIS_CPU "Other:Nano|Uno"
+// #error requires Arduino Mega2560, Arduino Due
+// Test on Nano or Uno.
+//  Sketch uses 39902 bytes (123%) of program storage space. Maximum is 32256 bytes.
+//  text section exceeds available space in board
+//  Global variables use 1933 bytes (94%) of dynamic memory, leaving 115 bytes for local variables. Maximum is 2048 bytes.
+//  Sketch too big; see http://www.arduino.cc/en/Guide/Troubleshooting#size for tips on reducing it.
+//  Error compiling for board Arduino Uno.
+// -----------------------------------------------------------------------------
+inline void host_set_addr_leds(uint16_t v) {
+  // PORTA = (v & 0xff);
+  // PORTC = (v / 256);
+}
+uint16_t host_read_addr_leds();
+uint16_t host_set_addr_leds();
+#define host_set_data_leds(v)  0
+#define host_read_data_leds()  0
 
+#define host_set_status_led_INT()     0
+#define host_set_status_led_WO()      0
+#define host_set_status_led_STACK()   0
+#define host_set_status_led_HLTA()    0
+#define host_set_status_led_M1()      0
+#define host_set_status_led_MEMR()    0
+#define host_set_status_led_INTE()    0
+#define host_set_status_led_PROT()    0
+#define host_set_status_led_WAIT()  { status_wait = true; }
+#define host_set_status_led_HLDA()    0
+
+#define host_clr_status_led_INT()     0
+#define host_clr_status_led_WO()      0
+#define host_clr_status_led_STACK()   0
+#define host_clr_status_led_HLTA()    0
+#define host_clr_status_led_M1()      0
+#define host_clr_status_led_MEMR()    0
+#define host_clr_status_led_INTE()    0
+#define host_clr_status_led_PROT()    0
+#define host_clr_status_led_WAIT()  { status_wait = false; }
+#define host_clr_status_led_HLDA()    0
+
+#define host_read_status_led_WAIT() status_wait
+#define host_read_status_led_M1()   0
+#define host_read_status_led_INTE() 0
+#define host_read_status_led_HLTA() 0
+
+#define host_set_status_leds_READMEM()       0
+#define host_set_status_leds_READMEM_M1()    0
+#define host_set_status_leds_READMEM_STACK() 0
+#define host_set_status_leds_WRITEMEM()      0
+
+#define host_set_status_led_INP()     0
+#define host_clr_status_led_INP()     0
+#define host_set_status_led_OUT()     0
+#define host_clr_status_led_OUT()     0
+
+uint16_t host_read_status_leds();
+inline byte host_mega_read_switches(byte highlow) {
+  byte b = 0;
+  ADCSRB = highlow ? 0x08 : 0x00; // MUX5
+  ADMUX = 0x40; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x01;
+  ADMUX = 0x41; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x02;
+  ADMUX = 0x42; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x04;
+  ADMUX = 0x43; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x08;
+  ADMUX = 0x44; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x10;
+  ADMUX = 0x45; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x20;
+  ADMUX = 0x46; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x40;
+  ADMUX = 0x47; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x80;
+  return b;
+}
+#define host_read_sense_switches() host_mega_read_switches(true)
+#define host_read_addr_switches() (host_mega_read_switches(true) * 256 | host_mega_read_switches(false))
+bool host_read_function_switch(byte inputNum);
+#define host_check_interrupts() { if( Serial.available() ) serial_receive_host_data(0, Serial.read()); }
+
+// -----------------------------------------------------------------------------
 // handling front panel switches
 bool     host_read_function_switch(byte i);
 bool     host_read_function_switch_debounced(byte i);
@@ -294,111 +394,25 @@ uint32_t host_get_random();
 void host_system_info();
 void host_setup();
 
-#endif
+#endif  // CPU: Nano
 
 // -----------------------------------------------------------------------------
 // config.h
 // -----------------------------------------------------------------------------
 
-#ifndef CONFIG_H
-#define CONFIG_H
-
-// Enables throttling of CPU speed. This only makes sense to enable
-// on the Due since the Mega is too slow anyways and the throttling
-// checks would only reduce performance further.
-// #define USE_THROTTLE 1
-#define USE_THROTTLE 0        // Stacy, for standalone test.
-
-// If enabled, Address switch state will be set by issuing the '/'
-// serial command.  Actual switches will be ignored.
-// Useful when operating while not connected to the front panel hardware.
-// #define STANDALONE 0
-#define STANDALONE 1    // Stacy set to 1 for standalone testing.
-
-// ------------------------------------------------------------------------------
+// Enables throttling of CPU speed.
+// #define USE_THROTTLE 1        // Set for faster Due CPU.
+#define USE_THROTTLE 0        // Set for slower Mega CPU.
 
 #define CF_THROTTLE     0x01
-#define CF_PROFILE      0x02
-#define CF_SERIAL_PANEL 0x04
 #define CF_SERIAL_INPUT 0x08
-#define CF_SERIAL_DEBUG 0x10
-#define CF_CLEARMEM     0x20
-#define CF_HAVE_VI      0x40
-#define CF_DRIVE_RT     0x80
-#define CF_PRINTER_RT   0x00020000
-#define CF_HDSK_RT      0x00040000
 
-#define CSM_SIO         0
-#define CSM_ACR         1
-#define CSM_2SIO1       2
-#define CSM_2SIO2       3
-#define CSM_2SIO3       4
-#define CSM_2SIO4       5
-
-#define CSF_OFF         0
-#define CSF_ON          1
-#define CSF_AUTO        2
-
-#define CSFB_NONE       0
-#define CSFB_UNDERSCORE 1
-#define CSFB_DELETE     3
-#define CSFB_AUTO       2
-
-#define CP_NONE         0
-#define CP_OKI          1
-#define CP_C700         2
-#define CP_GENERIC      3
-
-
-#if USE_SECOND_2SIO>0
-#define NUM_SERIAL_DEVICES 6
-#else
 #define NUM_SERIAL_DEVICES 4
-#endif
 
 extern uint32_t config_flags, config_flags2;
-extern uint32_t config_serial_settings;
-extern uint32_t config_interrupt_mask;
-extern uint32_t config_interrupt_vi_mask[8];
-extern byte     config_serial_sim_to_host[NUM_SERIAL_DEVICES];
-
-void config_setup(int n = 0);
-void config_edit();
-void config_defaults(bool apply);
-byte config_get_current();
-
-#if USE_THROTTLE>0
-int     config_throttle(); // 0=off, <0=auto delay, >0=manual delay
-#else
-#define config_throttle() 0
-#endif
-
-inline bool config_profiling_enabled()        {
-  return (config_flags & CF_PROFILE) != 0;
-}
-inline bool config_clear_memory()             {
-  return (config_flags & CF_CLEARMEM) != 0;
-}
-inline bool config_serial_panel_enabled()     {
-  return (config_flags & CF_SERIAL_PANEL) != 0;
-}
 inline bool config_serial_input_enabled()     {
   return (config_flags & CF_SERIAL_INPUT) != 0;
 }
-inline bool config_serial_debug_enabled()     {
-  return (config_flags & CF_SERIAL_DEBUG) != 0;
-}
-inline bool config_have_vi()                  {
-  return (config_flags & CF_HAVE_VI) != 0;
-}
-
-float    config_rtc_rate();
-
-uint32_t config_host_serial_baud_rate(byte iface);
-uint32_t config_host_serial_config(byte iface);
-byte     config_host_serial_primary();
-
-#endif
 
 // -----------------------------------------------------------------------------
 // numsys.h
@@ -429,41 +443,11 @@ uint32_t numsys_read_dword(bool *ESC = NULL);
 byte     numsys_read_hex_byte();
 uint16_t numsys_read_hex_word();
 
-#ifdef __AVR_ATmega2560__
-// on Arduino Mega do not use String as it requires heap space
-// and RAM is in short supply. This function is used exclusively for
-// logging via Serial.print, so returning the number directly will still
-// work, it just will always be printed as decimal
-#define  numsys_byte2string(i) i
-#else
-String   numsys_byte2string(byte b);
-#endif
-
 #endif
 
 // -----------------------------------------------------------------------------
 // timer.h
 // -----------------------------------------------------------------------------
-
-#ifndef TIMER_H
-#define TIMER_H
-
-// timers 0-4 must represent the four serial devices
-#define TIMER_SIO      0
-#define TIMER_ACR      1
-#define TIMER_2SIO1    2
-#define TIMER_2SIO2    3
-#define TIMER_2SIO3    4
-#define TIMER_2SIO4    5
-#define TIMER_RTC      6
-#define TIMER_PRINTER  7
-#define TIMER_PROFILE  8
-// timers below here are not needed for Arduino MEGA build
-#define TIMER_THROTTLE 9
-#define TIMER_DRIVE    10
-#define TIMER_HDSK     11
-#define TIMER_VDM1     12
-
 
 extern uint32_t timer_cycle_counter, timer_cycle_counter_offset, timer_next_expire_cycles;
 
@@ -479,7 +463,5 @@ void timer_setup();
 #define timer_get_cycles() (timer_cycle_counter_offset+timer_cycle_counter)
 
 #define TIMER_ADD_CYCLES(n) if( (timer_cycle_counter+=(n)) >= timer_next_expire_cycles ) timer_check()
-
-#endif
 
 // -----------------------------------------------------------------------------

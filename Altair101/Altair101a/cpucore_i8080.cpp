@@ -48,60 +48,60 @@ void altair_interrupt(uint32_t i, bool set)
 byte Mem[MEMSIZE];
 
 inline uint16_t MEM_READ_WORD(uint16_t addr) {
-  if( host_read_status_led_WAIT() ) {
-      byte l, h;
-      l = MEM_READ_STEP(addr);
-      addr++;
-      h = MEM_READ_STEP(addr);
-      return l | (h * 256);
-    }
+  if ( host_read_status_led_WAIT() ) {
+    byte l, h;
+    l = MEM_READ_STEP(addr);
+    addr++;
+    h = MEM_READ_STEP(addr);
+    return l | (h * 256);
+  }
   else {
-      byte l, h;
-      host_set_status_leds_READMEM();
-      host_set_addr_leds(addr);
-      l = MREAD(addr);
-      host_set_data_leds(l);
-      for(uint8_t i=0; i<5; i++) asm("NOP");
-      addr++;
-      host_set_addr_leds(addr);
-      h = MREAD(addr);
-      host_set_data_leds(h);
-      return l | (h * 256);
-    }
+    byte l, h;
+    host_set_status_leds_READMEM();
+    host_set_addr_leds(addr);
+    l = MREAD(addr);
+    host_set_data_leds(l);
+    for (uint8_t i = 0; i < 5; i++) asm("NOP");
+    addr++;
+    host_set_addr_leds(addr);
+    h = MREAD(addr);
+    host_set_data_leds(h);
+    return l | (h * 256);
+  }
 }
 
 
 inline void MEM_WRITE_WORD(uint16_t addr, uint16_t v)
 {
-  if( host_read_status_led_WAIT() )
-    {
-      MEM_WRITE_STEP(addr, v & 255);
-      addr++;
-      MEM_WRITE_STEP(addr, v / 256);
-    }
+  if ( host_read_status_led_WAIT() )
+  {
+    MEM_WRITE_STEP(addr, v & 255);
+    addr++;
+    MEM_WRITE_STEP(addr, v / 256);
+  }
   else
-    {
-      byte b;
+  {
+    byte b;
 #if SHOW_MWRITE_OUTPUT>0
-      b = v & 255;
-      MEM_WRITE(addr, b);
-      for(uint8_t i=0; i<5; i++) asm("NOP");
-      b = v / 256;
-      addr++;
-      MEM_WRITE(addr, b);
+    b = v & 255;
+    MEM_WRITE(addr, b);
+    for (uint8_t i = 0; i < 5; i++) asm("NOP");
+    b = v / 256;
+    addr++;
+    MEM_WRITE(addr, b);
 #else
-      host_set_status_leds_WRITEMEM();
-      host_set_data_leds(0xff);
-      host_set_addr_leds(addr);
-      b = v & 255;
-      MWRITE(addr, b);
-      for(uint8_t i=0; i<5; i++) asm("NOP");
-      addr++;
-      host_set_addr_leds(addr);
-      b = v / 256;
-      MWRITE(addr, b);
+    host_set_status_leds_WRITEMEM();
+    host_set_data_leds(0xff);
+    host_set_addr_leds(addr);
+    b = v & 255;
+    MWRITE(addr, b);
+    for (uint8_t i = 0; i < 5; i++) asm("NOP");
+    addr++;
+    host_set_addr_leds(addr);
+    b = v / 256;
+    MWRITE(addr, b);
 #endif
-    }
+  }
 }
 
 byte MEM_READ_STEP(uint16_t a) {
@@ -131,17 +131,6 @@ void MEM_WRITE_STEP(uint16_t a, byte v) {
     altair_wait_step();
     host_clr_status_led_WO();
   }
-}
-
-
-// -----------------------------------------------------
-static void randomize(uint32_t from, uint32_t to)
-{
-  // note that if from/to are not on 4-byte boundaries
-  // then a few bytes remain unchanged
-  from = (from & 3) == 0 ? from / 4 : from / 4 + 1;
-  to   = to / 4;
-  for (word i = from; i < to; i++)((uint32_t *) Mem)[i] = host_get_random();
 }
 
 // -----------------------------------------------------------------------------
@@ -198,161 +187,36 @@ static bool config_read_string(char *buf, byte bufsize)
 
 inline uint32_t get_bits(uint32_t v, byte i, byte n)
 {
-  return (v >> ((uint32_t) i)) & ((1ul<<n)-1);
+  return (v >> ((uint32_t) i)) & ((1ul << n) - 1);
 }
 
 inline uint32_t set_bits(uint32_t v, byte i, byte n, uint32_t nv)
 {
-  uint32_t mask = ((1ul<<n)-1) << i;
+  uint32_t mask = ((1ul << n) - 1) << i;
   return (v & ~mask) | ((nv << i) & mask);
 }
 
 static uint32_t toggle_bits(uint32_t v, byte i, byte n, byte min = 0x00, byte max = 0xff)
 {
   byte b = get_bits(v, i, n) + 1;
-  return set_bits(v, i, n, b>max ? min : (b<min ? min : b));
+  return set_bits(v, i, n, b > max ? min : (b < min ? min : b));
 }
 
 #if USE_THROTTLE>0
 int config_throttle()
 {
-  if( config_flags & CF_THROTTLE )
-    {
-      int i = get_bits(config_flags, 12, 5);
-      if( i==0 )
-        return -1; // auto
-      else
-        return i;  // manual
-    }
+  if ( config_flags & CF_THROTTLE )
+  {
+    int i = get_bits(config_flags, 12, 5);
+    if ( i == 0 )
+      return -1; // auto
+    else
+      return i;  // manual
+  }
   else
     return 0; // off
 }
 #endif
-
-// --------------------------------------------------------------------------------
-
-static void set_cursor(byte row, byte col)
-{
-  Serial.print(F("\033["));
-  Serial.print(row);
-  Serial.print(';');
-  Serial.print(col);
-  Serial.print(F("H\033[K"));
-}
-
-static void print_cpu()
-{
-    Serial.print(F("Intel 8080"));
-}
-
-static void print_mem_size(uint32_t s, byte row=0, byte col=0)
-{
-  if( row!=0 || col!=0 ) set_cursor(row, col);
-
-  if( (s&0x3FF)==0 )
-    {
-      Serial.print(s/1024); 
-      Serial.print(F(" KB"));
-    }
-  else
-    {
-      Serial.print(s); 
-      Serial.print(F(" bytes"));
-    }
-}
-
-static void print_flag(uint32_t data, uint32_t value, byte row=0, byte col=0)
-{
-  if( row!=0 || col!=0 ) set_cursor(row, col);
-  Serial.print((data&value)!=0 ? F("yes") : F("no"));
-}
-
-
-static void print_flag(uint32_t value, byte row=0, byte col=0)
-{
-  print_flag(config_flags, value, row, col);
-}
-
-
-static void print_flag2(uint32_t value, byte row=0, byte col=0)
-{
-  print_flag(config_flags2, value, row, col);
-}
-
-
-static void print_vi_flag()
-{
-  Serial.print((config_flags&CF_HAVE_VI)!=0 ? F("Use Vector Interrupt board") : F("Interrupts connected directly to CPU"));
-}
-
-
-static void print_throttle(byte row = 0, byte col = 0)
-{
-  if( row!=0 || col!=0 ) set_cursor(row, col);
-
-  int i = config_throttle();
-  if     ( i<0  ) Serial.print(F("auto adjust"));
-  else if( i==0 ) Serial.print(F("off"));
-  else            Serial.print(i);
-}
-
-// --------------------------------------------------------------------------------
-
-static bool save_config(byte fileno)
-{
-  return false;
-}
-
-static bool load_config(byte fileno)
-{
-  return false;
-}
-
-// --------------------------------------------------------------------------------
-void config_defaults(bool apply)
-{
-  byte i, j;
-  // default settings:
-  // - SERIAL_DEBUG, SERIAL_INPUT, SERIAL_PANEL enabled if in STANDALONE mode, otherwise disabled
-  // - Profiling disabled
-  // - Throttling enabled (on Due)
-
-  config_current = 0;
-  config_flags = 0;
-#if STANDALONE>0
-  config_flags |= CF_SERIAL_DEBUG;
-  config_flags |= CF_SERIAL_INPUT;
-  config_flags |= CF_SERIAL_PANEL;
-#endif
-  config_flags |= CF_THROTTLE;
-
-  config_flags2  = 0;              // Dazzler not enabled
-  config_flags2 |= 0 << 3;         // VDM-1 not enabled
-  config_flags2 |= B00110110 << 6; // VDM-1 DIP: 1=off, 2=on, 3=on, 4=off, 5=on, 6=on
-  config_flags2 |= (0xCC00 >> 10) << 12; // VDM-1 base address : CC00
-
-  new_config_serial_settings  = 0;
-  new_config_serial_settings |= (0 << 8); // USB Programming port is primary interface
-
-
-  uint32_t s = 0;
-  for(byte dev=0; dev<NUM_SERIAL_DEVICES; dev++)
-    config_serial_device_settings[dev] = s;
-
-  // maximum amount of RAM supported by host
-  config_mem_size = MEMSIZE; 
-
-}
-
-byte config_get_current()
-{
-  return config_current;
-}
-
-void config_setup(int n)
-{
-
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -366,8 +230,21 @@ union unionHL regHL;
 union unionPC regPCU;
 uint16_t regSP;
 
-void cpu_setup() {}
-// void cpu_print_registers() { cpucore_i8080_print_registers(); }
+#ifdef __AVR_ATmega2560__
+#ifdef __SAM3X8E__
+#define nothing 13
+uint16_t host_read_addr_leds() {
+  // A0..7  => PIOC, bits 2-9
+  // A8..15 => PIOC, bits 12-19
+  word w = REG_PIOC_PDSR;
+  return ((w & 0x000ff000) >> 4) | ((w & 0x000003fc) >> 2);
+}
+#endif
+#else
+uint16_t host_read_addr_leds() {
+  return (0);
+}
+#endif
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -375,259 +252,58 @@ void cpu_setup() {}
 
 static byte numsys = NUMSYS_HEX;
 
-static byte hexToDec(int hc)
-{
-  if( hc>96 ) hc -= 32;
-
-  if( hc >= 65 && hc <= 70 )
-    return hc - 65 + 10;
-  else if( hc >= 48 && hc <= 57 )
-    return hc - 48;
-
-  return 255;
-}
-
-
-void numsys_toggle()
-{
-  numsys = (numsys+1) % 3;
-}
-
-void numsys_set(byte sys)
-{
-  numsys = sys;
-}
-
-
-void numsys_print_byte_bin(byte b)
-{
-  for(byte i=0; i<8; i++)
-    {
-      Serial.print(b & 0x80 ? '1' : '0');
-      b = b * 2;
-    }
-}
-
-
-void numsys_print_byte_oct(byte b)
-{
-  byte d;
-  d = (b&0700) >> 6;
-  Serial.print(d);
-  d = (b&0070) >> 3;
-  Serial.print(d);
-  d = (b&0007);
-  Serial.print(d);
-}
-
-
-void numsys_print_byte_dec(byte b)
-{
-  if( b<10 )  Serial.print(' ');
-  if( b<100 ) Serial.print(' ');
-  Serial.print(b);
-}
-
-
-void numsys_print_byte_hex(byte b)
-{
-  if( b<16 ) Serial.print('0');
-  Serial.print(b, HEX);
-}
-
-
-
-void numsys_print_byte(byte b)
-{
-  switch( numsys )
-    {
+void numsys_print_byte(byte b) {
+  switch ( numsys )
+  {
     case NUMSYS_HEX: numsys_print_byte_hex(b); break;
     case NUMSYS_OCT: numsys_print_byte_oct(b); break;
     default: numsys_print_byte_dec(b); break;
-    }
+  }
 }
 
-
-void numsys_print_word(uint16_t w)
-{
-  if( numsys==NUMSYS_HEX )
-    {
-      numsys_print_byte(w >> 8);
-      numsys_print_byte(w & 0xff);
-    }
-  else if( numsys==NUMSYS_OCT )
-    {
-      Serial.print((w>>15) & 007);
-      Serial.print((w>>12) & 007);
-      Serial.print((w>> 9) & 007);
-      Serial.print((w>> 6) & 007);
-      Serial.print((w>> 3) & 007);
-      Serial.print( w      & 007);
-    }
+void numsys_print_word(uint16_t w) {
+  if ( numsys == NUMSYS_HEX )
+  {
+    numsys_print_byte(w >> 8);
+    numsys_print_byte(w & 0xff);
+  }
+  else if ( numsys == NUMSYS_OCT )
+  {
+    Serial.print((w >> 15) & 007);
+    Serial.print((w >> 12) & 007);
+    Serial.print((w >> 9) & 007);
+    Serial.print((w >> 6) & 007);
+    Serial.print((w >> 3) & 007);
+    Serial.print( w      & 007);
+  }
   else
-    {
-      if( w<10 )    Serial.print(' ');
-      if( w<100 )   Serial.print(' ');
-      if( w<1000 )  Serial.print(' ');
-      if( w<10000 ) Serial.print(' ');
-      Serial.print(w);
-    }
+  {
+    if ( w < 10 )    Serial.print(' ');
+    if ( w < 100 )   Serial.print(' ');
+    if ( w < 1000 )  Serial.print(' ');
+    if ( w < 10000 ) Serial.print(' ');
+    Serial.print(w);
+  }
 }
 
 
 void numsys_print_mem(uint16_t addr, byte num, bool printBrackets)
 {
   byte i;
-  if( printBrackets ) Serial.print('['); 
-  for(i=0; i<num; i++)
-    { numsys_print_byte(MREAD(addr+i)); if(i+1<num) Serial.print(' '); }
-  if( printBrackets ) Serial.print(']'); 
+  if ( printBrackets ) Serial.print('[');
+  for (i = 0; i < num; i++)
+  {
+    numsys_print_byte(MREAD(addr + i));
+    if (i + 1 < num) Serial.print(' ');
+  }
+  if ( printBrackets ) Serial.print(']');
 }
 
-
-static byte numsys_read_hex_digit()
+void numsys_print_byte_hex(byte b)
 {
-  while( true )
-    {
-      // Stacy char c = serial_read();
-      char c = 'a';
-      //
-      if( c>='0' && c<='9' )
-        return c-'0';
-      else if( c>='A' && c<='F' )
-        return c-'A'+10;
-      else if( c>='a' && c<='f' )
-        return c-'a'+10;
-    }
+  if ( b < 16 ) Serial.print('0');
+  Serial.print(b, HEX);
 }
-
-
-byte numsys_read_hex_byte()
-{
-  byte b;
-  b  = numsys_read_hex_digit() * 16;
-  b += numsys_read_hex_digit();
-  return b;
-}
-
-uint16_t numsys_read_hex_word()
-{
-  uint16_t w;
-  w  = (uint16_t) numsys_read_hex_byte() * 256;
-  w += (uint16_t) numsys_read_hex_byte();
-  return w;
-}
-
-bool numsys_read_byte(byte *b)
-{
-  bool ESC = false;
-  uint32_t w = numsys_read_dword(&ESC);
-  if( b!=NULL && !ESC ) *b = (byte) w;
-  return !ESC;
-}
-
-bool numsys_read_word(uint16_t *w)
-{
-  bool ESC = false;
-  uint32_t w2 = numsys_read_dword(&ESC);
-  if( w!=NULL && !ESC ) *w = (uint16_t) w2;
-  return !ESC;
-}
-
-bool numsys_read_dword(uint32_t *w)
-{
-  bool ESC = false;
-  uint32_t w2 = numsys_read_dword(&ESC);
-  if( w!=NULL && !ESC ) *w = w2;
-  return !ESC;
-}
-
-uint32_t numsys_read_dword(bool *ESC)
-{
-  byte b, d = 0;
-  uint32_t w = 0;
-  int c = -1;
-
-  if( ESC!=NULL ) *ESC = false;
-  while( c!=13 && c!=10 && c!=32 && c!=9 && c!='-' && c!=':')
-    {
-      c=-1;
-      // Stacy while(c<0) c = serial_read();
-
-      if( c==127 || c==8 )
-        {
-          if( d>0 )
-            {
-              if( numsys==NUMSYS_HEX )
-                w = w >> 4;
-              else if( numsys==NUMSYS_OCT )
-                w = w >> 3;
-              else
-                w = w / 10;
-
-              Serial.print(F("\010 \010"));
-              d--;
-            }
-        }
-      else if( numsys==NUMSYS_HEX && (b=hexToDec(c))!=255 )
-        {
-          Serial.write(c);
-          w = w << 4 | b;
-          d++;
-        }
-      else if( numsys==NUMSYS_OCT && c>=48 && c<=55 )
-        {
-          Serial.write(c);
-          w = w << 3 | (c-48);
-          d++;
-        }
-      else if( c>=48 && c<=57 )
-        {
-          Serial.write(c);
-          w = w * 10 + (c-48);
-          d++;
-        }
-      else if( c==27 && ESC!=NULL )
-        {
-          *ESC = true;
-          return 0;
-        }
-    }
-
-  return w;
-}
-
-
-byte numsys_get()
-{
-  return numsys;
-}
-
-
-byte numsys_get_byte_length()
-{
-  return numsys==NUMSYS_HEX ? 2 : 3;
-}
-
-
-#ifndef __AVR_ATmega2560__
-// see comment in numsys.h
-String numsys_byte2string(byte b)
-{
-  unsigned int l = 0;
-  String s;
-
-  switch( numsys )
-    {
-    case NUMSYS_OCT: s = String(b, OCT); l = 3; break;
-    case NUMSYS_DEC: s = String(b, DEC); l = 0; break;
-    case NUMSYS_HEX: s = String(b, HEX); l = 2; break;
-    }
-
-  while( s.length()<l ) s = String('0') + s;
-  return s;
-}
-#endif
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -928,24 +604,25 @@ static const byte halfCarryTableSub[] = { 1, 0, 0, 0, 1, 1, 1, 0 };
 #define setHalfCarryBitAdd(opd1, opd2, res) setHalfCarryBit(halfCarryTableAdd[((((opd1) & 0x08) / 2) | (((opd2) & 0x08) / 4) | (((res) & 0x08) / 8)) & 0x07])
 #define setHalfCarryBitSub(opd1, opd2, res) setHalfCarryBit(halfCarryTableSub[((((opd1) & 0x08) / 2) | (((opd2) & 0x08) / 4) | (((res) & 0x08) / 8)) & 0x07])
 
-static const byte parity_table[256] = 
-  {1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
-   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 
-   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 
-   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
-   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 
-   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
-   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
-   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1};
+static const byte parity_table[256] =
+{ 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
+  0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
+  0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
+  1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
+  0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
+  1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
+  1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
+  0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1
+};
 
 
 inline void setStatusBits(byte value)
 {
   byte b;
 
-  b = regS & ~(PS_ZERO|PS_SIGN|PS_PARITY);
-  if( parity_table[value] ) b |= PS_PARITY;
-  if( value==0 ) b |= PS_ZERO;
+  b = regS & ~(PS_ZERO | PS_SIGN | PS_PARITY);
+  if ( parity_table[value] ) b |= PS_PARITY;
+  if ( value == 0 ) b |= PS_ZERO;
   b |= (value & PS_SIGN);
 
   regS = b;
@@ -954,35 +631,35 @@ inline void setStatusBits(byte value)
 
 void pushStackSlow(byte valueH, byte valueL)
 {
-  if( altair_isreset() )
+  if ( altair_isreset() )
+  {
+    host_set_status_led_STACK();
+    regSP--;
+    MEM_WRITE_STEP(regSP, valueH);
+    if ( altair_isreset() )
     {
-      host_set_status_led_STACK();
       regSP--;
-      MEM_WRITE_STEP(regSP, valueH);
-      if( altair_isreset() )
-        {
-          regSP--;
-          MEM_WRITE_STEP(regSP, valueL);
-        }
-      host_clr_status_led_STACK();
+      MEM_WRITE_STEP(regSP, valueL);
     }
+    host_clr_status_led_STACK();
+  }
 }
 
 void popStackSlow(byte *valueH, byte *valueL)
 {
-  if( altair_isreset() )
+  if ( altair_isreset() )
+  {
+    host_set_status_led_STACK();
+    *valueL = MEM_READ_STEP(regSP);
+    if ( altair_isreset() )
     {
-      host_set_status_led_STACK();
-      *valueL = MEM_READ_STEP(regSP);
-      if( altair_isreset() )
-        {
-          regSP++;
-          *valueH = MEM_READ_STEP(regSP);
-          if( altair_isreset() ) regSP++;
-        }
-      
-      host_clr_status_led_STACK();
+      regSP++;
+      *valueH = MEM_READ_STEP(regSP);
+      if ( altair_isreset() ) regSP++;
     }
+
+    host_clr_status_led_STACK();
+  }
 }
 
 
@@ -990,31 +667,31 @@ void popStackSlow(byte *valueH, byte *valueL)
 
 #define pushStack(valueH, valueL)               \
   if( !host_read_status_led_WAIT() )            \
-    {                                           \
-      host_set_status_led_STACK();              \
-      regSP--;                                  \
-      MEM_WRITE(regSP, valueH);                 \
-      regSP--;                                  \
-      MEM_WRITE(regSP, valueL);                 \
-      host_clr_status_led_STACK();              \
-    }                                           \
+  {                                           \
+    host_set_status_led_STACK();              \
+    regSP--;                                  \
+    MEM_WRITE(regSP, valueH);                 \
+    regSP--;                                  \
+    MEM_WRITE(regSP, valueL);                 \
+    host_clr_status_led_STACK();              \
+  }                                           \
   else pushStackSlow(valueH, valueL);
 
 #else
 
 #define pushStack(valueH, valueL)               \
   if( !host_read_status_led_WAIT() )            \
-    {                                           \
-      host_set_status_led_STACK();              \
-      host_set_status_leds_WRITEMEM();          \
-      regSP--;                                  \
-      host_set_addr_leds(regSP);                \
-      MWRITE(regSP, valueH);                    \
-      regSP--;                                  \
-      host_set_addr_leds(regSP);                \
-      MWRITE(regSP, valueL);                    \
-      host_clr_status_led_STACK();              \
-    }                                           \
+  {                                           \
+    host_set_status_led_STACK();              \
+    host_set_status_leds_WRITEMEM();          \
+    regSP--;                                  \
+    host_set_addr_leds(regSP);                \
+    MWRITE(regSP, valueH);                    \
+    regSP--;                                  \
+    host_set_addr_leds(regSP);                \
+    MWRITE(regSP, valueL);                    \
+    host_clr_status_led_STACK();              \
+  }                                           \
   else pushStackSlow(valueH, valueL);
 
 #endif
@@ -1023,30 +700,30 @@ void popStackSlow(byte *valueH, byte *valueL)
 
 #define popStack(valueH, valueL)                \
   if( !host_read_status_led_WAIT() )            \
-    {                                           \
-      host_set_status_led_STACK();              \
-      valueL = MEM_READ(regSP);                 \
-      regSP++;                                  \
-      valueH = MEM_READ(regSP);                 \
-      regSP++;                                  \
-      host_clr_status_led_STACK();              \
-    }                                           \
+  {                                           \
+    host_set_status_led_STACK();              \
+    valueL = MEM_READ(regSP);                 \
+    regSP++;                                  \
+    valueH = MEM_READ(regSP);                 \
+    regSP++;                                  \
+    host_clr_status_led_STACK();              \
+  }                                           \
   else popStackSlow(&valueH, &valueL);
 
 #else
 
 #define popStack(valueH, valueL)                     \
   if( !host_read_status_led_WAIT() )                 \
-    {                                                \
-      host_set_status_leds_READMEM_STACK();          \
-      host_set_addr_leds(regSP);                     \
-      valueL = MREAD(regSP);                         \
-      regSP++;                                       \
-      host_set_addr_leds(regSP);                     \
-      valueH = host_set_data_leds(MREAD(regSP));     \
-      regSP++;                                       \
-      host_clr_status_led_STACK();                   \
-    }                                                \
+  {                                                \
+    host_set_status_leds_READMEM_STACK();          \
+    host_set_addr_leds(regSP);                     \
+    valueL = MREAD(regSP);                         \
+    regSP++;                                       \
+    host_set_addr_leds(regSP);                     \
+    valueH = host_set_data_leds(MREAD(regSP));     \
+    regSP++;                                       \
+    host_clr_status_led_STACK();                   \
+  }                                                \
   else popStackSlow(&valueH, &valueL);
 
 
@@ -1166,7 +843,7 @@ CPU_SUB(A);
     setCarryBit(0); \
     setStatusBits(regA); \
     TIMER_ADD_CYCLES(4); \
-  } 
+  }
 
 CPU_ANA(B);
 CPU_ANA(C);
@@ -1219,9 +896,9 @@ static void cpu_ADCM()
 {
   byte opd2  = MEM_READ(regHL.HL);
   uint16_t w = regA + opd2;
-  if(regS & PS_CARRY) w++; 
+  if (regS & PS_CARRY) w++;
   setHalfCarryBitAdd(regA, opd2, w);
-  setCarryBit(w&0x100);
+  setCarryBit(w & 0x100);
   setStatusBits((byte) w);
   regA = (byte) w;
   TIMER_ADD_CYCLES(7);
@@ -1231,7 +908,7 @@ static void cpu_ADDM()
 {
   byte opd2 = MEM_READ(regHL.HL);
   uint16_t w    = regA + opd2;
-  setCarryBit(w&0x100);
+  setCarryBit(w & 0x100);
   setHalfCarryBitAdd(regA, opd2, w);
   setStatusBits((byte) w);
   regA = (byte) w;
@@ -1242,9 +919,9 @@ static void cpu_SBBM()
 {
   byte opd2 = MEM_READ(regHL.HL);
   uint16_t w    = regA - opd2;
-  if(regS & PS_CARRY) w--; 
+  if (regS & PS_CARRY) w--;
   setHalfCarryBitSub(regA, opd2, w);
-  setCarryBit(w&0x100);
+  setCarryBit(w & 0x100);
   setStatusBits((byte) w);
   regA = (byte) w;
   TIMER_ADD_CYCLES(7);
@@ -1254,7 +931,7 @@ static void cpu_SUBM()
 {
   byte opd2 = MEM_READ(regHL.HL);
   uint16_t w    = regA - opd2;
-  setCarryBit(w&0x100);
+  setCarryBit(w & 0x100);
   setHalfCarryBitSub(regA, opd2, w);
   setStatusBits((byte) w);
   regA = (byte) w;
@@ -1264,7 +941,7 @@ static void cpu_SUBM()
 static void cpu_ANAM()
 {
   byte opd2 = MEM_READ(regHL.HL);
-  setHalfCarryBit(regA&0x08 | opd2&0x08);
+  setHalfCarryBit(regA & 0x08 | opd2 & 0x08);
   regA &= opd2;
   setCarryBit(0);
   setStatusBits(regA);
@@ -1293,7 +970,7 @@ static void cpu_CALL()
 {
   regPC += 2;
   pushPC();
-  regPC = MEM_READ_WORD(regPC-2);
+  regPC = MEM_READ_WORD(regPC - 2);
   TIMER_ADD_CYCLES(17);
 }
 
@@ -1320,14 +997,14 @@ static void cpu_CMPM()
 {
   byte opd2 = MEM_READ(regHL.HL);
   uint16_t w    = regA - opd2;
-  setCarryBit(w&0x100);
+  setCarryBit(w & 0x100);
   setHalfCarryBitSub(regA, opd2, w);
   setStatusBits((byte) w);
   TIMER_ADD_CYCLES(7);
 }
 
 #define CPU_DCR(REG) \
-static void cpu_DCR ## REG () \
+  static void cpu_DCR ## REG () \
   { \
     byte res = reg ## REG - 1; \
     setHalfCarryBit((res & 0x0f)!=0x0f); \
@@ -1347,7 +1024,7 @@ CPU_DCR(A);
 static void cpu_DCRM()
 {
   byte res  = MEM_READ(regHL.HL) - 1;
-  setHalfCarryBit((res & 0x0f)!=0x0f);
+  setHalfCarryBit((res & 0x0f) != 0x0f);
   setStatusBits(res);
   MEM_WRITE(regHL.HL, res);
   TIMER_ADD_CYCLES(10);
@@ -1369,9 +1046,9 @@ static void cpu_ACI()
 {
   byte opd2 = MEM_READ(regPC);
   uint16_t w    = regA + opd2;
-  if(regS & PS_CARRY) w++;
+  if (regS & PS_CARRY) w++;
   setHalfCarryBitAdd(regA, opd2, w);
-  setCarryBit(w&0x100);
+  setCarryBit(w & 0x100);
   setStatusBits((byte) w);
   regA = (byte) w;
   regPC++;
@@ -1382,7 +1059,7 @@ static void cpu_SUI()
 {
   byte opd2 = MEM_READ(regPC);
   uint16_t w    = regA - opd2;
-  setCarryBit(w&0x100);
+  setCarryBit(w & 0x100);
   setHalfCarryBitSub(regA, opd2, w);
   setStatusBits((byte) w);
   regA = (byte) w;
@@ -1394,9 +1071,9 @@ static void cpu_SBI()
 {
   byte opd2 = MEM_READ(regPC);
   uint16_t w    = regA - opd2;
-  if(regS & PS_CARRY) w--;
+  if (regS & PS_CARRY) w--;
   setHalfCarryBitSub(regA, opd2, w);
-  setCarryBit(w&0x100);
+  setCarryBit(w & 0x100);
   setStatusBits((byte) w);
   regA = (byte) w;
   regPC++;
@@ -1406,7 +1083,7 @@ static void cpu_SBI()
 static void cpu_ANI()
 {
   byte opd2 = MEM_READ(regPC);
-  setHalfCarryBit(regA&0x08 | opd2&0x08);
+  setHalfCarryBit(regA & 0x08 | opd2 & 0x08);
   regA &= opd2;
   setCarryBit(0);
   setStatusBits(regA);
@@ -1438,7 +1115,7 @@ static void cpu_CPI()
 {
   byte opd2  = MEM_READ(regPC);
   uint16_t w = regA - opd2;
-  setCarryBit(w&0x100);
+  setCarryBit(w & 0x100);
   setHalfCarryBitSub(regA, opd2, w);
   setStatusBits((byte) w);
   regPC++;
@@ -1461,9 +1138,12 @@ static void cpu_DAA()
 {
   byte b   = regA;
   byte adj = 0;
-  if( (regS & PS_HALFCARRY) || (b & 0x0f) > 0x09 ) adj = 0x06;
-  if( (regS & PS_CARRY)     || (b & 0xf0) > 0x90 || ((b & 0xf0) == 0x90 && (b & 0x0f) > 9) )
-    { adj  |= 0x60; regS |= PS_CARRY; }
+  if ( (regS & PS_HALFCARRY) || (b & 0x0f) > 0x09 ) adj = 0x06;
+  if ( (regS & PS_CARRY)     || (b & 0xf0) > 0x90 || ((b & 0xf0) == 0x90 && (b & 0x0f) > 9) )
+  {
+    adj  |= 0x60;
+    regS |= PS_CARRY;
+  }
 
   regA = b + adj;
   setHalfCarryBitAdd(b, adj, regA);
@@ -1552,7 +1232,7 @@ CPU_INR(A);
 static void cpu_INRM()
 {
   byte res = MEM_READ(regHL.HL) + 1;
-  setHalfCarryBit((res&0x0f)==0);
+  setHalfCarryBit((res & 0x0f) == 0);
   setStatusBits(res);
   MEM_WRITE(regHL.HL, res);
   TIMER_ADD_CYCLES(10);
@@ -1597,7 +1277,7 @@ static void cpu_LHLD()
 {
   uint16_t addr = MEM_READ_WORD(regPC);
   regL = MEM_READ(addr);
-  regH = MEM_READ(addr+1);
+  regH = MEM_READ(addr + 1);
   regPC += 2;
   TIMER_ADD_CYCLES(16);
 }
@@ -1608,7 +1288,7 @@ static void cpu_LXIS()
   regPC += 2;
   TIMER_ADD_CYCLES(10);
 }
-  
+
 #define CPU_LXI(REGH,REGL) \
   static void cpu_LXI ## REGH ## REGL() \
   { \
@@ -1618,9 +1298,9 @@ static void cpu_LXIS()
     TIMER_ADD_CYCLES(10); \
   }
 
-CPU_LXI(B,C);
-CPU_LXI(D,E);
-CPU_LXI(H,L);
+CPU_LXI(B, C);
+CPU_LXI(D, E);
+CPU_LXI(H, L);
 
 
 #define CPU_MVRR(REGTO,REGFROM)                 \
@@ -1732,7 +1412,7 @@ CPU_MVRI(A);
 
 static void cpu_MVMI()
 {
-  // MVI dst, M 
+  // MVI dst, M
   MEM_WRITE(regHL.HL, MEM_READ(regPC));
   regPC++;
   TIMER_ADD_CYCLES(10);
@@ -1778,7 +1458,7 @@ CPU_PSH(H, L);
 
 static void cpu_PSHAS()
 {
-  pushStack(regA, (regS & 0xD5) | 0x02); 
+  pushStack(regA, (regS & 0xD5) | 0x02);
   TIMER_ADD_CYCLES(11);
 }
 
@@ -1839,64 +1519,88 @@ CPU_RST(38);
 
 static void cpu_RNZ()
 {
-  if( !(regS & PS_ZERO) ) 
-    { popPC(); TIMER_ADD_CYCLES(11); }
+  if ( !(regS & PS_ZERO) )
+  {
+    popPC();
+    TIMER_ADD_CYCLES(11);
+  }
   else
     TIMER_ADD_CYCLES(5);
 }
 
 static void cpu_RZ()
 {
-  if( (regS & PS_ZERO) ) 
-    { popPC(); TIMER_ADD_CYCLES(11); }
+  if ( (regS & PS_ZERO) )
+  {
+    popPC();
+    TIMER_ADD_CYCLES(11);
+  }
   else
     TIMER_ADD_CYCLES(5);
 }
 
 static void cpu_RNC()
 {
-  if( !(regS & PS_CARRY) ) 
-    { popPC(); TIMER_ADD_CYCLES(11); }
+  if ( !(regS & PS_CARRY) )
+  {
+    popPC();
+    TIMER_ADD_CYCLES(11);
+  }
   else
     TIMER_ADD_CYCLES(5);
 }
 
 static void cpu_RC()
 {
-  if( (regS & PS_CARRY) ) 
-    { popPC(); TIMER_ADD_CYCLES(11); }
+  if ( (regS & PS_CARRY) )
+  {
+    popPC();
+    TIMER_ADD_CYCLES(11);
+  }
   else
     TIMER_ADD_CYCLES(5);
 }
 
 static void cpu_RPO()
 {
-  if( !(regS & PS_PARITY) ) 
-    { popPC(); TIMER_ADD_CYCLES(11); }
+  if ( !(regS & PS_PARITY) )
+  {
+    popPC();
+    TIMER_ADD_CYCLES(11);
+  }
   else
     TIMER_ADD_CYCLES(5);
 }
 
 static void cpu_RPE()
 {
-  if( (regS & PS_PARITY) ) 
-    { popPC(); TIMER_ADD_CYCLES(11); }
+  if ( (regS & PS_PARITY) )
+  {
+    popPC();
+    TIMER_ADD_CYCLES(11);
+  }
   else
     TIMER_ADD_CYCLES(5);
 }
 
 static void cpu_RP()
 {
-  if( !(regS & PS_SIGN) ) 
-    { popPC(); TIMER_ADD_CYCLES(11); }
+  if ( !(regS & PS_SIGN) )
+  {
+    popPC();
+    TIMER_ADD_CYCLES(11);
+  }
   else
     TIMER_ADD_CYCLES(5);
 }
 
 static void cpu_RM()
 {
-  if( (regS & PS_SIGN) ) 
-    { popPC(); TIMER_ADD_CYCLES(11); }
+  if ( (regS & PS_SIGN) )
+  {
+    popPC();
+    TIMER_ADD_CYCLES(11);
+  }
   else
     TIMER_ADD_CYCLES(5);
 }
@@ -1910,144 +1614,192 @@ static void cpu_JMP()
 static void cpu_JNZ()
 {
   uint16_t addr = MEM_READ_WORD(regPC);
-  if( !(regS & PS_ZERO) ) regPC = addr; else regPC += 2;
+  if ( !(regS & PS_ZERO) ) regPC = addr; else regPC += 2;
   TIMER_ADD_CYCLES(10);
 }
 
 static void cpu_JZ()
 {
   uint16_t addr = MEM_READ_WORD(regPC);
-  if( (regS & PS_ZERO) ) regPC = addr; else regPC += 2;
+  if ( (regS & PS_ZERO) ) regPC = addr; else regPC += 2;
   TIMER_ADD_CYCLES(10);
 }
 
 static void cpu_JNC()
 {
   uint16_t addr = MEM_READ_WORD(regPC);
-  if( !(regS & PS_CARRY) ) regPC = addr; else regPC += 2;
+  if ( !(regS & PS_CARRY) ) regPC = addr; else regPC += 2;
   TIMER_ADD_CYCLES(10);
 }
 
 static void cpu_JC()
 {
   uint16_t addr = MEM_READ_WORD(regPC);
-  if( (regS & PS_CARRY) ) regPC = addr; else regPC += 2;
+  if ( (regS & PS_CARRY) ) regPC = addr; else regPC += 2;
   TIMER_ADD_CYCLES(10);
 }
 
 static void cpu_JPO()
 {
   uint16_t addr = MEM_READ_WORD(regPC);
-  if( !(regS & PS_PARITY) ) regPC = addr; else regPC += 2;
+  if ( !(regS & PS_PARITY) ) regPC = addr; else regPC += 2;
   TIMER_ADD_CYCLES(10);
 }
 
 static void cpu_JPE()
 {
   uint16_t addr = MEM_READ_WORD(regPC);
-  if( (regS & PS_PARITY) ) regPC = addr; else regPC += 2;
+  if ( (regS & PS_PARITY) ) regPC = addr; else regPC += 2;
   TIMER_ADD_CYCLES(10);
 }
 
 static void cpu_JP()
 {
   uint16_t addr = MEM_READ_WORD(regPC);
-  if( !(regS & PS_SIGN) ) regPC = addr; else regPC += 2;
+  if ( !(regS & PS_SIGN) ) regPC = addr; else regPC += 2;
   TIMER_ADD_CYCLES(10);
 }
 
 static void cpu_JM()
 {
   uint16_t addr = MEM_READ_WORD(regPC);
-  if( (regS & PS_SIGN) ) regPC = addr; else regPC += 2;
+  if ( (regS & PS_SIGN) ) regPC = addr; else regPC += 2;
   TIMER_ADD_CYCLES(10);
 }
 
 static void cpu_CNZ()
 {
   uint16_t addr = MEM_READ_WORD(regPC);
-  regPC+=2; 
-  if( !(regS & PS_ZERO) ) 
-    { pushPC(); regPC = addr; TIMER_ADD_CYCLES(17); }
+  regPC += 2;
+  if ( !(regS & PS_ZERO) )
+  {
+    pushPC();
+    regPC = addr;
+    TIMER_ADD_CYCLES(17);
+  }
   else
-    { TIMER_ADD_CYCLES(11); }
+  {
+    TIMER_ADD_CYCLES(11);
+  }
 }
 
 static void cpu_CZ()
 {
   uint16_t addr = MEM_READ_WORD(regPC);
-  regPC+=2; 
-  if( (regS & PS_ZERO) ) 
-    { pushPC(); regPC = addr; TIMER_ADD_CYCLES(17); }
+  regPC += 2;
+  if ( (regS & PS_ZERO) )
+  {
+    pushPC();
+    regPC = addr;
+    TIMER_ADD_CYCLES(17);
+  }
   else
-    { TIMER_ADD_CYCLES(11); }
+  {
+    TIMER_ADD_CYCLES(11);
+  }
 }
 
 static void cpu_CNC()
 {
   uint16_t addr = MEM_READ_WORD(regPC);
-  regPC+=2; 
-  if( !(regS & PS_CARRY) ) 
-    { pushPC(); regPC = addr; TIMER_ADD_CYCLES(17); }
+  regPC += 2;
+  if ( !(regS & PS_CARRY) )
+  {
+    pushPC();
+    regPC = addr;
+    TIMER_ADD_CYCLES(17);
+  }
   else
-    { TIMER_ADD_CYCLES(11); }
+  {
+    TIMER_ADD_CYCLES(11);
+  }
 }
 
 static void cpu_CC()
 {
   uint16_t addr = MEM_READ_WORD(regPC);
-  regPC+=2; 
-  if( (regS & PS_CARRY) ) 
-    { pushPC(); regPC = addr; TIMER_ADD_CYCLES(17); }
+  regPC += 2;
+  if ( (regS & PS_CARRY) )
+  {
+    pushPC();
+    regPC = addr;
+    TIMER_ADD_CYCLES(17);
+  }
   else
-    { TIMER_ADD_CYCLES(11); }
+  {
+    TIMER_ADD_CYCLES(11);
+  }
 }
 
 static void cpu_CPO()
 {
   uint16_t addr = MEM_READ_WORD(regPC);
-  regPC+=2; 
-  if( !(regS & PS_PARITY) ) 
-    { pushPC(); regPC = addr; TIMER_ADD_CYCLES(17); }
+  regPC += 2;
+  if ( !(regS & PS_PARITY) )
+  {
+    pushPC();
+    regPC = addr;
+    TIMER_ADD_CYCLES(17);
+  }
   else
-    { TIMER_ADD_CYCLES(11); }
+  {
+    TIMER_ADD_CYCLES(11);
+  }
 }
 
 static void cpu_CPE()
 {
   uint16_t addr = MEM_READ_WORD(regPC);
-  regPC+=2; 
-  if( (regS & PS_PARITY) ) 
-    { pushPC(); regPC = addr; TIMER_ADD_CYCLES(17); }
+  regPC += 2;
+  if ( (regS & PS_PARITY) )
+  {
+    pushPC();
+    regPC = addr;
+    TIMER_ADD_CYCLES(17);
+  }
   else
-    { TIMER_ADD_CYCLES(11); }
+  {
+    TIMER_ADD_CYCLES(11);
+  }
 }
 
 static void cpu_CP()
 {
   uint16_t addr = MEM_READ_WORD(regPC);
-  regPC+=2; 
-  if( !(regS & PS_SIGN) ) 
-    { pushPC(); regPC = addr; TIMER_ADD_CYCLES(17); }
+  regPC += 2;
+  if ( !(regS & PS_SIGN) )
+  {
+    pushPC();
+    regPC = addr;
+    TIMER_ADD_CYCLES(17);
+  }
   else
-    { TIMER_ADD_CYCLES(11); }
+  {
+    TIMER_ADD_CYCLES(11);
+  }
 }
 
 static void cpu_CM()
 {
   uint16_t addr = MEM_READ_WORD(regPC);
-  regPC+=2; 
-  if( (regS & PS_SIGN) ) 
-    { pushPC(); regPC = addr; TIMER_ADD_CYCLES(17); }
+  regPC += 2;
+  if ( (regS & PS_SIGN) )
+  {
+    pushPC();
+    regPC = addr;
+    TIMER_ADD_CYCLES(17);
+  }
   else
-    { TIMER_ADD_CYCLES(11); }
+  {
+    TIMER_ADD_CYCLES(11);
+  }
 }
 
 static void cpu_SHLD()
 {
   uint16_t addr = MEM_READ_WORD(regPC);
   MEM_WRITE(addr,   regL);
-  MEM_WRITE(addr+1u, regH);
+  MEM_WRITE(addr + 1u, regH);
   regPC += 2;
   TIMER_ADD_CYCLES(16);
 }
@@ -2085,7 +1837,7 @@ static void cpu_STC()
 static void cpu_XTHL()
 {
   byte b;
-  b = MEM_READ(regSP+1u); MEM_WRITE(regSP+1u, regH); regH = b;
+  b = MEM_READ(regSP + 1u); MEM_WRITE(regSP + 1u, regH); regH = b;
   b = MEM_READ(regSP);    MEM_WRITE(regSP,    regL); regL = b;
   TIMER_ADD_CYCLES(18);
 }
@@ -2113,19 +1865,19 @@ static void cpu_IN() {
 
 static void cpu_print_status_register(byte s)
 {
-  if( s & PS_SIGN )     Serial.print('S'); else Serial.print('.');
-  if( s & PS_ZERO )     Serial.print('Z'); else Serial.print('.');
+  if ( s & PS_SIGN )     Serial.print('S'); else Serial.print('.');
+  if ( s & PS_ZERO )     Serial.print('Z'); else Serial.print('.');
   Serial.print('.');
-  if( s & PS_HALFCARRY ) Serial.print('A'); else Serial.print('.');
+  if ( s & PS_HALFCARRY ) Serial.print('A'); else Serial.print('.');
   Serial.print('.');
-  if( s & PS_PARITY )   Serial.print('P'); else Serial.print('.');
+  if ( s & PS_PARITY )   Serial.print('P'); else Serial.print('.');
   Serial.print('.');
-  if( s & PS_CARRY )    Serial.print('C'); else Serial.print('.');
+  if ( s & PS_CARRY )    Serial.print('C'); else Serial.print('.');
 }
 
 void cpucore_i8080_print_registers() {
   Serial.print(F("\r\n PC   = ")); numsys_print_word(regPC);
-  Serial.print(F(" = ")); numsys_print_mem(regPC, 3, true); 
+  Serial.print(F(" = ")); numsys_print_mem(regPC, 3, true);
   Serial.print(F("\r\n SP   = ")); numsys_print_word(regSP);
   Serial.print(F(" = ")); numsys_print_mem(regSP, 8, true);
   Serial.print(F("\r\n regA = ")); numsys_print_byte(regA);
@@ -2149,7 +1901,7 @@ CPUFUN cpucore_i8080_opcodes[256] = {
   cpu_NOP,   cpu_DADHL, cpu_LHLD,  cpu_DCXHL, cpu_INRL,  cpu_DCRL,  cpu_MVLI,  cpu_CMA,		// 050-057 (0x28-0x2F)
   cpu_NOP,   cpu_LXIS,  cpu_STA,   cpu_INXSP, cpu_INRM,  cpu_DCRM,  cpu_MVMI,  cpu_STC,		// 060-067 (0x30-0x37)
   cpu_NOP,   cpu_DADS,  cpu_LDA,   cpu_DCXSP, cpu_INRA,  cpu_DCRA,  cpu_MVAI,  cpu_CMC,		// 070-077 (0x38-0x3F)
-  
+
   cpu_MVBB,  cpu_MVBC,  cpu_MVBD,  cpu_MVBE,  cpu_MVBH,  cpu_MVBL,  cpu_MVBM,  cpu_MVBA,	// 100-107 (0x40-0x47)
   cpu_MVCB,  cpu_MVCC,  cpu_MVCD,  cpu_MVCE,  cpu_MVCH,  cpu_MVCL,  cpu_MVCM,  cpu_MVCA,       	// 110-117 (0x48-0x4F)
   cpu_MVDB,  cpu_MVDC,  cpu_MVDD,  cpu_MVDE,  cpu_MVDH,  cpu_MVDL,  cpu_MVDM,  cpu_MVDA,	// 120-127 (0x50-0x57)
@@ -2158,7 +1910,7 @@ CPUFUN cpucore_i8080_opcodes[256] = {
   cpu_MVLB,  cpu_MVLC,  cpu_MVLD,  cpu_MVLE,  cpu_MVLH,  cpu_MVLL,  cpu_MVLM,  cpu_MVLA,	// 150-157 (0x68-0x6F)
   cpu_MVMB,  cpu_MVMC,  cpu_MVMD,  cpu_MVME,  cpu_MVMH,  cpu_MVML,  cpu_HLT,   cpu_MVMA,	// 160-167 (0x70-0x77)
   cpu_MVAB,  cpu_MVAC,  cpu_MVAD,  cpu_MVAE,  cpu_MVAH,  cpu_MVAL,  cpu_MVAM,  cpu_MVAA,	// 170-177 (0x78-0x7F)
-  
+
   cpu_ADDB,  cpu_ADDC,  cpu_ADDD,  cpu_ADDE,  cpu_ADDH,  cpu_ADDL,  cpu_ADDM,  cpu_ADDA,	// 200-207 (0x80-0x87)
   cpu_ADCB,  cpu_ADCC,  cpu_ADCD,  cpu_ADCE,  cpu_ADCH,  cpu_ADCL,  cpu_ADCM,  cpu_ADCA,	// 210-217 (0x88-0x8F)
   cpu_SUBB,  cpu_SUBC,  cpu_SUBD,  cpu_SUBE,  cpu_SUBH,  cpu_SUBL,  cpu_SUBM,  cpu_SUBA,	// 220-227 (0x90-0x97)
@@ -2167,7 +1919,7 @@ CPUFUN cpucore_i8080_opcodes[256] = {
   cpu_XRAB,  cpu_XRAC,  cpu_XRAD,  cpu_XRAE,  cpu_XRAH,  cpu_XRAL,  cpu_XRAM,  cpu_XRAA,	// 250-257 (0xA8-0xAF)
   cpu_ORAB,  cpu_ORAC,  cpu_ORAD,  cpu_ORAE,  cpu_ORAH,  cpu_ORAL,  cpu_ORAM,  cpu_ORAA,        // 260-267 (0xB0-0xB7)
   cpu_CMPB,  cpu_CMPC,  cpu_CMPD,  cpu_CMPE,  cpu_CMPH,  cpu_CMPL,  cpu_CMPM,  cpu_CMPA,	// 270-277 (0xB8-0xBF)
-  
+
   cpu_RNZ,   cpu_POPBC, cpu_JNZ,   cpu_JMP,   cpu_CNZ,   cpu_PSHBC, cpu_ADI,   cpu_RST00,	// 300-307 (0xC0-0xC7)
   cpu_RZ,    cpu_RET,   cpu_JZ,    cpu_JMP,   cpu_CZ,    cpu_CALL,  cpu_ACI,   cpu_RST08,	// 310-317 (0xC8-0xCF)
   cpu_RNC,   cpu_POPDE, cpu_JNC,   cpu_OUT,   cpu_CNC,   cpu_PSHDE, cpu_SUI,   cpu_RST10,	// 320-327 (0xD0-0xD7)

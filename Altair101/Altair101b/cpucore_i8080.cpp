@@ -17,58 +17,45 @@
 // Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 // -----------------------------------------------------------------------------
 
-#include "cpucore.h"
-#include "timer.h"
-#include "mem.h"
-#include "numsys.h"
-#include "Altair8800.h"
+#include <Arduino.h>
+#include "cpucore_i8080.h"
 
-#if USE_Z80 != 1
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Altair8800.ino
 
-#define setCarryBit(v)     if(v) regS |= PS_CARRY;     else regS &= ~PS_CARRY
-#define setHalfCarryBit(v) if(v) regS |= PS_HALFCARRY; else regS &= ~PS_HALFCARRY
+void altair_interrupt(uint32_t i, bool set = true);
+bool altair_interrupt_active(uint32_t i);
+void altair_interrupt_enable();
+void altair_interrupt_disable();
+bool altair_interrupt_enabled();
 
-static const byte halfCarryTableAdd[] = { 0, 0, 1, 0, 1, 0, 1, 1 };
-static const byte halfCarryTableSub[] = { 1, 0, 0, 0, 1, 1, 1, 0 };
-#define setHalfCarryBitAdd(opd1, opd2, res) setHalfCarryBit(halfCarryTableAdd[((((opd1) & 0x08) / 2) | (((opd2) & 0x08) / 4) | (((res) & 0x08) / 8)) & 0x07])
-#define setHalfCarryBitSub(opd1, opd2, res) setHalfCarryBit(halfCarryTableSub[((((opd1) & 0x08) / 2) | (((opd2) & 0x08) / 4) | (((res) & 0x08) / 8)) & 0x07])
-
-static const byte parity_table[256] = 
-  {1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
-   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 
-   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 
-   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
-   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 
-   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
-   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
-   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1};
-
-
-inline void setStatusBits(byte value)
+void altair_interrupt_disable()
 {
-  byte b;
-
-  b = regS & ~(PS_ZERO|PS_SIGN|PS_PARITY);
-  if( parity_table[value] ) b |= PS_PARITY;
-  if( value==0 ) b |= PS_ZERO;
-  b |= (value & PS_SIGN);
-
-  regS = b;
+  host_clr_status_led_INTE();
+  // altair_interrupts_enabled = false;
+  // altair_interrupts &= ~INT_DEVICE;
 }
 
-
-inline uint16_t MEM_READ_WORD(uint16_t addr)
+void altair_interrupt(uint32_t i, bool set)
 {
-  if( host_read_status_led_WAIT() )
-    {
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// mem.cpp
+
+byte Mem[MEMSIZE];
+
+inline uint16_t MEM_READ_WORD(uint16_t addr) {
+  if( host_read_status_led_WAIT() ) {
       byte l, h;
       l = MEM_READ_STEP(addr);
       addr++;
       h = MEM_READ_STEP(addr);
       return l | (h * 256);
     }
-  else
-    {
+  else {
       byte l, h;
       host_set_status_leds_READMEM();
       host_set_addr_leds(addr);
@@ -115,6 +102,853 @@ inline void MEM_WRITE_WORD(uint16_t addr, uint16_t v)
       MWRITE(addr, b);
 #endif
     }
+}
+
+byte MEM_READ_STEP(uint16_t a) {
+  if ( altair_isreset() ) {
+    byte v = MREAD(a);
+    host_set_status_leds_READMEM();
+    altair_set_outputs(a, v);
+    altair_wait_step();
+    v = host_read_data_leds(); // CPU reads whatever is on the data bus at this point
+    host_clr_status_led_MEMR();
+    return v;
+  }
+  else {
+    return 0x00;
+  }
+}
+
+void MEM_WRITE_STEP(uint16_t a, byte v) {
+  if ( altair_isreset() ) {
+    MWRITE(a, v);
+    host_set_status_leds_WRITEMEM();
+#if SHOW_MWRITE_OUTPUT>0
+    altair_set_outputs(a, v);
+#else
+    altair_set_outputs(a, 0xff);
+#endif
+    altair_wait_step();
+    host_clr_status_led_WO();
+  }
+}
+
+
+// -----------------------------------------------------
+static void randomize(uint32_t from, uint32_t to)
+{
+  // note that if from/to are not on 4-byte boundaries
+  // then a few bytes remain unchanged
+  from = (from & 3) == 0 ? from / 4 : from / 4 + 1;
+  to   = to / 4;
+  for (word i = from; i < to; i++)((uint32_t *) Mem)[i] = host_get_random();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// config.cpp
+
+#define CONFIG_FILE_VERSION 10
+
+// current configuration number
+static byte config_current = 0;
+uint32_t config_flags;
+uint32_t config_flags2;
+uint32_t config_serial_settings, new_config_serial_settings;
+
+// cofig_serial_settings2:
+// xxxxxxxB BPPSBBPP SBBPPSBB PPSBBPPS
+// for all 5 host interfaces:
+// BB = number of bits (0=5, 1=6, 2=7, 3=8)
+// PP = parity         (0=none, 1=even, 2=odd)
+// S  = stop bits      (0=1, 1=2)
+uint32_t config_serial_settings2, new_config_serial_settings2;
+
+// config_serial_device_settings[0-5]
+// xxxxxxxx xxxxMMMR TT77UUVV CNNNBBBB
+// BBBB = baud rate for serial playback (see baud rates above)
+// NNN  = NULs to send after a carriage return when playing back examples
+// C    = trap CLOAD/CSAVE in extended BASIC (for CSM_ACR device only)
+// MMM  = map device to host interface (000=NONE, 001=first, 010=second, 011=third, 100=fourth, 101=fifth, 111=primary)
+// UU   = only uppercase for inputs (00=off, 01=on, 10=autodetect)
+// 77   = use 7 bit for serial outputs (00=off [use 8 bit], 01=on, 10=autodetect)
+// TT   = translate backspace to (00=off, 01=underscore, 10=autodetect, 11=delete)
+// R    = force realtime operation (use baud rate even if not using interrupts)
+// VV   = 88-SIO board version (0=rev0, 1=rev1, 2=Cromemco)
+uint32_t config_serial_device_settings[NUM_SERIAL_DEVICES];
+
+// map emulated device (SIO/2SIO etc.) to host serial port number
+byte config_serial_sim_to_host[NUM_SERIAL_DEVICES];
+
+// masks defining which interrupts (INT_*) are at which vector interrupt levels
+uint32_t config_interrupt_vi_mask[8];
+
+// mask defining whch interrupts (INT_*) are connected if VI board is not installed
+uint32_t config_interrupt_mask;
+
+// amount of RAM installed
+uint32_t config_mem_size;
+
+// --------------------------------------------------------------------------------
+
+static bool config_read_string(char *buf, byte bufsize)
+{
+  return true;
+}
+
+inline uint32_t get_bits(uint32_t v, byte i, byte n)
+{
+  return (v >> ((uint32_t) i)) & ((1ul<<n)-1);
+}
+
+inline uint32_t set_bits(uint32_t v, byte i, byte n, uint32_t nv)
+{
+  uint32_t mask = ((1ul<<n)-1) << i;
+  return (v & ~mask) | ((nv << i) & mask);
+}
+
+static uint32_t toggle_bits(uint32_t v, byte i, byte n, byte min = 0x00, byte max = 0xff)
+{
+  byte b = get_bits(v, i, n) + 1;
+  return set_bits(v, i, n, b>max ? min : (b<min ? min : b));
+}
+
+#if USE_THROTTLE>0
+int config_throttle()
+{
+  if( config_flags & CF_THROTTLE )
+    {
+      int i = get_bits(config_flags, 12, 5);
+      if( i==0 )
+        return -1; // auto
+      else
+        return i;  // manual
+    }
+  else
+    return 0; // off
+}
+#endif
+
+// --------------------------------------------------------------------------------
+
+static void set_cursor(byte row, byte col)
+{
+  Serial.print(F("\033["));
+  Serial.print(row);
+  Serial.print(';');
+  Serial.print(col);
+  Serial.print(F("H\033[K"));
+}
+
+static void print_cpu()
+{
+    Serial.print(F("Intel 8080"));
+}
+
+static void print_mem_size(uint32_t s, byte row=0, byte col=0)
+{
+  if( row!=0 || col!=0 ) set_cursor(row, col);
+
+  if( (s&0x3FF)==0 )
+    {
+      Serial.print(s/1024); 
+      Serial.print(F(" KB"));
+    }
+  else
+    {
+      Serial.print(s); 
+      Serial.print(F(" bytes"));
+    }
+}
+
+static void print_flag(uint32_t data, uint32_t value, byte row=0, byte col=0)
+{
+  if( row!=0 || col!=0 ) set_cursor(row, col);
+  Serial.print((data&value)!=0 ? F("yes") : F("no"));
+}
+
+
+static void print_flag(uint32_t value, byte row=0, byte col=0)
+{
+  print_flag(config_flags, value, row, col);
+}
+
+
+static void print_flag2(uint32_t value, byte row=0, byte col=0)
+{
+  print_flag(config_flags2, value, row, col);
+}
+
+
+static void print_vi_flag()
+{
+  Serial.print((config_flags&CF_HAVE_VI)!=0 ? F("Use Vector Interrupt board") : F("Interrupts connected directly to CPU"));
+}
+
+
+static void print_throttle(byte row = 0, byte col = 0)
+{
+  if( row!=0 || col!=0 ) set_cursor(row, col);
+
+  int i = config_throttle();
+  if     ( i<0  ) Serial.print(F("auto adjust"));
+  else if( i==0 ) Serial.print(F("off"));
+  else            Serial.print(i);
+}
+
+// --------------------------------------------------------------------------------
+
+static bool save_config(byte fileno)
+{
+  return false;
+}
+
+static bool load_config(byte fileno)
+{
+  return false;
+}
+
+// --------------------------------------------------------------------------------
+void config_defaults(bool apply)
+{
+  byte i, j;
+  // default settings:
+  // - SERIAL_DEBUG, SERIAL_INPUT, SERIAL_PANEL enabled if in STANDALONE mode, otherwise disabled
+  // - Profiling disabled
+  // - Throttling enabled (on Due)
+
+  config_current = 0;
+  config_flags = 0;
+#if STANDALONE>0
+  config_flags |= CF_SERIAL_DEBUG;
+  config_flags |= CF_SERIAL_INPUT;
+  config_flags |= CF_SERIAL_PANEL;
+#endif
+  config_flags |= CF_THROTTLE;
+
+  config_flags2  = 0;              // Dazzler not enabled
+  config_flags2 |= 0 << 3;         // VDM-1 not enabled
+  config_flags2 |= B00110110 << 6; // VDM-1 DIP: 1=off, 2=on, 3=on, 4=off, 5=on, 6=on
+  config_flags2 |= (0xCC00 >> 10) << 12; // VDM-1 base address : CC00
+
+  new_config_serial_settings  = 0;
+  new_config_serial_settings |= (0 << 8); // USB Programming port is primary interface
+
+
+  uint32_t s = 0;
+  for(byte dev=0; dev<NUM_SERIAL_DEVICES; dev++)
+    config_serial_device_settings[dev] = s;
+
+  // maximum amount of RAM supported by host
+  config_mem_size = MEMSIZE; 
+
+}
+
+byte config_get_current()
+{
+  return config_current;
+}
+
+void config_setup(int n)
+{
+
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// cpucore.cpp
+
+// i8080 registers implementation
+union unionAF regAF;
+union unionBC regBC;
+union unionDE regDE;
+union unionHL regHL;
+union unionPC regPCU;
+uint16_t regSP;
+
+void cpu_setup() {}
+// void cpu_print_registers() { cpucore_i8080_print_registers(); }
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// numsys.cpp
+
+static byte numsys = NUMSYS_HEX;
+
+static byte hexToDec(int hc)
+{
+  if( hc>96 ) hc -= 32;
+
+  if( hc >= 65 && hc <= 70 )
+    return hc - 65 + 10;
+  else if( hc >= 48 && hc <= 57 )
+    return hc - 48;
+
+  return 255;
+}
+
+
+void numsys_toggle()
+{
+  numsys = (numsys+1) % 3;
+}
+
+void numsys_set(byte sys)
+{
+  numsys = sys;
+}
+
+
+void numsys_print_byte_bin(byte b)
+{
+  for(byte i=0; i<8; i++)
+    {
+      Serial.print(b & 0x80 ? '1' : '0');
+      b = b * 2;
+    }
+}
+
+
+void numsys_print_byte_oct(byte b)
+{
+  byte d;
+  d = (b&0700) >> 6;
+  Serial.print(d);
+  d = (b&0070) >> 3;
+  Serial.print(d);
+  d = (b&0007);
+  Serial.print(d);
+}
+
+
+void numsys_print_byte_dec(byte b)
+{
+  if( b<10 )  Serial.print(' ');
+  if( b<100 ) Serial.print(' ');
+  Serial.print(b);
+}
+
+
+void numsys_print_byte_hex(byte b)
+{
+  if( b<16 ) Serial.print('0');
+  Serial.print(b, HEX);
+}
+
+
+
+void numsys_print_byte(byte b)
+{
+  switch( numsys )
+    {
+    case NUMSYS_HEX: numsys_print_byte_hex(b); break;
+    case NUMSYS_OCT: numsys_print_byte_oct(b); break;
+    default: numsys_print_byte_dec(b); break;
+    }
+}
+
+
+void numsys_print_word(uint16_t w)
+{
+  if( numsys==NUMSYS_HEX )
+    {
+      numsys_print_byte(w >> 8);
+      numsys_print_byte(w & 0xff);
+    }
+  else if( numsys==NUMSYS_OCT )
+    {
+      Serial.print((w>>15) & 007);
+      Serial.print((w>>12) & 007);
+      Serial.print((w>> 9) & 007);
+      Serial.print((w>> 6) & 007);
+      Serial.print((w>> 3) & 007);
+      Serial.print( w      & 007);
+    }
+  else
+    {
+      if( w<10 )    Serial.print(' ');
+      if( w<100 )   Serial.print(' ');
+      if( w<1000 )  Serial.print(' ');
+      if( w<10000 ) Serial.print(' ');
+      Serial.print(w);
+    }
+}
+
+
+void numsys_print_mem(uint16_t addr, byte num, bool printBrackets)
+{
+  byte i;
+  if( printBrackets ) Serial.print('['); 
+  for(i=0; i<num; i++)
+    { numsys_print_byte(MREAD(addr+i)); if(i+1<num) Serial.print(' '); }
+  if( printBrackets ) Serial.print(']'); 
+}
+
+
+static byte numsys_read_hex_digit()
+{
+  while( true )
+    {
+      // Stacy char c = serial_read();
+      char c = 'a';
+      //
+      if( c>='0' && c<='9' )
+        return c-'0';
+      else if( c>='A' && c<='F' )
+        return c-'A'+10;
+      else if( c>='a' && c<='f' )
+        return c-'a'+10;
+    }
+}
+
+
+byte numsys_read_hex_byte()
+{
+  byte b;
+  b  = numsys_read_hex_digit() * 16;
+  b += numsys_read_hex_digit();
+  return b;
+}
+
+uint16_t numsys_read_hex_word()
+{
+  uint16_t w;
+  w  = (uint16_t) numsys_read_hex_byte() * 256;
+  w += (uint16_t) numsys_read_hex_byte();
+  return w;
+}
+
+bool numsys_read_byte(byte *b)
+{
+  bool ESC = false;
+  uint32_t w = numsys_read_dword(&ESC);
+  if( b!=NULL && !ESC ) *b = (byte) w;
+  return !ESC;
+}
+
+bool numsys_read_word(uint16_t *w)
+{
+  bool ESC = false;
+  uint32_t w2 = numsys_read_dword(&ESC);
+  if( w!=NULL && !ESC ) *w = (uint16_t) w2;
+  return !ESC;
+}
+
+bool numsys_read_dword(uint32_t *w)
+{
+  bool ESC = false;
+  uint32_t w2 = numsys_read_dword(&ESC);
+  if( w!=NULL && !ESC ) *w = w2;
+  return !ESC;
+}
+
+uint32_t numsys_read_dword(bool *ESC)
+{
+  byte b, d = 0;
+  uint32_t w = 0;
+  int c = -1;
+
+  if( ESC!=NULL ) *ESC = false;
+  while( c!=13 && c!=10 && c!=32 && c!=9 && c!='-' && c!=':')
+    {
+      c=-1;
+      // Stacy while(c<0) c = serial_read();
+
+      if( c==127 || c==8 )
+        {
+          if( d>0 )
+            {
+              if( numsys==NUMSYS_HEX )
+                w = w >> 4;
+              else if( numsys==NUMSYS_OCT )
+                w = w >> 3;
+              else
+                w = w / 10;
+
+              Serial.print(F("\010 \010"));
+              d--;
+            }
+        }
+      else if( numsys==NUMSYS_HEX && (b=hexToDec(c))!=255 )
+        {
+          Serial.write(c);
+          w = w << 4 | b;
+          d++;
+        }
+      else if( numsys==NUMSYS_OCT && c>=48 && c<=55 )
+        {
+          Serial.write(c);
+          w = w << 3 | (c-48);
+          d++;
+        }
+      else if( c>=48 && c<=57 )
+        {
+          Serial.write(c);
+          w = w * 10 + (c-48);
+          d++;
+        }
+      else if( c==27 && ESC!=NULL )
+        {
+          *ESC = true;
+          return 0;
+        }
+    }
+
+  return w;
+}
+
+
+byte numsys_get()
+{
+  return numsys;
+}
+
+
+byte numsys_get_byte_length()
+{
+  return numsys==NUMSYS_HEX ? 2 : 3;
+}
+
+
+#ifndef __AVR_ATmega2560__
+// see comment in numsys.h
+String numsys_byte2string(byte b)
+{
+  unsigned int l = 0;
+  String s;
+
+  switch( numsys )
+    {
+    case NUMSYS_OCT: s = String(b, OCT); l = 3; break;
+    case NUMSYS_DEC: s = String(b, DEC); l = 0; break;
+    case NUMSYS_HEX: s = String(b, HEX); l = 2; break;
+    }
+
+  while( s.length()<l ) s = String('0') + s;
+  return s;
+}
+#endif
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// timer.cpp
+
+#ifdef __AVR_ATmega2560__
+#define MAX_TIMERS 9
+#else
+#define MAX_TIMERS 13
+#endif
+
+
+#define DEBUG 0
+
+uint32_t timer_cycle_counter        = 0;
+uint32_t timer_cycle_counter_offset = 0;
+uint32_t timer_next_expire_cycles   = 0xffffffff;
+byte     timer_next_expire_tid      = 0xff;
+
+
+struct TimerData {
+  TimerFnTp timer_fn;
+  bool      running;
+  bool      recurring;
+  uint32_t  cycles_period;
+  uint32_t  cycles_count;
+};
+
+struct TimerData timer_data[MAX_TIMERS];
+byte timer_queue[MAX_TIMERS];
+byte timer_queue_len = 0;
+
+#if DEBUG>1
+static void print_queue()
+{
+  printf("TIMER QUEUE: [");
+  for(byte i=0; i<timer_queue_len; i++)
+    printf("%i=%i/%i ", timer_queue[i], timer_data[timer_queue[i]].cycles_count, timer_data[timer_queue[i]].cycles_period);
+  if( timer_queue_len>0 )
+    printf("] / next timer %i in %u\n", timer_next_expire_tid, timer_next_expire_cycles);
+  else
+    printf("]\n");
+}
+#else
+#define print_queue() while(0)
+#endif
+
+static void print_queue2()
+{
+  printf("TIMER QUEUE: [");
+  for(byte i=0; i<timer_queue_len; i++)
+    printf("%i=%i/%i ", timer_queue[i], timer_data[timer_queue[i]].cycles_count, timer_data[timer_queue[i]].cycles_period);
+  if( timer_queue_len>0 )
+    printf("] / next timer %i in %u\n", timer_next_expire_tid, timer_next_expire_cycles);
+  else
+    printf("]\n");
+}
+
+
+static void timer_reset_counter()
+{
+#if DEBUG>1
+  printf("timer_reset_counter()\n");
+#endif
+  for(byte i=0; i<timer_queue_len; i++)
+    {
+      if( timer_data[timer_queue[i]].cycles_count > timer_cycle_counter )
+        timer_data[timer_queue[i]].cycles_count -= timer_cycle_counter;
+      else
+        timer_data[timer_queue[i]].cycles_count = 0;
+    }
+
+  timer_cycle_counter_offset += timer_cycle_counter;
+  timer_next_expire_cycles   -= timer_cycle_counter;
+  timer_cycle_counter = 0;
+
+  print_queue();
+}
+
+
+static void timer_queue_get_next()
+{
+#if DEBUG>1
+  printf("timer_queue_get_next()\n");
+#endif
+  if( timer_queue_len<2 )
+    {
+      timer_next_expire_tid    = 0xff;
+      timer_next_expire_cycles = 0xffffffff;
+      timer_queue_len          = 0;
+      timer_cycle_counter_offset += timer_cycle_counter;
+      timer_cycle_counter = 0;
+    }
+  else
+    {
+      // remove first element from queue
+      memmove(timer_queue, timer_queue+1, timer_queue_len-1);
+      timer_queue_len--;
+
+      // reset cycle counter
+      for(byte i=0; i<timer_queue_len; i++)
+        {
+          if( timer_data[timer_queue[i]].cycles_count > timer_cycle_counter )
+            timer_data[timer_queue[i]].cycles_count -= timer_cycle_counter;
+          else
+            timer_data[timer_queue[i]].cycles_count = 0;
+        }
+
+      timer_cycle_counter_offset += timer_cycle_counter;
+      timer_cycle_counter = 0;
+
+      // set next expiration
+      timer_next_expire_tid    = timer_queue[0];
+      timer_next_expire_cycles = timer_data[timer_next_expire_tid].cycles_count;
+    }
+
+  print_queue();
+}
+
+
+static void timer_queue_add(byte tid)
+{
+#if DEBUG>1
+  printf("timer_queue_add()\n");
+#endif
+
+  timer_reset_counter();
+  uint32_t cycles_count = timer_data[tid].cycles_count;
+
+  byte i;
+  for(i=0; i<timer_queue_len; i++)
+    if( timer_data[timer_queue[i]].cycles_count > cycles_count )
+      break;
+
+  memmove(timer_queue+i+1, timer_queue+i, timer_queue_len-i);
+  timer_queue[i] = tid;
+  timer_queue_len++;
+
+  if( i==0 )
+    {
+      timer_next_expire_tid    = tid;
+      timer_next_expire_cycles = timer_data[tid].cycles_count;
+    }
+
+  print_queue();
+}
+
+
+static void timer_queue_remove(byte tid)
+{
+#if DEBUG>1
+  printf("timer_queue_remove()\n");
+#endif
+
+  byte i;
+  for(i=0; i<timer_queue_len; i++)
+    if( timer_queue[i] == tid )
+      {
+        memmove(timer_queue+i, timer_queue+i+1, timer_queue_len-i-1);
+        timer_queue_len--;
+        
+        if( timer_queue_len==0 )
+          {
+            timer_next_expire_tid    = 0xff;
+            timer_next_expire_cycles = 0xffffffff;
+          }
+        else if( i==0 )
+          {
+            timer_next_expire_tid    = timer_queue[0];
+            timer_next_expire_cycles = timer_data[timer_next_expire_tid].cycles_count;
+          }
+        
+        print_queue();
+        return;
+      }
+}
+
+
+void timer_check()
+{
+  byte tid = timer_next_expire_tid;
+  bool show = false;
+
+  while( tid<0xff )
+    {
+#if DEBUG>0
+      printf("%u: timer %i expired\n", timer_get_cycles(), tid);
+      print_queue();
+#endif
+      if( !timer_data[tid].recurring ) 
+        timer_data[tid].running = false;
+
+      timer_queue_get_next();
+
+      if( timer_data[tid].recurring )
+        {
+#if DEBUG>0
+          printf("re-scheduling timer %i\n", tid);
+#endif
+          timer_data[tid].cycles_count = timer_data[tid].cycles_period;
+          timer_queue_add(tid);
+        }
+
+#if DEBUG>1
+      printf("calling timer %i function\n", tid);
+#endif
+      (timer_data[tid].timer_fn)();
+#if DEBUG>1
+      printf("returned from timer %i function\n", tid);
+#endif
+      
+      // check if more timers expired
+      if( timer_queue_len>0 && timer_data[timer_queue[0]].cycles_count==0 )
+        tid = timer_queue[0];
+      else
+        tid = 0xff;
+    }
+}
+
+
+void timer_setup(byte tid, uint32_t microseconds, TimerFnTp timer_fn)
+{
+  if( tid<MAX_TIMERS )
+    {
+      bool running = timer_data[tid].running;
+      if( running ) timer_stop(tid);
+      timer_data[tid].timer_fn      = timer_fn;
+      timer_data[tid].cycles_period = microseconds*2;
+      if( running ) timer_start(tid);
+    }
+}
+
+
+void timer_start(byte tid, uint32_t microseconds, bool recurring)
+{
+  if( tid<MAX_TIMERS )
+    {
+      if( microseconds>0 ) timer_data[tid].cycles_period = microseconds*2;
+
+#if DEBUG>0
+      printf("%u: starting timer %i: %i microseconds\n", timer_get_cycles(), tid, timer_data[tid].cycles_period/2);
+#endif
+      if( timer_data[tid].running ) timer_queue_remove(tid);
+
+      timer_data[tid].recurring    = recurring;
+      timer_data[tid].cycles_count = timer_data[tid].cycles_period;
+      timer_data[tid].running      = true;
+      
+      timer_queue_add(tid);
+    }
+}
+
+
+void timer_stop(byte tid)
+{
+  if( tid < MAX_TIMERS && timer_data[tid].running )
+    {
+#if DEBUG>0
+      printf("%u: stopping timer %i\n", timer_get_cycles(), tid);
+#endif
+      timer_queue_remove(tid);
+      timer_data[tid].running = false;
+    }
+}
+
+uint32_t timer_get_period(byte tid)
+{
+  return tid < MAX_TIMERS ? timer_data[tid].cycles_period / 2 : 0;
+}
+
+bool timer_running(byte tid)
+{
+  return tid < MAX_TIMERS ? timer_data[tid].running : false;
+}
+
+
+void timer_setup()
+{
+  timer_queue_len  = 0;
+  timer_cycle_counter = 0;
+  timer_cycle_counter_offset = 0;
+  for(byte tid=0; tid<MAX_TIMERS; tid++)
+    {
+      timer_data[tid].running  = false;
+      timer_data[tid].timer_fn = NULL;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// cpucore_i8080.cpp
+
+#define setCarryBit(v)     if(v) regS |= PS_CARRY;     else regS &= ~PS_CARRY
+#define setHalfCarryBit(v) if(v) regS |= PS_HALFCARRY; else regS &= ~PS_HALFCARRY
+
+static const byte halfCarryTableAdd[] = { 0, 0, 1, 0, 1, 0, 1, 1 };
+static const byte halfCarryTableSub[] = { 1, 0, 0, 0, 1, 1, 1, 0 };
+#define setHalfCarryBitAdd(opd1, opd2, res) setHalfCarryBit(halfCarryTableAdd[((((opd1) & 0x08) / 2) | (((opd2) & 0x08) / 4) | (((res) & 0x08) / 8)) & 0x07])
+#define setHalfCarryBitSub(opd1, opd2, res) setHalfCarryBit(halfCarryTableSub[((((opd1) & 0x08) / 2) | (((opd2) & 0x08) / 4) | (((res) & 0x08) / 8)) & 0x07])
+
+static const byte parity_table[256] = 
+  {1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
+   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 
+   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 
+   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
+   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 
+   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
+   1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
+   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1};
+
+
+inline void setStatusBits(byte value)
+{
+  byte b;
+
+  b = regS & ~(PS_ZERO|PS_SIGN|PS_PARITY);
+  if( parity_table[value] ) b |= PS_PARITY;
+  if( value==0 ) b |= PS_ZERO;
+  b |= (value & PS_SIGN);
+
+  regS = b;
 }
 
 
@@ -241,8 +1075,6 @@ inline uint16_t popStackWord()
 
 #define pushPC() pushStack(regPCU.H, regPCU.L) //pushStackWord(regPC)
 #define popPC()  regPC = popStackWord()
-
-
 
 #define CPU_ADC(REG) \
   static void cpu_ADC ## REG () \
@@ -682,13 +1514,13 @@ static void cpu_DCXSP()
 
 static void cpu_DI()
 {
-  altair_interrupt_disable();
+  // altair_interrupt_disable();
   TIMER_ADD_CYCLES(4);
 }
 
 static void cpu_EI()
 {
-  altair_interrupt_enable();
+  // altair_interrupt_enable();
   TIMER_ADD_CYCLES(4);
 }
 
@@ -744,8 +1576,7 @@ static void cpu_INXSP()
   TIMER_ADD_CYCLES(5);
 }
 
-static void cpu_LDA()
-{
+static void cpu_LDA() {
   uint16_t addr = MEM_READ_WORD(regPC);
   regA = MEM_READ(addr);
   regPC += 2;
@@ -1227,8 +2058,7 @@ static void cpu_SPHL()
   TIMER_ADD_CYCLES(5);
 }
 
-static void cpu_STA()
-{
+static void cpu_STA() {
   uint16_t addr = MEM_READ_WORD(regPC);
   MEM_WRITE(addr, regA);
   regPC += 2;
@@ -1268,15 +2098,13 @@ static void cpu_XCHG()
   TIMER_ADD_CYCLES(5);
 }
 
-static void cpu_OUT()
-{
+static void cpu_OUT() {
   altair_out(MEM_READ(regPC), regA);
   TIMER_ADD_CYCLES(10);
   regPC++;
 }
 
-static void cpu_IN()
-{
+static void cpu_IN() {
   regA = altair_in(MEM_READ(regPC));
   TIMER_ADD_CYCLES(10);
   regPC++;
@@ -1349,5 +2177,3 @@ CPUFUN cpucore_i8080_opcodes[256] = {
   cpu_RP,    cpu_POPAS, cpu_JP,    cpu_DI,    cpu_CP,    cpu_PSHAS, cpu_ORI,   cpu_RST30,	// 360-367 (0xF0-0xF7)
   cpu_RM,    cpu_SPHL,  cpu_JM,    cpu_EI,    cpu_CM,    cpu_CALL,  cpu_CPI,   cpu_RST38	// 370-377 (0xF8-0xFF)
 };
-
-#endif

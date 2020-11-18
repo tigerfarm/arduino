@@ -109,15 +109,12 @@ uint16_t dswitch = 0;
 
 // -----------------------------------------------------------------------------
 uint16_t host_read_status_leds() {
-  /*
   uint16_t res = PORTB;
   res |= PORTD & 0x80 ? ST_INTE : 0;
   res |= PORTG & 0x04 ? ST_PROT : 0;
   res |= PORTG & 0x02 ? ST_WAIT : 0;
   res |= PORTG & 0x01 ? ST_HLDA : 0;
   return res;
-  */
-  return 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -176,7 +173,7 @@ void read_inputs() {
   }
   // ---------------------------
   if (readByte != "") {
-    processWaitSwitch(readByte);
+    processWaitSwitch(byte);
   }
 }
 void read_inputs_panel() {
@@ -510,8 +507,6 @@ void processWaitSwitch(byte readByte) {
         break;
       case 'i':
         Serial.println("+ i: Information.");
-        Serial.print(F("CPU: "));
-        Serial.println(THIS_CPU);
         cpucore_i8080_print_registers();
         break;
       // -------------------------------------
