@@ -1575,8 +1575,7 @@ static void cpu_INXSP()
   TIMER_ADD_CYCLES(5);
 }
 
-static void cpu_LDA()
-{
+static void cpu_LDA() {
   uint16_t addr = MEM_READ_WORD(regPC);
   regA = MEM_READ(addr);
   regPC += 2;
@@ -2058,8 +2057,7 @@ static void cpu_SPHL()
   TIMER_ADD_CYCLES(5);
 }
 
-static void cpu_STA()
-{
+static void cpu_STA() {
   uint16_t addr = MEM_READ_WORD(regPC);
   MEM_WRITE(addr, regA);
   regPC += 2;
