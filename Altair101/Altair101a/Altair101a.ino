@@ -153,10 +153,12 @@ void altair_wait_step() {
   // Also used in: MEM_READ_STEP(...) and MEM_WRITE_STEP(...).
   //
   cswitch &= BIT(SW_RESET); // clear everything but RESET status
+  /*
   while ( host_read_status_led_WAIT() && (cswitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 ) {
     read_inputs();
     delay(10);
   }
+  */
   if ( cswitch & BIT(SW_SLOW) ) delay(500);
 }
 
@@ -176,7 +178,7 @@ void read_inputs() {
   }
   // ---------------------------
   if (readByte != "") {
-    processWaitSwitch(readByte);
+    // processWaitSwitch(readByte);
   }
 }
 void read_inputs_panel() {
@@ -209,7 +211,7 @@ byte altair_in(byte port) {
       // stacy data = io_inp(port);
       altair_set_outputs(port | port * 256, data);
       host_clr_status_led_INP();
-      read_inputs();
+      // stacy read_inputs();
       // advance simulation time (so timers can expire)
       // stacy TIMER_ADD_CYCLES(50);
     }
@@ -369,7 +371,7 @@ void processRunSwitch(byte readByte) {
       Serial.println(F("+ STOP"));
       programState = PROGRAM_WAIT;
       break;
-    case 'r':
+    case 'R':
       Serial.println(F("+ RESET"));
     // Stacy need to implement.
     // -------------------------------------
@@ -431,6 +433,7 @@ void processWaitSwitch(byte readByte) {
         p_regPC = ~regPC;
         altair_set_outputs(regPC, MREAD(regPC));
         break;
+      case 'X':
       case 'y':
         regPC = regPC + 1;
         Serial.print("+ y, EXAMINE NEXT: ");
@@ -443,9 +446,9 @@ void processWaitSwitch(byte readByte) {
         MWRITE(regPC, dswitch & 0xff);
         altair_set_outputs(regPC, MREAD(regPC));
         break;
-      case 'q':
+      case 'P':
         regPC++;
-        Serial.print("+ q, DEPOSIT NEXT to: ");
+        Serial.print("+ P, DEPOSIT NEXT to: ");
         Serial.println(regPC);
         MWRITE(regPC, dswitch & 0xff);
         altair_set_outputs(regPC, MREAD(regPC));
@@ -510,8 +513,10 @@ void processWaitSwitch(byte readByte) {
         break;
       case 'i':
         Serial.println("+ i: Information.");
-        Serial.print(F("CPU: "));
+        Serial.print(F("++ CPU: "));
         Serial.println(THIS_CPU);
+        Serial.print(F("++ host_read_status_led_WAIT()="));
+        Serial.println(host_read_status_led_WAIT());
         cpucore_i8080_print_registers();
         break;
       // -------------------------------------
@@ -524,6 +529,8 @@ void processWaitSwitch(byte readByte) {
         Serial.print("- Ignored <");
         Serial.write(readByte);
         Serial.println(">");
+        // programState = PROGRAM_WAIT;
+        // status_wait = true;
     }
   }
 }
