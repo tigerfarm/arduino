@@ -153,7 +153,7 @@ void altair_wait_step() {
   // Also used in: MEM_READ_STEP(...) and MEM_WRITE_STEP(...).
   //
   cswitch &= BIT(SW_RESET); // clear everything but RESET status
-  /*
+  /* Stacy, here is the loop for waiting when stepping.
   while ( host_read_status_led_WAIT() && (cswitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 ) {
     read_inputs();
     delay(10);
