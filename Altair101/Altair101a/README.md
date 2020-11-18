@@ -536,7 +536,25 @@ WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8  A7  A6  A5  A4  A3  A2  A1  A0
 
 Altair101a.ino, sample opcode of LDA.
 ````
-void processData() {
+void runProcessor() {
+  Serial.println(F("+ runProcessor()"));
+  // put PC on address bus LEDs
+  host_set_addr_leds(regPC);
+  // Serial.println(F("+ Send serial character, example hit enter key, to process first opcode. Send 's' to STOP running."));
+  programState = PROGRAM_RUN;
+  while (programState == PROGRAM_RUN) {
+    processDataOpcode(); // For now, require an serial character to process each opcode.
+    if (Serial.available() > 0) {
+      readByte = Serial.read();    // Read and process an incoming byte.
+      processRunSwitch(readByte);
+    }
+  }
+}
+--- or ---
+Serial.println("+ s, SINGLE STEP: ");
+processDataOpcode();
+
+void processDataOpcode() {
 #ifdef LOG_MESSAGES
   Serial.print(F("++ regPC:"));
   Serial.print(regPC);
@@ -550,18 +568,18 @@ void processData() {
   host_set_data_leds(opcode);
   regPC++;
   host_clr_status_led_M1();
-  CPU_EXEC(opcode);
+  CPU_EXEC(opcode);         // Run an opcode function.
 }
 ````
 
-cpucore_i8080.h
+cpucore_i8080.h, map opcode to the opcode function: cpu_<opcode>().
 ````
 typedef void (*CPUFUN)();
 extern CPUFUN cpu_opcodes[256];
 #define CPU_EXEC(opcode) (cpu_opcodes[opcode])();
 ````
 
-cpucore_i8080.cpp
+cpucore_i8080.cpp, sample opcode functions.
 ````
 static void cpu_LDA() {
   uint16_t addr = MEM_READ_WORD(regPC);
@@ -576,6 +594,68 @@ static void cpu_STA() {
   TIMER_ADD_CYCLES(13);
 }
 
+inline uint16_t MEM_READ_WORD(uint16_t addr) {
+  if( host_read_status_led_WAIT() ) {
+      byte l, h;
+      l = MEM_READ_STEP(addr);
+      addr++;
+      h = MEM_READ_STEP(addr);
+      return l | (h * 256);
+    }
+  else {
+      byte l, h;
+      host_set_status_leds_READMEM();
+      host_set_addr_leds(addr);
+      l = MREAD(addr);
+      host_set_data_leds(l);
+      for(uint8_t i=0; i<5; i++) asm("NOP");
+      addr++;
+      host_set_addr_leds(addr);
+      h = MREAD(addr);
+      host_set_data_leds(h);
+      return l | (h * 256);
+    }
+}
+````
+cpucore_i8008.h
+````
+byte MEM_READ_STEP(uint16_t a);
+void MEM_WRITE_STEP(uint16_t a, byte v);
+#define USE_REAL_MREAD_TIMING 0
+#if USE_REAL_MREAD_TIMING>0
+inline byte MEM_READ(uint16_t a) {
+  byte res;
+  if ( host_read_status_led_WAIT() )
+    res = MEM_READ_STEP(a);
+  else
+  {
+    host_set_addr_leds(a);
+    host_set_status_leds_READMEM();
+    res = host_set_data_leds(MREAD(a));
+    host_clr_status_led_MEMR();
+  }
+  return res;
+}
+#else
+#define MEM_READ(a) ( host_read_status_led_WAIT() ? MEM_READ_STEP(a) : (host_set_status_leds_READMEM(),  host_set_addr_leds(a), host_set_data_leds(MREAD(a)) ))
+#endif
+
+#define host_read_status_led_WAIT() status_wait
+#define host_set_status_led_WAIT()  { digitalWrite(40, HIGH); status_wait = true; }
+#define host_clr_status_led_WAIT()  { digitalWrite(40, LOW); status_wait = false; }
+
+#define host_set_data_leds(v)  PORTL=(v)
+
+````
+
+-------------------------------------
+cpucore_i8008.h
+````
+byte MEM_READ_STEP(uint16_t a);
+void MEM_WRITE_STEP(uint16_t a, byte v);
+````
+cpucore_i8008.cpp
+````
 byte MEM_READ_STEP(uint16_t a) {
   if ( altair_isreset() ) {
     byte v = MREAD(a);

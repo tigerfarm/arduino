@@ -32,8 +32,30 @@ extern byte Mem[MEMSIZE];
 // WARNING: arguments to MEM_READ and MEM_WRITE macros should not have side effects
 // (e.g. MEM_READ(addr++)) => any side effects will be executed multiple times!
 
+// Note: To improve performance, the MEMR LED handling is a bit lazy while a program is
+// running. Memory reads are by far the most common bus action and any tiny
+// bit of time that can be cut here makes a significant performance difference.
+// Setting USE_REAL_MREAD_TIMING to 1 will improve the accuracy of MREAD at the
+// cost of performace. Leaving this at 0 has virtually no visible consequences
+// apart from a slight difference in brightness of the MEMR LED while running.
+// Setting it to 1 significantly reduces performance.
+// Most users should keep this at 0
+
+// If SHOW_MWRITE_OUTPUT enabled, the D0-7 LEDs will show values being output to the data bus
+// during memory write operations). This is different from the original
+// Altair behavior where the D0-7 LEDs were all on for write operations
+// because the LEDs are wired to the DIN bus lines which are floating during
+// CPU write). Additionally, enabling this makes sure that the "WO" LED will
+// go out (negative logic) AFTER the address and data buses have been set to
+// the proper values. It also changes timing of the "WO" LED similar to
+// the USE_REAL_MREAD_TIMING setting.
+// Enable this if you want to connect external hardware that needs to see
+// data during memory write instructions or if you want to see the data
+// during writes and do not care that this behavior does not match the original.
+
 byte MEM_READ_STEP(uint16_t a);
 void MEM_WRITE_STEP(uint16_t a, byte v);
+#define USE_REAL_MREAD_TIMING 0
 #if USE_REAL_MREAD_TIMING>0
 inline byte MEM_READ(uint16_t a) {
   byte res;
@@ -55,6 +77,7 @@ inline byte MEM_READ(uint16_t a) {
 // ----------------------------------------
 #define MWRITE(a,v) { Mem[a]=v; }
 
+#define SHOW_MWRITE_OUTPUT 0
 #if SHOW_MWRITE_OUTPUT>0
 inline void MEM_WRITE(uint16_t a, byte v) {
   if ( host_read_status_led_WAIT() )
@@ -285,29 +308,6 @@ void host_setup();
 // checks would only reduce performance further.
 // #define USE_THROTTLE 1
 #define USE_THROTTLE 0        // Stacy, for standalone test.
-
-// To improve performance, the MEMR LED handling is a bit lazy while a program is
-// running. Memory reads are by far the most common bus action and any tiny
-// bit of time that can be cut here makes a significant performance difference.
-// Setting USE_REAL_MREAD_TIMING to 1 will improve the accuracy of MREAD at the
-// cost of performace. Leaving this at 0 has virtually no visible consequences
-// apart from a slight difference in brightness of the MEMR LED while running.
-// Setting it to 1 significantly reduces performance.
-// Most users should keep this at 0
-#define USE_REAL_MREAD_TIMING 0
-
-// If enabled, the D0-7 LEDs will show values being output to the data bus
-// during memory write operations). This is different from the original
-// Altair behavior where the D0-7 LEDs were all on for write operations
-// because the LEDs are wired to the DIN bus lines which are floating during
-// CPU write). Additionally, enabling this makes sure that the "WO" LED will
-// go out (negative logic) AFTER the address and data buses have been set to
-// the proper values. It also changes timing of the "WO" LED similar to
-// the USE_REAL_MREAD_TIMING setting above.
-// Enable this if you want to connect external hardware that needs to see
-// data during memory write instructions or if you want to see the data
-// during writes and do not care that this behavior does not match the original.
-#define SHOW_MWRITE_OUTPUT 0
 
 // If enabled, Address switch state will be set by issuing the '/'
 // serial command.  Actual switches will be ignored.

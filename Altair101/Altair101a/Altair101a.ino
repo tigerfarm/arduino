@@ -151,7 +151,7 @@ void altair_wait_step() {
   //
   cswitch &= BIT(SW_RESET); // clear everything but RESET status
   while ( host_read_status_led_WAIT() && (cswitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 ) {
-    // read_inputs();
+    read_inputs();
     delay(10);
   }
   if ( cswitch & BIT(SW_SLOW) ) delay(500);
@@ -159,6 +159,40 @@ void altair_wait_step() {
 
 
 // -----------------------------------------------------------------------------
+void read_inputs() {
+  byte readByte;
+  readByte = "";
+  // cswitch = 0;
+  // ---------------------------
+  // Device read options.
+  // read_inputs_panel();
+  //
+  // dave, implement:
+  if ( config_serial_input_enabled() ) {
+    read_inputs_serial();
+  }
+  // ---------------------------
+  if (readByte != "") {
+    processWaitSwitch(byte);
+  }
+}
+void read_inputs_panel() {
+  // we react on positive edges on the function switches...
+  // cswitch = host_read_function_switches_edge();
+  // ...except for the SLOW switch which is active as long as it is held down
+  // if ( host_read_function_switch_debounced(SW_SLOW) ) cswitch |= BIT(SW_SLOW);
+  // #if STANDALONE==0
+  //   dswitch = host_read_addr_switches();
+  // #endif
+}
+void read_inputs_serial() {
+    return;
+  if (Serial.available() > 0) {
+    readByte = Serial.read();    // Read and process an incoming byte.
+    processRunSwitch(readByte);
+  }
+}
+
 byte altair_in(byte port) {
   // Opcode: out <port>
   // cpu_OUT()
@@ -172,7 +206,7 @@ byte altair_in(byte port) {
       // stacy data = io_inp(port);
       altair_set_outputs(port | port * 256, data);
       host_clr_status_led_INP();
-      // stacy read_inputs();
+      read_inputs();
       // advance simulation time (so timers can expire)
       // stacy TIMER_ADD_CYCLES(50);
     }
@@ -385,7 +419,7 @@ void processWaitSwitch(byte readByte) {
         break;
       case 's':
         Serial.println("+ s, SINGLE STEP: ");
-        processData();
+        processDataOpcode();
         break;
       case 'x':
         regPC = dswitch;

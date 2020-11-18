@@ -47,6 +47,63 @@ void altair_interrupt(uint32_t i, bool set)
 
 byte Mem[MEMSIZE];
 
+inline uint16_t MEM_READ_WORD(uint16_t addr) {
+  if( host_read_status_led_WAIT() ) {
+      byte l, h;
+      l = MEM_READ_STEP(addr);
+      addr++;
+      h = MEM_READ_STEP(addr);
+      return l | (h * 256);
+    }
+  else {
+      byte l, h;
+      host_set_status_leds_READMEM();
+      host_set_addr_leds(addr);
+      l = MREAD(addr);
+      host_set_data_leds(l);
+      for(uint8_t i=0; i<5; i++) asm("NOP");
+      addr++;
+      host_set_addr_leds(addr);
+      h = MREAD(addr);
+      host_set_data_leds(h);
+      return l | (h * 256);
+    }
+}
+
+
+inline void MEM_WRITE_WORD(uint16_t addr, uint16_t v)
+{
+  if( host_read_status_led_WAIT() )
+    {
+      MEM_WRITE_STEP(addr, v & 255);
+      addr++;
+      MEM_WRITE_STEP(addr, v / 256);
+    }
+  else
+    {
+      byte b;
+#if SHOW_MWRITE_OUTPUT>0
+      b = v & 255;
+      MEM_WRITE(addr, b);
+      for(uint8_t i=0; i<5; i++) asm("NOP");
+      b = v / 256;
+      addr++;
+      MEM_WRITE(addr, b);
+#else
+      host_set_status_leds_WRITEMEM();
+      host_set_data_leds(0xff);
+      host_set_addr_leds(addr);
+      b = v & 255;
+      MWRITE(addr, b);
+      for(uint8_t i=0; i<5; i++) asm("NOP");
+      addr++;
+      host_set_addr_leds(addr);
+      b = v / 256;
+      MWRITE(addr, b);
+#endif
+    }
+}
+
 byte MEM_READ_STEP(uint16_t a) {
   if ( altair_isreset() ) {
     byte v = MREAD(a);
@@ -75,6 +132,7 @@ void MEM_WRITE_STEP(uint16_t a, byte v) {
     host_clr_status_led_WO();
   }
 }
+
 
 // -----------------------------------------------------
 static void randomize(uint32_t from, uint32_t to)
@@ -891,63 +949,6 @@ inline void setStatusBits(byte value)
   b |= (value & PS_SIGN);
 
   regS = b;
-}
-
-inline uint16_t MEM_READ_WORD(uint16_t addr) {
-  if( host_read_status_led_WAIT() ) {
-      byte l, h;
-      l = MEM_READ_STEP(addr);
-      addr++;
-      h = MEM_READ_STEP(addr);
-      return l | (h * 256);
-    }
-  else {
-      byte l, h;
-      host_set_status_leds_READMEM();
-      host_set_addr_leds(addr);
-      l = MREAD(addr);
-      host_set_data_leds(l);
-      for(uint8_t i=0; i<5; i++) asm("NOP");
-      addr++;
-      host_set_addr_leds(addr);
-      h = MREAD(addr);
-      host_set_data_leds(h);
-      return l | (h * 256);
-    }
-}
-
-
-inline void MEM_WRITE_WORD(uint16_t addr, uint16_t v)
-{
-  if( host_read_status_led_WAIT() )
-    {
-      MEM_WRITE_STEP(addr, v & 255);
-      addr++;
-      MEM_WRITE_STEP(addr, v / 256);
-    }
-  else
-    {
-      byte b;
-#if SHOW_MWRITE_OUTPUT>0
-      b = v & 255;
-      MEM_WRITE(addr, b);
-      for(uint8_t i=0; i<5; i++) asm("NOP");
-      b = v / 256;
-      addr++;
-      MEM_WRITE(addr, b);
-#else
-      host_set_status_leds_WRITEMEM();
-      host_set_data_leds(0xff);
-      host_set_addr_leds(addr);
-      b = v & 255;
-      MWRITE(addr, b);
-      for(uint8_t i=0; i<5; i++) asm("NOP");
-      addr++;
-      host_set_addr_leds(addr);
-      b = v / 256;
-      MWRITE(addr, b);
-#endif
-    }
 }
 
 
