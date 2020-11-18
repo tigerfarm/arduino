@@ -37,15 +37,15 @@ void MEM_WRITE_STEP(uint16_t a, byte v);
 #if USE_REAL_MREAD_TIMING>0
 inline byte MEM_READ(uint16_t a) {
   byte res;
-  if( host_read_status_led_WAIT() )
+  if ( host_read_status_led_WAIT() )
     res = MEM_READ_STEP(a);
   else
-    {
-      host_set_addr_leds(a);
-      host_set_status_leds_READMEM();
-      res = host_set_data_leds(MREAD(a));
-      host_clr_status_led_MEMR();
-    }
+  {
+    host_set_addr_leds(a);
+    host_set_status_leds_READMEM();
+    res = host_set_data_leds(MREAD(a));
+    host_clr_status_led_MEMR();
+  }
   return res;
 }
 #else
@@ -57,22 +57,97 @@ inline byte MEM_READ(uint16_t a) {
 
 #if SHOW_MWRITE_OUTPUT>0
 inline void MEM_WRITE(uint16_t a, byte v) {
-  if( host_read_status_led_WAIT() )
-    MEM_WRITE_STEP(a,v );
+  if ( host_read_status_led_WAIT() )
+    MEM_WRITE_STEP(a, v );
   else
-    {
-      host_set_addr_leds(a);
-      host_set_data_leds(v);
-      host_set_status_leds_WRITEMEM();
-      MWRITE(a, v);
-      host_clr_status_led_WO();
-    }
+  {
+    host_set_addr_leds(a);
+    host_set_data_leds(v);
+    host_set_status_leds_WRITEMEM();
+    MWRITE(a, v);
+    host_clr_status_led_WO();
+  }
 }
 #else
 #define MEM_WRITE(a, v) if( host_read_status_led_WAIT() ) MEM_WRITE_STEP(a, v); else { host_set_status_leds_WRITEMEM(); host_set_addr_leds(a); host_set_data_leds(0xff); MWRITE(a, v); }
 #endif
 
 #endif    // #ifndef
+
+// -----------------------------------------------------------------------------
+// cpucore.h
+// -----------------------------------------------------------------------------
+
+#ifndef CPUCORE_H
+#define CPUCORE_H
+
+#define PS_CARRY       0x01
+#define PS_PARITY      0x04
+#define PS_HALFCARRY   0x10
+#define PS_ZERO        0x40
+#define PS_SIGN        0x80
+
+
+// The emulater runs at 2MHz
+#define CPU_CLOCK_I8080 2000
+
+extern union unionAF {
+  struct {
+    byte A, F;
+  };
+  uint16_t AF;
+} regAF;
+extern union unionBC {
+  struct {
+    byte C, B;
+  };
+  uint16_t BC;
+} regBC;
+extern union unionDE {
+  struct {
+    byte E, D;
+  };
+  uint16_t DE;
+} regDE;
+extern union unionHL{
+  struct {
+    byte L, H;
+  };
+  uint16_t HL;
+} regHL;
+extern union unionPC{
+  struct {
+    byte L, H;
+  };
+  uint16_t PC;
+} regPCU;
+
+extern uint16_t regSP;
+
+#define regA  regAF.A
+#define regS  regAF.F
+#define regB  regBC.B
+#define regC  regBC.C
+#define regD  regDE.D
+#define regE  regDE.E
+#define regH  regHL.H
+#define regL  regHL.L
+#define regPC regPCU.PC
+
+#define PROC_I8080 0
+
+// fixed I8080 CPU
+#define cpu_opcodes cpucore_i8080_opcodes
+#define cpu_clock_KHz()     CPU_CLOCK_I8080
+#define cpu_get_processor() PROC_I8080
+
+typedef void (*CPUFUN)();
+extern CPUFUN cpu_opcodes[256];
+#define CPU_EXEC(opcode) (cpu_opcodes[opcode])();
+
+void cpu_setup();
+
+#endif
 
 // -----------------------------------------------------------------------------
 // host.h
@@ -101,7 +176,10 @@ inline void MEM_WRITE(uint16_t a, byte v) {
 
 #define PROF_DISPLAY_INTERVAL 100000
 
-inline void host_set_addr_leds(uint16_t v) { PORTA=(v & 0xff); PORTC=(v / 256); }
+inline void host_set_addr_leds(uint16_t v) {
+  PORTA = (v & 0xff);
+  PORTC = (v / 256);
+}
 #define host_read_addr_leds(v) (PORTA | (PORTC * 256))
 #define host_set_data_leds(v)  PORTL=(v)
 #define host_read_data_leds()  PORTL
@@ -134,8 +212,8 @@ inline void host_set_addr_leds(uint16_t v) { PORTA=(v & 0xff); PORTC=(v / 256); 
 #define host_read_status_led_HLTA() PORTB&0x08
 
 #define host_set_status_leds_READMEM()       PORTB |=  0x82
-#define host_set_status_leds_READMEM_M1()    PORTB |=  0xA2; 
-#define host_set_status_leds_READMEM_STACK() PORTB |=  0x86; 
+#define host_set_status_leds_READMEM_M1()    PORTB |=  0xA2;
+#define host_set_status_leds_READMEM_STACK() PORTB |=  0x86;
 #define host_set_status_leds_WRITEMEM()      PORTB &= ~0x82
 
 #define host_set_status_led_INP()     PORTB |=  0x40
@@ -147,14 +225,14 @@ uint16_t host_read_status_leds();
 inline byte host_mega_read_switches(byte highlow) {
   byte b = 0;
   ADCSRB = highlow ? 0x08 : 0x00; // MUX5
-  ADMUX = 0x40; ADCSRA = 0xD4; while( ADCSRA&0x40 ); if( ADCH != 0 ) b |= 0x01;
-  ADMUX = 0x41; ADCSRA = 0xD4; while( ADCSRA&0x40 ); if( ADCH != 0 ) b |= 0x02;
-  ADMUX = 0x42; ADCSRA = 0xD4; while( ADCSRA&0x40 ); if( ADCH != 0 ) b |= 0x04;
-  ADMUX = 0x43; ADCSRA = 0xD4; while( ADCSRA&0x40 ); if( ADCH != 0 ) b |= 0x08;
-  ADMUX = 0x44; ADCSRA = 0xD4; while( ADCSRA&0x40 ); if( ADCH != 0 ) b |= 0x10;
-  ADMUX = 0x45; ADCSRA = 0xD4; while( ADCSRA&0x40 ); if( ADCH != 0 ) b |= 0x20;
-  ADMUX = 0x46; ADCSRA = 0xD4; while( ADCSRA&0x40 ); if( ADCH != 0 ) b |= 0x40;
-  ADMUX = 0x47; ADCSRA = 0xD4; while( ADCSRA&0x40 ); if( ADCH != 0 ) b |= 0x80;
+  ADMUX = 0x40; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x01;
+  ADMUX = 0x41; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x02;
+  ADMUX = 0x42; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x04;
+  ADMUX = 0x43; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x08;
+  ADMUX = 0x44; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x10;
+  ADMUX = 0x45; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x20;
+  ADMUX = 0x46; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x40;
+  ADMUX = 0x47; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x80;
   return b;
 }
 #define host_read_sense_switches() host_mega_read_switches(true)
@@ -178,7 +256,7 @@ bool     host_read_function_switch_edge(byte i);
 uint16_t host_read_function_switches_edge();
 void     host_reset_function_switch_state();
 
-// at a minimum the host must provide persistent storage memory to which 
+// at a minimum the host must provide persistent storage memory to which
 // we can write and read, implementing our own mini-filesystem
 bool host_storage_init(bool write);
 void host_storage_close();
@@ -203,7 +281,7 @@ void host_setup();
 #define CONFIG_H
 
 // Enables throttling of CPU speed. This only makes sense to enable
-// on the Due since the Mega is too slow anyways and the throttling 
+// on the Due since the Mega is too slow anyways and the throttling
 // checks would only reduce performance further.
 // #define USE_THROTTLE 1
 #define USE_THROTTLE 0        // Stacy, for standalone test.
@@ -295,91 +373,30 @@ int     config_throttle(); // 0=off, <0=auto delay, >0=manual delay
 #define config_throttle() 0
 #endif
 
-inline bool config_profiling_enabled()        { return (config_flags & CF_PROFILE)!=0; }
-inline bool config_clear_memory()             { return (config_flags & CF_CLEARMEM)!=0; }
-inline bool config_serial_panel_enabled()     { return (config_flags & CF_SERIAL_PANEL)!=0; }
-inline bool config_serial_input_enabled()     { return (config_flags & CF_SERIAL_INPUT)!=0; }
-inline bool config_serial_debug_enabled()     { return (config_flags & CF_SERIAL_DEBUG)!=0; }
-inline bool config_have_vi()                  { return (config_flags & CF_HAVE_VI)!=0; }
+inline bool config_profiling_enabled()        {
+  return (config_flags & CF_PROFILE) != 0;
+}
+inline bool config_clear_memory()             {
+  return (config_flags & CF_CLEARMEM) != 0;
+}
+inline bool config_serial_panel_enabled()     {
+  return (config_flags & CF_SERIAL_PANEL) != 0;
+}
+inline bool config_serial_input_enabled()     {
+  return (config_flags & CF_SERIAL_INPUT) != 0;
+}
+inline bool config_serial_debug_enabled()     {
+  return (config_flags & CF_SERIAL_DEBUG) != 0;
+}
+inline bool config_have_vi()                  {
+  return (config_flags & CF_HAVE_VI) != 0;
+}
 
 float    config_rtc_rate();
 
 uint32_t config_host_serial_baud_rate(byte iface);
 uint32_t config_host_serial_config(byte iface);
 byte     config_host_serial_primary();
-
-#endif
-// -----------------------------------------------------------------------------
-// cpucore.h
-// -----------------------------------------------------------------------------
-
-#ifndef CPUCORE_H
-#define CPUCORE_H
-
-#define PS_CARRY       0x01
-#define PS_PARITY      0x04
-#define PS_HALFCARRY   0x10
-#define PS_ZERO        0x40
-#define PS_SIGN        0x80
-
-
-// The emulater runs at 2MHz
-#define CPU_CLOCK_I8080 2000
-
-extern union unionAF
-{
-  struct { byte A, F; };
-  uint16_t AF;
-} regAF;
-
-extern union unionBC
-{
-  struct { byte C, B; };
-  uint16_t BC;
-} regBC;
-
-extern union unionDE
-{
-  struct { byte E, D; };
-  uint16_t DE;
-} regDE;
-
-extern union unionHL
-{
-  struct { byte L, H; };
-  uint16_t HL;
-} regHL;
-
-extern union unionPC
-{
-  struct { byte L, H; };
-  uint16_t PC;
-} regPCU;
-
-extern uint16_t regSP;
-
-#define regA  regAF.A
-#define regS  regAF.F
-#define regB  regBC.B
-#define regC  regBC.C
-#define regD  regDE.D
-#define regE  regDE.E
-#define regH  regHL.H
-#define regL  regHL.L
-#define regPC regPCU.PC
-
-#define PROC_I8080 0
-
-  // fixed I8080 CPU
-  #define cpu_opcodes cpucore_i8080_opcodes
-  #define cpu_clock_KHz()     CPU_CLOCK_I8080
-  #define cpu_get_processor() PROC_I8080
-
-typedef void (*CPUFUN)();
-extern CPUFUN cpu_opcodes[256];
-#define CPU_EXEC(opcode) (cpu_opcodes[opcode])();
-
-void cpu_setup();
 
 #endif
 

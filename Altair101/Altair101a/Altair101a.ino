@@ -17,6 +17,10 @@
 #include "Altair101a.h"
 #include "cpucore_i8080.h"
 
+// For Byte bit comparisons.
+#define BIT(n) (1<<(n))
+
+// Byte bit switch values
 #define SW_RUN        0
 #define SW_STOP       1
 #define SW_STEP       2
@@ -34,6 +38,7 @@
 #define SW_AUX2UP    14
 #define SW_AUX2DOWN  15
 
+// Byte bit status values
 #define ST_INT     0x0001
 #define ST_WO      0x0002
 #define ST_STACK   0x0004
@@ -47,6 +52,7 @@
 #define ST_HLDA    0x0400
 #define ST_WAIT    0x0800
 
+// Not implemented at this time.
 #define INT_SW_STOP     0x80000000
 #define INT_SW_RESET    0x40000000
 #define INT_SW_CLR      0x20000000
@@ -54,12 +60,10 @@
 #define INT_SW_AUX2DOWN 0x08000000
 #define INT_SWITCH      0xff000000
 
-#define BIT(n) (1<<(n))
-
 // -----------------------------------------------------------------------------
 // From Porcessor.ino
 
-#define LOG_MESSAGES 1
+#define LOG_MESSAGES 1    // For debugging.
 
 byte readByte = 0;
 
@@ -123,11 +127,12 @@ void altair_set_outputs(uint16_t a, byte v) {
 
 void altair_out(byte port, byte data) {
   // Opcode: out <port>
-  // cpu_OUT()
+  // Called from: cpu_OUT()
   host_set_addr_leds(port | port * 256);
   host_set_data_leds(data);
   host_set_status_led_OUT();
   host_set_status_led_WO();
+  //
   // stacy io_out(port, data);
   //
   // Actual output of bytes. Example output to the serial port.
@@ -304,7 +309,7 @@ void altair_hlt() {
   print_panel_serial();
 }
 
-void processData() {
+void processDataOpcode() {
 #ifdef LOG_MESSAGES
   Serial.print(F("++ regPC:"));
   Serial.print(regPC);
@@ -349,7 +354,7 @@ void runProcessor() {
   // Serial.println(F("+ Send serial character, example hit enter key, to process first opcode. Send 's' to STOP running."));
   programState = PROGRAM_RUN;
   while (programState == PROGRAM_RUN) {
-    processData(); // For now, require an serial character to process each opcode.
+    processDataOpcode(); // For now, require an serial character to process each opcode.
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
       processRunSwitch(readByte);

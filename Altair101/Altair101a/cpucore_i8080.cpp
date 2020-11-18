@@ -41,6 +41,50 @@ void altair_interrupt(uint32_t i, bool set)
 {
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// mem.cpp
+
+byte Mem[MEMSIZE];
+
+byte MEM_READ_STEP(uint16_t a) {
+  if ( altair_isreset() ) {
+    byte v = MREAD(a);
+    host_set_status_leds_READMEM();
+    altair_set_outputs(a, v);
+    altair_wait_step();
+    v = host_read_data_leds(); // CPU reads whatever is on the data bus at this point
+    host_clr_status_led_MEMR();
+    return v;
+  }
+  else {
+    return 0x00;
+  }
+}
+
+void MEM_WRITE_STEP(uint16_t a, byte v) {
+  if ( altair_isreset() ) {
+    MWRITE(a, v);
+    host_set_status_leds_WRITEMEM();
+#if SHOW_MWRITE_OUTPUT>0
+    altair_set_outputs(a, v);
+#else
+    altair_set_outputs(a, 0xff);
+#endif
+    altair_wait_step();
+    host_clr_status_led_WO();
+  }
+}
+
+// -----------------------------------------------------
+static void randomize(uint32_t from, uint32_t to)
+{
+  // note that if from/to are not on 4-byte boundaries
+  // then a few bytes remain unchanged
+  from = (from & 3) == 0 ? from / 4 : from / 4 + 1;
+  to   = to / 4;
+  for (word i = from; i < to; i++)((uint32_t *) Mem)[i] = host_get_random();
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -266,134 +310,6 @@ uint16_t regSP;
 
 void cpu_setup() {}
 // void cpu_print_registers() { cpucore_i8080_print_registers(); }
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// mem.cpp
-
-word mem_ram_limit = 0xFFFF, mem_protected_limit = 0xFFFF;
-byte mem_protected_flags[32];
-
-byte Mem[MEMSIZE];
-
-byte MEM_READ_STEP(uint16_t a) {
-  if ( altair_isreset() ) {
-    byte v = MREAD(a);
-    host_set_status_leds_READMEM();
-    altair_set_outputs(a, v);
-    altair_wait_step();
-    v = host_read_data_leds(); // CPU reads whatever is on the data bus at this point
-    host_clr_status_led_MEMR();
-    return v;
-  }
-  else
-    return 0x00;
-}
-
-void MEM_WRITE_STEP(uint16_t a, byte v) {
-  if ( altair_isreset() ) {
-    MWRITE(a, v);
-    host_set_status_leds_WRITEMEM();
-#if SHOW_MWRITE_OUTPUT>0
-    altair_set_outputs(a, v);
-#else
-    altair_set_outputs(a, 0xff);
-#endif
-    altair_wait_step();
-    host_clr_status_led_WO();
-  }
-}
-
-static bool mem_is_rom(uint16_t a)
-{
-  return false;
-}
-
-// -----------------------------------------------------
-static void randomize(uint32_t from, uint32_t to)
-{
-  // note that if from/to are not on 4-byte boundaries
-  // then a few bytes remain unchanged
-  from = (from & 3) == 0 ? from / 4 : from / 4 + 1;
-  to   = to / 4;
-  for (word i = from; i < to; i++)((uint32_t *) Mem)[i] = host_get_random();
-}
-
-
-static void mem_ram_init_section(uint16_t from, uint16_t to, bool clear)
-{
-  if ( from > mem_ram_limit )
-  {
-    // "from" is before the RAM limit and "to" is after
-    // => initialize with 0xFF
-    memset(Mem + from, 0xFF, to - from + 1);
-  }
-  else if ( to <= mem_ram_limit )
-  {
-    // "to" is before the RAM limit
-    // => initialize RAM with either 0 or random
-    if ( clear )
-      memset(Mem + from, 0x00, to - from + 1);
-    else
-      randomize(from, to);
-  }
-  else
-  {
-    // "from" is before the RAM limit and "to" is after
-    // => initialize up to the limit with 0 or random...
-    if ( clear )
-      memset(Mem + from, 0x00, mem_ram_limit - from + 1);
-    else
-      randomize(from, mem_ram_limit);
-
-    // ...and memory after the limit with 0xFF
-    memset(Mem + mem_ram_limit + 1, 0xFF, to - mem_ram_limit);
-  }
-}
-
-
-void mem_ram_init(uint16_t from, uint16_t to, bool force_clear)
-{
-  byte i;
-  uint32_t a = from;
-  uint16_t pa, pl;
-
-  // initialize RAM before and between ROMs
-  // initialize RAM after last ROM
-  if ( a <= to ) mem_ram_init_section(a, to, force_clear || config_clear_memory());
-}
-
-
-void mem_set_ram_limit_usr(uint16_t a)
-{
-}
-
-uint16_t mem_get_ram_limit_usr()
-{
-  return mem_ram_limit;
-}
-
-
-// -------------------- ROM handling
-// #if MAX_NUM_ROMS==0
-bool mem_add_rom(uint16_t start, uint16_t length, const char *name, uint16_t flags, uint32_t config_file_offset) {
-  return false;
-}
-bool mem_remove_rom(byte i, bool clear) {
-  return false;
-}
-byte mem_get_num_roms(bool includeTemp) {
-  return 0;
-}
-void mem_set_rom_flags(byte i, uint16_t flags) {}
-bool mem_get_rom_info(byte i, char *name, uint16_t *start, uint16_t *length, uint16_t *flags) {
-  return false;
-}
-uint16_t mem_get_rom_autostart_address() {
-  return 0xFFFF;
-}
-void mem_clear_roms() {}
-void mem_reset_roms() {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -2183,15 +2099,13 @@ static void cpu_XCHG()
   TIMER_ADD_CYCLES(5);
 }
 
-static void cpu_OUT()
-{
+static void cpu_OUT() {
   altair_out(MEM_READ(regPC), regA);
   TIMER_ADD_CYCLES(10);
   regPC++;
 }
 
-static void cpu_IN()
-{
+static void cpu_IN() {
   regA = altair_in(MEM_READ(regPC));
   TIMER_ADD_CYCLES(10);
   regPC++;

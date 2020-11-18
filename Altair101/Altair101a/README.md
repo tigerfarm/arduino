@@ -530,5 +530,113 @@ WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8  A7  A6  A5  A4  A3  A2  A1  A0
  ------ 
 + Ready to receive command.
 ````
+
+--------------------------------------------------------------------------------
+##### Program Runtime Call Flow
+
+Altair101a.ino, sample opcode of LDA.
+````
+void processData() {
+#ifdef LOG_MESSAGES
+  Serial.print(F("++ regPC:"));
+  Serial.print(regPC);
+  Serial.print(F(": data:"));
+  printData(MREAD(regPC));
+  Serial.println("");
+#endif
+  host_set_status_leds_READMEM_M1();
+  host_set_addr_leds(regPC);
+  opcode = MREAD(regPC);
+  host_set_data_leds(opcode);
+  regPC++;
+  host_clr_status_led_M1();
+  CPU_EXEC(opcode);
+}
+````
+
+cpucore_i8080.h
+````
+typedef void (*CPUFUN)();
+extern CPUFUN cpu_opcodes[256];
+#define CPU_EXEC(opcode) (cpu_opcodes[opcode])();
+````
+
+cpucore_i8080.cpp
+````
+static void cpu_LDA() {
+  uint16_t addr = MEM_READ_WORD(regPC);
+  regA = MEM_READ(addr);
+  regPC += 2;
+  TIMER_ADD_CYCLES(13);
+}
+static void cpu_STA() {
+  uint16_t addr = MEM_READ_WORD(regPC);
+  MEM_WRITE(addr, regA);
+  regPC += 2;
+  TIMER_ADD_CYCLES(13);
+}
+
+byte MEM_READ_STEP(uint16_t a) {
+  if ( altair_isreset() ) {
+    byte v = MREAD(a);
+    host_set_status_leds_READMEM();
+    altair_set_outputs(a, v);
+    altair_wait_step();
+    v = host_read_data_leds(); // CPU reads whatever is on the data bus at this point
+    host_clr_status_led_MEMR();
+    return v;
+  }
+  else {
+    return 0x00;
+  }
+}
+
+static void cpu_OUT() {
+  altair_out(MEM_READ(regPC), regA);
+  TIMER_ADD_CYCLES(10);
+  regPC++;
+}
+
+static void cpu_IN() {
+  regA = altair_in(MEM_READ(regPC));
+  TIMER_ADD_CYCLES(10);
+  regPC++;
+}
+````
+
+Altair101a.ino
+````
+void altair_out(byte port, byte data) {
+  host_set_addr_leds(port | port * 256);
+  host_set_data_leds(data);
+  host_set_status_led_OUT();
+  host_set_status_led_WO();
+  //
+  // stacy io_out(port, data);
+  //
+  // Actual output of bytes. Example:
+  // + output to the serial port.
+  //
+  if ( host_read_status_led_WAIT() ) {
+    altair_set_outputs(port | port * 256, 0xff);
+    altair_wait_step();
+  }
+  host_clr_status_led_OUT();
+}
+
+void altair_wait_step() {
+  //
+  // Stacy, If WAIT mode, return to WAIT loop?
+  // Also used in: MEM_READ_STEP(...) and MEM_WRITE_STEP(...).
+  //
+  cswitch &= BIT(SW_RESET); // clear everything but RESET status
+  while ( host_read_status_led_WAIT() && (cswitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 ) {
+    // read_inputs();
+    delay(10);
+  }
+  if ( cswitch & BIT(SW_SLOW) ) delay(500);
+}
+
+````
 --------------------------------------------------------------------------------
 Cheers
