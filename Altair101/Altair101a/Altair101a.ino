@@ -1,17 +1,14 @@
 // -----------------------------------------------------------------------------
 /*
-   Processor
-   + Using David Hansel's Altair 8800 Simulator to process machine code instructions.
-   + Interactivity is over the main USB serial connection using Arduino IDE monitor.
+  Processor
+  + Using David Hansel's Altair 8800 Simulator code to process machine code instructions.
+  + Interactivity is over the Arduino IDE monitor USB serial port.
 
   Next:
   + WAIT mode, WAIT light,
-  ?- altair_wait_step();
+  ?- altair_wait_step();  // If WAIT mode, loop until getting another serial character or switch input.
   ?- altair_wait_reset();
   ?- altair_isreset();
-  + Interesting to test on a Nano.
-  ++ #define MEMSIZE (128)
-
 */
 // -----------------------------------------------------------------------------
 #include "Altair101a.h"
@@ -101,7 +98,6 @@ void printData(byte theByte) {
 void print_panel_serial(bool force = false);
 
 byte opcode = 0xff;
-word status_wait = false;
 
 static uint16_t p_regPC = 0xFFFF;
 uint16_t cswitch = 0;
@@ -109,14 +105,13 @@ uint16_t dswitch = 0;
 
 // -----------------------------------------------------------------------------
 uint16_t host_read_status_leds() {
-  /*
+  //  This works for Mega, not Due.
   uint16_t res = PORTB;
   res |= PORTD & 0x80 ? ST_INTE : 0;
   res |= PORTG & 0x04 ? ST_PROT : 0;
   res |= PORTG & 0x02 ? ST_WAIT : 0;
   res |= PORTG & 0x01 ? ST_HLDA : 0;
   return res;
-  */
   return 0;
 }
 
@@ -138,7 +133,7 @@ void altair_out(byte port, byte data) {
   //
   // stacy io_out(port, data);
   //
-  // Actual output of bytes. Example output to the serial port.
+  // Actual output of bytes. Example output a byte to the serial port (IDE monitor).
   //
   if ( host_read_status_led_WAIT() ) {
     altair_set_outputs(port | port * 256, 0xff);
@@ -154,10 +149,10 @@ void altair_wait_step() {
   //
   cswitch &= BIT(SW_RESET); // clear everything but RESET status
   /* Stacy, here is the loop for waiting when stepping.
-  while ( host_read_status_led_WAIT() && (cswitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 ) {
+    while ( host_read_status_led_WAIT() && (cswitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 ) {
     read_inputs();
     delay(10);
-  }
+    }
   */
   if ( cswitch & BIT(SW_SLOW) ) delay(500);
 }
@@ -191,7 +186,7 @@ void read_inputs_panel() {
   // #endif
 }
 void read_inputs_serial() {
-    return;
+  return;
   if (Serial.available() > 0) {
     readByte = Serial.read();    // Read and process an incoming byte.
     processRunSwitch(readByte);
@@ -341,11 +336,14 @@ void print_panel_serial(bool force)
 // -----------------------------------------------------------------------------
 void altair_hlt() {
   host_set_status_led_HLTA();
-  regPC--;
+  // regPC--;
   // altair_interrupt(INT_SW_STOP);
   programState = PROGRAM_WAIT;
   Serial.println(F("++ HALT"));
-  print_panel_serial();
+  if (!host_read_status_led_WAIT()) {
+    print_panel_serial();
+  }
+  host_set_status_led_WAIT();
 }
 
 void processDataOpcode() {
@@ -529,8 +527,6 @@ void processWaitSwitch(byte readByte) {
         Serial.print("- Ignored <");
         Serial.write(readByte);
         Serial.println(">");
-        // programState = PROGRAM_WAIT;
-        // status_wait = true;
     }
   }
 }
@@ -558,7 +554,7 @@ void setup() {
   Serial.println("+++ Altair 101a initialized.");
   //
   programState = PROGRAM_WAIT;
-  status_wait = true;
+  host_set_status_led_WAIT();
   host_read_status_led_WAIT();
   host_set_status_leds_READMEM_M1();
   print_panel_serial();

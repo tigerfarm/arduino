@@ -20,6 +20,9 @@
 #include <Arduino.h>
 #include "cpucore_i8080.h"
 
+// boolean status_wait = true;
+word status_wait = 1;
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Altair8800.ino
@@ -1862,33 +1865,49 @@ static void cpu_IN() {
   regPC++;
 }
 
-
-static void cpu_print_status_register(byte s)
-{
-  if ( s & PS_SIGN )     Serial.print('S'); else Serial.print('.');
-  if ( s & PS_ZERO )     Serial.print('Z'); else Serial.print('.');
+static void cpu_print_status_register(byte s) {
+  if ( s & PS_SIGN )      Serial.print('S'); else Serial.print('.');
+  if ( s & PS_ZERO )      Serial.print('Z'); else Serial.print('.');
   Serial.print('.');
   if ( s & PS_HALFCARRY ) Serial.print('A'); else Serial.print('.');
   Serial.print('.');
-  if ( s & PS_PARITY )   Serial.print('P'); else Serial.print('.');
+  if ( s & PS_PARITY )    Serial.print('P'); else Serial.print('.');
   Serial.print('.');
-  if ( s & PS_CARRY )    Serial.print('C'); else Serial.print('.');
+  if ( s & PS_CARRY )     Serial.print('C'); else Serial.print('.');
 }
 
 void cpucore_i8080_print_registers() {
-  Serial.print(F("\r\n PC   = ")); numsys_print_word(regPC);
+  Serial.print(F("++ PC   = ")); numsys_print_word(regPC);
   Serial.print(F(" = ")); numsys_print_mem(regPC, 3, true);
-  Serial.print(F("\r\n SP   = ")); numsys_print_word(regSP);
+  Serial.println();
+  Serial.print(F("++ SP   = ")); numsys_print_word(regSP);
   Serial.print(F(" = ")); numsys_print_mem(regSP, 8, true);
-  Serial.print(F("\r\n regA = ")); numsys_print_byte(regA);
-  Serial.print(F(" regS = "));   numsys_print_byte(regS);
+  Serial.println();
+  Serial.print(F("++ regS = "));   numsys_print_byte(regS);
   Serial.print(F(" = ")); cpu_print_status_register(regS);
-  Serial.print(F("\r\n regB = ")); numsys_print_byte(regB);
-  Serial.print(F(" regC = "));   numsys_print_byte(regC);
-  Serial.print(F(" regD = "));   numsys_print_byte(regD);
-  Serial.print(F(" regE = "));   numsys_print_byte(regE);
-  Serial.print(F(" regH = "));   numsys_print_byte(regH);
-  Serial.print(F(" regL = "));   numsys_print_byte(regL);
+  Serial.println();
+  // ---
+  Serial.print(F("+ regA: "));
+  printData(regA);
+  Serial.println("");
+  // ---
+  Serial.print(F("+ regB: "));
+  printData(regB);
+  Serial.print(F("  regC: "));
+  printData(regC);
+  Serial.println("");
+  // ---
+  Serial.print(F("+ regD: "));
+  printData(regD);
+  Serial.print(F("  regE: "));
+  printData(regE);
+  Serial.println("");
+  // ---
+  Serial.print(F("+ regH: "));
+  printData(regH);
+  Serial.print(F("  regL: "));
+  printData(regL);
+  // ---
   Serial.println();
 }
 

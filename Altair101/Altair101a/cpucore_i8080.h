@@ -26,65 +26,26 @@ extern byte Mem[MEMSIZE];
 // WARNING: arguments to MEM_READ and MEM_WRITE macros should not have side effects
 // (e.g. MEM_READ(addr++)) => any side effects will be executed multiple times!
 
-// Note: To improve performance, the MEMR LED handling is a bit lazy while a program is
-// running. Memory reads are by far the most common bus action and any tiny
-// bit of time that can be cut here makes a significant performance difference.
-// Setting USE_REAL_MREAD_TIMING to 1 will improve the accuracy of MREAD at the
-// cost of performace. Leaving this at 0 has virtually no visible consequences
-// apart from a slight difference in brightness of the MEMR LED while running.
-// Setting it to 1 significantly reduces performance.
-// Most users should keep this at 0
-
 // If SHOW_MWRITE_OUTPUT enabled, the D0-7 LEDs will show values being output to the data bus
 // during memory write operations). This is different from the original
 // Altair behavior where the D0-7 LEDs were all on for write operations
 // because the LEDs are wired to the DIN bus lines which are floating during
 // CPU write). Additionally, enabling this makes sure that the "WO" LED will
 // go out (negative logic) AFTER the address and data buses have been set to
-// the proper values. It also changes timing of the "WO" LED similar to
-// the USE_REAL_MREAD_TIMING setting.
-// Enable this if you want to connect external hardware that needs to see
-// data during memory write instructions or if you want to see the data
-// during writes and do not care that this behavior does not match the original.
+// the proper values.
 
 byte MEM_READ_STEP(uint16_t a);
 void MEM_WRITE_STEP(uint16_t a, byte v);
-#define USE_REAL_MREAD_TIMING 0
-#if USE_REAL_MREAD_TIMING>0
-inline byte MEM_READ(uint16_t a) {
-  byte res;
-  if ( host_read_status_led_WAIT() )
-    res = MEM_READ_STEP(a);
-  else
-  {
-    host_set_addr_leds(a);
-    host_set_status_leds_READMEM();
-    res = host_set_data_leds(MREAD(a));
-    host_clr_status_led_MEMR();
-  }
-  return res;
-}
-#else
-#define MEM_READ(a) ( host_read_status_led_WAIT() ? MEM_READ_STEP(a) : (host_set_status_leds_READMEM(),  host_set_addr_leds(a), host_set_data_leds(MREAD(a)) ))
-#endif
+
+#define MEM_READ(a) (host_read_status_led_WAIT() ? MEM_READ_STEP(a) : (host_set_status_leds_READMEM(),  host_set_addr_leds(a), host_set_data_leds(MREAD(a)) ))
 
 // ----------------------------------------
 #define MWRITE(a,v) { Mem[a]=v; }
 
-#define SHOW_MWRITE_OUTPUT 0
+#define SHOW_MWRITE_OUTPUT 1
+
 #if SHOW_MWRITE_OUTPUT>0
-inline void MEM_WRITE(uint16_t a, byte v) {
-  if ( host_read_status_led_WAIT() )
-    MEM_WRITE_STEP(a, v );
-  else
-  {
-    host_set_addr_leds(a);
-    host_set_data_leds(v);
-    host_set_status_leds_WRITEMEM();
-    MWRITE(a, v);
-    host_clr_status_led_WO();
-  }
-}
+#define MEM_WRITE(a, v) if( host_read_status_led_WAIT() ) MEM_WRITE_STEP(a, v); else { host_set_addr_leds(a); host_set_data_leds(v); host_set_status_leds_WRITEMEM(); MWRITE(a, v); host_clr_status_led_WO();}
 #else
 #define MEM_WRITE(a, v) if( host_read_status_led_WAIT() ) MEM_WRITE_STEP(a, v); else { host_set_status_leds_WRITEMEM(); host_set_addr_leds(a); host_set_data_leds(0xff); MWRITE(a, v); }
 #endif
@@ -98,7 +59,6 @@ inline void MEM_WRITE(uint16_t a, byte v) {
 #define PS_HALFCARRY   0x10
 #define PS_ZERO        0x40
 #define PS_SIGN        0x80
-
 
 // The emulater runs at 2MHz
 #define CPU_CLOCK_I8080 2000
@@ -121,13 +81,13 @@ extern union unionDE {
   };
   uint16_t DE;
 } regDE;
-extern union unionHL{
+extern union unionHL {
   struct {
     byte L, H;
   };
   uint16_t HL;
 } regHL;
-extern union unionPC{
+extern union unionPC {
   struct {
     byte L, H;
   };
@@ -239,7 +199,7 @@ bool host_read_function_switch(byte inputNum);
 inline byte host_read_sense_switches() {
   // SW8...15  => PIOA, bits 12-15,17-20 (negative logic)
   word w = ~REG_PIOA_PDSR;
-  return ((w & 0xF000) / (1<<12)) | ((w & 0x1E0000) / (1<<13));
+  return ((w & 0xF000) / (1 << 12)) | ((w & 0x1E0000) / (1 << 13));
 }
 uint16_t host_read_addr_switches();
 
@@ -298,7 +258,7 @@ void host_serial_interrupts_resume();
 // -----------------------------------------------------------------------------
 #else
 #define THIS_CPU "Other:Nano|Uno"
-// #error requires Arduino Mega2560, Arduino Due
+#error requires Arduino Mega2560 or Arduino Due
 // Test on Nano or Uno.
 //  Sketch uses 39902 bytes (123%) of program storage space. Maximum is 32256 bytes.
 //  text section exceeds available space in board
@@ -306,95 +266,7 @@ void host_serial_interrupts_resume();
 //  Sketch too big; see http://www.arduino.cc/en/Guide/Troubleshooting#size for tips on reducing it.
 //  Error compiling for board Arduino Uno.
 // -----------------------------------------------------------------------------
-inline void host_set_addr_leds(uint16_t v) {
-  // PORTA = (v & 0xff);
-  // PORTC = (v / 256);
-}
-uint16_t host_read_addr_leds();
-uint16_t host_set_addr_leds();
-#define host_set_data_leds(v)  0
-#define host_read_data_leds()  0
-
-#define host_set_status_led_INT()     0
-#define host_set_status_led_WO()      0
-#define host_set_status_led_STACK()   0
-#define host_set_status_led_HLTA()    0
-#define host_set_status_led_M1()      0
-#define host_set_status_led_MEMR()    0
-#define host_set_status_led_INTE()    0
-#define host_set_status_led_PROT()    0
-#define host_set_status_led_WAIT()  { status_wait = true; }
-#define host_set_status_led_HLDA()    0
-
-#define host_clr_status_led_INT()     0
-#define host_clr_status_led_WO()      0
-#define host_clr_status_led_STACK()   0
-#define host_clr_status_led_HLTA()    0
-#define host_clr_status_led_M1()      0
-#define host_clr_status_led_MEMR()    0
-#define host_clr_status_led_INTE()    0
-#define host_clr_status_led_PROT()    0
-#define host_clr_status_led_WAIT()  { status_wait = false; }
-#define host_clr_status_led_HLDA()    0
-
-#define host_read_status_led_WAIT() status_wait
-#define host_read_status_led_M1()   0
-#define host_read_status_led_INTE() 0
-#define host_read_status_led_HLTA() 0
-
-#define host_set_status_leds_READMEM()       0
-#define host_set_status_leds_READMEM_M1()    0
-#define host_set_status_leds_READMEM_STACK() 0
-#define host_set_status_leds_WRITEMEM()      0
-
-#define host_set_status_led_INP()     0
-#define host_clr_status_led_INP()     0
-#define host_set_status_led_OUT()     0
-#define host_clr_status_led_OUT()     0
-
-uint16_t host_read_status_leds();
-inline byte host_mega_read_switches(byte highlow) {
-  byte b = 0;
-  ADCSRB = highlow ? 0x08 : 0x00; // MUX5
-  ADMUX = 0x40; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x01;
-  ADMUX = 0x41; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x02;
-  ADMUX = 0x42; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x04;
-  ADMUX = 0x43; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x08;
-  ADMUX = 0x44; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x10;
-  ADMUX = 0x45; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x20;
-  ADMUX = 0x46; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x40;
-  ADMUX = 0x47; ADCSRA = 0xD4; while ( ADCSRA & 0x40 ); if ( ADCH != 0 ) b |= 0x80;
-  return b;
-}
-#define host_read_sense_switches() host_mega_read_switches(true)
-#define host_read_addr_switches() (host_mega_read_switches(true) * 256 | host_mega_read_switches(false))
-bool host_read_function_switch(byte inputNum);
-#define host_check_interrupts() { if( Serial.available() ) serial_receive_host_data(0, Serial.read()); }
-
-// -----------------------------------------------------------------------------
-// handling front panel switches
-bool     host_read_function_switch(byte i);
-bool     host_read_function_switch_debounced(byte i);
-bool     host_read_function_switch_edge(byte i);
-uint16_t host_read_function_switches_edge();
-void     host_reset_function_switch_state();
-
-// at a minimum the host must provide persistent storage memory to which
-// we can write and read, implementing our own mini-filesystem
-bool host_storage_init(bool write);
-void host_storage_close();
-void host_storage_write(const void *data, uint32_t addr, uint32_t len);
-void host_storage_read(void *data,  uint32_t addr, uint32_t len);
-void host_storage_move(uint32_t to, uint32_t from, uint32_t len);
-void host_storage_invalidate();
-
-// miscellaneous
-void host_copy_flash_to_ram(void *dst, const void *src, uint32_t len);
-uint32_t host_get_random();
-void host_system_info();
-void host_setup();
-
-#endif  // CPU: Nano
+#endif  // CPU: Nano|Uno
 
 // -----------------------------------------------------------------------------
 // config.h

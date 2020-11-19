@@ -621,7 +621,9 @@ cpucore_i8008.h
 ````
 byte MEM_READ_STEP(uint16_t a);
 void MEM_WRITE_STEP(uint16_t a, byte v);
+
 #define USE_REAL_MREAD_TIMING 0
+
 #if USE_REAL_MREAD_TIMING>0
 inline byte MEM_READ(uint16_t a) {
   byte res;
