@@ -124,54 +124,64 @@ extern CPUFUN cpu_opcodes[256];
 #if defined(__AVR_ATmega2560__)
 #define THIS_CPU "Mega 2560"
 // -----------------------------------------------------------------------------
-// host_mega.h included here rather than another file.
+// host_mega.h included here rather than another file
 // -----------------------------------------------------------------------------
+//
+// Microcontroller Port Registers:
+// Port registers allow for lower-level and faster manipulation of the i/o pins.
+// https://www.arduino.cc/en/Reference/PortManipulation
+//    D PORTD maps to digital pins 0 to 7.
+//    B PORTB maps to digital pins 8 to 13.
+//    C PORTC maps to analog input pins 0 to 5.
+// Requires including Arduino.h.
+//
 inline void host_set_addr_leds(uint16_t v) {
   PORTA = (v & 0xff);
   PORTC = (v / 256);
 }
-#define host_read_addr_leds(v) (PORTA | (PORTC * 256))
 #define host_set_data_leds(v)  PORTL=(v)
 #define host_read_data_leds()  PORTL
+#define host_read_addr_leds(v) (PORTA | (PORTC * 256))
 
-#define host_set_status_led_INT()     PORTB |=  0x01
-#define host_set_status_led_WO()      PORTB &= ~0x02
-#define host_set_status_led_STACK()   PORTB |=  0x04
-#define host_set_status_led_HLTA()    PORTB |=  0x08
-#define host_set_status_led_M1()      PORTB |=  0x20
-#define host_set_status_led_MEMR()    PORTB |=  0x80
-#define host_set_status_led_INTE()    digitalWrite(38, HIGH);
-#define host_set_status_led_PROT()    digitalWrite(39, HIGH)
+uint16_t host_read_status_leds();
+
+#define host_read_status_led_WAIT()   status_wait
 #define host_set_status_led_WAIT()  { digitalWrite(40, HIGH); status_wait = true; }
-#define host_set_status_led_HLDA()    digitalWrite(41, HIGH)
-
-#define host_clr_status_led_INT()     PORTB &= ~0x01
-#define host_clr_status_led_WO()      PORTB |=  0x02
-#define host_clr_status_led_STACK()   PORTB &= ~0x04
-#define host_clr_status_led_HLTA()    PORTB &= ~0x08
-#define host_clr_status_led_M1()      PORTB &= ~0x20
-#define host_clr_status_led_MEMR()    PORTB &= ~0x80
-#define host_clr_status_led_INTE()    digitalWrite(38, LOW);
-#define host_clr_status_led_PROT()    digitalWrite(39, LOW)
 #define host_clr_status_led_WAIT()  { digitalWrite(40, LOW); status_wait = false; }
+#define host_set_status_led_HLDA()    digitalWrite(41, HIGH)
 #define host_clr_status_led_HLDA()    digitalWrite(41, LOW)
 
-#define host_read_status_led_WAIT() status_wait
-#define host_read_status_led_M1()   PORTB&0x20
-#define host_read_status_led_INTE() PORTD&0x80
-#define host_read_status_led_HLTA() PORTB&0x08
+#define host_read_status_led_HLTA()   PORTB&0x08
+#define host_read_status_led_M1()     PORTB&0x20
+#define host_read_status_led_INTE()   PORTD&0x80
+
+#define host_set_status_led_INTE()    digitalWrite(38, HIGH);
+#define host_set_status_led_PROT()    digitalWrite(39, HIGH)
+#define host_set_status_led_MEMR()    PORTB |=  0x80
+#define host_set_status_led_INP()     PORTB |=  0x40
+#define host_set_status_led_M1()      PORTB |=  0x20
+#define host_set_status_led_OUT()     PORTB |=  0x10
+#define host_set_status_led_HLTA()    PORTB |=  0x08
+#define host_set_status_led_STACK()   PORTB |=  0x04
+#define host_set_status_led_WO()      PORTB &= ~0x02
+#define host_set_status_led_INT()     PORTB |=  0x01
+
+#define host_clr_status_led_INTE()    digitalWrite(38, LOW);
+#define host_clr_status_led_PROT()    digitalWrite(39, LOW)
+#define host_clr_status_led_MEMR()    PORTB &= ~0x80
+#define host_clr_status_led_INP()     PORTB &= ~0x40
+#define host_clr_status_led_M1()      PORTB &= ~0x20
+#define host_clr_status_led_OUT()     PORTB &= ~0x10
+#define host_clr_status_led_HLTA()    PORTB &= ~0x08
+#define host_clr_status_led_STACK()   PORTB &= ~0x04
+#define host_clr_status_led_WO()      PORTB |=  0x02
+#define host_clr_status_led_INT()     PORTB &= ~0x01
 
 #define host_set_status_leds_READMEM()       PORTB |=  0x82
 #define host_set_status_leds_READMEM_M1()    PORTB |=  0xA2;
 #define host_set_status_leds_READMEM_STACK() PORTB |=  0x86;
 #define host_set_status_leds_WRITEMEM()      PORTB &= ~0x82
 
-#define host_set_status_led_INP()     PORTB |=  0x40
-#define host_clr_status_led_INP()     PORTB &= ~0x40
-#define host_set_status_led_OUT()     PORTB |=  0x10
-#define host_clr_status_led_OUT()     PORTB &= ~0x10
-
-uint16_t host_read_status_leds();
 inline byte host_mega_read_switches(byte highlow) {
   byte b = 0;
   ADCSRB = highlow ? 0x08 : 0x00; // MUX5

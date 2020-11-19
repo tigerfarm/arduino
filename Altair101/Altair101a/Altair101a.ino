@@ -106,21 +106,20 @@ uint16_t dswitch = 0;
 // -----------------------------------------------------------------------------
 uint16_t host_read_status_leds() {
   //  This works for Mega, not Due.
-  uint16_t res = PORTB;
+  uint16_t res;
+  res = PORTB;
   res |= PORTD & 0x80 ? ST_INTE : 0;
   res |= PORTG & 0x04 ? ST_PROT : 0;
   res |= PORTG & 0x02 ? ST_WAIT : 0;
   res |= PORTG & 0x01 ? ST_HLDA : 0;
   return res;
-  return 0;
 }
 
 // -----------------------------------------------------------------------------
 void altair_set_outputs(uint16_t a, byte v) {
+  // Stacy, When not using serial, display on front panel lights.
   host_set_addr_leds(a);
   host_set_data_leds(v);
-  // print_panel_serial();
-  // Stacy, When not using serial, maybe need to display on front panel lights?
 }
 
 void altair_out(byte port, byte data) {
@@ -136,10 +135,12 @@ void altair_out(byte port, byte data) {
   // Actual output of bytes. Example output a byte to the serial port (IDE monitor).
   //
   if ( host_read_status_led_WAIT() ) {
+    // If single stepping, need to wait.
     altair_set_outputs(port | port * 256, 0xff);
     altair_wait_step();
   }
   host_clr_status_led_OUT();
+  host_clr_status_led_WO();
 }
 
 void altair_wait_step() {
@@ -148,7 +149,7 @@ void altair_wait_step() {
   // Also used in: MEM_READ_STEP(...) and MEM_WRITE_STEP(...).
   //
   cswitch &= BIT(SW_RESET); // clear everything but RESET status
-  /* Stacy, here is the loop for waiting when stepping.
+  /* Stacy, here is the loop for waiting when single stepping during WAIT mode.
     while ( host_read_status_led_WAIT() && (cswitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 ) {
     read_inputs();
     delay(10);
@@ -354,13 +355,18 @@ void processDataOpcode() {
   printData(MREAD(regPC));
   Serial.println("");
 #endif
+  //
   host_set_status_leds_READMEM_M1();
   host_set_addr_leds(regPC);
   opcode = MREAD(regPC);
   host_set_data_leds(opcode);
   regPC++;
+  //
   host_clr_status_led_M1();
   CPU_EXEC(opcode);
+  host_set_status_led_MEMR();
+  host_set_status_led_M1();
+  host_clr_status_led_WO();
 }
 
 void processRunSwitch(byte readByte) {
@@ -409,6 +415,7 @@ void processWaitSwitch(byte readByte) {
     dswitch = dswitch ^ (1 << (data - '0'));
   }
   else if ( data >= 'a' && data <= 'f' ) {
+    // Stacy, change to uppercase A...F
     dswitch = dswitch ^ (1 << (data - 'a' + 10));
   } else {
     //
@@ -468,9 +475,9 @@ void processWaitSwitch(byte readByte) {
         Serial.println("+ s, SINGLE STEP when in WAIT mode.");
         Serial.println("+ s, STOP        when in RUN mode.");
         Serial.println("+ x, EXAMINE switch address.");
-        Serial.println("+ y, EXAMINE NEXT address, current address + 1.");
+        Serial.println("+ X, EXAMINE NEXT address, current address + 1.");
         Serial.println("+ p, DEPOSIT at current address");
-        Serial.println("+ q, DEPOSIT NEXT address, current address + 1");
+        Serial.println("+ P, DEPOSIT NEXT address, current address + 1");
         Serial.println("+ R, RESET, set address to zero.");
         Serial.println("-------------");
         Serial.println("+ l, loaded a simple program.");
@@ -556,7 +563,14 @@ void setup() {
   programState = PROGRAM_WAIT;
   host_set_status_led_WAIT();
   host_read_status_led_WAIT();
-  host_set_status_leds_READMEM_M1();
+  //
+  // host_set_status_leds_READMEM_M1();
+  host_set_status_led_MEMR();
+  host_set_status_led_M1();
+  host_clr_status_led_WO();
+  opcode = MREAD(regPC);
+  host_set_data_leds(opcode);
+  //
   print_panel_serial();
 }
 
