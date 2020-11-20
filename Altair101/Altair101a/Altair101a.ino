@@ -344,7 +344,7 @@ void singleStepWait() {
   while (singleStepWaitLoop) {
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
-      if (readByte = 's') {
+      if (readByte == 's') {
         singleStepWaitLoop = false;
         // processRunSwitch(readByte);
       }

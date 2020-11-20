@@ -45,7 +45,8 @@ void MEM_WRITE_STEP(uint16_t a, byte v);
 #define SHOW_MWRITE_OUTPUT 1
 
 #if SHOW_MWRITE_OUTPUT>0
-#define MEM_WRITE(a, v) if( host_read_status_led_WAIT() ) MEM_WRITE_STEP(a, v); else { host_set_addr_leds(a); host_set_data_leds(v); host_set_status_leds_WRITEMEM(); MWRITE(a, v); host_clr_status_led_WO();}
+// #define MEM_WRITE(a, v) if( host_read_status_led_WAIT() ) MEM_WRITE_STEP(a, v); else { host_set_addr_leds(a); host_set_data_leds(v); host_set_status_leds_WRITEMEM(); MWRITE(a, v); host_clr_status_led_WO();}
+#define MEM_WRITE(a, v) if( host_read_status_led_WAIT() ) { host_set_addr_leds(a); host_set_data_leds(v); host_set_status_leds_WRITEMEM(); MWRITE(a, v); singleStepWait();} else MEM_WRITE_STEP(a, v);
 #else
 #define MEM_WRITE(a, v) if( host_read_status_led_WAIT() ) MEM_WRITE_STEP(a, v); else { host_set_status_leds_WRITEMEM(); host_set_addr_leds(a); host_set_data_leds(0xff); MWRITE(a, v); }
 #endif
