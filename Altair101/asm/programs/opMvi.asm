@@ -4,12 +4,9 @@
                             ; Move various immediate types to various registers.
                             ; 
                             ; --------------------------------------
-            jmp Start       ; Jump to bypass the halt.
                             ;
     iValue  equ     39      ; Label immediate to test with.
                             ; iValue = 39
-    Halt:
-            hlt             ; The program will halt at each iteration, after the first.
                             ; --------------------------------------
     Start:
                             ; --------------------------------------
@@ -69,6 +66,6 @@
                             ; + regH:  39 = 047 = 00100111  regL:  39 = 047 = 00100111
                             ;
                             ; --------------------------------------
-            NOP
-            jmp Halt        ; Jump back to the early halt command.
+            hlt             ; The program will halt at each iteration, after the first.
+            jmp Start
             end

@@ -62,6 +62,7 @@
                             ; --- hlt
                             ; First:  Fetch Opcode                  + On: MEMR MI WO    166         11
                             ;
+                            ; --------------------------------------
 ++ Address:16-bit bytes       databyte :hex:oct > description
 ++       0:00000000 00000000: 00111010 : 3A:072 > opcode: lda 32
 ++       1:00000000 00000001: 00100000 : 20:040 > lb: 32
@@ -76,7 +77,25 @@
 ++      10:00000000 00001010: 11110001 : F1:361 > opcode: pop a
 ++      11:00000000 00001011: 01110110 : 76:166 > opcode: hlt
 + End of list.
+                            ; --------------------------------------
+                            ; Complete code listing: STATUS-octal.txt
+                            ;
+; demonstrate status light combinations 
+0000                   org     0 
+0000 3A2000            lda     40Q             ;opcode fetch, memory read x 3 
+0003 322100            sta     41Q             ;opcode fetch, mem read x 2, mem write 
+0006 312000            lxi     sp,40Q          ;opcode fetch, mem read x 2 
+0009 F5                push    a               ;opcode fetch, stack write x 2 
+000A F1                pop     a               ;opcode fetch, stack read x 2 
+000B DB10              in      20Q             ;opcode fetch, mem read, I/O input 
+000D D310              out     20Q             ;opcode fetch, mem read, I/O output 
+000F FB                ei                      ;interrupts enabled 
+0010 F3                di                      ;interrupts disabled 
+0011 76                hlt                     ;halt  
+0012                   end
 
+Here is the program in octal for easier entry into the Altair:  
 00: 072 040 000 062 041 000 061 040 
 10: 000 365 361 333 020 323 020 373 
-20: 363 166P
+20: 363 166
+                            ; --------------------------------------

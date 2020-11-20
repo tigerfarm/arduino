@@ -1833,14 +1833,6 @@ static void cpu_STA() {
   MEM_WRITE(addr, regA);
   regPC += 2;
   TIMER_ADD_CYCLES(13);
-  /*
-  if ( host_read_status_led_WAIT() ) {
-    // Memory write.
-    host_set_status_led_MEMR();
-    host_clr_status_led_WO();
-    singleStepWait();
-  }
-  */
 }
 
 #define CPU_STX(REG) \

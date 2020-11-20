@@ -157,6 +157,11 @@ public class asm {
                     System.out.println("+ Write the program byte array to the file: " + byteFile + ":");
                     processFile.programBytesListAndWrite(byteFile);
                     break;
+                case "array":
+                    System.out.println("+ -------------------------------------");
+                    System.out.println("+ List the program byte array into code:");
+                    processFile.programBytesListCode();
+                    break;
                 case "show":
                     System.out.println("+ -------------------------------------");
                     System.out.println("+ Print binary file bytes to screen: " + byteFile + ":");
