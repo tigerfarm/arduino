@@ -621,7 +621,9 @@ cpucore_i8008.h
 ````
 byte MEM_READ_STEP(uint16_t a);
 void MEM_WRITE_STEP(uint16_t a, byte v);
+
 #define USE_REAL_MREAD_TIMING 0
+
 #if USE_REAL_MREAD_TIMING>0
 inline byte MEM_READ(uint16_t a) {
   byte res;
@@ -720,3 +722,14 @@ void altair_wait_step() {
 ````
 --------------------------------------------------------------------------------
 Cheers
+````
+++      36:00000000 00100100: 00 111 110 : 3E:076 > opcode: mvi a,'a'
+++      37:00000000 00100101: 01 100 000 : 61:141 > immediate: 'a' : 97
+
++ Ready to receive command.
++ s, SINGLE STEP: 
+++ regPC:0: data: 62 = 076 = 00111110
+- Ignored <}>
+- Ignored <}>
+
+````

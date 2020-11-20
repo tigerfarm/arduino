@@ -1,17 +1,14 @@
 // -----------------------------------------------------------------------------
 /*
-   Processor
-   + Using David Hansel's Altair 8800 Simulator to process machine code instructions.
-   + Interactivity is over the main USB serial connection using Arduino IDE monitor.
+  Processor
+  + Using David Hansel's Altair 8800 Simulator code to process machine code instructions.
+  + Interactivity is over the Arduino IDE monitor USB serial port.
 
   Next:
   + WAIT mode, WAIT light,
-  ?- altair_wait_step();
+  ?- altair_wait_step();  // If WAIT mode, loop until getting another serial character or switch input.
   ?- altair_wait_reset();
   ?- altair_isreset();
-  + Interesting to test on a Nano.
-  ++ #define MEMSIZE (128)
-
 */
 // -----------------------------------------------------------------------------
 #include "Altair101a.h"
@@ -39,18 +36,19 @@
 #define SW_AUX2DOWN  15
 
 // Byte bit status values
-#define ST_INT     0x0001
-#define ST_WO      0x0002
-#define ST_STACK   0x0004
-#define ST_HLTA    0x0008
-#define ST_OUT     0x0010
-#define ST_M1      0x0020
-#define ST_INP     0x0040
-#define ST_MEMR    0x0080
-#define ST_PROT    0x0100
-#define ST_INTE    0x0200
-#define ST_HLDA    0x0400
 #define ST_WAIT    0x0800
+#define ST_HLDA    0x0400
+//
+#define ST_INTE    0x0200
+#define ST_PROT    0x0100
+#define ST_MEMR    0x0080
+#define ST_INP     0x0040
+#define ST_M1      0x0020
+#define ST_OUT     0x0010
+#define ST_HLTA    0x0008
+#define ST_STACK   0x0004
+#define ST_WO      0x0002
+#define ST_INT     0x0001
 
 // Not implemented at this time.
 #define INT_SW_STOP     0x80000000
@@ -101,7 +99,6 @@ void printData(byte theByte) {
 void print_panel_serial(bool force = false);
 
 byte opcode = 0xff;
-word status_wait = false;
 
 static uint16_t p_regPC = 0xFFFF;
 uint16_t cswitch = 0;
@@ -109,20 +106,21 @@ uint16_t dswitch = 0;
 
 // -----------------------------------------------------------------------------
 uint16_t host_read_status_leds() {
-  uint16_t res = PORTB;
-  res |= PORTD & 0x80 ? ST_INTE : 0;
-  res |= PORTG & 0x04 ? ST_PROT : 0;
-  res |= PORTG & 0x02 ? ST_WAIT : 0;
-  res |= PORTG & 0x01 ? ST_HLDA : 0;
+  //  This works for Mega, not Due.
+  uint16_t res;
+  res = statusByteB;
+  res |= statusByteD & 0x80 ? ST_INTE : 0;
+  res |= statusByteG & 0x04 ? ST_PROT : 0;
+  res |= statusByteG & 0x02 ? ST_WAIT : 0;
+  res |= statusByteG & 0x01 ? ST_HLDA : 0;
   return res;
 }
 
 // -----------------------------------------------------------------------------
 void altair_set_outputs(uint16_t a, byte v) {
+  // Stacy, When not using serial, display on front panel lights.
   host_set_addr_leds(a);
   host_set_data_leds(v);
-  // print_panel_serial();
-  // Stacy, When not using serial, maybe need to display on front panel lights?
 }
 
 void altair_out(byte port, byte data) {
@@ -135,13 +133,15 @@ void altair_out(byte port, byte data) {
   //
   // stacy io_out(port, data);
   //
-  // Actual output of bytes. Example output to the serial port.
+  // Actual output of bytes. Example output a byte to the serial port (IDE monitor).
   //
   if ( host_read_status_led_WAIT() ) {
+    // If single stepping, need to wait.
     altair_set_outputs(port | port * 256, 0xff);
     altair_wait_step();
   }
   host_clr_status_led_OUT();
+  host_clr_status_led_WO();
 }
 
 void altair_wait_step() {
@@ -150,10 +150,12 @@ void altair_wait_step() {
   // Also used in: MEM_READ_STEP(...) and MEM_WRITE_STEP(...).
   //
   cswitch &= BIT(SW_RESET); // clear everything but RESET status
-  while ( host_read_status_led_WAIT() && (cswitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 ) {
+  /* Stacy, here is the loop for waiting when single stepping during WAIT mode.
+    while ( host_read_status_led_WAIT() && (cswitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 ) {
     read_inputs();
     delay(10);
-  }
+    }
+  */
   if ( cswitch & BIT(SW_SLOW) ) delay(500);
 }
 
@@ -173,7 +175,7 @@ void read_inputs() {
   }
   // ---------------------------
   if (readByte != "") {
-    processWaitSwitch(byte);
+    // processWaitSwitch(readByte);
   }
 }
 void read_inputs_panel() {
@@ -186,7 +188,7 @@ void read_inputs_panel() {
   // #endif
 }
 void read_inputs_serial() {
-    return;
+  return;
   if (Serial.available() > 0) {
     readByte = Serial.read();    // Read and process an incoming byte.
     processRunSwitch(readByte);
@@ -206,7 +208,7 @@ byte altair_in(byte port) {
       // stacy data = io_inp(port);
       altair_set_outputs(port | port * 256, data);
       host_clr_status_led_INP();
-      read_inputs();
+      // stacy read_inputs();
       // advance simulation time (so timers can expire)
       // stacy TIMER_ADD_CYCLES(50);
     }
@@ -231,15 +233,14 @@ void altair_wait_reset() {
   p_regPC = regPC;
   // set bus/data LEDs on, status LEDs off
   altair_set_outputs(0xffff, 0xff);
-  host_clr_status_led_INT();
-  host_set_status_led_WO();
-  host_clr_status_led_STACK();
-  host_clr_status_led_HLTA();
-  host_clr_status_led_OUT();
-  host_clr_status_led_M1();
-  host_clr_status_led_INP();
   host_clr_status_led_MEMR();
-  // host_clr_status_led_PROT();
+  host_clr_status_led_INP();
+  host_clr_status_led_M1();
+  host_clr_status_led_OUT();
+  host_clr_status_led_HLTA();
+  host_clr_status_led_STACK();
+  host_set_status_led_WO();
+  host_clr_status_led_INT();
   // stacy altair_interrupt_disable();
 
   // wait while RESET switch is held
@@ -287,7 +288,8 @@ void print_panel_serial(bool force)
   if ( dbus & 0x02 )   Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( dbus & 0x01 )   Serial.print(F("   *")); else Serial.print(F("   ."));
   Serial.print(("\r\nWAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8  A7  A6  A5  A4  A3  A2  A1  A0\r\n"));
-  if ( status & ST_WAIT ) Serial.print(F(" *  "));   else Serial.print(F(" .  "));
+  // if ( status & ST_WAIT ) Serial.print(F(" *  "));   else Serial.print(F(" .  "));
+  if ( host_read_status_led_WAIT() ) Serial.print(F(" *  "));   else Serial.print(F(" .  "));
   if ( status & ST_HLDA ) Serial.print(F("  *   ")); else Serial.print(F("  .   "));
   if ( abus & 0x8000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( abus & 0x4000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
@@ -336,11 +338,15 @@ void print_panel_serial(bool force)
 // -----------------------------------------------------------------------------
 void altair_hlt() {
   host_set_status_led_HLTA();
-  regPC--;
+  // regPC--;
   // altair_interrupt(INT_SW_STOP);
   programState = PROGRAM_WAIT;
-  Serial.println(F("++ HALT"));
-  print_panel_serial();
+  Serial.print(F("++ HALT, host_read_status_led_WAIT() = "));
+  Serial.println(host_read_status_led_WAIT());
+  if (!host_read_status_led_WAIT()) {
+    host_set_status_led_WAIT();
+    print_panel_serial();
+  }
 }
 
 void processDataOpcode() {
@@ -351,13 +357,18 @@ void processDataOpcode() {
   printData(MREAD(regPC));
   Serial.println("");
 #endif
+  //
   host_set_status_leds_READMEM_M1();
   host_set_addr_leds(regPC);
   opcode = MREAD(regPC);
   host_set_data_leds(opcode);
   regPC++;
+  //
   host_clr_status_led_M1();
   CPU_EXEC(opcode);
+  host_set_status_led_MEMR();
+  host_set_status_led_M1();
+  host_clr_status_led_WO();
 }
 
 void processRunSwitch(byte readByte) {
@@ -365,8 +376,9 @@ void processRunSwitch(byte readByte) {
     case 's':
       Serial.println(F("+ STOP"));
       programState = PROGRAM_WAIT;
+      host_set_status_led_WAIT();
       break;
-    case 'r':
+    case 'R':
       Serial.println(F("+ RESET"));
     // Stacy need to implement.
     // -------------------------------------
@@ -406,6 +418,7 @@ void processWaitSwitch(byte readByte) {
     dswitch = dswitch ^ (1 << (data - '0'));
   }
   else if ( data >= 'a' && data <= 'f' ) {
+    // Stacy, change to uppercase A...F
     dswitch = dswitch ^ (1 << (data - 'a' + 10));
   } else {
     //
@@ -428,6 +441,7 @@ void processWaitSwitch(byte readByte) {
         p_regPC = ~regPC;
         altair_set_outputs(regPC, MREAD(regPC));
         break;
+      case 'X':
       case 'y':
         regPC = regPC + 1;
         Serial.print("+ y, EXAMINE NEXT: ");
@@ -440,9 +454,9 @@ void processWaitSwitch(byte readByte) {
         MWRITE(regPC, dswitch & 0xff);
         altair_set_outputs(regPC, MREAD(regPC));
         break;
-      case 'q':
+      case 'P':
         regPC++;
-        Serial.print("+ q, DEPOSIT NEXT to: ");
+        Serial.print("+ P, DEPOSIT NEXT to: ");
         Serial.println(regPC);
         MWRITE(regPC, dswitch & 0xff);
         altair_set_outputs(regPC, MREAD(regPC));
@@ -464,9 +478,9 @@ void processWaitSwitch(byte readByte) {
         Serial.println("+ s, SINGLE STEP when in WAIT mode.");
         Serial.println("+ s, STOP        when in RUN mode.");
         Serial.println("+ x, EXAMINE switch address.");
-        Serial.println("+ y, EXAMINE NEXT address, current address + 1.");
+        Serial.println("+ X, EXAMINE NEXT address, current address + 1.");
         Serial.println("+ p, DEPOSIT at current address");
-        Serial.println("+ q, DEPOSIT NEXT address, current address + 1");
+        Serial.println("+ P, DEPOSIT NEXT address, current address + 1");
         Serial.println("+ R, RESET, set address to zero.");
         Serial.println("-------------");
         Serial.println("+ l, loaded a simple program.");
@@ -475,26 +489,17 @@ void processWaitSwitch(byte readByte) {
       // -------------------------------------
       case 'l':
         Serial.println("+ l, loaded a simple program.");
-        MWRITE(0, B00111110 & 0xff);
-        MWRITE(1, B00000110 & 0xff);
-        MWRITE(2, B00110010 & 0xff);
-        MWRITE(3, B01100000 & 0xff);
-        MWRITE(4, B00000000 & 0xff);
-        MWRITE(5, B01110110 & 0xff);
-        MWRITE(6, B11000011 & 0xff);  // JMP back to start.
-        MWRITE(7, B00000000 & 0xff);
-        MWRITE(8, B00000000 & 0xff);
-        /*
-          Program listing:
-          Address(lb):databyte :hex:oct > description
-          00000000:   00111110 : 3E:076 > opcode: mvi a,6
-          00000001:   00000110 : 06:006 > immediate: 6 : 6
-          00000010:   00110010 : 32:062 > opcode: sta 96
-          00000011:   01100000 : 60:140 > lb: 96
-          00000100:   00000000 : 00:000 > hb: 0
-          00000101:   01110110 : 76:166 > opcode: hlt
-        */
-        // Do EXAMINE 0 after the load;
+        MWRITE(0, B00111110 & 0xff);  // opcode: mvi a,6
+        MWRITE(1, B00000110 & 0xff);  // immediate: 6 : 6
+        MWRITE(2, B00110010 & 0xff);  // opcode: sta 96
+        MWRITE(3, B01100000 & 0xff);  // lb: 96
+        MWRITE(4, B00000000 & 0xff);  // hb: 0
+        MWRITE(5, B01110110 & 0xff);  // opcode: hlt
+        MWRITE(6, B00111100 & 0xff);  // opcode: inr a
+        MWRITE(7, B11000011 & 0xff);  // JMP back to sta opcode, to store the incremented regA value.
+        MWRITE(8, B00000010 & 0xff);  // lb: 2
+        MWRITE(9, B00000000 & 0xff);  // hb: 0
+        // Do EXAMINE 0, or RESET, after the load;
         regPC = 0;
         p_regPC = ~regPC;
         altair_set_outputs(regPC, MREAD(regPC));
@@ -507,6 +512,10 @@ void processWaitSwitch(byte readByte) {
         break;
       case 'i':
         Serial.println("+ i: Information.");
+        Serial.print(F("++ CPU: "));
+        Serial.println(THIS_CPU);
+        Serial.print(F("++ host_read_status_led_WAIT()="));
+        Serial.println(host_read_status_led_WAIT());
         cpucore_i8080_print_registers();
         break;
       // -------------------------------------
@@ -546,9 +555,14 @@ void setup() {
   Serial.println("+++ Altair 101a initialized.");
   //
   programState = PROGRAM_WAIT;
-  status_wait = true;
-  host_read_status_led_WAIT();
-  host_set_status_leds_READMEM_M1();
+  host_set_status_led_WAIT();
+  // host_set_status_leds_READMEM_M1();
+  host_set_status_led_MEMR();
+  host_set_status_led_M1();
+  host_clr_status_led_WO();
+  opcode = MREAD(regPC);
+  host_set_data_leds(opcode);
+  //
   print_panel_serial();
 }
 

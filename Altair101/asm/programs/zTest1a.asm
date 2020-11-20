@@ -1,45 +1,19 @@
-        lxi  b,0003h  ; init timer delay value for timer, we set this quite high because fast feedback is important
-
-	jmp disp_inc_end
-display_out:
-        lxi  h,0000h  ; init h:l for timer
-        ; we display the contents of the output register by repeating this in a loop
-disp_out_loop:
-        ldax d
-        ldax d
-        ldax d
-        ldax d
-        dad  b
-        jnc  disp_out_loop
-        ret
-disp_inc_end:
-
-	in 0ffh       ; read the sense switches
-	sta input_var ; store it into input_var
-main_loop:
-	lda input_var
-	call rotate_it
-	sta input_var
-
-	mov d,a
-	call display_out
-
-	; allow to update the pattern by setting a new one and then raising A15
-	in 0ffh
-	ani 080h
-	cnz update_it
-	jmp main_loop
-
-rotate_it:
-	rlc      ; rotate everything left
-	ret
-
-update_it:
-	in 0ffh
-	ani 07fh  ; lose the A15 bit
-	rrc
-	sta input_var
-	ret
-
-input_var:
-	db 0
+                            ; --------------------------------------
+                            ; Test LDA and STA. Moving data from addresses to registers and back.
+                            ;
+                            ; --------------------------------------
+                            ; Video demonstrating status lights:
+                            ;    https://www.youtube.com/watch?v=3_73NwB6toY
+                            ; Program listing: https://altairclone.com/downloads/status_lights.pdf
+                            ; 
+                            ; 
+                            ; --------------------------------------
+    Start:
+            mvi a,6         ; regA = 6
+    Store:
+            sta 96          ; Store regA to memory address 96.
+            hlt
+            inr a
+            jmp Store
+                            ; --------------------------------------
+            end

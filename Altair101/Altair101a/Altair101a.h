@@ -7,7 +7,14 @@
 
 extern word status_wait;
 extern word status_inte;
+extern byte statusByteA;
+extern byte statusByteB;
+extern byte statusByteC;
+extern byte statusByteD;
+extern byte statusByteG;
+extern byte statusByteL;
 
+void singleStepWait();
 void printData(byte theByte);
 byte altair_in(byte addr);
 void altair_out(byte addr, byte val);

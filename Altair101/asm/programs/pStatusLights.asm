@@ -32,12 +32,13 @@
                             ; --------------------------------------
             end
                             ; To match the video, I moved 235 into address 32.
+                            ; Start:  Fetch Opcode                  + On: MEMR MI    WO 072         0
                             ; Process instruction: lda 32           + Status LEDs ON    OCT Data    Address
                             ; --- lda 32
-                            ; First:  Fetch Opcode                  + On: MEMR MI    WO 072         0
-                            ; Second, Fetch lb                      + On: MEMR       WO 040         1
-                            ; Third,  Fetch hb                      + On: MEMR       WO 000         2
-                            ; Forth,  Fetch data from memory        + On: MEMR       WO 377 (353)   2 (Should be memory address: 000 040)
+                            ; 1.Start:Fetch Opcode                  + On: MEMR MI    WO 072         0
+                            ; 2.SS:   Fetch lb                      + On: MEMR       WO 040         1
+                            ; 3.SS:   Fetch hb                      + On: MEMR       WO 000         2
+                            ; 4.SS:   Fetch data from memory        + On: MEMR       WO 377 (353)   2 (Should be memory address: 000 040)
                             ; --- sta 33
                             ; First:  Fetch Opcode                  + On: MEMR MI    WO 062         3
                             ; Second, Fetch lb                      + On: MEMR       WO 041         4

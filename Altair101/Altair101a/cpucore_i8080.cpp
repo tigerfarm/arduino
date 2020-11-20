@@ -20,8 +20,17 @@
 #include <Arduino.h>
 #include "cpucore_i8080.h"
 
-// boolean status_wait = true;
 word status_wait = 1;
+//
+// For Processor.ino
+// Replace PORTX with statusByteX.
+byte statusByteA = B00000000;        // By default, all are OFF.
+byte statusByteB = B00000000;
+byte statusByteC = B00000000;
+byte statusByteD = B00000000;
+byte statusByteG = B00000000;
+byte statusByteL = B00000000;
+byte dataByte    = B00000000;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -35,7 +44,7 @@ bool altair_interrupt_enabled();
 
 void altair_interrupt_disable()
 {
-  host_clr_status_led_INTE();
+  // host_clr_status_led_INTE();
   // altair_interrupts_enabled = false;
   // altair_interrupts &= ~INT_DEVICE;
 }
@@ -52,23 +61,28 @@ byte Mem[MEMSIZE];
 
 inline uint16_t MEM_READ_WORD(uint16_t addr) {
   if ( host_read_status_led_WAIT() ) {
-    byte l, h;
-    l = MEM_READ_STEP(addr);
-    addr++;
-    h = MEM_READ_STEP(addr);
-    return l | (h * 256);
-  }
-  else {
+    // dave
+    // Since wait state, single step through memory reads.
     byte l, h;
     host_set_status_leds_READMEM();
+    //
     host_set_addr_leds(addr);
     l = MREAD(addr);
     host_set_data_leds(l);
-    for (uint8_t i = 0; i < 5; i++) asm("NOP");
+    singleStepWait();
+    //
     addr++;
     host_set_addr_leds(addr);
     h = MREAD(addr);
     host_set_data_leds(h);
+    singleStepWait();
+    return l | (h * 256);
+  }
+  else {
+    byte l, h;
+    l = MEM_READ_STEP(addr);
+    addr++;
+    h = MEM_READ_STEP(addr);
     return l | (h * 256);
   }
 }
@@ -343,9 +357,9 @@ byte timer_queue_len = 0;
 static void print_queue()
 {
   printf("TIMER QUEUE: [");
-  for(byte i=0; i<timer_queue_len; i++)
+  for (byte i = 0; i < timer_queue_len; i++)
     printf("%i=%i/%i ", timer_queue[i], timer_data[timer_queue[i]].cycles_count, timer_data[timer_queue[i]].cycles_period);
-  if( timer_queue_len>0 )
+  if ( timer_queue_len > 0 )
     printf("] / next timer %i in %u\n", timer_next_expire_tid, timer_next_expire_cycles);
   else
     printf("]\n");
@@ -357,9 +371,9 @@ static void print_queue()
 static void print_queue2()
 {
   printf("TIMER QUEUE: [");
-  for(byte i=0; i<timer_queue_len; i++)
+  for (byte i = 0; i < timer_queue_len; i++)
     printf("%i=%i/%i ", timer_queue[i], timer_data[timer_queue[i]].cycles_count, timer_data[timer_queue[i]].cycles_period);
-  if( timer_queue_len>0 )
+  if ( timer_queue_len > 0 )
     printf("] / next timer %i in %u\n", timer_next_expire_tid, timer_next_expire_cycles);
   else
     printf("]\n");
@@ -371,13 +385,13 @@ static void timer_reset_counter()
 #if DEBUG>1
   printf("timer_reset_counter()\n");
 #endif
-  for(byte i=0; i<timer_queue_len; i++)
-    {
-      if( timer_data[timer_queue[i]].cycles_count > timer_cycle_counter )
-        timer_data[timer_queue[i]].cycles_count -= timer_cycle_counter;
-      else
-        timer_data[timer_queue[i]].cycles_count = 0;
-    }
+  for (byte i = 0; i < timer_queue_len; i++)
+  {
+    if ( timer_data[timer_queue[i]].cycles_count > timer_cycle_counter )
+      timer_data[timer_queue[i]].cycles_count -= timer_cycle_counter;
+    else
+      timer_data[timer_queue[i]].cycles_count = 0;
+  }
 
   timer_cycle_counter_offset += timer_cycle_counter;
   timer_next_expire_cycles   -= timer_cycle_counter;
@@ -392,36 +406,36 @@ static void timer_queue_get_next()
 #if DEBUG>1
   printf("timer_queue_get_next()\n");
 #endif
-  if( timer_queue_len<2 )
-    {
-      timer_next_expire_tid    = 0xff;
-      timer_next_expire_cycles = 0xffffffff;
-      timer_queue_len          = 0;
-      timer_cycle_counter_offset += timer_cycle_counter;
-      timer_cycle_counter = 0;
-    }
+  if ( timer_queue_len < 2 )
+  {
+    timer_next_expire_tid    = 0xff;
+    timer_next_expire_cycles = 0xffffffff;
+    timer_queue_len          = 0;
+    timer_cycle_counter_offset += timer_cycle_counter;
+    timer_cycle_counter = 0;
+  }
   else
+  {
+    // remove first element from queue
+    memmove(timer_queue, timer_queue + 1, timer_queue_len - 1);
+    timer_queue_len--;
+
+    // reset cycle counter
+    for (byte i = 0; i < timer_queue_len; i++)
     {
-      // remove first element from queue
-      memmove(timer_queue, timer_queue+1, timer_queue_len-1);
-      timer_queue_len--;
-
-      // reset cycle counter
-      for(byte i=0; i<timer_queue_len; i++)
-        {
-          if( timer_data[timer_queue[i]].cycles_count > timer_cycle_counter )
-            timer_data[timer_queue[i]].cycles_count -= timer_cycle_counter;
-          else
-            timer_data[timer_queue[i]].cycles_count = 0;
-        }
-
-      timer_cycle_counter_offset += timer_cycle_counter;
-      timer_cycle_counter = 0;
-
-      // set next expiration
-      timer_next_expire_tid    = timer_queue[0];
-      timer_next_expire_cycles = timer_data[timer_next_expire_tid].cycles_count;
+      if ( timer_data[timer_queue[i]].cycles_count > timer_cycle_counter )
+        timer_data[timer_queue[i]].cycles_count -= timer_cycle_counter;
+      else
+        timer_data[timer_queue[i]].cycles_count = 0;
     }
+
+    timer_cycle_counter_offset += timer_cycle_counter;
+    timer_cycle_counter = 0;
+
+    // set next expiration
+    timer_next_expire_tid    = timer_queue[0];
+    timer_next_expire_cycles = timer_data[timer_next_expire_tid].cycles_count;
+  }
 
   print_queue();
 }
@@ -437,19 +451,19 @@ static void timer_queue_add(byte tid)
   uint32_t cycles_count = timer_data[tid].cycles_count;
 
   byte i;
-  for(i=0; i<timer_queue_len; i++)
-    if( timer_data[timer_queue[i]].cycles_count > cycles_count )
+  for (i = 0; i < timer_queue_len; i++)
+    if ( timer_data[timer_queue[i]].cycles_count > cycles_count )
       break;
 
-  memmove(timer_queue+i+1, timer_queue+i, timer_queue_len-i);
+  memmove(timer_queue + i + 1, timer_queue + i, timer_queue_len - i);
   timer_queue[i] = tid;
   timer_queue_len++;
 
-  if( i==0 )
-    {
-      timer_next_expire_tid    = tid;
-      timer_next_expire_cycles = timer_data[tid].cycles_count;
-    }
+  if ( i == 0 )
+  {
+    timer_next_expire_tid    = tid;
+    timer_next_expire_cycles = timer_data[tid].cycles_count;
+  }
 
   print_queue();
 }
@@ -462,26 +476,26 @@ static void timer_queue_remove(byte tid)
 #endif
 
   byte i;
-  for(i=0; i<timer_queue_len; i++)
-    if( timer_queue[i] == tid )
+  for (i = 0; i < timer_queue_len; i++)
+    if ( timer_queue[i] == tid )
+    {
+      memmove(timer_queue + i, timer_queue + i + 1, timer_queue_len - i - 1);
+      timer_queue_len--;
+
+      if ( timer_queue_len == 0 )
       {
-        memmove(timer_queue+i, timer_queue+i+1, timer_queue_len-i-1);
-        timer_queue_len--;
-        
-        if( timer_queue_len==0 )
-          {
-            timer_next_expire_tid    = 0xff;
-            timer_next_expire_cycles = 0xffffffff;
-          }
-        else if( i==0 )
-          {
-            timer_next_expire_tid    = timer_queue[0];
-            timer_next_expire_cycles = timer_data[timer_next_expire_tid].cycles_count;
-          }
-        
-        print_queue();
-        return;
+        timer_next_expire_tid    = 0xff;
+        timer_next_expire_cycles = 0xffffffff;
       }
+      else if ( i == 0 )
+      {
+        timer_next_expire_tid    = timer_queue[0];
+        timer_next_expire_cycles = timer_data[timer_next_expire_tid].cycles_count;
+      }
+
+      print_queue();
+      return;
+    }
 }
 
 
@@ -490,86 +504,86 @@ void timer_check()
   byte tid = timer_next_expire_tid;
   bool show = false;
 
-  while( tid<0xff )
+  while ( tid < 0xff )
+  {
+#if DEBUG>0
+    printf("%u: timer %i expired\n", timer_get_cycles(), tid);
+    print_queue();
+#endif
+    if ( !timer_data[tid].recurring )
+      timer_data[tid].running = false;
+
+    timer_queue_get_next();
+
+    if ( timer_data[tid].recurring )
     {
 #if DEBUG>0
-      printf("%u: timer %i expired\n", timer_get_cycles(), tid);
-      print_queue();
+      printf("re-scheduling timer %i\n", tid);
 #endif
-      if( !timer_data[tid].recurring ) 
-        timer_data[tid].running = false;
-
-      timer_queue_get_next();
-
-      if( timer_data[tid].recurring )
-        {
-#if DEBUG>0
-          printf("re-scheduling timer %i\n", tid);
-#endif
-          timer_data[tid].cycles_count = timer_data[tid].cycles_period;
-          timer_queue_add(tid);
-        }
-
-#if DEBUG>1
-      printf("calling timer %i function\n", tid);
-#endif
-      (timer_data[tid].timer_fn)();
-#if DEBUG>1
-      printf("returned from timer %i function\n", tid);
-#endif
-      
-      // check if more timers expired
-      if( timer_queue_len>0 && timer_data[timer_queue[0]].cycles_count==0 )
-        tid = timer_queue[0];
-      else
-        tid = 0xff;
+      timer_data[tid].cycles_count = timer_data[tid].cycles_period;
+      timer_queue_add(tid);
     }
+
+#if DEBUG>1
+    printf("calling timer %i function\n", tid);
+#endif
+    (timer_data[tid].timer_fn)();
+#if DEBUG>1
+    printf("returned from timer %i function\n", tid);
+#endif
+
+    // check if more timers expired
+    if ( timer_queue_len > 0 && timer_data[timer_queue[0]].cycles_count == 0 )
+      tid = timer_queue[0];
+    else
+      tid = 0xff;
+  }
 }
 
 
 void timer_setup(byte tid, uint32_t microseconds, TimerFnTp timer_fn)
 {
-  if( tid<MAX_TIMERS )
-    {
-      bool running = timer_data[tid].running;
-      if( running ) timer_stop(tid);
-      timer_data[tid].timer_fn      = timer_fn;
-      timer_data[tid].cycles_period = microseconds*2;
-      if( running ) timer_start(tid);
-    }
+  if ( tid < MAX_TIMERS )
+  {
+    bool running = timer_data[tid].running;
+    if ( running ) timer_stop(tid);
+    timer_data[tid].timer_fn      = timer_fn;
+    timer_data[tid].cycles_period = microseconds * 2;
+    if ( running ) timer_start(tid);
+  }
 }
 
 
 void timer_start(byte tid, uint32_t microseconds, bool recurring)
 {
-  if( tid<MAX_TIMERS )
-    {
-      if( microseconds>0 ) timer_data[tid].cycles_period = microseconds*2;
+  if ( tid < MAX_TIMERS )
+  {
+    if ( microseconds > 0 ) timer_data[tid].cycles_period = microseconds * 2;
 
 #if DEBUG>0
-      printf("%u: starting timer %i: %i microseconds\n", timer_get_cycles(), tid, timer_data[tid].cycles_period/2);
+    printf("%u: starting timer %i: %i microseconds\n", timer_get_cycles(), tid, timer_data[tid].cycles_period / 2);
 #endif
-      if( timer_data[tid].running ) timer_queue_remove(tid);
+    if ( timer_data[tid].running ) timer_queue_remove(tid);
 
-      timer_data[tid].recurring    = recurring;
-      timer_data[tid].cycles_count = timer_data[tid].cycles_period;
-      timer_data[tid].running      = true;
-      
-      timer_queue_add(tid);
-    }
+    timer_data[tid].recurring    = recurring;
+    timer_data[tid].cycles_count = timer_data[tid].cycles_period;
+    timer_data[tid].running      = true;
+
+    timer_queue_add(tid);
+  }
 }
 
 
 void timer_stop(byte tid)
 {
-  if( tid < MAX_TIMERS && timer_data[tid].running )
-    {
+  if ( tid < MAX_TIMERS && timer_data[tid].running )
+  {
 #if DEBUG>0
-      printf("%u: stopping timer %i\n", timer_get_cycles(), tid);
+    printf("%u: stopping timer %i\n", timer_get_cycles(), tid);
 #endif
-      timer_queue_remove(tid);
-      timer_data[tid].running = false;
-    }
+    timer_queue_remove(tid);
+    timer_data[tid].running = false;
+  }
 }
 
 uint32_t timer_get_period(byte tid)
@@ -588,11 +602,11 @@ void timer_setup()
   timer_queue_len  = 0;
   timer_cycle_counter = 0;
   timer_cycle_counter_offset = 0;
-  for(byte tid=0; tid<MAX_TIMERS; tid++)
-    {
-      timer_data[tid].running  = false;
-      timer_data[tid].timer_fn = NULL;
-    }
+  for (byte tid = 0; tid < MAX_TIMERS; tid++)
+  {
+    timer_data[tid].running  = false;
+    timer_data[tid].timer_fn = NULL;
+  }
 }
 
 // -----------------------------------------------------------------------------

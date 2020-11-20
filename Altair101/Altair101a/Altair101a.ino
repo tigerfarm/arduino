@@ -36,18 +36,19 @@
 #define SW_AUX2DOWN  15
 
 // Byte bit status values
-#define ST_INT     0x0001
-#define ST_WO      0x0002
-#define ST_STACK   0x0004
-#define ST_HLTA    0x0008
-#define ST_OUT     0x0010
-#define ST_M1      0x0020
-#define ST_INP     0x0040
-#define ST_MEMR    0x0080
-#define ST_PROT    0x0100
-#define ST_INTE    0x0200
-#define ST_HLDA    0x0400
 #define ST_WAIT    0x0800
+#define ST_HLDA    0x0400
+//
+#define ST_INTE    0x0200
+#define ST_PROT    0x0100
+#define ST_MEMR    0x0080
+#define ST_INP     0x0040
+#define ST_M1      0x0020
+#define ST_OUT     0x0010
+#define ST_HLTA    0x0008
+#define ST_STACK   0x0004
+#define ST_WO      0x0002
+#define ST_INT     0x0001
 
 // Not implemented at this time.
 #define INT_SW_STOP     0x80000000
@@ -107,11 +108,11 @@ uint16_t dswitch = 0;
 uint16_t host_read_status_leds() {
   //  This works for Mega, not Due.
   uint16_t res;
-  res = PORTB;
-  res |= PORTD & 0x80 ? ST_INTE : 0;
-  res |= PORTG & 0x04 ? ST_PROT : 0;
-  res |= PORTG & 0x02 ? ST_WAIT : 0;
-  res |= PORTG & 0x01 ? ST_HLDA : 0;
+  res = statusByteB;
+  res |= statusByteD & 0x80 ? ST_INTE : 0;
+  res |= statusByteG & 0x04 ? ST_PROT : 0;
+  res |= statusByteG & 0x02 ? ST_WAIT : 0;
+  res |= statusByteG & 0x01 ? ST_HLDA : 0;
   return res;
 }
 
@@ -232,15 +233,14 @@ void altair_wait_reset() {
   p_regPC = regPC;
   // set bus/data LEDs on, status LEDs off
   altair_set_outputs(0xffff, 0xff);
-  host_clr_status_led_INT();
-  host_set_status_led_WO();
-  host_clr_status_led_STACK();
-  host_clr_status_led_HLTA();
-  host_clr_status_led_OUT();
-  host_clr_status_led_M1();
-  host_clr_status_led_INP();
   host_clr_status_led_MEMR();
-  // host_clr_status_led_PROT();
+  host_clr_status_led_INP();
+  host_clr_status_led_M1();
+  host_clr_status_led_OUT();
+  host_clr_status_led_HLTA();
+  host_clr_status_led_STACK();
+  host_set_status_led_WO();
+  host_clr_status_led_INT();
   // stacy altair_interrupt_disable();
 
   // wait while RESET switch is held
@@ -288,7 +288,8 @@ void print_panel_serial(bool force)
   if ( dbus & 0x02 )   Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( dbus & 0x01 )   Serial.print(F("   *")); else Serial.print(F("   ."));
   Serial.print(("\r\nWAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8  A7  A6  A5  A4  A3  A2  A1  A0\r\n"));
-  if ( status & ST_WAIT ) Serial.print(F(" *  "));   else Serial.print(F(" .  "));
+  // if ( status & ST_WAIT ) Serial.print(F(" *  "));   else Serial.print(F(" .  "));
+  if ( host_read_status_led_WAIT() ) Serial.print(F(" *  "));   else Serial.print(F(" .  "));
   if ( status & ST_HLDA ) Serial.print(F("  *   ")); else Serial.print(F("  .   "));
   if ( abus & 0x8000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( abus & 0x4000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
@@ -335,16 +336,33 @@ void print_panel_serial(bool force)
 }
 
 // -----------------------------------------------------------------------------
+void singleStepWait() {
+  // dave
+  Serial.println(F("+ singleStepWait()"));
+  print_panel_serial();           // Status, data/address lights already set.
+  bool singleStepWaitLoop = true;
+  while (singleStepWaitLoop) {
+    if (Serial.available() > 0) {
+      readByte = Serial.read();    // Read and process an incoming byte.
+      if (readByte = 's') {
+        singleStepWaitLoop = false;
+        // processRunSwitch(readByte);
+      }
+    }
+  }
+}
+
 void altair_hlt() {
   host_set_status_led_HLTA();
   // regPC--;
   // altair_interrupt(INT_SW_STOP);
   programState = PROGRAM_WAIT;
-  Serial.println(F("++ HALT"));
+  Serial.print(F("++ HALT, host_read_status_led_WAIT() = "));
+  Serial.println(host_read_status_led_WAIT());
   if (!host_read_status_led_WAIT()) {
+    host_set_status_led_WAIT();
     print_panel_serial();
   }
-  host_set_status_led_WAIT();
 }
 
 void processDataOpcode() {
@@ -374,6 +392,7 @@ void processRunSwitch(byte readByte) {
     case 's':
       Serial.println(F("+ STOP"));
       programState = PROGRAM_WAIT;
+      host_set_status_led_WAIT();
       break;
     case 'R':
       Serial.println(F("+ RESET"));
@@ -486,26 +505,17 @@ void processWaitSwitch(byte readByte) {
       // -------------------------------------
       case 'l':
         Serial.println("+ l, loaded a simple program.");
-        MWRITE(0, B00111110 & 0xff);
-        MWRITE(1, B00000110 & 0xff);
-        MWRITE(2, B00110010 & 0xff);
-        MWRITE(3, B01100000 & 0xff);
-        MWRITE(4, B00000000 & 0xff);
-        MWRITE(5, B01110110 & 0xff);
-        MWRITE(6, B11000011 & 0xff);  // JMP back to start.
-        MWRITE(7, B00000000 & 0xff);
-        MWRITE(8, B00000000 & 0xff);
-        /*
-          Program listing:
-          Address(lb):databyte :hex:oct > description
-          00000000:   00111110 : 3E:076 > opcode: mvi a,6
-          00000001:   00000110 : 06:006 > immediate: 6 : 6
-          00000010:   00110010 : 32:062 > opcode: sta 96
-          00000011:   01100000 : 60:140 > lb: 96
-          00000100:   00000000 : 00:000 > hb: 0
-          00000101:   01110110 : 76:166 > opcode: hlt
-        */
-        // Do EXAMINE 0 after the load;
+        MWRITE(0, B00111110 & 0xff);  // opcode: mvi a,6
+        MWRITE(1, B00000110 & 0xff);  // immediate: 6 : 6
+        MWRITE(2, B00110010 & 0xff);  // opcode: sta 96
+        MWRITE(3, B01100000 & 0xff);  // lb: 96
+        MWRITE(4, B00000000 & 0xff);  // hb: 0
+        MWRITE(5, B01110110 & 0xff);  // opcode: hlt
+        MWRITE(6, B00111100 & 0xff);  // opcode: inr a
+        MWRITE(7, B11000011 & 0xff);  // JMP back to sta opcode, to store the incremented regA value.
+        MWRITE(8, B00000010 & 0xff);  // lb: 2
+        MWRITE(9, B00000000 & 0xff);  // hb: 0
+        // Do EXAMINE 0, or RESET, after the load;
         regPC = 0;
         p_regPC = ~regPC;
         altair_set_outputs(regPC, MREAD(regPC));
@@ -562,8 +572,6 @@ void setup() {
   //
   programState = PROGRAM_WAIT;
   host_set_status_led_WAIT();
-  host_read_status_led_WAIT();
-  //
   // host_set_status_leds_READMEM_M1();
   host_set_status_led_MEMR();
   host_set_status_led_M1();
