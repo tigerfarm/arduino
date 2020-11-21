@@ -42,16 +42,13 @@ void altair_interrupt_enable();
 void altair_interrupt_disable();
 bool altair_interrupt_enabled();
 
-void altair_interrupt_disable()
-{
+void altair_interrupt_disable() {
   // host_clr_status_led_INTE();
   // altair_interrupts_enabled = false;
   // altair_interrupts &= ~INT_DEVICE;
 }
 
-void altair_interrupt(uint32_t i, bool set)
-{
-}
+void altair_interrupt(uint32_t i, bool set) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -59,21 +56,24 @@ void altair_interrupt(uint32_t i, bool set)
 
 byte Mem[MEMSIZE];
 
+// -----------------------------------------
+// Read
+
 inline uint16_t MEM_READ_WORD(uint16_t addr) {
   if ( host_read_status_led_WAIT() ) {
     // dave
     // Since wait state, single step through memory reads.
     byte l, h;
-    host_set_status_leds_READMEM();
     //
-    host_set_addr_leds(addr);
     l = MREAD(addr);
+    host_set_status_leds_READMEM();
+    host_set_addr_leds(addr);
     host_set_data_leds(l);
     singleStepWait();
     //
     addr++;
-    host_set_addr_leds(addr);
     h = MREAD(addr);
+    host_set_addr_leds(addr);
     host_set_data_leds(h);
     singleStepWait();
     return l | (h * 256);
@@ -87,17 +87,27 @@ inline uint16_t MEM_READ_WORD(uint16_t addr) {
   }
 }
 
+byte MEM_READ_STEP(uint16_t a) {
+  byte v = MREAD(a);
+  host_set_status_leds_READMEM();
+  altair_set_outputs(a, v);
+  altair_wait_step();
+  v = host_read_data_leds(); // CPU reads whatever is on the data bus at this point
+  host_clr_status_led_MEMR();
+  return v;
+}
+
+// -----------------------------------------
+// Write
 
 inline void MEM_WRITE_WORD(uint16_t addr, uint16_t v)
 {
-  if ( host_read_status_led_WAIT() )
-  {
+  if ( host_read_status_led_WAIT() ) {
     MEM_WRITE_STEP(addr, v & 255);
     addr++;
     MEM_WRITE_STEP(addr, v / 256);
   }
-  else
-  {
+  else {
     byte b;
 #if SHOW_MWRITE_OUTPUT>0
     b = v & 255;
@@ -121,33 +131,28 @@ inline void MEM_WRITE_WORD(uint16_t addr, uint16_t v)
   }
 }
 
-byte MEM_READ_STEP(uint16_t a) {
-  if ( altair_isreset() ) {
-    byte v = MREAD(a);
-    host_set_status_leds_READMEM();
-    altair_set_outputs(a, v);
-    altair_wait_step();
-    v = host_read_data_leds(); // CPU reads whatever is on the data bus at this point
-    host_clr_status_led_MEMR();
-    return v;
-  }
-  else {
-    return 0x00;
+// dave
+void MEM_WRITE(uint16_t a, uint16_t v) {
+  if ( host_read_status_led_WAIT() ) {
+    host_set_addr_leds(a);
+    host_set_data_leds(v);
+    host_set_status_leds_WRITEMEM();
+    MWRITE(a, v); singleStepWait();
+  } else {
+    MWRITE(a, v);
   }
 }
 
 void MEM_WRITE_STEP(uint16_t a, byte v) {
-  if ( altair_isreset() ) {
-    MWRITE(a, v);
-    host_set_status_leds_WRITEMEM();
+  MWRITE(a, v);
+  host_set_status_leds_WRITEMEM();
 #if SHOW_MWRITE_OUTPUT>0
-    altair_set_outputs(a, v);
+  altair_set_outputs(a, v);
 #else
-    altair_set_outputs(a, 0xff);
+  altair_set_outputs(a, 0xff);
 #endif
-    altair_wait_step();
-    host_clr_status_led_WO();
-  }
+  altair_wait_step();
+  host_clr_status_led_WO();
 }
 
 // -----------------------------------------------------------------------------
@@ -633,50 +638,33 @@ static const byte parity_table[256] =
 };
 
 
-inline void setStatusBits(byte value)
-{
+inline void setStatusBits(byte value) {
   byte b;
-
   b = regS & ~(PS_ZERO | PS_SIGN | PS_PARITY);
   if ( parity_table[value] ) b |= PS_PARITY;
   if ( value == 0 ) b |= PS_ZERO;
   b |= (value & PS_SIGN);
-
   regS = b;
 }
 
 
 void pushStackSlow(byte valueH, byte valueL)
 {
-  if ( altair_isreset() )
-  {
-    host_set_status_led_STACK();
-    regSP--;
-    MEM_WRITE_STEP(regSP, valueH);
-    if ( altair_isreset() )
-    {
-      regSP--;
-      MEM_WRITE_STEP(regSP, valueL);
-    }
-    host_clr_status_led_STACK();
-  }
+  host_set_status_led_STACK();
+  regSP--;
+  MEM_WRITE_STEP(regSP, valueH);
+  regSP--;
+  MEM_WRITE_STEP(regSP, valueL);
+  host_clr_status_led_STACK();
 }
 
 void popStackSlow(byte *valueH, byte *valueL)
 {
-  if ( altair_isreset() )
-  {
-    host_set_status_led_STACK();
-    *valueL = MEM_READ_STEP(regSP);
-    if ( altair_isreset() )
-    {
-      regSP++;
-      *valueH = MEM_READ_STEP(regSP);
-      if ( altair_isreset() ) regSP++;
-    }
-
-    host_clr_status_led_STACK();
-  }
+  host_set_status_led_STACK();
+  *valueL = MEM_READ_STEP(regSP);
+  regSP++;
+  *valueH = MEM_READ_STEP(regSP);
+  host_clr_status_led_STACK();
 }
 
 

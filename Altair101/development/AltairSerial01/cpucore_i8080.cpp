@@ -61,23 +61,28 @@ byte Mem[MEMSIZE];
 
 inline uint16_t MEM_READ_WORD(uint16_t addr) {
   if ( host_read_status_led_WAIT() ) {
-    byte l, h;
-    l = MEM_READ_STEP(addr);
-    addr++;
-    h = MEM_READ_STEP(addr);
-    return l | (h * 256);
-  }
-  else {
+    // dave
+    // Since wait state, single step through memory reads.
     byte l, h;
     host_set_status_leds_READMEM();
-    host_set_addr_leds(addr);
+    //
     l = MREAD(addr);
+    host_set_addr_leds(addr);
     host_set_data_leds(l);
-    for (uint8_t i = 0; i < 5; i++) asm("NOP");
+    singleStepWait();
+    //
     addr++;
     host_set_addr_leds(addr);
     h = MREAD(addr);
     host_set_data_leds(h);
+    singleStepWait();
+    return l | (h * 256);
+  }
+  else {
+    byte l, h;
+    l = MEM_READ_STEP(addr);
+    addr++;
+    h = MEM_READ_STEP(addr);
     return l | (h * 256);
   }
 }
@@ -1823,6 +1828,7 @@ static void cpu_SPHL()
 }
 
 static void cpu_STA() {
+  // dave
   uint16_t addr = MEM_READ_WORD(regPC);
   MEM_WRITE(addr, regA);
   regPC += 2;

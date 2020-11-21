@@ -6,9 +6,7 @@
 
   Next:
   + WAIT mode, WAIT light,
-  ?- altair_wait_step();  // If WAIT mode, loop until getting another serial character or switch input.
-  ?- altair_wait_reset();
-  ?- altair_isreset();
+  ?- altair_isreset();    // If the RESET switch is flipped.
 */
 // -----------------------------------------------------------------------------
 #include "Altair101a.h"
@@ -224,34 +222,6 @@ byte altair_in(byte port) {
 }
 
 // -----------------------------------------------------------------------------
-bool altair_isreset() {
-  return (cswitch & BIT(SW_RESET)) == 0;
-}
-
-void altair_wait_reset() {
-  // prevent printing processor status now (will print after reset)
-  p_regPC = regPC;
-  // set bus/data LEDs on, status LEDs off
-  altair_set_outputs(0xffff, 0xff);
-  host_clr_status_led_MEMR();
-  host_clr_status_led_INP();
-  host_clr_status_led_M1();
-  host_clr_status_led_OUT();
-  host_clr_status_led_HLTA();
-  host_clr_status_led_STACK();
-  host_set_status_led_WO();
-  host_clr_status_led_INT();
-  // stacy altair_interrupt_disable();
-
-  // wait while RESET switch is held
-  // while ( host_read_function_switch_debounced(SW_RESET) );
-
-  // if in single-step mode we need to set a flag so we know
-  // to exit out of the currently executing instruction
-  if ( host_read_status_led_WAIT() ) cswitch |= BIT(SW_RESET);
-}
-
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void print_panel_serial(bool force)
 {
@@ -396,7 +366,11 @@ void processRunSwitch(byte readByte) {
       break;
     case 'R':
       Serial.println(F("+ RESET"));
-    // Stacy need to implement.
+      // Stacy, For now, do EXAMINE 0 to reset to the first memory address.
+      regPC = 0;
+      p_regPC = ~regPC;
+      altair_set_outputs(regPC, MREAD(regPC));
+      // Then continue running.
     // -------------------------------------
     case 10:
       // New line character.
@@ -488,6 +462,19 @@ void processWaitSwitch(byte readByte) {
         regPC = 0;
         p_regPC = ~regPC;
         altair_set_outputs(regPC, MREAD(regPC));
+        //
+        p_regPC = regPC;
+        // set bus/data LEDs on, status LEDs off
+        altair_set_outputs(0xffff, 0xff);
+        host_clr_status_led_MEMR();
+        host_clr_status_led_INP();
+        host_clr_status_led_M1();
+        host_clr_status_led_OUT();
+        host_clr_status_led_HLTA();
+        host_clr_status_led_STACK();
+        host_set_status_led_WO();
+        host_clr_status_led_INT();
+        // stacy altair_interrupt_disable();
         break;
       // -------------------------------------
       case 'h':
@@ -528,17 +515,17 @@ void processWaitSwitch(byte readByte) {
         MWRITE(   12, B00101110 & 0xff);  // ++ opcode:mvi:00101110:l:5
         MWRITE(   13, B00000101 & 0xff);  // ++ immediate:5:5
         /*
-        MWRITE(    0, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:6
-        MWRITE(    1, B00000110 & 0xff);  // ++ immediate:6:6
-        MWRITE(    2, B00110010 & 0xff);  // ++ opcode:sta:00110010:96
-        MWRITE(    3, B01100000 & 0xff);  // ++ lb:96:96
-        MWRITE(    4, B00000000 & 0xff);  // ++ hb:0
-        MWRITE(    5, B01110110 & 0xff);  // ++ opcode:hlt:01110110
-        MWRITE(    6, B00111100 & 0xff);  // ++ opcode:inr:00111100:a
-        MWRITE(    7, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Store
-        MWRITE(    8, B00000010 & 0xff);  // ++ lb:Store:2
-        MWRITE(    9, B00000000 & 0xff);  // ++ hb:0
-        /* */
+          MWRITE(    0, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:6
+          MWRITE(    1, B00000110 & 0xff);  // ++ immediate:6:6
+          MWRITE(    2, B00110010 & 0xff);  // ++ opcode:sta:00110010:96
+          MWRITE(    3, B01100000 & 0xff);  // ++ lb:96:96
+          MWRITE(    4, B00000000 & 0xff);  // ++ hb:0
+          MWRITE(    5, B01110110 & 0xff);  // ++ opcode:hlt:01110110
+          MWRITE(    6, B00111100 & 0xff);  // ++ opcode:inr:00111100:a
+          MWRITE(    7, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Store
+          MWRITE(    8, B00000010 & 0xff);  // ++ lb:Store:2
+          MWRITE(    9, B00000000 & 0xff);  // ++ hb:0
+          /* */
         MWRITE(   14, B01110110 & 0xff);  // ++ opcode:hlt:01110110
         MWRITE(   15, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Start
         MWRITE(   16, B00000000 & 0xff);  // ++ lb:0

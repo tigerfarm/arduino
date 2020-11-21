@@ -336,6 +336,22 @@ void print_panel_serial(bool force)
 }
 
 // -----------------------------------------------------------------------------
+void singleStepWait() {
+  // dave
+  Serial.println(F("+ singleStepWait()"));
+  print_panel_serial();           // Status, data/address lights already set.
+  bool singleStepWaitLoop = true;
+  while (singleStepWaitLoop) {
+    if (Serial.available() > 0) {
+      readByte = Serial.read();    // Read and process an incoming byte.
+      if (readByte == 's') {
+        singleStepWaitLoop = false;
+        // processRunSwitch(readByte);
+      }
+    }
+  }
+}
+
 void altair_hlt() {
   host_set_status_led_HLTA();
   // regPC--;
@@ -428,10 +444,12 @@ void processWaitSwitch(byte readByte) {
       case 'r':
         Serial.println("+ r, RUN.");
         host_clr_status_led_WAIT();
+        host_clr_status_led_HLTA();
         runProcessor();
         break;
       case 's':
-        Serial.println("+ s, SINGLE STEP: ");
+        Serial.println("+ S, SINGLE STEP: ");
+        host_clr_status_led_HLTA();
         processDataOpcode();
         break;
       case 'x':
@@ -464,6 +482,8 @@ void processWaitSwitch(byte readByte) {
       case 'R':
         Serial.println("+ R, RESET.");
         // altair_wait_reset();
+        host_clr_status_led_HLTA();
+        //
         // For now, do EXAMINE 0 to reset to the first memory address.
         regPC = 0;
         p_regPC = ~regPC;
@@ -475,7 +495,7 @@ void processWaitSwitch(byte readByte) {
         Serial.println("+ h, Help.");
         Serial.println("-------------");
         Serial.println("+ r, RUN.");
-        Serial.println("+ s, SINGLE STEP when in WAIT mode.");
+        Serial.println("+ S, SINGLE STEP when in WAIT mode.");
         Serial.println("+ s, STOP        when in RUN mode.");
         Serial.println("+ x, EXAMINE switch address.");
         Serial.println("+ X, EXAMINE NEXT address, current address + 1.");
@@ -483,22 +503,46 @@ void processWaitSwitch(byte readByte) {
         Serial.println("+ P, DEPOSIT NEXT address, current address + 1");
         Serial.println("+ R, RESET, set address to zero.");
         Serial.println("-------------");
+        Serial.println("+ i, Information: print registers.");
         Serial.println("+ l, loaded a simple program.");
         Serial.println("----------------------------------------------------");
         break;
       // -------------------------------------
       case 'l':
         Serial.println("+ l, loaded a simple program.");
-        MWRITE(0, B00111110 & 0xff);  // opcode: mvi a,6
-        MWRITE(1, B00000110 & 0xff);  // immediate: 6 : 6
-        MWRITE(2, B00110010 & 0xff);  // opcode: sta 96
-        MWRITE(3, B01100000 & 0xff);  // lb: 96
-        MWRITE(4, B00000000 & 0xff);  // hb: 0
-        MWRITE(5, B01110110 & 0xff);  // opcode: hlt
-        MWRITE(6, B00111100 & 0xff);  // opcode: inr a
-        MWRITE(7, B11000011 & 0xff);  // JMP back to sta opcode, to store the incremented regA value.
-        MWRITE(8, B00000010 & 0xff);  // lb: 2
-        MWRITE(9, B00000000 & 0xff);  // hb: 0
+        // int cnt = 0;
+        // MWRITE(    ++cnt, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:6
+        // MWRITE(    ++cnt, B00000110 & 0xff);  // ++ immediate:6:6
+        MWRITE(    0, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:6
+        MWRITE(    1, B00000110 & 0xff);  // ++ immediate:6:6
+        MWRITE(    2, B00000110 & 0xff);  // ++ opcode:mvi:00000110:b:0
+        MWRITE(    3, B00000000 & 0xff);  // ++ immediate:0:0
+        MWRITE(    4, B00001110 & 0xff);  // ++ opcode:mvi:00001110:c:1
+        MWRITE(    5, B00000001 & 0xff);  // ++ immediate:1:1
+        MWRITE(    6, B00010110 & 0xff);  // ++ opcode:mvi:00010110:d:2
+        MWRITE(    7, B00000010 & 0xff);  // ++ immediate:2:2
+        MWRITE(    8, B00011110 & 0xff);  // ++ opcode:mvi:00011110:e:3
+        MWRITE(    9, B00000011 & 0xff);  // ++ immediate:3:3
+        MWRITE(   10, B00100110 & 0xff);  // ++ opcode:mvi:00100110:h:4
+        MWRITE(   11, B00000100 & 0xff);  // ++ immediate:4:4
+        MWRITE(   12, B00101110 & 0xff);  // ++ opcode:mvi:00101110:l:5
+        MWRITE(   13, B00000101 & 0xff);  // ++ immediate:5:5
+        /*
+        MWRITE(    0, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:6
+        MWRITE(    1, B00000110 & 0xff);  // ++ immediate:6:6
+        MWRITE(    2, B00110010 & 0xff);  // ++ opcode:sta:00110010:96
+        MWRITE(    3, B01100000 & 0xff);  // ++ lb:96:96
+        MWRITE(    4, B00000000 & 0xff);  // ++ hb:0
+        MWRITE(    5, B01110110 & 0xff);  // ++ opcode:hlt:01110110
+        MWRITE(    6, B00111100 & 0xff);  // ++ opcode:inr:00111100:a
+        MWRITE(    7, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Store
+        MWRITE(    8, B00000010 & 0xff);  // ++ lb:Store:2
+        MWRITE(    9, B00000000 & 0xff);  // ++ hb:0
+        /* */
+        MWRITE(   14, B01110110 & 0xff);  // ++ opcode:hlt:01110110
+        MWRITE(   15, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Start
+        MWRITE(   16, B00000000 & 0xff);  // ++ lb:0
+        MWRITE(   17, B00000000 & 0xff);  // ++ hb:0
         // Do EXAMINE 0, or RESET, after the load;
         regPC = 0;
         p_regPC = ~regPC;
