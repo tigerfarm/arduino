@@ -12,6 +12,9 @@
 #include "Altair101a.h"
 #include "cpucore_i8080.h"
 
+#define LOG_MESSAGES 1    // For debugging.
+
+// -----------------------------------------------------------------------------
 // For Byte bit comparisons.
 #define BIT(n) (1<<(n))
 
@@ -57,9 +60,7 @@
 #define INT_SWITCH      0xff000000
 
 // -----------------------------------------------------------------------------
-// From Porcessor.ino
-
-#define LOG_MESSAGES 1    // For debugging.
+// From Processor.ino
 
 byte readByte = 0;
 
@@ -121,21 +122,28 @@ void altair_set_outputs(uint16_t a, byte v) {
   host_set_data_leds(v);
 }
 
-void altair_out(byte port, byte data) {
+void altair_out(byte dataByte, byte regA) {
   // Opcode: out <port>
   // Called from: cpu_OUT()
-  host_set_addr_leds(port | port * 256);
-  host_set_data_leds(data);
+#ifdef LOG_MESSAGES
+      Serial.print(F("< OUT, port# "));
+      Serial.print(dataByte);
+      Serial.print(". regA=");
+      Serial.print(regA);
+      Serial.print(".");
+#endif
+  host_set_addr_leds(dataByte | dataByte * 256);
+  host_set_data_leds(regA);
   host_set_status_led_OUT();
   host_set_status_led_WO();
   //
-  // stacy io_out(port, data);
+  // stacy io_out(dataByte, regA);
   //
   // Actual output of bytes. Example output a byte to the serial port (IDE monitor).
   //
   if ( host_read_status_led_WAIT() ) {
     // If single stepping, need to wait.
-    altair_set_outputs(port | port * 256, 0xff);
+    altair_set_outputs(dataByte | dataByte * 256, 0xff);
     altair_wait_step();
   }
   host_clr_status_led_OUT();

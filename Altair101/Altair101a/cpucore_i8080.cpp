@@ -638,6 +638,7 @@ static const byte parity_table[256] =
 };
 
 
+// -----------------------------------------------------------------------------
 inline void setStatusBits(byte value) {
   byte b;
   b = regS & ~(PS_ZERO | PS_SIGN | PS_PARITY);
@@ -648,8 +649,8 @@ inline void setStatusBits(byte value) {
 }
 
 
-void pushStackSlow(byte valueH, byte valueL)
-{
+// -----------------------------------------------------------------------------
+void pushStackSlow(byte valueH, byte valueL) {
   host_set_status_led_STACK();
   regSP--;
   MEM_WRITE_STEP(regSP, valueH);
@@ -658,8 +659,7 @@ void pushStackSlow(byte valueH, byte valueL)
   host_clr_status_led_STACK();
 }
 
-void popStackSlow(byte *valueH, byte *valueL)
-{
+void popStackSlow(byte *valueH, byte *valueL) {
   host_set_status_led_STACK();
   *valueL = MEM_READ_STEP(regSP);
   regSP++;
@@ -735,8 +735,7 @@ void popStackSlow(byte *valueH, byte *valueL)
 #endif
 
 
-inline void pushStackWord(uint16_t v)
-{
+inline void pushStackWord(uint16_t v) {
   host_set_status_led_STACK();
   regSP -= 2;
   MEM_WRITE_WORD(regSP, v);
@@ -744,8 +743,7 @@ inline void pushStackWord(uint16_t v)
 }
 
 
-inline uint16_t popStackWord()
-{
+inline uint16_t popStackWord() {
   uint16_t v;
   host_set_status_led_STACK();
   v = MEM_READ_WORD(regSP);
@@ -753,7 +751,6 @@ inline uint16_t popStackWord()
   host_clr_status_led_STACK();
   return v;
 }
-
 
 #define pushPC() pushStack(regPCU.H, regPCU.L) //pushStackWord(regPC)
 #define popPC()  regPC = popStackWord()
