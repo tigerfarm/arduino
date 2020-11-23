@@ -24,9 +24,7 @@ Modify the minimum code base to work with Altair 101:
         Get memory manage to work (EXAMINE and DEPOSIT).
 + 8. Get a Program to Run and Add monitor/debug functions.
 + 9. Consolidate the program files (*.h and *.cpp).
-
-Code integration, Altair101a into Processor.ino:
-+ 10. Run Altair101a on the Altair 101 desktop machine.
++ 10. Run on the Altair 101 desktop machine.
 + 11. Output to Altair 101 panel LED.
 + 12. Input from Altair 101 panel switches.
 

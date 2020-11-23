@@ -91,6 +91,7 @@ byte MEM_READ_STEP(uint16_t a) {
   byte v = MREAD(a);
   host_set_status_leds_READMEM();
   altair_set_outputs(a, v);
+  singleStepWait();
   v = host_read_data_leds(); // CPU reads whatever is on the data bus at this point
   host_clr_status_led_MEMR();
   return v;
