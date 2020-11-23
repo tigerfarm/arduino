@@ -49,10 +49,8 @@ uint16_t addressSwitch = 0;
 int programState = LIGHTS_OFF;  // Intial, default.
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Front Panel Status LEDs
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Output LED lights shift register(SN74HC595N) pins
 
@@ -65,6 +63,9 @@ void ledFlashSuccess() {}
 
 // ------------------------------
 // Status Indicator LED lights
+
+byte readByte = 0;
+byte statusByte = B00000000;        // By default, all are OFF.
 
 // Program wait status.
 const int WAIT_PIN = A9;      // Processor program wait state: off/LOW or wait state on/HIGH.
@@ -85,19 +86,14 @@ const byte INT_ON =     B00000001;  // INT    Interrupt
 
 // Use AND to turn OFF. Example:
 //  statusByte = statusByte & M1_OFF;
-const byte MEMR_OFF =   B01111111;
-const byte INP_OFF =    B10111111;
-const byte M1_OFF =     B11011111;
-const byte OUT_OFF =    B11101111;
-const byte HLTA_OFF =   B11110111;
-const byte STACK_OFF =  B11111011;
-const byte WO_OFF =     B11111101;
-const byte INT_OFF =    B11111110;
-// const byte WAIT_OFF =   B11111110;   // WAIT   Changed to a digital pin control.
-
-byte readByte = 0;
-// byte dataByte = 0;
-byte statusByte = B00000000;        // By default, all are OFF.
+const byte MEMR_OFF =   ~MEMR_ON;
+const byte INP_OFF =    ~INP_ON;
+const byte M1_OFF =     ~M1_ON;
+const byte OUT_OFF =    ~OUT_ON;
+const byte HLTA_OFF =   ~HLTA_ON;
+const byte STACK_OFF =  ~STACK_ON;
+const byte WO_OFF =     ~WO_ON;
+const byte INT_OFF =    ~INT_ON;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -125,60 +121,54 @@ void printData(byte theByte) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void print_panel_serial() {
-  byte dbus;
-  static uint16_t p_addressSwitch = 0, p_controlSwitch = 0, p_abus = 0xffff, p_dbus = 0xffff, p_status = 0xffff;
-  uint16_t status, abus;
-
-  status = host_read_status_leds();
-  abus   = host_read_addr_leds();
-  dbus   = host_read_data_leds();
-
-  // Even if n change, print anyway.
-  // if ( force || p_controlSwitch != controlSwitch || p_addressSwitch != addressSwitch || p_abus != abus || p_dbus != dbus || p_status != status ) {
   //
   // Status
   Serial.print(F("INTE PROT MEMR INP M1 OUT HLTA STACK WO INT  D7  D6  D5  D4  D3  D2  D1  D0\r\n"));
   if ( false  ) Serial.print(F(" *  "));    else Serial.print(F(" .  "));
   if ( false  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
-  if ( status & ST_MEMR  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
-  if ( status & ST_INP   ) Serial.print(F("  * "));    else Serial.print(F("  . "));
-  if ( status & ST_M1    ) Serial.print(F(" * "));     else Serial.print(F(" . "));
-  if ( status & ST_OUT   ) Serial.print(F("  * "));    else Serial.print(F("  . "));
-  if ( status & ST_HLTA  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
-  if ( status & ST_STACK ) Serial.print(F("   *  "));  else Serial.print(F("   .  "));
-  if ( status & ST_WO    ) Serial.print(F(" * "));     else Serial.print(F(" . "));
+  if ( statusByteB & ST_MEMR  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
+  if ( statusByteB & ST_INP   ) Serial.print(F("  * "));    else Serial.print(F("  . "));
+  if ( statusByteB & ST_M1    ) Serial.print(F(" * "));     else Serial.print(F(" . "));
+  if ( statusByteB & ST_OUT   ) Serial.print(F("  * "));    else Serial.print(F("  . "));
+  if ( statusByteB & ST_HLTA  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
+  if ( statusByteB & ST_STACK ) Serial.print(F("   *  "));  else Serial.print(F("   .  "));
+  if ( statusByteB & ST_WO    ) Serial.print(F(" * "));     else Serial.print(F(" . "));
   if ( false   ) Serial.print(F("  *"));    else Serial.print(F("  ."));
   //
   // Data
-  if ( dbus & 0x80 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( dbus & 0x40 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( dbus & 0x20 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( dbus & 0x10 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( dbus & 0x08 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( dbus & 0x04 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( dbus & 0x02 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( dbus & 0x01 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+  byte dataBus = host_read_data_leds();
+  if ( dataBus & 0x80 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( dataBus & 0x40 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( dataBus & 0x20 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( dataBus & 0x10 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( dataBus & 0x08 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( dataBus & 0x04 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( dataBus & 0x02 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( dataBus & 0x01 )   Serial.print(F("   *")); else Serial.print(F("   ."));
   //
-  // Address
+  // WAIT and HLDA
   Serial.print(("\r\nWAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8  A7  A6  A5  A4  A3  A2  A1  A0\r\n"));
   if ( host_read_status_led_WAIT() ) Serial.print(F(" *  "));   else Serial.print(F(" .  "));
   if ( false ) Serial.print(F("  *   ")); else Serial.print(F("  .   "));
-  if ( abus & 0x8000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( abus & 0x4000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( abus & 0x2000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( abus & 0x1000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( abus & 0x0800 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( abus & 0x0400 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( abus & 0x0200 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( abus & 0x0100 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( abus & 0x0080 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( abus & 0x0040 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( abus & 0x0020 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( abus & 0x0010 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( abus & 0x0008 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( abus & 0x0004 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( abus & 0x0002 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( abus & 0x0001 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  //
+  // Address
+  uint16_t addressBus = host_read_addr_leds();
+  if ( addressBus & 0x8000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( addressBus & 0x4000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( addressBus & 0x2000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( addressBus & 0x1000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( addressBus & 0x0800 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( addressBus & 0x0400 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( addressBus & 0x0200 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( addressBus & 0x0100 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( addressBus & 0x0080 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( addressBus & 0x0040 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( addressBus & 0x0020 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( addressBus & 0x0010 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( addressBus & 0x0008 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( addressBus & 0x0004 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( addressBus & 0x0002 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( addressBus & 0x0001 ) Serial.print(F("   *")); else Serial.print(F("   ."));
   //
   // Address/Data switches
   Serial.print(F("\r\n            S15 S14 S13 S12 S11 S10  S9  S8  S7  S6  S5  S4  S3  S2  S1  S0\r\n"));
@@ -199,25 +189,9 @@ void print_panel_serial() {
   if ( addressSwitch & 0x0004 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   if ( addressSwitch & 0x0002 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   if ( addressSwitch & 0x0001 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  //
   Serial.print(F("\r\n ------ \r\n"));
-  p_controlSwitch = controlSwitch;
-  p_addressSwitch = addressSwitch;
-  p_abus = abus;
-  p_dbus = dbus;
-  p_status = status;
-  // }
   Serial.println("+ Ready to receive command.");
-}
-
-// -----------------------------------------------------------------------------
-uint16_t host_read_status_leds() {
-  uint16_t res;
-  res = statusByteB;
-  // res |= statusByteD & 0x80 ? ST_INTE : 0;
-  // res |= statusByteG & 0x04 ? ST_PROT : 0;
-  res |= statusByteG & 0x02 ? ST_WAIT : 0;
-  res |= statusByteG & 0x01 ? ST_HLDA : 0;
-  return res;
 }
 
 // -----------------------------------------------------------------------------
@@ -228,47 +202,32 @@ void altair_set_outputs(uint16_t a, byte v) {
   // print_panel_serial();
 }
 
-void altair_out(byte dataByte, byte regAdata) {
+void altair_out(byte portDataByte, byte regAdata) {
   // Opcode: out <port>
   // Called from: cpu_OUT()
 #ifdef LOG_MESSAGES
   Serial.print(F("< OUT, port# "));
-  Serial.print(dataByte);
+  Serial.print(portDataByte);
   Serial.print(". regA=");
   Serial.print(regAdata);
   Serial.print(".");
 #endif
-  host_set_addr_leds(dataByte | dataByte * 256);
+  host_set_addr_leds(portDataByte | portDataByte * 256);
   host_set_data_leds(regAdata);
   host_set_status_led_OUT();
   host_set_status_led_WO();
   //
-  // stacy io_out(dataByte, regAdata);
+  // stacy io_out(portDataByte, regAdata);
   //
   // Actual output of bytes. Example output a byte to the serial port (IDE monitor).
   //
   if ( host_read_status_led_WAIT() ) {
     // If single stepping, need to wait.
-    altair_set_outputs(dataByte | dataByte * 256, 0xff);
+    altair_set_outputs(portDataByte | portDataByte * 256, 0xff);
     singleStepWait();
   }
   host_clr_status_led_OUT();
   host_clr_status_led_WO();
-}
-
-void altair_wait_step() {
-  //
-  // Stacy, If WAIT mode, return to WAIT loop?
-  // Also used in: MEM_READ_STEP(...) and MEM_WRITE_STEP(...).
-  //
-  // controlSwitch &= BIT(SW_RESET); // clear everything but RESET status
-  /* Stacy, here is the loop for waiting when single stepping during WAIT mode.
-    while ( host_read_status_led_WAIT() && (controlSwitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 ) {
-    read_inputs();
-    delay(10);
-    }
-  */
-  // if ( controlSwitch & BIT(SW_SLOW) ) delay(500);
 }
 
 void singleStepWait() {
@@ -285,19 +244,6 @@ void singleStepWait() {
       }
     }
   }
-  // From previous:
-  // Stacy, If WAIT mode, return to WAIT loop?
-  // Also used in: MEM_READ_STEP(...) and MEM_WRITE_STEP(...).
-  //
-  // controlSwitch &= BIT(SW_RESET); // clear everything but RESET status
-  /* Stacy, here is the loop for waiting when single stepping during WAIT mode.
-    while ( host_read_status_led_WAIT() && (controlSwitch & (BIT(SW_STEP) | BIT(SW_SLOW) | BIT(SW_RESET))) == 0 ) {
-    read_inputs();
-    delay(10);
-    }
-  */
-  // if ( controlSwitch & BIT(SW_SLOW) ) delay(500);
-
 }
 
 // -----------------------------------------------------------------------------
@@ -311,7 +257,9 @@ void read_inputs() {
   //
   // dave, implement:
   if ( config_serial_input_enabled() ) {
-    read_inputs_serial();
+    if (Serial.available() > 0) {
+      readByte = Serial.read();    // Read and process an incoming byte.
+    }
   }
   // ---------------------------
   if (readByte != "") {
@@ -327,13 +275,6 @@ void read_inputs_panel() {
   //   addressSwitch = host_read_addr_switches();
   // #endif
 }
-void read_inputs_serial() {
-  return;
-  if (Serial.available() > 0) {
-    readByte = Serial.read();    // Read and process an incoming byte.
-    processRunSwitch(readByte);
-  }
-}
 
 byte altair_in(byte port) {
   // Opcode: out <port>
@@ -343,6 +284,8 @@ byte altair_in(byte port) {
 }
 
 // -----------------------------------------------------------------------------
+// Running machine instructions
+
 void altair_hlt() {
   host_set_status_led_HLTA();
   // regPC--;
@@ -420,6 +363,8 @@ void runProcessor() {
 }
 
 // -----------------------------------------------------------------------------
+// Process WAIT mode inputs: switches.
+
 void processWaitSwitch(byte readByte) {
   uint16_t cnt;
   //
@@ -486,14 +431,14 @@ void processWaitSwitch(byte readByte) {
       //
       host_clr_status_led_HLTA();
       /* The above is the same as the following:
-      host_set_status_led_MEMR();
-      host_clr_status_led_INP();
-      host_set_status_led_M1();
-      host_clr_status_led_OUT();
-      host_clr_status_led_HLTA();
-      host_clr_status_led_STACK();
-      host_clr_status_led_WO();
-      host_clr_status_led_INT();
+        host_set_status_led_MEMR();
+        host_clr_status_led_INP();
+        host_set_status_led_M1();
+        host_clr_status_led_OUT();
+        host_clr_status_led_HLTA();
+        host_clr_status_led_STACK();
+        host_clr_status_led_WO();
+        host_clr_status_led_INT();
       */
       //
       // p_regPC = regPC;
@@ -522,6 +467,7 @@ void processWaitSwitch(byte readByte) {
     case 'l':
       Serial.println("+ l, loaded a simple program.");
       cnt = 0;
+      // MVI testing to the setting of registers.
       /*
         MWRITE(   cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:6
         MWRITE(   cnt++, B00000110 & 0xff);  // ++ immediate:6:6
@@ -537,22 +483,29 @@ void processWaitSwitch(byte readByte) {
         MWRITE(   cnt++, B00000100 & 0xff);  // ++ immediate:4:4
         MWRITE(   cnt++, B00101110 & 0xff);  // ++ opcode:mvi:00101110:l:5
         MWRITE(   cnt++, B00000101 & 0xff);  // ++ immediate:5:5
+        MWRITE(   cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
+        MWRITE(   cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Start
+        MWRITE(   cnt++, B00000000 & 0xff);  // ++ lb:0
+        MWRITE(   cnt++, B00000000 & 0xff);  // ++ hb:0
       */
-      MWRITE(    cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:6
-      MWRITE(    cnt++, B00000110 & 0xff);  // ++ immediate:6:6
-      MWRITE(    cnt++, B00110010 & 0xff);  // ++ opcode:sta:00110010:96
-      MWRITE(    cnt++, B01100000 & 0xff);  // ++ lb:96:96
-      MWRITE(    cnt++, B00000000 & 0xff);  // ++ hb:0
-      MWRITE(    cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
-      MWRITE(    cnt++, B00111100 & 0xff);  // ++ opcode:inr:00111100:a
-      MWRITE(    cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Store
-      MWRITE(    cnt++, B00000010 & 0xff);  // ++ lb:Store:2
-      MWRITE(    cnt++, B00000000 & 0xff);  // ++ hb:0
-      // Common closing to restart the code.
-      MWRITE(   cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
-      MWRITE(   cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Start
-      MWRITE(   cnt++, B00000000 & 0xff);  // ++ lb:0
-      MWRITE(   cnt++, B00000000 & 0xff);  // ++ hb:0
+      // Write to a memory location.
+      MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:6
+      MWRITE( cnt++, B00000110 & 0xff);  // ++ immediate:6:6
+      MWRITE( cnt++, B00110010 & 0xff);  // ++ opcode:sta:00110010:96
+      MWRITE( cnt++, B01100000 & 0xff);  // ++ lb:96:96
+      MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+      MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:0
+      MWRITE( cnt++, B00000000 & 0xff);  // ++ immediate:0:0
+      MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
+      MWRITE( cnt++, B00111010 & 0xff);  // ++ opcode:lda:00111010:96
+      MWRITE( cnt++, B01100000 & 0xff);  // ++ lb:96:96
+      MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+      MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
+      MWRITE( cnt++, B00111100 & 0xff);  // ++ opcode:inr:00111100:a
+      MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Store
+      MWRITE( cnt++, B00000010 & 0xff);  // ++ lb:Store:2
+      MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+      //
       // Do EXAMINE 0, or RESET, after the load;
       regPC = 0;
       p_regPC = ~regPC;

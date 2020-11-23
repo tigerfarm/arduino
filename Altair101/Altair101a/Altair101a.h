@@ -5,22 +5,22 @@
 
 #include <Arduino.h>
 
+// From cpucore_i8080.h
 extern word status_wait;
 extern word status_inte;
+//
+extern byte statusByteB;    // Status bits: MEMR INP M1 OUT HLTA STACK WO INT
 extern byte statusByteA;
-extern byte statusByteB;
 extern byte statusByteC;
-extern byte statusByteD;
 extern byte statusByteG;
 extern byte statusByteL;
 
-void singleStepWait();
-void printData(byte theByte);
-byte altair_in(byte addr);
-void altair_out(byte addr, byte val);
+// Used in cpucore_i8080.cpp
+void singleStepWait();                      // Wait for "s" when single stepping.
+void printData(byte theByte);               // To echo data bytes.
 void altair_hlt();
 void altair_set_outputs(uint16_t a, byte v);
-bool altair_read_intel_hex(uint16_t *start = NULL, uint16_t *end = NULL);
-void altair_vi_register_ports();
+byte altair_in(byte addr);
+void altair_out(byte addr, byte val);
 
 // -----------------------------------------------------------------------------

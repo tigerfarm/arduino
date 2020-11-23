@@ -37,7 +37,11 @@ extern byte Mem[MEMSIZE];
 byte MEM_READ_STEP(uint16_t a);
 void MEM_WRITE_STEP(uint16_t a, byte v);
 
-#define MEM_READ(a) (host_read_status_led_WAIT() ? MEM_READ_STEP(a) : (host_set_status_leds_READMEM(),  host_set_addr_leds(a), host_set_data_leds(MREAD(a)) ))
+#define MEM_READ(a) (host_read_status_led_WAIT() ? MEM_READ_STEP(a) : \
+(host_set_status_leds_READMEM(),  \
+host_set_addr_leds(a), \
+host_set_data_leds(MREAD(a)) ) \
+)
 
 // ----------------------------------------
 #define MWRITE(a,v) { Mem[a]=v; }
@@ -133,20 +137,6 @@ extern CPUFUN cpu_opcodes[256];
 // host_mega.h included here rather than another file
 // -----------------------------------------------------------------------------
 //
-// The original was using hardware specific PORT values.
-//    I've removed them in favor of memory bytes which are not hardware specific.
-// Microcontroller Port Registers:
-// Port registers allow for lower-level and faster manipulation of the i/o pins.
-// https://www.arduino.cc/en/Reference/PortManipulation
-//    D PORTD maps to digital pins 0 to 7.
-//    B PORTB maps to digital pins 8 to 13.
-//    C PORTC maps to analog input pins 0 to 5.
-// Requires including Arduino.h.
-//    A statusByteA maps to digital pins 22 to 29 (physical pins).
-//                  Digital pin 50 (MISO), Digital pin 10, 11, 12, 13 (PWM)?
-//                  Serial.println(bitRead(statusByteA.IN, 0)); // print the state of pin 2 (statusByteA, bit 0)
-// https://forum.arduino.cc/index.php?topic=52534.0
-//
 
 inline void host_set_addr_leds(uint16_t v) {
   statusByteA = (v & 0xff); // 0xff : Turn ON, 0x00 : Turn OFF
@@ -156,17 +146,12 @@ inline void host_set_addr_leds(uint16_t v) {
 #define host_read_data_leds()  statusByteL
 #define host_read_addr_leds(v) (statusByteA | (statusByteC * 256))
 
-// uint16_t host_read_status_leds();
-
 #define host_read_status_led_WAIT()   status_wait
-#define host_set_status_led_WAIT()  { /* digitalWrite(40, HIGH);*/ status_wait = true; }
-#define host_clr_status_led_WAIT()  { /* digitalWrite(40, LOW); */ status_wait = false; }
+#define host_set_status_led_WAIT()  { digitalWrite(40, HIGH); status_wait = true; }
+#define host_clr_status_led_WAIT()  { digitalWrite(40, LOW);  status_wait = false; }
+
 #define host_set_status_led_HLDA()    digitalWrite(41, HIGH)
 #define host_clr_status_led_HLDA()    digitalWrite(41, LOW)
-
-#define host_read_status_led_HLTA()   statusByteB&0x08
-#define host_read_status_led_M1()     statusByteB&0x20
-#define host_read_status_led_INTE()   statusByteD&0x80
 
 // #define host_set_status_led_INTE()    digitalWrite(38, HIGH);
 #define host_set_status_led_MEMR()    statusByteB |=  0x80

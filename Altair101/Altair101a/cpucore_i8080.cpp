@@ -156,6 +156,113 @@ void MEM_WRITE_STEP(uint16_t a, byte v) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+// From cpucore_i8080.cpp
+
+void pushStackSlow(byte valueH, byte valueL) {
+  host_set_status_led_STACK();
+  regSP--;
+  MEM_WRITE_STEP(regSP, valueH);
+  regSP--;
+  MEM_WRITE_STEP(regSP, valueL);
+  host_clr_status_led_STACK();
+}
+
+void popStackSlow(byte *valueH, byte *valueL) {
+  host_set_status_led_STACK();
+  *valueL = MEM_READ_STEP(regSP);
+  regSP++;
+  *valueH = MEM_READ_STEP(regSP);
+  host_clr_status_led_STACK();
+}
+
+
+#if SHOW_MWRITE_OUTPUT>0
+
+#define pushStack(valueH, valueL)             \
+  if( !host_read_status_led_WAIT() )          \
+  {                                           \
+    host_set_status_led_STACK();              \
+    regSP--;                                  \
+    MEM_WRITE(regSP, valueH);                 \
+    regSP--;                                  \
+    MEM_WRITE(regSP, valueL);                 \
+    host_clr_status_led_STACK();              \
+  }                                           \
+  else pushStackSlow(valueH, valueL);
+
+#else
+
+#define pushStack(valueH, valueL)             \
+  if( !host_read_status_led_WAIT() )          \
+  {                                           \
+    host_set_status_led_STACK();              \
+    host_set_status_leds_WRITEMEM();          \
+    regSP--;                                  \
+    host_set_addr_leds(regSP);                \
+    MWRITE(regSP, valueH);                    \
+    regSP--;                                  \
+    host_set_addr_leds(regSP);                \
+    MWRITE(regSP, valueL);                    \
+    host_clr_status_led_STACK();              \
+  }                                           \
+  else pushStackSlow(valueH, valueL);
+
+#endif
+
+#if USE_REAL_MREAD_TIMING>0
+
+#define popStack(valueH, valueL)              \
+  if( !host_read_status_led_WAIT() )          \
+  {                                           \
+    host_set_status_led_STACK();              \
+    valueL = MEM_READ(regSP);                 \
+    regSP++;                                  \
+    valueH = MEM_READ(regSP);                 \
+    regSP++;                                  \
+    host_clr_status_led_STACK();              \
+  }                                           \
+  else popStackSlow(&valueH, &valueL);
+
+#else
+
+#define popStack(valueH, valueL)                   \
+  if( !host_read_status_led_WAIT() )               \
+  {                                                \
+    host_set_status_leds_READMEM_STACK();          \
+    host_set_addr_leds(regSP);                     \
+    valueL = MREAD(regSP);                         \
+    regSP++;                                       \
+    host_set_addr_leds(regSP);                     \
+    valueH = host_set_data_leds(MREAD(regSP));     \
+    regSP++;                                       \
+    host_clr_status_led_STACK();                   \
+  }                                                \
+  else popStackSlow(&valueH, &valueL);
+
+#endif
+
+
+inline void pushStackWord(uint16_t v) {
+  host_set_status_led_STACK();
+  regSP -= 2;
+  MEM_WRITE_WORD(regSP, v);
+  host_clr_status_led_STACK();
+}
+
+inline uint16_t popStackWord() {
+  uint16_t v;
+  host_set_status_led_STACK();
+  v = MEM_READ_WORD(regSP);
+  regSP += 2;
+  host_clr_status_led_STACK();
+  return v;
+}
+
+#define pushPC() pushStack(regPCU.H, regPCU.L) //pushStackWord(regPC)
+#define popPC()  regPC = popStackWord()
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // config.cpp
 
 #define CONFIG_FILE_VERSION 10
@@ -647,112 +754,6 @@ inline void setStatusBits(byte value) {
   regS = b;
 }
 
-
-// -----------------------------------------------------------------------------
-void pushStackSlow(byte valueH, byte valueL) {
-  host_set_status_led_STACK();
-  regSP--;
-  MEM_WRITE_STEP(regSP, valueH);
-  regSP--;
-  MEM_WRITE_STEP(regSP, valueL);
-  host_clr_status_led_STACK();
-}
-
-void popStackSlow(byte *valueH, byte *valueL) {
-  host_set_status_led_STACK();
-  *valueL = MEM_READ_STEP(regSP);
-  regSP++;
-  *valueH = MEM_READ_STEP(regSP);
-  host_clr_status_led_STACK();
-}
-
-
-#if SHOW_MWRITE_OUTPUT>0
-
-#define pushStack(valueH, valueL)               \
-  if( !host_read_status_led_WAIT() )            \
-  {                                           \
-    host_set_status_led_STACK();              \
-    regSP--;                                  \
-    MEM_WRITE(regSP, valueH);                 \
-    regSP--;                                  \
-    MEM_WRITE(regSP, valueL);                 \
-    host_clr_status_led_STACK();              \
-  }                                           \
-  else pushStackSlow(valueH, valueL);
-
-#else
-
-#define pushStack(valueH, valueL)               \
-  if( !host_read_status_led_WAIT() )            \
-  {                                           \
-    host_set_status_led_STACK();              \
-    host_set_status_leds_WRITEMEM();          \
-    regSP--;                                  \
-    host_set_addr_leds(regSP);                \
-    MWRITE(regSP, valueH);                    \
-    regSP--;                                  \
-    host_set_addr_leds(regSP);                \
-    MWRITE(regSP, valueL);                    \
-    host_clr_status_led_STACK();              \
-  }                                           \
-  else pushStackSlow(valueH, valueL);
-
-#endif
-
-#if USE_REAL_MREAD_TIMING>0
-
-#define popStack(valueH, valueL)                \
-  if( !host_read_status_led_WAIT() )            \
-  {                                           \
-    host_set_status_led_STACK();              \
-    valueL = MEM_READ(regSP);                 \
-    regSP++;                                  \
-    valueH = MEM_READ(regSP);                 \
-    regSP++;                                  \
-    host_clr_status_led_STACK();              \
-  }                                           \
-  else popStackSlow(&valueH, &valueL);
-
-#else
-
-#define popStack(valueH, valueL)                     \
-  if( !host_read_status_led_WAIT() )                 \
-  {                                                \
-    host_set_status_leds_READMEM_STACK();          \
-    host_set_addr_leds(regSP);                     \
-    valueL = MREAD(regSP);                         \
-    regSP++;                                       \
-    host_set_addr_leds(regSP);                     \
-    valueH = host_set_data_leds(MREAD(regSP));     \
-    regSP++;                                       \
-    host_clr_status_led_STACK();                   \
-  }                                                \
-  else popStackSlow(&valueH, &valueL);
-
-
-#endif
-
-
-inline void pushStackWord(uint16_t v) {
-  host_set_status_led_STACK();
-  regSP -= 2;
-  MEM_WRITE_WORD(regSP, v);
-  host_clr_status_led_STACK();
-}
-
-
-inline uint16_t popStackWord() {
-  uint16_t v;
-  host_set_status_led_STACK();
-  v = MEM_READ_WORD(regSP);
-  regSP += 2;
-  host_clr_status_led_STACK();
-  return v;
-}
-
-#define pushPC() pushStack(regPCU.H, regPCU.L) //pushStackWord(regPC)
-#define popPC()  regPC = popStackWord()
 
 #define CPU_ADC(REG) \
   static void cpu_ADC ## REG () \

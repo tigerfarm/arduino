@@ -264,17 +264,9 @@ public class asmProcessor {
         programTop = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theValue = it.next();
-            String programCounterPadding = "";
-            if (programTop < 10) {
-                programCounterPadding = "   ";
-            } else if (programTop < 100) {
-                programCounterPadding = "  ";
-            } else if (programTop < 1000) {
-                programCounterPadding = " ";
-            }
             // System.out.println("++ " + theValue);
             String[] opcodeValues = theValue.split(SEPARATOR);
-            System.out.print("MWRITE( " + programCounterPadding + programTop + ", B");
+            System.out.print("MWRITE( cnt++" + ", B");
             if (opcodeValues.length > 2) {
                 // System.out.print(opcodeValues[1] + ":" + opcodeValues.length);
                 if (opcodeValues[2].length() == 8) {

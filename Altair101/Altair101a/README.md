@@ -24,11 +24,12 @@ Modify the minimum code base to work with Altair 101:
         Get memory manage to work (EXAMINE and DEPOSIT).
 + 8. Get a Program to Run and Add monitor/debug functions.
 + 9. Consolidate the program files (*.h and *.cpp).
++ 10. Get single step to work: memory read and write, stack push and pop.
 
 Code integration, Altair101a into Processor.ino:
-+ 10. Run Altair101a on the Altair 101 desktop machine.
-+ 11. Output to Altair 101 panel LED.
-+ 12. Input from Altair 101 panel switches.
++ x. Run Altair101a on the Altair 101 desktop machine.
++ y. Output to Altair 101 panel LED.
++ z. Input from Altair 101 panel switches.
 
 ##### Links
 
@@ -53,6 +54,23 @@ Click Sketch > Include Library > Manage Libraries…
 Search and install SdFat by Bill Greiman.
 Search and install, “DueFlashStorage” by Sebastian Nilsson.
 ````
+
+The Simulator program was using hardware specific PORT values.
+I've changed them to memory bytes which are not hardware specific.
+````
+// Microcontroller Port Registers:
+// Port registers allow for lower-level and faster manipulation of the i/o pins.
+// https://www.arduino.cc/en/Reference/PortManipulation
+//    D PORTD maps to digital pins 0 to 7.
+//    B PORTB maps to digital pins 8 to 13.
+//    C PORTC maps to analog input pins 0 to 5.
+// Requires including Arduino.h.
+//    A statusByteA maps to digital pins 22 to 29 (physical pins).
+//                  Digital pin 50 (MISO), Digital pin 10, 11, 12, 13 (PWM)?
+//                  Serial.println(bitRead(statusByteA.IN, 0)); // print the state of pin 2 (statusByteA, bit 0)
+// https://forum.arduino.cc/index.php?topic=52534.0
+````
+
 --------------------------------------------------------------------------------
 ### Other Notes
 

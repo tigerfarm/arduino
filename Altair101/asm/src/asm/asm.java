@@ -347,6 +347,7 @@ public class asm {
                     System.out.println("+ write              : Write the machine code bytes to a file.");
                     System.out.println("+ list               : List the program source file.");
                     System.out.println("+ list bytes         : List the parsed machine byte code and info.");
+                    System.out.println("+ array              : List the machine bytes as program code.");
                     System.out.println("+ show               : Print machine code file bytes to screen.");
                     System.out.println("");
                     System.out.println("+ dir|ls             : List files in the set directory.");

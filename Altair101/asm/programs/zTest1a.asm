@@ -12,7 +12,11 @@
             mvi a,6         ; regA = 6
     Store:
             sta 96          ; Store regA to memory address 96.
-            hlt
+            mvi a,0         ; Reset regA to zero.
+            hlt             ; View the data byte at address 96 (=6). regA=0.
+            lda 96          ; Read memory address 96 into regA.
+            ;out ?           ; Out to serial port.
+            hlt             ; View regA=6.
             inr a
             jmp Store
                             ; --------------------------------------
