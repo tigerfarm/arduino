@@ -5,7 +5,9 @@
   + Interactivity is over the Arduino IDE monitor USB serial port.
 
   Next:
-  + When returning from SINGLE STEP, need to display the current address and databyte.
+  + When stack PUSH or POP, show the actual value.
+  + POP needs work.
+  + PUSH steps properly.
 */
 // -----------------------------------------------------------------------------
 #include "Altair101a.h"
