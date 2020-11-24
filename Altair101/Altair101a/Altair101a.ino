@@ -5,7 +5,7 @@
   + Interactivity is over the Arduino IDE monitor USB serial port.
 
   Next:
-  + WAIT mode, WAIT light,
+  + When returning from SINGLE STEP, need to display the current address and databyte.
 */
 // -----------------------------------------------------------------------------
 #include "Altair101a.h"
@@ -195,6 +195,23 @@ void print_panel_serial() {
 }
 
 // -----------------------------------------------------------------------------
+void singleStepWait() {
+  // dave
+  Serial.println(F("+ singleStepWait()"));
+  print_panel_serial();           // Status, data/address lights already set.
+  bool singleStepWaitLoop = true;
+  while (singleStepWaitLoop) {
+    if (Serial.available() > 0) {
+      readByte = Serial.read();    // Read and process an incoming byte.
+      if (readByte == 's') {
+        singleStepWaitLoop = false;
+        // processRunSwitch(readByte);
+      }
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
 void altair_set_outputs(uint16_t a, byte v) {
   // Stacy, When not using serial, display on front panel lights.
   host_set_addr_leds(a);
@@ -228,22 +245,6 @@ void altair_out(byte portDataByte, byte regAdata) {
   }
   host_clr_status_led_OUT();
   host_clr_status_led_WO();
-}
-
-void singleStepWait() {
-  // dave
-  Serial.println(F("+ singleStepWait()"));
-  print_panel_serial();           // Status, data/address lights already set.
-  bool singleStepWaitLoop = true;
-  while (singleStepWaitLoop) {
-    if (Serial.available() > 0) {
-      readByte = Serial.read();    // Read and process an incoming byte.
-      if (readByte == 's') {
-        singleStepWaitLoop = false;
-        // processRunSwitch(readByte);
-      }
-    }
-  }
 }
 
 // -----------------------------------------------------------------------------
@@ -395,6 +396,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println("+ s, SINGLE STEP: ");
       host_clr_status_led_HLTA();
       processDataOpcode();
+      altair_set_outputs(regPC, MREAD(regPC));
       break;
     case 'x':
       regPC = addressSwitch;
@@ -489,23 +491,47 @@ void processWaitSwitch(byte readByte) {
         MWRITE(   cnt++, B00000000 & 0xff);  // ++ hb:0
       */
       // Write to a memory location.
-      MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:6
-      MWRITE( cnt++, B00000110 & 0xff);  // ++ immediate:6:6
-      MWRITE( cnt++, B00110010 & 0xff);  // ++ opcode:sta:00110010:96
-      MWRITE( cnt++, B01100000 & 0xff);  // ++ lb:96:96
+      /*
+        MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:6
+        MWRITE( cnt++, B00000110 & 0xff);  // ++ immediate:6:6
+        MWRITE( cnt++, B00110010 & 0xff);  // ++ opcode:sta:00110010:96
+        MWRITE( cnt++, B01100000 & 0xff);  // ++ lb:96:96
+        MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+        MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:0
+        MWRITE( cnt++, B00000000 & 0xff);  // ++ immediate:0:0
+        MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
+        MWRITE( cnt++, B00111010 & 0xff);  // ++ opcode:lda:00111010:96
+        MWRITE( cnt++, B01100000 & 0xff);  // ++ lb:96:96
+        MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+        MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
+        MWRITE( cnt++, B00111100 & 0xff);  // ++ opcode:inr:00111100:a
+        MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Store
+        MWRITE( cnt++, B00000010 & 0xff);  // ++ lb:Store:2
+        MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+      */
+      // Front panel status light testing: https://www.youtube.com/watch?v=3_73NwB6toY
+      MWRITE( cnt++, B00111010 & 0xff);  // ++ opcode:lda:00111010:32
+      MWRITE( cnt++, B00100000 & 0xff);  // ++ lb:32:32
       MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-      MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:0
-      MWRITE( cnt++, B00000000 & 0xff);  // ++ immediate:0:0
+      MWRITE( cnt++, B00110010 & 0xff);  // ++ opcode:sta:00110010:33
+      MWRITE( cnt++, B00100001 & 0xff);  // ++ lb:33:33
+      MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+      MWRITE( cnt++, B00110001 & 0xff);  // ++ opcode:lxi:00110001:sp:32
+      MWRITE( cnt++, B00100000 & 0xff);  // ++ lb:32:32
+      MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+      MWRITE( cnt++, B11110101 & 0xff);  // ++ opcode:push:11110101:a
+      MWRITE( cnt++, B11110001 & 0xff);  // ++ opcode:pop:11110001:a
       MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
-      MWRITE( cnt++, B00111010 & 0xff);  // ++ opcode:lda:00111010:96
-      MWRITE( cnt++, B01100000 & 0xff);  // ++ lb:96:96
+      MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:235
+      MWRITE( cnt++, B11101011 & 0xff);  // ++ immediate:235:235
+      MWRITE( cnt++, B11100011 & 0xff);  // ++ opcode:out:11100011:37
+      MWRITE( cnt++, B00100101 & 0xff);  // ++ immediate:37:37
+      MWRITE( cnt++, B00111010 & 0xff);  // ++ opcode:lda:00111010:32
+      MWRITE( cnt++, B00100000 & 0xff);  // ++ lb:32:32
       MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-      MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
-      MWRITE( cnt++, B00111100 & 0xff);  // ++ opcode:inr:00111100:a
-      MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Store
-      MWRITE( cnt++, B00000010 & 0xff);  // ++ lb:Store:2
+      MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Start
+      MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:Start:0
       MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-      //
       // Do EXAMINE 0, or RESET, after the load;
       regPC = 0;
       p_regPC = ~regPC;

@@ -37,12 +37,16 @@ extern byte Mem[MEMSIZE];
 byte MEM_READ_STEP(uint16_t a);
 void MEM_WRITE_STEP(uint16_t a, byte v);
 
-#define MEM_READ(a) (host_read_status_led_WAIT() ? MEM_READ_STEP(a) : \
-(host_set_status_leds_READMEM(),  \
-host_set_addr_leds(a), \
-host_set_data_leds(MREAD(a)) ) \
-)
-
+// dave, The orginal MEM_READ(a).
+#define MEM_READ2(a) (host_read_status_led_WAIT() ? MEM_READ_STEP(a) : \
+                     (host_set_status_leds_READMEM(),  \
+                      host_set_addr_leds(a), \
+                      host_set_data_leds(MREAD(a)) ) \
+                    )
+#define MEM_READ_THIS(a) (host_set_status_leds_READMEM(),  \
+                      host_set_addr_leds(a), \
+                      host_set_data_leds(MREAD(a)) \
+                    )
 // ----------------------------------------
 #define MWRITE(a,v) { Mem[a]=v; }
 

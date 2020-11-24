@@ -6,7 +6,8 @@
                             ;    https://www.youtube.com/watch?v=3_73NwB6toY
                             ; Program listing: https://altairclone.com/downloads/status_lights.pdf
                             ; 
-                            ; 
+                            ; To match the video, move 235(octal 353, B11101011) into address 32.
+                            ;
                             ; --------------------------------------
     Start:
             org 0
@@ -31,7 +32,7 @@
             jmp Start
                             ; --------------------------------------
             end
-                            ; To match the video, I moved 235 into address 32.
+                            ; To match the video, I moved 235 (octal 353, B11101011) into address 32.
                             ;
                             ; Start:  Fetch Opcode                  + On: MEMR MI    WO 072         0
                             ;

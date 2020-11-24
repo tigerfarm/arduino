@@ -59,6 +59,20 @@ byte Mem[MEMSIZE];
 // -----------------------------------------
 // Read
 
+// dave
+byte MEM_READ(uint16_t a) {
+  byte returnByte;
+  if (status_wait) {
+    returnByte = MEM_READ_THIS(a);
+    Serial.print(F("+ returnByte="));
+    Serial.println(returnByte);
+    singleStepWait();
+  } else {
+    returnByte = MEM_READ_THIS(a);
+  }
+  return returnByte;
+}
+
 inline uint16_t MEM_READ_WORD(uint16_t addr) {
   if ( host_read_status_led_WAIT() ) {
     // dave
@@ -136,7 +150,8 @@ void MEM_WRITE(uint16_t a, uint16_t v) {
     host_set_addr_leds(a);
     host_set_data_leds(v);
     host_set_status_leds_WRITEMEM();
-    MWRITE(a, v); singleStepWait();
+    MWRITE(a, v);
+    singleStepWait();
   } else {
     MWRITE(a, v);
   }
@@ -1412,8 +1427,7 @@ CPU_MVMR(A);
 CPU_MVRI(A);
 
 
-static void cpu_MVMI()
-{
+static void cpu_MVMI() {
   // MVI dst, M
   MEM_WRITE(regHL.HL, MEM_READ(regPC));
   regPC++;
@@ -1813,7 +1827,6 @@ static void cpu_SPHL()
 }
 
 static void cpu_STA() {
-  // dave
   uint16_t addr = MEM_READ_WORD(regPC);
   MEM_WRITE(addr, regA);
   regPC += 2;
