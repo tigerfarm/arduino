@@ -55,10 +55,10 @@
                             ; --- push a
                             ; First:  Fetch Opcode                  + On: MEMR MI    WO 365         9
                             ; Second: Stack write                   + On:      STACK    377 (040)   037 (This is missing)
-                            ; Third:  Stack write                   + On:      STACK    377 (000)   036 (This is missing)
+                            ; Third:  Stack write                   + On:      STACK    376 (000)   036 (This is missing)
                             ; --- pop a
                             ; First:  Fetch Opcode                  + On: MEMR MI    WO 361         10
-                            ; Second: Stack read                    + On: MEMR STACK WO 377 (040)   036 (This is missing)
+                            ; Second: Stack read                    + On: MEMR STACK WO 376 (040)   036 (This is missing)
                             ; Third:  Stack read                    + On: MEMR STACK WO 377 (000)   037 (This is missing)
                             ; --- hlt
                             ; First:  Fetch Opcode                  + On: MEMR MI WO    166         11

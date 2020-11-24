@@ -5,8 +5,8 @@
   + Interactivity is over the Arduino IDE monitor USB serial port.
 
   Next:
-  + When stack PUSH or POP, show the actual value.
-  + POP needs work.
+  + When stack PUSH or POP, show the actual value. Currently shows FF, same as original Altair 8800.
+  + POP needs work: POP reads are not showing.
   + PUSH steps properly.
 */
 // -----------------------------------------------------------------------------
@@ -511,6 +511,11 @@ void processWaitSwitch(byte readByte) {
         MWRITE( cnt++, B00000010 & 0xff);  // ++ lb:Store:2
         MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
       */
+      MWRITE( cnt++, B00110001 & 0xff);  // ++ opcode:lxi:00110001:sp:32
+      MWRITE( cnt++, B00100000 & 0xff);  // ++ lb:32:32
+      MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+      MWRITE( cnt++, B11110101 & 0xff);  // ++ opcode:push:11110101:a
+      MWRITE( cnt++, B11110001 & 0xff);  // ++ opcode:pop:11110001:a
       // Front panel status light testing: https://www.youtube.com/watch?v=3_73NwB6toY
       MWRITE( cnt++, B00111010 & 0xff);  // ++ opcode:lda:00111010:32
       MWRITE( cnt++, B00100000 & 0xff);  // ++ lb:32:32

@@ -33,6 +33,17 @@ extern byte Mem[MEMSIZE];
 // CPU write). Additionally, enabling this makes sure that the "WO" LED will
 // go out (negative logic) AFTER the address and data buses have been set to
 // the proper values.
+#define SHOW_MWRITE_OUTPUT 1
+
+// To improve performance, the MEMR LED handling is a bit lazy while a program is
+// running. Memory reads are by far the most common bus action and any tiny
+// bit of time that can be cut here makes a significant performance difference.
+// Setting USE_REAL_MREAD_TIMING to 1 will improve the accuracy of MREAD at the
+// cost of performace. Leaving this at 0 has virtually no visible consequences
+// apart from a slight difference in brightness of the MEMR LED while running.
+// Setting it to 1 significantly reduces performance.
+// Most users should keep this at 0
+#define USE_REAL_MREAD_TIMING 0
 
 byte MEM_READ_STEP(uint16_t a);
 void MEM_WRITE_STEP(uint16_t a, byte v);
