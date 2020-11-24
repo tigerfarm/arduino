@@ -5,7 +5,7 @@
   + Interactivity is over the Arduino IDE monitor USB serial port.
 
   Next:
-  + When stack PUSH or POP, show the actual value. Currently shows FF, same as original Altair 8800.
+  + When stack PUSH or POP, show the actual value. Currently shows zeros.
   + POP needs work: POP reads are not showing.
   + PUSH steps properly.
 */
@@ -125,9 +125,9 @@ void printData(byte theByte) {
 void print_panel_serial() {
   //
   // Status
-  Serial.print(F("INTE PROT MEMR INP M1 OUT HLTA STACK WO INT  D7  D6  D5  D4  D3  D2  D1  D0\r\n"));
+  Serial.print(F("INTE MEMR INP M1 OUT HLTA STACK WO INT       D7  D6  D5  D4  D3  D2  D1  D0\r\n"));
   if ( false  ) Serial.print(F(" *  "));    else Serial.print(F(" .  "));
-  if ( false  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
+  // if ( false  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));  // PROT, not processed. Allows spacing below.
   if ( statusByteB & ST_MEMR  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
   if ( statusByteB & ST_INP   ) Serial.print(F("  * "));    else Serial.print(F("  . "));
   if ( statusByteB & ST_M1    ) Serial.print(F(" * "));     else Serial.print(F(" . "));
@@ -136,6 +136,7 @@ void print_panel_serial() {
   if ( statusByteB & ST_STACK ) Serial.print(F("   *  "));  else Serial.print(F("   .  "));
   if ( statusByteB & ST_WO    ) Serial.print(F(" * "));     else Serial.print(F(" . "));
   if ( false   ) Serial.print(F("  *"));    else Serial.print(F("  ."));
+  Serial.print(F("     "));  // PROT, not processed. use the spacing here to separate with the data LEDs.
   //
   // Data
   byte dataBus = host_read_data_leds();
@@ -214,10 +215,16 @@ void singleStepWait() {
 }
 
 // -----------------------------------------------------------------------------
-void altair_set_outputs(uint16_t a, byte v) {
+void altair_set_outputs(uint16_t addressWord, byte dataByte) {
   // Stacy, When not using serial, display on front panel lights.
-  host_set_addr_leds(a);
-  host_set_data_leds(v);
+#ifdef LOG_MESSAGES
+  Serial.print(F("+ address:"));
+  Serial.print(addressWord);
+  Serial.print(" dataByte:");
+  Serial.print(dataByte);
+#endif
+  host_set_addr_leds(addressWord);
+  host_set_data_leds(dataByte);
   // print_panel_serial();
 }
 

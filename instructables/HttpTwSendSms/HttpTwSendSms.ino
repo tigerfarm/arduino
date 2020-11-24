@@ -196,7 +196,11 @@ void sendSms(int theValue) {
                         + post_data
                         + "\r\n";
   client.println(http_request);
+  Serial.println("++ Message request sent.");
+  //
   // Read the response.
+  // Comment out the following, if response is not required. Saves time waiting.
+  Serial.println("++ Waiting for response...");
   String response = "";
   while (client.connected()) {
     String line = client.readStringUntil('\n');

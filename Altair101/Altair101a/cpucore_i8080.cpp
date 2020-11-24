@@ -74,22 +74,18 @@ byte MEM_READ(uint16_t a) {
 }
 
 inline uint16_t MEM_READ_WORD(uint16_t addr) {
-  if ( host_read_status_led_WAIT() ) {
+  if ( !host_read_status_led_WAIT() ) {
     // dave
     // Since wait state, single step through memory reads.
     byte l, h;
-    //
     l = MREAD(addr);
     host_set_status_leds_READMEM();
     host_set_addr_leds(addr);
     host_set_data_leds(l);
-    singleStepWait();
-    //
     addr++;
     h = MREAD(addr);
     host_set_addr_leds(addr);
     host_set_data_leds(h);
-    singleStepWait();
     return l | (h * 256);
   }
   else {
@@ -97,6 +93,7 @@ inline uint16_t MEM_READ_WORD(uint16_t addr) {
     l = MEM_READ_STEP(addr);
     addr++;
     h = MEM_READ_STEP(addr);
+    host_clr_status_led_MEMR();
     return l | (h * 256);
   }
 }
@@ -106,7 +103,7 @@ byte MEM_READ_STEP(uint16_t a) {
   host_set_status_leds_READMEM();
   altair_set_outputs(a, v);
   v = host_read_data_leds(); // CPU reads whatever is on the data bus at this point
-  host_clr_status_led_MEMR();
+  singleStepWait();
   return v;
 }
 
@@ -122,16 +119,6 @@ inline void MEM_WRITE_WORD(uint16_t addr, uint16_t v)
   }
   else {
     byte b;
-#if SHOW_MWRITE_OUTPUT>0
-    b = v & 255;
-    // dave, original: MEM_WRITE(addr, b);
-    MWRITE(addr, b);
-    for (uint8_t i = 0; i < 5; i++) asm("NOP");
-    b = v / 256;
-    addr++;
-    // dave, original: MEM_WRITE(addr, b);
-    MWRITE(addr, b);
-#else
     host_set_status_leds_WRITEMEM();
     host_set_data_leds(0xff);
     host_set_addr_leds(addr);
@@ -142,7 +129,6 @@ inline void MEM_WRITE_WORD(uint16_t addr, uint16_t v)
     host_set_addr_leds(addr);
     b = v / 256;
     MWRITE(addr, b);
-#endif
   }
 }
 
@@ -175,27 +161,9 @@ void MEM_WRITE_STEP(uint16_t a, byte v) {
 // -----------------------------------------------------------------------------
 // From cpucore_i8080.cpp
 
-#if SHOW_MWRITE_OUTPUT>0
-
+//  Serial.println("+ pushStack, SHOW_MWRITE_OUTPUT = 0");
 #define pushStack(valueH, valueL)             \
-  Serial.println("+ pushStack, SHOW_MWRITE_OUTPUT > 0"); \
-  if( !host_read_status_led_WAIT() )          \
-  {                                           \
-    host_set_status_led_STACK();              \
-    regSP--;                                  \
-    MEM_WRITE(regSP, valueH);                 \
-    regSP--;                                  \
-    MEM_WRITE(regSP, valueL);                 \
-    host_clr_status_led_STACK();              \
-  }                                           \
-  else pushStackSlow(valueH, valueL);
-
-#else
-
-#define pushStack(valueH, valueL)             \
-  Serial.println("+ pushStack, SHOW_MWRITE_OUTPUT = 0"); \
-  if( !host_read_status_led_WAIT() )          \
-  {                                           \
+  if( !host_read_status_led_WAIT() ) {        \
     host_set_status_led_STACK();              \
     host_set_status_leds_WRITEMEM();          \
     regSP--;                                  \
@@ -207,9 +175,6 @@ void MEM_WRITE_STEP(uint16_t a, byte v) {
     host_clr_status_led_STACK();              \
   }                                           \
   else pushStackSlow(valueH, valueL);
-
-#endif
-
 void pushStackSlow(byte valueH, byte valueL) {
   host_set_status_led_STACK();
   regSP--;
@@ -232,8 +197,7 @@ inline void pushStackWord(uint16_t v) {
 // Using USE_REAL_MREAD_TIMING = 0
 
 #define popStack(valueH, valueL)                   \
-  if( !host_read_status_led_WAIT() )               \
-  {                                                \
+  if( !host_read_status_led_WAIT() )  {            \
     host_set_status_leds_READMEM_STACK();          \
     host_set_addr_leds(regSP);                     \
     valueL = MREAD(regSP);                         \
@@ -244,16 +208,17 @@ inline void pushStackWord(uint16_t v) {
     host_clr_status_led_STACK();                   \
   }                                                \
   else popStackSlow(&valueH, &valueL);
-
 void popStackSlow(byte *valueH, byte *valueL) {
   Serial.println("+ popStackSlow()");
   host_set_status_led_STACK();
   *valueL = MEM_READ_STEP(regSP);
   regSP++;
   *valueH = MEM_READ_STEP(regSP);
+  host_clr_status_led_MEMR();
   host_clr_status_led_STACK();
 }
 
+#define popPC()  regPC = popStackWord()
 inline uint16_t popStackWord() {
   uint16_t v;
   host_set_status_led_STACK();
@@ -262,8 +227,6 @@ inline uint16_t popStackWord() {
   host_clr_status_led_STACK();
   return v;
 }
-
-#define popPC()  regPC = popStackWord()
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
