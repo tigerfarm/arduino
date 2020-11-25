@@ -1838,14 +1838,14 @@ static void cpu_XCHG()
   TIMER_ADD_CYCLES(5);
 }
 
-static void cpu_OUT() {
-  altair_out(MEM_READ(regPC), regA);
+// dave
+static void cpu_IN() {
+  regA = altair_in(MEM_READ(regPC));
   TIMER_ADD_CYCLES(10);
   regPC++;
 }
-
-static void cpu_IN() {
-  regA = altair_in(MEM_READ(regPC));
+static void cpu_OUT() {
+  altair_out(MEM_READ(regPC), regA);
   TIMER_ADD_CYCLES(10);
   regPC++;
 }

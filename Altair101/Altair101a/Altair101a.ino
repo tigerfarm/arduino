@@ -4,10 +4,33 @@
   + Using David Hansel's Altair 8800 Simulator code to process machine code instructions.
   + Interactivity is over the Arduino IDE monitor USB serial port.
 
+  + When SINGLE STEP reads and write, I've chose to show the actual values versus FF
+    which is all data lights on, same as the Altair 8800.
+
+  ---------------------------------------------------------
   Next:
-  + When stack PUSH or POP, show the actual value. Currently shows zeros.
-  + POP needs work: POP reads are not showing.
-  + PUSH steps properly.
+  + For SINGLE STEP read and write during RUN mode,
+  ++ Have the status lights same as WAIT mode.
+  ++ Have the data lights all data lights on, same as the Altair 8800.
+  
+  + Implement INP and OUT status lights when SINGLE STEP the following instructions of the status light video.
+            in      20Q     ;opcode fetch, mem read, I/O input
+            out     20Q     ;opcode fetch, mem read, I/O output  
+  + I will need to add I/O into this program.
+  ++ For input testing, I'll hard code an input value.
+  ++ For output testing, output byte value to serial, which shows in the Arduino IDE monitor.
+  + From cpucore_i8080.cpp:
+static void cpu_IN() {
+  regA = altair_in(MEM_READ(regPC));
+  TIMER_ADD_CYCLES(10);
+  regPC++;
+}
+static void cpu_OUT() {
+  altair_out(MEM_READ(regPC), regA);
+  TIMER_ADD_CYCLES(10);
+  regPC++;
+}
+  ---------------------------------------------------------
 */
 // -----------------------------------------------------------------------------
 #include "Altair101a.h"
@@ -215,48 +238,33 @@ void singleStepWait() {
 }
 
 // -----------------------------------------------------------------------------
-void altair_set_outputs(uint16_t addressWord, byte dataByte) {
-  // Stacy, When not using serial, display on front panel lights.
-#ifdef LOG_MESSAGES
-  Serial.print(F("+ altair_set_outputs, address:"));
-  Serial.print(addressWord);
-  Serial.print(" dataByte:");
-  Serial.println(dataByte);
-#endif
-  host_set_addr_leds(addressWord);
-  host_set_data_leds(dataByte);
-  // print_panel_serial();
-}
-
-void altair_out(byte portDataByte, byte regAdata) {
+byte altair_in(byte portDataByte) {
   // Opcode: out <port>
-  // Called from: cpu_OUT()
+  // Called from: cpu_OUT() {
+  //    regA = altair_in(MEM_READ(regPC)); ... }
+  // Testing is port 16(octal 020).
+  // Status
+  byte inputDataByte = 0;
+  //
+  // Get an input byte.
+  // From serial port.
+  // From Sense switches.
+  inputDataByte = 2;       // Video test input byte.
+  //
 #ifdef LOG_MESSAGES
-  Serial.print(F("< OUT, port# "));
+  Serial.print(F("> In, regA, port# "));
   Serial.print(portDataByte);
-  Serial.print(". regA=");
-  Serial.print(regAdata);
-  Serial.println(".");
+  Serial.print(" inputDataByte=");
+  Serial.print(inputDataByte);
+  Serial.println(" which is put into regA.");
 #endif
-  host_set_addr_leds(portDataByte | portDataByte * 256);
-  host_set_data_leds(regAdata);
-  host_set_status_led_OUT();
-  host_set_status_led_WO();
-  //
-  // stacy io_out(portDataByte, regAdata);
-  //
-  // Actual output of bytes. Example output a byte to the serial port (IDE monitor).
-  //
-  if ( host_read_status_led_WAIT() ) {
-    // If single stepping, need to wait.
-    altair_set_outputs(portDataByte | portDataByte * 256, 0xff);
-    singleStepWait();
-  }
-  host_clr_status_led_OUT();
-  host_clr_status_led_WO();
+  host_clr_status_led_MEMR();
+  host_set_status_led_INP();
+  if (host_read_status_led_WAIT()) { singleStepWait(); }
+  host_clr_status_led_INP();
+  return inputDataByte;
 }
 
-// -----------------------------------------------------------------------------
 void read_inputs() {
   byte readByte;
   readByte = "";
@@ -286,11 +294,47 @@ void read_inputs_panel() {
   // #endif
 }
 
-byte altair_in(byte port) {
+// -----------------------------------------------------------------------------
+void altair_out(byte portDataByte, byte regAdata) {
   // Opcode: out <port>
-  // cpu_OUT()
-  byte data = 0;
-  return data;
+  // Called from: cpu_OUT()
+#ifdef LOG_MESSAGES
+  Serial.print(F("< OUT, port# "));
+  Serial.print(portDataByte);
+  Serial.print(" regA=");
+  Serial.print(regAdata);
+  Serial.println(".");
+#endif
+  host_set_addr_leds(portDataByte | portDataByte * 256);
+  host_set_data_leds(regAdata);
+  host_set_status_led_OUT();
+  host_set_status_led_WO();
+  //
+  // stacy io_out(portDataByte, regAdata);
+  //
+  // Actual output of bytes. Example output a byte to the serial port (IDE monitor).
+  //
+  if ( host_read_status_led_WAIT() ) {
+    // If single stepping, need to wait.
+    altair_set_outputs(portDataByte | portDataByte * 256, 0xff);
+    singleStepWait();
+  }
+  if (host_read_status_led_WAIT()) { singleStepWait(); }
+  host_clr_status_led_OUT();
+  host_clr_status_led_WO();
+}
+
+void altair_set_outputs(uint16_t addressWord, byte dataByte) {
+  // Stacy, When not using serial, display on front panel lights.
+#ifdef LOG_MESSAGES
+  Serial.print(F("+ altair_set_outputs, address:"));
+  Serial.print(addressWord);
+  Serial.print(" dataByte:");
+  Serial.println(dataByte);
+#endif
+  host_set_addr_leds(addressWord);
+  host_set_data_leds(dataByte);
+  // print_panel_serial();
 }
 
 // -----------------------------------------------------------------------------

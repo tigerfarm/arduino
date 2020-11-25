@@ -6,7 +6,9 @@
                             ;    https://www.youtube.com/watch?v=3_73NwB6toY
                             ; Program listing: https://altairclone.com/downloads/status_lights.pdf
                             ; 
-                            ; To match the video, move 235(octal 353, B11101011) into address 32.
+                            ; To match the video, before stepping this program,
+                            ;   move 235(octal 353, B11101011) into address 32.
+                            ; Note, when POP the flags (POP A), the value is different from the video.
                             ;
                             ; --------------------------------------
     Start:
@@ -16,17 +18,19 @@
             lxi sp,32       ; opcode fetch, mem read x 2
             push a
             pop a
-        ;    in      20Q     ;opcode fetch, mem read, I/O input
-        ;    out     20Q     ;opcode fetch, mem read, I/O output
+            in      20Q     ; opcode fetch, mem read, I/O input. For testing, I'll hard code an input value.
+            out     20Q     ; opcode fetch, mem read, I/O output
         ;    ei              ;interrupts enabled
         ;    di              ;interrupts disabled
 
             hlt
+            jmp Start
                             ; --------------------------------------
-                            ; Before running load their random data into memory.
-                            ; Mem : Data Decimal
-                            ; 040 : 353  235
-            mvi a,235       ; Octal 353
+                            ; Can run the following before running the program,
+                            ; to load the same random data into memory used in the LDA instruction.
+                            ; Mem address   : Data Decimal
+                            ; 040 B00100000 : 353  235
+            mvi a,235       ; Octal 353, B11101011
             out 37
             lda 32          ; Memory location octal 040.
             jmp Start
@@ -60,6 +64,10 @@
                             ; First:  Fetch Opcode                  + On: MEMR MI    WO 361         10
                             ; Second: Stack read                    + On: MEMR STACK WO 376 (040)   036 (This is missing)
                             ; Third:  Stack read                    + On: MEMR STACK WO 377 (000)   037 (This is missing)
+                            ; --- in 16
+                            ; First:  Fetch Opcode                  + On: MEMR MI    WO 333         11
+                            ; Second: Memory read port              + On: MEMR       WO 020         12
+                            ; Third:  Input read                    + On: INP        WO 002         
                             ; --- hlt
                             ; First:  Fetch Opcode                  + On: MEMR MI WO    166         11
                             ;
