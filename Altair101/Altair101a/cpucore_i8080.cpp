@@ -730,6 +730,11 @@ static const byte parity_table[256] =
   0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1
 };
 
+// This is for emulating the video pop instruction for the registers: https://www.youtube.com/watch?v=3_73NwB6toY
+// In practise, regS is B01000010. For some reason, bit 2 is also set, which is okay.
+void init_regS() {
+ regS = B01000000;
+}
 
 // -----------------------------------------------------------------------------
 inline void setStatusBits(byte value) {
@@ -1425,12 +1430,10 @@ static void cpu_PCHL()
     popStack(reg ## REGH, reg ## REGL); \
     TIMER_ADD_CYCLES(10); \
   }
-
+CPU_POP(A, S);
 CPU_POP(B, C);
 CPU_POP(D, E);
 CPU_POP(H, L);
-CPU_POP(A, S);
-
 
 #define CPU_PSH(REGH, REGL) \
   static void cpu_PSH ## REGH ## REGL() \
@@ -1438,17 +1441,14 @@ CPU_POP(A, S);
     pushStack(reg ## REGH, reg ## REGL); \
     TIMER_ADD_CYCLES(11); \
   }
-
-CPU_PSH(B, C);
-CPU_PSH(D, E);
-CPU_PSH(H, L);
-
-
-static void cpu_PSHAS()
-{
+static void cpu_PSHAS() {
+  // CPU_PSH(A, and flag byte);
   pushStack(regA, (regS & 0xD5) | 0x02);
   TIMER_ADD_CYCLES(11);
 }
+CPU_PSH(B, C);
+CPU_PSH(D, E);
+CPU_PSH(H, L);
 
 static void cpu_RLC()
 {

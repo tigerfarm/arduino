@@ -117,6 +117,8 @@ extern uint16_t regSP;
 #define regL  regHL.L
 #define regPC regPCU.PC
 
+void init_regS();
+
 #define PROC_I8080 0
 
 // fixed I8080 CPU

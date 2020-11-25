@@ -522,8 +522,10 @@ void processWaitSwitch(byte readByte) {
         MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
       */
       // Front panel status light testing: https://www.youtube.com/watch?v=3_73NwB6toY
-      // To match the video, manually move 235(octal 353, B11101011) into address 32(B00100000).
       // Keys: 5x5013567p013567lr
+      // Currently, difference is the flag byte (regS) is B01000000, where my flag byte is B00000010
+      init_regS();
+      MWRITE(    32, B11101011 & 0xff);  // The video has 235(octal 353, B11101011) in address 32(B00100000).
       MWRITE( cnt++, B00111010 & 0xff);  // ++ opcode:lda:00111010:32
       MWRITE( cnt++, B00100000 & 0xff);  // ++ lb:32:32
       MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
@@ -533,7 +535,6 @@ void processWaitSwitch(byte readByte) {
       MWRITE( cnt++, B00110001 & 0xff);  // ++ opcode:lxi:00110001:sp:32
       MWRITE( cnt++, B00100000 & 0xff);  // ++ lb:32:32
       MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-      MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
       MWRITE( cnt++, B11110101 & 0xff);  // ++ opcode:push:11110101:a
       MWRITE( cnt++, B11110001 & 0xff);  // ++ opcode:pop:11110001:a
       MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
