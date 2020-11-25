@@ -218,10 +218,10 @@ void singleStepWait() {
 void altair_set_outputs(uint16_t addressWord, byte dataByte) {
   // Stacy, When not using serial, display on front panel lights.
 #ifdef LOG_MESSAGES
-  Serial.print(F("+ address:"));
+  Serial.print(F("+ altair_set_outputs, address:"));
   Serial.print(addressWord);
   Serial.print(" dataByte:");
-  Serial.print(dataByte);
+  Serial.println(dataByte);
 #endif
   host_set_addr_leds(addressWord);
   host_set_data_leds(dataByte);
@@ -236,7 +236,7 @@ void altair_out(byte portDataByte, byte regAdata) {
   Serial.print(portDataByte);
   Serial.print(". regA=");
   Serial.print(regAdata);
-  Serial.print(".");
+  Serial.println(".");
 #endif
   host_set_addr_leds(portDataByte | portDataByte * 256);
   host_set_data_leds(regAdata);
@@ -298,7 +298,7 @@ byte altair_in(byte port) {
 
 void altair_hlt() {
   host_set_status_led_HLTA();
-  // regPC--;
+  regPC--;
   // altair_interrupt(INT_SW_STOP);
   programState = PROGRAM_WAIT;
   Serial.print(F("++ HALT, host_read_status_led_WAIT() = "));
@@ -397,14 +397,17 @@ void processWaitSwitch(byte readByte) {
       Serial.println("+ r, RUN.");
       host_clr_status_led_WAIT();
       host_clr_status_led_HLTA();
-      // runProcessor();
-      // dave
       programState = PROGRAM_RUN;
       break;
     case 's':
-      Serial.println("+ s, SINGLE STEP: ");
-      host_clr_status_led_HLTA();
-      processDataOpcode();
+      if (statusByteB & ST_HLTA) {
+        Serial.println("+ s, SINGLE STEP, from HLT.");
+        regPC++;
+        host_clr_status_led_HLTA();
+      } else {
+        Serial.println("+ s, SINGLE STEP, processDataOpcode()");
+        processDataOpcode();
+      }
       altair_set_outputs(regPC, MREAD(regPC));
       break;
     case 'x':
@@ -518,12 +521,9 @@ void processWaitSwitch(byte readByte) {
         MWRITE( cnt++, B00000010 & 0xff);  // ++ lb:Store:2
         MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
       */
-      MWRITE( cnt++, B00110001 & 0xff);  // ++ opcode:lxi:00110001:sp:32
-      MWRITE( cnt++, B00100000 & 0xff);  // ++ lb:32:32
-      MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-      MWRITE( cnt++, B11110101 & 0xff);  // ++ opcode:push:11110101:a
-      MWRITE( cnt++, B11110001 & 0xff);  // ++ opcode:pop:11110001:a
       // Front panel status light testing: https://www.youtube.com/watch?v=3_73NwB6toY
+      // To match the video, manually move 235(octal 353, B11101011) into address 32(B00100000).
+      // Keys: 5x5013567p013567lr
       MWRITE( cnt++, B00111010 & 0xff);  // ++ opcode:lda:00111010:32
       MWRITE( cnt++, B00100000 & 0xff);  // ++ lb:32:32
       MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
@@ -533,6 +533,7 @@ void processWaitSwitch(byte readByte) {
       MWRITE( cnt++, B00110001 & 0xff);  // ++ opcode:lxi:00110001:sp:32
       MWRITE( cnt++, B00100000 & 0xff);  // ++ lb:32:32
       MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+      MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
       MWRITE( cnt++, B11110101 & 0xff);  // ++ opcode:push:11110101:a
       MWRITE( cnt++, B11110001 & 0xff);  // ++ opcode:pop:11110001:a
       MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110

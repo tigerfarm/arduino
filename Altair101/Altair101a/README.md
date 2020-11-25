@@ -753,3 +753,13 @@ Cheers
 - Ignored <}>
 
 ````
+
+cpucore_i8080.cpp, sample opcode functions.
+````
+cpu_psh
+
+pushStack(valueH, valueL)
+pushStackSlow(byte valueH, byte valueL)
+MEM_WRITE_STEP(regSP, valueH);
+
+````

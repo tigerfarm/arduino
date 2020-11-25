@@ -6,6 +6,7 @@
                             ;    https://www.youtube.com/watch?v=3_73NwB6toY
                             ; Program listing: https://altairclone.com/downloads/status_lights.pdf
                             ; 
+                            ; To match the video, move 235(octal 353, B11101011) into address 32.
                             ; 
                             ; --------------------------------------
     Start:

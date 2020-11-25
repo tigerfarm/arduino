@@ -20,6 +20,8 @@
 #include <Arduino.h>
 #include "cpucore_i8080.h"
 
+#define LOG_MESSAGES 1    // For debugging.
+
 word status_wait = 1;
 //
 // For Processor.ino
@@ -113,6 +115,12 @@ byte MEM_READ_STEP(uint16_t a) {
 inline void MEM_WRITE_WORD(uint16_t addr, uint16_t v)
 {
   if ( host_read_status_led_WAIT() ) {
+#ifdef LOG_MESSAGES
+  Serial.println("+ MEM_WRITE_WORD, addr:");
+  Serial.print(addr);
+  Serial.println(" v:");
+  Serial.println(v);
+#endif
     MEM_WRITE_STEP(addr, v & 255);
     addr++;
     MEM_WRITE_STEP(addr, v / 256);
@@ -149,6 +157,12 @@ void MEM_WRITE_STEP(uint16_t a, byte v) {
   MWRITE(a, v);
   host_set_status_leds_WRITEMEM();
 #if SHOW_MWRITE_OUTPUT>0
+#ifdef LOG_MESSAGES
+  Serial.print("+ MEM_WRITE_STEP, a:");
+  Serial.print(a);
+  Serial.print(" v:");
+  Serial.println(v);
+#endif
   altair_set_outputs(a, v);
 #else
   altair_set_outputs(a, 0xff);
@@ -176,6 +190,12 @@ void MEM_WRITE_STEP(uint16_t a, byte v) {
   }                                           \
   else pushStackSlow(valueH, valueL);
 void pushStackSlow(byte valueH, byte valueL) {
+#ifdef LOG_MESSAGES
+  Serial.print("+ pushStackSlow, valueH:");
+  Serial.print(valueH);
+  Serial.print(" valueL:");
+  Serial.println(valueL);
+#endif
   host_set_status_led_STACK();
   regSP--;
   MEM_WRITE_STEP(regSP, valueH);
