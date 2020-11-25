@@ -18,8 +18,9 @@
             lxi sp,32       ; opcode fetch, mem read x 2
             push a
             pop a
-            in      20Q     ; opcode fetch, mem read, I/O input. For testing, I'll hard code an input value.
-            out     20Q     ; opcode fetch, mem read, I/O output
+                            ; Need to add "Q" into asm, example instruction: "in 20Q".
+            in 8            ; opcode fetch, mem read, I/O input. For testing, I hard coded an input value of 2, to match the video.
+            out 8           ; opcode fetch, mem read, I/O output
         ;    ei              ;interrupts enabled
         ;    di              ;interrupts disabled
 

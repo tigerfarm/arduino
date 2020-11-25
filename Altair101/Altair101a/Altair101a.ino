@@ -12,24 +12,24 @@
   + For SINGLE STEP read and write during RUN mode,
   ++ Have the status lights same as WAIT mode.
   ++ Have the data lights all data lights on, same as the Altair 8800.
-  
+
   + Implement INP and OUT status lights when SINGLE STEP the following instructions of the status light video.
             in      20Q     ;opcode fetch, mem read, I/O input
-            out     20Q     ;opcode fetch, mem read, I/O output  
+            out     20Q     ;opcode fetch, mem read, I/O output
   + I will need to add I/O into this program.
   ++ For input testing, I'll hard code an input value.
   ++ For output testing, output byte value to serial, which shows in the Arduino IDE monitor.
   + From cpucore_i8080.cpp:
-static void cpu_IN() {
+  static void cpu_IN() {
   regA = altair_in(MEM_READ(regPC));
   TIMER_ADD_CYCLES(10);
   regPC++;
-}
-static void cpu_OUT() {
+  }
+  static void cpu_OUT() {
   altair_out(MEM_READ(regPC), regA);
   TIMER_ADD_CYCLES(10);
   regPC++;
-}
+  }
   ---------------------------------------------------------
 */
 // -----------------------------------------------------------------------------
@@ -238,29 +238,61 @@ void singleStepWait() {
 }
 
 // -----------------------------------------------------------------------------
+void altair_interrupt_enable() {
+  // altair_interrupts_enabled = true;
+  host_set_status_led_INTE();
+  if (host_read_status_led_WAIT()) {
+    singleStepWait();
+  }
+}
+
+void altair_interrupt_disable() {
+  // altair_interrupts_enabled = false;
+  host_clr_status_led_INTE();
+  if (host_read_status_led_WAIT()) {
+    singleStepWait();
+  }
+}
+
+// -----------------------------------------------------------------------------
 byte altair_in(byte portDataByte) {
   // Opcode: out <port>
-  // Called from: cpu_OUT() {
+  // Called from: cpu_IN() {
   //    regA = altair_in(MEM_READ(regPC)); ... }
   // Testing is port 16(octal 020).
   // Status
-  byte inputDataByte = 0;
+  byte inputDataByte;
   //
-  // Get an input byte.
-  // From serial port.
-  // From Sense switches.
-  inputDataByte = 2;       // Video test input byte.
+  // Get an input byte from the input port.
+  switch (portDataByte) {
+    case 1:
+      // From Sense switches.
+      inputDataByte = 1;
+      break;
+    case 2:
+      // From serial port.
+      inputDataByte = 2;
+      break;
+    case 16:
+      // Test port: 20Q (octal: 020).
+      inputDataByte = 2;  // Video input byte value.
+      break;
+    default:
+      inputDataByte = 0;
+  }
   //
 #ifdef LOG_MESSAGES
-  Serial.print(F("> In, regA, port# "));
+  Serial.print(F("> Input port# "));
   Serial.print(portDataByte);
   Serial.print(" inputDataByte=");
   Serial.print(inputDataByte);
-  Serial.println(" which is put into regA.");
+  Serial.println(" which is put into regA, cpucore_i8080.cpp: cpu_IN().");
 #endif
   host_clr_status_led_MEMR();
   host_set_status_led_INP();
-  if (host_read_status_led_WAIT()) { singleStepWait(); }
+  if (host_read_status_led_WAIT()) {
+    singleStepWait();
+  }
   host_clr_status_led_INP();
   return inputDataByte;
 }
@@ -297,7 +329,7 @@ void read_inputs_panel() {
 // -----------------------------------------------------------------------------
 void altair_out(byte portDataByte, byte regAdata) {
   // Opcode: out <port>
-  // Called from: cpu_OUT()
+  // Called from: cpu_OUT() { altair_out(MEM_READ(regPC), regA); ... }
 #ifdef LOG_MESSAGES
   Serial.print(F("< OUT, port# "));
   Serial.print(portDataByte);
@@ -310,7 +342,15 @@ void altair_out(byte portDataByte, byte regAdata) {
   host_set_status_led_OUT();
   host_set_status_led_WO();
   //
-  // stacy io_out(portDataByte, regAdata);
+  // Write output byte to the output port.
+  switch (portDataByte) {
+    case 16:
+      // Test port: 20Q (octal: 020).
+      inputDataByte = 2;  // dave, Write regAdata to serial port.
+      break;
+    default:
+      inputDataByte = 0;
+  }
   //
   // Actual output of bytes. Example output a byte to the serial port (IDE monitor).
   //
@@ -319,7 +359,9 @@ void altair_out(byte portDataByte, byte regAdata) {
     altair_set_outputs(portDataByte | portDataByte * 256, 0xff);
     singleStepWait();
   }
-  if (host_read_status_led_WAIT()) { singleStepWait(); }
+  if (host_read_status_led_WAIT()) {
+    singleStepWait();
+  }
   host_clr_status_led_OUT();
   host_clr_status_led_WO();
 }
@@ -581,6 +623,10 @@ void processWaitSwitch(byte readByte) {
       MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
       MWRITE( cnt++, B11110101 & 0xff);  // ++ opcode:push:11110101:a
       MWRITE( cnt++, B11110001 & 0xff);  // ++ opcode:pop:11110001:a
+      MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:8
+      MWRITE( cnt++, B00001000 & 0xff);  // ++ immediate:8:8
+      MWRITE( cnt++, B11100011 & 0xff);  // ++ opcode:out:11100011:8
+      MWRITE( cnt++, B00001000 & 0xff);  // ++ immediate:8:8
       MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
       MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:235
       MWRITE( cnt++, B11101011 & 0xff);  // ++ immediate:235:235
@@ -592,7 +638,8 @@ void processWaitSwitch(byte readByte) {
       MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Start
       MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:Start:0
       MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-      // Do EXAMINE 0, or RESET, after the load;
+      //
+      // Do EXAMINE 0  after the load;
       regPC = 0;
       p_regPC = ~regPC;
       altair_set_outputs(regPC, MREAD(regPC));

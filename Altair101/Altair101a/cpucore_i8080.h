@@ -170,7 +170,7 @@ inline void host_set_addr_leds(uint16_t v) {
 #define host_set_status_led_HLDA()    digitalWrite(41, HIGH)
 #define host_clr_status_led_HLDA()    digitalWrite(41, LOW)
 
-// #define host_set_status_led_INTE()    digitalWrite(38, HIGH);
+#define host_set_status_led_INTE()    digitalWrite(38, HIGH);
 #define host_set_status_led_MEMR()    statusByteB |=  0x80
 #define host_set_status_led_INP()     statusByteB |=  0x40
 #define host_set_status_led_M1()      statusByteB |=  0x20
@@ -180,7 +180,7 @@ inline void host_set_addr_leds(uint16_t v) {
 #define host_set_status_led_WO()      statusByteB &= ~0x02
 #define host_set_status_led_INT()     statusByteB |=  0x01
 
-// #define host_clr_status_led_INTE()    digitalWrite(38, LOW);
+#define host_clr_status_led_INTE()    digitalWrite(38, LOW);
 #define host_clr_status_led_MEMR()    statusByteB &= ~0x80
 #define host_clr_status_led_INP()     statusByteB &= ~0x40
 #define host_clr_status_led_M1()      statusByteB &= ~0x20

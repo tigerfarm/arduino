@@ -40,16 +40,7 @@ byte dataByte    = B00000000;
 
 void altair_interrupt(uint32_t i, bool set = true);
 bool altair_interrupt_active(uint32_t i);
-void altair_interrupt_enable();
-void altair_interrupt_disable();
 bool altair_interrupt_enabled();
-
-void altair_interrupt_disable() {
-  // host_clr_status_led_INTE();
-  // altair_interrupts_enabled = false;
-  // altair_interrupts &= ~INT_DEVICE;
-}
-
 void altair_interrupt(uint32_t i, bool set) {}
 
 // -----------------------------------------------------------------------------
@@ -1188,13 +1179,13 @@ static void cpu_DCXSP()
 
 static void cpu_DI()
 {
-  // altair_interrupt_disable();
+  altair_interrupt_disable();
   TIMER_ADD_CYCLES(4);
 }
 
 static void cpu_EI()
 {
-  // altair_interrupt_enable();
+  altair_interrupt_enable();
   TIMER_ADD_CYCLES(4);
 }
 
@@ -1838,7 +1829,6 @@ static void cpu_XCHG()
   TIMER_ADD_CYCLES(5);
 }
 
-// dave
 static void cpu_IN() {
   regA = altair_in(MEM_READ(regPC));
   TIMER_ADD_CYCLES(10);

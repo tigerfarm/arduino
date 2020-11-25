@@ -22,5 +22,7 @@ void altair_hlt();
 void altair_set_outputs(uint16_t a, byte v);
 byte altair_in(byte addr);
 void altair_out(byte addr, byte val);
+void altair_interrupt_enable();
+void altair_interrupt_disable();
 
 // -----------------------------------------------------------------------------
