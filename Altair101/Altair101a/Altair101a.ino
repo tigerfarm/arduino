@@ -248,6 +248,20 @@ void altair_interrupt_disable() {
   host_clr_status_led_INTE();
 }
 
+void altair_hlt() {
+  host_set_status_led_HLTA();
+  host_clr_status_led_M1();
+  regPC--;
+  // altair_interrupt(INT_SW_STOP);
+  programState = PROGRAM_WAIT;
+  Serial.print(F("++ HALT, host_read_status_led_WAIT() = "));
+  Serial.println(host_read_status_led_WAIT());
+  if (!host_read_status_led_WAIT()) {
+    host_set_status_led_WAIT();
+    print_panel_serial();
+  }
+}
+
 // -----------------------------------------------------------------------------
 byte altair_in(byte portDataByte) {
   // Opcode: out <port>
@@ -375,19 +389,6 @@ void altair_set_outputs(uint16_t addressWord, byte dataByte) {
 
 // -----------------------------------------------------------------------------
 // Running machine instructions
-
-void altair_hlt() {
-  host_set_status_led_HLTA();
-  regPC--;
-  // altair_interrupt(INT_SW_STOP);
-  programState = PROGRAM_WAIT;
-  Serial.print(F("++ HALT, host_read_status_led_WAIT() = "));
-  Serial.println(host_read_status_led_WAIT());
-  if (!host_read_status_led_WAIT()) {
-    host_set_status_led_WAIT();
-    print_panel_serial();
-  }
-}
 
 void processDataOpcode() {
 #ifdef LOG_MESSAGES
