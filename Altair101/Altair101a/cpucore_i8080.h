@@ -180,7 +180,7 @@ inline void host_set_addr_leds(uint16_t v) {
 #define host_set_status_led_OUT()     statusByteB |=  0x10
 #define host_set_status_led_HLTA()    statusByteB |=  0x08
 #define host_set_status_led_STACK()   statusByteB |=  0x04
-#define host_set_status_led_WO()      statusByteB &= ~0x02
+#define host_set_status_led_WO()      statusByteB &= ~0x02  // Set turn WO off, reverse logic.
 #define host_set_status_led_INT()     statusByteB |=  0x01
 
 #define host_clr_status_led_MEMR()    statusByteB &= ~0x80
@@ -189,7 +189,7 @@ inline void host_set_addr_leds(uint16_t v) {
 #define host_clr_status_led_OUT()     statusByteB &= ~0x10
 #define host_clr_status_led_HLTA()    statusByteB &= ~0x08
 #define host_clr_status_led_STACK()   statusByteB &= ~0x04
-#define host_clr_status_led_WO()      statusByteB |=  0x02
+#define host_clr_status_led_WO()      statusByteB |=  0x02  // Set turn WO on, reverse logic.
 #define host_clr_status_led_INT()     statusByteB &= ~0x01
 
 #define host_set_status_leds_READMEM()       statusByteB |=  0x82

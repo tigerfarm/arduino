@@ -19,8 +19,8 @@
             push a
             pop a
                             ; Need to add "Q" into asm, example instruction: "in 20Q".
-            in 8            ; opcode fetch, mem read, I/O input. For testing, I hard coded an input value of 2, to match the video.
-            out 8           ; opcode fetch, mem read, I/O output
+            in 16           ; opcode fetch, mem read, I/O input. For testing, I hard coded an input value of 2, to match the video.
+            out 16          ; opcode fetch, mem read, I/O output
                             ;
                             ; Need to add ei and di into asm.
             ei              ;interrupts enabled

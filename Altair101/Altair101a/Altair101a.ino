@@ -284,6 +284,8 @@ byte altair_in(byte portDataByte) {
 #endif
   host_clr_status_led_MEMR();
   host_set_status_led_INP();
+  host_set_data_leds(inputDataByte);
+  host_set_addr_leds(portDataByte + portDataByte * 256); // The low and high bytes are each set to the portDataByte.
   if (host_read_status_led_WAIT()) {
     singleStepWait();
   }
@@ -332,8 +334,10 @@ void altair_out(byte portDataByte, byte regAdata) {
   Serial.println(".");
 #endif
   host_set_data_leds(regAdata);
+  host_set_addr_leds(portDataByte + portDataByte * 256); // The low and high bytes are each set to the portDataByte.
+  host_clr_status_led_MEMR();
   host_set_status_led_OUT();
-  host_clr_status_led_WO();
+  host_set_status_led_WO();
   //
   // Write output byte to the output port.
   switch (portDataByte) {
@@ -353,7 +357,7 @@ void altair_out(byte portDataByte, byte regAdata) {
     singleStepWait();
   }
   host_clr_status_led_OUT();
-  host_set_status_led_WO();
+  host_clr_status_led_WO();
 }
 
 void altair_set_outputs(uint16_t addressWord, byte dataByte) {
@@ -613,10 +617,10 @@ void processWaitSwitch(byte readByte) {
       MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
       MWRITE( cnt++, B11110101 & 0xff);  // ++ opcode:push:11110101:a
       MWRITE( cnt++, B11110001 & 0xff);  // ++ opcode:pop:11110001:a
-      MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:8
-      MWRITE( cnt++, B00001000 & 0xff);  // ++ immediate:8:8
-      MWRITE( cnt++, B11100011 & 0xff);  // ++ opcode:out:11100011:8
-      MWRITE( cnt++, B00001000 & 0xff);  // ++ immediate:8:8
+      MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:16
+      MWRITE( cnt++, B00010000 & 0xff);  // ++ immediate:16:16
+      MWRITE( cnt++, B11010011 & 0xff);  // ++ opcode:out:11010011:16
+      MWRITE( cnt++, B00010000 & 0xff);  // ++ immediate:16:16
       MWRITE( cnt++, B11111011 & 0xff);  // ++ opcode:ei:11111011
       MWRITE( cnt++, B11110011 & 0xff);  // ++ opcode:di:11110011
       MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
