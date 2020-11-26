@@ -7,6 +7,7 @@
 
 // From cpucore_i8080.h
 extern word status_wait;
+extern word status_hlda;
 extern word status_inte;
 //
 extern byte statusByteB;    // Status bits: MEMR INP M1 OUT HLTA STACK WO INT

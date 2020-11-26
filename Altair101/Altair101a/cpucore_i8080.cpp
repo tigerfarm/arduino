@@ -22,7 +22,8 @@
 
 #define LOG_MESSAGES 1    // For debugging.
 
-word status_wait = 1;
+word status_wait = 1;     // Default on.
+word status_hlda = 0;
 word status_inte = 0;
 //
 // For Processor.ino
@@ -148,17 +149,17 @@ void MEM_WRITE(uint16_t a, uint16_t v) {
 void MEM_WRITE_STEP(uint16_t a, byte v) {
   MWRITE(a, v);
   host_set_status_leds_WRITEMEM();
-#if SHOW_MWRITE_OUTPUT>0
+  
 #ifdef LOG_MESSAGES
   Serial.print("+ MEM_WRITE_STEP, a:");
   Serial.print(a);
   Serial.print(" v:");
   Serial.println(v);
 #endif
-  altair_set_outputs(a, v);
-#else
-  altair_set_outputs(a, 0xff);
+  altair_set_outputs(a, v); // If rather original: altair_set_outputs(a, 0xff);
+  
 #endif
+
   singleStepWait();
   host_clr_status_led_WO();
 }
@@ -167,7 +168,6 @@ void MEM_WRITE_STEP(uint16_t a, byte v) {
 // -----------------------------------------------------------------------------
 // From cpucore_i8080.cpp
 
-//  Serial.println("+ pushStack, SHOW_MWRITE_OUTPUT = 0");
 #define pushStack(valueH, valueL)             \
   if( !host_read_status_led_WAIT() ) {        \
     host_set_status_led_STACK();              \
@@ -206,7 +206,6 @@ inline void pushStackWord(uint16_t v) {
 #define pushPC() pushStack(regPCU.H, regPCU.L) //pushStackWord(regPC)
 
 // -----------------------------------------------------------------------------
-// Using USE_REAL_MREAD_TIMING = 0
 
 #define popStack(valueH, valueL)                   \
   if( !host_read_status_led_WAIT() )  {            \
@@ -703,6 +702,9 @@ void timer_setup()
 // -----------------------------------------------------------------------------
 // cpucore_i8080.cpp
 
+// -----------------------------------------------------------------------------
+// Status bits and bytes
+
 #define setCarryBit(v)     if(v) regS |= PS_CARRY;     else regS &= ~PS_CARRY
 #define setHalfCarryBit(v) if(v) regS |= PS_HALFCARRY; else regS &= ~PS_HALFCARRY
 
@@ -723,12 +725,11 @@ static const byte parity_table[256] =
 };
 
 // This is for emulating the video pop instruction for the registers: https://www.youtube.com/watch?v=3_73NwB6toY
-// In practise, regS is B01000010. For some reason, bit 2 is also set, which is okay.
+// In practise, regS is B01000010. For some reason, in the video bit 2 is also set, which is okay.
 void init_regS() {
  regS = B01000000;
 }
 
-// -----------------------------------------------------------------------------
 inline void setStatusBits(byte value) {
   byte b;
   b = regS & ~(PS_ZERO | PS_SIGN | PS_PARITY);
@@ -738,6 +739,56 @@ inline void setStatusBits(byte value) {
   regS = b;
 }
 
+// -----------------------------------------------------------------------------
+static void cpu_print_status_register(byte s) {
+  if ( s & PS_SIGN )      Serial.print('S'); else Serial.print('.');
+  if ( s & PS_ZERO )      Serial.print('Z'); else Serial.print('.');
+  Serial.print('.');
+  if ( s & PS_HALFCARRY ) Serial.print('A'); else Serial.print('.');
+  Serial.print('.');
+  if ( s & PS_PARITY )    Serial.print('P'); else Serial.print('.');
+  Serial.print('.');
+  if ( s & PS_CARRY )     Serial.print('C'); else Serial.print('.');
+}
+
+void cpucore_i8080_print_registers() {
+  Serial.print(F("++ PC   = ")); numsys_print_word(regPC);
+  Serial.print(F(" = ")); numsys_print_mem(regPC, 3, true);
+  Serial.println();
+  Serial.print(F("++ SP   = ")); numsys_print_word(regSP);
+  Serial.print(F(" = ")); numsys_print_mem(regSP, 8, true);
+  Serial.println();
+  Serial.print(F("++ regS = "));   numsys_print_byte(regS);
+  Serial.print(F(" = ")); cpu_print_status_register(regS);
+  Serial.println();
+  // ---
+  Serial.print(F("+ regA: "));
+  printData(regA);
+  Serial.println("");
+  // ---
+  Serial.print(F("+ regB: "));
+  printData(regB);
+  Serial.print(F("  regC: "));
+  printData(regC);
+  Serial.println("");
+  // ---
+  Serial.print(F("+ regD: "));
+  printData(regD);
+  Serial.print(F("  regE: "));
+  printData(regE);
+  Serial.println("");
+  // ---
+  Serial.print(F("+ regH: "));
+  printData(regH);
+  Serial.print(F("  regL: "));
+  printData(regL);
+  // ---
+  Serial.println();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Opcode processing
 
 #define CPU_ADC(REG) \
   static void cpu_ADC ## REG () \
@@ -750,15 +801,13 @@ inline void setStatusBits(byte value) {
     regA = (byte) w; \
     TIMER_ADD_CYCLES(4); \
   }
-
+CPU_ADC(A);
 CPU_ADC(B);
 CPU_ADC(C);
 CPU_ADC(D);
 CPU_ADC(E);
 CPU_ADC(H);
 CPU_ADC(L);
-CPU_ADC(A);
-
 
 #define CPU_ADD(REG) \
   static void cpu_ADD ## REG () \
@@ -770,14 +819,13 @@ CPU_ADC(A);
     regA = (byte) w; \
     TIMER_ADD_CYCLES(4); \
   }
-
+CPU_ADD(A);
 CPU_ADD(B);
 CPU_ADD(C);
 CPU_ADD(D);
 CPU_ADD(E);
 CPU_ADD(H);
 CPU_ADD(L);
-CPU_ADD(A);
 
 
 #define CPU_SBB(REG) \
@@ -1841,52 +1889,7 @@ static void cpu_OUT() {
   regPC++;
 }
 
-static void cpu_print_status_register(byte s) {
-  if ( s & PS_SIGN )      Serial.print('S'); else Serial.print('.');
-  if ( s & PS_ZERO )      Serial.print('Z'); else Serial.print('.');
-  Serial.print('.');
-  if ( s & PS_HALFCARRY ) Serial.print('A'); else Serial.print('.');
-  Serial.print('.');
-  if ( s & PS_PARITY )    Serial.print('P'); else Serial.print('.');
-  Serial.print('.');
-  if ( s & PS_CARRY )     Serial.print('C'); else Serial.print('.');
-}
-
-void cpucore_i8080_print_registers() {
-  Serial.print(F("++ PC   = ")); numsys_print_word(regPC);
-  Serial.print(F(" = ")); numsys_print_mem(regPC, 3, true);
-  Serial.println();
-  Serial.print(F("++ SP   = ")); numsys_print_word(regSP);
-  Serial.print(F(" = ")); numsys_print_mem(regSP, 8, true);
-  Serial.println();
-  Serial.print(F("++ regS = "));   numsys_print_byte(regS);
-  Serial.print(F(" = ")); cpu_print_status_register(regS);
-  Serial.println();
-  // ---
-  Serial.print(F("+ regA: "));
-  printData(regA);
-  Serial.println("");
-  // ---
-  Serial.print(F("+ regB: "));
-  printData(regB);
-  Serial.print(F("  regC: "));
-  printData(regC);
-  Serial.println("");
-  // ---
-  Serial.print(F("+ regD: "));
-  printData(regD);
-  Serial.print(F("  regE: "));
-  printData(regE);
-  Serial.println("");
-  // ---
-  Serial.print(F("+ regH: "));
-  printData(regH);
-  Serial.print(F("  regL: "));
-  printData(regL);
-  // ---
-  Serial.println();
-}
-
+// -----------------------------------------------------------------------------
 CPUFUN cpucore_i8080_opcodes[256] = {
   cpu_NOP,   cpu_LXIBC, cpu_STXBC, cpu_INXBC, cpu_INRB,  cpu_DCRB,  cpu_MVBI,  cpu_RLC,		// 000-007 (0x00-0x07)
   cpu_NOP,   cpu_DADBC, cpu_LDXBC, cpu_DCXBC, cpu_INRC,  cpu_DCRC,  cpu_MVCI,  cpu_RRC,		// 010-017 (0x08-0x0F)
@@ -1924,3 +1927,6 @@ CPUFUN cpucore_i8080_opcodes[256] = {
   cpu_RP,    cpu_POPAS, cpu_JP,    cpu_DI,    cpu_CP,    cpu_PSHAS, cpu_ORI,   cpu_RST30,	// 360-367 (0xF0-0xF7)
   cpu_RM,    cpu_SPHL,  cpu_JM,    cpu_EI,    cpu_CM,    cpu_CALL,  cpu_CPI,   cpu_RST38	// 370-377 (0xF8-0xFF)
 };
+
+// -----------------------------------------------------------------------------
+// eof

@@ -238,16 +238,6 @@ void singleStepWait() {
 }
 
 // -----------------------------------------------------------------------------
-void altair_interrupt_enable() {
-  // altair_interrupts_enabled = true;
-  host_set_status_led_INTE();
-}
-
-void altair_interrupt_disable() {
-  // altair_interrupts_enabled = false;
-  host_clr_status_led_INTE();
-}
-
 void altair_hlt() {
   host_set_status_led_HLTA();
   host_clr_status_led_M1();
@@ -260,6 +250,16 @@ void altair_hlt() {
     host_set_status_led_WAIT();
     print_panel_serial();
   }
+}
+
+void altair_interrupt_enable() {
+  // altair_interrupts_enabled = true;
+  host_set_status_led_INTE();
+}
+
+void altair_interrupt_disable() {
+  // altair_interrupts_enabled = false;
+  host_clr_status_led_INTE();
 }
 
 // -----------------------------------------------------------------------------

@@ -6,47 +6,75 @@
 #include <Arduino.h>
 #include "Altair101a.h"
 
-void cpucore_i8080_print_registers();
+// -----------------------------------------------------------------------------
+// CPU,  Set to Intel 8080
+
+#define PROC_I8080 0
+#define cpu_opcodes cpucore_i8080_opcodes
+#define cpu_clock_KHz()     CPU_CLOCK_I8080
+#define cpu_get_processor() PROC_I8080
+typedef void (*CPUFUN)();
+extern CPUFUN cpu_opcodes[256];
+#define CPU_EXEC(opcode) (cpu_opcodes[opcode])();
 
 // -----------------------------------------------------------------------------
-// mem.h
-// Declare memory and memory read and write functions
-// -----------------------------------------------------------------------------
+// Motherboard
 
-// Mega2650: 8k SRAM, use 6k for emulated RAM
-// Make sure Arduino IDE says (after compiling) that AT LEAST 310 bytes of RAM are left for local variables!
-// #define MEMSIZE (64)            // For Nano or Uno test: Global variables use 1935 bytes (23%) of dynamic memory
-// #define MEMSIZE (4096+2048)
-#define MEMSIZE (2048)              // Mega testing.
+// ----------------------------
+// Mega
+#if defined(__AVR_ATmega2560__)
+#define THIS_CPU "Mega 2560"
+#define MEMSIZE (2048)          // Mega2650 has 8k SRAM, Max, 6K: #define MEMSIZE (4096+2048)
+//
+#define USE_THROTTLE 0          // Set for slower Mega CPU.
+
+// ----------------------------
+// Due
+#elif defined(__SAM3X8E__)
+#define THIS_CPU "Due"
+#define MEMSIZE 0x10000         // 64K
+//
+#define USE_THROTTLE 1          // Set for faster Due CPU.
+
+#else
+#define THIS_CPU "Other:Nano|Uno"
+#error requires Arduino Mega2560 or Arduino Due
+#define MEMSIZE (64)            // For Nano or Uno test: Global variables use 1935 bytes (23%) of dynamic memory
+// Test on Nano or Uno.
+//  Sketch uses 39902 bytes (123%) of program storage space. Maximum is 32256 bytes.
+//  text section exceeds available space in board
+//  Global variables use 1933 bytes (94%) of dynamic memory, leaving 115 bytes for local variables. Maximum is 2048 bytes.
+//  Sketch too big; see http://www.arduino.cc/en/Guide/Troubleshooting#size for tips on reducing it.
+//  Error compiling for board Arduino Uno.
+#endif
+
+// ---------------------------------
+// Enable throttling of CPU speed.
+
+#define CF_THROTTLE     0x01
+#define CF_SERIAL_INPUT 0x08
+
+#define NUM_SERIAL_DEVICES 4
+
+extern uint32_t config_flags, config_flags2;
+inline bool config_serial_input_enabled()     {
+  return (config_flags & CF_SERIAL_INPUT) != 0;
+}
+
+// -----------------------------------------------------------------------------
+// Memory, declare memory and memory read and write functions
 
 extern byte Mem[MEMSIZE];
+
+void MEM_WRITE_STEP(uint16_t a, byte v);
+#define MWRITE(a,v) { Mem[a]=v; }
 
 // ----------------------------------------
 #define MREAD(a)    (Mem[a])
 // WARNING: arguments to MEM_READ and MEM_WRITE macros should not have side effects
 // (e.g. MEM_READ(addr++)) => any side effects will be executed multiple times!
 
-// If SHOW_MWRITE_OUTPUT enabled, the D0-7 LEDs will show values being output to the data bus
-// during memory write operations). This is different from the original
-// Altair behavior where the D0-7 LEDs were all on for write operations
-// because the LEDs are wired to the DIN bus lines which are floating during
-// CPU write). Additionally, enabling this makes sure that the "WO" LED will
-// go out (negative logic) AFTER the address and data buses have been set to
-// the proper values.
-#define SHOW_MWRITE_OUTPUT 1
-
-// To improve performance, the MEMR LED handling is a bit lazy while a program is
-// running. Memory reads are by far the most common bus action and any tiny
-// bit of time that can be cut here makes a significant performance difference.
-// Setting USE_REAL_MREAD_TIMING to 1 will improve the accuracy of MREAD at the
-// cost of performace. Leaving this at 0 has virtually no visible consequences
-// apart from a slight difference in brightness of the MEMR LED while running.
-// Setting it to 1 significantly reduces performance.
-// Most users should keep this at 0
-#define USE_REAL_MREAD_TIMING 0
-
 byte MEM_READ_STEP(uint16_t a);
-void MEM_WRITE_STEP(uint16_t a, byte v);
 
 // dave, The orginal MEM_READ(a).
 #define MEM_READ2(a) (host_read_status_led_WAIT() ? MEM_READ_STEP(a) : \
@@ -58,12 +86,11 @@ void MEM_WRITE_STEP(uint16_t a, byte v);
                       host_set_addr_leds(a), \
                       host_set_data_leds(MREAD(a)) \
                     )
-// ----------------------------------------
-#define MWRITE(a,v) { Mem[a]=v; }
 
 // -----------------------------------------------------------------------------
-// cpucore.h
-// -----------------------------------------------------------------------------
+// CPU Registers
+
+void cpucore_i8080_print_registers();
 
 #define PS_CARRY       0x01
 #define PS_PARITY      0x04
@@ -119,41 +146,11 @@ extern uint16_t regSP;
 
 void init_regS();
 
-#define PROC_I8080 0
-
-// fixed I8080 CPU
-#define cpu_opcodes cpucore_i8080_opcodes
-#define cpu_clock_KHz()     CPU_CLOCK_I8080
-#define cpu_get_processor() PROC_I8080
-
-typedef void (*CPUFUN)();
-extern CPUFUN cpu_opcodes[256];
-#define CPU_EXEC(opcode) (cpu_opcodes[opcode])();
-
 // -----------------------------------------------------------------------------
-// host.h
-// -----------------------------------------------------------------------------
+// Status bits and bytes
 
-#if defined(__AVR_ATmega2560__)
-#define THIS_CPU "Mega 2560"
-#elif defined(__SAM3X8E__)
-#define THIS_CPU "Due"
-#else
-#define THIS_CPU "Other:Nano|Uno"
-#error requires Arduino Mega2560 or Arduino Due
-// Test on Nano or Uno.
-//  Sketch uses 39902 bytes (123%) of program storage space. Maximum is 32256 bytes.
-//  text section exceeds available space in board
-//  Global variables use 1933 bytes (94%) of dynamic memory, leaving 115 bytes for local variables. Maximum is 2048 bytes.
-//  Sketch too big; see http://www.arduino.cc/en/Guide/Troubleshooting#size for tips on reducing it.
-//  Error compiling for board Arduino Uno.
-// -----------------------------------------------------------------------------
-#endif  // CPU: Nano|Uno
-
-// -----------------------------------------------------------------------------
-// host_mega.h included here rather than another file
-// -----------------------------------------------------------------------------
-//
+// Sync statusByteB bit values with Processor.ini for shifting out to 595's.
+// Sync other status pins to match in Processor.ini.
 
 inline void host_set_addr_leds(uint16_t v) {
   statusByteA = (v & 0xff); // 0xff : Turn ON, 0x00 : Turn OFF
@@ -167,12 +164,13 @@ inline void host_set_addr_leds(uint16_t v) {
 #define host_set_status_led_WAIT()  { digitalWrite(40, HIGH); status_wait = true; }
 #define host_clr_status_led_WAIT()  { digitalWrite(40, LOW);  status_wait = false; }
 
+#define host_read_status_led_HLDA()   status_hlda
+#define host_set_status_led_HLDA()  { digitalWrite(41, HIGH); status_inte = true; }
+#define host_clr_status_led_HLDA()  { digitalWrite(41, LOW);  status_inte = false; }
+
 #define host_read_status_led_INTE()   status_inte
 #define host_set_status_led_INTE()  { digitalWrite(38, HIGH); status_inte = true; }
 #define host_clr_status_led_INTE()  { digitalWrite(38, LOW);  status_inte = false; }
-
-#define host_set_status_led_HLDA()    digitalWrite(41, HIGH)
-#define host_clr_status_led_HLDA()    digitalWrite(41, LOW)
 
 #define host_set_status_led_MEMR()    statusByteB |=  0x80
 #define host_set_status_led_INP()     statusByteB |=  0x40
@@ -203,33 +201,11 @@ inline byte host_mega_read_switches(byte highlow) {
 }
 #define host_read_sense_switches() host_mega_read_switches(true)
 #define host_read_addr_switches() (host_mega_read_switches(true) * 256 | host_mega_read_switches(false))
-bool host_read_function_switch(byte inputNum);
 #define host_check_interrupts() { if( Serial.available() ) serial_receive_host_data(0, Serial.read()); }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-// config.h
-// -----------------------------------------------------------------------------
-
-// Enables throttling of CPU speed.
-// #define USE_THROTTLE 1        // Set for faster Due CPU.
-#define USE_THROTTLE 0        // Set for slower Mega CPU.
-
-#define CF_THROTTLE     0x01
-#define CF_SERIAL_INPUT 0x08
-
-#define NUM_SERIAL_DEVICES 4
-
-extern uint32_t config_flags, config_flags2;
-inline bool config_serial_input_enabled()     {
-  return (config_flags & CF_SERIAL_INPUT) != 0;
-}
-
-// -----------------------------------------------------------------------------
 // numsys.h
-// -----------------------------------------------------------------------------
 
 #ifndef NUMSYS_H
 #define NUMSYS_H
@@ -259,8 +235,8 @@ uint16_t numsys_read_hex_word();
 #endif
 
 // -----------------------------------------------------------------------------
-// timer.h
 // -----------------------------------------------------------------------------
+// timer.h
 
 extern uint32_t timer_cycle_counter, timer_cycle_counter_offset, timer_next_expire_cycles;
 
@@ -278,3 +254,4 @@ void timer_setup();
 #define TIMER_ADD_CYCLES(n) if( (timer_cycle_counter+=(n)) >= timer_next_expire_cycles ) timer_check()
 
 // -----------------------------------------------------------------------------
+// eof
