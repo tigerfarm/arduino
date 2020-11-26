@@ -149,7 +149,7 @@ void print_panel_serial() {
   //
   // Status
   Serial.print(F("INTE MEMR INP M1 OUT HLTA STACK WO INT       D7  D6  D5  D4  D3  D2  D1  D0\r\n"));
-  if ( false  ) Serial.print(F(" *  "));    else Serial.print(F(" .  "));
+  if ( host_read_status_led_INTE() ) Serial.print(F(" *  "));    else Serial.print(F(" .  "));
   // if ( false  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));  // PROT, not processed. Allows spacing below.
   if ( statusByteB & ST_MEMR  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
   if ( statusByteB & ST_INP   ) Serial.print(F("  * "));    else Serial.print(F("  . "));
@@ -241,17 +241,11 @@ void singleStepWait() {
 void altair_interrupt_enable() {
   // altair_interrupts_enabled = true;
   host_set_status_led_INTE();
-  if (host_read_status_led_WAIT()) {
-    singleStepWait();
-  }
 }
 
 void altair_interrupt_disable() {
   // altair_interrupts_enabled = false;
   host_clr_status_led_INTE();
-  if (host_read_status_led_WAIT()) {
-    singleStepWait();
-  }
 }
 
 // -----------------------------------------------------------------------------
@@ -337,33 +331,29 @@ void altair_out(byte portDataByte, byte regAdata) {
   Serial.print(regAdata);
   Serial.println(".");
 #endif
-  host_set_addr_leds(portDataByte | portDataByte * 256);
   host_set_data_leds(regAdata);
   host_set_status_led_OUT();
-  host_set_status_led_WO();
+  host_clr_status_led_WO();
   //
   // Write output byte to the output port.
   switch (portDataByte) {
     case 16:
+      // Actual output of bytes. Example output a byte to the serial port (IDE monitor).
       // Test port: 20Q (octal: 020).
-      inputDataByte = 2;  // dave, Write regAdata to serial port.
+      Serial.print("++ Output byte to test port(serial port):");
+      Serial.print(regAdata);         // Write regAdata to serial port.
+      Serial.println(":");
       break;
     default:
-      inputDataByte = 0;
-  }
-  //
-  // Actual output of bytes. Example output a byte to the serial port (IDE monitor).
-  //
-  if ( host_read_status_led_WAIT() ) {
-    // If single stepping, need to wait.
-    altair_set_outputs(portDataByte | portDataByte * 256, 0xff);
-    singleStepWait();
+      Serial.print("-- Output port not found: ");
+      Serial.print(portDataByte);
+      Serial.println(".");
   }
   if (host_read_status_led_WAIT()) {
     singleStepWait();
   }
   host_clr_status_led_OUT();
-  host_clr_status_led_WO();
+  host_set_status_led_WO();
 }
 
 void altair_set_outputs(uint16_t addressWord, byte dataByte) {
@@ -627,6 +617,8 @@ void processWaitSwitch(byte readByte) {
       MWRITE( cnt++, B00001000 & 0xff);  // ++ immediate:8:8
       MWRITE( cnt++, B11100011 & 0xff);  // ++ opcode:out:11100011:8
       MWRITE( cnt++, B00001000 & 0xff);  // ++ immediate:8:8
+      MWRITE( cnt++, B11111011 & 0xff);  // ++ opcode:ei:11111011
+      MWRITE( cnt++, B11110011 & 0xff);  // ++ opcode:di:11110011
       MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
       MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:235
       MWRITE( cnt++, B11101011 & 0xff);  // ++ immediate:235:235

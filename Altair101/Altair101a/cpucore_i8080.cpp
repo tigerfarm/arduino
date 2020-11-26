@@ -23,6 +23,7 @@
 #define LOG_MESSAGES 1    // For debugging.
 
 word status_wait = 1;
+word status_inte = 0;
 //
 // For Processor.ino
 // Replace PORTX with statusByteX.
