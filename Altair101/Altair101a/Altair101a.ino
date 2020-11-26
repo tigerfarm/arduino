@@ -384,6 +384,18 @@ void altair_set_outputs(uint16_t addressWord, byte dataByte) {
 #endif
   host_set_addr_leds(addressWord);
   host_set_data_leds(dataByte);
+  //
+  // host_set_status_leds_READMEM_M1();
+  /* Opcode memory read(M1):
+    host_set_status_led_MEMR();
+    host_clr_status_led_INP();
+    host_set_status_led_M1();
+    host_clr_status_led_OUT();
+    host_clr_status_led_HLTA();
+    host_clr_status_led_STACK();
+    host_clr_status_led_WO();
+    host_clr_status_led_INT();
+  */
   // print_panel_serial();
 }
 
@@ -400,13 +412,14 @@ void processDataOpcode() {
 #endif
   //
   host_set_status_leds_READMEM_M1();
-  host_set_addr_leds(regPC);
   opcode = MREAD(regPC);
+  host_clr_status_led_M1();
+  host_set_addr_leds(regPC);
   host_set_data_leds(opcode);
   regPC++;
-  //
-  host_clr_status_led_M1();
   CPU_EXEC(opcode);
+  //
+  // Set for next opcode read:
   host_set_status_led_MEMR();
   host_set_status_led_M1();
   host_clr_status_led_WO();
@@ -459,6 +472,7 @@ void runProcessor() {
 void processWaitSwitch(byte readByte) {
   uint16_t cnt;
   //
+  // -------------------------------
   // Process an address/data toggle.
   //
   int data = readByte;
@@ -470,8 +484,8 @@ void processWaitSwitch(byte readByte) {
     addressSwitch = addressSwitch ^ (1 << (data - 'a' + 10));
     return;
   }
-  //
-  // Process command switches. Tested: RUN, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT
+  // -------------------------------
+  // Process command switches. Tested: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT, RESET
   //
   switch (readByte) {
     case 'r':
@@ -525,16 +539,6 @@ void processWaitSwitch(byte readByte) {
       altair_set_outputs(regPC, MREAD(regPC));
       //
       host_clr_status_led_HLTA();
-      /* The above is the same as the following:
-        host_set_status_led_MEMR();
-        host_clr_status_led_INP();
-        host_set_status_led_M1();
-        host_clr_status_led_OUT();
-        host_clr_status_led_HLTA();
-        host_clr_status_led_STACK();
-        host_clr_status_led_WO();
-        host_clr_status_led_INT();
-      */
       //
       // p_regPC = regPC;
       // Actual RESET action ?- set bus/data LEDs on, status LEDs off: altair_set_outputs(0xffff, 0xff);
@@ -543,19 +547,25 @@ void processWaitSwitch(byte readByte) {
     // -------------------------------------
     case 'h':
       Serial.println("----------------------------------------------------");
+      Serial.println("+++ Commands");
+      Serial.println("-------------");
       Serial.println("+ h, Help.");
       Serial.println("-------------");
-      Serial.println("+ r, RUN.");
-      Serial.println("+ s, SINGLE STEP when in WAIT mode.");
-      Serial.println("+ s, STOP        when in RUN mode.");
-      Serial.println("+ x, EXAMINE switch address.");
-      Serial.println("+ X, EXAMINE NEXT address, current address + 1.");
-      Serial.println("+ p, DEPOSIT at current address");
-      Serial.println("+ P, DEPOSIT NEXT address, current address + 1");
-      Serial.println("+ R, RESET, set address to zero.");
+      Serial.println("+ 0...9           toggle  A0...A9  address switches.");
+      Serial.println("+ a...f           toggle A10...A15 address switches.");
       Serial.println("-------------");
-      Serial.println("+ i, Information: print registers.");
-      Serial.println("+ l, loaded a simple program.");
+      Serial.println("+ r, RUN mode.");
+      Serial.println("+ s, STOP         when in RUN mode, change to WAIT mode.");
+      Serial.println("+ s, SINGLE STEP  when in WAIT mode.");
+      Serial.println("+ x, EXAMINE      current switch address.");
+      Serial.println("+ X, EXAMINE NEXT address, current address + 1.");
+      Serial.println("+ p, DEPOSIT      current address");
+      Serial.println("+ P, DEPOSIT NEXT address, current address + 1");
+      Serial.println("+ R, RESET        set program counter address to zero.");
+      Serial.println("-------------");
+      Serial.println("+ i, info         information print of registers.");
+      Serial.println("+ l, load         load a sample program.");
+      Serial.println("+ l013x, Load program. Toggle switches 0,1,3 (00001011), and EXAMINE the address.");
       Serial.println("----------------------------------------------------");
       break;
     // -------------------------------------

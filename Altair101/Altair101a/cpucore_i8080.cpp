@@ -157,9 +157,6 @@ void MEM_WRITE_STEP(uint16_t a, byte v) {
   Serial.println(v);
 #endif
   altair_set_outputs(a, v); // If rather original: altair_set_outputs(a, 0xff);
-  
-#endif
-
   singleStepWait();
   host_clr_status_led_WO();
 }
