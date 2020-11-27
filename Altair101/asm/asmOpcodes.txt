@@ -239,8 +239,8 @@ rp  :11110000:|if P, RET  :RP       11 100 000  1  Conditional return from subro
 rm  :11111000:|if M, RET  :RM       11 111 000  1  Conditional return from subroutine
 
 rst :11NNN111:RST N    11 NNN 111  1  Restart call: rst <0..7>, example: rst 3.
-rst0:11000111:|CALL $0 :Restart (Call 0)
-rst1:11001111:|CALL $8 :Restart (Call 1)
+rst0:11000111:|CALL $0 :Restart: Call current location + 0?
+rst1:11001111:|CALL $8 :Restart: Call current location + 8?
 rst2:11010111:|CALL $10:Restart (Call 2)
 rst3:11011111:|CALL $18:Restart (Call 3)
 rst4:11100111:|CALL $20:Restart (Call 4)

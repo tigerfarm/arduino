@@ -10,7 +10,7 @@ Steps to use the code for running opcode instructions.
 
 Create a minimum code base to run machine code:
 + 1. Get the simulator to run on Mega, maybe the Due. I have it running on Mega.
-+ 2. Get the serial output to work properly. I'm using MacWise VT100 emulator.
++ 2. Didn't work for me: Get the serial output to work properly. I'm using MacWise VT100 emulator.
 + 3. I found the documentation. I can interact with the Simulator over serial command line.
 + 4. I can enter and run simple programs. Load and run CPM?
 + 5. Remove programs not require to run a machine code programs, such as: dazzler.*, disassembler.*, and others.
@@ -24,11 +24,12 @@ Modify the minimum code base to work with Altair 101:
         Get memory manage to work (EXAMINE and DEPOSIT).
 + 8. Get a Program to Run and Add monitor/debug functions.
 + 9. Consolidate the program files (*.h and *.cpp).
-+ 10. Get single step to work: memory read and write, stack push and pop.
++ 10. Get single step to work, with number of opcode cycles: memory read and write, stack push and pop.
 
 Code integration, Altair101a into Processor.ino:
-+ Sync Altair101a.ino status light bits with values in Processor.ino.
-+ Add lightsStatusAddressData() to Altair101a.ino.
++ 11. Sync Altair101a.ino status light bits with values in Processor.ino.
++ 12. Add lightsStatusAddressData(Status,Address,Data) to Altair101a.ino.
+
 + Run Altair101a.ino on the Altair 101 desktop machine.
 + Output to Altair 101 panel LED.
 + Input from Altair 101 panel switches.
@@ -38,6 +39,16 @@ void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte
     ...
 }
 ````
+Connecting to the Arduino serial port.
+Find the port, connect using, screen command.
+````
+$ ls /dev/tty.*
+/dev/tty.Bluetooth-Incoming-Port	/dev/tty.wchusbserial14110
+$ screen /dev/tty.wchusbserial14110
+...
+To exit (detach): ctrl+a d
+````
+
 ##### Links
 
 Chris Davis of Altairduino.com has set up a Google Group for discussion of Altair-Duino related questions:

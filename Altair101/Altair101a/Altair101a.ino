@@ -14,9 +14,9 @@
 
   + Implement: lightsStatusAddressData(Status,Address,Data)
   ++ Use optional outputs: serial, and/not LED lights (on/off using serial command).
-  
+
   HLT leaves M1 on when single stepping. M1 should be off.
-  
+
   + For SINGLE STEP read and write during RUN mode,
   ++ Have the status lights same as WAIT mode.
   ++ Have the data lights all data lights on, same as the Altair 8800.
@@ -162,32 +162,34 @@ void printData(byte theByte) {
 void print_panel_serial() {
   //
   // Status
-  Serial.print(F("INTE MEMR INP M1 OUT HLTA STACK WO INT       D7  D6   D5  D4  D3   D2  D1  D0\r\n"));
+  Serial.print(F("INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0\r\n"));
   if ( host_read_status_led_INTE() ) Serial.print(F(" *  "));    else Serial.print(F(" .  "));
   // if ( false  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));  // PROT, not processed. Allows spacing below.
-  if ( statusByteB & MEMR_ON  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
+  if ( statusByteB & MEMR_ON  ) Serial.print(F("  *  "));   else Serial.print(F("  . "));
   if ( statusByteB & INP_ON   ) Serial.print(F("  * "));    else Serial.print(F("  . "));
   if ( statusByteB & M1_ON    ) Serial.print(F(" * "));     else Serial.print(F(" . "));
   if ( statusByteB & OUT_ON   ) Serial.print(F("  * "));    else Serial.print(F("  . "));
-  if ( statusByteB & HLTA_ON  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
-  if ( statusByteB & STACK_ON ) Serial.print(F("   *  "));  else Serial.print(F("   .  "));
+  if ( statusByteB & HLTA_ON  ) Serial.print(F("  * "));   else Serial.print(F("  . "));
+  if ( statusByteB & STACK_ON ) Serial.print(F("   * "));  else Serial.print(F("   . "));
   if ( statusByteB & WO_ON    ) Serial.print(F(" * "));     else Serial.print(F(" . "));
   if ( statusByteB & INT_ON   ) Serial.print(F("  *"));     else Serial.print(F("  ."));
-  Serial.print(F("     "));  // PROT, not processed. use the spacing here to separate with the data LEDs.
+  Serial.print(F("        "));
   //
   // Data
   byte dataBus = host_read_data_leds();
   if ( dataBus & 0x80 )   Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( dataBus & 0x40 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( dataBus & 0x20 )   Serial.print(F("   * ")); else Serial.print(F("   ."));
+  Serial.print(F(" "));
+  if ( dataBus & 0x20 )   Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( dataBus & 0x10 )   Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( dataBus & 0x08 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( dataBus & 0x04 )   Serial.print(F("   * ")); else Serial.print(F("   ."));
+  Serial.print(F(" "));
+  if ( dataBus & 0x04 )   Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( dataBus & 0x02 )   Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( dataBus & 0x01 )   Serial.print(F("   *")); else Serial.print(F("   ."));
   //
   // WAIT and HLDA
-  Serial.print(("\r\nWAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8  A7  A6   A5  A4  A3   A2  A1  A0\r\n"));
+  Serial.print(("\r\nWAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0\r\n"));
   if ( host_read_status_led_WAIT() ) Serial.print(F(" *  "));   else Serial.print(F(" .  "));
   if ( false ) Serial.print(F("  *   ")); else Serial.print(F("  .   "));
   //
@@ -201,17 +203,20 @@ void print_panel_serial() {
   if ( addressBus & 0x0400 ) Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( addressBus & 0x0200 ) Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( addressBus & 0x0100 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  Serial.print(F(" "));
   if ( addressBus & 0x0080 ) Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( addressBus & 0x0040 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( addressBus & 0x0020 ) Serial.print(F("   * ")); else Serial.print(F("   ."));
+  Serial.print(F(" "));
+  if ( addressBus & 0x0020 ) Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( addressBus & 0x0010 ) Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( addressBus & 0x0008 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( addressBus & 0x0004 ) Serial.print(F("   * ")); else Serial.print(F("   ."));
+  Serial.print(F(" "));
+  if ( addressBus & 0x0004 ) Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( addressBus & 0x0002 ) Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( addressBus & 0x0001 ) Serial.print(F("   *")); else Serial.print(F("   ."));
   //
   // Address/Data switches
-  Serial.print(F("\r\n            S15 S14 S13 S12 S11 S10  S9  S8  S7  S6   S5  S4  S3   S2  S1  S0\r\n"));
+  Serial.print(F("\r\n            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0\r\n"));
   Serial.print(F("          "));
   if ( addressSwitch & 0x8000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   if ( addressSwitch & 0x4000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
@@ -221,12 +226,15 @@ void print_panel_serial() {
   if ( addressSwitch & 0x0400 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   if ( addressSwitch & 0x0200 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   if ( addressSwitch & 0x0100 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  Serial.print(F(" "));
   if ( addressSwitch & 0x0080 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   if ( addressSwitch & 0x0040 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-  if ( addressSwitch & 0x0020 ) Serial.print(F("   ^ ")); else Serial.print(F("   v"));
+  Serial.print(F(" "));
+  if ( addressSwitch & 0x0020 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   if ( addressSwitch & 0x0010 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   if ( addressSwitch & 0x0008 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-  if ( addressSwitch & 0x0004 ) Serial.print(F("   ^ ")); else Serial.print(F("   v"));
+  Serial.print(F(" "));
+  if ( addressSwitch & 0x0004 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   if ( addressSwitch & 0x0002 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   if ( addressSwitch & 0x0001 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   //
@@ -581,18 +589,45 @@ void processWaitSwitch(byte readByte) {
       Serial.println("+ l, load         load a sample program.");
       Serial.println("+ o, LEDs off     do not output to LED lights.");
       Serial.println("+ O, LEDs on      output to LED lights.");
+      Serial.println("-------------");
       Serial.println("+ l013x, Load program. Toggle switches 0,1,3 (00001011), and EXAMINE the address.");
+      Serial.println("+ z, clear terminal screen.");
       Serial.println("----------------------------------------------------");
       break;
     // -------------------------------------
     case 'o':
       Serial.println("+ o, do not output to LED lights.");
-        LED_IO = false;
-        break;
+      LED_IO = false;
+      break;
     case 'O':
       Serial.println("+ O, output to LED lights.");
-        LED_IO = true;
-        break;
+      LED_IO = true;
+      break;
+    // -------------------------------------
+    // The following requires a VT100 terminal such as a Macbook terminal.
+    // The following doesn't work on the Ardino monitor.
+    // VT100 reference:
+    //  http://ascii-table.com/ansi-escape-sequences-vt-100.php
+    case 'y':
+      // Esc[2J  Clear entire screen
+      Serial.print("\033[2J");
+      break;
+    case 'z':
+      // Esc[H  Move cursor to upper left corner
+      // Esc[2J  Clear entire screen
+      Serial.print("\033[H\033[2J");
+      break;
+    case 'Z':
+      // Serial.println("+ z, clear terminal screen.");
+      Serial.print("\033[H\033[2J");
+      Serial.println("----------------------------------------------------");
+      Serial.println("Line 1");
+      Serial.println("Line 2");
+      Serial.println("Line 3");
+      Serial.println("----------------------------------------------------");
+      // Esc[ValueA   Move cursor up n lines 
+      Serial.print("\033[3");
+      break;
     // -------------------------------------
     case 'l':
       Serial.println("+ l, loaded a simple program.");
