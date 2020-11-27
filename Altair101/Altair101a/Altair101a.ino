@@ -603,19 +603,51 @@ void processWaitSwitch(byte readByte) {
       Serial.println("+ O, output to LED lights.");
       LED_IO = true;
       break;
-    // -------------------------------------
+    //
+    // -------------------------------------------------------------------
     // The following requires a VT100 terminal such as a Macbook terminal.
     // The following doesn't work on the Ardino monitor.
     // VT100 reference:
     //  http://ascii-table.com/ansi-escape-sequences-vt-100.php
+    //
     case 'y':
-      // Esc[2J  Clear entire screen
-      Serial.print("\033[2J");
+      // Esc[2J  Clear entire screen, cursor stays where is.
+      // Serial.print("\033[2J");
+      /*
+        | INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
+        |  .    *    .  *   .   .    .  *   .           .   .    .   .   .    .   .   .
+        | WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
+        |   .      .   .   .   .   .   .   .   .    .   .    .   .   .    .   .   .   .
+        |     S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
+        |      v   v   v   v   v   v   v   v    v   v    v   v   v    v   v   v
+        ------
+        + Ready to receive command.
+        <cursor here>
+      */
+      // Rewrite the front panel LEDs and switches.
+      Serial.print("\033[H");  // Move cursor home
+      Serial.print("\033[1B");  // Cursor down
+      // Print status and data lights.
+      Serial.println(F(" .    *    .  .   .   .    .  *   .           .   .    *   .   .    .   *   ."));
+      Serial.print("\033[1B");  // Cursor down
+      // Print address lights.
+      Serial.println(F(" *    .      .   .   .   .   .   .   .   .    .   .    .   .   *    .   .   *"));
+      Serial.print("\033[1B");  // Cursor down
+      // print address toggles.
+      Serial.println(F("             v   v   v   v   v   v   v   v    v   v    v   v   ^    v   v   ^"));
+      Serial.print("\033[2B");  // Cursor down
       break;
     case 'z':
-      // Esc[H  Move cursor to upper left corner
-      // Esc[2J  Clear entire screen
       Serial.print("\033[H\033[2J");
+      print_panel_serial();
+      // Esc[H  Move cursor to upper left corner, example: Serial.print("\033[H");
+      // Esc[J  Clear screen from cursor down, example: Serial.print("\033[J");
+      // Esc[2J  Clear entire screen, example: Serial.print("\033[H");
+      // Example: Serial.print("\033[H\033[2J");  // Move home and clear entire screen.
+      // Esc[nA  Move cursor up n lines.
+      // Example: Serial.print("\033[3A");  // Cursor Up 3 lines.
+      // Esc[nB  Move cursor down n lines.
+      // Example: Serial.print("\033[6B");  // Cursor down 6 lines.
       break;
     case 'Z':
       // Serial.println("+ z, clear terminal screen.");
@@ -625,8 +657,6 @@ void processWaitSwitch(byte readByte) {
       Serial.println("Line 2");
       Serial.println("Line 3");
       Serial.println("----------------------------------------------------");
-      // Esc[ValueA   Move cursor up n lines 
-      Serial.print("\033[3");
       break;
     // -------------------------------------
     case 'l':
