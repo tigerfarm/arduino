@@ -1,35 +1,26 @@
 // -----------------------------------------------------------------------------
 /*
   Processor
+  + Serial interactivity using the Arduino IDE monitor USB serial port.
   + Using David Hansel's Altair 8800 Simulator code to process machine code instructions.
-  + Interactivity is over the Arduino IDE monitor USB serial port.
 
-  + When SINGLE STEP reads and write, I've chose to show the actual values versus FF
-    which is all data lights on, same as the Altair 8800.
+  + When SINGLE STEP reads and write, I've chose to show the actual values versus
+    having all the data lights on which is what the original Altair 8800 does.
 
   ---------------------------------------------------------
   Next:
+
+  + Prevent lockup when using PUSH A, before setting SP.
+
+  + Implement: lightsStatusAddressData(Status,Address,Data)
+  ++ Use optional outputs: serial, and/not LED lights (on/off using serial command).
+  
+  HLT leaves M1 on when single stepping. M1 should be off.
+  
   + For SINGLE STEP read and write during RUN mode,
   ++ Have the status lights same as WAIT mode.
   ++ Have the data lights all data lights on, same as the Altair 8800.
 
-  + Implement INP and OUT status lights when SINGLE STEP the following instructions of the status light video.
-            in      20Q     ;opcode fetch, mem read, I/O input
-            out     20Q     ;opcode fetch, mem read, I/O output
-  + I will need to add I/O into this program.
-  ++ For input testing, I'll hard code an input value.
-  ++ For output testing, output byte value to serial, which shows in the Arduino IDE monitor.
-  + From cpucore_i8080.cpp:
-  static void cpu_IN() {
-  regA = altair_in(MEM_READ(regPC));
-  TIMER_ADD_CYCLES(10);
-  regPC++;
-  }
-  static void cpu_OUT() {
-  altair_out(MEM_READ(regPC), regA);
-  TIMER_ADD_CYCLES(10);
-  regPC++;
-  }
   ---------------------------------------------------------
 */
 // -----------------------------------------------------------------------------
@@ -588,9 +579,20 @@ void processWaitSwitch(byte readByte) {
       Serial.println("-------------");
       Serial.println("+ i, info         information print of registers.");
       Serial.println("+ l, load         load a sample program.");
+      Serial.println("+ o, LEDs off     do not output to LED lights.");
+      Serial.println("+ O, LEDs on      output to LED lights.");
       Serial.println("+ l013x, Load program. Toggle switches 0,1,3 (00001011), and EXAMINE the address.");
       Serial.println("----------------------------------------------------");
       break;
+    // -------------------------------------
+    case 'o':
+      Serial.println("+ o, do not output to LED lights.");
+        LED_IO = false;
+        break;
+    case 'O':
+      Serial.println("+ O, output to LED lights.");
+        LED_IO = true;
+        break;
     // -------------------------------------
     case 'l':
       Serial.println("+ l, loaded a simple program.");
@@ -635,11 +637,12 @@ void processWaitSwitch(byte readByte) {
         MWRITE( cnt++, B00000010 & 0xff);  // ++ lb:Store:2
         MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
       */
-      // Front panel status light testing: https://www.youtube.com/watch?v=3_73NwB6toY
-      // Keys: 5x5013567p013567lr
-      // Currently, difference is the flag byte (regS) is B01000000, where my flag byte is B00000010
-      init_regS();
+      // -----------------------------
+      // Front panel status light test: https://www.youtube.com/watch?v=3_73NwB6toY
+      //
       MWRITE(    32, B11101011 & 0xff);  // The video has 235(octal 353, B11101011) in address 32(B00100000).
+      init_regS();      // Currently, difference is the flag byte (regS) is B01000000, where my flag byte is B00000010
+      //
       MWRITE( cnt++, B00111010 & 0xff);  // ++ opcode:lda:00111010:32
       MWRITE( cnt++, B00100000 & 0xff);  // ++ lb:32:32
       MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0

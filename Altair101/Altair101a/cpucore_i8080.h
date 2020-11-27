@@ -187,7 +187,7 @@ inline void host_set_addr_leds(uint16_t v) {
 #define host_set_status_led_OUT()     statusByteB |=  OUT_ON
 #define host_set_status_led_HLTA()    statusByteB |=  HLTA_ON
 #define host_set_status_led_STACK()   statusByteB |=  STACK_ON
-#define host_set_status_led_WO()      statusByteB &= ~WO_ON  // Set turn WO off, reverse logic.
+#define host_set_status_led_WO()      statusByteB &= ~WO_ON       // Set turn WO off, reverse logic.
 #define host_set_status_led_INT()     statusByteB |=  INT_ON
 
 #define host_clr_status_led_MEMR()    statusByteB &= ~MEMR_ON
@@ -196,13 +196,13 @@ inline void host_set_addr_leds(uint16_t v) {
 #define host_clr_status_led_OUT()     statusByteB &= ~OUT_ON
 #define host_clr_status_led_HLTA()    statusByteB &= ~HLTA_ON
 #define host_clr_status_led_STACK()   statusByteB &= ~STACK_ON
-#define host_clr_status_led_WO()      statusByteB |=  WO_ON  // Set turn WO on, reverse logic.
+#define host_clr_status_led_WO()      statusByteB |=  WO_ON       // Set turn WO on, reverse logic.
 #define host_clr_status_led_INT()     statusByteB &= ~INT_ON
 
 #define host_set_status_leds_READMEM()       statusByteB |= MEMR_ON | WO_ON
 #define host_set_status_leds_READMEM_M1()    statusByteB |= MEMR_ON | M1_ON | WO_ON
 #define host_set_status_leds_READMEM_STACK() statusByteB |= MEMR_ON | STACK_ON | WO_ON
-#define host_set_status_leds_WRITEMEM()      statusByteB &= ~(MEMR_ON | WO_ON) // statusByteB &= ~0x82
+#define host_set_status_leds_WRITEMEM()      statusByteB &= ~(MEMR_ON | WO_ON)
 
 inline byte host_mega_read_switches(byte highlow) {
   byte b = 0;
