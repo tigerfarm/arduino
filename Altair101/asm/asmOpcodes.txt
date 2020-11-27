@@ -226,7 +226,30 @@ ei  :11111011:EI #     11 100 011  1  Enable interrupts. Partly implemented.
 di  :11110011:DI #     11 100 011  1  Disable interrupts. Partly implemented.
 
 // -----------------------------------------------------------------------------
-// 8080/8085 Opcodes Not implemented in the Altair 101 processor or assembler.
+// New assembler implementations, not tested.
+
+r   :11CCC000:Rcc      11 NNN 111  1  Conditional return from subroutine: rnz, rz, rnc, rc, rpo, rpe, rp, rm.
+rnz :11000000:|if NZ, RET :RNZ Conditional return from subroutine
+rz  :11001000:|if Z, RET  :RZ Conditional return from subroutine
+rnc :11010000:|if NCY, RET:RNC Conditional return from subroutine
+rc  :11011000:|if CY, RET :RC Conditional return from subroutine
+rpo :11100000:|if PO, RET :RPO      11 100 000  1  Conditional return from subroutine
+rpe :11101000:|if PE, RET :RPE      11 101 000  1  Conditional return from subroutine
+rp  :11110000:|if P, RET  :RP       11 100 000  1  Conditional return from subroutine
+rm  :11111000:|if M, RET  :RM       11 111 000  1  Conditional return from subroutine
+
+rst :11NNN111:RST N    11 NNN 111  1  Restart call: rst <0..7>, example: rst 3.
+rst0:11000111:|CALL $0 :Restart (Call 0)
+rst1:11001111:|CALL $8 :Restart (Call 1)
+rst2:11010111:|CALL $10:Restart (Call 2)
+rst3:11011111:|CALL $18:Restart (Call 3)
+rst4:11100111:|CALL $20:Restart (Call 4)
+rst5:11101111:|CALL $28:Restart (Call 5)
+rst6:11110111:|CALL $30:Restart (Call 6)
+rst7:11111111:|CALL $38:Restart (Call 7)
+
+// -----------------------------------------------------------------------------
+// 8080/8085 Opcodes Not implemented in the Altair 101 assembler.
 
 aci :11001110:ACI #    11 001 110  ?  Not implemented, Add #(immediate value) to register A, plus the carry bit (with ZSPCA).
 sbi :11011110:SBI #    11 011 110  ?  Not implemented, Subtract #(immediate value) from register A with borrow (with ZSPCA).
@@ -272,8 +295,6 @@ sbb :10011SSS:SBB S    10 011 SSS  1  Not implemented, Subtract register from A 
 // ----------------------------------------------------------------------
 
 // Cccc a    11CCC100 lb hb    -       Conditional subroutine call
-// Rccc      11CCC000          -       Conditional return from subroutine
-// RST n     11NNN111          -       Restart (Call n*8)
 
 // -----------------------------------------------------------------------------
 // eof

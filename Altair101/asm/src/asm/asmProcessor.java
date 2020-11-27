@@ -846,6 +846,14 @@ public class asmProcessor {
             case "rrc":
             case "ei":
             case "di":
+            case "rz":  // Return options
+            case "rnz":
+            case "rc":
+            case "rnc":
+            case "rpo":
+            case "rpe":
+            case "rp":
+            case "rm":
                 sOpcodeBinary = getOpcodeBinary(opcode);
                 programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary);
                 programTop++;
@@ -910,8 +918,7 @@ public class asmProcessor {
             case "cmc":
             case "xthl":
             case "sphl":
-            case "ei":
-            case "di":
+            case "rst":
                 // opcode <immediate>, example: out 39
                 sOpcodeBinary = getOpcodeBinary(opcode);
                 programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1);
