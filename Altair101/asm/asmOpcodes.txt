@@ -222,8 +222,8 @@ xram:10101101:|(HL) ^ A -> A : Not implemented.
 rlc :00000111:RLC      00 000 111  1  Rotate accumulator left by shift left 1 bit, and wrapping the first bit to the last position. Need to handle carry bit (CY = prev bit 7).
 rrc :00001111:RRC      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit (CY = prev bit 0).
 
-ei  :11111011:EI #     11 100 011  ?  Enable interrupts. Partly implemented.
-di  :11110011:DI #     11 100 011  ?  Disable interrupts. Partly implemented.
+ei  :11111011:EI #     11 100 011  1  Enable interrupts. Partly implemented.
+di  :11110011:DI #     11 100 011  1  Disable interrupts. Partly implemented.
 
 // -----------------------------------------------------------------------------
 // 8080/8085 Opcodes Not implemented in the Altair 101 processor or assembler.

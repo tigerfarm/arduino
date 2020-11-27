@@ -48,14 +48,6 @@ static uint16_t p_regPC = 0xFFFF;
 uint16_t controlSwitch = 0;
 uint16_t addressSwitch = 0;
 
-#define ST_MEMR    0x0080
-#define ST_INP     0x0040
-#define ST_M1      0x0020
-#define ST_OUT     0x0010
-#define ST_HLTA    0x0008
-#define ST_STACK   0x0004
-#define ST_WO      0x0002
-//
 // Byte bit status values
 #define ST_WAIT    0x0800
 #define ST_HLDA    0x0400
@@ -76,13 +68,47 @@ int programState = LIGHTS_OFF;  // Intial, default.
 // -----------------------------------------------------------------------------
 // Front Panel Status LEDs
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------
 // Output LED lights shift register(SN74HC595N) pins
-
 //           Mega/Nano pins        74HC595 Pins
 const int dataPinLed  = 5;    // pin 5 (was pin A14) Data pin.
 const int latchPinLed = 6;    // pin 6 (was pin A12) Latch pin.
 const int clockPinLed = 7;    // pin 7 (was pin A11) Clock pin.
+
+boolean SERIAL_IO = true;
+boolean LED_IO = false;
+
+char charBuffer[17];
+
+void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) {
+  if (SERIAL_IO) {
+    Serial.print(F("+ lightsStatusAddressData, status:"));
+    printByte(status8bits);
+    Serial.print(" dataByte:");
+    printByte(data8bits);
+    Serial.print(":");
+    Serial.print(" address:");
+    sprintf(charBuffer, "%5d", address16bits);
+    Serial.print(charBuffer);
+    /*
+      Serial.print(F("+"));
+      Serial.print(status8bits);
+      Serial.print(":");
+      Serial.print(address16bits);
+      Serial.print(":");
+      Serial.println(data8bits);
+    */
+  } else if (LED_IO) {
+    digitalWrite(latchPinLed, LOW);
+    shiftOut(dataPinLed, clockPinLed, LSBFIRST, status8bits);
+    shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
+    shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(address16bits));
+    shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(address16bits));
+    digitalWrite(latchPinLed, HIGH);
+  }
+}
+
+// -----------------------------------------------------------------------------
 
 void ledFlashSuccess() {}
 
@@ -99,7 +125,6 @@ const int WAIT_PIN = A9;      // Processor program wait state: off/LOW or wait s
 const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock/player processing (on/HIGH).
 
 // Use OR to turn ON. Example:
-//  statusByte = statusByte | MEMR_ON;
 const byte MEMR_ON =    B10000000;  // MEMR   The memory bus will be used for memory read data.
 const byte INP_ON =     B01000000;  // INP    The address bus containing the address of an input device. The input data should be placed on the data bus when the data bus is in the input mode
 const byte M1_ON =      B00100000;  // M1     Machine cycle 1, fetch opcode.
@@ -122,8 +147,6 @@ const byte INT_OFF =    ~INT_ON;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-char charBuffer[17];
-
 void printByte(byte b) {
   for (int i = 7; i >= 0; i--)
     Serial.print(bitRead(b, i));
@@ -148,32 +171,32 @@ void printData(byte theByte) {
 void print_panel_serial() {
   //
   // Status
-  Serial.print(F("INTE MEMR INP M1 OUT HLTA STACK WO INT       D7  D6  D5  D4  D3  D2  D1  D0\r\n"));
+  Serial.print(F("INTE MEMR INP M1 OUT HLTA STACK WO INT       D7  D6   D5  D4  D3   D2  D1  D0\r\n"));
   if ( host_read_status_led_INTE() ) Serial.print(F(" *  "));    else Serial.print(F(" .  "));
   // if ( false  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));  // PROT, not processed. Allows spacing below.
-  if ( statusByteB & ST_MEMR  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
-  if ( statusByteB & ST_INP   ) Serial.print(F("  * "));    else Serial.print(F("  . "));
-  if ( statusByteB & ST_M1    ) Serial.print(F(" * "));     else Serial.print(F(" . "));
-  if ( statusByteB & ST_OUT   ) Serial.print(F("  * "));    else Serial.print(F("  . "));
-  if ( statusByteB & ST_HLTA  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
-  if ( statusByteB & ST_STACK ) Serial.print(F("   *  "));  else Serial.print(F("   .  "));
-  if ( statusByteB & ST_WO    ) Serial.print(F(" * "));     else Serial.print(F(" . "));
-  if ( false   ) Serial.print(F("  *"));    else Serial.print(F("  ."));
+  if ( statusByteB & MEMR_ON  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
+  if ( statusByteB & INP_ON   ) Serial.print(F("  * "));    else Serial.print(F("  . "));
+  if ( statusByteB & M1_ON    ) Serial.print(F(" * "));     else Serial.print(F(" . "));
+  if ( statusByteB & OUT_ON   ) Serial.print(F("  * "));    else Serial.print(F("  . "));
+  if ( statusByteB & HLTA_ON  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));
+  if ( statusByteB & STACK_ON ) Serial.print(F("   *  "));  else Serial.print(F("   .  "));
+  if ( statusByteB & WO_ON    ) Serial.print(F(" * "));     else Serial.print(F(" . "));
+  if ( statusByteB & INT_ON   ) Serial.print(F("  *"));     else Serial.print(F("  ."));
   Serial.print(F("     "));  // PROT, not processed. use the spacing here to separate with the data LEDs.
   //
   // Data
   byte dataBus = host_read_data_leds();
   if ( dataBus & 0x80 )   Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( dataBus & 0x40 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( dataBus & 0x20 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( dataBus & 0x20 )   Serial.print(F("   * ")); else Serial.print(F("   ."));
   if ( dataBus & 0x10 )   Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( dataBus & 0x08 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( dataBus & 0x04 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( dataBus & 0x04 )   Serial.print(F("   * ")); else Serial.print(F("   ."));
   if ( dataBus & 0x02 )   Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( dataBus & 0x01 )   Serial.print(F("   *")); else Serial.print(F("   ."));
   //
   // WAIT and HLDA
-  Serial.print(("\r\nWAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8  A7  A6  A5  A4  A3  A2  A1  A0\r\n"));
+  Serial.print(("\r\nWAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8  A7  A6   A5  A4  A3   A2  A1  A0\r\n"));
   if ( host_read_status_led_WAIT() ) Serial.print(F(" *  "));   else Serial.print(F(" .  "));
   if ( false ) Serial.print(F("  *   ")); else Serial.print(F("  .   "));
   //
@@ -189,15 +212,15 @@ void print_panel_serial() {
   if ( addressBus & 0x0100 ) Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( addressBus & 0x0080 ) Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( addressBus & 0x0040 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( addressBus & 0x0020 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( addressBus & 0x0020 ) Serial.print(F("   * ")); else Serial.print(F("   ."));
   if ( addressBus & 0x0010 ) Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( addressBus & 0x0008 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( addressBus & 0x0004 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+  if ( addressBus & 0x0004 ) Serial.print(F("   * ")); else Serial.print(F("   ."));
   if ( addressBus & 0x0002 ) Serial.print(F("   *")); else Serial.print(F("   ."));
   if ( addressBus & 0x0001 ) Serial.print(F("   *")); else Serial.print(F("   ."));
   //
   // Address/Data switches
-  Serial.print(F("\r\n            S15 S14 S13 S12 S11 S10  S9  S8  S7  S6  S5  S4  S3  S2  S1  S0\r\n"));
+  Serial.print(F("\r\n            S15 S14 S13 S12 S11 S10  S9  S8  S7  S6   S5  S4  S3   S2  S1  S0\r\n"));
   Serial.print(F("          "));
   if ( addressSwitch & 0x8000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   if ( addressSwitch & 0x4000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
@@ -209,10 +232,10 @@ void print_panel_serial() {
   if ( addressSwitch & 0x0100 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   if ( addressSwitch & 0x0080 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   if ( addressSwitch & 0x0040 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-  if ( addressSwitch & 0x0020 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  if ( addressSwitch & 0x0020 ) Serial.print(F("   ^ ")); else Serial.print(F("   v"));
   if ( addressSwitch & 0x0010 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   if ( addressSwitch & 0x0008 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-  if ( addressSwitch & 0x0004 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+  if ( addressSwitch & 0x0004 ) Serial.print(F("   ^ ")); else Serial.print(F("   v"));
   if ( addressSwitch & 0x0002 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   if ( addressSwitch & 0x0001 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   //
@@ -495,7 +518,7 @@ void processWaitSwitch(byte readByte) {
       programState = PROGRAM_RUN;
       break;
     case 's':
-      if (statusByteB & ST_HLTA) {
+      if (statusByteB & HLTA_ON) {
         Serial.println("+ s, SINGLE STEP, from HLT.");
         regPC++;
         host_clr_status_led_HLTA();
@@ -713,7 +736,7 @@ void setup() {
 
   // ------------------------------
   // Set status lights.
-  statusByte = MEMR_ON | M1_ON | WO_ON; // WO: on, Inverse logic: off when writing out. On when not.
+  statusByte = host_set_status_leds_READMEM_M1();
   // programCounter and curProgramCounter are 0 by default.
   // dataByte = memoryData[curProgramCounter];
   Serial.println(F("+ Initialized: statusByte, programCounter & curProgramCounter, dataByte."));

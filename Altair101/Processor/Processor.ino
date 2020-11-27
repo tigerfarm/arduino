@@ -385,15 +385,14 @@ const byte INT_ON =     B00000001;  // INT    Interrupt
 
 // Use AND to turn OFF. Example:
 //  statusByte = statusByte & M1_OFF;
-const byte MEMR_OFF =   B01111111;
-const byte INP_OFF =    B10111111;
-const byte M1_OFF =     B11011111;
-const byte OUT_OFF =    B11101111;
-const byte HLTA_OFF =   B11110111;
-const byte STACK_OFF =  B11111011;
-const byte WO_OFF =     B11111101;
-const byte INT_OFF =    B11111110;
-// const byte WAIT_OFF =   B11111110;   // WAIT   Changed to a digital pin control.
+const byte MEMR_OFF =   ~MEMR_ON;
+const byte INP_OFF =    ~INP_ON;
+const byte M1_OFF =     ~M1_ON;
+const byte OUT_OFF =    ~OUT_ON;
+const byte HLTA_OFF =   ~HLTA_ON;
+const byte STACK_OFF =  ~STACK_ON;
+const byte WO_OFF =     ~WO_ON;
+const byte INT_OFF =    ~INT_ON;
 
 // Video demonstrating status lights:
 //    https://www.youtube.com/watch?v=3_73NwB6toY
