@@ -10,6 +10,10 @@
   ---------------------------------------------------------
   Next:
 
+  + Make the front panel display and updates, VT100 enabled.
+  ++ This will be a good lead in before implementing: lightsStatusAddressData(Status,Address,Data).
+  ++ Can handle LED_IO, once running on the Altair 101.
+
   + Prevent lockup when using PUSH A, before setting SP.
 
   + Implement: lightsStatusAddressData(Status,Address,Data)
@@ -45,6 +49,29 @@ uint16_t addressSwitch = 0;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+char charBuffer[17];
+
+void printByte(byte b) {
+  for (int i = 7; i >= 0; i--)
+    Serial.print(bitRead(b, i));
+}
+void printOctal(byte b) {
+  String sValue = String(b, OCT);
+  for (int i = 1; i <= 3 - sValue.length(); i++) {
+    Serial.print("0");
+  }
+  Serial.print(sValue);
+}
+void printData(byte theByte) {
+  sprintf(charBuffer, "%3d = ", theByte);
+  Serial.print(charBuffer);
+  printOctal(theByte);
+  Serial.print(F(" = "));
+  printByte(theByte);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // From Processor.ino
 
 // Program states
@@ -55,51 +82,6 @@ uint16_t addressSwitch = 0;
 #define PLAYER_RUN 4
 #define SERIAL_DOWNLOAD 5
 int programState = LIGHTS_OFF;  // Intial, default.
-
-// -----------------------------------------------------------------------------
-// Front Panel Status LEDs
-
-// -------------------------------------------------
-// Output LED lights shift register(SN74HC595N) pins
-//           Mega/Nano pins        74HC595 Pins
-const int dataPinLed  = 5;    // pin 5 (was pin A14) Data pin.
-const int latchPinLed = 6;    // pin 6 (was pin A12) Latch pin.
-const int clockPinLed = 7;    // pin 7 (was pin A11) Clock pin.
-
-boolean SERIAL_IO = true;
-boolean LED_IO = false;
-
-char charBuffer[17];
-
-void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) {
-  if (SERIAL_IO) {
-    Serial.print(F("+ lightsStatusAddressData, status:"));
-    printByte(status8bits);
-    Serial.print(" dataByte:");
-    printByte(data8bits);
-    Serial.print(":");
-    Serial.print(" address:");
-    sprintf(charBuffer, "%5d", address16bits);
-    Serial.print(charBuffer);
-    /*
-      Serial.print(F("+"));
-      Serial.print(status8bits);
-      Serial.print(":");
-      Serial.print(address16bits);
-      Serial.print(":");
-      Serial.println(data8bits);
-    */
-  } else if (LED_IO) {
-    digitalWrite(latchPinLed, LOW);
-    shiftOut(dataPinLed, clockPinLed, LSBFIRST, status8bits);
-    shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
-    shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(address16bits));
-    shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(address16bits));
-    digitalWrite(latchPinLed, HIGH);
-  }
-}
-
-// -----------------------------------------------------------------------------
 
 void ledFlashSuccess() {}
 
@@ -137,32 +119,91 @@ const byte WO_OFF =     ~WO_ON;
 const byte INT_OFF =    ~INT_ON;
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void printByte(byte b) {
-  for (int i = 7; i >= 0; i--)
-    Serial.print(bitRead(b, i));
-}
-void printOctal(byte b) {
-  String sValue = String(b, OCT);
-  for (int i = 1; i <= 3 - sValue.length(); i++) {
-    Serial.print("0");
-  }
-  Serial.print(sValue);
-}
-void printData(byte theByte) {
-  sprintf(charBuffer, "%3d = ", theByte);
+// Front Panel Status LEDs
+
+// -------------------------------------------------
+// Output LED lights shift register(SN74HC595N) pins
+//           Mega/Nano pins        74HC595 Pins
+const int dataPinLed  = 5;    // pin 5 (was pin A14) Data pin.
+const int latchPinLed = 6;    // pin 6 (was pin A12) Latch pin.
+const int clockPinLed = 7;    // pin 7 (was pin A11) Clock pin.
+
+void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) {
+#ifdef LOG_MESSAGES
+  Serial.print(F("+ lightsStatusAddressData, status:"));
+  printByte(status8bits);
+  Serial.print(" address:");
+  sprintf(charBuffer, "%5d", address16bits);
   Serial.print(charBuffer);
-  printOctal(theByte);
-  Serial.print(F(" = "));
-  printByte(theByte);
+  Serial.print(" dataByte:");
+  printByte(data8bits);
+  Serial.println();
+#endif
+  digitalWrite(latchPinLed, LOW);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, status8bits);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(address16bits));
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(address16bits));
+  digitalWrite(latchPinLed, HIGH);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+// Output Front Panel Information.
+
+// Types of output:
+boolean LED_IO = false;
+boolean SERIAL_IO_VT100 = false;
+boolean SERIAL_IO = true;
+
+void printFrontPanel() {
+  if (LED_IO) {
+    lightsStatusAddressData(statusByteB, host_read_addr_leds(), host_read_data_leds());
+  }
+  if (SERIAL_IO_VT100) {
+    // For now
+    print_panel_serial();
+#ifdef LOG_MESSAGES
+    Serial.print("\033[2K"); // Clear line from cursor right
+    Serial.print(F("+ printFrontPanel SERIAL_IO_VT100, status:"));
+    printByte(statusByteB);
+    Serial.print(" address:");
+    sprintf(charBuffer, "%5d", host_read_addr_leds());
+    Serial.print(charBuffer);
+    Serial.print(" dataByte:");
+    printByte(host_read_data_leds());
+    Serial.println();
+    Serial.print("\033[2K"); // Clear line
+#endif
+  } else {
+    if (SERIAL_IO) {
+      if (programState == PROGRAM_RUN) {
+        Serial.print(F("+ printFrontPanel SERIAL_IO, status:"));
+        printByte(statusByteB);
+        Serial.print(" address:");
+        sprintf(charBuffer, "%5d", host_read_addr_leds());
+        Serial.print(charBuffer);
+        Serial.print(" dataByte:");
+        printByte(host_read_data_leds());
+        Serial.println();
+      } else {
+        // WAIT mode.
+        print_panel_serial();
+      }
+    }
+  }
+}
+
 void print_panel_serial() {
   //
   // Status
-  Serial.print(F("INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0\r\n"));
+  if (!SERIAL_IO_VT100) {
+    Serial.print(F("INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0\r\n"));
+  } else {
+    // No need to rewrite the title.
+    Serial.print("\033[H");  // Move cursor home
+    Serial.print("\033[1B");  // Cursor down
+  }
   if ( host_read_status_led_INTE() ) Serial.print(F(" *  "));    else Serial.print(F(" .  "));
   // if ( false  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));  // PROT, not processed. Allows spacing below.
   if ( statusByteB & MEMR_ON  ) Serial.print(F("  *  "));   else Serial.print(F("  . "));
@@ -189,7 +230,13 @@ void print_panel_serial() {
   if ( dataBus & 0x01 )   Serial.print(F("   *")); else Serial.print(F("   ."));
   //
   // WAIT and HLDA
-  Serial.print(("\r\nWAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0\r\n"));
+  if (!SERIAL_IO_VT100) {
+    Serial.print(("\r\nWAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0\r\n"));
+  } else {
+    // No need to rewrite the title.
+    Serial.println();
+    Serial.print("\033[1B");  // Cursor down
+  }
   if ( host_read_status_led_WAIT() ) Serial.print(F(" *  "));   else Serial.print(F(" .  "));
   if ( false ) Serial.print(F("  *   ")); else Serial.print(F("  .   "));
   //
@@ -216,7 +263,13 @@ void print_panel_serial() {
   if ( addressBus & 0x0001 ) Serial.print(F("   *")); else Serial.print(F("   ."));
   //
   // Address/Data switches
-  Serial.print(F("\r\n            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0\r\n"));
+  if (!SERIAL_IO_VT100) {
+    Serial.print(F("\r\n            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0\r\n"));
+  } else {
+    // No need to rewrite the title.
+    Serial.println();
+    Serial.print("\033[1B");  // Cursor down
+  }
   Serial.print(F("          "));
   if ( addressSwitch & 0x8000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   if ( addressSwitch & 0x4000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
@@ -238,8 +291,15 @@ void print_panel_serial() {
   if ( addressSwitch & 0x0002 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   if ( addressSwitch & 0x0001 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   //
-  Serial.print(F("\r\n ------ \r\n"));
-  Serial.println("+ Ready to receive command.");
+  if (!SERIAL_IO_VT100) {
+    Serial.print(F("\r\n ------ \r\n"));
+    Serial.println("+ Ready to receive command.");
+  } else {
+    // No need to rewrite the prompt.
+    Serial.print("\033[2B");  // Cursor down 2 lines.
+    Serial.println();
+    Serial.print("\033[J");   // Clear screen from cursor down 
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -500,10 +560,16 @@ void processWaitSwitch(byte readByte) {
   int data = readByte;
   if ( data >= '0' && data <= '9' ) {
     addressSwitch = addressSwitch ^ (1 << (data - '0'));
+    if (SERIAL_IO_VT100) {
+      print_panel_serial();
+    }
     return;
   }
   if ( data >= 'a' && data <= 'f' ) {
     addressSwitch = addressSwitch ^ (1 << (data - 'a' + 10));
+    if (SERIAL_IO_VT100) {
+      print_panel_serial();
+    }
     return;
   }
   // -------------------------------
@@ -533,18 +599,27 @@ void processWaitSwitch(byte readByte) {
       Serial.println(regPC);
       p_regPC = ~regPC;
       altair_set_outputs(regPC, MREAD(regPC));
+      if (SERIAL_IO_VT100) {
+        print_panel_serial();
+      }
       break;
     case 'X':
       regPC = regPC + 1;
       Serial.print("+ y, EXAMINE NEXT: ");
       Serial.println(regPC);
       altair_set_outputs(regPC, MREAD(regPC));
+      if (SERIAL_IO_VT100) {
+        print_panel_serial();
+      }
       break;
     case 'p':
       Serial.print("+ p, DEPOSIT to: ");
       Serial.println(regPC);
       MWRITE(regPC, addressSwitch & 0xff);
       altair_set_outputs(regPC, MREAD(regPC));
+      if (SERIAL_IO_VT100) {
+        print_panel_serial();
+      }
       break;
     case 'P':
       regPC++;
@@ -552,6 +627,9 @@ void processWaitSwitch(byte readByte) {
       Serial.println(regPC);
       MWRITE(regPC, addressSwitch & 0xff);
       altair_set_outputs(regPC, MREAD(regPC));
+      if (SERIAL_IO_VT100) {
+        print_panel_serial();
+      }
       break;
     case 'R':
       Serial.println("+ R, RESET.");
@@ -561,6 +639,9 @@ void processWaitSwitch(byte readByte) {
       altair_set_outputs(regPC, MREAD(regPC));
       //
       host_clr_status_led_HLTA();
+      if (SERIAL_IO_VT100) {
+        print_panel_serial();
+      }
       //
       // p_regPC = regPC;
       // Actual RESET action ?- set bus/data LEDs on, status LEDs off: altair_set_outputs(0xffff, 0xff);
@@ -571,10 +652,10 @@ void processWaitSwitch(byte readByte) {
       Serial.println("----------------------------------------------------");
       Serial.println("+++ Commands");
       Serial.println("-------------");
-      Serial.println("+ h, Help.");
+      Serial.println("+ h, Help         Print this help menu.");
       Serial.println("-------------");
-      Serial.println("+ 0...9           toggle  A0...A9  address switches.");
-      Serial.println("+ a...f           toggle A10...A15 address switches.");
+      Serial.println("+ 0...9           Toggles:  A0...A9  address switches.");
+      Serial.println("+ a...f           Toggles: A10...A15 address switches.");
       Serial.println("-------------");
       Serial.println("+ r, RUN mode.");
       Serial.println("+ s, STOP         when in RUN mode, change to WAIT mode.");
@@ -585,14 +666,28 @@ void processWaitSwitch(byte readByte) {
       Serial.println("+ P, DEPOSIT NEXT address, current address + 1");
       Serial.println("+ R, RESET        set program counter address to zero.");
       Serial.println("-------------");
-      Serial.println("+ i, info         information print of registers.");
-      Serial.println("+ l, load         load a sample program.");
-      Serial.println("+ o, LEDs off     do not output to LED lights.");
-      Serial.println("+ O, LEDs on      output to LED lights.");
+      Serial.println("+ v, VT100 off    Don't use VT100 esacpes.");
+      Serial.println("+ V, VT100 on     Use VT100 esacpes.");
+      Serial.println("+ o, LEDs off     Do not output to LED lights.");
+      Serial.println("+ O, LEDs on      Output to LED lights.");
+      Serial.println("-------------");
+      Serial.println("+ i, info         Information print of registers.");
+      Serial.println("+ l, load         Load a sample program.");
       Serial.println("-------------");
       Serial.println("+ l013x, Load program. Toggle switches 0,1,3 (00001011), and EXAMINE the address.");
       Serial.println("+ z, clear terminal screen.");
       Serial.println("----------------------------------------------------");
+      break;
+    // -------------------------------------
+    case 'v':
+      Serial.println("+ v, VT100 escapes are disabled.");
+      SERIAL_IO_VT100 = false;
+      break;
+    case 'V':
+      Serial.print("\033[H\033[2J");  // Cursor home and clear the screen.
+      print_panel_serial();
+      SERIAL_IO_VT100 = true;
+      Serial.println("+ V, VT100 escapes are enabled.");
       break;
     // -------------------------------------
     case 'o':
@@ -648,6 +743,7 @@ void processWaitSwitch(byte readByte) {
       // Example: Serial.print("\033[3A");  // Cursor Up 3 lines.
       // Esc[nB  Move cursor down n lines.
       // Example: Serial.print("\033[6B");  // Cursor down 6 lines.
+      // Esc[K  Clear line from cursor right
       break;
     case 'Z':
       // Serial.println("+ z, clear terminal screen.");
@@ -758,7 +854,8 @@ void processWaitSwitch(byte readByte) {
       break;
     // -------------------------------------
     case 10:
-      Serial.println(F("+ New line character."));
+    case 13:
+      Serial.println(F("+ New line(Arduino IDE monitory) or carriage return(VT100) character."));
       print_panel_serial();
       break;
     // -------------------------------------

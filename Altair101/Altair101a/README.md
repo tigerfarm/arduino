@@ -28,7 +28,8 @@ Modify the minimum code base to work with Altair 101:
 
 Code integration, Altair101a into Processor.ino:
 + 11. Sync Altair101a.ino status light bits with values in Processor.ino.
-+ 12. Add lightsStatusAddressData(Status,Address,Data) to Altair101a.ino.
++ 12. Use VT100 escape options to work in a Mac terminal. Print to display panel lights and print the address toggles.
++ 13. Add lightsStatusAddressData(Status,Address,Data) to Altair101a.ino.
 
 + Run Altair101a.ino on the Altair 101 desktop machine.
 + Output to Altair 101 panel LED.
