@@ -231,8 +231,8 @@ void print_panel_serial() {
   //
   // Data
   dataBus = host_read_data_leds();
-  if (prev_dataBus != dataBus) {
-    // If no change, don't reprint.
+  if ((prev_dataBus != dataBus) || !SERIAL_IO_VT100) {
+    // If VT100 and no change, don't reprint.
     prev_dataBus = dataBus;
     if ( dataBus & 0x80 )   Serial.print(F("  *" )); else Serial.print(F("  ." ));
     if ( dataBus & 0x40 )   Serial.print(F("   *")); else Serial.print(F("   ."));
@@ -258,8 +258,8 @@ void print_panel_serial() {
   //
   // Address
   addressBus = host_read_addr_leds();
-  if (prev_addressBus != addressBus) {
-    // If no change, don't reprint.
+  if ((prev_addressBus != addressBus) || !SERIAL_IO_VT100) {
+    // If VT100 and no change, don't reprint.
     prev_addressBus = addressBus;
     if ( addressBus & 0x8000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
     if ( addressBus & 0x4000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
@@ -289,8 +289,8 @@ void print_panel_serial() {
     Serial.println();
     Serial.print("\033[1B");  // Cursor down
   }
-  if (prev_addressSwitch != addressSwitch) {
-    // If no change, don't reprint.
+  if ((prev_addressSwitch != addressSwitch) || !SERIAL_IO_VT100) {
+    // If VT100 and no change, don't reprint.
     prev_addressSwitch = addressSwitch;
     Serial.print(F("          "));
     if ( addressSwitch & 0x8000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
