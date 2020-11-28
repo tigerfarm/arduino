@@ -10,21 +10,22 @@
   ---------------------------------------------------------
   Next:
 
+  + Have the status lights work the same for RUN and WAIT modes.
+  ++ In run mode, consider having all data lights on, same as the Altair 8800.
+
   + Get Kill the Bit to run.
+
+  + When single stepping, M1 stays on but should be off, when HLT is executed.
+  + Should be on: MEMR, HLTA, WO.
+  + On the Altair 101, only HLTA light is on.
 
   + Implement, printFrontPanel(), which calls: lightsStatusAddressData(Status,Address,Data).
   ++ Can handle LED_IO, once running on the Altair 101.
-
-  + Prevent lockup when using PUSH A, before setting SP.
-
   + Implement: lightsStatusAddressData(Status,Address,Data)
   ++ Use optional outputs: serial, and/not LED lights (on/off using serial command).
 
-  HLT leaves M1 on when single stepping. M1 should be off.
-
-  + For SINGLE STEP read and write during RUN mode,
-  ++ Have the status lights same as WAIT mode.
-  ++ Have the data lights all data lights on, same as the Altair 8800.
+  + Prevent lockup when using PUSH A, i.e. PUSH called before setting SP.
+  ++ In the PUSH process, if SP < 4, error.
 
   ---------------------------------------------------------
 */
@@ -195,11 +196,17 @@ void printFrontPanel() {
   }
 }
 
+// -----------------------------------------------------------------------------
+// Print the front panel to either the Arduino IDE monitor, or to the VT00 terminal.
+// A VT00 terminal is much nicer because the front panel stays in the top left of the terminal screen.
+// Where as the front panel is reprinted and scrolls in the Arduino IDE monitor.
+
+// byte prev_statusByteB = 250;     // This will take more time to figure out.
+byte prev_dataBus = 250;
+uint16_t prev_addressSwitch = 32000;
+uint16_t prev_addressBus = 32000;
+
 void print_panel_serial() {
-  // byte prev_statusByteB = 250;     // This will take more time to figure out.
-  byte prev_dataBus = 250;
-  uint16_t prev_addressSwitch = 32000;
-  uint16_t prev_addressBus = 32000;
   //
   // Status
   if (!SERIAL_IO_VT100) {
@@ -216,9 +223,9 @@ void print_panel_serial() {
   if ( statusByteB & OUT_ON   ) Serial.print(F("  * "));   else Serial.print(F("  . "));
   if ( statusByteB & HLTA_ON  ) Serial.print(F("  * "));   else Serial.print(F("  . "));
   if ( statusByteB & STACK_ON ) Serial.print(F("   * "));  else Serial.print(F("   . "));
-  if ( statusByteB & WO_ON    ) Serial.print(F(" * "));    else Serial.print(F(" . "));
-  if ( statusByteB & INT_ON   ) Serial.print(F("  *"));    else Serial.print(F("  ."));
-  Serial.print(F("        "));
+  if ( statusByteB & WO_ON    ) Serial.print(F("   * "));  else Serial.print(F("   . "));
+  if ( statusByteB & INT_ON   ) Serial.print(F("  *"));     else Serial.print(F("  ."));
+  Serial.print(F("       "));
   //
   // Data
   byte dataBus = host_read_data_leds();
@@ -598,8 +605,12 @@ void processWaitSwitch(byte readByte) {
   switch (readByte) {
     case 'r':
       Serial.println("+ r, RUN.");
+      if (statusByteB & HLTA_ON) {
+        // If previous instruction was HLT, step to next instruction after HLT.
+        regPC++;
+        host_clr_status_led_HLTA();
+      }
       host_clr_status_led_WAIT();
-      host_clr_status_led_HLTA();
       programState = PROGRAM_RUN;
       break;
     case 's':
@@ -708,6 +719,10 @@ void processWaitSwitch(byte readByte) {
       SERIAL_IO_VT100 = false;
       break;
     case 'V':
+      // Reset the previous value to insure an intial printing.
+      prev_dataBus = 250;
+      prev_addressSwitch = 32000;
+      prev_addressBus = 32000;
       Serial.print("\033[H\033[2J");  // Cursor home and clear the screen.
       print_panel_serial();
       SERIAL_IO_VT100 = true;
@@ -861,6 +876,9 @@ void processWaitSwitch(byte readByte) {
       regPC = 0;
       p_regPC = ~regPC;
       altair_set_outputs(regPC, MREAD(regPC));
+      if (SERIAL_IO_VT100) {
+        print_panel_serial();
+      }
       break;
     // -------------------------------------
     case '/':
