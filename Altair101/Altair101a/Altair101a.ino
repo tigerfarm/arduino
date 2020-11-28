@@ -10,8 +10,9 @@
   ---------------------------------------------------------
   Next:
 
-  + Make the front panel display and updates, VT100 enabled.
-  ++ This will be a good lead in before implementing: lightsStatusAddressData(Status,Address,Data).
+  + Get Kill the Bit to run.
+
+  + Implement, printFrontPanel(), which calls: lightsStatusAddressData(Status,Address,Data).
   ++ Can handle LED_IO, once running on the Altair 101.
 
   + Prevent lockup when using PUSH A, before setting SP.
@@ -195,6 +196,8 @@ void printFrontPanel() {
 }
 
 void print_panel_serial() {
+  // byte prev_statusByteB = 250;     // This will take more time to figure out.
+  byte prev_dataBus = 250;
   uint16_t prev_addressSwitch = 32000;
   uint16_t prev_addressBus = 32000;
   //
@@ -207,7 +210,6 @@ void print_panel_serial() {
     Serial.print("\033[1B");  // Cursor down
   }
   if ( host_read_status_led_INTE() ) Serial.print(F(" *  ")); else Serial.print(F(" .  "));
-  // if ( false  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));  // PROT, not processed. Allows spacing below.
   if ( statusByteB & MEMR_ON  ) Serial.print(F("  *  "));  else Serial.print(F("  . "));
   if ( statusByteB & INP_ON   ) Serial.print(F("  * "));   else Serial.print(F("  . "));
   if ( statusByteB & M1_ON    ) Serial.print(F(" * "));    else Serial.print(F(" . "));
@@ -220,17 +222,20 @@ void print_panel_serial() {
   //
   // Data
   byte dataBus = host_read_data_leds();
-  if ( dataBus & 0x80 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( dataBus & 0x40 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-  Serial.print(F(" "));
-  if ( dataBus & 0x20 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( dataBus & 0x10 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( dataBus & 0x08 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-  Serial.print(F(" "));
-  if ( dataBus & 0x04 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( dataBus & 0x02 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-  if ( dataBus & 0x01 )   Serial.print(F("   *")); else Serial.print(F("   ."));
-  //
+  if (prev_dataBus != dataBus) {
+    // If no change, don't reprint.
+    prev_dataBus = dataBus;
+    if ( dataBus & 0x80 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( dataBus & 0x40 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+    Serial.print(F(" "));
+    if ( dataBus & 0x20 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( dataBus & 0x10 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( dataBus & 0x08 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+    Serial.print(F(" "));
+    if ( dataBus & 0x04 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( dataBus & 0x02 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( dataBus & 0x01 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+  }
   // WAIT and HLDA
   if (!SERIAL_IO_VT100) {
     Serial.print(("\r\nWAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0\r\n"));
@@ -245,6 +250,7 @@ void print_panel_serial() {
   // Address
   uint16_t addressBus = host_read_addr_leds();
   if (prev_addressBus != addressBus) {
+    // If no change, don't reprint.
     prev_addressBus = addressBus;
     if ( addressBus & 0x8000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
     if ( addressBus & 0x4000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
@@ -275,6 +281,7 @@ void print_panel_serial() {
     Serial.print("\033[1B");  // Cursor down
   }
   if (prev_addressSwitch != addressSwitch) {
+    // If no change, don't reprint.
     prev_addressSwitch = addressSwitch;
     Serial.print(F("          "));
     if ( addressSwitch & 0x8000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
