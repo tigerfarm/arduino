@@ -204,16 +204,16 @@ void print_panel_serial() {
     Serial.print("\033[H");  // Move cursor home
     Serial.print("\033[1B");  // Cursor down
   }
-  if ( host_read_status_led_INTE() ) Serial.print(F(" *  "));    else Serial.print(F(" .  "));
+  if ( host_read_status_led_INTE() ) Serial.print(F(" *  ")); else Serial.print(F(" .  "));
   // if ( false  ) Serial.print(F("  *  "));   else Serial.print(F("  .  "));  // PROT, not processed. Allows spacing below.
-  if ( statusByteB & MEMR_ON  ) Serial.print(F("  *  "));   else Serial.print(F("  . "));
-  if ( statusByteB & INP_ON   ) Serial.print(F("  * "));    else Serial.print(F("  . "));
-  if ( statusByteB & M1_ON    ) Serial.print(F(" * "));     else Serial.print(F(" . "));
-  if ( statusByteB & OUT_ON   ) Serial.print(F("  * "));    else Serial.print(F("  . "));
+  if ( statusByteB & MEMR_ON  ) Serial.print(F("  *  "));  else Serial.print(F("  . "));
+  if ( statusByteB & INP_ON   ) Serial.print(F("  * "));   else Serial.print(F("  . "));
+  if ( statusByteB & M1_ON    ) Serial.print(F(" * "));    else Serial.print(F(" . "));
+  if ( statusByteB & OUT_ON   ) Serial.print(F("  * "));   else Serial.print(F("  . "));
   if ( statusByteB & HLTA_ON  ) Serial.print(F("  * "));   else Serial.print(F("  . "));
   if ( statusByteB & STACK_ON ) Serial.print(F("   * "));  else Serial.print(F("   . "));
-  if ( statusByteB & WO_ON    ) Serial.print(F(" * "));     else Serial.print(F(" . "));
-  if ( statusByteB & INT_ON   ) Serial.print(F("  *"));     else Serial.print(F("  ."));
+  if ( statusByteB & WO_ON    ) Serial.print(F(" * "));    else Serial.print(F(" . "));
+  if ( statusByteB & INT_ON   ) Serial.print(F("  *"));    else Serial.print(F("  ."));
   Serial.print(F("        "));
   //
   // Data
