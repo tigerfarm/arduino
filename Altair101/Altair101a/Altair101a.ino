@@ -42,8 +42,7 @@
 // -----------------------------------------------------------------------------
 byte opcode = 0xff;
 static uint16_t p_regPC = 0xFFFF;
-uint16_t controlSwitch = 0;
-uint16_t addressSwitch = 0;
+// uint16_t controlSwitch = 0;
 
 // Byte bit status values
 #define ST_WAIT    0x0800
@@ -202,9 +201,12 @@ void printFrontPanel() {
 // Where as the front panel is reprinted and scrolls in the Arduino IDE monitor.
 
 // byte prev_statusByteB = 250;     // This will take more time to figure out.
-byte prev_dataBus = 250;
-uint16_t prev_addressSwitch = 32000;
-uint16_t prev_addressBus = 32000;
+byte dataBus = 0;
+byte prev_dataBus = 1;
+uint16_t addressBus = 0;
+uint16_t prev_addressBus = 1;
+uint16_t addressSwitch = 0;
+uint16_t prev_addressSwitch = 1;
 
 void print_panel_serial() {
   //
@@ -228,7 +230,7 @@ void print_panel_serial() {
   Serial.print(F("       "));
   //
   // Data
-  byte dataBus = host_read_data_leds();
+  dataBus = host_read_data_leds();
   if (prev_dataBus != dataBus) {
     // If no change, don't reprint.
     prev_dataBus = dataBus;
@@ -255,7 +257,7 @@ void print_panel_serial() {
   if ( false ) Serial.print(F("  *   ")); else Serial.print(F("  .   "));
   //
   // Address
-  uint16_t addressBus = host_read_addr_leds();
+  addressBus = host_read_addr_leds();
   if (prev_addressBus != addressBus) {
     // If no change, don't reprint.
     prev_addressBus = addressBus;
@@ -578,8 +580,10 @@ void runProcessor() {
 void processWaitSwitch(byte readByte) {
   uint16_t cnt;
   //
-  Serial.print("\033[9;1H");  // Move cursor to below the prompt: line 9, column 1.
-  Serial.print("\033[J");     // Clear previous message on the screen, from cursor down.
+  if (SERIAL_IO_VT100) {
+    Serial.print("\033[9;1H");  // Move cursor to below the prompt: line 9, column 1.
+    Serial.print("\033[J");     // Clear previous message on the screen, from cursor down.
+  }
   //
   // -------------------------------
   // Process an address/data toggle.
@@ -720,14 +724,15 @@ void processWaitSwitch(byte readByte) {
       SERIAL_IO_VT100 = false;
       break;
     case 'V':
-      // Reset the previous value to insure an intial printing.
-      prev_dataBus = 250;
-      prev_addressSwitch = 32000;
-      prev_addressBus = 32000;
+      // Insure the previous value is different to current, to insure an intial printing.
+      prev_dataBus = host_read_data_leds() + 1;
+      prev_addressBus = host_read_addr_leds() + 1;;
+      addressSwitch = 0;      // Set all toggled off.
+      prev_addressSwitch = 1; // Set to different value.
       Serial.print("\033[0m\033[?25l");   // Block cursor display: off.
       Serial.print("\033[H\033[2J");      // Cursor home and clear the screen.
-      print_panel_serial();
-      SERIAL_IO_VT100 = true;
+      print_panel_serial();               // Print the complete front panel: labels and indicators.
+      SERIAL_IO_VT100 = true;             // Set to use VT100.
       Serial.println("+ V, VT100 escapes are enabled.");
       break;
     // -------------------------------------
