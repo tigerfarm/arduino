@@ -232,7 +232,7 @@ void print_panel_serial() {
   if (prev_dataBus != dataBus) {
     // If no change, don't reprint.
     prev_dataBus = dataBus;
-    if ( dataBus & 0x80 )   Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( dataBus & 0x80 )   Serial.print(F("  *" )); else Serial.print(F("  ." ));
     if ( dataBus & 0x40 )   Serial.print(F("   *")); else Serial.print(F("   ."));
     Serial.print(F(" "));
     if ( dataBus & 0x20 )   Serial.print(F("   *")); else Serial.print(F("   ."));
@@ -701,16 +701,17 @@ void processWaitSwitch(byte readByte) {
       Serial.println("+ P, DEPOSIT NEXT address, current address + 1");
       Serial.println("+ R, RESET        set program counter address to zero.");
       Serial.println("-------------");
-      Serial.println("+ v, VT100 off    Don't use VT100 esacpes.");
-      Serial.println("+ V, VT100 on     Use VT100 esacpes.");
       Serial.println("+ o, LEDs off     Do not output to LED lights.");
       Serial.println("+ O, LEDs on      Output to LED lights.");
+      Serial.println("+ v, VT100 off    Don't use VT100 esacpes.");
+      Serial.println("+ V, VT100 on     Use VT100 esacpes.");
+      Serial.println("+ z, cursor off   VT100 cursor off.");
+      Serial.println("+ Z, cursor on    VT100 cursor on.");
       Serial.println("-------------");
       Serial.println("+ i, info         Information print of registers.");
       Serial.println("+ l, load         Load a sample program.");
       Serial.println("-------------");
       Serial.println("+ l013x, Load program. Toggle switches 0,1,3 (00001011), and EXAMINE the address.");
-      Serial.println("+ z, clear terminal screen.");
       Serial.println("----------------------------------------------------");
       break;
     // -------------------------------------
@@ -723,7 +724,8 @@ void processWaitSwitch(byte readByte) {
       prev_dataBus = 250;
       prev_addressSwitch = 32000;
       prev_addressBus = 32000;
-      Serial.print("\033[H\033[2J");  // Cursor home and clear the screen.
+      Serial.print("\033[0m\033[?25l");   // Block cursor display: off.
+      Serial.print("\033[H\033[2J");      // Cursor home and clear the screen.
       print_panel_serial();
       SERIAL_IO_VT100 = true;
       Serial.println("+ V, VT100 escapes are enabled.");
@@ -744,20 +746,27 @@ void processWaitSwitch(byte readByte) {
     // VT100 reference:
     //  http://ascii-table.com/ansi-escape-sequences-vt-100.php
     //
+    // Esc[H  Move cursor to upper left corner, example: Serial.print("\033[H");
+    // Esc[J  Clear screen from cursor down, example: Serial.print("\033[J");
+    // Esc[2J  Clear entire screen, example: Serial.print("\033[H");
+    // Example: Serial.print("\033[H\033[2J");  // Move home and clear entire screen.
+    // Esc[nA  Move cursor up n lines.
+    // Example: Serial.print("\033[3A");  // Cursor Up 3 lines.
+    // Esc[nB  Move cursor down n lines.
+    // Example: Serial.print("\033[6B");  // Cursor down 6 lines.
+    // Esc[K  Clear line from cursor right
+    //
+    case 'z':
+      Serial.print("++ Cursor off.");
+      Serial.print("\033[0m\033[?25l");
+      break;
+    case 'Z':
+      Serial.print("++ Cursor on.");
+      Serial.print("\033[0m\033[?25h");
+      break;
     case 'y':
       // Esc[2J  Clear entire screen, cursor stays where is.
       // Serial.print("\033[2J");
-      /*
-        | INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
-        |  .    *    .  *   .   .    .  *   .           .   .    .   .   .    .   .   .
-        | WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
-        |   .      .   .   .   .   .   .   .   .    .   .    .   .   .    .   .   .   .
-        |     S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
-        |      v   v   v   v   v   v   v   v    v   v    v   v   v    v   v   v
-        ------
-        + Ready to receive command.
-        <cursor here>
-      */
       // Rewrite the front panel LEDs and switches.
       Serial.print("\033[H");  // Move cursor home
       Serial.print("\033[1B");  // Cursor down
@@ -770,28 +779,6 @@ void processWaitSwitch(byte readByte) {
       // print address toggles.
       Serial.println(F("             v   v   v   v   v   v   v   v    v   v    v   v   ^    v   v   ^"));
       Serial.print("\033[2B");  // Cursor down
-      break;
-    case 'z':
-      Serial.print("\033[H\033[2J");
-      print_panel_serial();
-      // Esc[H  Move cursor to upper left corner, example: Serial.print("\033[H");
-      // Esc[J  Clear screen from cursor down, example: Serial.print("\033[J");
-      // Esc[2J  Clear entire screen, example: Serial.print("\033[H");
-      // Example: Serial.print("\033[H\033[2J");  // Move home and clear entire screen.
-      // Esc[nA  Move cursor up n lines.
-      // Example: Serial.print("\033[3A");  // Cursor Up 3 lines.
-      // Esc[nB  Move cursor down n lines.
-      // Example: Serial.print("\033[6B");  // Cursor down 6 lines.
-      // Esc[K  Clear line from cursor right
-      break;
-    case 'Z':
-      // Serial.println("+ z, clear terminal screen.");
-      Serial.print("\033[H\033[2J");
-      Serial.println("----------------------------------------------------");
-      Serial.println("Line 1");
-      Serial.println("Line 2");
-      Serial.println("Line 3");
-      Serial.println("----------------------------------------------------");
       break;
     // -------------------------------------
     case 'l':
