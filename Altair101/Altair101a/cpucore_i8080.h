@@ -66,26 +66,11 @@ inline bool config_serial_input_enabled()     {
 
 extern byte Mem[MEMSIZE];
 
-void MEM_WRITE_STEP(uint16_t a, byte v);
 #define MWRITE(a,v) { Mem[a]=v; }
 
-// ----------------------------------------
 #define MREAD(a)    (Mem[a])
 // WARNING: arguments to MEM_READ and MEM_WRITE macros should not have side effects
 // (e.g. MEM_READ(addr++)) => any side effects will be executed multiple times!
-
-byte MEM_READ_STEP(uint16_t a);
-
-// dave, The orginal MEM_READ(a).
-#define MEM_READ2(a) (host_read_status_led_WAIT() ? MEM_READ_STEP(a) : \
-                     (host_set_status_leds_READMEM(),  \
-                      host_set_addr_leds(a), \
-                      host_set_data_leds(MREAD(a)) ) \
-                    )
-#define MEM_READ_THIS(a) (host_set_status_leds_READMEM(),  \
-                      host_set_addr_leds(a), \
-                      host_set_data_leds(MREAD(a)) \
-                    )
 
 // -----------------------------------------------------------------------------
 // CPU Registers

@@ -47,7 +47,8 @@ $ ls /dev/tty.*
 /dev/tty.Bluetooth-Incoming-Port	/dev/tty.wchusbserial14110
 $ screen /dev/tty.wchusbserial14110
 ...
-To exit (detach): ctrl+a d
+To exit (detach): ctrl+a ctrl+\, then answer "y" to exit and close the connection.
+To exit and close the connection: Control-A followed by Control-\ to exit your screen session
 ````
 
 ##### Links
@@ -571,6 +572,17 @@ WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8  A7  A6  A5  A4  A3  A2  A1  A0
 ````
 
 --------------------------------------------------------------------------------
++ Ready to receive command.
++ Starting the processor loop.
++ runProcessorWait()
++ l, load a sample program.
++ loadProgram()
++ k, Kill the Bit.
++ f, Front panel status light test.
++ w, Write byte to memory location: 96, increment byte and loop.
+----------
++ x, Exit: don't load a program.
++ altair_set_outputs, address:0 dataByte:0
 
 --------------------------------------------------------------------------------
 Cheers

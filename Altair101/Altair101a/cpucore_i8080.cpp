@@ -51,112 +51,123 @@ void altair_interrupt(uint32_t i, bool set) {}
 
 byte Mem[MEMSIZE];
 
+byte MEM_READ_STEP(uint16_t a);
+void MEM_WRITE_STEP(uint16_t a, byte v);
+
 // -----------------------------------------
 // Read
 
 // dave
-byte MEM_READ(uint16_t a) {
+byte MEM_READ(uint16_t memoryAddress) {
   byte returnByte;
+  returnByte = MREAD(memoryAddress);
+#ifdef LOG_MESSAGES
+  Serial.print(F("+ MEM_READ, memoryAddress="));
+  Serial.print(memoryAddress);
+  Serial.print(F(", returnByte="));
+  Serial.println(returnByte);
+#endif
+  host_set_status_leds_READMEM();
+  host_set_addr_leds( memoryAddress );
+  host_set_data_leds( returnByte );
   if (status_wait) {
-    returnByte = MEM_READ_THIS(a);
-    Serial.print(F("+ returnByte="));
-    Serial.println(returnByte);
     singleStepWait();
-  } else {
-    returnByte = MEM_READ_THIS(a);
   }
   return returnByte;
 }
 
-inline uint16_t MEM_READ_WORD(uint16_t addr) {
+inline uint16_t MEM_READ_WORD(uint16_t memoryAddress) {
+  byte lb, hb;
   if ( !host_read_status_led_WAIT() ) {
-    // dave
-    // Since wait state, single step through memory reads.
-    byte l, h;
-    l = MREAD(addr);
+    // Not single stepping through memory reads.
     host_set_status_leds_READMEM();
-    host_set_addr_leds(addr);
-    host_set_data_leds(l);
-    addr++;
-    h = MREAD(addr);
-    host_set_addr_leds(addr);
-    host_set_data_leds(h);
-    return l | (h * 256);
+    lb = MREAD(memoryAddress);
+    host_set_addr_leds(memoryAddress);
+    host_set_data_leds(lb);
+    memoryAddress++;
+    hb = MREAD(memoryAddress);
+    host_set_addr_leds(memoryAddress);
+    host_set_data_leds(hb);
+    return lb | (hb * 256);
   }
-  else {
-    byte l, h;
-    l = MEM_READ_STEP(addr);
-    addr++;
-    h = MEM_READ_STEP(addr);
-    host_clr_status_led_MEMR();
-    return l | (h * 256);
-  }
+  // Single stepping through memory reads.
+  lb = MEM_READ_STEP(memoryAddress);
+  memoryAddress++;
+  hb = MEM_READ_STEP(memoryAddress);
+#ifdef LOG_MESSAGES
+  Serial.print(F("+ MEM_READ_STEP, memoryAddress="));
+  Serial.print(memoryAddress);
+  Serial.print(F(" hb:lb="));
+  Serial.print(hb);
+  Serial.print(F(":"));
+  Serial.println(lb);
+#endif
+  return lb | (hb * 256);
 }
 
-byte MEM_READ_STEP(uint16_t a) {
-  byte v = MREAD(a);
+byte MEM_READ_STEP(uint16_t memoryAddress) {
+  byte byteValue = MREAD(memoryAddress);
   host_set_status_leds_READMEM();
-  altair_set_outputs(a, v);
-  v = host_read_data_leds(); // CPU reads whatever is on the data bus at this point
+  altair_set_outputs(memoryAddress, byteValue);
   singleStepWait();
-  return v;
+  return byteValue;
 }
 
 // -----------------------------------------
 // Write
 
-inline void MEM_WRITE_WORD(uint16_t addr, uint16_t v)
-{
-  if ( host_read_status_led_WAIT() ) {
+void MEM_WRITE(uint16_t memoryAddress, uint16_t byteValue) {
 #ifdef LOG_MESSAGES
-  Serial.println("+ MEM_WRITE_WORD, addr:");
-  Serial.print(addr);
-  Serial.println(" v:");
-  Serial.println(v);
+  Serial.print(F("+ MEM_WRITE, memoryAddress="));
+  Serial.print(memoryAddress);
+  Serial.print(F(" byteValue="));
+  Serial.println(byteValue);
 #endif
-    MEM_WRITE_STEP(addr, v & 255);
-    addr++;
-    MEM_WRITE_STEP(addr, v / 256);
+  host_set_status_leds_WRITEMEM();
+  host_set_addr_leds(memoryAddress);
+  host_set_data_leds(byteValue);
+  MWRITE(memoryAddress, byteValue);
+  if (status_wait) {
+    singleStepWait();
   }
-  else {
+}
+
+inline void MEM_WRITE_WORD(uint16_t memoryAddress, uint16_t byteValue) {
+  if ( !host_read_status_led_WAIT() ) {
     byte b;
     host_set_status_leds_WRITEMEM();
-    host_set_data_leds(0xff);
-    host_set_addr_leds(addr);
-    b = v & 255;
-    MWRITE(addr, b);
-    for (uint8_t i = 0; i < 5; i++) asm("NOP");
-    addr++;
-    host_set_addr_leds(addr);
-    b = v / 256;
-    MWRITE(addr, b);
+    host_set_data_leds(byteValue);          // Use 0xff, if you want the same as Altair 8800.
+    host_set_addr_leds(memoryAddress);
+    b = byteValue & 255;
+    MWRITE(memoryAddress, b);
+    // for (uint8_t i = 0; i < 5; i++) asm("NOP");  // If you want the same as Altair 8800.
+    memoryAddress++;
+    host_set_addr_leds(memoryAddress);
+    b = byteValue / 256;
+    MWRITE(memoryAddress, b);
+    return;
   }
-}
-
-// dave
-void MEM_WRITE(uint16_t a, uint16_t v) {
-  if ( host_read_status_led_WAIT() ) {
-    host_set_addr_leds(a);
-    host_set_data_leds(v);
-    host_set_status_leds_WRITEMEM();
-    MWRITE(a, v);
-    singleStepWait();
-  } else {
-    MWRITE(a, v);
-  }
-}
-
-void MEM_WRITE_STEP(uint16_t a, byte v) {
-  MWRITE(a, v);
-  host_set_status_leds_WRITEMEM();
-  
 #ifdef LOG_MESSAGES
-  Serial.print("+ MEM_WRITE_STEP, a:");
-  Serial.print(a);
-  Serial.print(" v:");
-  Serial.println(v);
+  Serial.println("+ MEM_WRITE_WORD, memoryAddress:");
+  Serial.print(memoryAddress);
+  Serial.println(" byteValue:");
+  Serial.println(byteValue);
 #endif
-  altair_set_outputs(a, v); // If rather original: altair_set_outputs(a, 0xff);
+  MEM_WRITE_STEP(memoryAddress, byteValue & 255);
+  memoryAddress++;
+  MEM_WRITE_STEP(memoryAddress, byteValue / 256);
+}
+
+void MEM_WRITE_STEP(uint16_t memoryAddress, byte byteValue) {
+#ifdef LOG_MESSAGES
+  Serial.print("+ MEM_WRITE_STEP, memoryAddress:");
+  Serial.print(memoryAddress);
+  Serial.print(" byteValue:");
+  Serial.println(byteValue);
+#endif
+  MWRITE(memoryAddress, byteValue);
+  host_set_status_leds_WRITEMEM();
+  altair_set_outputs(memoryAddress, byteValue); // If you want to display like the original Altair 8800: altair_set_outputs(a, 0xff);
   singleStepWait();
   host_clr_status_led_WO();
 }
@@ -217,12 +228,16 @@ inline void pushStackWord(uint16_t v) {
   }                                                \
   else popStackSlow(&valueH, &valueL);
 void popStackSlow(byte *valueH, byte *valueL) {
-  Serial.println("+ popStackSlow()");
+#ifdef LOG_MESSAGES
+  Serial.print("+ popStackSlow(), valueH:");
+  Serial.print(*valueH);
+  Serial.print(" valueL:");
+  Serial.println(*valueL);
+#endif
   host_set_status_led_STACK();
   *valueL = MEM_READ_STEP(regSP);
   regSP++;
   *valueH = MEM_READ_STEP(regSP);
-  host_clr_status_led_MEMR();
   host_clr_status_led_STACK();
 }
 
@@ -724,7 +739,7 @@ static const byte parity_table[256] =
 // This is for emulating the video pop instruction for the registers: https://www.youtube.com/watch?v=3_73NwB6toY
 // In practise, regS is B01000010. For some reason, in the video bit 2 is also set, which is okay.
 void init_regS() {
- regS = B01000000;
+  regS = B01000000;
 }
 
 inline void setStatusBits(byte value) {
