@@ -147,8 +147,8 @@ extern const byte WO_ON;
 extern const byte INT_ON;
 
 inline void host_set_addr_leds(uint16_t v) {
-  statusByteA = (v & 0xff); // 0xff : Turn ON, 0x00 : Turn OFF
-  statusByteC = (v / 256);
+  statusByteA = (v & 0xff); // lb where 0xff remove hb, leaving LB
+  statusByteC = (v / 256);  // hb
 }
 #define host_set_data_leds(v)  statusByteL=(v)
 #define host_read_data_leds()  statusByteL

@@ -596,23 +596,33 @@ void loadProgram() {
           MWRITE( cnt++, B10000000 & 0xff);  // ++ immediate:080h:128
           MWRITE( cnt++, B00000001 & 0xff);  // ++ opcode:lxi:00000001:b:500h
           MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:500h:0
-          MWRITE( cnt++, B00000101 & 0xff);  // ++ hb:5
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00000101 & 0xff);  // ++ hb:5                   ----------------
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d  Address 08, Label: Begin
+          /*
+            + MEM_READ, memoryAddress=32768, returnByte=128
+                        32768 = A15 = 1 000 000 0 00 000 000
+                Should display memoryAddress=32768. Note, returnByte=128 is displayed properly.
+                host_set_addr_leds( memoryAddress );
+            +++ That's the problem, host_set_addr_leds is not displaying memoryAddress=32768 (B100000000 B000000000)
+                  Called from: CPU_LDX(REG).
+                  In serialPrintFrontPanel, the address is got:
+                  host_read_addr_leds(v) (statusByteA | (statusByteC * 256))
+           */
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d  
           MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
           MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
           MWRITE( cnt++, B00001001 & 0xff);  // ++ opcode:dad:00001001:b
           MWRITE( cnt++, B11010010 & 0xff);  // ++ opcode:jnc:11010010:Begin
-          MWRITE( cnt++, B00001000 & 0xff);  // ++ lb:Begin:8
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          MWRITE( cnt++, B00001000 & 0xff);  // ++ lb:Begin:8            ----------------
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0                     Address 15
           MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:0ffh
           MWRITE( cnt++, B11111111 & 0xff);  // ++ immediate:0ffh:255
           MWRITE( cnt++, B10101010 & 0xff);  // ++ opcode:xra:10101010:d
           MWRITE( cnt++, B00001111 & 0xff);  // ++ opcode:rrc:00001111
           MWRITE( cnt++, B01010111 & 0xff);  // ++ opcode:mov:01010111:d:a
           MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Begin
-          MWRITE( cnt++, B00001000 & 0xff);  // ++ lb:Begin:8
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          MWRITE( cnt++, B00001000 & 0xff);  // ++ lb:Begin:8            ----------------
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0                     Address 23
           break;
         case 'm':
           Serial.println("+ m, MVI testing to the setting of registers.");
@@ -863,8 +873,11 @@ void processWaitSwitch(byte readByte) {
       Serial.println("+ CLR confirmed.");
       Serial.print("+ Clear memory: ");
       Serial.println(MEMSIZE);
-      for (int i = 0; i++; i < MEMSIZE) {
+      for (int i = 0; i < MEMSIZE; i++) {
         MWRITE(i, 0);
+        if (i == 100 || i == 500) {
+          Serial.println("+ 100.");
+        }
       }
       regA = 0;
       regB = 0;

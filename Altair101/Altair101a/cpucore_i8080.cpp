@@ -774,9 +774,30 @@ void cpucore_i8080_print_registers() {
   Serial.print(F(" = ")); cpu_print_status_register(regS);
   Serial.println();
   // ---
+  Serial.print(F("+ Front display Status byte, statusByteB: "));
+  printData(statusByteB);
+  Serial.println();
+  Serial.print(F("+ statusByteA: "));
+  printData(statusByteA);
+  Serial.println();
+  Serial.print(F("+ statusByteC: "));
+  printData(statusByteC);
+  Serial.println();
+  Serial.print(F("+ Front display Address word, statusByteC:statusByteA "));
+  printByte(statusByteC);
+  Serial.print(F(":"));
+  printByte(statusByteA);
+  Serial.println();
+  Serial.print(F("+ statusByteG: "));
+  printData(statusByteG);
+  Serial.println();
+  Serial.print(F("+ statusByteL: "));
+  printData(statusByteL);
+  Serial.println();
+  // ---
   Serial.print(F("+ regA: "));
   printData(regA);
-  Serial.println("");
+  Serial.println();
   // ---
   Serial.print(F("+ regB: "));
   printData(regB);
@@ -1200,12 +1221,12 @@ static void cpu_DAA()
 
 
 #define CPU_DAD(REG)            \
-  static void cpu_DAD ## REG()         \
+  static void cpu_DAD ## REG()  \
   {                             \
     uint16_t w = reg##REG.REG;  \
     regHL.HL += w;              \
     setCarryBit(regHL.HL < w);  \
-    TIMER_ADD_CYCLES(10);        \
+    TIMER_ADD_CYCLES(10);       \
   }
 
 CPU_DAD(BC);
@@ -1309,6 +1330,7 @@ static void cpu_LDA() {
   TIMER_ADD_CYCLES(13);
 }
 
+// LDAX, dave
 #define CPU_LDX(REG) \
   static void cpu_LDX ## REG() \
   { \

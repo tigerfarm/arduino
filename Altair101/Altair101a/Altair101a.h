@@ -19,6 +19,7 @@ extern byte statusByteL;
 // Used in cpucore_i8080.cpp
 void singleStepWait();                      // Wait for "s" when single stepping.
 void printData(byte theByte);               // To echo data bytes.
+void printByte(byte theByte);               // To echo data bytes.
 void altair_hlt();
 void altair_set_outputs(uint16_t a, byte v);
 byte altair_in(byte addr);
