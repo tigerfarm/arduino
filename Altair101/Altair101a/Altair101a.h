@@ -15,7 +15,7 @@ extern byte statusByteA;    // Front panel address lb.
 extern byte statusByteC;    // Front panel address hb.
 extern byte statusByteL;    // Front panel data byte.
 
-// Used in cpucore_i8080.cpp
+// Altair101a.ino program functions used in cpucore_i8080.cpp
 void singleStepWait();                      // Wait for "s" when single stepping.
 void printData(byte theByte);               // To echo data bytes.
 void printByte(byte theByte);               // To echo data bytes.

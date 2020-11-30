@@ -999,11 +999,9 @@ void processWaitSwitch(byte readByte) {
       regPC = 0;
       regSP = 0;
       //
-      statusByteA = 0;
-      statusByteC = 0;
-      //
-      statusByteA = 0;
-      statusByteC = 0;
+      statusByteA = 0;  // Address lb
+      statusByteC = 0;  // Address hb
+      statusByteL = 0;  // Data
       //
       p_regPC = ~regPC;
       altair_set_outputs(regPC, MREAD(regPC));
@@ -1015,8 +1013,8 @@ void processWaitSwitch(byte readByte) {
       Serial.println("-------------");
       Serial.println("+ h, Help         Print this help menu.");
       Serial.println("-------------");
-      Serial.println("+ 0...9           Toggles:  A0...A9  address switches.");
-      Serial.println("+ a...f           Toggles: A10...A15 address switches.");
+      Serial.println("+ 0...9           Toggle address switches:  A0...A9.");
+      Serial.println("+ a...f           Toggle address switches: A10...A15.");
       Serial.println("-------------");
       Serial.println("+ r, RUN mode.");
       Serial.println("+ s, STOP         When in RUN mode, change to WAIT mode.");
@@ -1028,32 +1026,24 @@ void processWaitSwitch(byte readByte) {
       Serial.println("+ R, RESET        Set program counter address to zero.");
       Serial.println("+ L, CLR          Clear memory, set registers to zero, and program counter address to zero.");
       Serial.println("-------------");
-      Serial.println("+ o, LEDs off     Do not output to LED lights.");
-      Serial.println("+ O, LEDs on      Output to LED lights.");
-      Serial.println("+ v, VT100 off    Don't use VT100 esacpes.");
-      Serial.println("+ V, VT100 on     Use VT100 esacpes.");
-      Serial.println("+ z, cursor off   VT100 cursor off.");
-      Serial.println("+ Z, cursor on    VT100 cursor on.");
+      Serial.println("                  Can enter a series of values when using the Arduino IDE monitor.");
+      Serial.println("+ 013x            Example, toggle switches 0,1,3 (00001011), and EXAMINE the address.");
       Serial.println("-------------");
       Serial.println("+ i, info         Information print of registers.");
       Serial.println("+ l, load         Load a sample program.");
       Serial.println("-------------");
-      Serial.println("+ 013x, toggle switches 0,1,3 (00001011), and EXAMINE the address.");
+      Serial.println("+ o, LEDs off     Do not output to LED lights.");
+      Serial.println("+ O, LEDs on      Output to LED lights.");
+      Serial.println("+ v, VT100 off    Don't use VT100 esacpes.");
+      Serial.println("+ V, VT100 on     Use VT100 esacpes.");
+      Serial.println("+ z, cursor off   VT100 block cursor off.");
+      Serial.println("+ Z, cursor on    VT100 block cursor on.");
       Serial.println("----------------------------------------------------");
       break;
     // -------------------------------------------------------------------
     // The following requires a VT100 terminal such as a Macbook terminal.
     // The following doesn't work on the Ardino monitor.
     //
-    case 'z':
-      Serial.print("++ Cursor off.");
-      Serial.print("\033[0m\033[?25l");
-      break;
-    case 'Z':
-      Serial.print("++ Cursor on.");
-      Serial.print("\033[0m\033[?25h");
-      break;
-    // -------------------------------------
     case 'v':
       SERIAL_IO_VT100 = false;
       Serial.println("+ v, VT100 escapes are disabled and block cursor on.");
@@ -1072,6 +1062,21 @@ void processWaitSwitch(byte readByte) {
       Serial.println("+ V, VT100 escapes are enabled and block cursor off.");
       break;
     // -------------------------------------
+    case 'y':
+      Serial.println(F("+ y, clear screen."));
+      Serial.print("\033[H\033[2J");          // Cursor home and clear the screen.
+      serialPrintFrontPanel();                // Print the complete front panel: labels and indicators.
+      break;
+    case 'z':
+      Serial.print("++ Cursor off.");
+      Serial.print("\033[0m\033[?25l");
+      break;
+    case 'Z':
+      Serial.print("++ Cursor on.");
+      Serial.print("\033[0m\033[?25h");
+      break;
+    //
+    // -------------------------------------
     case 'o':
       Serial.println("+ o, do not output to LED lights.");
       LED_IO = false;
@@ -1079,12 +1084,6 @@ void processWaitSwitch(byte readByte) {
     case 'O':
       Serial.println("+ O, output to LED lights.");
       LED_IO = true;
-      break;
-    //
-    case 'y':
-      Serial.println(F("+ y, clear screen."));
-      Serial.print("\033[H\033[2J");          // Cursor home and clear the screen.
-      serialPrintFrontPanel();                // Print the complete front panel: labels and indicators.
       break;
     //
     // -------------------------------------
