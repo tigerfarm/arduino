@@ -46,7 +46,8 @@
 #include "Altair101a.h"
 #include "cpucore_i8080.h"
 
-// #define LOG_MESSAGES 1    // For debugging.
+#define LOG_MESSAGES 1    // For debugging.
+// #define LOG_OPCODES  1    // Print each called opcode.
 
 // -----------------------------------------------------------------------------
 // For Byte bit comparisons.
@@ -406,16 +407,14 @@ byte altair_in(byte portDataByte) {
   byte inputDataByte;
   //
   // Get an input byte from the input port.
-  host_clr_status_led_MEMR();
-  host_set_status_led_INP();
   switch (portDataByte) {
     case B11111111:
-      // From Sense switches. Not implemented.
+      // From hardware Sense switches. Not implemented.
       inputDataByte = 0;
       break;
     case 2:
-      // USB serial input sense switch. dave
-      // Input comes from the RUN mode loop.
+      // USB serial input sense switches: 8,9,a...f.
+      // Input(inputBytePort2) comes from the RUN mode loop.
       if (inputBytePort2 == '8') {
         inputDataByte = B00000001;
       } else if (inputBytePort2 == '9') {
@@ -435,27 +434,52 @@ byte altair_in(byte portDataByte) {
       }
       if (inputDataByte > 0) {
         inputBytePort2 = 0;
-        Serial.print(F("+ Input sense switch byte, "));
+        Serial.print(F("+ Input sense switch byte: B"));
         printByte(inputDataByte);
         Serial.println();
-        return;
       }
+      break;
+    case 3:
+      // Input(inputBytePort2) comes from the RUN mode loop.
+      // Only keep the most recent input, not queueing the inputs at this time.
+      inputDataByte = inputBytePort2;
+      inputBytePort2 = 0;
       break;
     case 16:
       // Test port: 20Q (octal: 020).
-      inputDataByte = 2;  // Video input byte value.
+      // Return byte value of 2, which is used in the status light video.
+      inputDataByte = 2;
       break;
     default:
       inputDataByte = 0;
+  }
+  if (inputDataByte == 0) {
+    // No input at this time.
+    return;
   }
   //
 #ifdef LOG_MESSAGES
   Serial.print(F("> Input port# "));
   Serial.print(portDataByte);
-  Serial.print(" inputDataByte=");
-  Serial.print(inputDataByte);
-  Serial.println(" which is put into regA, cpucore_i8080.cpp: cpu_IN().");
+  Serial.print(" inputDataByte print=");
+  sprintf(charBuffer, "%3d", inputDataByte);
+  Serial.print(charBuffer);
+  Serial.print(" write=");
+  // Special characters.
+  if (inputDataByte == 10) {
+    Serial.print("<LF>");
+  } else if (inputDataByte == 13) {
+    Serial.print("<CR>");
+  } else {
+    Serial.print("'");
+    Serial.write(inputDataByte);
+    Serial.print("'");
+  }
+  Serial.print(" printByte=");
+  printByte(inputDataByte);
 #endif
+  host_clr_status_led_MEMR();
+  host_set_status_led_INP();
   host_set_data_leds(inputDataByte);
   host_set_addr_leds(portDataByte + portDataByte * 256); // The low and high bytes are each set to the portDataByte.
   if (host_read_status_led_WAIT()) {
@@ -551,7 +575,7 @@ void altair_set_outputs(uint16_t addressWord, byte dataByte) {
 // Running machine instructions
 
 void processDataOpcode() {
-#ifdef LOG_MESSAGES
+#ifdef LOG_OPCODES
   Serial.print(F("++ regPC:"));
   Serial.print(regPC);
   Serial.print(F(": data:"));
@@ -588,12 +612,8 @@ void processRunSwitch(byte readByte) {
       altair_set_outputs(regPC, MREAD(regPC));
     // Then continue running.
     // -------------------------------------
-    case 10:
-      // New line character.
-      // For testing, require enter key from serial to run the next opcode. This is like a step operation.
-      // processRunSwitch(readByte);
-      break;
     default:
+      // Load the byte for use by cpu_IN();
       inputBytePort2 = readByte;
       break;
   }
@@ -639,7 +659,7 @@ void loadProgram() {
             Serial.print("\033[J");     // From cursor down, clear the screen, .
           }
           MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:SERIAL_PORT
-          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:SERIAL_PORT:2
+          MWRITE( cnt++, B00000011 & 0xff);  // ++ immediate:SERIAL_PORT:3
           MWRITE( cnt++, B11111110 & 0xff);  // ++ opcode:cpi:11111110:'x'
           MWRITE( cnt++, B01111000 & 0xff);  // ++ immediate:'x':120
           MWRITE( cnt++, B11001010 & 0xff);  // ++ opcode:jz:11001010:HaltLoop
