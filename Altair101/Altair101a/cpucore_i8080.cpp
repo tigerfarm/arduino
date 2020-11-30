@@ -31,7 +31,6 @@ byte statusByteB = B00000000;       // Status lights: by default are all OFF.
 byte statusByteA = B00000000;       // Address light lb.
 byte statusByteC = B00000000;       // Address light hb.
 byte statusByteL = B00000000;       // Data byte
-byte dataByte    = B00000000;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

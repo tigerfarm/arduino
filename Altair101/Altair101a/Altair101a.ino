@@ -52,18 +52,13 @@
 #define LOG_MESSAGES 1    // For debugging.
 // #define LOG_OPCODES  1    // Print each called opcode.
 
-// -----------------------------------------------------------------------------
-// For Byte bit comparisons.
-#define BIT(n) (1<<(n))
+byte statusByte = B00000000;        // By default, all are OFF.
+byte dataByte    = B00000000;
 
 // -----------------------------------------------------------------------------
 byte opcode = 0xff;
-static uint16_t p_regPC = 0xFFFF;
+// static uint16_t p_regPC = 0xFFFF;
 // uint16_t controlSwitch = 0;
-
-// Byte bit status values
-#define ST_WAIT    0x0800
-#define ST_HLDA    0x0400
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -108,7 +103,6 @@ void ledFlashSuccess() {}
 // Status Indicator LED lights
 
 byte readByte = 0;
-byte statusByte = B00000000;        // By default, all are OFF.
 
 // Program wait status.
 const int WAIT_PIN = A9;      // Processor program wait state: off/LOW or wait state on/HIGH.
@@ -140,12 +134,32 @@ const byte INT_OFF =    ~INT_ON;
 // -----------------------------------------------------------------------------
 // Front Panel Status LEDs
 
+// ------------------------------------------------
+// Data LED lights displayed using shift registers.
+
 // -------------------------------------------------
 // Output LED lights shift register(SN74HC595N) pins
 //           Mega/Nano pins        74HC595 Pins
 const int dataPinLed  = 5;    // pin 5 (was pin A14) Data pin.
 const int latchPinLed = 6;    // pin 6 (was pin A12) Latch pin.
 const int clockPinLed = 7;    // pin 7 (was pin A11) Clock pin.
+
+void programLights() {
+  // Use the current program values: statusByte, curProgramCounter, and dataByte.
+  digitalWrite(latchPinLed, LOW);
+#ifdef DESKTOP_MODULE
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, statusByte);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, dataByte);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(regPC));
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(regPC));
+#else
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, dataByte);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(regPC));
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(regPC));
+  shiftOut(dataPinLed, clockPinLed, MSBFIRST, statusByte); // MSBFIRST matches the bit to LED mapping.
+#endif
+  digitalWrite(latchPinLed, HIGH);
+}
 
 void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) {
 #ifdef LOG_MESSAGES
@@ -625,7 +639,7 @@ void processRunSwitch(byte readByte) {
       Serial.println(F("+ RESET"));
       // Stacy, For now, do EXAMINE 0 to reset to the first memory address.
       regPC = 0;
-      p_regPC = ~regPC;
+      // p_regPC = ~regPC;
       altair_set_outputs(regPC, MREAD(regPC));
     // Then continue running.
     // -------------------------------------
@@ -845,7 +859,7 @@ void loadProgram() {
   if (readByte != 'x') {
     // Do EXAMINE 0 after the load;
     regPC = 0;
-    p_regPC = ~regPC;
+    // p_regPC = ~regPC;
     altair_set_outputs(regPC, MREAD(regPC));
     if (SERIAL_IO_VT100) {
       serialPrintFrontPanel();
@@ -918,7 +932,7 @@ void processWaitSwitch(byte readByte) {
       regPC = addressSwitch;
       Serial.print("+ x, EXAMINE: ");
       Serial.println(regPC);
-      p_regPC = ~regPC;
+      // p_regPC = ~regPC;
       altair_set_outputs(regPC, MREAD(regPC));
       if (SERIAL_IO_VT100) {
         serialPrintFrontPanel();
@@ -956,7 +970,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println("+ R, RESET.");
       // For now, do EXAMINE 0 to reset to the first memory address.
       regPC = 0;
-      p_regPC = ~regPC;
+      // p_regPC = ~regPC;
       altair_set_outputs(regPC, MREAD(regPC));
       //
       host_clr_status_led_HLTA();
@@ -1003,7 +1017,7 @@ void processWaitSwitch(byte readByte) {
       statusByteC = 0;  // Address hb
       statusByteL = 0;  // Data
       //
-      p_regPC = ~regPC;
+      // p_regPC = ~regPC;
       altair_set_outputs(regPC, MREAD(regPC));
       break;
     // -------------------------------------
