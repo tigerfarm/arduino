@@ -764,8 +764,11 @@ void cpucore_i8080_print_registers() {
   char charBuffer[17];
   Serial.print(F("++ CPU: "));
   Serial.println(THIS_CPU);
+  //
   Serial.print(F("++ host_read_status_led_WAIT()="));
   Serial.println(host_read_status_led_WAIT());
+  Serial.print(F("++ host_read_status_led_HLDA()="));
+  Serial.println(host_read_status_led_HLDA());
   //
   sprintf(charBuffer, "++ PC %6d = ", regPC);
   Serial.print(charBuffer);
@@ -784,6 +787,8 @@ void cpucore_i8080_print_registers() {
   Serial.print(F(" = ")); cpu_print_status_register(regS);
   Serial.println(" Status byte");
   // ---
+  Serial.print(F("++ host_read_status_led_INTE()="));
+  Serial.println(host_read_status_led_INTE());
   Serial.print(F("+ Front panel display Status byte,  statusByteB: "));
   printData(statusByteB);
   Serial.println();
