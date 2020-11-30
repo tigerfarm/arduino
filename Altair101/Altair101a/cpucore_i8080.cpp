@@ -761,6 +761,7 @@ static void cpu_print_status_register(byte s) {
 }
 
 void cpucore_i8080_print_registers() {
+  char charBuffer[17];
   Serial.print(F("++ CPU: "));
   Serial.println(THIS_CPU);
   Serial.print(F("++ host_read_status_led_WAIT()="));
