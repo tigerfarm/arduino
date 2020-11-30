@@ -261,7 +261,8 @@ void serialPrintFrontPanel() {
   }
   // WAIT and HLDA
   if (!SERIAL_IO_VT100) {
-    Serial.print(("\r\nWAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0\r\n"));
+    Serial.print(("\r\nWAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0"));
+    Serial.print(("\r\n"));
   } else {
     // No need to rewrite the title.
     Serial.println();
@@ -272,10 +273,14 @@ void serialPrintFrontPanel() {
   //
   // Address
   addressBus = host_read_addr_leds();
+  // Serial.print((" "));
+  // Serial.print(addressBus);
   if ((prev_addressBus != addressBus) || !SERIAL_IO_VT100) {
     // If VT100 and no change, don't reprint.
     prev_addressBus = addressBus;
-    if ( addressBus & 0x8000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+    // Serial.print(F("   addressBus:"));
+    if ( statusByteC & 0x0080) Serial.print(F("   *")); else Serial.print(F("   ."));
+    // Bug, the above does work when using "addressBus & 0x8000".
     if ( addressBus & 0x4000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
     if ( addressBus & 0x2000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
     if ( addressBus & 0x1000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
@@ -294,6 +299,9 @@ void serialPrintFrontPanel() {
     if ( addressBus & 0x0004 ) Serial.print(F("   *")); else Serial.print(F("   ."));
     if ( addressBus & 0x0002 ) Serial.print(F("   *")); else Serial.print(F("   ."));
     if ( addressBus & 0x0001 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+    // Serial.print(F("   addressBus:"));
+    // Serial.print(addressBus);
+    // This works after the above print statement: if ( addressBus & 0x8000 ) Serial.print(F(" *")); else Serial.print(F(" ."));
   }
   // Address/Data switches
   if (!SERIAL_IO_VT100) {
@@ -340,8 +348,10 @@ void serialPrintFrontPanel() {
 }
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Process functions
+
 void singleStepWait() {
-  // dave
   Serial.println(F("+ singleStepWait()"));
   printFrontPanel();                // Status, data/address lights already set.
   bool singleStepWaitLoop = true;
@@ -351,6 +361,9 @@ void singleStepWait() {
       if (readByte == 's') {
         singleStepWaitLoop = false;
         // processRunSwitch(readByte);
+      } else if (readByte == 'i') {
+        Serial.println("+ i: Information.");
+        cpucore_i8080_print_registers();
       }
     }
   }
@@ -390,11 +403,17 @@ byte altair_in(byte portDataByte) {
   // Status
   byte inputDataByte;
   //
-  // Get an input byte from the input port.
+  // Get an input byte from the input port. 
+  host_clr_status_led_MEMR();
+  host_set_status_led_INP();
   switch (portDataByte) {
-    case 1:
+    case B11111111:
       // From Sense switches.
-      inputDataByte = 1;
+      // From Sense switches. For testing, use serial input. dave
+      inputDataByte = 0;
+      if (Serial.available() > 0) {
+        inputDataByte = Serial.read();    // Read and process an incoming byte.
+      }
       break;
     case 2:
       // From serial port.
@@ -415,8 +434,6 @@ byte altair_in(byte portDataByte) {
   Serial.print(inputDataByte);
   Serial.println(" which is put into regA, cpucore_i8080.cpp: cpu_IN().");
 #endif
-  host_clr_status_led_MEMR();
-  host_set_status_led_INP();
   host_set_data_leds(inputDataByte);
   host_set_addr_leds(portDataByte + portDataByte * 256); // The low and high bytes are each set to the portDataByte.
   if (host_read_status_led_WAIT()) {
@@ -572,18 +589,24 @@ void runProcessor() {
 }
 
 // -----------------------------------------------------------------------------
+String loadProgramName = "";
 void loadProgram() {
   int cnt;
   cnt = 0;
 #ifdef LOG_MESSAGES
   Serial.println(F("+ loadProgram()"));
 #endif
+  if (loadProgramName != "") {
+    Serial.print(F("+ Program previously loaded: "));
+    Serial.println(loadProgramName);
+  }
   programState = PROGRAM_LOAD;
   while (programState == PROGRAM_LOAD) {
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
       switch (readByte) {
         case 'k':
+          loadProgramName = "Kill the Bit";
           Serial.println("+ k, Kill the Bit. Not tested.");
           programState = PROGRAM_WAIT;
           if (SERIAL_IO_VT100) {
@@ -595,25 +618,15 @@ void loadProgram() {
           MWRITE( cnt++, B00010110 & 0xff);  // ++ opcode:mvi:00010110:d:080h
           MWRITE( cnt++, B10000000 & 0xff);  // ++ immediate:080h:128
           MWRITE( cnt++, B00000001 & 0xff);  // ++ opcode:lxi:00000001:b:500h
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:500h:0
-          MWRITE( cnt++, B00000101 & 0xff);  // ++ hb:5                   ----------------
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d  Address 08, Label: Begin
-          /*
-            + MEM_READ, memoryAddress=32768, returnByte=128
-                        32768 = A15 = 1 000 000 0 00 000 000
-                Should display memoryAddress=32768. Note, returnByte=128 is displayed properly.
-                host_set_addr_leds( memoryAddress );
-            +++ That's the problem, host_set_addr_leds is not displaying memoryAddress=32768 (B100000000 B000000000)
-                  Called from: CPU_LDX(REG).
-                  In serialPrintFrontPanel, the address is got:
-                  host_read_addr_leds(v) (statusByteA | (statusByteC * 256))
-           */
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d  
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:500h:0  ; Speed, lower number, faster.
+          MWRITE( cnt++, B00100000 & 0xff);  // ++ hb:5                   Changed from 101, now faster for Serial demo.
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d ---------------- Label: Begin, address 8
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
           MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
           MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
           MWRITE( cnt++, B00001001 & 0xff);  // ++ opcode:dad:00001001:b
           MWRITE( cnt++, B11010010 & 0xff);  // ++ opcode:jnc:11010010:Begin
-          MWRITE( cnt++, B00001000 & 0xff);  // ++ lb:Begin:8            ----------------
+          MWRITE( cnt++, B00001000 & 0xff);  // ++ lb:Begin:8             ----------------
           MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0                     Address 15
           MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:0ffh
           MWRITE( cnt++, B11111111 & 0xff);  // ++ immediate:0ffh:255
@@ -625,6 +638,7 @@ void loadProgram() {
           MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0                     Address 23
           break;
         case 'm':
+          loadProgramName = "Registers MVI test";
           Serial.println("+ m, MVI testing to the setting of registers.");
           programState = PROGRAM_WAIT;
           if (SERIAL_IO_VT100) {
@@ -650,6 +664,7 @@ void loadProgram() {
           MWRITE(   cnt++, B00000000 & 0xff);  // ++ hb:0
           break;
         case 'w':
+          loadProgramName = "Write byte to memory location: 96";
           Serial.println("+ w, Write byte to memory location: 96, increment byte and loop.");
           if (SERIAL_IO_VT100) {
             Serial.print("\033[J");     // From cursor down, clear the screen, .
@@ -673,6 +688,7 @@ void loadProgram() {
           MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
           break;
         case 'f':
+          loadProgramName = "Front panel status light test";
           Serial.println("+ f, Front panel status light test.");
           if (SERIAL_IO_VT100) {
             Serial.print("\033[J");     // From cursor down, clear the screen, .
@@ -979,10 +995,6 @@ void processWaitSwitch(byte readByte) {
     // -------------------------------------
     case 'i':
       Serial.println("+ i: Information.");
-      Serial.print(F("++ CPU: "));
-      Serial.println(THIS_CPU);
-      Serial.print(F("++ host_read_status_led_WAIT()="));
-      Serial.println(host_read_status_led_WAIT());
       cpucore_i8080_print_registers();
       break;
     // -------------------------------------

@@ -49,7 +49,7 @@ $ screen /dev/tty.wchusbserial14110
 ...
 To exit (detach): ctrl+a ctrl+\, then answer "y" to exit and close the connection.
 To exit and close the connection: Control-A followed by Control-\ to exit your screen session
-Try ctrl+a\
+Try ctrl+a, then '\'
 ````
 
 ##### Links

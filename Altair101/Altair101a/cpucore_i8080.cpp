@@ -764,6 +764,11 @@ static void cpu_print_status_register(byte s) {
 }
 
 void cpucore_i8080_print_registers() {
+  Serial.print(F("++ CPU: "));
+  Serial.println(THIS_CPU);
+  Serial.print(F("++ host_read_status_led_WAIT()="));
+  Serial.println(host_read_status_led_WAIT());
+  //
   Serial.print(F("++ PC   = ")); numsys_print_word(regPC);
   Serial.print(F(" = ")); numsys_print_mem(regPC, 3, true);
   Serial.println();
@@ -776,12 +781,6 @@ void cpucore_i8080_print_registers() {
   // ---
   Serial.print(F("+ Front display Status byte, statusByteB: "));
   printData(statusByteB);
-  Serial.println();
-  Serial.print(F("+ statusByteA: "));
-  printData(statusByteA);
-  Serial.println();
-  Serial.print(F("+ statusByteC: "));
-  printData(statusByteC);
   Serial.println();
   Serial.print(F("+ Front display Address word, statusByteC:statusByteA "));
   printByte(statusByteC);
