@@ -20,7 +20,7 @@
 #include <Arduino.h>
 #include "cpucore_i8080.h"
 
-#define LOG_MESSAGES 1    // For debugging.
+// #define LOG_MESSAGES 1    // For debugging.
 
 word status_wait = 1;     // Default on.
 word status_hlda = 0;
