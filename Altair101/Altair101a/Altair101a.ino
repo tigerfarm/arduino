@@ -18,6 +18,8 @@
   ++ Use optional outputs:
   +++ Serial USB in VT100 mode or not.
   +++ LED lights (on/off using serial command).
+  Note, programLights() uses the global variables:
+  + void programLights() { // Use the current program values: statusByte, curProgramCounter, and dataByte. }
 
   + When single stepping, M1 stays on but should be off, when HLT is executed.
   + Should be on: MEMR, HLTA, WO.
