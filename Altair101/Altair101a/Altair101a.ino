@@ -46,7 +46,7 @@
 #include "Altair101a.h"
 #include "cpucore_i8080.h"
 
-#define LOG_MESSAGES 1    // For debugging.
+// #define LOG_MESSAGES 1    // For debugging.
 
 // -----------------------------------------------------------------------------
 // For Byte bit comparisons.
@@ -279,26 +279,26 @@ void serialPrintFrontPanel() {
     // If VT100 and no change, don't reprint.
     prev_addressBus = addressBus;
     // Serial.print(F("   addressBus:"));
-    if ( statusByteC & 0x0080) Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( statusByteC & 0x0080 ) Serial.print(F("   *")); else Serial.print(F("   ."));
     // Bug, the above does work when using "addressBus & 0x8000".
-    if ( addressBus & 0x4000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( addressBus & 0x2000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( addressBus & 0x1000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( addressBus & 0x0800 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( addressBus & 0x0400 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( addressBus & 0x0200 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( addressBus & 0x0100 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( statusByteC & 0x4000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( statusByteC & 0x2000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( statusByteC & 0x1000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( statusByteC & 0x0800 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( statusByteC & 0x0400 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( statusByteC & 0x0200 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( statusByteC & 0x0100 ) Serial.print(F("   *")); else Serial.print(F("   ."));
     Serial.print(F(" "));
-    if ( addressBus & 0x0080 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( addressBus & 0x0040 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( statusByteA & 0x0080 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( statusByteA & 0x0040 ) Serial.print(F("   *")); else Serial.print(F("   ."));
     Serial.print(F(" "));
-    if ( addressBus & 0x0020 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( addressBus & 0x0010 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( addressBus & 0x0008 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( statusByteA & 0x0020 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( statusByteA & 0x0010 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( statusByteA & 0x0008 ) Serial.print(F("   *")); else Serial.print(F("   ."));
     Serial.print(F(" "));
-    if ( addressBus & 0x0004 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( addressBus & 0x0002 ) Serial.print(F("   *")); else Serial.print(F("   ."));
-    if ( addressBus & 0x0001 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( statusByteA & 0x0004 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( statusByteA & 0x0002 ) Serial.print(F("   *")); else Serial.print(F("   ."));
+    if ( statusByteA & 0x0001 ) Serial.print(F("   *")); else Serial.print(F("   ."));
     // Serial.print(F("   addressBus:"));
     // Serial.print(addressBus);
     // This works after the above print statement: if ( addressBus & 0x8000 ) Serial.print(F(" *")); else Serial.print(F(" ."));
@@ -403,21 +403,20 @@ byte altair_in(byte portDataByte) {
   // Status
   byte inputDataByte;
   //
-  // Get an input byte from the input port. 
+  // Get an input byte from the input port.
   host_clr_status_led_MEMR();
   host_set_status_led_INP();
   switch (portDataByte) {
     case B11111111:
-      // From Sense switches.
-      // From Sense switches. For testing, use serial input. dave
+      // From Sense switches. Not implemented.
+      inputDataByte = 0;
+      break;
+    case 2:
+      // USB serial input. dave
       inputDataByte = 0;
       if (Serial.available() > 0) {
         inputDataByte = Serial.read();    // Read and process an incoming byte.
       }
-      break;
-    case 2:
-      // From serial port.
-      inputDataByte = 2;
       break;
     case 16:
       // Test port: 20Q (octal: 020).
@@ -491,6 +490,10 @@ void altair_out(byte portDataByte, byte regAdata) {
   //
   // Write output byte to the output port.
   switch (portDataByte) {
+    case 2:
+      // Out to the USB serial port.
+      Serial.write(regAdata);
+      break;
     case 16:
       // Actual output of bytes. Example output a byte to the serial port (IDE monitor).
       // Test port: 20Q (octal: 020).
@@ -605,6 +608,28 @@ void loadProgram() {
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
       switch (readByte) {
+        case 'i':
+          loadProgramName = "Input loop";
+          Serial.println("+ k, Input loop, 'x' to halt the loop.");
+          programState = PROGRAM_WAIT;
+          if (SERIAL_IO_VT100) {
+            Serial.print("\033[J");     // From cursor down, clear the screen, .
+          }
+          MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:SERIAL_PORT
+          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:SERIAL_PORT:2
+          MWRITE( cnt++, B11111110 & 0xff);  // ++ opcode:cpi:11111110:'x'
+          MWRITE( cnt++, B01111000 & 0xff);  // ++ immediate:'x':120
+          MWRITE( cnt++, B11000010 & 0xff);  // ++ opcode:jnz:11000010:HaltLoop
+          MWRITE( cnt++, B00001010 & 0xff);  // ++ lb:HaltLoop:10
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:GetByte
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:GetByte:0
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
+          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:GetByte
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:GetByte:0
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          break;
         case 'k':
           loadProgramName = "Kill the Bit";
           Serial.println("+ k, Kill the Bit. Not tested.");
@@ -629,7 +654,7 @@ void loadProgram() {
           MWRITE( cnt++, B00001000 & 0xff);  // ++ lb:Begin:8             ----------------
           MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0                     Address 15
           MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:0ffh
-          MWRITE( cnt++, B11111111 & 0xff);  // ++ immediate:0ffh:255
+          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:2:2            USB serial input.
           MWRITE( cnt++, B10101010 & 0xff);  // ++ opcode:xra:10101010:d
           MWRITE( cnt++, B00001111 & 0xff);  // ++ opcode:rrc:00001111
           MWRITE( cnt++, B01010111 & 0xff);  // ++ opcode:mov:01010111:d:a
