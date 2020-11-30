@@ -55,10 +55,7 @@
 byte statusByte = B00000000;        // By default, all are OFF.
 byte dataByte    = B00000000;
 
-// -----------------------------------------------------------------------------
 byte opcode = 0xff;
-// static uint16_t p_regPC = 0xFFFF;
-// uint16_t controlSwitch = 0;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -134,16 +131,13 @@ const byte INT_OFF =    ~INT_ON;
 // -----------------------------------------------------------------------------
 // Front Panel Status LEDs
 
-// ------------------------------------------------
-// Data LED lights displayed using shift registers.
-
-// -------------------------------------------------
 // Output LED lights shift register(SN74HC595N) pins
 //           Mega/Nano pins        74HC595 Pins
 const int dataPinLed  = 5;    // pin 5 (was pin A14) Data pin.
 const int latchPinLed = 6;    // pin 6 (was pin A12) Latch pin.
 const int clockPinLed = 7;    // pin 7 (was pin A11) Clock pin.
 
+// -------------------------------------------------
 void programLights() {
   // Use the current program values: statusByte, curProgramCounter, and dataByte.
   digitalWrite(latchPinLed, LOW);
@@ -159,9 +153,27 @@ void programLights() {
   shiftOut(dataPinLed, clockPinLed, MSBFIRST, statusByte); // MSBFIRST matches the bit to LED mapping.
 #endif
   digitalWrite(latchPinLed, HIGH);
+  //
+#ifdef LOG_MESSAGES
+  Serial.print(F("+ programLights, status:"));
+  printByte(statusByte);
+  Serial.print(" address:");
+  sprintf(charBuffer, "%5d", regPC);
+  Serial.print(charBuffer);
+  Serial.print(" dataByte:");
+  printByte(dataByte);
+  Serial.println();
+#endif
 }
 
 void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) {
+  digitalWrite(latchPinLed, LOW);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, status8bits);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(address16bits));
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(address16bits));
+  digitalWrite(latchPinLed, HIGH);
+  //
 #ifdef LOG_MESSAGES
   Serial.print(F("+ lightsStatusAddressData, status:"));
   printByte(status8bits);
@@ -172,12 +184,6 @@ void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte
   printByte(data8bits);
   Serial.println();
 #endif
-  digitalWrite(latchPinLed, LOW);
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, status8bits);
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(address16bits));
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(address16bits));
-  digitalWrite(latchPinLed, HIGH);
 }
 
 // -----------------------------------------------------------------------------
@@ -637,11 +643,10 @@ void processRunSwitch(byte readByte) {
       break;
     case 'R':
       Serial.println(F("+ RESET"));
-      // Stacy, For now, do EXAMINE 0 to reset to the first memory address.
+      // Set to the first memory address.
       regPC = 0;
-      // p_regPC = ~regPC;
       altair_set_outputs(regPC, MREAD(regPC));
-    // Then continue running.
+    // Then continue running, if in RUN mode.
     // -------------------------------------
     default:
       // Load the byte for use by cpu_IN();
@@ -859,7 +864,6 @@ void loadProgram() {
   if (readByte != 'x') {
     // Do EXAMINE 0 after the load;
     regPC = 0;
-    // p_regPC = ~regPC;
     altair_set_outputs(regPC, MREAD(regPC));
     if (SERIAL_IO_VT100) {
       serialPrintFrontPanel();
@@ -932,7 +936,6 @@ void processWaitSwitch(byte readByte) {
       regPC = addressSwitch;
       Serial.print("+ x, EXAMINE: ");
       Serial.println(regPC);
-      // p_regPC = ~regPC;
       altair_set_outputs(regPC, MREAD(regPC));
       if (SERIAL_IO_VT100) {
         serialPrintFrontPanel();
@@ -970,17 +973,11 @@ void processWaitSwitch(byte readByte) {
       Serial.println("+ R, RESET.");
       // For now, do EXAMINE 0 to reset to the first memory address.
       regPC = 0;
-      // p_regPC = ~regPC;
       altair_set_outputs(regPC, MREAD(regPC));
-      //
       host_clr_status_led_HLTA();
       if (SERIAL_IO_VT100) {
         serialPrintFrontPanel();
       }
-      //
-      // p_regPC = regPC;
-      // Actual RESET action ?- set bus/data LEDs on, status LEDs off: altair_set_outputs(0xffff, 0xff);
-      //
       break;
     case 'L':
       byte readConfirmByte;
@@ -1017,7 +1014,6 @@ void processWaitSwitch(byte readByte) {
       statusByteC = 0;  // Address hb
       statusByteL = 0;  // Data
       //
-      // p_regPC = ~regPC;
       altair_set_outputs(regPC, MREAD(regPC));
       break;
     // -------------------------------------
