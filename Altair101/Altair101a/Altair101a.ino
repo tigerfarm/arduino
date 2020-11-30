@@ -4,25 +4,26 @@
   + Serial interactivity using the Arduino IDE monitor USB serial port.
   + Using David Hansel's Altair 8800 Simulator code to process machine code instructions.
 
-  + When SINGLE STEP reads and write, I've chose to show the actual values versus
-    having all the data lights on which is what the original Altair 8800 does.
+  + When SINGLE STEP reads and write, I've chosen to show the actual data value
+    rather thanhaving all the data lights on, which is what the original Altair 8800 does.
 
   ---------------------------------------------------------
   Next:
 
-  + Have the status lights work the same for RUN and WAIT modes.
-  ++ In run mode, consider having all data lights on, same as the Altair 8800.
+  + Test on Due.
 
-  + Get Kill the Bit to run.
+  + Implement, printFrontPanel(), which calls: lightsStatusAddressData(Status,Address,Data).
+  ++ Can handle LED_IO, once running on the Altair 101.
+  + Implement: lightsStatusAddressData(Status,Address,Data)
+  ++ Use optional outputs:
+  +++ Serial USB in VT100 mode or not.
+  +++ LED lights (on/off using serial command).
 
   + When single stepping, M1 stays on but should be off, when HLT is executed.
   + Should be on: MEMR, HLTA, WO.
   + On the Altair 101, only HLTA light is on.
 
-  + Implement, printFrontPanel(), which calls: lightsStatusAddressData(Status,Address,Data).
-  ++ Can handle LED_IO, once running on the Altair 101.
-  + Implement: lightsStatusAddressData(Status,Address,Data)
-  ++ Use optional outputs: serial, and/not LED lights (on/off using serial command).
+  + In RUN mode, consider having all data lights on, same as the Altair 8800.
 
   + Prevent lockup when using PUSH A, i.e. PUSH called before setting SP.
   ++ In the PUSH process, if SP < 4, error.
@@ -469,7 +470,7 @@ byte altair_in(byte portDataByte) {
   }
   //
 #ifdef LOG_MESSAGES
-  if (inputDataByte == 0) {
+  if (inputDataByte > 0) {
     // No input at this time.
     Serial.print(F("> Input port# "));
     Serial.print(portDataByte);
@@ -667,7 +668,7 @@ void loadProgram() {
       switch (readByte) {
         case 'i':
           loadProgramName = "Input loop";
-          Serial.println("+ k, Input loop, 'x' to halt the loop.");
+          Serial.println("+ i, Input loop, 'x' to halt the loop.");
           programState = PROGRAM_WAIT;
           if (SERIAL_IO_VT100) {
             Serial.print("\033[J");     // From cursor down, clear the screen, .
@@ -677,7 +678,12 @@ void loadProgram() {
           MWRITE( cnt++, B11111110 & 0xff);  // ++ opcode:cpi:11111110:'x'
           MWRITE( cnt++, B01111000 & 0xff);  // ++ immediate:'x':120
           MWRITE( cnt++, B11001010 & 0xff);  // ++ opcode:jz:11001010:HaltLoop
-          MWRITE( cnt++, B00001010 & 0xff);  // ++ lb:HaltLoop:10
+          MWRITE( cnt++, B00001111 & 0xff);  // ++ lb:HaltLoop:15
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          MWRITE( cnt++, B11111110 & 0xff);  // ++ opcode:cpi:11111110:128
+          MWRITE( cnt++, B10000000 & 0xff);  // ++ immediate:128:128
+          MWRITE( cnt++, B11001010 & 0xff);  // ++ opcode:jz:11001010:HaltLoop
+          MWRITE( cnt++, B00001111 & 0xff);  // ++ lb:HaltLoop:15
           MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
           MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:GetByte
           MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:GetByte:0
@@ -769,9 +775,9 @@ void loadProgram() {
           MWRITE( cnt++, B00000010 & 0xff);  // ++ lb:Store:2
           MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
           break;
-        case 'f':
+        case 's':
           loadProgramName = "Front panel status light test";
-          Serial.println("+ f, Front panel status light test.");
+          Serial.println("+ s, Front panel status light test.");
           if (SERIAL_IO_VT100) {
             Serial.print("\033[J");     // From cursor down, clear the screen, .
           }
@@ -821,12 +827,14 @@ void loadProgram() {
           break;
         default:
           if (SERIAL_IO_VT100) {
+            Serial.print("\033[9;1H");  // Move cursor to below the prompt: line 9, column 1.
             Serial.print("\033[J");     // From cursor down, clear the screen, .
           }
-          Serial.println("+ k, Kill the Bit.");
           Serial.println("+ i, Input loop.");
-          Serial.println("+ f, Front panel status light test.");
+          Serial.println("+ k, Kill the Bit.");
+          Serial.println("+ m, MVI testing to the setting of registers.");
           Serial.println("+ w, Write byte to memory location: 96, increment byte and loop.");
+          Serial.println("+ s, Front panel status light test.");
           Serial.println("----------");
           Serial.println("+ x, Exit: don't load a program.");
       }

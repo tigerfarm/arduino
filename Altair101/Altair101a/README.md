@@ -26,30 +26,33 @@ Modify the minimum code base to work with Altair 101:
 + 9. Consolidate the program files (*.h and *.cpp).
 + 10. Get single step to work, with number of opcode cycles: memory read and write, stack push and pop.
 
-Code integration, Altair101a into Processor.ino:
+Get opcode processing to work with the goal to integrate Altair101a into Processor.ino:
 + 11. Sync Altair101a.ino status light bits with values in Processor.ino.
 + 12. Implement Mac terminal VT100 output to display panel lights, labels and toggles.
++ 13. Get Kill the Bit, to run which requires input (opcode IN).
 + 13. Implement lightsStatusAddressData(Status,Address,Data) in Altair101a.ino.
-
-+ Run Altair101a.ino on the Altair 101 desktop machine.
-+ Output to Altair 101 panel LED.
-+ Input from Altair 101 panel switches.
 
 ````
 void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) {
     ...
 }
 ````
-Connecting to the Arduino serial port.
-Find the port, connect using, screen command.
++ Run Altair101a.ino on the Altair 101 desktop machine.
++ Output to Altair 101 panel LED.
++ Input from Altair 101 panel switches.
+
+--------------------------------------------------------------------------------
+Connecting to the Arduino serial port from a Mac OS terminal session.
+
+Find the port, connect using the screen command which is VT100 capable.
 ````
 $ ls /dev/tty.*
 /dev/tty.Bluetooth-Incoming-Port	/dev/tty.wchusbserial14110
 $ screen /dev/tty.wchusbserial14110
 ...
-To exit (detach): ctrl+a ctrl+\, then answer "y" to exit and close the connection.
-To exit and close the connection: Control-A followed by Control-\ to exit your screen session
-Try ctrl+a, then '\'
+
+To exit and close the connection: Control-A followed by Control-\.
+Then, answer "y" to exit and close the connection.
 ````
 
 ##### Links
@@ -57,6 +60,12 @@ Try ctrl+a, then '\'
 Chris Davis of Altairduino.com has set up a Google Group for discussion of Altair-Duino related questions:
 https://groups.google.com/forum/#!forum/altair-duino 
 
+
+--------------------------------------------------------------------------------
+## Steps I used to run David Hansel's Altair 8800 Simulator code
+
+
+##### Preparation work
 
 Arduino IDE Tools settings for Mega:
 ````
@@ -76,8 +85,8 @@ Search and install SdFat by Bill Greiman.
 Search and install, “DueFlashStorage” by Sebastian Nilsson.
 ````
 
-The Simulator program was using hardware specific PORT values.
-I've changed them to memory bytes which are not hardware specific.
+Note, the Simulator program uses hardware specific PORT values.
+I've changed them to be memory bytes which are not hardware specific.
 ````
 // Microcontroller Port Registers:
 // Port registers allow for lower-level and faster manipulation of the i/o pins.

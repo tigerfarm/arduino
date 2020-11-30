@@ -27,13 +27,10 @@ word status_hlda = 0;
 word status_inte = 0;
 //
 // For Processor.ino
-// Replace PORTX with statusByteX.
-byte statusByteA = B00000000;        // By default, all are OFF.
-byte statusByteB = B00000000;
-byte statusByteC = B00000000;
-byte statusByteD = B00000000;
-byte statusByteG = B00000000;
-byte statusByteL = B00000000;
+byte statusByteB = B00000000;       // Status lights: by default are all OFF.
+byte statusByteA = B00000000;       // Address light lb.
+byte statusByteC = B00000000;       // Address light hb.
+byte statusByteL = B00000000;       // Data byte
 byte dataByte    = B00000000;
 
 // -----------------------------------------------------------------------------
@@ -769,29 +766,33 @@ void cpucore_i8080_print_registers() {
   Serial.print(F("++ host_read_status_led_WAIT()="));
   Serial.println(host_read_status_led_WAIT());
   //
-  Serial.print(F("++ PC   = ")); numsys_print_word(regPC);
-  Serial.print(F(" = ")); numsys_print_mem(regPC, 3, true);
-  Serial.println();
-  Serial.print(F("++ SP   = ")); numsys_print_word(regSP);
+  sprintf(charBuffer, "++ PC %6d = ", regPC);
+  Serial.print(charBuffer);
+  numsys_print_word(regPC);
+  Serial.print(F(" = "));
+  numsys_print_mem(regPC, 3, true);
+  Serial.println(" Program pointer");
+  //
+  sprintf(charBuffer, "++ SP %6d = ", regSP);
+  Serial.print(charBuffer);
+  numsys_print_word(regSP);
   Serial.print(F(" = ")); numsys_print_mem(regSP, 8, true);
-  Serial.println();
-  Serial.print(F("++ regS = "));   numsys_print_byte(regS);
+  Serial.println(" Stack pointer");
+  //
+  Serial.print(F("++ regS  = "));   numsys_print_byte(regS);
   Serial.print(F(" = ")); cpu_print_status_register(regS);
-  Serial.println();
+  Serial.println(" Status byte");
   // ---
-  Serial.print(F("+ Front display Status byte, statusByteB: "));
+  Serial.print(F("+ Front panel display Status byte,  statusByteB: "));
   printData(statusByteB);
   Serial.println();
-  Serial.print(F("+ Front display Address word, statusByteC:statusByteA "));
+  Serial.print(F("+ Front panel display Data byte,    statusByteL: "));
+  printData(statusByteL);
+  Serial.println();
+  Serial.print(F("+ Front panel display Address word, statusByteC:statusByteA = "));
   printByte(statusByteC);
   Serial.print(F(":"));
   printByte(statusByteA);
-  Serial.println();
-  Serial.print(F("+ statusByteG: "));
-  printData(statusByteG);
-  Serial.println();
-  Serial.print(F("+ statusByteL: "));
-  printData(statusByteL);
   Serial.println();
   // ---
   Serial.print(F("+ regA: "));

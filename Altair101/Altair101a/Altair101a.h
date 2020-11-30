@@ -10,11 +10,10 @@ extern word status_wait;
 extern word status_hlda;
 extern word status_inte;
 //
-extern byte statusByteB;    // Status bits: MEMR INP M1 OUT HLTA STACK WO INT
-extern byte statusByteA;
-extern byte statusByteC;
-extern byte statusByteG;
-extern byte statusByteL;
+extern byte statusByteB;    // Status byte bits: MEMR INP M1 OUT HLTA STACK WO INT
+extern byte statusByteA;    // Front panel address lb.
+extern byte statusByteC;    // Front panel address hb.
+extern byte statusByteL;    // Front panel data byte.
 
 // Used in cpucore_i8080.cpp
 void singleStepWait();                      // Wait for "s" when single stepping.
