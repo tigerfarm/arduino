@@ -352,6 +352,8 @@ void serialPrintFrontPanel() {
 // -----------------------------------------------------------------------------
 // Process functions
 
+// -----------------------------------------------------------------------------
+// Pause during a SINGLE STEP process.
 void singleStepWait() {
   Serial.println(F("+ singleStepWait()"));
   printFrontPanel();                // Status, data/address lights already set.
@@ -371,6 +373,9 @@ void singleStepWait() {
 }
 
 // -----------------------------------------------------------------------------
+// HLT opcode process to stop the process.
+// Stopped process is in a mode that allows using 'r' to start the process running from the stop point.
+//
 void altair_hlt() {
   host_set_status_led_HLTA();
   host_clr_status_led_M1();
@@ -385,28 +390,37 @@ void altair_hlt() {
   }
 }
 
+// -----------------------------------------------------------------------------
+// Not using interrupts, yet.
 void altair_interrupt_enable() {
   // altair_interrupts_enabled = true;
   host_set_status_led_INTE();
 }
-
 void altair_interrupt_disable() {
   // altair_interrupts_enabled = false;
   host_clr_status_led_INTE();
 }
 
 // -----------------------------------------------------------------------------
-byte inputBytePort2 = 0;
+// IN opcode, input processing to get a byte from an input port.
+/*
+  Opcode: out <port#>
+  Called from: cpu_IN() {
+    regA = altair_in(MEM_READ(regPC)); ... }
+    The input byte is loaded into register A.
 
+  A byte value of 0, for the byte(inputDataByte),
+    implies there is no input on the port at the time of being called.
+*/
+
+byte inputBytePort2 = 0;
 byte altair_in(byte portDataByte) {
-  // Opcode: out <port>
-  // Called from: cpu_IN() {
-  //    regA = altair_in(MEM_READ(regPC)); ... }
-  // Testing is port 16(octal 020).
-  // Status
   byte inputDataByte;
   //
-  // Get an input byte from the input port.
+  // Set status lights and get an input byte from the input port.
+  host_clr_status_led_MEMR();
+  host_set_status_led_INP();
+  //
   switch (portDataByte) {
     case B11111111:
       // From hardware Sense switches. Not implemented.
@@ -447,39 +461,36 @@ byte altair_in(byte portDataByte) {
       break;
     case 16:
       // Test port: 20Q (octal: 020).
-      // Return byte value of 2, which is used in the status light video.
+      // Return byte value of 2, which is used in the status light video sample program.
       inputDataByte = 2;
       break;
     default:
       inputDataByte = 0;
   }
-  if (inputDataByte == 0) {
-    // No input at this time.
-    return;
-  }
   //
 #ifdef LOG_MESSAGES
-  Serial.print(F("> Input port# "));
-  Serial.print(portDataByte);
-  Serial.print(" inputDataByte print=");
-  sprintf(charBuffer, "%3d", inputDataByte);
-  Serial.print(charBuffer);
-  Serial.print(" write=");
-  // Special characters.
-  if (inputDataByte == 10) {
-    Serial.print("<LF>");
-  } else if (inputDataByte == 13) {
-    Serial.print("<CR>");
-  } else {
-    Serial.print("'");
-    Serial.write(inputDataByte);
-    Serial.print("'");
+  if (inputDataByte == 0) {
+    // No input at this time.
+    Serial.print(F("> Input port# "));
+    Serial.print(portDataByte);
+    Serial.print(" inputDataByte print=");
+    sprintf(charBuffer, "%3d", inputDataByte);
+    Serial.print(charBuffer);
+    Serial.print(" write=");
+    // Special characters.
+    if (inputDataByte == 10) {
+      Serial.print("<LF>");
+    } else if (inputDataByte == 13) {
+      Serial.print("<CR>");
+    } else {
+      Serial.print("'");
+      Serial.write(inputDataByte);
+      Serial.print("'");
+    }
+    Serial.print(" printByte=");
+    printByte(inputDataByte);
   }
-  Serial.print(" printByte=");
-  printByte(inputDataByte);
 #endif
-  host_clr_status_led_MEMR();
-  host_set_status_led_INP();
   host_set_data_leds(inputDataByte);
   host_set_addr_leds(portDataByte + portDataByte * 256); // The low and high bytes are each set to the portDataByte.
   if (host_read_status_led_WAIT()) {
@@ -598,6 +609,9 @@ void processDataOpcode() {
 }
 
 void processRunSwitch(byte readByte) {
+  if (SERIAL_IO_VT100) {
+    Serial.print("\033[J");     // From cursor down, clear the screen, .
+  }
   switch (readByte) {
     case 's':
       Serial.println(F("+ STOP"));
@@ -857,6 +871,10 @@ void processWaitSwitch(byte readByte) {
       serialPrintFrontPanel();
     }
     return;
+  }
+  // -------------------------------
+  if (SERIAL_IO_VT100) {
+    Serial.print("\033[J");     // From cursor down, clear the screen, .
   }
   // -------------------------------
   // Process command switches. Tested: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT, RESET
