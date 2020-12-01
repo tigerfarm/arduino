@@ -1001,8 +1001,9 @@ void processWaitSwitch(byte readByte) {
       regPC = 0;
       regSP = 0;
       //
-      fpAddressLb = 0;  // Address lb
-      fpAddressHb = 0;  // Address hb
+      fpAddressWord = 0;  // Address lb
+      // fpAddressLb = 0;  // Address lb
+      // fpAddressHb = 0;  // Address hb
       fpDataByte = 0;  // Data
       //
       setAddressData(regPC, MREAD(regPC));

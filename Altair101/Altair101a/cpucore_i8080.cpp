@@ -29,8 +29,8 @@ word status_inte = 0;
 // For Processor.ino
 byte fpStatusByte = B00000000;      // Status lights: by default are all OFF.
 uint16_t fpAddressWord = B00000000; // Address light byte.
-byte fpAddressLb = B00000000;       // Address light lb.
-byte fpAddressHb = B00000000;       // Address light hb.
+// byte fpAddressLb = B00000000;       // Address light lb.
+// byte fpAddressHb = B00000000;       // Address light hb.
 byte fpDataByte = B00000000;        // Data byte
 
 // -----------------------------------------------------------------------------
@@ -805,17 +805,22 @@ void cpucore_i8080_print_registers() {
   Serial.print(F(" = ")); cpu_print_status_register(regS);
   Serial.println(" Status byte");
   // ---
-  Serial.print(F("+ Front panel display Status byte,  fpStatusByte: "));
+  Serial.print(F("+ Front panel display Status byte,  fpStatusByte:  "));
   printData(fpStatusByte);
   Serial.println();
-  Serial.print(F("+ Front panel display Data byte,    fpDataByte:   "));
+  Serial.print(F("+ Front panel display Data byte,    fpDataByte:    "));
   printData(fpDataByte);
   Serial.println();
+  Serial.print(F("+ Front panel display Address word, fpAddressWord: "));
+  printByte(fpAddressWord);
+  Serial.println();
+  /*
   Serial.print(F("+ Front panel display Address word, fpAddressHb:fpAddressLb = "));
   printByte(fpAddressHb);
   Serial.print(F(":"));
   printByte(fpAddressLb);
   Serial.println();
+  */
   // ---
   Serial.print(F("+ regA: "));
   printData(regA);
