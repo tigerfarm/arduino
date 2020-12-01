@@ -63,10 +63,13 @@ byte MEM_READ(uint16_t memoryAddress) {
   Serial.println(returnByte);
 #endif
   host_set_status_leds_READMEM();
+  host_clr_status_led_M1();
   host_set_addr_leds( memoryAddress );
   host_set_data_leds( returnByte );
   if (status_wait) {
     singleStepWait();
+  } else {
+    printFrontPanel();  // Status, data/address light values are already set.
   }
   return returnByte;
 }
@@ -124,6 +127,8 @@ void MEM_WRITE(uint16_t memoryAddress, uint16_t byteValue) {
   MWRITE(memoryAddress, byteValue);
   if (status_wait) {
     singleStepWait();
+  } else {
+    printFrontPanel();  // Status, data/address light values are already set.
   }
 }
 
@@ -744,6 +749,8 @@ void cpucore_i8080_print_registers() {
   Serial.println(host_read_status_led_WAIT());
   Serial.print(F("++ host_read_status_led_HLDA()="));
   Serial.println(host_read_status_led_HLDA());
+  Serial.print(F("++ host_read_status_led_INTE()="));
+  Serial.println(host_read_status_led_INTE());
   //
   sprintf(charBuffer, "++ PC %6d = ", regPC);
   Serial.print(charBuffer);
@@ -762,8 +769,6 @@ void cpucore_i8080_print_registers() {
   Serial.print(F(" = ")); cpu_print_status_register(regS);
   Serial.println(" Status byte");
   // ---
-  Serial.print(F("++ host_read_status_led_INTE()="));
-  Serial.println(host_read_status_led_INTE());
   Serial.print(F("+ Front panel display Status byte,  statusByteB: "));
   printData(statusByteB);
   Serial.println();

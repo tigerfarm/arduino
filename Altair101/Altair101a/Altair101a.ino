@@ -568,6 +568,8 @@ byte altair_in(byte portDataByte) {
   host_set_addr_leds(portDataByte + portDataByte * 256); // The low and high bytes are each set to the portDataByte.
   if (host_read_status_led_WAIT()) {
     singleStepWait();
+  } else {
+    printFrontPanel();
   }
   host_clr_status_led_INP();
   return inputDataByte;
@@ -610,6 +612,8 @@ void altair_out(byte portDataByte, byte regAdata) {
   }
   if (host_read_status_led_WAIT()) {
     singleStepWait();
+  } else {
+    printFrontPanel();
   }
   host_clr_status_led_OUT();
   host_clr_status_led_WO();
