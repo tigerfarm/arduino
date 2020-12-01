@@ -33,16 +33,17 @@ extern CPUFUN cpu_opcodes[256];
 // Due
 #elif defined(__SAM3X8E__)
 #define THIS_CPU "Due"
-#define MEMSIZE 0x10000         // 64K
+#define MEMSIZE 0x10000         // 64K, Hex=10000 decimal=65536
 //
 #define USE_THROTTLE 1          // Set for faster Due CPU.
 #define MAX_TIMERS 13
 
+// ----------------------------
 #else
 #define THIS_CPU "Other:Nano|Uno"
 #error requires Arduino Mega2560 or Arduino Due
 #define MEMSIZE (64)            // For Nano or Uno test: Global variables use 1935 bytes (23%) of dynamic memory
-// Test on Nano or Uno.
+// I tested on Nano and Uno.
 //  Sketch uses 39902 bytes (123%) of program storage space. Maximum is 32256 bytes.
 //  text section exceeds available space in board
 //  Global variables use 1933 bytes (94%) of dynamic memory, leaving 115 bytes for local variables. Maximum is 2048 bytes.

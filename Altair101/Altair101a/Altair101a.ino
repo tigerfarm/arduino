@@ -10,16 +10,66 @@
   ---------------------------------------------------------
   Next:
 
-  + It seems like the Status lights are not being updated during RUN mode.
+  Integration steps to merge this code with Processor.ino.
 
-  + Implement, printFrontPanel(), which calls: lightsStatusAddressData(Status,Address,Data).
-  ++ Can handle LED_IO, once running on the Altair 101.
-  + Implement: lightsStatusAddressData(Status,Address,Data)
-  ++ Use optional outputs:
-  +++ Serial USB in VT100 mode or not.
-  +++ LED lights (on/off using serial command).
-  Note, programLights() uses the global variables:
+  Maybe stop using the following.
+  host_read_status_led_*();
+  host_set_status_led_*();
+  host_clr_status_led_*();
+  Use global varialbes like I use in Processor.ino. For example,
+  statusByte = MEMR_ON | MI_ON | WO_ON;
+  statusByte &= MI_OFF;
+
+  Start with altair_hlt() amd MEM_READ().
+
+  MEM_READ() will be changed as follows.
+  From:
+byte MEM_READ(uint16_t memoryAddress) {
+  ...
+  host_set_status_leds_READMEM();
+  host_set_addr_leds( memoryAddress );
+  host_set_data_leds( returnByte );
+ ...
+}
+  To:
+byte MEM_READ(uint16_t memoryAddress) {
+  ...
+  statusByte = MEMR_ON | WO_ON;
+  lightsStatusAddressData(statusByte,memoryAddress,returnByte);
+  -- or --
+  printFrontPanel();  // where the MEM_READ modifies the global variables.
+ ...
+}
+
+  Remove processor functions and variables from Processor.ino.
+  + Leave player, clock, and counter functions intact.
+  + Keep hardware switching intact, which is not inmplemented in this program.
+
+  For integration,
+  + Decide if printFrontPanel() is still required when implenting:
+      lightsStatusAddressData(Status,Address,Data)
+  + Add serial into Processor.ino, optional outputs:
+  ++ Serial USB in VT100 mode or not.
+  ++ LED lights (on/off using serial command).
+
+  Note, in Processor.ino, programLights() uses the global variables:
   + void programLights() { // Use the current program values: statusByte, curProgramCounter, and dataByte. }
+
+  cpucore_i8080.cpp that make front panel updates:
+  + MEM_READ, MEM_READ_WORD,  MEM_READ_STEP
+  + MEM_WRITE, MEM_WRITE_WORD, MEM_WRITE_STEP
+  + PUSH and POP
+  
+  Altair101a.ino that make front panel updates:
+  altair_hlt()
+  altair_interrupt_enable() altair_interrupt_disable()
+  altair_in(...) altair_out(...)
+  processDataOpcode() processRunSwitch(...)
+
+  ---------------------------------------------------------
+  Other Nexts:
+  
+  + It seems like the Status lights are not being updated during RUN mode.
 
   + When single stepping, M1 stays on but should be off, when HLT is executed.
   + Should be on: MEMR, HLTA, WO.

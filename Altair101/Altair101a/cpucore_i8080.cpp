@@ -53,7 +53,6 @@ void MEM_WRITE_STEP(uint16_t a, byte v);
 // -----------------------------------------
 // Read
 
-// dave
 byte MEM_READ(uint16_t memoryAddress) {
   byte returnByte;
   returnByte = MREAD(memoryAddress);
@@ -343,26 +342,6 @@ union unionDE regDE;
 union unionHL regHL;
 union unionPC regPCU;
 uint16_t regSP;
-
-/*
-#ifdef __AVR_ATmega2560__
-
-#ifdef __SAM3X8E__
-#define nothing 13
-uint16_t host_read_addr_leds() {
-  // A0..7  => PIOC, bits 2-9
-  // A8..15 => PIOC, bits 12-19
-  word w = REG_PIOC_PDSR;
-  return ((w & 0x000ff000) >> 4) | ((w & 0x000003fc) >> 2);
-}
-#endif
-
-#else
-uint16_t host_read_addr_leds() {
-  return (0);
-}
-#endif
-*/
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
