@@ -10,15 +10,20 @@
   ---------------------------------------------------------
   Next:
 
-  Integration steps to merge this code with Processor.ino.
+  After RUN mode HLT, the front panel status lights are correct, but doesn't match statusByteB:
+  + Front panel display Status byte,  statusByteB: 170 = 252 = 10101010
+    INTE MEMR INP M1 OUT HLTA STACK WO INT
+     .    *    .  .   .   *    .    *   .
+ 
+  +++ Integration steps to merge this code with Processor.ino.
 
-  Maybe stop using the following.
-  host_read_status_led_*();
-  host_set_status_led_*();
-  host_clr_status_led_*();
-  Use global varialbes like I use in Processor.ino. For example,
-  statusByte = MEMR_ON | MI_ON | WO_ON;
-  statusByte &= MI_OFF;
+  Maybe replace the following:
+    host_read_status_led_*();
+    host_set_status_led_*();
+    host_clr_status_led_*();
+  by using global varialbes, same as used in Processor.ino. For example,
+    statusByte = MEMR_ON | MI_ON | WO_ON;
+    statusByte &= MI_OFF;
 
   Start with altair_hlt() amd MEM_READ().
 
@@ -37,7 +42,7 @@ byte MEM_READ(uint16_t memoryAddress) {
   statusByte = MEMR_ON | WO_ON;
   lightsStatusAddressData(statusByte,memoryAddress,returnByte);
   -- or --
-  printFrontPanel();  // where the MEM_READ modifies the global variables.
+  printFrontPanel();  // This option allows multiple outputs, and uses the global variables.
  ...
 }
 
@@ -69,8 +74,6 @@ byte MEM_READ(uint16_t memoryAddress) {
   ---------------------------------------------------------
   Other Nexts:
   
-  + It seems like the Status lights are not being updated during RUN mode.
-
   + When single stepping, M1 stays on but should be off, when HLT is executed.
   + Should be on: MEMR, HLTA, WO.
   + On the Altair 101, only HLTA light is on.
