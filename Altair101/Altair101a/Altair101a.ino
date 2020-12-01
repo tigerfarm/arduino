@@ -288,11 +288,12 @@ byte dataBus = 0;
 byte prev_dataBus = 1;
 uint16_t addressBus = 0;
 uint16_t prev_addressBus = 1;
-uint16_t addressSwitch = 0;
-uint16_t prev_addressSwitch = 1;
+uint16_t fpAddressToggleWord = 0;
+uint16_t prev_fpAddressToggleWord = 1;
 
 void serialPrintFrontPanel() {
   //
+  // --------------------------
   // Status
   if (!SERIAL_IO_VT100) {
     Serial.print(F("INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0\r\n"));
@@ -312,6 +313,7 @@ void serialPrintFrontPanel() {
   if ( fpStatusByte & INT_ON   ) Serial.print(F("  *"));     else Serial.print(F("  ."));
   Serial.print(F("       "));
   //
+  // --------------------------
   // Data
   if ((prev_dataBus != fpDataByte) || !SERIAL_IO_VT100) {
     // If VT100 and no change, don't reprint.
@@ -327,6 +329,7 @@ void serialPrintFrontPanel() {
     if ( fpDataByte & 0x02 )   Serial.print(F("   *")); else Serial.print(F("   ."));
     if ( fpDataByte & 0x01 )   Serial.print(F("   *")); else Serial.print(F("   ."));
   }
+  // --------------------------
   // WAIT and HLDA
   if (!SERIAL_IO_VT100) {
     Serial.print(("\r\nWAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0"));
@@ -339,6 +342,7 @@ void serialPrintFrontPanel() {
   if ( host_read_status_led_WAIT() ) Serial.print(F(" *  "));   else Serial.print(F(" .  "));
   if ( false ) Serial.print(F("  *   ")); else Serial.print(F("  .   "));
   //
+  // --------------------------
   // Address
   if ((prev_addressBus != fpAddressWord) || !SERIAL_IO_VT100) {
     // If VT100 and no change, don't reprint.
@@ -363,6 +367,7 @@ void serialPrintFrontPanel() {
     if ( fpAddressWord & 0x0002 ) Serial.print(F("   *")); else Serial.print(F("   ."));
     if ( fpAddressWord & 0x0001 ) Serial.print(F("   *")); else Serial.print(F("   ."));
   }
+  // --------------------------
   // Address/Data switches
   if (!SERIAL_IO_VT100) {
     Serial.print(F("\r\n            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0\r\n"));
@@ -371,29 +376,29 @@ void serialPrintFrontPanel() {
     Serial.println();
     Serial.print("\033[1B");  // Cursor down
   }
-  if ((prev_addressSwitch != addressSwitch) || !SERIAL_IO_VT100) {
+  if ((prev_fpAddressToggleWord != fpAddressToggleWord) || !SERIAL_IO_VT100) {
     // If VT100 and no change, don't reprint.
-    prev_addressSwitch = addressSwitch;
+    prev_fpAddressToggleWord = fpAddressToggleWord;
     Serial.print(F("          "));
-    if ( addressSwitch & 0x8000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( addressSwitch & 0x4000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( addressSwitch & 0x2000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( addressSwitch & 0x1000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( addressSwitch & 0x0800 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( addressSwitch & 0x0400 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( addressSwitch & 0x0200 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( addressSwitch & 0x0100 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+    if ( fpAddressToggleWord & 0x8000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+    if ( fpAddressToggleWord & 0x4000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+    if ( fpAddressToggleWord & 0x2000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+    if ( fpAddressToggleWord & 0x1000 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+    if ( fpAddressToggleWord & 0x0800 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+    if ( fpAddressToggleWord & 0x0400 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+    if ( fpAddressToggleWord & 0x0200 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+    if ( fpAddressToggleWord & 0x0100 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
     Serial.print(F(" "));
-    if ( addressSwitch & 0x0080 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( addressSwitch & 0x0040 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+    if ( fpAddressToggleWord & 0x0080 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+    if ( fpAddressToggleWord & 0x0040 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
     Serial.print(F(" "));
-    if ( addressSwitch & 0x0020 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( addressSwitch & 0x0010 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( addressSwitch & 0x0008 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+    if ( fpAddressToggleWord & 0x0020 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+    if ( fpAddressToggleWord & 0x0010 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+    if ( fpAddressToggleWord & 0x0008 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
     Serial.print(F(" "));
-    if ( addressSwitch & 0x0004 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( addressSwitch & 0x0002 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
-    if ( addressSwitch & 0x0001 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+    if ( fpAddressToggleWord & 0x0004 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+    if ( fpAddressToggleWord & 0x0002 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
+    if ( fpAddressToggleWord & 0x0001 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   }
   //
   if (!SERIAL_IO_VT100) {
@@ -873,14 +878,14 @@ void processWaitSwitch(byte readByte) {
   //
   int data = readByte;
   if ( data >= '0' && data <= '9' ) {
-    addressSwitch = addressSwitch ^ (1 << (data - '0'));
+    fpAddressToggleWord = fpAddressToggleWord ^ (1 << (data - '0'));
     if (SERIAL_IO_VT100) {
       serialPrintFrontPanel();
     }
     return;
   }
   if ( data >= 'a' && data <= 'f' ) {
-    addressSwitch = addressSwitch ^ (1 << (data - 'a' + 10));
+    fpAddressToggleWord = fpAddressToggleWord ^ (1 << (data - 'a' + 10));
     if (SERIAL_IO_VT100) {
       serialPrintFrontPanel();
     }
@@ -919,7 +924,7 @@ void processWaitSwitch(byte readByte) {
       }
       break;
     case 'x':
-      regPC = addressSwitch;
+      regPC = fpAddressToggleWord;
       Serial.print("+ x, EXAMINE: ");
       Serial.println(regPC);
       setAddressData(regPC, MREAD(regPC));
@@ -939,7 +944,7 @@ void processWaitSwitch(byte readByte) {
     case 'p':
       Serial.print("+ p, DEPOSIT to: ");
       Serial.println(regPC);
-      MWRITE(regPC, addressSwitch & 0xff);
+      MWRITE(regPC, fpAddressToggleWord & 0xff);
       setAddressData(regPC, MREAD(regPC));
       if (SERIAL_IO_VT100) {
         serialPrintFrontPanel();
@@ -949,7 +954,7 @@ void processWaitSwitch(byte readByte) {
       regPC++;
       Serial.print("+ P, DEPOSIT NEXT to: ");
       Serial.println(regPC);
-      MWRITE(regPC, addressSwitch & 0xff);
+      MWRITE(regPC, fpAddressToggleWord & 0xff);
       setAddressData(regPC, MREAD(regPC));
       if (SERIAL_IO_VT100) {
         serialPrintFrontPanel();
@@ -1015,8 +1020,8 @@ void processWaitSwitch(byte readByte) {
       // Insure the previous value is different to current, to insure an intial printing.
       prev_dataBus = host_read_data_leds() + 1;
       prev_addressBus = host_read_addr_leds() + 1;;
-      addressSwitch = 0;      // Set all toggled off.
-      prev_addressSwitch = 1; // Set to different value.
+      fpAddressToggleWord = 0;      // Set all toggled off.
+      prev_fpAddressToggleWord = 1; // Set to different value.
       Serial.print("\033[0m\033[?25l");       // Block cursor display: off.
       Serial.print("\033[H\033[2J");          // Cursor home and clear the screen.
       serialPrintFrontPanel();                // Print the complete front panel: labels and indicators.
