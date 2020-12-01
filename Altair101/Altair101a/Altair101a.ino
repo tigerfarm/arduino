@@ -308,7 +308,7 @@ void serialPrintFrontPanel() {
   }
   if ( host_read_status_led_INTE() ) Serial.print(F(" *  ")); else Serial.print(F(" .  "));
   if ( statusByteB & MEMR_ON  ) Serial.print(F("  *  "));  else Serial.print(F("  . "));
-  if ( statusByteB & INP_ON   ) Serial.print(F("  * "));   else Serial.print(F("  . "));
+  if ( statusByteB & INP_ON   ) Serial.print(F("   * "));   else Serial.print(F("  . "));
   if ( statusByteB & M1_ON    ) Serial.print(F(" * "));    else Serial.print(F(" . "));
   if ( statusByteB & OUT_ON   ) Serial.print(F("  * "));   else Serial.print(F("  . "));
   if ( statusByteB & HLTA_ON  ) Serial.print(F("  * "));   else Serial.print(F("  . "));
