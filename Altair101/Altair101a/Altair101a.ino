@@ -10,7 +10,7 @@
   ---------------------------------------------------------
   Next:
 
-  + Test on Due.
+  + It seems like the Status lights are not being updated during RUN mode.
 
   + Implement, printFrontPanel(), which calls: lightsStatusAddressData(Status,Address,Data).
   ++ Can handle LED_IO, once running on the Altair 101.
@@ -521,35 +521,6 @@ byte altair_in(byte portDataByte) {
   }
   host_clr_status_led_INP();
   return inputDataByte;
-}
-
-void read_inputs() {
-  byte readByte;
-  readByte = "";
-  // controlSwitch = 0;
-  // ---------------------------
-  // Device read options.
-  // read_inputs_panel();
-  //
-  // dave, implement:
-  if ( config_serial_input_enabled() ) {
-    if (Serial.available() > 0) {
-      readByte = Serial.read();    // Read and process an incoming byte.
-    }
-  }
-  // ---------------------------
-  if (readByte != "") {
-    // processWaitSwitch(readByte);
-  }
-}
-void read_inputs_panel() {
-  // we react on positive edges on the function switches...
-  // controlSwitch = host_read_function_switches_edge();
-  // ...except for the SLOW switch which is active as long as it is held down
-  // if ( host_read_function_switch_debounced(SW_SLOW) ) controlSwitch |= BIT(SW_SLOW);
-  // #if STANDALONE==0
-  //   addressSwitch = host_read_addr_switches();
-  // #endif
 }
 
 // -----------------------------------------------------------------------------

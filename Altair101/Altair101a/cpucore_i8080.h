@@ -27,6 +27,7 @@ extern CPUFUN cpu_opcodes[256];
 #define MEMSIZE (2048)          // Mega2650 has 8k SRAM, Max, 6K: #define MEMSIZE (4096+2048)
 //
 #define USE_THROTTLE 0          // Set for slower Mega CPU.
+#define MAX_TIMERS 9
 
 // ----------------------------
 // Due
@@ -35,6 +36,7 @@ extern CPUFUN cpu_opcodes[256];
 #define MEMSIZE 0x10000         // 64K
 //
 #define USE_THROTTLE 1          // Set for faster Due CPU.
+#define MAX_TIMERS 13
 
 #else
 #define THIS_CPU "Other:Nano|Uno"

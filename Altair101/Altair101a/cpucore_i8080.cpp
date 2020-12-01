@@ -344,7 +344,9 @@ union unionHL regHL;
 union unionPC regPCU;
 uint16_t regSP;
 
+/*
 #ifdef __AVR_ATmega2560__
+
 #ifdef __SAM3X8E__
 #define nothing 13
 uint16_t host_read_addr_leds() {
@@ -354,11 +356,13 @@ uint16_t host_read_addr_leds() {
   return ((w & 0x000ff000) >> 4) | ((w & 0x000003fc) >> 2);
 }
 #endif
+
 #else
 uint16_t host_read_addr_leds() {
   return (0);
 }
 #endif
+*/
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -422,13 +426,6 @@ void numsys_print_byte_hex(byte b)
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // timer.cpp
-
-#ifdef __AVR_ATmega2560__
-#define MAX_TIMERS 9
-#else
-#define MAX_TIMERS 13
-#endif
-
 
 #define DEBUG 0
 
