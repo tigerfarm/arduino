@@ -27,10 +27,11 @@ word status_hlda = 0;
 word status_inte = 0;
 //
 // For Processor.ino
-byte statusByteB = B00000000;       // Status lights: by default are all OFF.
-byte statusByteA = B00000000;       // Address light lb.
-byte statusByteC = B00000000;       // Address light hb.
-byte statusByteL = B00000000;       // Data byte
+byte fpStatusByte = B00000000;      // Status lights: by default are all OFF.
+uint16_t fpAddressWord = B00000000; // Address light byte.
+byte fpAddressLb = B00000000;       // Address light lb.
+byte fpAddressHb = B00000000;       // Address light hb.
+byte fpDataByte = B00000000;        // Data byte
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -104,11 +105,14 @@ inline uint16_t MEM_READ_WORD(uint16_t memoryAddress) {
 }
 
 byte MEM_READ_STEP(uint16_t memoryAddress) {
-  byte byteValue = MREAD(memoryAddress);
+  byte dataByte = MREAD(memoryAddress);
+  //
   host_set_status_leds_READMEM();
-  altair_set_outputs(memoryAddress, byteValue);
+  host_set_addr_leds(memoryAddress);
+  host_set_data_leds(dataByte);
+  //
   singleStepWait();
-  return byteValue;
+  return dataByte;
 }
 
 // -----------------------------------------
@@ -166,15 +170,18 @@ void MEM_WRITE_STEP(uint16_t memoryAddress, byte byteValue) {
   Serial.println(byteValue);
 #endif
   MWRITE(memoryAddress, byteValue);
+  //
   host_set_status_leds_WRITEMEM();
-  altair_set_outputs(memoryAddress, byteValue); // If you want to display like the original Altair 8800: altair_set_outputs(a, 0xff);
+  host_set_addr_leds(memoryAddress);
+  host_set_data_leds(byteValue);  // If you want to display like the original Altair 8800, replace byteValue, with "0xff".
+  //
   singleStepWait();
   host_clr_status_led_WO();
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// From cpucore_i8080.cpp
+// PUSH and POP
 
 #define pushStack(valueH, valueL)             \
   if( !host_read_status_led_WAIT() ) {        \
@@ -249,6 +256,35 @@ inline uint16_t popStackWord() {
   regSP += 2;
   host_clr_status_led_STACK();
   return v;
+}
+
+// -----------------------------------------------------------------------------
+// HLT opcode process to stop the process.
+// Stopped process is in a mode that allows using 'r' to start the process running from the stop point.
+//
+void altair_hlt() {
+  host_set_status_led_HLTA();
+  host_clr_status_led_M1();
+  regPC--;
+  // altair_interrupt(INT_SW_STOP);
+  programState = PROGRAM_WAIT;
+  Serial.print(F("++ HALT, host_read_status_led_WAIT() = "));
+  Serial.println(host_read_status_led_WAIT());
+  if (!host_read_status_led_WAIT()) {
+    host_set_status_led_WAIT();
+    printFrontPanel();
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Not using interrupts, yet.
+void altair_interrupt_enable() {
+  // altair_interrupts_enabled = true;
+  host_set_status_led_INTE();
+}
+void altair_interrupt_disable() {
+  // altair_interrupts_enabled = false;
+  host_clr_status_led_INTE();
 }
 
 // -----------------------------------------------------------------------------
@@ -769,16 +805,16 @@ void cpucore_i8080_print_registers() {
   Serial.print(F(" = ")); cpu_print_status_register(regS);
   Serial.println(" Status byte");
   // ---
-  Serial.print(F("+ Front panel display Status byte,  statusByteB: "));
-  printData(statusByteB);
+  Serial.print(F("+ Front panel display Status byte,  fpStatusByte: "));
+  printData(fpStatusByte);
   Serial.println();
-  Serial.print(F("+ Front panel display Data byte,    statusByteL: "));
-  printData(statusByteL);
+  Serial.print(F("+ Front panel display Data byte,    fpDataByte:   "));
+  printData(fpDataByte);
   Serial.println();
-  Serial.print(F("+ Front panel display Address word, statusByteC:statusByteA = "));
-  printByte(statusByteC);
+  Serial.print(F("+ Front panel display Address word, fpAddressHb:fpAddressLb = "));
+  printByte(fpAddressHb);
   Serial.print(F(":"));
-  printByte(statusByteA);
+  printByte(fpAddressLb);
   Serial.println();
   // ---
   Serial.print(F("+ regA: "));

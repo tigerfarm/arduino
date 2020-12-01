@@ -137,7 +137,7 @@ void init_regS();
 // -----------------------------------------------------------------------------
 // Status bits and bytes
 
-// Sync statusByteB bit values with Processor.ini for shifting out to 595's.
+// Sync fpStatusByte bit values with Processor.ini for shifting out to 595's.
 // Sync other status pins to match in Processor.ini.
 
 extern const byte MEMR_ON;
@@ -150,12 +150,15 @@ extern const byte WO_ON;
 extern const byte INT_ON;
 
 inline void host_set_addr_leds(uint16_t v) {
-  statusByteA = (v & 0xff); // lb where 0xff remove hb, leaving LB
-  statusByteC = (v / 256);  // hb
+  fpAddressWord = v;
+  // fpAddressLb = (v & 0xff); // lb where 0xff remove hb, leaving LB
+  // fpAddressHb = (v / 256);  // hb
 }
-#define host_set_data_leds(v)  statusByteL=(v)
-#define host_read_data_leds()  statusByteL
-#define host_read_addr_leds(v) (statusByteA | (statusByteC * 256))
+// #define host_read_addr_leds(v) (fpAddressLb | (fpAddressHb * 256))
+#define host_read_addr_leds(v) fpAddressWord
+
+#define host_set_data_leds(v)  fpDataByte=(v)
+#define host_read_data_leds()  fpDataByte
 
 #define host_read_status_led_WAIT()   status_wait
 #define host_set_status_led_WAIT()  { digitalWrite(40, HIGH); status_wait = true; }
@@ -169,28 +172,28 @@ inline void host_set_addr_leds(uint16_t v) {
 #define host_set_status_led_INTE()  { digitalWrite(38, HIGH); status_inte = true; }
 #define host_clr_status_led_INTE()  { digitalWrite(38, LOW);  status_inte = false; }
 
-#define host_set_status_led_MEMR()    statusByteB |=  MEMR_ON
-#define host_set_status_led_INP()     statusByteB |=  INP_ON
-#define host_set_status_led_M1()      statusByteB |=  M1_ON
-#define host_set_status_led_OUT()     statusByteB |=  OUT_ON
-#define host_set_status_led_HLTA()    statusByteB |=  HLTA_ON
-#define host_set_status_led_STACK()   statusByteB |=  STACK_ON
-#define host_set_status_led_WO()      statusByteB &= ~WO_ON       // Set turn WO off, reverse logic.
-#define host_set_status_led_INT()     statusByteB |=  INT_ON
+#define host_set_status_led_MEMR()    fpStatusByte |=  MEMR_ON
+#define host_set_status_led_INP()     fpStatusByte |=  INP_ON
+#define host_set_status_led_M1()      fpStatusByte |=  M1_ON
+#define host_set_status_led_OUT()     fpStatusByte |=  OUT_ON
+#define host_set_status_led_HLTA()    fpStatusByte |=  HLTA_ON
+#define host_set_status_led_STACK()   fpStatusByte |=  STACK_ON
+#define host_set_status_led_WO()      fpStatusByte &= ~WO_ON       // Set turn WO off, reverse logic.
+#define host_set_status_led_INT()     fpStatusByte |=  INT_ON
 
-#define host_clr_status_led_MEMR()    statusByteB &= ~MEMR_ON
-#define host_clr_status_led_INP()     statusByteB &= ~INP_ON
-#define host_clr_status_led_M1()      statusByteB &= ~M1_ON
-#define host_clr_status_led_OUT()     statusByteB &= ~OUT_ON
-#define host_clr_status_led_HLTA()    statusByteB &= ~HLTA_ON
-#define host_clr_status_led_STACK()   statusByteB &= ~STACK_ON
-#define host_clr_status_led_WO()      statusByteB |=  WO_ON       // Set turn WO on, reverse logic.
-#define host_clr_status_led_INT()     statusByteB &= ~INT_ON
+#define host_clr_status_led_MEMR()    fpStatusByte &= ~MEMR_ON
+#define host_clr_status_led_INP()     fpStatusByte &= ~INP_ON
+#define host_clr_status_led_M1()      fpStatusByte &= ~M1_ON
+#define host_clr_status_led_OUT()     fpStatusByte &= ~OUT_ON
+#define host_clr_status_led_HLTA()    fpStatusByte &= ~HLTA_ON
+#define host_clr_status_led_STACK()   fpStatusByte &= ~STACK_ON
+#define host_clr_status_led_WO()      fpStatusByte |=  WO_ON       // Set turn WO on, reverse logic.
+#define host_clr_status_led_INT()     fpStatusByte &= ~INT_ON
 
-#define host_set_status_leds_READMEM()       statusByteB |= MEMR_ON | WO_ON
-#define host_set_status_leds_READMEM_M1()    statusByteB |= MEMR_ON | M1_ON | WO_ON
-#define host_set_status_leds_READMEM_STACK() statusByteB |= MEMR_ON | STACK_ON | WO_ON
-#define host_set_status_leds_WRITEMEM()      statusByteB &= ~(MEMR_ON | WO_ON)
+#define host_set_status_leds_READMEM()       fpStatusByte |= MEMR_ON | WO_ON
+#define host_set_status_leds_READMEM_M1()    fpStatusByte |= MEMR_ON | M1_ON | WO_ON
+#define host_set_status_leds_READMEM_STACK() fpStatusByte |= MEMR_ON | STACK_ON | WO_ON
+#define host_set_status_leds_WRITEMEM()      fpStatusByte &= ~(MEMR_ON | WO_ON)
 
 inline byte host_mega_read_switches(byte highlow) {
   byte b = 0;
