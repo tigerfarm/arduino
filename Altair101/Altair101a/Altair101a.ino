@@ -17,6 +17,33 @@
   Next:
 
   When running load:i, INP should come on, but it does show, as it's the first instruction.
+          MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:SERIAL_PORT
+          MWRITE( cnt++, B00000011 & 0xff);  // ++ immediate:SERIAL_PORT:3
+                            ; --- in 16
+                            ; First:  Fetch Opcode                  + On: MEMR MI    WO 333         0
+                            ; Second: Memory read port              + On: MEMR       WO 002         1
+                            ; Third:  Input read                    + On: INP        WO 000         
+
+++ Address:16-bit bytes       databyte :hex:oct > description
+++       0:00000000 00000000: 11011011 : DB:333 > opcode: in SERIAL_PORT
+++       1:00000000 00000001: 00000011 : 03:003 > immediate: SERIAL_PORT : 3
+++       2:00000000 00000010: 11111110 : FE:376 > opcode: cpi 'x'
+++       3:00000000 00000011: 01111000 : 78:170 > immediate: 'x' : 120
+++       4:00000000 00000100: 11001010 : CA:312 > opcode: jz HaltLoop
+++       5:00000000 00000101: 00001111 : 0F:017 > lb: 15
+++       6:00000000 00000110: 00000000 : 00:000 > hb: 0
+++       7:00000000 00000111: 11111110 : FE:376 > opcode: cpi 128
+++       8:00000000 00001000: 10000000 : 80:200 > immediate: 128 : 128
+++       9:00000000 00001001: 11001010 : CA:312 > opcode: jz HaltLoop
+++      10:00000000 00001010: 00001111 : 0F:017 > lb: 15
+++      11:00000000 00001011: 00000000 : 00:000 > hb: 0
+++      12:00000000 00001100: 11000011 : C3:303 > opcode: jmp GetByte
+++      13:00000000 00001101: 00000000 : 00:000 > lb: 0
+++      14:00000000 00001110: 00000000 : 00:000 > hb: 0
+++      15:00000000 00001111: 01110110 : 76:166 > opcode: hlt
+++      16:00000000 00010000: 11000011 : C3:303 > opcode: jmp GetByte
+++      17:00000000 00010001: 00000000 : 00:000 > lb: 0
+++      18:00000000 00010010: 00000000 : 00:000 > hb: 0
 
   singleStepWait() needs an option to return back to processWait.
   
@@ -351,8 +378,12 @@ void serialPrintFrontPanel() {
 
 // -----------------------------------------------------------------------------
 // Pause during a SINGLE STEP process.
+byte singleStepWaitByte = 0;
 void singleStepWait() {
   Serial.println(F("+ singleStepWait()"));
+  if (!singleStepWaitByte) {
+    return;
+  }
   printFrontPanel();                // Status, data/address lights already set.
   bool singleStepWaitLoop = true;
   while (singleStepWaitLoop) {
@@ -364,6 +395,12 @@ void singleStepWait() {
       } else if (readByte == 'i') {
         Serial.println("+ i: Information.");
         cpucore_i8080_print_registers();
+      } else {
+        singleStepWaitLoop = false;
+        singleStepWaitByte = readByte;
+        Serial.print("+ Complete the machine instruction and exit SINGLE STEP mode. Input byte: ");
+        Serial.write(singleStepWaitByte);
+        Serial.println();
       }
     }
   }
@@ -877,6 +914,7 @@ void processWaitSwitch(byte readByte) {
       programState = PROGRAM_RUN;
       break;
     case 's':
+      singleStepWaitByte = 0;   // Used to identify if there was command input during a SINGLE STEP cycle.
       regPC++;
       if (fpStatusByte & HLTA_ON) {
         Serial.println("+ s, SINGLE STEP, from HLT.");
@@ -1123,6 +1161,10 @@ void runProcessorWait() {
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
       processWaitSwitch(readByte);
+      if (singleStepWaitByte) {
+        // This handles inputs during a SINGLE STEP cycle that hasn't finished.
+        processWaitSwitch(readByte);
+      }
     }
     delay(60);
   }
