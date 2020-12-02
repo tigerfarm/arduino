@@ -1,15 +1,23 @@
 // -----------------------------------------------------------------------------
 /*
-  Processor
-  + Serial interactivity using the Arduino IDE monitor USB serial port.
-  + Using David Hansel's Altair 8800 Simulator code to process machine code instructions.
+  Altair 101a Processor program
+  
+  + Serial interactivity
+  ++ Using the Arduino IDE monitor USB serial port.
+  ++ Or VT100 terminal.
+  + Uses David Hansel's Altair 8800 Simulator code to process machine code instructions.
+  ++ cpucore_i8080.cpp and cpucore_i8080.h.
 
-  + When SINGLE STEP reads and write, I've chosen to show the actual data value
-    rather thanhaving all the data lights on, which is what the original Altair 8800 does.
+  Differences to the origanal:
+  + HLT goes into STOP state which allows RUN to restart the process from where it halted.
+  + When SINGLE STEP read and write, I've chosen to show the actual data value,
+    rather than having all the data lights on, which is what the original Altair 8800 does.
 
   ---------------------------------------------------------
   Next:
 
+  singleStepWait() needs an option to return back to processWait.
+  
   +++ Integration steps to merge this code with Processor.ino.
 
   Continue testing Altair101a.
@@ -66,8 +74,6 @@
 #define LOG_MESSAGES 1    // For debugging.
 // #define LOG_OPCODES  1    // Print each called opcode.
 
-byte statusByte = B00000000;        // By default, all are OFF.
-byte dataByte    = B00000000;
 byte opcode = 0xff;
 
 // -----------------------------------------------------------------------------
@@ -95,7 +101,7 @@ void printData(byte theByte) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// From Processor.ino
+// Front Panel declarations
 
 int programState = LIGHTS_OFF;  // Intial, default.
 
@@ -122,55 +128,16 @@ const byte STACK_ON =   B00000100;  // STACK  Stack process
 const byte WO_ON =      B00000010;  // WO     Write out (inverse logic)
 const byte INT_ON =     B00000001;  // INT    Interrupt
 
-// Use AND to turn OFF. Example:
-//  statusByte = statusByte & M1_OFF;
-const byte MEMR_OFF =   ~MEMR_ON;
-const byte INP_OFF =    ~INP_ON;
-const byte M1_OFF =     ~M1_ON;
-const byte OUT_OFF =    ~OUT_ON;
-const byte HLTA_OFF =   ~HLTA_ON;
-const byte STACK_OFF =  ~STACK_ON;
-const byte WO_OFF =     ~WO_ON;
-const byte INT_OFF =    ~INT_ON;
-
 // -----------------------------------------------------------------------------
 // Front Panel Status LEDs
 
 // Output LED lights shift register(SN74HC595N) pins
-//           Mega/Nano pins        74HC595 Pins
-const int dataPinLed  = 5;    // pin 5 (was pin A14) Data pin.
-const int latchPinLed = 6;    // pin 6 (was pin A12) Latch pin.
-const int clockPinLed = 7;    // pin 7 (was pin A11) Clock pin.
+//          Mega/Nano pins       74HC595 Pins
+const int dataPinLed  = 5;    // pin ? Data pin.
+const int latchPinLed = 6;    // pin ? Latch pin.
+const int clockPinLed = 7;    // pin ? Clock pin.
 
 // -------------------------------------------------
-void programLights() {
-  // Use the current program values: statusByte, curProgramCounter, and dataByte.
-  digitalWrite(latchPinLed, LOW);
-#ifdef DESKTOP_MODULE
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, statusByte);
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, dataByte);
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(regPC));
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(regPC));
-#else
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, dataByte);
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(regPC));
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(regPC));
-  shiftOut(dataPinLed, clockPinLed, MSBFIRST, statusByte); // MSBFIRST matches the bit to LED mapping.
-#endif
-  digitalWrite(latchPinLed, HIGH);
-  //
-#ifdef LOG_MESSAGES
-  Serial.print(F("+ programLights, status:"));
-  printByte(statusByte);
-  Serial.print(" address:");
-  sprintf(charBuffer, "%5d", regPC);
-  Serial.print(charBuffer);
-  Serial.print(" dataByte:");
-  printByte(dataByte);
-  Serial.println();
-#endif
-}
-
 void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) {
   digitalWrite(latchPinLed, LOW);
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, status8bits);
@@ -205,10 +172,9 @@ void printFrontPanel() {
     lightsStatusAddressData(fpStatusByte, host_read_addr_leds(), host_read_data_leds());
   }
   if (SERIAL_IO_VT100) {
-    // For now
     serialPrintFrontPanel();
 #ifdef LOG_MESSAGES
-    Serial.print("\033[2K"); // Clear line from cursor right
+    // Serial.print("\033[2K"); // Clear line from cursor right
     Serial.print(F("+ printFrontPanel SERIAL_IO_VT100, status:"));
     printByte(fpStatusByte);
     Serial.print(" address:");
@@ -217,11 +183,13 @@ void printFrontPanel() {
     Serial.print(" dataByte:");
     printByte(host_read_data_leds());
     Serial.println();
-    Serial.print("\033[2K"); // Clear line
+    // Serial.print("\033[2K"); // Clear line
 #endif
   } else {
     if (SERIAL_IO) {
-      if (programState == PROGRAM_RUN) {
+      if (host_read_status_led_WAIT()) {
+        serialPrintFrontPanel();
+      } else {
         Serial.print(F("+ printFrontPanel SERIAL_IO, status:"));
         printByte(fpStatusByte);
         Serial.print(" address:");
@@ -230,9 +198,6 @@ void printFrontPanel() {
         Serial.print(" dataByte:");
         printByte(host_read_data_leds());
         Serial.println();
-      } else {
-        // WAIT mode.
-        serialPrintFrontPanel();
       }
     }
   }
@@ -240,14 +205,11 @@ void printFrontPanel() {
 
 // -----------------------------------------------------------------------------
 // Print the front panel to either the Arduino IDE monitor, or to the VT00 terminal.
-// A VT00 terminal is much nicer because the front panel stays in the top left of the terminal screen.
-// Where as the front panel is reprinted and scrolls in the Arduino IDE monitor.
+// In a VT00 terminal, the front panel stays in the top left of the terminal screen.
+// In the Arduino IDE monitor, the front panel is reprinted and scrolls.
 
 // byte prev_fpStatusByte = 250;     // This will take more time to figure out.
-byte dataBus = 0;
-byte prev_dataBus = 1;
-uint16_t addressBus = 0;
-uint16_t prev_addressBus = 1;
+byte prev_fpDataByte = 1;
 uint16_t fpAddressToggleWord = 0;
 uint16_t prev_fpAddressToggleWord = 1;
 
@@ -257,6 +219,7 @@ void serialPrintFrontPanel() {
   // Status
   if (!SERIAL_IO_VT100) {
     Serial.print(F("INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0\r\n"));
+    // Note, PROT is not implemented.
   } else {
     // No need to rewrite the title.
     Serial.print("\033[H");   // Move cursor home
@@ -275,9 +238,9 @@ void serialPrintFrontPanel() {
   //
   // --------------------------
   // Data
-  if ((prev_dataBus != fpDataByte) || (!SERIAL_IO_VT100)) {
+  if ((prev_fpDataByte != fpDataByte) || (!SERIAL_IO_VT100)) {
     // If VT100 and no change, don't reprint.
-    prev_dataBus = fpDataByte;
+    prev_fpDataByte = fpDataByte;
     if ( fpDataByte & 0x80 )   Serial.print(F("  *" )); else Serial.print(F("  ." ));
     if ( fpDataByte & 0x40 )   Serial.print(F("   *")); else Serial.print(F("   ."));
     Serial.print(F(" "));
@@ -290,23 +253,24 @@ void serialPrintFrontPanel() {
     if ( fpDataByte & 0x01 )   Serial.print(F("   *")); else Serial.print(F("   ."));
   }
   // --------------------------
-  // WAIT and HLDA
-  if (!SERIAL_IO_VT100) {
-    Serial.print(("\r\nWAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0"));
-    Serial.print(("\r\n"));
-  } else {
+  // WAIT, HLDA, and Address
+  //
+  if (SERIAL_IO_VT100) {
     // No need to rewrite the title.
     Serial.println();
     Serial.print("\033[1B");  // Cursor down
+  } else {
+    Serial.print(("\r\nWAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0"));
+    Serial.print(("\r\n"));
   }
+  // WAIT and HLDA
   if ( host_read_status_led_WAIT() ) Serial.print(F(" *  "));   else Serial.print(F(" .  "));
-  if ( false ) Serial.print(F("  *   ")); else Serial.print(F("  .   "));
+  if ( host_read_status_led_HLDA() ) Serial.print(F("  *   ")); else Serial.print(F("  .   "));
   //
-  // --------------------------
   // Address
-  if ((prev_addressBus != fpAddressWord) || (!SERIAL_IO_VT100)) {
+  if ((prev_fpAddressToggleWord != fpAddressWord) || (!SERIAL_IO_VT100)) {
     // If VT100 and no change, don't reprint.
-    prev_addressBus = fpAddressWord;
+    prev_fpAddressToggleWord = fpAddressWord;
     if ( fpAddressWord & 0x8000) Serial.print(F("   *")); else Serial.print(F("   ."));
     if ( fpAddressWord & 0x4000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
     if ( fpAddressWord & 0x2000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
@@ -329,12 +293,12 @@ void serialPrintFrontPanel() {
   }
   // --------------------------
   // Address/Data switches
-  if (!SERIAL_IO_VT100) {
-    Serial.print(F("\r\n            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0\r\n"));
-  } else {
+  if (SERIAL_IO_VT100) {
     // No need to rewrite the title.
     Serial.println();
     Serial.print("\033[1B");  // Cursor down
+  } else {
+    Serial.print(F("\r\n            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0\r\n"));
   }
   if ((prev_fpAddressToggleWord != fpAddressToggleWord) || (!SERIAL_IO_VT100)) {
     // If VT100 and no change, don't reprint.
@@ -360,14 +324,13 @@ void serialPrintFrontPanel() {
     if ( fpAddressToggleWord & 0x0002 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
     if ( fpAddressToggleWord & 0x0001 ) Serial.print(F("   ^")); else Serial.print(F("   v"));
   }
-  //
-  if (!SERIAL_IO_VT100) {
-    Serial.print(F("\r\n ------ \r\n"));
-    Serial.println("+ Ready to receive command.");
-  } else {
+  if (SERIAL_IO_VT100) {
     // No need to rewrite the prompt.
     Serial.print("\033[2B");  // Cursor down 2 lines.
     Serial.println();
+  } else {
+    Serial.print(F("\r\n ------ \r\n"));
+    Serial.println("+ Ready to receive command.");
   }
 
 }
@@ -384,6 +347,7 @@ void singleStepWait() {
   bool singleStepWaitLoop = true;
   while (singleStepWaitLoop) {
     if (Serial.available() > 0) {
+      // Stacy, need an option to back all the way to processWait.
       readByte = Serial.read();    // Read and process an incoming byte.
       if (readByte == 's') {
         singleStepWaitLoop = false;
@@ -399,12 +363,9 @@ void singleStepWait() {
 // IN opcode, input processing to get a byte from an input port.
 /*
   Opcode: out <port#>
-  Called from: cpu_IN() {
-    regA = altair_in(MEM_READ(regPC)); ... }
+  Called from: cpu_IN() { regA = altair_in(MEM_READ(regPC)); ... }
     The input byte is loaded into register A.
-
-  A byte value of 0, for the byte(inputDataByte),
-    implies there is no input on the port at the time of being called.
+  A byte value of 0, implies no input on that port at the time of being called.
 */
 
 byte inputBytePort2 = 0;
@@ -1021,8 +982,8 @@ void processWaitSwitch(byte readByte) {
       break;
     case 'V':
       // Insure the previous value is different to current, to insure an intial printing.
-      prev_dataBus = host_read_data_leds() + 1;
-      prev_addressBus = host_read_addr_leds() + 1;;
+      prev_fpDataByte = host_read_data_leds() + 1;
+      prev_fpAddressToggleWord = host_read_addr_leds() + 1;;
       fpAddressToggleWord = 0;      // Set all toggled off.
       prev_fpAddressToggleWord = 1; // Set to different value.
       Serial.print("\033[0m\033[?25l");       // Block cursor display: off.
