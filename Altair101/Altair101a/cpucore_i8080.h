@@ -177,6 +177,8 @@ inline void host_set_addr_leds(uint16_t v) {
 #define host_set_status_led_INTE()  { digitalWrite(38, HIGH); status_inte = true; }
 #define host_clr_status_led_INTE()  { digitalWrite(38, LOW);  status_inte = false; }
 
+#define host_read_status_led_HLTA()   fpStatusByte & HLTA_ON
+
 #define host_set_status_led_MEMR()    fpStatusByte |=  MEMR_ON
 #define host_set_status_led_INP()     fpStatusByte |=  INP_ON
 #define host_set_status_led_M1()      fpStatusByte |=  M1_ON

@@ -38,9 +38,9 @@ byte fpDataByte = B00000000;        // Data byte
 // Altair8800.ino
 
 void altair_interrupt(uint32_t i, bool set = true);
+void altair_interrupt(uint32_t i, bool set) {}
 bool altair_interrupt_active(uint32_t i);
 bool altair_interrupt_enabled();
-void altair_interrupt(uint32_t i, bool set) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -267,10 +267,10 @@ void altair_hlt() {
   host_clr_status_led_M1();
   regPC--;
   // altair_interrupt(INT_SW_STOP);
-  programState = PROGRAM_WAIT;
   Serial.print(F("++ HALT, host_read_status_led_WAIT() = "));
   Serial.println(host_read_status_led_WAIT());
   if (!host_read_status_led_WAIT()) {
+    programState = PROGRAM_WAIT;
     host_set_status_led_WAIT();
     printFrontPanel();
   }

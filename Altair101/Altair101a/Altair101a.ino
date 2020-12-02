@@ -14,37 +14,43 @@
   + Front panel display Status byte,  fpStatusByte: 170 = 252 = 10101010
     INTE MEMR INP M1 OUT HLTA STACK WO INT
      .    *    .  .   .   *    .    *   .
- 
+
   +++ Integration steps to merge this code with Processor.ino.
 
-  Maybe replace the following:
+  ---------------
+  Altair101a.ino functions to modify for front panel display:
+
+  processWaitSwitch(...)    // Called from WAIT mode, has many options to consider.
+  + Work through each option: RUN, STEP, ...
+  + When to use printFrontPanel() after which options.
+
+  processDataOpcode()       // Called from RUN mode and from WAIT SINGLE STEP.
+  processRunSwitch(...)     // Called from RUN mode.
+
+  ---------------
+  Already converted the following Altair101a.ino functions using the below code enhancement.
+  altair_in(...) altair_out(...)
+  Already converted the following cpucore_i8080.cpp funtions using the below code enhancement.
+  altair_hlt()
+  + MEM_READ, MEM_READ_WORD,  MEM_READ_STEP
+  + MEM_WRITE, MEM_WRITE_WORD, MEM_WRITE_STEP
+  + PUSH and POP
+  if (status_wait) {
+    singleStepWait();
+  } else {
+    printFrontPanel();  // Status, data/address light values are already set.
+  }
+
+  For efficiency, I could replace the following:
     host_read_status_led_*();
     host_set_status_led_*();
     host_clr_status_led_*();
   by using global varialbes, same as used in Processor.ino. For example,
     statusByte = MEMR_ON | MI_ON | WO_ON;
     statusByte &= MI_OFF;
-
-  Start with altair_hlt() amd MEM_READ().
-
-  MEM_READ() will be changed as follows.
-  From:
-byte MEM_READ(uint16_t memoryAddress) {
-  ...
-  host_set_status_leds_READMEM();
-  host_set_addr_leds( memoryAddress );
-  host_set_data_leds( returnByte );
- ...
-}
-  To:
-byte MEM_READ(uint16_t memoryAddress) {
-  ...
-  statusByte = MEMR_ON | WO_ON;
-  lightsStatusAddressData(statusByte,memoryAddress,returnByte);
-  -- or --
-  printFrontPanel();  // This option allows multiple outputs, and uses the global variables.
- ...
-}
+  But the above is not required.
+  The host_set and host_clr makes sense in the other hardware configuration
+    because each status light has pin to turn it on and off. Not the case in Altair 101.
 
   Remove processor functions and variables from Processor.ino.
   + Leave player, clock, and counter functions intact.
@@ -60,20 +66,9 @@ byte MEM_READ(uint16_t memoryAddress) {
   Note, in Processor.ino, programLights() uses the global variables:
   + void programLights() { // Use the current program values: statusByte, curProgramCounter, and dataByte. }
 
-  cpucore_i8080.cpp that make front panel updates:
-  + MEM_READ, MEM_READ_WORD,  MEM_READ_STEP
-  + MEM_WRITE, MEM_WRITE_WORD, MEM_WRITE_STEP
-  + PUSH and POP
-  
-  Altair101a.ino that make front panel updates:
-  altair_hlt()
-  altair_interrupt_enable() altair_interrupt_disable()
-  altair_in(...) altair_out(...)
-  processDataOpcode() processRunSwitch(...)
-
   ---------------------------------------------------------
   Other Nexts:
-  
+
   + When single stepping, M1 stays on but should be off, when HLT is executed.
   + Should be on: MEMR, HLTA, WO.
   + On the Altair 101, only HLTA light is on.
@@ -107,7 +102,6 @@ byte MEM_READ(uint16_t memoryAddress) {
 
 byte statusByte = B00000000;        // By default, all are OFF.
 byte dataByte    = B00000000;
-
 byte opcode = 0xff;
 
 // -----------------------------------------------------------------------------
@@ -315,7 +309,7 @@ void serialPrintFrontPanel() {
   //
   // --------------------------
   // Data
-  if ((prev_dataBus != fpDataByte) || !SERIAL_IO_VT100) {
+  if ((prev_dataBus != fpDataByte) || (!SERIAL_IO_VT100)) {
     // If VT100 and no change, don't reprint.
     prev_dataBus = fpDataByte;
     if ( fpDataByte & 0x80 )   Serial.print(F("  *" )); else Serial.print(F("  ." ));
@@ -344,7 +338,7 @@ void serialPrintFrontPanel() {
   //
   // --------------------------
   // Address
-  if ((prev_addressBus != fpAddressWord) || !SERIAL_IO_VT100) {
+  if ((prev_addressBus != fpAddressWord) || (!SERIAL_IO_VT100)) {
     // If VT100 and no change, don't reprint.
     prev_addressBus = fpAddressWord;
     if ( fpAddressWord & 0x8000) Serial.print(F("   *")); else Serial.print(F("   ."));
@@ -376,7 +370,7 @@ void serialPrintFrontPanel() {
     Serial.println();
     Serial.print("\033[1B");  // Cursor down
   }
-  if ((prev_fpAddressToggleWord != fpAddressToggleWord) || !SERIAL_IO_VT100) {
+  if ((prev_fpAddressToggleWord != fpAddressToggleWord) || (!SERIAL_IO_VT100)) {
     // If VT100 and no change, don't reprint.
     prev_fpAddressToggleWord = fpAddressToggleWord;
     Serial.print(F("          "));
@@ -427,7 +421,6 @@ void singleStepWait() {
       readByte = Serial.read();    // Read and process an incoming byte.
       if (readByte == 's') {
         singleStepWaitLoop = false;
-        // processRunSwitch(readByte);
       } else if (readByte == 'i') {
         Serial.println("+ i: Information.");
         cpucore_i8080_print_registers();
@@ -598,7 +591,7 @@ void setAddressData(uint16_t addressWord, byte dataByte) {
 
 void processDataOpcode() {
 #ifdef LOG_OPCODES
-  Serial.print(F("++ regPC:"));
+  Serial.print(F("++ processDataOpcode(), regPC:"));
   Serial.print(regPC);
   Serial.print(F(": data:"));
   printData(MREAD(regPC));
@@ -616,7 +609,9 @@ void processDataOpcode() {
   CPU_EXEC(opcode);
   //
   // Set for next opcode read:
-  host_set_status_leds_READMEM_M1();
+  if (!host_read_status_led_HLTA()) {
+    host_set_status_leds_READMEM_M1();
+  }
 }
 
 void processRunSwitch(byte readByte) {
@@ -625,12 +620,12 @@ void processRunSwitch(byte readByte) {
   }
   switch (readByte) {
     case 's':
-      Serial.println(F("+ STOP"));
+      Serial.println(F("+ s, STOP"));
       programState = PROGRAM_WAIT;
       host_set_status_led_WAIT();
       break;
     case 'R':
-      Serial.println(F("+ RESET"));
+      Serial.println(F("+ R, RESET"));
       // Set to the first memory address.
       regPC = 0;
       setAddressData(regPC, MREAD(regPC));
@@ -645,12 +640,11 @@ void processRunSwitch(byte readByte) {
 
 void runProcessor() {
   Serial.println(F("+ runProcessor()"));
-  // put PC on address bus LEDs
+  // Serial.println(F("+ Send serial character 's' to STOP running."));
   host_set_addr_leds(regPC);
-  // Serial.println(F("+ Send serial character, example hit enter key, to process first opcode. Send 's' to STOP running."));
   programState = PROGRAM_RUN;
   while (programState == PROGRAM_RUN) {
-    processDataOpcode(); // For now, require an serial character to process each opcode.
+    processDataOpcode();
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
       processRunSwitch(readByte);
@@ -870,7 +864,7 @@ void processWaitSwitch(byte readByte) {
   //
   if (SERIAL_IO_VT100) {
     Serial.print("\033[9;1H");  // Move cursor to below the prompt: line 9, column 1.
-    Serial.print("\033[J");     // From cursor down, clear the screen, .
+    Serial.print("\033[J");     // From cursor down, clear the screen.
   }
   //
   // -------------------------------
@@ -878,6 +872,7 @@ void processWaitSwitch(byte readByte) {
   //
   int data = readByte;
   if ( data >= '0' && data <= '9' ) {
+    // Serial input, not hardware input.
     fpAddressToggleWord = fpAddressToggleWord ^ (1 << (data - '0'));
     if (SERIAL_IO_VT100) {
       serialPrintFrontPanel();
@@ -885,6 +880,7 @@ void processWaitSwitch(byte readByte) {
     return;
   }
   if ( data >= 'a' && data <= 'f' ) {
+    // Serial input, not hardware input.
     fpAddressToggleWord = fpAddressToggleWord ^ (1 << (data - 'a' + 10));
     if (SERIAL_IO_VT100) {
       serialPrintFrontPanel();
@@ -892,17 +888,14 @@ void processWaitSwitch(byte readByte) {
     return;
   }
   // -------------------------------
-  if (SERIAL_IO_VT100) {
-    Serial.print("\033[J");     // From cursor down, clear the screen, .
-  }
-  // -------------------------------
-  // Process command switches. Tested: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT, RESET
+  // The following can either initiate from a serial connection or from a hardware switch.
+  // Process command switches: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT, RESET.
   //
   switch (readByte) {
     case 'r':
       Serial.println("+ r, RUN.");
       if (fpStatusByte & HLTA_ON) {
-        // If previous instruction was HLT, step to next instruction after HLT.
+        // If previous instruction was HLT, step to next instruction after HLT, then continue.
         regPC++;
         host_clr_status_led_HLTA();
       }
@@ -919,9 +912,9 @@ void processWaitSwitch(byte readByte) {
         processDataOpcode();
       }
       setAddressData(regPC, MREAD(regPC));
-      if (SERIAL_IO_VT100) {
-        serialPrintFrontPanel();
-      }
+      // if (SERIAL_IO_VT100 || LED_IO) {
+      printFrontPanel();
+      // }
       break;
     case 'x':
       regPC = fpAddressToggleWord;
@@ -1030,11 +1023,6 @@ void processWaitSwitch(byte readByte) {
       Serial.println("+ V, VT100 escapes are enabled and block cursor off.");
       break;
     // -------------------------------------
-    case 'y':
-      Serial.println(F("+ y, clear screen."));
-      Serial.print("\033[H\033[2J");          // Cursor home and clear the screen.
-      serialPrintFrontPanel();                // Print the complete front panel: labels and indicators.
-      break;
     case 'z':
       Serial.print("++ Cursor off.");
       Serial.print("\033[0m\033[?25l");
@@ -1062,11 +1050,13 @@ void processWaitSwitch(byte readByte) {
     case 'i':
       Serial.println("+ i: Information.");
       cpucore_i8080_print_registers();
-      break;
-    case 10:
-    case 13:
-      Serial.println(F("+ New line(Arduino IDE monitory) or carriage return(VT100) character."));
-      serialPrintFrontPanel();
+      Serial.println("------------");
+      Serial.print(F("++ LED_IO = "));
+      Serial.print(LED_IO);
+      Serial.print(F(" SERIAL_IO_VT100 = "));
+      Serial.print(SERIAL_IO_VT100);
+      Serial.print(F(" SERIAL_IO = "));
+      Serial.println(SERIAL_IO);
       break;
     case 'h':
       Serial.println("----------------------------------------------------");
@@ -1101,6 +1091,19 @@ void processWaitSwitch(byte readByte) {
       Serial.println("+ Z, cursor on    VT100 block cursor on.");
       Serial.println("+ Enter key       Refresh the front panel display.");
       Serial.println("----------------------------------------------------");
+      break;
+    // -------------------------------------
+    case 10:
+    case 13:
+      Serial.println(F("+ New line(Arduino IDE monitory) or carriage return(VT100) character."));
+      // serialPrintFrontPanel();
+      break;
+    case 'y':
+      Serial.println(F("+ y, Refresh front panel."));
+      if (SERIAL_IO_VT100) {
+        Serial.print("\033[H\033[2J");  // Cursor home and clear the screen.
+      }
+      printFrontPanel();                // Print the complete front panel: labels and indicators.
       break;
     // -------------------------------------
     default:
