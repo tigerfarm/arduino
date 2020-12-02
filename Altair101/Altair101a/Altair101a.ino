@@ -701,7 +701,7 @@ void loadProgram() {
           break;
         case 'j':
           loadProgramName = "Kill the Bit";
-          Serial.println("+ j, Kill the Bit for serial input.");
+          Serial.println("+ j, Kill the Bit version for serial input.");
           programState = PROGRAM_WAIT;
           if (SERIAL_IO_VT100) {
             Serial.print("\033[J");     // From cursor down, clear the screen, .
@@ -717,12 +717,7 @@ void loadProgram() {
           MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d ---------------- Label: Begin, address 8
           MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
           MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          // Only blink the address hb 3 times, then check for input.
-          // MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          // MWRITE( cnt++, B00001001 & 0xff);  // ++ opcode:dad:00001001:b
-          // MWRITE( cnt++, B11010010 & 0xff);  // ++ opcode:jnc:11010010:Begin
-          // MWRITE( cnt++, B00001000 & 0xff);  // ++ lb:Begin:8             ----------------
-          // MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0                     Address 15
+          // Only blink address hb value 3 times(ldax d), then check for input and reset register d.
           MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:0ffh
           MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:2:2            USB serial input.
           MWRITE( cnt++, B10101010 & 0xff);  // ++ opcode:xra:10101010:d
