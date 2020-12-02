@@ -12,54 +12,14 @@
 
   +++ Integration steps to merge this code with Processor.ino.
 
-  ---------------
-  Altair101a.ino functions to modify for front panel display:
+  Continue testing Altair101a.
+  Then upload to the Altair 101 machine and test with lights.
+  Then merge with Processor.ino code.
 
-  processWaitSwitch(...)    // Called from WAIT mode, has many options to consider.
-  + Work through each option: RUN, STEP, ...
-  + When to use printFrontPanel() after which options.
-
-  processDataOpcode()       // Called from RUN mode and from WAIT SINGLE STEP.
-  processRunSwitch(...)     // Called from RUN mode.
-
-  ---------------
-  Already converted the following Altair101a.ino functions using the below code enhancement.
-  altair_in(...) altair_out(...)
-  Already converted the following cpucore_i8080.cpp funtions using the below code enhancement.
-  altair_hlt()
-  + MEM_READ, MEM_READ_WORD,  MEM_READ_STEP
-  + MEM_WRITE, MEM_WRITE_WORD, MEM_WRITE_STEP
-  + PUSH and POP
-  if (status_wait) {
-    singleStepWait();
-  } else {
-    printFrontPanel();  // Status, data/address light values are already set.
-  }
-
-  For efficiency, I could replace the following:
-    host_read_status_led_*();
-    host_set_status_led_*();
-    host_clr_status_led_*();
-  by using global varialbes, same as used in Processor.ino. For example,
-    statusByte = MEMR_ON | MI_ON | WO_ON;
-    statusByte &= MI_OFF;
-  But the above is not required.
-  The host_set and host_clr makes sense in the other hardware configuration
-    because each status light has pin to turn it on and off. Not the case in Altair 101.
-
+  ---------------------------------------------------------
   Remove processor functions and variables from Processor.ino.
   + Leave player, clock, and counter functions intact.
   + Keep hardware switching intact, which is not inmplemented in this program.
-
-  For integration,
-  + Decide if printFrontPanel() is still required when implenting:
-      lightsStatusAddressData(Status,Address,Data)
-  + Add serial into Processor.ino, optional outputs:
-  ++ Serial USB in VT100 mode or not.
-  ++ LED lights (on/off using serial command).
-
-  Note, in Processor.ino, programLights() uses the global variables:
-  + void programLights() { // Use the current program values: statusByte, curProgramCounter, and dataByte. }
 
   ---------------------------------------------------------
   Other Nexts:
@@ -72,6 +32,17 @@
 
   + Prevent lockup when using PUSH A, i.e. PUSH called before setting SP.
   ++ In the PUSH process, if SP < 4, error.
+
+  For efficiency, I could replace the following:
+    host_read_status_led_*();
+    host_set_status_led_*();
+    host_clr_status_led_*();
+  by using global varialbes, same as used in Processor.ino. For example,
+    statusByte = MEMR_ON | MI_ON | WO_ON;
+    statusByte &= MI_OFF;
+  But the above is not required.
+  The host_set and host_clr makes sense in the other hardware configuration
+    because each status light has pin to turn it on and off. Not the case in Altair 101.
 
   ---------------------------------------------------------
     VT100 reference:
@@ -471,9 +442,11 @@ byte altair_in(byte portDataByte) {
       }
       if (inputDataByte > 0) {
         inputBytePort2 = 0;
+#ifdef LOG_MESSAGES
         Serial.print(F("+ Input sense switch byte: B"));
         printByte(inputDataByte);
         Serial.println();
+#endif
       }
       break;
     case 3:
@@ -516,7 +489,7 @@ byte altair_in(byte portDataByte) {
   }
 #endif
   host_set_data_leds(inputDataByte);
-  host_set_addr_leds(portDataByte + portDataByte * 256); // The low and high bytes are each set to the portDataByte.
+  host_set_addr_leds(portDataByte + portDataByte * 256); // As does the origanal Altair 8800: lb and hb set to the port#.
   if (host_read_status_led_WAIT()) {
     singleStepWait();
   } else {
@@ -552,7 +525,7 @@ void altair_out(byte portDataByte, byte regAdata) {
     case 16:
       // Actual output of bytes. Example output a byte to the serial port (IDE monitor).
       // Test port: 20Q (octal: 020).
-      Serial.print("++ Output byte to test port(serial port):");
+      Serial.print("++ Test output port, byte output to USB serial port:");
       Serial.print(regAdata);         // Write regAdata to serial port.
       Serial.println(":");
       break;
@@ -995,9 +968,9 @@ void processWaitSwitch(byte readByte) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
-    case 'L':
+    case 'C':
       byte readConfirmByte;
-      Serial.println("+ L, CLR: Clear memory, set registers to zero, and program counter address to zero.");
+      Serial.println("+ C, CLR: Clear memory, set registers to zero, and program counter address to zero.");
       Serial.println("+ Confirm CLR: y/n");
       readConfirmByte = 's';
       while (!(readConfirmByte == 'y' || readConfirmByte == 'n')) {
@@ -1123,7 +1096,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println("+ p, DEPOSIT      current address");
       Serial.println("+ P, DEPOSIT NEXT address, current address + 1");
       Serial.println("+ R, RESET        Set program counter address to zero.");
-      Serial.println("+ L, CLR          Clear memory, set registers and program counter address to zero.");
+      Serial.println("+ C, CLR          Clear memory, set registers and program counter address to zero.");
       Serial.println("-------------");
       Serial.println("                  Can enter a series of values when using the Arduino IDE monitor.");
       Serial.println("+ 013x            Example, toggle switches 0,1,3 (00001011), and EXAMINE the address.");
@@ -1165,7 +1138,7 @@ void runProcessorWait() {
 #endif
   while (programState == PROGRAM_WAIT) {
     // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
-    // And other options such as enable VT100 output or load a sample program.
+    // And other options such as enable VT100 output enabled or load a sample program.
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
       processWaitSwitch(readByte);
@@ -1182,26 +1155,18 @@ void setup() {
   Serial.println(""); // Newline after garbage characters.
   Serial.println("+++ Setup.");
   //
-  Serial.println("+++ Altair 101a initialized.");
   // ----------------------------------------------------
   // ----------------------------------------------------
   // Front panel LED lights.
 
   // System application status LED lights
-  pinMode(WAIT_PIN, OUTPUT);    // Indicator: program wait state: LED on or LED off.
-  pinMode(HLDA_PIN, OUTPUT);    // Indicator: clock process (LED on) or emulator (LED off).
+  pinMode(WAIT_PIN, OUTPUT);    // Indicator: program WAIT state: LED on or LED off.
+  pinMode(HLDA_PIN, OUTPUT);    // Indicator: clock or player process (LED on) or emulator (LED off).
   digitalWrite(WAIT_PIN, HIGH); // Default to wait state.
   digitalWrite(HLDA_PIN, HIGH); // Default to emulator.
-
-  programState = PROGRAM_WAIT;
-
   // ------------------------------
   // Set status lights.
-  statusByte = host_set_status_leds_READMEM_M1();
-  // programCounter and curProgramCounter are 0 by default.
-  // dataByte = memoryData[curProgramCounter];
   Serial.println(F("+ Initialized: statusByte, programCounter & curProgramCounter, dataByte."));
-  //
   pinMode(latchPinLed, OUTPUT);
   pinMode(clockPinLed, OUTPUT);
   pinMode(dataPinLed, OUTPUT);
@@ -1211,18 +1176,16 @@ void setup() {
   //
   // ----------------------------------------------------
   // ----------------------------------------------------
-  // host_set_status_leds_READMEM_M1();
-  host_set_status_led_MEMR();
-  host_set_status_led_M1();
-  host_clr_status_led_WO();
+  programState = PROGRAM_WAIT;
+  host_set_status_led_WAIT();
+  host_set_status_leds_READMEM_M1();
   regPC = 0;
   opcode = MREAD(regPC);
   host_set_addr_leds(regPC);
   host_set_data_leds(opcode);
-  host_set_status_led_WAIT();
   printFrontPanel();
+  Serial.println("+++ Altair 101a initialized.");
   // ----------------------------------------------------
-  // programLights();    // Uses: statusByte, curProgramCounter, dataByte
   Serial.println(F("+ Starting the processor loop."));
 }
 
@@ -1239,6 +1202,6 @@ void loop() {
       runProcessorWait();
       break;
   }
-  // delay(30); // Arduino sample code, doesn't use a delay.
+  delay(30);
 }
 // -----------------------------------------------------------------------------
