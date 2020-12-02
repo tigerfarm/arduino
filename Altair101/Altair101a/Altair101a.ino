@@ -16,6 +16,8 @@
   ---------------------------------------------------------
   Next:
 
+  When running load:i, INP should come on, but it does show, as it's the first instruction.
+
   singleStepWait() needs an option to return back to processWait.
   
   +++ Integration steps to merge this code with Processor.ino.
@@ -177,9 +179,16 @@ void printFrontPanel() {
     // Serial.print("\033[2K"); // Clear line from cursor right
     Serial.print(F("+ printFrontPanel SERIAL_IO_VT100, status:"));
     printByte(fpStatusByte);
+    //
+    uint16_t theAddress = host_read_addr_leds();
     Serial.print(" address:");
-    sprintf(charBuffer, "%5d", host_read_addr_leds());
+    sprintf(charBuffer, "%5d", theAddress);
     Serial.print(charBuffer);
+    Serial.print("=");
+    printByte(highByte(theAddress));
+    Serial.print(":");
+    printByte(lowByte(theAddress));
+    //
     Serial.print(" dataByte:");
     printByte(host_read_data_leds());
     Serial.println();
@@ -210,6 +219,7 @@ void printFrontPanel() {
 
 // byte prev_fpStatusByte = 250;     // This will take more time to figure out.
 byte prev_fpDataByte = 1;
+uint16_t prev_fpAddressWord = 0;
 uint16_t fpAddressToggleWord = 0;
 uint16_t prev_fpAddressToggleWord = 1;
 
@@ -225,15 +235,15 @@ void serialPrintFrontPanel() {
     Serial.print("\033[H");   // Move cursor home
     Serial.print("\033[1B");  // Cursor down
   }
-  if ( host_read_status_led_INTE() ) Serial.print(F(" *  ")); else Serial.print(F(" .  "));
-  if ( fpStatusByte & MEMR_ON  ) Serial.print(F("  *  "));  else Serial.print(F("  . "));
-  if ( fpStatusByte & INP_ON   ) Serial.print(F("   * "));   else Serial.print(F("  . "));
-  if ( fpStatusByte & M1_ON    ) Serial.print(F(" * "));    else Serial.print(F(" . "));
-  if ( fpStatusByte & OUT_ON   ) Serial.print(F("  * "));   else Serial.print(F("  . "));
-  if ( fpStatusByte & HLTA_ON  ) Serial.print(F("  * "));   else Serial.print(F("  . "));
-  if ( fpStatusByte & STACK_ON ) Serial.print(F("   * "));  else Serial.print(F("   . "));
-  if ( fpStatusByte & WO_ON    ) Serial.print(F("   * "));  else Serial.print(F("   . "));
-  if ( fpStatusByte & INT_ON   ) Serial.print(F("  *"));     else Serial.print(F("  ."));
+  if ( host_read_status_led_INTE() ) Serial.print(F(" *  "));  else Serial.print(F(" .  "));
+  if ( fpStatusByte & MEMR_ON  )     Serial.print(F("  * ")); else Serial.print(F("  . "));
+  if ( fpStatusByte & INP_ON   )     Serial.print(F("   * ")); else Serial.print(F("   . "));
+  if ( fpStatusByte & M1_ON    )     Serial.print(F(" * "));   else Serial.print(F(" . "));
+  if ( fpStatusByte & OUT_ON   )     Serial.print(F("  * "));  else Serial.print(F("  . "));
+  if ( fpStatusByte & HLTA_ON  )     Serial.print(F("  * "));  else Serial.print(F("  . "));
+  if ( fpStatusByte & STACK_ON )     Serial.print(F("   * ")); else Serial.print(F("   . "));
+  if ( fpStatusByte & WO_ON    )     Serial.print(F("   * ")); else Serial.print(F("   . "));
+  if ( fpStatusByte & INT_ON   )     Serial.print(F("  *"));   else Serial.print(F("  ."));
   Serial.print(F("       "));
   //
   // --------------------------
@@ -268,10 +278,10 @@ void serialPrintFrontPanel() {
   if ( host_read_status_led_HLDA() ) Serial.print(F("  *   ")); else Serial.print(F("  .   "));
   //
   // Address
-  if ((prev_fpAddressToggleWord != fpAddressWord) || (!SERIAL_IO_VT100)) {
+  if ((prev_fpAddressWord != fpAddressWord) || (!SERIAL_IO_VT100)) {
     // If VT100 and no change, don't reprint.
-    prev_fpAddressToggleWord = fpAddressWord;
-    if ( fpAddressWord & 0x8000) Serial.print(F("   *")); else Serial.print(F("   ."));
+    prev_fpAddressWord = fpAddressWord;
+    if ( fpAddressWord & 0x8000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
     if ( fpAddressWord & 0x4000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
     if ( fpAddressWord & 0x2000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
     if ( fpAddressWord & 0x1000 ) Serial.print(F("   *")); else Serial.print(F("   ."));
@@ -529,7 +539,7 @@ void processDataOpcode() {
 #endif
   host_set_status_leds_READMEM_M1();
   opcode = MREAD(regPC);
-  host_clr_status_led_M1();
+  // host_clr_status_led_M1();
   host_set_addr_leds(regPC);
   host_set_data_leds(opcode);
   if (!SERIAL_IO || (programState == PROGRAM_RUN)) {
@@ -921,7 +931,17 @@ void processWaitSwitch(byte readByte) {
     case 'R':
       Serial.println("+ R, RESET.");
       // For now, do EXAMINE 0 to reset to the first memory address.
+      //
+      regA = 0;
+      regB = 0;
+      regC = 0;
+      regD = 0;
+      regE = 0;
+      regH = 0;
+      regL = 0;
       regPC = 0;
+      regSP = 0;
+      //
       setAddressData(regPC, MREAD(regPC));
       host_clr_status_led_HLTA();
       host_set_status_leds_READMEM_M1();
@@ -960,10 +980,10 @@ void processWaitSwitch(byte readByte) {
       regPC = 0;
       regSP = 0;
       //
-      fpAddressWord = 0;  // Address lb
-      // fpAddressLb = 0;  // Address lb
-      // fpAddressHb = 0;  // Address hb
-      fpDataByte = 0;  // Data
+      host_set_status_leds_READMEM_M1();
+      fpDataByte = 0;           // Data
+      fpAddressWord = 0;        // Address lb
+      fpAddressToggleWord = 0;  // Reset all toggles to off.
       //
       setAddressData(regPC, MREAD(regPC));
       if (!SERIAL_IO) {
