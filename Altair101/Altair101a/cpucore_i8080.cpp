@@ -787,6 +787,8 @@ void cpucore_i8080_print_registers() {
   Serial.println(host_read_status_led_HLDA());
   Serial.print(F("++ host_read_status_led_INTE()="));
   Serial.println(host_read_status_led_INTE());
+  Serial.print(F("++ host_read_status_led_HLTA()="));
+  Serial.println(host_read_status_led_HLTA());
   //
   sprintf(charBuffer, "++ PC %6d = ", regPC);
   Serial.print(charBuffer);

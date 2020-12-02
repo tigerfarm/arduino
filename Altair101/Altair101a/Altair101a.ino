@@ -98,7 +98,7 @@
 #include "cpucore_i8080.h"
 
 #define LOG_MESSAGES 1    // For debugging.
-// #define LOG_OPCODES  1    // Print each called opcode.
+#define LOG_OPCODES  1    // Print each called opcode.
 
 byte statusByte = B00000000;        // By default, all are OFF.
 byte dataByte    = B00000000;
@@ -593,7 +593,7 @@ void processDataOpcode() {
 #ifdef LOG_OPCODES
   Serial.print(F("++ processDataOpcode(), regPC:"));
   Serial.print(regPC);
-  Serial.print(F(": data:"));
+  Serial.print(F(": data, opcode:"));
   printData(MREAD(regPC));
   Serial.println("");
 #endif
