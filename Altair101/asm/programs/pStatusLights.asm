@@ -52,12 +52,12 @@
                             ; Third,  Fetch hb                      + On: MEMR       WO 000         8
                             ; --- push a
                             ; First:  Fetch Opcode                  + On: MEMR MI    WO 365         9
-                            ; Second: Stack write                   + On:      STACK    377 (040)   037
-                            ; Third:  Stack write                   + On:      STACK    376 (000)   036
+                            ; Second: Stack write                   + On:      STACK    377 (353)   037
+                            ; Third:  Stack write                   + On:      STACK    376 (102)   036
                             ; --- pop a
                             ; First:  Fetch Opcode                  + On: MEMR MI    WO 361         10
-                            ; Second: Stack read                    + On: MEMR STACK WO 376 (040)   036 -- STACK not on
-                            ; Third:  Stack read                    + On: MEMR STACK WO 377 (000)   037
+                            ; Second: Stack read                    + On: MEMR STACK WO 376 (102)   036 -- Clear M1 status
+                            ; Third:  Stack read                    + On: MEMR STACK WO 377 (353)   037 -- Clear M1 status
                             ; --- in 16
                             ; First:  Fetch Opcode                  + On: MEMR MI    WO 333         11
                             ; Second: Memory read port              + On: MEMR       WO 020         12

@@ -76,6 +76,7 @@ byte MEM_READ(uint16_t memoryAddress) {
 
 inline uint16_t MEM_READ_WORD(uint16_t memoryAddress) {
   byte lb, hb;
+  host_clr_status_led_M1();
   if ( !host_read_status_led_WAIT() ) {
     // Not single stepping through memory reads.
     host_set_status_leds_READMEM();
@@ -182,19 +183,24 @@ void MEM_WRITE_STEP(uint16_t memoryAddress, byte byteValue) {
 // -----------------------------------------------------------------------------
 // PUSH and POP
 
+// Use actual data when SINGLE STEP. When RUN mode, all data lights on, same as the Altair 8800.
 #define pushStack(valueH, valueL)             \
+  host_clr_status_led_M1();                   \
+  host_set_status_led_STACK();                \
   if( !host_read_status_led_WAIT() ) {        \
-    host_set_status_led_STACK();              \
     host_set_status_leds_WRITEMEM();          \
+    host_set_data_leds("0xff");               \
     regSP--;                                  \
     host_set_addr_leds(regSP);                \
+    printFrontPanel();                        \
     MWRITE(regSP, valueH);                    \
     regSP--;                                  \
     host_set_addr_leds(regSP);                \
+    printFrontPanel();                        \
     MWRITE(regSP, valueL);                    \
-    host_clr_status_led_STACK();              \
   }                                           \
-  else pushStackSlow(valueH, valueL);
+  else pushStackSlow(valueH, valueL);         \
+  host_clr_status_led_STACK();
 void pushStackSlow(byte valueH, byte valueL) {
 #ifdef LOG_MESSAGES
   Serial.print("+ pushStackSlow, valueH:");
@@ -202,19 +208,10 @@ void pushStackSlow(byte valueH, byte valueL) {
   Serial.print(" valueL:");
   Serial.println(valueL);
 #endif
-  host_set_status_led_STACK();
   regSP--;
   MEM_WRITE_STEP(regSP, valueH);
   regSP--;
   MEM_WRITE_STEP(regSP, valueL);
-  host_clr_status_led_STACK();
-}
-
-inline void pushStackWord(uint16_t v) {
-  host_set_status_led_STACK();
-  regSP -= 2;
-  MEM_WRITE_WORD(regSP, v);
-  host_clr_status_led_STACK();
 }
 
 #define pushPC() pushStack(regPCU.H, regPCU.L) //pushStackWord(regPC)
@@ -222,17 +219,20 @@ inline void pushStackWord(uint16_t v) {
 // -----------------------------------------------------------------------------
 
 #define popStack(valueH, valueL)                   \
+  host_clr_status_led_M1();                        \
+  host_set_status_leds_READMEM_STACK();            \
   if( !host_read_status_led_WAIT() )  {            \
-    host_set_status_leds_READMEM_STACK();          \
     host_set_addr_leds(regSP);                     \
     valueL = MREAD(regSP);                         \
+    printFrontPanel();                             \
     regSP++;                                       \
     host_set_addr_leds(regSP);                     \
     valueH = host_set_data_leds(MREAD(regSP));     \
+    printFrontPanel();                             \
     regSP++;                                       \
-    host_clr_status_led_STACK();                   \
   }                                                \
-  else popStackSlow(&valueH, &valueL);
+  else popStackSlow(&valueH, &valueL);             \
+  host_clr_status_led_STACK();
 void popStackSlow(byte *valueH, byte *valueL) {
 #ifdef LOG_MESSAGES
   Serial.print("+ popStackSlow(), valueH:");
@@ -240,11 +240,9 @@ void popStackSlow(byte *valueH, byte *valueL) {
   Serial.print(" valueL:");
   Serial.println(*valueL);
 #endif
-  host_set_status_led_STACK();
   *valueL = MEM_READ_STEP(regSP);
   regSP++;
   *valueH = MEM_READ_STEP(regSP);
-  host_clr_status_led_STACK();
 }
 
 #define popPC()  regPC = popStackWord()

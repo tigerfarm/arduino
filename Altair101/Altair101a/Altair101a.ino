@@ -18,28 +18,28 @@
 
   Working through the Status light sample program.
   + Re-tested PUSH and POP.
-++ Address:16-bit bytes       databyte :hex:oct > description
-++       0:00000000 00000000: 00111010 : 3A:072 > opcode: lda 32
-++       1:00000000 00000001: 00100000 : 20:040 > lb: 32
-++       2:00000000 00000010: 00000000 : 00:000 > hb: 0
-++       3:00000000 00000011: 00110010 : 32:062 > opcode: sta 33
-++       4:00000000 00000100: 00100001 : 21:041 > lb: 33
-++       5:00000000 00000101: 00000000 : 00:000 > hb: 0
-++       6:00000000 00000110: 00110001 : 31:061 > opcode: lxi sp,32
-++       7:00000000 00000111: 00100000 : 20:040 > lb: 32
-++       8:00000000 00001000: 00000000 : 00:000 > hb: 0
-++       9:00000000 00001001: 11110101 : F5:365 > opcode: push a  Cycle 2, should MEMR+STACK, not M1+STACK
-++      10:00000000 00001010: 11110001 : F1:361 > opcode: pop a
-++      11:00000000 00001011: 11011011 : DB:333 > opcode: in 16
-++      12:00000000 00001100: 00010000 : 10:020 > immediate: 16 : 16
-++      13:00000000 00001101: 11010011 : D3:323 > opcode: out 16
-++      14:00000000 00001110: 00010000 : 10:020 > immediate: 16 : 16
-++      15:00000000 00001111: 11111011 : FB:373 > opcode: ei
-++      16:00000000 00010000: 11110011 : F3:363 > opcode: di
-++      17:00000000 00010001: 01110110 : 76:166 > opcode: hlt
-++      18:00000000 00010010: 11000011 : C3:303 > opcode: jmp Start
-++      19:00000000 00010011: 00000000 : 00:000 > lb: 0
-++      20:00000000 00010100: 00000000 : 00:000 > hb: 0
+  ++ Address:16-bit bytes       databyte :hex:oct > description
+  ++       0:00000000 00000000: 00111010 : 3A:072 > opcode: lda 32
+  ++       1:00000000 00000001: 00100000 : 20:040 > lb: 32
+  ++       2:00000000 00000010: 00000000 : 00:000 > hb: 0
+  ++       3:00000000 00000011: 00110010 : 32:062 > opcode: sta 33
+  ++       4:00000000 00000100: 00100001 : 21:041 > lb: 33
+  ++       5:00000000 00000101: 00000000 : 00:000 > hb: 0
+  ++       6:00000000 00000110: 00110001 : 31:061 > opcode: lxi sp,32 ... ls12x
+  ++       7:00000000 00000111: 00100000 : 20:040 > lb: 32
+  ++       8:00000000 00001000: 00000000 : 00:000 > hb: 0
+  ++       9:00000000 00001001: 11110101 : F5:365 > opcode: push a 
+  ++      10:00000000 00001010: 11110001 : F1:361 > opcode: pop a  Cycle 2, Clear M1 status
+  ++      11:00000000 00001011: 11011011 : DB:333 > opcode: in 16
+  ++      12:00000000 00001100: 00010000 : 10:020 > immediate: 16 : 16
+  ++      13:00000000 00001101: 11010011 : D3:323 > opcode: out 16
+  ++      14:00000000 00001110: 00010000 : 10:020 > immediate: 16 : 16
+  ++      15:00000000 00001111: 11111011 : FB:373 > opcode: ei
+  ++      16:00000000 00010000: 11110011 : F3:363 > opcode: di
+  ++      17:00000000 00010001: 01110110 : 76:166 > opcode: hlt
+  ++      18:00000000 00010010: 11000011 : C3:303 > opcode: jmp Start
+  ++      19:00000000 00010011: 00000000 : 00:000 > lb: 0
+  ++      20:00000000 00010100: 00000000 : 00:000 > hb: 0
 
   When running load:i, INP should come on, but it does show, as it's the first instruction.
           MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:SERIAL_PORT
@@ -413,21 +413,26 @@ void singleStepWait() {
   bool singleStepWaitLoop = true;
   while (singleStepWaitLoop) {
     if (Serial.available() > 0) {
-      // Stacy, need an option to back all the way to processWait.
       readByte = Serial.read();    // Read and process an incoming byte.
-      if (readByte == 's') {
-        singleStepWaitLoop = false;
-      } else if (readByte == 'i') {
-        Serial.println("+ i: Information.");
-        cpucore_i8080_print_registers();
-      } else if (readByte == 10) {
-        Serial.println("+ Ignore serial input line feed character.");
-      } else {
-        singleStepWaitLoop = false;
-        singleStepWaitByte = readByte;
-        Serial.print("+ Complete the machine instruction and exit SINGLE STEP mode. Input byte: ");
-        Serial.write(singleStepWaitByte);
-        Serial.println();
+      switch (readByte) {
+        case 's':
+          singleStepWaitLoop = false;
+          break;
+        case 'i':
+        case 'p':
+          Serial.print("++ readByte: ");
+          Serial.write(readByte);
+          processWaitSwitch(readByte);
+          break;
+        case 10:
+          Serial.println("++ Ignore serial input line feed character.");
+          break;
+        default:
+          singleStepWaitLoop = false;
+          singleStepWaitByte = readByte;
+          Serial.print("+ Complete the machine instruction and exit SINGLE STEP mode. Input byte: ");
+          Serial.write(singleStepWaitByte);
+          Serial.println();
       }
     }
   }
@@ -603,7 +608,7 @@ void processDataOpcode() {
 #endif
   host_set_status_leds_READMEM_M1();
   opcode = MREAD(regPC);
-  // host_clr_status_led_M1();
+  host_clr_status_led_M1();       // dave testing
   host_set_addr_leds(regPC);
   host_set_data_leds(opcode);
   if (!SERIAL_IO || (programState == PROGRAM_RUN)) {
