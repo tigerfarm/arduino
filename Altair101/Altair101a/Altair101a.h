@@ -1,8 +1,4 @@
 // -----------------------------------------------------------------------------
-// Altair 8800 Simulator
-// Copyright (C) 2017 David Hansel
-// -----------------------------------------------------------------------------
-
 #include <Arduino.h>
 
 // -----------------------------------------------------------------------------
@@ -36,9 +32,5 @@ void printByte(byte theByte);               // To echo bytes.
 byte altair_in(byte addr);
 void altair_out(byte addr, byte val);
 
-// Moved from Altair101a.ino, to cpucore_i8080.cpp
-// void altair_hlt();
-// void altair_interrupt_enable();
-// void altair_interrupt_disable();
-
 // -----------------------------------------------------------------------------
+// eof

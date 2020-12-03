@@ -11,7 +11,7 @@
                 in SERIAL_PORT      ; Get input byte value into register A.
                 cpi 'x'             ; With port #3, input 'x' will exit this loop.
                 jz HaltLoop         ;   Jump.
-                cpi 128             ; With port #2, input 'f'(128=B10000000) will exit this loop.
+                cpi 3               ; Ctrl+c will exit this loop.
                 jz HaltLoop         ;   Jump.
                 jmp GetByte
                                     ; ----------------------
