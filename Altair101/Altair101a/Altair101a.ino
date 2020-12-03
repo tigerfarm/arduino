@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------
 /*
   Altair 101a Processor program
-  
+
   + Serial interactivity
   ++ Using the Arduino IDE monitor USB serial port.
   ++ Or VT100 terminal.
@@ -22,31 +22,31 @@
                             ; --- in 16
                             ; First:  Fetch Opcode                  + On: MEMR MI    WO 333         0
                             ; Second: Memory read port              + On: MEMR       WO 002         1
-                            ; Third:  Input read                    + On: INP        WO 000         
+                            ; Third:  Input read                    + On: INP        WO 000
 
-++ Address:16-bit bytes       databyte :hex:oct > description
-++       0:00000000 00000000: 11011011 : DB:333 > opcode: in SERIAL_PORT
-++       1:00000000 00000001: 00000011 : 03:003 > immediate: SERIAL_PORT : 3
-++       2:00000000 00000010: 11111110 : FE:376 > opcode: cpi 'x'
-++       3:00000000 00000011: 01111000 : 78:170 > immediate: 'x' : 120
-++       4:00000000 00000100: 11001010 : CA:312 > opcode: jz HaltLoop
-++       5:00000000 00000101: 00001111 : 0F:017 > lb: 15
-++       6:00000000 00000110: 00000000 : 00:000 > hb: 0
-++       7:00000000 00000111: 11111110 : FE:376 > opcode: cpi 128
-++       8:00000000 00001000: 10000000 : 80:200 > immediate: 128 : 128
-++       9:00000000 00001001: 11001010 : CA:312 > opcode: jz HaltLoop
-++      10:00000000 00001010: 00001111 : 0F:017 > lb: 15
-++      11:00000000 00001011: 00000000 : 00:000 > hb: 0
-++      12:00000000 00001100: 11000011 : C3:303 > opcode: jmp GetByte
-++      13:00000000 00001101: 00000000 : 00:000 > lb: 0
-++      14:00000000 00001110: 00000000 : 00:000 > hb: 0
-++      15:00000000 00001111: 01110110 : 76:166 > opcode: hlt
-++      16:00000000 00010000: 11000011 : C3:303 > opcode: jmp GetByte
-++      17:00000000 00010001: 00000000 : 00:000 > lb: 0
-++      18:00000000 00010010: 00000000 : 00:000 > hb: 0
+  ++ Address:16-bit bytes       databyte :hex:oct > description
+  ++       0:00000000 00000000: 11011011 : DB:333 > opcode: in SERIAL_PORT
+  ++       1:00000000 00000001: 00000011 : 03:003 > immediate: SERIAL_PORT : 3
+  ++       2:00000000 00000010: 11111110 : FE:376 > opcode: cpi 'x'
+  ++       3:00000000 00000011: 01111000 : 78:170 > immediate: 'x' : 120
+  ++       4:00000000 00000100: 11001010 : CA:312 > opcode: jz HaltLoop
+  ++       5:00000000 00000101: 00001111 : 0F:017 > lb: 15
+  ++       6:00000000 00000110: 00000000 : 00:000 > hb: 0
+  ++       7:00000000 00000111: 11111110 : FE:376 > opcode: cpi 128
+  ++       8:00000000 00001000: 10000000 : 80:200 > immediate: 128 : 128
+  ++       9:00000000 00001001: 11001010 : CA:312 > opcode: jz HaltLoop
+  ++      10:00000000 00001010: 00001111 : 0F:017 > lb: 15
+  ++      11:00000000 00001011: 00000000 : 00:000 > hb: 0
+  ++      12:00000000 00001100: 11000011 : C3:303 > opcode: jmp GetByte
+  ++      13:00000000 00001101: 00000000 : 00:000 > lb: 0
+  ++      14:00000000 00001110: 00000000 : 00:000 > hb: 0
+  ++      15:00000000 00001111: 01110110 : 76:166 > opcode: hlt
+  ++      16:00000000 00010000: 11000011 : C3:303 > opcode: jmp GetByte
+  ++      17:00000000 00010001: 00000000 : 00:000 > lb: 0
+  ++      18:00000000 00010010: 00000000 : 00:000 > hb: 0
 
   singleStepWait() needs an option to return back to processWait.
-  
+
   +++ Integration steps to merge this code with Processor.ino.
 
   Continue testing Altair101a.
@@ -381,7 +381,7 @@ void serialPrintFrontPanel() {
 byte singleStepWaitByte = 0;
 void singleStepWait() {
   Serial.println(F("+ singleStepWait()"));
-  if (!singleStepWaitByte) {
+  if (singleStepWaitByte != 0) {         // Complete the instruction cycles and process the byte, example r, to RUN the program.
     return;
   }
   printFrontPanel();                // Status, data/address lights already set.
@@ -395,6 +395,8 @@ void singleStepWait() {
       } else if (readByte == 'i') {
         Serial.println("+ i: Information.");
         cpucore_i8080_print_registers();
+      } else if (readByte == 10) {
+        Serial.println("+ Ignore serial input line feed character.");
       } else {
         singleStepWaitLoop = false;
         singleStepWaitByte = readByte;
@@ -915,9 +917,9 @@ void processWaitSwitch(byte readByte) {
       break;
     case 's':
       singleStepWaitByte = 0;   // Used to identify if there was command input during a SINGLE STEP cycle.
-      regPC++;
       if (fpStatusByte & HLTA_ON) {
         Serial.println("+ s, SINGLE STEP, from HLT.");
+        regPC++;
         setAddressData(regPC, MREAD(regPC));
         host_clr_status_led_HLTA();
       } else {
@@ -925,6 +927,7 @@ void processWaitSwitch(byte readByte) {
         processDataOpcode();
       }
       host_set_status_leds_READMEM_M1();
+      setAddressData(regPC, MREAD(regPC));
       if (!SERIAL_IO) {
         printFrontPanel();  // <LF> will refresh the display.
       }

@@ -64,7 +64,6 @@ byte MEM_READ(uint16_t memoryAddress) {
   Serial.println(returnByte);
 #endif
   host_set_status_leds_READMEM();
-  host_clr_status_led_M1();
   host_set_addr_leds( memoryAddress );
   host_set_data_leds( returnByte );
   if (status_wait) {

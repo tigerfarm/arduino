@@ -197,7 +197,7 @@ inline void host_set_addr_leds(uint16_t v) {
 #define host_clr_status_led_WO()      fpStatusByte |=  WO_ON       // Set turn WO on, reverse logic.
 #define host_clr_status_led_INT()     fpStatusByte &= ~INT_ON
 
-#define host_set_status_leds_READMEM()       fpStatusByte |= MEMR_ON | WO_ON
+#define host_set_status_leds_READMEM()       fpStatusByte = MEMR_ON | WO_ON
 #define host_set_status_leds_READMEM_M1()    fpStatusByte |= MEMR_ON | M1_ON | WO_ON
 #define host_set_status_leds_READMEM_STACK() fpStatusByte |= MEMR_ON | STACK_ON | WO_ON
 #define host_set_status_leds_WRITEMEM()      fpStatusByte &= ~(MEMR_ON | WO_ON)
