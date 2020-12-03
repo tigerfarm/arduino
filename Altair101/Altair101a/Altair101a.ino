@@ -16,6 +16,31 @@
   ---------------------------------------------------------
   Next:
 
+  Working through the Status light sample program.
+  + Re-tested PUSH and POP.
+++ Address:16-bit bytes       databyte :hex:oct > description
+++       0:00000000 00000000: 00111010 : 3A:072 > opcode: lda 32
+++       1:00000000 00000001: 00100000 : 20:040 > lb: 32
+++       2:00000000 00000010: 00000000 : 00:000 > hb: 0
+++       3:00000000 00000011: 00110010 : 32:062 > opcode: sta 33
+++       4:00000000 00000100: 00100001 : 21:041 > lb: 33
+++       5:00000000 00000101: 00000000 : 00:000 > hb: 0
+++       6:00000000 00000110: 00110001 : 31:061 > opcode: lxi sp,32
+++       7:00000000 00000111: 00100000 : 20:040 > lb: 32
+++       8:00000000 00001000: 00000000 : 00:000 > hb: 0
+++       9:00000000 00001001: 11110101 : F5:365 > opcode: push a  Cycle 2, should MEMR+STACK, not M1+STACK
+++      10:00000000 00001010: 11110001 : F1:361 > opcode: pop a
+++      11:00000000 00001011: 11011011 : DB:333 > opcode: in 16
+++      12:00000000 00001100: 00010000 : 10:020 > immediate: 16 : 16
+++      13:00000000 00001101: 11010011 : D3:323 > opcode: out 16
+++      14:00000000 00001110: 00010000 : 10:020 > immediate: 16 : 16
+++      15:00000000 00001111: 11111011 : FB:373 > opcode: ei
+++      16:00000000 00010000: 11110011 : F3:363 > opcode: di
+++      17:00000000 00010001: 01110110 : 76:166 > opcode: hlt
+++      18:00000000 00010010: 11000011 : C3:303 > opcode: jmp Start
+++      19:00000000 00010011: 00000000 : 00:000 > lb: 0
+++      20:00000000 00010100: 00000000 : 00:000 > hb: 0
+
   When running load:i, INP should come on, but it does show, as it's the first instruction.
           MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:SERIAL_PORT
           MWRITE( cnt++, B00000011 & 0xff);  // ++ immediate:SERIAL_PORT:3
@@ -823,13 +848,6 @@ void loadProgram() {
           MWRITE( cnt++, B11111011 & 0xff);  // ++ opcode:ei:11111011
           MWRITE( cnt++, B11110011 & 0xff);  // ++ opcode:di:11110011
           MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
-          MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:235
-          MWRITE( cnt++, B11101011 & 0xff);  // ++ immediate:235:235
-          MWRITE( cnt++, B11100011 & 0xff);  // ++ opcode:out:11100011:37
-          MWRITE( cnt++, B00100101 & 0xff);  // ++ immediate:37:37
-          MWRITE( cnt++, B00111010 & 0xff);  // ++ opcode:lda:00111010:32
-          MWRITE( cnt++, B00100000 & 0xff);  // ++ lb:32:32
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
           MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Start
           MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:Start:0
           MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0

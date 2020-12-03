@@ -53,11 +53,8 @@ $ screen /dev/tty.wchusbserial14110
 
 To exit and close the connection: Control-A followed by Control-\.
 Then, answer "y" to exit and close the connection.
-reset   ...if after exit, screen is messed up.
-````
---- or try ---
-````
-stty opost onlcr
+If screen is messed up, run reset:
+$ reset
 ````
 
 ##### Links
