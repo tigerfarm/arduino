@@ -66,6 +66,26 @@
 byte opcode = 0xff;
 
 // -----------------------------------------------------------------------------
+// Types of interactions
+
+// Default: Arduino IDE monitor.
+// Requires an enter key to send a string of characters that are terminated with LF.
+boolean SERIAL_IO_IDE = true;
+
+// VT100 terminal, example Macbook terminal.
+// This option makes use of the VT100 escape characters.
+//    For example, can clear the terminal screen.
+boolean SERIAL_IO_VT100 = false;
+
+// Terminal, example Macbook terminal command line.
+// Each character is immediately sent.
+// Uses CR instead of LF.
+boolean SERIAL_IO_TERMINAL = false;
+
+// Hardware LED lights
+boolean LED_IO = false;
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 char charBuffer[17];
 
@@ -150,12 +170,6 @@ void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Output Front Panel Information.
-
-// Types of output:
-boolean LED_IO = false;
-boolean SERIAL_IO_VT100 = false;
-boolean SERIAL_IO_TERMINAL = false;
-boolean SERIAL_IO_IDE = true;
 
 void printFrontPanel() {
   if (LED_IO) {
@@ -427,8 +441,8 @@ byte altair_in(byte portDataByte) {
         inputDataByte = B01000000;
       } else if (inputBytePort2 == 'f') {
         inputDataByte = B10000000;
-      } else if (inputBytePort2 == 3) {
-        inputDataByte = 3;                // Ctrl+c
+      } else {
+        inputDataByte = 0;
       }
       if (inputDataByte > 0) {
         inputBytePort2 = 0;
@@ -575,43 +589,50 @@ void processDataOpcode() {
   }
 }
 
+// Serial IDE mode: case 's'.
+// Terminal mode: case  3 (Crtl+c) instead of case 's'.
+byte stopByte = 's';
+//
+// Terminal mode: case 26 (Crtl+z) instead of case 'R'.
+// Serial IDE mode: case 'R'.
+byte resetByte = 'R';
+//
 void processRunSwitch(byte readByte) {
   if (SERIAL_IO_VT100) {
     Serial.print("\033[J");     // From cursor down, clear the screen, .
   }
-  switch (readByte) {
-    case 3:
-    case 's':
-      // Terminal mode: case  3 (Crtl+c) instead of case 's'.
-      // Serial IDE mode: case 's'.
-      Serial.println(F("+ s, STOP"));
-      programState = PROGRAM_WAIT;
-      host_set_status_led_WAIT();
-      host_set_status_leds_READMEM_M1();
-      if (!SERIAL_IO_IDE) {
-        printFrontPanel();  // <LF> will refresh the display.
-      }
-      break;
-    case 26:
-    case 'R':
-      // Terminal mode: case 26 (Crtl+z) instead of case 'R'.
-      // Serial IDE mode: case 'R'.
-      Serial.println(F("+ R, RESET"));
-      // Set to the first memory address.
-      regPC = 0;
-      setAddressData(regPC, MREAD(regPC));
+  if (readByte == stopByte) {
+    Serial.println(F("+ s, STOP"));
+    programState = PROGRAM_WAIT;
+    host_set_status_led_WAIT();
+    host_set_status_leds_READMEM_M1();
+    if (!SERIAL_IO_IDE) {
+      printFrontPanel();  // <LF> will refresh the display.
+    }
+  } else if (readByte == resetByte) {
+    Serial.println(F("+ R, RESET"));
+    // Set to the first memory address.
+    regPC = 0;
+    setAddressData(regPC, MREAD(regPC));
     // Then continue running, if in RUN mode.
     // -------------------------------------
-    default:
-      // Load the byte for use by cpu_IN();
-      inputBytePort2 = readByte;
-      break;
+  } else {
+    // Load the byte for use by cpu_IN();
+    inputBytePort2 = readByte;
   }
 }
 
 void runProcessor() {
   Serial.println(F("+ runProcessor()"));
-  // Serial.println(F("+ Send serial character 's' to STOP running."));
+  if (SERIAL_IO_TERMINAL || SERIAL_IO_VT100) {
+    // Terminal mode: case 3: (Crtl+c) instead of case 's'.
+    stopByte = 3;
+    // Terminal mode: case 26 (Crtl+z) instead of case 'R'.
+    resetByte = 26;
+  } else {
+    stopByte = 's';
+    resetByte = 'R';
+  }
   host_set_addr_leds(regPC);
   programState = PROGRAM_RUN;
   while (programState == PROGRAM_RUN) {
@@ -1138,9 +1159,9 @@ void processWaitSwitch(byte readByte) {
       break;
     // -------------------------------------
     default:
-      Serial.print("- Ignored <");
-      Serial.write(readByte);
-      Serial.println(">");
+      Serial.print("- Ignored: ");
+      printByte(readByte);
+      Serial.println();
   }
 }
 
@@ -1158,7 +1179,7 @@ void runProcessorWait() {
         // This handles inputs during a SINGLE STEP cycle that hasn't finished.
         processWaitSwitch(readByte);
       }
-      if (SERIAL_IO_TERMINAL) {
+      if (SERIAL_IO_TERMINAL && !SERIAL_IO_VT100) {
         processWaitSwitch(10);    // Since the terminal doesn't send a CR or LF, send one.
       }
     }

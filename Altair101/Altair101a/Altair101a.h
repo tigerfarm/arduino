@@ -26,11 +26,11 @@ extern byte fpDataByte;       // Front panel data byte.
 extern int programState;
 
 void singleStepWait();                      // Wait for "s" when single stepping.
-void printFrontPanel();
+void printFrontPanel();                     // Print the front panel display.
 void printData(byte theByte);               // To echo data bytes.
 void printByte(byte theByte);               // To echo bytes.
-byte altair_in(byte addr);
-void altair_out(byte addr, byte val);
+byte altair_in(byte addr);                  // Called from cpu_in();
+void altair_out(byte addr, byte val);       // Called from cpu_out();
 
 // -----------------------------------------------------------------------------
 // eof
