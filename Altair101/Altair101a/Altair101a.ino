@@ -41,17 +41,6 @@
   + Prevent lockup when using PUSH A, i.e. PUSH called before setting SP.
   ++ In the PUSH process, if SP < 4, error.
 
-  For efficiency, I could replace the following:
-    host_read_status_led_*();
-    host_set_status_led_*();
-    host_clr_status_led_*();
-  by using global varialbes, same as used in Processor.ino. For example,
-    statusByte = MEMR_ON | MI_ON | WO_ON;
-    statusByte &= MI_OFF;
-  But the above is not required.
-  The host_set and host_clr makes sense in the other hardware configuration
-    because each status light has pin to turn it on and off. Not the case in Altair 101.
-
   ---------------------------------------------------------
     VT100 reference:
        http://ascii-table.com/ansi-escape-sequences-vt-100.php
@@ -921,8 +910,8 @@ void processWaitSwitch(byte readByte) {
       }
       break;
     case 'x':
-      regPC = fpAddressToggleWord;
       Serial.print("+ x, EXAMINE: ");
+      regPC = fpAddressToggleWord;
       Serial.println(regPC);
       setAddressData(regPC, MREAD(regPC));
       if (!SERIAL_IO) {
@@ -930,8 +919,8 @@ void processWaitSwitch(byte readByte) {
       }
       break;
     case 'X':
-      regPC = regPC + 1;
       Serial.print("+ y, EXAMINE NEXT: ");
+      regPC = regPC + 1;
       Serial.println(regPC);
       setAddressData(regPC, MREAD(regPC));
       if (!SERIAL_IO) {
@@ -948,8 +937,8 @@ void processWaitSwitch(byte readByte) {
       }
       break;
     case 'P':
-      regPC++;
       Serial.print("+ P, DEPOSIT NEXT to: ");
+      regPC++;
       Serial.println(regPC);
       MWRITE(regPC, fpAddressToggleWord & 0xff);
       setAddressData(regPC, MREAD(regPC));
@@ -959,8 +948,6 @@ void processWaitSwitch(byte readByte) {
       break;
     case 'R':
       Serial.println("+ R, RESET.");
-      // For now, do EXAMINE 0 to reset to the first memory address.
-      //
       regA = 0;
       regB = 0;
       regC = 0;
@@ -968,9 +955,8 @@ void processWaitSwitch(byte readByte) {
       regE = 0;
       regH = 0;
       regL = 0;
-      regPC = 0;
       regSP = 0;
-      //
+      regPC = 0;
       setAddressData(regPC, MREAD(regPC));
       host_clr_status_led_HLTA();
       host_set_status_leds_READMEM_M1();
@@ -980,7 +966,7 @@ void processWaitSwitch(byte readByte) {
       break;
     case 'C':
       byte readConfirmByte;
-      Serial.println("+ C, CLR: Clear memory, set registers to zero, and program counter address to zero.");
+      Serial.println("+ C, CLR: Clear memory, set registers to zero, set data and address to zero.");
       Serial.println("+ Confirm CLR: y/n");
       readConfirmByte = 's';
       while (!(readConfirmByte == 'y' || readConfirmByte == 'n')) {
@@ -999,6 +985,7 @@ void processWaitSwitch(byte readByte) {
       for (int i = 0; i < MEMSIZE; i++) {
         MWRITE(i, 0);
       }
+      Serial.println("+ CLR registers.");
       regA = 0;
       regB = 0;
       regC = 0;
@@ -1009,34 +996,35 @@ void processWaitSwitch(byte readByte) {
       regPC = 0;
       regSP = 0;
       //
-      host_set_status_leds_READMEM_M1();
+      Serial.println("+ CLR data, address, switches, and reset status lights.");
       fpDataByte = 0;           // Data
       fpAddressWord = 0;        // Address lb
       fpAddressToggleWord = 0;  // Reset all toggles to off.
-      //
       setAddressData(regPC, MREAD(regPC));
-      if (!SERIAL_IO) {
-        printFrontPanel();  // <LF> will refresh the display.
+      host_set_status_leds_READMEM_M1();
+      if (SERIAL_IO_VT100) {
+        printFrontPanel();      // For Arduino IDE monitor, <LF> will refresh the display.
       }
       break;
     // -------------------------------------------------------------------
-    // The following requires a VT100 terminal such as a Macbook terminal.
-    // The following doesn't work on the Ardino monitor.
     //
     case 'v':
+      // VT100 escape sequences don't work on the Ardino IDE monitor.
       SERIAL_IO_VT100 = false;
       SERIAL_IO = true;
+      Serial.print("\033[0m\033[?25h");       // Insure block cursor display: on.
       Serial.println("+ v, VT100 escapes are disabled and block cursor on.");
-      Serial.print("\033[0m\033[?25h");       // Block cursor display: on.
       break;
     case 'V':
+      // The following requires a VT100 terminal such as a Macbook terminal.
       // Insure the previous value is different to current, to insure an intial printing.
       prev_fpDataByte = host_read_data_leds() + 1;
-      prev_fpAddressToggleWord = host_read_addr_leds() + 1;;
-      fpAddressToggleWord = 0;      // Set all toggled off.
-      prev_fpAddressToggleWord = 1; // Set to different value.
+      prev_fpAddressWord = host_read_addr_leds() + 1;
+      prev_fpAddressToggleWord = 1;           // Set to different value.
+      fpAddressToggleWord = 0;                // Set all toggles off.
       Serial.print("\033[0m\033[?25l");       // Block cursor display: off.
       Serial.print("\033[H\033[2J");          // Cursor home and clear the screen.
+      SERIAL_IO_VT100 = false;                // Insure labels are printed.
       serialPrintFrontPanel();                // Print the complete front panel: labels and indicators.
       SERIAL_IO_VT100 = true;                 // Must be after serialPrintFrontPanel(), to have the labels printed.
       SERIAL_IO = false;                      // Insure it's disabled.
@@ -1130,9 +1118,14 @@ void processWaitSwitch(byte readByte) {
     case 'y':
       Serial.println(F("+ y, Refresh front panel."));
       if (SERIAL_IO_VT100) {
-        Serial.print("\033[H\033[2J");  // Cursor home and clear the screen.
+        Serial.print("\033[H\033[2J");    // Cursor home and clear the screen.
+        SERIAL_IO_VT100 = false;          // Set off to print headings.
+        printFrontPanel();                // Print the complete front panel: labels and indicators.
+        SERIAL_IO_VT100 = true;
+      } else {
+        printFrontPanel();                // Print the complete front panel: labels and indicators.
       }
-      printFrontPanel();                // Print the complete front panel: labels and indicators.
+      fpAddressToggleWord = 0;            // Set all toggles off.
       break;
     // -------------------------------------
     default:
