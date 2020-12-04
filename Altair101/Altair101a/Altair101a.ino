@@ -5,7 +5,7 @@
   + Serial interactivity
   ++ Using the Arduino IDE monitor USB serial port.
   ++ Or VT100 terminal.
-  + Uses David Hansel's Altair 8800 Simulator code to process machine code instructions.
+  + Uses David Hansel's Altair 8800 Simulator code to process machine instructions.
   ++ cpucore_i8080.cpp and cpucore_i8080.h.
 
   Differences to the origanal:
@@ -154,7 +154,8 @@ void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte
 // Types of output:
 boolean LED_IO = false;
 boolean SERIAL_IO_VT100 = false;
-boolean SERIAL_IO = true;
+boolean SERIAL_IO_TERMINAL = false;
+boolean SERIAL_IO_IDE = true;
 
 void printFrontPanel() {
   if (LED_IO) {
@@ -182,11 +183,11 @@ void printFrontPanel() {
     // Serial.print("\033[2K"); // Clear line
 #endif
   } else {
-    if (SERIAL_IO) {
+    if (SERIAL_IO_IDE) {
       if (host_read_status_led_WAIT()) {
         serialPrintFrontPanel();
       } else {
-        Serial.print(F("+ printFrontPanel SERIAL_IO, status:"));
+        Serial.print(F("+ printFrontPanel SERIAL_IO_IDE, status:"));
         printByte(fpStatusByte);
         Serial.print(" address:");
         sprintf(charBuffer, "%5d", host_read_addr_leds());
@@ -562,7 +563,7 @@ void processDataOpcode() {
   host_clr_status_led_M1();       // dave testing
   host_set_addr_leds(regPC);
   host_set_data_leds(opcode);
-  if (!SERIAL_IO || (programState == PROGRAM_RUN)) {
+  if (!SERIAL_IO_IDE || (programState == PROGRAM_RUN)) {
     printFrontPanel();
   }
   regPC++;
@@ -579,19 +580,22 @@ void processRunSwitch(byte readByte) {
     Serial.print("\033[J");     // From cursor down, clear the screen, .
   }
   switch (readByte) {
-    // Could add, if serial VT100:
-    //  case  3 (Crtl+c) instead of case 's'.
-    //  case 26 (Crtl+z) instead of case 'R'.
+    case 3:
     case 's':
+      // Terminal mode: case  3 (Crtl+c) instead of case 's'.
+      // Serial IDE mode: case 's'.
       Serial.println(F("+ s, STOP"));
       programState = PROGRAM_WAIT;
       host_set_status_led_WAIT();
       host_set_status_leds_READMEM_M1();
-      if (!SERIAL_IO) {
+      if (!SERIAL_IO_IDE) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
+    case 26:
     case 'R':
+      // Terminal mode: case 26 (Crtl+z) instead of case 'R'.
+      // Serial IDE mode: case 'R'.
       Serial.println(F("+ R, RESET"));
       // Set to the first memory address.
       regPC = 0;
@@ -864,7 +868,7 @@ void processWaitSwitch(byte readByte) {
   if ( data >= '0' && data <= '9' ) {
     // Serial input, not hardware input.
     fpAddressToggleWord = fpAddressToggleWord ^ (1 << (data - '0'));
-    if (!SERIAL_IO) {
+    if (!SERIAL_IO_IDE) {
       printFrontPanel();
     }
     return;
@@ -872,7 +876,7 @@ void processWaitSwitch(byte readByte) {
   if ( data >= 'a' && data <= 'f' ) {
     // Serial input, not hardware input.
     fpAddressToggleWord = fpAddressToggleWord ^ (1 << (data - 'a' + 10));
-    if (!SERIAL_IO) {
+    if (!SERIAL_IO_IDE) {
       printFrontPanel();
     }
     return;
@@ -905,7 +909,7 @@ void processWaitSwitch(byte readByte) {
       }
       host_set_status_leds_READMEM_M1();
       setAddressData(regPC, MREAD(regPC));
-      if (!SERIAL_IO) {
+      if (!SERIAL_IO_IDE) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
@@ -914,7 +918,7 @@ void processWaitSwitch(byte readByte) {
       regPC = fpAddressToggleWord;
       Serial.println(regPC);
       setAddressData(regPC, MREAD(regPC));
-      if (!SERIAL_IO) {
+      if (!SERIAL_IO_IDE) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
@@ -923,7 +927,7 @@ void processWaitSwitch(byte readByte) {
       regPC = regPC + 1;
       Serial.println(regPC);
       setAddressData(regPC, MREAD(regPC));
-      if (!SERIAL_IO) {
+      if (!SERIAL_IO_IDE) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
@@ -932,7 +936,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(regPC);
       MWRITE(regPC, fpAddressToggleWord & 0xff);
       setAddressData(regPC, MREAD(regPC));
-      if (!SERIAL_IO) {
+      if (!SERIAL_IO_IDE) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
@@ -942,7 +946,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(regPC);
       MWRITE(regPC, fpAddressToggleWord & 0xff);
       setAddressData(regPC, MREAD(regPC));
-      if (!SERIAL_IO) {
+      if (!SERIAL_IO_IDE) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
@@ -960,7 +964,7 @@ void processWaitSwitch(byte readByte) {
       setAddressData(regPC, MREAD(regPC));
       host_clr_status_led_HLTA();
       host_set_status_leds_READMEM_M1();
-      if (!SERIAL_IO) {
+      if (!SERIAL_IO_IDE) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
@@ -1009,11 +1013,13 @@ void processWaitSwitch(byte readByte) {
     // -------------------------------------------------------------------
     //
     case 'v':
-      // VT100 escape sequences don't work on the Ardino IDE monitor.
-      SERIAL_IO_VT100 = false;
-      SERIAL_IO = true;
-      Serial.print("\033[0m\033[?25h");       // Insure block cursor display: on.
       Serial.println("+ v, VT100 escapes are disabled and block cursor on.");
+      SERIAL_IO_IDE = true;
+      if (SERIAL_IO_VT100) {
+        SERIAL_IO_VT100 = false;
+        Serial.print("\033[0m\033[?25h");       // Insure block cursor display: on.
+      }
+      // Note, VT100 escape sequences don't work on the Ardino IDE monitor.
       break;
     case 'V':
       // The following requires a VT100 terminal such as a Macbook terminal.
@@ -1027,16 +1033,16 @@ void processWaitSwitch(byte readByte) {
       SERIAL_IO_VT100 = false;                // Insure labels are printed.
       serialPrintFrontPanel();                // Print the complete front panel: labels and indicators.
       SERIAL_IO_VT100 = true;                 // Must be after serialPrintFrontPanel(), to have the labels printed.
-      SERIAL_IO = false;                      // Insure it's disabled.
+      SERIAL_IO_IDE = false;                      // Insure it's disabled.
       Serial.println("+ V, VT100 escapes are enabled and block cursor off.");
       break;
     // -------------------------------------------------------------------
     case 'w':
-      SERIAL_IO = false;
+      SERIAL_IO_IDE = false;
       Serial.println("+ w, USB serial output is disabled.");
       break;
     case 'W':
-      SERIAL_IO = true;
+      SERIAL_IO_IDE = true;
       Serial.println("+ W, USB serial output is enabled.");
       break;
     // -------------------------------------
@@ -1063,7 +1069,7 @@ void processWaitSwitch(byte readByte) {
     case 'l':
       Serial.println("+ l, load a sample program.");
       loadProgram();
-      if (!SERIAL_IO) {
+      if (!SERIAL_IO_IDE) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
@@ -1075,8 +1081,8 @@ void processWaitSwitch(byte readByte) {
       Serial.print(LED_IO);
       Serial.print(F(" SERIAL_IO_VT100 = "));
       Serial.print(SERIAL_IO_VT100);
-      Serial.print(F(" SERIAL_IO = "));
-      Serial.println(SERIAL_IO);
+      Serial.print(F(" SERIAL_IO_IDE = "));
+      Serial.println(SERIAL_IO_IDE);
       break;
     case 'h':
       Serial.println("----------------------------------------------------");
@@ -1087,13 +1093,13 @@ void processWaitSwitch(byte readByte) {
       Serial.println("+ 0...9, a...f    Toggle address switches:  A0...A9, A10...A15.");
       Serial.println("-------------");
       Serial.println("+ r, RUN mode.");
-      Serial.println("+ s, STOP         When in RUN mode, change to WAIT mode.");
+      Serial.println("+ Ctrl+c, STOP    When in RUN mode, change to WAIT mode.");
       Serial.println("+ s, SINGLE STEP  When in WAIT mode.");
       Serial.println("+ x, EXAMINE      current switch address.");
       Serial.println("+ X, EXAMINE NEXT address, current address + 1.");
       Serial.println("+ p, DEPOSIT      current address");
       Serial.println("+ P, DEPOSIT NEXT address, current address + 1");
-      Serial.println("+ R, RESET        Set program counter address to zero.");
+      Serial.println("+ Ctrl+z, RESET   Set program counter address to zero.");
       Serial.println("+ C, CLR          Clear memory, set registers and program counter address to zero.");
       Serial.println("-------------");
       Serial.println("                  Can enter a series of values when using the Arduino IDE monitor.");
@@ -1110,9 +1116,12 @@ void processWaitSwitch(byte readByte) {
       Serial.println("----------------------------------------------------");
       break;
     // -------------------------------------
+    case 13:
+      // USB serial, VT100 terminal.
+      SERIAL_IO_TERMINAL = true;
+      break;
     case 10:
-      // case 10: is for USB serial
-      // case 13: is for USB serial VT100. Not needed here.
+      // USB serial, non VT100.
       serialPrintFrontPanel();
       break;
     case 'y':
@@ -1148,6 +1157,9 @@ void runProcessorWait() {
       if (singleStepWaitByte) {
         // This handles inputs during a SINGLE STEP cycle that hasn't finished.
         processWaitSwitch(readByte);
+      }
+      if (SERIAL_IO_TERMINAL) {
+        processWaitSwitch(10);    // Since the terminal doesn't send a CR or LF, send one.
       }
     }
     delay(60);
