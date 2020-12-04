@@ -71,7 +71,7 @@
 #include "Altair101a.h"
 #include "cpucore_i8080.h"
 
-#define LOG_MESSAGES 1    // For debugging.
+// #define LOG_MESSAGES 1    // For debugging.
 // #define LOG_OPCODES  1    // Print each called opcode.
 
 byte opcode = 0xff;
