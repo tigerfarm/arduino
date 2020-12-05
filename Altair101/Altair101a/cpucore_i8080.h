@@ -24,7 +24,7 @@ extern CPUFUN cpu_opcodes[256];
 // Mega
 #if defined(__AVR_ATmega2560__)
 #define THIS_CPU "Mega 2560"
-#define MEMSIZE (1024)          // Mega2650 has 8k SRAM, Max, 6K: #define MEMSIZE (4096+2048)
+#define MEMSIZE (2048)          // Mega2650 has 8k SRAM, use 2048, Max, 6K: #define MEMSIZE (4096+2048)
 //
 #define USE_THROTTLE 0          // Set for slower Mega CPU.
 #define MAX_TIMERS 9
@@ -41,14 +41,13 @@ extern CPUFUN cpu_opcodes[256];
 // ----------------------------
 #else
 #define THIS_CPU "Other:Nano|Uno"
-#error requires Arduino Mega2560 or Arduino Due
 #define MEMSIZE (64)            // For Nano or Uno test: Global variables use 1935 bytes (23%) of dynamic memory
-// I tested on Nano and Uno.
-//  Sketch uses 39902 bytes (123%) of program storage space. Maximum is 32256 bytes.
-//  text section exceeds available space in board
-//  Global variables use 1933 bytes (94%) of dynamic memory, leaving 115 bytes for local variables. Maximum is 2048 bytes.
-//  Sketch too big; see http://www.arduino.cc/en/Guide/Troubleshooting#size for tips on reducing it.
-//  Error compiling for board Arduino Uno.
+#define USE_THROTTLE 0          // Set for slower Mega CPU.
+#define MAX_TIMERS 9
+// Error compiling for board Arduino Uno.
+// I would need to reduce Serial.print statements to get the memory requirements done.
+//  Sketch uses 49568 bytes (161%) of program storage space. Maximum is 30720 bytes.
+//  Global variables use 1463 bytes (71%) of dynamic memory, leaving 585 bytes for local variables. Maximum is 2048 bytes.
 #endif
 
 // ---------------------------------

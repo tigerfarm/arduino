@@ -152,9 +152,9 @@ inline void MEM_WRITE_WORD(uint16_t memoryAddress, uint16_t byteValue) {
     return;
   }
 #ifdef LOG_MESSAGES
-  Serial.println("+ MEM_WRITE_WORD, memoryAddress:");
+  Serial.println(F("+ MEM_WRITE_WORD, memoryAddress:"));
   Serial.print(memoryAddress);
-  Serial.println(" byteValue:");
+  Serial.println(F(" byteValue:");
   Serial.println(byteValue);
 #endif
   MEM_WRITE_STEP(memoryAddress, byteValue & 255);
@@ -164,9 +164,9 @@ inline void MEM_WRITE_WORD(uint16_t memoryAddress, uint16_t byteValue) {
 
 void MEM_WRITE_STEP(uint16_t memoryAddress, byte byteValue) {
 #ifdef LOG_MESSAGES
-  Serial.print("+ MEM_WRITE_STEP, memoryAddress:");
+  Serial.print(F("+ MEM_WRITE_STEP, memoryAddress:"));
   Serial.print(memoryAddress);
-  Serial.print(" byteValue:");
+  Serial.print(F(" byteValue:"));
   Serial.println(byteValue);
 #endif
   MWRITE(memoryAddress, byteValue);
@@ -203,9 +203,9 @@ void MEM_WRITE_STEP(uint16_t memoryAddress, byte byteValue) {
   host_clr_status_led_STACK();
 void pushStackSlow(byte valueH, byte valueL) {
 #ifdef LOG_MESSAGES
-  Serial.print("+ pushStackSlow, valueH:");
+  Serial.print(F("+ pushStackSlow, valueH:"));
   Serial.print(valueH);
-  Serial.print(" valueL:");
+  Serial.print(F(" valueL:"));
   Serial.println(valueL);
 #endif
   regSP--;
@@ -235,9 +235,9 @@ void pushStackSlow(byte valueH, byte valueL) {
   host_clr_status_led_STACK();
 void popStackSlow(byte *valueH, byte *valueL) {
 #ifdef LOG_MESSAGES
-  Serial.print("+ popStackSlow(), valueH:");
+  Serial.print(F("+ popStackSlow(), valueH:"));
   Serial.print(*valueH);
-  Serial.print(" valueL:");
+  Serial.print(F(" valueL:"));
   Serial.println(*valueL);
 #endif
   *valueL = MEM_READ_STEP(regSP);
@@ -777,6 +777,8 @@ void cpucore_i8080_print_registers() {
   char charBuffer[17];
   Serial.print(F("++ CPU: "));
   Serial.println(THIS_CPU);
+  Serial.print(F("++ Memory size: "));
+  Serial.println(MEMSIZE);
   //
   Serial.print(F("++ host_read_status_led_WAIT()="));
   Serial.println(host_read_status_led_WAIT());
@@ -790,27 +792,27 @@ void cpucore_i8080_print_registers() {
   sprintf(charBuffer, "++ PC %6d = ", regPC);
   Serial.print(charBuffer);
   printByte(highByte(regPC));
-  Serial.print(":");
+  Serial.print(F(":"));
   printByte(lowByte(regPC));
-  Serial.print(" = ");
+  Serial.print(F(" = "));
   numsys_print_word(regPC);
   Serial.print(F(" = "));
   numsys_print_mem(regPC, 3, true);
-  Serial.println(" Program pointer");
+  Serial.println(F(" Program pointer"));
   //
   sprintf(charBuffer, "++ SP %6d = ", regSP);
   Serial.print(charBuffer);
   printByte(highByte(regSP));
-  Serial.print(":");
+  Serial.print(F(":"));
   printByte(lowByte(regSP));
-  Serial.print(" = ");
+  Serial.print(F(" = "));
   numsys_print_word(regSP);
   Serial.print(F(" = ")); numsys_print_mem(regSP, 8, true);
-  Serial.println(" Stack pointer");
+  Serial.println(F(" Stack pointer"));
   //
   Serial.print(F("++ regS  = "));   numsys_print_byte(regS);
   Serial.print(F(" = ")); cpu_print_status_register(regS);
-  Serial.println(" Status byte");
+  Serial.println(F(" Status byte"));
   // ---
   Serial.print(F("+ Front panel display Status byte,  fpStatusByte:    "));
   printData(fpStatusByte);
@@ -822,9 +824,9 @@ void cpucore_i8080_print_registers() {
   Serial.print(F("+ Front panel display Address word, fpAddressWord: "));
   sprintf(charBuffer, "%5d", fpAddressWord);
   Serial.print(charBuffer);
-  Serial.print(" = ");
+  Serial.print(F(" = "));
   printByte(highByte(fpAddressWord));
-  Serial.print(":");
+  Serial.print(F(":"));
   printByte(lowByte(fpAddressWord));
   Serial.println();
   /*
@@ -843,13 +845,13 @@ void cpucore_i8080_print_registers() {
   printData(regB);
   Serial.print(F("  regC: "));
   printData(regC);
-  Serial.println("");
+  Serial.println();
   // ---
   Serial.print(F("+ regD: "));
   printData(regD);
   Serial.print(F("  regE: "));
   printData(regE);
-  Serial.println("");
+  Serial.println();
   // ---
   Serial.print(F("+ regH: "));
   printData(regH);
