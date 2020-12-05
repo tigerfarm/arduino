@@ -285,6 +285,31 @@ public class asmProcessor {
     }
 
     // -------------------------------------------------------------------------
+    public void programBytesListHex() {
+        System.out.println("\n+ List Program byte code.");
+        System.out.print(":");
+        programTop = 0;
+        for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
+            String theValue = it.next();
+            String[] opcodeValues = theValue.split(SEPARATOR);
+            if (opcodeValues.length > 2) {
+                if (opcodeValues[2].length() == 8) {
+                    // System.out.print("(" + opcodeValues[2] + ":");
+                    System.out.print(String.format("%02X:", Integer.parseInt(opcodeValues[2], 2)));
+                } else { // dave
+                    // System.out.print("{" + opcodeValues[2] + ":");
+                    System.out.print(String.format("%02X:", Integer.parseInt(opcodeValues[2])));
+                }
+            } else {
+                // System.out.print("[" + opcodeValues[1] + ":");
+                System.out.print(String.format("%02X:", Integer.parseInt(opcodeValues[1], 2)));
+            }
+            programTop++;
+        }
+        System.out.println("\n+ End of list.");
+    }
+
+    // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
     // Program byte output: Listing byte information to screen
     //  and writing bytes to a file.
@@ -338,8 +363,8 @@ public class asmProcessor {
                     // pcode:mov:01111000:a:b
                     // System.out.print(opcodeValues[2] + " " + theValue + " > opcode: " + opcodeValues[1]);
                     System.out.print(opcodeValues[2] + " : ");
-                    System.out.print(String.format("%02X", Integer.parseInt(opcodeValues[2], 2)));
-                    System.out.print(String.format(":%03o", Integer.parseInt(opcodeValues[2], 2)));    // Octal
+                    System.out.print(String.format("%02X", Integer.parseInt(opcodeValues[2], 2)));      // Hex
+                    System.out.print(String.format(":%03o", Integer.parseInt(opcodeValues[2], 2)));     // Octal
                     System.out.print(" > opcode: " + opcodeValues[1]);
                     if (opcodeValues.length > 3) {
                         System.out.print(" " + opcodeValues[3]);
@@ -1383,7 +1408,8 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pKillTheBit.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/programList.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/operr.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pstatuslights.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pstatuslights.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/padddemoshort.asm");
         if (thisProcess.errorCount > 0) {
             System.out.println("\n-- Number of errors: " + thisProcess.errorCount + "\n");
             return;
@@ -1394,7 +1420,8 @@ public class asmProcessor {
         // thisProcess.listImmediateValues();
         // thisProcess.programBytesListAndWrite("");
 
-        thisProcess.programBytesListCode();
+        // thisProcess.programBytesListCode();
+        thisProcess.programBytesListHex();
         //
         // Required, sets actual values:
         //

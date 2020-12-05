@@ -162,6 +162,11 @@ public class asm {
                     System.out.println("+ List the program byte array into code:");
                     processFile.programBytesListCode();
                     break;
+                case "hex":
+                    System.out.println("+ -------------------------------------");
+                    System.out.println("+ List the program byte array as hex code:");
+                    processFile.programBytesListHex();
+                    break;
                 case "show":
                     System.out.println("+ -------------------------------------");
                     System.out.println("+ Print binary file bytes to screen: " + byteFile + ":");
@@ -348,6 +353,7 @@ public class asm {
                     System.out.println("+ list               : List the program source file.");
                     System.out.println("+ list bytes         : List the parsed machine byte code and info.");
                     System.out.println("+ array              : List the machine bytes as program code.");
+                    System.out.println("+ hex                : List the machine bytes as hex code.");
                     System.out.println("+ show               : Print machine code file bytes to screen.");
                     System.out.println("");
                     System.out.println("+ dir|ls             : List files in the set directory.");
