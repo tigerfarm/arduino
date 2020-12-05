@@ -1211,7 +1211,7 @@ void processWaitSwitch(byte readByte) {
       }
       break;
     case 'L':
-      Serial.println(F("+ L, Load a sample program from the serial port."));
+      Serial.println(F("+ L, Load hex code from the serial port."));
       loadProgramSerial();
       if (!SERIAL_IO_IDE) {
         printFrontPanel();  // <LF> will refresh the display.
@@ -1252,6 +1252,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("-------------"));
       Serial.println(F("+ i, info         Information print of registers."));
       Serial.println(F("+ l, load         Load a sample program."));
+      Serial.println(F("+ L, Load hex     Load hex code from the serial port."));
       Serial.println(F("-------------"));
       Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
       Serial.println(F("+ v/V VT100       Disable/enable USB serial VT100 output."));
