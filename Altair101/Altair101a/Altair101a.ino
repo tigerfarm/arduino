@@ -703,6 +703,7 @@ void runProcessor() {
 }
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Receive a string of hex numbers and load them into simulator memory as bytes.
 
 void loadProgramSerial() {
@@ -735,10 +736,13 @@ void loadProgramSerial() {
           Serial.print("0");
         }
         Serial.print(programCounter);
-        Serial.write(hexNumber[0]);
         Serial.print(F(": "));
+        Serial.write(hexNumber[0]);
         Serial.write(hexNumber[1]);
         Serial.print(F(" = "));
+        if (x < 100) {
+          Serial.print("0");
+        }
         if (x < 10) {
           Serial.print("0");
         }
