@@ -57,7 +57,7 @@ void setup() {
   Serial.println("");               // Newline after garbage characters.
   Serial.println("+++ Setup: Ready for serial communications.");
   Serial.println("+ Go to loop.");
-  Serial.println("+ Char  ASCII  Binary Octal");
+  Serial.println("+   Char  ASCII  Binary    Octal");
 }
 
 // -----------------------------------------------------------------------------
@@ -75,6 +75,7 @@ void loop() {
     // Print the title.
     if (readByteCount > 10) {
       Serial.println("+   Char  ASCII  Binary    Octal");
+      // Sample:     "++   a     97    01100001  141"
       readByteCount = 0;
     }
     processReadByte(readByte);
