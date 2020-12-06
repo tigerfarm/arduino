@@ -771,24 +771,8 @@ File myFile;
 // -----------------------------------------------------------------------------
 // Add another serial port settings, to connect to the new serial hardware module.
 
-// pin 12: Arduino receive pin 12 is connected to TXD on the serial module.
-// pin 11: Arduino transmit pin 11 is not used, and therefore not connected to RXD pin on the serial module.
-// Use object: Serial2.
-// Then, to read from the new serial port, use:
-//    Serial2.begin(9600);
-//    Serial2.available()
-//    Serial2.read();
-
-// #include <SoftwareSerial.h>
-// Connections:
-// Since not transmiting, the second parameter pin doesn't need to be connected.
-// Parameters: (receive, transmit).
-// Receive needs to be an interrupt pin.
 // Computer USB >> serial2 module TXD >> RX pin for the Arduino to receive the bytes.
 //                                TXD transmits received bytes to the Arduino receive (RX) pin.
-// const int PIN_RX = 12;  // Arduino receive is connected to TXD on the serial module.
-// const int PIN_TX = 11;  // Arduino transmit is not used, and therefore notconnected to RXD pin on the serial module.
-// SoftwareSerial serial2(PIN_RX, PIN_TX);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

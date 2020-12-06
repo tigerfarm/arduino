@@ -15,7 +15,7 @@
 $ ls -l /dev/tty.*
 crw-rw-rw-  1 root  wheel   20,   0 Nov 13 15:20 /dev/tty.Bluetooth-Incoming-Port
 crw-rw-rw-  1 root  wheel   20, 248 Dec  5 17:43 /dev/tty.usbmodem14121
-
+crw-rw-rw-  1 root  wheel   20, 250 Dec  5 18:01 /dev/tty.wchusbserial14110
 */
 // -----------------------------------------------------------------------------
 // Add another serial port settings, to connect to the new serial hardware module.
@@ -77,7 +77,7 @@ void loop() {
     Serial.write(readByte);
     if (readByte == 10) {
       // Arduino IDE monitor line feed (LF).
-      Serial.print("+ Port0: ");
+      Serial.print("+ Port 0: ");
     }
   }
   //--------------------------------------
