@@ -11,6 +11,11 @@
   + Next time consider buying a serial port module that matches the Arduino current CH340 USB driver:
   ++ CH340 USB To RS232 TTL Auto Converter Module Serial Port FOR Arduino STC TA-02L
 
+  ​Wire the serial component to the Uno.
+  The pin numbers are configured on the program to match the values used on the SoftwareSerial library.
+  Serial component RX to Uno TX pin 11.
+  Serial component TX to Uno RX pin 12.
+
   View serial ports on a Mac:
 $ ls -l /dev/tty.*
 crw-rw-rw-  1 root  wheel   20,   0 Nov 13 15:20 /dev/tty.Bluetooth-Incoming-Port

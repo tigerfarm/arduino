@@ -137,13 +137,6 @@ void printOctal(byte b) {
   }
   Serial.print(sValue);
 }
-void printHex(byte b) {
-  String sValue = String(b, HEX);
-  for (int i = 1; i <= 3 - sValue.length(); i++) {
-    Serial.print("0");
-  }
-  Serial.print(sValue);
-}
 void printData(byte theByte) {
   sprintf(charBuffer, "%3d = ", theByte);
   Serial.print(charBuffer);
@@ -178,10 +171,7 @@ int x2i(char *s) {
 
 int programState = LIGHTS_OFF;  // Intial, default.
 
-void ledFlashSuccess() {};
-
-int READ_FILE         = 1;
-void playerPlaySoundWait(int theFileNumber) {};
+void ledFlashSuccess() {}
 
 // ------------------------------
 // Status Indicator LED lights
@@ -465,21 +455,6 @@ void singleStepWait() {
       }
     }
   }
-}
-
-void controlResetLogic() {
-  regA = 0;
-  regB = 0;
-  regC = 0;
-  regD = 0;
-  regE = 0;
-  regH = 0;
-  regL = 0;
-  regSP = 0;
-  regPC = 0;
-  setAddressData(regPC, MREAD(regPC));
-  host_clr_status_led_HLTA();
-  host_set_status_leds_READMEM_M1();
 }
 
 // -----------------------------------------------------------------------------
@@ -1118,7 +1093,18 @@ void processWaitSwitch(byte readByte) {
       break;
     case 'R':
       Serial.println(F("+ R, RESET."));
-      controlResetLogic();
+      regA = 0;
+      regB = 0;
+      regC = 0;
+      regD = 0;
+      regE = 0;
+      regH = 0;
+      regL = 0;
+      regSP = 0;
+      regPC = 0;
+      setAddressData(regPC, MREAD(regPC));
+      host_clr_status_led_HLTA();
+      host_set_status_leds_READMEM_M1();
       if (!SERIAL_IO_IDE) {
         printFrontPanel();  // <LF> will refresh the display.
       }
@@ -1236,11 +1222,6 @@ void processWaitSwitch(byte readByte) {
       }
       break;
     // -------------------------------------
-    case 'D':
-      programState = SERIAL_DOWNLOAD;
-      Serial.println(F("+ D, Download mode."));
-      break;
-    // -------------------------------------
     case 'i':
       Serial.println(F("+ i: Information."));
       cpucore_i8080_print_registers();
@@ -1269,7 +1250,6 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ P, DEPOSIT NEXT address, current address + 1"));
       Serial.println(F("+ Ctrl+z, RESET   Set program counter address to zero."));
       Serial.println(F("+ C, CLR          Clear memory, set registers and program counter address to zero."));
-      Serial.println(F("+ D, Download     Download mode."));
       Serial.println(F("-------------"));
       Serial.println(F("                  Can enter a series of values when using the Arduino IDE monitor."));
       Serial.println(F("+ 013x            Example, toggle switches 0,1,3 (00001011), and EXAMINE the address."));
@@ -1337,126 +1317,6 @@ void runProcessorWait() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// Receive bytes through serial port.
-// The bytes are loaded into processorr memory.
-
-void doDownloadProgram() {
-  // Status: ready for input and not yet writing to memory.
-  host_set_status_led_INP();
-  host_clr_status_led_M1();
-  host_set_addr_leds(0);
-  host_read_addr_leds(0);
-  printFrontPanel();
-  //
-  byte readByte = 0;
-  int readByteCount = 0;      // Count the downloaded bytes that are entered into processor memory.
-  unsigned long timer;        // Indicator used to identify when download has ended.
-  boolean flashWaitOn = false;
-  boolean downloadStarted = false;
-  while (programState == SERIAL_DOWNLOAD) {
-    if (Serial2.available() > 0) {
-      if (flashWaitOn) {
-        host_set_status_led_WAIT();
-        flashWaitOn = false;
-      } else {
-        host_clr_status_led_WAIT();
-        flashWaitOn = true;
-      }
-      if (!downloadStarted) {
-        downloadStarted = true;
-        host_set_status_leds_WRITEMEM();   // Now writing to processor memory.
-        Serial.println("+    Address  Data  Binary   Hex Octal Decimal");
-      }
-      Serial.print("++ Byte# ");
-      if (readByteCount < 10) {
-        Serial.print(" ");
-      }
-      if (readByteCount < 100) {
-        Serial.print(" ");
-      }
-      Serial.print(readByteCount);
-      //
-      // Input on the external serial port module.
-      // Read and process the incoming byte.
-      readByte = Serial2.read();
-      MWRITE(readByteCount, readByte)
-      readByteCount++;
-      Serial.print(", Byte: ");
-      printByte(readByte);
-      Serial.print(" ");
-      printHex(readByte);
-      Serial.print(" ");
-      printOctal(readByte);
-      Serial.print("   ");
-      Serial.print(readByte, DEC);
-      Serial.println("");
-      //
-      timer = millis();
-    }
-    if (downloadStarted && ((millis() - timer) > 1000)) {
-      // Exit download state, if the bytes were downloaded and then stopped for 1 second.
-      //  This indicates that the download is complete.
-      Serial.println("+ Download complete.");
-    }
-    // -----------------------------------------------
-    // Flip RESET to exit download mode, if decided not to wait for download.
-    /*
-      if (pcfControlinterrupted) {
-      // -------------------
-      if (pcfControl.readButton(pinReset) == 0) {
-        if (!switchReset) {
-          switchReset = true;
-        }
-      } else if (switchReset) {
-        switchReset = false;
-        // Switch logic
-        programState = PROGRAM_WAIT;
-      }
-      // -------------------
-      pcfControlinterrupted = false; // Reset for next interrupt.
-      }
-    */
-    // -----------------------------------------------
-  }
-#ifdef SWITCH_MESSAGES
-  Serial.println(F("+ Exit serial download mode."));
-#endif
-  if (readByteCount > 0) {
-    // Program bytes were downloaded into memory.
-    controlResetLogic();                                      // Reset the program.
-    playerPlaySoundWait(READ_FILE);
-  } else {
-    // No bytes downloaded, reset the panel light values.
-    host_set_addr_leds(regPC);
-    host_read_addr_leds(MREAD(regPC));
-  }
-  programState = PROGRAM_WAIT;
-  host_set_status_led_WAIT();
-  host_set_status_leds_READMEM_M1();        // Done writing to processor memory.
-  printFrontPanel();
-}
-
-void runDownloadProgram() {
-  Serial2.begin(9600);
-  host_clr_status_led_WAIT();
-  while (programState == SERIAL_DOWNLOAD) {
-    doDownloadProgram();
-  }
-  /*
-    // How to check if Serial2 is available?
-    } else {
-    #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Return to programState: PROGRAM_WAIT, Serial2 is not available."));
-    #endif
-    delay(300);
-    ledFlashError();
-    controlResetLogic();  // Reset the program.
-    }
-  */
-}
-
-// -----------------------------------------------------------------------------
 void setup() {
   // Speed for serial read, which matches the sending program.
   Serial.begin(9600);   // 115200 19200
@@ -1509,12 +1369,6 @@ void loop() {
     // ----------------------------
     case PROGRAM_WAIT:
       runProcessorWait();
-      break;
-    // ----------------------------
-    case SERIAL_DOWNLOAD:
-      host_set_status_led_HLDA();
-      runDownloadProgram();
-      host_clr_status_led_HLDA();
       break;
   }
   delay(30);

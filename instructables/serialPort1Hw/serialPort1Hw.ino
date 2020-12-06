@@ -1,6 +1,19 @@
 // -----------------------------------------------------------------------------
 /*
-  Serial Communications:
+  Serial Communications, Mega or Due, 2 harware ports
+
+  Wire the serial component to the Mega Serial2 pins.
+  Serial component RX to Mega TX pin 16.
+  Serial component TX to Mega RX pin 17.
+
+  View serial ports on a Mac for the Mega or Due default serial port(14120) and the componet's port(14110):
+  $ ls -l /dev/tty.*
+crw-rw-rw-  1 root  wheel   20,   0 Nov 13 15:20 /dev/tty.Bluetooth-Incoming-Port
+crw-rw-rw-  1 root  wheel   20, 0x00000104 Dec  5 20:13 /dev/tty.wchusbserial14110
+crw-rw-rw-  1 root  wheel   20, 0x00000106 Dec  5 20:13 /dev/tty.wchusbserial14120
+
+  Arduino serial port reference:
+    https://www.arduino.cc/reference/en/language/functions/communication/serial/
 
   Second serial port module that I bought, requireed a new driver.
   + CP2102 USB 2.0 to TTL UART Module 6 Pin Serial Converter STC FT232
@@ -10,14 +23,6 @@
   ++ I unzipped it and renamed it: CP2102-MacSerialDriver.dmg.
   + Next time consider buying a serial port module that matches the Arduino current CH340 USB driver:
   ++ CH340 USB To RS232 TTL Auto Converter Module Serial Port FOR Arduino STC TA-02L
-
-  View serial ports on a Mac for the Mega default serial port(14120) and the componet's port(14110):
-  $ ls -l /dev/tty.*
-crw-rw-rw-  1 root  wheel   20,   0 Nov 13 15:20 /dev/tty.Bluetooth-Incoming-Port
-crw-rw-rw-  1 root  wheel   20, 0x00000104 Dec  5 20:13 /dev/tty.wchusbserial14110
-crw-rw-rw-  1 root  wheel   20, 0x00000106 Dec  5 20:13 /dev/tty.wchusbserial14120
-
-    https://www.arduino.cc/reference/en/language/functions/communication/serial/
 */
 // -----------------------------------------------------------------------------
 void setup() {

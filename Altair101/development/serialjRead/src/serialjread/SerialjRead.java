@@ -1,6 +1,12 @@
 /*
- Reference,
-    https://github.com/Fazecast/jSerialComm/wiki/Blocking-and-Semiblocking-Reading-Usage-Example
+
+    Library examples:
+        https://github.com/Fazecast/jSerialComm/wiki/Usage-Examples
+    Reference,
+        https://github.com/Fazecast/jSerialComm/wiki/Blocking-and-Semiblocking-Reading-Usage-Example
+
+    Another serial Java library, looks pretty good:
+        https://code.google.com/archive/p/java-simple-serial-connector/
 
     https://xtermjs.org/
     https://www.electricimp.com/secure-web-based-serial-terminal/
