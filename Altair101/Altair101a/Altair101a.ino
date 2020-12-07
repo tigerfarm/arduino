@@ -16,17 +16,22 @@
   ---------------------------------------------------------
   Next:
 
-  + Work on basic interactivity updates.
-  ++ Focus on the favorite, VT100 mode.
+  Work on basic interactivity updates.
+  + Test with various baud rates.
+  ++ Tested: 9600, testing 57600.
+  + Focus on the favorite, VT100 mode.
 
   +++ Integration steps to merge this code with Processor.ino.
 
-  + Continue testing Altair101a.
+  + Continue use testing Altair101a.
   + Continue adding Processor features into Altair101a.
+  ++ Add: ability to read and write program byte files from a micro SD card.
   ++ Added: ability to download program bytes from asm.
-  ++ Ability to read and write program byte files from the micro SD card.
   ++ Upload Altair101a to the Altair 101 machine and test with lights.
   ++ Code updates to handle hardware toggles and switches in Altair101a.
+
+  After Altair101a works and processes programs,
+  + Add the other features: player, clock, timer, and counter.
 
   ---------------------------------------------------------
   Other Nexts:
@@ -44,19 +49,21 @@
   ++ In the PUSH process, if SP < 4, error.
 
   ---------------------------------------------------------
-    VT100 reference:
+  VT100 reference:
        http://ascii-table.com/ansi-escape-sequences-vt-100.php
-    Esc[H  Move cursor to upper left corner, example: Serial.print(F("\033[H"));
-    Esc[J  Clear screen from cursor down, example: Serial.print(F("\033[J"));
-    Esc[2J  Clear entire screen, example: Serial.print(F("\033[H"));
-    Example: Serial.print(F("\033[H\033[2J"));  Move home and clear entire screen.
-    Esc[K  Clear line from cursor right
-    Esc[nA  Move cursor up n lines.
-    Example: Serial.print(F("\033[3A"));  Cursor Up 3 lines.
-    Esc[nB  Move cursor down n lines.
-    Example: Serial.print(F("\033[6B"));  Cursor down 6 lines.
-    Esc[nC  Move cursor right n positions.
-    Example: Serial.print(F("\033[H\033[4B\033[2C")); // Print on: row 4, column 2.
+    Esc[H     Move cursor to upper left corner, example: Serial.print(F("\033[H"));
+    Esc[J     Clear screen from cursor down, example: Serial.print(F("\033[J"));
+    Esc[2J    Clear entire screen, example: Serial.print(F("\033[H"));
+    Example:  Serial.print(F("\033[H\033[2J"));  Move home and clear entire screen.
+    Esc[K     Clear line from cursor right
+    Esc[nA    Move cursor up n lines.
+    Example:  Serial.print(F("\033[3A"));  Cursor Up 3 lines.
+    Esc[nB    Move cursor down n lines.
+    Example:  Serial.print(F("\033[6B"));  Cursor down 6 lines.
+    Esc[nC    Move cursor right n positions.
+    Example:  Serial.print(F("\033[H\033[4B\033[2C")); // Print on: row 4, column 2.
+    Esc[r;cH  Move cursor to a specific row(r) and column(c).
+    Example:  Serial.print(F("\033[4;2H*"));  // Print on: row 4, column 2 and print "*".
 
   ---------------------------------------------------------
   Links
@@ -1478,7 +1485,7 @@ void runDownloadProgram() {
 // -----------------------------------------------------------------------------
 void setup() {
   // Speed for serial read, which matches the sending program.
-  Serial.begin(57600);         // 9600 19200 57600 115200 
+  Serial.begin(57600);         // 9600 19200 57600 115200
   delay(2000);
   Serial.println(); // Newline after garbage characters.
   Serial.println(F("+++ Setup."));

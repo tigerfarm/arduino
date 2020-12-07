@@ -49,6 +49,9 @@ Find the port, connect using the screen command which is VT100 capable.
 $ ls /dev/tty.*
 /dev/tty.Bluetooth-Incoming-Port	/dev/tty.wchusbserial14110
 $ screen /dev/tty.wchusbserial14110
+
+$ screen /dev/tty.wchusbserial14120 <baud rate>
+$ screen /dev/tty.wchusbserial14120 57600
 ...
 
 To exit and close the connection: Control-A followed by Control-\.
