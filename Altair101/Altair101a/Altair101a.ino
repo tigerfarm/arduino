@@ -760,68 +760,6 @@ void runProcessor() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// Receive a string of hex numbers and load them into simulator memory as bytes.
-
-void loadProgramSerial() {
-  int cnt = 0;
-  int x = 0;
-  uint16_t programCounter = 0;
-  char hexNumber[3] = "";
-  Serial.println(F("+ loadProgramSerial()"));
-  programState = PROGRAM_LOAD;
-  while (programState == PROGRAM_LOAD) {
-    if (Serial.available() > 0) {
-      readByte = Serial.read();    // Read and process an incoming byte.
-      if (readByte == ' ') {
-        programState = PROGRAM_WAIT;
-      } else if (readByte >= '0' && readByte <= '9') {
-        x *= 16;
-        x += readByte - '0';
-        hexNumber[cnt] = readByte;
-        cnt ++;
-      } else if (readByte >= 'A' && readByte <= 'F') {
-        x *= 16;
-        x += 10 + (readByte - 'A');
-        hexNumber[cnt] = readByte;
-        cnt ++;
-      }
-      if (cnt == 2) {
-        MWRITE(programCounter++, x)
-        Serial.print(F("+ "));
-        if (programCounter < 10) {
-          Serial.print("0");
-        }
-        Serial.print(programCounter);
-        Serial.print(F(": "));
-        Serial.write(hexNumber[0]);
-        Serial.write(hexNumber[1]);
-        Serial.print(F(" = "));
-        if (x < 100) {
-          Serial.print("0");
-        }
-        if (x < 10) {
-          Serial.print("0");
-        }
-        Serial.print(x);
-        Serial.print(F(" = "));
-        printByte(x);
-        Serial.println();
-        cnt = 0;
-        x = 0;
-      }
-    }
-  }
-  if (programCounter > 0) {
-    Serial.print(F("++ Number of program bytes = "));
-    Serial.print(programCounter);
-    Serial.println();
-    regPC = 0;
-    host_set_addr_leds(0);
-    host_set_data_leds(MREAD(0));
-  }
-}
-
-// -----------------------------------------------------------------------------
 // Processor WAIT mode: Load sample programs.
 
 String loadProgramName = "";
@@ -1370,9 +1308,72 @@ void runProcessorWait() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Receive bytes through serial port.
-// The bytes are loaded into processorr memory.
+// The bytes are loaded into processor memory.
 
-void doDownloadProgram() {
+// -----------------------------------------------------------------------------
+// Receive a string of hex numbers and load them into simulator memory as bytes.
+
+void loadProgramSerial() {
+  int cnt = 0;
+  int x = 0;
+  uint16_t programCounter = 0;
+  char hexNumber[3] = "";
+  Serial.println(F("+ loadProgramSerial()"));
+  programState = PROGRAM_LOAD;
+  while (programState == PROGRAM_LOAD) {
+    if (Serial.available() > 0) {
+      readByte = Serial.read();    // Read and process an incoming byte.
+      if (readByte == ' ') {
+        programState = PROGRAM_WAIT;
+      } else if (readByte >= '0' && readByte <= '9') {
+        x *= 16;
+        x += readByte - '0';
+        hexNumber[cnt] = readByte;
+        cnt ++;
+      } else if (readByte >= 'A' && readByte <= 'F') {
+        x *= 16;
+        x += 10 + (readByte - 'A');
+        hexNumber[cnt] = readByte;
+        cnt ++;
+      }
+      if (cnt == 2) {
+        MWRITE(programCounter++, x)
+        Serial.print(F("+ "));
+        if (programCounter < 10) {
+          Serial.print("0");
+        }
+        Serial.print(programCounter);
+        Serial.print(F(": "));
+        Serial.write(hexNumber[0]);
+        Serial.write(hexNumber[1]);
+        Serial.print(F(" = "));
+        if (x < 100) {
+          Serial.print("0");
+        }
+        if (x < 10) {
+          Serial.print("0");
+        }
+        Serial.print(x);
+        Serial.print(F(" = "));
+        printByte(x);
+        Serial.println();
+        cnt = 0;
+        x = 0;
+      }
+    }
+  }
+  if (programCounter > 0) {
+    Serial.print(F("++ Number of program bytes = "));
+    Serial.print(programCounter);
+    Serial.println();
+    regPC = 0;
+    host_set_addr_leds(0);
+    host_set_data_leds(MREAD(0));
+  }
+}
+
+// -----------------------------------------------------------------------------
+void runDownloadProgram() {
   Serial2.begin(9600);
   Serial.println("+ Download mode: ready to receive a program.");
   // Status: ready for input and not yet writing to memory.
@@ -1440,13 +1441,9 @@ void doDownloadProgram() {
     // Check serial input for RESET or STOP.
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
-      // if (readByte == "R" || readByte == "s") {
-      if (readByte == "s") {
+      if (readByte == 'R' || readByte == 's') {
         programState = PROGRAM_WAIT;
-      } else {
-        Serial.print("+ doDownloadProgram(), readByte: ");
-        Serial.print(readByte);
-        Serial.println("");
+        Serial.flush(); // Clear other characters in the buffer, example: LF.
       }
     }
     // Check hardware for RESET or STOP.
@@ -1479,16 +1476,6 @@ void doDownloadProgram() {
     // No bytes downloaded, reset the panel light values.
     host_set_addr_leds(regPC);
     host_read_addr_leds(MREAD(regPC));
-  }
-  host_set_status_leds_READMEM_M1();        // Done writing to processor memory.
-  printFrontPanel();
-}
-
-void runDownloadProgram() {
-  Serial2.begin(9600);
-  Serial.println("+ Download mode: ready to receive a program.");
-  while (programState == SERIAL_DOWNLOAD) {
-    doDownloadProgram();
   }
 }
 
@@ -1551,9 +1538,11 @@ void loop() {
     case SERIAL_DOWNLOAD:
       host_clr_status_led_WAIT();
       host_set_status_led_HLDA();
-      // runDownloadProgram();
-      doDownloadProgram();
+      runDownloadProgram();
       host_clr_status_led_HLDA();
+      host_set_status_led_WAIT();
+      host_set_status_leds_READMEM_M1();        // Done writing to processor memory.
+      printFrontPanel();
       break;
   }
   delay(30);
