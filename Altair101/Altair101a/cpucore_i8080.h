@@ -150,12 +150,12 @@ extern const byte INT_ON;
 
 // Using bytes for the address. Unless there is a specific need for bytes, I'll use the word length variable.
 /*
-inline void host_set_addr_leds(uint16_t v) {
+  inline void host_set_addr_leds(uint16_t v) {
   fpAddressWord = v;
   // fpAddressLb = (v & 0xff); // lb where 0xff remove hb, leaving LB
   // fpAddressHb = (v / 256);  // hb
-}
-#define host_read_addr_leds(v) (fpAddressLb | (fpAddressHb * 256))
+  }
+  #define host_read_addr_leds(v) (fpAddressLb | (fpAddressHb * 256))
 */
 // Using a word for the address.
 #define host_set_addr_leds(v)  fpAddressWord=(v)
@@ -165,8 +165,11 @@ inline void host_set_addr_leds(uint16_t v) {
 #define host_read_data_leds()  fpDataByte
 
 #define host_read_status_led_WAIT()   status_wait
-#define host_set_status_led_WAIT()  { digitalWrite(40, HIGH); status_wait = true; }
 #define host_clr_status_led_WAIT()  { digitalWrite(40, LOW);  status_wait = false; }
+#define host_set_status_led_WAIT()  { \
+    digitalWrite(40, HIGH); \
+    status_wait = true; \
+  }
 
 #define host_read_status_led_HLDA()   status_hlda
 #define host_set_status_led_HLDA()  { digitalWrite(41, HIGH); status_inte = true; }

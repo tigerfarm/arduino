@@ -16,7 +16,7 @@
   ---------------------------------------------------------
   Next:
 
-  + In VT100 mode front panel display, be great to be able to 
+  + In VT100 mode front panel display, be great to be able to
     switch WAIT light on and off without reprinting the display.
   ++ This would match the hardware better.
 
@@ -63,11 +63,13 @@
     Esc[J  Clear screen from cursor down, example: Serial.print(F("\033[J"));
     Esc[2J  Clear entire screen, example: Serial.print(F("\033[H"));
     Example: Serial.print(F("\033[H\033[2J"));  Move home and clear entire screen.
+    Esc[K  Clear line from cursor right
     Esc[nA  Move cursor up n lines.
     Example: Serial.print(F("\033[3A"));  Cursor Up 3 lines.
     Esc[nB  Move cursor down n lines.
     Example: Serial.print(F("\033[6B"));  Cursor down 6 lines.
-    Esc[K  Clear line from cursor right
+    Esc[nC  Move cursor right n positions.
+    Example: Serial.print(F("\033[H\033[4B\033[2C")); // Print on: row 4, column 2.
 
   ---------------------------------------------------------
   Links
@@ -96,6 +98,14 @@
     0xae, 0xae, ... 0x00};
 
   ---------------------------------------------------------
+  + Front panel LED lights are initialized.
+  INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
+  .    *    .  *   .   .    .    *   .         .   .    .   .   .    .   .   .
+  WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
+      .      .   .   .   .   .   .   .   .    .   .    .   .   .    .   .   .
+            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
+             v   v   v   v   v   v   v   v    v   v    v   v   v    v   v   v
+
 */
 // -----------------------------------------------------------------------------
 #include "Altair101a.h"
@@ -207,6 +217,23 @@ const byte HLTA_ON =    B00001000;  // HLTA   Machine opcode hlt, has halted the
 const byte STACK_ON =   B00000100;  // STACK  Stack process
 const byte WO_ON =      B00000010;  // WO     Write out (inverse logic)
 const byte INT_ON =     B00000001;  // INT    Interrupt
+
+void setWaitStatus(boolean waitStatus) {
+  if (waitStatus) {
+    host_set_status_led_WAIT();
+    if (SERIAL_IO_VT100) {
+      Serial.print(F("\033[H\033[4B\0332C")); // Print on: row 4, column 2.
+      Serial.print("*");
+    }
+  } else {
+    host_clr_status_led_WAIT();
+    if (SERIAL_IO_VT100) {
+      // Print off.
+      Serial.print(F("\033[H\033[4B\0332C")); // Print on: row 4, column 2.
+      Serial.print(".");
+    }
+  }
+}
 
 // -----------------------------------------------------------------------------
 // Front Panel Status LEDs
@@ -1346,6 +1373,8 @@ void runProcessorWait() {
 // The bytes are loaded into processorr memory.
 
 void doDownloadProgram() {
+  Serial2.begin(9600);
+  Serial.println("+ Download mode: ready to receive a program.");
   // Status: ready for input and not yet writing to memory.
   host_set_status_led_INP();
   host_clr_status_led_M1();
@@ -1361,10 +1390,11 @@ void doDownloadProgram() {
   while (programState == SERIAL_DOWNLOAD) {
     if (Serial2.available() > 0) {
       if (flashWaitOn) {
-        host_set_status_led_WAIT();
+        setWaitStatus(false);
         flashWaitOn = false;
       } else {
         host_clr_status_led_WAIT();
+        setWaitStatus(true);
         flashWaitOn = true;
       }
       if (!downloadStarted) {
@@ -1402,20 +1432,24 @@ void doDownloadProgram() {
       // Exit download state, if the bytes were downloaded and then stopped for 1 second.
       //  This indicates that the download is complete.
       Serial.println("+ Download complete.");
+      programState = PROGRAM_WAIT;
     }
     // -----------------------------------------------
     // Flip or send serial character RESET(R) or STOP(s), to exit download mode.
     //
-    // Check serial input.
+    // Check serial input for RESET or STOP.
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
-      if (readByte == "R" || readByte == "s") {
-        // This handles inputs during a SINGLE STEP cycle that hasn't finished.
-        processWaitSwitch(readByte);
+      // if (readByte == "R" || readByte == "s") {
+      if (readByte == "s") {
+        programState = PROGRAM_WAIT;
+      } else {
+        Serial.print("+ doDownloadProgram(), readByte: ");
+        Serial.print(readByte);
+        Serial.println("");
       }
-      programState = PROGRAM_WAIT;
     }
-    // Check hardware.
+    // Check hardware for RESET or STOP.
     /*
       if (pcfControlinterrupted) {
       // -------------------
@@ -1446,13 +1480,13 @@ void doDownloadProgram() {
     host_set_addr_leds(regPC);
     host_read_addr_leds(MREAD(regPC));
   }
-  programState = PROGRAM_WAIT;
   host_set_status_leds_READMEM_M1();        // Done writing to processor memory.
   printFrontPanel();
 }
 
 void runDownloadProgram() {
   Serial2.begin(9600);
+  Serial.println("+ Download mode: ready to receive a program.");
   while (programState == SERIAL_DOWNLOAD) {
     doDownloadProgram();
   }
@@ -1517,7 +1551,8 @@ void loop() {
     case SERIAL_DOWNLOAD:
       host_clr_status_led_WAIT();
       host_set_status_led_HLDA();
-      runDownloadProgram();
+      // runDownloadProgram();
+      doDownloadProgram();
       host_clr_status_led_HLDA();
       break;
   }
