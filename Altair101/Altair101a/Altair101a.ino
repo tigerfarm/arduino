@@ -1400,7 +1400,18 @@ void doDownloadProgram() {
       Serial.println("+ Download complete.");
     }
     // -----------------------------------------------
-    // Flip RESET to exit download mode, if decided not to wait for download.
+    // Flip or send serial character RESET(R) or STOP(s), to exit download mode.
+    //
+    // Check serial input.
+    if (Serial.available() > 0) {
+      readByte = Serial.read();    // Read and process an incoming byte.
+      if (readByte == "R" || readByte == "s") {
+        // This handles inputs during a SINGLE STEP cycle that hasn't finished.
+        processWaitSwitch(readByte);
+      }
+      programState = PROGRAM_WAIT;
+    }
+    // Check hardware.
     /*
       if (pcfControlinterrupted) {
       // -------------------
