@@ -16,36 +16,23 @@
   ---------------------------------------------------------
   Next:
 
-  + In VT100 mode front panel display, be great to be able to
-    switch WAIT light on and off without reprinting the display.
-  ++ This would match the hardware better.
-
-  Simple method to load program bytes using copy and paste.
-  + Maybe from my asm program, generate hex using a similar method to "array" listing.
-  + Hex can be copied and pasted in to a terminal window.
-  + Hex To Decimal samples:
-    System.out.println(Integer.parseInt("a",16));
-    System.out.println(Integer.parseInt("f",16));
-    System.out.println(Integer.parseInt("121",16));
-
-  Try loading Kill the Bit from: prog_games.cpp.
-  If that works, can load Basic from: prog_basic.cpp.
-
-  More testing for: singleStepWait().
+  + Work on basic interactivity updates.
+  ++ Focus on the favorite, VT100 mode.
 
   +++ Integration steps to merge this code with Processor.ino.
 
-  Continue testing Altair101a.
-  Then upload to the Altair 101 machine and test with lights.
-  Then merge with Processor.ino code.
-
-  ---------------------------------------------------------
-  Remove processor functions and variables from Processor.ino.
-  + Leave player, clock, and counter functions intact.
-  + Keep hardware switching intact, which is not inmplemented in this program.
+  + Continue testing Altair101a.
+  + Continue adding Processor features into Altair101a.
+  ++ Added: ability to download program bytes from asm.
+  ++ Ability to read and write program byte files from the micro SD card.
+  ++ Upload Altair101a to the Altair 101 machine and test with lights.
+  ++ Code updates to handle hardware toggles and switches in Altair101a.
 
   ---------------------------------------------------------
   Other Nexts:
+
+  Try loading Kill the Bit from: prog_games.cpp.
+  If that works, can load Basic from: prog_basic.cpp.
 
   + When single stepping, M1 stays on but should be off, when HLT is executed.
   + Should be on: MEMR, HLTA, WO.
@@ -222,12 +209,12 @@ void setWaitStatus(boolean waitStatus) {
   if (waitStatus) {
     host_set_status_led_WAIT();
     if (SERIAL_IO_VT100) {
-      Serial.print(F("\033[4;1H*"));  // Print on: row 4, column 2.
+      Serial.print(F("\033[4;2H*"));  // Print on: row 4, column 2.
     }
   } else {
     host_clr_status_led_WAIT();
     if (SERIAL_IO_VT100) {
-      Serial.print(F("\033[4;1H"));  // Print off: row 4, column 2.
+      Serial.print(F("\033[4;2H."));  // Print off: row 4, column 2.
     }
   }
 }
@@ -1491,7 +1478,7 @@ void runDownloadProgram() {
 // -----------------------------------------------------------------------------
 void setup() {
   // Speed for serial read, which matches the sending program.
-  Serial.begin(9600);   // 115200 19200
+  Serial.begin(57600);         // 9600 19200 57600 115200 
   delay(2000);
   Serial.println(); // Newline after garbage characters.
   Serial.println(F("+++ Setup."));
