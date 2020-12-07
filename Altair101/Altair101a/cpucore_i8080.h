@@ -166,14 +166,11 @@ extern const byte INT_ON;
 
 #define host_read_status_led_WAIT()   status_wait
 #define host_clr_status_led_WAIT()  { digitalWrite(40, LOW);  status_wait = false; }
-#define host_set_status_led_WAIT()  { \
-    digitalWrite(40, HIGH); \
-    status_wait = true; \
-  }
+#define host_set_status_led_WAIT()  { digitalWrite(40, HIGH); status_wait = true; }
 
 #define host_read_status_led_HLDA()   status_hlda
-#define host_set_status_led_HLDA()  { digitalWrite(41, HIGH); status_inte = true; }
-#define host_clr_status_led_HLDA()  { digitalWrite(41, LOW);  status_inte = false; }
+#define host_set_status_led_HLDA()  { digitalWrite(41, HIGH); status_hlda = true; }
+#define host_clr_status_led_HLDA()  { digitalWrite(41, LOW);  status_hlda = false; }
 
 #define host_read_status_led_INTE()   status_inte
 #define host_set_status_led_INTE()  { digitalWrite(38, HIGH); status_inte = true; }

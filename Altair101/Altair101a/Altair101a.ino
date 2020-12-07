@@ -222,15 +222,12 @@ void setWaitStatus(boolean waitStatus) {
   if (waitStatus) {
     host_set_status_led_WAIT();
     if (SERIAL_IO_VT100) {
-      Serial.print(F("\033[H\033[4B\0332C")); // Print on: row 4, column 2.
-      Serial.print("*");
+      Serial.print(F("\033[4;1H*"));  // Print on: row 4, column 2.
     }
   } else {
     host_clr_status_led_WAIT();
     if (SERIAL_IO_VT100) {
-      // Print off.
-      Serial.print(F("\033[H\033[4B\0332C")); // Print on: row 4, column 2.
-      Serial.print(".");
+      Serial.print(F("\033[4;1H"));  // Print off: row 4, column 2.
     }
   }
 }
@@ -1264,16 +1261,6 @@ void processWaitSwitch(byte readByte) {
       serialPrintFrontPanel();
       break;
     case 'y':
-      Serial.println(F("+ y, Refresh front panel."));
-      if (SERIAL_IO_VT100) {
-        Serial.print(F("\033[H\033[2J"));    // Cursor home and clear the screen.
-        SERIAL_IO_VT100 = false;          // Set off to print headings.
-        printFrontPanel();                // Print the complete front panel: labels and indicators.
-        SERIAL_IO_VT100 = true;
-      } else {
-        printFrontPanel();                // Print the complete front panel: labels and indicators.
-      }
-      fpAddressToggleWord = 0;            // Set all toggles off.
       break;
     // -------------------------------------
     default:
@@ -1380,9 +1367,12 @@ void runDownloadProgram() {
   host_set_status_led_INP();
   host_clr_status_led_M1();
   host_set_addr_leds(0);
-  host_read_addr_leds(0);
+  host_set_data_leds(0);
   printFrontPanel();
-  //
+  if (SERIAL_IO_VT100) {
+    Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
+    Serial.print(F("\033[J"));     // From cursor down, clear the screen.
+  }
   byte readByte = 0;
   int readByteCount = 0;      // Count the downloaded bytes that are entered into processor memory.
   unsigned long timer;        // Indicator used to identify when download has ended.
@@ -1401,7 +1391,13 @@ void runDownloadProgram() {
       if (!downloadStarted) {
         downloadStarted = true;
         host_set_status_leds_WRITEMEM();   // Now writing to processor memory.
+        if (SERIAL_IO_VT100) {
+          Serial.print(F("\033[10;1H"));    // Move cursor to below the prompt: line 10, column 1.
+        }
         Serial.println("+    Address  Data  Binary   Hex Octal Decimal");
+      }
+      if (SERIAL_IO_VT100) {
+        Serial.print(F("\033[11;1H"));    // Move cursor to below the prompt: line 10, column 1.
       }
       Serial.print("++ Byte# ");
       if (readByteCount < 10) {
@@ -1424,7 +1420,13 @@ void runDownloadProgram() {
       Serial.print(" ");
       printOctal(readByte);
       Serial.print("   ");
-      Serial.print(readByte, DEC);
+      if (readByte < 10) {
+        Serial.print(" ");
+      }
+      if (readByte < 100) {
+        Serial.print(" ");
+      }
+      Serial.print(readByte);
       Serial.println("");
       //
       timer = millis();
@@ -1442,8 +1444,14 @@ void runDownloadProgram() {
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
       if (readByte == 'R' || readByte == 's') {
+        Serial.println("+ Exit download mode.");
         programState = PROGRAM_WAIT;
-        Serial.flush(); // Clear other characters in the buffer, example: LF.
+        delay(100); // Required to wait for the LF when in IDE serial monitor.
+        while (Serial.available() > 0) {
+          // Serial.println("+ Exit, Clear other characters in the buffer, example: LF.");
+          readByte = Serial.read();
+          delay(100); // Required to wait for the LF when in IDE serial monitor.
+        }
       }
     }
     // Check hardware for RESET or STOP.
@@ -1470,13 +1478,14 @@ void runDownloadProgram() {
 #endif
   if (readByteCount > 0) {
     // Program bytes were downloaded into memory.
-    controlResetLogic();                                      // Reset the program.
+    controlResetLogic();                // Reset the program and front panel, including status lights.
     playerPlaySoundWait(READ_FILE);
   } else {
     // No bytes downloaded, reset the panel light values.
     host_set_addr_leds(regPC);
     host_read_addr_leds(MREAD(regPC));
   }
+  host_clr_status_led_INP();
 }
 
 // -----------------------------------------------------------------------------
@@ -1541,7 +1550,6 @@ void loop() {
       runDownloadProgram();
       host_clr_status_led_HLDA();
       host_set_status_led_WAIT();
-      host_set_status_leds_READMEM_M1();        // Done writing to processor memory.
       printFrontPanel();
       break;
   }

@@ -587,3 +587,8 @@ WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8  A7  A6  A5  A4  A3  A2  A1  A0
 --------------------------------------------------------------------------------
 Cheers
 
+Sketch uses 47102 bytes (146%) of program storage space. Maximum is 32256 bytes.
+Sketch uses 46572 bytes (144%) of program storage space. Maximum is 32256 bytes.
+Sketch uses 46054 bytes (142%) of program storage space. Maximum is 32256 bytes.
+            32256
+            14000
