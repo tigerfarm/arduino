@@ -16,6 +16,10 @@
   ---------------------------------------------------------
   Next:
 
+  + In VT100 mode front panel display, be great to be able to 
+    switch WAIT light on and off without reprinting the display.
+  ++ This would match the hardware better.
+
   Simple method to load program bytes using copy and paste.
   + Maybe from my asm program, generate hex using a similar method to "array" listing.
   + Hex can be copied and pasted in to a terminal window.
