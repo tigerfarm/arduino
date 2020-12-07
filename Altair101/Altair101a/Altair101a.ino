@@ -1432,28 +1432,15 @@ void doDownloadProgram() {
     host_read_addr_leds(MREAD(regPC));
   }
   programState = PROGRAM_WAIT;
-  host_set_status_led_WAIT();
   host_set_status_leds_READMEM_M1();        // Done writing to processor memory.
   printFrontPanel();
 }
 
 void runDownloadProgram() {
   Serial2.begin(9600);
-  host_clr_status_led_WAIT();
   while (programState == SERIAL_DOWNLOAD) {
     doDownloadProgram();
   }
-  /*
-    // How to check if Serial2 is available?
-    } else {
-    #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Return to programState: PROGRAM_WAIT, Serial2 is not available."));
-    #endif
-    delay(300);
-    ledFlashError();
-    controlResetLogic();  // Reset the program.
-    }
-  */
 }
 
 // -----------------------------------------------------------------------------
@@ -1486,7 +1473,6 @@ void setup() {
   // ----------------------------------------------------
   // ----------------------------------------------------
   programState = PROGRAM_WAIT;
-  host_set_status_led_WAIT();
   host_set_status_leds_READMEM_M1();
   regPC = 0;
   opcode = MREAD(regPC);
@@ -1504,14 +1490,17 @@ void loop() {
   switch (programState) {
     // ----------------------------
     case PROGRAM_RUN:
+      host_clr_status_led_WAIT();
       runProcessor();
       break;
     // ----------------------------
     case PROGRAM_WAIT:
+      host_set_status_led_WAIT();
       runProcessorWait();
       break;
     // ----------------------------
     case SERIAL_DOWNLOAD:
+      host_clr_status_led_WAIT();
       host_set_status_led_HLDA();
       runDownloadProgram();
       host_clr_status_led_HLDA();
