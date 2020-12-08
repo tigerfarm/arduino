@@ -16,6 +16,8 @@
   ---------------------------------------------------------
   Next:
 
+  Work through sample programs to confirm machine instruction processing is correct.
+
   Print only the processing registers.
   + output 30...43
   + regA:   1 = 001 = 00000001
@@ -26,7 +28,6 @@
   Download byte by byte.
   +    Address  Data  Binary   Hex Octal Decimal
   ++ Byte# 1900, Byte: 00101100 02c 054    44
-
 
   Work on basic interactivity updates.
   + Test with various baud rates.
@@ -624,6 +625,7 @@ byte altair_in(byte portDataByte) {
 }
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Output
 
 uint16_t hlValue;
@@ -647,6 +649,7 @@ void altair_out(byte portDataByte, byte regAdata) {
   // Write output byte to the output port.
   switch (portDataByte) {
     case 2:
+    case 3:
       // Out to the USB serial port.
       Serial.write(regAdata);
       break;
@@ -1386,7 +1389,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("-------------"));
       Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
       Serial.println(F("+ v/V VT100       Disable/enable USB serial VT100 output."));
-      Serial.println(F("+ w/W USB serial  Disable/enable USB serial output"));
+      Serial.println(F("+ w/W USB serial  Disable/enable USB serial output."));
       Serial.println(F("+ z/Z cursor off  VT100 block cursor off/on."));
       Serial.println(F("+ Enter key       Refresh USB serial output front panel display."));
       Serial.println(F("----------------------------------------------------"));
@@ -1539,11 +1542,22 @@ void runDownloadProgram() {
       if (SERIAL_IO_VT100) {
         Serial.print(F("\033[11;1H"));    // Move cursor to below the prompt: line 10, column 1.
       }
+      //
+      // Buffer space up to 64K.
       Serial.print("++ Byte# ");
       if (readByteCount < 10) {
         Serial.print(" ");
       }
       if (readByteCount < 100) {
+        Serial.print(" ");
+      }
+      if (readByteCount < 1000) {
+        Serial.print(" ");
+      }
+      if (readByteCount < 10000) {
+        Serial.print(" ");
+      }
+      if (readByteCount < 100000) {
         Serial.print(" ");
       }
       Serial.print(readByteCount);

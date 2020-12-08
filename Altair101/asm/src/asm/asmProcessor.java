@@ -170,6 +170,8 @@ import java.util.Iterator;
 import java.util.List;
 
 public class asmProcessor {
+    
+    private final int MEMSIZE = 65536;   // 1024 4096 65536(64K).
 
     asmOpcodes theOpcodes = new asmOpcodes(); // Use to get an opcode's binary value.
     //
@@ -315,7 +317,7 @@ public class asmProcessor {
     //  and writing bytes to a file.
     //
     public void programBytesListAndWrite(String theFileNameTo) {
-        byte[] fileBytes = new byte[1024];    // Hold the bytes to be written.
+        byte[] fileBytes = new byte[MEMSIZE];    // Hold the bytes to be written.
         System.out.println("\n+ Print Program Bytes and description.");
         System.out.println("++ Address:16-bit bytes       databyte :hex:oct > description");
         //                  ++       0:00000000 00000000: 11000011 : C3:303 > opcode: jmp Start
@@ -501,6 +503,10 @@ public class asmProcessor {
                     case 'n':
                         // Line feed
                         returnString = "10";
+                        break;
+                    case 'r':
+                        // Carriage return
+                        returnString = "13";
                         break;
                     case 'b':
                         // Backspace

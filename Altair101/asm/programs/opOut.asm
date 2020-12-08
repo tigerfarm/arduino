@@ -2,17 +2,7 @@
                                         ; Test the various OUT options.
                                         ; --------------------------------------
                                         ;
-            jmp Start                   ; Jump to bypass the halt.
-                                        ;
-                                        ; --------------------------------------
-                                        ;
-    StartMsg    db      'Start...'      ; Strings to print out.
-    Again       db      'Again.'        ; Strings to print out.
-    TERMB       equ     0ffh            ; String terminator.
-    NL          equ     10              ; 10 is new line, '\n'.
-    Halt:
-            hlt                         ; The program will halt at each iteration, after the first.
-                                        ; --------------------------------------
+            lxi sp,512                  ; Set stack pointer.
     Start:
             mvi a,NL
             out 3
@@ -94,7 +84,8 @@
             call sPrint
             out 42                      ; Flash the LED light success sequence.
                                         ; --------------------------------------
-            jmp Halt                    ; Jump back to the early halt command.
+            hlt                         ; The program will halt at each iteration, after the first.
+            jmp Start                   ; Re-start.
                                         ;
                                         ; --------------------------------------
         sPrint:
@@ -106,6 +97,11 @@
                 jmp sPrint
         sPrintDone:
                 ret
+                                        ; --------------------------------------
                                         ;
+    StartMsg    db      'Start...'      ; Strings to print out.
+    Again       db      'Again.'        ; Strings to print out.
+    TERMB       equ     0ffh            ; String terminator.
+    NL          equ     10              ; 10 is new line, '\n'.
                                         ; --------------------------------------
                 end

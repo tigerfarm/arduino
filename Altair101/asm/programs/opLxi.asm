@@ -1,10 +1,10 @@
                                     ; --------------------------------------
                                     ; Test LXI.
                                     ;
-                                    ; Load register pair with 16-bit immediate address value.
-                                    ;   LXI B, byte 2 -> C, byte 3 -> B.
-                                    ;   LXI D, byte 2 -> E, byte 3 -> D.
-                                    ;   LXI H, byte 2 -> L, byte 3 -> H.
+                                    ; Load register pair with 16-bit immediate address value(a).
+                                    ;   LXI B,a     byte 2 of immediate -> C, byte 3 -> B.
+                                    ;   LXI D,a     byte 2 of immediate -> E, byte 3 -> D.
+                                    ;   LXI H,a     byte 2 of immediate -> L, byte 3 -> H.
                                     ; If moving a 16-bit address:
                                     ;   LXI a
                                     ; Move a(lb:hb) data into the register pair RP address.

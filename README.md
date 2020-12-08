@@ -1,11 +1,22 @@
 --------------------------------------------------------------------------------
 # Arduino Notes
 
-To do:
-+ I'm getting a warning message when compiling.
-To remove the warning, deleting the version of the library you currently have installed and then installing version 1.0.0:
-https://github.com/NorthernWidget/DS3231/archive/1.0.0.zip
-Reference: https://forum.arduino.cc/index.php?topic=477214.0
+Board compare chart
+````
+                                                                    Program  Dynamic
+Name       Processor   Operating/Input  CPU   Analog  Digital  EEPROM  SRAM  Flash  USB   UART
+                        Voltage        Speed  In/Out  IO/PWM    [kB]   [kB]  [kB]
+Uno        ATmega328P  5 V / 7-9 V     16 MHz   6/0   14/6        1      2    32   Regular  1
+Nano       ATmega328P  5 V / 7-9 V     16 MHz   8/0   14/6        1      2    32   Mini     1
+Mega 2560  ATmega2560  5 V / 7-12 V    16 MHz  16/0   54/15       4      8   256   Square   4
+Due        ATSAM3X8E   3.3 V / 7-12 V  84 MHz  12/2   54/12       -     96   512   Micro    4
+NodeMCU    ESP8266     3.3 V / 7-12 V  80 MHz   1/0    9/9      512     64     4   Mini     2
+Blue Pill  STM32L0 ARM® 2.6V ~ 3.6V    72 MHz                           20    64
+````
+
+Another 32 bit board is the STM32, STM32L031K6, STM32L0 ARM® MCU 32-Bit
++ Basic board: STM32F103C.
++ STM32 [Beginner's Guide video](https://www.youtube.com/watch?v=EaZuKRSvwdo)
 
 --------------------------------------------------------------------------------
 +++ Hardware case component mounting tips.
@@ -64,22 +75,6 @@ One other note, I have the cheap cheap ones, I set my IDE to use “Processor AT
 
 + pulse-width modulate (PWM), example: control brightness of an LED using analogWrite(x) to an LED on a digital PWM pin.
 https://www.allaboutcircuits.com/projects/using-the-arduinos-analog-io/
-
-````
-                                                                    Program  Dynamic
-Name       Processor   Operating/Input  CPU   Analog  Digital  EEPROM  SRAM  Flash  USB   UART
-                        Voltage        Speed  In/Out  IO/PWM    [kB]   [kB]  [kB]
-Uno        ATmega328P  5 V / 7-9 V     16 MHz   6/0   14/6        1      2    32   Regular  1
-Nano       ATmega328P  5 V / 7-9 V     16 MHz   8/0   14/6        1      2    32   Mini     1
-Mega 2560  ATmega2560  5 V / 7-12 V    16 MHz  16/0   54/15       4      8   256   Square   4
-Due        ATSAM3X8E   3.3 V / 7-12 V  84 MHz  12/2   54/12       -     96   512   Micro    4
-NodeMCU    ESP8266     3.3 V / 7-12 V  80 MHz   1/0    9/9      512     64     4   Mini     2
-Blue Pill  STM32L0 ARM® 2.6V ~ 3.6V    72 MHz                           20    64
-````
-
-Another 32 bit board is the STM32, STM32L031K6, STM32L0 ARM® MCU 32-Bit
-+ Basic board: STM32F103C.
-+ STM32 [Beginner's Guide video](https://www.youtube.com/watch?v=EaZuKRSvwdo)
 
 USB cable wiring:
 + Red: 5V+
