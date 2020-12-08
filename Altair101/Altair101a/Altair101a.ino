@@ -18,16 +18,16 @@
 
   Print only the processing registers.
   + output 30...43
-+ regA:   1 = 001 = 00000001
-+ regB:   2 = 002 = 00000010  regC:   3 = 003 = 00000011
-+ regD:   4 = 004 = 00000100  regE:   5 = 005 = 00000101
-+ regH:   6 = 006 = 00000110  regL:   7 = 007 = 00000111
+  + regA:   1 = 001 = 00000001
+  + regB:   2 = 002 = 00000010  regC:   3 = 003 = 00000011
+  + regD:   4 = 004 = 00000100  regE:   5 = 005 = 00000101
+  + regH:   6 = 006 = 00000110  regL:   7 = 007 = 00000111
 
   Download byte by byte.
-+    Address  Data  Binary   Hex Octal Decimal
-++ Byte# 1900, Byte: 00101100 02c 054    44
+  +    Address  Data  Binary   Hex Octal Decimal
+  ++ Byte# 1900, Byte: 00101100 02c 054    44
 
-  
+
   Work on basic interactivity updates.
   + Test with various baud rates.
   ++ Tested: 9600, testing 57600.
@@ -624,6 +624,10 @@ byte altair_in(byte portDataByte) {
 }
 
 // -----------------------------------------------------------------------------
+// Output
+
+uint16_t hlValue;
+
 void altair_out(byte portDataByte, byte regAdata) {
   // Opcode: out <port>
   // Called from: cpu_OUT() { altair_out(MEM_READ(regPC), regA); ... }
@@ -653,6 +657,105 @@ void altair_out(byte portDataByte, byte regAdata) {
       Serial.print(regAdata);         // Write regAdata to serial port.
       Serial.println(F(":"));
       break;
+    // ---------------------------------------
+    // Echo processor values.
+    case 30:
+      Serial.println("");
+      Serial.print(F(" > Register B = "));
+      printData(regB);
+      break;
+      case 31:
+      Serial.println("");
+      Serial.print(F(" > Register C = "));
+      printData(regC);
+      break;
+      case 32:
+      Serial.println("");
+      Serial.print(F(" > Register D = "));
+      printData(regD);
+      break;
+      case 33:
+      Serial.println("");
+      Serial.print(F(" > Register E = "));
+      printData(regE);
+      break;
+      case 34:
+      Serial.println("");
+      Serial.print(F(" > Register H = "));
+      printData(regH);
+      break;
+      case 35:
+      Serial.println("");
+      Serial.print(F(" > Register L = "));
+      printData(regL);
+      break;
+      case 40:
+      Serial.println("");
+      Serial.print(F(" > Register B:C = "));
+      sprintf(charBuffer, "%3d", regB);
+      Serial.print(charBuffer);
+      Serial.print(F(":"));
+      sprintf(charBuffer, "%3d", regC);
+      Serial.print(charBuffer);
+      Serial.print(F(", Data: "));
+      hlValue = regB * 256 + regC;
+      printData(MREAD(hlValue));
+      // printOctal(theByte);
+      // printByte(theByte);
+      break;
+      case 41:
+      Serial.println("");
+      Serial.print(F(" > Register D:E = "));
+      sprintf(charBuffer, "%3d", regD);
+      Serial.print(charBuffer);
+      Serial.print(F(":"));
+      sprintf(charBuffer, "%3d", regE);
+      Serial.print(charBuffer);
+      Serial.print(F(", Data: "));
+      hlValue = regD * 256 + regE;
+      printData(MREAD(hlValue));
+      break;
+      case 36:
+      Serial.println("");
+      Serial.print(F(" > Register H:L = "));
+      sprintf(charBuffer, "%3d", regH);
+      Serial.print(charBuffer);
+      Serial.print(F(":"));
+      sprintf(charBuffer, "%3d", regL);
+      Serial.print(charBuffer);
+      Serial.print(F(", Data: "));
+      hlValue = regH * 256 + regL;
+      printData(MREAD(hlValue));
+      break;
+      case 37:
+      Serial.println("");
+      Serial.print(F(" > Register A = "));
+      printData(regA);
+      break;
+    case 38:
+#ifdef LOG_MESSAGES
+      Serial.println("");
+#endif
+      Serial.println(F("------------"));
+      printRegisters();
+      Serial.print(F("------------"));
+      break;
+    case 39:
+#ifdef LOG_MESSAGES
+      Serial.println("");
+#endif
+      Serial.println(F("------------"));
+      cpucore_i8080_print_registers();
+      // printRegisters();
+      // printOther();
+      Serial.print(F("------------"));
+      break;
+    case 43:
+      Serial.println("");
+      cpucore_i8080_print_registers();
+      // printOther();
+      break;
+    // ---------------------------------------
     default:
       Serial.print(F("- Error, output port is not available: "));
       Serial.println(portDataByte);
@@ -675,6 +778,31 @@ void setAddressData(uint16_t addressWord, byte dataByte) {
 #endif
   host_set_addr_leds(addressWord);
   host_set_data_leds(dataByte);
+}
+
+void printRegisters() {
+  Serial.print(F("+ regA: "));
+  printData(regA);
+  Serial.println("");
+  // ---
+  Serial.print(F("+ regB: "));
+  printData(regB);
+  Serial.print(F("  regC: "));
+  printData(regC);
+  Serial.println("");
+  // ---
+  Serial.print(F("+ regD: "));
+  printData(regD);
+  Serial.print(F("  regE: "));
+  printData(regE);
+  Serial.println("");
+  // ---
+  Serial.print(F("+ regH: "));
+  printData(regH);
+  Serial.print(F("  regL: "));
+  printData(regL);
+  // ---
+  Serial.println("");
 }
 
 // -----------------------------------------------------------------------------
