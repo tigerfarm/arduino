@@ -1,10 +1,6 @@
                             ; --------------------------------------
                             ; Test INR and DCR.
                             ; --------------------------------------
-            jmp Start       ; Jump to bypass the halt.
-    Halt:
-            hlt             ; The program will halt at each iteration, after the first.
-                            ; --------------------------------------
     Start:
                             ; --------------------------------------
             mvi a,1         ; Initialize the register.
@@ -51,6 +47,11 @@
                             ; + regH:   6 = 006 = 00000110  regL:   7 = 007 = 00000111
                             ; 
                             ; --------------------------------------
-            NOP
-            jmp Halt        ; Jump back to the early halt command.
+            mvi a,'\n'
+            out 3
+            mvi a,'\r'
+            out 3
+            hlt
+            jmp Start
+                            ; --------------------------------------
             end

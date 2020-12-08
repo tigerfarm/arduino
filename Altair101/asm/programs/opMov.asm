@@ -1,13 +1,7 @@
                             ; --------------------------------------
                             ; Test MOV using serial monitor output.
                             ; --------------------------------------
-            jmp Start       ; Jump to bypass the halt.
-    Halt:
-            hlt             ; The program will halt at each iteration, after the first.
-                            ; --------------------------------------
     Start:
-                            ; --------------------------------------
-                            ; Test MOV with register A.
             mvi a,0         ; Set initial register A value.
             inr a
             mov b,a         ; Move register A content to each other registers.
@@ -154,6 +148,11 @@
                         ; + regH:  42 = 052 = 00101010  regL:  42 = 052 = 00101010
                         ; 
                         ; --------------------------------------
-            NOP
-            jmp Halt    ; Jump back to the early halt command.
+            mvi a,'\n'
+            out 3
+            mvi a,'\r'
+            out 3
+            hlt         ; The program will halt at each iteration, after the first.
+            jmp Start   ; Jump back to the early halt command.
+                        ; --------------------------------------
             end

@@ -8,39 +8,12 @@
                         ; Note, register A (regA) remains the same after the compare.
                         ; Also, compare M, data value at address H:L, to register A.
                         ; 
-                        ; Following is a sample successful run.
-                        ; + Control, Run.
-                        ; + runProcessor()
-                        ; =BCDEHLMS
-                        ; >BCDEHLMS
-                        ; <BCDEHLMS
-                        ; + HLT, program halted.
-                        ; + runProcessorWait()
-                        ; 
-                        ; "=" tests compare when registers are equal.
-                        ; ">" tests compare when registers are greater than regA.
-                        ; "<" tests compare when registers are less than regA.
-                        ;
                         ; --------------------------------------
-                        ;
-            jmp Test    ; Jump to start of the test.
-                        ; --------------------------------------
-    Error:
-            mvi a,'-'
-            out 3
-            mvi a,'E'
-            out 3
-            out 39      ; Print the registers and other system values.
-    Halt:
-            hlt         ; The program will halt at each iteration, after the first.
-                        ; --------------------------------------
-    Test:
+    Start:
             mvi a,'='
             out 3
-                        ; 
                         ; --------------------------------------
                         ; Test when registers are equal.
-                        ; --------------------------------------
             mvi a,'B'
             out 3
             mvi a,73    ; Initialize register A for comparison.
@@ -128,7 +101,7 @@
                         ; Test where the compare value, is the data value at memory location M(H:L).
             mvi a,'M'
             out 3
-            mvi a,c3h   ; Initialize register A for comparison. c3h is 
+            mvi a,62    ; Equal: Initialize register A for comparison with data in address 0, which is 62, 00111110. 
             mvi h,0     ; hlValue = regH * 256 + regL;
             mvi l,0     ; Register M address data (opcode jmp) = 11 000 011 = c3h = 195
             cmp m       ; L = A. Zero bit flag is true. Carry bit is false.
@@ -146,6 +119,8 @@
                         ; --------------------------------------
                         ; Test where the register data > regA.
             mvi a,'\n'
+            out 3
+            mvi a,'\r'
             out 3
             mvi a,'>'
             out 3
@@ -237,7 +212,7 @@
                         ; Test where the compare value, is the data value at memory location M(H:L).
             mvi a,'M'
             out 3
-            mvi a,c1h   ; Initialize register A for comparison to c3h, which is 
+            mvi a,60    ; Lower: Initialize register A for comparison with data in address 0, which is 62, 00111110. 
             mvi h,0     ; hlValue = regH * 256 + regL;
             mvi l,0     ; Register M address data (opcode jmp) = 11 000 011 = c3h = 195
             cmp m       ; L > A. Zero bit flag is true. Carry bit is false.
@@ -256,6 +231,8 @@
                         ; --------------------------------------
                         ; Test where the register data < regA.
             mvi a,'\n'
+            out 3
+            mvi a,'\r'
             out 3
             mvi a,'<'
             out 3
@@ -347,7 +324,7 @@
                         ; Test where the compare value, is the data value at memory location M(H:L).
             mvi a,'M'
             out 3
-            mvi a,c6h   ; Initialize register A for comparison to c3h, which is 
+            mvi a,65    ; Higher: Initialize register A for comparison with data in address 0, which is 62, 00111110. 
             mvi h,0     ; hlValue = regH * 256 + regL;
             mvi l,0     ; Register M address data (opcode jmp) = 11 000 011 = c3h = 195
             cmp m       ; L < A. Zero bit flag is true. Carry bit is false.
@@ -363,7 +340,33 @@
             mvi a,'S'
             out 3
                         ; --------------------------------------
-            NOP
-            jmp Halt    ; Jump back to the early halt command.
+            mvi a,'\n'
+            out 3
+            mvi a,'\r'
+            out 3
+            hlt         ; The program will halt at each iteration, after the first.
+            jmp Start   ; Jump to start of the test.
+                        ; --------------------------------------
+    Error:
+            mvi a,'-'
+            out 3
+            mvi a,'E'
+            out 3
+            out 39      ; Print the registers and other system values.
+    Halt:
+            hlt         ; The program will halt at each iteration, after the first.
                         ; --------------------------------------
             end
+                        ; --------------------------------------
+                        ; Successful run:
++ Ready to receive command.
++ runProcessor()
+=BCDEHLMS
+>BCDEHLMS
+<BCDEHLMS
+                        ; "=" tests compare when registers are equal.
+                        ; ">" tests compare when registers are greater than regA.
+                        ; "<" tests compare when registers are less than regA.
+                        ;
+++ HALT, host_read_status_led_WAIT() = 0
+                        ; --------------------------------------

@@ -132,10 +132,12 @@ opCmp.asm               CMP : Compare register A with the other registers: B,C,D
                         + Program has 600+ bytes (16 bit address) which is well over 256 bytes (8 bit address), and works fine.
 opCallRetShort.asm      CALL : words with label or an immediate number address.
                         RET : returns properly.
+
 opCallRet.asm           CALL and RET : work fine.
                         Single call and return.
 opCallMultiple.asm      Multiple call and returns, call with calls in the call. I.E. stacked calls.
                         Pop : Pop a register pair (RP) from the stack: B:C, D:E, H:L. To do, pop flags.
+
 opLdaSta.asm            STA a: Store register A data to an address a(hb:lb).
                         LDA a: Load register A with the data at the address a(hb:lb).
                         STA and LDA : work with an address number and label.

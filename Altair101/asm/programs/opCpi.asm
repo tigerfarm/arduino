@@ -9,45 +9,6 @@
                             ;
                             ; Note, register A remain the same after the compare.
                             ;
-                            ; Successful run indicator: 1S2S.
-                            ;   "1S": Test 1 was success
-                            ;   "2S": Test 2 was success
-                            ; + Control, Run.
-                            ; + runProcessor()
-                            ; 1S2S3S4S
-                            ; ++ Success: CPI
-                            ; + HLT, program halted.
-                            ; + runProcessorWait()
-                            ; 
-                            ; --------------------------------------
-            jmp Start       ; Jump to start of the test.
-                            ; --------------------------------------
-    iValue  equ     42      ; Label immediate to test with.
-    Ten     equ     10      ; For comparing.
-                            ; --------------------------------------
-    Error:
-            mvi a,'\n'
-            out 3
-            mvi a,'-'       ; Move the byte value of "-" to register A.
-            out 3           ; Output register A content to the serial port (serial monitor).
-            mvi a,'-'
-            out 3
-            mvi a,' '
-            out 3
-            mvi a,'E'
-            out 3
-            mvi a,'r'
-            out 3
-            mvi a,'r'
-            out 3
-            mvi a,'o'
-            out 3
-            mvi a,'r'
-            out 3
-            out 39          ; Print the registers and other system values.
-            hlt             ; Halt after the error.
-            jmp Start
-                            ;
                             ; --------------------------------------
     Start:
             mvi a,'1'       ; Test 1, immediate number = register A.
@@ -151,6 +112,8 @@
                             ; --------------------------------------
             mvi a,'\n'
             out 3
+            mvi a,'\r'
+            out 3
             mvi a,'+'       ; Move the byte value of "+" to register A.
             out 3           ; Output register A content to the serial port (serial monitor).
             mvi a,'+'
@@ -182,6 +145,10 @@
             mvi a,'I'
             out 3
                             ; --------------------------------------
+            mvi a,'\n'
+            out 3
+            mvi a,'\r'
+            out 3
             hlt
             jmp Start
                             ; --------------------------------------
@@ -191,6 +158,45 @@
             add b
             out 3
             ret
-                            ; 
+                            ; --------------------------------------
+    iValue  equ     42      ; Label immediate to test with.
+    Ten     equ     10      ; For comparing.
+                            ; --------------------------------------
+    Error:
+            mvi a,'\n'
+            out 3
+            mvi a,'\r'
+            out 3
+            mvi a,'-'       ; Move the byte value of "-" to register A.
+            out 3           ; Output register A content to the serial port (serial monitor).
+            mvi a,'-'
+            out 3
+            mvi a,' '
+            out 3
+            mvi a,'E'
+            out 3
+            mvi a,'r'
+            out 3
+            mvi a,'r'
+            out 3
+            mvi a,'o'
+            out 3
+            mvi a,'r'
+            out 3
+            out 39          ; Print the registers and other system values.
+            hlt             ; Halt after the error.
+            jmp Start
                             ; --------------------------------------
             end
+                            ; --------------------------------------
+                            ; Successful run indicator: 1S2S.
+                            ;   "1S": Test 1 was success
+                            ;   "2S": Test 2 was success
++ Download complete.
++ r, RUN.
++ runProcessor()
+1S2S3S4S 5S6S7S
+++ Success: CPI
+++ HALT, host_read_status_led_WAIT() = 0
+                            ; 
+                            ; --------------------------------------
