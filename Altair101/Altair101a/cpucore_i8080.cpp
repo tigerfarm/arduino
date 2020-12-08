@@ -144,7 +144,6 @@ inline void MEM_WRITE_WORD(uint16_t memoryAddress, uint16_t byteValue) {
     host_set_addr_leds(memoryAddress);
     b = byteValue & 255;
     MWRITE(memoryAddress, b);
-    // for (uint8_t i = 0; i < 5; i++) asm("NOP");  // If you want the same as Altair 8800.
     memoryAddress++;
     host_set_addr_leds(memoryAddress);
     b = byteValue / 256;

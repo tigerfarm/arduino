@@ -16,6 +16,18 @@
   ---------------------------------------------------------
   Next:
 
+  Print only the processing registers.
+  + output 30...43
++ regA:   1 = 001 = 00000001
++ regB:   2 = 002 = 00000010  regC:   3 = 003 = 00000011
++ regD:   4 = 004 = 00000100  regE:   5 = 005 = 00000101
++ regH:   6 = 006 = 00000110  regL:   7 = 007 = 00000111
+
+  Download byte by byte.
++    Address  Data  Binary   Hex Octal Decimal
+++ Byte# 1900, Byte: 00101100 02c 054    44
+
+  
   Work on basic interactivity updates.
   + Test with various baud rates.
   ++ Tested: 9600, testing 57600.
@@ -731,9 +743,13 @@ void runProcessor() {
   Serial.println(F("+ runProcessor()"));
   if (SERIAL_IO_TERMINAL || SERIAL_IO_VT100) {
     // Terminal mode: case 3: (Crtl+c) instead of case 's'.
-    stopByte = 3;
+    // stopByte = 3;
     // Terminal mode: case 26 (Crtl+z) instead of case 'R'.
-    resetByte = 26;
+    // resetByte = 26;
+    //
+    // Seem better to use s and R. I'll test more to confirm.
+    stopByte = 's';
+    resetByte = 'R';
   } else {
     stopByte = 's';
     resetByte = 'R';
@@ -808,21 +824,23 @@ void loadProgram() {
           MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
           MWRITE( cnt++, B00010110 & 0xff);  // ++ opcode:mvi:00010110:d:080h
           MWRITE( cnt++, B10000000 & 0xff);  // ++ immediate:080h:128
-          MWRITE( cnt++, B00000001 & 0xff);  // ++ opcode:lxi:00000001:b:500h
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:500h:0  ; Speed, lower number, faster.
-          MWRITE( cnt++, B00000101 & 0xff);  // ++ hb:5                   Changed from 101, now faster for Serial demo.
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d ---------------- Label: Begin, address 8
           MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
           MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          // Only blink address hb value 3 times(ldax d), then check for input and reset register d.
-          MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:0ffh
-          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:2:2            USB serial input.
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00001001 & 0xff);  // ++ opcode:dad:00001001:b
+          MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:2
+          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:2:2
           MWRITE( cnt++, B10101010 & 0xff);  // ++ opcode:xra:10101010:d
           MWRITE( cnt++, B00001111 & 0xff);  // ++ opcode:rrc:00001111
           MWRITE( cnt++, B01010111 & 0xff);  // ++ opcode:mov:01010111:d:a
           MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Begin
-          MWRITE( cnt++, B00001000 & 0xff);  // ++ lb:Begin:8            ----------------
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0                     Address 23
+          MWRITE( cnt++, B00000101 & 0xff);  // ++ lb:Begin:5
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
           break;
         case 'k':
           loadProgramName = "Kill the Bit";
@@ -1049,7 +1067,7 @@ void processWaitSwitch(byte readByte) {
       }
       break;
     case 'X':
-      Serial.print(F("+ y, EXAMINE NEXT: "));
+      Serial.print(F("+ X, EXAMINE NEXT: "));
       regPC = regPC + 1;
       Serial.println(regPC);
       setAddressData(regPC, MREAD(regPC));
