@@ -586,12 +586,90 @@ WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8  A7  A6  A5  A4  A3  A2  A1  A0
 + Ready to receive command.
 ````
 
+Running from command line.
+````
++ Initialized: statusByte, programCounter & curProgramCounter, dataByte.
++ Front panel LED lights are initialized.
+INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
+ .    *    .  *   .   .    .    *   .         .   .    .   .   .    .   .   .
+WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
+ *    .      .   .   .   .   .   .   .   .    .   .    .   .   .    .   .   .
+            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
+             v   v   v   v   v   v   v   v    v   v    v   v   v    v   v   v
+ ------ 
++ Ready to receive command.
++++ Altair 101a initialized.
++ Starting the processor loop.
+
++ v, VT100 escapes are disabled and block cursor on.
++ w, USB serial output is disabled.
+
++ l, load a sample program.
++ m, load: MVI testing to the setting of registers.
++ r, RUN.
+
++ runProcessor()
+++ HALT, host_read_status_led_WAIT() = 0
+
++ i: Information.
+++ CPU: Mega 2560
+++ Memory size: 2048
+++ host_read_status_led_WAIT()=1
+++ host_read_status_led_HLDA()=0
+++ host_read_status_led_INTE()=0
+++ host_read_status_led_HLTA()=8
+++ PC     14 = 00000000:00001110 = 000E = [76 C3 00] Program pointer
+++ SP      0 = 00000000:00000000 = 0000 = [3E 01 06 02 0E 03 16 04] Stack pointer
+++ regS  = 00 = ........ Status byte
++ Front panel display Status byte,  fpStatusByte:    138 = 212 = 10001010
++ Front panel display Data byte,    fpDataByte:      118 = 166 = 01110110
++ Front panel display Address word, fpAddressWord:    14 = 00000000:00001110
++ regA:   1 = 001 = 00000001
++ regB:   2 = 002 = 00000010  regC:   3 = 003 = 00000011
++ regD:   4 = 004 = 00000100  regE:   5 = 005 = 00000101
++ regH:   6 = 006 = 00000110  regL:   7 = 007 = 00000111
+------------
+++ LED_IO = 0 SERIAL_IO_VT100 = 0 SERIAL_IO_IDE = 0
+
++ D, Download mode.
++ Download mode: ready to receive a program.
+...
++ -------------------------------------
++ Write to the serial port, the program file: p1.bin:
++ Serial port is open.
++ Write to serial port. Number of bytes: 85 in the file: p1.bin
+00110001 11111111 00000000 00111110 00000000 00110010 01010100 00000000 11001101 00101111 
+00000000 00000110 00000000 00001110 00000000 00001010 11010011 00100101 00010110 00000000 
+00011110 00001111 00011010 11010011 00100101 11001101 00101111 00000000 00010110 00000100 
+00011110 00000000 00011010 11010011 00100101 00111110 00001101 11010011 00000011 00111110 
+00001010 11010011 00000011 01110110 11000011 00000011 00000000 00111110 00001101 11010011 
+00000011 00111110 00001010 11010011 00000011 00111110 00101011 11010011 00000011 00111110 
+00101011 11010011 00000011 00111110 00100000 11010011 00000011 00111010 01010100 00000000 
+00111100 00110010 01010100 00000000 11001101 01001110 00000000 11001001 00000110 00110000 
+10000000 11010011 00000011 11001001 11111111 
++ Serial port is closed.
+
++ Write completed.
+> 
++ -------------------------------------
+...
+++ Byte#     79, Byte: 00110000 030 060    48
+++ Byte#     80, Byte: 10000000 080 200   128
+++ Byte#     81, Byte: 11010011 0d3 323   211
+++ Byte#     82, Byte: 00000011 003 003     3
+++ Byte#     83, Byte: 11001001 0c9 311   201
+++ Byte#     84, Byte: 11111111 0ff 377   255
++ Download complete.
++ r, RUN.
++ runProcessor()
+
+++ 1
+ > Register A =  49 = 061 = 00110001
+ > Register A =  10 = 012 = 00001010
+++ 2
+ > Register A =   0 = 000 = 00000000
+++ HALT, host_read_status_led_WAIT() = 0
+````
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 Cheers
-
-Sketch uses 47102 bytes (146%) of program storage space. Maximum is 32256 bytes.
-Sketch uses 46572 bytes (144%) of program storage space. Maximum is 32256 bytes.
-Sketch uses 46054 bytes (142%) of program storage space. Maximum is 32256 bytes.
-            32256
-            14000

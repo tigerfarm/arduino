@@ -109,7 +109,8 @@ public class asmUpload {
             return;
         }
         System.out.println("+ Serial port is open.");
-        // System.out.println("++ Write out binary file: " + theReadFilename);
+        //
+        System.out.println("++ Load the program binary file: " + theReadFilename);
         int theLength = 0;
         byte bArray[] = null;
         try {
@@ -124,7 +125,6 @@ public class asmUpload {
             System.out.println(ioe.toString());
         }
         System.out.println("+ Write to serial port. Number of bytes: " + theLength + " in the file: " + theReadFilename);
-        //
         Integer i;
         int tenCount = 0;
         try {
