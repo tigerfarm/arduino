@@ -138,7 +138,6 @@ opCallRetLong.asm       CALL : words with label or an immediate number address.
                         RET : returns properly.
 opCallRetMultiple.asm   Multiple call and returns, call with calls in the call. I.E. stacked calls.
                         Pop : Pop a register pair (RP) from the stack: B:C, D:E, H:L. To do, pop flags.
-
 opLdaSta.asm            STA a: Store register A data to an address a(hb:lb).
                         LDA a: Load register A with the data at the address a(hb:lb).
                         STA and LDA : work with an address number and label.
@@ -147,6 +146,7 @@ opLdax.asm              LDAX : Load register A with data value from address B:C 
                         Procedures: PrintTestCounter and PrintDigit.
                         Increment a counter variable (DB).
                         Uses opcodes: LDAX, MVI, MOV, LDA, STA, OUT, HLT, CALL and RET.
+
 opInSwitches.asm        IN : Get and process a data byte from sense switches.
                         HLT : is used to stop the process and wait for the switches to be set.
                         RUN switch : used to continue the process.

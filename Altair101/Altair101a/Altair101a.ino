@@ -667,58 +667,32 @@ void altair_out(byte portDataByte, byte regAdata) {
       Serial.print(F(" > Register B = "));
       printData(regB);
       break;
-      case 31:
+    case 31:
       Serial.println("");
       Serial.print(F(" > Register C = "));
       printData(regC);
       break;
-      case 32:
+    case 32:
       Serial.println("");
       Serial.print(F(" > Register D = "));
       printData(regD);
       break;
-      case 33:
+    case 33:
       Serial.println("");
       Serial.print(F(" > Register E = "));
       printData(regE);
       break;
-      case 34:
+    case 34:
       Serial.println("");
       Serial.print(F(" > Register H = "));
       printData(regH);
       break;
-      case 35:
+    case 35:
       Serial.println("");
       Serial.print(F(" > Register L = "));
       printData(regL);
       break;
-      case 40:
-      Serial.println("");
-      Serial.print(F(" > Register B:C = "));
-      sprintf(charBuffer, "%3d", regB);
-      Serial.print(charBuffer);
-      Serial.print(F(":"));
-      sprintf(charBuffer, "%3d", regC);
-      Serial.print(charBuffer);
-      Serial.print(F(", Data: "));
-      hlValue = regB * 256 + regC;
-      printData(MREAD(hlValue));
-      // printOctal(theByte);
-      // printByte(theByte);
-      break;
-      case 41:
-      Serial.println("");
-      Serial.print(F(" > Register D:E = "));
-      sprintf(charBuffer, "%3d", regD);
-      Serial.print(charBuffer);
-      Serial.print(F(":"));
-      sprintf(charBuffer, "%3d", regE);
-      Serial.print(charBuffer);
-      Serial.print(F(", Data: "));
-      hlValue = regD * 256 + regE;
-      printData(MREAD(hlValue));
-      break;
-      case 36:
+    case 36:
       Serial.println("");
       Serial.print(F(" > Register H:L = "));
       sprintf(charBuffer, "%3d", regH);
@@ -730,7 +704,7 @@ void altair_out(byte portDataByte, byte regAdata) {
       hlValue = regH * 256 + regL;
       printData(MREAD(hlValue));
       break;
-      case 37:
+    case 37:
       Serial.println("");
       Serial.print(F(" > Register A = "));
       printData(regA);
@@ -752,6 +726,32 @@ void altair_out(byte portDataByte, byte regAdata) {
       // printRegisters();
       // printOther();
       Serial.print(F("------------"));
+      break;
+    case 40:
+      Serial.println("");
+      Serial.print(F(" > Register B:C = "));
+      sprintf(charBuffer, "%3d", regB);
+      Serial.print(charBuffer);
+      Serial.print(F(":"));
+      sprintf(charBuffer, "%3d", regC);
+      Serial.print(charBuffer);
+      Serial.print(F(", Data: "));
+      hlValue = regB * 256 + regC;
+      printData(MREAD(hlValue));
+      // printOctal(theByte);
+      // printByte(theByte);
+      break;
+    case 41:
+      Serial.println("");
+      Serial.print(F(" > Register D:E = "));
+      sprintf(charBuffer, "%3d", regD);
+      Serial.print(charBuffer);
+      Serial.print(F(":"));
+      sprintf(charBuffer, "%3d", regE);
+      Serial.print(charBuffer);
+      Serial.print(F(", Data: "));
+      hlValue = regD * 256 + regE;
+      printData(MREAD(hlValue));
       break;
     case 43:
       Serial.println("");
@@ -1645,7 +1645,7 @@ void runDownloadProgram() {
 // -----------------------------------------------------------------------------
 void setup() {
   // Speed for serial read, which matches the sending program.
-  Serial.begin(57600);         // 9600 19200 57600 115200
+  Serial.begin(115200);         // 9600 19200 57600 115200
   delay(2000);
   Serial.println(); // Newline after garbage characters.
   Serial.println(F("+++ Setup."));
