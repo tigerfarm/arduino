@@ -67,7 +67,7 @@
 0x43  1           MOV B,E    B <- E     
 0x44  1           MOV B,H    B <- H     
 0x45  1           MOV B,L    B <- L     
-0x46  1           MOV B,M    B <- (HL)  
+0x46  1           MOV B,M    B <- (HL)
 0x47  1           MOV B,A    B <- A     
 0x48  1           MOV C,B    C <- B     
 0x49  1           MOV C,C    C <- C     
@@ -122,8 +122,8 @@
 0x7a  1           MOV A,D    A <- D     
 0x7b  1           MOV A,E    A <- E     
 0x7c  1           MOV A,H    A <- H     
-0x7d  1           MOV A,L    A <- L     
-0x7e  1           MOV A,M    A <- (HL)  
+0x7d  1           MOV A,L    A <- L
+0x7e  1           MOV A,M    A <- (HL)
 0x7f  1           MOV A,A    A <- A     
 0x80  1 Z,S,P,CY  ADD B      A <- A + B 
 0x81  1 Z,S,P,CY  ADD C      A <- A + C 

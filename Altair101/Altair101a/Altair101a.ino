@@ -2,13 +2,13 @@
 /*
   Altair 101a Processor program
 
-  + Serial interactivity
-  ++ Using the Arduino IDE monitor USB serial port.
-  ++ Or VT100 terminal.
+  + Serial interactivity through the default Arduino USB serial port.
+  ++ Testing using the Arduino IDE serial monitor and Mac VT100 terminal.
+  ++ Front panel and command line running of programs.
   + Uses David Hansel's Altair 8800 Simulator code to process machine instructions.
   ++ cpucore_i8080.cpp and cpucore_i8080.h.
 
-  Differences to the origanal:
+  Differences to the original Altair 8800:
   + HLT goes into STOP state which allows RUN to restart the process from where it halted.
   + When SINGLE STEP read and write, I've chosen to show the actual data value,
     rather than having all the data lights on, which is what the original Altair 8800 does.
@@ -16,37 +16,69 @@
   ---------------------------------------------------------
   Next:
 
-  Work through sample programs to confirm machine instruction processing is correct.
+  Test M in opMov.asm and opInvrDcr.asm, to fix opInSwitches.asm
+  + inr m
+  + dcr m
+  + mov a,m ... and the other registers.
 
+  Toggle address switches when in WAIT mode such as after a HLT operation.
+
+  Work through sample programs to confirm machine instruction processing is correct.
   Work on basic interactivity updates.
-  + Test with various baud rates.
-  ++ Tested: 9600, 57600, 115200.
-  + Focus on the favorite, VT100 mode.
+  + Tested with various baud rates: 9600, 57600, 115200.
+  + Focusing on the favorite, VT100 termial mode.
+
+  Try using Serial2 for output.
+  + Sample instruction to output regA to Serial2: OUT 2
+  ++ Or use the same port number as 88-2SIO DATA PORT in pGalaxy80.asm.
+  + Programs could output to Serial2, leaving Serial for system messages.
+  + Would need a command option to open and close Serial2,
+  ++ Because the assembler uploads using Serial2. It opens it, uses it, then closes it.
+  ++ Automatically close Serial2 for output when entering download mode.
+  ++ Automatically open Serial2 for output when exiting download mode.
+
+  Be interesting to get pGalaxy80.asm to compile and run. Or, just to run.
+  + Try loading and running the BIN file.
+  + Try compiling and running sections of the program.
+SIOCTL  EQU 10H   ;88-2SIO CONTROL PORT
+SIODAT  EQU 11H   ;88-2SIO DATA PORT
+IN   SIOCTL
+OUT  SIODAT
 
   +++ Integration steps to merge this code with Processor.ino.
-
   + Continue use testing Altair101a.
   + Continue adding Processor features into Altair101a.
   ++ Add: ability to read and write program byte files from a micro SD card.
   ++ Added: ability to download program bytes from asm.
   ++ Upload Altair101a to the Altair 101 machine and test with lights.
-  ++ Code updates to handle hardware toggles and switches in Altair101a.
+  ++ Altair101a code updates to handle hardware toggles and switches.
 
   After Altair101a works and processes programs,
   + Add the other features: player, clock, timer, and counter.
 
   ---------------------------------------------------------
-  Other Nexts:
+  Hex programs:
 
   Try loading Kill the Bit from: prog_games.cpp.
   If that works, can load Basic from: prog_basic.cpp.
 
-  + When single stepping, M1 stays on but should be off, when HLT is executed.
-  + Should be on: MEMR, HLTA, WO.
-  + On the Altair 101, only HLTA light is on.
+  From prog_games.cpp, program hex bytes:
+    static const byte PROGMEM killbits[] = {
+    0x21, 0x00, 0x00, 0x16, 0x80, 0x01, 0x0E, 0x00, 0x1A, 0x1A, 0x1A, 0x1A, 0x09, 0xD2, 0x08, 0x00,
+    0xDB, 0xFF, 0xAA, 0x0F, 0x57, 0xC3, 0x08, 0x00};
+    
+  prog_basic.cpp, as hex bytes for 4K Basic.
+    const byte PROGMEM basic4k[] = {
+    0xae, 0xae, ... 0x00};
+  + Will need to search Hex codes to see if interupt is required.
 
-  + In RUN mode, consider having all data lights on, same as the Altair 8800.
+  ---------------------------------------------------------
+  Other Nexts:
 
+  Implement interupt processing.
+  + opcodes: ei adn di.
+  + This is required when I try to run complex programs such as CPM, maybe Basic.
+  
   + Prevent lockup when using PUSH A, i.e. PUSH called before setting SP.
   ++ In the PUSH process, if SP < 4, error.
 
@@ -66,32 +98,6 @@
     Example:  Serial.print(F("\033[H\033[4B\033[2C")); // Print on: row 4, column 2.
     Esc[r;cH  Move cursor to a specific row(r) and column(c).
     Example:  Serial.print(F("\033[4;2H*"));  // Print on: row 4, column 2 and print "*".
-
-  ---------------------------------------------------------
-  Links
-
-  dhansel / Altair8800
-    https://github.com/dhansel/Altair8800
-  Sample programs:
-    https://altairclone.com/downloads/
-  Arduino Due
-    https://www.adwaterandstir.com
-  Download full-sized images and files:
-    https://www.vintagecomputer.net/MITS/software/
-  Kill the Bit hex program listing:
-    https://altairclone.com/downloads/front_panel/KILLBITS.ASM Assembler listing
-    https://altairclone.com/downloads/front_panel/KILLBITS.PRN Assembler listing with byte information
-    https://altairclone.com/downloads/front_panel/KILLBITS.HEX Hex of the bytes
-      :100000002100001680010E001A1A1A1A09D20800DF
-      :08001000DBFFAA0F57C3080033
-      :0000000000
-  From prog_games.cpp, program hex bytes:
-    static const byte PROGMEM killbits[] = {
-    0x21, 0x00, 0x00, 0x16, 0x80, 0x01, 0x0E, 0x00, 0x1A, 0x1A, 0x1A, 0x1A, 0x09, 0xD2, 0x08, 0x00,
-    0xDB, 0xFF, 0xAA, 0x0F, 0x57, 0xC3, 0x08, 0x00};
-  prog_basic.cpp, as hex bytes for 4K Basic.
-    const byte PROGMEM basic4k[] = {
-    0xae, 0xae, ... 0x00};
 
   ---------------------------------------------------------
   + Front panel LED lights are initialized.
@@ -535,8 +541,9 @@ byte altair_in(byte portDataByte) {
   //
   switch (portDataByte) {
     case B11111111:
-      // From hardware Sense switches. Not implemented.
-      inputDataByte = 0;
+      // Reply with the high byte of the address toggles, which are the sense switch toggles.      
+      inputDataByte = highByte(fpAddressToggleWord);
+      // Note, hardware Sense switches are not implemented.
       break;
     case 2:
       // USB serial input sense switches: 8,9,a...f.

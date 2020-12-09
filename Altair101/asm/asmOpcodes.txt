@@ -159,6 +159,7 @@ dcrd:00010101:|D-1 -> D
 dcre:00011101:|E-1 -> E
 dcrh:00100101:|H-1 -> H
 dcrl:00101101:|L-1 -> L
+dcrm:00110101:|(HL)-1 -> (HL)
 inr :00DDD100:INR D    00 DDD 100  1  Increment register DDD(A,B,C,D,E,H, or L). To do, set flags: ZSPA.
 inra:00111100:|A+1 -> A
 inrb:00000100:|B+1 -> B

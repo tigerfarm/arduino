@@ -18,7 +18,7 @@ extern CPUFUN cpu_opcodes[256];
 #define CPU_EXEC(opcode) (cpu_opcodes[opcode])();
 
 // -----------------------------------------------------------------------------
-// Motherboard
+// Motherboard Options
 
 // ----------------------------
 // Mega
@@ -50,21 +50,8 @@ extern CPUFUN cpu_opcodes[256];
 //  Global variables use 1463 bytes (71%) of dynamic memory, leaving 585 bytes for local variables. Maximum is 2048 bytes.
 #endif
 
-// ---------------------------------
-// Enable throttling of CPU speed.
-
-#define CF_THROTTLE     0x01
-#define CF_SERIAL_INPUT 0x08
-
-#define NUM_SERIAL_DEVICES 4
-
-extern uint32_t config_flags, config_flags2;
-inline bool config_serial_input_enabled()     {
-  return (config_flags & CF_SERIAL_INPUT) != 0;
-}
-
 // -----------------------------------------------------------------------------
-// Memory, declare memory and memory read and write functions
+// Memory, declare memory, and memory read and write functions
 
 extern byte Mem[MEMSIZE];
 

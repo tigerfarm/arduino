@@ -1,6 +1,6 @@
 ; ------------------------------------------------
 ;
-; Be a challenge to get this to compile using my assembler.
+; Stacy, be a challenge to get this to compile using my assembler.
 ;
 ; I/O ports:
 ; SIOCTL    EQU 10H   ;88-2SIO CONTROL PORT

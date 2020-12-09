@@ -65,6 +65,24 @@ $ reset
 Chris Davis of Altairduino.com has set up a Google Group for discussion of Altair-Duino related questions:
 https://groups.google.com/forum/#!forum/altair-duino 
 
+[dhansel / Altair8800](https://github.com/dhansel/Altair8800)
+    
+[Sample programs](https://altairclone.com/downloads/)
+
+[Arduino Due](https://www.adwaterandstir.com)
+    
+Download front panel full-sized [images and files](https://www.vintagecomputer.net/MITS/software/)
+
+Kill the Bit [hex byte](https://altairclone.com/downloads/front_panel/KILLBITS.HEX)
+program [listing](https://altairclone.com/downloads/front_panel/KILLBITS.ASM),
+Assembler listing](https://altairclone.com/downloads/front_panel/KILLBITS.PRN)
+
+Hex of the bytes
+````
+      :100000002100001680010E001A1A1A1A09D20800DF
+      :08001000DBFFAA0F57C3080033
+      :0000000000
+````
 
 --------------------------------------------------------------------------------
 ## Steps I used to run David Hansel's Altair 8800 Simulator code

@@ -32,9 +32,9 @@
                                     ;
                                     ; --------------------------------------
             mvi a,'\r'
-            out 3
+            out PRINT_PORT
             mvi a,'\n'
-            out 3
+            out PRINT_PORT
             hlt                     ; The program will halt before another iteration.
             jmp Start
                                     ;
@@ -42,15 +42,15 @@
                                     ; Routines
     PrintTestCounter:
             mvi a,'\r'
-            out 3
+            out PRINT_PORT
             mvi a,'\n'
-            out 3
+            out PRINT_PORT
             mvi a,'+'
-            out 3
+            out PRINT_PORT
             mvi a,'+'
-            out 3
+            out PRINT_PORT
             mvi a,' '
-            out 3
+            out PRINT_PORT
             lda counter             ; Increment counter
             inr a
             sta counter
@@ -60,13 +60,14 @@
     PrintDigit:
             mvi b,'0'
             add b
-            out 3
+            out PRINT_PORT
             ret
                                     ;
                                     ; --------------------------------------
                                     ; Variables
                                     ;
-    counter db 0                    ; Initialize test counter which is used in PrintTestCounter.
+    counter     db      0           ; Initialize test counter which is used in PrintTestCounter.
+    PRINT_PORT  equ     3           ; Output port: print to the serial port.
                                     ;
                                     ; --------------------------------------
             end
