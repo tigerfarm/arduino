@@ -18,20 +18,9 @@
 
   Work through sample programs to confirm machine instruction processing is correct.
 
-  Print only the processing registers.
-  + output 30...43
-  + regA:   1 = 001 = 00000001
-  + regB:   2 = 002 = 00000010  regC:   3 = 003 = 00000011
-  + regD:   4 = 004 = 00000100  regE:   5 = 005 = 00000101
-  + regH:   6 = 006 = 00000110  regL:   7 = 007 = 00000111
-
-  Download byte by byte.
-  +    Address  Data  Binary   Hex Octal Decimal
-  ++ Byte# 1900, Byte: 00101100 02c 054    44
-
   Work on basic interactivity updates.
   + Test with various baud rates.
-  ++ Tested: 9600, testing 57600.
+  ++ Tested: 9600, 57600, 115200.
   + Focus on the favorite, VT100 mode.
 
   +++ Integration steps to merge this code with Processor.ino.
