@@ -885,6 +885,8 @@ public class asmProcessor {
             case "rpe":
             case "rp":
             case "rm":
+            case "xthl":
+            case "sphl":
                 sOpcodeBinary = getOpcodeBinary(opcode);
                 programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary);
                 programTop++;
@@ -911,9 +913,9 @@ public class asmProcessor {
             case "jnc":
             case "jc":
             case "lda":
-            case "shld":
             case "sta":
-            // -----------------------------
+            case "lhld":
+            case "shld":
             case "jm":
             case "jp":
             case "jpe":
@@ -947,7 +949,6 @@ public class asmProcessor {
             case "cma":
             case "stc":
             case "cmc":
-            case "xthl":
             case "sphl":
             case "rst":
                 // opcode <immediate>, example: out 39
@@ -1415,7 +1416,7 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/programList.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/operr.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pstatuslights.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/padddemoshort.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opshld.asm");
         if (thisProcess.errorCount > 0) {
             System.out.println("\n-- Number of errors: " + thisProcess.errorCount + "\n");
             return;
@@ -1427,7 +1428,7 @@ public class asmProcessor {
         // thisProcess.programBytesListAndWrite("");
 
         // thisProcess.programBytesListCode();
-        thisProcess.programBytesListHex();
+        // thisProcess.programBytesListHex();
         //
         // Required, sets actual values:
         //

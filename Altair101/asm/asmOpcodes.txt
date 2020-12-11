@@ -252,35 +252,35 @@ rst7:11111111:|CALL $38:Restart (Call 7)
 // -----------------------------------------------------------------------------
 // 8080/8085 Opcodes Not implemented in the Altair 101 assembler.
 
-aci :11001110:ACI #    11 001 110  ?  Not implemented, Add #(immediate value) to register A, plus the carry bit (with ZSPCA).
-sbi :11011110:SBI #    11 011 110  ?  Not implemented, Subtract #(immediate value) from register A with borrow (with ZSPCA).
-xri :11101110:XRI #    11 101 110  ?  Not implemented, ExclusiveOR #(immediate value) with register A (with ZSPCA).
-ori :11110110:ORI #    11 110 110  ?  Not implemented, OR #(immediate value) with register A (with ZSPCA).
+aci :11001110:ACI #    11 001 110  ?  Add #(immediate value) to register A, plus the carry bit (with ZSPCA).
+sbi :11011110:SBI #    11 011 110  ?  Subtract #(immediate value) from register A with borrow (with ZSPCA).
+xri :11101110:XRI #    11 101 110  ?  ExclusiveOR #(immediate value) with register A (with ZSPCA).
+ori :11110110:ORI #    11 110 110  ?  OR #(immediate value) with register A (with ZSPCA).
 
-pchl:11101001:PCHL #   11 101 001  ?  Not implemented, Jump to address in H:L.
-xchg:11101011:XCHG #   11 101 011  ?  Not implemented, Exchange DE and HL content.
+pchl:11101001:PCHL #   11 101 001  ?  Jump to address in H:L.
+xchg:11101011:XCHG #   11 101 011  ?  Exchange DE and HL content.
 
-daa :00100111:DAA #    00 100 111  ?  Not implemented, Decimal Adjust accumulator (with ZSPCA).
+daa :00100111:DAA #    00 100 111  ?  Decimal Adjust accumulator (with ZSPCA).
 
-rlc :00000111:RLC #    00 000 111  ?  Not implemented, Rotate A left, cycle carry bit.
-ral :00010111:RAL #    00 010 111  ?  Not implemented, Rotate A right through carry.
-rar :00011111:RAR #    00 011 111  ?  Not implemented, Rotate A right through carry.
-cma :00101111:CMA #    00 101 111  ?  Not implemented, Compliment A.
-stc :00110111:STC #    00 110 111  ?  Not implemented, Set Carry flag.
-cmc :00111111:CMC #    00 111 111  ?  Not implemented, Compliment Carry flag.
+rlc :00000111:RLC #    00 000 111  ?  Rotate A left, cycle carry bit.
+ral :00010111:RAL #    00 010 111  ?  Rotate A right through carry.
+rar :00011111:RAR #    00 011 111  ?  Rotate A right through carry.
+cma :00101111:CMA #    00 101 111  ?  Compliment A.
+stc :00110111:STC #    00 110 111  ?  Set Carry flag.
+cmc :00111111:CMC #    00 111 111  ?  Compliment Carry flag.
 
 xthl:11100011:XTHL #   11 100 011  1  Set H:L registers to same value as SP. L <-> (SP); H <-> (SP+1)
 sphl:11111001:SPHL #   11 100 011  1  Set SP address to the same address value as H:L. SP=HL
 
-jm  :11100010:JM a     11 100 010  ?  Not implemented, Jump to address, if minus.
-jp  :11101010:JP a     11 101 010  ?  Not implemented, Jump to address, if positive.
-jpe :11110010:JPE a    11 110 010  ?  Not implemented, Jump to address, if parity even.
-jpo :11111010:JPO a    11 111 010  ?  Not implemented, Jump to address, if parity odd.
+jm  :11100010:JM a     11 100 010  ?  Jump to address, if minus.
+jp  :11101010:JP a     11 101 010  ?  Jump to address, if positive.
+jpe :11110010:JPE a    11 110 010  ?  Jump to address, if parity even.
+jpo :11111010:JPO a    11 111 010  ?  Jump to address, if parity odd.
 
-ana :10100SSS:ANA S    10 100 SSS  1  Not implemented, AND register with A (with ZSPCA).
-stax:00RP0010:STAX RP  00 RP0 010  1  Not implemented, Store indirect through BC or DE.
+ana :10100SSS:ANA S    10 100 SSS  1  AND register with A (with ZSPCA).
+stax:00RP0010:STAX RP  00 RP0 010  1  Store indirect through BC or DE.
 
-adc :10001SSS:ADC S    10 001 SSS  1  Not implemented, S+A+CY->A: Add register S, to A, plus the carry bit (with ZSPCA).
+adc :10001SSS:ADC S    10 001 SSS  1  S+A+CY->A: Add register S, to A, plus the carry bit (with ZSPCA).
 adca:10001111:|A+A+CY->A: Not implemented.
 adcb:10001000:|B+A+CY->A: Not implemented.
 adcc:10001001:|C+A+CY->A: Not implemented.
@@ -289,8 +289,8 @@ adce:10001011:|E+A+CY->A: Not implemented.
 adch:10001100:|H+A+CY->A: Not implemented.
 adcl:10001101:|L+A+CY->A: Not implemented.
 adcm:10001110:|(HL)+A+CY->A: Not implemented.
-sub :10010SSS:SUB S    10 010 SSS  1  Not implemented, Subtract register from A (with ZSPCA).
-sbb :10011SSS:SBB S    10 011 SSS  1  Not implemented, Subtract register from A with borrow (with ZSPCA).
+sub :10010SSS:SUB S    10 010 SSS  1  Subtract register from A (with ZSPCA).
+sbb :10011SSS:SBB S    10 011 SSS  1  Subtract register from A with borrow (with ZSPCA).
 
 // Inst      Encoding          Flags   Description
 // ----------------------------------------------------------------------

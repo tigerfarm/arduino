@@ -224,7 +224,7 @@
 0xe0  1           RPO        if PO, RET 
 0xe1  1           POP H      L <- (sp); H <- (sp+1); sp <- sp+2
 0xe2  3           JPO adr    if PO, PC <- adr
-0xe3  1           XTHL       L <-> (SP); H <-> (SP+1) ... Set H:L to same value as SP
+0xe3  1           XTHL       L <-> (SP); H <-> (SP+1) ... Set H:L to same value at the SP address and SP +1
 0xe4  3           CPO adr    if PO, CALL adr
 0xe5  1           PUSH H     (sp-2)<-L; (sp-1)<-H; sp <- sp - 2
 0xe6  2 Z,S,P,CY  ANI D8     A <- A & data

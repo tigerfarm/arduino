@@ -21,7 +21,7 @@
   + lxi sp,512  ; Set the stack pointer for use in CALL and RET.
   + Store SP to a memory address:
   ++ XTHL       L <-> (SP); H <-> (SP+1) ... Set H:L to same value as SP
-  ++ SHLD adr   (adr) <-L; (adr+1)<-H : 
+  ++ SHLD adr   (adr) <-L; (adr+1)<-H :
   + Restore SP from a memory address:
   ++ LHLD adr   SP=HL                    ... Set SP to same value as H:L
   ++ SPHL       SP=HL Set SP to the same address value as H:L.
@@ -44,10 +44,10 @@
   + Need to have Serial2 for output.
   + Try loading and running the BIN file.
   + Try compiling and running sections of the program.
-SIOCTL  EQU 10H   ;88-2SIO CONTROL PORT
-SIODAT  EQU 11H   ;88-2SIO DATA PORT
-IN   SIOCTL
-OUT  SIODAT
+  SIOCTL  EQU 10H   ;88-2SIO CONTROL PORT
+  SIODAT  EQU 11H   ;88-2SIO DATA PORT
+  IN   SIOCTL
+  OUT  SIODAT
 
   +++ Integration steps to merge this code with Processor.ino.
   + Continue use testing Altair101a.
@@ -70,7 +70,7 @@ OUT  SIODAT
     static const byte PROGMEM killbits[] = {
     0x21, 0x00, 0x00, 0x16, 0x80, 0x01, 0x0E, 0x00, 0x1A, 0x1A, 0x1A, 0x1A, 0x09, 0xD2, 0x08, 0x00,
     0xDB, 0xFF, 0xAA, 0x0F, 0x57, 0xC3, 0x08, 0x00};
-    
+
   prog_basic.cpp, as hex bytes for 4K Basic.
     const byte PROGMEM basic4k[] = {
     0xae, 0xae, ... 0x00};
@@ -82,7 +82,7 @@ OUT  SIODAT
   Implement interupt processing.
   + opcodes: ei adn di.
   + This is required when I try to run complex programs such as CPM, maybe Basic.
-  
+
   + Prevent lockup when using PUSH A, i.e. PUSH called before setting SP.
   ++ In the PUSH process, if SP < 4, error.
 
@@ -106,22 +106,22 @@ OUT  SIODAT
   ---------------------------------------------------------
   + Front panel LED lights are initialized.
   ---------
-INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
- .    *    .  *   .   .    .    *   .         *   .    *   .   *    .   *   .
-WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
- *    .      .   .   .   .   .   .   .   .    .   .    .   *   .    .   .   .
+  INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
+  .    *    .  *   .   .    .    *   .         *   .    *   .   *    .   *   .
+  WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
+      .      .   .   .   .   .   .   .   .    .   .    .   *   .    .   .   .
             S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
              v   v   v   v   v   v   v   v    v   v    v   v   v    ^   v   ^
   ---------
-INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
- .    .    *  .   .   .    .    *   .         .   .    .   .   .    .   .   .
-WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
- *    .      .   .   .   .   .   .   *   .    .   .    .   .   .    .   *   .
+  INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
+  .    .    *  .   .   .    .    *   .         .   .    .   .   .    .   .   .
+  WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
+      .      .   .   .   .   .   .   *   .    .   .    .   .   .    .   *   .
             S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
              v   v   v   v   v   v   v   v    v   v    v   v   v    v   v   v
- ------ 
-+ Ready to receive command.
-+ singleStepWait()processDataOpcode()
+  ------
+  + Ready to receive command.
+  + singleStepWait()processDataOpcode()
 */
 // -----------------------------------------------------------------------------
 #include "Altair101a.h"
@@ -545,7 +545,7 @@ byte altair_in(byte portDataByte) {
   //
   switch (portDataByte) {
     case B11111111:
-      // Reply with the high byte of the address toggles, which are the sense switch toggles.      
+      // Reply with the high byte of the address toggles, which are the sense switch toggles.
       inputDataByte = highByte(fpAddressToggleWord);
       // Note, hardware Sense switches are not implemented.
       break;
@@ -708,8 +708,11 @@ void altair_out(byte portDataByte, byte regAdata) {
       sprintf(charBuffer, "%3d", regH);
       Serial.print(charBuffer);
       Serial.print(F(":"));
-      sprintf(charBuffer, "%3d", regL);
+      sprintf(charBuffer, "%3d = ", regL);
       Serial.print(charBuffer);
+      printByte(regH);
+      Serial.print(F(":"));
+      printByte(regL);
       Serial.print(F(", Data: "));
       hlValue = regH * 256 + regL;
       printData(MREAD(hlValue));
@@ -768,17 +771,26 @@ void altair_out(byte portDataByte, byte regAdata) {
       Serial.print(F(" > Register SP = "));
       sprintf(charBuffer, "%5d = ", regSP);
       Serial.print(charBuffer);
+      Serial.print(" = ");
       printByte(highByte(regSP));
       Serial.print(F(":"));
       printByte(lowByte(regSP));
-      Serial.println();
+      Serial.print(" ");
       cpu_print_regS();
-      // Serial.println();
       break;
     case 44:
       Serial.println("");
       cpucore_i8080_print_registers();
       // printOther();
+      break;
+    case 45:
+      Serial.println();
+      Serial.print(F(" > Register SP = "));
+      sprintf(charBuffer, "%5d = ", regSP);
+      Serial.print(charBuffer);
+      printByte(highByte(regSP));
+      Serial.print(F(":"));
+      printByte(lowByte(regSP));
       break;
     // ---------------------------------------
     default:
