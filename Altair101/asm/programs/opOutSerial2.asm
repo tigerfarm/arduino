@@ -12,13 +12,10 @@
                 mvi a,'\r'
                 out 3
                 out 2
-                mvi a,NL
+                mvi a,'\n'
                 out 3
                 out 2
                 mvi a,'+'
-                out 3
-                out 2
-                mvi a,'1'
                 out 3
                 out 2
                                         ; --------------------------------------
@@ -26,39 +23,63 @@
                                         ;
                 mvi c,'2'               ; Character to print
                 mvi b,2                 ; Output Port # into register B.
-                call outPrint
+                call printChar
                 mvi c,'3'
                 mvi b,3
-                call outPrint
+                call printChar
                                         ; --------------------------------------
                                         ; Set output port and print strings.
                                         ;
-                ;lxi h,StartMsg
-                ;call sPrint
-                ;mvi a,NL
-                ;out 3
-                                        ; --------------------------------------
-                mvi a,'\r'
-                out 3
-                out 2
-                mvi a,NL
-                out 3
-                out 2
-                hlt                     ; The program will halt at each iteration, after the first.
-                jmp Start               ; Re-start.
+                mvi a,3                 ; Set output port
+                sta PRINT_PORT
+                lxi h,printTo3          ; Output a string to that port.
+                call printStr
+                call printNewline
                                         ;
+                mvi a,2                 ; Set output port
+                sta PRINT_PORT
+                lxi h,printTo2          ; Output a string to that port.
+                call printStr
+                call printNewline
                                         ; --------------------------------------
+                hlt 
+                jmp Start 
+                                        ; --------------------------------------
+                                        ; --------------------------------------
+        printStr:
+                lda PRINT_PORT          ; Set print port#.
+                mov b,a
         sPrint:
                 mov a,m                 ; Move the data from H:L address to register A. (HL) -> A. 
                 cpi TERMB               ; Compare to see if it's the string terminate byte.
                 jz sPrintDone
-                out 3                   ; Out register A to the serial terminal port.
-                inr m                   ; Increment H:L register pair.
+                                        ; --------------
+                                        ; The following is more efficient than: call printChar.
+                mov c,a                 ; Store the output char.
+                mvi a,2                 ; Port# to compare
+                cmp b
+                jz PortStr2             ; If B = A, jump.
+                mvi a,3
+                cmp b
+                jz PortStr3
+                jmp sPrintDone          ; Invalid output port#
+        PortStr2:
+                mov a,c                 ; Move the print character to register A.
+                out 2                   ; Output register A to the selected port.
+                jmp sPrintNext
+        PortStr3:
+                mov a,c                 ; Move the print character to register A.
+                out 3
+                ;jmp sPrintNext
+        sPrintNext:
+                                        ; --------------
+                inx h                   ; Increment H:L register pair.
                 jmp sPrint
         sPrintDone:
                 ret
                                         ; --------------------------------------
-        outPrint:
+                                        ; --------------------------------------
+        printChar:
                 mvi a,2                 ; Port# to compare
                 cmp b
                 jz Port2                ; If B = A, jump.
@@ -75,11 +96,24 @@
                 out 3
                 ret
                                         ; --------------------------------------
+                                        ; --------------------------------------
+    printNewline:
+                lda PRINT_PORT          ; Set print port#.
+                mov b,a
+                mvi c,'\r'
+                call printChar
+                mvi c,'\n'
+                call printChar
+                ret
+                                        ; --------------------------------------
+                                        ; --------------------------------------
                                         ;
-    PRINT_PORT  equ      3              ; Output port: print to the serial port.
-    StartMsg    db      'Start...'      ; Strings to print out.
-    Again       db      'Again.'        ; Strings to print out.
+    PRINT_PORT  db      1               ; Store Output port#
     TERMB       equ     0ffh            ; String terminator.
-    NL          equ     10              ; 10 is new line, '\n'.
+                                        ;
+    printTo2    db      'printTo2...'   ; Strings to print out.
+    printTo3    db      'printTo3...'   ; Strings to print out.
+                                        ;
+                                        ; --------------------------------------
                                         ; --------------------------------------
                 end
