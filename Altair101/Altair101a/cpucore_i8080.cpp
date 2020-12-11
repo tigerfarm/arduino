@@ -747,14 +747,35 @@ void cpucore_i8080_print_registers() {
   Serial.print(F(" = ")); cpu_print_status_register(regS);
   Serial.println(F(" Status byte"));
   // ---
-  Serial.print(F("+ Front panel display Status byte,  fpStatusByte:    "));
+  Serial.print(F("++ regA: "));
+  printData(regA);
+  Serial.println();
+  // ---
+  Serial.print(F("++ regB: "));
+  printData(regB);
+  Serial.print(F("  regC: "));
+  printData(regC);
+  Serial.println();
+  // ---
+  Serial.print(F("++ regD: "));
+  printData(regD);
+  Serial.print(F("  regE: "));
+  printData(regE);
+  Serial.println();
+  // ---
+  Serial.print(F("++ regH: "));
+  printData(regH);
+  Serial.print(F("  regL: "));
+  printData(regL);
+  // ---
+  Serial.print(F("++ Front panel display Status byte,  fpStatusByte:    "));
   printData(fpStatusByte);
   Serial.println();
-  Serial.print(F("+ Front panel display Data byte,    fpDataByte:      "));
+  Serial.print(F("++ Front panel display Data byte,    fpDataByte:      "));
   printData(fpDataByte);
   Serial.println();
   //
-  Serial.print(F("+ Front panel display Address word, fpAddressWord: "));
+  Serial.print(F("++ Front panel display Address word, fpAddressWord: "));
   sprintf(charBuffer, "%5d", fpAddressWord);
   Serial.print(charBuffer);
   Serial.print(F(" = "));
@@ -769,27 +790,6 @@ void cpucore_i8080_print_registers() {
     printByte(fpAddressLb);
     Serial.println();
   */
-  // ---
-  Serial.print(F("+ regA: "));
-  printData(regA);
-  Serial.println();
-  // ---
-  Serial.print(F("+ regB: "));
-  printData(regB);
-  Serial.print(F("  regC: "));
-  printData(regC);
-  Serial.println();
-  // ---
-  Serial.print(F("+ regD: "));
-  printData(regD);
-  Serial.print(F("  regE: "));
-  printData(regE);
-  Serial.println();
-  // ---
-  Serial.print(F("+ regH: "));
-  printData(regH);
-  Serial.print(F("  regL: "));
-  printData(regL);
   // ---
   Serial.println();
 }

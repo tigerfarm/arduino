@@ -23,6 +23,9 @@ Another 32 bit board is the STM32, STM32L031K6, STM32L0 ARM® MCU 32-Bit
 
 https://www.youtube.com/watch?v=PG7lqaCJ6yA
 
+Sending keyboard characters.
+https://www.arduino.cc/en/Tutorial/BuiltInExamples/KeyboardLogout
+
 --------------------------------------------------------------------------------
 USB cable pin outs.
 When looking into a female USB plug, plastic block to the top, pin1 is on the left.

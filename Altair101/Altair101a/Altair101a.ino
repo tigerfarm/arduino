@@ -39,6 +39,7 @@
   ++ Because the assembler uploads using Serial2. It opens it, uses it, then closes it.
   ++ Automatically close Serial2 for output when entering download mode.
   ++ Automatically open Serial2 for output when exiting download mode.
+  https://www.arduino.cc/reference/en/language/functions/communication/serial/
 
   Be interesting to get pGalaxy80.asm to compile and run. Or, just to run.
   + Need to have Serial2 for output.
@@ -151,6 +152,9 @@ boolean SERIAL_IO_TERMINAL = false;
 
 // Hardware LED lights
 boolean LED_IO = false;
+
+// Using Serial2 for output.
+boolean  = false;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -659,6 +663,12 @@ void altair_out(byte portDataByte, byte regAdata) {
   // Write output byte to the output port.
   switch (portDataByte) {
     case 2:
+      if (SERIAL2_OUTPUT) {
+        Serial2.write(regAdata);
+      } else {
+        Serial.write(regAdata);
+      }
+      break;
     case 3:
       // Out to the USB serial port.
       Serial.write(regAdata);
@@ -1383,17 +1393,53 @@ void processWaitSwitch(byte readByte) {
       programState = SERIAL_DOWNLOAD;
       Serial.println(F("+ D, Download mode."));
       break;
+    // -------------------------------------------------------------------
+    case 't':
+      Serial.print(F("++ Serial2 off (end)."));
+      Serial.println("");
+      Serial2.end();
+      SERIAL2_OUTPUT = false;
+      break;
+    case 'T':
+      Serial.print(F("++ Serial2 on (begin), baud rate 9600."));
+      Serial.println("");
+      Serial2.begin(9600);
+      SERIAL2_OUTPUT = true;
+      break;
+    //
     // -------------------------------------
-    case 'i':
-      Serial.println(F("+ i: Information."));
-      cpucore_i8080_print_registers();
+    case 'j':
+      Serial.print(F("++ programState: "));
+      Serial.println(programState);
+      Serial.println(F("+ j: Setting Information."));
       Serial.println(F("------------"));
       Serial.print(F("++ LED_IO = "));
       Serial.print(LED_IO);
       Serial.print(F(" SERIAL_IO_VT100 = "));
       Serial.print(SERIAL_IO_VT100);
       Serial.print(F(" SERIAL_IO_IDE = "));
-      Serial.println(SERIAL_IO_IDE);
+      Serial.print(SERIAL_IO_IDE);
+      Serial.print(F(" SERIAL_IO_TERMINAL: "));
+      Serial.println(SERIAL_IO_TERMINAL);
+      Serial.print(F("++ Serial: "));
+      if (Serial) {
+        Serial.print(F("on, "));
+      } else {
+        Serial.print(F("off, "));
+      }
+      Serial.println(Serial);
+      Serial.print(F("++ Serial2: "));
+      if (SERIAL2_OUTPUT) {
+        // Note, the following doesn't say if it's on or off: "if (Serial2)".
+        Serial.print(F("on, "));
+      } else {
+        Serial.print(F("off, "));
+      }
+      Serial.println(Serial2);
+      break;
+    case 'i':
+      Serial.println(F("+ i: Information."));
+      cpucore_i8080_print_registers();
       break;
     case 'h':
       Serial.println(F("----------------------------------------------------"));
@@ -1421,6 +1467,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ l, load         Load a sample program."));
       Serial.println(F("+ L, Load hex     Load hex code from the serial port."));
       Serial.println(F("-------------"));
+      Serial.println(F("+ t/T Serial2     Disable/enable Serial2 for output on port #2 (out 2)."));
       Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
       Serial.println(F("+ v/V VT100       Disable/enable USB serial VT100 output."));
       Serial.println(F("+ w/W USB serial  Disable/enable USB serial output."));
@@ -1538,7 +1585,6 @@ void loadProgramSerial() {
 
 // -----------------------------------------------------------------------------
 void runDownloadProgram() {
-  Serial2.begin(9600);
   Serial.println("+ Download mode: ready to receive a program.");
   // Status: ready for input and not yet writing to memory.
   host_set_status_led_INP();
@@ -1555,8 +1601,10 @@ void runDownloadProgram() {
   unsigned long timer;        // Indicator used to identify when download has ended.
   boolean flashWaitOn = false;
   boolean downloadStarted = false;
+  Serial2.begin(9600);
   while (programState == SERIAL_DOWNLOAD) {
     if (Serial2.available() > 0) {
+      readByte = Serial2.read();      // Read the incoming byte.
       if (flashWaitOn) {
         setWaitStatus(false);
         flashWaitOn = false;
@@ -1569,7 +1617,7 @@ void runDownloadProgram() {
         downloadStarted = true;
         host_set_status_leds_WRITEMEM();   // Now writing to processor memory.
         if (SERIAL_IO_VT100) {
-          Serial.print(F("\033[10;1H"));    // Move cursor to below the prompt: line 10, column 1.
+          Serial.print(F("\033[16;1H"));    // Move cursor to below the prompt.
         }
         Serial.println("+    Address  Data  Binary   Hex Octal Decimal");
       }
@@ -1597,8 +1645,7 @@ void runDownloadProgram() {
       Serial.print(readByteCount);
       //
       // Input on the external serial port module.
-      // Read and process the incoming byte.
-      readByte = Serial2.read();
+      // Process the incoming byte.
       MWRITE(readByteCount, readByte)
       readByteCount++;
       Serial.print(", Byte: ");
@@ -1661,6 +1708,7 @@ void runDownloadProgram() {
     */
     // -----------------------------------------------
   }
+  Serial2.end();        // Close and allow this port for output use.
 #ifdef SWITCH_MESSAGES
   Serial.println(F("+ Exit serial download mode."));
 #endif
@@ -1739,6 +1787,11 @@ void loop() {
       host_clr_status_led_HLDA();
       host_set_status_led_WAIT();
       printFrontPanel();
+      if (SERIAL2_OUTPUT) {
+        // runDownloadProgram() opens and closes (begin and end) the connection.
+        // The following will re-open it for output.
+        Serial2.begin(9600);
+      }
       break;
   }
   delay(30);
