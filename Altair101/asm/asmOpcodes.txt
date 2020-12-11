@@ -269,8 +269,8 @@ cma :00101111:CMA #    00 101 111  ?  Not implemented, Compliment A.
 stc :00110111:STC #    00 110 111  ?  Not implemented, Set Carry flag.
 cmc :00111111:CMC #    00 111 111  ?  Not implemented, Compliment Carry flag.
 
-xthl:11100011:XTHL #   11 100 011  ?  Not implemented, Swap H:L with top word on stack.
-sphl:11111001:SPHL #   11 100 011  ?  Not implemented, Set SP to content of H:L.
+xthl:11100011:XTHL #   11 100 011  1  Set H:L registers to same value as SP. L <-> (SP); H <-> (SP+1)
+sphl:11111001:SPHL #   11 100 011  1  Set SP address to the same address value as H:L. SP=HL
 
 jm  :11100010:JM a     11 100 010  ?  Not implemented, Jump to address, if minus.
 jp  :11101010:JP a     11 101 010  ?  Not implemented, Jump to address, if positive.

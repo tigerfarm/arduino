@@ -154,11 +154,11 @@ inline void MEM_WRITE_WORD(uint16_t memoryAddress, uint16_t byteValue) {
   Serial.println(F("+ MEM_WRITE_WORD, memoryAddress:"));
   Serial.print(memoryAddress);
   Serial.println(F(" byteValue:");
-  Serial.println(byteValue);
+                 Serial.println(byteValue);
 #endif
-  MEM_WRITE_STEP(memoryAddress, byteValue & 255);
-  memoryAddress++;
-  MEM_WRITE_STEP(memoryAddress, byteValue / 256);
+                 MEM_WRITE_STEP(memoryAddress, byteValue & 255);
+                 memoryAddress++;
+                 MEM_WRITE_STEP(memoryAddress, byteValue / 256);
 }
 
 void MEM_WRITE_STEP(uint16_t memoryAddress, byte byteValue) {
@@ -685,6 +685,25 @@ static void cpu_print_status_register(byte s) {
   if ( s & PS_PARITY )    Serial.print('P'); else Serial.print('.');
   Serial.print('.');
   if ( s & PS_CARRY )     Serial.print('C'); else Serial.print('.');
+}
+
+void cpu_print_regS() {
+  Serial.print(F("+ Status flag byte, regS"));
+  printByte(regS);
+  Serial.print(":Sign");
+  if ( regS & PS_SIGN )      Serial.print("=1"); else Serial.print("=0");
+  Serial.print(":Zero");
+  if ( regS & PS_ZERO )      Serial.print("=1"); else Serial.print("=0");
+  Serial.print(":.");
+  Serial.print(":HalfCarry");
+  if ( regS & PS_HALFCARRY ) Serial.print("=1"); else Serial.print("=0");
+  Serial.print(":.");
+  Serial.print(":Parity");
+  if ( regS & PS_PARITY )    Serial.print("=1"); else Serial.print("=0");
+  Serial.print(":.");
+  Serial.print(":Carry");
+  if ( regS & PS_CARRY )     Serial.print("=1"); else Serial.print("=0");
+  Serial.print(":");
 }
 
 void cpucore_i8080_print_registers() {

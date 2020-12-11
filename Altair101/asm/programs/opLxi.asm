@@ -13,6 +13,7 @@
                                     ; Move the lb data into L and hb data into H -> Register pair H:L = hb:lb.
                                     ;
                                     ; --------------------------------------
+                lxi sp,512          ; Set stack pointer which is used with CALL and RET.
     Start:
                 mvi a,0             ; Initialize the test counter.
                 sta testCounter
@@ -25,9 +26,7 @@
                 mvi h,6
                 mvi l,7
                 out 38              ; Print the register values.
-                                    ;
                                     ; --------------------------------------
-                                    ;
                 call NewTest
                 lxi b,Addr1         ; Load an address (value of Addr1) into B:C.
                 out 40              ; Print the register values for B:C, and the content at that address.
@@ -35,9 +34,7 @@
                 out 40
                 lxi b,Addr3
                 out 40
-                                    ;
                                     ; --------------------------------------
-                                    ;
                 call NewTest
                 lxi d,Addr1         ; Load an address (value of Addr1) into D:E.
                 out 41              ; Print the register values for D:E, and the content at that address.
@@ -45,7 +42,6 @@
                 out 41
                 lxi d,Addr3
                 out 41
-                                    ;
                                     ; --------------------------------------
                                     ;
                 call NewTest
@@ -55,9 +51,7 @@
                 out 36
                 lxi h,Addr3
                 out 36
-                                    ;
                                     ; --------------------------------------
-                                    ;
                 call NewTest
                 lxi b,42            ; Load an address into register pairs.
                 out 40
@@ -65,7 +59,6 @@
                 out 41
                 lxi h,786
                 out 36
-                                    ;
                                     ; --------------------------------------
                 call NewTest
                 out 43              ; Print the stack pointer value.
@@ -76,7 +69,9 @@
                 lxi sp,32000        ; Stack pointer address
                 out 43
                                     ;
+                lxi sp,512          ; Reset the stack pointer for the next CALL and RET.
                                     ; --------------------------------------
+                call println
                 hlt
                 jmp Start
                                     ; ------------------------------------------
@@ -84,13 +79,13 @@
                                     ; Subroutines
                                     ;
                                     ; -------------------
-        SeparatorStr    db  '\n---'
+        SeparatorStr    db  '\r\n---'
     Separator:
                 lxi h,SeparatorStr
                 call PrintStr
                 ret
                                     ; -------------------
-        TestStr     db  '\n++ '
+        TestStr     db  '\r\n++ '
         testCounter db  0           ; Initialize test counter.
     NewTest:
                 sta PrintDigitA     ; Retain register A value.
@@ -123,9 +118,16 @@
                 cpi STRTERM         ; Compare to see if it's the string terminate byte.
                 jz PrintStrDone
                 out 3               ; Out register A to the serial terminal port.
-                inr m               ; Increment H:L register pair.
+                inx h               ; Increment H:L register pair.
                 jmp PrintStr
         PrintStrDone:
+                ret
+                                    ;
+    println:
+                mvi a,'\r'
+                out 3
+                mvi a,'\n'
+                out 3
                 ret
                                     ;
                                     ; --------------------------------------
@@ -141,30 +143,40 @@
                                     ; --------------------------------------
                                     ; Successful run:
                                     ;
-I deposited values into address: 512(16) and 786(255).
-++ Byte#  42, Byte: 00010001 011 021   17
-++ Byte# 128, Byte: 00110010 032 062   50
++ Download complete.
++ r, RUN.
++ runProcessor()
+------------
++ regA:   1 = 001 = 00000001
++ regB:   2 = 002 = 00000010  regC:   3 = 003 = 00000011
++ regD:   4 = 004 = 00000100  regE:   5 = 005 = 00000101
++ regH:   6 = 006 = 00000110  regL:   7 = 007 = 00000111
 ------------
 ++ 1: 
- > Register B:C =   0:128, Data:  50 = 062 = 00110010
- > Register B:C =   2:  0, Data:  16 = 020 = 00010000
- > Register B:C =   3: 18, Data: 255 = 377 = 11111111
+ > Register B:C =   0:128, Data:  45 = 055 = 00101101
+ > Register B:C =   2:  0, Data:   0 = 000 = 00000000
+ > Register B:C =   3: 18, Data:   0 = 000 = 00000000
 ++ 2: 
- > Register D:E =   0:128, Data:  50 = 062 = 00110010
- > Register D:E =   2:  0, Data:  16 = 020 = 00010000
- > Register D:E =   3: 18, Data: 255 = 377 = 11111111
+ > Register D:E =   0:128, Data:  45 = 055 = 00101101
+ > Register D:E =   2:  0, Data:   0 = 000 = 00000000
+ > Register D:E =   3: 18, Data:   0 = 000 = 00000000
 ++ 3: 
- > Register H:L =   0:128, Data:  50 = 062 = 00110010
- > Register H:L =   2:  0, Data:  16 = 020 = 00010000
- > Register H:L =   3: 18, Data: 255 = 377 = 11111111
+ > Register H:L =   0:128, Data:  45 = 055 = 00101101
+ > Register H:L =   2:  0, Data:   0 = 000 = 00000000
+ > Register H:L =   3: 18, Data:   0 = 000 = 00000000
 ++ 4: 
- > Register B:C =   0: 42, Data:  17 = 021 = 00010001
- > Register D:E =   2:  0, Data:  16 = 020 = 00010000
- > Register H:L =   3: 18, Data: 255 = 377 = 11111111
+ > Register B:C =   0: 42, Data: 205 = 315 = 11001101
+ > Register D:E =   2:  0, Data:   0 = 000 = 00000000
+ > Register H:L =   3: 18, Data:   0 = 000 = 00000000
 ++ 5: 
-+ Stack pointer:     0, Zero bit flag: 1, Carry bit flag: 0
-+ Stack pointer:    64, Zero bit flag: 1, Carry bit flag: 0
-+ Stack pointer:  1000, Zero bit flag: 1, Carry bit flag: 0
-+ Stack pointer: 32000, Zero bit flag: 1, Carry bit flag: 0
+ > Register SP =   51200000010:00000000
++ Status byte, regS00000100:Sign=0:Zero=0:.:HalfCarry=0:.:Parity=1:.:Carry=0:
+ > Register SP =    6400000000:01000000
++ Status byte, regS00000100:Sign=0:Zero=0:.:HalfCarry=0:.:Parity=1:.:Carry=0:
+ > Register SP =  100000000011:11101000
++ Status byte, regS00000100:Sign=0:Zero=0:.:HalfCarry=0:.:Parity=1:.:Carry=0:
+ > Register SP = 3200001111101:00000000
++ Status byte, regS00000100:Sign=0:Zero=0:.:HalfCarry=0:.:Parity=1:.:Carry=0:
+++ HALT, host_read_status_led_WAIT() = 0
                                     ;
                                     ; --------------------------------------

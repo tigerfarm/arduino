@@ -224,7 +224,7 @@
 0xe0  1           RPO        if PO, RET 
 0xe1  1           POP H      L <- (sp); H <- (sp+1); sp <- sp+2
 0xe2  3           JPO adr    if PO, PC <- adr
-0xe3  1           XTHL       L <-> (SP); H <-> (SP+1)
+0xe3  1           XTHL       L <-> (SP); H <-> (SP+1) ... Set H:L to same value as SP
 0xe4  3           CPO adr    if PO, CALL adr
 0xe5  1           PUSH H     (sp-2)<-L; (sp-1)<-H; sp <- sp - 2
 0xe6  2 Z,S,P,CY  ANI D8     A <- A & data
@@ -246,7 +246,7 @@
 0xf6  2 Z,S,P,CY  ORI D8     A <- A | data
 0xf7  1           RST 6      CALL $30   
 0xf8  1           RM         if M, RET  
-0xf9  1           SPHL       SP=HL      
+0xf9  1           SPHL       SP=HL      ... Set SP to same value as H:L
 0xfa  3           JM adr     if M, PC <- adr
 0xfb  1           EI         special    
 0xfc  3           CM adr     if M, CALL adr

@@ -16,12 +16,15 @@
   ---------------------------------------------------------
   Next:
 
-  Test M in opMov.asm and opInvrDcr.asm, to fix opInSwitches.asm
-  + inr m
-  + dcr m
-  + mov a,m ... and the other registers.
-
-  Toggle address switches when in WAIT mode such as after a HLT operation.
+  In opLxi.asm, should save the stack pointer 16 address, and then restore it.
+  + LXI RP,a    Move an immediate address to a register pair.
+  + lxi sp,512  ; Set the stack pointer for use in CALL and RET.
+  + Store SP to a memory address:
+  ++ XTHL       L <-> (SP); H <-> (SP+1) ... Set H:L to same value as SP
+  ++ SHLD adr   (adr) <-L; (adr+1)<-H : 
+  + Restore SP from a memory address:
+  ++ LHLD adr   SP=HL                    ... Set SP to same value as H:L
+  ++ SPHL       SP=HL Set SP to the same address value as H:L.
 
   Work through sample programs to confirm machine instruction processing is correct.
   Work on basic interactivity updates.
@@ -38,6 +41,7 @@
   ++ Automatically open Serial2 for output when exiting download mode.
 
   Be interesting to get pGalaxy80.asm to compile and run. Or, just to run.
+  + Need to have Serial2 for output.
   + Try loading and running the BIN file.
   + Try compiling and running sections of the program.
 SIOCTL  EQU 10H   ;88-2SIO CONTROL PORT
@@ -760,6 +764,18 @@ void altair_out(byte portDataByte, byte regAdata) {
       printData(MREAD(hlValue));
       break;
     case 43:
+      Serial.println();
+      Serial.print(F(" > Register SP = "));
+      sprintf(charBuffer, "%5d = ", regSP);
+      Serial.print(charBuffer);
+      printByte(highByte(regSP));
+      Serial.print(F(":"));
+      printByte(lowByte(regSP));
+      Serial.println();
+      cpu_print_regS();
+      // Serial.println();
+      break;
+    case 44:
       Serial.println("");
       cpucore_i8080_print_registers();
       // printOther();

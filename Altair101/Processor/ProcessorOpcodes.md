@@ -57,7 +57,7 @@ push RP  11 RP0 101  1  Push register pair on the stack.
 pop  RP  11 RP0 001  1  Push register pair on the stack.
 ret      11 001 001  1  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.
 rrc      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit.
-shld a   00 100 010  3  Store data value from memory location: a(hb:lb), to register L. Store value at: a + 1, to register H.
+shld a   00 100 010  3  Store register L to memory location: a(hb:lb). Store register H to memory location a + 1.
 sta a    00 110 010  3  Store register A to the address, a(hb:lb).
 SUI #     11010110 db       ZSCPA   Subtract immediate from A
 xra S    10 101 SSS  1  Exclusive OR, the register(S) with register A.
@@ -108,7 +108,7 @@ JPE a     11 110 010 lb hb          Jump if parity even.
 JPO a     11 111 010 lb hb          Jump if parity odd.
 
 XTHL      11100011          -       Swap H:L with top word on stack
-SPHL      11111001          -       Set SP to content of H:L
+SPHL      11111001          -       Set SP to same value as H:L
 EI        11111011          -       Enable interrupts
 DI        11110011          -       Disable interrupts
 

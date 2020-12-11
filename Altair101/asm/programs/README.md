@@ -146,7 +146,6 @@ opLdax.asm              LDAX : Load register A with data value from address B:C 
                         Procedures: PrintTestCounter and PrintDigit.
                         Increment a counter variable (DB).
                         Uses opcodes: LDAX, MVI, MOV, LDA, STA, OUT, HLT, CALL and RET.
-
 opInSwitches.asm        IN : Get and process a data byte from sense switches.
                         HLT : is used to stop the process and wait for the switches to be set.
                         RUN switch : used to continue the process.
@@ -155,20 +154,21 @@ opInSwitches.asm        IN : Get and process a data byte from sense switches.
 -------------------------------
 I now have a rich enough opcode set and samples, to add subroutines to programs.
 
-opLxi.asm               LXI : load address values from a number or label into register pairs: B:C, D:E, and H:L, or into the stackpointer.
+opLxi.asm               LXI a,RP: load address values from a number or label into register pairs: B:C, D:E, and H:L, or into the stackpointer.
                         Echo the register pair address and the data at that 16 bit address.
+opShld.asm              SHLD a : move register L -> (address a, lb); move register H -> (address a+1, hb)
+---------------
 opPushPop.asm           PUSH RP : Push a register pair (RP) onto the stack: B:C, D:E, H:L. Push register A and flags.
 opAdiSui.asm            ADI : Add immediate number to register A. Tested with decimal and EQU values.
                         SUI : Subtract immediate number from register A.
                         Subroutines: NewTest, PrintDigit, PrintStr, PrintStrln, and Error.
                         Counter to display the test number.
-opShld.asm              SHLD a : move register L -> (address a, low address byte); move register H -> (address a+1, high address byte)
+opDad.asm               DAD : Add register pair(RP: B:C or D:E or H:L) to H:L, or SP + H:L. Set carry bit.
 opAni.asm               ANI : AND an immediate value with register A.
                         Example: 11101101 AND 10110000 = 10100000
 opOra.asm               ORA : Register A, OR'ed with registers: B,C,D,E,H,L, and M. Result each time is stored in register A.
 opRlcRrc.asm            RLC : Rotate (shift) register A left. Wrap the left most, to the first.
                         RRC : Rotate (shift) register A right. Wrap the right most, to the last.
-opDad.asm               DAD : Add register pair(RP: B:C or D:E or H:L) to H:L, or SP + H:L. Set carry bit.
 
 pPrintDigit.asm         CALL procedure to print a digit that is in register A.
 printString.asm         OUT : Subroutine using OUT to print DB variable strings to the serial monitor.

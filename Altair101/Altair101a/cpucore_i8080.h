@@ -65,6 +65,7 @@ extern byte Mem[MEMSIZE];
 // CPU Registers
 
 void cpucore_i8080_print_registers();
+void cpu_print_regS();
 
 #define PS_CARRY       0x01
 #define PS_PARITY      0x04
