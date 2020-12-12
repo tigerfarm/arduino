@@ -1403,7 +1403,7 @@ void processWaitSwitch(byte readByte) {
     case 'T':
       Serial.print(F("++ Serial2 on (begin), baud rate 9600."));
       Serial.println("");
-      Serial2.begin(9600);
+      Serial2.begin(57600);
       SERIAL2_OUTPUT = true;
       break;
     //
@@ -1601,7 +1601,7 @@ void runDownloadProgram() {
   unsigned long timer;        // Indicator used to identify when download has ended.
   boolean flashWaitOn = false;
   boolean downloadStarted = false;
-  Serial2.begin(9600);
+  Serial2.begin(57600);
   while (programState == SERIAL_DOWNLOAD) {
     if (Serial2.available() > 0) {
       readByte = Serial2.read();      // Read the incoming byte.

@@ -101,7 +101,7 @@ public class asmUpload {
         SerialPort sp = SerialPort.getCommPort(SerialPortName);
         // Connection settings must match Arduino program settings.
         // Baud rate, data bits, stop bits, and parity
-        sp.setComPortParameters(9600, 8, 1, 0);
+        sp.setComPortParameters(57600, 8, 1, 0); // 9600 19200
         // block until bytes can be written
         sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
         if (!sp.openPort()) {
@@ -137,7 +137,7 @@ public class asmUpload {
                 System.out.print(byteToString(bArray[i]) + " ");
                 sp.getOutputStream().write(bArray[i]);
                 sp.getOutputStream().flush();
-                Thread.sleep(30);
+                Thread.sleep(3);
             }
         } catch (IOException ex) {
             Logger.getLogger(asm.class.getName()).log(Level.SEVERE, null, ex);

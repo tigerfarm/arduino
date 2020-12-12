@@ -2,6 +2,7 @@
                                     ; Test opcode ANI.
                                     ; AND # (immediate db) with register A, storing the result in register A.
                                     ; --------------------------------------
+                lxi sp,1024         ; Set stack pointer.
     Start:
                 mvi a,0             ; Initialize the test counter.
                 sta testCounter
@@ -42,6 +43,10 @@
                                     ; --------------------------------------
                 lxi h,SeparatorStr
                 call PrintStr
+                mvi a,'\r'
+                out 3
+                mvi a,'\n'
+                out 3
                 hlt
                 jmp Start
                                     ; ------------------------------------------
@@ -49,7 +54,7 @@
                                     ; Subroutines
                                     ;
                                     ; -------------------
-        SeparatorStr    db  '\n--------------------------------------'
+        SeparatorStr    db  '\r\n--------------------------------------'
     Separator:
                 push h
                 lxi h,SeparatorStr
@@ -57,7 +62,7 @@
                 pop h
                 ret
                                     ; -------------------
-        TestStr     db  '\n++ '
+        TestStr     db  '\r\n++ '
         testCounter db  0           ; Initialize test counter.
     NewTest:
                 lxi h,SeparatorStr
@@ -74,7 +79,7 @@
                 out 3
                 ret
                                     ; -------------------
-        ErrorStr     db  '\n-- Error'
+        ErrorStr     db  '\r\n-- Error'
     Error:
                 lxi h,ErrorStr
                 call PrintStr
@@ -102,7 +107,7 @@
                 cpi STRTERM         ; Compare to see if it's the string terminate byte.
                 jz PrintStrDone
                 out 3               ; Out register A to the serial terminal port.
-                inr m               ; Increment H:L register pair.
+                inx h               ; Increment H:L register pair.
                 jmp PrintStrContinue
         PrintStrDone:
                 pop f               ; Restore register A value.
@@ -111,8 +116,8 @@
                                     ; --------------------------------------
                                     ; Variables
                                     ;
-        AndStr      db  '\n--- AND ---'
-        EqualStr    db  '\n==========='
+        AndStr      db  '\r\n--- AND ---'
+        EqualStr    db  '\r\n==========='
         aNumber     equ  237         ; Test number.
                                     ; --------------------------------------
                 end
