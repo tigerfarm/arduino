@@ -185,7 +185,7 @@
                 cpi STRTERM         ; Compare to see if it's the string terminate byte.
                 jz PrintStrDone
                 out 3               ; Out register A to the serial terminal port.
-                inr m               ; Increment H:L register pair.
+                inx h               ; Increment H:L register pair.
                 jmp PrintStrContinue
         PrintStrDone:
                 pop f               ; Restore register A value.

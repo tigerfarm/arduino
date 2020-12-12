@@ -3,19 +3,13 @@
                                     ; Add immediate number to register A.
                                     ; Subtract immediate number from register A.
                                     ; 
-                                    ; Successful run:
-                                    ; ++ 1: A=2 A+3=5
-                                    ; ++ 2: A=5 A+3=8
-                                    ; ++ 3: A=8 A-2=6
-                                    ; ++ 4: A=6 A-2=4
-                                    ; 
                                     ; ------------------------------------------
+                lxi sp,1024         ; Set stack pointer.
     Start:
                 mvi a,0             ; Initialize the test counter.
                 sta testCounter
                                     ; ------------------------------------------
                                     ; Test ADI with decimal value.
-                                    ;
                 mvi a,2             ; Move # to register A.
                 sta regA            ; Retain register A value.
                 call NewTest
@@ -140,6 +134,7 @@
                 jmp Error           ; The above should have jumped passed this.
         okays2:
                                     ; ------------------------------------------
+                call PrintStrlnDone
                 hlt
                 jmp Start
                                     ;
@@ -148,7 +143,7 @@
                                     ; Subroutines
                                     ;
                                     ; -------------------
-        TestStr     db  '\n++ '
+        TestStr     db  '\r\n++ '
         testCounter db  0           ; Initialize test counter.
     NewTest:
                 sta PrintDigitA     ; Retain register A value.
@@ -181,7 +176,7 @@
                 cpi STRTERM         ; Compare to see if it's the string terminate byte.
                 jz PrintStrDone
                 out 3               ; Out register A to the serial terminal port.
-                inr m               ; Increment H:L register pair.
+                inx h               ; Increment H:L register pair.
                 jmp PrintStr
         PrintStrDone:
                 ret
@@ -191,16 +186,18 @@
                 cpi STRTERM         ; Compare to see if it's the string terminate byte.
                 jz PrintStrlnDone
                 out 3               ; Out register A to the serial terminal port.
-                inr m               ; Increment H:L register pair.
+                inx h               ; Increment H:L register pair.
                 jmp PrintStrln
         PrintStrlnDone:
+                mvi a,'\r'          ; Finish by printing a new line character.
+                out 3
                 mvi a,'\n'          ; Finish by printing a new line character.
                 out 3
                 ret
                                     ; -------------------
                                     ; Error handling.
                                     ;
-        ErrorStr  db      '\n- Error\n'
+        ErrorStr  db      '\r\n- Error\r\n'
     Error:
                 lxi h,ErrorStr
                 call PrintStr
@@ -217,3 +214,16 @@
                                     ;
                                     ; ------------------------------------------
                 end
+                                    ; ------------------------------------------
+                                    ; Successful run:
++ Download complete.
++ r, RUN.
++ runProcessor()
+
+++ 1: A=2 A+3=5
+++ 2: A=5 A+3=8
+++ 3: A=8 A-2=6
+++ 4: A=6 A-2=4
+++ HALT, host_read_status_led_WAIT() = 0
+                                    ; 
+                                    ; ------------------------------------------

@@ -767,6 +767,7 @@ void cpucore_i8080_print_registers() {
   printData(regH);
   Serial.print(F("  regL: "));
   printData(regL);
+  Serial.println();
   // ---
   Serial.print(F("++ Front panel display Status byte,  fpStatusByte:    "));
   printData(fpStatusByte);
@@ -783,13 +784,6 @@ void cpucore_i8080_print_registers() {
   Serial.print(F(":"));
   printByte(lowByte(fpAddressWord));
   Serial.println();
-  /*
-    Serial.print(F("+ Front panel display Address word, fpAddressHb:fpAddressLb = "));
-    printByte(fpAddressHb);
-    Serial.print(F(":"));
-    printByte(fpAddressLb);
-    Serial.println();
-  */
   // ---
   Serial.println();
 }

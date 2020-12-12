@@ -138,7 +138,7 @@ byte opcode = 0xff;
 
 // Default: Arduino IDE monitor.
 // Requires an enter key to send a string of characters that are terminated with LF.
-boolean SERIAL_IO_IDE = true;
+boolean SERIAL_IO_IDE = false;
 
 // VT100 terminal, example Macbook terminal.
 // This option makes use of the VT100 escape characters.
@@ -154,7 +154,7 @@ boolean SERIAL_IO_TERMINAL = false;
 boolean LED_IO = false;
 
 // Using Serial2 for output.
-boolean  = false;
+boolean SERIAL2_OUTPUT = false;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -1322,7 +1322,7 @@ void processWaitSwitch(byte readByte) {
     //
     case 'v':
       Serial.println(F("+ v, VT100 escapes are disabled and block cursor on."));
-      SERIAL_IO_IDE = true;
+      // SERIAL_IO_IDE = true;
       if (SERIAL_IO_VT100) {
         SERIAL_IO_VT100 = false;
         Serial.print(F("\033[0m\033[?25h"));       // Insure block cursor display: on.
