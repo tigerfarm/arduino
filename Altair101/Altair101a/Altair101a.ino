@@ -785,7 +785,8 @@ void altair_out(byte portDataByte, byte regAdata) {
       printByte(highByte(regSP));
       Serial.print(F(":"));
       printByte(lowByte(regSP));
-      Serial.print(" ");
+      // Serial.print(" ");
+      Serial.print(F(" Status flag byte, regS"));
       cpu_print_regS();
       break;
     case 44:
@@ -1389,6 +1390,11 @@ void processWaitSwitch(byte readByte) {
       }
       break;
     // -------------------------------------
+    case 'S':
+      Serial.println(F("+ S, Refresh front panel."));
+      printFrontPanel();
+      break;
+    // -------------------------------------
     case 'D':
       programState = SERIAL_DOWNLOAD;
       Serial.println(F("+ D, Download mode."));
@@ -1409,17 +1415,17 @@ void processWaitSwitch(byte readByte) {
     //
     // -------------------------------------
     case 'j':
-      Serial.print(F("++ programState: "));
-      Serial.println(programState);
       Serial.println(F("+ j: Setting Information."));
       Serial.println(F("------------"));
-      Serial.print(F("++ LED_IO = "));
+      Serial.print(F("++ programState: "));
+      Serial.println(programState);
+      Serial.print(F("++ LED_IO="));
       Serial.print(LED_IO);
-      Serial.print(F(" SERIAL_IO_VT100 = "));
+      Serial.print(F(" SERIAL_IO_VT100="));
       Serial.print(SERIAL_IO_VT100);
-      Serial.print(F(" SERIAL_IO_IDE = "));
+      Serial.print(F(" SERIAL_IO_IDE="));
       Serial.print(SERIAL_IO_IDE);
-      Serial.print(F(" SERIAL_IO_TERMINAL: "));
+      Serial.print(F(" SERIAL_IO_TERMINAL="));
       Serial.println(SERIAL_IO_TERMINAL);
       Serial.print(F("++ Serial: "));
       if (Serial) {
@@ -1446,26 +1452,26 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+++ Commands"));
       Serial.println(F("-------------"));
       Serial.println(F("+ h, Help         Print this help menu."));
+      Serial.println(F("+ i, info         Information print of registers."));
+      Serial.println(F("+ j, setting      Setting information."));
+      Serial.println(F("+ l, load         Load a sample program."));
+      Serial.println(F("+ L, Load hex     Load hex code from the serial port."));
       Serial.println(F("-------------"));
       Serial.println(F("+ 0...9, a...f    Toggle address switches:  A0...A9, A10...A15."));
       Serial.println(F("-------------"));
       Serial.println(F("+ r, RUN mode."));
-      Serial.println(F("+ Ctrl+c, STOP    When in RUN mode, change to WAIT mode."));
+      Serial.println(F("+ s, STOP         When in RUN mode, change to WAIT mode."));
       Serial.println(F("+ s, SINGLE STEP  When in WAIT mode."));
       Serial.println(F("+ x, EXAMINE      current switch address."));
       Serial.println(F("+ X, EXAMINE NEXT address, current address + 1."));
       Serial.println(F("+ p, DEPOSIT      current address"));
       Serial.println(F("+ P, DEPOSIT NEXT address, current address + 1"));
-      Serial.println(F("+ Ctrl+z, RESET   Set program counter address to zero."));
+      Serial.println(F("+ R, RESET        Set program counter address to zero."));
       Serial.println(F("+ C, CLR          Clear memory, set registers and program counter address to zero."));
       Serial.println(F("+ D, Download     Download mode."));
-      Serial.println(F("-------------"));
-      Serial.println(F("                  Can enter a series of values when using the Arduino IDE monitor."));
-      Serial.println(F("+ 013x            Example, toggle switches 0,1,3 (00001011), and EXAMINE the address."));
-      Serial.println(F("-------------"));
-      Serial.println(F("+ i, info         Information print of registers."));
-      Serial.println(F("+ l, load         Load a sample program."));
-      Serial.println(F("+ L, Load hex     Load hex code from the serial port."));
+      // Serial.println(F("-------------"));
+      // Serial.println(F("                  Can enter a series of values when using the Arduino IDE monitor."));
+      // Serial.println(F("+ 013x            Example, toggle switches 0,1,3 (00001011), and EXAMINE the address."));
       Serial.println(F("-------------"));
       Serial.println(F("+ t/T Serial2     Disable/enable Serial2 for output on port #2 (out 2)."));
       Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
@@ -1479,6 +1485,10 @@ void processWaitSwitch(byte readByte) {
     case 13:
       // USB serial, VT100 terminal.
       SERIAL_IO_TERMINAL = true;
+      Serial.println();
+      if (SERIAL_IO_IDE) {
+        printFrontPanel();  // <LF> will refresh the display.
+      }
       break;
     case 10:
       // USB serial, non VT100.
@@ -1508,9 +1518,12 @@ void runProcessorWait() {
         // This handles inputs during a SINGLE STEP cycle that hasn't finished.
         processWaitSwitch(readByte);
       }
-      if (SERIAL_IO_TERMINAL && !SERIAL_IO_VT100) {
+      /*
+        if (SERIAL_IO_TERMINAL && !SERIAL_IO_VT100) {
         processWaitSwitch(10);    // Since the terminal doesn't send a CR or LF, send one.
-      }
+        }
+      */
+      Serial.print(F("?- "));
     }
     delay(60);
   }
@@ -1743,13 +1756,17 @@ void setup() {
   // digitalWrite(HLDA_PIN, HIGH); // Default to emulator.
   // ------------------------------
   // Set status lights.
+#ifdef LOG_MESSAGES
   Serial.println(F("+ Initialized: statusByte, programCounter & curProgramCounter, dataByte."));
+#endif
   pinMode(latchPinLed, OUTPUT);
   pinMode(clockPinLed, OUTPUT);
   pinMode(dataPinLed, OUTPUT);
   delay(300);
   ledFlashSuccess();
+#ifdef LOG_MESSAGES
   Serial.println(F("+ Front panel LED lights are initialized."));
+#endif
   //
   // ----------------------------------------------------
   // ----------------------------------------------------
@@ -1762,7 +1779,7 @@ void setup() {
   printFrontPanel();
   Serial.println(F("+++ Altair 101a initialized."));
   // ----------------------------------------------------
-  Serial.println(F("+ Starting the processor loop."));
+  Serial.print(F("?- "));
 }
 
 // -----------------------------------------------------------------------------

@@ -688,9 +688,8 @@ static void cpu_print_status_register(byte s) {
 }
 
 void cpu_print_regS() {
-  Serial.print(F("+ Status flag byte, regS"));
   printByte(regS);
-  Serial.print(":Sign");
+  Serial.print(" :Sign");
   if ( regS & PS_SIGN )      Serial.print("=1"); else Serial.print("=0");
   Serial.print(":Zero");
   if ( regS & PS_ZERO )      Serial.print("=1"); else Serial.print("=0");
@@ -743,9 +742,11 @@ void cpucore_i8080_print_registers() {
   Serial.print(F(" = ")); numsys_print_mem(regSP, 8, true);
   Serial.println(F(" Stack pointer"));
   //
-  Serial.print(F("++ regS  = "));   numsys_print_byte(regS);
-  Serial.print(F(" = ")); cpu_print_status_register(regS);
-  Serial.println(F(" Status byte"));
+  Serial.print(F("++ regS:             "));
+  cpu_print_regS();
+  Serial.println();
+  // Serial.print(F(" = ")); cpu_print_status_register(regS);
+  // Serial.println(F(" Status byte"));
   // ---
   Serial.print(F("++ regA: "));
   printData(regA);
