@@ -33,15 +33,26 @@ import java.util.logging.Logger;
 // -----------------------------------------------------------------------------
 //
 public class asmUpload {
+    
+    private static int baudRate = 57600;
+    private static int baudSleepTime = 3;   // Set to 300 if baud rate is 9600.
 
     // Uses the device name that can be found in the Arduino IDE, under the menu item Tools/Port.
-    private static String SerialPortName = "/dev/cu.wchusbserial141230";   // Default name such as: cu.wchusbserial141230 or cu.SLAB_USBtoUART.
+    // Sample default ports: tty.wchusbserial14230 /dev/cu.wchusbserial141230
+    private static String SerialPortName = "/dev/cu.wchusbserial141230";
     
 
     // -------------------------------------------------------------------------
     // Constructor to ...
     public asmUpload() {
         System.out.println("+ asmUpload(), current Serial Port Name: " + asmUpload.SerialPortName);
+    }
+
+    public static int getBaudRate() {
+        return asmUpload.baudRate;
+    }
+    public static void setBaudRate(int theBaudRate) {
+        asmUpload.baudRate = theBaudRate;
     }
 
     public static String getSerialPortName() {
@@ -101,7 +112,13 @@ public class asmUpload {
         SerialPort sp = SerialPort.getCommPort(SerialPortName);
         // Connection settings must match Arduino program settings.
         // Baud rate, data bits, stop bits, and parity
-        sp.setComPortParameters(57600, 8, 1, 0); // 9600 19200
+        sp.setComPortParameters(baudRate, 8, 1, 0); // 9600 19200
+        if (baudRate == 9600) {
+            // This allows buffer time so that bytes are not dropped.
+            baudSleepTime = 300;
+        } else {
+            baudSleepTime = 3;
+        }
         // block until bytes can be written
         sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
         if (!sp.openPort()) {
@@ -137,7 +154,7 @@ public class asmUpload {
                 System.out.print(byteToString(bArray[i]) + " ");
                 sp.getOutputStream().write(bArray[i]);
                 sp.getOutputStream().flush();
-                Thread.sleep(3);
+                Thread.sleep(baudSleepTime);
             }
         } catch (IOException ex) {
             Logger.getLogger(asm.class.getName()).log(Level.SEVERE, null, ex);

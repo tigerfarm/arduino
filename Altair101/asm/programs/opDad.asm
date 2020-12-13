@@ -5,7 +5,7 @@
                             ;          01=DE   (D:E as 16 bit register)
                             ;
                             ; --------------------------------------
-            lxi sp,24       ; Stack pointer address
+            lxi sp,518      ; Stack pointer address
     Start:
                             ; --------------------------------------
             mvi a,0         ; Initialize register values for testing.
@@ -46,6 +46,10 @@
             out 43
                             ;
                             ; --------------------------------------
+            mvi a,'\r'
+            out 3
+            mvi a,'\n'
+            out 3
             hlt
             jmp Start
                             ;
@@ -54,41 +58,26 @@
                             ; --------------------------------------
                             ; Successful run:
                             ;
++ Download complete.
++ r, RUN.
+?- + runProcessor()
 ------------
 + regA:   0 = 000 = 00000000
 + regB:   1 = 001 = 00000001  regC:   2 = 002 = 00000010
 + regD:   3 = 003 = 00000011  regE:   5 = 005 = 00000101
 + regH:   0 = 000 = 00000000  regL:   0 = 000 = 00000000
 ------------
- > Register H:L =   0:  0, Data:  62 = 076 = 00111110
- > Register H:L =   1:  2, Data:   0 = 000 = 00000000
- > Register H:L =   4:  7, Data:   0 = 000 = 00000000
- > Register H:L =   8: 14, Data: 197 = 305 = 11000101
- > Register H:L =   8: 78, Data:   0 = 000 = 00000000
-------------
-+ regA:   0 = 000 = 00000000
-+ regB:   1 = 001 = 00000001  regC:   2 = 002 = 00000010
-+ regD:   3 = 003 = 00000011  regE:   5 = 005 = 00000101
-+ regH:   8 = 010 = 00001000  regL:  78 = 116 = 01001110
-+ Zero bit flag: 1, Carry bit flag: 0
-+ Stack pointer: 64
-------------
- > Register H:L =   8:138, Data: 116 = 164 = 01110100
-------------
-+ regA:   0 = 000 = 00000000
-+ regB:   1 = 001 = 00000001  regC:   2 = 002 = 00000010
-+ regD:   3 = 003 = 00000011  regE:   5 = 005 = 00000101
-+ regH:   8 = 010 = 00001000  regL: 138 = 212 = 10001010
-+ Zero bit flag: 1, Carry bit flag: 0
-+ Stack pointer: 60
-------------
-------------
-+ regA:   0 = 000 = 00000000
-+ regB:   1 = 001 = 00000001  regC:   2 = 002 = 00000010
-+ regD:   3 = 003 = 00000011  regE:   5 = 005 = 00000101
-+ regH:   8 = 010 = 00001000  regL: 138 = 212 = 10001010
-+ Zero bit flag: 1, Carry bit flag: 0
-+ Stack pointer: 64
-------------
+ > Register H:L =   0:  0 = 00000000:00000000, Data:  49 = 061 = 00110001
+ > Register H:L =   1:  2 = 00000001:00000010, Data:   0 = 000 = 00000000
+ > Register H:L =   4:  7 = 00000100:00000111, Data:   0 = 000 = 00000000
+ > Register H:L =   8: 14 = 00001000:00001110, Data: 212 = 324 = 11010100
+ > Register SP =   518 =  = 00000010:00000110 Status flag byte, regS00000000 :Sign=0:Zero=0:.:HalfCarry=0:.:Parity=0:.:Carry=0:
+ > Register H:L =  10: 20 = 00001010:00010100, Data: 183 = 267 = 10110111
+ > Register SP =   518 =  = 00000010:00000110 Status flag byte, regS00000000 :Sign=0:Zero=0:.:HalfCarry=0:.:Parity=0:.:Carry=0:
+ > Register SP =   514 =  = 00000010:00000010 Status flag byte, regS00000000 :Sign=0:Zero=0:.:HalfCarry=0:.:Parity=0:.:Carry=0:
+ > Register H:L =  12: 22 = 00001100:00010110, Data: 175 = 257 = 10101111
+ > Register SP =   514 =  = 00000010:00000010 Status flag byte, regS00000000 :Sign=0:Zero=0:.:HalfCarry=0:.:Parity=0:.:Carry=0:
+ > Register SP =   518 =  = 00000010:00000110 Status flag byte, regS00000000 :Sign=0:Zero=0:.:HalfCarry=0:.:Parity=0:.:Carry=0:
+++ HALT, host_read_status_led_WAIT() = 0
                             ;
                             ; --------------------------------------

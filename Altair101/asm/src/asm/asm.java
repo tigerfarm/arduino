@@ -12,9 +12,11 @@
  */
 package asm;
 
+import static asm.asmUpload.getBaudRate;
 import static asm.asmUpload.getSerialPortName;
 import static asm.asmUpload.listSerialPorts;
 import static asm.asmUpload.sendFile;
+import static asm.asmUpload.setBaudRate;
 import static asm.asmUpload.setSerialPortName;
 import java.io.BufferedReader;
 import java.io.File;
@@ -28,7 +30,7 @@ public class asm {
     asmProcessor processFile = new asmProcessor();
     asmOpcodes theOpcodes = new asmOpcodes();
 
-    private static final String ASMVERSION = "0.92t";
+    private static final String ASMVERSION = "0.93t";
 
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     private static String sourcedirectoy = "programs";
@@ -256,6 +258,15 @@ public class asm {
                                 System.out.println("+ Machine byte code file name: " + byteFile);
                             }
                             break;
+                        case "baud":
+                            if (cmdP2.length() == 0) {
+                                System.out.println("+ Upload baud rate set to: " + getBaudRate() + ". Data bits, stop bits, and parity: 8, 1, 0");
+                            } else {
+                                setBaudRate(Integer.parseInt(cmdP2));
+                                System.out.println("+ Set upload baud rate to: " + cmdP2);
+                                setSerialPortName(cmdP2);
+                            }
+                            break;
                         case "port":
                             if (cmdP2.length() == 0) {
                                 System.out.println("+ Serial port name set to: " + getSerialPortName());
@@ -378,8 +389,11 @@ public class asm {
                     System.out.println("");
                     System.out.println("+ upload                    : Serial upload the machine byte code file.");
                     System.out.println("++ Serial port name         : " + getSerialPortName());
+                    System.out.println("++ Serial port baud rate    : " + getBaudRate());
                     System.out.println("+ set port                  : List available serial ports.");
                     System.out.println("+ set port <serial-port>    : Set serial port to use for uploading.");
+                    System.out.println("+ set baud                  : List available serial ports.");
+                    System.out.println("+ set baud <baud rate>      : Set serial port baud rate for uploading.");
                     System.out.println("----------------------");
                     System.out.println("+ 2int <string>             : String to integer value using: asmProcessor convertValueToInt(<string>).");
                     System.out.println("                            : Example strings, hex: fh, octal: 12o, escape: '\\n', char: 'a', separator: '^^'.");

@@ -136,6 +136,8 @@ byte opcode = 0xff;
 // -----------------------------------------------------------------------------
 // Types of interactions
 
+int downloadBaudRate = 57600;   // Needs to match the upload program.
+
 // Default: Arduino IDE monitor.
 // Requires an enter key to send a string of characters that are terminated with LF.
 boolean SERIAL_IO_IDE = false;
@@ -313,18 +315,23 @@ void printFrontPanel() {
 #endif
   } else {
     if (SERIAL_IO_IDE) {
-      if (host_read_status_led_WAIT()) {
-        serialPrintFrontPanel();
-      } else {
-        Serial.print(F("+ printFrontPanel SERIAL_IO_IDE, status:"));
-        printByte(fpStatusByte);
-        Serial.print(F(" address:"));
-        sprintf(charBuffer, "%5d", host_read_addr_leds());
-        Serial.print(charBuffer);
-        Serial.print(F(" dataByte:"));
-        printByte(host_read_data_leds());
-        Serial.println();
-      }
+      uint16_t theAddressWord = 0;
+      // if (host_read_status_led_WAIT()) {
+      //  serialPrintFrontPanel();
+      // } else {
+      Serial.print(F("+ printFrontPanel SERIAL_IO_IDE, status:"));
+      printByte(fpStatusByte);
+      Serial.print(F(" dataByte:"));
+      printByte(host_read_data_leds());
+      theAddressWord = host_read_addr_leds()
+      Serial.print(F(" address:"));
+      sprintf(charBuffer, "%5d", theAddressWord);
+      Serial.print(charBuffer);
+      printByte(highByte(theAddressWord));
+      Serial.print(F(":"));
+      printByte(lowByte(theAddressWord));
+      Serial.println();
+      // }
     }
   }
 }
@@ -1280,7 +1287,7 @@ void processWaitSwitch(byte readByte) {
     case 'C':
       byte readConfirmByte;
       Serial.println(F("+ C, CLR: Clear memory, set registers to zero, set data and address to zero."));
-      Serial.println(F("+ Confirm CLR: y/n"));
+      Serial.print(F("+ Confirm CLR, y/n: "));
       readConfirmByte = 's';
       while (!(readConfirmByte == 'y' || readConfirmByte == 'n')) {
         if (Serial.available() > 0) {
@@ -1310,11 +1317,12 @@ void processWaitSwitch(byte readByte) {
       regSP = 0;
       //
       Serial.println(F("+ CLR data, address, switches, and reset status lights."));
-      fpDataByte = 0;           // Data
-      fpAddressWord = 0;        // Address lb
-      fpAddressToggleWord = 0;  // Reset all toggles to off.
-      setAddressData(regPC, MREAD(regPC));
-      host_set_status_leds_READMEM_M1();
+      fpStatusByte = MEMR_ON | M1_ON | WO_ON; // Status: Get next opcode.
+      fpDataByte = 0;                         // Data
+      fpAddressWord = 0;                      // Address word
+      fpAddressToggleWord = 0;                // Reset all toggles to off.
+      // setAddressData(regPC, MREAD(regPC));
+      // host_set_status_leds_READMEM_M1();
       if (SERIAL_IO_VT100) {
         printFrontPanel();      // For Arduino IDE monitor, <LF> will refresh the display.
       }
@@ -1409,7 +1417,7 @@ void processWaitSwitch(byte readByte) {
     case 'T':
       Serial.print(F("++ Serial2 on (begin), baud rate 9600."));
       Serial.println("");
-      Serial2.begin(57600);
+      Serial2.begin(downloadBaudRate);
       SERIAL2_OUTPUT = true;
       break;
     //
@@ -1441,7 +1449,12 @@ void processWaitSwitch(byte readByte) {
       } else {
         Serial.print(F("off, "));
       }
-      Serial.println(Serial2);
+      Serial.print(Serial2);
+      Serial.print(F(", baud rate: "));
+      Serial.print(downloadBaudRate );
+      Serial.print(F(", data bits, stop bits, and parity: 8, 1, 0"));
+      
+      Serial.println();
       break;
     case 'i':
       Serial.println(F("+ i: Information."));
@@ -1488,6 +1501,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println();
       if (SERIAL_IO_IDE) {
         printFrontPanel();  // <LF> will refresh the display.
+        serialPrintFrontPanel();
       }
       break;
     case 10:
@@ -1614,7 +1628,7 @@ void runDownloadProgram() {
   unsigned long timer;        // Indicator used to identify when download has ended.
   boolean flashWaitOn = false;
   boolean downloadStarted = false;
-  Serial2.begin(57600);
+  Serial2.begin(downloadBaudRate);
   while (programState == SERIAL_DOWNLOAD) {
     if (Serial2.available() > 0) {
       readByte = Serial2.read();      // Read the incoming byte.
