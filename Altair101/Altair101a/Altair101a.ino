@@ -16,11 +16,6 @@
   ---------------------------------------------------------
   Next:
 
-  Update output for IDE monitor and terminal.
-  SERIAL_IO_VT100=0 SERIAL_IO_IDE=0 SERIAL_IO_TERMINAL=0
-
-  Fix printing, "baud rate: -7936"
-
   In opLxi.asm, should save the stack pointer 16 address, and then restore it.
   + LXI RP,a    Move an immediate address to a register pair.
   + lxi sp,512  ; Set the stack pointer for use in CALL and RET.
