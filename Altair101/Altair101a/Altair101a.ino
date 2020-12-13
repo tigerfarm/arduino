@@ -16,6 +16,11 @@
   ---------------------------------------------------------
   Next:
 
+  Update output for IDE monitor and terminal.
+  SERIAL_IO_VT100=0 SERIAL_IO_IDE=0 SERIAL_IO_TERMINAL=0
+
+  Fix printing, "baud rate: -7936"
+
   In opLxi.asm, should save the stack pointer 16 address, and then restore it.
   + LXI RP,a    Move an immediate address to a register pair.
   + lxi sp,512  ; Set the stack pointer for use in CALL and RET.
@@ -136,7 +141,7 @@ byte opcode = 0xff;
 // -----------------------------------------------------------------------------
 // Types of interactions
 
-int downloadBaudRate = 57600;   // Needs to match the upload program.
+unsigned long downloadBaudRate = 57600;   // Needs to match the upload program.
 
 // Default: Arduino IDE monitor.
 // Requires an enter key to send a string of characters that are terminated with LF.
@@ -289,6 +294,7 @@ void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte
 // Output Front Panel Information.
 
 void printFrontPanel() {
+  uint16_t theAddressWord = 0;
   if (LED_IO) {
     lightsStatusAddressData(fpStatusByte, host_read_addr_leds(), host_read_data_leds());
   }
@@ -313,25 +319,35 @@ void printFrontPanel() {
     Serial.println();
     // Serial.print(F("\033[2K")); // Clear line
 #endif
-  } else {
-    if (SERIAL_IO_IDE) {
-      uint16_t theAddressWord = 0;
-      // if (host_read_status_led_WAIT()) {
-      //  serialPrintFrontPanel();
-      // } else {
+  } else if (SERIAL_IO_TERMINAL) {
+    Serial.print(F("+ printFrontPanel SERIAL_IO_TERMINAL, status:"));
+    printByte(fpStatusByte);
+    Serial.print(F(" dataByte:"));
+    printByte(host_read_data_leds());
+    theAddressWord = host_read_addr_leds();
+    Serial.print(F(" address:"));
+    sprintf(charBuffer, "%5d ", theAddressWord);
+    Serial.print(charBuffer);
+    printByte(highByte(theAddressWord));
+    Serial.print(F(":"));
+    printByte(lowByte(theAddressWord));
+    Serial.println();
+  } else if (SERIAL_IO_IDE) {
+    if (host_read_status_led_WAIT()) {
+      serialPrintFrontPanel();
+    } else {
       Serial.print(F("+ printFrontPanel SERIAL_IO_IDE, status:"));
       printByte(fpStatusByte);
       Serial.print(F(" dataByte:"));
       printByte(host_read_data_leds());
-      theAddressWord = host_read_addr_leds()
+      theAddressWord = host_read_addr_leds();
       Serial.print(F(" address:"));
-      sprintf(charBuffer, "%5d", theAddressWord);
+      sprintf(charBuffer, "%5d ", theAddressWord);
       Serial.print(charBuffer);
       printByte(highByte(theAddressWord));
       Serial.print(F(":"));
       printByte(lowByte(theAddressWord));
       Serial.println();
-      // }
     }
   }
 }
@@ -1280,6 +1296,7 @@ void processWaitSwitch(byte readByte) {
     case 'R':
       Serial.println(F("+ R, RESET."));
       controlResetLogic();
+      fpAddressToggleWord = 0;                // Reset all toggles to off.
       if (!SERIAL_IO_IDE) {
         printFrontPanel();  // <LF> will refresh the display.
       }
@@ -1305,6 +1322,7 @@ void processWaitSwitch(byte readByte) {
       for (int i = 0; i < MEMSIZE; i++) {
         MWRITE(i, 0);
       }
+      // ---------------------------------
       Serial.println(F("+ CLR registers."));
       regA = 0;
       regB = 0;
@@ -1331,7 +1349,6 @@ void processWaitSwitch(byte readByte) {
     //
     case 'v':
       Serial.println(F("+ v, VT100 escapes are disabled and block cursor on."));
-      // SERIAL_IO_IDE = true;
       if (SERIAL_IO_VT100) {
         SERIAL_IO_VT100 = false;
         Serial.print(F("\033[0m\033[?25h"));       // Insure block cursor display: on.
@@ -1354,6 +1371,15 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ V, VT100 escapes are enabled and block cursor off."));
       break;
     // -------------------------------------------------------------------
+    case 't':
+      SERIAL_IO_TERMINAL = false;
+      Serial.println(F("+ t, terminal output is disabled."));
+      break;
+    case 'T':
+      SERIAL_IO_TERMINAL = true;
+      Serial.println(F("+ T, Terminal output is enabled."));
+      break;
+    // -------------------------------------------------------------------
     case 'w':
       SERIAL_IO_IDE = false;
       Serial.println(F("+ w, USB serial output is disabled."));
@@ -1362,6 +1388,7 @@ void processWaitSwitch(byte readByte) {
       SERIAL_IO_IDE = true;
       Serial.println(F("+ W, USB serial output is enabled."));
       break;
+            SERIAL_IO_TERMINAL = true;
     // -------------------------------------
     case 'o':
       Serial.println(F("+ o, disable output to LED lights."));
@@ -1376,10 +1403,12 @@ void processWaitSwitch(byte readByte) {
     case 'z':
       Serial.print(F("++ Cursor off."));
       Serial.print(F("\033[0m\033[?25l"));
+      Serial.println();
       break;
     case 'Z':
       Serial.print(F("++ Cursor on."));
       Serial.print(F("\033[0m\033[?25h"));
+      Serial.println();
       break;
     //
     // -------------------------------------
@@ -1408,14 +1437,14 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ D, Download mode."));
       break;
     // -------------------------------------------------------------------
-    case 't':
-      Serial.print(F("++ Serial2 off (end)."));
-      Serial.println("");
+    case 'y':
+      Serial.print(F("+ y, Serial2 off (end)."));
+      Serial.println();
       Serial2.end();
       SERIAL2_OUTPUT = false;
       break;
-    case 'T':
-      Serial.print(F("++ Serial2 on (begin), baud rate 9600."));
+    case 'Y':
+      Serial.print(F("+ Y, Serial2 on (begin), baud rate 9600."));
       Serial.println("");
       Serial2.begin(downloadBaudRate);
       SERIAL2_OUTPUT = true;
@@ -1453,7 +1482,6 @@ void processWaitSwitch(byte readByte) {
       Serial.print(F(", baud rate: "));
       Serial.print(downloadBaudRate );
       Serial.print(F(", data bits, stop bits, and parity: 8, 1, 0"));
-      
       Serial.println();
       break;
     case 'i':
@@ -1482,12 +1510,10 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ R, RESET        Set program counter address to zero."));
       Serial.println(F("+ C, CLR          Clear memory, set registers and program counter address to zero."));
       Serial.println(F("+ D, Download     Download mode."));
-      // Serial.println(F("-------------"));
-      // Serial.println(F("                  Can enter a series of values when using the Arduino IDE monitor."));
-      // Serial.println(F("+ 013x            Example, toggle switches 0,1,3 (00001011), and EXAMINE the address."));
       Serial.println(F("-------------"));
-      Serial.println(F("+ t/T Serial2     Disable/enable Serial2 for output on port #2 (out 2)."));
+      Serial.println(F("+ y/Y Serial2     Disable/enable Serial2 for output on port #2 (out 2)."));
       Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
+      Serial.println(F("+ t/T Terminal    Disable/enable terminal output."));
       Serial.println(F("+ v/V VT100       Disable/enable USB serial VT100 output."));
       Serial.println(F("+ w/W USB serial  Disable/enable USB serial output."));
       Serial.println(F("+ z/Z cursor off  VT100 block cursor off/on."));
@@ -1497,24 +1523,29 @@ void processWaitSwitch(byte readByte) {
     // -------------------------------------
     case 13:
       // USB serial, VT100 terminal.
-      SERIAL_IO_TERMINAL = true;
       Serial.println();
-      if (SERIAL_IO_IDE) {
+      if (!SERIAL_IO_VT100) {
         printFrontPanel();  // <LF> will refresh the display.
         serialPrintFrontPanel();
       }
       break;
     case 10:
       // USB serial, non VT100.
+      Serial.println();
       serialPrintFrontPanel();
       break;
-    case 'y':
+    case 3:
+      // Ctrl+c=3
+      Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
       break;
     // -------------------------------------
     default:
+#ifdef LOG_MESSAGES
       Serial.print(F("- Ignored: "));
       printByte(readByte);
       Serial.println();
+#endif
+      break;
   }
 }
 
@@ -1628,7 +1659,7 @@ void runDownloadProgram() {
   unsigned long timer;        // Indicator used to identify when download has ended.
   boolean flashWaitOn = false;
   boolean downloadStarted = false;
-  Serial2.begin(downloadBaudRate);
+  Serial2.begin(downloadBaudRate);        // 57600 downloadBaudRate
   while (programState == SERIAL_DOWNLOAD) {
     if (Serial2.available() > 0) {
       readByte = Serial2.read();      // Read the incoming byte.
@@ -1705,7 +1736,7 @@ void runDownloadProgram() {
     // Check serial input for RESET or STOP.
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
-      if (readByte == 'R' || readByte == 's') {
+      if (readByte == 'R' || readByte == 's' || readByte == 'x') {
         Serial.println("+ Exit download mode.");
         programState = PROGRAM_WAIT;
         delay(100); // Required to wait for the LF when in IDE serial monitor.
@@ -1793,7 +1824,7 @@ void setup() {
   printFrontPanel();
   Serial.println(F("+++ Altair 101a initialized."));
   // ----------------------------------------------------
-  Serial.print(F("?- "));
+  // Serial.print(F("?- "));
 }
 
 // -----------------------------------------------------------------------------
@@ -1807,6 +1838,7 @@ void loop() {
       break;
     // ----------------------------
     case PROGRAM_WAIT:
+      Serial.print(F("?- "));
       host_set_status_led_WAIT();
       runProcessorWait();
       break;
