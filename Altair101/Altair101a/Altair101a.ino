@@ -22,12 +22,12 @@
   +   When SERIAL_IO_VT100 is set, Send specialty OUT port# data to Serial2.
 
   Message printing issue when in VT100 front panel mode.
-  + "+ R" is overwritten 
-+ Ready to receive command.
-?- , RESET.
+  + "+ R" is overwritten
+  + Ready to receive command.
+  ?- , RESET.
   + Download mode message overwritten.
-+ Ready to receive command.
-?- xit download mode.
+  + Ready to receive command.
+  ?- xit download mode.
 
   Work through sample programs to:
   + Confirm machine instruction processing is correct.
@@ -129,7 +129,8 @@
 #include "cpucore_i8080.h"
 
 #define SETUP_SDCARD 1
-// I didn't add to option to remove Serial2 options using a "#define", basically, because it doesn't cause issues.
+// I didn't add to option to remove Serial2 options using a "#define",
+//    basically, because it doesn't cause issues.
 
 // #define LOG_MESSAGES 1    // For debugging.
 // #define LOG_OPCODES  1    // Print each called opcode.
@@ -1667,11 +1668,12 @@ void processWaitSwitch(byte readByte) {
       if (readProgramFileIntoMemory(theFilename)) {
         ledFlashSuccess();
         controlResetLogic();
-        // playerPlaySoundWait(READ_FILE);
-      } else {
+        playerPlaySoundWait(READ_FILE);
+        // } else {
         // Redisplay the front panel lights.
-        printFrontPanel();
+        // printFrontPanel();
       }
+      printFrontPanel();
       host_clr_status_led_HLDA();
 #endif
       break;
@@ -1808,7 +1810,7 @@ void runDownloadProgram() {
   host_set_data_leds(0);
   printFrontPanel();
   if (SERIAL_IO_VT100) {
-    Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
+    Serial.print(F("\033[11;1H"));  // Move cursor to below the prompt: line 9, column 1.
     Serial.print(F("\033[J"));     // From cursor down, clear the screen.
   }
   byte readByte = 0;
@@ -2034,7 +2036,7 @@ boolean readProgramFileIntoMemory(String theFilename) {
   while (myFile.available()) {
     // Reads one character at a time.
     byte memoryData = myFile.read();
-    MWRITE(i,memoryData);
+    MWRITE(i, memoryData);
 #ifdef LOG_MESSAGES
     // Print Binary:Octal:Decimal values.
     Serial.print("B");
