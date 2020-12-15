@@ -42,9 +42,11 @@ void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte
 + Input from Altair 101 panel switches.
 
 --------------------------------------------------------------------------------
-Connecting to the Arduino serial port from a Mac OS terminal session.
+### Connecting to the Arduino serial ports Using Mac VT100 Terminals.
 
-Find the port, connect using the screen command which is VT100 capable.
+Following is how to find the serial ports.
+Then connect using the screen command, in a VT100 Mac terminal.
+And how to disconnect and close the connection.
 ````
 $ ls /dev/tty.*
 /dev/tty.Bluetooth-Incoming-Port	/dev/tty.wchusbserial14110
@@ -56,10 +58,85 @@ $ screen /dev/tty.wchusbserial14120 57600
 
 To exit and close the connection: Control-A followed by Control-\.
 Then, answer "y" to exit and close the connection.
+
 If screen is messed up, run reset:
 $ reset
 ````
 
+##### Sequence to upload a file:
+
+Confirm that the Mega and second serial component are plugged into the USB hub.
+Confirm that the USB ports are turned on.
+
+In a terminal window,
+Connect to Mega's default serial port.
+The Mega is running Altair101a.ino.
+Put the program into Download mode.
+````
+$ ls /dev/tty.*
+/dev/tty.Bluetooth-Incoming-Port	/dev/tty.wchusbserial14230		/dev/tty.wchusbserial14240
+$ screen /dev/tty.wchusbserial14240
+
+... screen clears, displayed on top:
++++ Setup.
++++ Altair 101a initialized.
+?- + D, Download mode.
+?- + Download mode: ready to receive a program. Enter, x, to exit.
+````
+
+Run asm.
+If required, select a program file, assemble it, and upload the byte code.
+Set to use the Mega's second serial port.
+Upload the byte code.
+````
+$ java -jar asm.jar
+> list ports
+...
+> set port tty.wchusbserial14230
++ Set the serial port name: tty.wchusbserial14230
++ Serial port set to: tty.wchusbserial14230
++ Serial port set to system name: /dev/tty.wchusbserial14230
+> upload
+...
+````
+If the upload failed, confirm that serial program is not connected to the port.
+
+In a terminal window, connect to the second serial port.
+````
+$ screen /dev/tty.wchusbserial14230 57600
+... screen clears with the cursor at the home position.
+````
+
+Set second serial port for output.
+Run the program.
+````
+++ Byte#    207, Byte: 00001101 00d 015    13
+++ Byte#    208, Byte: 00001010 00a 012    10
+++ Byte#    209, Byte: 11111111 0ff 377   255
++ Download complete.
+?- + Y, Serial2 on (begin), baud rate: 57600.
+?- + r, RUN.
+?- + runProcessor()
+
+Start...
+
+Hello
+
+Again3.
+++ HALT, host_read_status_led_WAIT() = 0
+?- 
+````
+View the output in the second serial terminal window.
+````
+------------
++ regA:   1 = 001 = 00000001
++ regB:   2 = 002 = 00000010  regC:   3 = 003 = 00000011
++ regD:   4 = 004 = 00000100  regE:   5 = 005 = 00000101
++ regH:   6 = 006 = 00000110  regL:   7 = 007 = 00000111
+------------
+....
+````
+--------------------------------------------------------------------------------
 ##### Links
 
 Chris Davis of Altairduino.com has set up a Google Group for discussion of Altair-Duino related questions:

@@ -16,11 +16,10 @@
   ---------------------------------------------------------
   Next:
 
-  When SERIAL_IO_VT100 is set, Send specialty OUT port# data to Serial2.
-
   Sample program to print all the ASCII characters in a VT100 terminal
   + To see what characters are available.
   + Such as, from use "alt opt" key: Ω≈ç√∫˜˜≤≥÷åß∂ƒ©˙∆˚¬…æœ∑´´†¥¨ˆˆπ¡™£¢∞§¶•ªº–≠
+  +   When SERIAL_IO_VT100 is set, Send specialty OUT port# data to Serial2.
 
   Work through sample programs to:
   + Confirm machine instruction processing is correct.
