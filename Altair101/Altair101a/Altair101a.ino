@@ -128,7 +128,8 @@
 #include "Altair101a.h"
 #include "cpucore_i8080.h"
 
-// #define SETUP_SDCARD 1
+#define SETUP_SDCARD 1
+// I didn't add to option to remove Serial2 options using a "#define", basically, because it doesn't cause issues.
 
 // #define LOG_MESSAGES 1    // For debugging.
 // #define LOG_OPCODES  1    // Print each called opcode.
@@ -651,7 +652,16 @@ void controlResetLogic() {
 
 // Check sense switch toggles and return the switch byte value as a string.
 String getSenseSwitchValue() {
-  return "0";
+  // From serial toggle switches.
+  byte bValue = highByte(fpAddressToggleWord);  // Or could use: bValue = altair_in(B11111111);
+  // From hardware is not implemented.
+  // byte bValue = toggleSense();
+  String sValue = String(bValue, BIN);
+  int addZeros = 8 - sValue.length();
+  for (int i = 0; i < addZeros; i++) {
+    sValue = "0" + sValue;
+  }
+  return sValue;
 }
 
 byte inputBytePort2 = 0;
@@ -1606,6 +1616,9 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ C, CLR          Clear memory, set registers and program counter address to zero."));
       Serial.println(F("+ D, Download     Download mode."));
       Serial.println(F("-------------"));
+      Serial.println(F("+ m, Read         Read a file into program memory."));
+      Serial.println(F("+ M, Write        Write program memory into a file."));
+      Serial.println(F("-------------"));
       Serial.println(F("+ y/Y Serial2     Disable/enable Serial2 for output on port #2 (out 2)."));
       Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
       Serial.println(F("+ t/T Terminal    Disable/enable terminal output."));
@@ -1641,7 +1654,8 @@ void processWaitSwitch(byte readByte) {
         SERIAL_IO_VT100 = true;                 // Must be after serialPrintFrontPanel(), to have the labels printed.
       }
       break;
-    case 4:
+    case 'm':
+      Serial.println("+ m, Read file into program memory.");
 #ifdef SETUP_SDCARD
       theFilename = getSenseSwitchValue() + ".bin";
       if (theFilename == "00000000.bin") {
@@ -1661,7 +1675,8 @@ void processWaitSwitch(byte readByte) {
       host_clr_status_led_HLDA();
 #endif
       break;
-    case 5:
+    case 'M':
+      Serial.println("+ m, Write program memory into a file.");
 #ifdef SETUP_SDCARD
       String senseSwitchValue = getSenseSwitchValue();
       theFilename = senseSwitchValue + ".bin";
