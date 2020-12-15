@@ -16,33 +16,23 @@
   ---------------------------------------------------------
   Next:
 
-  In opLxi.asm, should save the stack pointer 16 address, and then restore it.
-  + LXI RP,a    Move an immediate address to a register pair.
-  + lxi sp,512  ; Set the stack pointer for use in CALL and RET.
-  + Store SP to a memory address:
-  ++ XTHL       L <-> (SP); H <-> (SP+1) ... Set H:L to same value as SP
-  ++ SHLD adr   (adr) <-L; (adr+1)<-H :
-  + Restore SP from a memory address:
-  ++ LHLD adr   SP=HL                    ... Set SP to same value as H:L
-  ++ SPHL       SP=HL Set SP to the same address value as H:L.
+  When SERIAL_IO_VT100 is set, Send specialty OUT port# data to Serial2.
 
-  Work through sample programs to confirm machine instruction processing is correct.
+  Sample program to print all the ASCII characters in a VT100 terminal
+  + To see what characters are available.
+  + Such as, from use "alt opt" key: Ω≈ç√∫˜˜≤≥÷åß∂ƒ©˙∆˚¬…æœ∑´´†¥¨ˆˆπ¡™£¢∞§¶•ªº–≠
+
+  Work through sample programs to:
+  + Confirm machine instruction processing is correct.
+  + Front panel, log messages, and interactivity are working well.
   Work on basic interactivity updates.
-  + Tested with various baud rates: 9600, 57600, 115200.
-  + Focusing on the favorite, VT100 termial mode.
+  + Option to set baud rates: 9600, 19200, 57600, 115200.
+  + Focusing on the favorite, VT100 termial modes.
 
-  Try using Serial2 for output.
-  + Sample instruction to output regA to Serial2: OUT 2
-  ++ Or use the same port number as 88-2SIO DATA PORT in pGalaxy80.asm.
-  + Programs could output to Serial2, leaving Serial for system messages.
-  + Would need a command option to open and close Serial2,
-  ++ Because the assembler uploads using Serial2. It opens it, uses it, then closes it.
-  ++ Automatically close Serial2 for output when entering download mode.
-  ++ Automatically open Serial2 for output when exiting download mode.
-  https://www.arduino.cc/reference/en/language/functions/communication/serial/
-
-  Be interesting to get pGalaxy80.asm to compile and run. Or, just to run.
-  + Need to have Serial2 for output.
+  Add Serial2 output ports.
+  + Currently works, instruction to output regA to Serial2: OUT 2
+  + Add the same port number as 88-2SIO DATA PORT in pGalaxy80.asm.
+  ++ Be interesting to get pGalaxy80.asm to compile and run. Or, just to run.
   + Try loading and running the BIN file.
   + Try compiling and running sections of the program.
   SIOCTL  EQU 10H   ;88-2SIO CONTROL PORT
@@ -50,16 +40,8 @@
   IN   SIOCTL
   OUT  SIODAT
 
-  +++ Integration steps to merge this code with Processor.ino.
-  + Continue use testing Altair101a.
-  + Continue adding Processor features into Altair101a.
-  ++ Add: ability to read and write program byte files from a micro SD card.
-  ++ Added: ability to download program bytes from asm.
-  ++ Upload Altair101a to the Altair 101 machine and test with lights.
-  ++ Altair101a code updates to handle hardware toggles and switches.
-
-  After Altair101a works and processes programs,
-  + Add the other features: player, clock, timer, and counter.
+  Optional: automatically open Serial2 for output when exiting download mode.
+  https://www.arduino.cc/reference/en/language/functions/communication/serial/
 
   ---------------------------------------------------------
   Hex programs:
@@ -76,6 +58,17 @@
     const byte PROGMEM basic4k[] = {
     0xae, 0xae, ... 0x00};
   + Will need to search Hex codes to see if interupt is required.
+
+  +++ Integration steps to merge this code with Processor.ino.
+  + Continue use testing Altair101a.
+  + Continue adding Processor features into Altair101a.
+  ++ Add: ability to read and write program byte files from a micro SD card.
+  ++ Added: ability to download program bytes from asm.
+  ++ Upload Altair101a to the Altair 101 machine and test with lights.
+  ++ Altair101a code updates to handle hardware toggles and switches.
+
+  After Altair101a works and processes programs,
+  + Add the other features: player, clock, timer, and counter.
 
   ---------------------------------------------------------
   Other Nexts:
@@ -155,36 +148,73 @@ boolean SERIAL_IO_TERMINAL = false;
 // Hardware LED lights
 boolean LED_IO = false;
 
+// -----------------------------------
 // Using Serial2 for output.
 boolean SERIAL2_OUTPUT = false;
+
+void Serial_println() {
+  if (SERIAL2_OUTPUT) {
+    Serial2.write('\r');
+    Serial2.write('\n');
+  } else {
+    Serial.println();
+  }
+}
+void Serial_print(byte regAdata) {
+  if (SERIAL2_OUTPUT) {
+    Serial2.write(regAdata);
+  } else {
+    Serial.write(regAdata);
+  }
+}
+void Serial_print(String regAdata) {
+  if (SERIAL2_OUTPUT) {
+    Serial2.print(regAdata);
+  } else {
+    Serial.print(regAdata);
+  }
+}
+void Serial_write(byte regAdata) {
+  if (SERIAL2_OUTPUT) {
+    Serial2.print(regAdata);
+  } else {
+    Serial.print(regAdata);
+  }
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 char charBuffer[17];
 
 void printByte(byte b) {
-  for (int i = 7; i >= 0; i--)
-    Serial.print(bitRead(b, i));
+  for (int i = 7; i >= 0; i--) {
+    //  Serial_print(bitRead(b, i));
+    if (bitRead(b, i)) {
+      Serial_print("1");
+    } else {
+      Serial_print("0");
+    }
+  }
 }
 void printOctal(byte b) {
   String sValue = String(b, OCT);
   for (int i = 1; i <= 3 - sValue.length(); i++) {
-    Serial.print(F("0"));
+    Serial_print(F("0"));
   }
-  Serial.print(sValue);
+  Serial_print(sValue);
 }
 void printHex(byte b) {
   String sValue = String(b, HEX);
   for (int i = 1; i <= 3 - sValue.length(); i++) {
-    Serial.print("0");
+    Serial_print("0");
   }
   Serial.print(sValue);
 }
 void printData(byte theByte) {
   sprintf(charBuffer, "%3d = ", theByte);
-  Serial.print(charBuffer);
+  Serial_print(charBuffer);
   printOctal(theByte);
-  Serial.print(F(" = "));
+  Serial_print(F(" = "));
   printByte(theByte);
 }
 
@@ -215,6 +245,7 @@ int x2i(char *s) {
 int programState = LIGHTS_OFF;  // Intial, default.
 
 void ledFlashSuccess() {};
+void ledFlashError() {};
 
 int READ_FILE         = 1;
 void playerPlaySoundWait(int theFileNumber) {};
@@ -694,137 +725,137 @@ void altair_out(byte portDataByte, byte regAdata) {
     case 16:
       // Actual output of bytes. Example output a byte to the serial port (IDE monitor).
       // Test port: 20Q (octal: 020).
-      Serial.print(F("++ Test output port, byte output to USB serial port:"));
+      Serial_print("++ Test output port, byte output to USB serial port:");
       Serial.print(regAdata);         // Write regAdata to serial port.
       Serial.println(F(":"));
       break;
     // ---------------------------------------
     // Echo processor values.
     case 30:
-      Serial.println("");
-      Serial.print(F(" > Register B = "));
+      Serial_println();
+      Serial_print(F(" > Register B = "));
       printData(regB);
       break;
     case 31:
-      Serial.println("");
-      Serial.print(F(" > Register C = "));
+      Serial_println();
+      Serial_print(F(" > Register C = "));
       printData(regC);
       break;
     case 32:
-      Serial.println("");
-      Serial.print(F(" > Register D = "));
+      Serial_println();
+      Serial_print(F(" > Register D = "));
       printData(regD);
       break;
     case 33:
-      Serial.println("");
-      Serial.print(F(" > Register E = "));
+      Serial_println();
+      Serial_print(F(" > Register E = "));
       printData(regE);
       break;
     case 34:
-      Serial.println("");
-      Serial.print(F(" > Register H = "));
+      Serial_println();
+      Serial_print(F(" > Register H = "));
       printData(regH);
       break;
     case 35:
-      Serial.println("");
-      Serial.print(F(" > Register L = "));
+      Serial_println();
+      Serial_print(F(" > Register L = "));
       printData(regL);
       break;
     case 36:
-      Serial.println("");
-      Serial.print(F(" > Register H:L = "));
+      Serial_println();
+      Serial_print(F(" > Register H:L = "));
       sprintf(charBuffer, "%3d", regH);
-      Serial.print(charBuffer);
-      Serial.print(F(":"));
+      Serial_print(charBuffer);
+      Serial_print(F(":"));
       sprintf(charBuffer, "%3d = ", regL);
-      Serial.print(charBuffer);
+      Serial_print(charBuffer);
       printByte(regH);
-      Serial.print(F(":"));
+      Serial_print(':');
       printByte(regL);
-      Serial.print(F(", Data: "));
+      Serial_print(F(", Data: "));
       hlValue = regH * 256 + regL;
       printData(MREAD(hlValue));
       break;
     case 37:
-      Serial.println("");
-      Serial.print(F(" > Register A = "));
+      Serial_println();
+      Serial_print(F(" > Register A = "));
       printData(regA);
       break;
     case 38:
 #ifdef LOG_MESSAGES
-      Serial.println("");
+      Serial_println();
 #endif
-      Serial.println(F("------------"));
       printRegisters();
-      Serial.print(F("------------"));
       break;
     case 39:
 #ifdef LOG_MESSAGES
-      Serial.println("");
+      Serial_println();
 #endif
-      Serial.println(F("------------"));
+      Serial_print(F("------------"));
       cpucore_i8080_print_registers();
       // printRegisters();
       // printOther();
-      Serial.print(F("------------"));
+      Serial_print(F("------------"));
       break;
     case 40:
-      Serial.println("");
-      Serial.print(F(" > Register B:C = "));
+      Serial_println();
+      Serial_print(F(" > Register B:C = "));
       sprintf(charBuffer, "%3d", regB);
-      Serial.print(charBuffer);
-      Serial.print(F(":"));
+      Serial_print(charBuffer);
+      Serial_print(F(":"));
       sprintf(charBuffer, "%3d", regC);
-      Serial.print(charBuffer);
-      Serial.print(F(", Data: "));
+      Serial_print(charBuffer);
+      Serial_print(F(", Data: "));
       hlValue = regB * 256 + regC;
       printData(MREAD(hlValue));
       // printOctal(theByte);
       // printByte(theByte);
       break;
     case 41:
-      Serial.println("");
-      Serial.print(F(" > Register D:E = "));
+      Serial_println();
+      Serial_print(F(" > Register D:E = "));
       sprintf(charBuffer, "%3d", regD);
-      Serial.print(charBuffer);
-      Serial.print(F(":"));
+      Serial_print(charBuffer);
+      Serial_print(F(":"));
       sprintf(charBuffer, "%3d", regE);
-      Serial.print(charBuffer);
-      Serial.print(F(", Data: "));
+      Serial_print(charBuffer);
+      Serial_print(F(", Data: "));
       hlValue = regD * 256 + regE;
       printData(MREAD(hlValue));
       break;
     case 43:
-      Serial.println();
-      Serial.print(F(" > Register SP = "));
+      Serial_println();
+      Serial_print(F(" > Register SP = "));
       sprintf(charBuffer, "%5d = ", regSP);
-      Serial.print(charBuffer);
-      Serial.print(" = ");
+      Serial_print(charBuffer);
+      Serial_print(F(" = "));
       printByte(highByte(regSP));
-      Serial.print(F(":"));
+      Serial_print((":"));
       printByte(lowByte(regSP));
       // Serial.print(" ");
-      Serial.print(F(" Status flag byte, regS"));
+      Serial_print(F(" Status flag byte, regS"));
       cpu_print_regS();
       break;
     case 44:
-      Serial.println("");
+      Serial_println();
       cpucore_i8080_print_registers();
       // printOther();
       break;
     case 45:
-      Serial.println();
-      Serial.print(F(" > Register SP = "));
+      Serial_println();
+      Serial_print(F(" > Register SP = "));
       sprintf(charBuffer, "%5d = ", regSP);
-      Serial.print(charBuffer);
+      Serial_print(charBuffer);
       printByte(highByte(regSP));
-      Serial.print(F(":"));
+      Serial_print(F(":"));
       printByte(lowByte(regSP));
       break;
     // ---------------------------------------
     default:
-      Serial.print(F("- Error, output port is not available: "));
-      Serial.println(portDataByte);
+      Serial_println();
+      Serial_print(F("- Error, output port is not available: "));
+      Serial_write(portDataByte);
+      Serial_println();
   }
   if (host_read_status_led_WAIT()) {
     singleStepWait();
@@ -847,28 +878,30 @@ void setAddressData(uint16_t addressWord, byte dataByte) {
 }
 
 void printRegisters() {
-  Serial.print(F("+ regA: "));
+  Serial_print(F("------------\r\n"));
+  Serial_print(F("+ regA: "));
   printData(regA);
-  Serial.println("");
+  Serial_println();
   // ---
-  Serial.print(F("+ regB: "));
+  Serial_print(F("+ regB: "));
   printData(regB);
-  Serial.print(F("  regC: "));
+  Serial_print(F("  regC: "));
   printData(regC);
-  Serial.println("");
+  Serial_println();
   // ---
-  Serial.print(F("+ regD: "));
+  Serial_print(F("+ regD: "));
   printData(regD);
-  Serial.print(F("  regE: "));
+  Serial_print(F("  regE: "));
   printData(regE);
-  Serial.println("");
+  Serial_println();
   // ---
-  Serial.print(F("+ regH: "));
+  Serial_print(F("+ regH: "));
   printData(regH);
-  Serial.print(F("  regL: "));
+  Serial_print(F("  regL: "));
   printData(regL);
   // ---
-  Serial.println("");
+  Serial_println();
+  Serial_print(F("------------\r\n"));
 }
 
 // -----------------------------------------------------------------------------
@@ -1383,7 +1416,7 @@ void processWaitSwitch(byte readByte) {
       SERIAL_IO_IDE = true;
       Serial.println(F("+ W, USB serial output is enabled."));
       break;
-            SERIAL_IO_TERMINAL = true;
+      SERIAL_IO_TERMINAL = true;
     // -------------------------------------
     case 'o':
       Serial.println(F("+ o, disable output to LED lights."));
@@ -1439,8 +1472,9 @@ void processWaitSwitch(byte readByte) {
       SERIAL2_OUTPUT = false;
       break;
     case 'Y':
-      Serial.print(F("+ Y, Serial2 on (begin), baud rate 9600."));
-      Serial.println("");
+      Serial.print(F("+ Y, Serial2 on (begin), baud rate: "));
+      Serial.print(downloadBaudRate);
+      Serial.println(".");
       Serial2.begin(downloadBaudRate);
       SERIAL2_OUTPUT = true;
       break;
@@ -1530,8 +1564,16 @@ void processWaitSwitch(byte readByte) {
       serialPrintFrontPanel();
       break;
     case 3:
-      // Ctrl+c=3
-      Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
+      // Ctrl+c is ASCII 3.
+      if (SERIAL_IO_VT100 || SERIAL_IO_TERMINAL) {
+        Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
+      }
+      if (SERIAL_IO_VT100) {
+        // Refresh the front panel
+        SERIAL_IO_VT100 = false;                // Insure labels are printed.
+        serialPrintFrontPanel();                // Print the complete front panel: labels and indicators.
+        SERIAL_IO_VT100 = true;                 // Must be after serialPrintFrontPanel(), to have the labels printed.
+      }
       break;
     // -------------------------------------
     default:
@@ -1638,7 +1680,7 @@ void loadProgramSerial() {
 
 // -----------------------------------------------------------------------------
 void runDownloadProgram() {
-  Serial.println("+ Download mode: ready to receive a program.");
+  Serial.println("+ Download mode: ready to receive a program. Enter, x, to exit.");
   // Status: ready for input and not yet writing to memory.
   host_set_status_led_INP();
   host_clr_status_led_M1();
@@ -1654,6 +1696,11 @@ void runDownloadProgram() {
   unsigned long timer;        // Indicator used to identify when download has ended.
   boolean flashWaitOn = false;
   boolean downloadStarted = false;
+  boolean check_SERIAL2_OUTPUT = false;
+  if (SERIAL2_OUTPUT) {
+    SERIAL2_OUTPUT = false;               // Don't print to Serial2 during this operation.
+    check_SERIAL2_OUTPUT = true;          // Re-open before exiting this function.
+  }
   Serial2.begin(downloadBaudRate);        // 57600 downloadBaudRate
   while (programState == SERIAL_DOWNLOAD) {
     if (Serial2.available() > 0) {
@@ -1715,12 +1762,12 @@ void runDownloadProgram() {
         Serial.print(" ");
       }
       Serial.print(readByte);
-      Serial.println("");
+      Serial.println();
       //
       timer = millis();
     }
-    if (downloadStarted && ((millis() - timer) > 1000)) {
-      // Exit download state, if the bytes were downloaded and then stopped for 1 second.
+    if (downloadStarted && ((millis() - timer) > 500)) {
+      // Exit download state, if the bytes were downloaded and then stopped for 1/2 second.
       //  This indicates that the download is complete.
       Serial.println("+ Download complete.");
       programState = PROGRAM_WAIT;
@@ -1762,9 +1809,9 @@ void runDownloadProgram() {
     // -----------------------------------------------
   }
   Serial2.end();        // Close and allow this port for output use.
-#ifdef SWITCH_MESSAGES
-  Serial.println(F("+ Exit serial download mode."));
-#endif
+  if (check_SERIAL2_OUTPUT) {
+    Serial.println(F("+ Note, Serial2 was open. It's now closed after download."));
+  }
   if (readByteCount > 0) {
     // Program bytes were downloaded into memory.
     controlResetLogic();                // Reset the program and front panel, including status lights.
@@ -1775,6 +1822,9 @@ void runDownloadProgram() {
     host_read_addr_leds(MREAD(regPC));
   }
   host_clr_status_led_INP();
+#ifdef SWITCH_MESSAGES
+  Serial.println(F("+ Exit serial download mode."));
+#endif
 }
 
 // -----------------------------------------------------------------------------

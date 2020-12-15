@@ -51,14 +51,16 @@
                                         ; If #<A, CarryBit=0.
             mvi a,42                    ; Move # to register A.
             cpi 42                      ; 42 = A. Zero bit flag is true(1). Carry bit is false(0).
-            out 39                      ; Print all the register values, and other system data.
-            cpi 43                      ; 43 > A. Zero bit flag is true(1). Carry bit is false(0).
-            out 39                      ; Print the registers and system data.
-            cpi 41                      ; 41 < A. Zero bit flag is true(1). Carry bit is false(0).
-            out 39                      ; Print the registers and system data.
+            out 43                      ; Print flag byte.
+            cpi 46                      ; 46 > A. Zero bit flag is true(1). Carry bit is false(0).
+            out 43
+            cpi 21                      ; 21 < A. Zero bit flag is true(1). Carry bit is false(0).
+            out 43
                                         ;
                                         ; --------------------------------------
                                         ; Print "Hello" to the Arduino IDE serial monitor.
+            mvi a,'\r'
+            out 3
             mvi a,'\n'
             out 3
             mvi a,'H'                   ; Move the byte value of "h" to register A.
@@ -71,17 +73,29 @@
             out 3
             mvi a,'o'
             out 3
+            mvi a,'\r'
+            out 3
             mvi a,'\n'
             out 3
                                         ; --------------------------------------
             out 13                      ; Flash the LED light error sequence.
             out 42                      ; Flash the LED light success sequence.
-            mvi a,NL
+            mvi a,'\r'
             out 3
-            lxi h,Again
-            mvi a,NL
+            mvi a,'\n'
             out 3
+            lxi h,Again3
             call sPrint
+            out 42                      ; Flash the LED light success sequence.
+                                        ; --------------------------------------
+            out 13                      ; Flash the LED light error sequence.
+            out 42                      ; Flash the LED light success sequence.
+            mvi a,'\r'
+            out 2
+            mvi a,'\n'
+            out 2
+            lxi h,Again2
+            call sPrint2
             out 42                      ; Flash the LED light success sequence.
                                         ; --------------------------------------
             hlt                         ; The program will halt at each iteration, after the first.
@@ -93,14 +107,25 @@
                 cpi TERMB               ; Compare to see if it's the string terminate byte.
                 jz sPrintDone
                 out 3                   ; Out register A to the serial terminal port.
-                inr m                   ; Increment H:L register pair.
+                inx h                   ; Increment H:L register pair.
                 jmp sPrint
         sPrintDone:
                 ret
                                         ; --------------------------------------
+        sPrint2:
+                mov a,m                 ; Move the data from H:L address to register A. (HL) -> A. 
+                cpi TERMB               ; Compare to see if it's the string terminate byte.
+                jz sPrintDone2
+                out 2                   ; Out register A to the serial terminal port.
+                inx h                   ; Increment H:L register pair.
+                jmp sPrint2
+        sPrintDone2:
+                ret
+                                        ; --------------------------------------
                                         ;
     StartMsg    db      'Start...'      ; Strings to print out.
-    Again       db      'Again.'        ; Strings to print out.
+    Again2      db      'Again2.\r\n'   ; Strings to print out to port 2.
+    Again3      db      'Again3.\r\n'   ; Strings to print out to port 3.
     TERMB       equ     0ffh            ; String terminator.
     NL          equ     10              ; 10 is new line, '\n'.
                                         ; --------------------------------------
