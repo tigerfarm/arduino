@@ -21,6 +21,14 @@
   + Such as, from use "alt opt" key: Ω≈ç√∫˜˜≤≥÷åß∂ƒ©˙∆˚¬…æœ∑´´†¥¨ˆˆπ¡™£¢∞§¶•ªº–≠
   +   When SERIAL_IO_VT100 is set, Send specialty OUT port# data to Serial2.
 
+  Message printing issue when in VT100 front panel mode.
+  + "+ R" is overwritten 
++ Ready to receive command.
+?- , RESET.
+  + Download mode message overwritten.
++ Ready to receive command.
+?- xit download mode.
+
   Work through sample programs to:
   + Confirm machine instruction processing is correct.
   + Front panel, log messages, and interactivity are working well.
@@ -126,6 +134,8 @@
 // #define LOG_OPCODES  1    // Print each called opcode.
 
 byte opcode = 0xff;
+
+String theFilename;
 
 // ------------------------------
 // Added this to identify hardware status.
@@ -288,6 +298,17 @@ void ledFlashSuccess() {};
 void ledFlashError() {};
 
 int READ_FILE         = 1;
+int TIMER_COMPLETE    = 2;
+int RESET_COMPLETE    = 2;
+int CLOCK_ON          = 3;
+int CLOCK_OFF         = 4;
+int PLAYER_ON         = 3;
+int PLAYER_OFF        = 4;
+int KR5               = 5;
+int CLOCK_CUCKOO      = 6;
+int TIMER_MINUTE      = 7;
+int DOWNLOAD_COMPLETE = 8;
+int WRITE_FILE        = 9;
 void playerPlaySoundWait(int theFileNumber) {};
 
 // ------------------------------
@@ -627,6 +648,11 @@ void controlResetLogic() {
     The input byte is loaded into register A.
   A byte value of 0, implies no input on that port at the time of being called.
 */
+
+// Check sense switch toggles and return the switch byte value as a string.
+String getSenseSwitchValue() {
+  return "0";
+}
 
 byte inputBytePort2 = 0;
 byte altair_in(byte portDataByte) {
@@ -1617,7 +1643,7 @@ void processWaitSwitch(byte readByte) {
       break;
     case 4:
 #ifdef SETUP_SDCARD
-      String theFilename = getSenseSwitchValue() + ".bin";
+      theFilename = getSenseSwitchValue() + ".bin";
       if (theFilename == "00000000.bin") {
         Serial.println(F("+ Set to download over the serial port."));
         programState = SERIAL_DOWNLOAD;
@@ -1638,7 +1664,7 @@ void processWaitSwitch(byte readByte) {
     case 5:
 #ifdef SETUP_SDCARD
       String senseSwitchValue = getSenseSwitchValue();
-      String theFilename = senseSwitchValue + ".bin";
+      theFilename = senseSwitchValue + ".bin";
       if (theFilename == "11111111.bin") {
         Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
         ledFlashError();
@@ -1951,8 +1977,10 @@ void writeProgramMemoryToFile(String theFilename) {
   // Serial.println("++ New file opened.");
   // Serial.println("++ Write binary memory to the file.");
   host_set_status_led_HLDA();
-  for (int i = 0; i < memoryTop; i++) {
-    myFile.write(memoryData[i]);
+  for (int i = 0; i < MEMSIZE; i++) {
+    // myFile.write(memoryData[i]);
+    byte memoryData = MREAD(i);
+    myFile.write(memoryData);
   }
   myFile.close();
   Serial.println(F("+ Write completed, file closed."));
@@ -1990,7 +2018,8 @@ boolean readProgramFileIntoMemory(String theFilename) {
   int i = 0;
   while (myFile.available()) {
     // Reads one character at a time.
-    memoryData[i] = myFile.read();
+    byte memoryData = myFile.read();
+    MWRITE(i,memoryData);
 #ifdef LOG_MESSAGES
     // Print Binary:Octal:Decimal values.
     Serial.print("B");
@@ -2001,7 +2030,7 @@ boolean readProgramFileIntoMemory(String theFilename) {
     Serial.println(memoryData[i], DEC);
 #endif
     i++;
-    if (i > memoryTop) {
+    if (i > MEMSIZE) {
       Serial.println(F("-+ Warning, file contains more data bytes than available memory."));
       ledFlashError();
       break;
@@ -2014,7 +2043,7 @@ boolean readProgramFileIntoMemory(String theFilename) {
   host_clr_status_led_HLDA();
   return (true);
 }
-#endif
+#endif  // SETUP_SDCARD
 
 // -----------------------------------------------------------------------------
 void setup() {
