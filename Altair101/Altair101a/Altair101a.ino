@@ -16,10 +16,10 @@
   ---------------------------------------------------------
   Next:
 
-  Sample program to print all the ASCII characters in a VT100 terminal
-  + To see what characters are available.
+  Sample I/O program using Serial2.
+
+  Sample program to print ASCII characters in a VT100 terminal
   + Such as, from use "alt opt" key: Ω≈ç√∫˜˜≤≥÷åß∂ƒ©˙∆˚¬…æœ∑´´†¥¨ˆˆπ¡™£¢∞§¶•ªº–≠
-  +   When SERIAL_IO_VT100 is set, Send specialty OUT port# data to Serial2.
 
   Message printing issue when in VT100 front panel mode.
   + "+ R" is overwritten
@@ -123,6 +123,59 @@
   ------
   + Ready to receive command.
   + singleStepWait()processDataOpcode()
+
+  ---------------------------------------------------------
+  ---------------------------------------------------------
+  Program sections
+
+  + Declarations
+    printByte(byte b)
+
+  --------------------------
+  + Process functions
+    singleStepWait()
+    controlResetLogic()
+
+  --------------------------
+  + Front panel functions
+    printFrontPanel()
+
+  + Input
+    altair_in(byte portDataByte)
+    
+  + Output
+    altair_out(byte portDataByte, byte regAdata)
+
+  --------------------------
+  + Process RUN mode
+    processDataOpcode()
+    processRunSwitch(byte readByte)
+    runProcessor()
+    + Loop the above 2 processes.
+
+  + Processor WAIT mode: process switch byte options.
+    void processWaitSwitch(byte readByte)
+    runProcessorWait()
+    + Loop input keys and call processWaitSwitch(inputByte)
+    
+  --------------------------
+  + Load hardcoded programs
+    Early test programs
+  
+  + Copy paste into Serial port window.
+    Only works for really short programs.
+
+  + Download program bytes through Serial2 port from the laptop.
+    runDownloadProgram()
+
+  + SD card R/W functions
+    readProgramFileIntoMemory(String theFilename)
+    writeProgramMemoryToFile(String theFilename)
+
+  --------------------------
+  + Setup()
+  + Looop()
+  
 */
 // -----------------------------------------------------------------------------
 #include "Altair101a.h"
@@ -680,7 +733,19 @@ byte altair_in(byte portDataByte) {
       // Note, hardware Sense switches are not implemented.
       break;
     case 2:
-      // USB serial input sense switches: 8,9,a...f.
+      // Input from the external USB component Serial2 port.
+      if (Serial2.available() > 0) {
+        inputDataByte = Serial.read();    // Read and process an incoming byte.
+      }
+      break;
+    case 3:
+      // Input(inputBytePort2) comes from the RUN mode loop, USB default serial port.
+      // Only keep the most recent input, not queueing the inputs at this time.
+      inputDataByte = inputBytePort2;
+      inputBytePort2 = 0;
+      break;
+    case 6:
+      // USB default serial port input sense switches: 8,9,a...f.
       // Input(inputBytePort2) comes from the RUN mode loop.
       if (inputBytePort2 == '8') {
         inputDataByte = B00000001;
@@ -709,12 +774,6 @@ byte altair_in(byte portDataByte) {
         Serial.println();
 #endif
       }
-      break;
-    case 3:
-      // Input(inputBytePort2) comes from the RUN mode loop.
-      // Only keep the most recent input, not queueing the inputs at this time.
-      inputDataByte = inputBytePort2;
-      inputBytePort2 = 0;
       break;
     case 16:
       // Test port: 20Q (octal: 020).
@@ -1065,234 +1124,6 @@ void runProcessor() {
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
       processRunSwitch(readByte);
-    }
-  }
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// Processor WAIT mode: Load sample programs.
-
-String loadProgramName = "";
-void loadProgram() {
-  int cnt;
-  cnt = 0;
-#ifdef LOG_MESSAGES
-  Serial.println(F("+ loadProgram()"));
-#endif
-  if (loadProgramName != "") {
-    Serial.print(F("+ Program previously loaded: "));
-    Serial.println(loadProgramName);
-  }
-  programState = PROGRAM_LOAD;
-  while (programState == PROGRAM_LOAD) {
-    if (Serial.available() > 0) {
-      readByte = Serial.read();    // Read and process an incoming byte.
-      switch (readByte) {
-        case 'i':
-          loadProgramName = "Input loop";
-          Serial.println(F("+ i, load: Input loop, 'x' to halt the loop."));
-          programState = PROGRAM_WAIT;
-          if (SERIAL_IO_VT100) {
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:SERIAL_PORT
-          MWRITE( cnt++, B00000011 & 0xff);  // ++ immediate:SERIAL_PORT:3
-          MWRITE( cnt++, B11111110 & 0xff);  // ++ opcode:cpi:11111110:'x'
-          MWRITE( cnt++, B01111000 & 0xff);  // ++ immediate:'x':120
-          MWRITE( cnt++, B11001010 & 0xff);  // ++ opcode:jz:11001010:HaltLoop
-          MWRITE( cnt++, B00001111 & 0xff);  // ++ lb:HaltLoop:15
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B11111110 & 0xff);  // ++ opcode:cpi:11111110:3
-          MWRITE( cnt++, B00000011 & 0xff);  // ++ immediate:3:3
-          MWRITE( cnt++, B11001010 & 0xff);  // ++ opcode:jz:11001010:HaltLoop
-          MWRITE( cnt++, B00001111 & 0xff);  // ++ lb:HaltLoop:15
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:GetByte
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:GetByte:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
-          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:GetByte
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:GetByte:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          break;
-        case 'j':
-          loadProgramName = "Kill the Bit";
-          Serial.println(F("+ j, load: Kill the Bit version for serial input."));
-          programState = PROGRAM_WAIT;
-          if (SERIAL_IO_VT100) {
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          MWRITE( cnt++, B00100001 & 0xff);  // ++ opcode:lxi:00100001:h:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:0:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B00010110 & 0xff);  // ++ opcode:mvi:00010110:d:080h
-          MWRITE( cnt++, B10000000 & 0xff);  // ++ immediate:080h:128
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00001001 & 0xff);  // ++ opcode:dad:00001001:b
-          MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:2
-          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:2:2
-          MWRITE( cnt++, B10101010 & 0xff);  // ++ opcode:xra:10101010:d
-          MWRITE( cnt++, B00001111 & 0xff);  // ++ opcode:rrc:00001111
-          MWRITE( cnt++, B01010111 & 0xff);  // ++ opcode:mov:01010111:d:a
-          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Begin
-          MWRITE( cnt++, B00000101 & 0xff);  // ++ lb:Begin:5
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          break;
-        case 'k':
-          loadProgramName = "Kill the Bit";
-          Serial.println(F("+ k, load: Kill the Bit."));
-          programState = PROGRAM_WAIT;
-          if (SERIAL_IO_VT100) {
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          MWRITE( cnt++, B00100001 & 0xff);  // ++ opcode:lxi:00100001:h:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:0:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B00010110 & 0xff);  // ++ opcode:mvi:00010110:d:080h
-          MWRITE( cnt++, B10000000 & 0xff);  // ++ immediate:080h:128
-          MWRITE( cnt++, B00000001 & 0xff);  // ++ opcode:lxi:00000001:b:500h
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:500h:0  ; Speed, lower number, faster.
-          MWRITE( cnt++, B00000101 & 0xff);  // ++ hb:5                   Changed from 101, now faster for Serial demo.
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d ---------------- Label: Begin, address 8
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00001001 & 0xff);  // ++ opcode:dad:00001001:b
-          MWRITE( cnt++, B11010010 & 0xff);  // ++ opcode:jnc:11010010:Begin
-          MWRITE( cnt++, B00001000 & 0xff);  // ++ lb:Begin:8             ----------------
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0                     Address 15
-          MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:0ffh
-          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:2:2            USB serial input.
-          MWRITE( cnt++, B10101010 & 0xff);  // ++ opcode:xra:10101010:d
-          MWRITE( cnt++, B00001111 & 0xff);  // ++ opcode:rrc:00001111
-          MWRITE( cnt++, B01010111 & 0xff);  // ++ opcode:mov:01010111:d:a
-          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Begin
-          MWRITE( cnt++, B00001000 & 0xff);  // ++ lb:Begin:8            ----------------
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0                     Address 23
-          break;
-        case 'm':
-          loadProgramName = "Registers MVI test";
-          Serial.println(F("+ m, load: MVI testing to the setting of registers."));
-          programState = PROGRAM_WAIT;
-          if (SERIAL_IO_VT100) {
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:1
-          MWRITE( cnt++, B00000001 & 0xff);  // ++ immediate:1:1
-          MWRITE( cnt++, B00000110 & 0xff);  // ++ opcode:mvi:00000110:b:2
-          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:2:2
-          MWRITE( cnt++, B00001110 & 0xff);  // ++ opcode:mvi:00001110:c:3
-          MWRITE( cnt++, B00000011 & 0xff);  // ++ immediate:3:3
-          MWRITE( cnt++, B00010110 & 0xff);  // ++ opcode:mvi:00010110:d:4
-          MWRITE( cnt++, B00000100 & 0xff);  // ++ immediate:4:4
-          MWRITE( cnt++, B00011110 & 0xff);  // ++ opcode:mvi:00011110:e:5
-          MWRITE( cnt++, B00000101 & 0xff);  // ++ immediate:5:5
-          MWRITE( cnt++, B00100110 & 0xff);  // ++ opcode:mvi:00100110:h:6
-          MWRITE( cnt++, B00000110 & 0xff);  // ++ immediate:6:6
-          MWRITE( cnt++, B00101110 & 0xff);  // ++ opcode:mvi:00101110:l:7
-          MWRITE( cnt++, B00000111 & 0xff);  // ++ immediate:7:7
-          MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
-          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Start
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:Start:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          break;
-        case 'w':
-          loadProgramName = "Write byte to memory location: 96";
-          Serial.println(F("+ w, load: Write byte to memory location: 96, increment byte and loop."));
-          if (SERIAL_IO_VT100) {
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          programState = PROGRAM_WAIT;
-          MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:6
-          MWRITE( cnt++, B00000110 & 0xff);  // ++ immediate:6:6
-          MWRITE( cnt++, B00110010 & 0xff);  // ++ opcode:sta:00110010:96
-          MWRITE( cnt++, B01100000 & 0xff);  // ++ lb:96:96
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ immediate:0:0
-          MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
-          MWRITE( cnt++, B00111010 & 0xff);  // ++ opcode:lda:00111010:96
-          MWRITE( cnt++, B01100000 & 0xff);  // ++ lb:96:96
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
-          MWRITE( cnt++, B00111100 & 0xff);  // ++ opcode:inr:00111100:a
-          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Store
-          MWRITE( cnt++, B00000010 & 0xff);  // ++ lb:Store:2
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          break;
-        case 's':
-          loadProgramName = "Front panel status light test";
-          Serial.println(F("+ s, load: Front panel status light test."));
-          if (SERIAL_IO_VT100) {
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          programState = PROGRAM_WAIT;
-          // -----------------------------
-          // Front panel status light test: https://www.youtube.com/watch?v=3_73NwB6toY
-          //
-          MWRITE(    32, B11101011 & 0xff);  // The video has 235(octal 353, B11101011) in address 32(B00100000).
-          init_regS();      // Currently, difference is the flag byte (regS) is B01000000, where my flag byte is B00000010
-          //
-          MWRITE( cnt++, B00111010 & 0xff);  // ++ opcode:lda:00111010:32
-          MWRITE( cnt++, B00100000 & 0xff);  // ++ lb:32:32
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B00110010 & 0xff);  // ++ opcode:sta:00110010:33
-          MWRITE( cnt++, B00100001 & 0xff);  // ++ lb:33:33
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B00110001 & 0xff);  // ++ opcode:lxi:00110001:sp:32
-          MWRITE( cnt++, B00100000 & 0xff);  // ++ lb:32:32
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B11110101 & 0xff);  // ++ opcode:push:11110101:a
-          MWRITE( cnt++, B11110001 & 0xff);  // ++ opcode:pop:11110001:a
-          MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:16
-          MWRITE( cnt++, B00010000 & 0xff);  // ++ immediate:16:16
-          MWRITE( cnt++, B11010011 & 0xff);  // ++ opcode:out:11010011:16
-          MWRITE( cnt++, B00010000 & 0xff);  // ++ immediate:16:16
-          MWRITE( cnt++, B11111011 & 0xff);  // ++ opcode:ei:11111011
-          MWRITE( cnt++, B11110011 & 0xff);  // ++ opcode:di:11110011
-          MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
-          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Start
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:Start:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          break;
-        // -------------------------------------
-        case 'x':
-          Serial.println(F("< x, Exit load program."));
-          programState = PROGRAM_WAIT;
-          if (SERIAL_IO_VT100) {
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          break;
-        default:
-          if (SERIAL_IO_VT100) {
-            Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          Serial.println(F("+ i, Input loop."));
-          Serial.println(F("+ j, Kill the Bit version for serial VT100 input."));
-          Serial.println(F("+ k, Kill the Bit."));
-          Serial.println(F("+ m, MVI testing to the setting of registers."));
-          Serial.println(F("+ w, Write byte to memory location: 96, increment byte and loop."));
-          Serial.println(F("+ s, Front panel status light test."));
-          Serial.println(F("----------"));
-          Serial.println(F("+ x, Exit: don't load a program."));
-      }
-    }
-  }
-  if (readByte != 'x') {
-    // Do EXAMINE 0 after the load;
-    regPC = 0;
-    setAddressData(regPC, MREAD(regPC));
-    if (SERIAL_IO_VT100) {
-      serialPrintFrontPanel();
     }
   }
 }
@@ -1730,6 +1561,234 @@ void runProcessorWait() {
       Serial.print(F("?- "));
     }
     delay(60);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Processor WAIT mode: Load sample programs.
+
+String loadProgramName = "";
+void loadProgram() {
+  int cnt;
+  cnt = 0;
+#ifdef LOG_MESSAGES
+  Serial.println(F("+ loadProgram()"));
+#endif
+  if (loadProgramName != "") {
+    Serial.print(F("+ Program previously loaded: "));
+    Serial.println(loadProgramName);
+  }
+  programState = PROGRAM_LOAD;
+  while (programState == PROGRAM_LOAD) {
+    if (Serial.available() > 0) {
+      readByte = Serial.read();    // Read and process an incoming byte.
+      switch (readByte) {
+        case 'i':
+          loadProgramName = "Input loop";
+          Serial.println(F("+ i, load: Input loop, 'x' to halt the loop."));
+          programState = PROGRAM_WAIT;
+          if (SERIAL_IO_VT100) {
+            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
+          }
+          MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:SERIAL_PORT
+          MWRITE( cnt++, B00000011 & 0xff);  // ++ immediate:SERIAL_PORT:3
+          MWRITE( cnt++, B11111110 & 0xff);  // ++ opcode:cpi:11111110:'x'
+          MWRITE( cnt++, B01111000 & 0xff);  // ++ immediate:'x':120
+          MWRITE( cnt++, B11001010 & 0xff);  // ++ opcode:jz:11001010:HaltLoop
+          MWRITE( cnt++, B00001111 & 0xff);  // ++ lb:HaltLoop:15
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          MWRITE( cnt++, B11111110 & 0xff);  // ++ opcode:cpi:11111110:3
+          MWRITE( cnt++, B00000011 & 0xff);  // ++ immediate:3:3
+          MWRITE( cnt++, B11001010 & 0xff);  // ++ opcode:jz:11001010:HaltLoop
+          MWRITE( cnt++, B00001111 & 0xff);  // ++ lb:HaltLoop:15
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:GetByte
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:GetByte:0
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
+          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:GetByte
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:GetByte:0
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          break;
+        case 'j':
+          loadProgramName = "Kill the Bit";
+          Serial.println(F("+ j, load: Kill the Bit version for serial input."));
+          programState = PROGRAM_WAIT;
+          if (SERIAL_IO_VT100) {
+            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
+          }
+          MWRITE( cnt++, B00100001 & 0xff);  // ++ opcode:lxi:00100001:h:0
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:0:0
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          MWRITE( cnt++, B00010110 & 0xff);  // ++ opcode:mvi:00010110:d:080h
+          MWRITE( cnt++, B10000000 & 0xff);  // ++ immediate:080h:128
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00001001 & 0xff);  // ++ opcode:dad:00001001:b
+          MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:2
+          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:2:2
+          MWRITE( cnt++, B10101010 & 0xff);  // ++ opcode:xra:10101010:d
+          MWRITE( cnt++, B00001111 & 0xff);  // ++ opcode:rrc:00001111
+          MWRITE( cnt++, B01010111 & 0xff);  // ++ opcode:mov:01010111:d:a
+          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Begin
+          MWRITE( cnt++, B00000101 & 0xff);  // ++ lb:Begin:5
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          break;
+        case 'k':
+          loadProgramName = "Kill the Bit";
+          Serial.println(F("+ k, load: Kill the Bit."));
+          programState = PROGRAM_WAIT;
+          if (SERIAL_IO_VT100) {
+            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
+          }
+          MWRITE( cnt++, B00100001 & 0xff);  // ++ opcode:lxi:00100001:h:0
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:0:0
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          MWRITE( cnt++, B00010110 & 0xff);  // ++ opcode:mvi:00010110:d:080h
+          MWRITE( cnt++, B10000000 & 0xff);  // ++ immediate:080h:128
+          MWRITE( cnt++, B00000001 & 0xff);  // ++ opcode:lxi:00000001:b:500h
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:500h:0  ; Speed, lower number, faster.
+          MWRITE( cnt++, B00000101 & 0xff);  // ++ hb:5                   Changed from 101, now faster for Serial demo.
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d ---------------- Label: Begin, address 8
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00001001 & 0xff);  // ++ opcode:dad:00001001:b
+          MWRITE( cnt++, B11010010 & 0xff);  // ++ opcode:jnc:11010010:Begin
+          MWRITE( cnt++, B00001000 & 0xff);  // ++ lb:Begin:8             ----------------
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0                     Address 15
+          MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:0ffh
+          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:2:2            USB serial input.
+          MWRITE( cnt++, B10101010 & 0xff);  // ++ opcode:xra:10101010:d
+          MWRITE( cnt++, B00001111 & 0xff);  // ++ opcode:rrc:00001111
+          MWRITE( cnt++, B01010111 & 0xff);  // ++ opcode:mov:01010111:d:a
+          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Begin
+          MWRITE( cnt++, B00001000 & 0xff);  // ++ lb:Begin:8            ----------------
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0                     Address 23
+          break;
+        case 'm':
+          loadProgramName = "Registers MVI test";
+          Serial.println(F("+ m, load: MVI testing to the setting of registers."));
+          programState = PROGRAM_WAIT;
+          if (SERIAL_IO_VT100) {
+            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
+          }
+          MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:1
+          MWRITE( cnt++, B00000001 & 0xff);  // ++ immediate:1:1
+          MWRITE( cnt++, B00000110 & 0xff);  // ++ opcode:mvi:00000110:b:2
+          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:2:2
+          MWRITE( cnt++, B00001110 & 0xff);  // ++ opcode:mvi:00001110:c:3
+          MWRITE( cnt++, B00000011 & 0xff);  // ++ immediate:3:3
+          MWRITE( cnt++, B00010110 & 0xff);  // ++ opcode:mvi:00010110:d:4
+          MWRITE( cnt++, B00000100 & 0xff);  // ++ immediate:4:4
+          MWRITE( cnt++, B00011110 & 0xff);  // ++ opcode:mvi:00011110:e:5
+          MWRITE( cnt++, B00000101 & 0xff);  // ++ immediate:5:5
+          MWRITE( cnt++, B00100110 & 0xff);  // ++ opcode:mvi:00100110:h:6
+          MWRITE( cnt++, B00000110 & 0xff);  // ++ immediate:6:6
+          MWRITE( cnt++, B00101110 & 0xff);  // ++ opcode:mvi:00101110:l:7
+          MWRITE( cnt++, B00000111 & 0xff);  // ++ immediate:7:7
+          MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
+          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Start
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:Start:0
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          break;
+        case 'w':
+          loadProgramName = "Write byte to memory location: 96";
+          Serial.println(F("+ w, load: Write byte to memory location: 96, increment byte and loop."));
+          if (SERIAL_IO_VT100) {
+            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
+          }
+          programState = PROGRAM_WAIT;
+          MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:6
+          MWRITE( cnt++, B00000110 & 0xff);  // ++ immediate:6:6
+          MWRITE( cnt++, B00110010 & 0xff);  // ++ opcode:sta:00110010:96
+          MWRITE( cnt++, B01100000 & 0xff);  // ++ lb:96:96
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:0
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ immediate:0:0
+          MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
+          MWRITE( cnt++, B00111010 & 0xff);  // ++ opcode:lda:00111010:96
+          MWRITE( cnt++, B01100000 & 0xff);  // ++ lb:96:96
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
+          MWRITE( cnt++, B00111100 & 0xff);  // ++ opcode:inr:00111100:a
+          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Store
+          MWRITE( cnt++, B00000010 & 0xff);  // ++ lb:Store:2
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          break;
+        case 's':
+          loadProgramName = "Front panel status light test";
+          Serial.println(F("+ s, load: Front panel status light test."));
+          if (SERIAL_IO_VT100) {
+            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
+          }
+          programState = PROGRAM_WAIT;
+          // -----------------------------
+          // Front panel status light test: https://www.youtube.com/watch?v=3_73NwB6toY
+          //
+          MWRITE(    32, B11101011 & 0xff);  // The video has 235(octal 353, B11101011) in address 32(B00100000).
+          init_regS();      // Currently, difference is the flag byte (regS) is B01000000, where my flag byte is B00000010
+          //
+          MWRITE( cnt++, B00111010 & 0xff);  // ++ opcode:lda:00111010:32
+          MWRITE( cnt++, B00100000 & 0xff);  // ++ lb:32:32
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          MWRITE( cnt++, B00110010 & 0xff);  // ++ opcode:sta:00110010:33
+          MWRITE( cnt++, B00100001 & 0xff);  // ++ lb:33:33
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          MWRITE( cnt++, B00110001 & 0xff);  // ++ opcode:lxi:00110001:sp:32
+          MWRITE( cnt++, B00100000 & 0xff);  // ++ lb:32:32
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          MWRITE( cnt++, B11110101 & 0xff);  // ++ opcode:push:11110101:a
+          MWRITE( cnt++, B11110001 & 0xff);  // ++ opcode:pop:11110001:a
+          MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:16
+          MWRITE( cnt++, B00010000 & 0xff);  // ++ immediate:16:16
+          MWRITE( cnt++, B11010011 & 0xff);  // ++ opcode:out:11010011:16
+          MWRITE( cnt++, B00010000 & 0xff);  // ++ immediate:16:16
+          MWRITE( cnt++, B11111011 & 0xff);  // ++ opcode:ei:11111011
+          MWRITE( cnt++, B11110011 & 0xff);  // ++ opcode:di:11110011
+          MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
+          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Start
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:Start:0
+          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          break;
+        // -------------------------------------
+        case 'x':
+          Serial.println(F("< x, Exit load program."));
+          programState = PROGRAM_WAIT;
+          if (SERIAL_IO_VT100) {
+            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
+          }
+          break;
+        default:
+          if (SERIAL_IO_VT100) {
+            Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
+            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
+          }
+          Serial.println(F("+ i, Input loop."));
+          Serial.println(F("+ j, Kill the Bit version for serial VT100 input."));
+          Serial.println(F("+ k, Kill the Bit."));
+          Serial.println(F("+ m, MVI testing to the setting of registers."));
+          Serial.println(F("+ w, Write byte to memory location: 96, increment byte and loop."));
+          Serial.println(F("+ s, Front panel status light test."));
+          Serial.println(F("----------"));
+          Serial.println(F("+ x, Exit: don't load a program."));
+      }
+    }
+  }
+  if (readByte != 'x') {
+    // Do EXAMINE 0 after the load;
+    regPC = 0;
+    setAddressData(regPC, MREAD(regPC));
+    if (SERIAL_IO_VT100) {
+      serialPrintFrontPanel();
+    }
   }
 }
 
