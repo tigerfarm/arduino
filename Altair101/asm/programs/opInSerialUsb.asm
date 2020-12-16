@@ -13,6 +13,7 @@
                 jz HaltLoop         ;   Jump.
                 cpi 3               ; Ctrl+c will exit this loop.
                 jz HaltLoop         ;   Jump.
+                out SERIAL_PORT
                 jmp GetByte
                                     ; ----------------------
     HaltLoop:

@@ -181,11 +181,11 @@
 #include "Altair101a.h"
 #include "cpucore_i8080.h"
 
-#define SETUP_SDCARD 1
+// #define SETUP_SDCARD 1
 // I didn't add to option to remove Serial2 options using a "#define",
 //    basically, because it doesn't cause issues.
 
-// #define LOG_MESSAGES 1    // For debugging.
+#define LOG_MESSAGES 1    // For debugging.
 // #define LOG_OPCODES  1    // Print each called opcode.
 
 byte opcode = 0xff;
@@ -734,8 +734,9 @@ byte altair_in(byte portDataByte) {
       break;
     case 2:
       // Input from the external USB component Serial2 port.
+      inputDataByte = 0;
       if (Serial2.available() > 0) {
-        inputDataByte = Serial.read();    // Read and process an incoming byte.
+        inputDataByte = Serial2.read();    // Read and process an incoming byte.
       }
       break;
     case 3:
