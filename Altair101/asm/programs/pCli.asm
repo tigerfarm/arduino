@@ -1,7 +1,20 @@
                                         ; --------------------------------------
-                                        ; Test the various OUT options.
+                                        ; Command line interface program
                                         ;
-                                        ; Ability to set output port.
+                                        ; ASCII
+                                        ;   https://en.wikipedia.org/wiki/ASCII
+                                        ; See the section: Control code chart.
+                                        ;   Examples,
+                                        ;   3 ^c End of Text: Ctrl+c is ASCII 3.
+                                        ;   7 ^G Bell
+                                        ;   12 ^L FF (form feed)
+                                        ;
+                                        ; The VT100 code page:
+                                        ;   https://en.wikipedia.org/wiki/VT100_encoding
+                                        ; The first 128 of which are identical to ASCII
+                                        ;
+                                        ; VT100 reference:
+                                        ;   http://ascii-table.com/ansi-escape-sequences-vt-100.php
                                         ;
                                         ; --------------------------------------
                                         ; --------------------------------------
@@ -27,8 +40,10 @@
                 jz startNewline
                 cpi 8                   ; Handle Backspace.
                 jz backSpace
-                cpi 127                 ; Handle DEL ([~).
+                cpi 127                 ; Handle DEL.
                 jz backSpace
+                cpi 12                  ; Ctrl+l, FF, clear screen.
+                jz clear
                 out INPUT_PORT          ; Else, out the character and get a new one.
                 jmp GetByte
     startNewline:
@@ -39,8 +54,16 @@
                 call printStr
                 jmp GetByte
     backSpace:                          ; Need logic for these.
+                                        ; Esc6n	Get cursor position
+                                        ; Esc[r;cH  Move cursor to a specific row(r) and column(c).
+                                        ; Maybe: Esc[ValueD	Move cursor left n lines
                 ; mvi a,' '
                 ; out INPUT_PORT
+                jmp GetByte
+    clear:
+                call clr
+                lxi h,thePrompt
+                call printStr
                 jmp GetByte
                                         ;
     ExitGetByte:                        ; Exit the input loop.
@@ -79,6 +102,24 @@
                 out PRINT_PORT
                 ret
                                         ; --------------------------------------
+                                        ; Move home and clear entire screen: '\033[H\033[2J'
+        clr:
+                mvi a,esc
+                out PRINT_PORT
+                mvi a,'['
+                out PRINT_PORT
+                mvi a,'H'
+                out PRINT_PORT
+                mvi a,esc
+                out PRINT_PORT
+                mvi a,'['
+                out PRINT_PORT
+                mvi a,'2'
+                out PRINT_PORT
+                mvi a,'J'
+                out PRINT_PORT
+                ret
+                                        ; --------------------------------------
                                         ;
     StartMsg    db      '\r\n+++ Welcome to the machine.\r\n'
     EnterMsg    db      '\r\n+ Enter keys. Ctrl+c to exit.\r\n> '
@@ -86,6 +127,7 @@
     TERMB       equ     0ffh            ; String terminator.
                                         ;
     thePrompt   db     '> '
+    esc         equ     27              ; Escape character, which is 0x1B (hex).
                                         ; --------------------------------------
                                         ; Use port 3 for testing, which is the default serial port.
                                         ; Use port 2 for the Serial2 port.

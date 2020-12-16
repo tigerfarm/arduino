@@ -16,8 +16,6 @@
   ---------------------------------------------------------
   Next:
 
-  Sample I/O program using Serial2.
-
   Sample program to print ASCII characters in a VT100 terminal
   + Such as, from use "alt opt" key: Ω≈ç√∫˜˜≤≥÷åß∂ƒ©˙∆˚¬…æœ∑´´†¥¨ˆˆπ¡™£¢∞§¶•ªº–≠
 
