@@ -48,9 +48,9 @@
                 jz ExitGetByte
                 cpi 13                  ; If carriage return, send line feed and print the prompt.
                 jz startNewline
-                cpi 127                 ; Handle Backspace.
+                cpi 8                   ; Handle Backspace.
                 jz backSpace
-                cpi 7                   ; Ctrl+g, bell.
+                cpi 7                   ; Ctrl+g, Bell.
                 jz bell
                 cpi 12                  ; Ctrl+l, FF to have the screen cleared.
                 jz clear
@@ -66,7 +66,7 @@
                 jmp GetByte
                                         ; ---------------
     bell:
-                out INPUT_PORT          ; Bell tone.
+                out INPUT_PORT
                 jmp GetByte
                                         ; ---------------
     backSpace:
@@ -98,60 +98,20 @@
                 call dcrCpc
                 jmp GetByte
                                         ; --------------------------------------
-        inrCpc:                         ; Increment the cursor position counter
+    inrCpc:                             ; Increment the cursor position counter
                 lda cpc
                 inr a
                 sta cpc
                 ret
-        dcrCpc:                         ; Decrement the cursor position counter
+    dcrCpc:                             ; Decrement the cursor position counter
                 lda cpc
                 dcr a
                 sta cpc
                 ret
                                         ; --------------------------------------
-    clear:
-                call clr
-                jmp startNewline
-                                        ;
-                                        ; --------------------------------------
-    ExitGetByte:                        ; Exit the input loop.
-                lxi h,ExitMsg
-                call printStr
-                                        ; --------------------------------------
-                hlt 
-                jmp Start 
-                                        ; --------------------------------------
-                                        ; --------------------------------------
-                                        ; Output print processes.
-                                        ; 
-                                        ; --------------------------------------
-        printPrompt:
-                mvi a,'?'
-                out PRINT_PORT
-                mvi a,'\n'
-                out PRINT_PORT
-                ret
-                                        ; --------------------------------------
-                                        ; Print a string.
-        printStr:
-                mov a,m                 ; Move the data from H:L address to register A. (HL) -> A. 
-                cpi TERMB               ; Compare to see if it's the string terminate byte.
-                jz sPrintDone
-                out PRINT_PORT          ; Out register A to the serial port.
-                inx h                   ; Increment H:L register pair.
-                jmp printStr
-        sPrintDone:
-                ret
-                                        ; --------------------------------------
-        printNewline:
-                mvi a,'\r'
-                out PRINT_PORT
-                mvi a,'\n'
-                out PRINT_PORT
-                ret
-                                        ; --------------------------------------
+                                        ; Clear screen
                                         ; Move the cursor home "Esc[H" and clear the screen "Esc[2J".
-        clr:
+    clear:
                 mvi a,esc
                 out PRINT_PORT
                 mvi a,'['
@@ -165,6 +125,42 @@
                 mvi a,'2'
                 out PRINT_PORT
                 mvi a,'J'
+                out PRINT_PORT
+                jmp startNewline
+                                        ; --------------------------------------
+    ExitGetByte:                        ; Exit the input loop.
+                lxi h,ExitMsg
+                call printStr
+                                        ; --------------------------------------
+                hlt 
+                jmp Start 
+                                        ; --------------------------------------
+                                        ; --------------------------------------
+                                        ; Output print processes.
+                                        ; 
+                                        ; --------------------------------------
+    printPrompt:
+                mvi a,'?'
+                out PRINT_PORT
+                mvi a,'\n'
+                out PRINT_PORT
+                ret
+                                        ; --------------------------------------
+                                        ; Print a string.
+    printStr:
+                mov a,m                 ; Move the data from H:L address to register A. (HL) -> A. 
+                cpi TERMB               ; Compare to see if it's the string terminate byte.
+                jz sPrintDone
+                out PRINT_PORT          ; Out register A to the serial port.
+                inx h                   ; Increment H:L register pair.
+                jmp printStr
+    sPrintDone:
+                ret
+                                        ; --------------------------------------
+    printNewline:
+                mvi a,'\r'
+                out PRINT_PORT
+                mvi a,'\n'
                 out PRINT_PORT
                 ret
                                         ; --------------------------------------
