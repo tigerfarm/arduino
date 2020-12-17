@@ -150,8 +150,8 @@
                                         ; --------------------------------------
                                         ; Use port 3 for testing, which is the default serial port.
                                         ; Use port 2 for the Serial2 port.
-    PRINT_PORT  equ     3               ; Output port#. 
-    INPUT_PORT  equ     3               ; Input port#.
+    PRINT_PORT  equ     2               ; Output port#. 
+    INPUT_PORT  equ     2               ; Input port#.
                                         ; --------------------------------------
                 end
                                         ; --------------------------------------

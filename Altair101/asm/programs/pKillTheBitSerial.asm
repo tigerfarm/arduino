@@ -20,9 +20,13 @@
             LDAX D      ; Move data from address D:E, to register A.
             LDAX D      ; Move data from address D:E, to register A.
             LDAX D      ; Move data from address D:E, to register A.
+            LDAX D      ; Move data from address D:E, to register A.
+            LDAX D      ; Move data from address D:E, to register A.
+            LDAX D      ; Move data from address D:E, to register A.
+            LDAX D      ; Move data from address D:E, to register A.
                         ;
             DAD B       ; Add B:C to H:L. Set carry bit. Increments the display counter
-            IN 6        ; Check the sense switch serial inputs that can kill the bit.
+            IN 1        ; Check the sense switch serial inputs that can kill the bit.
             XRA D       ; Exclusive OR register with A, to either remove or add a bit.
                         ;
             RRC         ; Rotate right register A (shift byte right 1 bit). Set carry bit.
