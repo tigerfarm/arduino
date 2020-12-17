@@ -32,7 +32,7 @@
                 lxi h,thePrompt         ; Print the prompt.
                 call printStr
                 mvi a,0                 ; Initialize cursor position counter.
-                sta cp
+                sta cpc
                                         ; --------------------------------------
                                         ; Get an input byte
                                         ; + Ctrl+c to exit.
@@ -57,16 +57,16 @@
                                         ; ---------------
                                         ; Only printable characters
                 cpi 32
-                jnc GetByte             ; Ignore less than 32.
+                jc GetByte             ; Ignore less than 32.
                 cpi 126
-                jc GetByte              ; Ignore greater than 126.
+                jnc GetByte              ; Ignore greater than 126.
                                         ; ---------------
                 out INPUT_PORT          ; Else, out the character and get a new one.
-                call inrCp              ; Increment the cursor position.
+                call inrCpc             ; Increment the cursor position.
                 jmp GetByte
                                         ; ---------------
     backSpace:
-                lda cp
+                lda cpc
                 cpi 0                   ; Don't backspace over the prompt.
                 jz GetByte
                                         ;
@@ -91,8 +91,19 @@
                 mvi a,'D'
                 out PRINT_PORT
                                         ;
-                call dcrCp
+                call dcrCpc
                 jmp GetByte
+                                        ; --------------------------------------
+        inrCpc:                         ; Increment the cursor position counter
+                lda cpc
+                inr a
+                sta cpc
+                ret
+        dcrCpc:                         ; Decrement the cursor position counter
+                lda cpc
+                dcr a
+                sta cpc
+                ret
                                         ; --------------------------------------
     clear:
                 call clr
@@ -135,17 +146,6 @@
                 out PRINT_PORT
                 ret
                                         ; --------------------------------------
-        inrCp:                          ; Increment the cursor position counter
-                lda cp
-                inr a
-                sta cp
-                ret
-        dcrCp:                          ; Decrement the cursor position counter
-                lda cp
-                dcr a
-                sta cp
-                ret
-                                        ; --------------------------------------
                                         ; Move the cursor home and clear the screen: '\033[H\033[2J'
         clr:
                 mvi a,esc
@@ -162,7 +162,6 @@
                 out PRINT_PORT
                 mvi a,'J'
                 out PRINT_PORT
-                sta cp,0
                 ret
                                         ; --------------------------------------
                                         ;
@@ -173,12 +172,12 @@
                                         ;
     TERMB       equ     0ffh            ; String terminator.
     esc         equ     27              ; Escape character, which is 0x1B (hex).
-    cp          ds      1               ; Cursor position
+    cpc         ds      1               ; Cursor position variable.
                                         ; --------------------------------------
                                         ; Use port 3 for testing, which is the default serial port.
                                         ; Use port 2 for the Serial2 port.
-    PRINT_PORT  equ     2               ; Output port#. 
-    INPUT_PORT  equ     2               ; Input port#.
+    PRINT_PORT  equ     3               ; Output port#. 
+    INPUT_PORT  equ     3               ; Input port#.
                                         ; --------------------------------------
                 end
                                         ; --------------------------------------

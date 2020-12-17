@@ -16,7 +16,7 @@
   ---------------------------------------------------------
   Next:
 
-Write program memory into  Message printing issue when in VT100 front panel mode.
+  Write program memory into  Message printing issue when in VT100 front panel mode.
   + "+ R" is overwritten
   + Ready to receive command.
   ?- , RESET.
@@ -137,7 +137,7 @@ Write program memory into  Message printing issue when in VT100 front panel mode
 
   + Input
     altair_in(byte portDataByte)
-    
+
   + Output
     altair_out(byte portDataByte, byte regAdata)
 
@@ -152,11 +152,11 @@ Write program memory into  Message printing issue when in VT100 front panel mode
     void processWaitSwitch(byte readByte)
     runProcessorWait()
     + Loop input keys and call processWaitSwitch(inputByte)
-    
+
   --------------------------
   + Load hardcoded programs
     Early test programs
-  
+
   + Copy paste into Serial port window.
     Only works for really short programs.
 
@@ -170,7 +170,7 @@ Write program memory into  Message printing issue when in VT100 front panel mode
   --------------------------
   + Setup()
   + Looop()
-  
+
 */
 // -----------------------------------------------------------------------------
 #include "Altair101a.h"
@@ -728,10 +728,16 @@ byte altair_in(byte portDataByte) {
       // Note, hardware Sense switches are not implemented.
       break;
     case 2:
-      // Input from the external USB component Serial2 port.
       inputDataByte = 0;
-      if (Serial2.available() > 0) {
-        inputDataByte = Serial2.read();    // Read and process an incoming byte.
+      if (SERIAL2_OUTPUT) {
+        // Input from the external USB component Serial2 port.
+        if (Serial2.available() > 0) {
+          inputDataByte = Serial2.read();    // Read and process an incoming byte.
+        }
+      } else {
+        // Input from default serial port. This is good for testing.
+        inputDataByte = inputBytePort2;
+        inputBytePort2 = 0;
       }
       break;
     case 3:
