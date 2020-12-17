@@ -34,6 +34,8 @@
                 in INPUT_PORT           ; Get input byte value into register A.
                 cpi 0                   ; No character input, nothing to print out.
                 jz GetByte
+                                        ; ---------------
+                                        ; Handle special keys.
                 cpi 3                   ; Ctrl+c will exit this loop.
                 jz ExitGetByte
                 cpi 13                  ; If carriage return, send line feed and print the prompt.
@@ -42,8 +44,9 @@
                 jz backSpace
                 cpi 127                 ; Handle DEL.
                 jz backSpace
-                cpi 12                  ; Ctrl+l, FF, clear screen.
+                cpi 12                  ; Ctrl+l, FF to have the screen cleared.
                 jz clear
+                                        ; ---------------
                 out INPUT_PORT          ; Else, out the character and get a new one.
                 jmp GetByte
     startNewline:
@@ -53,12 +56,28 @@
                 lxi h,thePrompt
                 call printStr
                 jmp GetByte
-    backSpace:                          ; Need logic for these.
-                                        ; Esc6n	Get cursor position
-                                        ; Esc[r;cH  Move cursor to a specific row(r) and column(c).
-                                        ; Maybe: Esc[ValueD	Move cursor left n lines
-                ; mvi a,' '
-                ; out INPUT_PORT
+    backSpace:                          ; Need extra logic, else can backspace over the prompt.
+                                        ; Esc6n	Get cursor position.
+                mvi a,esc               ; Esc[ValueD : Move the cursor left n lines (left one space).
+                out PRINT_PORT
+                mvi a,'['
+                out PRINT_PORT
+                mvi a,'1'
+                out PRINT_PORT
+                mvi a,'D'
+                out PRINT_PORT
+                                        ;
+                mvi a,' '               ; Overwrite the character with a blank.
+                out PRINT_PORT
+                                        ;
+                mvi a,esc               ; Move back to the blank space.
+                out PRINT_PORT
+                mvi a,'['
+                out PRINT_PORT
+                mvi a,'1'
+                out PRINT_PORT
+                mvi a,'D'
+                out PRINT_PORT
                 jmp GetByte
     clear:
                 call clr
@@ -102,7 +121,7 @@
                 out PRINT_PORT
                 ret
                                         ; --------------------------------------
-                                        ; Move home and clear entire screen: '\033[H\033[2J'
+                                        ; Move the cursor home and clear the screen: '\033[H\033[2J'
         clr:
                 mvi a,esc
                 out PRINT_PORT
@@ -122,11 +141,11 @@
                                         ; --------------------------------------
                                         ;
     StartMsg    db      '\r\n+++ Welcome to the machine.\r\n'
-    EnterMsg    db      '\r\n+ Enter keys. Ctrl+c to exit.\r\n> '
+    EnterMsg    db      '+ Press keys. Ctrl+c to exit.\r\n> '
+    thePrompt   db      '> '
     ExitMsg     db      '\r\n+ Later.\r\n'
-    TERMB       equ     0ffh            ; String terminator.
                                         ;
-    thePrompt   db     '> '
+    TERMB       equ     0ffh            ; String terminator.
     esc         equ     27              ; Escape character, which is 0x1B (hex).
                                         ; --------------------------------------
                                         ; Use port 3 for testing, which is the default serial port.

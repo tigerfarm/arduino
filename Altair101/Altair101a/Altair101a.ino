@@ -16,10 +16,7 @@
   ---------------------------------------------------------
   Next:
 
-  Sample program to print ASCII characters in a VT100 terminal
-  + Such as, from use "alt opt" key: Ω≈ç√∫˜˜≤≥÷åß∂ƒ©˙∆˚¬…æœ∑´´†¥¨ˆˆπ¡™£¢∞§¶•ªº–≠
-
-  Message printing issue when in VT100 front panel mode.
+Write program memory into  Message printing issue when in VT100 front panel mode.
   + "+ R" is overwritten
   + Ready to receive command.
   ?- , RESET.
@@ -179,11 +176,11 @@
 #include "Altair101a.h"
 #include "cpucore_i8080.h"
 
-// #define SETUP_SDCARD 1
+#define SETUP_SDCARD 1
 // I didn't add to option to remove Serial2 options using a "#define",
 //    basically, because it doesn't cause issues.
 
-#define LOG_MESSAGES 1    // For debugging.
+// #define LOG_MESSAGES 1    // For debugging.
 // #define LOG_OPCODES  1    // Print each called opcode.
 
 byte opcode = 0xff;
@@ -743,7 +740,7 @@ byte altair_in(byte portDataByte) {
       inputDataByte = inputBytePort2;
       inputBytePort2 = 0;
       break;
-    case 6:
+    case 1:
       // USB default serial port input sense switches: 8,9,a...f.
       // Input(inputBytePort2) comes from the RUN mode loop.
       if (inputBytePort2 == '8') {
@@ -1447,8 +1444,8 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ C, CLR          Clear memory, set registers and program counter address to zero."));
       Serial.println(F("+ D, Download     Download mode."));
       Serial.println(F("-------------"));
-      Serial.println(F("+ m, Read         Read a file into program memory."));
-      Serial.println(F("+ M, Write        Write program memory into a file."));
+      Serial.println(F("+ m, Read         Memory: Read a program file."));
+      Serial.println(F("+ M, Write        Memory: Write program to a file."));
       Serial.println(F("-------------"));
       Serial.println(F("+ y/Y Serial2     Disable/enable Serial2 for output on port #2 (out 2)."));
       Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
@@ -1508,7 +1505,7 @@ void processWaitSwitch(byte readByte) {
 #endif
       break;
     case 'M':
-      Serial.println("+ m, Write program memory into a file.");
+      Serial.println("+ M, Write program Memory into a file.");
 #ifdef SETUP_SDCARD
       String senseSwitchValue = getSenseSwitchValue();
       theFilename = senseSwitchValue + ".bin";
@@ -1610,9 +1607,9 @@ void loadProgram() {
           MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:GetByte:0
           MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
           break;
-        case 'j':
+        case 'k':
           loadProgramName = "Kill the Bit";
-          Serial.println(F("+ j, load: Kill the Bit version for serial input."));
+          Serial.println(F("+ k, load: Kill the Bit version for serial input."));
           programState = PROGRAM_WAIT;
           if (SERIAL_IO_VT100) {
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
@@ -1622,6 +1619,10 @@ void loadProgram() {
           MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
           MWRITE( cnt++, B00010110 & 0xff);  // ++ opcode:mvi:00010110:d:080h
           MWRITE( cnt++, B10000000 & 0xff);  // ++ immediate:080h:128
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
           MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
           MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
           MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
@@ -1632,45 +1633,13 @@ void loadProgram() {
           MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
           MWRITE( cnt++, B00001001 & 0xff);  // ++ opcode:dad:00001001:b
           MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:2
-          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:2:2
+          MWRITE( cnt++, B00000001 & 0xff);  // ++ immediate:1:1
           MWRITE( cnt++, B10101010 & 0xff);  // ++ opcode:xra:10101010:d
           MWRITE( cnt++, B00001111 & 0xff);  // ++ opcode:rrc:00001111
           MWRITE( cnt++, B01010111 & 0xff);  // ++ opcode:mov:01010111:d:a
           MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Begin
           MWRITE( cnt++, B00000101 & 0xff);  // ++ lb:Begin:5
           MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          break;
-        case 'k':
-          loadProgramName = "Kill the Bit";
-          Serial.println(F("+ k, load: Kill the Bit."));
-          programState = PROGRAM_WAIT;
-          if (SERIAL_IO_VT100) {
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          MWRITE( cnt++, B00100001 & 0xff);  // ++ opcode:lxi:00100001:h:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:0:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B00010110 & 0xff);  // ++ opcode:mvi:00010110:d:080h
-          MWRITE( cnt++, B10000000 & 0xff);  // ++ immediate:080h:128
-          MWRITE( cnt++, B00000001 & 0xff);  // ++ opcode:lxi:00000001:b:500h
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:500h:0  ; Speed, lower number, faster.
-          MWRITE( cnt++, B00000101 & 0xff);  // ++ hb:5                   Changed from 101, now faster for Serial demo.
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d ---------------- Label: Begin, address 8
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00001001 & 0xff);  // ++ opcode:dad:00001001:b
-          MWRITE( cnt++, B11010010 & 0xff);  // ++ opcode:jnc:11010010:Begin
-          MWRITE( cnt++, B00001000 & 0xff);  // ++ lb:Begin:8             ----------------
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0                     Address 15
-          MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:0ffh
-          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:2:2            USB serial input.
-          MWRITE( cnt++, B10101010 & 0xff);  // ++ opcode:xra:10101010:d
-          MWRITE( cnt++, B00001111 & 0xff);  // ++ opcode:rrc:00001111
-          MWRITE( cnt++, B01010111 & 0xff);  // ++ opcode:mov:01010111:d:a
-          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Begin
-          MWRITE( cnt++, B00001000 & 0xff);  // ++ lb:Begin:8            ----------------
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0                     Address 23
           break;
         case 'm':
           loadProgramName = "Registers MVI test";
@@ -2098,11 +2067,11 @@ boolean readProgramFileIntoMemory(String theFilename) {
 #ifdef LOG_MESSAGES
     // Print Binary:Octal:Decimal values.
     Serial.print("B");
-    printByte(memoryData[i]);
+    printByte(MREAD(i));
     Serial.print(":");
-    printOctal(memoryData[i]);
+    printOctal(MREAD(i));
     Serial.print(F(":"));
-    Serial.println(memoryData[i], DEC);
+    Serial.println(MREAD(i), DEC);
 #endif
     i++;
     if (i > MEMSIZE) {
