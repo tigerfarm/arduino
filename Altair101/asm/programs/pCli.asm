@@ -36,7 +36,7 @@
                                         ; --------------------------------------
                                         ; Get an input byte
                                         ; + Ctrl+c to exit.
-                                        ; + Process control keys
+                                        ; + Process other control keys
                                         ; + Output printable key characters to screen.
     GetByte:
                 in INPUT_PORT           ; Get input byte value into register A.
@@ -57,9 +57,9 @@
                                         ; ---------------
                                         ; Only printable characters
                 cpi 32
-                jc GetByte             ; Ignore less than 32.
+                jc GetByte              ; Ignore less than 32.
                 cpi 126
-                jnc GetByte              ; Ignore greater than 126.
+                jnc GetByte             ; Ignore greater than 126.
                                         ; ---------------
                 out INPUT_PORT          ; Else, out the character and get a new one.
                 call inrCpc             ; Increment the cursor position.
@@ -146,7 +146,7 @@
                 out PRINT_PORT
                 ret
                                         ; --------------------------------------
-                                        ; Move the cursor home and clear the screen: '\033[H\033[2J'
+                                        ; Move the cursor home "Esc[H" and clear the screen "Esc[2J".
         clr:
                 mvi a,esc
                 out PRINT_PORT
@@ -174,10 +174,10 @@
     esc         equ     27              ; Escape character, which is 0x1B (hex).
     cpc         ds      1               ; Cursor position variable.
                                         ; --------------------------------------
-                                        ; Use port 3 for testing, which is the default serial port.
-                                        ; Use port 2 for the Serial2 port.
-    PRINT_PORT  equ     3               ; Output port#. 
-    INPUT_PORT  equ     3               ; Input port#.
+                                        ; When using port 2,
+                                        ;   if port 3 is disable, then it defaults to 3, the default serial port.
+    PRINT_PORT  equ     2               ; Output port#. 
+    INPUT_PORT  equ     2               ; Input port#.
                                         ; --------------------------------------
                 end
                                         ; --------------------------------------

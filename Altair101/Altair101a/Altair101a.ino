@@ -728,9 +728,9 @@ byte altair_in(byte portDataByte) {
       // Note, hardware Sense switches are not implemented.
       break;
     case 2:
-      inputDataByte = 0;
       if (SERIAL2_OUTPUT) {
         // Input from the external USB component Serial2 port.
+        inputDataByte = 0;
         if (Serial2.available() > 0) {
           inputDataByte = Serial2.read();    // Read and process an incoming byte.
         }
