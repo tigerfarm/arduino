@@ -176,7 +176,7 @@ Write program memory into  Message printing issue when in VT100 front panel mode
 #include "Altair101a.h"
 #include "cpucore_i8080.h"
 
-#define SETUP_SDCARD 1
+// #define SETUP_SDCARD 1
 // I didn't add to option to remove Serial2 options using a "#define",
 //    basically, because it doesn't cause issues.
 

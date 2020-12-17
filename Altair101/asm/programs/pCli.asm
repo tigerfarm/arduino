@@ -20,16 +20,24 @@
                                         ; --------------------------------------
                 lxi sp,512              ; Set stack pointer.
     Start:
-                                        ; --------------------------------------
-                                        ; Set output port and print strings.
-                                        ;
                 lxi h,StartMsg
                 call printStr
-                                        ; --------------------------------------
-                                        ; Get an input byte and echo it.
-                                        ; Ctrl+c to exit.
                 lxi h,EnterMsg
                 call printStr
+    startNewline:
+                mvi a,'\r'
+                out INPUT_PORT
+                mvi a,'\n'
+                out INPUT_PORT
+                lxi h,thePrompt         ; Print the prompt.
+                call printStr
+                mvi a,0                 ; Initialize cursor position counter.
+                sta cp
+                                        ; --------------------------------------
+                                        ; Get an input byte
+                                        ; + Ctrl+c to exit.
+                                        ; + Process control keys
+                                        ; + Output printable key characters to screen.
     GetByte:
                 in INPUT_PORT           ; Get input byte value into register A.
                 cpi 0                   ; No character input, nothing to print out.
@@ -47,17 +55,21 @@
                 cpi 12                  ; Ctrl+l, FF to have the screen cleared.
                 jz clear
                                         ; ---------------
+                                        ; Only printable characters
+                cpi 32
+                jnc GetByte             ; Ignore less than 32.
+                cpi 126
+                jc GetByte              ; Ignore greater than 126.
+                                        ; ---------------
                 out INPUT_PORT          ; Else, out the character and get a new one.
+                call inrCp              ; Increment the cursor position.
                 jmp GetByte
-    startNewline:
-                out INPUT_PORT
-                mvi a,'\n'
-                out INPUT_PORT
-                lxi h,thePrompt
-                call printStr
-                jmp GetByte
-    backSpace:                          ; Need extra logic, else can backspace over the prompt.
-                                        ; Esc6n	Get cursor position.
+                                        ; ---------------
+    backSpace:
+                lda cp
+                cpi 0                   ; Don't backspace over the prompt.
+                jz GetByte
+                                        ;
                 mvi a,esc               ; Esc[ValueD : Move the cursor left n lines (left one space).
                 out PRINT_PORT
                 mvi a,'['
@@ -78,13 +90,15 @@
                 out PRINT_PORT
                 mvi a,'D'
                 out PRINT_PORT
+                                        ;
+                call dcrCp
                 jmp GetByte
+                                        ; --------------------------------------
     clear:
                 call clr
-                lxi h,thePrompt
-                call printStr
-                jmp GetByte
+                jmp startNewline
                                         ;
+                                        ; --------------------------------------
     ExitGetByte:                        ; Exit the input loop.
                 lxi h,ExitMsg
                 call printStr
@@ -121,6 +135,17 @@
                 out PRINT_PORT
                 ret
                                         ; --------------------------------------
+        inrCp:                          ; Increment the cursor position counter
+                lda cp
+                inr a
+                sta cp
+                ret
+        dcrCp:                          ; Decrement the cursor position counter
+                lda cp
+                dcr a
+                sta cp
+                ret
+                                        ; --------------------------------------
                                         ; Move the cursor home and clear the screen: '\033[H\033[2J'
         clr:
                 mvi a,esc
@@ -137,6 +162,7 @@
                 out PRINT_PORT
                 mvi a,'J'
                 out PRINT_PORT
+                sta cp,0
                 ret
                                         ; --------------------------------------
                                         ;
@@ -147,6 +173,7 @@
                                         ;
     TERMB       equ     0ffh            ; String terminator.
     esc         equ     27              ; Escape character, which is 0x1B (hex).
+    cp          ds      1               ; Cursor position
                                         ; --------------------------------------
                                         ; Use port 3 for testing, which is the default serial port.
                                         ; Use port 2 for the Serial2 port.
