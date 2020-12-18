@@ -176,7 +176,7 @@
 #include "Altair101a.h"
 #include "cpucore_i8080.h"
 
-// #define SETUP_SDCARD 1
+#define SETUP_SDCARD 1
 // I didn't add to option to remove Serial2 options using a "#define",
 //    basically, because it doesn't cause issues.
 
@@ -1510,7 +1510,9 @@ void processWaitSwitch(byte readByte) {
       }
       printFrontPanel();
       host_clr_status_led_HLDA();
-#endif
+#else
+      Serial.println("- SD card not enabled.");
+#endif  // SETUP_SDCARD
       break;
     case 'M':
       Serial.println("+ M, Write program Memory into a file.");
@@ -1530,7 +1532,9 @@ void processWaitSwitch(byte readByte) {
       // -------------------------------------------------------
       writeProgramMemoryToFile(theFilename);
       printFrontPanel();
-#endif
+#else
+      Serial.println("- SD card not enabled.");
+#endif  // SETUP_SDCARD
       break;
     // -------------------------------------
     default:
@@ -1747,12 +1751,12 @@ void loadProgram() {
             Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
           }
-          Serial.println(F("+ i, Input loop."));
-          Serial.println(F("+ j, Kill the Bit version for serial VT100 input."));
-          Serial.println(F("+ k, Kill the Bit."));
-          Serial.println(F("+ m, MVI testing to the setting of registers."));
-          Serial.println(F("+ w, Write byte to memory location: 96, increment byte and loop."));
-          Serial.println(F("+ s, Front panel status light test."));
+          Serial.println(F("+ Sample programs."));
+          Serial.println(F("++ i, Input loop."));
+          Serial.println(F("++ k, Kill the Bit version for serial VT100 input."));
+          Serial.println(F("++ m, MVI testing to the setting of registers."));
+          Serial.println(F("++ w, Write byte to memory location: 96, increment byte and loop."));
+          Serial.println(F("++ s, Front panel status light test."));
           Serial.println(F("----------"));
           Serial.println(F("+ x, Exit: don't load a program."));
       }

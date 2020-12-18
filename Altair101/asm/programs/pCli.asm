@@ -35,6 +35,8 @@
                 call printStr
                 mvi a,0                 ; Initialize cursor position counter.
                 sta cpc
+                lxi h,0                 ; Set line buffer counter to zero.
+                shld lbc
                                         ; --------------------------------------
                                         ; Get an input byte
                                         ; + Ctrl+c to exit.
