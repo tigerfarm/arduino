@@ -19,7 +19,7 @@
                 call printSeparator
                 mvi h,0             ; Set address register pair H:L, to 0:0.
                 mvi l,0
-                out 36              ; Print the register values for H:L, and the content at that address.
+                out 36              ; Print the register values for H:L.
                                     ;
                 mvi a,0             ; Initialize variables to 0. Set the address values to zero (register A value).
                 sta byteL
@@ -39,7 +39,7 @@
                                     ;   Store register L to memory location of byteL             (byteL address).
                                     ;   Store register H to memory location of byteH = byteL + 1 (byteH address).
                                     ;
-                lda byteH           ; Load and print the address values.
+                lda byteH           ; Confirm the shld worked by loading and printing the address values.
                 out 37
                 lda byteL
                 out 37
@@ -53,6 +53,52 @@
                                     ;   Store register L to memory location of byteL             (byteL address).
                                     ;   Store register H to memory location of byteH = byteL + 1 (byteH address).
                 out 36              ; Print the register values for H:L, and the content at that address.
+                                    ; --------------------------------------
+                                    ; Sample use: loading a byte array with data.
+                call printSeparator
+                lxi h,lb            ; Set the H:L register pair to the line buffer address.
+                out 36              ; Print the register values for H:L.
+                shld lbc            ; Store H and L registers into memory, the line buffer counter.
+                mvi h,0             ; Confirm the shld worked. Set address register pair H:L, to 0:0.
+                mvi l,0
+                out 36              ; Print the register values for H:L.
+                                    ;
+                lhld lbc            ; Load H and L registers from memory.
+                out 36              ; Print the register values for H:L.
+                mvi a,'a'
+                mov m,a             ; Move register A to the H:L(register m) address. A -> (HL).
+                lda lb              ; Confirm the data was stored.
+                out 37
+                                    ;
+                inx h               ; Increment H:L register pair.
+                shld lbc            ; Store the address into memory.
+                                    ; At this point, H and L registers can be used for other purposes.
+                lhld lbc            ; Restore the address from memory: load H and L registers from memory.
+                out 36              ; Print the register values for H:L.
+                mvi m,'b'           ; Store the next byte into the byte array.
+                                    ;
+                mvi a,'c'
+                mov m,a
+                inx h
+                inr a
+                mov m,a
+                inx h
+                inr a
+                mov m,a
+                                    ; 
+                lxi h,lb
+                mov a,m
+                out 37
+                inr m
+                mov a,m
+                out 37
+                inr m
+                mov a,m
+                out 37
+                inr m
+                mov a,m
+                out 37
+                                    ; 
                                     ; --------------------------------------
                 call println
                 hlt
@@ -87,6 +133,10 @@
     byteL       ds      1
     byteH       ds      1
                                     ;
+    lbc         ds      2           ; Address counter for lb. Address of last added key value = lb address + cpc-1.
+    lb          ds      8           ; Place to store what is typed in, for the current line.
+                                    ; Cursor position is also the length of the entered text.
+                                    ;
                                     ;         H         L
     Addr1       equ     128         ; 0000 0000 1000 0000 H:L = 0:128
     Addr2       equ     512         ; 0000 0010 0000 0000 H:L = 2:000
@@ -111,5 +161,16 @@
 -------
  > Register H:L =   0:  0 = 00000000:00000000, Data:  49 = 061 = 00110001
  > Register H:L =   3: 18 = 00000011:00010010, Data:   0 = 000 = 00000000
+-------
+ > Register H:L =   0:185 = 00000000:10111001, Data:   0 = 000 = 00000000
+ > Register H:L =   0:  0 = 00000000:00000000, Data:  49 = 061 = 00110001
+ > Register H:L =   0:185 = 00000000:10111001, Data:   0 = 000 = 00000000
+ > Register A =  97 = 141 = 01100001
+ > Register H:L =   0:186 = 00000000:10111010, Data:   0 = 000 = 00000000
+ > Register A =  97 = 141 = 01100001
+ > Register A =  98 = 142 = 01100010
+ > Register A =  99 = 143 = 01100011
+ > Register A = 100 = 144 = 01100100
+++ HALT, host_read_status_led_WAIT() = 0
                                     ;
                                     ; --------------------------------------

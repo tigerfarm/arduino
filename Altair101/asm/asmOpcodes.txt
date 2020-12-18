@@ -142,6 +142,7 @@ mvid :00010110:|D <- byte 2
 mvie :00011110:|E <- byte 2
 mvih :00100110:|H <- byte 2
 mvil :00101110:|L <- byte 2
+mvim :00111110:|(HL) <- byte 2
 push :11RP0101:PUSH RP  11 RP0 101  1  Push a register pair (RP) onto the stack: B:C, D:E, H:L. To do, push flags.
 pushb:11000101:|(sp-2)<-C; (sp-1)<-B; sp <- sp - 2
 pushd:11010101:|(sp-2)<-E; (sp-1)<-D; sp <- sp - 2

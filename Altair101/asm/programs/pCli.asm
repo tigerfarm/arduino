@@ -33,9 +33,14 @@
                 out INPUT_PORT
                 lxi h,thePrompt         ; Print the prompt.
                 call printStr
-                mvi a,0                 ; Initialize cursor position counter.
+                                        ;
+                lda cpc
+                jz mtLine               ; If nothing entered in the line (MT line), nothing to process.
+                call processLine
+    mtLine:
+                mvi a,0                 ; Initialize cursor line position counter.
                 sta cpc
-                lxi h,0                 ; Set line buffer counter to zero.
+                lxi h,0                 ; Set line buffer address counter to zero.
                 shld lbc
                                         ; --------------------------------------
                                         ; Get an input byte
@@ -103,8 +108,8 @@
                 call dcrCpc
                 jmp GetByte
                                         ; --------------------------------------
+                                        ; Store the key press values to the line buffer and increment the counter.
         inrCpc:
-                                        ; Store the key value to the line buffer and increment the counter.
                 lhld lbc                ; Load H and L registers from memory.
                 mov m,a                 ; Move register A to the H:L address. A -> (HL).
                 inx h                   ; Increment H:L register pair.
@@ -114,7 +119,9 @@
                 inr a
                 sta cpc
                 ret
-        dcrCpc:                         ; Decrement the cursor position counter
+                                        ; --------------------------------------
+                                        ; Decrement the position counter and store the key press values to the line buffer.
+        dcrCpc:
                 lda cpc
                 dcr a
                 sta cpc
@@ -133,10 +140,16 @@
                 jmp Start 
                                         ; --------------------------------------
                                         ; --------------------------------------
-                                        ; Output print processes.
+                                        ; Subroutines
                                         ; 
                                         ; --------------------------------------
-        printPrompt:
+    processLine:
+                lxi h,echoMsg
+                call printStr
+                call printNewline
+                ret
+                                        ; --------------------------------------
+    printPrompt:
                 mvi a,'?'
                 out PRINT_PORT
                 mvi a,'\n'
@@ -144,17 +157,17 @@
                 ret
                                         ; --------------------------------------
                                         ; Print a string.
-        printStr:
+    printStr:
                 mov a,m                 ; Move the data from H:L address to register A. (HL) -> A. 
                 cpi TERMB               ; Compare to see if it's the string terminate byte.
                 jz sPrintDone
                 out PRINT_PORT          ; Out register A to the serial port.
                 inx h                   ; Increment H:L register pair.
                 jmp printStr
-        sPrintDone:
+    sPrintDone:
                 ret
                                         ; --------------------------------------
-        printNewline:
+    printNewline:
                 mvi a,'\r'
                 out PRINT_PORT
                 mvi a,'\n'
@@ -162,7 +175,7 @@
                 ret
                                         ; --------------------------------------
                                         ; Move the cursor home "Esc[H" and clear the screen "Esc[2J".
-        clr:
+    clr:
                 mvi a,esc
                 out PRINT_PORT
                 mvi a,'['
@@ -183,6 +196,7 @@
     StartMsg    db      '\r\n+++ Welcome to the machine.\r\n'
     EnterMsg    db      '+ Press keys. Ctrl+c to exit.\r\n> '
     thePrompt   db      '> '
+    echoMsg     db      '++ Echo not implemented, yet.'
     ExitMsg     db      '\r\n+ Later.\r\n'
                                         ;
     TERMB       equ     0ffh            ; String terminator.
