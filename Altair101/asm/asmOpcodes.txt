@@ -127,6 +127,13 @@ movdm:01010110:|(HL)->D
 movem:01011110:|(HL)->E
 movhm:01100110:|(HL)->H
 movlm:01101110:|(HL)->L
+movma:01110111:|A->(HL)
+movmb:01110000:|B->(HL)
+movmc:01110001:|C->(HL)
+movmd:01110010:|D->(HL)
+movme:01110011:|E->(HL)
+movmh:01110100:|H->(HL)
+movml:01110101:|L->(HL)
 mvi  :00RRR110:MVI R,#  00 RRR 110  2  Move #(immediate value) to a register (R).
 mvia :00111110:|A <- byte 2
 mvib :00000110:|B <- byte 2

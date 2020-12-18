@@ -456,6 +456,7 @@ void printFrontPanel() {
     Serial.println();
     // Serial.print(F("\033[2K")); // Clear line
 #endif
+/* SERIAL_IO_IDE will do the same:
   } else if (SERIAL_IO_TERMINAL) {
     Serial.print(F("+ printFrontPanel SERIAL_IO_TERMINAL, status:"));
     printByte(fpStatusByte);
@@ -469,6 +470,7 @@ void printFrontPanel() {
     Serial.print(F(":"));
     printByte(lowByte(theAddressWord));
     Serial.println();
+    */
   } else if (SERIAL_IO_IDE) {
     if (host_read_status_led_WAIT()) {
       serialPrintFrontPanel();
@@ -1476,8 +1478,8 @@ void processWaitSwitch(byte readByte) {
       Serial.println();
       serialPrintFrontPanel();
       break;
-    case 3:
-      // Ctrl+c is ASCII 3.
+    case 12:
+      // Ctrl+l is ASCII 7, which is form feed (FF).
       if (SERIAL_IO_VT100 || SERIAL_IO_TERMINAL) {
         Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
       }

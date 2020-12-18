@@ -19,8 +19,6 @@
                                         ; --------------------------------------
                                         ; --------------------------------------
                 lxi sp,1024             ; Set stack pointer.
-                lxi h,lb                ; Set the H:L register pair to the line buffer.
-                shld lbc                ; Store H and L registers into memory, the line buffer counter.
     Start:
                 lxi h,StartMsg
                 call printStr
@@ -63,8 +61,7 @@
                 cpi 126
                 jnc GetByte             ; Ignore greater than 126.
                                         ; ---------------
-                                        ; Else,
-                out INPUT_PORT          ; output the character and get a new one.
+                out INPUT_PORT          ; Else, out the character and get a new one.
                 call inrCpc             ; Increment the cursor position.
                 jmp GetByte
                                         ; ---------------
@@ -101,14 +98,8 @@
                 call dcrCpc
                 jmp GetByte
                                         ; --------------------------------------
-        inrCpc:
-                                        ; Store the key value to the line buffer and increment the counter.
-                lhld lbc                ; Load H and L registers from memory.
-                mov m,a                 ; Move register A to the H:L address. A -> (HL).
-                inx h                   ; Increment H:L register pair.
-                shld lbc                ; Store H and L registers into memory.
-                                        ;
-                lda cpc                 ; Increment the cursor position counter
+        inrCpc:                         ; Increment the cursor position counter
+                lda cpc
                 inr a
                 sta cpc
                 ret
@@ -187,18 +178,6 @@
     esc         equ     27              ; Escape character, which is 0x1B (hex).
     ;
     cpc         ds      1               ; Cursor position counter variable.
-    lbc         ds      2               ; Address of last added key value = lb address + cpc-1.
-    lb          ds      80              ; Place to store what is typed in, for the current line.
-                                        ; Cursor position is also the length of the entered text.
-                                        ;
-                                        ; --------------------------------------
-                                        ; Multiple line text block.
-    Menu0       db      '\r\n+ Sample Menu.'
-    Menu1       db      '\r\n 1. Menu item #1'
-    Menu2       db      '\r\n 2. Menu item #2'
-    Menu3       db      '\r\n 3. Menu item #3'
-    MenuEnd     db      0ffh            ; Indicator of the end of a text block.
-                                        ;
                                         ; --------------------------------------
                                         ; When using port 2,
                                         ;   if port 3 is disable, then it defaults to 3, the default serial port.
