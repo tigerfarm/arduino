@@ -22,58 +22,51 @@
                                         ; --------------------------------------
                 mvi b,32                ; First char value to print
                 mvi c,0                 ; Number of characters printed on a single line.
-        printChar:
                 mvi a,':'
                 out 2                   ; Out register A to the serial terminal port.
+        printChar:
                 mov a,b
                 cpi 127                 ; Max char value.
                 jz printCharDone
+                                        ;
+                cpi 'a'
+                jnz nextA
+                call println
+                mvi a,'a'
+                jmp outA
+    nextA:
+                cpi 'A'
+                jnz outA
+                call println
+                mvi a,'A'
+    outA:
                 out 2
-                inr b                   ; Increment print character value.
-                                        ;
-                inr c                   ; Increment print-per-line counter.
-                mov a,c
-                cpi 20                  ; Max char per line.
-                jz printNl
-                                        ;
-                jmp printChar
-                                        ;
-        printNl:
                 mvi a,':'
                 out 2
+                                        ;
+                inr b                   ; Increment print character value.
+                inr c                   ; Increment print-per-line counter.
+                mov a,c
+                cpi 26                  ; Max char per line.
+                jnz printChar
+                call println
+                jmp printChar
+                                        ;
+        println:
                 mvi a,'\r'              ; Print CR and NL characters.
                 out 2
                 mvi a,'\n'
                 out 2
                 mvi c,0                 ; Reset counter.
-                jmp printChar
+                mvi a,':'
+                out 2
+                ret
                                         ;
         printCharDone:
                 lxi h,DoneMsg
                 call sPrint
-                                        ; --------------------------------------
-                                        ; The following doesn't print properly: 
-                                        ; :�:�:
-                lxi h,SpecialMsg
-                call sPrint
-                mvi a,':'
-                out 2
-                mvi a,'£'
-                out 2
-                mvi a,':'
-                out 2
-                mvi a,'¥'
-                out 2
-                mvi a,':'
-                out 2
-                mvi a,'\r'
-                out 2
-                mvi a,'\n'
-                out 2
-
-                                        ; --------------------------------------
-            hlt
-            jmp Start
+                hlt
+                jmp Start
                                         ;
                                         ; --------------------------------------
         sPrint:
@@ -162,6 +155,30 @@
                                         ; --------------------------------------
                 end
                                         ; --------------------------------------
+                                        ; --------------------------------------
+                                        ; Test that didn't work
+                                        ;
+                                        ; The following doesn't print properly: 
+                                        ; :�:�:
+                lxi h,SpecialMsg
+                call sPrint
+                mvi a,':'
+                out 2
+                mvi a,'£'
+                out 2
+                mvi a,':'
+                out 2
+                mvi a,'¥'
+                out 2
+                mvi a,':'
+                out 2
+                mvi a,'\r'
+                out 2
+                mvi a,'\n'
+                out 2
+
+                                        ; --------------------------------------
+                                        ; --------------------------------------
                                         ; Successful run:
 + Start print characters...
 : :!:":#:$:%:&:':(:):*:+:,:-:.:/:0:1:2:3:
@@ -170,9 +187,20 @@
 :\:]:^:_:`:a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:
 :p:q:r:s:t:u:v:w:x:y:z:{:|:}:~:
 + Print chars completed.
-
-+ Print special chars.
-:�:�:
 ++ HALT, host_read_status_led_WAIT() = 0
+                                        ;
+                                        ; --------------------------------------
+
+How to print the following graphics chars?
+
+┘┐┌└╋-_-_-_┣┫┻┳
+
+┘┐┌└
+-
+┌---┐
+└---┘
+
+┌=┐
+└ ┘
                                         ;
                                         ; --------------------------------------
