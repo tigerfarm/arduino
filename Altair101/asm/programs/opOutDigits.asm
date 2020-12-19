@@ -1,5 +1,12 @@
                                         ; --------------------------------------
-                                        ; Test the various OUT options.
+                                        ; Binary to decimal conversion for printing.
+                                        ;
+                                        ; dec_value = 1*(2^2) + 1*(2^1) + 1*(2^0) = 7
+                                        ;
+                                        ; 10000100 : 84:204 > immediate: 132 : 132
+                                        ; 10000000 : 128
+                                        ; 00000100 :   4
+                                        ;
                                         ; --------------------------------------
                                         ;
                 lxi sp,512              ; Set stack pointer.
@@ -40,6 +47,8 @@
                 mvi a,9
                 call printNumA
                 mvi a,0
+                call printNumA
+                mvi a,255
                 call printNumA
                                         ; --------------------------------------
                 call println
@@ -137,7 +146,7 @@
                 jc cpi40               ; Jump if less than.
                 sui 50
                 mov c,a
-                mvi a,'4'
+                mvi a,'5'
                 out PRINT_PORT
                 call printRegC
                 jmp printShortAret
@@ -253,13 +262,14 @@
 ++ Digit = 81
 ++ Digit = 72
 ++ Digit = 63
-++ Digit = 44
+++ Digit = 54
 ++ Digit = 45
 ++ Digit = 36
 ++ Digit = 27
 ++ Digit = 18
 ++ Digit = 9
 ++ Digit = 0
+++ Digit = 255
 ++ HALT, host_read_status_led_WAIT() = 0
                                         ;
                                         ; --------------------------------------
