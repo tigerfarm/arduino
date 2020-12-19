@@ -50,8 +50,8 @@ String theFilename = "f1.txt";  // Files are created using uppercase: F1.TXT.
 
 // Set to match your SD module to the Arduino pin.
 // The CS pin is the only one that is not really fixed as any of the Arduino digital pin.
-const int csPin = 10;  // SD Card module is connected to Nano pin 10.
-// const int csPin = 53;  // SD Card module is connected to Mega pin 53.
+// const int csPin = 10;  // SD Card module is connected to Nano pin 10.
+const int csPin = 53;  // SD Card module is connected to Mega pin 53.
 // Notes,
 // + The default is the hardware SS line (pin 10 or 53) of the SPI bus.
 // + The SS pin is connected to the chip select pin (CS) of the SD card adapter.

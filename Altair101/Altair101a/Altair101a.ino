@@ -456,20 +456,20 @@ void printFrontPanel() {
     Serial.println();
     // Serial.print(F("\033[2K")); // Clear line
 #endif
-/* SERIAL_IO_IDE will do the same:
-  } else if (SERIAL_IO_TERMINAL) {
-    Serial.print(F("+ printFrontPanel SERIAL_IO_TERMINAL, status:"));
-    printByte(fpStatusByte);
-    Serial.print(F(" dataByte:"));
-    printByte(host_read_data_leds());
-    theAddressWord = host_read_addr_leds();
-    Serial.print(F(" address:"));
-    sprintf(charBuffer, "%5d ", theAddressWord);
-    Serial.print(charBuffer);
-    printByte(highByte(theAddressWord));
-    Serial.print(F(":"));
-    printByte(lowByte(theAddressWord));
-    Serial.println();
+    /* SERIAL_IO_IDE will do the same:
+      } else if (SERIAL_IO_TERMINAL) {
+        Serial.print(F("+ printFrontPanel SERIAL_IO_TERMINAL, status:"));
+        printByte(fpStatusByte);
+        Serial.print(F(" dataByte:"));
+        printByte(host_read_data_leds());
+        theAddressWord = host_read_addr_leds();
+        Serial.print(F(" address:"));
+        sprintf(charBuffer, "%5d ", theAddressWord);
+        Serial.print(charBuffer);
+        printByte(highByte(theAddressWord));
+        Serial.print(F(":"));
+        printByte(lowByte(theAddressWord));
+        Serial.println();
     */
   } else if (SERIAL_IO_IDE) {
     if (host_read_status_led_WAIT()) {
@@ -1490,6 +1490,14 @@ void processWaitSwitch(byte readByte) {
         SERIAL_IO_VT100 = true;                 // Must be after serialPrintFrontPanel(), to have the labels printed.
       }
       break;
+    case 'n':
+      Serial.println("+ m, SD card directory lising.");
+#ifdef SETUP_SDCARD
+      sdListDirectory();
+#else
+      Serial.println("- SD card not enabled.");
+#endif  // SETUP_SDCARD
+      break;
     case 'm':
       Serial.println("+ m, Read file into program memory.");
 #ifdef SETUP_SDCARD
@@ -2099,6 +2107,38 @@ boolean readProgramFileIntoMemory(String theFilename) {
   host_clr_status_led_HLDA();
   return (true);
 }
+
+void printSpacing(String theString) {
+  for (int i = theString.length(); i < 14; i++) {
+    Serial.print(" ");
+  }
+}
+
+void sdListDirectory() {
+  if (!sdcardInitiated) {
+    initSdcard();
+  }
+  // listDirectory(root);
+  // List files for a single directory.
+  File dir = SD.open("/");
+  String tabString = "   ";
+  File entry = dir.openNextFile();
+  while (entry) {
+    if (entry.isDirectory()) {
+      Serial.print(F("++ Directory: "));
+      Serial.print(entry.name());
+    } else {
+      Serial.print(F("++ File:      "));
+      Serial.print(entry.name());
+      printSpacing(entry.name());
+      Serial.print(entry.size(), DEC);
+    }
+    Serial.println("");
+    entry.close();
+    entry =  dir.openNextFile();
+  }
+  dir.close();
+}
 #endif  // SETUP_SDCARD
 
 // -----------------------------------------------------------------------------
@@ -2146,6 +2186,8 @@ void setup() {
     ledFlashSuccess();
   }
   delay(300);
+#else
+  Serial.println(F("+ SD card module is not included in this compiled version."));
 #endif
 
   // ----------------------------------------------------
