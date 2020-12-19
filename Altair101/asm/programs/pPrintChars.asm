@@ -24,7 +24,7 @@
                 mvi c,0                 ; Number of characters printed on a single line.
                 mvi a,':'
                 out 2                   ; Out register A to the serial terminal port.
-        printChar:
+    printChar:
                 mov a,b
                 cpi 127                 ; Max char value.
                 jz printCharDone
@@ -79,16 +79,6 @@
         sPrintDone:
                 ret
                                         ; --------------------------------------
-        sPrint2:
-                mov a,m                 ; Move the data from H:L address to register A. (HL) -> A. 
-                cpi TERMB               ; Compare to see if it's the string terminate byte.
-                jz sPrintDone2
-                out 2                   ; Out register A to the serial terminal port.
-                inx h                   ; Increment H:L register pair.
-                jmp sPrint2
-        sPrintDone2:
-                ret
-                                        ; --------------------------------------
                                         ; Move home and clear entire screen: '\033[H\033[2J'
         clr:
                 mvi a,esc
@@ -106,6 +96,33 @@
                 mvi a,'J'
                 out 2
                 ret
+                                        ; --------------------------------------
+                                        ;
+    StartMsg    db      '\r\n+ List printable characters...\r\n'
+    DoneMsg     db      '\r\n+ Print characters completed.\r\n'
+    TERMB       equ     0ffh            ; String terminator.
+    esc         equ     27              ; Escape character, which is 0x1B (hex).
+                                        ;
+                                        ; --------------------------------------
+                end
+                                        ; --------------------------------------
+                                        ; Successful run:
++ Start print characters...
+: :!:":#:$:%:&:':(:):*:+:,:-:.:/:0:1:2:3:4:5:6:7:8:9:
+:::;:<:=:>:?:@:
+:A:B:C:D:E:F:G:H:I:J:K:L:M:N:O:P:Q:R:S:T:U:V:W:X:Y:Z:
+:[:\:]:^:_:`:
+:a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:y:z:
+:{:|:}:~:
++ Print chars completed.
+++ HALT, host_read_status_led_WAIT() = 0
+                                        ;
+                                        ; --------------------------------------
+                                        ; --------------------------------------
+                                        ; Test that didn't work
+                                        ;
+    SpecialMsg  db      '\r\n+ Print special chars.\r\n'
+                                        ;
                                         ; --------------------------------------
         s1:                             ; 251C
                                         ;
@@ -144,22 +161,10 @@
                 mvi a,':'
                 out 2
                 ret
-                                        ; --------------------------------------
-                                        ;
-    StartMsg    db      '\r\n+ Start print characters...\r\n'
-    DoneMsg     db      '\r\n+ Print chars completed.\r\n'
-    SpecialMsg  db      '\r\n+ Print special chars.\r\n'
-    TERMB       equ     0ffh            ; String terminator.
-    esc         equ     27              ; Escape character, which is 0x1B (hex).
-                                        ;
-                                        ; --------------------------------------
-                end
-                                        ; --------------------------------------
-                                        ; --------------------------------------
-                                        ; Test that didn't work
                                         ;
                                         ; The following doesn't print properly: 
                                         ; :�:�:
+                                        ;
                 lxi h,SpecialMsg
                 call sPrint
                 mvi a,':'
@@ -178,18 +183,6 @@
                 out 2
 
                                         ; --------------------------------------
-                                        ; --------------------------------------
-                                        ; Successful run:
-+ Start print characters...
-: :!:":#:$:%:&:':(:):*:+:,:-:.:/:0:1:2:3:
-:4:5:6:7:8:9:::;:<:=:>:?:@:A:B:C:D:E:F:G:
-:H:I:J:K:L:M:N:O:P:Q:R:S:T:U:V:W:X:Y:Z:[:
-:\:]:^:_:`:a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:
-:p:q:r:s:t:u:v:w:x:y:z:{:|:}:~:
-+ Print chars completed.
-++ HALT, host_read_status_led_WAIT() = 0
-                                        ;
-                                        ; --------------------------------------
 
 How to print the following graphics chars?
 
@@ -204,3 +197,4 @@ How to print the following graphics chars?
 └ ┘
                                         ;
                                         ; --------------------------------------
+                                        ;

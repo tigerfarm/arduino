@@ -16,6 +16,8 @@
   ---------------------------------------------------------
   Next:
 
+  Confirm (y/n) Read and Write from/to SD card.
+
   Write program memory into  Message printing issue when in VT100 front panel mode.
   + "+ R" is overwritten
   + Ready to receive command.
