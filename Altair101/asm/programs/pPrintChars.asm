@@ -52,7 +52,7 @@
                 call println
                 jmp printChar
                                         ;
-        println:
+    println:
                 mvi a,'\r'              ; Print CR and NL characters.
                 out 2
                 mvi a,'\n'
@@ -62,25 +62,25 @@
                 out 2
                 ret
                                         ;
-        printCharDone:
+    printCharDone:
                 lxi h,DoneMsg
                 call sPrint
                 hlt
                 jmp Start
                                         ;
                                         ; --------------------------------------
-        sPrint:
+    sPrint:
                 mov a,m                 ; Move the data from H:L address to register A. (HL) -> A. 
                 cpi TERMB               ; Compare to see if it's the string terminate byte.
                 jz sPrintDone
                 out 3                   ; Out register A to the serial terminal port.
                 inx h                   ; Increment H:L register pair.
                 jmp sPrint
-        sPrintDone:
+    sPrintDone:
                 ret
                                         ; --------------------------------------
                                         ; Move home and clear entire screen: '\033[H\033[2J'
-        clr:
+    clr:
                 mvi a,esc
                 out 2
                 mvi a,'['
