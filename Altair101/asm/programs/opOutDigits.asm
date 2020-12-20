@@ -1,8 +1,6 @@
                                         ; --------------------------------------
                                         ; Binary to decimal conversion for printing.
                                         ;
-                                        ; dec_value = 1*(2^2) + 1*(2^1) + 1*(2^0) = 7
-                                        ;
                                         ; 10000100 : 84:204 > immediate: 132 : 132
                                         ; 10000000 : 128
                                         ; 00000100 :   4
@@ -74,9 +72,10 @@
                 jmp Start
                                         ;
                                         ; --------------------------------------
-    printByteA:                         ; Print register A as a number.
+                                        ; --------------------------------------
+    printByteA:                         ; Print register A as a byte string.
                 mov b,a
-                ; out 37                  ; Register A = 248 = 370 = 11111000
+                ; out 37                  ; For debugging: Register A = 248 = 370 = 11111000
                 mvi a,' '
                 out PRINT_PORT
                 mvi a,'='
@@ -175,7 +174,7 @@
                 ret
                                         ; --------------------------------------
                                         ; --------------------------------------
-    printNumA:                          ; Print register A as a number.
+    printNumA:                          ; Print register A as a decimal number string.
                 lxi h,DigitMsg
                 call printStr
                 call printShortA
@@ -360,8 +359,8 @@
                 ret
                                         ; --------------------------------------
                                         ;
-    StartMsg    db      '\r\n+++ Print digits.'
-    DigitMsg    db      '\r\n++ Digit = '
+    StartMsg    db      '\r\n+++ Print bytes as decimal number strings and as binary number strings.'
+    DigitMsg    db      '\r\n++ Number, '
     TERMB       equ     0ffh            ; String terminator.
                                         ;
     regA        db 0                    ; A variable for storing register A's value.
@@ -375,7 +374,7 @@
 ?- + r, RUN.
 ?- + runProcessor()
 
-+++ Print digits.
++++ Print bytes as decimal number strings and as binary number strings.
 ++ Digit = 001 = 00000001
 ++ Digit = 200 = 11001000
 ++ Digit = 242 = 11110010
