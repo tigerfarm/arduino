@@ -11,6 +11,19 @@ To prove that Altair 101 is a true emulator, I assembled and ran the classic Alt
 That was a celebrated accomplishment after months of work.
 
 --------------------------------------------------------------------------------
+## Programs on the Assembler Machine SD card
+
+````
+?- + m, SD card directory lising.
+++ File:      00000011.BIN  2048
+++ File:      00000101.BIN  2048
+++ File:      00000100.BIN  2048
+++ File:      F1.TXT        44
+++ File:      00000010.BIN  2048    pPrintChars.asm
+++ File:      00000001.BIN  2048
+++ File:      00010001.BIN  2048
+````
+--------------------------------------------------------------------------------
 ## Steps to Develop and Run Programs
 
 ````
@@ -151,15 +164,16 @@ opInSwitches.asm        IN : Get and process a data byte from sense switches.
                         RUN switch : used to continue the process.
                         Basically, the process stops. Sense switches are set.
                         Flip the RUN switch (similar return key) to continue.
--------------------------------
-I now have a rich enough opcode set and samples, to add subroutines to programs.
-
 opLxi.asm               LXI a,RP: load address values from a number or label into register pairs: B:C, D:E, and H:L, or into the stackpointer.
                         Echo the register pair address and the data at that 16 bit address.
-opShld.asm              SHLD a : move register L -> (address a, lb); move register H -> (address a+1, hb)
+opShld.asm              SHLD a : L -> (adr); H -> (adr+1) : move register L -> (address a, lb); move register H -> (address a+1, hb)
+opShldLhld.asm          LHLD a : (adr) -> L; (adr+1) -> H
 opDad.asm               DAD : Add register pair(RP: B:C or D:E or H:L) to H:L, or SP + H:L. Set carry bit.
 opAni.asm               ANI : AND an immediate value with register A.
                         Example: 11101101 AND 10110000 = 10100000
+opAdd.asm               ADD : Add register data: B,C,D,E,H,L, and M(H:L); to register A.
+
+opXra.asm               XRA : Register A, Exclusive OR'ed with registers: B,C,D,E,H, and L.
 ---------------
 opPushPop.asm           PUSH RP : Push a register pair (RP) onto the stack: B:C, D:E, H:L. Push register A and flags.
 opAdiSui.asm            ADI : Add immediate number to register A. Tested with decimal and EQU values.
@@ -190,9 +204,6 @@ opAdi.asm               ADI : Add immediate number to register A. Tested with de
                         Simple program to demo adding 2 numbers.
                         Numbers can be easily changed using the Examine and Deposit.
                         Sum can viewed using Examine.
-opAdd.asm               ADD : Add register data: B,C,D,E,H,L, and M(H:L); to register A.
-
-opXra.asm               XRA : Register A, Exclusive OR'ed with registers: B,C,D,E,H, and L.
 opInx.asm               INX : Increment a register pair: B:C, D:E, H:L.
 opImmediate.asm         Using various types of immediate values, with various opcodes.
 

@@ -777,8 +777,9 @@ void cpucore_i8080_print_registers() {
   printData(fpDataByte);
   Serial.println();
   //
+  //              ++ Front panel display Address word, fpAddressWord: -32768 = 10000000:00000000
   Serial.print(F("++ Front panel display Address word, fpAddressWord: "));
-  sprintf(charBuffer, "%5d", fpAddressWord);
+  sprintf(charBuffer, "%5u", fpAddressWord);
   Serial.print(charBuffer);
   Serial.print(F(" = "));
   printByte(highByte(fpAddressWord));

@@ -4,20 +4,8 @@
                                     ; 
                                     ; ------------------------------------------
                                     ; First byte needs to be an opcode to run.
-                jmp Start
                                     ; ------------------------------------------
-    opcode1     db      'RLC'
-    opcode2     db      'RRC'
-    msgSuccess  db      '+ Success: '
-    msgError    db      '- Error.'
-    PRINT_PORT  equ     3           ; Print to the serial port.
-                                    ;
-                                    ; -------------------
-                                    ; Special characters:
-    NL          equ     10          ; New line, '\n'.
-    TERMB       equ     0ffh        ; String terminator.
-                                    ;
-                                    ; ------------------------------------------
+                lxi sp,1024             ; Set stack pointer.
     Start:
                 mvi a,1             ; Move # to register A:    00 000 001 = 1
                 out 37              ; Print register A answer: 00 000 001 = 1
@@ -60,11 +48,10 @@
                 cpi 1               ; Rotated all the way around.
                 jnz Error
     Success1:
-                call printNL
                 lxi h,msgSuccess
-                call print
+                call printStr
                 lxi h,opcode1
-                call print
+                call printStr
                 mvi a,'.'
                 out PRINT_PORT
                 call printNL
@@ -114,11 +101,10 @@
                 jnz Error
                                     ; ------------------------------------------
     Success2:
-                call printNL
                 lxi h,msgSuccess
-                call print
+                call printStr
                 lxi h,opcode2
-                call print
+                call printStr
                 mvi a,'.'
                 out PRINT_PORT
                 call printNL
@@ -127,36 +113,50 @@
                 jmp Start
                                     ; ------------------------------------------
     Error:
-                call printNL
                 lxi h,msgError
-                call print
-                call printNL
+                call printStr
                 out 39              ; Print the registers and other system values.
                 hlt                 ; Halt after the error.
                 jmp Start
                                     ; ------------------------------------------
                                     ; Routine loop to print a DB string which starts a address, M.
-    print:
-                mov a,m             ; Move the data from H:L address to register A. (HL) -> A. 
-                cpi TERMB           ; Compare to see if it's the string terminate byte.
-                jz Done
-                out PRINT_PORT      ; Out register A to the print port.
-                inr m               ; Increment H:L register pair.
-                jmp print
-    Done:
+                                        ; --------------------------------------
+                                        ; Print a string.
+    printStr:
+                mov a,m                 ; Move the data from H:L address to register A. (HL) -> A. 
+                cpi TERMB               ; Compare to see if it's the string terminate byte.
+                jz sPrintDone
+                out PRINT_PORT          ; Out register A to the serial port.
+                inx h                   ; Increment H:L register pair.
+                jmp printStr
+    sPrintDone:
                 ret
                                     ; ------------------------------------------
                                     ; Print a newline.
     printNL:
-                mvi a,NL
+                mvi a,'\r'
+                out PRINT_PORT
+                mvi a,'\n'
                 out PRINT_PORT
                 ret
+                                    ; ------------------------------------------
+    opcode1     db      'RLC'
+    opcode2     db      'RRC'
+    msgSuccess  db      '\r\n+ Success: '
+    msgError    db      '\r\n- Error.\r\n'
+    PRINT_PORT  equ     2           ; Print to the serial port.
+                                    ;
+                                    ; -------------------
+                                    ; Special characters:
+    TERMB       equ     0ffh        ; String terminator.
+                                    ;
                                     ; ------------------------------------------
                 end
                                     ; --------------------------------------
                                     ; Successful run:
-                                    ;
---------------------------------------
++ Download complete.
+?- + r, RUN.
+?- + runProcessor()
 
  > Register A =   1 = 001 = 00000001
  > Register A =   2 = 002 = 00000010
@@ -179,7 +179,6 @@
  > Register A =   1 = 001 = 00000001
  > Register A = 128 = 200 = 10000000
 + Success: RRC.
-
-+ HLT, program halted.
+++ HALT, host_read_status_led_WAIT() = 0
                                     ;
                                     ; --------------------------------------
