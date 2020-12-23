@@ -164,17 +164,18 @@
 #include "cpucore_i8080.h"
 
 #define SETUP_SDCARD 1
-// I didn't add to option to remove Serial2 options using a "#define",
-//    basically, because it doesn't cause issues.
+String theFilename;
 
 // #define LOG_MESSAGES 1    // For debugging.
 // #define LOG_OPCODES  1    // Print each called opcode.
+
+// I didn't add to option to remove Serial2 options using a "#define",
+//    basically, because it doesn't cause issues.
 
 boolean logMessages = false;  // Input log messages.
 
 byte opcode = 0xff;
 
-String theFilename;
 
 // ------------------------------
 // Added this to identify hardware status.
@@ -1430,7 +1431,7 @@ void processWaitSwitch(byte readByte) {
       cpucore_i8080_print_registers();
       break;
     case 'N':
-      loadKtb();
+      loadProgramBytes();
       break;
     // -------------------------------------
     case 'h':
@@ -2195,19 +2196,20 @@ void sdListDirectory() {
 #endif  // SETUP_SDCARD
 
 // -----------------------------------------------------------------------------
-const byte programArray[] = {
+const byte programBytes[] = {
+  // Kill the Bit program.
   0x21, 0x00, 0x00, 0x16, 0x80, 0x01, 0x0E, 0x00, 0x1A, 0x1A, 0x1A, 0x1A, 0x09, 0xD2, 0x08, 0x00,
   0xDB, 0xFF, 0xAA, 0x0F, 0x57, 0xC3, 0x08, 0x00
 };
-void loadKtb() {
-  int theSize = sizeof(programArray);
+void loadProgramBytes() {
+  int theSize = sizeof(programBytes);
   for (int i = 0; i < theSize; i++ ) {
-    byte theValue = programArray[i];
-    Serial.print(F("+ programArray["));
+    byte theValue = programBytes[i];
+    Serial.print(F("+ programBytes["));
     if (i < 10) {
       Serial.print(F("0"));
     }
-    MWRITE(i, programArray[i]);
+    MWRITE(i, programBytes[i]);
     Serial.print(i);
     Serial.print(F("] = D:"));
     if (theValue < 100) {
