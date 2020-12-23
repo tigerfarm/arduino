@@ -16,6 +16,8 @@
   ---------------------------------------------------------
   Next:
 
+  Update asm to compile, pGalaxy80.asm
+
   Add Serial2 output ports.
   + Currently works, instruction to output regA to Serial2: OUT 2
   + Add the same port number as 88-2SIO DATA PORT in pGalaxy80.asm.
@@ -1427,6 +1429,9 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ i: Information."));
       cpucore_i8080_print_registers();
       break;
+    case 'N':
+      loadKtb();
+      break;
     // -------------------------------------
     case 'h':
       Serial.println(F("----------------------------------------------------"));
@@ -2188,6 +2193,49 @@ void sdListDirectory() {
   dir.close();
 }
 #endif  // SETUP_SDCARD
+
+// -----------------------------------------------------------------------------
+const byte programArray[] = {
+  0x21, 0x00, 0x00, 0x16, 0x80, 0x01, 0x0E, 0x00, 0x1A, 0x1A, 0x1A, 0x1A, 0x09, 0xD2, 0x08, 0x00,
+  0xDB, 0xFF, 0xAA, 0x0F, 0x57, 0xC3, 0x08, 0x00
+};
+void loadKtb() {
+  int theSize = sizeof(programArray);
+  for (int i = 0; i < theSize; i++ ) {
+    byte theValue = programArray[i];
+    Serial.print(F("+ programArray["));
+    if (i < 10) {
+      Serial.print(F("0"));
+    }
+    MWRITE(i, programArray[i]);
+    Serial.print(i);
+    Serial.print(F("] = D:"));
+    if (theValue < 100) {
+      Serial.print(F("0"));
+    }
+    if (theValue < 10) {
+      Serial.print(F("0"));
+    }
+    Serial.print(theValue);
+    Serial.print(F(" H:"));
+    printHex(theValue);
+    Serial.print(F(":B:"));
+    printByte(theValue);
+    Serial.print(F(":O:"));
+    printOctal(theValue);
+    Serial.print(F(":"));
+    ;
+    theValue = MREAD(i);
+    if (theValue < 100) {
+      Serial.print(F("0"));
+    }
+    if (theValue < 10) {
+      Serial.print(F("0"));
+    }
+    Serial.print(theValue, DEC);
+    Serial.println();
+  }
+}
 
 // -----------------------------------------------------------------------------
 void setup() {

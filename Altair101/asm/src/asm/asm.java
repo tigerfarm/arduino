@@ -12,6 +12,7 @@
  */
 package asm;
 
+import static asm.asmProcessor.byteToString;
 import static asm.asmUpload.getBaudRate;
 import static asm.asmUpload.getSerialPortName;
 import static asm.asmUpload.listSerialPorts;
@@ -315,7 +316,10 @@ public class asm {
                 case "c":
                 case "char":
                     if (!cmdP1.contentEquals("")) {
-                        System.out.println("Character, " + cmdP1 + " ascii value: " + (int) cmdP1.charAt(0));
+                        System.out.println("Character, " + cmdP1
+                                + " ascii value: " + (int) cmdP1.charAt(0)
+                                + " ascii value: " + byteToString((byte) cmdP1.charAt(0))
+                        );
                     } else {
                         System.out.println("No character.");
                     }

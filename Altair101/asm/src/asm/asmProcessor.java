@@ -23,6 +23,11 @@
     ---------------------------------------------
     +++ Next assembler updates and issues,
 
+    Parse:
+        ALNMSK:  EQU  00110000b
+    and:
+        DQUAD:   DB   000
+
     + Add immediate type, binary. Example: B10101010
     ++ Note, this is not standard for assemblers.
 
@@ -116,6 +121,7 @@
     //                          org     <number>
     //                          ds      <number>
     //      <address label>     ds      <number>
+    //                          db      <number>        Reserve 1 byte memory with the value of <number>
     //      <address label>     db      <number>
     //      <address label>     db      '<characters>'
     //      <address label>     equ     <number|$>
@@ -170,7 +176,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class asmProcessor {
-    
+
     private final int MEMSIZE = 65536;   // 1024 4096 65536(64K).
 
     asmOpcodes theOpcodes = new asmOpcodes(); // Use to get an opcode's binary value.
@@ -488,6 +494,7 @@ public class asmProcessor {
         // Separator character  '^^'            58 (Example, ":")
         // Escape character     '\n'            10
         // Character            'a'             97
+        // Hex,   base 16       080H            128
         // Hex,   base 16       080h            128
         // Octal, base 8        012h            10
         // Decimal              42              42
@@ -529,7 +536,7 @@ public class asmProcessor {
                 // Non-escape character converted to an integer, then to a string.
                 returnString = Integer.toString(sValue.charAt(1));
             }
-        } else if (sValue.endsWith("h")) {
+        } else if (sValue.endsWith("h") || sValue.endsWith("H")) {
             // Hex number. For example, change 0ffh or ffh to an integer.
             // Other samples: 0ffh, 0eh
             int si = 0;
@@ -768,7 +775,7 @@ public class asmProcessor {
     private void parseOrg(String theValue) {
         System.out.println("++ Org address value: " + theValue);
         int intValue;
-        if (theValue.endsWith("h")) {
+        if (theValue.endsWith("h") || theValue.endsWith("H")) {
             // Hex number. For example, change 0ffh or ffh to integer.
             // Samples: 0ffh, 0eh
             int si = 0;
@@ -801,7 +808,18 @@ public class asmProcessor {
     }
 
     private void parseDb(String theName, String theValue) {
-        System.out.println("++ DB variable name: " + theName + ", string of bytes: " + theValue);
+        if (!theValue.startsWith("'")) {
+            System.out.println("++ DB variable name: '" + theName 
+                    + "', single byte with a value of: " + theValue
+                    + " = " + convertValueToInt(theValue)
+                    + "."
+            );
+            programBytes.add("dbterm:" + theName + SEPARATOR + convertValueToInt(theValue) );
+            programTop++;
+            return;
+        } else {
+            System.out.println("++ DB variable name: '" + theName + "', string of bytes: " + theValue);
+        }
         // Add an address to the bytes. For example,
         //      Hello db 'Hello there.'
         labelName.add(theName);
@@ -830,7 +848,6 @@ public class asmProcessor {
         }
         programBytes.add("dbterm:" + theName + SEPARATOR + DB_STRING_TERMINATOR);
         programTop++;
-
     }
 
     // -----------
@@ -859,7 +876,7 @@ public class asmProcessor {
         opcodeBinary = theOpcodes.getOpcode(opcode);
         if (opcodeBinary == theOpcodes.OpcodeNotFound) {
             errorCount++;
-            System.out.println("\n-- Error, programTop: " + programTop + ", invalid opode: " + opcode + "\n");
+            System.out.println("\n-- Error1, programTop: " + programTop + ", invalid opode: " + opcode + "\n");
             opcode = "INVALID: " + opcode;
             return ("INVALID: " + opcode);
         }
@@ -895,7 +912,7 @@ public class asmProcessor {
             // -----------------------------
             default:
                 opcode = "INVALID: " + opcode;
-                System.out.print("-- Error, programTop: " + programTop + " ");
+                System.out.print("-- Error2, programTop: " + programTop + " ");
                 errorCount++;
                 break;
         }
@@ -985,7 +1002,7 @@ public class asmProcessor {
             // -----------------------------
             default:
                 opcode = "INVALID: " + opcode;
-                System.out.print("-- Error, programTop: " + programTop + " ");
+                System.out.print("-- Error3, programTop: " + programTop + " ");
                 errorCount++;
                 break;
         }
@@ -1033,7 +1050,7 @@ public class asmProcessor {
                 break;
             default:
                 opcode = "INVALID: " + opcode;
-                System.out.print("-- Error, programTop: " + programTop + " ");
+                System.out.print("-- Error4, programTop: " + programTop + " ");
                 errorCount++;
                 break;
         }
@@ -1071,10 +1088,12 @@ public class asmProcessor {
         p1 = "";
         p2 = "";
 
-        if (ignoreFirstCharacters > 0 && orgLine.length() > ignoreFirstCharacters) {
-            theLine = orgLine.substring(ignoreFirstCharacters, orgLine.length()).trim();
+        theRest = orgLine.replaceAll("\t", " ");        // Convert tab to space.
+
+        if (ignoreFirstCharacters > 0 && theRest.length() > ignoreFirstCharacters) {
+            theLine = theRest.substring(ignoreFirstCharacters, theRest.length()).trim();
         } else {
-            theLine = orgLine.trim();
+            theLine = theRest.trim();
         }
         //
         if (theLine.length() == 0) {
@@ -1108,7 +1127,7 @@ public class asmProcessor {
         if (c1 < 1) {
             //  1) Opcode, no parameters, example: "nop".
             opcode = theLine.toLowerCase();
-            System.out.println("++ parseLine, Opcode|" + opcode + "|");
+            System.out.println("++ parseLine3, Opcode|" + opcode + "|");
             if (opcode.equals("end")) {
                 // End file processing
                 return;
@@ -1128,7 +1147,7 @@ public class asmProcessor {
             if (c1 < 1) {
                 //  1) Opcode, no parameters, example: "nop".
                 opcode = theLine.toLowerCase();
-                System.out.println("++ parseLine, Opcode|" + opcode + "|");
+                System.out.println("++ parseLine4, Opcode|" + opcode + "|");
                 parseOpcode(opcode);
                 return;
             }
@@ -1176,7 +1195,7 @@ public class asmProcessor {
             //  2) Opcode, 2 parameters, example: "mvi a,3".
             p1 = theRest.substring(0, c1).trim();
             p2 = theRest.substring(c1 + 1).trim();
-            System.out.println("++ parseLine, Opcode|" + part1 + "| p1|" + p1 + "| p2|" + p2 + "|");
+            System.out.println("++ parseLine1, Opcode|" + part1 + "| p1|" + p1 + "| p2|" + p2 + "|");
             parseOpcode(part1, p1, p2);
             return;
         }
@@ -1188,6 +1207,7 @@ public class asmProcessor {
         //  Or assembler directives:
         //      4.1) org     0
         //      4.2) ds      2
+        //      4.2) db      13
         c1 = theRest.indexOf(" ");
         if (c1 < 1) {
             if (theLine.toLowerCase().startsWith("org")) {
@@ -1196,15 +1216,21 @@ public class asmProcessor {
                 System.out.println("++ parseLine, org directive, theRest: " + theRest);
                 parseOrg(theRest);
                 return;
-            } else if (theLine.startsWith("ds")) {
+            } else if (theLine.toLowerCase().startsWith("ds")) {
                 // Assembler directives:
                 //  4.2) ds     2
                 System.out.println("++ parseLine, ds directive without a label name, theRest|" + theRest);
                 parseDs("", theRest);   // No label name required.
                 return;
+            } else if (theLine.toLowerCase().startsWith("db")) {
+                // Assembler directives:
+                //  4.3) db     13
+                System.out.println("++ parseLine, db directive without a label name, theRest|" + theRest);
+                parseDb("", theRest);   // No label name required.
+                return;
             }
             // Opcode, Single parameter, example: "jmp Next".
-            System.out.println("++ parseLine, Opcode|" + part1 + "| theRest|" + theRest + "|");
+            System.out.println("++ parseLine2, Opcode|" + part1 + "| theRest|" + theRest + "|");
             parseOpcode(part1, theRest);
             return;
         }
@@ -1237,7 +1263,7 @@ public class asmProcessor {
         }
         if (part2.equals("db")) {
             // String of bytes.
-            // 6) Hello   db       "Hello"
+            // 6) Hello   db       'Hello there'
             System.out.println("++ parseLine2, db directive: part1|" + part1 + "| part3|" + part3 + "|");
             parseDb(part1, part3);
             return;
@@ -1340,7 +1366,7 @@ public class asmProcessor {
     }
 
     public void showFile(String theReadFilename) {
-        // System.out.println("++ Show binary file: " + theReadFilename);
+        System.out.println("++ Show binary file: " + theReadFilename);
         int theLength = 0;
         byte bArray[] = null;
         try {
@@ -1416,16 +1442,12 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/programList.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/operr.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pstatuslights.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opshld.asm");
-        if (thisProcess.errorCount > 0) {
-            System.out.println("\n-- Number of errors: " + thisProcess.errorCount + "\n");
-            return;
-        }
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pG.asm");
         //
         // Option: for debugging:
         // thisProcess.listLabelAddresses();
         // thisProcess.listImmediateValues();
-        // thisProcess.programBytesListAndWrite("");
+        thisProcess.programBytesListAndWrite("");
 
         // thisProcess.programBytesListCode();
         // thisProcess.programBytesListHex();
@@ -1435,6 +1457,7 @@ public class asmProcessor {
         // Option: create a binary file of the program, which has a nice listing.
         // thisProcess.programBytesListAndWrite("10000000.bin");
         // thisProcess.showFile("10000000.bin");
+        // thisProcess.showFile("pG.asm");
         //
         if (thisProcess.errorCount > 0) {
             System.out.println("\n-- Number of errors: " + thisProcess.errorCount + "\n");
