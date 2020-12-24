@@ -1,6 +1,41 @@
 --------------------------------------------------------------------------------
 # Altair 8800 Simulator Software used in the Altair-Duino
 
+--------------------------------------------------------------------------------
+I can load the 4K basic program into memory. But not enough memory to run it.
+
+https://www.youtube.com/watch?v=8InWiihlIQw
+
+
+--------------------------------------------------------------------------------
+All output to port#2 which outputs to Serial2 (port# 2) if enabled, else to the default Serial port (port# 3).
+
+00000001.BIN    CLI
++++ Welcome to the machine.
++ Press keys. Ctrl+c to exit.
+> 
+
+00000010.BIN    List printable characters.
+: :!:":#:$:%:&:':(:):*:+:,:-:.:/:0:1:2:3:4:5:6:7:8:9:
+...
+
+00000011.BIN    Print bytes as decimal digits and as a binary number string.
+++ Number, 001 = 00000001
+++ Number, 200 = 11001000
+...
+++ Number, 255 = 11111111
+
+00000101.BIN    Kill the Bit serial version
+INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
+ .    .    *  .   .   .    .    *   .         .   .    .   .   .    *   .   *
+WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
+ *    .      .   .   .   .   .   .   .   *    .   .    .   .   .    .   .   *
+            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
+             v   v   v   v   v   ^   v   ^    v   v    v   v   v    v   v   v
+ ------ 
+
+
+--------------------------------------------------------------------------------
 My goal is to use the Altair-Duino code to process machine byte code
 in my Altair 101 Processor.ino program.
 This will save me finishing the writing and testing of my byte code interpreter.

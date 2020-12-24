@@ -23,7 +23,8 @@
     ---------------------------------------------
     +++ Next assembler updates and issues,
 
-    Parse:
+    Parse to following which is a label, string+":",
+    where I only parse a string for name.
         ALNMSK:  EQU  00110000b
     and:
         DQUAD:   DB   000
@@ -807,27 +808,22 @@ public class asmProcessor {
         }
     }
 
-    private void parseDb(String theName, String theValue) {
+    private void parseDbValue(String theLabel, String theValue) {
         if (!theValue.startsWith("'")) {
-            System.out.println("++ DB variable name: '" + theName 
+            System.out.println("++ DB variable name: '" + theLabel
                     + "', single byte with a value of: " + theValue
                     + " = " + convertValueToInt(theValue)
                     + "."
             );
-            programBytes.add("dbterm:" + theName + SEPARATOR + convertValueToInt(theValue) );
+            programBytes.add("dbterm:" + theLabel + SEPARATOR + convertValueToInt(theValue));
             programTop++;
             return;
-        } else {
-            System.out.println("++ DB variable name: '" + theName + "', string of bytes: " + theValue);
         }
-        // Add an address to the bytes. For example,
-        //      Hello db 'Hello there.'
-        labelName.add(theName);
-        labelAddress.add(programTop);        // Address to the string of bytes.
+        System.out.println("++ DB, string of bytes: " + theValue);
         for (int i = 1; i < theValue.length() - 1; i++) {
             // Only use what is contained within the quotes, 'Hello' -> Hello
             if (theValue.substring(i, i + 1).equals(SEPARATOR)) {
-                programBytes.add("databyte:" + theName + SEPARATOR + SEPARATOR_TEMP);
+                programBytes.add("databyte:" + theLabel + SEPARATOR + SEPARATOR_TEMP);
             } else if (theValue.charAt(i) == '\\') {
                 // theValue.substring(i, i + 1).equals("\\")
                 // Handle escape characters such as '\n'.
@@ -840,32 +836,37 @@ public class asmProcessor {
                 // programBytes.add("databyte:" + theName + SEPARATOR + Integer.parseInt(sValue));
                 // "39" should be "10".
                 // ++       7:00000111: 00100111 : 27 > databyte: '10' : 39
-                programBytes.add("databyte:" + theName + SEPARATOR + "'" + sValue + "'");
+                programBytes.add("databyte:" + theLabel + SEPARATOR + "'" + sValue + "'");
             } else {
-                programBytes.add("databyte:" + theName + SEPARATOR + theValue.substring(i, i + 1));
+                programBytes.add("databyte:" + theLabel + SEPARATOR + theValue.substring(i, i + 1));
             }
             programTop++;
         }
-        programBytes.add("dbterm:" + theName + SEPARATOR + DB_STRING_TERMINATOR);
+        programBytes.add("dbterm:" + theLabel + SEPARATOR + DB_STRING_TERMINATOR);
         programTop++;
+    }
+
+    private void parseDb(String theLabel, String theValue) {
+        // Add an address label to the DB value. For example,
+        //      Hello   db      'Hello there.'
+        //      MSGSPS:	DB	'  ALIEN SHIPS IN  '
+        labelName.add(theLabel);
+        labelAddress.add(programTop);        // Address to the string of bytes.
+        parseDbValue(theLabel, theValue);
     }
 
     // -----------
     // EQU can be an address value or an immediate value.
-    private void parseEquLabelValue(String theName, String theValue) {
+    private void parseEqu(String theName, String theValue) {
+        int intValue = Integer.parseInt(convertValueToInt(theValue));
         // Address label value pair.
         labelName.add(theName);
-        int intValue = Integer.parseInt(convertValueToInt(theValue));
         labelAddress.add(intValue);
-        System.out.println("++ parseEquLabelValue, Name: " + theName + ", Value: " + intValue);
-    }
-
-    private void parseEquNameValue(String theName, String theValue) {
+        System.out.println("++ parseEqu, Label Name: " + theName + ", Value: " + intValue);
         // Name value pair
         variableName.add(theName);
-        int intValue = Integer.parseInt(convertValueToInt(theValue));
         variableValue.add(intValue);
-        System.out.println("++ parseEquNameValue, Name: " + theName + ", Value: " + intValue);
+        System.out.println("++ parseEqu, Variable Name: " + theName + ", Value: " + intValue);
     }
 
     // -------------------------------------------------------------------------
@@ -883,10 +884,12 @@ public class asmProcessor {
         return (byteToString(opcodeBinary));
     }
 
+    // -----------------------------------------
     private void parseOpcode(String opcode) {
-        // opcode (no parameters), examples: hlt or nop.
+        // opcode (no parameters).
         switch (opcode) {
-            // -----------------------------
+            // ------------------------------------------
+            // opcode, example: nop
             case "hlt":
             case "nop":
             case "ret":
@@ -894,7 +897,7 @@ public class asmProcessor {
             case "rrc":
             case "ei":
             case "di":
-            case "rz":  // Return options
+            case "rz":
             case "rnz":
             case "rc":
             case "rnc":
@@ -911,18 +914,19 @@ public class asmProcessor {
                 break;
             // -----------------------------
             default:
-                opcode = "INVALID: " + opcode;
                 System.out.print("-- Error2, programTop: " + programTop + " ");
+                System.out.println("-- INVALID, Opcode: " + opcode + " " + sOpcodeBinary);
                 errorCount++;
                 break;
         }
-        System.out.println("++ Opcode: " + opcode + " " + sOpcodeBinary);
     }
 
+    // -------------------------------------------------
     private void parseOpcode(String opcode, String p1) {
         // Opcode, single parameter
         switch (opcode) {
-            // -----------------------------
+            // ------------------------------------------
+            // opcode <address label>, example: jmp There
             case "call":
             case "jmp":
             case "jnz":
@@ -937,7 +941,6 @@ public class asmProcessor {
             case "jp":
             case "jpe":
             case "jpo":
-                // opcode <address label>, example: jmp There
                 sOpcodeBinary = getOpcodeBinary(opcode);
                 programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1);
                 programTop++;
@@ -945,15 +948,18 @@ public class asmProcessor {
                 programTop++;
                 programBytes.add("hb:" + 0);
                 programTop++;
+                System.out.println("++ Opcode: "
+                        + opcode + " " + sOpcodeBinary
+                        + "  + label|" + p1 + "|");
                 break;
-            // -----------------------------
+            // ------------------------------------------
+            // opcode <immediate>, example: out 39
             case "adi":
             case "ani":
             case "cpi":
             case "in":
             case "out":
             case "sui":
-            // -----------------------------
             case "aci":
             case "sbi":
             case "xri":
@@ -968,14 +974,17 @@ public class asmProcessor {
             case "cmc":
             case "sphl":
             case "rst":
-                // opcode <immediate>, example: out 39
                 sOpcodeBinary = getOpcodeBinary(opcode);
                 programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1);
                 programTop++;
                 programBytes.add("immediate:" + p1);
                 programTop++;
+                System.out.println("++ Opcode: "
+                        + opcode + " " + sOpcodeBinary
+                        + "  + immediate|" + p1 + "|");
                 break;
-            // -----------------------------
+            // ------------------------------------------
+            // opcode <register|RegisterPair>, example: cmp c
             case "cmp":
             case "dad":
             case "dcr":
@@ -986,29 +995,29 @@ public class asmProcessor {
             case "pop":
             case "push":
             case "xra":
-            // --------
             case "add":
             case "adc":
             case "sub":
             case "sbb":
             case "ana":
             case "stax":
-                // opcode <register|RegisterPair>, example: cmp c
                 p1 = p1.toLowerCase();
                 sOpcodeBinary = getOpcodeBinary(opcode + p1);
                 programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1);
                 programTop++;
+                System.out.println("++ Opcode: "
+                        + opcode + " " + sOpcodeBinary
+                        + "  + RegisterPair|" + p1 + "|");
                 break;
-            // -----------------------------
+            // ------------------------------------------
             default:
-                opcode = "INVALID: " + opcode;
                 System.out.print("-- Error3, programTop: " + programTop + " ");
+                System.out.println("-- INVALID, Opcode: "
+                        + opcode + " " + sOpcodeBinary
+                        + "  + p1|" + p1 + "|");
                 errorCount++;
                 break;
         }
-        System.out.println("++ Opcode: "
-                + opcode + " " + sOpcodeBinary
-                + " p1|" + p1 + "|");
     }
 
     private void parseOpcode(String opcode, String p1, String p2) {
@@ -1028,6 +1037,9 @@ public class asmProcessor {
                 programTop++;
                 programBytes.add("immediate:" + p2);
                 programTop++;
+                System.out.println("++ Opcode: "
+                        + opcode + " " + sOpcodeBinary
+                        + " register|" + p1 + "|" + " immediate|" + p2 + "|");
                 break;
             case "mov":
                 // opcode <register>,<register>, example: mov a,b
@@ -1036,6 +1048,9 @@ public class asmProcessor {
                 sOpcodeBinary = getOpcodeBinary(opcode + p1 + p2);
                 programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1 + SEPARATOR + p2);
                 programTop++;
+                System.out.println("++ Opcode: "
+                        + opcode + " " + sOpcodeBinary
+                        + " register|" + p1 + "|" + " register|" + p2 + "|");
                 break;
             case "lxi":
                 // opcode <register>,<address label|address number>, example: lxi b,5
@@ -1047,16 +1062,18 @@ public class asmProcessor {
                 programTop++;
                 programBytes.add("hb:" + 0);
                 programTop++;
+                System.out.println("++ Opcode: "
+                        + opcode + " " + sOpcodeBinary
+                        + " register|" + p1 + "|" + " addressLabel|addressNumber|" + p2 + "|");
                 break;
             default:
-                opcode = "INVALID: " + opcode;
                 System.out.print("-- Error4, programTop: " + programTop + " ");
+                System.out.println("-- INVALID, Opcode: "
+                        + opcode + " " + sOpcodeBinary
+                        + " p1|" + p1 + "|" + " p2|" + p2 + "|");
                 errorCount++;
                 break;
         }
-        System.out.println("++ Opcode: "
-                + opcode + " " + sOpcodeBinary
-                + " p1|" + p1 + "|" + " p2|" + p2 + "|");
     }
 
     // -------------------------------------------------------------------------
@@ -1070,6 +1087,10 @@ public class asmProcessor {
         labelName.add(label);
         labelAddress.add(programTop);
         System.out.println("++ parseLabel, Name: " + label + ", Address: " + programTop);
+    }
+
+    private void parse2components(String c1, String c2) {
+        System.out.println("++ parse2components, c1: " + c1 + ", c2: " + c2);
     }
 
     // -------------------------------------------------------------------------
@@ -1091,17 +1112,17 @@ public class asmProcessor {
         theRest = orgLine.replaceAll("\t", " ");        // Convert tab to space.
 
         if (ignoreFirstCharacters > 0 && theRest.length() > ignoreFirstCharacters) {
+            // This allows parsing files where the address is included in the listing.
             theLine = theRest.substring(ignoreFirstCharacters, theRest.length()).trim();
         } else {
             theLine = theRest.trim();
         }
-        //
         if (theLine.length() == 0) {
             // Ignore blank lines.
             return;
         }
         if (theLine.startsWith(";")) {
-            // Comment lines are not parsed farther.
+            // Ignore comment lines.
             // System.out.println("++ " + orgLine.trim());
             return;
         }
@@ -1114,51 +1135,113 @@ public class asmProcessor {
             theLine = theLine.substring(0, ei).trim();
         }
         // ---------------------------------------------------------------------
-        // Label line: "Start:"
-        //  1) Start:
-        //  2) Halt1:      hlt
-        if (theLine.endsWith(":")) {
-            label = theLine.substring(0, theLine.length() - 1);
-            parseLabel(label);
+        System.out.println("\n+ Parse: |" + theLine + "|\n");
+        // ---------------------------------------------------------------------
+        // Single component.
+        c1 = theLine.indexOf(" ");
+        if (c1 < 1) {
+            String cOne = theLine.toLowerCase();
+            // ---------------------------------------------------------------------
+            if (theLine.endsWith(":")) {
+                label = theLine.substring(0, theLine.length() - 1);
+                System.out.println("++ parseLine, label line|" + cOne + "|");
+                // Example:     "Start:"
+                parseLabel(label);
+                return;
+            }
+            if (cOne.equals("end")) {
+                // Special case: end file processing
+                opcode = "end"; // Tells the calling function to end processing.
+                return;
+            }
+            System.out.println("++ parseLine, no parameters, opcode|" + cOne + "|");
+            // Example:     hlt
+            parseOpcode(cOne);
             return;
         }
         // ---------------------------------------------------------------------
-        c1 = theLine.indexOf(" ");
-        if (c1 < 1) {
-            //  1) Opcode, no parameters, example: "nop".
-            opcode = theLine.toLowerCase();
-            System.out.println("++ parseLine3, Opcode|" + opcode + "|");
-            if (opcode.equals("end")) {
-                // End file processing
-                return;
-            }
-            parseOpcode(opcode);
+        // Multi component line.
+
+        String part1asIs = theLine.substring(0, c1);
+        String part1 = part1asIs.toLowerCase();
+        //
+        // ---------------------------------------------------------------------
+        theRest = theLine.substring(c1 + 1).trim();
+        if (part1.equals("db") && theRest.startsWith("'") && theRest.endsWith("'")) {
+            // Example from Galaxy80.asm:
+            //      DB  ' STARDATE  300'
+            System.out.println("++ parseLine, db line, part1|" + part1 + "| theString|" + theRest + "|");
+            parseDbValue("", theRest);
             return;
         }
-        // ------------------------------
-        // Get the other line components.
-        String part1asIs = theLine.substring(0, c1);
+        // ---------------------------------------------------------------------
         if (part1asIs.endsWith(":")) {
-            // Label line.
-            //  2) Halt1:      hlt
-            parseLabel(part1asIs.substring(0, part1asIs.length() - 1)); // Remove the ":".
-            theLine = theLine.substring(c1 + 1).trim();
+            // 3 components, a label and an opcode.
+            //      <label>: DB <number|string>
+            // Examples:
+            //      DQUAD:      DB  000
+            //      MSGSDP:     DB  '0'
+            //      MSGSSS:     DB  '  SPACE STATIONS'
+            //      ALNMSK:     EQU 00110000b
+            //
+            // 2 components, a label and an opcode.
+            //      <label>: <opcode>
+            // Examples:
+            //      Halt1:   hlt
+            //
+            // Add the label.
+            String theLabel = part1asIs.substring(0, part1asIs.length() - 1);
+            parseLabel(theLabel); // Remove the ":".
+            //
+            // Parse the rest.
+            //
             c1 = theLine.indexOf(" ");
             if (c1 < 1) {
-                //  1) Opcode, no parameters, example: "nop".
+                // <label>: <opcode>
                 opcode = theLine.toLowerCase();
-                System.out.println("++ parseLine4, Opcode|" + opcode + "|");
+                System.out.println("++ parseLine, after a label, an Opcode|" + opcode + "|");
                 parseOpcode(opcode);
                 return;
             }
-        }
+            //      <label>: DB|EQU <number|string>
+            String theDirective = theRest.substring(c1 + 1).trim().toLowerCase();
+            String theValue = theRest.substring(theDirective.length() + 1).trim();
+            //
+            if (theDirective.equals("equ")) {
+                // EQU variable names and values, can either be an immediate byte, or a 2 byte address.
+                // So, add both, an address label and a immediate name-value pair.
+                //      TERMB   equ     0ffh
+                //      stack   equ     $
+                if (theValue.equals("$")) {
+                    // stack   equ $    ; "$" is current address.
+                    theValue = Integer.toString(programTop);
+                }
+                System.out.println("++ parseLine, EQU directive, theLabel|" + theLabel + "| theValue|" + theValue + "|");
+                parseEqu(theLabel, theValue);
+                return;
+            }
+            if (theDirective.equals("db")) {
+                // String of bytes.
+                // 6) Hello   db       'Hello there'
+                System.out.println("++ parseLine, DB directive, theLabel|" + theLabel + "| theValue|" + theValue + "|");
+                parseDb(theLabel, theValue);
+                return;
+            }
+            c1 = theRest.indexOf("'");
+            System.out.println("++ parseLine, directive|" + theDirective + "|");
+            if (c1 > 1) {
+                parseDbValue("", theRest);
+            }
 
-        String part1 = theLine.substring(0, c1).toLowerCase();
-        theRest = theLine.substring(c1 + 1).trim();
-        System.out.println("++ parseLine, part1|" + part1 + "| theRest|" + theRest + "|");
+        }
+        // ---------------------------------------------------------------------
+        // Dave, work from here
+        System.out.println("+ parseLine, part1|" + part1 + "| theRest|" + theRest + "|");
+        //
         //
         // ---------------------------------------------------------------------
-        // Check for opcode with 2 parameters, example: mvi a,1
+        // ---------------------------------------------------------------------
+        theRest = theLine.substring(c1 + 1).trim();
         c1 = theRest.indexOf("'");
         if (c1 > 0) {
             // Take care of the case where "," is inside a DB string.
@@ -1188,6 +1271,11 @@ public class asmProcessor {
                 }
             }
         }
+        // Has at least 2 component, example:
+        //      db      6
+        //      mvi     a,6
+        //      ALNMSK: EQU  00110000b
+        //      DQUAD:  DB   000
         c1 = theRest.indexOf(",");
         // ------------------------------------------
         if (c1 > 0) {
@@ -1257,8 +1345,7 @@ public class asmProcessor {
                 part3 = Integer.toString(programTop);
             }
             System.out.println("++ parseLine, equ directive: part1|" + part1 + "| part3|" + part3 + "|");
-            parseEquLabelValue(part1, part3);
-            parseEquNameValue(part1, part3);
+            parseEqu(part1, part3);
             return;
         }
         if (part2.equals("db")) {
@@ -1442,7 +1529,8 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/programList.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/operr.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pstatuslights.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pG.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pG.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSyntax.asm");
         //
         // Option: for debugging:
         // thisProcess.listLabelAddresses();

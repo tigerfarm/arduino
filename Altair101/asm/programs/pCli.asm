@@ -218,8 +218,8 @@
                                         ; --------------------------------------
                                         ; When using port 2,
                                         ;   if port 3 is disable, then it defaults to 3, the default serial port.
-    PRINT_PORT  equ     2               ; Output port#. 
-    INPUT_PORT  equ     2               ; Input port#.
+    PRINT_PORT  equ     3               ; Output port#. 
+    INPUT_PORT  equ     3               ; Input port#.
                                         ; --------------------------------------
                 end
                                         ; --------------------------------------
