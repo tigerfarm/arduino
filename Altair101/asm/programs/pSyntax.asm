@@ -2,7 +2,10 @@
                                     ; Sample program lines that are parsed by asmProcessor.java
                                     ;
                                     ; ------------------------------------------
-                                    ;
+                                    ; The single indent ";" is for tested lines.
+    ;
+                                    ; No indent ";" is for non-tested lines.
+;
                                     ; ------------------------------------------
                                     ; Lines to ignore.
                                     ;
@@ -14,7 +17,11 @@
                                     ; Comments are removed from lines
                                     ;
     ;            jmp Start           ; Line comment.
-
+                                    ;
+                                    ; Starting address. Pad with zero up to the ORG value.
+            ;ORG 0003H
+                                    ;
+            mov a,b                 ; For testing, takes address 0.
                                     ; ------------------------------------------
                                     ; Label line.
                                     ;
@@ -27,22 +34,35 @@
                                     ; Directive followed by a string.
                                     ;
     ;        DB	' STARDATE  300'
+    ;        DB  0
+    ;        DB  2 		;Course 1.5
+    ;        DB  0FFH
 
                                     ; ------------------------------------------
                                     ; ------------------------------------------
                                     ; Label + Directive followed by a string.
                                     ;
                                     ; Label with ":"
-    ALNMSK:     EQU 00110000b
-    MSGSDP: DB  '0'
-    DQUAD:  DB  000
+    ;ALNMSK: EQU 2
+    ;mvi     a,ALNMSK
+                                    ; Test binary.
+    ;STNMSK: EQU 00001000b
+    ;mvi     a,STNMSK
 
-    MSGSSS: DB  '  SPACE STATIONS'
-            lxi h,MSGSSS
+    ;MSGSDP: DB  '0'
+    ;        lxi h,MSGSDP
+    ;DQUAD:  DB  010
+    ;        lxi h,DQUAD
+
+;    MSGSSS: DB  '  SPACE STATIONS'
+;            lxi h,MSGSSS
                                     ;
                                     ; Label without ":"
-    okay    db  'okay, yes?'
-            lxi h,okay
+    Addr1   equ 128
+    mvi     a,Addr1
+
+;    okay    db  'okay, yes?'
+;            lxi h,okay
                                     ; ------------------------------------------
                                     ; Special case: end file processing
                 end

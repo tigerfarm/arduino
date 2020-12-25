@@ -495,9 +495,10 @@ public class asmProcessor {
         // Separator character  '^^'            58 (Example, ":")
         // Escape character     '\n'            10
         // Character            'a'             97
-        // Hex,   base 16       080H            128
-        // Hex,   base 16       080h            128
-        // Octal, base 8        012h            10
+        // Hex,     base 16     080H            128
+        // Hex,     base 16     080h            128
+        // Octal,   base 8      012h            10
+        // Binary,  base 2      00001000b       8
         // Decimal              42              42
         //
         if (sValue.equals("'^^'")) {
@@ -550,7 +551,7 @@ public class asmProcessor {
             } catch (NumberFormatException e) {
                 errorCount++;
                 System.out.println("");
-                System.out.println("- Error, invalid value: " + sValue + ":" + returnString + ", " + e.getMessage());
+                System.out.println("- Error, invalid hex value: " + sValue + ":" + returnString + ", " + e.getMessage());
                 System.out.println("");
             }
         } else if (sValue.endsWith("o")) {
@@ -565,7 +566,18 @@ public class asmProcessor {
             } catch (NumberFormatException e) {
                 errorCount++;
                 System.out.println("");
-                System.out.println("- Error, invalid value: " + sValue + ":" + returnString + ", " + e.getMessage());
+                System.out.println("- Error, invalid octal value: " + sValue + ":" + returnString + ", " + e.getMessage());
+                System.out.println("");
+            }
+        } else if (sValue.endsWith("b")) {
+            // Binary 
+            returnString = sValue.substring(0, sValue.length() - 1);     // Remove the "b".
+            try {
+                returnString = Integer.toString(Integer.parseInt(returnString, 2));
+            } catch (NumberFormatException e) {
+                errorCount++;
+                System.out.println("");
+                System.out.println("- Error, invalid binary value: " + sValue + ":" + returnString + ", " + e.getMessage());
                 System.out.println("");
             }
         } else {
@@ -859,6 +871,13 @@ public class asmProcessor {
     // EQU can be an address value or an immediate value.
     private void parseEqu(String theName, String theValue) {
         int intValue = Integer.parseInt(convertValueToInt(theValue));
+        // Name-value pair
+        variableName.add(theName);
+        variableValue.add(intValue);
+        System.out.println("++ parseEqu, Variable Name: " + theName + ", Value: " + intValue);
+    }
+    private void parseEquNV(String theName, String theValue) {
+        int intValue = Integer.parseInt(convertValueToInt(theValue));
         // Address label value pair.
         labelName.add(theName);
         labelAddress.add(intValue);
@@ -1136,12 +1155,13 @@ public class asmProcessor {
         }
         // ---------------------------------------------------------------------
         System.out.println("\n+ Parse: |" + theLine + "|\n");
+
         // ---------------------------------------------------------------------
         // Single component.
         c1 = theLine.indexOf(" ");
         if (c1 < 1) {
             String cOne = theLine.toLowerCase();
-            // ---------------------------------------------------------------------
+            // -----------------------------------------------------------------
             if (theLine.endsWith(":")) {
                 label = theLine.substring(0, theLine.length() - 1);
                 System.out.println("++ parseLine, label line|" + cOne + "|");
@@ -1162,15 +1182,17 @@ public class asmProcessor {
         // ---------------------------------------------------------------------
         // Multi component line.
 
-        String part1asIs = theLine.substring(0, c1);
+        String part1asIs = theLine.substring(0, c1);    // c1 = index of blank after first component.
         String part1 = part1asIs.toLowerCase();
         //
         // ---------------------------------------------------------------------
         theRest = theLine.substring(c1 + 1).trim();
+        System.out.println("++ parseLine, db line, part1asIs|" + part1asIs + "| part1|" + part1 + "| theRest|" + theRest + "|");
+        // ++ parseLine, db line, part1asIs|ALNMSK:| part1|alnmsk:| theRest|EQU 2|
+        
         if (part1.equals("db") && theRest.startsWith("'") && theRest.endsWith("'")) {
             // Example from Galaxy80.asm:
             //      DB  ' STARDATE  300'
-            System.out.println("++ parseLine, db line, part1|" + part1 + "| theString|" + theRest + "|");
             parseDbValue("", theRest);
             return;
         }
@@ -1192,6 +1214,7 @@ public class asmProcessor {
             // Add the label.
             String theLabel = part1asIs.substring(0, part1asIs.length() - 1);
             parseLabel(theLabel); // Remove the ":".
+            System.out.println("++ parseLine, label|" + theLabel + "| theRest|" + theRest + "|");
             //
             // Parse the rest.
             //
@@ -1204,8 +1227,10 @@ public class asmProcessor {
                 return;
             }
             //      <label>: DB|EQU <number|string>
-            String theDirective = theRest.substring(c1 + 1).trim().toLowerCase();
+            c1 = theRest.indexOf(" ");
+            String theDirective = theRest.substring(0,c1).trim().toLowerCase();
             String theValue = theRest.substring(theDirective.length() + 1).trim();
+            System.out.println("++ parseLine, theDirective|" + theDirective + "| theValue|" + theValue + "|");
             //
             if (theDirective.equals("equ")) {
                 // EQU variable names and values, can either be an immediate byte, or a 2 byte address.
@@ -1232,12 +1257,11 @@ public class asmProcessor {
             if (c1 > 1) {
                 parseDbValue("", theRest);
             }
-
+            return;
         }
         // ---------------------------------------------------------------------
         // Dave, work from here
         System.out.println("+ parseLine, part1|" + part1 + "| theRest|" + theRest + "|");
-        //
         //
         // ---------------------------------------------------------------------
         // ---------------------------------------------------------------------
