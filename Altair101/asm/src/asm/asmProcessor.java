@@ -23,25 +23,11 @@
     ---------------------------------------------
     +++ Next assembler updates and issues,
 
-    Parse to following which is a label, string+":",
-    where I only parse a string for name.
-        ALNMSK:  EQU  00110000b
-    and:
-        DQUAD:   DB   000
-
-    + Add immediate type, binary. Example: B10101010
-    ++ Note, this is not standard for assemblers.
-
     + Make label and immediate names case sensitive.
 
     + Cleanup parseLine() code.
 
     Improve error handling by adding source line number to the error message.
-
-    + Test, incorrect: ++ Label Name: 0eh, Address: 0
-
-    + Use TERMB EQU value, as this program's DB_STRING_TERMINATOR, and keep the default.
-    ++ This allows an override.
 
     ----------------------------------------------------------------------------
     Program sections:
@@ -79,18 +65,19 @@
     //      Start:          ; with a comment
     //      Start: jmp Next ; Assembler statement after a label.
     //
-    // Label Address byte:
+    // Label Address, 1byte + 1 byte = 16-bit address:
     //      ++ lb:Final:42
     //      ++ lb:<address>:<value>
     // Label address types:
-    //                          Sample  Sample source
-    //      Immediate type      source  Byte data           With value
-    //      --------------      ------  ----------------    -------------
-    //      Label               Final   lb:Final:           lb:Final:42
-    //      Hex                 80h     lb:80h:             lb:80h:128
-    //      Hex                 080h    lb:080h:            lb:080h:128
-    //      Decimal             42      lb:42:              lb:42:42
-    //      Unknown label       Fianl   lb:Fianl:           lb:Fianl:-1
+    //                          Sample      Sample source
+    //      Immediate type      source      Byte data           With value
+    //      --------------      ------      ----------------    -------------
+    //      Label               Final       lb:Final:           lb:Final:42
+    //      Hex                 80h         lb:80h:             lb:80h:128
+    //      Hex                 080h        lb:080h:            lb:080h:128
+    //      Binary              00001000b   lb:8:               lb:00001000b:8
+    //      Decimal             42          lb:42:              lb:42:42
+    //      Unknown label       Fianl       lb:Fianl:           lb:Fianl:-1
     //
     // -----------------------------------------------------
     // Opcode lines. Opcodes can have 0, 1, or 2 parameters. For example:
@@ -99,37 +86,38 @@
     //      cpi 73
     //      mvi a,var1
     //
+    // Types of componets and parameter:
+    //      <immediate> = <number>|'<character>'|<variable name>
+    //      <number> = <digits>|<digits>H|<digits>B
+    //      <register> = A|B|C|D|E|H|L|M
+    //      <RegisterPair> = B|D|H
+    //      <label> = String with no spaces
+    //
     // Types of opcode lines:
-    //      opcode                                          ret
-    //      opcode <immediate>                              out 30
-    //      opcode <address label>                          call print
-    //      opcode <register>,<immediate>                   mvi a,73
-    //      opcode <register>,<register>                    mov b,a
-    //      opcode <register|RegisterPair>                  inr b
-    //      opcode <RegisterPair>,<address label>           lxi h,prompt
-    //      opcode <register>,<address label|16-bit number> 
+    //      <label>: <opcode>
+    //      <opcode>                                          ret
+    //      <opcode> <immediate>                              out 30
+    //      <opcode> <label>                                  call print
+    //      <opcode> <register>,<immediate>                   mvi a,73
+    //      <opcode> <register>,<register>                    mov b,a
+    //      <opcode> <register|RegisterPair>                  inr b
+    //      <opcode> <RegisterPair>,<label>                   lxi h,prompt
+    //      <opcode> <register>,<label|16-bit number> 
+    //
+    // Types of Directive lines:
+    //      org <number>
+    //      DB <number|'<string>'>
+    //      <label>[:] DB <number|'<string>'>
+    //      DS <number>
+    //      <label>[:] DS <number>
+    //      <variable name>[:] EQU <$|number>
+    //
+    // label: all labels are 16-bt address labels.
+    // DB : Reserve 1 byte memory with the value of <number>
+    // DS : Number of bytes to reserve.
+    // EQU : Variable value for replacement in opcode statements for immediates.
     //
     // -----------------------------------------------------
-    // Assembler directives line samples:
-    //                org     0
-    //                ds      2
-    //       Final    equ     42
-    //       Hello    db      'Hello, there: yes, there.'
-    //       scoreR   ds      1
-    //       scoreS   ds      2
-    //
-    // Types of assembler directive lines:
-    //                          org     <number>
-    //                          ds      <number>
-    //      <address label>     ds      <number>
-    //                          db      <number>        Reserve 1 byte memory with the value of <number>
-    //      <address label>     db      <number>
-    //      <address label>     db      '<characters>'
-    //      <address label>     equ     <number|$>
-    //      <variable name>     equ     <immediate>
-    //
-    //                          ds      <number>, where number is the number of bytes.
-
     //                      Sample  Sample source
     // Immediate type       source  Byte data           With value
     // --------------       ------  ----------------    -------------
@@ -144,11 +132,6 @@
     //
     // ---------------------------------------------------------------------
     // The EQU directive is used for defining constants.
-
-    ---------------------------------------------
-    +++ Nice to show the actual line, but not required because I can search for the label, "Fianl".
-- Error, immediate label not found: Fianl.
-- Error, programTop byte# 53 : immediate:Fianl.
 
     ---------------------------------------------
     + Pong program work notes.
@@ -860,8 +843,9 @@ public class asmProcessor {
 
     private void parseDb(String theLabel, String theValue) {
         // Add an address label to the DB value. For example,
-        //      Hello   db      'Hello there.'
-        //      MSGSPS:	DB	'  ALIEN SHIPS IN  '
+        //              db  6
+        //      six     db  6
+        //      six:    DB  6
         labelName.add(theLabel);
         labelAddress.add(programTop);        // Address to the string of bytes.
         parseDbValue(theLabel, theValue);
@@ -876,6 +860,8 @@ public class asmProcessor {
         variableValue.add(intValue);
         System.out.println("++ parseEqu, Variable Name: " + theName + ", Value: " + intValue);
     }
+
+    /* Likely not required.
     private void parseEquNV(String theName, String theValue) {
         int intValue = Integer.parseInt(convertValueToInt(theValue));
         // Address label value pair.
@@ -887,7 +873,7 @@ public class asmProcessor {
         variableValue.add(intValue);
         System.out.println("++ parseEqu, Variable Name: " + theName + ", Value: " + intValue);
     }
-
+     */
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
     // Parse opcodes into program bytes.
@@ -1180,23 +1166,148 @@ public class asmProcessor {
             return;
         }
         // ---------------------------------------------------------------------
-        // Multi component line.
-
-        String part1asIs = theLine.substring(0, c1);    // c1 = index of blank after first component.
+        // Multi component line parsing into 2 or 3 component parts.
+        //
+        // c1 = index of blank after first component.
+        String part1asIs = theLine.substring(0, c1);
         String part1 = part1asIs.toLowerCase();
+        theRest = theLine.substring(c1 + 1).trim();
+        int c2 = theLine.indexOf(" ");
+        String part2;
+        if (c2 > -1) {
+            part2 = theRest.substring(c1 + 1).trim();
+        } else {
+            part2 = theRest;
+            theRest = "";
+        }
+        System.out.println("++ parseLine componets part1asIs|" + part1asIs
+                + "| part1|" + part1
+                + "| part2|" + part2
+                + "| theRest|" + theRest + "|");
         //
         // ---------------------------------------------------------------------
-        theRest = theLine.substring(c1 + 1).trim();
-        System.out.println("++ parseLine, db line, part1asIs|" + part1asIs + "| part1|" + part1 + "| theRest|" + theRest + "|");
-        // ++ parseLine, db line, part1asIs|ALNMSK:| part1|alnmsk:| theRest|EQU 2|
-        
-        if (part1.equals("db") && theRest.startsWith("'") && theRest.endsWith("'")) {
-            // Example from Galaxy80.asm:
+        // Multi component line parsing order.
+        //
+        //      part1           part2                       theRest
+        //      DB              <number>|'<string>'
+        //      DS              <number>
+        //      <label>[:]      DB                          <number>
+        //      <label>[:]      DB                          '<string>'
+        //      <label>[:]      DS                          <number>
+        //      <label>[:]      EQU                         <$|number>
+        //      <label>:        <opcode>
+        //      <label>:        <opcode>                    <parameters>
+        //      <opcode>        <parameter>
+        //      <opcode>        <parameter>,<parameter>
+        //
+        if (part1.equals("db")) {
+            // Example from Galaxy80.asm, and another example:
             //      DB  ' STARDATE  300'
-            parseDbValue("", theRest);
+            //      DB  6
+            parseDbValue("", part2);      // No label.
+            return;
+        }
+        if (part1.equals("ds")) {
+            //      DS  2
+            parseDbValue("", part2);      // No label.
+            return;
+        }
+        if (!theRest.equals("")) {
+            // Statement has a label
+            //
+            // Add the label.
+            String theLabel = part1asIs;
+            if (part1asIs.endsWith(":")) {
+                // Remove the ":".
+                theLabel = part1asIs.substring(0, part1asIs.length() - 1);
+            }
+            parseLabel(theLabel);
+            //
+            if (part2.equals("equ")) {
+                // EQU variable names and values, can either be an immediate byte, or a 2 byte address.
+                // So, add both, an address label and a immediate name-value pair.
+                //      TERMB:  equ     0ffh
+                //      stack:  equ     $
+                if (theRest.equals("$")) {
+                    //  stack   equ $    ; "$" is current address.
+                    theRest = Integer.toString(programTop);
+                }
+                System.out.println("++ parseLine, EQU directive, theLabel|" + theLabel + "| theValue|" + theRest + "|");
+                parseEqu(theLabel, theRest);
+                return;
+            }
+            if (part2.equals("db")) {
+                // String of bytes.
+                //      MSGSDP: DB  '0'
+                //      Hello:  db  'Hello there'
+                System.out.println("++ parseLine, DB directive, theLabel|" + theLabel + "| theValue|" + theRest + "|");
+                parseDb(theLabel, theRest);
+                return;
+            }
+            if (part2.equals("ds")) {
+                // Assembler directives:
+                //      Data0:  ds  3
+                System.out.println("++ parseLine, ds directive without a label name, theRest|" + theRest);
+                parseDs(theLabel, theRest);
+                return;
+            }
+            // Else, labeled opcode statement.
+            //      <label>:        <opcode>                    <parameters>
+            // The label was added above, now alter the components for use in the following opcode processing.
+            part1 = part2;
+            part2 = theRest;
+            theRest = "";
+        }
+        // ---------------------------------------------------------------------
+        // 2 components, parse the following cases.
+        //
+        //      <label>:        <opcode>
+        if (part1asIs.endsWith(":")) {
+            // Remove the ":", and add the label.
+            String theLabel = part1asIs.substring(0, part1asIs.length() - 1);
+            parseLabel(theLabel);
+            part1 = part2;
+            part2 = theRest;
+            theRest = "";
+        }
+        //      <opcode>        <parameter>
+        //      <opcode>        <parameter>,<parameter>
+        opcode = part1;
+        c1 = theRest.indexOf(",");
+        if (c1 < 1) {
+            System.out.println("++ parseLine1, Opcode|" + opcode + "| part2|" + part2 + "|");
+            parseOpcode(opcode, part2);
+            return;
+        }
+        p1 = part2.substring(0, c1 - 1);
+        p2 = part2.substring(c1 + 1);
+        System.out.println("++ parseLine1, Opcode|" + opcode + "| p1|" + p1 + "| p2|" + p2 + "|");
+        parseOpcode(opcode, p1, p2);
+        //
+        // ---------------------------------------------------------------------
+        // Dave, the above should parse the valid lines.
+        if (1 == 1) {
             return;
         }
         // ---------------------------------------------------------------------
+        // ---------------------------------------------------------------------
+        if (c1 > 0) {
+            // ------------------------------------------
+            //  2) Opcode, 2 parameters, example: "mvi a,3".
+            p1 = theRest.substring(0, c1).trim();
+            p2 = theRest.substring(c1 + 1).trim();
+            System.out.println("++ parseLine1, Opcode|" + part1 + "| p1|" + p1 + "| p2|" + p2 + "|");
+            parseOpcode(part1, p1, p2);
+            return;
+        }
+        // ---------------------------------------------------------------------
+        opcode = theLine.toLowerCase();
+        System.out.println("++ parseLine, after a label, an Opcode|" + opcode + "|");
+        parseOpcode(opcode);
+        // ---------------------------------------------------------------------
+        // ---------------------------------------------------------------------
+        // ---------------------------------------------------------------------
+
         if (part1asIs.endsWith(":")) {
             // 3 components, a label and an opcode.
             //      <label>: DB <number|string>
@@ -1226,32 +1337,13 @@ public class asmProcessor {
                 parseOpcode(opcode);
                 return;
             }
-            //      <label>: DB|EQU <number|string>
+            //      <label>: <EQU|DB|DS> <$|number|string>
             c1 = theRest.indexOf(" ");
-            String theDirective = theRest.substring(0,c1).trim().toLowerCase();
+            String theDirective = theRest.substring(0, c1).trim().toLowerCase();
             String theValue = theRest.substring(theDirective.length() + 1).trim();
             System.out.println("++ parseLine, theDirective|" + theDirective + "| theValue|" + theValue + "|");
             //
-            if (theDirective.equals("equ")) {
-                // EQU variable names and values, can either be an immediate byte, or a 2 byte address.
-                // So, add both, an address label and a immediate name-value pair.
-                //      TERMB   equ     0ffh
-                //      stack   equ     $
-                if (theValue.equals("$")) {
-                    // stack   equ $    ; "$" is current address.
-                    theValue = Integer.toString(programTop);
-                }
-                System.out.println("++ parseLine, EQU directive, theLabel|" + theLabel + "| theValue|" + theValue + "|");
-                parseEqu(theLabel, theValue);
-                return;
-            }
-            if (theDirective.equals("db")) {
-                // String of bytes.
-                // 6) Hello   db       'Hello there'
-                System.out.println("++ parseLine, DB directive, theLabel|" + theLabel + "| theValue|" + theValue + "|");
-                parseDb(theLabel, theValue);
-                return;
-            }
+
             c1 = theRest.indexOf("'");
             System.out.println("++ parseLine, directive|" + theDirective + "|");
             if (c1 > 1) {
@@ -1265,6 +1357,7 @@ public class asmProcessor {
         //
         // ---------------------------------------------------------------------
         // ---------------------------------------------------------------------
+        /*
         theRest = theLine.substring(c1 + 1).trim();
         c1 = theRest.indexOf("'");
         if (c1 > 0) {
@@ -1295,6 +1388,7 @@ public class asmProcessor {
                 }
             }
         }
+         */
         // Has at least 2 component, example:
         //      db      6
         //      mvi     a,6
@@ -1322,25 +1416,6 @@ public class asmProcessor {
         //      4.2) db      13
         c1 = theRest.indexOf(" ");
         if (c1 < 1) {
-            if (theLine.toLowerCase().startsWith("org")) {
-                // Assembler directives:
-                //  4.1) org     0
-                System.out.println("++ parseLine, org directive, theRest: " + theRest);
-                parseOrg(theRest);
-                return;
-            } else if (theLine.toLowerCase().startsWith("ds")) {
-                // Assembler directives:
-                //  4.2) ds     2
-                System.out.println("++ parseLine, ds directive without a label name, theRest|" + theRest);
-                parseDs("", theRest);   // No label name required.
-                return;
-            } else if (theLine.toLowerCase().startsWith("db")) {
-                // Assembler directives:
-                //  4.3) db     13
-                System.out.println("++ parseLine, db directive without a label name, theRest|" + theRest);
-                parseDb("", theRest);   // No label name required.
-                return;
-            }
             // Opcode, Single parameter, example: "jmp Next".
             System.out.println("++ parseLine2, Opcode|" + part1 + "| theRest|" + theRest + "|");
             parseOpcode(part1, theRest);
@@ -1352,12 +1427,9 @@ public class asmProcessor {
         //      6) Hello   db       "Hello"
         //      7) scoreR  ds       1
         //
-        String part2 = theRest.substring(0, c1).toLowerCase();
+        part2 = theRest.substring(0, c1).toLowerCase();
         String part3 = theRest.substring(c1 + 1).trim();
         System.out.println("++ parseLine, Directive|" + part1 + "| part2|" + part2 + "| part3|" + part3 + "|");
-        // ++ parseLine, Directive|termb| part2|equ| part3|0ffh|
-        // ++ parseLine, Directive|hello| part2|db| part3|'Hello'|
-        // ++ parseLine, ds directive: part1|scorer| part3|1|
         // ------------------------------------------
         if (part2.equals("equ")) {
             // EQU variable names and values, can either be an immediate byte, or a 2 byte address.

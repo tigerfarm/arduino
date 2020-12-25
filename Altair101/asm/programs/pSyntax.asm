@@ -35,8 +35,10 @@
                                     ;
     ;        DB	' STARDATE  300'
     ;        DB  0
-    ;        DB  2 		;Course 1.5
+    ;        DB  2
     ;        DB  0FFH
+    ;Data0:  ds      3               ; 3 bytes at this location.
+    ;        lxi h,Data0
 
                                     ; ------------------------------------------
                                     ; ------------------------------------------
@@ -53,19 +55,25 @@
     ;        lxi h,MSGSDP
     ;DQUAD:  DB  010
     ;        lxi h,DQUAD
+    ;COMMA:  DB  ','
+    ;        lxi h,COMMA
 
-;    MSGSSS: DB  '  SPACE STATIONS'
-;            lxi h,MSGSSS
+    ;MSGSSS: DB  '  SPACE STATIONS'
+    ;        lxi h,MSGSSS
                                     ;
+                                    ; ------------------------------------------
                                     ; Label without ":"
     Addr1   equ 128
     mvi     a,Addr1
+;    Addr2   ds      2               ; 2 bytes at this location.
 
 ;    okay    db  'okay, yes?'
 ;            lxi h,okay
                                     ; ------------------------------------------
                                     ; Special case: end file processing
-                end
+                                    ;
+            mov a,l                 ; For testing, takes last address before "end".
+            end
                                     ; Lines after the "end" line are ignored.
                                     ;
                                     ; ------------------------------------------
