@@ -286,7 +286,18 @@ jpe :11110010:JPE a    11 110 010  ?  Jump to address, if parity even.
 jpo :11111010:JPO a    11 111 010  ?  Jump to address, if parity odd.
 
 ana :10100SSS:ANA S    10 100 SSS  1  AND register with A (with ZSPCA).
+anaa:10100111:|A <- A & A
+anab:10100000:|A <- A & B
+anac:10100001:|A <- A & C
+anad:10100010:|A <- A & D
+anae:10100011:|A <- A & E
+anah:10100100:|A <- A & H
+anal:10100101:|A <- A & L
+anam:10100110:|A <- A & M(HL)
+
 stax:00RP0010:STAX RP  00 RP0 010  1  Store indirect through BC or DE.
+adcb:00000010:|(BC)B <- A
+adcd:00010010:|(DE)D <- A
 
 adc :10001SSS:ADC S    10 001 SSS  1  S+A+CY->A: Add register S, to A, plus the carry bit (with ZSPCA).
 adca:10001111:|A+A+CY->A: Not implemented.
@@ -297,13 +308,40 @@ adce:10001011:|E+A+CY->A: Not implemented.
 adch:10001100:|H+A+CY->A: Not implemented.
 adcl:10001101:|L+A+CY->A: Not implemented.
 adcm:10001110:|(HL)+A+CY->A: Not implemented.
+
 sub :10010SSS:SUB S    10 010 SSS  1  Subtract register from A (with ZSPCA).
+suba:10010111:|A <- A - A
+subb:10010000:|A <- A - B
+subc:10010001:|A <- A - C
+subd:10010010:|A <- A - D
+sube:10010011:|A <- A - E
+subh:10010100:|A <- A - H
+subl:10010101:|A <- A - L
+subm:10010110:|A <- A - M(HL)
+
 sbb :10011SSS:SBB S    10 011 SSS  1  Subtract register from A with borrow (with ZSPCA).
+sbba:10011111:|A <- A - A - CY
+sbbb:10011000:|A <- A - B - CY
+sbbc:10011001:|A <- A - C - CY
+sbbd:10011010:|A <- A - D - CY
+sbbe:10011011:|A <- A - E - CY
+sbbh:10011100:|A <- A - H - CY
+sbbl:10011101:|A <- A - L - CY
+sbbm:10011110:|A <- A - M(HL) - CY
 
 // Inst      Encoding          Flags   Description
 // ----------------------------------------------------------------------
 
 // Cccc a    11CCC100 lb hb    -       Conditional subroutine call
+c   :11CCC100:C a     11 CCC 100  3  Conditional subroutine call: if CY, CALL address.
+cnz :11000100:|CNZ adr    if NZ, CALL adr
+cz  :11001100:|CZ adr     if Z, CALL adr
+cnc :11010100:|CNC adr    if NCY, CAL adr
+cc  :11011100:|CC adr     if CY, CALL adr
+cpo :11100100:|CPO adr    if PO, CALL adr
+cpe :11101100:|CPE adr    if PE, CALL adr
+cp  :11110100:|CP adr     if P, PC <- adr
+cm  :11111100:|CM adr     if M, CALL adr
 
 // -----------------------------------------------------------------------------
 // eof

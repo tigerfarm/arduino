@@ -1012,7 +1012,7 @@ public class asmProcessor {
                 programTop++;
                 System.out.println("++ Opcode: "
                         + opcode + " " + sOpcodeBinary
-                        + "  + RegisterPair|" + p1 + "|");
+                        + "  + Register or RegisterPair|" + p1 + "|");
                 break;
             // ------------------------------------------
             default:
@@ -1172,13 +1172,13 @@ public class asmProcessor {
         String part1asIs = theLine.substring(0, c1);
         String part1 = part1asIs.toLowerCase();
         theRest = theLine.substring(c1 + 1).trim();
-        System.out.println("++ parseLine componets theRest|" + theRest + "|");
+        // System.out.println("++ parseLine componets theRest|" + theRest + "|");
         int c2 = theRest.indexOf(" ");
         String part2;
         String theDirective = "";
         //
-        // Parse |ds 2|
-        // ++ parseLine componets part1asIs|ds| part1|ds| part2|2| theRest||
+        // + Parse |ANA     A|
+        // ++ parseLine componets part1asIs|ANA| part1|ana| part2|A| theRest||
         //
         // Parse |DB ' STARDATE  300'|
         // theRest = ' STARDATE  300';

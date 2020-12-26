@@ -88,10 +88,10 @@
 ;    LOCSET:
 ;    CNZ    LOCSET
                                     ;
-;    XRI    0FFH
-;    ORI    0FFH
-;    ANA     A
-;    SBB     B
+    ;XRI    0FFH
+    ;ORI    0FFH
+    ANA     A
+    SBB     B
 ;    CALL   TWO
 ;    RET
 ;    XCHG
