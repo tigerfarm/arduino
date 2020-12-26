@@ -1140,7 +1140,7 @@ public class asmProcessor {
             theLine = theLine.substring(0, ei).trim();
         }
         // ---------------------------------------------------------------------
-        System.out.println("\n+ Parse: |" + theLine + "|\n");
+        System.out.println("\n+ Parse |" + theLine + "|\n");
 
         // ---------------------------------------------------------------------
         // Single component.
@@ -1172,14 +1172,18 @@ public class asmProcessor {
         String part1asIs = theLine.substring(0, c1);
         String part1 = part1asIs.toLowerCase();
         theRest = theLine.substring(c1 + 1).trim();
-        int c2 = theLine.indexOf(" ");
+        int c2 = theRest.indexOf(" ");
         String part2;
-        if (c2 > -1) {
-            part2 = theRest.substring(c1 + 1).trim();
+        if (c2 > 0) {
+            part2 = theRest.substring(0, c2).trim();
+            theRest = theRest.substring(c2 + 1).trim();
         } else {
             part2 = theRest;
             theRest = "";
         }
+        // Parse: |Addr1   equ 128|
+        // ++ parseLine componets part1asIs|Addr1| part1|addr1| part2|128| theRest|equ 128|
+        //
         System.out.println("++ parseLine componets part1asIs|" + part1asIs
                 + "| part1|" + part1
                 + "| part2|" + part2
@@ -1273,16 +1277,16 @@ public class asmProcessor {
         //      <opcode>        <parameter>
         //      <opcode>        <parameter>,<parameter>
         opcode = part1;
-        c1 = theRest.indexOf(",");
-        if (c1 < 1) {
-            System.out.println("++ parseLine1, Opcode|" + opcode + "| part2|" + part2 + "|");
-            parseOpcode(opcode, part2);
+        c1 = part2.indexOf(",");
+        if (c1 > 0) {
+            p1 = part2.substring(0, c1);
+            p2 = part2.substring(c1 + 1);
+            System.out.println("++ parseLine, Opcode|" + opcode + "| p1|" + p1 + "| p2|" + p2 + "|");
+            parseOpcode(opcode, p1, p2);
             return;
         }
-        p1 = part2.substring(0, c1 - 1);
-        p2 = part2.substring(c1 + 1);
-        System.out.println("++ parseLine1, Opcode|" + opcode + "| p1|" + p1 + "| p2|" + p2 + "|");
-        parseOpcode(opcode, p1, p2);
+        System.out.println("++ parseLine, Opcode|" + opcode + "| part2|" + part2 + "|");
+        parseOpcode(opcode, part2);
         //
         // ---------------------------------------------------------------------
         // Dave, the above should parse the valid lines.
