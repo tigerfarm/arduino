@@ -16,16 +16,17 @@
                                     ; ------------------------------------------
                                     ; Comments are removed from lines
                                     ;
-    ;            jmp Start           ; Line comment.
+    ;        jmp Start               ; Line comment.
                                     ;
                                     ; Starting address. Pad with zero up to the ORG value.
-            ;ORG 0003H
+    ;        ORG 0006H
                                     ;
             mov a,b                 ; For testing, takes address 0.
                                     ; ------------------------------------------
                                     ; Label line.
                                     ;
     ;Start:
+    ;        hlt
                                     ; ------------------------------------------
                                     ; Label followed by an opcode.
                                     ;
@@ -37,20 +38,11 @@
     ;        DB  0
     ;        DB  2
     ;        DB  0FFH
-    ;Data0:  ds      3               ; 3 bytes at this location.
-    ;        lxi h,Data0
 
                                     ; ------------------------------------------
                                     ; ------------------------------------------
-                                    ; Label + Directive followed by a string.
-                                    ;
-                                    ; Label with ":"
-    ;ALNMSK: EQU 2
-    ;mvi     a,ALNMSK
-                                    ; Test binary.
-    ;STNMSK: EQU 00001000b
-    ;mvi     a,STNMSK
-
+                                    ; Labels with ":"
+                                    ; Label + Directive followed by a byte or string.
     ;MSGSDP: DB  '0'
     ;        lxi h,MSGSDP
     ;DQUAD:  DB  010
@@ -61,14 +53,59 @@
     ;MSGSSS: DB  '  SPACE STATIONS'
     ;        lxi h,MSGSSS
                                     ;
+    ;Data0:  ds  3                   ; 3 bytes at this location.
+    ;        lxi h,Data0
+    ;ct:                             ; Label to address the storage bytes.
+    ;        ds 2                    ; Bytes to store an address.
+    ;        lxi h,ct                ; Set the H:L register pair to the line buffer address.
+                                    ;
+    ;stack:  equ     $
+    ;        lxi h,stack             ; Set the H:L register pair to the line buffer address.
+                                    ;
+    ;ALNMSK: EQU 2
+    ;mvi     a,ALNMSK
+                                    ; Test binary.
+    ;STNMSK: EQU 00001000b
+    ;mvi     a,STNMSK
                                     ; ------------------------------------------
                                     ; Label without ":"
-    Addr1   equ 128
-    mvi     a,Addr1
-;    Addr2   ds      2               ; 2 bytes at this location.
-
-;    okay    db  'okay, yes?'
-;            lxi h,okay
+                                    ;
+    ;Addr1   equ 128
+    ;mvi     a,Addr1
+                                    ;
+    ;okay    db  'okay, yes?'
+    ;        lxi h,okay
+                                    ;
+    ;lbc     ds 2                    ; Place to store an address.
+    ;        lxi h,lbc               ; Set the H:L register pair to the line buffer address.
+                                    ; ------------------------------------------
+                                    ; Opcode statements from Galaxy80.asm
+;    IOINI:  MVI A,3                 ;RESET ACIA
+                                    ;
+;    SIOCTL  EQU 10H
+;    IOST:   IN SIOCTL               ;WAIT FOR A CHARACTER
+                                    ;
+;    LOCSET:
+;    CNZ    LOCSET
+                                    ;
+;    XRI    0FFH
+;    ORI    0FFH
+;    ANA     A
+;    SBB     B
+;    CALL   TWO
+;    RET
+;    XCHG
+;    RM
+;    RZ
+;    RNZ
+;    RLC
+                                    ;
+                                    ; ------------------------------------------
+                                    ; Special cases.
+                                    ;
+;   DB  000000000b,000000001b,000000100b,000100011b,000001010b,000000011b,000000111b,000000000b
+;   DB	CR,LF,'1',' ',' ',' ',' ',' '
+                                    ;
                                     ; ------------------------------------------
                                     ; Special case: end file processing
                                     ;

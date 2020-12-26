@@ -1172,18 +1172,26 @@ public class asmProcessor {
         String part1asIs = theLine.substring(0, c1);
         String part1 = part1asIs.toLowerCase();
         theRest = theLine.substring(c1 + 1).trim();
+        System.out.println("++ parseLine componets theRest|" + theRest + "|");
         int c2 = theRest.indexOf(" ");
         String part2;
-        if (c2 > 0) {
-            part2 = theRest.substring(0, c2).trim();
-            theRest = theRest.substring(c2 + 1).trim();
-        } else {
+        String theDirective = "";
+        //
+        // Parse |ds 2|
+        // ++ parseLine componets part1asIs|ds| part1|ds| part2|2| theRest||
+        //
+        // Parse |DB ' STARDATE  300'|
+        // theRest = ' STARDATE  300';
+        //
+        if (c2 < 1 || theRest.indexOf("'") == 0) {
+            // No blanks for theRest is a string that starts with "'".
             part2 = theRest;
             theRest = "";
+        } else {
+            part2 = theRest.substring(0, c2).trim();
+            theDirective = part2.toLowerCase();
+            theRest = theRest.substring(c2 + 1).trim();
         }
-        // Parse: |Addr1   equ 128|
-        // ++ parseLine componets part1asIs|Addr1| part1|addr1| part2|128| theRest|equ 128|
-        //
         System.out.println("++ parseLine componets part1asIs|" + part1asIs
                 + "| part1|" + part1
                 + "| part2|" + part2
@@ -1199,6 +1207,7 @@ public class asmProcessor {
         //      <label>[:]      DB                          '<string>'
         //      <label>[:]      DS                          <number>
         //      <label>[:]      EQU                         <$|number>
+        //      org             <number>
         //      <label>:        <opcode>
         //      <label>:        <opcode>                    <parameters>
         //      <opcode>        <parameter>
@@ -1208,12 +1217,12 @@ public class asmProcessor {
             // Example from Galaxy80.asm, and another example:
             //      DB  ' STARDATE  300'
             //      DB  6
-            parseDbValue("", part2);      // No label.
+            parseDbValue("", part2);        // No label.
             return;
         }
         if (part1.equals("ds")) {
             //      DS  2
-            parseDbValue("", part2);      // No label.
+            parseDs("", part2);             // No label.
             return;
         }
         if (!theRest.equals("")) {
@@ -1227,7 +1236,7 @@ public class asmProcessor {
             }
             parseLabel(theLabel);
             //
-            if (part2.equals("equ")) {
+            if (theDirective.equals("equ")) {
                 // EQU variable names and values, can either be an immediate byte, or a 2 byte address.
                 // So, add both, an address label and a immediate name-value pair.
                 //      TERMB:  equ     0ffh
@@ -1240,7 +1249,7 @@ public class asmProcessor {
                 parseEqu(theLabel, theRest);
                 return;
             }
-            if (part2.equals("db")) {
+            if (theDirective.equals("db")) {
                 // String of bytes.
                 //      MSGSDP: DB  '0'
                 //      Hello:  db  'Hello there'
@@ -1248,7 +1257,7 @@ public class asmProcessor {
                 parseDb(theLabel, theRest);
                 return;
             }
-            if (part2.equals("ds")) {
+            if (theDirective.equals("ds")) {
                 // Assembler directives:
                 //      Data0:  ds  3
                 System.out.println("++ parseLine, ds directive without a label name, theRest|" + theRest);
@@ -1265,11 +1274,21 @@ public class asmProcessor {
         // ---------------------------------------------------------------------
         // 2 components, parse the following cases.
         //
+        //      org             <number>
+        if (part1.equals("org")) {
+            parseOrg(part2);
+            return;
+        }
+        //      part1           part2
         //      <label>:        <opcode>
         if (part1asIs.endsWith(":")) {
             // Remove the ":", and add the label.
             String theLabel = part1asIs.substring(0, part1asIs.length() - 1);
             parseLabel(theLabel);
+            if (theRest.equals("")) {
+                parseOpcode(part2);
+                return;
+            }
             part1 = part2;
             part2 = theRest;
             theRest = "";
@@ -1343,7 +1362,7 @@ public class asmProcessor {
             }
             //      <label>: <EQU|DB|DS> <$|number|string>
             c1 = theRest.indexOf(" ");
-            String theDirective = theRest.substring(0, c1).trim().toLowerCase();
+            theDirective = theRest.substring(0, c1).trim().toLowerCase();
             String theValue = theRest.substring(theDirective.length() + 1).trim();
             System.out.println("++ parseLine, theDirective|" + theDirective + "| theValue|" + theValue + "|");
             //
