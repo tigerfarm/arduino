@@ -104,8 +104,20 @@
                                     ; ------------------------------------------
                                     ; Special cases for Galaxy80.asm.
                                     ;
-;   MSGDYWa: DB CR
-;MSGCHK: DB CR,LF
+    SIOCTL  EQU 10H		;88-2SIO CONTROL PORT
+    IOST:   IN SIOCTL
+                                    ;
+    ;        MVI M,' '
+    ;        XRA A
+                                    ;
+    ;CR  EQU 0DH
+    ;LF  EQU 0AH
+                                    ;
+        ;DB CR,LF
+    ;    MSGDYWa: DB CR
+    ;    MSGDYWa: DB LF
+                                    ;
+    ;MSGCHK: DB CR,LF
 ;        DB 'CHICKEN!'
 ;        DB 0                        ; "0" End of string identifier.
 ;        LXI     H,MSGCHK            ;Print "CHICKEN"
@@ -133,11 +145,13 @@ MSG:
 	JMP	MSG		;Continue printout
                                     ;
                                     ; ------------------------------------------
-+ Parse |MSGDYW: DB CR,LF|
-++ parseLine componets part1asIs|MSGDYW:| part1|msgdyw:| part2|DB| theRest|CR,LF|
-++ parseLabel, Name: MSGDYW, Address: 256
-++ parseLine1, DB directive, theLabel|MSGDYW| theValue|CR|
-- Error, immediate label not found: CR.
++ Parse |IOST: IN SIOCTL|
+++ parseLine componets theRest|IN SIOCTL|
+++ parseLine componets part1asIs|IOST:| part1|iost:| part2|IN| theDirective|in| theRest|SIOCTL|
+++ parseLabel, Name: IOST, Address: 4030
+++ parseLabel, Name: IOST, Address: 4030
+-- Error2, programTop: 4030 -- INVALID, Opcode: SIOCTL 11001001
+                                    ;
                                     ; I use for listing a successful sample run
                                     ; ------------------------------------------
 Sample line:

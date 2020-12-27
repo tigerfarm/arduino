@@ -514,7 +514,7 @@ public class asmProcessor {
                         break;
                     default:
                         errorCount++;
-                        System.out.println("\n- getImmediateValue, Error, programTop: " + programTop + ", unhandled escape character: " + sValue + ".\n");
+                        System.out.println("\n- getVariableValue, Error, programTop: " + programTop + ", unhandled escape character: " + sValue + ".\n");
                         returnString = NAME_NOT_FOUND_STR;
                 }
             } else {
@@ -702,10 +702,10 @@ public class asmProcessor {
     }
 
     // ------------------------
-    private String getImmediateValue(String findName) {
+    private String getVariableValue(String findName) {
         // Return either a numeric value as a string,
         //  or NAME_NOT_FOUND_STR.
-        printlnDebug("\n+ getImmediateValue, findName: " + findName);
+        printlnDebug("\n+ getVariableValue, findName: " + findName);
         String returnString = NAME_NOT_FOUND_STR;
         Iterator<String> lName = variableName.iterator();
         Iterator<Integer> lValue = variableValue.iterator();
@@ -718,7 +718,7 @@ public class asmProcessor {
                 break;
             }
         }
-        printlnDebug("+ getImmediateValue, returnString: " + returnString);
+        printlnDebug("+ getVariableValue, returnString: " + returnString);
         return returnString;
     }
 
@@ -729,8 +729,8 @@ public class asmProcessor {
             String theSource = it.next();
             if (theSource.startsWith("immediate" + SEPARATOR)) {
                 String theValue = theSource.substring("immediate:".length());
-                String nameValue = getImmediateValue(theValue);
-                printlnDebug("+ getImmediateValue returned, theValue=" + theValue + " nameValue=" + nameValue);
+                String nameValue = getVariableValue(theValue);
+                printlnDebug("+ getVariableValue returned, theValue=" + theValue + " nameValue=" + nameValue);
                 if (nameValue.equals(NAME_NOT_FOUND_STR)) {
                     // Since it's not a label, convert it to an integer.
                     printlnDebug("+ Not found: " + theValue + ".");
@@ -805,20 +805,16 @@ public class asmProcessor {
 
     private void parseDbValue(String theLabel, String theValue) {
         if (!theValue.startsWith("'")) {
+            String theVarValue = getVariableValue(theValue);
+            if (theVarValue.equals(NAME_NOT_FOUND_STR)) {
+                theVarValue = convertValueToInt(theValue);
+            }
             System.out.println("++ DB variable name: '" + theLabel
                     + "', single byte with a value of: " + theValue
-                    + " = " + convertValueToInt(theValue)
+                    + " = " + theVarValue
                     + "."
             );
-            // Dave, needs the option to get a label value.
-            /*
-+ Parse |MSGDYW: DB CR,LF|
-++ parseLine componets part1asIs|MSGDYW:| part1|msgdyw:| part2|DB| theRest|CR,LF|
-++ parseLabel, Name: MSGDYW, Address: 256
-++ parseLine1, DB directive, theLabel|MSGDYW| theValue|CR|
-- Error, immediate label not found: CR.
-            */
-            programBytes.add("dbterm:" + theLabel + SEPARATOR + convertValueToInt(theValue));
+            programBytes.add("dbterm:" + theLabel + SEPARATOR + theVarValue);
             programTop++;
             return;
         }
@@ -910,6 +906,7 @@ public class asmProcessor {
             case "rrc":
             case "ei":
             case "di":
+            case "rar":
             case "rz":
             case "rnz":
             case "rc":
@@ -920,6 +917,7 @@ public class asmProcessor {
             case "rm":
             case "xthl":
             case "sphl":
+            case "xchg":
                 sOpcodeBinary = getOpcodeBinary(opcode);
                 programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary);
                 programTop++;
@@ -954,6 +952,14 @@ public class asmProcessor {
             case "jp":
             case "jpe":
             case "jpo":
+            case "cnz":
+            case "cz":
+            case "cnc":
+            case "cc":
+            case "cpo":
+            case "cpe":
+            case "cp":
+            case "cm":
                 sOpcodeBinary = getOpcodeBinary(opcode);
                 programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1);
                 programTop++;
@@ -978,10 +984,8 @@ public class asmProcessor {
             case "xri":
             case "ori":
             case "pchl":
-            case "xchg":
             case "daa":
             case "ral":
-            case "rar":
             case "cma":
             case "stc":
             case "cmc":
@@ -1003,6 +1007,7 @@ public class asmProcessor {
             case "dcr":
             case "inr":
             case "inx":
+            case "dcx":
             case "ldax":
             case "ora":
             case "pop":
@@ -1180,17 +1185,22 @@ public class asmProcessor {
         String part1asIs = theLine.substring(0, c1);
         String part1 = part1asIs.toLowerCase();
         theRest = theLine.substring(c1 + 1).trim();
-        // System.out.println("++ parseLine componets theRest|" + theRest + "|");
-        int c2 = theRest.indexOf(" ");
-        String part2;
-        String theDirective = "";
         //
-        // + Parse |MSGYJD: DB CR,LF|
-        // ++ parseLine componets part1asIs|MSGYJD:| part1|msgyjd:| part2|DB| theRest|CR,LF|
+        // + Parse |IOINI: MVI A,3|
+        // ++ parseLine componets part1asIs|IOINI:| part1|ioini:| part2|MVI| theDirective|mvi| theRest|A,3|
+        // ++ parseLabel, Name: IOINI, Address: 4023
+        // ++++ parseLabel, Name: IOINI, Address: 4023
+        // ++-- Error2, programTop: 4023 -- INVALID, Opcode: A,3 11001001
+        //
+        theRest = theRest.replace(",' '",",32");
+        System.out.println("++ parseLine componets theRest|" + theRest + "|");
         //
         // Parse |DB ' STARDATE  300'|
         // theRest = ' STARDATE  300';
         //
+        int c2 = theRest.indexOf(" ");
+        String part2;
+        String theDirective = "";
         if (c2 < 1 || theRest.indexOf("'") == 0) {
             // No blanks for theRest is a string that starts with "'".
             part2 = theRest;
@@ -1203,6 +1213,7 @@ public class asmProcessor {
         System.out.println("++ parseLine componets part1asIs|" + part1asIs
                 + "| part1|" + part1
                 + "| part2|" + part2
+                + "| theDirective|" + theDirective
                 + "| theRest|" + theRest + "|");
         //
         // ---------------------------------------------------------------------
@@ -1221,6 +1232,20 @@ public class asmProcessor {
         //      <opcode>        <parameter>
         //      <opcode>        <parameter>,<parameter>
         //
+        if (part1.equals("db") && part2.equals("CR,LF")) {
+            //
+            // For testing
+            // + Parse |DB CR,LF|
+            // ++ parseLine componets part1asIs|DB| part1|db| part2|CR,LF| theDirective|| theRest||
+            //
+            theRest = "CR";
+            System.out.println("++ parseLine1, DB directive, theLabel|" + "" + "| theValue|" + theRest + "|");
+            parseDb("", theRest);
+            theRest = "LF";
+            System.out.println("++ parseLine2, DB directive, theLabel|" + "" + "| theValue|" + theRest + "|");
+            parseDb("", theRest);
+            return;
+        }
         if (part1.equals("db")) {
             // Example from Galaxy80.asm, and another example:
             //      DB  ' STARDATE  300'
@@ -1260,7 +1285,7 @@ public class asmProcessor {
             if (theDirective.equals("db") && theRest.equals("CR,LF")) {
                 // For testing
                 // + Parse |MSGYJD: DB CR,LF|
-                // ++ parseLine componets part1asIs|MSGYJD:| part1|msgyjd:| part2|DB| theRest|CR,LF|
+                // ++ parseLine componets part1asIs|MSGCHK:| part1|msgchk:| part2|DB| theDirective|db| theRest|CR,LF|
                 //
                 theRest = "CR";
                 System.out.println("++ parseLine1, DB directive, theLabel|" + theLabel + "| theValue|" + theRest + "|");
@@ -1508,10 +1533,10 @@ public class asmProcessor {
         }
         System.out.print("-- Error parsing line: " + theLine);
     }
-
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
     // File level process: parse and listing.
+
     public void parseFile(String theReadFilename) {
         File readFile;
         FileInputStream fin;
@@ -1672,8 +1697,8 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/programList.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/operr.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pstatuslights.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGalaxy80.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSyntax.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGalaxy80.asm");
         //
         // Option: for debugging:
         // thisProcess.listLabelAddresses();
