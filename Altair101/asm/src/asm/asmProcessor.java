@@ -1188,11 +1188,11 @@ public class asmProcessor {
         //
         // + Parse |IOINI: MVI A,3|
         // ++ parseLine componets part1asIs|IOINI:| part1|ioini:| part2|MVI| theDirective|mvi| theRest|A,3|
-        // ++ parseLabel, Name: IOINI, Address: 4023
-        // ++++ parseLabel, Name: IOINI, Address: 4023
-        // ++-- Error2, programTop: 4023 -- INVALID, Opcode: A,3 11001001
         //
-        theRest = theRest.replace(",' '",",32");
+        // + Parse |IOST:   IN SIOCTL|
+        // ++ parseLine componets part1asIs|IOST:| part1|iost:| part2|IN| theDirective|in| theRest|SIOCTL|
+        //
+        theRest = theRest.replace(",' '", ",32");
         System.out.println("++ parseLine componets theRest|" + theRest + "|");
         //
         // Parse |DB ' STARDATE  300'|
@@ -1316,12 +1316,16 @@ public class asmProcessor {
             // Else, labeled opcode statement.
             //      <label>:        <opcode>                    <parameters>
             // The label was added above, now alter the components for use in the following opcode processing.
+            //
+            // + Parse |IOST:   IN SIOCTL|
+            // ++ parseLine componets part1asIs|IOST:| part1|iost:| part2|IN| theDirective|in| theRest|SIOCTL|
+            //
             part1 = part2;
             part2 = theRest;
             theRest = "";
         }
         // ---------------------------------------------------------------------
-        // 2 components, parse the following cases.
+        System.out.println("++ parseLine1 2 componets, part1|" + part1 + "| part2|" + part2 + "|");
         //
         //      org             <number>
         if (part1.equals("org")) {
@@ -1330,21 +1334,21 @@ public class asmProcessor {
         }
         //      part1           part2
         //      <label>:        <opcode>
-        if (part1asIs.endsWith(":")) {
+        if (part1.endsWith(":")) {
             // Remove the ":", and add the label.
-            String theLabel = part1asIs.substring(0, part1asIs.length() - 1);
+            String theLabel = part1.substring(0, part1.length() - 1);
             parseLabel(theLabel);
             if (theRest.equals("")) {
                 parseOpcode(part2);
                 return;
             }
-            part1 = part2;
-            part2 = theRest;
-            theRest = "";
+            parseOpcode(opcode);
+            return;
         }
+        // ++ parseLine1 2 componets, part1|IN| part2|SIOCTL|
         //      <opcode>        <parameter>
         //      <opcode>        <parameter>,<parameter>
-        opcode = part1;
+        opcode = part1.toLowerCase();
         c1 = part2.indexOf(",");
         if (c1 > 0) {
             p1 = part2.substring(0, c1);
@@ -1697,8 +1701,8 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/programList.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/operr.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pstatuslights.asm");
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSyntax.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGalaxy80.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSyntax.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGalaxy80.asm");
         //
         // Option: for debugging:
         // thisProcess.listLabelAddresses();

@@ -82,9 +82,6 @@
                                     ; Opcode statements from Galaxy80.asm
 ;    IOINI:  MVI A,3                 ;RESET ACIA
                                     ;
-;    SIOCTL  EQU 10H
-;    IOST:   IN SIOCTL               ;WAIT FOR A CHARACTER
-                                    ;
 ;    LOCSET:
 ;    CNZ    LOCSET
                                     ;
@@ -104,7 +101,7 @@
                                     ; ------------------------------------------
                                     ; Special cases for Galaxy80.asm.
                                     ;
-    SIOCTL  EQU 10H		;88-2SIO CONTROL PORT
+    SIOCTL  EQU 10H                 ;88-2SIO CONTROL PORT
     IOST:   IN SIOCTL
                                     ;
     ;        MVI M,' '
