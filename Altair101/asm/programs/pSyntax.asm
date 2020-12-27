@@ -90,18 +90,26 @@
                                     ;
     ;XRI    0FFH
     ;ORI    0FFH
-    ANA     A
-    SBB     B
-;    CALL   TWO
-;    RET
+    ;ANA     A
+    ;SBB     B
 ;    XCHG
 ;    RM
 ;    RZ
 ;    RNZ
 ;    RLC
                                     ;
+;    CALL   TWO
+;    RET
+                                    ;
                                     ; ------------------------------------------
-                                    ; Special cases.
+                                    ; Special cases for Galaxy80.asm.
+                                    ;
+;   MSGDYWa: DB CR
+;MSGCHK: DB CR,LF
+;        DB 'CHICKEN!'
+;        DB 0                        ; "0" End of string identifier.
+;        LXI     H,MSGCHK            ;Print "CHICKEN"
+;        CALL    MSG
                                     ;
 ;   DB  000000000b,000000001b,000000100b,000100011b,000001010b,000000011b,000000111b,000000000b
 ;   DB	CR,LF,'1',' ',' ',' ',' ',' '
@@ -112,8 +120,24 @@
             mov a,l                 ; For testing, takes last address before "end".
             end
                                     ; Lines after the "end" line are ignored.
+                                    ; ------------------------------------------
                                     ;
                                     ; ------------------------------------------
+                                    ; Printing a string with an end identifier of "0".
+MSG:
+	MOV	A,M		;Fetch character
+	ANA	A		;End of message?
+	RZ			;Yes, return
+ 	;CALL	PRINT		;No, print character
+ 	INX	H		;Increment message pointer
+	JMP	MSG		;Continue printout
+                                    ;
+                                    ; ------------------------------------------
++ Parse |MSGDYW: DB CR,LF|
+++ parseLine componets part1asIs|MSGDYW:| part1|msgdyw:| part2|DB| theRest|CR,LF|
+++ parseLabel, Name: MSGDYW, Address: 256
+++ parseLine1, DB directive, theLabel|MSGDYW| theValue|CR|
+- Error, immediate label not found: CR.
                                     ; I use for listing a successful sample run
                                     ; ------------------------------------------
 Sample line:

@@ -810,6 +810,14 @@ public class asmProcessor {
                     + " = " + convertValueToInt(theValue)
                     + "."
             );
+            // Dave, needs the option to get a label value.
+            /*
++ Parse |MSGDYW: DB CR,LF|
+++ parseLine componets part1asIs|MSGDYW:| part1|msgdyw:| part2|DB| theRest|CR,LF|
+++ parseLabel, Name: MSGDYW, Address: 256
+++ parseLine1, DB directive, theLabel|MSGDYW| theValue|CR|
+- Error, immediate label not found: CR.
+            */
             programBytes.add("dbterm:" + theLabel + SEPARATOR + convertValueToInt(theValue));
             programTop++;
             return;
@@ -1177,8 +1185,8 @@ public class asmProcessor {
         String part2;
         String theDirective = "";
         //
-        // + Parse |ANA     A|
-        // ++ parseLine componets part1asIs|ANA| part1|ana| part2|A| theRest||
+        // + Parse |MSGYJD: DB CR,LF|
+        // ++ parseLine componets part1asIs|MSGYJD:| part1|msgyjd:| part2|DB| theRest|CR,LF|
         //
         // Parse |DB ' STARDATE  300'|
         // theRest = ' STARDATE  300';
@@ -1249,7 +1257,23 @@ public class asmProcessor {
                 parseEqu(theLabel, theRest);
                 return;
             }
+            if (theDirective.equals("db") && theRest.equals("CR,LF")) {
+                // For testing
+                // + Parse |MSGYJD: DB CR,LF|
+                // ++ parseLine componets part1asIs|MSGYJD:| part1|msgyjd:| part2|DB| theRest|CR,LF|
+                //
+                theRest = "CR";
+                System.out.println("++ parseLine1, DB directive, theLabel|" + theLabel + "| theValue|" + theRest + "|");
+                parseDb(theLabel, theRest);
+                theRest = "LF";
+                System.out.println("++ parseLine2, DB directive, theLabel|" + theLabel + "| theValue|" + theRest + "|");
+                parseDb(theLabel, theRest);
+                return;
+            }
             if (theDirective.equals("db")) {
+                // + Parse |MSGYJD: DB CR,LF|
+                // ++ parseLine componets part1asIs|MSGYJD:| part1|msgyjd:| part2|DB| theRest|CR,LF|
+                //
                 // String of bytes.
                 //      MSGSDP: DB  '0'
                 //      Hello:  db  'Hello there'
@@ -1648,8 +1672,8 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/programList.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/operr.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pstatuslights.asm");
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pG.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSyntax.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGalaxy80.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSyntax.asm");
         //
         // Option: for debugging:
         // thisProcess.listLabelAddresses();
