@@ -13,10 +13,12 @@ CR	EQU	0DH
         ORG	0050H
                                 ; ...
                                 ; ----------------------------------------------
-MSGDYW:	DB	CR,LF
+MSGDYW:	
+        DB	CR,LF
   	DB	'DO YOU WANT TO GO ON A SPACE VOYAGE? '
   	DB	0
-MSGCHK:	DB	CR,LF
+MSGCHK:	
+        DB	CR,LF
   	DB	'CHICKEN!'
   	DB	0
                                 ; ----------------------------------------------
@@ -99,7 +101,6 @@ PRINT:
 	POP	B		;Restore BC
 	RET
 
-; Stack
 	DS	32		;Stack Area
 STACK:	EQU	$
 

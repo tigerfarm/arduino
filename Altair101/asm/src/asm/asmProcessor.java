@@ -877,6 +877,8 @@ public class asmProcessor {
         // Name-value pair
         variableName.add(theName);
         variableValue.add(intValue);
+        labelName.add(theName);
+        labelAddress.add(programTop-1);        // Address to the string of bytes.
         System.out.println("++ parseEqu, Variable Name: " + theName + ", Value: " + intValue);
     }
 
@@ -1579,7 +1581,8 @@ public class asmProcessor {
         //
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSyntax.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGalaxy80.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pcli.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGa.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pcli.asm");
         //
         // Option: for debugging:
         thisProcess.listLabelAddresses();
