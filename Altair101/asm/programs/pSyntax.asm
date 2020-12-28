@@ -39,9 +39,9 @@
     ;        DB  2
     ;        DB  0FFH
                                     ;
-                lxi h,thePrompt         ; Print the prompt.
-    thePrompt   db      '> '
-                db      0
+    ;            lxi h,thePrompt         ; Print the prompt.
+    ;thePrompt   db      '> '
+    ;            db      0
                                     ; ------------------------------------------
                                     ; ------------------------------------------
                                     ; Labels with ":"
@@ -107,8 +107,22 @@
     CR  EQU 0DH
     LF  EQU 0AH
                                     ;
+MSGDYW:
+       DB '\n'
+        DB CR,LF
+       DB 'abc\n'
+       DB 0
+    thePrompt   db      '> '
+                db      0
+;MSGDYW:	
+;        DB CR,LF
+;       DB 'DO YOU WANT TO GO ON A SPACE VOYAGE? '
+;       DB 0
+                                    ;
     ;        DB 6
     ;        DB  ' STARDATE  300'
+                                    ;
+    ;        DB CR,LF
     ;        DB CR,LF,' ',' ','1'
     ;        DB 000000000b,000000001b,000000100b,000100011b,000001010b,000000011b,000000111b,000000000b
     ;        DB CR,LF,'1',' ',' ',' ',' ',' '

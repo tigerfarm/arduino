@@ -172,7 +172,7 @@ public class asmProcessor {
     private String p2;
     private final String SEPARATOR = ":";
     private final String SEPARATOR_TEMP = "^^";
-    private final int DB_STRING_TERMINATOR = 0;   // To have it automatically added, set to: 255 = ffh = B11111111
+    private final String DB_STRING_TERMINATOR = "0";   // To have it automatically added, set to: 255 = ffh = B11111111
     private static Integer ignoreFirstCharacters = 0;
     //
     // Use for storing program bytes and calculating label addresses.
@@ -405,6 +405,14 @@ public class asmProcessor {
                     //
                     fileBytes[programTop] = (byte) Integer.parseInt(opcodeValues[2]);
                     break;
+                case "dbbyte":
+                    // dbbyte:def:255
+                    System.out.print(byteToString((byte) Integer.parseInt(opcodeValues[2])) + " : ");
+                    System.out.print(String.format("%02X", Integer.parseInt(opcodeValues[2])));
+                    System.out.print(String.format(":%03o", Integer.parseInt(opcodeValues[2])));    // Octal
+                    System.out.println(" > dbbyte: " + opcodeValues[2]);
+                    fileBytes[programTop] = (byte) Integer.parseInt(opcodeValues[2]);
+                    break;
                 case "databyte":
                     // ++ databyte:abc:k
                     // ++       6:00000110: 01110100 : 74     > databyte: testnl : t : 116
@@ -440,14 +448,6 @@ public class asmProcessor {
                         System.out.println(" > databyte: " + opcodeValues[1] + " : " + opcodeValues[2] + " : " + (int) ch[0]);
                         fileBytes[programTop] = (byte) (int) ch[0];
                     }
-                    break;
-                case "dbterm":
-                    // dbterm:def:255
-                    System.out.print(byteToString((byte) Integer.parseInt(opcodeValues[2])) + " : ");
-                    System.out.print(String.format("%02X", Integer.parseInt(opcodeValues[2])));
-                    System.out.print(String.format(":%03o", Integer.parseInt(opcodeValues[2])));    // Octal
-                    System.out.println(" > dbterm: " + opcodeValues[2]);
-                    fileBytes[programTop] = (byte) Integer.parseInt(opcodeValues[2]);
                     break;
                 case "dsname":
                     // ++ dsname::0
@@ -816,6 +816,12 @@ public class asmProcessor {
         }
     }
 
+    private void parseDbAdd(String theLabel, String theValue) {
+        System.out.println("++ parseDbAdd theLabel:" + theLabel + ": theValue:" + theValue + ":");
+        programBytes.add("databyte:" + theLabel + SEPARATOR + theValue);
+        programTop++;
+    }
+
     private void parseDbValue(String theLabel, String theValue) {
         if (!theValue.startsWith("'")) {
             String theVarValue = getVariableValue(theValue);
@@ -827,7 +833,8 @@ public class asmProcessor {
                     + " = " + theVarValue
                     + "."
             );
-            programBytes.add("dbterm:" + theLabel + SEPARATOR + theVarValue);
+            // + Parse |db      0|
+            programBytes.add("dbbyte:" + theLabel + SEPARATOR + theVarValue);
             programTop++;
             return;
         }
@@ -835,28 +842,18 @@ public class asmProcessor {
         for (int i = 1; i < theValue.length() - 1; i++) {
             // Only use what is contained within the quotes, 'Hello' -> Hello
             if (theValue.substring(i, i + 1).equals(SEPARATOR)) {
-                programBytes.add("databyte:" + theLabel + SEPARATOR + SEPARATOR_TEMP);
+                parseDbAdd(theLabel, SEPARATOR_TEMP);
             } else if (theValue.charAt(i) == '\\') {
-                // theValue.substring(i, i + 1).equals("\\")
                 // Handle escape characters such as '\n'.
-                // String sValue = "'" + theValue.substring(i, i + 2) + "'";
-                String sValue = theValue.substring(i, i + 2);
+                String sValue = "'" + theValue.substring(i, i + 2) + "'";
                 i++;    // Increment because of processing 2 characters instead of one.
-                // sValue = convertValueToInt("'" + sValue + "'");
-                System.out.println("++ parseDb sValue: " + sValue);
-                // '\n' -> ++ parseDb sValue: 10
-                // programBytes.add("databyte:" + theName + SEPARATOR + Integer.parseInt(sValue));
-                // "39" should be "10".
-                // ++       7:00000111: 00100111 : 27 > databyte: '10' : 39
-                programBytes.add("databyte:" + theLabel + SEPARATOR + "'" + sValue + "'");
+                parseDbAdd(theLabel, sValue);
             } else {
-                programBytes.add("databyte:" + theLabel + SEPARATOR + theValue.substring(i, i + 1));
+                parseDbAdd(theLabel, theValue.substring(i, i + 1));
             }
-            programTop++;
         }
-        if (DB_STRING_TERMINATOR != 0) {
-            programBytes.add("dbterm:" + theLabel + SEPARATOR + DB_STRING_TERMINATOR);
-            programTop++;
+        if (!DB_STRING_TERMINATOR.equals("0")) {
+            parseDbAdd(theLabel, DB_STRING_TERMINATOR);
         }
     }
 
@@ -865,6 +862,7 @@ public class asmProcessor {
         //              db  6
         //      six     db  6
         //      six:    DB  6
+        System.out.println("++ parseDb, theLabel: " + theLabel + " programTop: " + programTop);
         labelName.add(theLabel);
         labelAddress.add(programTop);        // Address to the string of bytes.
         parseDbValue(theLabel, theValue);
@@ -878,7 +876,7 @@ public class asmProcessor {
         variableName.add(theName);
         variableValue.add(intValue);
         labelName.add(theName);
-        labelAddress.add(programTop-1);        // Address to the string of bytes.
+        labelAddress.add(programTop - 1);        // Address to the string of bytes.
         System.out.println("++ parseEqu, Variable Name: " + theName + ", Value: " + intValue);
     }
 
@@ -1587,7 +1585,7 @@ public class asmProcessor {
         // Option: for debugging:
         thisProcess.listLabelAddresses();
         // thisProcess.listImmediateValues();
-        thisProcess.programBytesListAndWrite("");
+        thisProcess.programBytesListAndWrite("p1.bin");
 
         // thisProcess.showFileBytes("p1.bin");
         // thisProcess.showFileBytes("pGalaxyBytesOrg.bin");

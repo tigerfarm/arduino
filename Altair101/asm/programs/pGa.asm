@@ -52,7 +52,7 @@ RN:
                                 ;
 GALAXY:
 	LXI	SP,STACK	;Set stack pointer
-	CALL	CONINI		;Initialize Console I/O
+	; CALL	CONINI		;Initialize Console I/O
 	LXI	H,MSGDYW
 	CALL	MSG		;Print introduction
 START:
