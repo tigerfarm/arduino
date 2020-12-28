@@ -856,8 +856,8 @@ public class asmProcessor {
         }
         if (DB_STRING_TERMINATOR != 0) {
             programBytes.add("dbterm:" + theLabel + SEPARATOR + DB_STRING_TERMINATOR);
+            programTop++;
         }
-        programTop++;
     }
 
     private void parseDb(String theLabel, String theValue) {
@@ -1122,10 +1122,6 @@ public class asmProcessor {
         System.out.println("++ parseLabel, Name: " + label + ", Address: " + programTop);
     }
 
-    private void parse2components(String c1, String c2) {
-        System.out.println("++ parse2components, c1: " + c1 + ", c2: " + c2);
-    }
-
     // -------------------------------------------------------------------------
     // -------------------------------------------------------------------------
     // Parse each program source line.
@@ -1251,20 +1247,6 @@ public class asmProcessor {
         //      <opcode>        <parameter>
         //      <opcode>        <parameter>,<parameter>
         //
-        if (part1.equals("db") && part2.equals("CR,LF")) {
-            //
-            // For testing
-            // + Parse |DB CR,LF|
-            // ++ parseLine componets part1asIs|DB| part1|db| part2|CR,LF| theDirective|| theRest||
-            //
-            theRest = "CR";
-            System.out.println("++ parseLine1, DB directive, theLabel|" + "" + "| theValue|" + theRest + "|");
-            parseDb("", theRest);
-            theRest = "LF";
-            System.out.println("++ parseLine2, DB directive, theLabel|" + "" + "| theValue|" + theRest + "|");
-            parseDb("", theRest);
-            return;
-        }
         if (part1.equals("db")) {
             // dave
             // + Parse |DB CR,LF,' ',' ','1'|
@@ -1313,16 +1295,15 @@ public class asmProcessor {
             return;
         }
         if (!theRest.equals("")) {
-            // Statement has a label
+            // Statement has a label, example:
+            // thePrompt   db      '> '
             //
-            // Add the label.
+            // Set the label name.
             String theLabel = part1asIs;
             if (part1asIs.endsWith(":")) {
                 // Remove the ":".
                 theLabel = part1asIs.substring(0, part1asIs.length() - 1);
             }
-            parseLabel(theLabel);
-            //
             if (theDirective.equals("equ")) {
                 // EQU variable names and values, can either be an immediate byte, or a 2 byte address.
                 // So, add both, an address label and a immediate name-value pair.
@@ -1336,19 +1317,6 @@ public class asmProcessor {
                 parseEqu(theLabel, theRest);
                 return;
             }
-            if (theDirective.equals("db") && theRest.equals("CR,LF")) {
-                // For testing
-                // + Parse |MSGYJD: DB CR,LF|
-                // ++ parseLine componets part1asIs|MSGCHK:| part1|msgchk:| part2|DB| theDirective|db| theRest|CR,LF|
-                //
-                theRest = "CR";
-                System.out.println("++ parseLine1, DB directive, theLabel|" + theLabel + "| theValue|" + theRest + "|");
-                parseDb(theLabel, theRest);
-                theRest = "LF";
-                System.out.println("++ parseLine2, DB directive, theLabel|" + theLabel + "| theValue|" + theRest + "|");
-                parseDb(theLabel, theRest);
-                return;
-            }
             if (theDirective.equals("db")) {
                 // + Parse |MSGYJD: DB CR,LF|
                 // ++ parseLine componets part1asIs|MSGYJD:| part1|msgyjd:| part2|DB| theRest|CR,LF|
@@ -1356,7 +1324,13 @@ public class asmProcessor {
                 // String of bytes.
                 //      MSGSDP: DB  '0'
                 //      Hello:  db  'Hello there'
-                System.out.println("++ parseLine, DB directive, theLabel|" + theLabel + "| theValue|" + theRest + "|");
+                //
+                // + Parse |thePrompt   db      '> '|
+                // ++ parseLine componets theRest|db      '> '|
+                // ++ parseLine componets part1asIs|thePrompt| part1|theprompt| part2|db| theDirective|db| theRest|'> '|
+                // ++ parseLabel, Name: thePrompt, Address: 338
+                //
+                System.out.println("++ parseLine, DB directive, theLabel|" + theLabel + "| theValue|" + theRest + "| programTop=" + programTop);
                 parseDb(theLabel, theRest);
                 return;
             }
@@ -1373,6 +1347,8 @@ public class asmProcessor {
             //
             // + Parse |IOST:   IN SIOCTL|
             // ++ parseLine componets part1asIs|IOST:| part1|iost:| part2|IN| theDirective|in| theRest|SIOCTL|
+            //
+            parseLabel(theLabel);
             //
             part1 = part2;
             part2 = theRest;
@@ -1599,19 +1575,19 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opImmediate.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pKillTheBit.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/programList.asm");
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/operr.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pstatuslights.asm");
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSyntax.asm");
         //
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSyntax.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGalaxy80.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pcli.asm");
         //
         // Option: for debugging:
-        // thisProcess.listLabelAddresses();
+        thisProcess.listLabelAddresses();
         // thisProcess.listImmediateValues();
         thisProcess.programBytesListAndWrite("");
 
         // thisProcess.showFileBytes("p1.bin");
-        thisProcess.showFileBytes("pGalaxyBytesOrg.bin");
+        // thisProcess.showFileBytes("pGalaxyBytesOrg.bin");
         // 
         // thisProcess.programBytesListCode();
         // thisProcess.programBytesListHex();

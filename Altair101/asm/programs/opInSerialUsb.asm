@@ -9,6 +9,8 @@
                                     ; Can use #2, for USB sense switches: 8,9,a,b,c,d,e,f.
     GetByte:
                 in SERIAL_PORT      ; Get input byte value into register A.
+                cpi 0
+                jz GetByte
                 cpi 'x'             ; With port #3, input 'x' will exit this loop.
                 jz HaltLoop         ;   Jump.
                 cpi 3               ; Ctrl+c will exit this loop.

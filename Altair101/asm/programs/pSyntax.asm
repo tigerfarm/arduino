@@ -38,7 +38,10 @@
     ;        DB  0
     ;        DB  2
     ;        DB  0FFH
-
+                                    ;
+                lxi h,thePrompt         ; Print the prompt.
+    thePrompt   db      '> '
+                db      0
                                     ; ------------------------------------------
                                     ; ------------------------------------------
                                     ; Labels with ":"

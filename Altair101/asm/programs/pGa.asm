@@ -164,7 +164,11 @@ CONINI:
 	END
                                     ; --------------------------------------
                                     ; Assembler needs updates.
++ Parse |MSGCHK: DB CR,LF|
+++ parseLine componets theRest|DB CR,LF|
+++ parseLine componets part1asIs|MSGCHK:| part1|msgchk:| part2|DB| theDirective|db| theRest|CR,LF|
+++ parseLine, DB directive, theLabel|MSGCHK| theValue|CR,LF| programTop=119
 
-
+- Error, immediate label not found: CR,LF.
                                     ; 
                                     ; --------------------------------------

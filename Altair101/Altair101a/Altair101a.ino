@@ -831,17 +831,11 @@ void controlResetLogic() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // IN opcode, input processing to get a byte from an input port.
-/*
-  Opcode: out <port#>
-  Called from: cpu_IN() { regA = altair_in(MEM_READ(regPC)); ... }
-    The input byte is loaded into register A.
-  A byte value of 0, implies no input on that port at the time of being called.
-*/
 
 // Check sense switch toggles and return the switch byte value as a string.
 String getSenseSwitchValue() {
   // From serial toggle switches.
-  byte bValue = highByte(fpAddressToggleWord);  // Or could use: bValue = altair_in(B11111111);
+  byte bValue = highByte(fpAddressToggleWord);
   // From hardware is not implemented.
   // byte bValue = toggleSense();
   String sValue = String(bValue, BIN);
@@ -863,6 +857,7 @@ byte altair_in(byte portDataByte) {
   switch (portDataByte) {
     case 1:
     case B11111111:
+    {
       // case 1, for running Kill the Bit in serial mode.
       // case B11111111, is the common sense switch input port#.
       //
@@ -889,41 +884,43 @@ byte altair_in(byte portDataByte) {
       // Reply with the high byte of the address toggles, which are the sense switch toggles.
       inputDataByte = highByte(fpAddressToggleWord);
       break;
+    }
     case 16:
     // pGalaxy80.asm input port.
     //  SIOCTL  EQU 10H   ;88-2SIO CONTROL PORT
     //  IN   SIOCTL
     case 2:
-      if (SERIAL2_OUTPUT) {
-        // Input from the external USB component Serial2 port.
-        inputDataByte = 0;
-        if (Serial2.available() > 0) {
-          inputDataByte = Serial2.read();    // Read and process an incoming byte.
+      {
+        if (SERIAL2_OUTPUT) {
+          // Input from the external USB component Serial2 port.
+          inputDataByte = 0;
+          if (Serial2.available() > 0) {
+            inputDataByte = Serial2.read();    // Read and process an incoming byte.
+          }
+        } else {
+          // Input from default serial port. This is good for testing.
+          inputDataByte = inputBytePort2;
+          inputBytePort2 = 0;
         }
-      } else {
-        // Input from default serial port. This is good for testing.
+        break;
+      }
+    case 3:
+      {
+        // Input(inputBytePort2) comes from the RUN mode loop, USB default serial port.
+        // Only keep the most recent input, not queueing the inputs at this time.
         inputDataByte = inputBytePort2;
         inputBytePort2 = 0;
+        break;
       }
-      break;
-    case 3:
-      // Input(inputBytePort2) comes from the RUN mode loop, USB default serial port.
-      // Only keep the most recent input, not queueing the inputs at this time.
-      inputDataByte = inputBytePort2;
-      inputBytePort2 = 0;
-      break;
-    case 16:
-      // Test port: 20Q (octal: 020).
-      // Return byte value of 2, which is used in the status light video sample program.
-      inputDataByte = 2;
-      break;
     default:
-      inputDataByte = 0;
-      Serial.print(F("- Error, input port not available: "));
-      Serial.println(portDataByte);
+      {
+        inputDataByte = 0;
+        Serial.print(F("- Error, input port not available: "));
+        Serial.println(portDataByte);
+      }
   }
   //
-#ifdef LOG_MESSAGES
+  //#ifdef LOG_MESSAGES
   if (inputDataByte > 0 && logMessages) {
     // No input at this time.
     // > Input port# 3 inputDataByte value =  3, printByte=00000011, writeInByte=''
@@ -931,7 +928,7 @@ byte altair_in(byte portDataByte) {
     Serial.print(F("> Input port# "));
     Serial.print(portDataByte);
     Serial.print(F(" inputDataByte value = "));
-    sprintf(charBuffer, "%3d", inputDataByte);
+    sprintf(charBuffer, "%3d %3d", inputDataByte, inputBytePort2);
     Serial.print(charBuffer);
     Serial.print(F(", printByte="));
     printByte(inputDataByte);
@@ -946,9 +943,11 @@ byte altair_in(byte portDataByte) {
       Serial.write(inputDataByte);
       Serial.print(F("'"));
     }
+    Serial.print(F("> inputBytePort2="));
+    Serial.print(inputBytePort2);
     Serial.println();
   }
-#endif
+  //#endif
   host_set_data_leds(inputDataByte);
   host_set_addr_leds(portDataByte + portDataByte * 256); // As does the origanal Altair 8800: lb and hb set to the port#.
   if (host_read_status_led_WAIT()) {
@@ -985,7 +984,7 @@ void altair_out(byte portDataByte, byte regAdata) {
   //
   // Write output byte to the output port.
   switch (portDataByte) {
-    case 17
+    case 17:
     // pGalaxy80.asm output port.
     //  SIODAT  EQU 11H   ;88-2SIO DATA PORT
     //  OUT  SIODAT
@@ -1578,7 +1577,7 @@ void processWaitSwitch(byte readByte) {
       break;
     case 'U':
       logMessages = true;
-      Serial.println(F("+ u, Log messages on."));
+      Serial.println(F("+ U, Log messages on."));
       break;
     case 'i':
       Serial.println(F("+ i: Information."));

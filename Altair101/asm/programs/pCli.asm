@@ -194,12 +194,17 @@
                                         ; --------------------------------------
                                         ;
     StartMsg    db      '\r\n+++ Welcome to the machine.\r\n'
-    EnterMsg    db      '+ Press keys. Ctrl+c to exit.\r\n> '
+                db      0
+    EnterMsg    db      '+ Press keys. Ctrl+c to exit.\r\n'
+                db      0
     thePrompt   db      '> '
+                db      0
     echoMsg     db      '++ Echo not implemented, yet.'
+                db      0
     ExitMsg     db      '\r\n+ Later.\r\n'
+                db      0
                                         ;
-    TERMB       equ     0ffh            ; String terminator.
+    TERMB       equ     000h            ; String terminator.
     esc         equ     27              ; Escape character, which is 0x1B (hex).
     ;
     cpc         ds      1               ; Cursor position counter variable.
@@ -213,7 +218,7 @@
     Menu1       db      '\r\n 1. Menu item #1'
     Menu2       db      '\r\n 2. Menu item #2'
     Menu3       db      '\r\n 3. Menu item #3'
-    MenuEnd     db      0ffh            ; Indicator of the end of a text block.
+    MenuEnd     db      000h            ; Indicator of the end of a text block.
                                         ;
                                         ; --------------------------------------
                                         ; When using port 2,
@@ -222,4 +227,65 @@
     INPUT_PORT  equ     3               ; Input port#.
                                         ; --------------------------------------
                 end
+                                        ; --------------------------------------
+                                        ; 
+                lxi h,EnterMsg
+                call printStr
+...
+    StartMsg    db      '\r\n+++ Welcome to the machine.\r\n'
+                db      0
+    EnterMsg    db      '+ Press keys. Ctrl+c to exit.\r\n> '
+                db      0
+...
+
++ Parse |StartMsg    db      '\r\n+++ Welcome to the machine.\r\n'|
+++ parseLine componets theRest|db      '\r\n+++ Welcome to the machine.\r\n'|
+++ parseLine componets part1asIs|StartMsg| part1|startmsg| part2|db| theDirective|db| theRest|'\r\n+++ Welcome to the machine.\r\n'|
+++ parseLabel, Name: StartMsg, Address: 270
+
++ Parse |lxi h,EnterMsg|
+++ parseLine componets theRest|h,EnterMsg|
+++ parseLine componets part1asIs|lxi| part1|lxi| part2|h,EnterMsg| theDirective|| theRest||
+++ parseLine1 2 componets, part1|lxi| part2|h,EnterMsg|
+++ parseLine, opcode|lxi| p1|h| p2|EnterMsg|
+++ Opcode: lxi 00100001 register|h| addressLabel|addressNumber|EnterMsg|
+
++ Parse |thePrompt   db      '> '|
+++ parseLine componets theRest|db      '> '|
+++ parseLine componets part1asIs|thePrompt| part1|theprompt| part2|db| theDirective|db| theRest|'> '|
+++ parseLabel, Name: thePrompt, Address: 338
+...
+
++ Parse |EnterMsg    db      '+ Press keys. Ctrl+c to exit.\r\n> '|
+++ parseLine componets theRest|db      '+ Press keys. Ctrl+c to exit.\r\n> '|
+++ parseLine componets part1asIs|EnterMsg| part1|entermsg| part2|db| theDirective|db| theRest|'+ Press keys. Ctrl+c to exit.\r\n> '|
+++ parseLabel, Name: EnterMsg, Address: 303
+
+++      15:00000000 00001111: 00100001 : 21:041 > opcode: lxi h,EnterMsg
+++      16:00000000 00010000: 00101111 : 2F:057 > lb: 47
+++      17:00000000 00010001: 00000001 : 01:001 > hb: 1
+++      18:00000000 00010010: 11001101 : CD:315 > opcode: call printStr
+++      19:00000000 00010011: 11011011 : DB:333 > lb: 219
+++      20:00000000 00010100: 00000000 : 00:000 > hb: 0
+
+...
+++     270:00000001 00001110: 00001101 : 0D:015 > databyte: StartMsg : '\r' : 13
+++     271:00000001 00001111: 00001010 : 0A:012 > databyte: StartMsg : '\n' : 10
+++     272:00000001 00010000: 00101011 : 2B:053 > databyte: StartMsg : + : 43
+++     273:00000001 00010001: 00101011 : 2B:053 > databyte: StartMsg : + : 43
+++     274:00000001 00010010: 00101011 : 2B:053 > databyte: StartMsg : + : 43
+...
+++     302:00000001 00101110: 00101011 : 2B:053 > databyte: EnterMsg : + : 43
+++     303:00000001 00101111: 00100000 : 20:040 > databyte: EnterMsg :   : 32
+++     304:00000001 00110000: 01010000 : 50:120 > databyte: EnterMsg : P : 80
+++     305:00000001 00110001: 01110010 : 72:162 > databyte: EnterMsg : r : 114
+++     306:00000001 00110010: 01100101 : 65:145 > databyte: EnterMsg : e : 101
+++     307:00000001 00110011: 01110011 : 73:163 > databyte: EnterMsg : s : 115
+++     308:00000001 00110100: 01110011 : 73:163 > databyte: EnterMsg : s : 115
+...
+++     336:00000001 01010000: 00111110 : 3E:076 > databyte: thePrompt : > : 62
+++     337:00000001 01010001: 00100000 : 20:040 > databyte: thePrompt :   : 32
+++     338:00000001 01010010: 00000000 : 00:000 > dbterm: 0
+++     339:00000001 01010011: 00101011 : 2B:053 > databyte: echoMsg : + : 43
+                                        ; 
                                         ; --------------------------------------
