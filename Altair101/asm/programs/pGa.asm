@@ -10,144 +10,17 @@ CR	EQU	0DH
 
 	ORG	0000H
                                 ; ...
+        ORG	0050H
+                                ; ...
                                 ; ----------------------------------------------
-;  through 377 reserved for Galaxy content table
-
-	ORG	0100H	; Next page
-
 MSGDYW:	DB	CR,LF
   	DB	'DO YOU WANT TO GO ON A SPACE VOYAGE? '
-  	DB	0
-MSGYJD:	DB	CR,LF
-  	DB	'YOU MUST DESTROY  '
-MSGSPS:	DB	'  ALIEN SHIPS IN  '
-MSGDTS:	DB	'  STARDATES WITH '
-MSGSSS:	DB	'  SPACE STATIONS'
-  	DB	0
-MSG123:	DB	CR,LF
-  	DB	' -1--2--3--4-'
-  	DB	'-5--6--7--8-'
-  	DB	0
-MSGSTDT:
-	DB	CR,LF
-MSGSTDT1:
-	DB	'0'
-MSGSTDT2:
-	DB	'                        '
-  	DB	0
-MSGSTDT3:
-  	DB	' STARDATE  300'
-MSGSDP:	DB	'0'
-  	DB	0
-MSGCND:	DB	' CONDITION '
-MSGGRN:	DB	'GREEN'
-  	DB	0
-MSGQAD:	DB	' QUADRANT  '
-MSGPQD:	DB	'   '
-  	DB	0
-MSGSCT:	DB	' SECTOR    '
-MSGSC1:	DB	'   '
-  	DB	0
-MSGENR:	DB	' ENERGY       '
-MSGENP:	DB	' '
-  	DB	0
-MSGTRP:	DB	' TORPEDOES  '
-MSGTPP:	DB	' '
-  	DB	0
-MSGSHD:	DB	' SHIELDS      '
-MSGSHP:	DB	' '
-  	DB	0
-MSGCMD:	DB	CR,LF
-  	DB	'COMMAND?'
-  	DB	0
-MSGCRS:	DB	CR,LF
-  	DB	'COURSE (1-8.5)? '
-  	DB	0
-MSGWRP:	DB	CR,LF
-  	DB	'WARP FACTOR (0.1-7.7)? '
-  	DB	0
-MSGLRS:	DB	CR,LF
-  	DB	'L.R. SCAN FOR'
-  	DB	0
-MSGMSF:	DB	CR,LF
-  	DB	'MISSION FAILED, YOU HAVE RUN OUT	OF STARDATES'
-  	DB	0
-MSGKAB:	DB	CR,LF
-  	DB	'KA-BOOM, YOU CRASHED INTO A STAR. YOUR SHIP IS DESTROYED'
-  	DB	0
-MSGYMO:	DB	CR,LF
-  	DB	'YOU MOVED OUT	OF THE GALAXY, YOUR SHIP IS LOST..LOST'
-  	DB	0
-MSGLOE:	DB	CR,LF
-  	DB	'LOSS OF ENERGY    '
-MSGLOP:	DB	' '
-  	DB	0
-MSGDSE:	DB	CR,LF
-  	DB	'DANGER-SHIELD ENERGY 000'
-  	DB	0
-MSGSET:	DB	CR,LF
-  	DB	'SHIELD ENERGY TRANSFER = '
-  	DB	0
-MSGNEE:	DB	CR,LF
-  	DB	'NOT ENOUGH ENERGY'
-  	DB	0
-MSGTTY:	DB	CR,LF
-  	DB	'TORPEDO TRAJECTORY(1-8.5) : '
-  	DB	0
-MSGASD:	DB	CR,LF
- 	DB	'ALIEN SHIP DESTROYED'
-  	DB	0
-MSGYMA:	DB	CR,LF
-  	DB	'YOU MISSED! ALIEN SHIP RETALIATES'
-  	DB	0
-MSGSSD:	DB	CR,LF
-  	DB	'SPACE STATION '
-MSGDES:	DB	'DESTROYED'
-  	DB	0
-MSGCYH:	DB	CR,LF
-  	DB	'CONGRATULATIONS, YOU HAVE ELIMINATED ALL OF THE ALIEN SHIPS'
-  	DB	0
-MSGTRG:	DB	CR,LF
-  	DB	'TRACKING: '
-MSGTRK:	DB	'   '
-  	DB	0
-MSGGDY:	DB	CR,LF
-  	DB	'GALAXY DISPLAY'
-  	DB	0
-MSGPEF:	DB	CR,LF
-  	DB	'PHASOR ENERGY TO FIRE = '
-  	DB	0
-MSGASF:	DB	CR,LF
-  	DB	'ALIEN SHIP AT SECTOR '
-MSGSEC:	DB	' , : '
-  	DB	0
-MSGEGY:	DB	'ENERGY =    '
-MSGDEY:	DB	' '
-  	DB	0
-MSGNAS:	DB	CR,LF
-  	DB	'NO ALIEN SHIPS! WASTED SHOT'
-MSGZRO:	DB	0
-MSGNEL:	DB	CR,LF
-  	DB	'ABANDON SHIP! NO ENERGY LEFT'
-  	DB	0
-MSGNTS:	DB	CR,LF
-  	DB	'NO TORPEDOES'
-  	DB	0
-MSG111:	DB	CR,LF
-  	DB	'1 '
-MSG11A:	DB	'    1 '
-MSG11B:	DB	'    1 '
-MSG11C:	DB	'    1'
-  	DB	0
-MSGLST:	DB	CR,LF
-  	DB	'LAST'
   	DB	0
 MSGCHK:	DB	CR,LF
   	DB	'CHICKEN!'
   	DB	0
-
                                 ; ----------------------------------------------
-	ORG	0500H
+;	ORG	0500H
 
                                 ; ----------------------------------------------
 MSG:
@@ -169,7 +42,7 @@ RN:
 	ADD	M
 	DCR	L
 	MOV	M,A		;Save random number
-	RET                                ; 
+	RET                     ; 
                                 ; ----------------------------------------------
                                 ;
                                 ; ...
@@ -198,7 +71,7 @@ OVER:
 	HLT			;Halt
 
                                 ; ----------------------------------------------
-	ORG	0F80H
+;	ORG	0F80H
 
 ; Test status of input device for character
 ; Sets sign flag if character coming in

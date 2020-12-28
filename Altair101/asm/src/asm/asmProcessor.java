@@ -1501,6 +1501,29 @@ public class asmProcessor {
         System.out.println("++ Not available, yet.");
     }
 
+    public void showFileBytes(String theReadFilename) {
+        System.out.println("++ Show binary file bytes: " + theReadFilename);
+        int theLength = 0;
+        byte bArray[] = null;
+        try {
+            File theFile = new File(theReadFilename);
+            theLength = (int) theFile.length();
+            bArray = new byte[(int) theLength];
+            FileInputStream in = new FileInputStream(theReadFilename);
+            in.read(bArray);
+            in.close();
+        } catch (IOException ioe) {
+            System.out.print("IOException: ");
+            System.out.println(ioe.toString());
+        }
+        System.out.println("+ Show, " + theLength + " bytes from the file: " + theReadFilename);
+        for (int i = 0; i < theLength; i++) {
+            System.out.print(byteToString(bArray[i]) + " ");
+            System.out.println("");
+        }
+        System.out.println("\n+ Binary display completed.");
+    }
+
     public void showFile(String theReadFilename) {
         System.out.println("++ Show binary file: " + theReadFilename);
         int theLength = 0;
@@ -1579,13 +1602,17 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/operr.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pstatuslights.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSyntax.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGalaxy80.asm");
+        //
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGalaxy80.asm");
         //
         // Option: for debugging:
         // thisProcess.listLabelAddresses();
         // thisProcess.listImmediateValues();
         thisProcess.programBytesListAndWrite("");
 
+        // thisProcess.showFileBytes("p1.bin");
+        thisProcess.showFileBytes("pGalaxyBytesOrg.bin");
+        // 
         // thisProcess.programBytesListCode();
         // thisProcess.programBytesListHex();
         //
