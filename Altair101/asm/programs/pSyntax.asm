@@ -101,27 +101,33 @@
                                     ; ------------------------------------------
                                     ; Special cases for Galaxy80.asm.
                                     ;
-    SIOCTL  EQU 10H                 ;88-2SIO CONTROL PORT
-    IOST:   IN SIOCTL
+    CR  EQU 0DH
+    LF  EQU 0AH
+                                    ;
+            DB 6
+            DB  ' STARDATE  300'
+            DB CR,LF,' ',' ','1'
+            DB 000000000b,000000001b,000000100b,000100011b,000001010b,000000011b,000000111b,000000000b
+            DB CR,LF,'1',' ',' ',' ',' ',' '
+            DB ' ',' ','1'
+                                    ;
+    ;        SUI ':'
+                                    ;
+    ;SIOCTL  EQU 10H                 ;88-2SIO CONTROL PORT
+    ;IOST:   IN SIOCTL
                                     ;
     ;        MVI M,' '
     ;        XRA A
-                                    ;
-    ;CR  EQU 0DH
-    ;LF  EQU 0AH
                                     ;
         ;DB CR,LF
     ;    MSGDYWa: DB CR
     ;    MSGDYWa: DB LF
                                     ;
     ;MSGCHK: DB CR,LF
-;        DB 'CHICKEN!'
-;        DB 0                        ; "0" End of string identifier.
+    ;    DB 'CHICKEN!'
+    ;    DB 0                        ; "0" End of string identifier.
 ;        LXI     H,MSGCHK            ;Print "CHICKEN"
 ;        CALL    MSG
-                                    ;
-;   DB  000000000b,000000001b,000000100b,000100011b,000001010b,000000011b,000000111b,000000000b
-;   DB	CR,LF,'1',' ',' ',' ',' ',' '
                                     ;
                                     ; ------------------------------------------
                                     ; Special case: end file processing
@@ -142,12 +148,6 @@ MSG:
 	JMP	MSG		;Continue printout
                                     ;
                                     ; ------------------------------------------
-+ Parse |IOST: IN SIOCTL|
-++ parseLine componets theRest|IN SIOCTL|
-++ parseLine componets part1asIs|IOST:| part1|iost:| part2|IN| theDirective|in| theRest|SIOCTL|
-++ parseLabel, Name: IOST, Address: 4030
-++ parseLabel, Name: IOST, Address: 4030
--- Error2, programTop: 4030 -- INVALID, Opcode: SIOCTL 11001001
                                     ;
                                     ; I use for listing a successful sample run
                                     ; ------------------------------------------
