@@ -1,15 +1,108 @@
-                                ; ----------------------------------------------
-                                ; Programing challenge:
-                                ; + Done: Compile using my assembler.
-                                ; + Get components to run.
-                                ; + Get the complete program to run.
-                                ;
+; ------------------------------------------------
+;
+; Stacy, be a challenge to get this to compile using my assembler.
+;
+; I/O ports:
+; SIOCTL    EQU 10H   ;88-2SIO CONTROL PORT
+;   IN	SIOCTL
+; SIODAT    EQU 11H   ;88-2SIO DATA PORT
+;   OUT	SIODAT
+;
+; Original site:
+;   https://github.com/deltecent/scelbi-galaxy
+
+; ----------------------------------------------
+; Programing challenge:
+; + Done: Compile using my assembler.
+; + Done: Interactive basics: input and output.
+; + Done: Run the start to get the initial prompt and "n" to halt the program.
+; + Get the complete program to run by adding section and section.
+;
+; ------------------------------------------------
+;
+; +----------------------------------+
+; |       SCELBI'S GALAXY GAME       |
+; |           FOR THE 8080           |
+; |                                  |
+; |             AUTHOR:              |
+; |          ROBERT FIDLEY           |
+; |                                  |
+; |       (C) COPYRIGHT 1976         |
+; |                                  |
+; | Scelbi Computer Consulting, Inc. |
+; |   1322 Rear - Boston Post Road   |
+; |        Milford, CT 06460         |
+; |                                  |
+; |       ALL RIGHTS RESERVED        |
+; |                                  |
+; +----------------------------------+
+;
+; **************************************************
+;
+; Along time ago in a magazine far, far away....
+;
+; In 1976 Scelbi Computer Consulting, Inc. published
+; "Scelbi's Galaxy Game for the '8008/8080'" written
+; by Robert Findley.
+;
+; The publication included the complete source code
+; listings for Intel 8008 and 8080, flow charts, and
+; detailed documentation of how the game functions.
+;
+; The source listings for GALAXY are for Intel's
+; original 8008 mnemonics published in 1972.
+;
+; Examples:
+;
+; Old	New
+; ---	-------
+; JFC	JNC
+; CAL	CALL
+; RFZ	RNZ
+; LMs	MOV M,s
+; ADM	ADD M
+;
+; ******* CAPTAIN'S LOG ***************************
+;
+; -- Stardate: Aug 25, 2020 -----------------------
+; -- Patrick Linstruth <patrick@deltecent.com -----
+;
+; This version of GALAXY is Findley's original 8080
+; program listing modified for Digital Research's
+; 8080 Assember (ASM.COM) and ZASM by Günter Woigk.
+; The console I/O routines are for the MITS 88-2SIO
+; serial adapter.
+;
+; This version is designed to be loaded at 0000H
+; and executed at "GALAXY" which is currently
+; located at 09A3H.
+; -------------------------------------------------
+;
+; **************************************************
+;
+; Captain your own crusading starship against the
+; logic of your "8008" or "8080". You must destroy
+; a random number of alien ships without running
+; out of stardates, out of fuel, out of ammunition,
+; or out of the galaxy. Plan your mission. How much
+; fuel is used for your warp factor? Don't run
+; into roaming stars that can damage your ship.
+; Suddenly. Condition Red. Alien in sight.
+; How big is he? Fire a phasor or torpedo. He's
+; damaged or destroyed. But, you've used valuable
+; fuel. That's just the beginning. A new game
+; every time.
+;
+; **************************************************
+
 LF	EQU	0AH
 CR	EQU	0DH
+
 	ORG	0000H
                                 ; ----------------------------------------------
         JMP     GALAXY          ; Stacy, allow using start from zero.
                                 ; ----------------------------------------------
+
 	DB	2 		;Course 1.0
 	DB	0
 	DB	2 		;Course 1.5
@@ -175,7 +268,6 @@ MSGLRS:	DB	CR,LF
 MSGMSF:	DB	CR,LF
   	DB	'MISSION FAILED, YOU HAVE RUN OUT	OF STARDATES'
   	DB	0
-;-------------------------------------------
 MSGKAB:	DB	CR,LF
   	DB	'KA-BOOM, YOU CRASHED INTO A STAR. YOUR SHIP IS DESTROYED'
   	DB	0
@@ -249,9 +341,9 @@ MSGLST:	DB	CR,LF
 MSGCHK:	DB	CR,LF
   	DB	'CHICKEN!'
   	DB	0
-                                ; ----------------------------------------------
-;	ORG	0500H
-                                ; ----------------------------------------------
+
+	ORG	0500H
+
 MSG:
 	MOV	A,M		;Fetch character
 	ANA	A		;End of message?
@@ -271,12 +363,48 @@ RN:
 	ADD	M
 	DCR	L
 	MOV	M,A		;Save random number
-	RET                     ; 
+	RET
+                                ; Up to line 355 in pGalaxy80.asm
                                 ; ----------------------------------------------
+SSPLS:SSPLS:
+	MVI	E,0F7H		;Mask to delete space station
+	JMP	PLS		;Delete excess space station
+SSMNS:
+	MVI	E,STNMSK	;Mask to add space station
+	JMP	MNS		;Add a space station
+ASPLS:
+	MVI	E,0CFH		;Mask to delete alien ship
+PLS:
+	CALL	RN		;Fetch random low address
+	ORI	0C0H		;Set to point to galaxy
+	MOV	L,A		;Set up galaxy pointer
+	MOV	A,E		;Load mask into accumulator
+	ANA	M		;Delete from galaxy
+	MOV	M,A		;Put back in galaxy
+	JMP	GLXCK		;Check galaxy again
+ASMNS:
+	MVI	E,010H		;Mask to add alien ship
+MNS:
+	CALL	RN		;Fetch random low address
+	ORI	0C0H		;Set to point to galaxy
+	MOV	L,A		;Set up galaxy pointer
+	MOV	A,E		;Load mask into accumulator
+	ORA	M		;Add to galaxy
+	MOV	M,A		;Put back in galaxy
+	JMP	GLXCK		;Check galaxy again
+DIGPRT:
                                 ;
+                                ; ----------------------------------------------
                                 ; ...
+GLXCK:
+	MOV	D,H		;Space station count = 0;
+	MOV	C,H		;Alien ship count = 0;
+	MVI	L,0C0H		;Fetch quadrant contents
+                                ; ...
+GLXCK1:
                                 ; ----------------------------------------------
                                 ; Program starts running from here.
+                                ; Line 1128 in pGalaxy.asm
 GALAXY:
 	LXI	SP,STACK	;Set stack pointer
 	; CALL	CONINI		;Initialize Console I/O

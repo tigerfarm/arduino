@@ -24,7 +24,8 @@ extern CPUFUN cpu_opcodes[256];
 // Mega
 #if defined(__AVR_ATmega2560__)
 #define THIS_CPU "Mega 2560"
-#define MEMSIZE (2048)          // Mega2650 has 8k SRAM, use 2048, Max, 6K: #define MEMSIZE (4096+2048)
+#define MEMSIZE (2048+1024)          // Mega2650 has 8k SRAM, use 2048, Max, 6K: #define MEMSIZE (4096+2048)
+// #define MEMSIZE (2048)          // Mega2650 has 8k SRAM, use 2048, Max, 6K: #define MEMSIZE (4096+2048)
 // #define MEMSIZE (4096+512)          // This works, and loads 4K Basic.
 //
 #define USE_THROTTLE 0          // Set for slower Mega CPU.

@@ -107,6 +107,13 @@
     CR  EQU 0DH
     LF  EQU 0AH
                                     ;
+	RET
+SSPLS:
+	MVI	E,0F7H		;Mask to delete space station
+	JMP	PLS		;Delete excess space station
+PLS:
+	HLT
+                                    ;
     ;MSGDYW:
     ;   DB '\n'
     ;    DB CR,LF
@@ -115,8 +122,8 @@
     ;thePrompt   db      '> '
     ;            db      0
                                     ;
-MSGNEL: DB CR,LF
-        DB CR,LF
+    ;MSGNEL: DB CR,LF
+    ;    DB CR,LF
                                     ;
 ;       DB 'DO YOU WANT TO GO ON A SPACE VOYAGE? '
 ;       DB 0

@@ -192,7 +192,7 @@ public class asmProcessor {
     //
     private final int NAME_NOT_FOUND = -1;
     private final String NAME_NOT_FOUND_STR = "-1";
-    private boolean debugMessage = false;
+    private boolean debugMessage = true;    // false true
 
     // Use for storing error messages which are printed at the end, in a summary.
     private int errorCount = 0;
@@ -420,6 +420,7 @@ public class asmProcessor {
                     break;
                 case "immediate":
                     // ++ immediate:'l':108
+                    // System.out.println("++ " + theValue);
                     System.out.print(byteToString((byte) Integer.parseInt(opcodeValues[2])) + " : ");
                     System.out.print(String.format("%02X", Integer.parseInt(opcodeValues[2])));
                     System.out.print(String.format(":%03o", Integer.parseInt(opcodeValues[2])));    // Octal
@@ -1434,17 +1435,17 @@ public class asmProcessor {
         }
         System.out.println("");
         if (errorCount > 0) {
-            System.out.println("\n-- parseFile, Number of errors: " + errorCount);
+            System.out.println("\n-- parseFile, Number of errors1: " + errorCount);
             return;
         }
         setProgramByteAddresses();
         if (errorCount > 0) {
-            System.out.println("\n-- parseFile, Number of errors: " + errorCount);
+            System.out.println("\n-- parseFile, Number of errors2: " + errorCount);
             return;
         }
         setProgramByteImmediates();
         if (errorCount > 0) {
-            System.out.println("\n-- parseFile, Number of errors: " + errorCount);
+            System.out.println("\n-- parseFile, Number of errors3: " + errorCount);
             return;
         }
     }
@@ -1585,6 +1586,11 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSyntax.asm");
         thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGa.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGalaxy80.asm");
+        //
+        if (thisProcess.errorCount > 0) {
+            thisProcess.listErrorMsgs();
+            return;
+        }
         //
         // Option: for debugging:
         thisProcess.listLabelAddresses();
