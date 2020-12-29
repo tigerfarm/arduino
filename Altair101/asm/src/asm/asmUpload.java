@@ -117,7 +117,7 @@ public class asmUpload {
             // This allows buffer time so that bytes are not dropped.
             baudSleepTime = 300;
         } else {
-            baudSleepTime = 3;
+            baudSleepTime = 10; // Note, had issues with baud rate was 57600 and baudSleepTime was 3. 10 seems fine.
         }
         // block until bytes can be written
         sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);

@@ -165,6 +165,7 @@ public class asmProcessor {
 
     asmOpcodes theOpcodes = new asmOpcodes(); // Use to get an opcode's binary value.
     //
+    private String theLine;
     private String opcode = "";
     private byte opcodeBinary;
     private String sOpcodeBinary;
@@ -192,10 +193,38 @@ public class asmProcessor {
     private final int NAME_NOT_FOUND = -1;
     private final String NAME_NOT_FOUND_STR = "-1";
     private boolean debugMessage = false;
+
+    // Use for storing error messages which are printed at the end, in a summary.
     private int errorCount = 0;
 
     public int getErrorCount() {
         return this.errorCount;
+    }
+    private final static List<Integer> errorLineNum = new ArrayList<>();
+    private final static List<String> errorLines = new ArrayList<>();
+    private final static List<String> errorMsgs = new ArrayList<>();
+
+    private void printlnErrorMsg(int theProgramLine, String theMessage) {
+        errorCount++;
+        System.out.println("-- " + theProgramLine + ": " + theMessage);
+        errorLineNum.add(theProgramLine);
+        errorLines.add(theLine);
+        errorMsgs.add(theMessage);
+    }
+
+    public void listErrorMsgs() {
+        System.out.println("\n- Number of errors = " + errorCount);
+        System.out.println("- List Error Messages:");
+        Iterator<Integer> lErrorLineNums = errorLineNum.iterator();
+        Iterator<String> lErrorLines = errorLines.iterator();
+        Iterator<String> lErrorMsgs = errorMsgs.iterator();
+        while (lErrorLines.hasNext()) {
+            int theErrorLineNum = lErrorLineNums.next();
+            String theErrorLine = lErrorLines.next();
+            String theErrorMsg = lErrorMsgs.next();
+            System.out.println("-- " + theErrorLineNum + ": " + theErrorLine + "\n-- " + theErrorMsg);
+        }
+        System.out.println("+ End of list.");
     }
 
     private void printDebug(String theMessage) {
@@ -526,8 +555,7 @@ public class asmProcessor {
                         returnString = "9";
                         break;
                     default:
-                        errorCount++;
-                        System.out.println("\n- getVariableValue, Error, programTop: " + programTop + ", unhandled escape character: " + sValue + ".\n");
+                        printlnErrorMsg(programTop, "\n- getVariableValue, Error, programTop: " + programTop + ", unhandled escape character: " + sValue + ".");
                         returnString = NAME_NOT_FOUND_STR;
                 }
             } else {
@@ -545,10 +573,7 @@ public class asmProcessor {
             try {
                 returnString = Integer.toString(Integer.parseInt(returnString, 16));
             } catch (NumberFormatException e) {
-                errorCount++;
-                System.out.println("");
-                System.out.println("- Error, invalid hex value: " + sValue + ":" + returnString + ", " + e.getMessage());
-                System.out.println("");
+                printlnErrorMsg(programTop, "- Error, invalid hex value: " + sValue + ":" + returnString + ", " + e.getMessage());
             }
         } else if (sValue.endsWith("o")) {
             // Octal number. For example, change 012o or 12o to an integer.
@@ -560,10 +585,7 @@ public class asmProcessor {
             try {
                 returnString = Integer.toString(Integer.parseInt(returnString, 8));
             } catch (NumberFormatException e) {
-                errorCount++;
-                System.out.println("");
-                System.out.println("- Error, invalid octal value: " + sValue + ":" + returnString + ", " + e.getMessage());
-                System.out.println("");
+                printlnErrorMsg(programTop, "- Error, invalid octal value: " + sValue + ":" + returnString + ", " + e.getMessage());
             }
         } else if (sValue.endsWith("b")) {
             // Binary 
@@ -571,10 +593,7 @@ public class asmProcessor {
             try {
                 returnString = Integer.toString(Integer.parseInt(returnString, 2));
             } catch (NumberFormatException e) {
-                errorCount++;
-                System.out.println("");
-                System.out.println("- Error, invalid binary value: " + sValue + ":" + returnString + ", " + e.getMessage());
-                System.out.println("");
+                printlnErrorMsg(programTop, "- Error, invalid binary value: " + sValue + ":" + returnString + ", " + e.getMessage());
             }
         } else {
             // --------------
@@ -584,11 +603,7 @@ public class asmProcessor {
                 Integer.parseInt(sValue);   // If not a valid integer, this will fail.
                 returnString = sValue;
             } catch (NumberFormatException e) {
-                // sImmediate = "*** Error, label not found.";
-                errorCount++;
-                System.out.println("");
-                System.out.println("- Error, immediate label not found: " + sValue + ".");
-                System.out.println("");
+                printlnErrorMsg(programTop, "- Error, immediate label not found: " + sValue + ".");
             }
         }
         return returnString;
@@ -858,14 +873,51 @@ public class asmProcessor {
     }
 
     private void parseDb(String theLabel, String theValue) {
-        // Add an address label to the DB value. For example,
-        //              db  6
-        //      six     db  6
-        //      six:    DB  6
-        System.out.println("++ parseDb, theLabel: " + theLabel + " programTop: " + programTop);
+        System.out.println("++ parseDb( theLabel: " + theLabel + ", theValue: " + theValue + " )");
         labelName.add(theLabel);
         labelAddress.add(programTop);        // Address to the string of bytes.
-        parseDbValue(theLabel, theValue);
+        // parseDbValue(theLabel, theValue);
+
+        // dave, should work for both "db" cases: with or without a label.
+        // + Parse |DB CR,LF,' ',' ','1'|
+        // ++ parseLine componets part1asIs|DB| part1|db| part2|CR,LF,32,32,'1'| theDirective|| theRest||
+        // If more than 3 "'", them multiple bytes.
+        int cq = theValue.indexOf("'");     // index of the first single quote "'".
+        int cc = theValue.indexOf(",");
+        if (cq < 1 && cc < 1) {
+            // No single quote and no comma.
+            // Example, an immediate number or label:
+            //      DB  6
+            //      DB  CR
+            parseDbValue("", theValue);        // No label.
+            return;
+        }
+        if (cq == 0) {
+            cq = theValue.indexOf("'", 1);     // index of the second single quote "'".
+            if (cq == theValue.length()) {
+                // Example string of bytes from Galaxy80.asm:
+                //      DB  ' STARDATE  300'
+                parseDbValue("", theValue);        // No label.
+            }
+            return;
+        }
+        // Example from Galaxy80.asm, and another example:
+        //      DB CR,LF,' ',' ','1'
+        int cn = 0;
+        String theByte = theValue.substring(cn, cc);
+        System.out.println("++ parseLine2, DB bytes, theByte|" + theByte + "|");
+        parseDbValue("", theByte);
+        while (cc < theValue.length()) {
+            cn = cc + 1;
+            cc = theValue.indexOf(",", cc + 1);
+            if (cc < 1) {
+                cc = theValue.length();
+            }
+            theByte = theValue.substring(cn, cc);
+            System.out.println("++ parseLine2, DB bytes, theByte|" + theByte + "|");
+            parseDbValue("", theByte);
+        }
+        System.out.println("++ parseLine, DB multiple comma separated bytes are parsed.");
     }
 
     // -----------
@@ -875,8 +927,16 @@ public class asmProcessor {
         // Name-value pair
         variableName.add(theName);
         variableValue.add(intValue);
+        //
+        // Example, address to stack of bytes:
+        // ...
+        //          LXI SP,STACK    ;Set stack pointer
+        // ...
+        //          DS  32          ;Stack Area
+        // STACK:   EQU	$
         labelName.add(theName);
-        labelAddress.add(programTop - 1);        // Address to the string of bytes.
+        labelAddress.add(programTop - 1);
+        //
         System.out.println("++ parseEqu, Variable Name: " + theName + ", Value: " + intValue);
     }
 
@@ -900,8 +960,7 @@ public class asmProcessor {
     private String getOpcodeBinary(String opcode) {
         opcodeBinary = theOpcodes.getOpcode(opcode);
         if (opcodeBinary == theOpcodes.OpcodeNotFound) {
-            errorCount++;
-            System.out.println("\n-- Error1, programTop: " + programTop + ", invalid opode: " + opcode + "\n");
+            printlnErrorMsg(programTop, "\n-- Error1, invalid opode: " + opcode + "\n");
             opcode = "INVALID: " + opcode;
             return ("INVALID: " + opcode);
         }
@@ -940,9 +999,7 @@ public class asmProcessor {
                 break;
             // -----------------------------
             default:
-                System.out.print("-- Error2, programTop: " + programTop + " ");
-                System.out.println("-- INVALID, Opcode: " + opcode + " " + sOpcodeBinary);
-                errorCount++;
+                printlnErrorMsg(programTop, "-- Error2, INVALID, Opcode: " + opcode + " " + sOpcodeBinary);
                 break;
         }
     }
@@ -1044,11 +1101,9 @@ public class asmProcessor {
                 break;
             // ------------------------------------------
             default:
-                System.out.print("-- Error3, programTop: " + programTop + " ");
-                System.out.println("-- INVALID, Opcode: "
+                printlnErrorMsg(programTop, "-- Error3, INVALID, Opcode: "
                         + opcode + " " + sOpcodeBinary
                         + "  + p1|" + p1 + "|");
-                errorCount++;
                 break;
         }
     }
@@ -1100,11 +1155,10 @@ public class asmProcessor {
                         + " register|" + p1 + "|" + " addressLabel|addressNumber|" + p2 + "|");
                 break;
             default:
-                System.out.print("-- Error4, programTop: " + programTop + " ");
-                System.out.println("-- INVALID, Opcode: "
+                printlnErrorMsg(programTop, "-- Error4, INVALID, Opcode: "
                         + opcode + " " + sOpcodeBinary
-                        + " p1|" + p1 + "|" + " p2|" + p2 + "|");
-                errorCount++;
+                        + " p1|" + p1 + "|" + " p2|" + p2 + "|"
+                );
                 break;
         }
     }
@@ -1248,45 +1302,7 @@ public class asmProcessor {
         //      <opcode>        <parameter>,<parameter>
         //
         if (part1.equals("db")) {
-            // dave
-            // + Parse |DB CR,LF,' ',' ','1'|
-            // ++ parseLine componets part1asIs|DB| part1|db| part2|CR,LF,32,32,'1'| theDirective|| theRest||
-            // If more than 3 "'", them multiple bytes.
-            int cq = part2.indexOf("'");
-            int cc = part2.indexOf(",");
-            if (cq < 1 && cc < 1) {
-                // Example, an immediate number or label:
-                //      DB  6
-                //      DB  CR
-                parseDbValue("", part2);        // No label.
-                return;
-            }
-            if (cq == 0) {
-                cq = part2.indexOf("'", 1);
-                if (cq == part2.length()) {
-                    // Example string of bytes from Galaxy80.asm:
-                    //      DB  ' STARDATE  300'
-                    parseDbValue("", part2);        // No label.
-                }
-                return;
-            }
-            // Example from Galaxy80.asm, and another example:
-            //      DB CR,LF,' ',' ','1'
-            int cn = 0;
-            String theByte = part2.substring(cn, cc);
-            System.out.println("++ parseLine2, DB bytes, theByte|" + theByte + "|");
-            parseDbValue("", theByte);
-            while (cc < part2.length()) {
-                cn = cc + 1;
-                cc = part2.indexOf(",", cc + 1);
-                if (cc < 1) {
-                    cc = part2.length();
-                }
-                theByte = part2.substring(cn, cc);
-                System.out.println("++ parseLine2, DB bytes, theByte|" + theByte + "|");
-                parseDbValue("", theByte);
-            }
-            System.out.println("++ parseLine, DB multiple comma separated bytes are parsed.");
+            parseDb("", part2);
             return;
         }
         if (part1.equals("ds")) {
@@ -1311,26 +1327,14 @@ public class asmProcessor {
                 //      stack:  equ     $
                 if (theRest.equals("$")) {
                     //  stack   equ $    ; "$" is current address.
-                    theRest = Integer.toString(programTop);
+                    theRest = Integer.toString(programTop - 1);
                 }
                 System.out.println("++ parseLine, EQU directive, theLabel|" + theLabel + "| theValue|" + theRest + "|");
                 parseEqu(theLabel, theRest);
                 return;
             }
             if (theDirective.equals("db")) {
-                // + Parse |MSGYJD: DB CR,LF|
-                // ++ parseLine componets part1asIs|MSGYJD:| part1|msgyjd:| part2|DB| theRest|CR,LF|
-                //
-                // String of bytes.
-                //      MSGSDP: DB  '0'
-                //      Hello:  db  'Hello there'
-                //
-                // + Parse |thePrompt   db      '> '|
-                // ++ parseLine componets theRest|db      '> '|
-                // ++ parseLine componets part1asIs|thePrompt| part1|theprompt| part2|db| theDirective|db| theRest|'> '|
-                // ++ parseLabel, Name: thePrompt, Address: 338
-                //
-                System.out.println("++ parseLine, DB directive, theLabel|" + theLabel + "| theValue|" + theRest + "| programTop=" + programTop);
+                // System.out.println("++ parseLine, DB directive, theLabel|" + theLabel + "| theValue|" + theRest + "| programTop=" + programTop);
                 parseDb(theLabel, theRest);
                 return;
             }
@@ -1416,7 +1420,7 @@ public class asmProcessor {
             }
             fin = new FileInputStream(readFile);
             pin = new DataInputStream(fin);
-            String theLine = pin.readLine();
+            theLine = pin.readLine();
             opcode = "start";
             while (theLine != null && !opcode.equals("end")) {
                 parseLine(theLine);
@@ -1576,15 +1580,15 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pKillTheBit.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/programList.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pstatuslights.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pcli.asm");
         //
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSyntax.asm");
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGalaxy80.asm");
         thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGa.asm");
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pcli.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGalaxy80.asm");
         //
         // Option: for debugging:
         thisProcess.listLabelAddresses();
-        // thisProcess.listImmediateValues();
+        thisProcess.listImmediateValues();
         thisProcess.programBytesListAndWrite("p1.bin");
 
         // thisProcess.showFileBytes("p1.bin");
@@ -1601,7 +1605,7 @@ public class asmProcessor {
         // thisProcess.showFile("pG.asm");
         //
         if (thisProcess.errorCount > 0) {
-            System.out.println("\n-- Number of errors: " + thisProcess.errorCount + "\n");
+            thisProcess.listErrorMsgs();
         }
 
         System.out.println("++ Exit.");

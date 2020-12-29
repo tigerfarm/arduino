@@ -4,13 +4,116 @@
                                 ; + Get components to run.
                                 ; + Get the complete program to run.
                                 ;
-                                ; ----------------------------------------------
 LF	EQU	0AH
 CR	EQU	0DH
-
 	ORG	0000H
-                                ; ...
                                 ; ----------------------------------------------
+        JMP     GALAXY          ; Stacy, allow using start from zero.
+                                ; ----------------------------------------------
+	DB	2 		;Course 1.0
+	DB	0
+	DB	2 		;Course 1.5
+	DB	0FFH
+	DB	2 		;Course 2.0
+	DB	0FEH
+	DB	1 		;Course 2.5
+	DB	0FEH
+	DB	000 		;Course 3.0
+	DB	0FEH
+	DB	0FFH		;Course 3.5
+	DB	0FEH
+	DB	0FEH		;Course 4.0
+	DB	0FEH
+	DB	0FEH		;Course 4.5
+	DB	0FFH
+	DB	0FEH		;Course 5.0
+	DB	000
+	DB	0FEH		;Course 5.5
+	DB	001
+	DB	0FEH		;Course 6.0
+	DB	002
+	DB	0FFH		;Course 6.5
+	DB	002
+	DB	000 		;Course 7.0
+	DB	002
+	DB	001 		;Course 7.5
+	DB	002
+	DB	002 		;Course 8.0
+	DB	002
+	DB	002 		;Course 8.5
+	DB	001
+
+	ORG	0028H
+
+	DB	000		;Register storage
+	DB	000 		;Register storage
+	DB	000 		;Register storage
+	DB	000 		;Tern porary storage
+
+	ORG	0030H
+
+	DB	000		;Crossing flag
+	DB	000		;Crossing indicator
+	DB	000		;Temporary storage
+	DB	000		;Tern porary storage
+
+	ORG	0040H
+
+ALNMSK:	EQU	00110000b	;Num. aliens mask
+STNMSK:	EQU	00001000b	;Space station mask
+STRMSK:	EQU	00000111b	;Num. stars mask
+ROWMSK:	EQU	00111000b	;Row mask
+COLMSK:	EQU	00000111b	;Column mask
+TORMSK:	EQU	00001111b	;Num. torpedos mask
+
+	DB	000 ;Random number		//40
+	DB	000 ;Ran. num. constant		//41
+DQUAD:	DB	000 ;quadrant contents		//42
+DSHPS:	DB	000 ;Sec. loco of S. ship	//43
+DSTRS:	DB	000 ;Sector loco of star	//44
+	DB	000 ;Sector loco of star	//45
+	DB	000 ;Sector loco of star	//46
+	DB	000 ;Sector loco of star	//47
+	DB	000 ;Sector loco of star	//48
+	DB	000 ;Sector loco of star	//49
+	DB	000 ;Sector loco of star	//4A
+DSSTS:	DB	000 ;Sec. loco of space st.	//4B
+DAS1S:	DB	000 ;S. loc. of A.S. No.1	//4C
+DAS2S:	DB	000 ;S. loc. of A.S. No.2	//4D
+DAS3S:	DB	000 ;S. loc. of A.S. No.3	//4E
+DMELS:	DB	000 ;Main nrgy L.S. half	//4F
+DMEMS:	DB	000 ;Main nrgy M.S. ha lf	//50
+DSELS:	DB	000 ;Shld nrgy L.S. half	//51
+DSEMS:	DB	000 ;Shld nrgy M.S. half	//52
+DAS1LS: DB	000 ;A.S. 1 nrgy L.S. half	//53
+DAS1MS: DB	000 ;A.S. 1 nrgy MS half	//54
+DAS2LS: DB	000 ;A.S. 2 nrgy L.S. half	//55
+DAS2MS: DB	000 ;A.S. 2 nrgy MS half	//56
+DAS3LS: DB	000 ;A.S. 3 nrgy L.S. half	//57
+DAS3MS: DB	000 ;A.S. 3 nrgy MS half	//58
+DSHPQ:	DB	000 ;Quad. loc. of S. ship	//59
+DNTOR:	DB	000 ;Number torpedoes		//5A
+DNSST:	DB	000 ;Num. space stations	//5B
+DNALS:	DB	000 ;Num. alien ships		//5C
+DNSTD:	DB	000 ;Num. stardates		//5D
+DTMP1:	DB	000 ;Temporary storage		//5E
+DTMP2:	DB	000 ;Temporary storage		//5F
+DDIG1:	DB	000 ;Digit storage		//60
+DDIG2:	DB	000 ;Digit storage		//61
+DDIG3:	DB	000 ;Digit storage		//62
+DDIG4:	DB	000 ;Digit storage		//63
+DDIG5:	DB	000 ;Digit storage		//64
+
+	ORG	0080H
+
+	DB	CR,LF,'1',' ',' ',' ',' ',' '
+	DB	'1',' ',' ',' ',' ',' ','1',' '
+	DB	' ',' ',' ',' ','1',' ',' ',' '
+	DB	' ',' ','1',' ',' ',' ',' ',' '
+	DB	'1',' ',' ',' ',' ',' ','1',' '
+	DB	' ',' ',' ',' ','1',' ',' ',' '
+	DB	' ',' ','1'
+
 ;  through 377 reserved for Galaxy content table
 
 	ORG	0100H	; Next page
@@ -146,9 +249,7 @@ MSGCHK:	DB	CR,LF
   	DB	'CHICKEN!'
   	DB	0
 
-                                ; ----------------------------------------------
 	ORG	0500H
-
                                 ; ----------------------------------------------
 MSG:
 	MOV	A,M		;Fetch character
@@ -169,22 +270,32 @@ RN:
 	ADD	M
 	DCR	L
 	MOV	M,A		;Save random number
-	RET                                ; 
+	RET                     ; 
                                 ; ----------------------------------------------
-                                ;
+                                ; ----------------------------------------------
+                                ; Above is Galaxy80.asm complete.
+                                ; ----------------------------------------------
                                 ; ...
                                 ; ----------------------------------------------
-                                ;
+                                ; Program starts running from here.
 GALAXY:
+	HLT			;Halt
 	LXI	SP,STACK	;Set stack pointer
-	CALL	CONINI		;Initialize Console I/O
+	; CALL	CONINI		;Initialize Console I/O
 	LXI	H,MSGDYW
 	CALL	MSG		;Print introduction
 START:
 	CALL	RN		;Increment random number
-	CALL	INPCK		;Input yet?
-	JP	START		;No, continue wait
+        ;
+	;CALL	INPCK		;Input yet?
+	;JP	START		;No, continue wait
 	CALL	INPUT		;Input character
+	cpi	0
+	jz	START           ; No input character
+        call    PRINT
+        ;
+	cpi	'n'		;No, stop game?
+	JZ	OVER		;Yes, vanish from galaxy
 	CPI	'N'		;No, stop game?
 	JZ	OVER		;Yes, vanish from galaxy
 	MVI	E,00C0H		;Set pointer to galaxy storage
@@ -195,10 +306,11 @@ START:
 OVER:
 	LXI	H,MSGCHK	;Print "CHICKEN"
 	CALL	MSG
+        call    println
 	HLT			;Halt
 
                                 ; ----------------------------------------------
-	ORG	0F80H
+;	ORG	0F80H
 
 ; Test status of input device for character
 ; Sets sign flag if character coming in
@@ -210,11 +322,11 @@ INPCK:
 INPCK1:
 	RET
 
-
 ; Input a character from the system
 ; Return character in register 'A'
 INPUT:
-	CALL	IOIN
+	;CALL	IOIN
+        in      SIOCTL          ; Stacy, check for input character.
 	RET
 
 ; Output a character to the system
@@ -226,7 +338,6 @@ PRINT:
 	POP	B		;Restore BC
 	RET
 
-; Stack
 	DS	32		;Stack Area
 STACK:	EQU	$
 
@@ -274,9 +385,9 @@ IOIN:	CALL	IOST		;WAIT FOR A CHARACTER
 ;******************************************************
 IOOUT:	MOV	C,A
 WLOOP:
-        IN	SIOCTL		;WAIT UNTIL OK TO XMIT
-	ANI	SIOTXR
-	JZ	WLOOP
+        ;IN	SIOCTL		;WAIT UNTIL OK TO XMIT
+	;ANI	SIOTXR
+	;JZ	WLOOP
 
 	MOV	A,C		
 	OUT	SIODAT		;SEND THE CHARACTER
@@ -288,10 +399,25 @@ CONINI:
         CALL    IOINI
 	RET
 
+                                ; --------------------------------------
+                                ; Stacy, I've added.
+    println:
+                mvi a,'\r'      ; Print CR and NL characters.
+                out 2
+                mvi a,'\n'
+                out 2
+                ret
+
 	END
                                     ; --------------------------------------
                                     ; Assembler needs updates.
++ Parse |MSGNEL: DB CR,LF|
+++ parseLine componets theRest|DB CR,LF|
+++ parseLine componets part1asIs|MSGNEL:| part1|msgnel:| part2|DB| theDirective|db| theRest|CR,LF|
+++ parseLine, DB directive, theLabel|MSGNEL| theValue|CR,LF| programTop=939
 
+- Error, immediate label not found: CR,LF.
 
+++ DB variable name: 'MSGNEL', single byte with a value of: CR,LF = -1.
                                     ; 
                                     ; --------------------------------------

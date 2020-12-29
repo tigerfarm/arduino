@@ -107,15 +107,17 @@
     CR  EQU 0DH
     LF  EQU 0AH
                                     ;
-MSGDYW:
-       DB '\n'
+    ;MSGDYW:
+    ;   DB '\n'
+    ;    DB CR,LF
+    ;   DB 'abc\n'
+    ;   DB 0
+    ;thePrompt   db      '> '
+    ;            db      0
+                                    ;
+MSGNEL: DB CR,LF
         DB CR,LF
-       DB 'abc\n'
-       DB 0
-    thePrompt   db      '> '
-                db      0
-;MSGDYW:	
-;        DB CR,LF
+                                    ;
 ;       DB 'DO YOU WANT TO GO ON A SPACE VOYAGE? '
 ;       DB 0
                                     ;
