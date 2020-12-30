@@ -13,37 +13,26 @@
                 call printStr
                                         ; --------------------------------------
                 mvi a,1
-                ;call printNumA
                 call printByteA
                 mvi a,200
-                ;call printNumA
                 call printByteA
                 mvi a,242
-                ;call printNumA
                 call printByteA
                 mvi a,100
-                ;call printNumA
                 call printByteA
                 mvi a,132
-                ;call printNumA
                 call printByteA
                 mvi a,96
-                ;call printNumA
                 call printByteA
                 mvi a,90
-                ;call printNumA
                 call printByteA
                 mvi a,81
-                ;call printNumA
                 call printByteA
                 mvi a,72
-                ;call printNumA
                 call printByteA
                 mvi a,63
-                ;call printNumA
                 call printByteA
                 mvi a,54
-                ;call printNumA
                 call printByteA
                 mvi a,45
                 ;call printNumA
@@ -55,16 +44,12 @@
                 ;call printNumA
                 call printByteA
                 mvi a,18
-                ;call printNumA
                 call printByteA
                 mvi a,9
-                ;call printNumA
                 call printByteA
                 mvi a,0
-                ;call printNumA
                 call printByteA
                 mvi a,255
-                ;call printNumA
                 call printByteA
                                         ; --------------------------------------
                 call println
@@ -73,9 +58,9 @@
                                         ;
                                         ; --------------------------------------
                                         ; --------------------------------------
-     printByteA:                        ; Print register A as a byte string.
+    printByteA:                         ; Print register A as a byte string.
                 mov b,a                 ; RegB for storing the print byte bits.
-                out 37                  ; For debugging: Register A = 248 = 370 = 11111000
+                out 37                  ; Print regA info: Register A = 248 = 370 = 11111000
                 mvi a,' '
                 out PRINT_PORT
                 mvi a,'='
@@ -83,10 +68,27 @@
                 mvi a,' '
                 out PRINT_PORT
                 mov a,b
+                call printBinaryA
+                                        ;
+                mov b,a
+                mvi a,' '
+                out PRINT_PORT
+                mvi a,'='
+                out PRINT_PORT
+                mvi a,' '
+                out PRINT_PORT
+                mov a,b
+                call printShortA
+                                        ;
+                ret
+                                        ; --------------------------------------
+    printBinaryA:                       ; Print register A as a binary string.
+                sta regA                ; Save
+                mov a,b
                 mvi c,0                 ; RegC for counting the printed bits.
                                         ;
                                         ; ------
-    printByteBit:
+    printBinaryBit:
                 ani 128                 ; AND 10000000 with register A
                 cpi 0
                 jnz printBit1
@@ -99,175 +101,67 @@
     nextBit:
                 mov a,c
                 cpi 7
-                rz                      ; 8 bits printed.
+                jz printedBits         ; 8 bits printed.
                 inr c
                 mov a,b
                 rlc
                 mov b,a
-                jmp printByteBit
-                                        ; --------------------------------------
-                                        ; --------------------------------------
-    printNumA:                          ; Print register A as a decimal number string.
-                lxi h,DigitMsg
-                call printStr
-                call printShortA
-                ret
-                                        ;
-                                        ; --------------------------------------
-                                        ;
-    printByteA2:                         ; Print register A as a byte string.
-                mov b,a
-                ; out 37                  ; For debugging: Register A = 248 = 370 = 11111000
-                mvi a,' '
-                out PRINT_PORT
-                mvi a,'='
-                out PRINT_PORT
-                mvi a,' '
-                out PRINT_PORT
-                                        ;
-                                        ; ------
-                mov a,b
-                ani 128                 ; AND 10000000 with register A
-                cpi 0
-                jnz printZero8-1
-                mvi a,'0'
-                out PRINT_PORT
-                jmp printZero7
-    printZero8-1:
-                mvi a,'1'
-                out PRINT_PORT
-    printZero7:
-                mov a,b
-                ani 64                  ; AND 01000000 with register A
-                cpi 0
-                jnz printZero7-1
-                mvi a,'0'
-                out PRINT_PORT
-                jmp printZero6
-    printZero7-1:
-                mvi a,'1'
-                out PRINT_PORT
-    printZero6:
-                mov a,b
-                ani 32                  ; AND 00100000 with register A
-                cpi 0
-                jnz printZero6-1
-                mvi a,'0'
-                out PRINT_PORT
-                jmp printZero5
-    printZero6-1:
-                mvi a,'1'
-                out PRINT_PORT
-    printZero5:
-                mov a,b
-                ani 16                  ; AND 00010000 with register A
-                cpi 0
-                jnz printZero5-1
-                mvi a,'0'
-                out PRINT_PORT
-                jmp printZero4
-    printZero5-1:
-                mvi a,'1'
-                out PRINT_PORT
-    printZero4:
-                mov a,b
-                ani 8                   ; AND 00001000 with register A
-                cpi 0
-                jnz printZero4-1
-                mvi a,'0'
-                out PRINT_PORT
-                jmp printZero3
-    printZero4-1:
-                mvi a,'1'
-                out PRINT_PORT
-    printZero3:
-                mov a,b
-                ani 4                   ; AND 00000100 with register A
-                cpi 0
-                jnz printZero3-1
-                mvi a,'0'
-                out PRINT_PORT
-                jmp printZero2
-    printZero3-1:
-                mvi a,'1'
-                out PRINT_PORT
-    printZero2:
-                mov a,b
-                ani 2                   ; AND 00000010 with register A
-                cpi 0
-                jnz printZero2-1
-                mvi a,'0'
-                out PRINT_PORT
-                jmp printZero1
-    printZero2-1:
-                mvi a,'1'
-                out PRINT_PORT
-    printZero1:
-                mov a,b
-                ani 1                   ; AND 00000001 with register A
-                cpi 0
-                jnz printZero1-1
-                mvi a,'0'
-                out PRINT_PORT
-                ret
-    printZero1-1:
-                mvi a,'1'
-                out PRINT_PORT
+                jmp printBinaryBit
+    printedBits:
+                lda regA                ; Restore
                 ret
                                         ; --------------------------------------
                                         ; --------------------------------------
-    printNumA:                          ; Print register A as a decimal number string.
-                lxi h,DigitMsg
-                call printStr
-                call printShortA
-                ret
-                                        ;
-                                        ; --------------------------------------
-                                        ;
     printShortA:                        ; Print register A digits. The number from 0 to 255.
                 sta regA                ; Retain register A value.
-                                        ; ------
-                cpi 200
-                jc cpi100               ; Jump if less than.
-                jnz print2xx
-                mvi a,'2'
-                out PRINT_PORT
-                mvi a,'0'
-                out PRINT_PORT
-                mvi a,'0'
-                out PRINT_PORT
-                jmp printShortAret
-    print2xx:
-                sui 200                 ; 242-200 = 42 register A.
-                mov c,a
-                mvi a,'2'
-                out PRINT_PORT
-                mov a,c
-                jmp cpi90
-    cpi100:
                 cpi 100
-                jc cpi90a                ; Jump if less than.
-                jnz print1xx
-                mvi a,'1'
+                jc printX0a
+                mvi c,'2'               ; RegC for counting the printed bits.
+                mvi b,200               ; RegB is the hundreds counter.
+                                        ;
+                                        ; ------------------------
+    printHundreds:
+                cmp b
+                jc cmpX00               ; Jump if less than.
+                jnz printX00
+                mov a,c                 ; Print hundred's digit
                 out PRINT_PORT
                 mvi a,'0'
                 out PRINT_PORT
                 mvi a,'0'
                 out PRINT_PORT
                 jmp printShortAret
-    print1xx:
-                sui 100                 ; 136-100 = 36 register A.
-                mov c,a
-                mvi a,'1'
-                out PRINT_PORT
+    printX00:                           ; Print hundred's digit
+                mov d,a
                 mov a,c
+                out PRINT_PORT
+                mov a,d
+                sub b                   ; 242-200 = 42 register A.
                 jmp cpi90
-                                        ; ------
-    cpi90a:                             ; Pad the space
-                mov c,a
-                mvi a,'0'
+    cmpX00:
+                mov d,a
+                                        ;
+                mvi a,'0'               ; Hundreds are zero, move to tens.
+                dcr c
+                cmp c
+                jz printX0
+                                        ;
+                mov a,b
+                sui 100
+                mov b,a
+                mov a,d
+                jmp printHundreds
+                                        ; ------------------------
+    printX0:                            ; Print tens digit.
+                mov a,d
+                jmp cpi90
+    printX0a:
+                mov d,a
+                mvi a,'0'               ; Hundreds are zero, move to tens.
                 out PRINT_PORT
-                mov a,c
+                mov a,d
+                cpi 10
+                jc cpi00a
     cpi90:
                 cpi 90
                 jc cpi80                ; Jump if less than.
@@ -402,8 +296,10 @@
                                         ; --------------------------------------
                                         ;
     StartMsg    db      '\r\n+++ Print bytes as decimal number strings and as binary number strings.'
+                db 0
     DigitMsg    db      '\r\n++ Number, '
-    TERMB       equ     0ffh            ; String terminator.
+                db 0
+    TERMB       equ     000h            ; String terminator.
                                         ;
     regA        db 0                    ; A variable for storing register A's value.
     PRINT_PORT  equ     2               ; When using port 2,
@@ -417,24 +313,24 @@
 ?- + runProcessor()
 
 +++ Print bytes as decimal number strings and as binary number strings.
-++ Digit = 001 = 00000001
-++ Digit = 200 = 11001000
-++ Digit = 242 = 11110010
-++ Digit = 100 = 01100100
-++ Digit = 132 = 10000100
-++ Digit = 096 = 01100000
-++ Digit = 090 = 01011010
-++ Digit = 081 = 01010001
-++ Digit = 072 = 01001000
-++ Digit = 063 = 00111111
-++ Digit = 054 = 00110110
-++ Digit = 045 = 00101101
-++ Digit = 036 = 00100100
-++ Digit = 027 = 00011011
-++ Digit = 018 = 00010010
-++ Digit = 009 = 00001001
-++ Digit = 000 = 00000000
-++ Digit = 255 = 11111111
+ > Register A =   1 = 001 = 00000001 = 00000001 = 001
+ > Register A = 200 = 310 = 11001000 = 11001000 = 200
+ > Register A = 242 = 362 = 11110010 = 11110010 = 242
+ > Register A = 100 = 144 = 01100100 = 01100100 = 100
+ > Register A = 132 = 204 = 10000100 = 10000100 = 132
+ > Register A =  96 = 140 = 01100000 = 01100000 = 096
+ > Register A =  90 = 132 = 01011010 = 01011010 = 090
+ > Register A =  81 = 121 = 01010001 = 01010001 = 081
+ > Register A =  72 = 110 = 01001000 = 01001000 = 072
+ > Register A =  63 = 077 = 00111111 = 00111111 = 063
+ > Register A =  54 = 066 = 00110110 = 00110110 = 054
+ > Register A =  45 = 055 = 00101101 = 00101101 = 045
+ > Register A =  36 = 044 = 00100100 = 00100100 = 036
+ > Register A =  27 = 033 = 00011011 = 00011011 = 027
+ > Register A =  18 = 022 = 00010010 = 00010010 = 018
+ > Register A =   9 = 011 = 00001001 = 00001001 = 009
+ > Register A =   0 = 000 = 00000000 = 00000000 = 000
+ > Register A = 255 = 377 = 11111111 = 11111111 = 255
 ++ HALT, host_read_status_led_WAIT() = 0
                                         ;
                                         ; --------------------------------------
