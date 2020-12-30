@@ -188,7 +188,7 @@ void MEM_WRITE_STEP(uint16_t memoryAddress, byte byteValue) {
   host_set_status_led_STACK();                \
   if( !host_read_status_led_WAIT() ) {        \
     host_set_status_leds_WRITEMEM();          \
-    host_set_data_leds(0xff);               \
+    host_set_data_leds("0xff");               \
     regSP--;                                  \
     host_set_addr_leds(regSP);                \
     printFrontPanel();                        \
@@ -226,8 +226,7 @@ void pushStackSlow(byte valueH, byte valueL) {
     printFrontPanel();                             \
     regSP++;                                       \
     host_set_addr_leds(regSP);                     \
-    valueH = MREAD(regSP);                         \
-    host_set_data_leds(valueH);                    \
+    valueH = host_set_data_leds(MREAD(regSP));     \
     printFrontPanel();                             \
     regSP++;                                       \
   }                                                \

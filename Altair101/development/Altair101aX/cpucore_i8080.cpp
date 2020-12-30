@@ -226,8 +226,7 @@ void pushStackSlow(byte valueH, byte valueL) {
     printFrontPanel();                             \
     regSP++;                                       \
     host_set_addr_leds(regSP);                     \
-    valueH = MREAD(regSP);                         \
-    host_set_data_leds(valueH);                    \
+    valueH = host_set_data_leds(MREAD(regSP));     \
     printFrontPanel();                             \
     regSP++;                                       \
   }                                                \

@@ -13,58 +13,58 @@
                 call printStr
                                         ; --------------------------------------
                 mvi a,1
-                ;call printNumA
+                call printNumA
                 call printByteA
                 mvi a,200
-                ;call printNumA
+                call printNumA
                 call printByteA
                 mvi a,242
-                ;call printNumA
+                call printNumA
                 call printByteA
                 mvi a,100
-                ;call printNumA
+                call printNumA
                 call printByteA
                 mvi a,132
-                ;call printNumA
+                call printNumA
                 call printByteA
                 mvi a,96
-                ;call printNumA
+                call printNumA
                 call printByteA
                 mvi a,90
-                ;call printNumA
+                call printNumA
                 call printByteA
                 mvi a,81
-                ;call printNumA
+                call printNumA
                 call printByteA
                 mvi a,72
-                ;call printNumA
+                call printNumA
                 call printByteA
                 mvi a,63
-                ;call printNumA
+                call printNumA
                 call printByteA
                 mvi a,54
-                ;call printNumA
+                call printNumA
                 call printByteA
                 mvi a,45
-                ;call printNumA
+                call printNumA
                 call printByteA
                 mvi a,36
-                ;call printNumA
+                call printNumA
                 call printByteA
                 mvi a,27
-                ;call printNumA
+                call printNumA
                 call printByteA
                 mvi a,18
-                ;call printNumA
+                call printNumA
                 call printByteA
                 mvi a,9
-                ;call printNumA
+                call printNumA
                 call printByteA
                 mvi a,0
-                ;call printNumA
+                call printNumA
                 call printByteA
                 mvi a,255
-                ;call printNumA
+                call printNumA
                 call printByteA
                                         ; --------------------------------------
                 call println
@@ -73,49 +73,7 @@
                                         ;
                                         ; --------------------------------------
                                         ; --------------------------------------
-     printByteA:                        ; Print register A as a byte string.
-                mov b,a                 ; RegB for storing the print byte bits.
-                out 37                  ; For debugging: Register A = 248 = 370 = 11111000
-                mvi a,' '
-                out PRINT_PORT
-                mvi a,'='
-                out PRINT_PORT
-                mvi a,' '
-                out PRINT_PORT
-                mov a,b
-                mvi c,0                 ; RegC for counting the printed bits.
-                                        ;
-                                        ; ------
-    printByteBit:
-                ani 128                 ; AND 10000000 with register A
-                cpi 0
-                jnz printBit1
-                mvi a,'0'
-                out PRINT_PORT
-                jmp nextBit
-    printBit1:
-                mvi a,'1'
-                out PRINT_PORT
-    nextBit:
-                mov a,c
-                cpi 7
-                rz                      ; 8 bits printed.
-                inr c
-                mov a,b
-                rlc
-                mov b,a
-                jmp printByteBit
-                                        ; --------------------------------------
-                                        ; --------------------------------------
-    printNumA:                          ; Print register A as a decimal number string.
-                lxi h,DigitMsg
-                call printStr
-                call printShortA
-                ret
-                                        ;
-                                        ; --------------------------------------
-                                        ;
-    printByteA2:                         ; Print register A as a byte string.
+    printByteA:                         ; Print register A as a byte string.
                 mov b,a
                 ; out 37                  ; For debugging: Register A = 248 = 370 = 11111000
                 mvi a,' '

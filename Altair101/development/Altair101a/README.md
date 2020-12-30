@@ -6,16 +6,6 @@ I can load the 4K basic program into memory. But not enough memory to run it.
 
 https://www.youtube.com/watch?v=8InWiihlIQw
 
-$ ls -l /var/folders/07/0fdddwrn42lc27mprqg359b40w1snn/T/arduino_build_142320/
-/var/folders/07/0fdddwrn42lc27mprqg359b40w1snn/T/arduino_build_142320/arduinoTest.ino.bin
-
-/Users/dthurston/Library/Arduino15/packages/arduino/tools/bossac/1.7.0-arduino3/bossac
-
-/Users/dthurston/Library/Arduino15/packages/arduino/tools/bossac/1.7.0-arduino3/bossac -i -d --port=tty.usbmodem1421 -U true -i -e -w -v /var/folders/07/0fdddwrn42lc27mprqg359b40w1snn/T/arduino_build_142320/arduinoTest.ino.bin -R
-
-$ ls -l /dev/tty.*
-crw-rw-rw-  1 root  wheel   20,   0 Dec 14 16:07 /dev/tty.Bluetooth-Incoming-Port
-crw-rw-rw-  1 root  wheel   20, 0x00000304 Dec 29 17:27 /dev/tty.usbmodem1421
 
 --------------------------------------------------------------------------------
 All output to port#2 which outputs to Serial2 (port# 2) if enabled, else to the default Serial port (port# 3).

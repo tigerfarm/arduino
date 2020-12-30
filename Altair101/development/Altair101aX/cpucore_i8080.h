@@ -153,8 +153,9 @@ extern const byte INT_ON;
 #define host_read_addr_leds(v) fpAddressWord
 
 //
-inline void host_set_data_leds(byte v) { fpDataByte = v; }
-// For Due, use the above, instead of the following:
+inline void host_set_data_leds(byte v) {
+  fpDataByte = v;
+  }
 // #define host_set_data_leds(v)  fpDataByte=(v)
 //
 #define host_read_data_leds()  fpDataByte

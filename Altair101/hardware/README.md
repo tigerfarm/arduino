@@ -29,7 +29,7 @@ Add Arduino Due board option to the IDE: https://www.arduino.cc/en/Guide/Cores
 Click on Tools menu and then Tools/Board/Boards Manager.
 Install Arduino SAM Boards (32-bits ARM Cortex-M3) by Arduino, boards: Arduino Due.
 I installed version 1.6.12.
-Once installed, select: Tools/Arduino ARM/Arduino Due
+Once installed, select: Tools/Board:Arduino ARM (32-bit) boards/Arduino Due/Arduino Due(Programming Port)
 ````
 
 Configure the IDE: https://www.arduino.cc/en/Guide/ArduinoDue

@@ -1735,17 +1735,13 @@ void processWaitSwitch(byte readByte) {
 #endif  // SETUP_SDCARD
       break;
     // -------------------------------------
-    /*
     default:
-    {
 #ifdef LOG_MESSAGES
       Serial.print(F("- Ignored: "));
       printByte(readByte);
       Serial.println();
 #endif
       break;
-    }
-    */
   }
 }
 

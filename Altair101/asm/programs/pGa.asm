@@ -393,7 +393,7 @@ MNS:
 	MOV	M,A		;Put back in galaxy
 	JMP	GLXCK		;Check galaxy again
 DIGPRT:
-                                ;
+                                ; Line 382 in pGalaxy.asm
                                 ; ----------------------------------------------
                                 ; ...
 GLXCK:

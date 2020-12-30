@@ -24,8 +24,7 @@ extern CPUFUN cpu_opcodes[256];
 // Mega
 #if defined(__AVR_ATmega2560__)
 #define THIS_CPU "Mega 2560"
-#define MEMSIZE (2048+1024)          // Mega2650 has 8k SRAM, use 2048, Max, 6K: #define MEMSIZE (4096+2048)
-// #define MEMSIZE (2048)          // Mega2650 has 8k SRAM, use 2048, Max, 6K: #define MEMSIZE (4096+2048)
+#define MEMSIZE (2048)          // Mega2650 has 8k SRAM, use 2048, Max, 6K: #define MEMSIZE (4096+2048)
 // #define MEMSIZE (4096+512)          // This works, and loads 4K Basic.
 //
 #define USE_THROTTLE 0          // Set for slower Mega CPU.
@@ -33,7 +32,6 @@ extern CPUFUN cpu_opcodes[256];
 
 // ----------------------------
 // Due
-// The USB Programming port, next to the DC connector, is for uploading sketches and communicating with the Arduino.
 #elif defined(__SAM3X8E__)
 #define THIS_CPU "Due"
 #define MEMSIZE 0x10000         // 64K, Hex=10000 decimal=65536
@@ -152,11 +150,7 @@ extern const byte INT_ON;
 #define host_set_addr_leds(v)  fpAddressWord=(v)
 #define host_read_addr_leds(v) fpAddressWord
 
-//
-inline void host_set_data_leds(byte v) { fpDataByte = v; }
-// For Due, use the above, instead of the following:
-// #define host_set_data_leds(v)  fpDataByte=(v)
-//
+#define host_set_data_leds(v)  fpDataByte=(v)
 #define host_read_data_leds()  fpDataByte
 
 #define host_read_status_led_WAIT()   status_wait
