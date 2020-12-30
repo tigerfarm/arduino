@@ -14,8 +14,12 @@
     rather than having all the data lights on, which is what the original Altair 8800 does.
 
   ---------------------------------------------------------
-  Update asm to compile, pGalaxy80.asm
+  Next to work on
 
+  + Programs that should run on an Altair-Duino.
+  + Programs that should run on an Altair 8800 or clone.
+  
+  Done: Update asm to compile, pGalaxy80.asm
   Add Serial2 i/o ports.
       + Currently works, instruction to output regA to Serial2: OUT 2
       + Add the same port number as 88-2SIO DATA PORT in pGalaxy80.asm.

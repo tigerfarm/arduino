@@ -1591,7 +1591,7 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGa2.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGalaxy80.asm");
         //
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/opOutDigits.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/altairAdd.asm");
         //
         if (thisProcess.errorCount > 0) {
             thisProcess.listErrorMsgs();
