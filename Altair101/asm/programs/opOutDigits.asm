@@ -131,7 +131,7 @@
                                         ; Print register A as a binary string.
     printBinaryA:
                 sta regA                ; Save, restore on return.
-                mov a,b
+                mov b,a
                 mvi c,0                 ; RegC for counting the printed bits.
                                         ;
                                         ; ------
