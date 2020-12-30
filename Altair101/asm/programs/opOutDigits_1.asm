@@ -296,7 +296,7 @@
                 ret
                                         ; --------------------------------------
                                         ;
-    StartMsg    db      '\r\n+++ Print bytes as binary and decimal number strings.'
+    StartMsg    db      '\r\n+++ Print bytes as binary number strings and as decimal number strings.'
                 db 0
     DigitMsg    db      '\r\n++ Number, '
                 db 0
@@ -314,7 +314,7 @@
 ?- + r, RUN.
 ?- + runProcessor()
 
-+++ Print bytes as binary and decimal number strings.
++++ Print bytes as decimal number strings and as binary number strings.
  > Register A =   1 = 001 = 00000001 = 00000001 = 001
  > Register A = 200 = 310 = 11001000 = 11001000 = 200
  > Register A = 242 = 362 = 11110010 = 11110010 = 242
