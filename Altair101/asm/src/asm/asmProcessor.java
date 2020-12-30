@@ -23,7 +23,10 @@
     ---------------------------------------------
     +++ Next assembler updates and issues,
 
-    + Make label and immediate names case sensitive.
+    + List line for: -- 412: - Error, immediate label not found: c.
+    + Line that I should list: mov a,c
+
+    + Test if label and immediate names case sensitive.
 
     + Cleanup parseLine() code.
 
@@ -192,7 +195,7 @@ public class asmProcessor {
     //
     private final int NAME_NOT_FOUND = -1;
     private final String NAME_NOT_FOUND_STR = "-1";
-    private boolean debugMessage = true;    // false true
+    private boolean debugMessage = false;    // false true
 
     // Use for storing error messages which are printed at the end, in a summary.
     private int errorCount = 0;

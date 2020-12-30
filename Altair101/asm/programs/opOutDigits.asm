@@ -12,45 +12,85 @@
                 lxi h,StartMsg
                 call printStr
                                         ; --------------------------------------
+                mvi e,'A'               ; Register to be printed.
+                ;
                 mvi a,1
-                call printByteA
+                call printByte
                 mvi a,200
-                call printByteA
+                call printByte
                 mvi a,242
-                call printByteA
+                call printByte
                 mvi a,100
-                call printByteA
+                call printByte
                 mvi a,132
-                call printByteA
+                call printByte
                 mvi a,96
-                call printByteA
+                call printByte
                 mvi a,90
-                call printByteA
+                call printByte
                 mvi a,81
-                call printByteA
+                call printByte
                 mvi a,72
-                call printByteA
+                call printByte
                 mvi a,63
-                call printByteA
+                call printByte
                 mvi a,54
-                call printByteA
+                call printByte
                 mvi a,45
                 ;call printNumA
-                call printByteA
+                call printByte
                 mvi a,36
                 ;call printNumA
-                call printByteA
+                call printByte
                 mvi a,27
                 ;call printNumA
-                call printByteA
+                call printByte
                 mvi a,18
-                call printByteA
+                call printByte
                 mvi a,9
-                call printByteA
+                call printByte
                 mvi a,0
-                call printByteA
+                call printByte
                 mvi a,255
-                call printByteA
+                call printByte
+                ;
+                call println
+                mvi a,'-'
+                out PRINT_PORT
+                out PRINT_PORT
+                out PRINT_PORT
+                out PRINT_PORT
+                out PRINT_PORT
+                out PRINT_PORT
+                ;
+                mvi a,30
+                mvi e,'A'               ; Register to be printed.
+                call printByte
+                ;
+                mvi b,31
+                mov a,b
+                mvi e,'B'               ; Register to be printed.
+                call printByte
+                mov b,a                 ; Restore the original register value.
+                ;
+                mvi c,32
+                mov a,c
+                mvi e,'C'               ; Register to be printed.
+                call printByte
+                mov c,a                 ; Restore the original register value.
+                ;
+                mvi d,33
+                mov a,d
+                mvi e,'D'               ; Register to be printed.
+                call printByte
+                mov d,a                 ; Restore the original register value.
+                ;
+                mvi e,34
+                mov a,e
+                mvi e,'E'               ; Register to be printed.
+                call printByte
+                mov e,a                 ; Restore the original register value.
+                ;
                                         ; --------------------------------------
                 call println
                 hlt
@@ -58,9 +98,14 @@
                                         ;
                                         ; --------------------------------------
                                         ; --------------------------------------
-    printByteA:                         ; Print register A as a byte string.
+    printByte:                          ; Print register A as a byte string.
                 mov b,a                 ; RegB for storing the print byte bits.
-                out 37                  ; Print regA info: Register A = 248 = 370 = 11111000
+                ; out 37                  ; Print regA info: Register A = 248 = 370 = 11111000
+                lxi h,RegAMsg
+                call printStr
+                mov a,e                 ; Print which register is being printed.
+                out PRINT_PORT
+                                        ;
                 mvi a,' '
                 out PRINT_PORT
                 mvi a,'='
@@ -82,8 +127,10 @@
                                         ;
                 ret
                                         ; --------------------------------------
-    printBinaryA:                       ; Print register A as a binary string.
-                sta regA                ; Save
+                                        ; --------------------------------------
+                                        ; Print register A as a binary string.
+    printBinaryA:
+                sta regA                ; Save, restore on return.
                 mov a,b
                 mvi c,0                 ; RegC for counting the printed bits.
                                         ;
@@ -112,19 +159,20 @@
                 ret
                                         ; --------------------------------------
                                         ; --------------------------------------
-    printShortA:                        ; Print register A digits. The number from 0 to 255.
-                sta regA                ; Retain register A value.
-                cpi 100
+                                        ; Print register A digits. The decimal number from 0 to 255.
+    printShortA:
+                sta regA                ; Save, restore on return.
+                cpi 100                 ; If less then 100, jump to tens.
                 jc printX0a
-                mvi c,'2'               ; RegC for counting the printed bits.
-                mvi b,200               ; RegB is the hundreds counter.
                                         ;
+                mvi c,'2'               ; RegC for counting the printed hundreds byte.
+                mvi b,200               ; RegB is the hundreds counter.
                                         ; ------------------------
     printHundreds:
-                cmp b
+                cmp b                   ; Compare regA with regB.
                 jc cmpX00               ; Jump if less than.
-                jnz printX00
-                mov a,c                 ; Print hundred's digit
+                jnz printX00            ; Jump if greater than.
+                mov a,c                 ; Else equals, print hundred's number.
                 out PRINT_PORT
                 mvi a,'0'
                 out PRINT_PORT
@@ -136,127 +184,69 @@
                 mov a,c
                 out PRINT_PORT
                 mov a,d
-                sub b                   ; 242-200 = 42 register A.
-                jmp cpi90
+                sub b                   ; 242-200 = 42 in register A.
+                jmp printX0             ; Print the rest, example: 42.
     cmpX00:
                 mov d,a
-                                        ;
                 mvi a,'0'               ; Hundreds are zero, move to tens.
                 dcr c
                 cmp c
                 jz printX0
                                         ;
                 mov a,b
-                sui 100
+                sui 100                 ; Check for the next lower hundreds.
                 mov b,a
                 mov a,d
                 jmp printHundreds
-                                        ; ------------------------
-    printX0:                            ; Print tens digit.
-                mov a,d
-                jmp cpi90
     printX0a:
                 mov d,a
-                mvi a,'0'               ; Hundreds are zero, move to tens.
+                mvi a,'0'               ; Tens padding.
                 out PRINT_PORT
                 mov a,d
-                cpi 10
-                jc cpi00a
-    cpi90:
-                cpi 90
-                jc cpi80                ; Jump if less than.
-                sui 90                  ; Subtract immediate number from register A.
-                mov c,a                 ; Value example, c = 6, from 96.
-                mvi a,'9'
+                cpi 10                  ; If less than 10, jump to single digit.
+                jc printXa
+                                        ; ------------------------
+                                        ; Print tens digit.
+    printX0:
+                mvi c,'9'               ; RegC for counting the printed tens byte.
+                mvi b,90                ; RegB is the tens counter.
+    printTens:
+                cmp b
+                jc cmpX0                ; Jump if less than.
+                mov d,a
+                mov a,c
                 out PRINT_PORT
-                call printRegC
+                mov a,d
+                sub b                   ; Subtract immediate number from register A.
+                mov c,a                 ; Value example, d = 6, from 96.
+                call printDigitC
                 jmp printShortAret
-    cpi80:
-                cpi 80
-                jc cpi70
-                sui 80
-                mov c,a
-                mvi a,'8'
-                out PRINT_PORT
-                call printRegC
-                jmp printShortAret
-    cpi70:
-                cpi 70
-                jc cpi60
-                sui 70
-                mov c,a
-                mvi a,'7'
-                out PRINT_PORT
-                call printRegC
-                jmp printShortAret
-    cpi60:
-                cpi 60
-                jc cpi50
-                sui 60
-                mov c,a
-                mvi a,'6'
-                out PRINT_PORT
-                call printRegC
-                jmp printShortAret
-    cpi50:
-                cpi 50
-                jc cpi40
-                sui 50
-                mov c,a
-                mvi a,'5'
-                out PRINT_PORT
-                call printRegC
-                jmp printShortAret
-    cpi40:
-                cpi 40
-                jc cpi30
-                sui 40
-                mov c,a
-                mvi a,'4'
-                out PRINT_PORT
-                call printRegC
-                jmp printShortAret
-    cpi30:
-                cpi 30
-                jc cpi20
-                sui 30
-                mov c,a
-                mvi a,'3'
-                out PRINT_PORT
-                call printRegC
-                jmp printShortAret
-    cpi20:
-                cpi 20
-                jc cpi10
-                sui 20
-                mov c,a
-                mvi a,'2'
-                out PRINT_PORT
-                call printRegC
-                jmp printShortAret
-    cpi10:
-                cpi 10
-                jc cpi00a
+    cmpX0:
+                dcr c
+                mov d,a
+                mov a,b
                 sui 10
-                mov c,a
-                mvi a,'1'
-                out PRINT_PORT
-                call printRegC
-                jmp printShortAret
-    cpi00a:                             ; Pad the space
+                mov b,a
+                mov a,d
+                jmp printTens
+    printXa:                            ; Pad the space
                 mov c,a
                 mvi a,'0'
                 out PRINT_PORT
                 mov a,c
-    cpi00:
-                call printRegA
-                jmp printShortAret
+                                        ; ------------------------
+                                        ; Print ones digit.
+    printOnes:
+                mvi b,'0'
+                add b
+                out PRINT_PORT
                                         ; ------
     printShortAret:
                 lda regA                ; Restore register A value.
                 ret
                                         ; --------------------------------------
-    printRegA:
+                                        ; --------------------------------------
+    printDigitA:
                 sta regA
                 mvi b,'0'
                 add b
@@ -264,7 +254,7 @@
                 lda regA
                 ret
                                         ; ------
-    printRegC:                          ; Print single digit.
+    printDigitC:                          ; Print single digit.
                 mov a,c
                 mvi b,'0'
                 add b
@@ -300,6 +290,8 @@
                 db 0
     DigitMsg    db      '\r\n++ Number, '
                 db 0
+    RegAMsg     db      '\r\n > Register '
+                db 0
     TERMB       equ     000h            ; String terminator.
                                         ;
     regA        db 0                    ; A variable for storing register A's value.
@@ -313,6 +305,36 @@
 + Download complete.
 ?- + r, RUN.
 ?- + runProcessor()
+
++++ Print bytes as binary and decimal number strings.
+ > Register A = 00000001 = 001
+ > Register A = 11001000 = 200
+ > Register A = 11110010 = 242
+ > Register A = 01100100 = 100
+ > Register A = 10000100 = 132
+ > Register A = 01100000 = 096
+ > Register A = 01011010 = 090
+ > Register A = 01010001 = 081
+ > Register A = 01001000 = 072
+ > Register A = 00111111 = 063
+ > Register A = 00110110 = 054
+ > Register A = 00101101 = 045
+ > Register A = 00100100 = 036
+ > Register A = 00011011 = 027
+ > Register A = 00010010 = 018
+ > Register A = 00001001 = 009
+ > Register A = 00000000 = 000
+ > Register A = 11111111 = 255
+------
+ > Register A = 00011110 = 030
+ > Register B = 00011111 = 031
+ > Register C = 00100000 = 032
+ > Register D = 00100001 = 033
+ > Register E = 00100010 = 034
+
+++ HALT, host_read_status_led_WAIT() = 0
+
+Print with debug (out 37):
 
 +++ Print bytes as binary and decimal number strings.
  > Register A =   1 = 001 = 00000001 = 00000001 = 001
