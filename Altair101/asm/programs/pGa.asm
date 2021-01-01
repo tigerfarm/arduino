@@ -453,6 +453,7 @@ INPCK1:
 INPUT:
 	;CALL	IOIN
         in      SIOCTL          ; Stacy, check for input character.
+        OUT	SIOCTL          ; Stacy, IOIN also echos the character.
 	RET
 
 ; Output a character to the system
@@ -536,7 +537,57 @@ CONINI:
 
 	END
                                     ; --------------------------------------
-                                    ; Assembler needs updates.
+                                    ; Program notes.
+
+SD0:
+	CALL	CKMN		;Enough energy?
+	JC	EOUT		;No, ship out of energy
+	CALL	FMMN		;Yes, take from main
+	LXI	H,MSGDSE	;Print warning
+	CALL	CMSG		;'Danger - Shield Energy 000'
+	MVI	B,2		;Divide energy loss by 4
+	CALL	DVD
+	CALL	CKMN		;Delete from main as a
+	JC	EOUT		;Penalty for no energy
+	JMP	FMMN		;In shields
+
+CKMN:
+	MVI	L,050H		;Set pointer to main energy
+CK1:
+	MOV	A,M		;Fetch most significant half
+	DCR	L		;Set pointer to least signif. half
+	CMP	D		;Is most significant half = 0?
+	RNZ			;No, return with flags set up
+CK2:
+	MOV	A,M		;If greater than or =, ret. with
+	CMP	E		;'C' flag reset, if less than
+	RET			;Return with 'C' flag set
+
+Change rnz to ret, then always have enough energy.
+++    2439:00001001 10000111: 11000000 : C0:300 > opcode: rnz
+++    2442:00001001 10001010: 11001001 : C9:311 > opcode: ret
+
+++ regA:  69 = 105 = 01000101
+++ regB:  26 = 032 = 00011010  regC:  10 = 012 = 00001010
+++ regD:   0 = 000 = 00000000  regE:  10 = 012 = 00001010
+++ regH:   0 = 000 = 00000000  regL:  64 = 100 = 01000000
 
                                     ; 
                                     ; --------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

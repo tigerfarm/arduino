@@ -1,16 +1,17 @@
 ; ------------------------------------------------
-;
 ; Stacy, be a challenge to get this to compile using my assembler.
-;
-; I/O ports:
-; SIOCTL    EQU 10H   ;88-2SIO CONTROL PORT
-;   IN	SIOCTL
-; SIODAT    EQU 11H   ;88-2SIO DATA PORT
-;   OUT	SIODAT
-;
-; Original site:
-;   https://github.com/deltecent/scelbi-galaxy
 ; ------------------------------------------------
+;
+; Start byte, set switches: 
+; ++    2467:00001001 10100011: 00110001 : 31:061 > opcode: lxi sp,STACK
+; ?- + x, EXAMINE: 2467
+; ?- 
+; INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
+;  .    *    .  *   .   .    .    *   .         .   .    *   *   .    .   .   *
+; WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
+;  *    .      .   .   .   .   *   .   .   *    *   .    *   .   .    .   *   *
+;             S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
+;              v   v   v   v   ^   v   v   ^    ^   v    ^   v   v    v   ^   ^
 ;
 ; +----------------------------------+
 ; |       SCELBI'S GALAXY GAME       |
@@ -91,6 +92,9 @@ LF	EQU	0AH
 CR	EQU	0DH
 
 	ORG	0000H
+                                ; ----------------------------------------------
+;        JMP     GALAXY          ; Stacy, allow using start from zero.
+                                ; ----------------------------------------------
 
 	DB	2 		;Course 1.0
 	DB	0
@@ -1124,20 +1128,27 @@ SPRC:
 	ANI	07H		;Separate row
 	MOV	B,A		;Save row in 'B'
 	RET
-
+                                ; ----------------------------------------------
+                                ; Program starts running from here.
 GALAXY:
 	LXI	SP,STACK	;Set stack pointer
-	CALL	CONINI		;Initialize Console I/O
 	LXI	H,MSGDYW
 	CALL	MSG		;Print introduction
 START:
 	CALL	RN		;Increment random number
-	CALL	INPCK		;Input yet?
-	JP	START		;No, continue wait
 	CALL	INPUT		;Input character
+	cpi	0
+	jz	START           ; No input character
+        call    PRINT
+	cpi	'n'		;No, stop game?
+	JZ	OVER		;Yes, vanish from galaxy
 	CPI	'N'		;No, stop game?
 	JZ	OVER		;Yes, vanish from galaxy
 	MVI	E,00C0H		;Set pointer to galaxy storage
+                                ; ----------------------------------------------
+        ;jmp START
+                                ; ----------------------------------------------
+                                ; ----------------------------------------------
 GLXSET:
 	CALL	RN		;Fetch random number
 	ANI	07FH
@@ -1766,7 +1777,8 @@ GL2:
 	DB	000000000b,000010011b,000010101b,000000000b,000000000b,000000100b,000000110b,000000010b
 	DB	000000011b,000010101b,000000000b,000000000b,000010101b,000000000b,000100111b,000000000b
 
-	; ORG	0F80H
+	ORG	0F80H
+                                ; ----------------------------------------------
 
 ; Test status of input device for character
 ; Sets sign flag if character coming in
@@ -1778,11 +1790,11 @@ INPCK:
 INPCK1:
 	RET
 
-
 ; Input a character from the system
 ; Return character in register 'A'
 INPUT:
-	CALL	IOIN
+	;CALL	IOIN
+        in      SIOCTL          ; Stacy, check for input character.
 	RET
 
 ; Output a character to the system
@@ -1794,7 +1806,6 @@ PRINT:
 	POP	B		;Restore BC
 	RET
 
-; Stack
 	DS	32		;Stack Area
 STACK:	EQU	$
 
@@ -1841,9 +1852,10 @@ IOIN:	CALL	IOST		;WAIT FOR A CHARACTER
 ; CLOBBERS C.                                         *
 ;******************************************************
 IOOUT:	MOV	C,A
-WLOOP:	IN	SIOCTL		;WAIT UNTIL OK TO XMIT
-	ANI	SIOTXR
-	JZ	WLOOP
+WLOOP:
+        ;IN	SIOCTL		;WAIT UNTIL OK TO XMIT
+	;ANI	SIOTXR
+	;JZ	WLOOP
 
 	MOV	A,C		
 	OUT	SIODAT		;SEND THE CHARACTER
@@ -1851,13 +1863,22 @@ WLOOP:	IN	SIOCTL		;WAIT UNTIL OK TO XMIT
 	RET
 
 
-CONINI:	CALL	IOINI
+CONINI:
+        CALL    IOINI
 	RET
+
+                                ; --------------------------------------
+                                ; Stacy, I've added.
+    println:
+                mvi a,'\r'      ; Print CR and NL characters.
+                out 2
+                mvi a,'\n'
+                out 2
+                ret
 
 	END
                                     ; --------------------------------------
                                     ; Assembler needs updates.
-
 
                                     ; 
                                     ; --------------------------------------

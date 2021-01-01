@@ -1,180 +1,107 @@
-                                    ; --------------------------------------
-                                    ; Test ADD, and moving data from addresses to registers and back.
-                                    ;
-                                    ; Run the program.
-                                    ; EXAMINE address 64 (address of Addr1), which equals 6 from: sta Addr1.
-                                    ;
-                                    ; --------------------------------------
-            lxi sp,STACK            ; Set stack pointer.
-    Start:
-                                    ; --------------------------------------
-            mvi a,7                 ; Initialize values to add.
-            mvi b,1
-            mvi c,2
-            mvi d,3
-            mvi e,4
-            mvi h,5
-            mvi l,6
-            call printRegisters
-                                    ; --------------------------------------
-                                    ; Test register adding.
-            add b                   ; Add source register to A.
-            mov b,a                 ; Move the result back to the source register, to print the sum, later.
-            add c
-            mov c,a
-            add d
-            mov d,a
-            add e
-            mov e,a
-            add h
-            mov h,a
-            add l
-            mov l,a
-            add a
-            call printRegisters
-                            ; --------------------------------------
-                            ; Add content at address H:L, to register A.
-                            ;
-            mvi a,6         ; Move # to register A.
-            mvi e,'A'       ; Print register A.
-            call printByte
-            sta Addr1       ; Store register A's content to the address(hb:lb).
-            lxi h,Addr1     ; Load an address (value of Addr1) into H:L.
-            call printHL    ; Print the register values for H:L and the content at that address.
-                            ; > Register H:L 000:076 = 00000000:01001100 Data = 006
-            lxi h,Addr1
-            mov a,m
-            mvi e,'A'       ; Print register A.
-            call printByte  ; > Register A = 00000110 = 006
-            mvi a,3         ; Move # to register A.
-            call printByte  ; > Register A = 00000011 = 003
-            lxi h,Addr1
-            add m           ; ADD: Content at address H:L(M) + Register A = 6 + 3 = 9
-            call printByte  ; > Register A = 00001001 = 009
-                            ; --------------------------------------
-            call println
-            hlt             ; The program will halt at each iteration, after the first.
-            jmp Start
-                            ; --------------------------------------
-                                    ;
-                                    ; --------------------------------------
-    Addr1       equ 024             ; This program is less than 1024 bytes.
-    Addr2       ds 2                ; 2 bytes at this location, address 3. The address of Addr2, is 3.
-                                    ;
-                                    ; --------------------------------------
-    printHL:
-                sta RegA
-                mov a,h
-                sta RegH
-                mov a,l
-                sta RegL
-                ;
-                lxi h,RegMsg
-                call printStr
-                mvi a,'H'
-                out PRINT_PORT
-                mvi a,':'
-                out PRINT_PORT
-                mvi a,'L'
-                out PRINT_PORT
-                mvi a,' '
-                out PRINT_PORT
-                ;
-                lda regH
-                call printShortA
-                mvi a,':'
-                out PRINT_PORT
-                lda regL
-                call printShortA
-                ;
-                mvi a,' '
-                out PRINT_PORT
-                mvi a,'='
-                out PRINT_PORT
-                mvi a,' '
-                out PRINT_PORT
-                ;
-                lda regH
-                call printBinaryA
-                mvi a,':'
-                out PRINT_PORT
-                lda regL
-                call printBinaryA
-                ;
-                lxi h,DataMsg
-                call printStr
-                lda regH
-                mov h,a
-                lda regL
-                mov l,a
-                mov a,m                 ; Print the data value in the HL address.
-                call printShortA
-                ;
-                lda regH
-                mov h,a
-                lda regL
-                mov l,a
-                lda regA
-                ret
                                         ; --------------------------------------
-    printRegisters:
-                push A
-                push B
-                push D
-                push H
-                sta RegA
-                mov a,b
-                sta RegB
-                mov a,c
-                sta RegC
-                mov a,d
-                sta RegD
-                mov a,e
-                sta RegE
-                mov a,h
-                sta RegH
-                mov a,l
-                sta RegL
+                                        ; Binary to decimal conversion for printing.
                                         ;
-                lda regA
+                                        ; 10000100 : 84:204 > immediate: 132 : 132
+                                        ; 10000000 : 128
+                                        ; 00000100 :   4
+                                        ;
+                                        ; --------------------------------------
+                                        ;
+                lxi sp,STACK            ; Set stack pointer.
+    Start:
+                lxi h,StartMsg
+                call printStr
+                                        ; --------------------------------------
+                mvi e,'A'               ; Register to be printed.
+                ;
+                mvi a,1
+                call printByte
+                mvi a,200
+                call printByte
+                mvi a,242
+                call printByte
+                mvi a,100
+                call printByte
+                mvi a,132
+                call printByte
+                mvi a,96
+                call printByte
+                mvi a,90
+                call printByte
+                mvi a,81
+                call printByte
+                mvi a,72
+                call printByte
+                mvi a,63
+                call printByte
+                mvi a,54
+                call printByte
+                mvi a,45
+                ;call printNumA
+                call printByte
+                mvi a,36
+                ;call printNumA
+                call printByte
+                mvi a,27
+                ;call printNumA
+                call printByte
+                mvi a,18
+                call printByte
+                mvi a,9
+                call printByte
+                mvi a,0
+                call printByte
+                mvi a,255
+                call printByte
+                ;
+                call println
+                mvi a,'-'
+                out PRINT_PORT
+                out PRINT_PORT
+                out PRINT_PORT
+                out PRINT_PORT
+                out PRINT_PORT
+                out PRINT_PORT
+                ;
+                mvi a,30
                 mvi e,'A'               ; Register to be printed.
                 call printByte
                 ;
-                lda regB
+                mvi b,31
+                mov a,b
                 mvi e,'B'               ; Register to be printed.
                 call printByte
+                mov b,a                 ; Restore the original register value.
                 ;
-                lda regC
-                mvi e,'C'
+                mvi c,32
+                mov a,c
+                mvi e,'C'               ; Register to be printed.
                 call printByte
+                mov c,a                 ; Restore the original register value.
                 ;
-                lda regD
-                mvi e,'D'
+                mvi d,33
+                mov a,d
+                mvi e,'D'               ; Register to be printed.
                 call printByte
+                mov d,a                 ; Restore the original register value.
                 ;
-                lda regE
-                mvi e,'E'
+                mvi e,34
+                mov a,e
+                mvi e,'E'               ; Register to be printed.
                 call printByte
+                mov e,a                 ; Restore the original register value.
                 ;
-                lda regH
-                mvi e,'H'
-                call printByte
-                ;
-                lda regL
-                mvi e,'L'
-                call printByte
-                ;
-                pop H
-                pop D
-                pop B
-                pop A
+                                        ; --------------------------------------
                 call println
-                ret
+                hlt
+                jmp Start
+                                        ;
+                                        ; --------------------------------------
                                         ; --------------------------------------
     printByte:                          ; Print register A as a byte string.
                 mov b,a                 ; RegB for storing the print byte bits.
                 ; out 37                  ; Print regA info: Register A = 248 = 370 = 11111000
-                lxi h,RegMsg
+                lxi h,RegAMsg
                 call printStr
                 mov a,e                 ; Print which register is being printed.
                 out PRINT_PORT
@@ -208,7 +135,7 @@
                 mvi c,0                 ; RegC for counting the printed bits.
                                         ;
                                         ; ------
-    printBinaryAit:
+    printBinaryBit:
                 ani 128                 ; AND 10000000 with register A
                 cpi 0
                 jnz printBit1
@@ -226,7 +153,7 @@
                 mov a,b
                 rlc
                 mov b,a
-                jmp printBinaryAit
+                jmp printBinaryBit
     printedBits:
                 lda regA                ; Restore
                 ret
@@ -363,9 +290,7 @@
                 db 0
     DigitMsg    db      '\r\n++ Number, '
                 db 0
-    RegMsg      db      '\r\n > Register '
-                db 0
-    DataMsg      db      ' Data = '
+    RegAMsg     db      '\r\n > Register '
                 db 0
     TERMB       equ     000h            ; String terminator.
                                         ;
@@ -373,13 +298,6 @@
     PRINT_PORT  equ     2               ; When using port 2,
                                         ;   if port 3 is disable, then it defaults to 3, the default serial port.
                                         ; --------------------------------------
-    RegA        db      0
-    RegB        db      0
-    RegC        db      0
-    RegD        db      0
-    RegE        db      0
-    RegH        db      0
-    RegL        db      0
                 ds 32                   ; Stack space.
     STACK:      equ $
                                         ; --------------------------------------
@@ -391,28 +309,55 @@
 ?- + r, RUN.
 ?- + runProcessor()
 
- > Register A = 00000111 = 007
- > Register B = 00000001 = 001
- > Register C = 00000010 = 002
- > Register D = 00000011 = 003
- > Register E = 00000100 = 004
- > Register H = 00000101 = 005
- > Register L = 00000110 = 006
-
++++ Print bytes as binary and decimal number strings.
+ > Register A = 00000001 = 001
+ > Register A = 11001000 = 200
+ > Register A = 11110010 = 242
+ > Register A = 01100100 = 100
+ > Register A = 10000100 = 132
+ > Register A = 01100000 = 096
+ > Register A = 01011010 = 090
+ > Register A = 01010001 = 081
+ > Register A = 01001000 = 072
+ > Register A = 00111111 = 063
  > Register A = 00110110 = 054
- > Register B = 00000111 = 007
- > Register C = 00001001 = 009
- > Register D = 00001100 = 012
- > Register E = 00010000 = 016
- > Register H = 00010101 = 021
- > Register L = 00011011 = 027
-
- > Register A = 00000110 = 006
- > Register H:L 000:079 = 00000000:01001111 Data = 006
- > Register A = 00000110 = 006
- > Register A = 00000011 = 003
+ > Register A = 00101101 = 045
+ > Register A = 00100100 = 036
+ > Register A = 00011011 = 027
+ > Register A = 00010010 = 018
  > Register A = 00001001 = 009
+ > Register A = 00000000 = 000
+ > Register A = 11111111 = 255
+------
+ > Register A = 00011110 = 030
+ > Register B = 00011111 = 031
+ > Register C = 00100000 = 032
+ > Register D = 00100001 = 033
+ > Register E = 00100010 = 034
 
+++ HALT, host_read_status_led_WAIT() = 0
+
+Print with debug (out 37):
+
++++ Print bytes as binary and decimal number strings.
+ > Register A =   1 = 001 = 00000001 = 00000001 = 001
+ > Register A = 200 = 310 = 11001000 = 11001000 = 200
+ > Register A = 242 = 362 = 11110010 = 11110010 = 242
+ > Register A = 100 = 144 = 01100100 = 01100100 = 100
+ > Register A = 132 = 204 = 10000100 = 10000100 = 132
+ > Register A =  96 = 140 = 01100000 = 01100000 = 096
+ > Register A =  90 = 132 = 01011010 = 01011010 = 090
+ > Register A =  81 = 121 = 01010001 = 01010001 = 081
+ > Register A =  72 = 110 = 01001000 = 01001000 = 072
+ > Register A =  63 = 077 = 00111111 = 00111111 = 063
+ > Register A =  54 = 066 = 00110110 = 00110110 = 054
+ > Register A =  45 = 055 = 00101101 = 00101101 = 045
+ > Register A =  36 = 044 = 00100100 = 00100100 = 036
+ > Register A =  27 = 033 = 00011011 = 00011011 = 027
+ > Register A =  18 = 022 = 00010010 = 00010010 = 018
+ > Register A =   9 = 011 = 00001001 = 00001001 = 009
+ > Register A =   0 = 000 = 00000000 = 00000000 = 000
+ > Register A = 255 = 377 = 11111111 = 11111111 = 255
 ++ HALT, host_read_status_led_WAIT() = 0
                                         ;
                                         ; --------------------------------------

@@ -40,24 +40,17 @@
             call printByte
             sta Addr1       ; Store register A's content to the address(hb:lb).
             lxi h,Addr1     ; Load an address (value of Addr1) into H:L.
-            out 36
             call printHL    ; Print the register values for H:L and the content at that address.
-                            ; > Register H:L = 0:64, Data: 6
-                            ;
+                            ; > Register H:L 000:076 = 00000000:01001100 Data = 006
+            lxi h,Addr1
+            mov a,m
+            mvi e,'A'       ; Print register A.
+            call printByte  ; > Register A = 00000110 = 006
             mvi a,3         ; Move # to register A.
-            mvi e,'A'       ; Print register A.
-            call printByte
-                            ; > Register A =   3 = 003 = 00000011
+            call printByte  ; > Register A = 00000011 = 003
+            lxi h,Addr1
             add m           ; ADD: Content at address H:L(M) + Register A = 6 + 3 = 9
-            mvi e,'A'       ; Print register A.
-            call printByte
-                            ; > Register A =   9 = 011 = 00001001
-                            ;
-            sta Addr2       ; Store register A's content to the address(hb:lb).
-                            ;
-                            ; EXAMINE address 64 (address of Addr1), which equals 6 from: sta Addr1.
-                            ; EXAMINE address 03 (address of Addr2), which equals 9 from: sta Addr2.
-                            ;
+            call printByte  ; > Register A = 00001001 = 009
                             ; --------------------------------------
             call println
             hlt             ; The program will halt at each iteration, after the first.
@@ -108,7 +101,15 @@
                 lda regL
                 call printBinaryA
                 ;
-                call println
+                lxi h,DataMsg
+                call printStr
+                lda regH
+                mov h,a
+                lda regL
+                mov l,a
+                mov a,m                 ; Print the data value in the HL address.
+                call printShortA
+                ;
                 lda regH
                 mov h,a
                 lda regL
@@ -364,6 +365,8 @@
                 db 0
     RegMsg      db      '\r\n > Register '
                 db 0
+    DataMsg      db      ' Data = '
+                db 0
     TERMB       equ     000h            ; String terminator.
                                         ;
     regA        db 0                    ; A variable for storing register A's value.
@@ -405,11 +408,11 @@
  > Register L = 00011011 = 027
 
  > Register A = 00000110 = 006
- > Register H:L =   0: 69 = 00000000:01000101, Data:   6 = 006 = 00000110
- > Register H:L 000:069 = 00000000:01000101
+ > Register H:L 000:079 = 00000000:01001111 Data = 006
+ > Register A = 00000110 = 006
+ > Register A = 00000011 = 003
+ > Register A = 00001001 = 009
 
- > Register A = 00000011 = 003
- > Register A = 00000011 = 003
 ++ HALT, host_read_status_led_WAIT() = 0
                                         ;
                                         ; --------------------------------------

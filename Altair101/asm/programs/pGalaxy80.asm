@@ -164,7 +164,7 @@ DAS1S:	DB	000 ;S. loc. of A.S. No.1	//4C
 DAS2S:	DB	000 ;S. loc. of A.S. No.2	//4D
 DAS3S:	DB	000 ;S. loc. of A.S. No.3	//4E
 DMELS:	DB	000 ;Main nrgy L.S. half	//4F
-DMEMS:	DB	000 ;Main nrgy M.S. ha lf	//50
+DMEMS:	DB	000 ;Main nrgy M.S. half	//50
 DSELS:	DB	000 ;Shld nrgy L.S. half	//51
 DSEMS:	DB	000 ;Shld nrgy M.S. half	//52
 DAS1LS: DB	000 ;A.S. 1 nrgy L.S. half	//53
@@ -1855,9 +1855,4 @@ CONINI:	CALL	IOINI
 	RET
 
 	END
-                                    ; --------------------------------------
-                                    ; Assembler needs updates.
-
-
-                                    ; 
                                     ; --------------------------------------

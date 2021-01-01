@@ -273,4 +273,16 @@ Altair-Duino forum:
 https://groups.google.com/forum/#!forum/altair-duino
 
 --------------------------------------------------------------------------------
+### Working to run Galaxy80.asm
+````
+; ----------------------------------------------
+; Programing challenge:
+; + Done: Compile using my assembler.
+; + Done: Interactive basics: input and output.
+; + Done: Run the start to get the initial prompt and "n" to halt the program.
+; + Get the complete program to run by adding section and section.
+;
+; ------------------------------------------------
+````
+--------------------------------------------------------------------------------
 Cheers

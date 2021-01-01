@@ -24,9 +24,13 @@ extern CPUFUN cpu_opcodes[256];
 // Mega
 #if defined(__AVR_ATmega2560__)
 #define THIS_CPU "Mega 2560"
-#define MEMSIZE (2048+1024)          // Mega2650 has 8k SRAM, use 2048, Max, 6K: #define MEMSIZE (4096+2048)
-// #define MEMSIZE (2048)          // Mega2650 has 8k SRAM, use 2048, Max, 6K: #define MEMSIZE (4096+2048)
-// #define MEMSIZE (4096+512)          // This works, and loads 4K Basic.
+// #define MEMSIZE (2048+1024)        // Mega2650 has 8k SRAM, use 2048, Max, 6K: #define MEMSIZE (4096+2048)
+// #define MEMSIZE (2048)             // Mega2650 has 8k SRAM, use 2048, Max, 6K: #define MEMSIZE (4096+2048)
+//
+// The following worksto load 4K Basic, though it doesn't run.
+// The following works for pGalaxy80.asm:
+// + Write to serial port. Number of bytes: 4074 in the file: p1.bin
+#define MEMSIZE (4096+512)
 //
 #define USE_THROTTLE 0          // Set for slower Mega CPU.
 #define MAX_TIMERS 9

@@ -16,6 +16,15 @@
   ---------------------------------------------------------
   Next to work on
 
+  When reading or writing, echo the file name.
+  Current:
+?- + M, Write program Memory into a file.
++ Confirm, y/n:
+  Change to:
+?- + M, Write program Memory into the file: 00001001.BIN
++ Confirm, y/n:
+  
+
   + Programs that should run on an Altair-Duino.
   + Programs that should run on an Altair 8800 or clone.
   
@@ -889,11 +898,12 @@ byte altair_in(byte portDataByte) {
       inputDataByte = highByte(fpAddressToggleWord);
       break;
     }
+    case 2:
     case 16:
+    case 17:
     // pGalaxy80.asm input port.
     //  SIOCTL  EQU 10H   ;88-2SIO CONTROL PORT
     //  IN   SIOCTL
-    case 2:
       {
         if (SERIAL2_OUTPUT) {
           // Input from the external USB component Serial2 port.
@@ -988,11 +998,14 @@ void altair_out(byte portDataByte, byte regAdata) {
   //
   // Write output byte to the output port.
   switch (portDataByte) {
+    case 2:
+    case 16:
     case 17:
     // pGalaxy80.asm output port.
+    //  SIOCTL  EQU 10H   ;88-2SIO CONTROL PORT
     //  SIODAT  EQU 11H   ;88-2SIO DATA PORT
+    //  OUT  SIOCTL
     //  OUT  SIODAT
-    case 2:
       if (SERIAL2_OUTPUT) {
         Serial2.write(regAdata);
       } else {
@@ -1003,13 +1016,13 @@ void altair_out(byte portDataByte, byte regAdata) {
       // Out to the USB serial port.
       Serial.write(regAdata);
       break;
-    case 16:
+    //case 16:
       // Actual output of bytes. Example output a byte to the serial port (IDE monitor).
       // Test port: 20Q (octal: 020).
-      Serial_print("++ Test output port, byte output to USB serial port:");
-      Serial.print(regAdata);         // Write regAdata to serial port.
-      Serial.println(F(":"));
-      break;
+      // Serial_print("++ Test output port, byte output to USB serial port:");
+      // Serial.print(regAdata);         // Write regAdata to serial port.
+      // Serial.println(F(":"));
+      // break;
     // ---------------------------------------
     // Echo processor values.
     case 30:
