@@ -1630,6 +1630,7 @@ public class asmProcessor {
 }
 
 /* Confirmed: byte value to nemonic.
+    And visual of parameter correctness.
 
 ++ 00 000 00000000 NOP  nop     NA  :NOP:
 ++ 01 001 00000001 LXI  lxib        :LXI B,D16  B <- byte 3, C <- byte 2:
@@ -1654,7 +1655,7 @@ public class asmProcessor {
 ++ 14 020 00010100 INR  inrd    R   :INR D      D <- D+1:
 ++ 15 021 00010101 DCR  dcrd    R   :DCR D      D <- D-1:
 ++ 16 022 00010110 MVI  mvid        :MVI D, D8  D <- byte 2:
-++ 17 023 00010111 RAL  ral     D8  :RAL        A = A << 1; bit 0 = prev CY; CY = prev bit 7:
+++ 17 023 00010111 RAL  ral     NA  :RAL        A = A << 1; bit 0 = prev CY; CY = prev bit 7:
 ++ 18 ---
 ++ 19 025 00011001 DAD  dadd    R   :DAD D      HL = HL + DE:
 ++ 1a 026 00011010 LDAX ldaxd   R   :LDAX D     A <- (DE):
@@ -1663,14 +1664,14 @@ public class asmProcessor {
 ++ 1d 029 00011101 DCR  dcre    R   :DCR E      E <- E-1:
 ++ 1e 030 00011110 MVI  mvie        :MVI E,D8   E <- byte 2:
 ++ 1f 031 00011111 RAR  rar     NA  :RAR        A = A >> 1; bit 7 = prev bit 7; CY = prev bit 0:
-++ 20 032 00100000 RIM  rim         :RIM        special:
+++ 20 032 00100000 RIM  rim     NA  :RIM        special:
 ++ 21 033 00100001 LXI  lxih        :LXI H,D16  H <- byte 3, L <- byte 2:
 ++ 22 034 00100010 SHLD shld    adr :SHLD adr   (adr) <-L; (adr+1)<-H:
 ++ 23 035 00100011 INX  inxh    R   :INX H      HL <- HL + 1:
 ++ 24 036 00100100 INR  inrh    R   :INR H      H <- H+1:
 ++ 25 037 00100101 DCR  dcrh    R   :DCR H      H <- H-1:
 ++ 26 038 00100110 MVI  mvih        :MVI H,D8   H <- byte 2:
-++ 27 039 00100111 DAA  daa     D8  :DAA        special:
+++ 27 039 00100111 DAA  daa     NA  :DAA        special:
 ++ 28 ---
 ++ 29 041 00101001 DAD  dadh    R   :DAD H      HL = HL + HI:
 ++ 2a 042 00101010 LHLD lhld    adr :LHLD adr   L <- (adr); H<-(adr+1):
@@ -1678,15 +1679,15 @@ public class asmProcessor {
 ++ 2c 044 00101100 INR  inrl    R   :INR L      L <- L+1:
 ++ 2d 045 00101101 DCR  dcrl    R   :DCR L      L <- L-1:
 ++ 2e 046 00101110 MVI  mvil        :MVI L, D8  L <- byte 2:
-++ 2f 047 00101111 CMA  cma     D8  :CMA        A <- !A:
-++ 30 048 00110000 SIM  sim         :SIM        special:
+++ 2f 047 00101111 CMA  cma     NA  :CMA        A <- !A:
+++ 30 048 00110000 SIM  sim     NA  :SIM        special:
 ++ 31 049 00110001 LXI  lxisp       :LXI SP,D16 SP.hi <- byte 3, SP.lo <- byte 2:
 ++ 32 050 00110010 STA  sta     adr :STA adr    (adr) <- A:
 ++ 33 051 00110011 INX  inxsp   R   :INX SP     SP = SP + 1:
 ++ 34 052 00110100 INR  inrm    R   :INR M      (HL) <- (HL)+1:
 ++ 35 053 00110101 DCR  dcrm    R   :DCR M      (HL) <- (HL)-1:
 ++ 36 054 00110110 MVI  mvim        :MVI M,D8   (HL) <- byte 2:
-++ 37 055 00110111 STC  stc     D8  :STC        CY = 1:
+++ 37 055 00110111 STC  stc     adr :STC        CY = 1:
 ++ 38 ---
 ++ 39 057 00111001 DAD  dadsp   R   :DAD SP     HL = HL + SP:
 ++ 3a 058 00111010 LDA  lda     adr :LDA adr    A <- (adr):
@@ -1694,7 +1695,7 @@ public class asmProcessor {
 ++ 3c 060 00111100 INR  inra    R   :INR A      A <- A+1:
 ++ 3d 061 00111101 DCR  dcra    R   :DCR A      A <- A-1:
 ++ 3e 062 00111110 MVI  mvia        :MVI A,D8   A <- byte 2:
-++ 3f 063 00111111 CMC  cmc     D8  :CMC        CY=!CY:
+++ 3f 063 00111111 CMC  cmc     NA  :CMC        CY=!CY:
 ++ 40 064 01000000 MOV  movbb       :MOV B,B    B <- B:
 ++ 41 065 01000001 MOV  movbc       :MOV B,C    B <- C:
 ++ 42 066 01000010 MOV  movbd       :MOV B,D    B <- D:

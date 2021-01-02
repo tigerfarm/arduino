@@ -141,28 +141,24 @@ public class asmOpcodesBinary {
             String opcode;
             String opcodeType = "";
             opcodeCount = 0;
-            System.out.println("\n+ List opcode syntax.");
+            // System.out.println("\n+ List opcode syntax.");
             while (theLine != null) {
                 theLine = theLine.trim();
                 if (theLine.startsWith("// opcode, no parameters")) {
                     opcodeType = "NA";
-                    System.out.print("++ opcode, no parameters");
-                    System.out.println("");
+                    // System.out.println("++ opcode, no parameters");
                 }
                 if (theLine.startsWith("// opcode <address label>")) {
                     opcodeType = "adr";
-                    System.out.print("++ opcode <address label>");
-                    System.out.println("");
+                    // System.out.println("++ opcode <address label>");
                 }
                 if (theLine.startsWith("// opcode <immediate>")) {
                     opcodeType = "D8";
-                    System.out.print("++ opcode <immediate>");
-                    System.out.println("");
+                    // System.out.println("++ opcode <immediate>");
                 }
                 if (theLine.startsWith("// opcode <register|RegisterPair>")) {
                     opcodeType = "R";
-                    System.out.print("++ opcode <register|RegisterPair>");
-                    System.out.println("");
+                    // System.out.prinlnt("++ opcode <register|RegisterPair>");
                 }
                 /*
                 if (theLine.startsWith("case \"mvi\":")) {
@@ -200,7 +196,7 @@ public class asmOpcodesBinary {
                     } else {
                         opcode = "---";
                     }
-                    System.out.println("++ opcode :" + opcode + ":" + opcodeType);
+                    // System.out.println("++ opcode :" + opcode + ":" + opcodeType);
                 }
                 //
                 theLine = pin.readLine();
@@ -210,11 +206,11 @@ public class asmOpcodesBinary {
             System.out.print("+ *** IOException: ");
             System.out.println(ioe.toString());
         }
-        System.out.println("+++ opcodesTop = " + opcodesTop);
-        System.out.println("+++ getOpcodeType(\"hlt\") = " + getOpcodeType("hlt"));
-        System.out.println("+++ getOpcodeType(\"jmp\") = " + getOpcodeType("jmp"));
-        System.out.println("+++ getOpcodeType(\"out\") = " + getOpcodeType("out"));
-        System.out.println("+++ getOpcodeType(\"cmp\") = " + getOpcodeType("cmp"));
+        System.out.println("+++ Opcode types loaded, count = " + opcodesTop);
+        // System.out.println("+++ getOpcodeType(\"hlt\") = " + getOpcodeType("hlt"));
+        // System.out.println("+++ getOpcodeType(\"jmp\") = " + getOpcodeType("jmp"));
+        // System.out.println("+++ getOpcodeType(\"out\") = " + getOpcodeType("out"));
+        // System.out.println("+++ getOpcodeType(\"cmp\") = " + getOpcodeType("cmp"));
     }
 
     // -------------------------------------------------------------------------
@@ -264,6 +260,7 @@ public class asmOpcodesBinary {
                         }
                     }
                     logic = "";
+                    String opcodeSyntax = "";
                     String paddingD;
                     String padding = "";
                     String paddingV = "";
@@ -305,7 +302,7 @@ public class asmOpcodesBinary {
                         infoLow = infoLow.replaceAll(",", "").toLowerCase();
                         String doCheck = " ";
                         if (!infoLow.startsWith(theOpcodeValue)) {
-                            if (!theOpcodeValue.equals("pusha") && !theOpcodeValue.equals("popa"))  {
+                            if (!theOpcodeValue.equals("pusha") && !theOpcodeValue.equals("popa")) {
                                 doCheck = "*";
                             }
                         }
@@ -326,6 +323,28 @@ public class asmOpcodesBinary {
                             default:
                                 break;
                         }
+                        // Confirm the parameter type.
+                        //  0123456789012345678901234567890123456789
+                        //  0x04  1  Z,S,P,AC INR B      B <- B+1
+                        String doCheck2 = "  ";
+                        opcodeSyntax = theLine.substring(18, 28).trim();
+                        if (theType.equals("NA") && !opcode.toLowerCase().equals(theOpcodeValue)) {
+                            // 0x07  1  CY       RLC        A = A ...
+                            // ++ 07 007 00000111 RLC  rlc     NA  :RLC        A = A ...
+                            doCheck2 = "- ";
+                        }
+                        int c1 = theLine.indexOf(" ", 7);
+                        if (c1 > 0) {
+                            // 0x04  1  Z,S,P,AC INR B      B <- B+1 
+                            String param = theLine.substring(c1, 28);
+                            if (!theType.equals("R")) {
+                                doCheck2 = "  ";
+                                // doCheck2 = "-p";
+                            }
+                        } else {
+                            // Error because type is NA.
+                            doCheck2 = "--";
+                        }
                         System.out.print("++ " + value + " "
                                 + paddingD + decimal + " "
                                 + byteToString((byte) decimal) + " "
@@ -333,6 +352,7 @@ public class asmOpcodesBinary {
                                 + " " + theOpcodeValue + paddingV
                                 + " " + doCheck
                                 + " " + theType + paddingT
+                                + " " + doCheck2
                                 + " :" + info + ":"
                         );
                         System.out.println("");
