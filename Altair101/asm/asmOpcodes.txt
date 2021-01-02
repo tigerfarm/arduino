@@ -289,10 +289,10 @@ cmc :00111111:CMC #    00 111 111  ?  Compliment Carry flag.
 xthl:11100011:XTHL #   11 100 011  1  Set H:L registers to same value as SP. L <-> (SP); H <-> (SP+1)
 sphl:11111001:SPHL #   11 100 011  1  Set SP address to the same address value as H:L. SP=HL
 
-jm  :11100010:JM a     11 100 010  ?  Jump to address, if minus.
-jp  :11101010:JP a     11 101 010  ?  Jump to address, if positive.
-jpe :11110010:JPE a    11 110 010  ?  Jump to address, if parity even.
-jpo :11111010:JPO a    11 111 010  ?  Jump to address, if parity odd.
+jm  :11111010:JM a     11 100 010  ?  Jump to address, if minus.
+jp  :11110010:JP a     11 101 010  ?  Jump to address, if positive.
+jpe :11101010:JPE a    11 110 010  ?  Jump to address, if parity even.
+jpo :11100010:JPO a    11 111 010  ?  Jump to address, if parity odd.
 
 ana :10100SSS:ANA S    10 100 SSS  1  AND register with A (with ZSPCA).
 anaa:10100111:|A <- A & A
@@ -305,8 +305,8 @@ anal:10100101:|A <- A & L
 anam:10100110:|A <- A & M(HL)
 
 stax:00RP0010:STAX RP  00 RP0 010  1  Store indirect through BC or DE.
-adcb:00000010:|(BC)B <- A
-adcd:00010010:|(DE)D <- A
+staxb:00000010:|(BC)B <- A
+staxd:00010010:|(DE)D <- A
 
 adc :10001SSS:ADC S    10 001 SSS  1  S+A+CY->A: Add register S, to A, plus the carry bit (with ZSPCA).
 adca:10001111:|A+A+CY->A: Not implemented.

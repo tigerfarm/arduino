@@ -177,14 +177,23 @@ public class asmOpcodesBinary {
                             default:
                                 break;
                         }
+                        String infoLow = info.replaceAll(" ", "").toLowerCase();
+                        infoLow = infoLow.replaceAll(",", "").toLowerCase();
+                        String doCheck = " ";
+                        if (!infoLow.startsWith(theOpcodeValue)) {
+                            doCheck = "*";
+                        }
+                        if (theOpcodeValue.startsWith("mov")) {
+                            // ++ 77 119 01110111 MOV  movma * :MOV M,A    (HL) <- A:
+                        }
                         System.out.print("++ " + value + " "
                                 + paddingD + decimal + " "
                                 + byteToString((byte)decimal) + " "
                                 + opcode + padding
-                                + " "+ theOpcodeValue + paddingV
+                                + " " + theOpcodeValue + paddingV
+                                + " " + doCheck
                                 + " :" + info + ":"
                         );
-                        System.out.print(":" + theOpcodes.getOpcodeValue(decimal) + ":");
                         System.out.println("");
                     }
                     // opcodeArray[opcodeCount++] = new asmOpcode(value, opcode, info, logic);

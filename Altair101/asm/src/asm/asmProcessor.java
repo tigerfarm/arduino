@@ -1626,268 +1626,262 @@ public class asmProcessor {
 
 /* Confirm and fix.
 
-++ 33 051 INX  ---   :INX SP     SP = SP + 1:::                                 ***********
-++ 36 054 MVI  ---   :MVI M,D8   (HL) <- byte 2:::                              ***********
-++ 3b 059 DCX  ---   :DCX SP     SP = SP-1:::                                   ***********
-++ ae 174 XRA  ---   :XRA M      A <- A ^ (HL):::                               ***********
-
-+ Number of opcode byte values = 0
-++ 00 000 00000000 NOP  nop   :NOP::nop:
-++ 01 001 00000001 LXI  lxib  :LXI B,D16  B <- byte 3, C <- byte 2::lxib:
-++ 02 002 00000010 STAX adcb  :STAX B     (BC) <- A::adcb:
-++ 03 003 00000011 INX  inxb  :INX B      BC <- BC+1::inxb:
-++ 04 004 00000100 INR  inrb  :INR B      B <- B+1::inrb:
-++ 05 005 00000101 DCR  dcrb  :DCR B      B <- B-1::dcrb:
-++ 06 006 00000110 MVI  mvib  :MVI B, D8  B <- byte 2::mvib:
-++ 07 007 00000111 RLC  rlc   :RLC        A = A << 1; bit 0 = prev bit 7; CY = prev bit 7::rlc:
+++ 00 000 00000000 NOP  nop     :NOP:
+++ 01 001 00000001 LXI  lxib    :LXI B,D16  B <- byte 3, C <- byte 2:
+++ 02 002 00000010 STAX staxb   :STAX B     (BC) <- A:
+++ 03 003 00000011 INX  inxb    :INX B      BC <- BC+1:
+++ 04 004 00000100 INR  inrb    :INR B      B <- B+1:
+++ 05 005 00000101 DCR  dcrb    :DCR B      B <- B-1:
+++ 06 006 00000110 MVI  mvib    :MVI B, D8  B <- byte 2:
+++ 07 007 00000111 RLC  rlc     :RLC        A = A << 1; bit 0 = prev bit 7; CY = prev bit 7:
 ++ 08 ---
-++ 09 009 00001001 DAD  dadb  :DAD B      HL = HL + BC::dadb:
-++ 0a 010 00001010 LDAX ldaxb :LDAX B     A <- (BC)::ldaxb:
-++ 0b 011 00001011 DCX  dcxb  :DCX B      BC = BC-1::dcxb:
-++ 0c 012 00001100 INR  inrc  :INR C      C <- C+1::inrc:
-++ 0d 013 00001101 DCR  dcrc  :DCR C      C <-C-1::dcrc:
-++ 0e 014 00001110 MVI  mvic  :MVI C,D8   C <- byte 2::mvic:
-++ 0f 015 00001111 RRC  rrc   :RRC        A = A >> 1; bit 7 = prev bit 0; CY = prev bit 0::rrc:
+++ 09 009 00001001 DAD  dadb    :DAD B      HL = HL + BC:
+++ 0a 010 00001010 LDAX ldaxb   :LDAX B     A <- (BC):
+++ 0b 011 00001011 DCX  dcxb    :DCX B      BC = BC-1:
+++ 0c 012 00001100 INR  inrc    :INR C      C <- C+1:
+++ 0d 013 00001101 DCR  dcrc    :DCR C      C <-C-1:
+++ 0e 014 00001110 MVI  mvic    :MVI C,D8   C <- byte 2:
+++ 0f 015 00001111 RRC  rrc     :RRC        A = A >> 1; bit 7 = prev bit 0; CY = prev bit 0:
 ++ 10 ---
-++ 11 017 00010001 LXI  lxid  :LXI D,D16  D <- byte 3, E <- byte 2::lxid:
-++ 12 018 00010010 STAX adcd  :STAX D     (DE) <- A::adcd:
-++ 13 019 00010011 INX  inxd  :INX D      DE <- DE + 1::inxd:
-++ 14 020 00010100 INR  inrd  :INR D      D <- D+1::inrd:
-++ 15 021 00010101 DCR  dcrd  :DCR D      D <- D-1::dcrd:
-++ 16 022 00010110 MVI  mvid  :MVI D, D8  D <- byte 2::mvid:
-++ 17 023 00010111 RAL  ral   :RAL        A = A << 1; bit 0 = prev CY; CY = prev bit 7::ral:
+++ 11 017 00010001 LXI  lxid    :LXI D,D16  D <- byte 3, E <- byte 2:
+++ 12 018 00010010 STAX staxd   :STAX D     (DE) <- A:
+++ 13 019 00010011 INX  inxd    :INX D      DE <- DE + 1:
+++ 14 020 00010100 INR  inrd    :INR D      D <- D+1:
+++ 15 021 00010101 DCR  dcrd    :DCR D      D <- D-1:
+++ 16 022 00010110 MVI  mvid    :MVI D, D8  D <- byte 2:
+++ 17 023 00010111 RAL  ral     :RAL        A = A << 1; bit 0 = prev CY; CY = prev bit 7:
 ++ 18 ---
-++ 19 025 00011001 DAD  dadd  :DAD D      HL = HL + DE::dadd:
-++ 1a 026 00011010 LDAX ldaxd :LDAX D     A <- (DE)::ldaxd:
-++ 1b 027 00011011 DCX  dcxd  :DCX D      DE = DE-1::dcxd:
-++ 1c 028 00011100 INR  inre  :INR E      E <-E+1::inre:
-++ 1d 029 00011101 DCR  dcre  :DCR E      E <- E-1::dcre:
-++ 1e 030 00011110 MVI  mvie  :MVI E,D8   E <- byte 2::mvie:
-++ 1f 031 00011111 RAR  rar   :RAR        A = A >> 1; bit 7 = prev bit 7; CY = prev bit 0::rar:
-++ 20 032 00100000 RIM  ---   :RIM        special:::
-++ 21 033 00100001 LXI  lxih  :LXI H,D16  H <- byte 3, L <- byte 2::lxih:
-++ 22 034 00100010 SHLD shld  :SHLD adr   (adr) <-L; (adr+1)<-H::shld:
-++ 23 035 00100011 INX  inxh  :INX H      HL <- HL + 1::inxh:
-++ 24 036 00100100 INR  inrh  :INR H      H <- H+1::inrh:
-++ 25 037 00100101 DCR  dcrh  :DCR H      H <- H-1::dcrh:
-++ 26 038 00100110 MVI  mvih  :MVI H,D8   H <- byte 2::mvih:
-++ 27 039 00100111 DAA  daa   :DAA        special::daa:
+++ 19 025 00011001 DAD  dadd    :DAD D      HL = HL + DE:
+++ 1a 026 00011010 LDAX ldaxd   :LDAX D     A <- (DE):
+++ 1b 027 00011011 DCX  dcxd    :DCX D      DE = DE-1:
+++ 1c 028 00011100 INR  inre    :INR E      E <-E+1:
+++ 1d 029 00011101 DCR  dcre    :DCR E      E <- E-1:
+++ 1e 030 00011110 MVI  mvie    :MVI E,D8   E <- byte 2:
+++ 1f 031 00011111 RAR  rar     :RAR        A = A >> 1; bit 7 = prev bit 7; CY = prev bit 0:
+++ 20 032 00100000 RIM  ---   * :RIM        special:
+++ 21 033 00100001 LXI  lxih    :LXI H,D16  H <- byte 3, L <- byte 2:
+++ 22 034 00100010 SHLD shld    :SHLD adr   (adr) <-L; (adr+1)<-H:
+++ 23 035 00100011 INX  inxh    :INX H      HL <- HL + 1:
+++ 24 036 00100100 INR  inrh    :INR H      H <- H+1:
+++ 25 037 00100101 DCR  dcrh    :DCR H      H <- H-1:
+++ 26 038 00100110 MVI  mvih    :MVI H,D8   H <- byte 2:
+++ 27 039 00100111 DAA  daa     :DAA        special:
 ++ 28 ---
-++ 29 041 00101001 DAD  dadh  :DAD H      HL = HL + HI::dadh:
-++ 2a 042 00101010 LHLD lhld  :LHLD adr   L <- (adr); H<-(adr+1)::lhld:
-++ 2b 043 00101011 DCX  dcxh  :DCX H      HL = HL-1::dcxh:
-++ 2c 044 00101100 INR  inrl  :INR L      L <- L+1::inrl:
-++ 2d 045 00101101 DCR  dcrl  :DCR L      L <- L-1::dcrl:
-++ 2e 046 00101110 MVI  mvil  :MVI L, D8  L <- byte 2::mvil:
-++ 2f 047 00101111 CMA  cma   :CMA        A <- !A::cma:
-++ 30 048 00110000 SIM  ---   :SIM        special:::
-++ 31 049 00110001 LXI  lxisp :LXI SP,D16 SP.hi <- byte 3, SP.lo <- byte 2::lxisp:
-++ 32 050 00110010 STA  sta   :STA adr    (adr) <- A::sta:
-++ 33 051 00110011 INX  inxsp :INX SP     SP = SP + 1::inxsp:
-++ 34 052 00110100 INR  inrm  :INR M      (HL) <- (HL)+1::inrm:
-++ 35 053 00110101 DCR  dcrm  :DCR M      (HL) <- (HL)-1::dcrm:
-++ 36 054 00110110 MVI  mvim  :MVI M,D8   (HL) <- byte 2::mvim:
-++ 37 055 00110111 STC  stc   :STC        CY = 1::stc:
+++ 29 041 00101001 DAD  dadh    :DAD H      HL = HL + HI:
+++ 2a 042 00101010 LHLD lhld    :LHLD adr   L <- (adr); H<-(adr+1):
+++ 2b 043 00101011 DCX  dcxh    :DCX H      HL = HL-1:
+++ 2c 044 00101100 INR  inrl    :INR L      L <- L+1:
+++ 2d 045 00101101 DCR  dcrl    :DCR L      L <- L-1:
+++ 2e 046 00101110 MVI  mvil    :MVI L, D8  L <- byte 2:
+++ 2f 047 00101111 CMA  cma     :CMA        A <- !A:
+++ 30 048 00110000 SIM  ---   * :SIM        special:
+++ 31 049 00110001 LXI  lxisp   :LXI SP,D16 SP.hi <- byte 3, SP.lo <- byte 2:
+++ 32 050 00110010 STA  sta     :STA adr    (adr) <- A:
+++ 33 051 00110011 INX  inxsp   :INX SP     SP = SP + 1:
+++ 34 052 00110100 INR  inrm    :INR M      (HL) <- (HL)+1:
+++ 35 053 00110101 DCR  dcrm    :DCR M      (HL) <- (HL)-1:
+++ 36 054 00110110 MVI  mvim    :MVI M,D8   (HL) <- byte 2:
+++ 37 055 00110111 STC  stc     :STC        CY = 1:
 ++ 38 ---
-++ 39 057 00111001 DAD  dadsp :DAD SP     HL = HL + SP::dadsp:
-++ 3a 058 00111010 LDA  lda   :LDA adr    A <- (adr)::lda:
-++ 3b 059 00111011 DCX  dcxsp :DCX SP     SP = SP-1::dcxsp:
-++ 3c 060 00111100 INR  inra  :INR A      A <- A+1::inra:
-++ 3d 061 00111101 DCR  dcra  :DCR A      A <- A-1::dcra:
-++ 3e 062 00111110 MVI  mvia  :MVI A,D8   A <- byte 2::mvia:
-++ 3f 063 00111111 CMC  cmc   :CMC        CY=!CY::cmc:
-++ 40 064 01000000 MOV  movbb :MOV B,B    B <- B::movbb:
-++ 41 065 01000001 MOV  movbc :MOV B,C    B <- C::movbc:
-++ 42 066 01000010 MOV  movbd :MOV B,D    B <- D::movbd:
-++ 43 067 01000011 MOV  movbe :MOV B,E    B <- E::movbe:
-++ 44 068 01000100 MOV  movbh :MOV B,H    B <- H::movbh:
-++ 45 069 01000101 MOV  movbl :MOV B,L    B <- L::movbl:
-++ 46 070 01000110 MOV  movbm :MOV B,M    B <- (HL)::movbm:
-++ 47 071 01000111 MOV  movba :MOV B,A    B <- A::movba:
-++ 48 072 01001000 MOV  movcb :MOV C,B    C <- B::movcb:
-++ 49 073 01001001 MOV  movcc :MOV C,C    C <- C::movcc:
-++ 4a 074 01001010 MOV  movcd :MOV C,D    C <- D::movcd:
-++ 4b 075 01001011 MOV  movce :MOV C,E    C <- E::movce:
-++ 4c 076 01001100 MOV  movch :MOV C,H    C <- H::movch:
-++ 4d 077 01001101 MOV  movcl :MOV C,L    C <- L::movcl:
-++ 4e 078 01001110 MOV  movcm :MOV C,M    C <- (HL)::movcm:
-++ 4f 079 01001111 MOV  movca :MOV C,A    C <- A::movca:
-++ 50 080 01010000 MOV  movdb :MOV D,B    D <- B::movdb:
-++ 51 081 01010001 MOV  movdc :MOV D,C    D <- C::movdc:
-++ 52 082 01010010 MOV  movdd :MOV D,D    D <- D::movdd:
-++ 53 083 01010011 MOV  movde :MOV D,E    D <- E::movde:
-++ 54 084 01010100 MOV  movdh :MOV D,H    D <- H::movdh:
-++ 55 085 01010101 MOV  movdl :MOV D,L    D <- L::movdl:
-++ 56 086 01010110 MOV  movdm :MOV D,M    D <- (HL)::movdm:
-++ 57 087 01010111 MOV  movda :MOV D,A    D <- A::movda:
-++ 58 088 01011000 MOV  moveb :MOV E,B    E <- B::moveb:
-++ 59 089 01011001 MOV  movec :MOV E,C    E <- C::movec:
-++ 5a 090 01011010 MOV  moved :MOV E,D    E <- D::moved:
-++ 5b 091 01011011 MOV  movee :MOV E,E    E <- E::movee:
-++ 5c 092 01011100 MOV  moveh :MOV E,H    E <- H::moveh:
-++ 5d 093 01011101 MOV  movel :MOV E,L    E <- L::movel:
-++ 5e 094 01011110 MOV  movem :MOV E,M    E <- (HL)::movem:
-++ 5f 095 01011111 MOV  movea :MOV E,A    E <- A::movea:
-++ 60 096 01100000 MOV  movhb :MOV H,B    H <- B::movhb:
-++ 61 097 01100001 MOV  movhc :MOV H,C    H <- C::movhc:
-++ 62 098 01100010 MOV  movhd :MOV H,D    H <- D::movhd:
-++ 63 099 01100011 MOV  movhe :MOV H,E    H <- E::movhe:
-++ 64 100 01100100 MOV  movhh :MOV H,H    H <- H::movhh:
-++ 65 101 01100101 MOV  movhl :MOV H,L    H <- L::movhl:
-++ 66 102 01100110 MOV  movhm :MOV H,M    H <- (HL)::movhm:
-++ 67 103 01100111 MOV  movha :MOV H,A    H <- A::movha:
-++ 68 104 01101000 MOV  movlb :MOV L,B    L <- B::movlb:
-++ 69 105 01101001 MOV  movlc :MOV L,C    L <- C::movlc:
-++ 6a 106 01101010 MOV  movld :MOV L,D    L <- D::movld:
-++ 6b 107 01101011 MOV  movle :MOV L,E    L <- E::movle:
-++ 6c 108 01101100 MOV  movlh :MOV L,H    L <- H::movlh:
-++ 6d 109 01101101 MOV  movll :MOV L,L    L <- L::movll:
-++ 6e 110 01101110 MOV  movlm :MOV L,M    L <- (HL)::movlm:
-++ 6f 111 01101111 MOV  movla :MOV L,A    L <- A::movla:
-++ 70 112 01110000 MOV  movmb :MOV M,B    (HL) <- B::movmb:
-++ 71 113 01110001 MOV  movmc :MOV M,C    (HL) <- C::movmc:
-++ 72 114 01110010 MOV  movmd :MOV M,D    (HL) <- D::movmd:
-++ 73 115 01110011 MOV  movme :MOV M,E    (HL) <- E::movme:
-++ 74 116 01110100 MOV  movmh :MOV M,H    (HL) <- H::movmh:
-++ 75 117 01110101 MOV  movml :MOV M,L    (HL) <- L::movml:
-++ 76 118 01110110 HLT  hlt   :HLT        special::hlt:
-++ 77 119 01110111 MOV  movma :MOV M,A    (HL) <- A::movma:
-++ 78 120 01111000 MOV  movab :MOV A,B    A <- B::movab:
-++ 79 121 01111001 MOV  movac :MOV A,C    A <- C::movac:
-++ 7a 122 01111010 MOV  movad :MOV A,D    A <- D::movad:
-++ 7b 123 01111011 MOV  movae :MOV A,E    A <- E::movae:
-++ 7c 124 01111100 MOV  movah :MOV A,H    A <- H::movah:
-++ 7d 125 01111101 MOV  moval :MOV A,L    A <- L::moval:
-++ 7e 126 01111110 MOV  movam :MOV A,M    A <- (HL)::movam:
-++ 7f 127 01111111 MOV  movaa :MOV A,A    A <- A::movaa:
-++ 80 128 10000000 ADD  addb  :ADD B      A <- A + B::addb:
-++ 81 129 10000001 ADD  addc  :ADD C      A <- A + C::addc:
-++ 82 130 10000010 ADD  addd  :ADD D      A <- A + D::addd:
-++ 83 131 10000011 ADD  adde  :ADD E      A <- A + E::adde:
-++ 84 132 10000100 ADD  addh  :ADD H      A <- A + H::addh:
-++ 85 133 10000101 ADD  addl  :ADD L      A <- A + L::addl:
-++ 86 134 10000110 ADD  addm  :ADD M      A <- A + (HL)::addm:
-++ 87 135 10000111 ADD  adda  :ADD A      A <- A + A::adda:
-++ 88 136 10001000 ADC  adcb  :ADC B      A <- A + B + CY::adcb:
-++ 89 137 10001001 ADC  adcc  :ADC C      A <- A + C + CY::adcc:
-++ 8a 138 10001010 ADC  adcd  :ADC D      A <- A + D + CY::adcd:
-++ 8b 139 10001011 ADC  adce  :ADC E      A <- A + E + CY::adce:
-++ 8c 140 10001100 ADC  adch  :ADC H      A <- A + H + CY::adch:
-++ 8d 141 10001101 ADC  adcl  :ADC L      A <- A + L + CY::adcl:
-++ 8e 142 10001110 ADC  adcm  :ADC M      A <- A + (HL) + CY::adcm:
-++ 8f 143 10001111 ADC  adca  :ADC A      A <- A + A + CY::adca:
-++ 90 144 10010000 SUB  subb  :SUB B      A <- A - B::subb:
-++ 91 145 10010001 SUB  subc  :SUB C      A <- A - C::subc:
-++ 92 146 10010010 SUB  subd  :SUB D      A <- A + D::subd:
-++ 93 147 10010011 SUB  sube  :SUB E      A <- A - E::sube:
-++ 94 148 10010100 SUB  subh  :SUB H      A <- A + H::subh:
-++ 95 149 10010101 SUB  subl  :SUB L      A <- A - L::subl:
-++ 96 150 10010110 SUB  subm  :SUB M      A <- A + (HL)::subm:
-++ 97 151 10010111 SUB  suba  :SUB A      A <- A - A - CY::suba:
-++ 98 152 10011000 SBB  sbbb  :SBB B      A <- A - B - CY::sbbb:
-++ 99 153 10011001 SBB  sbbc  :SBB C      A <- A - C - CY::sbbc:
-++ 9a 154 10011010 SBB  sbbd  :SBB D      A <- A - D - CY::sbbd:
-++ 9b 155 10011011 SBB  sbbe  :SBB E      A <- A - E - CY::sbbe:
-++ 9c 156 10011100 SBB  sbbh  :SBB H      A <- A - H - CY::sbbh:
-++ 9d 157 10011101 SBB  sbbl  :SBB L      A <- A - L - CY::sbbl:
-++ 9e 158 10011110 SBB  sbbm  :SBB M      A <- A - (HL) - CY::sbbm:
-++ 9f 159 10011111 SBB  sbba  :SBB A      A <- A - A - CY::sbba:
-++ a0 160 10100000 ANA  anab  :ANA B      A <- A & B::anab:
-++ a1 161 10100001 ANA  anac  :ANA C      A <- A & C::anac:
-++ a2 162 10100010 ANA  anad  :ANA D      A <- A & D::anad:
-++ a3 163 10100011 ANA  anae  :ANA E      A <- A & E::anae:
-++ a4 164 10100100 ANA  anah  :ANA H      A <- A & H::anah:
-++ a5 165 10100101 ANA  anal  :ANA L      A <- A & L::anal:
-++ a6 166 10100110 ANA  anam  :ANA M      A <- A & (HL)::anam:
-++ a7 167 10100111 ANA  anaa  :ANA A      A <- A & A::anaa:
-++ a8 168 10101000 XRA  xrab  :XRA B      A <- A ^ B::xrab:
-++ a9 169 10101001 XRA  xrac  :XRA C      A <- A ^ C::xrac:
-++ aa 170 10101010 XRA  xrad  :XRA D      A <- A ^ D::xrad:
-++ ab 171 10101011 XRA  xrae  :XRA E      A <- A ^ E::xrae:
-++ ac 172 10101100 XRA  xrah  :XRA H      A <- A ^ H::xrah:
-++ ad 173 10101101 XRA  xral  :XRA L      A <- A ^ L::xral:
-++ ae 174 10101110 XRA  xram  :XRA M      A <- A ^ (HL)::xram:
-++ af 175 10101111 XRA  xraa  :XRA A      A <- A ^ A::xraa:
-++ b0 176 10110000 ORA  orab  :ORA B      A <- A | B::orab:
-++ b1 177 10110001 ORA  orac  :ORA C      A <- A | C::orac:
-++ b2 178 10110010 ORA  orad  :ORA D      A <- A | D::orad:
-++ b3 179 10110011 ORA  orae  :ORA E      A <- A | E::orae:
-++ b4 180 10110100 ORA  orah  :ORA H      A <- A | H::orah:
-++ b5 181 10110101 ORA  oral  :ORA L      A <- A | L::oral:
-++ b6 182 10110110 ORA  oram  :ORA M      A <- A | (HL)::oram:
-++ b7 183 10110111 ORA  oraa  :ORA A      A <- A | A::oraa:
-++ b8 184 10111000 CMP  cmpb  :CMP B      A - B::cmpb:
-++ b9 185 10111001 CMP  cmpc  :CMP C      A - C::cmpc:
-++ ba 186 10111010 CMP  cmpd  :CMP D      A - D::cmpd:
-++ bb 187 10111011 CMP  cmpe  :CMP E      A - E::cmpe:
-++ bc 188 10111100 CMP  cmph  :CMP H      A - H::cmph:
-++ bd 189 10111101 CMP  cmpl  :CMP L      A - L::cmpl:
-++ be 190 10111110 CMP  cmpm  :CMP M      A - (HL)::cmpm:
-++ bf 191 10111111 CMP  cmpa  :CMP A      A - A::cmpa:
-++ c0 192 11000000 RNZ  rnz   :RNZ        if NZ, RET::rnz:
-++ c1 193 11000001 POP  popb  :POP B      C <- (sp); B <- (sp+1); sp <- sp+2::popb:
-++ c2 194 11000010 JNZ  jnz   :JNZ adr    if NZ, PC < adr::jnz:
-++ c3 195 11000011 JMP  jmp   :JMP adr    PC <= adr::jmp:
-++ c4 196 11000100 CNZ  cnz   :CNZ adr    if NZ, CALL adr::cnz:
-++ c5 197 11000101 PUSH pushb :PUSH B     (sp-2)<-C; (sp-1)<-B; sp <- sp - 2::pushb:
-++ c6 198 11000110 ADI  adi   :ADI D8     A <- A + byte::adi:
-++ c7 199 11000111 RST  rst0  :RST 0      CALL $0::rst0:
-++ c8 200 11001000 RZ   rz    :RZ         if Z, RET::rz:
-++ c9 201 11001001 RET  ret   :RET        PC.lo <- (sp); PC.hi<-(sp+1); SP <- SP+2::ret:
-++ ca 202 11001010 JZ   jz    :JZ adr     if Z, PC <- adr::jz:
+++ 39 057 00111001 DAD  dadsp   :DAD SP     HL = HL + SP:
+++ 3a 058 00111010 LDA  lda     :LDA adr    A <- (adr):
+++ 3b 059 00111011 DCX  dcxsp   :DCX SP     SP = SP-1:
+++ 3c 060 00111100 INR  inra    :INR A      A <- A+1:
+++ 3d 061 00111101 DCR  dcra    :DCR A      A <- A-1:
+++ 3e 062 00111110 MVI  mvia    :MVI A,D8   A <- byte 2:
+++ 3f 063 00111111 CMC  cmc     :CMC        CY=!CY:
+++ 40 064 01000000 MOV  movbb   :MOV B,B    B <- B:
+++ 41 065 01000001 MOV  movbc   :MOV B,C    B <- C:
+++ 42 066 01000010 MOV  movbd   :MOV B,D    B <- D:
+++ 43 067 01000011 MOV  movbe   :MOV B,E    B <- E:
+++ 44 068 01000100 MOV  movbh   :MOV B,H    B <- H:
+++ 45 069 01000101 MOV  movbl   :MOV B,L    B <- L:
+++ 46 070 01000110 MOV  movbm   :MOV B,M    B <- (HL):
+++ 47 071 01000111 MOV  movba   :MOV B,A    B <- A:
+++ 48 072 01001000 MOV  movcb   :MOV C,B    C <- B:
+++ 49 073 01001001 MOV  movcc   :MOV C,C    C <- C:
+++ 4a 074 01001010 MOV  movcd   :MOV C,D    C <- D:
+++ 4b 075 01001011 MOV  movce   :MOV C,E    C <- E:
+++ 4c 076 01001100 MOV  movch   :MOV C,H    C <- H:
+++ 4d 077 01001101 MOV  movcl   :MOV C,L    C <- L:
+++ 4e 078 01001110 MOV  movcm   :MOV C,M    C <- (HL):
+++ 4f 079 01001111 MOV  movca   :MOV C,A    C <- A:
+++ 50 080 01010000 MOV  movdb   :MOV D,B    D <- B:
+++ 51 081 01010001 MOV  movdc   :MOV D,C    D <- C:
+++ 52 082 01010010 MOV  movdd   :MOV D,D    D <- D:
+++ 53 083 01010011 MOV  movde   :MOV D,E    D <- E:
+++ 54 084 01010100 MOV  movdh   :MOV D,H    D <- H:
+++ 55 085 01010101 MOV  movdl   :MOV D,L    D <- L:
+++ 56 086 01010110 MOV  movdm   :MOV D,M    D <- (HL):
+++ 57 087 01010111 MOV  movda   :MOV D,A    D <- A:
+++ 58 088 01011000 MOV  moveb   :MOV E,B    E <- B:
+++ 59 089 01011001 MOV  movec   :MOV E,C    E <- C:
+++ 5a 090 01011010 MOV  moved   :MOV E,D    E <- D:
+++ 5b 091 01011011 MOV  movee   :MOV E,E    E <- E:
+++ 5c 092 01011100 MOV  moveh   :MOV E,H    E <- H:
+++ 5d 093 01011101 MOV  movel   :MOV E,L    E <- L:
+++ 5e 094 01011110 MOV  movem   :MOV E,M    E <- (HL):
+++ 5f 095 01011111 MOV  movea   :MOV E,A    E <- A:
+++ 60 096 01100000 MOV  movhb   :MOV H,B    H <- B:
+++ 61 097 01100001 MOV  movhc   :MOV H,C    H <- C:
+++ 62 098 01100010 MOV  movhd   :MOV H,D    H <- D:
+++ 63 099 01100011 MOV  movhe   :MOV H,E    H <- E:
+++ 64 100 01100100 MOV  movhh   :MOV H,H    H <- H:
+++ 65 101 01100101 MOV  movhl   :MOV H,L    H <- L:
+++ 66 102 01100110 MOV  movhm   :MOV H,M    H <- (HL):
+++ 67 103 01100111 MOV  movha   :MOV H,A    H <- A:
+++ 68 104 01101000 MOV  movlb   :MOV L,B    L <- B:
+++ 69 105 01101001 MOV  movlc   :MOV L,C    L <- C:
+++ 6a 106 01101010 MOV  movld   :MOV L,D    L <- D:
+++ 6b 107 01101011 MOV  movle   :MOV L,E    L <- E:
+++ 6c 108 01101100 MOV  movlh   :MOV L,H    L <- H:
+++ 6d 109 01101101 MOV  movll   :MOV L,L    L <- L:
+++ 6e 110 01101110 MOV  movlm   :MOV L,M    L <- (HL):
+++ 6f 111 01101111 MOV  movla   :MOV L,A    L <- A:
+++ 70 112 01110000 MOV  movmb   :MOV M,B    (HL) <- B:
+++ 71 113 01110001 MOV  movmc   :MOV M,C    (HL) <- C:
+++ 72 114 01110010 MOV  movmd   :MOV M,D    (HL) <- D:
+++ 73 115 01110011 MOV  movme   :MOV M,E    (HL) <- E:
+++ 74 116 01110100 MOV  movmh   :MOV M,H    (HL) <- H:
+++ 75 117 01110101 MOV  movml   :MOV M,L    (HL) <- L:
+++ 76 118 01110110 HLT  hlt     :HLT        special:
+++ 77 119 01110111 MOV  movma   :MOV M,A    (HL) <- A:
+++ 78 120 01111000 MOV  movab   :MOV A,B    A <- B:
+++ 79 121 01111001 MOV  movac   :MOV A,C    A <- C:
+++ 7a 122 01111010 MOV  movad   :MOV A,D    A <- D:
+++ 7b 123 01111011 MOV  movae   :MOV A,E    A <- E:
+++ 7c 124 01111100 MOV  movah   :MOV A,H    A <- H:
+++ 7d 125 01111101 MOV  moval   :MOV A,L    A <- L:
+++ 7e 126 01111110 MOV  movam   :MOV A,M    A <- (HL):
+++ 7f 127 01111111 MOV  movaa   :MOV A,A    A <- A:
+++ 80 128 10000000 ADD  addb    :ADD B      A <- A + B:
+++ 81 129 10000001 ADD  addc    :ADD C      A <- A + C:
+++ 82 130 10000010 ADD  addd    :ADD D      A <- A + D:
+++ 83 131 10000011 ADD  adde    :ADD E      A <- A + E:
+++ 84 132 10000100 ADD  addh    :ADD H      A <- A + H:
+++ 85 133 10000101 ADD  addl    :ADD L      A <- A + L:
+++ 86 134 10000110 ADD  addm    :ADD M      A <- A + (HL):
+++ 87 135 10000111 ADD  adda    :ADD A      A <- A + A:
+++ 88 136 10001000 ADC  adcb    :ADC B      A <- A + B + CY:
+++ 89 137 10001001 ADC  adcc    :ADC C      A <- A + C + CY:
+++ 8a 138 10001010 ADC  adcd    :ADC D      A <- A + D + CY:
+++ 8b 139 10001011 ADC  adce    :ADC E      A <- A + E + CY:
+++ 8c 140 10001100 ADC  adch    :ADC H      A <- A + H + CY:
+++ 8d 141 10001101 ADC  adcl    :ADC L      A <- A + L + CY:
+++ 8e 142 10001110 ADC  adcm    :ADC M      A <- A + (HL) + CY:
+++ 8f 143 10001111 ADC  adca    :ADC A      A <- A + A + CY:
+++ 90 144 10010000 SUB  subb    :SUB B      A <- A - B:
+++ 91 145 10010001 SUB  subc    :SUB C      A <- A - C:
+++ 92 146 10010010 SUB  subd    :SUB D      A <- A + D:
+++ 93 147 10010011 SUB  sube    :SUB E      A <- A - E:
+++ 94 148 10010100 SUB  subh    :SUB H      A <- A + H:
+++ 95 149 10010101 SUB  subl    :SUB L      A <- A - L:
+++ 96 150 10010110 SUB  subm    :SUB M      A <- A + (HL):
+++ 97 151 10010111 SUB  suba    :SUB A      A <- A - A - CY:
+++ 98 152 10011000 SBB  sbbb    :SBB B      A <- A - B - CY:
+++ 99 153 10011001 SBB  sbbc    :SBB C      A <- A - C - CY:
+++ 9a 154 10011010 SBB  sbbd    :SBB D      A <- A - D - CY:
+++ 9b 155 10011011 SBB  sbbe    :SBB E      A <- A - E - CY:
+++ 9c 156 10011100 SBB  sbbh    :SBB H      A <- A - H - CY:
+++ 9d 157 10011101 SBB  sbbl    :SBB L      A <- A - L - CY:
+++ 9e 158 10011110 SBB  sbbm    :SBB M      A <- A - (HL) - CY:
+++ 9f 159 10011111 SBB  sbba    :SBB A      A <- A - A - CY:
+++ a0 160 10100000 ANA  anab    :ANA B      A <- A & B:
+++ a1 161 10100001 ANA  anac    :ANA C      A <- A & C:
+++ a2 162 10100010 ANA  anad    :ANA D      A <- A & D:
+++ a3 163 10100011 ANA  anae    :ANA E      A <- A & E:
+++ a4 164 10100100 ANA  anah    :ANA H      A <- A & H:
+++ a5 165 10100101 ANA  anal    :ANA L      A <- A & L:
+++ a6 166 10100110 ANA  anam    :ANA M      A <- A & (HL):
+++ a7 167 10100111 ANA  anaa    :ANA A      A <- A & A:
+++ a8 168 10101000 XRA  xrab    :XRA B      A <- A ^ B:
+++ a9 169 10101001 XRA  xrac    :XRA C      A <- A ^ C:
+++ aa 170 10101010 XRA  xrad    :XRA D      A <- A ^ D:
+++ ab 171 10101011 XRA  xrae    :XRA E      A <- A ^ E:
+++ ac 172 10101100 XRA  xrah    :XRA H      A <- A ^ H:
+++ ad 173 10101101 XRA  xral    :XRA L      A <- A ^ L:
+++ ae 174 10101110 XRA  xram    :XRA M      A <- A ^ (HL):
+++ af 175 10101111 XRA  xraa    :XRA A      A <- A ^ A:
+++ b0 176 10110000 ORA  orab    :ORA B      A <- A | B:
+++ b1 177 10110001 ORA  orac    :ORA C      A <- A | C:
+++ b2 178 10110010 ORA  orad    :ORA D      A <- A | D:
+++ b3 179 10110011 ORA  orae    :ORA E      A <- A | E:
+++ b4 180 10110100 ORA  orah    :ORA H      A <- A | H:
+++ b5 181 10110101 ORA  oral    :ORA L      A <- A | L:
+++ b6 182 10110110 ORA  oram    :ORA M      A <- A | (HL):
+++ b7 183 10110111 ORA  oraa    :ORA A      A <- A | A:
+++ b8 184 10111000 CMP  cmpb    :CMP B      A - B:
+++ b9 185 10111001 CMP  cmpc    :CMP C      A - C:
+++ ba 186 10111010 CMP  cmpd    :CMP D      A - D:
+++ bb 187 10111011 CMP  cmpe    :CMP E      A - E:
+++ bc 188 10111100 CMP  cmph    :CMP H      A - H:
+++ bd 189 10111101 CMP  cmpl    :CMP L      A - L:
+++ be 190 10111110 CMP  cmpm    :CMP M      A - (HL):
+++ bf 191 10111111 CMP  cmpa    :CMP A      A - A:
+++ c0 192 11000000 RNZ  rnz     :RNZ        if NZ, RET:
+++ c1 193 11000001 POP  popb    :POP B      C <- (sp); B <- (sp+1); sp <- sp+2:
+++ c2 194 11000010 JNZ  jnz     :JNZ adr    if NZ, PC < adr:
+++ c3 195 11000011 JMP  jmp     :JMP adr    PC <= adr:
+++ c4 196 11000100 CNZ  cnz     :CNZ adr    if NZ, CALL adr:
+++ c5 197 11000101 PUSH pushb   :PUSH B     (sp-2)<-C; (sp-1)<-B; sp <- sp - 2:
+++ c6 198 11000110 ADI  adi     :ADI D8     A <- A + byte:
+++ c7 199 11000111 RST  rst0    :RST 0      CALL $0:
+++ c8 200 11001000 RZ   rz      :RZ         if Z, RET:
+++ c9 201 11001001 RET  ret     :RET        PC.lo <- (sp); PC.hi<-(sp+1); SP <- SP+2:
+++ ca 202 11001010 JZ   jz      :JZ adr     if Z, PC <- adr:
 ++ cb ---
-++ cc 204 11001100 CZ   cz    :CZ adr     if Z, CALL adr::cz:
-++ cd 205 11001101 CALL call  :CALL adr   (SP-1)<-PC.hi;(SP-2)<-PC.lo;SP<-SP+2;PC=adr::call:
-++ ce 206 11001110 ACI  aci   :ACI D8     A <- A + data + CY::aci:
-++ cf 207 11001111 RST  rst1  :RST 1      CALL $8::rst1:
-++ d0 208 11010000 RNC  rnc   :RNC        if NCY, RET::rnc:
-++ d1 209 11010001 POP  popd  :POP D      E <- (sp); D <- (sp+1); sp <- sp+2::popd:
-++ d2 210 11010010 JNC  jnc   :JNC adr    if NCY, PC<-adr::jnc:
-++ d3 211 11010011 OUT  out   :OUT D8     special::out:
-++ d4 212 11010100 CNC  cnc   :CNC adr    if NCY, CAL adr::cnc:
-++ d5 213 11010101 PUSH pushd :PUSH D     (sp-2)<-E; (sp-1)<-D; sp <- sp - 2::pushd:
-++ d6 214 11010110 SUI  sui   :SUI D8     A <- A - data::sui:
-++ d7 215 11010111 RST  rst2  :RST 2      CALL $10::rst2:
-++ d8 216 11011000 RC   rc    :RC         if CY, RET::rc:
+++ cc 204 11001100 CZ   cz      :CZ adr     if Z, CALL adr:
+++ cd 205 11001101 CALL call    :CALL adr   (SP-1)<-PC.hi;(SP-2)<-PC.lo;SP<-SP+2;PC=adr:
+++ ce 206 11001110 ACI  aci     :ACI D8     A <- A + data + CY:
+++ cf 207 11001111 RST  rst1    :RST 1      CALL $8:
+++ d0 208 11010000 RNC  rnc     :RNC        if NCY, RET:
+++ d1 209 11010001 POP  popd    :POP D      E <- (sp); D <- (sp+1); sp <- sp+2:
+++ d2 210 11010010 JNC  jnc     :JNC adr    if NCY, PC<-adr:
+++ d3 211 11010011 OUT  out     :OUT D8     special:
+++ d4 212 11010100 CNC  cnc     :CNC adr    if NCY, CAL adr:
+++ d5 213 11010101 PUSH pushd   :PUSH D     (sp-2)<-E; (sp-1)<-D; sp <- sp - 2:
+++ d6 214 11010110 SUI  sui     :SUI D8     A <- A - data:
+++ d7 215 11010111 RST  rst2    :RST 2      CALL $10:
+++ d8 216 11011000 RC   rc      :RC         if CY, RET:
 ++ d9 ---
-++ da 218 11011010 JC   jc    :JC adr     if CY, PC<-adr::jc:
-++ db 219 11011011 IN   in    :IN D8      special::in:
-++ dc 220 11011100 CC   cc    :CC adr     if CY, CALL adr::cc:
+++ da 218 11011010 JC   jc      :JC adr     if CY, PC<-adr:
+++ db 219 11011011 IN   in      :IN D8      special:
+++ dc 220 11011100 CC   cc      :CC adr     if CY, CALL adr:
 ++ dd ---
-++ de 222 11011110 SBI  sbi   :SBI D8     A <- A - data - CY::sbi:
-++ df 223 11011111 RST  rst3  :RST 3      CALL $18::rst3:
-++ e0 224 11100000 RPO  rpo   :RPO        if PO, RET::rpo:
-++ e1 225 11100001 POP  poph  :POP H      L <- (sp); H <- (sp+1); sp <- sp+2::poph:
-++ e2 226 11100010 JPO  jm    :JPO adr    if PO, PC <- adr::jm:
-++ e3 227 11100011 XTHL xthl  :XTHL       L <-> (SP); H <-> (SP+1) ... Set H:L to same value at the SP address and SP +1::xthl:
-++ e4 228 11100100 CPO  cpo   :CPO adr    if PO, CALL adr::cpo:
-++ e5 229 11100101 PUSH pushh :PUSH H     (sp-2)<-L; (sp-1)<-H; sp <- sp - 2::pushh:
-++ e6 230 11100110 ANI  ani   :ANI D8     A <- A & data::ani:
-++ e7 231 11100111 RST  rst4  :RST 4      CALL $20::rst4:
-++ e8 232 11101000 RPE  rpe   :RPE        if PE, RET::rpe:
-++ e9 233 11101001 PCHL pchl  :PCHL       PC.hi <- H; PC.lo <- L::pchl:
-++ ea 234 11101010 JPE  jp    :JPE adr    if PE, PC <- adr::jp:
-++ eb 235 11101011 XCHG xchg  :XCHG       H <-> D; L <-> E::xchg:
-++ ec 236 11101100 CPE  cpe   :CPE adr    if PE, CALL adr::cpe:
+++ de 222 11011110 SBI  sbi     :SBI D8     A <- A - data - CY:
+++ df 223 11011111 RST  rst3    :RST 3      CALL $18:
+++ e0 224 11100000 RPO  rpo     :RPO        if PO, RET:
+++ e1 225 11100001 POP  poph    :POP H      L <- (sp); H <- (sp+1); sp <- sp+2:
+++ e2 226 11100010 JPO  jpo     :JPO adr    if PO, PC <- adr:
+++ e3 227 11100011 XTHL xthl    :XTHL       L <-> (SP); H <-> (SP+1) ... Set H:L to same value at the SP address and SP +1:
+++ e4 228 11100100 CPO  cpo     :CPO adr    if PO, CALL adr:
+++ e5 229 11100101 PUSH pushh   :PUSH H     (sp-2)<-L; (sp-1)<-H; sp <- sp - 2:
+++ e6 230 11100110 ANI  ani     :ANI D8     A <- A & data:
+++ e7 231 11100111 RST  rst4    :RST 4      CALL $20:
+++ e8 232 11101000 RPE  rpe     :RPE        if PE, RET:
+++ e9 233 11101001 PCHL pchl    :PCHL       PC.hi <- H; PC.lo <- L:
+++ ea 234 11101010 JPE  jpe     :JPE adr    if PE, PC <- adr:
+++ eb 235 11101011 XCHG xchg    :XCHG       H <-> D; L <-> E:
+++ ec 236 11101100 CPE  cpe     :CPE adr    if PE, CALL adr:
 ++ ed ---
-++ ee 238 11101110 XRI  xri   :XRI D8     A <- A ^ data::xri:
-++ ef 239 11101111 RST  rst5  :RST 5      CALL $28::rst5:
-++ f0 240 11110000 RP   rp    :RP         if P, RET::rp:
-++ f1 241 11110001 POP  popa  :POP PSW    flags <- (sp); A <- (sp+1); sp <- sp+2::popa:
-++ f2 242 11110010 JP   jpe   :JP adr     if P=1 PC <- adr::jpe:
-++ f3 243 11110011 DI   di    :DI         special::di:
-++ f4 244 11110100 CP   cp    :CP adr     if P, PC <- adr::cp:
-++ f5 245 11110101 PUSH pusha :PUSH PSW   (sp-2)<-flags; (sp-1)<-A; sp <- sp - 2::pusha:
-++ f6 246 11110110 ORI  ori   :ORI D8     A <- A | data::ori:
-++ f7 247 11110111 RST  rst6  :RST 6      CALL $30::rst6:
-++ f8 248 11111000 RM   rm    :RM         if M, RET::rm:
-++ f9 249 11111001 SPHL sphl  :SPHL       SP=HL      ... Set SP to same value as H:L::sphl:
-++ fa 250 11111010 JM   jpo   :JM adr     if M, PC <- adr::jpo:
-++ fb 251 11111011 EI   ei    :EI         special::ei:
-++ fc 252 11111100 CM   cm    :CM adr     if M, CALL adr::cm:
+++ ee 238 11101110 XRI  xri     :XRI D8     A <- A ^ data:
+++ ef 239 11101111 RST  rst5    :RST 5      CALL $28:
+++ f0 240 11110000 RP   rp      :RP         if P, RET:
+++ f1 241 11110001 POP  popa  * :POP PSW    flags <- (sp); A <- (sp+1); sp <- sp+2:
+++ f2 242 11110010 JP   jp      :JP adr     if P=1 PC <- adr:
+++ f3 243 11110011 DI   di      :DI         special:
+++ f4 244 11110100 CP   cp      :CP adr     if P, PC <- adr:
+++ f5 245 11110101 PUSH pusha * :PUSH PSW   (sp-2)<-flags; (sp-1)<-A; sp <- sp - 2:
+++ f6 246 11110110 ORI  ori     :ORI D8     A <- A | data:
+++ f7 247 11110111 RST  rst6    :RST 6      CALL $30:
+++ f8 248 11111000 RM   rm      :RM         if M, RET:
+++ f9 249 11111001 SPHL sphl    :SPHL       SP=HL      ... Set SP to same value as H:L:
+++ fa 250 11111010 JM   jm      :JM adr     if M, PC <- adr:
+++ fb 251 11111011 EI   ei      :EI         special:
+++ fc 252 11111100 CM   cm      :CM adr     if M, CALL adr:
 ++ fd ---
-++ fe 254 11111110 CPI  cpi   :CPI D8     A - data::cpi:
-++ ff 255 11111111 RST  rst7  :RST 7      CALL $38::rst7:
+++ fe 254 11111110 CPI  cpi     :CPI D8     A - data:
+++ ff 255 11111111 RST  rst7    :RST 7      CALL $38:
 
 -----------------------------------------------
 
