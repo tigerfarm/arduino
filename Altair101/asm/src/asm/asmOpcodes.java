@@ -292,6 +292,26 @@ public class asmOpcodes {
     }
 
     // -------------------------------------------------------------------------
+    public String getOpcodeValue(int theValue) {
+        // Given an opcode, return the byte code.
+        String returnValue = "";
+        for (int i = 0; i < opcodeCount; i++) {
+            // System.out.println("++ " + i + ": " + name[i] + " " + value[i]);
+            int theOpcodeValue;
+            try {
+                theOpcodeValue = Integer.parseInt(opcodeArray[i].value, 2);
+                if (theOpcodeValue == theValue) {
+                    returnValue = opcodeArray[i].name;
+                    break;
+                }
+            } catch (NumberFormatException ioe) {
+                // ignore non-formatted strings such as "10111SSS".
+            }
+        }
+        return returnValue;
+    }
+
+    // -------------------------------------------------------------------------
     public byte getOpcode(String theName) {
         // Given an opcode, return the byte code.
         byte returnValue = OpcodeNotFound;

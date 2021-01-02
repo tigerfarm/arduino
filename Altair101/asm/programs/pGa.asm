@@ -1128,22 +1128,17 @@ GALAXY:
 	LXI	H,MSGDYW
 	CALL	MSG		;Print introduction
 START:
+++    2470:00001001 10100110: 00110001 : 31:061 > opcode: lxi sp,STACK
+; Enter the following to get to the start byte: 12578bx
 	CALL	RN		;Increment random number
+	;CALL	INPCK		;Input yet?
+	;JP	START		;No, continue wait
 	CALL	INPUT		;Wait for an input character, then echo it and continue.
 	cpi	'n'		;No, stop game?
 	JZ	OVER		;Yes, vanish from galaxy
 	CPI	'N'		;No, stop game?
 	JZ	OVER		;Yes, vanish from galaxy
 	MVI	E,00C0H		;Set pointer to galaxy storage
-                                ; ----------------------------------------------
-                                ; Original START:
-	;CALL	RN		;Increment random number
-	;CALL	INPCK		;Input yet?
-	;JP	START		;No, continue wait
-	;CALL	INPUT		;Input character
-	;CPI	'N'		;No, stop game?
-	;JZ	OVER		;Yes, vanish from galaxy
-	;MVI	E,00C0H		;Set pointer to galaxy storage
                                 ; ----------------------------------------------
 GLXSET:
 	CALL	RN		;Fetch random number
@@ -1315,6 +1310,10 @@ CMND:
 	CALL	ELOM
 	MVI	L,041H		;Set pointer to random number
 	INR	M		;Fetch random nmbr. constant
+
+; ------------------------------------------------------------------------------
+; Command options
+
 CMD:
 	LXI	H,MSGCMD	;Set pointer to command msg
 	CALL	CMSG		;Request command input
@@ -1723,6 +1722,8 @@ DSTR:
 	MVI	L,02AH		;Fetch alient ship location in tbl
 	MOV	L,M
 	JMP	DLET		;Remove A.S. fm glxy & ret
+
+; ------------------------------------------------------------------------------
 GXPRT:
 	LXI	H,MSGGDY	;Print galaxy display
 	CALL	MSG
@@ -1754,6 +1755,7 @@ GL2:
 	XCHG			;No, set up galaxy pointer
 	JMP	GL1		;Continue printout
 
+; ------------------------------------------------------------------------------
 	ORG	0F00H
 
 	DB	000000000b,000000001b,000000100b,000100011b,000001010b,000000011b,000000111b,000000000b

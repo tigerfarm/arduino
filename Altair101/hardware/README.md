@@ -273,4 +273,186 @@ The desktop model design will be based on the tablet machine.
 The major difference between the machines, is that the tablet model has 8 address toggles where the desktop model will have 16 address toggles.
 
 --------------------------------------------------------------------------------
+++ Galaxy 80 Program
+
+````
+--------------------------------------------------------------------------------
+; Program is stored on the SD card:
+;   ++ File:      00001001.BIN  4608
+;
+; Start byte, set switches: 
+++    2470:00001001 10100110: 00110001 : 31:061 > opcode: lxi sp,STACK
+; Enter the following to get to the start byte: 12578bx
+; Then, hit Enter to show the following. The data byte is correct: 00110001.
+;
+?- + x, EXAMINE: 2470
+?- 
+INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
+ .    *    .  *   .   .    .    *   .         .   .    *   *   .    .   .   *
+WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
+ *    .      .   .   .   .   *   .   .   *    *   .    *   .   .    *   *   .
+            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
+             v   v   v   v   ^   v   v   ^    ^   v    ^   v   v    ^   ^   v
+
+--------------------------------------------------------------------------------
+Now, run the program.
+
++ Ready to receive command.
+?- + r, RUN.
+?- + runProcessor()
+
+DO YOU WANT TO GO ON A SPACE VOYAGE? j
+YOU MUST DESTROY 85 ALIEN SHIPS IN 90 STARDATES WITH 6 SPACE STATIONS
+ -1--2--3--4--5--6--7--8-
+1                         STARDATE  3088
+2                         CONDITION GREEN
+3                         QUADRANT  8 7
+4                         SECTOR    6 6
+5                         ENERGY    g808
+6                         TORPEDOES 08
+7                         SHIELDS   g808
+8                        
+ -1--2--3--4--5--6--7--8-
+COMMAND?
+
+The galaxy is 64 quadrants which is an 8x8 matrix of quadrants.
+There are 64 sectors within each quadrant, which is an 8x8 matrix of sectors.
+The above is the 8x8 space within sector 6,6, which is in quadrant 8,7.
+
+--------------------------------------------------------------------------------
+COMMAND options:
+O. SPACE SHIP movement
+1. Short range scanner - current quadrant contents
+2. Long  range scanner - Contents of the eight quadrants which surround the current quadrant
+3. Galaxy display 
+4. Shields
+5. Phasors
+6. TORPEDO
+
+------------------------------------------
+O. SPACE SHIP movement
+
+COMMAND?0
+0.1 Enter direction, example:
+COURSE (1-8.5)? 3.0
+
+    3
+ 4  ^  2
+5 <   > 1
+ 6  v  8
+    7
+
+0.2 Enter warp factor, which is the distance.
++ One sector for each 0.1 designated in the input
++ Quadrants are broken up into an 8 x 8 matrix for the sectors.
+
+COMMAND?0
+COURSE (1-8.5)? 3.0
+WARP FACTOR (0.1-7.7)? 0.1
+> From: QUADRANT  5 6, SECTOR    2 7
+  To:   QUADRANT  5 6, SECTOR    1 7
+
+COURSE (1-8.5)? 7.0
+WARP FACTOR (0.1-7.7)? 0.1
+> From: QUADRANT  5 6, SECTOR    1 7
+  To:   QUADRANT  4 6, SECTOR    2 7
+
+COURSE (1-8.5)? 1.0
+WARP FACTOR (0.1-7.7)? 0.1
+> From: QUADRANT  4 6, SECTOR    2 7
+  To:   QUADRANT  3 5, SECTOR    2 8
+
+COURSE (1-8.5)? 5.0
+WARP FACTOR (0.1-7.7)? 0.1
+> From: QUADRANT  3 5, SECTOR    2 8
+  To:   QUADRANT  2 5, SECTOR    2 7
+
+COMMAND?0
+COURSE (1-8.5)? 3.2
+COURSE (1-8.5)? 3.0
+WARP FACTOR (0.1-7.7)? 1.0
+ -1--2--3--4--5--6--7--8-
+1                         STARDATE  3091
+2                         CONDITION GREEN
+3                         QUADRANT  1 8
+4                         SECTOR    2 7
+5                         ENERGY    l:68
+6                         TORPEDOES 08
+7                         SHIELDS   g808
+8                        
+ -1--2--3--4--5--6--7--8-
+
+------------------------------------------
+1. Short range scanner
+
+COMMAND?1
+ -1--2--3--4--5--6--7--8-
+1                         STARDATE  3092
+2                         CONDITION GREEN
+3                         QUADRANT  6 5
+4                         SECTOR    1 8
+5                         ENERGY    l=08
+6                         TORPEDOES 08
+7                         SHIELDS   g808
+8                        
+ -1--2--3--4--5--6--7--8-
+
+------------------------------------------
+2. Long  range scanner
+
+COMMAND?2
+L.R. SCAN FOR QUADRANT  6 5
+-------------------
+1     1     1     1
+-------------------
+1 123 1     1     1
+-------------------
+1     1     1     1
+-------------------
+
+Quadrant 5 5 : Row 6 5
+
+123 : 1 alien ship, 2 space stations, 3 stars
++++ - ALIEN SHIP
+>1< - SPACESTATION
+*   - STAR
+<*> - SPACE SHIP
+
+------------------------------------------
+3. Galaxy display 
+
+COMMAND?3
+GALAXY DISPLAY
+-------------------------------------------------
+1 002   000   002   105   004   002
+-------------------------------------------------
+1 004   000   000   000   000   004
+-------------------------------------------------
+1 004   103   007   103   000   000
+-------------------------------------------------
+1 304   000   117   015   004   000
+-------------------------------------------------
+1 000   007   000   007   000   005
+-------------------------------------------------
+1 012   103   001   001   000   000
+-------------------------------------------------
+1 003   003   000   103   105   000
+-------------------------------------------------
+1 105   007   003   203   003   105
+-------------------------------------------------
+
+The above should 8x8, not 6x8.
+
+------------------
+Code
+
+GXPRT:
+	LXI	H,MSGGDY	;Print galaxy display
+...
+MVI	L,0C0H		;Set pointer to galaxy C0H = 1100 0000
+
+````
+
+
+--------------------------------------------------------------------------------
 Cheers
