@@ -1,11 +1,17 @@
 ; ------------------------------------------------
-;
 ; Stacy, be a challenge to get this to compile using my assembler.
-;
-; Original site:
-;   https://github.com/deltecent/scelbi-galaxy
-;
 ; ------------------------------------------------
+;
+; Start byte, set switches: 
+; ++    2467:00001001 10100011: 00110001 : 31:061 > opcode: lxi sp,STACK
+; ?- + x, EXAMINE: 2467
+; ?- 
+; INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
+;  .    *    .  *   .   .    .    *   .         .   .    *   *   .    .   .   *
+; WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
+;  *    .      .   .   .   .   *   .   .   *    *   .    *   .   .    .   *   *
+;             S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
+;              v   v   v   v   ^   v   v   ^    ^   v    ^   v   v    v   ^   ^
 ;
 ; +----------------------------------+
 ; |       SCELBI'S GALAXY GAME       |
@@ -86,6 +92,9 @@ LF	EQU	0AH
 CR	EQU	0DH
 
 	ORG	0000H
+                                ; ----------------------------------------------
+;        JMP     GALAXY          ; Stacy, allow using start from zero.
+                                ; ----------------------------------------------
 
 	DB	2 		;Course 1.0
 	DB	0
@@ -1097,8 +1106,7 @@ CK1:
 	MOV	A,M		;Fetch most significant half
 	DCR	L		;Set pointer to least signif. half
 	CMP	D		;Is most significant half = 0?
-	; RNZ			;No, return with flags set up
-	ret			;Stacy, change to return so that there is always enough energy.
+	RNZ			;No, return with flags set up
 CK2:
 	MOV	A,M		;If greater than or =, ret. with
 	CMP	E		;'C' flag reset, if less than
@@ -1110,7 +1118,6 @@ OVER:
 	LXI	H,MSGCHK	;Print "CHICKEN"
 	CALL	MSG
 	HLT			;Halt
-        jmp     START           ; Stacy, allow a restart with my emulator.
 
 SPRC:
 	MOV	A,M		;Fetch row and column
@@ -1121,29 +1128,26 @@ SPRC:
 	ANI	07H		;Separate row
 	MOV	B,A		;Save row in 'B'
 	RET
-
+                                ; ----------------------------------------------
+                                ; Program starts running from here.
 GALAXY:
 	LXI	SP,STACK	;Set stack pointer
-	CALL	CONINI		;Initialize Console I/O
 	LXI	H,MSGDYW
 	CALL	MSG		;Print introduction
 START:
 	CALL	RN		;Increment random number
-	CALL	INPUT		;Wait for an input character, then echo it and continue.
+	CALL	INPUT		;Input character
+	cpi	0
+	jz	START           ; No input character
+        call    PRINT
 	cpi	'n'		;No, stop game?
 	JZ	OVER		;Yes, vanish from galaxy
 	CPI	'N'		;No, stop game?
 	JZ	OVER		;Yes, vanish from galaxy
 	MVI	E,00C0H		;Set pointer to galaxy storage
                                 ; ----------------------------------------------
-                                ; Original START:
-	;CALL	RN		;Increment random number
-	;CALL	INPCK		;Input yet?
-	;JP	START		;No, continue wait
-	;CALL	INPUT		;Input character
-	;CPI	'N'		;No, stop game?
-	;JZ	OVER		;Yes, vanish from galaxy
-	;MVI	E,00C0H		;Set pointer to galaxy storage
+        ;jmp START
+                                ; ----------------------------------------------
                                 ; ----------------------------------------------
 GLXSET:
 	CALL	RN		;Fetch random number
@@ -1774,6 +1778,7 @@ GL2:
 	DB	000000011b,000010101b,000000000b,000000000b,000010101b,000000000b,000100111b,000000000b
 
 	ORG	0F80H
+                                ; ----------------------------------------------
 
 ; Test status of input device for character
 ; Sets sign flag if character coming in
@@ -1785,16 +1790,11 @@ INPCK:
 INPCK1:
 	RET
 
-
-; ------------------------------------------------------------------------------
 ; Input a character from the system
 ; Return character in register 'A'
 INPUT:
 	;CALL	IOIN
         in      SIOCTL          ; Stacy, check for input character.
-        cpi     0
-	jz	INPUT           ; No input character
-        OUT	SIOCTL          ; Stacy, IOIN also echos the character.
 	RET
 
 ; Output a character to the system
@@ -1806,7 +1806,6 @@ PRINT:
 	POP	B		;Restore BC
 	RET
 
-; Stack
 	DS	32		;Stack Area
 STACK:	EQU	$
 
@@ -1867,6 +1866,7 @@ WLOOP:
 CONINI:
         CALL    IOINI
 	RET
+
                                 ; --------------------------------------
                                 ; Stacy, I've added.
     println:
@@ -1877,72 +1877,8 @@ CONINI:
                 ret
 
 	END
-                                ; --------------------------------------
-                                ; --------------------------------------
-                                ; Notes to get the program to run.
+                                    ; --------------------------------------
+                                    ; Assembler needs updates.
 
---------------------------------------------------------------------------------
-; Program is stored on the SD card:
-;   ++ File:      00001001.BIN  4608
-;
-; Start byte, set switches: 
-++    2470:00001001 10100110: 00110001 : 31:061 > opcode: lxi sp,STACK
-;
-; Enter the following to get to the start byte: 12578bx
-; Then, hit Enter to show the following. The data byte is correct: 00110001.
-;
-?- + x, EXAMINE: 2470
-?- 
-INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
- .    *    .  *   .   .    .    *   .         .   .    *   *   .    .   .   *
-WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
- *    .      .   .   .   .   *   .   .   *    *   .    *   .   .    *   *   .
-            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
-             v   v   v   v   ^   v   v   ^    ^   v    ^   v   v    ^   ^   v
-
---------------------------------------------------------------------------------
-Now, run the program.
-
-+ Ready to receive command.
-?- + r, RUN.
-?- + runProcessor()
-
-DO YOU WANT TO GO ON A SPACE VOYAGE? j
-YOU MUST DESTROY 85 ALIEN SHIPS IN 90 STARDATES WITH 6 SPACE STATIONS
- -1--2--3--4--5--6--7--8-
-1                         STARDATE  3088
-2                         CONDITION GREEN
-3                         QUADRANT  8 7
-4                         SECTOR    6 6
-5                         ENERGY    g808
-6                         TORPEDOES 08
-7                         SHIELDS   g808
-8                        
- -1--2--3--4--5--6--7--8-
-COMMAND?
-
---------------------------------------------------------------------------------
-For some reason, the values are incorrect.
-The following change allows the energy to always be sufficient.
-
-; Pointer to energy level: 050H = 1010000 80 
-; CKMN:
-;	MVI	L,050H		;Set pointer to main energy
-; Change rnz to ret, then always have enough energy.
-++    2439:00001001 10000111: 11000000 : C0:300 > opcode: rnz
-++    2442:00001001 10001010: 11001001 : C9:311 > opcode: ret
-;
-
-CKMN:
-	MVI	L,050H		;Set pointer to main energy
-CK1:
-	MOV	A,M		;Fetch most significant half
-	DCR	L		;Set pointer to least signif. half
-	CMP	D		;Is most significant half = 0?
-	RNZ			;No, return with flags set up
-CK2:
-	MOV	A,M		;If greater than or =, ret. with
-	CMP	E		;'C' flag reset, if less than
-	RET			;Return with 'C' flag set
-                                ; 
-                                ; --------------------------------------
+                                    ; 
+                                    ; --------------------------------------

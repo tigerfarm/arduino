@@ -395,7 +395,7 @@ void sdListDirectory() {
 // -----------------------------------------------------------------------------
 // Types of interactions
 
-unsigned long downloadBaudRate = 57600;   // Needs to match the upload program.
+unsigned long downloadBaudRate = 115200;   // 57600 Needs to match the upload program.
 
 // Default: Arduino IDE monitor.
 // Requires an enter key to send a string of characters that are terminated with LF.

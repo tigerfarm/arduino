@@ -34,7 +34,7 @@ import java.util.logging.Logger;
 //
 public class asmUpload {
     
-    private static int baudRate = 57600;
+    private static int baudRate = 115200;   // 57600
     private static int baudSleepTime = 3;   // Set to 300 if baud rate is 9600.
 
     // Uses the device name that can be found in the Arduino IDE, under the menu item Tools/Port.
@@ -117,7 +117,9 @@ public class asmUpload {
             // This allows buffer time so that bytes are not dropped.
             baudSleepTime = 300;
         } else {
-            baudSleepTime = 10; // Note, had issues with baud rate was 57600 and baudSleepTime was 3. 10 seems fine.
+            // Note, had issues with baud rate was 57600 and baudSleepTime was 3. 10 works fine for 57600.
+            // Started testing with 115200. 10 worked fine.
+            baudSleepTime = 10;
         }
         // block until bytes can be written
         sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
