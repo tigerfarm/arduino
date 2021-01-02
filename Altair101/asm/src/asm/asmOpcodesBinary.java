@@ -11,6 +11,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 // -----------------------------------------------------------------------------
@@ -71,9 +72,9 @@ public class asmOpcodesBinary {
     public final byte OpcodeNotFound = (byte) 255;
 
     // Keep the file lines in memory for listing.
-    private static final String SEPARATOR = ":";
-    private int programTop = 0;
-    private final static List<String> opcodeDoc = new ArrayList<>();
+    private static int opcodesTop = 0;
+    private final static List<String> opcodes = new ArrayList<>();
+    private final static List<String> opcodesType = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // Constructor to initialize the opcode data.
@@ -88,12 +89,132 @@ public class asmOpcodesBinary {
     public static String byteToString(byte aByte) {
         return toBinary(aByte, 8);
     }
+
     private static String toBinary(byte a, int bits) {
         if (--bits > 0) {
             return toBinary((byte) (a >> 1), bits) + ((a & 0x1) == 0 ? "0" : "1");
         } else {
             return (a & 0x1) == 0 ? "0" : "1";
         }
+    }
+
+    // -------------------------------------------------------------------------
+    /*
+    opcodesTop
+
+    ++;
+    opcodes.add (opcode);
+
+    opcodesType.add (opcodeType);
+     */
+    public static String getOpcodeType(String theOpcode) {
+        // Given an opcode, return the byte code.
+        String returnValue = "";
+        Iterator<String> iTypes = opcodesType.iterator();
+        for (Iterator<String> it = opcodes.iterator(); it.hasNext();) {
+            String theOpcodes = it.next();
+            String theType = iTypes.next();
+            if (theOpcodes.equals(theOpcode)) {
+                returnValue = theType;
+                break;
+            }
+        }
+        return returnValue;
+    }
+
+    private static void fileLoadOpcodeSyntax(String theReadFilename) throws FileNotFoundException, IOException {
+        File readFile;
+        FileInputStream fin;
+        DataInputStream pin;
+        String value;
+        String info;
+        try {
+            // Get a count of the number of opcodes.
+            readFile = new File(theReadFilename);
+            if (!readFile.exists()) {
+                System.out.println("+ ** ERROR, theReadFilename does not exist.");
+                return;
+            }
+            fin = new FileInputStream(readFile);
+            pin = new DataInputStream(fin);
+            String theLine = pin.readLine();
+            String opcode;
+            String opcodeType = "";
+            opcodeCount = 0;
+            System.out.println("\n+ List opcode syntax.");
+            while (theLine != null) {
+                theLine = theLine.trim();
+                if (theLine.startsWith("// opcode, no parameters")) {
+                    opcodeType = "NA";
+                    System.out.print("++ opcode, no parameters");
+                    System.out.println("");
+                }
+                if (theLine.startsWith("// opcode <address label>")) {
+                    opcodeType = "adr";
+                    System.out.print("++ opcode <address label>");
+                    System.out.println("");
+                }
+                if (theLine.startsWith("// opcode <immediate>")) {
+                    opcodeType = "D8";
+                    System.out.print("++ opcode <immediate>");
+                    System.out.println("");
+                }
+                if (theLine.startsWith("// opcode <register|RegisterPair>")) {
+                    opcodeType = "R";
+                    System.out.print("++ opcode <register|RegisterPair>");
+                    System.out.println("");
+                }
+                /*
+                if (theLine.startsWith("case \"mvi\":")) {
+                    System.out.print("++ opcode MVI");
+                    theLine = pin.readLine();
+                    System.out.print(" : " + theLine.trim());
+                    System.out.println("");
+                }
+                if (theLine.startsWith("case \"mov\":")) {
+                    System.out.print("++ opcode MOV");
+                    theLine = pin.readLine();
+                    System.out.print(" : " + theLine.trim());
+                    System.out.println("");
+                }
+                if (theLine.startsWith("case \"lxi\":")) {
+                    System.out.print("++ opcode LXI");
+                    theLine = pin.readLine();
+                    System.out.print(" : " + theLine.trim());
+                    System.out.println("");
+                }
+                 */
+                if (theLine.equals("break;")) {
+                    opcodeType = "";
+                }
+                if (theLine.startsWith("case \"") && !opcodeType.equals("")) {
+                    // Get the opcode.
+                    // 01234567890
+                    // case "hlt":
+                    int c1 = theLine.indexOf("\"", 7);
+                    if (c1 > 7) {
+                        opcode = theLine.substring(6, c1);
+                        opcodesTop++;
+                        opcodes.add(opcode);
+                        opcodesType.add(opcodeType);
+                    } else {
+                        opcode = "---";
+                    }
+                    System.out.println("++ opcode :" + opcode + ":" + opcodeType);
+                }
+                //
+                theLine = pin.readLine();
+            }
+            pin.close();
+        } catch (IOException ioe) {
+            System.out.print("+ *** IOException: ");
+            System.out.println(ioe.toString());
+        }
+        System.out.println("+++ opcodesTop = " + opcodesTop);
+        System.out.println("+++ getOpcodeType(\"hlt\") = " + getOpcodeType("hlt"));
+        System.out.println("+++ getOpcodeType(\"jmp\") = " + getOpcodeType("jmp"));
+        System.out.println("+++ getOpcodeType(\"out\") = " + getOpcodeType("out"));
+        System.out.println("+++ getOpcodeType(\"cmp\") = " + getOpcodeType("cmp"));
     }
 
     // -------------------------------------------------------------------------
@@ -104,6 +225,9 @@ public class asmOpcodesBinary {
         String value;
         String info;
         String logic;
+
+        fileLoadOpcodeSyntax("src/asm/asmProcessor.java");
+
         try {
             // Get a count of the number of opcodes.
             readFile = new File(theReadFilename);
@@ -117,7 +241,6 @@ public class asmOpcodesBinary {
             String opcode = "";
             opcodeCount = 0;
             while (theLine != null) {
-                opcodeDoc.add(theLine);
                 if (theLine.startsWith("0x")) {
                     // Line samples:
                     //            10        20
@@ -144,6 +267,7 @@ public class asmOpcodesBinary {
                     String paddingD;
                     String padding = "";
                     String paddingV = "";
+                    String paddingT = "";
                     if (opcode.length() == 3) {
                         padding = " ";
                     } else if (opcode.length() == 2) {
@@ -181,17 +305,34 @@ public class asmOpcodesBinary {
                         infoLow = infoLow.replaceAll(",", "").toLowerCase();
                         String doCheck = " ";
                         if (!infoLow.startsWith(theOpcodeValue)) {
-                            doCheck = "*";
+                            if (!theOpcodeValue.equals("pusha") && !theOpcodeValue.equals("popa"))  {
+                                doCheck = "*";
+                            }
                         }
                         if (theOpcodeValue.startsWith("mov")) {
                             // ++ 77 119 01110111 MOV  movma * :MOV M,A    (HL) <- A:
                         }
+                        String theType = getOpcodeType(opcode.toLowerCase());
+                        switch (theType.length()) {
+                            case 0:
+                                paddingT = "   ";
+                                break;
+                            case 1:
+                                paddingT = "  ";
+                                break;
+                            case 2:
+                                paddingT = " ";
+                                break;
+                            default:
+                                break;
+                        }
                         System.out.print("++ " + value + " "
                                 + paddingD + decimal + " "
-                                + byteToString((byte)decimal) + " "
+                                + byteToString((byte) decimal) + " "
                                 + opcode + padding
                                 + " " + theOpcodeValue + paddingV
                                 + " " + doCheck
+                                + " " + theType + paddingT
                                 + " :" + info + ":"
                         );
                         System.out.println("");
@@ -211,7 +352,7 @@ public class asmOpcodesBinary {
         opcodeBinary = theOpcodes.getOpcode(opcode);
         System.out.println("++ " + opcode + " :" + opcodeBinary + ":" + theOpcodes.getOpcodeValue(opcodeBinary));
         // theOpcodes.getOpcodeValue(opcodeBinary);
-        */
+         */
     }
 
     // -------------------------------------------------------------------------

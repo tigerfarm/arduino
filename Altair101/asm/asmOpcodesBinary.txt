@@ -1,4 +1,4 @@
-  Cycles Flags  Instruction  Description (0x00 and 0x01 are at the bottom)
+  Cycles Flags  Instruction  Description
 0x00  1           NOP        
 0x01  3           LXI B,D16  B <- byte 3, C <- byte 2
 0x02  1           STAX B     (BC) <- A  
