@@ -1624,7 +1624,7 @@ public class asmProcessor {
     }
 }
 
-/* Confirm and fix.
+/* Confirmed nemonic to byte value.
 
 ++ 00 000 00000000 NOP  nop     :NOP:
 ++ 01 001 00000001 LXI  lxib    :LXI B,D16  B <- byte 3, C <- byte 2:
@@ -1885,4 +1885,134 @@ public class asmProcessor {
 
 -----------------------------------------------
 
++++ Confirm parameters
+
+            // ------------------------------------------
+            // opcode, example: nop
+            case "hlt":
+            case "nop":
+            case "ret":
+            case "rlc":
+            case "rrc":
+            case "ei":
+            case "di":
+            case "rar":
+            case "rz":
+            case "rnz":
+            case "rc":
+            case "rnc":
+            case "rpo":
+            case "rpe":
+            case "rp":
+            case "rm":
+            case "xthl":
+            case "sphl":
+            case "xchg":
+            // ------------------------------------------
+            // opcode <address label>, example: jmp There
+            case "call":
+            case "jmp":
+            case "jnz":
+            case "jz":
+            case "jnc":
+            case "jc":
+            case "lda":
+            case "sta":
+            case "lhld":
+            case "shld":
+            case "jm":
+            case "jp":
+            case "jpe":
+            case "jpo":
+            case "cnz":
+            case "cz":
+            case "cnc":
+            case "cc":
+            case "cpo":
+            case "cpe":
+            case "cp":
+            case "cm":
+            // ------------------------------------------
+            // opcode <immediate>, example: out 39
+            case "adi":
+            case "ani":
+            case "cpi":
+            case "in":
+            case "out":
+            case "sui":
+            case "aci":
+            case "sbi":
+            case "xri":
+            case "ori":
+            case "pchl":
+            case "daa":
+            case "ral":
+            case "cma":
+            case "stc":
+            case "cmc":
+            case "sphl":
+            case "rst":
+            // ------------------------------------------
+            // opcode <register|RegisterPair>, example: cmp c
+            case "cmp":
+            case "dad":
+            case "dcr":
+            case "inr":
+            case "inx":
+            case "dcx":
+            case "ldax":
+            case "ora":
+            case "pop":
+            case "push":
+            case "xra":
+            case "add":
+            case "adc":
+            case "sub":
+            case "sbb":
+            case "ana":
+            case "stax":
+            // ------------------------------------------
+            case "mvi":
+                // opcode <register>,<immediate>, example: mvi a,1
+                p1 = p1.toLowerCase();
+                //
+                // Case of the immediate equaling the separator.
+                sOpcodeBinary = getOpcodeBinary(opcode + p1);
+                if (p2.equals("'" + SEPARATOR + "'")) {
+                    p2 = "'" + SEPARATOR_TEMP + "'";
+                }
+                //
+                programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1 + SEPARATOR + p2);
+                programTop++;
+                programBytes.add("immediate:" + p2);
+                programTop++;
+                System.out.println("++ Opcode: "
+                        + opcode + " " + sOpcodeBinary
+                        + " register|" + p1 + "|" + " immediate|" + p2 + "|");
+                break;
+            case "mov":
+                // opcode <register>,<register>, example: mov a,b
+                p1 = p1.toLowerCase();
+                p2 = p2.toLowerCase();
+                sOpcodeBinary = getOpcodeBinary(opcode + p1 + p2);
+                programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1 + SEPARATOR + p2);
+                programTop++;
+                System.out.println("++ Opcode: "
+                        + opcode + " " + sOpcodeBinary
+                        + " register|" + p1 + "|" + " register|" + p2 + "|");
+                break;
+            case "lxi":
+                // opcode <register>,<address label|address number>, example: lxi b,5
+                p1 = p1.toLowerCase();
+                sOpcodeBinary = getOpcodeBinary(opcode + p1);
+                programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1 + SEPARATOR + p2);
+                programTop++;
+                programBytes.add("lb:" + p2);
+                programTop++;
+                programBytes.add("hb:" + 0);
+                programTop++;
+                System.out.println("++ Opcode: "
+                        + opcode + " " + sOpcodeBinary
+                        + " register|" + p1 + "|" + " addressLabel|addressNumber|" + p2 + "|");
+                break;
 */

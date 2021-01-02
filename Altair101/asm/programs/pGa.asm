@@ -2036,14 +2036,5 @@ CK2:
 	RET			;Return with 'C' flag set
 
 
-+ Parse |++    2470:00001001 10100110: 00110001 : 31:061 > opcode: lxi sp,STACK|
-++ parseLine componets theRest|2470:00001001 10100110: 00110001 : 31:061 > opcode: lxi sp,STACK|
-++ parseLine componets part1asIs|++| part1|++| part2|2470:00001001| theDirective|2470:00001001| theRest|10100110: 00110001 : 31:061 > opcode: lxi sp,STACK|
-++ parseLabel, Name: ++, Address: 2482
-++ parseLine1 2 componets, part1|2470:00001001| part2|10100110: 00110001 : 31:061 > opcode: lxi sp,STACK|
-++ parseLine, opcode|2470:00001001| p1|10100110: 00110001 : 31:061 > opcode: lxi sp| p2|STACK|
--- 2482: -- Error4, INVALID, Opcode: 2470:00001001 11001101 p1|10100110: 00110001 : 31:061 > opcode: lxi sp| p2|STACK|
-
-
                                 ; 
                                 ; --------------------------------------
