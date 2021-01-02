@@ -78,6 +78,7 @@ lxid :00010001:|byte 3 -> D, byte 2 -> E (hb->D,lb->E)
 lxih :00100001:|byte 3 -> H, byte 2 -> L (hb->H,lb->L)
 lxisp:00110001:|stackpointer = lb(byte 2) + 256 * hb(byte 3)
 mov  :01DDDSSS:MOV D,S  01 DDD SSS  1  Move source register(SSS) data, to the destination(DDD) register(A,B,C,D,E,H, or L). If source(S) is M(110), move data from address H:L(H is hb,L is lb), to destination(D).
+movaa:01111111:|A -> A
 movab:01111000:|B -> A
 movac:01111001:|C -> A
 movad:01111010:|D -> A
@@ -85,6 +86,7 @@ movae:01111011:|E -> A
 movah:01111100:|H -> A
 moval:01111101:|L -> A
 movba:01000111:|A -> A
+movbb:01000000:|B -> B
 movbc:01000001:|C -> B
 movbd:01000010:|D -> B
 movbe:01000011:|E -> B
@@ -92,6 +94,7 @@ movbh:01000100:|H -> B
 movbl:01000101:|L -> B
 movca:01001111:|A -> C
 movcb:01001000:|B -> C
+movcc:01001001:|C -> C
 movcd:01001010:|D -> C
 movce:01001011:|E -> C
 movch:01001100:|H -> C
@@ -99,6 +102,7 @@ movcl:01001101:|L -> C
 movda:01010111:|A -> D
 movdb:01010000:|B -> D
 movdc:01010001:|C -> D
+movdd:01010010:|D -> D
 movde:01010011:|E -> D
 movdh:01010100:|H -> D
 movdl:01010101:|L -> D
@@ -106,6 +110,7 @@ movea:01011111:|A -> E
 moveb:01011000:|B -> E
 movec:01011001:|C -> E
 moved:01011010:|D -> E
+movee:01011011:|E -> E
 moveh:01011100:|H -> E
 movel:01011101:|L -> E
 movha:01100111:|A -> H
@@ -113,13 +118,15 @@ movhb:01100000:|B -> H
 movhc:01100001:|C -> H
 movhd:01100010:|D -> H
 movhe:01100011:|E -> H
+movhh:01100100:|H -> H
 movhl:01100101:|L -> H
 movla:01101111:|A -> L
 movlb:01101000:|B -> L
 movlc:01101001:|C -> L
 movld:01101010:|D -> L
 movle:01101011:|E -> L
-movlh:01101100:|K -> L
+movlh:01101100:|H -> L
+movll:01101101:|L -> L
 movam:01111110:|(HL)->A
 movbm:01000110:|(HL)->B
 movcm:01001110:|(HL)->C
@@ -142,7 +149,7 @@ mvid :00010110:|D <- byte 2
 mvie :00011110:|E <- byte 2
 mvih :00100110:|H <- byte 2
 mvil :00101110:|L <- byte 2
-mvim :00111110:|(HL) <- byte 2
+mvim :00110110:|(HL) <- byte 2
 push :11RP0101:PUSH RP  11 RP0 101  1  Push a register pair (RP) onto the stack: B:C, D:E, H:L. To do, push flags.
 pushb:11000101:|(sp-2)<-C; (sp-1)<-B; sp <- sp - 2
 pushd:11010101:|(sp-2)<-E; (sp-1)<-D; sp <- sp - 2
@@ -181,10 +188,12 @@ inx :00RP0011:INX RP   00 RP0 011  1  Increment a register pair value(16 bit val
 inxb:00000011:|BC = BC+1
 inxd:00010011:|DE = DE+1
 inxh:00100011:|HL = HL+1
+inxsp:00110011:|SP = SP + 1
 dcx :00RP1011:DCX RP   00 RP1 011  1  Decrement a register pair value(16 bit value): B:C, D:E, H:L.
 dcxb:00001011:|BC = BC-1
 dcxd:00011011:|DE = DE-1
 dcxh:00101011:|HL = HL-1
+dcxsp:00111011:|SP = SP-1
 
 adi :11000110:ADI #    11 000 110  3  Add #(immediate value) to register A, set: ZSCPA.
 sui :11010110:SUI #    11 010 110  3  Subtract #(immediate value) from register A, set ZSCPA.
@@ -226,7 +235,7 @@ xrad:10101010:|D ^ A -> A
 xrae:10101011:|E ^ A -> A
 xrah:10101100:|H ^ A -> A
 xral:10101101:|L ^ A -> A
-xram:10101101:|(HL) ^ A -> A
+xram:10101110:|(HL) ^ A -> A
 
 rlc :00000111:RLC      00 000 111  1  Rotate accumulator left by shift left 1 bit, and wrapping the first bit to the last position. Need to handle carry bit (CY = prev bit 7).
 rrc :00001111:RRC      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit (CY = prev bit 0).

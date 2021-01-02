@@ -85,6 +85,17 @@ public class asmOpcodesBinary {
         fileLoadOpcodes(opcodeFilename);
     }
 
+    public static String byteToString(byte aByte) {
+        return toBinary(aByte, 8);
+    }
+    private static String toBinary(byte a, int bits) {
+        if (--bits > 0) {
+            return toBinary((byte) (a >> 1), bits) + ((a & 0x1) == 0 ? "0" : "1");
+        } else {
+            return (a & 0x1) == 0 ? "0" : "1";
+        }
+    }
+
     // -------------------------------------------------------------------------
     private static void fileLoadOpcodes(String theReadFilename) throws FileNotFoundException, IOException {
         File readFile;
@@ -168,6 +179,7 @@ public class asmOpcodesBinary {
                         }
                         System.out.print("++ " + value + " "
                                 + paddingD + decimal + " "
+                                + byteToString((byte)decimal) + " "
                                 + opcode + padding
                                 + " "+ theOpcodeValue + paddingV
                                 + " :" + info + ":"
@@ -184,11 +196,13 @@ public class asmOpcodesBinary {
             System.out.print("+ *** IOException: ");
             System.out.println(ioe.toString());
         }
+        /*
         String opcode = "hlt";
         byte opcodeBinary;
         opcodeBinary = theOpcodes.getOpcode(opcode);
         System.out.println("++ " + opcode + " :" + opcodeBinary + ":" + theOpcodes.getOpcodeValue(opcodeBinary));
         // theOpcodes.getOpcodeValue(opcodeBinary);
+        */
     }
 
     // -------------------------------------------------------------------------
