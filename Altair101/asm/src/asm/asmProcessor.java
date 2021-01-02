@@ -994,8 +994,9 @@ public class asmProcessor {
             case "rp":
             case "rm":
             case "xthl":
-            case "sphl":
             case "xchg":
+            case "pchl":
+            case "sphl":
                 sOpcodeBinary = getOpcodeBinary(opcode);
                 programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary);
                 programTop++;
@@ -1059,13 +1060,11 @@ public class asmProcessor {
             case "sbi":
             case "xri":
             case "ori":
-            case "pchl":
             case "daa":
             case "ral":
             case "cma":
             case "stc":
             case "cmc":
-            case "sphl":
             case "rst":
                 sOpcodeBinary = getOpcodeBinary(opcode);
                 programBytes.add("opcode:" + opcode + SEPARATOR + sOpcodeBinary + SEPARATOR + p1);
@@ -1906,8 +1905,9 @@ public class asmProcessor {
             case "rp":
             case "rm":
             case "xthl":
-            case "sphl":
             case "xchg":
+            case "pchl":
+            case "sphl":
             // ------------------------------------------
             // opcode <address label>, example: jmp There
             case "call":
@@ -1934,23 +1934,21 @@ public class asmProcessor {
             case "cm":
             // ------------------------------------------
             // opcode <immediate>, example: out 39
+            case "in":
+            case "out":
             case "adi":
             case "ani":
             case "cpi":
-            case "in":
-            case "out":
             case "sui":
             case "aci":
             case "sbi":
             case "xri":
             case "ori":
-            case "pchl":
             case "daa":
             case "ral":
             case "cma":
             case "stc":
             case "cmc":
-            case "sphl":
             case "rst":
             // ------------------------------------------
             // opcode <register|RegisterPair>, example: cmp c
