@@ -1893,9 +1893,9 @@ public class asmProcessor {
             case "ret":
             case "rlc":
             case "rrc":
+            case "rar":
             case "ei":
             case "di":
-            case "rar":
             case "rz":
             case "rnz":
             case "rc":
@@ -1904,8 +1904,8 @@ public class asmProcessor {
             case "rpe":
             case "rp":
             case "rm":
-            case "xthl":
             case "xchg":
+            case "xthl":
             case "pchl":
             case "sphl":
             // ------------------------------------------
@@ -1916,14 +1916,14 @@ public class asmProcessor {
             case "jz":
             case "jnc":
             case "jc":
-            case "lda":
-            case "sta":
-            case "lhld":
-            case "shld":
             case "jm":
             case "jp":
             case "jpe":
             case "jpo":
+            case "lda":
+            case "sta":
+            case "lhld":
+            case "shld":
             case "cnz":
             case "cz":
             case "cnc":
@@ -1953,22 +1953,22 @@ public class asmProcessor {
             // ------------------------------------------
             // opcode <register|RegisterPair>, example: cmp c
             case "cmp":
-            case "dad":
+            case "ora":
+            case "ana":
+            case "ldax":
+            case "stax":
+            case "pop":
+            case "push":
+            case "xra":
             case "dcr":
             case "inr":
             case "inx":
             case "dcx":
-            case "ldax":
-            case "ora":
-            case "pop":
-            case "push":
-            case "xra":
+            case "dad":
             case "add":
             case "adc":
             case "sub":
             case "sbb":
-            case "ana":
-            case "stax":
             // ------------------------------------------
             case "mvi":
                 // opcode <register>,<immediate>, example: mvi a,1
