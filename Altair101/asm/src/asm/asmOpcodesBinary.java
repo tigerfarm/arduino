@@ -242,7 +242,7 @@ public class asmOpcodesBinary {
             String paddingP = "";
             String paddingT = "";
             String paddingV = "";
-            System.out.println("Decimal  Binary  Opcode   Parameters Type     Description");
+            System.out.println("Decimal  Binary  Opcode    Parameters Type     Description");
             String theLine = pin.readLine().trim();
             while (theLine != null) {
                 if (theLine.startsWith("0x")) {
@@ -294,6 +294,7 @@ public class asmOpcodesBinary {
                         //      opcodeSyntax =              INX B
                         //      opcode =                    INX
                         //      opcodeSyntaxParameters =    B
+                        //      opcodeBytesFollowing        0
                         //      opcodeSyntaxValue           inxb (opcodeSyntax: lowercase, spaces and commas removed)
                         //      opcodeParameterType         R
                         //      opcodeInfo =                BC <- BC+1
@@ -304,11 +305,21 @@ public class asmOpcodesBinary {
                         //      opcodeSyntaxValue = mvild8
                         //
                         opcodeSyntaxParameters = "";
+                        int opcodeBytesFollowing = 0;
+                        String opcodeBytesStr = " ";
                         int c1 = opcodeSyntax.indexOf(" ");
                         if (c1 > 0) {
                             opcode = opcodeSyntax.substring(0, c1).trim();
                             opcodeSyntaxParameters = opcodeSyntax.substring(c1 + 1, 10).trim();
                             opcodeSyntaxParameters = opcodeSyntaxParameters.replaceAll(" ", "").toLowerCase();
+                            if (opcodeSyntaxParameters.endsWith("adr") || opcodeSyntaxParameters.endsWith("d16")) {
+                                opcodeBytesFollowing = 2;
+                            } else if (opcodeSyntaxParameters.endsWith("d8")) {
+                                opcodeBytesFollowing = 1;
+                            }
+                            if (opcodeBytesFollowing > 0) {
+                                opcodeBytesStr = String.valueOf(opcodeBytesFollowing);
+                            }
                         } else {
                             opcode = opcodeSyntax.trim();
                         }
@@ -438,7 +449,7 @@ public class asmOpcodesBinary {
                                 + byteToString((byte) opcodeOctalDecimal)
                                 + " " + opcode + paddingO
                                 + " " + theOpcodeValue + paddingV
-                                + opcodeSyntaxParameters + paddingP
+                                + opcodeSyntaxParameters + paddingP + opcodeBytesStr
                                 + " " + doCheck
                                 + " " + opcodeParameterType + paddingT
                                 + " " + doCheck2

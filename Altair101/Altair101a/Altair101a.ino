@@ -24,9 +24,8 @@
 ?- + M, Write program Memory into the file: 00001001.BIN
 + Confirm, y/n:
   
-
-  + Programs that should run on an Altair-Duino.
-  + Programs that should run on an Altair 8800 or clone.
+  + Create a directory for Altair-Duino program files: ASM and BIN.
+  + Create a directory for Altair 8800 hardware program files: ASM and BIN.
   
   Done: Update asm to compile, pGalaxy80.asm
   Add Serial2 i/o ports.
