@@ -126,8 +126,6 @@ public class asmOpcodesBinary {
         File readFile;
         FileInputStream fin;
         DataInputStream pin;
-        String value;
-        String info;
         try {
             // Get a count of the number of opcodes.
             readFile = new File(theReadFilename);
@@ -218,9 +216,7 @@ public class asmOpcodesBinary {
         File readFile;
         FileInputStream fin;
         DataInputStream pin;
-        String value;
-        String info;
-        String logic;
+        // String value;
 
         fileLoadOpcodeSyntax("src/asm/asmProcessor.java");
 
@@ -233,133 +229,228 @@ public class asmOpcodesBinary {
             }
             fin = new FileInputStream(readFile);
             pin = new DataInputStream(fin);
-            String theLine = pin.readLine();
-            String opcode = "";
+            String opcodeOctal;
+            String info;
+            String opcode;
+            String opcodeInfo;
+            String opcodeSyntaxParameters;
+            String opcodeParameterType;
             opcodeCount = 0;
+            String doCheck2 = "  ";
+            String paddingO = "";
+            String paddingD;
+            String paddingP = "";
+            String paddingT = "";
+            String paddingV = "";
+            String theLine = pin.readLine().trim();
             while (theLine != null) {
                 if (theLine.startsWith("0x")) {
-                    // Line samples:
-                    //            10        20
-                    //  0123456789012345678901234567890123456789
-                    //  0x02  1           STAX B     (BC) <- A
-                    //  + opcode:0x02:0:STAX B     (BC) <- A:
                     //
-                    //  0x03  1           INX B      BC <- BC+1 
-                    //  0x04  1  Z,S,P,AC INR B      B <- B+1
-                    //  0x08              -
-                    value = theLine.substring(2, 4);
-                    info = theLine.substring(18, theLine.length()).trim();
-                    if (info.equals("-")) {
-                        opcode = "-";
+                    // Process a Opcode syntax line from, asmOpcodesBinary.txt.
+                    //
+                    // Opcode syntax line samples with various parameter types:
+                    //      0x08              -
+                    //      0x07  1  CY       RLC        A = A << 1;          NA
+                    //      0x02  1           STAX B     (BC) <- A            R
+                    //      0x03  1           INX B      BC <- BC+1           R
+                    //      0x04  1  Z,S,P,AC INR B      B <- B+1             R
+                    //      0xc7  1           RST 0      CALL $0              D8
+                    //      0x4a  1           MOV C,D    C <- D     
+                    //      0x2e  2           MVI L, D8  L <- byte 2
+                    //      0x31  3           LXI SP,D16 SP.hi <- byte 3, SP.lo <- byte 2
+                    //
+                    // ---------------------------------------------------------
+                    // Sample:
+                    //               10        20      28
+                    //      0123456789012345678901234567890123456789
+                    //      0x03  1           INX B      BC <- BC+1 
+                    //      0x08              -
+                    opcodeOctal = theLine.substring(2, 4);
+                    int opcodeOctalDecimal = Integer.parseInt(opcodeOctal, 16);
+                    if (opcodeOctalDecimal < 10) {
+                        paddingD = "00";
+                    } else if (opcodeOctalDecimal < 100) {
+                        paddingD = "0";
                     } else {
-                        int c1 = info.indexOf(" ");
+                        paddingD = "";
+                    }
+                    if (theLine.length() < 20) {
+                        //  0x08              -
+                        System.out.println("++ "
+                                + paddingD + opcodeOctalDecimal + " "
+                                + byteToString((byte) opcodeOctalDecimal) + " "
+                                + "-"
+                        );
+                    } else {
+                        String opcodeSyntax = theLine.substring(18, 28);
+                        //
+                        //  Components:
+                        //      opcodeOctal                 03
+                        //      opcodeDecimal               3
+                        //      opcodeSyntax =              INX B
+                        //      opcode =                    INX
+                        //      opcodeSyntaxParameters =    B
+                        //      opcodeSyntaxValue           inxb
+                        //      opcodeParameterType         R
+                        //      opcodeInfo =                BC <- BC+1
+                        // Output:
+                        //  ++ 04 004 00000100 INR  inrb    R   :INR B      B <- B+1:
+                        //
+                        //  MVI L, D8
+                        //      opcodeSyntaxValue = mvild8
+                        //
+                        opcodeSyntaxParameters = "";
+                        int c1 = opcodeSyntax.indexOf(" ");
                         if (c1 > 0) {
-                            opcode = info.substring(0, c1).trim();
+                            opcode = opcodeSyntax.substring(0, c1).trim();
+                            opcodeSyntaxParameters = opcodeSyntax.substring(c1 + 1, 10).trim();
+                            opcodeSyntaxParameters = opcodeSyntaxParameters.replaceAll(" ", "").toLowerCase();
                         } else {
-                            opcode = info.trim();
+                            opcode = opcodeSyntax.trim();
                         }
-                    }
-                    logic = "";
-                    String opcodeSyntax = "";
-                    String paddingD;
-                    String padding = "";
-                    String paddingV = "";
-                    String paddingT = "";
-                    if (opcode.length() == 3) {
-                        padding = " ";
-                    } else if (opcode.length() == 2) {
-                        padding = "  ";
-                    }
-                    if (opcode.equals("-")) {
-                        System.out.println("++ " + value + " ---");
-                    } else {
-                        int decimal = Integer.parseInt(value, 16);
-                        if (decimal < 10) {
-                            paddingD = "00";
-                        } else if (decimal < 100) {
-                            paddingD = "0";
-                        } else {
-                            paddingD = "";
-                        }
-                        String theOpcodeValue = theOpcodes.getOpcodeValue(decimal);
-                        if (theOpcodeValue.equals("")) {
-                            theOpcodeValue = "---";
-                        }
-                        switch (theOpcodeValue.length()) {
+                        String opcodeSyntaxValue = opcodeSyntax.replaceAll(" ", "").toLowerCase();
+                        opcodeSyntaxValue = opcodeSyntaxValue.replaceAll(",", "");
+                        opcodeParameterType = getOpcodeType(opcode.toLowerCase());
+                        opcodeInfo = theLine.substring(29, theLine.length()).trim();
+                        //
+                        // ---------------------------------------------------------
+                        switch (opcode.length()) {
                             case 4:
-                                paddingV = " ";
+                                paddingO = " ";
                                 break;
                             case 3:
-                                paddingV = "  ";
+                                paddingO = "  ";
                                 break;
                             case 2:
-                                paddingV = "   ";
+                                paddingO = "   ";
                                 break;
                             default:
                                 break;
                         }
-                        String infoLow = info.replaceAll(" ", "").toLowerCase();
-                        infoLow = infoLow.replaceAll(",", "").toLowerCase();
-                        String doCheck = " ";
-                        if (!infoLow.startsWith(theOpcodeValue)) {
-                            if (!theOpcodeValue.equals("pusha") && !theOpcodeValue.equals("popa")) {
-                                doCheck = "*";
-                            }
-                        }
-                        if (theOpcodeValue.startsWith("mov")) {
-                            // ++ 77 119 01110111 MOV  movma * :MOV M,A    (HL) <- A:
-                        }
-                        String theType = getOpcodeType(opcode.toLowerCase());
-                        switch (theType.length()) {
-                            case 0:
-                                paddingT = "   ";
-                                break;
-                            case 1:
-                                paddingT = "  ";
-                                break;
-                            case 2:
-                                paddingT = " ";
-                                break;
-                            default:
-                                break;
-                        }
-                        // Confirm the parameter type.
-                        //  0123456789012345678901234567890123456789
-                        //  0x04  1  Z,S,P,AC INR B      B <- B+1
-                        String doCheck2 = "  ";
-                        opcodeSyntax = theLine.substring(18, 28).trim();
-                        if (theType.equals("NA") && !opcode.toLowerCase().equals(theOpcodeValue)) {
-                            // 0x07  1  CY       RLC        A = A ...
-                            // ++ 07 007 00000111 RLC  rlc     NA  :RLC        A = A ...
-                            doCheck2 = "- ";
-                        }
-                        int c1 = theLine.indexOf(" ", 7);
-                        if (c1 > 0) {
-                            // 0x04  1  Z,S,P,AC INR B      B <- B+1 
-                            String param = theLine.substring(c1, 28);
-                            if (!theType.equals("R")) {
-                                doCheck2 = "  ";
-                                // doCheck2 = "-p";
-                            }
+                        opcodeOctal = theLine.substring(2, 4);
+                        if (opcode.equals("-")) {
+                            System.out.println("++ " + opcodeOctal + " ---");
                         } else {
-                            // Error because type is NA.
-                            doCheck2 = "--";
+                            //  For example, from asmOpcodesBinary.txt, 
+                            //      0x04  1  Z,S,P,AC INR B      B <- B+1
+                            //  Use 0x04 (00000100),to get "inrb" from asmOpcodes.txt:
+                            //      inrb:00000100:|B+1 -> B
+                            //  Result,
+                            //      theOpcodeValue = "inrb"
+                            //
+                            String theOpcodeValue = theOpcodes.getOpcodeValue(opcodeOctalDecimal);
+                            if (opcodeParameterType.equals("NA") && !opcode.toLowerCase().equals(theOpcodeValue)) {
+                                // 0x07  1  CY       RLC        A = A ...
+                                // ++ 07 007 00000111 RLC  rlc     NA  :RLC        A = A ...
+                                doCheck2 = "- ";
+                            }
+                            if (theOpcodeValue.equals("")) {
+                                theOpcodeValue = "---";
+                            }
+                            switch (theOpcodeValue.length()) {
+                                case 5:
+                                    paddingV = " ";
+                                    break;
+                                case 4:
+                                    paddingV = "  ";
+                                    break;
+                                case 3:
+                                    paddingV = "   ";
+                                    break;
+                                case 2:
+                                    paddingV = "    ";
+                                    break;
+                                default:
+                                    break;
+                            }
+                            String doCheck = " ";
+                            if (!opcodeSyntaxValue.startsWith(theOpcodeValue)) {
+                                if (!theOpcodeValue.equals("pusha") && !theOpcodeValue.equals("popa")) {
+                                    doCheck = "*";
+                                }
+                            }
+                            if (theOpcodeValue.startsWith("mov")) {
+                                // ++ 77 119 01110111 MOV  movma * :MOV M,A    (HL) <- A:
+                            }
+                            switch (opcodeParameterType.length()) {
+                                case 0:
+                                    paddingT = "    ";
+                                    break;
+                                case 1:
+                                    paddingT = "   ";
+                                    break;
+                                case 2:
+                                    paddingT = "  ";
+                                    break;
+                                case 3:
+                                    paddingT = " ";
+                                    break;
+                                default:
+                                    break;
+                            }
+                            switch (opcodeSyntaxParameters.length()) {
+                                case 6:
+                                    paddingP = " ";
+                                    break;
+                                case 5:
+                                    paddingP = "  ";
+                                    break;
+                                case 4:
+                                    paddingP = "   ";
+                                    break;
+                                case 3:
+                                    paddingP = "    ";
+                                    break;
+                                case 2:
+                                    paddingP = "     ";
+                                    break;
+                                case 1:
+                                    paddingP = "      ";
+                                    break;
+                                case 0:
+                                    paddingP = "       ";
+                                    break;
+                                default:
+                                    break;
+                            }
+                            c1 = theLine.indexOf(" ", 7);
+                            if (c1 > 0) {
+                                // 0x04  1  Z,S,P,AC INR B      B <- B+1 
+                                if (!opcodeParameterType.equals("R")) {
+                                    doCheck2 = "  ";
+                                    // doCheck2 = "-p";
+                                }
+                            } else {
+                                // Error because type is NA.
+                                doCheck2 = "--";
+                            }
+                            //  Components:
+                            //      opcodeOctal                 03
+                            //      opcodeOctalDecimal           3
+                            //      opcodeSyntax =              INX B
+                            //      opcode =                    INX
+                            //      opcodeSyntaxParameters =    B
+                            //      opcodeSyntaxValue           inxb
+                            //      opcodeParameterType         R
+                            //      opcodeInfo =                BC <- BC+1
+                            System.out.print("++ "
+                                    + paddingD + opcodeOctalDecimal + " "
+                                    + byteToString((byte) opcodeOctalDecimal) + " "
+                                    + " " + theOpcodeValue + paddingV
+                                    + opcode + paddingO
+                                    + opcodeSyntaxParameters + paddingP
+                                    + " " + doCheck
+                                    + " " + opcodeParameterType + paddingT
+                                    + " " + doCheck2
+                                    + " :" + opcodeInfo
+                            );
+                            System.out.println("");
                         }
-                        System.out.print("++ " + value + " "
-                                + paddingD + decimal + " "
-                                + byteToString((byte) decimal) + " "
-                                + opcode + padding
-                                + " " + theOpcodeValue + paddingV
-                                + " " + doCheck
-                                + " " + theType + paddingT
-                                + " " + doCheck2
-                                + " :" + info + ":"
-                        );
-                        System.out.println("");
+                        // Not storing the results.
+                        // opcodeArray[opcodeCount++] = new asmOpcode(value, opcode, info, logic);
                     }
-                    // opcodeArray[opcodeCount++] = new asmOpcode(value, opcode, info, logic);
                 }
-                theLine = pin.readLine();
+                theLine = pin.readLine().trim();
             }
             pin.close();
         } catch (IOException ioe) {

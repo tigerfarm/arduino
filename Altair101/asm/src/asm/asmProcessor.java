@@ -816,7 +816,7 @@ public class asmProcessor {
             intValue = Integer.parseInt(theValue);
         }
         for (int i = programTop; programTop < intValue; programTop++) {
-            programBytes.add("dsname:org" + SEPARATOR + "0");  // Default value is "0".
+            programBytes.add("dsname:org" + SEPARATOR + "255");  // Default value is 255 (11111111), based on zasm sample.
         }
     }
 
