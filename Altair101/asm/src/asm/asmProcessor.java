@@ -1491,6 +1491,33 @@ public class asmProcessor {
     }
 
     public void showFileBytes(String theReadFilename) {
+        //
+        // String theOpcodeValue = theOpcodes.getOpcodeValue(opcodeOctalDecimal);
+        //  For example, from asmOpcodesBinary.txt, 
+        //      0x04  1  Z,S,P,AC INR B      B <- B+1
+        //  Use 0x04 (00000100),to get "inrb" from asmOpcodes.txt:
+        //      inrb:00000100:|B+1 -> B
+        //  Result,
+        //      theOpcodeValue = "inrb"
+        //
+        /*
+        Improve the report output.
+            11000011
+        To  line# byte    opcode
+            1200 11000011 jmp
+        
+                        System.out.print("++ "
+                                + paddingD + opcodeOctalDecimal + " "
+                                + byteToString((byte) opcodeOctalDecimal)
+                                + " " + opcode + paddingO
+                                + " " + theOpcodeValue + paddingV
+                                + opcodeSyntaxParameters + paddingP
+                                + " " + doCheck
+                                + " " + opcodeParameterType + paddingT
+                                + " " + doCheck2
+                                + " :" + opcodeInfo
+                        );
+        */
         System.out.println("++ Show binary file bytes: " + theReadFilename);
         int theLength = 0;
         byte bArray[] = null;
