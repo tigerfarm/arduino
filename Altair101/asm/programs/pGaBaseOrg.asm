@@ -440,12 +440,14 @@ OVER:
 ; Test status of input device for character
 ; Sets sign flag if character coming in
 INPCK:
-            mvi a,1100001b      ; Set so that JP doesn't jump.
+                                ; ----------------------------------------------
+            mvi a,1100001b      ; Stacy, Set so that JP doesn't jump.
             ANI SIORDR
-            ANI	0FFH        ;Non-zero?
+            ANI	0FFH            ;Non-zero?
             JZ	INPCK1
-            ORI	0FFH        ;Set sign flag
-        ret
+            ORI	0FFH            ;Set sign flag
+            ret
+                                ; ----------------------------------------------
 	CALL	IOST		;CF
 	ANI	0FFH		;Non-zero?
 	JZ	INPCK1
@@ -550,20 +552,4 @@ CONINI:
 
                                     ; 
                                     ; --------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

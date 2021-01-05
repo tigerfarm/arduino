@@ -1122,20 +1122,19 @@ SPRC:
 	MOV	B,A		;Save row in 'B'
 	RET
 
+                                ; ----------------------------------------------
 GALAXY:
+; ++    2470:00001001 10100110: 00110001 : 31:061 > opcode: lxi sp,STACK
+; Enter the following to get to the start byte: 12578bx
 	LXI	SP,STACK	;Set stack pointer
 	CALL	CONINI		;Initialize Console I/O
 	LXI	H,MSGDYW
 	CALL	MSG		;Print introduction
 START:
-; ++    2470:00001001 10100110: 00110001 : 31:061 > opcode: lxi sp,STACK
-; Enter the following to get to the start byte: 12578bx
 	CALL	RN		;Increment random number
-	;CALL	INPCK		;Input yet?
-	;JP	START		;No, continue wait
+	CALL	INPCK		;Input yet?
+	JP	START		;No, continue wait
 	CALL	INPUT		;Wait for an input character, then echo it and continue.
-	cpi	'n'		;No, stop game?
-	JZ	OVER		;Yes, vanish from galaxy
 	CPI	'N'		;No, stop game?
 	JZ	OVER		;Yes, vanish from galaxy
 	MVI	E,00C0H		;Set pointer to galaxy storage
@@ -1780,6 +1779,14 @@ GL2:
 ; Test status of input device for character
 ; Sets sign flag if character coming in
 INPCK:
+                                ; ----------------------------------------------
+            mvi a,1100001b      ; Stacy, Set so that JP doesn't jump.
+            ANI SIORDR
+            ANI	0FFH            ;Non-zero?
+            JZ	INPCK1
+            ORI	0FFH            ;Set sign flag
+            ret
+                                ; ----------------------------------------------
 	CALL	IOST		;CF
 	ANI	0FFH		;Non-zero?
 	JZ	INPCK1
@@ -1909,17 +1916,17 @@ Now, run the program.
 ?- + r, RUN.
 ?- + runProcessor()
 
-DO YOU WANT TO GO ON A SPACE VOYAGE? j
-YOU MUST DESTROY 85 ALIEN SHIPS IN 90 STARDATES WITH 6 SPACE STATIONS
+DO YOU WANT TO GO ON A SPACE VOYAGE? y
+YOU MUST DESTROY 26 ALIEN SHIPS IN 31 STARDATES WITH 6 SPACE STATIONS
  -1--2--3--4--5--6--7--8-
-1                         STARDATE  3088
+1 *       >1<             STARDATE  3019
 2                         CONDITION GREEN
-3                         QUADRANT  8 7
-4                         SECTOR    6 6
-5                         ENERGY    g808
-6                         TORPEDOES 08
-7                         SHIELDS   g808
-8                        
+3                         QUADRANT  2 4
+4                         SECTOR    8 4
+5                         ENERGY    2952
+6                         TORPEDOES 10
+7          *        *     SHIELDS   0000
+8         <*>       *    
  -1--2--3--4--5--6--7--8-
 COMMAND?
 

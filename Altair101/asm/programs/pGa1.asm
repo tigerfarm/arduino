@@ -1122,14 +1122,15 @@ SPRC:
 	MOV	B,A		;Save row in 'B'
 	RET
 
+                                ; ----------------------------------------------
 GALAXY:
+; ++    2470:00001001 10100110: 00110001 : 31:061 > opcode: lxi sp,STACK
+; Enter the following to get to the start byte: 12578bx
 	LXI	SP,STACK	;Set stack pointer
 	CALL	CONINI		;Initialize Console I/O
 	LXI	H,MSGDYW
 	CALL	MSG		;Print introduction
 START:
-; ++    2470:00001001 10100110: 00110001 : 31:061 > opcode: lxi sp,STACK
-; Enter the following to get to the start byte: 12578bx
 	CALL	RN		;Increment random number
 	;CALL	INPCK		;Input yet?
 	;JP	START		;No, continue wait
