@@ -1,17 +1,11 @@
 ; ------------------------------------------------
-; Stacy, be a challenge to get this to compile using my assembler.
-; ------------------------------------------------
 ;
-; Start byte, set switches: 
-; ++    2467:00001001 10100011: 00110001 : 31:061 > opcode: lxi sp,STACK
-; ?- + x, EXAMINE: 2467
-; ?- 
-; INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
-;  .    *    .  *   .   .    .    *   .         .   .    *   *   .    .   .   *
-; WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
-;  *    .      .   .   .   .   *   .   .   *    *   .    *   .   .    .   *   *
-;             S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
-;              v   v   v   v   ^   v   v   ^    ^   v    ^   v   v    v   ^   ^
+; Stacy, be a challenge to get this to compile using my assembler.
+;
+; Original site:
+;   https://github.com/deltecent/scelbi-galaxy
+;
+; ------------------------------------------------
 ;
 ; +----------------------------------+
 ; |       SCELBI'S GALAXY GAME       |
@@ -92,9 +86,6 @@ LF	EQU	0AH
 CR	EQU	0DH
 
 	ORG	0000H
-                                ; ----------------------------------------------
-;        JMP     GALAXY          ; Stacy, allow using start from zero.
-                                ; ----------------------------------------------
 
 	DB	2 		;Course 1.0
 	DB	0
@@ -134,7 +125,7 @@ CR	EQU	0DH
 	DB	000		;Register storage
 	DB	000 		;Register storage
 	DB	000 		;Register storage
-	DB	000 		;Tern porary storage
+	DB	000 		;Temporary storage
 
 	ORG	0030H
 
@@ -202,7 +193,7 @@ DDIG5:	DB	000 ;Digit storage		//64
 
 ;  through 377 reserved for Galaxy content table
 
-	ORG	0100H	; Next page
+	ORG	0100H	; Next page, Decimal = 256
 
 MSGDYW:	DB	CR,LF
   	DB	'DO YOU WANT TO GO ON A SPACE VOYAGE? '
@@ -335,7 +326,7 @@ MSGCHK:	DB	CR,LF
   	DB	'CHICKEN!'
   	DB	0
 
-	ORG	0500H
+	ORG	0500H           ; Decimal = 1280
 
 MSG:
 	MOV	A,M		;Fetch character
@@ -1106,7 +1097,8 @@ CK1:
 	MOV	A,M		;Fetch most significant half
 	DCR	L		;Set pointer to least signif. half
 	CMP	D		;Is most significant half = 0?
-	RNZ			;No, return with flags set up
+	; RNZ			;No, return with flags set up
+	ret			;Stacy, change to return so that there is always enough energy.
 CK2:
 	MOV	A,M		;If greater than or =, ret. with
 	CMP	E		;'C' flag reset, if less than
@@ -1118,6 +1110,7 @@ OVER:
 	LXI	H,MSGCHK	;Print "CHICKEN"
 	CALL	MSG
 	HLT			;Halt
+        jmp     START           ; Stacy, allow a restart with my emulator.
 
 SPRC:
 	MOV	A,M		;Fetch row and column
@@ -1128,26 +1121,24 @@ SPRC:
 	ANI	07H		;Separate row
 	MOV	B,A		;Save row in 'B'
 	RET
-                                ; ----------------------------------------------
-                                ; Program starts running from here.
+
 GALAXY:
 	LXI	SP,STACK	;Set stack pointer
+	CALL	CONINI		;Initialize Console I/O
 	LXI	H,MSGDYW
 	CALL	MSG		;Print introduction
 START:
+; ++    2470:00001001 10100110: 00110001 : 31:061 > opcode: lxi sp,STACK
+; Enter the following to get to the start byte: 12578bx
 	CALL	RN		;Increment random number
-	CALL	INPUT		;Input character
-	cpi	0
-	jz	START           ; No input character
-        call    PRINT
+	;CALL	INPCK		;Input yet?
+	;JP	START		;No, continue wait
+	CALL	INPUT		;Wait for an input character, then echo it and continue.
 	cpi	'n'		;No, stop game?
 	JZ	OVER		;Yes, vanish from galaxy
 	CPI	'N'		;No, stop game?
 	JZ	OVER		;Yes, vanish from galaxy
 	MVI	E,00C0H		;Set pointer to galaxy storage
-                                ; ----------------------------------------------
-        ;jmp START
-                                ; ----------------------------------------------
                                 ; ----------------------------------------------
 GLXSET:
 	CALL	RN		;Fetch random number
@@ -1319,6 +1310,10 @@ CMND:
 	CALL	ELOM
 	MVI	L,041H		;Set pointer to random number
 	INR	M		;Fetch random nmbr. constant
+
+; ------------------------------------------------------------------------------
+; Command options
+
 CMD:
 	LXI	H,MSGCMD	;Set pointer to command msg
 	CALL	CMSG		;Request command input
@@ -1727,6 +1722,8 @@ DSTR:
 	MVI	L,02AH		;Fetch alient ship location in tbl
 	MOV	L,M
 	JMP	DLET		;Remove A.S. fm glxy & ret
+
+; ------------------------------------------------------------------------------
 GXPRT:
 	LXI	H,MSGGDY	;Print galaxy display
 	CALL	MSG
@@ -1758,7 +1755,8 @@ GL2:
 	XCHG			;No, set up galaxy pointer
 	JMP	GL1		;Continue printout
 
-	ORG	0F00H
+; ------------------------------------------------------------------------------
+	ORG	0F00H           ; Decimal = 3840
 
 	DB	000000000b,000000001b,000000100b,000100011b,000001010b,000000011b,000000111b,000000000b
 	DB	000000000b,000011010b,000100011b,000000101b,000000011b,000010100b,000010110b,000010010b
@@ -1778,7 +1776,6 @@ GL2:
 	DB	000000011b,000010101b,000000000b,000000000b,000010101b,000000000b,000100111b,000000000b
 
 	ORG	0F80H
-                                ; ----------------------------------------------
 
 ; Test status of input device for character
 ; Sets sign flag if character coming in
@@ -1790,11 +1787,16 @@ INPCK:
 INPCK1:
 	RET
 
+
+; ------------------------------------------------------------------------------
 ; Input a character from the system
 ; Return character in register 'A'
 INPUT:
 	;CALL	IOIN
         in      SIOCTL          ; Stacy, check for input character.
+        cpi     0
+	jz	INPUT           ; No input character
+        OUT	SIOCTL          ; Stacy, IOIN also echos the character.
 	RET
 
 ; Output a character to the system
@@ -1806,6 +1808,7 @@ PRINT:
 	POP	B		;Restore BC
 	RET
 
+; Stack
 	DS	32		;Stack Area
 STACK:	EQU	$
 
@@ -1866,7 +1869,6 @@ WLOOP:
 CONINI:
         CALL    IOINI
 	RET
-
                                 ; --------------------------------------
                                 ; Stacy, I've added.
     println:
@@ -1877,8 +1879,162 @@ CONINI:
                 ret
 
 	END
-                                    ; --------------------------------------
-                                    ; Assembler needs updates.
+                                ; --------------------------------------
+                                ; --------------------------------------
+                                ; Notes to get the program to run.
 
-                                    ; 
-                                    ; --------------------------------------
+--------------------------------------------------------------------------------
+; Program is stored on the SD card:
+;   ++ File:      00001001.BIN  4608
+;
+; Start byte, set switches: 
+++    2470:00001001 10100110: 00110001 : 31:061 > opcode: lxi sp,STACK
+;
+; Enter the following to get to the start byte: 12578bx
+; Then, hit Enter to show the following. The data byte is correct: 00110001.
+;
+?- + x, EXAMINE: 2470
+?- 
+INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
+ .    *    .  *   .   .    .    *   .         .   .    *   *   .    .   .   *
+WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
+ *    .      .   .   .   .   *   .   .   *    *   .    *   .   .    *   *   .
+            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
+             v   v   v   v   ^   v   v   ^    ^   v    ^   v   v    ^   ^   v
+
+--------------------------------------------------------------------------------
+Now, run the program.
+
++ Ready to receive command.
+?- + r, RUN.
+?- + runProcessor()
+
+DO YOU WANT TO GO ON A SPACE VOYAGE? j
+YOU MUST DESTROY 85 ALIEN SHIPS IN 90 STARDATES WITH 6 SPACE STATIONS
+ -1--2--3--4--5--6--7--8-
+1                         STARDATE  3088
+2                         CONDITION GREEN
+3                         QUADRANT  8 7
+4                         SECTOR    6 6
+5                         ENERGY    g808
+6                         TORPEDOES 08
+7                         SHIELDS   g808
+8                        
+ -1--2--3--4--5--6--7--8-
+COMMAND?
+
+--------------------------------------------------------------------------------
+COMMAND options:
+O. SPACE SHIP movement
+1. Short range scanner
+2. Long  range scanner
+3. Galaxy display 
+4. Shields
+5. Phasors
+6. TORPEDO
+
+------------------------------------------
+O. SPACE SHIP movement
+
+Directions:
+   3
+ 4   2
+5     1
+ 6   8
+   7
+
+COMMAND?0
+COURSE (1-8.5)? 3.2
+COURSE (1-8.5)? 3.0
+WARP FACTOR (0.1-7.7)? 1.0
+ -1--2--3--4--5--6--7--8-
+1                         STARDATE  3091
+2                         CONDITION GREEN
+3                         QUADRANT  1 8
+4                         SECTOR    2 7
+5                         ENERGY    l:68
+6                         TORPEDOES 08
+7                         SHIELDS   g808
+8                        
+ -1--2--3--4--5--6--7--8-
+
+------------------------------------------
+1. Short range scanner
+
+COMMAND?1
+ -1--2--3--4--5--6--7--8-
+1                         STARDATE  3092
+2                         CONDITION GREEN
+3                         QUADRANT  5 5
+4                         SECTOR    1 8
+5                         ENERGY    l=08
+6                         TORPEDOES 08
+7                         SHIELDS   g808
+8                        
+ -1--2--3--4--5--6--7--8-
+
+------------------------------------------
+2. Long  range scanner
+
+COMMAND?2
+L.R. SCAN FOR QUADRANT  5 5
+-------------------
+1     1     1     1
+-------------------
+1 123 1     1     1
+-------------------
+1     1     1     1
+-------------------
+
+123 : 1 alien ship, 2 space stations, 3 stars
+
+------------------------------------------
+3. Galaxy display 
+
+COMMAND?3
+GALAXY DISPLAY
+-------------------------------------------------
+1 002   000   002   105   004   002
+-------------------------------------------------
+1 004   000   000   000   000   004
+-------------------------------------------------
+1 004   103   007   103   000   000
+-------------------------------------------------
+1 304   000   117   015   004   000
+-------------------------------------------------
+1 000   007   000   007   000   005
+-------------------------------------------------
+1 012   103   001   001   000   000
+-------------------------------------------------
+1 003   003   000   103   105   000
+-------------------------------------------------
+1 105   007   003   203   003   105
+-------------------------------------------------
+
+--------------------------------------------------------------------------------
+For some reason, the values are incorrect.
+The following change allows the energy to always be sufficient.
+
+; Pointer to energy level: 050H = 1010000 80 
+; CKMN:
+;	MVI	L,050H		;Set pointer to main energy
+; Change rnz to ret, then always have enough energy.
+++    2439:00001001 10000111: 11000000 : C0:300 > opcode: rnz
+++    2442:00001001 10001010: 11001001 : C9:311 > opcode: ret
+;
+
+CKMN:
+	MVI	L,050H		;Set pointer to main energy
+CK1:
+	MOV	A,M		;Fetch most significant half
+	DCR	L		;Set pointer to least signif. half
+	CMP	D		;Is most significant half = 0?
+	RNZ			;No, return with flags set up
+CK2:
+	MOV	A,M		;If greater than or =, ret. with
+	CMP	E		;'C' flag reset, if less than
+	RET			;Return with 'C' flag set
+
+
+                                ; 
+                                ; --------------------------------------

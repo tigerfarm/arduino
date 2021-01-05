@@ -65,9 +65,9 @@ public class asmOpcodesBinary {
 
     private static asmOpcodes theOpcodes = new asmOpcodes(); // Use to get an opcode's binary value.
 
-    private static String opcodeFilename = "asmOpcodesBinary.txt";
+    static final String OPCODE_FILENAME = "asmOpcodesBinary.txt";
     static int opcodeCount = 3;
-    static asmOpcode[] opcodeArray = new asmOpcode[opcodeCount];
+    //static asmOpcode[] opcodeArray = new asmOpcode[opcodeCount];
     // private int errorCount = 0;
     public final byte OpcodeNotFound = (byte) 255;
 
@@ -76,14 +76,17 @@ public class asmOpcodesBinary {
     private final static List<String> opcodes = new ArrayList<>();
     private final static List<String> opcodesType = new ArrayList<>();
 
+    // ++ 006 00000110 MVI   mvib  b,d8   1           :B <- byte 2
+    private static int opcodesDbTop = 0;
+
     // -------------------------------------------------------------------------
     // Constructor to initialize the opcode data.
     public asmOpcodesBinary() throws IOException {
         opcodeCount = 0;
-        System.out.println("+ Assembler opcode file: " + opcodeFilename);
+        System.out.println("+ Assembler opcode file: " + OPCODE_FILENAME);
         System.out.println("+ Number of opcode byte values = " + opcodeCount);
-        opcodeArray = new asmOpcode[opcodeCount];
-        fileLoadOpcodes(opcodeFilename);
+        //opcodeArray = new asmOpcode[opcodeCount];
+        fileLoadOpcodes(OPCODE_FILENAME);
     }
 
     public static String byteToString(byte aByte) {
@@ -99,14 +102,6 @@ public class asmOpcodesBinary {
     }
 
     // -------------------------------------------------------------------------
-    /*
-    opcodesTop
-
-    ++;
-    opcodes.add (opcode);
-
-    opcodesType.add (opcodeType);
-     */
     public static String getOpcodeType(String theOpcode) {
         // Given an opcode, return the byte code.
         String returnValue = "";
@@ -467,13 +462,52 @@ public class asmOpcodesBinary {
             System.out.print("+ *** IOException: ");
             System.out.println(ioe.toString());
         }
-        /*
-        String opcode = "hlt";
-        byte opcodeBinary;
-        opcodeBinary = theOpcodes.getOpcode(opcode);
-        System.out.println("++ " + opcode + " :" + opcodeBinary + ":" + theOpcodes.getOpcodeValue(opcodeBinary));
-        // theOpcodes.getOpcodeValue(opcodeBinary);
-         */
+    }
+
+    // -------------------------------------------------------------------------
+    public void showFileBytes(String theReadFilename) {
+        System.out.println("++ Show binary file bytes: " + theReadFilename);
+        int theLength = 0;
+        byte bArray[] = null;
+        try {
+            File theFile = new File(theReadFilename);
+            theLength = (int) theFile.length();
+            bArray = new byte[(int) theLength];
+            FileInputStream in = new FileInputStream(theReadFilename);
+            in.read(bArray);
+            in.close();
+        } catch (IOException ioe) {
+            System.out.print("IOException: ");
+            System.out.println(ioe.toString());
+        }
+        System.out.println("+ Show, " + theLength + " bytes from the file: " + theReadFilename);
+        String paddingD;
+        for (int lineCounter = 0; lineCounter < theLength; lineCounter++) {
+            // int opcodeOctalDecimal = Integer.parseInt(opcodeOctal, 16);
+            if (lineCounter < 10) {
+                paddingD = "000";
+            } else if (lineCounter < 100) {
+                paddingD = "00";
+            } else if (lineCounter < 1000) {
+                paddingD = "0";
+            } else {
+                paddingD = "";
+            }
+            System.out.print(" + " + paddingD + lineCounter + " " + byteToString(bArray[lineCounter]) + " ");
+            //  + 0309 01010011 
+            //  + 0310 01010100 
+            System.out.println("");
+        }
+        System.out.println("\n+ Binary display completed.");
+        //
+        // String theOpcodeValue = theOpcodes.getOpcodeValue(opcodeOctalDecimal);
+        //  For example, from asmOpcodesBinary.txt, 
+        //      0x04  1  Z,S,P,AC INR B      B <- B+1
+        //  Use 0x04 (00000100),to get "inrb" from asmOpcodes.txt:
+        //      inrb:00000100:|B+1 -> B
+        //  Result,
+        //      theOpcodeValue = "inrb"
+        //
     }
 
     // -------------------------------------------------------------------------
@@ -481,11 +515,52 @@ public class asmOpcodesBinary {
 
         System.out.println("+++ Start.");
         asmOpcodesBinary theOpcodesBin = new asmOpcodesBinary();
+        
+        /*
         System.out.println("\n-----------------------------------------------");
         System.out.println("+ Find sample values.\n");
 
+        String opcode = "hlt";
+        byte opcodeBinary;
+        opcodeBinary = theOpcodes.getOpcode(opcode);
+        System.out.println("++ " + opcode + " :" + opcodeBinary + ":" + theOpcodes.getOpcodeValue(opcodeBinary));
+        // theOpcodes.getOpcodeValue(opcodeBinary);
+         */
+
+        System.out.println("\n-----------------------------------------------");
+        String fileName = "p1.bin";
+        System.out.println("+++ fileName: " + fileName);
+        // theOpcodesBin.showFileBytes(fileName);
+        System.out.println("\n-----------------------------------------------");
+        fileName = "pGalaxyBytesOrg.bin";
+        System.out.println("+++ fileName: " + fileName);
+        // theOpcodesBin.showFileBytes("pGalaxyBytesOrg.bin");
+        System.out.println("\n-----------------------------------------------");
+        // 
         System.out.println("");
         // theOpcodes.opcodesListByValue();
         System.out.println("\n+++ Exit.\n");
     }
 }
+/*
+org
+ + 0930 00100001 lxih
+ + 0931 00100000 16672 4120
+ + 0932 01000001 
+
+ + 0777 00100001 
+ + 0778 00100000 
+ + 0779 01000001 
+
+
+Org:
+                 movam
+ + 1691 00100001 lxih
+ + 1692 11001001 1225 4C9
+ + 1693 00000100 
+
+ + 1691 00100001 lxih
+ + 1692 11110000 1008 3F0
+ + 1693 00000011
+
+*/

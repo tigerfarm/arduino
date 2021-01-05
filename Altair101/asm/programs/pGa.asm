@@ -125,7 +125,7 @@ CR	EQU	0DH
 	DB	000		;Register storage
 	DB	000 		;Register storage
 	DB	000 		;Register storage
-	DB	000 		;Tern porary storage
+	DB	000 		;Temporary storage
 
 	ORG	0030H
 
@@ -193,7 +193,7 @@ DDIG5:	DB	000 ;Digit storage		//64
 
 ;  through 377 reserved for Galaxy content table
 
-	ORG	0100H	; Next page
+	ORG	0100H	; Next page, Decimal = 256
 
 MSGDYW:	DB	CR,LF
   	DB	'DO YOU WANT TO GO ON A SPACE VOYAGE? '
@@ -326,7 +326,7 @@ MSGCHK:	DB	CR,LF
   	DB	'CHICKEN!'
   	DB	0
 
-	ORG	0500H
+	ORG	0500H           ; Decimal = 1280
 
 MSG:
 	MOV	A,M		;Fetch character
@@ -1756,7 +1756,7 @@ GL2:
 	JMP	GL1		;Continue printout
 
 ; ------------------------------------------------------------------------------
-	ORG	0F00H
+	ORG	0F00H           ; Decimal = 3840
 
 	DB	000000000b,000000001b,000000100b,000100011b,000001010b,000000011b,000000111b,000000000b
 	DB	000000000b,000011010b,000100011b,000000101b,000000011b,000010100b,000010110b,000010010b

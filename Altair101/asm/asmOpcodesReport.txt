@@ -278,7 +278,7 @@ Decimal  Binary Opcode     Parameters Type     Description
 ++ 243 11110011 DI    di               NA      :special
 ++ 244 11110100 CP    cp    adr    2   adr     :if P, PC <- adr
 ++ 245 11110101 PUSH  pusha psw        R       :(sp-2)<-flags; (sp-1)<-A; sp <- sp - 2
-++ 246 11110110 ORI   ori   d8     1   D8      :A <- A | data
+++ 246 11110110 ORI   ori   d8     1   D8      :A <- A | data (OR  immediate with A)
 ++ 247 11110111 RST   rst6  6          D8      :CALL $30
 ++ 248 11111000 RM    rm               NA      :if M, RET
 ++ 249 11111001 SPHL  sphl             NA      :SP=HL      ... Set SP to same value as H:L

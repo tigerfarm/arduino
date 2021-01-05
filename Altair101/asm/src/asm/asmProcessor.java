@@ -23,12 +23,13 @@
     ---------------------------------------------
     +++ Next assembler updates and issues,
 
-    + List line for: -- 412: - Error, immediate label not found: c.
-    + Line that I should list: mov a,c
+    + Confirm that LXI addresses are correct.
+
+    + List syntax error message list, example, LXI, but no address included.
+    ++ List line for: -- 412: - Error, immediate label not found: c.
+    ++ Line that I should list: mov a,c
 
     + Test if label and immediate names case sensitive.
-
-    + Cleanup parseLine() code.
 
     Improve error handling by adding source line number to the error message.
 
@@ -169,6 +170,7 @@ public class asmProcessor {
     asmOpcodes theOpcodes = new asmOpcodes(); // Use to get an opcode's binary value.
     //
     private String theLine;
+    private int theLineCounter;
     private String opcode = "";
     private byte opcodeBinary;
     private String sOpcodeBinary;
@@ -195,7 +197,7 @@ public class asmProcessor {
     //
     private final int NAME_NOT_FOUND = -1;
     private final String NAME_NOT_FOUND_STR = "-1";
-    private boolean debugMessage = false;    // false true
+    private boolean debugMessage = true;    // false true
 
     // Use for storing error messages which are printed at the end, in a summary.
     private int errorCount = 0;
@@ -209,10 +211,12 @@ public class asmProcessor {
 
     private void printlnErrorMsg(int theProgramLine, String theMessage) {
         errorCount++;
-        System.out.println("-- " + theProgramLine + ": " + theMessage);
-        errorLineNum.add(theProgramLine);
+        // System.out.println("-- " + theProgramLine + ": " + theMessage);
+        // errorLineNum.add(theProgramLine);
+        System.out.println("-- " + theLineCounter + ": " + theProgramLine + " :" + theMessage);
+        errorLineNum.add(theLineCounter);
         errorLines.add(theLine);
-        errorMsgs.add(theMessage);
+        errorMsgs.add(theProgramLine + " :" + theMessage);
     }
 
     public void listErrorMsgs() {
@@ -907,19 +911,20 @@ public class asmProcessor {
         }
         // Example from Galaxy80.asm, and another example:
         //      DB CR,LF,' ',' ','1'
+        //      DB 000000000b,000000001b,000000100b,000100011b,000001010b,000000011b,000000111b,000000000b
         int cn = 0;
-        String theByte = theValue.substring(cn, cc);
-        System.out.println("++ parseLine2, DB bytes, theByte|" + theByte + "|");
-        parseDbValue("", theByte);
+        String theBytes = theValue.substring(cn, cc);
+        System.out.println("++ parseLine2, DB bytes, theByte|" + theBytes + "|");
+        parseDbValue("", theBytes);
         while (cc < theValue.length()) {
             cn = cc + 1;
             cc = theValue.indexOf(",", cc + 1);
             if (cc < 1) {
                 cc = theValue.length();
             }
-            theByte = theValue.substring(cn, cc);
-            System.out.println("++ parseLine2, DB bytes, theByte|" + theByte + "|");
-            parseDbValue("", theByte);
+            theBytes = theValue.substring(cn, cc);
+            System.out.println("++ parseLine2, DB bytes, theByte|" + theBytes + "|");
+            parseDbValue("", theBytes);
         }
         System.out.println("++ parseLine, DB multiple comma separated bytes are parsed.");
     }
@@ -1431,7 +1436,9 @@ public class asmProcessor {
             pin = new DataInputStream(fin);
             theLine = pin.readLine();
             opcode = "start";
+            theLineCounter = 0;
             while (theLine != null && !opcode.equals("end")) {
+                theLineCounter++;
                 parseLine(theLine);
                 theLine = pin.readLine();
             }
@@ -1490,55 +1497,6 @@ public class asmProcessor {
         System.out.println("++ Not available, yet.");
     }
 
-    public void showFileBytes(String theReadFilename) {
-        //
-        // String theOpcodeValue = theOpcodes.getOpcodeValue(opcodeOctalDecimal);
-        //  For example, from asmOpcodesBinary.txt, 
-        //      0x04  1  Z,S,P,AC INR B      B <- B+1
-        //  Use 0x04 (00000100),to get "inrb" from asmOpcodes.txt:
-        //      inrb:00000100:|B+1 -> B
-        //  Result,
-        //      theOpcodeValue = "inrb"
-        //
-        /*
-        Improve the report output.
-            11000011
-        To  line# byte    opcode
-            1200 11000011 jmp
-        
-                        System.out.print("++ "
-                                + paddingD + opcodeOctalDecimal + " "
-                                + byteToString((byte) opcodeOctalDecimal)
-                                + " " + opcode + paddingO
-                                + " " + theOpcodeValue + paddingV
-                                + opcodeSyntaxParameters + paddingP
-                                + " " + doCheck
-                                + " " + opcodeParameterType + paddingT
-                                + " " + doCheck2
-                                + " :" + opcodeInfo
-                        );
-        */
-        System.out.println("++ Show binary file bytes: " + theReadFilename);
-        int theLength = 0;
-        byte bArray[] = null;
-        try {
-            File theFile = new File(theReadFilename);
-            theLength = (int) theFile.length();
-            bArray = new byte[(int) theLength];
-            FileInputStream in = new FileInputStream(theReadFilename);
-            in.read(bArray);
-            in.close();
-        } catch (IOException ioe) {
-            System.out.print("IOException: ");
-            System.out.println(ioe.toString());
-        }
-        System.out.println("+ Show, " + theLength + " bytes from the file: " + theReadFilename);
-        for (int i = 0; i < theLength; i++) {
-            System.out.print(byteToString(bArray[i]) + " ");
-            System.out.println("");
-        }
-        System.out.println("\n+ Binary display completed.");
-    }
 
     public void showFile(String theReadFilename) {
         System.out.println("++ Show binary file: " + theReadFilename);
@@ -1623,7 +1581,7 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGa2.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGalaxy80.asm");
         //
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/altairAdd.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGaBaseOrg.asm");
         //
         if (thisProcess.errorCount > 0) {
             thisProcess.listErrorMsgs();
@@ -1635,9 +1593,6 @@ public class asmProcessor {
         thisProcess.listImmediateValues();
         thisProcess.programBytesListAndWrite("p1.bin");
 
-        // thisProcess.showFileBytes("p1.bin");
-        // thisProcess.showFileBytes("pGalaxyBytesOrg.bin");
-        // 
         // thisProcess.programBytesListCode();
         // thisProcess.programBytesListHex();
         //
