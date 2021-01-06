@@ -1,0 +1,306 @@
+; ------------------------------------------------
+;
+; Challenge to:
+;   + Assemble using my assembler.
+;   + Run using Altair101a.
+;
+; +----------------------------------+
+; |           GALAXY GAME            |
+; |           FOR THE 8080           |
+; +----------------------------------+
+;
+; Site I downloaded from:
+;   https://github.com/deltecent/scelbi-galaxy
+;
+--------------------------------------------------------------------------------
+; Notes to get the program to run.
+
+--------------------------------------------------------------------------------
+; Program is stored on the SD card:
+?- + n, SD card directory lising.
+++ File:      00001001.BIN  4608
+?-
+
+; Start byte, set switches: 
+++    2470:00001001 10100110: 00110001 : 31:061 > opcode: lxi sp,STACK
+;
+; Enter the following to get to the start byte: 12578bx
+; Then, hit Enter to show the following. The data byte is correct: 00110001.
+;
+?- + x, EXAMINE: 2470
+?- 
+INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
+ .    *    .  *   .   .    .    *   .         .   .    *   *   .    .   .   *
+WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
+ *    .      .   .   .   .   *   .   .   *    *   .    *   .   .    *   *   .
+            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
+             v   v   v   v   ^   v   v   ^    ^   v    ^   v   v    ^   ^   v
+
+To run,
++ Start Altair 101a and connect.
++ Send the start byte string which sets the switches: 12578bx.
++ "m" and Confirm the loading of SD file: 00001001.BIN (S8 and S11 which is 8b).
++ "x" to EXAMINE the address: 00001001:10100110 (S11 S8 S7 S5 S2 S1 which is 12578b).
++ "r" to run the program.
++ "3" to view the galaxy quadrants.
+Start playing.
+
+Program needs updating to run from the Arduino monitor because it sends the line feed character.
++ Need to ignore non-digit characters, only use 0...9.
+
+--------------------------------------------------------------------------------
+Now, run the program.
+
++ Ready to receive command.
+?- + r, RUN.
+?- + runProcessor()
+
+DO YOU WANT TO GO ON A SPACE VOYAGE? y
+YOU MUST DESTROY 26 ALIEN SHIPS IN 31 STARDATES WITH 6 SPACE STATIONS
+ -1--2--3--4--5--6--7--8-
+1 *       >1<             STARDATE  3019
+2                         CONDITION GREEN
+3                         QUADRANT  2 4
+4                         SECTOR    8 4
+5                         ENERGY    2952
+6                         TORPEDOES 10
+7          *        *     SHIELDS   0000
+8         <*>       *    
+ -1--2--3--4--5--6--7--8-
+COMMAND?
+
+--------------------------------------------------------------------------------
+COMMAND options:
+O. SPACE SHIP movement
+1. Short range scanner
+2. Long  range scanner
+3. Galaxy display 
+4. Shields
+5. Phasors
+6. TORPEDO
+
+------------------------------------------
+O. SPACE SHIP movement
+
+Directions:
+   3
+ 4   2
+5     1
+ 6   8
+   7
+
+COMMAND?0
+COURSE (1-8.5)? 5.0
+WARP FACTOR (0.1-7.7)? 0.1
+ -1--2--3--4--5--6--7--8-
+1 *       >1<             STARDATE  3019
+2                         CONDITION GREEN
+3                         QUADRANT  2 4
+4                         SECTOR    8 3
+5                         ENERGY    2892
+6                         TORPEDOES 10
+7          *        *     SHIELDS   0000
+8      <*>          *    
+ -1--2--3--4--5--6--7--8-
+COMMAND?0
+COURSE (1-8.5)? 3.0
+WARP FACTOR (0.1-7.7)? 0.2
+ -1--2--3--4--5--6--7--8-
+1 *       >1<             STARDATE  3019
+2                         CONDITION GREEN
+3                         QUADRANT  2 4
+4                         SECTOR    6 3
+5                         ENERGY    2882
+6      <*>                TORPEDOES 10
+7          *        *     SHIELDS   0000
+8                   *    
+ -1--2--3--4--5--6--7--8-
+
+------------------------------------------
+1. Short range scanner
+
+COMMAND?1
+ -1--2--3--4--5--6--7--8-
+1                         STARDATE  3092
+2                         CONDITION GREEN
+3                         QUADRANT  5 5
+4                         SECTOR    1 8
+5                         ENERGY    l=08
+6                         TORPEDOES 08
+7                         SHIELDS   g808
+8                        
+ -1--2--3--4--5--6--7--8-
+
+------------------------------------------
+2. Long  range scanner
+
+COMMAND?2
+L.R. SCAN FOR QUADRANT  5 5
+-------------------
+1     1     1     1
+-------------------
+1 123 1     1     1
+-------------------
+1     1     1     1
+-------------------
+
+123 : 1 alien ship, 2 space stations, 3 stars
+
+------------------------------------------
+3. Galaxy display 
+
+COMMAND?3
+GALAXY DISPLAY
+-------------------------------------------------
+1 007   002   105   000   004   000 117 000
+-------------------------------------------------
+1 000   000   000   003   106   013203106
+-------------------------------------------------
+1 004   003   000   000   000   004000000
+-------------------------------------------------
+1 004   000   000   000   103   004106007
+-------------------------------------------------
+1 105   000   012   005   005   203000000
+-------------------------------------------------
+1 000   112   001   006   203   105000103
+-------------------------------------------------
+1 000   001   003   104   002   117000103
+-------------------------------------------------
+1 000   203   007   004   000   002000000
+-------------------------------------------------
+
+Key: 105 : 1 alien ship, 0 space stations, 5 stars
+
+--------------------------------------------------------------------------------
+Using Phasors
+
+COURSE (1-8.5)? 5.0
+WARP FACTOR (0.1-7.7)? 3.0
+LOSS OF ENERGY 0600
+DANGER-SHIELD ENERGY 000
+ -1--2--3--4--5--6--7--8-
+1    *  *     *           STARDATE  3027
+2               <*>+++    CONDITION RED
+3                         QUADRANT  7 3
+4       *                 SECTOR    2 6
+5 *                       ENERGY    2107
+6                         TORPEDOES 10
+7    *                    SHIELDS   0000
+8                        
+ -1--2--3--4--5--6--7--8-
+
+Enter a four digit number for the phasor shots to be fired at the alien ships in the quadrant.
+0250 ENERGY units is enough to destroy an alien ship.
+However, they may have shields, so use more, example 0280.
+If there are 2 ships, PHASOR ENERGY TO FIRE = 0500, if they were right beside your ship.
+Will need to do calculations when using phasors.
+
+COMMAND?5
+PHASOR ENERGY TO FIRE = 0250
+GALAXY DISPLAY DESTROYED
+COMMAND?1
+ -1--2--3--4--5--6--7--8-
+1    *  *     *           STARDATE  3027
+2               <*>       CONDITION GREEN
+3                         QUADRANT  7 3
+4       *                 SECTOR    2 6
+5 *                       ENERGY    1837
+6                         TORPEDOES 10
+7    *                    SHIELDS   0000
+8                        
+ -1--2--3--4--5--6--7--8-
+
+The distance is the number of sectors in the horizontal and vertical direction
+   between the space ship and the alien ship.
+ -1--2--3--4--5--6--7--8-
+1+++                      STARDATE  3026
+2                         CONDITION RED
+3    *                    QUADRANT  5 2
+4       *       +++       SECTOR    5 5
+5            <*>          ENERGY    1602
+6 *                       TORPEDOES 08
+7                         SHIELDS   4976
+8    *                   
+ -1--2--3--4--5--6--7--8-
+
+5,5 6,4
+6-5=1
+5-4=1
+2/4 = 0500.
+First time, I had energy loss, so 500 wasn't enough.
+PHASOR ENERGY TO FIRE = 0500
+GALAXY DISPLAYE1ERGY = 0477
+LOSS OF ENERGY 0119
+GALAXY DISPLAYE6ERGY = 0090
+LOSS OF ENERGY 0022
+---
+Second time, I use 0600 and it was enough.
+COMMAND?5
+PHASOR ENERGY TO FIRE = 0600
+GALAXY DISPLAYE1ERGY = 0402
+LOSS OF ENERGY 0100
+GALAXY DISPLAYDESTROYED
+
+--------------------------------------------------------------------------------
+
+YOU MUST DESTROY 19 ALIEN SHIPS IN 24 STARDATES WITH 3 SPACE STATIONS
+ -1--2--3--4--5--6--7--8-
+1+++                      STARDATE  3026
+2                         CONDITION RED
+3    *                    QUADRANT  5 2
+4       *       +++       SECTOR    8 6
+5               +++       ENERGY    2952
+6 *                       TORPEDOES 10
+7                         SHIELDS   0000
+8    *          <*>      
+ -1--2--3--4--5--6--7--8-
+
+Directions:
+   3
+ 4   2
+5     1
+ 6   8
+   7
+
+ -1--2--3--4--5--6--7--8-
+1+++                      STARDATE  3026
+2                         CONDITION RED
+3    *                    QUADRANT  5 2
+4       *       +++       SECTOR    8 6
+5               +++       ENERGY    2682
+6 *                       TORPEDOES 09
+7                         SHIELDS   5336
+8    *          <*>      
+ -1--2--3--4--5--6--7--8-
+COMMAND?6
+TORPEDO TRAJECTORY(1-8.5) : 3.0HIP RETALIATE SHIP RETALIATE SHIP RETALIATES
+ALIEN SHIP DESTROYED
+
+--------------------------------------------------------------------------------
+Dock to a space station to get energy and torpedoes.
+
+ -1--2--3--4--5--6--7--8-
+1                         STARDATE  3027
+2                         CONDITION GREEN
+3                         QUADRANT  6 2
+4                         SECTOR    7 2
+5                         ENERGY    2672
+6                         TORPEDOES 09
+7 * <*>         >1<       SHIELDS   0000
+8 *                      
+ -1--2--3--4--5--6--7--8-
+COMMAND?0
+COURSE (1-8.5)? 1.0
+WARP FACTOR (0.1-7.7)? 0.3
+ -1--2--3--4--5--6--7--8-
+1                         STARDATE  3027
+2                         CONDITION GREEN
+3                         QUADRANT  6 2
+4                         SECTOR    7 5
+5                         ENERGY    2952
+6                         TORPEDOES 10
+7 *          <*>>1<       SHIELDS   0000
+8 *                      
+ -1--2--3--4--5--6--7--8-
+
+--------------------------------------------------------------------------------

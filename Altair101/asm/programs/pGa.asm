@@ -132,7 +132,7 @@ CR	EQU	0DH
 	DB	000		;Crossing flag
 	DB	000		;Crossing indicator
 	DB	000		;Temporary storage
-	DB	000		;Tern porary storage
+	DB	000		;Temporary storage
 
 	ORG	0040H
 
@@ -1780,7 +1780,7 @@ GL2:
 ; Sets sign flag if character coming in
 INPCK:
                                 ; ----------------------------------------------
-            mvi a,1100001b      ; Stacy, Set so that JP doesn't jump.
+            mvi a,1100001b      ; Stacy, Set so that JP doesn't jump in the "START:" section.
             ANI SIORDR
             ANI	0FFH            ;Non-zero?
             JZ	INPCK1
@@ -1799,11 +1799,25 @@ INPCK1:
 ; Input a character from the system
 ; Return character in register 'A'
 INPUT:
-	;CALL	IOIN
+	;CALL	IOIN            ; Stacy, note, IOIN also echos the character.
         in      SIOCTL          ; Stacy, check for input character.
         cpi     0
 	jz	INPUT           ; No input character
-        OUT	SIOCTL          ; Stacy, IOIN also echos the character.
+                                ;
+                                ; ----------------------------------------------
+        cpi     'N'             ; Limit input to: N, Y, 0..6.
+        jz      INPUTokay
+        cpi     'Y'
+        jz      INPUTokay
+        cpi     '6'             ; Input range from 0..6.
+        jz      INPUTeq         ; Jump, if A = #, zero bit = 1.
+        jnc     INPUT           ; Jump, if A > #, carry bit = 0.
+INPUTeq:
+        cpi     '0'
+        jc      INPUT           ; Jump, if A < #, carry bit = 1.
+INPUTokay:
+                                ; ----------------------------------------------
+        OUT	SIOCTL
 	RET
 
 ; Output a character to the system
@@ -1894,154 +1908,29 @@ CONINI:
 ; Program is stored on the SD card:
 ;   ++ File:      00001001.BIN  4608
 ;
-; Start byte, set switches: 
-++    2470:00001001 10100110: 00110001 : 31:061 > opcode: lxi sp,STACK
-;
-; Enter the following to get to the start byte: 12578bx
-; Then, hit Enter to show the following. The data byte is correct: 00110001.
-;
-?- + x, EXAMINE: 2470
-?- 
-INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
- .    *    .  *   .   .    .    *   .         .   .    *   *   .    .   .   *
-WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
- *    .      .   .   .   .   *   .   .   *    *   .    *   .   .    *   *   .
-            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
-             v   v   v   v   ^   v   v   ^    ^   v    ^   v   v    ^   ^   v
+To run,
++ Start Altair 101a and connect.
++ Send the start byte string which sets the switches: 12578bx.
++ "m" and Confirm the loading of SD file: 00001001.BIN (S8 and S11 which is 8b).
++ "x" to EXAMINE the address: 00001001:10100110 (S11 S8 S7 S5 S2 S1 which is 12578b).
++ "r" to run the program.
++ "3" to view the galaxy quadrants.
+Start playing.
+
+Program needs updating to run from the Arduino monitor because it sends the line feed character.
++ Need to ignore non-digit characters, only use 0...9.
 
 --------------------------------------------------------------------------------
-Now, run the program.
-
-+ Ready to receive command.
-?- + r, RUN.
-?- + runProcessor()
-
-DO YOU WANT TO GO ON A SPACE VOYAGE? y
-YOU MUST DESTROY 26 ALIEN SHIPS IN 31 STARDATES WITH 6 SPACE STATIONS
- -1--2--3--4--5--6--7--8-
-1 *       >1<             STARDATE  3019
-2                         CONDITION GREEN
-3                         QUADRANT  2 4
-4                         SECTOR    8 4
-5                         ENERGY    2952
-6                         TORPEDOES 10
-7          *        *     SHIELDS   0000
-8         <*>       *    
- -1--2--3--4--5--6--7--8-
-COMMAND?
-
---------------------------------------------------------------------------------
-COMMAND options:
-O. SPACE SHIP movement
-1. Short range scanner
-2. Long  range scanner
-3. Galaxy display 
-4. Shields
-5. Phasors
-6. TORPEDO
-
-------------------------------------------
-O. SPACE SHIP movement
-
-Directions:
-   3
- 4   2
-5     1
- 6   8
-   7
-
-COMMAND?0
-COURSE (1-8.5)? 3.2
-COURSE (1-8.5)? 3.0
-WARP FACTOR (0.1-7.7)? 1.0
- -1--2--3--4--5--6--7--8-
-1                         STARDATE  3091
-2                         CONDITION GREEN
-3                         QUADRANT  1 8
-4                         SECTOR    2 7
-5                         ENERGY    l:68
-6                         TORPEDOES 08
-7                         SHIELDS   g808
-8                        
- -1--2--3--4--5--6--7--8-
-
-------------------------------------------
-1. Short range scanner
-
-COMMAND?1
- -1--2--3--4--5--6--7--8-
-1                         STARDATE  3092
-2                         CONDITION GREEN
-3                         QUADRANT  5 5
-4                         SECTOR    1 8
-5                         ENERGY    l=08
-6                         TORPEDOES 08
-7                         SHIELDS   g808
-8                        
- -1--2--3--4--5--6--7--8-
-
-------------------------------------------
-2. Long  range scanner
-
-COMMAND?2
-L.R. SCAN FOR QUADRANT  5 5
--------------------
-1     1     1     1
--------------------
-1 123 1     1     1
--------------------
-1     1     1     1
--------------------
-
-123 : 1 alien ship, 2 space stations, 3 stars
-
-------------------------------------------
-3. Galaxy display 
-
-COMMAND?3
-GALAXY DISPLAY
--------------------------------------------------
-1 002   000   002   105   004   002
--------------------------------------------------
-1 004   000   000   000   000   004
--------------------------------------------------
-1 004   103   007   103   000   000
--------------------------------------------------
-1 304   000   117   015   004   000
--------------------------------------------------
-1 000   007   000   007   000   005
--------------------------------------------------
-1 012   103   001   001   000   000
--------------------------------------------------
-1 003   003   000   103   105   000
--------------------------------------------------
-1 105   007   003   203   003   105
--------------------------------------------------
-
---------------------------------------------------------------------------------
-For some reason, the values are incorrect.
 The following change allows the energy to always be sufficient.
 
-; Pointer to energy level: 050H = 1010000 80 
-; CKMN:
-;	MVI	L,050H		;Set pointer to main energy
-; Change rnz to ret, then always have enough energy.
-++    2439:00001001 10000111: 11000000 : C0:300 > opcode: rnz
-++    2442:00001001 10001010: 11001001 : C9:311 > opcode: ret
-;
-
 CKMN:
-	MVI	L,050H		;Set pointer to main energy
+	MVI	L,050H		;Set pointer to main energy,  050H = 1010000 = 80 (decimal)
 CK1:
 	MOV	A,M		;Fetch most significant half
 	DCR	L		;Set pointer to least signif. half
 	CMP	D		;Is most significant half = 0?
-	RNZ			;No, return with flags set up
-CK2:
-	MOV	A,M		;If greater than or =, ret. with
-	CMP	E		;'C' flag reset, if less than
-	RET			;Return with 'C' flag set
-
+	; RNZ			;No, return with flags set up
+	ret			;Stacy, change to return so that there is always enough energy.
 
                                 ; 
                                 ; --------------------------------------
