@@ -851,7 +851,7 @@ public class asmProcessor {
             if (theVarValue.equals(NAME_NOT_FOUND_STR)) {
                 theVarValue = convertValueToInt(theValue);
             }
-            System.out.println("++ DB variable name: '" + theLabel
+            System.out.println("++ parseDbValue( variable name: '" + theLabel
                     + "', single byte with a value of: " + theValue
                     + " = " + theVarValue
                     + "."
@@ -861,7 +861,7 @@ public class asmProcessor {
             programTop++;
             return;
         }
-        System.out.println("++ DB, string of bytes: " + theValue);
+        System.out.println("++ parseDbValue( string of bytes: " + theValue + " )");
         for (int i = 1; i < theValue.length() - 1; i++) {
             // Only use what is contained within the quotes, 'Hello' -> Hello
             if (theValue.substring(i, i + 1).equals(SEPARATOR)) {
@@ -902,16 +902,24 @@ public class asmProcessor {
         }
         if (cq == 0) {
             cq = theValue.indexOf("'", 1);     // index of the second single quote "'".
-            if (cq == theValue.length()) {
+            if (cq == theValue.length()-1) {
+                // System.out.println("++ parseDb1, cq == 0 ( theLabel: " + theLabel + ", theValue: " + theValue + " ) cq=" + cq + " l=" + theValue.length());
                 // Example string of bytes from Galaxy80.asm:
-                //      DB  ' STARDATE  300'
+                //      DB ' STARDATE  300'
+                //      DB 'MISSION FAILED, YOU HAVE RUN OUT OF STARDATES'
                 parseDbValue("", theValue);        // No label.
+                return;
+            } else {
+                // Examples:
+                //  DB '2',' ',' ',' ','1',' ',' ',' '
+                System.out.println("++ parseDb2, cq == 0 ( theLabel: " + theLabel + ", theValue: " + theValue + " ) cq=" + cq + " l=" + theValue.length());
             }
-            return;
         }
-        // Example from Galaxy80.asm, and another example:
-        //      DB CR,LF,' ',' ','1'
-        //      DB 000000000b,000000001b,000000100b,000100011b,000001010b,000000011b,000000111b,000000000b
+        // Example from Galaxy80.asm, with an issue:
+        //      ++ parseDb, cq == 0 ( theLabel: , theValue: 'MISSION FAILED, YOU HAVE RUN OUT OF STARDATES' )
+        //      ++ parseLine2, DB bytes, theByte|'MISSION FAILED|
+        //      ++ parseDbValue(, string of bytes: 'MISSION FAILED
+        //
         int cn = 0;
         String theBytes = theValue.substring(cn, cc);
         System.out.println("++ parseLine2, DB bytes, theByte|" + theBytes + "|");
@@ -1497,7 +1505,6 @@ public class asmProcessor {
         System.out.println("++ Not available, yet.");
     }
 
-
     public void showFile(String theReadFilename) {
         System.out.println("++ Show binary file: " + theReadFilename);
         int theLength = 0;
@@ -1577,11 +1584,11 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pcli.asm");
         //
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSyntax.asm");
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGa.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGa.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGa2.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGalaxy80.asm");
         //
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGaBaseOrg.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGaBaseOrg.asm");
         //
         if (thisProcess.errorCount > 0) {
             thisProcess.listErrorMsgs();

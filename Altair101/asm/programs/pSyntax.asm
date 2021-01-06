@@ -107,12 +107,35 @@
     CR  EQU 0DH
     LF  EQU 0AH
                                     ;
-	RET
-SSPLS:
-	MVI	E,0F7H		;Mask to delete space station
-	JMP	PLS		;Delete excess space station
-PLS:
-	HLT
+;MSGTTY:	DB	CR,LF
+;  	DB	'TORPEDO TRAJECTORY(1-8.5) : '
+;  	DB	0
+;        db      '-'
+;MSGASD:	DB	CR,LF
+; 	DB	'ALIEN SHIP DESTROYED'
+;  	DB	0
+        db      '-'
+
+DB	'MISSION FAILED YOU HAVE RUN OUT	1 OF STARDATES'
+
+DB	'MISSION FAILED, YOU HAVE RUN OUT	2 OF STARDATES'
+
+;	DB	CR,LF,'1',' ',' ',' ',' ',' '
+;	DB	'1',' ',' ',' ',' ',' ','1',' '
+;	DB	'2',' ',' ',' ','1',' ',' ',' '
+;	DB	'3',' ','1',' ',' ',' ',' ',' '
+;	DB	'1',' ',' ',' ',' ',' ','1',' '
+;	DB	'4',' ',' ',' ','1',' ',' ',' '
+;	DB	'5',' ','1'
+        db      '-'
+	;DB	CR,LF,'1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1'
+
+;	RET
+;SSPLS:
+;	MVI	E,0F7H		;Mask to delete space station
+;	JMP	PLS		;Delete excess space station
+;PLS:
+;	HLT
                                     ;
     ;MSGDYW:
     ;   DB '\n'
@@ -175,21 +198,54 @@ MSG:
                                     ;
                                     ; ------------------------------------------
                                     ;
-                                    ; I use for listing a successful sample run
-                                    ; ------------------------------------------
-Sample line:
-    okay    db  'okay, yes?'
-Parsed:
-++       4:00000000 00000100: 01101111 : 6F:157 > databyte: okay : o : 111
-++       5:00000000 00000101: 01101011 : 6B:153 > databyte: okay : k : 107
-++       6:00000000 00000110: 01100001 : 61:141 > databyte: okay : a : 97
-++       7:00000000 00000111: 01111001 : 79:171 > databyte: okay : y : 121
-++       8:00000000 00001000: 00101100 : 2C:054 > databyte: okay : , : 44
-++       9:00000000 00001001: 00100000 : 20:040 > databyte: okay :   : 32
-++      10:00000000 00001010: 01111001 : 79:171 > databyte: okay : y : 121
-++      11:00000000 00001011: 01100101 : 65:145 > databyte: okay : e : 101
-++      12:00000000 00001100: 01110011 : 73:163 > databyte: okay : s : 115
-++      13:00000000 00001101: 00111111 : 3F:077 > databyte: okay : ? : 63
-++      14:00000000 00001110: 11111111 : FF:377 > dbterm: 255
-                                    ; 
+
+- Number of errors = 5
+- List Error Messages:
+-- 255:   	DB	'MISSION FAILED, YOU HAVE RUN OUT	OF STARDATES'
+-- 620 :- Error, immediate label not found:  YOU HAVE RUN OUT OF STARDATES'.
+-- 258:   	DB	'KA-BOOM, YOU CRASHED INTO A STAR. YOUR SHIP IS DESTROYED'
+-- 630 :- Error, immediate label not found:  YOU CRASHED INTO A STAR. YOUR SHIP IS DESTROYED'.
+-- 261:   	DB	'YOU MOVED OUT	OF THE GALAXY, YOUR SHIP IS LOST..LOST'
+-- 660 :- Error, immediate label not found:  YOUR SHIP IS LOST..LOST'.
+-- 290:   	DB	'CONGRATULATIONS, YOU HAVE ELIMINATED ALL OF THE ALIEN SHIPS'
+-- 891 :- Error, immediate label not found:  YOU HAVE ELIMINATED ALL OF THE ALIEN SHIPS'.
+-- 304: MSGSEC:	DB	' , : '
+-- 976 :- Error, immediate label not found:  : '.
++ End of list.
+
+****** Issue with DB strings containing a comma ",".
+
++ Parse |DB 'MISSION FAILED, YOU HAVE RUN OUT OF STARDATES'|
+++ parseLine components theRest|'MISSION FAILED, YOU HAVE RUN OUT OF STARDATES'|
+++ parseLine components part1asIs|DB| part1|db| part2|'MISSION FAILED, YOU HAVE RUN OUT OF STARDATES'| theDirective|| theRest||
+++ parseDb( theLabel: , theValue: 'MISSION FAILED, YOU HAVE RUN OUT OF STARDATES' )
+++ parseDb, cq == 0 ( theLabel: , theValue: 'MISSION FAILED, YOU HAVE RUN OUT OF STARDATES' ) cq=46 l=47
+
+ 012345678901234567890123456789012345678901234567890
+'MISSION FAILED, YOU HAVE RUN OUT OF STARDATES'
+
+++ parseLine2, DB bytes, theByte|'MISSION FAILED|
+++ parseDbValue(, string of bytes: 'MISSION FAILED
+++ parseDbAdd theLabel:: theValue:M:
+++ parseDbAdd theLabel:: theValue:I:
+++ parseDbAdd theLabel:: theValue:S:
+++ parseDbAdd theLabel:: theValue:S:
+++ parseDbAdd theLabel:: theValue:I:
+++ parseDbAdd theLabel:: theValue:O:
+++ parseDbAdd theLabel:: theValue:N:
+++ parseDbAdd theLabel:: theValue: :
+++ parseDbAdd theLabel:: theValue:F:
+++ parseDbAdd theLabel:: theValue:A:
+++ parseDbAdd theLabel:: theValue:I:
+++ parseDbAdd theLabel:: theValue:L:
+++ parseDbAdd theLabel:: theValue:E:
+++ parseLine2, DB bytes, theByte| YOU HAVE RUN OUT OF STARDATES'|
+
++ getVariableValue, findName:  YOU HAVE RUN OUT OF STARDATES'
++ getVariableValue, returnString: -1
++ Not found:  YOU HAVE RUN OUT OF STARDATES'.
+-- 119: 15 :- Error, immediate label not found:  YOU HAVE RUN OUT OF STARDATES'.
+++ parseDbValue( variable name: '', single byte with a value of:  YOU HAVE RUN OUT OF STARDATES' = -1.
+++ parseLine, DB multiple comma separated bytes are parsed.
+
                                     ; ------------------------------------------

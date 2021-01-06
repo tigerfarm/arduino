@@ -183,15 +183,13 @@ DDIG5:	DB	000 ;Digit storage		//64
 
 	ORG	0080H
 
-;	DB	CR,LF,'1',' ',' ',' ',' ',' '
-;	DB	'1',' ',' ',' ',' ',' ','1',' '
-;	DB	' ',' ',' ',' ','1',' ',' ',' '
-;	DB	' ',' ','1',' ',' ',' ',' ',' '
-;	DB	'1',' ',' ',' ',' ',' ','1',' '
-;	DB	' ',' ',' ',' ','1',' ',' ',' '
-;	DB	' ',' ','1'
-
-	DB	CR,LF,'1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1'
+	DB	CR,LF,'1',' ',' ',' ',' ',' '
+	DB	'1',' ',' ',' ',' ',' ','1',' '
+	DB	' ',' ',' ',' ','1',' ',' ',' '
+	DB	' ',' ','1',' ',' ',' ',' ',' '
+	DB	'1',' ',' ',' ',' ',' ','1',' '
+	DB	' ',' ',' ',' ','1',' ',' ',' '
+	DB	' ',' ','1'
 
 ;  through 377 reserved for Galaxy content table
 
@@ -1809,9 +1807,12 @@ INPUT:
 	jz	INPUT           ; No input character
                                 ;
                                 ; ----------------------------------------------
-        cpi     'N'             ; Limit input to: N, Y, 0..6.
+                                ; Limit input to: N, Y, 0..6.
+        cpi     'N'             ; No, don't start a new game.
         jz      INPUTokay
-        cpi     'Y'
+        cpi     'Y'             ; Yes, start the game.
+        jz      INPUTokay
+        cpi     '-'             ; Negative transfer from SHIELDS to ENERGY.
         jz      INPUTokay
         cpi     '6'             ; Input range from 0..6.
         jz      INPUTeq         ; Jump, if A = #, zero bit = 1.
