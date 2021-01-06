@@ -183,13 +183,15 @@ DDIG5:	DB	000 ;Digit storage		//64
 
 	ORG	0080H
 
-	DB	CR,LF,'1',' ',' ',' ',' ',' '
-	DB	'1',' ',' ',' ',' ',' ','1',' '
-	DB	' ',' ',' ',' ','1',' ',' ',' '
-	DB	' ',' ','1',' ',' ',' ',' ',' '
-	DB	'1',' ',' ',' ',' ',' ','1',' '
-	DB	' ',' ',' ',' ','1',' ',' ',' '
-	DB	' ',' ','1'
+;	DB	CR,LF,'1',' ',' ',' ',' ',' '
+;	DB	'1',' ',' ',' ',' ',' ','1',' '
+;	DB	' ',' ',' ',' ','1',' ',' ',' '
+;	DB	' ',' ','1',' ',' ',' ',' ',' '
+;	DB	'1',' ',' ',' ',' ',' ','1',' '
+;	DB	' ',' ',' ',' ','1',' ',' ',' '
+;	DB	' ',' ','1'
+
+	DB	CR,LF,'1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1',' ',' ',' ',' ',' ','1'
 
 ;  through 377 reserved for Galaxy content table
 
@@ -1184,6 +1186,7 @@ GLXCK1:
 	JNC	ASPLS		;Yes, delete 1
 	CPI	10		;Too few alien ships?
 	JC	ASMNS		;Yes, add 1 more
+                                ; ----------------------------------------------
 	MVI	L,05BH		;Set pntr to store number S.S.
 	MOV	M,D		;Save number of space stations
 	INR	L		;Advance pntr to number A.S.
@@ -1192,6 +1195,7 @@ GLXCK1:
 	ADI	005
 	INR	L		;Adv. pntr to nmbr of stardates
 	MOV	M,A		;Save number of stardates
+                                ; ----------------------------------------------
 	MVI	B,1		;Set nmbr bytes for BINDEC
 	CALL	BINDEC		;Covert stardate value
 	LXI	D,MSGDTS	;Set pointer to digit storage
@@ -1931,6 +1935,9 @@ CK1:
 	CMP	D		;Is most significant half = 0?
 	; RNZ			;No, return with flags set up
 	ret			;Stacy, change to return so that there is always enough energy.
+
+--------------------------------------------------------------------------------
+YOU MUST DESTROY 21 ALIEN SHIPS IN 26 STARDATES WITH 6 SPACE STATIONS
 
                                 ; 
                                 ; --------------------------------------

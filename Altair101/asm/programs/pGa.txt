@@ -304,3 +304,86 @@ WARP FACTOR (0.1-7.7)? 0.3
  -1--2--3--4--5--6--7--8-
 
 --------------------------------------------------------------------------------
+
+YOU MUST DESTROY 21 ALIEN SHIPS IN 26 STARDATES WITH 6 SPACE STATIONS
+YOU MUST DESTROY    ALIEN SHIPS IN    STARDATES WITH   SPACE STATIONS
+
+MSGYJD:	DB	CR,LF
+  	DB	'YOU MUST DESTROY  '
+MSGSPS:	DB	'  ALIEN SHIPS IN  '
+MSGDTS:	DB	'  STARDATES WITH '
+MSGSSS:	DB	'  SPACE STATIONS'
+  	DB	0
+
+5B 91 1011011, Number of SPACE STATIONS.
+5C 92 1011100, Number of ALIEN SHIPS to destroy.
+5D 93 1011101, Number of STARDATES.
+
+--------------------------------------------------------------------------------
++++ Printing to fix
+
+The issue is processing DB directive multiple bytes.
+
+------------------
+COMMAND?6
+TORPEDO TRAJECTORY(1-8.5) : 3.0HIP RETALIATESHIP RETALIATESHIP RETALIATES
+ALIEN SHIP DESTROYED
+COMMAND?1
+
+COMMAND?6
+TORPEDO TRAJECTORY(1-8.5) :
+TORPEDO TRAJECTORY(1-8.5) : 1.
+TORPEDO TRAJECTORY(1-8.5) : 1.0HIP RETALIATESHIP RETALIATES
+ALIEN SHIP DESTROYED
+COMMAND?
+
+MSGTTY:	DB	CR,LF
+  	DB	'TORPEDO TRAJECTORY(1-8.5) : '
+  	DB	0
+MSGASD:	DB	CR,LF
+ 	DB	'ALIEN SHIP DESTROYED'
+  	DB	0
+MSGYMA:	DB	CR,LF
+  	DB	'YOU MISSED! ALIEN SHIP RETALIATES'
+  	DB	0
+
+------------------
+Issue with reading multiple bytes from DB directive. For example:
+	DB	CR,LF,'1',' ',' ',' ',' ',' '
+	DB	'1',' ',' ',' ',' ',' ','1',' '
+	DB	' ',' ',' ',' ','1',' ',' ',' '
+	DB	' ',' ','1',' ',' ',' ',' ',' '
+	DB	'1',' ',' ',' ',' ',' ','1',' '
+	DB	' ',' ',' ',' ','1',' ',' ',' '
+	DB	' ',' ','1'
+
+COMMAND?3
+GALAXY DISPLAY
+-------------------------------------------------
+1 203   003   000   011   105   000000304#
+-------------------------------------------------
+1 204   004   000   000   105   000003000#
+-------------------------------------------------
+1 001   000   000   000   005   007014000#
+-------------------------------------------------
+1 005   115   002   203   000   103000000#
+-------------------------------------------------
+1 005   000   000   004   000   001004004#
+-------------------------------------------------
+1 000   102   014   000   000   106006112#
+-------------------------------------------------
+1 003   000   106   207   006   011002105#
+-------------------------------------------------
+1 000   000   002   000   004   000000000#
+-------------------------------------------------
+1  1     2     3     4     5     6  7  8
+
+--------------------------------------------------------------------------------
+; Enter the following to get to the start byte: 12578bx
+
+Directions:
+   3
+ 4   2
+5     1
+ 6   8
+   7
