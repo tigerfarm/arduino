@@ -482,9 +482,11 @@ RCLR:
 	LXI	H,MSGSTDT1	;Point to row number char.
 	MOV	M,A		;Store row number in message
 	DCR	C		;Set row number for check out
+                                ;
 	LXI	H,0043H		;Set pointer to location table
 	CALL	RWPNT		;Fetch space ship location
 	JNZ	STR		;In this row? No
+;++    1496:00000101 11011000: 00110110 : 36:066 > opcode: mvi m,'<'
 	MVI	M,'<'		;Yes, store space ship code
 	INR	L
 	MVI	M,'*'
@@ -518,11 +520,12 @@ AS1:
 	MVI	H,000
 	CALL	RWPNT		;Fetch A.S. location
 	JNZ	NXAS		;A.S. here? No, try next
-	MVI	M,'+'		;Yes, store A.S. code
+;++    1551:00000110 00001111: 00110110 : 36:066 > opcode: mvi m,'+'
+	MVI	M,'['		;Yes, store A.S. code
 	INR	L
-	MVI	M,'+'
+	MVI	M,'^'
 	INR	L
-	MVI	M,'+'
+	MVI	M,']'
 	MOV	L,E		;Fetch A.S. table pointer
 NXAS:		
 	INR	L		;Advance A.S. pointer
@@ -1102,8 +1105,8 @@ CK1:
 	MOV	A,M		;Fetch most significant half
 	DCR	L		;Set pointer to least signif. half
 	CMP	D		;Is most significant half = 0?
-	; RNZ			;No, return with flags set up
-	ret			;Stacy, change to return so that there is always enough energy.
+	RNZ			;No, return with flags set up
+                                ; Stacy, remove the above, so that there is always enough energy. Not tested.
 CK2:
 	MOV	A,M		;If greater than or =, ret. with
 	CMP	E		;'C' flag reset, if less than
@@ -1219,6 +1222,7 @@ GLXCK1:
 	MOV	M,A		;Set counter to no. of digits
 	LXI	H,MSGYJD	;Set pntr to start message
 	CALL	MSG		;Print starting message
+                                ; ----------------------------------------------
 	CALL	RN		;Fresh start quadrant
 	ANI	03FH		;Mask off most significant bits
 	MVI	L,059H		;Set pntr. to quadrant storage
@@ -1324,6 +1328,14 @@ CMND:
 
 ; ------------------------------------------------------------------------------
                                 ; Command Menu options
+;++    2849:00001011 00100001: 00100001 : 21:041 > opcode: lxi h,MSGCMD
+;               b 98   5    0
+;INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
+; .    *    .  *   .   .    .    *   .         .   .    *   .   .    .   .   *
+;WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
+; *    .      .   .   .   .   *   .   *   *    .   .    *   .   .    .   .   *
+;            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
+;             v   v   v   v   ^   v   ^   ^    v   v    ^   v   v    v   v   ^
 CMD:
 	LXI	H,MSGCMD	;Set pointer to command msg
 	CALL	CMSG		;Request command input
@@ -1353,9 +1365,14 @@ CMD:
 	JZ	HELPM
 	CPI	'd'		; Help directions.
 	JZ	HELPD
+	CPI	'g'		; Print Game statistics.
+	JZ	GSTATS
                                 ;
 	JMP	CMD		;Try again
                                 ;
+GSTATS:
+        call    GAMESTAT
+	JMP	CMD
 HELPM:
 	LXI	H,MSGHELP	; Help message
 	CALL	MSG
@@ -1884,6 +1901,8 @@ INPUT:
         jz      INPUTokay
         cpi     'd'             ; Directions message.
         jz      INPUTokay
+        cpi     'g'             ; Game stats message.
+        jz      INPUTokay
         cpi     '-'             ; Negative transfer from SHIELDS to ENERGY.
         jz      INPUTokay
         cpi     '8'             ; Input range: commands(0-6) and direction(1-8)
@@ -1987,9 +2006,11 @@ MSGHELP:
   	DB	CR,LF
         DB      '6. TORPEDO'
   	DB	CR,LF
-        DB      'X. Exit, start new game'
+        DB      'g. Game stats message'
   	DB	CR,LF
         DB      'd. Directions message'
+  	DB	CR,LF
+        DB      'X. Exit, start new game'
   	DB	0
 MSGDIR:
   	DB	CR,LF
@@ -2005,9 +2026,33 @@ MSGDIR:
   	DB	CR,LF
         DB      '    7'
   	DB	0
-                                ; --------------------------------------
+                                ; ----------------------------------------------
+                                ; Print game statistic message, example:
+                                ;   YOU MUST DESTROY 20 ALIEN SHIPS IN 06 STARDATES WITH 6 SPACE STATIONS
+GAMESTAT:
+	MVI	L,05BH		;Set pntr to store number S.S.
+	MVI	B,1		;Set nmbr bytes for BINDEC
+	CALL	BINDEC		;Covert stardate value
+	LXI	D,MSGDTS	;Set pointer to digit storage
+	MVI	B,2		;Set counter to nmbr or digits
+	CALL	DIGPRT		;Put digits in message
+	LXI	H,005CH		;Set pointer to number A.S.
+	MVI	B,001		;Set nmbr bytes for BINDEC
+	CALL	BINDEC		;Convert alien ship value
+	LXI	D,MSGSPS	;Set pntr to digit stor. in start msg.
+	MVI	B,2		;Set counter to no. of digits
+	CALL	DIGPRT		;Put digits in message
+	LXI	H,005BH		;Set pointer to no. space stat.
+	MOV	A,M		;Set no. bytes for BINDEC
+	ORI	0B0H		;Covert space station value
+	LXI	H,MSGSSS	;Set pntr to digit stor. in start msg.
+	MOV	M,A		;Set counter to no. of digits
+	LXI	H,MSGYJD	;Set pntr to start message
+	CALL	MSG		;Print starting message
+        ret
+                                ; ----------------------------------------------
 	END
-                                ; --------------------------------------
+                                ; ----------------------------------------------
                                 ; Notes to get the program to run.
 
 --------------------------------------------------------------------------------

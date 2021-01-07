@@ -100,7 +100,8 @@
                                         ;
     StartMsg    db      '\r\n+ List printable characters...\r\n'
     DoneMsg     db      '\r\n+ Print characters completed.\r\n'
-    TERMB       equ     0ffh            ; String terminator.
+    ;TERMB       equ     0ffh            ; String terminator.
+    TERMB       equ     0               ; String terminator.
     esc         equ     27              ; Escape character, which is 0x1B (hex).
                                         ;
                                         ; --------------------------------------
@@ -119,6 +120,8 @@
                                         ;
                                         ; --------------------------------------
                                         ; --------------------------------------
+                                        ; Characters with decimal number.
+                                        ;
 : :!:":#:$:%:&:':(:):*:+:,:-:.:/:0:1:2:3:4:5:6:7:8:9:
 32 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7
                 40                  50
@@ -135,6 +138,10 @@
 :a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:y:z:
 97 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
      100                 110       115       120
+
+:{:|:}:~:
+ 3 4 5 6
+     126
                                         ; --------------------------------------
                                         ; Test that didn't work
                                         ;

@@ -690,20 +690,20 @@ static void cpu_print_status_register(byte s) {
 
 void cpu_print_regS() {
   printByte(regS);
-  Serial_print(" :Sign");
-  if ( regS & PS_SIGN )      Serial_print("=1"); else Serial_print("=0");
-  Serial_print(":Zero");
-  if ( regS & PS_ZERO )      Serial_print("=1"); else Serial_print("=0");
-  Serial_print(":.");
-  Serial_print(":HalfCarry");
-  if ( regS & PS_HALFCARRY ) Serial_print("=1"); else Serial_print("=0");
-  Serial_print(":.");
-  Serial_print(":Parity");
-  if ( regS & PS_PARITY )    Serial_print("=1"); else Serial_print("=0");
-  Serial_print(":.");
-  Serial_print(":Carry");
-  if ( regS & PS_CARRY )     Serial_print("=1"); else Serial_print("=0");
-  Serial_print(":");
+  Serial_print(F(" :Sign"));
+  if ( regS & PS_SIGN )      Serial_print(F("=1")); else Serial_print(F("=0"));
+  Serial_print(F(":Zero"));
+  if ( regS & PS_ZERO )      Serial_print(F("=1")); else Serial_print(F("=0"));
+  Serial_print(F(":."));
+  Serial_print(F(":HalfCarry"));
+  if ( regS & PS_HALFCARRY ) Serial_print(F("=1")); else Serial_print(F("=0"));
+  Serial_print(F(":.");
+  Serial_print(F(":Parity"));
+  if ( regS & PS_PARITY )    Serial_print(F("=1")); else Serial_print(F("=0"));
+  Serial_print(F(":.");
+  Serial_print(F(":Carry"));
+  if ( regS & PS_CARRY )     Serial_print(F("=1")); else Serial_print(F("=0"));
+  Serial_print(F(":"));
 }
 
 void cpucore_i8080_print_registers() {

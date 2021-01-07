@@ -17,11 +17,52 @@
 --------------------------------------------------------------------------------
 To do next:
 
++ Option to display status message:
+    YOU MUST DESTROY 24 ALIEN SHIPS IN 29 STARDATES WITH 3 SPACE STATIONS
+
 + Randomize the start number (in START:). Currently, it's always the same random number.
+
 + Improve messages.
 ++ Examples:
 +++ 'COMMAND?' to 'COMMAND? '
 +++ 'CHICKEN!' to 'Later...'
+
+--------------------------------------------------------------------------------
+    YOU MUST DESTROY 24 ALIEN SHIPS IN 29 STARDATES WITH 3 SPACE STATIONS
+DNSST:	DB	000 ;Num. space stations	//5B 91 01011011 Data= 6  6
+DNALS:	DB	000 ;Num. alien ships		//5C 92 01011100 Data=17 21
+DNSTD:	DB	000 ;Num. stardates		//5D 93 01011101 Data=22 26
+
+ -1--2--3--4--5--6--7--8-
+1                         STARDATE  3028
+2      <*>                CONDITION GREEN
+3                         QUADRANT  7 8
+4                         SECTOR    2 3
+5          *     *        ENERGY    2617
+6             *           TORPEDOES 09
+7                         SHIELDS   0000
+8             *        * 
+ -1--2--3--4--5--6--7--8-
+Command? 3
+GALAXY DISPLAY
+-------------------------------------------------
+1 203 1 003 1 000 1 011 1 105 1 000 1 000 1 304 1#
+-------------------------------------------------
+1 204 1 004 1 000 1 000 1 105 1 000 1 003 1 000 1#
+-------------------------------------------------
+1 001 1 000 1 000 1 000 1 005 1 007 1 014 1 000 1#
+-------------------------------------------------
+1 005 1 115 1 002 1 203 1 000 1 103 1 000 1 000 1#
+-------------------------------------------------
+1 005 1 000 1 000 1 004 1 000 1 001 1 004 1 004 1#
+-------------------------------------------------
+1 000 1 102 1 014 1 000 1 000 1 006 1 006 1 012 1#
+-------------------------------------------------
+1 003 1 000 1 106 1 207 1 006 1 011 1 002 1 005 1#
+-------------------------------------------------
+1 000 1 000 1 002 1 000 1 004 1 000 1 000 1 000 1#
+-------------------------------------------------
+
 
 --------------------------------------------------------------------------------
 ; Program is stored on the SD card:
@@ -147,6 +188,14 @@ WARP FACTOR (0.1-7.7)? 0.2
 8                   *    
  -1--2--3--4--5--6--7--8-
 
+---------------
+Note, can crash into stars when warping into quadrants.
+Command? 0
+COURSE (1-8.5)? 6.0
+WARP FACTOR (0.1-7.7)? 3.0
+KA-BOOM, YOU CRASHED INTO A STAR. YOUR SHIP IS DESTROYED
+DO YOU WANT TO GO ON A SPACE VOYAGE?
+
 ------------------------------------------
 1. Short range scanner
 
@@ -182,6 +231,10 @@ Key, 105 : 1 alien ship, 0 space stations, 5 stars
 
 --------------------------------------------------------------------------------
 +++ Printing to fix "#"
+
+Energy cost: 280
+5       *                 ENERGY    2687
+5       *                 ENERGY    2407
 
 COMMAND?3
 GALAXY DISPLAY
@@ -466,11 +519,59 @@ CRSE:
                                 ;   if they had hit the wrong command option.
 
 --------------------------------------------------------------------------------
-; Enter the following to get to the start byte: 12578bx
+### Program addresses
 
-Directions:
-    3
-  4 | 2
-5 - + - 1
-  6 | 8
-    7
+12578bx Galaxy program start address switches, label: GALAXY.
+        Start the program.
+
+0589bx  Command address switches: Command Menu options, label: CMD.
+        Return to command line, after doing a stop and viewing memory:
+
+Line 489:
+	MVI	M,'<'		;Yes, store space ship code
+	INR	L
+	MVI	M,'*'
+	INR	L
+	MVI	M,'>'
+Line 552:
+	MVI	M,'+'		;Yes, store A.S. code
+	INR	L
+	MVI	M,'+'
+	INR	L
+	MVI	M,'+'
+
+YOU MUST DESTROY 21 ALIEN SHIPS IN 26 STARDATES WITH 6 SPACE STATIONS
+ -1--2--3--4--5--6--7--8-
+1                         STARDATE  3024
+2                         CONDITION GREEN
+3                         QUADRANT  8 7
+4                         SECTOR    6 6
+5                         ENERGY    2952
+6               <*>       TORPEDOES 10
+7                         SHIELDS   0000
+8                        
+ -1--2--3--4--5--6--7--8-
+
+DNSST:	DB	000 ;Num. space stations	//5B 91 01011011 Data= 6
+DNALS:	DB	000 ;Num. alien ships		//5C 92 01011100 Data=21
+DNSTD:	DB	000 ;Num. stardates		//5D 93 01011101 Data=26
+
+--------------------------------------------------------------------------------
+
+-------------------------------------------------
+1 203 1 003 1 000 1 011 1 105 1 000 1 000 1 304 1#
+-------------------------------------------------
+1 204 1 004 1 000 1 000 1 105 1 000 1 003 1 000 1#
+-------------------------------------------------
+1 001 1 000 1 000 1 000 1 005 1 007 1 014 1 000 1#
+-------------------------------------------------
+1 005 1 015 1 002 1 003 1 000 1 003 1 000 1 000 1#
+-------------------------------------------------
+1 005 1 000 1 000 1 004 1 000 1 001 1 004 1 004 1#
+-------------------------------------------------
+1 000 1 002 1 014 1 000 1 000 1 006 1 006 1 012 1#
+-------------------------------------------------
+1 003 1 000 1 106 1 007 1 006 1 011 1 002 1 005 1#
+-------------------------------------------------
+1 000 1 000 1 002 1 000 1 004 1 000 1 000 1 000 1#
+-------------------------------------------------

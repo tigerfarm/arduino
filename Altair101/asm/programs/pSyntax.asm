@@ -83,23 +83,6 @@
     ;        lxi h,lbc               ; Set the H:L register pair to the line buffer address.
                                     ; ------------------------------------------
                                     ; Opcode statements from Galaxy80.asm
-;    IOINI:  MVI A,3                 ;RESET ACIA
-                                    ;
-;    LOCSET:
-;    CNZ    LOCSET
-                                    ;
-    ;XRI    0FFH
-    ;ORI    0FFH
-    ;ANA     A
-    ;SBB     B
-;    XCHG
-;    RM
-;    RZ
-;    RNZ
-;    RLC
-                                    ;
-;    CALL   TWO
-;    RET
                                     ;
                                     ; ------------------------------------------
                                     ; Special cases for Galaxy80.asm.
@@ -107,64 +90,9 @@
     CR  EQU 0DH
     LF  EQU 0AH
                                     ;
-;MSGTTY:	DB	CR,LF
-;  	DB	'TORPEDO TRAJECTORY(1-8.5) : '
-;  	DB	0
-;        db      '-'
-;MSGASD:	DB	CR,LF
-; 	DB	'ALIEN SHIP DESTROYED'
-;  	DB	0
-        db      '-'
-
-DB	CR,LF,'O. SPACE SHIP movement'
-
-;	RET
-;SSPLS:
-;	MVI	E,0F7H		;Mask to delete space station
-;	JMP	PLS		;Delete excess space station
-;PLS:
-;	HLT
-                                    ;
-    ;MSGDYW:
-    ;   DB '\n'
-    ;    DB CR,LF
-    ;   DB 'abc\n'
-    ;   DB 0
-    ;thePrompt   db      '> '
-    ;            db      0
-                                    ;
-    ;MSGNEL: DB CR,LF
-    ;    DB CR,LF
-                                    ;
-;       DB 'DO YOU WANT TO GO ON A SPACE VOYAGE? '
-;       DB 0
-                                    ;
-    ;        DB 6
-    ;        DB  ' STARDATE  300'
-                                    ;
-    ;        DB CR,LF
-    ;        DB CR,LF,' ',' ','1'
-    ;        DB 000000000b,000000001b,000000100b,000100011b,000001010b,000000011b,000000111b,000000000b
-    ;        DB CR,LF,'1',' ',' ',' ',' ',' '
-    ;        DB ' ',' ','1'
-                                    ;
-    ;        SUI ':'
-                                    ;
-    ;SIOCTL  EQU 10H                 ;88-2SIO CONTROL PORT
-    ;IOST:   IN SIOCTL
-                                    ;
-    ;        MVI M,' '
-    ;        XRA A
-                                    ;
-        ;DB CR,LF
-    ;    MSGDYWa: DB CR
-    ;    MSGDYWa: DB LF
-                                    ;
-    ;MSGCHK: DB CR,LF
-    ;    DB 'CHICKEN!'
-    ;    DB 0                        ; "0" End of string identifier.
-;        LXI     H,MSGCHK            ;Print "CHICKEN"
-;        CALL    MSG
+; Issue is with comma in a string that starts with other bytes.
+; DB  CR,LF,'MISSION FAILED, YOU HAVE RUN OUT	OF STARDATES'
+DB  CR,LF,'B4, after.'
                                     ;
                                     ; ------------------------------------------
                                     ; Special case: end file processing
@@ -173,16 +101,6 @@ DB	CR,LF,'O. SPACE SHIP movement'
             end
                                     ; Lines after the "end" line are ignored.
                                     ; ------------------------------------------
-                                    ;
-                                    ; ------------------------------------------
-                                    ; Printing a string with an end identifier of "0".
-MSG:
-	MOV	A,M		;Fetch character
-	ANA	A		;End of message?
-	RZ			;Yes, return
- 	;CALL	PRINT		;No, print character
- 	INX	H		;Increment message pointer
-	JMP	MSG		;Continue printout
                                     ;
                                     ; ------------------------------------------
                                     ;

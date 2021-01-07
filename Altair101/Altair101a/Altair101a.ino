@@ -16,33 +16,9 @@
   ---------------------------------------------------------
   Next to work on
 
-  When reading or writing, echo the file name.
-  Current:
-?- + M, Write program Memory into a file.
-+ Confirm, y/n:
-  Change to:
-?- + M, Write program Memory into the file: 00001001.BIN
-+ Confirm, y/n:
-  
   + Create a directory for Altair-Duino program files: ASM and BIN.
   + Create a directory for Altair 8800 hardware program files: ASM and BIN.
   
-  Done: Update asm to compile, pGalaxy80.asm
-  Add Serial2 i/o ports.
-      + Currently works, instruction to output regA to Serial2: OUT 2
-      + Add the same port number as 88-2SIO DATA PORT in pGalaxy80.asm.
-      ++ Be interesting to get pGalaxy80.asm to compile and run. Or, just to run.
-      + Try loading and running the BIN file.
-      + Try compiling and running sections of the program.
-
-      // pGalaxy80.asm input port.
-      SIOCTL  EQU 10H   ;88-2SIO CONTROL PORT
-      IN   SIOCTL
-
-      // pGalaxy80.asm output port.
-      SIODAT  EQU 11H   ;88-2SIO DATA PORT
-      OUT  SIODAT
-
   ---------------------------------------------------------
   Hex programs:
 
@@ -58,12 +34,11 @@
     const byte PROGMEM basic4k[] = {
     0xae, 0xae, ... 0x00};
   + Will need to search Hex codes to see if interupt is required.
+  ++ Interupt is required.
 
   +++ Integration steps to merge this code with Processor.ino.
   + Continue use testing Altair101a.
   + Continue adding Processor features into Altair101a.
-  ++ Add: ability to read and write program byte files from a micro SD card.
-  ++ Added: ability to download program bytes from asm.
   ++ Upload Altair101a to the Altair 101 machine and test with lights.
   ++ Altair101a code updates to handle hardware toggles and switches.
 
@@ -74,7 +49,7 @@
   Other Nexts:
 
   Implement interupt processing.
-  + opcodes: ei adn di.
+  + opcodes: ei and di.
   + This is required when I try to run complex programs such as CPM, maybe Basic.
 
   + Prevent lockup when using PUSH A, i.e. PUSH called before setting SP.
@@ -101,73 +76,42 @@
   http://www.cplusplus.com/reference/cstdio/printf/
 
   ---------------------------------------------------------
-  + Front panel LED lights are initialized.
-  ---------
-  INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
-  .    *    .  *   .   .    .    *   .         *   .    *   .   *    .   *   .
-  WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
-      .      .   .   .   .   .   .   .   .    .   .    .   *   .    .   .   .
-            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
-             v   v   v   v   v   v   v   v    v   v    v   v   v    ^   v   ^
-  ---------
-  INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
-  .    .    *  .   .   .    .    *   .         .   .    .   .   .    .   .   .
-  WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
-      .      .   .   .   .   .   .   *   .    .   .    .   .   .    .   *   .
-            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
-             v   v   v   v   v   v   v   v    v   v    v   v   v    v   v   v
-  ------
-  + Ready to receive command.
-  + singleStepWait()processDataOpcode()
-
-  ---------------------------------------------------------
   ---------------------------------------------------------
   Program sections
 
   + Declarations
     printByte(byte b)
-
   --------------------------
   + Process functions
     singleStepWait()
     controlResetLogic()
-
   --------------------------
   + Front panel functions
     printFrontPanel()
-
   + Input
     altair_in(byte portDataByte)
-
   + Output
     altair_out(byte portDataByte, byte regAdata)
-
   --------------------------
-  + Process RUN mode
+  + RUN process mode
     processDataOpcode()
     processRunSwitch(byte readByte)
     runProcessor()
     + Loop the above 2 processes.
-
-  + Processor WAIT mode: process switch byte options.
+  + WAIT processor mode: process switch byte options.
     void processWaitSwitch(byte readByte)
     runProcessorWait()
     + Loop input keys and call processWaitSwitch(inputByte)
-
   --------------------------
   + Load hardcoded programs
     Early test programs
-
   + Copy paste into Serial port window.
     Only works for really short programs.
-
   + Download program bytes through Serial2 port from the laptop.
     runDownloadProgram()
-
   + SD card R/W functions
     readProgramFileIntoMemory(String theFilename)
     writeProgramMemoryToFile(String theFilename)
-
   --------------------------
   + Setup()
   + Looop()
@@ -274,10 +218,10 @@ void writeProgramMemoryToFile(String theFilename) {
   }
   // Serial.print(F("+ Write program memory to a new file named: "));
   // Serial.println(theFilename);
-  // Serial.println("+ Check if file exists. ");
+  // Serial.println(F("+ Check if file exists. "));
   if (SD.exists(theFilename)) {
     SD.remove(theFilename);
-    // Serial.println("++ Exists, so it was deleted.");
+    // Serial.println(F("++ Exists, so it was deleted."));
   }
   myFile = SD.open(theFilename, FILE_WRITE);
   if (!myFile) {
@@ -287,8 +231,8 @@ void writeProgramMemoryToFile(String theFilename) {
     sdcardInitiated = false;
     return; // When used in setup(), causes jump to loop().
   }
-  // Serial.println("++ New file opened.");
-  // Serial.println("++ Write binary memory to the file.");
+  // Serial.println(F("++ New file opened."));
+  // Serial.println(F("++ Write binary memory to the file."));
   host_set_status_led_HLDA();
   for (int i = 0; i < MEMSIZE; i++) {
     // myFile.write(memoryData[i]);
@@ -309,9 +253,9 @@ boolean readProgramFileIntoMemory(String theFilename) {
   if (!sdcardInitiated) {
     initSdcard();
   }
-  // Serial.println("+ Read a file into program memory, file named: ");
+  // Serial.println(F("+ Read a file into program memory, file named: "));
   // Serial.print(theFilename);
-  // Serial.println("+ Check if file exists. ");
+  // Serial.println(F("+ Check if file exists. "));
   if (!SD.exists(theFilename)) {
     Serial.print(F("- Read ERROR, file doesn't exist: "));
     Serial.println(theFilename);
@@ -335,9 +279,9 @@ boolean readProgramFileIntoMemory(String theFilename) {
     MWRITE(i, memoryData);
 #ifdef LOG_MESSAGES
     // Print Binary:Octal:Decimal values.
-    Serial.print("B");
+    Serial.print(F("B"));
     printByte(MREAD(i));
-    Serial.print(":");
+    Serial.print(F(":"));
     printOctal(MREAD(i));
     Serial.print(F(":"));
     Serial.println(MREAD(i), DEC);
@@ -359,7 +303,7 @@ boolean readProgramFileIntoMemory(String theFilename) {
 
 void printSpacing(String theString) {
   for (int i = theString.length(); i < 14; i++) {
-    Serial.print(" ");
+    Serial.print(F(" "));
   }
 }
 
@@ -382,7 +326,7 @@ void sdListDirectory() {
       printSpacing(entry.name());
       Serial.print(entry.size(), DEC);
     }
-    Serial.println("");
+    Serial.println();
     entry.close();
     entry =  dir.openNextFile();
   }
@@ -455,9 +399,9 @@ void printByte(byte b) {
   for (int i = 7; i >= 0; i--) {
     //  Serial_print(bitRead(b, i));
     if (bitRead(b, i)) {
-      Serial_print("1");
+      Serial_print(F("1"));
     } else {
-      Serial_print("0");
+      Serial_print(F("0"));
     }
   }
 }
@@ -471,7 +415,7 @@ void printOctal(byte b) {
 void printHex(byte b) {
   String sValue = String(b, HEX);
   for (int i = 1; i <= 3 - sValue.length(); i++) {
-    Serial_print("0");
+    Serial_print(F("0"));
   }
   Serial.print(sValue);
 }
@@ -1018,7 +962,7 @@ void altair_out(byte portDataByte, byte regAdata) {
     //case 16:
       // Actual output of bytes. Example output a byte to the serial port (IDE monitor).
       // Test port: 20Q (octal: 020).
-      // Serial_print("++ Test output port, byte output to USB serial port:");
+      // Serial_print(F("++ Test output port, byte output to USB serial port:"));
       // Serial.print(regAdata);         // Write regAdata to serial port.
       // Serial.println(F(":"));
       // break;
@@ -1125,7 +1069,6 @@ void altair_out(byte portDataByte, byte regAdata) {
       printByte(highByte(regSP));
       Serial_print((":"));
       printByte(lowByte(regSP));
-      // Serial.print(" ");
       Serial_print(F(" Status flag byte, regS"));
       cpu_print_regS();
       break;
@@ -1540,7 +1483,7 @@ void processWaitSwitch(byte readByte) {
     case 'Y':
       Serial.print(F("+ Y, Serial2 on (begin), baud rate: "));
       Serial.print(downloadBaudRate);
-      Serial.println(".");
+      Serial.println(F("."));
       Serial2.begin(downloadBaudRate);
       SERIAL2_OUTPUT = true;
       break;
@@ -1667,15 +1610,15 @@ void processWaitSwitch(byte readByte) {
       }
       break;
     case 'n':
-      Serial.println("+ n, SD card directory lising.");
+      Serial.println(F("+ n, SD card directory lising."));
 #ifdef SETUP_SDCARD
       sdListDirectory();
 #else
-      Serial.println("- SD card not enabled.");
+      Serial.println(F("- SD card not enabled."));
 #endif  // SETUP_SDCARD
       break;
     case 'm':
-      Serial.println("+ m, Read file into program memory.");
+      Serial.println(F("+ m, Read file into program memory."));
 #ifdef SETUP_SDCARD
       theFilename = getSenseSwitchValue() + ".bin";
       if (theFilename == "00000000.bin") {
@@ -1683,8 +1626,9 @@ void processWaitSwitch(byte readByte) {
         programState = SERIAL_DOWNLOAD;
         return;
       }
-      //
-      Serial.println(F("+ Confirm, y/n: "));
+      Serial.print(F("++ Read filename: "));
+      Serial.println(theFilename);
+      Serial.println(F("++ Confirm, y/n: "));
       readConfirmByte = 's';
       while (!(readConfirmByte == 'y' || readConfirmByte == 'n')) {
         if (Serial.available() > 0) {
@@ -1710,11 +1654,11 @@ void processWaitSwitch(byte readByte) {
       printFrontPanel();
       host_clr_status_led_HLDA();
 #else
-      Serial.println("- SD card not enabled.");
+      Serial.println(F("- SD card not enabled."));
 #endif  // SETUP_SDCARD
       break;
     case 'M':
-      Serial.println("+ M, Write program Memory into a file.");
+      Serial.println(F("+ M, Write program Memory into a file."));
 #ifdef SETUP_SDCARD
       String senseSwitchValue = getSenseSwitchValue();
       theFilename = senseSwitchValue + ".bin";
@@ -1723,8 +1667,9 @@ void processWaitSwitch(byte readByte) {
         ledFlashError();
         return;
       }
-      //
-      Serial.println(F("+ Confirm, y/n: "));
+      Serial.print(F("++ Write filename: "));
+      Serial.println(theFilename);
+      Serial.println(F("++ Confirm, y/n: "));
       readConfirmByte = 's';
       while (!(readConfirmByte == 'y' || readConfirmByte == 'n')) {
         if (Serial.available() > 0) {
@@ -1747,7 +1692,7 @@ void processWaitSwitch(byte readByte) {
       writeProgramMemoryToFile(theFilename);
       printFrontPanel();
 #else
-      Serial.println("- SD card not enabled.");
+      Serial.println(F("- SD card not enabled."));
 #endif  // SETUP_SDCARD
       break;
     // -------------------------------------
@@ -2041,7 +1986,7 @@ void loadProgramSerial() {
         MWRITE(programCounter++, x)
         Serial.print(F("+ "));
         if (programCounter < 10) {
-          Serial.print("0");
+          Serial.print(F("0"));
         }
         Serial.print(programCounter);
         Serial.print(F(": "));
@@ -2049,10 +1994,10 @@ void loadProgramSerial() {
         Serial.write(hexNumber[1]);
         Serial.print(F(" = "));
         if (x < 100) {
-          Serial.print("0");
+          Serial.print(F("0"));
         }
         if (x < 10) {
-          Serial.print("0");
+          Serial.print(F("0"));
         }
         Serial.print(x);
         Serial.print(F(" = "));
@@ -2075,7 +2020,7 @@ void loadProgramSerial() {
 
 // -----------------------------------------------------------------------------
 void runDownloadProgram() {
-  Serial.println("+ Download mode: ready to receive a program. Enter, x, to exit.");
+  Serial.println(F("+ Download mode: ready to receive a program. Enter, x, to exit."));
   // Status: ready for input and not yet writing to memory.
   host_set_status_led_INP();
   host_clr_status_led_M1();
@@ -2114,7 +2059,7 @@ void runDownloadProgram() {
         if (SERIAL_IO_VT100) {
           Serial.print(F("\033[11;1H"));    // Move cursor to below the prompt.
         }
-        Serial.println("+       Address  Data  Binary   Hex Octal Decimal");
+        Serial.println(F("+       Address  Data  Binary   Hex Octal Decimal"));
         //              ++ Byte#     17, Byte: 00000000 000 000     0
       }
       if (SERIAL_IO_VT100) {
@@ -2122,21 +2067,21 @@ void runDownloadProgram() {
       }
       //
       // Buffer space up to 64K.
-      Serial.print("++ Byte# ");
+      Serial.print(F("++ Byte# "));
       if (readByteCount < 10) {
-        Serial.print(" ");
+        Serial.print(F(" "));
       }
       if (readByteCount < 100) {
-        Serial.print(" ");
+        Serial.print(F(" "));
       }
       if (readByteCount < 1000) {
-        Serial.print(" ");
+        Serial.print(F(" "));
       }
       if (readByteCount < 10000) {
-        Serial.print(" ");
+        Serial.print(F(" "));
       }
       if (readByteCount < 100000) {
-        Serial.print(" ");
+        Serial.print(F(" "));
       }
       Serial.print(readByteCount);
       //
@@ -2144,18 +2089,18 @@ void runDownloadProgram() {
       // Process the incoming byte.
       MWRITE(readByteCount, readByte)
       readByteCount++;
-      Serial.print(", Byte: ");
+      Serial.print(F(", Byte: "));
       printByte(readByte);
-      Serial.print(" ");
+      Serial.print(F(" "));
       printHex(readByte);
-      Serial.print(" ");
+      Serial.print(F(" "));
       printOctal(readByte);
-      Serial.print("   ");
+      Serial.print(F("   "));
       if (readByte < 10) {
-        Serial.print(" ");
+        Serial.print(F(" "));
       }
       if (readByte < 100) {
-        Serial.print(" ");
+        Serial.print(F(" "));
       }
       Serial.print(readByte);
       Serial.println();
@@ -2165,7 +2110,7 @@ void runDownloadProgram() {
     if (downloadStarted && ((millis() - timer) > 500)) {
       // Exit download state, if the bytes were downloaded and then stopped for 1/2 second.
       //  This indicates that the download is complete.
-      Serial.println("+ Download complete.");
+      Serial.println(F("+ Download complete."));
       programState = PROGRAM_WAIT;
     }
     // -----------------------------------------------
@@ -2175,11 +2120,11 @@ void runDownloadProgram() {
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
       if (readByte == 'R' || readByte == 's' || readByte == 'x') {
-        Serial.println("+ Exit download mode.");
+        Serial.println(F("+ Exit download mode."));
         programState = PROGRAM_WAIT;
         delay(100); // Required to wait for the LF when in IDE serial monitor.
         while (Serial.available() > 0) {
-          // Serial.println("+ Exit, Clear other characters in the buffer, example: LF.");
+          // Serial.println(F("+ Exit, Clear other characters in the buffer, example: LF."));
           readByte = Serial.read();
           delay(100); // Required to wait for the LF when in IDE serial monitor.
         }
