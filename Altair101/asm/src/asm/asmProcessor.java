@@ -23,7 +23,9 @@
     ---------------------------------------------
     +++ Next assembler updates and issues,
 
-    + Confirm that LXI addresses are correct.
+    + Should handle the following:
+        DB	CR,LF,'O. SPACE SHIP movement'
+    + Parsing needs improving before calling parseDb(..).
 
     + List syntax error message list, example, LXI, but no address included.
     ++ List line for: -- 412: - Error, immediate label not found: c.
@@ -1323,6 +1325,13 @@ public class asmProcessor {
         //      <opcode>        <parameter>
         //      <opcode>        <parameter>,<parameter>
         //
+        /*
++ Parse |DB CR,LF,'O. SPACE SHIP movement'|
+++ parseLine components theRest|CR,LF,'O. SPACE SHIP movement'|
+++ parseLine components part1asIs|DB| part1|db| part2|CR,LF,'O.| theDirective|cr,lf,'o.| theRest|SPACE SHIP movement'|
+++ parseDb( theLabel: , theValue: CR,LF,'O. )
+++ parseLine2, DB bytes, theByte|CR|
+        */
         if (part1.equals("db")) {
             parseDb("", part2);
             return;
@@ -1583,8 +1592,8 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pstatuslights.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pcli.asm");
         //
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSyntax.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGa.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSyntax.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGa.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGa2.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGalaxy80.asm");
         //

@@ -238,7 +238,7 @@ MSGSHD:	DB	' SHIELDS      '
 MSGSHP:	DB	' '
   	DB	0
 MSGCMD:	DB	CR,LF
-  	DB	'COMMAND?'
+  	DB	'Command? '
   	DB	0
 MSGCRS:	DB	CR,LF
   	DB	'COURSE (1-8.5)? '
@@ -323,9 +323,10 @@ MSGLST:	DB	CR,LF
   	DB	'LAST'
   	DB	0
 MSGCHK:	DB	CR,LF
-  	DB	'CHICKEN!'
+  	DB	'Later...',CR,LF
   	DB	0
 
+; ------------------------------------------------------------------------------
 	ORG	0500H           ; Decimal = 1280
 
 MSG:
@@ -844,6 +845,8 @@ DLAS:
 	RNZ			;If counter not = 0, return
 	LXI	H,MSGCYH	;If counter = 0, game over
 	JMP	DONE		;print CONGRATULATIONS
+; ------------------------------------------------------------------------------
+                                ; Input a direction.
 DRCT:
 	CALL	INPUT		;Input first course number
 	LXI	H,005EH		;Pointer to temporary storage
@@ -851,6 +854,7 @@ DRCT:
 	JC	ZRET		;Yes, illegal input
 	CPI	'9'		;Is input greater than 8?
 	JNC	ZRET		;Yes, illegal input
+                                ;
 	ANI	00FH		;Mask off ASCII code
 	RLC			;If good, times 2
 	MOV	M,A		;And save in temporary storage
@@ -873,6 +877,7 @@ CR1:
 ZRET:
 	XRA	A 		;Set Z flag
 	RET			;And return
+; ------------------------------------------------------------------------------
 QCNT:
 	LXI	H,0059H		;Set pointer to curr. quad. row & col storage
 	MOV	A,M		;Fetch current quadrant
@@ -1122,16 +1127,18 @@ SPRC:
 	MOV	B,A		;Save row in 'B'
 	RET
 
-                                ; ----------------------------------------------
+; ------------------------------------------------------------------------------
+                                ; Initialize and start the Galaxy program.
 GALAXY:
 ; ++    2470:00001001 10100110: 00110001 : 31:061 > opcode: lxi sp,STACK
 ; Enter the following to get to the start byte: 12578bx
 	LXI	SP,STACK	;Set stack pointer
 	CALL	CONINI		;Initialize Console I/O
+NEWSTART:
 	LXI	H,MSGDYW
 	CALL	MSG		;Print introduction
 START:
-	CALL	RN		;Increment random number
+	CALL	RN		;Increment random number. Stacy, currently, same random number every time because of my START change.
 	CALL	INPCK		;Input yet?
 	JP	START		;No, continue wait
 	CALL	INPUT		;Wait for an input character, then echo it and continue.
@@ -1222,6 +1229,9 @@ GLXCK1:
 	MVI	C,1		;Set space ship counter
 	MVI	E,043H		;Set space ship loc. storage
 	CALL	LOCSET		;Set initial space ship location
+                                ;
+; ------------------------------------------------------------------------------
+                                ; Print short range scan
 SRSCN:
 	LXI	H,MSG123	;Set pntr. for short range scan
 	CALL	MSG		;Print initial row
@@ -1313,27 +1323,49 @@ CMND:
 	INR	M		;Fetch random nmbr. constant
 
 ; ------------------------------------------------------------------------------
-; Command options
-
+                                ; Command Menu options
 CMD:
 	LXI	H,MSGCMD	;Set pointer to command msg
 	CALL	CMSG		;Request command input
 	CALL	INPUT		;Input command
-	CPI	'0'		;Ship movement?
-	JZ	CRSE		;Yes, input course
-	CPI	'1'		;Short range scan?
-	JZ	SRSCN		;Yes, print short range scan
-	CPI	'2'		;Long range scan?
-	JZ	LRSCN		;Yes, print long range scan
-	CPI	'3'		;Galaxy printout?
-	JZ	GXPRT		;Yes, print galaxy
-	CPI	'4'		;Shield energy?
-	JZ	SHEN		;Yes, adjust shield energy
-	CPI	'5'		;Phasor control?
-	JZ	PHSR		;Yes, fire phasers
-	CPI	'6'		;Torpedo shot?
-	JZ	TRPD		;Yes, shoot torpedo
-	JMP	CMD		;Illegal command, try again
+                                ;
+	CPI	'0'		; Ship movement, input course.
+	JZ	CRSE
+	CPI	'1'		; Print short range scan
+	JZ	SRSCN
+	CPI	'2'		; Print long range scan
+	JZ	LRSCN
+	CPI	'3'		; Print Galaxy printout?
+	JZ	GXPRT
+	CPI	'4'		; Adjust shield energy
+	JZ	SHEN
+	CPI	'5'		; Fire Phasors
+	JZ	PHSR
+	CPI	'6'		; Shoot torpedo
+	JZ	TRPD
+	CPI	'X'		; Exit, return to start.
+	JZ	NEWSTART        ;   Will generate a new random galaxy.
+	CPI	'H'		; Help.
+	JZ	HELPM
+	CPI	'h'		; Help.
+	JZ	HELPM
+	CPI	'?'		; Help.
+	JZ	HELPM
+	CPI	'd'		; Help directions.
+	JZ	HELPD
+                                ;
+	JMP	CMD		;Try again
+                                ;
+HELPM:
+	LXI	H,MSGHELP	; Help message
+	CALL	MSG
+	JMP	CMD
+HELPD:  LXI	H,MSGDIR	; Help message directions
+	CALL	MSG
+	JMP	CMD
+                                ;
+; ------------------------------------------------------------------------------
+                                ; Print long range scan
 LRSCN:
 	LXI	H,MSGLRS	;Set pntr to long range msg
 	CALL	MSG		;Print long range scan
@@ -1377,12 +1409,20 @@ RWC:
 	LXI	H,MSG11C	;Set pointer to right quadrant
 	XRA	A		;Set zero contents
 	CALL	QDS1		;Set quadrant contents
-	JMP	LRP		;Pring long range row
+	JMP	LRP		;Print long range row
+                                ;
+; ------------------------------------------------------------------------------
+                                ; Course menu option
+CRSEret:
+        JMP	CMND		;Input new command
 CRSE:
 	LXI	H,MSGCRS	;Pointer to "Course" message
  	CALL	MSG		;Request course input
  	CALL	DRCT		;Input course direction
-	JZ	CRSE		;Input error, try again
+	;JZ	CRSE		;Input error, try again
+	JZ	CRSEret		; Stacy, invalid input will return to command.
+                                ;   The user can back out from this command
+                                ;   if they had hit the wrong command option.
 WRP:
 	LXI	H,MSGWRP	;Pointer to "Warp" message
  	CALL	CMSG		;Request warp input
@@ -1510,11 +1550,17 @@ DKED:
 	CMP	E		;Space station adjacent
 	RNZ			;No, return
 	JMP	LOAD		;Yes, load space ship & return
+                                ;
+; ------------------------------------------------------------------------------
+SHENret:
+	JMP	CMND		;Jump to input command
 SHEN:
 	LXI	H,MSGSET	;Print "Shield Energy
 	CALL	MSG		;       Transfer =  "
 	CALL	EIN		;Input energy amount
-	JM	SHEN		;Invalid input, try again
+	;JM	SHEN		;Invalid input, try again
+	JM	SHENret		; Stacy, invalid input will return to command.
+                                ;
 	CALL	DCBN		;Convert to binary
 	MVI	L,064H		;Fetch sign indicator
 	MOV	A,M
@@ -1535,6 +1581,11 @@ NE:
 	LXI	H,MSGNEE	;Print "Not Enough Energy"
 	CALL	MSG
 	JMP	CMND		;Input new command
+                                ;
+; ------------------------------------------------------------------------------
+                                ; Command option to shoot a torpedo.
+TR1ret:
+	JMP	CMND		;Jump to input command
 TRPD:
 	MVI	L,05AH		;Fetch number of torpedoes
 	MOV	A,M
@@ -1551,7 +1602,11 @@ TR1:
 	LXI	H,MSGTTY	;Print "Torpedo Trajectory"
 	CALL	MSG
 	CALL	DRCT		;Input direction
-	JZ	TR1		;Invalid input, try again
+	;JZ	TR1		;Invalid input, try again
+	JZ	TR1ret		; Stacy, invalid input will return to command.
+                                ;   The user can back out from the option
+                                ;   if they had hit the wrong command option.
+                                ;
 	CALL	ACTV		;Form adjusted row & column
 	MVI	L,059H		;Save current quadrant location
 	MOV	A,M		;In temporary storage
@@ -1608,11 +1663,18 @@ NTPD:
 	LXI	H,MSGZRO	;Set pointer to No Torpedo message
 	CALL	MSG		;Print message
 	JMP	CMND		;Jump to input command
+                                ;
+; ------------------------------------------------------------------------------
+PHSRret:
+	JMP	CMND		;Jump to input command
 PHSR:
 	LXI	H,MSGPEF	;Print 'Phasor Energy to Fire='
 	CALL	MSG
 	CALL	EIN		;Input energy amount
-	JM	PHSR		;Input error, try again
+	; JM	PHSR		;Input error, try again
+	JM	PHSRret		; Stacy, invalid input will return to command.
+        JZ      PHSRret         ; Also return if 0.
+                                ;
 	CALL	DCBN		;Convert energy to binary
 	CALL	ELOM		;Delete energy from main
 	MVI	L,042H		;Fetch current quad. contents
@@ -1723,7 +1785,7 @@ DSTR:
 	MVI	L,02AH		;Fetch alient ship location in tbl
 	MOV	L,M
 	JMP	DLET		;Remove A.S. fm glxy & ret
-
+                                ;
 ; ------------------------------------------------------------------------------
 GXPRT:
 	LXI	H,MSGGDY	;Print galaxy display
@@ -1812,9 +1874,19 @@ INPUT:
         jz      INPUTokay
         cpi     'Y'             ; Yes, start the game.
         jz      INPUTokay
+        cpi     'X'             ; Exit, ask to start a new game.
+        jz      INPUTokay
+        cpi     '?'             ; Help.
+        jz      INPUTokay
+        cpi     'H'             ; Help.
+        jz      INPUTokay
+        cpi     'h'             ; Help.
+        jz      INPUTokay
+        cpi     'd'             ; Directions message.
+        jz      INPUTokay
         cpi     '-'             ; Negative transfer from SHIELDS to ENERGY.
         jz      INPUTokay
-        cpi     '6'             ; Input range from 0..6.
+        cpi     '8'             ; Input range: commands(0-6) and direction(1-8)
         jz      INPUTeq         ; Jump, if A = #, zero bit = 1.
         jnc     INPUT           ; Jump, if A > #, carry bit = 0.
 INPUTeq:
@@ -1886,9 +1958,11 @@ WLOOP:
 	;ANI	SIOTXR
 	;JZ	WLOOP
 
-	MOV	A,C		
+	MOV	A,C
+        CPI     7
+        JZ      SKIPBELL        ; Don't send the bell character which is an error I need to find in the program.
 	OUT	SIODAT		;SEND THE CHARACTER
-
+SKIPBELL:
 	RET
 
 
@@ -1896,16 +1970,43 @@ CONINI:
         CALL    IOINI
 	RET
                                 ; --------------------------------------
-                                ; Stacy, I've added.
-    println:
-                mvi a,'\r'      ; Print CR and NL characters.
-                out 2
-                mvi a,'\n'
-                out 2
-                ret
-
-	END
+                                ; Stacy, I've added help messages.
+MSGHELP:
+  	DB	CR,LF
+        DB      'O. SPACE SHIP movement'
+  	DB	CR,LF
+        DB      '1. Short range scanner'
+  	DB	CR,LF
+        DB      '2. Long  range scanner'
+  	DB	CR,LF
+        DB      '3. Galaxy display'
+  	DB	CR,LF
+        DB      '4. Shields'
+  	DB	CR,LF
+        DB      '5. Phasors'
+  	DB	CR,LF
+        DB      '6. TORPEDO'
+  	DB	CR,LF
+        DB      'X. Exit, start new game'
+  	DB	CR,LF
+        DB      'd. Directions message'
+  	DB	0
+MSGDIR:
+  	DB	CR,LF
+        DB      'Directions:
+  	DB	CR,LF
+        DB      '    3'
+ 	DB	CR,LF
+        DB      '  4 | 2'
+  	DB	CR,LF
+        DB      '5 - + - 1'
+  	DB	CR,LF
+        DB      '  6 | 8'
+  	DB	CR,LF
+        DB      '    7'
+  	DB	0
                                 ; --------------------------------------
+	END
                                 ; --------------------------------------
                                 ; Notes to get the program to run.
 

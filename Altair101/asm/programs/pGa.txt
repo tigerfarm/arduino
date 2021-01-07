@@ -1,19 +1,27 @@
 ; ------------------------------------------------
-;
-; Challenge to:
-;   + Assemble using my assembler.
-;   + Run using Altair101a.
+; Galaxy Program Notes
 ;
 ; +----------------------------------+
-; |           GALAXY GAME            |
+; |           GALAXY  GAME           |
 ; |           FOR THE 8080           |
 ; +----------------------------------+
+;
+; My challenge,
+;   + Assemble using my assembler.
+;   + Run using Altair101a.
+;   + Make program enhancements.
 ;
 ; Site I downloaded from:
 ;   https://github.com/deltecent/scelbi-galaxy
 ;
 --------------------------------------------------------------------------------
-; Notes to get the program to run.
+To do next:
+
++ Randomize the start number (in START:). Currently, it's always the same random number.
++ Improve messages.
+++ Examples:
++++ 'COMMAND?' to 'COMMAND? '
++++ 'CHICKEN!' to 'Later...'
 
 --------------------------------------------------------------------------------
 ; Program is stored on the SD card:
@@ -56,18 +64,41 @@ Now, run the program.
 ?- + runProcessor()
 
 DO YOU WANT TO GO ON A SPACE VOYAGE? Y
-YOU MUST DESTROY 21 ALIEN SHIPS IN 26 STARDATES WITH 6 SPACE STATIONS
+YOU MUST DESTROY 24 ALIEN SHIPS IN 29 STARDATES WITH 3 SPACE STATIONS
  -1--2--3--4--5--6--7--8-
-1                         STARDATE  3024
-2                         CONDITION GREEN
-3                         QUADRANT  8 7
-4                         SECTOR    6 6
+1          *    <*>       STARDATE  3021
+2                *        CONDITION GREEN
+3    *                 *  QUADRANT  7 1
+4                         SECTOR    1 6
 5                         ENERGY    2952
-6               <*>       TORPEDOES 10
-7                         SHIELDS   0000
+6                         TORPEDOES 10
+7 *                       SHIELDS   0000
 8                        
  -1--2--3--4--5--6--7--8-
-COMMAND?
+
+Note, there are 24 ALIEN SHIPS in the galaxy grid below.
+Which means that the requirement is to destroy all of the ALIEN SHIPS.
+
+
+COMMAND? 3
+GALAXY DISPLAY
+-------------------------------------------------
+1 105 1 001 1 000 1 203 1 003 1 000 1 004 1 112 1
+-------------------------------------------------
+1 105 1 000 1 000 1 012 1 105 1 105 1 000 1 000 1
+-------------------------------------------------
+1 003 1 104 1 000 1 006 1 003 1 003 1 000 1 004 1
+-------------------------------------------------
+1 103 1 006 1 004 1 000 1 002 1 105 1 003 1 000 1
+-------------------------------------------------
+1 000 1 003 1 000 1 000 1 103 1 106 1 004 1 003 1
+-------------------------------------------------
+1 000 1 203 1 007 1 000 1 006 1 001 1 004 1 204 1
+-------------------------------------------------
+1 005 1 002 1 000 1 105 1 000 1 000 1 007 1 304 1
+-------------------------------------------------
+1 000 1 007 1 104 1 000 1 000 1 112 1 105 1 103 1
+-------------------------------------------------
 
 --------------------------------------------------------------------------------
 COMMAND options:
@@ -178,8 +209,19 @@ Key, 105 : 1 alien ship, 0 space stations, 5 stars
 --------------------------------------------------------------------------------
 ### SHIELD ENERGY TRANSFER
 
-Enter a 4 digit value to transfer from ENERGY to SHIELDS
+Enter a 4 digit value to transfer from ENERGY to SHIELDS.
+Enter "-", then a 4 digit value to transfer from SHIELDS to ENERGY.
 
+ -1--2--3--4--5--6--7--8-
+1                         STARDATE  3024
+2                         CONDITION GREEN
+3                         QUADRANT  8 7
+4                         SECTOR    6 6
+5                         ENERGY    2932
+6               <*>       TORPEDOES 10
+7                         SHIELDS   0000
+8                        
+ -1--2--3--4--5--6--7--8-
 COMMAND?4
 SHIELD ENERGY TRANSFER = 0300
 COMMAND?1
@@ -193,6 +235,22 @@ COMMAND?1
 7                         SHIELDS   0300
 8                        
  -1--2--3--4--5--6--7--8-
+COMMAND?
+
+COMMAND?4
+SHIELD ENERGY TRANSFER = -0030
+COMMAND?1
+ -1--2--3--4--5--6--7--8-
+1                         STARDATE  3024
+2                         CONDITION GREEN
+3                         QUADRANT  8 7
+4                         SECTOR    6 6
+5                         ENERGY    2622
+6               <*>       TORPEDOES 10
+7                         SHIELDS   0270
+8                        
+ -1--2--3--4--5--6--7--8-
+
 
 --------------------------------------------------------------------------------
 Using Phasors
@@ -351,27 +409,68 @@ ALIEN SHIP DESTROYED
 COMMAND?
 
 --------------------------------------------------------------------------------
+### Sometimes, GALAXY DISPLAY's has an extra character, which is incorrect.
 
-YOU MUST DESTROY 21 ALIEN SHIPS IN 26 STARDATES WITH 6 SPACE STATIONS
-YOU MUST DESTROY    ALIEN SHIPS IN    STARDATES WITH   SPACE STATIONS
+"14" should only be "1".
+GALAXY DISPLAY
+-------------------------------------------------
+1 002 1 304 1 007 1 000 1 000 1 102 1 103 1 203 14
+-------------------------------------------------
+1 103 1 000 1 203 1 004 1 000 1 000 1 005 1 106 14
 
-MSGYJD:	DB	CR,LF
-  	DB	'YOU MUST DESTROY  '
-MSGSPS:	DB	'  ALIEN SHIPS IN  '
-MSGDTS:	DB	'  STARDATES WITH '
-MSGSSS:	DB	'  SPACE STATIONS'
-  	DB	0
+"1#" should only be "1".
+GALAXY DISPLAY
+-------------------------------------------------
+1 203 1 003 1 000 1 011 1 105 1 000 1 000 1 304 1#
+-------------------------------------------------
+1 204 1 004 1 000 1 000 1 105 1 000 1 003 1 000 1#
 
-5B 91 1011011, Number of SPACE STATIONS.
-5C 92 1011100, Number of ALIEN SHIPS to destroy.
-5D 93 1011101, Number of STARDATES.
+++     126:00000000 01111110: 11111111 : FF:377 > dsname: org : 255
+++     127:00000000 01111111: 11111111 : FF:377 > dsname: org : 255
+++     128:00000000 10000000: 00001101 : 0D:015 > dbbyte: 13
+++     129:00000000 10000001: 00001010 : 0A:012 > dbbyte: 10
+++     130:00000000 10000010: 00110001 : 31:061 > databyte:  : 1 : 49
+++     131:00000000 10000011: 00100000 : 20:040 > dbbyte: 32
+++     132:00000000 10000100: 00100000 : 20:040 > dbbyte: 32
+++     133:00000000 10000101: 00100000 : 20:040 > dbbyte: 32
+++     134:00000000 10000110: 00100000 : 20:040 > dbbyte: 32
+++     135:00000000 10000111: 00100000 : 20:040 > dbbyte: 32
+++     136:00000000 10001000: 00110001 : 31:061 > databyte:  : 1 : 49
+++     137:00000000 10001001: 00100000 : 20:040 > dbbyte: 32
+++     138:00000000 10001010: 00100000 : 20:040 > dbbyte: 32
+++     139:00000000 10001011: 00100000 : 20:040 > dbbyte: 32
+++     140:00000000 10001100: 00100000 : 20:040 > dbbyte: 32
+++     141:00000000 10001101: 00100000 : 20:040 > dbbyte: 32
+++     142:00000000 10001110: 00110001 : 31:061 > databyte:  : 1 : 49
+++     143:00000000 10001111: 00100000 : 20:040 > dbbyte: 32
+
+Prints correct, but has a beep (ASCII 7, ^g).
+Command? 3
+GALAXY DISPLAY
+-------------------------------------------------
+1 007 1 105 1 011 1 000 1 000 1 105 1 000 1 000 1
+-------------------------------------------------
+1 000 1 001 1 002 1 001 1 000 1 203 1 000 1 000 1
+
+--------------------------------------------------------------------------------
+                                ; Course menu option
+CRSEret:
+        JMP	CMND		;Input new command
+CRSE:
+	LXI	H,MSGCRS	;Pointer to "Course" message
+ 	CALL	MSG		;Request course input
+ 	CALL	DRCT		;Input course direction
+	;JZ	CRSE		;Input error, try again
+	JZ	CRSEret		; Stacy, invalid input will return to command.
+                                ;   The user can back out from this command
+                                ;   if they had hit the wrong command option.
 
 --------------------------------------------------------------------------------
 ; Enter the following to get to the start byte: 12578bx
 
 Directions:
-   3
- 4   2
-5     1
- 6   8
-   7
+    3
+  4 | 2
+5 - + - 1
+  6 | 8
+    7
