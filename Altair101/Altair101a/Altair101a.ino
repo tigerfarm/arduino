@@ -1,4 +1,15 @@
 // -----------------------------------------------------------------------------
+// Altair 101a Processor program, which is an Altair 8800 simulator.
+// Copyright (C) 2021 David Thurston
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 /*
   Altair 101a Processor program
 
@@ -1880,41 +1891,6 @@ void loadProgram() {
           MWRITE( cnt++, B00111100 & 0xff);  // ++ opcode:inr:00111100:a
           MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Store
           MWRITE( cnt++, B00000010 & 0xff);  // ++ lb:Store:2
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          break;
-        case 's':
-          loadProgramName = "Front panel status light test";
-          Serial.println(F("+ s, load: Front panel status light test."));
-          if (SERIAL_IO_VT100) {
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          programState = PROGRAM_WAIT;
-          // -----------------------------
-          // Front panel status light test: https://www.youtube.com/watch?v=3_73NwB6toY
-          //
-          MWRITE(    32, B11101011 & 0xff);  // The video has 235(octal 353, B11101011) in address 32(B00100000).
-          init_regS();      // Currently, difference is the flag byte (regS) is B01000000, where my flag byte is B00000010
-          //
-          MWRITE( cnt++, B00111010 & 0xff);  // ++ opcode:lda:00111010:32
-          MWRITE( cnt++, B00100000 & 0xff);  // ++ lb:32:32
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B00110010 & 0xff);  // ++ opcode:sta:00110010:33
-          MWRITE( cnt++, B00100001 & 0xff);  // ++ lb:33:33
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B00110001 & 0xff);  // ++ opcode:lxi:00110001:sp:32
-          MWRITE( cnt++, B00100000 & 0xff);  // ++ lb:32:32
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B11110101 & 0xff);  // ++ opcode:push:11110101:a
-          MWRITE( cnt++, B11110001 & 0xff);  // ++ opcode:pop:11110001:a
-          MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:16
-          MWRITE( cnt++, B00010000 & 0xff);  // ++ immediate:16:16
-          MWRITE( cnt++, B11010011 & 0xff);  // ++ opcode:out:11010011:16
-          MWRITE( cnt++, B00010000 & 0xff);  // ++ immediate:16:16
-          MWRITE( cnt++, B11111011 & 0xff);  // ++ opcode:ei:11111011
-          MWRITE( cnt++, B11110011 & 0xff);  // ++ opcode:di:11110011
-          MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
-          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Start
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:Start:0
           MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
           break;
         // -------------------------------------

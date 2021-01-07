@@ -28,10 +28,8 @@ word status_inte = 0;
 //
 // For Processor.ino
 byte fpStatusByte = B00000000;      // Status lights: by default are all OFF.
-uint16_t fpAddressWord = B00000000; // Address light byte.
-// byte fpAddressLb = B00000000;       // Address light lb.
-// byte fpAddressHb = B00000000;       // Address light hb.
 byte fpDataByte = B00000000;        // Data byte
+uint16_t fpAddressWord = 0;       // Address light byte.
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -697,10 +695,10 @@ void cpu_print_regS() {
   Serial_print(F(":."));
   Serial_print(F(":HalfCarry"));
   if ( regS & PS_HALFCARRY ) Serial_print(F("=1")); else Serial_print(F("=0"));
-  Serial_print(F(":.");
+  Serial_print(F(":."));
   Serial_print(F(":Parity"));
   if ( regS & PS_PARITY )    Serial_print(F("=1")); else Serial_print(F("=0"));
-  Serial_print(F(":.");
+  Serial_print(F(":."));
   Serial_print(F(":Carry"));
   if ( regS & PS_CARRY )     Serial_print(F("=1")); else Serial_print(F("=0"));
   Serial_print(F(":"));

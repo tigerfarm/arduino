@@ -25,9 +25,10 @@ extern CPUFUN cpu_opcodes[256];
 #if defined(__AVR_ATmega2560__)
 #define THIS_CPU "Mega 2560"
 //
-// The following works for pGalaxy80.asm.
+// The following works for pGalaxy80.asm: 4442 bytes.
 // The following works to load 4K Basic, though it doesn't run.
-#define MEMSIZE (4096+512)
+#define MEMSIZE (4096+1024)
+// Global variables use 7386 bytes (90%) of dynamic memory, leaving 806 bytes for local variables.
 //
 // #define MEMSIZE (2048+1024)
 // #define MEMSIZE (2048)       // Mega2650 has 8k SRAM, use 2048, Max, 6K: #define MEMSIZE (4096+2048)
