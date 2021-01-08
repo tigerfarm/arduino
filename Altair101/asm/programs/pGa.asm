@@ -424,14 +424,14 @@ BNDC:
 BD:
 	INR	M		;Increment and save new digit
 	MOV	A,E		;Fetch least significant half
-	SUB	C		;Subract least signif. constant
+	SUB	C		;Subtract least significant constant
 	MOV	E,A		;Save least significant half
 	MOV	A,D		;Fetch most significant half
-	SBB	B		;Subtract most signif. constant
+	SBB	B		;Subtract most significant constant
 	MOV	D,A		;Save most significant half
-	JNC	BD		;If greater than 0, continue calc.
+	JNC	BD		;If greater than 0, continue calculation.
 	MOV	A,E		;Else, restore bin. & dec. value
-	ADD	C		;Add least signficant constant
+	ADD	C		;Add least significant constant
 	MOV	E,A		;Save least significant half
 	MOV	A,D		;Fetch most significant half
 	ADC	B		;Add most significant constant
@@ -440,13 +440,13 @@ BD:
 	RET			;Return
 LOAD:
 	MVI	L,04FH		;Space ship energy storage
-	MVI	M,088H		;Least signif. half of 5000 units
+	MVI	M,088H		;Least significant half of 5000 units
 	INR	L
-	MVI	M,00BH		;Most signif. have of 5000 units
+	MVI	M,00BH		;Most significant have of 5000 units
 	INR	L		;Advance to shield energy
 	MOV	M,H		;Initial shield energy = 0
 	INR	L
-	MOV	M,H		;Most signif. half of shield nrgy
+	MOV	M,H		;Most significant half of shield energy
 	MVI	L,05AH		;Set pointer torpedo storage
 	MVI	M,10		;Initial amount = 10 torpedoes
 	RET
@@ -1325,17 +1325,15 @@ CMND:
 	CALL	ELOM
 	MVI	L,041H		;Set pointer to random number
 	INR	M		;Fetch random nmbr. constant
+        jmp     CMD             ; Go to command menu.
 
 ; ------------------------------------------------------------------------------
                                 ; Command Menu options
-;++    2849:00001011 00100001: 00100001 : 21:041 > opcode: lxi h,MSGCMD
-;               b 98   5    0
-;INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
-; .    *    .  *   .   .    .    *   .         .   .    *   .   .    .   .   *
-;WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
-; *    .      .   .   .   .   *   .   *   *    .   .    *   .   .    .   .   *
-;            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
-;             v   v   v   v   ^   v   ^   ^    v   v    ^   v   v    v   v   ^
+                                ;
+                                ; Switches: 2589bx
+; ++    2852:00001011 00100100: 00110001 : 31:061 > opcode: lxi sp,STACK
+	LXI	SP,STACK	;This is the starting point from a restored save.
+                                ;
 CMD:
 	LXI	H,MSGCMD	;Set pointer to command msg
 	CALL	CMSG		;Request command input
@@ -1429,7 +1427,7 @@ RWC:
 	JMP	LRP		;Print long range row
                                 ;
 ; ------------------------------------------------------------------------------
-                                ; Course menu option
+                                ; Course menu option action
 CRSEret:
         JMP	CMND		;Input new command
 CRSE:
@@ -1440,6 +1438,9 @@ CRSE:
 	JZ	CRSEret		; Stacy, invalid input will return to command.
                                 ;   The user can back out from this command
                                 ;   if they had hit the wrong command option.
+                                ;
+                                ; ----------------
+                                ; Get warp speed value, example: 1.6
 WRP:
 	LXI	H,MSGWRP	;Pointer to "Warp" message
  	CALL	CMSG		;Request warp input
@@ -1468,6 +1469,9 @@ WRP:
 	CALL	ACTV		;Fetch adjusted row & column
 	MVI	L,031H		;Set pntr to crossing indicator
 	MOV	M,H		;Clear crossing indicator
+                                ;
+                                ; --------------------------------
+                                ; Loop: Move the ship
 MOVE:
 	CALL	TRK		;Track 1 sector
 	JZ	LOST		;Out of galaxy? Yes, lost
@@ -1482,8 +1486,11 @@ MOVE:
 	CALL	ELOM
 	CALL	QCNT		;Fetch new quadrant contents
 	CALL	NWQD		;Set up new quadrant
+                                ;
+                                ; ----------------
+                                ; Collision handling
 CLSN:
-	CALL	RWCM		;Form rwo and column byte
+	CALL	RWCM		;Form row and column byte
 	CALL	MATCH		;Collision?
 	JNZ	MVDN		;No, complete move
 	MOV	B,L		;Yes, save object location
@@ -1492,7 +1499,7 @@ CLSN:
 	MVI	L,031H		;Pointer to crossing indicator
 	MOV	A,M		;Fetch crossing indicator
 	JZ	SSOUT		;Space station collision
-	JNC	ASOUT		;Alient ship collision
+	JNC	ASOUT		;Alien ship collision
 	ANA	A		;Star, initial quadrant?
 	JZ	WPOUT		;Yes, ship wiped out
 MVDN:
@@ -1504,11 +1511,19 @@ MVDN:
 	MOV	C,M
 	DCR	E		;Decrement warp factor
 	JNZ	MOVE		;Not 0, continue move
+                                ;
+                                ; End move loop.
+                                ; --------------------------------
+                                ;
 	MVI	L,031H		;Fetch crossing indicator
 	MOV	A,M
 	ANA	A		;Quadrant crossing occurred?
 	JZ	NOX		;No, complete move
-	MVI	L,05DH		;Yes, fetch stardate
+                                ;
+                                ; ----------------
+                                ; Decrement the game stardate value.
+                                ;
+	MVI	L,05DH		;Yes, fetch stardate value.
 	MOV	B,M
 	DCR	B		;Decrement stardate counter
 	JZ	TIME		;If 0, end of game
@@ -1541,6 +1556,9 @@ CHNG:
 	MOV	E,L		;Set table location and
 	MVI	C,1		;Number of objects counter for
 	JMP	LOCSET		;Move object and return
+                                ;
+                                ; ----------------
+                                ; Ship docking
 DKED:
 	MVI	L,04BH		;Fetch space station byte
 	MOV	A,M
@@ -1569,6 +1587,7 @@ DKED:
 	JMP	LOAD		;Yes, load space ship & return
                                 ;
 ; ------------------------------------------------------------------------------
+                                ; Command shield option.
 SHENret:
 	JMP	CMND		;Jump to input command
 SHEN:
@@ -1690,7 +1709,6 @@ PHSR:
 	CALL	EIN		;Input energy amount
 	; JM	PHSR		;Input error, try again
 	JM	PHSRret		; Stacy, invalid input will return to command.
-        JZ      PHSRret         ; Also return if 0.
                                 ;
 	CALL	DCBN		;Convert energy to binary
 	CALL	ELOM		;Delete energy from main
@@ -1804,6 +1822,7 @@ DSTR:
 	JMP	DLET		;Remove A.S. fm glxy & ret
                                 ;
 ; ------------------------------------------------------------------------------
+                                ; Command galaxy display option.
 GXPRT:
 	LXI	H,MSGGDY	;Print galaxy display
 	CALL	MSG

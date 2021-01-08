@@ -29,6 +29,7 @@
   Next to work on
 
   + Consider serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality.
+  ++ Then, could use the original serial routines in Galaxy80.asm.
 
   Implement interupt handling.
   + opcodes: ei and di.

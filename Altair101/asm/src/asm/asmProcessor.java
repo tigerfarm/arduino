@@ -27,13 +27,10 @@
         DB	CR,LF,'O. SPACE SHIP movement'
     + Parsing needs improving before calling parseDb(..).
 
-    + List syntax error message list, example, LXI, but no address included.
-    ++ List line for: -- 412: - Error, immediate label not found: c.
-    ++ Line that I should list: mov a,c
-
     + Test if label and immediate names case sensitive.
 
     Improve error handling by adding source line number to the error message.
+    + I have made improvements, need to test.
 
     ----------------------------------------------------------------------------
     Program sections:
