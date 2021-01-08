@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------------
 // Altair 101a Processor program, which is an Altair 8800 simulator.
-// Copyright (C) 2021 David Thurston
+// Copyright (C) 2021 Stacy David Thurston
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -13,22 +13,28 @@
 /*
   Altair 101a Processor program
 
-  + Serial interactivity through the default Arduino USB serial port.
-  ++ Testing using the Arduino IDE serial monitor and Mac VT100 terminal.
-  ++ Front panel and command line running of programs.
-  + Uses David Hansel's Altair 8800 Simulator code to process machine instructions.
+  + Serial interactivity simulator.
+  + Uses the default Arduino USB serial port, and optionally, Serial2 port.
+  ++ Tested using the Arduino IDE serial monitor and Mac terminal which has VT100 features.
+  ++ Can run programs from command line, or with a simulated front panel (printed to the serial port).
+  + This simulator uses David Hansel's Altair 8800 Simulator code to process machine instructions.
   ++ cpucore_i8080.cpp and cpucore_i8080.h.
 
   Differences to the original Altair 8800:
-  + HLT goes into STOP state which allows RUN to restart the process from where it halted.
+  + HLT goes into STOP state which allows RUN to restart the process from where it was halted.
   + When SINGLE STEP read and write, I've chosen to show the actual data value,
     rather than having all the data lights on, which is what the original Altair 8800 does.
 
   ---------------------------------------------------------
   Next to work on
 
-  + Create a directory for Altair-Duino program files: ASM and BIN.
-  + Create a directory for Altair 8800 hardware program files: ASM and BIN.
+  + Consider serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality.
+
+  Implement interupt handling.
+  + opcodes: ei and di.
+  + This is required when I try to run complex programs such as CPM, and likely Basic.
+
+  + Option to have HLT work the same as Altair 8800.
   
   ---------------------------------------------------------
   Hex programs:
@@ -55,13 +61,6 @@
 
   After Altair101a works and processes programs,
   + Add the other features: player, clock, timer, and counter.
-
-  ---------------------------------------------------------
-  Other Nexts:
-
-  Implement interupt processing.
-  + opcodes: ei and di.
-  + This is required when I try to run complex programs such as CPM, maybe Basic.
 
   + Prevent lockup when using PUSH A, i.e. PUSH called before setting SP.
   ++ In the PUSH process, if SP < 4, error.

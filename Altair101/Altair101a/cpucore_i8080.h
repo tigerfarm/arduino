@@ -31,7 +31,8 @@ extern CPUFUN cpu_opcodes[256];
 // Global variables use 7386 bytes (90%) of dynamic memory, leaving 806 bytes for local variables.
 //
 // #define MEMSIZE (2048+1024)
-// #define MEMSIZE (2048)       // Mega2650 has 8k SRAM, use 2048, Max, 6K: #define MEMSIZE (4096+2048)
+// #define MEMSIZE (2048)       // Mega2650 has 8k SRAM, use 2048.
+// #define MEMSIZE (4096+2048)  // Max 6K, for David Hansel version.
 //
 #define USE_THROTTLE 0          // Set for slower Mega CPU.
 #define MAX_TIMERS 9
