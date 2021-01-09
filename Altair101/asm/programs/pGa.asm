@@ -125,14 +125,14 @@ CR	EQU	0DH
 	DB	000		;Register storage
 	DB	000 		;Register storage
 	DB	000 		;Register storage
-	DB	000 		;Temporary storage
+	DB	000 		;Tern porary storage
 
 	ORG	0030H
 
 	DB	000		;Crossing flag
 	DB	000		;Crossing indicator
 	DB	000		;Temporary storage
-	DB	000		;Temporary storage
+	DB	000		;Tern porary storage
 
 	ORG	0040H
 
@@ -159,7 +159,7 @@ DAS1S:	DB	000 ;S. loc. of A.S. No.1	//4C
 DAS2S:	DB	000 ;S. loc. of A.S. No.2	//4D
 DAS3S:	DB	000 ;S. loc. of A.S. No.3	//4E
 DMELS:	DB	000 ;Main nrgy L.S. half	//4F
-DMEMS:	DB	000 ;Main nrgy M.S. ha lf	//50
+DMEMS:	DB	000 ;Main nrgy M.S. half	//50
 DSELS:	DB	000 ;Shld nrgy L.S. half	//51
 DSEMS:	DB	000 ;Shld nrgy M.S. half	//52
 DAS1LS: DB	000 ;A.S. 1 nrgy L.S. half	//53
@@ -193,16 +193,16 @@ DDIG5:	DB	000 ;Digit storage		//64
 
 ;  through 377 reserved for Galaxy content table
 
-	ORG	0100H	; Next page, Decimal = 256
+	ORG	0100H	; Next page
 
 MSGDYW:	DB	CR,LF
-  	DB	'DO YOU WANT TO GO ON A SPACE VOYAGE? '
+        DB      'Ready for a Star Wars space mission? '
   	DB	0
 MSGYJD:	DB	CR,LF
-  	DB	'YOU MUST DESTROY  '
-MSGSPS:	DB	'  ALIEN SHIPS IN  '
-MSGDTS:	DB	'  STARDATES WITH '
-MSGSSS:	DB	'  SPACE STATIONS'
+  	DB	'You must destroy  '
+MSGSPS:	DB	'  Sith ships in   '
+MSGDTS:	DB	'  stardates with '
+MSGSSS:	DB	'  space stations'
   	DB	0
 MSG123:	DB	CR,LF
   	DB	' -1--2--3--4-'
@@ -238,7 +238,7 @@ MSGSHD:	DB	' SHIELDS      '
 MSGSHP:	DB	' '
   	DB	0
 MSGCMD:	DB	CR,LF
-  	DB	'Command? '
+  	DB	'Command?'
   	DB	0
 MSGCRS:	DB	CR,LF
   	DB	'COURSE (1-8.5)? '
@@ -250,13 +250,13 @@ MSGLRS:	DB	CR,LF
   	DB	'L.R. SCAN FOR'
   	DB	0
 MSGMSF:	DB	CR,LF
-  	DB	'MISSION FAILED, YOU HAVE RUN OUT	OF STARDATES'
+  	DB	'MISSION FAILED, you ran out of stardates.    '
   	DB	0
 MSGKAB:	DB	CR,LF
-  	DB	'KA-BOOM, YOU CRASHED INTO A STAR. YOUR SHIP IS DESTROYED'
+  	DB	'BOOM! Game over, you crashed in a star. You are history.'
   	DB	0
 MSGYMO:	DB	CR,LF
-  	DB	'YOU MOVED OUT	OF THE GALAXY, YOUR SHIP IS LOST..LOST'
+  	DB	'You flew out of the GALAXY, you are lost to the void.'
   	DB	0
 MSGLOE:	DB	CR,LF
   	DB	'LOSS OF ENERGY    '
@@ -275,17 +275,17 @@ MSGTTY:	DB	CR,LF
   	DB	'TORPEDO TRAJECTORY(1-8.5) : '
   	DB	0
 MSGASD:	DB	CR,LF
- 	DB	'ALIEN SHIP DESTROYED'
+ 	DB	'Sith ship destroyed!'
   	DB	0
 MSGYMA:	DB	CR,LF
-  	DB	'YOU MISSED! ALIEN SHIP RETALIATES'
+  	DB	'YOU MISSED! The Sith retaliates. '
   	DB	0
 MSGSSD:	DB	CR,LF
   	DB	'SPACE STATION '
 MSGDES:	DB	'DESTROYED'
   	DB	0
 MSGCYH:	DB	CR,LF
-  	DB	'CONGRATULATIONS, YOU HAVE ELIMINATED ALL OF THE ALIEN SHIPS'
+  	DB	'CONGRATULATIONS! You eliminated all the Sith star ships.   '
   	DB	0
 MSGTRG:	DB	CR,LF
   	DB	'TRACKING: '
@@ -298,17 +298,17 @@ MSGPEF:	DB	CR,LF
   	DB	'PHASOR ENERGY TO FIRE = '
   	DB	0
 MSGASF:	DB	CR,LF
-  	DB	'ALIEN SHIP AT SECTOR '
+  	DB	'Sith ship at sector. '
 MSGSEC:	DB	' , : '
   	DB	0
 MSGEGY:	DB	'ENERGY =    '
 MSGDEY:	DB	' '
   	DB	0
 MSGNAS:	DB	CR,LF
-  	DB	'NO ALIEN SHIPS! WASTED SHOT'
+  	DB	'NO Sith ships! wasted shot.'
 MSGZRO:	DB	0
 MSGNEL:	DB	CR,LF
-  	DB	'ABANDON SHIP! NO ENERGY LEFT'
+  	DB	'ABANDON SHIP! No energy left'
   	DB	0
 MSGNTS:	DB	CR,LF
   	DB	'NO TORPEDOES'
@@ -323,9 +323,8 @@ MSGLST:	DB	CR,LF
   	DB	'LAST'
   	DB	0
 MSGCHK:	DB	CR,LF
-  	DB	'Later...',CR,LF
+  	DB	'Later...'
   	DB	0
-
 ; ------------------------------------------------------------------------------
 	ORG	0500H           ; Decimal = 1280
 
@@ -521,11 +520,11 @@ AS1:
 	CALL	RWPNT		;Fetch A.S. location
 	JNZ	NXAS		;A.S. here? No, try next
 ;++    1551:00000110 00001111: 00110110 : 36:066 > opcode: mvi m,'+'
-	MVI	M,'['		;Yes, store A.S. code
+	MVI	M,'|'		;Yes, store Sith ship design: |o| or [^].
+	INR	L               ; Original alien ship design: +++.
+	MVI	M,'o'
 	INR	L
-	MVI	M,'^'
-	INR	L
-	MVI	M,']'
+	MVI	M,'|'
 	MOV	L,E		;Fetch A.S. table pointer
 NXAS:		
 	INR	L		;Advance A.S. pointer
@@ -1447,9 +1446,9 @@ WRP:
 	MVI	L,05FH		;Set pntr. to temporary storage
  	CALL	INPUT		;Input warp factor number 1
 	CPI	'0'		;Is digit less than 0?
-	JC	WRP		;No, request input again
+	JC	CRSEret		;No, request input again
 	CPI	'8'		;Is input greater than 7?
-	JNC	WRP		;Yes, try again
+	JNC	CRSEret		;Yes, try again (WRP:). Stacy changed to return. 
 	ANI	007		;Mask off ASCII code
 	RLC			;Position to 3rd bit
 	RLC
@@ -1459,12 +1458,12 @@ WRP:
  	CALL	PRINT
  	CALL	INPUT		;Input 2nd warp factor number
 	CPI	'0'		;Is digit less than 0?
-	JC	WRP		;Yes, no good
+	JC	CRSEret		;Yes, no good
 	CPI	'8'		;Is digit greater than 7
-	JNC	WRP		;Yes, no good
+	JNC	CRSEret		;Yes, no good
 	ANI	007		;Mask off ASCII code
 	ADD	M		;Add warp digit number 1
-	JZ	WRP		;If 0, no good
+	JZ	CRSEret		;If 0, no good
 	MOV	E,A		;Save warp factor in 'E'
 	CALL	ACTV		;Fetch adjusted row & column
 	MVI	L,031H		;Set pntr to crossing indicator
@@ -1676,7 +1675,7 @@ HIT:
 	CPI	04BH		;Was it a star?
 	JC	QOUT		;Yes, missed alien ship
 	JZ	SSTA		;Space stat.? Yes, delete S.S.
-	CALL	DLET		;No, delete alient ship
+	CALL	DLET		;No, delete alien ship
 	LXI	H,MSGASD	;Print alien ship hit message
 	CALL	MSG
 	JMP	CMND		;Input new command
@@ -1701,6 +1700,7 @@ NTPD:
 	JMP	CMND		;Jump to input command
                                 ;
 ; ------------------------------------------------------------------------------
+                                ; Fire Phasors
 PHSRret:
 	JMP	CMND		;Jump to input command
 PHSR:
@@ -1912,6 +1912,8 @@ INPUT:
         jz      INPUTokay
         cpi     'X'             ; Exit, ask to start a new game.
         jz      INPUTokay
+        cpi     'x'             ; Exit, command menu option.
+        jz      INPUTokay
         cpi     '?'             ; Help.
         jz      INPUTokay
         cpi     'H'             ; Help.
@@ -2011,7 +2013,7 @@ CONINI:
                                 ; Stacy, I've added help messages.
 MSGHELP:
   	DB	CR,LF
-        DB      'O. SPACE SHIP movement'
+        DB      'O. X-wing ship movement'
   	DB	CR,LF
         DB      '1. Short range scanner'
   	DB	CR,LF
@@ -2023,13 +2025,13 @@ MSGHELP:
   	DB	CR,LF
         DB      '5. Phasors'
   	DB	CR,LF
-        DB      '6. TORPEDO'
+        DB      '6. Torpedoes'
   	DB	CR,LF
-        DB      'g. Game stats message'
+        DB      'g. Game stats'
   	DB	CR,LF
-        DB      'd. Directions message'
+        DB      'd. Directions key'
   	DB	CR,LF
-        DB      'X. Exit, start new game'
+        DB      'X/x. Exit, exit command option or end game'
   	DB	0
 MSGDIR:
   	DB	CR,LF

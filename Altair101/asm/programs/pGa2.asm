@@ -259,7 +259,6 @@ MSGMSF:	DB	CR,LF
   	DB	0
 MSGKAB:	DB	CR,LF
   	DB	'BOOM! Game over, you crashed in a star. You are history.'
-;  	DB	'KA-BOOM, YOU CRASHED INTO A STAR. YOUR SHIP IS DESTROYED'
   	DB	0
 MSGYMO:	DB	CR,LF
   	DB	'You flew out of the GALAXY, you are lost to the void.'
@@ -1455,9 +1454,9 @@ WRP:
 	MVI	L,05FH		;Set pntr. to temporary storage
  	CALL	INPUT		;Input warp factor number 1
 	CPI	'0'		;Is digit less than 0?
-	JC	WRP		;No, request input again
+	JC	CRSEret		;No, request input again (WRP:)
 	CPI	'8'		;Is input greater than 7?
-	JNC	WRP		;Yes, try again
+	JNC	CRSEret		;Yes, try again (WRP:). Stacy changed to return. 
 	ANI	007		;Mask off ASCII code
 	RLC			;Position to 3rd bit
 	RLC
@@ -1467,12 +1466,12 @@ WRP:
  	CALL	PRINT
  	CALL	INPUT		;Input 2nd warp factor number
 	CPI	'0'		;Is digit less than 0?
-	JC	WRP		;Yes, no good
+	JC	CRSEret		;Yes, no good
 	CPI	'8'		;Is digit greater than 7
-	JNC	WRP		;Yes, no good
+	JNC	CRSEret		;Yes, no good
 	ANI	007		;Mask off ASCII code
 	ADD	M		;Add warp digit number 1
-	JZ	WRP		;If 0, no good
+	JZ	CRSEret		;If 0, no good
 	MOV	E,A		;Save warp factor in 'E'
 	CALL	ACTV		;Fetch adjusted row & column
 	MVI	L,031H		;Set pntr to crossing indicator
@@ -1919,6 +1918,8 @@ INPUT:
         cpi     'Y'             ; Yes, start the game.
         jz      INPUTokay
         cpi     'X'             ; Exit, ask to start a new game.
+        jz      INPUTokay
+        cpi     'x'             ; Exit, command menu option.
         jz      INPUTokay
         cpi     '?'             ; Help.
         jz      INPUTokay
