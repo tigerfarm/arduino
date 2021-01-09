@@ -125,14 +125,14 @@ CR	EQU	0DH
 	DB	000		;Register storage
 	DB	000 		;Register storage
 	DB	000 		;Register storage
-	DB	000 		;Tern porary storage
+	DB	000 		;Temporary storage
 
 	ORG	0030H
 
 	DB	000		;Crossing flag
 	DB	000		;Crossing indicator
 	DB	000		;Temporary storage
-	DB	000		;Tern porary storage
+	DB	000		;Temporary storage
 
 	ORG	0040H
 
@@ -250,13 +250,14 @@ MSGLRS:	DB	CR,LF
   	DB	'L.R. SCAN FOR'
   	DB	0
 MSGMSF:	DB	CR,LF
-  	DB	'MISSION FAILED, you ran out of stardates.    '
+  	DB	'MISSION FAILED, YOU HAVE RUN OUT	OF STARDATES'
   	DB	0
 MSGKAB:	DB	CR,LF
   	DB	'BOOM! Game over, you crashed in a star. You are history.'
   	DB	0
 MSGYMO:	DB	CR,LF
-  	DB	'You flew out of the GALAXY, you are lost to the void.'
+  	DB	'You flew out 	of the GALAXY, lost in the void...    '
+  	;DB	'YOU MOVED OUT	OF THE GALAXY, YOUR SHIP IS LOST..LOST'
   	DB	0
 MSGLOE:	DB	CR,LF
   	DB	'LOSS OF ENERGY    '
@@ -272,7 +273,7 @@ MSGNEE:	DB	CR,LF
   	DB	'NOT ENOUGH ENERGY'
   	DB	0
 MSGTTY:	DB	CR,LF
-  	DB	'TORPEDO TRAJECTORY(1-8.5) : '
+  	DB	'Torpedo trajectory(1-8.5) : '
   	DB	0
 MSGASD:	DB	CR,LF
  	DB	'Sith ship destroyed!'
@@ -288,17 +289,17 @@ MSGCYH:	DB	CR,LF
   	DB	'CONGRATULATIONS! You eliminated all the Sith star ships.   '
   	DB	0
 MSGTRG:	DB	CR,LF
-  	DB	'TRACKING: '
+  	DB	'Tracking: '
 MSGTRK:	DB	'   '
   	DB	0
 MSGGDY:	DB	CR,LF
-  	DB	'GALAXY DISPLAY'
+  	DB	'Galaxy Display'
   	DB	0
 MSGPEF:	DB	CR,LF
   	DB	'PHASOR ENERGY TO FIRE = '
   	DB	0
 MSGASF:	DB	CR,LF
-  	DB	'Sith ship at sector. '
+  	DB	'Sith ship at sector  '
 MSGSEC:	DB	' , : '
   	DB	0
 MSGEGY:	DB	'ENERGY =    '
@@ -325,6 +326,7 @@ MSGLST:	DB	CR,LF
 MSGCHK:	DB	CR,LF
   	DB	'Later...'
   	DB	0
+
 ; ------------------------------------------------------------------------------
 	ORG	0500H           ; Decimal = 1280
 
