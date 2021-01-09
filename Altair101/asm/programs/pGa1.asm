@@ -191,7 +191,7 @@ DDIG5:	DB	000 ;Digit storage		//64
 	DB	' ',' ',' ',' ','1',' ',' ',' '
 	DB	' ',' ','1'
 
-;  through 377 reserved for Galaxy content table
+;  Through to 256(octal:377) reserved for Galaxy content table
 
 	ORG	0100H	; Next page
 
@@ -376,6 +376,9 @@ MNS:
 	ORA	M		;Add to galaxy
 	MOV	M,A		;Put back in galaxy
 	JMP	GLXCK		;Check galaxy again
+                                ;
+; ------------------------------------------------------------------------------
+                                ; Binary to decimal processing
 DIGPRT:
 	MOV	A,M		;Fetch digit
 	ADI	'0'		;Form ASCII code
@@ -417,7 +420,7 @@ BNDC:
 	LXI	B,100		;BC = 100
 	CALL	BD		;Calculate 3rd digit
 	DCR	L		;Set pointer to 2nd digit
-	MVI	C,10		;Least signficant half of 10
+	MVI	C,10		;Least significant half of 10
 	CALL	BD		;Calculate 2nd digit
 	DCR	L		;Set pointer to 1st digit
 	MOV	M,E		;Store 1st digit
@@ -439,6 +442,9 @@ BD:
 	MOV	D,A		;Save most significant half
 	DCR	M		;Decrement digit stored
 	RET			;Return
+                                ;
+; ------------------------------------------------------------------------------
+                                ; Load up space ship with energy and torpedoes.
 LOAD:
 	MVI	L,04FH		;Space ship energy storage
 	MVI	M,088H		;Least significant half of 5000 units
@@ -451,6 +457,9 @@ LOAD:
 	MVI	L,05AH		;Set pointer torpedo storage
 	MVI	M,10		;Initial amount = 10 torpedoes
 	RET
+                                ;
+; ------------------------------------------------------------------------------
+                                ; Ship placements
 ROTR4:
 	RRC
 ROTR3:
@@ -460,18 +469,21 @@ ROTR3:
 	RET
 LOCSET:
 	CALL	RN		;Fetch random location
-	ANI	03FH		;Mask off most signficant bits
+	ANI	03FH		;Mask off most significant bits
 	MOV	B,A		;Save location
 	CALL	MATCH		;New location match others?
 	JZ	LOCSET		;Yes, find new location
 	MOV	L,E		;Set pointer to storage location
-	MOV	M,B		;Save indicated loc. in table
+	MOV	M,B		;Save indicated location in table
 	INR	E		;Advance table pointer
 	DCR	C		;Last entry filled?
 	JNZ	LOCSET		;No, find next location
 	RET			;Yes, return
 ROWSET:
 	LXI	H,MSGSTDT2	;Pointer to row message
+                                ;
+                                ; ----------------------------------------------
+                                ;
 RCLR:
 	MVI	M,' '		;Store a space character
 	INR	L		;Advance message pointer
@@ -488,11 +500,11 @@ RCLR:
 	CALL	RWPNT		;Fetch space ship location
 	JNZ	STR		;In this row? No
 ;++    1496:00000101 11011000: 00110110 : 36:066 > opcode: mvi m,'<'
-	MVI	M,'<'		;Yes, store space ship code
+	MVI	M,'x'		;Yes, store space ship design: x+x xox x!x, old design: <*>
 	INR	L
-	MVI	M,'*'
+	MVI	M,'!'           ; '+' 00101011
 	INR	L
-	MVI	M,'>'
+	MVI	M,'x'           ; 'x' 01111000
 STR:
 	MVI	L,044H		;Set pointer to star table
 STR1:
@@ -510,7 +522,7 @@ NXSTR:
 	MVI	H,000		;Restore page pointer
 	CALL	RWPNT		;Fetch S.S. location
 	JNZ	AS		;S.S. here? No, try A.S.
-	MVI	M,'>'		;Store S.S. code
+	MVI	M,'>'		;Store space station code
 	INR	L
 	MVI	M,'1'
 	INR	L
@@ -535,6 +547,9 @@ NXAS:
 	JNZ	AS1		;No, try next A.S. location
 	LXI	H,MSGSTDT	;Set up to Print short range scan line
 	JMP	CMSG		;Print and return
+                                ;
+                                ; ----------------------------------------------
+                                ;
 RWPNT:
 	MOV	A,M		;Fetch entry location
 	ANA	A		;Anything here?
@@ -678,6 +693,9 @@ RWCM:
 	ADD	B		;Form row and column byte
 	MOV	B,A		;Save in 'B'
 	RET			;Return
+                                ;
+; ------------------------------------------------------------------------------
+                                ; 
 TIME:
 	LXI	H,MSGMSF	;Stardate's time has run
 DONE:
@@ -849,8 +867,9 @@ DLAS:
 	RNZ			;If counter not = 0, return
 	LXI	H,MSGCYH	;If counter = 0, game over
 	JMP	DONE		;print CONGRATULATIONS
+                                ;
 ; ------------------------------------------------------------------------------
-                                ; Input a direction.
+                                ; Input a course direction.
 DRCT:
 	CALL	INPUT		;Input first course number
 	LXI	H,005EH		;Pointer to temporary storage
@@ -881,9 +900,10 @@ CR1:
 ZRET:
 	XRA	A 		;Set Z flag
 	RET			;And return
+                                ;
 ; ------------------------------------------------------------------------------
 QCNT:
-	LXI	H,0059H		;Set pointer to curr. quad. row & col storage
+	LXI	H,0059H		;Set pointer to current quad. row & col storage
 	MOV	A,M		;Fetch current quadrant
 	ADI	00C0H		;Form pointer to galaxy
 	MOV	L,A		;Set up pointer
@@ -1100,6 +1120,9 @@ FM1:
 FMSD:
 	MVI	L,051H		;Set pointer to shield energy
 	JMP	FM1		;Subtr. 'E' & 'D' fm. shld ener.
+                                ;
+                                ; ----------------------------------------------
+                                ; The following change allows the energy to always be sufficient.
 CKMN:
 	MVI	L,050H		;Set pointer to main energy
 CK1:
@@ -1115,12 +1138,16 @@ CK2:
 CKSD:
 	MVI	L,052H		;Check shield energy level
 	JMP	CK1		;Against requested level
+                                ;
+                                ; ----------------------------------------------
 OVER:
-	LXI	H,MSGCHK	;Print "CHICKEN"
+	LXI	H,MSGCHK	;Print the, does not want to play, message
 	CALL	MSG
 	HLT			;Halt
-        jmp     START           ; Stacy, allow a restart with my emulator.
-
+                                ;
+        jmp     NEWSTART        ; Stacy, allow a restart with my emulator.
+                                ;
+                                ; ----------------------------------------------
 SPRC:
 	MOV	A,M		;Fetch row and column
 	ANI	07H		;Separate column
@@ -1330,6 +1357,7 @@ CMND:
 
 ; ------------------------------------------------------------------------------
                                 ; Command Menu options
+; ------------------------------------------------------------------------------
                                 ;
                                 ; Switches: 2589bx
 ; ++    2852:00001011 00100100: 00110001 : 31:061 > opcode: lxi sp,STACK
@@ -1837,17 +1865,18 @@ GL1:
 GL2:
 	MOV	A,M		;Fetch quadrant contents
 	XCHG
-	CALL	QDSET		;Set quad. contents in message
+	CALL	QDSET		;Set quadrant contents in message
 	MOV	A,L		;Fetch message pointer
-	ADI	004		;Advance to next quad. in msg
+	ADI	004		;Advance to next quadrant in message
 	MOV	L,A
 	XCHG			;Set galaxy pointer
-	INR	L		;Advance to next quad. in glxy
+	INR	L		;Advance to next quadrant in galaxy
 	CPI	0B4H		;This end of line?
-	JNZ	GL2		;No, set next quad. in msg
+	JNZ	GL2		;No, set next quadrant in message
 	XCHG			;Save galaxy pointer
 	MVI	L,080H		;Print current line of galaxy
 	CALL	MSG
+                                ;
 	MVI	H,031H
 	CALL	NT1		;Print dividing line
 	MOV	A,E		;Fetch galaxy pointer
@@ -1876,8 +1905,12 @@ GL2:
 	DB	000000000b,000010011b,000010101b,000000000b,000000000b,000000100b,000000110b,000000010b
 	DB	000000011b,000010101b,000000000b,000000000b,000010101b,000000000b,000100111b,000000000b
 
+; ------------------------------------------------------------------------------
 	ORG	0F80H
 
+; ------------------------------------------------------------------------------
+                                ; Input/Output
+                                ;
 ; Test status of input device for character
 ; Sets sign flag if character coming in
 INPCK:
@@ -2011,8 +2044,9 @@ SKIPBELL:
 CONINI:
         CALL    IOINI
 	RET
-                                ; --------------------------------------
-                                ; Stacy, I've added help messages.
+                                ;
+; ------------------------------------------------------------------------------
+                                ; Help messages.
 MSGHELP:
   	DB	CR,LF
         DB      'O. X-wing ship movement'
@@ -2050,7 +2084,7 @@ MSGDIR:
         DB      '    7'
   	DB	0
                                 ; ----------------------------------------------
-                                ; Print game statistic message, example:
+                                ; Print game statistics message, example:
                                 ;   YOU MUST DESTROY 20 ALIEN SHIPS IN 06 STARDATES WITH 6 SPACE STATIONS
 GAMESTAT:
 	MVI	L,05BH		;Set pntr to store number S.S.
