@@ -196,17 +196,22 @@ DDIG5:	DB	000 ;Digit storage		//64
 	ORG	0100H	; Next page, Decimal = 256
 
 MSGDYW:	DB	CR,LF
-  	DB	'DO YOU WANT TO GO ON A SPACE VOYAGE? '
+        DB      'Ready for a new Star Wars space mission? '
   	DB	0
 MSGYJD:	DB	CR,LF
-  	DB	'YOU MUST DESTROY  '
-MSGSPS:	DB	'  ALIEN SHIPS IN  '
-MSGDTS:	DB	'  STARDATES WITH '
-MSGSSS:	DB	'  SPACE STATIONS'
+  	DB	'You must destroy  '
+MSGSPS:	DB	'  Sith ships in   '
+MSGDTS:	DB	'  stardates with '
+MSGSSS:	DB	'  space stations'
+;       DB	'DO YOU WANT TO GO ON A SPACE VOYAGE? '
+;  	DB	'YOU MUST DESTROY  '
+;MSGSPS: DB	'  SPACE SHIPS IN  '
+;MSGDTS: DB	'  STARDATES WITH '
+;MSGSSS: DB	'  SPACE STATIONS'
   	DB	0
 MSG123:	DB	CR,LF
-  	DB	' -1--2--3--4-'
-  	DB	'-5--6--7--8-'
+  	DB	' -1--2--3--4--5--6--7--8-'
+;  	DB	'-5--6--7--8-'
   	DB	0
 MSGSTDT:
 	DB	CR,LF
@@ -250,13 +255,15 @@ MSGLRS:	DB	CR,LF
   	DB	'L.R. SCAN FOR'
   	DB	0
 MSGMSF:	DB	CR,LF
-  	DB	'MISSION FAILED, YOU HAVE RUN OUT	OF STARDATES'
+  	DB	'MISSION FAILED, you ran out of stardates.'
   	DB	0
 MSGKAB:	DB	CR,LF
-  	DB	'KA-BOOM, YOU CRASHED INTO A STAR. YOUR SHIP IS DESTROYED'
+  	DB	'BOOM! Game over, you crashed in a star. You are history.'
+;  	DB	'KA-BOOM, YOU CRASHED INTO A STAR. YOUR SHIP IS DESTROYED'
   	DB	0
 MSGYMO:	DB	CR,LF
-  	DB	'YOU MOVED OUT	OF THE GALAXY, YOUR SHIP IS LOST..LOST'
+  	DB	'You flew out of the GALAXY, you are lost to the void.'
+;  	DB	'YOU MOVED OUT	OF THE GALAXY, YOUR SHIP IS LOST..LOST'
   	DB	0
 MSGLOE:	DB	CR,LF
   	DB	'LOSS OF ENERGY    '
@@ -275,17 +282,17 @@ MSGTTY:	DB	CR,LF
   	DB	'TORPEDO TRAJECTORY(1-8.5) : '
   	DB	0
 MSGASD:	DB	CR,LF
- 	DB	'ALIEN SHIP DESTROYED'
+ 	DB	'Sith ship destroyed!'
   	DB	0
 MSGYMA:	DB	CR,LF
-  	DB	'YOU MISSED! ALIEN SHIP RETALIATES'
+  	DB	'YOU MISSED! The Sith retaliates.'
   	DB	0
 MSGSSD:	DB	CR,LF
   	DB	'SPACE STATION '
 MSGDES:	DB	'DESTROYED'
   	DB	0
 MSGCYH:	DB	CR,LF
-  	DB	'CONGRATULATIONS, YOU HAVE ELIMINATED ALL OF THE ALIEN SHIPS'
+  	DB	'CONGRATULATIONS! You eliminated all the Sith star ships.'
   	DB	0
 MSGTRG:	DB	CR,LF
   	DB	'TRACKING: '
@@ -298,17 +305,17 @@ MSGPEF:	DB	CR,LF
   	DB	'PHASOR ENERGY TO FIRE = '
   	DB	0
 MSGASF:	DB	CR,LF
-  	DB	'ALIEN SHIP AT SECTOR '
+  	DB	'Sith ship at sector '
 MSGSEC:	DB	' , : '
   	DB	0
 MSGEGY:	DB	'ENERGY =    '
 MSGDEY:	DB	' '
   	DB	0
 MSGNAS:	DB	CR,LF
-  	DB	'NO ALIEN SHIPS! WASTED SHOT'
+  	DB	'NO Sith ships! wasted shot'
 MSGZRO:	DB	0
 MSGNEL:	DB	CR,LF
-  	DB	'ABANDON SHIP! NO ENERGY LEFT'
+  	DB	'ABANDON SHIP! No energy left'
   	DB	0
 MSGNTS:	DB	CR,LF
   	DB	'NO TORPEDOES'
@@ -487,11 +494,12 @@ RCLR:
 	CALL	RWPNT		;Fetch space ship location
 	JNZ	STR		;In this row? No
 ;++    1496:00000101 11011000: 00110110 : 36:066 > opcode: mvi m,'<'
-	MVI	M,'<'		;Yes, store space ship code
+; 34678ax
+	MVI	M,'x'		;Yes, store space ship design: x+x xox x!x, old design: <*>
 	INR	L
-	MVI	M,'*'
+	MVI	M,'!'           ; '+' 00101011
 	INR	L
-	MVI	M,'>'
+	MVI	M,'x'           ; 'x' 01111000
 STR:
 	MVI	L,044H		;Set pointer to star table
 STR1:
@@ -521,11 +529,11 @@ AS1:
 	CALL	RWPNT		;Fetch A.S. location
 	JNZ	NXAS		;A.S. here? No, try next
 ;++    1551:00000110 00001111: 00110110 : 36:066 > opcode: mvi m,'+'
-	MVI	M,'['		;Yes, store A.S. code
+	MVI	M,'|'		;Yes, store A.S. design: |o|, old: +++, or [^]
 	INR	L
-	MVI	M,'^'
+	MVI	M,'o'
 	INR	L
-	MVI	M,']'
+	MVI	M,'|'
 	MOV	L,E		;Fetch A.S. table pointer
 NXAS:		
 	INR	L		;Advance A.S. pointer
@@ -1676,7 +1684,7 @@ HIT:
 	CPI	04BH		;Was it a star?
 	JC	QOUT		;Yes, missed alien ship
 	JZ	SSTA		;Space stat.? Yes, delete S.S.
-	CALL	DLET		;No, delete alient ship
+	CALL	DLET		;No, delete alien ship
 	LXI	H,MSGASD	;Print alien ship hit message
 	CALL	MSG
 	JMP	CMND		;Input new command
@@ -1689,7 +1697,7 @@ QOUT:
 	CALL	CMSG
 	MVI	E,200		;Set up loss of 200
 	MOV	D,H		;Units due to alien ship
-	CALL	ELOS		;Rtaliating
+	CALL	ELOS		;Retaliating
 	MVI	L,02BH		;Restore current quadrant
 	MOV	A,M		;Location
 	MVI	L,059H
@@ -2011,7 +2019,7 @@ CONINI:
                                 ; Stacy, I've added help messages.
 MSGHELP:
   	DB	CR,LF
-        DB      'O. SPACE SHIP movement'
+        DB      'O. X-wing ship movement'
   	DB	CR,LF
         DB      '1. Short range scanner'
   	DB	CR,LF
@@ -2023,13 +2031,13 @@ MSGHELP:
   	DB	CR,LF
         DB      '5. Phasors'
   	DB	CR,LF
-        DB      '6. TORPEDO'
+        DB      '6. Torpedoes'
   	DB	CR,LF
-        DB      'g. Game stats message'
+        DB      'g. Game stats'
   	DB	CR,LF
-        DB      'd. Directions message'
+        DB      'd. Directions key'
   	DB	CR,LF
-        DB      'X. Exit, start new game'
+        DB      'X. Exit, end game'
   	DB	0
 MSGDIR:
   	DB	CR,LF
