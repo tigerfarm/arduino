@@ -238,7 +238,7 @@ MSGSHD:	DB	' SHIELDS      '
 MSGSHP:	DB	' '
   	DB	0
 MSGCMD:	DB	CR,LF
-  	DB	'COMMAND?'
+  	DB	'Command?'
   	DB	0
 MSGCRS:	DB	CR,LF
   	DB	'COURSE (1-8.5)? '
@@ -253,10 +253,11 @@ MSGMSF:	DB	CR,LF
   	DB	'MISSION FAILED, YOU HAVE RUN OUT	OF STARDATES'
   	DB	0
 MSGKAB:	DB	CR,LF
-  	DB	'KA-BOOM, YOU CRASHED INTO A STAR. YOUR SHIP IS DESTROYED'
+  	DB	'BOOM! Game over, you crashed in a star. You are history.'
   	DB	0
 MSGYMO:	DB	CR,LF
-  	DB	'YOU MOVED OUT	OF THE GALAXY, YOUR SHIP IS LOST..LOST'
+                ; The following has a tab character, which is required to have "Tracking" work when sending a torpedo.
+  	DB	'You flew out 	of the GALAXY, lost in the void...    '
   	DB	0
 MSGLOE:	DB	CR,LF
   	DB	'LOSS OF ENERGY    '
@@ -272,10 +273,10 @@ MSGNEE:	DB	CR,LF
   	DB	'NOT ENOUGH ENERGY'
   	DB	0
 MSGTTY:	DB	CR,LF
-  	DB	'TORPEDO TRAJECTORY(1-8.5) : '
+  	DB	'Torpedo trajectory(1-8.5) : '
   	DB	0
 MSGASD:	DB	CR,LF
- 	DB	'ALIEN SHIP DESTROYED'
+ 	DB	'Sith ship destroyed!'
   	DB	0
 MSGYMA:	DB	CR,LF
   	DB	'YOU MISSED! The Sith retaliates. '
@@ -288,17 +289,17 @@ MSGCYH:	DB	CR,LF
   	DB	'CONGRATULATIONS! You eliminated all the Sith star ships.   '
   	DB	0
 MSGTRG:	DB	CR,LF
-  	DB	'TRACKING: '
+  	DB	'Tracking: '
 MSGTRK:	DB	'   '
   	DB	0
 MSGGDY:	DB	CR,LF
-  	DB	'GALAXY DISPLAY'
+  	DB	'Galaxy Display'
   	DB	0
 MSGPEF:	DB	CR,LF
   	DB	'PHASOR ENERGY TO FIRE = '
   	DB	0
 MSGASF:	DB	CR,LF
-  	DB	'ALIEN SHIP AT SECTOR '
+  	DB	'Sith ship at sector  '
 MSGSEC:	DB	' , : '
   	DB	0
 MSGEGY:	DB	'ENERGY =    '

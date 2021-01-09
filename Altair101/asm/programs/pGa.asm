@@ -256,8 +256,8 @@ MSGKAB:	DB	CR,LF
   	DB	'BOOM! Game over, you crashed in a star. You are history.'
   	DB	0
 MSGYMO:	DB	CR,LF
+                ; The following has a tab character, which is required to have "Tracking" work when sending a torpedo.
   	DB	'You flew out 	of the GALAXY, lost in the void...    '
-  	;DB	'YOU MOVED OUT	OF THE GALAXY, YOUR SHIP IS LOST..LOST'
   	DB	0
 MSGLOE:	DB	CR,LF
   	DB	'LOSS OF ENERGY    '
