@@ -1465,16 +1465,19 @@ public class asmProcessor {
         System.out.println("");
         if (errorCount > 0) {
             System.out.println("\n-- parseFile, Number of errors1: " + errorCount);
+            listErrorMsgs();
             return;
         }
         setProgramByteAddresses();
         if (errorCount > 0) {
             System.out.println("\n-- parseFile, Number of errors2: " + errorCount);
+            listErrorMsgs();
             return;
         }
         setProgramByteImmediates();
         if (errorCount > 0) {
             System.out.println("\n-- parseFile, Number of errors3: " + errorCount);
+            listErrorMsgs();
             return;
         }
     }
@@ -1589,15 +1592,15 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pstatuslights.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pcli.asm");
         //
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSyntax.asm");
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGa.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSyntax.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGa.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGa2.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGalaxy80.asm");
         //
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGaBaseOrg.asm");
         //
         if (thisProcess.errorCount > 0) {
-            thisProcess.listErrorMsgs();
+            // thisProcess.listErrorMsgs();
             return;
         }
         //
@@ -1616,9 +1619,11 @@ public class asmProcessor {
         // thisProcess.showFile("10000000.bin");
         // thisProcess.showFile("pG.asm");
         //
+        /*
         if (thisProcess.errorCount > 0) {
             thisProcess.listErrorMsgs();
         }
+        */
 
         System.out.println("++ Exit.");
     }

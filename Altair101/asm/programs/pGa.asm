@@ -1897,7 +1897,17 @@ GL2:
                                 ; Sample output: 1 003 1 003 1 000 1 000 1 000 1 000 1 105 1 107 1
                                 ;                12345678901234567890123456789012345678901234567890
                                 ;                        10        20        30        40        50
-                                ; I should add zero "0" to the 50 position to close the MSG.
+                                ; I added zero(0) to the 50 position to prevent extra characters, example ("#"):
+                                ;                1 203 1 003 1 000 1 011 1 105 1 000 1 000 1 304 1#
+                                ; 080H = 128 ... 128 + 50 = 178 + 1 (array base 0) = 179
+                                ; MSG uses H:L to print from. regH must be 0 at this time.
+        sta     regA
+        mvi     a,'|'
+        sta     178
+        mvi     a,0
+        sta     179
+        lda     regA
+                                ; Then print as normal.
 	MVI	L,080H
 	CALL	MSG
                                 ; ----------------------
@@ -1907,8 +1917,12 @@ GL2:
 	CMP	H		;End of galaxy printed? =0?
 	JZ	CMND		;Yes, return command input
 	XCHG			;No, set up galaxy pointer
+; ++    3766:00001110 10110110: 11000011 : C3:303 > opcode: jmp GL1
 	JMP	GL1		;Continue printout
                                 ; ----------------------------------------------
+                                ; Looks like unused bytes from 3766 to 3840.
+regA:   DB      0
+regH:   DB      0
                                 ;
 ; ------------------------------------------------------------------------------
 	ORG	0F00H           ; Decimal = 3840
@@ -2059,10 +2073,10 @@ WLOOP:
 	;JZ	WLOOP
 
 	MOV	A,C
-        CPI     7
-        JZ      SKIPBELL        ; Don't send the bell character which is an error I need to find in the program.
+        ;CPI     7
+        ;JZ      SKIPCHAR        ; Option to not print certain characters.
 	OUT	SIODAT		;SEND THE CHARACTER
-SKIPBELL:
+SKIPCHAR:
 	RET
 
 
@@ -2110,27 +2124,42 @@ MSGDIR:
   	DB	0
                                 ; ----------------------------------------------
                                 ; Print game statistics message, example:
-                                ;   YOU MUST DESTROY 20 ALIEN SHIPS IN 06 STARDATES WITH 6 SPACE STATIONS
+                                ; YOU MUST DESTROY 21 ALIEN SHIPS IN 26 STARDATES WITH 6 SPACE STATIONS
+                                ;
+                                ; DNSST:	DB	000 ;Num. space stations	//5B 91 01011011 Data= 6
+                                ; DNALS:	DB	000 ;Num. alien ships		//5C 92 01011100 Data=21
+                                ; DNSTD:	DB	000 ;Num. stardates		//5D 93 01011101 Data=26
+                                ;
+                                ; MSGYJD:	DB	CR,LF
+                                ;         	DB	'You must destroy  '
+                                ; MSGSPS:	DB	'  Sith ships in   '
+                                ; MSGDTS:	DB	'  stardates with '
+                                ; MSGSSS:	DB	'  space stations'
+
 GAMESTAT:
-	MVI	L,05BH		;Set pntr to store number S.S.
+	MVI	L,05DH		;Set pntr to store number SPACE STATIONS
 	MVI	B,1		;Set nmbr bytes for BINDEC
 	CALL	BINDEC		;Covert stardate value
 	LXI	D,MSGDTS	;Set pointer to digit storage
 	MVI	B,2		;Set counter to nmbr or digits
 	CALL	DIGPRT		;Put digits in message
-	LXI	H,005CH		;Set pointer to number A.S.
-	MVI	B,001		;Set nmbr bytes for BINDEC
+                                ;
+	LXI	H,005CH		;Set pointer to number alien ships
+	MVI	B,1		;Set nmbr bytes for BINDEC
 	CALL	BINDEC		;Convert alien ship value
 	LXI	D,MSGSPS	;Set pntr to digit stor. in start msg.
 	MVI	B,2		;Set counter to no. of digits
 	CALL	DIGPRT		;Put digits in message
+                                ;
 	LXI	H,005BH		;Set pointer to no. space stat.
 	MOV	A,M		;Set no. bytes for BINDEC
 	ORI	0B0H		;Covert space station value
 	LXI	H,MSGSSS	;Set pntr to digit stor. in start msg.
 	MOV	M,A		;Set counter to no. of digits
+                                ;
 	LXI	H,MSGYJD	;Set pntr to start message
 	CALL	MSG		;Print starting message
+                                ; You must destroy 18 Sith ships in  05 stardates with 5 space stations
         ret
                                 ; ----------------------------------------------
 	END

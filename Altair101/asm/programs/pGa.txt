@@ -594,151 +594,45 @@ Original version
 -------------------------------------------------
 Current version saved in "c", file: 00010000.BIN  5120.
 
-YOU MUST DESTROY 14 ALIEN SHIPS IN 19 STARDATES WITH 5 SPACE STATIONS
+You must destroy 21 Sith ships in  26 stardates with 6 space stations
 -------------------------------------------------
-1 000 1 000 1 000 1 000 1 007 1 004 1 000 1 000 1
+1 203 1 003 1 000 1 011 1 105 1 000 1 000 1 304 |
 -------------------------------------------------
-1 003 1 003 1 000 1 000 1 000 1 000 1 105 1 107 1
+1 204 1 004 1 000 1 000 1 105 1 000 1 003 1 000 |
 -------------------------------------------------
-1 001 1 107 1 011 1 000 1 000 1 105 1 000 1 000 1
+1 001 1 000 1 000 1 000 1 005 1 007 1 014 1 000 |
 -------------------------------------------------
-1 000 1 004 1 115 1 000 1 000 1 000 1 103 1 117 1
+1 005 1 115 1 002 1 203 1 000 1 103 1 000 1 000 |
 -------------------------------------------------
-1 000 1 003 1 003 1 003 1 004 1 004 1 003 1 005 1
+1 005 1 000 1 000 1 004 1 000 1 001 1 004 1 004 |
 -------------------------------------------------
-1 105 1 007 1 102 1 007 1 000 1 003 1 002 1 011 1
+1 000 1 102 1 014 1 000 1 000 1 106 1 106 1 112 |
 -------------------------------------------------
-1 107 1 000 1 000 1 000 1 000 1 001 1 115 1 105 1
+1 003 1 000 1 106 1 207 1 006 1 011 1 002 1 105 |
 -------------------------------------------------
-1 000 1 000 1 004 1 104 1 000 1 005 1 000 1 104 1
+1 000 1 000 1 002 1 000 1 004 1 000 1 000 1 000 |
 -------------------------------------------------
 
 Work version
-YOU MUST DESTROY 14 ALIEN SHIPS IN 19 STARDATES WITH 5 SPACE STATIONS
+You must destroy 21 Sith ships in  26 stardates with 6 space stations
 -------------------------------------------------
-1 000 1 000 1 000 1 000 1 007 1 004 1 000 1 000 1
+1 203 1 003 1 000 1 011 1 105 1 000 1 000 1 304 |
 -------------------------------------------------
-1 003 1 003 1 000 1 000 1 000 1 000 1 105 1 107 1
+1 204 1 004 1 000 1 000 1 105 1 000 1 003 1 000 |
 -------------------------------------------------
-1 001 1 107 1 011 1 000 1 000 1 105 1 000 1 000 1
+1 001 1 000 1 000 1 000 1 005 1 007 1 014 1 000 |
 -------------------------------------------------
-1 000 1 004 1 115 1 000 1 000 1 000 1 103 1 117 1
+1 005 1 115 1 002 1 203 1 000 1 103 1 000 1 000 |
 -------------------------------------------------
-1 000 1 003 1 003 1 003 1 004 1 004 1 003 1 005 1
+1 005 1 000 1 000 1 004 1 000 1 001 1 004 1 004 |
 -------------------------------------------------
-1 105 1 007 1 102 1 007 1 000 1 003 1 002 1 011 1
+1 000 1 102 1 014 1 000 1 000 1 106 1 106 1 112 |
 -------------------------------------------------
-1 107 1 000 1 000 1 000 1 000 1 001 1 115 1 105 1
+1 003 1 000 1 106 1 207 1 006 1 011 1 002 1 105 |
 -------------------------------------------------
-1 000 1 000 1 004 1 104 1 000 1 005 1 000 1 104 1
--------------------------------------------------
-
- -1--2--3--4--5--6--7--8-
-1                         STARDATE  3026
-2   x!x      x:x         CONDITION RED
-3        xox              QUADRANT  1 3
-4       *        *        SECTOR    5 6
-5               x+x       ENERGY    2807
-6                *        TORPEDOES 10
-7   |o|            |o| *  SHIELDS   0000
-8                        
- -1--2--3--4--5--6--7--8-
-
- -1--2--3--4--5--6--7--8-
-1                         STARDATE  3028
-2                         CONDITION GREEN
-3                  x+x>1< QUADRANT  2 4
-4                         SECTOR    3 7
-5                         ENERGY    2952
-6                         TORPEDOES 10
-7                         SHIELDS   0000
-8       *                
- -1--2--3--4--5--6--7--8-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-	ORG	0080H
-	DB	CR,LF,'1',' ',' ',' ',' ',' '
-	DB	'1',' ',' ',' ',' ',' ','1',' '
-	DB	' ',' ',' ',' ','1',' ',' ',' '
-	DB	' ',' ','1',' ',' ',' ',' ',' '
-	DB	'1',' ',' ',' ',' ',' ','1',' '
-	DB	' ',' ',' ',' ','1',' ',' ',' '
-	DB	' ',' ','1'
-; ------------------------------------------------------------------------------
-                                ; Command galaxy display option.
-GXPRT:
-	LXI	H,MSGGDY	; Print galaxy display message
-	CALL	MSG
-	MVI	H,031H          ; Decimal value = 49
- 	CALL	NT1		;Print border
-	MVI	L,0C0H		;Set pointer to galaxy, 192 11000000
-GL1:
-	MOV	D,H		;Set printout pointer
-	MVI	E,084H
-GL2:
-	MOV	A,M		;Fetch quadrant contents
-	XCHG
-	CALL	QDSET		;Set quad. contents in message
-	MOV	A,L		;Fetch message pointer
-	ADI	004		;Advance to next quadrant in message
-	MOV	L,A
-	XCHG			;Set galaxy pointer
-	INR	L		;Advance to next quadrant in galaxy
-	CPI	0B4H		;This end of line?
-	JNZ	GL2		;No, set next quadrant in message
-	XCHG			;Save galaxy pointer
-	MVI	L,080H		;Print current line of galaxy
-	CALL	MSG
-	MVI	H,031H
-	CALL	NT1		;Print dividing line
-	MOV	A,E		;Fetch galaxy pointer
-	CMP	H		;End of galaxy printed? =0?
-	JZ	CMND		;Yes, return command input
-	XCHG			;No, set up galaxy pointer
-	JMP	GL1		;Continue printout
-                                ; ----------------------------------------------
-NT1:
-	MVI	A,CR		;Print carriage return
-	CALL	PRINT
-	MVI	A,LF		;Print line feed
-	CALL	PRINT
-NT2:
-	MVI	A,'-'		;ASCII code for dash
-	CALL	PRINT		;Print "-"
-	DCR	H		;Decrement counter = 0?
-	JNZ	NT2		;No, print more dashes
-	RET
-                                ; ----------------------------------------------
-QDSET:
-	MOV	C,A		;Save quadrant contents
-	CALL	ROTR4		;Position alien ship number
-	ANI	003		;Mask alien ship number
-	ORI	'0'		;Form ASCII digit
-	MOV	M,A		;Store in message
-	INX	H		;Increment message pointer
-	MOV	A,C		;Fetch quadrant contents
-	CALL	ROTR3		;Position space ship number
-	ANI	001		;Mask space ship number
-	ORI	'0'		;Form ASCII digit
-	MOV	M,A		;Store space ship in message
-	INX	H		;Increment message pointer
-	MOV	A,C		;Fetch quadrant contents
-	ANI	STRMSK		;Mask star number
-	ORI	'0'		;Form ASCII digit
-	MOV	M,A		;Store in message
-	RET
-
-        10        20        30        40        50
-12345678901234567890123456789012345678901234567890
--------------------------------------------------
-1 000 1 000 1 000 1 000 1 007 1 004 1 000 1 000 1
--------------------------------------------------
-1 003 1 003 1 000 1 000 1 000 1 000 1 105 1 107 1
+1 000 1 000 1 002 1 000 1 004 1 000 1 000 1 000 |
 -------------------------------------------------
 
 ; ------------------------------------------------------------------------------
-
 12578bx Galaxy program start address, label: GALAXY.
-
+2589bx to get to the Command Menu. First instruction is to set the stack pointer.

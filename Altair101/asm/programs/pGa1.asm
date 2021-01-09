@@ -85,6 +85,7 @@
 LF	EQU	0AH
 CR	EQU	0DH
 
+                ; --------------------------------------------------------------
 	ORG	0000H
 
 	DB	2 		;Course 1.0
@@ -134,6 +135,7 @@ CR	EQU	0DH
 	DB	000		;Temporary storage
 	DB	000		;Temporary storage
 
+                ; --------------------------------------------------------------
 	ORG	0040H
 
 ALNMSK:	EQU	00110000b	;Num. aliens mask
@@ -181,20 +183,29 @@ DDIG3:	DB	000 ;Digit storage		//62
 DDIG4:	DB	000 ;Digit storage		//63
 DDIG5:	DB	000 ;Digit storage		//64
 
+                ; --------------------------------------------------------------
 	ORG	0080H
 
-	DB	CR,LF,'1',' ',' ',' ',' ',' '
-	DB	'1',' ',' ',' ',' ',' ','1',' '
-	DB	' ',' ',' ',' ','1',' ',' ',' '
-	DB	' ',' ','1',' ',' ',' ',' ',' '
-	DB	'1',' ',' ',' ',' ',' ','1',' '
-	DB	' ',' ',' ',' ','1',' ',' ',' '
-	DB	' ',' ','1'
+	DB	CR,LF
+	DB	'1',' ',' ',' ',' ',' '
+	DB	'1',' ',' ',' ',' ',' '
+	DB	'1',' ',' ',' ',' ',' '
+        DB      '1',' ',' ',' ',' ',' '
+        DB      '1',' ',' ',' ',' ',' '
+	DB	'1',' ',' ',' ',' ',' '
+        DB      '1',' ',' ',' ',' ',' '
+        DB      '1',' ',' ',' ',' ',' '
+        DB      '1'
+        ;       178: decimal value byte number location
 
-;  Through to 256(octal:377) reserved for Galaxy content table
+                ; --------------------------------------------------------------
+                ; Through to 256(octal:377) reserved for Galaxy content table.
+                ;
+        ;       0CH 192 Galaxy starting point.
 
-	ORG	0100H	; Next page
+	ORG	0100H	; Next page, 256 100000000
 
+                ; --------------------------------------------------------------
 MSGDYW:	DB	CR,LF
         DB      'Ready for a Star Wars space mission? '
   	DB	0
@@ -260,11 +271,13 @@ MSGYMO:	DB	CR,LF
   	DB	'You flew out 	of the GALAXY, lost in the void...    '
   	DB	0
 MSGLOE:	DB	CR,LF
-  	DB	'LOSS OF ENERGY    '
+  	DB	'Energy loss:      '
+  	;DB	'LOSS OF ENERGY    '
+        ;        LOSS OF ENERGY 0200
 MSGLOP:	DB	' '
   	DB	0
 MSGDSE:	DB	CR,LF
-  	DB	'DANGER-SHIELD ENERGY 000'
+  	DB	'Danger-shield energy 000'
   	DB	0
 MSGSET:	DB	CR,LF
   	DB	'SHIELD ENERGY TRANSFER = '
@@ -279,7 +292,7 @@ MSGASD:	DB	CR,LF
  	DB	'Sith ship destroyed!'
   	DB	0
 MSGYMA:	DB	CR,LF
-  	DB	'YOU MISSED! The Sith retaliates. '
+  	DB	'You missed! The Sith retaliates. '
   	DB	0
 MSGSSD:	DB	CR,LF
   	DB	'SPACE STATION '
@@ -1854,37 +1867,63 @@ DSTR:
 ; ------------------------------------------------------------------------------
                                 ; Command galaxy display option.
 GXPRT:
-	LXI	H,MSGGDY	;Print galaxy display
+	LXI	H,MSGGDY	; Print galaxy display message
 	CALL	MSG
-	MVI	H,031H
- 	CALL	NT1		;Print border
-	MVI	L,0C0H		;Set pointer to galaxy
+	MVI	H,031H          ; Decimal value = 49
+ 	CALL	NT1		; Print top border line, 49 dashes.
+                                ;
+                                ; ----------------------------------------------
+                                ; Loop through each quadrant row of the galaxy.
+                                ;
+	MVI	L,0C0H		; Set pointer to galaxy content table memory.
 GL1:
 	MOV	D,H		;Set printout pointer
 	MVI	E,084H
 GL2:
+                                ; ----------------------
 	MOV	A,M		;Fetch quadrant contents
 	XCHG
-	CALL	QDSET		;Set quadrant contents in message
+	CALL	QDSET		;Quadrant data set contents in message
 	MOV	A,L		;Fetch message pointer
 	ADI	004		;Advance to next quadrant in message
 	MOV	L,A
 	XCHG			;Set galaxy pointer
-	INR	L		;Advance to next quadrant in galaxy
-	CPI	0B4H		;This end of line?
+	INR	L		;Advance to next quad. in galaxy
+	CPI	0B4H		; This end of line? B4H = 180 = 10110100
 	JNZ	GL2		;No, set next quadrant in message
 	XCHG			;Save galaxy pointer
-	MVI	L,080H		;Print current line of galaxy
+                                ; ----------------------
+                                ;Print current line of galaxy
+                                ; Sample output: 1 003 1 003 1 000 1 000 1 000 1 000 1 105 1 107 1
+                                ;                12345678901234567890123456789012345678901234567890
+                                ;                        10        20        30        40        50
+                                ; I added zero(0) to the 50 position to prevent extra characters, example ("#"):
+                                ;                1 203 1 003 1 000 1 011 1 105 1 000 1 000 1 304 1#
+                                ; 080H = 128 ... 128 + 50 = 178 + 1 (array base 0) = 179
+                                ; MSG uses H:L to print from. regH must be 0 at this time.
+        sta     regA
+        mvi     a,'|'
+        sta     178
+        mvi     a,0
+        sta     179
+        lda     regA
+                                ; Then print as normal.
+	MVI	L,080H
 	CALL	MSG
-                                ;
-	MVI	H,031H
-	CALL	NT1		;Print dividing line
+                                ; ----------------------
+	MVI	H,031H          ;Print dividing line
+	CALL	NT1
 	MOV	A,E		;Fetch galaxy pointer
 	CMP	H		;End of galaxy printed? =0?
 	JZ	CMND		;Yes, return command input
 	XCHG			;No, set up galaxy pointer
+; ++    3766:00001110 10110110: 11000011 : C3:303 > opcode: jmp GL1
 	JMP	GL1		;Continue printout
-
+                                ; ----------------------------------------------
+                                ; Looks like unused bytes from 3766 to 3840.
+regA:   DB      0
+regH:   DB      0
+                                ;
 ; ------------------------------------------------------------------------------
 	ORG	0F00H           ; Decimal = 3840
 
@@ -2034,10 +2073,10 @@ WLOOP:
 	;JZ	WLOOP
 
 	MOV	A,C
-        CPI     7
-        JZ      SKIPBELL        ; Don't send the bell character which is an error I need to find in the program.
+        ;CPI     7
+        ;JZ      SKIPCHAR        ; Option to not print certain characters.
 	OUT	SIODAT		;SEND THE CHARACTER
-SKIPBELL:
+SKIPCHAR:
 	RET
 
 
@@ -2085,27 +2124,42 @@ MSGDIR:
   	DB	0
                                 ; ----------------------------------------------
                                 ; Print game statistics message, example:
-                                ;   YOU MUST DESTROY 20 ALIEN SHIPS IN 06 STARDATES WITH 6 SPACE STATIONS
+                                ; YOU MUST DESTROY 21 ALIEN SHIPS IN 26 STARDATES WITH 6 SPACE STATIONS
+                                ;
+                                ; DNSST:	DB	000 ;Num. space stations	//5B 91 01011011 Data= 6
+                                ; DNALS:	DB	000 ;Num. alien ships		//5C 92 01011100 Data=21
+                                ; DNSTD:	DB	000 ;Num. stardates		//5D 93 01011101 Data=26
+                                ;
+                                ; MSGYJD:	DB	CR,LF
+                                ;         	DB	'You must destroy  '
+                                ; MSGSPS:	DB	'  Sith ships in   '
+                                ; MSGDTS:	DB	'  stardates with '
+                                ; MSGSSS:	DB	'  space stations'
+
 GAMESTAT:
-	MVI	L,05BH		;Set pntr to store number S.S.
+	MVI	L,05DH		;Set pntr to store number SPACE STATIONS
 	MVI	B,1		;Set nmbr bytes for BINDEC
 	CALL	BINDEC		;Covert stardate value
 	LXI	D,MSGDTS	;Set pointer to digit storage
 	MVI	B,2		;Set counter to nmbr or digits
 	CALL	DIGPRT		;Put digits in message
-	LXI	H,005CH		;Set pointer to number A.S.
-	MVI	B,001		;Set nmbr bytes for BINDEC
+                                ;
+	LXI	H,005CH		;Set pointer to number alien ships
+	MVI	B,1		;Set nmbr bytes for BINDEC
 	CALL	BINDEC		;Convert alien ship value
 	LXI	D,MSGSPS	;Set pntr to digit stor. in start msg.
 	MVI	B,2		;Set counter to no. of digits
 	CALL	DIGPRT		;Put digits in message
+                                ;
 	LXI	H,005BH		;Set pointer to no. space stat.
 	MOV	A,M		;Set no. bytes for BINDEC
 	ORI	0B0H		;Covert space station value
 	LXI	H,MSGSSS	;Set pntr to digit stor. in start msg.
 	MOV	M,A		;Set counter to no. of digits
+                                ;
 	LXI	H,MSGYJD	;Set pntr to start message
 	CALL	MSG		;Print starting message
+                                ; You must destroy 18 Sith ships in  05 stardates with 5 space stations
         ret
                                 ; ----------------------------------------------
 	END

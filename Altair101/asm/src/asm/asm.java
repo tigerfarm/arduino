@@ -145,6 +145,7 @@ public class asm {
                     processFile.parseFile(fullFilename);
                     System.out.println("+ -------------------------------------");
                     if (processFile.getErrorCount() > 0) {
+                        // processFile.listErrorMsgs();
                         break;
                     }
                     System.out.println("+ Write the program byte array to the file: " + byteFile + ":");
