@@ -1600,7 +1600,6 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGaBaseOrg.asm");
         //
         if (thisProcess.errorCount > 0) {
-            // thisProcess.listErrorMsgs();
             return;
         }
         //
