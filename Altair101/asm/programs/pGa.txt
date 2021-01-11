@@ -484,49 +484,94 @@ ALIEN SHIP DESTROYED
 COMMAND?
 
 --------------------------------------------------------------------------------
-### Sometimes, GALAXY DISPLAY's has an extra character, which is incorrect.
+### How to Save a Game
 
-"14" should only be "1".
-GALAXY DISPLAY
--------------------------------------------------
-1 002 1 304 1 007 1 000 1 000 1 102 1 103 1 203 14
--------------------------------------------------
-1 103 1 000 1 203 1 004 1 000 1 000 1 005 1 106 14
++ "g" to see the game status before saving the game. For example:
+You must destroy 10 Sith ships in  15 stardates with 6 space stations
++ "s" to STOP the program, to go into WAIT mode.
++ Set Sense switches to the file number to save to. For example set to: "c".
++ "M" for memory upload (save). Confirm, "y".
++ "r" to RUN the program, to go into RUN mode.
++ "g" to confirm the same game status. For example:
+You must destroy 10 Sith ships in  15 stardates with 6 space stations
 
-"1#" should only be "1".
-GALAXY DISPLAY
--------------------------------------------------
-1 203 1 003 1 000 1 011 1 105 1 000 1 000 1 304 1#
--------------------------------------------------
-1 204 1 004 1 000 1 000 1 105 1 000 1 003 1 000 1#
+Following is an example save and continue the game.
 
-++     126:00000000 01111110: 11111111 : FF:377 > dsname: org : 255
-++     127:00000000 01111111: 11111111 : FF:377 > dsname: org : 255
-++     128:00000000 10000000: 00001101 : 0D:015 > dbbyte: 13
-++     129:00000000 10000001: 00001010 : 0A:012 > dbbyte: 10
-++     130:00000000 10000010: 00110001 : 31:061 > databyte:  : 1 : 49
-++     131:00000000 10000011: 00100000 : 20:040 > dbbyte: 32
-++     132:00000000 10000100: 00100000 : 20:040 > dbbyte: 32
-++     133:00000000 10000101: 00100000 : 20:040 > dbbyte: 32
-++     134:00000000 10000110: 00100000 : 20:040 > dbbyte: 32
-++     135:00000000 10000111: 00100000 : 20:040 > dbbyte: 32
-++     136:00000000 10001000: 00110001 : 31:061 > databyte:  : 1 : 49
-++     137:00000000 10001001: 00100000 : 20:040 > dbbyte: 32
-++     138:00000000 10001010: 00100000 : 20:040 > dbbyte: 32
-++     139:00000000 10001011: 00100000 : 20:040 > dbbyte: 32
-++     140:00000000 10001100: 00100000 : 20:040 > dbbyte: 32
-++     141:00000000 10001101: 00100000 : 20:040 > dbbyte: 32
-++     142:00000000 10001110: 00110001 : 31:061 > databyte:  : 1 : 49
-++     143:00000000 10001111: 00100000 : 20:040 > dbbyte: 32
+Command?g
+You must destroy 10 Sith ships in  15 stardates with 6 space stations
+Command?1
+ -1--2--3--4--5--6--7--8-
+1         x!x             STARDATE  3035
+2                         CONDITION GREEN
+3                         QUADRANT  1 4
+4                         SECTOR    1 4
+5            >1<          ENERGY    2942
+6                         TORPEDOES 10
+7                         SHIELDS   0000
+8                   *    
+ -1--2--3--4--5--6--7--8-
+Command?+ s, STOP
+?- (I hit the enter key to show the switch status.
+INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
+ .    *    .  *   .   .    .    *   .         .   .    .   .   .    .   .   .
+WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
+ *    .      .   .   .   *   .   .   .   .    .   .    .   *   .    .   .   .
+            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
+             v   v   v   ^   v   v   v   v    v   v    v   v   v    v   v   v
+ ------ 
++ Ready to receive command.
+?- + M, Write program Memory into a file.
+++ Write filename: 00010000.bin
+++ Confirm, y/n: 
++ Confirmed.
++ Write completed, file closed.
+?- + r, RUN.
+?- + runProcessor()
+[Command?]1
+ -1--2--3--4--5--6--7--8-
+1         x!x             STARDATE  3035
+2                         CONDITION GREEN
+3                         QUADRANT  1 4
+4                         SECTOR    1 4
+5            >1<          ENERGY    2932
+6                         TORPEDOES 10
+7                         SHIELDS   0000
+8                   *    
+ -1--2--3--4--5--6--7--8-
+Command?g
+You must destroy 10 Sith ships in  15 stardates with 6 space stations
 
-Prints correct, but has a beep (ASCII 7, ^g).
-Command? 3
-GALAXY DISPLAY
--------------------------------------------------
-1 007 1 105 1 011 1 000 1 000 1 105 1 000 1 000 1
--------------------------------------------------
-1 000 1 001 1 002 1 001 1 000 1 203 1 000 1 000 1
+The game is ready to continue.
 
+--------------------------------------------------------------------------------
+### The Win!
+
+Command?0
+COURSE (1-8.5)? 5.0
+WARP FACTOR (0.1-7.7)? 0.4
+ -1--2--3--4--5--6--7--8-
+1      x!x                STARDATE  3042
+2                      *  CONDITION RED
+3                      *  QUADRANT  4 4
+4             *           SECTOR    1 3
+5                         ENERGY    1312
+6                         TORPEDOES 05
+7                         SHIELDS   0000
+8      |o|               
+ -1--2--3--4--5--6--7--8-
+Command?6
+Torpedo trajectory(1-8.5) : 7.0
+Tracking: 2 3
+Tracking: 3 3
+Tracking: 4 3
+Tracking: 5 3
+Tracking: 6 3
+Tracking: 7 3
+Tracking: 8 3
+CONGRATULATIONS! You eliminated all the Sith star ships.   
+Ready for a Star Wars space mission? 
+
+--------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
                                 ; Course menu option
 CRSEret:
@@ -634,5 +679,12 @@ You must destroy 21 Sith ships in  26 stardates with 6 space stations
 -------------------------------------------------
 
 ; ------------------------------------------------------------------------------
+#### Saved memory files:
+01000000.bin e : Current test
+00100000.bin d : Alternate test
+00010000.bin c : Save game, near completion
+00010001.bin   : Save game, final sector
+
+; ------------------------------------------------------------------------------
 12578bx Galaxy program start address, label: GALAXY.
-2589bx to get to the Command Menu. First instruction is to set the stack pointer.
+2589bx Command Menu start address. First instruction is to set the stack pointer.

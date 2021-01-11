@@ -209,9 +209,10 @@ DDIG5:	DB	000 ;Digit storage		//64
 MSGDYW:	DB	CR,LF
         DB      'Ready for a Star Wars space mission? '
   	DB	0
+                ; You must destroy 21 TIE fighters in26 stardates with 6 space stations
 MSGYJD:	DB	CR,LF
   	DB	'You must destroy  '
-MSGSPS:	DB	'  Sith ships in   '
+MSGSPS:	DB	'  TIE fighters in '
 MSGDTS:	DB	'  stardates with '
 MSGSSS:	DB	'  space stations'
   	DB	0
@@ -261,14 +262,14 @@ MSGLRS:	DB	CR,LF
   	DB	'L.R. SCAN FOR'
   	DB	0
 MSGMSF:	DB	CR,LF
-  	DB	'MISSION FAILED, YOU HAVE RUN OUT	OF STARDATES'
+  	; DB	'MISSION FAILED, YOU HAVE RUN OUT	OF STARDATES'
+  	DB	'MISSION failed, you have run out of stardates'
   	DB	0
 MSGKAB:	DB	CR,LF
   	DB	'BOOM! Game over, you crashed in a star. You are history.'
   	DB	0
 MSGYMO:	DB	CR,LF
-                ; The following has a tab character, which is required to have "Tracking" work when sending a torpedo.
-  	DB	'You flew out 	of the GALAXY, lost in the void...    '
+  	DB	'You flew out of the GALAXY, lost in the void...     '
   	DB	0
 MSGLOE:	DB	CR,LF
   	DB	'Energy loss:      '
@@ -289,17 +290,17 @@ MSGTTY:	DB	CR,LF
   	DB	'Torpedo trajectory(1-8.5) : '
   	DB	0
 MSGASD:	DB	CR,LF
- 	DB	'Sith ship destroyed!'
+ 	DB	'TIE ship destroyed! '
   	DB	0
 MSGYMA:	DB	CR,LF
-  	DB	'You missed! The Sith retaliates. '
+  	DB	'Missed! TIE fighter retaliates.  '
   	DB	0
 MSGSSD:	DB	CR,LF
   	DB	'SPACE STATION '
 MSGDES:	DB	'DESTROYED'
   	DB	0
 MSGCYH:	DB	CR,LF
-  	DB	'CONGRATULATIONS! You eliminated all the Sith star ships.   '
+  	DB	'CONGRATULATIONS! You eliminated all the TIE fighters.      '
   	DB	0
 MSGTRG:	DB	CR,LF
   	DB	'Tracking: '
@@ -312,14 +313,14 @@ MSGPEF:	DB	CR,LF
   	DB	'PHASOR ENERGY TO FIRE = '
   	DB	0
 MSGASF:	DB	CR,LF
-  	DB	'Sith ship at sector  '
+  	DB	'TIE ship at sector   '
 MSGSEC:	DB	' , : '
   	DB	0
 MSGEGY:	DB	'ENERGY =    '
 MSGDEY:	DB	' '
   	DB	0
 MSGNAS:	DB	CR,LF
-  	DB	'NO Sith ships! wasted shot.'
+  	DB	'Wasted shot. NO TIE ships. '
 MSGZRO:	DB	0
 MSGNEL:	DB	CR,LF
   	DB	'ABANDON SHIP! No energy left'
@@ -338,6 +339,7 @@ MSGLST:	DB	CR,LF
   	DB	0
 MSGCHK:	DB	CR,LF
   	DB	'Later...'
+        DB	CR,LF
   	DB	0
 
 ; ------------------------------------------------------------------------------
@@ -547,7 +549,7 @@ AS1:
 	CALL	RWPNT		;Fetch A.S. location
 	JNZ	NXAS		;A.S. here? No, try next
 ;++    1551:00000110 00001111: 00110110 : 36:066 > opcode: mvi m,'+'
-	MVI	M,'|'		;Yes, store Sith ship design: |o| or [^].
+	MVI	M,'|'		;Yes, store alien ship design: |o| or [^].
 	INR	L               ; Original alien ship design: +++.
 	MVI	M,'o'
 	INR	L
@@ -1035,7 +1037,7 @@ DVD:
 	RET			;Yes, return
 WASTE:
 	CALL	ELOM		;Delete power from main
-	LXI	H,MSGNAS	;Print 'No A.S. Wasted shot'
+	LXI	H,MSGNAS	;Print 'No alien ships Wasted shot'
 	CALL	MSG
 	JMP	CMND		;Input new command
 EIN:
@@ -2159,7 +2161,7 @@ GAMESTAT:
                                 ;
 	LXI	H,MSGYJD	;Set pntr to start message
 	CALL	MSG		;Print starting message
-                                ; You must destroy 18 Sith ships in  05 stardates with 5 space stations
+                                ; You must destroy 18 alien ships in  05 stardates with 5 space stations
         ret
                                 ; ----------------------------------------------
 	END
