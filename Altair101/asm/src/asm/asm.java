@@ -104,7 +104,6 @@ public class asm {
         String thePrompt = "> ";
         System.out.print("+ Enter 'exit' to exit. 'help' to get a command listing.");
         String consoleInLine = "";
-        System.out.println("+ Again, enter 'exit' to end the input loop.");
         while (!(consoleInLine.equals("exit"))) {
             System.out.print(thePrompt);
             try {
@@ -269,6 +268,25 @@ public class asm {
                                 setSerialPortName(cmdP2);
                             }
                             break;
+                        case "debug":
+                            if (cmdP2.length() == 0) {
+                                if (asmProcessor.getDebugMessage()) {
+                                    System.out.println("+ Debug is set ON.");
+                                } else {
+                                    System.out.println("+ Debug is set OFF.");
+                                }
+                            } else {
+                                if (cmdP2.equalsIgnoreCase("on")) {
+                                    System.out.println("+ Set debug ON.");
+                                    asmProcessor.setDebugMessage(true);
+                                } else if (cmdP2.equalsIgnoreCase("off")) {
+                                    System.out.println("+ Set debug OFF.");
+                                    asmProcessor.setDebugMessage(false);
+                                } else {
+                                    System.out.println("- Set debug <on|off>");
+                                }
+                            }
+                            break;
                         case "port":
                             if (cmdP2.length() == 0) {
                                 System.out.println("+ Serial port name set to: " + getSerialPortName());
@@ -389,8 +407,10 @@ public class asm {
                     System.out.println("+ set directory <program-source-directory>");
                     System.out.println("+ set source <program-source-filename>");
                     System.out.println("+ set byte <machine-byte-code-filename>");
+                    System.out.println("+ set debug <on|off>");
                     System.out.println("+ set port <serial-port>");
                     System.out.println("+ set ignore <Number of characters to ignore on a source line>");
+                    System.out.println("+ set debug <on|off>");
                     System.out.println("");
                     System.out.println("+ upload                    : Serial upload the machine byte code file.");
                     System.out.println("++ Serial port name         : " + getSerialPortName());

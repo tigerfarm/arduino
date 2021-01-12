@@ -12,8 +12,14 @@
             </test-roots>
         </data>
         <spellchecker-wordlist xmlns="http://www.netbeans.org/ns/spellchecker-wordlist/1">
+            <word>adi</word>
+            <word>databyte</word>
+            <word>hlt</word>
+            <word>jmp</word>
+            <word>mvi</word>
             <word>phasors</word>
             <word>sPrintln</word>
+            <word>sta</word>
         </spellchecker-wordlist>
     </configuration>
 </project>

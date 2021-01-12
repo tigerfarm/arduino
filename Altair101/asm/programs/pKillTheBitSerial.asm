@@ -5,7 +5,7 @@
                         ; 
                         ; ------------------------------------------------
     Start:
-            MVI D,080h  ; Move db to register D. Set initial display bit.  080h = 0200 = regD = 1 000 000 0 (high byte)
+            MVI D,080h  ; Set initial display bit.  080h = 10000000 binary high byte
                         ; ------------------------------------------------
                         ; To have the bit move faster, use less LDAX instructions, or slower baud rate.
     Begin:
@@ -33,7 +33,7 @@
                         ; ------------------------------------------------
             END
                         ; ------------------------------------------------
-++ Address:16-bit bytes       databyte :hex:oct > description
+++      Address:16-bit bytes  databyte :hex:oct > description
 ++       0:00000000 00000000: 00010110 : 16:026 > opcode: mvi d,080h
 ++       1:00000000 00000001: 10000000 : 80:200 > immediate: 080h : 128
 ++       2:00000000 00000010: 00011010 : 1A:032 > opcode: ldax d

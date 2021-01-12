@@ -196,8 +196,31 @@ public class asmProcessor {
     //
     private final int NAME_NOT_FOUND = -1;
     private final String NAME_NOT_FOUND_STR = "-1";
-    private boolean debugMessage = true;    // false true
 
+    // ------------------
+    private static boolean debugMessage = false;    // false true
+
+    public static boolean getDebugMessage() {
+        return debugMessage;
+    }
+
+    public static void setDebugMessage(boolean theValue) {
+        debugMessage = theValue;
+    }
+
+    private void printDebug(String theMessage) {
+        if (debugMessage) {
+            System.out.print(theMessage);
+        }
+    }
+
+    private void printlnDebug(String theMessage) {
+        if (debugMessage) {
+            System.out.print(theMessage + "\n");
+        }
+    }
+
+    // ------------------
     // Use for storing error messages which are printed at the end, in a summary.
     private int errorCount = 0;
 
@@ -231,18 +254,6 @@ public class asmProcessor {
             System.out.println("-- " + theErrorLineNum + ": " + theErrorLine + "\n-- " + theErrorMsg);
         }
         System.out.println("+ End of list.");
-    }
-
-    private void printDebug(String theMessage) {
-        if (debugMessage) {
-            System.out.print(theMessage);
-        }
-    }
-
-    private void printlnDebug(String theMessage) {
-        if (debugMessage) {
-            System.out.print(theMessage + "\n");
-        }
     }
 
     public static Integer getIgnoreFirstCharacters() {
@@ -655,7 +666,7 @@ public class asmProcessor {
 
     // ------------------------
     private void setProgramByteAddresses() {
-        System.out.println("\n+ Set Program Label address values...");
+        printlnDebug("\n+ Set Program Label address values...");
         // --------------
         // Set label address values, whether assembler labels or assembler directive labels.
         // ++ opcode:lxi:00100001:h:scoreL
@@ -717,7 +728,7 @@ public class asmProcessor {
             }
             i++;
         }
-        System.out.println("+ Finished setting label address values.");
+        printlnDebug("+ Finished setting label address values.");
     }
 
     // -------------------------------------------------------------------------
@@ -758,7 +769,7 @@ public class asmProcessor {
     }
 
     private void setProgramByteImmediates() {
-        System.out.println("\n+ Set program immediate values...");
+        printlnDebug("\n+ Set program immediate values...");
         int i = 0;
         for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
             String theSource = it.next();
@@ -791,7 +802,7 @@ public class asmProcessor {
             }
             i++;
         }
-        System.out.println("+ Finished setting immediate values.");
+        printlnDebug("+ Finished setting immediate values.");
     }
 
     // -------------------------------------------------------------------------
@@ -901,7 +912,7 @@ public class asmProcessor {
         }
         if (cq == 0) {
             cq = theValue.indexOf("'", 1);     // index of the second single quote "'".
-            if (cq == theValue.length()-1) {
+            if (cq == theValue.length() - 1) {
                 // System.out.println("++ parseDb1, cq == 0 ( theLabel: " + theLabel + ", theValue: " + theValue + " ) cq=" + cq + " l=" + theValue.length());
                 // Example string of bytes from Galaxy80.asm:
                 //      DB ' STARDATE  300'
@@ -1239,7 +1250,7 @@ public class asmProcessor {
             theLine = theLine.substring(0, ei).trim();
         }
         // ---------------------------------------------------------------------
-        System.out.println("\n+ Parse |" + theLine + "|");
+        printlnDebug("\n+ Parse |" + theLine + "|");
 
         // ---------------------------------------------------------------------
         // Single component.
@@ -1249,7 +1260,7 @@ public class asmProcessor {
             // -----------------------------------------------------------------
             if (theLine.endsWith(":")) {
                 label = theLine.substring(0, theLine.length() - 1);
-                System.out.println("++ parseLine, label line|" + cOne + "|");
+                printlnDebug("++ parseLine, label line|" + cOne + "|");
                 // Example:     "Start:"
                 parseLabel(label);
                 return;
@@ -1259,7 +1270,7 @@ public class asmProcessor {
                 opcode = "end"; // Tells the calling function to end processing.
                 return;
             }
-            System.out.println("++ parseLine, no parameters, opcode|" + cOne + "|");
+            printlnDebug("++ parseLine, no parameters, opcode|" + cOne + "|");
             // Example:     hlt
             parseOpcode(cOne);
             return;
@@ -1283,7 +1294,7 @@ public class asmProcessor {
         // Next to add:
         // + Parse |DB CR,LF,' ',' ','1'|
         // ++ parseLine components part1asIs|DB| part1|db| part2|CR,LF,32,32,'1'| theDirective|| theRest||
-        System.out.println("++ parseLine components theRest|" + theRest + "|");
+        printlnDebug("++ parseLine components theRest|" + theRest + "|");
         //
         // Parse |DB ' STARDATE  300'|
         // theRest = ' STARDATE  300';
@@ -1300,7 +1311,7 @@ public class asmProcessor {
             theDirective = part2.toLowerCase();
             theRest = theRest.substring(c2 + 1).trim();
         }
-        System.out.println("++ parseLine components part1asIs|" + part1asIs
+        printlnDebug("++ parseLine components part1asIs|" + part1asIs
                 + "| part1|" + part1
                 + "| part2|" + part2
                 + "| theDirective|" + theDirective
@@ -1328,7 +1339,7 @@ public class asmProcessor {
 ++ parseLine components part1asIs|DB| part1|db| part2|CR,LF,'O.| theDirective|cr,lf,'o.| theRest|SPACE SHIP movement'|
 ++ parseDb( theLabel: , theValue: CR,LF,'O. )
 ++ parseLine2, DB bytes, theByte|CR|
-        */
+         */
         if (part1.equals("db")) {
             parseDb("", part2);
             return;
@@ -1357,7 +1368,7 @@ public class asmProcessor {
                     //  stack   equ $    ; "$" is current address.
                     theRest = Integer.toString(programTop - 1);
                 }
-                System.out.println("++ parseLine, EQU directive, theLabel|" + theLabel + "| theValue|" + theRest + "|");
+                printlnDebug("++ parseLine, EQU directive, theLabel|" + theLabel + "| theValue|" + theRest + "|");
                 parseEqu(theLabel, theRest);
                 return;
             }
@@ -1369,7 +1380,7 @@ public class asmProcessor {
             if (theDirective.equals("ds")) {
                 // Assembler directives:
                 //      Data0:  ds  3
-                System.out.println("++ parseLine, ds directive without a label name, theRest|" + theRest);
+                printlnDebug("++ parseLine, ds directive without a label name, theRest|" + theRest);
                 parseDs(theLabel, theRest);
                 return;
             }
@@ -1387,7 +1398,7 @@ public class asmProcessor {
             theRest = "";
         }
         // ---------------------------------------------------------------------
-        System.out.println("++ parseLine1 2 components, part1|" + part1 + "| part2|" + part2 + "|");
+        printlnDebug("++ parseLine1 2 components, part1|" + part1 + "| part2|" + part2 + "|");
         //
         //      org             <number>
         if (part1.equals("org")) {
@@ -1415,11 +1426,11 @@ public class asmProcessor {
         if (c1 > 0) {
             p1 = part2.substring(0, c1);
             p2 = part2.substring(c1 + 1);
-            System.out.println("++ parseLine, opcode|" + opcode + "| p1|" + p1 + "| p2|" + p2 + "|");
+            printlnDebug("++ parseLine, opcode|" + opcode + "| p1|" + p1 + "| p2|" + p2 + "|");
             parseOpcode(opcode, p1, p2);
             return;
         }
-        System.out.println("++ parseLine, opcode|" + opcode + "| part2|" + part2 + "|");
+        printlnDebug("++ parseLine, opcode|" + opcode + "| part2|" + part2 + "|");
         parseOpcode(opcode, part2);
     }
 
@@ -1593,19 +1604,19 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pcli.asm");
         //
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pSyntax.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGa.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGa.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGa2.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGalaxy80.asm");
         //
-        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGaBaseOrg.asm");
+        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pAddDemoShort.asm");
         //
         if (thisProcess.errorCount > 0) {
             return;
         }
         //
         // Option: for debugging:
-        thisProcess.listLabelAddresses();
-        thisProcess.listImmediateValues();
+        // thisProcess.listLabelAddresses();
+        // thisProcess.listImmediateValues();
         thisProcess.programBytesListAndWrite("p1.bin");
 
         // thisProcess.programBytesListCode();
@@ -1622,8 +1633,7 @@ public class asmProcessor {
         if (thisProcess.errorCount > 0) {
             thisProcess.listErrorMsgs();
         }
-        */
-
+         */
         System.out.println("++ Exit.");
     }
 }

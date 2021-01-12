@@ -206,19 +206,24 @@ DDIG5:	DB	000 ;Digit storage		//64
 	ORG	0100H	; Next page, 256 100000000
 
                 ; --------------------------------------------------------------
+                ; If the label starts with "U", then it is no longer used.
+                ;   The message was move so that it can be resized without effecting the program.
+                ; --------------------------------------------------------------
 MSGDYW:	DB	CR,LF
         DB      'Ready for a Star Wars space mission? '
   	DB	0
+                ; ----------------------
                 ; You must destroy 21 TIE fighters in26 stardates with 6 space stations
+                ; You must destroy 21 TIE fighters,  26 stardates with 6 space stations
 MSGYJD:	DB	CR,LF
   	DB	'You must destroy  '
-MSGSPS:	DB	'  TIE fighters in '
+MSGSPS:	DB	'  TIE ships,  in  '
 MSGDTS:	DB	'  stardates with '
 MSGSSS:	DB	'  space stations'
   	DB	0
+                ; ----------------------
 MSG123:	DB	CR,LF
-  	DB	' -1--2--3--4-'
-  	DB	'-5--6--7--8-'
+  	DB	' -1--2--3--4--5--6--7--8-'
   	DB	0
 MSGSTDT:
 	DB	CR,LF
@@ -249,7 +254,7 @@ MSGTPP:	DB	' '
 MSGSHD:	DB	' SHIELDS      '
 MSGSHP:	DB	' '
   	DB	0
-MSGCMD:	DB	CR,LF
+UMSGCMD:	DB	CR,LF
   	DB	'Command?'
   	DB	0
 MSGCRS:	DB	CR,LF
@@ -262,7 +267,6 @@ MSGLRS:	DB	CR,LF
   	DB	'L.R. SCAN FOR'
   	DB	0
 MSGMSF:	DB	CR,LF
-  	; DB	'MISSION FAILED, YOU HAVE RUN OUT	OF STARDATES'
   	DB	'MISSION failed, you have run out of stardates'
   	DB	0
 MSGKAB:	DB	CR,LF
@@ -273,8 +277,6 @@ MSGYMO:	DB	CR,LF
   	DB	0
 MSGLOE:	DB	CR,LF
   	DB	'Energy loss:      '
-  	;DB	'LOSS OF ENERGY    '
-        ;        LOSS OF ENERGY 0200
 MSGLOP:	DB	' '
   	DB	0
 MSGDSE:	DB	CR,LF
@@ -289,7 +291,7 @@ MSGNEE:	DB	CR,LF
 MSGTTY:	DB	CR,LF
   	DB	'Torpedo trajectory(1-8.5) : '
   	DB	0
-MSGASD:	DB	CR,LF
+UMSGASD:	DB	CR,LF
  	DB	'TIE ship destroyed! '
   	DB	0
 MSGYMA:	DB	CR,LF
@@ -326,7 +328,7 @@ MSGNEL:	DB	CR,LF
   	DB	'ABANDON SHIP! No energy left'
   	DB	0
 MSGNTS:	DB	CR,LF
-  	DB	'NO TORPEDOES'
+  	DB	'No torpedoes'
   	DB	0
 MSG111:	DB	CR,LF
   	DB	'1 '
@@ -2164,11 +2166,20 @@ GAMESTAT:
                                 ; You must destroy 18 alien ships in  05 stardates with 5 space stations
         ret
                                 ; ----------------------------------------------
+MSGCMD:	DB	CR,LF
+  	DB	'Command > '
+  	DB	0
+MSGASD:	DB	CR,LF
+ 	DB	'TIE fighter destroyed.'
+  	DB	0
+
 	END
+                                ;
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
                                 ; ----------------------------------------------
                                 ; Notes to get the program to run.
-
---------------------------------------------------------------------------------
+                                ;
 ; Program is stored on the SD card:
 ;   ++ File:      00001001.BIN  4608
 ;

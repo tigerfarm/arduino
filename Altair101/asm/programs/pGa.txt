@@ -17,9 +17,10 @@
 --------------------------------------------------------------------------------
 To do next:
 
-+ Back out of: WARP FACTOR (0.1-7.7)? 0.0
-
-+ Get Phasors to work again.
++ Create a new message buffer for the following:
+You must destroy 16 TIE ships,  in 21 stardates with 6 space stations
+++ New:
+TIE fighters to destroy: 16, within 21 stardates utilizing 6 space stations.
 
 + Randomize the start number (in START:). Currently, it's always the same random number.
 
@@ -200,6 +201,19 @@ WARP FACTOR (0.1-7.7)? 0.2
 7          *        *     SHIELDS   0000
 8                   *    
  -1--2--3--4--5--6--7--8-
+
+---------------
+Sample of using a fraction of trajectory.
+
+6                         TORPEDOES 06
+7 *       x!x             SHIELDS   0000
+8   |o|                  
+ -1--2--3--4--5--6--7--8-
+Command > 6
+Torpedo trajectory(1-8.5) : 5.5
+Tracking: 7 3
+Tracking: 8 2
+TIE fighter destroyed.
 
 ---------------
 ### Fails
@@ -661,22 +675,23 @@ You must destroy 21 Sith ships in  26 stardates with 6 space stations
 Work version
 You must destroy 21 Sith ships in  26 stardates with 6 space stations
 -------------------------------------------------
-1 203 1 003 1 000 1 011 1 105 1 000 1 000 1 304 |
+1 003 1 003 1 000 1 011 1 005 1 000 1 000 1 004 |
 -------------------------------------------------
-1 204 1 004 1 000 1 000 1 105 1 000 1 003 1 000 |
+1 004 1 004 1 000 1 000 1 105 1 000 1 003 1 000 |
 -------------------------------------------------
 1 001 1 000 1 000 1 000 1 005 1 007 1 014 1 000 |
 -------------------------------------------------
-1 005 1 115 1 002 1 203 1 000 1 103 1 000 1 000 |
+1 005 1 015 1 002 1 003 1 000 1 003 1 000 1 000 |
 -------------------------------------------------
 1 005 1 000 1 000 1 004 1 000 1 001 1 004 1 004 |
 -------------------------------------------------
-1 000 1 102 1 014 1 000 1 000 1 106 1 106 1 112 |
+1 000 1 002 1 014 1 000 1 000 1 006 1 006 1 012 |
 -------------------------------------------------
-1 003 1 000 1 106 1 207 1 006 1 011 1 002 1 105 |
+1 003 1 000 1 006 1 007 1 006 1 011 1 002 1 005 |
 -------------------------------------------------
 1 000 1 000 1 002 1 000 1 004 1 000 1 000 1 000 |
 -------------------------------------------------
+You must destroy 06 TIE ships,  in 12 stardates with 6 space stations
 
 ; ------------------------------------------------------------------------------
 #### Saved memory files:
