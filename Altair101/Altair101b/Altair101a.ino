@@ -1563,7 +1563,9 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("-------------"));
       Serial.println(F("+ h, Help         Print this help menu."));
       Serial.println(F("+ i, info         Information print of registers."));
-      Serial.println(F("+ j, settings     Setting information."));
+      Serial.println(F("+ j, setting      Setting information."));
+      Serial.println(F("+ l, load         Load a sample program."));
+      Serial.println(F("+ L, Load hex     Load hex code from the serial port."));
       Serial.println(F("-------------"));
       Serial.println(F("+ 0...9, a...f    Toggle address switches:  A0...A9, A10...A15."));
       Serial.println(F("-------------"));
@@ -1581,8 +1583,6 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ m, Read         Memory: Read a program file."));
       Serial.println(F("+ M, Write        Memory: Write program to a file."));
       Serial.println(F("+ n, Directory    Directory file listing."));
-      Serial.println(F("+ l, load         Load a sample program."));
-      Serial.println(F("+ L, Load hex     Load hex code from the serial port."));
       Serial.println(F("-------------"));
       Serial.println(F("+ y/Y Serial2     Disable/enable Serial2 for output on port #2 (out 2)."));
       Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));

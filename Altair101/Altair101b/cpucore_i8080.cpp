@@ -28,10 +28,8 @@ word status_inte = 0;
 //
 // For Processor.ino
 byte fpStatusByte = B00000000;      // Status lights: by default are all OFF.
-uint16_t fpAddressWord = B00000000; // Address light byte.
-// byte fpAddressLb = B00000000;       // Address light lb.
-// byte fpAddressHb = B00000000;       // Address light hb.
 byte fpDataByte = B00000000;        // Data byte
+uint16_t fpAddressWord = 0;       // Address light byte.
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -144,7 +142,6 @@ inline void MEM_WRITE_WORD(uint16_t memoryAddress, uint16_t byteValue) {
     host_set_addr_leds(memoryAddress);
     b = byteValue & 255;
     MWRITE(memoryAddress, b);
-    // for (uint8_t i = 0; i < 5; i++) asm("NOP");  // If you want the same as Altair 8800.
     memoryAddress++;
     host_set_addr_leds(memoryAddress);
     b = byteValue / 256;
@@ -155,11 +152,11 @@ inline void MEM_WRITE_WORD(uint16_t memoryAddress, uint16_t byteValue) {
   Serial.println(F("+ MEM_WRITE_WORD, memoryAddress:"));
   Serial.print(memoryAddress);
   Serial.println(F(" byteValue:");
-  Serial.println(byteValue);
+                 Serial.println(byteValue);
 #endif
-  MEM_WRITE_STEP(memoryAddress, byteValue & 255);
-  memoryAddress++;
-  MEM_WRITE_STEP(memoryAddress, byteValue / 256);
+                 MEM_WRITE_STEP(memoryAddress, byteValue & 255);
+                 memoryAddress++;
+                 MEM_WRITE_STEP(memoryAddress, byteValue / 256);
 }
 
 void MEM_WRITE_STEP(uint16_t memoryAddress, byte byteValue) {
@@ -189,7 +186,7 @@ void MEM_WRITE_STEP(uint16_t memoryAddress, byte byteValue) {
   host_set_status_led_STACK();                \
   if( !host_read_status_led_WAIT() ) {        \
     host_set_status_leds_WRITEMEM();          \
-    host_set_data_leds("0xff");               \
+    host_set_data_leds(0xff);               \
     regSP--;                                  \
     host_set_addr_leds(regSP);                \
     printFrontPanel();                        \
@@ -227,7 +224,8 @@ void pushStackSlow(byte valueH, byte valueL) {
     printFrontPanel();                             \
     regSP++;                                       \
     host_set_addr_leds(regSP);                     \
-    valueH = host_set_data_leds(MREAD(regSP));     \
+    valueH = MREAD(regSP);                         \
+    host_set_data_leds(valueH);                    \
     printFrontPanel();                             \
     regSP++;                                       \
   }                                                \
@@ -283,91 +281,6 @@ void altair_interrupt_disable() {
   // altair_interrupts_enabled = false;
   host_clr_status_led_INTE();
 }
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// config.cpp
-
-#define CONFIG_FILE_VERSION 10
-
-// current configuration number
-static byte config_current = 0;
-uint32_t config_flags;
-uint32_t config_flags2;
-uint32_t config_serial_settings, new_config_serial_settings;
-
-// cofig_serial_settings2:
-// xxxxxxxB BPPSBBPP SBBPPSBB PPSBBPPS
-// for all 5 host interfaces:
-// BB = number of bits (0=5, 1=6, 2=7, 3=8)
-// PP = parity         (0=none, 1=even, 2=odd)
-// S  = stop bits      (0=1, 1=2)
-uint32_t config_serial_settings2, new_config_serial_settings2;
-
-// config_serial_device_settings[0-5]
-// xxxxxxxx xxxxMMMR TT77UUVV CNNNBBBB
-// BBBB = baud rate for serial playback (see baud rates above)
-// NNN  = NULs to send after a carriage return when playing back examples
-// C    = trap CLOAD/CSAVE in extended BASIC (for CSM_ACR device only)
-// MMM  = map device to host interface (000=NONE, 001=first, 010=second, 011=third, 100=fourth, 101=fifth, 111=primary)
-// UU   = only uppercase for inputs (00=off, 01=on, 10=autodetect)
-// 77   = use 7 bit for serial outputs (00=off [use 8 bit], 01=on, 10=autodetect)
-// TT   = translate backspace to (00=off, 01=underscore, 10=autodetect, 11=delete)
-// R    = force realtime operation (use baud rate even if not using interrupts)
-// VV   = 88-SIO board version (0=rev0, 1=rev1, 2=Cromemco)
-uint32_t config_serial_device_settings[NUM_SERIAL_DEVICES];
-
-// map emulated device (SIO/2SIO etc.) to host serial port number
-byte config_serial_sim_to_host[NUM_SERIAL_DEVICES];
-
-// masks defining which interrupts (INT_*) are at which vector interrupt levels
-uint32_t config_interrupt_vi_mask[8];
-
-// mask defining whch interrupts (INT_*) are connected if VI board is not installed
-uint32_t config_interrupt_mask;
-
-// amount of RAM installed
-uint32_t config_mem_size;
-
-// --------------------------------------------------------------------------------
-
-static bool config_read_string(char *buf, byte bufsize)
-{
-  return true;
-}
-
-inline uint32_t get_bits(uint32_t v, byte i, byte n)
-{
-  return (v >> ((uint32_t) i)) & ((1ul << n) - 1);
-}
-
-inline uint32_t set_bits(uint32_t v, byte i, byte n, uint32_t nv)
-{
-  uint32_t mask = ((1ul << n) - 1) << i;
-  return (v & ~mask) | ((nv << i) & mask);
-}
-
-static uint32_t toggle_bits(uint32_t v, byte i, byte n, byte min = 0x00, byte max = 0xff)
-{
-  byte b = get_bits(v, i, n) + 1;
-  return set_bits(v, i, n, b > max ? min : (b < min ? min : b));
-}
-
-#if USE_THROTTLE>0
-int config_throttle()
-{
-  if ( config_flags & CF_THROTTLE )
-  {
-    int i = get_bits(config_flags, 12, 5);
-    if ( i == 0 )
-      return -1; // auto
-    else
-      return i;  // manual
-  }
-  else
-    return 0; // off
-}
-#endif
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -773,6 +686,24 @@ static void cpu_print_status_register(byte s) {
   if ( s & PS_CARRY )     Serial.print('C'); else Serial.print('.');
 }
 
+void cpu_print_regS() {
+  printByte(regS);
+  Serial_print(F(" :Sign"));
+  if ( regS & PS_SIGN )      Serial_print(F("=1")); else Serial_print(F("=0"));
+  Serial_print(F(":Zero"));
+  if ( regS & PS_ZERO )      Serial_print(F("=1")); else Serial_print(F("=0"));
+  Serial_print(F(":."));
+  Serial_print(F(":HalfCarry"));
+  if ( regS & PS_HALFCARRY ) Serial_print(F("=1")); else Serial_print(F("=0"));
+  Serial_print(F(":."));
+  Serial_print(F(":Parity"));
+  if ( regS & PS_PARITY )    Serial_print(F("=1")); else Serial_print(F("=0"));
+  Serial_print(F(":."));
+  Serial_print(F(":Carry"));
+  if ( regS & PS_CARRY )     Serial_print(F("=1")); else Serial_print(F("=0"));
+  Serial_print(F(":"));
+}
+
 void cpucore_i8080_print_registers() {
   char charBuffer[17];
   Serial.print(F("++ CPU: "));
@@ -810,53 +741,50 @@ void cpucore_i8080_print_registers() {
   Serial.print(F(" = ")); numsys_print_mem(regSP, 8, true);
   Serial.println(F(" Stack pointer"));
   //
-  Serial.print(F("++ regS  = "));   numsys_print_byte(regS);
-  Serial.print(F(" = ")); cpu_print_status_register(regS);
-  Serial.println(F(" Status byte"));
+  Serial.print(F("++ regS:             "));
+  cpu_print_regS();
+  Serial.println();
+  // Serial.print(F(" = ")); cpu_print_status_register(regS);
+  // Serial.println(F(" Status byte"));
   // ---
-  Serial.print(F("+ Front panel display Status byte,  fpStatusByte:    "));
+  Serial.print(F("++ regA: "));
+  printData(regA);
+  Serial.println();
+  // ---
+  Serial.print(F("++ regB: "));
+  printData(regB);
+  Serial.print(F("  regC: "));
+  printData(regC);
+  Serial.println();
+  // ---
+  Serial.print(F("++ regD: "));
+  printData(regD);
+  Serial.print(F("  regE: "));
+  printData(regE);
+  Serial.println();
+  // ---
+  Serial.print(F("++ regH: "));
+  printData(regH);
+  Serial.print(F("  regL: "));
+  printData(regL);
+  Serial.println();
+  // ---
+  Serial.print(F("++ Front panel display Status byte,  fpStatusByte:    "));
   printData(fpStatusByte);
   Serial.println();
-  Serial.print(F("+ Front panel display Data byte,    fpDataByte:      "));
+  Serial.print(F("++ Front panel display Data byte,    fpDataByte:      "));
   printData(fpDataByte);
   Serial.println();
   //
-  Serial.print(F("+ Front panel display Address word, fpAddressWord: "));
-  sprintf(charBuffer, "%5d", fpAddressWord);
+  //              ++ Front panel display Address word, fpAddressWord: -32768 = 10000000:00000000
+  Serial.print(F("++ Front panel display Address word, fpAddressWord: "));
+  sprintf(charBuffer, "%5u", fpAddressWord);
   Serial.print(charBuffer);
   Serial.print(F(" = "));
   printByte(highByte(fpAddressWord));
   Serial.print(F(":"));
   printByte(lowByte(fpAddressWord));
   Serial.println();
-  /*
-    Serial.print(F("+ Front panel display Address word, fpAddressHb:fpAddressLb = "));
-    printByte(fpAddressHb);
-    Serial.print(F(":"));
-    printByte(fpAddressLb);
-    Serial.println();
-  */
-  // ---
-  Serial.print(F("+ regA: "));
-  printData(regA);
-  Serial.println();
-  // ---
-  Serial.print(F("+ regB: "));
-  printData(regB);
-  Serial.print(F("  regC: "));
-  printData(regC);
-  Serial.println();
-  // ---
-  Serial.print(F("+ regD: "));
-  printData(regD);
-  Serial.print(F("  regE: "));
-  printData(regE);
-  Serial.println();
-  // ---
-  Serial.print(F("+ regH: "));
-  printData(regH);
-  Serial.print(F("  regL: "));
-  printData(regL);
   // ---
   Serial.println();
 }

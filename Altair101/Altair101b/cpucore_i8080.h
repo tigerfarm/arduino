@@ -18,19 +18,28 @@ extern CPUFUN cpu_opcodes[256];
 #define CPU_EXEC(opcode) (cpu_opcodes[opcode])();
 
 // -----------------------------------------------------------------------------
-// Motherboard
+// Motherboard Options
 
 // ----------------------------
 // Mega
 #if defined(__AVR_ATmega2560__)
 #define THIS_CPU "Mega 2560"
-#define MEMSIZE (2048)          // Mega2650 has 8k SRAM, use 2048, Max, 6K: #define MEMSIZE (4096+2048)
+//
+// The following works for pGalaxy80.asm: 4442 bytes.
+// The following works to load 4K Basic, though it doesn't run.
+#define MEMSIZE (4096+1024)
+// Global variables use 7386 bytes (90%) of dynamic memory, leaving 806 bytes for local variables.
+//
+// #define MEMSIZE (2048+1024)
+// #define MEMSIZE (2048)       // Mega2650 has 8k SRAM, use 2048.
+// #define MEMSIZE (4096+2048)  // Max 6K, for David Hansel version.
 //
 #define USE_THROTTLE 0          // Set for slower Mega CPU.
 #define MAX_TIMERS 9
 
 // ----------------------------
 // Due
+// The USB Programming port, next to the DC connector, is for uploading sketches and communicating with the Arduino.
 #elif defined(__SAM3X8E__)
 #define THIS_CPU "Due"
 #define MEMSIZE 0x10000         // 64K, Hex=10000 decimal=65536
@@ -50,21 +59,8 @@ extern CPUFUN cpu_opcodes[256];
 //  Global variables use 1463 bytes (71%) of dynamic memory, leaving 585 bytes for local variables. Maximum is 2048 bytes.
 #endif
 
-// ---------------------------------
-// Enable throttling of CPU speed.
-
-#define CF_THROTTLE     0x01
-#define CF_SERIAL_INPUT 0x08
-
-#define NUM_SERIAL_DEVICES 4
-
-extern uint32_t config_flags, config_flags2;
-inline bool config_serial_input_enabled()     {
-  return (config_flags & CF_SERIAL_INPUT) != 0;
-}
-
 // -----------------------------------------------------------------------------
-// Memory, declare memory and memory read and write functions
+// Memory, declare memory, and memory read and write functions
 
 extern byte Mem[MEMSIZE];
 
@@ -78,6 +74,7 @@ extern byte Mem[MEMSIZE];
 // CPU Registers
 
 void cpucore_i8080_print_registers();
+void cpu_print_regS();
 
 #define PS_CARRY       0x01
 #define PS_PARITY      0x04
@@ -150,27 +147,31 @@ extern const byte INT_ON;
 
 // Using bytes for the address. Unless there is a specific need for bytes, I'll use the word length variable.
 /*
-inline void host_set_addr_leds(uint16_t v) {
+  inline void host_set_addr_leds(uint16_t v) {
   fpAddressWord = v;
   // fpAddressLb = (v & 0xff); // lb where 0xff remove hb, leaving LB
   // fpAddressHb = (v / 256);  // hb
-}
-#define host_read_addr_leds(v) (fpAddressLb | (fpAddressHb * 256))
+  }
+  #define host_read_addr_leds(v) (fpAddressLb | (fpAddressHb * 256))
 */
 // Using a word for the address.
 #define host_set_addr_leds(v)  fpAddressWord=(v)
 #define host_read_addr_leds(v) fpAddressWord
 
-#define host_set_data_leds(v)  fpDataByte=(v)
+//
+inline void host_set_data_leds(byte v) { fpDataByte = v; }
+// For Due, use the above, instead of the following:
+// #define host_set_data_leds(v)  fpDataByte=(v)
+//
 #define host_read_data_leds()  fpDataByte
 
 #define host_read_status_led_WAIT()   status_wait
-#define host_set_status_led_WAIT()  { digitalWrite(40, HIGH); status_wait = true; }
 #define host_clr_status_led_WAIT()  { digitalWrite(40, LOW);  status_wait = false; }
+#define host_set_status_led_WAIT()  { digitalWrite(40, HIGH); status_wait = true; }
 
 #define host_read_status_led_HLDA()   status_hlda
-#define host_set_status_led_HLDA()  { digitalWrite(41, HIGH); status_inte = true; }
-#define host_clr_status_led_HLDA()  { digitalWrite(41, LOW);  status_inte = false; }
+#define host_set_status_led_HLDA()  { digitalWrite(41, HIGH); status_hlda = true; }
+#define host_clr_status_led_HLDA()  { digitalWrite(41, LOW);  status_hlda = false; }
 
 #define host_read_status_led_INTE()   status_inte
 #define host_set_status_led_INTE()  { digitalWrite(38, HIGH); status_inte = true; }
