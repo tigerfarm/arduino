@@ -2,6 +2,9 @@
 # Altair 101a Simulator Machine
 
 This machine is a serial port interactive Altair 8800 simulator.
+It has rudimentary OS to run programs from command line.
+Or it can be run using a virtual Altair 8800 front panel display and virtual switches.
+The hardware is a Mega 2560 board, micro SD card reader, second hardware serial port, on a 4 port USB hub.
 
 Description:
 + Runs 8080 machine code programs.
@@ -12,7 +15,7 @@ Description:
 + It has 5K of program memory.
 
 Hardware components:
-+ Arduino Mega 2650 board
++ Arduino Mega 2560 board
 + Micro SD card reader with a 32gig card
 + USB serial port module
 + 4 port USB hub with on/off switches for each port
@@ -32,7 +35,7 @@ OS:
 + Control interactive modes: virtual front panel or command line.
 
 --------------------------------------------------------------------------------
-
+````
 ````
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

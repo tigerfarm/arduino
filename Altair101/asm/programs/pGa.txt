@@ -703,3 +703,4 @@ You must destroy 06 TIE ships,  in 12 stardates with 6 space stations
 ; ------------------------------------------------------------------------------
 12578bx Galaxy program start address, label: GALAXY.
 2589bx Command Menu start address. First instruction is to set the stack pointer.
+cmyc12578bxr for the Arduino IDE monitor.
