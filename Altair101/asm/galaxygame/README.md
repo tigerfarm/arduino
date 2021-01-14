@@ -7,7 +7,7 @@
 ; +----------------------------------+
 ;
 ; My challenge,
-;   + Assemble using my assembler.
+;   + Update my assembler so that I can assemble GALAXY.
 ;   + Run using Altair101a.
 ;   + Make program enhancements.
 ;

@@ -26,7 +26,7 @@ extern CPUFUN cpu_opcodes[256];
 #define THIS_CPU "Mega 2560"
 //
 // The following works for pGalaxy80.asm: 4442 bytes.
-// The following works to load 4K Basic, though it doesn't run.
+// And works to load 4K Basic, though it doesn't run.
 #define MEMSIZE (4096+1024)
 // Global variables use 7386 bytes (90%) of dynamic memory, leaving 806 bytes for local variables.
 //
@@ -39,14 +39,15 @@ extern CPUFUN cpu_opcodes[256];
 
 // ----------------------------
 // Due
-// The USB Programming port, next to the DC connector, is for uploading sketches and communicating with the Arduino.
+// The USB Programming port, next to the DC connector,
+//    is for uploading sketches and communicating with the Arduino.
 #elif defined(__SAM3X8E__)
 #define THIS_CPU "Due"
 #define MEMSIZE 0x10000         // 64K, Hex=10000 decimal=65536
+// Sketch uses 80540 bytes (15%) of program storage space. Maximum is 524288 bytes.
 //
 #define USE_THROTTLE 1          // Set for faster Due CPU.
 #define MAX_TIMERS 13
-
 // ----------------------------
 #else
 #define THIS_CPU "Other:Nano|Uno"
@@ -166,8 +167,8 @@ inline void host_set_data_leds(byte v) { fpDataByte = v; }
 #define host_read_data_leds()  fpDataByte
 
 #define host_read_status_led_WAIT()   status_wait
-#define host_clr_status_led_WAIT()  { digitalWrite(40, LOW);  status_wait = false; }
-#define host_set_status_led_WAIT()  { digitalWrite(40, HIGH); status_wait = true; }
+#define host_clr_status_led_WAIT()  { digitalWrite(13, LOW);  status_wait = false; }
+#define host_set_status_led_WAIT()  { digitalWrite(13, HIGH); status_wait = true; }
 
 #define host_read_status_led_HLDA()   status_hlda
 #define host_set_status_led_HLDA()  { digitalWrite(41, HIGH); status_hlda = true; }

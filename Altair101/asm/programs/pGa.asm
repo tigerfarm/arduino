@@ -1,84 +1,56 @@
 ; ------------------------------------------------
-;
-; Stacy, be a challenge to get this to compile using my assembler.
-;
-; Original site:
-;   https://github.com/deltecent/scelbi-galaxy
-;
-; ------------------------------------------------
-;
 ; +----------------------------------+
 ; |       SCELBI'S GALAXY GAME       |
-; |           FOR THE 8080           |
-; |                                  |
-; |             AUTHOR:              |
-; |          ROBERT FIDLEY           |
-; |                                  |
+; |       AUTHOR: ROBERT FIDLEY      |
 ; |       (C) COPYRIGHT 1976         |
-; |                                  |
 ; | Scelbi Computer Consulting, Inc. |
-; |   1322 Rear - Boston Post Road   |
-; |        Milford, CT 06460         |
-; |                                  |
 ; |       ALL RIGHTS RESERVED        |
-; |                                  |
 ; +----------------------------------+
 ;
-; **************************************************
-;
-; Along time ago in a magazine far, far away....
-;
+; A long time ago, in a magazine far, far away....
 ; In 1976 Scelbi Computer Consulting, Inc. published
 ; "Scelbi's Galaxy Game for the '8008/8080'" written
-; by Robert Findley.
+; by Robert Findley. The publication included the 
+; complete source code listings for Intel 8008 and
+; 8080, flow charts, and detailed documentation.
 ;
-; The publication included the complete source code
-; listings for Intel 8008 and 8080, flow charts, and
-; detailed documentation of how the game functions.
-;
-; The source listings for GALAXY are for Intel's
-; original 8008 mnemonics published in 1972.
-;
-; Examples:
-;
-; Old	New
-; ---	-------
-; JFC	JNC
-; CAL	CALL
-; RFZ	RNZ
-; LMs	MOV M,s
-; ADM	ADD M
-;
-; ******* CAPTAIN'S LOG ***************************
+; ******* ENGINEERING LOG *************************
 ;
 ; -- Stardate: Aug 25, 2020 -----------------------
 ; -- Patrick Linstruth <patrick@deltecent.com -----
-;
 ; This version of GALAXY is Findley's original 8080
 ; program listing modified for Digital Research's
 ; 8080 Assember (ASM.COM) and ZASM by Günter Woigk.
 ; The console I/O routines are for the MITS 88-2SIO
 ; serial adapter.
+; 2020 version is designed to be loaded at 0000H
+; and executed at "GALAXY".
 ;
-; This version is designed to be loaded at 0000H
-; and executed at "GALAXY" which is currently
-; located at 09A3H.
 ; -------------------------------------------------
+; -- Stardate: Jan 15, 2021 -----------------------
+; -- Stacy David https://github.com/tigerfarm -----
+; This version of GALAXY is based on the above.
+; I gave the program enhancements and a Star Wars theme.
+; The console I/O routines are for an Arduino Mega
+; or Due which use serial over USB.
+; 2021 version is designed to be loaded at 0000H
+; and executed at "GALAXY".
+; Original site:
+;   https://github.com/deltecent/scelbi-galaxy
+; Stacy David's site:
+;   https://github.com/tigerfarm/arduino/blob/master/Altair101/asm/programs/pGa.asm
 ;
-; **************************************************
+; ******* CAPTAIN'S LOG ***************************
 ;
-; Captain your own crusading starship against the
-; logic of your "8008" or "8080". You must destroy
-; a random number of alien ships without running
-; out of stardates, out of fuel, out of ammunition,
-; or out of the galaxy. Plan your mission. How much
-; fuel is used for your warp factor? Don't run
-; into roaming stars that can damage your ship.
-; Suddenly. Condition Red. Alien in sight.
-; How big is he? Fire a phasor or torpedo. He's
-; damaged or destroyed. But, you've used valuable
-; fuel. That's just the beginning. A new game
-; every time.
+; Captain your starship is pitted against the
+; logic of your 8080 machine. You must destroy
+; a random number of TIE fighters without running
+; out of stardates, fuel, or ammunition. You must
+; stay in the galaxy, so plan your mission. Don't
+; run into star. That would destroy your ship.
+; Suddenly. Condition Red. Fighters in your sector.
+; Fire phasors or torpedo. He's damaged or destroyed.
+; A new game every time.
 ;
 ; **************************************************
 
@@ -1987,6 +1959,8 @@ INPUT:
         cpi     'N'             ; No, don't start a new game.
         jz      INPUTokay
         cpi     'Y'             ; Yes, start the game.
+        jz      INPUTokay
+        cpi     'y'             ; Yes, start the game.
         jz      INPUTokay
         cpi     'X'             ; Exit, ask to start a new game.
         jz      INPUTokay

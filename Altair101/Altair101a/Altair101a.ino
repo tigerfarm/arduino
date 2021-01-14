@@ -32,11 +32,34 @@
   ++ Then, could use the original serial routines in Galaxy80.asm.
 
   Implement interupt handling.
-  + opcodes: ei and di.
+  + opcodes: ei and di. And handling interupts once ei is run.
   + This is required when I try to run complex programs such as CPM, and likely Basic.
 
   + Option to have HLT work the same as Altair 8800.
-  
+
+  Starting integrating hardware functions using the Altair tablet.
+  + Get the Altair tablet to work.
+  + Test with Altair101a.
+  + Then update Altair101a with the ability to flash the front panel lights.
+  + Then update Altair101a implementing interactivity with the front panel switches.
+
+
+  ---------------------------------------------------------
+// Built in, on board LED: GPI13 which is D13 on Mega, Nano, and Uno. LED is red on Nano.
+// Built in, on board LED: GPIO2 which is D04 on NodeMCU.
+#define LED_PIN 13
+  boolean ledOn = false;
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);    // Off
+  Serial.println("+ Initialized the on board LED digital pin for output. LED is off.");
+  if (ledOn) {
+    digitalWrite(LED_PIN, LOW);   // Off
+    ledOn = false;
+  } else {
+    digitalWrite(LED_PIN, HIGH);    // On
+    ledOn = true;
+  }
+
   ---------------------------------------------------------
   Hex programs:
 
@@ -471,7 +494,8 @@ int programState = LIGHTS_OFF;  // Intial, default.
 byte readByte = 0;
 
 // Program wait status.
-// const int WAIT_PIN = A9;      // Processor program wait state: off/LOW or wait state on/HIGH.
+// const int WAIT_PIN = A9;     // Processor program wait state: off/LOW or wait state on/HIGH.
+const int WAIT_PIN = 13;        // Change to onboard pin for the Altair 101a machine.
 
 // HLDA : 8080 processor goes into a hold state because of other hardware running.
 // const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock/player processing (on/HIGH).
@@ -1216,7 +1240,7 @@ void processRunSwitch(byte readByte) {
 
 void runProcessor() {
   Serial.println(F("+ runProcessor()"));
-  if (SERIAL_CLI) {
+  if (SERIAL_CLI && !SERIAL_FRONT_PANEL) {
     // Terminal mode: case 3: (Crtl+c) instead of case 's'.
     stopByte = 3;
     // Terminal mode: case 26 (Crtl+z) instead of case 'R'.
@@ -1465,7 +1489,7 @@ void processWaitSwitch(byte readByte) {
       }
       break;
     case 'L':
-      Serial.println(F("+ L, Load hex code from the serial port."));
+      Serial.println(F("+ L, Load hex code from the serial port. Enter space(' ') to exit."));
       loadProgramSerial();
       if (!SERIAL_IO_IDE) {
         printFrontPanel();  // <LF> will refresh the display.
@@ -1947,7 +1971,7 @@ void runDownloadProgram() {
     SERIAL2_OUTPUT = false;               // Don't print to Serial2 during this operation.
     check_SERIAL2_OUTPUT = true;          // Re-open before exiting this function.
   }
-  Serial2.begin(downloadBaudRate);        // 57600 downloadBaudRate
+  Serial2.begin(downloadBaudRate);
   while (programState == SERIAL_DOWNLOAD) {
     if (Serial2.available() > 0) {
       readByte = Serial2.read();      // Read the incoming byte.
@@ -2121,7 +2145,7 @@ void loadProgramBytes() {
 // -----------------------------------------------------------------------------
 void setup() {
   // Speed for serial read, which matches the sending program.
-  Serial.begin(115200);         // 9600 19200 57600 115200
+  Serial.begin(115200);         // Baud rates: 9600 19200 57600 115200
   delay(2000);
   Serial.println(); // Newline after garbage characters.
   Serial.println(F("+++ Setup."));
@@ -2131,10 +2155,10 @@ void setup() {
   // Front panel LED lights.
 
   // System application status LED lights
-  // pinMode(WAIT_PIN, OUTPUT);    // Indicator: program WAIT state: LED on or LED off.
-  // pinMode(HLDA_PIN, OUTPUT);    // Indicator: clock or player process (LED on) or emulator (LED off).
-  // digitalWrite(WAIT_PIN, HIGH); // Default to wait state.
-  // digitalWrite(HLDA_PIN, HIGH); // Default to emulator.
+  pinMode(WAIT_PIN, OUTPUT);        // Indicator: program WAIT state: LED on or LED off.
+  // pinMode(HLDA_PIN, OUTPUT);     // Indicator: clock or player process (LED on) or simulator (LED off).
+  digitalWrite(WAIT_PIN, HIGH);     // Default to wait state.
+  // digitalWrite(HLDA_PIN, HIGH);  // Default to simulator.
   // ------------------------------
   // Set status lights.
 #ifdef LOG_MESSAGES
@@ -2153,7 +2177,6 @@ void setup() {
   // ----------------------------------------------------
 #ifdef SETUP_SDCARD
   // The csPin pin is connected to the SD card module select pin (CS).
-  //            1234567890123456
   if (!SD.begin(csPin)) {
     Serial.println(F("- Error initializing SD card module."));
     ledFlashError();
@@ -2166,7 +2189,7 @@ void setup() {
 #else
   Serial.println(F("+ SD card module is not included in this compiled version."));
 #endif
-
+  //
   // ----------------------------------------------------
   // ----------------------------------------------------
   programState = PROGRAM_WAIT;
