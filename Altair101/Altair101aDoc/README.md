@@ -1,10 +1,22 @@
 --------------------------------------------------------------------------------
 # Altair 101a Simulator Machine
 
-This machine is a serial port interactive Altair 8800 simulator.
-It has rudimentary OS to run programs from command line.
-Or it can be run using a virtual Altair 8800 front panel display and virtual switches.
-The hardware is a Mega 2560 board, micro SD card reader, second hardware serial port, on a 4 port USB hub.
+This machine has a serial port interface to an Altair 8800 simulator.
+It has a rudimentary OS to run the simulator from command line.
+Or, the simulator can be run using a virtual Altair 8800 front panel.
+I'm using David Hansel's Altair 8800 Simulator code to run the machine instructions. 
+The hardware is a Mega 2560 board, micro SD card reader, serial port module, and a 4 port USB hub.
+
+How to connect from a UNIX or Mac OS terminal:
+````
+$ ls /dev/tty.*
+... /dev/tty.wchusbserial14210  /dev/tty.wchusbserial14220
+$ screen /dev/tty.wchusbserial14210 115200
++++ Setup.
++ SD card module is initialized.
++++ Altair 101a initialized.
+?- 
+````
 
 Description:
 + Runs 8080 machine code programs.

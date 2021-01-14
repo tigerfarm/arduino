@@ -1240,6 +1240,8 @@ void runProcessor() {
 // -----------------------------------------------------------------------------
 // Processor WAIT mode: process switch byte options.
 
+String loadProgramName = "";
+
 void processWaitSwitch(byte readByte) {
   // -------------------------------
   // Process an address/data toggle.
@@ -1384,8 +1386,7 @@ void processWaitSwitch(byte readByte) {
       fpDataByte = 0;                         // Data
       fpAddressWord = 0;                      // Address word
       fpAddressToggleWord = 0;                // Reset all toggles to off.
-      // setAddressData(regPC, MREAD(regPC));
-      // host_set_status_leds_READMEM_M1();
+      loadProgramName = "";                   // As there may have been a sample loaded program.
       if (SERIAL_FRONT_PANEL) {
         printFrontPanel();      // For Arduino IDE monitor, <LF> will refresh the display.
       }
@@ -1554,40 +1555,42 @@ void processWaitSwitch(byte readByte) {
       break;
     // -------------------------------------
     case 'h':
+      Serial.print(F("+ h, Print help information."));
+      Serial.println();
       Serial.println(F("----------------------------------------------------"));
       Serial.println(F("+++ Commands"));
       Serial.println(F("-------------"));
-      Serial.println(F("+ h, Help         Print this help menu."));
-      Serial.println(F("+ i, info         Information print of registers."));
-      Serial.println(F("+ j, settings     Setting information."));
+      Serial.println(F("+ r, RUN mode     When in WAIT mode, change to RUN mode."));
+      Serial.println(F("+ s, STOP         When in RUN mode, change to WAIT mode."));
+      Serial.println(F("+ s, SINGLE STEP  When in WAIT mode, SINGLE STEP."));
+      Serial.println(F("+ x, EXAMINE      current switch address."));
+      Serial.println(F("+ X, EXAMINE NEXT address, current address + 1."));
+      Serial.println(F("+ p, DEPOSIT      into current address."));
+      Serial.println(F("+ P, DEPOSIT NEXT address, deposit into current address + 1."));
+      Serial.println(F("+ R, RESET        Set program counter address to zero."));
+      Serial.println(F("+ C, CLR          Clear memory, set registers and program counter address to zero."));
+      Serial.println(F("+ D, Download     Download mode, from serial port (Serial2)."));
       Serial.println(F("-------------"));
       Serial.println(F("+ 0...9, a...f    Toggle address switches:  A0...A9, A10...A15."));
       Serial.println(F("-------------"));
-      Serial.println(F("+ r, RUN mode."));
-      Serial.println(F("+ s, STOP         When in RUN mode, change to WAIT mode."));
-      Serial.println(F("+ s, SINGLE STEP  When in WAIT mode."));
-      Serial.println(F("+ x, EXAMINE      current switch address."));
-      Serial.println(F("+ X, EXAMINE NEXT address, current address + 1."));
-      Serial.println(F("+ p, DEPOSIT      current address"));
-      Serial.println(F("+ P, DEPOSIT NEXT address, current address + 1"));
-      Serial.println(F("+ R, RESET        Set program counter address to zero."));
-      Serial.println(F("+ C, CLR          Clear memory, set registers and program counter address to zero."));
-      Serial.println(F("+ D, Download     Download mode."));
-      Serial.println(F("-------------"));
-      Serial.println(F("+ m, Read         Memory: Read a program file."));
-      Serial.println(F("+ M, Write        Memory: Write program to a file."));
-      Serial.println(F("+ n, Directory    Directory file listing."));
-      Serial.println(F("+ l, load         Load a sample program."));
+      Serial.println(F("+ m, Read         Memory: Read an SD card file into program memory."));
+      Serial.println(F("+ M, Write        Memory: Write program memory to an SD card file."));
+      Serial.println(F("+ n, Directory    Directory file listing of the SD card."));
+      Serial.println(F("+ l, Load sample  Load a sample program."));
       Serial.println(F("+ L, Load hex     Load hex code from the serial port."));
       Serial.println(F("-------------"));
-      Serial.println(F("+ y/Y Serial2     Disable/enable Serial2 for output on port #2 (out 2)."));
-      Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
-      Serial.println(F("+ t/T Terminal    Disable/enable terminal commandline (cli)."));
-      Serial.println(F("+ v/V VT100       Disable/enable vitural front panel."));
+      Serial.println(F("+ i, info         Information print of registers."));
+      Serial.println(F("+ j, settings     Settings information."));
+      Serial.println(F("-------------"));
+      Serial.println(F("+ t/T Terminal    Disable/enable VT100 terminal commandline (cli) escape codes."));
+      Serial.println(F("+ v/V Front panel Disable/enable VT100 virtual front panel."));
       Serial.println(F("+ w/W USB serial  Disable/enable USB serial output."));
-      Serial.println(F("+ z/Z cursor      VT100 block cursor off/on."));
-      Serial.println(F("+ u/U Log msg     Log messages off/on."));
+      Serial.println(F("+ y/Y Serial2     Disable/enable Serial2 for I/O."));
+      Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
+      Serial.println(F("-------------"));
       Serial.println(F("+ Enter key       Refresh USB serial output front panel display."));
+      Serial.println(F("+ u/U Log msg     Log messages off/on."));
+      Serial.println(F("+ z/Z cursor      VT100 block cursor off/on."));
       Serial.println(F("----------------------------------------------------"));
       break;
     // -------------------------------------
@@ -1748,7 +1751,6 @@ void runProcessorWait() {
 // -----------------------------------------------------------------------------
 // Processor WAIT mode: Load sample programs.
 
-String loadProgramName = "";
 void loadProgram() {
   int cnt;
   cnt = 0;
@@ -1764,51 +1766,9 @@ void loadProgram() {
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
       switch (readByte) {
-        case 'i':
-          loadProgramName = "Input loop";
-          Serial.println(F("+ i, load: Input loop, Ctrl+c to halt the loop."));
-          programState = PROGRAM_WAIT;
-          if (SERIAL_FRONT_PANEL) {
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:'>'
-          MWRITE( cnt++, B00111110 & 0xff);  // ++ immediate:'>':62
-          MWRITE( cnt++, B11010011 & 0xff);  // ++ opcode:out:11010011:SERIAL_PORT
-          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:SERIAL_PORT:2
-          MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:SERIAL_PORT
-          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:SERIAL_PORT:2
-          MWRITE( cnt++, B11111110 & 0xff);  // ++ opcode:cpi:11111110:3
-          MWRITE( cnt++, B00000011 & 0xff);  // ++ immediate:3:3
-          MWRITE( cnt++, B11001010 & 0xff);  // ++ opcode:jz:11001010:HaltLoop
-          MWRITE( cnt++, B00011110 & 0xff);  // ++ lb:HaltLoop:30
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B11111110 & 0xff);  // ++ opcode:cpi:11111110:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ immediate:0:0
-          MWRITE( cnt++, B11001010 & 0xff);  // ++ opcode:jz:11001010:GetByte
-          MWRITE( cnt++, B00000100 & 0xff);  // ++ lb:GetByte:4
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B11010011 & 0xff);  // ++ opcode:out:11010011:SERIAL_PORT
-          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:SERIAL_PORT:2
-          MWRITE( cnt++, B11111110 & 0xff);  // ++ opcode:cpi:11111110:13
-          MWRITE( cnt++, B00001101 & 0xff);  // ++ immediate:13:13
-          MWRITE( cnt++, B11000010 & 0xff);  // ++ opcode:jnz:11000010:GetByte
-          MWRITE( cnt++, B00000100 & 0xff);  // ++ lb:GetByte:4
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:'\n'
-          MWRITE( cnt++, B00001010 & 0xff);  // ++ immediate:'\n':10
-          MWRITE( cnt++, B11010011 & 0xff);  // ++ opcode:out:11010011:SERIAL_PORT
-          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:SERIAL_PORT:2
-          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:prompt
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:prompt:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
-          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:GetByte
-          MWRITE( cnt++, B00000100 & 0xff);  // ++ lb:GetByte:4
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          break;
         case 'k':
-          loadProgramName = "Kill the Bit";
-          Serial.println(F("+ k, load: Kill the Bit version for serial input."));
+          loadProgramName = "Serial Kill the Bit";
+          Serial.println(F("+ k, load: A version of Kill the Bit for serial I/O."));
           programState = PROGRAM_WAIT;
           if (SERIAL_FRONT_PANEL) {
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
@@ -1840,8 +1800,9 @@ void loadProgram() {
           MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
           break;
         case 'm':
-          loadProgramName = "Registers MVI test";
-          Serial.println(F("+ m, load: MVI testing to the setting of registers."));
+          loadProgramName = "Register set test";
+          Serial.println(F("+ m, load: a program that uses MVI to set the registers with values from 1 to 7."));
+          Serial.println(F("     Use option 'i' to list the register values."));
           programState = PROGRAM_WAIT;
           if (SERIAL_FRONT_PANEL) {
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
@@ -1865,30 +1826,6 @@ void loadProgram() {
           MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:Start:0
           MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
           break;
-        case 'w':
-          loadProgramName = "Write byte to memory location: 96";
-          Serial.println(F("+ w, load: Write byte to memory location: 96, increment byte and loop."));
-          if (SERIAL_FRONT_PANEL) {
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          programState = PROGRAM_WAIT;
-          MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:6
-          MWRITE( cnt++, B00000110 & 0xff);  // ++ immediate:6:6
-          MWRITE( cnt++, B00110010 & 0xff);  // ++ opcode:sta:00110010:96
-          MWRITE( cnt++, B01100000 & 0xff);  // ++ lb:96:96
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ immediate:0:0
-          MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
-          MWRITE( cnt++, B00111010 & 0xff);  // ++ opcode:lda:00111010:96
-          MWRITE( cnt++, B01100000 & 0xff);  // ++ lb:96:96
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
-          MWRITE( cnt++, B00111100 & 0xff);  // ++ opcode:inr:00111100:a
-          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Store
-          MWRITE( cnt++, B00000010 & 0xff);  // ++ lb:Store:2
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          break;
         // -------------------------------------
         case 'x':
           Serial.println(F("< x, Exit load program."));
@@ -1903,11 +1840,8 @@ void loadProgram() {
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
           }
           Serial.println(F("+ Sample programs."));
-          Serial.println(F("++ i, Input loop, Ctrl+c to halt the loop."));
           Serial.println(F("++ k, Kill the Bit version for serial VT100 input."));
           Serial.println(F("++ m, MVI testing to the setting of registers."));
-          Serial.println(F("++ w, Write byte to memory location: 96, increment byte and loop."));
-          Serial.println(F("++ s, Front panel status light test."));
           Serial.println(F("----------"));
           Serial.println(F("+ x, Exit: don't load a program."));
       }
