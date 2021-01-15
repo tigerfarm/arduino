@@ -31,7 +31,7 @@ public class asm {
     asmProcessor processFile = new asmProcessor();
     asmOpcodes theOpcodes = new asmOpcodes();
 
-    private static final String ASMVERSION = "0.93t";
+    private static final String ASMVERSION = "0.96a";
 
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     private static String sourcedirectoy = "programs";
@@ -102,7 +102,7 @@ public class asm {
         int ei = 0;
 
         String thePrompt = "> ";
-        System.out.print("+ Enter 'exit' to exit. 'help' to get a command listing.");
+        System.out.println("+ Enter 'exit' to exit. 'help' to get a command listing.");
         String consoleInLine = "";
         while (!(consoleInLine.equals("exit"))) {
             System.out.print(thePrompt);
