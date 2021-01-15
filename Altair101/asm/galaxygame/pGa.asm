@@ -1,4 +1,4 @@
-; ------------------------------------------------
+; ------------------------------------------------------------------------------
 ; +----------------------------------+
 ; |       SCELBI'S GALAXY GAME       |
 ; |       AUTHOR: ROBERT FIDLEY      |
@@ -32,25 +32,25 @@
 ; This version of GALAXY is based on the above.
 ; I gave the program enhancements and a Star Wars theme.
 ; The console I/O routines are for an Arduino Mega
-; or Due which use serial over USB.
+; or Due which use serial over a USB connection.
 ; 2021 version is designed to be loaded at 0000H
 ; and executed at "GALAXY".
-; Stacy David's site:
-;   https://github.com/tigerfarm/arduino/blob/master/Altair101/asm/programs/pGa.asm
+; Stacy David's repository:
+;   https://github.com/tigerfarm/arduino/tree/master/Altair101/asm/galaxygame
 ;
-; ******* CAPTAIN'S LOG ***************************
+; ******* GALAXY MISSION **************************
 ;
-; Captain your starship is pitted against the
+; Captain, your starship is pitted against the
 ; logic of your 8080 machine. You must destroy
 ; a random number of TIE fighters without running
 ; out of stardates, fuel, or ammunition. You must
 ; stay in the galaxy, so plan your mission. Don't
 ; run into star. That would destroy your ship.
 ; Suddenly. Condition Red. Fighters in your sector.
-; Fire phasors or torpedo. He's damaged or destroyed.
+; Fire phasors or torpedoes. Are they destroyed?
 ; A new game every time.
 ;
-; **************************************************
+; ------------------------------------------------------------------------------
 
 LF	EQU	0AH
 CR	EQU	0DH
@@ -1117,7 +1117,6 @@ CK1:
 	DCR	L		;Set pointer to least signif. half
 	CMP	D		;Is most significant half = 0?
 	RNZ			;No, return with flags set up
-                                ; Stacy, remove the above, so that there is always enough energy. Not tested.
 CK2:
 	MOV	A,M		;If greater than or =, ret. with
 	CMP	E		;'C' flag reset, if less than
@@ -2161,23 +2160,7 @@ To run,
 + "m" and Confirm the loading of SD file: 00001001.BIN (S8 and S11 which is 8b).
 + "x" to EXAMINE the address: 00001001:10100110 (S11 S8 S7 S5 S2 S1 which is 12578b).
 + "r" to run the program.
-+ "3" to view the galaxy quadrants.
 Start playing.
-
-Program needs updating to run from the Arduino monitor because it sends the line feed character.
-+ Need to ignore non-digit characters, only use 0...9.
-
---------------------------------------------------------------------------------
-The following change allows the energy to always be sufficient.
-
-CKMN:
-	MVI	L,050H		;Set pointer to main energy,  050H = 1010000 = 80 (decimal)
-CK1:
-	MOV	A,M		;Fetch most significant half
-	DCR	L		;Set pointer to least signif. half
-	CMP	D		;Is most significant half = 0?
-	; RNZ			;No, return with flags set up
-	ret			;Stacy, change to return so that there is always enough energy.
 
 --------------------------------------------------------------------------------
 YOU MUST DESTROY 21 ALIEN SHIPS IN 26 STARDATES WITH 6 SPACE STATIONS

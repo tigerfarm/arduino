@@ -1,33 +1,33 @@
-; ------------------------------------------------
-; Galaxy Program Notes
-;
+# Galaxy Program Notes
+````
 ; +----------------------------------+
 ; |           GALAXY  GAME           |
 ; |           FOR THE 8080           |
 ; +----------------------------------+
-;
-; My challenge,
-;   + Update my assembler so that I can assemble GALAXY.
-;   + Run using Altair101a.
-;   + Make program enhancements.
-;
-; Site I downloaded from:
-;   https://github.com/deltecent/scelbi-galaxy
-;
---------------------------------------------------------------------------------
-To do next:
+````
+My challenge,
++ Update my assembler so that I can assemble GALAXY.
++ Run using Altair101a.
++ Make program enhancements.
 
-+ Create a new message buffer for the following:
+Site I downloaded from:
+   https://github.com/deltecent/scelbi-galaxy
+
+--------------------------------------------------------------------------------
+### To do next:
+
+Create a new message buffer for the following:
+````
 You must destroy 16 TIE ships,  in 21 stardates with 6 space stations
 ++ New:
 TIE fighters to destroy: 16, within 21 stardates utilizing 6 space stations.
+````
+Randomize the start number (in START:). Currently, it's always the same random number.
 
-+ Randomize the start number (in START:). Currently, it's always the same random number.
+Continue to improve messages.
 
-+ Continue to improve messages.
-
------------------------------
 Check, if no Sith ships in the sector, don't say: The Sith retaliates.
+````
 Command?6
 Torpedo trajectory(1-8.5) : 3.0
 Tracking: 5 6
@@ -38,8 +38,9 @@ Tracking: 1 6
 YOU MISSED! The Sith retaliates. 
 LOSS OF ENERGY 0200
 DANGER-SHIELD ENERGY 000
-
+````
 --------------------------------------------------------------------------------
+````
     YOU MUST DESTROY 24 ALIEN SHIPS IN 29 STARDATES WITH 3 SPACE STATIONS
 DNSST:	DB	000 ;Num. space stations	//5B 91 01011011 Data= 6  6
 DNALS:	DB	000 ;Num. alien ships		//5C 92 01011100 Data=17 21
@@ -74,10 +75,10 @@ GALAXY DISPLAY
 -------------------------------------------------
 1 000 1 000 1 002 1 000 1 004 1 000 1 000 1 000 1#
 -------------------------------------------------
-
-
+````
 --------------------------------------------------------------------------------
-; Program is stored on the SD card:
+#### Program is stored on the SD card:
+````
 ?- + n, SD card directory lising.
 ++ File:      00001001.BIN  4608
 ?-
@@ -96,7 +97,7 @@ WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
  *    .      .   .   .   .   *   .   .   *    *   .    *   .   .    *   *   .
             S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
              v   v   v   v   ^   v   v   ^    ^   v    ^   v   v    ^   ^   v
-
+````
 To run,
 + Start Altair 101a and connect.
 + Send the start byte string which sets the switches: 12578bx.
@@ -104,14 +105,12 @@ To run,
 + "x" to EXAMINE the address: 00001001:10100110 (S11 S8 S7 S5 S2 S1 which is 12578b).
 + "r" to run the program.
 + "3" to view the galaxy quadrants.
+
 Start playing.
 
-Program needs updating to run from the Arduino monitor because it sends the line feed character.
-+ Need to ignore non-digit characters, only use 0...9.
-
 --------------------------------------------------------------------------------
-Now, run the program.
-
+## Running the program.
+````
 + Ready to receive command.
 ?- + r, RUN.
 ?- + runProcessor()
@@ -128,11 +127,10 @@ YOU MUST DESTROY 24 ALIEN SHIPS IN 29 STARDATES WITH 3 SPACE STATIONS
 7 *                       SHIELDS   0000
 8                        
  -1--2--3--4--5--6--7--8-
-
+````
 Note, there are 24 ALIEN SHIPS in the galaxy grid below.
 Which means that the requirement is to destroy all of the ALIEN SHIPS.
-
-
+````
 COMMAND? 3
 GALAXY DISPLAY
 -------------------------------------------------
@@ -152,9 +150,11 @@ GALAXY DISPLAY
 -------------------------------------------------
 1 000 1 007 1 104 1 000 1 000 1 112 1 105 1 103 1
 -------------------------------------------------
+````
 
 --------------------------------------------------------------------------------
-COMMAND options:
+### COMMAND options:
+````
 O. SPACE SHIP movement
 1. Short range scanner
 2. Long  range scanner
@@ -162,19 +162,19 @@ O. SPACE SHIP movement
 4. Shields
 5. Phasors
 6. TORPEDO
-
+````
 ------------------------------------------
-O. SPACE SHIP movement
-
+#### O. SPACE SHIP movement
+````
 Directions:
    3
  4   2
 5     1
  6   8
    7
-
+````
 Changing quadrants causes the STARDATE to increment.
-
+````
 COMMAND?0
 COURSE (1-8.5)? 5.0
 WARP FACTOR (0.1-7.7)? 0.1
@@ -201,10 +201,10 @@ WARP FACTOR (0.1-7.7)? 0.2
 7          *        *     SHIELDS   0000
 8                   *    
  -1--2--3--4--5--6--7--8-
-
+````
 ---------------
 Sample of using a fraction of trajectory.
-
+````
 6                         TORPEDOES 06
 7 *       x!x             SHIELDS   0000
 8   |o|                  
@@ -214,10 +214,10 @@ Torpedo trajectory(1-8.5) : 5.5
 Tracking: 7 3
 Tracking: 8 2
 TIE fighter destroyed.
-
+````
 ---------------
-### Fails
-
+Fails
+````
 Can crash into stars when warping into quadrants.
 Command? 0
 COURSE (1-8.5)? 6.0
@@ -231,10 +231,10 @@ COURSE (1-8.5)? 8.0
 WARP FACTOR (0.1-7.7)? 0.1
 MISSION FAILED, YOU HAVE RUN OUT OF STARDATES
 DO YOU WANT TO GO ON A SPACE VOYAGE? 
-
+````
 ------------------------------------------
-1. Short range scanner
-
+#### 1. Short range scanner
+````
 COMMAND?1
  -1--2--3--4--5--6--7--8-
 1                         STARDATE  3092
@@ -246,10 +246,10 @@ COMMAND?1
 7                         SHIELDS   g808
 8                        
  -1--2--3--4--5--6--7--8-
-
+````
 ------------------------------------------
-2. Long  range scanner
-
+#### 2. Long  range scanner
+````
 COMMAND?2
 L.R. SCAN FOR QUADRANT  8 7
 -------------------
@@ -259,19 +259,13 @@ L.R. SCAN FOR QUADRANT  8 7
 -------------------
 1 000 1 000 1 000 1
 -------------------
-
+````
 Key, 105 : 1 alien ship, 0 space stations, 5 stars
 
 ------------------------------------------
-3. Galaxy display 
+#### 3. Galaxy display 
 
---------------------------------------------------------------------------------
-+++ Printing to fix "#"
-
-Energy cost: 280
-5       *                 ENERGY    2687
-5       *                 ENERGY    2407
-
+````
 COMMAND?3
 GALAXY DISPLAY
 -------------------------------------------------
@@ -292,12 +286,12 @@ GALAXY DISPLAY
 1 000 1 000 1 002 1 000 1 004 1 000 1 000 1 000 1#  8
 -------------------------------------------------
 1  1     2     3     4     5     6     7     8
-
+````
 Key, 105 : 1 alien ship, 0 space stations, 5 stars
 
 --------------------------------------------------------------------------------
-### SHIELD ENERGY TRANSFER
-
+#### 4. SHIELD ENERGY TRANSFER
+````
 Enter a 4 digit value to transfer from ENERGY to SHIELDS.
 Enter "-", then a 4 digit value to transfer from SHIELDS to ENERGY.
 
@@ -339,11 +333,11 @@ COMMAND?1
 7                         SHIELDS   0270
 8                        
  -1--2--3--4--5--6--7--8-
-
+````
 
 --------------------------------------------------------------------------------
-Using Phasors
-
+#### 5. Using Phasors
+````
 COURSE (1-8.5)? 5.0
 WARP FACTOR (0.1-7.7)? 3.0
 LOSS OF ENERGY 0600
@@ -410,9 +404,9 @@ PHASOR ENERGY TO FIRE = 0600
 GALAXY DISPLAYE1ERGY = 0402
 LOSS OF ENERGY 0100
 GALAXY DISPLAYDESTROYED
-
+````
 --------------------------------------------------------------------------------
-
+````
 YOU MUST DESTROY 19 ALIEN SHIPS IN 24 STARDATES WITH 3 SPACE STATIONS
  -1--2--3--4--5--6--7--8-
 1+++                      STARDATE  3026
@@ -445,10 +439,10 @@ Directions:
 COMMAND?6
 TORPEDO TRAJECTORY(1-8.5) : 3.0HIP RETALIATE SHIP RETALIATE SHIP RETALIATES
 ALIEN SHIP DESTROYED
-
+````
 --------------------------------------------------------------------------------
 Dock to a space station to get energy and torpedoes.
-
+````
  -1--2--3--4--5--6--7--8-
 1                         STARDATE  3027
 2                         CONDITION GREEN
@@ -472,10 +466,10 @@ WARP FACTOR (0.1-7.7)? 0.3
 7 *          <*>>1<       SHIELDS   0000
 8 *                      
  -1--2--3--4--5--6--7--8-
-
+````
 --------------------------------------------------------------------------------
-### Using torpedoes
-
+#### 6. Using torpedoes
+````
  -1--2--3--4--5--6--7--8-
 1            <*>   +++    STARDATE  3025
 2                *        CONDITION RED
@@ -496,10 +490,10 @@ TRACKING: 1 6
 TRACKING: 1 7
 ALIEN SHIP DESTROYED
 COMMAND?
-
+````
 --------------------------------------------------------------------------------
 ### How to Save a Game
-
+````
 + "g" to see the game status before saving the game. For example:
 You must destroy 10 Sith ships in  15 stardates with 6 space stations
 + "s" to STOP the program, to go into WAIT mode.
@@ -508,9 +502,9 @@ You must destroy 10 Sith ships in  15 stardates with 6 space stations
 + "r" to RUN the program, to go into RUN mode.
 + "g" to confirm the same game status. For example:
 You must destroy 10 Sith ships in  15 stardates with 6 space stations
-
+````
 Following is an example save and continue the game.
-
+````
 Command?g
 You must destroy 10 Sith ships in  15 stardates with 6 space stations
 Command?1
@@ -554,12 +548,12 @@ WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
  -1--2--3--4--5--6--7--8-
 Command?g
 You must destroy 10 Sith ships in  15 stardates with 6 space stations
-
+````
 The game is ready to continue.
 
 --------------------------------------------------------------------------------
 ### The Win!
-
+````
 Command?0
 COURSE (1-8.5)? 5.0
 WARP FACTOR (0.1-7.7)? 0.4
@@ -584,24 +578,10 @@ Tracking: 7 3
 Tracking: 8 3
 CONGRATULATIONS! You eliminated all the Sith star ships.   
 Ready for a Star Wars space mission? 
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-                                ; Course menu option
-CRSEret:
-        JMP	CMND		;Input new command
-CRSE:
-	LXI	H,MSGCRS	;Pointer to "Course" message
- 	CALL	MSG		;Request course input
- 	CALL	DRCT		;Input course direction
-	;JZ	CRSE		;Input error, try again
-	JZ	CRSEret		; Stacy, invalid input will return to command.
-                                ;   The user can back out from this command
-                                ;   if they had hit the wrong command option.
-
+````
 --------------------------------------------------------------------------------
 ### Program addresses
-
+````
 12578bx Galaxy program start address, label: GALAXY.
         First instruction is to set the stack pointer.
 D7  D6   D5  D4  D3   D2  D1  D0
@@ -629,9 +609,9 @@ A.S. : alien ships
 	JZ	TIME		;If 0, end of game
 	MOV	M,B		;Else save new date
 NOX:
-
+````
 --------------------------------------------------------------------------------
-
+````
 Original version
 -------------------------------------------------
 1 203 1 003 1 000 1 011 1 105 1 000 1 000 1 304 1#
@@ -692,15 +672,18 @@ You must destroy 21 Sith ships in  26 stardates with 6 space stations
 1 000 1 000 1 002 1 000 1 004 1 000 1 000 1 000 |
 -------------------------------------------------
 You must destroy 06 TIE ships,  in 12 stardates with 6 space stations
-
+````
 ; ------------------------------------------------------------------------------
+````
 #### Saved memory files:
 01000000.bin e : Current test
 00100000.bin d : Alternate test
 00010000.bin c : Save game, near completion
 00010001.bin   : Save game, final sector
-
+````
 ; ------------------------------------------------------------------------------
+````
 12578bx Galaxy program start address, label: GALAXY.
 2589bx Command Menu start address. First instruction is to set the stack pointer.
 cmyc12578bxr for the Arduino IDE monitor.
+````
