@@ -6,51 +6,33 @@
                                         ; 00000100 :   4
                                         ;
                                         ; --------------------------------------
-                                        ;
+LF	EQU	0AH
+CR	EQU	0DH
+                                        ; --------------------------------------
                 lxi sp,STACK            ; Set stack pointer.
                 jmp Start
                                         ;
                                         ; --------------------------------------
-LF	EQU	0AH
-CR	EQU	0DH
-
-	ORG	0030H
-	DB	000
-	DB	000
-	DB	000		;Temporary storage
-	DB	000		;Temporary storage
-MSGLOE:	DB	CR,LF
-  	DB	'Energy loss:      '
-MSGLOP:	DB	' '
-  	DB	0
-	ORG	0060H
-DDIG1:	DB	000 ;Digit storage		//60
-DDIG2:	DB	000 ;Digit storage		//61
-DDIG3:	DB	000 ;Digit storage		//62
-DDIG4:	DB	000 ;Digit storage		//63
-DDIG5:	DB	000 ;Digit storage		//64
-
     Start:
                 lxi h,StartMsg
                 call printStr
                                         ; --------------------------------------
-                                        ; Register to be printed.
+                                        ; Convert a 16 bit binary value into a decimal value.
                                         ;
-	MVI	L,0032H		;Pointer to temporary storage
-	MVI	M,2		; Low order byte of the value to print.
-;++     110:00000000 01101110: 00000010 : 02:002 > immediate:  2 : 2
-	INR	L		;Temporary storage
-	MVI	M,1		; High order byte of the value to print.
-;++     113:00000000 01110001: 00000001 : 01:001 > immediate:  1 : 1
-                                ;
-	DCR	L		;Pointer to energy loss
-	MVI	B,002		;Number of bytes for BINDEC
-	CALL	BINDEC		;Convert energy amount
-	LXI	D,MSGLOP	;Set pointer to energy message
-	MVI	B,004		;Counter to number of digits
-	CALL	DIGPRT		;Put digits in message
-	LXI	H,MSGLOE	;Set pointer to energy loss msg
-	CALL	printStr	;Print the message
+                                        ; Load the the 16 bit binary value into memory.
+	shld	NUML                    ; Pointer to Low order byte storage
+	MVI	M,2                     ; Low order byte of the value to print.
+	INR	L                       ; High order byte storage
+	MVI	M,1                     ; High order byte of the value to print.
+	DCR	L                       ; Pointer back to Low order byte storage
+                                        ;
+	MVI	B,002                   ; Number of digits, 1 byte per digit, used in BINDEC
+	CALL	BINDEC                  ; Convert to decimal digits.
+	LXI	D,MSGNUM                ; Set pointer to energy message
+	MVI	B,004                   ; Counter to number of digits
+	CALL	DIGPRT                  ; Put digits in message
+	LXI	H,MSGLAB                ; Set pointer to energy loss msg
+	CALL	printStr                ; Print the message
                                         ;
                                         ; --------------------------------------
                 call println
@@ -73,7 +55,7 @@ DIGPRT:
 
 BINDEC:
 	XCHG			;Save binary pointer
-	LXI	H,0060H		;Set pointer to digit storage
+	LXI	H,DDIG1		;Set pointer to digit storage
 	MOV	M,H		;Clear digit table
 	INR	L
 	MOV	M,H
@@ -90,7 +72,7 @@ BINDEC:
 	INR	L		;No, advance pointer
 	MOV	D,M		;Fetch most significant half
 BNDC:
-	LXI	H,0064H		;Set pointer to 5th digit
+	LXI	H,DDIG5		;Set pointer to 5th digit
 	LXI	B,10000		;BC = 10000
 	CALL	BD		;Calculate 5th digit
 	DCR	L		;Set pointer to 4th digit
@@ -123,19 +105,7 @@ BD:
 	DCR	M		;Decrement digit stored
 	RET			;Return
                                 ;
-                                ; ----------------------------------------------
-MSG:
-	MOV	A,M		;Fetch character
-	ANA	A		;End of message?
-	RZ			;Yes, return
-        out PRINT_PORT          ; Out register A to the serial port.
- 	INX	H		;Increment message pointer
-	JMP	MSG		;Continue printout
-                                ;
 ; ------------------------------------------------------------------------------
-                                        ;
-                                        ; --------------------------------------
-                                        ; --------------------------------------
                                         ; Print a string.
     printStr:
                 sta regA
@@ -160,17 +130,28 @@ MSG:
                 ret
                                         ; --------------------------------------
                                         ;
-    StartMsg    db      '\r\n+++ Print bytes as binary and decimal number strings.'
-                db 0
-    DigitMsg    db      '\r\n++ Number, '
-                db 0
-    RegAMsg     db      '\r\n > Register '
+    StartMsg    db '\r\n+++ Print bytes as binary and decimal number strings.'
                 db 0
     TERMB       equ     000h            ; String terminator.
                                         ;
     regA        db 0                    ; A variable for storing register A's value.
     PRINT_PORT  equ     2               ; When using port 2,
                                         ;   if port 3 is disable, then it defaults to 3, the default serial port.
+                                        ; --------------------------------------
+    NUML:	DB 0                    ; Number low byte storage
+    NUMH:	DB 0                    ; Number high byte storage
+                                        ;
+    MSGLAB:	DB CR,LF                ; Output label tring.
+                   ;Decimal: 0258       ; Sample output.
+                DB 'Decimal:    '
+    MSGNUM:	DB ' '
+                DB 0
+                                        ;
+    DDIG1:      DB 0                    ; Place to store the decimal digits.
+    DDIG2:      DB 0
+    DDIG3:      DB 0
+    DDIG4:      DB 0
+    DDIG5:      DB 0
                                         ; --------------------------------------
                 ds 32                   ; Stack space.
     STACK:      equ $
