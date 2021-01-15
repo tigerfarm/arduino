@@ -7,8 +7,17 @@
 ````
 My challenge,
 + Update my assembler so that I can assemble GALAXY.
-+ Run using Altair101a.
++ Run the byte code using Altair101a.
 + Make program enhancements.
+
+I'm on the enhancement step. I can assemble and run the program. I even fixed a bug.
+
+[GALAXY80.asm](GALAXY80.asm) is the original that I downloaded to work on.
+
+[Galaxy101.asm](Galaxy101.asm) is the current tested program.
+
+The programs directory has the development program that may have untested changes:
+[../programs/pGa.asm](../programs/pGa.asm)
 
 Site I downloaded from:
    https://github.com/deltecent/scelbi-galaxy

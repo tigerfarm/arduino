@@ -185,11 +185,11 @@ MSGDYW:	DB	CR,LF
                 ; ----------------------
                 ; You must destroy 21 TIE fighters in26 stardates with 6 space stations
                 ; You must destroy 21 TIE fighters,  26 stardates with 6 space stations
-MSGYJD:	DB	CR,LF
+UMSGYJD:	DB	CR,LF
   	DB	'You must destroy  '
-MSGSPS:	DB	'  TIE ships,  in  '
-MSGDTS:	DB	'  stardates with '
-MSGSSS:	DB	'  space stations'
+UMSGSPS:	DB	'  TIE ships,  in  '
+UMSGDTS:	DB	'  stardates with '
+UMSGSSS:	DB	'  space stations'
   	DB	0
                 ; ----------------------
 MSG123:	DB	CR,LF
@@ -1220,21 +1220,21 @@ GLXCK1:
                                 ; ----------------------------------------------
 	MVI	B,1		;Set nmbr bytes for BINDEC
 	CALL	BINDEC		;Covert stardate value
-	LXI	D,MSGDTS	;Set pointer to digit storage
+	LXI	D,GSMSGD	;Set pointer to digit storage
 	MVI	B,2		;Set counter to nmbr or digits
 	CALL	DIGPRT		;Put digits in message
 	LXI	H,005CH		;Set pointer to number A.S.
 	MVI	B,001		;Set nmbr bytes for BINDEC
 	CALL	BINDEC		;Convert alien ship value
-	LXI	D,MSGSPS	;Set pntr to digit stor. in start msg.
+	LXI	D,GSMSGS	;Set pntr to digit stor. in start msg.
 	MVI	B,2		;Set counter to no. of digits
 	CALL	DIGPRT		;Put digits in message
 	LXI	H,005BH		;Set pointer to no. space stat.
 	MOV	A,M		;Set no. bytes for BINDEC
 	ORI	0B0H		;Covert space station value
-	LXI	H,MSGSSS	;Set pntr to digit stor. in start msg.
+	LXI	H,GSMSGT	;Set pntr to digit stor. in start msg.
 	MOV	M,A		;Set counter to no. of digits
-	LXI	H,MSGYJD	;Set pntr to start message
+	LXI	H,GSMSG 	;Set pntr to start message
 	CALL	MSG		;Print starting message
                                 ; ----------------------------------------------
 	CALL	RN		;Fresh start quadrant
@@ -2115,27 +2115,41 @@ GAMESTAT:
 	MVI	L,05DH		;Set pntr to store number SPACE STATIONS
 	MVI	B,1		;Set nmbr bytes for BINDEC
 	CALL	BINDEC		;Covert stardate value
-	LXI	D,MSGDTS	;Set pointer to digit storage
+	LXI	D,GSMSGD	;Set pointer to digit storage
 	MVI	B,2		;Set counter to nmbr or digits
 	CALL	DIGPRT		;Put digits in message
                                 ;
 	LXI	H,005CH		;Set pointer to number alien ships
 	MVI	B,1		;Set nmbr bytes for BINDEC
 	CALL	BINDEC		;Convert alien ship value
-	LXI	D,MSGSPS	;Set pntr to digit stor. in start msg.
+	LXI	D,GSMSGS	;Set pntr to digit stor. in start msg.
 	MVI	B,2		;Set counter to no. of digits
 	CALL	DIGPRT		;Put digits in message
                                 ;
 	LXI	H,005BH		;Set pointer to no. space stat.
 	MOV	A,M		;Set no. bytes for BINDEC
 	ORI	0B0H		;Covert space station value
-	LXI	H,MSGSSS	;Set pntr to digit stor. in start msg.
+	LXI	H,GSMSGT	;Set pntr to digit stor. in start msg.
 	MOV	M,A		;Set counter to no. of digits
                                 ;
-	LXI	H,MSGYJD	;Set pntr to start message
+	LXI	H,GSMSG 	;Set pntr to start message
 	CALL	MSG		;Print starting message
                                 ; You must destroy 18 alien ships in  05 stardates with 5 space stations
         ret
+                                ; New message template.
+                                ;         10        20        30        40        50        60
+                                ; 123456789012345678901234567890123456789012345678901234567890
+                                ; You must destroy 21 TIE fighters in 26 stardates.
+                                ; Supplies are available at any of the 6 space stations.
+GSMSG:	DB	CR,LF
+  	DB	'You must destroy  '
+GSMSGS:	DB	'  TIE fighters in  '
+GSMSGD:	DB	'  stardates.'
+        DB	CR,LF
+        DB	'Supplies are available at any of the '
+GSMSGT:	DB	'  space stations.'
+  	DB	0
+                                ;
                                 ; ----------------------------------------------
 MSGCMD:	DB	CR,LF
   	DB	'Command > '
