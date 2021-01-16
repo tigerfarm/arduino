@@ -58,6 +58,8 @@ CR	EQU	0DH
                 ; --------------------------------------------------------------
 	ORG	0000H
 
+        ;jmp GALAXY             ; Be nice to get this to work.
+
 	DB	2 		;Course 1.0
 	DB	0
 	DB	2 		;Course 1.5
@@ -157,15 +159,15 @@ DDIG5:	DB	000 ;Digit storage		//64
 	ORG	0080H
 
 	DB	CR,LF
-	DB	'1',' ',' ',' ',' ',' '
-	DB	'1',' ',' ',' ',' ',' '
-	DB	'1',' ',' ',' ',' ',' '
-        DB      '1',' ',' ',' ',' ',' '
-        DB      '1',' ',' ',' ',' ',' '
-	DB	'1',' ',' ',' ',' ',' '
-        DB      '1',' ',' ',' ',' ',' '
-        DB      '1',' ',' ',' ',' ',' '
-        DB      '1'
+	DB	'|',' ',' ',' ',' ',' '
+	DB	'|',' ',' ',' ',' ',' '
+	DB	'|',' ',' ',' ',' ',' '
+	DB	'|',' ',' ',' ',' ',' '
+	DB	'|',' ',' ',' ',' ',' '
+	DB	'|',' ',' ',' ',' ',' '
+	DB	'|',' ',' ',' ',' ',' '
+	DB	'|',' ',' ',' ',' ',' '
+        DB      '|'
         ;       178: decimal value byte number location
 
                 ; --------------------------------------------------------------
@@ -608,79 +610,7 @@ NT2:
 	DCR	H		;Decrement counter = 0?
 	JNZ	NT2		;No, print more dashes
 	RET
-LRR:
-	ADI	00C0H		;Set pointer to galaxy
-	MOV	B,A		;Save pointer
-	ANI	COLMSK		;First column?
-	JZ	CLC1		;Yes, first column zero
-	MOV	A,B		;Fetch galaxy pointer
-	SUI	1		;No, back up one column
-	MOV	L,A		;Pointer to quadrant in galaxy
-	MOV	A,M		;Fetch quadrant contents
-LR3:
-	LXI	H,MSG11A	;Set pointer to left quadrant
-	CALL	QDS1		;Set quadrant contents
-	MOV	L,B		;Pointer to quadrant in galaxy
-	MVI	H,000
-	MOV	A,M		;Fetch quadrant contents
-	LXI	H,MSG11B	;Pointer to middle quadrant
-	CALL	QDS1		;Set quadrant contents
-	MOV	A,B		;Fetch quadrant location
-	ANI	COLMSK		;Is quadrant in last column?
-	CPI	7
-	JZ	CLC2		;Yes, right column zero
-	MOV	A,B		;No, fetch quadrant location
-	ADI	1		;Set location to right quadrant
-	MOV	L,A		;Set pointer to right quadrant
-	MVI	H,000
-	MOV	A,M		;Fetch quadrant contents
-LR4:
-	LXI	H,MSG11C	;Pointer to right quadrant
-	CALL	QDS1		;Set quadrant contents
-LRP:
-	LXI	H,MSG111	;Set pntr. to L.R. row message
-	JMP	MSG		;Print L.R. scan row and return
-QDS1:
-	MVI	H,004H		;Set message pointer
-QDSET:
-	MOV	C,A		;Save quadrant contents
-	CALL	ROTR4		;Position alien ship number
-	ANI	003		;Mask alien ship number
-	ORI	'0'		;Form ASCII digit
-	MOV	M,A		;Store in message
-	INX	H		;Increment message pointer
-	MOV	A,C		;Fetch quadrant contents
-	CALL	ROTR3		;Position space ship number
-	ANI	001		;Mask space ship number
-	ORI	'0'		;Form ASCII digit
-	MOV	M,A		;Store space ship in message
-	INX	H		;Increment message pointer
-	MOV	A,C		;Fetch quadrant contents
-	ANI	STRMSK		;Mask star number
-	ORI	'0'		;Form ASCII digit
-	MOV	M,A		;Store in message
-	RET
-CLC1:
-	XRA	A		;Clear column contents
-	JMP	LR3		;Print 000 quadrant
-CLC2:
-	XRA	A		;Clear column contents
-	JMP	LR4		;Print 000 quadrant
-RWCM:
-	MVI	L,05EH		;Pointer to adjusted column
-	MOV	A,M		;Fetch adjusted column
-	RRC			;Adjust position
-	ANI	COLMSK		;Form column value
-	MOV	B,A		;Save column
-	INR	L		;Advance pointer
-	MOV	A,M		;Fetch adjusted row
-	RLC			;Position row value
-	RLC
-	ANI	ROWMSK		;For row value
-	ADD	B		;Form row and column byte
-	MOV	B,A		;Save in 'B'
-	RET			;Return
-                                ;
+;lrr
 ; ------------------------------------------------------------------------------
                                 ; 
 TIME:
@@ -1143,16 +1073,17 @@ SPRC:
 	ANI	07H		;Separate row
 	MOV	B,A		;Save row in 'B'
 	RET
-
+                                ;
 ; ------------------------------------------------------------------------------
-                                ; Initialize and start the Galaxy program.
+; Initialize and start the Galaxy program.
+; ------------------------------------------------------------------------------
 GALAXY:
 ; ++    2470:00001001 10100110: 00110001 : 31:061 > opcode: lxi sp,STACK
 ; Enter the following to get to the start byte: 12578bx
 	LXI	SP,STACK	;Set stack pointer
 	CALL	CONINI		;Initialize Console I/O
 NEWSTART:
-	LXI	H,MSGDYW
+	LXI	H,MSGSTART
 	CALL	MSG		;Print introduction
 START:
 	CALL	RN		;Increment random number. Stacy, currently, same random number every time because of my START change.
@@ -1191,6 +1122,7 @@ GLXCK1:
 	MOV	C,A		;Save alien ship total
 	INR	L		;End of galaxy storage?
 	JNZ	GLXCK1		;No, continue adding
+                                ; ---------------------------
 	MOV	A,D		;Fetch space station total
 	RRC			;Position total to right
 	RRC
@@ -1200,13 +1132,14 @@ GLXCK1:
 	JNC	SSPLS		;Yes, delete 1
 	CPI	2		;Too few space stations?
 	JC	SSMNS		;Yes, add 1 more
+                                ; ---------------------------
 	MOV	A,C		;Fetch alien ship total
 	RRC
 	RRC
 	MOV	C,A		;Save alien ship total
-	CPI	32		;Too many alien ships?
+	CPI	8		;Dave, default was 32. Too many alien ships?
 	JNC	ASPLS		;Yes, delete 1
-	CPI	10		;Too few alien ships?
+	CPI	5		;Dave, default was 10. Too few alien ships?
 	JC	ASMNS		;Yes, add 1 more
                                 ; ----------------------------------------------
 	MVI	L,05BH		;Set pntr to store number S.S.
@@ -1440,6 +1373,68 @@ RWC:
 	XRA	A		;Set zero contents
 	CALL	QDS1		;Set quadrant contents
 	JMP	LRP		;Print long range row
+                                ;
+                                ;
+                                ; ----------------------------------------------
+                                ; Long range scanner routine
+LRR:
+	ADI	00C0H		;Set pointer to galaxy
+	MOV	B,A		;Save pointer
+	ANI	COLMSK		;First column?
+	JZ	CLC1		;Yes, first column zero
+	MOV	A,B		;Fetch galaxy pointer
+	SUI	1		;No, back up one column
+	MOV	L,A		;Pointer to quadrant in galaxy
+	MOV	A,M		;Fetch quadrant contents
+LR3:
+	LXI	H,MSG11A	;Set pointer to left quadrant
+	CALL	QDS1		;Set quadrant contents
+	MOV	L,B		;Pointer to quadrant in galaxy
+	MVI	H,000
+	MOV	A,M		;Fetch quadrant contents
+	LXI	H,MSG11B	;Pointer to middle quadrant
+	CALL	QDS1		;Set quadrant contents
+	MOV	A,B		;Fetch quadrant location
+	ANI	COLMSK		;Is quadrant in last column?
+	CPI	7
+	JZ	CLC2		;Yes, right column zero
+	MOV	A,B		;No, fetch quadrant location
+	ADI	1		;Set location to right quadrant
+	MOV	L,A		;Set pointer to right quadrant
+	MVI	H,000
+	MOV	A,M		;Fetch quadrant contents
+LR4:
+	LXI	H,MSG11C	;Pointer to right quadrant
+	CALL	QDS1		;Set quadrant contents
+LRP:
+	LXI	H,MSG111	;Set pntr. to L.R. row message
+	JMP	MSG		;Print L.R. scan row and return
+QDS1:
+	MVI	H,004H		;Set message pointer
+QDSET:
+	MOV	C,A		;Save quadrant contents
+	CALL	ROTR4		;Position alien ship number
+	ANI	003		;Mask alien ship number
+	ORI	'0'		;Form ASCII digit
+	MOV	M,A		;Store in message
+	INX	H		;Increment message pointer
+	MOV	A,C		;Fetch quadrant contents
+	CALL	ROTR3		;Position space ship number
+	ANI	001		;Mask space ship number
+	ORI	'0'		;Form ASCII digit
+	MOV	M,A		;Store space ship in message
+	INX	H		;Increment message pointer
+	MOV	A,C		;Fetch quadrant contents
+	ANI	STRMSK		;Mask star number
+	ORI	'0'		;Form ASCII digit
+	MOV	M,A		;Store in message
+	RET
+CLC1:
+	XRA	A		;Clear column contents
+	JMP	LR3		;Print 000 quadrant
+CLC2:
+	XRA	A		;Clear column contents
+	JMP	LR4		;Print 000 quadrant
                                 ;
 ; ------------------------------------------------------------------------------
                                 ; Course menu option action
@@ -1714,6 +1709,21 @@ NTPD:
 	LXI	H,MSGZRO	;Set pointer to No Torpedo message
 	CALL	MSG		;Print message
 	JMP	CMND		;Jump to input command
+                                ;
+RWCM:
+	MVI	L,05EH		;Pointer to adjusted column
+	MOV	A,M		;Fetch adjusted column
+	RRC			;Adjust position
+	ANI	COLMSK		;Form column value
+	MOV	B,A		;Save column
+	INR	L		;Advance pointer
+	MOV	A,M		;Fetch adjusted row
+	RLC			;Position row value
+	RLC
+	ANI	ROWMSK		;For row value
+	ADD	B		;Form row and column byte
+	MOV	B,A		;Save in 'B'
+	RET			;Return
                                 ;
 ; ------------------------------------------------------------------------------
                                 ; Fire Phasors
@@ -2110,7 +2120,6 @@ MSGDIR:
                                 ; MSGSPS:	DB	'  Sith ships in   '
                                 ; MSGDTS:	DB	'  stardates with '
                                 ; MSGSSS:	DB	'  space stations'
-
 GAMESTAT:
 	MVI	L,05DH		;Set pntr to store number SPACE STATIONS
 	MVI	B,1		;Set nmbr bytes for BINDEC
@@ -2136,6 +2145,15 @@ GAMESTAT:
 	CALL	MSG		;Print starting message
                                 ; You must destroy 18 alien ships in  05 stardates with 5 space stations
         ret
+                                ;
+; ------------------------------------------------------------------------------
+;   Games messages.
+; ------------------------------------------------------------------------------
+                                ;
+MSGSTART:   DB CR,LF
+        DB      'Ready for a Star Wars mission flying an X-wing starfighter? '
+  	DB	0
+                                ; ----------------------------------------------
                                 ; New message template.
                                 ;         10        20        30        40        50        60
                                 ; 123456789012345678901234567890123456789012345678901234567890
