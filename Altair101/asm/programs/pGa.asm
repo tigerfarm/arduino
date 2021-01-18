@@ -2121,17 +2121,17 @@ MSGDIR:
                                 ; MSGDTS:	DB	'  stardates with '
                                 ; MSGSSS:	DB	'  space stations'
 GAMESTAT:
-	MVI	L,05DH		;Set pntr to store number SPACE STATIONS
-	MVI	B,1		;Set nmbr bytes for BINDEC
+	MVI	L,05DH		;Set pointer to store number SPACE STATIONS
+	MVI	B,1		;Set number bytes for BINDEC
 	CALL	BINDEC		;Covert stardate value
 	LXI	D,GSMSGD	;Set pointer to digit storage
-	MVI	B,2		;Set counter to nmbr or digits
+	MVI	B,2		;Set counter to number or digits
 	CALL	DIGPRT		;Put digits in message
                                 ;
 	LXI	H,005CH		;Set pointer to number alien ships
-	MVI	B,1		;Set nmbr bytes for BINDEC
+	MVI	B,1		;Set number bytes for BINDEC
 	CALL	BINDEC		;Convert alien ship value
-	LXI	D,GSMSGS	;Set pntr to digit stor. in start msg.
+	LXI	D,GSMSGS	;Set pointer to digit stor. in start message.
 	MVI	B,2		;Set counter to no. of digits
 	CALL	DIGPRT		;Put digits in message
                                 ;

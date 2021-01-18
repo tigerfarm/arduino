@@ -12,6 +12,10 @@
     NUML:	DB 0                    ; Number low byte storage
     NUMH:	DB 0                    ; Number high byte storage
                                         ;
+    MSGLAB:	DB '\r\nDecimal:    '
+    MSGNUM:	DB ' '
+                DB 0
+                                        ;
                                         ; Place to store the decimal digits.
                                         ; Value after running, with output: 0258
     DDIG1:      DB 0                    ;   8
@@ -32,22 +36,26 @@
 	MVI	M,2                     ; Low order byte of the value to print.
 ;++      13:00000000 00001101: 00000010 : 02:002 > immediate:  2 : 2
 	INR	L                       ; High order byte storage
-;	MVI	M,1                     ; High order byte of the value to print.
-	MVI	M,32                    ; High order byte of the value to print.
-                                        ; 36 ... + Digits: 9218
+	MVI	M,1                     ; High order byte of the value to print.
 ;++      16:00000000 00010000: 00000001 : 01:001 > immediate:  1 : 1
                                         ; 
 	DCR	L                       ; Pointer back to Low order byte storage
 	MVI	B,002                   ; Number of digits, 1 byte per digit, used in BINDEC
 	CALL	BINDEC                  ; Convert to decimal digits.
                                         ;
+	LXI	D,MSGNUM                ; Set pointer to message number
+	MVI	B,004                   ; Counter to number of digits
+	CALL	DIGPRT                  ; Put digits in message label
+	LXI	H,MSGLAB                ; Set pointer to message label
+	CALL	printStr                ; Print the message
+                                        ;
                                         ; --------------------------------------
                                         ; Print the digits
                 call println
                 lxi h,DigitMsg
                 call printStr
-                mvi c,4                 ; Count of digits to print.
-                LXI h,DDIG4             ; Pointer to last digit (5th) in storage
+                mvi c,5                 ; Print 5 digits
+                LXI h,DDIG5               ; Pointer to last digit (5th) in storage
     PrintDigits:
                 mov a,m
                 call printDigitA
@@ -62,6 +70,18 @@
                                         ;
 ; ------------------------------------------------------------------------------
                                 ; Binary to decimal processing
+DIGPRT:
+	MOV	A,M		;Fetch digit
+	ADI	'0'		;Form ASCII code
+ 	INX	H		;Increment digit table pointer
+ 	XCHG			;Set pointer to message area
+	MOV	M,A		;Put digit in message
+ 	DCX	H		;Move message pointer
+	DCR	B		;Last digit in message?
+	RZ			;Yes, return
+ 	XCHG			;No, set pointer to digit table
+	JMP	DIGPRT		;Move more digits
+
 BINDEC:
 	XCHG			;Save binary pointer
 	LXI	H,DDIG1		;Set pointer to digit storage
