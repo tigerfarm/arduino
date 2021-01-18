@@ -9,8 +9,8 @@
                                         ;
                                         ; --------------------------------------
                                         ; 16 bit number to convert to decimal digits.
-    NUML:	DB 0                    ; Number low byte storage
-    NUMH:	DB 0                    ; Number high byte storage
+    NUML:	DB 0                    ; Number low byte
+    NUMH:	DB 0                    ; Number high byte
                                         ;
                                         ; Place to store the decimal digits.
                                         ; Value after running, with output: 0258
@@ -29,13 +29,17 @@
                                         ;
                                         ; Load the the 16 bit binary value into memory.
 	shld	NUML                    ; Pointer to Low order byte storage
-	MVI	M,2                     ; Low order byte of the value to print.
 ;++      13:00000000 00001101: 00000010 : 02:002 > immediate:  2 : 2
+	MVI	M,2                     ; Low order byte of the value to print.
 	INR	L                       ; High order byte storage
-;	MVI	M,1                     ; High order byte of the value to print.
-	MVI	M,32                    ; High order byte of the value to print.
-                                        ; 36 ... + Digits: 9218
 ;++      16:00000000 00010000: 00000001 : 01:001 > immediate:  1 : 1
+;	MVI	M,1                     ; High order byte of the value to print.
+	MVI	M,31                    ; High order byte of the value to print.
+                                        ;
+                                        ; Get leading characters, if greater the 31.
+                                        ; 31 ... + Digits: 7938 (7936+2)
+                                        ; 36 ... + Digits: 9218
+                                        ;
                                         ; 
 	DCR	L                       ; Pointer back to Low order byte storage
 	MVI	B,002                   ; Number of digits, 1 byte per digit, used in BINDEC
@@ -46,8 +50,9 @@
                 call println
                 lxi h,DigitMsg
                 call printStr
-                mvi c,4                 ; Count of digits to print.
-                LXI h,DDIG4             ; Pointer to last digit (5th) in storage
+                                        ;
+                mvi c,5                 ; Count of digits to print.
+                LXI h,DDIG5             ; Pointer to last digit (5th) in storage
     PrintDigits:
                 mov a,m
                 call printDigitA
