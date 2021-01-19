@@ -30,6 +30,14 @@
                 mvi     B,2             ; Single(1) or double(2) precision (8 bit or 16 bit)
                 call    BINDEC          ; Convert to decimal digits.
                                         ;
+                lxi     h,BinaryMsg
+                call    printStr
+                lda     NUMH
+                call    printBinaryA
+                mvi     a,':'
+                out     PRINT_PORT
+                lda     NUML
+                call    printBinaryA
                                         ; --------------------------------------
                                         ; Print the digits
                 lxi     h,DigitMsg
@@ -114,6 +122,37 @@
                 lda     regA
                 ret
                                         ; --------------------------------------
+                                        ; Print register A as a binary string.
+    printBinaryA:
+                sta     regA            ; Save, restore on return.
+                push    b
+                mov     b,a
+                mvi     c,0             ; For counting the printed bits.
+                                        ; ------
+    printBinaryBit:
+                ani     128             ; AND 10000000 with register A
+                cpi     0
+                jnz     printBit1
+                mvi     a,'0'
+                out     PRINT_PORT
+                jmp     nextBit
+    printBit1:
+                mvi     a,'1'
+                out     PRINT_PORT
+    nextBit:
+                mov     a,c
+                cpi     7
+                jz      printedBits     ; 8 bits printed.
+                inr     c
+                mov     a,b
+                rlc
+                mov     b,a
+                jmp     printBinaryBit
+    printedBits:
+                pop     b               ; Restore
+                lda     regA
+                ret
+                                        ; --------------------------------------
                                         ; Print a string.
     printStr:
                 sta     regA
@@ -155,6 +194,8 @@
                                         ; --------------------------------------
     StartMsg:   db '\r\n+++ Print a binary number as a decimal number string.'
                 db 0
+    BinaryMsg:	db '\r\n+ Binary: '
+                db 0
     DigitMsg:	db '\r\n+ Digits: '
                 db 0
                                         ;
@@ -173,6 +214,7 @@
                                         ; --------------------------------------
                                         ; Successful run:
 +++ Print a binary number as a decimal number string.
++ Binary: 00000001:00000010
 + Digits: 00258
 ++ HALT, host_read_status_led_WAIT() = 0
                                         ;
