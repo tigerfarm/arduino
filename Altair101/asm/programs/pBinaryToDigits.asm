@@ -1,16 +1,17 @@
-                                        ; --------------------------------------
-                                        ; Conversion from a binary number to decimal digits for printing.
-                                        ;
-                                        ; Single precision,
-                                        ;   An 8 bit number (1 byte)
-                                        ; Or double precision,
-                                        ;   A 16 bit number (2 byte)
-                                        ;
-                                        ; From:
-                                        ;   00000000b             > + Digits: 00000
-                                        ; To:
-                                        ;   11111111b + 11111111b > + Digits: 65535
-                                        ;
+; ------------------------------------------------------------------------------
+; Conversion from a binary number to decimal digits for printing.
+;
+; Single precision,
+;   An 8 bit number (1 byte)
+; Or double precision,
+;   A 16 bit number (2 byte)
+;
+; Range, from:
+;   00000000b             > + Digits: 00000
+; To:
+;   11111111b + 11111111b > + Digits: 65535
+;
+; ------------------------------------------------------------------------------
                                         ; --------------------------------------
                                         ;
                 lxi     sp,STACK        ; Set stack pointer.
@@ -18,19 +19,14 @@
                 lxi     h,StartMsg
                 call    printStr
                                         ; --------------------------------------
-                                        ; Convert a 16 bit binary value into a decimal value.
-                                        ;
                                         ; Load the 16 bit binary value into memory.
+                                        ;
                 lxi     h,NUML          ; Low order byte memory address
                 mvi     M,00000010b     ; Low order byte of the value to convert.
                 inr     L               ; High order byte memory address
                 mvi     M,00000001b     ; High order byte of the value to convert.
                                         ;
-                lxi     h,NUML          ; Load the order byte memory address into HL(m).
-                mvi     B,2             ; Single(1) or double(2) precision (8 bit or 16 bit)
-                call    BINDEC          ; Convert to decimal digits.
-                                        ;
-                lxi     h,BinaryMsg
+                lxi     h,BinaryMsg     ; Print the 16 bit binary number bytes.
                 call    printStr
                 lda     NUMH
                 call    printBinaryA
@@ -39,8 +35,15 @@
                 lda     NUML
                 call    printBinaryA
                                         ; --------------------------------------
+                                        ; Convert a 16 bit binary value into a decimal value.
+                                        ;
+                lxi     h,NUML          ; Load the low order byte memory address into HL(m).
+                mvi     B,2             ; Set single(1) or double(2) precision. An 8 bit or 16 bit number.
+                call    BINDEC          ; Convert to decimal digits.
+                                        ;
+                                        ; --------------------------------------
                                         ; Print the digits
-                lxi     h,DigitMsg
+                lxi     h,DigitMsg      ;
                 call    printStr
                                         ;
                 mvi     c,5             ; Counter of number of digits to print.
@@ -58,11 +61,12 @@
                 jmp Start
                                         ;
 ; ------------------------------------------------------------------------------
-                                        ; Binary to decimal processing
+; Binary to decimal processing
+                                        ;
     BINDEC:
-                XCHG			;Save binary pointer
-                LXI     H,DDIG1		;Set pointer to digit storage
-                MOV     M,H		;Clear digit table
+                XCHG			; Save binary pointer from HL to DE.
+                LXI     H,DDIG1		; Set pointer to the first digit memory address.
+                MOV     M,H		; Clear digit array.
                 INR     L
                 MOV     M,H
                 INR     L
@@ -71,7 +75,8 @@
                 MOV     M,H
                 INR     L
                 MOV     M,H
-                XCHG			;Set pointer to binary number
+                XCHG			; Restore binary number
+                                        ;
                 MOV     E,M		;Fetch least significant half
                 DCR     B		; Single(B=1) or double(B=2) precision
                 JZ      BNDC		;Yes, most significant half = 0
@@ -175,16 +180,15 @@
                 out     PRINT_PORT
                 lda     regA
                 ret
-                                        ; --------------------------------------
-                                        ; Declarations
-                                        ; --------------------------------------
+; ------------------------------------------------------------------------------
+; Declarations
                                         ;
-                                        ; 16 bit number to convert to decimal digits.
+                                        ; 16 bit number which is converted to decimal digits.
     NUML:	DB 0                    ; Number low byte
     NUMH:	DB 0                    ; Number high byte
                                         ;
-                                        ; Place to store the decimal digits.
-                                        ; Sample output output digits: 00258
+                                        ; Array of memory bytes to store the decimal digits.
+                                        ; Sample output for the digits: 00258
     DDIG1:      DB 0                    ;   8
     DDIG2:      DB 0                    ;   5
     DDIG3:      DB 0                    ;   2
@@ -210,12 +214,12 @@
     STACK:      equ $
                                         ; --------------------------------------
                 end
-                                        ; --------------------------------------
-                                        ; --------------------------------------
+; ------------------------------------------------------------------------------
                                         ; Successful run:
+                                        ;
 +++ Print a binary number as a decimal number string.
 + Binary: 00000001:00000010
 + Digits: 00258
 ++ HALT, host_read_status_led_WAIT() = 0
                                         ;
-                                        ; --------------------------------------
+; ------------------------------------------------------------------------------
