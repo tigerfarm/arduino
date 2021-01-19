@@ -22,13 +22,13 @@
                                         ;
                                         ; Load the 16 bit binary value into memory.
                 lxi     h,NUML          ; Low order byte memory address
-                MVI     M,00000010b     ; Low order byte of the value to convert.
-                INR     L               ; High order byte memory address
-                MVI     M,00000001b     ; High order byte of the value to convert.
+                mvi     M,00000010b     ; Low order byte of the value to convert.
+                inr     L               ; High order byte memory address
+                mvi     M,00000001b     ; High order byte of the value to convert.
                                         ;
                 lxi     h,NUML          ; Load the order byte memory address into HL(m).
-                MVI     B,2             ; Single(1) or double(2) precision (8 bit or 16 bit)
-                CALL    BINDEC          ; Convert to decimal digits.
+                mvi     B,2             ; Single(1) or double(2) precision (8 bit or 16 bit)
+                call    BINDEC          ; Convert to decimal digits.
                                         ;
                                         ; --------------------------------------
                                         ; Print the digits
@@ -36,7 +36,7 @@
                 call    printStr
                                         ;
                 mvi     c,5             ; Counter of number of digits to print.
-                LXI     h,DDIG5         ; Pointer to last digit(5th digit) memory address.
+                lxi     h,DDIG5         ; Pointer to last digit(5th digit) memory address.
     PrintDigits:
                 mov     a,m
                 call    printDigitA
@@ -125,16 +125,16 @@
                 inx     h               ; Increment H:L register pair.
                 jmp     printStrNext
     sPrintDone:
-                lda regA
+                lda     regA
                 ret
                                         ; --------------------------------------
     println:
-                lda regA
-                mvi a,'\r'              ; Print newline, print CR and NL characters.
-                out PRINT_PORT
-                mvi a,'\n'
-                out PRINT_PORT
-                lda regA
+                lda     regA
+                mvi     a,'\r'          ; Print newline, print CR and NL characters.
+                out     PRINT_PORT
+                mvi     a,'\n'
+                out     PRINT_PORT
+                lda     regA
                 ret
                                         ; --------------------------------------
                                         ; Declarations
@@ -145,7 +145,7 @@
     NUMH:	DB 0                    ; Number high byte
                                         ;
                                         ; Place to store the decimal digits.
-                                        ; Value after running, with output: 0258
+                                        ; Sample output output digits: 00258
     DDIG1:      DB 0                    ;   8
     DDIG2:      DB 0                    ;   5
     DDIG3:      DB 0                    ;   2
