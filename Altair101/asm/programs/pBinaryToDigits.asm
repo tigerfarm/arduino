@@ -14,22 +14,6 @@
                                         ; --------------------------------------
                                         ;
                 lxi     sp,STACK        ; Set stack pointer.
-                jmp     Start
-                                        ;
-                                        ; --------------------------------------
-                                        ; 16 bit number to convert to decimal digits.
-    NUML:	DB 0                    ; Number low byte
-    NUMH:	DB 0                    ; Number high byte
-                                        ;
-                                        ; Place to store the decimal digits.
-                                        ; Value after running, with output: 0258
-    DDIG1:      DB 0                    ;   8
-    DDIG2:      DB 0                    ;   5
-    DDIG3:      DB 0                    ;   2
-    DDIG4:      DB 0                    ;   0
-    DDIG5:      DB 0                    ;   0
-                                        ;
-                                        ; --------------------------------------
     Start:
                 lxi     h,StartMsg
                 call    printStr
@@ -153,9 +137,22 @@
                 lda regA
                 ret
                                         ; --------------------------------------
-                                        ; --------------------------------------
                                         ; Declarations
+                                        ; --------------------------------------
                                         ;
+                                        ; 16 bit number to convert to decimal digits.
+    NUML:	DB 0                    ; Number low byte
+    NUMH:	DB 0                    ; Number high byte
+                                        ;
+                                        ; Place to store the decimal digits.
+                                        ; Value after running, with output: 0258
+    DDIG1:      DB 0                    ;   8
+    DDIG2:      DB 0                    ;   5
+    DDIG3:      DB 0                    ;   2
+    DDIG4:      DB 0                    ;   0
+    DDIG5:      DB 0                    ;   0
+                                        ;
+                                        ; --------------------------------------
     StartMsg:   db '\r\n+++ Print a binary number as a decimal number string.'
                 db 0
     DigitMsg:	db '\r\n+ Digits: '
@@ -175,11 +172,7 @@
                                         ; --------------------------------------
                                         ; --------------------------------------
                                         ; Successful run:
-+ Download complete.
-?- + r, RUN.
-?- + runProcessor()
-
-+++ Print bytes as binary and decimal number strings.
++++ Print a binary number as a decimal number string.
 + Digits: 00258
 ++ HALT, host_read_status_led_WAIT() = 0
                                         ;
