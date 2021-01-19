@@ -31,19 +31,27 @@
 //  Bit 1	1	Always 1
 //  Bit 0	C	Carry Flag
 
-// -------------------------
+// -----------------------------------------------------------------------------
 // Operation codes
+// -----------------------------------------------------------------------------
 
 nop :00000000:NOP      00 000 000  1  No operation. I added a delay: delay(100).
 hlt :01110110:HLT      01 110 110  1  Halt processor.
+
 call:11001101:CALL a   11 001 101  3  Unconditional subroutine call. Push current address onto the stack and jump the subroutine address.
 ret :11001001:RET      11 001 001  1  Unconditional return from subroutine. Pop the call address from the stack and continue to the next address.
 
 in  :11011011:IN pa    11 011 011  2  Read port a data into the accumulator. Example, a=0377 is the sense switches.
 out :11010011:OUT pa   11 100 011  2  Write the accumulator data out to port a. I'm using this opcode to write custom log messages such as echoing the registers.
 
-// -------------------------
+ei  :11111011:EI #     11 100 011  1  Enable interrupts. Partly implemented.
+di  :11110011:DI #     11 100 011  1  Disable interrupts. Partly implemented.
+
+// -----------------------------------------------------------------------------
 // Compare and branching
+// -----------------------------------------------------------------------------
+
+cpi :11111110:CPI #    11 111 110  2  Compare #(immediate value) to A. If #==A, ZeroBit=1 & CarryBit=0. If #!=A, ZeroBit=0. If #>A, CarryBit=1. If #<A, CarryBit=0.
 
 cmp :10111SSS:CMP S    10 111 SSS  1  Compare register(S: B,C,D,E,H,L, or M) with register A, then set flags. If S==A, ZeroBit=1 & CarryBit=0. If S!=A, ZeroBit=0. If S>A, CarryBit=1. If S<A, CarryBit=0.
 cmpa:10111111:|A - A
@@ -55,32 +63,65 @@ cmph:10111100:|A - H
 cmpl:10111101:|A - L
 cmpm:10111110:|A - (HL)
 
-cpi:11111110:CPI #    11 111 110  2  Compare #(immediate value) to A. If #==A, ZeroBit=1 & CarryBit=0. If #!=A, ZeroBit=0. If #>A, CarryBit=1. If #<A, CarryBit=0.
+jz  :11001010:JZ a     11 001 010  3  Jump to a, if zero bit flag is set (equals 1).
+jnz :11000010:JNZ a    11 000 010  3  Jump to a, if Zero bit flag is not set (equals 0).
+jc  :11011010:JC a     11 011 010  3  Jump to a, if Carry bit flag is set (equals 1).
+jnc :11010010:JNC a    11 010 010  3  Jump to a, if Carry bit flag is not set (equals 0).
+jmp :11000011:JMP a    11 000 011  3  Unconditional jump to address a.
+jm  :11111010:JM a     11 100 010  ?  Jump to address, if minus.
+jp  :11110010:JP a     11 101 010  ?  Jump to address, if positive.
+jpe :11101010:JPE a    11 110 010  ?  Jump to address, if parity even.
+jpo :11100010:JPO a    11 111 010  ?  Jump to address, if parity odd.
 
-jz :11001010:JZ a     11 001 010  3  Jump to a, if zero bit flag is set (equals 1).
-jnz:11000010:JNZ a    11 000 010  3  Jump to a, if Zero bit flag is not set (equals 0).
-jc :11011010:JC a     11 011 010  3  Jump to a, if Carry bit flag is set (equals 1).
-jnc:11010010:JNC a    11 010 010  3  Jump to a, if Carry bit flag is not set (equals 0).
-jmp:11000011:JMP a    11 000 011  3  Unconditional jump to address a.
+r   :11CCC000:Rcc      11 NNN 111  1  Conditional return from subroutine: rnz, rz, rnc, rc, rpo, rpe, rp, rm.
+rnz :11000000:|if NZ, RET :RNZ Conditional return from subroutine
+rz  :11001000:|if Z, RET  :RZ Conditional return from subroutine
+rnc :11010000:|if NCY, RET:RNC Conditional return from subroutine
+rc  :11011000:|if CY, RET :RC Conditional return from subroutine
+rpo :11100000:|if PO, RET :RPO      11 100 000  1  Conditional return from subroutine
+rpe :11101000:|if PE, RET :RPE      11 101 000  1  Conditional return from subroutine
+rp  :11110000:|if P, RET  :RP       11 100 000  1  Conditional return from subroutine
+rm  :11111000:|if M, RET  :RM       11 111 000  1  Conditional return from subroutine
 
-// -------------------------
+pchl:11101001:PCHL #   11 101 001  ?  Jump to address in H:L.
+xchg:11101011:XCHG #   11 101 011  ?  Exchange DE and HL content.
+
+
+// Inst      Encoding          Flags   Description
+// -----------------------------------------------
+
+// Cccc a    11CCC100 lb hb    -       Conditional subroutine call
+c   :11CCC100:C a     11 CCC 100  3  Conditional subroutine call: if CY, CALL address.
+cnz :11000100:|CNZ adr    if NZ, CALL adr
+cz  :11001100:|CZ adr     if Z, CALL adr
+cnc :11010100:|CNC adr    if NCY, CAL adr
+cc  :11011100:|CC adr     if CY, CALL adr
+cpo :11100100:|CPO adr    if PO, CALL adr
+cpe :11101100:|CPE adr    if PE, CALL adr
+cp  :11110100:|CP adr     if P, PC <- adr
+cm  :11111100:|CM adr     if M, CALL adr
+
+// -----------------------------------------------------------------------------
 // Moving data around
+// -----------------------------------------------------------------------------
 
 sta  :00110010:STA a    00 110 010  3  A -> (adr): Store register A to the address, a(lb:hb), lowbyte followed by the highbyte.
 lda  :00111010:LDA a    00 111 010  3  (adr) -> A: Load register A with data from the address, a(lb:hb).
 
 shld :00100010:SHLD a   00 100 010  3  L->(adr);H->(adr+1): Store register data values to memory locations: register L a(address hb:lb). Store register H to: a + 1.
 lhld :00101010:LHLD a   00 101 010  3  (adr)->L;(adr+1)->H: Load registers H and L (H:L) with address values a and a+1.
+// shld	NUML ; Memory address
+// MVI	M,2  ; Move immediate to memory address.
 
-ldax :00RP1010:LDAX RP  00 RP1 010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.
-ldaxb:00001010:|(BC) -> A
-ldaxd:00011010:|(DE) -> D
-
-lxi  :00RP0001:LXI RP,a 00 RP0 001  3  byte3(hb)->R,byte2(lb)->P:Move the address, a(lb:hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.
-lxib :00000001:|byte 3 -> B, byte 2 -> C (hb->B,lb->C)
-lxid :00010001:|byte 3 -> D, byte 2 -> E (hb->D,lb->E)
-lxih :00100001:|byte 3 -> H, byte 2 -> L (hb->H,lb->L)
-lxisp:00110001:|stackpointer = lb(byte 2) + 256 * hb(byte 3)
+mvi  :00RRR110:MVI R,#  00 RRR 110  2  Move #(immediate value) to a register (R).
+mvia :00111110:|A <- byte 2
+mvib :00000110:|B <- byte 2
+mvic :00001110:|C <- byte 2
+mvid :00010110:|D <- byte 2
+mvie :00011110:|E <- byte 2
+mvih :00100110:|H <- byte 2
+mvil :00101110:|L <- byte 2
+mvim :00110110:|(HL) <- byte 2
 
 mov  :01DDDSSS:MOV D,S  01 DDD SSS  1  Move source register(SSS) data, to the destination(DDD) register(A,B,C,D,E,H, or L). If source(S) is M(110), move data from address H:L(H is hb,L is lb), to destination(D).
 movaa:01111111:|A -> A
@@ -147,15 +188,23 @@ movme:01110011:|E->(HL)
 movmh:01110100:|H->(HL)
 movml:01110101:|L->(HL)
 
-mvi  :00RRR110:MVI R,#  00 RRR 110  2  Move #(immediate value) to a register (R).
-mvia :00111110:|A <- byte 2
-mvib :00000110:|B <- byte 2
-mvic :00001110:|C <- byte 2
-mvid :00010110:|D <- byte 2
-mvie :00011110:|E <- byte 2
-mvih :00100110:|H <- byte 2
-mvil :00101110:|L <- byte 2
-mvim :00110110:|(HL) <- byte 2
+lxi  :00RP0001:LXI RP,a 00 RP0 001  3  byte3(hb)->R,byte2(lb)->P:Move the address, a(lb:hb), into register pair: B:C, D:E, or H:L. To do: move data to the stack pointer address.
+lxib :00000001:|byte 3 -> B, byte 2 -> C (hb->B,lb->C)
+lxid :00010001:|byte 3 -> D, byte 2 -> E (hb->D,lb->E)
+lxih :00100001:|byte 3 -> H, byte 2 -> L (hb->H,lb->L)
+lxisp:00110001:|stackpointer = lb(byte 2) + 256 * hb(byte 3)
+
+stax :00RP0010:STAX RP  00 RP0 010  1  Store indirect through BC or DE.
+staxb:00000010:|(BC)B <- A
+staxd:00010010:|(DE)D <- A
+
+ldax :00RP1010:LDAX RP  00 RP1 010  1  Load data value at the register pair address (B:C(RP=00) or D:E(RP=01)), into register A.
+ldaxb:00001010:|(BC) -> A
+ldaxd:00011010:|(DE) -> D
+
+// -----------------------------------------------------------------------------
+// Stack Operations
+// -----------------------------------------------------------------------------
 
 push :11RP0101:PUSH RP  11 RP0 101  1  Push a register pair (RP) onto the stack: B:C, D:E, H:L. To do, push flags.
 pushb:11000101:|(sp-2)<-C; (sp-1)<-B; sp <- sp - 2
@@ -171,18 +220,12 @@ poph :11100001:|L <- (sp); H <- (sp+1); sp <- sp+2
 popa :11110001:|flags <- (sp); A <- (sp+1); sp <- sp+2
 popf :11110001:|flags <- (sp); A <- (sp+1); sp <- sp+2
 
-// -------------------------
-// Math related
+xthl:11100011:XTHL #   11 100 011  1  Set H:L registers to same value as SP. L <-> (SP); H <-> (SP+1)
+sphl:11111001:SPHL #   11 100 011  1  Set SP address to the same address value as H:L. SP=HL
 
-dcr :00DDD101:DCR D    00 DDD 101  1  Decrement a register DDD(A,B,C,D,E,H, or L). To do, set flags: ZSPA.
-dcra:00111101:|A-1 -> A
-dcrb:00000101:|B-1 -> B
-dcrc:00001101:|C-1 -> C
-dcrd:00010101:|D-1 -> D
-dcre:00011101:|E-1 -> E
-dcrh:00100101:|H-1 -> H
-dcrl:00101101:|L-1 -> L
-dcrm:00110101:|(HL)-1 -> (HL)
+// -----------------------------------------------------------------------------
+// Math Single Precision
+// -----------------------------------------------------------------------------
 
 inr :00DDD100:INR D    00 DDD 100  1  Increment register DDD(A,B,C,D,E,H, or L). To do, set flags: ZSPA.
 inra:00111100:|A+1 -> A
@@ -194,22 +237,24 @@ inrh:00100100:|H+1 -> H
 inrl:00101100:|L+1 -> L
 inrm:00110100:|(HL)+1 -> (HL)
 
-inx :00RP0011:INX RP   00 RP0 011  1  Increment a register pair value(16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
-inxb:00000011:|BC = BC+1
-inxd:00010011:|DE = DE+1
-inxh:00100011:|HL = HL+1
-inxsp:00110011:|SP = SP + 1
-
-dcx :00RP1011:DCX RP   00 RP1 011  1  Decrement a register pair value(16 bit value): B:C, D:E, H:L.
-dcxb:00001011:|BC = BC-1
-dcxd:00011011:|DE = DE-1
-dcxh:00101011:|HL = HL-1
-dcxsp:00111011:|SP = SP-1
+dcr :00DDD101:DCR D    00 DDD 101  1  Decrement a register DDD(A,B,C,D,E,H, or L). To do, set flags: ZSPA.
+dcra:00111101:|A-1 -> A
+dcrb:00000101:|B-1 -> B
+dcrc:00001101:|C-1 -> C
+dcrd:00010101:|D-1 -> D
+dcre:00011101:|E-1 -> E
+dcrh:00100101:|H-1 -> H
+dcrl:00101101:|L-1 -> L
+dcrm:00110101:|(HL)-1 -> (HL)
 
 adi :11000110:ADI #    11 000 110  3  Add #(immediate value) to register A, set: ZSCPA.
 sui :11010110:SUI #    11 010 110  3  Subtract #(immediate value) from register A, set ZSCPA.
 
+aci :11001110:ACI #    11 001 110  ?  Add #(immediate value) to register A, plus the carry bit (with ZSPCA).
+sbi :11011110:SBI #    11 011 110  ?  Subtract #(immediate value) from register A with borrow (with ZSPCA).
+
 add :10000SSS:ADD SSS  10 000 SSS  1  Add source register to register A, set: ZSCPA.
+adda:10000111:|A+A -> A
 addb:10000000:|B+A -> A
 addc:10000001:|C+A -> A
 addd:10000010:|D+A -> A
@@ -217,18 +262,78 @@ adde:10000011:|E+A -> A
 addh:10000100:|H+A -> A
 addl:10000101:|L+A -> A
 addm:10000110:|(HL)+A -> A
-adda:10000111:|A+A -> A
 
-dad :00RP1001:DAD RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L, into H:L. And set carry bit.
-dadb:00001001:|HL = HL + BC
-dadd:00011001:|HL = HL + DE
-dadh:00101001:|HL = HL + HL
+sub :10010SSS:SUB S    10 010 SSS  1  Subtract register from A (with ZSPCA).
+suba:10010111:|A <- A - A
+subb:10010000:|A <- A - B
+subc:10010001:|A <- A - C
+subd:10010010:|A <- A - D
+sube:10010011:|A <- A - E
+subh:10010100:|A <- A - H
+subl:10010101:|A <- A - L
+subm:10010110:|A <- A - M(HL)
+
+adc :10001SSS:ADC S    10 001 SSS  1  S+A+CY->A: Add register S, to A, plus the carry bit (with ZSPCA).
+adca:10001111:|A+A+CY->A
+adcb:10001000:|B+A+CY->A
+adcc:10001001:|C+A+CY->A
+adcd:10001010:|D+A+CY->A
+adce:10001011:|E+A+CY->A
+adch:10001100:|H+A+CY->A
+adcl:10001101:|L+A+CY->A
+adcm:10001110:|(HL)+A+CY->A
+
+sbb :10011SSS:SBB S    10 011 SSS  1  Subtract register from A with borrow (with ZSPCA).
+sbba:10011111:|A <- A - A - CY
+sbbb:10011000:|A <- A - B - CY
+sbbc:10011001:|A <- A - C - CY
+sbbd:10011010:|A <- A - D - CY
+sbbe:10011011:|A <- A - E - CY
+sbbh:10011100:|A <- A - H - CY
+sbbl:10011101:|A <- A - L - CY
+sbbm:10011110:|A <- A - M(HL) - CY
+
+daa :00100111:DAA #    00 100 111  ?  Decimal Adjust accumulator (with ZSPCA).
+
+// -----------------------------------------------------------------------------
+// Math Double Precision
+// -----------------------------------------------------------------------------
+
+inx  :00RP0011:INX RP   00 RP0 011  1  Increment a register pair value(16 bit value): B:C, D:E, H:L. To do: increment the stack pointer.
+inxb :00000011:|BC = BC+1
+inxd :00010011:|DE = DE+1
+inxh :00100011:|HL = HL+1
+inxsp:00110011:|SP = SP + 1
+
+dcx  :00RP1011:DCX RP   00 RP1 011  1  Decrement a register pair value(16 bit value): B:C, D:E, H:L.
+dcxb :00001011:|BC = BC-1
+dcxd :00011011:|DE = DE-1
+dcxh :00101011:|HL = HL-1
+dcxsp:00111011:|SP = SP-1
+
+dad  :00RP1001:DAD RP   00 RP1 001  1  16 bit add. Add register pair(RP: B:C or D:E) to H:L, into H:L. And set carry bit.
+dadb :00001001:|HL = HL + BC
+dadd :00011001:|HL = HL + DE
+dadh :00101001:|HL = HL + HL
 dadsp:00111001:|HL = HL + SP
 
-// -------------------------
+// -----------------------------------------------------------------------------
 // Bit and logic applied to a register or byte.
+// -----------------------------------------------------------------------------
 
 ani :11100110:ANI #    11 100 110  2  AND #(immediate value) with register A.
+ori :11110110:ORI #    11 110 110  ?  OR #(immediate value) with register A (with ZSPCA).
+xri :11101110:XRI #    11 101 110  ?  ExclusiveOR #(immediate value) with register A (with ZSPCA).
+
+ana :10100SSS:ANA S    10 100 SSS  1  AND register with A (with ZSPCA).
+anaa:10100111:|A <- A & A
+anab:10100000:|A <- A & B
+anac:10100001:|A <- A & C
+anad:10100010:|A <- A & D
+anae:10100011:|A <- A & E
+anah:10100100:|A <- A & H
+anal:10100101:|A <- A & L
+anam:10100110:|A <- A & M(HL)
 
 ora :10110SSS:ORA S    10 110 SSS  1  OR register S, with register A.
 oraa:10110111:|A | A -> A
@@ -250,23 +355,17 @@ xrah:10101100:|H ^ A -> A
 xral:10101101:|L ^ A -> A
 xram:10101110:|(HL) ^ A -> A
 
-rlc :00000111:RLC      00 000 111  1  Rotate accumulator left by shift left 1 bit, and wrapping the first bit to the last position. Need to handle carry bit (CY = prev bit 7).
-rrc :00001111:RRC      00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit (CY = prev bit 0).
-
-ei  :11111011:EI #     11 100 011  1  Enable interrupts. Partly implemented.
-di  :11110011:DI #     11 100 011  1  Disable interrupts. Partly implemented.
+rlc :00000111:RLC #    00 000 111  ?  Rotate A left, cycle carry bit.
+rrc :00001111:RRC #    00 001 111  1  Rotate accumulator right by shift right 1 bit, and wrapping the last bit to the first position. Need to handle carry bit (CY = prev bit 0).
+ral :00010111:RAL #    00 010 111  ?  Rotate A right through carry.
+rar :00011111:RAR #    00 011 111  ?  Rotate A right through carry.
+cma :00101111:CMA #    00 101 111  ?  Compliment A.
+stc :00110111:STC #    00 110 111  ?  Set Carry flag.
+cmc :00111111:CMC #    00 111 111  ?  Compliment Carry flag.
 
 // -----------------------------------------------------------------------------
-
-r   :11CCC000:Rcc      11 NNN 111  1  Conditional return from subroutine: rnz, rz, rnc, rc, rpo, rpe, rp, rm.
-rnz :11000000:|if NZ, RET :RNZ Conditional return from subroutine
-rz  :11001000:|if Z, RET  :RZ Conditional return from subroutine
-rnc :11010000:|if NCY, RET:RNC Conditional return from subroutine
-rc  :11011000:|if CY, RET :RC Conditional return from subroutine
-rpo :11100000:|if PO, RET :RPO      11 100 000  1  Conditional return from subroutine
-rpe :11101000:|if PE, RET :RPE      11 101 000  1  Conditional return from subroutine
-rp  :11110000:|if P, RET  :RP       11 100 000  1  Conditional return from subroutine
-rm  :11111000:|if M, RET  :RM       11 111 000  1  Conditional return from subroutine
+// Other
+// -----------------------------------------------------------------------------
 
 rst :11NNN111:RST N    11 NNN 111  1  Restart call: rst <0..7>, example: rst 3.
 rst0:11000111:|CALL $0 :Restart: Call current location + 0?
@@ -278,92 +377,6 @@ rst5:11101111:|CALL $28:Restart (Call 5)
 rst6:11110111:|CALL $30:Restart (Call 6)
 rst7:11111111:|CALL $38:Restart (Call 7)
 
-// -----------------------------------------------------------------------------
-
-aci :11001110:ACI #    11 001 110  ?  Add #(immediate value) to register A, plus the carry bit (with ZSPCA).
-sbi :11011110:SBI #    11 011 110  ?  Subtract #(immediate value) from register A with borrow (with ZSPCA).
-xri :11101110:XRI #    11 101 110  ?  ExclusiveOR #(immediate value) with register A (with ZSPCA).
-ori :11110110:ORI #    11 110 110  ?  OR #(immediate value) with register A (with ZSPCA).
-
-pchl:11101001:PCHL #   11 101 001  ?  Jump to address in H:L.
-xchg:11101011:XCHG #   11 101 011  ?  Exchange DE and HL content.
-
-daa :00100111:DAA #    00 100 111  ?  Decimal Adjust accumulator (with ZSPCA).
-
-rlc :00000111:RLC #    00 000 111  ?  Rotate A left, cycle carry bit.
-ral :00010111:RAL #    00 010 111  ?  Rotate A right through carry.
-rar :00011111:RAR #    00 011 111  ?  Rotate A right through carry.
-cma :00101111:CMA #    00 101 111  ?  Compliment A.
-stc :00110111:STC #    00 110 111  ?  Set Carry flag.
-cmc :00111111:CMC #    00 111 111  ?  Compliment Carry flag.
-
-xthl:11100011:XTHL #   11 100 011  1  Set H:L registers to same value as SP. L <-> (SP); H <-> (SP+1)
-sphl:11111001:SPHL #   11 100 011  1  Set SP address to the same address value as H:L. SP=HL
-
-jm  :11111010:JM a     11 100 010  ?  Jump to address, if minus.
-jp  :11110010:JP a     11 101 010  ?  Jump to address, if positive.
-jpe :11101010:JPE a    11 110 010  ?  Jump to address, if parity even.
-jpo :11100010:JPO a    11 111 010  ?  Jump to address, if parity odd.
-
-ana :10100SSS:ANA S    10 100 SSS  1  AND register with A (with ZSPCA).
-anaa:10100111:|A <- A & A
-anab:10100000:|A <- A & B
-anac:10100001:|A <- A & C
-anad:10100010:|A <- A & D
-anae:10100011:|A <- A & E
-anah:10100100:|A <- A & H
-anal:10100101:|A <- A & L
-anam:10100110:|A <- A & M(HL)
-
-stax:00RP0010:STAX RP  00 RP0 010  1  Store indirect through BC or DE.
-staxb:00000010:|(BC)B <- A
-staxd:00010010:|(DE)D <- A
-
-adc :10001SSS:ADC S    10 001 SSS  1  S+A+CY->A: Add register S, to A, plus the carry bit (with ZSPCA).
-adca:10001111:|A+A+CY->A: Not implemented.
-adcb:10001000:|B+A+CY->A: Not implemented.
-adcc:10001001:|C+A+CY->A: Not implemented.
-adcd:10001010:|D+A+CY->A: Not implemented.
-adce:10001011:|E+A+CY->A: Not implemented.
-adch:10001100:|H+A+CY->A: Not implemented.
-adcl:10001101:|L+A+CY->A: Not implemented.
-adcm:10001110:|(HL)+A+CY->A: Not implemented.
-
-sub :10010SSS:SUB S    10 010 SSS  1  Subtract register from A (with ZSPCA).
-suba:10010111:|A <- A - A
-subb:10010000:|A <- A - B
-subc:10010001:|A <- A - C
-subd:10010010:|A <- A - D
-sube:10010011:|A <- A - E
-subh:10010100:|A <- A - H
-subl:10010101:|A <- A - L
-subm:10010110:|A <- A - M(HL)
-
-sbb :10011SSS:SBB S    10 011 SSS  1  Subtract register from A with borrow (with ZSPCA).
-sbba:10011111:|A <- A - A - CY
-sbbb:10011000:|A <- A - B - CY
-sbbc:10011001:|A <- A - C - CY
-sbbd:10011010:|A <- A - D - CY
-sbbe:10011011:|A <- A - E - CY
-sbbh:10011100:|A <- A - H - CY
-sbbl:10011101:|A <- A - L - CY
-sbbm:10011110:|A <- A - M(HL) - CY
-
-// Inst      Encoding          Flags   Description
-// ----------------------------------------------------------------------
-
-// Cccc a    11CCC100 lb hb    -       Conditional subroutine call
-c   :11CCC100:C a     11 CCC 100  3  Conditional subroutine call: if CY, CALL address.
-cnz :11000100:|CNZ adr    if NZ, CALL adr
-cz  :11001100:|CZ adr     if Z, CALL adr
-cnc :11010100:|CNC adr    if NCY, CAL adr
-cc  :11011100:|CC adr     if CY, CALL adr
-cpo :11100100:|CPO adr    if PO, CALL adr
-cpe :11101100:|CPE adr    if PE, CALL adr
-cp  :11110100:|CP adr     if P, PC <- adr
-cm  :11111100:|CM adr     if M, CALL adr
-
-// ----------------------------------------------------------------------
 rim :00100000:|Special RIM
 sim :00110000:|Special SIM
 
