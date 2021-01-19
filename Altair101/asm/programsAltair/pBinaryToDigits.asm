@@ -11,6 +11,10 @@
 ; To:
 ;   11111111b + 11111111b > + Digits: 65535
 ;
+; The program was written by Stacy David.
+; The conversion routine is from the 1976 Galaxy80 program,
+;   written by Robert Fidley (C) COPYRIGHT 1976 Scelbi Computer Consulting, Inc.
+;
 ; ------------------------------------------------------------------------------
                                         ; --------------------------------------
                                         ;
@@ -75,9 +79,10 @@
                 MOV     M,H
                 INR     L
                 MOV     M,H
-                XCHG			; Restore binary number
+                XCHG			; Restore binary number address to HL.
                                         ;
                 MOV     E,M		;Fetch least significant half
+                ;
                 DCR     B		; Single(B=1) or double(B=2) precision
                 JZ      BNDC		;Yes, most significant half = 0
                 INR     L		;No, advance pointer

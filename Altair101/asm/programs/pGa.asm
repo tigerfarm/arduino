@@ -704,6 +704,7 @@ ELOS:
 	DCR	L		;Pointer to energy loss
 	MVI	B,002		;Number of bytes for BINDEC
 	CALL	BINDEC		;Convert energy amount
+                                ;
 	LXI	D,MSGLOP	;Set pointer to energy message
 	MVI	B,004		;Counter to number of digits
 	CALL	DIGPRT		;Put digits in message
@@ -2139,8 +2140,8 @@ GAMESTAT:
 	MOV	A,M		;Set no. bytes for BINDEC
 	ORI	0B0H		;Covert space station value
 	LXI	H,GSMSGT	;Set pntr to digit stor. in start msg.
-	MOV	M,A		;Set counter to no. of digits
                                 ;
+	MOV	M,A		;Set counter to no. of digits
 	LXI	H,GSMSG 	;Set pntr to start message
 	CALL	MSG		;Print starting message
                                 ; You must destroy 18 alien ships in  05 stardates with 5 space stations
