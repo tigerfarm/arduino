@@ -25,17 +25,10 @@ Site I downloaded from:
 --------------------------------------------------------------------------------
 ### To do next:
 
-Move LLR:
-
-Create a new message buffer for the following:
-````
-You must destroy 16 TIE ships,  in 21 stardates with 6 space stations
-++ New:
-TIE fighters to destroy: 16, within 21 stardates utilizing 6 space stations.
-````
 Randomize the start number (in START:). Currently, it's always the same random number.
 
-Continue to improve messages.
+Condition DOCKED:
+2            x!x>1<       CONDITION GREEN
 
 Check, if no Sith ships in the sector, don't say: The Sith retaliates.
 ````
@@ -695,10 +688,11 @@ Supplies are available at any of the 3 space stations.
 ````
 ; ------------------------------------------------------------------------------
 ````
-++    2361:00001001 00111001: 00110001 : 31:061 > opcode: lxi sp,STACK
-03458bx Galaxy program start address, label: GALAXY.
+++    1280:00000101 00000000: 00110001 > opcode: lxi sp,STACK
+8ax     Galaxy program start address, label: GALAXY.
+128ax   Restart address, which assumes that the stack pointer is set.
 
-2589bx Command Menu start address. First instruction is to set the stack pointer.
-cmyc12578bxr for the Arduino IDE monitor.
+Command Menu start address. First instruction is to set the stack pointer.
+cmyc128axr for the Arduino IDE monitor.
 ````
 

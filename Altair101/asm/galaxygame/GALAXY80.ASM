@@ -1,17 +1,5 @@
 ; ------------------------------------------------
 ;
-; Stacy, be a challenge to get this to compile using my assembler.
-;
-; I/O ports:
-; SIOCTL    EQU 10H   ;88-2SIO CONTROL PORT
-;   IN	SIOCTL
-; SIODAT    EQU 11H   ;88-2SIO DATA PORT
-;   OUT	SIODAT
-;
-; Original site:
-;   https://github.com/deltecent/scelbi-galaxy
-; ------------------------------------------------
-;
 ; +----------------------------------+
 ; |       SCELBI'S GALAXY GAME       |
 ; |           FOR THE 8080           |

@@ -39,7 +39,7 @@ public class asmUpload {
 
     // Uses the device name that can be found in the Arduino IDE, under the menu item Tools/Port.
     // Sample default ports: tty.wchusbserial14230 /dev/cu.wchusbserial141230
-    private static String SerialPortName = "/dev/cu.wchusbserial141230";
+    private static String SerialPortName = "/dev/tty.wchusbserial14220";
     
 
     // -------------------------------------------------------------------------

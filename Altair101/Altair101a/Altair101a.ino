@@ -255,7 +255,7 @@ void writeProgramMemoryToFile(String theFilename) {
   // Serial.println(F("+ Check if file exists. "));
   if (SD.exists(theFilename)) {
     SD.remove(theFilename);
-    // Serial.println(F("++ Exists, so it was deleted."));
+    Serial.println(F("++ Exists, so it was deleted."));
   }
   myFile = SD.open(theFilename, FILE_WRITE);
   if (!myFile) {
@@ -1989,7 +1989,8 @@ void runDownloadProgram() {
         if (SERIAL_FRONT_PANEL) {
           Serial.print(F("\033[11;1H"));    // Move cursor to below the prompt.
         }
-        Serial.println(F("+       Address  Data  Binary   Hex Octal Decimal"));
+        // Serial.println(F("+       Address  Data  Binary   Hex Octal Decimal"));
+        Serial.println(F("+       Address"));
         //              ++ Byte#     17, Byte: 00000000 000 000     0
       }
       if (SERIAL_FRONT_PANEL) {
@@ -1998,6 +1999,7 @@ void runDownloadProgram() {
       //
       // Buffer space up to 64K.
       Serial.print(F("++ Byte# "));
+      /* Commented out to simplify output during the receiving of bytes.
       if (readByteCount < 10) {
         Serial.print(F(" "));
       }
@@ -2013,12 +2015,14 @@ void runDownloadProgram() {
       if (readByteCount < 100000) {
         Serial.print(F(" "));
       }
+      */
       Serial.print(readByteCount);
       //
       // Input on the external serial port module.
       // Process the incoming byte.
       MWRITE(readByteCount, readByte)
       readByteCount++;
+      /* Commented out to simplify output during the receiving of bytes.
       Serial.print(F(", Byte: "));
       printByte(readByte);
       Serial.print(F(" "));
@@ -2033,6 +2037,7 @@ void runDownloadProgram() {
         Serial.print(F(" "));
       }
       Serial.print(readByte);
+      */
       Serial.println();
       //
       timer = millis();
