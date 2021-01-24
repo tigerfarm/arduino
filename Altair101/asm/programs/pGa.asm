@@ -208,7 +208,6 @@ MSGSDP:	DB	'0'
 MSGCND:	DB	' CONDITION '
 MSGGRN:	DB	'GREEN'
   	DB	0
-;MSGQAD: DB	' QUADRANT  '
 MSGQAD:	DB	' REGION    '
 MSGPQD:	DB	'   '
   	DB	0
@@ -329,14 +328,27 @@ GALAXY:
 NEWSTART:
 	LXI	H,MSGSTART
 	CALL	MSG		;Print introduction
-START:
-	CALL	RN		;Increment random number. Stacy, currently, same random number every time because of my START change.
-	CALL	INPCK		;Input yet?
-	JP	START		;No, continue wait
+                                ; ----------------------------------------------
+STARTYN:
+	CALL	RN		; Set a new random game number.
+        in      SIOCTL          ; Stacy, check for input character.
+        cpi     0
+	jz	STARTYN         ; No input character
+        cpi     'n'             ; No, don't start a new game.
+        jz      NOGAME
+        cpi     'N'             ; No, don't start a new game.
+        jz      NOGAME
+        cpi     'y'             ; Yes, start the game.
+        jz      STARTGAME
+        cpi     'Y'             ; Yes, start the game.
+        jz      STARTGAME
+	jmp	STARTYN         ; Invalid character
+                                ;
 	CALL	INPUT		;Wait for an input character, then echo it and continue.
 	CPI	'N'
 	JZ	NOGAME		; Not going to play a game.
                                 ; ----------------------------------------------
+STARTGAME:
                                 ; Prepare for a new game.
 	LXI	H,MSPREP
 	CALL	MSG
@@ -383,11 +395,17 @@ GLXCK1:
 	MOV	A,C		;Fetch alien ship total
 	RRC
 	RRC
-	MOV	C,A		;Save alien ship total
-	CPI	8		;Dave, default was 32. Too many alien ships?
-	JNC	ASPLS		;Yes, delete 1
-	CPI	5		;Dave, default was 10. Too few alien ships?
-	JC	ASMNS		;Yes, add 1 more
+	MOV	C,A		; Number of alien ships
+                                ; ------
+        lda     ASHIPSH         ; Max (high) number of alien ships.
+	cmp	C		; Default was 32. Too many alien ships?
+	mov	A,C		;Fetch alien ship total
+	JC	ASPLS		; Yes, delete 1 more
+                                ; ------
+        lda     ASHIPSL         ; Max (high) number of alien ships.
+	cmp	C		; Default was 32. Too many alien ships?
+	mov	A,C		;Fetch alien ship total
+	JNC	ASMNS		; Yes, add 1
                                 ; ----------------------------------------------
 	MVI	L,05BH		;Set pntr to store number S.S.
 	MOV	M,D		;Save number of space stations
@@ -1171,13 +1189,16 @@ RN:
 	DCR	L
 	MOV	M,A		;Save random number
 	RET
+                                ; --------------------------
 SSPLS:
 	MVI	E,0F7H		;Mask to delete space station
 	JMP	PLS		;Delete excess space station
 SSMNS:
 	MVI	E,STNMSK	;Mask to add space station
 	JMP	MNS		;Add a space station
-ASPLS:
+                                ;
+                                ; --------------------------
+ASPLS:                          ; Delete alien ship
 	MVI	E,0CFH		;Mask to delete alien ship
 PLS:
 	CALL	RN		;Fetch random low address
@@ -1187,7 +1208,8 @@ PLS:
 	ANA	M		;Delete from galaxy
 	MOV	M,A		;Put back in galaxy
 	JMP	GLXCK		;Check galaxy again
-ASMNS:
+                                ;
+ASMNS:                          ; Add alien ship
 	MVI	E,010H		;Mask to add alien ship
 MNS:
 	CALL	RN		;Fetch random low address
@@ -2073,13 +2095,13 @@ CONINI:
                                 ; Help messages.
 MSGHELP:
   	DB	CR,LF
-        DB      'O. X-wing ship movement'
+        DB      'O. X-wing course setting'
   	DB	CR,LF
-        DB      '1. Short range scanner'
+        DB      '1. Sector range scanner'
   	DB	CR,LF
-        DB      '2. Long  range scanner'
+        DB      '2. Sector wide area scanner'
   	DB	CR,LF
-        DB      '3. Galaxy display'
+        DB      '3. Regional sector display'
   	DB	CR,LF
         DB      '4. Shields'
   	DB	CR,LF
@@ -2108,18 +2130,19 @@ MSGDIR:
         DB      '    7'
   	DB	0
                                 ; ----------------------------------------------
-                                ; Print game statistics message, example:
+                                ; Print game statistics message. Original:
                                 ; YOU MUST DESTROY 21 ALIEN SHIPS IN 26 STARDATES WITH 6 SPACE STATIONS
+                                ; New message template.
+GSMSG:	DB	'\r\n\r\nYou must destroy  '
+GSMSGS:	DB	'  TIE fighters in  '
+GSMSGD:	DB	'  stardates.'
+        DB	'\r\nSupplies are available at any of the '
+GSMSGT:	DB	'  rebel outposts.'
+  	DB	0
                                 ;
                                 ; DNSST:	DB	000 ;Num. space stations	//5B 91 01011011 Data= 6
                                 ; DNALS:	DB	000 ;Num. alien ships		//5C 92 01011100 Data=21
                                 ; DNSTD:	DB	000 ;Num. stardates		//5D 93 01011101 Data=26
-                                ;
-                                ; MSGYJD:	DB	CR,LF
-                                ;         	DB	'You must destroy  '
-                                ; MSGSPS:	DB	'  Sith ships in   '
-                                ; MSGDTS:	DB	'  stardates with '
-                                ; MSGSSS:	DB	'  space stations'
 GAMESTAT:
 	MVI	L,05DH		;Set pointer to store number SPACE STATIONS
 	MVI	B,1		;Set number bytes for BINDEC
@@ -2154,23 +2177,8 @@ GAMESTAT:
 ; ------------------------------------------------------------------------------
                                 ;
 MSGSTART:   DB CR,LF
-        DB      'Ready for a Star Wars mission flying an X-wing starfighter? '
+        DB      'Ready to start a Star Wars X-wing starfighter mission? (Y/N)'
   	DB	0
-                                ; ----------------------------------------------
-                                ; New message template.
-                                ;         10        20        30        40        50        60
-                                ; 123456789012345678901234567890123456789012345678901234567890
-                                ; You must destroy 21 TIE fighters in 26 stardates.
-                                ; Supplies are available at any of the 6 space stations.
-GSMSG:	DB	CR,LF
-  	DB	'You must destroy  '
-GSMSGS:	DB	'  TIE fighters in  '
-GSMSGD:	DB	'  stardates.'
-        DB	CR,LF
-        DB	'Supplies are available at any of the '
-GSMSGT:	DB	'  rebel outposts.'
-  	DB	0
-                                ;
 MSPREP:	DB	'\r\nPreparations are being made...'
   	DB	0
 MSGGDY:	DB	'\r\nRegional Sector Display'
@@ -2194,6 +2202,10 @@ MSGASD:	DB	CR,LF
                                 ; Looks like unused bytes from 3766 to 3840.
 regA:   DB      0
 regH:   DB      0
+                                ;
+ASHIPSH: DB     9               ; Number alien ships is less than this number.
+ASHIPSL: DB     5               ; Number alien ships is greater than this number.
+                                ;
                                 ; ----------------------------------------------
 	END
                                 ;

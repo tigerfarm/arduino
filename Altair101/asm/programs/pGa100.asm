@@ -328,27 +328,14 @@ GALAXY:
 NEWSTART:
 	LXI	H,MSGSTART
 	CALL	MSG		;Print introduction
-                                ; ----------------------------------------------
-STARTYN:
-	CALL	RN		; Set a new random game number.
-        in      SIOCTL          ; Stacy, check for input character.
-        cpi     0
-	jz	STARTYN         ; No input character
-        cpi     'n'             ; No, don't start a new game.
-        jz      NOGAME
-        cpi     'N'             ; No, don't start a new game.
-        jz      NOGAME
-        cpi     'y'             ; Yes, start the game.
-        jz      STARTGAME
-        cpi     'Y'             ; Yes, start the game.
-        jz      STARTGAME
-	jmp	STARTYN         ; Invalid character
-                                ;
+START:
+	CALL	RN		;Increment random number. Stacy, currently, same random number every time because of my START change.
+	CALL	INPCK		;Input yet?
+	JP	START		;No, continue wait
 	CALL	INPUT		;Wait for an input character, then echo it and continue.
 	CPI	'N'
 	JZ	NOGAME		; Not going to play a game.
                                 ; ----------------------------------------------
-STARTGAME:
                                 ; Prepare for a new game.
 	LXI	H,MSPREP
 	CALL	MSG
@@ -2166,7 +2153,7 @@ GAMESTAT:
 ; ------------------------------------------------------------------------------
                                 ;
 MSGSTART:   DB CR,LF
-        DB      'Ready to start a Star Wars X-wing starfighter mission? (Y/N)'
+        DB      'Ready for a Star Wars mission flying an X-wing starfighter? '
   	DB	0
                                 ; ----------------------------------------------
                                 ; New message template.
@@ -2174,7 +2161,8 @@ MSGSTART:   DB CR,LF
                                 ; 123456789012345678901234567890123456789012345678901234567890
                                 ; You must destroy 21 TIE fighters in 26 stardates.
                                 ; Supplies are available at any of the 6 space stations.
-GSMSG:	DB	'\r\n\r\nYou must destroy  '
+GSMSG:	DB	CR,LF
+  	DB	'You must destroy  '
 GSMSGS:	DB	'  TIE fighters in  '
 GSMSGD:	DB	'  stardates.'
         DB	CR,LF

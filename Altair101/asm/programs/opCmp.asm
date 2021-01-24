@@ -1,14 +1,14 @@
-                        ; --------------------------------------
-                        ; Test CMP and conditional jumps.
-                        ; Compare register A to another register, and then set Carry bit and Zero bit flags.
-                        ;
-                        ; If Register data = regA, Zero bit = 1, Carry bit = 0.
-                        ; If Register data > regA, Zero bit = 0, Carry bit = 1.
-                        ; If Register data < regA, Zero bit = 0, Carry bit = 0.
-                        ; Note, register A (regA) remains the same after the compare.
-                        ; Also, compare M, data value at address H:L, to register A.
-                        ; 
-                        ; --------------------------------------
+                            ; --------------------------------------
+                            ; Test CMP and conditional jumps.
+                            ; Compare register A to another register, and then set Carry bit and Zero bit flags.
+                            ;
+                            ; If Register data = regA, Zero bit = 1, Carry bit = 0.
+                            ; If Register data > regA, Zero bit = 0, Carry bit = 1.
+                            ; If Register data < regA, Zero bit = 0, Carry bit = 0.
+                            ; Note, register A (regA) remains the same after the compare.
+                            ; Also, compare M, data value at address H:L, to register A.
+                            ; 
+                            ; --------------------------------------
     Start:
             mvi a,'='
             out 3
