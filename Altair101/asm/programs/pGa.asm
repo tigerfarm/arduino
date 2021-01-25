@@ -235,7 +235,7 @@ UMSGWRP:	DB	CR,LF
 MSGLRS:	DB	CR,LF
   	DB	'L.R. SCAN FOR'
   	DB	0
-MSGMSF:	DB	CR,LF
+uMSGMSF:	DB	CR,LF
   	DB	'MISSION failed, you have run out of stardates'
   	DB	0
 MSGKAB:	DB	CR,LF
@@ -2190,6 +2190,8 @@ MSGWRP:	DB	'\r\nParsecs (0.1-7.7): '
 MSGCRS:	DB	'\r\nCourse direction (1-8.5): '
   	DB	0
 MSGCYH:	DB	'\r\n\r\nCONGRATULATIONS! You eliminated all the TIE fighters. Rebels are safe...for now.\r\n'
+  	DB	0
+MSGMSF:	DB	'\r\n\r\nMISSION failed, you ran out of stardates.'
   	DB	0
                                 ;
                                 ; ----------------------------------------------

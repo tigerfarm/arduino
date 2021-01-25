@@ -328,7 +328,7 @@ boolean readProgramFileIntoMemory(String theFilename) {
     }
   }
   myFile.close();
-  Serial.println(F("\n+ Read completed, file closed."));
+  Serial.println(F("+ Program file loaded and ready to use."));
   controlResetLogic();
   playerPlaySoundWait(READ_FILE);
   host_clr_status_led_HLDA();
@@ -1660,7 +1660,7 @@ void processWaitSwitch(byte readByte) {
         programState = SERIAL_DOWNLOAD;
         return;
       }
-      Serial.print(F("++ Read filename: "));
+      Serial.print(F("++ Program filename: "));
       Serial.println(theFilename);
       Serial.println(F("++ Confirm, y/n: "));
       readConfirmByte = 's';
