@@ -35,30 +35,13 @@
   + opcodes: ei and di. And handling interupts once ei is run.
   + This is required when I try to run complex programs such as CPM, and likely Basic.
 
-  + Option to have HLT work the same as Altair 8800.
+  Option to have HLT work the same as Altair 8800.
 
   Starting integrating hardware functions using the Altair tablet.
   + Get the Altair tablet to work.
   + Test with Altair101a.
   + Then update Altair101a with the ability to flash the front panel lights.
   + Then update Altair101a implementing interactivity with the front panel switches.
-
-
-  ---------------------------------------------------------
-// Built in, on board LED: GPI13 which is D13 on Mega, Nano, and Uno. LED is red on Nano.
-// Built in, on board LED: GPIO2 which is D04 on NodeMCU.
-#define LED_PIN 13
-  boolean ledOn = false;
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, LOW);    // Off
-  Serial.println("+ Initialized the on board LED digital pin for output. LED is off.");
-  if (ledOn) {
-    digitalWrite(LED_PIN, LOW);   // Off
-    ledOn = false;
-  } else {
-    digitalWrite(LED_PIN, HIGH);    // On
-    ledOn = true;
-  }
 
   ---------------------------------------------------------
   Hex programs:
@@ -69,11 +52,10 @@
   From prog_games.cpp, program hex bytes:
     static const byte PROGMEM killbits[] = {
     0x21, 0x00, 0x00, 0x16, 0x80, 0x01, 0x0E, 0x00, 0x1A, 0x1A, 0x1A, 0x1A, 0x09, 0xD2, 0x08, 0x00,
-    0xDB, 0xFF, 0xAA, 0x0F, 0x57, 0xC3, 0x08, 0x00};
+    0xDB, 0xFF, 0xAA, 0x0F, 0x57, 0xC3, 0x08, 0x00 };
 
   prog_basic.cpp, as hex bytes for 4K Basic.
-    const byte PROGMEM basic4k[] = {
-    0xae, 0xae, ... 0x00};
+    const byte PROGMEM basic4k[] = { 0xae, 0xae, ... 0x00 };
   + Will need to search Hex codes to see if interupt is required.
   ++ Interupt is required.
 
@@ -86,8 +68,8 @@
   After Altair101a works and processes programs,
   + Add the other features: player, clock, timer, and counter.
 
-  + Prevent lockup when using PUSH A, i.e. PUSH called before setting SP.
-  ++ In the PUSH process, if SP < 4, error.
+  - Consider preventing lockup when using PUSH A, i.e. PUSH called before setting SP.
+  + In the PUSH process, if SP < 4, error.
 
   ---------------------------------------------------------
   VT100 reference:
@@ -95,16 +77,16 @@
     Esc[H     Move cursor to upper left corner, example: Serial.print(F("\033[H"));
     Esc[J     Clear screen from cursor down, example: Serial.print(F("\033[J"));
     Esc[2J    Clear entire screen, example: Serial.print(F("\033[H"));
-    Example:  Serial.print(F("\033[H\033[2J"));  Move home and clear entire screen.
+    Example:  Serial.print(F("\033[H\033[2J"));         // Move home and clear entire screen.
     Esc[K     Clear line from cursor right
     Esc[nA    Move cursor up n lines.
     Example:  Serial.print(F("\033[3A"));  Cursor Up 3 lines.
     Esc[nB    Move cursor down n lines.
     Example:  Serial.print(F("\033[6B"));  Cursor down 6 lines.
     Esc[nC    Move cursor right n positions.
-    Example:  Serial.print(F("\033[H\033[4B\033[2C")); // Print on: row 4, column 2.
+    Example:  Serial.print(F("\033[H\033[4B\033[2C"));  // Print on: row 4, column 2.
     Esc[r;cH  Move cursor to a specific row(r) and column(c).
-    Example:  Serial.print(F("\033[4;2H*"));  // Print on: row 4, column 2 and print "*".
+    Example:  Serial.print(F("\033[4;2H*"));            // Print on: row 4, column 2 and print "*".
 
   Reference: printf/sprintf formats:
   http://www.cplusplus.com/reference/cstdio/printf/

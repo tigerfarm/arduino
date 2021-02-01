@@ -38,7 +38,7 @@
 ; Stacy David's repository:
 ;   https://github.com/tigerfarm/arduino/tree/master/Altair101/asm/galaxygame
 ;
-; ******* GALAXY MISSION **************************
+; ******* YOUR MISSION **************************
 ;
 ; Captain, your starship is pitted against the
 ; logic of your 8080 machine. You must destroy
@@ -238,10 +238,10 @@ MSGLRS:	DB	CR,LF
 uMSGMSF:	DB	CR,LF
   	DB	'MISSION failed, you have run out of stardates'
   	DB	0
-MSGKAB:	DB	CR,LF
+uMSGKAB:	DB	CR,LF
   	DB	'BOOM! Game over, you crashed in a star. You are history.'
   	DB	0
-MSGYMO:	DB	CR,LF
+uMSGYMO:	DB	CR,LF
   	DB	'You flew out of the GALAXY, lost in the void...     '
   	DB	0
 MSGLOE:	DB	CR,LF
@@ -305,13 +305,6 @@ MSG11A:	DB	'    1 '
 MSG11B:	DB	'    1 '
 MSG11C:	DB	'    1'
   	DB	0
-MSGLST:	DB	CR,LF
-  	DB	'LAST'
-  	DB	0
-MSGCHK:	DB	CR,LF
-  	DB	'Later...'
-        DB	CR,LF
-  	DB	0
 
 ; ------------------------------------------------------------------------------
 	ORG	0500H           ; Decimal = 1280
@@ -326,6 +319,7 @@ GALAXY:
 	LXI	SP,STACK	;Set stack pointer
 	CALL	CONINI		;Initialize Console I/O
 NEWSTART:
+;++    1286:00000101 00000110: 00100001 : 21:041 > opcode: lxi h,MSGSTART
 	LXI	H,MSGSTART
 	CALL	MSG		;Print introduction
                                 ; ----------------------------------------------
@@ -334,13 +328,14 @@ STARTYN:
         in      SIOCTL          ; Stacy, check for input character.
         cpi     0
 	jz	STARTYN         ; No input character
+                                ;
         cpi     'n'             ; No, don't start a new game.
         jz      NOGAME
         cpi     'N'             ; No, don't start a new game.
         jz      NOGAME
-        cpi     'y'             ; Yes, start the game.
+        cpi     'y'             ; Yes, start a game.
         jz      STARTGAME
-        cpi     'Y'             ; Yes, start the game.
+        cpi     'Y'             ; Yes, start a game.
         jz      STARTGAME
 	jmp	STARTYN         ; Invalid character
                                 ;
@@ -399,40 +394,40 @@ GLXCK1:
                                 ; ------
         lda     ASHIPSH         ; Max (high) number of alien ships.
 	cmp	C		; Default was 32. Too many alien ships?
-	mov	A,C		;Fetch alien ship total
+	mov	A,C		; Restore A
 	JC	ASPLS		; Yes, delete 1 more
                                 ; ------
         lda     ASHIPSL         ; Max (high) number of alien ships.
 	cmp	C		; Default was 32. Too many alien ships?
-	mov	A,C		;Fetch alien ship total
+	mov	A,C		; Restore A
 	JNC	ASMNS		; Yes, add 1
                                 ; ----------------------------------------------
-	MVI	L,05BH		;Set pntr to store number S.S.
+	MVI	L,05BH		;Set pointer to store number Rebel outpost.
 	MOV	M,D		;Save number of space stations
-	INR	L		;Advance pntr to number A.S.
+	INR	L		;Advance pointer to number A.S.
 	MOV	M,C		;Save number of alien ships
 	MOV	A,C
 	ADI	005
-	INR	L		;Adv. pntr to nmbr of stardates
+	INR	L		;Adv. pointer to number of stardates
 	MOV	M,A		;Save number of stardates
                                 ; ----------------------------------------------
-	MVI	B,1		;Set nmbr bytes for BINDEC
+	MVI	B,1		;Set number bytes for BINDEC
 	CALL	BINDEC		;Covert stardate value
 	LXI	D,GSMSGD	;Set pointer to digit storage
-	MVI	B,2		;Set counter to nmbr or digits
+	MVI	B,2		;Set counter to number or digits
 	CALL	DIGPRT		;Put digits in message
 	LXI	H,005CH		;Set pointer to number A.S.
-	MVI	B,001		;Set nmbr bytes for BINDEC
+	MVI	B,001		;Set number bytes for BINDEC
 	CALL	BINDEC		;Convert alien ship value
-	LXI	D,GSMSGS	;Set pntr to digit stor. in start msg.
+	LXI	D,GSMSGS	;Set pointer to digit stor. in start msg.
 	MVI	B,2		;Set counter to no. of digits
 	CALL	DIGPRT		;Put digits in message
 	LXI	H,005BH		;Set pointer to no. space stat.
 	MOV	A,M		;Set no. bytes for BINDEC
 	ORI	0B0H		;Covert space station value
-	LXI	H,GSMSGT	;Set pntr to digit stor. in start msg.
+	LXI	H,GSMSGT	;Set pointer to digit stor. in start msg.
 	MOV	M,A		;Set counter to no. of digits
-	LXI	H,GSMSG 	;Set pntr to start message
+	LXI	H,GSMSG 	;Set pointer to start message
 	CALL	MSG		;Print starting message
                                 ; ----------------------------------------------
 	CALL	RN		;Fresh start quadrant
@@ -543,8 +538,9 @@ CMND:
                                 ; Command Menu options
 ; ------------------------------------------------------------------------------
                                 ;
-                                ; Switches: 2589bx
-; ++    2852:00001011 00100100: 00110001 : 31:061 > opcode: lxi sp,STACK
+RESTORED:
+; ++    1698:00000110 10100010: 00110001 : 31:061 > opcode: lxi sp,STACK
+;                 a9  7 5   1
 	LXI	SP,STACK	;This is the starting point from a restored save.
                                 ;
 CMD:
@@ -567,7 +563,7 @@ CMD:
 	CPI	'6'		; Shoot torpedo
 	JZ	TRPD
 	CPI	'X'		; Exit, return to start.
-	JZ	NEWSTART        ;   Will generate a new random galaxy.
+	JZ	NEWSTART        ; Will generate a new random galaxy.
 	CPI	'H'		; Help.
 	JZ	HELPM
 	CPI	'h'		; Help.
@@ -1003,10 +999,12 @@ PHSR:
                                 ;
 	CALL	DCBN		;Convert energy to binary
 	CALL	ELOM		;Delete energy from main
+                                ; ------
 	MVI	L,042H		;Fetch current quad. contents
 	MOV	A,M
 	ANI	030H		;Any alien ships?
 	JZ	WASTE		;No, waste of energy
+                                ; ------
 	CALL	ROTR4		;Position number of alien ship
 	SUI	001		;1 alien ship, full energy
 	JZ	PH1		;2 alien ships, half energy
@@ -1113,7 +1111,7 @@ DSTR:
 	JMP	DLET		;Remove A.S. fm glxy & ret
                                 ;
 ; ------------------------------------------------------------------------------
-                                ; Command galaxy display option.
+                                ; Command: Galaxy display option.
 GXPRT:
 	LXI	H,MSGGDY	; Print galaxy display message
 	CALL	MSG
@@ -2181,6 +2179,10 @@ MSGSTART:   DB CR,LF
   	DB	0
 MSPREP:	DB	'\r\nPreparations are being made...'
   	DB	0
+MSGASD:	DB	CR,LF
+ 	DB	'TIE fighter destroyed.'
+  	DB	0
+                                ; ----------------------------------------------
 MSGGDY:	DB	'\r\nRegional Sector Display'
   	DB	0
 MSGPEF:	DB	'\r\nLaser cannon energy to fire = '
@@ -2191,14 +2193,16 @@ MSGCRS:	DB	'\r\nCourse direction (1-8.5): '
   	DB	0
 MSGCYH:	DB	'\r\n\r\nCONGRATULATIONS! You eliminated all the TIE fighters. Rebels are safe...for now.\r\n'
   	DB	0
-MSGMSF:	DB	'\r\n\r\nMISSION failed, you ran out of stardates.'
+MSGMSF:	DB	'\r\n\r\nMISSION failed, you ran out of stardates.\r\n'
   	DB	0
-                                ;
+MSGKAB:	DB	'\r\n\r\nBOOM! Game over, you crashed in a star. You are history.\r\n'
+  	DB	0
+MSGYMO:	DB	'\r\n\r\nYou flew out of the GALAXY, lost in the void...\r\n'
+  	DB	0
                                 ; ----------------------------------------------
 MSGCMD:	DB	'\r\nCommand > '
   	DB	0
-MSGASD:	DB	CR,LF
- 	DB	'TIE fighter destroyed.'
+MSGCHK:	DB	'\r\n\r\nLater...\r\n'
   	DB	0
                                 ; ----------------------------------------------
                                 ; Looks like unused bytes from 3766 to 3840.
@@ -2217,18 +2221,16 @@ ASHIPSL: DB     5               ; Number alien ships is greater than this number
                                 ; Notes to get the program to run.
                                 ;
 ; Program is stored on the SD card:
-;   ++ File:      00001001.BIN  4608
+;   ++ File:      00000101.BIN  5120
 ;
 To run,
 + Start Altair 101a and connect.
 + Send the start byte string which sets the switches: 12578bx.
-+ "m" and Confirm the loading of SD file: 00001001.BIN (S8 and S11 which is 8b).
-+ "x" to EXAMINE the address: 00001001:10100110 (S11 S8 S7 S5 S2 S1 which is 12578b).
++ "m" and Confirm the loading of SD file: 00000101.BIN (S8 and S11 which is 8a).
++ "x" to EXAMINE the address: 00000101:00000000 (S8 S10 which is 8a).
 + "r" to run the program.
 Start playing.
 
 --------------------------------------------------------------------------------
-YOU MUST DESTROY 21 ALIEN SHIPS IN 26 STARDATES WITH 6 SPACE STATIONS
-
                                 ; 
                                 ; --------------------------------------

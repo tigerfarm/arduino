@@ -37,6 +37,8 @@ Condition DOCKED:
 2            x!x>1<       CONDITION GREEN
 ````
 Check, if no alien ships in the sector, don't say: The "alien" retaliates.
++ There is sample code for Laser cannons, search for, "Any alien ships?"
++ Likely add the same code for torpedoes.
 ````
 Command?6
 Torpedo trajectory(1-8.5) : 3.0
