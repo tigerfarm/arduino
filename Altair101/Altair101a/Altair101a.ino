@@ -93,8 +93,8 @@
 
   ---------------------------------------------------------
   Wire the serial module to the Mega Serial2 pins.
-  Serial module RX to Mega TX pin 16.
-  Serial module TX to Mega RX pin 17.
+  Serial module RX pin to Mega TX pin 16.
+  Serial module TX pin to Mega RX pin 17.
 
   ---------------------------------------------------------
   ---------------------------------------------------------
