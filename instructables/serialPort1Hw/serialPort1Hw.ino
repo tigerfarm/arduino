@@ -1,13 +1,13 @@
 // -----------------------------------------------------------------------------
 /*
-  Serial Communications, Mega or Due, 2 harware ports
+  Serial Communications using a Mega or Due which have multiple hardware ports
 
   Wire the serial component to the Mega Serial2 pins.
   Serial component RX to Mega TX pin 16.
   Serial component TX to Mega RX pin 17.
 
-  View serial ports on a Mac for the Mega or Due default serial port(14120) and the componet's port(14110):
-  $ ls -l /dev/tty.*
+  View serial ports on a Mac for the Mega or Due default serial port(14120) and the component's port(14110):
+  $ ls /dev/tty.*
 crw-rw-rw-  1 root  wheel   20,   0 Nov 13 15:20 /dev/tty.Bluetooth-Incoming-Port
 crw-rw-rw-  1 root  wheel   20, 0x00000104 Dec  5 20:13 /dev/tty.wchusbserial14110
 crw-rw-rw-  1 root  wheel   20, 0x00000106 Dec  5 20:13 /dev/tty.wchusbserial14120

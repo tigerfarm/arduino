@@ -92,6 +92,11 @@
   http://www.cplusplus.com/reference/cstdio/printf/
 
   ---------------------------------------------------------
+  Wire the serial module to the Mega Serial2 pins.
+  Serial module RX to Mega TX pin 16.
+  Serial module TX to Mega RX pin 17.
+
+  ---------------------------------------------------------
   ---------------------------------------------------------
   Program sections
 

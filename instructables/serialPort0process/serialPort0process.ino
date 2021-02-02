@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------------
 /*
-  Serial Communications:
+  Serial Communication processing
 */
 // -----------------------------------------------------------------------------
 void printByte(byte b) {
@@ -72,7 +72,7 @@ void loop() {
     readByte = Serial.read();
     //
     readByteCount++;
-    // Print the title.
+    // Re-print the title each 10 lines.
     if (readByteCount > 10) {
       Serial.println("+   Char  ASCII  Binary    Octal");
       // Sample:     "++   a     97    01100001  141"
