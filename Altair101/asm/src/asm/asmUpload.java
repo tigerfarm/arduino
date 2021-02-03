@@ -33,14 +33,17 @@ import java.util.logging.Logger;
 // -----------------------------------------------------------------------------
 //
 public class asmUpload {
-    
+
     private static int baudRate = 115200;   // 57600
-    private static int baudSleepTime = 3;   // Set to 300 if baud rate is 9600.
+    // This allows buffer time so that bytes are not dropped.
+    // Note, had issues with baud rate was 57600 and baudSleepTime was 3. 10 works fine for 57600.
+    // Started testing with 115200. 10 worked fine.
+    // Set to 20 if baud rate is 9600.
+    private static int baudSleepTime = 10;
 
     // Uses the device name that can be found in the Arduino IDE, under the menu item Tools/Port.
-    // Sample default ports: tty.wchusbserial14230 /dev/cu.wchusbserial141230
+    // Sample default ports: tty.wchusbserial14230 /dev/cu.wchusbserial141230 /dev/tty.SLAB_USBtoUART
     private static String SerialPortName = "/dev/tty.wchusbserial14220";
-    
 
     // -------------------------------------------------------------------------
     // Constructor to ...
@@ -51,8 +54,17 @@ public class asmUpload {
     public static int getBaudRate() {
         return asmUpload.baudRate;
     }
+
     public static void setBaudRate(int theBaudRate) {
         asmUpload.baudRate = theBaudRate;
+    }
+
+    public static int getBaudSleepTime() {
+        return asmUpload.baudSleepTime;
+    }
+
+    public static void setBaudSleepTime(int theBaudSleepTime) {
+        asmUpload.baudSleepTime = theBaudSleepTime;
     }
 
     public static String getSerialPortName() {
@@ -64,7 +76,8 @@ public class asmUpload {
         boolean IsFound = false;
         String theSystemPortName = "";
         for (SerialPort serial : serials) {
-            if (theSerialPortName.startsWith(serial.getSystemPortName().toLowerCase())) {
+            // System.out.println("+++ serial.getSystemPortName().toLowerCase(): " + serial.getSystemPortName().toLowerCase());
+            if (theSerialPortName.toLowerCase().startsWith(serial.getSystemPortName().toLowerCase())) {
                 // System.out.println("++ Found: " + theSerialPortName);
                 IsFound = true;
                 theSystemPortName = serial.getSystemPortName();
@@ -113,14 +126,6 @@ public class asmUpload {
         // Connection settings must match Arduino program settings.
         // Baud rate, data bits, stop bits, and parity
         sp.setComPortParameters(baudRate, 8, 1, 0); // 9600 19200
-        if (baudRate == 9600) {
-            // This allows buffer time so that bytes are not dropped.
-            baudSleepTime = 300;
-        } else {
-            // Note, had issues with baud rate was 57600 and baudSleepTime was 3. 10 works fine for 57600.
-            // Started testing with 115200. 10 worked fine.
-            baudSleepTime = 10;
-        }
         // block until bytes can be written
         sp.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0);
         if (!sp.openPort()) {
@@ -179,10 +184,14 @@ public class asmUpload {
 
         // asmUpload upload = new asmUpload();
         asmUpload.listSerialPorts();
-        // upload.setSerialPortName("Bluetooth-Incoming-Port");
-        // upload.setSerialPortName("abc");
+        asmUpload.setSerialPortName("tty.SLAB_USBtoUART");
+        System.out.println("------------");
+        asmUpload.setBaudRate(9600);
+        asmUpload.setBaudSleepTime(20);
 
-        String outFilename = "10000000.bin";
+        // String outFilename = "10000000.bin";
+        String outFilename = "poem.txt";
+        //
         System.out.println("+ Write to the serial port, the program file: " + outFilename + ":");
         sendFile(outFilename);
 

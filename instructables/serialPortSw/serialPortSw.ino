@@ -17,9 +17,9 @@
   Serial component TX to Uno RX pin 12.
 
   On a Mac, list serial ports and connect to the port:
-$ ls /dev/tty.*
-/dev/tty.Bluetooth-Incoming-Port /dev/tty.usbmodem14241 /dev/tty.wchusbserial14220
-$ screen /dev/tty.wchusbserial14220
+  $ ls /dev/tty.*
+  /dev/tty.Bluetooth-Incoming-Port /dev/tty.usbmodem14241 /dev/tty.wchusbserial14220
+  $ screen /dev/tty.wchusbserial14220
 */
 // -----------------------------------------------------------------------------
 // Add another serial port settings, to connect to the new serial hardware module.
@@ -55,14 +55,12 @@ void setup() {
     Serial.println("+ SerialSw is listening.");
     Serial.println("+ Ready to use the second serial port.");
   }
-  
+
   // ------------------------
   Serial.println("+ Go to loop.");
   Serial.println("++ Send characters using the Arduino Serial Monitor.");
   Serial.print("+ Port 0: ");
   // ------------------------
-  SerialSw.println("+ Go to loop.");
-  SerialSw.println("++ Send characters to the software serial port.");
   SerialSw.print("+ Port SerialSw: ");
 }
 
@@ -80,6 +78,10 @@ void loop() {
     if (readByte == 10) {
       // Arduino IDE monitor line feed (LF).
       Serial.print("+ Port 0: ");
+    } else if (readByte == 13) {
+      // Terminal uses carriage return (CR).
+      Serial.println();
+      Serial.print("+ Port 0: ");
     }
   }
   //--------------------------------------
@@ -88,16 +90,18 @@ void loop() {
     // Read and process an incoming byte.
     readByte = SerialSw.read();
     // Process the byte.
+    Serial.write(readByte);                 // For testing with a serial upload program.
     SerialSw.write(readByte);
     if (readByte == 10) {
       // IDE monitor (LF).
+      SerialSw.print("+ Port SerialSw: ");
+      Serial.print("+ Port SerialSw: ");    // For testing with a serial upload program.
+    } else if (readByte == 13) {
+      // Terminal uses carriage return (CR).
       SerialSw.println();
-      SerialSw.print("+ Port SerialSw, IDE Monitor: ");
-    }
-    if (readByte == 13) {
-      // Mac terminal uses carriage return (CR).
-      SerialSw.println();
-      SerialSw.print("+ Port SerialSw, terminal window: ");
+      SerialSw.print("+ Port SerialSw: ");
+      Serial.println();                     // For testing with a serial upload program.
+      Serial.print("+ Port SerialSw: ");
     }
   }
 }

@@ -8,9 +8,9 @@
 
   View serial ports on a Mac for the Mega or Due default serial port(14120) and the component's port(14110):
   $ ls /dev/tty.*
-crw-rw-rw-  1 root  wheel   20,   0 Nov 13 15:20 /dev/tty.Bluetooth-Incoming-Port
-crw-rw-rw-  1 root  wheel   20, 0x00000104 Dec  5 20:13 /dev/tty.wchusbserial14110
-crw-rw-rw-  1 root  wheel   20, 0x00000106 Dec  5 20:13 /dev/tty.wchusbserial14120
+  crw-rw-rw-  1 root  wheel   20,   0 Nov 13 15:20 /dev/tty.Bluetooth-Incoming-Port
+  crw-rw-rw-  1 root  wheel   20, 0x00000104 Dec  5 20:13 /dev/tty.wchusbserial14110
+  crw-rw-rw-  1 root  wheel   20, 0x00000106 Dec  5 20:13 /dev/tty.wchusbserial14120
 
   Arduino serial port reference:
     https://www.arduino.cc/reference/en/language/functions/communication/serial/
@@ -45,9 +45,7 @@ void setup() {
   Serial.println("++ Send characters using the Arduino Serial Monitor.");
   Serial.print("+ Port 0: ");
   // ------------------------
-  Serial2.println("+ Go to loop.");
-  Serial2.println("++ Send characters to the software serial port.");
-  Serial2.print("+ Port SerialSw: ");
+  Serial2.print("+ Port Serial2: ");
 }
 
 // -----------------------------------------------------------------------------
@@ -64,17 +62,24 @@ void loop() {
     if (readByte == 10) {
       // Arduino IDE monitor line feed (LF).
       Serial.print("+ Port 0: ");
+    } else if (readByte == 13) {
+      // Terminal uses carriage return (CR).
+      Serial.println();
+      Serial.print("+ Port 0: ");
     }
   }
   //--------------------------------------
-  // Software serial port processing
+  // Hardware serial port processing
   if (Serial2.available() > 0) {
     // Read and process an incoming byte.
     readByte = Serial2.read();
     // Process the byte.
     Serial2.write(readByte);
-    if (readByte == 13) {
-      // Mac terminal uses carriage return (CR).
+    if (readByte == 10) {
+      // IDE monitor (LF).
+      Serial2.print("+ Port Serial2: ");
+    } else if (readByte == 13) {
+      // Terminal uses carriage return (CR).
       Serial2.println();
       Serial2.print("+ Port Serial2: ");
     }

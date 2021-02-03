@@ -2223,7 +2223,7 @@ void loop() {
       if (SERIAL2_OUTPUT) {
         // runDownloadProgram() opens and closes (begin and end) the connection.
         // The following will re-open it for output.
-        Serial2.begin(9600);
+        Serial2.begin(downloadBaudRate);
       }
       break;
   }
