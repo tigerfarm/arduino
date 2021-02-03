@@ -74,14 +74,18 @@ void loop() {
     // Read and process an incoming byte.
     readByte = Serial2.read();
     // Process the byte.
+    Serial.write(readByte);                 // For testing with a serial upload program.
     Serial2.write(readByte);
     if (readByte == 10) {
       // IDE monitor (LF).
       Serial2.print("+ Port Serial2: ");
+      Serial.print("+ Port Serial2: ");    // For testing with a serial upload program.
     } else if (readByte == 13) {
       // Terminal uses carriage return (CR).
       Serial2.println();
       Serial2.print("+ Port Serial2: ");
+      Serial.println();                     // For testing with a serial upload program.
+      Serial.print("+ Port Serial2: ");
     }
   }
 }

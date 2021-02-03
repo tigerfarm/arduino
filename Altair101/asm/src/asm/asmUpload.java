@@ -184,7 +184,7 @@ public class asmUpload {
 
         // asmUpload upload = new asmUpload();
         asmUpload.listSerialPorts();
-        asmUpload.setSerialPortName("tty.SLAB_USBtoUART");
+        asmUpload.setSerialPortName("tty.wchusbserial14220");  // tty.wchusbserial14220 tty.SLAB_USBtoUART
         System.out.println("------------");
         asmUpload.setBaudRate(9600);
         asmUpload.setBaudSleepTime(20);
