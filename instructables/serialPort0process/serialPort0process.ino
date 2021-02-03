@@ -25,6 +25,7 @@ void processReadByte(byte readByte) {
       break;
     case 13:
       Serial.print("<CR>");
+      break;
     case 32:
       Serial.print("' ' ");
       break;
@@ -71,13 +72,15 @@ void loop() {
     //
     readByte = Serial.read();
     //
-    readByteCount++;
     // Re-print the title each 10 lines.
+    /*
+    readByteCount++;
     if (readByteCount > 10) {
       Serial.println("+   Char  ASCII  Binary    Octal");
       // Sample:     "++   a     97    01100001  141"
       readByteCount = 0;
     }
+    */
     processReadByte(readByte);
     delay(30);
   }
