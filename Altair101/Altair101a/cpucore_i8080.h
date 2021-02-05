@@ -65,7 +65,7 @@ extern CPUFUN cpu_opcodes[256];
 #endif
 
 // -----------------------------------------------------------------------------
-// Memory, declare memory, and memory read and write functions
+// Memory declaration and memory read and write functions
 
 extern byte Mem[MEMSIZE];
 
