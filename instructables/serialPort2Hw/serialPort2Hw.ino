@@ -61,11 +61,11 @@ void loop() {
     Serial.write(readByte);
     if (readByte == 10) {
       // Arduino IDE monitor line feed (LF).
-      Serial.print("+ Port 0: ");
+      Serial.print("+ Port Serial: ");
     } else if (readByte == 13) {
       // Terminal uses carriage return (CR).
       Serial.println();
-      Serial.print("+ Port 0: ");
+      Serial.print("+ Port Serial: ");
     }
   }
   //--------------------------------------

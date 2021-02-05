@@ -59,7 +59,7 @@ void setup() {
   // ------------------------
   Serial.println("+ Go to loop.");
   Serial.println("++ Send characters using the Arduino Serial Monitor.");
-  Serial.print("+ Port 0: ");
+  Serial.print("+ Port Serial: ");
   // ------------------------
   SerialSw.print("+ Port SerialSw: ");
 }
@@ -77,11 +77,11 @@ void loop() {
     Serial.write(readByte);
     if (readByte == 10) {
       // Arduino IDE monitor line feed (LF).
-      Serial.print("+ Port 0: ");
+      Serial.print("+ Port Serial: ");
     } else if (readByte == 13) {
       // Terminal uses carriage return (CR).
       Serial.println();
-      Serial.print("+ Port 0: ");
+      Serial.print("+ Port Serial: ");
     }
   }
   //--------------------------------------
