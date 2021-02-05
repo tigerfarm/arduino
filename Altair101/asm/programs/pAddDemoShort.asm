@@ -5,9 +5,7 @@
     Start:  mvi a,2         ; Register A = 2.
             adi 3           ; Add immediate number to register A.
             sta 64          ; Move result (register A) to address 64.
-                            ; --------------------------------------
             hlt
-            jmp Start
             end
                             ; --------------------------------------
                             ; Assembler listing
@@ -22,9 +20,6 @@
 ++       5:00000000 00000101: 01000000 : 40:100 > lb: 64
 ++       6:00000000 00000110: 00000000 : 00:000 > hb: 0
 ++       7:00000000 00000111: 01110110 : 76:166 > opcode: hlt
-++       8:00000000 00001000: 11000011 : C3:303 > opcode: jmp Start
-++       9:00000000 00001001: 00000000 : 00:000 > lb: 0
-++      10:00000000 00001010: 00000000 : 00:000 > hb: 0
 + End of list.
 + Machine code file created:  p1.bin
                             ;

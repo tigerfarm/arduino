@@ -2140,7 +2140,9 @@ void setup() {
   Serial.begin(115200);         // Baud rates: 9600 19200 57600 115200
   delay(2000);
   Serial.println(); // Newline after garbage characters.
-  Serial.println(F("+++ Setup."));
+  Serial.print(F("+++ "));
+  Serial.println(__func__); // prints "setup"
+  
   //
   // ----------------------------------------------------
   // ----------------------------------------------------

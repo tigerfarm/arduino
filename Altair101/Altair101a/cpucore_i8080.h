@@ -20,6 +20,10 @@ extern CPUFUN cpu_opcodes[256];
 // -----------------------------------------------------------------------------
 // Motherboard Options
 
+// Arduino constants:
+// https://arduino.stackexchange.com/questions/21137/arduino-how-to-get-the-board-type-in-code
+// https://embedxcode.com/site/Chapter3/Section7/
+// http://electronics4dogs.blogspot.com/2011/01/arduino-predefined-constants.html
 // ----------------------------
 // Mega
 #if defined(__AVR_ATmega2560__)
@@ -55,6 +59,12 @@ extern CPUFUN cpu_opcodes[256];
 // ----------------------------
 #else
 #define THIS_CPU "Other:Nano|Uno"
+// additionaly to the board also the CPU model, search for the file avr_cpunames.h
+// Arduino\hardware\arduino\avr\boards.txt
+// __AVR_ATmega328P__ Uno
+// defined(ARDUINO_AVR_UNO)
+// defined(ESP8266)
+// defined(ARDUINO_AVR_NANO)
 #define MEMSIZE (64)            // For Nano or Uno test: Global variables use 1935 bytes (23%) of dynamic memory
 #define USE_THROTTLE 0          // Set for slower Mega CPU.
 #define MAX_TIMERS 9
