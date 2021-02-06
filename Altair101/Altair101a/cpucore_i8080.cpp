@@ -708,9 +708,9 @@ void cpucore_i8080_print_registers() {
   char charBuffer[17];
   Serial.print(F("++ CPU: "));
   Serial.println(THIS_CPU);
-  // Oscillator frequency
-  // LINE("F_CPU", F_CPU);
-  
+  Serial.print(F(", Oscillator frequency: "));
+  Serial.print(F_CPU);
+  Serial.println();
   Serial.print(F("++ Memory size: "));
   Serial.println(MEMSIZE);
   //

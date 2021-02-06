@@ -31,7 +31,7 @@
   + Consider serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality.
   ++ Then, could use the original serial routines in Galaxy80.asm.
 
-  Implement interupt handling.
+  Implement interrupt handling.
   + opcodes: ei and di. And handling interupts once ei is run.
   + This is required when I try to run complex programs such as CPM, and likely Basic.
 
