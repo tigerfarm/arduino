@@ -707,7 +707,10 @@ void cpu_print_regS() {
 void cpucore_i8080_print_registers() {
   char charBuffer[17];
   Serial.print(F("++ CPU: "));
-  Serial.println(THIS_CPU);
+  Serial.print(THIS_CPU);
+  Serial.print(F(", Oscillator frequency: "));
+  Serial.print(F_CPU);
+  Serial.println();
   Serial.print(F("++ Memory size: "));
   Serial.println(MEMSIZE);
   //
@@ -793,16 +796,16 @@ void cpucore_i8080_print_registers() {
 // -----------------------------------------------------------------------------
 // Opcode processing
 
-#define CPU_ADC(REG) \
-  static void cpu_ADC ## REG () \
-  { \
-    uint16_t w = regA + reg ## REG; \
-    if(regS & PS_CARRY) w++; \
-    setHalfCarryBitAdd(regA, reg ## REG, w); \
-    setCarryBit(w&0x100); \
-    setStatusBits((byte) w); \
-    regA = (byte) w; \
-    TIMER_ADD_CYCLES(4); \
+#define CPU_ADC(REG)                          \
+  static void cpu_ADC ## REG ()               \
+  {                                           \
+    uint16_t w = regA + reg ## REG;           \
+    if(regS & PS_CARRY) w++;                  \
+    setHalfCarryBitAdd(regA, reg ## REG, w);  \
+    setCarryBit(w&0x100);                     \
+    setStatusBits((byte) w);                  \
+    regA = (byte) w;                          \
+    TIMER_ADD_CYCLES(4);                      \
   }
 CPU_ADC(A);
 CPU_ADC(B);
@@ -812,15 +815,15 @@ CPU_ADC(E);
 CPU_ADC(H);
 CPU_ADC(L);
 
-#define CPU_ADD(REG) \
-  static void cpu_ADD ## REG () \
-  { \
-    uint16_t w = regA + reg ## REG; \
-    setCarryBit(w&0x100); \
-    setHalfCarryBitAdd(regA, reg ## REG, w); \
-    setStatusBits((byte) w); \
-    regA = (byte) w; \
-    TIMER_ADD_CYCLES(4); \
+#define CPU_ADD(REG)                          \
+  static void cpu_ADD ## REG ()               \
+  {                                           \
+    uint16_t w = regA + reg ## REG;           \
+    setCarryBit(w&0x100);                     \
+    setHalfCarryBitAdd(regA, reg ## REG, w);  \
+    setStatusBits((byte) w);                  \
+    regA = (byte) w;                          \
+    TIMER_ADD_CYCLES(4);                      \
   }
 CPU_ADD(A);
 CPU_ADD(B);
@@ -831,16 +834,16 @@ CPU_ADD(H);
 CPU_ADD(L);
 
 
-#define CPU_SBB(REG) \
-  static void cpu_SBB ## REG () \
-  { \
-    uint16_t w = regA - reg ## REG; \
-    if(regS & PS_CARRY) w--; \
-    setHalfCarryBitSub(regA, reg ## REG, w); \
-    setCarryBit(w&0x100); \
-    setStatusBits((byte) w); \
-    regA = (byte) w; \
-    TIMER_ADD_CYCLES(4); \
+#define CPU_SBB(REG)                          \
+  static void cpu_SBB ## REG ()               \
+  {                                           \
+    uint16_t w = regA - reg ## REG;           \
+    if(regS & PS_CARRY) w--;                  \
+    setHalfCarryBitSub(regA, reg ## REG, w);  \
+    setCarryBit(w&0x100);                     \
+    setStatusBits((byte) w);                  \
+    regA = (byte) w;                          \
+    TIMER_ADD_CYCLES(4);                      \
   }
 
 CPU_SBB(B);
@@ -852,15 +855,15 @@ CPU_SBB(L);
 CPU_SBB(A);
 
 
-#define CPU_SUB(REG) \
-  static void cpu_SUB ## REG () \
-  { \
-    uint16_t w = regA - reg ## REG; \
-    setCarryBit(w&0x100); \
-    setHalfCarryBitSub(regA, reg ## REG, w); \
-    setStatusBits((byte) w); \
-    regA = (byte) w; \
-    TIMER_ADD_CYCLES(4); \
+#define CPU_SUB(REG)                          \
+  static void cpu_SUB ## REG ()               \
+  {                                           \
+    uint16_t w = regA - reg ## REG;           \
+    setCarryBit(w&0x100);                     \
+    setHalfCarryBitSub(regA, reg ## REG, w);  \
+    setStatusBits((byte) w);                  \
+    regA = (byte) w;                          \
+    TIMER_ADD_CYCLES(4);                      \
   }
 
 CPU_SUB(B);
@@ -872,14 +875,14 @@ CPU_SUB(L);
 CPU_SUB(A);
 
 
-#define CPU_ANA(REG) \
-  static void cpu_ANA ## REG () \
-  { \
-    setHalfCarryBit(regA&0x08 | reg ## REG & 0x08); \
-    regA &= reg ## REG; \
-    setCarryBit(0); \
-    setStatusBits(regA); \
-    TIMER_ADD_CYCLES(4); \
+#define CPU_ANA(REG)                                  \
+  static void cpu_ANA ## REG ()                       \
+  {                                                   \
+    setHalfCarryBit(regA&0x08 | reg ## REG & 0x08);   \
+    regA &= reg ## REG;                               \
+    setCarryBit(0);                                   \
+    setStatusBits(regA);                              \
+    TIMER_ADD_CYCLES(4);                              \
   }
 
 CPU_ANA(B);
@@ -891,14 +894,14 @@ CPU_ANA(L);
 CPU_ANA(A);
 
 
-#define CPU_XRA(REG) \
-  static void cpu_XRA ## REG () \
-  { \
-    regA ^= reg ## REG; \
-    setCarryBit(0); \
-    setHalfCarryBit(0); \
-    setStatusBits(regA); \
-    TIMER_ADD_CYCLES(4); \
+#define CPU_XRA(REG)              \
+  static void cpu_XRA ## REG ()   \
+  {                               \
+    regA ^= reg ## REG;           \
+    setCarryBit(0);               \
+    setHalfCarryBit(0);           \
+    setStatusBits(regA);          \
+    TIMER_ADD_CYCLES(4);          \
   }
 
 CPU_XRA(B);
@@ -910,14 +913,14 @@ CPU_XRA(L);
 CPU_XRA(A);
 
 
-#define CPU_ORA(REG) \
-  static void cpu_ORA ## REG () \
-  { \
-    regA |= reg ## REG; \
-    setCarryBit(0); \
-    setHalfCarryBit(0); \
-    setStatusBits(regA); \
-    TIMER_ADD_CYCLES(4); \
+#define CPU_ORA(REG)              \
+  static void cpu_ORA ## REG ()   \
+  {                               \
+    regA |= reg ## REG;           \
+    setCarryBit(0);               \
+    setHalfCarryBit(0);           \
+    setStatusBits(regA);          \
+    TIMER_ADD_CYCLES(4);          \
   }
 
 CPU_ORA(B);
@@ -1011,14 +1014,14 @@ static void cpu_CALL()
   TIMER_ADD_CYCLES(17);
 }
 
-#define CPU_CMP(REG) \
-  static void cpu_CMP ## REG () \
-  { \
-    uint16_t w = regA - reg ## REG; \
-    setCarryBit(w&0x100); \
-    setHalfCarryBitSub(regA, reg ## REG, w); \
-    setStatusBits((byte) w); \
-    TIMER_ADD_CYCLES(4); \
+#define CPU_CMP(REG)                          \
+  static void cpu_CMP ## REG ()               \
+  {                                           \
+    uint16_t w = regA - reg ## REG;           \
+    setCarryBit(w&0x100);                     \
+    setHalfCarryBitSub(regA, reg ## REG, w);  \
+    setStatusBits((byte) w);                  \
+    TIMER_ADD_CYCLES(4);                      \
   }
 
 CPU_CMP(B);
@@ -1040,14 +1043,14 @@ static void cpu_CMPM()
   TIMER_ADD_CYCLES(7);
 }
 
-#define CPU_DCR(REG) \
-  static void cpu_DCR ## REG () \
-  { \
-    byte res = reg ## REG - 1; \
-    setHalfCarryBit((res & 0x0f)!=0x0f); \
-    setStatusBits(res); \
-    reg ## REG = res; \
-    TIMER_ADD_CYCLES(5); \
+#define CPU_DCR(REG)                        \
+  static void cpu_DCR ## REG ()             \
+  {                                         \
+    byte res = reg ## REG - 1;              \
+    setHalfCarryBit((res & 0x0f)!=0x0f);    \
+    setStatusBits(res);                     \
+    reg ## REG = res;                       \
+    TIMER_ADD_CYCLES(5);                    \
   }
 
 CPU_DCR(B);
@@ -1190,13 +1193,13 @@ static void cpu_DAA()
 
 
 
-#define CPU_DAD(REG)            \
-  static void cpu_DAD ## REG()  \
-  {                             \
-    uint16_t w = reg##REG.REG;  \
-    regHL.HL += w;              \
-    setCarryBit(regHL.HL < w);  \
-    TIMER_ADD_CYCLES(10);       \
+#define CPU_DAD(REG)                      \
+  static void cpu_DAD ## REG()            \
+  {                                       \
+    uint16_t w = reg##REG.REG;            \
+    regHL.HL += w;                        \
+    setCarryBit(regHL.HL < w);            \
+    TIMER_ADD_CYCLES(10);                 \
   }
 
 CPU_DAD(BC);
@@ -1212,11 +1215,11 @@ static void cpu_DADS()
 }
 
 
-#define CPU_DCX(REG) \
-  static void cpu_DCX ## REG () \
-  {                      \
-    host_set_addr_leds(--reg##REG.REG); \
-    TIMER_ADD_CYCLES(5);  \
+#define CPU_DCX(REG)                      \
+  static void cpu_DCX ## REG ()           \
+  {                                       \
+    host_set_addr_leds(--reg##REG.REG);   \
+    TIMER_ADD_CYCLES(5);                  \
   }
 
 CPU_DCX(BC);
@@ -1247,14 +1250,14 @@ static void cpu_HLT()
   TIMER_ADD_CYCLES(7);
 }
 
-#define CPU_INR(REG) \
-  static void cpu_INR ## REG() \
-  { \
-    byte res = reg ## REG + 1; \
-    setHalfCarryBit((res&0x0f)==0); \
-    setStatusBits(res); \
-    reg ## REG = res; \
-    TIMER_ADD_CYCLES(5); \
+#define CPU_INR(REG)                  \
+  static void cpu_INR ## REG()        \
+  {                                   \
+    byte res = reg ## REG + 1;        \
+    setHalfCarryBit((res&0x0f)==0);   \
+    setStatusBits(res);               \
+    reg ## REG = res;                 \
+    TIMER_ADD_CYCLES(5);              \
   }
 
 CPU_INR(B);
@@ -1275,11 +1278,11 @@ static void cpu_INRM()
   TIMER_ADD_CYCLES(10);
 }
 
-#define CPU_INX(REG) \
-  static void cpu_INX ## REG () \
-  { \
+#define CPU_INX(REG)                    \
+  static void cpu_INX ## REG ()         \
+  {                                     \
     host_set_addr_leds(++reg##REG.REG); \
-    TIMER_ADD_CYCLES(5); \
+    TIMER_ADD_CYCLES(5);                \
   }
 
 CPU_INX(BC);
@@ -1301,10 +1304,10 @@ static void cpu_LDA() {
 }
 
 // LDAX, dave
-#define CPU_LDX(REG) \
-  static void cpu_LDX ## REG() \
-  { \
-    regA = MEM_READ(reg##REG.REG); \
+#define CPU_LDX(REG)                    \
+  static void cpu_LDX ## REG()          \
+  {                                     \
+    regA = MEM_READ(reg##REG.REG);      \
     TIMER_ADD_CYCLES(7); \
   }
 
@@ -1327,13 +1330,13 @@ static void cpu_LXIS()
   TIMER_ADD_CYCLES(10);
 }
 
-#define CPU_LXI(REGH,REGL) \
-  static void cpu_LXI ## REGH ## REGL() \
-  { \
-    reg ## REGL = MEM_READ(regPC); \
-    reg ## REGH = MEM_READ(regPC+1); \
-    regPC += 2; \
-    TIMER_ADD_CYCLES(10); \
+#define CPU_LXI(REGH,REGL)                \
+  static void cpu_LXI ## REGH ## REGL()   \
+  {                                       \
+    reg ## REGL = MEM_READ(regPC);        \
+    reg ## REGH = MEM_READ(regPC+1);      \
+    regPC += 2;                           \
+    TIMER_ADD_CYCLES(10);                 \
   }
 
 CPU_LXI(B, C);
@@ -1342,32 +1345,32 @@ CPU_LXI(H, L);
 
 
 #define CPU_MVRR(REGTO,REGFROM)                 \
-  static void cpu_MV ## REGTO ## REGFROM ()            \
+  static void cpu_MV ## REGTO ## REGFROM ()     \
   {                                             \
     reg ## REGTO = reg ## REGFROM;              \
-    TIMER_ADD_CYCLES(5);                         \
+    TIMER_ADD_CYCLES(5);                        \
   }
 
 #define CPU_MVMR(REGFROM)                       \
-  static void cpu_MVM ## REGFROM()                     \
+  static void cpu_MVM ## REGFROM()              \
   {                                             \
     MEM_WRITE(regHL.HL, reg ## REGFROM);        \
-    TIMER_ADD_CYCLES(7);                         \
+    TIMER_ADD_CYCLES(7);                        \
   }
 
 #define CPU_MVRM(REGTO)                         \
-  static void cpu_MV ## REGTO ## M()                   \
+  static void cpu_MV ## REGTO ## M()            \
   {                                             \
     reg ## REGTO = MEM_READ(regHL.HL);          \
-    TIMER_ADD_CYCLES(7);                         \
+    TIMER_ADD_CYCLES(7);                        \
   }
 
 #define CPU_MVRI(REGTO)                         \
-  static void cpu_MV ## REGTO ## I()                   \
+  static void cpu_MV ## REGTO ## I()            \
   {                                             \
     reg ## REGTO = MEM_READ(regPC);             \
     regPC++;                                    \
-    TIMER_ADD_CYCLES(7);                         \
+    TIMER_ADD_CYCLES(7);                        \
   }
 
 CPU_MVRR(B, B);
@@ -1468,11 +1471,11 @@ static void cpu_PCHL()
 }
 
 
-#define CPU_POP(REGH, REGL)  \
-  static void cpu_POP ## REGH ## REGL() \
-  { \
-    popStack(reg ## REGH, reg ## REGL); \
-    TIMER_ADD_CYCLES(10); \
+#define CPU_POP(REGH, REGL)               \
+  static void cpu_POP ## REGH ## REGL()   \
+  {                                       \
+    popStack(reg ## REGH, reg ## REGL);   \
+    TIMER_ADD_CYCLES(10);                 \
   }
 CPU_POP(A, S);
 CPU_POP(B, C);
@@ -1480,9 +1483,9 @@ CPU_POP(D, E);
 CPU_POP(H, L);
 
 #define CPU_PSH(REGH, REGL) \
-  static void cpu_PSH ## REGH ## REGL() \
-  { \
-    pushStack(reg ## REGH, reg ## REGL); \
+  static void cpu_PSH ## REGH ## REGL()   \
+  {                                       \
+    pushStack(reg ## REGH, reg ## REGL);  \
     TIMER_ADD_CYCLES(11); \
   }
 static void cpu_PSHAS() {
@@ -1532,12 +1535,12 @@ static void cpu_RET()
   TIMER_ADD_CYCLES(10);
 }
 
-#define CPU_RST(N) \
-  static void cpu_RST ## N() \
-  { \
-    pushPC(); \
-    regPC = 0x00 ## N; \
-    TIMER_ADD_CYCLES(11); \
+#define CPU_RST(N)              \
+  static void cpu_RST ## N()    \
+  {                             \
+    pushPC();                   \
+    regPC = 0x00 ## N;          \
+    TIMER_ADD_CYCLES(11);       \
   }
 
 CPU_RST(00);
@@ -1849,11 +1852,11 @@ static void cpu_STA() {
   TIMER_ADD_CYCLES(13);
 }
 
-#define CPU_STX(REG) \
-  static void cpu_STX ## REG() \
-  { \
-    MEM_WRITE(reg##REG.REG, regA); \
-    TIMER_ADD_CYCLES(7); \
+#define CPU_STX(REG)                \
+  static void cpu_STX ## REG()      \
+  {                                 \
+    MEM_WRITE(reg##REG.REG, regA);  \
+    TIMER_ADD_CYCLES(7);            \
   }
 
 CPU_STX(BC);

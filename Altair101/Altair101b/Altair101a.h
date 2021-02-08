@@ -7,11 +7,11 @@ extern word status_wait;
 extern word status_hlda;
 extern word status_inte;
 //
-extern byte fpStatusByte;     // Status byte bits: MEMR INP M1 OUT HLTA STACK WO INT
-extern uint16_t fpAddressWord;  // Status byte bits: MEMR INP M1 OUT HLTA STACK WO INT
-// extern byte fpAddressLb;      // Front panel address lb.
-// extern byte fpAddressHb;      // Front panel address hb.
-extern byte fpDataByte;       // Front panel data byte.
+extern byte fpStatusByte;         // Status byte bits: MEMR INP M1 OUT HLTA STACK WO INT
+extern uint16_t fpAddressWord;    // Status byte bits: MEMR INP M1 OUT HLTA STACK WO INT
+// extern byte fpAddressLb;       // Front panel address lb.
+// extern byte fpAddressHb;       // Front panel address hb.
+extern byte fpDataByte;           // Front panel data byte.
 
 // -----------------------------------------------------------------------------
 // Altair101a.ino program functions used in cpucore_i8080.cpp

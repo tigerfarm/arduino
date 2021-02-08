@@ -13,20 +13,25 @@
 /*
   Altair 101a Processor program
 
-  + Serial interactivity simulator.
-  + Uses the default Arduino USB serial port, and optionally, Serial2 port.
-  ++ Tested using the Arduino IDE serial monitor and Mac terminal which has VT100 features.
-  ++ Can run programs from command line, or with a simulated front panel (printed to the serial port).
-  + This simulator uses David Hansel's Altair 8800 Simulator code to process machine instructions.
-  ++ cpucore_i8080.cpp and cpucore_i8080.h.
+  This program is an Altair 8800 simulator.
+  Interactivity is through the default Arduino USB serial port, and optionally, the Serial2 port.
+  It was tested using the Arduino IDE serial monitor and Mac terminal which has VT100 features.
+  It runs programs from command line, or with a simulated front panel (printed to the serial port).
+  This simulator uses David Hansel's Altair 8800 Simulator code to process machine instructions.
+  Altair 101a program has a basic OS for command line interation.
+
+  Control program files: Altair101a.ino and Altair101a.h.
+  Machine instruction program files: cpucore_i8080.cpp and cpucore_i8080.h.
 
   Differences to the original Altair 8800:
   + HLT goes into STOP state which allows RUN to restart the process from where it was halted.
   + When SINGLE STEP read and write, I've chosen to show the actual data value,
-    rather than having all the data lights on, which is what the original Altair 8800 does.
+    rather than having all the data lights on, which happens on the original Altair 8800.
 
   ---------------------------------------------------------
   Next to work on
+
+  Add sample programs for someone to run if all they have is the Arduino board.
 
   + Consider serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality.
   ++ Then, could use the original serial routines in Galaxy80.asm.
@@ -1569,20 +1574,24 @@ void processWaitSwitch(byte readByte) {
       Serial.print(F("+ h, Print help information."));
       Serial.println();
       Serial.println(F("----------------------------------------------------"));
-      Serial.println(F("+++ Commands"));
+      Serial.println(F("+++ Virtual Front Panel"));
+      Serial.println(F("-------------"));
+      Serial.println(F("+ v/V Front panel Disable(use cli)/enable VT100 virtual front panel."));
+      Serial.println(F("-------------"));
+      Serial.println(F("+ 0...9, a...f    Toggle sense/address/data switches:  A0...A9, A10...A15."));
       Serial.println(F("-------------"));
       Serial.println(F("+ r, RUN mode     When in WAIT mode, change to RUN mode."));
       Serial.println(F("+ s, STOP         When in RUN mode, change to WAIT mode."));
       Serial.println(F("+ s, SINGLE STEP  When in WAIT mode, SINGLE STEP."));
-      Serial.println(F("+ x, EXAMINE      current switch address."));
+      Serial.println(F("+ x, EXAMINE      sense switch address."));
       Serial.println(F("+ X, EXAMINE NEXT address, current address + 1."));
       Serial.println(F("+ p, DEPOSIT      into current address."));
       Serial.println(F("+ P, DEPOSIT NEXT address, deposit into current address + 1."));
       Serial.println(F("+ R, RESET        Set program counter address to zero."));
       Serial.println(F("+ C, CLR          Clear memory, set registers and program counter address to zero."));
       Serial.println(F("+ D, Download     Download mode, from serial port (Serial2)."));
-      Serial.println(F("-------------"));
-      Serial.println(F("+ 0...9, a...f    Toggle address switches:  A0...A9, A10...A15."));
+      Serial.println(F("----------------------------------------------------"));
+      Serial.println(F("+++ Operations"));
       Serial.println(F("-------------"));
       Serial.println(F("+ m, Read         Memory: Read an SD card file into program memory."));
       Serial.println(F("+ M, Write        Memory: Write program memory to an SD card file."));
@@ -1594,7 +1603,6 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ j, settings     Settings information."));
       Serial.println(F("-------------"));
       Serial.println(F("+ t/T Terminal    Disable/enable VT100 terminal commandline (cli) escape codes."));
-      Serial.println(F("+ v/V Front panel Disable/enable VT100 virtual front panel."));
       Serial.println(F("+ w/W USB serial  Disable/enable USB serial output."));
       Serial.println(F("+ y/Y Serial2     Disable/enable Serial2 for I/O."));
       Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
@@ -1763,8 +1771,6 @@ void runProcessorWait() {
 // Processor WAIT mode: Load sample programs.
 
 void loadProgram() {
-  int cnt;
-  cnt = 0;
 #ifdef LOG_MESSAGES
   Serial.println(F("+ loadProgram()"));
 #endif
@@ -1784,31 +1790,7 @@ void loadProgram() {
           if (SERIAL_FRONT_PANEL) {
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
           }
-          MWRITE( cnt++, B00100001 & 0xff);  // ++ opcode:lxi:00100001:h:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:0:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B00010110 & 0xff);  // ++ opcode:mvi:00010110:d:080h
-          MWRITE( cnt++, B10000000 & 0xff);  // ++ immediate:080h:128
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
-          MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:2
-          MWRITE( cnt++, B00000001 & 0xff);  // ++ immediate:1:1
-          MWRITE( cnt++, B10101010 & 0xff);  // ++ opcode:xra:10101010:d
-          MWRITE( cnt++, B00001111 & 0xff);  // ++ opcode:rrc:00001111
-          MWRITE( cnt++, B01010111 & 0xff);  // ++ opcode:mov:01010111:d:a
-          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Begin
-          MWRITE( cnt++, B00000101 & 0xff);  // ++ lb:Begin:5
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          loadKillTheBit();
           break;
         case 'm':
           loadProgramName = "Register set test";
@@ -1818,24 +1800,7 @@ void loadProgram() {
           if (SERIAL_FRONT_PANEL) {
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
           }
-          MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:1
-          MWRITE( cnt++, B00000001 & 0xff);  // ++ immediate:1:1
-          MWRITE( cnt++, B00000110 & 0xff);  // ++ opcode:mvi:00000110:b:2
-          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:2:2
-          MWRITE( cnt++, B00001110 & 0xff);  // ++ opcode:mvi:00001110:c:3
-          MWRITE( cnt++, B00000011 & 0xff);  // ++ immediate:3:3
-          MWRITE( cnt++, B00010110 & 0xff);  // ++ opcode:mvi:00010110:d:4
-          MWRITE( cnt++, B00000100 & 0xff);  // ++ immediate:4:4
-          MWRITE( cnt++, B00011110 & 0xff);  // ++ opcode:mvi:00011110:e:5
-          MWRITE( cnt++, B00000101 & 0xff);  // ++ immediate:5:5
-          MWRITE( cnt++, B00100110 & 0xff);  // ++ opcode:mvi:00100110:h:6
-          MWRITE( cnt++, B00000110 & 0xff);  // ++ immediate:6:6
-          MWRITE( cnt++, B00101110 & 0xff);  // ++ opcode:mvi:00101110:l:7
-          MWRITE( cnt++, B00000111 & 0xff);  // ++ immediate:7:7
-          MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
-          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Start
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:Start:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+          loadMviRegisters();
           break;
         // -------------------------------------
         case 'x':

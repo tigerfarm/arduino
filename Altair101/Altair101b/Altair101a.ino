@@ -13,30 +13,41 @@
 /*
   Altair 101a Processor program
 
-  + Serial interactivity simulator.
-  + Uses the default Arduino USB serial port, and optionally, Serial2 port.
-  ++ Tested using the Arduino IDE serial monitor and Mac terminal which has VT100 features.
-  ++ Can run programs from command line, or with a simulated front panel (printed to the serial port).
-  + This simulator uses David Hansel's Altair 8800 Simulator code to process machine instructions.
-  ++ cpucore_i8080.cpp and cpucore_i8080.h.
+  This program is an Altair 8800 simulator.
+  Interactivity is through the default Arduino USB serial port, and optionally, the Serial2 port.
+  It was tested using the Arduino IDE serial monitor and Mac terminal which has VT100 features.
+  It runs programs from command line, or with a simulated front panel (printed to the serial port).
+  This simulator uses David Hansel's Altair 8800 Simulator code to process machine instructions.
+  Altair 101a program has a basic OS for command line interation.
+
+  Control program files: Altair101a.ino and Altair101a.h.
+  Machine instruction program files: cpucore_i8080.cpp and cpucore_i8080.h.
 
   Differences to the original Altair 8800:
   + HLT goes into STOP state which allows RUN to restart the process from where it was halted.
   + When SINGLE STEP read and write, I've chosen to show the actual data value,
-    rather than having all the data lights on, which is what the original Altair 8800 does.
+    rather than having all the data lights on, which happens on the original Altair 8800.
 
   ---------------------------------------------------------
   Next to work on
 
+  Add sample programs for someone to run if all they have is the Arduino board.
+
   + Consider serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality.
   ++ Then, could use the original serial routines in Galaxy80.asm.
 
-  Implement interupt handling.
-  + opcodes: ei and di.
+  Implement interrupt handling.
+  + opcodes: ei and di. And handling interupts once ei is run.
   + This is required when I try to run complex programs such as CPM, and likely Basic.
 
-  + Option to have HLT work the same as Altair 8800.
-  
+  Option to have HLT work the same as Altair 8800.
+
+  Starting integrating hardware functions using the Altair tablet.
+  + Get the Altair tablet to work.
+  + Test with Altair101a.
+  + Then update Altair101a with the ability to flash the front panel lights.
+  + Then update Altair101a implementing interactivity with the front panel switches.
+
   ---------------------------------------------------------
   Hex programs:
 
@@ -46,11 +57,10 @@
   From prog_games.cpp, program hex bytes:
     static const byte PROGMEM killbits[] = {
     0x21, 0x00, 0x00, 0x16, 0x80, 0x01, 0x0E, 0x00, 0x1A, 0x1A, 0x1A, 0x1A, 0x09, 0xD2, 0x08, 0x00,
-    0xDB, 0xFF, 0xAA, 0x0F, 0x57, 0xC3, 0x08, 0x00};
+    0xDB, 0xFF, 0xAA, 0x0F, 0x57, 0xC3, 0x08, 0x00 };
 
   prog_basic.cpp, as hex bytes for 4K Basic.
-    const byte PROGMEM basic4k[] = {
-    0xae, 0xae, ... 0x00};
+    const byte PROGMEM basic4k[] = { 0xae, 0xae, ... 0x00 };
   + Will need to search Hex codes to see if interupt is required.
   ++ Interupt is required.
 
@@ -63,8 +73,8 @@
   After Altair101a works and processes programs,
   + Add the other features: player, clock, timer, and counter.
 
-  + Prevent lockup when using PUSH A, i.e. PUSH called before setting SP.
-  ++ In the PUSH process, if SP < 4, error.
+  - Consider preventing lockup when using PUSH A, i.e. PUSH called before setting SP.
+  + In the PUSH process, if SP < 4, error.
 
   ---------------------------------------------------------
   VT100 reference:
@@ -72,19 +82,24 @@
     Esc[H     Move cursor to upper left corner, example: Serial.print(F("\033[H"));
     Esc[J     Clear screen from cursor down, example: Serial.print(F("\033[J"));
     Esc[2J    Clear entire screen, example: Serial.print(F("\033[H"));
-    Example:  Serial.print(F("\033[H\033[2J"));  Move home and clear entire screen.
+    Example:  Serial.print(F("\033[H\033[2J"));         // Move home and clear entire screen.
     Esc[K     Clear line from cursor right
     Esc[nA    Move cursor up n lines.
     Example:  Serial.print(F("\033[3A"));  Cursor Up 3 lines.
     Esc[nB    Move cursor down n lines.
     Example:  Serial.print(F("\033[6B"));  Cursor down 6 lines.
     Esc[nC    Move cursor right n positions.
-    Example:  Serial.print(F("\033[H\033[4B\033[2C")); // Print on: row 4, column 2.
+    Example:  Serial.print(F("\033[H\033[4B\033[2C"));  // Print on: row 4, column 2.
     Esc[r;cH  Move cursor to a specific row(r) and column(c).
-    Example:  Serial.print(F("\033[4;2H*"));  // Print on: row 4, column 2 and print "*".
+    Example:  Serial.print(F("\033[4;2H*"));            // Print on: row 4, column 2 and print "*".
 
   Reference: printf/sprintf formats:
   http://www.cplusplus.com/reference/cstdio/printf/
+
+  ---------------------------------------------------------
+  Wire the serial module to the Mega Serial2 pins.
+  Serial module RX pin to Mega TX pin 16.
+  Serial module TX pin to Mega RX pin 17.
 
   ---------------------------------------------------------
   ---------------------------------------------------------
@@ -232,7 +247,7 @@ void writeProgramMemoryToFile(String theFilename) {
   // Serial.println(F("+ Check if file exists. "));
   if (SD.exists(theFilename)) {
     SD.remove(theFilename);
-    // Serial.println(F("++ Exists, so it was deleted."));
+    Serial.println(F("++ Exists, so it was deleted."));
   }
   myFile = SD.open(theFilename, FILE_WRITE);
   if (!myFile) {
@@ -305,7 +320,7 @@ boolean readProgramFileIntoMemory(String theFilename) {
     }
   }
   myFile.close();
-  Serial.println(F("\n+ Read completed, file closed."));
+  Serial.println(F("+ Program file loaded and ready to use."));
   controlResetLogic();
   playerPlaySoundWait(READ_FILE);
   host_clr_status_led_HLDA();
@@ -351,19 +366,20 @@ void sdListDirectory() {
 
 unsigned long downloadBaudRate = 115200;   // 57600 Needs to match the upload program.
 
-// Default: Arduino IDE monitor.
-// Requires an enter key to send a string of characters that are terminated with LF.
-boolean SERIAL_IO_IDE = false;
+// Virtual serial front panel using VT100 escape codes.
+// For example, Macbook terminal is VT100 enabled using the UNIX "screen" command.
+boolean SERIAL_FRONT_PANEL = false;
 
-// VT100 terminal, example Macbook terminal.
-// This option makes use of the VT100 escape characters.
-//    For example, can clear the terminal screen.
-boolean SERIAL_IO_VT100 = false;
-
-// Terminal, example Macbook terminal command line.
+// This option is for VT100 terminal command line interactivity.
 // Each character is immediately sent.
 // Uses CR instead of LF.
-boolean SERIAL_IO_TERMINAL = false;
+//    For example, Ctrl+l to clear the terminal screen.
+boolean SERIAL_CLI = false;
+
+// This option is for using the Arduino IDE monitor.
+// It prevents virtual front panel printing, unless requested.
+// The monitor requires an enter key to send a string of characters which is then terminated with LF.
+boolean SERIAL_IO_IDE = false;
 
 // Hardware LED lights
 boolean LED_IO = false;
@@ -470,7 +486,8 @@ int programState = LIGHTS_OFF;  // Intial, default.
 byte readByte = 0;
 
 // Program wait status.
-// const int WAIT_PIN = A9;      // Processor program wait state: off/LOW or wait state on/HIGH.
+// const int WAIT_PIN = A9;     // Processor program wait state: off/LOW or wait state on/HIGH.
+const int WAIT_PIN = 13;        // Change to onboard pin for the Altair 101a machine.
 
 // HLDA : 8080 processor goes into a hold state because of other hardware running.
 // const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock/player processing (on/HIGH).
@@ -488,12 +505,12 @@ const byte INT_ON =     B00000001;  // INT    Interrupt
 void setWaitStatus(boolean waitStatus) {
   if (waitStatus) {
     host_set_status_led_WAIT();
-    if (SERIAL_IO_VT100) {
+    if (SERIAL_FRONT_PANEL) {
       Serial.print(F("\033[4;2H*"));  // Print on: row 4, column 2.
     }
   } else {
     host_clr_status_led_WAIT();
-    if (SERIAL_IO_VT100) {
+    if (SERIAL_FRONT_PANEL) {
       Serial.print(F("\033[4;2H."));  // Print off: row 4, column 2.
     }
   }
@@ -538,11 +555,11 @@ void printFrontPanel() {
   if (LED_IO) {
     lightsStatusAddressData(fpStatusByte, host_read_addr_leds(), host_read_data_leds());
   }
-  if (SERIAL_IO_VT100) {
+  if (SERIAL_FRONT_PANEL) {
     serialPrintFrontPanel();
 #ifdef LOG_MESSAGES
     // Serial.print(F("\033[2K")); // Clear line from cursor right
-    Serial.print(F("+ printFrontPanel SERIAL_IO_VT100, status:"));
+    Serial.print(F("+ printFrontPanel SERIAL_FRONT_PANEL, status:"));
     printByte(fpStatusByte);
     //
     uint16_t theAddress = host_read_addr_leds();
@@ -560,8 +577,8 @@ void printFrontPanel() {
     // Serial.print(F("\033[2K")); // Clear line
 #endif
     /* SERIAL_IO_IDE will do the same:
-      } else if (SERIAL_IO_TERMINAL) {
-        Serial.print(F("+ printFrontPanel SERIAL_IO_TERMINAL, status:"));
+      } else if (SERIAL_CLI) {
+        Serial.print(F("+ printFrontPanel SERIAL_CLI, status:"));
         printByte(fpStatusByte);
         Serial.print(F(" dataByte:"));
         printByte(host_read_data_leds());
@@ -609,7 +626,7 @@ void serialPrintFrontPanel() {
   //
   // --------------------------
   // Status
-  if (!SERIAL_IO_VT100) {
+  if (!SERIAL_FRONT_PANEL) {
     Serial.print(F("INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0\r\n"));
     // Note, PROT is not implemented.
   } else {
@@ -633,7 +650,7 @@ void serialPrintFrontPanel() {
   //
   // --------------------------
   // Data
-  if ((prev_fpDataByte != fpDataByte) || (!SERIAL_IO_VT100)) {
+  if ((prev_fpDataByte != fpDataByte) || (!SERIAL_FRONT_PANEL)) {
     // If VT100 and no change, don't reprint.
     prev_fpDataByte = fpDataByte;
     if ( fpDataByte & 0x80 )   thePrintLine += (("  *" ));  else thePrintLine += (( "  ." ));
@@ -653,7 +670,7 @@ void serialPrintFrontPanel() {
   // --------------------------
   // WAIT, HLDA, and Address
   //
-  if (SERIAL_IO_VT100) {
+  if (SERIAL_FRONT_PANEL) {
     // No need to rewrite the title.
     Serial.println();
     Serial.print(F("\033[1B"));  // Cursor down
@@ -668,7 +685,7 @@ void serialPrintFrontPanel() {
   thePrintLine = "";
   //
   // Address
-  if ((prev_fpAddressWord != fpAddressWord) || (!SERIAL_IO_VT100)) {
+  if ((prev_fpAddressWord != fpAddressWord) || (!SERIAL_FRONT_PANEL)) {
     // If VT100 and no change, don't reprint.
     prev_fpAddressWord = fpAddressWord;
     if ( fpAddressWord & 0x8000 ) thePrintLine += (("   *")); else thePrintLine += (("   ."));
@@ -695,14 +712,14 @@ void serialPrintFrontPanel() {
   }
   // --------------------------
   // Address/Data switches
-  if (SERIAL_IO_VT100) {
+  if (SERIAL_FRONT_PANEL) {
     // No need to rewrite the title.
     Serial.println();
     Serial.print(F("\033[1B"));  // Cursor down
   } else {
     Serial.print(F("\r\n            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0\r\n"));
   }
-  if ((prev_fpAddressToggleWord != fpAddressToggleWord) || (!SERIAL_IO_VT100)) {
+  if ((prev_fpAddressToggleWord != fpAddressToggleWord) || (!SERIAL_FRONT_PANEL)) {
     // If VT100 and no change, don't reprint.
     prev_fpAddressToggleWord = fpAddressToggleWord;
     thePrintLine += (("          "));
@@ -728,7 +745,7 @@ void serialPrintFrontPanel() {
     Serial.print(thePrintLine);
     thePrintLine = "";
   }
-  if (SERIAL_IO_VT100) {
+  if (SERIAL_FRONT_PANEL) {
     // No need to rewrite the prompt.
     Serial.print(F("\033[2B"));  // Cursor down 2 lines.
     Serial.println();
@@ -1189,7 +1206,7 @@ byte stopByte = 's';
 byte resetByte = 'R';
 //
 void processRunSwitch(byte readByte) {
-  if (SERIAL_IO_VT100) {
+  if (SERIAL_FRONT_PANEL) {
     Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
   }
   if (readByte == stopByte) {
@@ -1215,15 +1232,11 @@ void processRunSwitch(byte readByte) {
 
 void runProcessor() {
   Serial.println(F("+ runProcessor()"));
-  if (SERIAL_IO_TERMINAL || SERIAL_IO_VT100) {
+  if (SERIAL_CLI && !SERIAL_FRONT_PANEL) {
     // Terminal mode: case 3: (Crtl+c) instead of case 's'.
-    // stopByte = 3;
+    stopByte = 3;
     // Terminal mode: case 26 (Crtl+z) instead of case 'R'.
-    // resetByte = 26;
-    //
-    // Seem better to use s and R. I'll test more to confirm.
-    stopByte = 's';
-    resetByte = 'R';
+    resetByte = 26;
   } else {
     stopByte = 's';
     resetByte = 'R';
@@ -1242,6 +1255,8 @@ void runProcessor() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Processor WAIT mode: process switch byte options.
+
+String loadProgramName = "";
 
 void processWaitSwitch(byte readByte) {
   // -------------------------------
@@ -1271,7 +1286,7 @@ void processWaitSwitch(byte readByte) {
   uint16_t cnt;
   byte readConfirmByte;
   //
-  if (SERIAL_IO_VT100) {
+  if (SERIAL_FRONT_PANEL) {
     Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
     Serial.print(F("\033[J"));     // From cursor down, clear the screen.
   }
@@ -1387,9 +1402,8 @@ void processWaitSwitch(byte readByte) {
       fpDataByte = 0;                         // Data
       fpAddressWord = 0;                      // Address word
       fpAddressToggleWord = 0;                // Reset all toggles to off.
-      // setAddressData(regPC, MREAD(regPC));
-      // host_set_status_leds_READMEM_M1();
-      if (SERIAL_IO_VT100) {
+      loadProgramName = "";                   // As there may have been a sample loaded program.
+      if (SERIAL_FRONT_PANEL) {
         printFrontPanel();      // For Arduino IDE monitor, <LF> will refresh the display.
       }
       break;
@@ -1397,8 +1411,8 @@ void processWaitSwitch(byte readByte) {
     //
     case 'v':
       Serial.println(F("+ v, VT100 escapes are disabled and block cursor on."));
-      if (SERIAL_IO_VT100) {
-        SERIAL_IO_VT100 = false;
+      if (SERIAL_FRONT_PANEL) {
+        SERIAL_FRONT_PANEL = false;
         Serial.print(F("\033[0m\033[?25h"));       // Insure block cursor display: on.
       }
       // Note, VT100 escape sequences don't work on the Ardino IDE monitor.
@@ -1412,20 +1426,20 @@ void processWaitSwitch(byte readByte) {
       fpAddressToggleWord = 0;                // Set all toggles off.
       Serial.print(F("\033[0m\033[?25l"));       // Block cursor display: off.
       Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
-      SERIAL_IO_VT100 = false;                // Insure labels are printed.
+      SERIAL_FRONT_PANEL = false;                // Insure labels are printed.
       serialPrintFrontPanel();                // Print the complete front panel: labels and indicators.
-      SERIAL_IO_VT100 = true;                 // Must be after serialPrintFrontPanel(), to have the labels printed.
+      SERIAL_FRONT_PANEL = true;                 // Must be after serialPrintFrontPanel(), to have the labels printed.
       SERIAL_IO_IDE = false;                      // Insure it's disabled.
       Serial.println(F("+ V, VT100 escapes are enabled and block cursor off."));
       break;
     // -------------------------------------------------------------------
     case 't':
-      SERIAL_IO_TERMINAL = false;
-      Serial.println(F("+ t, terminal output is disabled."));
+      SERIAL_CLI = false;
+      Serial.println(F("+ t, terminal output VT100 escape codes is disabled."));
       break;
     case 'T':
-      SERIAL_IO_TERMINAL = true;
-      Serial.println(F("+ T, Terminal output is enabled."));
+      SERIAL_CLI = true;
+      Serial.println(F("+ T, Terminal output VT100 escape codes is enabled. Use Crtl+c to STOP, Crtl+Z to RESET."));
       break;
     // -------------------------------------------------------------------
     case 'w':
@@ -1436,7 +1450,6 @@ void processWaitSwitch(byte readByte) {
       SERIAL_IO_IDE = true;
       Serial.println(F("+ W, USB serial output is enabled."));
       break;
-      SERIAL_IO_TERMINAL = true;
     // -------------------------------------
     case 'o':
       Serial.println(F("+ o, disable output to LED lights."));
@@ -1468,7 +1481,7 @@ void processWaitSwitch(byte readByte) {
       }
       break;
     case 'L':
-      Serial.println(F("+ L, Load hex code from the serial port."));
+      Serial.println(F("+ L, Load hex code from the serial port. Enter space(' ') to exit."));
       loadProgramSerial();
       if (!SERIAL_IO_IDE) {
         printFrontPanel();  // <LF> will refresh the display.
@@ -1507,12 +1520,12 @@ void processWaitSwitch(byte readByte) {
       Serial.println(programState);
       Serial.print(F("++ LED_IO="));
       Serial.print(LED_IO);
-      Serial.print(F(" SERIAL_IO_VT100="));
-      Serial.print(SERIAL_IO_VT100);
+      Serial.print(F(" SERIAL_FRONT_PANEL="));
+      Serial.print(SERIAL_FRONT_PANEL);
       Serial.print(F(" SERIAL_IO_IDE="));
       Serial.print(SERIAL_IO_IDE);
-      Serial.print(F(" SERIAL_IO_TERMINAL="));
-      Serial.println(SERIAL_IO_TERMINAL);
+      Serial.print(F(" SERIAL_CLI="));
+      Serial.println(SERIAL_CLI);
       Serial.print(F("++ Serial: "));
       if (Serial) {
         Serial.print(F("on, "));
@@ -1558,47 +1571,52 @@ void processWaitSwitch(byte readByte) {
       break;
     // -------------------------------------
     case 'h':
+      Serial.print(F("+ h, Print help information."));
+      Serial.println();
       Serial.println(F("----------------------------------------------------"));
-      Serial.println(F("+++ Commands"));
+      Serial.println(F("+++ Virtual Front Panel"));
       Serial.println(F("-------------"));
-      Serial.println(F("+ h, Help         Print this help menu."));
-      Serial.println(F("+ i, info         Information print of registers."));
-      Serial.println(F("+ j, setting      Setting information."));
-      Serial.println(F("+ l, load         Load a sample program."));
-      Serial.println(F("+ L, Load hex     Load hex code from the serial port."));
+      Serial.println(F("+ v/V Front panel Disable(use cli)/enable VT100 virtual front panel."));
       Serial.println(F("-------------"));
-      Serial.println(F("+ 0...9, a...f    Toggle address switches:  A0...A9, A10...A15."));
+      Serial.println(F("+ 0...9, a...f    Toggle sense/address/data switches:  A0...A9, A10...A15."));
       Serial.println(F("-------------"));
-      Serial.println(F("+ r, RUN mode."));
+      Serial.println(F("+ r, RUN mode     When in WAIT mode, change to RUN mode."));
       Serial.println(F("+ s, STOP         When in RUN mode, change to WAIT mode."));
-      Serial.println(F("+ s, SINGLE STEP  When in WAIT mode."));
-      Serial.println(F("+ x, EXAMINE      current switch address."));
+      Serial.println(F("+ s, SINGLE STEP  When in WAIT mode, SINGLE STEP."));
+      Serial.println(F("+ x, EXAMINE      sense switch address."));
       Serial.println(F("+ X, EXAMINE NEXT address, current address + 1."));
-      Serial.println(F("+ p, DEPOSIT      current address"));
-      Serial.println(F("+ P, DEPOSIT NEXT address, current address + 1"));
+      Serial.println(F("+ p, DEPOSIT      into current address."));
+      Serial.println(F("+ P, DEPOSIT NEXT address, deposit into current address + 1."));
       Serial.println(F("+ R, RESET        Set program counter address to zero."));
       Serial.println(F("+ C, CLR          Clear memory, set registers and program counter address to zero."));
-      Serial.println(F("+ D, Download     Download mode."));
+      Serial.println(F("+ D, Download     Download mode, from serial port (Serial2)."));
+      Serial.println(F("----------------------------------------------------"));
+      Serial.println(F("+++ Operations"));
       Serial.println(F("-------------"));
-      Serial.println(F("+ m, Read         Memory: Read a program file."));
-      Serial.println(F("+ M, Write        Memory: Write program to a file."));
-      Serial.println(F("+ n, Directory    Directory file listing."));
+      Serial.println(F("+ m, Read         Memory: Read an SD card file into program memory."));
+      Serial.println(F("+ M, Write        Memory: Write program memory to an SD card file."));
+      Serial.println(F("+ n, Directory    Directory file listing of the SD card."));
+      Serial.println(F("+ l, Load sample  Load a sample program."));
+      Serial.println(F("+ L, Load hex     Load hex code from the serial port."));
       Serial.println(F("-------------"));
-      Serial.println(F("+ y/Y Serial2     Disable/enable Serial2 for output on port #2 (out 2)."));
-      Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
-      Serial.println(F("+ t/T Terminal    Disable/enable terminal output."));
-      Serial.println(F("+ v/V VT100       Disable/enable USB serial VT100 output."));
+      Serial.println(F("+ i, info         Information print of registers."));
+      Serial.println(F("+ j, settings     Settings information."));
+      Serial.println(F("-------------"));
+      Serial.println(F("+ t/T Terminal    Disable/enable VT100 terminal commandline (cli) escape codes."));
       Serial.println(F("+ w/W USB serial  Disable/enable USB serial output."));
-      Serial.println(F("+ z/Z cursor      VT100 block cursor off/on."));
-      Serial.println(F("+ u/U Log msg     Log messages off/on."));
+      Serial.println(F("+ y/Y Serial2     Disable/enable Serial2 for I/O."));
+      Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
+      Serial.println(F("-------------"));
       Serial.println(F("+ Enter key       Refresh USB serial output front panel display."));
+      Serial.println(F("+ u/U Log msg     Log messages off/on."));
+      Serial.println(F("+ z/Z cursor      VT100 block cursor off/on."));
       Serial.println(F("----------------------------------------------------"));
       break;
     // -------------------------------------
     case 13:
       // USB serial, VT100 terminal.
       Serial.println();
-      if (!SERIAL_IO_VT100) {
+      if (!SERIAL_FRONT_PANEL) {
         printFrontPanel();  // <LF> will refresh the display.
         serialPrintFrontPanel();
       }
@@ -1610,14 +1628,14 @@ void processWaitSwitch(byte readByte) {
       break;
     case 12:
       // Ctrl+l is ASCII 7, which is form feed (FF).
-      if (SERIAL_IO_VT100 || SERIAL_IO_TERMINAL) {
+      if (SERIAL_FRONT_PANEL || SERIAL_CLI) {
         Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
       }
-      if (SERIAL_IO_VT100) {
+      if (SERIAL_FRONT_PANEL) {
         // Refresh the front panel
-        SERIAL_IO_VT100 = false;                // Insure labels are printed.
+        SERIAL_FRONT_PANEL = false;                // Insure labels are printed.
         serialPrintFrontPanel();                // Print the complete front panel: labels and indicators.
-        SERIAL_IO_VT100 = true;                 // Must be after serialPrintFrontPanel(), to have the labels printed.
+        SERIAL_FRONT_PANEL = true;                 // Must be after serialPrintFrontPanel(), to have the labels printed.
       }
       break;
     case 'n':
@@ -1637,7 +1655,7 @@ void processWaitSwitch(byte readByte) {
         programState = SERIAL_DOWNLOAD;
         return;
       }
-      Serial.print(F("++ Read filename: "));
+      Serial.print(F("++ Program filename: "));
       Serial.println(theFilename);
       Serial.println(F("++ Confirm, y/n: "));
       readConfirmByte = 's';
@@ -1736,11 +1754,11 @@ void runProcessorWait() {
         processWaitSwitch(readByte);
       }
       /*
-        if (SERIAL_IO_TERMINAL && !SERIAL_IO_VT100) {
+        if (SERIAL_CLI && !SERIAL_FRONT_PANEL) {
         processWaitSwitch(10);    // Since the terminal doesn't send a CR or LF, send one.
         }
       */
-      if (!SERIAL_IO_VT100) {
+      if (!SERIAL_FRONT_PANEL) {
         Serial.print(F("?- "));
       }
     }
@@ -1752,7 +1770,6 @@ void runProcessorWait() {
 // -----------------------------------------------------------------------------
 // Processor WAIT mode: Load sample programs.
 
-String loadProgramName = "";
 void loadProgram() {
   int cnt;
   cnt = 0;
@@ -1768,53 +1785,11 @@ void loadProgram() {
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
       switch (readByte) {
-        case 'i':
-          loadProgramName = "Input loop";
-          Serial.println(F("+ i, load: Input loop, Ctrl+c to halt the loop."));
-          programState = PROGRAM_WAIT;
-          if (SERIAL_IO_VT100) {
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:'>'
-          MWRITE( cnt++, B00111110 & 0xff);  // ++ immediate:'>':62
-          MWRITE( cnt++, B11010011 & 0xff);  // ++ opcode:out:11010011:SERIAL_PORT
-          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:SERIAL_PORT:2
-          MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:SERIAL_PORT
-          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:SERIAL_PORT:2
-          MWRITE( cnt++, B11111110 & 0xff);  // ++ opcode:cpi:11111110:3
-          MWRITE( cnt++, B00000011 & 0xff);  // ++ immediate:3:3
-          MWRITE( cnt++, B11001010 & 0xff);  // ++ opcode:jz:11001010:HaltLoop
-          MWRITE( cnt++, B00011110 & 0xff);  // ++ lb:HaltLoop:30
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B11111110 & 0xff);  // ++ opcode:cpi:11111110:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ immediate:0:0
-          MWRITE( cnt++, B11001010 & 0xff);  // ++ opcode:jz:11001010:GetByte
-          MWRITE( cnt++, B00000100 & 0xff);  // ++ lb:GetByte:4
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B11010011 & 0xff);  // ++ opcode:out:11010011:SERIAL_PORT
-          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:SERIAL_PORT:2
-          MWRITE( cnt++, B11111110 & 0xff);  // ++ opcode:cpi:11111110:13
-          MWRITE( cnt++, B00001101 & 0xff);  // ++ immediate:13:13
-          MWRITE( cnt++, B11000010 & 0xff);  // ++ opcode:jnz:11000010:GetByte
-          MWRITE( cnt++, B00000100 & 0xff);  // ++ lb:GetByte:4
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:'\n'
-          MWRITE( cnt++, B00001010 & 0xff);  // ++ immediate:'\n':10
-          MWRITE( cnt++, B11010011 & 0xff);  // ++ opcode:out:11010011:SERIAL_PORT
-          MWRITE( cnt++, B00000010 & 0xff);  // ++ immediate:SERIAL_PORT:2
-          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:prompt
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:prompt:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
-          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:GetByte
-          MWRITE( cnt++, B00000100 & 0xff);  // ++ lb:GetByte:4
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          break;
         case 'k':
-          loadProgramName = "Kill the Bit";
-          Serial.println(F("+ k, load: Kill the Bit version for serial input."));
+          loadProgramName = "Serial Kill the Bit";
+          Serial.println(F("+ k, load: A version of Kill the Bit for serial I/O."));
           programState = PROGRAM_WAIT;
-          if (SERIAL_IO_VT100) {
+          if (SERIAL_FRONT_PANEL) {
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
           }
           MWRITE( cnt++, B00100001 & 0xff);  // ++ opcode:lxi:00100001:h:0
@@ -1844,10 +1819,11 @@ void loadProgram() {
           MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
           break;
         case 'm':
-          loadProgramName = "Registers MVI test";
-          Serial.println(F("+ m, load: MVI testing to the setting of registers."));
+          loadProgramName = "Register set test";
+          Serial.println(F("+ m, load: a program that uses MVI to set the registers with values from 1 to 7."));
+          Serial.println(F("     Use option 'i' to list the register values."));
           programState = PROGRAM_WAIT;
-          if (SERIAL_IO_VT100) {
+          if (SERIAL_FRONT_PANEL) {
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
           }
           MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:1
@@ -1869,49 +1845,22 @@ void loadProgram() {
           MWRITE( cnt++, B00000000 & 0xff);  // ++ lb:Start:0
           MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
           break;
-        case 'w':
-          loadProgramName = "Write byte to memory location: 96";
-          Serial.println(F("+ w, load: Write byte to memory location: 96, increment byte and loop."));
-          if (SERIAL_IO_VT100) {
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          programState = PROGRAM_WAIT;
-          MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:6
-          MWRITE( cnt++, B00000110 & 0xff);  // ++ immediate:6:6
-          MWRITE( cnt++, B00110010 & 0xff);  // ++ opcode:sta:00110010:96
-          MWRITE( cnt++, B01100000 & 0xff);  // ++ lb:96:96
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B00111110 & 0xff);  // ++ opcode:mvi:00111110:a:0
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ immediate:0:0
-          MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
-          MWRITE( cnt++, B00111010 & 0xff);  // ++ opcode:lda:00111010:96
-          MWRITE( cnt++, B01100000 & 0xff);  // ++ lb:96:96
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          MWRITE( cnt++, B01110110 & 0xff);  // ++ opcode:hlt:01110110
-          MWRITE( cnt++, B00111100 & 0xff);  // ++ opcode:inr:00111100:a
-          MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Store
-          MWRITE( cnt++, B00000010 & 0xff);  // ++ lb:Store:2
-          MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
-          break;
         // -------------------------------------
         case 'x':
           Serial.println(F("< x, Exit load program."));
           programState = PROGRAM_WAIT;
-          if (SERIAL_IO_VT100) {
+          if (SERIAL_FRONT_PANEL) {
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
           }
           break;
         default:
-          if (SERIAL_IO_VT100) {
+          if (SERIAL_FRONT_PANEL) {
             Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
           }
           Serial.println(F("+ Sample programs."));
-          Serial.println(F("++ i, Input loop, Ctrl+c to halt the loop."));
           Serial.println(F("++ k, Kill the Bit version for serial VT100 input."));
           Serial.println(F("++ m, MVI testing to the setting of registers."));
-          Serial.println(F("++ w, Write byte to memory location: 96, increment byte and loop."));
-          Serial.println(F("++ s, Front panel status light test."));
           Serial.println(F("----------"));
           Serial.println(F("+ x, Exit: don't load a program."));
       }
@@ -1921,7 +1870,7 @@ void loadProgram() {
     // Do EXAMINE 0 after the load;
     regPC = 0;
     setAddressData(regPC, MREAD(regPC));
-    if (SERIAL_IO_VT100) {
+    if (SERIAL_FRONT_PANEL) {
       serialPrintFrontPanel();
     }
   }
@@ -2003,7 +1952,7 @@ void runDownloadProgram() {
   host_set_addr_leds(0);
   host_set_data_leds(0);
   printFrontPanel();
-  if (SERIAL_IO_VT100) {
+  if (SERIAL_FRONT_PANEL) {
     Serial.print(F("\033[11;1H"));  // Move cursor to below the prompt: line 9, column 1.
     Serial.print(F("\033[J"));     // From cursor down, clear the screen.
   }
@@ -2017,7 +1966,7 @@ void runDownloadProgram() {
     SERIAL2_OUTPUT = false;               // Don't print to Serial2 during this operation.
     check_SERIAL2_OUTPUT = true;          // Re-open before exiting this function.
   }
-  Serial2.begin(downloadBaudRate);        // 57600 downloadBaudRate
+  Serial2.begin(downloadBaudRate);
   while (programState == SERIAL_DOWNLOAD) {
     if (Serial2.available() > 0) {
       readByte = Serial2.read();      // Read the incoming byte.
@@ -2032,18 +1981,20 @@ void runDownloadProgram() {
       if (!downloadStarted) {
         downloadStarted = true;
         host_set_status_leds_WRITEMEM();   // Now writing to processor memory.
-        if (SERIAL_IO_VT100) {
+        if (SERIAL_FRONT_PANEL) {
           Serial.print(F("\033[11;1H"));    // Move cursor to below the prompt.
         }
-        Serial.println(F("+       Address  Data  Binary   Hex Octal Decimal"));
+        // Serial.println(F("+       Address  Data  Binary   Hex Octal Decimal"));
+        Serial.println(F("+       Address"));
         //              ++ Byte#     17, Byte: 00000000 000 000     0
       }
-      if (SERIAL_IO_VT100) {
+      if (SERIAL_FRONT_PANEL) {
         Serial.print(F("\033[12;1H"));    // Move cursor to below the prompt: line 10, column 1.
       }
       //
       // Buffer space up to 64K.
       Serial.print(F("++ Byte# "));
+      /* Commented out to simplify output during the receiving of bytes.
       if (readByteCount < 10) {
         Serial.print(F(" "));
       }
@@ -2059,12 +2010,14 @@ void runDownloadProgram() {
       if (readByteCount < 100000) {
         Serial.print(F(" "));
       }
+      */
       Serial.print(readByteCount);
       //
       // Input on the external serial port module.
       // Process the incoming byte.
       MWRITE(readByteCount, readByte)
       readByteCount++;
+      /* Commented out to simplify output during the receiving of bytes.
       Serial.print(F(", Byte: "));
       printByte(readByte);
       Serial.print(F(" "));
@@ -2079,6 +2032,7 @@ void runDownloadProgram() {
         Serial.print(F(" "));
       }
       Serial.print(readByte);
+      */
       Serial.println();
       //
       timer = millis();
@@ -2191,20 +2145,22 @@ void loadProgramBytes() {
 // -----------------------------------------------------------------------------
 void setup() {
   // Speed for serial read, which matches the sending program.
-  Serial.begin(115200);         // 9600 19200 57600 115200
+  Serial.begin(115200);         // Baud rates: 9600 19200 57600 115200
   delay(2000);
   Serial.println(); // Newline after garbage characters.
-  Serial.println(F("+++ Setup."));
+  Serial.print(F("+++ "));
+  Serial.println(__func__); // prints "setup"
+  
   //
   // ----------------------------------------------------
   // ----------------------------------------------------
   // Front panel LED lights.
 
   // System application status LED lights
-  // pinMode(WAIT_PIN, OUTPUT);    // Indicator: program WAIT state: LED on or LED off.
-  // pinMode(HLDA_PIN, OUTPUT);    // Indicator: clock or player process (LED on) or emulator (LED off).
-  // digitalWrite(WAIT_PIN, HIGH); // Default to wait state.
-  // digitalWrite(HLDA_PIN, HIGH); // Default to emulator.
+  pinMode(WAIT_PIN, OUTPUT);        // Indicator: program WAIT state: LED on or LED off.
+  // pinMode(HLDA_PIN, OUTPUT);     // Indicator: clock or player process (LED on) or simulator (LED off).
+  digitalWrite(WAIT_PIN, HIGH);     // Default to wait state.
+  // digitalWrite(HLDA_PIN, HIGH);  // Default to simulator.
   // ------------------------------
   // Set status lights.
 #ifdef LOG_MESSAGES
@@ -2223,7 +2179,6 @@ void setup() {
   // ----------------------------------------------------
 #ifdef SETUP_SDCARD
   // The csPin pin is connected to the SD card module select pin (CS).
-  //            1234567890123456
   if (!SD.begin(csPin)) {
     Serial.println(F("- Error initializing SD card module."));
     ledFlashError();
@@ -2236,7 +2191,7 @@ void setup() {
 #else
   Serial.println(F("+ SD card module is not included in this compiled version."));
 #endif
-
+  //
   // ----------------------------------------------------
   // ----------------------------------------------------
   programState = PROGRAM_WAIT;
@@ -2261,7 +2216,7 @@ void loop() {
       break;
     // ----------------------------
     case PROGRAM_WAIT:
-      if (!SERIAL_IO_VT100) {
+      if (!SERIAL_FRONT_PANEL) {
         Serial.print(F("?- "));
       }
       host_set_status_led_WAIT();
@@ -2278,7 +2233,7 @@ void loop() {
       if (SERIAL2_OUTPUT) {
         // runDownloadProgram() opens and closes (begin and end) the connection.
         // The following will re-open it for output.
-        Serial2.begin(9600);
+        Serial2.begin(downloadBaudRate);
       }
       break;
   }

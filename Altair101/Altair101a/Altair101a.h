@@ -34,4 +34,10 @@ byte altair_in(byte addr);                  // Called from cpu_in();
 void altair_out(byte addr, byte val);       // Called from cpu_out();
 
 // -----------------------------------------------------------------------------
+// From AltairSample.ino program.
+
+void loadKillTheBit();
+void loadMviRegisters();
+
+// -----------------------------------------------------------------------------
 // eof
