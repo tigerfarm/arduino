@@ -47,6 +47,8 @@
                 JZ TerminateInput
                 CPI '\n'            ; LF
                 JZ TerminateInput
+                CPI 3               ; Crtl+c
+                JZ TestBreakKey
                                     ;
                 CPI ' '             ;   If < ' '
                 JC InputNext        ;or
@@ -63,8 +65,18 @@
                                     ;
                 jmp InputNext
                                     ; ----------------------
-    TerminateInput:
     Stop:
+                mov b,a
+                mvi a,'O'
+                out PRINT_PORT
+                mov b,a
+                mvi a,'K'
+                out PRINT_PORT
+                mvi a,'\r'
+                out PRINT_PORT
+                mvi a,'\n'
+                out PRINT_PORT
+    TerminateInput:
     Halt:
                 hlt
                 jmp prompt
@@ -78,6 +90,19 @@
                 ANI 7Fh             ; Remove the 8th bit.
                 RET
                                     ; --------------------------------------------
+                                    ; Ctrl+c break from running a program.
+                                    ; Currently,
+                                    ;   First Ctrl+c, stops the program
+                                    ;   Second Ctrl+c, brings back the OK prompt.
+    TestBreakKey:
+                IN 00               ;Exit if no key pressed.
+                ANI 01
+                RNZ
+                CALL InputChar
+                CPI 03              ;Break key? (Ctrl+c)
+                JZ Stop
+                JMP InputNext
+                                    ; --------------------------------------------
                                     ; --------------------------------------------
                                     ; Test for an input character with the 8th bit set.
     WaitTermReady:
@@ -87,14 +112,6 @@
                 ; POP PSW
                 OUT 01
                 RET
-    TestBreakKey:
-                IN 00               ;Exit if no key pressed.
-                ANI 01
-                RNZ
-                CALL InputChar
-                CPI 03              ;Break key? (was 0x03)
-                JMP Stop	
-                                    ; --------------------------------------------
                                     ; Declarations.
     SENSE_SW    equ     255         ; Input port address: toggle sense switch byte, into register A.
     PRINT_PORT  EQU 2               ; USB Serial2 port#.

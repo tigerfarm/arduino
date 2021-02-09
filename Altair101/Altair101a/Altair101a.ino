@@ -1274,8 +1274,10 @@ void processRunSwitch(byte readByte) {
 void runProcessor() {
   Serial.println(F("+ runProcessor()"));
   if (SERIAL_CLI && !SERIAL_FRONT_PANEL) {
+    // Control character reference: https://en.wikipedia.org/wiki/ASCII
     // Terminal mode: case 3: (Crtl+c) instead of case 's'.
-    stopByte = 3;
+    // Terminal mode: case 4: (Crtl+d) instead of case 's'.
+    stopByte = 4; // Use 4 because Basic 4K using 3.
     // Terminal mode: case 26 (Crtl+z) instead of case 'R'.
     resetByte = 26;
   } else {
@@ -1480,7 +1482,7 @@ void processWaitSwitch(byte readByte) {
       break;
     case 'T':
       SERIAL_CLI = true;
-      Serial.println(F("+ T, Terminal output VT100 escape codes is enabled. Use Crtl+c to STOP, Crtl+Z to RESET."));
+      Serial.println(F("+ T, Terminal output VT100 escape codes is enabled. Use Crtl+d(or Crtl+c) to STOP, Crtl+Z to RESET."));
       break;
     // -------------------------------------------------------------------
     case 'w':

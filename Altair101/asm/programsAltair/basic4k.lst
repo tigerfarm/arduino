@@ -1,7 +1,31 @@
-// -----------------------------------------------------------------------------
-// 4K Basic listing.
-//
-// -----------------------------------------------------------------------------
+; -----------------------------------------------------------------------------
+; 4K Basic listing.
+;
+; -----------------------------------------------------------------------------
+; Getting Basic 4K version installed and started.
+
+; Download
+;    https://github.com/option8/Altair-BASIC
+;  Listing:
+;    https://github.com/option8/Altair-BASIC/blob/master/BASIC%20disassembly-source.lst
+;  Machine code:
+;    https://github.com/option8/Altair-BASIC/raw/master/BASIC%20disassembly-source.rom
+;  Saved as: basic4k.bin
+;  Upload to the Altair101a.
+;    Run.
+;    MEMORY SIZ�?
+;  Output needs fixing. I think, something to do with 7 bit characters.
+;  The simulator serial device settings offers to filter out the 8th bit by enabling the “Use 7 bits” setting.
+
+; Using 4K Basic: https://www.youtube.com/watch?v=qSizis0ezck
+; 10 PRINT "HELLO"
+; 20 GOTO 10
+; OK
+; + Commands:
+; NEW
+; LIST
+; 
+; -----------------------------------------------------------------------------
 
               	; --------------------------------------
               	; zasm: assemble "BASIC disassembly-source.txt"
@@ -11,11 +35,11 @@
 
 
               	; ----------------------------------------------------------------------------
-              	;Micro-Soft Altair BASIC 3.2 (4K) - Annotated Disassembly
+              	; Micro-Soft Altair BASIC 3.2 (4K) - Annotated Disassembly
               	;	
-              	;Copyright 1975, Bill Gates, Paul Allen, Monte Davidoff
-              	;Source: http://altairbasic.org/ compiled by Reuben Harris
-              	;Additional cleanup, relocation by Charles Mangin, March, 2019
+              	; Copyright 1975, Bill Gates, Paul Allen, Monte Davidoff
+              	; Source: http://altairbasic.org/ compiled by Reuben Harris
+              	; Additional cleanup, relocation by Charles Mangin, March, 2019
               	; ----------------------------------------------------------------------------
               	
               	
@@ -27,12 +51,12 @@
 0004: 9004    		DW 0490h	
 0006: F907    		DW 07F9h	
               	
-0008: 7E      	SyntaxCheck	MOV A,M	;A=Byte of BASIC program.
-0009: E3      		XTHL	;HL=return address.
-000A: BE      		CMP M	;Compare to byte expected.
-000B: 23      		INX H	;Return address++;
-000C: E3      		XTHL	;
-000D: C2D001  		JNZ SyntaxError	;Error if not what was expected.
+0008: 7E      	SyntaxCheck	MOV A,M     ;A=Byte of BASIC program.
+0009: E3      		XTHL                ;HL=return address.
+000A: BE      		CMP M               ;Compare to byte expected.
+000B: 23      		INX H               ;Return address++;
+000C: E3      		XTHL
+000D: C2D001  		JNZ SyntaxError     ;Error if not what was expected.
 0010: 23      	NextChar	INX H	
 0011: 7E      		MOV A,M	
 0012: FE3A    		CPI 0x3A	
@@ -89,7 +113,7 @@
 0071: 4C45D4  		DB 4C45D4h	; 	"LET"	87
 0074: 474F54CF		DB 474F54CFh	; 	"GOTO"	88
 0078: 5255CE  		DB 5255CEh	; 	"RUN"	89
-007B: 49C6    		DB 49C6h	; 	"IF"	8A
+007B: 49C6    		DB 49C6h        	; 	"IF"	8A
 007D: 52455354		DB 524553544F52C5h	; 	"RESTORE"	8B
 0081: 4F52C5  	
 0084: 474F5355		DB 474F5355C2h	; 	"GOSUB"	8C
@@ -106,7 +130,7 @@
 00A4: 4E45D7  		DB 4E45D7h	; 	"NEW"	93
               	;
 00A7: 544142A8		DB 544142A8h	; 	"TAB("	94
-00AB: 54CF    		DB 54CFh	; 	"TO"	95
+00AB: 54CF    		DB 54CFh        ; 	"TO"	95
 00AD: 544845CE		DB 544845CEh	; 	"THEN"	96
 00B1: 535445D0		DB 535445D0h	; 	"STEP"	97
               	;
@@ -667,19 +691,22 @@
 046E: 226D01  	L046E	SHLD DATA_PROG_PTR	
 0471: EB      		XCHG	
 0472: C9      		RET	
-0473: DB00    	TestBreakKey	IN 00	;Exit if no key pressed.
-0475: E601    		ANI 01	;
-0477: C0      		RNZ	;
-0478: CD8203  		CALL InputChar	;
-047B: FE03    		CPI 0x03	;Break key?
-047D: C3F701  		JMP Stop	
+                ; ----------------------
+0473: DB00    	TestBreakKey	IN 00       ;Exit if no key pressed.
+0475: E601    		ANI 01
+0477: C0      		RNZ
+0478: CD8203  		CALL InputChar
+047B: FE03    		CPI 0x03            ; Break key? Stacy
+047D: C3F701  		JMP Stop            ; This seem incorrect. Why CPI when followed by a JMP?
+                ; ----------------------
 0480: 7E      	CharIsAlpha	MOV A,M	
 0481: FE41    		CPI 'A'	
 0483: D8      		RC	
 0484: FE5B    		CPI 'Z'+1	
 0486: 3F      		CMC	
 0487: C9      		RET	
-0488: D7      	GetSubscript	RST 02	;RST NextChar	
+                ; ----------------------
+0488: D7      	GetSubscript	RST 02      ;RST NextChar	
 0489: CD8A06  		CALL EvalExpression	
 048C: EF      		RST 05	; FTestSign	
 048D: FA9804  		JM FunctionCallError	
@@ -687,14 +714,15 @@
 0493: FE90    		CPI 0x90	
 0495: DA770A  		JC FAsInteger	
 0498: 1E08    	FunctionCallError	MVI E,08h	
-049A: C3D501  		JMP Error	
+049A: C3D501  		JMP Error
+                ; ----------------------
 049D: 2B      	LineNumberFromStr	DCX H	
 049E: 110000  		LXI D,0000	
-04A1: D7      	NextLineNumChar	RST 02	;RST NextChar	
+04A1: D7      	NextLineNumChar	RST 02      ;RST NextChar	
 04A2: D0      		RNC	
 04A3: E5      		PUSH H	
-04A4: F5      		PUSH PSW	;Preserve flags
-04A5: 219819  		LXI H,1998h	;Decimal 6552
+04A4: F5      		PUSH PSW            ;Preserve flags
+04A5: 219819  		LXI H,1998h         ;Decimal 6552
 04A8: E7      		RST 4	
 04A9: DAD001  		JC SyntaxError	
 04AC: 62      		MOV H,D	
@@ -753,7 +781,7 @@
 04FE: 23      		INX H	
 04FF: C3F904  		JMP FindNextStatementLoop	
 0502: CD1B07  	Let	CALL GetVar	
-0505: CF      		RST 01	; SyntaxCheck	
+0505: CF      		RST 01                  ; SyntaxCheck	
 0506: 9D      		DB 9Dh	
 0507: D5      	AssignVar	PUSH D	
 0508: CD8A06  		CALL EvalExpression	
@@ -768,7 +796,7 @@
 0519: 7E      		MOV A,M	
 051A: CD020A  		CALL FPush	
 051D: 1600    		MVI D,00	
-051F: D69C    	GetCompareOpLoop	SUI 9Ch	; KWID_>	
+051F: D69C    	GetCompareOpLoop	SUI 9Ch          ; KWID_>	
 0521: DA3205  		JC GotCompareOp	
 0524: FE03    		CPI 0x03	
 0526: D23205  		JNC GotCompareOp	
