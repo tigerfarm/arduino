@@ -867,6 +867,30 @@ byte altair_in(byte portDataByte) {
     case 0:
       // 4K Basic
       // Need to work like GALAXY80.asm using 88-2SIO.
+      /*
+    WaitTermReady:
+                IN 00
+                ANI 80h
+                JNZ WaitTermReady
+                POP PSW
+                OUT 01
+                RET
+    InputChar:
+                IN 00
+                ANI 01
+                JNZ InputChar
+                IN 01
+                ANI 7Fh
+                RET
+                ...
+    TestBreakKey:
+                IN 00               ;Exit if no key pressed.
+                ANI 01
+                RNZ
+                CALL InputChar
+                CPI 0x03            ;Break key?
+                JMP Stop  
+       */
     case 2:
     case 16:
     case 17:
