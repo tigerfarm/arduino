@@ -841,40 +841,40 @@ byte altair_in(byte portDataByte) {
   switch (portDataByte) {
     case 1:
     case B11111111:
-    {
-      // case 1, for running Kill the Bit in serial mode.
-      // case B11111111, is the common sense switch input port#.
-      //
-      // For serial Sense switches, get the input and add it to the Address Toggle Word high byte.
-      //  Check for new sense switch toggle event from the serial input (0..9 or a..f).
-      //  If there was a toggle event, set the address toggle word to include the new event.
-      int senseByte = 0;
-      if (SERIAL2_OUTPUT) {
-        // Input from the external USB component Serial2 port.
-        if (Serial2.available() > 0) {
-          senseByte = Serial2.read();    // Read and process an incoming byte.
+      {
+        // case 1, for running Kill the Bit in serial mode.
+        // case B11111111, is the common sense switch input port#.
+        //
+        // For serial Sense switches, get the input and add it to the Address Toggle Word high byte.
+        //  Check for new sense switch toggle event from the serial input (0..9 or a..f).
+        //  If there was a toggle event, set the address toggle word to include the new event.
+        int senseByte = 0;
+        if (SERIAL2_OUTPUT) {
+          // Input from the external USB component Serial2 port.
+          if (Serial2.available() > 0) {
+            senseByte = Serial2.read();    // Read and process an incoming byte.
+          }
+        } else {
+          // Input from default serial port. This is good for testing.
+          senseByte = inputBytePort2;
+          inputBytePort2 = 0;
         }
-      } else {
-        // Input from default serial port. This is good for testing.
-        senseByte = inputBytePort2;
-        inputBytePort2 = 0;
+        if ( senseByte >= '0' && senseByte <= '9' ) {
+          fpAddressToggleWord = fpAddressToggleWord ^ (1 << (senseByte - '0'));
+        }
+        if ( senseByte >= 'a' && senseByte <= 'f' ) {
+          fpAddressToggleWord = fpAddressToggleWord ^ (1 << (senseByte - 'a' + 10));
+        }
+        // Reply with the high byte of the address toggles, which are the sense switch toggles.
+        inputDataByte = highByte(fpAddressToggleWord);
+        break;
       }
-      if ( senseByte >= '0' && senseByte <= '9' ) {
-        fpAddressToggleWord = fpAddressToggleWord ^ (1 << (senseByte - '0'));
-      }
-      if ( senseByte >= 'a' && senseByte <= 'f' ) {
-        fpAddressToggleWord = fpAddressToggleWord ^ (1 << (senseByte - 'a' + 10));
-      }
-      // Reply with the high byte of the address toggles, which are the sense switch toggles.
-      inputDataByte = highByte(fpAddressToggleWord);
-      break;
-    }
     case 2:
     case 16:
     case 17:
-    // pGalaxy80.asm input port.
-    //  SIOCTL  EQU 10H   ;88-2SIO CONTROL PORT
-    //  IN   SIOCTL
+      // pGalaxy80.asm input port.
+      //  SIOCTL  EQU 10H   ;88-2SIO CONTROL PORT
+      //  IN   SIOCTL
       {
         if (SERIAL2_OUTPUT) {
           // Input from the external USB component Serial2 port.
@@ -972,11 +972,11 @@ void altair_out(byte portDataByte, byte regAdata) {
     case 2:
     case 16:
     case 17:
-    // pGalaxy80.asm output port.
-    //  SIOCTL  EQU 10H   ;88-2SIO CONTROL PORT
-    //  SIODAT  EQU 11H   ;88-2SIO DATA PORT
-    //  OUT  SIOCTL
-    //  OUT  SIODAT
+      // pGalaxy80.asm output port.
+      //  SIOCTL  EQU 10H   ;88-2SIO CONTROL PORT
+      //  SIODAT  EQU 11H   ;88-2SIO DATA PORT
+      //  OUT  SIOCTL
+      //  OUT  SIODAT
       if (SERIAL2_OUTPUT) {
         Serial2.write(regAdata);
       } else {
@@ -988,12 +988,12 @@ void altair_out(byte portDataByte, byte regAdata) {
       Serial.write(regAdata);
       break;
     //case 16:
-      // Actual output of bytes. Example output a byte to the serial port (IDE monitor).
-      // Test port: 20Q (octal: 020).
-      // Serial_print(F("++ Test output port, byte output to USB serial port:"));
-      // Serial.print(regAdata);         // Write regAdata to serial port.
-      // Serial.println(F(":"));
-      // break;
+    // Actual output of bytes. Example output a byte to the serial port (IDE monitor).
+    // Test port: 20Q (octal: 020).
+    // Serial_print(F("++ Test output port, byte output to USB serial port:"));
+    // Serial.print(regAdata);         // Write regAdata to serial port.
+    // Serial.println(F(":"));
+    // break;
     // ---------------------------------------
     // Echo processor values.
     case 30:
@@ -1566,9 +1566,6 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ i: Information."));
       cpucore_i8080_print_registers();
       break;
-    case 'N':
-      loadProgramBytes();
-      break;
     // -------------------------------------
     case 'h':
       Serial.print(F("+ h, Print help information."));
@@ -1724,18 +1721,18 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("- SD card not enabled."));
 #endif  // SETUP_SDCARD
       break;
-    // -------------------------------------
-    /*
-    default:
-    {
-#ifdef LOG_MESSAGES
-      Serial.print(F("- Ignored: "));
-      printByte(readByte);
-      Serial.println();
-#endif
-      break;
-    }
-    */
+      // -------------------------------------
+      /*
+        default:
+        {
+        #ifdef LOG_MESSAGES
+        Serial.print(F("- Ignored: "));
+        printByte(readByte);
+        Serial.println();
+        #endif
+        break;
+        }
+      */
   }
 }
 
@@ -1779,10 +1776,20 @@ void loadProgram() {
     Serial.println(loadProgramName);
   }
   programState = PROGRAM_LOAD;
+  loadProgramList();
   while (programState == PROGRAM_LOAD) {
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
       switch (readByte) {
+        case 'K':
+          loadProgramName = "Serial Kill the Bit array";
+          Serial.println(F("+ B, load array: A version of Kill the Bit for serial I/O."));
+          programState = PROGRAM_WAIT;
+          if (SERIAL_FRONT_PANEL) {
+            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
+          }
+          loadKillTheBitArray();
+          break;
         case 'k':
           loadProgramName = "Serial Kill the Bit";
           Serial.println(F("+ k, load: A version of Kill the Bit for serial I/O."));
@@ -1803,6 +1810,16 @@ void loadProgram() {
           loadMviRegisters();
           break;
         // -------------------------------------
+        case 'b':
+          loadProgramName = "Basic 4K";
+          Serial.println(F("+ b, load: Basic 4K interpreter."));
+          programState = PROGRAM_WAIT;
+          if (SERIAL_FRONT_PANEL) {
+            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
+          }
+          loadBasic4kArray();
+          break;
+        // -------------------------------------
         case 'x':
           Serial.println(F("< x, Exit load program."));
           programState = PROGRAM_WAIT;
@@ -1815,11 +1832,7 @@ void loadProgram() {
             Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
           }
-          Serial.println(F("+ Sample programs."));
-          Serial.println(F("++ k, Kill the Bit version for serial VT100 input."));
-          Serial.println(F("++ m, MVI testing to the setting of registers."));
-          Serial.println(F("----------"));
-          Serial.println(F("+ x, Exit: don't load a program."));
+          loadProgramList();
       }
     }
   }
@@ -1952,21 +1965,21 @@ void runDownloadProgram() {
       // Buffer space up to 64K.
       Serial.print(F("++ Byte# "));
       /* Commented out to simplify output during the receiving of bytes.
-      if (readByteCount < 10) {
+        if (readByteCount < 10) {
         Serial.print(F(" "));
-      }
-      if (readByteCount < 100) {
+        }
+        if (readByteCount < 100) {
         Serial.print(F(" "));
-      }
-      if (readByteCount < 1000) {
+        }
+        if (readByteCount < 1000) {
         Serial.print(F(" "));
-      }
-      if (readByteCount < 10000) {
+        }
+        if (readByteCount < 10000) {
         Serial.print(F(" "));
-      }
-      if (readByteCount < 100000) {
+        }
+        if (readByteCount < 100000) {
         Serial.print(F(" "));
-      }
+        }
       */
       Serial.print(readByteCount);
       //
@@ -1975,20 +1988,20 @@ void runDownloadProgram() {
       MWRITE(readByteCount, readByte)
       readByteCount++;
       /* Commented out to simplify output during the receiving of bytes.
-      Serial.print(F(", Byte: "));
-      printByte(readByte);
-      Serial.print(F(" "));
-      printHex(readByte);
-      Serial.print(F(" "));
-      printOctal(readByte);
-      Serial.print(F("   "));
-      if (readByte < 10) {
+        Serial.print(F(", Byte: "));
+        printByte(readByte);
         Serial.print(F(" "));
-      }
-      if (readByte < 100) {
+        printHex(readByte);
         Serial.print(F(" "));
-      }
-      Serial.print(readByte);
+        printOctal(readByte);
+        Serial.print(F("   "));
+        if (readByte < 10) {
+        Serial.print(F(" "));
+        }
+        if (readByte < 100) {
+        Serial.print(F(" "));
+        }
+        Serial.print(readByte);
       */
       Serial.println();
       //
@@ -2056,49 +2069,6 @@ void runDownloadProgram() {
 }
 
 // -----------------------------------------------------------------------------
-const byte programBytes[] = {
-  // Kill the Bit program.
-  0x21, 0x00, 0x00, 0x16, 0x80, 0x01, 0x0E, 0x00, 0x1A, 0x1A, 0x1A, 0x1A, 0x09, 0xD2, 0x08, 0x00,
-  0xDB, 0xFF, 0xAA, 0x0F, 0x57, 0xC3, 0x08, 0x00
-};
-void loadProgramBytes() {
-  int theSize = sizeof(programBytes);
-  for (int i = 0; i < theSize; i++ ) {
-    byte theValue = programBytes[i];
-    Serial.print(F("+ programBytes["));
-    if (i < 10) {
-      Serial.print(F("0"));
-    }
-    MWRITE(i, programBytes[i]);
-    Serial.print(i);
-    Serial.print(F("] = D:"));
-    if (theValue < 100) {
-      Serial.print(F("0"));
-    }
-    if (theValue < 10) {
-      Serial.print(F("0"));
-    }
-    Serial.print(theValue);
-    Serial.print(F(" H:"));
-    printHex(theValue);
-    Serial.print(F(":B:"));
-    printByte(theValue);
-    Serial.print(F(":O:"));
-    printOctal(theValue);
-    Serial.print(F(":"));
-    ;
-    theValue = MREAD(i);
-    if (theValue < 100) {
-      Serial.print(F("0"));
-    }
-    if (theValue < 10) {
-      Serial.print(F("0"));
-    }
-    Serial.print(theValue, DEC);
-    Serial.println();
-  }
-}
-
 // -----------------------------------------------------------------------------
 void setup() {
   // Speed for serial read, which matches the sending program.
@@ -2107,7 +2077,7 @@ void setup() {
   Serial.println(); // Newline after garbage characters.
   Serial.print(F("+++ "));
   Serial.println(__func__); // prints "setup"
-  
+
   //
   // ----------------------------------------------------
   // ----------------------------------------------------

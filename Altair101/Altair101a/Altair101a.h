@@ -36,8 +36,16 @@ void altair_out(byte addr, byte val);       // Called from cpu_out();
 // -----------------------------------------------------------------------------
 // From AltairSample.ino program.
 
+void loadBasic4kArray();
+void loadProgramList();
+void loadKillTheBitArray();
 void loadKillTheBit();
 void loadMviRegisters();
+
+// From Altair101a.ino program.
+void printByte(byte b);
+void printOctal(byte b);
+void printHex(byte b);
 
 // -----------------------------------------------------------------------------
 // eof
