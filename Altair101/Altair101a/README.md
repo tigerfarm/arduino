@@ -19,9 +19,21 @@ $ ls -l /dev/tty.*
 crw-rw-rw-  1 root  wheel   20,   0 Dec 14 16:07 /dev/tty.Bluetooth-Incoming-Port
 crw-rw-rw-  1 root  wheel   20, 0x00000304 Dec 29 17:27 /dev/tty.usbmodem1421
 
+-------------------------------
++++ setup
++ SD card module is initialized.
++++ Altair 101a initialized.
+?- ?- ?- + m, Read file into program memory.
+++ Program filename: 00001001.bin
+++ Confirm, y/n: 
++ Confirmed.
++ Program file loaded and ready to use.
+?- + R, RESET.
+?- + T, Terminal output VT100 escape codes is enabled. Use Crtl+c to STOP, Crtl+Z to RESET.
+?- + r, RUN.
 ?- + runProcessor()
 
-MEMORY SIZE? 4096
+MEMORY SIZE?  4096
 TERMINAL WIDTH? 
 WANT SIN? n_N
 WANT RND? N
