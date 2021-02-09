@@ -2,7 +2,9 @@
 # Altair 8800 Simulator Software used in the Altair-Duino
 
 --------------------------------------------------------------------------------
-I can load the 4K basic program into memory. But not enough memory to run it.
+I can load the 4K basic program into memory.
+But not sure how to start it.
+Not sure if interrupts are required or input as normal.
 
 https://www.youtube.com/watch?v=8InWiihlIQw
 
@@ -324,33 +326,6 @@ End address:
 To reach the configuration menu, type C in the terminal window.
 
 --------------------------------------------------------------------------------
-### 2. Get the serial output to work properly.
-
-Download MacWise, which has VT100 terminal emulation option.
-http://carnationsoftware.com/domains/MacWise/Download_MacWise.html
-````
-Download, install and start the app.
-By default, it's VT100 terminal emulation ready.
-Stop the Arduino IDE monitor if it's running.
-On MacWise, set: Settings/Baud 15200
-On MacWise, select: Settings/Serial Port, for the Arduino.
-It connects and starts.
-````
-
-Note, after restarting MacWise, hit the enter key once started. That will get the responses from the Arduino.
-
-Sample program:
-````
-Address Byte        Comment
-000     11 000 11   jmp 3
-001     00 000 11   lb = 3
-002     00 000 00   hb
-003     11 000 11   jmp 0
-004     00 000 00   lb
-005     00 000 00   hb
-
-````
---------------------------------------------------------------------------------
 ### 3. Interact with the Simulator over Serial command line.
 
 From the Simulator download zip file, Documentation.pdf:
@@ -402,8 +377,39 @@ R Reset
 X/x Examine/examine next
 P/p Deposit/deposit next
 > Run from address
+
+U AUX1 up
+u AUX1 down
 ````
 
+--------------------------------------
+To run Basic 4K:
+1. S0 S2    00000101
+2. u        AUX1 down
+PC   = 003C = [64 6F 0A] = MOV H,H
+ SP   = FC81 = [D3 37 C9 08 00 00 80 00]
+ regA = 4F regS = 00 = ........
+ regB = E0 regC = A7 regD = D2 regE = D2 regH = 55 regL = FF
+[Running 4k Basic]
+
+MEMORY SIZE? 
+TERMINAL WIDTH? 
+WANT SIN? N
+WANT RND? N
+WANT SQR? N
+
+3021 BYTES FREE
+
+BASIC VERSION 3.2
+[4K VERSION]
+
+OK
+PRINT "HELLO"
+HELLO
+
+OK
+
+--------------------------------------
 Enter and run a program.
 ````
 To enter the kill-the-bit game below into the ALTAIR:
@@ -434,6 +440,9 @@ To load the game from Arduino storage:
 1. Set SW15-0 as above, except SW6 to 0 (selects memory page load)
 2. Activate AUX1 down
 ````
+
+The simulator provides a quick and easy way to load 4k BASIC by setting SW0-7 to 00000101
+and pressing AUX1 down (see “Aux1 down” section above).
 
 --------------------------------------------------------------------------------
 ### 4. Enter and Run Simple Programs

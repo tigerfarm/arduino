@@ -33,6 +33,14 @@
 
   Add sample programs for someone to run if all they have is the Arduino board.
 
+  Get 4K Basic to work. I think I need to get the following to work based on GALAXY80.asm.
+  + Consider serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality.
+
+?- + runProcessor()
+
+MEMORY SIZE? 
+
+  ---------------------------------------------------------
   + Consider serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality.
   ++ Then, could use the original serial routines in Galaxy80.asm.
 
@@ -50,19 +58,6 @@
 
   ---------------------------------------------------------
   Hex programs:
-
-  Try loading Kill the Bit from: prog_games.cpp.
-  If that works, can load Basic from: prog_basic.cpp.
-
-  From prog_games.cpp, program hex bytes:
-    static const byte PROGMEM killbits[] = {
-    0x21, 0x00, 0x00, 0x16, 0x80, 0x01, 0x0E, 0x00, 0x1A, 0x1A, 0x1A, 0x1A, 0x09, 0xD2, 0x08, 0x00,
-    0xDB, 0xFF, 0xAA, 0x0F, 0x57, 0xC3, 0x08, 0x00 };
-
-  prog_basic.cpp, as hex bytes for 4K Basic.
-    const byte PROGMEM basic4k[] = { 0xae, 0xae, ... 0x00 };
-  + Will need to search Hex codes to see if interupt is required.
-  ++ Interupt is required.
 
   +++ Integration steps to merge this code with Processor.ino.
   + Continue use testing Altair101a.
@@ -869,6 +864,9 @@ byte altair_in(byte portDataByte) {
         inputDataByte = highByte(fpAddressToggleWord);
         break;
       }
+    case 0:
+      // 4K Basic
+      // Need to work like GALAXY80.asm using 88-2SIO.
     case 2:
     case 16:
     case 17:
@@ -969,6 +967,11 @@ void altair_out(byte portDataByte, byte regAdata) {
   //
   // Write output byte to the output port.
   switch (portDataByte) {
+    case 0:
+    case 1:
+      // 4K Basic
+      // Need to set the 8th bit to 0.
+      regAdata = regAdata & B01111111;
     case 2:
     case 16:
     case 17:
@@ -1810,16 +1813,6 @@ void loadProgram() {
           loadMviRegisters();
           break;
         // -------------------------------------
-        case 'b':
-          loadProgramName = "Basic 4K";
-          Serial.println(F("+ b, load: Basic 4K interpreter."));
-          programState = PROGRAM_WAIT;
-          if (SERIAL_FRONT_PANEL) {
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          loadBasic4kArray();
-          break;
-        // -------------------------------------
         case 'x':
           Serial.println(F("< x, Exit load program."));
           programState = PROGRAM_WAIT;
@@ -1833,6 +1826,7 @@ void loadProgram() {
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
           }
           loadProgramList();
+          Serial.print("?- ");
       }
     }
   }
