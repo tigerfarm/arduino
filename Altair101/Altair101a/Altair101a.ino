@@ -36,9 +36,9 @@
   Get 4K Basic to work. I think I need to get the following to work based on GALAXY80.asm.
   + Consider serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality.
 
-?- + runProcessor()
+  ?- + runProcessor()
 
-MEMORY SIZE? 
+  MEMORY SIZE?
 
   ---------------------------------------------------------
   + Consider serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality.
@@ -825,7 +825,13 @@ String getSenseSwitchValue() {
   return sValue;
 }
 
+// ----------------------------------------
+// Serial INPUT
+
 byte inputBytePort2 = 0;
+byte inputBytePort0 = 0;
+
+// Called from: cpu_IN();
 byte altair_in(byte portDataByte) {
   byte inputDataByte;
   //
@@ -834,7 +840,70 @@ byte altair_in(byte portDataByte) {
   host_set_status_led_INP();
   //
   switch (portDataByte) {
+    // ---------------------------------------------------------------------------------------
+    // 4K Basic using 88-2SIO same as GALAXY80.asm. However, GALAXY80.asm uses different ports.
+    // Has a double inputs:
+    //    00 indicates input.
+    //    01 is the input character.
+    /*
+        InputChar:
+              IN 00
+              ANI 01
+              JNZ InputChar
+              IN 01
+              ANI 7Fh
+              RET
+    */
+    case 0:
+      if (inputBytePort2 > 0) {
+      // if (Serial2.available() > 0) {
+        // Input from default serial port, port 0.
+        inputBytePort0 = inputBytePort2;          // Save the character input value.
+        inputBytePort2 = 0;
+        inputDataByte = 0;                        // Reply with the character input indicator.
+      } else {
+        inputDataByte = 1;                        // Reply with the NO character input indicator.
+        inputBytePort0 = 0;
+      }
+      break;
     case 1:
+      if (inputBytePort0 > 0) {
+        inputDataByte = inputBytePort0;           // Restore the character input value.
+        inputBytePort0 = 0;
+      } else {
+        inputDataByte = 0;
+      }
+      break;
+    // ---------------------------------------------------------------------------------------
+    case 2:
+    case 16:
+    case 17:
+      // 16 and 17 are pGalaxy80.asm input ports.
+      //  SIOCTL  EQU 10H   ;88-2SIO CONTROL PORT
+      //  IN   SIOCTL
+      {
+        if (SERIAL2_OUTPUT) {
+          // Input from the external USB component Serial2 port.
+          inputDataByte = 0;
+          if (Serial2.available() > 0) {
+            inputDataByte = Serial2.read();    // Read and process an incoming byte.
+          }
+        } else {
+          // Input from default serial port. This is good for testing.
+          inputDataByte = inputBytePort2;
+          inputBytePort2 = 0;
+        }
+        break;
+      }
+    case 3:
+      {
+        // Input(inputBytePort2) comes from the RUN mode loop, USB default serial port.
+        // Only keep the most recent input, not queueing the inputs at this time.
+        inputDataByte = inputBytePort2;
+        inputBytePort2 = 0;
+        break;
+      }
+    case 4:
     case B11111111:
       {
         // case 1, for running Kill the Bit in serial mode.
@@ -862,61 +931,6 @@ byte altair_in(byte portDataByte) {
         }
         // Reply with the high byte of the address toggles, which are the sense switch toggles.
         inputDataByte = highByte(fpAddressToggleWord);
-        break;
-      }
-    case 0:
-      // 4K Basic
-      // Need to work like GALAXY80.asm using 88-2SIO.
-      /*
-    WaitTermReady:
-                IN 00
-                ANI 80h
-                JNZ WaitTermReady
-                POP PSW
-                OUT 01
-                RET
-    InputChar:
-                IN 00
-                ANI 01
-                JNZ InputChar
-                IN 01
-                ANI 7Fh
-                RET
-                ...
-    TestBreakKey:
-                IN 00               ;Exit if no key pressed.
-                ANI 01
-                RNZ
-                CALL InputChar
-                CPI 0x03            ;Break key?
-                JMP Stop  
-       */
-    case 2:
-    case 16:
-    case 17:
-      // pGalaxy80.asm input port.
-      //  SIOCTL  EQU 10H   ;88-2SIO CONTROL PORT
-      //  IN   SIOCTL
-      {
-        if (SERIAL2_OUTPUT) {
-          // Input from the external USB component Serial2 port.
-          inputDataByte = 0;
-          if (Serial2.available() > 0) {
-            inputDataByte = Serial2.read();    // Read and process an incoming byte.
-          }
-        } else {
-          // Input from default serial port. This is good for testing.
-          inputDataByte = inputBytePort2;
-          inputBytePort2 = 0;
-        }
-        break;
-      }
-    case 3:
-      {
-        // Input(inputBytePort2) comes from the RUN mode loop, USB default serial port.
-        // Only keep the most recent input, not queueing the inputs at this time.
-        inputDataByte = inputBytePort2;
-        inputBytePort2 = 0;
         break;
       }
     default:

@@ -2,7 +2,7 @@
 # Altair 8800 Simulator Software used in the Altair-Duino
 
 --------------------------------------------------------------------------------
-I can load the 4K basic program into memory.
+I can load and run the 4K basic program into memory.
 But not sure how to start it.
 Not sure if interrupts are required or input as normal.
 
@@ -18,6 +18,25 @@ $ ls -l /var/folders/07/0fdddwrn42lc27mprqg359b40w1snn/T/arduino_build_142320/
 $ ls -l /dev/tty.*
 crw-rw-rw-  1 root  wheel   20,   0 Dec 14 16:07 /dev/tty.Bluetooth-Incoming-Port
 crw-rw-rw-  1 root  wheel   20, 0x00000304 Dec 29 17:27 /dev/tty.usbmodem1421
+
+?- + runProcessor()
+
+MEMORY SIZE? 4096
+TERMINAL WIDTH? 
+WANT SIN? n_N
+WANT RND? N
+WANT SQR? N
+
+972 BYTES FREE
+
+BASIC VERSION 3.2
+[4K VERSION]
+
+OK
+PRINT "HELLO"
+HELLO
+
+OK
 
 --------------------------------------------------------------------------------
 All output to port#2 which outputs to Serial2 (port# 2) if enabled, else to the default Serial port (port# 3).

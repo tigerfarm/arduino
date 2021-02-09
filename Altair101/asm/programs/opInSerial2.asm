@@ -7,12 +7,10 @@
                 out SERIAL_PORT
     GetByte:
                 in SERIAL_PORT      ; Get input byte value into register A.
-                ; cpi 'x'             ; With port #3, input 'x' will exit this loop.
-                ; jz HaltLoop         ;   Jump.
-                cpi 3               ; Ctrl+c will exit this loop.
-                jz HaltLoop         ;   Jump.
                 cpi 0               ; No character input, nothing to print out.
                 jz GetByte          ;   Jump.
+                cpi 3               ; Ctrl+c will exit this loop.
+                jz HaltLoop         ;   Jump.
                 out SERIAL_PORT
                 cpi 13              ; If carriage return, send line feed.
                 jnz GetByte         ;   Jump if not carriage return.

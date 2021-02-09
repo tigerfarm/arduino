@@ -30,39 +30,74 @@
 ; --------------------------------------------------------------------------------
                                     ;
     Start:
+                lxi sp,1024         ; Set stack pointer.
     prompt:
+                mvi a,'\r'
+                out PRINT_PORT
+                mvi a,'\n'
+                out PRINT_PORT
                 mvi a,'>'
-                out SERIAL_PORT
-    GetByte:
+                out PRINT_PORT
+                mvi a,' '
+                out PRINT_PORT
                                     ; ----------------------
-    Halt:
+    InputNext:                      ;  File: basic4k.lst, line# 0382
+                call InputChar
+                CPI '\r'            ; CR
+                JZ TerminateInput
+                CPI '\n'            ; LF
+                JZ TerminateInput
+                                    ;
+                CPI ' '             ;   If < ' '
+                JC InputNext        ;or
+                CPI 7Dh            ;   > '}' ... was 0x7D
+                JNC InputNext       ;then loop back.
+                                    ;
+                mov b,a
+                mvi a,':'
+                out PRINT_PORT
+                mov a,b
+                out PRINT_PORT
+                mvi a,':'
+                out PRINT_PORT
+                                    ;
+                jmp InputNext
+                                    ; ----------------------
+    TerminateInput:
     Stop:
+    Halt:
                 hlt
-                jmp GetByte
-
+                jmp prompt
+                                    ; --------------------------------------------
+                                    ; Get an input character. File: basic4k.lst, line# 0341
+    InputChar:
+                IN 00               ; Indicator on an input. Serial input into register A.
+                ANI 01              ; AND 1 with register A.
+                JNZ InputChar       ; 1 indicates an input character in serial input 01.
+                IN 01               ; Serial input character into register A.
+                ANI 7Fh             ; Remove the 8th bit.
+                RET
+                                    ; --------------------------------------------
+                                    ; --------------------------------------------
+                                    ; Test for an input character with the 8th bit set.
     WaitTermReady:
                 IN 00               ; Serial input into register A.
                 ANI 80h             ; AND 1000:0000 with register A.
                 JNZ WaitTermReady
-                POP PSW
+                ; POP PSW
                 OUT 01
                 RET
-    InputChar:
-                IN 00               ; Serial input into register A.
-                ANI 01              ; AND 1 with register A.
-                JNZ InputChar
-                IN 01
-                ANI 7Fh
-                RET
-
     TestBreakKey:
                 IN 00               ;Exit if no key pressed.
                 ANI 01
                 RNZ
                 CALL InputChar
-                CPI 0x03            ;Break key?
+                CPI 03              ;Break key? (was 0x03)
                 JMP Stop	
-
+                                    ; --------------------------------------------
+                                    ; Declarations.
+    SENSE_SW    equ     255         ; Input port address: toggle sense switch byte, into register A.
+    PRINT_PORT  EQU 2               ; USB Serial2 port#.
 
                                     ; --------------------------------------------
                 end

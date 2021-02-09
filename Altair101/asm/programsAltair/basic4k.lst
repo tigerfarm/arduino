@@ -22,7 +22,7 @@
 0000:         	 	ORG	00
               	
 0000: F3      	Start	DI	
-0001: C3210D  		JMP Init	
+0001: C3210D  		JMP Init            ; lb=21 hb=0D = address: 0D21
               	
 0004: 9004    		DW 0490h	
 0006: F907    		DW 07F9h	
@@ -466,6 +466,7 @@
 0322: F22003  		JP NextKwLoop	;keyword char is set.
 0325: EB      		XCHG	;DE=keyword ptr, HL=input ptr
 0326: C3EB02  		JMP KwCompare+2	;
+                ; ----------------------------------------------------------------
 0329: 211201  	Exit	LXI H,LINE_BUFFER-1	;
 032C: 12      		STAX D	;
 032D: 13      		INX D	;
@@ -473,36 +474,39 @@
 032F: 13      		INX D	;
 0330: 12      		STAX D	;
 0331: C9      		RET	;
-0332: 05      	Backspace	DCR B	;Char count--;
-0333: 2B      		DCX H	;Input ptr--;
-0334: DF      		RST 03	;RST OutChar	;Print backspace char.
-0335: C24103  		JNZ InputNext	;
-0338: DF      	ResetInput	RST 03	;RST OutChar	;
-0339: CD8A05  		CALL NewLine	;
-033C: 211301  	InputLine	LXI H,LINE_BUFFER	;
+                ; ----------------------------------------------------------------
+0332: 05      	Backspace	DCR B           ;Char count--;
+0333: 2B      		DCX H                   ;Input ptr--;
+0334: DF      		RST 03                  ;RST OutChar	;Print backspace char.
+0335: C24103  		JNZ InputNext
+0338: DF      	ResetInput	RST 03          ;RST OutChar	;
+0339: CD8A05  		CALL NewLine
+033C: 211301  	InputLine	LXI H,LINE_BUFFER
 033F: 0601    		MVI B,01	;
-0341: CD8203  	InputNext	CALL InputChar	;
+0341: CD8203  	InputNext	CALL InputChar
 0344: FE0D    		CPI 0x0D	;
-0346: CA8505  		JZ TerminateInput	;
-0349: FE20    		CPI ' '	;If < ' '
-034B: DA4103  		JC InputNext	;or
-034E: FE7D    		CPI 0x7D	;> '}'
-0350: D24103  		JNC InputNext	;then loop back.
+0346: CA8505  		JZ TerminateInput       ; End of CR/LF.
+0349: FE20    		CPI ' '                 ;   If < ' '
+034B: DA4103  		JC InputNext            ;or
+034E: FE7D    		CPI 0x7D                ;   > '}'
+0350: D24103  		JNC InputNext           ;then loop back.
 0353: FE40    		CPI '@'	;
-0355: CA3803  		JZ ResetInput	;
+0355: CA3803  		JZ ResetInput
 0358: FE5F    		CPI '_'	;
-035A: CA3203  		JZ Backspace	;
+035A: CA3203  		JZ Backspace
 035D: 4F      		MOV C,A	;
 035E: 78      		MOV A,B	;
 035F: FE48    		CPI 0x48	;
 0361: 3E07    		MVI A,07	;
-0363: D26A03  		JNC L036A	;
-0366: 79      		MOV A,C	;Write char to LINE_BUFFER.
+0363: D26A03  		JNC L036A               ; Jump to outchar
+0366: 79      		MOV A,C                 ; Write char to LINE_BUFFER.
 0367: 71      		MOV M,C	;
 0368: 23      		INX H	;
 0369: 04      		INR B	;
-036A: DF      	L036A	RST 03	;RST OutChar	;
-036B: C34103  		JMP InputNext	;
+036A: DF      	L036A	RST 03                  ; RST OutChar
+036B: C34103  		JMP InputNext
+                                                ;
+                ; ----------------------------------------------------------------
 036E: FE48    	OutChar_tail	CPI 0x48	;
 0370: CC8A05  		CZ NewLine	;
 0373: 3C      		INR A	;
@@ -513,12 +517,14 @@
 037E: F1      		POP PSW	;
 037F: D301    		OUT 01	;
 0381: C9      		RET	;
+                ; ----------------------------------------------------------------
 0382: DB00    	InputChar	IN 00	; 
 0384: E601    		ANI 01	; 
 0386: C28203  		JNZ InputChar	;
 0389: DB01    		IN 01	; 
 038B: E67F    		ANI 7Fh	; 
 038D: C9      		RET	;
+                ; ----------------------------------------------------------------
 038E: CD9D04  	List	CALL LineNumberFromStr	
 0391: C0      		RNZ	
 0392: C1      		POP B	;?why get return address?
@@ -647,6 +653,7 @@
 045B: EB      		XCHG	
 045C: D7      		RST 02	;RST NextChar	
 045D: C9      		RET	
+                ; ----------------------------------------------------------------
 045E: FE20    	NextChar_tail	CPI ' '	
 0460: CA1000  		JZ NextChar	
 0463: FE30    		CPI '0'	
@@ -2136,6 +2143,7 @@
 0E42: 72      		MOV M,D	
 0E43: E1      		POP H	
 0E44: C31E0E  		JMP OptionalFnsLoop	
+                ; ----------------------------------------------------------------
 0E47: EB      	InitProgramBase	XCHG	
 0E48: 3600    		MVI M,00h	
 0E4A: 23      		INX H	

@@ -128,7 +128,7 @@ void loadKillTheBit() {
   MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
   MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
   MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:2
-  MWRITE( cnt++, B00000001 & 0xff);  // ++ immediate:1:1
+  MWRITE( cnt++, B00000100 & 0xff);  // ++ immediate:4:4
   MWRITE( cnt++, B10101010 & 0xff);  // ++ opcode:xra:10101010:d
   MWRITE( cnt++, B00001111 & 0xff);  // ++ opcode:rrc:00001111
   MWRITE( cnt++, B01010111 & 0xff);  // ++ opcode:mov:01010111:d:a
