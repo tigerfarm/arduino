@@ -28,17 +28,21 @@
   + When SINGLE STEP read and write, I've chosen to show the actual data value,
     rather than having all the data lights on, which happens on the original Altair 8800.
 
+  My Arduino Mega 2560 Altair 8800 simulator runs 4K Basic.
+  Yes, the Basic language running in 4K of memory.
+  It’s the assembler program Bill Gates and Paul Allen wrote, the first Microsoft software product.
+
   ---------------------------------------------------------
   Next to work on
 
+  Need to RESET after loading a program from SD card.
+  + RESET should be automatic.
+
   Add sample programs for someone to run if all they have is the Arduino board.
 
-  Get 4K Basic to work. I think I need to get the following to work based on GALAXY80.asm.
+  Got 4K Basic to work. I think I need to get the following to work based on GALAXY80.asm.
   + Consider serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality.
-
-  ?- + runProcessor()
-
-  MEMORY SIZE?
+  ++ Then can use orginal I/O for Galaxy101.
 
   ---------------------------------------------------------
   + Consider serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality.
@@ -942,7 +946,8 @@ byte altair_in(byte portDataByte) {
   }
   //
   //#ifdef LOG_MESSAGES
-  if (inputDataByte > 0 && logMessages) {
+  if (inputDataByte > 1 && logMessages) {
+    // Changed to "> 1" from "> 0" to handle Basic 4K.
     // No input at this time.
     // > Input port# 3 inputDataByte value =  3, printByte=00000011, writeInByte=''
     // Samples, Ctrl+c=3

@@ -3,30 +3,7 @@
   Load Altair 101a Sample programs in processor memory.
 
 */
-// -----------------------------------------------------------------------------
-// Getting Basic 4K version installed and started.
 
-// Download
-//    https://github.com/option8/Altair-BASIC
-//  Listing:
-//    https://github.com/option8/Altair-BASIC/blob/master/BASIC%20disassembly-source.lst
-//  Machine code:
-//    https://github.com/option8/Altair-BASIC/raw/master/BASIC%20disassembly-source.rom
-//  Saved as: basic4k.bin
-//  Upload to the Altair101a.
-//    Run.
-//    MEMORY SIZ�?
-//  Output needs fixing. I think, something to do with 7 bit characters.
-//  The simulator serial device settings offers to filter out the 8th bit by enabling the “Use 7 bits” setting.
-
-// Using 4K Basic: https://www.youtube.com/watch?v=qSizis0ezck
-// 10 PRINT "HELLO"
-// 20 GOTO 10
-// OK
-// + Commands:
-// NEW
-// LIST
-// 
 
 
 // -----------------------------------------------------------------------------

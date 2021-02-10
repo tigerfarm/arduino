@@ -56,7 +56,7 @@
 ; + Commands:
 ; NEW
 ; LIST
-; "_" equivalent to the backspace key.
+; "_" equivalent to the backspace key. i.e. removes the previous character from the line buffer.
 ; 
 ; ----------------------------------------------------------------------------
 ;Micro-Soft Altair BASIC 3.2 (4K) - Annotated Disassembly
@@ -70,10 +70,9 @@
 
 Start	DI	
 	JMP Init	
-
+                                    ; --------------------------------------------
 	DW 0490h	
 	DW 07F9h	
-
 SyntaxCheck:
         MOV A,M                     ;A=Byte of BASIC program.
 	XTHL                        ;HL=return address.
@@ -81,18 +80,21 @@ SyntaxCheck:
 	INX H                       ;Return address++;
 	XTHL
 	JNZ SyntaxError             ;Error if not what was expected.
-NextChar	INX H	
+NextChar:
+	INX H	
 	MOV A,M	
 	CPI 0x3A	
 	RNC	
 	JMP NextChar_tail	
                                     ; --------------------------------------------
-OutChar	PUSH PSW	
+OutChar:
+	PUSH PSW                    ; PUSH that matches the later POP.
 	LDA TERMINAL_X	
 	JMP OutChar_tail	
 	NOP	
                                     ; --------------------------------------------
-CompareHLDE	MOV A,H	
+CompareHLDE:
+	MOV A,H	
 	SUB D	
 	RNZ	
 	MOV A,L	
@@ -101,10 +103,13 @@ CompareHLDE	MOV A,H
                                     ; --------------------------------------------
 TERMINAL_Y	DB 01	
 TERMINAL_X	DB 00	
-FTestSign	LDA FACCUM+3	
+                                    ; --------------------------------------------
+FTestSign:
+	LDA FACCUM+3	
 	ORA A	
 	JNZ FTestSign_tail	
 	RET	
+                                    ; --------------------------------------------
 PushNextWord	XTHL	
 	SHLD L003A+1	
 	POP H	
@@ -115,14 +120,16 @@ PushNextWord	XTHL
 	PUSH B	
 L003A	JMP L003A	
                                     ; --------------------------------------------
-KW_INLINE_FNS	DW Sgn	
+KW_INLINE_FNS:
+	DW Sgn	
 	DW Int	
 	DW Abs	
 	DW FunctionCallError	
 	DW Sqr	
 	DW Rnd	
 	DW Sin	
-KW_ARITH_OP_FNS	DB 79h
+KW_ARITH_OP_FNS:
+	DB 79h
 	DW FAdd	;+
 	DB 79h
 	DW FSub	;-
@@ -130,7 +137,9 @@ KW_ARITH_OP_FNS	DB 79h
 	DW FMul	;*
 	DB 7Ch 
 	DW FDiv	;/
-KEYWORDS	DB 454EC4h	;"END"	80
+                                    ; --------------------------------------------
+KEYWORDS:
+	DB 454EC4h	;       "END"	80
 	DB 464FD2h	; 	"FOR"
 	DB 4E4558D4h	; 	"NEXT"	82
 	DB 444154C1h	; 	"DATA"	83
@@ -140,8 +149,8 @@ KEYWORDS	DB 454EC4h	;"END"	80
 	DB 4C45D4h	; 	"LET"	87
 	DB 474F54CFh	; 	"GOTO"	88
 	DB 5255CEh	; 	"RUN"	89
-	DB 49C6h	; 	"IF"	8A
-	DB 524553544F52C5h	; 	"RESTORE"	8B
+	DB 49C6h         ; 	"IF"	8A
+	DB 524553544F52C5h ; 	"RESTORE"	8B
 	DB 474F5355C2h	; 	"GOSUB"	8C
 	DB 5245545552CEh	; 	"RETURN"	8D
 	DB 5245CDh	; 	"REM"	8E
@@ -152,7 +161,7 @@ KEYWORDS	DB 454EC4h	;"END"	80
 	DB 4E45D7h	; 	"NEW"	93
 ;
 	DB 544142A8h	; 	"TAB("	94
-	DB 54CFh	; 	"TO"	95
+	DB 54CFh        ; 	"TO"	95
 	DB 544845CEh	; 	"THEN"	96
 	DB 535445D0h	; 	"STEP"	97
 ;
@@ -174,42 +183,44 @@ KEYWORDS	DB 454EC4h	;"END"	80
 	;
 	DB 0x00	; 	 	
  	 	;
-KW_GENERAL_FNS	DW Stop	;END
-	DW For	;FOR
-	DW Next	;NEXT
+KW_GENERAL_FNS:
+	DW Stop	                ;END
+	DW For	                ;FOR
+	DW Next	                ;NEXT
 	DW FindNextStatement	;DATA
-	DW Input	;INPUT
-	DW Dim	;DIM
-	DW Read	;READ
-	DW Let	;LET
-	DW Goto	;GOTO
-	DW Run	;RUN
-	DW If	;IF
-	DW Restore	;RESTORE
-	DW Gosub	;GOSUB
-	DW Return	;RETURN
-	DW Rem	;REM
-	DW Stop	;STOP
-	DW Print	;PRINT
-	DW List	;LIST
-	DW Clear	;CLEAR
-	DW New	;NEW
+	DW Input	                ;INPUT
+	DW Dim	                ;DIM
+	DW Read	                ;READ
+	DW Let	                ;LET
+	DW Goto	                ;GOTO
+	DW Run                  ;RUN
+	DW If                   ;IF
+	DW Restore              ;RESTORE
+	DW Gosub	                ;GOSUB
+	DW Return               ;RETURN
+	DW Rem	                ;REM
+	DW Stop	                ;STOP
+	DW Print	                ;PRINT
+	DW List	                ;LIST
+	DW Clear	                ;CLEAR
+	DW New	                ;NEW
 
-ERROR_CODES	DB 4EC6h	;"NF"	NEXT without FOR.
-	DB 53CEh	;"SN"	Syntax Error
-	DB 52C7h	;"RG"	RETURN without GOSUB.
-	DB 4FC4h	;"OD"	Out of Data
-	DB 46C3h	;"FC"	Illegal Function Call
-	DB 4FD6h	;"OV"	Overflow.
-	DB 4FCDh	;"OM"	Out of memory.
-	DB 55D3h	;"US"	Undefined Subroutine
-	DB 42D3h	;"BS"	Bad Subscript
-	DB 44C4h	;"DD"	Duplicate Definition
-	DB 2FB0h	;"\0"	Division by zero.
-	DB 49C4h	;"ID"	Invalid in Direct mode.
-
+ERROR_CODES:
+	DB 4EC6h                	;"NF"	NEXT without FOR.
+	DB 53CEh	                ;"SN"	Syntax Error
+	DB 52C7h                	;"RG"	RETURN without GOSUB.
+	DB 4FC4h                	;"OD"	Out of Data
+	DB 46C3h	                ;"FC"	Illegal Function Call
+	DB 4FD6h	                ;"OV"	Overflow.
+	DB 4FCDh	                ;"OM"	Out of memory.
+	DB 55D3h	                ;"US"	Undefined Subroutine
+	DB 42D3h	                ;"BS"	Bad Subscript
+	DB 44C4h	                ;"DD"	Duplicate Definition
+	DB 2FB0h	                ;"\0"	Division by zero.
+	DB 49C4h	                ;"ID"	Invalid in Direct mode.
  	DB ','	; 
-LINE_BUFFER	DW 0000,0000,0000,0000h	;72 chars
+LINE_BUFFER:
+	DW 0000,0000,0000,0000h	;72 chars
 	DW 0000,0000,0000,0000h	;
 	DW 0000,0000,0000,0000h	;
 	DW 0000,0000,0000,0000h	;
