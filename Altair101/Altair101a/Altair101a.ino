@@ -41,8 +41,27 @@
   Add sample programs for someone to run if all they have is the Arduino board.
 
   Got 4K Basic to work. I think I need to get the following to work based on GALAXY80.asm.
+  + Ability to upload Basic programs using the second serial port.
+  ++ Currently, no way to upload or save programs.
   + Consider serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality.
   ++ Then can use orginal I/O for Galaxy101.
+
+  When uploading to Basic 4K, need to convert LF to CR. Or, I can convert it in this program.
+
+10 PRINT TAB(26);"ELIZA"
+20 PRINT TAB(20);"CREATIVE COMPUTING"
+
+00100010 "
+00001010 LF 10 000A
+00001101 CR 13 000D Basic 4K only works with CR.
+
+00110001 00110000 00100000 01010000 01010010 01001001 01001110 01010100 00100000 01010100 
+01000001 01000010 00101000 00110010 00110110 00101001 00111011 00100010 01000101 01001100 
+01001001 01011010 01000001 00100010 00001010 00110010 00110000 00100000 01010000 01010010 
+01001001 01001110 01010100 00100000 01010100 01000001 01000010 00101000 00110010 00110000 
+00101001 00111011 00100010 01000011 01010010 01000101 01000001 01010100 01001001 01010110 
+01000101 00100000 01000011 01001111 01001101 01010000 01010101 01010100 01001001 01001110 
+01000111 00100010 00001010
 
   ---------------------------------------------------------
   + Consider serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality.
@@ -74,6 +93,19 @@
 
   - Consider preventing lockup when using PUSH A, i.e. PUSH called before setting SP.
   + In the PUSH process, if SP < 4, error.
+
+  Software downloads:
+  https://altairclone.com/downloads/
+  Download CPM:
+  http://cpmarchives.classiccmp.org/cpm/mirrors/www.schorn.ch/cpm/zip/cpm2.zip
+  Simulator and method to run CPM:
+  http://cpmarchives.classiccmp.org/cpm/mirrors/www.schorn.ch/cpm/intro.php
+  Download the simulator with documentation and CP/M 2.2.
+  Put all files into one folder.
+  Start the simulator and type the command "do cpm2" at the sim> command prompt and CP/M is booted.
+  $ ./altairz80 cpm2
+  A> DIR
+  A> B:
 
   ---------------------------------------------------------
   VT100 reference:
@@ -857,17 +889,32 @@ byte altair_in(byte portDataByte) {
               IN 01
               ANI 7Fh
               RET
+
+00001010 LF 10 000A
+00001101 CR 13 000D Basic 4K only works with CR.
+
     */
     case 0:
-      if (inputBytePort2 > 0) {
-      // if (Serial2.available() > 0) {
-        // Input from default serial port, port 0.
-        inputBytePort0 = inputBytePort2;          // Save the character input value.
-        inputBytePort2 = 0;
-        inputDataByte = 0;                        // Reply with the character input indicator.
+    // Convert LF to CR, because 4K Basic only recognizes CR.
+      if (SERIAL2_OUTPUT) {
+        if (Serial2.available() > 0) {
+          // Input from Serial2 port, port 2.
+          inputBytePort0 = Serial2.read();          // Save the character input value.
+          inputDataByte = 0;                        // Reply with the character input indicator.
+        } else {
+          inputDataByte = 1;                        // Reply with the NO character input indicator.
+          inputBytePort0 = 0;
+        }
       } else {
-        inputDataByte = 1;                        // Reply with the NO character input indicator.
-        inputBytePort0 = 0;
+        // Input from default Serial port, port 0.
+        if (inputBytePort2 > 0) {
+          inputBytePort0 = inputBytePort2;          // Save the character input value.
+          inputBytePort2 = 0;
+          inputDataByte = 0;                        // Reply with the character input indicator.
+        } else {
+          inputDataByte = 1;                        // Reply with the NO character input indicator.
+          inputBytePort0 = 0;
+        }
       }
       break;
     case 1:
