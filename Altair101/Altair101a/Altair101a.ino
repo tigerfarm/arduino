@@ -46,23 +46,6 @@
   + Consider serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality.
   ++ Then can use orginal I/O for Galaxy101.
 
-  When uploading to Basic 4K, need to convert LF to CR. Or, I can convert it in this program.
-
-10 PRINT TAB(26);"ELIZA"
-20 PRINT TAB(20);"CREATIVE COMPUTING"
-
-00100010 "
-00001010 LF 10 000A
-00001101 CR 13 000D Basic 4K only works with CR.
-
-00110001 00110000 00100000 01010000 01010010 01001001 01001110 01010100 00100000 01010100 
-01000001 01000010 00101000 00110010 00110110 00101001 00111011 00100010 01000101 01001100 
-01001001 01011010 01000001 00100010 00001010 00110010 00110000 00100000 01010000 01010010 
-01001001 01001110 01010100 00100000 01010100 01000001 01000010 00101000 00110010 00110000 
-00101001 00111011 00100010 01000011 01010010 01000101 01000001 01010100 01001001 01010110 
-01000101 00100000 01000011 01001111 01001101 01010000 01010101 01010100 01001001 01001110 
-01000111 00100010 00001010
-
   ---------------------------------------------------------
   + Consider serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality.
   ++ Then, could use the original serial routines in Galaxy80.asm.
@@ -877,10 +860,12 @@ byte altair_in(byte portDataByte) {
   //
   switch (portDataByte) {
     // ---------------------------------------------------------------------------------------
-    // 4K Basic using 88-2SIO same as GALAXY80.asm. However, GALAXY80.asm uses different ports.
-    // Has a double inputs:
-    //    00 indicates input.
-    //    01 is the input character.
+    // 4K Basic
+    //
+    // 4K Basic using 88-2SIO same as GALAXY80.asm, though, GALAXY80.asm uses different ports.
+    // Has double input ports, and returns the following:
+    //    Port 00 indicates input: 0 for input, 1 for no input.
+    //    Port 01 is the actual input character.
     /*
         InputChar:
               IN 00
@@ -890,12 +875,36 @@ byte altair_in(byte portDataByte) {
               ANI 7Fh
               RET
 
-00001010 LF 10 000A
-00001101 CR 13 000D Basic 4K only works with CR.
+      00001010 LF 10 000A LF is from the terminal.
+      00001101 CR 13 000D Basic 4K only works with CR.
+
+; --------------------------------------
+; Characters with decimal number.
+;
+: :!:":#:$:%:&:':(:):*:+:,:-:.:/:0:1:2:3:4:5:6:7:8:9:
+32 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7
+                40                  50
+:::;:<:=:>:?:@:
+ 8 9 0 1 2 3 4
+58          64
+
+:A:B:C:D:E:F:G:H:I:J:K:L:M:N:O:P:Q:R:S:T:U:V:W:X:Y:Z:
+65 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0
+          70                  80                  90
+:[:\:]:^:_:`:
+91 2 3 4 5 5
+
+:a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:y:z:
+97 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
+     100                 110       115       120
+
+:{:|:}:~:
+ 3 4 5 6
+     126
 
     */
     case 0:
-    // Convert LF to CR, because 4K Basic only recognizes CR.
+      // Convert LF to CR, because 4K Basic only recognizes CR.
       if (SERIAL2_OUTPUT) {
         if (Serial2.available() > 0) {
           // Input from Serial2 port, port 2.
@@ -919,7 +928,13 @@ byte altair_in(byte portDataByte) {
       break;
     case 1:
       if (inputBytePort0 > 0) {
-        inputDataByte = inputBytePort0;           // Restore the character input value.
+        if (inputBytePort0 >= 'a' && inputBytePort0 <= 'z') {
+          inputDataByte = inputBytePort0 - 32;      // Convert from lowercase to uppercase.
+        } else if (inputBytePort0 == 10) {
+          inputDataByte = 13;                       // Convert LF to CR, which Basic 4K uses.
+        } else {
+          inputDataByte = inputBytePort0;           // Original character input value.
+        }
         inputBytePort0 = 0;
       } else {
         inputDataByte = 0;

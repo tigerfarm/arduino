@@ -5,6 +5,8 @@
     To view serial ports on a Mac:
     $ ls /dev/tty.*
 
+    Add another sleep option, which is sleep for LF/CR. This is for uploading to 4K Basic.
+
     Need to control/limit the listing to relavent ports, example contains ".cu".
 + List of serial ports:
 ++ cu.Bluetooth-Incoming-Port : Bluetooth-Incoming-Port BaudRate:9600 Data Bits:8 Stop Bits:1 Parity:0
@@ -40,6 +42,7 @@ public class asmUpload {
     // Started testing with 115200. 10 worked fine.
     // Set to 20 if baud rate is 9600.
     private static int baudSleepTime = 10;
+    private static int baudSleepTimeCr = 0;
 
     // Uses the device name that can be found in the Arduino IDE, under the menu item Tools/Port.
     // Sample default ports: tty.wchusbserial14230 /dev/cu.wchusbserial141230 /dev/tty.SLAB_USBtoUART
@@ -67,6 +70,14 @@ public class asmUpload {
         asmUpload.baudSleepTime = theBaudSleepTime;
     }
 
+    public static int getBaudSleepTimeCr() {
+        return asmUpload.baudSleepTimeCr;
+    }
+
+    public static void setBaudSleepTimeCr(int theBaudSleepTimeCr) {
+        asmUpload.baudSleepTimeCr = theBaudSleepTimeCr;
+    }
+
     public static String getSerialPortName() {
         return asmUpload.SerialPortName;
     }
@@ -74,10 +85,10 @@ public class asmUpload {
     public static void setSerialPortName(String theSerialPortName) {
         SerialPort serials[] = SerialPort.getCommPorts();
         boolean IsFound = false;
-        String theSystemPortName = "";
+        String theSystemPortName = "tty." + theSerialPortName;
         for (SerialPort serial : serials) {
             // System.out.println("+++ serial.getSystemPortName().toLowerCase(): " + serial.getSystemPortName().toLowerCase());
-            if (theSerialPortName.toLowerCase().startsWith(serial.getSystemPortName().toLowerCase())) {
+            if (theSystemPortName.toLowerCase().startsWith(serial.getSystemPortName().toLowerCase())) {
                 // System.out.println("++ Found: " + theSerialPortName);
                 IsFound = true;
                 theSystemPortName = serial.getSystemPortName();
@@ -87,7 +98,7 @@ public class asmUpload {
             System.out.println("+ Serial port name not found: " + theSerialPortName);
             return;
         }
-        asmUpload.SerialPortName = "/dev/" + theSystemPortName;
+        asmUpload.SerialPortName = "/dev/tty." + theSystemPortName;
         System.out.println("+ Serial port set to: " + theSerialPortName);
         System.out.println("+ Serial port set to system name: " + asmUpload.SerialPortName);
     }
@@ -96,14 +107,18 @@ public class asmUpload {
         System.out.println("+ List of available serial ports:");
         SerialPort serials[] = SerialPort.getCommPorts();
         for (SerialPort serial : serials) {
-            System.out.println(
-                    "++ " + serial.getSystemPortName()
-                    + " : " + serial.getPortDescription()
-                    + " BaudRate:" + serial.getBaudRate()
-                    + " Data Bits:" + serial.getNumDataBits()
-                    + " Stop Bits:" + serial.getNumStopBits()
-                    + " Parity:" + serial.getParity()
-            );
+            if (serial.getSystemPortName().startsWith("tty") && !serial.getSystemPortName().startsWith("tty.Bluetooth")) {
+                // ++ cu.Bluetooth-Incoming-Port : Bluetooth-Incoming-Port BaudRate:9600 Data Bits:8 Stop Bits:1 Parity:0
+                // ++ tty.Bluetooth-Incoming-Port : Bluetooth-Incoming-Port (Dial-In) BaudRate:9600 Data Bits:8 Stop Bits:1 Parity:0
+                System.out.println(
+                        "++ " + serial.getSystemPortName().substring(4)
+                        + " : " + serial.getPortDescription()
+                        + " BaudRate:" + serial.getBaudRate()
+                        + " Data Bits:" + serial.getNumDataBits()
+                        + " Stop Bits:" + serial.getNumStopBits()
+                        + " Parity:" + serial.getParity()
+                );
+            }
         }
         System.out.println("+ End of list.");
     }
@@ -158,10 +173,15 @@ public class asmUpload {
                     System.out.println("");
                 }
                 tenCount++;
-                System.out.print(byteToString(bArray[i]) + " ");
-                sp.getOutputStream().write(bArray[i]);
+                byte theByte = bArray[i];
+                System.out.print(byteToString(theByte) + " ");
+                sp.getOutputStream().write(theByte);
                 sp.getOutputStream().flush();
                 Thread.sleep(baudSleepTime);
+                if (theByte == 10 || theByte == 13) {
+                    // Allow Basic time to process the newline/carriage return.
+                    Thread.sleep(baudSleepTimeCr);
+                }
             }
         } catch (IOException ex) {
             Logger.getLogger(asm.class.getName()).log(Level.SEVERE, null, ex);
@@ -184,10 +204,11 @@ public class asmUpload {
 
         // asmUpload upload = new asmUpload();
         asmUpload.listSerialPorts();
-        asmUpload.setSerialPortName("tty.wchusbserial14220");  // tty.wchusbserial14220 tty.SLAB_USBtoUART
+        asmUpload.setSerialPortName("wchusbserial14220");  // tty.wchusbserial14220 tty.SLAB_USBtoUART
         System.out.println("------------");
         asmUpload.setBaudRate(9600);
         asmUpload.setBaudSleepTime(20);
+        asmUpload.setBaudSleepTimeCr(0);
 
         // String outFilename = "10000000.bin";
         String outFilename = "poem.txt";
