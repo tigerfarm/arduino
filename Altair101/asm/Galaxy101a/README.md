@@ -5,37 +5,86 @@
 ; |           FOR THE 8080           |
 ; +----------------------------------+
 ````
-My challenge,
-+ Update my assembler so that I can assemble GALAXY.
-+ Run the byte code using Altair101a.
-+ Make program enhancements.
+[Galaxy101a.asm](Galaxy101a.asm) is my updated version of the Galaxy80 game.
+Galaxy80 is a variation on the Star Trek game that is popular is Altair 8800 users.
 
-I'm on the enhancement step. I can assemble and run the program. I even fixed a bug.
+A major change I made to the game, was to change from a Star Trek theme to a Star Wars theme.
+The reason is that the Star Trek theme is exploration and to boldly go where no one has gone before.
+Star Wars has a warrior theme.
+Since the game is for you to destroy enemies, a Star Wars theme make sense.
 
-[GALAXY80.asm](GALAXY80.asm) is the original that I downloaded to work on.
+This document has notes to load, run, and play the game.
+This document also includes my developer notes.
+
+--------------------------------------------------------------------------------
+
+My challenge was to,
++ Update my assembler program so that I could assemble the program.
++ Make program changes to get the program to run on my Altair101a.
++ Run and test the program.
++ Make enhancements.
+
+I can assemble and run it. I even fixed a usage flow option.
+The game is enhanced as far as I can go on my Mega 2560 Altair101a because of the memory limitations.
+The enhanced program very little memory left for me to enhance the playing experience.
 
 [Galaxy101.asm](Galaxy101.asm) is the current tested program.
-
-The programs directory has the development program that may have untested changes:
-[../programs/pGa.asm](../programs/pGa.asm)
-
-Site I downloaded from:
-   https://github.com/deltecent/scelbi-galaxy
+[GALAXY80.asm](GALAXY80.asm) is the original that I downloaded from a GitHub
+[project](https://github.com/deltecent/scelbi-galaxy).
 
 --------------------------------------------------------------------------------
 ### To do next:
 
-Use VT100 escape sequences to print the sector display map and messages.
-+ I will need to switch over to the Due because I'll need more memory.
-+ Place the sector display map in one location, at the top.
-+ Messages display below.
-+ Work similar to the the Altair virtual front panel and messaging.
+Switch the Altair101a to an Arduino Due because it has more memory RAM that I require.
 
-#### Other Enhancements
+Modify the display of the sector map and messages,
+to work similarly to the Altair101a virtual front panel display and log messages.
++ Use VT100 escape sequences to print the sector map in one location, at the top.
++ Messages display below.
+
+#### Game Enhancements
+
+Option for quick game or longer game based on the number of enemy ships.
+
+Add torpedo animation from the X-wing to the TIE fighter.
+Each tracking message would display the torpedo moving the TIE fighter.
+```
+Command > d
+Directions
+    3
+  4 | 2
+5 - + - 1
+  6 | 8
+    7
+Command > 0
+Course direction (1-8.5): 5.0
+Parsecs (0.1-7.7): 6.7
+ -1--2--3--4--5--6--7--8-
+1          *              STARDATE  3039
+2       *    >1<          CONDITION RED
+3                  |o|    REGION    8 1
+4 *                       SECTOR    8 7
+5                         ENERGY    2757
+6 *        *              TORPEDOES 10
+7                         SHIELDS   0000
+8                  x!x   
+ -1--2--3--4--5--6--7--8-
+Command > 6
+Torpedo trajectory(1-8.5) : 3.0
+Tracking: 7 7
+Tracking: 6 7
+Tracking: 5 7
+Tracking: 4 7
+Tracking: 3 7
+TIE fighter destroyed.
+Command > 
+```
+
 ````
 Condition DOCKED:
 2            x!x>1<       CONDITION GREEN
 ````
+
 Check, if no alien ships in the sector, don't say: The "alien" retaliates.
 + There is sample code for Laser cannons, search for, "Any alien ships?"
 + Likely add the same code for torpedoes.
@@ -53,130 +102,238 @@ DANGER-SHIELD ENERGY 000
 ````
 --------------------------------------------------------------------------------
 #### Program is stored on the SD card:
+
+From Altair101a command line, you can list, load, and run program files.
+
+To run,
++ Start Altair101a and connect using a serial program.
+A VT100 terminal is recommended.
++ If using a VT100 terminal, press "T" to use terminal escape characters.
++ Set the sense switches to load the Galaxy101a program: S8 and S10 which is 8 and a.
++ "m" and then confirm the loading of SD file: 00000101.BIN.
++ "x" to EXAMINE the address: 00000101:00000000
++ "r" to run the program.
++ "3" to view the galaxy regional sectors.
+
+Start playing.
+
+##### Program notes
+
+List,
 ````
 ?- + n, SD card directory listing.
 ++ File:      00000101.BIN  5120
 ?-
-
+````
+Load a program.
+````
 ; Start byte, set switches: 
 ++    2470:00000101 10100110: 00110001 : 31:061 > opcode: lxi sp,STACK
 ;
-; Enter the following to get to the start byte: 12578bx
-; Then, hit Enter to show the following. The data byte is correct: 00110001.
-;
+; From command line, enter the following to get to the start byte: 8ax.
 ?- + x, EXAMINE: 2470
-?- 
+?- <Hit Enter key>
 INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
  .    *    .  *   .   .    .    *   .         .   .    *   *   .    .   .   *
 WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
- *    .      .   .   .   .   *   .   .   *    *   .    *   .   .    *   *   .
+ *    .      .   .   .   .   .   *   .   *    .   .    .   .   .    .   .   .
             S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
-             v   v   v   v   ^   v   v   ^    ^   v    ^   v   v    ^   ^   v
+             v   v   v   v   v   ^   v   ^    v   v    v   v   v    v   v   v
 ````
-To run,
-+ Start Altair 101a and connect.
-+ Send the start byte string which sets the switches: 12578bx.
-+ "m" and Confirm the loading of SD file: 00001001.BIN (S8 and S11 which is 8b).
-+ "x" to EXAMINE the address: 00001001:10100110 (S11 S8 S7 S5 S2 S1 which is 12578b).
-+ "r" to run the program.
-+ "3" to view the galaxy quadrants.
-
-Start playing.
-
 --------------------------------------------------------------------------------
 ## Running the program.
+
+From command line, press "r".
 ````
 + Ready to receive command.
 ?- + r, RUN.
 ?- + runProcessor()
 
-DO YOU WANT TO GO ON A SPACE VOYAGE? Y
-YOU MUST DESTROY 24 ALIEN SHIPS IN 29 STARDATES WITH 3 SPACE STATIONS
+Ready to start a Star Wars X-wing starfighter mission? (Y/N)
+````
+Press "y" to play.
+````
+Preparations are being made...
+
+You must destroy 09 TIE fighters in 14 stardates.
+Supplies are available at any of the 6 rebel outposts.
  -1--2--3--4--5--6--7--8-
-1          *    <*>       STARDATE  3021
-2                *        CONDITION GREEN
-3    *                 *  QUADRANT  7 1
-4                         SECTOR    1 6
-5                         ENERGY    2952
+1             *           STARDATE  3036
+2               x!x   |o| CONDITION RED
+3                         REGION    2 1
+4                         SECTOR    2 6
+5      |o|                ENERGY    2912
 6                         TORPEDOES 10
-7 *                       SHIELDS   0000
-8                        
+7                         SHIELDS   0000
+8       *              * 
  -1--2--3--4--5--6--7--8-
+Command > 
 ````
-Note, there are 24 ALIEN SHIPS in the galaxy grid below.
-Which means that the requirement is to destroy all of the ALIEN SHIPS.
+The above regional map is located in row 2, column 1
+of the below Regional Sector map.
+In the Regional Sector map, it has the number 203.
+203 implies there are:
++ 2 TIE fighters
++ 0 rebel outposts
++ 3 stars
+
+Press "g" to get your current game stats.
 ````
-COMMAND? 3
-GALAXY DISPLAY
+Command > g
+You must destroy 09 TIE fighters in 14 stardates.
+Supplies are available at any of the 6 rebel outposts
+````
+There are 09 TIE fighters in the Regional Sector grid below.
+Which means that the requirement is to destroy all of the fighters.
+
+Press "3" to view the Regional Sector Display.
+````
+Command > 3
+Regional Sector Display
 -------------------------------------------------
-1 105 1 001 1 000 1 203 1 003 1 000 1 004 1 112 1
+| 000 | 005 | 005 | 002 | 004 | 000 | 000 | 201 |
 -------------------------------------------------
-1 105 1 000 1 000 1 012 1 105 1 105 1 000 1 000 1
+| 203 | 007 | 011 | 000 | 002 | 006 | 000 | 000 |
 -------------------------------------------------
-1 003 1 104 1 000 1 006 1 003 1 003 1 000 1 004 1
+| 003 | 002 | 006 | 015 | 013 | 000 | 011 | 001 |
 -------------------------------------------------
-1 103 1 006 1 004 1 000 1 002 1 105 1 003 1 000 1
+| 000 | 004 | 000 | 015 | 000 | 007 | 006 | 005 |
 -------------------------------------------------
-1 000 1 003 1 000 1 000 1 103 1 106 1 004 1 003 1
+| 000 | 003 | 002 | 004 | 017 | 006 | 004 | 005 |
 -------------------------------------------------
-1 000 1 203 1 007 1 000 1 006 1 001 1 004 1 204 1
+| 006 | 206 | 004 | 000 | 000 | 005 | 000 | 103 |
 -------------------------------------------------
-1 005 1 002 1 000 1 105 1 000 1 000 1 007 1 304 1
+| 203 | 007 | 000 | 000 | 000 | 004 | 000 | 000 |
 -------------------------------------------------
-1 000 1 007 1 104 1 000 1 000 1 112 1 105 1 103 1
+| 000 | 003 | 000 | 000 | 000 | 002 | 003 | 000 |
 -------------------------------------------------
+Command > 
 ````
 
 --------------------------------------------------------------------------------
-### COMMAND options:
+### COMMAND Options
+
+View options,
 ````
-O. SPACE SHIP movement
-1. Short range scanner
-2. Long  range scanner
-3. Galaxy display 
+Command > h
+0. Set X-wing course setting, and Fly
+1. Sector range scanner
+2. Sector wide area scanner
+3. Regional sector display
 4. Shields
-5. Phasors
-6. TORPEDO
+5. Laser cannons
+6. Proton torpedoes
+g. Game stats
+d. Directions key
+X/x. Exit, exit command option or end game
+Command > 
 ````
 ------------------------------------------
-#### O. SPACE SHIP movement
+#### 0. Set X-wing course setting, and Fly
+
+Press "d" to get the direction headings.
 ````
-Directions:
-   3
- 4   2
-5     1
- 6   8
-   7
+Command > d
+Directions
+    3
+  4 | 2
+5 - + - 1
+  6 | 8
+    7
 ````
-Changing quadrants causes the STARDATE to increment.
+
+View your current regional sector and sector location of your ship, press "1".
 ````
-COMMAND?0
-COURSE (1-8.5)? 5.0
-WARP FACTOR (0.1-7.7)? 0.1
+Command > 1
  -1--2--3--4--5--6--7--8-
-1 *       >1<             STARDATE  3019
-2                         CONDITION GREEN
-3                         QUADRANT  2 4
-4                         SECTOR    8 3
-5                         ENERGY    2892
+1             *           STARDATE  3036
+2               x!x   |o| CONDITION RED
+3                         REGION    2 1
+4                         SECTOR    2 6
+5      |o|                ENERGY    2922
 6                         TORPEDOES 10
-7          *        *     SHIELDS   0000
-8      <*>          *    
- -1--2--3--4--5--6--7--8-
-COMMAND?0
-COURSE (1-8.5)? 3.0
-WARP FACTOR (0.1-7.7)? 0.2
- -1--2--3--4--5--6--7--8-
-1 *       >1<             STARDATE  3019
-2                         CONDITION GREEN
-3                         QUADRANT  2 4
-4                         SECTOR    6 3
-5                         ENERGY    2882
-6      <*>                TORPEDOES 10
-7          *        *     SHIELDS   0000
-8                   *    
+7                         SHIELDS   0000
+8       *              * 
  -1--2--3--4--5--6--7--8-
 ````
+
+Changing sectors causes the STARDATE to increment.
+Press "g" to get the number stardates left before time runs out.
+````
+Command > g
+You must destroy 09 TIE fighters in 14 stardates.
+Supplies are available at any of the 6 rebel outposts
+````
+
+Use a torpedo to destroy TIE fighters.
+````
+Command > 6
+Torpedo trajectory(1-8.5) : 1.0
+Tracking: 2 7
+Tracking: 2 8
+TIE fighter destroyed.
+Command > 
+````
+
+Now that the TIE fighter is out of the way, fly over to the next sector.
+
+````
+Command > 0
+Course direction (1-8.5): 1.0
+Parsecs (0.1-7.7): 0.3
+ -1--2--3--4--5--6--7--8-
+1                *     *  STARDATE  3037
+2x!x                      CONDITION GREEN
+3       *                 REGION    2 2
+4          *              SECTOR    2 1
+5                   *     ENERGY    2607
+6                         TORPEDOES 09
+7    *                 *  SHIELDS   0000
+8                        
+ -1--2--3--4--5--6--7--8-
+````
+Since I flew to a new sector, I have one less stardate to finish the game.
+````
+Command > g
+You must destroy 08 TIE fighters in 13 stardates.
+Supplies are available at any of the 6 rebel outposts.
+Command > 
+
+````
+
+---------------
+Dock to a space station to get energy and torpedoes.
+````
+Command > 0
+Course direction (1-8.5): 1.0
+Parsecs (0.1-7.7): 0.3
+ -1--2--3--4--5--6--7--8-
+1                         STARDATE  3038
+2                         CONDITION GREEN
+3             *           REGION    2 3
+4x!x            >1<       SECTOR    4 1
+5                         ENERGY    2492
+6                         TORPEDOES 09
+7                         SHIELDS   0000
+8                        
+ -1--2--3--4--5--6--7--8-
+Command > 0
+Course direction (1-8.5): 1.0
+Parsecs (0.1-7.7): 0.4
+ -1--2--3--4--5--6--7--8-
+1                         STARDATE  3038
+2                         CONDITION GREEN
+3             *           REGION    2 3
+4            x!x>1<       SECTOR    4 5
+5                         ENERGY    2952
+6                         TORPEDOES 10
+7                         SHIELDS   0000
+8                        
+ -1--2--3--4--5--6--7--8-
+Command > 
+
+````
+
 ---------------
 Sample of using a fraction of trajectory.
 ````
@@ -191,78 +348,73 @@ Tracking: 8 2
 TIE fighter destroyed.
 ````
 ---------------
-Fails
-````
-Can crash into stars when warping into quadrants.
-Command? 0
-COURSE (1-8.5)? 6.0
-WARP FACTOR (0.1-7.7)? 3.0
-KA-BOOM, YOU CRASHED INTO A STAR. YOUR SHIP IS DESTROYED
-DO YOU WANT TO GO ON A SPACE VOYAGE?
+#### Fails
+
+You cannot fly into or through a star. If you do, you will crash and burn.
 
 Can run out of STARDATES.
-Command? 0
-COURSE (1-8.5)? 8.0
-WARP FACTOR (0.1-7.7)? 0.1
-MISSION FAILED, YOU HAVE RUN OUT OF STARDATES
-DO YOU WANT TO GO ON A SPACE VOYAGE? 
-````
+
 ------------------------------------------
-#### 1. Short range scanner
+#### 1. Sector range scanner
 ````
-COMMAND?1
+Command > 1
  -1--2--3--4--5--6--7--8-
-1                         STARDATE  3092
+1                *     *  STARDATE  3037
 2                         CONDITION GREEN
-3                         QUADRANT  5 5
-4                         SECTOR    1 8
-5                         ENERGY    l=08
-6                         TORPEDOES 08
-7                         SHIELDS   g808
+3       *                 REGION    2 2
+4          *              SECTOR    5 5
+5            x!x    *     ENERGY    2567
+6                         TORPEDOES 09
+7    *                 *  SHIELDS   0000
 8                        
  -1--2--3--4--5--6--7--8-
+Command >
 ````
 ------------------------------------------
 #### 2. Long  range scanner
 ````
-COMMAND?2
-L.R. SCAN FOR QUADRANT  8 7
+Command > 2
+L.R. SCAN FOR REGION    2 2
 -------------------
-1 011 1 002 1 105 1
+1 000 1 005 1 005 1
 -------------------
-1 000 1 000 1 000 1
+1 103 1 007 1 011 1
 -------------------
-1 000 1 000 1 000 1
+1 003 1 002 1 006 1
 -------------------
+Command > 
 ````
-Key, 105 : 1 alien ship, 0 space stations, 5 stars
+Key, 103 : 1 TIE fighter, 0 rebel bases, 3 stars.
 
 ------------------------------------------
-#### 3. Galaxy display 
+#### 3. Regional Sector Display
 
 ````
-COMMAND?3
-GALAXY DISPLAY
+Command > 3
+Regional Sector Display                            Rows
 -------------------------------------------------
-1 203 1 003 1 000 1 011 1 105 1 000 1 000 1 304 1#  1
+| 000 | 005 | 005 | 002 | 004 | 000 | 000 | 201 |   1
 -------------------------------------------------
-1 204 1 004 1 000 1 000 1 105 1 000 1 003 1 000 1#  2
+| 103 | 007 | 011 | 000 | 002 | 006 | 000 | 000 |   2
 -------------------------------------------------
-1 001 1 000 1 000 1 000 1 005 1 007 1 014 1 000 1#  3
+| 003 | 002 | 006 | 015 | 013 | 000 | 011 | 001 |   3
 -------------------------------------------------
-1 005 1 115 1 002 1 203 1 000 1 103 1 000 1 000 1#  4
+| 000 | 004 | 000 | 015 | 000 | 007 | 006 | 005 |   4
 -------------------------------------------------
-1 005 1 000 1 000 1 004 1 000 1 001 1 004 1 004 1#  5
+| 000 | 003 | 002 | 004 | 017 | 006 | 004 | 005 |   5
 -------------------------------------------------
-1 000 1 102 1 014 1 000 1 000 1 106 1 106 1 112 1#  6
+| 006 | 206 | 004 | 000 | 000 | 005 | 000 | 103 |   6
 -------------------------------------------------
-1 003 1 000 1 106 1 207 1 006 1 011 1 002 1 105 1#  7
+| 203 | 007 | 000 | 000 | 000 | 004 | 000 | 000 |   7
 -------------------------------------------------
-1 000 1 000 1 002 1 000 1 004 1 000 1 000 1 000 1#  8
+| 000 | 003 | 000 | 000 | 000 | 002 | 003 | 000 |   8
 -------------------------------------------------
-1  1     2     3     4     5     6     7     8
+Command >
+
+Columns:
+   1     2     3     4     5     6     7     8
 ````
-Key, 105 : 1 alien ship, 0 space stations, 5 stars
+Key, 103 : 1 TIE fighter, 0 rebel bases, 3 stars.
 
 --------------------------------------------------------------------------------
 #### 4. SHIELD ENERGY TRANSFER
@@ -311,7 +463,7 @@ COMMAND?1
 ````
 
 --------------------------------------------------------------------------------
-#### 5. Using Phasors
+#### 5. Laser cannons
 ````
 COURSE (1-8.5)? 5.0
 WARP FACTOR (0.1-7.7)? 3.0
@@ -380,227 +532,124 @@ GALAXY DISPLAYE1ERGY = 0402
 LOSS OF ENERGY 0100
 GALAXY DISPLAYDESTROYED
 ````
---------------------------------------------------------------------------------
-````
-YOU MUST DESTROY 19 ALIEN SHIPS IN 24 STARDATES WITH 3 SPACE STATIONS
- -1--2--3--4--5--6--7--8-
-1+++                      STARDATE  3026
-2                         CONDITION RED
-3    *                    QUADRANT  5 2
-4       *       +++       SECTOR    8 6
-5               +++       ENERGY    2952
-6 *                       TORPEDOES 10
-7                         SHIELDS   0000
-8    *          <*>      
- -1--2--3--4--5--6--7--8-
 
-Directions:
-   3
- 4   2
-5     1
- 6   8
-   7
-
- -1--2--3--4--5--6--7--8-
-1+++                      STARDATE  3026
-2                         CONDITION RED
-3    *                    QUADRANT  5 2
-4       *       +++       SECTOR    8 6
-5               +++       ENERGY    2682
-6 *                       TORPEDOES 09
-7                         SHIELDS   5336
-8    *          <*>      
- -1--2--3--4--5--6--7--8-
-COMMAND?6
-TORPEDO TRAJECTORY(1-8.5) : 3.0HIP RETALIATE SHIP RETALIATE SHIP RETALIATES
-ALIEN SHIP DESTROYED
-````
---------------------------------------------------------------------------------
-Dock to a space station to get energy and torpedoes.
-````
- -1--2--3--4--5--6--7--8-
-1                         STARDATE  3027
-2                         CONDITION GREEN
-3                         QUADRANT  6 2
-4                         SECTOR    7 2
-5                         ENERGY    2672
-6                         TORPEDOES 09
-7 * <*>         >1<       SHIELDS   0000
-8 *                      
- -1--2--3--4--5--6--7--8-
-COMMAND?0
-COURSE (1-8.5)? 1.0
-WARP FACTOR (0.1-7.7)? 0.3
- -1--2--3--4--5--6--7--8-
-1                         STARDATE  3027
-2                         CONDITION GREEN
-3                         QUADRANT  6 2
-4                         SECTOR    7 5
-5                         ENERGY    2952
-6                         TORPEDOES 10
-7 *          <*>>1<       SHIELDS   0000
-8 *                      
- -1--2--3--4--5--6--7--8-
-````
 --------------------------------------------------------------------------------
 #### 6. Using torpedoes
 ````
  -1--2--3--4--5--6--7--8-
-1            <*>   +++    STARDATE  3025
-2                *        CONDITION RED
-3    *              *     QUADRANT  6 7
-4                         SECTOR    1 5
-5 *                       ENERGY    2862
-6          *        *     TORPEDOES 10
+1                         STARDATE  3044
+2                         CONDITION RED
+3      |o|         x!x    REGION    2 1
+4                         SECTOR    3 7
+5    *                    ENERGY    2712
+6       *                 TORPEDOES 10
 7                         SHIELDS   0000
-8                        
+8                   *    
  -1--2--3--4--5--6--7--8-
-COMMAND?6
-TORPEDO TRAJECTORY(1-8.5) : 3.0
-YOU MISSED! ALIEN SHIP RETALIATES
-LOSS OF ENERGY 0200
-COMMAND?6
-TORPEDO TRAJECTORY(1-8.5) : 1.0
-TRACKING: 1 6
-TRACKING: 1 7
-ALIEN SHIP DESTROYED
-COMMAND?
+Command > d
+Directions
+    3
+  4 | 2
+5 - + - 1
+  6 | 8
+    7
+Command > 6
+Torpedo trajectory(1-8.5) : 5.0
+Tracking: 3 6
+Tracking: 3 5
+Tracking: 3 4
+Tracking: 3 3
+TIE fighter destroyed.
+Command > 1
+ -1--2--3--4--5--6--7--8-
+1                         STARDATE  3044
+2                         CONDITION GREEN
+3                  x!x    REGION    2 1
+4                         SECTOR    3 7
+5    *                    ENERGY    2442
+6       *                 TORPEDOES 09
+7                         SHIELDS   0000
+8                   *    
+ -1--2--3--4--5--6--7--8-
+Command >
 ````
+
 --------------------------------------------------------------------------------
 ### How to Save a Game
+
+Games can be saved and then later restored for continued playing.
+
+Save a game.
 ````
 + "g" to see the game status before saving the game. For example:
-You must destroy 10 Sith ships in  15 stardates with 6 space stations
-+ "s" to STOP the program, to go into WAIT mode.
+Command > g
+You must destroy 07 TIE fighters in 06 stardates.
+Supplies are available at any of the 6 rebel outposts.
+Command >
+
++ "s" or Ctrl+d to STOP the program, to go into WAIT mode.
 + Set Sense switches to the file number to save to. For example set to: "c".
 + "M" for memory upload (save). Confirm, "y".
 + "r" to RUN the program, to go into RUN mode.
 + "g" to confirm the same game status. For example:
-You must destroy 10 Sith ships in  15 stardates with 6 space stations
+Command > g
+You must destroy 07 TIE fighters in 06 stardates.
+Supplies are available at any of the 6 rebel outposts.
+Command >
 ````
-Following is an example save and continue the game.
+
+Clear the memory and restore the game.
+
+Clear the memory.
 ````
-Command?g
-You must destroy 10 Sith ships in  15 stardates with 6 space stations
-Command?1
- -1--2--3--4--5--6--7--8-
-1         x!x             STARDATE  3035
-2                         CONDITION GREEN
-3                         QUADRANT  1 4
-4                         SECTOR    1 4
-5            >1<          ENERGY    2942
-6                         TORPEDOES 10
-7                         SHIELDS   0000
-8                   *    
- -1--2--3--4--5--6--7--8-
-Command?+ s, STOP
-?- (I hit the enter key to show the switch status.
-INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
- .    *    .  *   .   .    .    *   .         .   .    .   .   .    .   .   .
-WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
- *    .      .   .   .   *   .   .   .   .    .   .    .   *   .    .   .   .
-            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
-             v   v   v   ^   v   v   v   v    v   v    v   v   v    v   v   v
- ------ 
-+ Ready to receive command.
-?- + M, Write program Memory into a file.
-++ Write filename: 00010000.bin
++ "s" or Ctrl+d to STOP the program, to go into WAIT mode.
++ Press "C" and confirm to clear the memory.
+?- + C, CLR: Clear memory, set registers to zero, set data and address to zero.
++ Confirm CLR, y/n: + CLR confirmed.
++ Clear memory: 5376
++ CLR registers.
++ CLR data, address, switches, and reset status lights.
+````
+
+Restore the game.
+
+Load from SD file.
+````
++ m, Read file into program memory.
+++ Program filename: 00010000.bin
 ++ Confirm, y/n: 
 + Confirmed.
-+ Write completed, file closed.
++ Program file loaded and ready to use.
+````
+Start the program from the restart address: 1683 = 00000110:10010011
+````
+INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
+ .    *    .  *   .   .    .    *   .         .   .    *   *   .    .   .   *
+WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
+ *    .      .   .   .   .   .   *   *   .    *   .    .   *   .    .   *   *
+            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
+             v   v   v   v   v   ^   ^   v    ^   v    v   ^   v    v   ^   ^
+ ------ 
++ Ready to receive command.
++ x, EXAMINE: 1683
+
 ?- + r, RUN.
 ?- + runProcessor()
-[Command?]1
- -1--2--3--4--5--6--7--8-
-1         x!x             STARDATE  3035
-2                         CONDITION GREEN
-3                         QUADRANT  1 4
-4                         SECTOR    1 4
-5            >1<          ENERGY    2932
-6                         TORPEDOES 10
-7                         SHIELDS   0000
-8                   *    
- -1--2--3--4--5--6--7--8-
-Command?g
-You must destroy 10 Sith ships in  15 stardates with 6 space stations
+
+Command > g
+
+You must destroy 07 TIE fighters in 06 stardates.
+Supplies are available at any of the 6 rebel outposts.
+Command >
 ````
 The game is ready to continue.
 
---------------------------------------------------------------------------------
-### The Win!
-````
-Command?0
-COURSE (1-8.5)? 5.0
-WARP FACTOR (0.1-7.7)? 0.4
- -1--2--3--4--5--6--7--8-
-1      x!x                STARDATE  3042
-2                      *  CONDITION RED
-3                      *  QUADRANT  4 4
-4             *           SECTOR    1 3
-5                         ENERGY    1312
-6                         TORPEDOES 05
-7                         SHIELDS   0000
-8      |o|               
- -1--2--3--4--5--6--7--8-
-Command?6
-Torpedo trajectory(1-8.5) : 7.0
-Tracking: 2 3
-Tracking: 3 3
-Tracking: 4 3
-Tracking: 5 3
-Tracking: 6 3
-Tracking: 7 3
-Tracking: 8 3
-CONGRATULATIONS! You eliminated all the Sith star ships.   
-Ready for a Star Wars space mission? 
-````
---------------------------------------------------------------------------------
-### Program addresses
-````
-12578bx Galaxy program start address, label: GALAXY.
-        First instruction is to set the stack pointer.
-D7  D6   D5  D4  D3   D2  D1  D0
-.   .    *   *   .    .   .   *
-
-2589bx to get to the Command Menu. First instruction is to set the stack pointer.
-; ++    2852:00001011 00100100: 00110001 : 31:061 > opcode: lxi sp,STACK
- D7  D6   D5  D4  D3   D2  D1  D0
- .   .    *   *   .    .   .   *
-
-YOU MUST DESTROY 21 ALIEN SHIPS IN 26 STARDATES WITH 6 SPACE STATIONS
-DNSST:	DB	000 ;Num. space stations	//5B 91 01011011 Data= 6
-DNALS:	DB	000 ;Num. alien ships		//5C 92 01011100 Data=21
-DNSTD:	DB	000 ;Num. stardates		//5D 93 01011101 Data=26
-
-Key:
-S.S. : space stations
-A.S. : alien ships
-
-	ANA	A		;Quadrant crossing occurred?
-	JZ	NOX		;No, complete move
-	MVI	L,05DH		;Yes, fetch stardate value.
-	MOV	B,M
-	DCR	B		;Decrement stardate counter
-	JZ	TIME		;If 0, end of game
-	MOV	M,B		;Else save new date
-NOX:
-````
-
-; ------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
+Common file names I use.
 ````
 #### Saved memory files:
 01000000.bin e : Current test
 00100000.bin d : Alternate test
-00010000.bin c : Save game, near completion
-00010001.bin   : Save game, final sector
+00010000.bin c : Saved game
 ````
-; ------------------------------------------------------------------------------
-````
-++    1280:00000101 00000000: 00110001 > opcode: lxi sp,STACK
-8ax     Galaxy program start address, label: GALAXY.
-128ax   Restart address, which assumes that the stack pointer is set.
-
-Command Menu start address. First instruction is to set the stack pointer.
-cmyc128axr for the Arduino IDE monitor.
-````
-
+----------------------------------------------------------------------------------

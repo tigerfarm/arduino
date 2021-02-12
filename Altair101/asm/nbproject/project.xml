@@ -20,6 +20,7 @@
             <word>phasors</word>
             <word>sPrintln</word>
             <word>sta</word>
+            <word>stardate</word>
         </spellchecker-wordlist>
     </configuration>
 </project>

@@ -314,14 +314,14 @@ MSG11C:	DB	'    1'
 ; Initialize and start the Galaxy program.
 ; ------------------------------------------------------------------------------
 GALAXY:
-; ++    1280:00000101 00000000: 00110001 > opcode: lxi sp,STACK
+; ++    00000101 00000000 > opcode: lxi sp,STACK
 ; Enter the following to get to the start byte: 8ax
-	LXI	SP,STACK	;Set stack pointer
+	LXI	SP,STACK        ;Set stack pointer
 	CALL	CONINI		;Initialize Console I/O
 NEWSTART:
 ;++    1286:00000101 00000110: 00100001 : 21:041 > opcode: lxi h,MSGSTART
 	LXI	H,MSGSTART
-	CALL	MSG		;Print introduction
+	CALL	MSG             ;Print introduction
                                 ; ----------------------------------------------
 STARTYN:
 	CALL	RN		; Set a new random game number.
@@ -539,7 +539,7 @@ CMND:
 ; ------------------------------------------------------------------------------
                                 ;
 RESTORED:
-; ++    1698:00000110 10100010: 00110001 : 31:061 > opcode: lxi sp,STACK
+; ++    1683:00000110 10010011: 00110001 : 31:061 > opcode: lxi sp,STACK
 ;                 a9  7 5   1
 	LXI	SP,STACK	;This is the starting point from a restored save.
                                 ;
@@ -2093,7 +2093,7 @@ CONINI:
                                 ; Help messages.
 MSGHELP:
   	DB	CR,LF
-        DB      'O. X-wing course setting'
+        DB      '0. Set X-wing course setting, and Fly'
   	DB	CR,LF
         DB      '1. Sector range scanner'
   	DB	CR,LF
