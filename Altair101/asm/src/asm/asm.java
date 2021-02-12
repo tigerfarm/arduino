@@ -35,7 +35,7 @@ public class asm {
     asmProcessor processFile = new asmProcessor();
     asmOpcodes theOpcodes = new asmOpcodes();
 
-    private static final String ASMVERSION = "0.96a";
+    private static final String ASMVERSION = "0.96b";
 
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     private static String sourcedirectoy = "programs";

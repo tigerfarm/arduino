@@ -98,7 +98,7 @@ public class asmUpload {
             System.out.println("+ Serial port name not found: " + theSerialPortName);
             return;
         }
-        asmUpload.SerialPortName = "/dev/tty." + theSystemPortName;
+        asmUpload.SerialPortName = "/dev/" + theSystemPortName;
         System.out.println("+ Serial port set to: " + theSerialPortName);
         System.out.println("+ Serial port set to system name: " + asmUpload.SerialPortName);
     }
