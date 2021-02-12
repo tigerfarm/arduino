@@ -17,7 +17,6 @@ void loadProgramList() {
   Serial.println(F("++ k, Kill the Bit version for serial VT100 input."));
   Serial.println(F("++ m, MVI testing to the setting of registers."));
   Serial.println(F("----------"));
-  Serial.println(F("++ b, Basic 4K interpreter."));
   Serial.println(F("++ K, Kill the Bit front panel fast version."));
   Serial.println(F("----------"));
   Serial.println(F("+ x, Exit: don't load a program."));
@@ -139,6 +138,8 @@ void loadMviRegisters() {
 
 // -----------------------------------------------------------------------------
 /*
+    Need to update the speed.
+*/
 const byte programBytes[] = {
   // Kill the Bit program.
   0x21, 0x00, 0x00, 0x16, 0x80, 0x01, 0x0E, 0x00, 0x1A, 0x1A, 0x1A, 0x1A, 0x09, 0xD2, 0x08, 0x00,
@@ -181,6 +182,5 @@ void loadProgramBytes() {
     Serial.println();
   }
 }
-*/
 
 // -----------------------------------------------------------------------------

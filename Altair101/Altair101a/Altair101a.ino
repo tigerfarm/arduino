@@ -38,7 +38,13 @@
   Need to RESET after loading a program from SD card.
   + RESET should be automatic.
 
-  Add sample programs for someone to run if all they have is the Arduino board.
+  Update README.md files:
+  + Altair101a
+  + Galaxy101a
+  + programsAltair
+  ++ Programs people can load and run on the Altair101a.
+
+  Add/update sample programs for someone to run if all they have is the Arduino board.
 
   Got 4K Basic to work. I think I need to get the following to work based on GALAXY80.asm.
   + Ability to upload Basic programs using the second serial port.
