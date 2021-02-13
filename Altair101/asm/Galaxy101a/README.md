@@ -26,7 +26,7 @@ My challenge was to,
 
 I can assemble and run it. I even fixed a usage flow option.
 The game is enhanced as far as I can go on my Mega 2560 Altair101a because of the memory limitations.
-The enhanced program very little memory left for me to enhance the playing experience.
+The enhanced program has very little memory left for me to upgrade the playing experience.
 
 [Galaxy101.asm](Galaxy101.asm) is the current tested program.
 [GALAXY80.asm](GALAXY80.asm) is the original that I downloaded from a GitHub
@@ -35,19 +35,22 @@ The enhanced program very little memory left for me to enhance the playing exper
 --------------------------------------------------------------------------------
 ### To do next:
 
-Switch the Altair101a to an Arduino Due because it has more memory RAM that I require.
+Switch the Altair101a to an Arduino Due because it has more than enough memory required for the upgrades.
 
 Modify the display of the sector map and messages,
 to work similarly to the Altair101a virtual front panel display and log messages.
 + Use VT100 escape sequences to print the sector map in one location, at the top.
 + Messages display below.
 
+Switch over to use 88-2SIO CHANNEL A SERIAL INTERFACE so that this program can run an actual Altair 8800.
+Or, compile as second version with the 88-2SIO CHANNEL A SERIAL INTERFACE from the original program.
+
 #### Game Enhancements
 
 Option for quick game or longer game based on the number of enemy ships.
 
 Add torpedo animation from the X-wing to the TIE fighter.
-Each tracking message would display the torpedo moving the TIE fighter.
+Each tracking message would display the torpedo moving toward the TIE fighter, hit or miss.
 ```
 Command > d
 Directions

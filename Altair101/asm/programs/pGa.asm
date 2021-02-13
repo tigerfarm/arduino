@@ -117,56 +117,56 @@ ROWMSK:	EQU	00111000b	;Row mask
 COLMSK:	EQU	00000111b	;Column mask
 TORMSK:	EQU	00001111b	;Num. torpedos mask
 
-	DB	000 ;Random number		//40
-	DB	000 ;Ran. num. constant		//41
-DQUAD:	DB	000 ;quadrant contents		//42
-DSHPS:	DB	000 ;Sec. loco of S. ship	//43
-DSTRS:	DB	000 ;Sector loco of star	//44
-	DB	000 ;Sector loco of star	//45
-	DB	000 ;Sector loco of star	//46
-	DB	000 ;Sector loco of star	//47
-	DB	000 ;Sector loco of star	//48
-	DB	000 ;Sector loco of star	//49
-	DB	000 ;Sector loco of star	//4A
-DSSTS:	DB	000 ;Sec. loco of space st.	//4B
-DAS1S:	DB	000 ;S. loc. of A.S. No.1	//4C
-DAS2S:	DB	000 ;S. loc. of A.S. No.2	//4D
-DAS3S:	DB	000 ;S. loc. of A.S. No.3	//4E
-DMELS:	DB	000 ;Main nrgy L.S. half	//4F
-DMEMS:	DB	000 ;Main nrgy M.S. half	//50
-DSELS:	DB	000 ;Shld nrgy L.S. half	//51
-DSEMS:	DB	000 ;Shld nrgy M.S. half	//52
-DAS1LS: DB	000 ;A.S. 1 nrgy L.S. half	//53
-DAS1MS: DB	000 ;A.S. 1 nrgy MS half	//54
-DAS2LS: DB	000 ;A.S. 2 nrgy L.S. half	//55
-DAS2MS: DB	000 ;A.S. 2 nrgy MS half	//56
-DAS3LS: DB	000 ;A.S. 3 nrgy L.S. half	//57
-DAS3MS: DB	000 ;A.S. 3 nrgy MS half	//58
-DSHPQ:	DB	000 ;Quad. loc. of S. ship	//59
-DNTOR:	DB	000 ;Number torpedoes		//5A
-DNSST:	DB	000 ;Num. space stations	//5B
-DNALS:	DB	000 ;Num. alien ships		//5C
-DNSTD:	DB	000 ;Num. stardates		//5D
-DTMP1:	DB	000 ;Temporary storage		//5E
-DTMP2:	DB	000 ;Temporary storage		//5F
-DDIG1:	DB	000 ;Digit storage		//60
-DDIG2:	DB	000 ;Digit storage		//61
-DDIG3:	DB	000 ;Digit storage		//62
-DDIG4:	DB	000 ;Digit storage		//63
-DDIG5:	DB	000 ;Digit storage		//64
+	DB	000 ;Random number              //40
+	DB	000 ;Ran. num. constant         //41
+DQUAD:	DB	000 ;quadrant contents          //42
+DSHPS:	DB	000 ;Sec. loco of S. ship       //43
+DSTRS:	DB	000 ;Sector loco of star        //44
+	DB	000 ;Sector loco of star        //45
+	DB	000 ;Sector loco of star        //46
+	DB	000 ;Sector loco of star        //47
+	DB	000 ;Sector loco of star        //48
+	DB	000 ;Sector loco of star        //49
+	DB	000 ;Sector loco of star        //4A
+DSSTS:	DB	000 ;Sec. loco of space st.     //4B
+DAS1S:	DB	000 ;S. loc. of A.S. No.1       //4C
+DAS2S:	DB	000 ;S. loc. of A.S. No.2       //4D
+DAS3S:	DB	000 ;S. loc. of A.S. No.3       //4E
+DMELS:	DB	000 ;Main nrgy L.S. half        //4F
+DMEMS:	DB	000 ;Main nrgy M.S. half        //50
+DSELS:	DB	000 ;Shld nrgy L.S. half        //51
+DSEMS:	DB	000 ;Shld nrgy M.S. half        //52
+DAS1LS: DB	000 ;A.S. 1 nrgy L.S. half      //53
+DAS1MS: DB	000 ;A.S. 1 nrgy MS half        //54
+DAS2LS: DB	000 ;A.S. 2 nrgy L.S. half      //55
+DAS2MS: DB	000 ;A.S. 2 nrgy MS half        //56
+DAS3LS: DB	000 ;A.S. 3 nrgy L.S. half      //57
+DAS3MS: DB	000 ;A.S. 3 nrgy MS half        //58
+DSHPQ:	DB	000 ;Quad. loc. of S. ship      //59
+DNTOR:	DB	000 ;Number torpedoes           //5A
+DNSST:	DB	000 ;Num. space stations        //5B
+DNALS:	DB	000 ;Num. alien ships           //5C
+DNSTD:	DB	000 ;Num. stardates             //5D
+DTMP1:	DB	000 ;Temporary storage          //5E
+DTMP2:	DB	000 ;Temporary storage          //5F
+DDIG1:	DB	000 ;Digit storage              //60
+DDIG2:	DB	000 ;Digit storage              //61
+DDIG3:	DB	000 ;Digit storage              //62
+DDIG4:	DB	000 ;Digit storage              //63
+DDIG5:	DB	000 ;Digit storage              //64
 
                 ; --------------------------------------------------------------
 	ORG	0080H
 
-	DB	CR,LF
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
+        DB      CR,LF
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
         DB      '|'
         ;       178: decimal value byte number location
 
@@ -390,12 +390,12 @@ GLXCK1:
 	MOV	A,C		;Fetch alien ship total
 	RRC
 	RRC
-	MOV	C,A		; Number of alien ships
+        MOV     C,A             ; Number of alien ships
                                 ; ------
         lda     ASHIPSH         ; Max (high) number of alien ships.
-	cmp	C		; Default was 32. Too many alien ships?
-	mov	A,C		; Restore A
-	JC	ASPLS		; Yes, delete 1 more
+	cmp     C               ;  Too many alien ships?
+	mov     A,C             ; Restore A
+	JC	ASPLS           ; Yes, delete 1 more
                                 ; ------
         lda     ASHIPSL         ; Max (high) number of alien ships.
 	cmp	C		; Default was 32. Too many alien ships?
@@ -1985,6 +1985,8 @@ INPUT:
                                 ; Limit input to: N, Y, 0..6.
         cpi     'N'             ; No, don't start a new game.
         jz      INPUTokay
+        cpi     'n'             ; No, don't start a new game.
+        jz      INPUTokay
         cpi     'Y'             ; Yes, start the game.
         jz      INPUTokay
         cpi     'y'             ; Yes, start the game.
@@ -2001,16 +2003,30 @@ INPUT:
         jz      INPUTokay
         cpi     'd'             ; Directions message.
         jz      INPUTokay
+        cpi     'D'             ; Directions message.
+        jz      INPUTokay
         cpi     'g'             ; Game stats message.
+        jz      INPUTokay
+        cpi     'G'             ; Game stats message.
+        jz      INPUTokay
+        cpi     'q'             ; Quick game
+        jz      INPUTokay
+        cpi     'Q'             ; Quick game
+        jz      INPUTokay
+        cpi     'l'             ; Longer game
+        jz      INPUTokay
+        cpi     'L'             ; Longer game
         jz      INPUTokay
         cpi     '-'             ; Negative transfer from SHIELDS to ENERGY.
         jz      INPUTokay
+                                ; -----------
         cpi     '8'             ; Input range: commands(0-6) and direction(1-8)
         jz      INPUTeq         ; Jump, if A = #, zero bit = 1.
         jnc     INPUT           ; Jump, if A > #, carry bit = 0.
 INPUTeq:
         cpi     '0'
         jc      INPUT           ; Jump, if A < #, carry bit = 1.
+                                ; -----------
 INPUTokay:
                                 ; ----------------------------------------------
         OUT	SIOCTL
@@ -2179,10 +2195,11 @@ MSGSTART:   DB CR,LF
   	DB	0
 MSPREP:	DB	'\r\nPreparations are being made...'
   	DB	0
-MSGASD:	DB	CR,LF
- 	DB	'TIE fighter destroyed.'
+MSPREP:	DB	'\r\nQuick game or a longer game, less or more TIE fighters? (Q/L)'
   	DB	0
                                 ; ----------------------------------------------
+MSGASD:	DB	'\r\nTIE fighter destroyed.'
+  	DB	0
 MSGGDY:	DB	'\r\nRegional Sector Display'
   	DB	0
 MSGPEF:	DB	'\r\nLaser cannon energy to fire = '
@@ -2210,7 +2227,9 @@ regA:   DB      0
 regH:   DB      0
                                 ;
 ASHIPSH: DB     9               ; Number alien ships is less than this number.
+                                ; Default was 32.
 ASHIPSL: DB     5               ; Number alien ships is greater than this number.
+                                ; Default was 10.
                                 ;
                                 ; ----------------------------------------------
 	END
