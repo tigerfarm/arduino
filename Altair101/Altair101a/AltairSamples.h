@@ -4,8 +4,10 @@
 // -----------------------------------------------------------------------------
 // Use in Altair101a.ino program.
 
-void loadBasic4kArray();
+void loadProgram();
 void loadProgramList();
+
+void loadBasic4kArray();
 void loadKillTheBitArray();
 void loadKillTheBit();
 void loadMviRegisters();

@@ -34,18 +34,27 @@ byte altair_in(byte addr);                  // Called from cpu_in();
 void altair_out(byte addr, byte val);       // Called from cpu_out();
 
 // -----------------------------------------------------------------------------
-// From AltairSample.ino program.
+// From AltairSample.cpp program.
+
+void loadProgram();
+void loadProgramList();
 
 void loadBasic4kArray();
-void loadProgramList();
 void loadKillTheBitArray();
 void loadKillTheBit();
 void loadMviRegisters();
 
-// From Altair101a.ino program.
+// From Altair101a.ino program, for AltairSample.cpp.
 void printByte(byte b);
 void printOctal(byte b);
 void printHex(byte b);
+
+// From here, for the AltairSample.cpp program.
+extern boolean SERIAL_FRONT_PANEL;
+extern void setAddressData(uint16_t addressWord, byte dataByte);
+extern void serialPrintFrontPanel();
+extern String loadProgramName;
+extern byte readByte;
 
 // -----------------------------------------------------------------------------
 // eof

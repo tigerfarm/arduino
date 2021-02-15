@@ -38,7 +38,7 @@
 ; Stacy David's repository:
 ;   https://github.com/tigerfarm/arduino/tree/master/Altair101/asm/galaxygame
 ;
-; ******* GALAXY MISSION **************************
+; ******* YOUR MISSION **************************
 ;
 ; Captain, your starship is pitted against the
 ; logic of your 8080 machine. You must destroy
@@ -117,56 +117,56 @@ ROWMSK:	EQU	00111000b	;Row mask
 COLMSK:	EQU	00000111b	;Column mask
 TORMSK:	EQU	00001111b	;Num. torpedos mask
 
-	DB	000 ;Random number		//40
-	DB	000 ;Ran. num. constant		//41
-DQUAD:	DB	000 ;quadrant contents		//42
-DSHPS:	DB	000 ;Sec. loco of S. ship	//43
-DSTRS:	DB	000 ;Sector loco of star	//44
-	DB	000 ;Sector loco of star	//45
-	DB	000 ;Sector loco of star	//46
-	DB	000 ;Sector loco of star	//47
-	DB	000 ;Sector loco of star	//48
-	DB	000 ;Sector loco of star	//49
-	DB	000 ;Sector loco of star	//4A
-DSSTS:	DB	000 ;Sec. loco of space st.	//4B
-DAS1S:	DB	000 ;S. loc. of A.S. No.1	//4C
-DAS2S:	DB	000 ;S. loc. of A.S. No.2	//4D
-DAS3S:	DB	000 ;S. loc. of A.S. No.3	//4E
-DMELS:	DB	000 ;Main nrgy L.S. half	//4F
-DMEMS:	DB	000 ;Main nrgy M.S. half	//50
-DSELS:	DB	000 ;Shld nrgy L.S. half	//51
-DSEMS:	DB	000 ;Shld nrgy M.S. half	//52
-DAS1LS: DB	000 ;A.S. 1 nrgy L.S. half	//53
-DAS1MS: DB	000 ;A.S. 1 nrgy MS half	//54
-DAS2LS: DB	000 ;A.S. 2 nrgy L.S. half	//55
-DAS2MS: DB	000 ;A.S. 2 nrgy MS half	//56
-DAS3LS: DB	000 ;A.S. 3 nrgy L.S. half	//57
-DAS3MS: DB	000 ;A.S. 3 nrgy MS half	//58
-DSHPQ:	DB	000 ;Quad. loc. of S. ship	//59
-DNTOR:	DB	000 ;Number torpedoes		//5A
-DNSST:	DB	000 ;Num. space stations	//5B
-DNALS:	DB	000 ;Num. alien ships		//5C
-DNSTD:	DB	000 ;Num. stardates		//5D
-DTMP1:	DB	000 ;Temporary storage		//5E
-DTMP2:	DB	000 ;Temporary storage		//5F
-DDIG1:	DB	000 ;Digit storage		//60
-DDIG2:	DB	000 ;Digit storage		//61
-DDIG3:	DB	000 ;Digit storage		//62
-DDIG4:	DB	000 ;Digit storage		//63
-DDIG5:	DB	000 ;Digit storage		//64
+	DB	000 ;Random number              //40
+	DB	000 ;Ran. num. constant         //41
+DQUAD:	DB	000 ;quadrant contents          //42
+DSHPS:	DB	000 ;Sec. loco of S. ship       //43
+DSTRS:	DB	000 ;Sector loco of star        //44
+	DB	000 ;Sector loco of star        //45
+	DB	000 ;Sector loco of star        //46
+	DB	000 ;Sector loco of star        //47
+	DB	000 ;Sector loco of star        //48
+	DB	000 ;Sector loco of star        //49
+	DB	000 ;Sector loco of star        //4A
+DSSTS:	DB	000 ;Sec. loco of space st.     //4B
+DAS1S:	DB	000 ;S. loc. of A.S. No.1       //4C
+DAS2S:	DB	000 ;S. loc. of A.S. No.2       //4D
+DAS3S:	DB	000 ;S. loc. of A.S. No.3       //4E
+DMELS:	DB	000 ;Main nrgy L.S. half        //4F
+DMEMS:	DB	000 ;Main nrgy M.S. half        //50
+DSELS:	DB	000 ;Shld nrgy L.S. half        //51
+DSEMS:	DB	000 ;Shld nrgy M.S. half        //52
+DAS1LS: DB	000 ;A.S. 1 nrgy L.S. half      //53
+DAS1MS: DB	000 ;A.S. 1 nrgy MS half        //54
+DAS2LS: DB	000 ;A.S. 2 nrgy L.S. half      //55
+DAS2MS: DB	000 ;A.S. 2 nrgy MS half        //56
+DAS3LS: DB	000 ;A.S. 3 nrgy L.S. half      //57
+DAS3MS: DB	000 ;A.S. 3 nrgy MS half        //58
+DSHPQ:	DB	000 ;Quad. loc. of S. ship      //59
+DNTOR:	DB	000 ;Number torpedoes           //5A
+DNSST:	DB	000 ;Num. space stations        //5B
+DNALS:	DB	000 ;Num. alien ships           //5C
+DNSTD:	DB	000 ;Num. stardates             //5D
+DTMP1:	DB	000 ;Temporary storage          //5E
+DTMP2:	DB	000 ;Temporary storage          //5F
+DDIG1:	DB	000 ;Digit storage              //60
+DDIG2:	DB	000 ;Digit storage              //61
+DDIG3:	DB	000 ;Digit storage              //62
+DDIG4:	DB	000 ;Digit storage              //63
+DDIG5:	DB	000 ;Digit storage              //64
 
                 ; --------------------------------------------------------------
 	ORG	0080H
 
-	DB	CR,LF
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
+        DB      CR,LF
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
         DB      '|'
         ;       178: decimal value byte number location
 
@@ -235,13 +235,13 @@ UMSGWRP:	DB	CR,LF
 MSGLRS:	DB	CR,LF
   	DB	'L.R. SCAN FOR'
   	DB	0
-MSGMSF:	DB	CR,LF
+uMSGMSF:	DB	CR,LF
   	DB	'MISSION failed, you have run out of stardates'
   	DB	0
-MSGKAB:	DB	CR,LF
+uMSGKAB:	DB	CR,LF
   	DB	'BOOM! Game over, you crashed in a star. You are history.'
   	DB	0
-MSGYMO:	DB	CR,LF
+uMSGYMO:	DB	CR,LF
   	DB	'You flew out of the GALAXY, lost in the void...     '
   	DB	0
 MSGLOE:	DB	CR,LF
@@ -305,13 +305,6 @@ MSG11A:	DB	'    1 '
 MSG11B:	DB	'    1 '
 MSG11C:	DB	'    1'
   	DB	0
-MSGLST:	DB	CR,LF
-  	DB	'LAST'
-  	DB	0
-MSGCHK:	DB	CR,LF
-  	DB	'Later...'
-        DB	CR,LF
-  	DB	0
 
 ; ------------------------------------------------------------------------------
 	ORG	0500H           ; Decimal = 1280
@@ -321,26 +314,28 @@ MSGCHK:	DB	CR,LF
 ; Initialize and start the Galaxy program.
 ; ------------------------------------------------------------------------------
 GALAXY:
-; ++    1280:00000101 00000000: 00110001 > opcode: lxi sp,STACK
+; ++    00000101 00000000 > opcode: lxi sp,STACK
 ; Enter the following to get to the start byte: 8ax
-	LXI	SP,STACK	;Set stack pointer
+	LXI	SP,STACK        ;Set stack pointer
 	CALL	CONINI		;Initialize Console I/O
 NEWSTART:
+;++    1286:00000101 00000110: 00100001 : 21:041 > opcode: lxi h,MSGSTART
 	LXI	H,MSGSTART
-	CALL	MSG		;Print introduction
+	CALL	MSG             ;Print introduction
                                 ; ----------------------------------------------
 STARTYN:
 	CALL	RN		; Set a new random game number.
         in      SIOCTL          ; Stacy, check for input character.
         cpi     0
 	jz	STARTYN         ; No input character
+                                ;
         cpi     'n'             ; No, don't start a new game.
         jz      NOGAME
         cpi     'N'             ; No, don't start a new game.
         jz      NOGAME
-        cpi     'y'             ; Yes, start the game.
+        cpi     'y'             ; Yes, start a game.
         jz      STARTGAME
-        cpi     'Y'             ; Yes, start the game.
+        cpi     'Y'             ; Yes, start a game.
         jz      STARTGAME
 	jmp	STARTYN         ; Invalid character
                                 ;
@@ -395,38 +390,44 @@ GLXCK1:
 	MOV	A,C		;Fetch alien ship total
 	RRC
 	RRC
-	MOV	C,A		;Save alien ship total
-	CPI	8		;Dave, default was 32. Too many alien ships?
-	JNC	ASPLS		;Yes, delete 1
-	CPI	5		;Dave, default was 10. Too few alien ships?
-	JC	ASMNS		;Yes, add 1 more
+        MOV     C,A             ; Number of alien ships
+                                ; ------
+        lda     ASHIPSH         ; Max (high) number of alien ships.
+	cmp     C               ;  Too many alien ships?
+	mov     A,C             ; Restore A
+	JC	ASPLS           ; Yes, delete 1 more
+                                ; ------
+        lda     ASHIPSL         ; Max (high) number of alien ships.
+	cmp	C		; Default was 32. Too many alien ships?
+	mov	A,C		; Restore A
+	JNC	ASMNS		; Yes, add 1
                                 ; ----------------------------------------------
-	MVI	L,05BH		;Set pntr to store number S.S.
+	MVI	L,05BH		;Set pointer to store number Rebel outpost.
 	MOV	M,D		;Save number of space stations
-	INR	L		;Advance pntr to number A.S.
+	INR	L		;Advance pointer to number A.S.
 	MOV	M,C		;Save number of alien ships
 	MOV	A,C
 	ADI	005
-	INR	L		;Adv. pntr to nmbr of stardates
+	INR	L		;Adv. pointer to number of stardates
 	MOV	M,A		;Save number of stardates
                                 ; ----------------------------------------------
-	MVI	B,1		;Set nmbr bytes for BINDEC
+	MVI	B,1		;Set number bytes for BINDEC
 	CALL	BINDEC		;Covert stardate value
 	LXI	D,GSMSGD	;Set pointer to digit storage
-	MVI	B,2		;Set counter to nmbr or digits
+	MVI	B,2		;Set counter to number or digits
 	CALL	DIGPRT		;Put digits in message
 	LXI	H,005CH		;Set pointer to number A.S.
-	MVI	B,001		;Set nmbr bytes for BINDEC
+	MVI	B,001		;Set number bytes for BINDEC
 	CALL	BINDEC		;Convert alien ship value
-	LXI	D,GSMSGS	;Set pntr to digit stor. in start msg.
+	LXI	D,GSMSGS	;Set pointer to digit stor. in start msg.
 	MVI	B,2		;Set counter to no. of digits
 	CALL	DIGPRT		;Put digits in message
 	LXI	H,005BH		;Set pointer to no. space stat.
 	MOV	A,M		;Set no. bytes for BINDEC
 	ORI	0B0H		;Covert space station value
-	LXI	H,GSMSGT	;Set pntr to digit stor. in start msg.
+	LXI	H,GSMSGT	;Set pointer to digit stor. in start msg.
 	MOV	M,A		;Set counter to no. of digits
-	LXI	H,GSMSG 	;Set pntr to start message
+	LXI	H,GSMSG 	;Set pointer to start message
 	CALL	MSG		;Print starting message
                                 ; ----------------------------------------------
 	CALL	RN		;Fresh start quadrant
@@ -537,8 +538,9 @@ CMND:
                                 ; Command Menu options
 ; ------------------------------------------------------------------------------
                                 ;
-                                ; Switches: 2589bx
-; ++    2852:00001011 00100100: 00110001 : 31:061 > opcode: lxi sp,STACK
+RESTORED:
+; ++    1683:00000110 10010011: 00110001 : 31:061 > opcode: lxi sp,STACK
+;                 a9  7 5   1
 	LXI	SP,STACK	;This is the starting point from a restored save.
                                 ;
 CMD:
@@ -561,7 +563,7 @@ CMD:
 	CPI	'6'		; Shoot torpedo
 	JZ	TRPD
 	CPI	'X'		; Exit, return to start.
-	JZ	NEWSTART        ;   Will generate a new random galaxy.
+	JZ	NEWSTART        ; Will generate a new random galaxy.
 	CPI	'H'		; Help.
 	JZ	HELPM
 	CPI	'h'		; Help.
@@ -997,10 +999,12 @@ PHSR:
                                 ;
 	CALL	DCBN		;Convert energy to binary
 	CALL	ELOM		;Delete energy from main
+                                ; ------
 	MVI	L,042H		;Fetch current quad. contents
 	MOV	A,M
 	ANI	030H		;Any alien ships?
 	JZ	WASTE		;No, waste of energy
+                                ; ------
 	CALL	ROTR4		;Position number of alien ship
 	SUI	001		;1 alien ship, full energy
 	JZ	PH1		;2 alien ships, half energy
@@ -1107,7 +1111,7 @@ DSTR:
 	JMP	DLET		;Remove A.S. fm glxy & ret
                                 ;
 ; ------------------------------------------------------------------------------
-                                ; Command galaxy display option.
+                                ; Command: Galaxy display option.
 GXPRT:
 	LXI	H,MSGGDY	; Print galaxy display message
 	CALL	MSG
@@ -1183,13 +1187,16 @@ RN:
 	DCR	L
 	MOV	M,A		;Save random number
 	RET
+                                ; --------------------------
 SSPLS:
 	MVI	E,0F7H		;Mask to delete space station
 	JMP	PLS		;Delete excess space station
 SSMNS:
 	MVI	E,STNMSK	;Mask to add space station
 	JMP	MNS		;Add a space station
-ASPLS:
+                                ;
+                                ; --------------------------
+ASPLS:                          ; Delete alien ship
 	MVI	E,0CFH		;Mask to delete alien ship
 PLS:
 	CALL	RN		;Fetch random low address
@@ -1199,7 +1206,8 @@ PLS:
 	ANA	M		;Delete from galaxy
 	MOV	M,A		;Put back in galaxy
 	JMP	GLXCK		;Check galaxy again
-ASMNS:
+                                ;
+ASMNS:                          ; Add alien ship
 	MVI	E,010H		;Mask to add alien ship
 MNS:
 	CALL	RN		;Fetch random low address
@@ -1977,6 +1985,8 @@ INPUT:
                                 ; Limit input to: N, Y, 0..6.
         cpi     'N'             ; No, don't start a new game.
         jz      INPUTokay
+        cpi     'n'             ; No, don't start a new game.
+        jz      INPUTokay
         cpi     'Y'             ; Yes, start the game.
         jz      INPUTokay
         cpi     'y'             ; Yes, start the game.
@@ -1993,16 +2003,30 @@ INPUT:
         jz      INPUTokay
         cpi     'd'             ; Directions message.
         jz      INPUTokay
+        cpi     'D'             ; Directions message.
+        jz      INPUTokay
         cpi     'g'             ; Game stats message.
+        jz      INPUTokay
+        cpi     'G'             ; Game stats message.
+        jz      INPUTokay
+        cpi     'q'             ; Quick game
+        jz      INPUTokay
+        cpi     'Q'             ; Quick game
+        jz      INPUTokay
+        cpi     'l'             ; Longer game
+        jz      INPUTokay
+        cpi     'L'             ; Longer game
         jz      INPUTokay
         cpi     '-'             ; Negative transfer from SHIELDS to ENERGY.
         jz      INPUTokay
+                                ; -----------
         cpi     '8'             ; Input range: commands(0-6) and direction(1-8)
         jz      INPUTeq         ; Jump, if A = #, zero bit = 1.
         jnc     INPUT           ; Jump, if A > #, carry bit = 0.
 INPUTeq:
         cpi     '0'
         jc      INPUT           ; Jump, if A < #, carry bit = 1.
+                                ; -----------
 INPUTokay:
                                 ; ----------------------------------------------
         OUT	SIOCTL
@@ -2085,7 +2109,7 @@ CONINI:
                                 ; Help messages.
 MSGHELP:
   	DB	CR,LF
-        DB      'O. X-wing course setting'
+        DB      '0. Set X-wing course setting, and Fly'
   	DB	CR,LF
         DB      '1. Sector range scanner'
   	DB	CR,LF
@@ -2120,18 +2144,19 @@ MSGDIR:
         DB      '    7'
   	DB	0
                                 ; ----------------------------------------------
-                                ; Print game statistics message, example:
+                                ; Print game statistics message. Original:
                                 ; YOU MUST DESTROY 21 ALIEN SHIPS IN 26 STARDATES WITH 6 SPACE STATIONS
+                                ; New message template.
+GSMSG:	DB	'\r\n\r\nYou must destroy  '
+GSMSGS:	DB	'  TIE fighters in  '
+GSMSGD:	DB	'  stardates.'
+        DB	'\r\nSupplies are available at any of the '
+GSMSGT:	DB	'  rebel outposts.'
+  	DB	0
                                 ;
                                 ; DNSST:	DB	000 ;Num. space stations	//5B 91 01011011 Data= 6
                                 ; DNALS:	DB	000 ;Num. alien ships		//5C 92 01011100 Data=21
                                 ; DNSTD:	DB	000 ;Num. stardates		//5D 93 01011101 Data=26
-                                ;
-                                ; MSGYJD:	DB	CR,LF
-                                ;         	DB	'You must destroy  '
-                                ; MSGSPS:	DB	'  Sith ships in   '
-                                ; MSGDTS:	DB	'  stardates with '
-                                ; MSGSSS:	DB	'  space stations'
 GAMESTAT:
 	MVI	L,05DH		;Set pointer to store number SPACE STATIONS
 	MVI	B,1		;Set number bytes for BINDEC
@@ -2168,21 +2193,10 @@ GAMESTAT:
 MSGSTART:   DB CR,LF
         DB      'Ready to start a Star Wars X-wing starfighter mission? (Y/N)'
   	DB	0
-                                ; ----------------------------------------------
-                                ; New message template.
-                                ;         10        20        30        40        50        60
-                                ; 123456789012345678901234567890123456789012345678901234567890
-                                ; You must destroy 21 TIE fighters in 26 stardates.
-                                ; Supplies are available at any of the 6 space stations.
-GSMSG:	DB	'\r\n\r\nYou must destroy  '
-GSMSGS:	DB	'  TIE fighters in  '
-GSMSGD:	DB	'  stardates.'
-        DB	CR,LF
-        DB	'Supplies are available at any of the '
-GSMSGT:	DB	'  rebel outposts.'
-  	DB	0
-                                ;
 MSPREP:	DB	'\r\nPreparations are being made...'
+  	DB	0
+                                ; ----------------------------------------------
+MSGASD:	DB	'\r\nTIE fighter destroyed.'
   	DB	0
 MSGGDY:	DB	'\r\nRegional Sector Display'
   	DB	0
@@ -2194,17 +2208,27 @@ MSGCRS:	DB	'\r\nCourse direction (1-8.5): '
   	DB	0
 MSGCYH:	DB	'\r\n\r\nCONGRATULATIONS! You eliminated all the TIE fighters. Rebels are safe...for now.\r\n'
   	DB	0
-                                ;
+MSGMSF:	DB	'\r\n\r\nMISSION failed, you ran out of stardates.\r\n'
+  	DB	0
+MSGKAB:	DB	'\r\n\r\nBOOM! Game over, you crashed in a star. You are history.\r\n'
+  	DB	0
+MSGYMO:	DB	'\r\n\r\nYou flew out of the GALAXY, lost in the void...\r\n'
+  	DB	0
                                 ; ----------------------------------------------
 MSGCMD:	DB	'\r\nCommand > '
   	DB	0
-MSGASD:	DB	CR,LF
- 	DB	'TIE fighter destroyed.'
+MSGCHK:	DB	'\r\n\r\nLater...\r\n'
   	DB	0
                                 ; ----------------------------------------------
                                 ; Looks like unused bytes from 3766 to 3840.
 regA:   DB      0
 regH:   DB      0
+                                ;
+ASHIPSH: DB     9               ; Number alien ships is less than this number.
+                                ; Default was 32.
+ASHIPSL: DB     5               ; Number alien ships is greater than this number.
+                                ; Default was 10.
+                                ;
                                 ; ----------------------------------------------
 	END
                                 ;
@@ -2214,18 +2238,16 @@ regH:   DB      0
                                 ; Notes to get the program to run.
                                 ;
 ; Program is stored on the SD card:
-;   ++ File:      00001001.BIN  4608
+;   ++ File:      00000101.BIN  5120
 ;
 To run,
 + Start Altair 101a and connect.
 + Send the start byte string which sets the switches: 12578bx.
-+ "m" and Confirm the loading of SD file: 00001001.BIN (S8 and S11 which is 8b).
-+ "x" to EXAMINE the address: 00001001:10100110 (S11 S8 S7 S5 S2 S1 which is 12578b).
++ "m" and Confirm the loading of SD file: 00000101.BIN (S8 and S11 which is 8a).
++ "x" to EXAMINE the address: 00000101:00000000 (S8 S10 which is 8a).
 + "r" to run the program.
 Start playing.
 
 --------------------------------------------------------------------------------
-YOU MUST DESTROY 21 ALIEN SHIPS IN 26 STARDATES WITH 6 SPACE STATIONS
-
                                 ; 
                                 ; --------------------------------------

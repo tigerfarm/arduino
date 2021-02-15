@@ -35,54 +35,46 @@
   ---------------------------------------------------------
   Next to work on
 
-  Need to RESET after loading a program from SD card.
-  + RESET should be automatic.
-
   Update README.md files:
   + Altair101a
-  + Galaxy101a
+  + Galaxy101a, updated, just needs a another read through.
   + programsAltair
   ++ Programs people can load and run on the Altair101a.
+  ++ Includes 4K Basic.
 
   Add/update sample programs for someone to run if all they have is the Arduino board.
 
-  Got 4K Basic to work. I think I need to get the following to work based on GALAXY80.asm.
-  + Ability to upload Basic programs using the second serial port.
-  ++ Currently, no way to upload or save programs.
+  ---------------------------------------------------------
+  Get porgrams to work in a Altari-Duino or actual Altair 8800.
+  + Get 88-2SIO to work based on Gaxaly101.asm.
   + Consider serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality.
-  ++ Then can use orginal I/O for Galaxy101.
 
   ---------------------------------------------------------
-  + Consider serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality.
-  ++ Then, could use the original serial routines in Galaxy80.asm.
-
-  Implement interrupt handling.
-  + opcodes: ei and di. And handling interupts once ei is run.
-  + This is required when I try to run complex programs such as CPM, and likely Basic.
-
-  Option to have HLT work the same as Altair 8800.
-
   Starting integrating hardware functions using the Altair tablet.
   + Get the Altair tablet to work.
   + Test with Altair101a.
   + Then update Altair101a with the ability to flash the front panel lights.
   + Then update Altair101a implementing interactivity with the front panel switches.
 
+  Option to have HLT work the same as Altair 8800.
+
+  Implement interrupt handling.
+  + opcodes: ei and di. And handling interupts once ei is run.
+  + This is required when I try to run complex programs such as CPM, and likely Basic.
+
   ---------------------------------------------------------
-  Hex programs:
+  Integration: continue adding Processor.ino features into Altair101a.
 
-  +++ Integration steps to merge this code with Processor.ino.
-  + Continue use testing Altair101a.
-  + Continue adding Processor features into Altair101a.
-  ++ Upload Altair101a to the Altair 101 machine and test with lights.
-  ++ Altair101a code updates to handle hardware toggles and switches.
+  Front panel: add functions, upload to tablet or desktop machine, and test.
+  + Lights
+  + Toggles and switches: 
+  + Add the others: player, clock, timer, and counter.
 
-  After Altair101a works and processes programs,
-  + Add the other features: player, clock, timer, and counter.
-
+  ---------------------------------------------------------
   - Consider preventing lockup when using PUSH A, i.e. PUSH called before setting SP.
   + In the PUSH process, if SP < 4, error.
 
+  ---------------------------------------------------------
   Software downloads:
   https://altairclone.com/downloads/
   Download CPM:
@@ -117,11 +109,6 @@
   http://www.cplusplus.com/reference/cstdio/printf/
 
   ---------------------------------------------------------
-  Wire the serial module to the Mega Serial2 pins.
-  Serial module RX pin to Mega TX pin 16.
-  Serial module TX pin to Mega RX pin 17.
-
-  ---------------------------------------------------------
   ---------------------------------------------------------
   Program sections
 
@@ -154,7 +141,7 @@
   + Copy paste into Serial port window.
     Only works for really short programs.
   + Download program bytes through Serial2 port from the laptop.
-    runDownloadProgram()
+    modeDownloadProgram()
   + SD card R/W functions
     readProgramFileIntoMemory(String theFilename)
     writeProgramMemoryToFile(String theFilename)
@@ -233,7 +220,7 @@ String theFilename;
 
 // The CS pin is the only one that is not really fixed as any of the Arduino digital pin.
 // const int csPin = 10;  // SD Card module is connected to Nano pin 10.
-const int csPin = 53;  // SD Card module is connected to Mega pin 53.
+const int csPin = 53;     // SD Card module is connected to Mega pin 53.
 
 File myFile;
 
@@ -1332,7 +1319,7 @@ void processRunSwitch(byte readByte) {
       printFrontPanel();  // <LF> will refresh the display.
     }
   } else if (readByte == resetByte) {
-    Serial.println(F("+ R, RESET"));
+    Serial.println(F("+ R, RESET (run)"));
     // Set to the first memory address.
     regPC = 0;
     setAddressData(regPC, MREAD(regPC));
@@ -1788,6 +1775,7 @@ void processWaitSwitch(byte readByte) {
       if (readProgramFileIntoMemory(theFilename)) {
         ledFlashSuccess();
         controlResetLogic();
+        fpAddressToggleWord = 0;                // Reset all toggles to off.
         playerPlaySoundWait(READ_FILE);
         // } else {
         // Redisplay the front panel lights.
@@ -1881,80 +1869,6 @@ void runProcessorWait() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// Processor WAIT mode: Load sample programs.
-
-void loadProgram() {
-#ifdef LOG_MESSAGES
-  Serial.println(F("+ loadProgram()"));
-#endif
-  if (loadProgramName != "") {
-    Serial.print(F("+ Program previously loaded: "));
-    Serial.println(loadProgramName);
-  }
-  programState = PROGRAM_LOAD;
-  loadProgramList();
-  while (programState == PROGRAM_LOAD) {
-    if (Serial.available() > 0) {
-      readByte = Serial.read();    // Read and process an incoming byte.
-      switch (readByte) {
-        case 'K':
-          loadProgramName = "Serial Kill the Bit array";
-          Serial.println(F("+ B, load array: A version of Kill the Bit for serial I/O."));
-          programState = PROGRAM_WAIT;
-          if (SERIAL_FRONT_PANEL) {
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          loadKillTheBitArray();
-          break;
-        case 'k':
-          loadProgramName = "Serial Kill the Bit";
-          Serial.println(F("+ k, load: A version of Kill the Bit for serial I/O."));
-          programState = PROGRAM_WAIT;
-          if (SERIAL_FRONT_PANEL) {
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          loadKillTheBit();
-          break;
-        case 'm':
-          loadProgramName = "Register set test";
-          Serial.println(F("+ m, load: a program that uses MVI to set the registers with values from 1 to 7."));
-          Serial.println(F("     Use option 'i' to list the register values."));
-          programState = PROGRAM_WAIT;
-          if (SERIAL_FRONT_PANEL) {
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          loadMviRegisters();
-          break;
-        // -------------------------------------
-        case 'x':
-          Serial.println(F("< x, Exit load program."));
-          programState = PROGRAM_WAIT;
-          if (SERIAL_FRONT_PANEL) {
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          break;
-        default:
-          if (SERIAL_FRONT_PANEL) {
-            Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          loadProgramList();
-          Serial.print("?- ");
-      }
-    }
-  }
-  if (readByte != 'x') {
-    // Do EXAMINE 0 after the load;
-    regPC = 0;
-    setAddressData(regPC, MREAD(regPC));
-    if (SERIAL_FRONT_PANEL) {
-      serialPrintFrontPanel();
-    }
-  }
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // Receive bytes through serial port.
 // The bytes are loaded into processor memory.
 
@@ -2021,7 +1935,7 @@ void loadProgramSerial() {
 }
 
 // -----------------------------------------------------------------------------
-void runDownloadProgram() {
+void modeDownloadProgram() {
   Serial.println(F("+ Download mode: ready to receive a program. Enter, x, to exit."));
   // Status: ready for input and not yet writing to memory.
   host_set_status_led_INP();
@@ -2260,12 +2174,12 @@ void loop() {
     case SERIAL_DOWNLOAD:
       host_clr_status_led_WAIT();
       host_set_status_led_HLDA();
-      runDownloadProgram();
+      modeDownloadProgram();
       host_clr_status_led_HLDA();
       host_set_status_led_WAIT();
       printFrontPanel();
       if (SERIAL2_OUTPUT) {
-        // runDownloadProgram() opens and closes (begin and end) the connection.
+        // modeDownloadProgram() opens and closes (begin and end) the connection.
         // The following will re-open it for output.
         Serial2.begin(downloadBaudRate);
       }

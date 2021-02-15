@@ -1,9 +1,15 @@
 ; -----------------------------------------------------------------------------
-; 4K Basic listing.
+; 4K Basic assembler program
+;
+; ----------------------------------------------------------------------------
+; Micro-Soft Altair BASIC 3.2 (4K) - Annotated Disassembly
+; Copyright 1975, Bill Gates, Paul Allen, Monte Davidoff
+; Source: http://altairbasic.org/ compiled by Reuben Harris
+; Additional cleanup, relocation by Charles Mangin, March, 2019
 ;
 ; -----------------------------------------------------------------------------
 ; Getting Basic 4K version installed and started.
-
+;
 ; Download
 ;   https://github.com/option8/Altair-BASIC
 ;  Listing:
@@ -58,12 +64,6 @@
 ; LIST
 ; "_" equivalent to the backspace key. i.e. removes the previous character from the line buffer.
 ; 
-; ----------------------------------------------------------------------------
-;Micro-Soft Altair BASIC 3.2 (4K) - Annotated Disassembly
-;	
-;Copyright 1975, Bill Gates, Paul Allen, Monte Davidoff
-;Source: http://altairbasic.org/ compiled by Reuben Harris
-;Additional cleanup, relocation by Charles Mangin, March, 2019
 ; ----------------------------------------------------------------------------
 
  	ORG	00
