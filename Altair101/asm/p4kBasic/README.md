@@ -160,9 +160,22 @@ REM
 ````
 
 --------------------------------------------------------------------------------
-### Switching Serial Port to Use
+### Switching Basic I/O Serial Ports
 
-Use the Altair101a y/Y (Disable/enable Serial2 for I/O) option to use Serial(disable) or Serial2(enable).
+To set Basic's I/O Arduino port, your must be in WAIT mode.
+Either switch before starting Basic or stop Basic from running.
 
+From WAIT mode,
++ Press "Y" to enable Serial2 for Basic I/O.
++ Press "y" to disable Serial2 for Basic I/O. Which means that Serial2 is disabled and that Serial is enabled for Basic I/O.
+
+When Serial2 is enable for Basic I/O, use a serial terminal window or the 
+Arduino IDE serial monitor to connect to the Serial port.
+
+Altair101a messages when pressing "Y" and "y".
+````
+?- + y, Serial2 off (end).
+?- + Y, Serial2 on (begin), baud rate: 115200.
+````
 --------------------------------------------------------------------------------
 Cheers

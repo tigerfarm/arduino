@@ -190,7 +190,17 @@ UMSGSPS:	DB	'  TIE ships,  in  '
 UMSGDTS:	DB	'  stardates with '
 UMSGSSS:	DB	'  space stations'
   	DB	0
-                ; ----------------------
+                ; ----------------------------------------------------------------
+                ; Sector scan display messages. For example:
+                ;  -1--2--3--4--5--6--7--8-
+                ; 1                         STARDATE  3036
+                ; 2                   *     CONDITION GREEN
+                ; 3                         SECTOR    3 8
+                ; 4      x!x                QUADRANT  4 3
+                ; 5                         ENERGY    2932
+                ; 6            *            TORPEDOES 10
+                ; 7                         SHIELDS   0000
+                ;
 MSG123:	DB	CR,LF
   	DB	' -1--2--3--4--5--6--7--8-'
   	DB	0
@@ -208,10 +218,10 @@ MSGSDP:	DB	'0'
 MSGCND:	DB	' CONDITION '
 MSGGRN:	DB	'GREEN'
   	DB	0
-MSGQAD:	DB	' REGION    '
+MSGQAD:	DB	' SECTOR    '
 MSGPQD:	DB	'   '
   	DB	0
-MSGSCT:	DB	' SECTOR    '
+MSGSCT:	DB	' QUADRANT  '
 MSGSC1:	DB	'   '
   	DB	0
 MSGENR:	DB	' ENERGY       '
@@ -223,6 +233,7 @@ MSGTPP:	DB	' '
 MSGSHD:	DB	' SHIELDS      '
 MSGSHP:	DB	' '
   	DB	0
+                ; ----------------------------------------------------------------
 UMSGCMD:	DB	CR,LF
   	DB	'Command?'
   	DB	0
@@ -442,9 +453,9 @@ GLXCK1:
 	CALL	LOCSET		;Set initial space ship location
                                 ;
 ; ------------------------------------------------------------------------------
-                                ; Print short range scan
+                                ; Print Sector range scan
 SRSCN:
-	LXI	H,MSG123	;Set pntr. for short range scan
+        LXI     H,MSG123        ;Set pntr. for short range scan
 	CALL	MSG		;Print initial row
 	MVI	C,1		;Set row number
 	CALL	ROWSET		;Set up row for printout
@@ -522,7 +533,7 @@ CND:
 	CALL	MSG		;Print shield message
 	MVI	C,8H		;Set row number 8
 	CALL	ROWSET		;Set up row for printout
-	LXI	H,MSG123	;Set pointer to final row
+	LXI	H,MSG123        ;Set pointer to final row
 	CALL	MSG		;Print final row of S.R. scan
 CMND:
 	MVI	H,000
@@ -2194,6 +2205,8 @@ MSGSTART:   DB CR,LF
         DB      'Ready to start a Star Wars X-wing starfighter mission? (Y/N)'
   	DB	0
 MSPREP:	DB	'\r\nPreparations are being made...'
+  	DB	0
+MSPREP:	DB	'\r\nQuick game or a longer game, less or more TIE fighters? (Q/L)'
   	DB	0
                                 ; ----------------------------------------------
 MSGASD:	DB	'\r\nTIE fighter destroyed.'
