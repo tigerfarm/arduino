@@ -42,8 +42,8 @@ void loadProgram() {
       readByte = Serial.read();    // Read and process an incoming byte.
       switch (readByte) {
         case 'K':
-          loadProgramName = "Serial Kill the Bit array";
-          Serial.println(F("+ B, load array: A version of Kill the Bit for serial I/O."));
+          loadProgramName = "Front panel Kill the Bit";
+          Serial.println(F("+ B, load array: A version of Kill the Bit for the front panel."));
           programState = PROGRAM_WAIT;
           if (SERIAL_FRONT_PANEL) {
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
@@ -59,9 +59,10 @@ void loadProgram() {
           }
           loadKillTheBit();
           break;
-        case 'm':
-          loadProgramName = "Register set test";
-          Serial.println(F("+ m, load: a program that uses MVI to set the registers with values from 1 to 7."));
+        case 'r':
+          loadProgramName = "Set the registers";
+          Serial.println(F("+ r, load: a program that uses MVI to set the registers: A, B, C, D, E, H, and L"));
+          Serial.println(F("     with values from 1 to 7."));
           Serial.println(F("     Use option 'i' to list the register values."));
           programState = PROGRAM_WAIT;
           if (SERIAL_FRONT_PANEL) {

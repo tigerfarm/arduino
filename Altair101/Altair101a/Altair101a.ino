@@ -46,6 +46,9 @@
 
   ---------------------------------------------------------
   Get porgrams to work in a Altari-Duino or actual Altair 8800.
+
+  Need to get in contact with group to have help testing.
+  
   + Get 88-2SIO to work based on Gaxaly101.asm.
   + Consider serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality.
 
@@ -60,7 +63,7 @@
 
   Implement interrupt handling.
   + opcodes: ei and di. And handling interupts once ei is run.
-  + This is required when I try to run complex programs such as CPM, and likely Basic.
+  + This is likely required for CPM, but don't know.
 
   ---------------------------------------------------------
   Integration: continue adding Processor.ino features into Altair101a.

@@ -1,19 +1,44 @@
---------------------------------------------------------------------------------
-# Running Programs on the Altair101a
+----------------------------------------------------------------------------------
+# Running 4K Basic on the Altair101a
 
---------------------------------------------------------------------------------
-### Upload BAS file and Save Programs.
+I found a de-assembled listing of 4K Basic which is
+the assembler program Bill Gates, Paul Allen, and another wrote. It's the first Microsoft software product.
+It was written in Intel 8080 assembler language.
+There was also a binary file for download.
+After a few updates to Altair101a.ino, the binary ran.
+````
+...
+BASIC VERSION 3.2
+[4K VERSION]
 
-Upload works from asm upload option. Need to do more test with delay settings:
-+ set baudst 100
-+ set baudcr 200
+OK
+````
+Since 4K Basic is programed to use an 88-2SIO interface,
+Altair101a was updated to use 88-2SIO serial port requirements.
+I found the requirements in the 4K Basic de-assembled source code.
+Altair101a now uses the ports, 0 and 1, which are hard coded into Altair101a.
 
-To save: LIST the program, then copy and paste it into a BAS text file on the laptop.
+88-2SIO has double input ports with the following specs:
++ Port 00 indicates input: 0 for input, 1 for no input.
++ Port 01 is for receiving the actual input character.
++ Both ports are input from one Arduino serial input port, either Serial or Serial2 (Arduino port #0 or #2).
++ The Altair101a has an option to switch between using Serial or Serial2 for 4K Basic I/O.
 
---------------------------------------------------------------------------------
+Since 4K Basic only works with CR,
+on port 1 Altair101a converts LF(ASCII 10) from my Linux based terminal to CR(ASCII 13).
+Since I was coding for one conversion, I added conversions from lowercase letters to uppercase, which 4K Basic requires.
+
+On the output ports (0 and 1), I output to Arduino Serial2.
+Altair101a also sets the output byte's 8th bit to 0, which is another requirement.
+````
+regAdata = regAdata & B01111111;
+````
+
+----------------------------------------------------------------------------------
 ### Working with 4K Basic
 
-Load and run 4K Basic.
+Load and run 4K Basic. While the Altair101a is running, connect to the default serial port (Arduino Serial).
+I prefer using a terminal window, however the Arduino IDE works too.
 ````
 +++ setup
 + SD card module is initialized.
@@ -41,10 +66,6 @@ BASIC VERSION 3.2
 [4K VERSION]
 
 OK
-
-Write to serial port. Number of bytes: 1551 in the file: p1.bin
-00110101 00100000 01010000 01010010 01001001 01001110 01010100 0010
-...
 ````
 
 I download the [BASIC Manual 75.pdf](https://altairclone.com/downloads/manuals/) and worked through some of it.
@@ -62,12 +83,12 @@ OK
 LIST
 
 OK
-PIN__RINT 1/3
+PI_RINT 1/3
  .333333 
 
 OK
-PRINT "1/3=";1/3
-1/3= .333333 
+PRINT "1/3 =";1/3
+1/3 = .333333 
 
 OK
 N=6
@@ -115,9 +136,17 @@ RUN
  22.0905 
 
 OK
-
 ````
+--------------------------------------------------------------------------------
+### How to Upload BAS file and Save Programs.
 
+Upload works from asm upload option. Need to do more test with delay settings:
++ set baudst 100
++ set baudcr 200
+
+To save: LIST the program, then copy and paste it into a BAS text file on the laptop.
+
+Upload the following.
 ````
 REM 4K Basic listing.
 REM
@@ -131,16 +160,9 @@ REM
 ````
 
 --------------------------------------------------------------------------------
-### Working to run Galaxy80.asm
-````
-; ----------------------------------------------
-; Programing challenge:
-; + Done: Compile using my assembler.
-; + Done: Interactive basics: input and output.
-; + Done: Run the start to get the initial prompt and "n" to halt the program.
-; + Get the complete program to run by adding section and section.
-;
-; ------------------------------------------------
-````
+### Switching Serial Port to Use
+
+Use the Altair101a y/Y (Disable/enable Serial2 for I/O) option to use Serial(disable) or Serial2(enable).
+
 --------------------------------------------------------------------------------
 Cheers
