@@ -122,25 +122,22 @@ That is the initial values of the memory bytes, zero.
 
 In the top bar of the Serial Monitor, enter "l" and click the Send button.
 A list of programs are list that are built in.
-
-For example, enter "m" and click Send to load the program to Test the setting of registers.
 ````
 ?- + l, load a sample program.
 + Sample programs.
 ----------
 ++ k, Kill the Bit version for serial VT100 input.
-++ m, Test the setting of registers.
+++ r, Test the setting of registers.
 ----------
 ++ K, Kill the Bit front panel fast version.
 ----------
 + x, Exit: don't load a program.
 ````
-
-Enter "m" and click Send.
-A load confirmation is displayed followed by a print of the virtual front panel.
-This time the first byte of the program is displayed in the virtual data LEDs.
+Enter "r" and click Send to load the program to Test the setting of registers.
+A load confirmation message is displayed followed by a print of the virtual front panel.
+This time the first byte of the loaded program is displayed in the virtual data LEDs (00111110).
 ````
-?- + m, load: a program that uses MVI to set the registers with values from 1 to 7.
+?- + r, load: a program that uses MVI to set the registers with values from 1 to 7.
      Use option 'i' to list the register values.
 ?- 
 INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
