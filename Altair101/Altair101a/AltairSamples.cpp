@@ -16,7 +16,7 @@ void loadProgramList() {
   Serial.println(F("+ Sample programs."));
   Serial.println(F("----------"));
   Serial.println(F("++ k, Kill the Bit version for serial VT100 input."));
-  Serial.println(F("++ m, MVI testing to the setting of registers."));
+  Serial.println(F("++ m, Test the setting of registers."));
   Serial.println(F("----------"));
   Serial.println(F("++ K, Kill the Bit front panel fast version."));
   Serial.println(F("----------"));

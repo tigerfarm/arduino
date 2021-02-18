@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
-# Altair 101 Software
+# Altair 101 Software: Processor.ino and Java Assembler
 
 The Altair 101 software consists of 2 applications:
 + The [machine code processor](Processor.ino) emulator program, and

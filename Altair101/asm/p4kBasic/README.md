@@ -42,7 +42,7 @@ I prefer using a terminal window, however the Arduino IDE works too.
 ````
 +++ setup
 + SD card module is initialized.
-+++ Altair 101a initialized.
++++ Altair101a initialized.
 ?- ?- ?- + m, Read file into program memory.
 ++ Program filename: 00001001.bin
 ++ Confirm, y/n: 
@@ -70,6 +70,7 @@ OK
 
 I download the [BASIC Manual 75.pdf](https://altairclone.com/downloads/manuals/) and worked through some of it.
 
+Following are sample Basic commands I entered from the manual, which ran on the Altair101a.
 ````
 OK
 LIST
@@ -177,5 +178,15 @@ Altair101a messages when pressing "Y" and "y".
 ?- + y, Serial2 off (end).
 ?- + Y, Serial2 on (begin), baud rate: 115200.
 ````
+
+--------------------------------------------------------------------------------
+
+Altair 8800 - Video #7 - Loading 4K BASIC from a Paper Tape Image
+https://www.youtube.com/watch?v=8InWiihlIQw
+
+The Paper Tape Image, is loaded into the Altair 8800 clone from a laptop over a serial port.
+At 8:45, Basic is loaded and running.
+
+
 --------------------------------------------------------------------------------
 Cheers

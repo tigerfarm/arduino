@@ -1,5 +1,5 @@
 // -----------------------------------------------------------------------------
-// Altair 101a Processor program, which is an Altair 8800 simulator.
+// Altair101a Processor program, which is an Altair 8800 simulator.
 // Copyright (C) 2021 Stacy David Thurston
 //
 // This program is free software; you can redistribute it and/or modify
@@ -11,14 +11,14 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 /*
-  Altair 101a Processor program
+  Altair101a Processor program
 
   This program is an Altair 8800 simulator.
   Interactivity is through the default Arduino USB serial port, and optionally, the Serial2 port.
   It was tested using the Arduino IDE serial monitor and Mac terminal which has VT100 features.
   It runs programs from command line, or with a simulated front panel (printed to the serial port).
   This simulator uses David Hansel's Altair 8800 Simulator code to process machine instructions.
-  Altair 101a program has a basic OS for command line interation.
+  Altair101a program has a basic OS for command line interation.
 
   Control program files: Altair101a.ino and Altair101a.h.
   Machine instruction program files: cpucore_i8080.cpp and cpucore_i8080.h.
@@ -35,22 +35,27 @@
   ---------------------------------------------------------
   Next to work on
 
+  When using Arduino IDE Serial Monitor, remove duplicate messages.
+  + Maybe ignore "CR".
+
   Update README.md files:
   + Altair101a
-  + Galaxy101a, updated, just needs a another read through.
-  + programsAltair
-  ++ Programs people can load and run on the Altair101a.
-  ++ Includes 4K Basic.
+  + Galaxy101a
+  + 4K Basic
+  + programsAltair: programs people can load and run on the Altair101a.
 
   Add/update sample programs for someone to run if all they have is the Arduino board.
 
   ---------------------------------------------------------
-  Get porgrams to work in a Altari-Duino or actual Altair 8800.
-
-  Need to get in contact with group to have help testing.
+  Get porgrams to work on an Altari-Duino or actual Altair 8800.
+  + Need to get in contact with the online group to have help testing.
   
   + Get 88-2SIO to work based on Gaxaly101.asm.
-  + Consider serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality.
+  ++ Should test using port 0 and 1 which work with 4K Basic.
+  ++ Or convert Gaxaly101.asm to use 4K Basic I/O routines.
+  + Consider enhancing how Altair101a uses
+    serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality
+    based on how I use it for 4K Basic.
 
   ---------------------------------------------------------
   Starting integrating hardware functions using the Altair tablet.
@@ -497,7 +502,7 @@ byte readByte = 0;
 
 // Program wait status.
 // const int WAIT_PIN = A9;     // Processor program wait state: off/LOW or wait state on/HIGH.
-const int WAIT_PIN = 13;        // Change to onboard pin for the Altair 101a machine.
+const int WAIT_PIN = 13;        // Change to onboard pin for the Altair101a machine.
 
 // HLDA : 8080 processor goes into a hold state because of other hardware running.
 // const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock/player processing (on/HIGH).
@@ -1677,9 +1682,9 @@ void processWaitSwitch(byte readByte) {
       Serial.print(F("+ h, Print help information."));
       Serial.println();
       Serial.println(F("----------------------------------------------------"));
-      Serial.println(F("+++ Virtual Front Panel"));
+      Serial.println(F("+++ Virtual Front Panel Commands"));
       Serial.println(F("-------------"));
-      Serial.println(F("+ v/V Front panel Disable(use cli)/enable VT100 virtual front panel."));
+      Serial.println(F("+ v/V Front panel Disable(use CLI)/enable VT100 virtual front panel."));
       Serial.println(F("-------------"));
       Serial.println(F("+ 0...9, a...f    Toggle sense/address/data switches:  A0...A9, A10...A15."));
       Serial.println(F("-------------"));
@@ -2152,7 +2157,7 @@ void setup() {
   host_set_addr_leds(regPC);
   host_set_data_leds(opcode);
   printFrontPanel();
-  Serial.println(F("+++ Altair 101a initialized."));
+  Serial.println(F("+++ Altair101a initialized."));
   // ----------------------------------------------------
 }
 
