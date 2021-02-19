@@ -2,29 +2,30 @@
 # Altair101a is an Altair 8800 Simulator
 
 This simulator was built to run Intel 8080 machine code programs.
-My first simulator, Processor.ino, was wrote while building and designing hardware
-based on goals to manage an Altair 8800 front panel
-and add other components such as an MP3 player and real time clock.
+It has a simplistic OS to set configurations and manage programs: run, stop, save, and load.
+Altair101a uses the processing control code from my first simulator, Processor.ino.
+Altair101a uses David Hansel's Altair 8800 simulator code to execute machine instructions.
+Hansel's code is proven to work, as it's the software engine of the Altair-Duino.
 
-Altair101a uses the processing control code from Processor.ino.
-To execute machine instructions,
-it uses David Hansel's Altair 8800 simulator code.
-Hansel's code is proven to work, as it is runs on the Altair-Duino.
-It runs Kill the Bit, versions of Basic, CP/M, and CP/M programs.
+Altair101a runs Kill the Bit, sample assembler programs I wrote, and MITS 4K Basic.
+My assembler program is great for assembling programs into byte code and uploading to the Altair101a.
+I used the assembler to assemble and run a modified version the program GALAXY80,
+a variation of the classic Star Trek game.
 
-Altair101a is a success in that it runs a modified version of the assembler program GALAXY80,
-a version of the classic Star Trek game, sample assembler programs I wrote, and
-4K Basic. My development Altair101a runs an Arduino Mega 2560.
 The next step is to build a new hardware machine using an Arduino Due.
-The Altair101a simulator program is already testing on a Due,
-should be fun building and running the Due machine.
+My current test machine is based on the Arduino Mega 2560.
+The Altair101a simulator program is already tested a Due.
+It will be fun building and running a Due Altair101a machine.
 
 The long term software goal for Altair101a, is to run CP/M.
-Other goals are to implement the hardware front panel and add the MP3 player.
+Hansel's code is capable of running CP/M, and CP/M programs.
+Other goals are to implement the hardware front panel on my Altair101 desktop,
+and add the MP3 player.
 
 --------------------------------------------------------------------------------
-## To Run Altair101a
+## Altair101a Setup and Startup
 
+No wiring required.
 Download the Altair101a project program files into an Arduino project directory of the name Altair101a.
 ````
 Altair101a.ino
@@ -35,34 +36,44 @@ cpucore_i8080.cpp
 cpucore_i8080.h
 ````
 
-Using your serial cable, connect your Arduino Mega 2560 or Due to your computer.
-Load Altair101a.ino from the Arduino IDE.
+Have your Arduino Mega 2560 or Due connect to your computer using a serial cable.
+Load Altair101a.ino into your Arduino IDE.
 All the supporting program files are loaded as well.
 Click Run.
+
 The program files are compiled and uploaded to your Arduino.
 The following message was displayed for uploading to my Mega.
 Your exact numbers and percentages may vary because I continue to update the program.
-You can safely ignore the Low memory available warning.
-There is enough memory to run the program.
 ````
 Sketch uses 70800 bytes (27%) of program storage space. Maximum is 253952 bytes.
 Global variables use 7631 bytes (93%) of dynamic memory, leaving 561 bytes for local variables. Maximum is 8192 bytes.
 Low memory available, stability problems may occur.
 ````
+Note, ignore the Low memory available warning.
+There is enough memory to run the program.
 
-Open the Arduino IDE Serial Monitor (menu: Tools/Serial Monitor).
+Open the Arduino IDE Serial Monitor, IDE menu: Tools/Serial Monitor.
 The following will be displayed.
-At this time, you will get an error message initializing the SD card
-because you don't have one connected.
-If you did happen to connect one before running the program, you will get a
-connection message(+ SD card module is initialized).
-Either way, your Altair101a is ready to be tested.
 ````
 +++ setup
 - Error initializing SD card module.
 +++ Altair101a initialized.
 ?- 
 ````
+Ignore the error message about initializing the SD card
+because you don't have one connected. The program will work fine without it.
+If you did happen to connect one before running the program, you will get a
+connection message.
+````
++++ setup
++ SD card module is initialized
++++ Altair101a initialized.
+?- 
+````
+Either way, your Altair101a is ready to be tested.
+
+--------------------------------------------------------------------------------
+## Running the Altair101a
 
 In the top bar of the Serial Monitor, enter "h" and click the Send button.
 The help information will be displayed followed by a print of the virtual front panel.
@@ -117,8 +128,69 @@ WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
 + Ready to receive command.
 ?- 
 ````
-In the above, note that the virtual data LEDs are all off (.), zeros.
-That is the initial values of the memory bytes, zero.
+In the above, note that the virtual data LEDs (D0..D7) are all off (.), zeros.
+That is the initial value of the first memory byte of memory, zero.
+
+In the top bar of the Serial Monitor, enter "X" and click Send.
+X will EXAMINE NEXT address, current address + 1.
+````
+?- + X, EXAMINE NEXT: 1
+````
+The virtual front panel memory address LEDs (S0..S15), now show address one.
+The memory data byte for address, is also zero.
+````
+INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
+ .    *    .  *   .   .    .    *   .         .   .    .   .   .    .   .   .
+WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
+ *    .      .   .   .   .   .   .   .   .    .   .    .   .   .    .   .   *
+            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
+             v   v   v   v   v   v   v   v    v   v    v   v   v    v   v   v
+````
+In the Serial Monitor, enter "123" and click Send.
+The toggles, S1, S2, S3 are now up (on).
+````
+            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
+             v   v   v   v   v   v   v   v    v   v    v   v   ^    ^   ^   v
+````
+Enter "p" and click Send.
+The data LEDs now show D1, D2, and D3 on.
+The data byte value of 1110 was deposited into memory address 1.
+````
+INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
+ .    *    .  *   .   .    .    *   .         .   .    .   .   *    *   *   .
+WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
+ *    .      .   .   .   .   .   .   .   .    .   .    .   .   .    .   .   *
+            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
+             v   v   v   v   v   v   v   v    v   v    v   v   ^    ^   ^   v
+````
+Enter "R", for RESET, and click Send.
+The memory address is set back to zero. The data byte is zero.
+````
+ *    .      .   .   .   .   .   .   .   .    .   .    .   .   .    .   .   .
+            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
+````
+Enter "X" to examine the next byte in memory, and click Send.
+The memory address is set to one. The data byte is 1110, which it was set to, above.
+````
+?- + X, EXAMINE NEXT: 1
+?- 
+INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0
+ .    *    .  *   .   .    .    *   .         .   .    .   .   *    *   *   .
+WAIT HLDA   A15 A14 A13 A12 A11 A10  A9  A8   A7  A6   A5  A4  A3   A2  A1  A0
+ *    .      .   .   .   .   .   .   .   .    .   .    .   .   .    .   .   *
+            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0
+             v   v   v   v   v   v   v   v    v   v    v   v   v    v   v   v
+````
+
+Now that you have the basics to manage the virtual front panel,
+you can follow along in the Deramp video introducing the Altair 8800 front panel.
+
+https://www.youtube.com/watch?v=suyiMfzmZKs
+
+Note, enter a..f to toggle the virtual front panel toggles S10..S15.
+
+--------------------------------------------------------------------------------
+## Running Programs on the Altair101a
 
 In the top bar of the Serial Monitor, enter "l" and click the Send button.
 A list of programs are list that are built in.
@@ -191,6 +263,15 @@ This time, the register values are set.
 ````
 
 You have confirmed that your Altair101a is working.
+
+Now that you have the basics to run program from the virtual front panel,
+you can follow along in the Deramp video introducing Altair 8800 Front Panel Programming
+where you enter and run the Kill the Bit program.
+
+https://www.youtube.com/watch?v=EV1ki6LiEmg
+
+Note, since this is a serial port interface to the LED lights,
+change byte ??? to ???, to adjust the speed.
 
 --------------------------------------------------------------------------------
 My goal is to use the Altair-Duino code to process machine byte code
