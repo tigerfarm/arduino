@@ -158,6 +158,23 @@
   + Looop()
   
   -----------------------------------------------------------------------------
+  Wire the serial module:
+
+  Module  Due pins:
+  TX      RX:17
+  RX      TX:16 
+  VCC     VCC
+  GND     GND
+  
+  Due pins                TX2:16 RX2:17
+   ---------------------------------------
+  |                            x x        | GND
+  |                                       |
+  |                                       | ...
+  |                                       |
+  |                                       | VCC
+   ---------------------------------------
+
   -----------------------------------------------------------------------------
   Wire the SD Card reader/writer module:
 
@@ -172,12 +189,12 @@
 
   Due SPI center pins.
    ---------------------------------------
-  |                                       | GND
+  |                                      -| GND
   |                 MISO x x + VCC        |
   |                  SCK x x MOSI         |
   |                RESET x x - GND        |
   |                                      x| pin 53
-  |                                       | VCC
+  |                                      +| VCC
    ---------------------------------------
 
   -----------------------------------------------------------------------------
@@ -185,6 +202,8 @@
 
   DFPlayer pin 3 (TX) to Arduino RX19.
   DFPlayer pin 2 (RX) to a 5K resister. 5K resister to Arduino TX18.
+  DFPlayer pin GND    to Arduino GND. Arduino GND to USB hub GND.
+  DFPlayer pin VCC    to USB hub VCC.
   
          ----------
     VCC |   |  |   | BUSY, low:playing, high:not playing
@@ -196,6 +215,15 @@
     GND | |      | | GND
   SPK + | Micro SD | IO_1 short press, play previous. Long press, decrease volume.
          ----------
+
+  Due pins                    TX1:18 RX1:19
+   ---------------------------------------
+  |                                x x   -| GND
+  |                                       |
+  |                                       | ...
+  |                                       |
+  |                                       | 
+   ---------------------------------------
 */
 // -----------------------------------------------------------------------------
 #include "Altair101a.h"
