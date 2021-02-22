@@ -166,15 +166,26 @@ public class asmUpload {
         System.out.println("+ Write to serial port. Number of bytes: " + theLength + " in the file: " + theReadFilename);
         Integer i;
         int tenCount = 0;
+        boolean printBinary = theReadFilename.endsWith(".bin");
         try {
             for (i = 0; i < theLength; i++) {
-                if (tenCount == 10) {
-                    tenCount = 0;
-                    System.out.println("");
-                }
-                tenCount++;
                 byte theByte = bArray[i];
-                System.out.print(byteToString(theByte) + " ");
+                // --------------------------------------
+                // Echo bytes to the screen.
+                if (printBinary) {
+                    // Print bytes in binary format.
+                    if (tenCount == 10) {
+                        tenCount = 0;
+                        System.out.println("");
+                    }
+                    tenCount++;
+                    System.out.print(byteToString(theByte) + " ");
+                } else {
+                    // Print text to screen, such as a Basic program.
+                    System.out.print(theByte);
+                }
+                // --------------------------------------
+                // Write out to serial port.
                 sp.getOutputStream().write(theByte);
                 sp.getOutputStream().flush();
                 Thread.sleep(baudSleepTime);

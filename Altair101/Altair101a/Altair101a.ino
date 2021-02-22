@@ -156,7 +156,46 @@
   --------------------------
   + Setup()
   + Looop()
+  
+  -----------------------------------------------------------------------------
+  -----------------------------------------------------------------------------
+  Wire the SD Card reader/writer module:
 
+  From the back of the SD Card module, the pins:
+  1    2    3    4    5    6
+  CS   SCK  MOSI MISO VCC  GND
+  53   Blck Brwn Whte red
+
+  From the Front of the SD Card module, the pins:
+  GND  VCC  MISO MOSI SCK  CS
+       Red  Whte Brwn Blck To pin 53.
+
+  Due SPI center pins.
+   ---------------------------------------
+  |                                       | GND
+  |                 MISO x x + VCC        |
+  |                  SCK x x MOSI         |
+  |                RESET x x - GND        |
+  |                                      x| pin 53
+  |                                       | VCC
+   ---------------------------------------
+
+  -----------------------------------------------------------------------------
+  DFPlayer Mini pins
+
+  DFPlayer pin 3 (TX) to Arduino RX19.
+  DFPlayer pin 2 (RX) to a 5K resister. 5K resister to Arduino TX18.
+  
+         ----------
+    VCC |   |  |   | BUSY, low:playing, high:not playing
+     RX |    __    | USB port - (DM, clock)
+     TX | DFPlayer | USB port + (DP, data)
+  DAC_R |          | ADKEY_2 Play fifth segment.
+  DAC_L |  ------  | ADKEY_1 Play first segment.
+  SPK - | |      | | IO_2 short press, play next. Long press, increase volume.
+    GND | |      | | GND
+  SPK + | Micro SD | IO_1 short press, play previous. Long press, decrease volume.
+         ----------
 */
 // -----------------------------------------------------------------------------
 #include "Altair101a.h"

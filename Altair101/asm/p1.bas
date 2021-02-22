@@ -1,7 +1,7 @@
-REM -----------------------------------------------------------------------------
+REM ------------------------------------------------------------------------------
 REM 4K Basic listing.
 REM
-REM -----------------------------------------------------------------------------
+REM ------------------------------------------------------------------------------
 REM A> type eliza.bas
 REM
 5 PRINT TAB(16);"**************************"
@@ -14,10 +14,7 @@ REM
 53 PRINT:PRINT TAB(16);"PLEASE DON'T USE COMMAS OR PERIODS IN YOUR INPUTS":PRINT
 55 PRINT TAB(16);"*************************"
 60 PRINT :PRINT :PRINT
-78 REM
-79 REM ---------------------------------------------------------------------------
-80 REM INITIALIZATION
-81 REM
+80 REM *****INITIALIZATION**********
 100 DIM S(36),R(36),N(36)
 105 DIM KEYWORD$(36),WORDIN$(7),WORDOUT$(7),REPLIES$(112)
 110 N1=36:N2=14:N3=112
@@ -28,9 +25,10 @@ REM
 140 READ S(X),L:R(X)=S(X):N(X)=S(X)+L-1
 150 NEXT X
 160 PRINT "HI! I'M ELIZA. WHAT'S YOUR PROBLEM?"
-170 REM ***********************************
-180 REM *******USER INPUT SECTION**********
-190 REM ***********************************
+169 REM
+170 REM --------------------------------------------------------------------------
+180 REM USER INPUT
+190 REM 
 200 INPUT I$
 201 I$="  "+I$+"  "
 210 REM GET RID OF APOSTROPHES
@@ -42,9 +40,10 @@ REM
 243 END
 250 NEXT L
 255 IF I$=P$ THEN PRINT "PLEASE DON'T REPEAT YOURSELF!":GOTO 170
-260 REM ***********************************
-270 REM ********FIND KEYWORD IN I$*********
-280 REM ***********************************
+259 REM
+260 REM --------------------------------------------------------------------------
+270 REM FIND KEYWORD IN I$
+280 REM 
 300 FOR K=1 TO N1
 320 FOR L=1 TO LEN(I$)-LEN(KEYWORD$(K))+1
 340 IF MID$(I$,L,LEN(KEYWORD$(K)))<>KEYWORD$(K) THEN 350
@@ -54,10 +53,11 @@ REM
 350 NEXT L
 360 NEXT K
 370 K=36: GOTO 570:REM WE DIDN'T FIND ANY KEYWORDS
-380 REM ******************************************
-390 REM **TAKE PART OF STRING AND CONJUGATE IT****
-400 REM **USING THE LIST OF STRINGS TO BE SWAPPED*
-410 REM ******************************************
+379 REM
+380 REM --------------------------------------------------------------------------
+390 REM TAKE PART OF STRING AND CONJUGATE IT
+400 REM USING THE LIST OF STRINGS TO BE SWAPPED
+410 REM 
 430 C$=" "+RIGHT$(I$,LEN(I$)-LEN(F$)-L+1)+" "
 440 FOR X=1 TO N2/2
 460 FOR L=1 TO LEN(C$)
@@ -76,9 +76,9 @@ REM
 556 FOR L=1 TO LEN(C$)
 557 IF MID$(C$,L,1)="!" THEN C$=LEFT$(C$,L-1)+RIGHT$(C$,LEN(C$)-L):GOTO 557
 558 NEXT L
-560 REM **********************************************
-570 REM **NOW USING THE KEYWORD NUMBER (K) GET REPLY**
-580 REM **********************************************
+560 REM --------------------------------------------------------------------------
+570 REM NOW USING THE KEYWORD NUMBER (K) GET REPLY
+580 REM 
 600 F$ = REPLIES$(R(K))
 610 R(K)=R(K)+1:IF R(K)>N(K) THEN R(K)=S(K)
 620 IF RIGHT$(F$,1)<>"*" THEN PRINT F$:P$=I$:GOTO 170
@@ -87,26 +87,27 @@ REM
 627 GOTO 170
 630 PRINT LEFT$(F$,LEN(F$)-1);C$
 640 P$=I$:GOTO 170
-1000 REM *******************************
-1010 REM *****PROGRAM DATA FOLLOWS******
-1020 REM *******************************
-1030 REM *********KEYWORDS**************
-1049 REM *******************************
+1000 REM 
+1010 REM -------------------------------------------------------------------------
+1030 REM KEYWORDS
+1049 REM 
 1050 DATA "CAN YOU ","CAN I ","YOU ARE ","YOU'RE ","I DON'T ","I FEEL "
 1060 DATA "WHY DON'T YOU ","WHY CAN'T I ","ARE YOU ","I CAN'T ","I AM ","I'M "
 1070 DATA "YOU ","I WANT ","WHAT ","HOW ","WHO ","WHERE ","WHEN ","WHY "
 1080 DATA "NAME ","CAUSE ","SORRY ","DREAM ","HELLO ","HI ","MAYBE "
 1090 DATA "NO","YOUR ","ALWAYS ","THINK ","ALIKE ","YES ","FRIEND "
 1100 DATA "COMPUTER", "NOKEYFOUND"
-1200 REM *********************************
-1210 REM ***STRING DATA FOR CONJUGATIONS**
-1220 REM *********************************
+1199 REM 
+1200 REM -------------------------------------------------------------------------
+1210 REM STRING DATA FOR CONJUGATIONS
+1220 REM 
 1230 DATA " ARE "," AM "," WERE "," WAS "," YOU "," I "," YOUR"," MY "
 1235 DATA " I'VE "," YOU'VE "," I'M "," YOU'RE "
 1240 DATA " ME "," YOU "
-1300 REM ******************************
-1310 REM *********REPLIES**************
-1320 REM ******************************
+1299 REM 
+1300 REM -------------------------------------------------------------------------
+1310 REM REPLIES
+1320 REM 
 1330 DATA "DON'T YOU BELIEVE THAT I CAN*"
 1340 DATA "PERHAPS YOU WOULD LIKE TO BE LIKE ME*"
 1350 DATA "YOU WANT ME TO BE ABLE TO*"
@@ -219,9 +220,10 @@ REM
 2410 DATA "COME COME ELUCIDATE YOUR THOUGHTS."
 2420 DATA "CAN YOU ELABORATE ON THAT?"
 2430 DATA "THAT IS QUITE INTERESTING."
-2500 REM *************************
-2510 REM *****DATA FOR FINDING RIGHT REPLIES
-2520 REM *************************
+2499 REM 
+2500 REM -------------------------------------------------------------------------
+2510 REM DATA FOR FINDING RIGHT REPLIES
+2520 REM 
 2530 DATA 1,3,4,2,6,4,6,4,10,4,14,3,17,3,20,2,22,3,25,3
 2540 DATA 28,4,28,4,32,3,35,5,40,9,40,9,40,9,40,9,40,9,40,9
 2550 DATA 49,2,51,4,55,4,59,4,63,1,63,1,64,5,69,5,74,2,76,4

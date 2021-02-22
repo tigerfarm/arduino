@@ -6,8 +6,41 @@ the assembler program Bill Gates, Paul Allen, and another wrote. It's the first 
 It was written in Intel 8080 assembler language.
 There was also a binary file for download.
 After a few updates to Altair101a.ino, the binary ran.
+
+Upload from assembler using:
 ````
-...
+> set byte p4kBasic/basic4k.bin
+> upload
+````
+Then run it. On a Mega, 2246 BYTES FREE for programs.
+````
+?- + r, RUN.
+?- + runProcessor()
+
+MEMORY SIZE? 5370
+TERMINAL WIDTH? 120
+WANT SIN? N
+WANT RND? N
+WANT SQR? N
+
+2246 BYTES FREE
+
+BASIC VERSION 3.2
+[4K VERSION]
+
+OK
+````
+Then run it. On a Due, When set to about 56K, 52630 BYTES FREE for programs.
+````
+?- + r, RUN.
+?- + runProcessor()
+
+MEMORY SIZE? 56000
+TERMINAL WIDTH? 120
+WANT SIN? Y
+
+52630 BYTES FREE
+
 BASIC VERSION 3.2
 [4K VERSION]
 
