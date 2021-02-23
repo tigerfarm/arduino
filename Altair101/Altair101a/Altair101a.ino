@@ -35,6 +35,8 @@
   ---------------------------------------------------------
   Next to work on
 
+  A Serial2 buffer for reliably uploading basic programs.
+
   When using Arduino IDE Serial Monitor, remove duplicate messages.
   + Maybe ignore "CR".
 
@@ -49,7 +51,7 @@
   ---------------------------------------------------------
   Get porgrams to work on an Altari-Duino or actual Altair 8800.
   + Need to get in contact with the online group to have help testing.
-  
+
   + Get 88-2SIO to work based on Gaxaly101.asm.
   ++ Should test using port 0 and 1 which work with 4K Basic.
   ++ Or convert Gaxaly101.asm to use 4K Basic I/O routines.
@@ -75,7 +77,7 @@
 
   Front panel: add functions, upload to tablet or desktop machine, and test.
   + Lights
-  + Toggles and switches: 
+  + Toggles and switches:
   + Add the others: player, clock, timer, and counter.
 
   ---------------------------------------------------------
@@ -156,16 +158,16 @@
   --------------------------
   + Setup()
   + Looop()
-  
+
   -----------------------------------------------------------------------------
   Wire the serial module:
 
   Module  Due pins:
   TX      RX:17
-  RX      TX:16 
+  RX      TX:16
   VCC     VCC
   GND     GND
-  
+
   Due pins                TX2:16 RX2:17
    ---------------------------------------
   |                            x x        | GND
@@ -204,7 +206,7 @@
   DFPlayer pin 2 (RX) to a 5K resister. 5K resister to Arduino TX18.
   DFPlayer pin GND    to Arduino GND. Arduino GND to USB hub GND.
   DFPlayer pin VCC    to USB hub VCC.
-  
+
          ----------
     VCC |   |  |   | BUSY, low:playing, high:not playing
      RX |    __    | USB port - (DM, clock)
@@ -222,17 +224,17 @@
   |                                       |
   |                                       | ...
   |                                       |
-  |                                       | 
+  |                                       |
    ---------------------------------------
 
   USB, from top:
-     --------------- 
+     ---------------
     | VCC D- D+ GND |
     |   -       _   |
     |  | |     | |  |
     |   _       _   |
     |               |
-     --------------- 
+     ---------------
           |  |
           |  |
           |  |
@@ -458,7 +460,9 @@ void sdListDirectory() {
 // -----------------------------------------------------------------------------
 // Types of interactions
 
-unsigned long downloadBaudRate = 115200;   // 57600 Needs to match the upload program.
+// Needs to match the upload program:
+//  9600, 19200, 38400, 57600, 115200
+unsigned long downloadBaudRate = 115200;
 
 // Virtual serial front panel using VT100 escape codes.
 // For example, Macbook terminal is VT100 enabled using the UNIX "screen" command.
@@ -958,29 +962,29 @@ byte altair_in(byte portDataByte) {
       00001010 LF 10 000A LF is from the terminal.
       00001101 CR 13 000D Basic 4K only works with CR.
 
-; --------------------------------------
-; Characters with decimal number.
-;
-: :!:":#:$:%:&:':(:):*:+:,:-:.:/:0:1:2:3:4:5:6:7:8:9:
-32 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7
+      ; --------------------------------------
+      ; Characters with decimal number.
+      ;
+      : :!:":#:$:%:&:':(:):*:+:,:-:.:/:0:1:2:3:4:5:6:7:8:9:
+      32 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7
                 40                  50
-:::;:<:=:>:?:@:
- 8 9 0 1 2 3 4
-58          64
+      :::;:<:=:>:?:@:
+      8 9 0 1 2 3 4
+      58          64
 
-:A:B:C:D:E:F:G:H:I:J:K:L:M:N:O:P:Q:R:S:T:U:V:W:X:Y:Z:
-65 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0
+      :A:B:C:D:E:F:G:H:I:J:K:L:M:N:O:P:Q:R:S:T:U:V:W:X:Y:Z:
+      65 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0
           70                  80                  90
-:[:\:]:^:_:`:
-91 2 3 4 5 5
+      :[:\:]:^:_:`:
+      91 2 3 4 5 5
 
-:a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:y:z:
-97 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
-     100                 110       115       120
+      :a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:y:z:
+      97 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
+      100                 110       115       120
 
-:{:|:}:~:
- 3 4 5 6
-     126
+      :{:|:}:~:
+      3 4 5 6
+      126
 
     */
     case 0:
@@ -1701,7 +1705,39 @@ void processWaitSwitch(byte readByte) {
       Serial2.begin(downloadBaudRate);
       SERIAL2_OUTPUT = true;
       break;
-    //
+    case 'B':
+      Serial.println(F("+ B, Select Serial2 baud rate: "));
+      Serial.println(F("++ 1. 9600, 2. 19200, 3. 38400, 4. 57600, 5. 115200; x. Exit, no change"));
+      Serial.print(F("++ ?- "));
+      readConfirmByte = 's';
+      while (!(readConfirmByte > '0' && readConfirmByte < '6') && readConfirmByte != 'x' && readConfirmByte != 'X') {
+        if (Serial.available() > 0) {
+          readConfirmByte = Serial.read();    // Read and process an incoming byte.
+        }
+        delay(60);
+      }
+      if (readConfirmByte == '1') {
+        downloadBaudRate = 9600;
+      } else if (readConfirmByte == '2') {
+        downloadBaudRate = 19200;
+      } else if (readConfirmByte == '3') {
+        downloadBaudRate = 38400;
+      } else if (readConfirmByte == '4') {
+        downloadBaudRate = 57600;
+      } else if (readConfirmByte == '5') {
+        downloadBaudRate = 115200;
+      }
+      if (SERIAL2_OUTPUT) {
+        Serial2.begin(downloadBaudRate);
+        Serial.print(F("Serial2 baud rate set to: "));
+        Serial.print(downloadBaudRate);
+        Serial.println(F("."));
+      } else {
+        Serial.print(F("Serial2 baud rate will be set to: "));
+        Serial.print(downloadBaudRate);
+        Serial.println(F(" when next used."));
+      }
+      break;
     // -------------------------------------
     case 'j':
       Serial.println(F("+ j: Setting Information."));
@@ -1730,8 +1766,7 @@ void processWaitSwitch(byte readByte) {
       } else {
         Serial.print(F("off, "));
       }
-      Serial.print(Serial2);
-      Serial.print(F(", baud rate: "));
+      Serial.print(F("baud rate: "));
       Serial.print(downloadBaudRate );
       Serial.print(F(", data bits, stop bits, and parity: 8, 1, 0"));
       Serial.println();
@@ -1791,6 +1826,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ v/V VT100 panel Disable/enable VT100 virtual front panel."));
       Serial.println(F("+ t/T Terminal    Disable/enable VT100 terminal commandline (cli) escape codes."));
       Serial.println(F("+ y/Y Serial2     Disable/enable Serial2 for I/O."));
+      Serial.println(F("+ B Serial2 baud  Set Serial2 baud rate."));
       Serial.println(F("+ w/W USB serial  Disable/enable USB serial output."));
       Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
       Serial.println(F("-------------"));
@@ -2023,7 +2059,9 @@ void loadProgramSerial() {
 
 // -----------------------------------------------------------------------------
 void modeDownloadProgram() {
-  Serial.println(F("+ Download mode: ready to receive a program. Enter, x, to exit."));
+  Serial.println(F("+ Download mode: ready to receive a program bytes on Serial2. Enter, x, to exit."));
+  Serial.print(F("++ Serial 2 baud rate: "));
+  Serial.println(downloadBaudRate);
   // Status: ready for input and not yet writing to memory.
   host_set_status_led_INP();
   host_clr_status_led_M1();

@@ -297,8 +297,8 @@ OutOfMemory	MVI E,0Ch	;
 SyntaxError	MVI E,02h	;
 	DB 01	;LXI B,....	;
 DivideByZero	MVI E,14h	;
-Error	CALL ResetStack	;
-	CALL NewLine	;
+Error	CALL ResetStack
+	CALL NewLine
 	LXI H,ERROR_CODES	;
 	MOV D,A	;
 	MVI A,'?'	;Print '?'
@@ -450,19 +450,19 @@ ResetStack	POP B
 	LHLD PROG_PTR_TEMP	
 	RET	
 InputLineWith	MVI A,'?'	;Print '?'
-	RST 03	;RST OutChar	;
-	MVI A,' '	;Print ' '
-	RST 03	;RST OutChar	;
-	CALL InputLine	;
-	INX H	;
-Tokenize	MVI C,05	;Initialise line length to 5.
-	LXI D,LINE_BUFFER	;ie, output ptr is same as input ptr at start.
-	MOV A,M	;
-	CPI ' '	;
-	JZ WriteChar	;
-	MOV B,A	;
-	CPI '"'	;
-	JZ FreeCopy	;
+	RST 03                  ;RST OutChar
+	MVI A,' '               ;Print ' '
+	RST 03	;RST OutChar
+	CALL InputLine
+	INX H
+Tokenize	MVI C,05                ;Initialize line length to 5.
+	LXI D,LINE_BUFFER       ;i.e., output pointer is same as input ptr at start.
+	MOV A,M
+	CPI ' '
+	JZ WriteChar
+	MOV B,A
+	CPI '"'
+	JZ FreeCopy
 	ORA A	;
 	JZ Exit	;
 	PUSH D	;Preserve output ptr.

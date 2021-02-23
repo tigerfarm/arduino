@@ -182,7 +182,7 @@ public class asmUpload {
                     System.out.print(byteToString(theByte) + " ");
                 } else {
                     // Print text to screen, such as a Basic program.
-                    System.out.print(theByte);
+                    System.out.write(theByte);
                 }
                 // --------------------------------------
                 // Write out to serial port.
@@ -215,14 +215,15 @@ public class asmUpload {
 
         // asmUpload upload = new asmUpload();
         asmUpload.listSerialPorts();
-        asmUpload.setSerialPortName("wchusbserial14220");  // tty.wchusbserial14220 tty.SLAB_USBtoUART
+        asmUpload.setSerialPortName("slab_usbtouart");  // tty.wchusbserial14220 tty.SLAB_USBtoUART
         System.out.println("------------");
-        asmUpload.setBaudRate(9600);
-        asmUpload.setBaudSleepTime(20);
-        asmUpload.setBaudSleepTimeCr(0);
 
         // String outFilename = "10000000.bin";
-        String outFilename = "poem.txt";
+        // String outFilename = "poem.txt";
+        String outFilename = "p1.bas";
+        // asmUpload.setBaudRate(9600);
+        asmUpload.setBaudSleepTime(30);
+        asmUpload.setBaudSleepTimeCr(100);
         //
         System.out.println("+ Write to the serial port, the program file: " + outFilename + ":");
         sendFile(outFilename);
