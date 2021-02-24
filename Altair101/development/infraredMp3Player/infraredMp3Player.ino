@@ -256,8 +256,6 @@ void playerSetup() {
   //
   // -------------------------
   // Test:
-  //    mp3player.reset(); //Reset the module
-  //    Serial.println(mp3player.readState()); // State: can tell if a song is playing?
   if (hwStatus > 0) {
     hwStatus = 0;
     if (!mp3player.begin(Serial1)) {

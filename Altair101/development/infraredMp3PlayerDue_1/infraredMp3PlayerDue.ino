@@ -15,6 +15,7 @@
 
 int programState;
 
+
 word status_wait = 1;     // Default on
 #define host_read_status_led_WAIT()   status_wait
 #define host_clr_status_led_WAIT()  { digitalWrite(13, LOW);  status_wait = false; }
@@ -29,8 +30,8 @@ void runProcessorWait() {
       int readByte = Serial.read();    // Read and process an incoming byte.
       // processWaitSwitch(readByte);
       if ( readByte == 'g' ) {
-        Serial.println(F("++ mp3PlayerPause();"));
-        mp3PlayerPause();
+        Serial.println(F("++ playMp3Pause();"));
+        playMp3Pause();
       } else if ( readByte == 'G' ) {
         Serial.println(F("++ set programState = PLAYER_RUN"));
         programState = PLAYER_RUN;
@@ -79,7 +80,7 @@ void loop() {
     case PLAYER_RUN:
       host_clr_status_led_WAIT()
       // digitalWrite(HLDA_PIN, HIGH);
-      mp3PlayerRun();
+      runMp3Player();
       // digitalWrite(HLDA_PIN, LOW);  // Returning to the emulator.
       break;
   }

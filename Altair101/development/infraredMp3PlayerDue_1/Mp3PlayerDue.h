@@ -4,8 +4,8 @@
 //    #include "Mp3PlayerDue.h"
 
 void setupMp3Player();
-void mp3PlayerRun();
-void mp3PlayerPause();
+void runMp3Player();
+void playMp3Pause();
 
 // -------------------------------------------------------------------------------
 // eof
