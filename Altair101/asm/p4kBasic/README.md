@@ -7,6 +7,8 @@ It was written in Intel 8080 assembler language.
 There was also a binary file for download.
 After a few updates to Altair101a.ino, the binary ran.
 
+Download [link](https://github.com/option8/Altair-BASIC).
+
 Upload from assembler using:
 ````
 > set byte p4kBasic/basic4k.bin

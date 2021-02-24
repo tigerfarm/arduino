@@ -76,6 +76,135 @@
 */
 // -------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------
+// For the infrared receiver.
+
+// This is the only difference when using the non-Due infrared library.
+// The non-Due infrared library is: #include <IRremote1.h>
+#include <IRremote2.h>
+
+// Other pins can be used. I've use both analog and digital pins.
+// int IR_PIN = A1;
+int IR_PIN = 24;
+
+IRrecv irrecv(IR_PIN);
+decode_results results;
+
+void infraredSwitch() {
+  // Serial.println("+ infraredSwitch");
+  switch (results.value) {
+    case 0xFFFFFFFF:
+      // Ignore. This is from holding the key down.
+      break;
+    // -----------------------------------
+    case 0x7E23117B:
+    case 0xFF10EF:
+      Serial.println("+ Key < - previous");
+      break;
+    case 0x7538143B:
+    case 0xFF5AA5:
+      Serial.println("+ Key > - next");
+      break;
+    case 0x8AA3C35B:
+    case 0xFF18E7:
+      Serial.println("+ Key up");
+      break;
+    case 0xFA2F715F:
+    case 0xFF4AB5:
+      Serial.println("+ Key down");
+      break;
+    case 0x82D6EC17:
+    case 0xFF38C7:
+      pausePlayer();
+      Serial.println("+ Key OK|Enter - Toggle");
+      break;
+    case 0x2C22119B:
+      Serial.println("+ Pause");
+      break;
+    // -----------------------------------
+    case 0x1163EEDF:
+    case 0xFF9867:
+      Serial.print("+ Key 0:");
+      Serial.println("");
+      break;
+    case 0x718E3D1B:
+    case 0xFFA25D:
+      Serial.print("+ Key 1: ");
+      Serial.println("");
+      break;
+    case 0xF8FB71FB:
+    case 0xFF629D:
+      Serial.print("+ Key 2: ");
+      Serial.println("");
+      break;
+    case 0xE9E0AC7F:
+    case 0xFFE21D:
+      Serial.print("+ Key 3: ");
+      Serial.println("");
+      break;
+    case 0x38BF129B:
+    case 0xFF22DD:
+      Serial.print("+ Key 4: ");
+      Serial.println("");
+      break;
+    case 0x926C6A9F:
+    case 0xFF02FD:
+      Serial.print("+ Key 5: ");
+      Serial.println("");
+      break;
+    case 0xE66C5C37:
+    case 0xFFC23D:
+      Serial.print("+ Key 6: ");
+      Serial.println("");
+      break;
+    case 0xD75196BB:
+    case 0xFFE01F:
+      Serial.print("+ Key 7: ");
+      Serial.println("");
+      break;
+    case 0x72FD3AFB:
+    case 0xFFA857:
+      Serial.print("+ Key 8: ");
+      Serial.println("");
+      break;
+    case 0xCCAA92FF:
+    case 0xFF906F:
+      Serial.print("+ Key 9: ");
+      Serial.println("");
+      break;
+    // -----------------------------------
+    case 0xFF6897:
+    case 0xE0E01AE5:
+      Serial.println("+ Key * (Return)");
+      break;
+    case 0xFFB04F:
+    case 0xE0E0B44B:
+      Serial.println("+ Key # (Exit)");
+      break;
+    // -----------------------------------
+    case 0x6D8BBC17:
+      Serial.println("+ Key Channel ^");
+      break;
+    case 0xCDFC965B:
+      Serial.println("+ Key Channel v");
+      break;
+    // -----------------------------------
+    case 0x1CF3ACDB:
+      Serial.println("+ Key Volume ^");
+      break;
+    case 0x2B8BE5F:
+      Serial.println("+ Key Volume v");
+      break;
+    // -----------------------------------
+    default:
+      Serial.print("+ Result value: ");
+      Serial.println(results.value, HEX);
+      // -----------------------------------
+  } // end switch
+
+}
+
+// -------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------
 // DFPlayer Mini MP3 play
 
 #include "Arduino.h"
@@ -145,11 +274,9 @@ void playerSetup() {
   }
   if (hwStatus == 0) {
     ledFlashSuccess();
-    NOT_PLAY_SOUND = false;  // Set to play sound effects.
-    mp3player.volume(PLAYER_VOLUME_SETUP);   // Set speaker volume from 0 to 30.
-    // delay(300);
-    mp3player.setTimeOut(60);         // Set serial communications time out.
-    // delay(300);
+    NOT_PLAY_SOUND = false;                 // Set to play sound effects.
+    mp3player.volume(PLAYER_VOLUME_SETUP);  // Set speaker volume from 0 to 30.
+    mp3player.setTimeOut(60);               // Set serial communications time out.
     //
     // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
     mp3player.outputDevice(DFPLAYER_DEVICE_SD);
@@ -157,7 +284,6 @@ void playerSetup() {
     // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
     mp3player.EQ(DFPLAYER_EQ_CLASSIC);
     //
-    // delay(300);
     playerCounterTop = mp3player.readFileCounts();
     if (playerCounterTop == 65535) {
       delay(300);
@@ -574,146 +700,16 @@ void runPlayer() {
         if (!(playerStatus & HLTA_ON)) {
           playMp3();
         }
-        checkPlayerControls();      // Player control functions from STOP to UNPROTECT.
+        checkPlayerControls();
         break;
       case PLAYER_FILE:
-        checkPlayerFileControls();  // Player control functions from STOP to UNPROTECT.
+        checkPlayerFileControls();
         checkProtectSetVolume();
         break;
     }
     checkAux1();          // Toggle between processor, clock, and player modes.
   }
   playerPlaySound(PLAYER_OFF);
-  restoreLcdScreenData();
-}
-
-// -------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------
-// For the infrared receiver.
-
-// This is the only difference when using the non-Due infrared library.
-// The non-Due infrared library is: #include <IRremote1.h>
-#include <IRremote2.h>
-
-// Other pins can be used. I've use both analog and digital pins.
-// int IR_PIN = A1;
-int IR_PIN = 24;
-
-IRrecv irrecv(IR_PIN);
-decode_results results;
-
-void infraredSwitch() {
-  // Serial.println("+ infraredSwitch");
-  switch (results.value) {
-    case 0xFFFFFFFF:
-      // Ignore. This is from holding the key down.
-      break;
-    // -----------------------------------
-    case 0x7E23117B:
-    case 0xFF10EF:
-      Serial.println("+ Key < - previous");
-      break;
-    case 0x7538143B:
-    case 0xFF5AA5:
-      Serial.println("+ Key > - next");
-      break;
-    case 0x8AA3C35B:
-    case 0xFF18E7:
-      Serial.println("+ Key up");
-      break;
-    case 0xFA2F715F:
-    case 0xFF4AB5:
-      Serial.println("+ Key down");
-      break;
-    case 0x82D6EC17:
-    case 0xFF38C7:
-      pausePlayer();
-      Serial.println("+ Key OK|Enter - Toggle");
-      break;
-    case 0x2C22119B:
-      Serial.println("+ Pause");
-      break;
-    // -----------------------------------
-    case 0x1163EEDF:
-    case 0xFF9867:
-      Serial.print("+ Key 0:");
-      Serial.println("");
-      break;
-    case 0x718E3D1B:
-    case 0xFFA25D:
-      Serial.print("+ Key 1: ");
-      Serial.println("");
-      break;
-    case 0xF8FB71FB:
-    case 0xFF629D:
-      Serial.print("+ Key 2: ");
-      Serial.println("");
-      break;
-    case 0xE9E0AC7F:
-    case 0xFFE21D:
-      Serial.print("+ Key 3: ");
-      Serial.println("");
-      break;
-    case 0x38BF129B:
-    case 0xFF22DD:
-      Serial.print("+ Key 4: ");
-      Serial.println("");
-      break;
-    case 0x926C6A9F:
-    case 0xFF02FD:
-      Serial.print("+ Key 5: ");
-      Serial.println("");
-      break;
-    case 0xE66C5C37:
-    case 0xFFC23D:
-      Serial.print("+ Key 6: ");
-      Serial.println("");
-      break;
-    case 0xD75196BB:
-    case 0xFFE01F:
-      Serial.print("+ Key 7: ");
-      Serial.println("");
-      break;
-    case 0x72FD3AFB:
-    case 0xFFA857:
-      Serial.print("+ Key 8: ");
-      Serial.println("");
-      break;
-    case 0xCCAA92FF:
-    case 0xFF906F:
-      Serial.print("+ Key 9: ");
-      Serial.println("");
-      break;
-    // -----------------------------------
-    case 0xFF6897:
-    case 0xE0E01AE5:
-      Serial.println("+ Key * (Return)");
-      break;
-    case 0xFFB04F:
-    case 0xE0E0B44B:
-      Serial.println("+ Key # (Exit)");
-      break;
-    // -----------------------------------
-    case 0x6D8BBC17:
-      Serial.println("+ Key Channel ^");
-      break;
-    case 0xCDFC965B:
-      Serial.println("+ Key Channel v");
-      break;
-    // -----------------------------------
-    case 0x1CF3ACDB:
-      Serial.println("+ Key Volume ^");
-      break;
-    case 0x2B8BE5F:
-      Serial.println("+ Key Volume v");
-      break;
-    // -----------------------------------
-    default:
-      Serial.print("+ Result value: ");
-      Serial.println(results.value, HEX);
-      // -----------------------------------
-  } // end switch
-
 }
 
 // -------------------------------------------------------------------------------
@@ -727,6 +723,9 @@ void setup() {
 
   irrecv.enableIRIn();
   Serial.println("+ Initialized the infrared receiver.");
+
+  playerSetup();
+  Serial.println("+ Initialized the MP3 player.");
 
   Serial.println("++ Go to loop.");
 }

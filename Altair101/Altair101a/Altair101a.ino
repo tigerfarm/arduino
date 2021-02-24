@@ -202,11 +202,16 @@
   -----------------------------------------------------------------------------
   DFPlayer Mini pins
 
-  DFPlayer pin 3 (TX) to Arduino RX19.
+  DFPlayer pin 3 (TX) to a 1K resister. 1K resister to Arduino RX19.
   DFPlayer pin 2 (RX) to a 5K resister. 5K resister to Arduino TX18.
   DFPlayer pin GND    to Arduino GND. Arduino GND to USB hub GND.
   DFPlayer pin VCC    to USB hub VCC.
 
+  RX/TX pin voltage,
+  + The Arduino Due has three 3.3V TTL serial ports.
+  + Found the suggestion: connect a 1k resistor between the module and MP3 on TX-RX and RX-TX.
+    Because DFPlayer Mini Module operating voltage is 3.3V.
+  
          ----------
     VCC |   |  |   | BUSY, low:playing, high:not playing
      RX |    __    | USB port - (DM, clock)
@@ -238,6 +243,9 @@
           |  |
           |  |
           |  |
+  My USB cable has:
+  + A ground wire wrap.
+  + Purple VCC, +5 VCC.s
 */
 // -----------------------------------------------------------------------------
 #include "Altair101a.h"
@@ -2223,7 +2231,7 @@ void setup() {
   Serial.println(); // Newline after garbage characters.
   Serial.print(F("+++ "));
   Serial.println(__func__); // prints "setup"
-
+  Serial.print(F("()"));
   //
   // ----------------------------------------------------
   // ----------------------------------------------------

@@ -82,7 +82,7 @@
     Can add characters after the number, for example, "0001hello.mp3".
 
   Prepare an SD card for use.
-  
+
   On Mac, use the disk utility to format the disk:
     Applications > Utilities > open Disk Utility.
     Click on the SD card, example: APPLE SD Card Reader Media/MUSICSD.
@@ -155,7 +155,7 @@
     VCC to +5V of the other power source.
     Connected GND to ground(-), between the Arduino power and the USB wall plug.
   2.2 I connect a short wire between the DFPlayer ground pins: pins 7 to 10.
-  
+
   I seen another power option:
     From the Arduino +5V, use a 7805 with capacitors and diode to the DFPlayer VCC pin.
     GND to ground(-).
@@ -309,6 +309,13 @@ void echoCurrentInfo() {
 // Handle continuous playing, and play errors such as: SD card not inserted.
 
 void playMp3() {
+
+  // Process infrared key presses.
+  if (irrecv.decode(&results)) {
+    playerInfraredSwitch(results.value);
+    irrecv.resume();
+  }
+
   if (mp3player.available()) {
     int theType = mp3player.readType();
     // ------------------------------
@@ -334,18 +341,20 @@ void playMp3() {
       printDFPlayerMessage(theType, mp3player.read());
     }
   }
+
+  delay(60);
 }
 
 // -----------------------------------------------------------------------
 // Infrared DFPlayer controls
 
-void playerInfraredSwitch() {
+void playerInfraredSwitch(int resultsValue) {
   // Serial.println("+ playerInfraredSwitch");
   //
   // Consider controls based on state.
   //  For example, if pause, then only allow unpause (OK key).
   //
-  switch (results.value) {
+  switch (resultsValue) {
     case 0xFFFFFFFF:
       // Ignore. This is from holding the key down.
       break;
@@ -485,27 +494,20 @@ void playerInfraredSwitch() {
 }
 
 // -----------------------------------------------------------------------------
-void setup() {
-  Serial.begin(115200); // 9600 or 115200
-  // Give the serial connection time to start before the first print.
-  delay(1000);
-  Serial.println(""); // Newline after garbage characters.
-  Serial.println("+++ Setup.");
+void setupMp3Player() {
+
+  // ----------------------------------------------------
+  irrecv.enableIRIn();
+  Serial.println(F("+ Initialized the infrared receiver."));
 
   // ----------------------------------------------------
   // DFPlayer serial connection.
-  //
-  // ------------------------------------
-  // Since Mega has its own hardware RX and TX pins, 
-  //    use pins 18 and 19, which has the label: Serial1.
-  // Pin 18(TX) to resister to pin 2(RX).
-  // Pin 19(RX) to pin 3(TX).
   Serial1.begin(9600);
   if (!mp3player.begin(Serial1)) {
-  // --------
-  // For communicating from a Nano or Uno with the DFPlayer, use a software serial port.
-  // playerSerial.begin(9600);
-  // if (!mp3player.begin(playerSerial)) {
+    // --------
+    // For communicating from a Nano or Uno with the DFPlayer, use a software serial port.
+    // playerSerial.begin(9600);
+    // if (!mp3player.begin(playerSerial)) {
     // --------
     // Use softwareSerial to communicate with mp3.
     Serial.println(F("Unable to begin:"));
@@ -541,17 +543,4 @@ void setup() {
   Serial.println("++ Go to loop.");
 }
 
-// -----------------------------------------------------------------------------
-void loop() {
-
-  delay(60);
-
-  // Process infrared key presses.
-  if (irrecv.decode(&results)) {
-    playerInfraredSwitch();
-    irrecv.resume();
-  }
-  playMp3();
-
-}
 // -----------------------------------------------------------------------------
