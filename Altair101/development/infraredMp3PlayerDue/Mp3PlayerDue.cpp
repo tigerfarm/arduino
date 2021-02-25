@@ -3,8 +3,6 @@
   DFPlayer - A Mini MP3 Player For Arduino
   MP3 player with: play next, previous, loop single, and pause.
 
-  This fixes an issue of skipping 2 songs.
-
   -------------------------------------------------------------------------
   Program functionality:
   + Key: Function
@@ -797,9 +795,8 @@ void playMp3() {
         //  because, playMp3() is called before player status changes to busy,
         //  and it increments playerCounter.
         while (mp3playerDevice.available()) {
-          // Serial.print(F("mp3playerDevice.available() "));
-          // Serial.println(mp3playerDevice.readType());
-          delay(60);
+          mp3playerDevice.readType();
+          delay(10);
         }
         //
         playerStatus = playerStatus & HLTA_OFF;
