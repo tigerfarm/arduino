@@ -224,7 +224,7 @@ decode_results results;
 #include "DFRobotDFPlayerMini.h"
 DFRobotDFPlayerMini mp3playerDevice;
 
-#define PLAYER_VOLUME_SETUP 16
+#define PLAYER_VOLUME_SETUP 10
 
 byte hwStatus = B11111111;            // Initial state.
 
@@ -416,7 +416,6 @@ void printDFPlayerMessage(uint8_t type, int value) {
       Serial.println(F(" Play Finished!"));
       break;
     case DFPlayerError:
-      Serial.print(F("DFPlayerError:"));
       switch (value) {
         case Busy:
           Serial.println(F("Card not found"));
@@ -425,26 +424,11 @@ void printDFPlayerMessage(uint8_t type, int value) {
           Serial.println(F("Sleeping"));
           break;
         case FileIndexOut:
-          if (loopSingle) {
-            // For some reason, turning on single looping (mp3player.loop(playerCounter);)
-            //    on the last song causes this error.
-            //    This is ignore the error and get the song player.
-            mp3playerDevice.start();
-          } else {
-            Serial.println(F("File Index Out of Bound"));
-            mp3playerDevice.start();
-          }
+          // Serial.println(F("File Index Out of Bound"));
+          mp3playerDevice.start();
           break;
         case FileMismatch:
           Serial.println(F("Cannot Find File"));
-          /*
-            Serial.print("+ Assume the directory number was incremented too high, play previous directory: ");
-            if (playerDirectory > 1) {
-            playerDirectory --;
-            } else {
-            playerDirectory = 1;
-            }
-          */
           Serial.print("+ Assume the directory number was incremented too high, play first directory: ");
           playerDirectory = 1;
           Serial.println(playerDirectory);
@@ -457,11 +441,6 @@ void printDFPlayerMessage(uint8_t type, int value) {
       }
       break;
     default:
-      /*
-        + Play Finished, Play next MP3.7
-        playerCounter=7, read Current FileNumber: -1
-        - Unknown DFPlayer message type: 11, value:7
-      */
       if (type == 11) {
         // This happens when: read Current FileNumber: -1.
         Serial.print(F("++ read Current FileNumber: "));
@@ -508,8 +487,9 @@ void playerSwitch(int resultsValue) {
       playCounterHlta();
       Serial.print(F("+ Player, Previous: play previous song, playerCounter="));
       Serial.print(playerCounter);
-      Serial.print(F(", read Current FileNumber: "));
-      Serial.println(mp3playerDevice.readCurrentFileNumber());
+      // Serial.print(F(", read Current FileNumber: "));
+      // Serial.println(mp3playerDevice.readCurrentFileNumber());
+      Serial.println();
       break;
     // -----------------------------------
     case 0xFF5AA5:
@@ -526,8 +506,9 @@ void playerSwitch(int resultsValue) {
       playCounterHlta();
       Serial.print(F("+ Player, Next: play next song, playerCounter="));
       Serial.print(playerCounter);
-      Serial.print(F(", read Current FileNumber: "));
-      Serial.println(mp3playerDevice.readCurrentFileNumber());
+      // Serial.print(F(", read Current FileNumber: "));
+      // Serial.println(mp3playerDevice.readCurrentFileNumber());
+      Serial.println();
       break;
     // -----------------------------------
     case 0x2C22119B:
@@ -543,7 +524,8 @@ void playerSwitch(int resultsValue) {
       Serial.print(F("+ Play, play current song, playerCounter="));
       Serial.print(playerCounter);
       Serial.print(F(", read Current FileNumber: "));
-      Serial.println(mp3playerDevice.readCurrentFileNumber());
+      Serial.print(mp3playerDevice.readCurrentFileNumber());
+      Serial.println();
       break;
     // -----------------------------------
     case 0xFF38C7:
@@ -570,39 +552,31 @@ void playerSwitch(int resultsValue) {
       Serial.print("+ Key up - next directory, directory number: ");
       playerDirectory ++;
       Serial.print(playerDirectory);
+      // ------------------
       mp3playerDevice.pause();
       delay(200);
       mp3playerDevice.loopFolder(playerDirectory);
-      // ------------------
       mp3playerDevice.pause();
-      delay(100);
+      delay(200);
+      // ------------------
       // Set the playerCounter to this new directory file number.
       thePlayerCounter = playerCounter;
       playerCounter = mp3playerDevice.readCurrentFileNumber();
-      if (playerCounter > 256) {
-        Serial.print(F(" playerCounter > 256"));
-        delay(100);
-        playerCounter = mp3playerDevice.readCurrentFileNumber();
-      }
-      if (playerCounter < 0) {
-        Serial.print(F(" playerCounter < 0"));
-        delay(100);
-        playerCounter = mp3playerDevice.readCurrentFileNumber();
-      }
       if (playerCounter > 0 && playerCounter < 256) {
         Serial.print(F(" play song"));
         mp3playerDevice.stop();
         delay(100);
         mp3playerPlay(playerCounter);
-      }
-      if (playerCounter < 0 || playerCounter > 256) {
+      } else {
         Serial.print(F(" playerCounter < 0 or > 256"));
         playerCounter = thePlayerCounter;
+        playerDirectory--;
       }
       Serial.print(", playerCounter=");
       Serial.print(playerCounter);
-      Serial.print(F(", read Current FileNumber: "));
-      Serial.println(mp3playerDevice.readCurrentFileNumber());
+      // Serial.print(F(", read Current FileNumber: "));
+      // Serial.println(mp3playerDevice.readCurrentFileNumber());
+      Serial.println();
       // ------------------
       break;
     // -----------------------------------
@@ -620,34 +594,24 @@ void playerSwitch(int resultsValue) {
       mp3playerDevice.loopFolder(playerDirectory);
       // ------------------
       mp3playerDevice.pause();
-      delay(100);
+      delay(200);
       // Set the playerCounter to this new directory file number.
       thePlayerCounter = playerCounter;
       playerCounter = mp3playerDevice.readCurrentFileNumber();
-      if (playerCounter > 256) {
-        Serial.print(F(" playerCounter > 256"));
-        delay(100);
-        playerCounter = mp3playerDevice.readCurrentFileNumber();
-      }
-      if (playerCounter < 0) {
-        Serial.print(F(" playerCounter < 0"));
-        delay(100);
-        playerCounter = mp3playerDevice.readCurrentFileNumber();
-      }
       if (playerCounter > 0 && playerCounter < 256) {
         Serial.print(F(" play song"));
         mp3playerDevice.stop();
         delay(100);
         mp3playerPlay(playerCounter);
-      }
-      if (playerCounter < 0 || playerCounter > 256) {
+      } else {
         Serial.print(F(" playerCounter < 0 or > 256"));
         playerCounter = thePlayerCounter;
       }
       Serial.print(", playerCounter=");
       Serial.print(playerCounter);
-      Serial.print(F(", read Current FileNumber: "));
-      Serial.println(mp3playerDevice.readCurrentFileNumber());
+      // Serial.print(F(", read Current FileNumber: "));
+      // Serial.print(mp3playerDevice.readCurrentFileNumber());
+      Serial.println();
       // ------------------
       break;
     // ----------------------------------------------------------------------
