@@ -3,11 +3,7 @@
   DFPlayer - A Mini MP3 Player For Arduino
   MP3 player with: play next, previous, loop single, and pause.
 
-  First play, "read Current FileNumber: -1"
-  ?- + Play, play current song, playerCounter=1, read Current FileNumber: -1
-
-  Every time pause,  "read Current FileNumber: -1"
-  + Pause, play current song, playerCounter=3, read Current FileNumber: -1
+  This fixes an issue of skipping 2 songs.
 
   -------------------------------------------------------------------------
   Program functionality:
@@ -435,8 +431,8 @@ void printDFPlayerMessage(uint8_t type, int value) {
           mp3playerDevice.loopFolder(playerDirectory);
           break;
         default:
-          Serial.print(F("Unknown DFPlayer error message value:"));
-          Serial.println(value);
+          // Serial.print(F("Unknown DFPlayer error message value: "));
+          // Serial.println(value);
           break;
       }
       break;
@@ -481,8 +477,6 @@ void playerSwitch(int resultsValue) {
       playCounterHlta();
       Serial.print(F("+ Player, Previous: play previous song, playerCounter="));
       Serial.print(playerCounter);
-      // Serial.print(F(", read Current FileNumber: "));
-      // Serial.println(mp3playerDevice.readCurrentFileNumber());
       Serial.println();
       break;
     // -----------------------------------
@@ -500,8 +494,6 @@ void playerSwitch(int resultsValue) {
       playCounterHlta();
       Serial.print(F("+ Player, Next: play next song, playerCounter="));
       Serial.print(playerCounter);
-      // Serial.print(F(", read Current FileNumber: "));
-      // Serial.println(mp3playerDevice.readCurrentFileNumber());
       Serial.println();
       break;
     // -----------------------------------
@@ -517,8 +509,10 @@ void playerSwitch(int resultsValue) {
       playPause = false;
       Serial.print(F("+ Play, play current song, playerCounter="));
       Serial.print(playerCounter);
-      Serial.print(F(", read Current FileNumber: "));
-      Serial.print(mp3playerDevice.readCurrentFileNumber());
+      if (playerCounter > 1) {
+        Serial.print(F(", read Current FileNumber: "));
+        Serial.print(mp3playerDevice.readCurrentFileNumber());
+      }
       Serial.println();
       break;
     // -----------------------------------
@@ -568,8 +562,6 @@ void playerSwitch(int resultsValue) {
       }
       Serial.print(", playerCounter=");
       Serial.print(playerCounter);
-      // Serial.print(F(", read Current FileNumber: "));
-      // Serial.println(mp3playerDevice.readCurrentFileNumber());
       Serial.println();
       // ------------------
       break;
@@ -603,8 +595,6 @@ void playerSwitch(int resultsValue) {
       }
       Serial.print(", playerCounter=");
       Serial.print(playerCounter);
-      // Serial.print(F(", read Current FileNumber: "));
-      // Serial.print(mp3playerDevice.readCurrentFileNumber());
       Serial.println();
       // ------------------
       break;
@@ -789,17 +779,13 @@ void playMp3() {
   if (mp3playerDevice.available()) {
     int theType = mp3playerDevice.readType();
     // ------------------------------
-    /*
-+ Play Finished, Play next MP3: 2
- playerCounter=2
-    */
     if (theType == DFPlayerPlayFinished) {
       Serial.print(F("+ Play Finished, "));
       if (loopSingle) {
-        Serial.print("Loop/play the same MP3.");
+        Serial.print(F("Loop/play the same MP3"));
         mp3playerDevice.start();
       } else {
-        Serial.print("Play next MP3: ");
+        Serial.print(F("Play next MP3"));
         if (playerCounter < playerCounterTop) {
           playerCounter++;
         } else {
@@ -814,9 +800,19 @@ void playMp3() {
         }
         // Serial.println(playerCounter);
       }
-      Serial.print(F(" playerCounter="));
+      Serial.print(F(", playerCounter="));
       Serial.print(playerCounter);
       Serial.println();
+      //
+      // This fixes an issue of skipping 2 songs when first run
+      //  because, else, playMp3() is called before player status changes to busy,
+      //  and it increments playerCounter.
+      /*
+      while (mp3playerDevice.available()) {
+        mp3playerDevice.readType();
+      }
+      */
+      //
       // ------------------------------
     } else if (theType == DFPlayerCardInserted ) {
       Serial.println(F("+ SD mini card inserted. Start playing"));
