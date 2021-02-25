@@ -796,6 +796,11 @@ void playMp3() {
         // Need to fix the issue of skipping 2 songs
         //  because, playMp3() is called before player status changes to busy,
         //  and it increments playerCounter.
+        while (mp3playerDevice.available()) {
+          Serial.print(F("mp3playerDevice.available() "));
+          Serial.println(mp3playerDevice.readType());
+          delay(100);
+        }
         //
         playerStatus = playerStatus & HLTA_OFF;
         if (programState == PLAYER_RUN) {
@@ -896,12 +901,6 @@ void mp3PlayerRun() {
       Serial.print(F("?- "));
     }
     playMp3();
-    // Need to fix the skipping issue.
-    /*
-    while (mp3player.available()) {
-      mp3player.readType();
-    }
-    */
     delay(60);  // Delay before getting the next key press, in case press and hold too long.
   }
 }
