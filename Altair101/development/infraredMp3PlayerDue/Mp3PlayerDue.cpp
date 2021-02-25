@@ -792,26 +792,21 @@ void playMp3() {
           playerCounter = 1;
         }
         mp3playerPlay(playerCounter);
+        //
+        // Need to fix the issue of skipping 2 songs
+        //  because, playMp3() is called before player status changes to busy,
+        //  and it increments playerCounter.
+        //
         playerStatus = playerStatus & HLTA_OFF;
         if (programState == PLAYER_RUN) {
           // This "if", allows continuous playing
           //   in other modes (clock) without effecting their dislay lights.
           playerLights();
         }
-        // Serial.println(playerCounter);
       }
       Serial.print(F(", playerCounter="));
       Serial.print(playerCounter);
       Serial.println();
-      //
-      // This fixes an issue of skipping 2 songs when first run
-      //  because, else, playMp3() is called before player status changes to busy,
-      //  and it increments playerCounter.
-      /*
-      while (mp3playerDevice.available()) {
-        mp3playerDevice.readType();
-      }
-      */
       //
       // ------------------------------
     } else if (theType == DFPlayerCardInserted ) {
@@ -827,6 +822,48 @@ void playMp3() {
       //   such as memory card not inserted.
       printDFPlayerMessage(theType, mp3playerDevice.read());
     }
+  }
+}
+
+void mp3playerPlaywait(byte theFileNumber) {
+  if (NOT_PLAY_SOUND) {
+    return;
+  }
+  Serial.print(F("+ Play MP3 until completed."));
+  playerCounter = theFileNumber;
+  currentPlayerCounter = playerCounter;
+  //
+  // Start the MP3 and wait for the player to be available(started).
+  mp3playerDevice.play(playerCounter);
+  while (mp3playerDevice.available()) {
+    mp3playerDevice.readType();
+  }
+  //
+  boolean playNotCompleted = true;
+  // switchStop = false;
+  Serial.print(F("+ Check when playing is completed."));
+  while (playNotCompleted) {
+    if (mp3playerDevice.available()) {
+      int theType = mp3playerDevice.readType();
+      if (theType == DFPlayerPlayFinished) {
+        playNotCompleted = false;
+        Serial.println(F(" > Playing is completed."));
+      }
+    }
+    // ------------------------
+    // Flip STOP to end at anytime. stacy
+    /*
+      if (pcfControl.readButton(pinReset) == 0) {
+      if (!switchReset) {
+        switchReset = true;
+      }
+      } else if (switchReset) {
+      switchReset = false;
+      playNotCompleted = false;
+      Serial.println(F(" > Exit playing, RESET flipped."));
+      }
+    */
+    // ------------------------
   }
 }
 
@@ -859,6 +896,12 @@ void mp3PlayerRun() {
       Serial.print(F("?- "));
     }
     playMp3();
+    // Need to fix the skipping issue.
+    /*
+    while (mp3player.available()) {
+      mp3player.readType();
+    }
+    */
     delay(60);  // Delay before getting the next key press, in case press and hold too long.
   }
 }
