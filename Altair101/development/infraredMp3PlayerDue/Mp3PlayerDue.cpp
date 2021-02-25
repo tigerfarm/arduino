@@ -793,13 +793,13 @@ void playMp3() {
         }
         mp3playerPlay(playerCounter);
         //
-        // Need to fix the issue of skipping 2 songs
+        // Need this to fix the issue of skipping 2 songs
         //  because, playMp3() is called before player status changes to busy,
         //  and it increments playerCounter.
         while (mp3playerDevice.available()) {
-          Serial.print(F("mp3playerDevice.available() "));
-          Serial.println(mp3playerDevice.readType());
-          delay(100);
+          // Serial.print(F("mp3playerDevice.available() "));
+          // Serial.println(mp3playerDevice.readType());
+          delay(60);
         }
         //
         playerStatus = playerStatus & HLTA_OFF;
