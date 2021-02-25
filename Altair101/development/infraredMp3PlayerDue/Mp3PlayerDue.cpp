@@ -441,16 +441,10 @@ void printDFPlayerMessage(uint8_t type, int value) {
       }
       break;
     default:
-      if (type == 11) {
-        // This happens when: read Current FileNumber: -1.
-        Serial.print(F("++ read Current FileNumber: "));
-        Serial.println(value);  // mp3playerDevice.readCurrentFileNumber()
-      } else {
-        Serial.print(F("- Unknown DFPlayer message type: "));
-        Serial.print(type);
-        Serial.print(F(", value:"));
-        Serial.println(value);
-      }
+      Serial.print(F("- Unknown DFPlayer message type: "));
+      Serial.print(type);
+      Serial.print(F(", value:"));
+      Serial.println(value);
       break;
   }
 }
@@ -796,9 +790,8 @@ void playMp3() {
     int theType = mp3playerDevice.readType();
     // ------------------------------
     /*
-      + Play Finished, Play next MP3.11
-      playerCounter=11, read Current FileNumber: -1
-      - Unknown DFPlayer message type: 11, value:11
++ Play Finished, Play next MP3: 2
+ playerCounter=2
     */
     if (theType == DFPlayerPlayFinished) {
       Serial.print(F("+ Play Finished, "));
@@ -806,7 +799,7 @@ void playMp3() {
         Serial.print("Loop/play the same MP3.");
         mp3playerDevice.start();
       } else {
-        Serial.print("Play next MP3.");
+        Serial.print("Play next MP3: ");
         if (playerCounter < playerCounterTop) {
           playerCounter++;
         } else {
@@ -819,16 +812,20 @@ void playMp3() {
           //   in other modes (clock) without effecting their dislay lights.
           playerLights();
         }
-        Serial.println(playerCounter);
+        // Serial.println(playerCounter);
       }
       Serial.print(F(" playerCounter="));
       Serial.print(playerCounter);
-      Serial.print(F(", read Current FileNumber: "));
-      Serial.println(mp3playerDevice.readCurrentFileNumber());
+      Serial.println();
       // ------------------------------
     } else if (theType == DFPlayerCardInserted ) {
       Serial.println(F("+ SD mini card inserted. Start playing"));
       mp3playerDevice.start();
+    } else if (theType == 11 ) {
+      // This happens when: read Current FileNumber: -1.
+      Serial.print(F("++ read Current FileNumber: "));
+      Serial.print(mp3playerDevice.read());  // mp3playerDevice.readCurrentFileNumber()
+      Serial.println();
     } else {
       // Print the detail message from DFPlayer to handle different errors and states,
       //   such as memory card not inserted.
