@@ -3,6 +3,12 @@
   DFPlayer - A Mini MP3 Player For Arduino
   MP3 player with: play next, previous, loop single, and pause.
 
+  First play, "read Current FileNumber: -1"
+  ?- + Play, play current song, playerCounter=1, read Current FileNumber: -1
+
+  Every time pause,  "read Current FileNumber: -1"
+  + Pause, play current song, playerCounter=3, read Current FileNumber: -1
+
   -------------------------------------------------------------------------
   Program functionality:
   + Key: Function
@@ -238,6 +244,9 @@ boolean playPause = false;  // For toggling pause.
 uint16_t playerCounter = 1;                     // First song played when player starts up. Then incremented when next is played.
 uint8_t playerStatus = 0;
 uint8_t playerVolume = 0;
+
+uint16_t thePlayerCounter;
+
 //
 uint16_t currentPlayerCounter = playerCounter;  // Current song playing.
 uint16_t processorPlayerCounter = 0;            // Indicator for the processor to play an MP3, if not zero.
@@ -250,21 +259,109 @@ boolean loopSingle = false;       // For toggling single song.
 
 boolean NOT_PLAY_SOUND = false;  // Sometimes, nice not to hear sounds over and again when testing.
 
+// -----------------------------------------------------------------------------
+// Initialize the player module.
+// This allows it to be reset after the computer is restarted.
+//
+void setupMp3Player() {
+  // ----------------------------------------------------
+  irrecv.enableIRIn();
+  Serial.println(F("+ Initialized the infrared receiver."));
+
+  // Set player front panel values.
+  playerCounter = 1;                  // For now, default to song/file 1.
+  playerVolume = PLAYER_VOLUME_SETUP;
+  playerStatus = OUT_ON | HLTA_ON;    // ,  LED status light to indicate the Player.
+  playerDirectory = 1;
+  //
+  // Until changed to playerStatus, manage playPause.
+  playPause = true;
+  //
+  // -------------------------
+  Serial1.begin(9600);
+  if (hwStatus > 0) {
+    hwStatus = 0;
+    if (!mp3playerDevice.begin(Serial1)) {
+      delay(500);
+      if (!mp3playerDevice.begin(Serial1)) {
+        ledFlashError();
+        NOT_PLAY_SOUND = true;  // Set to not play sound effects.
+        Serial.println(F("MP3 Player, unable to begin:"));
+        Serial.println(F("1.Please recheck the connection!"));
+        Serial.println(F("2.Please insert the SD card!"));
+        hwStatus = 4;
+      }
+    }
+  }
+  if (hwStatus == 0) {
+    ledFlashSuccess();
+    NOT_PLAY_SOUND = false;                 // Set to play sound effects.
+    mp3playerDevice.volume(PLAYER_VOLUME_SETUP);  // Set speaker volume from 0 to 30.
+    mp3playerDevice.setTimeOut(60);               // Set serial communications time out.
+    //
+    // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
+    mp3playerDevice.outputDevice(DFPLAYER_DEVICE_SD);
+    //
+    // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
+    mp3playerDevice.EQ(DFPLAYER_EQ_CLASSIC);
+    //
+    playerCounterTop = mp3playerDevice.readFileCounts();
+    if (playerCounterTop == 65535) {
+      delay(300);
+      playerCounterTop = mp3playerDevice.readFileCounts();
+    }
+    Serial.print(F("+ DFPlayer is initialized. Number of MP3 files = "));
+    Serial.println(playerCounterTop);
+  }
+}
+
 // -----------------------------------------------------------------------
 void printPlayerInfo() {
   Serial.println("+ --------------------------------------");
-  Serial.print("+ readCurrentFileNumber: ");
+  Serial.print("++ playerCounterTop:   ");
+  Serial.println(playerCounterTop);
+  Serial.print("++ playerCounter:      ");
+  Serial.println(playerCounter);
+  Serial.print("++ playerVolume:       ");
+  Serial.println(playerVolume);
+  Serial.print("++ playPause:          ");
+  if (playPause) {
+    Serial.println("True");
+  } else {
+    Serial.println("False");
+  }
+  Serial.print("++ playerStatus:       ");
+  Serial.println(playerStatus);
+
+  Serial.println("+ --------------------------------------");
+  if (!playPause) {
+    Serial.println("+ Pause the song while getting information values...");
+    mp3playerDevice.pause();
+  }
+  Serial.print("++ readCurrentFileNumber: ");
   Serial.println(mp3playerDevice.readCurrentFileNumber());   // current play file number
-  Serial.print("+ readState: ");
-  Serial.println(mp3playerDevice.readState());               // mp3 state
-  Serial.print("+ readEQ: ");
+  // Serial.print("++ readState: ");
+  // Serial.println(mp3playerDevice.readState());               // mp3 state
+  Serial.print("++ readEQ: ");
   Serial.println(mp3playerDevice.readEQ());                  // EQ setting
-  Serial.print("+ readFileCounts: ");
+  Serial.print("++ readFileCounts: ");
   Serial.println(mp3playerDevice.readFileCounts());          // all file counts in SD card
-  Serial.print("+ readFileCountsInFolder 01: ");
-  Serial.println(mp3playerDevice.readFileCountsInFolder(1)); // fill counts in folder SD:/01
-  Serial.print("+ readVolume: ");
+  // Serial.print("++ readFileCountsInFolder 01: ");
+  // Serial.println(mp3playerDevice.readFileCountsInFolder(1)); // fill counts in folder SD:/01
+  Serial.print("++ readVolume: ");
   Serial.println(mp3playerDevice.readVolume());              // current sound volume
+  //
+  // Since the above resets to the first song, reset the song that was playing.
+  delay(100);
+  mp3playerDevice.play(playerCounter);
+  // delay(100);
+  mp3playerDevice.pause();
+  if (!playPause) {
+    Serial.println("+ Restarting the song...");
+    // Note mp3playerDevice.start(); doesn't work, and the above resets the device back to song 1.
+    mp3playerDevice.play(playerCounter);
+  }
+  Serial.println("+ --------------------------------------");
   /*
      Sample output:
     + readCurrentFileNumber: 1
@@ -273,7 +370,6 @@ void printPlayerInfo() {
     + readFileCounts: 486
     + readFileCountsInFolder 01: 8
     + readVolume: 12
-
   */
 }
 
@@ -285,6 +381,14 @@ void mp3playerPlay(int theCounter) {
   mp3playerDevice.play(theCounter);
 }
 
+void playCounterHlta() {
+  if (!(playerStatus & HLTA_ON)) {
+    mp3playerDevice.play(playerCounter);
+    currentPlayerCounter = playerCounter;
+  }
+  playerLights();
+}
+
 // -----------------------------------------------------------------------
 // DFPlayer configuration and error messages.
 
@@ -292,7 +396,7 @@ void printDFPlayerMessage(uint8_t type, int value);
 void printDFPlayerMessage(uint8_t type, int value) {
   switch (type) {
     case TimeOut:
-      Serial.println(F("Time Out!"));
+      // Serial.println(F("Time Out!"));
       mp3playerPlay(playerCounter);
       playerStatus = playerStatus & HLTA_OFF;
       playerLights();
@@ -328,30 +432,46 @@ void printDFPlayerMessage(uint8_t type, int value) {
             mp3playerDevice.start();
           } else {
             Serial.println(F("File Index Out of Bound"));
+            mp3playerDevice.start();
           }
           break;
         case FileMismatch:
           Serial.println(F("Cannot Find File"));
-          Serial.print("+ Assume the directory number was incremented too high, play previous directory: ");
-          if (playerDirectory > 1) {
+          /*
+            Serial.print("+ Assume the directory number was incremented too high, play previous directory: ");
+            if (playerDirectory > 1) {
             playerDirectory --;
-          } else {
+            } else {
             playerDirectory = 1;
-          }
+            }
+          */
+          Serial.print("+ Assume the directory number was incremented too high, play first directory: ");
+          playerDirectory = 1;
           Serial.println(playerDirectory);
           mp3playerDevice.loopFolder(playerDirectory);
           break;
         default:
-          Serial.println(F("Unknown DFPlayer error message value:"));
-          Serial.print(value);
+          Serial.print(F("Unknown DFPlayer error message value:"));
+          Serial.println(value);
           break;
       }
       break;
     default:
-      Serial.println(F("Unknown DFPlayer message type: "));
-      Serial.print(type);
-      Serial.print(F(", value:"));
-      Serial.print(value);
+      /*
+        + Play Finished, Play next MP3.7
+        playerCounter=7, read Current FileNumber: -1
+        - Unknown DFPlayer message type: 11, value:7
+      */
+      if (type == 11) {
+        // This happens when: read Current FileNumber: -1.
+        Serial.print(F("++ read Current FileNumber: "));
+        Serial.println(value);  // mp3playerDevice.readCurrentFileNumber()
+      } else {
+        Serial.print(F("- Unknown DFPlayer message type: "));
+        Serial.print(type);
+        Serial.print(F(", value:"));
+        Serial.println(value);
+      }
       break;
   }
 }
@@ -360,44 +480,77 @@ void printDFPlayerMessage(uint8_t type, int value) {
 // Infrared DFPlayer controls
 
 void playerSwitch(int resultsValue) {
-  // Serial.println("+ playerInfraredSwitch");
-  //
-  // Consider controls based on state.
-  //  For example, if pause, then only allow unpause (OK key).
-  //
   switch (resultsValue) {
     // -----------------------------------
     case 0xFFFFFFFF:
       // Ignore. This is from holding the key down.
       break;
-    case 0:
-      // Ignore. CR/LF.
+    case 10:
+    case 13:
+      // CR/LF.
+      Serial.println();
       break;
-    // -----------------------------------
+    // ----------------------------------------------------------------------
     // Song control
+    //
+    // -----------------------------------
     case 0xFF10EF:
     case 0x7E23117B:
-    case 'x':
+    case 'p':
       // Serial.println("+ Key < - previous");
-      // Stacy, don't previous before the first song.
-      mp3playerDevice.previous();
-      delay(300);
-      Serial.print(F("+ Previous, Current FileNumber: "));
+      // mp3playerDevice.previous();
+      // delay(300);
+      if (playerCounter > 1) {
+        playerCounter--;
+      } else {
+        playerCounter = playerCounterTop;
+      }
+      playCounterHlta();
+      Serial.print(F("+ Player, Previous: play previous song, playerCounter="));
+      Serial.print(playerCounter);
+      Serial.print(F(", read Current FileNumber: "));
       Serial.println(mp3playerDevice.readCurrentFileNumber());
       break;
+    // -----------------------------------
     case 0xFF5AA5:
     case 0x7538143B:
-    case 'X':
+    case 'n':
       // Serial.println("+ Key > - next");
-      mp3playerDevice.next();
-      delay(300);
-      Serial.print(F("+ Next, Current FileNumber: "));
+      // mp3playerDevice.next();
+      // delay(300);
+      if (playerCounter < playerCounterTop) {
+        playerCounter++;
+      } else {
+        playerCounter = 1;
+      }
+      playCounterHlta();
+      Serial.print(F("+ Player, Next: play next song, playerCounter="));
+      Serial.print(playerCounter);
+      Serial.print(F(", read Current FileNumber: "));
       Serial.println(mp3playerDevice.readCurrentFileNumber());
       break;
+    // -----------------------------------
+    case 0x2C22119B:
+    case 's':
+      mp3playerDevice.pause();
+      playPause = true;
+      Serial.print(F("+ Pause, play current song, playerCounter="));
+      Serial.println(playerCounter);
+      break;
+    case 'r':
+      mp3playerDevice.start();
+      playPause = false;
+      Serial.print(F("+ Play, play current song, playerCounter="));
+      Serial.print(playerCounter);
+      Serial.print(F(", read Current FileNumber: "));
+      Serial.println(mp3playerDevice.readCurrentFileNumber());
+      break;
+    // -----------------------------------
     case 0xFF38C7:
     case 0x82D6EC17:
-      Serial.println("+ Key OK|Enter - Toggle: pause and start the song.");
-      Serial.print(F("+ Current FileNumber: "));
+      Serial.print("+ Key OK|Enter - Toggle: pause|start the song, playerCounter=");
+      Serial.print(playerCounter);
+      Serial.print(F(", read Current FileNumber: "));
       Serial.println(mp3playerDevice.readCurrentFileNumber());
       if (playPause) {
         mp3playerDevice.start();
@@ -407,17 +560,109 @@ void playerSwitch(int resultsValue) {
         playPause = true;
       }
       break;
+    // ----------------------------------------------------------------------
+    // Folder, file directory selection.
+    //
     // -----------------------------------
+    case 0x6D8BBC17:
+    case 0x8AA3C35B:
+    case 'D':
+      Serial.print("+ Key up - next directory, directory number: ");
+      playerDirectory ++;
+      Serial.print(playerDirectory);
+      mp3playerDevice.pause();
+      delay(200);
+      mp3playerDevice.loopFolder(playerDirectory);
+      // ------------------
+      mp3playerDevice.pause();
+      delay(100);
+      // Set the playerCounter to this new directory file number.
+      thePlayerCounter = playerCounter;
+      playerCounter = mp3playerDevice.readCurrentFileNumber();
+      if (playerCounter > 256) {
+        Serial.print(F(" playerCounter > 256"));
+        delay(100);
+        playerCounter = mp3playerDevice.readCurrentFileNumber();
+      }
+      if (playerCounter < 0) {
+        Serial.print(F(" playerCounter < 0"));
+        delay(100);
+        playerCounter = mp3playerDevice.readCurrentFileNumber();
+      }
+      if (playerCounter > 0 && playerCounter < 256) {
+        Serial.print(F(" play song"));
+        mp3playerDevice.stop();
+        delay(100);
+        mp3playerPlay(playerCounter);
+      }
+      if (playerCounter < 0 || playerCounter > 256) {
+        Serial.print(F(" playerCounter < 0 or > 256"));
+        playerCounter = thePlayerCounter;
+      }
+      Serial.print(", playerCounter=");
+      Serial.print(playerCounter);
+      Serial.print(F(", read Current FileNumber: "));
+      Serial.println(mp3playerDevice.readCurrentFileNumber());
+      // ------------------
+      break;
+    // -----------------------------------
+    case 0xCDFC965B:
+    case 0xFA2F715F:
+    case 'd':
+    case 0xFF4AB5:
+      Serial.print("+ Key down - previous directory, directory number: ");
+      if (playerDirectory > 1) {
+        playerDirectory --;
+      }
+      Serial.print(playerDirectory);
+      mp3playerDevice.pause();
+      delay(200);
+      mp3playerDevice.loopFolder(playerDirectory);
+      // ------------------
+      mp3playerDevice.pause();
+      delay(100);
+      // Set the playerCounter to this new directory file number.
+      thePlayerCounter = playerCounter;
+      playerCounter = mp3playerDevice.readCurrentFileNumber();
+      if (playerCounter > 256) {
+        Serial.print(F(" playerCounter > 256"));
+        delay(100);
+        playerCounter = mp3playerDevice.readCurrentFileNumber();
+      }
+      if (playerCounter < 0) {
+        Serial.print(F(" playerCounter < 0"));
+        delay(100);
+        playerCounter = mp3playerDevice.readCurrentFileNumber();
+      }
+      if (playerCounter > 0 && playerCounter < 256) {
+        Serial.print(F(" play song"));
+        mp3playerDevice.stop();
+        delay(100);
+        mp3playerPlay(playerCounter);
+      }
+      if (playerCounter < 0 || playerCounter > 256) {
+        Serial.print(F(" playerCounter < 0 or > 256"));
+        playerCounter = thePlayerCounter;
+      }
+      Serial.print(", playerCounter=");
+      Serial.print(playerCounter);
+      Serial.print(F(", read Current FileNumber: "));
+      Serial.println(mp3playerDevice.readCurrentFileNumber());
+      // ------------------
+      break;
+    // ----------------------------------------------------------------------
     // Loop a single song
     //
     case 0xA02E4EBF:
     case 0xFF6897:
     case 'L':
       Serial.println("+ Key *|A.Select - Loop on: loop this single MP3.");
-      mp3playerDevice.pause();   // Pause identifies that loop is on. Else I need a LED to indicate loop is on.
-      delay(200);
-      mp3playerDevice.start();
-      loopSingle = true;
+      if (!loopSingle) {
+        mp3playerDevice.pause();   // Pause identifies that loop is on. Else I need a LED to indicate loop is on.
+        delay(200);
+        mp3playerDevice.start();
+        loopSingle = true;
+      }
       break;
     case 0xC473DE3A:
     case 0xFFB04F:
@@ -430,38 +675,7 @@ void playerSwitch(int resultsValue) {
         loopSingle = false;
       }
       break;
-    case 0x2C22119B:
-    case 's':
-      Serial.println("+ Pause key");
-      mp3playerDevice.pause();
-      playPause = true;
-      break;
-    case 'r':
-      Serial.println("+ Play");
-      mp3playerDevice.start();
-      playPause = false;
-      break;
-    // -----------------------------------
-    // Folder, file directory selection.
-    //
-    case 0xFF18E7:
-    case 0x8AA3C35B:
-      Serial.print("+ Key up - next directory, directory number: ");
-      playerDirectory ++;
-      Serial.println(playerDirectory);
-      mp3playerDevice.loopFolder(playerDirectory);
-      // If no directory, get the error message: DFPlayerError:Cannot Find File
-      break;
-    case 0xFF4AB5:
-    case 0xFA2F715F:
-      Serial.print("+ Key down - previous directory, directory number: ");
-      if (playerDirectory > 1) {
-        playerDirectory --;
-      }
-      Serial.println(playerDirectory);
-      mp3playerDevice.loopFolder(playerDirectory);
-      break;
-    // -----------------------------------
+    // ----------------------------------------------------------------------
     // Small remote, only.
     case 0xFF9867:
       Serial.println("+ Key 0 - Pause");
@@ -498,7 +712,7 @@ void playerSwitch(int resultsValue) {
     case 0xE9E0AC7F:
       Serial.println("+ Key 3");
       break;
-    // -----------------------------------
+    // ----------------------------------------------------------------------
     // Equalizer setting selection.
     case 0x38BF129B:
     case 0xFF22DD:
@@ -536,35 +750,32 @@ void playerSwitch(int resultsValue) {
       Serial.println("DFPLAYER_EQ_BASS");
       mp3playerDevice.EQ(DFPLAYER_EQ_BASS);
       break;
-    // -----------------------------------
-    case 0x6D8BBC17:
-    case 'P':
-      Serial.println("+ Key Channel ^ - next directory, directory number: ");
-      playerDirectory ++;
-      Serial.println(playerDirectory);
-      mp3playerDevice.loopFolder(playerDirectory);
-      // If no directory, get the error message: DFPlayerError:Cannot Find File
-      break;
-    case 0xCDFC965B:
-    case 'p':
-      Serial.println("+ Key Channel v - previous directory, directory number: ");
-      if (playerDirectory > 1) {
-        playerDirectory --;
-      }
-      Serial.println(playerDirectory);
-      mp3playerDevice.loopFolder(playerDirectory);
-      break;
+    // ----------------------------------------------------------------------
     case 0x2B8BE5F:
     case 'V':
       Serial.println("+ Key Volume ^");
-      mp3playerDevice.volumeUp();
+      // mp3playerDevice.volumeUp();
+      if (playerVolume < 30) {
+        playerVolume++;
+      }
+      mp3playerDevice.volume(playerVolume);
+      Serial.print(F("+ Player, increase volume to "));
+      Serial.println(playerVolume);
+      // Set: playerLights();
       break;
     case 0x1CF3ACDB:
     case 'v':
       Serial.println("+ Key Volume v");
-      mp3playerDevice.volumeDown();
+      // mp3playerDevice.volumeDown();
+      if (playerVolume > 1) {
+        playerVolume--;
+      }
+      mp3playerDevice.volume(playerVolume);
+      Serial.print(F("+ Player, decrease volume to "));
+      Serial.println(playerVolume);
+      // Set: playerLights();
       break;
-    // -----------------------------------
+    // ----------------------------------------------------------------------
     case 'h':
       Serial.print(F("+ h, Print help information."));
       Serial.println();
@@ -572,86 +783,45 @@ void playerSwitch(int resultsValue) {
       Serial.println(F("+++ MP3 Player Controls"));
       Serial.println(F("-------------"));
       Serial.println(F("+ s, STOP         Pause, stop playing."));
-      Serial.println(F("+ r, RUN          Play the current song."));
-      Serial.println(F("+ x, EXAMINE      Play previous song."));
-      Serial.println(F("+ X, EXAMINE NEXT Play next song."));
-      Serial.println(F("+ p, DEPOSIT      Play previous directory."));
-      Serial.println(F("+ P, DEPOSIT NEXT Play next directory."));
-      Serial.println(F("+ R, RESET        Not implemented. Play first song."));
-      Serial.println(F("+ C, CLR          Not implemented. Reset and clear loop."));
-      Serial.println(F("------------------"));
+      Serial.println(F("+ r, RUN          Start, playing the current song."));
+      Serial.println(F("+ R, RESET        Play first song."));
+      Serial.println(F("+ n/p, Play song  Play next/previous song."));
+      Serial.println(F("+ d/D, Directory  Play previous directory."));
       Serial.println(F("+ l/L, Loop       Disable/Enable loop the current song."));
       Serial.println(F("+ v/V, Volume     Down/Up volume level."));
+      Serial.println(F("------------------"));
+      Serial.println(F("+ X, Exit player  Return to program WAIT mode."));
+      Serial.println(F("------------------"));
+      Serial.println(F("+ i, Information  Not working."));
+      Serial.println(F("+ x, EXAMINE      Not implemented. Play specified song number."));
       Serial.println(F("----------------------------------------------------"));
       break;
-    // -----------------------------------
+    // ----------------------------------------------------------------------
+    case 'R':
+      Serial.println("+ Player RESET, play first song.");
+      mp3playerDevice.stop();   // Required.
+      setupMp3Player();   // Sets playerCounter = 1;
+      mp3playerPlay(playerCounter);
+      mp3playerDevice.stop();
+      playerLights();
+      break;
     case 'i':
       Serial.println("+ Information");
       printPlayerInfo();
       break;
     case 0xDA529B37:
+    case 'X':
       Serial.println("+ Power");
       programState = PROGRAM_WAIT;
       break;
     // -----------------------------------
     default:
       Serial.print("+ Result value: ");
-      Serial.println(results.value, HEX);
-      // -----------------------------------
+      Serial.print(resultsValue);
+      Serial.print(", HEX: ");
+      Serial.println(resultsValue, HEX);
+      // ----------------------------------------------------------------------
   } // end switch
-}
-
-// -----------------------------------------------------------------------------
-// Initialize the player module.
-// This allows it to be reset after the computer is restarted.
-//
-void setupMp3Player() {
-  // ----------------------------------------------------
-  irrecv.enableIRIn();
-  Serial.println(F("+ Initialized the infrared receiver."));
-
-  // Set player front panel values.
-  playerCounter = 1;                  // For now, default to song/file 1.
-  playerVolume = PLAYER_VOLUME_SETUP;
-  playerStatus = OUT_ON | HLTA_ON;    // ,  LED status light to indicate the Player.
-  playerDirectory = 1;
-  //
-  // -------------------------
-  // Test:
-  if (hwStatus > 0) {
-    hwStatus = 0;
-    if (!mp3playerDevice.begin(Serial1)) {
-      delay(500);
-      if (!mp3playerDevice.begin(Serial1)) {
-        ledFlashError();
-        NOT_PLAY_SOUND = true;  // Set to not play sound effects.
-        Serial.println(F("MP3 Player, unable to begin:"));
-        Serial.println(F("1.Please recheck the connection!"));
-        Serial.println(F("2.Please insert the SD card!"));
-        hwStatus = 4;
-      }
-    }
-  }
-  if (hwStatus == 0) {
-    ledFlashSuccess();
-    NOT_PLAY_SOUND = false;                 // Set to play sound effects.
-    mp3playerDevice.volume(PLAYER_VOLUME_SETUP);  // Set speaker volume from 0 to 30.
-    mp3playerDevice.setTimeOut(60);               // Set serial communications time out.
-    //
-    // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
-    mp3playerDevice.outputDevice(DFPLAYER_DEVICE_SD);
-    //
-    // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
-    mp3playerDevice.EQ(DFPLAYER_EQ_CLASSIC);
-    //
-    playerCounterTop = mp3playerDevice.readFileCounts();
-    if (playerCounterTop == 65535) {
-      delay(300);
-      playerCounterTop = mp3playerDevice.readFileCounts();
-    }
-    Serial.print(F("+ DFPlayer is initialized. Number of MP3 files = "));
-    Serial.println(playerCounterTop);
-  }
 }
 
 // -----------------------------------------------------------------------------
@@ -661,13 +831,18 @@ void playMp3() {
   if (mp3playerDevice.available()) {
     int theType = mp3playerDevice.readType();
     // ------------------------------
+    /*
+      + Play Finished, Play next MP3.11
+      playerCounter=11, read Current FileNumber: -1
+      - Unknown DFPlayer message type: 11, value:11
+    */
     if (theType == DFPlayerPlayFinished) {
-      Serial.print(F("+ Play Finished, Current FileNumber: "));
+      Serial.print(F("+ Play Finished, "));
       if (loopSingle) {
-        Serial.println("Loop/play the same MP3.");
+        Serial.print("Loop/play the same MP3.");
         mp3playerDevice.start();
       } else {
-        Serial.println("Play next MP3.");
+        Serial.print("Play next MP3.");
         if (playerCounter < playerCounterTop) {
           playerCounter++;
         } else {
@@ -676,11 +851,16 @@ void playMp3() {
         mp3playerPlay(playerCounter);
         playerStatus = playerStatus & HLTA_OFF;
         if (programState == PLAYER_RUN) {
-          // This "if", allows continuous playing in other modes (clock) without effecting their dislay lights.
+          // This "if", allows continuous playing
+          //   in other modes (clock) without effecting their dislay lights.
           playerLights();
         }
         Serial.println(playerCounter);
       }
+      Serial.print(F(" playerCounter="));
+      Serial.print(playerCounter);
+      Serial.print(F(", read Current FileNumber: "));
+      Serial.println(mp3playerDevice.readCurrentFileNumber());
       // ------------------------------
     } else if (theType == DFPlayerCardInserted ) {
       Serial.println(F("+ SD mini card inserted. Start playing"));

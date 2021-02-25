@@ -55,7 +55,7 @@ void setup() {
   Serial.println(); // Newline after garbage characters.
   Serial.print(F("++"));
   functionPrint(__func__);
-  Serial.println();
+  Serial.println(", version 0.91");
 
   // ----------------------------------------------------
   setupMp3Player();

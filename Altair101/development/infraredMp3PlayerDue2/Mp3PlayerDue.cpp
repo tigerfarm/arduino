@@ -518,9 +518,9 @@ void playerSwitch(int resultsValue) {
       Serial.println(F("----------------------------------------------------"));
       break;
     // -----------------------------------
-    case i:
+    case 'i':
       Serial.println("+ Information");
-      pintPlayerInfo();
+      // printPlayerInfo();
       break;
     case 0xDA529B37:
       Serial.println("+ Power");
@@ -532,32 +532,6 @@ void playerSwitch(int resultsValue) {
       Serial.println(results.value, HEX);
       // -----------------------------------
   } // end switch
-}
-
-void pintPlayerInfo() {
-  Serial.println("+ --------------------------------------");
-  Serial.print("+ readCurrentFileNumber: ");
-  Serial.println(mp3playerDevice.readCurrentFileNumber());   // current play file number
-  Serial.print("+ readState: ");
-  Serial.println(mp3playerDevice.readState());               // mp3 state
-  Serial.print("+ readEQ: ");
-  Serial.println(mp3playerDevice.readEQ());                  // EQ setting
-  Serial.print("+ readFileCounts: ");
-  Serial.println(mp3playerDevice.readFileCounts());          // all file counts in SD card
-  Serial.print("+ readFileCountsInFolder 01: ");
-  Serial.println(mp3playerDevice.readFileCountsInFolder(1)); // fill counts in folder SD:/01
-  Serial.print("+ readVolume: ");
-  Serial.println(mp3playerDevice.readVolume());              // current sound volume
-  /*
-     Sample output:
-    + readCurrentFileNumber: 1
-    + readState: 514
-    + readEQ: 4
-    + readFileCounts: 486
-    + readFileCountsInFolder 01: 8
-    + readVolume: 12
-
-  */
 }
 
 // -----------------------------------------------------------------------------
@@ -642,11 +616,11 @@ void playMp3() {
 
 void playMp3Pause() {
   // Twice because sometimes, once doesn't work.
-  mp3player.pause();
+  mp3playerDevice.pause();
   delay(100);
-  mp3player.pause();
+  mp3playerDevice.pause();
   playPause = true;
-  playerStatus = playerStatus | HLTA_ON;
+  // playerStatus = playerStatus | HLTA_ON;
 }
 
 void runMp3Player() {
