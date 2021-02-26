@@ -542,7 +542,7 @@ void playerSetup() {
   // Set player front panel values.
   playerCounter = 1;                  // For now, default to song/file 1.
   playerVolume = PLAYER_VOLUME_SETUP;
-  playerStatus = OUT_ON | HLTA_ON;    // ,  LED status light to indicate the Player.
+  playerStatus = OUT_ON | HLTA_ON;    // LED status light to indicate the Player.
   playerDirectory = 1;
   //
   // -------------------------
