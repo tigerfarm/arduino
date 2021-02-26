@@ -15,6 +15,8 @@
   -------------------------------------------------------------------------
   Next to implement,
 
+  Set equalizer value.
+
   --------------------
   Handlet the following, which resets the MP3 player device.
   + Needs: setupMp3Player();
@@ -332,16 +334,24 @@ void printPlayerInfo() {
   Serial.print(F("++ playerDirectory#       "));
   Serial.println(playerDirectory);
   Serial.println(F("+ ----------------"));
+  // -----------------
   Serial.print(F("++ playerStatus:          "));
+  for (int i = 7; i >= 0; i--)
+    Serial.print(bitRead(playerStatus, i));  // Print as a binary number.
+  }
+  Serial.print(F(" = "));
   Serial.print(playerStatus);
-  Serial.print(F(" "));
+  Serial.println();
+  // -----------------
+  Serial.print(F("++ playerStatus, HLTA:    "));
   if (playerStatus & HLTA_ON) {
-    Serial.print(F("Play is paused."));
+    Serial.print(F("HLTA is on - Play is paused."));
   }
   if (!(playerStatus & HLTA_ON)) {
-    Serial.print(F("Playing, not paused."));
+    Serial.print(F("HLTA is Off - Playing, not paused."));
   }
   Serial.println();
+  // -----------------
   Serial.println(F("+ -------------------------"));
   Serial.println(F("+ Hardware data values:"));
   if (!(playerStatus & HLTA_ON)) {
@@ -351,7 +361,7 @@ void printPlayerInfo() {
   }
   Serial.print(F("++ readVolume:            "));
   Serial.println(mp3playerDevice.readVolume());              // current sound volume
-  delay(300); // For some reason, this requires a longer time to get the value.
+  delay(300); // For some reason, readVolume() requires time to get the value, or maybe it's just that the first one requires time.
   Serial.print(F("++ readFileCounts:        "));
   Serial.println(mp3playerDevice.readFileCounts());          // all file counts in SD card
   Serial.print(F("++ readCurrentFileNumber: "));
