@@ -15,15 +15,6 @@
   -------------------------------------------------------------------------
   Next to implement,
 
-  + When advancing during a pause, RUN will continue playing the
-  ?- + Play, play current song, playerCounter=73, read Current FileNumber: 69
-  + Processor.ini, maintains currentPlayerCounter. In this program, I trying the hardware value.
-  if (playerCounter == currentPlayerCounter) {
-    mp3player.start();
-  } else {
-    mp3player.play(playerCounter);
-    currentPlayerCounter = playerCounter;
-  }
   --------------------
   Handlet the following, which resets the MP3 player device.
   + Needs: setupMp3Player();
