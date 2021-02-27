@@ -56,5 +56,10 @@ extern void serialPrintFrontPanel();
 extern String loadProgramName;
 extern byte readByte;
 
+// From here, for the Mp3Player.cpp program.
+extern void ledFlashError();
+extern void ledFlashSuccess();
+extern byte hwStatus;
+
 // -----------------------------------------------------------------------------
 // eof

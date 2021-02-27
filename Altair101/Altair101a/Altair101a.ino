@@ -211,7 +211,7 @@
   + The Arduino Due has three 3.3V TTL serial ports.
   + Found the suggestion: connect a 1k resistor between the module and MP3 on TX-RX and RX-TX.
     Because DFPlayer Mini Module operating voltage is 3.3V.
-  
+
          ----------
     VCC |   |  |   | BUSY, low:playing, high:not playing
      RX |    __    | USB port - (DM, clock)
@@ -250,6 +250,7 @@
 // -----------------------------------------------------------------------------
 #include "Altair101a.h"
 #include "cpucore_i8080.h"
+#include "Mp3PlayerDue.h"
 
 // #define LOG_MESSAGES 1    // For debugging.
 // #define LOG_OPCODES  1    // Print each called opcode.
@@ -1822,6 +1823,10 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("-------------"));
       Serial.println(F("+ D, Download     DOWNLOAD mode, receive bytes from serial port (Serial2)."));
       Serial.println(F("-------------"));
+      Serial.println(F("+ H, MP3 Player   PLAYER mode, run the MP3 player."));
+      Serial.println(F("+ g/G Play        Pause/Play MP3 song."));
+      Serial.println(F("+ k/K Volume      Down/Up player volume."));
+      Serial.println(F("-------------"));
       Serial.println(F("+ m, Read         Memory: Read an SD card file into program memory."));
       Serial.println(F("+ M, Write        Memory: Write program memory to an SD card file."));
       Serial.println(F("+ n, Directory    Directory file listing of the SD card."));
@@ -1842,6 +1847,25 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ u/U Log msg     Log messages off/on."));
       Serial.println(F("+ z/Z cursor      VT100 block cursor off/on."));
       Serial.println(F("----------------------------------------------------"));
+      break;
+    // -------------------------------------
+    case 'H':
+      Serial.println(F("+ H, MP3 Player   PLAYER mode, run the MP3 player."));
+      programState = PLAYER_RUN;
+      break;
+    case 'g':
+      playerSwitch('s');
+      break;
+    case 'G':
+      playerSwitch('r');
+      break;
+    case 'k':
+      playerSwitch('v');
+      Serial.print(F("> "));
+      break;
+    case 'K':
+      playerSwitch('V');
+      Serial.print(F("> "));
       break;
     // -------------------------------------
     case 13:
@@ -1985,15 +2009,11 @@ void runProcessorWait() {
         // This handles inputs during a SINGLE STEP cycle that hasn't finished.
         processWaitSwitch(readByte);
       }
-      /*
-        if (SERIAL_CLI && !SERIAL_FRONT_PANEL) {
-        processWaitSwitch(10);    // Since the terminal doesn't send a CR or LF, send one.
-        }
-      */
       if (!SERIAL_FRONT_PANEL) {
         Serial.print(F("?- "));
       }
     }
+    playMp3continuously();          // Allow for the music to keep playing.
     delay(60);
   }
 }
@@ -2274,6 +2294,7 @@ void setup() {
 #endif
   //
   // ----------------------------------------------------
+  setupMp3Player();
   // ----------------------------------------------------
   programState = PROGRAM_WAIT;
   host_set_status_leds_READMEM_M1();
@@ -2316,6 +2337,13 @@ void loop() {
         // The following will re-open it for output.
         Serial2.begin(downloadBaudRate);
       }
+      break;
+    // ----------------------------
+    case PLAYER_RUN:
+      host_clr_status_led_WAIT();
+      host_set_status_led_HLDA();
+      mp3PlayerRun();
+      host_clr_status_led_HLDA();
       break;
   }
   delay(30);
