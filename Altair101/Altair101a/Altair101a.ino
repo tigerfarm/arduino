@@ -1824,6 +1824,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ D, Download     DOWNLOAD mode, receive bytes from serial port (Serial2)."));
       Serial.println(F("-------------"));
       Serial.println(F("+ H, MP3 Player   PLAYER mode, run the MP3 player."));
+      Serial.println(F("+ I, Player Info  MP3 player software and hardware settings."));
       Serial.println(F("+ g/G Play        Pause/Play MP3 song."));
       Serial.println(F("+ k/K Volume      Down/Up player volume."));
       Serial.println(F("-------------"));
