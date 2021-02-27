@@ -35,6 +35,11 @@
   ---------------------------------------------------------
   Next to work on
 
+  Merge MP3 player into Altair101a,
+  + Add infrared player options into the WAIT mode loop so that,
+  ++ The player can be used in WAIT mode.
+  ++ The player can be used from bootup without any commandline.
+
   A Serial2 buffer for reliably uploading basic programs.
 
   When using Arduino IDE Serial Monitor, remove duplicate messages.

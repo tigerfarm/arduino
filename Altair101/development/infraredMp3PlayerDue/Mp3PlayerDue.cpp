@@ -18,21 +18,21 @@
   Implement setupMp3Player() within this program,
   + When first playing a song, run: setupMp3Player();
 
-  Set equalizer value.
+  Change remote PLAY and STOP buttons.
 
   --------------------
-  Handlet the following, which resets the MP3 player device.
-  + Needs: setupMp3Player();
+  Handle the following, which resets the MP3 player device.
   Card not found
   Card not found
   Card Online!
+  + If Card Online!, run: setupMp3Player();
 
-  Virtual front panel: 8 LED lights and 8 switches.
-  + Same as Altair101a virtual front panel.
-  + Display to number of the current file selected for playing.
+  Merged into Altair101a to gain a virtual front panel: 8 LED lights and 8 switches.
+  + Now, need Player mode to show which song is playing and the volume level.
+  + Display the current file number selected for playing, or playing.
   + Select a file to play by toggling data switches in a binary format,
 
-  Add 8 LED lights (1...256) to indicate current file selected for playing.
+  Consider adding 8 LED lights (1...256) to indicate current file selected for playing.
 
   -------------------------------------------------------------------------
   To compile this version, use the library manager to load the
@@ -528,13 +528,14 @@ void playerSwitch(int resultsValue) {
       Serial.println();
       break;
     // -----------------------------------
-    case 0x2C22119B:
+    case 0xFA2F715F:
     case 's':
       mp3playerDevice.pause();
       playerStatus = playerStatus | HLTA_ON;
       Serial.print(F("+ Pause, play current song, playerCounter="));
       Serial.println(playerCounter);
       break;
+      case 0x8AA3C35B:
     case 'r':
       {
         // Before starting check if the playerCounter has changed.
@@ -785,6 +786,9 @@ void playerSwitch(int resultsValue) {
       Serial.println(F("+ d/D, Directory  Play previous directory."));
       Serial.println(F("+ l/L, Loop       Disable/Enable loop the current song."));
       Serial.println(F("+ v/V, Volume     Down/Up volume level."));
+      Serial.println(F("--- Equalizer options:"));
+      Serial.println(F("+ 4 POP   5 CLASSIC  6 NORMAL"));
+      Serial.println(F("+ 7 ROCK  8 JAZZ     9 BASS"));
       Serial.println(F("------------------"));
       Serial.println(F("+ Ctrl+L          Clear screen."));
       Serial.println(F("+ X, Exit player  Return to program WAIT mode."));
@@ -792,11 +796,6 @@ void playerSwitch(int resultsValue) {
       Serial.println(F("+ i, Information  Program variables and hardward values."));
       // Serial.println(F("+ x, EXAMINE      Not implemented. Play specified song number."));
       Serial.println(F("----------------------------------------------------"));
-      /*
-        + 4...9: Select the following equalizer settings:
-        ++ (4)DFPLAYER_EQ_POP (5)DFPLAYER_EQ_CLASSIC (6)DFPLAYER_EQ_NORMAL
-        ++ (7)DFPLAYER_EQ_ROCK (8)DFPLAYER_EQ_JAZZ (9)DFPLAYER_EQ_BASS
-      */
       break;
     // ----------------------------------------------------------------------
     case 'R':

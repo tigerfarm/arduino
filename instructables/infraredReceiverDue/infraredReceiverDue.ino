@@ -20,7 +20,7 @@
   |       |
   ---------
     Front
- 
+
   ------------------------------------------------------------------------------
   Install library for Due.
   Project:
@@ -72,43 +72,52 @@ void infraredSwitch() {
       Serial.println("+ Key OK - Toggle");
       break;
     // -----------------------------------
-    case 0xFF9867:
-    case 0xE0E08877:
+    case 0x1163EEDF:                        // Toshiba VCR remote
+    case 0xFF9867:                          // Small remote
       Serial.print("+ Key 0:");
       Serial.println("");
       break;
-    case 0xFFA25D:
+    case 0x718E3D1B:                        // Toshiba VCR remote
+    case 0xFFA25D:                          // Small remote
       Serial.print("+ Key 1: ");
       Serial.println("");
       break;
+    case 0xF8FB71FB:
     case 0xFF629D:
       Serial.print("+ Key 2: ");
       Serial.println("");
       break;
+    case 0xE9E0AC7F:
     case 0xFFE21D:
       Serial.print("+ Key 3: ");
       Serial.println("");
       break;
+    case 0x38BF129B:
     case 0xFF22DD:
       Serial.print("+ Key 4: ");
       Serial.println("");
       break;
+    case 0x926C6A9F:
     case 0xFF02FD:
       Serial.print("+ Key 5: ");
       Serial.println("");
       break;
+    case 0xE66C5C37:
     case 0xFFC23D:
       Serial.print("+ Key 6: ");
       Serial.println("");
       break;
+    case 0xD75196BB:
     case 0xFFE01F:
       Serial.print("+ Key 7: ");
       Serial.println("");
       break;
+    case 0x72FD3AFB:
     case 0xFFA857:
       Serial.print("+ Key 8: ");
       Serial.println("");
       break;
+    case 0xCCAA92FF:
     case 0xFF906F:
       Serial.print("+ Key 9: ");
       Serial.println("");
@@ -123,8 +132,71 @@ void infraredSwitch() {
       Serial.println("+ Key # (Exit)");
       break;
     // -----------------------------------
+    // Toshiba VCR remote
+    case 0x3694275F:
+      Serial.println("+ Key INPUT/SELECT");
+      break;
+    case 0x6D8BBC17:
+      Serial.println("+ Key CHANNEL UP");
+      break;
+    case 0xCDFC965B:
+      Serial.println("+ Key CHANNEL DOWN");
+      break;
+    case 0x2B8BE5F:
+      Serial.println("+ Key VOLUME UP");
+      break;
+    case 0x1CF3ACDB:
+      Serial.println("+ Key VOLUME DOWN");
+      break;
+    case 0xC4CC6436:
+      Serial.println("+ Key DISPLAY");
+      break;
+    case 0xBC133D9B:
+      Serial.println("+ Key 100");
+      break;
+    case 0xA7DCBAFB:
+      Serial.println("+ Key COUNTER");
+      break;
+    case 0x953EEEBC:
+      Serial.println("+ Key CLEAR");
+      break;
+    case 0x85CF699F:
+      Serial.println("+ Key TV/VCR");
+      break;
+    case 0xD79EEBC3:
+      Serial.println("+ Key SLOW");
+      break;
+    case 0x2C22119B:
+      Serial.println("+ Key PAUSE/STILL");
+      break;
+    case 0x7E23117B:
+      Serial.println("+ Key REW");
+      break;
+    case 0x7538143B:
+      Serial.println("+ Key FF");
+      break;
+    case 0x8AA3C35B:
+      Serial.println("+ Key PLAY");
+      break;
+    case 0xFA2F715F:
+      Serial.println("+ Key STOP");
+      break;
+    case 0xC473DE3A:
+      Serial.println("+ Key EJECT");
+      break;
+    case 0xA02E4EBF:
+      Serial.println("+ Key A.SELECT");
+      break;
+    case 0x9AAF8DFF:
+      Serial.println("+ Key PROG");
+      break;
+    case 0x82D6EC17:
+      Serial.println("+ Key ENTER");
+      break;
+      
+    // -----------------------------------
     default:
-      Serial.print("+ Result value: ");
+      Serial.print("+ Result value: 0x");
       Serial.println(results.value, HEX);
       // -----------------------------------
   } // end switch
