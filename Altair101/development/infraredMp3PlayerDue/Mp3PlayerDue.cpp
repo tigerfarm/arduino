@@ -15,6 +15,9 @@
   -------------------------------------------------------------------------
   Next to implement,
 
+  Implement setupMp3Player() within this program,
+  + When first playing a song, run: setupMp3Player();
+
   Set equalizer value.
 
   --------------------
@@ -205,8 +208,8 @@ const byte HLTA_ON =    B00001000;  // HLTA   Machine opcode hlt, has halted the
 const byte HLTA_OFF =   ~HLTA_ON;
 
 void playerLights() {}
-void ledFlashError() {}
-void ledFlashSuccess() {}
+// void ledFlashError() {}
+// void ledFlashSuccess() {}
 
 // -----------------------------------------------------------------------
 // Infrared Receiver
@@ -232,7 +235,7 @@ DFRobotDFPlayerMini mp3playerDevice;
 
 #define PLAYER_VOLUME_SETUP 6
 
-byte hwStatus = B11111111;            // Initial state.
+// Stacy byte hwStatus = B11111111;            // Initial state.
 
 // ------------------------------------
 // The following is not needed for Mega because it has it's own hardware RX and TX pins.
@@ -349,7 +352,7 @@ void printPlayerInfo() {
   for (int i = 7; i >= 0; i--) {
     Serial.print(bitRead(playerStatus, i));  // Print as a binary number.
   }
-+ Key Volume   Serial.println(F(" HLTA is bit 4, ON example: B00001000."));
+  Serial.println(F(" HLTA is bit 4, ON example: B00001000."));
   // -----------------
   Serial.print(F("++ playerStatus, HLTA:    "));
   if (playerStatus & HLTA_ON) {
@@ -810,7 +813,7 @@ void playerSwitch(int resultsValue) {
     case 12:
       // Ctrl+L, clear screen.
       Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
-      Serial.print(F("?- "));
+      Serial.print(F("?p- "));
       break;
     case 0xDA529B37:
     case 'X':
@@ -826,7 +829,7 @@ void playerSwitch(int resultsValue) {
       break;
       // ----------------------------------------------------------------------
   } // end switch
-  Serial.print(F("?- "));
+  Serial.print(F("?p- "));
 }
 
 // -----------------------------------------------------------------------------
@@ -961,7 +964,7 @@ void mp3playerPlaywait(byte theFileNumber) {
 
 void mp3PlayerRun() {
   Serial.println(F("+ runMp3Player();"));
-  Serial.print(F("?- "));
+  Serial.print(F("?p- "));
   while (programState == PLAYER_RUN) {
     //
     // Process infrared key presses.

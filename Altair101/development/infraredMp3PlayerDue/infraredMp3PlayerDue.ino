@@ -29,6 +29,11 @@ word status_wait = 1;     // Default on
 #define host_clr_status_led_WAIT()  { digitalWrite(13, LOW);  status_wait = false; }
 #define host_set_status_led_WAIT()  { digitalWrite(13, HIGH); status_wait = true; }
 
+byte hwStatus = B11111111;            // Initial state.
+
+void ledFlashError() {}
+void ledFlashSuccess() {}
+
 void processWaitSwitch(int readByte) {
   switch (readByte) {
     // -------------------------------
