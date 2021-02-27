@@ -361,6 +361,7 @@ void printPlayerInfo() {
   if (!(playerStatus & HLTA_ON)) {
     Serial.print(F("HLTA is Off - Playing, not paused."));
   }
+  Serial.println();
   // -----------------
   Serial.println(F("+ -------------------------"));
   Serial.println(F("+ Hardware data values:"));

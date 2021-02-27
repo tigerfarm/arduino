@@ -1853,6 +1853,9 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ H, MP3 Player   PLAYER mode, run the MP3 player."));
       programState = PLAYER_RUN;
       break;
+    case 'I':
+      playerSwitch('i');
+      break;
     case 'g':
       playerSwitch('s');
       break;
