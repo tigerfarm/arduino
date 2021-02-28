@@ -128,6 +128,7 @@ void processWaitSwitch(int readByte) {
       break;
   } // end switch
 }
+
 void runProcessorWait() {
   Serial.println(F("+ Processor WAIT mode."));
   Serial.print(F("> "));
