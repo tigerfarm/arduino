@@ -18,7 +18,7 @@
   Implement setupMp3Player() within this program,
   + When first playing a song, run: setupMp3Player();
 
-  Could add maxDirectory when that happens. Then could loop around with directories.
+  I added maxDirectory. Consider loop around with directories.
 
   --------------------
   Handle the following, which resets the MP3 player device.
@@ -861,40 +861,42 @@ void playerSwitch(int resultsValue) {
       Serial.println(F("----------------------------------------------------"));
       break;
     // ----------------------------------------------------------------------
-    case 0x953EEEBC:  // Serial.println("+ Key CLEAR");
+    case 0x953EEEBC:                              // Serial.println("+ Key CLEAR");
     case 'R':
-      Serial.println(F("+ Player RESET, play first song."));
+      Serial.println(F("+ Player CLEAR/RESET, play first song."));
       mp3playerDevice.stop();   // Required.
       setupMp3Player();   // Sets playerCounter = 1;
       mp3playerPlay(playerCounter);
       mp3playerDevice.stop();
       playerLights();
       break;
+    case 0xC4CC6436:                              //  Key DISPLAY
     case 'i':
       Serial.println(F("+ Information"));
       printPlayerInfo();
       break;
     case 12:
       // Ctrl+L, clear screen.
-      Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
+      Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
       Serial.print(playerPrompt);
       break;
-    case 0xDA529B37:
-    case 0x85CF699F:
+    case 0x85CF699F:                              //  Key TV/VCR
     case 'X':
       Serial.println(F("+ Power or Key TV/VCR"));
       programState = PROGRAM_WAIT;
       break;
     // -----------------------------------
     default:
-      Serial.print(F("+ Result value: "));
-      Serial.print(resultsValue);
-      Serial.print(F(", HEX: "));
-      Serial.println(resultsValue, HEX);
+      // Serial.print(F("+ Result value: "));
+      // Serial.print(resultsValue);
+      // Serial.print(F(", HEX: "));
+      // Serial.println(resultsValue, HEX);
       break;
       // ----------------------------------------------------------------------
   } // end switch
-  Serial.print(playerPrompt);
+  if (programState == PLAYER_RUN) {
+    Serial.print(playerPrompt);
+  }
 }
 
 // -----------------------------------------------------------------------------

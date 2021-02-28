@@ -23,6 +23,8 @@
 // -----------------------------------------------------------------------------
 int programState;
 
+String waitPrompt = "101 ?- ";
+
 // -----------------------------------------------------------------------------
 word status_wait = 1;     // Default on
 #define host_read_status_led_WAIT()   status_wait
@@ -41,7 +43,7 @@ void processWaitSwitch(int readByte) {
     case 13:
       // CR/LF.
       Serial.println();
-      Serial.print(F("> "));
+      Serial.print(waitPrompt);
       break;
     // -------------
     // Mouse wheel
@@ -55,68 +57,75 @@ void processWaitSwitch(int readByte) {
     case 'p':
       Serial.println(F("++ mp3PlayerPause();"));
       mp3PlayerPause();
-      Serial.print(F("> "));
+      Serial.print(waitPrompt);
       break;
     // -------------
     case 'r':
       playerSwitch('r');
-      Serial.print(F("> "));
+      Serial.print(waitPrompt);
       break;
     case 's':
       playerSwitch('s');
-      Serial.print(F("> "));
+      Serial.print(waitPrompt);
       break;
     case 'v':
       playerSwitch('v');
-      Serial.print(F("> "));
+      Serial.print(waitPrompt);
       break;
     case 'V':
       playerSwitch('V');
-      Serial.print(F("> "));
+      Serial.print(waitPrompt);
       break;
     // ------------------------------
     case '1':
       mp3playerPlaywait(1);
-      Serial.print(F("> "));
+      Serial.print(waitPrompt);
       break;
     case '2':
       mp3playerPlaywait(2);
-      Serial.print(F("> "));
+      Serial.print(waitPrompt);
       break;
     case '3':
       mp3playerPlaywait(69);
-      Serial.print(F("> "));
+      Serial.print(waitPrompt);
       break;
     case '4':
       mp3playerPlay(1);
-      Serial.print(F("> "));
+      Serial.print(waitPrompt);
       break;
     case '5':
       mp3playerPlay(2);
-      Serial.print(F("> "));
+      Serial.print(waitPrompt);
       break;
     case '6':
       mp3playerPlay(69);
-      Serial.print(F("> "));
+      Serial.print(waitPrompt);
       break;
     // ----------------------------------------------------------------------
     case 'h':
       Serial.print(F("+ h, Print help information."));
       Serial.println();
       Serial.println(F("----------------------------------------------------"));
-      Serial.println(F("+++ MP3 Player Controls"));
+      Serial.println(F("+++ WAIT mode controls"));
+      Serial.println(F("-------------"));
+      Serial.println(F("+++ MP3 Player controls"));
       Serial.println(F("-------------"));
       Serial.println(F("+ p, Pause        Pause, pause playing."));
       Serial.println(F("+ s, STOP         Pause, stop playing."));
       Serial.println(F("+ r, RUN          Start, playing the current song."));
       Serial.println(F("+ v/V, Volume     Down/Up volume level."));
       Serial.println(F("------------------"));
-      Serial.println(F("+ 1 ...3          Play a file and wait until completed."));
-      Serial.println(F("+ 4 ...6          Play a file and return to processing here."));
+      Serial.println(F("+ 1 ...3          Test: Play a file and wait until completed."));
+      Serial.println(F("+ 4 ...6          Test: Play a file and return to processing here."));
       Serial.println(F("------------------"));
       Serial.println(F("+ Ctrl+L          Clear screen."));
       Serial.println(F("+ X, Exit player  Return to program WAIT mode."));
       Serial.println(F("----------------------------------------------------"));
+      break;
+    case 12:
+      // Ctrl+L, clear screen.
+      Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
+      Serial.print(waitPrompt);
       break;
     case 'X':
       Serial.println(F("++ set programState = PLAYER_RUN"));
@@ -124,19 +133,20 @@ void processWaitSwitch(int readByte) {
       break;
     default:
       Serial.println();
-      Serial.print(F("> "));
+      Serial.print(waitPrompt);
       break;
   } // end switch
 }
 
 void runProcessorWait() {
   Serial.println(F("+ Processor WAIT mode."));
-  Serial.print(F("> "));
+  Serial.print(waitPrompt);
   while (programState == PROGRAM_WAIT) {
     if (Serial.available() > 0) {
       int readByte = Serial.read();    // Read and process an incoming byte.
       processWaitSwitch(readByte);
     }
+    playMp3continuously();              // Check for player update or infrared key pressed.
     delay(60);
   }
 }
