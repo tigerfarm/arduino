@@ -706,12 +706,6 @@ void cpu_print_regS() {
 
 void cpucore_i8080_print_registers() {
   char charBuffer[17];
-  //
-  Serial.print(F("+++ Software: "));
-  Serial.println(SOFTWARE_NAME);
-  Serial.print(F("++ Program version: "));
-  Serial.println(SOFTWARE_VERSION);
-  //
   Serial.print(F("++ CPU: "));
   Serial.print(THIS_CPU);
   Serial.print(F(", Oscillator frequency: "));
@@ -734,7 +728,10 @@ void cpucore_i8080_print_registers() {
   printByte(highByte(regPC));
   Serial.print(F(":"));
   printByte(lowByte(regPC));
-  // Serial.print(F(" = ")); numsys_print_word(regPC); Serial.print(F(" = ")); numsys_print_mem(regPC, 3, true);
+  Serial.print(F(" = "));
+  numsys_print_word(regPC);
+  Serial.print(F(" = "));
+  numsys_print_mem(regPC, 3, true);
   Serial.println(F(" Program pointer"));
   //
   sprintf(charBuffer, "++ SP %6d = ", regSP);
@@ -742,7 +739,9 @@ void cpucore_i8080_print_registers() {
   printByte(highByte(regSP));
   Serial.print(F(":"));
   printByte(lowByte(regSP));
-  // Serial.print(F(" = ")); numsys_print_word(regSP); Serial.print(F(" = ")); numsys_print_mem(regSP, 8, true);
+  Serial.print(F(" = "));
+  numsys_print_word(regSP);
+  Serial.print(F(" = ")); numsys_print_mem(regSP, 8, true);
   Serial.println(F(" Stack pointer"));
   //
   Serial.print(F("++ regS:             "));

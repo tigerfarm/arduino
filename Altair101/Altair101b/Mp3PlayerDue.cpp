@@ -199,7 +199,7 @@
 */
 // -----------------------------------------------------------------------
 
-#include "Altair101a.h"
+#include "Altair101b.h"
 
 String playerPrompt = "MP3 ?- ";
 extern int programState;
