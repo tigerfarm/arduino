@@ -2022,7 +2022,8 @@ void runProcessorWait() {
         Serial.print(F("?- "));
       }
     }
-    playMp3continuously();          // Allow for the music to keep playing.
+    // Allow for the music to keep playing, and infrared player controls work.
+    playMp3continuously();
     delay(60);
   }
 }

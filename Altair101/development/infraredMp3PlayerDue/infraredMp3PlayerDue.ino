@@ -37,13 +37,16 @@ void ledFlashError() {}
 void ledFlashSuccess() {}
 
 void processWaitSwitch(int readByte) {
+  boolean printPrompt = true;
   switch (readByte) {
     // -------------------------------
     case 10:
-    case 13:
-      // CR/LF.
+      // LF.
       Serial.println();
-      Serial.print(waitPrompt);
+      break;
+    case 13:
+      // CR, ignore
+      printPrompt = false;
       break;
     // -------------
     // Mouse wheel
@@ -52,54 +55,44 @@ void processWaitSwitch(int readByte) {
     case 65: // Mouse wheel down (away from user).
     case 66: // Mouse wheel up   (toward user).
       // Ignore.
+      printPrompt = false;
       break;
     // ------------------------------
     case 'p':
       Serial.println(F("++ mp3PlayerPause();"));
       mp3PlayerPause();
-      Serial.print(waitPrompt);
       break;
     // -------------
     case 'r':
       playerSwitch('r');
-      Serial.print(waitPrompt);
       break;
     case 's':
       playerSwitch('s');
-      Serial.print(waitPrompt);
       break;
     case 'v':
       playerSwitch('v');
-      Serial.print(waitPrompt);
       break;
     case 'V':
       playerSwitch('V');
-      Serial.print(waitPrompt);
       break;
     // ------------------------------
     case '1':
       mp3playerPlaywait(1);
-      Serial.print(waitPrompt);
       break;
     case '2':
       mp3playerPlaywait(2);
-      Serial.print(waitPrompt);
       break;
     case '3':
       mp3playerPlaywait(69);
-      Serial.print(waitPrompt);
       break;
     case '4':
       mp3playerPlay(1);
-      Serial.print(waitPrompt);
       break;
     case '5':
       mp3playerPlay(2);
-      Serial.print(waitPrompt);
       break;
     case '6':
       mp3playerPlay(69);
-      Serial.print(waitPrompt);
       break;
     // ----------------------------------------------------------------------
     case 'h':
@@ -125,17 +118,18 @@ void processWaitSwitch(int readByte) {
     case 12:
       // Ctrl+L, clear screen.
       Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
-      Serial.print(waitPrompt);
       break;
     case 'X':
       Serial.println(F("++ set programState = PLAYER_RUN"));
       programState = PLAYER_RUN;
       break;
     default:
-      Serial.println();
-      Serial.print(waitPrompt);
+      printPrompt = false;
       break;
   } // end switch
+  if (printPrompt) {
+    Serial.print(waitPrompt);
+  }
 }
 
 void runProcessorWait() {

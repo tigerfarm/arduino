@@ -514,6 +514,7 @@ void printDFPlayerMessage(uint8_t type, int value) {
 // Infrared DFPlayer controls
 
 void playerSwitch(int resultsValue) {
+  boolean printPrompt = true;
   switch (resultsValue) {
     // -----------------------------------
     case 0xFFFFFFFF:
@@ -864,8 +865,10 @@ void playerSwitch(int resultsValue) {
     case 0x953EEEBC:                              // Serial.println("+ Key CLEAR");
     case 'R':
       Serial.println(F("+ Player CLEAR/RESET, play first song."));
-      mp3playerDevice.stop();   // Required.
-      setupMp3Player();   // Sets playerCounter = 1;
+      mp3playerDevice.stop();                     // Required.
+      delay(100);
+      setupMp3Player();                           // Sets playerCounter = 1;
+      delay(200);
       mp3playerPlay(playerCounter);
       mp3playerDevice.stop();
       playerLights();
@@ -878,7 +881,6 @@ void playerSwitch(int resultsValue) {
     case 12:
       // Ctrl+L, clear screen.
       Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
-      Serial.print(playerPrompt);
       break;
     case 0x85CF699F:                              //  Key TV/VCR
     case 'X':
@@ -891,10 +893,11 @@ void playerSwitch(int resultsValue) {
       // Serial.print(resultsValue);
       // Serial.print(F(", HEX: "));
       // Serial.println(resultsValue, HEX);
+      printPrompt = false;
       break;
       // ----------------------------------------------------------------------
   } // end switch
-  if (programState == PLAYER_RUN) {
+  if (printPrompt && (programState == PLAYER_RUN)) {
     Serial.print(playerPrompt);
   }
 }
