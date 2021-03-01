@@ -65,11 +65,11 @@
     based on how I use it for 4K Basic.
 
   ---------------------------------------------------------
-  Starting integrating hardware functions using the Altair tablet.
-  + Get the Altair tablet to work.
-  + Test with Altair101a.
-  + Then update Altair101a with the ability to flash the front panel lights.
-  + Then update Altair101a implementing interactivity with the front panel switches.
+  Starting integrating hardware functions using the Altair tablet or desktop.
+  + If Altair101 tablet module, get the tablet to work.
+  + Test running Altair101b.
+  + Then update Altair101b with the ability to flash the front panel lights.
+  + Then update Altair101b implementing interactivity with the front panel switches.
 
   Option to have HLT work the same as Altair 8800.
 
@@ -167,7 +167,7 @@
   -----------------------------------------------------------------------------
   Wire the serial module:
 
-  Module  Due pins:
+  Module  Due/Mega pins:
   TX      RX:17
   RX      TX:16
   VCC     VCC
@@ -194,7 +194,7 @@
   GND  VCC  MISO MOSI SCK  CS
        Red  Whte Brwn Blck To pin 53.
 
-  Due SPI center pins.
+  Due SPI center pins. Should work for Mega and Uno as well (not tested).
    ---------------------------------------
   |                                      -| GND
   |                 MISO x x + VCC        |
@@ -237,7 +237,8 @@
   |                                       |
    ---------------------------------------
 
-  USB, from top:
+  USB cable connector to power the DFPlayer.
+  From top:
      ---------------
     | VCC D- D+ GND |
     |   -       _   |
@@ -271,13 +272,10 @@ byte opcode = 0xff;
 // Added this to identify hardware status.
 // if hardware has an error, or hardware is not initialized, hwStatus > 0.
 // Else hwStatus = 0.
-byte hwStatus = B11111111;            // Initial state.
-// hwStatus = 1;  // 0001 SD card
-// hwStatus = 2;  // 0010 Clock module
-// hwStatus = 4;  // 0100 MP3 Player
-const byte SD_ON  =    B00000001;
-const byte CL_ON  =    B00000010;
-const byte PL_ON  =    B00000100;
+byte hwStatus = B11111111;         // Initial state.
+const byte SD_ON  =    B00000001;  // 0001 SD card
+const byte CL_ON  =    B00000010;  // 0010 Clock module
+const byte PL_ON  =    B00000100;  // 0100 MP3 Player
 const byte SD_OFF =    B11111110;
 const byte CL_OFF =    B11111101;
 const byte PL_OFF =    B11111011;
@@ -599,10 +597,10 @@ byte readByte = 0;
 
 // Program wait status.
 // const int WAIT_PIN = A9;     // Processor program wait state: off/LOW or wait state on/HIGH.
-const int WAIT_PIN = 13;        // Change to onboard pin for the Altair101a machine.
+const int WAIT_PIN = 13;        // Change to onboard pin for the Altair101a/b machine.
 
 // HLDA : 8080 processor goes into a hold state because of other hardware running.
-// const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock/player processing (on/HIGH).
+// const int HLDA_PIN = A10;     // Emulator processing: off/LOW. Clock or player processing: on/HIGH.
 
 // Use OR to turn ON. Example:
 const byte MEMR_ON =    B10000000;  // MEMR   The memory bus will be used for memory read data.
@@ -1824,7 +1822,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("-------------"));
       Serial.println(F("+ 0...9, a...f    Toggle sense/address/data switches:  A0...A9, A10...A15."));
       Serial.println(F("----------------------------------------------------"));
-      Serial.println(F("+++ Operations"));
+      Serial.println(F("+++ Command Line Operations"));
       Serial.println(F("-------------"));
       Serial.println(F("+ D, Download     DOWNLOAD mode, receive bytes from serial port (Serial2)."));
       Serial.println(F("-------------"));
@@ -1855,6 +1853,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("----------------------------------------------------"));
       break;
     // -------------------------------------
+    // For command line. Note playMp3continuously() has infrared controls in place.
     case 'H':
       Serial.println(F("+ H, MP3 Player   PLAYER mode, run the MP3 player."));
       programState = PLAYER_RUN;
@@ -2022,7 +2021,7 @@ void runProcessorWait() {
         Serial.print(F("?- "));
       }
     }
-    // Allow for the music to keep playing, and infrared player controls work.
+    // Allow for the music to keep playing, and infrared player controls to work.
     playMp3continuously();
     delay(60);
   }
@@ -2148,45 +2147,12 @@ void modeDownloadProgram() {
       //
       // Buffer space up to 64K.
       Serial.print(F("++ Byte# "));
-      /* Commented out to simplify output during the receiving of bytes.
-        if (readByteCount < 10) {
-        Serial.print(F(" "));
-        }
-        if (readByteCount < 100) {
-        Serial.print(F(" "));
-        }
-        if (readByteCount < 1000) {
-        Serial.print(F(" "));
-        }
-        if (readByteCount < 10000) {
-        Serial.print(F(" "));
-        }
-        if (readByteCount < 100000) {
-        Serial.print(F(" "));
-        }
-      */
       Serial.print(readByteCount);
       //
       // Input on the external serial port module.
       // Process the incoming byte.
       MWRITE(readByteCount, readByte)
       readByteCount++;
-      /* Commented out to simplify output during the receiving of bytes.
-        Serial.print(F(", Byte: "));
-        printByte(readByte);
-        Serial.print(F(" "));
-        printHex(readByte);
-        Serial.print(F(" "));
-        printOctal(readByte);
-        Serial.print(F("   "));
-        if (readByte < 10) {
-        Serial.print(F(" "));
-        }
-        if (readByte < 100) {
-        Serial.print(F(" "));
-        }
-        Serial.print(readByte);
-      */
       Serial.println();
       //
       timer = millis();
@@ -2268,10 +2234,10 @@ void setup() {
   // Front panel LED lights.
 
   // System application status LED lights
-  pinMode(WAIT_PIN, OUTPUT);        // Indicator: program WAIT state: LED on or LED off.
-  // pinMode(HLDA_PIN, OUTPUT);     // Indicator: clock or player process (LED on) or simulator (LED off).
-  digitalWrite(WAIT_PIN, HIGH);     // Default to wait state.
-  // digitalWrite(HLDA_PIN, HIGH);  // Default to simulator.
+  pinMode(WAIT_PIN, OUTPUT);        // Indicator: Altair 8800 emulator program WAIT state: LED on or LED off.
+  // pinMode(HLDA_PIN, OUTPUT);     // Indicator: clock or player process: LED on. Emulator: LED off.
+  digitalWrite(WAIT_PIN, HIGH);     // Default to WAIT state.
+  // digitalWrite(HLDA_PIN, HIGH);  // Default to emulator.
   // ------------------------------
   // Set status lights.
 #ifdef LOG_MESSAGES

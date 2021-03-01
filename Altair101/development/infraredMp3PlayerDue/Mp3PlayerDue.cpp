@@ -568,7 +568,9 @@ void playerSwitch(int resultsValue) {
       Serial.println();
       break;
     // -----------------------------------
-    case 0xFA2F715F:
+    case 0xFA2F715F:    // Key STOP
+    case 0x2C22119B:    // Key PAUSE/STILL
+    case 0xFF9867:      // Small remote, key 0
     case 's':
       mp3playerDevice.pause();
       playerStatus = playerStatus | HLTA_ON;
@@ -621,7 +623,8 @@ void playerSwitch(int resultsValue) {
     //
     // -----------------------------------
     case 0x6D8BBC17:
-    case 0xFF18E7:
+    case 0xFF18E7:          // Small remote key up.
+    case 0xFF629D:          // Small remote key 2.
     case 'D':
       Serial.print("+ Key up - next directory, directory number: ");
       if (playerDirectoryTop == 0) {
@@ -673,7 +676,7 @@ void playerSwitch(int resultsValue) {
       break;
     // -----------------------------------
     case 0xCDFC965B:
-    case 0xFF4AB5:
+    case 0xFF4AB5:          // Small remote key down.
     case 'd':
       Serial.print("+ Key down - previous directory, directory number: ");
       if (playerDirectory > 1) {
@@ -731,32 +734,8 @@ void playerSwitch(int resultsValue) {
         mp3playerDevice.start();
       }
       break;
-    // ----------------------------------------------------------------------
-    // Small remote, only.
-    //
-    case 0xFF9867:
-      Serial.println("+ Key 0 - Pause");
-      mp3playerDevice.pause();
-      playerStatus = playerStatus | HLTA_ON;
-      break;
-    case 0xFFA25D:
-      Serial.print("+ Key 1: ");
-      Serial.println("Volume Down");
-      mp3playerDevice.volumeDown();
-      break;
-    case 0xFF629D:
-      Serial.print("+ Key 2: ");
-      Serial.println("File directory 2");
-      playerDirectory = 2;
-      mp3playerDevice.loopFolder(playerDirectory);
-      break;
-    case 0xFFE21D:
-      Serial.print("+ Key 3: ");
-      Serial.println("Volume UP");
-      mp3playerDevice.volumeUp();
-      break;
     // -----------------------------------
-    // Toshiba VCR remote
+    // Toshiba VCR remote, not programmed.
     case 0x1163EEDF:
       Serial.println("+ Key 0");
       break;
@@ -813,6 +792,7 @@ void playerSwitch(int resultsValue) {
     // Volume
     //
     case 0x2B8BE5F:
+    case 0xFFE21D:              // Small remote, Key 3
     case 'V':
       Serial.print("+ Key Volume ^");
       // mp3playerDevice.volumeUp();
@@ -825,6 +805,7 @@ void playerSwitch(int resultsValue) {
       // Set: playerLights();
       break;
     case 0x1CF3ACDB:
+    case 0xFFA25D:              // Small remote, Key 1
     case 'v':
       Serial.print("+ Key Volume v");
       // mp3playerDevice.volumeDown();
@@ -862,7 +843,7 @@ void playerSwitch(int resultsValue) {
       Serial.println(F("----------------------------------------------------"));
       break;
     // ----------------------------------------------------------------------
-    case 0x953EEEBC:                              // Serial.println("+ Key CLEAR");
+    case 0x953EEEBC:                              // Key CLEAR
     case 'R':
       Serial.println(F("+ Player CLEAR/RESET, play first song."));
       mp3playerDevice.stop();                     // Required.

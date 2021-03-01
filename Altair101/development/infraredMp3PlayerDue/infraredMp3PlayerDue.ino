@@ -7,7 +7,6 @@
       volume up or down, and loop a single song.
 
   DFPlayer hardware module is a programable Mini MP3 Player.
-
   Steps to add the MP3 player program (Mp3PlayerDue.cpp) to an Arduino program (*.ino):
   + Include the header file: Mp3PlayerDue.h
   + Run the setup process in setup(): setupMp3Player();
@@ -163,6 +162,8 @@ void setup() {
 
   // ----------------------------------------------------
   setupMp3Player();
+  delay(500);
+  setupMp3Player();   // On a cold startup, takes longer for the MP3 player to be ready for initialization.
   // functionNamePrint(__func__);
   // Serial.println(F(" DFPlayer is initialized."));
   // While testing, don't play: mp3playerPlaywait(1);
