@@ -6,7 +6,7 @@
     + Post messages to the serial port, which can be displayed using the Arduino Tools/Serial Monitor.
 */
 // -----------------------------------------------------------------------------
-// Built in, on board LED: GPI13 which is D13 on Mega, Nano, and Uno. LED is red on Nano.
+// Built in, on board LED: GPI13 which is D13 on Mega, Due, Nano, and Uno. LED is red on Nano.
 // Built in, on board LED: GPIO2 which is D04 on NodeMCU.
 #define LED_PIN 13
 

@@ -21,7 +21,15 @@
   ---------
 
   ------------------------------------------------------------------------------
-  Install library: IRremote by Shirriff, I installed version: 2.2.3
+  Install library: IRremote by Shirriff, I installed version: 2.2.3.
+  Note, I have stayed with 2.2.3 because the syntax matches the Due library (IRremote2).
+
+  GitHub:
+    https://github.com/Arduino-IRremote/Arduino-IRremote
+  Arduino info:
+    https://www.arduino.cc/reference/en/libraries/irremote/
+  For reference, converting a program from 2x to 3x.
+    https://github.com/Arduino-IRremote/Arduino-IRremote#converting-your-2x-program-to-the-3x-version
 */
 // -----------------------------------------------------------------------------
 // For the infrared receiver.

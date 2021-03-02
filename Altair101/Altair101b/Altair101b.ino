@@ -2226,8 +2226,8 @@ void setup() {
   delay(2000);
   Serial.println(); // Newline after garbage characters.
   Serial.print(F("+++ "));
-  Serial.println(__func__); // prints "setup"
-  Serial.print(F("()"));
+  // Serial.println(__func__); // prints "setup"
+  Serial.print(F("setup()"));
   //
   // ----------------------------------------------------
   // ----------------------------------------------------
