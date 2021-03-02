@@ -213,15 +213,7 @@ void playerLights() {}
 // void ledFlashSuccess() {}
 
 // -----------------------------------------------------------------------
-// Motherboard Specific setup
-
-// #include <IRremote.h>
-// Digital and analog pins work. Also tested with A0 and 9.
-// For Arduino Due, use pin 24.
-// For Arduino Uno, Nano, or Mega, use pin A1. For Mega, can use pin 24.
-// int IR_PIN = A1;
-// #include "SoftwareSerial.h"
-// SoftwareSerial SerialSw(10, 11); // Software serial, playerSerial(RX, TX)
+// Motherboard Specific setup for Infrared and DFPlayer communications
 
 // -----------------------------------------------
 #if defined(__AVR_ATmega2560__)
@@ -324,7 +316,26 @@ void setupMp3Player() {
   playerDirectory = 1;
   playerStatus = OUT_ON | HLTA_ON;    // ,  LED status light to indicate the Player.
   //
-  // -------------------------
+  // ---------------------------------------------------------------------------
+  // Serial connection depends on the motherboard.
+  //
+#if defined(__AVR_ATmega2560__) || defined(__SAM3X8E__)
+  Serial1.begin(9600);
+  if (hwStatus > 0) {
+    hwStatus = 0;
+    if (!mp3playerDevice.begin(Serial1)) {
+      delay(500);
+      if (!mp3playerDevice.begin(Serial1)) {
+        ledFlashError();
+        NOT_PLAY_SOUND = true;  // Set to not play sound effects.
+        Serial.println(F("MP3 Player, unable to begin:"));
+        Serial.println(F("1.Please recheck the connection!"));
+        Serial.println(F("2.Please insert the SD card!"));
+        hwStatus = 4;
+      }
+    }
+  }
+#else
   SerialSw.begin(9600);
   if (hwStatus > 0) {
     hwStatus = 0;
@@ -340,6 +351,8 @@ void setupMp3Player() {
       }
     }
   }
+#endif
+  // ---------------------------------------------------------------------------
   delay(100);
   if (hwStatus == 0) {
     ledFlashSuccess();
@@ -793,36 +806,42 @@ void playerSwitch(int resultsValue) {
     //
     case 0x38BF129B:                        // Toshiba VCR remote
     case 0xFF22DD:                          // Small remote
+    case '4':
       Serial.print("+ Key 4: ");
       Serial.println("DFPLAYER_EQ_POP");
       mp3playerDevice.EQ(DFPLAYER_EQ_POP);
       break;
     case 0x926C6A9F:
     case 0xFF02FD:
+    case '5':
       Serial.print("+ Key 5: ");
       Serial.println("DFPLAYER_EQ_CLASSIC");
       mp3playerDevice.EQ(DFPLAYER_EQ_CLASSIC);
       break;
     case 0xE66C5C37:
     case 0xFFC23D:
+    case '6':
       Serial.print("+ Key 6: ");
       Serial.println("DFPLAYER_EQ_NORMAL");
       mp3playerDevice.EQ(DFPLAYER_EQ_NORMAL);
       break;
     case 0xD75196BB:
     case 0xFFE01F:
+    case '7':
       Serial.print("+ Key 7: ");
       Serial.println("DFPLAYER_EQ_JAZZ");
       mp3playerDevice.EQ(DFPLAYER_EQ_JAZZ);
       break;
     case 0x72FD3AFB:
     case 0xFFA857:
+    case '8':
       Serial.print("+ Key 8: ");
       Serial.println("DFPLAYER_EQ_ROCK");
       mp3playerDevice.EQ(DFPLAYER_EQ_ROCK);
       break;
     case 0xCCAA92FF:
     case 0xFF906F:
+    case '9':
       Serial.print("+ Key 9: ");
       Serial.println("DFPLAYER_EQ_BASS");
       mp3playerDevice.EQ(DFPLAYER_EQ_BASS);
