@@ -179,7 +179,7 @@ void setup() {
   Serial.println(); // Newline after garbage characters.
   Serial.print(F("++"));
   functionNamePrint(__func__);
-  Serial.println(", version 0.92");
+  Serial.println();
 
   // ----------------------------------------------------
   pinMode(WAIT_PIN, OUTPUT);        // Indicator: Altair 8800 emulator program WAIT state: LED on or LED off.

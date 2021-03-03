@@ -15,17 +15,20 @@
   -------------------------------------------------------------------------
   Next to implement,
 
-  Implement setupMp3Player() within this program,
-  + When first playing a song, run: setupMp3Player();
+  Device feedback, such as the song number that's playing.
 
-  I added maxDirectory. Consider loop around with directories.
-
-  --------------------
   Handle the following, which resets the MP3 player device.
+  + For example, after the card is back "Online", the volume is reset to something else.
   Card not found
   Card not found
   Card Online!
-  + If Card Online!, run: setupMp3Player();
+  + If Card Online!, I now set the volume properly.
+
+  --------------------
+  Consider Implementing setupMp3Player() within this program,
+  + When first playing a song, run: setupMp3Player();
+
+  I added maxDirectory. Consider loop around with directories.
 
   Merged into Altair101a to gain a virtual front panel: 8 LED lights and 8 switches.
   + Now, need Player mode to show which song is playing and the volume level.
@@ -380,7 +383,7 @@ void setupMp3Player() {
 // -----------------------------------------------------------------------
 void printPlayerInfo() {
   Serial.println(F("+ --------------------------------------"));
-  Serial.println("+++ MP3 Player, version 0.93");
+  Serial.println("+++ MP3 Player, version 0.96");
   Serial.println(F("+ Software variable values:"));
   Serial.print(F("++ playerVolume:          "));
   Serial.println(playerVolume);
@@ -525,6 +528,8 @@ void printDFPlayerMessage(uint8_t type, int value) {
       break;
     case DFPlayerCardOnline:
       Serial.println(F("Card Online!"));
+      // When it comes back online, the volume needs to be reset.
+      mp3playerDevice.volume(playerVolume);
       break;
     case DFPlayerPlayFinished:
       Serial.print(F("Number:"));
@@ -534,7 +539,7 @@ void printDFPlayerMessage(uint8_t type, int value) {
     case DFPlayerError:
       switch (value) {
         case Busy:
-          Serial.println(F("Card not found"));
+          Serial.println(F("Busy, Card not found"));
           break;
         case Sleeping:
           Serial.println(F("Sleeping"));
