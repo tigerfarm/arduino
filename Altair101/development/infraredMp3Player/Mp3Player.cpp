@@ -15,6 +15,8 @@
   -------------------------------------------------------------------------
   Next to implement,
 
+  Need a playerEq to track the EQ selected.
+
   Device feedback, such as the song number that's playing.
 
   Handle the following, which resets the MP3 player device.
@@ -296,8 +298,9 @@ boolean processorPlayerLoop = true;             // Indicator for the processor t
 //
 uint16_t playerCounterTop = 0;
 uint16_t playerDirectoryTop = 0;
-uint8_t playerDirectory = 1;      // File directory name on the SD card. Example 1 is directory name: /01.
-boolean loopSingle = false;       // For toggling single song.
+uint8_t playerDirectory = 1;                    // File directory name on the SD card. Example 1 is directory name: /01.
+uint8_t playerEq = DFPLAYER_EQ_CLASSIC;         // Default equalizer setting.
+boolean loopSingle = false;                     // For toggling single song.
 
 // Sometimes, nice not to hear sounds over and again when testing.
 //      NOT_PLAY_SOUND = false >> Do play sounds.
@@ -315,8 +318,9 @@ void setupMp3Player() {
 
   // Set player front panel values.
   playerCounter = 1;                  // For now, default to song/file 1.
-  playerVolume = PLAYER_VOLUME_SETUP;
   playerDirectory = 1;
+  playerVolume = PLAYER_VOLUME_SETUP;
+  playerEq = DFPLAYER_EQ_CLASSIC;
   playerStatus = OUT_ON | HLTA_ON;    // ,  LED status light to indicate the Player.
   //
   // ---------------------------------------------------------------------------
@@ -367,8 +371,7 @@ void setupMp3Player() {
     // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
     mp3playerDevice.outputDevice(DFPLAYER_DEVICE_SD);
     //
-    // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
-    mp3playerDevice.EQ(DFPLAYER_EQ_CLASSIC);
+    mp3playerDevice.EQ(playerEq);
     //
     playerCounterTop = mp3playerDevice.readFileCounts();
     if (playerCounterTop == 65535) {
@@ -381,6 +384,38 @@ void setupMp3Player() {
 }
 
 // -----------------------------------------------------------------------
+void playerEqSwitch(byte thePlayerEq) {
+  Serial.print(thePlayerEq);
+  Serial.print(F(", "));
+  switch (thePlayerEq) {
+    case DFPLAYER_EQ_POP:
+      Serial.print("+ Key 4: ");
+      Serial.println("DFPLAYER_EQ_POP");
+      break;
+    case DFPLAYER_EQ_CLASSIC:
+      Serial.print("+ Key 5: ");
+      Serial.println("DFPLAYER_EQ_CLASSIC");
+      break;
+    case DFPLAYER_EQ_NORMAL:
+      Serial.print("+ Key 6: ");
+      Serial.println("DFPLAYER_EQ_NORMAL");
+      break;
+    case DFPLAYER_EQ_JAZZ:
+      Serial.print("+ Key 7: ");
+      Serial.println("DFPLAYER_EQ_JAZZ");
+      break;
+    case DFPLAYER_EQ_ROCK:
+      Serial.print("+ Key 8: ");
+      Serial.println("DFPLAYER_EQ_ROCK");
+      break;
+    case DFPLAYER_EQ_BASS:
+      Serial.print("+ Key 9: ");
+      Serial.println("DFPLAYER_EQ_BASS");
+      break;
+    default:
+      Serial.println("+ Other EQ setting");
+  }
+}
 void printPlayerInfo() {
   Serial.println(F("+ --------------------------------------"));
   Serial.println("+++ MP3 Player, version 0.96");
@@ -391,6 +426,8 @@ void printPlayerInfo() {
   Serial.println(playerCounterTop);
   Serial.print(F("++ playerCounter:         "));
   Serial.println(playerCounter);
+  Serial.print(F("++ playerEq:              "));
+  playerEqSwitch(playerEq);
   Serial.print(F("++ playerDirectory#       "));
   Serial.println(playerDirectory);
   Serial.print(F("++ playerDirectoryTop#    "));
@@ -429,14 +466,16 @@ void printPlayerInfo() {
     delay(200);
   }
   Serial.print(F("++ readVolume:            "));
-  Serial.println(mp3playerDevice.readVolume());              // current sound volume
+  Serial.println(mp3playerDevice.readVolume());             // current sound volume
   delay(300); // For some reason, readVolume() requires time to get the value, or maybe it's just that the first one requires time.
   Serial.print(F("++ readFileCounts:        "));
-  Serial.println(mp3playerDevice.readFileCounts());          // all file counts in SD card
+  Serial.println(mp3playerDevice.readFileCounts());         // all file counts in SD card
   Serial.print(F("++ readCurrentFileNumber: "));
-  Serial.println(mp3playerDevice.readCurrentFileNumber());   // current play file number
+  Serial.println(mp3playerDevice.readCurrentFileNumber());  // current play file number
   Serial.print(F("++ readEQ:                "));
-  Serial.println(mp3playerDevice.readEQ());                  // EQ setting
+  playerEqSwitch(mp3playerDevice.readEQ());                 // EQ setting
+  // Serial.println();
+  //
   // Serial.print(F("++ readFileCountsInFolder 01: "));
   // Serial.println(mp3playerDevice.readFileCountsInFolder(1)); // fill counts in folder SD:/01
   //
@@ -812,44 +851,50 @@ void playerSwitch(int resultsValue) {
     case 0x38BF129B:                        // Toshiba VCR remote
     case 0xFF22DD:                          // Small remote
     case '4':
+      playerEq = DFPLAYER_EQ_POP;
       Serial.print("+ Key 4: ");
       Serial.println("DFPLAYER_EQ_POP");
-      mp3playerDevice.EQ(DFPLAYER_EQ_POP);
+      mp3playerDevice.EQ(playerEq);
       break;
     case 0x926C6A9F:
     case 0xFF02FD:
     case '5':
+      playerEq = DFPLAYER_EQ_CLASSIC;
       Serial.print("+ Key 5: ");
       Serial.println("DFPLAYER_EQ_CLASSIC");
-      mp3playerDevice.EQ(DFPLAYER_EQ_CLASSIC);
+      mp3playerDevice.EQ(playerEq);
       break;
     case 0xE66C5C37:
     case 0xFFC23D:
     case '6':
+      playerEq = DFPLAYER_EQ_NORMAL;
       Serial.print("+ Key 6: ");
       Serial.println("DFPLAYER_EQ_NORMAL");
-      mp3playerDevice.EQ(DFPLAYER_EQ_NORMAL);
+      mp3playerDevice.EQ(playerEq);
       break;
     case 0xD75196BB:
     case 0xFFE01F:
     case '7':
+      playerEq = DFPLAYER_EQ_JAZZ;
       Serial.print("+ Key 7: ");
       Serial.println("DFPLAYER_EQ_JAZZ");
-      mp3playerDevice.EQ(DFPLAYER_EQ_JAZZ);
+      mp3playerDevice.EQ(playerEq);
       break;
     case 0x72FD3AFB:
     case 0xFFA857:
     case '8':
+      playerEq = DFPLAYER_EQ_ROCK;
       Serial.print("+ Key 8: ");
       Serial.println("DFPLAYER_EQ_ROCK");
-      mp3playerDevice.EQ(DFPLAYER_EQ_ROCK);
+      mp3playerDevice.EQ(playerEq);
       break;
     case 0xCCAA92FF:
     case 0xFF906F:
     case '9':
+      playerEq = DFPLAYER_EQ_BASS;
       Serial.print("+ Key 9: ");
       Serial.println("DFPLAYER_EQ_BASS");
-      mp3playerDevice.EQ(DFPLAYER_EQ_BASS);
+      mp3playerDevice.EQ(playerEq);
       break;
     // ----------------------------------------------------------------------
     // Volume
