@@ -15,29 +15,27 @@
   -------------------------------------------------------------------------
   Next to implement,
 
-  Need a playerEq to track the EQ selected.
+  --------------------
+  Add LEDs or an LCD for device feedback.
 
-  Device feedback, such as the song number that's playing.
+  Have playerLights()
+  + Manage value changes for playerCounter.
+  + Displaying the value to the serial port.
+  + When ready, display the song number that's playing to LEDs or to an LCD.
+  playerLights(), would be in controlling programs such as Altair101b.
 
-  Handle the following, which resets the MP3 player device.
-  + For example, after the card is back "Online", the volume is reset to something else.
-  Card not found
-  Card not found
-  Card Online!
-  + If Card Online!, I now set the volume properly.
+  Merge playerLights() into Altair101b to gain a virtual front panel: 8 LED lights and 8 switches.
+  + Now, need Player mode to show which song is playing and the volume level.
+  + Display the current file number selected for playing, or playing.
+  + Select a file to play by toggling data switches in a binary format,
+
+  Consider adding 8 LED lights (1...256) to indicate current file selected for playing.
 
   --------------------
   Consider Implementing setupMp3Player() within this program,
   + When first playing a song, run: setupMp3Player();
 
   I added maxDirectory. Consider loop around with directories.
-
-  Merged into Altair101a to gain a virtual front panel: 8 LED lights and 8 switches.
-  + Now, need Player mode to show which song is playing and the volume level.
-  + Display the current file number selected for playing, or playing.
-  + Select a file to play by toggling data switches in a binary format,
-
-  Consider adding 8 LED lights (1...256) to indicate current file selected for playing.
 
   -------------------------------------------------------------------------
   To compile this version, use the library manager to load the

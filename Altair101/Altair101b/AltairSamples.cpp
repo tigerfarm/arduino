@@ -2,7 +2,7 @@
 /*
   Load Altair 101a Sample programs into processor memory.
 
-  Programs are loading as an arrary:
+  Programs are loaded as an arrary:
     MWRITE( cnt++, B00010110 & 0xff);  // ++ opcode:mvi:00010110:d:080h
   Or, programs are loading from a PROGMEM array.
     static const byte PROGMEM pong[] = { ... }

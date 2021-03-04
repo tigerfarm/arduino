@@ -35,8 +35,6 @@ The enhanced program has very little memory left for me to upgrade the playing e
 --------------------------------------------------------------------------------
 ### To do next:
 
-Switch the Altair101a to an Arduino Due because it has more than enough memory required for the upgrades.
-
 Modify the display of the sector map and messages,
 to work similarly to the Altair101a virtual front panel display and log messages.
 + Use VT100 escape sequences to print the sector map in one location, at the top.
