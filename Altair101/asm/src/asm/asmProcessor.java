@@ -348,31 +348,49 @@ public class asmProcessor {
     }
 
     // -------------------------------------------------------------------------
-    public void programBytesListCodeArray() {
+    public void programBytesListCodeArray(String theFileNameFrom) {
+        // stacy
         System.out.println("\n+ List Program byte code as an array of bytes to use in Altair Samples.cpp.");
-        System.out.print(":");
-        programTop = 0;
-        int rowItemCounter = 0;
-        for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
-            String theValue = it.next();
-            String[] opcodeValues = theValue.split(SEPARATOR);
-            if (opcodeValues.length > 2) {
-                System.out.print(opcodeValues[2] + ", ");
-                // System.out.print(String.format("%02X:", Integer.parseInt(opcodeValues[2], 2)) + ", ");
-            } else {
-                System.out.print(opcodeValues[1] + ", ");
-                // System.out.print(String.format("%02X:", Integer.parseInt(opcodeValues[1], 2)) + ", ");
+        File dirFrom = new File(theFileNameFrom);
+        File dirTo = new File(theFileNameFrom + ".array");
+        int theLength = 0;
+        try {
+            InputStream in = new FileInputStream(dirFrom);
+            byte[] buf = new byte[65536];                       // 64K of bytes
+            FileOutputStream fout = new FileOutputStream(dirTo);
+            PrintStream pout = new PrintStream(fout);
+            theLength = in.read(buf);
+            int theValue;
+            int lineCounter = 1;
+            for (int i = 0; i < theLength; i++) {
+                theValue = buf[i];
+                if (theValue < 0) {
+                    theValue = 256 + theValue;
+                }
+                String theBuffer = "";
+                if (theValue < 10) {
+                    theBuffer = "   ";
+                } else if (theValue < 100) {
+                    theBuffer = "  ";
+                } else if (theValue < 1000) {
+                    theBuffer = " ";
+                }
+                pout.print(theBuffer + theValue + ", ");
+                // System.out.print(theBuffer + theValue + ":" + byteToString(buf[i]) + ", ");
+                System.out.print(theBuffer + theValue + ", ");
+                if (lineCounter > 15 ) {
+                    lineCounter = 0;
+                    System.out.println();
+                }
+                    lineCounter++;
             }
-            programTop++;
-            if (rowItemCounter > 15) {
-                // Newline each 16 opcodes.
-                System.out.println();
-                rowItemCounter = 0;
-            } else {
-                rowItemCounter++;
-            }
+            in.close();
+            pout.close();
+        } catch (IOException e) {
+            System.out.println("-- Error, readWriteCopy: " + e);
+            System.exit(1);
         }
-        System.out.println("\n+ End of list.");
+        System.out.println("\n+ End of list. Number of bytes = " + theLength);
     }
 
     // -------------------------------------------------------------------------
@@ -1631,7 +1649,7 @@ public class asmProcessor {
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pKillTheBit.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/programList.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pstatuslights.asm");
-        thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pcli.asm");
+        // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pcli.asm");
         //
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGa.asm");
         // thisProcess.parseFile("/Users/dthurston/Projects/arduino/Altair101/asm/programs/pGa2.asm");
@@ -1648,7 +1666,8 @@ public class asmProcessor {
         // thisProcess.listLabelAddresses();
         // thisProcess.listImmediateValues();
         // thisProcess.programBytesListAndWrite("p1.bin");
-        thisProcess.programBytesListCodeArray();
+        thisProcess.programBytesListCodeArray("p4kBasic/basic4k.bin");
+        // thisProcess.programBytesListCodeArray("p1.bin");
 
         // thisProcess.programBytesListCode();
         // thisProcess.programBytesListHex();

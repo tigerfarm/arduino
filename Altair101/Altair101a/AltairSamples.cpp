@@ -13,12 +13,13 @@
 int cnt;
 
 void loadProgramList() {
-  Serial.println(F("+ Sample programs to load and run."));
+  Serial.println(F("+ Sample programs."));
   Serial.println(F("----------"));
-  Serial.println(F("++ k, Kill the Bit for the virtual front panel."));
+  Serial.println(F("++ K, Load array: Kill the Bit for the virtual front panel."));
+  Serial.println(F("++ k, Load PROGMEM array: Kill the Bit for the virtual front panel."));
   Serial.println(F("++ r, Test the setting of registers."));
-  Serial.println(F("++ b, MITS Altair Basic 4K."));
-  Serial.println(F("++ g, Galaxy 101, Star Wars version of the GALAXY80 version of the Star Trek game."));
+  Serial.println(F("++ b, Load Altair Basic 4K."));
+  Serial.println(F("++ g, Load Galaxy 101, Star Wars version of the Star Trek game."));
   Serial.println(F("----------"));
   Serial.println(F("++ s, Load virtual Kill the Bit from PROGMEM array."));
   
@@ -29,6 +30,33 @@ void loadProgramList() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Load sample programs.
+
+// -----------------------------------------------------------------------------
+void loadKillTheBit() {
+  cnt = 0;
+  MWRITE( cnt++, B00010110 & 0xff);  // ++ opcode:mvi:00010110:d:080h
+  MWRITE( cnt++, B10000000 & 0xff);  // ++ immediate:080h:128
+  MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+  MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+  MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+  MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+  MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+  MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+  MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+  MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+  MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+  MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+  MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+  MWRITE( cnt++, B00011010 & 0xff);  // ++ opcode:ldax:00011010:d
+  MWRITE( cnt++, B11011011 & 0xff);  // ++ opcode:in:11011011:2
+  MWRITE( cnt++, B00000100 & 0xff);  // ++ immediate:4:4
+  MWRITE( cnt++, B10101010 & 0xff);  // ++ opcode:xra:10101010:d
+  MWRITE( cnt++, B00001111 & 0xff);  // ++ opcode:rrc:00001111
+  MWRITE( cnt++, B01010111 & 0xff);  // ++ opcode:mov:01010111:d:a
+  MWRITE( cnt++, B11000011 & 0xff);  // ++ opcode:jmp:11000011:Begin
+  MWRITE( cnt++, B00000101 & 0xff);  // ++ lb:Begin:5
+  MWRITE( cnt++, B00000000 & 0xff);  // ++ hb:0
+}
 
 // -----------------------------------------------------------------------------
 void loadMviRegisters() {
@@ -56,6 +84,14 @@ void loadMviRegisters() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 //  From prog_games.cpp, program hex bytes:
+/*
+  Before
+  Sketch uses 70236 bytes (27%) of program storage space. Maximum is 253952 bytes.
+  Global variables use 7634 bytes (93%) of dynamic memory, leaving 558 bytes for local variables. Maximum is 8192 bytes.
+  L  After
+  Sketch uses 70290 bytes (27%) of program storage space. Maximum is 253952 bytes.
+  Global variables use 7608 bytes (92%) of dynamic memory, leaving 584 bytes for local variables. Maximum is 8192 bytes.
+*/
 
 /*
     Need to update the speed.
@@ -787,6 +823,24 @@ void loadProgram() {
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
       switch (readByte) {
+        case 'K':
+          loadProgramName = "Front panel Kill the Bit";
+          Serial.println(F("+ K, load array: A version of Kill the Bit for the front panel."));
+          programState = PROGRAM_WAIT;
+          if (SERIAL_FRONT_PANEL) {
+            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
+          }
+          loadKillTheBit();
+          break;
+        case 'k':
+          loadProgramName = "Virtual Kill the Bit";
+          Serial.println(F("+ k, load PROGMEM array: A version of Kill the Bit for the virtual front panel."));
+          programState = PROGRAM_WAIT;
+          if (SERIAL_FRONT_PANEL) {
+            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
+          }
+          loadVirtualKtb();
+          break;
         case 'r':
           loadProgramName = "Set the registers";
           Serial.println(F("+ r, load: a program that uses MVI to set the registers: A, B, C, D, E, H, and L"));
@@ -797,15 +851,6 @@ void loadProgram() {
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
           }
           loadMviRegisters();
-          break;
-        case 'k':
-          loadProgramName = "Virtual Kill the Bit";
-          Serial.println(F("+ k, load PROGMEM array: A version of Kill the Bit for the virtual front panel."));
-          programState = PROGRAM_WAIT;
-          if (SERIAL_FRONT_PANEL) {
-            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
-          }
-          loadVirtualKtb();
           break;
         case 'b':
           loadProgramName = "Altair Basic 4K";

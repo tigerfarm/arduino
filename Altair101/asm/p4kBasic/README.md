@@ -1,5 +1,5 @@
 ----------------------------------------------------------------------------------
-# Running 4K Basic on the Altair101a
+# Running MITS Altair 4K Basic on the Altair101a
 
 I found a de-assembled listing of 4K Basic which is
 the assembler program Bill Gates, Paul Allen, and another wrote. It's the first Microsoft software product.
