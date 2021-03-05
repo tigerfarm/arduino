@@ -1,6 +1,8 @@
 // -----------------------------------------------------------------------------
 /*
-  Test infrared receiver.
+  Test infrared receiver codes for:
+  + Toshiba VCR remote
+  + Small remote
 
   + Post messages to the serial port, which can be displayed using the Arduino Tools/Serial Monitor.
 
@@ -52,72 +54,82 @@ void infraredSwitch() {
       break;
     // -----------------------------------
     case 0xFF10EF:
-    case 0xE0E0A659:
+    case 0xE0E0A659:                        // Toshiba VCR remote
       Serial.println("+ Key < - previous");
       break;
     case 0xFF5AA5:
-    case 0xE0E046B9:
+    case 0xE0E046B9:                        // Toshiba VCR remote
       Serial.println("+ Key > - next");
       break;
     case 0xFF18E7:
-    case 0xE0E006F9:
+    case 0xE0E006F9:                        // Toshiba VCR remote
       Serial.println("+ Key up");
       break;
     case 0xFF4AB5:
-    case 0xE0E08679:
+    case 0xE0E08679:                        // Toshiba VCR remote
       Serial.println("+ Key down");
       break;
     case 0xFF38C7:
-    case 0xE0E016E9:
+    case 0xE0E016E9:                        // Toshiba VCR remote
       Serial.println("+ Key OK - Toggle");
       break;
     // -----------------------------------
     case 0x1163EEDF:                        // Toshiba VCR remote
+    case 0x20F63C23:                        // After pressing TV
     case 0xFF9867:                          // Small remote
       Serial.print("+ Key 0:");
       Serial.println("");
       break;
     case 0x718E3D1B:                        // Toshiba VCR remote
+    case 0xB16A8E1F:                        // After pressing TV
     case 0xFFA25D:                          // Small remote
       Serial.print("+ Key 1: ");
       Serial.println("");
       break;
-    case 0xF8FB71FB:
+    case 0xF8FB71FB:                        // Toshiba VCR remote
+    case 0x38D7C2FF:                        // After pressing TV
     case 0xFF629D:
       Serial.print("+ Key 2: ");
       Serial.println("");
       break;
-    case 0xE9E0AC7F:
+    case 0xE9E0AC7F:                        // Toshiba VCR remote
+    case 0x29BCFD83:                        // After pressing TV
     case 0xFFE21D:
       Serial.print("+ Key 3: ");
       Serial.println("");
       break;
-    case 0x38BF129B:
+    case 0x38BF129B:                        // Toshiba VCR remote
+    case 0x789B639F:                        // After pressing TV
     case 0xFF22DD:
       Serial.print("+ Key 4: ");
       Serial.println("");
       break;
-    case 0x926C6A9F:
+    case 0x926C6A9F:                        // Toshiba VCR remote
+    case 0xD248BBA3:                        // After pressing TV
     case 0xFF02FD:
       Serial.print("+ Key 5: ");
       Serial.println("");
       break;
-    case 0xE66C5C37:
+    case 0xE66C5C37:                        // Toshiba VCR remote
+    case 0x2648AD3B:                        // After pressing TV
     case 0xFFC23D:
       Serial.print("+ Key 6: ");
       Serial.println("");
       break;
-    case 0xD75196BB:
+    case 0xD75196BB:                        // Toshiba VCR remote
+    case 0x172DE7BF:                        // After pressing TV
     case 0xFFE01F:
       Serial.print("+ Key 7: ");
       Serial.println("");
       break;
-    case 0x72FD3AFB:
+    case 0x72FD3AFB:                        // Toshiba VCR remote
+    case 0xB2D98BFF:                        // After pressing TV
     case 0xFFA857:
       Serial.print("+ Key 8: ");
       Serial.println("");
       break;
-    case 0xCCAA92FF:
+    case 0xCCAA92FF:                        // Toshiba VCR remote
+    case 0xC86E403:                         // After pressing TV
     case 0xFF906F:
       Serial.print("+ Key 9: ");
       Serial.println("");
@@ -133,13 +145,20 @@ void infraredSwitch() {
       break;
     // -----------------------------------
     // Toshiba VCR remote
-    case 0x3694275F:
+    case 0xDA529B37:                        // After pressing VCR
+    case 0x1A2EEC3B:                        // After pressing TV
+      Serial.println("+ Key POWER");
+      break;
+    case 0x3694275F:                        // After pressing VCR
+    case 0x5C6068E3:                        // After pressing TV
       Serial.println("+ Key INPUT/SELECT");
       break;
-    case 0x6D8BBC17:
+    case 0x6D8BBC17:                        // After pressing VCR
+    case 0xAD680D1B:                        // After pressing TV
       Serial.println("+ Key CHANNEL UP");
       break;
-    case 0xCDFC965B:
+    case 0xCDFC965B:                        // After pressing VCR
+    case 0xDD8E75F:                         // After pressing TV
       Serial.println("+ Key CHANNEL DOWN");
       break;
     case 0x2B8BE5F:
@@ -148,10 +167,12 @@ void infraredSwitch() {
     case 0x1CF3ACDB:
       Serial.println("+ Key VOLUME DOWN");
       break;
-    case 0xC4CC6436:
+    case 0xC4CC6436:                        // After pressing VCR
+    case 0x6F46633F:                        // After pressing TV
       Serial.println("+ Key DISPLAY");
       break;
-    case 0xBC133D9B:
+    case 0xBC133D9B:                        // Toshiba VCR remote
+    case 0xDD8E75F:                         // After pressing TV
       Serial.println("+ Key 100");
       break;
     case 0xA7DCBAFB:

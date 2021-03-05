@@ -160,7 +160,7 @@ void runProcessorWait() {
       int readByte = Serial.read();    // Read and process an incoming byte.
       processWaitSwitch(readByte);
     }
-    playMp3continuously();              // Check for player update or infrared key pressed.
+    playerContinuous();              // Check for player update or infrared key pressed.
     delay(60);
   }
 }

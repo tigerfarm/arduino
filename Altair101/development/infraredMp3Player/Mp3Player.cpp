@@ -635,7 +635,7 @@ void playerSwitch(int resultsValue) {
     //
     // -----------------------------------
     case 0xFF10EF :
-    case 0x7E23117B :
+    case 0x7E23117B:    // Key REW
     case 'p' :
       if (playerCounter > 1) {
         playerCounter--;
@@ -649,7 +649,7 @@ void playerSwitch(int resultsValue) {
       break;
     // -----------------------------------
     case 0xFF5AA5:
-    case 0x7538143B:
+    case 0x7538143B:    // Key FF
     case 'n':
       if (playerCounter < playerCounterTop) {
         playerCounter++;
@@ -671,7 +671,7 @@ void playerSwitch(int resultsValue) {
       Serial.print(F("+ Pause, play current song, playerCounter="));
       Serial.println(playerCounter);
       break;
-    case 0x8AA3C35B:
+    case 0x8AA3C35B:    // Key PLAY
     case 'r':
       {
         // Before starting check if the playerCounter has changed.
@@ -716,9 +716,10 @@ void playerSwitch(int resultsValue) {
     // Folder, file directory selection.
     //
     // -----------------------------------
-    case 0x6D8BBC17:
-    case 0xFF18E7:          // Small remote key up.
-    case 0xFF629D:          // Small remote key 2.
+    case 0x6D8BBC17:                        // After pressing VCR
+    case 0xAD680D1B:                        // After pressing TV
+    case 0xFF18E7:                          // Small remote key up.
+    case 0xFF629D:                          // Small remote key 2.
     case 'D':
       Serial.print("+ Key up - next directory, directory number: ");
       if (playerDirectoryTop == 0) {
@@ -769,8 +770,9 @@ void playerSwitch(int resultsValue) {
       playerStatus = playerStatus & HLTA_OFF;
       break;
     // -----------------------------------
-    case 0xCDFC965B:
-    case 0xFF4AB5:          // Small remote key down.
+    case 0xCDFC965B:                        // After pressing VCR
+    case 0xDD8E75F:                         // After pressing TV
+    case 0xFF4AB5:                          // Small remote key down.
     case 'd':
       Serial.print("+ Key down - previous directory, directory number: ");
       if (playerDirectory > 1) {
@@ -830,23 +832,27 @@ void playerSwitch(int resultsValue) {
       break;
     // -----------------------------------
     // Toshiba VCR remote, not programmed.
-    case 0x1163EEDF:
-      Serial.println("+ Key 0");
+    case 0x718E3D1B:                        // Toshiba VCR remote
+    case 0xB16A8E1F:                        // After pressing TV
+      Serial.print("+ Key 1: ");
+      Serial.println("");
       break;
-    case 0x718E3D1B:
-      Serial.println("+ Key 1");
+    case 0xF8FB71FB:                        // Toshiba VCR remote
+    case 0x38D7C2FF:                        // After pressing TV
+      Serial.print("+ Key 2: ");
+      Serial.println("");
       break;
-    case 0xF8FB71FB:
-      Serial.println("+ Key 2");
-      break;
-    case 0xE9E0AC7F:
-      Serial.println("+ Key 3");
+    case 0xE9E0AC7F:                        // Toshiba VCR remote
+    case 0x29BCFD83:                        // After pressing TV
+      Serial.print("+ Key 3: ");
+      Serial.println("");
       break;
     //
     // ----------------------------------------------------------------------
     // Equalizer setting selection.
     //
     case 0x38BF129B:                        // Toshiba VCR remote
+    case 0x789B639F:                        // After pressing TV
     case 0xFF22DD:                          // Small remote
     case '4':
       playerEq = DFPLAYER_EQ_POP;
@@ -854,7 +860,8 @@ void playerSwitch(int resultsValue) {
       Serial.println("DFPLAYER_EQ_POP");
       mp3playerDevice.EQ(playerEq);
       break;
-    case 0x926C6A9F:
+    case 0x926C6A9F:                        // Toshiba VCR remote
+    case 0xD248BBA3:                        // After pressing TV
     case 0xFF02FD:
     case '5':
       playerEq = DFPLAYER_EQ_CLASSIC;
@@ -862,7 +869,8 @@ void playerSwitch(int resultsValue) {
       Serial.println("DFPLAYER_EQ_CLASSIC");
       mp3playerDevice.EQ(playerEq);
       break;
-    case 0xE66C5C37:
+    case 0xE66C5C37:                        // Toshiba VCR remote
+    case 0x2648AD3B:                        // After pressing TV
     case 0xFFC23D:
     case '6':
       playerEq = DFPLAYER_EQ_NORMAL;
@@ -870,7 +878,8 @@ void playerSwitch(int resultsValue) {
       Serial.println("DFPLAYER_EQ_NORMAL");
       mp3playerDevice.EQ(playerEq);
       break;
-    case 0xD75196BB:
+    case 0xD75196BB:                        // Toshiba VCR remote
+    case 0x172DE7BF:                        // After pressing TV
     case 0xFFE01F:
     case '7':
       playerEq = DFPLAYER_EQ_JAZZ;
@@ -878,7 +887,8 @@ void playerSwitch(int resultsValue) {
       Serial.println("DFPLAYER_EQ_JAZZ");
       mp3playerDevice.EQ(playerEq);
       break;
-    case 0x72FD3AFB:
+    case 0x72FD3AFB:                        // Toshiba VCR remote
+    case 0xB2D98BFF:                        // After pressing TV
     case 0xFFA857:
     case '8':
       playerEq = DFPLAYER_EQ_ROCK;
@@ -886,7 +896,8 @@ void playerSwitch(int resultsValue) {
       Serial.println("DFPLAYER_EQ_ROCK");
       mp3playerDevice.EQ(playerEq);
       break;
-    case 0xCCAA92FF:
+    case 0xCCAA92FF:                        // Toshiba VCR remote
+    case 0xC86E403:                         // After pressing TV
     case 0xFF906F:
     case '9':
       playerEq = DFPLAYER_EQ_BASS;
@@ -960,7 +971,8 @@ void playerSwitch(int resultsValue) {
       mp3playerDevice.stop();
       playerLights();
       break;
-    case 0xC4CC6436:                              //  Key DISPLAY
+    case 0xC4CC6436:                              // Key DISPLAY After pressing VCR
+    case 0x6F46633F:                              // Key DISPLAY After pressing TV
     case 'i':
       Serial.println(F("+ Information"));
       printPlayerInfo();
@@ -970,6 +982,8 @@ void playerSwitch(int resultsValue) {
       Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
       break;
     case 0x85CF699F:                              //  Key TV/VCR
+    case 0xDA529B37:                              // Key POWER After pressing VCR
+    case 0x1A2EEC3B:                              // Key POWER After pressing TV
     case 'X':
       Serial.println(F("+ Power or Key TV/VCR"));
       programState = PROGRAM_WAIT;
@@ -992,7 +1006,7 @@ void playerSwitch(int resultsValue) {
 // -----------------------------------------------------------------------------
 // Handle continuous playing, and play errors such as: SD card not inserted.
 //
-void playMp3continuously() {
+void playerContinuous() {
   //
   // Process infrared key presses.
   if (irrecv.decode(&results)) {
@@ -1140,7 +1154,7 @@ void mp3PlayerRun() {
       int readByte = Serial.read();    // Read and process an incoming byte.
       playerSwitch(readByte);
     }
-    playMp3continuously();  // For continuous playing. Else, when a song ends, playing would stop.
+    playerContinuous();  // For continuous playing. Else, when a song ends, playing would stop.
     //
     delay(60);  // Delay before getting the next key press, in case press and hold too long.
   }

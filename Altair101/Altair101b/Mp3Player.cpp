@@ -15,24 +15,27 @@
   -------------------------------------------------------------------------
   Next to implement,
 
-  Implement setupMp3Player() within this program,
-  + When first playing a song, run: setupMp3Player();
-
-  I added maxDirectory. Consider loop around with directories.
-
   --------------------
-  Handle the following, which resets the MP3 player device.
-  Card not found
-  Card not found
-  Card Online!
-  + If Card Online!, run: setupMp3Player();
+  Add LEDs or an LCD for device feedback.
 
-  Merged into Altair101a to gain a virtual front panel: 8 LED lights and 8 switches.
+  Have playerLights()
+  + Manage value changes for playerCounter.
+  + Displaying the value to the serial port.
+  + When ready, display the song number that's playing to LEDs or to an LCD.
+  playerLights(), would be in controlling programs such as Altair101b.
+
+  Merge playerLights() into Altair101b to gain a virtual front panel: 8 LED lights and 8 switches.
   + Now, need Player mode to show which song is playing and the volume level.
   + Display the current file number selected for playing, or playing.
   + Select a file to play by toggling data switches in a binary format,
 
   Consider adding 8 LED lights (1...256) to indicate current file selected for playing.
+
+  --------------------
+  Consider Implementing setupMp3Player() within this program,
+  + When first playing a song, run: setupMp3Player();
+
+  I added maxDirectory. Consider loop around with directories.
 
   -------------------------------------------------------------------------
   To compile this version, use the library manager to load the
@@ -156,8 +159,8 @@
     RX(2) to resister (1K-5K) to serial software pin 11(TX).
     TX(3) to serial software pin 10(RX).
   Connections for Mega and Due:
-    RX(2) to resister (1K-5K) to Serial1 pin 18(TX).
-    TX(3) to resister (1K-5K) to Serial1 pin 19(RX).
+    RX(2) to resister (1K-5K) to SerialSw pin 18(TX).
+    TX(3) to resister (1K-5K) to SerialSw pin 19(RX).
 
   2. Power options.
   Connect from the Arduino directly to the DFPlayer:
@@ -213,16 +216,45 @@ void playerLights() {}
 // void ledFlashSuccess() {}
 
 // -----------------------------------------------------------------------
-// Infrared Receiver
+// Motherboard Specific setup for Infrared and DFPlayer communications
 
-// For Arduino Due, use the IRremote2 library.
-// For Arduino Uno, Nano, or Mega, use the IRremote library.
-#include <IRremote2.h>
-
-// Digital and analog pins work. Also tested with A0 and 9.
-// For Arduino Due, use pin 24.
-// For Arduino Uno, Nano, or Mega, use pin A1. For Mega, can use pin 24.
+// -----------------------------------------------
+#if defined(__AVR_ATmega2560__)
+// ------------------
+#include <IRremote.h>
+// ------------------
+// Mega uses a hardware serial port (RX/TX) for communications with the DFPlayer.
+// For Arduino Mega, I use pin 24 because it's closer to where I'm doing my wiring.
+//  Feel free to use another digital or analog pin.
 int IR_PIN = 24;
+//
+// -----------------------------------------------
+#elif defined(__SAM3X8E__)
+// ------------------
+#include <IRremote2.h>    // Special infrared library for the Due.
+// For Arduino Due, I use pin 24 because it's closer to where I'm doing my wiring.
+//  Feel free to use another digital or analog pin.
+int IR_PIN = 24;
+// ------------------
+// Due uses a hardware serial port (RX/TX) for communications with the DFPlayer.
+//
+// -----------------------------------------------
+#else
+// ------------------
+#include <IRremote.h>
+// Digital and analog pins work. Also tested with other analog pins.
+int IR_PIN = A1;
+// ------------------
+// Nano or Uno use a software serial port for communications with the DFPlayer.
+#include "SoftwareSerial.h"
+// DFPlayer pins 3(TX) and 2(RX), connected to Arduino pins: 10(RX) and 11(TX).
+// SoftwareSerial playerSerial(10, 11); // Software serial, playerSerial(RX, TX)
+SoftwareSerial SerialSw(10, 11); // Software serial, playerSerial(RX, TX)
+// ------------------
+#endif
+
+// -----------------------------------------------------------------------
+// Infrared Receiver
 
 IRrecv irrecv(IR_PIN);
 decode_results results;
@@ -233,6 +265,8 @@ decode_results results;
 // #include "Arduino.h"     // Included in Altair101.h
 #include "DFRobotDFPlayerMini.h"
 DFRobotDFPlayerMini mp3playerDevice;
+
+// ----------------------------
 
 #define PLAYER_VOLUME_SETUP 6
 
@@ -262,8 +296,9 @@ boolean processorPlayerLoop = true;             // Indicator for the processor t
 //
 uint16_t playerCounterTop = 0;
 uint16_t playerDirectoryTop = 0;
-uint8_t playerDirectory = 1;      // File directory name on the SD card. Example 1 is directory name: /01.
-boolean loopSingle = false;       // For toggling single song.
+uint8_t playerDirectory = 1;                    // File directory name on the SD card. Example 1 is directory name: /01.
+uint8_t playerEq = DFPLAYER_EQ_CLASSIC;         // Default equalizer setting.
+boolean loopSingle = false;                     // For toggling single song.
 
 // Sometimes, nice not to hear sounds over and again when testing.
 //      NOT_PLAY_SOUND = false >> Do play sounds.
@@ -281,11 +316,15 @@ void setupMp3Player() {
 
   // Set player front panel values.
   playerCounter = 1;                  // For now, default to song/file 1.
-  playerVolume = PLAYER_VOLUME_SETUP;
   playerDirectory = 1;
+  playerVolume = PLAYER_VOLUME_SETUP;
+  playerEq = DFPLAYER_EQ_CLASSIC;
   playerStatus = OUT_ON | HLTA_ON;    // ,  LED status light to indicate the Player.
   //
-  // -------------------------
+  // ---------------------------------------------------------------------------
+  // Serial connection depends on the motherboard.
+  //
+#if defined(__AVR_ATmega2560__) || defined(__SAM3X8E__)
   Serial1.begin(9600);
   if (hwStatus > 0) {
     hwStatus = 0;
@@ -301,6 +340,24 @@ void setupMp3Player() {
       }
     }
   }
+#else
+  SerialSw.begin(9600);
+  if (hwStatus > 0) {
+    hwStatus = 0;
+    if (!mp3playerDevice.begin(SerialSw)) {
+      delay(500);
+      if (!mp3playerDevice.begin(SerialSw)) {
+        ledFlashError();
+        NOT_PLAY_SOUND = true;  // Set to not play sound effects.
+        Serial.println(F("MP3 Player, unable to begin:"));
+        Serial.println(F("1.Please recheck the connection!"));
+        Serial.println(F("2.Please insert the SD card!"));
+        hwStatus = 4;
+      }
+    }
+  }
+#endif
+  // ---------------------------------------------------------------------------
   delay(100);
   if (hwStatus == 0) {
     ledFlashSuccess();
@@ -312,8 +369,7 @@ void setupMp3Player() {
     // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
     mp3playerDevice.outputDevice(DFPLAYER_DEVICE_SD);
     //
-    // DFPLAYER_EQ_NORMAL DFPLAYER_EQ_POP DFPLAYER_EQ_ROCK DFPLAYER_EQ_JAZZ DFPLAYER_EQ_CLASSIC DFPLAYER_EQ_BASS
-    mp3playerDevice.EQ(DFPLAYER_EQ_CLASSIC);
+    mp3playerDevice.EQ(playerEq);
     //
     playerCounterTop = mp3playerDevice.readFileCounts();
     if (playerCounterTop == 65535) {
@@ -326,9 +382,41 @@ void setupMp3Player() {
 }
 
 // -----------------------------------------------------------------------
+void playerEqSwitch(byte thePlayerEq) {
+  Serial.print(thePlayerEq);
+  Serial.print(F(", "));
+  switch (thePlayerEq) {
+    case DFPLAYER_EQ_POP:
+      Serial.print("+ Key 4: ");
+      Serial.println("DFPLAYER_EQ_POP");
+      break;
+    case DFPLAYER_EQ_CLASSIC:
+      Serial.print("+ Key 5: ");
+      Serial.println("DFPLAYER_EQ_CLASSIC");
+      break;
+    case DFPLAYER_EQ_NORMAL:
+      Serial.print("+ Key 6: ");
+      Serial.println("DFPLAYER_EQ_NORMAL");
+      break;
+    case DFPLAYER_EQ_JAZZ:
+      Serial.print("+ Key 7: ");
+      Serial.println("DFPLAYER_EQ_JAZZ");
+      break;
+    case DFPLAYER_EQ_ROCK:
+      Serial.print("+ Key 8: ");
+      Serial.println("DFPLAYER_EQ_ROCK");
+      break;
+    case DFPLAYER_EQ_BASS:
+      Serial.print("+ Key 9: ");
+      Serial.println("DFPLAYER_EQ_BASS");
+      break;
+    default:
+      Serial.println("+ Other EQ setting");
+  }
+}
 void printPlayerInfo() {
   Serial.println(F("+ --------------------------------------"));
-  Serial.println("+++ MP3 Player, version 0.93");
+  Serial.println("+++ MP3 Player, version 0.96");
   Serial.println(F("+ Software variable values:"));
   Serial.print(F("++ playerVolume:          "));
   Serial.println(playerVolume);
@@ -336,6 +424,8 @@ void printPlayerInfo() {
   Serial.println(playerCounterTop);
   Serial.print(F("++ playerCounter:         "));
   Serial.println(playerCounter);
+  Serial.print(F("++ playerEq:              "));
+  playerEqSwitch(playerEq);
   Serial.print(F("++ playerDirectory#       "));
   Serial.println(playerDirectory);
   Serial.print(F("++ playerDirectoryTop#    "));
@@ -374,14 +464,16 @@ void printPlayerInfo() {
     delay(200);
   }
   Serial.print(F("++ readVolume:            "));
-  Serial.println(mp3playerDevice.readVolume());              // current sound volume
+  Serial.println(mp3playerDevice.readVolume());             // current sound volume
   delay(300); // For some reason, readVolume() requires time to get the value, or maybe it's just that the first one requires time.
   Serial.print(F("++ readFileCounts:        "));
-  Serial.println(mp3playerDevice.readFileCounts());          // all file counts in SD card
+  Serial.println(mp3playerDevice.readFileCounts());         // all file counts in SD card
   Serial.print(F("++ readCurrentFileNumber: "));
-  Serial.println(mp3playerDevice.readCurrentFileNumber());   // current play file number
+  Serial.println(mp3playerDevice.readCurrentFileNumber());  // current play file number
   Serial.print(F("++ readEQ:                "));
-  Serial.println(mp3playerDevice.readEQ());                  // EQ setting
+  playerEqSwitch(mp3playerDevice.readEQ());                 // EQ setting
+  // Serial.println();
+  //
   // Serial.print(F("++ readFileCountsInFolder 01: "));
   // Serial.println(mp3playerDevice.readFileCountsInFolder(1)); // fill counts in folder SD:/01
   //
@@ -473,6 +565,8 @@ void printDFPlayerMessage(uint8_t type, int value) {
       break;
     case DFPlayerCardOnline:
       Serial.println(F("Card Online!"));
+      // When it comes back online, the volume needs to be reset.
+      mp3playerDevice.volume(playerVolume);
       break;
     case DFPlayerPlayFinished:
       Serial.print(F("Number:"));
@@ -482,7 +576,7 @@ void printDFPlayerMessage(uint8_t type, int value) {
     case DFPlayerError:
       switch (value) {
         case Busy:
-          Serial.println(F("Card not found"));
+          Serial.println(F("Busy, Card not found"));
           break;
         case Sleeping:
           Serial.println(F("Sleeping"));
@@ -541,7 +635,7 @@ void playerSwitch(int resultsValue) {
     //
     // -----------------------------------
     case 0xFF10EF :
-    case 0x7E23117B :
+    case 0x7E23117B:    // Key REW
     case 'p' :
       if (playerCounter > 1) {
         playerCounter--;
@@ -555,7 +649,7 @@ void playerSwitch(int resultsValue) {
       break;
     // -----------------------------------
     case 0xFF5AA5:
-    case 0x7538143B:
+    case 0x7538143B:    // Key FF
     case 'n':
       if (playerCounter < playerCounterTop) {
         playerCounter++;
@@ -577,7 +671,7 @@ void playerSwitch(int resultsValue) {
       Serial.print(F("+ Pause, play current song, playerCounter="));
       Serial.println(playerCounter);
       break;
-    case 0x8AA3C35B:
+    case 0x8AA3C35B:    // Key PLAY
     case 'r':
       {
         // Before starting check if the playerCounter has changed.
@@ -622,9 +716,10 @@ void playerSwitch(int resultsValue) {
     // Folder, file directory selection.
     //
     // -----------------------------------
-    case 0x6D8BBC17:
-    case 0xFF18E7:          // Small remote key up.
-    case 0xFF629D:          // Small remote key 2.
+    case 0x6D8BBC17:                        // After pressing VCR
+    case 0xAD680D1B:                        // After pressing TV
+    case 0xFF18E7:                          // Small remote key up.
+    case 0xFF629D:                          // Small remote key 2.
     case 'D':
       Serial.print("+ Key up - next directory, directory number: ");
       if (playerDirectoryTop == 0) {
@@ -675,8 +770,9 @@ void playerSwitch(int resultsValue) {
       playerStatus = playerStatus & HLTA_OFF;
       break;
     // -----------------------------------
-    case 0xCDFC965B:
-    case 0xFF4AB5:          // Small remote key down.
+    case 0xCDFC965B:                        // After pressing VCR
+    case 0xDD8E75F:                         // After pressing TV
+    case 0xFF4AB5:                          // Small remote key down.
     case 'd':
       Serial.print("+ Key down - previous directory, directory number: ");
       if (playerDirectory > 1) {
@@ -736,57 +832,78 @@ void playerSwitch(int resultsValue) {
       break;
     // -----------------------------------
     // Toshiba VCR remote, not programmed.
-    case 0x1163EEDF:
-      Serial.println("+ Key 0");
+    case 0x718E3D1B:                        // Toshiba VCR remote
+    case 0xB16A8E1F:                        // After pressing TV
+      Serial.print("+ Key 1: ");
+      Serial.println("");
       break;
-    case 0x718E3D1B:
-      Serial.println("+ Key 1");
+    case 0xF8FB71FB:                        // Toshiba VCR remote
+    case 0x38D7C2FF:                        // After pressing TV
+      Serial.print("+ Key 2: ");
+      Serial.println("");
       break;
-    case 0xF8FB71FB:
-      Serial.println("+ Key 2");
-      break;
-    case 0xE9E0AC7F:
-      Serial.println("+ Key 3");
+    case 0xE9E0AC7F:                        // Toshiba VCR remote
+    case 0x29BCFD83:                        // After pressing TV
+      Serial.print("+ Key 3: ");
+      Serial.println("");
       break;
     //
     // ----------------------------------------------------------------------
     // Equalizer setting selection.
     //
     case 0x38BF129B:                        // Toshiba VCR remote
+    case 0x789B639F:                        // After pressing TV
     case 0xFF22DD:                          // Small remote
+    case '4':
+      playerEq = DFPLAYER_EQ_POP;
       Serial.print("+ Key 4: ");
       Serial.println("DFPLAYER_EQ_POP");
-      mp3playerDevice.EQ(DFPLAYER_EQ_POP);
+      mp3playerDevice.EQ(playerEq);
       break;
-    case 0x926C6A9F:
+    case 0x926C6A9F:                        // Toshiba VCR remote
+    case 0xD248BBA3:                        // After pressing TV
     case 0xFF02FD:
+    case '5':
+      playerEq = DFPLAYER_EQ_CLASSIC;
       Serial.print("+ Key 5: ");
       Serial.println("DFPLAYER_EQ_CLASSIC");
-      mp3playerDevice.EQ(DFPLAYER_EQ_CLASSIC);
+      mp3playerDevice.EQ(playerEq);
       break;
-    case 0xE66C5C37:
+    case 0xE66C5C37:                        // Toshiba VCR remote
+    case 0x2648AD3B:                        // After pressing TV
     case 0xFFC23D:
+    case '6':
+      playerEq = DFPLAYER_EQ_NORMAL;
       Serial.print("+ Key 6: ");
       Serial.println("DFPLAYER_EQ_NORMAL");
-      mp3playerDevice.EQ(DFPLAYER_EQ_NORMAL);
+      mp3playerDevice.EQ(playerEq);
       break;
-    case 0xD75196BB:
+    case 0xD75196BB:                        // Toshiba VCR remote
+    case 0x172DE7BF:                        // After pressing TV
     case 0xFFE01F:
+    case '7':
+      playerEq = DFPLAYER_EQ_JAZZ;
       Serial.print("+ Key 7: ");
       Serial.println("DFPLAYER_EQ_JAZZ");
-      mp3playerDevice.EQ(DFPLAYER_EQ_JAZZ);
+      mp3playerDevice.EQ(playerEq);
       break;
-    case 0x72FD3AFB:
+    case 0x72FD3AFB:                        // Toshiba VCR remote
+    case 0xB2D98BFF:                        // After pressing TV
     case 0xFFA857:
+    case '8':
+      playerEq = DFPLAYER_EQ_ROCK;
       Serial.print("+ Key 8: ");
       Serial.println("DFPLAYER_EQ_ROCK");
-      mp3playerDevice.EQ(DFPLAYER_EQ_ROCK);
+      mp3playerDevice.EQ(playerEq);
       break;
-    case 0xCCAA92FF:
+    case 0xCCAA92FF:                        // Toshiba VCR remote
+    case 0xC86E403:                         // After pressing TV
     case 0xFF906F:
+    case '9':
+      playerEq = DFPLAYER_EQ_BASS;
       Serial.print("+ Key 9: ");
       Serial.println("DFPLAYER_EQ_BASS");
-      mp3playerDevice.EQ(DFPLAYER_EQ_BASS);
+      mp3playerDevice.EQ(playerEq);
       break;
     // ----------------------------------------------------------------------
     // Volume
@@ -854,7 +971,8 @@ void playerSwitch(int resultsValue) {
       mp3playerDevice.stop();
       playerLights();
       break;
-    case 0xC4CC6436:                              //  Key DISPLAY
+    case 0xC4CC6436:                              // Key DISPLAY After pressing VCR
+    case 0x6F46633F:                              // Key DISPLAY After pressing TV
     case 'i':
       Serial.println(F("+ Information"));
       printPlayerInfo();
@@ -864,6 +982,8 @@ void playerSwitch(int resultsValue) {
       Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
       break;
     case 0x85CF699F:                              //  Key TV/VCR
+    case 0xDA529B37:                              // Key POWER After pressing VCR
+    case 0x1A2EEC3B:                              // Key POWER After pressing TV
     case 'X':
       Serial.println(F("+ Power or Key TV/VCR"));
       programState = PROGRAM_WAIT;
@@ -886,7 +1006,7 @@ void playerSwitch(int resultsValue) {
 // -----------------------------------------------------------------------------
 // Handle continuous playing, and play errors such as: SD card not inserted.
 //
-void playMp3continuously() {
+void playerContinuous() {
   //
   // Process infrared key presses.
   if (irrecv.decode(&results)) {
@@ -1034,7 +1154,7 @@ void mp3PlayerRun() {
       int readByte = Serial.read();    // Read and process an incoming byte.
       playerSwitch(readByte);
     }
-    playMp3continuously();  // For continuous playing. Else, when a song ends, playing would stop.
+    playerContinuous();  // For continuous playing. Else, when a song ends, playing would stop.
     //
     delay(60);  // Delay before getting the next key press, in case press and hold too long.
   }

@@ -257,7 +257,7 @@
 // -----------------------------------------------------------------------------
 #include "Altair101b.h"
 #include "cpucore_i8080.h"
-#include "Mp3PlayerDue.h"
+#include "Mp3Player.h"
 
 // #define LOG_MESSAGES 1    // For debugging.
 // #define LOG_OPCODES  1    // Print each called opcode.
@@ -1854,7 +1854,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("----------------------------------------------------"));
       break;
     // -------------------------------------
-    // For command line. Note playMp3continuously() has infrared controls in place.
+    // For command line. Note playerContinuous() has infrared controls in place.
     case 'H':
       Serial.println(F("+ H, MP3 Player   PLAYER mode, run the MP3 player."));
       programState = PLAYER_RUN;
@@ -2026,7 +2026,7 @@ void runProcessorWait() {
       }
     }
     // Allow for the music to keep playing, and infrared player controls to work.
-    playMp3continuously();
+    playerContinuous();
     delay(60);
   }
 }
