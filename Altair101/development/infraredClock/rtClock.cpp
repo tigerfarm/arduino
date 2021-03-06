@@ -27,15 +27,15 @@
   Clock module pins
 
   -----------------------
- |     Curcuit           |
- |     side              |
+  |     Curcuit           |
+  |     side              |
   -----------------------
    |   |   |   |   |   |
   32K SQW SCL SDA VCC GND
 
   -----------------------
- |     Battery           |
- |     side              |
+  |     Battery           |
+  |     side              |
   -----------------------
    |   |   |   |   |   |
   GND VCC SDA SCL SQW 32K
@@ -107,9 +107,6 @@ decode_results results;
 RTC_DS3231 rtc;
 DateTime now;
 
-char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
-
-// -----------------------------------------------------------------------------
 // rtc.adjust(DateTime(2019, 10, 9, 16, 22, 3));   // year, month, day, hour, minute, seconds
 int theCounterYear = 0;
 int theCounterMonth = 0;
@@ -119,36 +116,16 @@ int theCounterHours = 0;
 int theCounterMinutes = 0;
 int theCounterSeconds = 0;
 
-void syncCountWithClock() {
-  now = rtc.now();
-  theCounterHours = now.hour();
-  theCounterMinutes = now.minute();
-  theCounterSeconds = now.second();
-  //
-  /*
-  theCursor = thePrintColHour;
-  printClockInt(theCursor, printRowClockPulse, theCounterHours);  // Column, Row
-  theCursor = theCursor + 3;
-  lcd.print(":");
-  printClockInt(theCursor, printRowClockPulse, theCounterMinutes);
-  theCursor = theCursor + 3;
-  lcd.print(":");
-  printClockInt(theCursor, printRowClockPulse, theCounterSeconds);
-  */
-  //
-  Serial.print("+ syncCountWithClock,");
-  Serial.print(" theCounterHours=");
-  Serial.print(theCounterHours);
-  Serial.print(" theCounterMinutes=");
-  Serial.print(theCounterMinutes);
-  Serial.print(" theCounterSeconds=");
-  Serial.println(theCounterSeconds);
-  //
-  printClockDate();
-}
-
 // -----------------------------------------------------------------------------
-char dayOfTheWeek[7][1] = {"S", "M", "T", "W", "T", "F", "S"};
+char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+char dayOfTheWeek[7][2] = {"S", "M", "T", "W", "T", "F", "S"};
+
+void printClockInt(int theInt) {
+  if (theInt < 10) {
+    Serial.print("0");
+  }
+  Serial.print(theInt);
+}
 
 void printClockDate() {
   now = rtc.now();
@@ -156,19 +133,76 @@ void printClockDate() {
   theCounterMonth = now.month();
   theCounterDay = now.day();
   //
-  /*
-  theCursor = printColClockDate;
-  lcd.setCursor(theCursor, printRowClockDate);    // Column, Row
-  lcd.print(dayOfTheWeek[now.dayOfTheWeek()]);
-  // ---
-  lcd.setCursor(++theCursor, printRowClockDate);    // Column, Row
-  lcd.print(":");
-  printClockInt(++theCursor, printRowClockDate, theCounterMonth);
-  // ---
-  theCursor = theCursor + 2;
-  lcd.print("/");
-  printClockInt(++theCursor, printRowClockDate, theCounterDay);
-  */
+  Serial.print(theCounterYear);
+  Serial.print("/");
+  printClockInt(theCounterMonth);
+  Serial.print("/");
+  printClockInt(theCounterDay);
+  Serial.print("(YY:MM:DD) ");
+  Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
+}
+
+// -----------------------------------------------------------------------------
+void syncCountWithClock() {
+  Serial.print("+ syncCountWithClock,");
+  now = rtc.now();
+  theCounterHours = now.hour();
+  theCounterMinutes = now.minute();
+  theCounterSeconds = now.second();
+  //
+  printClockInt(theCounterHours);
+  Serial.print(":");
+  printClockInt(theCounterMinutes);
+  Serial.print(":");
+  printClockInt(theCounterSeconds);
+  Serial.print("(HH:MM:SS)");
+  Serial.println();
+  //
+  printClockDate();
+}
+
+void clockPulseYear() {
+  Serial.print("+++++ clockPulseYear(), theCounterYear= ");
+  Serial.println(theCounterYear);
+}
+void clockPulseMonth() {
+  Serial.print("++++ clockPulseMonth(), theCounterMonth= ");
+  Serial.println(theCounterMonth);
+}
+void clockPulseDay() {
+  Serial.print("+++ clockPulseDay(), theCounterDay= ");
+  Serial.println(theCounterDay);
+}
+int theHour = 0;
+void clockPulseHour() {
+  Serial.print("++ clockPulseHour(), theCounterHours= ");
+  Serial.print(theCounterHours);
+  // Use AM/PM rather than 24 hours.
+  String AmPm = "";
+  if (theCounterHours > 12) {
+    theHour = theCounterHours - 12;
+    AmPm = "PM";
+  } else if (theCounterHours == 0) {
+    theHour = 12; // 12 midnight, 12am
+    AmPm = "PM";
+  } else {
+    theHour = theCounterHours;
+    AmPm = "AM";
+  }
+  Serial.print(", ");
+  printClockInt(theHour);
+  Serial.print(AmPm);
+  Serial.println();
+}
+void clockPulseMinute() {
+  Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
+  printClockInt(theCounterMinutes);
+  Serial.println();
+}
+void clockPulseSecond() {
+  Serial.print("+ theCounterSeconds = ");
+  printClockInt(theCounterSeconds);
+  Serial.println();
 }
 
 // -----------------------------------------------------------------------------
@@ -210,44 +244,6 @@ void processClockNow() {
   }
 }
 
-void clockPulseYear() {
-  Serial.print("+++++ clockPulseYear(), theCounterYear= ");
-  Serial.println(theCounterYear);
-}
-void clockPulseMonth() {
-  Serial.print("++++ clockPulseMonth(), theCounterMonth= ");
-  Serial.println(theCounterMonth);
-}
-void clockPulseDay() {
-  Serial.print("+++ clockPulseDay(), theCounterDay= ");
-  Serial.println(theCounterDay);
-}
-int theHour = 0;
-void clockPulseHour() {
-  Serial.print("++ clockPulseHour(), theCounterHours= ");
-  Serial.println(theCounterHours);
-  Serial.println(theCounterHours);
-  // Use AM/PM rather than 24 hours.
-  if (theCounterHours > 12) {
-    theHour = theCounterHours - 12;
-  } else if (theCounterHours == 0) {
-    theHour = 12; // 12 midnight, 12am
-  } else {
-    theHour = theCounterHours;
-  }
-  // printClockInt(thePrintColHour, printRowClockPulse, theHour);
-}
-void clockPulseMinute() {
-  Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
-  Serial.println(theCounterMinutes);
-  // printClockInt(thePrintColMin, printRowClockPulse, theCounterMinutes);
-}
-void clockPulseSecond() {
-  Serial.print("+ theCounterSeconds = ");
-  Serial.println(theCounterSeconds);
-  // printClockInt(thePrintColSec, printRowClockPulse, theCounterSeconds);  // Column, Row
-}
-
 // -----------------------------------------------------------------------------
 // Initialize the player module.
 // This allows it to be reset after the computer is restarted.
@@ -264,10 +260,11 @@ void setupClock() {
   }
   //
   // Set the time for testing. Example, test for testing AM/PM.
-  // rtc.adjust(DateTime(2019, 10, 22, 23, 59, 56)); // DateTime(year, month, day, hour, minute, second)
-  // delay(100);
+  rtc.adjust(DateTime(2018, 12, 8, 15, 59, 56)); // DateTime(year, month, day, hour, minute, second)
+  delay(100);
+  Serial.print(F("+ Set clock to Dec.8,2018 3:59:56pm."));
   //
-    Serial.print(F("+ Initialized: clock."));
+  Serial.print(F("+ Initialized: clock."));
 }
 
 void printClockData() {
@@ -312,8 +309,13 @@ void clockSwitch(int resultsValue) {
       break;
     // -------------
     case 10:
+      // CR.
+      // Ignore.
+      return;     // To avoid printing the prompt.
+      break;
+    // -------------
     case 13:
-      // CR/LF.
+      // LF.
       Serial.println();
       break;
     // ----------------------------------------------------------------------
@@ -342,15 +344,15 @@ void clockSwitch(int resultsValue) {
       break;
     case 0x8AA3C35B:    // Key PLAY
     case 'r':
-          Serial.print(F("+ Key PLAY"));
-        Serial.println();
-        printClockData();
-        break;
+      Serial.print(F("+ Key PLAY"));
+      Serial.println();
+      printClockData();
+      break;
     // -----------------------------------
     case 0xFF38C7:
     case 0x82D6EC17:
       Serial.print("+ Key OK|Enter - Toggle: pause|start the song, playerCounter=");
-        Serial.println();
+      Serial.println();
       break;
     // ----------------------------------------------------------------------
     // Folder, file directory selection.
@@ -547,12 +549,17 @@ void rtClockRun() {
   Serial.println(F("+ rtClockRun();"));
   Serial.print(clockPrompt);
   while (programState == CLOCK_RUN) {
-    //
     // Process serial input key presses from a keyboard.
     if (Serial.available() > 0) {
       int readByte = Serial.read();    // Read and process an incoming byte.
       clockSwitch(readByte);
     }
+    // Process infrared input key presses from a remote.
+    if (irrecv.decode(&results)) {
+      clockSwitch(results.value);
+      irrecv.resume();
+    }
+    processClockNow();    // Print on going time clicks.
     //
     delay(60);  // Delay before getting the next key press, in case press and hold too long.
   }
