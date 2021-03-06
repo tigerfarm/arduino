@@ -7,6 +7,50 @@
   DS3231 - A real time clock hardware module
               that is controlled by this program.
 
+  Clock
+  Front Panel Lights and Toggles
+
+    Start by showing the time of day hours and minutes.
+    To do: If clock timer mode was set, return to timer mode or reset timer mode values.
+    Function: runClock().
+
+  -----------
+  Clock mode,
+  + Status        Display the minutes tens digit,    day tens,   or year tens
+  + Address       Display the hour: A1 ... A12,      month,      or century
+  + Data          Display the minutes single digit,  day single, or year single
+  + Indicator     WAIT : Off.
+  + Indicator     HLDA : On to indicate controlled by another process, other than the program emulator.
+  -----------
+  + STOP          Not implemented.
+  + RUN           Not implemented.
+  + SINGLE up     1) First flip, show month and day.
+                2) Next flip, show: year.
+                3) Next flip, return to show time of day: hour and minutes.
+  + SINGLE down   Not implemented.
+  + EXAMINE       Set mode: flip EXAMINE to decrement the minutes.
+  + EXAMINE NEXT  Set mode: flip EXAMINE NEXT to increment the minutes.
+  + DEPOSIT       Toggle from clock set mode to clock mode. Set the time based on the display.
+  + DEPOSIT NEXT  Not implemented.
+  + RESET         Toggle from clock mode to clock set mode, to change the hours and minutes.
+                   In clock set mode, the time flashes.
+                Toggle from clock set mode to clock mode. Don't change the time.
+  + PROTECT       Decrease MP3 player volume. To do: Decrement value to set.
+  + UNPROTECT     Increase MP3 player volume. To do: Increment value to set.
+  + AUX1 Up       Toggle clock mode off, return to processor mode.
+  + AUX1 down     MP3 player mode
+  + AUX2 up       Toggle clock counter mode.
+  + AUX2 Down     Toggle clock timer mode on.
+
+  Steps to set the time hours and minutes using the front panel.
+
+  + In clock mode, flip RESET. Time flashes once a second.
+  + Flip EXAMINE to decrement the minutes.
+  + Flip EXAMINE NEXT to increment the minutes.
+  + Flip RESET to return to clock mode, time not changed.
+  + Flip DEPOSIT to return to clock mode, time is set based on the displayed hours and minutes.
+  ++ Seconds are set to zero, so flip DEPOSIT when the second hand hits 12 and the minute changes.
+
   -----------------------------------------------------------------------------
   Connect the DS3231 Clock and the 1602 LCD display, to the Nano:
   + VCC to Nano 5v, note, also works with 3.3v, example: NodeMCU.
@@ -60,7 +104,9 @@
 
 #include "Altair101b.h"
 
-String clockPrompt = "RTC ?- ";
+String clockPrompt = "CLOCK ?- ";
+String clockSetPrompt = "Clock SET ?- ";
+String thePrompt = clockPrompt;           // Default.
 extern int programState;
 
 // -------------------------------------------------------------------------------
@@ -116,13 +162,15 @@ int theCounterHours = 0;
 int theCounterMinutes = 0;
 int theCounterSeconds = 0;
 
+int theHour;                // Variable for use anytime.
+
 // -----------------------------------------------------------------------------
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 char dayOfTheWeek[7][2] = {"S", "M", "T", "W", "T", "F", "S"};
 
 void printClockInt(int theInt) {
   if (theInt < 10) {
-    Serial.print("0");
+    Serial.print(F("0"));
   }
   Serial.print(theInt);
 }
@@ -134,73 +182,101 @@ void printClockDate() {
   theCounterDay = now.day();
   //
   Serial.print(theCounterYear);
-  Serial.print("/");
+  Serial.print(F("/"));
   printClockInt(theCounterMonth);
-  Serial.print("/");
+  Serial.print(F("/"));
   printClockInt(theCounterDay);
-  Serial.print("(YY:MM:DD) ");
-  Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
+  Serial.print(F(" (YYYY/MM/DD) "));
 }
 
-// -----------------------------------------------------------------------------
-void syncCountWithClock() {
-  Serial.print("+ syncCountWithClock,");
+void printClockTime() {
   now = rtc.now();
   theCounterHours = now.hour();
   theCounterMinutes = now.minute();
   theCounterSeconds = now.second();
   //
   printClockInt(theCounterHours);
-  Serial.print(":");
+  Serial.print(F(":"));
   printClockInt(theCounterMinutes);
-  Serial.print(":");
+  Serial.print(F(":"));
   printClockInt(theCounterSeconds);
-  Serial.print("(HH:MM:SS)");
-  Serial.println();
+  Serial.print(F(" (HH:MM:SS)"));
   //
-  printClockDate();
+  Serial.print(F(" "));
+  Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
+  Serial.print(F(" "));
+  // Show AM/PM hour.
+  String AmPm = "";
+  if (theCounterHours > 12) {
+    theHour = theCounterHours - 12;
+    AmPm = "pm";
+  } else if (theCounterHours == 0) {
+    theHour = 12; // 12 midnight, 12am
+    AmPm = "pm";
+  } else {
+    theHour = theCounterHours;
+    AmPm = "am";
+  }
+  Serial.print(theHour);
+  Serial.print(AmPm);
 }
 
+// -----------------------------------------------------------------------------
+void printClockDateTime() {
+  // Date: 2018/12/08 (YYYY/MM/DD)  Time: 15:59:56 (HH:MM:SS) Saturday 3pm
+  Serial.print(F("Date: "));
+  printClockDate();
+  Serial.print(F(" Time: "));
+  printClockTime();
+}
+void syncCountWithClock() {
+  Serial.print(F("+ syncCountWithClock, "));
+  printClockDateTime();
+  Serial.println();
+}
+
+// -----------------------------------------------------------------------------
+// Clock pulse actions.
+
 void clockPulseYear() {
-  Serial.print("+++++ clockPulseYear(), theCounterYear= ");
+  Serial.print(F("+++++ clockPulseYear(), theCounterYear= "));
   Serial.println(theCounterYear);
 }
 void clockPulseMonth() {
-  Serial.print("++++ clockPulseMonth(), theCounterMonth= ");
+  Serial.print(F("++++ clockPulseMonth(), theCounterMonth= "));
   Serial.println(theCounterMonth);
 }
 void clockPulseDay() {
-  Serial.print("+++ clockPulseDay(), theCounterDay= ");
+  Serial.print(F("+++ clockPulseDay(), theCounterDay= "));
   Serial.println(theCounterDay);
 }
-int theHour = 0;
 void clockPulseHour() {
-  Serial.print("++ clockPulseHour(), theCounterHours= ");
+  Serial.print(F("++ clockPulseHour(), theCounterHours= "));
   Serial.print(theCounterHours);
   // Use AM/PM rather than 24 hours.
   String AmPm = "";
   if (theCounterHours > 12) {
     theHour = theCounterHours - 12;
-    AmPm = "PM";
+    AmPm = "pm";
   } else if (theCounterHours == 0) {
     theHour = 12; // 12 midnight, 12am
-    AmPm = "PM";
+    AmPm = "pm";
   } else {
     theHour = theCounterHours;
-    AmPm = "AM";
+    AmPm = "am";
   }
-  Serial.print(", ");
-  printClockInt(theHour);
+  Serial.print(F(", "));
+  Serial.print(theHour);
   Serial.print(AmPm);
   Serial.println();
 }
 void clockPulseMinute() {
-  Serial.print("+ clockPulseMinute(), theCounterMinutes= ");
-  printClockInt(theCounterMinutes);
-  Serial.println();
+  // Serial.print(F("+ clockPulseMinute(), theCounterMinutes= "));
+  // printClockInt(theCounterMinutes);
+  // Serial.println();
 }
 void clockPulseSecond() {
-  Serial.print("+ theCounterSeconds = ");
+  Serial.print(F("+ theCounterSeconds = "));
   printClockInt(theCounterSeconds);
   Serial.println();
 }
@@ -213,7 +289,7 @@ void processClockNow() {
   if (now.second() != theCounterSeconds) {
     // When the clock second value changes, that's a clock second pulse.
     theCounterSeconds = now.second();
-    clockPulseSecond();
+    // clockPulseSecond();
     if (theCounterSeconds == 0) {
       // When the clock second value changes to zero, that's a clock minute pulse.
       theCounterMinutes = now.minute();
@@ -245,8 +321,7 @@ void processClockNow() {
 }
 
 // -----------------------------------------------------------------------------
-// Initialize the player module.
-// This allows it to be reset after the computer is restarted.
+// Initialize the component module.
 //
 void setupClock() {
   // ----------------------------------------------------
@@ -255,35 +330,17 @@ void setupClock() {
 
   // Initialize the Real Time Clock (RTC).
   if (!rtc.begin()) {
-    Serial.println("--- Error: RTC not found.");
+    Serial.println(F("--- Error: RTC not found."));
     while (1);
   }
   //
   // Set the time for testing. Example, test for testing AM/PM.
+  // Serial.println(F("++ Set clock to Dec.8,2018 03:59:56pm."));
   rtc.adjust(DateTime(2018, 12, 8, 15, 59, 56)); // DateTime(year, month, day, hour, minute, second)
   delay(100);
-  Serial.print(F("+ Set clock to Dec.8,2018 3:59:56pm."));
   //
-  Serial.print(F("+ Initialized: clock."));
-}
-
-void printClockData() {
-  DateTime now = rtc.now();
-  Serial.print("+ Current Date: ");
-  Serial.print(now.year(), DEC);
-  Serial.print('/');
-  Serial.print(now.month(), DEC);
-  Serial.print('/');
-  Serial.print(now.day(), DEC);
-  Serial.print(" (");
-  Serial.print("  Time: ");
-  Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
-  Serial.print(") ");
-  Serial.print(now.hour(), DEC);
-  Serial.print(':');
-  Serial.print(now.minute(), DEC);
-  Serial.print(':');
-  Serial.print(now.second(), DEC);
+  Serial.print(F("+ Initialized: clock, "));
+  printClockDateTime();
   Serial.println();
 }
 
@@ -344,14 +401,15 @@ void clockSwitch(int resultsValue) {
       break;
     case 0x8AA3C35B:    // Key PLAY
     case 'r':
-      Serial.print(F("+ Key PLAY"));
+      // Serial.println(F("+ Key PLAY"));
+      Serial.print(F("+ 'r', Current "));
+      printClockDateTime();
       Serial.println();
-      printClockData();
       break;
     // -----------------------------------
     case 0xFF38C7:
     case 0x82D6EC17:
-      Serial.print("+ Key OK|Enter - Toggle: pause|start the song, playerCounter=");
+      Serial.print(F("+ Key OK|Enter - Toggle: pause|start the song, playerCounter="));
       Serial.println();
       break;
     // ----------------------------------------------------------------------
@@ -363,7 +421,7 @@ void clockSwitch(int resultsValue) {
     case 0xFF18E7:                          // Small remote key up.
     case 0xFF629D:                          // Small remote key 2.
     case 'D':
-      Serial.print("+ Key up - next directory, directory number: ");
+      Serial.print(F("+ Key up - next directory, directory number: "));
       Serial.println();
       break;
     // -----------------------------------
@@ -371,7 +429,7 @@ void clockSwitch(int resultsValue) {
     case 0xDD8E75F:                         // After pressing TV
     case 0xFF4AB5:                          // Small remote key down.
     case 'd':
-      Serial.print("+ Key down - previous directory, directory number: ");
+      Serial.print(F("+ Key down - previous directory, directory number: "));
       Serial.println();
       break;
     // ----------------------------------------------------------------------
@@ -380,29 +438,29 @@ void clockSwitch(int resultsValue) {
     case 0xA02E4EBF:
     case 0xFF6897:
     case 'L':
-      Serial.println("+ Key *|A.Select - Loop on: loop this single MP3.");
+      Serial.println(F("+ Key *|A.Select - Loop on: loop this single MP3."));
       break;
     case 0xC473DE3A:
     case 0xFFB04F:
     case 'l':
-      Serial.println("+ Key #|Eject - Loop off: Single MP3 loop is off.");
+      Serial.println(F("+ Key #|Eject - Loop off: Single MP3 loop is off."));
       break;
     // -----------------------------------
     // Toshiba VCR remote, not programmed.
     case 0x718E3D1B:                        // Toshiba VCR remote
     case 0xB16A8E1F:                        // After pressing TV
-      Serial.print("+ Key 1: ");
-      Serial.println("");
+      Serial.print(F("+ Key 1: "));
+      Serial.println(F(""));
       break;
     case 0xF8FB71FB:                        // Toshiba VCR remote
     case 0x38D7C2FF:                        // After pressing TV
-      Serial.print("+ Key 2: ");
-      Serial.println("");
+      Serial.print(F("+ Key 2: "));
+      Serial.println(F(""));
       break;
     case 0xE9E0AC7F:                        // Toshiba VCR remote
     case 0x29BCFD83:                        // After pressing TV
-      Serial.print("+ Key 3: ");
-      Serial.println("");
+      Serial.print(F("+ Key 3: "));
+      Serial.println(F(""));
       break;
     //
     // ----------------------------------------------------------------------
@@ -412,42 +470,42 @@ void clockSwitch(int resultsValue) {
     case 0x789B639F:                        // After pressing TV
     case 0xFF22DD:                          // Small remote
     case '4':
-      Serial.print("+ Key 4: ");
+      Serial.print(F("+ Key 4: "));
       Serial.println();
       break;
     case 0x926C6A9F:                        // Toshiba VCR remote
     case 0xD248BBA3:                        // After pressing TV
     case 0xFF02FD:
     case '5':
-      Serial.print("+ Key 5: ");
+      Serial.print(F("+ Key 5: "));
       Serial.println();
       break;
     case 0xE66C5C37:                        // Toshiba VCR remote
     case 0x2648AD3B:                        // After pressing TV
     case 0xFFC23D:
     case '6':
-      Serial.print("+ Key 6: ");
+      Serial.print(F("+ Key 6: "));
       Serial.println();
       break;
     case 0xD75196BB:                        // Toshiba VCR remote
     case 0x172DE7BF:                        // After pressing TV
     case 0xFFE01F:
     case '7':
-      Serial.print("+ Key 7: ");
+      Serial.print(F("+ Key 7: "));
       Serial.println();
       break;
     case 0x72FD3AFB:                        // Toshiba VCR remote
     case 0xB2D98BFF:                        // After pressing TV
     case 0xFFA857:
     case '8':
-      Serial.print("+ Key 8: ");
+      Serial.print(F("+ Key 8: "));
       Serial.println();
       break;
     case 0xCCAA92FF:                        // Toshiba VCR remote
     case 0xC86E403:                         // After pressing TV
     case 0xFF906F:
     case '9':
-      Serial.print("+ Key 9: ");
+      Serial.print(F("+ Key 9: "));
       Serial.println();
       break;
     // ----------------------------------------------------------------------
@@ -456,32 +514,45 @@ void clockSwitch(int resultsValue) {
     case 0x2B8BE5F:
     case 0xFFE21D:              // Small remote, Key 3
     case 'V':
-      Serial.print("+ Key Volume ^");
+      Serial.print(F("+ Key Volume ^"));
       Serial.println();
       break;
     case 0x1CF3ACDB:
     case 0xFFA25D:              // Small remote, Key 1
     case 'v':
-      Serial.print("+ Key Volume v");
+      Serial.print(F("+ Key Volume v"));
       Serial.println();
       break;
     // ----------------------------------------------------------------------
     case 'h':
       Serial.print(F("+ h, Print help information."));
       Serial.println();
+      Serial.println();
       Serial.println(F("----------------------------------------------------"));
-      Serial.println(F("+++ MP3 Player Controls"));
+      Serial.println(F("+++ Virtual Front Panel Switch Controls"));
+      Serial.println(F("+++ Real Time Clock Controls"));
       Serial.println(F("-------------"));
-      Serial.println(F("+ s, STOP         Pause, stop playing."));
-      Serial.println(F("+ r, RUN          Start, playing the current song."));
-      Serial.println(F("+ R, RESET/CLEAR  Reset and set to play first song."));
-      Serial.println(F("+ n/p, Play song  Play next/previous song."));
-      Serial.println(F("+ d/D, Directory  Play previous directory."));
-      Serial.println(F("+ l/L, Loop       Disable/Enable loop the current song."));
-      Serial.println(F("+ v/V, Volume     Down/Up volume level."));
-      Serial.println(F("--- Equalizer options:"));
-      Serial.println(F("+ 4 POP   5 CLASSIC  6 NORMAL"));
-      Serial.println(F("+ 7 ROCK  8 JAZZ     9 BASS"));
+      Serial.println(F("+ _, STOP         Not implemented."));
+      Serial.println(F("+ r, RUN mode     CLOCK mode: show date and time."));
+      Serial.println(F("+ s, SINGLE STEP  Clock SET mode: flip to decrement date or time value."));
+      Serial.println(F("+ S, SINGLE Down  Clock SET mode: flip to increment date or time value."));
+      Serial.println(F("+ x, EXAMINE      Enter clock SET mode. Show the current clock SET mode date and time."));
+      Serial.println(F("+ X, EXAMINE NEXT Rotate through the clock values that can be set."));
+      Serial.println(F("+                 1) First flip, go into clock SET mode."));
+      Serial.println(F("++                   Clock SET mode to change the year value."));
+      Serial.println(F("++                2) Clock SET mode to change the month value."));
+      Serial.println(F("++                3) Clock SET mode to change the day value."));
+      Serial.println(F("++                4) Clock SET mode to change the hours value."));
+      Serial.println(F("++                5) Clock SET mode to change the minutes. value"));
+      Serial.println(F("+ p, DEPOSIT      Set the time based on the set clock values."));
+      Serial.println(F("++                Toggle from clock SET mode to CLOCK mode."));
+      Serial.println(F("+ P, DEPOSIT NEXT Not implemented."));
+      Serial.println(F("+ R, RESET        Toggle from clock SET mode to CLOCK mode. Don't change the time."));
+      Serial.println(F("+ _, CLR          Not implemented."));
+      Serial.println(F("-------------"));
+      Serial.println(F("+ 0...9, a...f    Toggle sense/address/data switches:  A0...A9, A10...A15."));
+      Serial.println(F("----------------------------------------------------"));
+      Serial.println(F("+++ Real Time Clock Controls"));
       Serial.println(F("------------------"));
       Serial.println(F("+ Ctrl+L          Clear screen."));
       Serial.println(F("+ X, Exit player  Return to program WAIT mode."));
@@ -522,7 +593,7 @@ void clockSwitch(int resultsValue) {
       // ----------------------------------------------------------------------
   } // end switch
   if (printPrompt && (programState == CLOCK_RUN)) {
-    Serial.print(clockPrompt);
+    Serial.print(thePrompt);
   }
 }
 
@@ -547,7 +618,7 @@ void clockContinuous() {
 
 void rtClockRun() {
   Serial.println(F("+ rtClockRun();"));
-  Serial.print(clockPrompt);
+  Serial.print(thePrompt);
   while (programState == CLOCK_RUN) {
     // Process serial input key presses from a keyboard.
     if (Serial.available() > 0) {
