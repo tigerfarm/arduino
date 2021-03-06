@@ -35,7 +35,11 @@
   ---------------------------------------------------------
   Next to work on
 
-  Sample programs, include Basic 4K and Galaxy101 using PROGMEM.
+  Add hardware to display values:
+  + Player song.
+  + Clock date and time.
+
+  Consider adding my onwn sample assembler programs.
 
   Update README.md files:
   + Altair101a
@@ -43,16 +47,10 @@
   + 4K Basic
   + programsAltair: programs people can load and run on the Altair101a.
 
-  Merge MP3 player into Altair101b,
-  + Add infrared player options into the WAIT mode loop so that,
-  ++ The player can be used in WAIT mode.
-
   A Serial2 buffer for reliably uploading basic programs.
 
-  When using Arduino IDE Serial Monitor, remove duplicate messages.
+  Consider, when using Arduino IDE Serial Monitor, remove duplicate messages.
   + Maybe ignore "CR".
-
-  Add/update sample programs for someone to run if all they have is the Arduino board.
 
   ---------------------------------------------------------
   Get porgrams to work on an Altari-Duino or actual Altair 8800.
@@ -253,6 +251,24 @@
   My USB cable has:
   + A ground wire wrap.
   + Purple VCC, +5 VCC.s
+
+  -----------------------------------------------------------------------------
+  Clock module pins
+
+  -----------------------
+ |     Curcuit           |
+ |     side              |
+  -----------------------
+   |   |   |   |   |   |
+  32K SQW SCL SDA VCC GND
+
+  -----------------------
+ |     Battery           |
+ |     side              |
+  -----------------------
+   |   |   |   |   |   |
+  GND VCC SDA SCL SQW 32K
+  
 */
 // -----------------------------------------------------------------------------
 #include "Altair101b.h"
@@ -2231,7 +2247,7 @@ void setup() {
   Serial.println(); // Newline after garbage characters.
   Serial.print(F("+++ "));
   // Serial.println(__func__); // prints "setup"
-  Serial.print(F("setup()"));
+  Serial.println(F("setup()"));
   //
   // ----------------------------------------------------
   // ----------------------------------------------------
@@ -2265,7 +2281,7 @@ void setup() {
     ledFlashError();
     hwStatus = 1;
   } else {
-    Serial.println(F("+ SD card module is initialized."));
+    Serial.println(F("+ Initialized: SD card module."));
     ledFlashSuccess();
   }
   delay(300);

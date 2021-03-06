@@ -312,7 +312,7 @@ boolean NOT_PLAY_SOUND = false;
 void setupMp3Player() {
   // ----------------------------------------------------
   irrecv.enableIRIn();
-  Serial.println(F("+ Initialized the infrared receiver."));
+  Serial.println(F("+ Initialized: infrared receiver."));
 
   // Set player front panel values.
   playerCounter = 1;                  // For now, default to song/file 1.
@@ -376,7 +376,7 @@ void setupMp3Player() {
       delay(300);
       playerCounterTop = mp3playerDevice.readFileCounts();
     }
-    Serial.print(F("+ DFPlayer is initialized. Number of MP3 files = "));
+    Serial.print(F("+ Initialized: DFPlayer, number of MP3 files = "));
     Serial.println(playerCounterTop);
   }
 }
@@ -981,7 +981,7 @@ void playerSwitch(int resultsValue) {
       // Ctrl+L, clear screen.
       Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
       break;
-    case 0x85CF699F:                              //  Key TV/VCR
+    case 0x85CF699F:                              // Key TV/VCR
     case 0xDA529B37:                              // Key POWER After pressing VCR
     case 0x1A2EEC3B:                              // Key POWER After pressing TV
     case 'X':
