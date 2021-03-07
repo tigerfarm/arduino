@@ -164,6 +164,9 @@ int theCounterSeconds = 0;
 
 int theHour;                // Variable for use anytime.
 
+int setClockValue = 0;      // Set which value for changing:
+char setClockValues[5][7] = {"Year", "Month", "Day", "Hour", "Minute"};
+
 // -----------------------------------------------------------------------------
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 char dayOfTheWeek[7][2] = {"S", "M", "T", "W", "T", "F", "S"};
@@ -317,6 +320,179 @@ void processClockNow() {
         // -------------------------
       }
     }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Menu items to set the clock date and time values.
+
+int theSetRow = 1;
+int theSetCol = 0;
+int theSetMin = 0;
+int theSetMax = 59;
+int setValue = 0;
+
+void setClockMenuItems() {
+  switch (setClockValue) {
+    case 0:
+      // Serial.print(F("Cancel set"));
+      break;
+    case 1:
+      Serial.print(F("Set:"));
+      theSetMax = 59;
+      theSetMin = 0;
+      setValue = theCounterSeconds;
+      printClockInt(setValue);
+      break;
+    case 2:
+      Serial.print(F("Set:"));
+      theSetMax = 59;
+      theSetMin = 0;
+      setValue = theCounterMinutes;
+      printClockInt(setValue);
+      break;
+    case 3:
+      Serial.print(F("Set:"));
+      theSetMax = 24;
+      theSetMin = 0;
+      setValue = theCounterHours;
+      printClockInt(setValue);
+      break;
+    case 4:
+      Serial.print(F("Set day:"));
+      theSetMax = 31;
+      theSetMin = 1;
+      setValue = theCounterDay;
+      printClockInt(setValue);
+      break;
+    case 5:
+      Serial.print(F("Set month:"));
+      theSetMax = 12;
+      theSetMin = 1;
+      setValue = theCounterMonth;
+      printClockInt(setValue);
+      break;
+    case 6:
+      Serial.print(F("Set year:"));
+      theSetMax = 2525; // In the year 2525, If man is still alive, If woman can survive...
+      theSetMin = 1795; // Year John Keats the poet was born.
+      setValue = theCounterYear;
+      printClockInt(setValue);
+      break;
+      // -----------------------------------------------------------------------
+    case 0xFF5AA5:
+    case 0xE0E046B9:
+      // Serial.print("+ Key > - next");
+      // Serial.print(", set clock menu option");
+      setClockValue--;
+      if (setClockValue < 0) {
+        setClockValue = 6;
+      }
+      setClockMenuItems();
+      // Serial.println(".");
+      break;
+    case 0xFF10EF:
+    case 0xE0E0A659:
+      // Serial.print("+ Key < - previous");
+      // Serial.print(", set clock menu option");
+      setClockValue++;
+      if (setClockValue > 6) {
+        setClockValue = 0;
+      }
+      setClockMenuItems();
+      // Serial.println(".");
+      break;
+    case 0xFF18E7:
+    case 0xE0E006F9:
+      // Serial.print("+ Key up");
+      if (setClockValue) {
+        // Serial.print(", increment");
+        setValue++;
+        if (setValue > theSetMax) {
+          setValue = theSetMin;
+        }
+        printClockInt(setValue);
+      }
+      // Serial.println(".");
+      break;
+    case 0xFF4AB5:
+    case 0xE0E08679:
+      // Serial.print("+ Key down");
+      if (setClockValue) {
+        // Serial.print(", decrement");
+        setValue--;
+        if (setValue < theSetMin) {
+          setValue = theSetMax;
+        }
+        printClockInt(setValue);
+      }
+      // Serial.println(".");
+      break;
+    case 0xFF38C7:
+    case 0xE0E016E9:
+      // Serial.print("+ Key OK");
+      if (setClockValue) {
+        // Serial.print(", set ");
+        switch (setClockValue) {
+          case 1:
+            // Serial.print("seconds");
+            theCounterSeconds = setValue;
+            printClockInt(setValue);
+            break;
+          case 2:
+            // Serial.print("minutes");
+            theCounterMinutes = setValue;
+            printClockInt(setValue);
+            break;
+          case 3:
+            // Serial.print("hours");
+            theCounterHours = setValue;
+            printClockInt(setValue);
+            break;
+          case 4:
+            // Serial.print("day");
+            theCounterDay = setValue;
+            break;
+          case 5:
+            // Serial.print("month");
+            theCounterMonth = setValue;
+            break;
+          case 6:
+            // Serial.print("year");
+            theCounterYear = setValue;
+            break;
+        }
+        // The following offsets the time to make the change.
+        // Else, the clock looses about second each time a setting is made.
+        theCounterSeconds ++;
+        delay(100);
+        //
+        rtc.adjust(DateTime(theCounterYear, theCounterMonth, theCounterDay, theCounterHours, theCounterMinutes, theCounterSeconds));
+        Serial.println("Value is set.");
+        printClockDate();
+        delay(2000);
+        Serial.println("");
+      }
+      // Serial.println(".");
+      //
+      setClockValue = false;
+      delay(200);   // To block the double press.
+      break;
+    // -----------------------------------
+    case 0xFF6897:
+    case 0xE0E01AE5:
+      // Serial.print("+ Key * (Return): ");
+      // Serial.println("Cancel set.");
+      // cancelSet();
+      break;
+    case 0xFFB04F:
+    case 0xE0E0B44B:
+      // Serial.print("+ Key # (Exit): ");
+      // Serial.println("Cancel set and Toggle display on/off.");
+      // cancelSet();
+      break;
+      // -----------------------------------------------------------------------
   }
 }
 
@@ -538,27 +714,26 @@ void clockSwitch(int resultsValue) {
       Serial.println(F("+ S, SINGLE Down  Clock SET mode: flip to increment date or time value."));
       Serial.println(F("+ x, EXAMINE      Enter clock SET mode. Show the current clock SET mode date and time."));
       Serial.println(F("+ X, EXAMINE NEXT Rotate through the clock values that can be set."));
-      Serial.println(F("+                 1) First flip, go into clock SET mode."));
-      Serial.println(F("++                   Clock SET mode to change the year value."));
-      Serial.println(F("++                2) Clock SET mode to change the month value."));
-      Serial.println(F("++                3) Clock SET mode to change the day value."));
-      Serial.println(F("++                4) Clock SET mode to change the hours value."));
-      Serial.println(F("++                5) Clock SET mode to change the minutes. value"));
+      Serial.println(F("                  1) First flip, go into clock SET mode."));
+      Serial.println(F("                     Clock SET mode to change the year value."));
+      Serial.println(F("                  2) Clock SET mode to change the month value."));
+      Serial.println(F("                  3) Clock SET mode to change the day value."));
+      Serial.println(F("                  4) Clock SET mode to change the hours value."));
+      Serial.println(F("                  5) Clock SET mode to change the minutes. value"));
       Serial.println(F("+ p, DEPOSIT      Set the time based on the set clock values."));
-      Serial.println(F("++                Toggle from clock SET mode to CLOCK mode."));
+      Serial.println(F("                  Toggle from clock SET mode to CLOCK mode."));
       Serial.println(F("+ P, DEPOSIT NEXT Not implemented."));
       Serial.println(F("+ R, RESET        Toggle from clock SET mode to CLOCK mode. Don't change the time."));
       Serial.println(F("+ _, CLR          Not implemented."));
-      Serial.println(F("-------------"));
-      Serial.println(F("+ 0...9, a...f    Toggle sense/address/data switches:  A0...A9, A10...A15."));
+      // Serial.println(F("-------------"));
+      // Serial.println(F("+ 0...9, a...f    Toggle sense/address/data switches:  A0...A9, A10...A15."));
       Serial.println(F("----------------------------------------------------"));
-      Serial.println(F("+++ Real Time Clock Controls"));
-      Serial.println(F("------------------"));
+      // Serial.println(F("+++ Real Time Clock Controls"));
+      // Serial.println(F("------------------"));
       Serial.println(F("+ Ctrl+L          Clear screen."));
       Serial.println(F("+ X, Exit player  Return to program WAIT mode."));
       Serial.println(F("------------------"));
-      Serial.println(F("+ i, Information  Program variables and hardward values."));
-      // Serial.println(F("+ x, EXAMINE      Not implemented. Play specified song number."));
+      // Serial.println(F("+ i, Information  Program variables and hardward values."));
       Serial.println(F("----------------------------------------------------"));
       break;
     // ----------------------------------------------------------------------
