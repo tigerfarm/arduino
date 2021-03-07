@@ -162,10 +162,7 @@ int theCounterHours = 0;
 int theCounterMinutes = 0;
 int theCounterSeconds = 0;
 
-int theHour;                // Variable for use anytime.
-
-int setClockValue = 0;      // Set which value for changing:
-char setClockValues[5][7] = {"Year", "Month", "Day", "Hour", "Minute"};
+int theHour;                    // Variable for use anytime.
 
 // -----------------------------------------------------------------------------
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
@@ -231,11 +228,6 @@ void printClockDateTime() {
   printClockDate();
   Serial.print(F(" Time: "));
   printClockTime();
-}
-void syncCountWithClock() {
-  Serial.print(F("+ syncCountWithClock, "));
-  printClockDateTime();
-  Serial.println();
 }
 
 // -----------------------------------------------------------------------------
@@ -331,7 +323,12 @@ int theSetRow = 1;
 int theSetCol = 0;
 int theSetMin = 0;
 int theSetMax = 59;
-int setValue = 0;
+
+int setClockValue = 0;          // Set which value for changing:
+
+int numClockValues = 6;
+char clockValueName[6][7] = {"seconds", "minute", "hour", "day", "month", "year" };
+int setValue[6];    // For each type of clock values.
 
 void cancelSet() {
   if (setClockValue) {
@@ -346,7 +343,9 @@ void setClockMenuItems() {
       // Serial.print(F("Cancel set"));
       break;
     case 1:
-      Serial.print(F("Set:"));
+      Serial.print(F("Set "));
+      Serial.print(clockValueName[setClockValue-1]);
+      Serial.print(F(": "));
       theSetMax = 59;
       theSetMin = 0;
       setValue = theCounterSeconds;
@@ -387,7 +386,12 @@ void setClockMenuItems() {
       setValue = theCounterYear;
       printClockInt(setValue);
       break;
-      // -----------------------------------------------------------------------
+  }
+}
+
+// -----------------------------------------------------------------------
+void setClockMenuItems() {
+  switch (setClockValue) {
     case 0xFF5AA5:
     case 0xE0E046B9:
       // Serial.print("+ Key > - next");
@@ -510,6 +514,11 @@ void setupClock() {
   // ----------------------------------------------------
   irrecv.enableIRIn();
   Serial.println(F("+ Initialized: infrared receiver."));
+
+  // Initialize the clock set values.
+  for (int i = 0; i < numClockValues; i++ ) {
+    setValue[i] = -1; // -1 means that the value is not set to change.
+  }
 
   // Initialize the Real Time Clock (RTC).
   if (!rtc.begin()) {
@@ -782,7 +791,7 @@ void clockSwitch(int resultsValue) {
 // -----------------------------------------------------------------------------
 // Handle continuous playing, and play errors such as: SD card not inserted.
 //
-void clockContinuous() {
+void rtClockContinuous() {
   //
   // Process infrared key presses.
   if (irrecv.decode(&results)) {

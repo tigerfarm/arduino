@@ -5,7 +5,7 @@
 
 void setupClock();
 void rtClockRun();
-void clockContinuous();
+void rtClockContinuous();
 
 // -------------------------------------------------------------------------------
 // eof

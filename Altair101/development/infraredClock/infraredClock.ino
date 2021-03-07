@@ -100,7 +100,7 @@ void runProcessorWait() {
       int readByte = Serial.read();    // Read and process an incoming byte.
       processWaitSwitch(readByte);
     }
-    // clockContinuous();              // Check for player update or infrared key pressed.
+    // rtClockContinuous();              // Check for player update or infrared key pressed.
     delay(60);
   }
 }
