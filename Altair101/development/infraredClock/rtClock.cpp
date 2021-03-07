@@ -333,6 +333,13 @@ int theSetMin = 0;
 int theSetMax = 59;
 int setValue = 0;
 
+void cancelSet() {
+  if (setClockValue) {
+    Serial.println("+ Cancel set.");
+    setClockValue = false;
+  }
+}
+
 void setClockMenuItems() {
   switch (setClockValue) {
     case 0:
@@ -484,13 +491,13 @@ void setClockMenuItems() {
     case 0xE0E01AE5:
       // Serial.print("+ Key * (Return): ");
       // Serial.println("Cancel set.");
-      // cancelSet();
+      cancelSet();
       break;
     case 0xFFB04F:
     case 0xE0E0B44B:
       // Serial.print("+ Key # (Exit): ");
       // Serial.println("Cancel set and Toggle display on/off.");
-      // cancelSet();
+      cancelSet();
       break;
       // -----------------------------------------------------------------------
   }
