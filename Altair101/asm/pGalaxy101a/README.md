@@ -86,6 +86,10 @@ Condition DOCKED:
 2            x!x>1<       CONDITION GREEN
 ````
 
+If warp into a base(DOCKED), by coincidence,
++ Resources are not update for the ship, x!x>1<
++ Should update the ship.
+
 Check, if no alien ships in the sector, don't say: The "alien" retaliates.
 + There is sample code for Laser cannons, search for, "Any alien ships?"
 + Likely add the same code for torpedoes.

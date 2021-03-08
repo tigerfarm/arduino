@@ -274,6 +274,7 @@
 #include "Altair101b.h"
 #include "cpucore_i8080.h"
 #include "Mp3Player.h"
+// #include "rtClock.h"
 
 // #define LOG_MESSAGES 1    // For debugging.
 // #define LOG_OPCODES  1    // Print each called opcode.
@@ -1843,6 +1844,9 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("-------------"));
       Serial.println(F("+ D, Download     DOWNLOAD mode, receive bytes from serial port (Serial2)."));
       Serial.println(F("-------------"));
+      Serial.println(F("+ Q, Clock        CLOCK mode, interact with the clock."));
+      Serial.println(F("+ q, Time         Show the clock's data and time."));
+      Serial.println(F("-------------"));
       Serial.println(F("+ H, MP3 Player   PLAYER mode, run the MP3 player."));
       Serial.println(F("+ I, Player Info  MP3 player software and hardware settings."));
       Serial.println(F("+ g/G Play        Pause/Play MP3 song."));
@@ -1868,6 +1872,15 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ u/U Log msg     Log messages off/on."));
       Serial.println(F("+ z/Z cursor      VT100 block cursor off/on."));
       Serial.println(F("----------------------------------------------------"));
+      break;
+    // -------------------------------------
+    // For command line. Note playerContinuous() has infrared controls in place.
+    case 'Q':
+      Serial.println(F("+ Q, MP3 Player   PLAYER mode, run the MP3 player."));
+      programState = CLOCK_RUN;
+      break;
+    case 'q':
+      // clockSwitch('r');
       break;
     // -------------------------------------
     // For command line. Note playerContinuous() has infrared controls in place.

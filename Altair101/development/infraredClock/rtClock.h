@@ -6,6 +6,7 @@
 void setupClock();
 void rtClockRun();
 void rtClockContinuous();
+void clockSwitch(int resultsValue);
 
 // -------------------------------------------------------------------------------
 // eof

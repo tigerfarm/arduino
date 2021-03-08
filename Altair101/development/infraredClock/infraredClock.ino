@@ -28,16 +28,23 @@ void ledFlashError() {}
 void ledFlashSuccess() {}
 
 void processWaitSwitch(int readByte) {
+  /*
+  Serial.print(F("++ processWaitSwitch("));
+  Serial.print(readByte);
+  Serial.print(F(")"));
+  Serial.println();
+  */
   boolean printPrompt = true;
   switch (readByte) {
     // -------------------------------
     case 10:
-      // LF.
-      Serial.println();
+      // LF, IDE character.
+      return;     // To avoid printing the prompt.
       break;
     case 13:
-      // CR, ignore
-      printPrompt = false;
+      // CR, Mac terminal window character. ignore
+      Serial.println();
+      // printPrompt = false;
       break;
     // -------------
     // Mouse wheel
@@ -51,7 +58,7 @@ void processWaitSwitch(int readByte) {
     // ------------------------------
     // -------------
     case 'r':
-      // playerSwitch('r');
+      clockSwitch('r');
       break;
     // ----------------------------------------------------------------------
     case 'h':
@@ -60,11 +67,9 @@ void processWaitSwitch(int readByte) {
       Serial.println(F("----------------------------------------------------"));
       Serial.println(F("+++ WAIT mode controls"));
       Serial.println(F("-------------"));
-      Serial.println(F("+++ MP3 Player controls"));
+      Serial.println(F("+++ Clock controls"));
       Serial.println(F("-------------"));
-      Serial.println(F("+ p, Pause        Pause, pause playing."));
-      Serial.println(F("+ s, STOP         Pause, stop playing."));
-      Serial.println(F("+ r, RUN          Start, playing the current song."));
+      Serial.println(F("+ r, RUN          Show clock's time."));
       Serial.println(F("+ v/V, Volume     Down/Up volume level."));
       Serial.println(F("------------------"));
       Serial.println(F("+ 1 ...3          Test: Play a file and wait until completed."));
@@ -93,6 +98,13 @@ void processWaitSwitch(int readByte) {
 }
 
 void runProcessorWait() {
+  /*
++ Start the loop().
++ rtClockRun();
+CLOCK ?- + Power or Key TV/VCR
++ Processor WAIT mode.
+101 ?- 
+   */
   Serial.println(F("+ Processor WAIT mode."));
   Serial.print(waitPrompt);
   while (programState == PROGRAM_WAIT) {

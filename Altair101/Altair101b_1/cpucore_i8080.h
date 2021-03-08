@@ -4,7 +4,10 @@
 // -----------------------------------------------------------------------------
 
 #include <Arduino.h>
-#include "Altair101a.h"
+#include "Altair101b.h"
+
+#define SOFTWARE_NAME "Altair101b"
+#define SOFTWARE_VERSION "1.6"
 
 // -----------------------------------------------------------------------------
 // CPU,  Set to Intel 8080
