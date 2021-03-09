@@ -457,6 +457,32 @@ void setClockMenuItems() {
 void clockSetSwitch(int resultsValue) {
   boolean printPrompt = true;
   switch (resultsValue) {
+    // -----------------------------------
+    case 0xFFFFFFFF:
+      // Ignore. This is from holding the key down.
+      return;     // To avoid printing the prompt.
+      break;
+    // -------------
+    // Mouse wheel
+    case 27:
+    case 91:
+    case 65: // Mouse wheel down (away from user).
+    case 66: // Mouse wheel up   (toward user).
+      // Ignore.
+      return;     // To avoid printing the prompt.
+      break;
+    // -------------
+    case 10:
+      // LF, IDE character.
+      // Ignore.
+      return;     // To avoid printing the prompt.
+      break;
+    // -------------
+    case 13:
+      // CR, Mac terminal window character. ignore
+      Serial.println();
+      break;
+    // ----------------------------------------------------------------------
     case 0xFF5AA5:
     case 0xE0E046B9:
       // Serial.print("+ Key > - next");
@@ -554,6 +580,34 @@ void clockSetSwitch(int resultsValue) {
       //
       setClockValue = false;
       delay(200);   // To block the double press.
+      break;
+    // ----------------------------------------------------------------------
+    case 'h':
+      Serial.print(F("+ h, Print help information."));
+      Serial.println();
+      Serial.println();
+      Serial.println(F("----------------------------------------------------"));
+      Serial.println(F("+++ Virtual Front Panel Switch Controls"));
+      Serial.println(F("+++ Real Time Clock Set Controls"));
+      Serial.println(F("-------------"));
+      Serial.println(F("+ r, RUN mode     CLOCK mode: show date and time."));
+      Serial.println(F("+ s, SINGLE STEP  Clock SET mode: flip to decrement date or time value."));
+      Serial.println(F("+ S, SINGLE Down  Clock SET mode: flip to increment date or time value."));
+      Serial.println(F("+ x, EXAMINE      Enter clock SET mode. Show the current clock SET mode date and time."));
+      Serial.println(F("+ X, EXAMINE NEXT Rotate through the clock values that can be set."));
+      Serial.println(F("                  1) First flip, go into clock SET mode."));
+      Serial.println(F("                     Clock SET mode to change the year value."));
+      Serial.println(F("                  2) Clock SET mode to change the month value."));
+      Serial.println(F("                  3) Clock SET mode to change the day value."));
+      Serial.println(F("                  4) Clock SET mode to change the hours value."));
+      Serial.println(F("                  5) Clock SET mode to change the minutes. value"));
+      Serial.println(F("+ p, DEPOSIT      Set the time based on the set clock values."));
+      Serial.println(F("                  Toggle from clock SET mode to CLOCK mode."));
+      Serial.println(F("+ R, RESET        Toggle from clock SET mode to CLOCK mode. Don't change the time."));
+      Serial.println(F("----------------------------------------------------"));
+      Serial.println(F("+ Ctrl+L          Clear screen."));
+      Serial.println(F("+ X, Exit player  Return to program WAIT mode."));
+      Serial.println(F("----------------------------------------------------"));
       break;
     // ----------------------------------------------------------------------
     case 0x953EEEBC:                              // Key CLEAR
@@ -760,21 +814,7 @@ void clockSwitch(int resultsValue) {
       Serial.println(F("-------------"));
       Serial.println(F("+ _, STOP         Not implemented."));
       Serial.println(F("+ r, RUN mode     CLOCK mode: show date and time."));
-      Serial.println(F("+ s, SINGLE STEP  Clock SET mode: flip to decrement date or time value."));
-      Serial.println(F("+ S, SINGLE Down  Clock SET mode: flip to increment date or time value."));
-      Serial.println(F("+ x, EXAMINE      Enter clock SET mode. Show the current clock SET mode date and time."));
-      Serial.println(F("+ X, EXAMINE NEXT Rotate through the clock values that can be set."));
-      Serial.println(F("                  1) First flip, go into clock SET mode."));
-      Serial.println(F("                     Clock SET mode to change the year value."));
-      Serial.println(F("                  2) Clock SET mode to change the month value."));
-      Serial.println(F("                  3) Clock SET mode to change the day value."));
-      Serial.println(F("                  4) Clock SET mode to change the hours value."));
-      Serial.println(F("                  5) Clock SET mode to change the minutes. value"));
-      Serial.println(F("+ p, DEPOSIT      Set the time based on the set clock values."));
-      Serial.println(F("                  Toggle from clock SET mode to CLOCK mode."));
-      Serial.println(F("+ P, DEPOSIT NEXT Not implemented."));
       Serial.println(F("+ R, RESET        Toggle from clock SET mode to CLOCK mode. Don't change the time."));
-      Serial.println(F("+ _, CLR          Not implemented."));
       // Serial.println(F("-------------"));
       // Serial.println(F("+ 0...9, a...f    Toggle sense/address/data switches:  A0...A9, A10...A15."));
       Serial.println(F("----------------------------------------------------"));
@@ -818,7 +858,7 @@ void clockSwitch(int resultsValue) {
       break;
       // ----------------------------------------------------------------------
   } // end switch
-  if (printPrompt && (programState == CLOCK_RUN)) {
+  if (printPrompt && (programState == CLOCK_RUN) && (rtClockState == RTCLOCK_RUN)) {
     Serial.print(thePrompt);
   }
 }
@@ -843,8 +883,8 @@ void rtClockContinuous() {
 // MP3 Player controls.
 
 void rtClockSet() {
-  String thePrompt = clockSetPrompt;
-  Serial.println();
+  thePrompt = clockSetPrompt;
+  // Serial.println();
   Serial.print(thePrompt);
   while (rtClockState == RTCLOCK_SET) {
     if (Serial.available() > 0) {
@@ -860,6 +900,7 @@ void rtClockSet() {
     delay(60);  // Delay before getting the next key press, in case press and hold too long.
   }
   thePrompt = clockPrompt;
+  Serial.print(thePrompt);
 }
 
 void rtClockRun() {
@@ -879,7 +920,7 @@ void rtClockRun() {
     }
     processClockNow();    // Process on going time clicks.
     if (rtClockState == RTCLOCK_SET) {
-      Serial.println("+ rtClockState == RTCLOCK_SET");
+      // Serial.println("+ rtClockState == RTCLOCK_SET");
       rtClockSet();
     }
     //
