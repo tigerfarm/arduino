@@ -361,10 +361,11 @@ void setupClock() {
   Serial.println(F("+ Initialized: infrared receiver."));
 
   // Initialize the clock set values.
-  for (int i = 0; i < numClockValues; i++ ) {
-    setValues[i] = -1; // -1 means that the value is not set to change.
+  for (int i = 0; i < numClockValues - 1; i++ ) {
+    setValues[i] = -1;                  // -1 means that the value is not set to change.
   }
-
+  setValues[numClockValues - 1];        // Set seconds to zero.
+  //
   // Initialize the Real Time Clock (RTC).
   if (!rtc.begin()) {
     Serial.println(F("--- Error: RTC not found."));
@@ -421,7 +422,8 @@ void printSetClockDateTime() {
   } else {
     printClockInt(setValues[aCounter]);
   }
-  Serial.print(F(" (YYYY/MM/DD) "));
+  //Serial.print(F(" (YYYY/MM/DD) "));
+  Serial.print(F(  "              "));  // Spacing
   //
   // -------
   aCounter++;
@@ -447,7 +449,6 @@ void printSetClockDateTime() {
   } else {
     printClockInt(setValues[aCounter]);
   }
-  Serial.print(F(" (HH:MM:SS)"));
 }
 
 int getClockValue(int getValue) {
@@ -628,6 +629,16 @@ void clockSetSwitch(int resultsValue) {
     case 'p':                   // DEPOSIT
       Serial.print(F("+ DEPOSIT, Key OK|Enter, values="));
       Serial.println();
+      // The following offsets the time to make the change.
+      // Else, the clock looses about second each time a setting is made.
+      theCounterSeconds ++;
+      delay(100);
+      rtc.adjust(DateTime(setValues[0], setValues[1], setValues[2], setValues[3], setValues[4], setValues[5]));
+      Serial.println();
+      Serial.print(F("+ Clock set to "));
+      printClockDateTime();
+      Serial.println();
+      Serial.println("");
       break;
     // ----------------------------------------------------------------------
     case 0x953EEEBC:                              // Key CLEAR
@@ -669,80 +680,6 @@ void clockSetSwitch(int resultsValue) {
       Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
       break;
     // ----------------------------------------------------------------------
-    case 0xFF18E7:
-      // Serial.print("+ Key up");
-      if (setClockValue) {
-        // Serial.print(", increment");
-        setValue++;
-        if (setValue > theSetMax) {
-          setValue = theSetMin;
-        }
-        printClockInt(setValue);
-      }
-      // Serial.println(".");
-      break;
-    case 0xFF4AB5:
-      // Serial.print("+ Key down");
-      if (setClockValue) {
-        // Serial.print(", decrement");
-        setValue--;
-        if (setValue < theSetMin) {
-          setValue = theSetMax;
-        }
-        printClockInt(setValue);
-      }
-      // Serial.println(".");
-      break;
-    case 'e':
-      Serial.print("+ Key DEPOSIT/ENTER");
-      if (setClockValue) {
-        Serial.print(", set ");
-        switch (setClockValue) {
-          case 6:
-            // Serial.print("seconds");
-            theCounterSeconds = setValue;
-            printClockInt(setValue);
-            break;
-          case 5:
-            // Serial.print("minutes");
-            //theCounterMinutes = setValue;
-            printClockInt(setValue);
-            break;
-          case 4:
-            // Serial.print("hours");
-            theCounterHours = setValue;
-            printClockInt(setValue);
-            break;
-          case 3:
-            // Serial.print("day");
-            theCounterDay = setValue;
-            break;
-          case 2:
-            // Serial.print("month");
-            theCounterMonth = setValue;
-            break;
-          case 1:
-            // Serial.print("year");
-            theCounterYear = setValue;
-            break;
-        }
-        // The following offsets the time to make the change.
-        // Else, the clock looses about second each time a setting is made.
-        theCounterSeconds ++;
-        delay(100);
-        //
-        rtc.adjust(DateTime(theCounterYear, theCounterMonth, theCounterDay, theCounterHours, theCounterMinutes, theCounterSeconds));
-        Serial.println("Value is set.");
-        printClockDate();
-        delay(2000);
-        Serial.println("");
-      }
-      // Serial.println(".");
-      //
-      setClockValue = false;
-      delay(200);   // To block the double press.
-      break;
-    // -----------------------------------
     default:
       // Serial.print(F("+ Result value: "));
       // Serial.print(resultsValue);
