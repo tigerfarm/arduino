@@ -206,6 +206,7 @@ void printClockInt(int theInt) {
   Serial.print(theInt);
 }
 
+// -----------------------------------------------------------------------------
 void printClockDate() {
   now = rtc.now();
   theCounterYear = now.year();
@@ -252,7 +253,6 @@ void printClockTime() {
   Serial.print(AmPm);
 }
 
-// -----------------------------------------------------------------------------
 void printClockDateTime() {
   // Date: 2018/12/08 (YYYY/MM/DD)  Time: 15:59:56 (HH:MM:SS) Saturday 3pm
   Serial.print(F("Date: "));
@@ -349,13 +349,11 @@ void processClockNow() {
 // -----------------------------------------------------------------------------
 // Initialize the component module.
 
-int setClockValue = 0;          // Set which value for changing:
-
-int numClockValues = 6;
-// char clockValueName[6][8] = {"seconds", "minute", "hour", "day", "month", "year" };
+int numClockValues = 6;               // Number of clock values: year ... seconds.
+int setClockValue = numClockValues;   // Set which clock value is set for changing.
+int setValues[6];                     // For storing each type of clock values that are to be changed.
 char clockValueName[6][8] = {"year", "month", "day", "hour", "minute", "seconds" };
-int setValues[6];    // For each type of clock values.
-int setValue;
+// char clockValueName[6][8] = {"seconds", "minute", "hour", "day", "month", "year" };
 
 void setupClock() {
   // ----------------------------------------------------
@@ -375,7 +373,7 @@ void setupClock() {
   //
   // Set the time for testing. Example, test for testing AM/PM.
   // Serial.println(F("++ Set clock to Dec.8,2018 03:59:56pm."));
-  rtc.adjust(DateTime(2018, 12, 8, 15, 59, 56)); // DateTime(year, month, day, hour, minute, second)
+  rtc.adjust(DateTime(2018, 12, 8, 15, 36, 58)); // DateTime(year, month, day, hour, minute, second)
   delay(100);
   //
   Serial.print(F("+ Initialized: clock, "));
@@ -387,8 +385,6 @@ void setupClock() {
 // -----------------------------------------------------------------------------
 // Menu items to set the clock date and time values.
 
-int theSetRow = 1;
-int theSetCol = 0;
 int theSetMin = 0;
 int theSetMax = 59;
 
@@ -399,61 +395,124 @@ void cancelSet() {
   }
 }
 
-void setClockMenuItems() {
-  switch (setClockValue) {
+void printSetClockDateTime() {
+  // Date: 2018/12/08 (YYYY/MM/DD)  Time: 15:59:56 (HH:MM:SS) Saturday 3pm
+  Serial.print(F("Date: "));
+  int aCounter = 0;
+  // -------
+  if (setValues[aCounter] < 0) {
+    Serial.print(F("----"));
+  } else {
+    Serial.print(setValues[aCounter]);
+  }
+  // -------
+  aCounter++;
+  Serial.print(F("/"));
+  if (setValues[aCounter] < 0) {
+    Serial.print(F("--"));
+  } else {
+    printClockInt(setValues[aCounter]);
+  }
+  // -------
+  aCounter++;
+  Serial.print(F("/"));
+  if (setValues[aCounter] < 0) {
+    Serial.print(F("--"));
+  } else {
+    printClockInt(setValues[aCounter]);
+  }
+  Serial.print(F(" (YYYY/MM/DD) "));
+  //
+  // -------
+  aCounter++;
+  Serial.print(F(" Time: "));
+  if (setValues[aCounter] < 0) {
+    Serial.print(F("--"));
+  } else {
+    printClockInt(setValues[aCounter]);
+  }
+  // -------
+  aCounter++;
+  Serial.print(F(":"));
+  if (setValues[aCounter] < 0) {
+    Serial.print(F("--"));
+  } else {
+    printClockInt(setValues[aCounter]);
+  }
+  // -------
+  aCounter++;
+  Serial.print(F(":"));
+  if (setValues[aCounter] < 0) {
+    Serial.print(F("--"));
+  } else {
+    printClockInt(setValues[aCounter]);
+  }
+  Serial.print(F(" (HH:MM:SS)"));
+}
+
+int getClockValue(int getValue) {
+  switch (getValue) {
     case 0:
-      // Serial.print(F("Cancel set"));
-      break;
-    case 6:
-      Serial.print(F("Set "));
-      Serial.print(clockValueName[setClockValue - 1]);
-      Serial.print(F(": "));
-      theSetMax = 59;
-      theSetMin = 0;
-      setValue = theCounterSeconds;
-      printClockInt(setValue);
-      break;
-    case 5:
-      Serial.print(F("Set:"));
-      theSetMax = 59;
-      theSetMin = 0;
-      setValue = theCounterMinutes;
-      printClockInt(setValue);
-      break;
-    case 4:
-      Serial.print(F("Set:"));
-      theSetMax = 24;
-      theSetMin = 0;
-      setValue = theCounterHours;
-      printClockInt(setValue);
-      break;
-    case 3:
-      Serial.print(F("Set day:"));
-      theSetMax = 31;
-      theSetMin = 1;
-      setValue = theCounterDay;
-      printClockInt(setValue);
-      break;
-    case 2:
-      Serial.print(F("Set month:"));
-      theSetMax = 12;
-      theSetMin = 1;
-      setValue = theCounterMonth;
-      printClockInt(setValue);
+      return (theCounterYear);
       break;
     case 1:
-      Serial.print(F("Set year:"));
+      return (theCounterMonth);
+      break;
+    case 2:
+      return (theCounterDay);
+      break;
+    case 3:
+      return (theCounterHours);
+      break;
+    case 4:
+      return (theCounterMinutes);
+      break;
+    case 5:
+      return (theCounterSeconds);
+      break;
+    default:
+      return (-1);  // Error
+  }
+}
+
+void getClockValueMinMax(int getValue) {
+  switch (getValue) {
+    case 0:
       theSetMax = 2525; // In the year 2525, If man is still alive, If woman can survive...
       theSetMin = 1795; // Year John Keats the poet was born.
-      setValue = theCounterYear;
-      printClockInt(setValue);
       break;
+    case 1:
+      theSetMax = 12;
+      theSetMin = 1;
+      break;
+    case 2:
+      theSetMax = 31;
+      theSetMin = 1;
+      break;
+    case 3:
+      theSetMax = 24;
+      theSetMin = 0;
+      break;
+    case 4:
+      theSetMax = 59;
+      theSetMin = 0;
+      break;
+    case 5:
+      theSetMax = 59;
+      theSetMin = 0;
+      break;
+    default:
+      // Error
+      theSetMax = 0;
+      theSetMin = 0;
   }
 }
 
 // -----------------------------------------------------------------------
 void clockSetSwitch(int resultsValue) {
   boolean printPrompt = true;
+  int theValue;
+  int setValue;   // temporary
   switch (resultsValue) {
     // -----------------------------------
     case 0xFFFFFFFF:
@@ -485,38 +544,85 @@ void clockSetSwitch(int resultsValue) {
     case 0x2B8BE5F:             // Key Volume up
     case 0xFFE21D:              // Small remote, Key 3
     case 'V':                   // Single STEP down
-      Serial.print(F("+ Clock SET, increase, value="));
+      Serial.print(F("+ Clock SET, "));
+      Serial.print(clockValueName[setClockValue]);
+      if (setValues[setClockValue] < theSetMax) {
+        setValues[setClockValue] = setValues[setClockValue] + 1;
+        Serial.print(F(", increase to: "));
+      } else {
+        Serial.print(F(", already at maximum: "));
+      }
+      Serial.print(setValues[setClockValue]);
       Serial.println();
       break;
     case 0x1CF3ACDB:            // Key Volume down
     case 0xFFA25D:              // Small remote, Key 1
     case 'v':                   // Single STEP up
-      Serial.print(F("+ Clock SET, decrease, value="));
+      Serial.print(F("+ Clock SET, "));
+      Serial.print(clockValueName[setClockValue]);
+      if (setValues[setClockValue] > theSetMin) {
+        setValues[setClockValue] = setValues[setClockValue] - 1;
+        Serial.print(F(", decrease to: "));
+      } else {
+        Serial.print(F(", already at minimum: "));
+      }
+      Serial.print(setValues[setClockValue]);
       Serial.println();
       break;
     // ----------------------------------------------------------------------
     case 0x8AA3C35B:            // Key PLAY
     case 'r':
-      // Serial.println(F("+ Key PLAY"));
-      Serial.print(F("+ 'r', Current "));
+      Serial.println();
+      Serial.print(F("+ Current "));
       printClockDateTime();
+      Serial.println();
+      Serial.print(F("+ Set     "));
+      printSetClockDateTime();
       Serial.println();
       break;
     // ----------------------------------------------------------------------
+    // char clockValueName[6][8] = {"year", "month", "day", "hours", "minutes", "seconds" };
+    // int numClockValues = 6;
     case 0xFF10EF :
     case 0x7E23117B:            // Key REW
     case 'x' :
-      Serial.print(F("+ Clock SET, Previous: Counter="));
+      if (setClockValue > 0) {
+        setClockValue--;
+      } else {
+        setClockValue = numClockValues - 1; // Loop around.
+      }
+      Serial.print(F("+ Clock SET, Previous value: "));
+      Serial.print(clockValueName[setClockValue]);
+      if (setValues[setClockValue] < 0) {
+        // Not set, set to current clock value.
+        setValues[setClockValue] = getClockValue(setClockValue);
+      }
+      Serial.print(F(", current set value = "));
+      Serial.print(setValues[setClockValue]);
       Serial.println();
+      getClockValueMinMax(setClockValue);       // Used when increasing or decreasing the value.
       break;
     // -----------------------------------
     case 0xFF5AA5:
     case 0x7538143B:            // Key FF
     case 'X':
-      Serial.print(F("+ Clock SET, Next: Counter="));
+      if (setClockValue < (numClockValues - 1)) {
+        setClockValue++;
+      } else {
+        setClockValue = 0;      // Loop around.
+      }
+      Serial.print(F("+ Clock SET, Next value: "));
+      Serial.print(clockValueName[setClockValue]);
+      if (setValues[setClockValue] < 0) {
+        // Not set, set to current clock value.
+        setValues[setClockValue] = getClockValue(setClockValue);
+      }
+      Serial.print(F(", current set value = "));
+      Serial.print(setValues[setClockValue]);
       Serial.println();
+      getClockValueMinMax(setClockValue);       // Used when increasing or decreasing the value.
       break;
-    // -----------------------------------
+    // ----------------------------------------------------------------------
     case 0xFF38C7:
     case 0x82D6EC17:
     case 'p':                   // DEPOSIT
@@ -543,10 +649,9 @@ void clockSetSwitch(int resultsValue) {
       Serial.println(F("+ r, RUN mode     CLOCK mode: show date and time."));
       Serial.println(F("+ v, SINGLE STEP  Clock SET mode: flip to decrement date or time value."));
       Serial.println(F("+ V, SINGLE Down  Clock SET mode: flip to increment date or time value."));
-      Serial.println(F("+ x, EXAMINE      Enter clock SET mode. Show the current clock SET mode date and time."));
+      Serial.println(F("+ x, EXAMINE      Show the current clock SET mode date and time."));
       Serial.println(F("+ X, EXAMINE NEXT Rotate through the clock values that can be set."));
-      Serial.println(F("                  1) First flip, go into clock SET mode."));
-      Serial.println(F("                     Clock SET mode to change the year value."));
+      Serial.println(F("                  1) Clock SET mode to change the year value."));
       Serial.println(F("                  2) Clock SET mode to change the month value."));
       Serial.println(F("                  3) Clock SET mode to change the day value."));
       Serial.println(F("                  4) Clock SET mode to change the hours value."));
@@ -564,26 +669,6 @@ void clockSetSwitch(int resultsValue) {
       Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
       break;
     // ----------------------------------------------------------------------
-    case 'g':
-      // Serial.print("+ Key > - next");
-      // Serial.print(", set clock menu option");
-      setClockValue--;
-      if (setClockValue < 0) {
-        setClockValue = 6;
-      }
-      setClockMenuItems();
-      // Serial.println(".");
-      break;
-    case 'f':
-      // Serial.print("+ Key < - previous");
-      // Serial.print(", set clock menu option");
-      setClockValue++;
-      if (setClockValue > 6) {
-        setClockValue = 0;
-      }
-      setClockMenuItems();
-      // Serial.println(".");
-      break;
     case 0xFF18E7:
       // Serial.print("+ Key up");
       if (setClockValue) {
@@ -620,7 +705,7 @@ void clockSetSwitch(int resultsValue) {
             break;
           case 5:
             // Serial.print("minutes");
-            theCounterMinutes = setValue;
+            //theCounterMinutes = setValue;
             printClockInt(setValue);
             break;
           case 4:
