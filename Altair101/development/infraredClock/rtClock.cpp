@@ -313,6 +313,8 @@ void processClockNow() {
   now = rtc.now();
   //
   if (now.second() != theCounterSeconds) {
+    // -------------------------
+    // Time pulses.
     // When the clock second value changes, that's a clock second pulse.
     theCounterSeconds = now.second();
     // clockPulseSecond();
@@ -323,8 +325,7 @@ void processClockNow() {
       if (theCounterMinutes == 0) {
         // When the clock minute value changes to zero, that's a clock hour pulse.
         theCounterHours = now.hour();
-        clockPulseHour();
-
+        // clockPulseHour();
         // -------------------------
         // Date pulses.
         if (now.hour() == 0) {
@@ -388,13 +389,6 @@ void setupClock() {
 
 int theSetMin = 0;
 int theSetMax = 59;
-
-void cancelSet() {
-  if (setClockValue) {
-    Serial.println("+ Cancel set.");
-    setClockValue = false;
-  }
-}
 
 void printSetClockDateTime() {
   // Date: 2018/12/08 (YYYY/MM/DD)  Time: 15:59:56 (HH:MM:SS) Saturday 3pm
@@ -646,7 +640,6 @@ void clockSetSwitch(int resultsValue) {
     case 'R':
       Serial.println(F("+ CLOCK CLEAR/RESET, return clock run mode, date/time not changed."));
       rtClockState = RTCLOCK_RUN;
-      // cancelSet();
       break;
     // ----------------------------------------------------------------------
     // ----------------------------------------------------------------------
