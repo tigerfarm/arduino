@@ -361,12 +361,6 @@ void setupClock() {
   irrecv.enableIRIn();
   Serial.println(F("+ Initialized: infrared receiver."));
 
-  // Initialize the clock set values.
-  for (int i = 0; i < numClockValues - 1; i++ ) {
-    setValues[i] = -1;                  // -1 means that the value is not set to change.
-  }
-  setValues[numClockValues - 1];        // Set seconds to zero.
-  //
   // Initialize the Real Time Clock (RTC).
   if (!rtc.begin()) {
     Serial.println(F("--- Error: RTC not found."));
@@ -375,7 +369,11 @@ void setupClock() {
   //
   // Set the time for testing. Example, test for testing AM/PM.
   // Serial.println(F("++ Set clock to Dec.8,2018 03:59:56pm."));
-  rtc.adjust(DateTime(2018, 12, 8, 15, 36, 58)); // DateTime(year, month, day, hour, minute, second)
+  now = rtc.now();
+  if (now.year() < 2018) {
+    // While the power is on, if no battery, the date and time will remain, don't reset it.
+    rtc.adjust(DateTime(2018, 12, 8, 15, 36, 58)); // DateTime(year, month, day, hour, minute, second)
+  }
   delay(100);
   //
   Serial.print(F("+ Initialized: clock, "));
@@ -625,9 +623,17 @@ void clockSetSwitch(int resultsValue) {
       Serial.println();
       // The following offsets the time to make the change.
       // Else, the clock looses about second each time a setting is made.
-      theCounterSeconds ++;
-      delay(100);
-      rtc.adjust(DateTime(setValues[0], setValues[1], setValues[2], setValues[3], setValues[4], setValues[5]));
+      int theSetValue[6];
+      for (int i = 0; i < numClockValues - 1; i++ ) {
+        theSetValue[i] = setValues[i];
+        if (setValues[i] < 0) {
+          theSetValue[i] = getClockValue(i);
+        }
+      }
+      // delay(100);
+      // theCounterSeconds ++; // Takes a second to do the update.
+      //                    year            month           day             hours           minutes         seconds
+      rtc.adjust(DateTime(theSetValue[0], theSetValue[1], theSetValue[2], theSetValue[3], theSetValue[4], setValues[5]));
       Serial.println();
       Serial.print(F("+ Clock set to "));
       printClockDateTime();
@@ -947,6 +953,14 @@ void rtClockSet() {
   thePrompt = clockSetPrompt;
   // Serial.println();
   Serial.print(thePrompt);
+  //
+  // Initialize the clock set values.
+  for (int i = 0; i < numClockValues - 2; i++ ) {
+    setValues[i] = -1;                  // -1 means that the value is not set to change.
+  }
+  setValues[numClockValues - 2] = getClockValue(numClockValues - 2) + 1;       // Set minutes to current minutes + 1, for quick setting.
+  setValues[numClockValues - 1];        // Set seconds to zero.
+  //
   while (rtClockState == RTCLOCK_SET) {
     if (Serial.available() > 0) {
       int readByte = Serial.read();    // Read and process an incoming byte.
