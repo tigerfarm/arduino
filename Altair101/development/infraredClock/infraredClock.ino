@@ -1,6 +1,8 @@
 // -----------------------------------------------------------------------
 /*
-  This is a sample program to initiate and call the real time clock program: rtClock.cpp.
+  This sample program includes:
+  + Initializing the real time clock.
+  + Making demonstrative calls to rtClock.cpp.
 */
 // -------------------------------------------------------------------------------
 #include "rtClock.h"
@@ -98,13 +100,6 @@ void processWaitSwitch(int readByte) {
 }
 
 void runProcessorWait() {
-  /*
-+ Start the loop().
-+ rtClockRun();
-CLOCK ?- + Power or Key TV/VCR
-+ Processor WAIT mode.
-101 ?- 
-   */
   Serial.println(F("+ Processor WAIT mode."));
   Serial.print(waitPrompt);
   while (programState == PROGRAM_WAIT) {

@@ -94,8 +94,5 @@ extern byte hwStatus;
 #define IR_PIN A1
 #endif
 
-// IRrecv irrecv(IR_PIN);
-// extern decode_results results;
-
 // -----------------------------------------------------------------------------
 // eof

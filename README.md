@@ -19,6 +19,29 @@ Another 32 bit board is the STM32, STM32L031K6, STM32L0 ARM® MCU 32-Bit
 + STM32 [Beginner's Guide video](https://www.youtube.com/watch?v=EaZuKRSvwdo)
 
 --------------------------------------------------------------------------------
++++ Due Startup Issue
+
+My Due R3 won't start program if powered off for even a short time.
+    https://forum.arduino.cc/index.php?topic=256771.60
+
+Software fix:
+    Command used:
+      Copy avrdude.conf and the hex file (latest atmega16u2 firmware) to the same folder as avrdude.exe before running.
+        avrdude in the following directory:
+        /Applications/Arduino.app/Contents/Java/hardware/tools/avr/bin
+      Get serial device port:
+        $ ls /dev/tty.*
+        ...     /dev/tty.usbmodem14211
+      Run the following:
+        R:\Arduino\hardware\tools\avr\bin>avrdude.exe -C avrdude.conf -c usbasp -P /dev/tty.usbmodem14211 -b 19200 -p m16u2 -vvv -U flash:w:16u2.hex:i 
+      Reference,
+        https://www.instructables.com/How-to-Restore-the-Arduino-UNO-R3-ATmega16U2-Firmw/
+          Arduino-COMBINED-dfu-usbserial-atmega16u2-Uno-Rev3.hex
+          https://github.com/NicoHood/HoodLoader2/blob/master/avr/bootloaders/HexFiles/Arduino-COMBINED-dfu-usbserial-atmega16u2-Uno-Rev3.hex
+        https://www.arduino.cc/en/Hacking/Upgrading16U2Due
+        https://www.instructables.com/How-to-Restore-the-Arduino-UNO-R3-ATmega16U2-Firmw/
+
+--------------------------------------------------------------------------------
 +++ Hardware case component mounting tips.
 
 https://www.youtube.com/watch?v=PG7lqaCJ6yA
