@@ -216,44 +216,6 @@ void playerLights() {}
 // void ledFlashSuccess() {}
 
 // -----------------------------------------------------------------------
-// Motherboard Specific setup for Infrared and DFPlayer communications
-
-// -----------------------------------------------
-#if defined(__AVR_ATmega2560__)
-// ------------------
-#include <IRremote.h>
-// ------------------
-// Mega uses a hardware serial port (RX/TX) for communications with the DFPlayer.
-// For Arduino Mega, I use pin 24 because it's closer to where I'm doing my wiring.
-//  Feel free to use another digital or analog pin.
-int IR_PIN = 24;
-//
-// -----------------------------------------------
-#elif defined(__SAM3X8E__)
-// ------------------
-#include <IRremote2.h>    // Special infrared library for the Due.
-// For Arduino Due, I use pin 24 because it's closer to where I'm doing my wiring.
-//  Feel free to use another digital or analog pin.
-int IR_PIN = 24;
-// ------------------
-// Due uses a hardware serial port (RX/TX) for communications with the DFPlayer.
-//
-// -----------------------------------------------
-#else
-// ------------------
-#include <IRremote.h>
-// Digital and analog pins work. Also tested with other analog pins.
-int IR_PIN = A1;
-// ------------------
-// Nano or Uno use a software serial port for communications with the DFPlayer.
-#include "SoftwareSerial.h"
-// DFPlayer pins 3(TX) and 2(RX), connected to Arduino pins: 10(RX) and 11(TX).
-// SoftwareSerial playerSerial(10, 11); // Software serial, playerSerial(RX, TX)
-SoftwareSerial SerialSw(10, 11); // Software serial, playerSerial(RX, TX)
-// ------------------
-#endif
-
-// -----------------------------------------------------------------------
 // Infrared Receiver
 
 IRrecv irrecv(IR_PIN);

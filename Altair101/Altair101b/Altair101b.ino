@@ -274,7 +274,7 @@
 #include "Altair101b.h"
 #include "cpucore_i8080.h"
 #include "Mp3Player.h"
-// #include "rtClock.h"
+#include "rtClock.h"
 
 // #define LOG_MESSAGES 1    // For debugging.
 // #define LOG_OPCODES  1    // Print each called opcode.
@@ -1880,7 +1880,7 @@ void processWaitSwitch(byte readByte) {
       programState = CLOCK_RUN;
       break;
     case 'q':
-      // clockSwitch('r');
+      clockSwitch('r');
       break;
     // -------------------------------------
     // For command line. Note playerContinuous() has infrared controls in place.
@@ -2304,6 +2304,7 @@ void setup() {
   //
   // ----------------------------------------------------
   setupMp3Player();
+  setupClock();
   // ----------------------------------------------------
   programState = PROGRAM_WAIT;
   host_set_status_leds_READMEM_M1();
@@ -2353,6 +2354,13 @@ void loop() {
       host_set_status_led_HLDA();
       mp3PlayerRun();
       host_clr_status_led_HLDA();
+      break;
+    // ----------------------------
+    case CLOCK_RUN:
+      host_clr_status_led_WAIT()
+      host_set_status_led_HLDA();
+      rtClockRun();
+       host_clr_status_led_HLDA();
       break;
   }
   delay(30);
