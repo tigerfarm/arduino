@@ -13,7 +13,7 @@
 // CPU,  Set to Intel 8080
 
 #define PROC_I8080 0
-#define cpu_opcodes cpucore_i8080_opcodes
+#define cpu_opcodes cpuIntel8080_opcodes
 #define cpu_clock_KHz()     CPU_CLOCK_I8080
 #define cpu_get_processor() PROC_I8080
 typedef void (*CPUFUN)();
@@ -91,7 +91,7 @@ extern byte Mem[MEMSIZE];
 // -----------------------------------------------------------------------------
 // CPU Registers
 
-void cpucore_i8080_print_registers();
+void cpuIntel8080_print_registers();
 void cpu_print_regS();
 
 #define PS_CARRY       0x01

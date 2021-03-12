@@ -188,7 +188,8 @@
   ------------------------------------------------------------------------------
   Infrared receiver pins
 
-   A1 + -   - Arduino pin connections
+  A24 + -   - Mega or Due pin connections
+   A1 + -   - Uno or Nano pin connections
     | | |   - Infrared receiver pins
   ---------
   |S      |

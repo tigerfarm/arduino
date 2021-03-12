@@ -21,7 +21,7 @@
   Altair101a program has a basic OS for command line interation.
 
   Control program files: Altair101a.ino and Altair101a.h.
-  Machine instruction program files: cpucore_i8080.cpp and cpucore_i8080.h.
+  Machine instruction program files: cpuIntel8080.cpp and cpuIntel8080.h.
 
   Differences to the original Altair 8800:
   + HLT goes into STOP state which allows RUN to restart the process from where it was halted.
@@ -40,7 +40,7 @@
   + Clock date and time.
 
   Consider:
-  + Rename cpucore_i8080, intel8080cpu.
+  + Rename cpuIntel8080, intel8080cpu.
   + Add MP3 player control call in the RUN loop so that I can be play music while running programs such as Galaxy 101.
   + Adding my own sample assembler programs.
   + SD card in it's own CPP file.
@@ -260,23 +260,23 @@
   Clock module pins
 
   -----------------------
- |     Curcuit           |
- |     side              |
+  |     Curcuit           |
+  |     side              |
   -----------------------
    |   |   |   |   |   |
   32K SQW SCL SDA VCC GND
 
   -----------------------
- |     Battery           |
- |     side              |
+  |     Battery           |
+  |     side              |
   -----------------------
    |   |   |   |   |   |
   GND VCC SDA SCL SQW 32K
-  
+
 */
 // -----------------------------------------------------------------------------
 #include "Altair101b.h"
-#include "cpucore_i8080.h"
+#include "cpuIntel8080.h"
 #include "Mp3Player.h"
 #include "rtClock.h"
 
@@ -1283,7 +1283,7 @@ void altair_out(byte portDataByte, byte regAdata) {
       Serial_println();
 #endif
       Serial_print(F("------------"));
-      cpucore_i8080_print_registers();
+      cpuIntel8080_print_registers();
       // printRegisters();
       // printOther();
       Serial_print(F("------------"));
@@ -1328,7 +1328,7 @@ void altair_out(byte portDataByte, byte regAdata) {
       break;
     case 44:
       Serial_println();
-      cpucore_i8080_print_registers();
+      cpuIntel8080_print_registers();
       // printOther();
       break;
     case 45:
@@ -1477,6 +1477,8 @@ void runProcessor() {
       readByte = Serial.read();    // Read and process an incoming byte.
       processRunSwitch(readByte);
     }
+    // Allow for the music to keep playing, and infrared player controls to work.
+    playerContinuous();
   }
 }
 
@@ -1823,7 +1825,7 @@ void processWaitSwitch(byte readByte) {
       break;
     case 'i':
       Serial.println(F("+ i: Information."));
-      cpucore_i8080_print_registers();
+      cpuIntel8080_print_registers();
       break;
     // -------------------------------------
     case 'h':
@@ -2363,7 +2365,7 @@ void loop() {
       host_clr_status_led_WAIT()
       host_set_status_led_HLDA();
       rtClockRun();
-       host_clr_status_led_HLDA();
+      host_clr_status_led_HLDA();
       break;
   }
   delay(30);

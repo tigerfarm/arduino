@@ -23,6 +23,7 @@ extern byte fpDataByte;           // Front panel data byte.
 #define CLOCK_RUN 3
 #define PLAYER_RUN 4
 #define SERIAL_DOWNLOAD 5
+#define SDCARD_RUN 7
 extern int programState;
 
 void singleStepWait();                      // Wait for "s" when single stepping.

@@ -29,12 +29,6 @@
   + Flip DEPOSIT to return to clock mode, time is set based on the displayed hours and minutes.
   ++ Seconds are set to zero, so flip DEPOSIT when the second hand hits 12 and the minute changes.
 
-  ------------------------------------------------------------------------------
-  DS3231 Clock Library:
-    Filter your search by typing ‘rtclib’.
-    There should be a couple entries. Look for RTClib by Adafruit.
-  https://github.com/adafruit/RTClib
-
   --------------------------------------------------------------------------------
   Program sections
   ----------------------------------------
@@ -75,20 +69,20 @@
   |     side              |
   -----------------------
    |   |   |   |   |   |
-  32K SQW SCL SDA VCC GND
+  GND VCC SDA SCL SQW 32K
 
   -----------------------
   |     Battery           |
   |     side              |
   -----------------------
    |   |   |   |   |   |
-  GND VCC SDA SCL SQW 32K
+  32K SQW SCL SDA VCC GND
 
   --------------------------------------------------------------------------------
-
   Infrared receiver pins
-
-   A1 + -   - Arduino pin connections
+  
+  A24 + -   - Mega or Due pin connections
+   A1 + -   - Uno or Nano pin connections
     | | |   - Infrared receiver pins
   ---------
   |S      |
@@ -98,6 +92,12 @@
   |  ---  |
   |       |
   ---------
+
+  ------------------------------------------------------------------------------
+  DS3231 Clock Library:
+    Filter your search by typing ‘rtclib’.
+    There should be a couple entries. Look for RTClib by Adafruit.
+  https://github.com/adafruit/RTClib
 
 */
 // -------------------------------------------------------------------------------
@@ -692,7 +692,7 @@ void clockSwitch(int resultsValue) {
     case 0x8AA3C35B:    // Key PLAY
     case 'r':
       // Serial.println(F("+ Key PLAY"));
-      Serial.print(F("+ 'r', Current "));
+      Serial.print(F("+ Current "));
       printClockDateTime();
       Serial.println();
       break;

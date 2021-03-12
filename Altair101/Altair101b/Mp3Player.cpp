@@ -274,7 +274,7 @@ boolean NOT_PLAY_SOUND = false;
 void setupMp3Player() {
   // ----------------------------------------------------
   irrecv.enableIRIn();
-  Serial.println(F("+ Initialized: infrared receiver."));
+  Serial.println(F("+ Initialized: infrared receiver for MP3 player controls."));
 
   // Set player front panel values.
   playerCounter = 1;                  // For now, default to song/file 1.
