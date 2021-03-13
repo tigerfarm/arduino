@@ -200,7 +200,7 @@ void printMemoryToScreen() {
     }
   }
   Serial.println(F("<--(End of array)"));
-  Serial.println(F("+ Print completed."));
+  Serial.println();
 }
 
 // -----------------------------------------------------------------------------
