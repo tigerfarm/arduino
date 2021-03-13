@@ -11,14 +11,6 @@
 // The goal is to include the MP3 player program with Altair101a.
 #include "Altair101b.h"
 
-void host_set_status_led_HLDA();
-void host_clr_status_led_HLDA();
-void host_set_status_leds_READMEM() {};
-void host_clr_status_leds_READMEM() {};
-void printFrontPanel() {};
-void playerPlaySoundWait(int abc) {};
-void modeDownloadProgram() {};
-
 // -----------------------------------------------------------------------------
 int programState;
 
@@ -33,9 +25,6 @@ word status_wait = 1;     // Default on
 #define host_set_status_led_WAIT()  { digitalWrite(13, HIGH); status_wait = true; }
 
 byte hwStatus = B11111111;            // Initial state.
-
-void ledFlashError() {}
-void ledFlashSuccess() {}
 
 void processWaitSwitch(int readByte) {
   /*
@@ -147,7 +136,7 @@ void setup() {
   setupSdCard();
 
   // ----------------------------------------------------
-  programState = PROGRAM_WAIT;
+  programState = SDCARD_RUN;
   Serial.println("+ Start the loop().");
 }
 
@@ -169,11 +158,11 @@ void loop() {
     // ----------------------------
     case SERIAL_DOWNLOAD:
       host_clr_status_led_WAIT();
-      host_set_status_led_HLDA();
-      modeDownloadProgram();
-      host_clr_status_led_HLDA();
+      // host_set_status_led_HLDA();
+      // modeDownloadProgram();
+      // host_clr_status_led_HLDA();
       host_set_status_led_WAIT();
-      printFrontPanel();
+      // printFrontPanel();
       break;
   }
   delay(30);

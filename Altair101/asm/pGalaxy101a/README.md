@@ -81,8 +81,18 @@ TIE fighter destroyed.
 Command > 
 ```
 
+Should say, "TIE fighter destroyed."
 ````
-Condition DOCKED:
+Command > 6
+Torpedo trajectory(1-8.5) : 5.0
+Tracking: 4 7
+Tracking: 4 6
+
+CONGRATULATIONS! You eliminated all the TIE fighters. Rebels are safe...for now.
+````
+
+Shoudl say: CONDITION DOCKED
+````
 2            x!x>1<       CONDITION GREEN
 ````
 

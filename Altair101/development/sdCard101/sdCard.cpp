@@ -2,34 +2,64 @@
 /*
   This is an SD card control program.
   Functionality:
+  + Setup SD card for processing.
   + List directory.
-  + Set SD card for processing.
+  + Select/enter a directory binary name to delete, or read and print to the screen.
 
-  modeDownloadProgram();
-  fpAddressToggleWord
+  Sample directory listings:
+
+  CARD ?- + n, SD card directory lising.
+  + Initialized: SD card module.
+  ++ Directory: FSEVEN~1
+  ++ Directory: SPOTLI~1
+  ++ File:      00000011.BIN  2048
+  ++ File:      00000101.BIN  5376
+  ++ File:      00000100.BIN  5120
+  ++ File:      F1.TXT        44
+  ++ File:      00000010.BIN  2048
+  ++ File:      00000001.BIN  5376
+  ++ File:      00010001.BIN  5120
+  ++ File:      01000000.BIN  5376
+  ++ File:      00001001.BIN  5376
+  ++ File:      00000000.BIN  4608
+  ++ File:      01000001.BIN  4066
+  ++ File:      DIR.TXT       158
+  ++ File:      00001011.BIN  4608
+  ++ File:      00100000.BIN  5120
+  ++ File:      00010000.BIN  5376
+  ++ File:      11000000.BIN  5120
+  ++ File:      10000000.BIN  5376
+
+  CARD ?- + sdCardRun();
 
 */
 // -------------------------------------------------------------------------------
 #include "Altair101b.h"
 
+void ledFlashError() {}
+void ledFlashSuccess() {}
+
 void host_set_status_led_HLDA() {};
 void host_clr_status_led_HLDA() {};
-void host_set_status_leds_READMEM() {};
-void host_clr_status_leds_READMEM() {};
-void printFrontPanel() {};
 void playerPlaySoundWait(int abc) {};
 void controlResetLogic() {};
-void ledFlashSuccess() {};
-void ledFlashError() {};
 uint16_t fpAddressToggleWord = 0;
 String getSenseSwitchValue() {
   return ("10000000");
 };
 
 String sdCardPrompt = "CARD ?- ";
-String sdCardSetPrompt = "CARD DL ?- ";
+String sdCardGetFilenamePrompt = "CARD FN ?- ";
 String thePrompt = sdCardPrompt;           // Default.
 extern int programState;
+
+// Clock internal status, internatl to this program.
+#define THIS_RUN 1
+#define THIS_GET 2
+int thisState = THIS_RUN;
+
+char theBuffer[13]; // 12345678.123 + 1 for terminator.
+int theBufferMaxLength = 12;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -206,6 +236,92 @@ void sdListDirectory() {
 }
 #endif  // SETUP_SDCARD
 
+// -----------------------------------------------------------------------------
+void getFilename() {
+  thePrompt = sdCardGetFilenamePrompt;
+  Serial.print(thePrompt);
+  //
+  // Initialize the clock set values.
+  for (int i = 0; i < theBufferMaxLength; i++ ) {
+    theBuffer[i] = ' ';                  // Set to empty.
+  }
+  thisState = THIS_GET;
+  int iBuffer = 0;
+  while (thisState == THIS_GET) {
+    if (Serial.available() > 0) {
+      int readByte = Serial.read();       // Read and process an incoming byte.
+      switch (readByte) {
+        // -----------------------------------
+        case 10:                          // CR or LF
+        case 13:
+          thisState = THIS_RUN;
+          break;
+        case 127:                         // Backspace
+          Serial.print(F("\033[1D"));     // Esc[ValueD : Move the cursor left Value number of spaces.
+          Serial.print(F(" "));           // Print a space to remove the previous character.
+          Serial.print(F("\033[1D"));     // Move the cursor back the the removed character space.
+          iBuffer--;
+          theBuffer[iBuffer] = ' ';
+          break;
+        default:
+          if (readByte >= 'a' && readByte <= 'z') {
+            readByte = readByte - 32;     // Convert from lowercase to uppercase, as all filenames are in uppercase.
+          }
+          if ((iBuffer < theBufferMaxLength) && (
+                (readByte >= '0' && readByte <= '9')
+                || (readByte >= 'A' && readByte <= 'Z')
+                || readByte == '.' || readByte == '_' || readByte == '-' || readByte == '~')
+             ) {
+            // If a valid filename character.
+            // Filename reference: https://en.wikipedia.org/wiki/8.3_filename
+            //    Number of characters: 8.3
+            Serial.write(readByte);
+            theBuffer[iBuffer] = readByte;
+            iBuffer++;
+          } // else ignore the character.
+      }
+    }
+    delay(60);  // Delay before getting the next key press, in case press and hold too long.
+  }
+  if (iBuffer > 0) {
+    Serial.println();
+    Serial.print(F("++ Buffer :"));
+    for (int i = 0; i < iBuffer; i++ ) {
+      Serial.write(theBuffer[i]);
+    }
+    Serial.print(F(":"));
+    String bufferString = String(theBuffer);
+    bufferString.trim();  // Needs to be on its own line.
+    Serial.print(bufferString);
+    Serial.print(F(":"));
+  }
+  thePrompt = sdCardPrompt;
+  Serial.println();
+}
+
+/*
+  : :!:":#:$:%:&:':(:):*:+:,:-:.:/:0:1:2:3:4:5:6:7:8:9:
+  32 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7
+      40                  50
+  :::;:<:=:>:?:@:
+  8 9 0 1 2 3 4
+  58          64
+
+  :A:B:C:D:E:F:G:H:I:J:K:L:M:N:O:P:Q:R:S:T:U:V:W:X:Y:Z:
+  65 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0
+  70                  80                  90
+  :[:\:]:^:_:`:
+  91 2 3 4 5 5
+
+  :a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:y:z:
+  97 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
+  100                 110       115       120
+
+  :{:|:}:~:
+  3 4 5 6
+  126
+*/
+
 // -----------------------------------------------------------------------
 // -----------------------------------------------------------------------
 // SD Card Controls
@@ -246,80 +362,14 @@ void sdCardSwitch(int resultsValue) {
       Serial.println(F("+ 'r', ..."));
       Serial.println();
       break;
+    case 'f':
+      Serial.println(F("+ Enter a filename for processing."));
+      getFilename();
+      break;
     case 'n':
       Serial.println(F("+ n, SD card directory lising."));
       sdListDirectory();
       break;
-    case 'm':
-      {
-        Serial.println(F("+ m, Read file into program memory."));
-        theFilename = getSenseSwitchValue() + ".bin";
-        if (theFilename == "00000000.bin") {
-          Serial.println(F("+ Set to download over the serial port."));
-          programState = SERIAL_DOWNLOAD;
-          return;
-        }
-        Serial.print(F("++ Program filename: "));
-        Serial.println(theFilename);
-        Serial.println(F("++ Confirm, y/n: "));
-        readConfirmByte = 's';
-        while (!(readConfirmByte == 'y' || readConfirmByte == 'n')) {
-          if (Serial.available() > 0) {
-            readConfirmByte = Serial.read();    // Read and process an incoming byte.
-          }
-          delay(60);
-        }
-        if (readConfirmByte != 'y') {
-          Serial.println(F("+ Cancelled."));
-          break;
-        }
-        Serial.println(F("+ Confirmed."));
-        //
-        host_set_status_led_HLDA();
-        if (readProgramFileIntoMemory(theFilename)) {
-          ledFlashSuccess();
-          controlResetLogic();
-          fpAddressToggleWord = 0;                // Reset all toggles to off.
-          playerPlaySoundWait(READ_FILE);
-        }
-        printFrontPanel();
-        host_clr_status_led_HLDA();
-        break;
-      }
-    case 'M':
-      {
-        Serial.println(F("+ M, Write program Memory into a file."));
-        String senseSwitchValue = getSenseSwitchValue();
-        theFilename = senseSwitchValue + ".bin";
-        if (theFilename == "11111111.bin") {
-          Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
-          ledFlashError();
-          return;
-        }
-        Serial.print(F("++ Write filename: "));
-        Serial.println(theFilename);
-        Serial.println(F("++ Confirm, y/n: "));
-        readConfirmByte = 's';
-        while (!(readConfirmByte == 'y' || readConfirmByte == 'n')) {
-          if (Serial.available() > 0) {
-            readConfirmByte = Serial.read();    // Read and process an incoming byte.
-          }
-          delay(60);
-        }
-        if (readConfirmByte != 'y') {
-          Serial.println(F("+ Cancelled."));
-          break;
-        }
-        Serial.println(F("+ Confirmed."));
-        //
-        host_set_status_led_HLDA();
-        Serial.print(F("+ Write memory to filename: "));
-        Serial.println(theFilename);
-        // -------------------------------------------------------
-        writeProgramMemoryToFile(theFilename);
-        printFrontPanel();
-        break;
-      }
     // ----------------------------------------------------------------------
     case 'h':
       Serial.print(F("+ h, Print help information."));
@@ -331,6 +381,7 @@ void sdCardSwitch(int resultsValue) {
       Serial.println(F("+ m, Read         Read an SD card file into program memory."));
       Serial.println(F("+ M, Write        Write program memory to an SD card file."));
       Serial.println(F("+ n, Directory    Directory file listing of the SD card."));
+      Serial.println(F("+ f, Filename     Enter a filename for processing."));
       Serial.println(F("------------------"));
       Serial.println(F("+ Ctrl+L          Clear screen."));
       Serial.println(F("+ X, Exit player  Return to program WAIT mode."));
@@ -366,12 +417,10 @@ void sdCardSwitch(int resultsValue) {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 // SD Card Control Loop.
 
 void sdCardRun() {
   Serial.println(F("+ sdCardRun();"));
-  Serial.println();
   Serial.print(thePrompt);
   while (programState == SDCARD_RUN) {
     // Process serial input key presses from a keyboard.
