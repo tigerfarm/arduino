@@ -20,7 +20,7 @@ extern byte hwStatus;
 // -----------------------------------------------------------------------------
 // From cpuIntel8080.h
 
-#define MEMSIZE 256
+#define MEMSIZE 1024
 extern byte Mem[MEMSIZE];
 #define MWRITE(a,v) { Mem[a]=v; }
 #define MREAD(a)    (Mem[a])
