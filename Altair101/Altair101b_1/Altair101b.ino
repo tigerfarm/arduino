@@ -21,7 +21,7 @@
   Altair101a program has a basic OS for command line interation.
 
   Control program files: Altair101a.ino and Altair101a.h.
-  Machine instruction program files: cpucore_i8080.cpp and cpucore_i8080.h.
+  Machine instruction program files: cpuIntel8080.cpp and cpuIntel8080.h.
 
   Differences to the original Altair 8800:
   + HLT goes into STOP state which allows RUN to restart the process from where it was halted.
@@ -39,7 +39,11 @@
   + Player song.
   + Clock date and time.
 
-  Consider adding my onwn sample assembler programs.
+  Consider:
+  + Rename cpuIntel8080, intel8080cpu.
+  + Add MP3 player control call in the RUN loop so that I can be play music while running programs such as Galaxy 101.
+  + Adding my own sample assembler programs.
+  + SD card in it's own CPP file.
 
   Update README.md files:
   + Altair101a
@@ -256,24 +260,25 @@
   Clock module pins
 
   -----------------------
- |     Curcuit           |
- |     side              |
+  |     Curcuit           |
+  |     side              |
   -----------------------
    |   |   |   |   |   |
   32K SQW SCL SDA VCC GND
 
   -----------------------
- |     Battery           |
- |     side              |
+  |     Battery           |
+  |     side              |
   -----------------------
    |   |   |   |   |   |
   GND VCC SDA SCL SQW 32K
-  
+
 */
 // -----------------------------------------------------------------------------
 #include "Altair101b.h"
-#include "cpucore_i8080.h"
+#include "cpuIntel8080.h"
 #include "Mp3Player.h"
+#include "rtClock.h"
 
 // #define LOG_MESSAGES 1    // For debugging.
 // #define LOG_OPCODES  1    // Print each called opcode.
@@ -1278,7 +1283,7 @@ void altair_out(byte portDataByte, byte regAdata) {
       Serial_println();
 #endif
       Serial_print(F("------------"));
-      cpucore_i8080_print_registers();
+      cpuIntel8080_print_registers();
       // printRegisters();
       // printOther();
       Serial_print(F("------------"));
@@ -1323,7 +1328,7 @@ void altair_out(byte portDataByte, byte regAdata) {
       break;
     case 44:
       Serial_println();
-      cpucore_i8080_print_registers();
+      cpuIntel8080_print_registers();
       // printOther();
       break;
     case 45:
@@ -1472,6 +1477,8 @@ void runProcessor() {
       readByte = Serial.read();    // Read and process an incoming byte.
       processRunSwitch(readByte);
     }
+    // Allow for the music to keep playing, and infrared player controls to work.
+    playerContinuous();
   }
 }
 
@@ -1818,14 +1825,14 @@ void processWaitSwitch(byte readByte) {
       break;
     case 'i':
       Serial.println(F("+ i: Information."));
-      cpucore_i8080_print_registers();
+      cpuIntel8080_print_registers();
       break;
     // -------------------------------------
     case 'h':
       Serial.print(F("+ h, Print help information."));
       Serial.println();
       Serial.println(F("----------------------------------------------------"));
-      Serial.println(F("+++ Virtual Front Panel Switch Controls"));
+      Serial.println(F("+++ Altair 8800 Virtual Front Panel Switch Controls"));
       Serial.println(F("-------------"));
       Serial.println(F("+ s, STOP         When in RUN mode, change to WAIT mode."));
       Serial.println(F("+ r, RUN mode     When in WAIT mode, change to RUN mode."));
@@ -1839,35 +1846,46 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("-------------"));
       Serial.println(F("+ 0...9, a...f    Toggle sense/address/data switches:  A0...A9, A10...A15."));
       Serial.println(F("----------------------------------------------------"));
-      Serial.println(F("+++ Command Line Operations"));
+      Serial.println(F("+++ Command Operations and Module Controls"));
       Serial.println(F("-------------"));
-      Serial.println(F("+ D, Download     DOWNLOAD mode, receive bytes from serial port (Serial2)."));
+      Serial.println(F("+ l, Load sample  Load a sample program."));
+      Serial.println(F("+ i, info         Information print of registers."));
+      Serial.println(F("+ j, settings     Settings information."));
+      Serial.println(F("+ v/V VT100 panel Disable/enable VT100 virtual front panel."));
+      Serial.println(F("+ t/T Terminal    Disable/enable VT100 terminal commandline (cli) escape codes."));
+      Serial.println(F("-------------"));
+      Serial.println(F("+ D, Download     DOWNLOAD mode for receiving bytes from the Serial2 serial port."));
+      Serial.println(F("+ y/Y Serial2     Disable/enable Serial2 for program I/O."));
+      Serial.println(F("+ B Serial2 baud  Set Serial2 baud rate."));
+      Serial.println(F("-------------"));
+      Serial.println(F("+ Q, Clock        CLOCK mode, interact with the clock."));
+      Serial.println(F("+ q, Time         Show the clock's data and time."));
       Serial.println(F("-------------"));
       Serial.println(F("+ H, MP3 Player   PLAYER mode, run the MP3 player."));
       Serial.println(F("+ I, Player Info  MP3 player software and hardware settings."));
       Serial.println(F("+ g/G Play        Pause/Play MP3 song."));
       Serial.println(F("+ k/K Volume      Down/Up player volume."));
       Serial.println(F("-------------"));
-      Serial.println(F("+ m, Read         Memory: Read an SD card file into program memory."));
-      Serial.println(F("+ M, Write        Memory: Write program memory to an SD card file."));
+      Serial.println(F("+ m, Read         Read an SD card file into program memory."));
+      Serial.println(F("+ M, Write        Write program memory to an SD card file."));
       Serial.println(F("+ n, Directory    Directory file listing of the SD card."));
-      Serial.println(F("+ l, Load sample  Load a sample program."));
-      Serial.println(F("+ L, Load hex     Load hex code from the serial port."));
-      Serial.println(F("-------------"));
-      Serial.println(F("+ i, info         Information print of registers."));
-      Serial.println(F("+ j, settings     Settings information."));
-      Serial.println(F("-------------"));
-      Serial.println(F("+ v/V VT100 panel Disable/enable VT100 virtual front panel."));
-      Serial.println(F("+ t/T Terminal    Disable/enable VT100 terminal commandline (cli) escape codes."));
-      Serial.println(F("+ y/Y Serial2     Disable/enable Serial2 for I/O."));
-      Serial.println(F("+ B Serial2 baud  Set Serial2 baud rate."));
-      Serial.println(F("+ w/W USB serial  Disable/enable USB serial output."));
-      Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
       Serial.println(F("-------------"));
       Serial.println(F("+ Enter key       Refresh USB serial output front panel display."));
       Serial.println(F("+ u/U Log msg     Log messages off/on."));
       Serial.println(F("+ z/Z cursor      VT100 block cursor off/on."));
+      Serial.println(F("+ L, Load hex     Load hex code from the serial port."));
+      Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
+      Serial.println(F("+ w/W USB serial  Disable/enable USB serial output."));
       Serial.println(F("----------------------------------------------------"));
+      break;
+    // -------------------------------------
+    // For command line. Note playerContinuous() has infrared controls in place.
+    case 'Q':
+      Serial.println(F("+ Q, MP3 Player   PLAYER mode, run the MP3 player."));
+      programState = CLOCK_RUN;
+      break;
+    case 'q':
+      clockSwitch('r');
       break;
     // -------------------------------------
     // For command line. Note playerContinuous() has infrared controls in place.
@@ -2291,6 +2309,7 @@ void setup() {
   //
   // ----------------------------------------------------
   setupMp3Player();
+  setupClock();
   // ----------------------------------------------------
   programState = PROGRAM_WAIT;
   host_set_status_leds_READMEM_M1();
@@ -2339,6 +2358,13 @@ void loop() {
       host_clr_status_led_WAIT();
       host_set_status_led_HLDA();
       mp3PlayerRun();
+      host_clr_status_led_HLDA();
+      break;
+    // ----------------------------
+    case CLOCK_RUN:
+      host_clr_status_led_WAIT()
+      host_set_status_led_HLDA();
+      rtClockRun();
       host_clr_status_led_HLDA();
       break;
   }

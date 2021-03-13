@@ -18,7 +18,7 @@
 // -----------------------------------------------------------------------------
 
 #include <Arduino.h>
-#include "cpucore_i8080.h"
+#include "cpuIntel8080.h"
 
 // #define LOG_MESSAGES 1    // For debugging.
 
@@ -635,7 +635,7 @@ void timer_setup()
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// cpucore_i8080.cpp
+// cpuIntel8080.cpp
 
 // -----------------------------------------------------------------------------
 // Status bits and bytes
@@ -704,7 +704,7 @@ void cpu_print_regS() {
   Serial_print(F(":"));
 }
 
-void cpucore_i8080_print_registers() {
+void cpuIntel8080_print_registers() {
   char charBuffer[17];
   //
   Serial.print(F("+++ Software: "));
@@ -1898,7 +1898,7 @@ static void cpu_OUT() {
 }
 
 // -----------------------------------------------------------------------------
-CPUFUN cpucore_i8080_opcodes[256] = {
+CPUFUN cpuIntel8080_opcodes[256] = {
   cpu_NOP,   cpu_LXIBC, cpu_STXBC, cpu_INXBC, cpu_INRB,  cpu_DCRB,  cpu_MVBI,  cpu_RLC,		// 000-007 (0x00-0x07)
   cpu_NOP,   cpu_DADBC, cpu_LDXBC, cpu_DCXBC, cpu_INRC,  cpu_DCRC,  cpu_MVCI,  cpu_RRC,		// 010-017 (0x08-0x0F)
   cpu_NOP,   cpu_LXIDE, cpu_STXDE, cpu_INXDE, cpu_INRD,  cpu_DCRD,  cpu_MVDI,  cpu_RAL,		// 020-027 (0x10-0x17)

@@ -8,7 +8,7 @@
     static const byte PROGMEM pong[] = { ... }
 */
 // -----------------------------------------------------------------------------
-#include "cpucore_i8080.h"
+#include "cpuIntel8080.h"
 
 int cnt;
 

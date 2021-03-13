@@ -10,8 +10,12 @@
 // This is for running the test program.
 // The goal is to include the MP3 player program with Altair101a.
 #include "Altair101b.h"
+#include "cpuIntel8080.h"
 
 byte Mem[MEMSIZE];
+
+void ledFlashError() {}
+void ledFlashSuccess() {}
 
 // -----------------------------------------------------------------------------
 int programState;
@@ -108,6 +112,7 @@ void runProcessorWait() {
 }
 
 // -----------------------------------------------------------------------------
+/*
 // Needs to match the upload program:
 //  9600, 19200, 38400, 57600, 115200
 unsigned long downloadBaudRate = 115200;
@@ -168,7 +173,7 @@ void modeDownloadProgram() {
   }
   Serial.println(F("+ Exit serial download mode."));
 }
-
+*/
 // -----------------------------------------------------------------------------
 void functionNamePrint(String theName) {
   Serial.print(F("+ "));
