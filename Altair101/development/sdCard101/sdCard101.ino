@@ -73,9 +73,6 @@ void processWaitSwitch(int readByte) {
       Serial.println(F("+ r, RUN          Show..."));
       Serial.println(F("+ v/V, Volume     Down/Up volume level."));
       Serial.println(F("------------------"));
-      Serial.println(F("+ 1 ...3          Test: Play a file and wait until completed."));
-      Serial.println(F("+ 4 ...6          Test: Play a file and return to processing here."));
-      Serial.println(F("------------------"));
       Serial.println(F("+ Ctrl+L          Clear screen."));
       Serial.println(F("+ X, Exit player  Return to program WAIT mode."));
       Serial.println(F("----------------------------------------------------"));
