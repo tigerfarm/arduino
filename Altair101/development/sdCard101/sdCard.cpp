@@ -66,7 +66,7 @@ int theBufferMaxLength = 12;
 // SD Card setup and functions.
 
 #define SETUP_SDCARD 1
-String theFilename;
+String thisFilename;
 
 #ifdef SETUP_SDCARD
 
@@ -97,9 +97,11 @@ byte readConfirmByte;
 
 // Handle the case if the card is not inserted. Once inserted, the module will be re-initialized.
 boolean sdcardInitiated = false;
-void setupSdCard() {
-  delay(300);
-  if (!SD.begin(csPin)) {
+
+void initSdCard() {
+  if (SD.begin(csPin)) {
+    sdcardInitiated = true;
+  } else {
     Serial.println(F("- Error initializing SD card module."));
     ledFlashError();
     hwStatus = 1;
@@ -108,7 +110,12 @@ void setupSdCard() {
     Serial.println(F("-- Check that SD card is inserted"));
     Serial.println(F("-- Check that SD card adapter is wired properly."));
     // Optionally, retry for a period of time.
-  } else {
+  }
+}
+
+void setupSdCard() {
+  initSdCard();
+  if (sdcardInitiated) {
     Serial.println(F("+ Initialized: SD card module."));
     ledFlashSuccess();
   }
@@ -119,7 +126,7 @@ void setupSdCard() {
 
 void writeProgramMemoryToFile(String theFilename) {
   if (!sdcardInitiated) {
-    setupSdCard();
+    initSdCard();
   }
   if (SD.exists(theFilename)) {
     SD.remove(theFilename);
@@ -148,13 +155,12 @@ void writeProgramMemoryToFile(String theFilename) {
 // -----------------------------------------------------------------------------
 // Read program memory from a file.
 
-boolean readProgramFileIntoMemory(String theFilename) {
+boolean readFileToScreen(String theFilename) {
   if (!sdcardInitiated) {
-    setupSdCard();
+    initSdCard();
   }
-  // Serial.println(F("+ Read a file into program memory, file named: "));
-  // Serial.print(theFilename);
-  // Serial.println(F("+ Check if file exists. "));
+  Serial.print(F("+ Read file named: "));
+  Serial.println(theFilename);
   if (!SD.exists(theFilename)) {
     Serial.print(F("- Read ERROR, file doesn't exist: "));
     Serial.println(theFilename);
@@ -173,31 +179,33 @@ boolean readProgramFileIntoMemory(String theFilename) {
   host_set_status_led_HLDA();
   int i = 0;
   while (myFile.available()) {
-    // Reads one character at a time.
+    // Read and process one character at a time.
     byte memoryData = myFile.read();
-    MWRITE(i, memoryData);
-#ifdef LOG_MESSAGES
-    // Print Binary:Octal:Decimal values.
-    Serial.print(F("B"));
-    printByte(MREAD(i));
-    Serial.print(F(":"));
-    printOctal(MREAD(i));
-    Serial.print(F(":"));
-    Serial.println(MREAD(i), DEC);
-#endif
-    i++;
-    if (i > MEMSIZE) {
-      Serial.println(F("-+ Warning, file contains more data bytes than available memory."));
-      ledFlashError();
-      break;
-    }
+    Serial.write(memoryData);
   }
   myFile.close();
-  Serial.println(F("+ Program file loaded and ready to use."));
+  Serial.println("<--");
+  Serial.println(F("<-- Print completed."));
   controlResetLogic();
   playerPlaySoundWait(READ_FILE);
   host_clr_status_led_HLDA();
   return (true);
+}
+
+// -----------------------------------------------------------------------------
+// Delete the file and confirm it was deleted.
+
+void deleteFile(String theFilename) {
+  Serial.print(F("+ Delete the file: "));
+  Serial.print(theFilename);
+  Serial.print(F(" ... "));
+  SD.remove(theFilename);
+  if (SD.exists(theFilename)) {
+    Serial.print("- Delete failed.");
+  } else {
+    Serial.print("+ Deleted.");
+  }
+  Serial.println();
 }
 
 // -----------------------------------------------------------------------------
@@ -211,7 +219,7 @@ void printSpacing(String theString) {
 
 void sdListDirectory() {
   if (!sdcardInitiated) {
-    setupSdCard();
+    initSdCard();
   }
   // listDirectory(root);
   // List files for a single directory.
@@ -284,16 +292,18 @@ void getFilename() {
     delay(60);  // Delay before getting the next key press, in case press and hold too long.
   }
   if (iBuffer > 0) {
-    Serial.println();
-    Serial.print(F("++ Buffer :"));
-    for (int i = 0; i < iBuffer; i++ ) {
+    thisFilename = String(theBuffer);
+    thisFilename.trim();  // Needs to be on its own line.
+    /*
+      Serial.println();
+      Serial.print(F("++ Buffer :"));
+      for (int i = 0; i < iBuffer; i++ ) {
       Serial.write(theBuffer[i]);
-    }
-    Serial.print(F(":"));
-    String bufferString = String(theBuffer);
-    bufferString.trim();  // Needs to be on its own line.
-    Serial.print(bufferString);
-    Serial.print(F(":"));
+      }
+      Serial.print(F(":"));
+      Serial.print(thisFilename);
+      Serial.print(F(":"));
+    */
   }
   thePrompt = sdCardPrompt;
   Serial.println();
@@ -357,18 +367,42 @@ void sdCardSwitch(int resultsValue) {
     // ----------------------------------------------------------------------
     // Controls
     //
-    // -----------------------------------
-    case 'r':
-      Serial.println(F("+ 'r', ..."));
-      Serial.println();
+    case 'n':
+      Serial.println(F("+ n, SD card directory lising."));
+      sdListDirectory();
       break;
+    // -----------------------------------
     case 'f':
       Serial.println(F("+ Enter a filename for processing."));
       getFilename();
       break;
-    case 'n':
-      Serial.println(F("+ n, SD card directory lising."));
-      sdListDirectory();
+    case 'i':
+      Serial.print(F("+ File information for: "));
+      Serial.print(thisFilename);
+      Serial.println();
+      break;
+    case 'p':
+      readFileToScreen(thisFilename);
+      break;
+    case 'd':
+      byte readConfirmByte;
+      Serial.print(F("+ Delete file: "));
+      Serial.print(thisFilename);
+      Serial.println();
+      Serial.print(F("+ Confirm delete, y/n: "));
+      readConfirmByte = 's';
+      while (!(readConfirmByte == 'y' || readConfirmByte == 'n')) {
+        if (Serial.available() > 0) {
+          readConfirmByte = Serial.read();    // Read and process an incoming byte.
+        }
+        delay(60);
+      }
+      if (readConfirmByte != 'y') {
+        Serial.println(F("+ Delete cancelled."));
+        break;
+      }
+      Serial.println(F("+ Delete confirmed."));
+      deleteFile(thisFilename);
       break;
     // ----------------------------------------------------------------------
     case 'h':
@@ -381,18 +415,17 @@ void sdCardSwitch(int resultsValue) {
       Serial.println(F("+ m, Read         Read an SD card file into program memory."));
       Serial.println(F("+ M, Write        Write program memory to an SD card file."));
       Serial.println(F("+ n, Directory    Directory file listing of the SD card."));
+      Serial.println(F("------------------"));
       Serial.println(F("+ f, Filename     Enter a filename for processing."));
+      Serial.println(F("+ i, Information  Program variables and hardward values."));
+      Serial.println(F("+ p, Print file   Print the file to screen."));
+      Serial.println(F("+ d, Delete       Delete the file from the SD card."));
       Serial.println(F("------------------"));
       Serial.println(F("+ Ctrl+L          Clear screen."));
       Serial.println(F("+ X, Exit player  Return to program WAIT mode."));
-      // Serial.println(F("------------------"));
-      // Serial.println(F("+ i, Information  Program variables and hardward values."));
       Serial.println(F("----------------------------------------------------"));
       break;
     // ----------------------------------------------------------------------
-    case 'i':
-      Serial.println(F("+ Information"));
-      break;
     case 12:
       // Ctrl+L, clear screen.
       Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
