@@ -3,7 +3,7 @@
 //  In other programs, include the following line:
 //    #include "sdCard.h"
 
-void setupSdCard();
+boolean setupSdCard();
 void sdCardRun();
 void sdCardSwitch(int resultsValue);
 

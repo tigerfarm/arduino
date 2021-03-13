@@ -44,7 +44,7 @@
 
 String sdCardPrompt = "CARD ?- ";
 String sdCardGetFilenamePrompt = "CARD FN ?- ";
-String thePrompt = sdCardPrompt;           // Default.
+String theCardPrompt = sdCardPrompt;           // Default.
 extern int programState;
 
 // Clock internal status, internatl to this program.
@@ -107,11 +107,13 @@ void initSdCard() {
   }
 }
 
-void setupSdCard() {
+boolean setupSdCard() {
   initSdCard();
   if (sdcardInitiated) {
     Serial.println(F("+ Initialized: SD card module."));
-    ledFlashSuccess();
+    return true;
+  } else {
+    return false;
   }
 }
 
@@ -160,14 +162,25 @@ boolean readFileToMemory(String theFilename) {
 }
 
 // -----------------------------------------------------------------------------
-// Print memory to a screen.
-
-void printMemoryToScreen() {
+int getMemoryByteCount() {
   // Calculate the number of bytes by removing memory trailing zeros.
   for (iFileBytes = MEMSIZE; iFileBytes > 0; iFileBytes--) {
     if (MREAD(iFileBytes) != 0) {
       break;
     }
+  }
+  if (iFileBytes > 0) {
+    iFileBytes++;       // To correct the last character being removed.
+  }
+  return iFileBytes;
+}
+
+// Print memory to a screen.
+
+void printMemoryToScreen() {
+  if (getMemoryByteCount() == 0) {
+    Serial.println(F("+ Nothing to print. Memory bytes are all zero."));
+    return;
   }
   Serial.print(F("+ Print memory to a screen, number of bytes: "));
   Serial.print(iFileBytes);
@@ -202,6 +215,10 @@ void printMemoryToScreen() {
 // Write memory to a file.
 
 void writeMemoryToFile(String theFilename) {
+  if (getMemoryByteCount() == 0) {
+    Serial.println(F("+ Nothing to print. Memory bytes are all zero."));
+    return;
+  }
   if (!sdcardInitiated) {
     initSdCard();
   }
@@ -282,8 +299,8 @@ void sdListDirectory() {
 
 // -----------------------------------------------------------------------------
 void getFilename() {
-  thePrompt = sdCardGetFilenamePrompt;
-  Serial.print(thePrompt);
+  theCardPrompt = sdCardGetFilenamePrompt;
+  Serial.print(theCardPrompt);
   //
   // Initialize the clock set values.
   for (int i = 0; i < theBufferMaxLength; i++ ) {
@@ -343,7 +360,7 @@ void getFilename() {
       Serial.print(F(":"));
     */
   }
-  thePrompt = sdCardPrompt;
+  theCardPrompt = sdCardPrompt;
   Serial.println();
 }
 
@@ -438,6 +455,10 @@ void sdCardSwitch(int resultsValue) {
       deleteFile(thisFilename);
       break;
     case 'w':
+      if (getMemoryByteCount() == 0) {
+        Serial.println(F("+ Nothing to write. Memory bytes are all zero."));
+        return;
+      }
       Serial.print(F("+ Write memory to file: "));
       Serial.print(thisFilename);
       Serial.println();
@@ -522,7 +543,7 @@ void sdCardSwitch(int resultsValue) {
       // ----------------------------------------------------------------------
   } // end switch
   if (printPrompt && (programState == SDCARD_RUN)) {
-    Serial.print(thePrompt);
+    Serial.print(theCardPrompt);
   }
 }
 
@@ -531,7 +552,7 @@ void sdCardSwitch(int resultsValue) {
 
 void sdCardRun() {
   Serial.println(F("+ sdCardRun();"));
-  Serial.print(thePrompt);
+  Serial.print(theCardPrompt);
   while (programState == SDCARD_RUN) {
     // Process serial input key presses from a keyboard.
     if (Serial.available() > 0) {

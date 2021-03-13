@@ -199,7 +199,13 @@ void setup() {
   host_set_status_led_WAIT();
 
   // ----------------------------------------------------
-  setupSdCard();
+  if (!setupSdCard()) {
+    ledFlashError();
+    hwStatus = 1;
+  } else {
+    ledFlashSuccess();
+  }
+  delay(300);
 
   // ----------------------------------------------------
   programState = SDCARD_RUN;
