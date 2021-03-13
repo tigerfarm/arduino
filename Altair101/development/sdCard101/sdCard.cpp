@@ -129,7 +129,7 @@ boolean readFileToMemory(String theFilename) {
     initSdCard();
   }
   Serial.print(F("+ Read into memory, from file: "));
-  Serial.println(theFilename);
+  Serial.print(theFilename);
   if (!SD.exists(theFilename)) {
     Serial.print(F("- Read ERROR, file doesn't exist: "));
     Serial.println(theFilename);
@@ -145,7 +145,9 @@ boolean readFileToMemory(String theFilename) {
     sdcardInitiated = false;
     return (false);
   }
-  host_set_status_led_HLDA();
+  Serial.print(F(", file size: "));
+  Serial.print(myFile.size(), DEC);
+  Serial.println();
   iFileBytes = 0;
   while (myFile.available()) {
     // Read and process one character at a time.
@@ -272,19 +274,21 @@ void getFilename() {
   int iBuffer = 0;
   while (thisState == THIS_GET) {
     if (Serial.available() > 0) {
-      int readByte = Serial.read();       // Read and process an incoming byte.
+      int readByte = Serial.read();         // Read and process an incoming byte.
       switch (readByte) {
         // -----------------------------------
-        case 10:                          // CR or LF
+        case 10:                            // CR or LF
         case 13:
           thisState = THIS_RUN;
           break;
-        case 127:                         // Backspace
-          Serial.print(F("\033[1D"));     // Esc[ValueD : Move the cursor left Value number of spaces.
-          Serial.print(F(" "));           // Print a space to remove the previous character.
-          Serial.print(F("\033[1D"));     // Move the cursor back the the removed character space.
-          iBuffer--;
-          theBuffer[iBuffer] = ' ';
+        case 127:                           // Backspace
+          if (iBuffer > 0) {
+            Serial.print(F("\033[1D"));     // Esc[ValueD : Move the cursor left Value number of spaces.
+            Serial.print(F(" "));           // Print a space to remove the previous character.
+            Serial.print(F("\033[1D"));     // Move the cursor back the the removed character space.
+            iBuffer--;
+            theBuffer[iBuffer] = ' ';
+          }
           break;
         default:
           if (readByte >= 'a' && readByte <= 'z') {
@@ -374,20 +378,19 @@ void sdCardSwitch(int resultsValue) {
       Serial.print(F("+ File information for: "));
       Serial.print(thisFilename);
       if (SD.exists(thisFilename)) {
-        Serial.print(F(", file exists."));
+        Serial.print(F(", file exists"));
+        myFile = SD.open(thisFilename);
+        if (!myFile) {
+          Serial.print(F(" - Read ERROR, cannot open file: "));
+          Serial.print(thisFilename);
+        } else {
+          Serial.print(F(", file size: "));
+          Serial.print(myFile.size(), DEC);
+          myFile.close();
+        }
       } else {
         Serial.print(F(", file does not exist."));
       }
-      /*
-      File dir = SD.open("/");
-      File entry = dir.openNextFile();
-      if (entry.isDirectory()) {
-        Serial.print(F(" + Directory."));
-      } else {
-        Serial.print(F(" + File size: "));
-        Serial.print(entry.size(), DEC);
-      }
-      */
       Serial.println();
       break;
     case 'r':
