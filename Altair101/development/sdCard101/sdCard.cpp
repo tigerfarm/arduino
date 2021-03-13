@@ -4,14 +4,20 @@
   Functionality:
   + Setup SD card for processing.
   + List directory.
-  + Select/enter a directory name for processing.
-  + Print the selected file to the screen.
+  + Select/enter a file name for processing.
+  + Read the selected file into a memory array.
+  + Print the memory array to the screen.
+  + Write the memory array to a file.
   + Delete the selected file.
+
+  Next, a basic line editor:
+  + Add line number to the print function.
+  + Delete a line.
+  + Add/insert a line.
 
   Sample directory listings:
 
   CARD ?- + n, SD card directory lising.
-  + Initialized: SD card module.
   ++ Directory: FSEVEN~1
   ++ Directory: SPOTLI~1
   ++ File:      00000011.BIN  2048
@@ -20,17 +26,16 @@
   ++ File:      F1.TXT        44
   ++ File:      00000010.BIN  2048
   ++ File:      00000001.BIN  5376
-  ++ File:      00010001.BIN  5120
-  ++ File:      01000000.BIN  5376
+  ++ File:      F3.TXT        44
   ++ File:      00001001.BIN  5376
   ++ File:      00000000.BIN  4608
   ++ File:      01000001.BIN  4066
   ++ File:      DIR.TXT       158
-  ++ File:      00001011.BIN  4608
   ++ File:      00100000.BIN  5120
   ++ File:      00010000.BIN  5376
   ++ File:      11000000.BIN  5120
   ++ File:      10000000.BIN  5376
+  CARD ?-
 
 */
 // -------------------------------------------------------------------------------
@@ -158,6 +163,7 @@ boolean readFileToMemory(String theFilename) {
   }
   myFile.close();
   // Serial.println(F("<--"));
+  // Serial.print(F("<-- Read completed, number of bytes: "));
   Serial.print(F("+ Read completed, number of bytes: "));
   Serial.print(iFileBytes);
   Serial.println();
@@ -171,11 +177,29 @@ void printMemoryToScreen() {
   Serial.print(F("+ Print memory to a screen, number of bytes: "));
   Serial.print(iFileBytes);
   Serial.println();
+  // First line.
+  int lineCounter = 1;
+  Serial.print(F("00"));
+  Serial.print(lineCounter);
+  Serial.print(F(": "));
   for (int i = 0; i < iFileBytes; i++) {
     byte memoryData = MREAD(i);
-    Serial.write(memoryData);
+    if (memoryData != 10 && memoryData != 13) {
+      Serial.write(memoryData);
+    }
+    if (memoryData == 10) {
+      Serial.println();
+      lineCounter++;
+      if (lineCounter < 10) {
+        Serial.print(F("00"));
+      } else if (i < 100) {
+        Serial.print(F("0"));
+      }
+      Serial.print(lineCounter);
+      Serial.print(F(": "));
+    }
   }
-  Serial.println(F("<--"));
+  Serial.println(F("<--(End of array)"));
   Serial.println(F("+ Print completed."));
 }
 
