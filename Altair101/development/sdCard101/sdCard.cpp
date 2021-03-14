@@ -270,13 +270,14 @@ void sdListDirectory() {
 }
 
 // -----------------------------------------------------------------------------
-void getEditCommand() {
+String getEditCommand() {
   theCardPrompt = sdCardEditPrompt;
   Serial.print(theCardPrompt);
   //
-  // Initialize the input buffer to empty.
+  // Initialize the input string and character buffer to empty.
+  String thisLine = "";
   int theBufferMaxLength = 80;            // Max line input length.
-  char theBuffer[81]
+  char theBuffer[81];
   for (int i = 0; i < theBufferMaxLength; i++ ) {
     theBuffer[i] = ' ';                     // Set to empty, all blanks.
   }
@@ -304,7 +305,7 @@ void getEditCommand() {
           if (readByte >= 'a' && readByte <= 'z') {
             readByte = readByte - 32;     // Convert from lowercase to uppercase, as all filenames are in uppercase.
           }
-          if ( (iBuffer < theBufferMaxLength) && (readByte >= 32 && readByte <= 126)) ) {
+          if ( (iBuffer < theBufferMaxLength) && (readByte >= 32 && readByte <= 126) ) {
             // Printable characters: 32(' ') to 126('~').
             Serial.write(readByte);
             theBuffer[iBuffer] = readByte;
@@ -330,6 +331,7 @@ void getEditCommand() {
   }
   theCardPrompt = sdCardPrompt;
   Serial.println();
+  return thisLine;
 }
 
 // -----------------------------------------------------------------------------
