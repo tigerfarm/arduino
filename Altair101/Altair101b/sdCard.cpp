@@ -1,9 +1,10 @@
 // -------------------------------------------------------------------------------
 /*
-  This is an SD card control program.
+  This is an SD card file management program.
+
   Functionality:
   + Setup SD card for processing.
-  + List directory.
+  + List the root directory.
   + Select/enter a file name for processing.
   + Read the selected file into a memory array.
   + Print the memory array to the screen.
@@ -11,32 +12,8 @@
   + Delete the selected file.
 
   Next, a basic line editor:
-  + Add line number to the print function.
   + Delete a line.
   + Add/insert a line.
-
-  Sample directory listings:
-
-  CARD ?- + n, SD card directory lising.
-  ++ Directory: FSEVEN~1
-  ++ Directory: SPOTLI~1
-  ++ File:      00000011.BIN  2048
-  ++ File:      00000101.BIN  5376
-  ++ File:      00000100.BIN  5120
-  ++ File:      F1.TXT        44
-  ++ File:      00000010.BIN  2048
-  ++ File:      00000001.BIN  5376
-  ++ File:      F3.TXT        44
-  ++ File:      00001001.BIN  5376
-  ++ File:      00000000.BIN  4608
-  ++ File:      01000001.BIN  4066
-  ++ File:      DIR.TXT       158
-  ++ File:      00100000.BIN  5120
-  ++ File:      00010000.BIN  5376
-  ++ File:      11000000.BIN  5120
-  ++ File:      10000000.BIN  5376
-  CARD ?-
-
 */
 // -------------------------------------------------------------------------------
 #include "Altair101b.h"

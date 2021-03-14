@@ -1,42 +1,22 @@
 // -------------------------------------------------------------------------------
 /*
-  This is an SD card control program.
+  This is an SD card file management program.
+
   Functionality:
   + Setup SD card for processing.
-  + List directory.
+  + List the root directory.
   + Select/enter a file name for processing.
   + Read the selected file into a memory array.
   + Print the memory array to the screen.
   + Write the memory array to a file.
   + Delete the selected file.
 
-  Next, a basic line editor:
-  + Add line number to the print function.
+  Next, basic line editor functions:
   + Delete a line.
+    CARD ED ?- d 9
   + Add/insert a line.
-
-  Sample directory listings:
-
-  CARD ?- + n, SD card directory lising.
-  ++ Directory: FSEVEN~1
-  ++ Directory: SPOTLI~1
-  ++ File:      00000011.BIN  2048
-  ++ File:      00000101.BIN  5376
-  ++ File:      00000100.BIN  5120
-  ++ File:      F1.TXT        44
-  ++ File:      00000010.BIN  2048
-  ++ File:      00000001.BIN  5376
-  ++ File:      F3.TXT        44
-  ++ File:      00001001.BIN  5376
-  ++ File:      00000000.BIN  4608
-  ++ File:      01000001.BIN  4066
-  ++ File:      DIR.TXT       158
-  ++ File:      00100000.BIN  5120
-  ++ File:      00010000.BIN  5376
-  ++ File:      11000000.BIN  5120
-  ++ File:      10000000.BIN  5376
-  CARD ?-
-
+    CARD ED ?- a Hello there.
+    CARD ED ?- i 9 Hello there.
 */
 // -------------------------------------------------------------------------------
 #include "Altair101b.h"
@@ -44,25 +24,19 @@
 
 String sdCardPrompt = "CARD ?- ";
 String sdCardGetFilenamePrompt = "CARD FN ?- ";
+String sdCardEditPrompt = "CARD ED ?- ";
 String theCardPrompt = sdCardPrompt;           // Default.
 extern int programState;
 
 // Clock internal status, internatl to this program.
 #define THIS_RUN 1
 #define THIS_GET 2
+#define THIS_EDIT 3
 int thisState = THIS_RUN;
-
-char theBuffer[13]; // 12345678.123 + 1 for terminator.
-int theBufferMaxLength = 12;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // SD Card setup and functions.
-
-#define SETUP_SDCARD 1
-String thisFilename;
-
-#ifdef SETUP_SDCARD
 
 // SD Card module is an SPI bus slave device.
 #include <SPI.h>
@@ -82,12 +56,11 @@ String thisFilename;
 const int csPin = 53;     // SD Card module is connected to Mega pin 53.
 
 File myFile;
-
+String thisFilename;
 int iFileBytes;
 
 // -----------------------------------------------------------------------------
 // SD card module functions
-// The csPin pin is connected to the SD card module select pin (CS).
 
 // Handle the case if the card is not inserted. Once inserted, the module will be re-initialized.
 boolean sdcardInitiated = false;
@@ -295,16 +268,80 @@ void sdListDirectory() {
   }
   dir.close();
 }
-#endif  // SETUP_SDCARD
+
+// -----------------------------------------------------------------------------
+void getEditCommand() {
+  theCardPrompt = sdCardEditPrompt;
+  Serial.print(theCardPrompt);
+  //
+  // Initialize the input buffer to empty.
+  int theBufferMaxLength = 80;            // Max line input length.
+  char theBuffer[81]
+  for (int i = 0; i < theBufferMaxLength; i++ ) {
+    theBuffer[i] = ' ';                     // Set to empty, all blanks.
+  }
+  thisState = THIS_GET;
+  int iBuffer = 0;
+  while (thisState == THIS_GET) {
+    if (Serial.available() > 0) {
+      int readByte = Serial.read();         // Read and process an incoming byte.
+      switch (readByte) {
+        // -----------------------------------
+        case 10:                            // CR or LF
+        case 13:
+          thisState = THIS_RUN;
+          break;
+        case 127:                           // Backspace
+          if (iBuffer > 0) {
+            Serial.print(F("\033[1D"));     // Esc[ValueD : Move the cursor left Value number of spaces.
+            Serial.print(F(" "));           // Print a space to remove the previous character.
+            Serial.print(F("\033[1D"));     // Move the cursor back the the removed character space.
+            iBuffer--;
+            theBuffer[iBuffer] = ' ';
+          }
+          break;
+        default:
+          if (readByte >= 'a' && readByte <= 'z') {
+            readByte = readByte - 32;     // Convert from lowercase to uppercase, as all filenames are in uppercase.
+          }
+          if ( (iBuffer < theBufferMaxLength) && (readByte >= 32 && readByte <= 126)) ) {
+            // Printable characters: 32(' ') to 126('~').
+            Serial.write(readByte);
+            theBuffer[iBuffer] = readByte;
+            iBuffer++;
+          } // else ignore the character.
+      }
+    }
+    delay(60);  // Delay before getting the next key press, in case press and hold too long.
+  }
+  if (iBuffer > 0) {
+    thisLine = String(theBuffer);
+    thisLine.trim();  // Needs to be on its own line.
+    Serial.println();
+    Serial.print(F("++ Buffer :"));
+    // for (int i = 0; i < iBuffer; i++ ) {
+    //   Serial.write(theBuffer[i]);
+    // }
+    // Serial.print(F(":"));
+    Serial.print(thisLine);
+    Serial.print(F(":"));
+    /*
+    */
+  }
+  theCardPrompt = sdCardPrompt;
+  Serial.println();
+}
 
 // -----------------------------------------------------------------------------
 void getFilename() {
   theCardPrompt = sdCardGetFilenamePrompt;
   Serial.print(theCardPrompt);
   //
-  // Initialize the clock set values.
+  // Initialize the input buffer to empty.
+  char theBuffer[13]; // 12345678.123 + 1 for terminator.
+  int theBufferMaxLength = 12;
   for (int i = 0; i < theBufferMaxLength; i++ ) {
-    theBuffer[i] = ' ';                  // Set to empty.
+    theBuffer[i] = ' ';                     // Set to empty, all blanks.
   }
   thisState = THIS_GET;
   int iBuffer = 0;
@@ -502,6 +539,11 @@ void sdCardSwitch(int resultsValue) {
       break;
     // ----------------------------------------------------------------------
     case 'C':
+      iFileBytes = 0;
+      if (getMemoryByteCount() == 0) {
+        Serial.println(F("+ Memory is already clear, all memory bytes are all zero."));
+        return;
+      }
       Serial.println(F("+ C, CLR: Clear memory, set registers to zero, set data and address to zero."));
       Serial.print(F("+ Confirm CLR, y/n: "));
       readConfirmByte = 's';
@@ -521,7 +563,6 @@ void sdCardSwitch(int resultsValue) {
       for (int i = 0; i < MEMSIZE; i++) {
         MWRITE(i, 0);
       }
-      iFileBytes = 0;
       break;
     // ---------------------------------
     case 12:
