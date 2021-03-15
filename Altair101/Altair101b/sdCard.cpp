@@ -11,9 +11,35 @@
   + Write the memory array to a file.
   + Delete the selected file.
 
-  Next, a basic line editor:
+  Next, basic line editor functions:
   + Delete a line.
+    CARD ED ?- d 9
   + Add/insert a line.
+    CARD ED ?- a Hello there.
+    CARD ED ?- i 9 Hello there.
+
+  -----------------------------------------------------------------------------
+  Wire the SD Card reader/writer module:
+
+  From the back of the SD Card module, the pins:
+  1    2    3    4    5    6
+  CS   SCK  MOSI MISO VCC  GND
+  53   Blck Brwn Whte red
+
+  From the Front of the SD Card module, the pins:
+  GND  VCC  MISO MOSI SCK  CS
+       Red  Whte Brwn Blck To pin 53.
+
+  Due SPI center pins. Should work for Mega and Uno as well (not tested).
+   ---------------------------------------
+  |                                      -| GND
+  |                 MISO x x + VCC        |
+  |                  SCK x x MOSI         |
+  |                RESET x x - GND        |
+  |                                      x| pin 53
+  |                                      +| VCC
+   ---------------------------------------
+
 */
 // -------------------------------------------------------------------------------
 #include "Altair101b.h"
@@ -21,25 +47,19 @@
 
 String sdCardPrompt = "CARD ?- ";
 String sdCardGetFilenamePrompt = "CARD FN ?- ";
+String sdCardEditPrompt = "CARD ED ?- ";
 String theCardPrompt = sdCardPrompt;           // Default.
 extern int programState;
 
 // Clock internal status, internatl to this program.
 #define THIS_RUN 1
 #define THIS_GET 2
+#define THIS_EDIT 3
 int thisState = THIS_RUN;
-
-char theBuffer[13]; // 12345678.123 + 1 for terminator.
-int theBufferMaxLength = 12;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // SD Card setup and functions.
-
-#define SETUP_SDCARD 1
-String thisFilename;
-
-#ifdef SETUP_SDCARD
 
 // SD Card module is an SPI bus slave device.
 #include <SPI.h>
@@ -59,12 +79,11 @@ String thisFilename;
 const int csPin = 53;     // SD Card module is connected to Mega pin 53.
 
 File myFile;
-
+String thisFilename;
 int iFileBytes;
 
 // -----------------------------------------------------------------------------
 // SD card module functions
-// The csPin pin is connected to the SD card module select pin (CS).
 
 // Handle the case if the card is not inserted. Once inserted, the module will be re-initialized.
 boolean sdcardInitiated = false;
@@ -74,7 +93,6 @@ void initSdCard() {
     sdcardInitiated = true;
   } else {
     Serial.println(F("- Error initializing SD card module."));
-    ledFlashError();
     hwStatus = 1;
     sdcardInitiated = false;
     Serial.println(F("- Error initializing SD card."));
@@ -106,7 +124,6 @@ boolean readFileToMemory(String theFilename) {
   if (!SD.exists(theFilename)) {
     Serial.print(F("- Read ERROR, file doesn't exist: "));
     Serial.println(theFilename);
-    ledFlashError();
     sdcardInitiated = false;
     return (false);
   }
@@ -114,7 +131,6 @@ boolean readFileToMemory(String theFilename) {
   if (!myFile) {
     Serial.print(F("- Read ERROR, cannot open file: "));
     Serial.println(theFilename);
-    ledFlashError();
     sdcardInitiated = false;
     return (false);
   }
@@ -191,10 +207,10 @@ void printMemoryToScreen() {
 // -----------------------------------------------------------------------------
 // Write memory to a file.
 
-void writeMemoryToFile(String theFilename) {
+boolean writeMemoryToFile(String theFilename) {
   if (getMemoryByteCount() == 0) {
     Serial.println(F("+ Nothing to print. Memory bytes are all zero."));
-    return;
+    return false;
   }
   if (!sdcardInitiated) {
     initSdCard();
@@ -208,9 +224,8 @@ void writeMemoryToFile(String theFilename) {
   if (!myFile) {
     Serial.print(F("- Error opening file: "));
     Serial.println(theFilename);
-    ledFlashError();
     sdcardInitiated = false;
-    return;
+    return false;
   }
   for (int i = 0; i < iFileBytes; i++) {
     byte memoryData = MREAD(i);
@@ -220,6 +235,7 @@ void writeMemoryToFile(String theFilename) {
   Serial.println(F("+ Write completed, file closed. Number of bytes: "));
   Serial.print(iFileBytes);
   Serial.println(".");
+  return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -272,16 +288,82 @@ void sdListDirectory() {
   }
   dir.close();
 }
-#endif  // SETUP_SDCARD
+
+// -----------------------------------------------------------------------------
+String getEditCommand() {
+  theCardPrompt = sdCardEditPrompt;
+  Serial.print(theCardPrompt);
+  //
+  // Initialize the input string and character buffer to empty.
+  String thisLine = "";
+  int theBufferMaxLength = 80;            // Max line input length.
+  char theBuffer[81];
+  for (int i = 0; i < theBufferMaxLength; i++ ) {
+    theBuffer[i] = ' ';                     // Set to empty, all blanks.
+  }
+  thisState = THIS_GET;
+  int iBuffer = 0;
+  while (thisState == THIS_GET) {
+    if (Serial.available() > 0) {
+      int readByte = Serial.read();         // Read and process an incoming byte.
+      switch (readByte) {
+        // -----------------------------------
+        case 10:                            // CR or LF
+        case 13:
+          thisState = THIS_RUN;
+          break;
+        case 127:                           // Backspace
+          if (iBuffer > 0) {
+            Serial.print(F("\033[1D"));     // Esc[ValueD : Move the cursor left Value number of spaces.
+            Serial.print(F(" "));           // Print a space to remove the previous character.
+            Serial.print(F("\033[1D"));     // Move the cursor back the the removed character space.
+            iBuffer--;
+            theBuffer[iBuffer] = ' ';
+          }
+          break;
+        default:
+          if (readByte >= 'a' && readByte <= 'z') {
+            readByte = readByte - 32;     // Convert from lowercase to uppercase, as all filenames are in uppercase.
+          }
+          if ( (iBuffer < theBufferMaxLength) && (readByte >= 32 && readByte <= 126) ) {
+            // Printable characters: 32(' ') to 126('~').
+            Serial.write(readByte);
+            theBuffer[iBuffer] = readByte;
+            iBuffer++;
+          } // else ignore the character.
+      }
+    }
+    delay(60);  // Delay before getting the next key press, in case press and hold too long.
+  }
+  if (iBuffer > 0) {
+    thisLine = String(theBuffer);
+    thisLine.trim();  // Needs to be on its own line.
+    Serial.println();
+    Serial.print(F("++ Buffer :"));
+    // for (int i = 0; i < iBuffer; i++ ) {
+    //   Serial.write(theBuffer[i]);
+    // }
+    // Serial.print(F(":"));
+    Serial.print(thisLine);
+    Serial.print(F(":"));
+    /*
+    */
+  }
+  theCardPrompt = sdCardPrompt;
+  Serial.println();
+  return thisLine;
+}
 
 // -----------------------------------------------------------------------------
 void getFilename() {
   theCardPrompt = sdCardGetFilenamePrompt;
   Serial.print(theCardPrompt);
   //
-  // Initialize the clock set values.
+  // Initialize the input buffer to empty.
+  char theBuffer[13]; // 12345678.123 + 1 for terminator.
+  int theBufferMaxLength = 12;
   for (int i = 0; i < theBufferMaxLength; i++ ) {
-    theBuffer[i] = ' ';                  // Set to empty.
+    theBuffer[i] = ' ';                     // Set to empty, all blanks.
   }
   thisState = THIS_GET;
   int iBuffer = 0;
@@ -479,6 +561,11 @@ void sdCardSwitch(int resultsValue) {
       break;
     // ----------------------------------------------------------------------
     case 'C':
+      iFileBytes = 0;
+      if (getMemoryByteCount() == 0) {
+        Serial.println(F("+ Memory is already clear, all memory bytes are all zero."));
+        return;
+      }
       Serial.println(F("+ C, CLR: Clear memory, set registers to zero, set data and address to zero."));
       Serial.print(F("+ Confirm CLR, y/n: "));
       readConfirmByte = 's';
@@ -498,7 +585,6 @@ void sdCardSwitch(int resultsValue) {
       for (int i = 0; i < MEMSIZE; i++) {
         MWRITE(i, 0);
       }
-      iFileBytes = 0;
       break;
     // ---------------------------------
     case 12:

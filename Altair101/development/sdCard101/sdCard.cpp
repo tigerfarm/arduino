@@ -17,6 +17,29 @@
   + Add/insert a line.
     CARD ED ?- a Hello there.
     CARD ED ?- i 9 Hello there.
+
+  -----------------------------------------------------------------------------
+  Wire the SD Card reader/writer module:
+
+  From the back of the SD Card module, the pins:
+  1    2    3    4    5    6
+  CS   SCK  MOSI MISO VCC  GND
+  53   Blck Brwn Whte red
+
+  From the Front of the SD Card module, the pins:
+  GND  VCC  MISO MOSI SCK  CS
+       Red  Whte Brwn Blck To pin 53.
+
+  Due SPI center pins. Should work for Mega and Uno as well (not tested).
+   ---------------------------------------
+  |                                      -| GND
+  |                 MISO x x + VCC        |
+  |                  SCK x x MOSI         |
+  |                RESET x x - GND        |
+  |                                      x| pin 53
+  |                                      +| VCC
+   ---------------------------------------
+
 */
 // -------------------------------------------------------------------------------
 #include "Altair101b.h"
@@ -70,7 +93,6 @@ void initSdCard() {
     sdcardInitiated = true;
   } else {
     Serial.println(F("- Error initializing SD card module."));
-    ledFlashError();
     hwStatus = 1;
     sdcardInitiated = false;
     Serial.println(F("- Error initializing SD card."));
@@ -102,7 +124,6 @@ boolean readFileToMemory(String theFilename) {
   if (!SD.exists(theFilename)) {
     Serial.print(F("- Read ERROR, file doesn't exist: "));
     Serial.println(theFilename);
-    ledFlashError();
     sdcardInitiated = false;
     return (false);
   }
@@ -110,7 +131,6 @@ boolean readFileToMemory(String theFilename) {
   if (!myFile) {
     Serial.print(F("- Read ERROR, cannot open file: "));
     Serial.println(theFilename);
-    ledFlashError();
     sdcardInitiated = false;
     return (false);
   }
@@ -187,10 +207,10 @@ void printMemoryToScreen() {
 // -----------------------------------------------------------------------------
 // Write memory to a file.
 
-void writeMemoryToFile(String theFilename) {
+boolean writeMemoryToFile(String theFilename) {
   if (getMemoryByteCount() == 0) {
     Serial.println(F("+ Nothing to print. Memory bytes are all zero."));
-    return;
+    return false;
   }
   if (!sdcardInitiated) {
     initSdCard();
@@ -204,9 +224,8 @@ void writeMemoryToFile(String theFilename) {
   if (!myFile) {
     Serial.print(F("- Error opening file: "));
     Serial.println(theFilename);
-    ledFlashError();
     sdcardInitiated = false;
-    return;
+    return false;
   }
   for (int i = 0; i < iFileBytes; i++) {
     byte memoryData = MREAD(i);
@@ -216,6 +235,7 @@ void writeMemoryToFile(String theFilename) {
   Serial.println(F("+ Write completed, file closed. Number of bytes: "));
   Serial.print(iFileBytes);
   Serial.println(".");
+  return true;
 }
 
 // -----------------------------------------------------------------------------

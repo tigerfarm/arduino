@@ -10,10 +10,8 @@
 #define PLAYER_RUN 4
 extern int programState;
 
-// -----------------------------------------------------------------------------
-// From AltairSample.cpp program.
-
 // From here, for the Mp3Player.cpp program.
+extern void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberByte);
 extern void ledFlashError();
 extern void ledFlashSuccess();
 extern byte hwStatus;

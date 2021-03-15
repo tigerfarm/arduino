@@ -14,23 +14,23 @@
 
 byte Mem[MEMSIZE];
 
-void ledFlashError() {}
-void ledFlashSuccess() {}
-
-// -----------------------------------------------------------------------------
 int programState;
 
-String waitPrompt = "101 ?- ";
+byte hwStatus = B11111111;            // Initial state.
 
-// -----------------------------------------------------------------------------
-word status_wait = 1;     // Default on
-// On a Due, the WAIT LED is yellow.
-#define WAIT_PIN 13
 #define host_read_status_led_WAIT()   status_wait
 #define host_clr_status_led_WAIT()  { digitalWrite(13, LOW);  status_wait = false; }
 #define host_set_status_led_WAIT()  { digitalWrite(13, HIGH); status_wait = true; }
 
-byte hwStatus = B11111111;            // Initial state.
+void ledFlashError() {};
+void ledFlashSuccess() {};
+
+// -----------------------------------------------------------------------------
+String waitPrompt = "101 ?- ";
+
+word status_wait = 1;     // Default on
+// On a Due, the WAIT LED is yellow.
+#define WAIT_PIN 13
 
 void processWaitSwitch(int readByte) {
   /*

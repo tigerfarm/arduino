@@ -5,19 +5,13 @@
 // Altair101a.ino program functions used in cpucore_i8080.cpp
 // Program states
 #define PROGRAM_WAIT 1
-#define PROGRAM_RUN 2
 #define CLOCK_RUN 3
-#define PLAYER_RUN 4
 
 extern int programState;
-extern void ledFlashError();
-extern void ledFlashSuccess();
-extern byte hwStatus;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// Infrared definitions that can be used in multiple programs.
-// Motherboard Specific setup for Infrared and DFPlayer communications
+// Infrared pin definitions that can be used in multiple programs.
 
 // -----------------------------------------------
 #if defined(__AVR_ATmega2560__)

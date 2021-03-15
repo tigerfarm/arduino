@@ -109,7 +109,7 @@ String clockSetPrompt = "Clock SET ?- ";
 String thePrompt = clockPrompt;           // Default.
 extern int programState;
 
-// Clock internal status, internatl to this program.
+// Clock internal status, internal to this program.
 #define RTCLOCK_RUN 1
 #define RTCLOCK_SET 2
 int rtClockState = RTCLOCK_RUN;
@@ -594,7 +594,7 @@ void clockSetSwitch(int resultsValue) {
       Serial.println(F("----------------------------------------------------"));
       Serial.println(F("+++ Real Time Clock SET Controls"));
       Serial.println(F("-------------"));
-      Serial.println(F("+ r, RUN mode     CLOCK mode: show date and time."));
+      Serial.println(F("+ r, RUN          CLOCK mode: show date and time."));
       Serial.println(F("                  Clock SET mode: show date and time, and the set data and time value."));
       Serial.println(F("+ v, SINGLE STEP  Clock SET mode: flip to decrement date or time value."));
       Serial.println(F("+ V, SINGLE Down  Clock SET mode: flip to increment date or time value."));
@@ -891,9 +891,7 @@ void rtClockContinuous() {
 
 void rtClockSet() {
   thePrompt = clockSetPrompt;
-  // Serial.println();
   Serial.print(thePrompt);
-  //
   // Initialize the clock set values.
   for (int i = 0; i < numClockValues - 2; i++ ) {
     setValues[i] = -1;                  // -1 means that the value is not set to change.
@@ -910,8 +908,6 @@ void rtClockSet() {
       clockSetSwitch(clockIrResults.value);
       clockIrrecv.resume();
     }
-    // processClockNow();    // Process on going time clicks.
-    //
     delay(60);  // Delay before getting the next key press, in case press and hold too long.
   }
   thePrompt = clockPrompt;
@@ -935,7 +931,6 @@ void rtClockRun() {
     }
     processClockNow();    // Process on going time clicks.
     if (rtClockState == RTCLOCK_SET) {
-      // Serial.println("+ rtClockState == RTCLOCK_SET");
       rtClockSet();
     }
     //

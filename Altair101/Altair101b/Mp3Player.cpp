@@ -16,20 +16,18 @@
   Next to implement,
 
   --------------------
-  Add LEDs or an LCD for device feedback.
-
-  Have playerLights()
-  + Manage value changes for playerCounter.
-  + Displaying the value to the serial port.
-  + When ready, display the song number that's playing to LEDs or to an LCD.
-  playerLights(), would be in controlling programs such as Altair101b.
+  Add LED lights, LED digits, or an LCD for device feedback.
 
   Merge playerLights() into Altair101b to gain a virtual front panel: 8 LED lights and 8 switches.
   + Now, need Player mode to show which song is playing and the volume level.
   + Display the current file number selected for playing, or playing.
   + Select a file to play by toggling data switches in a binary format,
 
-  Consider adding 8 LED lights (1...256) to indicate current file selected for playing.
+  Have LED playerLights()
+  + playerLights(), would be in controlling programs such as Altair101b.
+  + Manage value changes for playerCounter.
+  + When ready, display the song number that's playing to LEDs or to an LCD.
+  + Consider adding 8 LED lights (0...255) to indicate current file selected for playing.
 
   --------------------
   Consider Implementing setupMp3Player() within this program,
@@ -142,10 +140,44 @@
     "SPK +" to speaker #2 +
     GND to ground of speaker #1 and speaker #2.
 
-   3.5mm headphone jack pin out:
-   + Tip: left channel
-   + Middle: right channel
-   + Closest to the cable: ground.
+    3.5mm headphone jack pin out:
+    + Tip: left channel
+    + Middle: right channel
+    + Closest to the cable: ground.
+
+  ---------------------------------
+  Mega and Due
+
+  Wire connections:
+  DFPlayer pin 3 (TX) to a 1K resister. 1K resister to Arduino RX19.
+  DFPlayer pin 2 (RX) to a 5K resister. 5K resister to Arduino TX18.
+  DFPlayer pin GND    to Arduino GND. Arduino GND to USB hub GND.
+  DFPlayer pin VCC    to USB hub VCC.
+
+  Due pins                    TX1:18 RX1:19
+   ---------------------------------------
+  |                                x x   -| +VCC
+  |                                       |
+  |                                       | ...
+  |                                       |
+  |                                      -| -GND
+   ---------------------------------------
+
+  USB cable connector to power the DFPlayer.
+  Pins from the top:
+     ---------------
+    | VCC D- D+ GND |
+    |   -       _   |
+    |  | |     | |  |
+    |   _       _   |
+    |               |
+     ---------------
+          |  |
+          |  |
+          |  |
+  My USB cable has:
+  + A ground wire wrap.
+  + Purple VCC, +5 VCC.s
 
   ---------------------------------
   Connections used with an Arduino,
@@ -188,7 +220,8 @@
   ------------------------------------------------------------------------------
   Infrared receiver pins
 
-   A1 + -   - Arduino pin connections
+  A24 + -   - Mega or Due pin connections
+   A1 + -   - Uno or Nano pin connections
     | | |   - Infrared receiver pins
   ---------
   |S      |
@@ -211,9 +244,23 @@ const byte OUT_ON =     B00010000;  // OUT    The address contains the address o
 const byte HLTA_ON =    B00001000;  // HLTA   Machine opcode hlt, has halted the machine.
 const byte HLTA_OFF =   ~HLTA_ON;
 
-void playerLights() {}
-// void ledFlashError() {}
-// void ledFlashSuccess() {}
+// -----------------------------------------------------------------------
+// Motherboard Specific setup for DFPlayer communications
+
+// -----------------------------------------------
+#if defined(__AVR_ATmega2560__)
+// -----------------------------------------------
+#elif defined(__SAM3X8E__)
+// -----------------------------------------------
+#else
+// -----------------------------------------------
+// Nano or Uno use a software serial port for communications with the DFPlayer.
+#include "SoftwareSerial.h"
+// DFPlayer pins 3(TX) and 2(RX), connected to Arduino pins: 10(RX) and 11(TX).
+// SoftwareSerial playerSerial(10, 11); // Software serial, playerSerial(RX, TX)
+SoftwareSerial SerialSw(10, 11); // Software serial, playerSerial(RX, TX)
+// ------------------
+#endif
 
 // -----------------------------------------------------------------------
 // Infrared Receiver
@@ -274,7 +321,7 @@ boolean NOT_PLAY_SOUND = false;
 void setupMp3Player() {
   // ----------------------------------------------------
   irrecv.enableIRIn();
-  Serial.println(F("+ Initialized: infrared receiver for MP3 player controls."));
+  Serial.println(F("+ Initialized: infrared receiver."));
 
   // Set player front panel values.
   playerCounter = 1;                  // For now, default to song/file 1.
@@ -465,7 +512,7 @@ void playCounterHlta() {
     mp3playerDevice.play(playerCounter);
     currentPlayerCounter = playerCounter;
   }
-  playerLights();
+  playerLights(playerStatus, playerVolume, thePlayerCounter);
 }
 
 // -----------------------------------------------------------------------
@@ -517,7 +564,7 @@ void printDFPlayerMessage(uint8_t type, int value) {
       // Serial.println(F("Time Out!"));
       mp3playerPlay(playerCounter);
       playerStatus = playerStatus & HLTA_OFF;
-      playerLights();
+      playerLights(playerStatus, playerVolume, thePlayerCounter);
       break;
     case DFPlayerCardInserted:
       Serial.println(F("Card Inserted!"));
@@ -881,7 +928,7 @@ void playerSwitch(int resultsValue) {
       mp3playerDevice.volume(playerVolume);
       Serial.print(F(" increase volume to "));
       Serial.println(playerVolume);
-      // Set: playerLights();
+      // Set: playerLights(playerStatus, playerVolume, thePlayerCounter);
       break;
     case 0x1CF3ACDB:
     case 0xFFA25D:              // Small remote, Key 1
@@ -894,7 +941,7 @@ void playerSwitch(int resultsValue) {
       mp3playerDevice.volume(playerVolume);
       Serial.print(F(" decrease volume to "));
       Serial.println(playerVolume);
-      // Set: playerLights();
+      // Set: playerLights(playerStatus, playerVolume, thePlayerCounter);
       break;
     // ----------------------------------------------------------------------
     case 'h':
@@ -931,7 +978,7 @@ void playerSwitch(int resultsValue) {
       delay(200);
       mp3playerPlay(playerCounter);
       mp3playerDevice.stop();
-      playerLights();
+      playerLights(playerStatus, playerVolume, thePlayerCounter);
       break;
     case 0xC4CC6436:                              // Key DISPLAY After pressing VCR
     case 0x6F46633F:                              // Key DISPLAY After pressing TV
@@ -943,7 +990,7 @@ void playerSwitch(int resultsValue) {
       // Ctrl+L, clear screen.
       Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
       break;
-    case 0x85CF699F:                              //  Key TV/VCR
+    case 0x85CF699F:                              // Key TV/VCR
     case 0xDA529B37:                              // Key POWER After pressing VCR
     case 0x1A2EEC3B:                              // Key POWER After pressing TV
     case 'X':
@@ -1010,7 +1057,7 @@ void playerContinuous() {
         if (programState == PLAYER_RUN) {
           // This "if", allows continuous playing
           //   in other modes (clock) without effecting their dislay lights.
-          playerLights();
+          playerLights(playerStatus, playerVolume, thePlayerCounter);
         }
       }
       // Serial.print(F(", playerCounter="));

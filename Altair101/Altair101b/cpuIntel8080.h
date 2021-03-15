@@ -7,7 +7,7 @@
 #include "Altair101b.h"
 
 #define SOFTWARE_NAME "Altair101b"
-#define SOFTWARE_VERSION "1.6"
+#define SOFTWARE_VERSION "1.7"
 
 // -----------------------------------------------------------------------------
 // CPU,  Set to Intel 8080
@@ -35,17 +35,15 @@ extern CPUFUN cpu_opcodes[256];
 //
 // The following works for my Galaxy80 program.
 //
-// I can load 4K Basic, though it doesn't run.
-#define MEMSIZE (4096+1024+256)         // 5376 bytes
+// I can load and run 4K Basic.
+#define MEMSIZE (4096+1024+256)           // 5376 bytes
 // Global variables use 7346 bytes (89%) of dynamic memory, leaving 846 bytes for local variables.
-// #define MEMSIZE (4096+768+128)       // 4864+128 = 4992
+// #define MEMSIZE (4096+768+128)         // 4864+128 = 4992
 // Global variables use 7218 bytes (88%) of dynamic memory, leaving 974 bytes for local variables.
 //
-// #define MEMSIZE (4096+768)           // 4864
+// #define MEMSIZE (4096+2048)            // Max 6K, for David Hansel version.
 //
-// #define MEMSIZE (4096+2048)  // Max 6K, for David Hansel version.
-//
-#define USE_THROTTLE 0          // Set for slower Mega CPU.
+#define USE_THROTTLE 0                    // Set for slower Mega CPU.
 #define MAX_TIMERS 9
 
 // ----------------------------

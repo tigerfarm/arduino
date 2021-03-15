@@ -11,26 +11,22 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 /*
-  Altair101b OS program
+  Altair101b Operating System program
 
-  This program is an Altair 8800 simulator.
+  This program is an enhanced Altair 8800 simulator.
   Interactivity is through the default Arduino USB serial port, and optionally, the Serial2 port.
   It was tested using the Arduino IDE serial monitor and Mac terminal which has VT100 features.
-  It runs programs from command line, or with a simulated front panel (printed to the serial port).
+  It runs programs from command line, or with a simulated virtual front panel(printed to the serial port).
   This simulator uses David Hansel's Altair 8800 Simulator code to process machine instructions.
-  Altair101a program has a basic OS for command line interation.
-
-  Control program files: Altair101a.ino and Altair101a.h.
-  Machine instruction program files: cpuIntel8080.cpp and cpuIntel8080.h.
 
   Differences to the original Altair 8800:
   + HLT goes into STOP state which allows RUN to restart the process from where it was halted.
   + When SINGLE STEP read and write, I've chosen to show the actual data value,
     rather than having all the data lights on, which happens on the original Altair 8800.
 
-  My Arduino Mega 2560 Altair 8800 simulator runs 4K Basic.
+  This program runs 4K Basic on an Arduino Mega 2560.
   Yes, the Basic language running in 4K of memory.
-  It’s the assembler program Bill Gates and Paul Allen wrote, the first Microsoft software product.
+  It’s the assembler program written by Bill Gates, Paul Allen, and one more person. It's the first Microsoft software product.
 
   ---------------------------------------------------------
   Next to work on
@@ -40,18 +36,14 @@
   + Clock date and time.
 
   Consider:
-  + Rename cpuIntel8080, intel8080cpu.
-  + Add MP3 player control call in the RUN loop so that I can be play music while running programs such as Galaxy 101.
   + Adding my own sample assembler programs.
-  + SD card in it's own CPP file.
+  + A Serial2 buffer for reliably uploading basic programs.
 
   Update README.md files:
   + Altair101a
   + Galaxy101a
   + 4K Basic
   + programsAltair: programs people can load and run on the Altair101a.
-
-  A Serial2 buffer for reliably uploading basic programs.
 
   Consider, when using Arduino IDE Serial Monitor, remove duplicate messages.
   + Maybe ignore "CR".
@@ -185,94 +177,6 @@
   |                                       | VCC
    ---------------------------------------
 
-  -----------------------------------------------------------------------------
-  Wire the SD Card reader/writer module:
-
-  From the back of the SD Card module, the pins:
-  1    2    3    4    5    6
-  CS   SCK  MOSI MISO VCC  GND
-  53   Blck Brwn Whte red
-
-  From the Front of the SD Card module, the pins:
-  GND  VCC  MISO MOSI SCK  CS
-       Red  Whte Brwn Blck To pin 53.
-
-  Due SPI center pins. Should work for Mega and Uno as well (not tested).
-   ---------------------------------------
-  |                                      -| GND
-  |                 MISO x x + VCC        |
-  |                  SCK x x MOSI         |
-  |                RESET x x - GND        |
-  |                                      x| pin 53
-  |                                      +| VCC
-   ---------------------------------------
-
-  -----------------------------------------------------------------------------
-  DFPlayer Mini pins
-
-  DFPlayer pin 3 (TX) to a 1K resister. 1K resister to Arduino RX19.
-  DFPlayer pin 2 (RX) to a 5K resister. 5K resister to Arduino TX18.
-  DFPlayer pin GND    to Arduino GND. Arduino GND to USB hub GND.
-  DFPlayer pin VCC    to USB hub VCC.
-
-  RX/TX pin voltage,
-  + The Arduino Due has three 3.3V TTL serial ports.
-  + Found the suggestion: connect a 1k resistor between the module and MP3 on TX-RX and RX-TX.
-    Because DFPlayer Mini Module operating voltage is 3.3V.
-
-         ----------
-    VCC |   |  |   | BUSY, low:playing, high:not playing
-     RX |    __    | USB port - (DM, clock)
-     TX | DFPlayer | USB port + (DP, data)
-  DAC_R |          | ADKEY_2 Play fifth segment.
-  DAC_L |  ------  | ADKEY_1 Play first segment.
-  SPK - | |      | | IO_2 short press, play next. Long press, increase volume.
-    GND | |      | | GND
-  SPK + | Micro SD | IO_1 short press, play previous. Long press, decrease volume.
-         ----------
-
-  Due pins                    TX1:18 RX1:19
-   ---------------------------------------
-  |                                x x   -| GND
-  |                                       |
-  |                                       | ...
-  |                                       |
-  |                                       |
-   ---------------------------------------
-
-  USB cable connector to power the DFPlayer.
-  From top:
-     ---------------
-    | VCC D- D+ GND |
-    |   -       _   |
-    |  | |     | |  |
-    |   _       _   |
-    |               |
-     ---------------
-          |  |
-          |  |
-          |  |
-  My USB cable has:
-  + A ground wire wrap.
-  + Purple VCC, +5 VCC.s
-
-  -----------------------------------------------------------------------------
-  Clock module pins
-
-  -----------------------
-  |     Curcuit           |
-  |     side              |
-  -----------------------
-   |   |   |   |   |   |
-  32K SQW SCL SDA VCC GND
-
-  -----------------------
-  |     Battery           |
-  |     side              |
-  -----------------------
-   |   |   |   |   |   |
-  GND VCC SDA SCL SQW 32K
-
 */
 // -----------------------------------------------------------------------------
 #include "Altair101b.h"
@@ -283,7 +187,6 @@
 
 // #define LOG_MESSAGES 1     // For debugging.
 // #define LOG_OPCODES  1     // Print each called opcode.
-#define SETUP_SDCARD 1        // SD Card module is connected.
 
 String theFilename;           // Use for file read/write selection.
 
@@ -509,6 +412,16 @@ void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte
   printByte(data8bits);
   Serial.println();
 #endif
+}
+
+// -----------------------------------------------------------------------------
+// When in PLAYER_RUN mode, display MP3 player values on the virtual front panel.
+
+void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberByte) {
+  if (programState == PLAYER_RUN) {
+    // The middle parameter is the volume.
+    lightsStatusAddressData(statusByte, playerVolume, songNumberByte);
+  }
 }
 
 // -----------------------------------------------------------------------------

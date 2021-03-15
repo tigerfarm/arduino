@@ -21,6 +21,7 @@
 #include "Altair101b.h"
 
 #include "Mp3Player.h"
+void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberByte) {}
 
 // -----------------------------------------------------------------------------
 int programState;

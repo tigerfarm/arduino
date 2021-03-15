@@ -12,12 +12,7 @@
 #define SDCARD_RUN 7
 
 extern int programState;
-// extern void ledFlashError();
-// extern void ledFlashSuccess();
 extern byte hwStatus;
-
-extern void ledFlashError();
-extern void ledFlashSuccess();
 
 // -----------------------------------------------------------------------------
 // eof
