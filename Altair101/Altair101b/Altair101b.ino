@@ -420,7 +420,7 @@ void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte
 void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberByte) {
   if (programState == PLAYER_RUN) {
     // The middle parameter is the volume.
-    lightsStatusAddressData(statusByte, playerVolume, songNumberByte);
+    serialPrintFrontPanel();
   }
 }
 
