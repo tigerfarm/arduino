@@ -591,7 +591,7 @@ void playerSetup() {
 // ---------------------------
 // Sound bites for sound effects
 /*
-   soundEffects is an arrary that matches index values to an MP3 file number.
+   soundEffects is an array that matches index values to an MP3 file number.
    Example: READ_FILE=1
     where
       The value of soundEffects[1], is stored in file: 0001.sbf

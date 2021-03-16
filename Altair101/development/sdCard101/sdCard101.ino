@@ -112,69 +112,6 @@ void runProcessorWait() {
 }
 
 // -----------------------------------------------------------------------------
-/*
-// Needs to match the upload program:
-//  9600, 19200, 38400, 57600, 115200
-unsigned long downloadBaudRate = 115200;
-
-void modeDownloadProgram() {
-  Serial.println(F("+ Download mode: ready to receive a program bytes on Serial2. Enter, x, to exit."));
-  Serial.print(F("++ Serial 2 baud rate: "));
-  Serial.println(downloadBaudRate);
-  byte readByte = 0;
-  int readByteCount = 0;      // Count the downloaded bytes that are entered into processor memory.
-  unsigned long timer;        // Indicator used to identify when download has ended.
-  boolean downloadStarted = false;
-  Serial2.begin(downloadBaudRate);
-  while (programState == SERIAL_DOWNLOAD) {
-    if (Serial2.available() > 0) {
-      readByte = Serial2.read();            // Read the incoming byte.
-      if (!downloadStarted) {
-        downloadStarted = true;
-        Serial.println(F("+       Address"));
-      }
-      // Process the incoming byte into the memory buffer.
-      Serial.print(F("++ Byte# "));
-      Serial.print(readByteCount);
-      MWRITE(readByteCount, readByte)
-      readByteCount++;
-      Serial.println();
-      timer = millis();
-    }
-    if (downloadStarted && ((millis() - timer) > 500)) {
-      // Exit download state, if the bytes were downloaded and then stopped for 1/2 second.
-      //  This indicates that the download is complete.
-      Serial.println(F("+ Download complete."));
-      programState = PROGRAM_WAIT;
-    }
-    // -----------------------------------------------
-    // Flip or send serial character RESET(R) or STOP(s), to exit download mode.
-    // Check serial input for RESET or STOP.
-    if (Serial.available() > 0) {
-      readByte = Serial.read();    // Read and process an incoming byte.
-      if (readByte == 'R' || readByte == 's' || readByte == 'x') {
-        Serial.println(F("+ Exit download mode."));
-        programState = PROGRAM_WAIT;
-        delay(100); // Required to wait for the LF when in IDE serial monitor.
-        while (Serial.available() > 0) {
-          // Serial.println(F("+ Exit, Clear other characters in the buffer, example: LF."));
-          readByte = Serial.read();
-          delay(100); // Required to wait for the LF when in IDE serial monitor.
-        }
-      }
-    }
-    // -----------------------------------------------
-  }
-  Serial2.end();                  // Close and allow this port for output use.
-  if (readByteCount > 0) {
-    Serial.println(F("+ Downloaded bytes stored into memory."));
-  } else {
-    Serial.println(F("+ Downloaded cancelled."));
-  }
-  Serial.println(F("+ Exit serial download mode."));
-}
-*/
-// -----------------------------------------------------------------------------
 void functionNamePrint(String theName) {
   Serial.print(F("+ "));
   Serial.print(theName); // prints the function name.

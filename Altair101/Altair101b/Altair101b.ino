@@ -31,6 +31,10 @@
   ---------------------------------------------------------
   Next to work on
 
+  Continue integrating Processor.ino features and functions.
+  + Run 00000000.bin on startup.
+  + OUT 10, MP3 play options. OUT 11, to have the MP3 looped.
+
   Add hardware to display values:
   + Player song.
   + Clock date and time.
@@ -222,9 +226,42 @@ int TIMER_MINUTE      = 7;
 int DOWNLOAD_COMPLETE = 8;
 int WRITE_FILE        = 9;
 void playerPlaySoundWait(int theFileNumber) {};
+uint16_t processorPlayerCounter = 0;            // Indicator for the processor to play an MP3, if not zero.
 
 void ledFlashSuccess() {};
 void ledFlashError() {};
+
+// -----------------------------------------------------------------------------
+// Sound bites for sound effects
+/*
+   soundEffects is an array that matches index values to an MP3 file number.
+   Example: READ_FILE=1
+    where
+      The value of soundEffects[1], is stored in file: 0001.sbf
+      The value of soundEffects[2], is stored in file: 0002.sbf
+      ...
+    If the byte stored in 0001.sbf is 5, then,
+      soundEffects[READ_FILE]=5 or soundEffects[1]=5.
+    Then,
+      playerPlaySound(READ_FILE) plays file: 0005.mp3.
+*/
+const int maxSoundEffects = 16;
+int soundEffects[maxSoundEffects];
+
+String getSfbFilename(byte fileByte) {
+  // SFB: Sound File Byte.
+  String sfbFilename = ".sfb";
+  if (fileByte < 10) {
+    sfbFilename = "000" + String(fileByte) + sfbFilename;
+  } else if (fileByte < 100) {
+    sfbFilename = "00" + String(fileByte) + sfbFilename;
+  } else if (fileByte < 1000) {
+    sfbFilename = "0" + String(fileByte) + sfbFilename;
+  } else {
+    sfbFilename = String(fileByte) + sfbFilename;
+  }
+  return sfbFilename;
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -625,6 +662,7 @@ void serialPrintFrontPanel() {
 
 // -----------------------------------------------------------------------------
 // Pause during a SINGLE STEP process.
+
 byte singleStepWaitByte = 0;
 void singleStepWait() {
   Serial.println(F("+ singleStepWait()"));
@@ -1071,6 +1109,61 @@ void altair_out(byte portDataByte, byte regAdata) {
       Serial_print(F(":"));
       printByte(lowByte(regSP));
       break;
+    // ---------------------------------------
+    // OUT 10, MP3 play options.
+    //  regA == 0, pause
+    //  regA == B11111111, Set to play once, and play the set MP3.
+    //  Else, play the regA MP3 once.
+    case 10:
+      // MVI A, <file#>
+      // OUT 10   ; Use OUT 11, to have the MP3 looped.
+      if (regA == B11111111) {
+        Serial.println(F(" > Play once, set on."));
+        setLoopSingle(false);
+        if (processorPlayerCounter > 0) {
+          mp3PlayerStart();
+        }
+      } else if (regA == 0) {
+        Serial.println(F(" > Pause playing MP3 files."));
+        setLoopSingle(false);
+        mp3PlayerPause();
+      } else {
+        setLoopSingle(false);
+        processorPlayerCounter = regA;
+        mp3playerPlay(processorPlayerCounter);
+        Serial.print(F(" > Play once, MP3 file# "));
+        Serial.println(processorPlayerCounter);
+      }
+      break;
+    // ---------------------------------------
+    // OUT 11, MP3 play loop options.
+    //  regA == 0, pause
+    //  regA == B11111111, Set play loop on, and play the set MP3.
+    //  Else, loop play the regA MP3.
+    case 11:
+      if (regA == B11111111) {
+        Serial.println(F(" > Loop playing, set on."));
+        setLoopSingle(true);
+        if (processorPlayerCounter > 0) {
+          mp3PlayerStart();
+        }
+      } else if (regA == 0) {
+        Serial.println(F(" > Pause loop playing MP3 files."));
+        setLoopSingle(false);
+        mp3PlayerPause();
+      } else {
+        setLoopSingle(true);
+        processorPlayerCounter = regA;
+        mp3PlayerLoop(processorPlayerCounter);
+        Serial.print(F(" > Loop play once, MP3 file# "));
+        Serial.println(processorPlayerCounter);
+      }
+      break;
+    case 12:
+      Serial.print(F(" > Play MP3 to completion before moving to the next opcode."));
+      mp3playerPlaywait(regA);
+      break;
+    // ---------------------------------------
     // ---------------------------------------
     default:
       Serial_println();
@@ -2039,6 +2132,7 @@ void setup() {
   // ----------------------------------------------------
   setupMp3Player();
   setupClock();
+
   // ----------------------------------------------------
   programState = PROGRAM_WAIT;
   host_set_status_leds_READMEM_M1();
@@ -2047,7 +2141,39 @@ void setup() {
   host_set_addr_leds(regPC);
   host_set_data_leds(opcode);
   printFrontPanel();
+
+  // ----------------------------------------------------
+  // Read sound effect file information.
+  /*
+    Serial.println(F("+ Load sound bite index array."));
+    for (int i = 0; i < maxSoundEffects; i++) {
+    soundEffects[i] = readFileByte(getSfbFilename(i));
+    }
+  */
+  // ----------------------------------------------------
+  // Read and Run an initialization program.
+  // Can manually set 00000000.bin, to all zeros.
+  // + The ability to set 00000000.bin, to all zeros.
+  // ---------------------------
+  // + If 00000000.bin exists, read it.
+  // Serial.print(F("+ Program loaded from memory array."));
+  readFileToMemory("00000000.bin");
+  int sumBytes = 0;
+  for (int i = 0; i < 32; i++) {
+    sumBytes = sumBytes + MREAD(i);
+  }
+  if (sumBytes > 0) {
+    Serial.println(F("++ Since 00000000.bin, has non-zero bytes in the first 32 bytes, run it."));
+    programState = PROGRAM_RUN;
+    digitalWrite(WAIT_PIN, LOW);
+  } else {
+    programState = PROGRAM_WAIT;
+    controlResetLogic();
+  }
+
+  // ----------------------------------------------------
   Serial.println(F("+++ Altair101b initialized, version 0.92.b."));
+
   // ----------------------------------------------------
 }
 
