@@ -9,8 +9,6 @@ extern word status_inte;
 //
 extern byte fpStatusByte;         // Status byte bits: MEMR INP M1 OUT HLTA STACK WO INT
 extern uint16_t fpAddressWord;    // Status byte bits: MEMR INP M1 OUT HLTA STACK WO INT
-// extern byte fpAddressLb;       // Front panel address lb.
-// extern byte fpAddressHb;       // Front panel address hb.
 extern byte fpDataByte;           // Front panel data byte.
 
 // -----------------------------------------------------------------------------

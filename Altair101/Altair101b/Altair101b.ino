@@ -420,7 +420,7 @@ void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte
 void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberByte) {
   if (programState == PLAYER_RUN) {
     // The middle parameter is the volume.
-    serialPrintFrontPanel();
+    // printFrontPanel();
   }
 }
 
@@ -454,21 +454,6 @@ void printFrontPanel() {
     Serial.println();
     // Serial.print(F("\033[2K")); // Clear line
 #endif
-    /* SERIAL_IO_IDE will do the same:
-      } else if (SERIAL_CLI) {
-        Serial.print(F("+ printFrontPanel SERIAL_CLI, status:"));
-        printByte(fpStatusByte);
-        Serial.print(F(" dataByte:"));
-        printByte(host_read_data_leds());
-        theAddressWord = host_read_addr_leds();
-        Serial.print(F(" address:"));
-        sprintf(charBuffer, "%5d ", theAddressWord);
-        Serial.print(charBuffer);
-        printByte(highByte(theAddressWord));
-        Serial.print(F(":"));
-        printByte(lowByte(theAddressWord));
-        Serial.println();
-    */
   } else if (SERIAL_IO_IDE) {
     if (host_read_status_led_WAIT()) {
       serialPrintFrontPanel();

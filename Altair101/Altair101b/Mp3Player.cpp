@@ -950,12 +950,12 @@ void playerSwitch(int resultsValue) {
       Serial.println(F("----------------------------------------------------"));
       Serial.println(F("+++ MP3 Player Controls"));
       Serial.println(F("-------------"));
-      Serial.println(F("+ s, STOP         Pause, stop playing."));
-      Serial.println(F("+ r, RUN          Start, playing the current song."));
-      Serial.println(F("+ R, RESET/CLEAR  Reset and set to play first song."));
-      Serial.println(F("+ n/p, Play song  Play next/previous song."));
-      Serial.println(F("+ d/D, Directory  Play previous directory."));
-      Serial.println(F("+ l/L, Loop       Disable/Enable loop the current song."));
+      Serial.println(F("+ s, STOP         Pause, stop playing the MP3."));
+      Serial.println(F("+ r, RUN          Start, playing the current MP3."));
+      Serial.println(F("+ R, RESET/CLEAR  Reset player settings to default, and set to play first MP3."));
+      Serial.println(F("+ n/p, Play song  Play next/previous MP3."));
+      Serial.println(F("+ d/D, Directory  Play next/previous directory."));
+      Serial.println(F("+ l/L, Loop       Disable/Enable looping of the current MP3."));
       Serial.println(F("+ v/V, Volume     Down/Up volume level."));
       Serial.println(F("--- Equalizer options:"));
       Serial.println(F("+ 4 POP   5 CLASSIC  6 NORMAL"));
@@ -974,7 +974,7 @@ void playerSwitch(int resultsValue) {
       Serial.println(F("+ Player CLEAR/RESET, play first song."));
       mp3playerDevice.stop();                     // Required.
       delay(100);
-      setupMp3Player();                           // Sets playerCounter = 1;
+      setupMp3Player();                           // Sets playerCounter = 1, and other default settings;
       delay(200);
       mp3playerPlay(playerCounter);
       mp3playerDevice.stop();
