@@ -278,7 +278,7 @@ unsigned long downloadBaudRate = 115200;
 
 // Virtual serial front panel using VT100 escape codes.
 // For example, Macbook terminal is VT100 enabled using the UNIX "screen" command.
-boolean SERIAL_FRONT_PANEL = false;
+boolean VIRTUAL_FRONT_PANEL = false;
 
 // This option is for VT100 terminal command line interactivity.
 // Each character is immediately sent.
@@ -415,12 +415,12 @@ const byte INT_ON =     B00000001;  // INT    Interrupt
 void setWaitStatus(boolean waitStatus) {
   if (waitStatus) {
     host_set_status_led_WAIT();
-    if (SERIAL_FRONT_PANEL) {
+    if (VIRTUAL_FRONT_PANEL) {
       Serial.print(F("\033[4;2H*"));  // Print on: row 4, column 2.
     }
   } else {
     host_clr_status_led_WAIT();
-    if (SERIAL_FRONT_PANEL) {
+    if (VIRTUAL_FRONT_PANEL) {
       Serial.print(F("\033[4;2H."));  // Print off: row 4, column 2.
     }
   }
@@ -464,11 +464,11 @@ void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberBy
   if (LED_IO) {
     lightsStatusAddressData(statusByte, playerVolume, songNumberByte);
   }
-  if (SERIAL_FRONT_PANEL) {
+  if (VIRTUAL_FRONT_PANEL) {
     fpStatusByte = statusByte;
     fpAddressWord = playerVolume;
     fpDataByte = songNumberByte;
-    serialPrintFrontPanel();
+    printVirtualFrontPanel();
   }
 }
 
@@ -481,11 +481,11 @@ void printFrontPanel() {
   if (LED_IO) {
     lightsStatusAddressData(fpStatusByte, host_read_addr_leds(), host_read_data_leds());
   }
-  if (SERIAL_FRONT_PANEL) {
-    serialPrintFrontPanel();
+  if (VIRTUAL_FRONT_PANEL) {
+    printVirtualFrontPanel();
 #ifdef LOG_MESSAGES
     // Serial.print(F("\033[2K")); // Clear line from cursor right
-    Serial.print(F("+ printFrontPanel SERIAL_FRONT_PANEL, status:"));
+    Serial.print(F("+ printFrontPanel VIRTUAL_FRONT_PANEL, status:"));
     printByte(fpStatusByte);
     //
     uint16_t theAddress = host_read_addr_leds();
@@ -504,7 +504,7 @@ void printFrontPanel() {
 #endif
   } else if (SERIAL_IO_IDE) {
     if (host_read_status_led_WAIT()) {
-      serialPrintFrontPanel();
+      printVirtualFrontPanel();
     } else {
       Serial.print(F("+ printFrontPanel SERIAL_IO_IDE, status:"));
       printByte(fpStatusByte);
@@ -533,11 +533,29 @@ uint16_t prev_fpAddressWord = 0;
 uint16_t fpAddressToggleWord = 0;
 uint16_t prev_fpAddressToggleWord = 1;
 
-void serialPrintFrontPanel() {
+void initVirtualFrontPanel() {
+  // Initialize and print the Virtual Front Panel.
+  //
+  // Insure the previous value is different to current, to insure an intial printing.
+  prev_fpDataByte = host_read_data_leds() + 1;
+  prev_fpAddressWord = host_read_addr_leds() + 1;
+  prev_fpAddressToggleWord = 1;               // Set to different value.
+  fpAddressToggleWord = 0;                    // Set all toggles off.
+  Serial.print(F("\033[0m\033[?25l"));        // Block cursor display: off.
+  Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
+  VIRTUAL_FRONT_PANEL = false;                 // Insure labels are printed.
+  // Print the complete front panel: labels and indicators.
+  printVirtualFrontPanel();
+  VIRTUAL_FRONT_PANEL = true;                  // Must be after printVirtualFrontPanel(), to have the labels printed.
+  SERIAL_IO_IDE = false;                      // Insure it's disabled.
+  Serial.println(F("+ VT100 escapes are enabled and block cursor off."));
+}
+
+void printVirtualFrontPanel() {
   //
   // --------------------------
   // Status
-  if (!SERIAL_FRONT_PANEL) {
+  if (!VIRTUAL_FRONT_PANEL) {
     Serial.print(F("INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0\r\n"));
     // Note, PROT is not implemented.
   } else {
@@ -561,7 +579,7 @@ void serialPrintFrontPanel() {
   //
   // --------------------------
   // Data
-  if ((prev_fpDataByte != fpDataByte) || (!SERIAL_FRONT_PANEL)) {
+  if ((prev_fpDataByte != fpDataByte) || (!VIRTUAL_FRONT_PANEL)) {
     // If VT100 and no change, don't reprint.
     prev_fpDataByte = fpDataByte;
     if ( fpDataByte & 0x80 )   thePrintLine += (("  *" ));  else thePrintLine += (( "  ." ));
@@ -581,7 +599,7 @@ void serialPrintFrontPanel() {
   // --------------------------
   // WAIT, HLDA, and Address
   //
-  if (SERIAL_FRONT_PANEL) {
+  if (VIRTUAL_FRONT_PANEL) {
     // No need to rewrite the title.
     Serial.println();
     Serial.print(F("\033[1B"));  // Cursor down
@@ -596,7 +614,7 @@ void serialPrintFrontPanel() {
   thePrintLine = "";
   //
   // Address
-  if ((prev_fpAddressWord != fpAddressWord) || (!SERIAL_FRONT_PANEL)) {
+  if ((prev_fpAddressWord != fpAddressWord) || (!VIRTUAL_FRONT_PANEL)) {
     // If VT100 and no change, don't reprint.
     prev_fpAddressWord = fpAddressWord;
     if ( fpAddressWord & 0x8000 ) thePrintLine += (("   *")); else thePrintLine += (("   ."));
@@ -623,14 +641,14 @@ void serialPrintFrontPanel() {
   }
   // --------------------------
   // Address/Data switches
-  if (SERIAL_FRONT_PANEL) {
+  if (VIRTUAL_FRONT_PANEL) {
     // No need to rewrite the title.
     Serial.println();
     Serial.print(F("\033[1B"));  // Cursor down
   } else {
     Serial.print(F("\r\n            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0\r\n"));
   }
-  if ((prev_fpAddressToggleWord != fpAddressToggleWord) || (!SERIAL_FRONT_PANEL)) {
+  if ((prev_fpAddressToggleWord != fpAddressToggleWord) || (!VIRTUAL_FRONT_PANEL)) {
     // If VT100 and no change, don't reprint.
     prev_fpAddressToggleWord = fpAddressToggleWord;
     thePrintLine += (("          "));
@@ -656,7 +674,7 @@ void serialPrintFrontPanel() {
     Serial.print(thePrintLine);
     thePrintLine = "";
   }
-  if (SERIAL_FRONT_PANEL) {
+  if (VIRTUAL_FRONT_PANEL) {
     // No need to rewrite the prompt.
     Serial.print(F("\033[2B"));  // Cursor down 2 lines.
     Serial.println();
@@ -1267,7 +1285,7 @@ byte stopByte = 's';
 byte resetByte = 'R';
 //
 void processRunSwitch(byte readByte) {
-  if (SERIAL_FRONT_PANEL) {
+  if (VIRTUAL_FRONT_PANEL) {
     Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
   }
   if (readByte == stopByte) {
@@ -1293,7 +1311,7 @@ void processRunSwitch(byte readByte) {
 
 void runProcessor() {
   Serial.println(F("+ runProcessor()"));
-  if (SERIAL_CLI && !SERIAL_FRONT_PANEL) {
+  if (SERIAL_CLI && !VIRTUAL_FRONT_PANEL) {
     // Control character reference: https://en.wikipedia.org/wiki/ASCII
     // Terminal mode: case 3: (Crtl+c) instead of case 's'.
     // Terminal mode: case 4: (Crtl+d) instead of case 's'.
@@ -1351,7 +1369,7 @@ void processWaitSwitch(byte readByte) {
   uint16_t cnt;
   byte readConfirmByte;
   //
-  if (SERIAL_FRONT_PANEL) {
+  if (VIRTUAL_FRONT_PANEL) {
     Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
     Serial.print(F("\033[J"));     // From cursor down, clear the screen.
   }
@@ -1467,7 +1485,7 @@ void processWaitSwitch(byte readByte) {
       fpAddressWord = 0;                      // Address word
       fpAddressToggleWord = 0;                // Reset all toggles to off.
       loadProgramName = "";                   // As there may have been a sample loaded program.
-      if (SERIAL_FRONT_PANEL) {
+      if (VIRTUAL_FRONT_PANEL) {
         printFrontPanel();      // For Arduino IDE monitor, <LF> will refresh the display.
       }
       break;
@@ -1475,26 +1493,28 @@ void processWaitSwitch(byte readByte) {
     //
     case 'v':
       Serial.println(F("+ v, VT100 escapes are disabled and block cursor on."));
-      if (SERIAL_FRONT_PANEL) {
-        SERIAL_FRONT_PANEL = false;
+      if (VIRTUAL_FRONT_PANEL) {
+        VIRTUAL_FRONT_PANEL = false;
         Serial.print(F("\033[0m\033[?25h"));       // Insure block cursor display: on.
       }
       // Note, VT100 escape sequences don't work on the Ardino IDE monitor.
       break;
     case 'V':
       // The following requires a VT100 terminal such as a Macbook terminal.
-      // Insure the previous value is different to current, to insure an intial printing.
-      prev_fpDataByte = host_read_data_leds() + 1;
-      prev_fpAddressWord = host_read_addr_leds() + 1;
-      prev_fpAddressToggleWord = 1;           // Set to different value.
-      fpAddressToggleWord = 0;                // Set all toggles off.
-      Serial.print(F("\033[0m\033[?25l"));       // Block cursor display: off.
-      Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
-      SERIAL_FRONT_PANEL = false;                // Insure labels are printed.
-      serialPrintFrontPanel();                // Print the complete front panel: labels and indicators.
-      SERIAL_FRONT_PANEL = true;                 // Must be after serialPrintFrontPanel(), to have the labels printed.
-      SERIAL_IO_IDE = false;                      // Insure it's disabled.
-      Serial.println(F("+ V, VT100 escapes are enabled and block cursor off."));
+      initVirtualFrontPanel();
+      /*
+        // Insure the previous value is different to current, to insure an intial printing.
+        prev_fpDataByte = host_read_data_leds() + 1;
+        prev_fpAddressWord = host_read_addr_leds() + 1;
+        prev_fpAddressToggleWord = 1;           // Set to different value.
+        fpAddressToggleWord = 0;                // Set all toggles off.
+        Serial.print(F("\033[0m\033[?25l"));       // Block cursor display: off.
+        Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
+        VIRTUAL_FRONT_PANEL = false;                // Insure labels are printed.
+        printVirtualFrontPanel();                // Print the complete front panel: labels and indicators.
+        VIRTUAL_FRONT_PANEL = true;                 // Must be after printVirtualFrontPanel(), to have the labels printed.
+        SERIAL_IO_IDE = false;                      // Insure it's disabled.
+      */
       break;
     // -------------------------------------------------------------------
     case 't':
@@ -1616,8 +1636,8 @@ void processWaitSwitch(byte readByte) {
       Serial.println(programState);
       Serial.print(F("++ LED_IO="));
       Serial.print(LED_IO);
-      Serial.print(F(" SERIAL_FRONT_PANEL="));
-      Serial.print(SERIAL_FRONT_PANEL);
+      Serial.print(F(" VIRTUAL_FRONT_PANEL="));
+      Serial.print(VIRTUAL_FRONT_PANEL);
       Serial.print(F(" SERIAL_IO_IDE="));
       Serial.print(SERIAL_IO_IDE);
       Serial.print(F(" SERIAL_CLI="));
@@ -1833,26 +1853,26 @@ void processWaitSwitch(byte readByte) {
     case 13:
       // USB serial, VT100 terminal.
       Serial.println();
-      if (!SERIAL_FRONT_PANEL) {
+      if (!VIRTUAL_FRONT_PANEL) {
         printFrontPanel();  // <LF> will refresh the display.
-        serialPrintFrontPanel();
+        printVirtualFrontPanel();
       }
       break;
     case 10:
       // USB serial, non VT100.
       Serial.println();
-      serialPrintFrontPanel();
+      printVirtualFrontPanel();
       break;
     case 12:
       // Ctrl+l is ASCII 7, which is form feed (FF).
-      if (SERIAL_FRONT_PANEL || SERIAL_CLI) {
+      if (VIRTUAL_FRONT_PANEL || SERIAL_CLI) {
         Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
       }
-      if (SERIAL_FRONT_PANEL) {
+      if (VIRTUAL_FRONT_PANEL) {
         // Refresh the front panel
-        SERIAL_FRONT_PANEL = false;                // Insure labels are printed.
-        serialPrintFrontPanel();                // Print the complete front panel: labels and indicators.
-        SERIAL_FRONT_PANEL = true;                 // Must be after serialPrintFrontPanel(), to have the labels printed.
+        VIRTUAL_FRONT_PANEL = false;                // Insure labels are printed.
+        printVirtualFrontPanel();                // Print the complete front panel: labels and indicators.
+        VIRTUAL_FRONT_PANEL = true;                 // Must be after printVirtualFrontPanel(), to have the labels printed.
       }
       break;
       // -------------------------------------
@@ -1886,7 +1906,7 @@ void runProcessorWait() {
           // This handles inputs during a SINGLE STEP cycle that hasn't finished.
           processWaitSwitch(readByte);
         }
-        if (!SERIAL_FRONT_PANEL) {
+        if (!VIRTUAL_FRONT_PANEL) {
           Serial.print(F("?- "));
         }
       }
@@ -1975,7 +1995,7 @@ void modeDownloadProgram() {
   host_set_addr_leds(0);
   host_set_data_leds(0);
   printFrontPanel();
-  if (SERIAL_FRONT_PANEL) {
+  if (VIRTUAL_FRONT_PANEL) {
     Serial.print(F("\033[11;1H"));  // Move cursor to below the prompt: line 9, column 1.
     Serial.print(F("\033[J"));     // From cursor down, clear the screen.
   }
@@ -2004,14 +2024,14 @@ void modeDownloadProgram() {
       if (!downloadStarted) {
         downloadStarted = true;
         host_set_status_leds_WRITEMEM();   // Now writing to processor memory.
-        if (SERIAL_FRONT_PANEL) {
+        if (VIRTUAL_FRONT_PANEL) {
           Serial.print(F("\033[11;1H"));    // Move cursor to below the prompt.
         }
         // Serial.println(F("+       Address  Data  Binary   Hex Octal Decimal"));
         Serial.println(F("+       Address"));
         //              ++ Byte#     17, Byte: 00000000 000 000     0
       }
-      if (SERIAL_FRONT_PANEL) {
+      if (VIRTUAL_FRONT_PANEL) {
         Serial.print(F("\033[12;1H"));    // Move cursor to below the prompt: line 10, column 1.
       }
       //
@@ -2187,6 +2207,7 @@ void setup() {
 // -----------------------------------------------------------------------------
 // Device Loop
 
+int tmp_VIRTUAL_FRONT_PANEL;
 byte tmp_fpStatusByte;
 uint16_t tmp_fpAddressWord;
 byte tmp_fpDataByte;
@@ -2200,7 +2221,7 @@ void loop() {
       break;
     // ----------------------------
     case PROGRAM_WAIT:
-      if (!SERIAL_FRONT_PANEL) {
+      if (!VIRTUAL_FRONT_PANEL) {
         Serial.print(F("?- "));
       }
       host_set_status_led_WAIT();
@@ -2226,23 +2247,32 @@ void loop() {
       host_set_status_led_HLDA();
       sdCardRun();
       host_clr_status_led_HLDA();
+      if (VIRTUAL_FRONT_PANEL) {
+        initVirtualFrontPanel();
+        printVirtualFrontPanel();
+      }
       break;
     // ----------------------------
     case PLAYER_RUN:
-      host_clr_status_led_WAIT();
-      host_set_status_led_HLDA();
       // Save processor front panel values.
+      tmp_VIRTUAL_FRONT_PANEL = VIRTUAL_FRONT_PANEL;
       tmp_fpStatusByte = fpStatusByte;
       tmp_fpAddressWord = fpAddressWord;
       tmp_fpDataByte = fpDataByte;
+      host_clr_status_led_WAIT();
+      host_set_status_led_HLDA();
       //
       mp3PlayerRun();
       //
       // Restore processor front panel values.
+      host_clr_status_led_HLDA();
       fpStatusByte = tmp_fpStatusByte;
       fpAddressWord = tmp_fpAddressWord;
       fpDataByte = tmp_fpDataByte;
-      host_clr_status_led_HLDA();
+      tmp_VIRTUAL_FRONT_PANEL = VIRTUAL_FRONT_PANEL;
+      if (VIRTUAL_FRONT_PANEL) {
+        printVirtualFrontPanel();
+      }
       break;
     // ----------------------------
     case CLOCK_RUN:
@@ -2250,6 +2280,10 @@ void loop() {
       host_set_status_led_HLDA();
       rtClockRun();
       host_clr_status_led_HLDA();
+      if (VIRTUAL_FRONT_PANEL) {
+        initVirtualFrontPanel();
+        printVirtualFrontPanel();
+      }
       break;
   }
   delay(30);

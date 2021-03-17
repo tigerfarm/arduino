@@ -55,9 +55,10 @@ void printOctal(byte b);
 void printHex(byte b);
 
 // From here, for the AltairSample.cpp program.
-extern boolean SERIAL_FRONT_PANEL;
+extern boolean VIRTUAL_FRONT_PANEL;
 extern void setAddressData(uint16_t addressWord, byte dataByte);
-extern void serialPrintFrontPanel();
+extern void initVirtualFrontPanel();
+extern void printVirtualFrontPanel();
 extern String loadProgramName;
 extern byte readByte;
 

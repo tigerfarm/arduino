@@ -848,7 +848,7 @@ void loadProgram() {
     regPC = 0;
     setAddressData(regPC, MREAD(regPC));
     if (SERIAL_FRONT_PANEL) {
-      serialPrintFrontPanel();
+      printVirtualFrontPanel();
     }
   }
 }

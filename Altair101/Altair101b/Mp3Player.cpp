@@ -1001,26 +1001,16 @@ void playerSwitch(int resultsValue) {
     // -------------------------------------------------------------------
     case 't':
       Serial.println(F("+ VT100 escapes are disabled and block cursor on."));
-      if (SERIAL_FRONT_PANEL) {
-        SERIAL_FRONT_PANEL = false;
+      if (VIRTUAL_FRONT_PANEL) {
+        VIRTUAL_FRONT_PANEL = false;
         Serial.print(F("\033[0m\033[?25h"));       // Insure block cursor display: on.
       }
       // Note, VT100 escape sequences don't work on the Ardino IDE monitor.
       break;
     case 'T':
       // The following requires a VT100 terminal such as a Macbook terminal.
-      // Insure the previous value is different to current, to insure an intial printing.
-      // prev_fpDataByte = 0;
-      // prev_fpAddressWord = 0;
-      // prev_fpAddressToggleWord = 0;               // Set to different value.
-      // fpAddressToggleWord = 0;                    // Set all toggles off.
-      Serial.print(F("\033[0m\033[?25l"));        // Block cursor display: off.
-      Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
-      SERIAL_FRONT_PANEL = false;                 // Insure labels are printed.
-      // Print the complete front panel: labels and indicators.
+      initVirtualFrontPanel();
       playerLights(playerStatus, playerVolume, playerCounter);
-      SERIAL_FRONT_PANEL = true;                  // Must be after serialPrintFrontPanel(), to have the labels printed.
-      // SERIAL_IO_IDE = false;                      // Insure it's disabled.
       Serial.println(F("+ VT100 escapes are enabled and block cursor off."));
       break;
     // -------------------------------------------------------------------
@@ -1191,6 +1181,9 @@ void mp3playerPlaywait(byte theFileNumber) {
 // MP3 Player controls.
 
 void mp3PlayerRun() {
+  if (VIRTUAL_FRONT_PANEL) {
+    playerSwitch('T');
+  }
   Serial.println(F("+ runMp3Player();"));
   Serial.print(playerPrompt);
   while (programState == PLAYER_RUN) {
