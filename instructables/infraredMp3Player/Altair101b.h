@@ -10,6 +10,11 @@
 #define PLAYER_RUN 4
 extern int programState;
 
+// From here, for the AltairSample.cpp program.
+extern boolean VIRTUAL_FRONT_PANEL;
+extern void initVirtualFrontPanel();
+extern void printVirtualFrontPanel();
+
 // From here, for the Mp3Player.cpp program.
 extern void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberByte);
 extern void ledFlashError();

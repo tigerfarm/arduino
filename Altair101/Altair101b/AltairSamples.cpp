@@ -793,7 +793,7 @@ void loadProgram() {
           Serial.println(F("     with values from 1 to 7."));
           Serial.println(F("     Use option 'i' to list the register values."));
           programState = PROGRAM_WAIT;
-          if (SERIAL_FRONT_PANEL) {
+          if (VIRTUAL_FRONT_PANEL) {
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
           }
           loadMviRegisters();
@@ -802,7 +802,7 @@ void loadProgram() {
           loadProgramName = "Virtual Kill the Bit";
           Serial.println(F("+ k, load PROGMEM array: A version of Kill the Bit for the virtual front panel."));
           programState = PROGRAM_WAIT;
-          if (SERIAL_FRONT_PANEL) {
+          if (VIRTUAL_FRONT_PANEL) {
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
           }
           loadVirtualKtb();
@@ -811,7 +811,7 @@ void loadProgram() {
           loadProgramName = "Altair Basic 4K";
           Serial.println(F("+ b, load PROGMEM array: Altair Basic 4K."));
           programState = PROGRAM_WAIT;
-          if (SERIAL_FRONT_PANEL) {
+          if (VIRTUAL_FRONT_PANEL) {
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
           }
           loadBasic4k();
@@ -820,7 +820,7 @@ void loadProgram() {
           loadProgramName = "Galaxy 101 game";
           Serial.println(F("+ g, load PROGMEM array: Galaxy 101, the Star Wars version of the Star Trek game."));
           programState = PROGRAM_WAIT;
-          if (SERIAL_FRONT_PANEL) {
+          if (VIRTUAL_FRONT_PANEL) {
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
           }
           loadGalaxy101();
@@ -829,12 +829,12 @@ void loadProgram() {
         case 'x':
           Serial.println(F("< x, Exit load program."));
           programState = PROGRAM_WAIT;
-          if (SERIAL_FRONT_PANEL) {
+          if (VIRTUAL_FRONT_PANEL) {
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
           }
           break;
         default:
-          if (SERIAL_FRONT_PANEL) {
+          if (VIRTUAL_FRONT_PANEL) {
             Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
             Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
           }
@@ -847,7 +847,7 @@ void loadProgram() {
     // Do EXAMINE 0 after the load;
     regPC = 0;
     setAddressData(regPC, MREAD(regPC));
-    if (SERIAL_FRONT_PANEL) {
+    if (VIRTUAL_FRONT_PANEL) {
       printVirtualFrontPanel();
     }
   }

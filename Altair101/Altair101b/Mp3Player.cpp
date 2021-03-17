@@ -15,6 +15,9 @@
   -------------------------------------------------------------------------
   Next to implement,
 
+  Do a lower section VFP clear before print messages.
+  Toggle VFP data switches to select an MP3.
+
   --------------------
   Add LED lights, LED digits, or an LCD for device feedback.
 
@@ -243,6 +246,8 @@ extern int programState;
 const byte OUT_ON =     B00010000;  // OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
 const byte HLTA_ON =    B00001000;  // HLTA   Machine opcode hlt, has halted the machine.
 const byte HLTA_OFF =   ~HLTA_ON;
+const byte M1_ON =      B00100000;  // HLTA   Machine opcode hlt, has halted the machine.
+const byte M1_OFF =     ~M1_ON;
 
 // -----------------------------------------------------------------------
 // Motherboard Specific setup for DFPlayer communications
@@ -323,7 +328,7 @@ boolean NOT_PLAY_SOUND = false;
 void setupMp3Player() {
   // ----------------------------------------------------
   irrecv.enableIRIn();
-  Serial.println(F("+ Initialized: infrared receiver."));
+  Serial.println(F("+ Initialized: infrared receiver for the MP3 player."));
 
   // Set player front panel values.
   playerCounter = 1;                  // For now, default to song/file 1.
@@ -620,6 +625,10 @@ void printDFPlayerMessage(uint8_t type, int value) {
 // Infrared DFPlayer controls
 
 void playerSwitch(int resultsValue) {
+  if (VIRTUAL_FRONT_PANEL) {
+    Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
+    Serial.print(F("\033[J"));     // From cursor down, clear the screen.
+  }
   boolean printPrompt = true;
   switch (resultsValue) {
     // -----------------------------------
@@ -823,8 +832,9 @@ void playerSwitch(int resultsValue) {
     case 'L':
       Serial.println("+ Key *|A.Select - Loop on: loop this single MP3.");
       loopSingle = true;
+      playerStatus = playerStatus | M1_ON;
       if (!(playerStatus & HLTA_ON)) {
-        // Pause identifies that loop is on. Else I need a LED to indicate loop is on.
+        // In not setting front panel LED, pause to identifies loop status.
         mp3playerDevice.pause();
         delay(200);
         mp3playerDevice.start();
@@ -835,8 +845,9 @@ void playerSwitch(int resultsValue) {
     case 'l':
       Serial.println("+ Key #|Eject - Loop off: Single MP3 loop is off.");
       loopSingle = false;
+      playerStatus = playerStatus & M1_OFF;
       if (!(playerStatus & HLTA_ON)) {
-        // Pause identifies that loop is now off. Else I need a LED to indicate loop is on.
+        // In not setting front panel LED, pause to identifies loop status.
         mp3playerDevice.pause();
         delay(1000);
         mp3playerDevice.start();

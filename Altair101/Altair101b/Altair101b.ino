@@ -32,19 +32,18 @@
   Next to work on
 
   Continue integrating Processor.ino features and functions.
+  + Move Status const to Altair101b.h
+    const byte MEMR_ON =    B10000000;  // MEMR   The memory bus will be used for memory read data.
   + Run 00000000.bin on startup.
   + OUT 10, MP3 play options. OUT 11, to have the MP3 looped.
   + Display player status, volume, and song number, in the virtual panel.
-  ++ Display using: void playerLights(...)
-  ++ Before mp3PlayerRun(), save processor status, address, and data.
-  ++ After, restore the values and redisplay the virtual front panet (VFP).
 
   Add hardware to display values:
   + Player song.
   + Clock date and time.
 
   Consider:
-  + Adding my own sample assembler programs.
+  + Adding my sample assembler programs to AltairSamples.cpp.
   + A Serial2 buffer for reliably uploading basic programs.
 
   Update README.md files:
@@ -1286,7 +1285,7 @@ byte resetByte = 'R';
 //
 void processRunSwitch(byte readByte) {
   if (VIRTUAL_FRONT_PANEL) {
-    Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
+    Serial.print(F("\033[J"));     // From cursor down, clear the screen.
   }
   if (readByte == stopByte) {
     Serial.println(F("+ s, STOP"));

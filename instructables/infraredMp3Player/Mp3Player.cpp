@@ -15,6 +15,9 @@
   -------------------------------------------------------------------------
   Next to implement,
 
+  Show loop on/off status in the VFP.
+  Do a lower section VFP clear before print messages.
+
   --------------------
   Add LED lights, LED digits, or an LCD for device feedback.
 
@@ -243,6 +246,8 @@ extern int programState;
 const byte OUT_ON =     B00010000;  // OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
 const byte HLTA_ON =    B00001000;  // HLTA   Machine opcode hlt, has halted the machine.
 const byte HLTA_OFF =   ~HLTA_ON;
+const byte M1_ON =      B00100000;  // HLTA   Machine opcode hlt, has halted the machine.
+const byte M1_OFF =     ~M1_ON;
 
 // -----------------------------------------------------------------------
 // Motherboard Specific setup for DFPlayer communications
@@ -323,7 +328,7 @@ boolean NOT_PLAY_SOUND = false;
 void setupMp3Player() {
   // ----------------------------------------------------
   irrecv.enableIRIn();
-  Serial.println(F("+ Initialized: infrared receiver."));
+  Serial.println(F("+ Initialized: infrared receiver for the MP3 player."));
 
   // Set player front panel values.
   playerCounter = 1;                  // For now, default to song/file 1.
@@ -514,7 +519,7 @@ void playCounterHlta() {
     mp3playerDevice.play(playerCounter);
     currentPlayerCounter = playerCounter;
   }
-  playerLights(playerStatus, playerVolume, thePlayerCounter);
+  playerLights(playerStatus, playerVolume, playerCounter);
 }
 
 // -----------------------------------------------------------------------
@@ -553,6 +558,7 @@ int playDirectory(int theDirectory) {
   Serial.print(playerCounter);
   Serial.print(", returnDirectory=");
   Serial.print(returnDirectory);
+  playerLights(playerStatus, playerVolume, playerCounter);
   return ( returnDirectory );
 }
 
@@ -566,7 +572,7 @@ void printDFPlayerMessage(uint8_t type, int value) {
       // Serial.println(F("Time Out!"));
       mp3playerPlay(playerCounter);
       playerStatus = playerStatus & HLTA_OFF;
-      playerLights(playerStatus, playerVolume, thePlayerCounter);
+      playerLights(playerStatus, playerVolume, playerCounter);
       break;
     case DFPlayerCardInserted:
       Serial.println(F("Card Inserted!"));
@@ -822,8 +828,9 @@ void playerSwitch(int resultsValue) {
     case 'L':
       Serial.println("+ Key *|A.Select - Loop on: loop this single MP3.");
       loopSingle = true;
+      playerStatus = playerStatus | M1_ON;
       if (!(playerStatus & HLTA_ON)) {
-        // Pause identifies that loop is on. Else I need a LED to indicate loop is on.
+        // In not setting front panel LED, pause to identifies loop status.
         mp3playerDevice.pause();
         delay(200);
         mp3playerDevice.start();
@@ -834,8 +841,9 @@ void playerSwitch(int resultsValue) {
     case 'l':
       Serial.println("+ Key #|Eject - Loop off: Single MP3 loop is off.");
       loopSingle = false;
+      playerStatus = playerStatus & M1_OFF;
       if (!(playerStatus & HLTA_ON)) {
-        // Pause identifies that loop is now off. Else I need a LED to indicate loop is on.
+        // In not setting front panel LED, pause to identifies loop status.
         mp3playerDevice.pause();
         delay(1000);
         mp3playerDevice.start();
@@ -930,7 +938,6 @@ void playerSwitch(int resultsValue) {
       mp3playerDevice.volume(playerVolume);
       Serial.print(F(" increase volume to "));
       Serial.println(playerVolume);
-      // Set: playerLights(playerStatus, playerVolume, thePlayerCounter);
       break;
     case 0x1CF3ACDB:
     case 0xFFA25D:              // Small remote, Key 1
@@ -943,7 +950,6 @@ void playerSwitch(int resultsValue) {
       mp3playerDevice.volume(playerVolume);
       Serial.print(F(" decrease volume to "));
       Serial.println(playerVolume);
-      // Set: playerLights(playerStatus, playerVolume, thePlayerCounter);
       break;
     // ----------------------------------------------------------------------
     case 'h':
@@ -963,6 +969,7 @@ void playerSwitch(int resultsValue) {
       Serial.println(F("+ 4 POP   5 CLASSIC  6 NORMAL"));
       Serial.println(F("+ 7 ROCK  8 JAZZ     9 BASS"));
       Serial.println(F("------------------"));
+      Serial.println(F("+ t/T VT100 panel Disable/enable VT100 virtual front panel."));
       Serial.println(F("+ Ctrl+L          Clear screen."));
       Serial.println(F("+ X, Exit player  Return to program WAIT mode."));
       Serial.println(F("------------------"));
@@ -980,7 +987,6 @@ void playerSwitch(int resultsValue) {
       delay(200);
       mp3playerPlay(playerCounter);
       mp3playerDevice.stop();
-      playerLights(playerStatus, playerVolume, thePlayerCounter);
       break;
     case 0xC4CC6436:                              // Key DISPLAY After pressing VCR
     case 0x6F46633F:                              // Key DISPLAY After pressing TV
@@ -996,10 +1002,25 @@ void playerSwitch(int resultsValue) {
     case 0xDA529B37:                              // Key POWER After pressing VCR
     case 0x1A2EEC3B:                              // Key POWER After pressing TV
     case 'X':
-      Serial.println(F("+ Power or Key TV/VCR"));
+      Serial.println(F("+ Exit MP3 player mode."));
       programState = PROGRAM_WAIT;
       break;
-    // -----------------------------------
+    // -------------------------------------------------------------------
+    case 't':
+      Serial.println(F("+ VT100 escapes are disabled and block cursor on."));
+      if (VIRTUAL_FRONT_PANEL) {
+        VIRTUAL_FRONT_PANEL = false;
+        Serial.print(F("\033[0m\033[?25h"));       // Insure block cursor display: on.
+      }
+      // Note, VT100 escape sequences don't work on the Ardino IDE monitor.
+      break;
+    case 'T':
+      // The following requires a VT100 terminal such as a Macbook terminal.
+      initVirtualFrontPanel();
+      playerLights(playerStatus, playerVolume, playerCounter);
+      Serial.println(F("+ VT100 escapes are enabled and block cursor off."));
+      break;
+    // -------------------------------------------------------------------
     default:
       // Serial.print(F("+ Result value: "));
       // Serial.print(resultsValue);
@@ -1011,6 +1032,7 @@ void playerSwitch(int resultsValue) {
   } // end switch
   if (printPrompt && (programState == PLAYER_RUN)) {
     Serial.print(playerPrompt);
+    playerLights(playerStatus, playerVolume, playerCounter);
   }
 }
 
@@ -1058,8 +1080,8 @@ void playerContinuous() {
         playerStatus = playerStatus & HLTA_OFF;
         if (programState == PLAYER_RUN) {
           // This "if", allows continuous playing
-          //   in other modes (clock) without effecting their dislay lights.
-          playerLights(playerStatus, playerVolume, thePlayerCounter);
+          //   in other modes (clock) without effecting their display lights.
+          playerLights(playerStatus, playerVolume, playerCounter);
         }
       }
       // Serial.print(F(", playerCounter="));
@@ -1166,6 +1188,9 @@ void mp3playerPlaywait(byte theFileNumber) {
 // MP3 Player controls.
 
 void mp3PlayerRun() {
+  if (VIRTUAL_FRONT_PANEL) {
+    playerSwitch('T');
+  }
   Serial.println(F("+ runMp3Player();"));
   Serial.print(playerPrompt);
   while (programState == PLAYER_RUN) {

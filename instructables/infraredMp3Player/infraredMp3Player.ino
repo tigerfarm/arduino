@@ -21,6 +21,9 @@
 #include "Altair101b.h"
 
 #include "Mp3Player.h"
+boolean VIRTUAL_FRONT_PANEL;
+void initVirtualFrontPanel() {}
+extern void printVirtualFrontPanel() {}
 void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberByte) {}
 
 // -----------------------------------------------------------------------------

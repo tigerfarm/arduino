@@ -49,16 +49,18 @@ void loadKillTheBitArray();
 void loadKillTheBit();
 void loadMviRegisters();
 
-// From Altair101a.ino program, for AltairSample.cpp.
+// -----------------------------------------------------------------------------
+// From Altair101b.ino program, for AltairSample.cpp.
 void printByte(byte b);
 void printOctal(byte b);
 void printHex(byte b);
 
-// From here, for the AltairSample.cpp program.
+// From Altair101b.ino program, for other programs.
 extern boolean VIRTUAL_FRONT_PANEL;
-extern void setAddressData(uint16_t addressWord, byte dataByte);
 extern void initVirtualFrontPanel();
 extern void printVirtualFrontPanel();
+//
+extern void setAddressData(uint16_t addressWord, byte dataByte);
 extern String loadProgramName;
 extern byte readByte;
 

@@ -302,7 +302,7 @@ char clockValueName[6][8] = {"year", "month", "day", "hour", "minute", "seconds"
 void setupClock() {
   // ----------------------------------------------------
   clockIrrecv.enableIRIn();
-  Serial.println(F("+ Initialized: infrared receiver."));
+  Serial.println(F("+ Initialized: infrared receiver for the real time clock."));
 
   // Initialize the Real Time Clock (RTC).
   if (!rtc.begin()) {
