@@ -14,5 +14,7 @@
 extern int programState;
 extern byte hwStatus;
 
+extern boolean SERIAL_FRONT_PANEL;
+
 // -----------------------------------------------------------------------------
 // eof

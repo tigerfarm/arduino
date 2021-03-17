@@ -962,6 +962,7 @@ void playerSwitch(int resultsValue) {
       Serial.println(F("+ 4 POP   5 CLASSIC  6 NORMAL"));
       Serial.println(F("+ 7 ROCK  8 JAZZ     9 BASS"));
       Serial.println(F("------------------"));
+      Serial.println(F("+ t/T VT100 panel Disable/enable VT100 virtual front panel."));
       Serial.println(F("+ Ctrl+L          Clear screen."));
       Serial.println(F("+ X, Exit player  Return to program WAIT mode."));
       Serial.println(F("------------------"));
@@ -997,7 +998,32 @@ void playerSwitch(int resultsValue) {
       Serial.println(F("+ Power or Key TV/VCR"));
       programState = PROGRAM_WAIT;
       break;
-    // -----------------------------------
+    // -------------------------------------------------------------------
+    case 't':
+      Serial.println(F("+ VT100 escapes are disabled and block cursor on."));
+      if (SERIAL_FRONT_PANEL) {
+        SERIAL_FRONT_PANEL = false;
+        Serial.print(F("\033[0m\033[?25h"));       // Insure block cursor display: on.
+      }
+      // Note, VT100 escape sequences don't work on the Ardino IDE monitor.
+      break;
+    case 'T':
+      // The following requires a VT100 terminal such as a Macbook terminal.
+      // Insure the previous value is different to current, to insure an intial printing.
+      // prev_fpDataByte = 0;
+      // prev_fpAddressWord = 0;
+      // prev_fpAddressToggleWord = 0;               // Set to different value.
+      // fpAddressToggleWord = 0;                    // Set all toggles off.
+      Serial.print(F("\033[0m\033[?25l"));        // Block cursor display: off.
+      Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
+      SERIAL_FRONT_PANEL = false;                 // Insure labels are printed.
+      // Print the complete front panel: labels and indicators.
+      playerLights(playerStatus, playerVolume, thePlayerCounter);
+      SERIAL_FRONT_PANEL = true;                  // Must be after serialPrintFrontPanel(), to have the labels printed.
+      // SERIAL_IO_IDE = false;                      // Insure it's disabled.
+      Serial.println(F("+ VT100 escapes are enabled and block cursor off."));
+      break;
+    // -------------------------------------------------------------------
     default:
       // Serial.print(F("+ Result value: "));
       // Serial.print(resultsValue);
