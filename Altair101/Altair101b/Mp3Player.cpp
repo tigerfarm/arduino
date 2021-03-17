@@ -514,7 +514,7 @@ void playCounterHlta() {
     mp3playerDevice.play(playerCounter);
     currentPlayerCounter = playerCounter;
   }
-  playerLights(playerStatus, playerVolume, thePlayerCounter);
+  playerLights(playerStatus, playerVolume, playerCounter);
 }
 
 // -----------------------------------------------------------------------
@@ -553,7 +553,7 @@ int playDirectory(int theDirectory) {
   Serial.print(playerCounter);
   Serial.print(", returnDirectory=");
   Serial.print(returnDirectory);
-  playerLights(playerStatus, playerVolume, thePlayerCounter);
+  playerLights(playerStatus, playerVolume, playerCounter);
   return ( returnDirectory );
 }
 
@@ -567,7 +567,7 @@ void printDFPlayerMessage(uint8_t type, int value) {
       // Serial.println(F("Time Out!"));
       mp3playerPlay(playerCounter);
       playerStatus = playerStatus & HLTA_OFF;
-      playerLights(playerStatus, playerVolume, thePlayerCounter);
+      playerLights(playerStatus, playerVolume, playerCounter);
       break;
     case DFPlayerCardInserted:
       Serial.println(F("Card Inserted!"));
@@ -1018,7 +1018,7 @@ void playerSwitch(int resultsValue) {
       Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
       SERIAL_FRONT_PANEL = false;                 // Insure labels are printed.
       // Print the complete front panel: labels and indicators.
-      playerLights(playerStatus, playerVolume, thePlayerCounter);
+      playerLights(playerStatus, playerVolume, playerCounter);
       SERIAL_FRONT_PANEL = true;                  // Must be after serialPrintFrontPanel(), to have the labels printed.
       // SERIAL_IO_IDE = false;                      // Insure it's disabled.
       Serial.println(F("+ VT100 escapes are enabled and block cursor off."));
@@ -1035,7 +1035,7 @@ void playerSwitch(int resultsValue) {
   } // end switch
   if (printPrompt && (programState == PLAYER_RUN)) {
     Serial.print(playerPrompt);
-    playerLights(playerStatus, playerVolume, thePlayerCounter);
+    playerLights(playerStatus, playerVolume, playerCounter);
   }
 }
 
@@ -1084,7 +1084,7 @@ void playerContinuous() {
         if (programState == PLAYER_RUN) {
           // This "if", allows continuous playing
           //   in other modes (clock) without effecting their display lights.
-          playerLights(playerStatus, playerVolume, thePlayerCounter);
+          playerLights(playerStatus, playerVolume, playerCounter);
         }
       }
       // Serial.print(F(", playerCounter="));
