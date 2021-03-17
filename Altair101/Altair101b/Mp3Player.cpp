@@ -553,6 +553,7 @@ int playDirectory(int theDirectory) {
   Serial.print(playerCounter);
   Serial.print(", returnDirectory=");
   Serial.print(returnDirectory);
+  playerLights(playerStatus, playerVolume, thePlayerCounter);
   return ( returnDirectory );
 }
 
@@ -930,7 +931,6 @@ void playerSwitch(int resultsValue) {
       mp3playerDevice.volume(playerVolume);
       Serial.print(F(" increase volume to "));
       Serial.println(playerVolume);
-      // Set: playerLights(playerStatus, playerVolume, thePlayerCounter);
       break;
     case 0x1CF3ACDB:
     case 0xFFA25D:              // Small remote, Key 1
@@ -943,7 +943,6 @@ void playerSwitch(int resultsValue) {
       mp3playerDevice.volume(playerVolume);
       Serial.print(F(" decrease volume to "));
       Serial.println(playerVolume);
-      // Set: playerLights(playerStatus, playerVolume, thePlayerCounter);
       break;
     // ----------------------------------------------------------------------
     case 'h':
@@ -980,7 +979,6 @@ void playerSwitch(int resultsValue) {
       delay(200);
       mp3playerPlay(playerCounter);
       mp3playerDevice.stop();
-      playerLights(playerStatus, playerVolume, thePlayerCounter);
       break;
     case 0xC4CC6436:                              // Key DISPLAY After pressing VCR
     case 0x6F46633F:                              // Key DISPLAY After pressing TV
@@ -1011,6 +1009,7 @@ void playerSwitch(int resultsValue) {
   } // end switch
   if (printPrompt && (programState == PLAYER_RUN)) {
     Serial.print(playerPrompt);
+    playerLights(playerStatus, playerVolume, thePlayerCounter);
   }
 }
 
@@ -1058,7 +1057,7 @@ void playerContinuous() {
         playerStatus = playerStatus & HLTA_OFF;
         if (programState == PLAYER_RUN) {
           // This "if", allows continuous playing
-          //   in other modes (clock) without effecting their dislay lights.
+          //   in other modes (clock) without effecting their display lights.
           playerLights(playerStatus, playerVolume, thePlayerCounter);
         }
       }

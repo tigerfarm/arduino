@@ -34,6 +34,10 @@
   Continue integrating Processor.ino features and functions.
   + Run 00000000.bin on startup.
   + OUT 10, MP3 play options. OUT 11, to have the MP3 looped.
+  + Display player status, volume, and song number, in the virtual panel.
+  ++ Display using: void playerLights(...)
+  ++ Before mp3PlayerRun(), save processor status, address, and data.
+  ++ After, restore the values and redisplay the virtual front panet (VFP).
 
   Add hardware to display values:
   + Player song.
@@ -191,6 +195,7 @@
 
 // #define LOG_MESSAGES 1     // For debugging.
 // #define LOG_OPCODES  1     // Print each called opcode.
+#define SETUP_SDCARD 1
 
 String theFilename;           // Use for file read/write selection.
 
@@ -455,9 +460,15 @@ void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte
 // When in PLAYER_RUN mode, display MP3 player values on the virtual front panel.
 
 void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberByte) {
-  if (programState == PLAYER_RUN) {
-    // The middle parameter is the volume.
-    // printFrontPanel();
+  // MP3 player version of printFrontPanel();
+  if (LED_IO) {
+    lightsStatusAddressData(statusByte, playerVolume, songNumberByte);
+  }
+  if (SERIAL_FRONT_PANEL) {
+    fpStatusByte = statusByte;
+    fpAddressWord = playerVolume;
+    fpDataByte = songNumberByte;
+    serialPrintFrontPanel();
   }
 }
 
@@ -719,7 +730,7 @@ void controlResetLogic() {
 
 // Check sense switch toggles and return the switch byte value as a string.
 String getSenseSwitchValue() {
-  // From serial toggle switches.
+  // From virtual toggle switches.
   byte bValue = highByte(fpAddressToggleWord);
   // From hardware is not implemented.
   // byte bValue = toggleSense();
@@ -1681,7 +1692,10 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ y/Y Serial2     Disable/enable Serial2 for program I/O."));
       Serial.println(F("+ B Serial2 baud  Set Serial2 baud rate."));
       Serial.println(F("-------------"));
-      Serial.println(F("+ m, SD Card      SD Card mode, memory manage with the SD card."));
+      Serial.println(F("+ E, SD Card      SD Card mode, memory manage with the SD card."));
+      Serial.println(F("+ m, Read         Read an SD card file into program memory."));
+      Serial.println(F("+ M, Write        Write program memory to an SD card file."));
+      Serial.println(F("+ n, Directory    Directory file listing of the SD card."));
       Serial.println(F("+ Q, Clock        CLOCK mode, interact with the clock."));
       Serial.println(F("+ q, Time         Show the clock's data and time."));
       Serial.println(F("-------------"));
@@ -1690,10 +1704,6 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ g/G Play        Pause/Play MP3 song."));
       Serial.println(F("+ k/K Volume      Down/Up player volume."));
       Serial.println(F("-------------"));
-      // Serial.println(F("+ m, Read         Read an SD card file into program memory."));
-      // Serial.println(F("+ M, Write        Write program memory to an SD card file."));
-      Serial.println(F("+ n, Directory    Directory file listing of the SD card."));
-      Serial.println(F("-------------"));
       Serial.println(F("+ Enter key       Refresh USB serial output front panel display."));
       Serial.println(F("+ u/U Log msg     Log messages off/on."));
       Serial.println(F("+ z/Z cursor      VT100 block cursor off/on."));
@@ -1701,11 +1711,6 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
       Serial.println(F("+ w/W USB serial  Disable/enable USB serial output."));
       Serial.println(F("----------------------------------------------------"));
-      break;
-    // -------------------------------------
-    case 'm':
-      Serial.println(F("+ m, SD Card mode, memory manage with the SD card."));
-      programState = SDCARD_RUN;
       break;
     // -------------------------------------
     case 'Q':
@@ -1721,22 +1726,108 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ H, MP3 Player   PLAYER mode, run the MP3 player."));
       programState = PLAYER_RUN;
       break;
-    case 'I':
-      playerSwitch('i');
-      break;
     case 'g':
-      playerSwitch('s');
+      playerSwitch('s');  // Stop play
       break;
     case 'G':
-      playerSwitch('r');
+      playerSwitch('r');  // Start/run play
       break;
     case 'k':
-      playerSwitch('v');
-      Serial.print(F("> "));
+      playerSwitch('v');  // Volume down.
       break;
     case 'K':
-      playerSwitch('V');
-      Serial.print(F("> "));
+      playerSwitch('V');  // Volume up.
+      break;
+    // -------------------------------------
+    case 'F':
+      Serial.println(F("+ m, SD Card mode, memory manage with the SD card."));
+      programState = SDCARD_RUN;
+      break;
+    case 'n':
+#ifdef SETUP_SDCARD
+      sdCardSwitch('n');
+#else
+      Serial.println(F("- SD card not enabled."));
+#endif
+      break;
+    case 'm':
+      {
+        Serial.println(F("+ m, Read file into program memory."));
+#ifdef SETUP_SDCARD
+        theFilename = getSenseSwitchValue() + ".bin";
+        if (theFilename == "00000000.bin") {
+          Serial.println(F("+ Set to download over the serial port."));
+          programState = SERIAL_DOWNLOAD;
+          return;
+        }
+        Serial.print(F("++ Program filename: "));
+        Serial.println(theFilename);
+        Serial.println(F("++ Confirm, y/n: "));
+        readConfirmByte = 's';
+        while (!(readConfirmByte == 'y' || readConfirmByte == 'n')) {
+          if (Serial.available() > 0) {
+            readConfirmByte = Serial.read();    // Read and process an incoming byte.
+          }
+          delay(60);
+        }
+        if (readConfirmByte != 'y') {
+          Serial.println(F("+ Cancelled."));
+          break;
+        }
+        Serial.println(F("+ Confirmed."));
+        //
+        host_set_status_led_HLDA();
+        if (readFileToMemory(theFilename)) {
+          ledFlashSuccess();
+          controlResetLogic();
+          fpAddressToggleWord = 0;                // Reset all toggles to off.
+          playerPlaySoundWait(READ_FILE);
+          // } else {
+          // Redisplay the front panel lights.
+          // printFrontPanel();
+        }
+        printFrontPanel();
+        host_clr_status_led_HLDA();
+#else
+        Serial.println(F("- SD card not enabled."));
+#endif  // SETUP_SDCARD
+        break;
+      }
+    case 'M':
+      {
+        Serial.println(F("+ M, Write program Memory into a file."));
+#ifdef SETUP_SDCARD
+        String senseSwitchValue = getSenseSwitchValue();
+        theFilename = senseSwitchValue + ".bin";
+        if (theFilename == "11111111.bin") {
+          Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
+          ledFlashError();
+          return;
+        }
+        Serial.print(F("++ Write filename: "));
+        Serial.println(theFilename);
+        Serial.println(F("++ Confirm, y/n: "));
+        readConfirmByte = 's';
+        while (!(readConfirmByte == 'y' || readConfirmByte == 'n')) {
+          if (Serial.available() > 0) {
+            readConfirmByte = Serial.read();    // Read and process an incoming byte.
+          }
+          delay(60);
+        }
+        if (readConfirmByte != 'y') {
+          Serial.println(F("+ Cancelled."));
+          break;
+        }
+        Serial.println(F("+ Confirmed."));
+        //
+        host_set_status_led_HLDA();
+        // -------------------------------------------------------
+        writeMemoryToFile(theFilename);
+        printFrontPanel();
+#else
+        Serial.println(F("- SD card not enabled."));
+#endif  // SETUP_SDCARD
+      }
       break;
     // -------------------------------------
     case 13:
@@ -1764,92 +1855,6 @@ void processWaitSwitch(byte readByte) {
         SERIAL_FRONT_PANEL = true;                 // Must be after serialPrintFrontPanel(), to have the labels printed.
       }
       break;
-    case 'n':
-#ifdef SETUP_SDCARD
-      sdCardSwitch('n');
-#endif
-      break;
-      /*
-        case 'm':
-        Serial.println(F("+ m, Read file into program memory."));
-        #ifdef SETUP_SDCARD
-        theFilename = getSenseSwitchValue() + ".bin";
-        if (theFilename == "00000000.bin") {
-        Serial.println(F("+ Set to download over the serial port."));
-        programState = SERIAL_DOWNLOAD;
-        return;
-        }
-        Serial.print(F("++ Program filename: "));
-        Serial.println(theFilename);
-        Serial.println(F("++ Confirm, y/n: "));
-        readConfirmByte = 's';
-        while (!(readConfirmByte == 'y' || readConfirmByte == 'n')) {
-        if (Serial.available() > 0) {
-          readConfirmByte = Serial.read();    // Read and process an incoming byte.
-        }
-        delay(60);
-        }
-        if (readConfirmByte != 'y') {
-        Serial.println(F("+ Cancelled."));
-        break;
-        }
-        Serial.println(F("+ Confirmed."));
-        //
-        host_set_status_led_HLDA();
-        if (readProgramFileIntoMemory(theFilename)) {
-        ledFlashSuccess();
-        controlResetLogic();
-        fpAddressToggleWord = 0;                // Reset all toggles to off.
-        playerPlaySoundWait(READ_FILE);
-        // } else {
-        // Redisplay the front panel lights.
-        // printFrontPanel();
-        }
-        printFrontPanel();
-        host_clr_status_led_HLDA();
-        #else
-        Serial.println(F("- SD card not enabled."));
-        #endif  // SETUP_SDCARD
-        break;
-        case 'M':
-        Serial.println(F("+ M, Write program Memory into a file."));
-        #ifdef SETUP_SDCARD
-        String senseSwitchValue = getSenseSwitchValue();
-        theFilename = senseSwitchValue + ".bin";
-        if (theFilename == "11111111.bin") {
-        Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
-        ledFlashError();
-        return;
-        }
-        Serial.print(F("++ Write filename: "));
-        Serial.println(theFilename);
-        Serial.println(F("++ Confirm, y/n: "));
-        readConfirmByte = 's';
-        while (!(readConfirmByte == 'y' || readConfirmByte == 'n')) {
-        if (Serial.available() > 0) {
-          readConfirmByte = Serial.read();    // Read and process an incoming byte.
-        }
-        delay(60);
-        }
-        if (readConfirmByte != 'y') {
-        Serial.println(F("+ Cancelled."));
-        break;
-        }
-        Serial.println(F("+ Confirmed."));
-        //
-        host_set_status_led_HLDA();
-        #ifdef LOG_MESSAGES
-        Serial.print(F("+ Write memory to filename: "));
-        Serial.println(theFilename);
-        #endif
-        // -------------------------------------------------------
-        writeProgramMemoryToFile(theFilename);
-        printFrontPanel();
-        #else
-        Serial.println(F("- SD card not enabled."));
-        #endif  // SETUP_SDCARD
-        break;
-      */
       // -------------------------------------
       /*
         default:
@@ -2157,28 +2162,35 @@ void setup() {
   // ---------------------------
   // + If 00000000.bin exists, read it.
   // Serial.print(F("+ Program loaded from memory array."));
-  readFileToMemory("00000000.bin");
-  int sumBytes = 0;
-  for (int i = 0; i < 32; i++) {
-    sumBytes = sumBytes + MREAD(i);
+  programState = PROGRAM_WAIT;
+  controlResetLogic();
+  if (readFileToMemory("00000000.bin")) {
+    int sumBytes = 0;
+    for (int i = 0; i < 32; i++) {
+      sumBytes = sumBytes + MREAD(i);
+    }
+    if (sumBytes > 0) {
+      Serial.println(F("++ Since 00000000.bin, has non-zero bytes in the first 32 bytes, run it."));
+      programState = PROGRAM_RUN;
+      digitalWrite(WAIT_PIN, LOW);
+    }
   }
-  if (sumBytes > 0) {
-    Serial.println(F("++ Since 00000000.bin, has non-zero bytes in the first 32 bytes, run it."));
-    programState = PROGRAM_RUN;
-    digitalWrite(WAIT_PIN, LOW);
-  } else {
-    programState = PROGRAM_WAIT;
-    controlResetLogic();
-  }
-
   // ----------------------------------------------------
-  Serial.println(F("+++ Altair101b initialized, version 0.92.b."));
-
-  // ----------------------------------------------------
+  Serial.print(F("+++ "));
+  Serial.print(SOFTWARE_NAME);
+  Serial.print(F(" initialized, version "));
+  Serial.print(SOFTWARE_VERSION);
+  Serial.print(F("."));
+  Serial.println();
 }
 
 // -----------------------------------------------------------------------------
 // Device Loop
+
+byte tmp_fpStatusByte;
+uint16_t tmp_fpAddressWord;
+byte tmp_fpDataByte;
+
 void loop() {
   switch (programState) {
     // ----------------------------
@@ -2219,7 +2231,17 @@ void loop() {
     case PLAYER_RUN:
       host_clr_status_led_WAIT();
       host_set_status_led_HLDA();
+      // Save processor front panel values.
+      tmp_fpStatusByte = fpStatusByte;
+      tmp_fpAddressWord = fpAddressWord;
+      tmp_fpDataByte = fpDataByte;
+      //
       mp3PlayerRun();
+      //
+      // Restore processor front panel values.
+      fpStatusByte = tmp_fpStatusByte;
+      fpAddressWord = tmp_fpAddressWord;
+      fpDataByte = tmp_fpDataByte;
       host_clr_status_led_HLDA();
       break;
     // ----------------------------

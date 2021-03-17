@@ -300,7 +300,6 @@ uint16_t thePlayerCounter;
 
 //
 uint16_t currentPlayerCounter = playerCounter;  // Current song playing.
-uint16_t processorPlayerCounter = 0;            // Indicator for the processor to play an MP3, if not zero.
 boolean processorPlayerLoop = true;             // Indicator for the processor to start playing an MP3 when flipping START.
 //
 uint16_t playerCounterTop = 0;
@@ -308,6 +307,9 @@ uint16_t playerDirectoryTop = 0;
 uint8_t playerDirectory = 1;                    // File directory name on the SD card. Example 1 is directory name: /01.
 uint8_t playerEq = DFPLAYER_EQ_CLASSIC;         // Default equalizer setting.
 boolean loopSingle = false;                     // For toggling single song.
+void setLoopSingle(boolean setTo) {
+  loopSingle = setTo;                           // For external programs to set the loopSingle value.
+}
 
 // Sometimes, nice not to hear sounds over and again when testing.
 //      NOT_PLAY_SOUND = false >> Do play sounds.
@@ -1084,6 +1086,16 @@ void playerContinuous() {
 
 // -----------------------------------------------------------------------------
 // Calls from other programs.
+
+void mp3PlayerStart() {
+  mp3playerDevice.start();
+  playerStatus = playerStatus & HLTA_OFF;
+}
+
+void mp3PlayerLoop(byte theFileNumber) {
+  mp3playerDevice.loop(theFileNumber);
+  playerStatus = playerStatus & HLTA_OFF;
+}
 
 void mp3PlayerPause() {
   // Twice because sometimes, once doesn't work.

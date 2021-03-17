@@ -1,6 +1,9 @@
 // -----------------------------------------------------------------------------
 #include <Arduino.h>
 
+#define SOFTWARE_NAME "Altair101b"
+#define SOFTWARE_VERSION "1.63.b"
+
 // -----------------------------------------------------------------------------
 // From cpucore_i8080.h
 extern word status_wait;

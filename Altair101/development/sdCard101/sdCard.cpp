@@ -11,12 +11,24 @@
   + Write the memory array to a file.
   + Delete the selected file.
 
-  Next, basic line editor functions:
+  -----------------------------------------------------------------------------
+  +++ Next
+
+  Basic line editor functions:
   + Delete a line.
     CARD ED ?- d 9
   + Add/insert a line.
     CARD ED ?- a Hello there.
     CARD ED ?- i 9 Hello there.
+
+  + To fix, print if only 1 byte.
+CARD ?- + File: ABYTE.BIN, number of bytes: 1, number of bytes read: 1
+CARD ?- + Nothing to print. Memory bytes are all zero.
+
+  Handle this in Altair101.
+  + Allow manual update of single byte files.
+  + Upload a file from the laptop to the Altair101 program memory.
+  ++ Then the memory can be save to the SD card by this program.
 
   -----------------------------------------------------------------------------
   Wire the SD Card reader/writer module:
@@ -117,28 +129,27 @@ boolean setupSdCard() {
 // Read file into memory.
 
 boolean readFileToMemory(String theFilename) {
+  if (theFilename == "") {
+    Serial.println(F("- Read file, missing file name."));
+    return (false);
+  }
   if (!sdcardInitiated) {
     initSdCard();
   }
-  // Handle theFilename == ""
-  Serial.print(F("+ Read into memory, from file: "));
-  Serial.print(theFilename);
   if (!SD.exists(theFilename)) {
-    Serial.print(F("- Read ERROR, file doesn't exist: "));
-    Serial.println(theFilename);
+    // Serial.print(F("- Read ERROR, file doesn't exist: "));
+    // Serial.println(theFilename);
     sdcardInitiated = false;
     return (false);
   }
   myFile = SD.open(theFilename);
   if (!myFile) {
-    Serial.print(F("- Read ERROR, cannot open file: "));
-    Serial.println(theFilename);
+    // Serial.print(F("- Read ERROR, cannot open file: "));
+    // Serial.println(theFilename);
     sdcardInitiated = false;
     return (false);
   }
-  Serial.print(F(", file size: "));
-  Serial.print(myFile.size(), DEC);
-  Serial.println();
+  int numFileBytes = myFile.size();
   iFileBytes = 0;
   while (myFile.available()) {
     // Read and process one character at a time.
@@ -150,7 +161,11 @@ boolean readFileToMemory(String theFilename) {
   myFile.close();
   // Serial.println(F("<--"));
   // Serial.print(F("<-- Read completed, number of bytes: "));
-  Serial.print(F("+ Read completed, number of bytes: "));
+  Serial.print(F("+ File: "));
+  Serial.print(theFilename);
+  Serial.print(F(", number of bytes: "));
+  Serial.print(numFileBytes);
+  Serial.print(F(", number of bytes read: "));
   Serial.print(iFileBytes);
   Serial.println();
   return (true);
@@ -159,7 +174,7 @@ boolean readFileToMemory(String theFilename) {
 // -----------------------------------------------------------------------------
 int getMemoryByteCount() {
   // Calculate the number of bytes by removing memory trailing zeros.
-  for (iFileBytes = MEMSIZE-1; iFileBytes > 0; iFileBytes--) {
+  for (iFileBytes = MEMSIZE - 1; iFileBytes > 0; iFileBytes--) {
     if (MREAD(iFileBytes) != 0) {
       break;
     }
@@ -235,7 +250,7 @@ boolean writeMemoryToFile(String theFilename) {
     myFile.write(memoryData);
   }
   myFile.close();
-  Serial.println(F("+ Write completed, file closed. Number of bytes: "));
+  Serial.print(F("+ Write completed, file closed. Number of bytes: "));
   Serial.print(iFileBytes);
   Serial.println(".");
   return true;
@@ -542,7 +557,9 @@ void sdCardSwitch(int resultsValue) {
       Serial.println();
       break;
     case 'r':
-      readFileToMemory(thisFilename);
+      if (!readFileToMemory(thisFilename)){
+        Serial.println(F("- Read ERROR."));
+      }
       break;
     case 'p':
       printMemoryToScreen();
