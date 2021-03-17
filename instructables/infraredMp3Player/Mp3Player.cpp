@@ -15,8 +15,8 @@
   -------------------------------------------------------------------------
   Next to implement,
 
-  Show loop on/off status in the VFP.
   Do a lower section VFP clear before print messages.
+  Toggle VFP data switches to select an MP3.
 
   --------------------
   Add LED lights, LED digits, or an LCD for device feedback.
@@ -625,6 +625,10 @@ void printDFPlayerMessage(uint8_t type, int value) {
 // Infrared DFPlayer controls
 
 void playerSwitch(int resultsValue) {
+  if (VIRTUAL_FRONT_PANEL) {
+    Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
+    Serial.print(F("\033[J"));     // From cursor down, clear the screen.
+  }
   boolean printPrompt = true;
   switch (resultsValue) {
     // -----------------------------------
@@ -1002,7 +1006,7 @@ void playerSwitch(int resultsValue) {
     case 0xDA529B37:                              // Key POWER After pressing VCR
     case 0x1A2EEC3B:                              // Key POWER After pressing TV
     case 'X':
-      Serial.println(F("+ Exit MP3 player mode."));
+      Serial.println(F("+ Power or Key TV/VCR"));
       programState = PROGRAM_WAIT;
       break;
     // -------------------------------------------------------------------

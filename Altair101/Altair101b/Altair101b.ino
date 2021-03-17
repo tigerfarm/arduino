@@ -13,44 +13,42 @@
 /*
   Altair101b Operating System program
 
-  This program is an enhanced Altair 8800 simulator.
+  This program is an enhanced Altair 8800 emulator.
   Interactivity is through the default Arduino USB serial port, and optionally, the Serial2 port.
   It was tested using the Arduino IDE serial monitor and Mac terminal which has VT100 features.
-  It runs programs from command line, or with a simulated virtual front panel(printed to the serial port).
-  This simulator uses David Hansel's Altair 8800 Simulator code to process machine instructions.
+  It runs programs from command line, or with the emulated virtual front panel.
+  The virtual front panel funtions uses the serial port for communications to a VT100 terminal window.
+  This emulator uses David Hansel's Altair 8800 Simulator code to process machine instructions.
 
   Differences to the original Altair 8800:
   + HLT goes into STOP state which allows RUN to restart the process from where it was halted.
   + When SINGLE STEP read and write, I've chosen to show the actual data value,
     rather than having all the data lights on, which happens on the original Altair 8800.
 
-  This program runs 4K Basic on an Arduino Mega 2560.
-  Yes, the Basic language running in 4K of memory.
+  This program runs MITS Altair 4K Basic on an Arduino Mega 2560.
   It’s the assembler program written by Bill Gates, Paul Allen, and one more person. It's the first Microsoft software product.
 
   ---------------------------------------------------------
   Next to work on
 
+  In conjuction with the Altair101a instructable, update README.md files:
+  + Altair101a
+  + Galaxy101a
+  + 4K Basic
+  + programsAltair: programs people can load and run on the Altair101.
+
   Continue integrating Processor.ino features and functions.
-  + Move Status const to Altair101b.h
+  + Test running 00000000.bin on startup.
+  + Test Serial2 buffer uploads from asm, for uploading basic programs.
+  + Add some of my sample assembler programs to AltairSamples.cpp.
+  + Nice to standardize the key press options across the programs, such as v and V for player volume.
+  + Move Status const to Altair101b.h, for other programs to use, such as Mp3Player.cpp.
     const byte MEMR_ON =    B10000000;  // MEMR   The memory bus will be used for memory read data.
-  + Run 00000000.bin on startup.
-  + OUT 10, MP3 play options. OUT 11, to have the MP3 looped.
-  + Display player status, volume, and song number, in the virtual panel.
+  + Test: OUT 10, MP3 play options. OUT 11, to have the MP3 looped.
 
   Add hardware to display values:
   + Player song.
   + Clock date and time.
-
-  Consider:
-  + Adding my sample assembler programs to AltairSamples.cpp.
-  + A Serial2 buffer for reliably uploading basic programs.
-
-  Update README.md files:
-  + Altair101a
-  + Galaxy101a
-  + 4K Basic
-  + programsAltair: programs people can load and run on the Altair101a.
 
   Consider, when using Arduino IDE Serial Monitor, remove duplicate messages.
   + Maybe ignore "CR".
@@ -459,13 +457,27 @@ void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte
 // When in PLAYER_RUN mode, display MP3 player values on the virtual front panel.
 
 void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberByte) {
-  // MP3 player version of printFrontPanel();
+  //
+  // Convert playerVolume into A0 to A15 lights.
+  // If playerVolume is even
+  //  playerVolumeAddress = playerVolume/2
+  // Else odd, show both lower and upper.
+  //  5/2 = 2 Show 2 and 3.
+  //  6/2 = 3 Show only 3.
+  //  7/2 = 3 Show 3 and 4.
+  unsigned int playerVolumeAddress = 0;
+  byte playerVolumePosition = playerVolume / 2;
+  if ((playerVolumePosition * 2) != playerVolume) {
+    playerVolumeAddress = bitWrite(playerVolumeAddress, playerVolumePosition + 1, 1);
+  }
+  playerVolumeAddress = bitWrite(playerVolumeAddress, playerVolumePosition, 1);
+  //
   if (LED_IO) {
-    lightsStatusAddressData(statusByte, playerVolume, songNumberByte);
+    lightsStatusAddressData(statusByte, playerVolumeAddress, songNumberByte);
   }
   if (VIRTUAL_FRONT_PANEL) {
     fpStatusByte = statusByte;
-    fpAddressWord = playerVolume;
+    fpAddressWord = playerVolumeAddress;
     fpDataByte = songNumberByte;
     printVirtualFrontPanel();
   }
@@ -1557,14 +1569,14 @@ void processWaitSwitch(byte readByte) {
     //
     // -------------------------------------
     case 'l':
-      Serial.println(F("+ l, load a sample program."));
+      Serial.println(F("+ Load a sample program."));
       loadProgram();
       if (!SERIAL_IO_IDE) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
     case 'L':
-      Serial.println(F("+ L, Load hex code from the serial port. Enter space(' ') to exit."));
+      Serial.println(F("+ Load hex code from the serial port. Enter space(' ') to exit."));
       loadProgramSerial();
       if (!SERIAL_IO_IDE) {
         printFrontPanel();  // <LF> will refresh the display.
