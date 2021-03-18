@@ -59,6 +59,7 @@ void printHex(byte b);
 extern boolean VIRTUAL_FRONT_PANEL;
 extern void initVirtualFrontPanel();
 extern void printVirtualFrontPanel();
+extern uint16_t fpAddressToggleWord;
 //
 extern void setAddressData(uint16_t addressWord, byte dataByte);
 extern String loadProgramName;

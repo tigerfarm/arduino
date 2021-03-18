@@ -14,6 +14,7 @@ extern int programState;
 extern boolean VIRTUAL_FRONT_PANEL;
 extern void initVirtualFrontPanel();
 extern void printVirtualFrontPanel();
+extern uint16_t fpAddressToggleWord;
 
 // From here, for the Mp3Player.cpp program.
 extern void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberByte);

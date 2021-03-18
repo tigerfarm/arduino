@@ -39,12 +39,12 @@
 
   Continue integrating Processor.ino features and functions.
   + Test running 00000000.bin on startup.
+  + Test: OUT 10, MP3 play options. OUT 11, to have the MP3 looped.
   + Test Serial2 buffer uploads from asm, for uploading basic programs.
-  + Add some of my sample assembler programs to AltairSamples.cpp.
+  + Ready to add sample assembler programs to AltairSamples.cpp.
   + Nice to standardize the key press options across the programs, such as v and V for player volume.
   + Move Status const to Altair101b.h, for other programs to use, such as Mp3Player.cpp.
     const byte MEMR_ON =    B10000000;  // MEMR   The memory bus will be used for memory read data.
-  + Test: OUT 10, MP3 play options. OUT 11, to have the MP3 looped.
 
   Add hardware to display values:
   + Player song.
@@ -454,6 +454,7 @@ void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte
 }
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // When in PLAYER_RUN mode, display MP3 player values on the virtual front panel.
 
 void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberByte) {
@@ -483,7 +484,6 @@ void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberBy
   }
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Output Front Panel Information.
 

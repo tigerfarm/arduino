@@ -15,20 +15,8 @@
   -------------------------------------------------------------------------
   Next to implement,
 
-  Do a lower section VFP clear before print messages.
-  Toggle VFP data switches to select an MP3.
-
   --------------------
-  Add LED lights, LED digits, or an LCD for device feedback.
-
-  Merge playerLights() into Altair101b to gain a virtual front panel: 8 LED lights and 8 switches.
-  + Now, need Player mode to show which song is playing and the volume level.
-  + Display the current file number selected for playing, or playing.
-  + Select a file to play by toggling data switches in a binary format,
-
   Have LED playerLights()
-  + playerLights(), would be in controlling programs such as Altair101b.
-  + Manage value changes for playerCounter.
   + When ready, display the song number that's playing to LEDs or to an LCD.
   + Consider adding 8 LED lights (0...255) to indicate current file selected for playing.
 
@@ -625,6 +613,15 @@ void printDFPlayerMessage(uint8_t type, int value) {
 // Infrared DFPlayer controls
 
 void playerSwitch(int resultsValue) {
+  if ( resultsValue >= '0' && resultsValue <= '7' ) {
+    // Data (address toggles)
+    // Serial input, not hardware input.
+    fpAddressToggleWord = fpAddressToggleWord ^ (1 << (resultsValue - '0'));
+    if (VIRTUAL_FRONT_PANEL) {
+      printVirtualFrontPanel();
+    }
+    return;
+  }
   if (VIRTUAL_FRONT_PANEL) {
     Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
     Serial.print(F("\033[J"));     // From cursor down, clear the screen.
@@ -955,6 +952,13 @@ void playerSwitch(int resultsValue) {
       Serial.print(F(" decrease volume to "));
       Serial.println(playerVolume);
       break;
+    case 'x':
+      Serial.print("+ EXAMINE, play MP3 playerCounter=");
+      playerCounter = fpAddressToggleWord;
+      mp3playerPlay(playerCounter);         // Play the song.
+      playerStatus = playerStatus & HLTA_OFF;
+      Serial.println(playerCounter);
+      break;
     // ----------------------------------------------------------------------
     case 'h':
       Serial.print(F("+ h, Print help information."));
@@ -965,6 +969,7 @@ void playerSwitch(int resultsValue) {
       Serial.println(F("+ s, STOP         Pause, stop playing the MP3."));
       Serial.println(F("+ r, RUN          Start, playing the current MP3."));
       Serial.println(F("+ R, RESET/CLEAR  Reset player settings to default, and set to play first MP3."));
+      Serial.println(F("+ x, EXAMINE      Play specified song number."));
       Serial.println(F("+ n/p, Play song  Play next/previous MP3."));
       Serial.println(F("+ d/D, Directory  Play next/previous directory."));
       Serial.println(F("+ l/L, Loop       Disable/Enable looping of the current MP3."));

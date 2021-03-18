@@ -25,6 +25,7 @@ boolean VIRTUAL_FRONT_PANEL;
 void initVirtualFrontPanel() {}
 extern void printVirtualFrontPanel() {}
 void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberByte) {}
+uint16_t fpAddressToggleWord = 0;
 
 // -----------------------------------------------------------------------------
 int programState;
