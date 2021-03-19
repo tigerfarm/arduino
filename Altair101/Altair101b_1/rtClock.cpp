@@ -9,45 +9,19 @@
   DS3231 - A real time clock hardware module
               that is controlled by this program.
 
-  Clock
-  Front Panel Lights and Toggles
+  -----------------------------------------------------------------------------
+  Altair 101 desktop CLOCK mode
+  + Front Panel Lights and Toggles
+  + Start by showing the time of day hours and minutes.
 
-    Start by showing the time of day hours and minutes.
-    To do: If clock timer mode was set, return to timer mode or reset timer mode values.
-    Function: runClock().
-
-  -----------
-  Clock mode,
+  Altair 101 desktop CLOCK mode LED light indiators,
   + Status        Display the minutes tens digit,    day tens,   or year tens
   + Address       Display the hour: A1 ... A12,      month,      or century
   + Data          Display the minutes single digit,  day single, or year single
   + Indicator     WAIT : Off.
   + Indicator     HLDA : On to indicate controlled by another process, other than the program emulator.
-  -----------
-  + r, RUN mode     CLOCK mode: show date and time."));
-  + s, SINGLE STEP  Clock SET mode: flip to decrement date or time value."));
-  + S, SINGLE Down  Clock SET mode: flip to increment date or time value."));
-  + x, EXAMINE      Enter clock SET mode. Show the current clock SET mode date and time."));
-  + X, EXAMINE NEXT Rotate through the clock values that can be set."));
-                    1) First flip, go into clock SET mode."));
-                       Clock SET mode to change the year value."));
-                    2) Clock SET mode to change the month value."));
-                    3) Clock SET mode to change the day value."));
-                    4) Clock SET mode to change the hours value."));
-                    5) Clock SET mode to change the minutes. value"));
-  + p, DEPOSIT      Set the time based on the set clock values."));
-                    Toggle from clock SET mode to CLOCK mode."));
-  + R, RESET        Toggle from clock SET mode to CLOCK mode. Don't change the time."));
-  -----------
-  + PROTECT       Decrease MP3 player volume. To do: Decrement value to set.
-  + UNPROTECT     Increase MP3 player volume. To do: Increment value to set.
-  + AUX1 Up       Toggle clock mode off, return to processor mode.
-  + AUX1 down     MP3 player mode
-  + AUX2 up       Toggle clock counter mode.
-  + AUX2 Down     Toggle clock timer mode on.
 
   Steps to set the time hours and minutes using the front panel.
-
   + In clock mode, flip RESET. Time flashes once a second.
   + Flip EXAMINE to decrement the minutes.
   + Flip EXAMINE NEXT to increment the minutes.
@@ -55,45 +29,39 @@
   + Flip DEPOSIT to return to clock mode, time is set based on the displayed hours and minutes.
   ++ Seconds are set to zero, so flip DEPOSIT when the second hand hits 12 and the minute changes.
 
-  -----------------------------------------------------------------------------
-  Connect the DS3231 Clock and the 1602 LCD display, to the Nano:
-  + VCC to Nano 5v, note, also works with 3.3v, example: NodeMCU.
-  + GND to Nano ground.
-  + SDA to Nano D4 (pin 4), same on Uno.
-  + SCL to Nano D5 (pin 5), same on Uno.
-
-  ------------------------------------------------------------------------------
-  DS3231 Clock Library:
-    Filter your search by typing ‘rtclib’.
-    There should be a couple entries. Look for RTClib by Adafruit.
-  https://github.com/adafruit/RTClib
-
   --------------------------------------------------------------------------------
   Program sections
-
   ----------------------------------------
   + Print clock data
-  printClockDateTime() {
-  printClockDate();
-  printClockTime();
+  void printClockDateTime() {
+  void printClockDate();
+  void printClockDateTime()
   ----------------------------------------
   + Clock pulse processing
   clockPulse<Year|Month|Day|Hour|Seconds>()
-  processClockNow()
-  ----------------------------------------
-  setupClock()
-  setClockMenuItems()
-  clockSetSwitch()
-  clockSwitch()
-  ----------------------------------------
-  rtClockContinuous()
-  rtClockRUN()
-  ----------------------------------------
-
-  // -----------------------------------------------------------------------------
   void processClockNow()
+  ----------------------------------------
+  void setupClock()
+  void printSetClockDateTime()
+  int getClockValue(int getValue)
+  void getClockValueMinMax(int getValue)
+  void clockSetSwitch(int resultsValue)
+  ----------------------------------------
+  void clockSwitch(int resultsValue)
+  void rtClockContinuous()
+  void rtClockSet()
+  void rtClockRun()
 
-  --------------------------------------------------------------------------------
+  -----------------------------------------------------------------------------
+  Wiring
+  
+  DS3231 Clock pins   Arduino pins
+  + VCC               +5v on Uno or Mega, or +3.3v on Due or NodeMCU.
+  + GND               DND ground.
+  + SDA               SDA on Due or Mega, Nano D4 (pin 4), same on Uno.
+  + SCL               SCL on Due or Mega, Nano D5 (pin 5), same on Uno.
+
+  ---------------------
   Clock module pins
 
   -----------------------
@@ -101,20 +69,20 @@
   |     side              |
   -----------------------
    |   |   |   |   |   |
-  32K SQW SCL SDA VCC GND
+  GND VCC SDA SCL SQW 32K
 
   -----------------------
   |     Battery           |
   |     side              |
   -----------------------
    |   |   |   |   |   |
-  GND VCC SDA SCL SQW 32K
+  32K SQW SCL SDA VCC GND
 
   --------------------------------------------------------------------------------
-
   Infrared receiver pins
-
-   A1 + -   - Arduino pin connections
+  
+  A24 + -   - Mega or Due pin connections
+   A1 + -   - Uno or Nano pin connections
     | | |   - Infrared receiver pins
   ---------
   |S      |
@@ -124,6 +92,12 @@
   |  ---  |
   |       |
   ---------
+
+  ------------------------------------------------------------------------------
+  DS3231 Clock Library:
+    Filter your search by typing ‘rtclib’.
+    There should be a couple entries. Look for RTClib by Adafruit.
+  https://github.com/adafruit/RTClib
 
 */
 // -------------------------------------------------------------------------------
@@ -135,7 +109,7 @@ String clockSetPrompt = "Clock SET ?- ";
 String thePrompt = clockPrompt;           // Default.
 extern int programState;
 
-// Clock internal status, internatl to this program.
+// Clock internal status, internal to this program.
 #define RTCLOCK_RUN 1
 #define RTCLOCK_SET 2
 int rtClockState = RTCLOCK_RUN;
@@ -328,7 +302,7 @@ char clockValueName[6][8] = {"year", "month", "day", "hour", "minute", "seconds"
 void setupClock() {
   // ----------------------------------------------------
   clockIrrecv.enableIRIn();
-  Serial.println(F("+ Initialized: infrared receiver for real time clock controls."));
+  Serial.println(F("+ Initialized: infrared receiver for the real time clock."));
 
   // Initialize the Real Time Clock (RTC).
   if (!rtc.begin()) {
@@ -471,6 +445,7 @@ void getClockValueMinMax(int getValue) {
 }
 
 // -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 void clockSetSwitch(int resultsValue) {
   boolean printPrompt = true;
   int theValue;
@@ -501,7 +476,6 @@ void clockSetSwitch(int resultsValue) {
       // CR, Mac terminal window character. ignore
       Serial.println();
       break;
-    // ----------------------------------------------------------------------
     // ----------------------------------------------------------------------
     case 0x2B8BE5F:             // Key Volume up
     case 0xFFE21D:              // Small remote, Key 3
@@ -613,7 +587,6 @@ void clockSetSwitch(int resultsValue) {
       rtClockState = RTCLOCK_RUN;
       break;
     // ----------------------------------------------------------------------
-    // ----------------------------------------------------------------------
     case 'h':
       Serial.print(F("+ h, Print help information."));
       Serial.println();
@@ -621,19 +594,22 @@ void clockSetSwitch(int resultsValue) {
       Serial.println(F("----------------------------------------------------"));
       Serial.println(F("+++ Real Time Clock SET Controls"));
       Serial.println(F("-------------"));
-      Serial.println(F("+ r, RUN mode     CLOCK mode: show date and time."));
+      Serial.println(F("+ r, RUN          CLOCK mode: show date and time."));
+      Serial.println(F("                  Clock SET mode: show date and time, and the set data and time value."));
       Serial.println(F("+ v, SINGLE STEP  Clock SET mode: flip to decrement date or time value."));
       Serial.println(F("+ V, SINGLE Down  Clock SET mode: flip to increment date or time value."));
-      Serial.println(F("+ x, EXAMINE      Show the current clock SET mode date and time."));
+      Serial.println(F("+ x, EXAMINE      Rotate through the clock values that can be set."));
+      Serial.println(F("                  Rotate order: seconds to the year."));
       Serial.println(F("+ X, EXAMINE NEXT Rotate through the clock values that can be set."));
       Serial.println(F("                  1) Clock SET mode to change the year value."));
       Serial.println(F("                  2) Clock SET mode to change the month value."));
       Serial.println(F("                  3) Clock SET mode to change the day value."));
       Serial.println(F("                  4) Clock SET mode to change the hours value."));
       Serial.println(F("                  5) Clock SET mode to change the minutes. value"));
-      Serial.println(F("+ p, DEPOSIT      Set the time based on the set clock values."));
-      Serial.println(F("                  Toggle from clock SET mode to CLOCK mode."));
-      Serial.println(F("+ R, RESET        Toggle from clock SET mode to CLOCK mode. Don't change the time."));
+      Serial.println(F("+ p, DEPOSIT      Set the time based on the clock SET values."));
+      Serial.println(F("+ R, RESET        Toggle between clock SET mode to CLOCK mode."));
+      Serial.println(F("                  Reset the clock SET values when taggling into clock SET mode."));
+      Serial.println(F("                  Doesn't set/change the time."));
       Serial.println(F("-------------"));
       Serial.println(F("+ Ctrl+L          Clear screen."));
       Serial.println(F("----------------------------------------------------"));
@@ -657,6 +633,7 @@ void clockSetSwitch(int resultsValue) {
   }
 }
 
+// -----------------------------------------------------------------------
 // -----------------------------------------------------------------------
 // Infrared DFPlayer controls
 
@@ -715,7 +692,7 @@ void clockSwitch(int resultsValue) {
     case 0x8AA3C35B:    // Key PLAY
     case 'r':
       // Serial.println(F("+ Key PLAY"));
-      Serial.print(F("+ 'r', Current "));
+      Serial.print(F("+ Current "));
       printClockDateTime();
       Serial.println();
       break;
@@ -896,6 +873,7 @@ void clockSwitch(int resultsValue) {
 }
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Handle continuous playing, and play errors such as: SD card not inserted.
 //
 void rtClockContinuous() {
@@ -909,16 +887,11 @@ void rtClockContinuous() {
 }
 
 // -----------------------------------------------------------------------------
-// Calls from other programs.
-
-// -----------------------------------------------------------------------------
 // MP3 Player controls.
 
 void rtClockSet() {
   thePrompt = clockSetPrompt;
-  // Serial.println();
   Serial.print(thePrompt);
-  //
   // Initialize the clock set values.
   for (int i = 0; i < numClockValues - 2; i++ ) {
     setValues[i] = -1;                  // -1 means that the value is not set to change.
@@ -935,8 +908,6 @@ void rtClockSet() {
       clockSetSwitch(clockIrResults.value);
       clockIrrecv.resume();
     }
-    // processClockNow();    // Process on going time clicks.
-    //
     delay(60);  // Delay before getting the next key press, in case press and hold too long.
   }
   thePrompt = clockPrompt;
@@ -960,7 +931,6 @@ void rtClockRun() {
     }
     processClockNow();    // Process on going time clicks.
     if (rtClockState == RTCLOCK_SET) {
-      // Serial.println("+ rtClockState == RTCLOCK_SET");
       rtClockSet();
     }
     //

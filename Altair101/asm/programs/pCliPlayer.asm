@@ -10,13 +10,13 @@
     Start:
                 lxi h,StartMsg
                 call printStr
-                lxi h,Menu0
-                call printStr
+                call HelpMenu
     startNewline:
                 mvi a,'\r'
                 out PRINT_PORT
                 mvi a,'\n'
                 out PRINT_PORT
+    startPrompt:
                 lxi h,thePrompt         ; Print the prompt.
                 call printStr
                                         ;
@@ -79,40 +79,50 @@
                 call inrCpc             ; Increment the cursor position.
                 jmp GetByte
                                         ; -----------------------------------------------------------------
-    HelpMenu:
-                lxi h,Menu0
-                call printStr
-                jmp startNewline
     Menu1:
+                lxi h,Menu1str
+                call printStr
                 MVI A,9                 ; Set the MP3 file number to play.
                 OUT 10                  ; OUT 10 is for playing an MP3 file once.
-                jmp startNewline
+                jmp startPrompt
     Menu2:
+                lxi h,Menu2str
+                call printStr
                 MVI A,0                 ; Pause the currently playing MP3 file.
                 OUT 10
-                jmp startNewline
+                jmp startPrompt
     Menu3:
+                lxi h,Menu3str
+                call printStr
                 MVI A,255               ; Continue playing the current MP3.
                 OUT 10
-                jmp startNewline
+                jmp startPrompt
     Menu4:
+                lxi h,Menu4str
+                call printStr
                 MVI A,11                ; Set the MP3 file number to play.
                 OUT 11                  ; Turn loop ON. OUT 11 is for playing an MP3 file and looping.
-                jmp startNewline
+                jmp startPrompt
     Menu5:
+                lxi h,Menu5str
+                call printStr
                 MVI A,0                 ; Turn loop OFF. Pause the currently playing MP3 file.
                 OUT 11
-                jmp startNewline
+                jmp startPrompt
     Menu6:
+                lxi h,Menu6str
+                call printStr
                 MVI A,255               ; Turn loop ON. Continue playing the current MP3 and looping.
                 OUT 11
-                jmp startNewline
+                jmp startPrompt
     Menu7:
+                lxi h,Menu7str
+                call printStr
                 MVI A,13
                 OUT 12                  ; Play the MP3 until it is complete.
                 lxi h,PlayCompleted
                 call printStr
-                jmp startNewline
+                jmp startPrompt
 
                                         ; -----------------------------------------------------------------
     bell:
@@ -148,6 +158,10 @@
                 call dcrCpc
                 jmp GetByte
                                         ; --------------------------------------
+    clear:
+                call clr
+                jmp startNewline
+                                        ; --------------------------------------
                                         ; Store the key press values to the line buffer and increment the counter.
         inrCpc:
                 lhld lbc                ; Load H and L registers from memory.
@@ -166,10 +180,6 @@
                 dcr a
                 sta cpc
                 ret
-                                        ; --------------------------------------
-    clear:
-                call clr
-                jmp startNewline
                                         ;
                                         ; --------------------------------------
     ExitGetByte:                        ; Exit the input loop.
@@ -235,6 +245,9 @@
     ExitMsg     db      '\r\n+ Later.\r\n'
                 db      0
                                         ;
+    PlayCompleted db    '\r\n+ MP3 finished playing.\r\n'
+                db      000h
+                                        ;
     TERMB       equ     0               ; String terminator.
     esc         equ     27              ; Escape character, which is 0x1B (hex).
     ;
@@ -243,34 +256,96 @@
     lb          ds      80              ; Place to store what is typed in, for the current line.
                                         ; Cursor position is also the length of the entered text.
                                         ;
-                                        ; --------------------------------------
+                                        ; ----------------------------------------
+                                        ; ----------------------------------------
                                         ; Menu
-    Menu0       db      '\r\n+ Player Menu'
-                db      '\r\n  -----------'
-    Menu1       db      '\r\n  1. Play MP3 file number.         (play)'
-    Menu2       db      '\r\n  2. Pause MP3.                    (pause)'
-    Menu3       db      '\r\n  3. Continue playing the MP3.     (start)'
-                db      '\r\n  ------'
-    Menu4       db      '\r\n  4. Loop play MP3 file number.    (loop)'
-    Menu5       db      '\r\n  5. Pause MP3.                    (pause)'
-    Menu6       db      '\r\n  6. Continue looping the MP3.     (loop)'
-                db      '\r\n  ------'
-    Menu7       db      '\r\n  7. Play MP3 until it is completed before moving to the next opcode.'
-                db      '\r\n  ------'
+    HelpMenu:
+                lxi h,MenuStart
+                call printStr
+                lxi h,Menu1str
+                call printStr
+                lxi h,Menu2str
+                call printStr
+                lxi h,Menu3str
+                call printStr
+                lxi h,MenuBar           ; ------
+                call printStr
+                lxi h,Menu4str
+                call printStr
+                lxi h,Menu5str
+                call printStr
+                lxi h,Menu6str
+                call printStr
+                lxi h,MenuBar           ; ------
+                call printStr
+                lxi h,Menu7str
+                call printStr
+                lxi h,MenuEnd
+                call printStr
+                jmp startNewline
+                                        ; ---------------
+    MenuStart   db      '\r\n+ Player Menu'
+                db      '\r\n  -----------\r\n'
+                db      000h            ; Indicator of the end of a text block.
+    Menu1str    db      '  1. Play MP3 file number.         (play)\r\n'
+                db      0
+    Menu2str    db      '  2. Pause MP3.                    (pause)\r\n'
+                db      0
+    Menu3str    db      '  3. Continue playing the MP3.     (start)\r\n'
+                db      0
+    MenuBar     db      '  ------\r\n'
+                db      000h
+    Menu4str    db      '  4. Loop play MP3 file number.    (loop)\r\n'
+                db      0
+    Menu5str    db      '  5. Pause MP3.                    (pause)\r\n'
+                db      0
+    Menu6str    db      '  6. Continue looping the MP3.     (loop)\r\n'
+                db      0
+; Menu7str doesn't print properly:
+;   xxxxxxxx    db      '  7. Play MP3 until it is completed before '
+; Menu7str does print properly:
+    xxxxxxxx    db      '  7. Play MP3 until it is completed before m'
+    Menu7str    db      '  7. Play MP3 until it is completed before moving to the next opcode.\r\n'
+                db      0
+    MenuEnd     db      '\r\n  ------'
                 db      '\r\n  Ctrl+c to exit.\r\n'
                 db      000h            ; Indicator of the end of a text block.
                                         ;
-    PlayCompleted db    '\r\n+ MP3 finished playing.'
-                db      000h
-                                        ;
-                                        ; --------------------------------------
+                                        ; ----------------------------------------
                                         ; When using port 2,
                                         ;   if port 3 is disable, then it defaults to 3, the default serial port.
     PRINT_PORT  equ     3               ; Output port#. 
     INPUT_PORT  equ     3               ; Input port#.
-                                        ; --------------------------------------
+                                        ; ----------------------------------------
                 end
-                                        ; --------------------------------------
-                                        ; 
-                                        ; 
-                                        ; --------------------------------------
+                                        ; ----------------------------------------
+                                        ; Found a bug.
+                                        ; The work around is not to use bytes in addresses 1018-1024 (not sure of the range).
+
+  7. Play MP3 until it is completed befo�
+  ------
+
+++    1016:00000011 11111000: 01100010 : 62:142 > databyte:  : b : 98
+++    1017:00000011 11111001: 01100101 : 65:145 > databyte:  : e : 101
+++    1018:00000011 11111010: 01100110 : 66:146 > databyte:  : f : 102
+++    1019:00000011 11111011: 01101111 : 6F:157 > databyte:  : o : 111
+++    1020:00000011 11111100: 01110010 : 72:162 > databyte:  : r : 114
+++    1021:00000011 11111101: 01100101 : 65:145 > databyte:  : e : 101
+++    1022:00000011 11111110: 00100000 : 20:040 > databyte:  :   : 32
+++    1023:00000011 11111111: 01101101 : 6D:155 > databyte:  : m : 109  *** The byte address that causes the issue.
+++    1024:00000100 00000000: 00100000 : 20:040 > databyte:  :   : 32
+++    1025:00000100 00000001: 00100000 : 20:040 > databyte:  :   : 32
+++    1026:00000100 00000010: 00110111 : 37:067 > databyte:  : 7 : 55
+++    1027:00000100 00000011: 00101110 : 2E:056 > databyte:  : . : 46
+
+    printStr:
+                mov a,m                 ; Move the data from H:L address to register A. (HL) -> A. 
+                cpi TERMB               ; Compare to see if it's the string terminate byte.
+                jz sPrintDone
+                out PRINT_PORT          ; Out register A to the serial port.
+                inx h                   ; Increment H:L register pair.
+                jmp printStr
+    sPrintDone:
+                ret
+                                        ; ----------------------------------------
+

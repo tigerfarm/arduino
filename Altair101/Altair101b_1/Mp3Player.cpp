@@ -16,20 +16,9 @@
   Next to implement,
 
   --------------------
-  Add LEDs or an LCD for device feedback.
-
-  Have playerLights()
-  + Manage value changes for playerCounter.
-  + Displaying the value to the serial port.
+  Have LED playerLights()
   + When ready, display the song number that's playing to LEDs or to an LCD.
-  playerLights(), would be in controlling programs such as Altair101b.
-
-  Merge playerLights() into Altair101b to gain a virtual front panel: 8 LED lights and 8 switches.
-  + Now, need Player mode to show which song is playing and the volume level.
-  + Display the current file number selected for playing, or playing.
-  + Select a file to play by toggling data switches in a binary format,
-
-  Consider adding 8 LED lights (1...256) to indicate current file selected for playing.
+  + Consider adding 8 LED lights (0...255) to indicate current file selected for playing.
 
   --------------------
   Consider Implementing setupMp3Player() within this program,
@@ -142,10 +131,44 @@
     "SPK +" to speaker #2 +
     GND to ground of speaker #1 and speaker #2.
 
-   3.5mm headphone jack pin out:
-   + Tip: left channel
-   + Middle: right channel
-   + Closest to the cable: ground.
+    3.5mm headphone jack pin out:
+    + Tip: left channel
+    + Middle: right channel
+    + Closest to the cable: ground.
+
+  ---------------------------------
+  Mega and Due
+
+  Wire connections:
+  DFPlayer pin 3 (TX) to a 1K resister. 1K resister to Arduino RX19.
+  DFPlayer pin 2 (RX) to a 5K resister. 5K resister to Arduino TX18.
+  DFPlayer pin GND    to Arduino GND. Arduino GND to USB hub GND.
+  DFPlayer pin VCC    to USB hub VCC.
+
+  Due pins                    TX1:18 RX1:19
+   ---------------------------------------
+  |                                x x   -| +VCC
+  |                                       |
+  |                                       | ...
+  |                                       |
+  |                                      -| -GND
+   ---------------------------------------
+
+  USB cable connector to power the DFPlayer.
+  Pins from the top:
+     ---------------
+    | VCC D- D+ GND |
+    |   -       _   |
+    |  | |     | |  |
+    |   _       _   |
+    |               |
+     ---------------
+          |  |
+          |  |
+          |  |
+  My USB cable has:
+  + A ground wire wrap.
+  + Purple VCC, +5 VCC.s
 
   ---------------------------------
   Connections used with an Arduino,
@@ -188,7 +211,8 @@
   ------------------------------------------------------------------------------
   Infrared receiver pins
 
-   A1 + -   - Arduino pin connections
+  A24 + -   - Mega or Due pin connections
+   A1 + -   - Uno or Nano pin connections
     | | |   - Infrared receiver pins
   ---------
   |S      |
@@ -210,10 +234,26 @@ extern int programState;
 const byte OUT_ON =     B00010000;  // OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
 const byte HLTA_ON =    B00001000;  // HLTA   Machine opcode hlt, has halted the machine.
 const byte HLTA_OFF =   ~HLTA_ON;
+const byte M1_ON =      B00100000;  // HLTA   Machine opcode hlt, has halted the machine.
+const byte M1_OFF =     ~M1_ON;
 
-void playerLights() {}
-// void ledFlashError() {}
-// void ledFlashSuccess() {}
+// -----------------------------------------------------------------------
+// Motherboard Specific setup for DFPlayer communications
+
+// -----------------------------------------------
+#if defined(__AVR_ATmega2560__)
+// -----------------------------------------------
+#elif defined(__SAM3X8E__)
+// -----------------------------------------------
+#else
+// -----------------------------------------------
+// Nano or Uno use a software serial port for communications with the DFPlayer.
+#include "SoftwareSerial.h"
+// DFPlayer pins 3(TX) and 2(RX), connected to Arduino pins: 10(RX) and 11(TX).
+// SoftwareSerial playerSerial(10, 11); // Software serial, playerSerial(RX, TX)
+SoftwareSerial SerialSw(10, 11); // Software serial, playerSerial(RX, TX)
+// ------------------
+#endif
 
 // -----------------------------------------------------------------------
 // Infrared Receiver
@@ -253,7 +293,6 @@ uint16_t thePlayerCounter;
 
 //
 uint16_t currentPlayerCounter = playerCounter;  // Current song playing.
-uint16_t processorPlayerCounter = 0;            // Indicator for the processor to play an MP3, if not zero.
 boolean processorPlayerLoop = true;             // Indicator for the processor to start playing an MP3 when flipping START.
 //
 uint16_t playerCounterTop = 0;
@@ -261,6 +300,12 @@ uint16_t playerDirectoryTop = 0;
 uint8_t playerDirectory = 1;                    // File directory name on the SD card. Example 1 is directory name: /01.
 uint8_t playerEq = DFPLAYER_EQ_CLASSIC;         // Default equalizer setting.
 boolean loopSingle = false;                     // For toggling single song.
+void setLoopSingle(boolean setTo) {
+  loopSingle = setTo;                           // For external programs to set the loopSingle value.
+}
+boolean getLoopSingle() {
+  return loopSingle;                            // For external programs to get the loopSingle value.
+}
 
 // Sometimes, nice not to hear sounds over and again when testing.
 //      NOT_PLAY_SOUND = false >> Do play sounds.
@@ -274,7 +319,7 @@ boolean NOT_PLAY_SOUND = false;
 void setupMp3Player() {
   // ----------------------------------------------------
   irrecv.enableIRIn();
-  Serial.println(F("+ Initialized: infrared receiver for MP3 player controls."));
+  Serial.println(F("+ Initialized: infrared receiver for the MP3 player."));
 
   // Set player front panel values.
   playerCounter = 1;                  // For now, default to song/file 1.
@@ -452,7 +497,7 @@ void printPlayerInfo() {
   Serial.println(F("+ --------------------------------------"));
 }
 
-void mp3playerPlay(int theCounter) {
+void mp3playerPlayCounter(int theCounter) {
   if (NOT_PLAY_SOUND) {
     return;
   }
@@ -465,7 +510,7 @@ void playCounterHlta() {
     mp3playerDevice.play(playerCounter);
     currentPlayerCounter = playerCounter;
   }
-  playerLights();
+  playerLights(playerStatus, playerVolume, playerCounter);
 }
 
 // -----------------------------------------------------------------------
@@ -488,7 +533,7 @@ int playDirectory(int theDirectory) {
     Serial.print(F(" play song"));
     mp3playerDevice.stop();
     delay(100);
-    mp3playerPlay(playerCounter);
+    mp3playerPlayCounter(playerCounter);
   } else {
     // Error getting the hardware file number value.
     //  Means that the directory is incremented beyond the last song.
@@ -504,6 +549,7 @@ int playDirectory(int theDirectory) {
   Serial.print(playerCounter);
   Serial.print(", returnDirectory=");
   Serial.print(returnDirectory);
+  playerLights(playerStatus, playerVolume, playerCounter);
   return ( returnDirectory );
 }
 
@@ -515,9 +561,9 @@ void printDFPlayerMessage(uint8_t type, int value) {
   switch (type) {
     case TimeOut:
       // Serial.println(F("Time Out!"));
-      mp3playerPlay(playerCounter);
+      mp3playerPlayCounter(playerCounter);
       playerStatus = playerStatus & HLTA_OFF;
-      playerLights();
+      playerLights(playerStatus, playerVolume, playerCounter);
       break;
     case DFPlayerCardInserted:
       Serial.println(F("Card Inserted!"));
@@ -570,6 +616,19 @@ void printDFPlayerMessage(uint8_t type, int value) {
 // Infrared DFPlayer controls
 
 void playerSwitch(int resultsValue) {
+  if ( resultsValue >= '0' && resultsValue <= '7' ) {
+    // Data (address toggles)
+    // Serial input, not hardware input.
+    fpAddressToggleWord = fpAddressToggleWord ^ (1 << (resultsValue - '0'));
+    if (VIRTUAL_FRONT_PANEL) {
+      printVirtualFrontPanel();
+    }
+    return;
+  }
+  if (VIRTUAL_FRONT_PANEL) {
+    Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
+    Serial.print(F("\033[J"));     // From cursor down, clear the screen.
+  }
   boolean printPrompt = true;
   switch (resultsValue) {
     // -----------------------------------
@@ -605,7 +664,7 @@ void playerSwitch(int resultsValue) {
         playerCounter = playerCounterTop;
       }
       playCounterHlta();
-      Serial.print(F("+ Player, Previous: play previous song, playerCounter="));
+      Serial.print(F("+ Player, Previous: play previous MP3, playerCounter="));
       Serial.print(playerCounter);
       Serial.println();
       break;
@@ -619,7 +678,7 @@ void playerSwitch(int resultsValue) {
         playerCounter = 1;
       }
       playCounterHlta();
-      Serial.print(F("+ Player, Next: play next song, playerCounter="));
+      Serial.print(F("+ Player, Next: play next MP3, playerCounter="));
       Serial.print(playerCounter);
       Serial.println();
       break;
@@ -630,7 +689,7 @@ void playerSwitch(int resultsValue) {
     case 's':
       mp3playerDevice.pause();
       playerStatus = playerStatus | HLTA_ON;
-      Serial.print(F("+ Pause, play current song, playerCounter="));
+      Serial.print(F("+ Pause current MP3, playerCounter="));
       Serial.println(playerCounter);
       break;
     case 0x8AA3C35B:    // Key PLAY
@@ -643,7 +702,7 @@ void playerSwitch(int resultsValue) {
           mp3playerDevice.start();        // Continue playing current song.
         } else {
           if (playerCounter > 1) {
-            mp3playerPlay(playerCounter); // Start the new song.
+            mp3playerPlayCounter(playerCounter); // Start the new song.
           } else {
             // Error getting the hardware song file number, continue playing current song.
             mp3playerDevice.start();
@@ -662,7 +721,7 @@ void playerSwitch(int resultsValue) {
     // -----------------------------------
     case 0xFF38C7:
     case 0x82D6EC17:
-      Serial.print("+ Key OK|Enter - Toggle: pause|start the song, playerCounter=");
+      Serial.print("+ Key OK|Enter - Toggle: pause|start the MP3 , playerCounter=");
       Serial.print(playerCounter);
       Serial.print(F(", read Current FileNumber: "));
       Serial.println(mp3playerDevice.readCurrentFileNumber());
@@ -704,7 +763,7 @@ void playerSwitch(int resultsValue) {
         Serial.print(F(" play song"));
         mp3playerDevice.stop();
         delay(100);
-        mp3playerPlay(playerCounter);
+        mp3playerPlayCounter(playerCounter);
       } else {
         // Past the end.
         // Serial.print(F(" playerCounter < 0 or > 256"));
@@ -720,7 +779,7 @@ void playerSwitch(int resultsValue) {
         delay(200);
         mp3playerDevice.stop();
         delay(200);
-        mp3playerPlay(playerCounter);
+        mp3playerPlayCounter(playerCounter);
         // ------
       }
       Serial.print(", playerCounter=");
@@ -754,7 +813,7 @@ void playerSwitch(int resultsValue) {
         Serial.print(F(" play song"));
         mp3playerDevice.stop();
         delay(100);
-        mp3playerPlay(playerCounter);
+        mp3playerPlayCounter(playerCounter);
       } else {
         Serial.print(F(" playerCounter < 0 or > 256"));
         playerCounter = thePlayerCounter;
@@ -773,8 +832,9 @@ void playerSwitch(int resultsValue) {
     case 'L':
       Serial.println("+ Key *|A.Select - Loop on: loop this single MP3.");
       loopSingle = true;
+      playerStatus = playerStatus | M1_ON;
       if (!(playerStatus & HLTA_ON)) {
-        // Pause identifies that loop is on. Else I need a LED to indicate loop is on.
+        // In not setting front panel LED, pause to identifies loop status.
         mp3playerDevice.pause();
         delay(200);
         mp3playerDevice.start();
@@ -785,8 +845,9 @@ void playerSwitch(int resultsValue) {
     case 'l':
       Serial.println("+ Key #|Eject - Loop off: Single MP3 loop is off.");
       loopSingle = false;
+      playerStatus = playerStatus & M1_OFF;
       if (!(playerStatus & HLTA_ON)) {
-        // Pause identifies that loop is now off. Else I need a LED to indicate loop is on.
+        // In not setting front panel LED, pause to identifies loop status.
         mp3playerDevice.pause();
         delay(1000);
         mp3playerDevice.start();
@@ -881,7 +942,6 @@ void playerSwitch(int resultsValue) {
       mp3playerDevice.volume(playerVolume);
       Serial.print(F(" increase volume to "));
       Serial.println(playerVolume);
-      // Set: playerLights();
       break;
     case 0x1CF3ACDB:
     case 0xFFA25D:              // Small remote, Key 1
@@ -894,7 +954,13 @@ void playerSwitch(int resultsValue) {
       mp3playerDevice.volume(playerVolume);
       Serial.print(F(" decrease volume to "));
       Serial.println(playerVolume);
-      // Set: playerLights();
+      break;
+    case 'x':
+      Serial.print("+ EXAMINE, play MP3 playerCounter=");
+      playerCounter = fpAddressToggleWord;
+      mp3playerPlayCounter(playerCounter);         // Play the song.
+      playerStatus = playerStatus & HLTA_OFF;
+      Serial.println(playerCounter);
       break;
     // ----------------------------------------------------------------------
     case 'h':
@@ -903,17 +969,19 @@ void playerSwitch(int resultsValue) {
       Serial.println(F("----------------------------------------------------"));
       Serial.println(F("+++ MP3 Player Controls"));
       Serial.println(F("-------------"));
-      Serial.println(F("+ s, STOP         Pause, stop playing."));
-      Serial.println(F("+ r, RUN          Start, playing the current song."));
-      Serial.println(F("+ R, RESET/CLEAR  Reset and set to play first song."));
-      Serial.println(F("+ n/p, Play song  Play next/previous song."));
-      Serial.println(F("+ d/D, Directory  Play previous directory."));
-      Serial.println(F("+ l/L, Loop       Disable/Enable loop the current song."));
+      Serial.println(F("+ s, STOP         Pause, stop playing the MP3."));
+      Serial.println(F("+ r, RUN          Start, playing the current MP3."));
+      Serial.println(F("+ R, RESET/CLEAR  Reset player settings to default, and set to play first MP3."));
+      Serial.println(F("+ x, EXAMINE      Play specified song number."));
+      Serial.println(F("+ n/p, Play song  Play next/previous MP3."));
+      Serial.println(F("+ d/D, Directory  Play next/previous directory."));
+      Serial.println(F("+ l/L, Loop       Disable/Enable looping of the current MP3."));
       Serial.println(F("+ v/V, Volume     Down/Up volume level."));
       Serial.println(F("--- Equalizer options:"));
       Serial.println(F("+ 4 POP   5 CLASSIC  6 NORMAL"));
       Serial.println(F("+ 7 ROCK  8 JAZZ     9 BASS"));
       Serial.println(F("------------------"));
+      Serial.println(F("+ t/T VT100 panel Disable/enable VT100 virtual front panel."));
       Serial.println(F("+ Ctrl+L          Clear screen."));
       Serial.println(F("+ X, Exit player  Return to program WAIT mode."));
       Serial.println(F("------------------"));
@@ -927,11 +995,10 @@ void playerSwitch(int resultsValue) {
       Serial.println(F("+ Player CLEAR/RESET, play first song."));
       mp3playerDevice.stop();                     // Required.
       delay(100);
-      setupMp3Player();                           // Sets playerCounter = 1;
+      setupMp3Player();                           // Sets playerCounter = 1, and other default settings;
       delay(200);
-      mp3playerPlay(playerCounter);
+      mp3playerPlayCounter(playerCounter);
       mp3playerDevice.stop();
-      playerLights();
       break;
     case 0xC4CC6436:                              // Key DISPLAY After pressing VCR
     case 0x6F46633F:                              // Key DISPLAY After pressing TV
@@ -943,14 +1010,29 @@ void playerSwitch(int resultsValue) {
       // Ctrl+L, clear screen.
       Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
       break;
-    case 0x85CF699F:                              //  Key TV/VCR
+    case 0x85CF699F:                              // Key TV/VCR
     case 0xDA529B37:                              // Key POWER After pressing VCR
     case 0x1A2EEC3B:                              // Key POWER After pressing TV
     case 'X':
       Serial.println(F("+ Power or Key TV/VCR"));
       programState = PROGRAM_WAIT;
       break;
-    // -----------------------------------
+    // -------------------------------------------------------------------
+    case 't':
+      Serial.println(F("+ VT100 escapes are disabled and block cursor on."));
+      if (VIRTUAL_FRONT_PANEL) {
+        VIRTUAL_FRONT_PANEL = false;
+        Serial.print(F("\033[0m\033[?25h"));       // Insure block cursor display: on.
+      }
+      // Note, VT100 escape sequences don't work on the Ardino IDE monitor.
+      break;
+    case 'T':
+      // The following requires a VT100 terminal such as a Macbook terminal.
+      initVirtualFrontPanel();
+      playerLights(playerStatus, playerVolume, playerCounter);
+      Serial.println(F("+ VT100 escapes are enabled and block cursor off."));
+      break;
+    // -------------------------------------------------------------------
     default:
       // Serial.print(F("+ Result value: "));
       // Serial.print(resultsValue);
@@ -962,6 +1044,7 @@ void playerSwitch(int resultsValue) {
   } // end switch
   if (printPrompt && (programState == PLAYER_RUN)) {
     Serial.print(playerPrompt);
+    playerLights(playerStatus, playerVolume, playerCounter);
   }
 }
 
@@ -996,7 +1079,7 @@ void playerContinuous() {
         } else {
           playerCounter = 1;
         }
-        mp3playerPlay(playerCounter);
+        mp3playerPlayCounter(playerCounter);
         //
         // This fixes the issue of skipping 2 songs,
         //  because playMp3() calls this process before the player status changes to busy,
@@ -1009,8 +1092,8 @@ void playerContinuous() {
         playerStatus = playerStatus & HLTA_OFF;
         if (programState == PLAYER_RUN) {
           // This "if", allows continuous playing
-          //   in other modes (clock) without effecting their dislay lights.
-          playerLights();
+          //   in other modes (clock) without effecting their display lights.
+          playerLights(playerStatus, playerVolume, playerCounter);
         }
       }
       // Serial.print(F(", playerCounter="));
@@ -1038,30 +1121,33 @@ void playerContinuous() {
 // -----------------------------------------------------------------------------
 // Calls from other programs.
 
+void mp3PlayerStart() {
+  // if (NOT_PLAY_SOUND) {
+  //   return;
+  // }
+  mp3playerDevice.start();
+  // playerStatus = playerStatus & HLTA_OFF;
+}
+
 void mp3PlayerPause() {
   // Twice because sometimes, once doesn't work.
   mp3playerDevice.pause();
   delay(100);
   mp3playerDevice.pause();
-  playerStatus = playerStatus | HLTA_ON;
+  // playerStatus = playerStatus | HLTA_ON;
 }
 
 void mp3playerPlay(byte theFileNumber) {
-  if (NOT_PLAY_SOUND) {
-    return;
-  }
-  Serial.print(F("+ Start the playing of the MP3: "));
-  Serial.print(theFileNumber);
   mp3playerDevice.play(theFileNumber);
-  Serial.print(F(", return to normal processing."));
-  Serial.println();
 }
 
+void mp3PlayerLoop(byte theFileNumber) {
+  mp3playerDevice.loop(theFileNumber);
+}
+
+// ---------------------------------------
 void mp3playerPlaywait(byte theFileNumber) {
-  if (NOT_PLAY_SOUND) {
-    return;
-  }
-  Serial.println(F("+ Play MP3 until completed."));
+  // Serial.print(F("+ Play MP3 until completed."));
   playerCounter = theFileNumber;
   currentPlayerCounter = playerCounter;
   //
@@ -1071,7 +1157,6 @@ void mp3playerPlaywait(byte theFileNumber) {
     mp3playerDevice.readType();
     delay(10);
   }
-  Serial.print(F("+ Playing until completed..."));
   boolean playing = true;
   // switchStop = false;    // For stopping before the song ends, or if the song hangs.
   while (playing) {
@@ -1079,7 +1164,7 @@ void mp3playerPlaywait(byte theFileNumber) {
       int theType = mp3playerDevice.readType();
       if (theType == DFPlayerPlayFinished) {
         playing = false;
-        Serial.print(F(" > Playing is completed."));
+        // Serial.print(F(" > Playing is completed."));
       }
     }
     // ------------------------
@@ -1087,26 +1172,29 @@ void mp3playerPlaywait(byte theFileNumber) {
     //
     if (Serial.available() > 0) {
       // Hit any key to exit.
-      Serial.print(F(" > Ended now."));
+      // Serial.print(F(" > Ended early."));
       playing = false;
       mp3playerDevice.stop();
     }
     if (irrecv.decode(&results)) {
       // Hit any infrared key to exit.
-      Serial.print(F(" > Ended now."));
+      // Serial.print(F(" > Ended early."));
       playing = false;
       mp3playerDevice.stop();
       irrecv.resume();
     }
+    // ------------------------
   }
-  // ------------------------
-  Serial.println();
+  // Serial.println();
 }
 
 // -----------------------------------------------------------------------------
 // MP3 Player controls.
 
 void mp3PlayerRun() {
+  if (VIRTUAL_FRONT_PANEL) {
+    playerSwitch('T');
+  }
   Serial.println(F("+ runMp3Player();"));
   Serial.print(playerPrompt);
   while (programState == PLAYER_RUN) {

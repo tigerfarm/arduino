@@ -669,7 +669,7 @@ void sdCardSwitch(int resultsValue) {
       Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
       break;
     case 'X':
-      Serial.println(F("+ Exit SD card mode."));
+      Serial.println(F("+ Power or Key TV/VCR"));
       programState = PROGRAM_WAIT;
       break;
     // -----------------------------------

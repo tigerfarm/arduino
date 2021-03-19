@@ -254,24 +254,6 @@ inline uint16_t popStackWord() {
 }
 
 // -----------------------------------------------------------------------------
-// HLT opcode process to stop the process.
-// Stopped process is in a mode that allows using 'r' to start the process running from the stop point.
-//
-void altair_hlt() {
-  host_set_status_led_HLTA();
-  host_clr_status_led_M1();
-  regPC--;
-  // altair_interrupt(INT_SW_STOP);
-  Serial.print(F("++ HALT, host_read_status_led_WAIT() = "));
-  Serial.println(host_read_status_led_WAIT());
-  if (!host_read_status_led_WAIT()) {
-    programState = PROGRAM_WAIT;
-    host_set_status_led_WAIT();
-    printFrontPanel();
-  }
-}
-
-// -----------------------------------------------------------------------------
 // Not using interrupts, yet.
 void altair_interrupt_enable() {
   // altair_interrupts_enabled = true;
@@ -1909,7 +1891,7 @@ CPUFUN cpuIntel8080_opcodes[256] = {
   cpu_NOP,   cpu_DADS,  cpu_LDA,   cpu_DCXSP, cpu_INRA,  cpu_DCRA,  cpu_MVAI,  cpu_CMC,		// 070-077 (0x38-0x3F)
 
   cpu_MVBB,  cpu_MVBC,  cpu_MVBD,  cpu_MVBE,  cpu_MVBH,  cpu_MVBL,  cpu_MVBM,  cpu_MVBA,	// 100-107 (0x40-0x47)
-  cpu_MVCB,  cpu_MVCC,  cpu_MVCD,  cpu_MVCE,  cpu_MVCH,  cpu_MVCL,  cpu_MVCM,  cpu_MVCA,       	// 110-117 (0x48-0x4F)
+  cpu_MVCB,  cpu_MVCC,  cpu_MVCD,  cpu_MVCE,  cpu_MVCH,  cpu_MVCL,  cpu_MVCM,  cpu_MVCA,  // 110-117 (0x48-0x4F)
   cpu_MVDB,  cpu_MVDC,  cpu_MVDD,  cpu_MVDE,  cpu_MVDH,  cpu_MVDL,  cpu_MVDM,  cpu_MVDA,	// 120-127 (0x50-0x57)
   cpu_MVEB,  cpu_MVEC,  cpu_MVED,  cpu_MVEE,  cpu_MVEH,  cpu_MVEL,  cpu_MVEM,  cpu_MVEA,	// 130-137 (0x58-0x5F)
   cpu_MVHB,  cpu_MVHC,  cpu_MVHD,  cpu_MVHE,  cpu_MVHH,  cpu_MVHL,  cpu_MVHM,  cpu_MVHA,	// 140-147 (0x60-0x67)
@@ -1923,7 +1905,7 @@ CPUFUN cpuIntel8080_opcodes[256] = {
   cpu_SBBB,  cpu_SBBC,  cpu_SBBD,  cpu_SBBE,  cpu_SBBH,  cpu_SBBL,  cpu_SBBM,  cpu_SBBA,	// 230-237 (0x98-0x9F)
   cpu_ANAB,  cpu_ANAC,  cpu_ANAD,  cpu_ANAE,  cpu_ANAH,  cpu_ANAL,  cpu_ANAM,  cpu_ANAA,	// 240-247 (0xA0-0xA7)
   cpu_XRAB,  cpu_XRAC,  cpu_XRAD,  cpu_XRAE,  cpu_XRAH,  cpu_XRAL,  cpu_XRAM,  cpu_XRAA,	// 250-257 (0xA8-0xAF)
-  cpu_ORAB,  cpu_ORAC,  cpu_ORAD,  cpu_ORAE,  cpu_ORAH,  cpu_ORAL,  cpu_ORAM,  cpu_ORAA,        // 260-267 (0xB0-0xB7)
+  cpu_ORAB,  cpu_ORAC,  cpu_ORAD,  cpu_ORAE,  cpu_ORAH,  cpu_ORAL,  cpu_ORAM,  cpu_ORAA,  // 260-267 (0xB0-0xB7)
   cpu_CMPB,  cpu_CMPC,  cpu_CMPD,  cpu_CMPE,  cpu_CMPH,  cpu_CMPL,  cpu_CMPM,  cpu_CMPA,	// 270-277 (0xB8-0xBF)
 
   cpu_RNZ,   cpu_POPBC, cpu_JNZ,   cpu_JMP,   cpu_CNZ,   cpu_PSHBC, cpu_ADI,   cpu_RST00,	// 300-307 (0xC0-0xC7)

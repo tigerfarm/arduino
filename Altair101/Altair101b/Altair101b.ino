@@ -1,4 +1,3 @@
-// -----------------------------------------------------------------------------
 // Altair101a Processor program, which is an Altair 8800 simulator.
 // Copyright (C) 2021 Stacy David Thurston
 //
@@ -1178,33 +1177,22 @@ void altair_out(byte portDataByte, byte regAdata) {
       // OUT 10   ; Use OUT 11, to have the MP3 looped.
       if (regA == B11111111) {
         if (processorPlayerCounter > 0) {
-          if (getLoopSingle()) {
+          setPlayMode(PLAY_SINGLE);
+          mp3PlayerStart();
 #ifdef LOG_MESSAGES
-            Serial.print(F(" > mp3playerPlay();"));
+          Serial.print(F(" > Play single once, mp3PlayerStart();"));
 #endif
-            mp3playerPlay(processorPlayerCounter);
-          } else {
-#ifdef LOG_MESSAGES
-            Serial.print(F(" > mp3PlayerStart();"));
-#endif
-            mp3PlayerStart();
-          }
         }
-        setLoopSingle(false);
-#ifdef LOG_MESSAGES
-        Serial.print(F(" > Loop OFF."));
-#endif
       } else if (regA == 0) {
+        mp3PlayerPause();
 #ifdef LOG_MESSAGES
         Serial.print(F(" > Pause, mp3PlayerPause();"));
 #endif
-        mp3PlayerPause();
       } else {
-        setLoopSingle(false);
         processorPlayerCounter = regA;
-        mp3playerPlay(processorPlayerCounter);
+        mp3playerSinglePlay(processorPlayerCounter);
 #ifdef LOG_MESSAGES
-        Serial.print(F(" > Loop OFF, mp3playerPlay(processorPlayerCounter = regA = "));
+        Serial.print(F(" > mp3playerSinglePlay(processorPlayerCounter = regA = "));
         Serial.print(processorPlayerCounter);
         Serial.print(F(");"));
 #endif
@@ -1218,33 +1206,22 @@ void altair_out(byte portDataByte, byte regAdata) {
     case 11:
       if (regA == B11111111) {
         if (processorPlayerCounter > 0) {
-          if (getLoopSingle()) {
+          setPlayMode(LOOP_SINGLE);
+          mp3PlayerStart();
 #ifdef LOG_MESSAGES
-            Serial.print(F(" > mp3PlayerStart();"));
+          Serial.print(F(" > Loop ON, mp3PlayerStart();"));
 #endif
-            mp3PlayerStart();
-          } else {
-#ifdef LOG_MESSAGES
-            Serial.print(F(" > mp3PlayerLoop();"));
-#endif
-            mp3PlayerLoop(processorPlayerCounter);
-          }
         }
-        setLoopSingle(true);
-#ifdef LOG_MESSAGES
-        Serial.print(F(" > Loop ON."));
-#endif
       } else if (regA == 0) {
+        mp3PlayerPause();
 #ifdef LOG_MESSAGES
         Serial.print(F(" > Pause, mp3PlayerPause();"));
 #endif
-        mp3PlayerPause();
       } else {
-        setLoopSingle(true);
         processorPlayerCounter = regA;
-        mp3PlayerLoop(processorPlayerCounter);
+        mp3PlayerSingleLoop(processorPlayerCounter);
 #ifdef LOG_MESSAGES
-        Serial.print(F(" > Loop ON, mp3playerPlay(processorPlayerCounter = regA = "));
+        Serial.print(F(" > mp3PlayerSingleLoop(processorPlayerCounter = regA = "));
         Serial.print(processorPlayerCounter);
         Serial.print(F(");"));
 #endif
@@ -1396,9 +1373,8 @@ void runProcessor() {
       readByte = Serial.read();    // Read and process an incoming byte.
       processRunSwitch(readByte);
     }
-    // Stacy, should allow, if not running the opcode 10 or 11. For now, turned off.
     // Allow for the music to keep playing, and infrared player controls to work.
-    // playerContinuous();
+    playerContinuous();
   }
 }
 
@@ -1779,7 +1755,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ y/Y Serial2     Disable/enable Serial2 for program I/O."));
       Serial.println(F("+ B Serial2 baud  Set Serial2 baud rate."));
       Serial.println(F("-------------"));
-      Serial.println(F("+ E, SD Card      SD Card mode, memory manage with the SD card."));
+      Serial.println(F("+ F, SD Card      SD Card mode, memory manage with the SD card."));
       Serial.println(F("+ m, Read         Read an SD card file into program memory."));
       Serial.println(F("+ M, Write        Write program memory to an SD card file."));
       Serial.println(F("+ n, Directory    Directory file listing of the SD card."));
@@ -1932,9 +1908,9 @@ void processWaitSwitch(byte readByte) {
       break;
     case 12:
       // Ctrl+l is ASCII 7, which is form feed (FF).
-      if (VIRTUAL_FRONT_PANEL || SERIAL_CLI) {
+      // if (VIRTUAL_FRONT_PANEL || SERIAL_CLI) {
         Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
-      }
+      // }
       if (VIRTUAL_FRONT_PANEL) {
         // Refresh the front panel
         VIRTUAL_FRONT_PANEL = false;                // Insure labels are printed.

@@ -1,6 +1,9 @@
 // -----------------------------------------------------------------------------
 #include <Arduino.h>
 
+#define SOFTWARE_NAME "Altair101b"
+#define SOFTWARE_VERSION "1.63.b"
+
 // -----------------------------------------------------------------------------
 // From cpucore_i8080.h
 extern word status_wait;
@@ -9,12 +12,11 @@ extern word status_inte;
 //
 extern byte fpStatusByte;         // Status byte bits: MEMR INP M1 OUT HLTA STACK WO INT
 extern uint16_t fpAddressWord;    // Status byte bits: MEMR INP M1 OUT HLTA STACK WO INT
-// extern byte fpAddressLb;       // Front panel address lb.
-// extern byte fpAddressHb;       // Front panel address hb.
 extern byte fpDataByte;           // Front panel data byte.
 
 // -----------------------------------------------------------------------------
-// Altair101a.ino program functions used in cpucore_i8080.cpp
+// Altair101a/b.ino program functions used in other programs.
+
 // Program states
 #define LIGHTS_OFF 0
 #define PROGRAM_WAIT 1
@@ -33,6 +35,9 @@ void printByte(byte theByte);               // To echo bytes.
 void Serial_print(String regAdata);         // Print a string to the Serial or Serial2.
 byte altair_in(byte addr);                  // Called from cpu_in();
 void altair_out(byte addr, byte val);       // Called from cpu_out();
+void altair_hlt();                          // Called from cpu_hlt();
+
+extern void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberByte);
 
 // -----------------------------------------------------------------------------
 // From AltairSample.cpp program.
@@ -45,15 +50,19 @@ void loadKillTheBitArray();
 void loadKillTheBit();
 void loadMviRegisters();
 
-// From Altair101a.ino program, for AltairSample.cpp.
+// -----------------------------------------------------------------------------
+// From Altair101b.ino program, for AltairSample.cpp.
 void printByte(byte b);
 void printOctal(byte b);
 void printHex(byte b);
 
-// From here, for the AltairSample.cpp program.
-extern boolean SERIAL_FRONT_PANEL;
+// From Altair101b.ino program, for other programs.
+extern boolean VIRTUAL_FRONT_PANEL;
+extern void initVirtualFrontPanel();
+extern void printVirtualFrontPanel();
+extern uint16_t fpAddressToggleWord;
+//
 extern void setAddressData(uint16_t addressWord, byte dataByte);
-extern void serialPrintFrontPanel();
 extern String loadProgramName;
 extern byte readByte;
 

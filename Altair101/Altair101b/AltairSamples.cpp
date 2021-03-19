@@ -801,7 +801,7 @@ void loadProgram() {
           }
           loadGalaxy101();
           Serial.println(F("+ Start the program at address 1280."));
-          Serial.println(F("  Toggle S08 and S10 on and EXAMINE the byte at that address, 1280."));
+          Serial.println(F("  Toggle S08(key 8) and S10(key A) on and EXAMINE the byte at that address, 1280."));
           Serial.println(F("  Then run the program."));
           break;
         // -------------------------------------
