@@ -25,7 +25,7 @@ boolean VIRTUAL_FRONT_PANEL;
 void initVirtualFrontPanel() {}
 extern void printVirtualFrontPanel() {}
 void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberByte) {}
-uint16_t fpAddressToggleWord = 0;
+uint16_t fpAddressToggleWord = 5; // MP3, "Transfer complete."
 
 // -----------------------------------------------------------------------------
 int programState;
@@ -50,12 +50,11 @@ void processWaitSwitch(int readByte) {
   switch (readByte) {
     // -------------------------------
     case 10:
-      // LF.
-      Serial.println();
+      // LF, ignore
+      printPrompt = false;
       break;
     case 13:
-      // CR, ignore
-      printPrompt = false;
+      // CR
       break;
     // -------------
     // Mouse wheel
@@ -67,11 +66,6 @@ void processWaitSwitch(int readByte) {
       printPrompt = false;
       break;
     // ------------------------------
-    case 'p':
-      Serial.println(F("++ mp3PlayerPause();"));
-      mp3PlayerPause();
-      break;
-    // -------------
     case 'r':
       playerSwitch('r');
       break;
@@ -84,41 +78,63 @@ void processWaitSwitch(int readByte) {
     case 'V':
       playerSwitch('V');
       break;
+    case 'i':
+      playerSwitch('i');
+      break;
+    // ------------------------------
+    case 'g':
+      Serial.print(F("++ mp3PlayerStart();"));
+      mp3PlayerStart();
+      break;
+    case 'p':
+      Serial.print(F("++ mp3PlayerPause();"));
+      mp3PlayerPause();
+      break;
     // ------------------------------
     case '1':
-      mp3playerPlaywait(1);
+      mp3playerSinglePlay(1);
       break;
     case '2':
-      mp3playerPlaywait(2);
+      mp3playerSinglePlay(2);
       break;
     case '3':
-      mp3playerPlaywait(69);
+      mp3playerSinglePlay(69);
       break;
     case '4':
-      mp3playerPlay(1);
+      mp3PlayerSingleLoop(1);
       break;
     case '5':
-      mp3playerPlay(2);
+      mp3PlayerSingleLoop(2);
       break;
     case '6':
-      mp3playerPlay(69);
+      mp3PlayerSingleLoop(69);
+      break;
+    case '7':
+      mp3playerPlaywait(1);
+      break;
+    case '8':
+      mp3playerPlaywait(2);
+      break;
+    case '9':
+      mp3playerPlaywait(69);
       break;
     // ----------------------------------------------------------------------
     case 'h':
       Serial.print(F("+ h, Print help information."));
       Serial.println();
       Serial.println(F("----------------------------------------------------"));
-      Serial.println(F("+++ WAIT mode controls"));
-      Serial.println(F("-------------"));
       Serial.println(F("+++ MP3 Player controls"));
       Serial.println(F("-------------"));
-      Serial.println(F("+ p, Pause        Pause, pause playing."));
       Serial.println(F("+ s, STOP         Pause, stop playing."));
-      Serial.println(F("+ r, RUN          Start, playing the current song."));
+      Serial.println(F("+ r, RUN          Start, playing the current MP3."));
       Serial.println(F("+ v/V, Volume     Down/Up volume level."));
+      Serial.println(F("+ i, Information  Program variables and hardward values."));
       Serial.println(F("------------------"));
-      Serial.println(F("+ 1 ...3          Test: Play a file and wait until completed."));
-      Serial.println(F("+ 4 ...6          Test: Play a file and return to processing here."));
+      Serial.println(F("+ p, Pause        mp3PlayerPause();       Pause playing."));
+      Serial.println(F("+ g, Go, Start    mp3PlayerStart();       Start playing the MP3."));
+      Serial.println(F("+ 1 ...3          mp3playerSinglePlay(_); Play a single MP3. Stop when finished."));
+      Serial.println(F("+ 4 ...6          mp3PlayerSingleLoop(_); Loop play a single MP3."));
+      Serial.println(F("+ 7 ...9          mp3playerPlaywait(_);   Play an MP3 and wait until completed."));
       Serial.println(F("------------------"));
       Serial.println(F("+ Ctrl+L          Clear screen."));
       Serial.println(F("+ X, Exit player  Return to program WAIT mode."));
@@ -130,7 +146,7 @@ void processWaitSwitch(int readByte) {
       break;
     case 0x85CF699F:                              // Key TV/VCR
     case 'X':
-      Serial.println(F("++ set programState = PLAYER_RUN"));
+      Serial.print(F("++ set programState = PLAYER_RUN"));
       programState = PLAYER_RUN;
       break;
     default:
@@ -138,6 +154,7 @@ void processWaitSwitch(int readByte) {
       break;
   } // end switch
   if (printPrompt) {
+    Serial.println();
     Serial.print(waitPrompt);
   }
 }
