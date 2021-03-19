@@ -3,14 +3,29 @@
   This is a MP3 Player program program.
   Functionality:
     start or stop the playing of an MP3 file (a song),
-    play next or previous file,
+    play next or previous MP3 file,
     play next or previous directory of files,
-    loop a song,
+    loop an MP3,
     volume up or down,
     and select an equilizer option.
 
+  This program offers external calls for Arduino INO programs to control the MP3 player:
+  + setupMp3Player()    Setup process to initialize the hardware and program settings.
+  + mp3PlayerRun()      Interactive: A process while loop for command line control of the player.
+  + playerContinuous()  The process to have the player continuously play MP3 files.
+
+  Functional calls:
+  + mp3PlayerStart()
+  + mp3PlayerPause()
+  + mp3playerSinglePlay(byte theFileNumber)
+  + mp3PlayerSingleLoop(byte theFileNumber)
+  + mp3playerPlaywait(byte theFileNumber)
+
   DFPlayer - A Mini MP3 Player hardware module
               that is controlled by this program.
+
+  Steps to add the MP3 player program (Mp3Player.cpp) to an Arduino program (*.ino):
+  + Include the header file: Mp3Player.h
 
   -------------------------------------------------------------------------
   Next to implement,

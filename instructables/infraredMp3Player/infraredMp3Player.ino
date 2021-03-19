@@ -2,18 +2,19 @@
 /*
   This sample program includes:
   + Initializing the MP3 player.
-  + Making demonstrative calls to Mp3PlayerDue.cpp.
+  + Making demonstrative calls to Mp3Player.cpp.
   
-  The MP3 player program controls the DFPlayer MP3 player:
-      play or pause a song, play next or previous song,
+  The MP3 player program (Mp3Player.cpp) controls the DFPlayer hardware MP3 player:
+      play or pause a song,
+      play next or previous song,
       play next or previous directory of songs, 
       volume up or down, and loop a single song.
+  As well, Mp3Player.cpp offers external calls that are demonostrated in this program (infraredMp3Player.ino).
+  + Call the Mp3Player.cpp setup process: setupMp3Player();
+  + Call the Mp3Player.cpp setup process: mp3PlayerRun();
+  + In this programs process loop, call the Mp3Player.cpp player continuous process: playerContinuous();
 
-  DFPlayer hardware module is a programable Mini MP3 Player.
-  Steps to add the MP3 player program (Mp3PlayerDue.cpp) to an Arduino program (*.ino):
-  + Include the header file: Mp3PlayerDue.h
-  + Run the setup process in setup(): setupMp3Player();
-  + In this programs loop() process, call mp3PlayerRun();
+  The DFPlayer hardware module is an inexpensive programable mini MP3 player.
 */
 // -------------------------------------------------------------------------------
 // This is for running the test program.
