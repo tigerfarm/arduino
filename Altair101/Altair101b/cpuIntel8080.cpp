@@ -254,24 +254,6 @@ inline uint16_t popStackWord() {
 }
 
 // -----------------------------------------------------------------------------
-// HLT opcode process to stop the process.
-// Stopped process is in a mode that allows using 'r' to start the process running from the stop point.
-//
-void altair_hlt() {
-  host_set_status_led_HLTA();
-  host_clr_status_led_M1();
-  regPC--;
-  // altair_interrupt(INT_SW_STOP);
-  Serial.print(F("++ HALT, host_read_status_led_WAIT() = "));
-  Serial.println(host_read_status_led_WAIT());
-  if (!host_read_status_led_WAIT()) {
-    programState = PROGRAM_WAIT;
-    host_set_status_led_WAIT();
-    printFrontPanel();
-  }
-}
-
-// -----------------------------------------------------------------------------
 // Not using interrupts, yet.
 void altair_interrupt_enable() {
   // altair_interrupts_enabled = true;

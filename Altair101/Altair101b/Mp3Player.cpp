@@ -303,6 +303,9 @@ boolean loopSingle = false;                     // For toggling single song.
 void setLoopSingle(boolean setTo) {
   loopSingle = setTo;                           // For external programs to set the loopSingle value.
 }
+boolean getLoopSingle() {
+  return loopSingle;                            // For external programs to get the loopSingle value.
+}
 
 // Sometimes, nice not to hear sounds over and again when testing.
 //      NOT_PLAY_SOUND = false >> Do play sounds.
@@ -494,7 +497,7 @@ void printPlayerInfo() {
   Serial.println(F("+ --------------------------------------"));
 }
 
-void mp3playerPlay(int theCounter) {
+void mp3playerPlayCounter(int theCounter) {
   if (NOT_PLAY_SOUND) {
     return;
   }
@@ -530,7 +533,7 @@ int playDirectory(int theDirectory) {
     Serial.print(F(" play song"));
     mp3playerDevice.stop();
     delay(100);
-    mp3playerPlay(playerCounter);
+    mp3playerPlayCounter(playerCounter);
   } else {
     // Error getting the hardware file number value.
     //  Means that the directory is incremented beyond the last song.
@@ -558,7 +561,7 @@ void printDFPlayerMessage(uint8_t type, int value) {
   switch (type) {
     case TimeOut:
       // Serial.println(F("Time Out!"));
-      mp3playerPlay(playerCounter);
+      mp3playerPlayCounter(playerCounter);
       playerStatus = playerStatus & HLTA_OFF;
       playerLights(playerStatus, playerVolume, playerCounter);
       break;
@@ -661,7 +664,7 @@ void playerSwitch(int resultsValue) {
         playerCounter = playerCounterTop;
       }
       playCounterHlta();
-      Serial.print(F("+ Player, Previous: play previous song, playerCounter="));
+      Serial.print(F("+ Player, Previous: play previous MP3, playerCounter="));
       Serial.print(playerCounter);
       Serial.println();
       break;
@@ -675,7 +678,7 @@ void playerSwitch(int resultsValue) {
         playerCounter = 1;
       }
       playCounterHlta();
-      Serial.print(F("+ Player, Next: play next song, playerCounter="));
+      Serial.print(F("+ Player, Next: play next MP3, playerCounter="));
       Serial.print(playerCounter);
       Serial.println();
       break;
@@ -686,7 +689,7 @@ void playerSwitch(int resultsValue) {
     case 's':
       mp3playerDevice.pause();
       playerStatus = playerStatus | HLTA_ON;
-      Serial.print(F("+ Pause, play current song, playerCounter="));
+      Serial.print(F("+ Pause current MP3, playerCounter="));
       Serial.println(playerCounter);
       break;
     case 0x8AA3C35B:    // Key PLAY
@@ -699,7 +702,7 @@ void playerSwitch(int resultsValue) {
           mp3playerDevice.start();        // Continue playing current song.
         } else {
           if (playerCounter > 1) {
-            mp3playerPlay(playerCounter); // Start the new song.
+            mp3playerPlayCounter(playerCounter); // Start the new song.
           } else {
             // Error getting the hardware song file number, continue playing current song.
             mp3playerDevice.start();
@@ -718,7 +721,7 @@ void playerSwitch(int resultsValue) {
     // -----------------------------------
     case 0xFF38C7:
     case 0x82D6EC17:
-      Serial.print("+ Key OK|Enter - Toggle: pause|start the song, playerCounter=");
+      Serial.print("+ Key OK|Enter - Toggle: pause|start the MP3 , playerCounter=");
       Serial.print(playerCounter);
       Serial.print(F(", read Current FileNumber: "));
       Serial.println(mp3playerDevice.readCurrentFileNumber());
@@ -760,7 +763,7 @@ void playerSwitch(int resultsValue) {
         Serial.print(F(" play song"));
         mp3playerDevice.stop();
         delay(100);
-        mp3playerPlay(playerCounter);
+        mp3playerPlayCounter(playerCounter);
       } else {
         // Past the end.
         // Serial.print(F(" playerCounter < 0 or > 256"));
@@ -776,7 +779,7 @@ void playerSwitch(int resultsValue) {
         delay(200);
         mp3playerDevice.stop();
         delay(200);
-        mp3playerPlay(playerCounter);
+        mp3playerPlayCounter(playerCounter);
         // ------
       }
       Serial.print(", playerCounter=");
@@ -810,7 +813,7 @@ void playerSwitch(int resultsValue) {
         Serial.print(F(" play song"));
         mp3playerDevice.stop();
         delay(100);
-        mp3playerPlay(playerCounter);
+        mp3playerPlayCounter(playerCounter);
       } else {
         Serial.print(F(" playerCounter < 0 or > 256"));
         playerCounter = thePlayerCounter;
@@ -955,7 +958,7 @@ void playerSwitch(int resultsValue) {
     case 'x':
       Serial.print("+ EXAMINE, play MP3 playerCounter=");
       playerCounter = fpAddressToggleWord;
-      mp3playerPlay(playerCounter);         // Play the song.
+      mp3playerPlayCounter(playerCounter);         // Play the song.
       playerStatus = playerStatus & HLTA_OFF;
       Serial.println(playerCounter);
       break;
@@ -994,7 +997,7 @@ void playerSwitch(int resultsValue) {
       delay(100);
       setupMp3Player();                           // Sets playerCounter = 1, and other default settings;
       delay(200);
-      mp3playerPlay(playerCounter);
+      mp3playerPlayCounter(playerCounter);
       mp3playerDevice.stop();
       break;
     case 0xC4CC6436:                              // Key DISPLAY After pressing VCR
@@ -1076,7 +1079,7 @@ void playerContinuous() {
         } else {
           playerCounter = 1;
         }
-        mp3playerPlay(playerCounter);
+        mp3playerPlayCounter(playerCounter);
         //
         // This fixes the issue of skipping 2 songs,
         //  because playMp3() calls this process before the player status changes to busy,
@@ -1119,13 +1122,11 @@ void playerContinuous() {
 // Calls from other programs.
 
 void mp3PlayerStart() {
+  // if (NOT_PLAY_SOUND) {
+  //   return;
+  // }
   mp3playerDevice.start();
-  playerStatus = playerStatus & HLTA_OFF;
-}
-
-void mp3PlayerLoop(byte theFileNumber) {
-  mp3playerDevice.loop(theFileNumber);
-  playerStatus = playerStatus & HLTA_OFF;
+  // playerStatus = playerStatus & HLTA_OFF;
 }
 
 void mp3PlayerPause() {
@@ -1133,25 +1134,20 @@ void mp3PlayerPause() {
   mp3playerDevice.pause();
   delay(100);
   mp3playerDevice.pause();
-  playerStatus = playerStatus | HLTA_ON;
+  // playerStatus = playerStatus | HLTA_ON;
 }
 
 void mp3playerPlay(byte theFileNumber) {
-  if (NOT_PLAY_SOUND) {
-    return;
-  }
-  Serial.print(F("+ Start the playing of the MP3: "));
-  Serial.print(theFileNumber);
   mp3playerDevice.play(theFileNumber);
-  Serial.print(F(", return to normal processing."));
-  Serial.println();
 }
 
+void mp3PlayerLoop(byte theFileNumber) {
+  mp3playerDevice.loop(theFileNumber);
+}
+
+// ---------------------------------------
 void mp3playerPlaywait(byte theFileNumber) {
-  if (NOT_PLAY_SOUND) {
-    return;
-  }
-  Serial.println(F("+ Play MP3 until completed."));
+  // Serial.print(F("+ Play MP3 until completed."));
   playerCounter = theFileNumber;
   currentPlayerCounter = playerCounter;
   //
@@ -1161,7 +1157,6 @@ void mp3playerPlaywait(byte theFileNumber) {
     mp3playerDevice.readType();
     delay(10);
   }
-  Serial.print(F("+ Playing until completed..."));
   boolean playing = true;
   // switchStop = false;    // For stopping before the song ends, or if the song hangs.
   while (playing) {
@@ -1169,7 +1164,7 @@ void mp3playerPlaywait(byte theFileNumber) {
       int theType = mp3playerDevice.readType();
       if (theType == DFPlayerPlayFinished) {
         playing = false;
-        Serial.print(F(" > Playing is completed."));
+        // Serial.print(F(" > Playing is completed."));
       }
     }
     // ------------------------
@@ -1177,20 +1172,20 @@ void mp3playerPlaywait(byte theFileNumber) {
     //
     if (Serial.available() > 0) {
       // Hit any key to exit.
-      Serial.print(F(" > Ended now."));
+      // Serial.print(F(" > Ended early."));
       playing = false;
       mp3playerDevice.stop();
     }
     if (irrecv.decode(&results)) {
       // Hit any infrared key to exit.
-      Serial.print(F(" > Ended now."));
+      // Serial.print(F(" > Ended early."));
       playing = false;
       mp3playerDevice.stop();
       irrecv.resume();
     }
+    // ------------------------
   }
-  // ------------------------
-  Serial.println();
+  // Serial.println();
 }
 
 // -----------------------------------------------------------------------------

@@ -234,28 +234,6 @@ public class asm {
                 // -------------------------------------------------------------
                 case "set":
                     switch (cmdP1) {
-                        case "directory":
-                            if (cmdP2.length() > 0) {
-                                if (cmdP2.equals("\"\"")) {
-                                    sourcedirectoy = "";
-                                } else {
-                                    sourcedirectoy = cmdP2;
-                                }
-                            }
-                            if (sourcedirectoy.equals("")) {
-                                System.out.println("+ Program source subdirectoy name not set.");
-                            } else {
-                                System.out.println("+ Program source subdirectoy name: " + sourcedirectoy + ".");
-                            }
-                            break;
-                        case "source":
-                            if (!cmdP2.equals("")) {
-                                sourceFile = cmdP2;
-                            } else {
-                                System.out.println("+ Program source file name: " + sourceFile);
-                                System.out.println("+ Program full file name: " + fullFilename);
-                            }
-                            break;
                         case "byte":
                             if (!cmdP2.equals("")) {
                                 byteFile = cmdP2;
@@ -306,6 +284,34 @@ public class asm {
                                 }
                             }
                             break;
+                        case "directory":
+                            if (cmdP2.length() > 0) {
+                                if (cmdP2.equals("\"\"")) {
+                                    sourcedirectoy = "";
+                                } else {
+                                    sourcedirectoy = cmdP2;
+                                }
+                            }
+                            if (sourcedirectoy.equals("")) {
+                                System.out.println("+ Program source subdirectoy name not set.");
+                            } else {
+                                System.out.println("+ Program source subdirectoy name: " + sourcedirectoy + ".");
+                            }
+                            break;
+                        case "ignore":
+                            if (!cmdP2.equals("")) {
+                                asmProcessor.setIgnoreFirstCharacters(cmdP2);
+                            } else {
+                                System.out.println("+ Number of characters to ignore on a source line: " + asmProcessor.getIgnoreFirstCharacters());
+                            }
+                            break;
+                        case "orgspace":
+                            if (!cmdP2.equals("")) {
+                                asmProcessor.setOrgSpace(Integer.parseInt(cmdP2));
+                            } else {
+                                System.out.println("+ Opcode org, space filler value: " + asmProcessor.getOrgSpace());
+                            }
+                            break;
                         case "port":
                             if (cmdP2.length() == 0) {
                                 System.out.println("+ Serial port name set to: " + getSerialPortName());
@@ -315,11 +321,12 @@ public class asm {
                                 setSerialPortName(cmdP2);
                             }
                             break;
-                        case "ignore":
+                        case "source":
                             if (!cmdP2.equals("")) {
-                                asmProcessor.setIgnoreFirstCharacters(cmdP2);
+                                sourceFile = cmdP2;
                             } else {
-                                System.out.println("+ Number of characters to ignore on a source line: " + asmProcessor.getIgnoreFirstCharacters());
+                                System.out.println("+ Program source file name: " + sourceFile);
+                                System.out.println("+ Program full file name: " + fullFilename);
                             }
                             break;
                         default:
@@ -427,6 +434,7 @@ public class asm {
                     System.out.println("+ set source <program-source-filename>");
                     System.out.println("+ set byte <machine-byte-code-filename>");
                     System.out.println("+ set debug <on|off>");
+                    System.out.println("+ set orgspace <opcode> ... example 0(NOP) or 255 zasm value");
                     System.out.println("+ set port <serial-port>");
                     System.out.println("+ set ignore <Number of characters to ignore on a source line>");
                     System.out.println("+ set debug <on|off>");

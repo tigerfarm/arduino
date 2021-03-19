@@ -177,9 +177,21 @@ public class asmProcessor {
     private String p2;
     private final String SEPARATOR = ":";
     private final String SEPARATOR_TEMP = "^^";
-    private final String DB_STRING_TERMINATOR = "0";   // To have it automatically added, set to: 255 = ffh = B11111111
+    private final String DB_STRING_TERMINATOR = "0";    // To have it automatically added, set to: 255 = ffh = B11111111
     private static Integer ignoreFirstCharacters = 0;
-    //
+    
+    // -----------------------------------------
+    private static Integer orgSpace = 0;                // I like using 0 (NOP), however, zasm default value is 255 (11111111).
+
+    public static Integer getOrgSpace() {
+        return orgSpace;
+    }
+
+    public static void setOrgSpace(Integer theValue) {
+        orgSpace = theValue;
+    }
+
+    // -----------------------------------------
     // Use for storing program bytes and calculating label addresses.
     private int programTop = 0;
     private final static List<String> programBytes = new ArrayList<>();
@@ -378,11 +390,11 @@ public class asmProcessor {
                 pout.print(theBuffer + theValue + ", ");
                 // System.out.print(theBuffer + theValue + ":" + byteToString(buf[i]) + ", ");
                 System.out.print(theBuffer + theValue + ", ");
-                if (lineCounter > 15 ) {
+                if (lineCounter > 15) {
                     lineCounter = 0;
                     System.out.println();
                 }
-                    lineCounter++;
+                lineCounter++;
             }
             in.close();
             pout.close();
@@ -876,7 +888,7 @@ public class asmProcessor {
             intValue = Integer.parseInt(theValue);
         }
         for (int i = programTop; programTop < intValue; programTop++) {
-            programBytes.add("dsname:org" + SEPARATOR + "255");  // Default value is 255 (11111111), based on zasm sample.
+            programBytes.add("dsname:org" + SEPARATOR + orgSpace);      // zasm uses 255 (11111111), based on a sample.
         }
     }
 

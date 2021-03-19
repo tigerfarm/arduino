@@ -6,6 +6,7 @@
 void playerSwitch(int resultsValue);
 void setupMp3Player();
 void setLoopSingle(boolean setTo);
+boolean getLoopSingle();
 void mp3PlayerLoop(byte theFileNumber);
 void playerContinuous();
 void mp3PlayerRun();

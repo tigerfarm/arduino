@@ -754,6 +754,25 @@ void controlResetLogic() {
 }
 
 // -----------------------------------------------------------------------------
+// HLT opcode process to stop the process.
+// Stopped process is in a mode that allows using 'r' to start the process running from the stop point.
+//
+void altair_hlt() {
+  host_set_status_led_HLTA();
+  host_clr_status_led_M1();
+  mp3PlayerPause();
+  regPC--;
+  // altair_interrupt(INT_SW_STOP);
+  Serial.print(F("++ HALT, host_read_status_led_WAIT() = "));
+  Serial.println(host_read_status_led_WAIT());
+  if (!host_read_status_led_WAIT()) {
+    programState = PROGRAM_WAIT;
+    host_set_status_led_WAIT();
+    printFrontPanel();
+  }
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // IN opcode, input processing to get a byte from an input port.
 
@@ -1152,27 +1171,33 @@ void altair_out(byte portDataByte, byte regAdata) {
     // ---------------------------------------
     // OUT 10, MP3 play options.
     //  regA == 0, pause
-    //  regA == B11111111, Set to play once, and play the set MP3.
+    //  regA == B11111111, Start play, play the current MP3.
     //  Else, play the regA MP3 once.
     case 10:
       // MVI A, <file#>
       // OUT 10   ; Use OUT 11, to have the MP3 looped.
       if (regA == B11111111) {
-        Serial.println(F(" > Play once, set on."));
-        setLoopSingle(false);
         if (processorPlayerCounter > 0) {
-          mp3PlayerStart();
+          if (getLoopSingle()) {
+            Serial.print(F(" > mp3playerPlay();"));
+            mp3playerPlay(processorPlayerCounter);
+          } else {
+            Serial.print(F(" > mp3PlayerStart();"));
+            mp3PlayerStart();
+          }
         }
-      } else if (regA == 0) {
-        Serial.println(F(" > Pause playing MP3 files."));
         setLoopSingle(false);
+        Serial.print(F(" > Loop OFF."));
+      } else if (regA == 0) {
+        Serial.print(F(" > Pause, mp3PlayerPause();"));
         mp3PlayerPause();
       } else {
         setLoopSingle(false);
         processorPlayerCounter = regA;
         mp3playerPlay(processorPlayerCounter);
-        Serial.print(F(" > Play once, MP3 file# "));
-        Serial.println(processorPlayerCounter);
+        Serial.print(F(" > Loop OFF, mp3playerPlay(processorPlayerCounter = regA = "));
+        Serial.print(processorPlayerCounter);
+        Serial.print(F(");"));
       }
       break;
     // ---------------------------------------
@@ -1182,21 +1207,27 @@ void altair_out(byte portDataByte, byte regAdata) {
     //  Else, loop play the regA MP3.
     case 11:
       if (regA == B11111111) {
-        Serial.println(F(" > Loop playing, set on."));
-        setLoopSingle(true);
         if (processorPlayerCounter > 0) {
-          mp3PlayerStart();
+          if (getLoopSingle()) {
+            Serial.print(F(" > mp3PlayerStart();"));
+            mp3PlayerStart();
+          } else {
+            Serial.print(F(" > mp3PlayerLoop();"));
+            mp3PlayerLoop(processorPlayerCounter);
+          }
         }
+        setLoopSingle(true);
+        Serial.print(F(" > Loop ON."));
       } else if (regA == 0) {
-        Serial.println(F(" > Pause loop playing MP3 files."));
-        setLoopSingle(false);
+        Serial.println(F(" > Pause, mp3PlayerPause();"));
         mp3PlayerPause();
       } else {
         setLoopSingle(true);
         processorPlayerCounter = regA;
         mp3PlayerLoop(processorPlayerCounter);
-        Serial.print(F(" > Loop play once, MP3 file# "));
-        Serial.println(processorPlayerCounter);
+        Serial.print(F(" > Loop ON, mp3playerPlay(processorPlayerCounter = regA = "));
+        Serial.print(processorPlayerCounter);
+        Serial.print(F(");"));
       }
       break;
     case 12:
@@ -1304,6 +1335,7 @@ void processRunSwitch(byte readByte) {
     programState = PROGRAM_WAIT;
     host_set_status_led_WAIT();
     host_set_status_leds_READMEM_M1();
+    mp3PlayerPause();
     if (!SERIAL_IO_IDE) {
       printFrontPanel();  // <LF> will refresh the display.
     }
@@ -1341,8 +1373,9 @@ void runProcessor() {
       readByte = Serial.read();    // Read and process an incoming byte.
       processRunSwitch(readByte);
     }
+    // Stacy, should allow, if not running the opcode 10 or 11. For now, turned off.
     // Allow for the music to keep playing, and infrared player controls to work.
-    playerContinuous();
+    // playerContinuous();
   }
 }
 
