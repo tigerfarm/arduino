@@ -1219,7 +1219,7 @@ void altair_out(byte portDataByte, byte regAdata) {
         setLoopSingle(true);
         Serial.print(F(" > Loop ON."));
       } else if (regA == 0) {
-        Serial.println(F(" > Pause, mp3PlayerPause();"));
+        Serial.print(F(" > Pause, mp3PlayerPause();"));
         mp3PlayerPause();
       } else {
         setLoopSingle(true);
@@ -1232,7 +1232,8 @@ void altair_out(byte portDataByte, byte regAdata) {
       break;
     case 12:
       Serial.print(F(" > Play MP3 to completion before moving to the next opcode."));
-      mp3playerPlaywait(regA);
+        processorPlayerCounter = regA;
+      mp3playerPlaywait(processorPlayerCounter);
       break;
     // ---------------------------------------
     // ---------------------------------------
