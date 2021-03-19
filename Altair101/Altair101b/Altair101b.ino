@@ -1179,25 +1179,35 @@ void altair_out(byte portDataByte, byte regAdata) {
       if (regA == B11111111) {
         if (processorPlayerCounter > 0) {
           if (getLoopSingle()) {
+#ifdef LOG_MESSAGES
             Serial.print(F(" > mp3playerPlay();"));
+#endif
             mp3playerPlay(processorPlayerCounter);
           } else {
+#ifdef LOG_MESSAGES
             Serial.print(F(" > mp3PlayerStart();"));
+#endif
             mp3PlayerStart();
           }
         }
         setLoopSingle(false);
+#ifdef LOG_MESSAGES
         Serial.print(F(" > Loop OFF."));
+#endif
       } else if (regA == 0) {
+#ifdef LOG_MESSAGES
         Serial.print(F(" > Pause, mp3PlayerPause();"));
+#endif
         mp3PlayerPause();
       } else {
         setLoopSingle(false);
         processorPlayerCounter = regA;
         mp3playerPlay(processorPlayerCounter);
+#ifdef LOG_MESSAGES
         Serial.print(F(" > Loop OFF, mp3playerPlay(processorPlayerCounter = regA = "));
         Serial.print(processorPlayerCounter);
         Serial.print(F(");"));
+#endif
       }
       break;
     // ---------------------------------------
@@ -1209,30 +1219,42 @@ void altair_out(byte portDataByte, byte regAdata) {
       if (regA == B11111111) {
         if (processorPlayerCounter > 0) {
           if (getLoopSingle()) {
+#ifdef LOG_MESSAGES
             Serial.print(F(" > mp3PlayerStart();"));
+#endif
             mp3PlayerStart();
           } else {
+#ifdef LOG_MESSAGES
             Serial.print(F(" > mp3PlayerLoop();"));
+#endif
             mp3PlayerLoop(processorPlayerCounter);
           }
         }
         setLoopSingle(true);
+#ifdef LOG_MESSAGES
         Serial.print(F(" > Loop ON."));
+#endif
       } else if (regA == 0) {
+#ifdef LOG_MESSAGES
         Serial.print(F(" > Pause, mp3PlayerPause();"));
+#endif
         mp3PlayerPause();
       } else {
         setLoopSingle(true);
         processorPlayerCounter = regA;
         mp3PlayerLoop(processorPlayerCounter);
+#ifdef LOG_MESSAGES
         Serial.print(F(" > Loop ON, mp3playerPlay(processorPlayerCounter = regA = "));
         Serial.print(processorPlayerCounter);
         Serial.print(F(");"));
+#endif
       }
       break;
     case 12:
+#ifdef LOG_MESSAGES
       Serial.print(F(" > Play MP3 to completion before moving to the next opcode."));
-        processorPlayerCounter = regA;
+#endif
+      processorPlayerCounter = regA;
       mp3playerPlaywait(processorPlayerCounter);
       break;
     // ---------------------------------------
