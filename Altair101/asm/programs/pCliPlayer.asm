@@ -4,7 +4,7 @@
                                         ;
                                         ; --------------------------------------
                                         ; --------------------------------------
-                lxi sp,1024             ; Set stack pointer.
+                lxi sp,STACK            ; Set stack pointer
                 lxi h,lb                ; Set the H:L register pair to the line buffer.
                 shld lbc                ; Store H and L registers into memory, the line buffer counter.
     Start:
@@ -301,10 +301,6 @@
                 db      0
     Menu6str    db      '  6. Continue looping the MP3.     (loop)\r\n'
                 db      0
-; Menu7str doesn't print properly:
-;   xxxxxxxx    db      '  7. Play MP3 until it is completed before '
-; Menu7str does print properly:
-    xxxxxxxx    db      '  7. Play MP3 until it is completed before m'
     Menu7str    db      '  7. Play MP3 until it is completed before moving to the next opcode.\r\n'
                 db      0
     MenuEnd     db      '\r\n  ------'
@@ -316,36 +312,9 @@
                                         ;   if port 3 is disable, then it defaults to 3, the default serial port.
     PRINT_PORT  equ     3               ; Output port#. 
     INPUT_PORT  equ     3               ; Input port#.
+                                        ;
+                DS      32              ; Stack space
+    STACK:      EQU     $
                                         ; ----------------------------------------
                 end
                                         ; ----------------------------------------
-                                        ; Found a bug.
-                                        ; The work around is not to use bytes in addresses 1018-1024 (not sure of the range).
-
-  7. Play MP3 until it is completed befo�
-  ------
-
-++    1016:00000011 11111000: 01100010 : 62:142 > databyte:  : b : 98
-++    1017:00000011 11111001: 01100101 : 65:145 > databyte:  : e : 101
-++    1018:00000011 11111010: 01100110 : 66:146 > databyte:  : f : 102
-++    1019:00000011 11111011: 01101111 : 6F:157 > databyte:  : o : 111
-++    1020:00000011 11111100: 01110010 : 72:162 > databyte:  : r : 114
-++    1021:00000011 11111101: 01100101 : 65:145 > databyte:  : e : 101
-++    1022:00000011 11111110: 00100000 : 20:040 > databyte:  :   : 32
-++    1023:00000011 11111111: 01101101 : 6D:155 > databyte:  : m : 109  *** The byte address that causes the issue.
-++    1024:00000100 00000000: 00100000 : 20:040 > databyte:  :   : 32
-++    1025:00000100 00000001: 00100000 : 20:040 > databyte:  :   : 32
-++    1026:00000100 00000010: 00110111 : 37:067 > databyte:  : 7 : 55
-++    1027:00000100 00000011: 00101110 : 2E:056 > databyte:  : . : 46
-
-    printStr:
-                mov a,m                 ; Move the data from H:L address to register A. (HL) -> A. 
-                cpi TERMB               ; Compare to see if it's the string terminate byte.
-                jz sPrintDone
-                out PRINT_PORT          ; Out register A to the serial port.
-                inx h                   ; Increment H:L register pair.
-                jmp printStr
-    sPrintDone:
-                ret
-                                        ; ----------------------------------------
-
