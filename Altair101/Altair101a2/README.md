@@ -7,7 +7,7 @@ Altair101a uses the processing control code from my first simulator, Processor.i
 Altair101a uses David Hansel's Altair 8800 simulator code to execute machine instructions.
 Hansel's code is proven to work, as it's the software engine of the Altair-Duino.
 
-Altair101a runs Kill the Bit, sample assembler programs I wrote, and MITS 4K Basic.
+Altair101a runs the classic Kill the Bit, assembler programs I wrote, and MITS 4K Basic.
 My assembler program is great for assembling programs into byte code and uploading to the Altair101a.
 I used the assembler to assemble and run a modified version the program GALAXY80,
 a variation of the classic Star Trek game.
