@@ -31,7 +31,7 @@
   Next to work on
 
   Document what each does:
-  ++ LED_IO=0 VIRTUAL_FRONT_PANEL=0 SERIAL_IO_IDE=0 SERIAL_CLI=1
+  ++ LED_LIGHTS_IO=0 VIRTUAL_FRONT_PANEL=0 ARDUINO_IDE_MONITOR=0 SERIAL_CLI=1
 
   In conjuction with the Altair101a instructable, update README.md files:
   + Altair101a
@@ -349,13 +349,13 @@ boolean VIRTUAL_FRONT_PANEL = false;
 //    For example, Ctrl+l to clear the terminal screen.
 boolean SERIAL_CLI = false;
 
-// This option is for using the Arduino IDE monitor.
+// This is for when you are using the Arduino IDE monitor.
 // It prevents virtual front panel printing, unless requested.
 // The monitor requires an enter key to send a string of characters which is then terminated with LF.
-boolean SERIAL_IO_IDE = false;
+boolean ARDUINO_IDE_MONITOR = false;
 
 // Hardware LED lights
-boolean LED_IO = false;
+boolean LED_LIGHTS_IO = false;
 
 // -----------------------------------
 // Using Serial2 for output.
@@ -539,7 +539,7 @@ void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberBy
   }
   playerVolumeAddress = bitWrite(playerVolumeAddress, playerVolumePosition, 1);
   //
-  if (LED_IO) {
+  if (LED_LIGHTS_IO) {
     lightsStatusAddressData(statusByte, playerVolumeAddress, songNumberByte);
   }
   if (VIRTUAL_FRONT_PANEL) {
@@ -555,7 +555,7 @@ void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberBy
 
 void printFrontPanel() {
   uint16_t theAddressWord = 0;
-  if (LED_IO) {
+  if (LED_LIGHTS_IO) {
     lightsStatusAddressData(fpStatusByte, host_read_addr_leds(), host_read_data_leds());
   }
   if (VIRTUAL_FRONT_PANEL) {
@@ -579,11 +579,11 @@ void printFrontPanel() {
     Serial.println();
     // Serial.print(F("\033[2K")); // Clear line
 #endif
-  } else if (SERIAL_IO_IDE) {
+  } else if (ARDUINO_IDE_MONITOR) {
     if (host_read_status_led_WAIT()) {
       printVirtualFrontPanel();
     } else {
-      Serial.print(F("+ printFrontPanel SERIAL_IO_IDE, status:"));
+      Serial.print(F("+ printFrontPanel ARDUINO_IDE_MONITOR, status:"));
       printByte(fpStatusByte);
       Serial.print(F(" dataByte:"));
       printByte(host_read_data_leds());
@@ -624,7 +624,7 @@ void initVirtualFrontPanel() {
   // Print the complete front panel: labels and indicators.
   printVirtualFrontPanel();
   VIRTUAL_FRONT_PANEL = true;                  // Must be after printVirtualFrontPanel(), to have the labels printed.
-  SERIAL_IO_IDE = false;                      // Insure it's disabled.
+  ARDUINO_IDE_MONITOR = false;                      // Insure it's disabled.
   Serial.println(F("+ VT100 escapes are enabled and block cursor off."));
 }
 
@@ -1373,7 +1373,7 @@ void processDataOpcode() {
   host_clr_status_led_M1();
   host_set_addr_leds(regPC);
   host_set_data_leds(opcode);
-  if (!SERIAL_IO_IDE || (programState == PROGRAM_RUN)) {
+  if (!ARDUINO_IDE_MONITOR || (programState == PROGRAM_RUN)) {
     printFrontPanel();
   }
   regPC++;
@@ -1403,7 +1403,7 @@ void processRunSwitch(byte readByte) {
     host_set_status_led_WAIT();
     host_set_status_leds_READMEM_M1();
     mp3PlayerPause();
-    if (!SERIAL_IO_IDE) {
+    if (!ARDUINO_IDE_MONITOR) {
       printFrontPanel();  // <LF> will refresh the display.
     }
   } else if (readByte == resetByte) {
@@ -1459,7 +1459,7 @@ void processWaitSwitch(byte readByte) {
   if ( data >= '0' && data <= '9' ) {
     // Serial input, not hardware input.
     fpAddressToggleWord = fpAddressToggleWord ^ (1 << (data - '0'));
-    if (!SERIAL_IO_IDE) {
+    if (!ARDUINO_IDE_MONITOR) {
       printFrontPanel();
     }
     return;
@@ -1467,7 +1467,7 @@ void processWaitSwitch(byte readByte) {
   if ( data >= 'a' && data <= 'f' ) {
     // Serial input, not hardware input.
     fpAddressToggleWord = fpAddressToggleWord ^ (1 << (data - 'a' + 10));
-    if (!SERIAL_IO_IDE) {
+    if (!ARDUINO_IDE_MONITOR) {
       printFrontPanel();
     }
     return;
@@ -1508,7 +1508,7 @@ void processWaitSwitch(byte readByte) {
       }
       host_set_status_leds_READMEM_M1();
       setAddressData(regPC, MREAD(regPC));
-      if (!SERIAL_IO_IDE) {
+      if (!ARDUINO_IDE_MONITOR) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
@@ -1517,7 +1517,7 @@ void processWaitSwitch(byte readByte) {
       regPC = fpAddressToggleWord;
       Serial.println(regPC);
       setAddressData(regPC, MREAD(regPC));
-      if (!SERIAL_IO_IDE) {
+      if (!ARDUINO_IDE_MONITOR) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
@@ -1526,7 +1526,7 @@ void processWaitSwitch(byte readByte) {
       regPC = regPC + 1;
       Serial.println(regPC);
       setAddressData(regPC, MREAD(regPC));
-      if (!SERIAL_IO_IDE) {
+      if (!ARDUINO_IDE_MONITOR) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
@@ -1535,7 +1535,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(regPC);
       MWRITE(regPC, fpAddressToggleWord & 0xff);
       setAddressData(regPC, MREAD(regPC));
-      if (!SERIAL_IO_IDE) {
+      if (!ARDUINO_IDE_MONITOR) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
@@ -1545,7 +1545,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(regPC);
       MWRITE(regPC, fpAddressToggleWord & 0xff);
       setAddressData(regPC, MREAD(regPC));
-      if (!SERIAL_IO_IDE) {
+      if (!ARDUINO_IDE_MONITOR) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
@@ -1553,7 +1553,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ R, RESET."));
       controlResetLogic();
       fpAddressToggleWord = 0;                // Reset all toggles to off.
-      if (!SERIAL_IO_IDE) {
+      if (!ARDUINO_IDE_MONITOR) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
@@ -1623,7 +1623,7 @@ void processWaitSwitch(byte readByte) {
         VIRTUAL_FRONT_PANEL = false;                // Insure labels are printed.
         printVirtualFrontPanel();                // Print the complete front panel: labels and indicators.
         VIRTUAL_FRONT_PANEL = true;                 // Must be after printVirtualFrontPanel(), to have the labels printed.
-        SERIAL_IO_IDE = false;                      // Insure it's disabled.
+        ARDUINO_IDE_MONITOR = false;                      // Insure it's disabled.
       */
       break;
     // -------------------------------------------------------------------
@@ -1637,21 +1637,21 @@ void processWaitSwitch(byte readByte) {
       break;
     // -------------------------------------------------------------------
     case 'w':
-      SERIAL_IO_IDE = false;
-      Serial.println(F("+ USB serial output is disabled."));
+      ARDUINO_IDE_MONITOR = false;
+      Serial.println(F("+ Arduino IDE monitor output is disabled."));
       break;
     case 'W':
-      SERIAL_IO_IDE = true;
-      Serial.println(F("+ USB serial output is enabled."));
+      ARDUINO_IDE_MONITOR = true;
+      Serial.println(F("+ Arduino IDE monitor output is enabled."));
       break;
     // -------------------------------------
     case 'o':
       Serial.println(F("+ Disable output to LED lights."));
-      LED_IO = false;
+      LED_LIGHTS_IO = false;
       break;
     case 'O':
       Serial.println(F("+ Enable output to LED lights."));
-      LED_IO = true;
+      LED_LIGHTS_IO = true;
       break;
     //
     // -------------------------------------------------------------------
@@ -1671,14 +1671,14 @@ void processWaitSwitch(byte readByte) {
     case 'l':
       Serial.println(F("+ Load a sample program."));
       loadProgram();
-      if (!SERIAL_IO_IDE) {
+      if (!ARDUINO_IDE_MONITOR) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
     case 'L':
       Serial.println(F("+ Load hex code from the serial port. Enter space(' ') to exit."));
       loadProgramSerial();
-      if (!SERIAL_IO_IDE) {
+      if (!ARDUINO_IDE_MONITOR) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
@@ -1745,12 +1745,12 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("------------"));
       Serial.print(F("++ programState: "));
       Serial.println(programState);
-      Serial.print(F("++ LED_IO="));
-      Serial.print(LED_IO);
+      Serial.print(F("++ LED_LIGHTS_IO="));
+      Serial.print(LED_LIGHTS_IO);
       Serial.print(F(" VIRTUAL_FRONT_PANEL="));
       Serial.print(VIRTUAL_FRONT_PANEL);
-      Serial.print(F(" SERIAL_IO_IDE="));
-      Serial.print(SERIAL_IO_IDE);
+      Serial.print(F(" ARDUINO_IDE_MONITOR="));
+      Serial.print(ARDUINO_IDE_MONITOR);
       Serial.print(F(" SERIAL_CLI="));
       Serial.println(SERIAL_CLI);
       Serial.print(F("++ Serial: "));

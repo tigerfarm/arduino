@@ -408,10 +408,10 @@ GLXCK1:
 	mov     A,C             ; Restore A
 	JC	ASPLS           ; Yes, delete 1 more
                                 ; ------
-        lda     ASHIPSL         ; Max (high) number of alien ships.
-	cmp	C		; Default was 32. Too many alien ships?
+        lda     ASHIPSL         ; Min number of alien ships.
+	cmp	C		; Not enough alien ships?
 	mov	A,C		; Restore A
-	JNC	ASMNS		; Yes, add 1
+	JNC	ASMNS		; Add 1
                                 ; ----------------------------------------------
 	MVI	L,05BH		;Set pointer to store number Rebel outpost.
 	MOV	M,D		;Save number of space stations
@@ -1477,7 +1477,7 @@ NT2:
 ; ------------------------------------------------------------------------------
                                 ; 
 TIME:
-	LXI	H,MSGMSF	;Stardate's time has run
+        LXI     H,MSGMSF        ;Stardate's time has run
 DONE:
 	CALL	MSG		;Print message and start
 	JMP	GALAXY		;A new game.
@@ -1632,7 +1632,7 @@ DLET:
 	MVI	L,05BH		;Set pointer to number of S.S.
 	DCR	M		;Decrement number of S.S.
 	RNZ			;If number not 0, return
-	LXI	H,MSGDSE	;Print warning message
+        LXI     H,MSGDSE         ;Print warning message
 CMSG:
 	CALL	MSG
 	MVI	H,000		;Reset pointer to page 000
@@ -1646,9 +1646,14 @@ DLAS:
 	MVI	L,05CH		;Fetch number of A.S. counter
 	DCR	M		;Subtract 1 from number
 	RNZ			;If counter not = 0, return
-	LXI	H,MSGCYH	;If counter = 0, game over
-	JMP	DONE		;print CONGRATULATIONS
-                                ;
+                                 ;
+                                 ; -----------------------------
+                                 ; You win!
+        LXI     H,MSGASD         ; TIE fighter destroyed
+        CALL    MSG
+        LXI     H,MSGCYH         ; Print CONGRATULATIONS, game over
+        JMP     DONE
+                                 ;
 ; ------------------------------------------------------------------------------
                                 ; Input a course direction.
 DRCT:
@@ -2209,15 +2214,15 @@ MSPREP:	DB	'\r\nPreparations are being made...'
 MSPREP:	DB	'\r\nQuick game or a longer game, less or more TIE fighters? (Q/L)'
   	DB	0
                                 ; ----------------------------------------------
-MSGASD:	DB	'\r\nTIE fighter destroyed.'
-  	DB	0
 MSGGDY:	DB	'\r\nRegional Sector Display'
-  	DB	0
-MSGPEF:	DB	'\r\nLaser cannon energy to fire = '
   	DB	0
 MSGWRP:	DB	'\r\nParsecs (0.1-7.7): '
   	DB	0
 MSGCRS:	DB	'\r\nCourse direction (1-8.5): '
+  	DB	0
+MSGPEF:	DB	'\r\nLaser cannon energy to fire = '
+  	DB	0
+MSGASD:	DB	'\r\nTIE fighter destroyed.'
   	DB	0
 MSGCYH:	DB	'\r\n\r\nCONGRATULATIONS! You eliminated all the TIE fighters. Rebels are safe...for now.\r\n'
   	DB	0
@@ -2237,10 +2242,12 @@ MSGCHK:	DB	'\r\n\r\nLater...\r\n'
 regA:   DB      0
 regH:   DB      0
                                 ;
-ASHIPSH: DB     9               ; Number alien ships is less than this number.
-                                ; Default was 32.
-ASHIPSL: DB     5               ; Number alien ships is greater than this number.
-                                ; Default was 10.
+ASHIPSH: DB     3               ; Number alien ships is less than this number.
+ASHIPSL: DB     1               ; Number alien ships is greater than this number.
+                                ; Default was 32 and 10.
+                                ; 9 and 5 are good for a reasonably short game.
+                                ;   You can still run out of energy.
+                                ; 3 and 1 for super short.
                                 ;
                                 ; ----------------------------------------------
 	END
