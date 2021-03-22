@@ -8,7 +8,7 @@
 #include "sdCard.h"
 
 // This is for running the test program.
-// The goal is to include the MP3 player program with Altair101a.
+// The goal is to include the model program with Altair101b.
 #include "Altair101b.h"
 #include "cpuIntel8080.h"
 

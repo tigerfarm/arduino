@@ -633,7 +633,7 @@ void sdCardSwitch(int resultsValue) {
       Serial.println(F("+ c, Clear memory   Set memory array to zero, and file byte counter to zero."));
       Serial.println(F("------------------"));
       Serial.println(F("+ Ctrl+L          Clear screen."));
-      Serial.println(F("+ X, Exit player  Return to program WAIT mode."));
+      Serial.println(F("+ X, Exit         Return to program WAIT mode."));
       Serial.println(F("----------------------------------------------------"));
       break;
     // ----------------------------------------------------------------------

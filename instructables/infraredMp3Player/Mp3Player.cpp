@@ -1049,7 +1049,7 @@ void playerSwitch(int resultsValue) {
     case 0xDA529B37:                              // Key POWER After pressing VCR
     case 0x1A2EEC3B:                              // Key POWER After pressing TV
     case 'X':
-      Serial.print(F("+ Exit."));
+      Serial.println(F("+ Exit CLI."));
       programState = PROGRAM_WAIT;
       break;
     // -------------------------------------------------------------------

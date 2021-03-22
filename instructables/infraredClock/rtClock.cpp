@@ -854,7 +854,7 @@ void clockSwitch(int resultsValue) {
     case 0xDA529B37:                              // Key POWER After pressing VCR
     case 0x1A2EEC3B:                              // Key POWER After pressing TV
     case 'X':
-      Serial.println(F("+ Power or Key TV/VCR"));
+      Serial.println(F("+ Exit clock CLI."));
       programState = PROGRAM_WAIT;
       break;
     // -----------------------------------
