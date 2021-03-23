@@ -30,9 +30,12 @@
   ---------------------------------------------------------
   Next to work on
 
-  Document what each does:
-  ++ LED_LIGHTS_IO=0 VIRTUAL_FRONT_PANEL=0 ARDUINO_IDE_MONITOR=0 SERIAL_CLI=1
+  In CLI mode, enter key displays the the VIRTUAL_FRONT_PANEL.
+  In VIRTUAL_FRONT_PANEL mode, redisplay. Currently, I use "V".
 
+  Document what each does:
+  ++ LED_LIGHTS_IO=0 VIRTUAL_FRONT_PANEL=1 ARDUINO_IDE_MONITOR=0 SERIAL_CLI=0
+  
   In conjuction with the Altair101a instructable, update README.md files:
   + Altair101a
   + Galaxy101a
@@ -188,12 +191,6 @@
 // -----------------------------------------------------------------------------
 #include "Altair101b.h"
 #include "cpuIntel8080.h"
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// Comment out the following, if compiling for Altair101a,
-//    which does not have an MP3 player, real time clock, or an SD card module.
-#define Altair101b 1
 
 // ------------------------------------------------
 // For the Altair101b version,
@@ -1612,19 +1609,6 @@ void processWaitSwitch(byte readByte) {
     case 'V':
       // The following requires a VT100 terminal such as a Macbook terminal.
       initVirtualFrontPanel();
-      /*
-        // Insure the previous value is different to current, to insure an intial printing.
-        prev_fpDataByte = host_read_data_leds() + 1;
-        prev_fpAddressWord = host_read_addr_leds() + 1;
-        prev_fpAddressToggleWord = 1;           // Set to different value.
-        fpAddressToggleWord = 0;                // Set all toggles off.
-        Serial.print(F("\033[0m\033[?25l"));       // Block cursor display: off.
-        Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
-        VIRTUAL_FRONT_PANEL = false;                // Insure labels are printed.
-        printVirtualFrontPanel();                // Print the complete front panel: labels and indicators.
-        VIRTUAL_FRONT_PANEL = true;                 // Must be after printVirtualFrontPanel(), to have the labels printed.
-        ARDUINO_IDE_MONITOR = false;                      // Insure it's disabled.
-      */
       break;
     // -------------------------------------------------------------------
     case 't':
@@ -1972,8 +1956,10 @@ void processWaitSwitch(byte readByte) {
       // USB serial, VT100 terminal.
       Serial.println();
       if (!VIRTUAL_FRONT_PANEL) {
-        printFrontPanel();  // <LF> will refresh the display.
+        printFrontPanel();        // <LF> will refresh the display.
         printVirtualFrontPanel();
+      } else {
+        initVirtualFrontPanel();
       }
       break;
     case 10:

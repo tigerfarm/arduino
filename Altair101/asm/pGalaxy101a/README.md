@@ -20,13 +20,10 @@ This document also includes my developer notes.
 
 My challenge was to,
 + Update my assembler program so that I could assemble the program.
-+ Make program changes to get the program to run on my Altair101a.
++ Make program changes to get the program to run on my Altair101.
 + Run and test the program.
 + Make enhancements.
-
-I can assemble and run it. I even fixed a usage flow option.
-The game is enhanced as far as I can go on my Mega 2560 Altair101a because of the memory limitations.
-The enhanced program has very little memory left for me to upgrade the playing experience.
+Status: I can assemble and run it. I even fixed a usage flow option.
 
 [Galaxy101.asm](Galaxy101.asm) is the current tested program.
 [GALAXY80.asm](GALAXY80.asm) is the original that I downloaded from a GitHub
@@ -36,20 +33,20 @@ The enhanced program has very little memory left for me to upgrade the playing e
 ### To do next:
 
 Modify the display of the sector map and messages,
-to work similarly to the Altair101a virtual front panel display and log messages.
+to work similarly to the Altair101 virtual front panel display and log messages.
 + Use VT100 escape sequences to print the sector map in one location, at the top.
 + Messages display below.
 
 Switch over to use 88-2SIO CHANNEL A SERIAL INTERFACE so that this program can run an actual Altair 8800.
-Or, compile as second version with the 88-2SIO CHANNEL A SERIAL INTERFACE from the original program.
++ The original program using 88-2SIO CHANNEL A SERIAL INTERFACE.
++ Or, use the version from 4K Basic.
 
 #### Game Enhancements
 
-Option for quick game or longer game based on the number of enemy ships.
+Prompt the user for quick game or longer game which is based on the number of enemy ships.
 
-Add torpedo animation from the X-wing to the TIE fighter.
-Each tracking message would display the torpedo moving toward the TIE fighter, hit or miss.
-```
+VT100 version: add torpedo animation from the X-wing to the TIE fighter.
+````
 Command > d
 Directions
     3
@@ -79,19 +76,9 @@ Tracking: 4 7
 Tracking: 3 7
 TIE fighter destroyed.
 Command > 
-```
-
-Should say, "TIE fighter destroyed."
-````
-Command > 6
-Torpedo trajectory(1-8.5) : 5.0
-Tracking: 4 7
-Tracking: 4 6
-
-CONGRATULATIONS! You eliminated all the TIE fighters. Rebels are safe...for now.
 ````
 
-Shoudl say: CONDITION DOCKED
+Should say: CONDITION DOCKED
 ````
 2            x!x>1<       CONDITION GREEN
 ````
@@ -118,10 +105,10 @@ DANGER-SHIELD ENERGY 000
 --------------------------------------------------------------------------------
 #### Program is stored on the SD card:
 
-From Altair101a command line, you can list, load, and run program files.
+From Altair101 command line, you can list, load, and run program files.
 
 To run,
-+ Start Altair101a and connect using a serial program.
++ Start Altair101 and connect using a serial program.
 A VT100 terminal is recommended.
 + If using a VT100 terminal, press "T" to use terminal escape characters.
 + Set the sense switches to load the Galaxy101a program: S8 and S10 which is 8 and a.

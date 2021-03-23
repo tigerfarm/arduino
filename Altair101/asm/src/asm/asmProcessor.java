@@ -1678,9 +1678,14 @@ public class asmProcessor {
         // thisProcess.listLabelAddresses();
         // thisProcess.listImmediateValues();
         // thisProcess.programBytesListAndWrite("p1.bin");
-        thisProcess.programBytesListCodeArray("p4kBasic/basic4k.bin");
         // thisProcess.programBytesListCodeArray("p1.bin");
 
+        // ---------------------------------------------------
+        // Generate arrary data from AltairSamples.cpp
+        // thisProcess.programBytesListCodeArray("p4kBasic/basic4k.bin");
+        thisProcess.programBytesListCodeArray("p1.bin");
+
+        // ---------------------------------------------------
         // thisProcess.programBytesListCode();
         // thisProcess.programBytesListHex();
         //
