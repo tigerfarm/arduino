@@ -30,12 +30,15 @@
   ---------------------------------------------------------
   Next to work on
 
-  In CLI mode, enter key displays the the VIRTUAL_FRONT_PANEL.
-  In VIRTUAL_FRONT_PANEL mode, redisplay. Currently, I use "V".
+  Update infrared options:
+  + MP3 player STOP isn't working
+
+  Test setting 00000000.bin and running it on startup.
+  Display clock time in the VFP.
 
   Document what each does:
   ++ LED_LIGHTS_IO=0 VIRTUAL_FRONT_PANEL=1 ARDUINO_IDE_MONITOR=0 SERIAL_CLI=0
-  
+
   In conjuction with the Altair101a instructable, update README.md files:
   + Altair101a
   + Galaxy101a
@@ -43,8 +46,6 @@
   + programsAltair: programs people can load and run on the Altair101.
 
   Continue integrating Processor.ino features and functions.
-  + Test running 00000000.bin on startup.
-  + Test: OUT 10, MP3 play options. OUT 11, to have the MP3 looped.
   + Test Serial2 buffer uploads from asm, for uploading basic programs.
   + Ready to add sample assembler programs to AltairSamples.cpp.
   + Nice to standardize the key press options across the programs, such as v and V for player volume.
@@ -222,7 +223,9 @@ void setPlayMode(uint8_t setTo) {}
 // uint8_t getPlayMode() {}
 void playerSwitch(int resultsValue) {}
 void playerContinuous() {}
-void mp3PlayerRun() {programState = PROGRAM_WAIT;}
+void mp3PlayerRun() {
+  programState = PROGRAM_WAIT;
+}
 void mp3PlayerPause() {}
 void mp3PlayerStart() {}
 void mp3playerSinglePlay(byte theFileNumber) {}
@@ -233,19 +236,31 @@ void mp3playerPlaywait(byte theFileNumber) {}
 // Clock module
 //
 void setupClock() {}
-void rtClockRun() {programState = PROGRAM_WAIT;}
+void rtClockRun() {
+  programState = PROGRAM_WAIT;
+}
 void rtClockContinuous() {}
 void clockSwitch(int resultsValue) {}
 
 // -------------------
 // SD Card module
 //
-boolean setupSdCard() {return false;}
-void sdCardRun() {programState = PROGRAM_WAIT;}
+boolean setupSdCard() {
+  return false;
+}
+void sdCardRun() {
+  programState = PROGRAM_WAIT;
+}
 void sdCardSwitch(int resultsValue) {}
-boolean readFileToMemory(String theFilename) {return false;}
-boolean writeMemoryToFile(String theFilename) {return false;}
-boolean writeFileByte(String theFilename, byte theByte) {return false;}
+boolean readFileToMemory(String theFilename) {
+  return false;
+}
+boolean writeMemoryToFile(String theFilename) {
+  return false;
+}
+boolean writeFileByte(String theFilename, byte theByte) {
+  return false;
+}
 int readFileByte(String theFilename) {}
 
 #endif
@@ -543,6 +558,69 @@ void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberBy
     fpStatusByte = statusByte;
     fpAddressWord = playerVolumeAddress;
     fpDataByte = songNumberByte;
+    printVirtualFrontPanel();
+  }
+}
+
+// -----------------------------------------------------------------------------
+// When in CLOCK_RUN mode, display clock values on the virtual front panel.
+
+void clockLights(byte theMinute, byte theHour) {
+  uint8_t minutesTens;
+  uint8_t timeHour;
+  uint8_t minutesOnes;
+  boolean amTime;
+  //
+  // ----------------------------------------------
+  // Convert the hours(1...12) into address lights: A1 to A12.
+  // Set AM/PM.
+  if (theHour < 12) {
+    timeHour = theHour;
+    amTime = true;
+    // Serial.println(F(" AM"));
+  } else {
+    if (theHour > 12) {
+      timeHour = theHour - 12;
+    } else {
+      // theHour = 12, which 12 noon, 12pm
+      timeHour = 12;
+    }
+    amTime = false;
+    // Serial.println(F(" PM"));
+  }
+  unsigned int hourAddress = 0;                     // CLear previous value.
+  hourAddress = bitWrite(hourAddress, theHour, 1);  // Set the hour bit (A1...A12).
+  // ----------------------------------------------
+  // Convert the minute into binary for display.
+  //
+  // Set minutes ones for display in the Data lights (D7...D0).
+  // Set minutes tens for display in the Status lights (HLTA...INT).
+  // There are 3 bits for the tens(ttt):  0 ... 5 (00, 10, 20, 30, 40, or 50).
+  // There are 4 bits for the ones(oooo): 0 ... 9.
+  // LED diplay lights: ttt oooo
+  // Example:      23 = 010 0011
+  if (theMinute < 10) {
+    minutesOnes = theMinute;
+    minutesTens = 0;
+  } else {
+    minutesTens = theMinute / 10;                 // Example, 32, minutesTens = 3.
+    minutesOnes = theMinute - minutesTens * 10;   // minutesOnes = 32 - 30 = 2.
+  }
+  if (amTime) {
+    // 12:00 AM, midnight
+    bitWrite(minutesTens, 7, 1);  // Set AM indicator on.
+  } else {
+    // 12:00 PM, noon
+    bitWrite(minutesTens, 6, 1);  // Set PM indicator on.
+  }
+  // ----------------------------
+  if (LED_LIGHTS_IO) {
+    lightsStatusAddressData(minutesTens, hourAddress, minutesOnes);
+  }
+  if (VIRTUAL_FRONT_PANEL) {
+    fpStatusByte = minutesTens;
+    fpAddressWord = hourAddress;
+    fpDataByte = minutesOnes;
     printVirtualFrontPanel();
   }
 }
@@ -1640,12 +1718,12 @@ void processWaitSwitch(byte readByte) {
     //
     // -------------------------------------------------------------------
     /*
-    case 'z':
+      case 'z':
       Serial.print(F("++ Cursor off."));
       Serial.print(F("\033[0m\033[?25l"));
       Serial.println();
       break;
-    case 'Z':
+      case 'Z':
       Serial.print(F("++ Cursor on."));
       Serial.print(F("\033[0m\033[?25h"));
       Serial.println();
@@ -1970,7 +2048,7 @@ void processWaitSwitch(byte readByte) {
     case 12:
       // Ctrl+l is ASCII 7, which is form feed (FF).
       // if (VIRTUAL_FRONT_PANEL || SERIAL_CLI) {
-        Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
+      Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
       // }
       if (VIRTUAL_FRONT_PANEL) {
         // Refresh the front panel
@@ -2380,12 +2458,23 @@ void loop() {
       break;
     // ----------------------------
     case CLOCK_RUN:
-      host_clr_status_led_WAIT()
+      // Save processor front panel values.
+      tmp_VIRTUAL_FRONT_PANEL = VIRTUAL_FRONT_PANEL;
+      tmp_fpStatusByte = fpStatusByte;
+      tmp_fpAddressWord = fpAddressWord;
+      tmp_fpDataByte = fpDataByte;
+      host_clr_status_led_WAIT();
       host_set_status_led_HLDA();
+      //
       rtClockRun();
+      //
+      // Restore processor front panel values.
       host_clr_status_led_HLDA();
+      fpStatusByte = tmp_fpStatusByte;
+      fpAddressWord = tmp_fpAddressWord;
+      fpDataByte = tmp_fpDataByte;
+      tmp_VIRTUAL_FRONT_PANEL = VIRTUAL_FRONT_PANEL;
       if (VIRTUAL_FRONT_PANEL) {
-        initVirtualFrontPanel();
         printVirtualFrontPanel();
       }
       break;

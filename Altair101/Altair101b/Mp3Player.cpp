@@ -720,6 +720,7 @@ void playerSwitch(int resultsValue) {
       Serial.print(playerCounter);
       break;
     // -----------------------------------
+    case 0xFA2F715F:
     case 's':
       mp3playerDevice.pause();
       playerStatus = playerStatus | HLTA_ON;

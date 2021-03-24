@@ -43,8 +43,6 @@ Switch over to use 88-2SIO CHANNEL A SERIAL INTERFACE so that this program can r
 
 #### Game Enhancements
 
-Prompt the user for quick game or longer game which is based on the number of enemy ships.
-
 VT100 version: add torpedo animation from the X-wing to the TIE fighter.
 ````
 Command > d
@@ -83,9 +81,9 @@ Should say: CONDITION DOCKED
 2            x!x>1<       CONDITION GREEN
 ````
 
-If warp into a base(DOCKED), by coincidence,
-+ Resources are not update for the ship, x!x>1<
-+ Should update the ship.
+If warp into a base(DOCKED x!x>1<), by coincidence,
++ Resources are not automatically updated for the ship.
++ Need move away and back again for to update the resources. Should update automatically.
 
 Check, if no alien ships in the sector, don't say: The "alien" retaliates.
 + There is sample code for Laser cannons, search for, "Any alien ships?"

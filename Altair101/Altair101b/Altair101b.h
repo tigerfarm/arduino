@@ -49,6 +49,7 @@ void altair_out(byte addr, byte val);       // Called from cpu_out();
 void altair_hlt();                          // Called from cpu_hlt();
 
 extern void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberByte);
+extern void clockLights(byte theMinute, byte theHour);
 
 // -----------------------------------------------------------------------------
 // From AltairSample.cpp program.

@@ -720,6 +720,7 @@ void playerSwitch(int resultsValue) {
       Serial.print(playerCounter);
       break;
     // -----------------------------------
+    case 0xFA2F715F:
     case 's':
       mp3playerDevice.pause();
       playerStatus = playerStatus | HLTA_ON;
@@ -905,7 +906,7 @@ void playerSwitch(int resultsValue) {
     case 0x38BF129B:                        // Toshiba VCR remote
     case 0x789B639F:                        // After pressing TV
     case 0xFF22DD:                          // Small remote
-    case '4':
+    case '4':                               // Over wrote above, for usage on the virtualfront panel.
       playerEq = DFPLAYER_EQ_POP;
       Serial.print("+ Key 4: ");
       Serial.print("DFPLAYER_EQ_POP");
@@ -914,7 +915,7 @@ void playerSwitch(int resultsValue) {
     case 0x926C6A9F:                        // Toshiba VCR remote
     case 0xD248BBA3:                        // After pressing TV
     case 0xFF02FD:
-    case '5':
+    case '5':                               // Over wrote above, for usage on the virtualfront panel.
       playerEq = DFPLAYER_EQ_CLASSIC;
       Serial.print("+ Key 5: ");
       Serial.print("DFPLAYER_EQ_CLASSIC");
@@ -923,7 +924,7 @@ void playerSwitch(int resultsValue) {
     case 0xE66C5C37:                        // Toshiba VCR remote
     case 0x2648AD3B:                        // After pressing TV
     case 0xFFC23D:
-    case '6':
+    case '6':                               // Over wrote above, for usage on the virtualfront panel.
       playerEq = DFPLAYER_EQ_NORMAL;
       Serial.print("+ Key 6: ");
       Serial.print("DFPLAYER_EQ_NORMAL");
@@ -932,7 +933,7 @@ void playerSwitch(int resultsValue) {
     case 0xD75196BB:                        // Toshiba VCR remote
     case 0x172DE7BF:                        // After pressing TV
     case 0xFFE01F:
-    case '7':
+    case '7':                               // Over wrote above, for usage on the virtualfront panel.
       playerEq = DFPLAYER_EQ_JAZZ;
       Serial.print("+ Key 7: ");
       Serial.print("DFPLAYER_EQ_JAZZ");
@@ -1049,7 +1050,7 @@ void playerSwitch(int resultsValue) {
     case 0xDA529B37:                              // Key POWER After pressing VCR
     case 0x1A2EEC3B:                              // Key POWER After pressing TV
     case 'X':
-      Serial.println(F("+ Exit CLI."));
+      Serial.println(F("+ Exit MP3 player CLI."));
       programState = PROGRAM_WAIT;
       break;
     // -------------------------------------------------------------------

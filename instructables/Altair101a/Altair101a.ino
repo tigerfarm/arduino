@@ -1,4 +1,3 @@
-// -----------------------------------------------------------------------------
 // Altair101a Processor program, which is an Altair 8800 simulator.
 // Copyright (C) 2021 Stacy David Thurston
 //
@@ -11,45 +10,55 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 /*
-  Altair101a Processor program
+  Altair101b Operating System program
 
-  This program is an Altair 8800 simulator.
+  This program is an enhanced Altair 8800 emulator.
   Interactivity is through the default Arduino USB serial port, and optionally, the Serial2 port.
   It was tested using the Arduino IDE serial monitor and Mac terminal which has VT100 features.
-  It runs programs from command line, or with a simulated front panel (printed to the serial port).
-  This simulator uses David Hansel's Altair 8800 Simulator code to process machine instructions.
-  Altair101a program has a basic OS for command line interation.
-
-  Control program files: Altair101a.ino and Altair101a.h.
-  Machine instruction program files: cpucore_i8080.cpp and cpucore_i8080.h.
+  It runs programs from command line, or with the emulated virtual front panel.
+  The virtual front panel funtions uses the serial port for communications to a VT100 terminal window.
+  This emulator uses David Hansel's Altair 8800 Simulator code to process machine instructions.
 
   Differences to the original Altair 8800:
   + HLT goes into STOP state which allows RUN to restart the process from where it was halted.
   + When SINGLE STEP read and write, I've chosen to show the actual data value,
     rather than having all the data lights on, which happens on the original Altair 8800.
 
-  My Arduino Mega 2560 Altair 8800 simulator runs 4K Basic.
-  Yes, the Basic language running in 4K of memory.
-  It’s the assembler program Bill Gates and Paul Allen wrote, the first Microsoft software product.
+  This program runs MITS Altair 4K Basic on an Arduino Mega 2560.
+  It’s the assembler program written by Bill Gates, Paul Allen, and one more person. It's the first Microsoft software product.
 
   ---------------------------------------------------------
   Next to work on
 
-  When using Arduino IDE Serial Monitor, remove duplicate messages.
-  + Maybe ignore "CR".
+  Document what each does:
+  ++ LED_LIGHTS_IO=0 VIRTUAL_FRONT_PANEL=0 ARDUINO_IDE_MONITOR=0 SERIAL_CLI=1
 
-  Update README.md files:
+  In conjuction with the Altair101a instructable, update README.md files:
   + Altair101a
   + Galaxy101a
   + 4K Basic
-  + programsAltair: programs people can load and run on the Altair101a.
+  + programsAltair: programs people can load and run on the Altair101.
 
-  Add/update sample programs for someone to run if all they have is the Arduino board.
+  Continue integrating Processor.ino features and functions.
+  + Test running 00000000.bin on startup.
+  + Test: OUT 10, MP3 play options. OUT 11, to have the MP3 looped.
+  + Test Serial2 buffer uploads from asm, for uploading basic programs.
+  + Ready to add sample assembler programs to AltairSamples.cpp.
+  + Nice to standardize the key press options across the programs, such as v and V for player volume.
+  + Move Status const to Altair101b.h, for other programs to use, such as Mp3Player.cpp.
+    const byte MEMR_ON =    B10000000;  // MEMR   The memory bus will be used for memory read data.
+
+  Add hardware to display values:
+  + Player song.
+  + Clock date and time.
+
+  Consider, when using Arduino IDE Serial Monitor, remove duplicate messages.
+  + Maybe ignore "CR".
 
   ---------------------------------------------------------
   Get porgrams to work on an Altari-Duino or actual Altair 8800.
   + Need to get in contact with the online group to have help testing.
-  
+
   + Get 88-2SIO to work based on Gaxaly101.asm.
   ++ Should test using port 0 and 1 which work with 4K Basic.
   ++ Or convert Gaxaly101.asm to use 4K Basic I/O routines.
@@ -58,11 +67,11 @@
     based on how I use it for 4K Basic.
 
   ---------------------------------------------------------
-  Starting integrating hardware functions using the Altair tablet.
-  + Get the Altair tablet to work.
-  + Test with Altair101a.
-  + Then update Altair101a with the ability to flash the front panel lights.
-  + Then update Altair101a implementing interactivity with the front panel switches.
+  Starting integrating hardware functions using the Altair tablet or desktop.
+  + If Altair101 tablet module, get the tablet to work.
+  + Test running Altair101b.
+  + Then update Altair101b with the ability to flash the front panel lights.
+  + Then update Altair101b implementing interactivity with the front panel switches.
 
   Option to have HLT work the same as Altair 8800.
 
@@ -75,7 +84,7 @@
 
   Front panel: add functions, upload to tablet or desktop machine, and test.
   + Lights
-  + Toggles and switches: 
+  + Toggles and switches:
   + Add the others: player, clock, timer, and counter.
 
   ---------------------------------------------------------
@@ -157,16 +166,104 @@
   + Setup()
   + Looop()
 
+  -----------------------------------------------------------------------------
+  Wire the serial module:
+
+  Module  Due/Mega pins:
+  TX      RX:17
+  RX      TX:16
+  VCC     VCC
+  GND     GND
+
+  Due pins                TX2:16 RX2:17
+   ---------------------------------------
+  |                            x x        | GND
+  |                                       |
+  |                                       | ...
+  |                                       |
+  |                                       | VCC
+   ---------------------------------------
+
 */
 // -----------------------------------------------------------------------------
-#include "Altair101a.h"
-#include "cpucore_i8080.h"
+#include "Altair101b.h"
+#include "cpuIntel8080.h"
 
-// #define LOG_MESSAGES 1    // For debugging.
-// #define LOG_OPCODES  1    // Print each called opcode.
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Comment out the following, if compiling for Altair101a,
+//    which does not have an MP3 player, real time clock, or an SD card module.
+// #define Altair101b 1
 
-// I didn't add to option to remove Serial2 options using a "#define",
-//    basically, because it doesn't cause issues.
+// ------------------------------------------------
+// For the Altair101b version,
+//    include the following header files.
+//    In the directory with the Altair101b.ino program file, include the other module code program files.
+//    The Altair101b version runs an Arduino Due. It includes code to manage an MP3 player, clock, and SD card module.
+#ifdef Altair101b
+// Include the other modules headers files.
+
+#include "Mp3Player.h"
+#include "rtClock.h"
+#include "sdCard.h"
+
+// ------------------------------------------------
+// For the Altair101a version,
+//    include the following definitions so the the program will compile and run.
+//    The Altair101a version runs stand alone on an Arduino Mega or Due.
+#else
+// Include non-active definitions.
+
+// -------------------
+// MP3 player module
+//
+#define PLAY_ALL 0                              // Play all songs and then loop back and start over.
+#define PLAY_SINGLE 1                           // Play a single MP3 and then stop.
+#define LOOP_SINGLE 2                           // Loop play a single MP3.
+void setupMp3Player() {}
+void setPlayMode(uint8_t setTo) {}
+// uint8_t getPlayMode() {}
+void playerSwitch(int resultsValue) {}
+void playerContinuous() {}
+void mp3PlayerRun() {programState = PROGRAM_WAIT;}
+void mp3PlayerPause() {}
+void mp3PlayerStart() {}
+void mp3playerSinglePlay(byte theFileNumber) {}
+void mp3PlayerSingleLoop(byte theFileNumber) {}
+void mp3playerPlaywait(byte theFileNumber) {}
+
+// -------------------
+// Clock module
+//
+void setupClock() {}
+void rtClockRun() {programState = PROGRAM_WAIT;}
+void rtClockContinuous() {}
+void clockSwitch(int resultsValue) {}
+
+// -------------------
+// SD Card module
+//
+boolean setupSdCard() {return false;}
+void sdCardRun() {programState = PROGRAM_WAIT;}
+void sdCardSwitch(int resultsValue) {}
+boolean readFileToMemory(String theFilename) {return false;}
+boolean writeMemoryToFile(String theFilename) {return false;}
+boolean writeFileByte(String theFilename, byte theByte) {return false;}
+int readFileByte(String theFilename) {}
+
+#endif
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+// #define LOG_MESSAGES 1     // For debugging.
+// #define LOG_OPCODES  1     // Print each called opcode.
+#define SETUP_SDCARD 1
+
+String theFilename;           // Use for file read/write selection.
+
+// -----------------------------------------------------------------------------
+// No option to remove Serial2 options using a "#define", because it doesn't cause issues.
 
 boolean logMessages = false;  // Input log messages.
 
@@ -176,13 +273,10 @@ byte opcode = 0xff;
 // Added this to identify hardware status.
 // if hardware has an error, or hardware is not initialized, hwStatus > 0.
 // Else hwStatus = 0.
-byte hwStatus = B11111111;            // Initial state.
-// hwStatus = 1;  // 0001 SD card
-// hwStatus = 2;  // 0010 Clock module
-// hwStatus = 4;  // 0100 MP3 Player
-const byte SD_ON  =    B00000001;
-const byte CL_ON  =    B00000010;
-const byte PL_ON  =    B00000100;
+byte hwStatus = B11111111;         // Initial state.
+const byte SD_ON  =    B00000001;  // 0001 SD card
+const byte CL_ON  =    B00000010;  // 0010 Clock module
+const byte PL_ON  =    B00000100;  // 0100 MP3 Player
 const byte SD_OFF =    B11111110;
 const byte CL_OFF =    B11111101;
 const byte PL_OFF =    B11111011;
@@ -200,190 +294,54 @@ int TIMER_MINUTE      = 7;
 int DOWNLOAD_COMPLETE = 8;
 int WRITE_FILE        = 9;
 void playerPlaySoundWait(int theFileNumber) {};
+uint16_t processorPlayerCounter = 0;            // Indicator for the processor to play an MP3, if not zero.
 
 void ledFlashSuccess() {};
 void ledFlashError() {};
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// SD Card setup and functions.
+// Sound bites for sound effects
+/*
+   soundEffects is an array that matches index values to an MP3 file number.
+   Example: READ_FILE=1
+    where
+      The value of soundEffects[1], is stored in file: 0001.sbf
+      The value of soundEffects[2], is stored in file: 0002.sbf
+      ...
+    If the byte stored in 0001.sbf is 5, then,
+      soundEffects[READ_FILE]=5 or soundEffects[1]=5.
+    Then,
+      playerPlaySound(READ_FILE) plays file: 0005.mp3.
+*/
+const int maxSoundEffects = 16;
+int soundEffects[maxSoundEffects];
 
-#define SETUP_SDCARD 1
-String theFilename;
-
-#ifdef SETUP_SDCARD
-
-// SD Card module is an SPI bus slave device.
-#include <SPI.h>
-#include <SD.h>
-
-//     Mega Nano - SPI module pins
-// Pin 53   10   - CS   : chip/slave select (SS pin). Can be any master(Nano) digital pin to enable/disable this device on the SPI bus.
-// Pin 52   13   - SCK  : serial clock, SPI: accepts clock pulses which synchronize data transmission generated by Arduino.
-// Pin 51   11   - MOSI : master out slave in, SPI: input to the Micro SD Card Module.
-// Pin 50   12   - MISO : master in slave Out, SPI: output from the Micro SD Card Module.
-// Pin 5V+  - VCC  : can use 3.3V or 5V
-// Pin GND  - GND  : ground
-// Note, Nano pins are declared in the SPI library for SCK, MOSI, and MISO.
-
-// The CS pin is the only one that is not really fixed as any of the Arduino digital pin.
-// const int csPin = 10;  // SD Card module is connected to Nano pin 10.
-const int csPin = 53;     // SD Card module is connected to Mega pin 53.
-
-File myFile;
-
-// -----------------------------------------------------------------------------
-// SD card module functions
-
-// Handle the case if the card is not inserted. Once inserted, the module will be re-initialized.
-boolean sdcardInitiated = false;
-void initSdcard() {
-  if (SD.begin(csPin)) {
-    // Serial.println(F("+ SD card initialized."));
-    sdcardInitiated = true;
-    return;
+String getSfbFilename(byte fileByte) {
+  // SFB: Sound File Byte.
+  String sfbFilename = ".sfb";
+  if (fileByte < 10) {
+    sfbFilename = "000" + String(fileByte) + sfbFilename;
+  } else if (fileByte < 100) {
+    sfbFilename = "00" + String(fileByte) + sfbFilename;
+  } else if (fileByte < 1000) {
+    sfbFilename = "0" + String(fileByte) + sfbFilename;
+  } else {
+    sfbFilename = String(fileByte) + sfbFilename;
   }
-  sdcardInitiated = false;
-  Serial.println(F("- Error initializing SD card."));
-  Serial.println(F("-- Check that SD card is inserted"));
-  Serial.println(F("-- Check that SD card adapter is wired properly."));
-  //
-  // Optionally, retry for a period of time.
+  return sfbFilename;
 }
-
-// Write Program memory to a file.
-
-void writeProgramMemoryToFile(String theFilename) {
-  if (!sdcardInitiated) {
-    initSdcard();
-  }
-  // Serial.print(F("+ Write program memory to a new file named: "));
-  // Serial.println(theFilename);
-  // Serial.println(F("+ Check if file exists. "));
-  if (SD.exists(theFilename)) {
-    SD.remove(theFilename);
-    Serial.println(F("++ Exists, so it was deleted."));
-  }
-  myFile = SD.open(theFilename, FILE_WRITE);
-  if (!myFile) {
-    Serial.print(F("- Error opening file: "));
-    Serial.println(theFilename);
-    ledFlashError();
-    sdcardInitiated = false;
-    return; // When used in setup(), causes jump to loop().
-  }
-  // Serial.println(F("++ New file opened."));
-  // Serial.println(F("++ Write binary memory to the file."));
-  host_set_status_led_HLDA();
-  for (int i = 0; i < MEMSIZE; i++) {
-    // myFile.write(memoryData[i]);
-    byte memoryData = MREAD(i);
-    myFile.write(memoryData);
-  }
-  myFile.close();
-  Serial.println(F("+ Write completed, file closed."));
-  ledFlashSuccess();
-  playerPlaySoundWait(WRITE_FILE);
-  host_clr_status_led_HLDA();
-}
-
-// -------------------------------------
-// Read program memory from a file.
-
-boolean readProgramFileIntoMemory(String theFilename) {
-  if (!sdcardInitiated) {
-    initSdcard();
-  }
-  // Serial.println(F("+ Read a file into program memory, file named: "));
-  // Serial.print(theFilename);
-  // Serial.println(F("+ Check if file exists. "));
-  if (!SD.exists(theFilename)) {
-    Serial.print(F("- Read ERROR, file doesn't exist: "));
-    Serial.println(theFilename);
-    ledFlashError();
-    sdcardInitiated = false;
-    return (false);
-  }
-  myFile = SD.open(theFilename);
-  if (!myFile) {
-    Serial.print(F("- Read ERROR, cannot open file: "));
-    Serial.println(theFilename);
-    ledFlashError();
-    sdcardInitiated = false;
-    return (false);
-  }
-  host_set_status_led_HLDA();
-  int i = 0;
-  while (myFile.available()) {
-    // Reads one character at a time.
-    byte memoryData = myFile.read();
-    MWRITE(i, memoryData);
-#ifdef LOG_MESSAGES
-    // Print Binary:Octal:Decimal values.
-    Serial.print(F("B"));
-    printByte(MREAD(i));
-    Serial.print(F(":"));
-    printOctal(MREAD(i));
-    Serial.print(F(":"));
-    Serial.println(MREAD(i), DEC);
-#endif
-    i++;
-    if (i > MEMSIZE) {
-      Serial.println(F("-+ Warning, file contains more data bytes than available memory."));
-      ledFlashError();
-      break;
-    }
-  }
-  myFile.close();
-  Serial.println(F("+ Program file loaded and ready to use."));
-  controlResetLogic();
-  playerPlaySoundWait(READ_FILE);
-  host_clr_status_led_HLDA();
-  return (true);
-}
-
-void printSpacing(String theString) {
-  for (int i = theString.length(); i < 14; i++) {
-    Serial.print(F(" "));
-  }
-}
-
-void sdListDirectory() {
-  if (!sdcardInitiated) {
-    initSdcard();
-  }
-  // listDirectory(root);
-  // List files for a single directory.
-  File dir = SD.open("/");
-  String tabString = "   ";
-  File entry = dir.openNextFile();
-  while (entry) {
-    if (entry.isDirectory()) {
-      Serial.print(F("++ Directory: "));
-      Serial.print(entry.name());
-    } else {
-      Serial.print(F("++ File:      "));
-      Serial.print(entry.name());
-      printSpacing(entry.name());
-      Serial.print(entry.size(), DEC);
-    }
-    Serial.println();
-    entry.close();
-    entry =  dir.openNextFile();
-  }
-  dir.close();
-}
-#endif  // SETUP_SDCARD
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Types of interactions
 
-unsigned long downloadBaudRate = 115200;   // 57600 Needs to match the upload program.
+// Needs to match the upload program:
+//  9600, 19200, 38400, 57600, 115200
+unsigned long downloadBaudRate = 115200;
 
 // Virtual serial front panel using VT100 escape codes.
 // For example, Macbook terminal is VT100 enabled using the UNIX "screen" command.
-boolean SERIAL_FRONT_PANEL = false;
+boolean VIRTUAL_FRONT_PANEL = false;
 
 // This option is for VT100 terminal command line interactivity.
 // Each character is immediately sent.
@@ -391,13 +349,13 @@ boolean SERIAL_FRONT_PANEL = false;
 //    For example, Ctrl+l to clear the terminal screen.
 boolean SERIAL_CLI = false;
 
-// This option is for using the Arduino IDE monitor.
+// This is for when you are using the Arduino IDE monitor.
 // It prevents virtual front panel printing, unless requested.
 // The monitor requires an enter key to send a string of characters which is then terminated with LF.
-boolean SERIAL_IO_IDE = false;
+boolean ARDUINO_IDE_MONITOR = false;
 
 // Hardware LED lights
-boolean LED_IO = false;
+boolean LED_LIGHTS_IO = false;
 
 // -----------------------------------
 // Using Serial2 for output.
@@ -502,10 +460,10 @@ byte readByte = 0;
 
 // Program wait status.
 // const int WAIT_PIN = A9;     // Processor program wait state: off/LOW or wait state on/HIGH.
-const int WAIT_PIN = 13;        // Change to onboard pin for the Altair101a machine.
+const int WAIT_PIN = 13;        // Change to onboard pin for the Altair101a/b machine.
 
 // HLDA : 8080 processor goes into a hold state because of other hardware running.
-// const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock/player processing (on/HIGH).
+// const int HLDA_PIN = A10;     // Emulator processing: off/LOW. Clock or player processing: on/HIGH.
 
 // Use OR to turn ON. Example:
 const byte MEMR_ON =    B10000000;  // MEMR   The memory bus will be used for memory read data.
@@ -520,12 +478,12 @@ const byte INT_ON =     B00000001;  // INT    Interrupt
 void setWaitStatus(boolean waitStatus) {
   if (waitStatus) {
     host_set_status_led_WAIT();
-    if (SERIAL_FRONT_PANEL) {
+    if (VIRTUAL_FRONT_PANEL) {
       Serial.print(F("\033[4;2H*"));  // Print on: row 4, column 2.
     }
   } else {
     host_clr_status_led_WAIT();
-    if (SERIAL_FRONT_PANEL) {
+    if (VIRTUAL_FRONT_PANEL) {
       Serial.print(F("\033[4;2H."));  // Print off: row 4, column 2.
     }
   }
@@ -563,18 +521,48 @@ void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+// When in PLAYER_RUN mode, display MP3 player values on the virtual front panel.
+
+void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberByte) {
+  //
+  // Convert playerVolume into A0 to A15 lights.
+  // If playerVolume is even
+  //  playerVolumeAddress = playerVolume/2
+  // Else odd, show both lower and upper.
+  //  5/2 = 2 Show 2 and 3.
+  //  6/2 = 3 Show only 3.
+  //  7/2 = 3 Show 3 and 4.
+  unsigned int playerVolumeAddress = 0;
+  byte playerVolumePosition = playerVolume / 2;
+  if ((playerVolumePosition * 2) != playerVolume) {
+    playerVolumeAddress = bitWrite(playerVolumeAddress, playerVolumePosition + 1, 1);
+  }
+  playerVolumeAddress = bitWrite(playerVolumeAddress, playerVolumePosition, 1);
+  //
+  if (LED_LIGHTS_IO) {
+    lightsStatusAddressData(statusByte, playerVolumeAddress, songNumberByte);
+  }
+  if (VIRTUAL_FRONT_PANEL) {
+    fpStatusByte = statusByte;
+    fpAddressWord = playerVolumeAddress;
+    fpDataByte = songNumberByte;
+    printVirtualFrontPanel();
+  }
+}
+
+// -----------------------------------------------------------------------------
 // Output Front Panel Information.
 
 void printFrontPanel() {
   uint16_t theAddressWord = 0;
-  if (LED_IO) {
+  if (LED_LIGHTS_IO) {
     lightsStatusAddressData(fpStatusByte, host_read_addr_leds(), host_read_data_leds());
   }
-  if (SERIAL_FRONT_PANEL) {
-    serialPrintFrontPanel();
+  if (VIRTUAL_FRONT_PANEL) {
+    printVirtualFrontPanel();
 #ifdef LOG_MESSAGES
     // Serial.print(F("\033[2K")); // Clear line from cursor right
-    Serial.print(F("+ printFrontPanel SERIAL_FRONT_PANEL, status:"));
+    Serial.print(F("+ printFrontPanel VIRTUAL_FRONT_PANEL, status:"));
     printByte(fpStatusByte);
     //
     uint16_t theAddress = host_read_addr_leds();
@@ -591,26 +579,11 @@ void printFrontPanel() {
     Serial.println();
     // Serial.print(F("\033[2K")); // Clear line
 #endif
-    /* SERIAL_IO_IDE will do the same:
-      } else if (SERIAL_CLI) {
-        Serial.print(F("+ printFrontPanel SERIAL_CLI, status:"));
-        printByte(fpStatusByte);
-        Serial.print(F(" dataByte:"));
-        printByte(host_read_data_leds());
-        theAddressWord = host_read_addr_leds();
-        Serial.print(F(" address:"));
-        sprintf(charBuffer, "%5d ", theAddressWord);
-        Serial.print(charBuffer);
-        printByte(highByte(theAddressWord));
-        Serial.print(F(":"));
-        printByte(lowByte(theAddressWord));
-        Serial.println();
-    */
-  } else if (SERIAL_IO_IDE) {
+  } else if (ARDUINO_IDE_MONITOR) {
     if (host_read_status_led_WAIT()) {
-      serialPrintFrontPanel();
+      printVirtualFrontPanel();
     } else {
-      Serial.print(F("+ printFrontPanel SERIAL_IO_IDE, status:"));
+      Serial.print(F("+ printFrontPanel ARDUINO_IDE_MONITOR, status:"));
       printByte(fpStatusByte);
       Serial.print(F(" dataByte:"));
       printByte(host_read_data_leds());
@@ -637,11 +610,29 @@ uint16_t prev_fpAddressWord = 0;
 uint16_t fpAddressToggleWord = 0;
 uint16_t prev_fpAddressToggleWord = 1;
 
-void serialPrintFrontPanel() {
+void initVirtualFrontPanel() {
+  // Initialize and print the Virtual Front Panel.
+  //
+  // Insure the previous value is different to current, to insure an intial printing.
+  prev_fpDataByte = host_read_data_leds() + 1;
+  prev_fpAddressWord = host_read_addr_leds() + 1;
+  prev_fpAddressToggleWord = 1;               // Set to different value.
+  fpAddressToggleWord = 0;                    // Set all toggles off.
+  Serial.print(F("\033[0m\033[?25l"));        // Block cursor display: off.
+  Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
+  VIRTUAL_FRONT_PANEL = false;                 // Insure labels are printed.
+  // Print the complete front panel: labels and indicators.
+  printVirtualFrontPanel();
+  VIRTUAL_FRONT_PANEL = true;                  // Must be after printVirtualFrontPanel(), to have the labels printed.
+  ARDUINO_IDE_MONITOR = false;                      // Insure it's disabled.
+  Serial.println(F("+ VT100 escapes are enabled and block cursor off."));
+}
+
+void printVirtualFrontPanel() {
   //
   // --------------------------
   // Status
-  if (!SERIAL_FRONT_PANEL) {
+  if (!VIRTUAL_FRONT_PANEL) {
     Serial.print(F("INTE MEMR INP M1 OUT HLTA STACK WO INT        D7  D6   D5  D4  D3   D2  D1  D0\r\n"));
     // Note, PROT is not implemented.
   } else {
@@ -665,7 +656,7 @@ void serialPrintFrontPanel() {
   //
   // --------------------------
   // Data
-  if ((prev_fpDataByte != fpDataByte) || (!SERIAL_FRONT_PANEL)) {
+  if ((prev_fpDataByte != fpDataByte) || (!VIRTUAL_FRONT_PANEL)) {
     // If VT100 and no change, don't reprint.
     prev_fpDataByte = fpDataByte;
     if ( fpDataByte & 0x80 )   thePrintLine += (("  *" ));  else thePrintLine += (( "  ." ));
@@ -685,7 +676,7 @@ void serialPrintFrontPanel() {
   // --------------------------
   // WAIT, HLDA, and Address
   //
-  if (SERIAL_FRONT_PANEL) {
+  if (VIRTUAL_FRONT_PANEL) {
     // No need to rewrite the title.
     Serial.println();
     Serial.print(F("\033[1B"));  // Cursor down
@@ -700,7 +691,7 @@ void serialPrintFrontPanel() {
   thePrintLine = "";
   //
   // Address
-  if ((prev_fpAddressWord != fpAddressWord) || (!SERIAL_FRONT_PANEL)) {
+  if ((prev_fpAddressWord != fpAddressWord) || (!VIRTUAL_FRONT_PANEL)) {
     // If VT100 and no change, don't reprint.
     prev_fpAddressWord = fpAddressWord;
     if ( fpAddressWord & 0x8000 ) thePrintLine += (("   *")); else thePrintLine += (("   ."));
@@ -727,14 +718,14 @@ void serialPrintFrontPanel() {
   }
   // --------------------------
   // Address/Data switches
-  if (SERIAL_FRONT_PANEL) {
+  if (VIRTUAL_FRONT_PANEL) {
     // No need to rewrite the title.
     Serial.println();
     Serial.print(F("\033[1B"));  // Cursor down
   } else {
     Serial.print(F("\r\n            S15 S14 S13 S12 S11 S10  S9  S8   S7  S6   S5  S4  S3   S2  S1  S0\r\n"));
   }
-  if ((prev_fpAddressToggleWord != fpAddressToggleWord) || (!SERIAL_FRONT_PANEL)) {
+  if ((prev_fpAddressToggleWord != fpAddressToggleWord) || (!VIRTUAL_FRONT_PANEL)) {
     // If VT100 and no change, don't reprint.
     prev_fpAddressToggleWord = fpAddressToggleWord;
     thePrintLine += (("          "));
@@ -760,7 +751,7 @@ void serialPrintFrontPanel() {
     Serial.print(thePrintLine);
     thePrintLine = "";
   }
-  if (SERIAL_FRONT_PANEL) {
+  if (VIRTUAL_FRONT_PANEL) {
     // No need to rewrite the prompt.
     Serial.print(F("\033[2B"));  // Cursor down 2 lines.
     Serial.println();
@@ -777,6 +768,7 @@ void serialPrintFrontPanel() {
 
 // -----------------------------------------------------------------------------
 // Pause during a SINGLE STEP process.
+
 byte singleStepWaitByte = 0;
 void singleStepWait() {
   Serial.println(F("+ singleStepWait()"));
@@ -828,12 +820,31 @@ void controlResetLogic() {
 }
 
 // -----------------------------------------------------------------------------
+// HLT opcode process to stop the process.
+// Stopped process is in a mode that allows using 'r' to start the process running from the stop point.
+//
+void altair_hlt() {
+  host_set_status_led_HLTA();
+  host_clr_status_led_M1();
+  mp3PlayerPause();
+  regPC--;
+  // altair_interrupt(INT_SW_STOP);
+  Serial.print(F("++ HALT, host_read_status_led_WAIT() = "));
+  Serial.println(host_read_status_led_WAIT());
+  if (!host_read_status_led_WAIT()) {
+    programState = PROGRAM_WAIT;
+    host_set_status_led_WAIT();
+    printFrontPanel();
+  }
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // IN opcode, input processing to get a byte from an input port.
 
 // Check sense switch toggles and return the switch byte value as a string.
 String getSenseSwitchValue() {
-  // From serial toggle switches.
+  // From virtual toggle switches.
   byte bValue = highByte(fpAddressToggleWord);
   // From hardware is not implemented.
   // byte bValue = toggleSense();
@@ -879,29 +890,29 @@ byte altair_in(byte portDataByte) {
       00001010 LF 10 000A LF is from the terminal.
       00001101 CR 13 000D Basic 4K only works with CR.
 
-; --------------------------------------
-; Characters with decimal number.
-;
-: :!:":#:$:%:&:':(:):*:+:,:-:.:/:0:1:2:3:4:5:6:7:8:9:
-32 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7
+      ; --------------------------------------
+      ; Characters with decimal number.
+      ;
+      : :!:":#:$:%:&:':(:):*:+:,:-:.:/:0:1:2:3:4:5:6:7:8:9:
+      32 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7
                 40                  50
-:::;:<:=:>:?:@:
- 8 9 0 1 2 3 4
-58          64
+      :::;:<:=:>:?:@:
+      8 9 0 1 2 3 4
+      58          64
 
-:A:B:C:D:E:F:G:H:I:J:K:L:M:N:O:P:Q:R:S:T:U:V:W:X:Y:Z:
-65 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0
+      :A:B:C:D:E:F:G:H:I:J:K:L:M:N:O:P:Q:R:S:T:U:V:W:X:Y:Z:
+      65 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0
           70                  80                  90
-:[:\:]:^:_:`:
-91 2 3 4 5 5
+      :[:\:]:^:_:`:
+      91 2 3 4 5 5
 
-:a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:y:z:
-97 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
-     100                 110       115       120
+      :a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:y:z:
+      97 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
+      100                 110       115       120
 
-:{:|:}:~:
- 3 4 5 6
-     126
+      :{:|:}:~:
+      3 4 5 6
+      126
 
     */
     case 0:
@@ -1166,7 +1177,7 @@ void altair_out(byte portDataByte, byte regAdata) {
       Serial_println();
 #endif
       Serial_print(F("------------"));
-      cpucore_i8080_print_registers();
+      cpuIntel8080_print_registers();
       // printRegisters();
       // printOther();
       Serial_print(F("------------"));
@@ -1211,7 +1222,7 @@ void altair_out(byte portDataByte, byte regAdata) {
       break;
     case 44:
       Serial_println();
-      cpucore_i8080_print_registers();
+      cpuIntel8080_print_registers();
       // printOther();
       break;
     case 45:
@@ -1223,6 +1234,74 @@ void altair_out(byte portDataByte, byte regAdata) {
       Serial_print(F(":"));
       printByte(lowByte(regSP));
       break;
+    // ---------------------------------------
+    // OUT 10, MP3 play options.
+    //  regA == 0, pause
+    //  regA == B11111111, Start play, play the current MP3.
+    //  Else, play the regA MP3 once.
+    case 10:
+      // MVI A, <file#>
+      // OUT 10   ; Use OUT 11, to have the MP3 looped.
+      if (regA == B11111111) {
+        if (processorPlayerCounter > 0) {
+          setPlayMode(PLAY_SINGLE);
+          mp3PlayerStart();
+#ifdef LOG_MESSAGES
+          Serial.print(F(" > Play single once, mp3PlayerStart();"));
+#endif
+        }
+      } else if (regA == 0) {
+        mp3PlayerPause();
+#ifdef LOG_MESSAGES
+        Serial.print(F(" > Pause, mp3PlayerPause();"));
+#endif
+      } else {
+        processorPlayerCounter = regA;
+        mp3playerSinglePlay(processorPlayerCounter);
+#ifdef LOG_MESSAGES
+        Serial.print(F(" > mp3playerSinglePlay(processorPlayerCounter = regA = "));
+        Serial.print(processorPlayerCounter);
+        Serial.print(F(");"));
+#endif
+      }
+      break;
+    // ---------------------------------------
+    // OUT 11, MP3 play loop options.
+    //  regA == 0, pause
+    //  regA == B11111111, Set play loop on, and play the set MP3.
+    //  Else, loop play the regA MP3.
+    case 11:
+      if (regA == B11111111) {
+        if (processorPlayerCounter > 0) {
+          setPlayMode(LOOP_SINGLE);
+          mp3PlayerStart();
+#ifdef LOG_MESSAGES
+          Serial.print(F(" > Loop ON, mp3PlayerStart();"));
+#endif
+        }
+      } else if (regA == 0) {
+        mp3PlayerPause();
+#ifdef LOG_MESSAGES
+        Serial.print(F(" > Pause, mp3PlayerPause();"));
+#endif
+      } else {
+        processorPlayerCounter = regA;
+        mp3PlayerSingleLoop(processorPlayerCounter);
+#ifdef LOG_MESSAGES
+        Serial.print(F(" > mp3PlayerSingleLoop(processorPlayerCounter = regA = "));
+        Serial.print(processorPlayerCounter);
+        Serial.print(F(");"));
+#endif
+      }
+      break;
+    case 12:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > Play MP3 to completion before moving to the next opcode."));
+#endif
+      processorPlayerCounter = regA;
+      mp3playerPlaywait(processorPlayerCounter);
+      break;
+    // ---------------------------------------
     // ---------------------------------------
     default:
       Serial_println();
@@ -1294,7 +1373,7 @@ void processDataOpcode() {
   host_clr_status_led_M1();
   host_set_addr_leds(regPC);
   host_set_data_leds(opcode);
-  if (!SERIAL_IO_IDE || (programState == PROGRAM_RUN)) {
+  if (!ARDUINO_IDE_MONITOR || (programState == PROGRAM_RUN)) {
     printFrontPanel();
   }
   regPC++;
@@ -1315,15 +1394,16 @@ byte stopByte = 's';
 byte resetByte = 'R';
 //
 void processRunSwitch(byte readByte) {
-  if (SERIAL_FRONT_PANEL) {
-    Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
+  if (VIRTUAL_FRONT_PANEL) {
+    Serial.print(F("\033[J"));     // From cursor down, clear the screen.
   }
   if (readByte == stopByte) {
     Serial.println(F("+ s, STOP"));
     programState = PROGRAM_WAIT;
     host_set_status_led_WAIT();
     host_set_status_leds_READMEM_M1();
-    if (!SERIAL_IO_IDE) {
+    mp3PlayerPause();
+    if (!ARDUINO_IDE_MONITOR) {
       printFrontPanel();  // <LF> will refresh the display.
     }
   } else if (readByte == resetByte) {
@@ -1341,7 +1421,7 @@ void processRunSwitch(byte readByte) {
 
 void runProcessor() {
   Serial.println(F("+ runProcessor()"));
-  if (SERIAL_CLI && !SERIAL_FRONT_PANEL) {
+  if (SERIAL_CLI && !VIRTUAL_FRONT_PANEL) {
     // Control character reference: https://en.wikipedia.org/wiki/ASCII
     // Terminal mode: case 3: (Crtl+c) instead of case 's'.
     // Terminal mode: case 4: (Crtl+d) instead of case 's'.
@@ -1360,6 +1440,8 @@ void runProcessor() {
       readByte = Serial.read();    // Read and process an incoming byte.
       processRunSwitch(readByte);
     }
+    // Allow for the music to keep playing, and infrared player controls to work.
+    playerContinuous();
   }
 }
 
@@ -1377,7 +1459,7 @@ void processWaitSwitch(byte readByte) {
   if ( data >= '0' && data <= '9' ) {
     // Serial input, not hardware input.
     fpAddressToggleWord = fpAddressToggleWord ^ (1 << (data - '0'));
-    if (!SERIAL_IO_IDE) {
+    if (!ARDUINO_IDE_MONITOR) {
       printFrontPanel();
     }
     return;
@@ -1385,7 +1467,7 @@ void processWaitSwitch(byte readByte) {
   if ( data >= 'a' && data <= 'f' ) {
     // Serial input, not hardware input.
     fpAddressToggleWord = fpAddressToggleWord ^ (1 << (data - 'a' + 10));
-    if (!SERIAL_IO_IDE) {
+    if (!ARDUINO_IDE_MONITOR) {
       printFrontPanel();
     }
     return;
@@ -1397,7 +1479,7 @@ void processWaitSwitch(byte readByte) {
   uint16_t cnt;
   byte readConfirmByte;
   //
-  if (SERIAL_FRONT_PANEL) {
+  if (VIRTUAL_FRONT_PANEL) {
     Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
     Serial.print(F("\033[J"));     // From cursor down, clear the screen.
   }
@@ -1426,7 +1508,7 @@ void processWaitSwitch(byte readByte) {
       }
       host_set_status_leds_READMEM_M1();
       setAddressData(regPC, MREAD(regPC));
-      if (!SERIAL_IO_IDE) {
+      if (!ARDUINO_IDE_MONITOR) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
@@ -1435,7 +1517,7 @@ void processWaitSwitch(byte readByte) {
       regPC = fpAddressToggleWord;
       Serial.println(regPC);
       setAddressData(regPC, MREAD(regPC));
-      if (!SERIAL_IO_IDE) {
+      if (!ARDUINO_IDE_MONITOR) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
@@ -1444,7 +1526,7 @@ void processWaitSwitch(byte readByte) {
       regPC = regPC + 1;
       Serial.println(regPC);
       setAddressData(regPC, MREAD(regPC));
-      if (!SERIAL_IO_IDE) {
+      if (!ARDUINO_IDE_MONITOR) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
@@ -1453,7 +1535,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(regPC);
       MWRITE(regPC, fpAddressToggleWord & 0xff);
       setAddressData(regPC, MREAD(regPC));
-      if (!SERIAL_IO_IDE) {
+      if (!ARDUINO_IDE_MONITOR) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
@@ -1463,7 +1545,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(regPC);
       MWRITE(regPC, fpAddressToggleWord & 0xff);
       setAddressData(regPC, MREAD(regPC));
-      if (!SERIAL_IO_IDE) {
+      if (!ARDUINO_IDE_MONITOR) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
@@ -1471,12 +1553,11 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ R, RESET."));
       controlResetLogic();
       fpAddressToggleWord = 0;                // Reset all toggles to off.
-      if (!SERIAL_IO_IDE) {
+      if (!ARDUINO_IDE_MONITOR) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
     case 'C':
-      readConfirmByte;
       Serial.println(F("+ C, CLR: Clear memory, set registers to zero, set data and address to zero."));
       Serial.print(F("+ Confirm CLR, y/n: "));
       readConfirmByte = 's';
@@ -1514,64 +1595,67 @@ void processWaitSwitch(byte readByte) {
       fpAddressWord = 0;                      // Address word
       fpAddressToggleWord = 0;                // Reset all toggles to off.
       loadProgramName = "";                   // As there may have been a sample loaded program.
-      if (SERIAL_FRONT_PANEL) {
+      if (VIRTUAL_FRONT_PANEL) {
         printFrontPanel();      // For Arduino IDE monitor, <LF> will refresh the display.
       }
       break;
     // -------------------------------------------------------------------
     //
     case 'v':
-      Serial.println(F("+ v, VT100 escapes are disabled and block cursor on."));
-      if (SERIAL_FRONT_PANEL) {
-        SERIAL_FRONT_PANEL = false;
+      Serial.println(F("+ VT100 escapes are disabled and block cursor on."));
+      if (VIRTUAL_FRONT_PANEL) {
+        VIRTUAL_FRONT_PANEL = false;
         Serial.print(F("\033[0m\033[?25h"));       // Insure block cursor display: on.
       }
       // Note, VT100 escape sequences don't work on the Ardino IDE monitor.
       break;
     case 'V':
       // The following requires a VT100 terminal such as a Macbook terminal.
-      // Insure the previous value is different to current, to insure an intial printing.
-      prev_fpDataByte = host_read_data_leds() + 1;
-      prev_fpAddressWord = host_read_addr_leds() + 1;
-      prev_fpAddressToggleWord = 1;           // Set to different value.
-      fpAddressToggleWord = 0;                // Set all toggles off.
-      Serial.print(F("\033[0m\033[?25l"));       // Block cursor display: off.
-      Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
-      SERIAL_FRONT_PANEL = false;                // Insure labels are printed.
-      serialPrintFrontPanel();                // Print the complete front panel: labels and indicators.
-      SERIAL_FRONT_PANEL = true;                 // Must be after serialPrintFrontPanel(), to have the labels printed.
-      SERIAL_IO_IDE = false;                      // Insure it's disabled.
-      Serial.println(F("+ V, VT100 escapes are enabled and block cursor off."));
+      initVirtualFrontPanel();
+      /*
+        // Insure the previous value is different to current, to insure an intial printing.
+        prev_fpDataByte = host_read_data_leds() + 1;
+        prev_fpAddressWord = host_read_addr_leds() + 1;
+        prev_fpAddressToggleWord = 1;           // Set to different value.
+        fpAddressToggleWord = 0;                // Set all toggles off.
+        Serial.print(F("\033[0m\033[?25l"));       // Block cursor display: off.
+        Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
+        VIRTUAL_FRONT_PANEL = false;                // Insure labels are printed.
+        printVirtualFrontPanel();                // Print the complete front panel: labels and indicators.
+        VIRTUAL_FRONT_PANEL = true;                 // Must be after printVirtualFrontPanel(), to have the labels printed.
+        ARDUINO_IDE_MONITOR = false;                      // Insure it's disabled.
+      */
       break;
     // -------------------------------------------------------------------
     case 't':
       SERIAL_CLI = false;
-      Serial.println(F("+ t, terminal output VT100 escape codes is disabled."));
+      Serial.println(F("+ Terminal output VT100 escape codes is disabled."));
       break;
     case 'T':
       SERIAL_CLI = true;
-      Serial.println(F("+ T, Terminal output VT100 escape codes is enabled. Use Crtl+d(or Crtl+c) to STOP, Crtl+Z to RESET."));
+      Serial.println(F("+ Terminal output VT100 escape codes is enabled. Use Crtl+d(or Crtl+c) to STOP, Crtl+Z to RESET."));
       break;
     // -------------------------------------------------------------------
     case 'w':
-      SERIAL_IO_IDE = false;
-      Serial.println(F("+ w, USB serial output is disabled."));
+      ARDUINO_IDE_MONITOR = false;
+      Serial.println(F("+ Arduino IDE monitor output is disabled."));
       break;
     case 'W':
-      SERIAL_IO_IDE = true;
-      Serial.println(F("+ W, USB serial output is enabled."));
+      ARDUINO_IDE_MONITOR = true;
+      Serial.println(F("+ Arduino IDE monitor output is enabled."));
       break;
     // -------------------------------------
     case 'o':
-      Serial.println(F("+ o, disable output to LED lights."));
-      LED_IO = false;
+      Serial.println(F("+ Disable output to LED lights."));
+      LED_LIGHTS_IO = false;
       break;
     case 'O':
-      Serial.println(F("+ O, enable output to LED lights."));
-      LED_IO = true;
+      Serial.println(F("+ Enable output to LED lights."));
+      LED_LIGHTS_IO = true;
       break;
     //
     // -------------------------------------------------------------------
+    /*
     case 'z':
       Serial.print(F("++ Cursor off."));
       Serial.print(F("\033[0m\033[?25l"));
@@ -1582,59 +1666,91 @@ void processWaitSwitch(byte readByte) {
       Serial.print(F("\033[0m\033[?25h"));
       Serial.println();
       break;
-    //
+    */
     // -------------------------------------
     case 'l':
-      Serial.println(F("+ l, load a sample program."));
+      Serial.println(F("+ Load a sample program."));
       loadProgram();
-      if (!SERIAL_IO_IDE) {
+      if (!ARDUINO_IDE_MONITOR) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
     case 'L':
-      Serial.println(F("+ L, Load hex code from the serial port. Enter space(' ') to exit."));
+      Serial.println(F("+ Load hex code from the serial port. Enter space(' ') to exit."));
       loadProgramSerial();
-      if (!SERIAL_IO_IDE) {
+      if (!ARDUINO_IDE_MONITOR) {
         printFrontPanel();  // <LF> will refresh the display.
       }
       break;
     // -------------------------------------
     case 'S':
-      Serial.println(F("+ S, Refresh front panel."));
+      Serial.println(F("+ Refresh front panel."));
       printFrontPanel();
       break;
     // -------------------------------------
     case 'D':
       programState = SERIAL_DOWNLOAD;
-      Serial.println(F("+ D, Download mode."));
+      Serial.println(F("+ Download mode."));
       break;
     // -------------------------------------------------------------------
     case 'y':
-      Serial.print(F("+ y, Serial2 off (end)."));
+      Serial.print(F("+ Serial2 off (end)."));
       Serial.println();
       Serial2.end();
       SERIAL2_OUTPUT = false;
       break;
     case 'Y':
-      Serial.print(F("+ Y, Serial2 on (begin), baud rate: "));
+      Serial.print(F("+ Serial2 on (begin), baud rate: "));
       Serial.print(downloadBaudRate);
       Serial.println(F("."));
       Serial2.begin(downloadBaudRate);
       SERIAL2_OUTPUT = true;
       break;
-    //
+    case 'B':
+      Serial.println(F("+ Select Serial2 baud rate: "));
+      Serial.println(F("++ 1. 9600, 2. 19200, 3. 38400, 4. 57600, 5. 115200; x. Exit, no change"));
+      Serial.print(F("++ ?- "));
+      readConfirmByte = 's';
+      while (!(readConfirmByte > '0' && readConfirmByte < '6') && readConfirmByte != 'x' && readConfirmByte != 'X') {
+        if (Serial.available() > 0) {
+          readConfirmByte = Serial.read();    // Read and process an incoming byte.
+        }
+        delay(60);
+      }
+      if (readConfirmByte == '1') {
+        downloadBaudRate = 9600;
+      } else if (readConfirmByte == '2') {
+        downloadBaudRate = 19200;
+      } else if (readConfirmByte == '3') {
+        downloadBaudRate = 38400;
+      } else if (readConfirmByte == '4') {
+        downloadBaudRate = 57600;
+      } else if (readConfirmByte == '5') {
+        downloadBaudRate = 115200;
+      }
+      if (SERIAL2_OUTPUT) {
+        Serial2.begin(downloadBaudRate);
+        Serial.print(F("Serial2 baud rate set to: "));
+        Serial.print(downloadBaudRate);
+        Serial.println(F("."));
+      } else {
+        Serial.print(F("Serial2 baud rate will be set to: "));
+        Serial.print(downloadBaudRate);
+        Serial.println(F(" when next used."));
+      }
+      break;
     // -------------------------------------
     case 'j':
-      Serial.println(F("+ j: Setting Information."));
+      Serial.println(F("+ Setting Information."));
       Serial.println(F("------------"));
       Serial.print(F("++ programState: "));
       Serial.println(programState);
-      Serial.print(F("++ LED_IO="));
-      Serial.print(LED_IO);
-      Serial.print(F(" SERIAL_FRONT_PANEL="));
-      Serial.print(SERIAL_FRONT_PANEL);
-      Serial.print(F(" SERIAL_IO_IDE="));
-      Serial.print(SERIAL_IO_IDE);
+      Serial.print(F("++ LED_LIGHTS_IO="));
+      Serial.print(LED_LIGHTS_IO);
+      Serial.print(F(" VIRTUAL_FRONT_PANEL="));
+      Serial.print(VIRTUAL_FRONT_PANEL);
+      Serial.print(F(" ARDUINO_IDE_MONITOR="));
+      Serial.print(ARDUINO_IDE_MONITOR);
       Serial.print(F(" SERIAL_CLI="));
       Serial.println(SERIAL_CLI);
       Serial.print(F("++ Serial: "));
@@ -1651,8 +1767,7 @@ void processWaitSwitch(byte readByte) {
       } else {
         Serial.print(F("off, "));
       }
-      Serial.print(Serial2);
-      Serial.print(F(", baud rate: "));
+      Serial.print(F("baud rate: "));
       Serial.print(downloadBaudRate );
       Serial.print(F(", data bits, stop bits, and parity: 8, 1, 0"));
       Serial.println();
@@ -1667,29 +1782,25 @@ void processWaitSwitch(byte readByte) {
     // -------------------------------------
     case 'u':
       logMessages = false;
-      Serial.println(F("+ u, Log messages off."));
+      Serial.println(F("+ Log messages off."));
       break;
     case 'U':
       logMessages = true;
-      Serial.println(F("+ U, Log messages on."));
+      Serial.println(F("+ Log messages on."));
       break;
     case 'i':
-      Serial.println(F("+ i: Information."));
-      cpucore_i8080_print_registers();
+      Serial.println(F("+ Information."));
+      cpuIntel8080_print_registers();
       break;
     // -------------------------------------
     case 'h':
       Serial.print(F("+ h, Print help information."));
       Serial.println();
       Serial.println(F("----------------------------------------------------"));
-      Serial.println(F("+++ Virtual Front Panel Commands"));
+      Serial.println(F("+++ Altair 8800 Virtual Front Panel Switch Controls"));
       Serial.println(F("-------------"));
-      Serial.println(F("+ v/V Front panel Disable(use CLI)/enable VT100 virtual front panel."));
-      Serial.println(F("-------------"));
-      Serial.println(F("+ 0...9, a...f    Toggle sense/address/data switches:  A0...A9, A10...A15."));
-      Serial.println(F("-------------"));
-      Serial.println(F("+ r, RUN mode     When in WAIT mode, change to RUN mode."));
       Serial.println(F("+ s, STOP         When in RUN mode, change to WAIT mode."));
+      Serial.println(F("+ r, RUN mode     When in WAIT mode, change to RUN mode."));
       Serial.println(F("+ s, SINGLE STEP  When in WAIT mode, SINGLE STEP."));
       Serial.println(F("+ x, EXAMINE      sense switch address."));
       Serial.println(F("+ X, EXAMINE NEXT address, current address + 1."));
@@ -1697,141 +1808,190 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ P, DEPOSIT NEXT address, deposit into current address + 1."));
       Serial.println(F("+ R, RESET        Set program counter address to zero."));
       Serial.println(F("+ C, CLR          Clear memory, set registers and program counter address to zero."));
-      Serial.println(F("+ D, Download     Download mode, from serial port (Serial2)."));
+      Serial.println(F("-------------"));
+      Serial.println(F("+ 0...9, a...f    Toggle sense/address/data switches:  A0...A9, A10...A15."));
       Serial.println(F("----------------------------------------------------"));
-      Serial.println(F("+++ Operations"));
+      Serial.println(F("+ Enter key       Refresh virtual front panel display."));
+      Serial.println(F("+ v/V VT100 panel Disable/enable VT100 virtual front panel."));
+      Serial.println(F("+ t/T Terminal    Disable/enable VT100 terminal command line escape codes."));
       Serial.println(F("-------------"));
-      Serial.println(F("+ m, Read         Memory: Read an SD card file into program memory."));
-      Serial.println(F("+ M, Write        Memory: Write program memory to an SD card file."));
-      Serial.println(F("+ n, Directory    Directory file listing of the SD card."));
       Serial.println(F("+ l, Load sample  Load a sample program."));
-      Serial.println(F("+ L, Load hex     Load hex code from the serial port."));
-      Serial.println(F("-------------"));
       Serial.println(F("+ i, info         Information print of registers."));
       Serial.println(F("+ j, settings     Settings information."));
       Serial.println(F("-------------"));
-      Serial.println(F("+ t/T Terminal    Disable/enable VT100 terminal commandline (cli) escape codes."));
-      Serial.println(F("+ w/W USB serial  Disable/enable USB serial output."));
-      Serial.println(F("+ y/Y Serial2     Disable/enable Serial2 for I/O."));
-      Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
-      Serial.println(F("-------------"));
-      Serial.println(F("+ Enter key       Refresh USB serial output front panel display."));
-      Serial.println(F("+ u/U Log msg     Log messages off/on."));
-      Serial.println(F("+ z/Z cursor      VT100 block cursor off/on."));
+      Serial.println(F("+ H Help          Help for Altair101b module extension commands, and other commands."));
       Serial.println(F("----------------------------------------------------"));
+      break;
+    case 'H':
+      Serial.println(F("----------------------------------------------------"));
+      Serial.println(F("+++ Altair101b Extensions"));
+      Serial.println(F("-------------"));
+      Serial.println(F("+ D, Download     DOWNLOAD mode for receiving bytes from the Serial2 serial port."));
+      Serial.println(F("+ y/Y Serial2     Disable/enable Serial2 for program I/O."));
+      Serial.println(F("+ B Serial2 baud  Set Serial2 baud rate."));
+      Serial.println(F("-------------"));
+      Serial.println(F("+ F, SD Card      SD Card CLI, memory manage with the SD card."));
+      Serial.println(F("+ m, Read         Read an SD card file into program memory."));
+      Serial.println(F("+ M, Write        Write program memory to an SD card file."));
+      Serial.println(F("+ n, Directory    Directory file listing of the SD card."));
+      Serial.println(F("-------------"));
+      Serial.println(F("+ J, MP3 Player   PLAYER mode, run the MP3 player."));
+      Serial.println(F("+ I, Player Info  MP3 player software and hardware settings."));
+      Serial.println(F("+ g/G Play        Pause/Play MP3 song."));
+      Serial.println(F("+ k/K Volume      Down/Up player volume."));
+      Serial.println(F("-------------"));
+      Serial.println(F("+ Q, Clock        CLOCK CLI, interact with the clock."));
+      Serial.println(F("+ q, Time         Show the clock's data and time."));
+      Serial.println(F("----------------------------------------------------"));
+      Serial.println(F("+++ Other controls"));
+      Serial.println(F("+ u/U Log msg     Log messages off/on."));
+      Serial.println(F("+ L, Load hex     Load hex code from the serial port."));
+      Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
+      Serial.println(F("+ w/W USB serial  Disable/enable USB serial output."));
+      Serial.println(F("----------------------------------------------------"));
+      break;
+    // -------------------------------------
+    case 'Q':
+      Serial.println(F("+ MP3 PLAYER CLI, run the MP3 player."));
+      programState = CLOCK_RUN;
+      break;
+    case 'q':
+      clockSwitch('r');
+      break;
+    // -------------------------------------
+    // For command line. Note playerContinuous() has infrared controls in place.
+    case 'J':
+      Serial.println(F("+ MP3 Player   PLAYER mode, run the MP3 player."));
+      programState = PLAYER_RUN;
+      break;
+    case 'g':
+      playerSwitch('s');  // Stop play
+      break;
+    case 'G':
+      playerSwitch('r');  // Start/run play
+      break;
+    case 'k':
+      playerSwitch('v');  // Volume down.
+      break;
+    case 'K':
+      playerSwitch('V');  // Volume up.
+      break;
+    // -------------------------------------
+    case 'F':
+      Serial.println(F("+ SD Card mode, memory manage with the SD card."));
+      programState = SDCARD_RUN;
+      break;
+    case 'n':
+#ifdef SETUP_SDCARD
+      sdCardSwitch('n');
+#else
+      Serial.println(F("- SD card not enabled."));
+#endif
+      break;
+    case 'm':
+      {
+        Serial.println(F("+ Read file into program memory."));
+#ifdef SETUP_SDCARD
+        theFilename = getSenseSwitchValue() + ".bin";
+        if (theFilename == "00000000.bin") {
+          Serial.println(F("+ Set to download over the serial port."));
+          programState = SERIAL_DOWNLOAD;
+          return;
+        }
+        Serial.print(F("++ Program filename: "));
+        Serial.println(theFilename);
+        Serial.println(F("++ Confirm, y/n: "));
+        readConfirmByte = 's';
+        while (!(readConfirmByte == 'y' || readConfirmByte == 'n')) {
+          if (Serial.available() > 0) {
+            readConfirmByte = Serial.read();    // Read and process an incoming byte.
+          }
+          delay(60);
+        }
+        if (readConfirmByte != 'y') {
+          Serial.println(F("+ Cancelled."));
+          break;
+        }
+        Serial.println(F("+ Confirmed."));
+        //
+        host_set_status_led_HLDA();
+        if (readFileToMemory(theFilename)) {
+          ledFlashSuccess();
+          controlResetLogic();
+          fpAddressToggleWord = 0;                // Reset all toggles to off.
+          playerPlaySoundWait(READ_FILE);
+          // } else {
+          // Redisplay the front panel lights.
+          // printFrontPanel();
+        }
+        printFrontPanel();
+        host_clr_status_led_HLDA();
+#else
+        Serial.println(F("- SD card not enabled."));
+#endif  // SETUP_SDCARD
+        break;
+      }
+    case 'M':
+      {
+        Serial.println(F("+ Write program Memory into a file."));
+#ifdef SETUP_SDCARD
+        String senseSwitchValue = getSenseSwitchValue();
+        theFilename = senseSwitchValue + ".bin";
+        if (theFilename == "11111111.bin") {
+          Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
+          ledFlashError();
+          return;
+        }
+        Serial.print(F("++ Write filename: "));
+        Serial.println(theFilename);
+        Serial.println(F("++ Confirm, y/n: "));
+        readConfirmByte = 's';
+        while (!(readConfirmByte == 'y' || readConfirmByte == 'n')) {
+          if (Serial.available() > 0) {
+            readConfirmByte = Serial.read();    // Read and process an incoming byte.
+          }
+          delay(60);
+        }
+        if (readConfirmByte != 'y') {
+          Serial.println(F("+ Cancelled."));
+          break;
+        }
+        Serial.println(F("+ Confirmed."));
+        //
+        host_set_status_led_HLDA();
+        // -------------------------------------------------------
+        writeMemoryToFile(theFilename);
+        printFrontPanel();
+#else
+        Serial.println(F("- SD card not enabled."));
+#endif  // SETUP_SDCARD
+      }
       break;
     // -------------------------------------
     case 13:
       // USB serial, VT100 terminal.
       Serial.println();
-      if (!SERIAL_FRONT_PANEL) {
+      if (!VIRTUAL_FRONT_PANEL) {
         printFrontPanel();  // <LF> will refresh the display.
-        serialPrintFrontPanel();
+        printVirtualFrontPanel();
       }
       break;
     case 10:
       // USB serial, non VT100.
       Serial.println();
-      serialPrintFrontPanel();
+      printVirtualFrontPanel();
       break;
     case 12:
       // Ctrl+l is ASCII 7, which is form feed (FF).
-      if (SERIAL_FRONT_PANEL || SERIAL_CLI) {
+      // if (VIRTUAL_FRONT_PANEL || SERIAL_CLI) {
         Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
-      }
-      if (SERIAL_FRONT_PANEL) {
+      // }
+      if (VIRTUAL_FRONT_PANEL) {
         // Refresh the front panel
-        SERIAL_FRONT_PANEL = false;                // Insure labels are printed.
-        serialPrintFrontPanel();                // Print the complete front panel: labels and indicators.
-        SERIAL_FRONT_PANEL = true;                 // Must be after serialPrintFrontPanel(), to have the labels printed.
+        VIRTUAL_FRONT_PANEL = false;                // Insure labels are printed.
+        printVirtualFrontPanel();                // Print the complete front panel: labels and indicators.
+        VIRTUAL_FRONT_PANEL = true;                 // Must be after printVirtualFrontPanel(), to have the labels printed.
       }
-      break;
-    case 'n':
-      Serial.println(F("+ n, SD card directory lising."));
-#ifdef SETUP_SDCARD
-      sdListDirectory();
-#else
-      Serial.println(F("- SD card not enabled."));
-#endif  // SETUP_SDCARD
-      break;
-    case 'm':
-      Serial.println(F("+ m, Read file into program memory."));
-#ifdef SETUP_SDCARD
-      theFilename = getSenseSwitchValue() + ".bin";
-      if (theFilename == "00000000.bin") {
-        Serial.println(F("+ Set to download over the serial port."));
-        programState = SERIAL_DOWNLOAD;
-        return;
-      }
-      Serial.print(F("++ Program filename: "));
-      Serial.println(theFilename);
-      Serial.println(F("++ Confirm, y/n: "));
-      readConfirmByte = 's';
-      while (!(readConfirmByte == 'y' || readConfirmByte == 'n')) {
-        if (Serial.available() > 0) {
-          readConfirmByte = Serial.read();    // Read and process an incoming byte.
-        }
-        delay(60);
-      }
-      if (readConfirmByte != 'y') {
-        Serial.println(F("+ Cancelled."));
-        break;
-      }
-      Serial.println(F("+ Confirmed."));
-      //
-      host_set_status_led_HLDA();
-      if (readProgramFileIntoMemory(theFilename)) {
-        ledFlashSuccess();
-        controlResetLogic();
-        fpAddressToggleWord = 0;                // Reset all toggles to off.
-        playerPlaySoundWait(READ_FILE);
-        // } else {
-        // Redisplay the front panel lights.
-        // printFrontPanel();
-      }
-      printFrontPanel();
-      host_clr_status_led_HLDA();
-#else
-      Serial.println(F("- SD card not enabled."));
-#endif  // SETUP_SDCARD
-      break;
-    case 'M':
-      Serial.println(F("+ M, Write program Memory into a file."));
-#ifdef SETUP_SDCARD
-      String senseSwitchValue = getSenseSwitchValue();
-      theFilename = senseSwitchValue + ".bin";
-      if (theFilename == "11111111.bin") {
-        Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
-        ledFlashError();
-        return;
-      }
-      Serial.print(F("++ Write filename: "));
-      Serial.println(theFilename);
-      Serial.println(F("++ Confirm, y/n: "));
-      readConfirmByte = 's';
-      while (!(readConfirmByte == 'y' || readConfirmByte == 'n')) {
-        if (Serial.available() > 0) {
-          readConfirmByte = Serial.read();    // Read and process an incoming byte.
-        }
-        delay(60);
-      }
-      if (readConfirmByte != 'y') {
-        Serial.println(F("+ Cancelled."));
-        break;
-      }
-      Serial.println(F("+ Confirmed."));
-      //
-      host_set_status_led_HLDA();
-#ifdef LOG_MESSAGES
-      Serial.print(F("+ Write memory to filename: "));
-      Serial.println(theFilename);
-#endif
-      // -------------------------------------------------------
-      writeProgramMemoryToFile(theFilename);
-      printFrontPanel();
-#else
-      Serial.println(F("- SD card not enabled."));
-#endif  // SETUP_SDCARD
       break;
       // -------------------------------------
       /*
@@ -1857,20 +2017,20 @@ void runProcessorWait() {
     // And other options such as enable VT100 output enabled or load a sample program.
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
-      processWaitSwitch(readByte);
-      if (singleStepWaitByte) {
-        // This handles inputs during a SINGLE STEP cycle that hasn't finished.
+      if (!(readByte == 27 || readByte == 91 || readByte == 65 || readByte == 66)) {
+        // Ignore Mouse wheel
         processWaitSwitch(readByte);
-      }
-      /*
-        if (SERIAL_CLI && !SERIAL_FRONT_PANEL) {
-        processWaitSwitch(10);    // Since the terminal doesn't send a CR or LF, send one.
+        if (singleStepWaitByte) {
+          // This handles inputs during a SINGLE STEP cycle that hasn't finished.
+          processWaitSwitch(readByte);
         }
-      */
-      if (!SERIAL_FRONT_PANEL) {
-        Serial.print(F("?- "));
+        if (!VIRTUAL_FRONT_PANEL) {
+          Serial.print(F("?- "));
+        }
       }
     }
+    // Allow for the music to keep playing, and infrared player controls to work.
+    playerContinuous();
     delay(60);
   }
 }
@@ -1944,14 +2104,16 @@ void loadProgramSerial() {
 
 // -----------------------------------------------------------------------------
 void modeDownloadProgram() {
-  Serial.println(F("+ Download mode: ready to receive a program. Enter, x, to exit."));
+  Serial.println(F("+ Download mode: ready to receive a program bytes on Serial2. Enter, x, to exit."));
+  Serial.print(F("++ Serial 2 baud rate: "));
+  Serial.println(downloadBaudRate);
   // Status: ready for input and not yet writing to memory.
   host_set_status_led_INP();
   host_clr_status_led_M1();
   host_set_addr_leds(0);
   host_set_data_leds(0);
   printFrontPanel();
-  if (SERIAL_FRONT_PANEL) {
+  if (VIRTUAL_FRONT_PANEL) {
     Serial.print(F("\033[11;1H"));  // Move cursor to below the prompt: line 9, column 1.
     Serial.print(F("\033[J"));     // From cursor down, clear the screen.
   }
@@ -1980,58 +2142,25 @@ void modeDownloadProgram() {
       if (!downloadStarted) {
         downloadStarted = true;
         host_set_status_leds_WRITEMEM();   // Now writing to processor memory.
-        if (SERIAL_FRONT_PANEL) {
+        if (VIRTUAL_FRONT_PANEL) {
           Serial.print(F("\033[11;1H"));    // Move cursor to below the prompt.
         }
         // Serial.println(F("+       Address  Data  Binary   Hex Octal Decimal"));
         Serial.println(F("+       Address"));
         //              ++ Byte#     17, Byte: 00000000 000 000     0
       }
-      if (SERIAL_FRONT_PANEL) {
+      if (VIRTUAL_FRONT_PANEL) {
         Serial.print(F("\033[12;1H"));    // Move cursor to below the prompt: line 10, column 1.
       }
       //
       // Buffer space up to 64K.
       Serial.print(F("++ Byte# "));
-      /* Commented out to simplify output during the receiving of bytes.
-        if (readByteCount < 10) {
-        Serial.print(F(" "));
-        }
-        if (readByteCount < 100) {
-        Serial.print(F(" "));
-        }
-        if (readByteCount < 1000) {
-        Serial.print(F(" "));
-        }
-        if (readByteCount < 10000) {
-        Serial.print(F(" "));
-        }
-        if (readByteCount < 100000) {
-        Serial.print(F(" "));
-        }
-      */
       Serial.print(readByteCount);
       //
       // Input on the external serial port module.
       // Process the incoming byte.
       MWRITE(readByteCount, readByte)
       readByteCount++;
-      /* Commented out to simplify output during the receiving of bytes.
-        Serial.print(F(", Byte: "));
-        printByte(readByte);
-        Serial.print(F(" "));
-        printHex(readByte);
-        Serial.print(F(" "));
-        printOctal(readByte);
-        Serial.print(F("   "));
-        if (readByte < 10) {
-        Serial.print(F(" "));
-        }
-        if (readByte < 100) {
-        Serial.print(F(" "));
-        }
-        Serial.print(readByte);
-      */
       Serial.println();
       //
       timer = millis();
@@ -2105,18 +2234,18 @@ void setup() {
   delay(2000);
   Serial.println(); // Newline after garbage characters.
   Serial.print(F("+++ "));
-  Serial.println(__func__); // prints "setup"
-
+  // Serial.println(__func__); // prints "setup"
+  Serial.println(F("setup()"));
   //
   // ----------------------------------------------------
   // ----------------------------------------------------
   // Front panel LED lights.
 
   // System application status LED lights
-  pinMode(WAIT_PIN, OUTPUT);        // Indicator: program WAIT state: LED on or LED off.
-  // pinMode(HLDA_PIN, OUTPUT);     // Indicator: clock or player process (LED on) or simulator (LED off).
-  digitalWrite(WAIT_PIN, HIGH);     // Default to wait state.
-  // digitalWrite(HLDA_PIN, HIGH);  // Default to simulator.
+  pinMode(WAIT_PIN, OUTPUT);        // Indicator: Altair 8800 emulator program WAIT state: LED on or LED off.
+  // pinMode(HLDA_PIN, OUTPUT);     // Indicator: clock or player process: LED on. Emulator: LED off.
+  digitalWrite(WAIT_PIN, HIGH);     // Default to WAIT state.
+  // digitalWrite(HLDA_PIN, HIGH);  // Default to emulator.
   // ------------------------------
   // Set status lights.
 #ifdef LOG_MESSAGES
@@ -2134,21 +2263,19 @@ void setup() {
   // ----------------------------------------------------
   // ----------------------------------------------------
 #ifdef SETUP_SDCARD
-  // The csPin pin is connected to the SD card module select pin (CS).
-  if (!SD.begin(csPin)) {
-    Serial.println(F("- Error initializing SD card module."));
+  if (!setupSdCard()) {
     ledFlashError();
     hwStatus = 1;
   } else {
-    Serial.println(F("+ SD card module is initialized."));
     ledFlashSuccess();
   }
   delay(300);
-#else
-  Serial.println(F("+ SD card module is not included in this compiled version."));
 #endif
   //
   // ----------------------------------------------------
+  setupMp3Player();
+  setupClock();
+
   // ----------------------------------------------------
   programState = PROGRAM_WAIT;
   host_set_status_leds_READMEM_M1();
@@ -2157,12 +2284,52 @@ void setup() {
   host_set_addr_leds(regPC);
   host_set_data_leds(opcode);
   printFrontPanel();
-  Serial.println(F("+++ Altair101a initialized."));
+
   // ----------------------------------------------------
+  // Read sound effect file information.
+  /*
+    Serial.println(F("+ Load sound bite index array."));
+    for (int i = 0; i < maxSoundEffects; i++) {
+    soundEffects[i] = readFileByte(getSfbFilename(i));
+    }
+  */
+  // ----------------------------------------------------
+  // Read and Run an initialization program.
+  // Can manually set 00000000.bin, to all zeros.
+  // + The ability to set 00000000.bin, to all zeros.
+  // ---------------------------
+  // + If 00000000.bin exists, read it.
+  // Serial.print(F("+ Program loaded from memory array."));
+  programState = PROGRAM_WAIT;
+  controlResetLogic();
+  if (readFileToMemory("00000000.bin")) {
+    int sumBytes = 0;
+    for (int i = 0; i < 32; i++) {
+      sumBytes = sumBytes + MREAD(i);
+    }
+    if (sumBytes > 0) {
+      Serial.println(F("++ Since 00000000.bin, has non-zero bytes in the first 32 bytes, run it."));
+      programState = PROGRAM_RUN;
+      digitalWrite(WAIT_PIN, LOW);
+    }
+  }
+  // ----------------------------------------------------
+  Serial.print(F("+++ "));
+  Serial.print(SOFTWARE_NAME);
+  Serial.print(F(" initialized, version "));
+  Serial.print(SOFTWARE_VERSION);
+  Serial.print(F("."));
+  Serial.println();
 }
 
 // -----------------------------------------------------------------------------
 // Device Loop
+
+int tmp_VIRTUAL_FRONT_PANEL;
+byte tmp_fpStatusByte;
+uint16_t tmp_fpAddressWord;
+byte tmp_fpDataByte;
+
 void loop() {
   switch (programState) {
     // ----------------------------
@@ -2172,7 +2339,7 @@ void loop() {
       break;
     // ----------------------------
     case PROGRAM_WAIT:
-      if (!SERIAL_FRONT_PANEL) {
+      if (!VIRTUAL_FRONT_PANEL) {
         Serial.print(F("?- "));
       }
       host_set_status_led_WAIT();
@@ -2190,6 +2357,50 @@ void loop() {
         // modeDownloadProgram() opens and closes (begin and end) the connection.
         // The following will re-open it for output.
         Serial2.begin(downloadBaudRate);
+      }
+      break;
+    // ----------------------------
+    case SDCARD_RUN:
+      host_clr_status_led_WAIT();
+      host_set_status_led_HLDA();
+      sdCardRun();
+      host_clr_status_led_HLDA();
+      if (VIRTUAL_FRONT_PANEL) {
+        initVirtualFrontPanel();
+        printVirtualFrontPanel();
+      }
+      break;
+    // ----------------------------
+    case PLAYER_RUN:
+      // Save processor front panel values.
+      tmp_VIRTUAL_FRONT_PANEL = VIRTUAL_FRONT_PANEL;
+      tmp_fpStatusByte = fpStatusByte;
+      tmp_fpAddressWord = fpAddressWord;
+      tmp_fpDataByte = fpDataByte;
+      host_clr_status_led_WAIT();
+      host_set_status_led_HLDA();
+      //
+      mp3PlayerRun();
+      //
+      // Restore processor front panel values.
+      host_clr_status_led_HLDA();
+      fpStatusByte = tmp_fpStatusByte;
+      fpAddressWord = tmp_fpAddressWord;
+      fpDataByte = tmp_fpDataByte;
+      tmp_VIRTUAL_FRONT_PANEL = VIRTUAL_FRONT_PANEL;
+      if (VIRTUAL_FRONT_PANEL) {
+        printVirtualFrontPanel();
+      }
+      break;
+    // ----------------------------
+    case CLOCK_RUN:
+      host_clr_status_led_WAIT()
+      host_set_status_led_HLDA();
+      rtClockRun();
+      host_clr_status_led_HLDA();
+      if (VIRTUAL_FRONT_PANEL) {
+        initVirtualFrontPanel();
+        printVirtualFrontPanel();
       }
       break;
   }

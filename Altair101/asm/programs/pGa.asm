@@ -345,15 +345,49 @@ STARTYN:
         cpi     'N'             ; No, don't start a new game.
         jz      NOGAME
         cpi     'y'             ; Yes, start a game.
-        jz      STARTGAME
+        jz      SELECTLEN
         cpi     'Y'             ; Yes, start a game.
-        jz      STARTGAME
+        jz      SELECTLEN
 	jmp	STARTYN         ; Invalid character
                                 ;
 	CALL	INPUT		;Wait for an input character, then echo it and continue.
 	CPI	'N'
 	JZ	NOGAME		; Not going to play a game.
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
+SELECTLEN:                      ; Ask for a range of the number of TIE fighters for the game.
+	LXI	H,MSSEL1
+	CALL	MSG
+	CALL    INPUT           ; Wait for an input character, then echo it and continue.
+	CPI     'q'             ; Quick
+	JZ	QGAME           ; Not going to play a game.
+	CPI     'm'             ; Medium
+	JZ	MGAME           ; Not going to play a game.
+	CPI     'l'             ; Long
+	JZ	LGAME           ; Not going to play a game.
+QGAME:
+	LXI	H,MSSELQ
+	CALL	MSG
+        mvi     a,3
+        sta     ASHIPSH
+        mvi     a,1
+        sta     ASHIPSL
+        jmp     STARTGAME
+MGAME:
+	LXI	H,MSSELM
+	CALL	MSG
+        mvi     a,9
+        sta     ASHIPSH
+        mvi     a,5
+        sta     ASHIPSL
+        jmp     STARTGAME
+LGAME:
+	LXI	H,MSSELL
+	CALL	MSG
+        mvi     a,32            ; Original values.
+        sta     ASHIPSH
+        mvi     a,10
+        sta     ASHIPSL
+                                ; ------------------------------------------------
 STARTGAME:
                                 ; Prepare for a new game.
 	LXI	H,MSPREP
@@ -2029,6 +2063,10 @@ INPUT:
         jz      INPUTokay
         cpi     'Q'             ; Quick game
         jz      INPUTokay
+        cpi     'm'             ; Medium game
+        jz      INPUTokay
+        cpi     'M'             ; Medium game
+        jz      INPUTokay
         cpi     'l'             ; Longer game
         jz      INPUTokay
         cpi     'L'             ; Longer game
@@ -2209,9 +2247,15 @@ GAMESTAT:
 MSGSTART:   DB CR,LF
         DB      'Ready to start a Star Wars X-wing starfighter mission? (Y/N)'
   	DB	0
-MSPREP:	DB	'\r\nPreparations are being made...'
+MSSEL1:	DB	'\r\nQuick game, medium or a longer game (q/m/l)? Less or more TIE fighters?'
   	DB	0
-MSPREP:	DB	'\r\nQuick game or a longer game, less or more TIE fighters? (Q/L)'
+MSSELQ:	DB	'\r\nQuick game selected.'
+  	DB	0
+MSSELM:	DB	'\r\nMedium game selected.'
+  	DB	0
+MSSELL:	DB	'\r\nLonger game selected.'
+  	DB	0
+MSPREP:	DB	'\r\nPreparations are being made...'
   	DB	0
                                 ; ----------------------------------------------
 MSGGDY:	DB	'\r\nRegional Sector Display'
@@ -2244,10 +2288,7 @@ regH:   DB      0
                                 ;
 ASHIPSH: DB     3               ; Number alien ships is less than this number.
 ASHIPSL: DB     1               ; Number alien ships is greater than this number.
-                                ; Default was 32 and 10.
-                                ; 9 and 5 are good for a reasonably short game.
-                                ;   You can still run out of energy.
-                                ; 3 and 1 for super short.
+                                ; Original was the hard coded values: 32 and 10.
                                 ;
                                 ; ----------------------------------------------
 	END
