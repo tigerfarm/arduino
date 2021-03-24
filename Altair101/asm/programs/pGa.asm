@@ -2247,7 +2247,7 @@ GAMESTAT:
 MSGSTART:   DB CR,LF
         DB      'Ready to start a Star Wars X-wing starfighter mission? (Y/N)'
   	DB	0
-MSSEL1:	DB	'\r\nQuick game, medium or a longer game (q/m/l)? Less or more TIE fighters?'
+MSSEL1:	DB	'\r\nQuick game, medium or a longer game (q/m/l)? Less or more TIE fighters? '
   	DB	0
 MSSELQ:	DB	'\r\nQuick game selected.'
   	DB	0

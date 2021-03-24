@@ -580,7 +580,8 @@ void clockSetSwitch(int resultsValue) {
       Serial.println();
       Serial.println("");
       if (VIRTUAL_FRONT_PANEL) {
-        clockSwitch('T');         // Update VFP.
+        initVirtualFrontPanel();    // Update VFP.
+        clockLights(theCounterMinutes, theCounterHours);
       }
       break;
     // ----------------------------------------------------------------------

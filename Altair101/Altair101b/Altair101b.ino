@@ -30,11 +30,12 @@
   ---------------------------------------------------------
   Next to work on
 
-  Update infrared options:
-  + MP3 player STOP isn't working
-
   Test setting 00000000.bin and running it on startup.
   Display clock time in the VFP.
+
+  Add hardware to display values:
+  + Player song.
+  + Clock date and time.
 
   Document what each does:
   ++ LED_LIGHTS_IO=0 VIRTUAL_FRONT_PANEL=1 ARDUINO_IDE_MONITOR=0 SERIAL_CLI=0
@@ -46,21 +47,17 @@
   + programsAltair: programs people can load and run on the Altair101.
 
   Continue integrating Processor.ino features and functions.
-  + Test Serial2 buffer uploads from asm, for uploading basic programs.
   + Ready to add sample assembler programs to AltairSamples.cpp.
+  + Test Serial2 buffer uploads from asm, for uploading basic programs.
   + Nice to standardize the key press options across the programs, such as v and V for player volume.
   + Move Status const to Altair101b.h, for other programs to use, such as Mp3Player.cpp.
     const byte MEMR_ON =    B10000000;  // MEMR   The memory bus will be used for memory read data.
-
-  Add hardware to display values:
-  + Player song.
-  + Clock date and time.
 
   Consider, when using Arduino IDE Serial Monitor, remove duplicate messages.
   + Maybe ignore "CR".
 
   ---------------------------------------------------------
-  Get porgrams to work on an Altari-Duino or actual Altair 8800.
+  Get programs to work on an Altari-Duino or actual Altair 8800.
   + Need to get in contact with the online group to have help testing.
 
   + Get 88-2SIO to work based on Gaxaly101.asm.
@@ -88,8 +85,8 @@
 
   Front panel: add functions, upload to tablet or desktop machine, and test.
   + Lights
-  + Toggles and switches:
-  + Add the others: player, clock, timer, and counter.
+  + Toggles and switches
+  + Add the others: player sound effects, clock timer and counter.
 
   ---------------------------------------------------------
   - Consider preventing lockup when using PUSH A, i.e. PUSH called before setting SP.
@@ -141,6 +138,8 @@
     controlResetLogic()
   --------------------------
   + Front panel functions
+    playerLights(...)
+    clockLights(theCounterMinutes, theCounterHours)
     printFrontPanel()
   + Input
     altair_in(byte portDataByte)
@@ -589,7 +588,7 @@ void clockLights(byte theMinute, byte theHour) {
     // Serial.println(F(" PM"));
   }
   unsigned int hourAddress = 0;                     // CLear previous value.
-  hourAddress = bitWrite(hourAddress, theHour, 1);  // Set the hour bit (A1...A12).
+  hourAddress = bitWrite(hourAddress, timeHour, 1);  // Set the hour bit (A1...A12).
   // ----------------------------------------------
   // Convert the minute into binary for display.
   //
