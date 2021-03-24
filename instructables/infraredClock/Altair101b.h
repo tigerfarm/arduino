@@ -8,6 +8,9 @@
 #define CLOCK_RUN 3
 
 extern int programState;
+extern void clockLights(byte theMinute, byte theHour);
+extern boolean VIRTUAL_FRONT_PANEL;
+extern void initVirtualFrontPanel();
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

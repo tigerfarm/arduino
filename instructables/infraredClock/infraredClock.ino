@@ -7,9 +7,11 @@
 // -------------------------------------------------------------------------------
 #include "rtClock.h"
 
-// This is for running the test program.
-// The goal is to include the MP3 player program with Altair101a.
+// This is for getting this test application to compile.
 #include "Altair101b.h"
+void clockLights(byte theMinute, byte theHour) {}
+void initVirtualFrontPanel() {}
+boolean VIRTUAL_FRONT_PANEL = false;
 
 // -----------------------------------------------------------------------------
 int programState;

@@ -54,7 +54,7 @@
 
   -----------------------------------------------------------------------------
   Wiring
-  
+
   DS3231 Clock pins   Arduino pins
   + VCC               +5v on Uno or Mega, or +3.3v on Due or NodeMCU.
   + GND               DND ground.
@@ -80,7 +80,7 @@
 
   --------------------------------------------------------------------------------
   Infrared receiver pins
-  
+
   A24 + -   - Mega or Due pin connections
    A1 + -   - Uno or Nano pin connections
     | | |   - Infrared receiver pins
@@ -243,6 +243,7 @@ void clockPulseMinute() {
   // Serial.print(F("+ clockPulseMinute(), theCounterMinutes= "));
   // printClockInt(theCounterMinutes);
   // Serial.println();
+  clockLights(theCounterMinutes, theCounterHours);  // Display in the virtual front panel.
 }
 void clockPulseSecond() {
   Serial.print(F("+ theCounterSeconds = "));
@@ -578,6 +579,10 @@ void clockSetSwitch(int resultsValue) {
       printClockDateTime();
       Serial.println();
       Serial.println("");
+      if (VIRTUAL_FRONT_PANEL) {
+        initVirtualFrontPanel();    // Update VFP.
+        clockLights(theCounterMinutes, theCounterHours);
+      }
       break;
     // ----------------------------------------------------------------------
     case 0x953EEEBC:                              // Key CLEAR
@@ -588,24 +593,20 @@ void clockSetSwitch(int resultsValue) {
       break;
     // ----------------------------------------------------------------------
     case 'h':
-      Serial.print(F("+ h, Print help information."));
-      Serial.println();
+      Serial.println(F("+ h, Print help information."));
       Serial.println();
       Serial.println(F("----------------------------------------------------"));
       Serial.println(F("+++ Real Time Clock SET Controls"));
       Serial.println(F("-------------"));
+      Serial.println(F("+ x, EXAMINE      Rotate through the clock values that can be set."));
+      Serial.println(F("                  Rotate order: seconds to year."));
+      Serial.println(F("+ X, EXAMINE NEXT Rotate through the clock values that can be set."));
+      Serial.println(F("                  Rotate order: year to seconds."));
+      Serial.println(F("+ v, Set UP       Decrement date or time value."));
+      Serial.println(F("+ V, Set Down     Increment date or time value."));
+      Serial.println(F("-------------"));
       Serial.println(F("+ r, RUN          CLOCK mode: show date and time."));
       Serial.println(F("                  Clock SET mode: show date and time, and the set data and time value."));
-      Serial.println(F("+ v, SINGLE STEP  Clock SET mode: flip to decrement date or time value."));
-      Serial.println(F("+ V, SINGLE Down  Clock SET mode: flip to increment date or time value."));
-      Serial.println(F("+ x, EXAMINE      Rotate through the clock values that can be set."));
-      Serial.println(F("                  Rotate order: seconds to the year."));
-      Serial.println(F("+ X, EXAMINE NEXT Rotate through the clock values that can be set."));
-      Serial.println(F("                  1) Clock SET mode to change the year value."));
-      Serial.println(F("                  2) Clock SET mode to change the month value."));
-      Serial.println(F("                  3) Clock SET mode to change the day value."));
-      Serial.println(F("                  4) Clock SET mode to change the hours value."));
-      Serial.println(F("                  5) Clock SET mode to change the minutes. value"));
       Serial.println(F("+ p, DEPOSIT      Set the time based on the clock SET values."));
       Serial.println(F("+ R, RESET        Toggle between clock SET mode to CLOCK mode."));
       Serial.println(F("                  Reset the clock SET values when taggling into clock SET mode."));
@@ -815,20 +816,15 @@ void clockSwitch(int resultsValue) {
       break;
     // ----------------------------------------------------------------------
     case 'h':
-      Serial.print(F("+ h, Print help information."));
-      Serial.println();
+      Serial.println(F("+ h, Print help information."));
       Serial.println();
       Serial.println(F("----------------------------------------------------"));
       Serial.println(F("+++ Real Time Clock Controls"));
       Serial.println(F("-------------"));
-      Serial.println(F("+ _, STOP         Not implemented."));
-      Serial.println(F("+ r, RUN mode     CLOCK mode: show date and time."));
+      Serial.println(F("+ r, RUN time     CLOCK mode: show date and time."));
       Serial.println(F("+ R, RESET        Toggle from clock SET mode to CLOCK mode. Don't change the time."));
       Serial.println(F("-------------"));
-      // Serial.println(F("+ 0...9, a...f    Toggle sense/address/data switches:  A0...A9, A10...A15."));
-      // Serial.println(F("----------------------------------------------------"));
-      // Serial.println(F("+++ Real Time Clock Controls"));
-      // Serial.println(F("------------------"));
+      Serial.println(F("+ t/T VT100 panel Disable/enable VT100 virtual front panel."));
       Serial.println(F("+ Ctrl+L          Clear screen."));
       Serial.println(F("+ X, Exit player  Return to program WAIT mode."));
       // Serial.println(F("------------------"));
@@ -850,11 +846,27 @@ void clockSwitch(int resultsValue) {
       // Ctrl+L, clear screen.
       Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
       break;
+    // ----------------------------------------------------------------------
+    case 't':
+      Serial.print(F("+ VT100 escapes are disabled and block cursor on."));
+      if (VIRTUAL_FRONT_PANEL) {
+        VIRTUAL_FRONT_PANEL = false;
+        Serial.print(F("\033[0m\033[?25h"));       // Insure block cursor display: on.
+      }
+      // Note, VT100 escape sequences don't work on the Ardino IDE monitor.
+      break;
+    case 'T':
+      // The following requires a VT100 terminal such as a Macbook terminal.
+      initVirtualFrontPanel();
+      clockLights(theCounterMinutes, theCounterHours);
+      Serial.print(F("+ VT100 escapes are enabled and block cursor off."));
+      break;
+    // ----------------------------------------------------------------------
     case 0x85CF699F:                              // Key TV/VCR
     case 0xDA529B37:                              // Key POWER After pressing VCR
     case 0x1A2EEC3B:                              // Key POWER After pressing TV
     case 'X':
-      Serial.println(F("+ Exit clock CLI."));
+      Serial.println(F("+ Power or Key TV/VCR"));
       programState = PROGRAM_WAIT;
       break;
     // -----------------------------------
@@ -915,7 +927,9 @@ void rtClockSet() {
 }
 
 void rtClockRun() {
-  // Serial.println(F("+ rtClockRun();"));
+  if (VIRTUAL_FRONT_PANEL) {
+    clockSwitch('T');         // Update VFP.
+  }
   Serial.println();
   Serial.print(thePrompt);
   while (programState == CLOCK_RUN) {
