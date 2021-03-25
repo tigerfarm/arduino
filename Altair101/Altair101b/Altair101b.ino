@@ -30,9 +30,6 @@
   ---------------------------------------------------------
   Next to work on
 
-  Test setting 00000000.bin and running it on startup.
-  Display clock time in the VFP.
-
   Add hardware to display values:
   + Player song.
   + Clock date and time.

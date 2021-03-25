@@ -34,11 +34,11 @@
 ; The console I/O routines are for an Arduino Mega
 ; or Due which use serial over a USB connection.
 ; 2021 version is designed to be loaded at 0000H
-; and executed at "GALAXY".
+; and executed at "GALAXY", address: 0500H ().
 ; Stacy David's repository:
 ;   https://github.com/tigerfarm/arduino/tree/master/Altair101/asm/galaxygame
 ;
-; ******* GALAXY MISSION **************************
+; ******* YOUR MISSION **************************
 ;
 ; Captain, your starship is pitted against the
 ; logic of your 8080 machine. You must destroy
@@ -47,7 +47,7 @@
 ; stay in the galaxy, so plan your mission. Don't
 ; run into star. That would destroy your ship.
 ; Suddenly. Condition Red. Fighters in your sector.
-; Fire phasors or torpedoes. Are they destroyed?
+; Fire laser cannons or proton torpedoes. Are they destroyed?
 ; A new game every time.
 ;
 ; ------------------------------------------------------------------------------
@@ -57,6 +57,7 @@ CR	EQU	0DH
 
                 ; --------------------------------------------------------------
 	ORG	0000H
+
         ;jmp GALAXY             ; Be nice to get this to work.
 
 	DB	2 		;Course 1.0
@@ -90,9 +91,9 @@ CR	EQU	0DH
 	DB	002 		;Course 8.0
 	DB	002
 	DB	002 		;Course 8.5
-	DB	001             ; 32 course bytes: course 1.0 ... course 8.5.
+	DB	001
 
-	ORG	0028H           ; 28H = 40 decimal
+	ORG	0028H
 
 	DB	000		;Register storage
 	DB	000 		;Register storage
@@ -116,56 +117,56 @@ ROWMSK:	EQU	00111000b	;Row mask
 COLMSK:	EQU	00000111b	;Column mask
 TORMSK:	EQU	00001111b	;Num. torpedos mask
 
-	DB	000 ;Random number		//40
-	DB	000 ;Ran. num. constant		//41
-DQUAD:	DB	000 ;quadrant contents		//42
-DSHPS:	DB	000 ;Sec. loco of S. ship	//43
-DSTRS:	DB	000 ;Sector loco of star	//44
-	DB	000 ;Sector loco of star	//45
-	DB	000 ;Sector loco of star	//46
-	DB	000 ;Sector loco of star	//47
-	DB	000 ;Sector loco of star	//48
-	DB	000 ;Sector loco of star	//49
-	DB	000 ;Sector loco of star	//4A
-DSSTS:	DB	000 ;Sec. loco of space st.	//4B
-DAS1S:	DB	000 ;S. loc. of A.S. No.1	//4C
-DAS2S:	DB	000 ;S. loc. of A.S. No.2	//4D
-DAS3S:	DB	000 ;S. loc. of A.S. No.3	//4E
-DMELS:	DB	000 ;Main nrgy L.S. half	//4F
-DMEMS:	DB	000 ;Main nrgy M.S. half	//50
-DSELS:	DB	000 ;Shld nrgy L.S. half	//51
-DSEMS:	DB	000 ;Shld nrgy M.S. half	//52
-DAS1LS: DB	000 ;A.S. 1 nrgy L.S. half	//53
-DAS1MS: DB	000 ;A.S. 1 nrgy MS half	//54
-DAS2LS: DB	000 ;A.S. 2 nrgy L.S. half	//55
-DAS2MS: DB	000 ;A.S. 2 nrgy MS half	//56
-DAS3LS: DB	000 ;A.S. 3 nrgy L.S. half	//57
-DAS3MS: DB	000 ;A.S. 3 nrgy MS half	//58
-DSHPQ:	DB	000 ;Quad. loc. of S. ship	//59
-DNTOR:	DB	000 ;Number torpedoes		//5A
-DNSST:	DB	000 ;Num. space stations	//5B
-DNALS:	DB	000 ;Num. alien ships		//5C
-DNSTD:	DB	000 ;Num. stardates		//5D
-DTMP1:	DB	000 ;Temporary storage		//5E
-DTMP2:	DB	000 ;Temporary storage		//5F
-DDIG1:	DB	000 ;Digit storage		//60
-DDIG2:	DB	000 ;Digit storage		//61
-DDIG3:	DB	000 ;Digit storage		//62
-DDIG4:	DB	000 ;Digit storage		//63
-DDIG5:	DB	000 ;Digit storage		//64
+	DB	000 ;Random number              //40
+	DB	000 ;Ran. num. constant         //41
+DQUAD:	DB	000 ;quadrant contents          //42
+DSHPS:	DB	000 ;Sec. loco of S. ship       //43
+DSTRS:	DB	000 ;Sector loco of star        //44
+	DB	000 ;Sector loco of star        //45
+	DB	000 ;Sector loco of star        //46
+	DB	000 ;Sector loco of star        //47
+	DB	000 ;Sector loco of star        //48
+	DB	000 ;Sector loco of star        //49
+	DB	000 ;Sector loco of star        //4A
+DSSTS:	DB	000 ;Sec. loco of space st.     //4B
+DAS1S:	DB	000 ;S. loc. of A.S. No.1       //4C
+DAS2S:	DB	000 ;S. loc. of A.S. No.2       //4D
+DAS3S:	DB	000 ;S. loc. of A.S. No.3       //4E
+DMELS:	DB	000 ;Main nrgy L.S. half        //4F
+DMEMS:	DB	000 ;Main nrgy M.S. half        //50
+DSELS:	DB	000 ;Shld nrgy L.S. half        //51
+DSEMS:	DB	000 ;Shld nrgy M.S. half        //52
+DAS1LS: DB	000 ;A.S. 1 nrgy L.S. half      //53
+DAS1MS: DB	000 ;A.S. 1 nrgy MS half        //54
+DAS2LS: DB	000 ;A.S. 2 nrgy L.S. half      //55
+DAS2MS: DB	000 ;A.S. 2 nrgy MS half        //56
+DAS3LS: DB	000 ;A.S. 3 nrgy L.S. half      //57
+DAS3MS: DB	000 ;A.S. 3 nrgy MS half        //58
+DSHPQ:	DB	000 ;Quad. loc. of S. ship      //59
+DNTOR:	DB	000 ;Number torpedoes           //5A
+DNSST:	DB	000 ;Num. space stations        //5B
+DNALS:	DB	000 ;Num. alien ships           //5C
+DNSTD:	DB	000 ;Num. stardates             //5D
+DTMP1:	DB	000 ;Temporary storage          //5E
+DTMP2:	DB	000 ;Temporary storage          //5F
+DDIG1:	DB	000 ;Digit storage              //60
+DDIG2:	DB	000 ;Digit storage              //61
+DDIG3:	DB	000 ;Digit storage              //62
+DDIG4:	DB	000 ;Digit storage              //63
+DDIG5:	DB	000 ;Digit storage              //64
 
                 ; --------------------------------------------------------------
 	ORG	0080H
 
-	DB	CR,LF
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
-	DB	'|',' ',' ',' ',' ',' '
+        DB      CR,LF
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
+        DB      '|',' ',' ',' ',' ',' '
         DB      '|'
         ;       178: decimal value byte number location
 
@@ -180,16 +181,26 @@ DDIG5:	DB	000 ;Digit storage		//64
                 ; If the label starts with "U", then it is no longer used.
                 ;   The message was move so that it can be resized without effecting the program.
                 ; --------------------------------------------------------------
-	DB	CR,LF
+MSGDYW:	DB	CR,LF
         DB      'Ready for a Star Wars space mission? '
   	DB	0
-	DB	CR,LF
+UMSGYJD:	DB	CR,LF
   	DB	'You must destroy  '
-	DB	'  TIE ships,  in  '
-	DB	'  stardates with '
-	DB	'  space stations'
+UMSGSPS:	DB	'  TIE ships,  in  '
+UMSGDTS:	DB	'  stardates with '
+UMSGSSS:	DB	'  space stations'
   	DB	0
-                ; ----------------------
+                ; ----------------------------------------------------------------
+                ; Sector scan display messages. For example:
+                ;  -1--2--3--4--5--6--7--8-
+                ; 1                         STARDATE  3036
+                ; 2                   *     CONDITION GREEN
+                ; 3                         SECTOR    3 8
+                ; 4      x!x                QUADRANT  4 3
+                ; 5                         ENERGY    2932
+                ; 6            *            TORPEDOES 10
+                ; 7                         SHIELDS   0000
+                ;
 MSG123:	DB	CR,LF
   	DB	' -1--2--3--4--5--6--7--8-'
   	DB	0
@@ -207,10 +218,10 @@ MSGSDP:	DB	'0'
 MSGCND:	DB	' CONDITION '
 MSGGRN:	DB	'GREEN'
   	DB	0
-MSGQAD:	DB	' QUADRANT  '
+MSGQAD:	DB	' SECTOR    '
 MSGPQD:	DB	'   '
   	DB	0
-MSGSCT:	DB	' SECTOR    '
+MSGSCT:	DB	' QUADRANT  '
 MSGSC1:	DB	'   '
   	DB	0
 MSGENR:	DB	' ENERGY       '
@@ -222,25 +233,26 @@ MSGTPP:	DB	' '
 MSGSHD:	DB	' SHIELDS      '
 MSGSHP:	DB	' '
   	DB	0
+                ; ----------------------------------------------------------------
 UMSGCMD:	DB	CR,LF
   	DB	'Command?'
   	DB	0
-MSGCRS:	DB	CR,LF
+UMSGCRS:	DB	CR,LF
   	DB	'COURSE (1-8.5)? '
   	DB	0
-MSGWRP:	DB	CR,LF
-  	DB	'WARP FACTOR (0.1-7.7)? '
+UMSGWRP:	DB	CR,LF
+  	DB	'Parsecs (0.1-7.7)?     '
   	DB	0
 MSGLRS:	DB	CR,LF
   	DB	'L.R. SCAN FOR'
   	DB	0
-MSGMSF:	DB	CR,LF
+uMSGMSF:	DB	CR,LF
   	DB	'MISSION failed, you have run out of stardates'
   	DB	0
-MSGKAB:	DB	CR,LF
+uMSGKAB:	DB	CR,LF
   	DB	'BOOM! Game over, you crashed in a star. You are history.'
   	DB	0
-MSGYMO:	DB	CR,LF
+uMSGYMO:	DB	CR,LF
   	DB	'You flew out of the GALAXY, lost in the void...     '
   	DB	0
 MSGLOE:	DB	CR,LF
@@ -266,24 +278,24 @@ MSGYMA:	DB	CR,LF
   	DB	'Missed! TIE fighter retaliates.  '
   	DB	0
 MSGSSD:	DB	CR,LF
-  	DB	'SPACE STATION '
+  	DB	'Rebel outpost '
 MSGDES:	DB	'DESTROYED'
   	DB	0
-MSGCYH:	DB	CR,LF
+uMSGCYH:	DB	CR,LF
   	DB	'CONGRATULATIONS! You eliminated all the TIE fighters.      '
   	DB	0
 MSGTRG:	DB	CR,LF
   	DB	'Tracking: '
 MSGTRK:	DB	'   '
   	DB	0
-MSGGDY:	DB	CR,LF
+UMSGGDY:	DB	CR,LF
   	DB	'Galaxy Display'
   	DB	0
-MSGPEF:	DB	CR,LF
+UMSGPEF:	DB	CR,LF
   	DB	'PHASOR ENERGY TO FIRE = '
   	DB	0
 MSGASF:	DB	CR,LF
-  	DB	'TIE ship at sector   '
+  	DB	'TIE ship at quadrant '
 MSGSEC:	DB	' , : '
   	DB	0
 MSGEGY:	DB	'ENERGY =    '
@@ -304,17 +316,902 @@ MSG11A:	DB	'    1 '
 MSG11B:	DB	'    1 '
 MSG11C:	DB	'    1'
   	DB	0
-MSGLST:	DB	CR,LF
-  	DB	'LAST'
-  	DB	0
-MSGCHK:	DB	CR,LF
-  	DB	'Later...'
-        DB	CR,LF
-  	DB	0
 
 ; ------------------------------------------------------------------------------
 	ORG	0500H           ; Decimal = 1280
+                                ; Total bytes without this org: 4643. With: 4659.
+                                ;
+; ------------------------------------------------------------------------------
+; Initialize and start the Galaxy program.
+; ------------------------------------------------------------------------------
+GALAXY:
+; ++    00000101 00000000 > opcode: lxi sp,STACK
+; Enter the following to get to the start byte: 8ax
+	LXI	SP,STACK        ;Set stack pointer
+	CALL	CONINI		;Initialize Console I/O
+NEWSTART:
+;++    1286:00000101 00000110: 00100001 : 21:041 > opcode: lxi h,MSGSTART
+	LXI	H,MSGSTART
+	CALL	MSG             ;Print introduction
+                                ; ----------------------------------------------
+STARTYN:
+	CALL	RN		; Set a new random game number.
+        in      SIOCTL          ; Stacy, check for input character.
+        cpi     0
+	jz	STARTYN         ; No input character
+                                ;
+        cpi     'n'             ; No, don't start a new game.
+        jz      NOGAME
+        cpi     'N'             ; No, don't start a new game.
+        jz      NOGAME
+        cpi     'y'             ; Yes, start a game.
+        jz      SELECTLEN
+        cpi     'Y'             ; Yes, start a game.
+        jz      SELECTLEN
+	jmp	STARTYN         ; Invalid character
+                                ;
+	CALL	INPUT		;Wait for an input character, then echo it and continue.
+	CPI	'N'
+	JZ	NOGAME		; Not going to play a game.
+                                ; ------------------------------------------------
+SELECTLEN:                      ; Ask for a range of the number of TIE fighters for the game.
+	LXI	H,MSSEL1
+	CALL	MSG
+	CALL    INPUT           ; Wait for an input character, then echo it and continue.
+	CPI     'q'             ; Quick
+	JZ	QGAME           ; Not going to play a game.
+	CPI     'm'             ; Medium
+	JZ	MGAME           ; Not going to play a game.
+	CPI     'l'             ; Long
+	JZ	LGAME           ; Not going to play a game.
+QGAME:
+	LXI	H,MSSELQ
+	CALL	MSG
+        mvi     a,3
+        sta     ASHIPSH
+        mvi     a,1
+        sta     ASHIPSL
+        jmp     STARTGAME
+MGAME:
+	LXI	H,MSSELM
+	CALL	MSG
+        mvi     a,9
+        sta     ASHIPSH
+        mvi     a,5
+        sta     ASHIPSL
+        jmp     STARTGAME
+LGAME:
+	LXI	H,MSSELL
+	CALL	MSG
+        mvi     a,32            ; Original values.
+        sta     ASHIPSH
+        mvi     a,10
+        sta     ASHIPSL
+                                ; ------------------------------------------------
+STARTGAME:
+                                ; Prepare for a new game.
+	LXI	H,MSPREP
+	CALL	MSG
+	MVI	E,00C0H		;Set pointer to galaxy storage
+GLXSET:
+	CALL	RN		;Fetch random number
+	ANI	07FH
+	MOV	L,A
+	MVI	H,00FH		;Set pointer to galaxy table
+	MOV	A,M		;Fetch galaxy entry
+	MOV	L,E
+	MVI	H,000H		;Set pntr. to galaxy content tbl
+	MOV	M,A		;Store quadrant contents
+	INR	E		;Galaxy storage complete?
+	JNZ	GLXSET		;No, fetch more sectors
+GLXCK:
+	MOV	D,H		;Space station count = 0;
+	MOV	C,H		;Alien ship count = 0;
+	MVI	L,0C0H		;Fetch quadrant contents
+GLXCK1:
+	MOV	A,M		;Fetch quadrant contents
+	ANI	STNMSK		;Mask space station
+	ADD	D		;Add to space station total
+	MOV	D,A		;Save space station total
+	MOV	A,M		;Fetch quadrant contents
+	ANI	ALNMSK		;Mask alien ship
+	RRC
+	RRC
+	ADD	C		;Add to alien ship total
+	MOV	C,A		;Save alien ship total
+	INR	L		;End of galaxy storage?
+	JNZ	GLXCK1		;No, continue adding
+                                ; ---------------------------
+	MOV	A,D		;Fetch space station total
+	RRC			;Position total to right
+	RRC
+	RRC
+	MOV	D,A		;Save space station total
+	CPI	7		;Too many space stations?
+	JNC	SSPLS		;Yes, delete 1
+	CPI	2		;Too few space stations?
+	JC	SSMNS		;Yes, add 1 more
+                                ; ---------------------------
+	MOV	A,C		;Fetch alien ship total
+	RRC
+	RRC
+        MOV     C,A             ; Number of alien ships
+                                ; ------
+        lda     ASHIPSH         ; Max (high) number of alien ships.
+	cmp     C               ;  Too many alien ships?
+	mov     A,C             ; Restore A
+	JC	ASPLS           ; Yes, delete 1 more
+                                ; ------
+        lda     ASHIPSL         ; Min number of alien ships.
+	cmp	C		; Not enough alien ships?
+	mov	A,C		; Restore A
+	JNC	ASMNS		; Add 1
+                                ; ----------------------------------------------
+	MVI	L,05BH		;Set pointer to store number Rebel outpost.
+	MOV	M,D		;Save number of space stations
+	INR	L		;Advance pointer to number A.S.
+	MOV	M,C		;Save number of alien ships
+	MOV	A,C
+	ADI	005
+	INR	L		;Adv. pointer to number of stardates
+	MOV	M,A		;Save number of stardates
+                                ; ----------------------------------------------
+	MVI	B,1		;Set number bytes for BINDEC
+	CALL	BINDEC		;Covert stardate value
+	LXI	D,GSMSGD	;Set pointer to digit storage
+	MVI	B,2		;Set counter to number or digits
+	CALL	DIGPRT		;Put digits in message
+	LXI	H,005CH		;Set pointer to number A.S.
+	MVI	B,001		;Set number bytes for BINDEC
+	CALL	BINDEC		;Convert alien ship value
+	LXI	D,GSMSGS	;Set pointer to digit stor. in start msg.
+	MVI	B,2		;Set counter to no. of digits
+	CALL	DIGPRT		;Put digits in message
+	LXI	H,005BH		;Set pointer to no. space stat.
+	MOV	A,M		;Set no. bytes for BINDEC
+	ORI	0B0H		;Covert space station value
+	LXI	H,GSMSGT	;Set pointer to digit stor. in start msg.
+	MOV	M,A		;Set counter to no. of digits
+	LXI	H,GSMSG 	;Set pointer to start message
+	CALL	MSG		;Print starting message
+                                ; ----------------------------------------------
+	CALL	RN		;Fresh start quadrant
+	ANI	03FH		;Mask off most significant bits
+	MVI	L,059H		;Set pntr. to quadrant storage
+	MOV	M,A		;Save quadrant location
+	CALL	QCNT		;Fetch current quad. contents
+	CALL	LOAD		;set initial conditions
+	CALL	NWQD		;Set quad. contents location
+	MVI	C,1		;Set space ship counter
+	MVI	E,043H		;Set space ship loc. storage
+	CALL	LOCSET		;Set initial space ship location
+                                ;
+; ------------------------------------------------------------------------------
+                                ; Print Sector range scan
+SRSCN:
+        LXI     H,MSG123        ;Set pntr. for short range scan
+	CALL	MSG		;Print initial row
+	MVI	C,1		;Set row number
+	CALL	ROWSET		;Set up row for printout
+	LXI	H,005DH		;Set pointer to stardate
+	MVI	A,032H
+	SUB	M		;Calculate number used
+	INR	L		;Adv pntr to temporary storage
+	MOV	M,A		;Save nmber used
+	MVI	B,1		;Set no. bytes for BINDEC
+	CALL	BINDEC		;Covert to current stardate
+	LXI	D,MSGSDP	;Set pointer to stardate msg.
+	MVI	B,2		;Set counter to no. of digits
+	CALL	DIGPRT		;Put digits in stardate message
+	LXI	H,MSGSTDT3	;Set pointer to message
+	CALL	MSG		;Print stardate message
+	MVI	C,2		;Set row number 2
+	CALL	ROWSET		;Set up row for printout
+	MVI	L,042H		;Set pntr to current quadrant
+	MOV	A,M		;Fetch current contents
+	LXI	H,MSGGRN	;Set pointer to condition msg
+	ANI	030H		;Alien ship in quadrant?
+	JNZ	RED		;Yes, condition "RED"
+	MVI	M,'G'		;Condition "GREEN"
+	INR	L
+	MVI	M,'R'
+	INR	L
+	MVI	M,'E'
+	INR	L
+	MVI	M,'E'
+	INR	L
+	MVI	M,'N'
+CND:
+	LXI	H,MSGCND	;Set pointer to condition msg
+	CALL	MSG		;Print condition message
+	MVI	C,3		;Set row number 3
+	CALL	ROWSET		;Set up row to printout
+	CALL	QUAD		;Print current quadrant
+	MVI	C,4		;Set row number 4
+	CALL	ROWSET		;Set up row for printout
+	MVI	L,043H		;Pointer to current sector
+	MVI	E,0E3H		;Set digit storage
+	INR	D
+	CALL	TWO		;Put two digits in message
+	MVI	L,0D8H		;Set pointer to sector message
+	CALL	MSG		;Print sector message
+	MVI	C,5		;Set row number 5
+	CALL	ROWSET		;Set up row for printout
+	MVI	L,04FH		;Set pointer to energy storage
+	MVI	B,2		;Number of bytes for BINDEC
+	CALL	BINDEC		;Covert to energy stored
+	LXI	D,MSGENP	;Set pointer to energy message
+	MVI	B,4		;Set counter to no. of digits
+	CALL	DIGPRT		;Put digits in message
+	LXI	H,MSGENR	;Set pointer to energy message
+	CALL	MSG		;Print current energy message
+	MVI	C,6		;Set row number 6
+	CALL	ROWSET		;Set up row for printout
+	MVI	L,05AH		;Set point to no. torpedoes
+	MVI	B,1		;Number of bytes for BINDEC
+	CALL	BINDEC		;Covert number of torpedoes
+	LXI	D,MSGTPP	;Set pointer to torpedo message
+	MVI	B,2		;Set counter to no. of digits
+	CALL	DIGPRT		;Put no. torpedoes in message
+	LXI	H,MSGTRP	;Set pointer to torpedo msg
+	CALL	MSG		;Print torpedo message
+	MVI	C,7		;Set row number 7
+	CALL	ROWSET		;Set up row for printout
+	MVI	L,051H		;Set pointer to shield energy
+	MVI	B,2		;Number of bytes for BINDEC
+	CALL	BINDEC		;Convert shield energy
+	LXI	D,MSGSHP	;Set pointer to shield message
+	MVI	B,4		;Set counter for no. of digits
+	CALL	DIGPRT		;Put shield energy in message
+	LXI	H,MSGSHD	;Set pointer to shield message
+	CALL	MSG		;Print shield message
+	MVI	C,8H		;Set row number 8
+	CALL	ROWSET		;Set up row for printout
+	LXI	H,MSG123        ;Set pointer to final row
+	CALL	MSG		;Print final row of S.R. scan
+CMND:
+	MVI	H,000
+	LXI	SP,STACK	;Reset stack pointer
+	MVI	E,10		;Delete 10 units of
+	MOV	D,H		;Energy for each command
+	CALL	ELOM
+	MVI	L,041H		;Set pointer to random number
+	INR	M		;Fetch random nmbr. constant
+        jmp     CMD             ; Go to command menu.
 
+; ------------------------------------------------------------------------------
+                                ; Command Menu options
+; ------------------------------------------------------------------------------
+                                ;
+RESTORED:
+; ++    1683:00000110 10010011: 00110001 : 31:061 > opcode: lxi sp,STACK
+;                 a9  7 5   1
+	LXI	SP,STACK	;This is the starting point from a restored save.
+                                ;
+CMD:
+	LXI	H,MSGCMD	;Set pointer to command msg
+	CALL	CMSG		;Request command input
+	CALL	INPUT		;Input command
+                                ;
+	CPI	'0'		; Ship movement, input course.
+	JZ	CRSE
+	CPI	'1'		; Print short range scan
+	JZ	SRSCN
+	CPI	'2'		; Print long range scan
+	JZ	LRSCN
+	CPI	'3'		; Print Galaxy printout?
+	JZ	GXPRT
+	CPI	'4'		; Adjust shield energy
+	JZ	SHEN
+	CPI	'5'		; Fire Phasors/Laser cannons(Star Wars version)
+	JZ	PHSR
+	CPI	'6'		; Shoot torpedo
+	JZ	TRPD
+	CPI	'X'		; Exit, return to start.
+	JZ	NEWSTART        ; Will generate a new random galaxy.
+	CPI	'H'		; Help.
+	JZ	HELPM
+	CPI	'h'		; Help.
+	JZ	HELPM
+	CPI	'?'		; Help.
+	JZ	HELPM
+	CPI	'd'		; Help directions.
+	JZ	HELPD
+	CPI	'g'		; Print Game statistics.
+	JZ	GSTATS
+                                ;
+	JMP	CMD		;Try again
+                                ;
+GSTATS:
+        call    GAMESTAT
+	JMP	CMD
+HELPM:
+	LXI	H,MSGHELP	; Help message
+	CALL	MSG
+	JMP	CMD
+HELPD:  LXI	H,MSGDIR	; Help message directions
+	CALL	MSG
+	JMP	CMD
+                                ;
+; ------------------------------------------------------------------------------
+                                ; Print long range scan
+LRSCN:
+	LXI	H,MSGLRS	;Set pntr to long range msg
+	CALL	MSG		;Print long range scan
+	CALL	QUAD		;Print quadrant location
+	CALL	NTN		;Print row of dashes
+	MVI	L,059H		;Pointer to current quadrant
+	MOV	A,M		;Fetch current quadrant
+	ANI	038H		;Current quadrant in row 1?
+	JZ	RWC1		;Yes, top row clear
+	MOV	A,M		;No, set up quadrant to
+	SUI	008H		;Indicate row - 1
+	CALL	LRR		;Set & print top row
+LR1:
+	CALL	NTN		;Print separating row
+	MVI	L,059H		;Set pointer to current quad.
+	MOV	A,M		;Fetch current quadrant
+	CALL	LRR		;Set & print middle row
+	CALL	NTN		;Print separating row
+	MVI	L,059H		;Set pointer to current quad.
+	MOV	A,M		;Fetch current quadrant
+	CPI	038H		;Current quadrant in row 8?
+	JNC	RWC2		;Yes, bottom row clear
+	ADI	008H		;No, set quadrant to row + 1
+	CALL	LRR		;Set & print bottow row
+LR2:
+	CALL	NTN		;Print separating row
+	JMP	CMND		;Input next command
+RWC1:
+	CALL	RWC		;Print clear row
+	JMP	LR1		;Continue long range scan
+RWC2:
+	CALL	RWC		;Print clear row
+	JMP	LR2		;Finish long range scan
+RWC:
+	LXI	H,MSG11A	;Set pointer to left quadrant
+	XRA	A		;Set zero entry
+	CALL	QDS1		;Set quadrant contents
+	LXI	H,MSG11B	;Set pointer to middle quad.
+	XRA	A		;Set zero entry
+	CALL	QDS1		;Set quadrant contents
+	LXI	H,MSG11C	;Set pointer to right quadrant
+	XRA	A		;Set zero contents
+	CALL	QDS1		;Set quadrant contents
+	JMP	LRP		;Print long range row
+                                ;
+                                ;
+                                ; ----------------------------------------------
+                                ; Long range scanner routine
+LRR:
+	ADI	00C0H		;Set pointer to galaxy
+	MOV	B,A		;Save pointer
+	ANI	COLMSK		;First column?
+	JZ	CLC1		;Yes, first column zero
+	MOV	A,B		;Fetch galaxy pointer
+	SUI	1		;No, back up one column
+	MOV	L,A		;Pointer to quadrant in galaxy
+	MOV	A,M		;Fetch quadrant contents
+LR3:
+	LXI	H,MSG11A	;Set pointer to left quadrant
+	CALL	QDS1		;Set quadrant contents
+	MOV	L,B		;Pointer to quadrant in galaxy
+	MVI	H,000
+	MOV	A,M		;Fetch quadrant contents
+	LXI	H,MSG11B	;Pointer to middle quadrant
+	CALL	QDS1		;Set quadrant contents
+	MOV	A,B		;Fetch quadrant location
+	ANI	COLMSK		;Is quadrant in last column?
+	CPI	7
+	JZ	CLC2		;Yes, right column zero
+	MOV	A,B		;No, fetch quadrant location
+	ADI	1		;Set location to right quadrant
+	MOV	L,A		;Set pointer to right quadrant
+	MVI	H,000
+	MOV	A,M		;Fetch quadrant contents
+LR4:
+	LXI	H,MSG11C	;Pointer to right quadrant
+	CALL	QDS1		;Set quadrant contents
+LRP:
+	LXI	H,MSG111	;Set pntr. to L.R. row message
+	JMP	MSG		;Print L.R. scan row and return
+QDS1:
+	MVI	H,004H		;Set message pointer
+QDSET:
+	MOV	C,A		;Save quadrant contents
+	CALL	ROTR4		;Position alien ship number
+	ANI	003		;Mask alien ship number
+	ORI	'0'		;Form ASCII digit
+	MOV	M,A		;Store in message
+	INX	H		;Increment message pointer
+	MOV	A,C		;Fetch quadrant contents
+	CALL	ROTR3		;Position space ship number
+	ANI	001		;Mask space ship number
+	ORI	'0'		;Form ASCII digit
+	MOV	M,A		;Store space ship in message
+	INX	H		;Increment message pointer
+	MOV	A,C		;Fetch quadrant contents
+	ANI	STRMSK		;Mask star number
+	ORI	'0'		;Form ASCII digit
+	MOV	M,A		;Store in message
+	RET
+CLC1:
+	XRA	A		;Clear column contents
+	JMP	LR3		;Print 000 quadrant
+CLC2:
+	XRA	A		;Clear column contents
+	JMP	LR4		;Print 000 quadrant
+                                ;
+; ------------------------------------------------------------------------------
+                                ; Course menu option action
+CRSEret:
+        JMP	CMND		;Input new command
+CRSE:
+	LXI	H,MSGCRS	;Pointer to "Course" message
+ 	CALL	MSG		;Request course input
+ 	CALL	DRCT		;Input course direction
+	;JZ	CRSE		;Input error, try again
+	JZ	CRSEret		; Stacy, invalid input will return to command.
+                                ;   The user can back out from this command
+                                ;   if they had hit the wrong command option.
+                                ;
+                                ; ----------------
+                                ; Get warp speed value, example: 1.6
+WRP:
+	LXI	H,MSGWRP	;Pointer to "Warp" message
+ 	CALL	CMSG		;Request warp input
+	MVI	L,05FH		;Set pntr. to temporary storage
+ 	CALL	INPUT		;Input warp factor number 1
+	CPI	'0'		;Is digit less than 0?
+	JC	CRSEret		;No, request input again
+	CPI	'8'		;Is input greater than 7?
+	JNC	CRSEret		;Yes, try again (WRP:). Stacy changed to return. 
+	ANI	007		;Mask off ASCII code
+	RLC			;Position to 3rd bit
+	RLC
+	RLC
+	MOV	M,A		;Save in temporary storage
+	MVI	A,'.'		;Print decimal point
+ 	CALL	PRINT
+ 	CALL	INPUT		;Input 2nd warp factor number
+	CPI	'0'		;Is digit less than 0?
+	JC	CRSEret		;Yes, no good
+	CPI	'8'		;Is digit greater than 7
+	JNC	CRSEret		;Yes, no good
+	ANI	007		;Mask off ASCII code
+	ADD	M		;Add warp digit number 1
+	JZ	CRSEret		;If 0, no good
+	MOV	E,A		;Save warp factor in 'E'
+	CALL	ACTV		;Fetch adjusted row & column
+	MVI	L,031H		;Set pntr to crossing indicator
+	MOV	M,H		;Clear crossing indicator
+                                ;
+                                ; --------------------------------
+                                ; Loop: Move the ship
+MOVE:
+	CALL	TRK		;Track 1 sector
+	JZ	LOST		;Out of galaxy? Yes, lost
+	MVI	L,030H		;Fetch crossing flag
+	MOV	A,M
+	ANA	A		;Quadrant crossed?
+	JZ	CLSN		;No, check collision
+	INR	L		;Advance to crossing indicator
+	MOV	M,L		;Set crossing indicator to non-0
+	MVI	E,25		;Delete 25 units of
+	MOV	D,H		;Energy from main supply
+	CALL	ELOM
+	CALL	QCNT		;Fetch new quadrant contents
+	CALL	NWQD		;Set up new quadrant
+                                ;
+                                ; ----------------
+                                ; Collision handling
+CLSN:
+	CALL	RWCM		;Form row and column byte
+	CALL	MATCH		;Collision?
+	JNZ	MVDN		;No, complete move
+	MOV	B,L		;Yes, save object location
+	MOV	A,B		;Set flags to determine
+	CPI	04BH		;What was hit
+	MVI	L,031H		;Pointer to crossing indicator
+	MOV	A,M		;Fetch crossing indicator
+	JZ	SSOUT		;Space station collision
+	JNC	ASOUT		;Alien ship collision
+	ANA	A		;Star, initial quadrant?
+	JZ	WPOUT		;Yes, ship wiped out
+MVDN:
+	LXI	H,0028H		;Restore registers 'E' 'D' & 'C'
+	MOV	E,M
+	INR	L
+	MOV	D,M
+	INR	L
+	MOV	C,M
+	DCR	E		;Decrement warp factor
+	JNZ	MOVE		;Not 0, continue move
+                                ;
+                                ; End move loop.
+                                ; --------------------------------
+                                ;
+	MVI	L,031H		;Fetch crossing indicator
+	MOV	A,M
+	ANA	A		;Quadrant crossing occurred?
+	JZ	NOX		;No, complete move
+                                ;
+                                ; ----------------
+                                ; Decrement the game stardate value.
+                                ;
+	MVI	L,05DH		;Yes, fetch stardate value.
+	MOV	B,M
+	DCR	B		;Decrement stardate counter
+	JZ	TIME		;If 0, end of game
+	MOV	M,B		;Else save new date
+NOX:
+	CALL	RWCM		;Form row and column byte
+	MVI	L,043H		;Set pointer to current sector
+	MOV	M,B		;Save new sector
+	CALL	MATCH		;Last move a collision?
+	CZ	CHNG		;Yes, change object location
+	CALL	DKED		;Check for docking
+	JMP	SRSCN		;Do short range scan
+SSOUT:
+	ANA	A		;Initial quadrant?
+	JNZ	MVDN		;No, no loss
+	MOV	L,B		;Yes, set object pointer
+	CALL	DLET		;Remove space station fm glxy
+	LXI	D,600		;Then delete 600 units of engy from S.S.
+SSO1:
+	CALL	ELOS		;Delete energy
+	JMP	MVDN		;Finish move
+ASOUT:
+	ANA	A		;Initial quadrant?
+	JNZ	MVDN		;No, no loss
+	MOV	L,B		;Yes, delete alien ship
+	CALL	DLET
+	LXI	D,1500		;Delete 1500 units of engy. from S.S.
+	JMP	SSO1		;And finish move
+CHNG:
+	MOV	E,L		;Set table location and
+	MVI	C,1		;Number of objects counter for
+	JMP	LOCSET		;Move object and return
+                                ;
+                                ; ----------------
+                                ; Ship docking
+DKED:
+	MVI	L,04BH		;Fetch space station byte
+	MOV	A,M
+	ANA	A		;Space station in quadrant?
+	RM			;No, return
+	MOV	A,B		;Fetch space ship location
+	ANI	ROWMSK		;Separate row location
+	MOV	C,A		;Save in 'C'
+	MOV	A,B		;Fetch space ship location
+	ANI	COLMSK		;Separate column location
+	MOV	B,A		;Save in 'B'
+	MOV	A,M		;Fetch space station location
+	ANI	COLMSK		;Separate space station clmn loc
+	MOV	E,A		;Save in 'E'
+	MOV	A,M		;Fetch space station location
+	ANI	ROWMSK		;Separate row as space ship
+	CMP	C		;Same row and space ship?
+	RNZ			;No, return
+	MOV	A,B		;Fetch space ship column
+	ADI	1		;Advance one column
+	CMP	E		;Space ship adjacent?
+	JZ	LOAD		;Yes, load up space ship
+	SUI	2		;No, try column to left
+	CMP	E		;Space station adjacent
+	RNZ			;No, return
+	JMP	LOAD		;Yes, load space ship & return
+                                ;
+; ------------------------------------------------------------------------------
+                                ; Command shield option.
+SHENret:
+	JMP	CMND		;Jump to input command
+SHEN:
+	LXI	H,MSGSET	;Print "Shield Energy
+	CALL	MSG		;       Transfer =  "
+	CALL	EIN		;Input energy amount
+	;JM	SHEN		;Invalid input, try again
+	JM	SHENret		; Stacy, invalid input will return to command.
+                                ;
+	CALL	DCBN		;Convert to binary
+	MVI	L,064H		;Fetch sign indicator
+	MOV	A,M
+	ANA	A		;Is sign positive
+	JZ	POS		;Yes, from main to shield
+	CALL	CKSD		;No, check shield energy
+	JC	NE		;If shield less than req, no good
+	CALL	FMSD		;Subtract from shield
+	CALL	TOMN		;Add to main
+	JMP	CMND		;Input new command
+POS:
+	CALL	CKMN		;Check main energy
+	JC	NE		;If main less than req, no good
+	CALL	FMMN		;Subtract from main
+	CALL	TOSD		;Add to shield energy
+	JMP	CMND		;Input new command
+NE:
+	LXI	H,MSGNEE	;Print "Not Enough Energy"
+	CALL	MSG
+	JMP	CMND		;Input new command
+                                ;
+; ------------------------------------------------------------------------------
+                                ; Command option to shoot a torpedo.
+TR1ret:
+	JMP	CMND		;Jump to input command
+TRPD:
+	MVI	L,05AH		;Fetch number of torpedoes
+	MOV	A,M
+	ANA	A		;Any torpedoes left?
+	JZ	NTPD		;No, print no torpedo message
+	MVI	E,250		;Set up 250 units
+	MOV	D,H		;Of energy to delete
+	CALL	CKMN		;Enough in main supply?
+	JC	NE		;No, report not enough
+	CALL	FMMN		;Yes, delete from main
+	MVI	L,05AH
+	DCR	M		;Remove one torpedo
+TR1:
+	LXI	H,MSGTTY	;Print "Torpedo Trajectory"
+	CALL	MSG
+	CALL	DRCT		;Input direction
+	;JZ	TR1		;Invalid input, try again
+	JZ	TR1ret		; Stacy, invalid input will return to command.
+                                ;   The user can back out from the option
+                                ;   if they had hit the wrong command option.
+                                ;
+	CALL	ACTV		;Form adjusted row & column
+	MVI	L,059H		;Save current quadrant location
+	MOV	A,M		;In temporary storage
+	MVI	L,02BH
+	MOV	M,A
+TR2:
+	CALL	TRK		;Move torpedo one sector
+	JZ	QOUT		;Out of quadrant? Missed
+	MVI	L,030H		;Fetch crossing flag
+	MOV	A,M
+	ANA	A		;Crossed quadrant
+	JNZ	QOUT		;Yes, missed
+	CALL	RWCM		;No, form row and column
+	MOV	C,B		;Save row and column byte
+	LXI	H,MSGTRK	;Set up tracking message by inserting
+	CALL	T1		;Row and column in message
+	MVI	L,012H		;Set pointer to message
+	CALL	CMSG		;Print 'Tracking: R,C'
+	MOV	B,C		;Fetch row and column byte
+	CALL	MATCH		;Torpedo hit anything?
+	JZ	HIT		;Yes, analyze
+	MVI	L,028H		;No, restore registers
+	MOV	E,M
+	INR	L
+	MOV	D,M
+	INR	L
+	MOV	C,M
+	JMP	TR2		;Continue tracking
+HIT:
+	MOV	A,L		;What was hit?
+	CPI	04BH		;Was it a star?
+	JC	QOUT		;Yes, missed alien ship
+	JZ	SSTA		;Space stat.? Yes, delete S.S.
+	CALL	DLET		;No, delete alien ship
+	LXI	H,MSGASD	;Print alien ship hit message
+	CALL	MSG
+	JMP	CMND		;Input new command
+SSTA:
+	CALL	DLET		;Delete space station fm galaxy
+	LXI	H,MSGSSD	;Print message of loss
+	CALL	MSG		;Space station
+QOUT:
+	LXI	H,MSGYMA	;Print missed message
+	CALL	CMSG
+	MVI	E,200		;Set up loss of 200
+	MOV	D,H		;Units due to alien ship
+	CALL	ELOS		;Rtaliating
+	MVI	L,02BH		;Restore current quadrant
+	MOV	A,M		;Location
+	MVI	L,059H
+	MOV	M,A
+	JMP	CMND		;Input new command
+NTPD:
+	LXI	H,MSGZRO	;Set pointer to No Torpedo message
+	CALL	MSG		;Print message
+	JMP	CMND		;Jump to input command
+                                ;
+RWCM:
+	MVI	L,05EH		;Pointer to adjusted column
+	MOV	A,M		;Fetch adjusted column
+	RRC			;Adjust position
+	ANI	COLMSK		;Form column value
+	MOV	B,A		;Save column
+	INR	L		;Advance pointer
+	MOV	A,M		;Fetch adjusted row
+	RLC			;Position row value
+	RLC
+	ANI	ROWMSK		;For row value
+	ADD	B		;Form row and column byte
+	MOV	B,A		;Save in 'B'
+	RET			;Return
+                                ;
+; ------------------------------------------------------------------------------
+                                ; Fire Phasors/Laser cannons(Star Wars version)
+PHSRret:
+	JMP	CMND		;Jump to input command
+PHSR:
+	LXI	H,MSGPEF	;Print 'Phasor Energy to Fire='
+	CALL	MSG
+	CALL	EIN		;Input energy amount
+	; JM	PHSR		;Input error, try again
+	JM	PHSRret		; Stacy, invalid input will return to command.
+                                ;
+	CALL	DCBN		;Convert energy to binary
+	CALL	ELOM		;Delete energy from main
+                                ; ------
+	MVI	L,042H		;Fetch current quad. contents
+	MOV	A,M
+	ANI	030H		;Any alien ships?
+	JZ	WASTE		;No, waste of energy
+                                ; ------
+	CALL	ROTR4		;Position number of alien ship
+	SUI	001		;1 alien ship, full energy
+	JZ	PH1		;2 alien ships, half energy
+	MOV	B,A		;3 alien ships, quarter energy
+	CALL	DVD
+PH1:
+	MVI	L,05EH		;Set pointer to energy storage
+	MOV	M,E		;Save energy amount
+	INR	L
+	MOV	M,D
+	MVI	L,028H		;Save energy in temp. storage
+	MOV	M,E
+	INR	L
+	MOV	M,D
+	INR	L		;Save loc. of alien ship in table
+	MVI	M,04CH
+	CALL	ASPH		;Calc. phsr dmg to A.S. No. 1
+	MVI	L,02AH		;Set pntr to A.S. loc. storage
+	MVI	M,04DH		;Save location of A.S. in table
+	CALL	ASPH		;Calc. phsr dmg to A.S. No. 2
+	MVI	L,02AH		;Set pntr to A.S. loc. storage
+	MVI	M,04EH		;Save location of 3rd alien ship
+	CALL	ASPH		;Calc. phsr dmg to A.S. No. 3
+	JMP	CMND		;Input new command
+ASPH:
+	MOV	L,M		;Set pntr to alient ship table
+	MOV	A,M		;Fetch alien ship location
+	ANA	A		;Alien ship in this location?
+	RM			;No, return
+	LXI	D,MSGSEC	;Set pointer to sector Storage in msg
+	CALL	TWO		;set sector coordinates
+	MVI	L,04EH		;Print 'A.S. at sector X,Y:'
+	CALL	CMSG
+	MVI	L,043H		;Fetch space ship location
+	CALL	SPRC		;Separate row and column
+	MOV	L,E		;Save space ship row & column
+	MOV	H,D
+	MOV	E,C
+	MOV	D,B
+	CALL	SPRC		;Separate A.S. row & column
+	MOV	A,B		;Fetch alien ship row
+	SUB	D		;Subract space ship row
+	JP	PH2		;To calculate distance between
+	XRI	0FFH		;Alien ship and space ship
+	ADI	001
+PH2:
+	MOV	B,A		;Save row distance
+	MOV	A,C		;Fetch alien ship column
+	SUB	E		;Subtract space ship column
+	JP	PH3		;To calcualate column distance
+	XRI	0FFH		;Between A. ship & S. ship
+	ADI	001
+PH3:
+	ADD	B		;Add row distance
+	RRC			;Form distance factor
+	RRC			;To be used to calculate
+	ANI	003		;Energy that reaches alien ship
+	MOV	B,A		;Save in 'B'
+	MOV	C,L		;Save pointer in 'C'
+	MVI	L,028H		;Fetch phasor energy
+	MOV	E,M
+	INR	L
+	MOV	D,M
+	DCR	B		;Divide energy by
+	INR	B
+	CNZ	DVD		;Distance factor
+	MOV	A,C		;Fetch table pointer
+	ANI	003
+	RLC			;And set pointer to alien ship
+	ADI	053H		;Energy storage
+	MVI	L,02BH		;Save energy pointer
+	MOV	M,A
+	MOV	L,A		;Set pntr. to alien ship energy
+	CALL	FM1		;Delete energy fm alien ship
+	JM	DSTR		;If negative, A. ship destroyed
+	JNZ	ALOS		;If non-0, print A. ship energy
+	DCR	L		;Check 2nd have of alien ship
+	MOV	A,M		;Energy to see if zero.
+	INR	L
+	ANA	A		;Alien ship energy = 0?
+	JZ	DSTR		;Yes, remove from galaxy
+ALOS:
+	DCR	L		;Set pntr to alien ship energy
+	MVI	B,2		;Set number for BINDEC
+	CALL	BINDEC		;Convert A.S. energy to decimal
+	LXI	D,MSGDEY
+	MVI	B,4		;Set number of digits
+	CALL	DIGPRT		;Put energy in message
+	LXI	H,MSGEGY	;Print energy of alien ship
+	CALL	CMSG
+	MVI	L,02BH		;Fetch alien ship energy
+	MOV	L,M
+	MOV	E,M		;Fetch alien ship energy
+	INR	L
+	MOV	D,M
+	MVI	B,2		;Divide alien ship energy
+	CALL	DVD		;By 4 as retaliation by A.S.
+	JMP	ELOS		;Remove fm shield nrgy & ret
+DSTR:
+	LXI	H,MSGDES	;Print "Destroyed"
+	CALL	CMSG
+	MVI	L,02AH		;Fetch alient ship location in tbl
+	MOV	L,M
+	JMP	DLET		;Remove A.S. fm glxy & ret
+                                ;
+; ------------------------------------------------------------------------------
+                                ; Command: Galaxy display option.
+GXPRT:
+	LXI	H,MSGGDY	; Print galaxy display message
+	CALL	MSG
+	MVI	H,031H          ; Decimal value = 49
+ 	CALL	NT1		; Print top border line, 49 dashes.
+                                ;
+                                ; ----------------------------------------------
+                                ; Loop through each quadrant row of the galaxy.
+                                ;
+	MVI	L,0C0H		; Set pointer to galaxy content table memory.
+GL1:
+	MOV	D,H		;Set printout pointer
+	MVI	E,084H
+GL2:
+                                ; ----------------------
+	MOV	A,M		;Fetch quadrant contents
+	XCHG
+	CALL	QDSET		;Quadrant data set contents in message
+	MOV	A,L		;Fetch message pointer
+	ADI	004		;Advance to next quadrant in message
+	MOV	L,A
+	XCHG			;Set galaxy pointer
+	INR	L		;Advance to next quad. in galaxy
+	CPI	0B4H		; This end of line? B4H = 180 = 10110100
+	JNZ	GL2		;No, set next quadrant in message
+	XCHG			;Save galaxy pointer
+                                ; ----------------------
+                                ;Print current line of galaxy
+                                ; Sample output: 1 003 1 003 1 000 1 000 1 000 1 000 1 105 1 107 1
+                                ;                12345678901234567890123456789012345678901234567890
+                                ;                        10        20        30        40        50
+                                ; I added zero(0) to the 50 position to prevent extra characters, example ("#"):
+                                ;                1 203 1 003 1 000 1 011 1 105 1 000 1 000 1 304 1#
+                                ; 080H = 128 ... 128 + 50 = 178 + 1 (array base 0) = 179
+                                ; MSG uses H:L to print from. regH must be 0 at this time.
+        sta     regA
+        mvi     a,'|'
+        sta     178
+        mvi     a,0
+        sta     179
+        lda     regA
+                                ; Then print as normal.
+	MVI	L,080H
+	CALL	MSG
+                                ; ----------------------
+	MVI	H,031H          ;Print dividing line
+	CALL	NT1
+	MOV	A,E		;Fetch galaxy pointer
+	CMP	H		;End of galaxy printed? =0?
+	JZ	CMND		;Yes, return command input
+	XCHG			;No, set up galaxy pointer
+; ++    3766:00001110 10110110: 11000011 : C3:303 > opcode: jmp GL1
+	JMP	GL1		;Continue printout
+                                ;
+; ------------------------------------------------------------------------------
 MSG:
 	MOV	A,M		;Fetch character
 	ANA	A		;End of message?
@@ -335,13 +1232,16 @@ RN:
 	DCR	L
 	MOV	M,A		;Save random number
 	RET
+                                ; --------------------------
 SSPLS:
 	MVI	E,0F7H		;Mask to delete space station
 	JMP	PLS		;Delete excess space station
 SSMNS:
 	MVI	E,STNMSK	;Mask to add space station
 	JMP	MNS		;Add a space station
-ASPLS:
+                                ;
+                                ; --------------------------
+ASPLS:                          ; Delete alien ship
 	MVI	E,0CFH		;Mask to delete alien ship
 PLS:
 	CALL	RN		;Fetch random low address
@@ -351,7 +1251,8 @@ PLS:
 	ANA	M		;Delete from galaxy
 	MOV	M,A		;Put back in galaxy
 	JMP	GLXCK		;Check galaxy again
-ASMNS:
+                                ;
+ASMNS:                          ; Add alien ship
 	MVI	E,010H		;Mask to add alien ship
 MNS:
 	CALL	RN		;Fetch random low address
@@ -606,10 +1507,11 @@ NT2:
 	DCR	H		;Decrement counter = 0?
 	JNZ	NT2		;No, print more dashes
 	RET
+;lrr
 ; ------------------------------------------------------------------------------
                                 ; 
 TIME:
-	LXI	H,MSGMSF	;Stardate's time has run
+        LXI     H,MSGMSF        ;Stardate's time has run
 DONE:
 	CALL	MSG		;Print message and start
 	JMP	GALAXY		;A new game.
@@ -699,6 +1601,7 @@ ELOS:
 	DCR	L		;Pointer to energy loss
 	MVI	B,002		;Number of bytes for BINDEC
 	CALL	BINDEC		;Convert energy amount
+                                ;
 	LXI	D,MSGLOP	;Set pointer to energy message
 	MVI	B,004		;Counter to number of digits
 	CALL	DIGPRT		;Put digits in message
@@ -763,7 +1666,7 @@ DLET:
 	MVI	L,05BH		;Set pointer to number of S.S.
 	DCR	M		;Decrement number of S.S.
 	RNZ			;If number not 0, return
-	LXI	H,MSGDSE	;Print warning message
+        LXI     H,MSGDSE         ;Print warning message
 CMSG:
 	CALL	MSG
 	MVI	H,000		;Reset pointer to page 000
@@ -777,9 +1680,14 @@ DLAS:
 	MVI	L,05CH		;Fetch number of A.S. counter
 	DCR	M		;Subtract 1 from number
 	RNZ			;If counter not = 0, return
-	LXI	H,MSGCYH	;If counter = 0, game over
-	JMP	DONE		;print CONGRATULATIONS
-                                ;
+                                 ;
+                                 ; -----------------------------
+                                 ; You win!
+        LXI     H,MSGASD         ; TIE fighter destroyed
+        CALL    MSG
+        LXI     H,MSGCYH         ; Print CONGRATULATIONS, game over
+        JMP     DONE
+                                 ;
 ; ------------------------------------------------------------------------------
                                 ; Input a course direction.
 DRCT:
@@ -1051,7 +1959,7 @@ CKSD:
 	JMP	CK1		;Against requested level
                                 ;
                                 ; ----------------------------------------------
-OVER:
+NOGAME:
 	LXI	H,MSGCHK	;Print the, does not want to play, message
 	CALL	MSG
 	HLT			;Halt
@@ -1068,842 +1976,9 @@ SPRC:
 	ANI	07H		;Separate row
 	MOV	B,A		;Save row in 'B'
 	RET
-
-; ------------------------------------------------------------------------------
-; Initialize and start the Galaxy program.
-; ------------------------------------------------------------------------------
-GALAXY:
-; ++    2361:00001001 00111001: 00110001 : 31:061 > opcode: lxi sp,STACK
-; Enter the following to get to the start byte: 03458bx
-	LXI	SP,STACK	;Set stack pointer
-	CALL	CONINI		;Initialize Console I/O
-NEWSTART:
-	LXI	H,MSGSTART
-	CALL	MSG		;Print introduction
-START:
-	CALL	RN		;Increment random number. Stacy, currently, same random number every time because of my START change.
-	CALL	INPCK		;Input yet?
-	JP	START		;No, continue wait
-	CALL	INPUT		;Wait for an input character, then echo it and continue.
-	CPI	'N'		;No, stop game?
-	JZ	OVER		;Yes, vanish from galaxy
-	MVI	E,00C0H		;Set pointer to galaxy storage
-                                ; ----------------------------------------------
-GLXSET:
-	CALL	RN		;Fetch random number
-	ANI	07FH
-	MOV	L,A
-	MVI	H,00FH		;Set pointer to galaxy table
-	MOV	A,M		;Fetch galaxy entry
-	MOV	L,E
-	MVI	H,000H		;Set pointer to galaxy content table
-	MOV	M,A		;Store quadrant contents
-	INR	E		;Galaxy storage complete?
-	JNZ	GLXSET		;No, fetch more sectors
-GLXCK:
-	MOV	D,H		;Space station count = 0;
-	MOV	C,H		;Alien ship count = 0;
-	MVI	L,0C0H		;Fetch quadrant contents
-GLXCK1:
-	MOV	A,M		;Fetch quadrant contents
-	ANI	STNMSK		;Mask space station
-	ADD	D		;Add to space station total
-	MOV	D,A		;Save space station total
-	MOV	A,M		;Fetch quadrant contents
-	ANI	ALNMSK		;Mask alien ship
-	RRC
-	RRC
-	ADD	C		;Add to alien ship total
-	MOV	C,A		;Save alien ship total
-	INR	L		;End of galaxy storage?
-	JNZ	GLXCK1		;No, continue adding
-                                ; ---------------------------
-	MOV	A,D		;Fetch space station total
-	RRC			;Position total to right
-	RRC
-	RRC
-	MOV	D,A		;Save space station total
-	CPI	7		;Too many space stations?
-	JNC	SSPLS		;Yes, delete 1
-	CPI	2		;Too few space stations?
-	JC	SSMNS		;Yes, add 1 more
-                                ; ---------------------------
-	MOV	A,C		;Fetch alien ship total
-	RRC
-	RRC
-	MOV	C,A		;Save alien ship total
-	CPI	8		;Dave, default was 32. Too many alien ships?
-	JNC	ASPLS		;Yes, delete 1
-	CPI	6		;Dave, default was 10. Too few alien ships?
-	JC	ASMNS		;Yes, add 1 more
-                                ; ----------------------------------------------
-	MVI	L,05BH		;Set pntr to store number S.S.
-	MOV	M,D		;Save number of space stations
-	INR	L		;Advance pntr to number A.S.
-	MOV	M,C		;Save number of alien ships
-	MOV	A,C
-	ADI	005
-	INR	L		;Adv. pntr to nmbr of stardates
-	MOV	M,A		;Save number of stardates
-                                ; ----------------------------------------------
-	MVI	B,1		;Set nmbr bytes for BINDEC
-	CALL	BINDEC		;Covert stardate value
-	LXI	D,GSMSGD	;Set pointer to digit storage
-	MVI	B,2		;Set counter to nmbr or digits
-	CALL	DIGPRT		;Put digits in message
-	LXI	H,005CH		;Set pointer to number A.S.
-	MVI	B,001		;Set nmbr bytes for BINDEC
-	CALL	BINDEC		;Convert alien ship value
-	LXI	D,GSMSGS	;Set pntr to digit stor. in start msg.
-	MVI	B,2		;Set counter to no. of digits
-	CALL	DIGPRT		;Put digits in message
-	LXI	H,005BH		;Set pointer to no. space stat.
-	MOV	A,M		;Set no. bytes for BINDEC
-	ORI	0B0H		;Covert space station value
-	LXI	H,GSMSGT	;Set pntr to digit stor. in start msg.
-	MOV	M,A		;Set counter to no. of digits
-	LXI	H,GSMSG 	;Set pntr to start message
-	CALL	MSG		;Print starting message
-                                ; ----------------------------------------------
-	CALL	RN		;Fresh start quadrant
-	ANI	03FH		;Mask off most significant bits
-	MVI	L,059H		;Set pntr. to quadrant storage
-	MOV	M,A		;Save quadrant location
-	CALL	QCNT		;Fetch current quad. contents
-	CALL	LOAD		;set initial conditions
-	CALL	NWQD		;Set quad. contents location
-	MVI	C,1		;Set space ship counter
-	MVI	E,043H		;Set space ship loc. storage
-	CALL	LOCSET		;Set initial space ship location
                                 ;
 ; ------------------------------------------------------------------------------
-                                ; Print short range scan
-SRSCN:
-	LXI	H,MSG123	;Set pntr. for short range scan
-	CALL	MSG		;Print initial row
-	MVI	C,1		;Set row number
-	CALL	ROWSET		;Set up row for printout
-	LXI	H,005DH		;Set pointer to stardate
-	MVI	A,032H
-	SUB	M		;Calculate number used
-	INR	L		;Adv pntr to temporary storage
-	MOV	M,A		;Save nmber used
-	MVI	B,1		;Set no. bytes for BINDEC
-	CALL	BINDEC		;Covert to current stardate
-	LXI	D,MSGSDP	;Set pointer to stardate msg.
-	MVI	B,2		;Set counter to no. of digits
-	CALL	DIGPRT		;Put digits in stardate message
-	LXI	H,MSGSTDT3	;Set pointer to message
-	CALL	MSG		;Print stardate message
-	MVI	C,2		;Set row number 2
-	CALL	ROWSET		;Set up row for printout
-	MVI	L,042H		;Set pntr to current quadrant
-	MOV	A,M		;Fetch current contents
-	LXI	H,MSGGRN	;Set pointer to condition msg
-	ANI	030H		;Alien ship in quadrant?
-	JNZ	RED		;Yes, condition "RED"
-	MVI	M,'G'		;Condition "GREEN"
-	INR	L
-	MVI	M,'R'
-	INR	L
-	MVI	M,'E'
-	INR	L
-	MVI	M,'E'
-	INR	L
-	MVI	M,'N'
-CND:
-	LXI	H,MSGCND	;Set pointer to condition msg
-	CALL	MSG		;Print condition message
-	MVI	C,3		;Set row number 3
-	CALL	ROWSET		;Set up row to printout
-	CALL	QUAD		;Print current quadrant
-	MVI	C,4		;Set row number 4
-	CALL	ROWSET		;Set up row for printout
-	MVI	L,043H		;Pointer to current sector
-	MVI	E,0E3H		;Set digit storage
-	INR	D
-	CALL	TWO		;Put two digits in message
-	MVI	L,0D8H		;Set pointer to sector message
-	CALL	MSG		;Print sector message
-	MVI	C,5		;Set row number 5
-	CALL	ROWSET		;Set up row for printout
-	MVI	L,04FH		;Set pointer to energy storage
-	MVI	B,2		;Number of bytes for BINDEC
-	CALL	BINDEC		;Covert to energy stored
-	LXI	D,MSGENP	;Set pointer to energy message
-	MVI	B,4		;Set counter to no. of digits
-	CALL	DIGPRT		;Put digits in message
-	LXI	H,MSGENR	;Set pointer to energy message
-	CALL	MSG		;Print current energy message
-	MVI	C,6		;Set row number 6
-	CALL	ROWSET		;Set up row for printout
-	MVI	L,05AH		;Set point to no. torpedoes
-	MVI	B,1		;Number of bytes for BINDEC
-	CALL	BINDEC		;Covert number of torpedoes
-	LXI	D,MSGTPP	;Set pointer to torpedo message
-	MVI	B,2		;Set counter to no. of digits
-	CALL	DIGPRT		;Put no. torpedoes in message
-	LXI	H,MSGTRP	;Set pointer to torpedo msg
-	CALL	MSG		;Print torpedo message
-	MVI	C,7		;Set row number 7
-	CALL	ROWSET		;Set up row for printout
-	MVI	L,051H		;Set pointer to shield energy
-	MVI	B,2		;Number of bytes for BINDEC
-	CALL	BINDEC		;Convert shield energy
-	LXI	D,MSGSHP	;Set pointer to shield message
-	MVI	B,4		;Set counter for no. of digits
-	CALL	DIGPRT		;Put shield energy in message
-	LXI	H,MSGSHD	;Set pointer to shield message
-	CALL	MSG		;Print shield message
-	MVI	C,8H		;Set row number 8
-	CALL	ROWSET		;Set up row for printout
-	LXI	H,MSG123	;Set pointer to final row
-	CALL	MSG		;Print final row of S.R. scan
-CMND:
-	MVI	H,000
-	LXI	SP,STACK	;Reset stack pointer
-	MVI	E,10		;Delete 10 units of
-	MOV	D,H		;Energy for each command
-	CALL	ELOM
-	MVI	L,041H		;Set pointer to random number
-	INR	M		;Fetch random nmbr. constant
-        jmp     CMD             ; Go to command menu.
-
-; ------------------------------------------------------------------------------
-                                ; Command Menu options
-; ------------------------------------------------------------------------------
-                                ;
-                                ; Switches: 2589bx
-; ++    2852:00001011 00100100: 00110001 : 31:061 > opcode: lxi sp,STACK
-	LXI	SP,STACK	;This is the starting point from a restored save.
-                                ;
-CMD:
-	LXI	H,MSGCMD	;Set pointer to command msg
-	CALL	CMSG		;Request command input
-	CALL	INPUT		;Input command
-                                ;
-	CPI	'0'		; Ship movement, input course.
-	JZ	CRSE
-	CPI	'1'		; Print short range scan
-	JZ	SRSCN
-	CPI	'2'		; Print long range scan
-	JZ	LRSCN
-	CPI	'3'		; Print Galaxy printout?
-	JZ	GXPRT
-	CPI	'4'		; Adjust shield energy
-	JZ	SHEN
-	CPI	'5'		; Fire Phasors
-	JZ	PHSR
-	CPI	'6'		; Shoot torpedo
-	JZ	TRPD
-	CPI	'X'		; Exit, return to start.
-	JZ	NEWSTART        ;   Will generate a new random galaxy.
-	CPI	'H'		; Help.
-	JZ	HELPM
-	CPI	'h'		; Help.
-	JZ	HELPM
-	CPI	'?'		; Help.
-	JZ	HELPM
-	CPI	'd'		; Help directions.
-	JZ	HELPD
-	CPI	'g'		; Print Game statistics.
-	JZ	GSTATS
-                                ;
-	JMP	CMD		;Try again
-                                ;
-GSTATS:
-        call    GAMESTAT
-	JMP	CMD
-HELPM:
-	LXI	H,MSGHELP	; Help message
-	CALL	MSG
-	JMP	CMD
-HELPD:  LXI	H,MSGDIR	; Help message directions
-	CALL	MSG
-	JMP	CMD
-                                ;
-; ------------------------------------------------------------------------------
-                                ; Print long range scan
-LRSCN:
-	LXI	H,MSGLRS	;Set pntr to long range msg
-	CALL	MSG		;Print long range scan
-	CALL	QUAD		;Print quadrant location
-	CALL	NTN		;Print row of dashes
-	MVI	L,059H		;Pointer to current quadrant
-	MOV	A,M		;Fetch current quadrant
-	ANI	038H		;Current quadrant in row 1?
-	JZ	RWC1		;Yes, top row clear
-	MOV	A,M		;No, set up quadrant to
-	SUI	008H		;Indicate row - 1
-	CALL	LRR		;Set & print top row
-LR1:
-	CALL	NTN		;Print separating row
-	MVI	L,059H		;Set pointer to current quad.
-	MOV	A,M		;Fetch current quadrant
-	CALL	LRR		;Set & print middle row
-	CALL	NTN		;Print separating row
-	MVI	L,059H		;Set pointer to current quad.
-	MOV	A,M		;Fetch current quadrant
-	CPI	038H		;Current quadrant in row 8?
-	JNC	RWC2		;Yes, bottom row clear
-	ADI	008H		;No, set quadrant to row + 1
-	CALL	LRR		;Set & print bottow row
-LR2:
-	CALL	NTN		;Print separating row
-	JMP	CMND		;Input next command
-RWC1:
-	CALL	RWC		;Print clear row
-	JMP	LR1		;Continue long range scan
-RWC2:
-	CALL	RWC		;Print clear row
-	JMP	LR2		;Finish long range scan
-RWC:
-	LXI	H,MSG11A	;Set pointer to left quadrant
-	XRA	A		;Set zero entry
-	CALL	QDS1		;Set quadrant contents
-	LXI	H,MSG11B	;Set pointer to middle quad.
-	XRA	A		;Set zero entry
-	CALL	QDS1		;Set quadrant contents
-	LXI	H,MSG11C	;Set pointer to right quadrant
-	XRA	A		;Set zero contents
-	CALL	QDS1		;Set quadrant contents
-	JMP	LRP		;Print long range row
-                                ;
-                                ; ----------------------------------------------
-                                ; Long range scanner routine
-LRR:
-	ADI	00C0H		;Set pointer to galaxy
-	MOV	B,A		;Save pointer
-	ANI	COLMSK		;First column?
-	JZ	CLC1		;Yes, first column zero
-	MOV	A,B		;Fetch galaxy pointer
-	SUI	1		;No, back up one column
-	MOV	L,A		;Pointer to quadrant in galaxy
-	MOV	A,M		;Fetch quadrant contents
-LR3:
-	LXI	H,MSG11A	;Set pointer to left quadrant
-	CALL	QDS1		;Set quadrant contents
-	MOV	L,B		;Pointer to quadrant in galaxy
-	MVI	H,000
-	MOV	A,M		;Fetch quadrant contents
-	LXI	H,MSG11B	;Pointer to middle quadrant
-	CALL	QDS1		;Set quadrant contents
-	MOV	A,B		;Fetch quadrant location
-	ANI	COLMSK		;Is quadrant in last column?
-	CPI	7
-	JZ	CLC2		;Yes, right column zero
-	MOV	A,B		;No, fetch quadrant location
-	ADI	1		;Set location to right quadrant
-	MOV	L,A		;Set pointer to right quadrant
-	MVI	H,000
-	MOV	A,M		;Fetch quadrant contents
-LR4:
-	LXI	H,MSG11C	;Pointer to right quadrant
-	CALL	QDS1		;Set quadrant contents
-LRP:
-	LXI	H,MSG111	;Set pntr. to L.R. row message
-	JMP	MSG		;Print L.R. scan row and return
-QDS1:
-	MVI	H,004H		;Set message pointer
-QDSET:
-	MOV	C,A		;Save quadrant contents
-	CALL	ROTR4		;Position alien ship number
-	ANI	003		;Mask alien ship number
-	ORI	'0'		;Form ASCII digit
-	MOV	M,A		;Store in message
-	INX	H		;Increment message pointer
-	MOV	A,C		;Fetch quadrant contents
-	CALL	ROTR3		;Position space ship number
-	ANI	001		;Mask space ship number
-	ORI	'0'		;Form ASCII digit
-	MOV	M,A		;Store space ship in message
-	INX	H		;Increment message pointer
-	MOV	A,C		;Fetch quadrant contents
-	ANI	STRMSK		;Mask star number
-	ORI	'0'		;Form ASCII digit
-	MOV	M,A		;Store in message
-	RET
-CLC1:
-	XRA	A		;Clear column contents
-	JMP	LR3		;Print 000 quadrant
-CLC2:
-	XRA	A		;Clear column contents
-	JMP	LR4		;Print 000 quadrant
-                                ;
-; ------------------------------------------------------------------------------
-                                ; Course menu option action
-CRSEret:
-        JMP	CMND		;Input new command
-CRSE:
-	LXI	H,MSGCRS	;Pointer to "Course" message
- 	CALL	MSG		;Request course input
- 	CALL	DRCT		;Input course direction
-	;JZ	CRSE		;Input error, try again
-	JZ	CRSEret		; Stacy, invalid input will return to command.
-                                ;   The user can back out from this command
-                                ;   if they had hit the wrong command option.
-                                ;
-                                ; ----------------
-                                ; Get warp speed value, example: 1.6
-WRP:
-	LXI	H,MSGWRP	;Pointer to "Warp" message
- 	CALL	CMSG		;Request warp input
-	MVI	L,05FH		;Set pntr. to temporary storage
- 	CALL	INPUT		;Input warp factor number 1
-	CPI	'0'		;Is digit less than 0?
-	JC	CRSEret		; Return if incorrect.
-	CPI	'8'		;Is input greater than 7?
-	JNC	CRSEret		; Return if incorrect.
-	ANI	007		;Mask off ASCII code
-	RLC			;Position to 3rd bit
-	RLC
-	RLC
-	MOV	M,A		;Save in temporary storage
-	MVI	A,'.'		;Print decimal point
- 	CALL	PRINT
- 	CALL	INPUT		;Input 2nd warp factor number
-	CPI	'0'		;Is digit less than 0?
-	JC	CRSEret		; Return if incorrect.
-	CPI	'8'		;Is digit greater than 7
-	JNC	CRSEret		; Return if incorrect.
-	ANI	007		;Mask off ASCII code
-	ADD	M		;Add warp digit number 1
-	JZ	CRSEret		; Return if incorrect.
-	MOV	E,A		;Save warp factor in 'E'
-	CALL	ACTV		;Fetch adjusted row & column
-	MVI	L,031H		;Set pntr to crossing indicator
-	MOV	M,H		;Clear crossing indicator
-                                ;
-                                ; --------------------------------
-                                ; Loop: Move the ship
-MOVE:
-	CALL	TRK		;Track 1 sector
-	JZ	LOST		;Out of galaxy? Yes, lost
-	MVI	L,030H		;Fetch crossing flag
-	MOV	A,M
-	ANA	A		;Quadrant crossed?
-	JZ	CLSN		;No, check collision
-	INR	L		;Advance to crossing indicator
-	MOV	M,L		;Set crossing indicator to non-0
-	MVI	E,25		;Delete 25 units of
-	MOV	D,H		;Energy from main supply
-	CALL	ELOM
-	CALL	QCNT		;Fetch new quadrant contents
-	CALL	NWQD		;Set up new quadrant
-                                ;
-                                ; ----------------
-                                ; Collision handling
-CLSN:
-	CALL	RWCM		;Form row and column byte
-	CALL	MATCH		;Collision?
-	JNZ	MVDN		;No, complete move
-	MOV	B,L		;Yes, save object location
-	MOV	A,B		;Set flags to determine
-	CPI	04BH		;What was hit
-	MVI	L,031H		;Pointer to crossing indicator
-	MOV	A,M		;Fetch crossing indicator
-	JZ	SSOUT		;Space station collision
-	JNC	ASOUT		;Alien ship collision
-	ANA	A		;Star, initial quadrant?
-	JZ	WPOUT		;Yes, ship wiped out
-MVDN:
-	LXI	H,0028H		;Restore registers 'E' 'D' & 'C'
-	MOV	E,M
-	INR	L
-	MOV	D,M
-	INR	L
-	MOV	C,M
-	DCR	E		;Decrement warp factor
-	JNZ	MOVE		;Not 0, continue move
-                                ;
-                                ; End move loop.
-                                ; --------------------------------
-                                ;
-	MVI	L,031H		;Fetch crossing indicator
-	MOV	A,M
-	ANA	A		;Quadrant crossing occurred?
-	JZ	NOX		;No, complete move
-                                ;
-                                ; ----------------
-                                ; Decrement the game stardate value.
-                                ;
-	MVI	L,05DH		;Yes, fetch stardate value.
-	MOV	B,M
-	DCR	B		;Decrement stardate counter
-	JZ	TIME		;If 0, end of game
-	MOV	M,B		;Else save new date
-NOX:
-	CALL	RWCM		;Form row and column byte
-	MVI	L,043H		;Set pointer to current sector
-	MOV	M,B		;Save new sector
-	CALL	MATCH		;Last move a collision?
-	CZ	CHNG		;Yes, change object location
-	CALL	DKED		;Check for docking
-	JMP	SRSCN		;Do short range scan
-SSOUT:
-	ANA	A		;Initial quadrant?
-	JNZ	MVDN		;No, no loss
-	MOV	L,B		;Yes, set object pointer
-	CALL	DLET		;Remove space station fm glxy
-	LXI	D,600		;Then delete 600 units of engy from S.S.
-SSO1:
-	CALL	ELOS		;Delete energy
-	JMP	MVDN		;Finish move
-ASOUT:
-	ANA	A		;Initial quadrant?
-	JNZ	MVDN		;No, no loss
-	MOV	L,B		;Yes, delete alien ship
-	CALL	DLET
-	LXI	D,1500		;Delete 1500 units of engy. from S.S.
-	JMP	SSO1		;And finish move
-CHNG:
-	MOV	E,L		;Set table location and
-	MVI	C,1		;Number of objects counter for
-	JMP	LOCSET		;Move object and return
-                                ;
-                                ; ----------------
-                                ; Ship docking
-DKED:
-	MVI	L,04BH		;Fetch space station byte
-	MOV	A,M
-	ANA	A		;Space station in quadrant?
-	RM			;No, return
-	MOV	A,B		;Fetch space ship location
-	ANI	ROWMSK		;Separate row location
-	MOV	C,A		;Save in 'C'
-	MOV	A,B		;Fetch space ship location
-	ANI	COLMSK		;Separate column location
-	MOV	B,A		;Save in 'B'
-	MOV	A,M		;Fetch space station location
-	ANI	COLMSK		;Separate space station clmn loc
-	MOV	E,A		;Save in 'E'
-	MOV	A,M		;Fetch space station location
-	ANI	ROWMSK		;Separate row as space ship
-	CMP	C		;Same row and space ship?
-	RNZ			;No, return
-	MOV	A,B		;Fetch space ship column
-	ADI	1		;Advance one column
-	CMP	E		;Space ship adjacent?
-	JZ	LOAD		;Yes, load up space ship
-	SUI	2		;No, try column to left
-	CMP	E		;Space station adjacent
-	RNZ			;No, return
-	JMP	LOAD		;Yes, load space ship & return
-                                ;
-; ------------------------------------------------------------------------------
-                                ; Command shield option.
-SHENret:
-	JMP	CMND		;Jump to input command
-SHEN:
-	LXI	H,MSGSET	;Print "Shield Energy
-	CALL	MSG		;       Transfer =  "
-	CALL	EIN		;Input energy amount
-	;JM	SHEN		;Invalid input, try again
-	JM	SHENret		; Stacy, invalid input will return to command.
-                                ;
-	CALL	DCBN		;Convert to binary
-	MVI	L,064H		;Fetch sign indicator
-	MOV	A,M
-	ANA	A		;Is sign positive
-	JZ	POS		;Yes, from main to shield
-	CALL	CKSD		;No, check shield energy
-	JC	NE		;If shield less than req, no good
-	CALL	FMSD		;Subtract from shield
-	CALL	TOMN		;Add to main
-	JMP	CMND		;Input new command
-POS:
-	CALL	CKMN		;Check main energy
-	JC	NE		;If main less than req, no good
-	CALL	FMMN		;Subtract from main
-	CALL	TOSD		;Add to shield energy
-	JMP	CMND		;Input new command
-NE:
-	LXI	H,MSGNEE	;Print "Not Enough Energy"
-	CALL	MSG
-	JMP	CMND		;Input new command
-                                ;
-; ------------------------------------------------------------------------------
-                                ; Command option to shoot a torpedo.
-TR1ret:
-	JMP	CMND		;Jump to input command
-TRPD:
-	MVI	L,05AH		;Fetch number of torpedoes
-	MOV	A,M
-	ANA	A		;Any torpedoes left?
-	JZ	NTPD		;No, print no torpedo message
-	MVI	E,250		;Set up 250 units
-	MOV	D,H		;Of energy to delete
-	CALL	CKMN		;Enough in main supply?
-	JC	NE		;No, report not enough
-	CALL	FMMN		;Yes, delete from main
-	MVI	L,05AH
-	DCR	M		;Remove one torpedo
-TR1:
-	LXI	H,MSGTTY	;Print "Torpedo Trajectory"
-	CALL	MSG
-	CALL	DRCT		;Input direction
-	;JZ	TR1		;Invalid input, try again
-	JZ	TR1ret		; Stacy, invalid input will return to command.
-                                ;   The user can back out from the option
-                                ;   if they had hit the wrong command option.
-                                ;
-	CALL	ACTV		;Form adjusted row & column
-	MVI	L,059H		;Save current quadrant location
-	MOV	A,M		;In temporary storage
-	MVI	L,02BH
-	MOV	M,A
-TR2:
-	CALL	TRK		;Move torpedo one sector
-	JZ	QOUT		;Out of quadrant? Missed
-	MVI	L,030H		;Fetch crossing flag
-	MOV	A,M
-	ANA	A		;Crossed quadrant
-	JNZ	QOUT		;Yes, missed
-	CALL	RWCM		;No, form row and column
-	MOV	C,B		;Save row and column byte
-	LXI	H,MSGTRK	;Set up tracking message by inserting
-	CALL	T1		;Row and column in message
-	MVI	L,012H		;Set pointer to message
-	CALL	CMSG		;Print 'Tracking: R,C'
-	MOV	B,C		;Fetch row and column byte
-	CALL	MATCH		;Torpedo hit anything?
-	JZ	HIT		;Yes, analyze
-	MVI	L,028H		;No, restore registers
-	MOV	E,M
-	INR	L
-	MOV	D,M
-	INR	L
-	MOV	C,M
-	JMP	TR2		;Continue tracking
-HIT:
-	MOV	A,L		;What was hit?
-	CPI	04BH		;Was it a star?
-	JC	QOUT		;Yes, missed alien ship
-	JZ	SSTA		;Space stat.? Yes, delete S.S.
-	CALL	DLET		;No, delete alien ship
-	LXI	H,MSGASD	;Print alien ship hit message
-	CALL	MSG
-	JMP	CMND		;Input new command
-SSTA:
-	CALL	DLET		;Delete space station fm galaxy
-	LXI	H,MSGSSD	;Print message of loss
-	CALL	MSG		;Space station
-QOUT:
-	LXI	H,MSGYMA	;Print missed message
-	CALL	CMSG
-	MVI	E,200		;Set up loss of 200
-	MOV	D,H		;Units due to alien ship
-	CALL	ELOS		;Rtaliating
-	MVI	L,02BH		;Restore current quadrant
-	MOV	A,M		;Location
-	MVI	L,059H
-	MOV	M,A
-	JMP	CMND		;Input new command
-NTPD:
-	LXI	H,MSGZRO	;Set pointer to No Torpedo message
-	CALL	MSG		;Print message
-	JMP	CMND		;Jump to input command
-                                ;
-; ------------------------------------------------------------------------------
-RWCM:
-	MVI	L,05EH		;Pointer to adjusted column
-	MOV	A,M		;Fetch adjusted column
-	RRC			;Adjust position
-	ANI	COLMSK		;Form column value
-	MOV	B,A		;Save column
-	INR	L		;Advance pointer
-	MOV	A,M		;Fetch adjusted row
-	RLC			;Position row value
-	RLC
-	ANI	ROWMSK		;For row value
-	ADD	B		;Form row and column byte
-	MOV	B,A		;Save in 'B'
-	RET			;Return
-                                ;
-; ------------------------------------------------------------------------------
-                                ; Fire Phasors
-PHSRret:
-	JMP	CMND		;Jump to input command
-PHSR:
-	LXI	H,MSGPEF	;Print 'Phasor Energy to Fire='
-	CALL	MSG
-	CALL	EIN		;Input energy amount
-	; JM	PHSR		;Input error, try again
-	JM	PHSRret		; Stacy, invalid input will return to command.
-                                ;
-	CALL	DCBN		;Convert energy to binary
-	CALL	ELOM		;Delete energy from main
-	MVI	L,042H		;Fetch current quad. contents
-	MOV	A,M
-	ANI	030H		;Any alien ships?
-	JZ	WASTE		;No, waste of energy
-	CALL	ROTR4		;Position number of alien ship
-	SUI	001		;1 alien ship, full energy
-	JZ	PH1		;2 alien ships, half energy
-	MOV	B,A		;3 alien ships, quarter energy
-	CALL	DVD
-PH1:
-	MVI	L,05EH		;Set pointer to energy storage
-	MOV	M,E		;Save energy amount
-	INR	L
-	MOV	M,D
-	MVI	L,028H		;Save energy in temp. storage
-	MOV	M,E
-	INR	L
-	MOV	M,D
-	INR	L		;Save loc. of alien ship in table
-	MVI	M,04CH
-	CALL	ASPH		;Calc. phsr dmg to A.S. No. 1
-	MVI	L,02AH		;Set pntr to A.S. loc. storage
-	MVI	M,04DH		;Save location of A.S. in table
-	CALL	ASPH		;Calc. phsr dmg to A.S. No. 2
-	MVI	L,02AH		;Set pntr to A.S. loc. storage
-	MVI	M,04EH		;Save location of 3rd alien ship
-	CALL	ASPH		;Calc. phsr dmg to A.S. No. 3
-	JMP	CMND		;Input new command
-ASPH:
-	MOV	L,M		;Set pntr to alient ship table
-	MOV	A,M		;Fetch alien ship location
-	ANA	A		;Alien ship in this location?
-	RM			;No, return
-	LXI	D,MSGSEC	;Set pointer to sector Storage in msg
-	CALL	TWO		;set sector coordinates
-	MVI	L,04EH		;Print 'A.S. at sector X,Y:'
-	CALL	CMSG
-	MVI	L,043H		;Fetch space ship location
-	CALL	SPRC		;Separate row and column
-	MOV	L,E		;Save space ship row & column
-	MOV	H,D
-	MOV	E,C
-	MOV	D,B
-	CALL	SPRC		;Separate A.S. row & column
-	MOV	A,B		;Fetch alien ship row
-	SUB	D		;Subract space ship row
-	JP	PH2		;To calculate distance between
-	XRI	0FFH		;Alien ship and space ship
-	ADI	001
-PH2:
-	MOV	B,A		;Save row distance
-	MOV	A,C		;Fetch alien ship column
-	SUB	E		;Subtract space ship column
-	JP	PH3		;To calcualate column distance
-	XRI	0FFH		;Between A. ship & S. ship
-	ADI	001
-PH3:
-	ADD	B		;Add row distance
-	RRC			;Form distance factor
-	RRC			;To be used to calculate
-	ANI	003		;Energy that reaches alien ship
-	MOV	B,A		;Save in 'B'
-	MOV	C,L		;Save pointer in 'C'
-	MVI	L,028H		;Fetch phasor energy
-	MOV	E,M
-	INR	L
-	MOV	D,M
-	DCR	B		;Divide energy by
-	INR	B
-	CNZ	DVD		;Distance factor
-	MOV	A,C		;Fetch table pointer
-	ANI	003
-	RLC			;And set pointer to alien ship
-	ADI	053H		;Energy storage
-	MVI	L,02BH		;Save energy pointer
-	MOV	M,A
-	MOV	L,A		;Set pntr. to alien ship energy
-	CALL	FM1		;Delete energy fm alien ship
-	JM	DSTR		;If negative, A. ship destroyed
-	JNZ	ALOS		;If non-0, print A. ship energy
-	DCR	L		;Check 2nd have of alien ship
-	MOV	A,M		;Energy to see if zero.
-	INR	L
-	ANA	A		;Alien ship energy = 0?
-	JZ	DSTR		;Yes, remove from galaxy
-ALOS:
-	DCR	L		;Set pntr to alien ship energy
-	MVI	B,2		;Set number for BINDEC
-	CALL	BINDEC		;Convert A.S. energy to decimal
-	LXI	D,MSGDEY
-	MVI	B,4		;Set number of digits
-	CALL	DIGPRT		;Put energy in message
-	LXI	H,MSGEGY	;Print energy of alien ship
-	CALL	CMSG
-	MVI	L,02BH		;Fetch alien ship energy
-	MOV	L,M
-	MOV	E,M		;Fetch alien ship energy
-	INR	L
-	MOV	D,M
-	MVI	B,2		;Divide alien ship energy
-	CALL	DVD		;By 4 as retaliation by A.S.
-	JMP	ELOS		;Remove fm shield nrgy & ret
-DSTR:
-	LXI	H,MSGDES	;Print "Destroyed"
-	CALL	CMSG
-	MVI	L,02AH		;Fetch alient ship location in tbl
-	MOV	L,M
-	JMP	DLET		;Remove A.S. fm glxy & ret
-                                ;
-; ------------------------------------------------------------------------------
-                                ; Command galaxy display option.
-GXPRT:
-	LXI	H,MSGGDY	; Print galaxy display message
-	CALL	MSG
-	MVI	H,031H          ; Decimal value = 49
- 	CALL	NT1		; Print top border line, 49 dashes.
-                                ;
-                                ; ----------------------------------------------
-                                ; Loop through each quadrant row of the galaxy.
-                                ;
-	MVI	L,0C0H		; Set pointer to galaxy content table memory.
-GL1:
-	MOV	D,H		;Set printout pointer
-	MVI	E,084H
-GL2:
-                                ; ----------------------
-	MOV	A,M		;Fetch quadrant contents
-	XCHG
-	CALL	QDSET		;Quadrant data set contents in message
-	MOV	A,L		;Fetch message pointer
-	ADI	004		;Advance to next quadrant in message
-	MOV	L,A
-	XCHG			;Set galaxy pointer
-	INR	L		;Advance to next quad. in galaxy
-	CPI	0B4H		; This end of line? B4H = 180 = 10110100
-	JNZ	GL2		;No, set next quadrant in message
-	XCHG			;Save galaxy pointer
-                                ; ----------------------
-                                ;Print current line of galaxy
-                                ; Sample output: 1 003 1 003 1 000 1 000 1 000 1 000 1 105 1 107 1
-                                ;                12345678901234567890123456789012345678901234567890
-                                ;                        10        20        30        40        50
-                                ; I added zero(0) to the 50 position to prevent extra characters, example ("#"):
-                                ;                1 203 1 003 1 000 1 011 1 105 1 000 1 000 1 304 1#
-                                ; 080H = 128 ... 128 + 50 = 178 + 1 (array base 0) = 179
-                                ; MSG uses H:L to print from. regH must be 0 at this time.
-        sta     regA
-        mvi     a,'|'
-        sta     178
-        mvi     a,0
-        sta     179
-        lda     regA
-                                ; Then print as normal.
-	MVI	L,080H
-	CALL	MSG
-                                ; ----------------------
-	MVI	H,031H          ;Print dividing line
-	CALL	NT1
-	MOV	A,E		;Fetch galaxy pointer
-	CMP	H		;End of galaxy printed? =0?
-	JZ	CMND		;Yes, return command input
-	XCHG			;No, set up galaxy pointer
-; ++    3766:00001110 10110110: 11000011 : C3:303 > opcode: jmp GL1
-	JMP	GL1		;Continue printout
-                                ; ----------------------------------------------
-                                ; Looks like unused bytes from 3766 to 3840.
-regA:   DB      0
-regH:   DB      0
-                                ;
-; ------------------------------------------------------------------------------
-	ORG	0F00H           ; Decimal = 3840
+	;ORG	0F00H           ; Decimal = 3840
 
 	DB	000000000b,000000001b,000000100b,000100011b,000001010b,000000011b,000000111b,000000000b
 	DB	000000000b,000011010b,000100011b,000000101b,000000011b,000010100b,000010110b,000010010b
@@ -1923,7 +1998,7 @@ regH:   DB      0
 	DB	000000011b,000010101b,000000000b,000000000b,000010101b,000000000b,000100111b,000000000b
 
 ; ------------------------------------------------------------------------------
-	ORG	0F80H
+	;ORG	0F80H
 
 ; ------------------------------------------------------------------------------
                                 ; Input/Output
@@ -1960,6 +2035,8 @@ INPUT:
                                 ; Limit input to: N, Y, 0..6.
         cpi     'N'             ; No, don't start a new game.
         jz      INPUTokay
+        cpi     'n'             ; No, don't start a new game.
+        jz      INPUTokay
         cpi     'Y'             ; Yes, start the game.
         jz      INPUTokay
         cpi     'y'             ; Yes, start the game.
@@ -1976,16 +2053,34 @@ INPUT:
         jz      INPUTokay
         cpi     'd'             ; Directions message.
         jz      INPUTokay
+        cpi     'D'             ; Directions message.
+        jz      INPUTokay
         cpi     'g'             ; Game stats message.
+        jz      INPUTokay
+        cpi     'G'             ; Game stats message.
+        jz      INPUTokay
+        cpi     'q'             ; Quick game
+        jz      INPUTokay
+        cpi     'Q'             ; Quick game
+        jz      INPUTokay
+        cpi     'm'             ; Medium game
+        jz      INPUTokay
+        cpi     'M'             ; Medium game
+        jz      INPUTokay
+        cpi     'l'             ; Longer game
+        jz      INPUTokay
+        cpi     'L'             ; Longer game
         jz      INPUTokay
         cpi     '-'             ; Negative transfer from SHIELDS to ENERGY.
         jz      INPUTokay
+                                ; -----------
         cpi     '8'             ; Input range: commands(0-6) and direction(1-8)
         jz      INPUTeq         ; Jump, if A = #, zero bit = 1.
         jnc     INPUT           ; Jump, if A > #, carry bit = 0.
 INPUTeq:
         cpi     '0'
         jc      INPUT           ; Jump, if A < #, carry bit = 1.
+                                ; -----------
 INPUTokay:
                                 ; ----------------------------------------------
         OUT	SIOCTL
@@ -2068,19 +2163,19 @@ CONINI:
                                 ; Help messages.
 MSGHELP:
   	DB	CR,LF
-        DB      'O. X-wing ship movement'
+        DB      '0. Set X-wing course setting, and Fly'
   	DB	CR,LF
-        DB      '1. Short range scanner'
+        DB      '1. Sector range scanner'
   	DB	CR,LF
-        DB      '2. Long  range scanner'
+        DB      '2. Sector wide area scanner'
   	DB	CR,LF
-        DB      '3. Galaxy display'
+        DB      '3. Regional sector display'
   	DB	CR,LF
         DB      '4. Shields'
   	DB	CR,LF
-        DB      '5. Phasors'
+        DB      '5. Laser cannons'
   	DB	CR,LF
-        DB      '6. Torpedoes'
+        DB      '6. Proton torpedoes'
   	DB	CR,LF
         DB      'g. Game stats'
   	DB	CR,LF
@@ -2103,31 +2198,31 @@ MSGDIR:
         DB      '    7'
   	DB	0
                                 ; ----------------------------------------------
-                                ; Print game statistics message, example:
+                                ; Print game statistics message. Original:
                                 ; YOU MUST DESTROY 21 ALIEN SHIPS IN 26 STARDATES WITH 6 SPACE STATIONS
+                                ; New message template.
+GSMSG:	DB	'\r\n\r\nYou must destroy  '
+GSMSGS:	DB	'  TIE fighters in  '
+GSMSGD:	DB	'  stardates.'
+        DB	'\r\nSupplies are available at any of the '
+GSMSGT:	DB	'  rebel outposts.'
+  	DB	0
                                 ;
                                 ; DNSST:	DB	000 ;Num. space stations	//5B 91 01011011 Data= 6
                                 ; DNALS:	DB	000 ;Num. alien ships		//5C 92 01011100 Data=21
                                 ; DNSTD:	DB	000 ;Num. stardates		//5D 93 01011101 Data=26
-                                ;
-                                ; MSGYJD:	DB	CR,LF
-                                ;         	DB	'You must destroy  '
-                                ; MSGSPS:	DB	'  Sith ships in   '
-                                ; MSGDTS:	DB	'  stardates with '
-                                ; MSGSSS:	DB	'  space stations'
-
 GAMESTAT:
-	MVI	L,05DH		;Set pntr to store number SPACE STATIONS
-	MVI	B,1		;Set nmbr bytes for BINDEC
+	MVI	L,05DH		;Set pointer to store number SPACE STATIONS
+	MVI	B,1		;Set number bytes for BINDEC
 	CALL	BINDEC		;Covert stardate value
 	LXI	D,GSMSGD	;Set pointer to digit storage
-	MVI	B,2		;Set counter to nmbr or digits
+	MVI	B,2		;Set counter to number or digits
 	CALL	DIGPRT		;Put digits in message
                                 ;
 	LXI	H,005CH		;Set pointer to number alien ships
-	MVI	B,1		;Set nmbr bytes for BINDEC
+	MVI	B,1		;Set number bytes for BINDEC
 	CALL	BINDEC		;Convert alien ship value
-	LXI	D,GSMSGS	;Set pntr to digit stor. in start msg.
+	LXI	D,GSMSGS	;Set pointer to digit stor. in start message.
 	MVI	B,2		;Set counter to no. of digits
 	CALL	DIGPRT		;Put digits in message
                                 ;
@@ -2135,8 +2230,8 @@ GAMESTAT:
 	MOV	A,M		;Set no. bytes for BINDEC
 	ORI	0B0H		;Covert space station value
 	LXI	H,GSMSGT	;Set pntr to digit stor. in start msg.
-	MOV	M,A		;Set counter to no. of digits
                                 ;
+	MOV	M,A		;Set counter to no. of digits
 	LXI	H,GSMSG 	;Set pntr to start message
 	CALL	MSG		;Print starting message
                                 ; You must destroy 18 alien ships in  05 stardates with 5 space stations
@@ -2144,33 +2239,58 @@ GAMESTAT:
                                 ;
 ; ------------------------------------------------------------------------------
 ;   Games messages.
+;
+;   References:
+;       https://starwars.fandom.com/wiki/Sector/Legends
 ; ------------------------------------------------------------------------------
-
+                                ;
 MSGSTART:   DB CR,LF
-        DB      'Ready for a Star Wars mission flying an X-wing starfighter? '
+        DB      'Ready to start a Star Wars X-wing starfighter mission? (Y/N)'
   	DB	0
-                                ; New message template.
-                                ;         10        20        30        40        50        60
-                                ; 123456789012345678901234567890123456789012345678901234567890
-                                ; You must destroy 21 TIE fighters in 26 stardates.
-                                ; Supplies are available at any of the 6 space stations.
-GSMSG:	DB	CR,LF
-  	DB	'You must destroy  '
-GSMSGS:	DB	'  TIE fighters in  '
-GSMSGD:	DB	'  stardates.'
-        DB	CR,LF
-        DB	'Supplies are available at any of the '
-GSMSGT:	DB	'  space stations.'
+MSSEL1:	DB	'\r\nQuick game, medium or a longer game (q/m/l)? Less or more TIE fighters? '
   	DB	0
+MSSELQ:	DB	'\r\nQuick game selected.'
+  	DB	0
+MSSELM:	DB	'\r\nMedium game selected.'
+  	DB	0
+MSSELL:	DB	'\r\nLonger game selected.'
+  	DB	0
+MSPREP:	DB	'\r\nPreparations are being made...'
+  	DB	0
+                                ; ----------------------------------------------
+MSGGDY:	DB	'\r\nRegional Sector Display'
+  	DB	0
+MSGWRP:	DB	'\r\nParsecs (0.1-7.7): '
+  	DB	0
+MSGCRS:	DB	'\r\nCourse direction (1-8.5): '
+  	DB	0
+MSGPEF:	DB	'\r\nLaser cannon energy to fire = '
+  	DB	0
+MSGASD:	DB	'\r\nTIE fighter destroyed.'
+  	DB	0
+MSGCYH:	DB	'\r\n\r\nCONGRATULATIONS! You eliminated all the TIE fighters. Rebels are safe...for now.\r\n'
+  	DB	0
+MSGMSF:	DB	'\r\n\r\nMISSION failed, you ran out of stardates.\r\n'
+  	DB	0
+MSGKAB:	DB	'\r\n\r\nBOOM! Game over, you crashed in a star. You are history.\r\n'
+  	DB	0
+MSGYMO:	DB	'\r\n\r\nYou flew out of the GALAXY, lost in the void...\r\n'
+  	DB	0
+                                ; ----------------------------------------------
+MSGCMD:	DB	'\r\nCommand > '
+  	DB	0
+MSGCHK:	DB	'\r\n\r\nLater...\r\n'
+  	DB	0
+                                ; ----------------------------------------------
+                                ; Looks like unused bytes from 3766 to 3840.
+regA:   DB      0
+regH:   DB      0
+                                ;
+ASHIPSH: DB     3               ; Number alien ships is less than this number.
+ASHIPSL: DB     1               ; Number alien ships is greater than this number.
+                                ; Original was the hard coded values: 32 and 10.
                                 ;
                                 ; ----------------------------------------------
-MSGCMD:	DB	CR,LF
-  	DB	'Command > '
-  	DB	0
-MSGASD:	DB	CR,LF
- 	DB	'TIE fighter destroyed.'
-  	DB	0
-
 	END
                                 ;
 --------------------------------------------------------------------------------
@@ -2179,18 +2299,16 @@ MSGASD:	DB	CR,LF
                                 ; Notes to get the program to run.
                                 ;
 ; Program is stored on the SD card:
-;   ++ File:      00001001.BIN  4608
+;   ++ File:      00000101.BIN  5120
 ;
 To run,
 + Start Altair 101a and connect.
 + Send the start byte string which sets the switches: 12578bx.
-+ "m" and Confirm the loading of SD file: 00001001.BIN (S8 and S11 which is 8b).
-+ "x" to EXAMINE the address: 00001001:10100110 (S11 S8 S7 S5 S2 S1 which is 12578b).
++ "m" and Confirm the loading of SD file: 00000101.BIN (S8 and S11 which is 8a).
++ "x" to EXAMINE the address: 00000101:00000000 (S8 S10 which is 8a).
 + "r" to run the program.
 Start playing.
 
 --------------------------------------------------------------------------------
-YOU MUST DESTROY 21 ALIEN SHIPS IN 26 STARDATES WITH 6 SPACE STATIONS
-
                                 ; 
                                 ; --------------------------------------

@@ -297,44 +297,6 @@ public class asmProcessor {
     }
 
     // -------------------------------------------------------------------------
-    // -------------------------------------------------------------------------
-    public void programBytesListCode() {
-        // byte[] fileBytes = new byte[1024];    // Hold the bytes to be written.
-        System.out.println("\n+ List Program byte code.");
-        System.out.println("++ MWRITE(<Counter>, B<data byte> & 0xff);  // <byte description>");
-        // MWRITE(<Counter>, B<data byte> & 0xff);  // opcode: mvi a,6
-        // MWRITE(0, B00111110 & 0xff);  // opcode: mvi a,6
-        // MWRITE(1, B00000110 & 0xff);  // immediate: 6 : 6
-        //
-        //                  ++       0:00000000 00000000: 11000011 : C3:303 > opcode: jmp Start
-        //                  ...
-        //                  ++     256:00000001 00000000: 00100000 : 20:040 > databyte: orstr :   : 32
-        //                  ++     257:00000001 00000001: 01001111 : 4F:117 > databyte: orstr : O : 79
-        //
-        programTop = 0;
-        for (Iterator<String> it = programBytes.iterator(); it.hasNext();) {
-            String theValue = it.next();
-            // System.out.println("++ " + theValue);
-            String[] opcodeValues = theValue.split(SEPARATOR);
-            System.out.print("MWRITE( cnt++" + ", B");
-            if (opcodeValues.length > 2) {
-                // System.out.print(opcodeValues[1] + ":" + opcodeValues.length);
-                if (opcodeValues[2].length() == 8) {
-                    System.out.print(opcodeValues[2]);
-                } else {
-                    System.out.print(byteToString((byte) Integer.parseInt(opcodeValues[2])));
-                }
-            } else {
-                System.out.print(byteToString((byte) Integer.parseInt(opcodeValues[1])));
-            }
-            System.out.print(" & 0xff);  // ");
-            System.out.println("++ " + theValue);
-            programTop++;
-        }
-        System.out.println("+ End of list.");
-    }
-
-    // -------------------------------------------------------------------------
     public void programBytesListHex() {
         System.out.println("\n+ List Program byte code.");
         System.out.print(":");
@@ -1678,7 +1640,6 @@ public class asmProcessor {
         // thisProcess.listLabelAddresses();
         // thisProcess.listImmediateValues();
         // thisProcess.programBytesListAndWrite("p1.bin");
-        // thisProcess.programBytesListCodeArray("p1.bin");
 
         // ---------------------------------------------------
         // Generate arrary data from AltairSamples.cpp
@@ -1686,7 +1647,6 @@ public class asmProcessor {
         thisProcess.programBytesListCodeArray("p1.bin");
 
         // ---------------------------------------------------
-        // thisProcess.programBytesListCode();
         // thisProcess.programBytesListHex();
         //
         // Required, sets actual values:

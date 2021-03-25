@@ -333,7 +333,7 @@ NEWSTART:
 ;++    1286:00000101 00000110: 00100001 : 21:041 > opcode: lxi h,MSGSTART
 	LXI	H,MSGSTART
 	CALL	MSG             ;Print introduction
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
 STARTYN:
 	CALL	RN		; Set a new random game number.
         in      SIOCTL          ; Stacy, check for input character.
@@ -446,7 +446,7 @@ GLXCK1:
 	cmp	C		; Not enough alien ships?
 	mov	A,C		; Restore A
 	JNC	ASMNS		; Add 1
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
 	MVI	L,05BH		;Set pointer to store number Rebel outpost.
 	MOV	M,D		;Save number of space stations
 	INR	L		;Advance pointer to number A.S.
@@ -455,7 +455,7 @@ GLXCK1:
 	ADI	005
 	INR	L		;Adv. pointer to number of stardates
 	MOV	M,A		;Save number of stardates
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
 	MVI	B,1		;Set number bytes for BINDEC
 	CALL	BINDEC		;Covert stardate value
 	LXI	D,GSMSGD	;Set pointer to digit storage
@@ -474,7 +474,7 @@ GLXCK1:
 	MOV	M,A		;Set counter to no. of digits
 	LXI	H,GSMSG 	;Set pointer to start message
 	CALL	MSG		;Print starting message
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
 	CALL	RN		;Fresh start quadrant
 	ANI	03FH		;Mask off most significant bits
 	MVI	L,059H		;Set pntr. to quadrant storage
@@ -485,12 +485,17 @@ GLXCK1:
 	MVI	C,1		;Set space ship counter
 	MVI	E,043H		;Set space ship loc. storage
 	CALL	LOCSET		;Set initial space ship location
-                                ;
+                                 ;
+SCRCLP:
+        LXI     H,SCRCLH         ; Clear the entire screen, clear from home location (top left).
+	CALL	MSG
 ; ------------------------------------------------------------------------------
-                                ; Print Sector range scan
-SRSCN:
-        LXI     H,MSG123        ;Set pntr. for short range scan
-	CALL	MSG		;Print initial row
+                                 ; Print Sector range scan
+SCRPRN:
+        LXI     H,SCRHOM         ; Move the cursor to screen location home, the top left of the screen.
+	CALL	MSG
+        LXI     H,MSG123         ; Print short range sector scan
+        CALL    MSG              ; Print top row and the rest.
 	MVI	C,1		;Set row number
 	CALL	ROWSET		;Set up row for printout
 	LXI	H,005DH		;Set pointer to stardate
@@ -571,7 +576,7 @@ CND:
 	CALL	MSG		;Print final row of S.R. scan
 CMND:
 	MVI	H,000
-	LXI	SP,STACK	;Reset stack pointer
+	LXI	SP,STACK        ;Reset stack pointer
 	MVI	E,10		;Delete 10 units of
 	MOV	D,H		;Energy for each command
 	CALL	ELOM
@@ -589,14 +594,22 @@ RESTORED:
 	LXI	SP,STACK	;This is the starting point from a restored save.
                                 ;
 CMD:
-	LXI	H,MSGCMD	;Set pointer to command msg
-	CALL	CMSG		;Request command input
-	CALL	INPUT		;Input command
+        LXI     H,SCRL10        ; Locate cursor to command prompt line.
+        CALL    MSG
+        LXI     H,MSGCMD        ; Print command prompt.
+        CALL    CMSG
+                                ;
+        CALL    INPUT           ; Get a input character.
+                                ;
+        sta     regA
+        LXI     H,SCRD1C        ; Before printing the new command results,
+        CALL    MSG             ;   clear previous messages below the command prompt.
+        lda     regA
                                 ;
 	CPI	'0'		; Ship movement, input course.
 	JZ	CRSE
 	CPI	'1'		; Print short range scan
-	JZ	SRSCN
+	JZ	SCRPRN
 	CPI	'2'		; Print long range scan
 	JZ	LRSCN
 	CPI	'3'		; Print Galaxy printout?
@@ -619,6 +632,8 @@ CMD:
 	JZ	HELPD
 	CPI	'g'		; Print Game statistics.
 	JZ	GSTATS
+	CPI	CR		; Clear screen and reprint sector.
+	JZ	DOSCRPRN
                                 ;
 	JMP	CMD		;Try again
                                 ;
@@ -632,11 +647,13 @@ HELPM:
 HELPD:  LXI	H,MSGDIR	; Help message directions
 	CALL	MSG
 	JMP	CMD
+DOSCRPRN:
+        JMP      SCRCLP         ; Clear the screen, reprint the sector, and jump to CMD.
                                 ;
 ; ------------------------------------------------------------------------------
                                 ; Print long range scan
 LRSCN:
-	LXI	H,MSGLRS	;Set pntr to long range msg
+        LXI     H,MSGLRS         ;Set pntr to long range msg
 	CALL	MSG		;Print long range scan
 	CALL	QUAD		;Print quadrant location
 	CALL	NTN		;Print row of dashes
@@ -681,7 +698,7 @@ RWC:
 	JMP	LRP		;Print long range row
                                 ;
                                 ;
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
                                 ; Long range scanner routine
 LRR:
 	ADI	00C0H		;Set pointer to galaxy
@@ -851,7 +868,7 @@ NOX:
 	CALL	MATCH		;Last move a collision?
 	CZ	CHNG		;Yes, change object location
 	CALL	DKED		;Check for docking
-	JMP	SRSCN		;Do short range scan
+	JMP	SCRPRN		;Do short range scan
 SSOUT:
 	ANA	A		;Initial quadrant?
 	JNZ	MVDN		;No, no loss
@@ -993,9 +1010,10 @@ HIT:
 	JC	QOUT		;Yes, missed alien ship
 	JZ	SSTA		;Space stat.? Yes, delete S.S.
 	CALL	DLET		;No, delete alien ship
-	LXI	H,MSGASD	;Print alien ship hit message
+        LXI     H,MSGASD        ; Print alien ship destroyed
 	CALL	MSG
-	JMP	CMND		;Input new command
+        jmp     SCRPRN          ; Since the ship was destroyed, refresh the screen to show it's gone.
+        ; JMP   CMND            ; Previously, don't reprint, just get new command.
 SSTA:
 	CALL	DLET		;Delete space station fm galaxy
 	LXI	H,MSGSSD	;Print message of loss
@@ -1163,7 +1181,7 @@ GXPRT:
 	MVI	H,031H          ; Decimal value = 49
  	CALL	NT1		; Print top border line, 49 dashes.
                                 ;
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
                                 ; Loop through each quadrant row of the galaxy.
                                 ;
 	MVI	L,0C0H		; Set pointer to galaxy content table memory.
@@ -1368,7 +1386,7 @@ LOCSET:
 ROWSET:
 	LXI	H,MSGSTDT2	;Pointer to row message
                                 ;
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
                                 ;
 RCLR:
 	MVI	M,' '		;Store a space character
@@ -1434,7 +1452,7 @@ NXAS:
 	LXI	H,MSGSTDT	;Set up to Print short range scan line
 	JMP	CMSG		;Print and return
                                 ;
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
                                 ;
 RWPNT:
 	MOV	A,M		;Fetch entry location
@@ -1941,7 +1959,7 @@ FMSD:
 	MVI	L,051H		;Set pointer to shield energy
 	JMP	FM1		;Subtr. 'E' & 'D' fm. shld ener.
                                 ;
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
                                 ; The following change allows the energy to always be sufficient.
 CKMN:
 	MVI	L,050H		;Set pointer to main energy
@@ -1958,7 +1976,7 @@ CKSD:
 	MVI	L,052H		;Check shield energy level
 	JMP	CK1		;Against requested level
                                 ;
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
 NOGAME:
 	LXI	H,MSGCHK	;Print the, does not want to play, message
 	CALL	MSG
@@ -1966,7 +1984,7 @@ NOGAME:
                                 ;
         jmp     NEWSTART        ; Stacy, allow a restart with my emulator.
                                 ;
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
 SPRC:
 	MOV	A,M		;Fetch row and column
 	ANI	07H		;Separate column
@@ -2006,14 +2024,14 @@ SPRC:
 ; Test status of input device for character
 ; Sets sign flag if character coming in
 INPCK:
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
             mvi a,1100001b      ; Stacy, Set so that JP doesn't jump in the "START:" section.
             ANI SIORDR
             ANI	0FFH            ;Non-zero?
             JZ	INPCK1
             ORI	0FFH            ;Set sign flag
             ret
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
 	CALL	IOST		;CF
 	ANI	0FFH		;Non-zero?
 	JZ	INPCK1
@@ -2031,7 +2049,7 @@ INPUT:
         cpi     0
 	jz	INPUT           ; No input character
                                 ;
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
                                 ; Limit input to: N, Y, 0..6.
         cpi     'N'             ; No, don't start a new game.
         jz      INPUTokay
@@ -2073,6 +2091,8 @@ INPUT:
         jz      INPUTokay
         cpi     '-'             ; Negative transfer from SHIELDS to ENERGY.
         jz      INPUTokay
+        cpi     CR              ; Enter key, re-print the screen.
+        jz      INPUTokay
                                 ; -----------
         cpi     '8'             ; Input range: commands(0-6) and direction(1-8)
         jz      INPUTeq         ; Jump, if A = #, zero bit = 1.
@@ -2082,7 +2102,7 @@ INPUTeq:
         jc      INPUT           ; Jump, if A < #, carry bit = 1.
                                 ; -----------
 INPUTokay:
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
         OUT	SIOCTL
 	RET
 
@@ -2197,7 +2217,7 @@ MSGDIR:
   	DB	CR,LF
         DB      '    7'
   	DB	0
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
                                 ; Print game statistics message. Original:
                                 ; YOU MUST DESTROY 21 ALIEN SHIPS IN 26 STARDATES WITH 6 SPACE STATIONS
                                 ; New message template.
@@ -2257,7 +2277,7 @@ MSSELL:	DB	'\r\nLonger game selected.'
   	DB	0
 MSPREP:	DB	'\r\nPreparations are being made...'
   	DB	0
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
 MSGGDY:	DB	'\r\nRegional Sector Display'
   	DB	0
 MSGWRP:	DB	'\r\nParsecs (0.1-7.7): '
@@ -2276,12 +2296,61 @@ MSGKAB:	DB	'\r\n\r\nBOOM! Game over, you crashed in a star. You are history.\r\n
   	DB	0
 MSGYMO:	DB	'\r\n\r\nYou flew out of the GALAXY, lost in the void...\r\n'
   	DB	0
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
 MSGCMD:	DB	'\r\nCommand > '
   	DB	0
 MSGCHK:	DB	'\r\n\r\nLater...\r\n'
   	DB	0
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
+SCRHOM  DB      27,'[','H'                  ; Move to screen top left: Esc[H.
+  	DB	0
+SCRCLH  DB      27,'[','H'                  ; Move to screen home location, top left: Esc[H.
+        DB      27,'[','J'                  ; Clear screen from cursor position and down.
+  	DB	0
+SCRCLP  DB      27,'[','J'                  ; Clear screen from cursor position and down.
+  	DB	0
+SCRL10  DB      27,'[','H'                  ; Move to screen top left: Esc[H.
+        DB      27,'[','1','0','B'          ; Move to the command prompt line, down 10 lines: Esc[11B.
+  	DB	0
+SCRC12  DB      27,'[','H'                  ; Move to screen top left: Esc[H.
+        DB      27,'[','1','2','B'          ; Move down 12 lines: Esc[12B.
+        DB      27,'[','J'                  ; Clear screen below the command prompt line.
+        DB      0
+SCRD1C  DB      '>',27,'[','1','B'          ; Move down 1 lines: Esc[1B.
+        DB      27,'[','J'                  ; Clear screen below the command prompt line.
+        DB      0
+;
+;1: -1--2--3--4--5--6--7--8-
+;2: 1             *           STARDATE  3044
+;3: 2    *                    CONDITION GREEN
+;4: 3                         SECTOR    3 6
+;5: 4                *        QUADRANT  8 8
+;6: 5                         ENERGY    2917
+;7: 6                         TORPEDOES 10
+;8: 7                         SHIELDS   0000
+;9: 8                     x!x
+;0:  -1--2--3--4--5--6--7--8-
+;1: Command > g
+                                ; ------------------------------------------------
+CLEAR:                          ; clear: ; Clear the screen.
+                mvi a,27        ; Escape character.
+                call PRINT
+                mvi a,'['
+                call PRINT
+                mvi a,'H'
+                call PRINT
+                mvi a,27
+                call PRINT
+                mvi a,'['
+                call PRINT
+                mvi a,'2'
+                call PRINT
+                mvi a,'J'
+                call PRINT
+                ret
+                                ; -------------------------------
+
+                                ; ------------------------------------------------
                                 ; Looks like unused bytes from 3766 to 3840.
 regA:   DB      0
 regH:   DB      0
@@ -2290,12 +2359,12 @@ ASHIPSH: DB     3               ; Number alien ships is less than this number.
 ASHIPSL: DB     1               ; Number alien ships is greater than this number.
                                 ; Original was the hard coded values: 32 and 10.
                                 ;
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
 	END
                                 ;
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
                                 ; Notes to get the program to run.
                                 ;
 ; Program is stored on the SD card:
@@ -2311,4 +2380,20 @@ Start playing.
 
 --------------------------------------------------------------------------------
                                 ; 
+  VT100 reference:
+       http://ascii-table.com/ansi-escape-sequences-vt-100.php
+    Esc[H     Move cursor to upper left corner, example: Serial.print(F("\033[H"));
+    Esc[J     Clear screen from cursor down, example: Serial.print(F("\033[J"));
+    Esc[2J    Clear entire screen, example: Serial.print(F("\033[H"));
+    Example:  Serial.print(F("\033[H\033[2J"));         // Move home and clear entire screen.
+    Esc[K     Clear line from cursor right
+    Esc[nA    Move cursor up n lines.
+    Example:  Serial.print(F("\033[3A"));  Cursor Up 3 lines.
+    Esc[nB    Move cursor down n lines.
+    Example:  Serial.print(F("\033[6B"));  Cursor down 6 lines.
+    Esc[nC    Move cursor right n positions.
+    Example:  Serial.print(F("\033[H\033[4B\033[2C"));  // Print on: row 4, column 2.
+    Esc[r;cH  Move cursor to a specific row(r) and column(c).
+    Example:  Serial.print(F("\033[4;2H*"));            // Print on: row 4, column 2 and print "*".
+                                ;
                                 ; --------------------------------------

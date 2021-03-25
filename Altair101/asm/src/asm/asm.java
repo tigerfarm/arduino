@@ -166,8 +166,8 @@ public class asm {
                     break;
                 case "array":
                     System.out.println("+ -------------------------------------");
-                    System.out.println("+ List the program byte array into code:");
-                    processFile.programBytesListCode();
+                    System.out.println("+ List the program byte file into an array to put into code:");
+                    processFile.programBytesListCodeArray(byteFile);
                     break;
                 case "hex":
                     System.out.println("+ -------------------------------------");
@@ -392,21 +392,23 @@ public class asm {
                     System.out.println("----------------------");
                     System.out.println("+ file <source>      : Set the input file name to use in other commands.");
                     if (!sourceFile.equals("")) {
-                        System.out.println("+ Program source file name: " + sourceFile);
-                        System.out.println("+ Program full file name: " + fullFilename);
+                        System.out.println("+ Program source file name:    " + sourceFile);
+                        System.out.println("+ Program full file name:      " + fullFilename);
                         System.out.println("+ Machine byte code file name: " + byteFile);
                     }
                     if (sourcedirectoy.equals("")) {
-                        System.out.println("+ Program source subdirectoy name not set.");
+                        System.out.println("+ Program source subdirectory name not set.");
                     } else {
-                        System.out.println("+ Program source subdirectoy name: " + sourcedirectoy + ".");
+                        System.out.println("+ Program source subdirectory name: " + sourcedirectoy + ".");
                     }
-                    System.out.println("+ fileout <filename> : Set the machine code file name.");
+                    System.out.println("+ fileout <filename> : Set the machine byte code file name.");
                     if (!sourceFile.equals("")) {
                         System.out.println("++ Machine byte code file name: " + byteFile);
                     }
                     System.out.println("");
                     System.out.println("----------------------");
+                    System.out.println("+ dir|ls             : List files in the set program directory.");
+                    System.out.println("");
                     System.out.println("+ asm                : Parse the program source file and write the machine code bytes to a file.");
                     System.out.println("+ parse              : Parse the program source file.");
                     System.out.println("+ write              : Write the machine code bytes to a file.");
@@ -416,30 +418,31 @@ public class asm {
                     System.out.println("+ hex                : List the machine bytes as hex code.");
                     System.out.println("+ show               : Print machine code file bytes to screen.");
                     System.out.println("");
-                    System.out.println("+ dir|ls             : List files in the set directory.");
-                    System.out.println("");
-                    System.out.println("+ list opcodes       : list the opcode information, ordered by the name.");
-                    System.out.println("+ opcodes            : list the opcode information, ordered the same as in the file.");
-                    System.out.println("+ opcode <opcode>    : list an opcode's information.");
-                    System.out.println("+ opcodebytes        : list the opcode data, sorted by value.");
-                    System.out.println("+ opcodenames        : list the opcode data, sorted by name.");
-                    System.out.println("");
                     System.out.println("> list " + LISTOPTIONS);
                     System.out.println("+ list                : List the program source file.");
                     System.out.println("+ list bytes          : List the parsed machine byte code and info.");
-                    System.out.println("+ list opcodes        : list the opcode information, ordered by the name.");
                     System.out.println("");
+                    System.out.println("----------------------");
                     System.out.println("> set " + SETOPTIONS);
                     System.out.println("+ set directory <program-source-directory>");
                     System.out.println("+ set source <program-source-filename>");
                     System.out.println("+ set byte <machine-byte-code-filename>");
                     System.out.println("+ set debug <on|off>");
-                    System.out.println("+ set orgspace <opcode> ... example 0(NOP) or 255 zasm value");
+                    System.out.println("+ set orgspace <opcode> ... example 0(NOP) which I like to use, or 255 which zasm uses.");
                     System.out.println("+ set port <serial-port>");
                     System.out.println("+ set ignore <Number of characters to ignore on a source line>");
                     System.out.println("+ set debug <on|off>");
                     System.out.println("");
-                    System.out.println("+ upload                    : Serial upload the machine byte code file.");
+                    System.out.println("----------------------");
+                    System.out.println("+ list opcodes       : list the opcode information, ordered by the name.");
+                    System.out.println("+ opcodes            : list the opcode information, ordered the same as in the file.");
+                    System.out.println("+ opcode <opcode>    : list an opcode's information.");
+                    System.out.println("+ opcodebytes        : list the opcode data, sorted by value.");
+                    System.out.println("+ opcodenames        : list the opcode data, sorted by name.");
+                    System.out.println("+ list opcodes        : list the opcode information, ordered by the name.");
+                    System.out.println("");
+                    System.out.println("----------------------");
+                    System.out.println("+ upload                    : Upload the machine byte code file over a serial port.");
                     System.out.println("++ Serial port name         : " + getSerialPortName());
                     System.out.println("++ Serial port baud rate    : " + getBaudRate());
                     System.out.println("++ Serial port baud rate ST : " + getBaudSleepTime());
@@ -459,9 +462,6 @@ public class asm {
                     System.out.println("");
                     System.out.println("+ clear     : Clear screen. Should work on UNIX based consoles, not Windows.");
                     System.out.println("+ exit      : Exit this program.");
-                    System.out.println("");
-                    System.out.println("> list " + LISTOPTIONS);
-                    System.out.println("> set " + SETOPTIONS);
                     System.out.println("");
                     break;
                 default:
