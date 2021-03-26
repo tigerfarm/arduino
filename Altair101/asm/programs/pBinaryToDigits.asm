@@ -11,7 +11,7 @@
 ; To:
 ;   11111111b + 11111111b > + Digits: 65535
 ;
-; The program was written by Stacy David.
+; Program written by Stacy David.
 ; The conversion routine is from the 1976 Galaxy80 program,
 ;   written by Robert Fidley (C) COPYRIGHT 1976 Scelbi Computer Consulting, Inc.
 ;
@@ -42,7 +42,7 @@
                                         ; Convert a 16 bit binary value into a decimal value.
                                         ;
                 lxi     h,NUML          ; Load the low order byte memory address into HL(m).
-                mvi     B,2             ; Set single(1) or double(2) precision. An 8 bit or 16 bit number.
+                mvi     B,2             ; Register B: Set single(1) or double(2) precision. An 8 bit or 16 bit number.
                 call    BINDEC          ; Convert to decimal digits.
                                         ;
                                         ; --------------------------------------
@@ -80,7 +80,7 @@
                 INR     L
                 MOV     M,H
                 XCHG			; Restore binary number address to HL.
-                                        ;
+                                         ;
                 MOV     E,M		;Fetch least significant half
                 ;
                 DCR     B		; Single(B=1) or double(B=2) precision

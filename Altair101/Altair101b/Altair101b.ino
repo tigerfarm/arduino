@@ -30,6 +30,8 @@
   ---------------------------------------------------------
   Next to work on
 
+  After writing to an SD card file, turn HLDA light off.
+
   Add hardware to display values:
   + Player song.
   + Clock date and time.
@@ -99,7 +101,7 @@
   Download the simulator with documentation and CP/M 2.2.
   Put all files into one folder.
   Start the simulator and type the command "do cpm2" at the sim> command prompt and CP/M is booted.
-  $ ./altairz80 cpm2
+  $ ./altairz80 cpm2port
   A> DIR
   A> B:
 
@@ -2015,10 +2017,10 @@ void processWaitSwitch(byte readByte) {
           break;
         }
         Serial.println(F("+ Confirmed."));
-        //
-        host_set_status_led_HLDA();
         // -------------------------------------------------------
+        host_set_status_led_HLDA();
         writeMemoryToFile(theFilename);
+        host_clr_status_led_HLDA();
         printFrontPanel();
 #else
         Serial.println(F("- SD card not enabled."));

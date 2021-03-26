@@ -4,8 +4,9 @@
 //  https://www.twilio.com/docs/sms/tutorials/how-to-send-sms-messages-esp8266-cpp
 // Fingerprint note,
 //  https://github.com/TwilioDevEd/twilio_esp8266_arduino_example/issues/1
-//  echo | openssl s_client -connect api.twilio.com:443 | openssl x509 -fingerprint
+//  echo | openssl s_client -connect api.twilio.com:443 | openssl x509 -fingerprint | grep Fingerprint
 //  ...
+//  SHA1 Fingerprint=0E:15:35:A9:DD:DB:63:DF:CE:D3:02:2E:A8:6A:5A:E0:28:9B:FF:26
 //  SHA1 Fingerprint=BC:B0:1A:32:80:5D:E6:E4:A2:29:66:2B:08:C8:E0:4C:45:29:3F:D0
 //  ...
 /*
@@ -14,7 +15,7 @@
 + Connect to WiFi. 
 ....
 + Connected to WiFi, IP address: 192.168.1.76
-+ Using fingerprint 'BC B0 1A 32 80 5D E6 E4 A2 29 66 2B 08 C8 E0 4C 45 29 3F D0'
++ Using fingerprint '0E 15 35 A9 DD DB 63 DF CE D3 02 2E A8 6A 5A E0 28 9B FF 26'
 + Connecting to api.twilio.com
 + Connected.
 + Post an HTTP send SMS request.
