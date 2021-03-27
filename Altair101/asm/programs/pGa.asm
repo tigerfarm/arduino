@@ -332,29 +332,27 @@ GALAXY:
 NEWSTART:
 ;++    1286:00000101 00000110: 00100001 : 21:041 > opcode: lxi h,MSGSTART
 	LXI	H,MSGSTART
-	CALL	MSG             ;Print introduction
+        CALL    MSG             ;Print introduction
                                 ; ----------------------------------------------
 STARTYN:
-	CALL	RN		; Set a new random game number.
-        in      SIOCTL          ; Stacy, check for input character.
+        CALL    RN              ; Set a new random game number.
+        in      SIOCTL
         cpi     0
-	jz	STARTYN         ; No input character
+        jz      STARTYN         ; No input character
                                 ;
         cpi     'n'             ; No, don't start a new game.
         jz      NOGAME
-        cpi     'N'             ; No, don't start a new game.
+        cpi     'N'
         jz      NOGAME
         cpi     'y'             ; Yes, start a game.
         jz      SELECTLEN
-        cpi     'Y'             ; Yes, start a game.
+        cpi     'Y'
         jz      SELECTLEN
-	jmp	STARTYN         ; Invalid character
+        jmp     STARTYN         ; Invalid character
                                 ;
-	CALL	INPUT		;Wait for an input character, then echo it and continue.
-	CPI	'N'
-	JZ	NOGAME		; Not going to play a game.
                                 ; ------------------------------------------------
 SELECTLEN:                      ; Ask for a range of the number of TIE fighters for the game.
+        call    SCRD1C          ; Clear screen below before continuing.
 	LXI	H,MSSEL1
 	CALL	MSG
 	CALL    INPUT           ; Wait for an input character, then echo it and continue.
@@ -387,7 +385,9 @@ LGAME:
         sta     ASHIPSH
         mvi     a,10
         sta     ASHIPSL
-                                ; ------------------------------------------------
+; ------------------------------------------------------------------------------
+; Setup a new game.
+;
 STARTGAME:
                                 ; Prepare for a new game.
 	LXI	H,MSPREP
@@ -400,7 +400,7 @@ GLXSET:
 	MVI	H,00FH		;Set pointer to galaxy table
 	MOV	A,M		;Fetch galaxy entry
 	MOV	L,E
-	MVI	H,000H		;Set pntr. to galaxy content tbl
+	MVI	H,000H		;Set pointer to galaxy content tbl
 	MOV	M,A		;Store quadrant contents
 	INR	E		;Galaxy storage complete?
 	JNZ	GLXSET		;No, fetch more sectors
@@ -477,7 +477,7 @@ GLXCK1:
                                 ; ----------------------------------------------
 	CALL	RN		;Fresh start quadrant
 	ANI	03FH		;Mask off most significant bits
-	MVI	L,059H		;Set pntr. to quadrant storage
+	MVI	L,059H		;Set pointer to quadrant storage
 	MOV	M,A		;Save quadrant location
 	CALL	QCNT		;Fetch current quad. contents
 	CALL	LOAD		;set initial conditions
@@ -486,11 +486,15 @@ GLXCK1:
 	MVI	E,043H		;Set space ship loc. storage
 	CALL	LOCSET		;Set initial space ship location
                                 ;
+; ------------------------------------------------------------------------------
+; ------------------------------------------------------------------------------
+                                ; Print Sector Scan Map
 SCRCLP:
         call    SCRCLR          ; Clear the entire screen, clear from home location (top left).
+SCRPCMD:
+        call    SCRPRN          ; Print sector scan map.
+        jmp     CMND            ; Go to command options.
                                 ;
-; ------------------------------------------------------------------------------
-                                ; Print Sector range scan
 SCRPRN:
         LXI     H,SCRHOM         ; Move the cursor to screen location home, the top left of the screen.
 	CALL	MSG
@@ -530,6 +534,15 @@ SCRPRN:
 	MVI	M,'E'
 	INR	L
 	MVI	M,'N'
+	JMP	CND
+RED:
+	MVI	M,'R'		;Condition "RED"
+	INR	L
+	MVI	M,'E'
+	INR	L
+	MVI	M,'D'
+	INR	L
+	MVI	M,0
 CND:
 	LXI	H,MSGCND        ;Set pointer to condition msg
 	CALL	MSG		;Print condition message
@@ -584,19 +597,21 @@ CND:
 	CALL	ROWSET		;Set up row for printout
 	LXI	H,MSG123        ;Set pointer to final row
 	CALL	MSG		;Print final row of S.R. scan
-CMND:
-	MVI	H,000
-	LXI	SP,STACK        ;Reset stack pointer
-	MVI	E,10		;Delete 10 units of
-	MOV	D,H		;Energy for each command
-	CALL	ELOM
-	MVI	L,041H		;Set pointer to random number
-	INR	M		;Fetch random nmbr. constant
-        jmp     CMD             ; Go to command menu.
+        ret
                                 ;
+; ------------------------------------------------------------------------------
 ; ------------------------------------------------------------------------------
                                 ; Command Menu options
 ; ------------------------------------------------------------------------------
+                                ;
+CMND:
+	MVI	H,000
+	LXI	SP,STACK        ;Reset stack pointer
+	MVI	E,10		;Delete 10 units of energy for each command
+	CALL	ELOM
+	MVI	L,041H		;Set pointer to random number
+	INR	M		;Fetch random number constant
+        jmp     CMD             ; Go to command menu.
                                 ;
 RESTORED:
 ; ++    1683:00000110 10010011: 00110001 : 31:061 > opcode: lxi sp,STACK
@@ -616,7 +631,7 @@ CMD:
 	CPI	'0'		; Ship movement, input course.
 	JZ	CRSE
 	CPI	'1'		; Print short range scan
-	JZ	SCRPRN
+	JZ	SCRCLPR
 	CPI	'2'		; Print long range scan
 	JZ	LRSCN
 	CPI	'3'		; Print Galaxy printout?
@@ -640,7 +655,7 @@ CMD:
 	CPI	'g'		; Print Game statistics.
 	JZ	GSTATS
 	CPI	CR		; Clear screen and reprint sector.
-	JZ	DOSCRPRN
+	JZ      SCRCLPR
                                 ;
 	JMP	CMD		;Try again
                                 ;
@@ -654,7 +669,7 @@ HELPM:
 HELPD:  LXI	H,MSGDIR	; Help message directions
 	CALL	MSG
 	JMP	CMD
-DOSCRPRN:
+SCRCLPR:
         JMP      SCRCLP         ; Clear the screen, reprint the sector, and jump to CMD.
                                 ;
 ; ------------------------------------------------------------------------------
@@ -737,7 +752,7 @@ LR4:
 	LXI	H,MSG11C	;Pointer to right quadrant
 	CALL	QDS1		;Set quadrant contents
 LRP:
-	LXI	H,MSG111	;Set pntr. to L.R. row message
+	LXI	H,MSG111	;Set pointer to L.R. row message
 	JMP	MSG		;Print L.R. scan row and return
 QDS1:
 	MVI	H,004H		;Set message pointer
@@ -784,7 +799,7 @@ CRSE:
 WRP:
 	LXI	H,MSGWRP	;Pointer to "Warp" message
  	CALL	CMSG		;Request warp input
-	MVI	L,05FH		;Set pntr. to temporary storage
+	MVI	L,05FH		;Set pointer to temporary storage
  	CALL	INPUT		;Input warp factor number 1
 	CPI	'0'		;Is digit less than 0?
 	JC	CRSEret		;No, request input again
@@ -875,7 +890,7 @@ NOX:
 	CALL	MATCH		;Last move a collision?
 	CZ	CHNG		;Yes, change object location
 	CALL	DKED		;Check for docking
-	JMP	SCRPRN		;Do short range scan
+        jmp     SCRPCMD         ; Print short range scan, then go to command options.
 SSOUT:
 	ANA	A		;Initial quadrant?
 	JNZ	MVDN		;No, no loss
@@ -1018,16 +1033,10 @@ HIT:
 	JZ	SSTA		;Space stat.? Yes, delete S.S.
 	CALL	DLET		;No, delete alien ship
                                 ;
-                                ; ------------------------------------------------
-                                ; Stacy, next:
-                                ; The following steps should happen:
-                                ;   + Print the sector scan map without the destroyed ship.
-                                ;   ++ Note, SCRPRN will, but doesn't return.
-                                ;   + Return from printing the sector scan map.
-                                ;
         LXI     H,MSGASD        ; Print alien ship destroyed message.
         CALL    MSG
-        JMP     CMND            ; To to input and process a new command.
+        call    SCRPRN          ; Print the sector scan map without the destroyed ship.
+        JMP     CMND            ; Go to input and process a new command.
                                 ;
                                 ; ------------------------------------------------
                                 ;
@@ -1157,7 +1166,7 @@ PH3:
 	ADI	053H		;Energy storage
 	MVI	L,02BH		;Save energy pointer
 	MOV	M,A
-	MOV	L,A		;Set pntr. to alien ship energy
+	MOV	L,A		;Set pointer to alien ship energy
 	CALL	FM1		;Delete energy fm alien ship
 	JM	DSTR		;If negative, A. ship destroyed
 	JNZ	ALOS		;If non-0, print A. ship energy
@@ -1496,15 +1505,6 @@ RWPNT:
 	XRA	A		;Set Zero flag
 	ANA	A
 	RET			;Return with 'Z' flag set
-RED:
-	MVI	M,'R'		;Condition "RED"
-	INR	L
-	MVI	M,'E'
-	INR	L
-	MVI	M,'D'
-	INR	L
-	MVI	M,0
-	JMP	CND		;Return to short range scan
 QUAD:
 	LXI	H,0059H		;Pointer to quadrant location
 	LXI	D,MSGPQD	;Pointer to quadrant message
@@ -1556,13 +1556,13 @@ DONE:
 	CALL	MSG		;Print message and start
 	JMP	GALAXY		;A new game.
 LOST:
-	LXI	H,MSGYMO	;Moved out of known galaxy, player loses
+	LXI	H,MSGYMO        ;Moved out of known galaxy, player loses
 	JMP	DONE		;Print message & start again
 WPOUT:
-	LXI	H,MSGKAB	;Smashed into star, space ship destroyed
+	LXI	H,MSGKAB        ;Smashed into star, space ship destroyed
 	JMP	DONE		;Print message & start again
 EOUT:
-	LXI	H,MSGNEL	;Out of energy, abandon ship
+	LXI	H,MSGNEL        ;Out of energy, abandon ship
 	JMP	DONE		;Print message & start again
 NWQD:
 	MVI	L,044H		;Set pointer to start table
@@ -1693,7 +1693,7 @@ DLET:
 	MOV	B,L		;Save table pointer
 	MVI	L,059H		;Fetch current quad. location
 	MOV	A,M
-	ADI	00C0H		;Form pntr. to galaxy location
+	ADI	00C0H		;Form pointer to galaxy location
 	MOV	L,A		;Set galaxy pointer
 	MOV	A,B		;Fetch table pointer
 	CPI	04BH		;Space station hit?
@@ -1701,7 +1701,7 @@ DLET:
 	MOV	A,M		;Fetch location in galaxy
 	ANI	037H		;Delete space station
 	MOV	M,A		;Restore in galaxy
-	MVI	L,042H		;Set pntr. to quad. contents
+	MVI	L,042H		;Set pointer to quad. contents
 	MOV	M,A		;Save new contents
 	MVI	L,05BH		;Set pointer to number of S.S.
 	DCR	M		;Decrement number of S.S.
@@ -1719,14 +1719,16 @@ DLAS:
 	MOV	M,A		;Save new contents
 	MVI	L,05CH		;Fetch number of A.S. counter
 	DCR	M		;Subtract 1 from number
-	RNZ			;If counter not = 0, return
+	RNZ			;If counter!=0, return to continue the battle.
                                  ;
                                  ; -----------------------------
                                  ; You win!
         LXI     H,MSGASD         ; TIE fighter destroyed
         CALL    MSG
         LXI     H,MSGCYH         ; Print CONGRATULATIONS, game over
-        JMP     DONE
+        CALL    MSG
+        call    SCRPRN
+        JMP     GALAXY
                                  ;
 ; ------------------------------------------------------------------------------
                                 ; Input a course direction.
@@ -1958,7 +1960,7 @@ TO1:
 	MOV	A,M		;Fetch least significant half
 	ADD	E		;Add 'E'
 	MOV	M,A		;Save new least significant half
-	INR	L		;Advance pntr. to most signif.
+	INR	L		;Advance pointer to most signif.
 	MOV	A,M		;Fetch most significant half
 	ADC	D		;Add 'D' with carry
 	MOV	M,A		;Save new most significant half
@@ -1972,7 +1974,7 @@ FM1:
 	MOV	A,M		;Fetch least significant half
 	SUB	E		;Subtract 'E'
 	MOV	M,A		;Save new least significant half
-	INR	L		;Advance pntr. to most signif.
+	INR	L		;Advance pointer to most signif.
 	MOV	A,M		;Fetch most significant half
 	SBB	D		;Subtract 'D' with carry
 	MOV	M,A		;Save new most significant half
@@ -2000,9 +2002,9 @@ CKSD:
                                 ;
                                 ; ----------------------------------------------
 NOGAME:
-	LXI	H,MSGCHK	;Print the, does not want to play, message
-	CALL	MSG
-	HLT			;Halt
+        LXI     H,MSGCHK        ;Print the, does not want to play, message
+        CALL    MSG
+        HLT                     ;Halt
                                 ;
         jmp     NEWSTART        ; Stacy, allow a restart with my emulator.
                                 ;
@@ -2440,6 +2442,33 @@ To run,
 + "x" to EXAMINE the address: 00000101:00000000 (S8 S10 which is 8a).
 + "r" to run the program.
 Start playing.
+
+--------------------------------------------------------------------------------
+ -1--2--3--4--5--6--7--8-
+1 *                       STARDATE  3045
+2    *                    CONDITION REDEN
+3                *        SECTOR    7 5
+4          *              QUADRANT  6 8
+5             *           ENERGY    2437
+6|o|                  x!x TORPEDOES 09
+7                         SHIELDS   0000
+8             *          
+ -1--2--3--4--5--6--7--8-
+Command > 6 destroyed.
+            
+Torpedo trajectory(1-8.5) : 5.0
+Tracking: 6 7
+Tracking: 6 6
+Tracking: 6 5
+Tracking: 6 4
+Tracking: 6 3
+Tracking: 6 2
+Tracking: 6 1
+TIE fighter destroyed.
+
+CONGRATULATIONS! You eliminated all the TIE fighters. Rebels are safe...for now.
+
+Ready to start a Star Wars X-wing starfighter mission? (Y/N)
 
 --------------------------------------------------------------------------------
 

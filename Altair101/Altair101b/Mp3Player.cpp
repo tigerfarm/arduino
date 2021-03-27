@@ -30,12 +30,10 @@
   -------------------------------------------------------------------------
   Next to implement,
 
-  3 modes:
-  + Play all songs
-  + Loop play a single song
-  + Play a single song and stop
-  ++ Change loopSingle to playMode, and handle all 3 play modes.
-  + Update Altair101b to use playMode for OUT 10 and OUT 11.
+  + Maybe no printing messages if not PLAYER_RUN mode?
+ 8                *       
+ -1--2--3--4--5--6--7--8-
+Command > + Pause current MP3, playerCounter=34+ Key Volume v decrease volume to 9
 
   Need to better handle the following:
 Busy, Card not found

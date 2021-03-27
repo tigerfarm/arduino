@@ -935,7 +935,7 @@ SHEN:
 	CALL	MSG		;       Transfer =  "
 	CALL	EIN		;Input energy amount
 	;JM	SHEN		;Invalid input, try again
-	JM	SHENret		; Stacy, invalid input will return to command.
+	JM	SHENret		; Invalid input will return to command.
                                 ;
 	CALL	DCBN		;Convert to binary
 	MVI	L,064H		;Fetch sign indicator
@@ -979,7 +979,7 @@ TR1:
 	CALL	MSG
 	CALL	DRCT		;Input direction
 	;JZ	TR1		;Invalid input, try again
-	JZ	TR1ret		; Stacy, invalid input will return to command.
+	JZ	TR1ret		; Invalid input will return to command.
                                 ;   The user can back out from the option
                                 ;   if they had hit the wrong command option.
                                 ;

@@ -316,7 +316,7 @@ void setupClock() {
   now = rtc.now();
   // While the power is on, if no battery, the date and time will remain, don't reset it.
   if (now.year() < 2018) {
-    rtc.adjust(DateTime(2018, 12, 8, 15, 36, 58)); // DateTime(year, month, day, hour, minute, second)
+    rtc.adjust(DateTime(2021, 4, 8, 15, 36, 58)); // DateTime(year, month, day, hour, minute, second)
   }
   delay(100);
   //
