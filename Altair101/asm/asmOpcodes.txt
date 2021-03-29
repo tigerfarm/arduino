@@ -1,4 +1,4 @@
-// Opcode table of information
+ // Opcode table of information
 // Opcode:Byte-Description
 // Note, a comment with a second ":" will cause an error in the sort classes. Even though, the sorted listings work fine.
 
@@ -83,10 +83,6 @@ rpe :11101000:|if PE, RET :RPE      11 101 000  1  Conditional return from subro
 rp  :11110000:|if P, RET  :RP       11 100 000  1  Conditional return from subroutine
 rm  :11111000:|if M, RET  :RM       11 111 000  1  Conditional return from subroutine
 
-pchl:11101001:PCHL #   11 101 001  ?  Jump to address in H:L.
-xchg:11101011:XCHG #   11 101 011  ?  Exchange DE and HL content.
-
-
 // Inst      Encoding          Flags   Description
 // -----------------------------------------------
 
@@ -112,6 +108,9 @@ shld :00100010:SHLD a   00 100 010  3  L->(adr);H->(adr+1): Store register data 
 lhld :00101010:LHLD a   00 101 010  3  (adr)->L;(adr+1)->H: Load registers H and L (H:L) with address values a and a+1.
 // shld	NUML ; Memory address
 // MVI	M,2  ; Move immediate to memory address.
+
+pchl:11101001:PCHL #   11 101 001  ?  Jump to address in H:L.
+xchg:11101011:XCHG #   11 101 011  ?  Exchange DE and HL content.
 
 mvi  :00RRR110:MVI R,#  00 RRR 110  2  Move #(immediate value) to a register (R).
 mvia :00111110:|A <- byte 2

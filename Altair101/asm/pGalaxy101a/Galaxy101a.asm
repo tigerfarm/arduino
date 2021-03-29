@@ -350,9 +350,6 @@ STARTYN:
         jz      STARTGAME
 	jmp	STARTYN         ; Invalid character
                                 ;
-	CALL	INPUT		;Wait for an input character, then echo it and continue.
-	CPI	'N'
-	JZ	NOGAME		; Not going to play a game.
                                 ; ----------------------------------------------
 STARTGAME:
                                 ; Prepare for a new game.
