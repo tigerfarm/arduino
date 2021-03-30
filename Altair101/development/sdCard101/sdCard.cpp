@@ -453,14 +453,22 @@ void editDeleteLine(int lineNumber) {
     003: Last line.
     004: <--(End of array)
   */
+  int startDelete = 0;
+  int endDelete = 0;
+  int totalDelete = 0;
   for (int i = 0; i < iFileBytes; i++) {
     byte memoryData = MREAD(i);
     if (memoryData != 10 && memoryData != 13) {
       Serial.write(memoryData);
     }
+    if (endDelete > 0) {
+      MWRITE(++startDelete, memoryData);
+    }
     if (memoryData == 10) {
       if (lineNumber == lineCounter) {
         Serial.print(F("(end delete this line)"));
+        endDelete = i;
+        totalDelete = endDelete - startDelete;
       }
       Serial.println();
       lineCounter++;
@@ -473,13 +481,46 @@ void editDeleteLine(int lineNumber) {
       Serial.print(F(": "));
       if (lineNumber == lineCounter) {
         Serial.print(F("(Start delete of this line)"));
+        startDelete = i;
       }
     }
+  }
+  // Set the trailing bytes to zeros.
+  // After over writing the delete line with high lines, there are the original bytes still at the end. 
+  for (int i = iFileBytes-totalDelete; i < iFileBytes; i++) {
+    MWRITE(i, 0);
   }
   Serial.println(F("<--(End of array)"));
   Serial.println();
 }
+/*
+CARD ED ?- l
++ Print memory to a screen, number of bytes: 64
+001: Hello there,
+002: Line 2: 1, 2, 3.
+003: Last line.
+004: 
+005: abc...
+006: def<--(End of array)
 
+CARD ED ?- d 5
++ Delete line #5.
++ Delete line from memory #5.
+001: Hello there,
+002: Line 2: 1, 2, 3.
+003: Last line.
+004: 
+005: (Start delete of this line)abc...(end delete this line)
+006: def<--(End of array)
+
+CARD ED ?- l
++ Print memory to a screen, number of bytes: 51
+001: Hello there,
+002: Line 2: 1, 2, 3.
+003: Last line.
+004: defc<--(End of array)
+
+ */
 // -----------------------------------------------------------------------------
 void editAddLine(String theLine) {
   iFileBytes = getMemoryByteCount();
