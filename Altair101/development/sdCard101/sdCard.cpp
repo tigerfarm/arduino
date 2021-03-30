@@ -430,48 +430,48 @@ void getFilename() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void editDeleteLine(int lineNumber) {
+void editDeleteLine(int deleteLineNumber) {
   iFileBytes = getMemoryByteCount();
   if (iFileBytes == 0) {
     Serial.println(F("+ Nothing to edit. Memory bytes are all zero."));
     return;
   }
   Serial.print(F("+ Delete line from memory #"));
-  Serial.print(lineNumber);
+  Serial.print(deleteLineNumber);
   Serial.println(".");
-  // First line.
-  int lineCounter = 1;
-  Serial.print(F("00"));
-  Serial.print(lineCounter);
-  Serial.print(F(": "));
-  /*
-    CARD ED ?- d 2
-    + Delete line #2.
-    + Delete line from memory #2.
-    001: Hello there,
-    002: (Start delete of this line)Line 2: 1, 2, 3.(end delete this line)
-    003: Last line.
-    004: <--(End of array)
-  */
   int startDelete = 0;
   int endDelete = 0;
   int totalDelete = 0;
+  // First line.
+  int lineCounter = 1;
+  Serial.print(F("00"));
+  Serial.print(deleteLineNumber);
+  Serial.print(F(": "));
+  if (deleteLineNumber == lineCounter) {
+    Serial.print(F("(Start delete of this line)"));
+    startDelete = 0;
+  }
   for (int i = 0; i < iFileBytes; i++) {
     byte memoryData = MREAD(i);
     if (memoryData != 10 && memoryData != 13) {
       Serial.write(memoryData);
     }
     if (endDelete > 0) {
-      MWRITE(++startDelete, memoryData);
+      MWRITE(startDelete, memoryData);
+      startDelete++;
     }
     if (memoryData == 10) {
-      if (lineNumber == lineCounter) {
+      if (deleteLineNumber == lineCounter) {
         Serial.print(F("(end delete this line)"));
         endDelete = i;
         totalDelete = endDelete - startDelete;
       }
       Serial.println();
       lineCounter++;
+      if (deleteLineNumber == lineCounter) {
+        Serial.print(F("(Start delete of this line)"));
+        startDelete = i+1;
+      }
       if (lineCounter < 10) {
         Serial.print(F("00"));
       } else if (i < 100) {
@@ -479,48 +479,48 @@ void editDeleteLine(int lineNumber) {
       }
       Serial.print(lineCounter);
       Serial.print(F(": "));
-      if (lineNumber == lineCounter) {
-        Serial.print(F("(Start delete of this line)"));
-        startDelete = i;
-      }
     }
   }
-  // Set the trailing bytes to zeros.
-  // After over writing the delete line with high lines, there are the original bytes still at the end. 
-  for (int i = iFileBytes-totalDelete; i < iFileBytes; i++) {
-    MWRITE(i, 0);
+  if (deleteLineNumber == lineCounter) {
+    // Delete last line.
+    for (int i = startDelete-1; i < iFileBytes; i++) {
+      MWRITE(i, 0);
+    }
+  } else {
+    // Set the trailing bytes to zeros.
+    // After over writing the delete line with high lines, there are the original bytes still at the end.
+    for (int i = iFileBytes - totalDelete - 1; i < iFileBytes; i++) {
+      MWRITE(i, 0);
+    }
   }
   Serial.println(F("<--(End of array)"));
   Serial.println();
 }
 /*
 CARD ED ?- l
-+ Print memory to a screen, number of bytes: 64
++ Print memory to a screen, number of bytes: 57
 001: Hello there,
 002: Line 2: 1, 2, 3.
 003: Last line.
 004: 
-005: abc...
-006: def<--(End of array)
+005: abc...<--(End of array)
 
-CARD ED ?- d 5
-+ Delete line #5.
-+ Delete line from memory #5.
-001: Hello there,
+CARD ED ?- d 4
++ Delete line #4.
++ Delete line from memory #4.
+004: Hello there,
 002: Line 2: 1, 2, 3.
 003: Last line.
-004: 
-005: (Start delete of this line)abc...(end delete this line)
-006: def<--(End of array)
+(Start delete of this line)004: (end delete this line)
+005: abc...<--(End of array)
 
 CARD ED ?- l
-+ Print memory to a screen, number of bytes: 51
++ Print memory to a screen, number of bytes: 54
 001: Hello there,
 002: Line 2: 1, 2, 3.
-003: Last line.
-004: defc<--(End of array)
+003: Last line.abc...<--(End of array)
 
- */
+*/
 // -----------------------------------------------------------------------------
 void editAddLine(String theLine) {
   iFileBytes = getMemoryByteCount();
