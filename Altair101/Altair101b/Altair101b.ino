@@ -30,7 +30,7 @@
   ---------------------------------------------------------
   Next to work on
 
-  After writing to an SD card file, turn HLDA light off.
+  Test HLDA light on/off for writing/reading to an SD card file.
 
   Add hardware to display values:
   + Player song.
@@ -1958,6 +1958,7 @@ void processWaitSwitch(byte readByte) {
           programState = SERIAL_DOWNLOAD;
           return;
         }
+        host_set_status_led_HLDA();
         Serial.print(F("++ Program filename: "));
         Serial.println(theFilename);
         Serial.println(F("++ Confirm, y/n: "));
@@ -1970,6 +1971,7 @@ void processWaitSwitch(byte readByte) {
         }
         if (readConfirmByte != 'y') {
           Serial.println(F("+ Cancelled."));
+          host_clr_status_led_HLDA();
           break;
         }
         Serial.println(F("+ Confirmed."));
@@ -1995,11 +1997,13 @@ void processWaitSwitch(byte readByte) {
       {
         Serial.println(F("+ Write program Memory into a file."));
 #ifdef SETUP_SDCARD
+        host_set_status_led_HLDA();
         String senseSwitchValue = getSenseSwitchValue();
         theFilename = senseSwitchValue + ".bin";
         if (theFilename == "11111111.bin") {
           Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
           ledFlashError();
+          host_clr_status_led_HLDA();
           return;
         }
         Serial.print(F("++ Write filename: "));
@@ -2014,11 +2018,11 @@ void processWaitSwitch(byte readByte) {
         }
         if (readConfirmByte != 'y') {
           Serial.println(F("+ Cancelled."));
+          host_clr_status_led_HLDA();
           break;
         }
         Serial.println(F("+ Confirmed."));
         // -------------------------------------------------------
-        host_set_status_led_HLDA();
         writeMemoryToFile(theFilename);
         host_clr_status_led_HLDA();
         printFrontPanel();

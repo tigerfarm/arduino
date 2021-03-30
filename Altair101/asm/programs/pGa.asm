@@ -206,7 +206,7 @@ UMSGSSS:	DB	'  space stations'
                 ; 6            *            TORPEDOES 10
                 ; 7                         SHIELDS   0000
                 ;
-MSG123:	DB	CR,LF
+UMSG123:	DB	CR,LF
   	DB	' -1--2--3--4--5--6--7--8-'
   	DB	0
 MSGSTDT:
@@ -216,27 +216,27 @@ MSGSTDT1:
 MSGSTDT2:
 	DB	'                        '
   	DB	0
-MSGSTDT3:
+UMSGSTDT3:
   	DB	' STARDATE  300'
-MSGSDP:	DB	'0'
+UMSGSDP:	DB	'0'
   	DB	0
-MSGCND:	DB	' CONDITION '
-MSGGRN:	DB	'GREEN'
+UMSGCND:	DB	' CONDITION '
+UMSGGRN:	DB	'GREEN'
   	DB	0
-MSGQAD:	DB	' SECTOR    '
-MSGPQD:	DB	'   '
+UMSGQAD:	DB	' SECTOR    '
+UMSGPQD:	DB	'   '
   	DB	0
-MSGSCT:	DB	' QUADRANT  '
-MSGSC1:	DB	'   '
+UMSGSCT:	DB	' QUADRANT  '
+UMSGSC1:	DB	'   '
   	DB	0
-MSGENR:	DB	' ENERGY       '
-MSGENP:	DB	' '
+UMSGENR:	DB	' ENERGY       '
+UMSGENP:	DB	' '
   	DB	0
-MSGTRP:	DB	' TORPEDOES  '
-MSGTPP:	DB	' '
+UMSGTRP:	DB	' TORPEDOES  '
+UMSGTPP:	DB	' '
   	DB	0
-MSGSHD:	DB	' SHIELDS      '
-MSGSHP:	DB	' '
+UMSGSHD:	DB	' SHIELDS      '
+UMSGSHP:	DB	' '
   	DB	0
                 ; ----------------------------------------------------------------
 UMSGCMD:	DB	CR,LF
@@ -393,13 +393,13 @@ LGAME:
         sta     ASHIPSL
 ; ------------------------------------------------------------------------------
 ; Setup a new game of TIE fighters, rebel bases, and stars.
+;   Then start the game by getting and executing the captain's commands.
 ;
 STARTGAME:
         LXI     H,MSPREP        ; Prepare for a new game.
         CALL    MSG
         CALL    SETUPGAME
         call    SCRCLR          ; Clear the entire screen.
-        call    SCRPRN          ; Print sector scan map.
         jmp     CMND            ; Go to command options and play the game.
                                 ;
 ; ------------------------------------------------------------------------------
@@ -534,12 +534,6 @@ GLXCK1:
 ; 8                  x!x   
 ;  -1--2--3--4--5--6--7--8-
                                 ;
-SCRCLP:
-        call    SCRCLR          ; Clear the entire screen, clear from home location (top left).
-SCRPCMD:
-        call    SCRPRN          ; Print sector scan map.
-        jmp     CMND            ; Go to command options.
-                                ;
 SCRPRN:
         CALL    SCRHOM          ; Move the cursor to screen location home, the top left of the screen.
                                 ; --------------------
@@ -583,8 +577,8 @@ SCRPRN:
 	MVI	M,'E'
 	INR	L
 	MVI	M,'N'
-	INR	L
-	MVI	M,0
+	;INR	L
+	;MVI	M,0
 	JMP	CND
 RED:
 	MVI	M,'R'		;Condition "RED"
@@ -596,8 +590,8 @@ RED:
 	MVI	M,' '           ; Remove "EN" of "GREEN".
 	INR	L
 	MVI	M,' '
-	INR	L
-	MVI	M,0
+	;INR	L
+	;MVI	M,0
 CND:
 	LXI	H,MSGCND        ; Print condition message
 	CALL	MSG
@@ -606,18 +600,22 @@ CND:
         MVI     C,3             ; Set row number 3
         CALL    ROWSET          ; Set up row for printout
                                 ;
-	CALL	QUAD		;Print current quadrant
+        CALL    SECQUAD         ; Print current quadrant location in the SECTOR (example "4 4").
                                 ; --------------------
                                 ; 4                      *  QUADRANT  8 7
         MVI     C,4             ; Set row number 4
         CALL    ROWSET          ; Set up row for printout
                                 ;
-	MVI	L,043H		;Pointer to current sector
-	MVI	E,0E3H		;Set digit storage
-	INR	D
-	CALL	TWO		;Put two digits in message
-	MVI	L,0D8H		;Set pointer to sector message
-	CALL	MSG		;Print sector message
+        MVI     L,043H          ; Pointer to current sector location value.
+        MVI     E,0E3H          ; Set digit storage. Is hard coded to the old address.
+        ;LXI     E,MSGSC1        ; Set to the QUADRANT message digit storage address. Stacy, need to get the address.
+                                ; lxid :00010001:|byte 3 -> D, byte 2 -> E (hb->D,lb->E)
+        INR     D
+        CALL    TWO             ;Put two digits in message
+                                ;
+	;MVI	L,0D8H		; Print quadrant location message
+        LXI     H,MSGSCT        ; Print quadrant location message
+        CALL    MSG
                                 ; --------------------
                                 ; 5                      *  ENERGY    2847
         MVI     C,5             ; Set row number 5
@@ -670,10 +668,10 @@ CND:
                                 ; ------------------------------------------------
                                 ; Calculate and create each sector scan map row.
 ROWSET:
-        LXI     H,MSGSTDT2	;Pointer to row message
+        LXI     H,MSGSTDT2      ; Pointer to row message
 RCLR:
-        MVI     M,' '		; Store a space character
-        INR     L		; Advance message pointer
+        MVI     M,' '           ; Store a space character
+        INR     L               ; Advance message pointer
         MVI     A,0A7H
         CMP     L               ; Message cleared?
         JNZ     RCLR            ; No, continue clearing
@@ -684,7 +682,7 @@ RCLR:
 	MOV     M,A             ; Store row number in message
 	DCR     C               ; Set row number for check out
                                 ;
-        LXI     H,0043H         ; Set pointer to location table
+        LXI     H,43H         ; Set pointer to location table (43H = 67 decimal)
                                 ;
         CALL    RWPNT           ; Fetch space ship location
         JNZ     STR             ; In this row? No
@@ -694,7 +692,7 @@ RCLR:
         INR     L
         MVI     M,'x'           ; 'x' 01111000
 STR:
-	MVI	L,044H		;Set pointer to star table
+	MVI	L,44H		;Set pointer to star table
 STR1:
 	MVI	H,000
 	CALL	RWPNT		;Fetch star location
@@ -704,10 +702,10 @@ STR1:
 	MOV	L,E		;Set pointer to star table
 NXSTR:
 	INR	L		;Advance star table pointer
-	MVI	A,04BH		;End of table?
+	MVI	A,4BH		;End of table?
 	CMP	L
 	JNZ	STR1		;No, check next star
-	MVI	H,000		;Restore page pointer
+	MVI	H,0		;Restore page pointer
 	CALL	RWPNT		;Fetch S.S. location
 	JNZ	AS		;S.S. here? No, try A.S.
 	MVI	M,'>'		;Store space station code
@@ -718,7 +716,7 @@ NXSTR:
 AS:
 	MVI	L,04CH		;Pointer to A.S. table
 AS1:
-	MVI	H,000
+	MVI	H,0
 	CALL	RWPNT		;Fetch A.S. location
 	JNZ	NXAS		;A.S. here? No, try next
 	MVI	M,'|'		;Yes, store alien ship design: |o| or [^].
@@ -729,14 +727,13 @@ AS1:
 	MOV	L,E		;Fetch A.S. table pointer
 NXAS:		
 	INR	L		;Advance A.S. pointer
-	MVI	A,04FH		;End of table
+	MVI	A,4FH		;End of table
 	CMP	L
 	JNZ	AS1		;No, try next A.S. location
 	LXI	H,MSGSTDT	;Set up to Print short range scan line
 	JMP	CMSG		;Print and return
                                 ;
                                 ; ----------------------------------------------
-                                ;
 RWPNT:
 	MOV	A,M		;Fetch entry location
 	ANA	A		;Anything here?
@@ -750,15 +747,15 @@ RWPNT:
 	MOV	B,A		;Save column
 	RLC			;Multiply by two
 	ADD	B		;Form pointer to row message
-	ADI	08FH
+	ADI	8FH
 	MOV	E,L		;Save table pointer
 	MOV	L,A		;Set pointer to row message
-	MVI	H,001H
+	MVI	H,1
 	XRA	A		;Set Zero flag
 	ANA	A
 	RET			;Return with 'Z' flag set
-QUAD:
-	LXI	H,0059H		;Pointer to quadrant location
+SECQUAD:
+	LXI	H,59H		;Pointer to quadrant location
 	LXI	D,MSGPQD        ;Pointer to quadrant message
 	CALL	TWO		;Put two digits in message
 	LXI	H,MSGQAD        ;Pointer to quadrant message
@@ -769,7 +766,7 @@ TWO:
 	XCHG			;Set pointer to message
 T1:
 	CALL	ROTR3		;Position row number
-	ANI	007		;Mask off other bits
+	ANI	7		;Mask off other bits
 	ADI	'1'		;Form ASCII digit
 	MOV	M,A		;Save ASCII code in message
 	MOV	A,B		;Fetch column number
@@ -777,16 +774,16 @@ T1:
 	ADI	'1'		;Form ASCII digit
 	INX	H		;Advance message pointer
 	INX	H
-	MOV	M,A		;Store digit in message
-	RET			;Return
+        MOV     M,A             ;Store digit in message
+        RET                     ;Return
                                 ;
-; ------------------------------------------------------------------------------
+                                ; ----------------------------------------------
 SSPLS:
-	MVI	E,0F7H		;Mask to delete space station
-	JMP	PLS		;Delete excess space station
+        MVI     E,F7H           ;Mask to delete space station
+        JMP     PLS             ;Delete excess space station
 SSMNS:
-	MVI	E,STNMSK	;Mask to add space station
-	JMP	MNS		;Add a space station
+        MVI     E,STNMSK        ;Mask to add space station
+        JMP     MNS             ;Add a space station
                                 ;
                                 ; --------------------------
 ASPLS:                          ; Delete alien ship
@@ -816,7 +813,10 @@ MNS:
                                 ; Command Menu options
 ; ------------------------------------------------------------------------------
                                 ;
+CLRCMD:
+        call    SCRCLR          ; Clear the entire screen, clear from home location (top left).
 CMND:
+        call    SCRPRN          ; Print sector scan map.
 	MVI	H,000
 	LXI	SP,STACK        ;Reset stack pointer
 	MVI	E,10		;Delete 10 units of energy for each command
@@ -843,7 +843,7 @@ CMD:
 	CPI	'0'		; Ship movement, input course.
 	JZ	CRSE
 	CPI	'1'		; Print short range scan
-	JZ	SCRCLPR
+	JZ	CLRCMD1
 	CPI	'2'		; Print long range scan
 	JZ	LRSCN
 	CPI	'3'		; Print Galaxy printout?
@@ -867,7 +867,7 @@ CMD:
 	CPI	'g'		; Print Game statistics.
 	JZ	GSTATS
 	CPI	CR		; Clear screen and reprint sector.
-	JZ      SCRCLPR
+	JZ      CLRCMD1
                                 ;
 	JMP	CMD		;Try again
                                 ;
@@ -881,15 +881,15 @@ HELPM:
 HELPD:  LXI	H,MSGDIR	; Help message directions
 	CALL	MSG
 	JMP	CMD
-SCRCLPR:
-        JMP      SCRCLP         ; Clear the screen, reprint the sector, and jump to CMD.
+CLRCMD1:
+        JMP      CLRCMD         ; Clear the screen and get next command.
                                 ;
 ; ------------------------------------------------------------------------------
                                 ; Print long range scan
 LRSCN:
 	LXI	H,MSGLRS        ;Set pntr to long range message
 	CALL	MSG		;Print long range scan
-	CALL	QUAD		;Print quadrant location
+	CALL	SECQUAD		;Print quadrant location
 	CALL	NTN		;Print row of dashes
 	MVI	L,059H		;Pointer to current quadrant
 	MOV	A,M		;Fetch current quadrant
@@ -1115,7 +1115,7 @@ NOX:
 	CALL	MATCH		;Last move a collision?
 	CZ	CHNG		;Yes, change object location
 	CALL	DKED		;Check for docking
-        jmp     SCRPCMD         ; Print short range scan, then go to command options.
+        jmp     CMND             ; Go to command options.
 SSOUT:
 	ANA	A		;Initial quadrant?
 	JNZ	MVDN		;No, no loss
@@ -1262,6 +1262,7 @@ HIT:
         CALL    MSG
         call    SCRPRN          ; Print the sector scan map without the destroyed ship.
         JMP     CMND            ; Go to input and process a new command.
+                                ; Stacy, the ship destroyed message, is being cleared to early.
                                 ;
                                 ; ------------------------------------------------
                                 ;
@@ -2383,18 +2384,29 @@ ASHIPSH: DB     3               ; Number alien ships is less than this number.
 ASHIPSL: DB     1               ; Number alien ships is greater than this number.
                                 ; Original was the hard coded values: 32 and 10.
                                 ;
-                ; ----------------------------------------------------------------
-                ; Sector scan display messages. For example:
-                ;  -1--2--3--4--5--6--7--8-
-                ; 1                         STARDATE  3036
-                ; 2                   *     CONDITION GREEN
-                ; 3                         SECTOR    3 8
-                ; 4      x!x                QUADRANT  4 3
-                ; 5                         ENERGY    2932
-                ; 6            *            TORPEDOES 10
-                ; 7                         SHIELDS   0000
-                ;
-xMSG123:	DB	CR,LF
+; --------------------------------------------------------------------------------
+                                ; Sector scan display messages. For example:
+                                ;  -1--2--3--4--5--6--7--8-
+                                ; 1                         STARDATE  3036
+                                ; 2                   *     CONDITION GREEN
+                                ; 3                         SECTOR    3 8
+                                ; 4      x!x                QUADRANT  4 3
+                                ; 5                         ENERGY    2932
+                                ; 6            *            TORPEDOES 10
+                                ; 7                         SHIELDS   0000
+                                ;
+                                ;  -1--2--3--4--5--6--7--8-
+                                ; 1 *                       STARDATE  3045    Directions
+                                ; 2    *                    CONDITION GREEN       3
+                                ; 3                *        SECTOR    7 5       4 | 2
+                                ; 4          *              QUADRANT  6 8     5 - + - 1
+                                ; 5             *           ENERGY    2437      6 | 8
+                                ; 6|o|                  x!x TORPEDOES 09          7
+                                ; 7                         SHIELDS   0000    
+                                ; 8             *          
+                                ;  -1--2--3--4--5--6--7--8-
+                                ;
+MSG123:	DB	CR,LF
   	DB	' -1--2--3--4--5--6--7--8-'
   	DB	0
 xMSGSTDT:
@@ -2404,30 +2416,36 @@ xMSGSTDT1:
 xMSGSTDT2:
 	DB	'                        '
   	DB	0
-xMSGSTDT3:
+MSGSTDT3:
   	DB	' STARDATE  300'
-xMSGSDP:	DB	'0'
+MSGSDP:	DB	'0'
+        DB      '       Directions'
   	DB	0
-xMSGCND:	DB	' CONDITION '
-xMSGGRN:	DB	'GREEN'
+MSGCND:	DB	' CONDITION '
+MSGGRN:	DB	'GREEN'
+        DB      '          3'
   	DB	0
-xMSGQAD:	DB	' SECTOR    '
-xMSGPQD:	DB	'   '
+MSGQAD: DB      ' SECTOR    '
+MSGPQD: DB      '   '
+        DB      '          4 | 2'
   	DB	0
-xMSGSCT:	DB	' QUADRANT  '
-xMSGSC1:	DB	'   '
+MSGSCT:	DB	' QUADRANT  '
+MSGSC1: DB      '   '
+        DB      '   5 - + - 1'
   	DB	0
-xMSGENR:	DB	' ENERGY       '
-xMSGENP:	DB	' '
+MSGENR:	DB	' ENERGY       '
+MSGENP:	DB	' '
+        DB      '         6 | 8'
   	DB	0
-xMSGTRP:	DB	' TORPEDOES  '
-xMSGTPP:	DB	' '
+MSGTRP:	DB	' TORPEDOES  '
+MSGTPP:	DB	' '
+        DB      '             7'
   	DB	0
-xMSGSHD:	DB	' SHIELDS      '
-xMSGSHP:	DB	' '
+MSGSHD:	DB	' SHIELDS      '
+MSGSHP:	DB	' '
   	DB	0
-                ; ----------------------------------------------------------------
-                                ; ------------------------------------------------
+                                            ;
+; --------------------------------------------------------------------------------
 MSGTST  DB      '\r\n\r\n+ TEST...\r\n'
 SCRCLH  DB      27,'[','H'                  ; Move to screen home location, top left: Esc[H.
         DB      27,'[','J'                  ; Clear screen from cursor position and down.
@@ -2458,6 +2476,7 @@ SCRC12  DB      27,'[','H'                  ; Move to screen top left: Esc[H.
                 call PRINT
                 mvi a,'H'
                 call PRINT
+                ret
     SCRCLR:
                 mvi a,esc               ; Esc[H
                 call PRINT
@@ -2594,7 +2613,7 @@ TIE fighter destroyed.
 
  -1--2--3--4--5--6--7--8-
 1 *                       STARDATE  3045
-2    *                    CONDITION REDEN
+2    *                    CONDITION RED
 3                *        SECTOR    7 5
 4          *              QUADRANT  6 8
 5             *           ENERGY    2437

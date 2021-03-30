@@ -22,8 +22,8 @@
     CARD ED ?- i 9 Hello there.
 
   + To fix, print if only 1 byte.
-CARD ?- + File: ABYTE.BIN, number of bytes: 1, number of bytes read: 1
-CARD ?- + Nothing to print. Memory bytes are all zero.
+  CARD ?- + File: ABYTE.BIN, number of bytes: 1, number of bytes read: 1
+  CARD ?- + Nothing to print. Memory bytes are all zero.
 
   Handle this in Altair101.
   + Allow manual update of single byte files.
@@ -70,15 +70,17 @@ CARD ?- + Nothing to print. Memory bytes are all zero.
 
 String sdCardPrompt = "CARD ?- ";
 String sdCardGetFilenamePrompt = "CARD FN ?- ";
-String sdCardEditPrompt = "CARD ED ?- ";
+String sdCardEditFilePrompt = "CARD ED ?- ";
 String theCardPrompt = sdCardPrompt;           // Default.
 extern int programState;
 
-// Clock internal status, internatl to this program.
+// Status internal to this program.
 #define THIS_RUN 1
 #define THIS_GET 2
 #define THIS_EDIT 3
 int thisState = THIS_RUN;
+
+byte readConfirmByte;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -365,71 +367,6 @@ void sdListDirectory() {
 }
 
 // -----------------------------------------------------------------------------
-String getEditCommand() {
-  theCardPrompt = sdCardEditPrompt;
-  Serial.print(theCardPrompt);
-  //
-  // Initialize the input string and character buffer to empty.
-  String thisLine = "";
-  int theBufferMaxLength = 80;            // Max line input length.
-  char theBuffer[81];
-  for (int i = 0; i < theBufferMaxLength; i++ ) {
-    theBuffer[i] = ' ';                     // Set to empty, all blanks.
-  }
-  thisState = THIS_GET;
-  int iBuffer = 0;
-  while (thisState == THIS_GET) {
-    if (Serial.available() > 0) {
-      int readByte = Serial.read();         // Read and process an incoming byte.
-      switch (readByte) {
-        // -----------------------------------
-        case 10:                            // CR or LF
-        case 13:
-          thisState = THIS_RUN;
-          break;
-        case 127:                           // Backspace
-          if (iBuffer > 0) {
-            Serial.print(F("\033[1D"));     // Esc[ValueD : Move the cursor left Value number of spaces.
-            Serial.print(F(" "));           // Print a space to remove the previous character.
-            Serial.print(F("\033[1D"));     // Move the cursor back the the removed character space.
-            iBuffer--;
-            theBuffer[iBuffer] = ' ';
-          }
-          break;
-        default:
-          if (readByte >= 'a' && readByte <= 'z') {
-            readByte = readByte - 32;     // Convert from lowercase to uppercase, as all filenames are in uppercase.
-          }
-          if ( (iBuffer < theBufferMaxLength) && (readByte >= 32 && readByte <= 126) ) {
-            // Printable characters: 32(' ') to 126('~').
-            Serial.write(readByte);
-            theBuffer[iBuffer] = readByte;
-            iBuffer++;
-          } // else ignore the character.
-      }
-    }
-    delay(60);  // Delay before getting the next key press, in case press and hold too long.
-  }
-  if (iBuffer > 0) {
-    thisLine = String(theBuffer);
-    thisLine.trim();  // Needs to be on its own line.
-    Serial.println();
-    Serial.print(F("++ Buffer :"));
-    // for (int i = 0; i < iBuffer; i++ ) {
-    //   Serial.write(theBuffer[i]);
-    // }
-    // Serial.print(F(":"));
-    Serial.print(thisLine);
-    Serial.print(F(":"));
-    /*
-    */
-  }
-  theCardPrompt = sdCardPrompt;
-  Serial.println();
-  return thisLine;
-}
-
-// -----------------------------------------------------------------------------
 void getFilename() {
   theCardPrompt = sdCardGetFilenamePrompt;
   Serial.print(theCardPrompt);
@@ -491,11 +428,146 @@ void getFilename() {
   Serial.println();
 }
 
+// -----------------------------------------------------------------------------
+String getEditCommandline() {
+  // Initialize the input string and character buffer to empty.
+  String thisLine = "";
+  int theBufferMaxLength = 80;            // Max line input length.
+  char theBuffer[81];
+  for (int i = 0; i < theBufferMaxLength; i++ ) {
+    theBuffer[i] = ' ';                     // Set to empty, all blanks.
+  }
+  thisState = THIS_GET;
+  int iBuffer = 0;
+  Serial.print(theCardPrompt);
+  while (thisState == THIS_GET) {
+    if (Serial.available() > 0) {
+      int readByte = Serial.read();         // Read and process an incoming byte.
+      switch (readByte) {
+        // -----------------------------------
+        case 10:                            // CR or LF
+        case 13:
+          thisState = THIS_EDIT;
+          break;
+        case 127:                           // Backspace
+          if (iBuffer > 0) {
+            Serial.print(F("\033[1D"));     // Esc[ValueD : Move the cursor left Value number of spaces.
+            Serial.print(F(" "));           // Print a space to remove the previous character.
+            Serial.print(F("\033[1D"));     // Move the cursor back the the removed character space.
+            iBuffer--;
+            theBuffer[iBuffer] = ' ';
+          }
+          break;
+        case 12:
+          // Ctrl+L, clear screen.
+          Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
+          thisState = THIS_EDIT;
+        default:
+          if ( (iBuffer < theBufferMaxLength) && (readByte >= 32 && readByte <= 126) ) {
+            // Printable characters: 32(' ') to 126('~').
+            Serial.write(readByte);
+            theBuffer[iBuffer] = readByte;
+            iBuffer++;
+          } // else ignore the character.
+      }
+    }
+    delay(60);  // Delay before getting the next key press, in case press and hold too long.
+  }
+  if (iBuffer > 0) {
+    thisLine = "";
+    for (int i = 0; i < iBuffer; i++ ) {
+      // Serial.write(theBuffer[i]);
+      thisLine = thisLine + String(theBuffer[i]);
+    }
+  }
+  Serial.println();
+  return thisLine;
+}
+
+// -----------------------------------------------------------------------------
+void editFile() {
+  theCardPrompt = sdCardEditFilePrompt;
+  thisState = THIS_EDIT;
+  String theCommand = "Start";
+  String aString;
+  boolean editChange = false;
+  while (theCommand != "X") {
+    theCommand = getEditCommandline();
+    if (theCommand == "s") {
+      // Save the changes.
+      Serial.print(F("+ Confirm save, y/n: "));
+      readConfirmByte = 's';
+      while (!(readConfirmByte == 'y' || readConfirmByte == 'n')) {
+        if (Serial.available() > 0) {
+          readConfirmByte = Serial.read();    // Read and process an incoming byte.
+        }
+        delay(60);
+      }
+      if (readConfirmByte != 'y') {
+        Serial.println(F("+ Save cancelled."));
+      } else {
+        Serial.println(F("+ Save confirmed."));
+      }
+    } else if (theCommand.startsWith("a ")) {
+      // "CARD ED ?- a  abc  "
+      // "+ Add to end of the file : abc  :"
+      Serial.print(F("+ Add to end of the file :"));
+      if (theCommand.length() > 1) {
+        Serial.print(theCommand.substring(2));
+      }
+      Serial.println(F(":"));
+    } else if (theCommand.startsWith("d ")) {
+      // "CARD ED ?- d   123  "
+      // "+ Delete line #123."
+      Serial.print(F("+ Delete line #"));
+      if (theCommand.length() > 1) {
+        aString = theCommand.substring(2);
+        aString.trim();
+        Serial.print(aString);
+      }
+      Serial.println(F("."));
+    } else if (theCommand == "i") {
+      Serial.println(F("+ Insert."));
+    } else if (theCommand == "l") {
+      printMemoryToScreen();
+    } else if (theCommand == "h") {
+      Serial.println(F("----------------------------------------------------"));
+      Serial.println(F("+++ SD Card File Editor Commands"));
+      Serial.println(F("------------------"));
+      Serial.println(F("+ a <string>         Add the string to the end of the file."));
+      Serial.println(F("+ d <line#>          Delete line number."));
+      Serial.println(F("+ i <line#> <string> Insert string at line number location."));
+      Serial.println(F("+ l, List            List the edited file version."));
+      Serial.println(F("+ s, Save            Save edited file version."));
+      Serial.println(F("------------------"));
+      Serial.println(F("+ Ctrl+L          Clear screen."));
+      Serial.println(F("+ X, Exit         Return to program WAIT mode."));
+      Serial.println(F("----------------------------------------------------"));
+    } else if (theCommand == "X") {
+      // Exit the editor.
+      Serial.print(F("+ Confirm exit, y/n: "));
+      readConfirmByte = 's';
+      while (!(readConfirmByte == 'y' || readConfirmByte == 'n')) {
+        if (Serial.available() > 0) {
+          readConfirmByte = Serial.read();    // Read and process an incoming byte.
+        }
+        delay(60);
+      }
+      if (readConfirmByte != 'y') {
+        Serial.println(F("+ Exit cancelled."));
+        theCommand = "Continue";
+      } else {
+        Serial.println(F("+ Exit confirmed."));
+      }
+    }
+  }
+  theCardPrompt = sdCardPrompt;
+  Serial.println();
+}
+
 // -----------------------------------------------------------------------
 // -----------------------------------------------------------------------
 // SD Card Controls
-
-byte readConfirmByte;
 
 void sdCardSwitch(int resultsValue) {
   boolean printPrompt = true;
@@ -557,7 +629,7 @@ void sdCardSwitch(int resultsValue) {
       Serial.println();
       break;
     case 'r':
-      if (!readFileToMemory(thisFilename)){
+      if (!readFileToMemory(thisFilename)) {
         Serial.println(F("- Read ERROR."));
       }
       break;
@@ -612,6 +684,10 @@ void sdCardSwitch(int resultsValue) {
     case 'W':
       writeFileByte("aByte.bin", 'b');
       break;
+    case 'e':
+      Serial.println(F("+ Edit file."));
+      editFile();
+      break;
     // ----------------------------------------------------------------------
     case 'h':
       Serial.print(F("+ h, Print help information."));
@@ -627,6 +703,7 @@ void sdCardSwitch(int resultsValue) {
       Serial.println(F("+ r, Read file      Read the file into memory."));
       Serial.println(F("+ p, Print memory   Print memory to screen."));
       Serial.println(F("+ w, Write file     Write memory array to file."));
+      Serial.println(F("+ e, Edit           Edit file memory."));
       Serial.println(F("+ d, Delete         Delete the file from the SD card."));
       Serial.println(F("+ R/W, Read/Write   A byte from/to a file."));
       Serial.println(F("------------------"));
