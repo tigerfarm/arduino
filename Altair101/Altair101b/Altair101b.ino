@@ -2425,10 +2425,13 @@ void loop() {
       break;
     // ----------------------------
     case SDCARD_RUN:
-      host_clr_status_led_WAIT();
       host_set_status_led_HLDA();
+      host_clr_status_led_WAIT();
+      //
       sdCardRun();
+      //
       host_clr_status_led_HLDA();
+      host_set_status_led_WAIT();
       if (VIRTUAL_FRONT_PANEL) {
         initVirtualFrontPanel();
         printVirtualFrontPanel();
@@ -2448,6 +2451,7 @@ void loop() {
       //
       // Restore processor front panel values.
       host_clr_status_led_HLDA();
+      host_set_status_led_WAIT();
       fpStatusByte = tmp_fpStatusByte;
       fpAddressWord = tmp_fpAddressWord;
       fpDataByte = tmp_fpDataByte;
@@ -2470,6 +2474,7 @@ void loop() {
       //
       // Restore processor front panel values.
       host_clr_status_led_HLDA();
+      host_set_status_led_WAIT();
       fpStatusByte = tmp_fpStatusByte;
       fpAddressWord = tmp_fpAddressWord;
       fpDataByte = tmp_fpDataByte;
