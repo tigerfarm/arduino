@@ -828,9 +828,12 @@ void playerSwitch(int resultsValue) {
     case 0xDD8E75F:                         // After pressing TV
     case 0xFF4AB5:                          // Small remote key down.
     case 'd':
-      Serial.print("+ Key down - previous directory, directory number: ");
       if (playerDirectory > 1) {
+        Serial.print("+ Key down - previous directory, directory number: ");
         playerDirectory --;
+      } else {
+        Serial.print("+ Key down - previous directory. Already at the first directory.");
+        break;
       }
       Serial.print(playerDirectory);
       mp3playerDevice.pause();

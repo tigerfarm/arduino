@@ -498,20 +498,20 @@ void editDeleteLine(int deleteLineNumber) {
 }
 
 // -----------------------------------------------------------------------------
-void editAddString(String theLine) {
-  iFileBytes = getMemoryByteCount();
-  int numOfBytes = theLine.length();
+void putString(String theString, int theOffset) {
+  int numOfBytes = theString.length();
   if (numOfBytes < 1) {
     Serial.println(F("+ Nothing to add."));
     return;
   }
   // -----------------------------------
-  // Need to check the
+  // Add the string into the offset location.
   boolean backslash = false;
   iFileBytes++;
+  int addLocation = 0;
   for (int i = 0; i < numOfBytes; i++ ) {
     // Read and process one character at a time.
-    byte memoryData = theLine[i];
+    byte memoryData = theString[i];
     if (memoryData == '\\') {
       backslash = true;
       // backslash is never printed.
@@ -519,17 +519,103 @@ void editAddString(String theLine) {
       backslash = false;
       // Handle newline character.
       iFileBytes++;
-      MWRITE(iFileBytes + i, 10);   // Add a newline character.
+      MWRITE(theOffset + addLocation, 10);   // Add a newline character.
+      addLocation ++;
     } else {
       backslash = false;
-      MWRITE(iFileBytes + i, memoryData);
+      MWRITE(theOffset + addLocation, memoryData);
       iFileBytes++;
+      addLocation ++;
     }
   }
+}
+
+void editAddString(String theString) {
+  iFileBytes = getMemoryByteCount();
+  putString(theString, iFileBytes);
   Serial.print(F("+ Added string to memory :"));
-  Serial.print(theLine);
+  Serial.print(theString);
   Serial.println(":");
 }
+
+// -----------------------------------------------------------------------------
+void editInsertString(String theLine) {
+  iFileBytes = getMemoryByteCount();
+  int numOfBytes = theLine.length();
+  if (numOfBytes < 1) {
+    Serial.println(F("- Nothing to Insert."));
+    return;
+  }
+  // "3 abc"
+  int sStart = theLine.indexOf(" ");
+  if (sStart < 1) {
+    Serial.println(F("- No line number to insert into."));
+    return;
+  }
+  int insertLineNumber = theLine.substring(0, sStart).toInt();
+  if (theLine.length() <= sStart) {
+    Serial.println(F("- No string to insert."));
+    return;
+  }
+  String theString = theLine.substring(sStart + 1);
+  //
+  // Get the memory starting position of the place to insert the string.
+  int insertLocation = 0;
+  int lineCounter = 1;
+  int mAddress = 0;
+  byte memoryData = MREAD(mAddress);
+  while (lineCounter != insertLineNumber && mAddress < iFileBytes) {
+    memoryData = MREAD(mAddress);
+    if (memoryData == 10) {
+      lineCounter++;
+      if (lineCounter == insertLineNumber) {
+        insertLocation = mAddress + 1; // Add one for the LF character.
+        // Serial.print(F(", memory location to insert = "));
+        // Serial.println(insertLocation);
+        break;
+      }
+    }
+    mAddress++;
+  }
+  if (mAddress >= iFileBytes) {
+    Serial.print(F("- Line number too high. Max memory line number: "));
+    Serial.println(lineCounter);
+    return;
+  }
+  // If line# is max + 1, I could add.
+  // CARD ED ?- i 10 ok
+  // - Line number too high. Max memory line number: 9
+  int stringLength = theString.length();
+  int theStringLength = stringLength;
+  for (int i = 0; i < stringLength - 1; i++) {
+    if (theString[i] == '\\') {
+      theStringLength--;  // The 2 charactes, "\n", are replaced by only 1 character.
+    }
+  }
+  // Serial.print(F("+ Shift the bytes to open up the place to insert the string."));
+  for (int i = iFileBytes; i > insertLocation - 1; i--) {
+    byte memoryData = MREAD(i);
+    MWRITE(i + theStringLength, memoryData);
+  }
+  // Serial.println(F("+ Insert the string."));
+  putString(theString, insertLocation);
+  Serial.print(F("+ Inserted into line #"));
+  Serial.print(insertLineNumber);
+  Serial.print(F(", at location: "));
+  Serial.print(insertLocation);
+  Serial.print(F(", string :"));
+  Serial.print(theString);
+  Serial.print(F(":"));
+  Serial.println();
+}
+/*
+  003: defLast line.
+
+  CARD ED ?- i 3 xy\n
+
+  003: xyf
+  004: efLast line.
+*/
 
 // -----------------------------------------------------------------------------
 String getEditCommandline() {
@@ -551,6 +637,7 @@ String getEditCommandline() {
           || readByte == 'l'
           || readByte == 'w'
           || readByte == 'X' ) {
+        // Immediately return to process the command. No need for a LF.
         theBuffer[0] = readByte;
         iBuffer++;
         thisState = THIS_EDIT;
@@ -623,7 +710,11 @@ void editFile() {
       }
     } else if (theCommand.startsWith("a ")) {
       // Add string.
-      editAddString(theCommand.substring(2));
+      //  12345
+      // "a abc"
+      if (theCommand.length() > 2) {
+        editAddString(theCommand.substring(2));
+      }
     } else if (theCommand.startsWith("d ")) {
       // Delete line #.
       if (theCommand.length() > 1) {
@@ -631,8 +722,13 @@ void editFile() {
         aString.trim();
       }
       editDeleteLine(aString.toInt());
-    } else if (theCommand == "i") {
-      Serial.println(F("+ Insert, not implemented."));
+    } else if (theCommand.startsWith("i ")) {
+      // Insert string.
+      //  12345
+      // "i 3 abc"
+      if (theCommand.length() > 4) {
+        editInsertString(theCommand.substring(2));
+      }
     } else if (theCommand == "l") {
       listMemoryToScreen();
     } else if (theCommand == "h") {
@@ -642,7 +738,7 @@ void editFile() {
       Serial.println(F("------------------"));
       Serial.println(F("+ a <string>          Add the string to the end of the memory."));
       Serial.println(F("+ d <line#>           Delete line number."));
-      Serial.println(F("+ i <line#> <string>  Not implemented: Insert string at line number location."));
+      Serial.println(F("+ i <line#> <string>  Insert string at line number location."));
       Serial.println(F("+ l, List memory      List memory to screen."));
       Serial.println(F("+ w, Write            Write edited memory to file."));
       Serial.println(F("------------------"));

@@ -559,12 +559,6 @@ void editInsertString(String theLine) {
   }
   String theString = theLine.substring(sStart + 1);
   //
-  Serial.print(F("+ Insert string to line #"));
-  Serial.print(insertLineNumber);
-  Serial.print(F(" :"));
-  Serial.print(theString);
-  Serial.println(":");
-  //
   // Get the memory starting position of the place to insert the string.
   int insertLocation = 0;
   int lineCounter = 1;
@@ -574,53 +568,53 @@ void editInsertString(String theLine) {
     memoryData = MREAD(mAddress);
     if (memoryData == 10) {
       lineCounter++;
-      Serial.print(F("+ lineCounter = "));
-      Serial.print(lineCounter);
       if (lineCounter == insertLineNumber) {
-        insertLocation = mAddress+1;  // Add one for the LF character.
-        Serial.print(F(", memory location to insert = "));
-        Serial.println(insertLocation);
+        insertLocation = mAddress + 1; // Add one for the LF character.
+        // Serial.print(F(", memory location to insert = "));
+        // Serial.println(insertLocation);
         break;
       }
-      Serial.println();
     }
     mAddress++;
   }
-  if (lineCounter > insertLineNumber) {
+  if (mAddress >= iFileBytes) {
     Serial.print(F("- Line number too high. Max memory line number: "));
     Serial.println(lineCounter);
     return;
   }
+  // If line# is max + 1, I could add.
+  // CARD ED ?- i 10 ok
+  // - Line number too high. Max memory line number: 9
   int stringLength = theString.length();
   int theStringLength = stringLength;
-  for (int i = 0; i < stringLength-1; i++) {
+  for (int i = 0; i < stringLength - 1; i++) {
     if (theString[i] == '\\') {
-      theStringLength--;  // tThe 2 charactes, "\n", are replaced by only 1 character.
+      theStringLength--;  // The 2 charactes, "\n", are replaced by only 1 character.
     }
   }
-  Serial.print(F("+ theStringLength = "));
-  Serial.println(theStringLength);
-  Serial.print(F("+ Shift the bytes to open up the place to insert the string at location: "));
-  Serial.println(insertLocation);
-  for (int i = iFileBytes; i > insertLocation-1; i--) {
+  // Serial.print(F("+ Shift the bytes to open up the place to insert the string."));
+  for (int i = iFileBytes; i > insertLocation - 1; i--) {
     byte memoryData = MREAD(i);
     MWRITE(i + theStringLength, memoryData);
   }
-  Serial.println(F("+ Insert the string."));
+  // Serial.println(F("+ Insert the string."));
   putString(theString, insertLocation);
-  Serial.print(F("+ Inserted string to line #"));
+  Serial.print(F("+ Inserted into line #"));
   Serial.print(insertLineNumber);
-  Serial.print(F(" :"));
+  Serial.print(F(", at location: "));
+  Serial.print(insertLocation);
+  Serial.print(F(", string :"));
   Serial.print(theString);
-  Serial.println(":");
+  Serial.print(F(":"));
+  Serial.println();
 }
 /*
-003: defLast line.
+  003: defLast line.
 
-CARD ED ?- i 3 xy\n
+  CARD ED ?- i 3 xy\n
 
-003: xyf
-004: efLast line.
+  003: xyf
+  004: efLast line.
 */
 
 // -----------------------------------------------------------------------------
@@ -643,6 +637,7 @@ String getEditCommandline() {
           || readByte == 'l'
           || readByte == 'w'
           || readByte == 'X' ) {
+        // Immediately return to process the command. No need for a LF.
         theBuffer[0] = readByte;
         iBuffer++;
         thisState = THIS_EDIT;
@@ -743,7 +738,7 @@ void editFile() {
       Serial.println(F("------------------"));
       Serial.println(F("+ a <string>          Add the string to the end of the memory."));
       Serial.println(F("+ d <line#>           Delete line number."));
-      Serial.println(F("+ i <line#> <string>  Not implemented: Insert string at line number location."));
+      Serial.println(F("+ i <line#> <string>  Insert string at line number location."));
       Serial.println(F("+ l, List memory      List memory to screen."));
       Serial.println(F("+ w, Write            Write edited memory to file."));
       Serial.println(F("------------------"));
