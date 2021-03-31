@@ -30,8 +30,6 @@
   ---------------------------------------------------------
   Next to work on
 
-  Test HLDA light on/off for writing/reading to an SD card file.
-
   Add hardware to display values:
   + Player song.
   + Clock date and time.
@@ -1674,7 +1672,7 @@ void processWaitSwitch(byte readByte) {
       break;
     // -------------------------------------------------------------------
     //
-    case 'v':
+    case 't':
       Serial.println(F("+ VT100 escapes are disabled and block cursor on."));
       if (VIRTUAL_FRONT_PANEL) {
         VIRTUAL_FRONT_PANEL = false;
@@ -1682,16 +1680,16 @@ void processWaitSwitch(byte readByte) {
       }
       // Note, VT100 escape sequences don't work on the Ardino IDE monitor.
       break;
-    case 'V':
+    case 'T':
       // The following requires a VT100 terminal such as a Macbook terminal.
       initVirtualFrontPanel();
       break;
     // -------------------------------------------------------------------
-    case 't':
+    case 'k':
       SERIAL_CLI = false;
       Serial.println(F("+ Terminal output VT100 escape codes is disabled."));
       break;
-    case 'T':
+    case 'K':
       SERIAL_CLI = true;
       Serial.println(F("+ Terminal output VT100 escape codes is enabled. Use Crtl+d(or Crtl+c) to STOP, Crtl+Z to RESET."));
       break;
@@ -1872,8 +1870,8 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ 0...9, a...f    Toggle sense/address/data switches:  A0...A9, A10...A15."));
       Serial.println(F("----------------------------------------------------"));
       Serial.println(F("+ Enter key       Refresh virtual front panel display."));
-      Serial.println(F("+ v/V VT100 panel Disable/enable VT100 virtual front panel."));
-      Serial.println(F("+ t/T Terminal    Disable/enable VT100 terminal command line escape codes."));
+      Serial.println(F("+ t/T VT100 panel Disable/enable VT100 virtual front panel."));
+      Serial.println(F("+ k/K Terminal    Disable/enable VT100 terminal command line escape codes."));
       Serial.println(F("-------------"));
       Serial.println(F("+ l, Load sample  Load a sample program."));
       Serial.println(F("+ i, info         Information print of registers."));
@@ -1898,14 +1896,14 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ J, MP3 Player   PLAYER mode, run the MP3 player."));
       Serial.println(F("+ I, Player Info  MP3 player software and hardware settings."));
       Serial.println(F("+ g/G Play        Pause/Play MP3 song."));
-      Serial.println(F("+ k/K Volume      Down/Up player volume."));
+      Serial.println(F("+ v/V Volume      Down/Up player volume."));
       Serial.println(F("-------------"));
       Serial.println(F("+ Q, Clock        CLOCK CLI, interact with the clock."));
       Serial.println(F("+ q, Time         Show the clock's data and time."));
       Serial.println(F("----------------------------------------------------"));
       Serial.println(F("+++ Other controls"));
       Serial.println(F("+ u/U Log msg     Log messages off/on."));
-      Serial.println(F("+ L, Load hex     Load hex code from the serial port."));
+      Serial.println(F("+ L,  Load hex    Load hex code from the serial port."));
       Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
       Serial.println(F("+ w/W USB serial  Disable/enable USB serial output."));
       Serial.println(F("----------------------------------------------------"));
@@ -1930,10 +1928,10 @@ void processWaitSwitch(byte readByte) {
     case 'G':
       playerSwitch('r');  // Start/run play
       break;
-    case 'k':
+    case 'v':
       playerSwitch('v');  // Volume down.
       break;
-    case 'K':
+    case 'V':
       playerSwitch('V');  // Volume up.
       break;
     // -------------------------------------

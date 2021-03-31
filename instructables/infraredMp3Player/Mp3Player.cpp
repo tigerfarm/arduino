@@ -722,6 +722,7 @@ void playerSwitch(int resultsValue) {
     // -----------------------------------
     case 0xFA2F715F:
     case 's':
+    case 'g':
       mp3playerDevice.pause();
       playerStatus = playerStatus | HLTA_ON;
       Serial.print(F("+ Pause current MP3, playerCounter="));
@@ -729,6 +730,7 @@ void playerSwitch(int resultsValue) {
       break;
     case 0x8AA3C35B:    // Key PLAY
     case 'r':
+    case 'G':
       {
         // Before starting check if the playerCounter has changed.
         //  If yes, then play the new song.

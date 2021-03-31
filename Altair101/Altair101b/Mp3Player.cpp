@@ -722,6 +722,7 @@ void playerSwitch(int resultsValue) {
     // -----------------------------------
     case 0xFA2F715F:
     case 's':
+    case 'g':
       mp3playerDevice.pause();
       playerStatus = playerStatus | HLTA_ON;
       Serial.print(F("+ Pause current MP3, playerCounter="));
@@ -729,6 +730,7 @@ void playerSwitch(int resultsValue) {
       break;
     case 0x8AA3C35B:    // Key PLAY
     case 'r':
+    case 'G':
       {
         // Before starting check if the playerCounter has changed.
         //  If yes, then play the new song.
@@ -1009,8 +1011,8 @@ void playerSwitch(int resultsValue) {
       Serial.println(F("----------------------------------------------------"));
       Serial.println(F("+++ MP3 Player Controls"));
       Serial.println(F("-------------"));
-      Serial.println(F("+ s, STOP         Pause, stop playing the MP3."));
-      Serial.println(F("+ r, Play         Start playing the MP3."));
+      Serial.println(F("+ g/s, STOP       Pause, stop playing the MP3."));
+      Serial.println(F("+ G/r, Play       Start playing the MP3."));
       Serial.println(F("+ R, RESET/CLEAR  Reset player settings to default, and set to play first MP3."));
       Serial.println(F("+ x, EXAMINE      Play specified MP3 number."));
       Serial.println(F("+ n/p, Play song  Play next/previous MP3."));

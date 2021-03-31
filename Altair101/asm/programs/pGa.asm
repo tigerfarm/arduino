@@ -404,23 +404,6 @@ STARTGAME:
                                 ;
 ; ------------------------------------------------------------------------------
 SETUPGAME:
-                                ; Set/reset to zero, from: 0028H to 0064H.
-        mvi     h,0             ; Set address high byte
-        mvi     l,28H           ; Set address low byte
-SETGAMEMEM:
-        mvi     a,0             ; Set the address value to zero.
-        mov     m,a
-        mov     a,l             ; Set up to address 0064H.
-        cpi     64H
-        jz      GAMEMEMSET
-        inx h
-        jmp     SETGAMEMEM
-GAMEMEMSET:
-        mvi     b,0             ; Reset registers.
-        mvi     c,0
-        mvi     d,0
-                                ;
-                                ; ---------------------------
         MVI     E,00C0H         ;Set pointer to galaxy storage
 GLXSET:
         CALL    RN              ; Fetch random number into reg A.
@@ -606,14 +589,9 @@ CND:
         MVI     C,4             ; Set row number 4
         CALL    ROWSET          ; Set up row for printout
                                 ;
-        MVI     L,043H          ; Pointer to current sector location value.
-        MVI     E,0E3H          ; Set digit storage. Is hard coded to the old address.
-        ;LXI     E,MSGSC1        ; Set to the QUADRANT message digit storage address. Stacy, need to get the address.
-                                ; lxid :00010001:|byte 3 -> D, byte 2 -> E (hb->D,lb->E)
-        INR     D
-        CALL    TWO             ;Put two digits in message
-                                ;
-	;MVI	L,0D8H		; Print quadrant location message
+        LXI     D,MSGSC1        ; Set to the QUADRANT message digit storage address.
+        LXI     H,043H          ; Pointer to current QUADRANT location value.
+        CALL    TWO             ; Put the TWO QUADRANT digits in message.
         LXI     H,MSGSCT        ; Print quadrant location message
         CALL    MSG
                                 ; --------------------
@@ -2409,6 +2387,8 @@ ASHIPSL: DB     1               ; Number alien ships is greater than this number
 MSG123:	DB	CR,LF
   	DB	' -1--2--3--4--5--6--7--8-'
   	DB	0
+;
+; The following is still hard coded in the program.
 xMSGSTDT:
 	DB	CR,LF
 xMSGSTDT1:
@@ -2416,6 +2396,7 @@ xMSGSTDT1:
 xMSGSTDT2:
 	DB	'                        '
   	DB	0
+;
 MSGSTDT3:
   	DB	' STARDATE  300'
 MSGSDP:	DB	'0'
@@ -2431,7 +2412,7 @@ MSGPQD: DB      '   '
   	DB	0
 MSGSCT:	DB	' QUADRANT  '
 MSGSC1: DB      '   '
-        DB      '   5 - + - 1'
+        DB      '        5 - + - 1'
   	DB	0
 MSGENR:	DB	' ENERGY       '
 MSGENP:	DB	' '
@@ -2589,38 +2570,6 @@ To run,
 Start playing.
 
 --------------------------------------------------------------------------------
- -1--2--3--4--5--6--7--8-
-1 *                       STARDATE  3045
-2    *                    CONDITION REDEN
-3                *        SECTOR    7 5
-4          *              QUADRANT  6 8
-5             *           ENERGY    2437
-6|o|                  x!x TORPEDOES 09
-7                         SHIELDS   0000
-8             *          
- -1--2--3--4--5--6--7--8-
-Command > 6
-            
-Torpedo trajectory(1-8.5) : 5.0
-Tracking: 6 7
-Tracking: 6 6
-Tracking: 6 5
-Tracking: 6 4
-Tracking: 6 3
-Tracking: 6 2
-Tracking: 6 1
-TIE fighter destroyed.
-
- -1--2--3--4--5--6--7--8-
-1 *                       STARDATE  3045
-2    *                    CONDITION RED
-3                *        SECTOR    7 5
-4          *              QUADRANT  6 8
-5             *           ENERGY    2437
-6|o|                  x!x TORPEDOES 09
-7                         SHIELDS   0000
-8             *          
- -1--2--3--4--5--6--7--8-
 
          1         2         3         4         5         6         7         8
 12345678901234567890123456789012345678901234567890123456789012345678901234567890
@@ -2635,13 +2584,6 @@ TIE fighter destroyed.
 7                         SHIELDS   0000    
 8             *          
  -1--2--3--4--5--6--7--8-
-
-Directions
-    3
-  4 | 2
-5 - + - 1
-  6 | 8
-    7
 
 --------------------------------------------------------------------------------
 

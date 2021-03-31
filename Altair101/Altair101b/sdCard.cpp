@@ -608,14 +608,6 @@ void editInsertString(String theLine) {
   Serial.print(F(":"));
   Serial.println();
 }
-/*
-  003: defLast line.
-
-  CARD ED ?- i 3 xy\n
-
-  003: xyf
-  004: efLast line.
-*/
 
 // -----------------------------------------------------------------------------
 String getEditCommandline() {
@@ -633,10 +625,10 @@ String getEditCommandline() {
     if (Serial.available() > 0) {
       int readByte = Serial.read();         // Read and process an incoming byte.
       if (iBuffer == 0
-          && readByte == 'h'
+          && (readByte == 'h'
           || readByte == 'l'
           || readByte == 'w'
-          || readByte == 'X' ) {
+          || readByte == 'X') ) {
         // Immediately return to process the command. No need for a LF.
         theBuffer[0] = readByte;
         iBuffer++;
@@ -741,6 +733,8 @@ void editFile() {
       Serial.println(F("+ i <line#> <string>  Insert string at line number location."));
       Serial.println(F("+ l, List memory      List memory to screen."));
       Serial.println(F("+ w, Write            Write edited memory to file."));
+      Serial.println(F("------------------"));
+      Serial.println(F("Note, when inserting a new line, add '\\n' to add the LF character."));
       Serial.println(F("------------------"));
       Serial.println(F("+ Ctrl+L              Clear screen."));
       Serial.println(F("+ X, Exit             Exit the Editor."));
