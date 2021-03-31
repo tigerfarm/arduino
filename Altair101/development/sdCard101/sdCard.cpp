@@ -532,6 +532,72 @@ void editAddString(String theLine) {
 }
 
 // -----------------------------------------------------------------------------
+void editInsertString(String theLine) {
+  iFileBytes = getMemoryByteCount();
+  int numOfBytes = theLine.length();
+  if (numOfBytes < 1) {
+    Serial.println(F("- Nothing to Insert."));
+    return;
+  }
+  // "3 abc"
+  int sStart = theLine.indexOf(" ");
+  if (sStart < 1) {
+    Serial.println(F("- No line number to insert into."));
+    return;
+  }
+  int insertLineNumber = theLine.substring(0, sStart).toInt();
+  if (theLine.length() <= sStart) {
+    Serial.println(F("- No string to insert."));
+    return;
+  }
+  String theString = theLine.substring(sStart)877788;
+  //
+  Serial.print(F("+ Inserted string to line#"));
+  Serial.print(insertLineNumber);
+  Serial.print(F(" :"));
+  Serial.print(theString);
+  Serial.println(":");
+  //
+  // Get the memory starting position of the place to insert the string.
+  int insertLocation = 0;
+  int lineCounter = 1;
+  byte memoryData = MREAD(i);
+  while (lineCounter != insertLineNumber) {
+    memoryData = MREAD(i);
+    if (memoryData == 10) {
+      lineCounter++;
+      Serial.print(F("+ lineCounter = "));
+      Serial.print(lineCounter);
+      if (lineCounter == insertLineNumber) {
+        insertLocation = i;
+        Serial.print(F(", memory location to insert = "));
+        Serial.print(insertLocation);
+        break;
+      }
+      Serial.println();
+    }
+    i++;
+  }
+  // Shift the bytes to open up the place to insert the string.
+  int stringLength = theString.length();
+  for (int i = iFileBytes; i > insertLocation; i--) {
+    byte memoryData = MREAD(i);
+    MWRITE(i + stringLength, memoryData);
+  }
+  // Insert the string.
+  int locationCounter = 0;
+  for (int i = insertLocation; i < insertLocation+stringLength; i--) {
+    MWRITE(i+locationCounter, theString[locationCounter]);
+    locationCounter++;
+  }
+  Serial.print(F("+ Inserted string to line#"));
+  Serial.print(insertLineNumber);
+  Serial.print(F(" :"));
+  Serial.print(theString);
+  Serial.println(":");
+}
+
+// -----------------------------------------------------------------------------
 String getEditCommandline() {
   // Initialize the input string and character buffer to empty.
   String thisLine = "";
@@ -633,6 +699,7 @@ void editFile() {
       editDeleteLine(aString.toInt());
     } else if (theCommand == "i") {
       Serial.println(F("+ Insert, not implemented."));
+      editInsertString(theCommand.substring(2));
     } else if (theCommand == "l") {
       listMemoryToScreen();
     } else if (theCommand == "h") {
