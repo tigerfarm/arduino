@@ -498,16 +498,13 @@ void editDeleteLine(int deleteLineNumber) {
 }
 
 // -----------------------------------------------------------------------------
-void editAddLine(String theLine) {
+void editAddString(String theLine) {
   iFileBytes = getMemoryByteCount();
   int numOfBytes = theLine.length();
   if (numOfBytes < 1) {
     Serial.println(F("+ Nothing to add."));
     return;
   }
-  Serial.print(F("+ Add line to memory :"));
-  Serial.print(theLine);
-  Serial.println(":");
   // -----------------------------------
   // Need to check the
   boolean backslash = false;
@@ -529,11 +526,9 @@ void editAddLine(String theLine) {
       iFileBytes++;
     }
   }
-  /*
-    + Add line to memory :\nbefore and after\n:
-    13: before a
-    14: nd after<--(End of array)
-  */
+  Serial.print(F("+ Added string to memory :"));
+  Serial.print(theLine);
+  Serial.println(":");
 }
 
 // -----------------------------------------------------------------------------
@@ -627,24 +622,14 @@ void editFile() {
         writeMemoryToFile(thisFilename);
       }
     } else if (theCommand.startsWith("a ")) {
-      // "CARD ED ?- a  abc  "
-      // "+ Add to end of the file : abc  :"
-      Serial.print(F("+ Add to end of the file :"));
-      if (theCommand.length() > 1) {
-        Serial.print(theCommand.substring(2));
-      }
-      Serial.println(F(":"));
-      editAddLine(theCommand.substring(2));
+      // Add string.
+      editAddString(theCommand.substring(2));
     } else if (theCommand.startsWith("d ")) {
-      // "CARD ED ?- d   123  "
-      // "+ Delete line #123."
-      Serial.print(F("+ Delete line #"));
+      // Delete line #.
       if (theCommand.length() > 1) {
         aString = theCommand.substring(2);
         aString.trim();
-        Serial.print(aString);
       }
-      Serial.println(F("."));
       editDeleteLine(aString.toInt());
     } else if (theCommand == "i") {
       Serial.println(F("+ Insert, not implemented."));
