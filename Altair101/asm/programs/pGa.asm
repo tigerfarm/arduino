@@ -588,8 +588,6 @@ SCRPRN:
 	MVI	M,'E'
 	INR	L
 	MVI	M,'N'
-	;INR	L
-	;MVI	M,0
 	JMP	CND
 RED:
                                 ; Condition "RED"
@@ -604,8 +602,6 @@ RED:
 	MVI	M,' '           ; Remove "EN" of "GREEN".
 	INR	L
 	MVI	M,' '
-	;INR	L
-	;MVI	M,0
 CND:
         LXI     H,MSGCND        ; Print condition message
         CALL    MSG
@@ -2483,18 +2479,19 @@ SCRC12  DB      27,'[','H'                  ; Move to screen top left: Esc[H.
         DB      27,'[','1','2','B'          ; Move down 12 lines: Esc[12B.
         DB      27,'[','J'                  ; Clear screen below the command prompt line.
         DB      0
-;
-;1: -1--2--3--4--5--6--7--8-
-;2: 1             *           STARDATE  3044
-;3: 2    *                    CONDITION GREEN
-;4: 3                         SECTOR    3 6
-;5: 4                *        QUADRANT  8 8
-;6: 5                         ENERGY    2917
-;7: 6                         TORPEDOES 10
-;8: 7                         SHIELDS   0000
-;9: 8                     x!x Fighters  3
-;0:  -1--2--3--4--5--6--7--8-
-;1: Command > g
+                                            ;
+; -1--2--3--4--5--6--7--8-
+;1    *                 *  STARDATE  3043       Direction
+;2                *        CONDITION GREEN          3
+;3                         SECTOR    6 3          4 | 2
+;4                      *  QUADRANT  8 6        5 - + - 1
+;5          *              ENERGY    2352         6 | 8
+;6                      *  TORPEDOES 08             7
+;7    *                    SHIELDS   0000
+;8               x!x       FIGHTERS  01
+; -1--2--3--4--5--6--7--8-
+;Command > 6
+                                        ;
                                         ; ----------------------------------------------
     esc         equ     27              ; Escape character, which is 0x1B (hex).
                                         ;

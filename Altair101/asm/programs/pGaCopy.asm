@@ -588,8 +588,6 @@ SCRPRN:
 	MVI	M,'E'
 	INR	L
 	MVI	M,'N'
-	;INR	L
-	;MVI	M,0
 	JMP	CND
 RED:
                                 ; Condition "RED"
@@ -604,8 +602,6 @@ RED:
 	MVI	M,' '           ; Remove "EN" of "GREEN".
 	INR	L
 	MVI	M,' '
-	;INR	L
-	;MVI	M,0
 CND:
         LXI     H,MSGCND        ; Print condition message
         CALL    MSG
@@ -671,6 +667,15 @@ CND:
         MVI     C,8             ; Set row number 8
         CALL    ROWSET          ; Set up row for printout
                                 ;
+        LXI     H,005CH         ; Set pointer to number alien ships
+        MVI     B,1             ; Set number bytes for BINDEC
+        CALL    BINDEC          ; Binary to decimal.
+        LXI     D,MSGTIE        ; Set pointer to digit store in the message.
+        MVI     B,2             ; Set counter to number or digits
+        CALL    DIGPRT          ; Put digits in message
+        	LXI     H,MSGFIG        ; Print message for number of TIE fighters to destroy.
+        CALL    MSG
+                                ;
                                 ; --------------------
                                 ; -1--2--3--4--5--6--7--8-
         LXI     H,MSG123        ; Print final row of S.R. scan
@@ -693,7 +698,7 @@ RCLR:
 	MOV     M,A             ; Store row number in message
 	DCR     C               ; Set row number for check out
                                 ;
-        LXI     H,43H         ; Set pointer to location table (43H = 67 decimal)
+        LXI     H,43H           ; Set pointer to location table (43H = 67 decimal)
                                 ;
         CALL    RWPNT           ; Fetch space ship location
         JNZ     STR             ; In this row? No
@@ -825,7 +830,7 @@ MNS:
 ; --------------------------------------------------------------------------------
                                 ;
 CLRCMD:
-        call    SCRCLR          ; Clear the entire screen, clear from home location (top left).
+        call    SCRCLR          ; Clear the entire screen.
 CMND:
         call    SCRPRN          ; Print sector scan map.
 	MVI	H,000
@@ -2318,19 +2323,19 @@ GSMSGT:	DB	'  rebel outposts.'
                                 ; DNALS:	DB	000 ;Num. alien ships		//5C 92 01011100 Data=21
                                 ; DNSTD:	DB	000 ;Num. stardates		//5D 93 01011101 Data=26
 GAMESTAT:
-	MVI	L,05DH		;Set pointer to store number SPACE STATIONS
-	MVI	B,1		;Set number bytes for BINDEC
+        MVI     L,05DH          ; Set pointer to store number SPACE STATIONS
+        MVI     B,1             ; Set number bytes for BINDEC
         CALL    BINDEC          ; Binary to decimal.
-	LXI	D,GSMSGD        ;Set pointer to digit storage
-	MVI	B,2		;Set counter to number or digits
-	CALL	DIGPRT		;Put digits in message
+        LXI     D,GSMSGD        ; Set pointer to digit storage
+        MVI     B,2             ; Set counter to number or digits
+        CALL    DIGPRT          ; Put digits in message
                                 ;
-	LXI	H,005CH		;Set pointer to number alien ships
-	MVI	B,1		;Set number bytes for BINDEC
+        LXI     H,005CH         ; Set pointer to number alien ships
+        MVI     B,1             ; Set number bytes for BINDEC
         CALL    BINDEC          ; Binary to decimal.
-	LXI	D,GSMSGS        ;Set pointer to digit stor. in start message.
-	MVI	B,2		;Set counter to no. of digits
-	CALL	DIGPRT		;Put digits in message
+        LXI     D,GSMSGS        ; Set pointer to digit store in the message.
+        MVI     B,2             ; Set counter to number or digits
+        CALL    DIGPRT          ; Put digits in message
                                 ;
 	LXI	H,005BH		;Set pointer to no. space stat.
 	MOV	A,M		;Set no. bytes
@@ -2459,6 +2464,9 @@ MSGTPP:	DB	' '
 MSGSHD:	DB	' SHIELDS      '
 MSGSHP:	DB	' '
   	DB	0
+MSGFIG:	DB	' FIGHTERS   '
+MSGTIE:	DB	' '
+        DB      0
                                             ;
 LocCon  DB      0                           ; Sector to condition: 0 = "GREEN", 1 = "RED".
 
@@ -2471,18 +2479,19 @@ SCRC12  DB      27,'[','H'                  ; Move to screen top left: Esc[H.
         DB      27,'[','1','2','B'          ; Move down 12 lines: Esc[12B.
         DB      27,'[','J'                  ; Clear screen below the command prompt line.
         DB      0
-;
-;1: -1--2--3--4--5--6--7--8-
-;2: 1             *           STARDATE  3044
-;3: 2    *                    CONDITION GREEN
-;4: 3                         SECTOR    3 6
-;5: 4                *        QUADRANT  8 8
-;6: 5                         ENERGY    2917
-;7: 6                         TORPEDOES 10
-;8: 7                         SHIELDS   0000
-;9: 8                     x!x
-;0:  -1--2--3--4--5--6--7--8-
-;1: Command > g
+                                            ;
+; -1--2--3--4--5--6--7--8-
+;1    *                 *  STARDATE  3043       Direction
+;2                *        CONDITION GREEN          3
+;3                         SECTOR    6 3          4 | 2
+;4                      *  QUADRANT  8 6        5 - + - 1
+;5          *              ENERGY    2352         6 | 8
+;6                      *  TORPEDOES 08             7
+;7    *                    SHIELDS   0000
+;8               x!x       FIGHTERS  01
+; -1--2--3--4--5--6--7--8-
+;Command > 6
+                                        ;
                                         ; ----------------------------------------------
     esc         equ     27              ; Escape character, which is 0x1B (hex).
                                         ;
