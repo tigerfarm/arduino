@@ -103,6 +103,7 @@
 // -------------------------------------------------------------------------------
 
 #include "Altair101b.h"
+#include "Mp3Player.h"
 
 String clockPrompt = "CLOCK ?- ";
 String clockSetPrompt = "Clock SET ?- ";
@@ -947,7 +948,7 @@ void rtClockRun() {
     if (rtClockState == RTCLOCK_SET) {
       rtClockSet();
     }
-    //
+    playerContinuous();                 // Allow for infrared music control while in clock mode.
     delay(60);  // Delay before getting the next key press, in case press and hold too long.
   }
 }

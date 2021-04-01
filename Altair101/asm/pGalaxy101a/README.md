@@ -32,15 +32,6 @@ Status: I can assemble and run it. I even fixed a usage flow option.
 --------------------------------------------------------------------------------
 ### To do next:
 
-Modify the display of the sector map and messages,
-to work similarly to the Altair101 virtual front panel display and log messages.
-+ Use VT100 escape sequences to print the sector map in one location, at the top.
-+ Messages display below.
-
-Switch over to use 88-2SIO CHANNEL A SERIAL INTERFACE so that this program can run an actual Altair 8800.
-+ The original program using 88-2SIO CHANNEL A SERIAL INTERFACE.
-+ Or, use the version from 4K Basic.
-
 #### Game Enhancements
 
 VT100 version: add torpedo animation from the X-wing to the TIE fighter.
@@ -74,11 +65,6 @@ Tracking: 4 7
 Tracking: 3 7
 TIE fighter destroyed.
 Command > 
-````
-
-Should say: CONDITION DOCKED
-````
-2            x!x>1<       CONDITION GREEN
 ````
 
 If warp into a base(DOCKED x!x>1<), by coincidence,

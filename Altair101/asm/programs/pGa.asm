@@ -1,4 +1,4 @@
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
 ; +----------------------------------+
 ; |       SCELBI'S GALAXY GAME       |
 ; |       AUTHOR: ROBERT FIDLEY      |
@@ -50,12 +50,36 @@
 ; Fire laser cannons or proton torpedoes. Are they destroyed?
 ; A new game every time.
 ;
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
+; Next:
+;
+; If not TIE fighters in the sector, don't print:
+;   Missed! TIE fighter retaliates.
+; Use variable: LocCon, Sector to condition: 0 = "GREEN", 1 = "RED".
+;
+; When print L.R. scan, don't print the directions key, "4 | 2".
+; Command > 2
+; L.R. SCAN FOR SECTOR    4 7          4 | 2
+;
+; If crashed into a star, should show the crash in the sector scan display.
+;   Crash message, "BOOM! Game over, you crashed in a star. You are history."
+;
+; Should say: CONDITION DOCKED. Current:
+; 2            x!x>1<       CONDITION GREEN
+;
+; Switch over to use 88-2SIO CHANNEL A SERIAL INTERFACE so that this program can run an actual Altair 8800.
+; + The original program using 88-2SIO CHANNEL A SERIAL INTERFACE.
+; + Or, use the version from 4K Basic.
+;
+; Consider separating sector scan display content from the labels, to allow refreshing of only the content.
+; + This would take a fair amount of coding.
+;
+; --------------------------------------------------------------------------------
 
 LF	EQU	0AH
 CR	EQU	0DH
 
-                ; --------------------------------------------------------------
+; --------------------------------------------------------------------------------
 	ORG	0000H
 
         ;jmp GALAXY             ; Be nice to get this to work.
@@ -322,13 +346,13 @@ MSG11B:	DB	'    1 '
 MSG11C:	DB	'    1'
   	DB	0
 
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
 	ORG	0500H           ; Decimal = 1280
                                 ; Total bytes without this org: 4643. With: 4659.
                                 ;
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
 ; Initialize and start the Galaxy program.
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
 GALAXY:
 ; ++    00000101 00000000 > opcode: lxi sp,STACK
 ; Enter the following to get to the start byte: 8ax
@@ -391,7 +415,7 @@ LGAME:
         sta     ASHIPSH
         mvi     a,10
         sta     ASHIPSL
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
 ; Setup a new game of TIE fighters, rebel bases, and stars.
 ;   Then start the game by getting and executing the captain's commands.
 ;
@@ -402,7 +426,7 @@ STARTGAME:
         call    SCRCLR          ; Clear the entire screen.
         jmp     CMND            ; Go to command options and play the game.
                                 ;
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
 SETUPGAME:
         MVI     E,00C0H         ;Set pointer to galaxy storage
 GLXSET:
@@ -502,9 +526,9 @@ GLXCK1:
 	CALL	LOCSET		;Set initial space ship location
         ret
                                 ;
-; ------------------------------------------------------------------------------
-; ------------------------------------------------------------------------------
-; Print Sector Scan Map
+; --------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
+; Print Sector Scan Map, for example:
 ;
 ;  -1--2--3--4--5--6--7--8-
 ; 1                *        STARDATE  3044
@@ -529,7 +553,7 @@ SCRPRN:
         MVI     C,1             ; Set row number 1
         CALL    ROWSET          ; Set up row for printout
                                 ;
-	LXI	H,005DH		;Set pointer to stardate
+        LXI     H,005DH         ; Set pointer to stardate
 	MVI	A,032H
 	SUB	M		;Calculate number used
 	INR	L		;Advance pointer to temporary storage
@@ -546,12 +570,16 @@ SCRPRN:
         MVI     C,2             ; Set row number 2
         CALL    ROWSET          ; Set up row for printout
                                 ;
-	MVI	L,042H		; Set pointer to current quadrant
-	MOV	A,M		; Fetch current contents
-	LXI	H,MSGGRN        ; Set pointer to condition msg
-	ANI	030H		; Alien ship in quadrant?
-	JNZ	RED		; Yes, condition "RED"
-	MVI	M,'G'		; Condition "GREEN"
+        MVI     L,042H          ; Set pointer to current quadrant
+        MOV     A,M             ; Fetch current contents
+        LXI     H,MSGGRN        ; Set pointer to condition message
+        ANI     030H            ; Alien ship in sector?
+        JNZ     RED             ; Yes, condition "RED"
+                                ;
+                                ; Condition "GREEN"
+        mvi     a,0             ; Set sector to condition "GREEN"
+        sta     LocCon
+        MVI     M,'G'
 	INR	L
 	MVI	M,'R'
 	INR	L
@@ -564,6 +592,9 @@ SCRPRN:
 	;MVI	M,0
 	JMP	CND
 RED:
+                                ; Condition "RED"
+        mvi     a,1             ; Set sector to condition "RED"
+        sta     LocCon
 	MVI	M,'R'		;Condition "RED"
 	INR	L
 	MVI	M,'E'
@@ -576,14 +607,16 @@ RED:
 	;INR	L
 	;MVI	M,0
 CND:
-	LXI	H,MSGCND        ; Print condition message
-	CALL	MSG
+        LXI     H,MSGCND        ; Print condition message
+        CALL    MSG
                                 ; --------------------
                                 ; 3   |o|                   SECTOR    4 4
         MVI     C,3             ; Set row number 3
         CALL    ROWSET          ; Set up row for printout
                                 ;
         CALL    SECQUAD         ; Print current quadrant location in the SECTOR (example "4 4").
+        LXI     H,MSGD2         ; Print direction line#2.
+        CALL    MSG
                                 ; --------------------
                                 ; 4                      *  QUADRANT  8 7
         MVI     C,4             ; Set row number 4
@@ -638,6 +671,15 @@ CND:
         MVI     C,8             ; Set row number 8
         CALL    ROWSET          ; Set up row for printout
                                 ;
+        LXI     H,005CH         ; Set pointer to number alien ships
+        MVI     B,1             ; Set number bytes for BINDEC
+        CALL    BINDEC          ; Binary to decimal.
+        LXI     D,MSGTIE        ; Set pointer to digit store in the message.
+        MVI     B,2             ; Set counter to number or digits
+        CALL    DIGPRT          ; Put digits in message
+        	LXI     H,MSGFIG        ; Print message for number of TIE fighters to destroy.
+        CALL    MSG
+                                ;
                                 ; --------------------
                                 ; -1--2--3--4--5--6--7--8-
         LXI     H,MSG123        ; Print final row of S.R. scan
@@ -660,7 +702,7 @@ RCLR:
 	MOV     M,A             ; Store row number in message
 	DCR     C               ; Set row number for check out
                                 ;
-        LXI     H,43H         ; Set pointer to location table (43H = 67 decimal)
+        LXI     H,43H           ; Set pointer to location table (43H = 67 decimal)
                                 ;
         CALL    RWPNT           ; Fetch space ship location
         JNZ     STR             ; In this row? No
@@ -786,13 +828,13 @@ MNS:
 	MOV	M,A		;Put back in galaxy
 	JMP	GLXCK		;Check galaxy again
                                 ;
-; ------------------------------------------------------------------------------
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
                                 ; Command Menu options
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
                                 ;
 CLRCMD:
-        call    SCRCLR          ; Clear the entire screen, clear from home location (top left).
+        call    SCRCLR          ; Clear the entire screen.
 CMND:
         call    SCRPRN          ; Print sector scan map.
 	MVI	H,000
@@ -862,7 +904,7 @@ HELPD:  LXI	H,MSGDIR	; Help message directions
 CLRCMD1:
         JMP      CLRCMD         ; Clear the screen and get next command.
                                 ;
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
                                 ; Print long range scan
 LRSCN:
 	LXI	H,MSGLRS        ;Set pntr to long range message
@@ -984,7 +1026,7 @@ CLC2:
 	XRA	A		;Clear column contents
 	JMP	LR4		;Print 000 quadrant
                                 ;
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
                                 ; Course menu option action
 CRSEret:
         JMP	CMND		;Input new command
@@ -1144,7 +1186,7 @@ DKED:
 	RNZ			;No, return
 	JMP	LOAD		;Yes, load space ship & return
                                 ;
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
                                 ; Command shield option.
 SHENret:
 	JMP	CMND		;Jump to input command
@@ -1176,7 +1218,7 @@ NE:
 	CALL	MSG
 	JMP	CMND		;Input new command
                                 ;
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
                                 ; Command option to shoot a torpedo.
 TR1ret:
 	JMP	CMND		;Jump to input command
@@ -1279,7 +1321,7 @@ RWCM:
 	MOV	B,A		;Save in 'B'
 	RET			;Return
                                 ;
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
                                 ; Fire Phasors/Laser cannons(Star Wars version)
 PHSRret:
 	JMP	CMND		;Jump to input command
@@ -1403,7 +1445,7 @@ DSTR:
 	MOV	L,M
 	JMP	DLET		;Remove A.S. fm glxy & ret
                                 ;
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
                                 ; Command: Galaxy display option.
 GXPRT:
         LXI     H,MSGGDY        ; Print galaxy display message
@@ -1458,7 +1500,7 @@ GL2:
 	XCHG			;No, set up galaxy pointer
 	JMP	GL1		;Continue printout
                                 ;
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
                                 ; Load up space ship with energy and torpedoes.
 LOAD:
 	MVI	L,04FH		;Space ship energy storage
@@ -1473,7 +1515,7 @@ LOAD:
 	MVI	M,10		;Initial amount = 10 torpedoes
 	RET
                                 ;
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
                                 ; Ship placements
 ROTR4:
 	RRC
@@ -1495,7 +1537,7 @@ LOCSET:
 	JNZ	LOCSET		;No, find next location
 	RET			;Yes, return
                                 ;
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
                                 ; 
 TIME:
         LXI     H,MSGMSF        ;Stardate's time has run
@@ -1677,7 +1719,7 @@ DLAS:
         call    SCRPRN
         JMP     GALAXY
                                  ;
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
                                 ; Input a course direction.
 DRCT:
 	CALL	INPUT		;Input first course number
@@ -1710,7 +1752,7 @@ ZRET:
 	XRA	A 		;Set Z flag
 	RET			;And return
                                 ;
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
 QCNT:
 	LXI	H,0059H		;Set pointer to current quad. row & col storage
 	MOV	A,M		;Fetch current quadrant
@@ -1970,7 +2012,7 @@ SPRC:
 	MOV	B,A		;Save row in 'B'
 	RET
                                 ;
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
 MSG:
 	MOV	A,M		;Fetch character
 	ANA	A		;End of message?
@@ -1992,7 +2034,7 @@ RN:
 	MOV	M,A		;Save random number
 	RET
                                 ;
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
                                 ; Binary to decimal processing
                                 ; Register B: Set single(1) or double(2) precision. An 8 bit or 16 bit binary number.
                                 ; HL is the address to the binary number that is to be converted.
@@ -2063,10 +2105,10 @@ BD:
 	DCR	M		;Decrement digit stored
 	RET			;Return
                                 ;
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
 	;ORG	0F80H
 
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
                                 ; Input/Output
                                 ;
 ; Test status of input device for character
@@ -2088,7 +2130,7 @@ INPCK1:
 	RET
 
 
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
 ; Input a character from the system
 ; Return character in register 'A'
 INPUT:
@@ -2231,7 +2273,7 @@ CONINI:
         CALL    IOINI
 	RET
                                 ;
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
                                 ; Help messages.
 MSGHELP:
   	DB	CR,LF
@@ -2285,19 +2327,19 @@ GSMSGT:	DB	'  rebel outposts.'
                                 ; DNALS:	DB	000 ;Num. alien ships		//5C 92 01011100 Data=21
                                 ; DNSTD:	DB	000 ;Num. stardates		//5D 93 01011101 Data=26
 GAMESTAT:
-	MVI	L,05DH		;Set pointer to store number SPACE STATIONS
-	MVI	B,1		;Set number bytes for BINDEC
+        MVI     L,05DH          ; Set pointer to store number SPACE STATIONS
+        MVI     B,1             ; Set number bytes for BINDEC
         CALL    BINDEC          ; Binary to decimal.
-	LXI	D,GSMSGD        ;Set pointer to digit storage
-	MVI	B,2		;Set counter to number or digits
-	CALL	DIGPRT		;Put digits in message
+        LXI     D,GSMSGD        ; Set pointer to digit storage
+        MVI     B,2             ; Set counter to number or digits
+        CALL    DIGPRT          ; Put digits in message
                                 ;
-	LXI	H,005CH		;Set pointer to number alien ships
-	MVI	B,1		;Set number bytes for BINDEC
+        LXI     H,005CH         ; Set pointer to number alien ships
+        MVI     B,1             ; Set number bytes for BINDEC
         CALL    BINDEC          ; Binary to decimal.
-	LXI	D,GSMSGS        ;Set pointer to digit stor. in start message.
-	MVI	B,2		;Set counter to no. of digits
-	CALL	DIGPRT		;Put digits in message
+        LXI     D,GSMSGS        ; Set pointer to digit store in the message.
+        MVI     B,2             ; Set counter to number or digits
+        CALL    DIGPRT          ; Put digits in message
                                 ;
 	LXI	H,005BH		;Set pointer to no. space stat.
 	MOV	A,M		;Set no. bytes
@@ -2309,12 +2351,12 @@ GAMESTAT:
 	CALL	MSG		;Print starting message
         ret
                                 ;
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
 ;   Games messages.
 ;
 ;   References:
 ;       https://starwars.fandom.com/wiki/Sector/Legends
-; ------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
                                 ;
 MSGSTART:   DB CR,LF
         DB      'Ready to start a Star Wars X-wing starfighter mission? (Y/N)'
@@ -2400,7 +2442,7 @@ xMSGSTDT2:
 MSGSTDT3:
   	DB	' STARDATE  300'
 MSGSDP:	DB	'0'
-        DB      '       Directions'
+        DB      '       Direction'
   	DB	0
 MSGCND:	DB	' CONDITION '
 MSGGRN:	DB	'GREEN'
@@ -2408,7 +2450,8 @@ MSGGRN:	DB	'GREEN'
   	DB	0
 MSGQAD: DB      ' SECTOR    '
 MSGPQD: DB      '   '
-        DB      '          4 | 2'
+  	DB	0
+MSGD2:  DB      '          4 | 2'
   	DB	0
 MSGSCT:	DB	' QUADRANT  '
 MSGSC1: DB      '   '
@@ -2425,7 +2468,12 @@ MSGTPP:	DB	' '
 MSGSHD:	DB	' SHIELDS      '
 MSGSHP:	DB	' '
   	DB	0
+MSGFIG:	DB	' FIGHTERS   '
+MSGTIE:	DB	' '
+        DB      0
                                             ;
+LocCon  DB      0                           ; Sector to condition: 0 = "GREEN", 1 = "RED".
+
 ; --------------------------------------------------------------------------------
 MSGTST  DB      '\r\n\r\n+ TEST...\r\n'
 SCRCLH  DB      27,'[','H'                  ; Move to screen home location, top left: Esc[H.
@@ -2444,7 +2492,7 @@ SCRC12  DB      27,'[','H'                  ; Move to screen top left: Esc[H.
 ;6: 5                         ENERGY    2917
 ;7: 6                         TORPEDOES 10
 ;8: 7                         SHIELDS   0000
-;9: 8                     x!x
+;9: 8                     x!x Fighters  3
 ;0:  -1--2--3--4--5--6--7--8-
 ;1: Command > g
                                         ; ----------------------------------------------

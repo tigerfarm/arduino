@@ -67,6 +67,7 @@
 // -------------------------------------------------------------------------------
 #include "Altair101b.h"
 #include "cpuIntel8080.h"
+#include "Mp3Player.h"
 
 String sdCardPrompt = "CARD ?- ";
 String sdCardGetFilenamePrompt = "CARD FN ?- ";
@@ -953,9 +954,10 @@ void sdCardRun() {
   while (programState == SDCARD_RUN) {
     // Process serial input key presses from a keyboard.
     if (Serial.available() > 0) {
-      int readByte = Serial.read();    // Read and process an incoming byte.
+      int readByte = Serial.read();     // Read and process an incoming byte.
       sdCardSwitch(readByte);
     }
+    playerContinuous();                 // Allow for infrared music control while in clock mode.
     delay(60);  // Delay before getting the next key press, in case press and hold too long.
   }
 }
