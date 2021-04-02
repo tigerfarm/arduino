@@ -492,9 +492,9 @@ GLXCK1:
 	MOV	M,C		;Save number of alien ships
 	MOV	A,C
 	ADI	005
+                                ; ----------------------------------------------
 	INR	L		;Adv. pointer to number of stardates
 	MOV	M,A		;Save number of stardates
-                                ; ----------------------------------------------
 	MVI	B,1		;Set number bytes for BINDEC
 	CALL	BINDEC		;Covert stardate value
         LXI     D,GSMSGD        ;Set pointer to digit storage
@@ -2050,8 +2050,8 @@ DIGPRT:
 
 BINDEC:
 	XCHG			; Save binary pointer from HL to DE.
-	LXI	H,0060H		;Set pointer to digit storage
-	MOV	M,H		;Clear digit table
+	LXI	H,0060H		; Set pointer to digit storage
+	MOV	M,H		; Clear digit table
 	INR	L
 	MOV	M,H
 	INR	L

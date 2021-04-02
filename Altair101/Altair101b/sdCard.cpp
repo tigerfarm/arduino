@@ -871,7 +871,6 @@ void sdCardSwitch(int resultsValue) {
       break;
     // ----------------------------------------------------------------------
     case 'h':
-      Serial.print(F("+ h, Print help information."));
       Serial.println();
       Serial.println();
       Serial.println(F("----------------------------------------------------"));
@@ -927,7 +926,7 @@ void sdCardSwitch(int resultsValue) {
       Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
       break;
     case 'X':
-      Serial.println(F("+ Exit SD card mode."));
+      Serial.println(F("+ Exit SD card mode. Return to Processor WAIT mode."));
       programState = PROGRAM_WAIT;
       break;
     // -----------------------------------

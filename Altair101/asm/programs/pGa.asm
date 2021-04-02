@@ -57,9 +57,8 @@
 ;   Missed! TIE fighter retaliates.
 ; Use variable: LocCon, Sector to condition: 0 = "GREEN", 1 = "RED".
 ;
-; When print L.R. scan, don't print the directions key, "4 | 2".
-; Command > 2
-; L.R. SCAN FOR SECTOR    4 7          4 | 2
+; Add the number of stardates left.
+; 1       *                 STARDATE  3042 ??    Direction
 ;
 ; If crashed into a star, should show the crash in the sector scan display.
 ;   Crash message, "BOOM! Game over, you crashed in a star. You are history."
@@ -531,14 +530,14 @@ GLXCK1:
 ; Print Sector Scan Map, for example:
 ;
 ;  -1--2--3--4--5--6--7--8-
-; 1                *        STARDATE  3044
-; 2          *              CONDITION RED
-; 3   |o|                   SECTOR    4 4
-; 4                      *  QUADRANT  8 7
-; 5                      *  ENERGY    2847
-; 6    *                    TORPEDOES 10
+; 1                *        STARDATE  3044 ??    Direction
+; 2          *              CONDITION RED            3
+; 3   |o|                   SECTOR    4 4          4 | 2
+; 4                      *  QUADRANT  8 7        5 - + - 1
+; 5                      *  ENERGY    2847         6 | 8
+; 6    *                    TORPEDOES 10             7
 ; 7                      *  SHIELDS   0000
-; 8                  x!x   
+; 8                  x!x    FIGHTERS  03
 ;  -1--2--3--4--5--6--7--8-
                                 ;
 SCRPRN:
@@ -549,22 +548,31 @@ SCRPRN:
         CALL    MSG             ; Print top row and the rest.
                                 ; --------------------
                                 ; Row 1
-                                ; 1                *        STARDATE  3044
+                                ; 1                *        STARDATE  3044 ??    Direction
         MVI     C,1             ; Set row number 1
         CALL    ROWSET          ; Set up row for printout
                                 ;
         LXI     H,005DH         ; Set pointer to stardate
-	MVI	A,032H
-	SUB	M		;Calculate number used
-	INR	L		;Advance pointer to temporary storage
-	MOV	M,A		;Save number used
-	MVI	B,1		;Set number of bytes for BINDEC
-	CALL	BINDEC		;Covert to current stardate
-	LXI	D,MSGSDP        ;Set pointer to stardate msg.
-	MVI	B,2		;Set counter to number of digits
-	CALL	DIGPRT		;Put digits in stardate message
-	LXI	H,MSGSTDT3	;Set pointer to message
-	CALL	MSG		;Print stardate message
+        MVI     A,032H
+        SUB     M               ; Calculate number used
+        INR     L               ; Advance pointer to temporary storage
+                                ;
+        MOV     M,A             ; Save number used
+        MVI     B,1             ; Set number of bytes for BINDEC
+        CALL    BINDEC          ; Covert to current stardate
+        LXI     D,MSGSDP        ; Set pointer to stardate msg.
+        MVI     B,2             ; Set counter to number of digits
+        CALL    DIGPRT          ; Put digits in stardate message
+                                ;
+        LXI     H,005DH         ; Set pointer to number stardates left
+        MVI     B,1             ; Set number bytes for BINDEC
+        CALL    BINDEC          ; Binary to decimal.
+        LXI     D,MSGSDL        ; Set pointer to digit store in the message.
+        MVI     B,2             ; Set counter to number or digits
+        CALL    DIGPRT          ; Put digits in message
+                                ;
+        LXI     H,MSGSTDT3      ; Set pointer to message
+        CALL    MSG             ; Print stardate message
                                 ; --------------------
                                 ; 2          *              CONDITION RED
         MVI     C,2             ; Set row number 2
@@ -2401,7 +2409,7 @@ ASHIPSL: DB     1               ; Number alien ships is greater than this number
                                 ; Original was the hard coded values: 32 and 10.
                                 ;
 ; --------------------------------------------------------------------------------
-                                ; Sector scan display messages. For example:
+                                ; Original sector scan display map example:
                                 ;  -1--2--3--4--5--6--7--8-
                                 ; 1                         STARDATE  3036
                                 ; 2                   *     CONDITION GREEN
@@ -2411,15 +2419,16 @@ ASHIPSL: DB     1               ; Number alien ships is greater than this number
                                 ; 6            *            TORPEDOES 10
                                 ; 7                         SHIELDS   0000
                                 ;
+                                ; Enhanced sector scan display map example:
                                 ;  -1--2--3--4--5--6--7--8-
-                                ; 1 *                       STARDATE  3045    Directions
-                                ; 2    *                    CONDITION GREEN       3
-                                ; 3                *        SECTOR    7 5       4 | 2
-                                ; 4          *              QUADRANT  6 8     5 - + - 1
-                                ; 5             *           ENERGY    2437      6 | 8
-                                ; 6|o|                  x!x TORPEDOES 09          7
+                                ; 1 *                       STARDATE  3045 06    Direction
+                                ; 2    *                    CONDITION RED            3
+                                ; 3                *        SECTOR    7 5          4 | 2
+                                ; 4          *              QUADRANT  6 7        5 - + - 1
+                                ; 5             *           ENERGY    2437         6 | 8
+                                ; 6   |o|            x!x    TORPEDOES 09             7
                                 ; 7                         SHIELDS   0000    
-                                ; 8             *          
+                                ; 8             *           FIGHTERS  03
                                 ;  -1--2--3--4--5--6--7--8-
                                 ;
 MSG123:	DB	CR,LF
@@ -2436,9 +2445,10 @@ xMSGSTDT2:
   	DB	0
 ;
 MSGSTDT3:
-  	DB	' STARDATE  300'
-MSGSDP:	DB	'0'
-        DB      '       Direction'
+  	DB	' STARDATE  300'      ; STARDATE  30407      Direction
+MSGSDP:	DB	'   '
+MSGSDL:	DB	'  '
+        DB      '   Direction'
   	DB	0
 MSGCND:	DB	' CONDITION '
 MSGGRN:	DB	'GREEN'
