@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------------
 // Comment out the following, if compiling for Altair101a,
 //    which does not have an MP3 player, real time clock, or an SD card module.
+
 #define Altair101b 1
 
 #ifdef Altair101b

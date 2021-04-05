@@ -89,9 +89,9 @@ NextChar:
                                     ; --------------------------------------------
 OutChar:
 	PUSH PSW                    ; PUSH that matches the later POP.
-	LDA TERMINAL_X	
-	JMP OutChar_tail	
-	NOP	
+	LDA TERMINAL_X
+	JMP OutChar_tail
+	NOP
                                     ; --------------------------------------------
 CompareHLDE:
 	MOV A,H	
@@ -403,7 +403,8 @@ L0271	CMP M	;
 	MOV M,D	;
 	JMP L0265	;
                                     ; --------------------------------------------
-FindProgramLine	LHLD PROGRAM_BASE	;
+FindProgramLine:
+	LHLD PROGRAM_BASE	;
 	MOV B,H	;BC=this line
 	MOV C,L	;
 	MOV A,M	;If we've found two consecutive
@@ -448,14 +449,17 @@ ResetStack	POP B
 	PUSH H	
 	PUSH B	
 	LHLD PROG_PTR_TEMP	
-	RET	
-InputLineWith	MVI A,'?'	;Print '?'
+	RET
+; --------------------------------------------------------------------------------
+InputLineWith:
+	MVI A,'?'               ;Print '?'
 	RST 03                  ;RST OutChar
 	MVI A,' '               ;Print ' '
-	RST 03	;RST OutChar
+	RST 03                  ;RST OutChar
 	CALL InputLine
 	INX H
-Tokenize	MVI C,05                ;Initialize line length to 5.
+Tokenize:
+	MVI C,05                ;Initialize line length to 5.
 	LXI D,LINE_BUFFER       ;i.e., output pointer is same as input ptr at start.
 	MOV A,M
 	CPI ' '
@@ -470,7 +474,8 @@ Tokenize	MVI C,05                ;Initialize line length to 5.
 	LXI D,KEYWORDS-1	;
 	PUSH H	;Preserve input ptr.
 	DB 3Eh	;LXI over get-next-char
-KwCompare	RST 02 	; RST 01	; SyntaxCheck0	;Get next input char
+KwCompare:
+	RST 02 	; RST 01	; SyntaxCheck0	;Get next input char
 	INX D	;
 	LDAX D	;Get keyword char to compare with.
 	ANI 7Fh	;Ignore bit 7 of keyword char.
@@ -484,32 +489,38 @@ KwCompare	RST 02 	; RST 01	; SyntaxCheck0	;Get next input char
 	MOV A,B	;A=Keyword ID
 	ORI 0x80	;Set bit 7 (indicates a keyword)
 	DB 0xF2	;JP ....	;LXI trick again.
-NotAKeyword	POP H	;Restore input ptr
+NotAKeyword:
+	POP H	;Restore input ptr
 	MOV A,M	;and get input char
 	POP D	;Restore output ptr
-WriteChar	INX H	;Advance input ptr
+WriteChar:
+	INX H	;Advance input ptr
 	STAX D	;Store output char
 	INX D	;Advance output ptr
 	INR C	;C++ (arf!).
 	SUI 8Eh	;If it's not the
 	JNZ Tokenize+5	;
 	MOV B,A	;B=0
-FreeCopyLoop	MOV A,M	;A=Input char
+FreeCopyLoop:
+	MOV A,M	;A=Input char
 	ORA A	;If char is null then exit
 	JZ Exit	;
 	CMP B	;If input char is term char then
 	JZ WriteChar	;we're done free copying.
-FreeCopy	INX H	;
+FreeCopy:
+	INX H	;
 	STAX D	;
 	INR C	;
 	INX D	;
 	JMP FreeCopyLoop	;
                                     ; --------------------------------------------
-NextKeyword	POP H	;Restore input ptr
+NextKeyword:
+	POP H	;Restore input ptr
 	PUSH H	;
 	INR B	;Keyword ID ++;
 	XCHG	;HL=keyword table ptr
-NextKwLoop	ORA M	;Loop until
+NextKwLoop:
+	ORA M	;Loop until
 	INX H	;bit 7 of previous
 	JP NextKwLoop	;keyword char is set.
 	XCHG	;DE=keyword ptr, HL=input ptr
@@ -561,8 +572,10 @@ InputNext:
 L036A:
 	RST 03                      ;RST OutChar
 	JMP InputNext
-                                    ; --------------------------------------------
-OutChar_tail	CPI 0x48	
+                                    ;
+; --------------------------------------------------------------------------------
+OutChar_tail:
+	CPI 0x48	
 	CZ NewLine
 	INR A
 	STA TERMINAL_X
@@ -581,7 +594,7 @@ InputChar:
 	IN 01
 	ANI 7Fh
 	RET
-                                    ; --------------------------------------------
+; --------------------------------------------------------------------------------
 List	CALL LineNumberFromStr	
 	RNZ	
 	POP B	;?why get return address?
@@ -2070,6 +2083,8 @@ TAYLOR_SERIES	DB 0xBA,0xD7,0x1E,0x86	;DD 39.710670
 	DB 0xE0,0x5D,0xA5,0x86	;DD -41.341675	 
 	DB 0xDA,0x0F,0x49,0x83	;DD 6.283185	 
 L0D17	DB 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00	;   DD 6.283185
+
+; --------------------------------------------------------------------------------
 Init	LXI H,0x0F1A	; *** STACK_TOP RELOCATE
 	SPHL	;
 	SHLD STACK_TOP	;
@@ -2131,6 +2146,7 @@ L0D87	LXI H,L0D8D-1	;
 	INR M	;
 L0D8B	OUT 00	;
 L0D8D	RET	;
+; --------------------------------------------------------------------------------
 ConfigIOcode	MOV H,D	;
 	MOV L,B	;
 	SHLD InputChar+3	;

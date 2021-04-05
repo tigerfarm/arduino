@@ -681,7 +681,7 @@ void clockSwitch(int resultsValue) {
     // -------------
     case 'X':
       if (VIRTUAL_FRONT_PANEL) {
-        Serial.print(F("\033[11;1H"));  // Move cursor to below the prompt: line 9, column 1.
+        Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
         Serial.print(F("\033[J"));     // From cursor down, clear the screen.
       }
       Serial.println(F("+ Exit CLOCK mode. Return to Processor WAIT mode."));

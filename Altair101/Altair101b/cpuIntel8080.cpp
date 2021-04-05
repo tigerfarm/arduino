@@ -689,21 +689,24 @@ void cpu_print_regS() {
 void cpuIntel8080_print_registers() {
   char charBuffer[17];
   //
+  Serial.println("--------------------------");
   Serial.print(F("+++ Software: "));
   Serial.println(SOFTWARE_NAME);
   Serial.print(F("++ Program version: "));
   Serial.println(SOFTWARE_VERSION);
-  //
   Serial.print(F("++ CPU: "));
   Serial.print(THIS_CPU);
   Serial.print(F(", Oscillator frequency: "));
   Serial.print(F_CPU);
   Serial.println();
-  Serial.print(F("++ Memory size: "));
+  //
+  Serial.println("--------------------------");
+  Serial.print(F("++ Altari 101 memory size: "));
   Serial.println(MEMSIZE);
   //
   Serial.print(F("++ host_read_status_led_WAIT()="));
   Serial.println(host_read_status_led_WAIT());
+  Serial.print(F(" (Status LED, non-zero = on)"));
   Serial.print(F("++ host_read_status_led_HLDA()="));
   Serial.println(host_read_status_led_HLDA());
   Serial.print(F("++ host_read_status_led_INTE()="));

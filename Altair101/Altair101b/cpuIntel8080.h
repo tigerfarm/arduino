@@ -32,10 +32,12 @@ extern CPUFUN cpu_opcodes[256];
 //
 // The following works for my Galaxy80 program.
 //
+// Can load and run Altair101b
+#define MEMSIZE (4096)
+
 // I can load and run 4K Basic.
-#define MEMSIZE (4096+1024+256)           // 5376 bytes
+// #define MEMSIZE (4096+1024+256)           // 5376 bytes
 // Global variables use 7346 bytes (89%) of dynamic memory, leaving 846 bytes for local variables.
-// #define MEMSIZE (4096+768+128)         // 4864+128 = 4992
 // Global variables use 7218 bytes (88%) of dynamic memory, leaving 974 bytes for local variables.
 //
 // #define MEMSIZE (4096+2048)            // Max 6K, for David Hansel version.

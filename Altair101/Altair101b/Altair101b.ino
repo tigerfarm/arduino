@@ -1,4 +1,4 @@
-// Altair101a Processor program, which is an Altair 8800 simulator.
+IRTUAL_FRONT_PANEL=// Altair101a Processor program, which is an Altair 8800 emulator.
 // Copyright (C) 2021 Stacy David Thurston
 //
 // This program is free software; you can redistribute it and/or modify
@@ -16,7 +16,7 @@
   Interactivity is through the default Arduino USB serial port, and optionally, the Serial2 port.
   It was tested using the Arduino IDE serial monitor and Mac terminal which has VT100 features.
   It runs programs from command line, or with the emulated virtual front panel.
-  The virtual front panel funtions uses the serial port for communications to a VT100 terminal window.
+  The virtual front panel uses the default Serial port for communications to a VT100 terminal window.
   This emulator uses David Hansel's Altair 8800 Simulator code to process machine instructions.
 
   Differences to the original Altair 8800:
@@ -25,7 +25,8 @@
     rather than having all the data lights on, which happens on the original Altair 8800.
 
   This program runs MITS Altair 4K Basic on an Arduino Mega 2560.
-  It’s the assembler program written by Bill Gates, Paul Allen, and one more person. It's the first Microsoft software product.
+  It’s the assembler program written by Bill Gates, Paul Allen, and one more person.
+  4K Basic is the first Microsoft software product.
 
   ---------------------------------------------------------
   Next to work on
@@ -1055,7 +1056,7 @@ byte altair_in(byte portDataByte) {
     case 4:
     case B11111111:
       {
-        // case 1, for running Kill the Bit in serial mode.
+        // case 4, for running Kill the Bit in serial mode.
         // case B11111111, is the common sense switch input port#.
         //
         // For serial Sense switches, get the input and add it to the Address Toggle Word high byte.
@@ -1800,17 +1801,23 @@ void processWaitSwitch(byte readByte) {
     // -------------------------------------
     case 'j':
       Serial.println(F("+ Setting Information."));
-      Serial.println(F("------------"));
+      Serial.println(F("------------------------"));
       Serial.print(F("++ programState: "));
       Serial.println(programState);
+      //
       Serial.print(F("++ LED_LIGHTS_IO="));
       Serial.print(LED_LIGHTS_IO);
-      Serial.print(F(" VIRTUAL_FRONT_PANEL="));
+      Serial.println();
+      Serial.print(F("++ VIRTUAL_FRONT_PANEL="));
       Serial.print(VIRTUAL_FRONT_PANEL);
-      Serial.print(F(" ARDUINO_IDE_MONITOR="));
+      Serial.println();
+      Serial.print(F("++ ARDUINO_IDE_MONITOR="));
       Serial.print(ARDUINO_IDE_MONITOR);
-      Serial.print(F(" SERIAL_CLI="));
-      Serial.println(SERIAL_CLI);
+      Serial.println();
+      Serial.print(F("++ SERIAL_CLI="));
+      Serial.print(SERIAL_CLI);
+      Serial.println();
+      //
       Serial.print(F("++ Serial: "));
       if (Serial) {
         Serial.print(F("on, "));
@@ -1820,12 +1827,12 @@ void processWaitSwitch(byte readByte) {
       Serial.println(Serial);
       Serial.print(F("++ Serial2: "));
       if (SERIAL2_OUTPUT) {
-        // Note, the following doesn't say if it's on or off: "if (Serial2)".
-        Serial.print(F("on, "));
+        Serial.print(F("on. Available for output(OUT) and input(IN), ports: 2, 16, 17."));
       } else {
-        Serial.print(F("off, "));
+        Serial.print(F("off. Not used for output or input."));
       }
-      Serial.print(F("baud rate: "));
+      Serial.println();
+      Serial.print(F("++ Serial2 baud rate: "));
       Serial.print(downloadBaudRate );
       Serial.print(F(", data bits, stop bits, and parity: 8, 1, 0"));
       Serial.println();
@@ -1874,7 +1881,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ k/K Terminal    Disable/enable VT100 terminal command line escape codes."));
       Serial.println(F("-------------"));
       Serial.println(F("+ l, Load sample  Load a sample program."));
-      Serial.println(F("+ i, info         Information print of registers."));
+      Serial.println(F("+ i, info         CPU information print of registers."));
       Serial.println(F("+ j, settings     Settings information."));
       Serial.println(F("-------------"));
       Serial.println(F("+ H Help          Help for Altair101b module extension commands, and other commands."));
@@ -1885,7 +1892,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+++ Altair101b Extensions"));
       Serial.println(F("-------------"));
       Serial.println(F("+ D, Download     DOWNLOAD mode for receiving bytes from the Serial2 serial port."));
-      Serial.println(F("+ y/Y Serial2     Disable/enable Serial2 for program I/O."));
+      Serial.println(F("+ y/Y Serial2     Disable/enable Serial2 for program I/O. Disable, use default: Serial."));
       Serial.println(F("+ B Serial2 baud  Set Serial2 baud rate."));
       Serial.println(F("-------------"));
       Serial.println(F("+ F, SD Card      SD Card CLI, memory manage with the SD card."));
@@ -1894,18 +1901,17 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ n, Directory    Directory file listing of the SD card."));
       Serial.println(F("-------------"));
       Serial.println(F("+ J, MP3 Player   PLAYER mode, run the MP3 player."));
-      Serial.println(F("+ I, Player Info  MP3 player software and hardware settings."));
       Serial.println(F("+ g/G Play        Pause/Play MP3 song."));
       Serial.println(F("+ v/V Volume      Down/Up player volume."));
       Serial.println(F("-------------"));
       Serial.println(F("+ Q, Clock        CLOCK CLI, interact with the clock."));
-      Serial.println(F("+ q, Time         Show the clock's data and time."));
+      Serial.println(F("+ q, Time         Show clock date and time."));
       Serial.println(F("----------------------------------------------------"));
       Serial.println(F("+++ Other controls"));
+      Serial.println(F("+ w/W USB serial  Disable/enable Arduino IDE extra output controls."));
       Serial.println(F("+ u/U Log msg     Log messages off/on."));
-      Serial.println(F("+ L,  Load hex    Load hex code from the serial port."));
+      Serial.println(F("+ L   Load hex    Load hex code from the Serial port."));
       Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
-      Serial.println(F("+ w/W USB serial  Disable/enable USB serial output."));
       Serial.println(F("----------------------------------------------------"));
       break;
     // -------------------------------------
