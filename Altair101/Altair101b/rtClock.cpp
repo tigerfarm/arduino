@@ -189,42 +189,53 @@ void printClockDateTime() {
 // Clock pulse actions.
 
 void clockPulseYear() {
-  Serial.print(F("+++++ clockPulseYear(), theCounterYear= "));
-  Serial.println(theCounterYear);
+  if (programState == CLOCK_RUN) {
+    Serial.print(F("+++++ clockPulseYear(), theCounterYear= "));
+    Serial.println(theCounterYear);
+  }
 }
 void clockPulseMonth() {
-  Serial.print(F("++++ clockPulseMonth(), theCounterMonth= "));
-  Serial.println(theCounterMonth);
+  if (programState == CLOCK_RUN) {
+    Serial.print(F("++++ clockPulseMonth(), theCounterMonth= "));
+    Serial.println(theCounterMonth);
+  }
 }
 void clockPulseDay() {
-  Serial.print(F("+++ clockPulseDay(), theCounterDay= "));
-  Serial.println(theCounterDay);
+  if (programState == CLOCK_RUN) {
+    Serial.print(F("+++ clockPulseDay(), theCounterDay= "));
+    Serial.println(theCounterDay);
+  }
 }
 void clockPulseHour() {
-  Serial.print(F("++ clockPulseHour(), theCounterHours= "));
-  Serial.print(theCounterHours);
-  // Use AM/PM rather than 24 hours.
-  String AmPm = "";
-  if (theCounterHours > 12) {
-    theHour = theCounterHours - 12;
-    AmPm = "pm";
-  } else if (theCounterHours == 0) {
-    theHour = 12; // 12 midnight, 12am
-    AmPm = "pm";
-  } else {
-    theHour = theCounterHours;
-    AmPm = "am";
+  clockLights(theCounterMinutes, theCounterHours);  // Display in the virtual front panel.
+  if (programState == CLOCK_RUN && !VIRTUAL_FRONT_PANEL) {
+    Serial.print(F("++ clockPulseHour(), theCounterHours= "));
+    Serial.print(theCounterHours);
+    // Use AM/PM rather than 24 hours.
+    String AmPm = "";
+    if (theCounterHours > 12) {
+      theHour = theCounterHours - 12;
+      AmPm = "pm";
+    } else if (theCounterHours == 0) {
+      theHour = 12; // 12 midnight, 12am
+      AmPm = "pm";
+    } else {
+      theHour = theCounterHours;
+      AmPm = "am";
+    }
+    Serial.print(F(", "));
+    Serial.print(theHour);
+    Serial.print(AmPm);
+    Serial.println();
   }
-  Serial.print(F(", "));
-  Serial.print(theHour);
-  Serial.print(AmPm);
-  Serial.println();
 }
 void clockPulseMinute() {
-  // Serial.print(F("+ clockPulseMinute(), theCounterMinutes= "));
-  // printClockInt(theCounterMinutes);
-  // Serial.println();
   clockLights(theCounterMinutes, theCounterHours);  // Display in the virtual front panel.
+  if (programState == CLOCK_RUN && !VIRTUAL_FRONT_PANEL) {
+    Serial.print(F("+ clockPulseMinute(), theCounterMinutes= "));
+    printClockInt(theCounterMinutes);
+    Serial.println();
+  }
 }
 void clockPulseSecond() {
   Serial.print(F("+ theCounterSeconds = "));
@@ -250,7 +261,7 @@ void processClockNow() {
       if (theCounterMinutes == 0) {
         // When the clock minute value changes to zero, that's a clock hour pulse.
         theCounterHours = now.hour();
-        // clockPulseHour();
+        clockPulseHour();
         // -------------------------
         // Date pulses.
         if (now.hour() == 0) {
@@ -601,6 +612,12 @@ void clockSetSwitch(int resultsValue) {
 // Clock Controls
 
 void clockSwitch(int resultsValue) {
+  if (VIRTUAL_FRONT_PANEL) {
+    if (programState == CLOCK_RUN) {
+    Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
+    Serial.print(F("\033[J"));     // From cursor down, clear the screen.
+    }
+  }
   boolean printPrompt = true;
   switch (resultsValue) {
     // -----------------------------------

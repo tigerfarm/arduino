@@ -31,7 +31,7 @@
   ---------------------------------------------------------
   Next to work on
 
-  Versions of Attack for sample programs:
+  Sample program versions of Attack game:
   + Small size to run on a Mega.
   + Larger to run on Due.
 
