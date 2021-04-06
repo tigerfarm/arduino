@@ -789,15 +789,12 @@ void playerSwitch(int resultsValue) {
     case 0xFF18E7:                          // Small remote key up.
     case 0xFF629D:                          // Small remote key 2.
     case 'D':
-      if (programState == PLAYER_RUN) {
-        Serial.print(F("+ Key up - next directory, directory number: "));
-      }
+    // + Key up - next directory, directory number: 1 play song, playerCounter=1, playerDirectory=1
       if (playerDirectoryTop == 0) {
         playerDirectory ++;
-      } else if (playerDirectory < playerDirectoryTop ) {
-        playerDirectory ++;
       }
       if (programState == PLAYER_RUN) {
+        Serial.print(F("+ Key up - next directory, directory# "));
         Serial.print(playerDirectory);
       }
       // ------------------

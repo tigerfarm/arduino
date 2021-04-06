@@ -2457,6 +2457,7 @@ void loop() {
         Serial.print(F("?- "));
       }
       host_set_status_led_WAIT();
+      host_clr_status_led_HLDA();
       runProcessorWait();
       break;
     // ----------------------------
