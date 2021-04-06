@@ -1,4 +1,4 @@
-IRTUAL_FRONT_PANEL=// Altair101a Processor program, which is an Altair 8800 emulator.
+// Altair101a Processor program, which is an Altair 8800 emulator.
 // Copyright (C) 2021 Stacy David Thurston
 //
 // This program is free software; you can redistribute it and/or modify
@@ -30,6 +30,10 @@ IRTUAL_FRONT_PANEL=// Altair101a Processor program, which is an Altair 8800 emul
 
   ---------------------------------------------------------
   Next to work on
+
+  Versions of Attack for sample programs:
+  + Small size to run on a Mega.
+  + Larger to run on Due.
 
   Add hardware to display values:
   + Player song.
@@ -187,10 +191,48 @@ IRTUAL_FRONT_PANEL=// Altair101a Processor program, which is an Altair 8800 emul
 
 */
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 #include "Altair101b.h"
 #include "cpuIntel8080.h"
 
-// ------------------------------------------------
+// -----------------------------------------------------------------------------
+// Process Settings.
+
+// #define LOG_MESSAGES 1     // For debugging.
+// #define LOG_OPCODES  1     // Print each called opcode.
+#define SETUP_SDCARD 1
+
+// Needs to match the upload program:
+//  9600, 19200, 38400, 57600, 115200
+unsigned long downloadBaudRate = 115200;
+
+// Virtual serial front panel using VT100 escape codes.
+// For example, Macbook terminal is VT100 enabled using the UNIX "screen" command.
+boolean VIRTUAL_FRONT_PANEL = false;
+
+// This option is for VT100 terminal command line interactivity.
+// Each character is immediately sent.
+// Uses CR instead of LF.
+//    For example, Ctrl+l to clear the terminal screen.
+boolean SERIAL_CLI = false;
+
+// This is for when you are using the Arduino IDE monitor.
+// It prevents virtual front panel printing, unless requested.
+// The monitor requires an enter key to send a string of characters which is then terminated with LF.
+boolean ARDUINO_IDE_MONITOR = false;
+
+// Hardware LED lights
+boolean LED_LIGHTS_IO = false;
+
+// Program wait status.
+const int WAIT_PIN = A9;      // Processor program wait state: off/LOW or wait state on/HIGH.
+// const int WAIT_PIN = 13;   // Optional, change to onboard pin for the Altair101a/b machine.
+
+// HLDA : 8080 processor goes into a hold state because of other hardware running.
+const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock/player processing (on/HIGH).
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // For the Altair101b version,
 //    include the following header files.
 //    In the directory with the Altair101b.ino program file, include the other module code program files.
@@ -265,10 +307,6 @@ int readFileByte(String theFilename) {}
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-// #define LOG_MESSAGES 1     // For debugging.
-// #define LOG_OPCODES  1     // Print each called opcode.
-#define SETUP_SDCARD 1
-
 String theFilename;           // Use for file read/write selection.
 
 // -----------------------------------------------------------------------------
@@ -305,9 +343,6 @@ int WRITE_FILE        = 9;
 void playerPlaySoundWait(int theFileNumber) {};
 uint16_t processorPlayerCounter = 0;            // Indicator for the processor to play an MP3, if not zero.
 
-void ledFlashSuccess() {};
-void ledFlashError() {};
-
 // -----------------------------------------------------------------------------
 // Sound bites for sound effects
 /*
@@ -341,31 +376,6 @@ String getSfbFilename(byte fileByte) {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-// Types of interactions
-
-// Needs to match the upload program:
-//  9600, 19200, 38400, 57600, 115200
-unsigned long downloadBaudRate = 115200;
-
-// Virtual serial front panel using VT100 escape codes.
-// For example, Macbook terminal is VT100 enabled using the UNIX "screen" command.
-boolean VIRTUAL_FRONT_PANEL = false;
-
-// This option is for VT100 terminal command line interactivity.
-// Each character is immediately sent.
-// Uses CR instead of LF.
-//    For example, Ctrl+l to clear the terminal screen.
-boolean SERIAL_CLI = false;
-
-// This is for when you are using the Arduino IDE monitor.
-// It prevents virtual front panel printing, unless requested.
-// The monitor requires an enter key to send a string of characters which is then terminated with LF.
-boolean ARDUINO_IDE_MONITOR = false;
-
-// Hardware LED lights
-boolean LED_LIGHTS_IO = false;
-
 // -----------------------------------
 // Using Serial2 for output.
 boolean SERIAL2_OUTPUT = false;
@@ -467,13 +477,6 @@ int programState = LIGHTS_OFF;  // Intial, default.
 
 byte readByte = 0;
 
-// Program wait status.
-// const int WAIT_PIN = A9;     // Processor program wait state: off/LOW or wait state on/HIGH.
-const int WAIT_PIN = 13;        // Change to onboard pin for the Altair101a/b machine.
-
-// HLDA : 8080 processor goes into a hold state because of other hardware running.
-// const int HLDA_PIN = A10;     // Emulator processing: off/LOW. Clock or player processing: on/HIGH.
-
 // Use OR to turn ON. Example:
 const byte MEMR_ON =    B10000000;  // MEMR   The memory bus will be used for memory read data.
 const byte INP_ON =     B01000000;  // INP    The address bus containing the address of an input device. The input data should be placed on the data bus when the data bus is in the input mode
@@ -506,6 +509,45 @@ void setWaitStatus(boolean waitStatus) {
 const int dataPinLed  = 5;    // pin ? Data pin.
 const int latchPinLed = 6;    // pin ? Latch pin.
 const int clockPinLed = 7;    // pin ? Clock pin.
+
+void ledFlashSuccess() {
+  if (LED_LIGHTS_IO) {
+    int delayTime = 60;
+    lightsStatusAddressData(0, 0, B00000000);
+    delay(delayTime);
+    for (int i = 0; i < 1; i++) {
+      byte flashByte = B10000000;
+      for (int i = 0; i < 8; i++) {
+        lightsStatusAddressData(0, 0, flashByte);
+        flashByte = flashByte >> 1;
+        delay(delayTime);
+      }
+      flashByte = B00000001;
+      for (int i = 0; i < 8; i++) {
+        lightsStatusAddressData(0, 0, flashByte);
+        flashByte = flashByte << 1;
+        delay(delayTime);
+      }
+    }
+    if (programState == PROGRAM_WAIT) {
+      lightsStatusAddressData(fpStatusByte,fpAddressWord,fpDataByte);
+    }
+  }
+}
+void ledFlashError() {
+  if (LED_LIGHTS_IO) {
+    int delayTime = 300;
+    for (int i = 0; i < 3; i++) {
+      lightsStatusAddressData(0, 0, B11111111);
+      delay(delayTime);
+      lightsStatusAddressData(0, 0, B00000000);
+      delay(delayTime);
+    }
+    if (programState == PROGRAM_WAIT) {
+      lightsStatusAddressData(fpStatusByte,fpAddressWord,fpDataByte);
+    }
+  }
+}
 
 // -------------------------------------------------
 void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) {
@@ -2027,7 +2069,9 @@ void processWaitSwitch(byte readByte) {
         }
         Serial.println(F("+ Confirmed."));
         // -------------------------------------------------------
-        writeMemoryToFile(theFilename);
+        if ( writeMemoryToFile(theFilename) ) {
+          ledFlashSuccess();
+        }
         host_clr_status_led_HLDA();
         printFrontPanel();
 #else
@@ -2313,9 +2357,9 @@ void setup() {
 
   // System application status LED lights
   pinMode(WAIT_PIN, OUTPUT);        // Indicator: Altair 8800 emulator program WAIT state: LED on or LED off.
-  // pinMode(HLDA_PIN, OUTPUT);     // Indicator: clock or player process: LED on. Emulator: LED off.
+  pinMode(HLDA_PIN, OUTPUT);        // Indicator: clock or player process: LED on. Emulator: LED off.
   digitalWrite(WAIT_PIN, HIGH);     // Default to WAIT state.
-  // digitalWrite(HLDA_PIN, HIGH);  // Default to emulator.
+  digitalWrite(HLDA_PIN, HIGH);     // Default to emulator.
   // ------------------------------
   // Set status lights.
 #ifdef LOG_MESSAGES
@@ -2380,7 +2424,7 @@ void setup() {
     if (sumBytes > 0) {
       Serial.println(F("++ Since 00000000.bin, has non-zero bytes in the first 32 bytes, run it."));
       programState = PROGRAM_RUN;
-      digitalWrite(WAIT_PIN, LOW);
+      host_clr_status_led_WAIT();
     }
   }
   // ----------------------------------------------------

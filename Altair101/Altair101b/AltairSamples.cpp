@@ -2,9 +2,7 @@
 /*
   Load Altair 101a Sample programs into processor memory.
 
-  Programs are loaded as an arrary:
-    MWRITE( cnt++, B00010110 & 0xff);  // ++ opcode:mvi:00010110:d:080h
-  Or, programs are loading from a PROGMEM array.
+  Programs are loading from a PROGMEM array.
     static const byte PROGMEM pong[] = { ... }
 */
 // -----------------------------------------------------------------------------
@@ -756,6 +754,8 @@ void loadProgramList() {
   Serial.println(F("++ r, Test the setting of registers."));
   Serial.println(F("++ b, MITS Altair Basic 4K."));
   Serial.println(F("++ g, Star Wars Attack game which is a variation of the Star Trek game."));
+  // Serial.println(F("++ G, Star Wars Attack game which is a variation of the Star Trek game."));
+  // Serial.println(F("++ g, Small binary version of Star Wars Attack game which runs on a Mega. "));
   Serial.println(F("----------"));
   Serial.println(F("++ k, Virtual front panel version of Kill the Bit."));
   Serial.println(F("++ K, Load the original version of virtual Kill the Bit."));

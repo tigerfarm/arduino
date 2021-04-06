@@ -183,16 +183,16 @@ inline void host_set_data_leds(byte v) {
 #define host_read_data_leds()  fpDataByte
 
 #define host_read_status_led_WAIT()   status_wait
-#define host_clr_status_led_WAIT()  { digitalWrite(13, LOW);  status_wait = false; }
-#define host_set_status_led_WAIT()  { digitalWrite(13, HIGH); status_wait = true; }
+#define host_clr_status_led_WAIT()  { digitalWrite(WAIT_PIN, LOW);  status_wait = false; }
+#define host_set_status_led_WAIT()  { digitalWrite(WAIT_PIN, HIGH); status_wait = true; }
 
 #define host_read_status_led_HLDA()   status_hlda
-#define host_set_status_led_HLDA()  { digitalWrite(41, HIGH); status_hlda = true; }
-#define host_clr_status_led_HLDA()  { digitalWrite(41, LOW);  status_hlda = false; }
+#define host_clr_status_led_HLDA()  { digitalWrite(HLDA_PIN, LOW);  status_hlda = false; }
+#define host_set_status_led_HLDA()  { digitalWrite(HLDA_PIN, HIGH); status_hlda = true; }
 
 #define host_read_status_led_INTE()   status_inte
-#define host_set_status_led_INTE()  { digitalWrite(38, HIGH); status_inte = true; }
 #define host_clr_status_led_INTE()  { digitalWrite(38, LOW);  status_inte = false; }
+#define host_set_status_led_INTE()  { digitalWrite(38, HIGH); status_inte = true; }
 
 #define host_read_status_led_HLTA()   fpStatusByte & HLTA_ON
 

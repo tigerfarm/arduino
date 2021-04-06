@@ -10,10 +10,10 @@
 
 #ifdef Altair101b
 #define SOFTWARE_NAME "Altair101b"
-#define SOFTWARE_VERSION "1.63.b"
+#define SOFTWARE_VERSION "1.64.b"
 #else
 #define SOFTWARE_NAME "Altair101a"
-#define SOFTWARE_VERSION "1.63.a"
+#define SOFTWARE_VERSION "1.64.a"
 #endif
 
 // -----------------------------------------------------------------------------
@@ -39,6 +39,11 @@ extern byte fpDataByte;           // Front panel data byte.
 #define SERIAL_DOWNLOAD 5
 #define SDCARD_RUN 7
 extern int programState;
+
+// Program wait status.
+extern const int WAIT_PIN;      // Processor program wait state: off/LOW or wait state on/HIGH.
+// HLDA : 8080 processor goes into a hold state because of other hardware running.
+extern const int HLDA_PIN;     // Emulator processing (off/LOW) or clock/player processing (on/HIGH).
 
 void singleStepWait();                      // Wait for "s" when single stepping.
 void printFrontPanel();                     // Print the front panel display.

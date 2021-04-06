@@ -397,7 +397,6 @@ void setupMp3Player() {
   // ---------------------------------------------------------------------------
   delay(100);
   if (hwStatus == 0) {
-    ledFlashSuccess();
     NOT_PLAY_SOUND = false;                 // Set to play sound effects.
     mp3playerDevice.volume(PLAYER_VOLUME_SETUP);  // Set speaker volume from 0 to 30.
     delay(100);
@@ -1054,13 +1053,11 @@ void playerSwitch(int resultsValue) {
       }
       break;
     case 'x':
-      if (programState == PLAYER_RUN) {
-        Serial.print(F("+ EXAMINE, play MP3 playerCounter="));
-      }
       playerCounter = fpAddressToggleWord;
       mp3playerPlayCounter(playerCounter);         // Play the song.
       playerStatus = playerStatus & HLTA_OFF;
       if (programState == PLAYER_RUN) {
+        Serial.print(F("+ EXAMINE, play MP3 playerCounter="));
         Serial.print(playerCounter);
       }
       break;
@@ -1092,6 +1089,7 @@ void playerSwitch(int resultsValue) {
       Serial.println(F("+ e/E, Single/All Play only a single once/Play all MP3 files in a loop."));
       Serial.println(F("+ l/L, Loop       Disable/Enable looping of the current MP3."));
       Serial.println(F("+ v/V, Volume     Down/Up volume level."));
+      Serial.println(F("+ I, Info MP3#    Print the MP3 number being played."));
       Serial.println(F("+ i, Information  Program variables and hardward values."));
       Serial.println(F("--- Equalizer options:"));
       Serial.println(F("+ 4 POP   5 CLASSIC  6 NORMAL"));
@@ -1116,6 +1114,12 @@ void playerSwitch(int resultsValue) {
       mp3playerDevice.stop();
       break;
     case 'i':
+      if (programState == PLAYER_RUN) {
+        Serial.print(F("+ Info, MP3 playerCounter = "));
+        Serial.print(playerCounter);
+      }
+      break;
+    case 'I':
       Serial.println(F("+ Information"));
       printPlayerInfo();
       break;

@@ -1,5 +1,11 @@
 // -----------------------------------------------------------------------------
 /*
+  Receiving and Processing Rotary Encoder Data
+  --------------------------------------------
+
+  Left and right turning of the dial to increase and decrease an integer value.
+  Indicate if the dial is pressed, which is a switch on/off event.
+  
   Connect a KY-040 rotary encoder to a Nano:
   Encoder         Nano
   + "+"           +5v. Also works with 3.3v, example: NodeMCU.
