@@ -252,7 +252,7 @@
   Known Issues to do List
 
   When flipping EXAMINE,
-  + If toogle address is greater than memory top (memoryTop), flash error instead of random values.
+  + If toggle address is greater than memory top (memoryTop), flash error instead of random values.
 
   --------------
   Add inc/dec hours and minutes using toggles to set the time and date.
@@ -344,12 +344,12 @@ const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock/player p
 // ------------------------------
 // Status LEDs
 //
-// Info: page 33 of the Altair 8800 oprator's manaul.
+// Info: page 33 of the Altair 8800 operator's manual.
 // ------------
 // Not in use:
 //  INTE : On, interrupts enabled.
 //  INT : An interrupt request has been acknowledged.
-//  PROT : Useful only if RAM has page protection impliemented. I'm not implementing PROT.
+//  PROT : Useful only if RAM has page protection implimented. I'm not implementing PROT.
 // ------------
 // HLDA : 8080 processor go into a hold state because of other hardware such as the clock.
 

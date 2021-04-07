@@ -202,6 +202,9 @@
 // #define LOG_OPCODES  1     // Print each called opcode.
 #define SETUP_SDCARD 1
 
+// #define SWITCH_CONTROLS 1
+// #define SWITCH_MESSAGES     // Toggle switch messages.
+
 // Needs to match the upload program:
 //  9600, 19200, 38400, 57600, 115200
 unsigned long downloadBaudRate = 115200;
@@ -308,6 +311,70 @@ int readFileByte(String theFilename) {}
 // -----------------------------------------------------------------------------
 
 String theFilename;           // Use for file read/write selection.
+
+// -----------------------------------------------------------------------------
+// Add switch logic.
+
+#ifdef SWITCH_CONTROLS
+
+// Switch definitions
+#include <PCF8574.h>
+#include <Wire.h>
+
+// -------------------------------------------
+// Desktop version.
+// Address for the PCF8574 module being tested.
+PCF8574 pcfControl(0x020);  // Control: STOP, RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT, REST
+PCF8574 pcfData(0x021);     // Low bytes, data byte
+PCF8574 pcfSense(0x022);    // High bytes, sense switch byte
+PCF8574 pcfAux(0x023);      // AUX switches and others: Step down, CLR, Protect, Unprotect, AUX1 up, AUX1 down,  AUX2 up, AUX2 down
+
+//                   Mega pin for control toggle interrupt. Same pin for Nano.
+const int INTERRUPT_PIN = 2;
+
+// Interrupt setup: interrupt pin to use, interrupt handler routine.
+boolean pcfControlinterrupted = false;
+void pcfControlinterrupt() {
+  pcfControlinterrupted = true;
+}
+
+const int pinStop = 7;
+const int pinRun = 6;
+const int pinStep = 5;
+const int pinExamine = 4;
+const int pinExamineNext = 3;
+const int pinDeposit = 2;
+const int pinDepositNext = 1;
+const int pinReset = 0;
+
+const int pinAux1up = 3;
+const int pinAux1down = 2;
+const int pinAux2up = 1;
+const int pinAux2down = 0;
+const int pinProtect = 5;
+const int pinUnProtect = 4;
+const int pinClr = 6;
+const int pinStepDown = 7;
+
+boolean switchStop = false;
+boolean switchRun = false;
+boolean switchStep = false;
+boolean switchExamine = false;
+boolean switchExamineNext = false;
+boolean switchDeposit = false;;
+boolean switchDepositNext = false;;
+boolean switchReset = false;
+boolean switchProtect = false;
+boolean switchUnProtect = false;
+boolean switchClr = false;
+boolean switchStepDown = false;
+
+boolean switchAux1up = false;
+boolean switchAux1down = false;
+boolean switchAux2up = false;
+boolean switchAux2down = false;
+
+#endif
 
 // -----------------------------------------------------------------------------
 // No option to remove Serial2 options using a "#define", because it doesn't cause issues.
@@ -530,7 +597,7 @@ void ledFlashSuccess() {
       }
     }
     if (programState == PROGRAM_WAIT) {
-      lightsStatusAddressData(fpStatusByte,fpAddressWord,fpDataByte);
+      lightsStatusAddressData(fpStatusByte, fpAddressWord, fpDataByte);
     }
   }
 }
@@ -544,7 +611,7 @@ void ledFlashError() {
       delay(delayTime);
     }
     if (programState == PROGRAM_WAIT) {
-      lightsStatusAddressData(fpStatusByte,fpAddressWord,fpDataByte);
+      lightsStatusAddressData(fpStatusByte, fpAddressWord, fpDataByte);
     }
   }
 }
@@ -1375,7 +1442,7 @@ void altair_out(byte portDataByte, byte regAdata) {
 #ifdef LOG_MESSAGES
         Serial.print(F(" > mp3playerSinglePlay(processorPlayerCounter = regA = "));
         Serial.print(processorPlayerCounter);
-        Serial.print(F(");"));
+        Serial.print(F("));"));
 #endif
       }
       break;
@@ -1404,7 +1471,7 @@ void altair_out(byte portDataByte, byte regAdata) {
 #ifdef LOG_MESSAGES
         Serial.print(F(" > mp3PlayerSingleLoop(processorPlayerCounter = regA = "));
         Serial.print(processorPlayerCounter);
-        Serial.print(F(");"));
+        Serial.print(F("));"));
 #endif
       }
       break;
@@ -1533,6 +1600,42 @@ void processRunSwitch(byte readByte) {
   }
 }
 
+// --------------------------------------------------------
+// Front Panel Control Switches, when a program is running.
+// Switches: STOP and RESET.
+#ifdef SWITCH_CONTROLS
+void checkRunningButtons() {
+  // -------------------
+  // Read PCF8574 input for this switch.
+  if (pcfControl.readButton(pinStop) == 0) {
+    if (!switchStop) {
+      switchStop = true;
+    }
+  } else if (switchStop) {
+    switchStop = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Running, Stop."));
+#endif
+    processRunSwitch(stopByte);
+  }
+  // -------------------
+  if (pcfControl.readButton(pinReset) == 0) {
+    if (!switchReset) {
+      switchReset = true;
+    }
+  } else if (switchReset) {
+    switchReset = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Running, Reset."));
+#endif
+    processRunSwitch(resetByte);
+  }
+  // -------------------
+}
+#endif
+
 void runProcessor() {
   Serial.println(F("+ runProcessor()"));
   if (SERIAL_CLI && !VIRTUAL_FRONT_PANEL) {
@@ -1550,6 +1653,13 @@ void runProcessor() {
   programState = PROGRAM_RUN;
   while (programState == PROGRAM_RUN) {
     processDataOpcode();
+#ifdef SWITCH_CONTROLS
+    if (pcfControlinterrupted) {
+      // Program control: STOP or RESET.
+      checkRunningButtons();
+      pcfControlinterrupted = false; // Reset for next interrupt.
+    }
+#endif
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
       processRunSwitch(readByte);
@@ -2129,6 +2239,13 @@ void runProcessorWait() {
   while (programState == PROGRAM_WAIT) {
     // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
     // And other options such as enable VT100 output enabled or load a sample program.
+#ifdef SWITCH_CONTROLS
+    // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
+    if (pcfControlinterrupted) {
+      checkControlButtons();
+      pcfControlinterrupted = false; // Reset for next interrupt.
+    }
+#endif
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
       if (!(readByte == 27 || readByte == 91 || readByte == 65 || readByte == 66)) {
@@ -2340,6 +2457,114 @@ void modeDownloadProgram() {
 #endif
 }
 
+// -------------------------------------------------------------------
+// Front Panel Control Switches, when a program is not running (WAIT).
+// Switches: RUN, RESET, STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT,
+
+#ifdef SWITCH_CONTROLS
+
+void checkControlButtons() {
+  // -------------------
+  // Read PCF8574 input for this switch.
+  if (pcfControl.readButton(pinRun) == 0) {
+    if (!switchRun) {
+      switchRun = true;
+    }
+  } else if (switchRun) {
+    switchRun = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Control, Run."));
+#endif
+    // Switch logic...
+    programState = PROGRAM_RUN;
+  }
+  // -------------------
+  if (pcfControl.readButton(pinReset) == 0) {
+    if (!switchReset) {
+      switchReset = true;
+    }
+  } else if (switchReset) {
+    switchReset = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Control, Reset."));
+#endif
+    processWaitSwitch('R');
+  }
+  // -------------------
+  if (pcfControl.readButton(pinStep) == 0) {
+    if (!switchStep) {
+      switchStep = true;
+    }
+  } else if (switchStep) {
+    switchStep = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Control, Step."));
+#endif
+  }
+  // -------------------
+  // checkExamineButton();
+  // checkExamineNextButton();
+  // checkDepositButton();
+  // checkDepositNextButton();
+  // -------------------
+  if (pcfAux.readButton(pinStepDown) == 0) {
+    if (!switchStepDown) {
+      switchStepDown = true;
+    }
+  } else if (switchStepDown) {
+    switchStepDown = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Control, SINGLE STEP down, programCounter: "));
+    // Serial.print(programCounter);
+    // printByte(programCounter);
+    Serial.print(F(", byte = "));
+    // printByte(dataByte);
+    Serial.print(F(" = "));
+    // printData(dataByte);
+    Serial.println(F(""));
+#endif
+  }
+  // -------------------
+  if (pcfAux.readButton(pinClr) == 0) {
+    if (!switchClr) {
+      switchClr = true;
+    }
+  } else if (switchClr) {
+    switchClr = false;
+    // Switch logic
+    // -------------------------------------------------------
+    // Double flip confirmation.
+    switchClr = false;      // Required to reset the switch state for confirmation.
+    boolean confirmChoice = false;
+    unsigned long timer = millis();
+    while (!confirmChoice && (millis() - timer < 1000)) {
+      if (pcfAux.readButton(pinClr) == 0) {
+        if (!switchClr) {
+          switchClr = true;
+        }
+      } else if (switchClr) {
+        switchClr = false;
+        // Switch logic.
+        confirmChoice = true;
+      }
+      delay(100);
+    }
+    if (!confirmChoice) {
+      return;
+    }
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Choice confirmed."));
+#endif
+    processWaitSwitch('C');
+  }
+  // -------------------
+}
+#endif
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void setup() {
@@ -2374,6 +2599,19 @@ void setup() {
   Serial.println(F("+ Front panel LED lights are initialized."));
 #endif
   //
+  // ------------------------------
+  // I2C Two Wire PCF module initialization
+#ifdef SWITCH_CONTROLS
+  pcfControl.begin();   // Control switches
+  pcfData.begin();      // Tablet: Address/Sense switches
+  pcfSense.begin();
+  pcfAux.begin();
+  // PCF8574 device interrupt initialization
+  pinMode(INTERRUPT_PIN, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), pcfControlinterrupt, CHANGE);
+  Serial.println(F("+ Front panel toggle switches are configured for input."));
+#endif
+
   // ----------------------------------------------------
   // ----------------------------------------------------
 #ifdef SETUP_SDCARD
