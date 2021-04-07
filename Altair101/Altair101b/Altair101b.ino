@@ -70,6 +70,12 @@
     based on how I use it for 4K Basic.
 
   ---------------------------------------------------------
+  Desktop integration
+
+  Continue to add logic for switches and toggles.
+  + For Address toggles, update fpAddressToggleWord.
+  ++ This will update for the VFP and for the getSenseSwitchValue() function.
+
   Starting integrating hardware functions using the Altair tablet or desktop.
   + If Altair101 tablet module, get the tablet to work.
   + Test running Altair101b.
@@ -202,8 +208,8 @@
 // #define LOG_OPCODES  1     // Print each called opcode.
 #define SETUP_SDCARD 1
 
-// #define SWITCH_CONTROLS 1
-// #define SWITCH_MESSAGES     // Toggle switch messages.
+#define FP_SWITCHES_LIGHTS 1
+#define SWITCH_MESSAGES     // Toggle switch messages.
 
 // Needs to match the upload program:
 //  9600, 19200, 38400, 57600, 115200
@@ -315,7 +321,7 @@ String theFilename;           // Use for file read/write selection.
 // -----------------------------------------------------------------------------
 // Add switch logic.
 
-#ifdef SWITCH_CONTROLS
+#ifdef FP_SWITCHES_LIGHTS
 
 // Switch definitions
 #include <PCF8574.h>
@@ -1603,7 +1609,7 @@ void processRunSwitch(byte readByte) {
 // --------------------------------------------------------
 // Front Panel Control Switches, when a program is running.
 // Switches: STOP and RESET.
-#ifdef SWITCH_CONTROLS
+#ifdef FP_SWITCHES_LIGHTS
 void checkRunningButtons() {
   // -------------------
   // Read PCF8574 input for this switch.
@@ -1653,7 +1659,7 @@ void runProcessor() {
   programState = PROGRAM_RUN;
   while (programState == PROGRAM_RUN) {
     processDataOpcode();
-#ifdef SWITCH_CONTROLS
+#ifdef FP_SWITCHES_LIGHTS
     if (pcfControlinterrupted) {
       // Program control: STOP or RESET.
       checkRunningButtons();
@@ -1672,6 +1678,35 @@ void runProcessor() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Processor WAIT mode: process switch byte options.
+
+void doClear() {
+  Serial.print(F("+ Clear memory: "));
+  Serial.println(MEMSIZE);
+  for (int i = 0; i < MEMSIZE; i++) {
+    MWRITE(i, 0);
+  }
+  // ---------------------------------
+  Serial.println(F("+ CLR registers."));
+  regA = 0;
+  regB = 0;
+  regC = 0;
+  regD = 0;
+  regE = 0;
+  regH = 0;
+  regL = 0;
+  regPC = 0;
+  regSP = 0;
+  //
+  Serial.println(F("+ CLR data, address, switches, and reset status lights."));
+  fpStatusByte = MEMR_ON | M1_ON | WO_ON; // Status: Get next opcode.
+  fpDataByte = 0;                         // Data
+  fpAddressWord = 0;                      // Address word
+  fpAddressToggleWord = 0;                // Reset all toggles to off.
+  loadProgramName = "";                   // As there may have been a sample loaded program.
+  if (VIRTUAL_FRONT_PANEL) {
+    printFrontPanel();      // For Arduino IDE monitor, <LF> will refresh the display.
+  }
+}
 
 String loadProgramName = "";
 
@@ -1796,32 +1831,7 @@ void processWaitSwitch(byte readByte) {
         break;
       }
       Serial.println(F("+ CLR confirmed."));
-      Serial.print(F("+ Clear memory: "));
-      Serial.println(MEMSIZE);
-      for (int i = 0; i < MEMSIZE; i++) {
-        MWRITE(i, 0);
-      }
-      // ---------------------------------
-      Serial.println(F("+ CLR registers."));
-      regA = 0;
-      regB = 0;
-      regC = 0;
-      regD = 0;
-      regE = 0;
-      regH = 0;
-      regL = 0;
-      regPC = 0;
-      regSP = 0;
-      //
-      Serial.println(F("+ CLR data, address, switches, and reset status lights."));
-      fpStatusByte = MEMR_ON | M1_ON | WO_ON; // Status: Get next opcode.
-      fpDataByte = 0;                         // Data
-      fpAddressWord = 0;                      // Address word
-      fpAddressToggleWord = 0;                // Reset all toggles to off.
-      loadProgramName = "";                   // As there may have been a sample loaded program.
-      if (VIRTUAL_FRONT_PANEL) {
-        printFrontPanel();      // For Arduino IDE monitor, <LF> will refresh the display.
-      }
+      doClear();
       break;
     // -------------------------------------------------------------------
     //
@@ -2019,10 +2029,10 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ s, STOP         When in RUN mode, change to WAIT mode."));
       Serial.println(F("+ r, RUN mode     When in WAIT mode, change to RUN mode."));
       Serial.println(F("+ s, SINGLE STEP  When in WAIT mode, SINGLE STEP."));
-      Serial.println(F("+ x, EXAMINE      sense switch address."));
-      Serial.println(F("+ X, EXAMINE NEXT address, current address + 1."));
-      Serial.println(F("+ p, DEPOSIT      into current address."));
-      Serial.println(F("+ P, DEPOSIT NEXT address, deposit into current address + 1."));
+      Serial.println(F("+ x, EXAMINE      Address of the address switches."));
+      Serial.println(F("+ X, EXAMINE NEXT Next address, current address + 1."));
+      Serial.println(F("+ p, DEPOSIT      Deposit into current address."));
+      Serial.println(F("+ P, DEPOSIT NEXT Deposit into current address + 1."));
       Serial.println(F("+ R, RESET        Set program counter address to zero."));
       Serial.println(F("+ C, CLR          Clear memory, set registers and program counter address to zero."));
       Serial.println(F("-------------"));
@@ -2239,12 +2249,14 @@ void runProcessorWait() {
   while (programState == PROGRAM_WAIT) {
     // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
     // And other options such as enable VT100 output enabled or load a sample program.
-#ifdef SWITCH_CONTROLS
+#ifdef FP_SWITCHES_LIGHTS
     // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
     if (pcfControlinterrupted) {
-      checkControlButtons();
+      waitControlSwitches();
       pcfControlinterrupted = false; // Reset for next interrupt.
     }
+    checkAux1();
+    checkProtectSetVolume();
 #endif
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
@@ -2458,28 +2470,80 @@ void modeDownloadProgram() {
 }
 
 // -------------------------------------------------------------------
+// -------------------------------------------------------------------
 // Front Panel Control Switches, when a program is not running (WAIT).
 // Switches: RUN, RESET, STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT,
 
-#ifdef SWITCH_CONTROLS
+#ifdef FP_SWITCHES_LIGHTS
 
-void checkControlButtons() {
-  // -------------------
-  // Read PCF8574 input for this switch.
+void waitControlSwitches() {
+  // Read PCF8574 input for each switch.
+  // ----------------------------------------------
   if (pcfControl.readButton(pinRun) == 0) {
     if (!switchRun) {
       switchRun = true;
     }
   } else if (switchRun) {
     switchRun = false;
-    // Switch logic
+    // Switch logic.
 #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Control, Run."));
+    Serial.println(F("+ WAIT, RUN."));
 #endif
-    // Switch logic...
     programState = PROGRAM_RUN;
   }
-  // -------------------
+  // ----------------------------------------------
+  if (pcfControl.readButton(pinExamine) == 0) {
+    if (!switchExamine) {
+      switchExamine = true;
+    }
+  } else if (switchExamine) {
+    switchExamine = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ WAIT, EXAMINE."));
+#endif
+    processWaitSwitch('x');
+  }
+  // ----------------------------------------------
+  if (pcfControl.readButton(pinExamineNext) == 0) {
+    if (!switchExamineNext) {
+      switchExamineNext = true;
+    }
+  } else if (switchExamineNext) {
+    switchExamineNext = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ WAIT, EXAMINE NEXT."));
+#endif
+    processWaitSwitch('X');
+  }
+  // ----------------------------------------------
+  if (pcfControl.readButton(pinDeposit) == 0) {
+    if (!switchDeposit) {
+      switchDeposit = true;
+    }
+  } else if (switchDeposit) {
+    switchDeposit = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ WAIT, DEPOSIT."));
+#endif
+    processWaitSwitch('p');
+  }
+  // ----------------------------------------------
+  if (pcfControl.readButton(pinDepositNext) == 0) {
+    if (!switchDepositNext) {
+      switchDepositNext = true;
+    }
+  } else if (switchDepositNext) {
+    switchDepositNext = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ WAIT, DEPOSIT NEXT."));
+#endif
+    processWaitSwitch('P');
+  }
+  // ----------------------------------------------
   if (pcfControl.readButton(pinReset) == 0) {
     if (!switchReset) {
       switchReset = true;
@@ -2488,28 +2552,24 @@ void checkControlButtons() {
     switchReset = false;
     // Switch logic.
 #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Control, Reset."));
+    Serial.println(F("+ WAIT, RESET."));
 #endif
     processWaitSwitch('R');
   }
-  // -------------------
+  // ----------------------------------------------
   if (pcfControl.readButton(pinStep) == 0) {
     if (!switchStep) {
       switchStep = true;
     }
   } else if (switchStep) {
     switchStep = false;
-    // Switch logic
+    // Switch logic.
 #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Control, Step."));
+    Serial.println(F("+ WAIT, SINGLE STEP."));
 #endif
+    processWaitSwitch('s');
   }
-  // -------------------
-  // checkExamineButton();
-  // checkExamineNextButton();
-  // checkDepositButton();
-  // checkDepositNextButton();
-  // -------------------
+  // ----------------------------------------------
   if (pcfAux.readButton(pinStepDown) == 0) {
     if (!switchStepDown) {
       switchStepDown = true;
@@ -2518,17 +2578,10 @@ void checkControlButtons() {
     switchStepDown = false;
     // Switch logic
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ Control, SINGLE STEP down, programCounter: "));
-    // Serial.print(programCounter);
-    // printByte(programCounter);
-    Serial.print(F(", byte = "));
-    // printByte(dataByte);
-    Serial.print(F(" = "));
-    // printData(dataByte);
-    Serial.println(F(""));
+    Serial.print(F("+ WAIT, SINGLE STEP down, programCounter: "));
 #endif
   }
-  // -------------------
+  // ----------------------------------------------
   if (pcfAux.readButton(pinClr) == 0) {
     if (!switchClr) {
       switchClr = true;
@@ -2536,7 +2589,7 @@ void checkControlButtons() {
   } else if (switchClr) {
     switchClr = false;
     // Switch logic
-    // -------------------------------------------------------
+    // -------------
     // Double flip confirmation.
     switchClr = false;      // Required to reset the switch state for confirmation.
     boolean confirmChoice = false;
@@ -2554,15 +2607,86 @@ void checkControlButtons() {
       delay(100);
     }
     if (!confirmChoice) {
+#ifdef SWITCH_MESSAGES
+      Serial.println(F("+ WAIT, CLR: cancelled."));
+#endif
       return;
     }
+    // -------------
 #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Choice confirmed."));
+    Serial.println(F("+ WAIT, CLR: confirmed."));
 #endif
-    processWaitSwitch('C');
+    doClear();
   }
   // -------------------
 }
+
+// -----------------------------------------------------------------------------
+void checkAux1() {
+  // ----------------------------------------------
+  if (pcfAux.readButton(pinAux1up) == 0) {
+    if (!switchAux1up) {
+      switchAux1up = true;
+    }
+  } else if (switchAux1up) {
+    switchAux1up = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ AUX1, up."));
+#endif
+    if (programState == CLOCK_RUN) {
+      Serial.println(F(" WAIT mode: exit CLOCK mode."));
+      programState = PROGRAM_WAIT;
+    } else {
+      Serial.println(F(" CLOCK mode."));
+      programState = CLOCK_RUN;
+    }
+  }
+  // ----------------------------------------------
+  if (pcfAux.readButton(pinAux1down) == 0) {
+    if (!switchAux1down) {
+      switchAux1down = true;
+    }
+  } else if (switchAux1down) {
+    switchAux1down = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ AUX1, down."));
+#endif
+    if (programState == PLAYER_RUN) {
+      Serial.println(F(" WAIT mode: exit PLAYER mode."));
+      programState = PROGRAM_WAIT;
+    } else {
+      Serial.println(F(" MP3 PLAYER mode."));
+      programState = PLAYER_RUN;
+    }
+  }
+}
+
+void checkProtectSetVolume() {
+  // When not in player mode, used to change the volume.
+  // ----------------------------------------------
+  if (pcfAux.readButton(pinProtect) == 0) {
+    if (!switchProtect) {
+      switchProtect = true;
+    }
+  } else if (switchProtect) {
+    switchProtect = false;
+    // Switch logic.
+    processWaitSwitch('V');
+  }
+  // ----------------------------------------------
+  if (pcfAux.readButton(pinUnProtect) == 0) {
+    if (!switchUnProtect) {
+      switchUnProtect = true;
+    }
+  } else if (switchUnProtect) {
+    switchUnProtect = false;
+    // Switch logic
+    processWaitSwitch('v');
+  }
+}
+
 #endif
 
 // -----------------------------------------------------------------------------
@@ -2585,23 +2709,21 @@ void setup() {
   pinMode(HLDA_PIN, OUTPUT);        // Indicator: clock or player process: LED on. Emulator: LED off.
   digitalWrite(WAIT_PIN, HIGH);     // Default to WAIT state.
   digitalWrite(HLDA_PIN, HIGH);     // Default to emulator.
-  // ------------------------------
-  // Set status lights.
-#ifdef LOG_MESSAGES
-  Serial.println(F("+ Initialized: statusByte, programCounter & curProgramCounter, dataByte."));
-#endif
+
+  // ----------------------------------------------------
+  // Set LED lights: status, address, and data.
+#ifdef FP_SWITCHES_LIGHTS
+  LED_LIGHTS_IO = true;
   pinMode(latchPinLed, OUTPUT);
   pinMode(clockPinLed, OUTPUT);
   pinMode(dataPinLed, OUTPUT);
   delay(300);
   ledFlashSuccess();
-#ifdef LOG_MESSAGES
   Serial.println(F("+ Front panel LED lights are initialized."));
-#endif
   //
-  // ------------------------------
+  // ----------------------------------------------------
+  // Front Panel Switches.
   // I2C Two Wire PCF module initialization
-#ifdef SWITCH_CONTROLS
   pcfControl.begin();   // Control switches
   pcfData.begin();      // Tablet: Address/Sense switches
   pcfSense.begin();
