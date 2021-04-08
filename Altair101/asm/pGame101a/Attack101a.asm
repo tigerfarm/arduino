@@ -345,10 +345,39 @@ STARTYN:
         cpi     'N'             ; No, don't start a new game.
         jz      NOGAME
         cpi     'y'             ; Yes, start a game.
-        jz      STARTGAME
+        jz      SELECTLEN
         cpi     'Y'             ; Yes, start a game.
-        jz      STARTGAME
+        jz      SELECTLEN
 	jmp	STARTYN         ; Invalid character
+                                ;
+                                ; ------------------------------------------------
+SELECTLEN:                      ; Ask for a range of the number of TIE fighters for the game.
+	LXI	H,MSSEL1
+	CALL	MSG
+	CALL    INPUT           ; Wait for an input character, then echo it and continue.
+	CPI     '1'             ; Quick
+	JZ	QGAME           ; Not going to play a game.
+	CPI     '2'             ; Medium
+	JZ	MGAME           ; Not going to play a game.
+	CPI     '3'             ; Long
+	JZ	LGAME           ; Not going to play a game.
+QGAME:
+        mvi     a,3
+        sta     ASHIPSH
+        mvi     a,1
+        sta     ASHIPSL
+        jmp     STARTGAME
+MGAME:
+        mvi     a,9
+        sta     ASHIPSH
+        mvi     a,5
+        sta     ASHIPSL
+        jmp     STARTGAME
+LGAME:
+        mvi     a,32            ; Original values.
+        sta     ASHIPSH
+        mvi     a,10
+        sta     ASHIPSL
                                 ;
                                 ; ----------------------------------------------
 STARTGAME:
@@ -2200,6 +2229,8 @@ GAMESTAT:
                                 ;
 MSGSTART:   DB CR,LF
         DB      'Ready to start a Star Wars X-wing starfighter mission? (Y/N)'
+  	DB	0
+MSSEL1:	DB	'\r\nShort/medium/long game (1/2/3)?'
   	DB	0
 MSPREP:	DB	'\r\nPreparations are being made...'
   	DB	0

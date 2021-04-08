@@ -1,4 +1,5 @@
-// Altair101a Processor program, which is an Altair 8800 emulator.
+// -------------------------------------------------------------------------------
+// Altair101b Processor program, which is an Altair 8800 emulator.
 // Copyright (C) 2021 Stacy David Thurston
 //
 // This program is free software; you can redistribute it and/or modify
@@ -31,11 +32,7 @@
   ---------------------------------------------------------
   Next to work on
 
-  Sample program versions of Attack game:
-  + Small size to run on a Mega.
-  + Larger to run on Due.
-
-  Add hardware to display values:
+  Add 4 digit hardware display, to diplay:
   + Player song.
   + Clock date and time.
 
@@ -51,7 +48,6 @@
   Continue integrating Processor.ino features and functions.
   + Ready to add sample assembler programs to AltairSamples.cpp.
   + Test Serial2 buffer uploads from asm, for uploading basic programs.
-  + Nice to standardize the key press options across the programs, such as v and V for player volume.
   + Move Status const to Altair101b.h, for other programs to use, such as Mp3Player.cpp.
     const byte MEMR_ON =    B10000000;  // MEMR   The memory bus will be used for memory read data.
 
@@ -204,12 +200,12 @@
    ---------------------------------------
 
 */
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------
 #include "Altair101b.h"
 #include "cpuIntel8080.h"
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------
 // Process Settings.
 
 // #define LOG_MESSAGES 1     // For debugging.
