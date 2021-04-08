@@ -2016,7 +2016,7 @@ void processWaitSwitch(byte readByte) {
       break;
     // -------------------------------------
     case 'Q':
-      Serial.println(F("+ Run in CLOCK mode."));
+      // Serial.println(F("+ Run in CLOCK mode."));
       programState = CLOCK_RUN;
       break;
     case 'q':
@@ -2024,7 +2024,7 @@ void processWaitSwitch(byte readByte) {
       break;
     // -------------------------------------
     case 'J':
-      Serial.println(F("+ Run in MP3 PLAYER mode."));
+      // Serial.println(F("+ Run in MP3 PLAYER mode."));
       programState = PLAYER_RUN;
       break;
     case 'g':
@@ -2041,7 +2041,7 @@ void processWaitSwitch(byte readByte) {
       break;
     // -------------------------------------
     case 'F':
-      Serial.println(F("+ SD Card mode, memory manage with the SD card."));
+      // Serial.println(F("+ SD Card mode, memory manage with the SD card."));
       programState = SDCARD_RUN;
       break;
     case 'n':

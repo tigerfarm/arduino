@@ -114,6 +114,14 @@
   A> DIR
   A> B:
 
+  Logical directives of the preprocessor:
+  #ifdef    If defined.
+  #ifndef   If NOT defined.
+  #elseif   If the first is NOT defined, and this one is defined.
+  #elif     ...
+  #else     Else, do the following.
+  #endif    End a directive.
+  
   ---------------------------------------------------------
   VT100 reference:
        http://ascii-table.com/ansi-escape-sequences-vt-100.php

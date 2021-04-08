@@ -1160,10 +1160,22 @@ void loadProgramList() {
   Serial.println(F("----------"));
   Serial.println(F("++ r, Test the setting of registers."));
   Serial.println(F("++ b, MITS Altair Basic 4K."));
-#ifdef Altair101b
+  //
+#if defined(__SAM3X8E__)
   Serial.println(F("++ g, Due version of Star Wars Attack game which is a variation of the Star Trek game."));
 #endif
+  // -------------------
+#ifndef Altair101b
+  // Run on Altair101a, Mega and Due.
   Serial.println(F("++ G, Mega version of Star Wars Attack game which runs on a Mega. "));
+#else
+#if defined(__SAM3X8E__)
+  // Since it's Altair101b, this only works with Due.
+  Serial.println(F("++ G, Mega version of Star Wars Attack game which runs on a Mega. "));
+#endif
+#endif
+  // -------------------
+  //
   Serial.println(F("----------"));
   Serial.println(F("++ k, Virtual front panel version of Kill the Bit."));
   Serial.println(F("++ K, Load the original version of virtual Kill the Bit."));
@@ -1213,7 +1225,7 @@ void loadProgram() {
           Serial.print(F("+ Program loaded and ready to run: "));
           Serial.println(loadProgramName);
           break;
-#ifdef Altair101b
+#if defined(__SAM3X8E__)
         case 'g':
           loadProgramName = "Star Wars Attack game, Arduino Due version";
           Serial.println(F("+ Load Star Wars Attack, a variation of the Star Trek game."));
@@ -1229,6 +1241,9 @@ void loadProgram() {
           Serial.println(F("  Then run the program."));
           break;
 #endif
+          // -----------------------------------------------------------------------------------
+#ifndef Altair101b
+        // If Altair101b not defined, then is version: Altair101a. This game option works with both Mega and Due for Altair101a.
         case 'G':
           loadProgramName = "Star Wars Attack game, Arduino Mega version";
           Serial.println(F("+ Load Star Wars Attack, a variation of the Star Trek game for a Mega board."));
@@ -1243,7 +1258,29 @@ void loadProgram() {
           Serial.println(F("  Toggle S8(key 8) and S10(key A) on and EXAMINE(key x) the byte at that address, 1280."));
           Serial.println(F("  Then run the program."));
           break;
-        // -------------------------------------
+          // -------------------------------------
+#else
+          // Since it's Altair101b, this only works with Due.
+#if defined(__SAM3X8E__)
+        case 'G':
+          loadProgramName = "Star Wars Attack game, Arduino Mega version";
+          Serial.println(F("+ Load Star Wars Attack, a variation of the Star Trek game for a Mega board."));
+          programState = PROGRAM_WAIT;
+          if (VIRTUAL_FRONT_PANEL) {
+            Serial.print(F("\033[J"));     // From cursor down, clear the screen, .
+          }
+          loadStarWarsAttackMega();
+          Serial.print(F("+ Program loaded and ready to run: "));
+          Serial.println(loadProgramName);
+          Serial.println(F("+ Start the program at address 1280."));
+          Serial.println(F("  Toggle S8(key 8) and S10(key A) on and EXAMINE(key x) the byte at that address, 1280."));
+          Serial.println(F("  Then run the program."));
+          break;
+          // -------------------------------------
+#endif
+#endif
+        // -----------------------------------------------------------------------------------
+        //
         case 'k':
           loadProgramName = "Virtual version of Kill the Bit";
           Serial.println(F("+ A version of Kill the Bit for the virtual front panel."));
