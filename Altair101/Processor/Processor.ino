@@ -4522,17 +4522,6 @@ void runDownloadProgram() {
     doDownloadProgram();
   }
   digitalWrite(WAIT_PIN, HIGH);
-  /*
-    // How to check if Serial2 is available?
-    } else {
-    #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ Return to programState: PROGRAM_WAIT, Serial2 is not available."));
-    #endif
-    delay(300);
-    ledFlashError();
-    controlResetLogic();  // Reset the program.
-    }
-  */
 }
 
 // -----------------------------------------------------------------------------
@@ -4546,8 +4535,7 @@ void runDownloadProgram() {
 // --------------------------------------------------
 // Get Front Panel address/data/sense toggle values.
 
-// Invert byte bits using bitwise not operator: "~";
-// Bitwise "not" operator to invert bits:
+b// Bitwise "not" operator to invert bits:
 //  int a = 103;  // binary:  0000000001100111
 //  int b = ~a;   // binary:  1111111110011000 = -104
 
