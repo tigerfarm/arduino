@@ -229,9 +229,6 @@ boolean SERIAL_CLI = false;
 // The monitor requires an enter key to send a string of characters which is then terminated with LF.
 boolean ARDUINO_IDE_MONITOR = false;
 
-// Hardware LED lights
-boolean LED_LIGHTS_IO = false;
-
 // Program wait status.
 const int WAIT_PIN = A9;      // Processor program wait state: off/LOW or wait state on/HIGH.
 // const int WAIT_PIN = 13;   // Optional, change to onboard pin for the Altair101a/b machine.
@@ -253,12 +250,18 @@ const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock/player p
 #include "sdCard.h"
 #include "frontPanel.h"
 
+// Hardware LED lights
+boolean LED_LIGHTS_IO = true;
+
 #else
 // For the Altair101a version,
 //    include non-active definitions.
 // ------------------------------------------------
 // Include the following definitions so the the program will compile and run.
 // The Altair101a version runs on stand alone Arduino Mega or Due board.
+
+// Hardware LED lights
+boolean LED_LIGHTS_IO = false;
 
 // -------------------
 // MP3 player module
@@ -324,10 +327,10 @@ uint16_t fpToggleAddress() {
   return 0;
 }
 
-void getPcfControlinterrupted() {
+boolean getPcfControlinterrupted() {
   return false;
 }
-boolean setPcfControlinterrupted(boolean theTruth) {}
+void setPcfControlinterrupted(boolean theTruth) {}
 
 void checkRunningButtons() {}
 void waitControlSwitches() {}
@@ -2423,7 +2426,6 @@ void setup() {
 
   // ----------------------------------------------------
   // Set LED lights: status, address, and data.
-  LED_LIGHTS_IO = true;
   pinMode(latchPinLed, OUTPUT);
   pinMode(clockPinLed, OUTPUT);
   pinMode(dataPinLed, OUTPUT);
