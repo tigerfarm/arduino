@@ -7,10 +7,5 @@
 void loadProgram();
 void loadProgramList();
 
-void loadBasic4kArray();
-void loadKillTheBitArray();
-void loadKillTheBit();
-void loadMviRegisters();
-
 // -----------------------------------------------------------------------------
 // eof

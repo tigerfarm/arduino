@@ -2186,13 +2186,16 @@ void runProcessorWait() {
   while (programState == PROGRAM_WAIT) {
     // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
     // And other options such as enable VT100 output enabled or load a sample program.
+    //
     if (getPcfControlinterrupted()) {
+      // Hardware front panel controls.
       waitControlSwitches();
       checkAux1();
       checkProtectSetVolume();
       setPcfControlinterrupted(false); // Reset for next interrupt.
     }
     if (Serial.available() > 0) {
+      // Serial port virtual front panel controls.
       readByte = Serial.read();    // Read and process an incoming byte.
       if (!(readByte == 27 || readByte == 91 || readByte == 65 || readByte == 66)) {
         // Ignore Mouse wheel
@@ -2431,7 +2434,7 @@ void setup() {
   pinMode(dataPinLed, OUTPUT);
   delay(300);
   ledFlashSuccess();
-  Serial.println(F("+ Front panel LED lights are initialized."));
+  // Serial.println(F("+ Front panel LED lights are initialized."));
   //
   // ----------------------------------------------------
   // Front Panel Switches.
@@ -2440,7 +2443,6 @@ void setup() {
 
   // ----------------------------------------------------
   // ----------------------------------------------------
-#ifdef SETUP_SDCARD
   if (!setupSdCard()) {
     ledFlashError();
     hwStatus = 1;
@@ -2448,8 +2450,7 @@ void setup() {
     ledFlashSuccess();
   }
   delay(300);
-#endif
-  //
+
   // ----------------------------------------------------
   setupMp3Player();
   setupClock();
@@ -2519,6 +2520,8 @@ void loop() {
     case PROGRAM_WAIT:
       if (!VIRTUAL_FRONT_PANEL) {
         Serial.print(F("?- "));
+      } else {
+        printFrontPanel();
       }
       host_set_status_led_WAIT();
       host_clr_status_led_HLDA();

@@ -34,15 +34,19 @@ extern CPUFUN cpu_opcodes[256];
 //
 // The following works for my Galaxy80 program.
 //
-// Can load and run Altair101b
+#ifdef Altair101b
+// Can run Altair101b version,
+// Can load and run 4K Basic.
+// Cannot load Star Wars Attack game.
 #define MEMSIZE (4096)
-
-// I can load and run 4K Basic.
-// #define MEMSIZE (4096+1024+256)           // 5376 bytes
-// Global variables use 7346 bytes (89%) of dynamic memory, leaving 846 bytes for local variables.
-// Global variables use 7218 bytes (88%) of dynamic memory, leaving 974 bytes for local variables.
-//
+#else
+// Can load and run 4K Basic.
+// Can load and run Mega version of the Star Wars Attack game.
+#define MEMSIZE (4096+1024+256)           // 5376 bytes
+// Sketch uses 73058 bytes (28%) of program storage space. Maximum is 253952 bytes.
+// Global variables use 7294 bytes (89%) of dynamic memory, leaving 898 bytes for local variables. Maximum is 8192 bytes.
 // #define MEMSIZE (4096+2048)            // Max 6K, for David Hansel version.
+#endif
 //
 #define USE_THROTTLE 0                    // Set for slower Mega CPU.
 #define MAX_TIMERS 9

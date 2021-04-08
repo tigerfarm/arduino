@@ -89,11 +89,14 @@
 // -------------------------------------------------------------------------------
 
 #include "Altair101b.h"
+
+#ifdef Altair101b
 #include "Mp3Player.h"
+#endif
 
 String clockPrompt = "CLOCK ?- ";
+String thePrompt = "CLOCK ?- ";           // Default.
 String clockSetPrompt = "Clock SET ?- ";
-String thePrompt = clockPrompt;           // Default.
 extern int programState;
 
 // Clock internal status, internal to this program.
@@ -183,6 +186,7 @@ void printClockDateTime() {
   printClockDate();
   Serial.print(F(" Time: "));
   printClockTime();
+  clockLights(theCounterMinutes, theCounterHours);  // Display in the front panel.
 }
 
 // -----------------------------------------------------------------------------
@@ -207,7 +211,7 @@ void clockPulseDay() {
   }
 }
 void clockPulseHour() {
-  clockLights(theCounterMinutes, theCounterHours);  // Display in the virtual front panel.
+  clockLights(theCounterMinutes, theCounterHours);  // Display in the front panel.
   if (programState == CLOCK_RUN && !VIRTUAL_FRONT_PANEL) {
     Serial.print(F("++ clockPulseHour(), theCounterHours= "));
     Serial.print(theCounterHours);
@@ -230,7 +234,7 @@ void clockPulseHour() {
   }
 }
 void clockPulseMinute() {
-  clockLights(theCounterMinutes, theCounterHours);  // Display in the virtual front panel.
+  clockLights(theCounterMinutes, theCounterHours);  // Display in the front panel.
   if (programState == CLOCK_RUN && !VIRTUAL_FRONT_PANEL) {
     Serial.print(F("+ clockPulseMinute(), theCounterMinutes= "));
     printClockInt(theCounterMinutes);
@@ -302,7 +306,7 @@ void setupClock() {
   // Serial.println(F("++ Set clock to Dec.8,2018 03:59:56pm."));
   now = rtc.now();
   // If no battery, set the date and time. If there is a battery, don't reset it.
-  if (now.year() < 2018) {
+  if (now.year() < 2021) {
     rtc.adjust(DateTime(2021, 4, 8, 15, 36, 58)); // DateTime(year, month, day, hour, minute, second)
   }
   delay(100);
@@ -763,6 +767,7 @@ void rtClockRun() {
   if (VIRTUAL_FRONT_PANEL) {
     clockSwitch('T');         // Update VFP.
   }
+  setupClock();
   Serial.println();
   Serial.print(thePrompt);
   while (programState == CLOCK_RUN) {
@@ -776,7 +781,9 @@ void rtClockRun() {
       rtClockSet();
     }
     //
+#ifdef Altair101b
     playerContinuous();   // Allow for infrared music control while in clock mode.
+#endif
     //
     delay(60);  // Delay before getting the next key press, in case press and hold too long.
   }

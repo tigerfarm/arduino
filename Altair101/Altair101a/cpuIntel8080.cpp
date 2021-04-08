@@ -689,21 +689,24 @@ void cpu_print_regS() {
 void cpuIntel8080_print_registers() {
   char charBuffer[17];
   //
+  Serial.println("--------------------------");
   Serial.print(F("+++ Software: "));
   Serial.println(SOFTWARE_NAME);
   Serial.print(F("++ Program version: "));
   Serial.println(SOFTWARE_VERSION);
-  //
   Serial.print(F("++ CPU: "));
   Serial.print(THIS_CPU);
   Serial.print(F(", Oscillator frequency: "));
   Serial.print(F_CPU);
   Serial.println();
-  Serial.print(F("++ Memory size: "));
+  //
+  Serial.println("--------------------------");
+  Serial.print(F("++ Altari 101 memory size: "));
   Serial.println(MEMSIZE);
   //
   Serial.print(F("++ host_read_status_led_WAIT()="));
   Serial.println(host_read_status_led_WAIT());
+  Serial.print(F(" (Status LED, non-zero = on)"));
   Serial.print(F("++ host_read_status_led_HLDA()="));
   Serial.println(host_read_status_led_HLDA());
   Serial.print(F("++ host_read_status_led_INTE()="));
@@ -1881,41 +1884,41 @@ static void cpu_OUT() {
 
 // -----------------------------------------------------------------------------
 CPUFUN cpuIntel8080_opcodes[256] = {
-  cpu_NOP,   cpu_LXIBC, cpu_STXBC, cpu_INXBC, cpu_INRB,  cpu_DCRB,  cpu_MVBI,  cpu_RLC,		// 000-007 (0x00-0x07)
-  cpu_NOP,   cpu_DADBC, cpu_LDXBC, cpu_DCXBC, cpu_INRC,  cpu_DCRC,  cpu_MVCI,  cpu_RRC,		// 010-017 (0x08-0x0F)
-  cpu_NOP,   cpu_LXIDE, cpu_STXDE, cpu_INXDE, cpu_INRD,  cpu_DCRD,  cpu_MVDI,  cpu_RAL,		// 020-027 (0x10-0x17)
-  cpu_NOP,   cpu_DADDE, cpu_LDXDE, cpu_DCXDE, cpu_INRE,  cpu_DCRE,  cpu_MVEI,  cpu_RAR,		// 030-037 (0x18-0x1F)
-  cpu_NOP,   cpu_LXIHL, cpu_SHLD,  cpu_INXHL, cpu_INRH,  cpu_DCRH,  cpu_MVHI,  cpu_DAA,		// 040-047 (0x20-0x27)
-  cpu_NOP,   cpu_DADHL, cpu_LHLD,  cpu_DCXHL, cpu_INRL,  cpu_DCRL,  cpu_MVLI,  cpu_CMA,		// 050-057 (0x28-0x2F)
-  cpu_NOP,   cpu_LXIS,  cpu_STA,   cpu_INXSP, cpu_INRM,  cpu_DCRM,  cpu_MVMI,  cpu_STC,		// 060-067 (0x30-0x37)
-  cpu_NOP,   cpu_DADS,  cpu_LDA,   cpu_DCXSP, cpu_INRA,  cpu_DCRA,  cpu_MVAI,  cpu_CMC,		// 070-077 (0x38-0x3F)
+  cpu_NOP,   cpu_LXIBC, cpu_STXBC, cpu_INXBC, cpu_INRB,  cpu_DCRB,  cpu_MVBI,  cpu_RLC,    // 000-007 (0x00-0x07)
+  cpu_NOP,   cpu_DADBC, cpu_LDXBC, cpu_DCXBC, cpu_INRC,  cpu_DCRC,  cpu_MVCI,  cpu_RRC,   // 010-017 (0x08-0x0F)
+  cpu_NOP,   cpu_LXIDE, cpu_STXDE, cpu_INXDE, cpu_INRD,  cpu_DCRD,  cpu_MVDI,  cpu_RAL,   // 020-027 (0x10-0x17)
+  cpu_NOP,   cpu_DADDE, cpu_LDXDE, cpu_DCXDE, cpu_INRE,  cpu_DCRE,  cpu_MVEI,  cpu_RAR,   // 030-037 (0x18-0x1F)
+  cpu_NOP,   cpu_LXIHL, cpu_SHLD,  cpu_INXHL, cpu_INRH,  cpu_DCRH,  cpu_MVHI,  cpu_DAA,   // 040-047 (0x20-0x27)
+  cpu_NOP,   cpu_DADHL, cpu_LHLD,  cpu_DCXHL, cpu_INRL,  cpu_DCRL,  cpu_MVLI,  cpu_CMA,   // 050-057 (0x28-0x2F)
+  cpu_NOP,   cpu_LXIS,  cpu_STA,   cpu_INXSP, cpu_INRM,  cpu_DCRM,  cpu_MVMI,  cpu_STC,   // 060-067 (0x30-0x37)
+  cpu_NOP,   cpu_DADS,  cpu_LDA,   cpu_DCXSP, cpu_INRA,  cpu_DCRA,  cpu_MVAI,  cpu_CMC,   // 070-077 (0x38-0x3F)
 
-  cpu_MVBB,  cpu_MVBC,  cpu_MVBD,  cpu_MVBE,  cpu_MVBH,  cpu_MVBL,  cpu_MVBM,  cpu_MVBA,	// 100-107 (0x40-0x47)
+  cpu_MVBB,  cpu_MVBC,  cpu_MVBD,  cpu_MVBE,  cpu_MVBH,  cpu_MVBL,  cpu_MVBM,  cpu_MVBA,  // 100-107 (0x40-0x47)
   cpu_MVCB,  cpu_MVCC,  cpu_MVCD,  cpu_MVCE,  cpu_MVCH,  cpu_MVCL,  cpu_MVCM,  cpu_MVCA,  // 110-117 (0x48-0x4F)
-  cpu_MVDB,  cpu_MVDC,  cpu_MVDD,  cpu_MVDE,  cpu_MVDH,  cpu_MVDL,  cpu_MVDM,  cpu_MVDA,	// 120-127 (0x50-0x57)
-  cpu_MVEB,  cpu_MVEC,  cpu_MVED,  cpu_MVEE,  cpu_MVEH,  cpu_MVEL,  cpu_MVEM,  cpu_MVEA,	// 130-137 (0x58-0x5F)
-  cpu_MVHB,  cpu_MVHC,  cpu_MVHD,  cpu_MVHE,  cpu_MVHH,  cpu_MVHL,  cpu_MVHM,  cpu_MVHA,	// 140-147 (0x60-0x67)
-  cpu_MVLB,  cpu_MVLC,  cpu_MVLD,  cpu_MVLE,  cpu_MVLH,  cpu_MVLL,  cpu_MVLM,  cpu_MVLA,	// 150-157 (0x68-0x6F)
-  cpu_MVMB,  cpu_MVMC,  cpu_MVMD,  cpu_MVME,  cpu_MVMH,  cpu_MVML,  cpu_HLT,   cpu_MVMA,	// 160-167 (0x70-0x77)
-  cpu_MVAB,  cpu_MVAC,  cpu_MVAD,  cpu_MVAE,  cpu_MVAH,  cpu_MVAL,  cpu_MVAM,  cpu_MVAA,	// 170-177 (0x78-0x7F)
+  cpu_MVDB,  cpu_MVDC,  cpu_MVDD,  cpu_MVDE,  cpu_MVDH,  cpu_MVDL,  cpu_MVDM,  cpu_MVDA,  // 120-127 (0x50-0x57)
+  cpu_MVEB,  cpu_MVEC,  cpu_MVED,  cpu_MVEE,  cpu_MVEH,  cpu_MVEL,  cpu_MVEM,  cpu_MVEA,  // 130-137 (0x58-0x5F)
+  cpu_MVHB,  cpu_MVHC,  cpu_MVHD,  cpu_MVHE,  cpu_MVHH,  cpu_MVHL,  cpu_MVHM,  cpu_MVHA,  // 140-147 (0x60-0x67)
+  cpu_MVLB,  cpu_MVLC,  cpu_MVLD,  cpu_MVLE,  cpu_MVLH,  cpu_MVLL,  cpu_MVLM,  cpu_MVLA,  // 150-157 (0x68-0x6F)
+  cpu_MVMB,  cpu_MVMC,  cpu_MVMD,  cpu_MVME,  cpu_MVMH,  cpu_MVML,  cpu_HLT,   cpu_MVMA,  // 160-167 (0x70-0x77)
+  cpu_MVAB,  cpu_MVAC,  cpu_MVAD,  cpu_MVAE,  cpu_MVAH,  cpu_MVAL,  cpu_MVAM,  cpu_MVAA,  // 170-177 (0x78-0x7F)
 
-  cpu_ADDB,  cpu_ADDC,  cpu_ADDD,  cpu_ADDE,  cpu_ADDH,  cpu_ADDL,  cpu_ADDM,  cpu_ADDA,	// 200-207 (0x80-0x87)
-  cpu_ADCB,  cpu_ADCC,  cpu_ADCD,  cpu_ADCE,  cpu_ADCH,  cpu_ADCL,  cpu_ADCM,  cpu_ADCA,	// 210-217 (0x88-0x8F)
-  cpu_SUBB,  cpu_SUBC,  cpu_SUBD,  cpu_SUBE,  cpu_SUBH,  cpu_SUBL,  cpu_SUBM,  cpu_SUBA,	// 220-227 (0x90-0x97)
-  cpu_SBBB,  cpu_SBBC,  cpu_SBBD,  cpu_SBBE,  cpu_SBBH,  cpu_SBBL,  cpu_SBBM,  cpu_SBBA,	// 230-237 (0x98-0x9F)
-  cpu_ANAB,  cpu_ANAC,  cpu_ANAD,  cpu_ANAE,  cpu_ANAH,  cpu_ANAL,  cpu_ANAM,  cpu_ANAA,	// 240-247 (0xA0-0xA7)
-  cpu_XRAB,  cpu_XRAC,  cpu_XRAD,  cpu_XRAE,  cpu_XRAH,  cpu_XRAL,  cpu_XRAM,  cpu_XRAA,	// 250-257 (0xA8-0xAF)
+  cpu_ADDB,  cpu_ADDC,  cpu_ADDD,  cpu_ADDE,  cpu_ADDH,  cpu_ADDL,  cpu_ADDM,  cpu_ADDA,  // 200-207 (0x80-0x87)
+  cpu_ADCB,  cpu_ADCC,  cpu_ADCD,  cpu_ADCE,  cpu_ADCH,  cpu_ADCL,  cpu_ADCM,  cpu_ADCA,  // 210-217 (0x88-0x8F)
+  cpu_SUBB,  cpu_SUBC,  cpu_SUBD,  cpu_SUBE,  cpu_SUBH,  cpu_SUBL,  cpu_SUBM,  cpu_SUBA,  // 220-227 (0x90-0x97)
+  cpu_SBBB,  cpu_SBBC,  cpu_SBBD,  cpu_SBBE,  cpu_SBBH,  cpu_SBBL,  cpu_SBBM,  cpu_SBBA,  // 230-237 (0x98-0x9F)
+  cpu_ANAB,  cpu_ANAC,  cpu_ANAD,  cpu_ANAE,  cpu_ANAH,  cpu_ANAL,  cpu_ANAM,  cpu_ANAA,  // 240-247 (0xA0-0xA7)
+  cpu_XRAB,  cpu_XRAC,  cpu_XRAD,  cpu_XRAE,  cpu_XRAH,  cpu_XRAL,  cpu_XRAM,  cpu_XRAA,  // 250-257 (0xA8-0xAF)
   cpu_ORAB,  cpu_ORAC,  cpu_ORAD,  cpu_ORAE,  cpu_ORAH,  cpu_ORAL,  cpu_ORAM,  cpu_ORAA,  // 260-267 (0xB0-0xB7)
-  cpu_CMPB,  cpu_CMPC,  cpu_CMPD,  cpu_CMPE,  cpu_CMPH,  cpu_CMPL,  cpu_CMPM,  cpu_CMPA,	// 270-277 (0xB8-0xBF)
+  cpu_CMPB,  cpu_CMPC,  cpu_CMPD,  cpu_CMPE,  cpu_CMPH,  cpu_CMPL,  cpu_CMPM,  cpu_CMPA,  // 270-277 (0xB8-0xBF)
 
-  cpu_RNZ,   cpu_POPBC, cpu_JNZ,   cpu_JMP,   cpu_CNZ,   cpu_PSHBC, cpu_ADI,   cpu_RST00,	// 300-307 (0xC0-0xC7)
-  cpu_RZ,    cpu_RET,   cpu_JZ,    cpu_JMP,   cpu_CZ,    cpu_CALL,  cpu_ACI,   cpu_RST08,	// 310-317 (0xC8-0xCF)
-  cpu_RNC,   cpu_POPDE, cpu_JNC,   cpu_OUT,   cpu_CNC,   cpu_PSHDE, cpu_SUI,   cpu_RST10,	// 320-327 (0xD0-0xD7)
-  cpu_RC,    cpu_RET,   cpu_JC,    cpu_IN,    cpu_CC,    cpu_CALL,  cpu_SBI,   cpu_RST18,	// 330-337 (0xD8-0xDF)
-  cpu_RPO,   cpu_POPHL, cpu_JPO,   cpu_XTHL,  cpu_CPO,   cpu_PSHHL, cpu_ANI,   cpu_RST20,	// 340-347 (0xE0-0xE7)
-  cpu_RPE,   cpu_PCHL,  cpu_JPE,   cpu_XCHG,  cpu_CPE,   cpu_CALL,  cpu_XRI,   cpu_RST28,	// 350-357 (0xE8-0xEF)
-  cpu_RP,    cpu_POPAS, cpu_JP,    cpu_DI,    cpu_CP,    cpu_PSHAS, cpu_ORI,   cpu_RST30,	// 360-367 (0xF0-0xF7)
-  cpu_RM,    cpu_SPHL,  cpu_JM,    cpu_EI,    cpu_CM,    cpu_CALL,  cpu_CPI,   cpu_RST38	// 370-377 (0xF8-0xFF)
+  cpu_RNZ,   cpu_POPBC, cpu_JNZ,   cpu_JMP,   cpu_CNZ,   cpu_PSHBC, cpu_ADI,   cpu_RST00, // 300-307 (0xC0-0xC7)
+  cpu_RZ,    cpu_RET,   cpu_JZ,    cpu_JMP,   cpu_CZ,    cpu_CALL,  cpu_ACI,   cpu_RST08, // 310-317 (0xC8-0xCF)
+  cpu_RNC,   cpu_POPDE, cpu_JNC,   cpu_OUT,   cpu_CNC,   cpu_PSHDE, cpu_SUI,   cpu_RST10, // 320-327 (0xD0-0xD7)
+  cpu_RC,    cpu_RET,   cpu_JC,    cpu_IN,    cpu_CC,    cpu_CALL,  cpu_SBI,   cpu_RST18, // 330-337 (0xD8-0xDF)
+  cpu_RPO,   cpu_POPHL, cpu_JPO,   cpu_XTHL,  cpu_CPO,   cpu_PSHHL, cpu_ANI,   cpu_RST20, // 340-347 (0xE0-0xE7)
+  cpu_RPE,   cpu_PCHL,  cpu_JPE,   cpu_XCHG,  cpu_CPE,   cpu_CALL,  cpu_XRI,   cpu_RST28, // 350-357 (0xE8-0xEF)
+  cpu_RP,    cpu_POPAS, cpu_JP,    cpu_DI,    cpu_CP,    cpu_PSHAS, cpu_ORI,   cpu_RST30, // 360-367 (0xF0-0xF7)
+  cpu_RM,    cpu_SPHL,  cpu_JM,    cpu_EI,    cpu_CM,    cpu_CALL,  cpu_CPI,   cpu_RST38  // 370-377 (0xF8-0xFF)
 };
 
 // -----------------------------------------------------------------------------

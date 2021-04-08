@@ -24,39 +24,50 @@ extern CPUFUN cpu_opcodes[256];
 // https://arduino.stackexchange.com/questions/21137/arduino-how-to-get-the-board-type-in-code
 // https://embedxcode.com/site/Chapter3/Section7/
 // http://electronics4dogs.blogspot.com/2011/01/arduino-predefined-constants.html
-// ----------------------------
-// Mega
+//
+// -----------------------------------------
 #if defined(__AVR_ATmega2560__)
+// Mega
+//
 #define THIS_CPU "Mega 2560"
 // Mega2650 has 8k SRAM
 //
 // The following works for my Galaxy80 program.
 //
-// I can load and run 4K Basic.
+#ifdef Altair101b
+// Can run Altair101b version,
+// Can load and run 4K Basic.
+// Cannot load Star Wars Attack game.
+#define MEMSIZE (4096)
+#else
+// Can load and run 4K Basic.
+// Can load and run Mega version of the Star Wars Attack game.
 #define MEMSIZE (4096+1024+256)           // 5376 bytes
-// Global variables use 7346 bytes (89%) of dynamic memory, leaving 846 bytes for local variables.
-// #define MEMSIZE (4096+768+128)         // 4864+128 = 4992
-// Global variables use 7218 bytes (88%) of dynamic memory, leaving 974 bytes for local variables.
-//
+// Sketch uses 73058 bytes (28%) of program storage space. Maximum is 253952 bytes.
+// Global variables use 7294 bytes (89%) of dynamic memory, leaving 898 bytes for local variables. Maximum is 8192 bytes.
 // #define MEMSIZE (4096+2048)            // Max 6K, for David Hansel version.
+#endif
 //
 #define USE_THROTTLE 0                    // Set for slower Mega CPU.
 #define MAX_TIMERS 9
 
-// ----------------------------
+// -----------------------------------------
+#elif defined(__SAM3X8E__)
 // Due
+//
 // The USB Programming port, next to the DC connector,
 //    is for uploading sketches and communicating with the Arduino.
-#elif defined(__SAM3X8E__)
 #define THIS_CPU "Due"
 #define MEMSIZE 0x10000         // 64K, Hex=10000 decimal=65536
 // Sketch uses 80540 bytes (15%) of program storage space. Maximum is 524288 bytes.
 //
 #define USE_THROTTLE 1          // Set for faster Due CPU.
 #define MAX_TIMERS 13
-// ----------------------------
+//
+// -----------------------------------------
 #else
 #define THIS_CPU "Other:Nano|Uno"
+//
 // additionaly to the board also the CPU model, search for the file avr_cpunames.h
 // Arduino\hardware\arduino\avr\boards.txt
 // __AVR_ATmega328P__ Uno
@@ -181,16 +192,16 @@ inline void host_set_data_leds(byte v) {
 #define host_read_data_leds()  fpDataByte
 
 #define host_read_status_led_WAIT()   status_wait
-#define host_clr_status_led_WAIT()  { digitalWrite(13, LOW);  status_wait = false; }
-#define host_set_status_led_WAIT()  { digitalWrite(13, HIGH); status_wait = true; }
+#define host_clr_status_led_WAIT()  { digitalWrite(WAIT_PIN, LOW);  status_wait = false; }
+#define host_set_status_led_WAIT()  { digitalWrite(WAIT_PIN, HIGH); status_wait = true; }
 
 #define host_read_status_led_HLDA()   status_hlda
-#define host_set_status_led_HLDA()  { digitalWrite(41, HIGH); status_hlda = true; }
-#define host_clr_status_led_HLDA()  { digitalWrite(41, LOW);  status_hlda = false; }
+#define host_clr_status_led_HLDA()  { digitalWrite(HLDA_PIN, LOW);  status_hlda = false; }
+#define host_set_status_led_HLDA()  { digitalWrite(HLDA_PIN, HIGH); status_hlda = true; }
 
 #define host_read_status_led_INTE()   status_inte
-#define host_set_status_led_INTE()  { digitalWrite(38, HIGH); status_inte = true; }
 #define host_clr_status_led_INTE()  { digitalWrite(38, LOW);  status_inte = false; }
+#define host_set_status_led_INTE()  { digitalWrite(38, HIGH); status_inte = true; }
 
 #define host_read_status_led_HLTA()   fpStatusByte & HLTA_ON
 

@@ -5,14 +5,15 @@
 // -----------------------------------------------------------------------------
 // Comment out the following, if compiling for Altair101a,
 //    which does not have an MP3 player, real time clock, or an SD card module.
+
 // #define Altair101b 1
 
 #ifdef Altair101b
 #define SOFTWARE_NAME "Altair101b"
-#define SOFTWARE_VERSION "1.63.b"
+#define SOFTWARE_VERSION "1.64.b"
 #else
 #define SOFTWARE_NAME "Altair101a"
-#define SOFTWARE_VERSION "1.63.a"
+#define SOFTWARE_VERSION "1.64.a"
 #endif
 
 // -----------------------------------------------------------------------------
@@ -39,6 +40,11 @@ extern byte fpDataByte;           // Front panel data byte.
 #define SDCARD_RUN 7
 extern int programState;
 
+// Program wait status.
+extern const int WAIT_PIN;      // Processor program wait state: off/LOW or wait state on/HIGH.
+// HLDA : 8080 processor goes into a hold state because of other hardware running.
+extern const int HLDA_PIN;     // Emulator processing (off/LOW) or clock/player processing (on/HIGH).
+
 void singleStepWait();                      // Wait for "s" when single stepping.
 void printFrontPanel();                     // Print the front panel display.
 void printData(byte theByte);               // To echo data bytes.
@@ -49,6 +55,14 @@ void altair_out(byte addr, byte val);       // Called from cpu_out();
 void altair_hlt();                          // Called from cpu_hlt();
 
 extern void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberByte);
+extern void clockLights(byte theMinute, byte theHour);
+
+// For frontPanel.cpp
+extern byte stopByte;
+extern byte resetByte;
+extern void processRunSwitch(byte readByte);
+extern void processWaitSwitch(byte readByte);
+extern void doClear();
 
 // -----------------------------------------------------------------------------
 // From AltairSample.cpp program.
@@ -114,11 +128,6 @@ extern byte hwStatus;
 // Digital and analog pins work. Also tested with other analog pins.
 #define IR_PIN A1
 #endif
-
-// -------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------
-// Add other header files so that Altair101a will compile.
-
 
 // -----------------------------------------------------------------------------
 // eof
