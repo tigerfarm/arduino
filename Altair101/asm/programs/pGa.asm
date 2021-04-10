@@ -2249,17 +2249,15 @@ IOIN:	CALL	IOST		;WAIT FOR A CHARACTER
 ;******************************************************
 IOOUT:	MOV	C,A
 WLOOP:
+                                ; ----------------------------------------------
+                                ; Original code that I commented out.
         ;IN	SIOCTL		;WAIT UNTIL OK TO XMIT
 	;ANI	SIOTXR
 	;JZ	WLOOP
-
+                                ; ----------------------------------------------
 	MOV	A,C
-        ;CPI     7
-        ;JZ      SKIPCHAR        ; Option to not print certain characters.
 	OUT	SIODAT		;SEND THE CHARACTER
-SKIPCHAR:
 	RET
-
 
 CONINI:
         CALL    IOINI
