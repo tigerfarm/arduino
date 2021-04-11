@@ -92,6 +92,7 @@
 
 #ifdef Altair101b
 #include "Mp3Player.h"
+#include "frontPanel.h"
 #endif
 
 String clockPrompt = "CLOCK ?- ";
@@ -618,8 +619,8 @@ void clockSetSwitch(int resultsValue) {
 void clockSwitch(int resultsValue) {
   if (VIRTUAL_FRONT_PANEL) {
     if (programState == CLOCK_RUN) {
-    Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
-    Serial.print(F("\033[J"));     // From cursor down, clear the screen.
+      Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
+      Serial.print(F("\033[J"));     // From cursor down, clear the screen.
     }
   }
   boolean printPrompt = true;
@@ -775,6 +776,12 @@ void rtClockRun() {
     if (Serial.available() > 0) {
       int readByte = Serial.read();    // Read and process an incoming byte.
       clockSwitch(readByte);
+    }
+    if (getPcfControlinterrupted()) {
+      // Hardware front panel controls.
+      checkAux1();
+      checkProtectSetVolume();
+      setPcfControlinterrupted(false); // Reset for next interrupt.
     }
     processClockNow();    // Process on going time clicks.
     if (rtClockState == RTCLOCK_SET) {

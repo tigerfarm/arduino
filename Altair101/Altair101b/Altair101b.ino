@@ -117,7 +117,7 @@
   #elif     ...
   #else     Else, do the following.
   #endif    End a directive.
-  
+
   ---------------------------------------------------------
   VT100 reference:
        http://ascii-table.com/ansi-escape-sequences-vt-100.php
@@ -2180,7 +2180,7 @@ void processWaitSwitch(byte readByte) {
         break;
         }
       */
-  }
+  } // End switch statement.
 }
 
 void runProcessorWait() {
@@ -2524,6 +2524,9 @@ void loop() {
     case PROGRAM_WAIT:
       if (!VIRTUAL_FRONT_PANEL) {
         Serial.print(F("?- "));
+        if (LED_LIGHTS_IO) {
+          lightsStatusAddressData(fpStatusByte, fpAddressWord, fpDataByte);
+        }
       } else {
         printFrontPanel();
       }

@@ -82,6 +82,7 @@ void printOctal(byte b);
 void printHex(byte b);
 
 // From Altair101b.ino program, for other programs.
+extern boolean LED_LIGHTS_IO;
 extern boolean VIRTUAL_FRONT_PANEL;
 extern void initVirtualFrontPanel();
 extern void printVirtualFrontPanel();

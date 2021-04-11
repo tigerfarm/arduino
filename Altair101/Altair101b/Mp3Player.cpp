@@ -257,6 +257,10 @@
 #include "Altair101b.h"
 #include "Mp3Player.h"
 
+#ifdef Altair101b
+#include "frontPanel.h"
+#endif
+
 String playerPrompt = "MP3 ?- ";
 extern int programState;
 
@@ -665,8 +669,8 @@ void playerSwitch(int resultsValue) {
   }
   if (VIRTUAL_FRONT_PANEL) {
     if (programState == PLAYER_RUN) {
-    Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
-    Serial.print(F("\033[J"));     // From cursor down, clear the screen.
+      Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
+      Serial.print(F("\033[J"));     // From cursor down, clear the screen.
     }
   }
   boolean printPrompt = true;
@@ -789,7 +793,7 @@ void playerSwitch(int resultsValue) {
     case 0xFF18E7:                          // Small remote key up.
     case 0xFF629D:                          // Small remote key 2.
     case 'D':
-    // + Key up - next directory, directory number: 1 play song, playerCounter=1, playerDirectory=1
+      // + Key up - next directory, directory number: 1 play song, playerCounter=1, playerDirectory=1
       if (playerDirectoryTop == 0) {
         playerDirectory ++;
       }
@@ -1313,7 +1317,7 @@ void mp3playerPlaywait(byte theFileNumber) {
 // MP3 Player controls.
 
 void mp3PlayerRun() {
-  if (VIRTUAL_FRONT_PANEL) {
+  if (VIRTUAL_FRONT_PANEL || LED_LIGHTS_IO) {
     playerSwitch('T');
   }
   Serial.println(F("+ runMp3Player();"));
@@ -1324,6 +1328,13 @@ void mp3PlayerRun() {
     if (Serial.available() > 0) {
       int readByte = Serial.read();    // Read and process an incoming byte.
       playerSwitch(readByte);
+    }
+    if (getPcfControlinterrupted()) {
+      // Hardware front panel controls.
+      playerControlSwitches();
+      checkAux1();
+      checkProtectSetVolume();
+      setPcfControlinterrupted(false); // Reset for next interrupt.
     }
     playerContinuous();  // For continuous playing. Else, when a song ends, playing would stop.
     //

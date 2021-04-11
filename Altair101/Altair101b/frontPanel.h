@@ -14,6 +14,7 @@ void checkRunningButtons();
 void waitControlSwitches();
 void checkAux1();
 void checkProtectSetVolume();
+void playerControlSwitches();
 
 boolean setupFrontPanel();
 

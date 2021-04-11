@@ -17,6 +17,8 @@
 #include <PCF8574.h>
 #include <Wire.h>
 
+#include "Mp3Player.h"
+
 // -----------------------------------------------------------------------------
 // Desktop version.
 // Address for the PCF8574 module being tested.
@@ -346,6 +348,67 @@ void checkProtectSetVolume() {
     switchUnProtect = false;
     // Switch logic
     processWaitSwitch('v');
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Front Panel Control Switches, when a program is not running (WAIT).
+// Switches: RUN, RESET, STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT,
+
+void playerControlSwitches() {
+  // Read PCF8574 input for each switch.
+  // ----------------------------------------------
+  if (pcfControl.readButton(pinRun) == 0) {
+    if (!switchRun) {
+      switchRun = true;
+    }
+  } else if (switchRun) {
+    switchRun = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ PLAYER, RUN."));
+#endif
+    playerSwitch('r');
+  }
+  // ----------------------------------------------
+  if (pcfControl.readButton(pinStop) == 0) {
+    if (!switchStop) {
+      switchStop = true;
+    }
+  } else if (switchStop) {
+    switchStop = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ PLAYER, STOP."));
+#endif
+    playerSwitch('s');
+  }
+  // ----------------------------------------------
+  if (pcfControl.readButton(pinExamine) == 0) {
+    if (!switchExamine) {
+      switchExamine = true;
+    }
+  } else if (switchExamine) {
+    switchExamine = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ PLAYER, EXAMINE."));
+#endif
+    fpAddressToggleWord = fpToggleAddress();
+    playerSwitch('x');
+  }
+  // ----------------------------------------------
+  if (pcfControl.readButton(pinExamineNext) == 0) {
+    if (!switchExamineNext) {
+      switchExamineNext = true;
+    }
+  } else if (switchExamineNext) {
+    switchExamineNext = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ PLAYER, EXAMINE NEXT."));
+#endif
+    processWaitSwitch('n');
   }
 }
 
