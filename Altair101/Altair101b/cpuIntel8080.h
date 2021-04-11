@@ -38,7 +38,9 @@ extern CPUFUN cpu_opcodes[256];
 // Can run Altair101b version,
 // Can load and run 4K Basic.
 // Cannot load Star Wars Attack game.
-#define MEMSIZE (4096)
+// #define MEMSIZE (4096)
+#define MEMSIZE (2048)
+//
 #else
 // Can load and run 4K Basic.
 // Can load and run Mega version of the Star Wars Attack game.
