@@ -67,7 +67,6 @@
 // -------------------------------------------------------------------------------
 #include "Altair101b.h"
 #include "cpuIntel8080.h"
-#include "Mp3Player.h"
 
 String sdCardPrompt = "CARD ?- ";
 String sdCardGetFilenamePrompt = "CARD FN ?- ";
@@ -627,9 +626,9 @@ String getEditCommandline() {
       int readByte = Serial.read();         // Read and process an incoming byte.
       if (iBuffer == 0
           && (readByte == 'h'
-          || readByte == 'l'
-          || readByte == 'w'
-          || readByte == 'X') ) {
+              || readByte == 'l'
+              || readByte == 'w'
+              || readByte == 'X') ) {
         // Immediately return to process the command. No need for a LF.
         theBuffer[0] = readByte;
         iBuffer++;
@@ -869,8 +868,18 @@ void sdCardSwitch(int resultsValue) {
       Serial.println(F("+ Edit file."));
       editFile();
       break;
+    case 'I':
+      Serial.println(F("+ Initialize sd card..."));
+      SPI.end();
+      delay(300);
+      SPI.begin();
+      if (!setupSdCard()) {
+        Serial.println(F("- Failed to initialized sd card."));
+      }
+      break;
     // ----------------------------------------------------------------------
     case 'h':
+      Serial.print(F("+ h, Print help information."));
       Serial.println();
       Serial.println();
       Serial.println(F("----------------------------------------------------"));
@@ -886,6 +895,7 @@ void sdCardSwitch(int resultsValue) {
       Serial.println(F("+ e, Edit           Edit file memory."));
       Serial.println(F("+ d, Delete         Delete the file from the SD card."));
       Serial.println(F("+ R/W, Read/Write   A byte from/to a file."));
+      Serial.println(F("+ I, Initialize     Initialize sd card."));
       Serial.println(F("------------------"));
       Serial.println(F("+ C, Clear memory   Set memory array to zero, and file byte counter to zero."));
       Serial.println(F("------------------"));
@@ -926,11 +936,7 @@ void sdCardSwitch(int resultsValue) {
       Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
       break;
     case 'X':
-      if (VIRTUAL_FRONT_PANEL) {
-        Serial.print(F("\033[9;1H"));  // Move cursor to below the prompt: line 9, column 1.
-        Serial.print(F("\033[J"));     // From cursor down, clear the screen.
-      }
-      Serial.println(F("+ Exit SD card mode. Return to Processor WAIT mode."));
+      Serial.println(F("+ Exit SD card mode."));
       programState = PROGRAM_WAIT;
       break;
     // -----------------------------------
@@ -957,10 +963,9 @@ void sdCardRun() {
   while (programState == SDCARD_RUN) {
     // Process serial input key presses from a keyboard.
     if (Serial.available() > 0) {
-      int readByte = Serial.read();     // Read and process an incoming byte.
+      int readByte = Serial.read();    // Read and process an incoming byte.
       sdCardSwitch(readByte);
     }
-    playerContinuous();                 // Allow for infrared music control while in clock mode.
     delay(60);  // Delay before getting the next key press, in case press and hold too long.
   }
 }

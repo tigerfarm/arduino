@@ -626,9 +626,9 @@ String getEditCommandline() {
       int readByte = Serial.read();         // Read and process an incoming byte.
       if (iBuffer == 0
           && (readByte == 'h'
-          || readByte == 'l'
-          || readByte == 'w'
-          || readByte == 'X') ) {
+              || readByte == 'l'
+              || readByte == 'w'
+              || readByte == 'X') ) {
         // Immediately return to process the command. No need for a LF.
         theBuffer[0] = readByte;
         iBuffer++;
@@ -868,6 +868,15 @@ void sdCardSwitch(int resultsValue) {
       Serial.println(F("+ Edit file."));
       editFile();
       break;
+    case 'I':
+      Serial.println(F("+ Initialize sd card..."));
+      SPI.end();
+      delay(300);
+      SPI.begin();
+      if (!setupSdCard()) {
+        Serial.println(F("- Failed to initialized sd card."));
+      }
+      break;
     // ----------------------------------------------------------------------
     case 'h':
       Serial.print(F("+ h, Print help information."));
@@ -886,6 +895,7 @@ void sdCardSwitch(int resultsValue) {
       Serial.println(F("+ e, Edit           Edit file memory."));
       Serial.println(F("+ d, Delete         Delete the file from the SD card."));
       Serial.println(F("+ R/W, Read/Write   A byte from/to a file."));
+      Serial.println(F("+ I, Initialize     Initialize sd card."));
       Serial.println(F("------------------"));
       Serial.println(F("+ C, Clear memory   Set memory array to zero, and file byte counter to zero."));
       Serial.println(F("------------------"));
