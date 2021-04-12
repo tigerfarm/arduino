@@ -286,72 +286,6 @@ void waitControlSwitches() {
 }
 
 // -----------------------------------------------------------------------------
-void checkAux1() {
-  // ----------------------------------------------
-  if (pcfAux.readButton(pinAux1up) == 0) {
-    if (!switchAux1up) {
-      switchAux1up = true;
-    }
-  } else if (switchAux1up) {
-    switchAux1up = false;
-    // Switch logic.
-#ifdef SWITCH_MESSAGES
-    Serial.print(F("+ AUX1, up."));
-#endif
-    if (programState == CLOCK_RUN) {
-      Serial.println(F(" WAIT mode: exit CLOCK mode."));
-      programState = PROGRAM_WAIT;
-    } else {
-      Serial.println(F(" CLOCK mode."));
-      programState = CLOCK_RUN;
-    }
-  }
-  // ----------------------------------------------
-  if (pcfAux.readButton(pinAux1down) == 0) {
-    if (!switchAux1down) {
-      switchAux1down = true;
-    }
-  } else if (switchAux1down) {
-    switchAux1down = false;
-    // Switch logic.
-#ifdef SWITCH_MESSAGES
-    Serial.println(F("+ AUX1, down."));
-#endif
-    if (programState == PLAYER_RUN) {
-      Serial.println(F(" WAIT mode: exit PLAYER mode."));
-      programState = PROGRAM_WAIT;
-    } else {
-      Serial.println(F(" MP3 PLAYER mode."));
-      programState = PLAYER_RUN;
-    }
-  }
-}
-
-void checkProtectSetVolume() {
-  // When not in player mode, used to change the volume.
-  // ----------------------------------------------
-  if (pcfAux.readButton(pinProtect) == 0) {
-    if (!switchProtect) {
-      switchProtect = true;
-    }
-  } else if (switchProtect) {
-    switchProtect = false;
-    // Switch logic.
-    processWaitSwitch('V');
-  }
-  // ----------------------------------------------
-  if (pcfAux.readButton(pinUnProtect) == 0) {
-    if (!switchUnProtect) {
-      switchUnProtect = true;
-    }
-  } else if (switchUnProtect) {
-    switchUnProtect = false;
-    // Switch logic
-    processWaitSwitch('v');
-  }
-}
-
-// -----------------------------------------------------------------------------
 // Front Panel Control Switches, when a program is not running (WAIT).
 // Switches: RUN, RESET, STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT,
 
@@ -408,7 +342,140 @@ void playerControlSwitches() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ PLAYER, EXAMINE NEXT."));
 #endif
-    processWaitSwitch('n');
+    playerSwitch('n');
+  }
+  // ----------------------------------------------
+  if (pcfControl.readButton(pinDeposit) == 0) {
+    if (!switchDeposit) {
+      switchDeposit = true;
+    }
+  } else if (switchDeposit) {
+    switchDeposit = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ PLAYER, DEPOSIT: previous directory."));
+#endif
+    fpAddressToggleWord = fpToggleAddress();
+    playerSwitch('d');
+  }
+  // ----------------------------------------------
+  if (pcfControl.readButton(pinDepositNext) == 0) {
+    if (!switchDepositNext) {
+      switchDepositNext = true;
+    }
+  } else if (switchDepositNext) {
+    switchDepositNext = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ PLAYER, DEPOSIT NEXT: next directory."));
+#endif
+    fpAddressToggleWord = fpToggleAddress();
+    playerSwitch('D');
+  }
+  // ----------------------------------------------
+  if (pcfControl.readButton(pinStep) == 0) {
+    if (!switchStep) {
+      switchStep = true;
+    }
+  } else if (switchStep) {
+    switchStep = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ PLAYER, SINGLE STEP: on, loop single song."));
+#endif
+    playerSwitch('L');
+  }
+  // ----------------------------------------------
+  if (pcfAux.readButton(pinStepDown) == 0) {
+    if (!switchStepDown) {
+      switchStepDown = true;
+    }
+  } else if (switchStepDown) {
+    switchStepDown = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ PLAYER, SINGLE STEP down: off, loop single song"));
+#endif
+    playerSwitch('l');
+  }
+  // ----------------------------------------------
+  if (pcfControl.readButton(pinReset) == 0) {
+    if (!switchReset) {
+      switchReset = true;
+    }
+  } else if (switchReset) {
+    switchReset = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ PLAYER, RESET."));
+#endif
+    playerSwitch('R');
+  }
+}
+
+// -----------------------------------------------------------------------------
+void checkAux1() {
+  // ----------------------------------------------
+  if (pcfAux.readButton(pinAux1up) == 0) {
+    if (!switchAux1up) {
+      switchAux1up = true;
+    }
+  } else if (switchAux1up) {
+    switchAux1up = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ AUX1, up."));
+#endif
+    if (programState == CLOCK_RUN) {
+      Serial.println(F(" WAIT mode: exit CLOCK mode."));
+      programState = PROGRAM_WAIT;
+    } else {
+      Serial.println(F(" CLOCK mode."));
+      programState = CLOCK_RUN;
+    }
+  }
+  // ----------------------------------------------
+  if (pcfAux.readButton(pinAux1down) == 0) {
+    if (!switchAux1down) {
+      switchAux1down = true;
+    }
+  } else if (switchAux1down) {
+    switchAux1down = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ AUX1, down."));
+#endif
+    if (programState == PLAYER_RUN) {
+      Serial.println(F(" WAIT mode: exit PLAYER mode."));
+      programState = PROGRAM_WAIT;
+    } else {
+      Serial.println(F(" MP3 PLAYER mode."));
+      programState = PLAYER_RUN;
+    }
+  }
+}
+
+void checkProtectSetVolume() {
+  // When not in player mode, used to change the volume.
+  // ----------------------------------------------
+  if (pcfAux.readButton(pinProtect) == 0) {
+    if (!switchProtect) {
+      switchProtect = true;
+    }
+  } else if (switchProtect) {
+    switchProtect = false;
+    // Switch logic.
+    processWaitSwitch('v');
+  }
+  // ----------------------------------------------
+  if (pcfAux.readButton(pinUnProtect) == 0) {
+    if (!switchUnProtect) {
+      switchUnProtect = true;
+    }
+  } else if (switchUnProtect) {
+    switchUnProtect = false;
+    // Switch logic
+    processWaitSwitch('V');
   }
 }
 
