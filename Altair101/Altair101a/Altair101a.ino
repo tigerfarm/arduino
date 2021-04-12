@@ -254,11 +254,11 @@ const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock/player p
 boolean LED_LIGHTS_IO = true;
 
 #else
+// ------------------------------------------------
+// The Altair101a version runs on stand alone Arduino Mega or Due board.
+// Include the following definitions so the the program will compile and run.
 // For the Altair101a version,
 //    include non-active definitions.
-// ------------------------------------------------
-// Include the following definitions so the the program will compile and run.
-// The Altair101a version runs on stand alone Arduino Mega or Due board.
 
 // Hardware LED lights
 boolean LED_LIGHTS_IO = false;

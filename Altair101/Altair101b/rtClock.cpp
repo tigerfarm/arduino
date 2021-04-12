@@ -95,6 +95,7 @@
 #include "frontPanel.h"
 #endif
 
+// -----------------------------------------------------------------------------
 String clockPrompt = "CLOCK ?- ";
 String thePrompt = "CLOCK ?- ";           // Default.
 String clockSetPrompt = "Clock SET ?- ";
@@ -122,6 +123,72 @@ int theCounterMinutes = 0;
 int theCounterSeconds = 0;
 
 int theHour;                    // Variable for use anytime.
+
+// -----------------------------------------------------------------------------
+void ledFlashKnightRider(int times, boolean NotUsed) {
+  int delayTime = 66;
+  int theDelayTime = 0;
+  unsigned int riderByte;
+  byte flashByte;
+  int iStart = 0;
+  lightsStatusAddressData(0, 0, 0);
+  delay(delayTime);
+  for (int j = 0; j < times; j++) {
+    flashByte = B10000000;
+    for (int i = iStart; i < 8; i++) {
+      // A15 to A8.
+      riderByte = flashByte * 256;
+      lightsStatusAddressData(0, riderByte, 0);
+      flashByte = flashByte >> 1;
+      if (j > 0 && i == 0) {
+        theDelayTime = delayTime / 2;
+      } else {
+        theDelayTime = delayTime;
+      }
+      delay(theDelayTime);
+    }
+    flashByte = B10000000;
+    for (int i = 0; i < 7; i++) {
+      // A7 to A0.
+      lightsStatusAddressData(0, flashByte, 0);
+      flashByte = flashByte >> 1;
+      delay(delayTime);
+    }
+    flashByte = B00000001;
+    for (int i = 0; i < 8; i++) {
+      // A0 to A7.
+      lightsStatusAddressData(0, flashByte, 0);
+      flashByte = flashByte << 1;
+      delay(delayTime);
+    }
+    flashByte = B00000001;
+    for (int i = 0; i < 8; i++) {
+      // A8 to A14.
+      // Only 7, as not to repeat flashing the LED twice.
+      riderByte = flashByte * 256;
+      lightsStatusAddressData(0, riderByte, 0);
+      flashByte = flashByte << 1;
+      if (j < times && i == 0) {
+        theDelayTime = delayTime / 2;
+      } else {
+        theDelayTime = delayTime;
+      }
+      delay(theDelayTime);
+    }
+  }
+  //
+  // Rember to reset the panel lights to program values.
+}
+
+void KnightRiderScanner() {
+  // Knight Rider scanner lights and sound.
+  playerSoundEffect(KNIGHT_RIDER_SCANNER);
+  ledFlashKnightRider(1, true);
+  playerSoundEffect(KNIGHT_RIDER_SCANNER);
+  ledFlashKnightRider(1, false);
+  playerSoundEffect(KNIGHT_RIDER_SCANNER);
+  ledFlashKnightRider(1, false);
+}
 
 // -----------------------------------------------------------------------------
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
@@ -212,6 +279,7 @@ void clockPulseDay() {
   }
 }
 void clockPulseHour() {
+  KnightRiderScanner();
   clockLights(theCounterMinutes, theCounterHours);  // Display in the front panel.
   if (programState == CLOCK_RUN && !VIRTUAL_FRONT_PANEL) {
     Serial.print(F("++ clockPulseHour(), theCounterHours= "));
@@ -240,6 +308,11 @@ void clockPulseMinute() {
     Serial.print(F("+ clockPulseMinute(), theCounterMinutes= "));
     printClockInt(theCounterMinutes);
     Serial.println();
+  }
+  if (theCounterMinutes == 15 || theCounterMinutes == 30 || theCounterMinutes == 45) {
+    playerSoundEffect(KNIGHT_RIDER_SCANNER);
+    ledFlashKnightRider(1, true);
+    clockLights(theCounterMinutes, theCounterHours);  // Reset LED lights to clock time.
   }
 }
 void clockPulseSecond() {
@@ -662,6 +735,11 @@ void clockSwitch(int resultsValue) {
       Serial.println(F("+ RESET, enter clock set mode."));
       rtClockState = RTCLOCK_SET;
       break;
+    // -------------
+    case 'K':
+      Serial.println(F("+ Play Knight Rider Scanner."));
+      KnightRiderScanner();
+      break;
     // ----------------------------------------------------------------------
     case 'h':
       Serial.println();
@@ -673,7 +751,9 @@ void clockSwitch(int resultsValue) {
       Serial.println(F("--------------------------"));
       Serial.println(F("+ t/T VT100 panel Disable/enable VT100 virtual front panel."));
       Serial.println(F("+ Ctrl+L          Clear screen."));
-      Serial.println(F("+ X, Exit player  Return to program WAIT mode."));
+      Serial.println(F("+ K, Scanner      Play Knight Rider Scanner."));
+      Serial.println(F("--------------------------"));
+      Serial.println(F("+ X, Exit CLOCK   Return to program WAIT mode."));
       Serial.println(F("----------------------------------------------------"));
       break;
     // ----------------------------------------------------------------------
@@ -726,22 +806,14 @@ void clockSwitch(int resultsValue) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// Handle continuous playing, and play errors such as: SD card not inserted.
+// Handle continuous clock processing.
 //
 void rtClockContinuous() {
-  //
-  // Process infrared key presses.
-  /*
-    if (clockIrrecv.decode(&clockIrResults)) {
-    clockSwitch(clockIrResults.value);
-    clockIrrecv.resume();
-    }
-  */
   processClockNow();
 }
 
 // -----------------------------------------------------------------------------
-// MP3 Player controls.
+// Clock controls.
 
 void rtClockSet() {
   thePrompt = clockSetPrompt;

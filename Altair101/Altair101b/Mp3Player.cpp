@@ -264,10 +264,7 @@
 String playerPrompt = "MP3 ?- ";
 extern int programState;
 
-const byte OUT_ON =     B00010000;  // OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
-const byte HLTA_ON =    B00001000;  // HLTA   Machine opcode hlt, has halted the machine.
 const byte HLTA_OFF =   ~HLTA_ON;
-const byte M1_ON =      B00100000;  // HLTA   Machine opcode hlt, has halted the machine.
 const byte M1_OFF =     ~M1_ON;
 
 // -----------------------------------------------------------------------
@@ -345,6 +342,38 @@ uint8_t getPlayMode() {
 //      NOT_PLAY_SOUND = false >> Do play sounds.
 boolean NOT_PLAY_SOUND = false;
 //      NOT_PLAY_SOUND = true  >> Don't play sounds.
+
+// ---------------------------
+// Sound bites for sound effects
+/*
+   soundEffects is an array that matches index values to an MP3 file number.
+   Example: READ_FILE=1
+    where
+      The value of soundEffects[1], is stored in file: 0001.sbf
+      The value of soundEffects[2], is stored in file: 0002.sbf
+      ...
+    If the byte stored in 0001.sbf is 5, then,
+      soundEffects[READ_FILE]=5 or soundEffects[1]=5.
+    Then,
+      playerPlaySound(READ_FILE) plays file: 0005.mp3.
+*/
+int READ_FILE             = 1;
+int TIMER_COMPLETE        = 2;
+int RESET_COMPLETE        = 3;
+int CLOCK_ON              = 4;
+int CLOCK_OFF             = 5;
+int PLAYER_ON             = 6;
+int PLAYER_OFF            = 7;
+int KR5                   = 8;
+int CLOCK_CUCKOO          = 9;
+int TIMER_MINUTE          = 10;
+int DOWNLOAD_COMPLETE     = 11;
+int WRITE_FILE            = 12;
+int KNIGHT_RIDER_SCANNER  = 13;
+
+// const int maxSoundEffects = 16;
+//                     {0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5};
+int soundEffects[16] = {1,1,1,1,2,3,9,3,1,6,1,1,1,6,1,1};
 
 // -----------------------------------------------------------------------------
 // Initialize the player module.
@@ -1267,6 +1296,12 @@ void mp3PlayerSingleLoop(byte theFileNumber) {
   playerStatus = playerStatus & HLTA_OFF;
   mp3playerDevice.play(theFileNumber);    // playerContinuous() will manage the looping.
   // mp3playerDevice.loop(theFileNumber);
+}
+
+void playerSoundEffect(byte theFileNumber) {
+  if (playerStatus & HLTA_ON) {
+    mp3playerDevice.play(soundEffects[theFileNumber]);
+  }
 }
 
 // ---------------------------------------

@@ -76,26 +76,37 @@ void loadKillTheBit();
 void loadMviRegisters();
 
 // -----------------------------------------------------------------------------
-// From Altair101b.ino program, for AltairSample.cpp.
+// -----------------------------------------------------------------------------
+// From Altair101b.ino program, for other programs to use.
+//
 void printByte(byte b);
 void printOctal(byte b);
 void printHex(byte b);
-
-// From Altair101b.ino program, for other programs.
+//
 extern boolean LED_LIGHTS_IO;
 extern boolean VIRTUAL_FRONT_PANEL;
 extern void initVirtualFrontPanel();
 extern void printVirtualFrontPanel();
 extern uint16_t fpAddressToggleWord;
 //
+extern void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits);
+//
 extern void setAddressData(uint16_t addressWord, byte dataByte);
 extern String loadProgramName;
 extern byte readByte;
-
-// From here, for the Mp3Player.cpp program.
+//
 extern void ledFlashError();
 extern void ledFlashSuccess();
 extern byte hwStatus;
+//
+extern const byte MEMR_ON;
+extern const byte INP_ON;
+extern const byte M1_ON;
+extern const byte OUT_ON;
+extern const byte HLTA_ON;
+extern const byte STACK_ON;
+extern const byte WO_ON;
+extern const byte INT_ON1;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

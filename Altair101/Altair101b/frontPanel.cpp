@@ -429,9 +429,11 @@ void checkAux1() {
     if (programState == CLOCK_RUN) {
       Serial.println(F(" WAIT mode: exit CLOCK mode."));
       programState = PROGRAM_WAIT;
+      playerSoundEffect(CLOCK_OFF);
     } else {
       Serial.println(F(" CLOCK mode."));
       programState = CLOCK_RUN;
+      playerSoundEffect(CLOCK_ON);
     }
   }
   // ----------------------------------------------
@@ -448,9 +450,11 @@ void checkAux1() {
     if (programState == PLAYER_RUN) {
       Serial.println(F(" WAIT mode: exit PLAYER mode."));
       programState = PROGRAM_WAIT;
+      playerSoundEffect(PLAYER_OFF);
     } else {
       Serial.println(F(" MP3 PLAYER mode."));
       programState = PLAYER_RUN;
+      playerSoundEffect(PLAYER_ON);
     }
   }
 }

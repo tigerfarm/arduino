@@ -371,37 +371,10 @@ const byte SD_OFF =    B11111110;
 const byte CL_OFF =    B11111101;
 const byte PL_OFF =    B11111011;
 
-int READ_FILE         = 1;
-int TIMER_COMPLETE    = 2;
-int RESET_COMPLETE    = 2;
-int CLOCK_ON          = 3;
-int CLOCK_OFF         = 4;
-int PLAYER_ON         = 3;
-int PLAYER_OFF        = 4;
-int KR5               = 5;
-int CLOCK_CUCKOO      = 6;
-int TIMER_MINUTE      = 7;
-int DOWNLOAD_COMPLETE = 8;
-int WRITE_FILE        = 9;
 void playerPlaySoundWait(int theFileNumber) {};
 uint16_t processorPlayerCounter = 0;            // Indicator for the processor to play an MP3, if not zero.
 
 // -----------------------------------------------------------------------------
-// Sound bites for sound effects
-/*
-   soundEffects is an array that matches index values to an MP3 file number.
-   Example: READ_FILE=1
-    where
-      The value of soundEffects[1], is stored in file: 0001.sbf
-      The value of soundEffects[2], is stored in file: 0002.sbf
-      ...
-    If the byte stored in 0001.sbf is 5, then,
-      soundEffects[READ_FILE]=5 or soundEffects[1]=5.
-    Then,
-      playerPlaySound(READ_FILE) plays file: 0005.mp3.
-*/
-const int maxSoundEffects = 16;
-int soundEffects[maxSoundEffects];
 
 String getSfbFilename(byte fileByte) {
   // SFB: Sound File Byte.

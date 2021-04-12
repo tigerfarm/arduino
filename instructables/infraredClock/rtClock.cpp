@@ -672,7 +672,7 @@ void clockSwitch(int resultsValue) {
       Serial.println(F("--------------------------"));
       Serial.println(F("+ t/T VT100 panel Disable/enable VT100 virtual front panel."));
       Serial.println(F("+ Ctrl+L          Clear screen."));
-      Serial.println(F("+ X, Exit player  Return to program WAIT mode."));
+      Serial.println(F("+ X, Exit CLOCK   Return to program WAIT mode."));
       Serial.println(F("----------------------------------------------------"));
       break;
     // ----------------------------------------------------------------------
@@ -725,7 +725,7 @@ void clockSwitch(int resultsValue) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// Handle continuous playing, and play errors such as: SD card not inserted.
+// Handle continuous clock processing.
 //
 void rtClockContinuous() {
   //
@@ -740,7 +740,7 @@ void rtClockContinuous() {
 }
 
 // -----------------------------------------------------------------------------
-// MP3 Player controls.
+// Clock controls.
 
 void rtClockSet() {
   thePrompt = clockSetPrompt;
