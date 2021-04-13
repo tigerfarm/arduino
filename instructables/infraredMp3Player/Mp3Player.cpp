@@ -823,6 +823,8 @@ void playerSwitch(int resultsValue) {
     case 0xFF629D:                          // Small remote key 2.
     case 'D':
       // + Key up - next directory, directory number: 1 play song, playerCounter=1, playerDirectory=1
+      // MP3 ?- + Key up - next directory, directory# 2 play song, playerCounter=34, playerDirectory=2
+      // MP3 ?- + Key up - next directory, directory# 3 play song, playerCounter=44, playerDirectory=3
       if (playerDirectoryTop == 0 || (playerDirectory < playerDirectoryTop)) {
         playerDirectory ++;
       }
@@ -836,10 +838,16 @@ void playerSwitch(int resultsValue) {
       mp3playerDevice.loopFolder(playerDirectory);
       mp3playerDevice.pause();
       delay(200);
-      // ------------------
+      //
+      // ------------------------------------
       // Set the playerCounter to this new directory file number.
       thePlayerCounter = playerCounter;
       playerCounter = mp3playerDevice.readCurrentFileNumber();
+      if (!(playerCounter > 0 && playerCounter < 256)) {
+        // Try again. Note, this is required when using sound effects.
+        delay(300);
+        playerCounter = mp3playerDevice.readCurrentFileNumber();
+      }
       if (playerCounter > 0 && playerCounter < 256) {
         if (programState == PLAYER_RUN) {
           Serial.print(F(" play song"));
@@ -867,6 +875,7 @@ void playerSwitch(int resultsValue) {
         mp3playerPlayCounter(playerCounter);
         // ------
       }
+      // ------------------------------------
       if (programState == PLAYER_RUN) {
         Serial.print(F(", playerCounter="));
         Serial.print(playerCounter);
@@ -1295,7 +1304,6 @@ void mp3PlayerSingleLoop(byte theFileNumber) {
   playMode = LOOP_SINGLE;
   playerStatus = playerStatus & HLTA_OFF;
   mp3playerDevice.play(theFileNumber);    // playerContinuous() will manage the looping.
-  // mp3playerDevice.loop(theFileNumber);
 }
 
 void playerSoundEffect(byte theFileNumber) {
