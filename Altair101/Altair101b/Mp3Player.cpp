@@ -373,7 +373,7 @@ int KNIGHT_RIDER_SCANNER  = 13;
 
 // const int maxSoundEffects = 16;
 //                     {0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5};
-int soundEffects[16] = {1,1,1,1,2,3,9,3,1,6,1,1,1,6,1,1};
+int soundEffects[16] = {1, 1, 1, 1, 2, 3, 9, 3, 1, 6, 1, 1, 1, 6, 1, 1};
 
 // -----------------------------------------------------------------------------
 // Initialize the player module.
@@ -823,7 +823,9 @@ void playerSwitch(int resultsValue) {
     case 0xFF629D:                          // Small remote key 2.
     case 'D':
       // + Key up - next directory, directory number: 1 play song, playerCounter=1, playerDirectory=1
-      if (playerDirectoryTop == 0) {
+      // MP3 ?- + Key up - next directory, directory# 2 play song, playerCounter=34, playerDirectory=2
+      // MP3 ?- + Key up - next directory, directory# 3 play song, playerCounter=44, playerDirectory=3
+      if (playerDirectoryTop == 0 || (playerDirectory < playerDirectoryTop)) {
         playerDirectory ++;
       }
       if (programState == PLAYER_RUN) {
@@ -836,10 +838,16 @@ void playerSwitch(int resultsValue) {
       mp3playerDevice.loopFolder(playerDirectory);
       mp3playerDevice.pause();
       delay(200);
-      // ------------------
+      //
+      // ------------------------------------
       // Set the playerCounter to this new directory file number.
       thePlayerCounter = playerCounter;
       playerCounter = mp3playerDevice.readCurrentFileNumber();
+      if (!(playerCounter > 0 && playerCounter < 256)) {
+        // Try again. Note, this is required when using sound effects.
+        delay(300);
+        playerCounter = mp3playerDevice.readCurrentFileNumber();
+      }
       if (playerCounter > 0 && playerCounter < 256) {
         if (programState == PLAYER_RUN) {
           Serial.print(F(" play song"));
@@ -867,6 +875,7 @@ void playerSwitch(int resultsValue) {
         mp3playerPlayCounter(playerCounter);
         // ------
       }
+      // ------------------------------------
       if (programState == PLAYER_RUN) {
         Serial.print(F(", playerCounter="));
         Serial.print(playerCounter);
@@ -1295,7 +1304,6 @@ void mp3PlayerSingleLoop(byte theFileNumber) {
   playMode = LOOP_SINGLE;
   playerStatus = playerStatus & HLTA_OFF;
   mp3playerDevice.play(theFileNumber);    // playerContinuous() will manage the looping.
-  // mp3playerDevice.loop(theFileNumber);
 }
 
 void playerSoundEffect(byte theFileNumber) {
@@ -1364,6 +1372,7 @@ void mp3PlayerRun() {
       int readByte = Serial.read();    // Read and process an incoming byte.
       playerSwitch(readByte);
     }
+#ifdef Altair101b
     if (getPcfControlinterrupted()) {
       // Hardware front panel controls.
       playerControlSwitches();
@@ -1371,6 +1380,7 @@ void mp3PlayerRun() {
       checkProtectSetVolume();
       setPcfControlinterrupted(false); // Reset for next interrupt.
     }
+#endif
     playerContinuous();  // For continuous playing. Else, when a song ends, playing would stop.
     //
     delay(60);  // Delay before getting the next key press, in case press and hold too long.
