@@ -1138,12 +1138,14 @@ byte altair_in(byte portDataByte) {
         // Reply with the high byte of the address toggles, which are the sense switch toggles.
         inputDataByte = highByte(fpAddressToggleWord);
         //
+        /* Stacy
         if (senseByte == 0) {
           // Get the desktop toggle switch value.
           inputDataByte = fpToggleSense();
           // Set the VFP to match the desktop toggles.
           fpAddressToggleWord = fpToggleAddress();
         }
+        /*/
         break;
       }
     default:
