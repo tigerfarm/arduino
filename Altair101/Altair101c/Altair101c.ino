@@ -36,7 +36,7 @@
 
   Create models:
   + Altair101a 1     // Standalone:   Altair101a which is an Arduino board, only
-  + Altair101b 1     // Developer:    Altair101a + serial module, SD card, clock, and MP3 player
+  + Altair101b 1     // Developer:    Altair101a + serial module, SD card, clock, and MP3 player 
   + Altair101f 1     // Full system:  Altair101b + front panel LED lights, switches, and toggles
 
   Add 4 digit hardware display, to diplay:
@@ -249,52 +249,31 @@ const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock/player p
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-// Model control definitions.
-
-// -----------------------------------------------------------------------------
-// Set Hardware LED light value for startup.
-
-#ifdef Altair101a
-boolean LED_LIGHTS_IO = false;
-#endif
-
-#ifdef Altair101f
-boolean LED_LIGHTS_IO = true;
-#else
 #ifdef Altair101b
-boolean LED_LIGHTS_IO = false;
-#endif
-#endif
-
-// -----------------------------------------------------------------------------
-#ifdef Altair101b
-// For model Altair101b,
+// For the Altair101b version,
 //    include the following header files.
 //    In the directory with the Altair101b.ino program file, include the other module code program files.
-//    The Altair101b version includes code to manage an SD card, clock, MP3 player, and serial module.
+//    The Altair101b version includes code to manage an SD card, clock, MP3 player, serial module, and front panel switches and toggles.
 // Include the other modules headers files.
 //
 #include "Mp3Player.h"
 #include "rtClock.h"
 #include "sdCard.h"
-//
-#endif
-
-#ifdef Altair101f
-// For model Altair101f,
-//    include the following header file for front panel LED lisghts, switches and toggles.
-//
 #include "frontPanel.h"
 //
-#endif
+// Hardware LED lights
+boolean LED_LIGHTS_IO = true;
 
-#ifdef Altair101a
+#else
 // -----------------------------------------------------------------------------
-// For model Altair101a,
+// For the Altair101a version,
 //    include non-active definitions.
 // Include the following definitions so the the program will compile and run.
 // The Altair101a version runs on stand alone Arduino Mega or Due board.
-//
+
+// Hardware LED lights
+boolean LED_LIGHTS_IO = false;
+
 // --------------------------------------
 // MP3 player module
 //
@@ -346,14 +325,9 @@ boolean writeFileByte(String theFilename, byte theByte) {
 }
 int readFileByte(String theFilename) {}
 
-#endif
-
-#ifndef Altair101f
-// -----------------------------------------------------------------------------
-// Front Panel LED lights, Switches and Toggles.
+// --------------------------------------
+// Front Panel Switches and Toggles.
 //
-void lightsStatusAddressData(byte status8bits, unsigned int address16bits, byte data8bits) {}
-
 byte fpToggleSense() {
   return 0;
 }
@@ -361,7 +335,7 @@ byte fpToggleData() {
   return 0;
 }
 uint16_t fpToggleAddress() {
-  return fpAddressToggleWord;     // Keep the same, don't change it.
+  return 0;
 }
 
 boolean getPcfControlinterrupted() {
@@ -553,6 +527,12 @@ void setWaitStatus(boolean waitStatus) {
 // -----------------------------------------------------------------------------
 // Front Panel Status LEDs
 
+// Output LED lights shift register(SN74HC595N) pins
+//          Mega/Nano pins       74HC595 Pins
+const int dataPinLed  = 5;    // pin ? Data pin.
+const int latchPinLed = 6;    // pin ? Latch pin.
+const int clockPinLed = 7;    // pin ? Clock pin.
+
 void ledFlashSuccess() {
   if (LED_LIGHTS_IO) {
     int delayTime = 60;
@@ -590,6 +570,16 @@ void ledFlashError() {
       lightsStatusAddressData(fpStatusByte, fpAddressWord, fpDataByte);
     }
   }
+}
+
+// -------------------------------------------------
+void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) {
+  digitalWrite(latchPinLed, LOW);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, status8bits);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(address16bits));
+  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(address16bits));
+  digitalWrite(latchPinLed, HIGH);
 }
 
 // -----------------------------------------------------------------------------
@@ -1147,14 +1137,15 @@ byte altair_in(byte portDataByte) {
         }
         // Reply with the high byte of the address toggles, which are the sense switch toggles.
         inputDataByte = highByte(fpAddressToggleWord);
-      //
-      //* Stacy
+        //
+        /* Stacy
         if (senseByte == 0) {
-        // Get the desktop toggle switch value.
-        inputDataByte = fpToggleSense();
-        // Set the VFP to match the desktop toggles.
-        fpAddressToggleWord = fpToggleAddress();
+          // Get the desktop toggle switch value.
+          inputDataByte = fpToggleSense();
+          // Set the VFP to match the desktop toggles.
+          fpAddressToggleWord = fpToggleAddress();
         }
+        /*/
         break;
       }
     default:
@@ -2152,11 +2143,11 @@ void processWaitSwitch(byte readByte) {
       /*
         default:
         {
-  #ifdef LOG_MESSAGES
+        #ifdef LOG_MESSAGES
         Serial.print(F("- Ignored: "));
         printByte(readByte);
         Serial.println();
-  #endif
+        #endif
         break;
         }
       */
@@ -2402,6 +2393,24 @@ void setup() {
   Serial.println(F("setup()"));
   //
   // ----------------------------------------------------
+  // ----------------------------------------------------
+  // Front panel LED lights.
+
+  // System application status LED lights
+  pinMode(WAIT_PIN, OUTPUT);        // Indicator: Altair 8800 emulator program WAIT state: LED on or LED off.
+  pinMode(HLDA_PIN, OUTPUT);        // Indicator: clock or player process: LED on. Emulator: LED off.
+  digitalWrite(WAIT_PIN, HIGH);     // Default to WAIT state.
+  digitalWrite(HLDA_PIN, HIGH);     // Default to emulator.
+
+  // ----------------------------------------------------
+  // Set LED lights: status, address, and data.
+  pinMode(latchPinLed, OUTPUT);
+  pinMode(clockPinLed, OUTPUT);
+  pinMode(dataPinLed, OUTPUT);
+  delay(300);
+  ledFlashSuccess();
+  // Serial.println(F("+ Front panel LED lights are initialized."));
+  //
   // ----------------------------------------------------
   // Front Panel Switches.
   // I2C Two Wire PCF module initialization

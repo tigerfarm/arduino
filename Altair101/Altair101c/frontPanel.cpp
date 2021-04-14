@@ -11,7 +11,7 @@
 
 */
 // -------------------------------------------------------------------------------
-#include "Altair101b.h"
+#include "Altair101.h"
 
 // Switch definitions
 #include <PCF8574.h>
