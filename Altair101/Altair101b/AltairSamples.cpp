@@ -25,9 +25,41 @@ int cnt;
 static const byte PROGMEM KillTheBitOriginal[] = {
   // const byte programBytes[] = {
   // Kill the Bit program.
-  0x16, 0x80, 0x01, 0x0E, 0x00, 0x1A, 0x1A, 0x1A, 0x1A, 0x09, 0xD2, 0x08, 0x00,
-  0xDB, 0xFF, 0xAA, 0x0F, 0x57, 0xC3, 0x08, 0x00
+  0x21, 0x00, 0x00, 0x16, 0x80, 0x01, 0x00, 0x08, 0x1A, 0x1A, 0x1A, 0x1A, 0x09, 0xD2, 0x08, 0x00,
+  0xDB, 0x04, 0xAA, 0x0F, 0x57, 0xC3, 0x08, 0x00
 };
+/*
+ * Original, with the speed value 0x0E:
+  0x21, 0x00, 0x00, 0x16, 0x80, 0x01, 0x0E, 0x00, 0x1A, 0x1A, 0x1A, 0x1A, 0x09, 0xD2, 0x08, 0x00,
+  0xDB, 0xFF, 0xAA, 0x0F, 0x57, 0xC3, 0x08, 0x00
+
+++ Address:16-bit bytes       databyte :hex:oct > description
+++       0:00000000 00000000: 00100001 : 21:041 > opcode: lxi h,0
+++       1:00000000 00000001: 00000000 : 00:000 > lb: 0
+++       2:00000000 00000010: 00000000 : 00:000 > hb: 0
+++       3:00000000 00000011: 00010110 : 16:026 > opcode: mvi d,080h
+++       4:00000000 00000100: 10000000 : 80:200 > immediate:  080h : 128
+++       5:00000000 00000101: 00000001 : 01:001 > opcode: lxi b,800h
+++       6:00000000 00000110: 00000000 : 00:000 > lb: 0                   + 0x0E : Original speed of the bit was different.
+++       7:00000000 00000111: 00001000 : 08:010 > hb: 8                   + 0x08 : This matches my hardware and emulator software.
+++       8:00000000 00001000: 00011010 : 1A:032 > opcode: ldax d
+++       9:00000000 00001001: 00011010 : 1A:032 > opcode: ldax d
+++      10:00000000 00001010: 00011010 : 1A:032 > opcode: ldax d
+++      11:00000000 00001011: 00011010 : 1A:032 > opcode: ldax d
+++      12:00000000 00001100: 00001001 : 09:011 > opcode: dad b
+++      13:00000000 00001101: 11010010 : D2:322 > opcode: jnc Begin
+++      14:00000000 00001110: 00001000 : 08:010 > lb: 8
+++      15:00000000 00001111: 00000000 : 00:000 > hb: 0
+++      16:00000000 00010000: 11011011 : DB:333 > opcode: in 004h         + Note, the sense switch input comes before the bit moves.
+++      17:00000000 00010001: 00000100 : 04:004 > immediate:  004h : 4    + I changed from FFh to 04h to reduce the blinking panel lights.
+++      18:00000000 00010010: 10101010 : AA:252 > opcode: xra d
+++      19:00000000 00010011: 00001111 : 0F:017 > opcode: rrc
+++      20:00000000 00010100: 01010111 : 57:127 > opcode: mov d,a
+++      21:00000000 00010101: 11000011 : C3:303 > opcode: jmp Begin
+++      22:00000000 00010110: 00001000 : 08:010 > lb: 8
+++      23:00000000 00010111: 00000000 : 00:000 > hb: 0
++ End of list.
+ */
 void loadKillTheBitOriginal() {
   int theSize = sizeof(KillTheBitOriginal);
   int theLineCounter = 1;

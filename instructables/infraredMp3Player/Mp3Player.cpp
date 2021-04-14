@@ -844,7 +844,7 @@ void playerSwitch(int resultsValue) {
       thePlayerCounter = playerCounter;
       playerCounter = mp3playerDevice.readCurrentFileNumber();
       if (!(playerCounter > 0 && playerCounter < 256)) {
-        // Try again. Note, this is required when using sound effects.
+        // Try again. Note, this is required when using sound effects in Altair101b.
         delay(300);
         playerCounter = mp3playerDevice.readCurrentFileNumber();
       }

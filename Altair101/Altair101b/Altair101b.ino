@@ -32,6 +32,13 @@
   ---------------------------------------------------------
   Next to work on
 
+  Move LED light controls to frontPanel.cpp.
+
+  Create models:
+  + Altair101a 1     // Standalone:   Altair101a which is an Arduino board, only
+  + Altair101b 1     // Developer:    Altair101a + serial module, SD card, clock, and MP3 player 
+  + Altair101f 1     // Full system:  Altair101b + front panel LED lights, switches, and toggles
+
   Add 4 digit hardware display, to diplay:
   + Player song.
   + Clock date and time.
@@ -242,32 +249,32 @@ const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock/player p
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+#ifdef Altair101b
 // For the Altair101b version,
 //    include the following header files.
 //    In the directory with the Altair101b.ino program file, include the other module code program files.
-//    The Altair101b version includes code to manage an MP3 player, clock, SD card module, and front panel switches and toggles.
-#ifdef Altair101b
+//    The Altair101b version includes code to manage an SD card, clock, MP3 player, serial module, and front panel switches and toggles.
 // Include the other modules headers files.
-
+//
 #include "Mp3Player.h"
 #include "rtClock.h"
 #include "sdCard.h"
 #include "frontPanel.h"
-
+//
 // Hardware LED lights
 boolean LED_LIGHTS_IO = true;
 
 #else
+// -----------------------------------------------------------------------------
 // For the Altair101a version,
 //    include non-active definitions.
-// ------------------------------------------------
 // Include the following definitions so the the program will compile and run.
 // The Altair101a version runs on stand alone Arduino Mega or Due board.
 
 // Hardware LED lights
 boolean LED_LIGHTS_IO = false;
 
-// -------------------
+// --------------------------------------
 // MP3 player module
 //
 #define PLAY_ALL 0                              // Play all songs and then loop back and start over.
@@ -287,7 +294,7 @@ void mp3playerSinglePlay(byte theFileNumber) {}
 void mp3PlayerSingleLoop(byte theFileNumber) {}
 void mp3playerPlaywait(byte theFileNumber) {}
 
-// -------------------
+// --------------------------------------
 // Clock module
 //
 void setupClock() {}
@@ -297,7 +304,7 @@ void rtClockRun() {
 void rtClockContinuous() {}
 void clockSwitch(int resultsValue) {}
 
-// -------------------
+// --------------------------------------
 // SD Card module
 //
 boolean setupSdCard() {
@@ -318,7 +325,7 @@ boolean writeFileByte(String theFilename, byte theByte) {
 }
 int readFileByte(String theFilename) {}
 
-// -------------------
+// --------------------------------------
 // Front Panel Switches and Toggles.
 //
 byte fpToggleSense() {
@@ -573,17 +580,6 @@ void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(address16bits));
   shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(address16bits));
   digitalWrite(latchPinLed, HIGH);
-  //
-#ifdef LOG_MESSAGES
-  Serial.print(F("+ lightsStatusAddressData, status:"));
-  printByte(status8bits);
-  Serial.print(F(" address:"));
-  sprintf(charBuffer, "%5d", address16bits);
-  Serial.print(charBuffer);
-  Serial.print(F(" dataByte:"));
-  printByte(data8bits);
-  Serial.println();
-#endif
 }
 
 // -----------------------------------------------------------------------------

@@ -6,7 +6,9 @@
 // Comment out the following, if compiling for Altair101a,
 //    which does not have an MP3 player, real time clock, or an SD card module.
 
-#define Altair101b 1
+// #define Altair101a 1     // Standalone Arduino board
+#define Altair101b 1        // Arduino board with SD card, clock, MP3 player, and serial module
+// #define Altair101f 1     // Full system, Altair101b + front panel LED lights, switches, and toggles.
 
 #ifdef Altair101b
 #define SOFTWARE_NAME "Altair101b"
@@ -14,6 +16,10 @@
 #else
 #define SOFTWARE_NAME "Altair101a"
 #define SOFTWARE_VERSION "1.64.a"
+#endif
+#ifdef Altair101f
+#define SOFTWARE_NAME "Altair101f"
+#define SOFTWARE_VERSION "1.66.f"
 #endif
 
 // -----------------------------------------------------------------------------

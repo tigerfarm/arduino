@@ -2,25 +2,18 @@
                         ; Kill the Bit program.
                         ; Reference online video:
                         ; https://www.youtube.com/watch?v=ZKeiQ8e18QY&list=PLLlz7OhtlfKYk8nkyF1u-cDwzE_S0vcJs&index=5
+                        ; Source code: https://altairclone.com/downloads/killbits.pdf
                         ; 
                         ; ------------------------------------------------
             ORG 0       ; An assembler directive on where to load this program.
-    Start:
             LXI H,0     ; Move the lb hb data values into the register pair H(hb):L(lb). Initialize counter
             MVI D,080h  ; Move db to register D. Set initial display bit.  080h = 0200 = regD = 10 000 000
                         ;
                         ; ---------
-                        ; Bit speed: Higher value = faster.
-                        ; Change address 7 to change the speed. Default is 5: 00 000 101.
-            LXI B,500h  ; Load a(lb:hb) into register B:C.
-                        ;                            Register B : C
-                        ;                            Address  7 : 6
-                        ;  My default: 0005 = B:C  = 00 000 101 : 00 000 000
-                        ;     Faster:  0014 = B:C  = 00 001 000
-                        ;     Nice:    0020 = B:C  = 00 010 000
-                        ; Quite fast:  0040 = B:C  = 00 100 000 Similar to the video speed. They use: 016h.
-                        ;     Fast:    0100 = B:C  = 01 000 000
-                        ; Too fast:    0100 = B:C  = 01 001 000
+                        ; Bit speed: lower value, slower bit movement. Requires a faster emulator to move at the same speed.
+            ;LXI B,0Eh  ; 0Eh was the original value because the original goes faster than my Mega version.
+            ;LXI B,500h ; 500h was the speed used from my original emulator: Processor.ino, which ran faster than the new emulator (Altair101b)?
+            LXI B,800h   ; Load a(lb:hb) into register B:C.
                         ;
                         ; ------------------------------------------------
                         ; Display bit pattern on upper 8 address lights.
@@ -33,7 +26,8 @@
             DAD B       ; Add B:C to H:L. Set carry bit. Increments the display counter
             JNC Begin   ; If carry bit false, jump to address label.
                         ;
-            IN 0ffh     ; Check for toggled input, at port 0377 (toggle sense switches), that can kill the bit.
+            ;IN 0ffh     ; Original: port octal 377.
+            IN 004h     ; Check for toggled input, at port 4 (toggle sense switches), that can kill the bit.
             XRA D       ; Exclusive OR register with A, to either remove or add a bit.
                         ;
             RRC         ; Rotate right register A (shift byte right 1 bit). Set carry bit.
@@ -43,29 +37,29 @@
             END
 
 + Print Program Bytes and description.
-++ Address:byte      databyte :hex:oct > description
-++       0:00000000: 00100001 : 21:041 > opcode: lxi h,0
-++       1:00000001: 00000000 : 00:000 > lb: 0
-++       2:00000010: 00000000 : 00:000 > hb: 0
-++       3:00000011: 00010110 : 16:026 > opcode: mvi d,080h
-++       4:00000100: 10000000 : 80:200 > immediate: 080h : 128
-++       5:00000101: 00000001 : 01:001 > opcode: lxi b,500h
-++       6:00000110: 00000000 : 00:000 > lb: 0
-++       7:00000111: 00000101 : 05:005 > hb: 5
-++       8:00001000: 00011010 : 1A:032 > opcode: ldax d
-++       9:00001001: 00011010 : 1A:032 > opcode: ldax d
-++      10:00001010: 00011010 : 1A:032 > opcode: ldax d
-++      11:00001011: 00011010 : 1A:032 > opcode: ldax d
-++      12:00001100: 00001001 : 09:011 > opcode: dad b
-++      13:00001101: 11010010 : D2:322 > opcode: jnc Begin
-++      14:00001110: 00001000 : 08:010 > lb: 8
-++      15:00001111: 00000000 : 00:000 > hb: 0
-++      16:00010000: 11011011 : DB:333 > opcode: in 0ffh
-++      17:00010001: 11111111 : FF:377 > immediate: 0ffh : 255
-++      18:00010010: 10101010 : AA:252 > opcode: xra d
-++      19:00010011: 00001111 : 0F:017 > opcode: rrc
-++      20:00010100: 01010111 : 57:127 > opcode: mov d,a
-++      21:00010101: 11000011 : C3:303 > opcode: jmp Begin
-++      22:00010110: 00001000 : 08:010 > lb: 8
-++      23:00010111: 00000000 : 00:000 > hb: 0
+++ Address:16-bit bytes       databyte :hex:oct > description
+++       0:00000000 00000000: 00100001 : 21:041 > opcode: lxi h,0
+++       1:00000000 00000001: 00000000 : 00:000 > lb: 0
+++       2:00000000 00000010: 00000000 : 00:000 > hb: 0
+++       3:00000000 00000011: 00010110 : 16:026 > opcode: mvi d,080h
+++       4:00000000 00000100: 10000000 : 80:200 > immediate:  080h : 128
+++       5:00000000 00000101: 00000001 : 01:001 > opcode: lxi b,800h
+++       6:00000000 00000110: 00000000 : 00:000 > lb: 0
+++       7:00000000 00000111: 00001000 : 08:010 > hb: 8
+++       8:00000000 00001000: 00011010 : 1A:032 > opcode: ldax d
+++       9:00000000 00001001: 00011010 : 1A:032 > opcode: ldax d
+++      10:00000000 00001010: 00011010 : 1A:032 > opcode: ldax d
+++      11:00000000 00001011: 00011010 : 1A:032 > opcode: ldax d
+++      12:00000000 00001100: 00001001 : 09:011 > opcode: dad b
+++      13:00000000 00001101: 11010010 : D2:322 > opcode: jnc Begin
+++      14:00000000 00001110: 00001000 : 08:010 > lb: 8
+++      15:00000000 00001111: 00000000 : 00:000 > hb: 0
+++      16:00000000 00010000: 11011011 : DB:333 > opcode: in 004h
+++      17:00000000 00010001: 00000100 : 04:004 > immediate:  004h : 4
+++      18:00000000 00010010: 10101010 : AA:252 > opcode: xra d
+++      19:00000000 00010011: 00001111 : 0F:017 > opcode: rrc
+++      20:00000000 00010100: 01010111 : 57:127 > opcode: mov d,a
+++      21:00000000 00010101: 11000011 : C3:303 > opcode: jmp Begin
+++      22:00000000 00010110: 00001000 : 08:010 > lb: 8
+++      23:00000000 00010111: 00000000 : 00:000 > hb: 0
 + End of list.

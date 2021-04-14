@@ -944,11 +944,13 @@ void playerSwitch(int resultsValue) {
       }
       playMode = LOOP_SINGLE;
       playerStatus = playerStatus | M1_ON;
-      if (!(playerStatus & HLTA_ON)) {
-        // In not setting front panel LED, pause to identifies loop status.
-        mp3playerDevice.pause();
-        delay(200);
-        mp3playerDevice.start();
+      if (!LED_LIGHTS_IO) {
+        // In not setting front panel LED, pause identifies loop status change.
+        if (!(playerStatus & HLTA_ON)) {
+          mp3playerDevice.pause();
+          delay(200);
+          mp3playerDevice.start();
+        }
       }
       break;
     case 0xC473DE3A:
@@ -959,11 +961,13 @@ void playerSwitch(int resultsValue) {
       }
       playMode = PLAY_ALL;
       playerStatus = playerStatus & M1_OFF;
-      if (!(playerStatus & HLTA_ON)) {
-        // In not setting front panel LED, pause to identifies loop status.
-        mp3playerDevice.pause();
-        delay(1000);
-        mp3playerDevice.start();
+      if (!LED_LIGHTS_IO) {
+        // In not setting front panel LED, pause identifies loop status change.
+        if (!(playerStatus & HLTA_ON)) {
+          mp3playerDevice.pause();
+          delay(1000);
+          mp3playerDevice.start();
+        }
       }
       break;
     // -----------------------------------
