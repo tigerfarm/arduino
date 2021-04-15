@@ -6,11 +6,32 @@
 // Program states
 #define PROGRAM_WAIT 1
 #define CLOCK_RUN 3
+//
+extern const byte MEMR_ON;
+extern const byte INP_ON;
+extern const byte M1_ON;
+extern const byte OUT_ON;
+extern const byte HLTA_ON;
+extern const byte STACK_ON;
+extern const byte WO_ON;
+extern const byte INT_ON1;
 
 extern int programState;
 extern void clockLights(byte theMinute, byte theHour);
 extern boolean VIRTUAL_FRONT_PANEL;
 extern void initVirtualFrontPanel();
+//
+extern void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits);
+//
+extern int KNIGHT_RIDER_SCANNER;
+extern void playerSoundEffect(byte theFileNumber);
+extern void playerPlaySoundWait(int theFileNumber);
+extern void mp3playerPlay(int theCounter);
+extern void playerContinuous();
+extern uint8_t playerStatus;
+extern uint16_t playerCounter;
+extern int TIMER_COMPLETE;
+extern int TIMER_MINUTE;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

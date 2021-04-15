@@ -8,10 +8,32 @@
 #include "rtClock.h"
 
 // This is for getting this test application to compile.
-#include "Altair101b.h"
+#include "Altair101.h"
+
+void lightsStatusAddressData(byte status8bits, unsigned int address16bits, byte data8bits) {}
+void playerSoundEffect(byte theFileNumber) {}
+int KNIGHT_RIDER_SCANNER = 1;
+void playerPlaySoundWait(int theFileNumber) {}
+int TIMER_COMPLETE        = 2;
+int TIMER_MINUTE        = 3;
+uint8_t playerStatus = OUT_ON | HLTA_ON;        // Indicates MP3 player and it's paused (halted).
+uint16_t playerCounter;
+void mp3playerPlay(int theCounter) {}
+void playerContinuous() {}
+
 void clockLights(byte theMinute, byte theHour) {}
 void initVirtualFrontPanel() {}
 boolean VIRTUAL_FRONT_PANEL = false;
+
+// Use OR to turn ON. Example:
+const byte MEMR_ON =    B10000000;  // MEMR   The memory bus will be used for memory read data.
+const byte INP_ON =     B01000000;  // INP    The address bus containing the address of an input device. The input data should be placed on the data bus when the data bus is in the input mode
+const byte M1_ON =      B00100000;  // M1     Machine cycle 1, fetch opcode.
+const byte OUT_ON =     B00010000;  // OUT    The address contains the address of an output device and the data bus will contain the out- put data when the CPU is ready.
+const byte HLTA_ON =    B00001000;  // HLTA   Machine opcode hlt, has halted the machine.
+const byte STACK_ON =   B00000100;  // STACK  Stack process
+const byte WO_ON =      B00000010;  // WO     Write out (inverse logic)
+const byte INT_ON =     B00000001;  // INT    Interrupt
 
 // -----------------------------------------------------------------------------
 int programState;

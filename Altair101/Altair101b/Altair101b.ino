@@ -39,8 +39,8 @@
   + Altair101b 1     // Developer:    Altair101a + serial module, SD card, clock, and MP3 player
   + Altair101f 1     // Full system:  Altair101b + front panel LED lights, switches, and toggles
 
-  Add 4 digit hardware display, to diplay:
-  + Player song.
+  For Altair101b, add 4 digit hardware display, to display:
+  + Player song number.
   + Clock date and time.
 
   Document what each does:

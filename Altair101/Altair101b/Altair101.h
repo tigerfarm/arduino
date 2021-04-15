@@ -37,7 +37,9 @@ extern byte fpDataByte;           // Front panel data byte.
 
 // -----------------------------------------------------------------------------
 // From frontPanel.h
-// extern void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits);
+//
+extern void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits);
+//
 extern boolean getPcfControlinterrupted();
 extern void checkAux1();
 extern void checkProtectSetVolume();
@@ -105,8 +107,6 @@ extern boolean VIRTUAL_FRONT_PANEL;
 extern void initVirtualFrontPanel();
 extern void printVirtualFrontPanel();
 extern uint16_t fpAddressToggleWord;
-//
-extern void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits);
 //
 extern void setAddressData(uint16_t addressWord, byte dataByte);
 extern String loadProgramName;
