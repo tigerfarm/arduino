@@ -6,15 +6,10 @@
 // Comment out the following, if compiling for Altair101a,
 //    which does not have an MP3 player, real time clock, or an SD card module.
 
-// #define Altair101b 1
+#define Altair101a 1
 
-#ifdef Altair101b
-#define SOFTWARE_NAME "Altair101b"
-#define SOFTWARE_VERSION "1.64.b"
-#else
 #define SOFTWARE_NAME "Altair101a"
 #define SOFTWARE_VERSION "1.64.a"
-#endif
 
 // -----------------------------------------------------------------------------
 // From cpucore_i8080.h
