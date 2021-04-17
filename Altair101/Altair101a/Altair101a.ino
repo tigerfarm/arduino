@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------------------
-// Altair101b Processor program, which is an Altair 8800 emulator.
+// Altair101 Processor program, which is an Altair 8800 emulator.
 // Copyright (C) 2021 Stacy David Thurston
 //
 // This program is free software; you can redistribute it and/or modify
@@ -11,10 +11,10 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 /*
-  Altair101b Operating System program
+  Altair101 Operating System program
 
   This program is an enhanced Altair 8800 emulator.
-  Interactivity is through the default Arduino USB serial port, and optionally, the Serial2 port.
+  Interactivity is through the default Arduino USB serial port.
   It was tested using the Arduino IDE serial monitor and Mac terminal which has VT100 features.
   It runs programs from command line, or with the emulated virtual front panel.
   The virtual front panel uses the default Serial port for communications to a VT100 terminal window.
@@ -32,72 +32,14 @@
   ---------------------------------------------------------
   Next to work on
 
-  Move LED light controls to frontPanel.cpp.
-
-  Create models:
-  + Altair101a 1     // Standalone:   Altair101a which is an Arduino board, only
-  + Altair101b 1     // Developer:    Altair101a + serial module, SD card, clock, and MP3 player
-  + Altair101f 1     // Full system:  Altair101b + front panel LED lights, switches, and toggles
-
-  For Altair101b, add 4 digit hardware display, to display:
-  + Player song number.
-  + Clock date and time.
-
-  Document what each does:
-  ++ LED_LIGHTS_IO=0 VIRTUAL_FRONT_PANEL=1 ARDUINO_IDE_MONITOR=0 TERMINAL_VT100=0
-
   In conjuction with the Altair101a instructable, update README.md files:
   + Altair101a
   + Galaxy101a
   + 4K Basic
   + programsAltair: programs people can load and run on the Altair101.
 
-  Continue integrating Processor.ino features and functions.
-  + Ready to add sample assembler programs to AltairSamples.cpp.
-  + Test Serial2 buffer uploads from asm, for uploading basic programs.
-  + Move Status const to Altair101b.h, for other programs to use, such as Mp3Player.cpp.
-    const byte MEMR_ON =    B10000000;  // MEMR   The memory bus will be used for memory read data.
-
   Consider, when using Arduino IDE Serial Monitor, remove duplicate messages.
   + Maybe ignore "CR".
-
-  ---------------------------------------------------------
-  Get programs to work on an Altari-Duino or actual Altair 8800.
-  + Need to get in contact with the online group to have help testing.
-
-  + Get 88-2SIO to work based on Gaxaly101.asm.
-  ++ Should test using port 0 and 1 which work with 4K Basic.
-  ++ Or convert Gaxaly101.asm to use 4K Basic I/O routines.
-  + Consider enhancing how Altair101a uses
-    serial I/O to handle 88-2SIO CHANNEL SERIAL INTERFACE functionality
-    based on how I use it for 4K Basic.
-
-  ---------------------------------------------------------
-  Desktop integration
-
-  Continue to add logic for switches and toggles.
-  + For Address toggles, update fpAddressToggleWord.
-  ++ This will update for the VFP and for the getSenseSwitchValue() function.
-
-  Starting integrating hardware functions using the Altair tablet or desktop.
-  + If Altair101 tablet module, get the tablet to work.
-  + Test running Altair101b.
-  + Then update Altair101b with the ability to flash the front panel lights.
-  + Then update Altair101b implementing interactivity with the front panel switches.
-
-  Option to have HLT work the same as Altair 8800.
-
-  Implement interrupt handling.
-  + opcodes: ei and di. And handling interupts once ei is run.
-  + This is likely required for CPM, but don't know.
-
-  ---------------------------------------------------------
-  Integration: continue adding Processor.ino features into Altair101a.
-
-  Front panel: add functions, upload to tablet or desktop machine, and test.
-  + Lights
-  + Toggles and switches
-  + Add the others: player sound effects, clock timer and counter.
 
   ---------------------------------------------------------
   - Consider preventing lockup when using PUSH A, i.e. PUSH called before setting SP.
@@ -116,14 +58,6 @@
   $ ./altairz80 cpm2port
   A> DIR
   A> B:
-
-  Logical directives of the preprocessor:
-  #ifdef    If defined.
-  #ifndef   If NOT defined.
-  #elseif   If the first is NOT defined, and this one is defined.
-  #elif     ...
-  #else     Else, do the following.
-  #endif    End a directive.
 
   ---------------------------------------------------------
   VT100 reference:
@@ -187,25 +121,6 @@
   --------------------------
   + Setup()
   + Looop()
-
-  -----------------------------------------------------------------------------
-  Wire the serial module:
-
-  Module  Due/Mega pins:
-  TX      RX:17
-  RX      TX:16
-  VCC     VCC
-  GND     GND
-
-  Due pins                TX2:16 RX2:17
-   ---------------------------------------
-  |                            x x        | GND
-  |                                       |
-  |                                       | ...
-  |                                       |
-  |                                       | VCC
-   ---------------------------------------
-
 */
 // -------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------

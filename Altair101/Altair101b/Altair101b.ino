@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------------------
-// Altair101b Processor program, which is an Altair 8800 emulator.
+// Altair101 Processor program, which is an Altair 8800 emulator.
 // Copyright (C) 2021 Stacy David Thurston
 //
 // This program is free software; you can redistribute it and/or modify
