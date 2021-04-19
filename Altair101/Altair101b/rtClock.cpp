@@ -971,11 +971,11 @@ void clockRunTimer() {
       Serial.println(F(" Timer timed."));
 #endif
       // Force playing the sound.
-      playerPlaySoundWait(TIMER_COMPLETE);
+      playerSoundEffect(TIMER_COMPLETE);
       // KnightRiderScanner();
       if (!(playerStatus & HLTA_ON)) {
         delay(2000);
-        mp3playerPlay(playerCounter);    // Continue to play in clock mode.
+       // mp3playerPlay(playerCounter);    // Continue to play in clock mode.
       }
       //
       if (timerCounter < timerTop && timerCounter > 0) {
@@ -1029,7 +1029,7 @@ void clockRunTimer() {
       clockTimerAddress = 0;
       clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
       clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, 1);
-      playerPlaySoundWait(TIMER_MINUTE);
+      playerSoundEffect(TIMER_MINUTE);
       // delay(1200);  // Delay time for the sound to play.
     }
   }

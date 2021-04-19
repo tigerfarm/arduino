@@ -97,6 +97,8 @@
 #include "frontPanel.h"
 #endif
 
+#define SWITCH_MESSAGES 1
+
 // -----------------------------------------------------------------------------
 String thePrompt = "CLOCK ?- ";           // Default.
 String clockPrompt = "CLOCK ?- ";
@@ -819,10 +821,189 @@ void clockSwitch(int resultsValue) {
 // -----------------------------------------------------------------------
 // Clock Timer
 
+const int timerTop = 8;
+unsigned int timerData[timerTop];
+unsigned int timerCounter = 1;      // Which is D0, default.
+unsigned int timerDataAddress = 0;
+byte timerStatus = INP_ON | HLTA_ON;          // Clock timer is ready for timer value input.
+byte timerStep = 0;
+unsigned int timerMinutes = 0;
+unsigned int clockTimerAddress = 0;
+unsigned long clockTimer;
+int clockTimerCount = 0;
+
+unsigned long clockTimerSeconds;
+boolean clockTimerSecondsOn = false;
+int clockTimerCountBit;
+
+int getMinuteValue(unsigned int theWord) {
+  int theMinute = 0;
+  for (int i = 15; i >= 0; i--) {
+    if (bitRead(theWord, i) > 0) {
+      theMinute = i;
+      // Serial.print("\n+ Minute = ");
+      // Serial.println(theMinute);
+    }
+  }
+  return (theMinute);
+}
+
+void clockSetTimer(int timerMinutes) {
+  //
+  // Set parameters before starting the timer.
+  //    timerMinutes is the amount of minutes to be timed.
+  //
+  timerStatus = timerStatus & ~HLTA_ON;
+  timerStatus = timerStatus | M1_ON;  // Timer is running (M1_ON).
+  clockTimer = millis();              // Initialize the clock timer milliseconds.
+  clockTimerCount = 0;                // Start counting from 0. Timer is done when it equals timerMinute.
+  clockTimerAddress = 0;              // Used to display Address lights: timerMinute and clockTimerCount.
+  // Put the timerMinute into the display value: clockTimerAddress.
+  clockTimerAddress = bitWrite(clockTimerAddress, timerMinutes, 1);
+  Serial.print(F("+ Timer minutes set to: "));
+  Serial.print(timerMinutes);
+  Serial.println();
+}
+
+boolean clockRunTimer() {
+  boolean returnValue = true;
+  // -----------------------------------------
+  if ((millis() - clockTimerSeconds >= 500)) {
+    //
+    // Each half second, toggle the tracking minute counter LED on/off.
+    //
+    clockTimerSeconds = millis();
+    if (clockTimerSecondsOn) {
+      clockTimerSecondsOn = false;
+      clockTimerCountBit = 1;
+      clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, clockTimerCountBit);
+    } else {
+      clockTimerSecondsOn = true;
+      clockTimerCountBit = 0;
+      clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, clockTimerCountBit);
+    }
+  }
+  // -----------------------------------------
+  if ((millis() - clockTimer >= 60000)) {
+    //
+    // Minute process.
+    //
+    // 60 x 1000 = 60000, which is one minute.
+    clockTimer = millis();
+    clockTimerCount++;
+    if (clockTimerCount >= timerMinutes ) {
+      //
+      // -----------------------------------------
+      // *** Timer Complete ***
+      // When the timer is complete, play a sound, and set the front panel lights.
+      //
+      returnValue = false;
+#ifdef SWITCH_MESSAGES
+      Serial.print(F("+ End the timer run state."));
+#endif
+      int currentTimerMinute = timerMinutes;
+      // Force playing the sound.
+      playerSoundEffect(TIMER_COMPLETE);
+      // KnightRiderScanner();
+      if (!(playerStatus & HLTA_ON)) {
+        delay(2000);
+        // mp3playerPlay(playerCounter);    // Continue to play in clock mode.
+      }
+      timerStatus = INP_ON | HLTA_ON;
+      clockTimerAddress = 0;
+      clockTimerAddress = bitWrite(clockTimerAddress, currentTimerMinute, 1);
+    } else {
+      // -----------------------------------------
+      // Each minute, increment the minute counter and LED light, and play a cuckoo sound.
+      //
+#ifdef SWITCH_MESSAGES
+      Serial.print(F("+ Timer minutes: "));
+      Serial.print(timerMinutes);
+      Serial.print(F(", minutes to go = "));
+      Serial.println(timerMinutes - clockTimerCount);
+#endif
+      clockTimerAddress = 0;
+      clockTimerAddress = bitWrite(clockTimerAddress, timerMinutes, 1);
+      clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, 1);
+      playerSoundEffect(TIMER_MINUTE);
+      // delay(1200);  // Delay time for the sound to play.
+    }
+  }
+  // -----------------------------------------
+  //
+  lightsStatusAddressData(timerStatus, clockTimerAddress, timerCounter);
+  return (returnValue);
+}
+
+void clockRunTimerControl() {
+  timerCounter = 1;
+  boolean thisMode = true;
+  while (thisMode) {
+    thisMode = clockRunTimer();
+    if (Serial.available() > 0) {
+      int readByte = Serial.read();    // Read and process an incoming byte.
+      // clockRunTimerSwitch(readByte);
+      if (readByte == 's') {
+        // STOP the timer.
+        thisMode = false;
+      } else if (readByte == 'R') {
+        clockTimerCount = 0;
+        Serial.print(F("+ Re-running Clock TIMER, minutes: "));
+        Serial.print(timerMinutes);
+        Serial.print(F(", Current time: "));
+        printClockDateTime();
+        Serial.println();
+      } else if (readByte == 13) {
+        Serial.print(F("+ Running Clock TIMER, minutes: "));
+        Serial.print(timerMinutes);
+        Serial.print(F(", minutes to go = "));
+        Serial.print(timerMinutes - clockTimerCount);
+        Serial.print(F(", Current time: "));
+        printClockDateTime();
+        Serial.println();
+      }
+    }
+  }
+}
+
 void clockTimerSwitch(int resultsValue) {
   boolean printPrompt = true;
   int theValue;
   int setValue;   // temporary
+
+  // -------------------------------
+  // Process an address/data toggle.
+  //
+  if ( resultsValue >= '0' && resultsValue <= '9' ) {
+    timerMinutes = resultsValue - '0';
+    clockSetTimer(timerMinutes);
+    if (printPrompt && (programState == CLOCK_RUN) && (rtClockState == RTCLOCK_TIMER)) {
+      Serial.print(thePrompt);
+    }
+    /*
+      // Serial input, not hardware input.
+      fpAddressToggleWord = fpAddressToggleWord ^ (1 << (resultsValue - '0'));
+      if (!ARDUINO_IDE_MONITOR) {
+      printFrontPanel();
+      }
+      return;
+    */
+  }
+  if ( resultsValue >= 'a' && resultsValue <= 'f' ) {
+    timerMinutes = resultsValue - 'a' + 10;
+    clockSetTimer(timerMinutes);
+    if (printPrompt && (programState == CLOCK_RUN) && (rtClockState == RTCLOCK_TIMER)) {
+      Serial.print(thePrompt);
+    }
+    /*
+      // Serial input, not hardware input.
+      fpAddressToggleWord = fpAddressToggleWord ^ (1 << (resultsValue - 'a' + 10));
+      if (!ARDUINO_IDE_MONITOR) {
+      printFrontPanel();
+      }
+      return;
+    */
+  }
   switch (resultsValue) {
     // -----------------------------------
     case 0xFFFFFFFF:
@@ -850,9 +1031,38 @@ void clockTimerSwitch(int resultsValue) {
       Serial.println();
       break;
     // ----------------------------------------------------------------------
-    case 'S':
-      Serial.print(F("+ Clock SET, "));
+    case 'r':
+      Serial.print(F("+ RUN Clock TIMER."));
+      if (timerMinutes == 0) {
+        Serial.print(F(" Timer minutes are not set."));
+        Serial.println();
+        return;
+      }
+      if (timerMinutes == clockTimerCount) {
+        Serial.print(F(" Timer has completed. Either set a new timer value or reset the timer."));
+        Serial.println();
+        return;
+      }
+      Serial.print(F(" TIMER minutes: "));
+      Serial.print(timerMinutes);
+      Serial.print(F(", Current time: "));
+      printClockDateTime();
       Serial.println();
+      clockRunTimerControl();
+      Serial.println();
+      Serial.print(F(", Current time: "));
+      printClockDateTime();
+      Serial.println();
+      break;
+    case 's':
+      Serial.print(F("+ STOP/pause Clock TIMER, minutes."));
+      Serial.println();
+      break;
+    case 'R':
+      Serial.print(F("+ Re-run the timer using the same amount of mintues: "));
+      Serial.print(timerMinutes);
+      Serial.println();
+      clockTimerCount = 0;
       break;
     // -------------
     case 'M':
@@ -866,6 +1076,9 @@ void clockTimerSwitch(int resultsValue) {
       Serial.println(F("----------------------------------------------------"));
       Serial.println(F("+++ Clock TIMER"));
       Serial.println(F("-------------"));
+      Serial.println(F("+ r, RUN          Run timer."));
+      Serial.println(F("+ s, STOP         Stop/pause timer."));
+      Serial.println(F("+ R, RESET        Re-run the timer using the same amount of mintues."));
       Serial.println(F("+ M, CLOCK        Return to CLOCK mode."));
       Serial.println(F("-------------"));
       Serial.println(F("+ Ctrl+L          Clear screen."));
@@ -890,153 +1103,6 @@ void clockTimerSwitch(int resultsValue) {
   }
 }
 
-const int timerTop = 8;
-unsigned int timerData[timerTop];
-unsigned int timerCounter = 1;      // Which is D0, default.
-unsigned int timerDataAddress = 0;
-byte timerStatus = INP_ON | HLTA_ON;          // Clock timer is ready for timer value input.
-byte timerStep = 0;
-unsigned int timerMinute = 0;
-unsigned int clockTimerAddress = 0;
-unsigned long clockTimer;
-int clockTimerCount = 0;
-
-unsigned long clockTimerSeconds;
-boolean clockTimerSecondsOn = false;
-int clockTimerCountBit;
-
-int getMinuteValue(unsigned int theWord) {
-  int theMinute = 0;
-  for (int i = 15; i >= 0; i--) {
-    if (bitRead(theWord, i) > 0) {
-      theMinute = i;
-      // Serial.print("\n+ Minute = ");
-      // Serial.println(theMinute);
-    }
-  }
-  return (theMinute);
-}
-
-void clockSetTimer(int timerMinute) {
-  //
-  // Set parameters before starting the timer.
-  //    timerMinute is the amount of minutes to be timed.
-  //
-  timerStatus = timerStatus & ~HLTA_ON;
-  timerStatus = timerStatus | M1_ON;  // Timer is running (M1_ON).
-  clockTimer = millis();              // Initialize the clock timer milliseconds.
-  clockTimerCount = 0;                // Start counting from 0. Timer is done when it equals timerMinute.
-  clockTimerAddress = 0;              // Used to display Address lights: timerMinute and clockTimerCount.
-  // Put the timerMinute into the display value: clockTimerAddress.
-  clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
-}
-
-void clockRunTimer() {
-  // -----------------------------------------
-  if ((millis() - clockTimerSeconds >= 500)) {
-    //
-    // Each half second, toggle the tracking minute counter LED on/off.
-    //
-    clockTimerSeconds = millis();
-    if (clockTimerSecondsOn) {
-      clockTimerSecondsOn = false;
-      clockTimerCountBit = 1;
-      clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, clockTimerCountBit);
-    } else {
-      clockTimerSecondsOn = true;
-      clockTimerCountBit = 0;
-      clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, clockTimerCountBit);
-    }
-  }
-  // -----------------------------------------
-  if ((millis() - clockTimer >= 60000)) {
-    //
-    // Minute process.
-    //
-    // 60 x 1000 = 60000, which is one minute.
-    clockTimer = millis();
-    clockTimerCount++;
-    if (clockTimerCount >= timerMinute ) {
-      //
-      // -----------------------------------------
-      // *** Timer Complete ***
-      // When the timer is complete, play a sound, and set the front panel lights.
-      //
-      int currentTimerMinute = timerMinute;
-#ifdef SWITCH_MESSAGES
-      Serial.print(F("+ clockTimerCount="));
-      Serial.print(clockTimerCount);
-      Serial.print(F(" timerMinute="));
-      Serial.print(timerMinute);
-      Serial.println(F(" Timer timed."));
-#endif
-      // Force playing the sound.
-      playerPlaySoundWait(TIMER_COMPLETE);
-      // KnightRiderScanner();
-      if (!(playerStatus & HLTA_ON)) {
-        delay(2000);
-        mp3playerPlay(playerCounter);    // Continue to play in clock mode.
-      }
-      //
-      if (timerCounter < timerTop && timerCounter > 0) {
-        // Check if there is another timer setting in the timer array, that needs running.
-        timerCounter++;
-        timerMinute = getMinuteValue(timerData[timerCounter]);
-        if (timerMinute > 0) {
-#ifdef SWITCH_MESSAGES
-          Serial.print(F("+ Run next timer event. timerCounter="));
-          Serial.print(timerCounter);
-          Serial.print(F(" timerData[timerCounter]="));
-          Serial.println(timerData[timerCounter]);
-#endif
-          clockTimerAddress = 1;
-          clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
-          // Start the timer and count.
-          clockTimer = millis();
-          clockTimerCount = 0;
-        } else {
-#ifdef SWITCH_MESSAGES
-          Serial.print(F("+ End the timer run state, stay in clock timer mode (1)."));
-          Serial.print(F(" timerMinute="));
-          Serial.print(timerMinute);
-          Serial.print(F(" currentTimerMinute="));
-          Serial.print(currentTimerMinute);
-#endif
-          timerStatus = INP_ON | HLTA_ON;
-          clockTimerAddress = 0;
-          clockTimerAddress = bitWrite(clockTimerAddress, currentTimerMinute, 1);
-        }
-      } else {
-#ifdef SWITCH_MESSAGES
-        Serial.print(F("+ End the timer run state, stay in clock timer mode (2)."));
-        Serial.print(F(" timerMinute="));
-        Serial.print(timerMinute);
-#endif
-        timerStatus = INP_ON | HLTA_ON;
-        clockTimerAddress = 0;
-        clockTimerAddress = bitWrite(clockTimerAddress, currentTimerMinute, 1);
-      }
-    } else {
-      // -----------------------------------------
-      // Each minute, increment the minute counter and LED light, and play a cuckoo sound.
-      //
-#ifdef SWITCH_MESSAGES
-      Serial.print(F("+ clockTimerCount="));
-      Serial.print(clockTimerCount);
-      Serial.print(F(" timerMinute="));
-      Serial.println(clockTimerCount);
-#endif
-      clockTimerAddress = 0;
-      clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
-      clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, 1);
-      playerPlaySoundWait(TIMER_MINUTE);
-      // delay(1200);  // Delay time for the sound to play.
-    }
-  }
-  lightsStatusAddressData(timerStatus, clockTimerAddress, timerCounter);
-  return;
-}
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Handle continuous clock processing.
@@ -1050,6 +1116,7 @@ void rtClockContinuous() {
 
 void rtClockTimer() {
   thePrompt = clockTimerPrompt;
+  Serial.println();
   Serial.print(thePrompt);
   while (rtClockState == RTCLOCK_TIMER) {
     if (Serial.available() > 0) {
@@ -1059,6 +1126,7 @@ void rtClockTimer() {
     delay(60);  // Delay before getting the next key press, in case press and hold too long.
   }
   thePrompt = clockPrompt;
+  Serial.println();
   Serial.print(thePrompt);
 }
 

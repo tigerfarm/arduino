@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------------------
-// Altair101b Processor program, which is an Altair 8800 emulator.
+// Altair101 Processor program, which is an Altair 8800 emulator.
 // Copyright (C) 2021 Stacy David Thurston
 //
 // This program is free software; you can redistribute it and/or modify
@@ -11,7 +11,7 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 /*
-  Altair101b Operating System program
+  Altair101 Operating System program
 
   This program is an enhanced Altair 8800 emulator.
   Interactivity is through the default Arduino USB serial port, and optionally, the Serial2 port.
@@ -44,7 +44,7 @@
   + Clock date and time.
 
   Document what each does:
-  ++ LED_LIGHTS_IO=0 VIRTUAL_FRONT_PANEL=1 ARDUINO_IDE_MONITOR=0 SERIAL_CLI=0
+  ++ LED_LIGHTS_IO=0 VIRTUAL_FRONT_PANEL=1 ARDUINO_IDE_MONITOR=0 TERMINAL_VT100=0
 
   In conjuction with the Altair101a instructable, update README.md files:
   + Altair101a
@@ -233,7 +233,7 @@ boolean VIRTUAL_FRONT_PANEL = false;
 // Each character is immediately sent.
 // Uses CR instead of LF.
 //    For example, Ctrl+l to clear the terminal screen.
-boolean SERIAL_CLI = false;
+boolean TERMINAL_VT100 = false;
 
 // This is for when you are using the Arduino IDE monitor.
 // It prevents virtual front panel printing, unless requested.
@@ -1567,7 +1567,7 @@ void processRunSwitch(byte readByte) {
 
 void runProcessor() {
   Serial.println(F("+ runProcessor()"));
-  if (SERIAL_CLI && !VIRTUAL_FRONT_PANEL) {
+  if (TERMINAL_VT100 && !VIRTUAL_FRONT_PANEL) {
     // Control character reference: https://en.wikipedia.org/wiki/ASCII
     // Terminal mode: case 3: (Crtl+c) instead of case 's'.
     // Terminal mode: case 4: (Crtl+d) instead of case 's'.
@@ -1771,11 +1771,11 @@ void processWaitSwitch(byte readByte) {
       break;
     // -------------------------------------------------------------------
     case 'k':
-      SERIAL_CLI = false;
+      TERMINAL_VT100 = false;
       Serial.println(F("+ Terminal output VT100 escape codes is disabled."));
       break;
     case 'K':
-      SERIAL_CLI = true;
+      TERMINAL_VT100 = true;
       Serial.println(F("+ Terminal output VT100 escape codes is enabled. Use Crtl+d(or Crtl+c) to STOP, Crtl+Z to RESET."));
       break;
     // -------------------------------------------------------------------
@@ -1898,8 +1898,8 @@ void processWaitSwitch(byte readByte) {
       Serial.print(F("++ ARDUINO_IDE_MONITOR="));
       Serial.print(ARDUINO_IDE_MONITOR);
       Serial.println();
-      Serial.print(F("++ SERIAL_CLI="));
-      Serial.print(SERIAL_CLI);
+      Serial.print(F("++ TERMINAL_VT100="));
+      Serial.print(TERMINAL_VT100);
       Serial.println();
       //
       Serial.print(F("++ Serial: "));
@@ -2138,7 +2138,7 @@ void processWaitSwitch(byte readByte) {
       break;
     case 12:
       // Ctrl+l is ASCII 7, which is form feed (FF).
-      // if (VIRTUAL_FRONT_PANEL || SERIAL_CLI) {
+      // if (VIRTUAL_FRONT_PANEL || TERMINAL_VT100) {
       Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
       // }
       if (VIRTUAL_FRONT_PANEL) {
