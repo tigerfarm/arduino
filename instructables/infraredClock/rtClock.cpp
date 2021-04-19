@@ -1,11 +1,12 @@
 // -------------------------------------------------------------------------------
 /*
-  This is a clock control program.
+  This is a real time clock control program.
+  
   Functionality:
   + Use serial keyboard inputs
   + View current time
-  + Set clock time
-  + Use infrared inputs for MP3 player, if one is connected.
+  + Set clock time from serial port command line.
+  + Use front panel switch and toggle inputs, if one is connected.
 
   DS3231 - A real time clock hardware module
               that is controlled by this program.
@@ -21,14 +22,6 @@
   + Data          Display the minutes single digit,  day single, or year single
   + Indicator     WAIT : Off.
   + Indicator     HLDA : On to indicate controlled by another process, other than the program emulator.
-
-  Steps to set the time hours and minutes using the front panel.
-  + In clock mode, flip RESET. Time flashes once a second.
-  + Flip EXAMINE to decrement the minutes.
-  + Flip EXAMINE NEXT to increment the minutes.
-  + Flip RESET to return to clock mode, time not changed.
-  + Flip DEPOSIT to return to clock mode, time is set based on the displayed hours and minutes.
-  ++ Seconds are set to zero, so flip DEPOSIT when the second hand hits 12 and the minute changes.
 
   --------------------------------------------------------------------------------
   Program sections
@@ -59,8 +52,10 @@
   DS3231 Clock pins   Arduino pins
   + VCC               +5v on Uno or Mega, or +3.3v on Due or NodeMCU.
   + GND               DND ground.
-  + SDA               SDA on Due or Mega, Nano D4 (pin 4), same on Uno.
-  + SCL               SCL on Due or Mega, Nano D5 (pin 5), same on Uno.
+  + SDA               SDA on Due or Mega, Nano D4 (pin 4), same on Uno. I2C interface.
+  + SCL               SCL on Due or Mega, Nano D5 (pin 5), same on Uno. I2C interface.
+  32K                 Not used. 32KHz oscillator output.
+  SQW                 Not used. Square wave or interrupt output.
 
   ---------------------
   Clock module pins
@@ -660,8 +655,8 @@ void clockSetSwitch(int resultsValue) {
       Serial.println(F("                  Rotate order: seconds to year."));
       Serial.println(F("+ X, EXAMINE NEXT Rotate through the clock values that can be set."));
       Serial.println(F("                  Rotate order: year to seconds."));
-      Serial.println(F("+ S, Set UP       Decrement date or time value."));
-      Serial.println(F("+ s, Set Down     Increment date or time value."));
+      Serial.println(F("+ S, Set UP       Increment date or time value."));
+      Serial.println(F("+ s, Set Down     Decrement date or time value."));
       Serial.println(F("-------------"));
       Serial.println(F("+ r, RUN          CLOCK mode: show date and time."));
       Serial.println(F("                  Clock SET mode: show date and time, and the set data and time value."));
