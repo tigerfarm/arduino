@@ -982,7 +982,6 @@ void clockTimerSwitch(int resultsValue) {
   // ------------------------------------------------------
   // Set timer minutes and display as an address LED light.
   //
-  timerMinutes = 0;
   if ( resultsValue >= '0' && resultsValue <= '9' ) {
     timerMinutes = resultsValue - '0';
     clockTimerSwitchSet(timerMinutes);
@@ -1044,7 +1043,6 @@ void clockTimerSwitch(int resultsValue) {
       printClockDateTime();
       Serial.println();
       clockRunTimerControl();
-      Serial.println();
       Serial.print(F(", Current time: "));
       printClockDateTime();
       Serial.println();
@@ -1110,6 +1108,7 @@ void rtClockContinuous() {
 // Clock controls.
 
 void rtClockTimer() {
+  timerMinutes = 0;
   thePrompt = clockTimerPrompt;
   Serial.println();
   Serial.print(thePrompt);
