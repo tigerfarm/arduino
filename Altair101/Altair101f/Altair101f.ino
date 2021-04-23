@@ -371,7 +371,7 @@ void setPcfControlinterrupted(boolean theTruth) {}
 
 void checkRunningButtons() {}
 void waitControlSwitches() {}
-void checkAux1() {}
+void fpCheckAux1() {}
 void checkProtectSetVolume() {}
 
 boolean setupFrontPanel() {
@@ -623,69 +623,6 @@ void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberBy
     fpStatusByte = statusByte;
     fpAddressWord = playerVolumeAddress;
     fpDataByte = songNumberByte;
-    printVirtualFrontPanel();
-  }
-}
-
-// -----------------------------------------------------------------------------
-// When in CLOCK_RUN mode, display clock values on the virtual front panel.
-
-void clockLights(byte theMinute, byte theHour) {
-  uint8_t minutesTens;
-  uint8_t timeHour;
-  uint8_t minutesOnes;
-  boolean amTime;
-  //
-  // ----------------------------------------------
-  // Convert the hours(1...12) into address lights: A1 to A12.
-  // Set AM/PM.
-  if (theHour < 12) {
-    timeHour = theHour;
-    amTime = true;
-    // Serial.println(F(" AM"));
-  } else {
-    if (theHour > 12) {
-      timeHour = theHour - 12;
-    } else {
-      // theHour = 12, which 12 noon, 12pm
-      timeHour = 12;
-    }
-    amTime = false;
-    // Serial.println(F(" PM"));
-  }
-  unsigned int hourAddress = 0;                     // CLear previous value.
-  hourAddress = bitWrite(hourAddress, timeHour, 1);  // Set the hour bit (A1...A12).
-  // ----------------------------------------------
-  // Convert the minute into binary for display.
-  //
-  // Set minutes ones for display in the Data lights (D7...D0).
-  // Set minutes tens for display in the Status lights (HLTA...INT).
-  // There are 3 bits for the tens(ttt):  0 ... 5 (00, 10, 20, 30, 40, or 50).
-  // There are 4 bits for the ones(oooo): 0 ... 9.
-  // LED diplay lights: ttt oooo
-  // Example:      23 = 010 0011
-  if (theMinute < 10) {
-    minutesOnes = theMinute;
-    minutesTens = 0;
-  } else {
-    minutesTens = theMinute / 10;                 // Example, 32, minutesTens = 3.
-    minutesOnes = theMinute - minutesTens * 10;   // minutesOnes = 32 - 30 = 2.
-  }
-  if (amTime) {
-    // 12:00 AM, midnight
-    bitWrite(minutesTens, 7, 1);  // Set AM indicator on.
-  } else {
-    // 12:00 PM, noon
-    bitWrite(minutesTens, 6, 1);  // Set PM indicator on.
-  }
-  // ----------------------------
-  if (LED_LIGHTS_IO) {
-    lightsStatusAddressData(minutesTens, hourAddress, minutesOnes);
-  }
-  if (VIRTUAL_FRONT_PANEL) {
-    fpStatusByte = minutesTens;
-    fpAddressWord = hourAddress;
-    fpDataByte = minutesOnes;
     printVirtualFrontPanel();
   }
 }
@@ -2178,7 +2115,7 @@ void runProcessorWait() {
     if (getPcfControlinterrupted()) {
       // Hardware front panel controls.
       waitControlSwitches();
-      checkAux1();
+      fpCheckAux1();
       checkProtectSetVolume();
       setPcfControlinterrupted(false); // Reset for next interrupt.
     }
@@ -2415,7 +2352,7 @@ void setup() {
   fpAddressWord = 0;
   fpDataByte = 0;
   lightsStatusAddressData(fpStatusByte, fpAddressWord, fpDataByte);
-  delay(600);
+  delay(1000);
   //
   // ----------------------------------------------------
   // Front Panel Switches.

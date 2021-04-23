@@ -14,10 +14,11 @@ boolean getPcfControlinterrupted();
 
 void checkRunningButtons();
 void waitControlSwitches();
-void checkAux1();
+void fpCheckAux1();
 void checkProtectSetVolume();
 void playerControlSwitches();
-byte timerControlSwitches();
+byte fpCheckAux2();
+byte fpTimerControlSwitches();
 
 boolean setupFrontPanel();
 

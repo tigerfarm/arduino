@@ -129,6 +129,69 @@ int theCounterSeconds = 0;
 int theHour;                    // Variable for use anytime.
 
 // -----------------------------------------------------------------------------
+// When in CLOCK_RUN mode, display clock values on the virtual front panel.
+
+void clockLights(byte theMinute, byte theHour) {
+  uint8_t minutesTens;
+  uint8_t timeHour;
+  uint8_t minutesOnes;
+  boolean amTime;
+  //
+  // ----------------------------------------------
+  // Convert the hours(1...12) into address lights: A1 to A12.
+  // Set AM/PM.
+  if (theHour < 12) {
+    timeHour = theHour;
+    amTime = true;
+    // Serial.println(F(" AM"));
+  } else {
+    if (theHour > 12) {
+      timeHour = theHour - 12;
+    } else {
+      // theHour = 12, which 12 noon, 12pm
+      timeHour = 12;
+    }
+    amTime = false;
+    // Serial.println(F(" PM"));
+  }
+  unsigned int hourAddress = 0;                     // CLear previous value.
+  hourAddress = bitWrite(hourAddress, timeHour, 1);  // Set the hour bit (A1...A12).
+  // ----------------------------------------------
+  // Convert the minute into binary for display.
+  //
+  // Set minutes ones for display in the Data lights (D7...D0).
+  // Set minutes tens for display in the Status lights (HLTA...INT).
+  // There are 3 bits for the tens(ttt):  0 ... 5 (00, 10, 20, 30, 40, or 50).
+  // There are 4 bits for the ones(oooo): 0 ... 9.
+  // LED diplay lights: ttt oooo
+  // Example:      23 = 010 0011
+  if (theMinute < 10) {
+    minutesOnes = theMinute;
+    minutesTens = 0;
+  } else {
+    minutesTens = theMinute / 10;                 // Example, 32, minutesTens = 3.
+    minutesOnes = theMinute - minutesTens * 10;   // minutesOnes = 32 - 30 = 2.
+  }
+  if (amTime) {
+    // 12:00 AM, midnight
+    bitWrite(minutesTens, 7, 1);  // Set AM indicator on.
+  } else {
+    // 12:00 PM, noon
+    bitWrite(minutesTens, 6, 1);  // Set PM indicator on.
+  }
+  // ----------------------------
+  if (LED_LIGHTS_IO) {
+    lightsStatusAddressData(minutesTens, hourAddress, minutesOnes);
+  }
+  if (VIRTUAL_FRONT_PANEL) {
+    fpStatusByte = minutesTens;
+    fpAddressWord = hourAddress;
+    fpDataByte = minutesOnes;
+    printVirtualFrontPanel();
+  }
+}
+
+// -----------------------------------------------------------------------------
 void ledFlashKnightRider(int times, boolean NotUsed) {
   int delayTime = 66;
   int theDelayTime = 0;
@@ -226,7 +289,6 @@ void printClockTime() {
   theCounterMinutes = now.minute();
   theCounterSeconds = now.second();
   //
-  Serial.print(F(" "));
   Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
   Serial.print(F(" "));
   // Show AM/PM hour.
@@ -244,6 +306,7 @@ void printClockTime() {
   Serial.print(theHour);
   Serial.print(AmPm);
   //
+  Serial.print(F(" "));
   printClockInt(theCounterHours);
   Serial.print(F(":"));
   printClockInt(theCounterMinutes);
@@ -256,7 +319,7 @@ void printClockDateTime() {
   // Date: 2018/12/08 (YYYY/MM/DD)  Time: 15:59:56 (HH:MM:SS) Saturday 3pm
   Serial.print(F("Date: "));
   printClockDate();
-  Serial.print(F(" Time: "));
+  Serial.print(F("Time: "));
   printClockTime();
   clockLights(theCounterMinutes, theCounterHours);  // Display in the front panel.
 }
@@ -265,19 +328,19 @@ void printClockDateTime() {
 // Clock pulse actions.
 
 void clockPulseYear() {
-  if (programState == CLOCK_RUN) {
+  if (programState == CLOCK_RUN && !VIRTUAL_FRONT_PANEL) {
     Serial.print(F("+++++ clockPulseYear(), theCounterYear= "));
     Serial.println(theCounterYear);
   }
 }
 void clockPulseMonth() {
-  if (programState == CLOCK_RUN) {
+  if (programState == CLOCK_RUN && !VIRTUAL_FRONT_PANEL) {
     Serial.print(F("++++ clockPulseMonth(), theCounterMonth= "));
     Serial.println(theCounterMonth);
   }
 }
 void clockPulseDay() {
-  if (programState == CLOCK_RUN) {
+  if (programState == CLOCK_RUN && !VIRTUAL_FRONT_PANEL) {
     Serial.print(F("+++ clockPulseDay(), theCounterDay= "));
     Serial.println(theCounterDay);
   }
@@ -285,7 +348,8 @@ void clockPulseDay() {
 void clockPulseHour() {
   KnightRiderScanner();
   clockLights(theCounterMinutes, theCounterHours);  // Display in the front panel.
-  if (programState == CLOCK_RUN && !VIRTUAL_FRONT_PANEL) {
+  /*
+    if (programState == CLOCK_RUN && !VIRTUAL_FRONT_PANEL) {
     Serial.print(F("++ clockPulseHour(), theCounterHours= "));
     Serial.print(theCounterHours);
     // Use AM/PM rather than 24 hours.
@@ -304,15 +368,18 @@ void clockPulseHour() {
     Serial.print(theHour);
     Serial.print(AmPm);
     Serial.println();
-  }
+    }
+  */
 }
 void clockPulseMinute() {
   clockLights(theCounterMinutes, theCounterHours);  // Display in the front panel.
-  if (programState == CLOCK_RUN && !VIRTUAL_FRONT_PANEL) {
+  /*
+    if (programState == CLOCK_RUN && !VIRTUAL_FRONT_PANEL) {
     Serial.print(F("+ clockPulseMinute(), theCounterMinutes= "));
     printClockInt(theCounterMinutes);
     Serial.println();
-  }
+    }
+  */
   if (theCounterMinutes == 15 || theCounterMinutes == 30 || theCounterMinutes == 45) {
     playerSoundEffect(KNIGHT_RIDER_SCANNER);
     ledFlashKnightRider(1, true);
@@ -879,51 +946,54 @@ boolean clockRunTimer() {
       clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, clockTimerCountBit);
     }
   }
-  // -----------------------------------------
   if ((millis() - clockTimer >= 60000)) {
-    //
-    // Minute process.
-    //
     // 60 x 1000 = 60000, which is one minute.
+    //
+    // -----------------------------------------
+    // *** Minute process ***
+    //
     clockTimer = millis();
+    //
+    // Increment the minute counter.
     clockTimerCount++;
+    //
     if (clockTimerCount >= timerMinutes ) {
       //
       // -----------------------------------------
       // *** Timer Complete ***
-      // When the timer is complete, play a sound, and set the front panel lights.
       //
-      // Force playing the sound.
-      playerSoundEffect(TIMER_COMPLETE);
-      // KnightRiderScanner();
-      //
-      returnValue = false;
 #ifdef SWITCH_MESSAGES
       Serial.print(F("+ End the timer run state."));
 #endif
-      int currentTimerMinute = timerMinutes;
-      if (!(playerStatus & HLTA_ON)) {
-        delay(2000);
-        // mp3playerPlay(playerCounter);    // Continue to play in clock mode.
-      }
+      // Set timer complete:
+      returnValue = false;
+      //
+      // Playing sound.
+      playerSoundEffect(TIMER_COMPLETE);
+      // KnightRiderScanner();
+      //
       timerStatus = INP_ON | HLTA_ON;
       clockTimerAddress = 0;
-      clockTimerAddress = bitWrite(clockTimerAddress, currentTimerMinute, 1);
+      clockTimerAddress = bitWrite(clockTimerAddress, timerMinutes, 1);
     } else {
       // -----------------------------------------
-      // Each minute, increment the minute counter and LED light, and play a cuckoo sound.
+      // *** Each minute ***
       //
-#ifdef SWITCH_MESSAGES
-      Serial.print(F("+ Timer minutes: "));
-      Serial.print(timerMinutes);
-      Serial.print(F(", minutes to go = "));
-      Serial.println(timerMinutes - clockTimerCount);
-#endif
+      // Set the front panel display values for the timer minutes and the incremented minute counter.
       clockTimerAddress = 0;
       clockTimerAddress = bitWrite(clockTimerAddress, timerMinutes, 1);
       clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, 1);
+      //
+      // Play a cuckoo sound.
       playerSoundEffect(TIMER_MINUTE);
       // delay(1200);  // Delay time for the sound to play.
+      //
+#ifdef SWITCH_MESSAGES
+      // Serial.print(F("+ Timer minutes: "));
+      // Serial.print(timerMinutes);
+      // Serial.print(F(", minutes to go = "));
+      // Serial.println(timerMinutes - clockTimerCount);
+#endif
     }
   }
   // -----------------------------------------
@@ -1059,7 +1129,7 @@ void clockTimerRunSwitch(int resultsValue) {
       clockTimerCount = 0;
       Serial.print(F("+ Re-running Clock TIMER, minutes: "));
       Serial.print(timerMinutes);
-      Serial.print(F(", Current time: "));
+      Serial.print(F(", Current "));
       printClockDateTime();
       Serial.println();
       clockTimerAddress = 0;
@@ -1071,7 +1141,7 @@ void clockTimerRunSwitch(int resultsValue) {
       Serial.print(timerMinutes);
       Serial.print(F(", minutes to go = "));
       Serial.print(timerMinutes - clockTimerCount);
-      Serial.print(F(", Current time: "));
+      Serial.print(F(", Current "));
       printClockDateTime();
       Serial.println();
       Serial.print(thePrompt);
@@ -1087,9 +1157,11 @@ void rtClockContinuous() {
   processClockNow();
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------
 // Clock controls.
 
+// -------------------------------------------------------------------------------
 void rtClockTimerRun() {
   if (timerMinutes == 0) {
     Serial.print(F(" Timer minutes are not set."));
@@ -1119,7 +1191,7 @@ void rtClockTimerRun() {
     clockTimerAddress = bitWrite(clockTimerAddress, timerMinutes, 1);
     lightsStatusAddressData(timerStatus, clockTimerAddress, timerCounter);
   */
-  // ----------------------------------------------------------------------
+  // ---------------------------------------------------
   int readByte = 0;
   while (rtClockState == RTCLOCK_TIMER_RUN && programState == CLOCK_RUN) {
     if (Serial.available() > 0) {
@@ -1127,8 +1199,8 @@ void rtClockTimerRun() {
     }
 #ifdef Altair101f
     if (getPcfControlinterrupted()) {
-      readByte = timerControlSwitches();    // Get incoming front panel hardware switch byte.
-      checkAux1();                          // Can change programState to exit CLOCK mode.
+      readByte = fpTimerControlSwitches();    // Get incoming front panel hardware switch byte.
+      fpCheckAux1();                          // Can change programState to exit CLOCK mode.
       setPcfControlinterrupted(false);      // Reset for next interrupt.
     }
 #endif
@@ -1138,20 +1210,21 @@ void rtClockTimerRun() {
     }
     if ( !clockRunTimer() ) {
       // Timer completed.
-      rtClockState == RTCLOCK_TIMER;
+      rtClockState = RTCLOCK_TIMER;
     }
     delay(60);  // Delay before getting the next key press, in case press and hold too long.
   }
   Serial.print(F("+ Timer completed, Current time: "));
   printClockDateTime();
   Serial.println();
-  // ----------------------------------------------------------------------
+  // ----------------------------------------------------
   //
   thePrompt = clockPrompt;
   Serial.println();
   Serial.print(thePrompt);
 }
 
+// -------------------------------------------------------------------------------
 void rtClockTimer() {
   Serial.println();
   thePrompt = clockTimerPrompt;
@@ -1160,18 +1233,21 @@ void rtClockTimer() {
   timerStatus = INP_ON | HLTA_ON;
   timerMinutes = 0;
   timerCounter = 1;   // D0 will be on.
+  clockTimerAddress = 0;
   clockTimerAddress = bitWrite(clockTimerAddress, timerMinutes, 1);
   lightsStatusAddressData(timerStatus, clockTimerAddress, timerCounter);
   //
+  int readByte = 0;
   while (rtClockState == RTCLOCK_TIMER && programState == CLOCK_RUN) {
     if (Serial.available() > 0) {
-      int readByte = Serial.read();         // Read and process an incoming byte.
+      readByte = Serial.read();             // Read and process an incoming byte.
     }
 #ifdef Altair101f
     if (getPcfControlinterrupted()) {
       // Hardware front panel controls.
-      readByte = timerControlSwitches();
-      checkAux1();                          // Can change programState to exit CLOCK mode.
+      readByte = fpTimerControlSwitches();
+      fpCheckAux1();                        // Can change programState to exit CLOCK mode.
+      readByte = fpCheckAux2();             // Option to change to Clock TIMER mode.
       setPcfControlinterrupted(false);      // Reset for next interrupt.
     }
 #endif
@@ -1187,6 +1263,7 @@ void rtClockTimer() {
   Serial.print(thePrompt);
 }
 
+// -------------------------------------------------------------------------------
 void rtClockSet() {
   thePrompt = clockSetPrompt;
   Serial.print(thePrompt);
@@ -1205,7 +1282,7 @@ void rtClockSet() {
 #ifdef Altair101f
     if (getPcfControlinterrupted()) {
       // Hardware front panel controls.
-      checkAux1();                          // Can change programState to exit CLOCK mode.
+      fpCheckAux1();                          // Can change programState to exit CLOCK mode.
       checkProtectSetVolume();
       setPcfControlinterrupted(false);      // Reset for next interrupt.
     }
@@ -1217,35 +1294,48 @@ void rtClockSet() {
   Serial.print(thePrompt);
 }
 
+// -------------------------------------------------------------------------------
 void rtClockRun() {
   if (VIRTUAL_FRONT_PANEL) {
-    clockSwitch('T');         // Update VFP.
+    initVirtualFrontPanel();
+    clockLights(theCounterMinutes, theCounterHours);
   }
   setupClock();
   Serial.println();
   Serial.print(thePrompt);
+  int readByte = 0;
   while (programState == CLOCK_RUN) {
     // Process serial input key presses from a keyboard.
     if (Serial.available() > 0) {
-      int readByte = Serial.read();         // Read and process an incoming byte.
-      clockSwitch(readByte);
+      readByte = Serial.read();         // Read and process an incoming byte.
     }
 #ifdef Altair101f
     if (getPcfControlinterrupted()) {
       // Hardware front panel controls.
-      checkAux1();                          // Can change programState to exit CLOCK mode.
+      fpCheckAux1();                    // Can change programState to exit CLOCK mode.
+      readByte = fpCheckAux2();         // Option to change to Clock TIMER mode.
       checkProtectSetVolume();
-      setPcfControlinterrupted(false);      // Reset for next interrupt.
+      setPcfControlinterrupted(false);  // Reset for next interrupt.
     }
 #endif
-    //
+    if (readByte > 0) {
+      clockSwitch(readByte);
+    }
     switch (rtClockState) {
       // ----------------------------
       case RTCLOCK_SET:
         rtClockSet();
+        if (VIRTUAL_FRONT_PANEL) {
+          initVirtualFrontPanel();
+          clockLights(theCounterMinutes, theCounterHours);
+        }
         break;
       case RTCLOCK_TIMER:
         rtClockTimer();
+        if (VIRTUAL_FRONT_PANEL && rtClockState == RTCLOCK_RUN) {
+          initVirtualFrontPanel();
+          clockLights(theCounterMinutes, theCounterHours);
+        }
         break;
       case RTCLOCK_TIMER_RUN:
         rtClockTimerRun();

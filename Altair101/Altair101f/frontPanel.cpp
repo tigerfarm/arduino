@@ -438,7 +438,7 @@ void playerControlSwitches() {
 // Front Panel Control Switches, when a program is not running (WAIT).
 // Switches: RUN, RESET, STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT,
 
-byte timerControlSwitches() {
+byte fpTimerControlSwitches() {
   // Read PCF8574 input for each switch.
   // ----------------------------------------------
   if (pcfControl.readButton(pinRun) == 0) {
@@ -485,8 +485,8 @@ byte timerControlSwitches() {
     for (int i = 15; i >= 0; i--) {
       if (bitRead(theAddressToggles, i) > 0) {
         firstToggledBit = i;
-        Serial.print("\n+ firstToggledBit = ");
-        Serial.println(firstToggledBit);
+        // Serial.print("\r\n+ firstToggledBit = ");
+        // Serial.println(firstToggledBit);
       }
     }
     // Return '0'...'9' or 'a'...'f' (0...15).
@@ -503,7 +503,7 @@ byte timerControlSwitches() {
 }
 
 // -----------------------------------------------------------------------------
-void checkAux1() {
+void fpCheckAux1() {
   // ----------------------------------------------
   if (pcfAux.readButton(pinAux1up) == 0) {
     if (!switchAux1up) {
@@ -546,6 +546,36 @@ void checkAux1() {
       playerSoundEffect(PLAYER_ON);
     }
   }
+}
+
+byte fpCheckAux2() {
+  // ----------------------------------------------
+  if (pcfAux.readButton(pinAux2up) == 0) {
+    if (!switchAux2up) {
+      switchAux2up = true;
+    }
+  } else if (switchAux2up) {
+    switchAux2up = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.print(F("+ Aux2, up."));
+#endif
+    return('M');        // CLOCK mode, change to Clock TIMER mode.
+  }
+  // ----------------------------------------------
+  if (pcfAux.readButton(pinAux2down) == 0) {
+    if (!switchAux2down) {
+      switchAux2down = true;
+    }
+  } else if (switchAux2down) {
+    switchAux2down = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ Aux2, down."));
+#endif
+    return('m');        // CLOCK mode, change to Clock COUNTER mode.
+  }
+  return 0;
 }
 
 void checkProtectSetVolume() {

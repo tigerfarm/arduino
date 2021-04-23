@@ -381,7 +381,7 @@ int soundEffects[16] = {1, 1, 31, 1, 2, 3, 9, 3, 1, 6, 21, 1, 1, 6, 1, 1};
 boolean setupMp3Player() {
   // ----------------------------------------------------
   irrecv.enableIRIn();
-  Serial.println(F("+ Initialized: infrared receiver for the MP3 player."));
+  Serial.println(F("+ Initialized: MP3 player infrared receiver."));
 
   // Set player front panel values.
   playerCounter = 1;                  // For now, default to song/file 1.
@@ -1376,7 +1376,7 @@ void mp3PlayerRun() {
     if (getPcfControlinterrupted()) {
       // Hardware front panel controls.
       playerControlSwitches();
-      checkAux1();
+      fpCheckAux1();
       checkProtectSetVolume();
       setPcfControlinterrupted(false); // Reset for next interrupt.
     }
