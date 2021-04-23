@@ -110,10 +110,8 @@ void initSdCard() {
     Serial.println(F("- Error initializing SD card module."));
     hwStatus = 1;
     sdcardInitiated = false;
-    Serial.println(F("- Error initializing SD card."));
-    Serial.println(F("-- Check that SD card is inserted"));
-    Serial.println(F("-- Check that SD card adapter is wired properly."));
-    // Optionally, retry for a period of time.
+    // Serial.println(F("-- Check that SD card is inserted"));
+    // Serial.println(F("-- Check that SD card adapter is wired properly."));
   }
 }
 

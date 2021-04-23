@@ -17,6 +17,7 @@ void waitControlSwitches();
 void checkAux1();
 void checkProtectSetVolume();
 void playerControlSwitches();
+byte timerControlSwitches();
 
 boolean setupFrontPanel();
 

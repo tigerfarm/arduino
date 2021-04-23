@@ -17,7 +17,9 @@
 #include <PCF8574.h>
 #include <Wire.h>
 
+// Include components that use the front panel.
 #include "Mp3Player.h"
+#include "rtClock.h"
 
 // -----------------------------------------------------------------------------
 // Front Panel Status LEDs
@@ -433,6 +435,74 @@ void playerControlSwitches() {
 }
 
 // -----------------------------------------------------------------------------
+// Front Panel Control Switches, when a program is not running (WAIT).
+// Switches: RUN, RESET, STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT,
+
+byte timerControlSwitches() {
+  // Read PCF8574 input for each switch.
+  // ----------------------------------------------
+  if (pcfControl.readButton(pinRun) == 0) {
+    if (!switchRun) {
+      switchRun = true;
+    }
+  } else if (switchRun) {
+    switchRun = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ CLock TIMER, RUN."));
+#endif
+    return ('r');
+  }
+  // ----------------------------------------------
+  if (pcfControl.readButton(pinStop) == 0) {
+    if (!switchStop) {
+      switchStop = true;
+    }
+  } else if (switchStop) {
+    switchStop = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ CLock TIMER, STOP."));
+#endif
+    return ('s');
+  }
+  // ----------------------------------------------
+  if (pcfControl.readButton(pinExamine) == 0) {
+    if (!switchExamine) {
+      switchExamine = true;
+    }
+  } else if (switchExamine) {
+    switchExamine = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ CLock TIMER, EXAMINE."));
+#endif
+    // Get the toggle address and return '0'...'9' or 'a'...'f' (first non-zero bit).
+    //
+    unsigned int theAddressToggles = fpToggleAddress();
+    // Find the first non-zero bit.
+    int firstToggledBit = 0;
+    for (int i = 15; i >= 0; i--) {
+      if (bitRead(theAddressToggles, i) > 0) {
+        firstToggledBit = i;
+        Serial.print("\n+ firstToggledBit = ");
+        Serial.println(firstToggledBit);
+      }
+    }
+    // Return '0'...'9' or 'a'...'f' (0...15).
+    if (firstToggledBit < 10) {
+      firstToggledBit = '0' + firstToggledBit;
+    } else if (firstToggledBit < 16) {
+      firstToggledBit = 'a' + firstToggledBit - 10;
+    } else {
+      firstToggledBit = 'f';  // Default, if something went wrong.
+    }
+    return(firstToggledBit);
+  }
+  return (0);
+}
+
+// -----------------------------------------------------------------------------
 void checkAux1() {
   // ----------------------------------------------
   if (pcfAux.readButton(pinAux1up) == 0) {
@@ -503,7 +573,7 @@ void checkProtectSetVolume() {
 }
 
 // -----------------------------------------------------------------------------
-// SD card module functions
+// Front Panel module setup
 
 boolean setupFrontPanel() {
   // ----------------------------------------------------
@@ -521,7 +591,6 @@ boolean setupFrontPanel() {
   pinMode(clockPinLed, OUTPUT);
   pinMode(dataPinLed, OUTPUT);
   delay(300);
-  ledFlashSuccess();
   // Serial.println(F("+ Front panel LED lights are initialized."));
   //
   // ----------------------------------------------------
