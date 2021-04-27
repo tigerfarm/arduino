@@ -467,6 +467,19 @@ byte fpTimerControlSwitches() {
     return ('s');
   }
   // ----------------------------------------------
+  if (pcfControl.readButton(pinReset) == 0) {
+    if (!switchReset) {
+      switchReset = true;
+    }
+  } else if (switchReset) {
+    switchReset = false;
+    // Switch logic.
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ CLock TIMER, RESET."));
+#endif
+    playerSwitch('R');
+  }
+  // ----------------------------------------------
   if (pcfControl.readButton(pinExamine) == 0) {
     if (!switchExamine) {
       switchExamine = true;
@@ -475,7 +488,7 @@ byte fpTimerControlSwitches() {
     switchExamine = false;
     // Switch logic.
 #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ CLock TIMER, EXAMINE."));
+    Serial.println(F("+ CLock TIMER, EXAMINE to set timer minutes."));
 #endif
     // Get the toggle address and return '0'...'9' or 'a'...'f' (first non-zero bit).
     //

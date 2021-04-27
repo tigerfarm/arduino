@@ -419,7 +419,7 @@ boolean setupMp3Player() {
   }
 #endif
   // ---------------------------------------------------------------------------
-  delay(100);
+  delay(300);
   NOT_PLAY_SOUND = false;                 // Set to play sound effects.
   mp3playerDevice.volume(PLAYER_VOLUME_SETUP);  // Set speaker volume from 0 to 30.
   delay(100);
@@ -1309,6 +1309,11 @@ void mp3PlayerSingleLoop(byte theFileNumber) {
 void playerSoundEffect(byte theFileNumber) {
   if (playerStatus & HLTA_ON) {
     mp3playerDevice.play(soundEffects[theFileNumber]);
+  }
+}
+void playerSoundEffectWait(byte theFileNumber) {
+  if (playerStatus & HLTA_ON) {
+    mp3playerPlaywait(soundEffects[theFileNumber]);
   }
 }
 
