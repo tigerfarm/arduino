@@ -310,6 +310,8 @@ void waitControlSwitches() {
 // Front Panel Control Switches, when a program is not running (WAIT).
 // Switches: RUN, RESET, STEP, EXAMINE, EXAMINE NEXT, DEPOSIT, DEPOSIT NEXT,
 
+boolean playerLoopStatus = false; // Loop on: true. Loop off: false.
+
 void playerControlSwitches() {
   // Read PCF8574 input for each switch.
   // ----------------------------------------------
@@ -401,10 +403,19 @@ void playerControlSwitches() {
   } else if (switchStep) {
     switchStep = false;
     // Switch logic.
+    if (playerLoopStatus) {
 #ifdef SWITCH_MESSAGES
-    Serial.println(F("+ PLAYER, SINGLE STEP: on, loop single song."));
+      Serial.println(F("+ PLAYER, SINGLE STEP, loop single song: off."));
 #endif
-    playerSwitch('L');
+      playerLoopStatus = false;
+      playerSwitch('l');
+    } else {
+#ifdef SWITCH_MESSAGES
+      Serial.println(F("+ PLAYER, SINGLE STEP, loop single song: on."));
+#endif
+      playerLoopStatus = true;
+      playerSwitch('L');
+    }
   }
   // ----------------------------------------------
   if (pcfAux.readButton(pinStepDown) == 0) {
@@ -415,9 +426,9 @@ void playerControlSwitches() {
     switchStepDown = false;
     // Switch logic
 #ifdef SWITCH_MESSAGES
-    Serial.print(F("+ PLAYER, SINGLE STEP down: off, loop single song"));
+    Serial.print(F("+ PLAYER, SINGLE STEP down: play previous MP3 file"));
 #endif
-    playerSwitch('l');
+    playerSwitch('p');
   }
   // ----------------------------------------------
   if (pcfControl.readButton(pinReset) == 0) {
@@ -510,7 +521,7 @@ byte fpTimerControlSwitches() {
     } else {
       firstToggledBit = 'f';  // Default, if something went wrong.
     }
-    return(firstToggledBit);
+    return (firstToggledBit);
   }
   return (0);
 }
@@ -573,7 +584,7 @@ byte fpCheckAux2() {
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Aux2, up."));
 #endif
-    return('M');        // CLOCK mode, change to Clock TIMER mode.
+    return ('M');       // CLOCK mode, change to Clock TIMER mode.
   }
   // ----------------------------------------------
   if (pcfAux.readButton(pinAux2down) == 0) {
@@ -586,7 +597,7 @@ byte fpCheckAux2() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ Aux2, down."));
 #endif
-    return('m');        // CLOCK mode, change to Clock COUNTER mode.
+    return ('m');       // CLOCK mode, change to Clock COUNTER mode.
   }
   return 0;
 }

@@ -18,6 +18,34 @@ Another 32 bit board is the STM32, STM32L031K6, STM32L0 ARM® MCU 32-Bit
 + Basic board: STM32F103C.
 + STM32 [Beginner's Guide video](https://www.youtube.com/watch?v=EaZuKRSvwdo)
 
+
+--------------------------------------------------------------------------------
+Ximimark 1Pcs TDA7297 Digital Audio Amplifier Module 15W+15W Dual-Channel Stereo Power Amplifier Board AC/DC 12V DIY Sound System Component
+DC 8-18 power supply (12V is recommended)
+Output effective power is 15Wx2
+
+TDA7492P Digital 50W+50W Amplifier Board with Bluetooth 4.0 Audio Receiver
+8 ~ 25V DC power supply, input plug onboard
+Headphone output plug onboard
+2 x speaker output
+Bluetooth input
+
+TDA2030A Audio Amplifier Module Power Amplifier Board Electronic 6-12V18W W6A8
+The integrated circuit is used in car stereo receiver, tape recorders, medium-power audio equipment.
+Onboard TDA2030A audio power amplifier chip
+Mono 18W amplifier circuit design
+Onboard 10K adjustable resistor to adjust the amplification volume.
+Working voltage: 6 ~ 12V
+````
+     -----
+ V+ |     | 
+IN+ |     | 
+IN- |     | Sp+
+ V- |     | Sp-
+     -----
+````
+Digital Blocks 38KHz IR Infrared Receiver Sensor Module
+
 --------------------------------------------------------------------------------
 +++ Due Startup Issue
 
