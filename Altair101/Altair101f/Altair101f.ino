@@ -399,14 +399,14 @@ byte opcode = 0xff;
 byte     hwStatus =   B00000001;    // Initial state.
 // Module is working, if (VALUE & XX_ON) > 0
 const byte FP_ON  =   B00000001;
-const byte SD_ON  =   B00000010;
-const byte CL_ON  =   B00000100;
-const byte PL_ON  =   B00001000;
+const byte PL_ON  =   B00000010;
+const byte SD_ON  =   B00000100;
+const byte CL_ON  =   B00001000;
 // Following is for setting a module that is not working, OFF: VALUE | XX_ON.
 const byte FP_OFF =   B11111110;    // Front Panel
-const byte SD_OFF =   B11111101;    // SD card
-const byte CL_OFF =   B11111011;    // Clock module
-const byte PL_OFF =   B11110111;    // MP3 Player
+const byte PL_OFF =   B11111101;    // MP3 Player
+const byte SD_OFF =   B11111011;    // SD card
+const byte CL_OFF =   B11110111;    // Clock module
 
 void playerPlaySoundWait(int theFileNumber) {};
 uint16_t processorPlayerCounter = 0;            // Indicator for the processor to play an MP3, if not zero.
@@ -2367,6 +2367,16 @@ void setup() {
   }
   delay(300);
   // ----------------------------------------------------
+  fpStatusByte = PL_ON;
+  lightsStatusAddressData(fpStatusByte, fpAddressWord, fpDataByte);
+  if (!setupMp3Player()) {
+    ledFlashError();
+    hwStatus = hwStatus & PL_OFF;
+  } else {
+    ledFlashSuccess();
+  }
+  delay(300);
+  // ----------------------------------------------------
   fpStatusByte = SD_ON;
   lightsStatusAddressData(fpStatusByte, fpAddressWord, fpDataByte);
   if (!setupSdCard()) {
@@ -2382,16 +2392,6 @@ void setup() {
   if (!setupClock()) {
     ledFlashError();
     hwStatus = hwStatus & CL_OFF;
-  } else {
-    ledFlashSuccess();
-  }
-  delay(300);
-  // ----------------------------------------------------
-  fpStatusByte = PL_ON;
-  lightsStatusAddressData(fpStatusByte, fpAddressWord, fpDataByte);
-  if (!setupMp3Player()) {
-    ledFlashError();
-    hwStatus = hwStatus & PL_OFF;
   } else {
     ledFlashSuccess();
   }

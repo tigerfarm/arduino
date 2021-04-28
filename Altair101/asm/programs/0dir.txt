@@ -1,0 +1,46 @@
+----------------------------------------------------------------------------------
+File directory information
+
+Filename        Description
+------------    ---------------------
+00000000.BIN    Initial program
+00000001.BIN    Initial program copy for testing.
+
+00000101.BIN    Latest tested Star Wars Attack game.
+
+00100000.BIN    Recent test program.
+01000000.BIN    Recent test program.
+
+*.TXT           Text files.
+
+*.SFB           Sound File Byte: file were for store sound effect file numbers.
+                Sound effect file numbers are now hard coded.
+
+*.CFB           Character File Byte: file storing a single byte.
+                Not used anymore.
+
+----------------------------------------------------------------------------------
+To upload this program, 
+
++ Set Altair 101 into download mode.
++ Run the following from the asm program.
+> set byte programs/0dir.txt
+> upload
+
++ From the Altair 101 command line, run the following:
+?- F ... + SD Card mode, memory manage with the SD card.
+?- + sdCardRun();
+CARD ?- f ... + Enter a filename for processing.
+CARD FN ?- 0DIR.TXT
+CARD ?- w ... + Write memory to file: 0DIR.TXT
++ Confirm write, y/n: y ... + Write confirmed.
++ Write memory to file: 0DIR.TXT
++ Write completed, file closed. Number of bytes: 1481.
+CARD ?- X ... + Exit SD card mode.
+?-
+
++ Run the following from the asm program to reset the byte filename.
+> set byte p1.bin
+
+----------------------------------------------------------------------------------
+eof
