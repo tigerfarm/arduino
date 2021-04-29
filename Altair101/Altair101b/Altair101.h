@@ -8,7 +8,7 @@
 
 // #define Altair101a 1     // Standalone Arduino board
 #define Altair101b 1        // Arduino board with SD card, clock, MP3 player, and serial module
-// #define Altair101f 1     // Full system, Altair101b + front panel LED lights, switches, and toggles.
+// #define Altair101f 1        // Full system, Altair101b + front panel LED lights, switches, and toggles.
 
 #ifdef Altair101a
 #define SOFTWARE_NAME "Altair101a"
@@ -37,9 +37,7 @@ extern byte fpDataByte;           // Front panel data byte.
 
 // -----------------------------------------------------------------------------
 // From frontPanel.h
-//
-extern void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits);
-//
+// extern void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits);
 extern boolean getPcfControlinterrupted();
 extern void checkAux1();
 extern void checkProtectSetVolume();
@@ -74,7 +72,7 @@ void altair_out(byte addr, byte val);       // Called from cpu_out();
 void altair_hlt();                          // Called from cpu_hlt();
 
 extern void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberByte);
-extern void clockLights(byte theMinute, byte theHour);
+// extern void clockLights(byte theMinute, byte theHour);
 
 // For frontPanel.cpp
 extern byte stopByte;
@@ -107,6 +105,8 @@ extern boolean VIRTUAL_FRONT_PANEL;
 extern void initVirtualFrontPanel();
 extern void printVirtualFrontPanel();
 extern uint16_t fpAddressToggleWord;
+//
+extern void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits);
 //
 extern void setAddressData(uint16_t addressWord, byte dataByte);
 extern String loadProgramName;

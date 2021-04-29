@@ -8,7 +8,7 @@
 
 // #define Altair101a 1     // Standalone Arduino board
 #define Altair101b 1        // Arduino board with SD card, clock, MP3 player, and serial module
-#define Altair101f 1     // Full system, Altair101b + front panel LED lights, switches, and toggles.
+#define Altair101f 1        // Full system, Altair101b + front panel LED lights, switches, and toggles.
 
 #ifdef Altair101a
 #define SOFTWARE_NAME "Altair101a"

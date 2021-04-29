@@ -1,11 +1,11 @@
 // -------------------------------------------------------------------------------
-// Altair101b Processor program, which is an Altair 8800 emulator.
+// Altair101 Processor program, which is an Altair 8800 emulator.
 // Copyright (C) 2021 Stacy David Thurston
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation; either version 3 of the License, or
-// (at your option) any later version.
+// (at your option) any later versiåon.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -36,15 +36,15 @@
 
   Create models:
   + Altair101a 1     // Standalone:   Altair101a which is an Arduino board, only
-  + Altair101b 1     // Developer:    Altair101a + serial module, SD card, clock, and MP3 player 
+  + Altair101b 1     // Developer:    Altair101a + serial module, SD card, clock, and MP3 player
   + Altair101f 1     // Full system:  Altair101b + front panel LED lights, switches, and toggles
 
-  Add 4 digit hardware display, to diplay:
-  + Player song.
+  For Altair101b, add 4 digit hardware display, to display:
+  + Player song number.
   + Clock date and time.
 
   Document what each does:
-  ++ LED_LIGHTS_IO=0 VIRTUAL_FRONT_PANEL=1 ARDUINO_IDE_MONITOR=0 SERIAL_CLI=0
+  ++ LED_LIGHTS_IO=0 VIRTUAL_FRONT_PANEL=1 ARDUINO_IDE_MONITOR=0 TERMINAL_VT100=0
 
   In conjuction with the Altair101a instructable, update README.md files:
   + Altair101a
@@ -233,7 +233,7 @@ boolean VIRTUAL_FRONT_PANEL = false;
 // Each character is immediately sent.
 // Uses CR instead of LF.
 //    For example, Ctrl+l to clear the terminal screen.
-boolean SERIAL_CLI = false;
+boolean TERMINAL_VT100 = false;
 
 // This is for when you are using the Arduino IDE monitor.
 // It prevents virtual front panel printing, unless requested.
@@ -249,31 +249,52 @@ const int HLDA_PIN = A10;     // Emulator processing (off/LOW) or clock/player p
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+// Model control definitions.
+
+// -----------------------------------------------------------------------------
+// Set Hardware LED light value for startup.
+
+#ifdef Altair101a
+boolean LED_LIGHTS_IO = false;
+#endif
+
+#ifdef Altair101f
+boolean LED_LIGHTS_IO = true;
+#else
 #ifdef Altair101b
-// For the Altair101b version,
+boolean LED_LIGHTS_IO = false;
+#endif
+#endif
+
+// -----------------------------------------------------------------------------
+#ifdef Altair101b
+// For model Altair101b,
 //    include the following header files.
 //    In the directory with the Altair101b.ino program file, include the other module code program files.
-//    The Altair101b version includes code to manage an SD card, clock, MP3 player, serial module, and front panel switches and toggles.
+//    The Altair101b version includes code to manage an SD card, clock, MP3 player, and serial module.
 // Include the other modules headers files.
 //
 #include "Mp3Player.h"
 #include "rtClock.h"
 #include "sdCard.h"
+//
+#endif
+
+#ifdef Altair101f
+// For model Altair101f,
+//    include the following header file for front panel LED lisghts, switches and toggles.
+//
 #include "frontPanel.h"
 //
-// Hardware LED lights
-boolean LED_LIGHTS_IO = true;
+#endif
 
-#else
+#ifdef Altair101a
 // -----------------------------------------------------------------------------
-// For the Altair101a version,
+// For model Altair101a,
 //    include non-active definitions.
 // Include the following definitions so the the program will compile and run.
 // The Altair101a version runs on stand alone Arduino Mega or Due board.
-
-// Hardware LED lights
-boolean LED_LIGHTS_IO = false;
-
+//
 // --------------------------------------
 // MP3 player module
 //
@@ -325,9 +346,14 @@ boolean writeFileByte(String theFilename, byte theByte) {
 }
 int readFileByte(String theFilename) {}
 
-// --------------------------------------
-// Front Panel Switches and Toggles.
+#endif
+
+#ifndef Altair101f
+// -----------------------------------------------------------------------------
+// Front Panel LED lights, Switches and Toggles.
 //
+void lightsStatusAddressData(byte status8bits, unsigned int address16bits, byte data8bits) {}
+
 byte fpToggleSense() {
   return 0;
 }
@@ -335,7 +361,7 @@ byte fpToggleData() {
   return 0;
 }
 uint16_t fpToggleAddress() {
-  return 0;
+  return fpAddressToggleWord;     // Keep the same, don't change it.
 }
 
 boolean getPcfControlinterrupted() {
@@ -527,12 +553,6 @@ void setWaitStatus(boolean waitStatus) {
 // -----------------------------------------------------------------------------
 // Front Panel Status LEDs
 
-// Output LED lights shift register(SN74HC595N) pins
-//          Mega/Nano pins       74HC595 Pins
-const int dataPinLed  = 5;    // pin ? Data pin.
-const int latchPinLed = 6;    // pin ? Latch pin.
-const int clockPinLed = 7;    // pin ? Clock pin.
-
 void ledFlashSuccess() {
   if (LED_LIGHTS_IO) {
     int delayTime = 60;
@@ -570,16 +590,6 @@ void ledFlashError() {
       lightsStatusAddressData(fpStatusByte, fpAddressWord, fpDataByte);
     }
   }
-}
-
-// -------------------------------------------------
-void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits) {
-  digitalWrite(latchPinLed, LOW);
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, status8bits);
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, data8bits);
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, lowByte(address16bits));
-  shiftOut(dataPinLed, clockPinLed, LSBFIRST, highByte(address16bits));
-  digitalWrite(latchPinLed, HIGH);
 }
 
 // -----------------------------------------------------------------------------
@@ -1137,15 +1147,14 @@ byte altair_in(byte portDataByte) {
         }
         // Reply with the high byte of the address toggles, which are the sense switch toggles.
         inputDataByte = highByte(fpAddressToggleWord);
-        //
-        /* Stacy
+      //
+      //* Stacy
         if (senseByte == 0) {
-          // Get the desktop toggle switch value.
-          inputDataByte = fpToggleSense();
-          // Set the VFP to match the desktop toggles.
-          fpAddressToggleWord = fpToggleAddress();
+        // Get the desktop toggle switch value.
+        inputDataByte = fpToggleSense();
+        // Set the VFP to match the desktop toggles.
+        fpAddressToggleWord = fpToggleAddress();
         }
-        /*/
         break;
       }
     default:
@@ -1558,7 +1567,7 @@ void processRunSwitch(byte readByte) {
 
 void runProcessor() {
   Serial.println(F("+ runProcessor()"));
-  if (SERIAL_CLI && !VIRTUAL_FRONT_PANEL) {
+  if (TERMINAL_VT100 && !VIRTUAL_FRONT_PANEL) {
     // Control character reference: https://en.wikipedia.org/wiki/ASCII
     // Terminal mode: case 3: (Crtl+c) instead of case 's'.
     // Terminal mode: case 4: (Crtl+d) instead of case 's'.
@@ -1762,11 +1771,11 @@ void processWaitSwitch(byte readByte) {
       break;
     // -------------------------------------------------------------------
     case 'k':
-      SERIAL_CLI = false;
+      TERMINAL_VT100 = false;
       Serial.println(F("+ Terminal output VT100 escape codes is disabled."));
       break;
     case 'K':
-      SERIAL_CLI = true;
+      TERMINAL_VT100 = true;
       Serial.println(F("+ Terminal output VT100 escape codes is enabled. Use Crtl+d(or Crtl+c) to STOP, Crtl+Z to RESET."));
       break;
     // -------------------------------------------------------------------
@@ -1889,8 +1898,8 @@ void processWaitSwitch(byte readByte) {
       Serial.print(F("++ ARDUINO_IDE_MONITOR="));
       Serial.print(ARDUINO_IDE_MONITOR);
       Serial.println();
-      Serial.print(F("++ SERIAL_CLI="));
-      Serial.print(SERIAL_CLI);
+      Serial.print(F("++ TERMINAL_VT100="));
+      Serial.print(TERMINAL_VT100);
       Serial.println();
       //
       Serial.print(F("++ Serial: "));
@@ -2129,7 +2138,7 @@ void processWaitSwitch(byte readByte) {
       break;
     case 12:
       // Ctrl+l is ASCII 7, which is form feed (FF).
-      // if (VIRTUAL_FRONT_PANEL || SERIAL_CLI) {
+      // if (VIRTUAL_FRONT_PANEL || TERMINAL_VT100) {
       Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
       // }
       if (VIRTUAL_FRONT_PANEL) {
@@ -2143,11 +2152,11 @@ void processWaitSwitch(byte readByte) {
       /*
         default:
         {
-        #ifdef LOG_MESSAGES
+  #ifdef LOG_MESSAGES
         Serial.print(F("- Ignored: "));
         printByte(readByte);
         Serial.println();
-        #endif
+  #endif
         break;
         }
       */
@@ -2393,24 +2402,6 @@ void setup() {
   Serial.println(F("setup()"));
   //
   // ----------------------------------------------------
-  // ----------------------------------------------------
-  // Front panel LED lights.
-
-  // System application status LED lights
-  pinMode(WAIT_PIN, OUTPUT);        // Indicator: Altair 8800 emulator program WAIT state: LED on or LED off.
-  pinMode(HLDA_PIN, OUTPUT);        // Indicator: clock or player process: LED on. Emulator: LED off.
-  digitalWrite(WAIT_PIN, HIGH);     // Default to WAIT state.
-  digitalWrite(HLDA_PIN, HIGH);     // Default to emulator.
-
-  // ----------------------------------------------------
-  // Set LED lights: status, address, and data.
-  pinMode(latchPinLed, OUTPUT);
-  pinMode(clockPinLed, OUTPUT);
-  pinMode(dataPinLed, OUTPUT);
-  delay(300);
-  ledFlashSuccess();
-  // Serial.println(F("+ Front panel LED lights are initialized."));
-  //
   // ----------------------------------------------------
   // Front Panel Switches.
   // I2C Two Wire PCF module initialization

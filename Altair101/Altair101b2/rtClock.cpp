@@ -92,18 +92,23 @@
 
 #ifdef Altair101b
 #include "Mp3Player.h"
+#endif
+#ifdef Altair101f
 #include "frontPanel.h"
 #endif
 
 // -----------------------------------------------------------------------------
-String clockPrompt = "CLOCK ?- ";
 String thePrompt = "CLOCK ?- ";           // Default.
+String clockPrompt = "CLOCK ?- ";
 String clockSetPrompt = "Clock SET ?- ";
+String clockTimerPrompt = "Clock TIMER ?- ";
+
 extern int programState;
 
 // Clock internal status, internal to this program.
 #define RTCLOCK_RUN 1
 #define RTCLOCK_SET 2
+#define RTCLOCK_TIMER 3
 int rtClockState = RTCLOCK_RUN;
 
 // -------------------------------------------------------------------------------
@@ -640,7 +645,7 @@ void clockSetSwitch(int resultsValue) {
       break;
     // ----------------------------------------------------------------------
     case 'R':
-      Serial.println(F("+ RESET, return to clock run mode."));
+      Serial.println(F("+ RESET, return to CLOCK mode."));
       rtClockState = RTCLOCK_RUN;
       break;
     // ----------------------------------------------------------------------
@@ -736,6 +741,11 @@ void clockSwitch(int resultsValue) {
       rtClockState = RTCLOCK_SET;
       break;
     // -------------
+    case 'M':
+      // Serial.println(F("+ AUX2 up, Switch to CLOCK TIMER mode."));
+      rtClockState = RTCLOCK_TIMER;
+      break;
+    // -------------
     case 'K':
       Serial.println(F("+ Play Knight Rider Scanner."));
       KnightRiderScanner();
@@ -748,6 +758,7 @@ void clockSwitch(int resultsValue) {
       Serial.println(F("--------------------------"));
       Serial.println(F("+ r, RUN time     Show date and time."));
       Serial.println(F("+ R, RESET        Toggle between clock SET mode to CLOCK view mode."));
+      Serial.println(F("+ M, TIMER        Switch to CLOCK TIMER mode."));
       Serial.println(F("--------------------------"));
       Serial.println(F("+ t/T VT100 panel Disable/enable VT100 virtual front panel."));
       Serial.println(F("+ Ctrl+L          Clear screen."));
@@ -804,6 +815,228 @@ void clockSwitch(int resultsValue) {
   }
 }
 
+// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+// Clock Timer
+
+void clockTimerSwitch(int resultsValue) {
+  boolean printPrompt = true;
+  int theValue;
+  int setValue;   // temporary
+  switch (resultsValue) {
+    // -----------------------------------
+    case 0xFFFFFFFF:
+      // Ignore. This is from holding the key down.
+      return;     // To avoid printing the prompt.
+      break;
+    // -------------
+    // Mouse wheel
+    case 27:
+    case 91:
+    case 65: // Mouse wheel down (away from user).
+    case 66: // Mouse wheel up   (toward user).
+      // Ignore.
+      return;     // To avoid printing the prompt.
+      break;
+    // -------------
+    case 10:
+      // LF, IDE character.
+      // Ignore.
+      return;     // To avoid printing the prompt.
+      break;
+    // -------------
+    case 13:
+      // CR, Mac terminal window character. ignore
+      Serial.println();
+      break;
+    // ----------------------------------------------------------------------
+    case 'S':
+      Serial.print(F("+ Clock SET, "));
+      Serial.println();
+      break;
+    // -------------
+    case 'M':
+      // Serial.println(F("+ AUX2 up, Return to CLOCK mode."));
+      rtClockState = RTCLOCK_RUN;
+      break;
+      break;
+    // ----------------------------------------------------------------------
+    case 'h':
+      Serial.println();
+      Serial.println(F("----------------------------------------------------"));
+      Serial.println(F("+++ Clock TIMER"));
+      Serial.println(F("-------------"));
+      Serial.println(F("+ M, CLOCK        Return to CLOCK mode."));
+      Serial.println(F("-------------"));
+      Serial.println(F("+ Ctrl+L          Clear screen."));
+      Serial.println(F("----------------------------------------------------"));
+      break;
+    // -----------------------------------------------------------------------
+    case 12:
+      // Ctrl+L, clear screen.
+      Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
+      break;
+    // ----------------------------------------------------------------------
+    default:
+      // Serial.print(F("+ Result value: "));
+      // Serial.print(resultsValue);
+      // Serial.print(F(", HEX: "));
+      // Serial.println(resultsValue, HEX);
+      printPrompt = false;
+      break;
+  } // end switch
+  if (printPrompt && (programState == CLOCK_RUN) && (rtClockState == RTCLOCK_TIMER)) {
+    Serial.print(thePrompt);
+  }
+}
+
+const int timerTop = 8;
+unsigned int timerData[timerTop];
+unsigned int timerCounter = 1;      // Which is D0, default.
+unsigned int timerDataAddress = 0;
+byte timerStatus = INP_ON | HLTA_ON;          // Clock timer is ready for timer value input.
+byte timerStep = 0;
+unsigned int timerMinute = 0;
+unsigned int clockTimerAddress = 0;
+unsigned long clockTimer;
+int clockTimerCount = 0;
+
+unsigned long clockTimerSeconds;
+boolean clockTimerSecondsOn = false;
+int clockTimerCountBit;
+
+int getMinuteValue(unsigned int theWord) {
+  int theMinute = 0;
+  for (int i = 15; i >= 0; i--) {
+    if (bitRead(theWord, i) > 0) {
+      theMinute = i;
+      // Serial.print("\n+ Minute = ");
+      // Serial.println(theMinute);
+    }
+  }
+  return (theMinute);
+}
+
+void clockSetTimer(int timerMinute) {
+  //
+  // Set parameters before starting the timer.
+  //    timerMinute is the amount of minutes to be timed.
+  //
+  timerStatus = timerStatus & ~HLTA_ON;
+  timerStatus = timerStatus | M1_ON;  // Timer is running (M1_ON).
+  clockTimer = millis();              // Initialize the clock timer milliseconds.
+  clockTimerCount = 0;                // Start counting from 0. Timer is done when it equals timerMinute.
+  clockTimerAddress = 0;              // Used to display Address lights: timerMinute and clockTimerCount.
+  // Put the timerMinute into the display value: clockTimerAddress.
+  clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
+}
+
+void clockRunTimer() {
+  // -----------------------------------------
+  if ((millis() - clockTimerSeconds >= 500)) {
+    //
+    // Each half second, toggle the tracking minute counter LED on/off.
+    //
+    clockTimerSeconds = millis();
+    if (clockTimerSecondsOn) {
+      clockTimerSecondsOn = false;
+      clockTimerCountBit = 1;
+      clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, clockTimerCountBit);
+    } else {
+      clockTimerSecondsOn = true;
+      clockTimerCountBit = 0;
+      clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, clockTimerCountBit);
+    }
+  }
+  // -----------------------------------------
+  if ((millis() - clockTimer >= 60000)) {
+    //
+    // Minute process.
+    //
+    // 60 x 1000 = 60000, which is one minute.
+    clockTimer = millis();
+    clockTimerCount++;
+    if (clockTimerCount >= timerMinute ) {
+      //
+      // -----------------------------------------
+      // *** Timer Complete ***
+      // When the timer is complete, play a sound, and set the front panel lights.
+      //
+      int currentTimerMinute = timerMinute;
+#ifdef SWITCH_MESSAGES
+      Serial.print(F("+ clockTimerCount="));
+      Serial.print(clockTimerCount);
+      Serial.print(F(" timerMinute="));
+      Serial.print(timerMinute);
+      Serial.println(F(" Timer timed."));
+#endif
+      // Force playing the sound.
+      playerSoundEffect(TIMER_COMPLETE);
+      // KnightRiderScanner();
+      if (!(playerStatus & HLTA_ON)) {
+        delay(2000);
+       // mp3playerPlay(playerCounter);    // Continue to play in clock mode.
+      }
+      //
+      if (timerCounter < timerTop && timerCounter > 0) {
+        // Check if there is another timer setting in the timer array, that needs running.
+        timerCounter++;
+        timerMinute = getMinuteValue(timerData[timerCounter]);
+        if (timerMinute > 0) {
+#ifdef SWITCH_MESSAGES
+          Serial.print(F("+ Run next timer event. timerCounter="));
+          Serial.print(timerCounter);
+          Serial.print(F(" timerData[timerCounter]="));
+          Serial.println(timerData[timerCounter]);
+#endif
+          clockTimerAddress = 1;
+          clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
+          // Start the timer and count.
+          clockTimer = millis();
+          clockTimerCount = 0;
+        } else {
+#ifdef SWITCH_MESSAGES
+          Serial.print(F("+ End the timer run state, stay in clock timer mode (1)."));
+          Serial.print(F(" timerMinute="));
+          Serial.print(timerMinute);
+          Serial.print(F(" currentTimerMinute="));
+          Serial.print(currentTimerMinute);
+#endif
+          timerStatus = INP_ON | HLTA_ON;
+          clockTimerAddress = 0;
+          clockTimerAddress = bitWrite(clockTimerAddress, currentTimerMinute, 1);
+        }
+      } else {
+#ifdef SWITCH_MESSAGES
+        Serial.print(F("+ End the timer run state, stay in clock timer mode (2)."));
+        Serial.print(F(" timerMinute="));
+        Serial.print(timerMinute);
+#endif
+        timerStatus = INP_ON | HLTA_ON;
+        clockTimerAddress = 0;
+        clockTimerAddress = bitWrite(clockTimerAddress, currentTimerMinute, 1);
+      }
+    } else {
+      // -----------------------------------------
+      // Each minute, increment the minute counter and LED light, and play a cuckoo sound.
+      //
+#ifdef SWITCH_MESSAGES
+      Serial.print(F("+ clockTimerCount="));
+      Serial.print(clockTimerCount);
+      Serial.print(F(" timerMinute="));
+      Serial.println(clockTimerCount);
+#endif
+      clockTimerAddress = 0;
+      clockTimerAddress = bitWrite(clockTimerAddress, timerMinute, 1);
+      clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, 1);
+      playerSoundEffect(TIMER_MINUTE);
+      // delay(1200);  // Delay time for the sound to play.
+    }
+  }
+  lightsStatusAddressData(timerStatus, clockTimerAddress, timerCounter);
+  return;
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 // Handle continuous clock processing.
@@ -814,6 +1047,20 @@ void rtClockContinuous() {
 
 // -----------------------------------------------------------------------------
 // Clock controls.
+
+void rtClockTimer() {
+  thePrompt = clockTimerPrompt;
+  Serial.print(thePrompt);
+  while (rtClockState == RTCLOCK_TIMER) {
+    if (Serial.available() > 0) {
+      int readByte = Serial.read();    // Read and process an incoming byte.
+      clockTimerSwitch(readByte);
+    }
+    delay(60);  // Delay before getting the next key press, in case press and hold too long.
+  }
+  thePrompt = clockPrompt;
+  Serial.print(thePrompt);
+}
 
 void rtClockSet() {
   thePrompt = clockSetPrompt;
@@ -849,20 +1096,23 @@ void rtClockRun() {
       int readByte = Serial.read();    // Read and process an incoming byte.
       clockSwitch(readByte);
     }
+#ifdef Altair101f
     if (getPcfControlinterrupted()) {
       // Hardware front panel controls.
       checkAux1();
       checkProtectSetVolume();
       setPcfControlinterrupted(false); // Reset for next interrupt.
     }
+#endif
     processClockNow();    // Process on going time clicks.
     if (rtClockState == RTCLOCK_SET) {
       rtClockSet();
     }
+    if (rtClockState == RTCLOCK_TIMER) {
+      rtClockTimer();
+    }
     //
-#ifdef Altair101b
     playerContinuous();   // Allow for infrared music control while in clock mode.
-#endif
     //
     delay(60);  // Delay before getting the next key press, in case press and hold too long.
   }

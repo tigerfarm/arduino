@@ -1054,7 +1054,7 @@ void processDataOpcode() {
   host_clr_status_led_M1();
   host_set_addr_leds(regPC);
   host_set_data_leds(opcode);
-  if (!ARDUINO_IDE_MONITOR || (programState == PROGRAM_RUN)) {
+  if (programState == PROGRAM_RUN) {
     printFrontPanel();
   }
   regPC++;
@@ -1079,13 +1079,15 @@ void processRunSwitch(byte readByte) {
     Serial.print(F("\033[J"));     // From cursor down, clear the screen.
   }
   if (readByte == stopByte) {
-    Serial.println(F("+ s, STOP"));
+    Serial.print(F("+ s, STOP, regPC = "));
+    Serial.print(regPC);
+    Serial.println();
     programState = PROGRAM_WAIT;
     host_set_status_led_WAIT();
     host_set_status_leds_READMEM_M1();
-    if (!ARDUINO_IDE_MONITOR) {
-      printFrontPanel();  // <LF> will refresh the display.
-    }
+    host_set_addr_leds(regPC);
+    host_set_data_leds(MREAD(regPC));
+    printFrontPanel();
   } else if (readByte == resetByte) {
     Serial.println(F("+ R, RESET (run)"));
     // Set to the first memory address.

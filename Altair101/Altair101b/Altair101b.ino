@@ -5,13 +5,13 @@
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation; either version 3 of the License, or
-// (at your option) any later versiåon.
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 /*
-  Altair101b Operating System program
+  Altair101 Operating System program
 
   This program is an enhanced Altair 8800 emulator.
   Interactivity is through the default Arduino USB serial port, and optionally, the Serial2 port.
@@ -39,8 +39,8 @@
   + Altair101b 1     // Developer:    Altair101a + serial module, SD card, clock, and MP3 player
   + Altair101f 1     // Full system:  Altair101b + front panel LED lights, switches, and toggles
 
-  For Altair101b, add 4 digit hardware display, to display:
-  + Player song number.
+  Add 4 digit hardware display, to diplay:
+  + Player song.
   + Clock date and time.
 
   Document what each does:
@@ -371,7 +371,7 @@ void setPcfControlinterrupted(boolean theTruth) {}
 
 void checkRunningButtons() {}
 void waitControlSwitches() {}
-void checkAux1() {}
+void fpCheckAux1() {}
 void checkProtectSetVolume() {}
 
 boolean setupFrontPanel() {
@@ -396,13 +396,17 @@ byte opcode = 0xff;
 // Added this to identify hardware status.
 // if hardware has an error, or hardware is not initialized, hwStatus > 0.
 // Else hwStatus = 0.
-byte hwStatus = B11111111;         // Initial state.
-const byte SD_ON  =    B00000001;  // 0001 SD card
-const byte CL_ON  =    B00000010;  // 0010 Clock module
-const byte PL_ON  =    B00000100;  // 0100 MP3 Player
-const byte SD_OFF =    B11111110;
-const byte CL_OFF =    B11111101;
-const byte PL_OFF =    B11111011;
+byte     hwStatus =   B00000001;    // Initial state.
+// Module is working, if (VALUE & XX_ON) > 0
+const byte FP_ON  =   B00000001;
+const byte PL_ON  =   B00000010;
+const byte SD_ON  =   B00000100;
+const byte CL_ON  =   B00001000;
+// Following is for setting a module that is not working, OFF: VALUE | XX_ON.
+const byte FP_OFF =   B11111110;    // Front Panel
+const byte PL_OFF =   B11111101;    // MP3 Player
+const byte SD_OFF =   B11111011;    // SD card
+const byte CL_OFF =   B11110111;    // Clock module
 
 void playerPlaySoundWait(int theFileNumber) {};
 uint16_t processorPlayerCounter = 0;            // Indicator for the processor to play an MP3, if not zero.
@@ -556,18 +560,18 @@ void setWaitStatus(boolean waitStatus) {
 void ledFlashSuccess() {
   if (LED_LIGHTS_IO) {
     int delayTime = 60;
-    lightsStatusAddressData(0, 0, B00000000);
+    lightsStatusAddressData(fpStatusByte, fpAddressWord, B00000000);
     delay(delayTime);
     for (int i = 0; i < 1; i++) {
       byte flashByte = B10000000;
       for (int i = 0; i < 8; i++) {
-        lightsStatusAddressData(0, 0, flashByte);
+        lightsStatusAddressData(fpStatusByte, fpAddressWord, flashByte);
         flashByte = flashByte >> 1;
         delay(delayTime);
       }
       flashByte = B00000001;
       for (int i = 0; i < 8; i++) {
-        lightsStatusAddressData(0, 0, flashByte);
+        lightsStatusAddressData(fpStatusByte, fpAddressWord, flashByte);
         flashByte = flashByte << 1;
         delay(delayTime);
       }
@@ -581,9 +585,9 @@ void ledFlashError() {
   if (LED_LIGHTS_IO) {
     int delayTime = 300;
     for (int i = 0; i < 3; i++) {
-      lightsStatusAddressData(0, 0, B11111111);
+      lightsStatusAddressData(fpStatusByte, fpAddressWord, B11111111);
       delay(delayTime);
-      lightsStatusAddressData(0, 0, B00000000);
+      lightsStatusAddressData(fpStatusByte, fpAddressWord, B00000000);
       delay(delayTime);
     }
     if (programState == PROGRAM_WAIT) {
@@ -619,69 +623,6 @@ void playerLights(uint8_t statusByte, uint8_t playerVolume, uint8_t songNumberBy
     fpStatusByte = statusByte;
     fpAddressWord = playerVolumeAddress;
     fpDataByte = songNumberByte;
-    printVirtualFrontPanel();
-  }
-}
-
-// -----------------------------------------------------------------------------
-// When in CLOCK_RUN mode, display clock values on the virtual front panel.
-
-void clockLights(byte theMinute, byte theHour) {
-  uint8_t minutesTens;
-  uint8_t timeHour;
-  uint8_t minutesOnes;
-  boolean amTime;
-  //
-  // ----------------------------------------------
-  // Convert the hours(1...12) into address lights: A1 to A12.
-  // Set AM/PM.
-  if (theHour < 12) {
-    timeHour = theHour;
-    amTime = true;
-    // Serial.println(F(" AM"));
-  } else {
-    if (theHour > 12) {
-      timeHour = theHour - 12;
-    } else {
-      // theHour = 12, which 12 noon, 12pm
-      timeHour = 12;
-    }
-    amTime = false;
-    // Serial.println(F(" PM"));
-  }
-  unsigned int hourAddress = 0;                     // CLear previous value.
-  hourAddress = bitWrite(hourAddress, timeHour, 1);  // Set the hour bit (A1...A12).
-  // ----------------------------------------------
-  // Convert the minute into binary for display.
-  //
-  // Set minutes ones for display in the Data lights (D7...D0).
-  // Set minutes tens for display in the Status lights (HLTA...INT).
-  // There are 3 bits for the tens(ttt):  0 ... 5 (00, 10, 20, 30, 40, or 50).
-  // There are 4 bits for the ones(oooo): 0 ... 9.
-  // LED diplay lights: ttt oooo
-  // Example:      23 = 010 0011
-  if (theMinute < 10) {
-    minutesOnes = theMinute;
-    minutesTens = 0;
-  } else {
-    minutesTens = theMinute / 10;                 // Example, 32, minutesTens = 3.
-    minutesOnes = theMinute - minutesTens * 10;   // minutesOnes = 32 - 30 = 2.
-  }
-  if (amTime) {
-    // 12:00 AM, midnight
-    bitWrite(minutesTens, 7, 1);  // Set AM indicator on.
-  } else {
-    // 12:00 PM, noon
-    bitWrite(minutesTens, 6, 1);  // Set PM indicator on.
-  }
-  // ----------------------------
-  if (LED_LIGHTS_IO) {
-    lightsStatusAddressData(minutesTens, hourAddress, minutesOnes);
-  }
-  if (VIRTUAL_FRONT_PANEL) {
-    fpStatusByte = minutesTens;
-    fpAddressWord = hourAddress;
-    fpDataByte = minutesOnes;
     printVirtualFrontPanel();
   }
 }
@@ -1147,13 +1088,13 @@ byte altair_in(byte portDataByte) {
         }
         // Reply with the high byte of the address toggles, which are the sense switch toggles.
         inputDataByte = highByte(fpAddressToggleWord);
-      //
-      //* Stacy
+        //
+        //* Stacy
         if (senseByte == 0) {
-        // Get the desktop toggle switch value.
-        inputDataByte = fpToggleSense();
-        // Set the VFP to match the desktop toggles.
-        fpAddressToggleWord = fpToggleAddress();
+          // Get the desktop toggle switch value.
+          inputDataByte = fpToggleSense();
+          // Set the VFP to match the desktop toggles.
+          fpAddressToggleWord = fpToggleAddress();
         }
         break;
       }
@@ -2152,11 +2093,11 @@ void processWaitSwitch(byte readByte) {
       /*
         default:
         {
-  #ifdef LOG_MESSAGES
+        #ifdef LOG_MESSAGES
         Serial.print(F("- Ignored: "));
         printByte(readByte);
         Serial.println();
-  #endif
+        #endif
         break;
         }
       */
@@ -2174,7 +2115,7 @@ void runProcessorWait() {
     if (getPcfControlinterrupted()) {
       // Hardware front panel controls.
       waitControlSwitches();
-      checkAux1();
+      fpCheckAux1();
       checkProtectSetVolume();
       setPcfControlinterrupted(false); // Reset for next interrupt.
     }
@@ -2403,59 +2344,84 @@ void setup() {
   //
   // ----------------------------------------------------
   // ----------------------------------------------------
+  // Hardware component status, 0: all good.
+  hwStatus = 0;
+  //
+  // Use the status lights to show the progress through the module initialization steps.
+  fpStatusByte = 0;
+  fpAddressWord = 0;
+  fpDataByte = 0;
+  lightsStatusAddressData(fpStatusByte, fpAddressWord, fpDataByte);
+  delay(1000);
+  //
+  // ----------------------------------------------------
   // Front Panel Switches.
   // I2C Two Wire PCF module initialization
-  setupFrontPanel();
-
-  // ----------------------------------------------------
-  // ----------------------------------------------------
-  if (!setupSdCard()) {
+  fpStatusByte = FP_ON;
+  lightsStatusAddressData(fpStatusByte, fpAddressWord, fpDataByte);
+  if (!setupFrontPanel()) {
     ledFlashError();
-    hwStatus = 1;
+    hwStatus = hwStatus & FP_OFF;
   } else {
     ledFlashSuccess();
   }
   delay(300);
-
   // ----------------------------------------------------
-  setupMp3Player();
-  setupClock();
-
+  fpStatusByte = PL_ON;
+  lightsStatusAddressData(fpStatusByte, fpAddressWord, fpDataByte);
+  if (!setupMp3Player()) {
+    ledFlashError();
+    hwStatus = hwStatus & PL_OFF;
+  } else {
+    ledFlashSuccess();
+  }
+  delay(300);
+  // ----------------------------------------------------
+  fpStatusByte = SD_ON;
+  lightsStatusAddressData(fpStatusByte, fpAddressWord, fpDataByte);
+  if (!setupSdCard()) {
+    ledFlashError();
+    hwStatus = hwStatus & SD_OFF;
+  } else {
+    ledFlashSuccess();
+  }
+  delay(300);
+  // ----------------------------------------------------
+  fpStatusByte = CL_ON;
+  lightsStatusAddressData(fpStatusByte, fpAddressWord, fpDataByte);
+  if (!setupClock()) {
+    ledFlashError();
+    hwStatus = hwStatus & CL_OFF;
+  } else {
+    ledFlashSuccess();
+  }
+  delay(300);
+  
   // ----------------------------------------------------
   programState = PROGRAM_WAIT;
-  host_set_status_leds_READMEM_M1();
-  regPC = 0;
+  fpStatusByte = 0;
+  controlResetLogic();
   opcode = MREAD(regPC);
   host_set_addr_leds(regPC);
   host_set_data_leds(opcode);
   printFrontPanel();
-
-  // ----------------------------------------------------
-  // Read sound effect file information.
-  /*
-    Serial.println(F("+ Load sound bite index array."));
-    for (int i = 0; i < maxSoundEffects; i++) {
-    soundEffects[i] = readFileByte(getSfbFilename(i));
-    }
-  */
-  // ----------------------------------------------------
-  // Read and Run an initialization program.
-  // Can manually set 00000000.bin, to all zeros.
-  // + The ability to set 00000000.bin, to all zeros.
-  // ---------------------------
-  // + If 00000000.bin exists, read it.
-  // Serial.print(F("+ Program loaded from memory array."));
-  programState = PROGRAM_WAIT;
-  controlResetLogic();
-  if (readFileToMemory("00000000.bin")) {
-    int sumBytes = 0;
-    for (int i = 0; i < 32; i++) {
-      sumBytes = sumBytes + MREAD(i);
-    }
-    if (sumBytes > 0) {
-      Serial.println(F("++ Since 00000000.bin, has non-zero bytes in the first 32 bytes, run it."));
-      programState = PROGRAM_RUN;
-      host_clr_status_led_WAIT();
+  //
+  // ---------------------------------------
+  // Maybe read and run an initialization program.
+  if (hwStatus == 0) {
+    // + If 00000000.bin exists, read it.
+    if (readFileToMemory("00000000.bin")) {
+      // Serial.print(F("+ Program loaded from memory array."));
+      // Note, can manually set 00000000.bin, to all zeros.
+      //    If all zeros, program is not run.
+      int sumBytes = 0;
+      for (int i = 0; i < 32; i++) {
+        sumBytes = sumBytes + MREAD(i);
+      }
+      if (sumBytes > 0) {
+        Serial.println(F("++ Since 00000000.bin, has non-zero bytes in the first 32 bytes, run it."));
+        programState = PROGRAM_RUN;
+      }
     }
   }
   // ----------------------------------------------------

@@ -257,7 +257,7 @@
 #include "Altair101.h"
 #include "Mp3Player.h"
 
-#ifdef Altair101b
+#ifdef Altair101f
 #include "frontPanel.h"
 #endif
 
@@ -1376,7 +1376,7 @@ void mp3PlayerRun() {
       int readByte = Serial.read();    // Read and process an incoming byte.
       playerSwitch(readByte);
     }
-#ifdef Altair101b
+#ifdef Altair101f
     if (getPcfControlinterrupted()) {
       // Hardware front panel controls.
       playerControlSwitches();

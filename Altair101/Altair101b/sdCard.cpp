@@ -110,10 +110,8 @@ void initSdCard() {
     Serial.println(F("- Error initializing SD card module."));
     hwStatus = 1;
     sdcardInitiated = false;
-    Serial.println(F("- Error initializing SD card."));
-    Serial.println(F("-- Check that SD card is inserted"));
-    Serial.println(F("-- Check that SD card adapter is wired properly."));
-    // Optionally, retry for a period of time.
+    // Serial.println(F("-- Check that SD card is inserted"));
+    // Serial.println(F("-- Check that SD card adapter is wired properly."));
   }
 }
 
@@ -869,12 +867,12 @@ void sdCardSwitch(int resultsValue) {
       editFile();
       break;
     case 'I':
-      Serial.println(F("+ Initialize sd card..."));
+      Serial.println(F("+ Initialize sd card module..."));
       SPI.end();
       delay(300);
       SPI.begin();
       if (!setupSdCard()) {
-        Serial.println(F("- Failed to initialized sd card."));
+        Serial.println(F("- Failed to initialized sd card module."));
       }
       break;
     // ----------------------------------------------------------------------
@@ -895,7 +893,7 @@ void sdCardSwitch(int resultsValue) {
       Serial.println(F("+ e, Edit           Edit file memory."));
       Serial.println(F("+ d, Delete         Delete the file from the SD card."));
       Serial.println(F("+ R/W, Read/Write   A byte from/to a file."));
-      Serial.println(F("+ I, Initialize     Initialize sd card."));
+      Serial.println(F("+ I, Initialize     Initialize sd card module."));
       Serial.println(F("------------------"));
       Serial.println(F("+ C, Clear memory   Set memory array to zero, and file byte counter to zero."));
       Serial.println(F("------------------"));

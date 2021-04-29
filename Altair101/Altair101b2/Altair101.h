@@ -10,13 +10,16 @@
 #define Altair101b 1        // Arduino board with SD card, clock, MP3 player, and serial module
 // #define Altair101f 1     // Full system, Altair101b + front panel LED lights, switches, and toggles.
 
+#ifdef Altair101a
+#define SOFTWARE_NAME "Altair101a"
+#define SOFTWARE_VERSION "1.66.a"
+#endif
+
 #ifdef Altair101b
 #define SOFTWARE_NAME "Altair101b"
-#define SOFTWARE_VERSION "1.64.b"
-#else
-#define SOFTWARE_NAME "Altair101a"
-#define SOFTWARE_VERSION "1.64.a"
+#define SOFTWARE_VERSION "1.66.b"
 #endif
+
 #ifdef Altair101f
 #define SOFTWARE_NAME "Altair101f"
 #define SOFTWARE_VERSION "1.66.f"
@@ -31,6 +34,16 @@ extern word status_inte;
 extern byte fpStatusByte;         // Status byte bits: MEMR INP M1 OUT HLTA STACK WO INT
 extern uint16_t fpAddressWord;    // Status byte bits: MEMR INP M1 OUT HLTA STACK WO INT
 extern byte fpDataByte;           // Front panel data byte.
+
+// -----------------------------------------------------------------------------
+// From frontPanel.h
+//
+extern void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits);
+//
+extern boolean getPcfControlinterrupted();
+extern void checkAux1();
+extern void checkProtectSetVolume();
+extern void setPcfControlinterrupted(boolean theTruth);
 
 // -----------------------------------------------------------------------------
 // Altair101a/b.ino program functions used in other programs.
@@ -94,8 +107,6 @@ extern boolean VIRTUAL_FRONT_PANEL;
 extern void initVirtualFrontPanel();
 extern void printVirtualFrontPanel();
 extern uint16_t fpAddressToggleWord;
-//
-extern void lightsStatusAddressData( byte status8bits, unsigned int address16bits, byte data8bits);
 //
 extern void setAddressData(uint16_t addressWord, byte dataByte);
 extern String loadProgramName;

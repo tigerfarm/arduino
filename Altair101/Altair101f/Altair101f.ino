@@ -1460,7 +1460,7 @@ void processDataOpcode() {
   host_clr_status_led_M1();
   host_set_addr_leds(regPC);
   host_set_data_leds(opcode);
-  if (!ARDUINO_IDE_MONITOR || (programState == PROGRAM_RUN)) {
+  if (programState == PROGRAM_RUN) {
     printFrontPanel();
   }
   regPC++;
@@ -1485,14 +1485,16 @@ void processRunSwitch(byte readByte) {
     Serial.print(F("\033[J"));     // From cursor down, clear the screen.
   }
   if (readByte == stopByte) {
-    Serial.println(F("+ s, STOP"));
+    Serial.print(F("+ s, STOP, regPC = "));
+    Serial.print(regPC);
+    Serial.println();
     programState = PROGRAM_WAIT;
     host_set_status_led_WAIT();
     host_set_status_leds_READMEM_M1();
+    host_set_addr_leds(regPC);
+    host_set_data_leds(MREAD(regPC));
+    printFrontPanel();
     mp3PlayerPause();
-    if (!ARDUINO_IDE_MONITOR) {
-      printFrontPanel();  // <LF> will refresh the display.
-    }
   } else if (readByte == resetByte) {
     Serial.println(F("+ R, RESET (run)"));
     // Set to the first memory address.
@@ -1581,17 +1583,13 @@ void processWaitSwitch(byte readByte) {
   if ( data >= '0' && data <= '9' ) {
     // Serial input, not hardware input.
     fpAddressToggleWord = fpAddressToggleWord ^ (1 << (data - '0'));
-    if (!ARDUINO_IDE_MONITOR) {
-      printFrontPanel();
-    }
+    printFrontPanel();
     return;
   }
   if ( data >= 'a' && data <= 'f' ) {
     // Serial input, not hardware input.
     fpAddressToggleWord = fpAddressToggleWord ^ (1 << (data - 'a' + 10));
-    if (!ARDUINO_IDE_MONITOR) {
-      printFrontPanel();
-    }
+    printFrontPanel();
     return;
   }
   // -------------------------------
@@ -1630,36 +1628,30 @@ void processWaitSwitch(byte readByte) {
       }
       host_set_status_leds_READMEM_M1();
       setAddressData(regPC, MREAD(regPC));
-      if (!ARDUINO_IDE_MONITOR) {
-        printFrontPanel();  // <LF> will refresh the display.
-      }
+      printFrontPanel();
       break;
     case 'x':
       Serial.print(F("+ x, EXAMINE: "));
       regPC = fpAddressToggleWord;
       Serial.println(regPC);
       setAddressData(regPC, MREAD(regPC));
-      if (!ARDUINO_IDE_MONITOR) {
-        printFrontPanel();  // <LF> will refresh the display.
-      }
+      printFrontPanel();
       break;
     case 'X':
       Serial.print(F("+ X, EXAMINE NEXT: "));
+      // Example, lights: A3 & A2 = 12
+      // ?- + X, EXAMINE NEXT: 14
       regPC = regPC + 1;
       Serial.println(regPC);
       setAddressData(regPC, MREAD(regPC));
-      if (!ARDUINO_IDE_MONITOR) {
-        printFrontPanel();  // <LF> will refresh the display.
-      }
+      printFrontPanel();  // <LF> will refresh the display.
       break;
     case 'p':
       Serial.print(F("+ p, DEPOSIT to: "));
       Serial.println(regPC);
       MWRITE(regPC, fpAddressToggleWord & 0xff);
       setAddressData(regPC, MREAD(regPC));
-      if (!ARDUINO_IDE_MONITOR) {
-        printFrontPanel();  // <LF> will refresh the display.
-      }
+      printFrontPanel();  // <LF> will refresh the display.
       break;
     case 'P':
       Serial.print(F("+ P, DEPOSIT NEXT to: "));
@@ -1667,17 +1659,13 @@ void processWaitSwitch(byte readByte) {
       Serial.println(regPC);
       MWRITE(regPC, fpAddressToggleWord & 0xff);
       setAddressData(regPC, MREAD(regPC));
-      if (!ARDUINO_IDE_MONITOR) {
-        printFrontPanel();  // <LF> will refresh the display.
-      }
+      printFrontPanel();  // <LF> will refresh the display.
       break;
     case 'R':
       Serial.println(F("+ R, RESET."));
       controlResetLogic();
       fpAddressToggleWord = 0;                // Reset all toggles to off.
-      if (!ARDUINO_IDE_MONITOR) {
-        printFrontPanel();  // <LF> will refresh the display.
-      }
+      printFrontPanel();  // <LF> will refresh the display.
       break;
     case 'C':
       Serial.println(F("+ C, CLR: Clear memory, set registers to zero, set data and address to zero."));
@@ -1755,16 +1743,11 @@ void processWaitSwitch(byte readByte) {
     case 'l':
       Serial.println(F("+ Load a sample program."));
       loadProgram();
-      if (!ARDUINO_IDE_MONITOR) {
-        printFrontPanel();  // <LF> will refresh the display.
-      }
-      break;
+      printFrontPanel();
     case 'L':
       Serial.println(F("+ Load hex code from the serial port. Enter space(' ') to exit."));
       loadProgramSerial();
-      if (!ARDUINO_IDE_MONITOR) {
-        printFrontPanel();  // <LF> will refresh the display.
-      }
+      printFrontPanel();
       break;
     // -------------------------------------
     case 'S':
@@ -2010,9 +1993,6 @@ void processWaitSwitch(byte readByte) {
           controlResetLogic();
           fpAddressToggleWord = 0;                // Reset all toggles to off.
           playerPlaySoundWait(READ_FILE);
-          // } else {
-          // Redisplay the front panel lights.
-          // printFrontPanel();
         }
         printFrontPanel();
         host_clr_status_led_HLDA();
@@ -2396,7 +2376,7 @@ void setup() {
     ledFlashSuccess();
   }
   delay(300);
-  
+
   // ----------------------------------------------------
   programState = PROGRAM_WAIT;
   fpStatusByte = 0;

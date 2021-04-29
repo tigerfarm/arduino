@@ -3,7 +3,7 @@
 //  In other programs, include the following line:
 //    #include "rtClock.h"
 
-void setupClock();
+boolean setupClock();
 void rtClockRun();
 void rtClockContinuous();
 void clockSwitch(int resultsValue);

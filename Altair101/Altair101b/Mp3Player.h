@@ -21,7 +21,7 @@ extern int DOWNLOAD_COMPLETE;
 extern int WRITE_FILE;
 extern int KNIGHT_RIDER_SCANNER;
 //
-void setupMp3Player();
+boolean setupMp3Player();
 void setPlayMode(uint8_t setTo);
 extern uint8_t playerStatus;
 uint8_t getPlayMode();
@@ -34,6 +34,7 @@ void mp3playerSinglePlay(byte theFileNumber);
 void mp3PlayerSingleLoop(byte theFileNumber);
 void mp3playerPlaywait(byte theFileNumber);
 void playerSoundEffect(byte theFileNumber);
+void playerSoundEffectWait(byte theFileNumber);
 
 // -------------------------------------------------------------------------------
 // eof

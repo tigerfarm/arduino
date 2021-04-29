@@ -302,8 +302,6 @@ DFRobotDFPlayerMini mp3playerDevice;
 
 #define PLAYER_VOLUME_SETUP 6
 
-// Stacy byte hwStatus = B11111111;            // Initial state.
-
 // ------------------------------------
 // The following is not needed for Mega because it has it's own hardware RX and TX pins.
 //
@@ -366,23 +364,24 @@ int PLAYER_ON             = 6;
 int PLAYER_OFF            = 7;
 int KR5                   = 8;
 int CLOCK_CUCKOO          = 9;
-int TIMER_MINUTE          = 10;
+int TIMER_MINUTE          = 10;     // MP3# 7 or 21
 int DOWNLOAD_COMPLETE     = 11;
 int WRITE_FILE            = 12;
 int KNIGHT_RIDER_SCANNER  = 13;
 
 // const int maxSoundEffects = 16;
-//                     {0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5};
-int soundEffects[16] = {1, 1, 1, 1, 2, 3, 9, 3, 1, 6, 1, 1, 1, 6, 1, 1};
+//
+//                     {0  1   2  3  4  5  6  7  8  9   0  1  2  3  4  5};
+int soundEffects[16] = {1, 1, 31, 1, 2, 3, 9, 3, 1, 6, 21, 1, 1, 6, 1, 1};
 
 // -----------------------------------------------------------------------------
 // Initialize the player module.
 // This allows it to be reset after the computer is restarted.
 //
-void setupMp3Player() {
+boolean setupMp3Player() {
   // ----------------------------------------------------
   irrecv.enableIRIn();
-  Serial.println(F("+ Initialized: infrared receiver for the MP3 player."));
+  Serial.println(F("+ Initialized: MP3 player infrared receiver."));
 
   // Set player front panel values.
   playerCounter = 1;                  // For now, default to song/file 1.
@@ -396,58 +395,55 @@ void setupMp3Player() {
   //
 #if defined(__AVR_ATmega2560__) || defined(__SAM3X8E__)
   Serial1.begin(9600);
-  if (hwStatus > 0) {
-    hwStatus = 0;
+  if (!mp3playerDevice.begin(Serial1)) {
+    delay(500);
     if (!mp3playerDevice.begin(Serial1)) {
-      delay(500);
-      if (!mp3playerDevice.begin(Serial1)) {
-        ledFlashError();
-        NOT_PLAY_SOUND = true;  // Set to not play sound effects.
-        Serial.println(F("MP3 Player, unable to begin:"));
-        Serial.println(F("1.Please recheck the connection!"));
-        Serial.println(F("2.Please insert the SD card!"));
-        hwStatus = 4;
-      }
+      NOT_PLAY_SOUND = true;  // Set to not play sound effects.
+      Serial.println(F("MP3 Player, unable to begin:"));
+      Serial.println(F("1.Recheck the connection."));
+      Serial.println(F("2.Insert the SD card."));
+      return false;
     }
   }
 #else
   SerialSw.begin(9600);
-  if (hwStatus > 0) {
-    hwStatus = 0;
+  if (!mp3playerDevice.begin(SerialSw)) {
+    delay(500);
     if (!mp3playerDevice.begin(SerialSw)) {
-      delay(500);
-      if (!mp3playerDevice.begin(SerialSw)) {
-        ledFlashError();
-        NOT_PLAY_SOUND = true;  // Set to not play sound effects.
-        Serial.println(F("MP3 Player, unable to begin:"));
-        Serial.println(F("1.Please recheck the connection!"));
-        Serial.println(F("2.Please insert the SD card!"));
-        hwStatus = 4;
-      }
+      NOT_PLAY_SOUND = true;  // Set to not play sound effects.
+      Serial.println(F("MP3 Player, unable to begin:"));
+      Serial.println(F("1.Recheck the connection."));
+      Serial.println(F("2.Insert the SD card."));
+      return false;
     }
   }
 #endif
   // ---------------------------------------------------------------------------
+  delay(300);
+  NOT_PLAY_SOUND = false;                 // Set to play sound effects.
+  mp3playerDevice.volume(PLAYER_VOLUME_SETUP);  // Set speaker volume from 0 to 30.
   delay(100);
-  if (hwStatus == 0) {
-    NOT_PLAY_SOUND = false;                 // Set to play sound effects.
-    mp3playerDevice.volume(PLAYER_VOLUME_SETUP);  // Set speaker volume from 0 to 30.
-    delay(100);
-    mp3playerDevice.setTimeOut(60);               // Set serial communications time out.
-    //
-    // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
-    mp3playerDevice.outputDevice(DFPLAYER_DEVICE_SD);
-    //
-    mp3playerDevice.EQ(playerEq);
-    //
+  mp3playerDevice.setTimeOut(60);               // Set serial communications time out.
+  //
+  // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
+  mp3playerDevice.outputDevice(DFPLAYER_DEVICE_SD);
+  //
+  mp3playerDevice.EQ(playerEq);
+  //
+  playerCounterTop = mp3playerDevice.readFileCounts();
+  if (playerCounterTop > 256) {
+    // Re-try getting the count.
+    delay(300);
     playerCounterTop = mp3playerDevice.readFileCounts();
-    if (playerCounterTop == 65535) {
-      delay(300);
-      playerCounterTop = mp3playerDevice.readFileCounts();
-    }
-    Serial.print(F("+ Initialized: DFPlayer, number of MP3 files = "));
-    Serial.println(playerCounterTop);
   }
+  if (playerCounterTop > 256) {
+    Serial.print(F("+ Initialized: MP3 player, number of MP3 files is unknown."));
+  } else {
+    Serial.print(F("+ Initialized: MP3 player, number of MP3 files = "));
+    Serial.print(playerCounterTop);
+  }
+  Serial.println();
+  return true;
 }
 
 // -----------------------------------------------------------------------
@@ -1315,6 +1311,11 @@ void playerSoundEffect(byte theFileNumber) {
     mp3playerDevice.play(soundEffects[theFileNumber]);
   }
 }
+void playerSoundEffectWait(byte theFileNumber) {
+  if (playerStatus & HLTA_ON) {
+    mp3playerPlaywait(soundEffects[theFileNumber]);
+  }
+}
 
 // ---------------------------------------
 void mp3playerPlaywait(byte theFileNumber) {
@@ -1380,7 +1381,7 @@ void mp3PlayerRun() {
     if (getPcfControlinterrupted()) {
       // Hardware front panel controls.
       playerControlSwitches();
-      checkAux1();
+      fpCheckAux1();
       checkProtectSetVolume();
       setPcfControlinterrupted(false); // Reset for next interrupt.
     }
