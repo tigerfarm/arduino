@@ -51,14 +51,18 @@
 ; A new game every time.
 ;
 ; --------------------------------------------------------------------------------
-; Next:
+; Enhancements:
+;
+; Add sound for each tracking step when firing a torpedo.
+; Add sound when a TIE fighter is destroyed.
+;
+; Do a Regional Sector Display when first starting the game.
+;
+; Consider keeping stats for best game: # of jumps, moves in sector.
 ;
 ; If not TIE fighters in the sector, don't print:
 ;   Missed! TIE fighter retaliates.
 ; Use variable: LocCon, Sector to condition: 0 = "GREEN", 1 = "RED".
-;
-; Add the number of stardates left.
-; 1       *                 STARDATE  3042 ??    Direction
 ;
 ; If crashed into a star, should show the crash in the sector scan display.
 ;   Crash message, "BOOM! Game over, you crashed in a star. You are history."
@@ -381,7 +385,7 @@ STARTYN:
                                 ;
                                 ; ------------------------------------------------
 SELECTLEN:                      ; Ask for a range of the number of TIE fighters for the game.
-        call    SCRD1C          ; Clear screen below before continuing.
+        call    SCRCL0          ; Clear screen below before continuing.
 	LXI	H,MSSEL1
 	CALL	MSG
 	CALL    INPUT           ; Wait for an input character, then echo it and continue.
@@ -423,7 +427,10 @@ STARTGAME:
         CALL    MSG
         CALL    SETUPGAME
         call    SCRCLR          ; Clear the entire screen.
-        jmp     CMND            ; Go to command options and play the game.
+        call    SCRL11          ; Move cursor to the line below the command line.
+        jmp     GXPRT           ; Print the Regional Sector Display map.
+                                ; Then print game sector map.
+                                ; Then jumps to command options to play the game.
                                 ;
 ; --------------------------------------------------------------------------------
 SETUPGAME:
@@ -861,7 +868,7 @@ CMD:
         CALL    CMSG
         CALL    INPUT           ; Get an input command character.
                                 ;
-        CALL    SCRD1C          ; Before printing the new command results,
+        CALL    SCRCL0          ; Before printing the new command results,
                                 ;   clear previous messages below the command prompt.
                                 ;
 	CPI	'0'		; Ship movement, input course.
@@ -870,7 +877,7 @@ CMD:
 	JZ	CLRCMD1
 	CPI	'2'		; Print long range scan
 	JZ	LRSCN
-	CPI	'3'		; Print Galaxy printout?
+	CPI	'3'		; Print Regional Sector Display
 	JZ	GXPRT
 	CPI	'4'		; Adjust shield energy
 	JZ	SHEN
@@ -1035,10 +1042,9 @@ CLC2:
 CRSEret:
         JMP	CMND		;Input new command
 CRSE:
-	LXI	H,MSGCRS	;Pointer to "Course" message
+        LXI     H,MSGCRS        ;Pointer to "Course" message
  	CALL	MSG		;Request course input
  	CALL	DRCT		;Input course direction
-	;JZ	CRSE		;Input error, try again
 	JZ	CRSEret		; Invalid input will return to command.
                                 ;   The user can back out from this command
                                 ;   if they had hit the wrong command option.
@@ -2493,7 +2499,7 @@ SCRC12  DB      27,'[','H'                  ; Move to screen top left: Esc[H.
                                         ;
     SCRHOM:
                 mvi a,esc               ; Esc[H
-                call PRINT
+                call PRINT              ; Cursor to screen home location
                 mvi a,'['
                 call PRINT
                 mvi a,'H'
@@ -2501,13 +2507,13 @@ SCRC12  DB      27,'[','H'                  ; Move to screen top left: Esc[H.
                 ret
     SCRCLR:
                 mvi a,esc               ; Esc[H
-                call PRINT
+                call PRINT              ; Cursor to screen home location
                 mvi a,'['
                 call PRINT
                 mvi a,'H'
                 call PRINT
                 mvi a,esc               ; Esc[2J
-                call PRINT
+                call PRINT              ; Clear screen from cursor location down.
                 mvi a,'['
                 call PRINT
                 mvi a,'2'
@@ -2518,14 +2524,14 @@ SCRC12  DB      27,'[','H'                  ; Move to screen top left: Esc[H.
                                         ;
     SCRL10:
                 mvi a,esc               ; Esc[H
-                call PRINT
+                call PRINT              ; Cursor to screen home location
                 mvi a,'['
                 call PRINT
                 mvi a,'H'
                 call PRINT
                 mvi a,esc               ; Esc[10B
-                call PRINT
-                mvi a,'['
+                call PRINT              ; Move cursor to screen location, line 10.
+                mvi a,'['               ; Command line (Command >).
                 call PRINT
                 mvi a,'1'
                 call PRINT
@@ -2535,20 +2541,29 @@ SCRC12  DB      27,'[','H'                  ; Move to screen top left: Esc[H.
                 call PRINT
                 ret
                                         ;
-    SCRD1C:
-                push a
-                mvi a,esc               ; Move down 1 line: Esc[1B
-                call PRINT
+    SCRL11:
+                mvi a,esc               ; Esc[H
+                call PRINT              ; Cursor to screen home location
                 mvi a,'['
+                call PRINT
+                mvi a,'H'
+                call PRINT
+                mvi a,esc               ; Esc[11B
+                call PRINT              ; Move cursor to screen location, line 10.
+                mvi a,'['               ; Line below the command line.
+                call PRINT
+                mvi a,'1'
                 call PRINT
                 mvi a,'1'
                 call PRINT
                 mvi a,'B'
                 call PRINT
-                mvi a,' '
-                call PRINT
-                mvi a,esc               ; Clear screen from cursor down. Esc[0J
-                call PRINT
+                ret
+                                        ;
+    SCRCL0:
+                push a
+                mvi a,esc               ; Esc[0J
+                call PRINT              ; Clear screen from cursor location down.
                 mvi a,'['
                 call PRINT
                 mvi a,'0'

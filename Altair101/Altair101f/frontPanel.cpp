@@ -171,7 +171,7 @@ void waitControlSwitches() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ WAIT, RUN."));
 #endif
-    programState = PROGRAM_RUN;
+    processWaitSwitch('r');
   }
   // ----------------------------------------------
   if (pcfControl.readButton(pinExamine) == 0) {
@@ -584,7 +584,16 @@ byte fpCheckAux2() {
 #ifdef SWITCH_MESSAGES
     Serial.print(F("+ Aux2, up."));
 #endif
-    return ('M');       // CLOCK mode, change to Clock TIMER mode.
+    switch (programState) {
+      // ----------------------------
+      case CLOCK_RUN:
+        return ('M');
+        break;
+      // ----------------------------
+      case PROGRAM_WAIT:
+        return ('M');
+        break;
+    }
   }
   // ----------------------------------------------
   if (pcfAux.readButton(pinAux2down) == 0) {
@@ -597,7 +606,16 @@ byte fpCheckAux2() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ Aux2, down."));
 #endif
-    return ('m');       // CLOCK mode, change to Clock COUNTER mode.
+    switch (programState) {
+      // ----------------------------
+      case CLOCK_RUN:
+        return ('m');
+        break;
+      // ----------------------------
+      case PROGRAM_WAIT:
+        return ('m');
+        break;
+    }
   }
   return 0;
 }

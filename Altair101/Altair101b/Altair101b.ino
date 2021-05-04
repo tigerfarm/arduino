@@ -32,7 +32,7 @@
   ---------------------------------------------------------
   Next to work on
 
-  Move LED light controls to frontPanel.cpp.
+  Confirm if RUN, followed by HALT, works. I.E. RUN needs to run the next instruction.
 
   Create models:
   + Altair101a 1     // Standalone:   Altair101a which is an Arduino board, only
@@ -372,6 +372,9 @@ void setPcfControlinterrupted(boolean theTruth) {}
 void checkRunningButtons() {}
 void waitControlSwitches() {}
 void fpCheckAux1() {}
+byte fpCheckAux2() {
+  return 0;
+}
 void checkProtectSetVolume() {}
 
 boolean setupFrontPanel() {
@@ -1460,7 +1463,7 @@ void processDataOpcode() {
   host_clr_status_led_M1();
   host_set_addr_leds(regPC);
   host_set_data_leds(opcode);
-  if (!ARDUINO_IDE_MONITOR || (programState == PROGRAM_RUN)) {
+  if (programState == PROGRAM_RUN) {
     printFrontPanel();
   }
   regPC++;
@@ -1485,19 +1488,24 @@ void processRunSwitch(byte readByte) {
     Serial.print(F("\033[J"));     // From cursor down, clear the screen.
   }
   if (readByte == stopByte) {
-    Serial.println(F("+ s, STOP"));
+    Serial.print(F("+ s, STOP, regPC = "));
+    Serial.print(regPC);
+    Serial.println();
     programState = PROGRAM_WAIT;
     host_set_status_led_WAIT();
     host_set_status_leds_READMEM_M1();
+    host_set_addr_leds(regPC);
+    host_set_data_leds(MREAD(regPC));
+    printFrontPanel();
     mp3PlayerPause();
-    if (!ARDUINO_IDE_MONITOR) {
-      printFrontPanel();  // <LF> will refresh the display.
-    }
   } else if (readByte == resetByte) {
     Serial.println(F("+ R, RESET (run)"));
     // Set to the first memory address.
     regPC = 0;
     setAddressData(regPC, MREAD(regPC));
+    fpAddressToggleWord = 0;                // Reset the virtual address toggles to off.
+    // initVirtualFrontPanel();
+    // printFrontPanel();
     // Then continue running, if in RUN mode.
     // -------------------------------------
   } else {
@@ -1532,6 +1540,7 @@ void runProcessor() {
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
       processRunSwitch(readByte);
+      readByte = 0;
     }
     // Allow for the music to keep playing, and infrared player controls to work.
     playerContinuous();
@@ -1581,17 +1590,13 @@ void processWaitSwitch(byte readByte) {
   if ( data >= '0' && data <= '9' ) {
     // Serial input, not hardware input.
     fpAddressToggleWord = fpAddressToggleWord ^ (1 << (data - '0'));
-    if (!ARDUINO_IDE_MONITOR) {
-      printFrontPanel();
-    }
+    printFrontPanel();
     return;
   }
   if ( data >= 'a' && data <= 'f' ) {
     // Serial input, not hardware input.
     fpAddressToggleWord = fpAddressToggleWord ^ (1 << (data - 'a' + 10));
-    if (!ARDUINO_IDE_MONITOR) {
-      printFrontPanel();
-    }
+    printFrontPanel();
     return;
   }
   // -------------------------------
@@ -1630,36 +1635,30 @@ void processWaitSwitch(byte readByte) {
       }
       host_set_status_leds_READMEM_M1();
       setAddressData(regPC, MREAD(regPC));
-      if (!ARDUINO_IDE_MONITOR) {
-        printFrontPanel();  // <LF> will refresh the display.
-      }
+      printFrontPanel();
       break;
     case 'x':
       Serial.print(F("+ x, EXAMINE: "));
       regPC = fpAddressToggleWord;
       Serial.println(regPC);
       setAddressData(regPC, MREAD(regPC));
-      if (!ARDUINO_IDE_MONITOR) {
-        printFrontPanel();  // <LF> will refresh the display.
-      }
+      printFrontPanel();
       break;
     case 'X':
       Serial.print(F("+ X, EXAMINE NEXT: "));
+      // Example, lights: A3 & A2 = 12
+      // ?- + X, EXAMINE NEXT: 14
       regPC = regPC + 1;
       Serial.println(regPC);
       setAddressData(regPC, MREAD(regPC));
-      if (!ARDUINO_IDE_MONITOR) {
-        printFrontPanel();  // <LF> will refresh the display.
-      }
+      printFrontPanel();  // <LF> will refresh the display.
       break;
     case 'p':
       Serial.print(F("+ p, DEPOSIT to: "));
       Serial.println(regPC);
       MWRITE(regPC, fpAddressToggleWord & 0xff);
       setAddressData(regPC, MREAD(regPC));
-      if (!ARDUINO_IDE_MONITOR) {
-        printFrontPanel();  // <LF> will refresh the display.
-      }
+      printFrontPanel();  // <LF> will refresh the display.
       break;
     case 'P':
       Serial.print(F("+ P, DEPOSIT NEXT to: "));
@@ -1667,17 +1666,13 @@ void processWaitSwitch(byte readByte) {
       Serial.println(regPC);
       MWRITE(regPC, fpAddressToggleWord & 0xff);
       setAddressData(regPC, MREAD(regPC));
-      if (!ARDUINO_IDE_MONITOR) {
-        printFrontPanel();  // <LF> will refresh the display.
-      }
+      printFrontPanel();  // <LF> will refresh the display.
       break;
     case 'R':
       Serial.println(F("+ R, RESET."));
       controlResetLogic();
       fpAddressToggleWord = 0;                // Reset all toggles to off.
-      if (!ARDUINO_IDE_MONITOR) {
-        printFrontPanel();  // <LF> will refresh the display.
-      }
+      printFrontPanel();
       break;
     case 'C':
       Serial.println(F("+ C, CLR: Clear memory, set registers to zero, set data and address to zero."));
@@ -1755,16 +1750,12 @@ void processWaitSwitch(byte readByte) {
     case 'l':
       Serial.println(F("+ Load a sample program."));
       loadProgram();
-      if (!ARDUINO_IDE_MONITOR) {
-        printFrontPanel();  // <LF> will refresh the display.
-      }
+      printFrontPanel();
       break;
     case 'L':
       Serial.println(F("+ Load hex code from the serial port. Enter space(' ') to exit."));
       loadProgramSerial();
-      if (!ARDUINO_IDE_MONITOR) {
-        printFrontPanel();  // <LF> will refresh the display.
-      }
+      printFrontPanel();
       break;
     // -------------------------------------
     case 'S':
@@ -2010,9 +2001,6 @@ void processWaitSwitch(byte readByte) {
           controlResetLogic();
           fpAddressToggleWord = 0;                // Reset all toggles to off.
           playerPlaySoundWait(READ_FILE);
-          // } else {
-          // Redisplay the front panel lights.
-          // printFrontPanel();
         }
         printFrontPanel();
         host_clr_status_led_HLDA();
@@ -2112,27 +2100,32 @@ void runProcessorWait() {
     // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
     // And other options such as enable VT100 output enabled or load a sample program.
     //
+    if (Serial.available() > 0) {
+      // Serial port virtual front panel controls.
+      readByte = Serial.read();    // Read and process an incoming byte.
+      if (readByte == 27 || readByte == 91 || readByte == 65 || readByte == 66) {
+        // Ignore Mouse wheel
+        readByte = 0;
+      }
+    }
     if (getPcfControlinterrupted()) {
       // Hardware front panel controls.
       waitControlSwitches();
       fpCheckAux1();
+      readByte = fpCheckAux2();
       checkProtectSetVolume();
       setPcfControlinterrupted(false); // Reset for next interrupt.
     }
-    if (Serial.available() > 0) {
-      // Serial port virtual front panel controls.
-      readByte = Serial.read();    // Read and process an incoming byte.
-      if (!(readByte == 27 || readByte == 91 || readByte == 65 || readByte == 66)) {
-        // Ignore Mouse wheel
+    if (readByte > 0) {
+      processWaitSwitch(readByte);
+      if (singleStepWaitByte) {
+        // This handles inputs during a SINGLE STEP cycle that hasn't finished.
         processWaitSwitch(readByte);
-        if (singleStepWaitByte) {
-          // This handles inputs during a SINGLE STEP cycle that hasn't finished.
-          processWaitSwitch(readByte);
-        }
-        if (!VIRTUAL_FRONT_PANEL) {
-          Serial.print(F("?- "));
-        }
       }
+      if (!VIRTUAL_FRONT_PANEL) {
+        Serial.print(F("?- "));
+      }
+      readByte = 0;
     }
     // Allow for the music to keep playing, and infrared player controls to work.
     playerContinuous();
@@ -2396,7 +2389,7 @@ void setup() {
     ledFlashSuccess();
   }
   delay(300);
-  
+
   // ----------------------------------------------------
   programState = PROGRAM_WAIT;
   fpStatusByte = 0;
@@ -2425,6 +2418,7 @@ void setup() {
     }
   }
   // ----------------------------------------------------
+  Serial.println();
   Serial.print(F("+++ "));
   Serial.print(SOFTWARE_NAME);
   Serial.print(F(" initialized, version "));
@@ -2441,6 +2435,15 @@ byte tmp_fpStatusByte;
 uint16_t tmp_fpAddressWord;
 byte tmp_fpDataByte;
 
+/*
+  +++ setup()
+  + Initialized: MP3 player infrared receiver.
+  + Initialized: MP3 player, number of MP3 files = 128
+  + Initialized: SD card module.
+  + Initialized: clock, Date: 2021/05/03 (YYYY/MM/DD) Time: Monday 11am 11:55:41 (HH:MM:SS)
+  +++ Altair101b initialized, version 1.66.b.
+  ?-
+*/
 void loop() {
   switch (programState) {
     // ----------------------------

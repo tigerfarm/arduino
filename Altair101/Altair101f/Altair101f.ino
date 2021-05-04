@@ -32,7 +32,7 @@
   ---------------------------------------------------------
   Next to work on
 
-  Move LED light controls to frontPanel.cpp.
+  Confirm if RUN, followed by HALT, works. I.E. RUN needs to run the next instruction.
 
   Create models:
   + Altair101a 1     // Standalone:   Altair101a which is an Arduino board, only
@@ -372,6 +372,7 @@ void setPcfControlinterrupted(boolean theTruth) {}
 void checkRunningButtons() {}
 void waitControlSwitches() {}
 void fpCheckAux1() {}
+byte fpCheckAux2() {return 0;}
 void checkProtectSetVolume() {}
 
 boolean setupFrontPanel() {
@@ -1534,6 +1535,7 @@ void runProcessor() {
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
       processRunSwitch(readByte);
+      readByte = 0;
     }
     // Allow for the music to keep playing, and infrared player controls to work.
     playerContinuous();
@@ -1744,6 +1746,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ Load a sample program."));
       loadProgram();
       printFrontPanel();
+      break;
     case 'L':
       Serial.println(F("+ Load hex code from the serial port. Enter space(' ') to exit."));
       loadProgramSerial();
@@ -2092,27 +2095,32 @@ void runProcessorWait() {
     // Program control: RUN, SINGLE STEP, EXAMINE, EXAMINE NEXT, Examine previous, RESET.
     // And other options such as enable VT100 output enabled or load a sample program.
     //
+    if (Serial.available() > 0) {
+      // Serial port virtual front panel controls.
+      readByte = Serial.read();    // Read and process an incoming byte.
+      if (readByte == 27 || readByte == 91 || readByte == 65 || readByte == 66) {
+        // Ignore Mouse wheel
+        readByte = 0;
+      }
+    }
     if (getPcfControlinterrupted()) {
       // Hardware front panel controls.
       waitControlSwitches();
       fpCheckAux1();
+      readByte = fpCheckAux2();
       checkProtectSetVolume();
       setPcfControlinterrupted(false); // Reset for next interrupt.
     }
-    if (Serial.available() > 0) {
-      // Serial port virtual front panel controls.
-      readByte = Serial.read();    // Read and process an incoming byte.
-      if (!(readByte == 27 || readByte == 91 || readByte == 65 || readByte == 66)) {
-        // Ignore Mouse wheel
+    if (readByte > 0) {
+      processWaitSwitch(readByte);
+      if (singleStepWaitByte) {
+        // This handles inputs during a SINGLE STEP cycle that hasn't finished.
         processWaitSwitch(readByte);
-        if (singleStepWaitByte) {
-          // This handles inputs during a SINGLE STEP cycle that hasn't finished.
-          processWaitSwitch(readByte);
-        }
-        if (!VIRTUAL_FRONT_PANEL) {
-          Serial.print(F("?- "));
-        }
       }
+      if (!VIRTUAL_FRONT_PANEL) {
+        Serial.print(F("?- "));
+      }
+      readByte = 0;
     }
     // Allow for the music to keep playing, and infrared player controls to work.
     playerContinuous();
@@ -2405,6 +2413,7 @@ void setup() {
     }
   }
   // ----------------------------------------------------
+  Serial.println();
   Serial.print(F("+++ "));
   Serial.print(SOFTWARE_NAME);
   Serial.print(F(" initialized, version "));

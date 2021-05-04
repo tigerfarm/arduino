@@ -1348,6 +1348,14 @@ void mp3playerPlaywait(byte theFileNumber) {
       playing = false;
       mp3playerDevice.stop();
     }
+#ifdef Altair101f
+    if (getPcfControlinterrupted()) {
+      // Hardware front panel controls.
+      // Switch any switch, and exit.
+      playing = false;
+      setPcfControlinterrupted(false); // Reset for next interrupt.
+    }
+#endif
     if (irrecv.decode(&results)) {
       // Hit any infrared key to exit.
       // Serial.print(F(" > Ended early."));
