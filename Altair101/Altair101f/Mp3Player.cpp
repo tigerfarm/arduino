@@ -1390,7 +1390,9 @@ void mp3PlayerRun() {
       // Hardware front panel controls.
       playerControlSwitches();
       fpCheckAux1();
-      checkProtectSetVolume();
+      if (byte readByte = fpCheckProtectSetVolume()) {
+        processWaitSwitch(readByte);
+      }
       setPcfControlinterrupted(false); // Reset for next interrupt.
     }
 #endif

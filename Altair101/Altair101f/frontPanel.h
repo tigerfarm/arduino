@@ -13,9 +13,9 @@ void setPcfControlinterrupted(boolean theTruth);
 boolean getPcfControlinterrupted();
 
 void checkRunningButtons();
-void waitControlSwitches();
+byte fpWaitControlSwitches();
 void fpCheckAux1();
-void checkProtectSetVolume();
+byte fpCheckProtectSetVolume();
 void playerControlSwitches();
 byte fpCheckAux2();
 byte fpTimerControlSwitches();

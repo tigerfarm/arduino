@@ -1270,7 +1270,9 @@ void rtClockSet() {
     if (getPcfControlinterrupted()) {
       // Hardware front panel controls.
       fpCheckAux1();                          // Can change programState to exit CLOCK mode.
-      checkProtectSetVolume();
+      if (byte readByte = fpCheckProtectSetVolume()) {
+        processWaitSwitch(readByte);
+      }
       setPcfControlinterrupted(false);      // Reset for next interrupt.
     }
 #endif
@@ -1301,7 +1303,9 @@ void rtClockRun() {
       // Hardware front panel controls.
       fpCheckAux1();                    // Can change programState to exit CLOCK mode.
       readByte = fpCheckAux2();         // Option to change to Clock TIMER mode.
-      checkProtectSetVolume();
+      if (byte readByte = fpCheckProtectSetVolume()) {
+        processWaitSwitch(readByte);
+      }
       setPcfControlinterrupted(false);  // Reset for next interrupt.
     }
 #endif

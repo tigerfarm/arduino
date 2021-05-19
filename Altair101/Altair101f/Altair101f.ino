@@ -32,7 +32,10 @@
   ---------------------------------------------------------
   Next to work on
 
-  Confirm if RUN, followed by HALT, works. I.E. RUN needs to run the next instruction.
+  Switches: Aux2 up and down.
+  + Get sense switch value set the filename.
+  + Aux2 up: upload/write program memory to SD card file.
+  + Aux2 dw: downlaod/read from SD card file into program memory.
 
   Create models:
   + Altair101a 1     // Standalone:   Altair101a which is an Arduino board, only
@@ -77,7 +80,7 @@
 
   Continue to add logic for switches and toggles.
   + For Address toggles, update fpAddressToggleWord.
-  ++ This will update for the VFP and for the getSenseSwitchValue() function.
+  ++ This will update for the VFP and for the getSenseSwitchVirtual() function.
 
   Starting integrating hardware functions using the Altair tablet or desktop.
   + If Altair101 tablet module, get the tablet to work.
@@ -370,10 +373,16 @@ boolean getPcfControlinterrupted() {
 void setPcfControlinterrupted(boolean theTruth) {}
 
 void checkRunningButtons() {}
-void waitControlSwitches() {}
+byte fpWaitControlSwitches() {
+  return 0;
+}
 void fpCheckAux1() {}
-byte fpCheckAux2() {return 0;}
-void checkProtectSetVolume() {}
+byte fpCheckAux2() {
+  return 0;
+}
+void fpCheckProtectSetVolume() {
+  return 0;
+}
 
 boolean setupFrontPanel() {
   return true;
@@ -921,12 +930,22 @@ void altair_hlt() {
 // Input Processing
 
 // -----------------------------------------------------------------------------
-// Return virtual sense switches value as a string.
-String getSenseSwitchValue() {
+// Return sense switches value as a string.
+
+String getSenseSwitchVirtual() {
   // From virtual toggle switches.
   byte bValue = highByte(fpAddressToggleWord);
-  // From hardware is not implemented.
-  // byte bValue = fpToggleSense();
+  String sValue = String(bValue, BIN);
+  int addZeros = 8 - sValue.length();
+  for (int i = 0; i < addZeros; i++) {
+    sValue = "0" + sValue;
+  }
+  return sValue;
+}
+
+String getSenseSwitchFp() {
+  // From Hardware toggle switches.
+  byte bValue = fpToggleSense();
   String sValue = String(bValue, BIN);
   int addZeros = 8 - sValue.length();
   for (int i = 0; i < addZeros; i++) {
@@ -1529,11 +1548,13 @@ void runProcessor() {
     if (getPcfControlinterrupted()) {
       // Program control: STOP or RESET.
       checkRunningButtons();
-      checkProtectSetVolume();
+      readByte = fpCheckProtectSetVolume();
       setPcfControlinterrupted(false); // Reset for next interrupt.
     }
     if (Serial.available() > 0) {
       readByte = Serial.read();    // Read and process an incoming byte.
+    }
+    if (readByte > 0) {
       processRunSwitch(readByte);
       readByte = 0;
     }
@@ -1729,19 +1750,6 @@ void processWaitSwitch(byte readByte) {
       break;
     //
     // -------------------------------------------------------------------
-    /*
-      case 'z':
-      Serial.print(F("++ Cursor off."));
-      Serial.print(F("\033[0m\033[?25l"));
-      Serial.println();
-      break;
-      case 'Z':
-      Serial.print(F("++ Cursor on."));
-      Serial.print(F("\033[0m\033[?25h"));
-      Serial.println();
-      break;
-    */
-    // -------------------------------------
     case 'l':
       Serial.println(F("+ Load a sample program."));
       loadProgram();
@@ -1922,7 +1930,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ w/W USB serial  Disable/enable Arduino IDE extra output controls."));
       Serial.println(F("+ u/U Log msg     Log messages off/on."));
       Serial.println(F("+ L   Load hex    Load hex code from the Serial port."));
-      Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
+      Serial.println(F("+ z/Z LEDs        Disable/enable LED light output."));
       Serial.println(F("----------------------------------------------------"));
       break;
     // -------------------------------------
@@ -1965,8 +1973,62 @@ void processWaitSwitch(byte readByte) {
     case 'm':
       {
         Serial.println(F("+ Read file into program memory."));
+        theFilename = getSenseSwitchFp() + ".bin";
+        if (theFilename == "00000000.bin") {
+          Serial.println(F("+ Set to download over the serial port."));
+          programState = SERIAL_DOWNLOAD;
+          return;
+        }
+        Serial.print(F("++ Program filename: "));
+        Serial.println(theFilename);
+        //
+        // Serial.println(F("++ Confirm, y/n: "));
+        // ... Need a double flip function in frontPanel.cpp
+        // Serial.println(F("+ Confirmed."));
+        //
+        host_set_status_led_HLDA();
+        if (readFileToMemory(theFilename)) {
+          ledFlashSuccess();
+          controlResetLogic();
+          fpAddressToggleWord = 0;                // Reset all toggles to off.
+          playerPlaySoundWait(READ_FILE);
+        }
+        printFrontPanel();
+        host_clr_status_led_HLDA();
+      }
+      break;
+    case 'M':
+      {
+        Serial.println(F("+ Write program Memory into a file."));
+        host_set_status_led_HLDA();
+        String senseSwitchValue = getSenseSwitchFp();
+        theFilename = senseSwitchValue + ".bin";
+        if (theFilename == "11111111.bin") {
+          Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
+          ledFlashError();
+          host_clr_status_led_HLDA();
+          return;
+        }
+        Serial.print(F("++ Write filename: "));
+        Serial.println(theFilename);
+        //
+        // Serial.println(F("++ Confirm, y/n: "));
+        // ... Need a double flip function in frontPanel.cpp
+        // Serial.println(F("+ Confirmed."));
+        //
+        // -------------------------------------------------------
+        if ( writeMemoryToFile(theFilename) ) {
+          ledFlashSuccess();
+        }
+        host_clr_status_led_HLDA();
+        printFrontPanel();
+      }
+      break;
+    case 'z':
+      {
+        Serial.println(F("+ Read file into program memory."));
 #ifdef SETUP_SDCARD
-        theFilename = getSenseSwitchValue() + ".bin";
+        theFilename = getSenseSwitchVirtual() + ".bin";
         if (theFilename == "00000000.bin") {
           Serial.println(F("+ Set to download over the serial port."));
           programState = SERIAL_DOWNLOAD;
@@ -2004,12 +2066,12 @@ void processWaitSwitch(byte readByte) {
 #endif  // SETUP_SDCARD
         break;
       }
-    case 'M':
+    case 'Z':
       {
         Serial.println(F("+ Write program Memory into a file."));
 #ifdef SETUP_SDCARD
         host_set_status_led_HLDA();
-        String senseSwitchValue = getSenseSwitchValue();
+        String senseSwitchValue = getSenseSwitchVirtual();
         theFilename = senseSwitchValue + ".bin";
         if (theFilename == "11111111.bin") {
           Serial.println(F("- Warning, disabled, write to filename: 11111111.bin."));
@@ -2105,13 +2167,25 @@ void runProcessorWait() {
     }
     if (getPcfControlinterrupted()) {
       // Hardware front panel controls.
-      waitControlSwitches();
-      fpCheckAux1();
-      readByte = fpCheckAux2();
-      checkProtectSetVolume();
-      setPcfControlinterrupted(false); // Reset for next interrupt.
+      readByte = fpWaitControlSwitches();
+      if (readByte > 0) {
+        Serial.print(F("+ 1.fpWaitControlSwitches() = "));
+        Serial.println(readByte);
+      }
+      if (readByte == 0) {
+        readByte = fpCheckAux2();         // Returns 'M' if flipped up, 'm' if flipped down.
+      }
+      if (readByte == 0) {
+        readByte = fpCheckProtectSetVolume();
+      }
+      if (readByte == 0) {
+        fpCheckAux1();
+      }
+      setPcfControlinterrupted(false);  // Reset for next interrupt.
     }
     if (readByte > 0) {
+      Serial.print(F("+ 2.fpWaitControlSwitches() = "));
+      Serial.println(readByte);
       processWaitSwitch(readByte);
       if (singleStepWaitByte) {
         // This handles inputs during a SINGLE STEP cycle that hasn't finished.

@@ -55,10 +55,17 @@
 ;
 ; Add sound for each tracking step when firing a torpedo.
 ; Add sound when a TIE fighter is destroyed.
-;
-; Do a Regional Sector Display when first starting the game.
+;   Torpedo trajectory(1-8.5) : 5.5
+;   Tracking: 3 7
+;   Tracking: 4 6
+;   TIE fighter destroyed.
 ;
 ; Consider keeping stats for best game: # of jumps, moves in sector.
+; Example best, where all 3 were in on region:
+;       2 Jumps to get to the region
+;       2 torpedoes to shoot 2 TIE fighter
+;       1 move
+;       1 torpedoes to shoot 1 TIE fighter
 ;
 ; If not TIE fighters in the sector, don't print:
 ;   Missed! TIE fighter retaliates.
@@ -993,7 +1000,7 @@ LR3:
 	MOV	L,B		;Pointer to quadrant in galaxy
 	MVI	H,000
 	MOV	A,M		;Fetch quadrant contents
-	LXI	H,MSG11B	;Pointer to middle quadrant
+	LXI	H,MSG11B        ;Pointer to middle quadrant
 	CALL	QDS1		;Set quadrant contents
 	MOV	A,B		;Fetch quadrant location
 	ANI	COLMSK		;Is quadrant in last column?
@@ -1005,10 +1012,10 @@ LR3:
 	MVI	H,000
 	MOV	A,M		;Fetch quadrant contents
 LR4:
-	LXI	H,MSG11C	;Pointer to right quadrant
+	LXI	H,MSG11C        ;Pointer to right quadrant
 	CALL	QDS1		;Set quadrant contents
 LRP:
-	LXI	H,MSG111	;Set pointer to L.R. row message
+	LXI	H,MSG111        ;Set pointer to L.R. row message
 	JMP	MSG		;Print L.R. scan row and return
 QDS1:
 	MVI	H,004H		;Set message pointer
@@ -1201,7 +1208,7 @@ DKED:
 SHENret:
 	JMP	CMND		;Jump to input command
 SHEN:
-	LXI	H,MSGSET	;Print "Shield Energy
+	LXI	H,MSGSET        ;Print "Shield Energy
 	CALL	MSG		;       Transfer =  "
 	CALL	EIN		;Input energy amount
 	;JM	SHEN		;Invalid input, try again
@@ -1224,99 +1231,124 @@ POS:
 	CALL	TOSD		;Add to shield energy
 	JMP	CMND		;Input new command
 NE:
-	LXI	H,MSGNEE	;Print "Not Enough Energy"
+	LXI	H,MSGNEE        ;Print "Not Enough Energy"
 	CALL	MSG
 	JMP	CMND		;Input new command
                                 ;
 ; --------------------------------------------------------------------------------
                                 ; Command option to shoot a torpedo.
-TR1ret:
-	JMP	CMND		;Jump to input command
 TRPD:
-	MVI	L,05AH		;Fetch number of torpedoes
-	MOV	A,M
-	ANA	A		;Any torpedoes left?
-	JZ	NTPD		;No, print no torpedo message
-	MVI	E,250		;Set up 250 units
-	MOV	D,H		;Of energy to delete
-	CALL	CKMN		;Enough in main supply?
-	JC	NE		;No, report not enough
-	CALL	FMMN		;Yes, delete from main
-	MVI	L,05AH
-	DCR	M		;Remove one torpedo
+                                ; ------------------------------------------------
+                                ; Confirm there is a torpedo and enough energy.
+                                ;
+        MVI     L,05AH          ; Fetch number of torpedoes
+        MOV     A,M
+        ANA     A               ; Any torpedoes left?
+        JZ      NTPD            ; No torpedo available
+                                ;
+        MVI     E,250           ; Shot requires 250 units of energy
+        MOV     D,H
+        CALL    CKMN            ; Enough energy in main supply?
+        JC      NE              ; Not enough energy.
+                                ;
+                                ; ------------------------------------------------
+                                ; Get the trajectory to shoot.
+        LXI     H,MSGTTY        ; Prompt "Torpedo Trajectory"
+        CALL    MSG
+        CALL    DRCT            ; User inputs the trajectory
+        JNZ     TR1             ; Valid input, jump to shoot the torpedo.
+        JMP     CMND            ; Invalid input will return to command prompt.
+                                ;
+                                ; ------------------------------------------------
+                                ; Shoot the torpedo.
 TR1:
-	LXI	H,MSGTTY	;Print "Torpedo Trajectory"
-	CALL	MSG
-	CALL	DRCT		;Input direction
-	;JZ	TR1		;Invalid input, try again
-	JZ	TR1ret		; Invalid input will return to command.
-                                ;   The user can back out from the option
-                                ;   if they had hit the wrong command option.
+        MVI     E,250           ; Shot requires 250 units of energy.
+        CALL    FMMN            ; Delete energy units from main memory.
+        MVI     L,05AH          ; Torpedo memory location.
+        DCR     M               ; Remove one torpedo.
                                 ;
-	CALL	ACTV		;Form adjusted row & column
-	MVI	L,059H		;Save current quadrant location
-	MOV	A,M		;In temporary storage
-	MVI	L,02BH
-	MOV	M,A
+        CALL    ACTV            ; Form adjusted row & column
+        MVI     L,059H          ; Save current quadrant location into temporary storage
+        MOV     A,M
+        MVI     L,02BH
+        MOV     M,A
+                                ; ------------------------------------------------
+                                ; Track the torpedo.
 TR2:
-	CALL	TRK		;Move torpedo one sector
-	JZ	QOUT		;Out of quadrant? Missed
-	MVI	L,030H		;Fetch crossing flag
-	MOV	A,M
-	ANA	A		;Crossed quadrant
-	JNZ	QOUT		;Yes, missed
-	CALL	RWCM		;No, form row and column
-	MOV	C,B		;Save row and column byte
-	LXI	H,MSGTRK	;Set up tracking message by inserting
-	CALL	T1		;Row and column in message
-	MVI	L,012H		;Set pointer to message
-	CALL	CMSG		;Print 'Tracking: R,C'
-	MOV	B,C		;Fetch row and column byte
-	CALL	MATCH		;Torpedo hit anything?
-	JZ	HIT		;Yes, analyze
-	MVI	L,028H		;No, restore registers
-	MOV	E,M
-	INR	L
-	MOV	D,M
-	INR	L
-	MOV	C,M
-	JMP	TR2		;Continue tracking
-HIT:
-	MOV	A,L		;What was hit?
-	CPI	04BH		;Was it a star?
-	JC	QOUT		;Yes, missed alien ship
-	JZ	SSTA		;Space stat.? Yes, delete S.S.
-	CALL	DLET		;No, delete alien ship
+        CALL    TRK             ; Move torpedo one sector
+        JZ      QOUT            ; Moved out of region means the shot missed.
+        MVI     L,030H          ; Fetch crossing flag
+        MOV     A,M
+        ANA     A               ; Crossed quadrant
+        JNZ     QOUT            ; + Yes, missed
+                                ; + No:
+        CALL    RWCM            ; Form row and column
+        MOV     C,B             ; Save row and column byte
+        LXI     H,MSGTRK        ; Set up tracking message by inserting
+        CALL    T1              ; Row and column in message
+        MVI     L,012H          ; Set pointer to message
+        CALL    CMSG            ; Print 'Tracking: R,C'
                                 ;
+        sta     regA
+        MVI     A,3             ; Play MP3 file.
+        OUT     12              ; Single play.
+        lda     regA
+                                ;
+        MOV     B,C             ; Fetch row and column byte
+        CALL    MATCH           ; Torpedo hit anything?
+        JZ      HIT             ; + Yes
+                                ; + No
+        MVI     L,028H          ; Restore registers
+        MOV     E,M
+        INR     L
+        MOV     D,M
+        INR     L
+        MOV     C,M
+        JMP     TR2
+                                ; ------------------------------------------------
+                                ; Something was hit.
+HIT:
+        sta     regA
+        MVI     A,7             ; Play MP3 file.
+        OUT     12              ; Single play.
+        lda     regA
+                                ;
+	MOV	A,L		;What was hit?
+	CPI	04BH		; Star hit?
+	JC	QOUT		; Nothing hit
+	JZ	SSTA		; Space station hit, delete station.
+	CALL	DLET		; No, delete alien ship
         LXI     H,MSGASD        ; Print alien ship destroyed message.
         CALL    MSG
         call    SCRPRN          ; Print the sector scan map without the destroyed ship.
         JMP     CMND            ; Go to input and process a new command.
-                                ; Stacy, the ship destroyed message, is being cleared to early.
                                 ;
                                 ; ------------------------------------------------
-                                ;
+                                ; Space station hit, delete station.
 SSTA:
-	CALL	DLET		;Delete space station fm galaxy
-	LXI	H,MSGSSD	;Print message of loss
+	CALL	DLET		;Delete space station from the game
+	LXI	H,MSGSSD        ;Print message of loss
 	CALL	MSG		;Space station
 QOUT:
-	LXI	H,MSGYMA	;Print missed message
+	LXI	H,MSGYMA        ;Print missed alien ship (TIE fighter) message
 	CALL	CMSG
-	MVI	E,200		;Set up loss of 200
-	MOV	D,H		;Units due to alien ship
-	CALL	ELOS		;Rtaliating
+	MVI	E,200		; Lose 200 units due to alien ship Retaliating
+	MOV	D,H
+	CALL	ELOS
 	MVI	L,02BH		;Restore current quadrant
 	MOV	A,M		;Location
 	MVI	L,059H
 	MOV	M,A
 	JMP	CMND		;Input new command
-NTPD:
-	LXI	H,MSGZRO	;Set pointer to No Torpedo message
-	CALL	MSG		;Print message
-	JMP	CMND		;Jump to input command
                                 ;
-RWCM:
+                                ; ------------------------------------------------
+NTPD:                           ; No torpedo message to shoot.
+	LXI	H,MSGZRO
+	CALL	MSG
+	JMP	CMND
+                                ;
+                                ; ------------------------------------------------
+RWCM:                           ; Go to next sector.
 	MVI	L,05EH		;Pointer to adjusted column
 	MOV	A,M		;Fetch adjusted column
 	RRC			;Adjust position
@@ -1329,7 +1361,7 @@ RWCM:
 	ANI	ROWMSK		;For row value
 	ADD	B		;Form row and column byte
 	MOV	B,A		;Save in 'B'
-	RET			;Return
+	RET
                                 ;
 ; --------------------------------------------------------------------------------
                                 ; Fire Phasors/Laser cannons(Star Wars version)
@@ -1605,6 +1637,7 @@ LAS:
 	INR	L
 	MOV	M,A		;Store most significant half
 	JMP	RN		;Fetch nxt ran. num. & Return
+                                ; ------------------------------------------------
 MATCH:
 	MVI	L,044H		;Set pointer to star table
 SCK:
@@ -1632,6 +1665,7 @@ ACK:
 	JNZ	ACK		;No, try next location
 	ANA	A		;Yes, reset 'Z' flag to 0
 	RET			;Return
+                                ; ------------------------------------------------
 ELOS:
 	MVI	L,0032H		;Pointer to temporary storage
 	MOV	M,E		;Put energy amount in
@@ -1641,10 +1675,10 @@ ELOS:
 	MVI	B,002		;Number of bytes for BINDEC
 	CALL	BINDEC		;Convert energy amount
                                 ;
-	LXI	D,MSGLOP	;Set pointer to energy message
+	LXI	D,MSGLOP        ;Set pointer to energy message
 	MVI	B,004		;Counter to number of digits
 	CALL	DIGPRT		;Put digits in message
-	LXI	H,MSGLOE	;Set pointer to energy loss msg
+	LXI	H,MSGLOE        ;Set pointer to energy loss msg
 	CALL	CMSG		;Print loss message
 	MVI	L,032H		;Put energy amount back to
 	MOV	E,M		;Allow the energy to be
@@ -1666,7 +1700,7 @@ SD0:
 	CALL	CKMN		;Enough energy?
 	JC	EOUT		;No, ship out of energy
 	CALL	FMMN		;Yes, take from main
-	LXI	H,MSGDSE	;Print warning
+	LXI	H,MSGDSE        ;Print warning
 	CALL	CMSG		;'Danger - Shield Energy 000'
 	MVI	B,2		;Divide energy loss by 4
 	CALL	DVD
@@ -1971,8 +2005,13 @@ TO1:
 TOSD:
 	MVI	L,051H		;Set pointer to shield energy
 	JMP	TO1		;Add 'E' & 'D' to shield
+                                ;
+                                ; ------------------------------------------------
+                                ; 16-bit subtraction from a main memory location.
 FMMN:
 	MVI	L,04FH		;Set pointer to main energy
+                                ; -------------
+                                ; 16-bit subtraction from a main memory location.
 FM1:
 	MOV	A,M		;Fetch least significant half
 	SUB	E		;Subtract 'E'
@@ -1982,11 +2021,13 @@ FM1:
 	SBB	D		;Subtract 'D' with carry
 	MOV	M,A		;Save new most significant half
 	RET
+                                ;
+                                ; ------------------------------------------------
 FMSD:
 	MVI	L,051H		;Set pointer to shield energy
 	JMP	FM1		;Subtr. 'E' & 'D' fm. shld ener.
                                 ;
-                                ; ----------------------------------------------
+                                ; ------------------------------------------------
                                 ; The following change allows the energy to always be sufficient.
 CKMN:
 	MVI	L,050H		;Set pointer to main energy
