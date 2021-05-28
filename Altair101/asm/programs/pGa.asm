@@ -2311,6 +2311,7 @@ CONINI:
 	RET
                                 ;
 ; --------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
                                 ; Help messages.
 MSGHELP:
   	DB	CR,LF
@@ -2437,7 +2438,8 @@ MSGCHK:	DB	'\r\n\r\nLater...\r\n'
 regA:   DB      0
 regH:   DB      0
                                 ;
-ASHIPSH: DB     3               ; Number alien ships is less than this number.
+; ASHIPSH: DB     3               ; Number alien ships is less than this number.
+ASHIPSH: DB     2               ; Number alien ships is less than this number.
 ASHIPSL: DB     1               ; Number alien ships is greater than this number.
                                 ; Original was the hard coded values: 32 and 10.
                                 ;

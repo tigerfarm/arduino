@@ -1128,8 +1128,8 @@ void playerSwitch(int resultsValue) {
       Serial.println(F("+ e/E, Single/All Play only a single once/Play all MP3 files in a loop."));
       Serial.println(F("+ l/L, Loop       Disable/Enable looping of the current MP3."));
       Serial.println(F("+ v/V, Volume     Down/Up volume level."));
-      Serial.println(F("+ I, Info MP3#    Print the MP3 number being played."));
-      Serial.println(F("+ i, Information  Program variables and hardward values."));
+      Serial.println(F("+ I, Information  Program variables and hardward values."));
+      Serial.println(F("+ i, Info MP3#    Print current MP3 counter. Current MP3 being played."));
       Serial.println(F("--- Equalizer options:"));
       Serial.println(F("+ 4 POP   5 CLASSIC  6 NORMAL"));
       Serial.println(F("+ 7 ROCK  8 JAZZ     9 BASS"));

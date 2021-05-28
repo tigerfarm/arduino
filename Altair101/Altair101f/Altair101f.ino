@@ -1915,8 +1915,8 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ B Serial2 baud  Set Serial2 baud rate."));
       Serial.println(F("-------------"));
       Serial.println(F("+ F, SD Card      SD Card CLI, memory manage with the SD card."));
-      Serial.println(F("+ m, Read         Read an SD card file into program memory."));
-      Serial.println(F("+ M, Write        Write program memory to an SD card file."));
+      Serial.println(F("+ m/M Read/Write  Read/Write SD card file from/to program memory: H/W switches."));
+      Serial.println(F("+ z/Z Read/Write  Read/Write SD card file from/to program memory: Virtual switches."));
       Serial.println(F("+ n, Directory    Directory file listing of the SD card."));
       Serial.println(F("-------------"));
       Serial.println(F("+ J, MP3 Player   PLAYER mode, run the MP3 player."));
@@ -1930,7 +1930,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ w/W USB serial  Disable/enable Arduino IDE extra output controls."));
       Serial.println(F("+ u/U Log msg     Log messages off/on."));
       Serial.println(F("+ L   Load hex    Load hex code from the Serial port."));
-      Serial.println(F("+ z/Z LEDs        Disable/enable LED light output."));
+      Serial.println(F("+ o/O LEDs        Disable/enable LED light output."));
       Serial.println(F("----------------------------------------------------"));
       break;
     // -------------------------------------
@@ -2472,6 +2472,7 @@ void setup() {
   // Maybe read and run an initialization program.
   if (hwStatus == 0) {
     // + If 00000000.bin exists, read it.
+    Serial.println();
     if (readFileToMemory("00000000.bin")) {
       // Serial.print(F("+ Program loaded from memory array."));
       // Note, can manually set 00000000.bin, to all zeros.
