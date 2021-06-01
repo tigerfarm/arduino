@@ -2169,8 +2169,8 @@ void runProcessorWait() {
       // Hardware front panel controls.
       readByte = fpWaitControlSwitches();
       if (readByte > 0) {
-        Serial.print(F("+ 1.fpWaitControlSwitches() = "));
-        Serial.println(readByte);
+        // Serial.print(F("+ 1.fpWaitControlSwitches() = "));
+        // Serial.println(readByte);
       }
       if (readByte == 0) {
         readByte = fpCheckAux2();         // Returns 'M' if flipped up, 'm' if flipped down.
@@ -2184,8 +2184,8 @@ void runProcessorWait() {
       setPcfControlinterrupted(false);  // Reset for next interrupt.
     }
     if (readByte > 0) {
-      Serial.print(F("+ 2.fpWaitControlSwitches() = "));
-      Serial.println(readByte);
+      // Serial.print(F("+ 2.fpWaitControlSwitches() = "));
+      // Serial.println(readByte);
       processWaitSwitch(readByte);
       if (singleStepWaitByte) {
         // This handles inputs during a SINGLE STEP cycle that hasn't finished.
@@ -2468,6 +2468,15 @@ void setup() {
   host_set_data_leds(opcode);
   printFrontPanel();
   //
+  // ----------------------------------------------------
+  Serial.println();
+  Serial.print(F("+++ "));
+  Serial.print(SOFTWARE_NAME);
+  Serial.print(F(" initialized, version "));
+  Serial.print(SOFTWARE_VERSION);
+  Serial.print(F("."));
+  Serial.println();
+  //
   // ---------------------------------------
   // Maybe read and run an initialization program.
   if (hwStatus == 0) {
@@ -2487,14 +2496,6 @@ void setup() {
       }
     }
   }
-  // ----------------------------------------------------
-  Serial.println();
-  Serial.print(F("+++ "));
-  Serial.print(SOFTWARE_NAME);
-  Serial.print(F(" initialized, version "));
-  Serial.print(SOFTWARE_VERSION);
-  Serial.print(F("."));
-  Serial.println();
 }
 
 // -----------------------------------------------------------------------------
