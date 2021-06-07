@@ -53,12 +53,14 @@
 ; --------------------------------------------------------------------------------
 ; Enhancements:
 ;
-; Add sound for each tracking step when firing a torpedo.
-; Add sound when a TIE fighter is destroyed.
-;   Torpedo trajectory(1-8.5) : 5.5
+; Clear below message, when answering "N":
+;   Ready to start a Star Wars X-wing starfighter mission? (Y/N)
+;   Torpedo trajectory(1-8.5) : 3.0
+;   Later...: 7 7
+;   ++ HALT, host_read_status_led_WAIT() = 0
+;   ?- cking: 5 7
+;   Tracking: 4 7
 ;   Tracking: 3 7
-;   Tracking: 4 6
-;   TIE fighter destroyed.
 ;
 ; Consider keeping stats for best game: # of jumps, moves in sector.
 ; Example best, where all 3 were in on region:

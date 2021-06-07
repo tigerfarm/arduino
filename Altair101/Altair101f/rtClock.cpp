@@ -927,6 +927,7 @@ void clockSetTimer(int setMinutes) {
 }
 
 void clockTimerSwitchSet(int resultsValue) {
+  timerMinutes = resultsValue;
   clockSetTimer(timerMinutes);
   // Serial input, not hardware input.
   fpAddressToggleWord = fpAddressToggleWord ^ (1 << timerMinutes);
@@ -999,6 +1000,12 @@ void clockTimerSwitch(int resultsValue) {
       Serial.println();
       clockTimerCount = 0;
       break;
+    case 'C':
+      Serial.print(F("+ Clear, set the timer mintues to 0."));
+      Serial.println();
+      timerMinutes = 0;
+      lightsStatusAddressData(timerStatus, clockTimerAddress, timerCounter);
+      break;
     // -------------
     case 'M':
       // Serial.println(F("+ AUX2 up, Return to CLOCK mode."));
@@ -1012,7 +1019,10 @@ void clockTimerSwitch(int resultsValue) {
       Serial.println(F("-------------"));
       Serial.println(F("+ r, RUN          Run timer."));
       Serial.println(F("+ s, STOP         Stop/pause timer."));
+      Serial.println(F("+    EXAMINE      Set the timer minutes using the front panel hardware toggle switches."));
+      Serial.println(F("+ 0...9,a...f     Set the timer minutes using the keyboard 0...9, a...f which is 0...15."));
       Serial.println(F("+ R, RESET        Re-run the timer using the same amount of mintues."));
+      Serial.println(F("+ C, CLR          Clear, set the timer mintues to 0."));
       Serial.println(F("+ M, CLOCK        Return to CLOCK mode."));
       Serial.println(F("-------------"));
       Serial.println(F("+ Ctrl+L          Clear screen."));
@@ -1149,10 +1159,19 @@ boolean clockRunTimer() {
 // -------------------------------------------------------------------------------
 void rtClockTimerRun() {
   if (timerMinutes == 0) {
-    Serial.print(F(" Timer minutes are not set."));
-    Serial.println();
-    rtClockState = RTCLOCK_TIMER;
-    return;
+    // When running from command line, timerMinutes is set when a key is pressed: 0...9,a...f (0 ... 15).
+    //    For example, if key "3" is pressed:
+    //    Clock TIMER ?- + Timer minutes set to: 3
+    // Else, check if hardware address switch is set.
+    //  uint16_t theAddress = fpToggleAddress();      // Need a function in frontPanel to get the timer minute from the address toggle switches.
+    // clockTimerSwitchSet(theAddress);
+    if (timerMinutes == 0) {
+      // If timerMinutes is not set (value is 0):
+      Serial.print(F(" Timer minutes are not set."));
+      Serial.println();
+      rtClockState = RTCLOCK_TIMER;
+      return;
+    }
   } else if (timerMinutes == clockTimerCount) {
     Serial.print(F(" Timer has completed. Either set a new timer value or reset the timer."));
     Serial.println();
@@ -1160,11 +1179,11 @@ void rtClockTimerRun() {
     return;
   }
   /*
-  Serial.print(F(" TIMER minutes: "));
-  Serial.print(timerMinutes);
-  Serial.print(F(", Current time: "));
-  printClockDateTime();
-  Serial.println();
+    Serial.print(F(" TIMER minutes: "));
+    Serial.print(timerMinutes);
+    Serial.print(F(", Current time: "));
+    printClockDateTime();
+    Serial.println();
   */
   thePrompt = clockTimerRunPrompt;
   Serial.print(thePrompt);
@@ -1234,7 +1253,9 @@ void rtClockTimer() {
       if (readByte == 0) {
         readByte = fpCheckAux2();           // Option to change to Clock TIMER mode.
       }
-      fpCheckAux1();                        // Can change programState to exit CLOCK mode.
+      if (readByte == 0) {
+        fpCheckAux1();                      // Can change programState to exit CLOCK mode.
+      }
       setPcfControlinterrupted(false);      // Reset for next interrupt.
     }
 #endif
@@ -1301,10 +1322,14 @@ void rtClockRun() {
 #ifdef Altair101f
     if (getPcfControlinterrupted()) {
       // Hardware front panel controls.
-      fpCheckAux1();                    // Can change programState to exit CLOCK mode.
-      readByte = fpCheckAux2();         // Option to change to Clock TIMER mode.
-      if (byte readByte = fpCheckProtectSetVolume()) {
-        processWaitSwitch(readByte);
+      if (readByte == 0) {
+        readByte = fpCheckAux2();         // Returns 'M' if flipped up, 'm' if flipped down.
+      }
+      if (readByte == 0) {
+        readByte = fpCheckProtectSetVolume();
+      }
+      if (readByte == 0) {
+        fpCheckAux1();                // Can change programState to exit CLOCK mode.
       }
       setPcfControlinterrupted(false);  // Reset for next interrupt.
     }

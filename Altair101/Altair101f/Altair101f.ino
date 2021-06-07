@@ -32,15 +32,34 @@
   ---------------------------------------------------------
   Next to work on
 
+  Add ability to set the clock timer using hardware address switch.
+
+  Fix sound wait play.
+  + Issue when playing sound for tracking torpedoes.
+  + It gets stuck, and I have to hit a key to continue.
+Command > 6
+Torpedo trajectory(1-8.5) : 5.0
+Tracking: 2 7
+Tracking: 2 6
+
   Switches: Aux2 up and down.
   + Get sense switch value set the filename.
   + Aux2 up: upload/write program memory to SD card file.
   + Aux2 dw: downlaod/read from SD card file into program memory.
 
-  Create models:
+  Create models?
   + Altair101a 1     // Standalone:   Altair101a which is an Arduino board, only
   + Altair101b 1     // Developer:    Altair101a + serial module, SD card, clock, and MP3 player
   + Altair101f 1     // Full system:  Altair101b + front panel LED lights, switches, and toggles
+  ++ Altair101f works for both the desktop and the Due machine.
+  ++ For the Due machine, I need to turn LEDs off before running programs, else it runs very slow.
+
+  Consider adding an echo for key presses.
+?- + 2.fpWaitControlSwitches() = 56
+?- + 2.fpWaitControlSwitches() = 97
+?- + 2.fpWaitControlSwitches() = 120
++ x, EXAMINE: 1280
+?- + 2.fpWaitControl
 
   Add 4 digit hardware display, to diplay:
   + Player song.

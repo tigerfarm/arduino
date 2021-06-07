@@ -171,7 +171,7 @@ byte fpWaitControlSwitches() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ WAIT, RUN."));
 #endif
-    return('r');
+    return ('r');
   }
   // ----------------------------------------------
   if (pcfControl.readButton(pinExamine) == 0) {
@@ -185,7 +185,7 @@ byte fpWaitControlSwitches() {
     Serial.println(F("+ WAIT, EXAMINE."));
 #endif
     fpAddressToggleWord = fpToggleAddress();
-    return('x');
+    return ('x');
   }
   // ----------------------------------------------
   if (pcfControl.readButton(pinExamineNext) == 0) {
@@ -198,7 +198,7 @@ byte fpWaitControlSwitches() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ WAIT, EXAMINE NEXT."));
 #endif
-    return('X');
+    return ('X');
   }
   // ----------------------------------------------
   if (pcfControl.readButton(pinDeposit) == 0) {
@@ -212,7 +212,7 @@ byte fpWaitControlSwitches() {
     Serial.println(F("+ WAIT, DEPOSIT."));
 #endif
     fpAddressToggleWord = fpToggleAddress();
-    return('p');
+    return ('p');
   }
   // ----------------------------------------------
   if (pcfControl.readButton(pinDepositNext) == 0) {
@@ -226,7 +226,7 @@ byte fpWaitControlSwitches() {
     Serial.println(F("+ WAIT, DEPOSIT NEXT."));
 #endif
     fpAddressToggleWord = fpToggleAddress();
-    return('P');
+    return ('P');
   }
   // ----------------------------------------------
   if (pcfControl.readButton(pinReset) == 0) {
@@ -239,7 +239,7 @@ byte fpWaitControlSwitches() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ WAIT, RESET."));
 #endif
-    return('R');
+    return ('R');
   }
   // ----------------------------------------------
   if (pcfControl.readButton(pinStep) == 0) {
@@ -252,7 +252,7 @@ byte fpWaitControlSwitches() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ WAIT, SINGLE STEP."));
 #endif
-    return('s');
+    return ('s');
   }
   // ----------------------------------------------
   if (pcfAux.readButton(pinStepDown) == 0) {
@@ -295,15 +295,15 @@ byte fpWaitControlSwitches() {
 #ifdef SWITCH_MESSAGES
       Serial.println(F("+ WAIT, CLR: cancelled."));
 #endif
-      return(0);
+      return (0);
     }
     // -------------
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ WAIT, CLR: confirmed."));
 #endif
-    return('C');
+    return ('C');
   }
-  return(0);
+  return (0);
   // -------------------
 }
 
@@ -489,7 +489,20 @@ byte fpTimerControlSwitches() {
 #ifdef SWITCH_MESSAGES
     Serial.println(F("+ CLock TIMER, RESET."));
 #endif
-    playerSwitch('R');
+    return ('R');
+  }
+  // ----------------------------------------------
+  if (pcfAux.readButton(pinClr) == 0) {
+    if (!switchClr) {
+      switchClr = true;
+    }
+  } else if (switchClr) {
+    switchClr = false;
+    // Switch logic
+#ifdef SWITCH_MESSAGES
+    Serial.println(F("+ CLock TIMER, CLEAR."));
+#endif
+    return ('C');
   }
   // ----------------------------------------------
   if (pcfControl.readButton(pinExamine) == 0) {
@@ -631,7 +644,7 @@ byte fpCheckProtectSetVolume() {
   } else if (switchProtect) {
     switchProtect = false;
     // Switch logic.
-    return('v');
+    return ('v');
   }
   // ----------------------------------------------
   if (pcfAux.readButton(pinUnProtect) == 0) {
@@ -641,7 +654,7 @@ byte fpCheckProtectSetVolume() {
   } else if (switchUnProtect) {
     switchUnProtect = false;
     // Switch logic
-    return('V');
+    return ('V');
   }
   return 0;
 }
