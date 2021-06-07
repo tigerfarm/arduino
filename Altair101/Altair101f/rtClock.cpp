@@ -998,13 +998,13 @@ void clockTimerSwitch(int resultsValue) {
       Serial.print(F("+ Re-run the timer using the same amount of mintues: "));
       Serial.print(timerMinutes);
       Serial.println();
+      clockTimerSwitchSet(timerMinutes);
       clockTimerCount = 0;
       break;
     case 'C':
       Serial.print(F("+ Clear, set the timer mintues to 0."));
       Serial.println();
-      timerMinutes = 0;
-      lightsStatusAddressData(timerStatus, clockTimerAddress, timerCounter);
+      clockTimerSwitchSet(0);
       break;
     // -------------
     case 'M':
