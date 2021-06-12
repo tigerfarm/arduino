@@ -169,8 +169,11 @@ void clockLights(byte theMinute, byte theHour) {
     minutesOnes = theMinute;
     minutesTens = 0;
   } else {
-    minutesTens = theMinute / 10;                 // Example, 32, minutesTens = 3.
-    minutesOnes = theMinute - minutesTens * 10;   // minutesOnes = 32 - 30 = 2.
+    int theMinutesTens = theMinute / 10;                 // Example, 32, minutesTens = 3.
+    minutesOnes = theMinute - theMinutesTens * 10;   // minutesOnes = 32 - 30 = 2.
+    // Convert the tens to show as:
+    //  OUT=5 HLTA=4 STACK=3 WO=2 INT=1
+    bitWrite(minutesTens, theMinutesTens-1, 1);
   }
   if (amTime) {
     // 12:00 AM, midnight

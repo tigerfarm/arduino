@@ -1293,7 +1293,7 @@ TR2:
                                 ;
         sta     regA
         MVI     A,3             ; Play MP3 file.
-        OUT     12              ; Single play.
+        OUT     13              ; Play game sound effect.
         lda     regA
                                 ;
         MOV     B,C             ; Fetch row and column byte
@@ -1312,7 +1312,7 @@ TR2:
 HIT:
         sta     regA
         MVI     A,7             ; Play MP3 file.
-        OUT     12              ; Single play.
+        OUT     13              ; Play game sound effect.
         lda     regA
                                 ;
 	MOV	A,L		;What was hit?

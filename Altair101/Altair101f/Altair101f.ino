@@ -32,15 +32,13 @@
   ---------------------------------------------------------
   Next to work on
 
-  Add ability to set the clock timer using hardware address switch.
+  Command line write isn't getting the virtual switch value.
++ Write program Memory into a file.
+- Warning, disabled, write to filename: 11111111.bin.
 
-  Fix sound wait play.
-  + Issue when playing sound for tracking torpedoes.
-  + It gets stuck, and I have to hit a key to continue.
-Command > 6
-Torpedo trajectory(1-8.5) : 5.0
-Tracking: 2 7
-Tracking: 2 6
+  Optional sound delay setting.
+  + For example, when playing sound for tracking torpedoes.
+  + Maybe set register B to hold the delay time.
 
   Switches: Aux2 up and down.
   + Get sense switch value set the filename.
@@ -1426,6 +1424,13 @@ void altair_out(byte portDataByte, byte regAdata) {
 #endif
       processorPlayerCounter = regA;
       mp3playerPlaywait(processorPlayerCounter);
+      break;
+    case 13:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > Play MP3 with a short delay. This is for game sound effects like a beep."));
+#endif
+      processorPlayerCounter = regA;
+      mp3playerPlayShort(processorPlayerCounter);
       break;
     // ---------------------------------------
     // ---------------------------------------

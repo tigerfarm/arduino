@@ -33,6 +33,7 @@ void mp3PlayerStart();
 void mp3playerSinglePlay(byte theFileNumber);
 void mp3PlayerSingleLoop(byte theFileNumber);
 void mp3playerPlaywait(byte theFileNumber);
+void mp3playerPlayShort(byte theFileNumber);
 void playerSoundEffect(byte theFileNumber);
 void playerSoundEffectWait(byte theFileNumber);
 

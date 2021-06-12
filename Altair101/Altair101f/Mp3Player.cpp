@@ -1318,6 +1318,13 @@ void playerSoundEffectWait(byte theFileNumber) {
 }
 
 // ---------------------------------------
+// For playing short sound effects in a game.
+void mp3playerPlayShort(byte theFileNumber) {
+  // Serial.print(F("+ Play short sound effects in a game."));
+  mp3playerDevice.play(theFileNumber);
+  delay(300);
+}
+// ---------------------------------------
 void mp3playerPlaywait(byte theFileNumber) {
   // Serial.print(F("+ Play MP3 until completed."));
   playerCounter = theFileNumber;
