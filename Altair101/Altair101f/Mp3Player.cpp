@@ -1324,6 +1324,11 @@ void mp3playerPlayShort(byte theFileNumber) {
   mp3playerDevice.play(theFileNumber);
   delay(300);
 }
+void mp3playerPlayShort(byte theFileNumber, uint16_t theTime) {
+  // Serial.print(F("+ Play short sound effects in a game."));
+  mp3playerDevice.play(theFileNumber);
+  delay(theTime);
+}
 // ---------------------------------------
 void mp3playerPlaywait(byte theFileNumber) {
   // Serial.print(F("+ Play MP3 until completed."));

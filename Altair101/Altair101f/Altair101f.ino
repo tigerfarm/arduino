@@ -1189,6 +1189,7 @@ byte altair_in(byte portDataByte) {
 // Output
 
 uint16_t hlValue;
+uint16_t playTime;
 
 void altair_out(byte portDataByte, byte regAdata) {
   // Opcode: out <port>
@@ -1430,7 +1431,15 @@ void altair_out(byte portDataByte, byte regAdata) {
       Serial.print(F(" > Play MP3 with a short delay. This is for game sound effects like a beep."));
 #endif
       processorPlayerCounter = regA;
-      mp3playerPlayShort(processorPlayerCounter);
+      mp3playerPlayShort(processorPlayerCounter);             // play MP3 for default length of 300 milliseconds.
+      break;
+    case 14:
+#ifdef LOG_MESSAGES
+      Serial.print(F(" > Play MP3 with a set delay. This is for game sound effects like a beep."));
+#endif
+      processorPlayerCounter = regA;
+      playTime = regB * 100;
+      mp3playerPlayShort(processorPlayerCounter, playTime);   // MP3 and length of time to play.
       break;
     // ---------------------------------------
     // ---------------------------------------
@@ -1997,7 +2006,8 @@ void processWaitSwitch(byte readByte) {
     case 'm':
       {
         Serial.println(F("+ Read file into program memory."));
-        theFilename = getSenseSwitchFp() + ".bin";
+        String senseSwitchValue = getSenseSwitchFp();
+        theFilename = senseSwitchValue + ".bin";
         if (theFilename == "00000000.bin") {
           Serial.println(F("+ Set to download over the serial port."));
           programState = SERIAL_DOWNLOAD;
@@ -2295,7 +2305,7 @@ void loadProgramSerial() {
 
 // -----------------------------------------------------------------------------
 void modeDownloadProgram() {
-  Serial.println(F("+ Download mode: ready to receive a program bytes on Serial2. Enter, x, to exit."));
+  Serial.println(F("+ Download mode: ready to receive program bytes on Serial2. Enter, x, to exit."));
   Serial.print(F("++ Serial 2 baud rate: "));
   Serial.println(downloadBaudRate);
   // Status: ready for input and not yet writing to memory.

@@ -34,6 +34,7 @@ void mp3playerSinglePlay(byte theFileNumber);
 void mp3PlayerSingleLoop(byte theFileNumber);
 void mp3playerPlaywait(byte theFileNumber);
 void mp3playerPlayShort(byte theFileNumber);
+void mp3playerPlayShort(byte theFileNumber, uint16_t theTime);
 void playerSoundEffect(byte theFileNumber);
 void playerSoundEffectWait(byte theFileNumber);
 

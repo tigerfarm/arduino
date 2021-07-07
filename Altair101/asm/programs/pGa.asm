@@ -1049,28 +1049,27 @@ CLC2:
 ; --------------------------------------------------------------------------------
                                 ; Course menu option action
 CRSEret:
-        JMP	CMND		;Input new command
+        JMP     CMND            ; Input new command
 CRSE:
-        LXI     H,MSGCRS        ;Pointer to "Course" message
- 	CALL	MSG		;Request course input
- 	CALL	DRCT		;Input course direction
-	JZ	CRSEret		; Invalid input will return to command.
-                                ;   The user can back out from this command
-                                ;   if they had hit the wrong command option.
+        LXI     H,MSGCRS        ; Pointer to "Course" message
+        CALL    MSG             ; Request course input
+        CALL    DRCT            ; Input course direction
+        JZ      CRSEret         ; Invalid input will return to command.
+                                ;   The user can back out from this command.
                                 ;
                                 ; ----------------
                                 ; Get warp speed value, example: 1.6
 WRP:
-        LXI     H,MSGWRP        ;Pointer to "Warp" message
- 	CALL	CMSG		;Request warp input
-	MVI	L,05FH		;Set pointer to temporary storage
- 	CALL	INPUT		;Input warp factor number 1
-	CPI	'0'		;Is digit less than 0?
-	JC	CRSEret		;No, request input again
-	CPI	'8'		;Is input greater than 7?
+        LXI     H,MSGWRP        ; Pointer to "Warp" message
+ 	CALL	CMSG		; Request warp input
+	MVI	L,05FH		; Set pointer to temporary storage
+ 	CALL	INPUT		; Input warp factor number 1
+	CPI	'0'		; Is digit less than 0?
+	JC	CRSEret		; No, request input again
+	CPI	'8'		; Is input greater than 7?
 	JNC	CRSEret		; Invalid return. 
-	ANI	007		;Mask off ASCII code
-	RLC			;Position to 3rd bit
+	ANI	007		; Mask off ASCII code
+	RLC			; Position to 3rd bit
 	RLC
 	RLC
 	MOV	M,A		;Save in temporary storage
@@ -1089,8 +1088,8 @@ WRP:
 	MVI	L,031H		;Set pntr to crossing indicator
 	MOV	M,H		;Clear crossing indicator
                                 ;
-                                ; --------------------------------
-                                ; Loop: Move the ship
+                                ; --------------------------------------------
+                                ; Loop: Move the ship one sector at a time.
 MOVE:
 	CALL	TRK		;Track 1 sector
 	JZ	LOST		;Out of galaxy? Yes, lost
@@ -1109,52 +1108,54 @@ MOVE:
                                 ; ----------------
                                 ; Collision handling
 CLSN:
-	CALL	RWCM		;Form row and column byte
-	CALL	MATCH		;Collision?
-	JNZ	MVDN		;No, complete move
-	MOV	B,L		;Yes, save object location
-	MOV	A,B		;Set flags to determine
-	CPI	04BH		;What was hit
-	MVI	L,031H		;Pointer to crossing indicator
-	MOV	A,M		;Fetch crossing indicator
-	JZ	SSOUT		;Space station collision
-	JNC	ASOUT		;Alien ship collision
-	ANA	A		;Star, initial quadrant?
-	JZ	WPOUT		;Yes, ship wiped out
+        CALL    RWCM            ; Form row and column byte
+        CALL    MATCH           ; Collision?
+        JNZ     MVDN            ; No, complete move
+        MOV     B,L             ; Yes, save object location
+        MOV     A,B             ; Set flags to determine
+        CPI     04BH            ; What was hit
+        MVI     L,031H          ; Pointer to crossing indicator
+        MOV     A,M             ; Fetch crossing indicator
+        JZ      SSOUT           ; Space station collision
+        JNC     ASOUT           ; Alien ship collision
+        ANA     A               ; Star, initial quadrant?
+        JZ      WPOUT           ; Yes, ship wiped out
 MVDN:
-	LXI	H,0028H		;Restore registers 'E' 'D' & 'C'
+                                ; No Collision
+        LXI     H,0028H         ; Restore registers 'E' 'D' & 'C'
 	MOV	E,M
 	INR	L
 	MOV	D,M
 	INR	L
 	MOV	C,M
-	DCR	E		;Decrement warp factor
-	JNZ	MOVE		;Not 0, continue move
+        DCR     E               ; Decrement warp factor
+        JNZ     MOVE            ; Not 0, continue move
                                 ;
                                 ; End move loop.
-                                ; --------------------------------
+                                ; --------------------------------------------
                                 ;
-	MVI	L,031H		;Fetch crossing indicator
-	MOV	A,M
-	ANA	A		;Quadrant crossing occurred?
-	JZ	NOX		;No, complete move
+        MVI     L,031H          ; Fetch crossing indicator
+        MOV     A,M
+        ANA     A               ; Quadrant crossing occurred?
+        JZ      NOX             ; No, complete move
                                 ;
                                 ; ----------------
-                                ; Decrement the game stardate value.
+                                ; Quadrant crossed: Decrement the game stardate value.
                                 ;
-	MVI	L,05DH		;Yes, fetch stardate value.
-	MOV	B,M
-	DCR	B		;Decrement stardate counter
-	JZ	TIME		;If 0, end of game
-	MOV	M,B		;Else save new date
+        MVI     L,05DH          ; Fetch stardate value.
+        MOV     B,M
+        DCR     B               ; Decrement stardate counter
+        JZ      TIME            ; If 0, end of game
 NOX:
-	CALL	RWCM		;Form row and column byte
-	MVI	L,043H		;Set pointer to current sector
-	MOV	M,B		;Save new sector
-	CALL	MATCH		;Last move a collision?
-	CZ	CHNG		;Yes, change object location
-	CALL	DKED		;Check for docking
-        jmp     CMND             ; Go to command options.
+        MOV     M,B             ; Else save new date
+        CALL    RWCM            ; Form row and column byte
+        MVI     L,043H          ; Set pointer to current sector
+        MOV     M,B             ; Save new sector
+                                ;
+        CALL    MATCH           ; Last move a collision?
+        CZ      CHNG            ; Yes, change object location
+        CALL    DKED            ; Check for docking
+        jmp     CMND            ; Go to command options.
 SSOUT:
 	ANA	A		;Initial quadrant?
 	JNZ	MVDN		;No, no loss
@@ -1292,7 +1293,7 @@ TR2:
         CALL    CMSG            ; Print 'Tracking: R,C'
                                 ;
         sta     regA
-        MVI     A,3             ; Play MP3 file.
+        MVI     A,3             ; Set: play MP3 file.
         OUT     13              ; Play game sound effect.
         lda     regA
                                 ;
@@ -1311,15 +1312,18 @@ TR2:
                                 ; Something was hit.
 HIT:
         sta     regA
-        MVI     A,7             ; Play MP3 file.
-        OUT     13              ; Play game sound effect.
+        sta     regB
+        MVI     A,7             ; Set: play MP3 file.
+        MVI     B,5             ; Set: play MP3 file for 500 milliseconds (5 * 100).
+        OUT     14              ; Play game sound effect.
         lda     regA
+        lda     regB
                                 ;
-	MOV	A,L		;What was hit?
-	CPI	04BH		; Star hit?
-	JC	QOUT		; Nothing hit
-	JZ	SSTA		; Space station hit, delete station.
-	CALL	DLET		; No, delete alien ship
+        MOV     A,L             ; What was hit?
+        CPI     04BH
+        JC      QOUT            ; Star hit, jump
+        JZ      SSTA            ; Space station hit, jump and delete the station.
+        CALL    DLET            ; Else, alien ship hit, delete alien ship
         LXI     H,MSGASD        ; Print alien ship destroyed message.
         CALL    MSG
         call    SCRPRN          ; Print the sector scan map without the destroyed ship.
@@ -1328,20 +1332,20 @@ HIT:
                                 ; ------------------------------------------------
                                 ; Space station hit, delete station.
 SSTA:
-	CALL	DLET		;Delete space station from the game
-	LXI	H,MSGSSD        ;Print message of loss
-	CALL	MSG		;Space station
+        CALL    DLET            ; Delete space station from the game
+        LXI     H,MSGSSD        ; Print space station loss message
+        CALL    MSG
 QOUT:
-	LXI	H,MSGYMA        ;Print missed alien ship (TIE fighter) message
-	CALL	CMSG
-	MVI	E,200		; Lose 200 units due to alien ship Retaliating
-	MOV	D,H
-	CALL	ELOS
-	MVI	L,02BH		;Restore current quadrant
-	MOV	A,M		;Location
-	MVI	L,059H
-	MOV	M,A
-	JMP	CMND		;Input new command
+        LXI     H,MSGYMA        ; Print missed alien ship (TIE fighter) message
+        CALL    CMSG
+        MVI     E,200           ; Lose 200 units due to alien ship Retaliating
+        MOV     D,H
+        CALL    ELOS
+        MVI     L,02BH          ; Restore current quadrant
+        MOV     A,M             ; Location
+        MVI     L,059H
+        MOV     M,A
+        JMP     CMND            ; Input new command
                                 ;
                                 ; ------------------------------------------------
 NTPD:                           ; No torpedo message to shoot.
@@ -1350,20 +1354,23 @@ NTPD:                           ; No torpedo message to shoot.
 	JMP	CMND
                                 ;
                                 ; ------------------------------------------------
-RWCM:                           ; Go to next sector.
-	MVI	L,05EH		;Pointer to adjusted column
-	MOV	A,M		;Fetch adjusted column
-	RRC			;Adjust position
-	ANI	COLMSK		;Form column value
-	MOV	B,A		;Save column
-	INR	L		;Advance pointer
-	MOV	A,M		;Fetch adjusted row
-	RLC			;Position row value
-	RLC
-	ANI	ROWMSK		;For row value
-	ADD	B		;Form row and column byte
-	MOV	B,A		;Save in 'B'
-	RET
+                                ; Get next sector column and row into register B.
+RWCM:
+        MVI     L,05EH          ; Pointer to adjusted column
+        MOV     A,M             ; Fetch adjusted column
+        RRC                     ; Adjust position
+        ANI     COLMSK          ; Form column value
+        MOV     B,A             ; Save column
+                                ;
+        INR     L               ; Advance pointer
+        MOV     A,M             ; Fetch adjusted row
+        RLC                     ; Position row value
+        RLC
+        ANI     ROWMSK          ; For row value
+        ADD     B               ; Form row and column byte
+        ;
+        MOV     B,A             ; Save in 'B'
+        RET
                                 ;
 ; --------------------------------------------------------------------------------
                                 ; Fire Phasors/Laser cannons(Star Wars version)
@@ -2048,7 +2055,8 @@ CKSD:
                                 ;
                                 ; ----------------------------------------------
 NOGAME:
-        LXI     H,MSGCHK        ;Print the, does not want to play, message
+        call    SCRCL0          ; Clear screen below before continuing.
+        LXI     H,MSGCHK        ; Print the "does not want to play" message.
         CALL    MSG
         HLT
                                 ;
@@ -2438,6 +2446,7 @@ MSGCHK:	DB	'\r\n\r\nLater...\r\n'
                                 ; ----------------------------------------------
                                 ; Looks like unused bytes from 3766 to 3840.
 regA:   DB      0
+regB:   DB      0
 regH:   DB      0
                                 ;
 ; ASHIPSH: DB     3               ; Number alien ships is less than this number.
@@ -2706,6 +2715,20 @@ Start playing.
 
   Reference: printf/sprintf formats:
   http://www.cplusplus.com/reference/cstdio/printf/
+
+--------------------------------------------------------------------------------
+Shortest games
+
+--------
+1 jump. 1 torpedo.
+1 move. 2 torpedoes.
+--------
+
+--------
+1 move. 1 torpedo.
+1 jump. 1 torpedo.
+--------
+
 
 --------------------------------------------------------------------------------
 eof
