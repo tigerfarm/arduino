@@ -17,11 +17,11 @@ Manage the running of programs.
 
 [Clock Timer](#Clock-Timer): Set and run timers.
 
-[Clock Counter](#Clock-Counter): Manage counters that are stored on the SD card.
+Not implemented: [Clock Counter](#Clock-Counter): Manage counters that are stored on the SD card.
 
 [MP3 Player](#MP3-Player): Manage the playing of MP3 files.
 
-[MP3 Player Sound Effects](#MP3-Player-Sound-Effects): 
+Not implemented: [MP3 Player Sound Effects](#MP3-Player-Sound-Effects): 
 Manage which MP3 files are played for each sound effect, such as a beep when flipping switches to change modes.
 
 [Documentation](#Documentation): development documentation rather than user guide.
@@ -231,30 +231,34 @@ Clock timer mode,
 + Indicator     HLDA : On, non-processor mode, clock timer mode.
 -----------
 + STOP          Stop clock timer.
-+ RUN           Run a timer sequence.
++ RUN           Run a timer sequence. Before using RUN, use EXAMINE to set the timer minutes.
                 1. Set the timer minutes using the address toggles: A1 is 1 minute, A2 is 2, ... A15 is 15.
                 2. To do: Start the timer using the timer minutes value.
 + SINGLE up     Not implemented.
 + SINGLE down   Not implemented.
-+ EXAMINE       1. Set Address toggles to timer array value.
++ EXAMINE       1. Set Address toggle to timer array value.
                 2. Flip EXAMINE.
                 3. Timer array index is displayed in the Data lights.
                 4. Timer array value is displayed in the Address lights: A1:1 minute, ..., A15:15 minutes.
-+ EXAMINE NEXT  1. Timer array index is incremented.
++ EXAMINE NEXT  Not implemented.
+                1. Timer array index is incremented.
                 2. Timer array index is displayed in the Data lights.
                 3. Timer array value is displayed in the Address lights: A1:1 minute, ..., A15:15 minutes.
-+ DEPOSIT       1. Set Address lights to timer array value: A1:1 minute, ..., A15:15 minutes.
++ DEPOSIT       Not implemented.
+                1. Set Address lights to timer array value: A1:1 minute, ..., A15:15 minutes.
                 2. Flip DEPOSIT.
                 3. Timer value is displayed in the Address lights.
                 4. Timer array counter value is displayed in the Data lights.
                 5. Timer array value is stored into the timer array at the array counter value.
-+ DEPOSIT NEXT  1. Set Address lights to timer array value: A1:1 minute, ..., A15:15 minutes.
++ DEPOSIT NEXT  Not implemented.
+                1. Set Address lights to timer array value: A1:1 minute, ..., A15:15 minutes.
                 2. Flip DEPOSIT NEXT.
                 3. Timer array index is incremented.
                 4. Timer array index is displayed in the Data lights.
                 5. Timer array value is displayed in the Address lights.
                 6. Timer time value is stored into the memory array, at the incremented array index value.
-+ RESET         1. Set timer array index to 1 (D0).
++ RESET         Not implemented.
+                1. Set timer array index to 1 (D0).
                 2. Timer array index is displayed in the Data lights.
                 3. Timer array value is displayed in the Address lights.
 + PROTECT       Decrease MP3 player volume.
@@ -262,21 +266,24 @@ Clock timer mode,
 + AUX1 Up       Toggle clock mode off, return to processor mode.
 + AUX1 down     MP3 player mode
 + AUX2 up       Enter clock mode.
-+ AUX2 Down     Enter clock counter mode.
++ AUX2 Down     Not implemented. Enter clock counter mode.
 ````
-#### Clock Mode User Guide
+#### Clock Timer Mode User Guide
 
 Set and run a clock Timer,
-+ Must be in clock mode.
++ Set to clock mode.
 + Flip AUX2 toggle up to enter clock timer mode.
-+ Set the minutes by toggling a single address switch. For example A10 is for 10 minutes.
++ Select the minutes by toggling a single address switch.
+++ For example A10 is for 10 minutes.
++ Flip EXAMINE to set the minutes based on the address switches.
+++ The LED above the toggled on switch will turn on. For example A10 will turn on.
 + Flip RUN to start the timer.
 ++ Flash counter minute LED on/off each second.
 ++ Increment counter minute, each minute, starting with A0.
 ++ Play a sound bite as each minute passes.
-++ Sound and flash when time is reached, and return to displaying the time of day hours and minutes.
+++ Sound and flash when time is reached.
 
-Enter a sequence of timer values,
+Not implemented. Enter a sequence of timer values,
 + Must be in clock mode.
 + Flip AUX2 toggle Down to enter clock timer mode.
 + Set Data buttons to one (A0).
@@ -303,7 +310,7 @@ Run a sequence of timer values,
 + Flip RUN, and the timer starts.
 
 ------------------------------------------------------------------------------
-### Clock Counter
+### Not Implemented: Clock Counter
 
 #### Front Panel Lights and Toggles
 
@@ -385,7 +392,7 @@ Mode function: runPlayer().
 + AUX2 down     Player file mode.
 ````
 ------------------------------------------------------------------------------
-### MP3 Player Sound Effects
+### Not Implemented: MP3 Player Sound Effects
 
 #### Front Panel Lights and Toggles
 
