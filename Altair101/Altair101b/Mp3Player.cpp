@@ -1,13 +1,16 @@
 // -----------------------------------------------------------------------
 /*
   This is a MP3 Player program program.
-  Functionality:
-    start or stop the playing of an MP3 file (a song),
-    play next or previous MP3 file,
-    play next or previous directory of files,
-    loop an MP3,
-    volume up or down,
-    and select an equilizer option.
+  Player functionality:
+    Start or stop the playing of an MP3 file (a song).
+    Play next or previous MP3 file. Uses a directory counter program variable.
+    Jump to play next or previous directory of files. Uses a directory counter program variable.
+    Volume up or down. Uses a program variable.
+    Select an equilizer option. Uses a program variable.
+    Reset the player and program player variables.
+    Mode: Loop a single MP3: on or off.
+    Mode: Play a single MP3 file and stop. Or, continuously play MP3 files, base on loop mode.
+    In command line mode, print a help menu.
 
   This program offers external calls for Arduino INO programs to control the MP3 player:
   + setupMp3Player()    Setup process to initialize the hardware and program settings.
@@ -335,6 +338,7 @@ void setPlayMode(uint8_t setTo) {
 uint8_t getPlayMode() {
   return playMode;                              // For external programs to get the value.
 }
+uint8_t playModeLoop = PLAY_ALL;                // To store the loop setting. Used when re-setting to Play All, from only playing a single.
 
 // Sometimes, nice not to hear sounds over and again when testing.
 //      NOT_PLAY_SOUND = false >> Do play sounds.
@@ -939,6 +943,7 @@ void playerSwitch(int resultsValue) {
         Serial.print(F("+ Key L|*|A.Select - Loop on: loop this single MP3."));
       }
       playMode = LOOP_SINGLE;
+      playModeLoop = LOOP_SINGLE;
       playerStatus = playerStatus | M1_ON;
       if (!LED_LIGHTS_IO) {
         // In not setting front panel LED, pause identifies loop status change.
@@ -956,6 +961,7 @@ void playerSwitch(int resultsValue) {
         Serial.print(F("+ Key l|#|Eject - Loop off: Play all MP3 files."));
       }
       playMode = PLAY_ALL;
+      playModeLoop = PLAY_ALL;
       playerStatus = playerStatus & M1_OFF;
       if (!LED_LIGHTS_IO) {
         // In not setting front panel LED, pause identifies loop status change.
@@ -1110,7 +1116,7 @@ void playerSwitch(int resultsValue) {
       if (programState == PLAYER_RUN) {
         Serial.print(F("+ Set mode to playing of all MP3 files."));
       }
-      playMode = PLAY_ALL;
+      playMode = playModeLoop;  // Based on loop playing mode.
       break;
     // ----------------------------------------------------------------------
     case 'h':
