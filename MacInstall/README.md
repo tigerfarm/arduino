@@ -15,13 +15,13 @@ I mostly use Arduino clone boards(USB CH340).
 CP2102 USB 2.0 to TTL UART Module 6Pin Serial Converter STC FT232 26.5mm*15.6mm
 + Download driver:https://www.silabs.com/community/interface/knowledge-base.entry.html/2017/01/10/legacy_os_softwarea-bgvU
 + http://www.silabs.com/Support%20Documents/Software/Mac_OSX_VCP_Driver_10_6.zip
-+ I unzipped it and renamed it: CP2102-MacSerialDriver.dmg.
++ I unzipped it and renamed it: CP2102-MacSerialDriver.dmg, and ran it.
++ Installed a file: /Users/dave/Projects/arduino/MacInstall/CP2102-MacSerialDriver.dmg
 
 After installing, requires a reboot.
 
 Note for Windows,
 CH CH340G Drivers for Windows 7/8/8.1
-
 http://www.arduined.eu/ch340g-converter-windows-7-driver-download/
 
 --------------------------------------------------------------------------------
@@ -31,12 +31,13 @@ How to steps from:
 https://medium.com/@thuc/connect-arduino-nano-with-mac-osx-f922a46c0a5d
 
 1. Download the driver from url: https://github.com/ledongthuc/example/blob/master/file/CH34x_Install_V1.3.zip
-2. Extract and install file CH34x_Install.pkg
-
+2. Extract and install file CH34x_Install.pkg. On the new MacBook, I ran the pkg file to install the driver.
 3. Run the command: sudo nvram boot-args="kext-dev-mode=1"
 + You need to be booted to Recovery to change
 
-To use Recovery Mode, reboot or start your Mac and hold the Command and R keys simultaneously on your keyboard as soon as you hear the familiar startup chime. Keep holding as your Mac boots, which may take a few moments depending on its specific configuration. You can let go of the keys when you see a screen similar to the screenshot below.
+To use Recovery Mode, reboot or start your Mac and hold the Command and R keys simultaneously on your keyboard as soon as you hear the familiar startup chime.
+Keep holding as your Mac boots, which may take a few moments depending on its specific configuration. 
+You can let go of the keys when you see a screen similar to the screenshot below.
 
 Check the files in /dev/ with start name “tty*”, if you see /dev/tty.wch ch341 USB=>RS232 1420, it is correct.
 

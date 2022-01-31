@@ -2387,6 +2387,7 @@ void setup() {
     hwStatus = hwStatus & CL_OFF;
   } else {
     ledFlashSuccess();
+    Serial.println();
   }
   delay(300);
 

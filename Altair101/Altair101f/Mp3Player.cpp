@@ -419,11 +419,11 @@ boolean setupMp3Player() {
   }
 #endif
   // ---------------------------------------------------------------------------
+  mp3playerDevice.setTimeOut(60);               // Set serial communications time out.
   delay(300);
-  NOT_PLAY_SOUND = false;                 // Set to play sound effects.
+  NOT_PLAY_SOUND = false;                       // Set to play sound effects.
   mp3playerDevice.volume(PLAYER_VOLUME_SETUP);  // Set speaker volume from 0 to 30.
   delay(100);
-  mp3playerDevice.setTimeOut(60);               // Set serial communications time out.
   //
   // DFPLAYER_DEVICE_SD DFPLAYER_DEVICE_U_DISK DFPLAYER_DEVICE_AUX DFPLAYER_DEVICE_FLASH DFPLAYER_DEVICE_SLEEP
   mp3playerDevice.outputDevice(DFPLAYER_DEVICE_SD);
@@ -993,10 +993,10 @@ void playerSwitch(int resultsValue) {
     case 0x38BF129B:                        // Toshiba VCR remote
     case 0x789B639F:                        // After pressing TV
     case 0xFF22DD:                          // Small remote
-    case '4':                               // Over wrote above, for usage on the virtualfront panel.
+    case 'P':                               // Over wrote above, for usage on the virtualfront panel.
       playerEq = DFPLAYER_EQ_POP;
       if (programState == PLAYER_RUN) {
-        Serial.print(F("+ Key 4: "));
+        Serial.print(F("+ Key P, infared 4: "));
         Serial.print(F("DFPLAYER_EQ_POP"));
       }
       mp3playerDevice.EQ(playerEq);
@@ -1004,10 +1004,10 @@ void playerSwitch(int resultsValue) {
     case 0x926C6A9F:                        // Toshiba VCR remote
     case 0xD248BBA3:                        // After pressing TV
     case 0xFF02FD:
-    case '5':                               // Over wrote above, for usage on the virtualfront panel.
+    case 'C':                               // Over wrote above, for usage on the virtualfront panel.
       playerEq = DFPLAYER_EQ_CLASSIC;
       if (programState == PLAYER_RUN) {
-        Serial.print(F("+ Key 5: "));
+        Serial.print(F("+ Key  C, infared 5: "));
         Serial.print(F("DFPLAYER_EQ_CLASSIC"));
       }
       mp3playerDevice.EQ(playerEq);
@@ -1015,10 +1015,10 @@ void playerSwitch(int resultsValue) {
     case 0xE66C5C37:                        // Toshiba VCR remote
     case 0x2648AD3B:                        // After pressing TV
     case 0xFFC23D:
-    case '6':                               // Over wrote above, for usage on the virtualfront panel.
+    case 'N':                               // Over wrote above, for usage on the virtualfront panel.
       playerEq = DFPLAYER_EQ_NORMAL;
       if (programState == PLAYER_RUN) {
-        Serial.print(F("+ Key 6: "));
+        Serial.print(F("+ Key  N, infared 6: "));
         Serial.print(F("DFPLAYER_EQ_NORMAL"));
       }
       mp3playerDevice.EQ(playerEq);
@@ -1026,10 +1026,10 @@ void playerSwitch(int resultsValue) {
     case 0xD75196BB:                        // Toshiba VCR remote
     case 0x172DE7BF:                        // After pressing TV
     case 0xFFE01F:
-    case '7':                               // Over wrote above, for usage on the virtualfront panel.
+    case 'J':                               // Over wrote above, for usage on the virtualfront panel.
       playerEq = DFPLAYER_EQ_JAZZ;
       if (programState == PLAYER_RUN) {
-        Serial.print(F("+ Key 7: "));
+        Serial.print(F("+ Key  J, infared 7: "));
         Serial.print(F("DFPLAYER_EQ_JAZZ"));
       }
       mp3playerDevice.EQ(playerEq);
@@ -1037,10 +1037,10 @@ void playerSwitch(int resultsValue) {
     case 0x72FD3AFB:                        // Toshiba VCR remote
     case 0xB2D98BFF:                        // After pressing TV
     case 0xFFA857:
-    case '8':
+    case 'K':
       playerEq = DFPLAYER_EQ_ROCK;
       if (programState == PLAYER_RUN) {
-        Serial.print(F("+ Key 8: "));
+        Serial.print(F("+ Key P, infared 8: "));
         Serial.print(F("DFPLAYER_EQ_ROCK"));
       }
       mp3playerDevice.EQ(playerEq);
@@ -1048,10 +1048,10 @@ void playerSwitch(int resultsValue) {
     case 0xCCAA92FF:                        // Toshiba VCR remote
     case 0xC86E403:                         // After pressing TV
     case 0xFF906F:
-    case '9':
+    case 'S':
       playerEq = DFPLAYER_EQ_BASS;
       if (programState == PLAYER_RUN) {
-        Serial.print(F("+ Key 9: "));
+        Serial.print(F("+ Key S, infared 9: "));
         Serial.print(F("DFPLAYER_EQ_BASS"));
       }
       mp3playerDevice.EQ(playerEq);
@@ -1128,11 +1128,11 @@ void playerSwitch(int resultsValue) {
       Serial.println(F("+ e/E, Single/All Play only a single once/Play all MP3 files in a loop."));
       Serial.println(F("+ l/L, Loop       Disable/Enable looping of the current MP3."));
       Serial.println(F("+ v/V, Volume     Down/Up volume level."));
-      Serial.println(F("+ I, Information  Program variables and hardward values."));
+      Serial.println(F("+ I, Information  Program variables and hardward values. Restarts the song."));
       Serial.println(F("+ i, Info MP3#    Print current MP3 counter. Current MP3 being played."));
       Serial.println(F("--- Equalizer options:"));
-      Serial.println(F("+ 4 POP   5 CLASSIC  6 NORMAL"));
-      Serial.println(F("+ 7 ROCK  8 JAZZ     9 BASS"));
+      Serial.println(F("+ 4/P POP   5/C CLASSIC  6/N NORMAL"));
+      Serial.println(F("+ 7/K ROCK  8/J JAZZ     9/S BASS"));
       Serial.println(F("------------------"));
       Serial.println(F("+ t/T VT100 panel Disable/enable VT100 virtual front panel."));
       Serial.println(F("+ Ctrl+L          Clear screen."));
@@ -1146,11 +1146,13 @@ void playerSwitch(int resultsValue) {
         Serial.println(F("+ Player CLEAR/RESET, play first song."));
       }
       mp3playerDevice.stop();                     // Required.
-      delay(100);
+      delay(200);
       setupMp3Player();                           // Sets playerCounter = 1, and other default settings;
       delay(200);
       mp3playerPlayCounter(playerCounter);
-      mp3playerDevice.stop();
+      delay(200);
+      mp3playerDevice.pause();
+      // mp3playerDevice.stop();                  // Test removing this "stop".
       break;
     case 'i':
       if (programState == PLAYER_RUN) {

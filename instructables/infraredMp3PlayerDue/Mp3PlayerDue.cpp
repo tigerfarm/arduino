@@ -211,7 +211,9 @@ void ledFlashSuccess() {}
 // -----------------------------------------------------------------------
 // Infrared Receiver
 
-// For Arduino Due, use the IRremote2 library.
+// For Arduino Due,
+//  use the IRremote2 library: https://github.com/enternoescape/Arduino-IRremote-Due
+//  Unzip into: /Users/.../Documents/Arduino
 // For Arduino Uno, Nano, or Mega, use the IRremote library.
 #include <IRremote2.h>
 
@@ -349,7 +351,7 @@ void printPlayerInfo() {
   for (int i = 7; i >= 0; i--) {
     Serial.print(bitRead(playerStatus, i));  // Print as a binary number.
   }
-+ Key Volume   Serial.println(F(" HLTA is bit 4, ON example: B00001000."));
+  Serial.println(F(" HLTA is bit 4, ON example: B00001000."));
   // -----------------
   Serial.print(F("++ playerStatus, HLTA:    "));
   if (playerStatus & HLTA_ON) {
