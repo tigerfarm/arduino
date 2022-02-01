@@ -1588,15 +1588,26 @@ void processWaitSwitch(byte readByte) {
   //
   int data = readByte;  // Use int.
   if ( data >= '0' && data <= '9' ) {
+    // stacy
     // Serial input, not hardware input.
     fpAddressToggleWord = fpAddressToggleWord ^ (1 << (data - '0'));
     printFrontPanel();
+    Serial.print(F("+ Toggles set to: "));
+    printByte(highByte(fpAddressToggleWord));
+    Serial.print(F(":"));
+    printByte(lowByte(fpAddressToggleWord));
+    Serial.println();
     return;
   }
   if ( data >= 'a' && data <= 'f' ) {
     // Serial input, not hardware input.
     fpAddressToggleWord = fpAddressToggleWord ^ (1 << (data - 'a' + 10));
     printFrontPanel();
+    Serial.print(F("+ Toggles set to: "));
+    printByte(highByte(fpAddressToggleWord));
+    Serial.print(F(":"));
+    printByte(lowByte(fpAddressToggleWord));
+    Serial.println();
     return;
   }
   // -------------------------------
@@ -1638,35 +1649,47 @@ void processWaitSwitch(byte readByte) {
       printFrontPanel();
       break;
     case 'x':
-      Serial.print(F("+ x, EXAMINE: "));
+      Serial.print(F("+ x, EXAMINE address: "));
       regPC = fpAddressToggleWord;
-      Serial.println(regPC);
+      Serial.print(regPC);
       setAddressData(regPC, MREAD(regPC));
       printFrontPanel();
+      Serial.print(F(", data value: "));
+      Serial.print(MREAD(regPC));
+      Serial.println();
       break;
     case 'X':
-      Serial.print(F("+ X, EXAMINE NEXT: "));
+      Serial.print(F("+ X, EXAMINE NEXT, address: "));
       // Example, lights: A3 & A2 = 12
       // ?- + X, EXAMINE NEXT: 14
       regPC = regPC + 1;
-      Serial.println(regPC);
+      Serial.print(regPC);
       setAddressData(regPC, MREAD(regPC));
-      printFrontPanel();  // <LF> will refresh the display.
+      printFrontPanel();
+      Serial.print(F(", data value: "));
+      Serial.print(MREAD(regPC));
+      Serial.println();
       break;
     case 'p':
-      Serial.print(F("+ p, DEPOSIT to: "));
-      Serial.println(regPC);
+      Serial.print(F("+ p, DEPOSIT into address: "));
+      Serial.print(regPC);
       MWRITE(regPC, fpAddressToggleWord & 0xff);
       setAddressData(regPC, MREAD(regPC));
       printFrontPanel();  // <LF> will refresh the display.
+      Serial.print(F(", data value: "));
+      Serial.print(MREAD(regPC));
+      Serial.println();
       break;
     case 'P':
-      Serial.print(F("+ P, DEPOSIT NEXT to: "));
+      Serial.print(F("+ P, DEPOSIT NEXT, deposit into address: "));
       regPC++;
-      Serial.println(regPC);
+      Serial.print(regPC);
       MWRITE(regPC, fpAddressToggleWord & 0xff);
       setAddressData(regPC, MREAD(regPC));
       printFrontPanel();  // <LF> will refresh the display.
+      Serial.print(F(", data value: "));
+      Serial.print(MREAD(regPC));
+      Serial.println();
       break;
     case 'R':
       Serial.println(F("+ R, RESET."));
@@ -1884,9 +1907,9 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("+ r, RUN mode     When in WAIT mode, change to RUN mode."));
       Serial.println(F("+ s, SINGLE STEP  When in WAIT mode, SINGLE STEP."));
       Serial.println(F("+ x, EXAMINE      Address of the address switches."));
-      Serial.println(F("+ X, EXAMINE NEXT Next address, current address + 1."));
+      Serial.println(F("+ X, EXAMINE NEXT Next address, set current address to address + 1."));
       Serial.println(F("+ p, DEPOSIT      Deposit into current address."));
-      Serial.println(F("+ P, DEPOSIT NEXT Deposit into current address + 1."));
+      Serial.println(F("+ P, DEPOSIT NEXT Set current address to address + 1 and deposit into this address."));
       Serial.println(F("+ R, RESET        Set program counter address to zero."));
       Serial.println(F("+ C, CLR          Clear memory, set registers and program counter address to zero."));
       Serial.println(F("-------------"));

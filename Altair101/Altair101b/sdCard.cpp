@@ -429,6 +429,15 @@ void getFilename() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void editDeleteLine(int deleteLineNumber) {
+  // Need to fix format, from:
+  // 004:   Toggle key 8, a, and x. Byte address: 1280.
+  // (Start delete of this line)005: line 1(end delete this line)
+  // 006: line2
+  // --- to ---
+  // 004:   Toggle key 8, a, and x. Byte address: 1280.
+  // 005: (Start delete of this line)line 1(end delete this line)
+  // 005: line2
+  //
   iFileBytes = getMemoryByteCount();
   if (iFileBytes == 0) {
     Serial.println(F("+ Nothing to edit. Memory bytes are all zero."));
@@ -459,6 +468,13 @@ void editDeleteLine(int deleteLineNumber) {
       startDelete++;
     }
     if (memoryData == 10) {
+      if (lineCounter < 10) {
+        Serial.print(F("00"));
+      } else if (i < 100) {
+        Serial.print(F("0"));
+      }
+      Serial.print(lineCounter);
+      Serial.print(F(": "));
       if (deleteLineNumber == lineCounter) {
         Serial.print(F("(end delete this line)"));
         endDelete = i;
@@ -470,13 +486,6 @@ void editDeleteLine(int deleteLineNumber) {
         Serial.print(F("(Start delete of this line)"));
         startDelete = i + 1;
       }
-      if (lineCounter < 10) {
-        Serial.print(F("00"));
-      } else if (i < 100) {
-        Serial.print(F("0"));
-      }
-      Serial.print(lineCounter);
-      Serial.print(F(": "));
     }
   }
   if (deleteLineNumber == lineCounter) {
@@ -514,6 +523,7 @@ void putString(String theString, int theOffset) {
       backslash = true;
       // backslash is never printed.
     } else if (backslash && memoryData == 'n') {
+      // Line feed, newline: "\n".
       backslash = false;
       // Handle newline character.
       iFileBytes++;
@@ -729,10 +739,10 @@ void editFile() {
       Serial.println(F("+ a <string>          Add the string to the end of the memory."));
       Serial.println(F("+ d <line#>           Delete line number."));
       Serial.println(F("+ i <line#> <string>  Insert string at line number location."));
-      Serial.println(F("+ l, List memory      List memory to screen."));
-      Serial.println(F("+ w, Write            Write edited memory to file."));
+      Serial.println(F("+ l, List memory      List file memory to screen."));
+      Serial.println(F("+ w, Write            Write edited file memory to file(filename)."));
       Serial.println(F("------------------"));
-      Serial.println(F("Note, when inserting a new line, add '\\n' to add the LF character."));
+      Serial.println(F("Note, use '\\n' to insert a new line character(line feed)."));
       Serial.println(F("------------------"));
       Serial.println(F("+ Ctrl+L              Clear screen."));
       Serial.println(F("+ X, Exit             Exit the Editor."));
@@ -863,7 +873,7 @@ void sdCardSwitch(int resultsValue) {
       writeFileByte("aByte.bin", 'b');
       break;
     case 'e':
-      Serial.println(F("+ Edit file."));
+      Serial.println(F("+ Edit file memory."));
       editFile();
       break;
     case 'I':
@@ -887,15 +897,22 @@ void sdCardSwitch(int resultsValue) {
       Serial.println(F("------------------"));
       Serial.println(F("+ f, Filename       Enter a filename for processing."));
       Serial.println(F("+ i, Information    File information for the entered filename."));
-      Serial.println(F("+ r, Read file      Read the file into memory."));
+      Serial.println(F("+ r, Read file      Read the file(filename) into memory."));
       Serial.println(F("+ l, List memory    List memory to screen."));
-      Serial.println(F("+ w, Write file     Write memory array to file."));
+      Serial.println(F("+ w, Write file     Write memory array to file(filename)."));
       Serial.println(F("+ e, Edit           Edit file memory."));
-      Serial.println(F("+ d, Delete         Delete the file from the SD card."));
-      Serial.println(F("+ R/W, Read/Write   A byte from/to a file."));
+      Serial.println(F("+ d, Delete         Delete the file(filename) from the SD card."));
+      Serial.println(F("+ R/W, Read/Write   Read or write a single byte from/to a file(filename)."));
       Serial.println(F("+ I, Initialize     Initialize sd card module."));
       Serial.println(F("------------------"));
       Serial.println(F("+ C, Clear memory   Set memory array to zero, and file byte counter to zero."));
+      Serial.println(F("------------------"));
+      Serial.println(F("Steps to copy a file."));
+      Serial.println(F("+ f : Enter a filename."));
+      Serial.println(F("+ r : Read file bytes into file memory."));
+      Serial.println(F("+ l : Optional, list file memory bytes to screen."));
+      Serial.println(F("+ f : Enter a filename."));
+      Serial.println(F("+ w : Write file memory bytes into the file(filename)."));
       Serial.println(F("------------------"));
       Serial.println(F("+ Ctrl+L          Clear screen."));
       Serial.println(F("+ X, Exit         Return to program WAIT mode."));
