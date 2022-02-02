@@ -1967,16 +1967,20 @@ void processWaitSwitch(byte readByte) {
       programState = PLAYER_RUN;
       break;
     case 'g':
-      playerSwitch('s');  // Stop play
-      break;
+      playerSwitch('s');
+      Serial.println(F("+ Stop play of MP3."));
+    break;
     case 'G':
-      playerSwitch('r');  // Start/run play
+      playerSwitch('r');
+      Serial.println(F("+ Start/run play of MP3."));
       break;
     case 'v':
-      playerSwitch('v');  // Volume down.
+      playerSwitch('v');
+      Serial.println(F("+ Player volume down."));
       break;
     case 'V':
-      playerSwitch('V');  // Volume up.
+      playerSwitch('V');
+      Serial.println(F("+ Player volume up."));
       break;
     // -------------------------------------
     case 'F':

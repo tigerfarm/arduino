@@ -97,7 +97,7 @@
 // -----------------------------------------------------------------------------
 String thePrompt = "CLOCK ?- ";           // Default.
 String clockPrompt = "CLOCK ?- ";
-String clockSetPrompt = "Clock SET ?- ";
+String clockSetPrompt = "Clock SET-TIME ?- ";
 String clockTimerPrompt = "Clock TIMER ?- ";
 String clockTimerRunPrompt = "Clock TIMER RUN ?- ";
 
@@ -173,7 +173,7 @@ void clockLights(byte theMinute, byte theHour) {
     minutesOnes = theMinute - theMinutesTens * 10;   // minutesOnes = 32 - 30 = 2.
     // Convert the tens to show as:
     //  OUT=5 HLTA=4 STACK=3 WO=2 INT=1
-    bitWrite(minutesTens, theMinutesTens-1, 1);
+    bitWrite(minutesTens, theMinutesTens - 1, 1);
   }
   if (amTime) {
     // 12:00 AM, midnight
@@ -644,10 +644,10 @@ void clockSetSwitch(int resultsValue) {
     // ----------------------------------------------------------------------
     case 'r':
       Serial.println();
-      Serial.print(F("+ Current "));
+      Serial.print(F("+ Current time: "));
       printClockDateTime();
       Serial.println();
-      Serial.print(F("+ Set     "));
+      Serial.print(F("+ Set-time:     "));
       printSetClockDateTime();
       Serial.println();
       break;
@@ -723,19 +723,19 @@ void clockSetSwitch(int resultsValue) {
       Serial.println(F("----------------------------------------------------"));
       Serial.println(F("+++ SET Clock Time"));
       Serial.println(F("-------------"));
-      Serial.println(F("+ x, EXAMINE      Rotate through the clock values that can be set."));
+      Serial.println(F("+ x, EXAMINE      Rotate through the clock values that can be set(set-time )."));
       Serial.println(F("                  Rotate order: seconds to year."));
-      Serial.println(F("+ X, EXAMINE NEXT Rotate through the clock values that can be set."));
+      Serial.println(F("+ X, EXAMINE NEXT Rotate through the clock values that can be set(set-time )."));
       Serial.println(F("                  Rotate order: year to seconds."));
-      Serial.println(F("+ S, Set UP       Increment date or time value."));
-      Serial.println(F("+ s, Set Down     Decrement date or time value."));
+      Serial.println(F("+ S, Set UP       Increment date or time set-time value."));
+      Serial.println(F("+ s, Set Down     Decrement date or time set-time value."));
       Serial.println(F("-------------"));
-      Serial.println(F("+ r, RUN          CLOCK mode: show date and time."));
-      Serial.println(F("                  Clock SET mode: show date and time, and the set data and time value."));
-      Serial.println(F("+ p, DEPOSIT      Set the time based on the clock SET values."));
-      Serial.println(F("+ R, RESET        Toggle between clock SET mode to CLOCK mode."));
-      Serial.println(F("                  Reset the clock SET values when taggling into clock SET mode."));
-      Serial.println(F("                  Doesn't set/change the time."));
+      Serial.println(F("+ r, RUN          CLOCK mode:     show date and time for current time."));
+      Serial.println(F("                  Clock SET mode: show date and time for current time and set-time."));
+      Serial.println(F("+ p, DEPOSIT      Set the time(current time) using the clock SET values(set-time)."));
+      Serial.println(F("+ R, RESET        Toggle between clock SET mode(set-time) to CLOCK mode(current time)."));
+      Serial.println(F("                  Reset the clock SET values(set-time) when toggling into clock SET mode."));
+      Serial.println(F("                  Doesn't set/change the current time."));
       Serial.println(F("-------------"));
       Serial.println(F("+ Ctrl+L          Clear screen."));
       Serial.println(F("----------------------------------------------------"));
@@ -825,8 +825,8 @@ void clockSwitch(int resultsValue) {
       Serial.println(F("----------------------------------------------------"));
       Serial.println(F("+++ Real Time Clock Controls"));
       Serial.println(F("--------------------------"));
-      Serial.println(F("+ r, RUN time     Show date and time."));
-      Serial.println(F("+ R, RESET        Toggle between clock SET mode to CLOCK view mode."));
+      Serial.println(F("+ r, RUN time     Show date and time for the current time."));
+      Serial.println(F("+ R, RESET        Toggle between clock SET mode(set-time) to CLOCK view mode(current time)."));
       Serial.println(F("+ M, TIMER        Switch to CLOCK TIMER mode."));
       Serial.println(F("--------------------------"));
       Serial.println(F("+ t/T VT100 panel Disable/enable VT100 virtual front panel."));
@@ -916,7 +916,7 @@ int getMinuteValue(unsigned int theWord) {
 }
 
 void clockSetTimer(int setMinutes) {
-  //
+  // stacy
   // Set parameters before starting the timer.
   //    timerMinutes is the amount of minutes to be timed.
   //
@@ -991,11 +991,33 @@ void clockTimerSwitch(int resultsValue) {
       break;
     // ----------------------------------------------------------------------
     case 'r':
-      Serial.print(F("+ RUN Clock TIMER."));
+      Serial.println(F("+ RUN Clock TIMER."));
       rtClockState = RTCLOCK_TIMER_RUN;
       break;
     case 's':
       rtClockState = RTCLOCK_RUN;
+      break;
+    // ----------------------------------------------------------------------
+    case 'p':
+      Serial.print(F("+ Set timer mintues using the data toggles: 0-7."));
+      timerMinutes = lowByte(fpAddressToggleWord);
+      Serial.print(F(" Set timer minutes to: "));
+      Serial.print(timerMinutes);
+      Serial.println();
+      clockTimerSwitchSet(timerMinutes);
+      clockTimerCount = 0;
+      break;
+    case 'x':
+      Serial.print(F("+ Toggles currently set to (sense:data) "));
+      printByte(highByte(fpAddressToggleWord));
+      Serial.print(F(":"));
+      printByte(lowByte(fpAddressToggleWord));
+      Serial.println();
+      break;
+    case 'X':
+      Serial.print(F("+ Timer minutes are set to: "));
+      Serial.print(timerMinutes);
+      Serial.println();
       break;
     case 'R':
       Serial.print(F("+ Re-run the timer using the same amount of mintues: "));
@@ -1013,6 +1035,9 @@ void clockTimerSwitch(int resultsValue) {
     case 'M':
       // Serial.println(F("+ AUX2 up, Return to CLOCK mode."));
       rtClockState = RTCLOCK_RUN;
+      thePrompt = clockPrompt;
+      Serial.println();
+      Serial.print(thePrompt);
       break;
     // ----------------------------------------------------------------------
     case 'h':
@@ -1020,13 +1045,16 @@ void clockTimerSwitch(int resultsValue) {
       Serial.println(F("----------------------------------------------------"));
       Serial.println(F("+++ Clock TIMER"));
       Serial.println(F("-------------"));
-      Serial.println(F("+ r, RUN          Run timer."));
-      Serial.println(F("+ s, STOP         Stop/pause timer."));
-      Serial.println(F("+    EXAMINE      Set the timer minutes using the front panel hardware toggle switches."));
-      Serial.println(F("+ 0...9,a...f     Set the timer minutes using the keyboard 0...9, a...f which is 0...15."));
-      Serial.println(F("+ R, RESET        Re-run the timer using the same amount of mintues."));
-      Serial.println(F("+ C, CLR          Clear, set the timer mintues to 0."));
-      Serial.println(F("+ M, CLOCK        Return to CLOCK mode."));
+      Serial.println(F("+ r, RUN           Run timer."));
+      Serial.println(F("+ s, STOP          Stop/pause timer."));
+      Serial.println(F("+ x, EXAMINE       View the toggle values."));
+      Serial.println(F("+ X, EXAMINE time  Say the value of timer mintues."));
+      Serial.println(F("+ p, DEPOSIT       Deposit the data toggles byte into the timer minutes. Max timer minutes is 255."));
+      Serial.println(F("+ 0...9,a...f      Set the timer minutes using the keyboard 0...9, a...f which is 0...15."));
+      Serial.println(F("                   This also toggles the virtual front panel toggles."));
+      Serial.println(F("+ R, RESET         Re-run the timer using the same amount of mintues."));
+      Serial.println(F("+ C, CLR           Clear, set the timer mintues to 0."));
+      Serial.println(F("+ M, CLOCK         Return to CLOCK mode."));
       Serial.println(F("-------------"));
       Serial.println(F("+ Ctrl+L          Clear screen."));
       Serial.println(F("----------------------------------------------------"));
@@ -1071,6 +1099,7 @@ void clockTimerRunSwitch(int resultsValue) {
       clockTimerAddress = bitWrite(clockTimerAddress, clockTimerCount, 1);
       clockTimerAddress = bitWrite(clockTimerAddress, timerMinutes, 1);
       lightsStatusAddressData(timerStatus, clockTimerAddress, timerCounter);
+      Serial.print(thePrompt);
       break;
     case 13:
       Serial.print(F("+ Running Clock TIMER, minutes: "));
@@ -1080,6 +1109,25 @@ void clockTimerRunSwitch(int resultsValue) {
       Serial.print(F(", Current "));
       printClockDateTime();
       Serial.println();
+      Serial.print(thePrompt);
+      break;
+    case 'h':
+      Serial.println();
+      Serial.println(F("----------------------------------------------------"));
+      Serial.println(F("+++ Clock TIMER"));
+      Serial.println(F("-------------"));
+      Serial.println(F("+ s, Stop         Stop and exit the timer run."));
+      Serial.println(F("+ R, Restart      Restart the timer using the same intial amount of mintues."));
+      Serial.println(F("+ Enter key       Print timing and clock information."));
+      Serial.println(F("-------------"));
+      Serial.println(F("+ Ctrl+L          Clear screen."));
+      Serial.println(F("----------------------------------------------------"));
+      Serial.print(thePrompt);
+      break;
+    // -----------------------------------------------------------------------
+    case 12:
+      // Ctrl+L, clear screen.
+      Serial.print(F("\033[H\033[2J"));           // Cursor home and clear the screen.
       Serial.print(thePrompt);
       break;
   }
@@ -1223,12 +1271,11 @@ void rtClockTimerRun() {
   }
   Serial.print(F("+ Timer completed, Current time: "));
   printClockDateTime();
-  Serial.println();
   // ----------------------------------------------------
   //
-  thePrompt = clockPrompt;
-  Serial.println();
-  Serial.print(thePrompt);
+  // thePrompt = clockPrompt;
+  // Serial.println();
+  // Serial.print(thePrompt);
 }
 
 // -------------------------------------------------------------------------------
@@ -1269,9 +1316,9 @@ void rtClockTimer() {
     playerContinuous();   // Allow for infrared music control while in clock mode.
     delay(60);            // Delay before getting the next key press, in case press and hold too long.
   }
-  thePrompt = clockPrompt;
-  Serial.println();
-  Serial.print(thePrompt);
+  // thePrompt = clockPrompt;
+  // Serial.println();
+  // Serial.print(thePrompt);
 }
 
 // -------------------------------------------------------------------------------
