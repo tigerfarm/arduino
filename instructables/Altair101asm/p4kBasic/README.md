@@ -9,6 +9,8 @@ After a few updates to Altair101a.ino, the binary ran.
 
 Download [link](https://github.com/option8/Altair-BASIC).
 
+[BASIC Manual 75.pdf](https://altairclone.com/downloads/manuals/)
+
 Upload from assembler using:
 ````
 > set byte p4kBasic/basic4k.bin

@@ -1536,23 +1536,29 @@ void loadProgram() {
           loadBasic4k();
           Serial.print(F("+ Program loaded and ready to run: "));
           Serial.println(loadProgramName);
-          Serial.print(F("+ When the program is running, you can use the following responses to the prompts."));
-          Serial.print(F("MEMORY SIZE?  4096 ... or you can use higher value such as: 32000 for more program bytes."));
-          Serial.print(F("TERMINAL WIDTH? <enter key>"));
-          Serial.print(F("WANT SIN? N"));
-          Serial.print(F("WANT RND? N"));
-          Serial.print(F("WANT SQR? N"));
-          Serial.print(F(          
-          Serial.print(F(972 BYTES FREE"));
+          Serial.println(F("+ When the program is running, here are sample responses to the Basic prompts."));
+          Serial.print(F("MEMORY SIZE?  4096"));
+#if defined(__SAM3X8E__)
+          Serial.println(F(" ... or when using a Due,"));
+          Serial.print(F("                   use a higher value such as: 32000 for more program bytes."));
+#endif
           Serial.println();
-          Serial.print(F(BASIC VERSION 3.2"));
-          Serial.print(F([4K VERSION]"));
+          Serial.println(F("TERMINAL WIDTH? <enter key>"));
+          Serial.println(F("WANT SIN? N"));
+          Serial.println(F("WANT RND? N"));
+          Serial.println(F("WANT SQR? N"));
+          Serial.println();          
+          Serial.println(F("972 BYTES FREE"));
           Serial.println();
-          Serial.print(F(OK"));
-          Serial.print(F(PRINT "OKAY""));
-          Serial.print(F(OKAY"));
+          Serial.println(F("BASIC VERSION 3.2"));
+          Serial.println(F("[4K VERSION]"));
           Serial.println();
-          Serial.print(F(OK"));
+          Serial.println(F("OK"));
+          Serial.println(F('PRINT "OKAY"'));
+          Serial.println(F("OKAY"));
+          Serial.println();
+          Serial.println(F("OK"));
+          Serial.println(F("Link to more info: https://github.com/tigerfarm/arduino/tree/master/instructables/Altair101asm/p4kBasic"));
           break;
 #if defined(__SAM3X8E__)
         case 'g':

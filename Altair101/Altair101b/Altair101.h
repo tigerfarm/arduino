@@ -17,7 +17,7 @@
 
 #ifdef Altair101b
 #define SOFTWARE_NAME "Altair101b"
-#define SOFTWARE_VERSION "1.66.b"
+#define SOFTWARE_VERSION "1.67.b"
 #endif
 
 #ifdef Altair101f
