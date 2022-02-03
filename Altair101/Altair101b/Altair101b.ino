@@ -32,6 +32,10 @@
   ---------------------------------------------------------
   Next to work on
 
+  When using 4K Basic,
+  + Need an option to turn of watching for inputs such as "R" for RESET.
+  + Should have Ctrl+C and Ctrl+X to stop a program and exit 4K Basic.
+
   Confirm if RUN, followed by HALT, works. I.E. RUN needs to run the next instruction.
 
   Create models:

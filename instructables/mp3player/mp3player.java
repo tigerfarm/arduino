@@ -2,6 +2,10 @@
     From a directory of MP3 files, create a directory of MP3 files
         using using directory and file names that work with the DFPlayer module.
 
+    Need to add a sort because when running on my Mac laptop,
+        the directories and files are not sorted by name.
+        Note, asmOpcodes.java has a sample array sort.
+
     Program is courtesy of Tiger Farm Press.
     License: GPL.
  */
