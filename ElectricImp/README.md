@@ -178,5 +178,29 @@ Registers a function to be executed on receipt of an incoming HTTP request
 [Introduction](https://developer.electricimp.com/resources/i2c)
 [I2C](https://developer.electricimp.com/api/hardware/i2c)
 
+````
+Docs for "http"
+https://developer.electricimp.com/api/http
+Docs for "http post"
+https://developer.electricimp.com/api/http/post
+Sample:
+The headers can be any supported by HTTP, for instance:
+{ "Content-Type" : "text/xml" }
+
+
+Following is suggested code. Note, I have not tested it.
+You'll need to replace "AC123...89" and "twilio_account_authtoken", with your own Twilio account SID and auth token.
+
+function NewAlert(TextMessage) {
+   local twilio_account_sid = "AC123...89";
+   local url = "https://api.twilio.com/2010-04-01/Accounts/"+twilio_account_sid+"/Messages.json";
+   local Body = "To=" + recipientsNumber + "&Body=" + TextMessage + "&From=" + twilioNumber;
+   local userpassword = "Basic " + http.base64decode(twilio_account_sid + ":" + "twilio_account_authtoken");
+   local request = http.post(url, {"Authorization" : userpassword}, Body);
+   request.sendasync(processSmsResponse);
+}
+
+````
+
 --------------------------------------------------------------------------------
 Cheers

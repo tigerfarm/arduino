@@ -151,12 +151,12 @@ inline void MEM_WRITE_WORD(uint16_t memoryAddress, uint16_t byteValue) {
 #ifdef LOG_MESSAGES
   Serial.println(F("+ MEM_WRITE_WORD, memoryAddress:"));
   Serial.print(memoryAddress);
-  Serial.println(F(" byteValue:");
-                 Serial.println(byteValue);
+  Serial.println(F(" byteValue:"));
+  Serial.println(byteValue);
 #endif
-                 MEM_WRITE_STEP(memoryAddress, byteValue & 255);
-                 memoryAddress++;
-                 MEM_WRITE_STEP(memoryAddress, byteValue / 256);
+  MEM_WRITE_STEP(memoryAddress, byteValue & 255);
+  memoryAddress++;
+  MEM_WRITE_STEP(memoryAddress, byteValue / 256);
 }
 
 void MEM_WRITE_STEP(uint16_t memoryAddress, byte byteValue) {

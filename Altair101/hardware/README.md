@@ -14,7 +14,7 @@ I'm using programming emulation with enhancements
 such as EXAMINE PREVIOUS, to examine the data byte in the previous address.
 
 --------------------------------------------------------------------------------
-#### Arduino Due
+#### Arduino Due and Mega
 
 USB and Power:
 ````
@@ -23,6 +23,8 @@ The USB Programming port, next to the DC connector, is for uploading sketches an
 The Native USB port can be used as a virtual serial port using the "SerialUSB" object in the Arduino programming language.
 The Native USB port has other uses as well.
 ````
+
+Mega with tech specs: https://store.arduino.cc/products/arduino-mega-2560-rev3
 
 Add Arduino Due board option to the IDE: https://www.arduino.cc/en/Guide/Cores
 ````

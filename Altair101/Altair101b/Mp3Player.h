@@ -24,6 +24,7 @@ extern int KNIGHT_RIDER_SCANNER;
 boolean setupMp3Player();
 void setPlayMode(uint8_t setTo);
 extern uint8_t playerStatus;
+extern uint8_t playerVolume;
 uint8_t getPlayMode();
 void playerSwitch(int resultsValue);
 void playerContinuous();

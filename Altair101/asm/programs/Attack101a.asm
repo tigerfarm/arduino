@@ -997,7 +997,7 @@ QOUT:
 	CALL	CMSG
 	MVI	E,200		;Set up loss of 200
 	MOV	D,H		;Units due to alien ship
-	CALL	ELOS		;Rtaliating
+	CALL	ELOS		;Retaliating
 	MVI	L,02BH		;Restore current quadrant
 	MOV	A,M		;Location
 	MVI	L,059H

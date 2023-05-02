@@ -78,6 +78,22 @@ Sending keyboard characters.
 https://www.arduino.cc/en/Tutorial/BuiltInExamples/KeyboardLogout
 
 --------------------------------------------------------------------------------
++++ ESP32
+
+ESP32 BLE Keyboard library
+https://github.com/T-vK/ESP32-BLE-Keyboard
+Steven suggested: SparkFun Thing Plus - ESP32 WROOM
+$10 HiLetgo ESP-WROOM-32 ESP32 ESP-32S Development Board 2.4GHz Dual-Mode WiFi + Bluetooth 
+Dual Cores Microcontroller Processor Integrated with Antenna RF AMP Filter AP STA for Arduino IDE
+
+After that, the boards are plug and play with the IDE after you add the board source: https://docs.espressif.com/projects/arduino-esp32/en/latest/installing.html
+Most of the ESP32 boards I’ve seen use the same CP210x chip
+as the Serial passthrough which you can just get a generic driver from the source 
+if you’re on windows: https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads
+After that, the boards are plug and play with the IDE after you add the board source: 
+https://docs.espressif.com/projects/arduino-esp32/en/latest/installing.html
+
+--------------------------------------------------------------------------------
 USB cable pin outs.
 When looking into a female USB plug, plastic block to the top, pin1 is on the left.
 + pin1, red: +5V

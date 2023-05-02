@@ -272,6 +272,19 @@ void printClockInt(int theInt) {
 }
 
 // -----------------------------------------------------------------------------
+void printClockHoursMinutesSeconds() {
+  now = rtc.now();
+  theCounterHours = now.hour();
+  theCounterMinutes = now.minute();
+  theCounterSeconds = now.second();
+  Serial.print(F(" "));
+  printClockInt(theCounterHours);
+  Serial.print(F(":"));
+  printClockInt(theCounterMinutes);
+  Serial.print(F(":"));
+  printClockInt(theCounterSeconds);
+}
+
 void printClockDate() {
   now = rtc.now();
   theCounterYear = now.year();
@@ -814,24 +827,21 @@ void clockSwitch(int resultsValue) {
       // Serial.println(F("+ AUX2 up, Switch to CLOCK TIMER mode."));
       rtClockState = RTCLOCK_TIMER;
       break;
-    // -------------
-    case 'K':
-      Serial.println(F("+ Play Knight Rider Scanner."));
-      KnightRiderScanner();
-      break;
     // ----------------------------------------------------------------------
     case 'h':
       Serial.println();
       Serial.println(F("----------------------------------------------------"));
       Serial.println(F("+++ Real Time Clock Controls"));
       Serial.println(F("--------------------------"));
-      Serial.println(F("+ r, RUN time     Show date and time for the current time."));
-      Serial.println(F("+ R, RESET        Toggle between clock SET mode(set-time) to CLOCK view mode(current time)."));
-      Serial.println(F("+ M, TIMER        Switch to CLOCK TIMER mode."));
+      Serial.println(F("+ r, RUN time      Show date and time for the current time."));
+      Serial.println(F("+ R, RESET         Toggle between clock SET mode(set-time) to CLOCK view mode(current time)."));
+      Serial.println(F("+ M, TIMER         Switch to CLOCK TIMER mode."));
       Serial.println(F("--------------------------"));
-      Serial.println(F("+ t/T VT100 panel Disable/enable VT100 virtual front panel."));
-      Serial.println(F("+ Ctrl+L          Clear screen."));
-      Serial.println(F("+ K, Scanner      Play Knight Rider Scanner."));
+      Serial.println(F("+ t/T VT100 panel  Disable/enable VT100 virtual front panel."));
+      Serial.println(F("+ Ctrl+L           Clear screen."));
+      Serial.println(F("+ v/V, Volume      Player volume down/up."));
+      Serial.println(F("+ k, Minute sound  Play minute timer sound effect."));
+      Serial.println(F("+ K, Scanner       Play Knight Rider Scanner."));
       Serial.println(F("--------------------------"));
       Serial.println(F("+ X, Exit CLOCK   Return to program WAIT mode."));
       Serial.println(F("----------------------------------------------------"));
@@ -854,6 +864,28 @@ void clockSwitch(int resultsValue) {
       initVirtualFrontPanel();
       clockLights(theCounterMinutes, theCounterHours);
       Serial.print(F("+ VT100 escapes are enabled and block cursor off."));
+      break;
+    // ----------------------------------------------------------------------
+    case 'v':
+      Serial.print(F("+ Player volume down to: "));
+      playerSwitch('v');
+      Serial.println(playerVolume);
+      break;
+    // -------------
+    case 'V':
+      Serial.print(F("+ Player volume up to: "));
+      playerSwitch('V');
+      Serial.println(playerVolume);
+      break;
+    // -------------
+    case 'k':
+      Serial.println(F("+ Play minute timer sound effect."));
+      playerSoundEffect(TIMER_MINUTE);
+      break;
+    // -------------
+    case 'K':
+      Serial.println(F("+ Play Knight Rider Scanner."));
+      KnightRiderScanner();
       break;
     // ----------------------------------------------------------------------
     case 12:
@@ -916,7 +948,6 @@ int getMinuteValue(unsigned int theWord) {
 }
 
 void clockSetTimer(int setMinutes) {
-  // stacy
   // Set parameters before starting the timer.
   //    timerMinutes is the amount of minutes to be timed.
   //
@@ -991,7 +1022,11 @@ void clockTimerSwitch(int resultsValue) {
       break;
     // ----------------------------------------------------------------------
     case 'r':
-      Serial.println(F("+ RUN Clock TIMER."));
+      Serial.print(F("+ RUN Clock TIMER. Timer is starting, will run for minutes: "));
+      Serial.print(timerMinutes);
+      Serial.print(F(", current time: "));
+      printClockTime();
+      Serial.println();
       rtClockState = RTCLOCK_TIMER_RUN;
       break;
     case 's':
@@ -1020,7 +1055,7 @@ void clockTimerSwitch(int resultsValue) {
       Serial.println();
       break;
     case 'R':
-      Serial.print(F("+ Re-run the timer using the same amount of mintues: "));
+      Serial.print(F("+ RESET the timer to use the set amount of mintues: "));
       Serial.print(timerMinutes);
       Serial.println();
       clockTimerSwitchSet(timerMinutes);
@@ -1048,11 +1083,11 @@ void clockTimerSwitch(int resultsValue) {
       Serial.println(F("+ r, RUN           Run timer."));
       Serial.println(F("+ s, STOP          Stop/pause timer."));
       Serial.println(F("+ x, EXAMINE       View the toggle values."));
-      Serial.println(F("+ X, EXAMINE time  Say the value of timer mintues."));
+      Serial.println(F("+ X, EXAMINE time  Display the set timer minutes."));
       Serial.println(F("+ p, DEPOSIT       Deposit the data toggles byte into the timer minutes. Max timer minutes is 255."));
       Serial.println(F("+ 0...9,a...f      Set the timer minutes using the keyboard 0...9, a...f which is 0...15."));
       Serial.println(F("                   This also toggles the virtual front panel toggles."));
-      Serial.println(F("+ R, RESET         Re-run the timer using the same amount of mintues."));
+      Serial.println(F("+ R, RESET         RESET the timer to use the set amount of mintues."));
       Serial.println(F("+ C, CLR           Clear, set the timer mintues to 0."));
       Serial.println(F("+ M, CLOCK         Return to CLOCK mode."));
       Serial.println(F("-------------"));
@@ -1120,9 +1155,22 @@ void clockTimerRunSwitch(int resultsValue) {
       Serial.println(F("+ R, Restart      Restart the timer using the same intial amount of mintues."));
       Serial.println(F("+ Enter key       Print timing and clock information."));
       Serial.println(F("-------------"));
+      Serial.println(F("+ v/V, Volume      Player volume down/up."));
       Serial.println(F("+ Ctrl+L          Clear screen."));
       Serial.println(F("----------------------------------------------------"));
       Serial.print(thePrompt);
+      break;
+    // -----------------------------------------------------------------------
+    case 'v':
+      Serial.print(F("+ Player volume down to: "));
+      playerSwitch('v');
+      Serial.println(playerVolume);
+      break;
+    // -------------
+    case 'V':
+      Serial.print(F("+ Player volume up to: "));
+      playerSwitch('V');
+      Serial.println(playerVolume);
       break;
     // -----------------------------------------------------------------------
     case 12:
@@ -1185,6 +1233,9 @@ boolean clockRunTimer() {
       // Play a cuckoo sound.
       playerSoundEffect(TIMER_MINUTE);
       // delay(1200);  // Delay time for the sound to play.
+      // Print the time for VT100 command line. stacy
+      printClockHoursMinutesSeconds();  // Print time. Example: "09:32:28"
+      Serial.print(F("\033[8D"));       // Move cursor back 8.   12345678
       //
     } else {
       // -----------------------------------------
@@ -1238,6 +1289,9 @@ void rtClockTimerRun() {
   */
   thePrompt = clockTimerRunPrompt;
   Serial.print(thePrompt);
+  // Print the time for VT100 command line. stacy
+  printClockHoursMinutesSeconds();  // Print time. Example: "09:32:28"
+  Serial.print(F("\033[8D"));       // Move cursor back 8.   12345678
   //
   timerStatus = timerStatus & ~HLTA_ON & ~INP_ON;
   timerStatus = timerStatus | M1_ON;  // Timer is running (M1_ON).
@@ -1316,9 +1370,6 @@ void rtClockTimer() {
     playerContinuous();   // Allow for infrared music control while in clock mode.
     delay(60);            // Delay before getting the next key press, in case press and hold too long.
   }
-  // thePrompt = clockPrompt;
-  // Serial.println();
-  // Serial.print(thePrompt);
 }
 
 // -------------------------------------------------------------------------------

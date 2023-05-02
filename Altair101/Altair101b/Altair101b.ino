@@ -32,9 +32,8 @@
   ---------------------------------------------------------
   Next to work on
 
-  When using 4K Basic,
-  + Need an option to turn of watching for inputs such as "R" for RESET.
-  + Should have Ctrl+C and Ctrl+X to stop a program and exit 4K Basic.
+  Option: sound bytes toggle on/off, default: OFF.
+  + This will allow toggling when executing programs.
 
   Confirm if RUN, followed by HALT, works. I.E. RUN needs to run the next instruction.
 
@@ -131,20 +130,24 @@
 
   ---------------------------------------------------------
   VT100 reference:
-       http://ascii-table.com/ansi-escape-sequences-vt-100.php
+       https://www2.ccs.neu.edu/research/gpc/VonaUtils/vona/terminal/vtansi.htm
+    ---
     Esc[H     Move cursor to upper left corner, example: Serial.print(F("\033[H"));
     Esc[J     Clear screen from cursor down, example: Serial.print(F("\033[J"));
     Esc[2J    Clear entire screen, example: Serial.print(F("\033[H"));
     Example:  Serial.print(F("\033[H\033[2J"));         // Move home and clear entire screen.
     Esc[K     Clear line from cursor right
+    ---
     Esc[nA    Move cursor up n lines.
     Example:  Serial.print(F("\033[3A"));  Cursor Up 3 lines.
     Esc[nB    Move cursor down n lines.
-    Example:  Serial.print(F("\033[6B"));  Cursor down 6 lines.
     Esc[nC    Move cursor right n positions.
-    Example:  Serial.print(F("\033[H\033[4B\033[2C"));  // Print on: row 4, column 2.
+    Esc[nD    Move cursor left n positions.
+    Example:  Serial.print(F("\033[H\033[4B\033[2C"));  // Set print location(row 4, column 2): set cursor home, down 4, right 2.
+    ---
     Esc[r;cH  Move cursor to a specific row(r) and column(c).
     Example:  Serial.print(F("\033[4;2H*"));            // Print on: row 4, column 2 and print "*".
+    ---
 
   Reference: printf/sprintf formats:
   http://www.cplusplus.com/reference/cstdio/printf/
@@ -1520,12 +1523,12 @@ void processRunSwitch(byte readByte) {
 
 void runProcessor() {
   Serial.println(F("+ runProcessor()"));
+  // Update this for 4K Basic, i.e. a flag to use Crtl+c/d/z instead of s/s/R.
   if (TERMINAL_VT100 && !VIRTUAL_FRONT_PANEL) {
     // Control character reference: https://en.wikipedia.org/wiki/ASCII
-    // Terminal mode: case 3: (Crtl+c) instead of case 's'.
-    // Terminal mode: case 4: (Crtl+d) instead of case 's'.
+    // Terminal mode: case 4: (Ctrl+d) instead of case 's'.
     stopByte = 4; // Use 4 because Basic 4K using 3.
-    // Terminal mode: case 26 (Crtl+z) instead of case 'R'.
+    // Terminal mode: case 26 (Ctrl+z) instead of case 'R'.
     resetByte = 26;
   } else {
     stopByte = 's';
@@ -1735,11 +1738,11 @@ void processWaitSwitch(byte readByte) {
     // -------------------------------------------------------------------
     case 'k':
       TERMINAL_VT100 = false;
-      Serial.println(F("+ Terminal output VT100 escape codes is disabled."));
+      Serial.println(F("+ Terminal output VT100 escape codes and control codes are disabled."));
       break;
     case 'K':
       TERMINAL_VT100 = true;
-      Serial.println(F("+ Terminal output VT100 escape codes is enabled. Use Crtl+d(or Crtl+c) to STOP, Crtl+Z to RESET."));
+      Serial.println(F("+ Terminal output VT100 escape codes and control codes are enabled. When running a program from command line, use Crtl+d for STOP, Crtl+z to RESET."));
       break;
     // -------------------------------------------------------------------
     case 'w':
@@ -1921,7 +1924,7 @@ void processWaitSwitch(byte readByte) {
       Serial.println(F("----------------------------------------------------"));
       Serial.println(F("+ Enter key       Refresh virtual front panel display."));
       Serial.println(F("+ t/T VT100 panel Disable/enable VT100 virtual front panel."));
-      Serial.println(F("+ k/K Terminal    Disable/enable VT100 terminal command line escape codes."));
+      Serial.println(F("+ k/K Terminal    Disable/enable VT100 terminal escape codes and command line control codes: Ctrl+d(STOP) and Ctrl+z(RESET)."));
       Serial.println(F("-------------"));
       Serial.println(F("+ l, Load sample  Load a sample program."));
       Serial.println(F("+ i, info         CPU information print of registers."));
@@ -2097,10 +2100,7 @@ void processWaitSwitch(byte readByte) {
       printVirtualFrontPanel();
       break;
     case 12:
-      // Ctrl+l is ASCII 7, which is form feed (FF).
-      // if (VIRTUAL_FRONT_PANEL || TERMINAL_VT100) {
       Serial.print(F("\033[H\033[2J"));          // Cursor home and clear the screen.
-      // }
       if (VIRTUAL_FRONT_PANEL) {
         // Refresh the front panel
         VIRTUAL_FRONT_PANEL = false;                // Insure labels are printed.
