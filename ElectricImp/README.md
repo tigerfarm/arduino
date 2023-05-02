@@ -3,6 +3,8 @@
 
 Development environment: [ImpCentral](https://impcentral.electricimp.com).
 
+Send an SMS using Twilio: [TwilioSendSms.md](TwilioSendSms.md).
+
 ### Development Plan
 
 Next:
@@ -202,7 +204,6 @@ Registers a function to be executed on receipt of an incoming HTTP request
 
 [Introduction](https://developer.electricimp.com/resources/i2c)
 [I2C](https://developer.electricimp.com/api/hardware/i2c)
-
 
 --------------------------------------------------------------------------------
 Cheers
